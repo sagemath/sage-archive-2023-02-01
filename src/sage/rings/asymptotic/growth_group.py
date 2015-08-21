@@ -1217,24 +1217,15 @@ class GenericGrowthGroup(
 
         OUTPUT:
 
-        An element of this growth group or ``None``.
-
-        .. NOTE::
-
-            This method is only implemented for concrete growth
-            group implementations.
+        An empty tuple.
 
         TESTS::
 
             sage: import sage.rings.asymptotic.growth_group as agg
             sage: agg.GenericGrowthGroup(ZZ).gens_monomial()
-            Traceback (most recent call last):
-            ...
-            NotImplementedError: Only implemented for concrete growth group
-            implementations.
+            ()
         """
-        raise NotImplementedError("Only implemented for concrete growth group"
-                                  " implementations.")
+        return tuple()
 
 
     def variable_names(self):

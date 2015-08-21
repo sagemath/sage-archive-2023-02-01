@@ -298,7 +298,7 @@ class GenericProduct(CartesianProductPosets, GenericGrowthGroup):
             sage: cartesian_product([P, L], order='lex')._repr_()
             'Growth Group x^QQ * log(x)^ZZ'
         """
-        return 'Growth Group ' + self._repr_short_()
+        return GenericGrowthGroup._repr_(self)
 
 
     def _repr_short_(self):
@@ -387,10 +387,9 @@ class GenericProduct(CartesianProductPosets, GenericGrowthGroup):
             sage: G.gens_monomial()
             (x, y)
         """
-        t = ()
-        for factor in self.cartesian_factors():
-            t = t + factor.gens_monomial()
-        return t
+        return sum(iter(factor.gens_monomial()
+                        for factor in self.cartesian_factors()),
+                   tuple())
 
 
     def variable_names(self):

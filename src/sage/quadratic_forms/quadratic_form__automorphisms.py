@@ -21,32 +21,30 @@ from sage.rings.arith import GCD
 
 
 @cached_method
-def basis_of_short_vectors(self, show_lengths=False, safe_flag=True):
+def basis_of_short_vectors(self, show_lengths=False, safe_flag=None):
     """
     Return a basis for `ZZ^n` made of vectors with minimal lengths Q(`v`).
 
-    The safe_flag allows us to select whether we want a copy of the
-    output, or the original output.  By default safe_flag = True, so
-    we return a copy of the cached information.  If this is set to
-    False, then the routine is much faster but the return values are
-    vulnerable to being corrupted by the user.
-
-    OUTPUT: a list of vectors, and optionally a list of values for
+    OUTPUT: a tuple of vectors, and optionally a tuple of values for
     each vector.
 
     EXAMPLES::
 
         sage: Q = DiagonalQuadraticForm(ZZ, [1,3,5,7])
         sage: Q.basis_of_short_vectors()
-        [(1, 0, 0, 0), (0, 1, 0, 0), (0, 0, 1, 0), (0, 0, 0, 1)]
+        ((1, 0, 0, 0), (0, 1, 0, 0), (0, 0, 1, 0), (0, 0, 0, 1))
         sage: Q.basis_of_short_vectors(True)
-        ([(1, 0, 0, 0), (0, 1, 0, 0), (0, 0, 1, 0), (0, 0, 0, 1)], [1, 3, 5, 7])
+        (((1, 0, 0, 0), (0, 1, 0, 0), (0, 0, 1, 0), (0, 0, 0, 1)), (1, 3, 5, 7))
 
     """
+    if safe_flag is not None:
+        from sage.misc.superseded import deprecation
+        deprecation(18673, "The safe_flag argument to basis_of_short_vectors() is deprecated and no longer used")
+
     ## Set an upper bound for the number of vectors to consider
     Max_number_of_vectors = 10000
 
-    ## Generate a PARI matrix string for the associated Hessian matrix
+    ## Generate a PARI matrix for the associated Hessian matrix
     M_pari = self._pari_()
 
     ## Run through all possible minimal lengths to find a spanning set of vectors
@@ -83,11 +81,11 @@ def basis_of_short_vectors(self, show_lengths=False, safe_flag=True):
 
     ## Determine a basis of vectors of minimal length
     pivots = sorted_matrix.pivots()
-    basis = [sorted_matrix.column(i) for i in pivots]
-    pivot_lengths = [self(v) for v in basis]
+    basis = tuple(sorted_matrix.column(i) for i in pivots)
 
     ## Return the appropriate result
     if show_lengths:
+        pivot_lengths = tuple(self(v) for v in basis)
         return basis, pivot_lengths
     else:
         return basis

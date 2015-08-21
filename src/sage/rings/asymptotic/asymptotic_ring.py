@@ -474,7 +474,7 @@ class AsymptoticExpression(sage.rings.ring_element.RingElement):
             return False
         pairs = zip(self.summands.elements_topological(),
                     other.summands.elements_topological())
-        return all(p[0].is_same_term(p[1]) for p in pairs)
+        return all(p[0].is_same(p[1]) for p in pairs)
 
 
     def _simplify_(self):

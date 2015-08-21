@@ -600,9 +600,9 @@ class GenericTerm(sage.structure.element.MonoidElement):
         return self.growth <= other.growth
 
 
-    def is_same_term(self, other):
+    def is_same(self, other):
         r"""
-        Return if this :class:`ExactTerm` is the same as ``other``.
+        Return if this asymptotic term is the same as ``other``.
 
         INPUT:
 
@@ -624,16 +624,16 @@ class GenericTerm(sage.structure.element.MonoidElement):
         from sage.structure.element import have_same_parent
 
         if have_same_parent(self, other):
-            return self._is_same_term_(other)
+            return self._is_same_(other)
 
         from sage.structure.element import get_coercion_model
 
         return get_coercion_model().bin_op(self, other,
                                            lambda self, other:
-                                           self._is_same_term_(other))
+                                           self._is_same_(other))
 
 
-    def _is_same_term_(self, other):
+    def _is_same_(self, other):
         r"""
         Return if this asymptotic term is the same as ``other``.
 
@@ -659,7 +659,7 @@ class GenericTerm(sage.structure.element.MonoidElement):
             sage: from sage.rings.asymptotic.term_monoid import GenericTermMonoid
             sage: T = GenericTermMonoid(GrowthGroup('x^ZZ'))
             sage: t = T.an_element()
-            sage: t.is_same_term(t)
+            sage: t.is_same(t)
             Traceback (most recent call last):
             ...
             NotImplementedError: Only implemented in concrete realizations.
@@ -1125,7 +1125,7 @@ class OTerm(GenericTerm):
         return self
 
 
-    def _is_same_term_(self, other):
+    def _is_same_(self, other):
         r"""
         Return if this :class:`OTerm` is the same as ``other``.
 
@@ -1150,9 +1150,9 @@ class OTerm(GenericTerm):
             sage: OT = OTermMonoid(GrowthGroup('x^ZZ'))
             sage: t = OT.an_element(); t
             O(x)
-            sage: t.is_same_term(OT(x))
+            sage: t.is_same(OT(x))  # indirect doctest
             True
-            sage: t.is_same_term(OT(x^2))
+            sage: t.is_same(OT(x^2))  # indirect doctest
             False
         """
         return self.growth == other.growth
@@ -1466,7 +1466,7 @@ class TermWithCoefficient(GenericTerm):
             return super(TermWithCoefficient, self)._le_(other)
 
 
-    def _is_same_term_(self, other):
+    def _is_same_(self, other):
         r"""
         Return if this :class:`TermWithCoefficient` is the same as
         ``other``.
@@ -1492,11 +1492,11 @@ class TermWithCoefficient(GenericTerm):
             sage: T = TermWithCoefficientMonoid(GrowthGroup('x^ZZ'), ZZ)
             sage: t = T.an_element(); t
             Asymptotic Term with coefficient 1 and growth x
-            sage: t.is_same_term(T(x, 1))
+            sage: t.is_same(T(x, 1))
             True
-            sage: t.is_same_term(T(x, 2))
+            sage: t.is_same(T(x, 2))
             False
-            sage: t.is_same_term(T(x^2, 1))
+            sage: t.is_same(T(x^2, 1))
             False
         """
         return self.growth == other.growth and self.coefficient == other.coefficient

@@ -1468,6 +1468,43 @@ class TermWithCoefficient(GenericTerm):
             return super(TermWithCoefficient, self)._le_(other)
 
 
+    def _is_same_term_(self, other):
+        r"""
+        Return if this :class:`TermWithCoefficient` is the same as
+        ``other``.
+
+        INPUT:
+
+        - ``other`` -- an :class:`TermWithCoefficient`.
+
+        OUTPUT:
+
+        A boolean.
+
+        .. NOTE::
+
+            This method gets called by the coercion model, so it can
+            be assumed that this :class:`TermWithCoefficient` and
+            ``other`` come from the same parent.
+
+        EXAMPLES::
+
+            sage: from sage.rings.asymptotic.growth_group import GrowthGroup
+            sage: from sage.rings.asymptotic.term_monoid import TermWithCoefficientMonoid
+            sage: T = TermWithCoefficientMonoid(GrowthGroup('x^ZZ'), ZZ)
+            sage: t = T.an_element(); t
+            Asymptotic Term with coefficient 1 and growth x
+            sage: t.is_same_term(T(x, 1))
+            True
+            sage: t.is_same_term(T(x, 2))
+            False
+            sage: t.is_same_term(T(x^2, 1))
+            False
+        """
+        return self.growth == other.growth and self.coefficient == other.coefficient
+
+
+
 class TermWithCoefficientMonoid(GenericTermMonoid):
     r"""
     This class implements the base structure for parents of
@@ -1941,41 +1978,6 @@ class ExactTerm(TermWithCoefficient):
             return None
         else:
             return self.parent()(self.growth, coeff_new)
-
-
-    def _is_same_term_(self, other):
-        r"""
-        Return if this :class:`ExactTerm` is the same as ``other``.
-
-        INPUT:
-
-        - ``other`` -- an :class:`ExactTerm`.
-
-        OUTPUT:
-
-        A boolean.
-
-        .. NOTE::
-
-            This method gets called by the coercion model, so it can
-            be assumed that this :class:`ExactTerm` and ``other``
-            come from the same parent.
-
-        EXAMPLES::
-
-            sage: from sage.rings.asymptotic.growth_group import GrowthGroup
-            sage: from sage.rings.asymptotic.term_monoid import ExactTermMonoid
-            sage: ET = ExactTermMonoid(GrowthGroup('x^ZZ'), ZZ)
-            sage: t = ET.an_element(); t
-            x
-            sage: t.is_same_term(ET(x))
-            True
-            sage: t.is_same_term(ET(2*x))
-            False
-            sage: t.is_same_term(ET(x^2))
-            False
-        """
-        return self.growth == other.growth and self.coefficient == other.coefficient
 
 
 class ExactTermMonoid(TermWithCoefficientMonoid):

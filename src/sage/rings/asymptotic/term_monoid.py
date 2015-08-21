@@ -1242,7 +1242,7 @@ class TermWithCoefficient(GenericTerm):
         elif coefficient == 0:
             raise ValueError('0 is not a valid coefficient')
 
-        self.coefficient = coefficient
+        self.coefficient = parent.base_ring(coefficient)
         super(TermWithCoefficient, self).__init__(parent=parent, growth=growth)
 
 

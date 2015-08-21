@@ -1947,7 +1947,7 @@ class ExponentialGrowthElement(GenericGrowthElement):
 
     EXAMPLES::
 
-        sage: import sage.groups.asymptotic_growth_group as agg
+        sage: import sage.rings.asymptotic.growth_group as agg
         sage: P = agg.GrowthGroup('ZZ^x')
         sage: e1 = P(1); e1
         1
@@ -1968,7 +1968,7 @@ class ExponentialGrowthElement(GenericGrowthElement):
 
         EXAMPLES:
 
-            sage: import sage.groups.asymptotic_growth_group as agg
+            sage: import sage.rings.asymptotic.growth_group as agg
             sage: P = agg.GrowthGroup('ZZ^x')
             sage: P(42^x).base
             42
@@ -1990,7 +1990,7 @@ class ExponentialGrowthElement(GenericGrowthElement):
 
         EXAMPLES::
 
-            sage: import sage.groups.asymptotic_growth_group as agg
+            sage: import sage.rings.asymptotic.growth_group as agg
             sage: P = agg.GrowthGroup('QQ^x')
             sage: P(1)._repr_()
             '1'
@@ -2006,12 +2006,13 @@ class ExponentialGrowthElement(GenericGrowthElement):
         """
         from sage.rings.integer_ring import ZZ
 
+        var = repr(self.parent()._var_)
         if self.base == 1:
             return '1'
         elif self.base in ZZ and self.base > 0 or str(self.base).startswith('sqrt'):
-            return str(self.base) + '^' + self.parent()._var_
+            return str(self.base) + '^' + var
         else:
-            return '(' + str(self.base) + ')^' + self.parent()._var_
+            return '(' + str(self.base) + ')^' + var
 
 
     def _mul_(self, other):
@@ -2033,7 +2034,7 @@ class ExponentialGrowthElement(GenericGrowthElement):
 
         EXAMPLES::
 
-            sage: import sage.groups.asymptotic_growth_group as agg
+            sage: import sage.rings.asymptotic.growth_group as agg
             sage: P = agg.GrowthGroup('ZZ^x')
             sage: a = P(2^x)
             sage: b = P(3^x)
@@ -2061,7 +2062,7 @@ class ExponentialGrowthElement(GenericGrowthElement):
 
         EXAMPLES::
 
-            sage: import sage.groups.asymptotic_growth_group as agg
+            sage: import sage.rings.asymptotic.growth_group as agg
             sage: P = agg.GrowthGroup('ZZ^x')
             sage: e1 = P(raw_element=2)
             sage: e2 = e1.__invert__(); e2
@@ -2094,7 +2095,7 @@ class ExponentialGrowthElement(GenericGrowthElement):
 
         EXAMPLES::
 
-            sage: import sage.groups.asymptotic_growth_group as agg
+            sage: import sage.rings.asymptotic.growth_group as agg
             sage: P = agg.GrowthGroup('ZZ^x')
             sage: a = P(7^x); a
             7^x
@@ -2136,7 +2137,7 @@ class ExponentialGrowthElement(GenericGrowthElement):
 
         TESTS::
 
-            sage: import sage.groups.asymptotic_growth_group as agg
+            sage: import sage.rings.asymptotic.growth_group as agg
             sage: P_ZZ = agg.GrowthGroup('ZZ^x')
             sage: P_SR = agg.GrowthGroup('SR^x')
             sage: P_ZZ(2^x) <= P_SR(sqrt(3)^x)^2  # indirect doctest
@@ -2174,7 +2175,7 @@ class ExponentialGrowthGroup(GenericGrowthGroup):
 
     EXAMPLES::
 
-        sage: import sage.groups.asymptotic_growth_group as agg
+        sage: import sage.rings.asymptotic.growth_group as agg
         sage: P = agg.ExponentialGrowthGroup(QQ, 'x'); P
         Growth Group QQ^x
 
@@ -2197,7 +2198,7 @@ class ExponentialGrowthGroup(GenericGrowthGroup):
 
         TESTS::
 
-            sage: import sage.groups.asymptotic_growth_group as agg
+            sage: import sage.rings.asymptotic.growth_group as agg
             sage: P1 = agg.ExponentialGrowthGroup(QQ, 'x')
             sage: P2 = agg.ExponentialGrowthGroup(QQ, ZZ['x'].gen())
             sage: P3 = agg.ExponentialGrowthGroup(QQ, SR.var('x'))
@@ -2210,7 +2211,8 @@ class ExponentialGrowthGroup(GenericGrowthGroup):
             sage: P1 is P5
             True
         """
-        var = str(var).strip()
+        if not isinstance(var, Variable):
+            var = Variable(var)
         return super(ExponentialGrowthGroup, cls).__classcall__(
             cls, base, var, category)
 
@@ -2222,7 +2224,7 @@ class ExponentialGrowthGroup(GenericGrowthGroup):
 
         EXAMPLES::
 
-            sage: import sage.groups.asymptotic_growth_group as agg
+            sage: import sage.rings.asymptotic.growth_group as agg
             sage: agg.ExponentialGrowthGroup(QQ, 'x')
             Growth Group QQ^x
             sage: agg.ExponentialGrowthGroup(SR, ZZ['y'].gen())
@@ -2233,17 +2235,13 @@ class ExponentialGrowthGroup(GenericGrowthGroup):
             sage: agg.ExponentialGrowthGroup('x', ZZ)
             Traceback (most recent call last):
             ...
+            ValueError: 'Integer Ring' is not a valid name for a variable.
+            sage: agg.ExponentialGrowthGroup('x', 'y')
+            Traceback (most recent call last):
+            ...
             TypeError: x is not a valid base
         """
-        if not var:
-            raise ValueError('Empty var is not allowed.')
-        if var[0] in '0123456789=+-*/^%':
-            # This restriction is mainly for optical reasons on the
-            # representation. Feel free to relax this if needed.
-            raise ValueError("The variable name '%s' is inappropriate." %
-                             (var,))
         self._var_ = var
-
         super(ExponentialGrowthGroup, self).__init__(category=category, base=base)
 
 
@@ -2261,7 +2259,7 @@ class ExponentialGrowthGroup(GenericGrowthGroup):
 
         EXAMPLES::
 
-            sage: import sage.groups.asymptotic_growth_group as agg
+            sage: import sage.rings.asymptotic.growth_group as agg
             sage: agg.ExponentialGrowthGroup(QQ, 'a')  # indirect doctest
             Growth Group QQ^a
 
@@ -2290,7 +2288,7 @@ class ExponentialGrowthGroup(GenericGrowthGroup):
 
         EXAMPLES::
 
-            sage: import sage.groups.asymptotic_growth_group as agg
+            sage: import sage.rings.asymptotic.growth_group as agg
             sage: P = agg.ExponentialGrowthGroup(ZZ, 'x')
             sage: hash(P)  # random
             -1234567890123456789
@@ -2314,7 +2312,7 @@ class ExponentialGrowthGroup(GenericGrowthGroup):
 
         TESTS::
 
-            sage: import sage.groups.asymptotic_growth_group as agg
+            sage: import sage.rings.asymptotic.growth_group as agg
             sage: P = agg.ExponentialGrowthGroup(ZZ, 'x')
             sage: P._convert_('icecream') is None
             True
@@ -2351,16 +2349,16 @@ class ExponentialGrowthGroup(GenericGrowthGroup):
         """
         if data == 1 or data == '1':
             return self.base().one()
-
+        var = repr(self._var_)
         try:
             P = data.parent()
         except AttributeError:
             import re
-            if self._var_ not in str(data):
+            if var not in str(data):
                 return  # this has to end here
 
-            elif str(data).endswith('^' + self._var_):
-                return self.base()(str(data).replace('^' + self._var_, '')
+            elif str(data).endswith('^' + var):
+                return self.base()(str(data).replace('^' + var, '')
                                    .replace('(', '').replace(')', ''))
             else:
                 return  # end of parsing
@@ -2372,10 +2370,10 @@ class ExponentialGrowthGroup(GenericGrowthGroup):
         if P is SR:
             if data.operator() == operator.pow:
                 base, exponent = data.operands()
-                if str(exponent) == self._var_:
+                if str(exponent) == var:
                     return base
                 elif exponent.operator() == mul_vararg:
-                    return base ** (exponent / SR(self._var_))
+                    return base ** (exponent / SR(var))
 
 
     def _coerce_map_from_(self, S):
@@ -2392,7 +2390,7 @@ class ExponentialGrowthGroup(GenericGrowthGroup):
 
         EXAMPLES::
 
-            sage: import sage.groups.asymptotic_growth_group as agg
+            sage: import sage.rings.asymptotic.growth_group as agg
             sage: P_x_ZZ = agg.GrowthGroup('ZZ^x')
             sage: P_x_QQ = agg.GrowthGroup('QQ^x')
             sage: bool(P_x_ZZ.has_coerce_map_from(P_x_QQ))  # indirect doctest
@@ -2433,7 +2431,7 @@ class ExponentialGrowthGroup(GenericGrowthGroup):
 
         TESTS::
 
-            sage: import sage.groups.asymptotic_growth_group as agg
+            sage: import sage.rings.asymptotic.growth_group as agg
             sage: agg.GrowthGroup('ZZ^x').gens_monomial()
             ()
         """
@@ -2457,7 +2455,7 @@ class ExponentialGrowthGroup(GenericGrowthGroup):
 
         EXAMPLES::
 
-            sage: import sage.groups.asymptotic_growth_group as agg
+            sage: import sage.rings.asymptotic.growth_group as agg
             sage: P = agg.GrowthGroup('QQ^x')
             sage: P.gen()
             Traceback (most recent call last):
@@ -2481,7 +2479,7 @@ class ExponentialGrowthGroup(GenericGrowthGroup):
 
         EXAMPLES::
 
-            sage: import sage.groups.asymptotic_growth_group as agg
+            sage: import sage.rings.asymptotic.growth_group as agg
             sage: P = agg.GrowthGroup('QQ^x')
             sage: P.ngens()
             0

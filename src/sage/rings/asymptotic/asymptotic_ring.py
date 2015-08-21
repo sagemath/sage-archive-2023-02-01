@@ -589,6 +589,106 @@ class AsymptoticExpression(sage.rings.ring_element.RingElement):
         """
         return self * other._invert_()
 
+
+    def _invert_(self):
+        r"""
+        Return the multiplicative inverse of this element.
+
+        INPUT:
+
+        Nothing.
+
+        OUTPUT:
+
+        An asymptotic expression.
+
+        .. WARNING::
+
+            Due to truncation of infinite expansions, the element
+            returned by this method might not fulfill
+            ``el * el._invert_() == 1``.
+
+        EXAMPLES::
+
+            sage: R.<x> = AsymptoticRing('x^ZZ', QQ)
+            sage: x._invert_()
+            1/x
+            sage: (x^42)._invert_()
+            x^(-42)
+            sage: (1 + x)._invert_()
+            asdf
+            sage: (1 + O(1/x))._invert_()
+            asdf
+        """
+        if len(self.summands) == 0:
+            raise ZeroDivisionError('Dividing by zero is not allowed.')
+
+        elif len(self.summands) == 1:
+            return self**(-1)
+
+        max_elem = list(self.summands.maximal_elements())
+        if len(max_elem) != 1:
+            raise ValueError('Expression %s cannot be inverted: '
+                             'there are multiple maximal elements.' % (self, ))
+
+        max_elem = self.parent()(max_elem[0])
+
+        geom = 1 - self / max_elem
+        expanding = True
+        result = 1
+        while expanding:
+            new_result = (geom * result + 1).truncate()
+            if new_result == result:
+                expanding = False
+            result = new_result
+        return result / max_elem
+
+
+    def truncate(self, prec=None):
+        r"""
+        Truncate this asymptotic expression.
+
+        INPUT:
+
+        - ``prec`` -- a positive integer or ``None``. Number of
+          summands that are kept. If ``None`` (default value) is
+          given, then ``default_prec`` from the parent is used.
+
+        OUTPUT:
+
+        An asymptotic expression.
+
+        .. NOTE::
+
+            For example, truncating an asymptotic expression with
+            ``prec=20`` does not yield an expression with exactly 20
+            summands! Rather than that, it keeps the 20 summands
+            with the largest growth, and adds an appropriate
+            `O`-Term.
+
+        EXAMPLES::
+
+            sage: R.<x> = AsymptoticRing('x^ZZ', QQ)
+            sage: ex = sum(x^k for k in range(5)); ex
+            x^4 + x^3 + x^2 + x + 1
+            sage: ex.truncate(prec=2)
+            x^4 + x^3 + O(x^2)
+            sage: ex.truncate(prec=0)
+            O(x^4)
+            sage: ex.truncate()
+            x^4 + x^3 + x^2 + x + 1
+        """
+        if prec is None:
+            prec = self.parent().default_prec
+
+        if len(self.summands) <= prec:
+            return self
+        else:
+            g = self.summands.elements_topological(reverse=True)
+            main_part = self.parent()([g.next() for _ in range(prec)])
+            return main_part + (self - main_part).O()
+
+
     def __pow__(self, power):
         r"""
         Takes this element to the given ``power``.

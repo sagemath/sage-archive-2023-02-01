@@ -39,9 +39,9 @@ def gen_rest_table_index(list_of_entries, sort=True, only_local_functions=True):
         .. csv-table::
            :class: contentstable
            :widths: 30, 70
-           :delim: |
+           :delim: @
         <BLANKLINE>
-           :func:`~sage.graphs.generators.smallgraphs.PetersenGraph` | The Petersen Graph is a named graph that consists of 10 vertices...
+           :func:`~sage.graphs.generators.smallgraphs.PetersenGraph` @ The Petersen Graph is a named graph that consists of 10 vertices...
 
     The table of a module::
 
@@ -49,9 +49,9 @@ def gen_rest_table_index(list_of_entries, sort=True, only_local_functions=True):
         .. csv-table::
            :class: contentstable
            :widths: 30, 70
-           :delim: |
+           :delim: @
         <BLANKLINE>
-           :func:`~sage.misc.rest_index_of_methods.gen_rest_table_index` | Return a ReST table describing a list of functions...
+           :func:`~sage.misc.rest_index_of_methods.gen_rest_table_index` @ Return a ReST table describing a list of functions...
 
     The table of a class::
 
@@ -59,9 +59,9 @@ def gen_rest_table_index(list_of_entries, sort=True, only_local_functions=True):
         .. csv-table::
            :class: contentstable
            :widths: 30, 70
-           :delim: |
+           :delim: @
         ...
-           :meth:`~sage.graphs.graph.Graph.sparse6_string` | Returns the sparse6 representation of the graph as an ASCII string.
+           :meth:`~sage.graphs.graph.Graph.sparse6_string` @ Returns the sparse6 representation of the graph as an ASCII string.
         ...
 
     TESTS:
@@ -96,14 +96,14 @@ def gen_rest_table_index(list_of_entries, sort=True, only_local_functions=True):
         .. csv-table::
            :class: contentstable
            :widths: 30, 70
-           :delim: |
+           :delim: @
         <BLANKLINE>
-           :func:`~sage.misc.rest_index_of_methods.gen_rest_table_index` | Return a ReST table describing a list of functions...
+           :func:`~sage.misc.rest_index_of_methods.gen_rest_table_index` @ Return a ReST table describing a list of functions...
         sage: print gen_rest_table_index(sage.misc.rest_index_of_methods, only_local_functions=False)
         .. csv-table::
            :class: contentstable
            :widths: 30, 70
-           :delim: |
+           :delim: @
         <BLANKLINE>
         <BLANKLINE>
 
@@ -131,7 +131,7 @@ def gen_rest_table_index(list_of_entries, sort=True, only_local_functions=True):
     s = (".. csv-table::\n"
          "   :class: contentstable\n"
          "   :widths: 30, 70\n"
-         "   :delim: |\n\n")
+         "   :delim: @\n\n")
 
     if sort:
         list_of_entries.sort(key=lambda x:getattr(x,'__name__',''))
@@ -153,7 +153,7 @@ def gen_rest_table_index(list_of_entries, sort=True, only_local_functions=True):
         else:
             desc = "NO DOCSTRING"
 
-        s += "   {} | {}\n".format(link,desc.lstrip())
+        s += "   {} @ {}\n".format(link,desc.lstrip())
 
     return s+'\n'
 

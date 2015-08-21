@@ -686,11 +686,15 @@ class AsymptoticExpression(sage.rings.ring_element.RingElement):
 
         EXAMPLES::
 
-            sage: R.<x> = AsymptoticRing('x^ZZ', QQ)
+            sage: R.<x> = AsymptoticRing('x^ZZ', QQ, default_prec=5)
             sage: 1/x^42
             x^(-42)
-            sage: x^2 / (1 + x)  # not tested
+            sage: (1 + 4*x) / (x + 2*x^2)
+            2*1/x - 1/2*x^(-2) + 1/4*x^(-3) - 1/8*x^(-4) + 1/16*x^(-5) + O(x^(-6))
+            sage: x / O(x)
+            Traceback (most recent call last):
             ...
+            NotImplementedError: Negative powers are not implemented for the term O(x).
         """
         return self * other._invert_()
 
@@ -720,8 +724,10 @@ class AsymptoticExpression(sage.rings.ring_element.RingElement):
             1/x
             sage: (x^42)._invert_()
             x^(-42)
-            sage: (1 + x)._invert_()
+            sage: ex = (1 + x)._invert_(); ex
             1/x - x^(-2) + x^(-3) - x^(-4) + O(x^(-5))
+            sage: ex * (1 + x)
+            1 + O(x^(-4))
             sage: (1 + O(1/x))._invert_()
             1 + O(1/x)
         """

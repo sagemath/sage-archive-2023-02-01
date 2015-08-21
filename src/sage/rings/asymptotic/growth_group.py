@@ -84,11 +84,17 @@ products::
     sage: e1 <= e2 or e2 <= e1
     False
 
-In terms of uniqueness, the order of factors in the cartesian
-product matters::
+In terms of uniqueness, we have the following behaviour::
 
     sage: agg.GrowthGroup('x^ZZ * y^ZZ') is agg.GrowthGroup('y^ZZ * x^ZZ')
+    True
+
+The above is ``True`` since the order of the factors does not play a role here; they use different variables. But when using the same variable, it plays a role::
+
+    sage: agg.GrowthGroup('x^ZZ * log(x)^ZZ') is agg.GrowthGroup('log(x)^ZZ * x^ZZ')
     False
+
+(Note that it is mathematically nonsense to make ``log(x)`` larger than ``x``.)
 """
 
 #*****************************************************************************
@@ -2074,38 +2080,8 @@ class GrowthGroupFactory(sage.structure.factory.UniqueFactory):
         if len(groups) == 1:
             return groups[0]
 
-        # otherwise, a cartesian product is created. the growth elements
-        # in this products are
-        # - ordered lexicographically (over the same variable (or a
-        #   function thereof)
-        # - ordered component-wise (for different variables)
-
-        if len(set(groups)) != len(groups):
-            raise ValueError('The cartesian product of equal growth '
-                             'groups is not supported')
-
-        equal_var_groups = []
-        vars = []
-        for group in groups:
-            var = repr(group._var_)
-            if not vars or '(' + vars[-1] + ')' not in var:
-                vars.append(var)
-                equal_var_groups.append([group])
-            else:
-                equal_var_groups[-1].append(group)
-
         from sage.categories.cartesian_product import cartesian_product
-        for k in range(len(equal_var_groups)):
-            if len(equal_var_groups[k]) > 1:
-                equal_var_groups[k] = cartesian_product(equal_var_groups[k],
-                                                        order='lex')
-            else:
-                equal_var_groups[k] = equal_var_groups[k][0]
-
-        if len(equal_var_groups) == 1:
-            return equal_var_groups[0]
-
-        return cartesian_product(equal_var_groups, order='components')
+        return cartesian_product(groups)
 
 
 GrowthGroup = GrowthGroupFactory("GrowthGroup")

@@ -111,7 +111,7 @@ from sage.misc.superseded import experimental
 from sage.rings.complex_interval_field import ComplexIntervalField
 from sage.rings.real_arb cimport mpfi_to_arb, arb_to_mpfi
 from sage.rings.real_arb import RealBallField
-from sage.structure.element cimport Element
+from sage.structure.element cimport Element, ModuleElement
 from sage.structure.parent cimport Parent
 from sage.structure.unique_representation import UniqueRepresentation
 
@@ -815,5 +815,146 @@ cdef class ComplexBall(RingElement):
 
         elif op == Py_GT or op == Py_GE or op == Py_LT or op == Py_LE:
             raise TypeError("No order is defined for ComplexBalls.")
+
+    # Arithmetic
+
+    def __neg__(self):
+        """
+        Return the opposite of this ball.
+
+        EXAMPLES::
+
+            sage: from sage.rings.complex_ball_acb import CBF
+            sage: -CBF(1/3 + I)
+            [-0.3333333333333333 +/- 7.04e-17] - 1.000000000000000*I
+        """
+        cdef ComplexBall res = self._new()
+        acb_neg(res.value, self.value)
+        return res
+
+    def conjugate(self):
+        """
+        Return the complex conjugate of this ball.
+
+        EXAMPLES::
+
+            sage: from sage.rings.complex_ball_acb import CBF
+            sage: CBF(-2 + I/3).conjugate()
+            -2.000000000000000 + [-0.3333333333333333 +/- 7.04e-17]*I
+        """
+        cdef ComplexBall res = self._new()
+        acb_conj(res.value, self.value)
+        return res
+
+    cpdef ModuleElement _add_(self, ModuleElement other):
+        """
+        Return the sum of two balls, rounded to the ambient field's precision.
+
+        The resulting ball is guaranteed to contain the sums of any two points
+        of the respective input balls.
+
+        EXAMPLES::
+
+            sage: from sage.rings.complex_ball_acb import CBF
+            sage: CBF(1) + CBF(I)
+            1.000000000000000 + 1.000000000000000*I
+        """
+        cdef ComplexBall res = self._new()
+        if _do_sig(prec(self)): sig_on()
+        acb_add(res.value, self.value, (<ComplexBall> other).value, prec(self))
+        if _do_sig(prec(self)): sig_off()
+        return res
+
+    cpdef ModuleElement _sub_(self, ModuleElement other):
+        """
+        Return the difference of two balls, rounded to the ambient field's
+        precision.
+
+        The resulting ball is guaranteed to contain the differences of any two
+        points of the respective input balls.
+
+        EXAMPLES::
+
+            sage: from sage.rings.complex_ball_acb import CBF
+            sage: CBF(1) - CBF(I)
+            1.000000000000000 - 1.000000000000000*I
+        """
+        cdef ComplexBall res = self._new()
+        if _do_sig(prec(self)): sig_on()
+        acb_sub(res.value, self.value, (<ComplexBall> other).value, prec(self))
+        if _do_sig(prec(self)): sig_off()
+        return res
+
+    def __invert__(self):
+        """
+        Return the inverse of this ball.
+
+        The result is guaranteed to contain the inverse of any point of the
+        input ball.
+
+        EXAMPLES::
+
+            sage: from sage.rings.complex_ball_acb import CBF
+            sage: ~CBF(i/3)
+            [-3.00000000000000 +/- 9.44e-16]*I
+            sage: ~CBF(0)
+            [+/- inf]
+            sage: ~CBF(RIF(10,11))
+            [0.1 +/- 9.53e-3]
+        """
+        cdef ComplexBall res = self._new()
+        if _do_sig(prec(self)): sig_on()
+        acb_inv(res.value, self.value, prec(self))
+        if _do_sig(prec(self)): sig_off()
+        return res
+
+    cpdef RingElement _mul_(self, RingElement other):
+        """
+        Return the product of two balls, rounded to the ambient field's
+        precision.
+
+        The resulting ball is guaranteed to contain the products of any two
+        points of the respective input balls.
+
+        EXAMPLES::
+
+            sage: from sage.rings.complex_ball_acb import CBF
+            sage: CBF(-2, 1)*CBF(1, 1/3)
+            [-2.333333333333333 +/- 5.37e-16] + [0.333333333333333 +/- 4.82e-16]*I
+        """
+        cdef ComplexBall res = self._new()
+        if _do_sig(prec(self)): sig_on()
+        acb_mul(res.value, self.value, (<ComplexBall> other).value, prec(self))
+        if _do_sig(prec(self)): sig_off()
+        return res
+
+    cpdef RingElement _div_(self, RingElement other):
+        """
+        Return the quotient of two balls, rounded to the ambient field's
+        precision.
+
+        The resulting ball is guaranteed to contain the quotients of any two
+        points of the respective input balls.
+
+        EXAMPLES::
+
+            sage: from sage.rings.complex_ball_acb import CBF
+            sage: from sage.rings.real_arb import RBF
+
+            sage: CBF(-2, 1)/CBF(1, 1/3)
+            [-1.50000000000000 +/- 1.27e-15] + [1.500000000000000 +/- 8.94e-16]*I
+
+            sage: CBF(2+I)/CBF(0)
+            [+/- inf] + [+/- inf]*I
+            sage: CBF(1)/CBF(0)
+            [+/- inf]
+            sage: CBF(1)/CBF(RBF(0, 1.))
+            nan
+        """
+        cdef ComplexBall res = self._new()
+        if _do_sig(prec(self)): sig_on()
+        acb_div(res.value, self.value, (<ComplexBall> other).value, prec(self))
+        if _do_sig(prec(self)): sig_off()
+        return res
 
 CBF = ComplexBallField()

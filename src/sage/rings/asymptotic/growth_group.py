@@ -1650,7 +1650,8 @@ class MonomialGrowthGroup(GenericGrowthGroup):
             sage: agg.MonomialGrowthGroup(QQ, 'log(x)').gens_monomial()
             ()
         """
-        if self._var_.startswith('log(') and self._var_.endswith(')'):
+        from sage.symbolic.ring import isidentifier
+        if not isidentifier(self._var_):
             return ()
         return (self(raw_element=self.base().one()),)
 

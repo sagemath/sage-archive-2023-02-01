@@ -685,6 +685,9 @@ class AsymptoticRing(sage.rings.ring.Ring,
     - ``coefficient_ring`` -- the ring which contains the
       coefficients of the expressions.
 
+    - ``default_prec`` -- a positive integer. This is the number of
+      summands that are kept before truncating an infinite series.
+
     - ``category`` -- the category of the parent can be specified
       in order to broaden the base structure. It has to be a
       subcategory of ``Category of rings``. This is also the default
@@ -759,7 +762,7 @@ class AsymptoticRing(sage.rings.ring.Ring,
 
     @staticmethod
     def __classcall__(cls, growth_group, coefficient_ring, names=None,
-                      category=None):
+                      category=None, default_prec=None):
         r"""
         Normalizes the input in order to ensure a unique
         representation of the parent.
@@ -795,13 +798,19 @@ class AsymptoticRing(sage.rings.ring.Ring,
         if names is not None and not growth_group.gens_monomial():
             raise ValueError("%s does not have a generator." % (growth_group,))
 
-        return super(AsymptoticRing, cls).__classcall__(cls, growth_group,
-                                                        coefficient_ring,
-                                                        category)
+        if default_prec is None:
+            from sage.misc.defaults import series_precision
+            default_prec = series_precision()
+
+        return super(AsymptoticRing,
+                     cls).__classcall__(cls, growth_group, coefficient_ring,
+                                        category=category,
+                                        default_prec=default_prec)
 
 
     @sage.misc.superseded.experimental(trac_number=17601)
-    def __init__(self, growth_group, coefficient_ring, category=None):
+    def __init__(self, growth_group, coefficient_ring, category=None,
+                 default_prec=None):
         r"""
         See :class:`AsymptoticRing` for more information.
 
@@ -841,6 +850,7 @@ class AsymptoticRing(sage.rings.ring.Ring,
 
         self._coefficient_ring_ = coefficient_ring
         self._growth_group_ = growth_group
+        self._default_prec_ = default_prec
         super(AsymptoticRing, self).__init__(base=coefficient_ring,
                                              category=category)
 
@@ -875,6 +885,27 @@ class AsymptoticRing(sage.rings.ring.Ring,
             Integer Ring
         """
         return self._coefficient_ring_
+
+
+    @property
+    def default_prec(self):
+        r"""
+        The default precision of this asymptotic ring.
+
+        This is the parameter used to determine how many summands
+        are kept before truncating an infinite series (which occur
+        when inverting asymptotic expressions).
+
+        EXAMPLES::
+
+            sage: AR = AsymptoticRing(growth_group='x^ZZ', coefficient_ring=ZZ)
+            sage: AR.default_prec
+            20
+            sage: AR = AsymptoticRing('x^ZZ', ZZ, default_prec=123)
+            sage: AR.default_prec
+            123
+        """
+        return self._default_prec_
 
 
     @staticmethod

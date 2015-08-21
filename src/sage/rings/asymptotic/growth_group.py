@@ -103,7 +103,8 @@ product matters::
 #*****************************************************************************
 
 import sage
-from sage.rings.asymptotic.growth_group_cartesian import CartesianProductGrowthGroups
+from sage.misc.lazy_import import lazy_import
+lazy_import('sage.rings.asymptotic.growth_group_cartesian', 'CartesianProductGrowthGroups')
 
 
 def repr_short_to_parent(s):

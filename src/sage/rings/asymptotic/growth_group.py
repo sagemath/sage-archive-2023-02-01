@@ -409,6 +409,8 @@ class Variable(sage.structure.unique_representation.CachedRepresentation,
             Traceback (most recent call last):
             ....
             ValueError: Unbalanced parentheses in 'log)x('.
+            sage: Variable.extract_variable_names('log(x)+y')
+            ('x', 'y')
 
         ::
 
@@ -438,6 +440,18 @@ class Variable(sage.structure.unique_representation.CachedRepresentation,
         numbers = re.compile(r"\d+$")
         vars = []
 
+        def find_next_outer_parentheses(s):
+            op = s.find('(')
+            level = 1
+            for i, c in enumerate(s[op+1:]):
+                if c == ')':
+                    level -= 1
+                if c == '(':
+                    level += 1
+                if level == 0:
+                    return op, op+i+1
+            return op, -1
+
         def strip(s):
             s = s.strip()
             if not s:
@@ -445,12 +459,12 @@ class Variable(sage.structure.unique_representation.CachedRepresentation,
 
             # parentheses (...)
             # functions f(...)
-            op = s.find('(')
-            cl = s.rfind(')')
+            op, cl = find_next_outer_parentheses(s)
             if (op == -1) != (cl == -1) or op > cl:
                 raise ValueError("Unbalanced parentheses in '%s'." % (s,))
-            if cl == len(s) - 1:
+            if cl != -1:
                 strip(s[op+1:cl])
+                strip(s[cl+1:])
                 return
 
             # unary +a, a+, ...

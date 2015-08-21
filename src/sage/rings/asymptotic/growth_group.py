@@ -1053,29 +1053,6 @@ class GenericGrowthGroup(
         return self(left) <= self(right)
 
 
-    def one(self):
-        r"""
-        Return the neutral element of this growth group.
-
-        INPUT:
-
-        Nothing.
-
-        OUTPUT:
-
-        An element of this group.
-
-        EXAMPLES::
-
-            sage: import sage.rings.asymptotic.growth_group as agg
-            sage: e1 = agg.MonomialGrowthGroup(ZZ, 'x').one(); e1
-            1
-            sage: e1.is_idempotent()
-            True
-        """
-        return self(1)
-
-
     def _element_constructor_(self, data, raw_element=None):
         r"""
         Converts a given object to this growth group.

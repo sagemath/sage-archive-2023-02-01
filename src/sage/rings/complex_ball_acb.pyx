@@ -597,11 +597,21 @@ cdef class ComplexBall(RingElement):
            [0.3333333333333333 +/- 7.04e-17]*I
            sage: ComplexBallField()(1/3, 1/6)
            [0.3333333333333333 +/- 7.04e-17] + [0.1666666666666667 +/- 7.04e-17]*I
+
+        TESTS::
+
+           sage: CBF(1-I/2)
+           1.000000000000000 - 0.5000000000000000*I
         """
-        if arb_is_zero(&self.value.imag):
+        cdef arb_t real = acb_realref(self.value)
+        cdef arb_t imag = acb_imagref(self.value)
+        if arb_is_zero(imag):
             return self.real()._repr_()
-        elif arb_is_zero(&self.value.real):
+        elif arb_is_zero(real):
             return "{}*I".format(self.imag()._repr_())
+        elif arb_is_exact(imag) and arb_is_negative(imag):
+            return "{} - {}*I".format(self.real()._repr_(),
+                                        (-self.imag())._repr_())
         else:
             return "{} + {}*I".format(self.real()._repr_(),
                                         self.imag()._repr_())

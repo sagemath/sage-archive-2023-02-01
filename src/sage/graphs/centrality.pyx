@@ -585,13 +585,12 @@ def centrality_closeness_top_k(G, int k=1, int verbose=0):
 
         sage: from sage.graphs.centrality import centrality_closeness_top_k
         sage: g = graphs.PathGraph(10)
-        sage: centrality_closeness_top_k(g, 5, 1)
-        Final performance ratio: 0.766666666667
+        sage: centrality_closeness_top_k(g, 4, 1)
+        Final performance ratio: 0.711111111111
         [(0.36, 5),
          (0.36, 4),
          (0.3333333333333333, 6),
-         (0.3333333333333333, 3),
-         (0.29032258064516125, 2)]
+         (0.3333333333333333, 3)]
         sage: g = digraphs.Path(10)
         sage: centrality_closeness_top_k(g, 5, 1)
         Final performance ratio: 0.422222222222
@@ -777,7 +776,7 @@ def centrality_closeness_top_k(G, int k=1, int verbose=0):
                     elif directed or pred[u] != v:
                         tildefL += (n-1) / (<double>(reachL[x]-1)*(reachL[x]-1))
                         tildefU += (n-1) / (<double>(reachU[x]-1)*(reachU[x]-1))
-                        if tildefL > kth and tildefU > kth:
+                        if tildefL >= kth and tildefU >= kth:
                             farness[x] = n
                             stopped = True
                 if stopped:

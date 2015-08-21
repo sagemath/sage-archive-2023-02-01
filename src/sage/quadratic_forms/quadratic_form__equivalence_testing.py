@@ -1,14 +1,18 @@
 """
 Equivalence Testing
+
+AUTHORS:
+
+- Anna Haensch (2014-12-01): added test for rational isometry
 """
 
 from sage.matrix.constructor import Matrix
 from sage.misc.mrange import mrange
 from sage.rings.arith import hilbert_symbol, prime_divisors, is_prime, valuation, GCD, legendre_symbol
 from sage.rings.integer_ring import ZZ
+from sage.rings.rational_field import QQ
 
 from quadratic_form import is_QuadraticForm
-
 
 from sage.env import SAGE_LOCAL
 
@@ -450,9 +454,167 @@ def has_equivalent_Jordan_decomposition_at_prime(self, other, p):
     else:
         raise TypeError("Oops!  This should not have happened.")
 
+def is_rationally_isometric(self, other):
+    """
+    Determines if two regular quadratic forms over a number field are isometric.
 
+    INPUT:
+        a quadratic form
 
+    OUTPUT:
+        boolean
 
+    EXAMPLES::
 
+        sage: V=DiagonalQuadraticForm(QQ,[1,1,2])
+        sage: W=DiagonalQuadraticForm(QQ,[2,2,2])
+        sage: V.is_rationally_isometric(W)
+        True
 
+    ::
+
+        sage: K.<a>=NumberField(x^2-3)
+        sage: V=QuadraticForm(K,4,[1,0,0,0,2*a,0,0,a,0,2]);V
+        Quadratic form in 4 variables over Number Field in a with defining polynomial x^2 - 3 with coefficients:
+        [ 1 0 0 0 ]
+        [ * 2*a 0 0 ]
+        [ * * a 0 ]
+        [ * * * 2 ]
+        sage: W=QuadraticForm(K,4,[1,2*a,4,6,3,10,2,1,2,5]);W
+        Quadratic form in 4 variables over Number Field in a with defining polynomial x^2 - 3 with coefficients:
+        [ 1 2*a 4 6 ]
+        [ * 3 10 2 ]
+        [ * * 1 2 ]
+        [ * * * 5 ]
+        sage: V.is_rationally_isometric(W)
+        False
+
+    ::
+
+        sage: K.<a>=NumberField(x^4+2*x+6)
+        sage: V=DiagonalQuadraticForm(K,[a,2,3,2,1]);V
+        Quadratic form in 5 variables over Number Field in a with defining polynomial x^4 + 2*x + 6 with coefficients:
+        [ a 0 0 0 0 ]
+        [ * 2 0 0 0 ]
+        [ * * 3 0 0 ]
+        [ * * * 2 0 ]
+        [ * * * * 1 ]
+        sage: W=DiagonalQuadraticForm(K,[a,a,a,2,1]);W
+        Quadratic form in 5 variables over Number Field in a with defining polynomial x^4 + 2*x + 6 with   coefficients:
+        [ a 0 0 0 0 ]
+        [ * a 0 0 0 ]
+        [ * * a 0 0 ]
+        [ * * * 2 0 ]
+        [ * * * * 1 ]
+        sage: V.is_rationally_isometric(W)
+        False
+
+    ::
+
+        sage: K.<a>=NumberField(x^2-3)
+        sage: V=DiagonalQuadraticForm(K,[-1,a,-2*a])
+        sage: W=DiagonalQuadraticForm(K,[-1,-a,2*a])
+        sage: V.is_rationally_isometric(W)
+        True
+
+    TESTS::
+
+        sage: K.<a>=QuadraticField(3)
+        sage: V=DiagonalQuadraticForm(K,[1,2])
+        sage: W=DiagonalQuadraticForm(K,[1,0])
+        sage: V.is_rationally_isometric(W)
+        Traceback (most recent call last):
+        ...
+        NotImplementedError: This only tests regular forms
+
+    Forms must have the same base ring otherwise a `TypeError` is raised::
+
+        sage: K1.<a> = QuadraticField(5)
+        sage: K2.<b> = QuadraticField(7)
+        sage: V = DiagonalQuadraticForm(K1,[1,a])
+        sage: W = DiagonalQuadraticForm(K2,[1,b])
+        sage: V.is_rationally_isometric(W)
+        Traceback (most recent call last):
+        ...
+        TypeError: forms must have the same base ring.
+
+    Forms which have different dimension are not isometric::
+
+        sage: W=DiagonalQuadraticForm(QQ,[1,2])
+        sage: V=DiagonalQuadraticForm(QQ,[1,1,1])
+        sage: V.is_rationally_isometric(W)
+        False
+
+    Forms whose determinants do not differ by a square in the base field are not isometric::
+
+        sage: K.<a>=NumberField(x^2-3)
+        sage: V=DiagonalQuadraticForm(K,[-1,a,-2*a])
+        sage: W=DiagonalQuadraticForm(K,[-1,a,2*a])
+        sage: V.is_rationally_isometric(W)
+        False
+
+    ::
+
+        sage: K.<a> = NumberField(x^5 - x + 2, 'a')
+        sage: Q = QuadraticForm(K,3,[a,1,0,-a**2,-a**3,-1])
+        sage: m = Q.matrix()
+        sage: for _ in range(5):
+        ....:     t = random_matrix(ZZ,3,algorithm='unimodular')
+        ....:     m2 = t*m*t.transpose()
+        ....:     Q2 = QuadraticForm(K, 3, [m2[i,j] / (2 if i==j else 1)
+        ....:                               for i in range(3) for j in range(i,3)])
+        ....:     print Q.is_rationally_isometric(Q2)
+        True
+        True
+        True
+        True
+        True
+
+    """
+
+    if self.Gram_det() == 0 or other.Gram_det() == 0:
+        raise NotImplementedError("This only tests regular forms")
+
+    if self.base_ring() != other.base_ring():
+        raise TypeError("forms must have the same base ring.")
+
+    if self.dim() != other.dim():
+        return False
+
+    if not ((self.Gram_det()*other.Gram_det()).is_square()):
+        return False
+
+    L1=self.Gram_det().support()
+    L2=other.Gram_det().support()
+
+    for p in set().union(L1,L2):
+        if self.hasse_invariant(p) != other.hasse_invariant(p):
+            return False
+
+    if self.base_ring() == QQ:
+        if self.signature() != other.signature():
+            return False
+    else:
+
+        M = self.rational_diagonal_form().Gram_matrix_rational()
+        N = other.rational_diagonal_form().Gram_matrix_rational()
+        K = self.base_ring()
+
+        Mentries = M.diagonal()
+        Nentries = N.diagonal()
+
+        for emb in K.real_embeddings():
+
+            Mpos=0
+            for x in Mentries:
+                Mpos+= emb(x) >= 0
+
+            Npos=0
+            for x in Nentries:
+                Npos+= emb(x) >= 0
+
+            if Npos != Mpos:
+                return False
+
+    return True
 

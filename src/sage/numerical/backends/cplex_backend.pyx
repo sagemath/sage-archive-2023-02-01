@@ -27,6 +27,7 @@ cdef class CPLEXBackend(GenericBackend):
 
         EXAMPLE::
 
+        sage: from sage.numerical.mip import MixedIntegerLinearProgram      # optional - CPLEX
         sage: p = MixedIntegerLinearProgram(solver="CPLEX")                 # optional - CPLEX
         """
 
@@ -44,6 +45,7 @@ cdef class CPLEXBackend(GenericBackend):
             self.set_sense(-1)
 
         self.obj_constant_term = 0.0
+        self._logfilename = ''
 
     cpdef int add_variable(self, lower_bound=0.0, upper_bound=None, binary=False, continuous=False, integer=False, obj=0.0, name=None) except -1:
         """
@@ -72,7 +74,7 @@ cdef class CPLEXBackend(GenericBackend):
 
         EXAMPLE::
 
-            sage: from sage.numerical.backends.generic_backend import get_solver
+            sage: from sage.numerical.backends.generic_backend import get_solver # optional - CPLEX
             sage: p = get_solver(solver = "CPLEX")                  # optional - CPLEX
             sage: p.ncols()                                         # optional - CPLEX
             0
@@ -161,7 +163,7 @@ cdef class CPLEXBackend(GenericBackend):
 
         EXAMPLE::
 
-            sage: from sage.numerical.backends.generic_backend import get_solver
+            sage: from sage.numerical.backends.generic_backend import get_solver # optional - CPLEX
             sage: p = get_solver(solver = "CPLEX")                         # optional - CPLEX
             sage: p.ncols()                                                # optional - CPLEX
             0
@@ -229,7 +231,7 @@ cdef class CPLEXBackend(GenericBackend):
 
         EXAMPLE::
 
-            sage: from sage.numerical.backends.generic_backend import get_solver
+            sage: from sage.numerical.backends.generic_backend import get_solver # optional - CPLEX
             sage: p = get_solver(solver = "CPLEX")   # optional - CPLEX
             sage: p.ncols()                                        # optional - CPLEX
             0
@@ -266,7 +268,7 @@ cdef class CPLEXBackend(GenericBackend):
 
         EXAMPLE::
 
-            sage: from sage.numerical.backends.generic_backend import get_solver
+            sage: from sage.numerical.backends.generic_backend import get_solver # optional - CPLEX
             sage: p = get_solver(solver = "CPLEX")  # optional - CPLEX
             sage: p.is_maximization()                              # optional - CPLEX
             True
@@ -290,7 +292,7 @@ cdef class CPLEXBackend(GenericBackend):
 
         EXAMPLE::
 
-            sage: from sage.numerical.backends.generic_backend import get_solver
+            sage: from sage.numerical.backends.generic_backend import get_solver # optional - CPLEX
             sage: p = get_solver(solver = "CPLEX")       # optional -- CPLEX
             sage: p.add_variable()                      # optional -- CPLEX
             0
@@ -325,7 +327,7 @@ cdef class CPLEXBackend(GenericBackend):
 
         EXAMPLE::
 
-            sage: from sage.numerical.backends.generic_backend import get_solver
+            sage: from sage.numerical.backends.generic_backend import get_solver # optional - CPLEX
             sage: p = get_solver(solver = "CPLEX")   # optional - CPLEX
             sage: p.problem_name("There once was a french fry") # optional - CPLEX
             sage: print p.problem_name()                        # optional - CPLEX
@@ -363,7 +365,7 @@ cdef class CPLEXBackend(GenericBackend):
 
         EXAMPLE::
 
-            sage: from sage.numerical.backends.generic_backend import get_solver
+            sage: from sage.numerical.backends.generic_backend import get_solver # optional - CPLEX
             sage: p = get_solver(solver = "CPLEX")    # optional - CPLEX
             sage: p.add_variables(5)                                 # optional - CPLEX
             4
@@ -374,7 +376,8 @@ cdef class CPLEXBackend(GenericBackend):
         Constants in the objective function are respected::
 
             sage: p = MixedIntegerLinearProgram(solver='CPLEX') # optional - CPLEX
-            sage: x,y = p[0], p[1]                              # optional - CPLEX
+            sage: var = p.new_variable(nonnegative=True)        # optional - CPLEX
+            sage: x,y = var[0], var[1]                          # optional - CPLEX
             sage: p.add_constraint(2*x + 3*y, max = 6)          # optional - CPLEX
             sage: p.add_constraint(3*x + 2*y, max = 6)          # optional - CPLEX
             sage: p.set_objective(x + y + 7)                    # optional - CPLEX
@@ -411,7 +414,7 @@ cdef class CPLEXBackend(GenericBackend):
 
         EXAMPLE::
 
-            sage: from sage.numerical.backends.generic_backend import get_solver
+            sage: from sage.numerical.backends.generic_backend import get_solver # optional - CPLEX
             sage: p = get_solver(solver = "CPLEX")   # optional - CPLEX
             sage: p.set_verbosity(2)                                # optional - CPLEX
 
@@ -436,7 +439,8 @@ cdef class CPLEXBackend(GenericBackend):
         EXAMPLE::
 
             sage: p = MixedIntegerLinearProgram(solver='CPLEX')# optional - CPLEX
-            sage: x,y = p[0], p[1]                             # optional - CPLEX
+            sage: var = p.new_variable(nonnegative=True)       # optional - CPLEX
+            sage: x,y = var[0], var[1]                         # optional - CPLEX
             sage: p.add_constraint(2*x + 3*y, max = 6)         # optional - CPLEX
             sage: p.add_constraint(3*x + 2*y, max = 6)         # optional - CPLEX
             sage: p.set_objective(x + y + 7)                   # optional - CPLEX
@@ -469,7 +473,7 @@ cdef class CPLEXBackend(GenericBackend):
 
         EXAMPLE::
 
-            sage: from sage.numerical.backends.generic_backend import get_solver
+            sage: from sage.numerical.backends.generic_backend import get_solver # optional - CPLEX
             sage: p = get_solver(solver = "CPLEX")       # optional - CPLEX
             sage: p.add_variables(5)                     # optional - CPLEX
             4
@@ -548,7 +552,7 @@ cdef class CPLEXBackend(GenericBackend):
 
         EXAMPLE::
 
-            sage: from sage.numerical.backends.generic_backend import get_solver
+            sage: from sage.numerical.backends.generic_backend import get_solver # optional - CPLEX
             sage: p = get_solver(solver = "CPLEX")                             # optional - CPLEX
             sage: p.add_variables(5)                                           # optional - CPLEX
             4
@@ -643,7 +647,7 @@ cdef class CPLEXBackend(GenericBackend):
 
         EXAMPLE::
 
-            sage: from sage.numerical.backends.generic_backend import get_solver
+            sage: from sage.numerical.backends.generic_backend import get_solver # optional - CPLEX
             sage: p = get_solver(solver = "CPLEX")  # optional - CPLEX
             sage: p.add_variables(5)                               # optional - CPLEX
             4
@@ -692,7 +696,7 @@ cdef class CPLEXBackend(GenericBackend):
 
         EXAMPLE::
 
-            sage: from sage.numerical.backends.generic_backend import get_solver
+            sage: from sage.numerical.backends.generic_backend import get_solver # optional - CPLEX
             sage: p = get_solver(solver = "CPLEX")  # optional - CPLEX
             sage: p.add_variables(5)                               # optional - CPLEX
             4
@@ -740,7 +744,7 @@ cdef class CPLEXBackend(GenericBackend):
 
         EXAMPLE::
 
-            sage: from sage.numerical.backends.generic_backend import get_solver
+            sage: from sage.numerical.backends.generic_backend import get_solver # optional - CPLEX
             sage: p = get_solver(solver = "CPLEX")  # optional - CPLEX
             sage: p.add_variable()                                 # optional - CPLEX
             0
@@ -787,7 +791,7 @@ cdef class CPLEXBackend(GenericBackend):
 
         EXAMPLE::
 
-            sage: from sage.numerical.backends.generic_backend import get_solver
+            sage: from sage.numerical.backends.generic_backend import get_solver # optional - CPLEX
             sage: p = get_solver(solver = "CPLEX")                  # optional - CPLEX
             sage: p.ncols()                                       # optional - CPLEX
             0
@@ -836,19 +840,29 @@ cdef class CPLEXBackend(GenericBackend):
             the solution can not be computed for any reason (none
             exists, or the LP solver was not able to find it, etc...)
 
-        EXAMPLE::
+        EXAMPLE:
 
-            sage: from sage.numerical.backends.generic_backend import get_solver
-            sage: p = get_solver(solver = "CPLEX") # optional - CPLEX
-            sage: p.add_linear_constraints(5, 0, None)                     # optional - CPLEX
-            sage: p.add_col(range(5), range(5))                   # optional - CPLEX
-            sage: p.solve()                                       # optional - CPLEX
-            0
-            sage: p.objective_coefficient(0,1)                      # optional - CPLEX
-            sage: p.solve()                                       # optional - CPLEX
+        A simple maximization problem::
+
+            sage: p = MixedIntegerLinearProgram(solver='CPLEX')      # optional - CPLEX
+            sage: x = p.new_variable(integer=True, nonnegative=True) # optional - CPLEX
+            sage: p.add_constraint(2*x[0] + 3*x[1], max = 6)         # optional - CPLEX
+            sage: p.add_constraint(3*x[0] + 2*x[1], max = 6)         # optional - CPLEX
+            sage: p.set_objective(x[0] + x[1] + 7)                   # optional - CPLEX
+            sage: p.solve()                                          # optional - CPLEX
+            9.0
+
+        A problem without feasible solution::
+
+            sage: from sage.numerical.backends.generic_backend import get_solver # optional - CPLEX
+            sage: p = get_solver(solver = "CPLEX")                               # optional - CPLEX
+            sage: p.add_linear_constraints(5, 0, None)                           # optional - CPLEX
+            sage: p.add_col(range(5), range(5))                                  # optional - CPLEX
+            sage: p.objective_coefficient(0,1)                                   # optional - CPLEX
+            sage: p.solve()                                                      # optional - CPLEX
             Traceback (most recent call last):
             ...
-            MIPSolverException: ...
+            MIPSolverException: 'CPLEX: The primal has no feasible solution'
         """
         cdef int status
         cdef int ptype
@@ -888,7 +902,7 @@ cdef class CPLEXBackend(GenericBackend):
 
         EXAMPLE::
 
-            sage: from sage.numerical.backends.generic_backend import get_solver
+            sage: from sage.numerical.backends.generic_backend import get_solver # optional - CPLEX
             sage: p = get_solver(solver = "CPLEX")  # optional - CPLEX
             sage: p.add_variables(2)                               # optional - CPLEX
             1
@@ -922,7 +936,7 @@ cdef class CPLEXBackend(GenericBackend):
 
         EXAMPLE::
 
-            sage: from sage.numerical.backends.generic_backend import get_solver
+            sage: from sage.numerical.backends.generic_backend import get_solver # optional - CPLEX
             sage: p = get_solver(solver = "CPLEX") # optional - CPLEX
             sage: p.add_variables(2)                              # optional - CPLEX
             1
@@ -955,7 +969,7 @@ cdef class CPLEXBackend(GenericBackend):
 
         EXAMPLE::
 
-            sage: from sage.numerical.backends.generic_backend import get_solver
+            sage: from sage.numerical.backends.generic_backend import get_solver # optional - CPLEX
             sage: p = get_solver(solver = "CPLEX")  # optional - CPLEX
             sage: p.ncols()                                       # optional - CPLEX
             0
@@ -973,7 +987,7 @@ cdef class CPLEXBackend(GenericBackend):
 
         EXAMPLE::
 
-            sage: from sage.numerical.backends.generic_backend import get_solver
+            sage: from sage.numerical.backends.generic_backend import get_solver # optional - CPLEX
             sage: p = get_solver(solver = "CPLEX") # optional - CPLEX
             sage: p.nrows()                                      # optional - CPLEX
             0
@@ -994,7 +1008,7 @@ cdef class CPLEXBackend(GenericBackend):
 
         EXAMPLE::
 
-            sage: from sage.numerical.backends.generic_backend import get_solver
+            sage: from sage.numerical.backends.generic_backend import get_solver       # optional - CPLEX
             sage: p = get_solver(solver = "CPLEX")                                     # optional - CPLEX
             sage: p.add_linear_constraints(1, 2, None, names=['Empty constraint 1'])   # optional - CPLEX
             sage: p.row_name(0)                                                        # optional - CPLEX
@@ -1027,7 +1041,7 @@ cdef class CPLEXBackend(GenericBackend):
 
         EXAMPLE::
 
-            sage: from sage.numerical.backends.generic_backend import get_solver
+            sage: from sage.numerical.backends.generic_backend import get_solver # optional - CPLEX
             sage: p = get_solver(solver = "CPLEX")         # optional - CPLEX
             sage: p.add_variable(name='I am a variable')   # optional - CPLEX
             0
@@ -1060,7 +1074,7 @@ cdef class CPLEXBackend(GenericBackend):
 
         EXAMPLE::
 
-            sage: from sage.numerical.backends.generic_backend import get_solver
+            sage: from sage.numerical.backends.generic_backend import get_solver # optional - CPLEX
             sage: p = get_solver(solver = "CPLEX")  # optional - CPLEX
             sage: p.ncols()                                       # optional - CPLEX
             0
@@ -1096,7 +1110,7 @@ cdef class CPLEXBackend(GenericBackend):
 
         EXAMPLE::
 
-            sage: from sage.numerical.backends.generic_backend import get_solver
+            sage: from sage.numerical.backends.generic_backend import get_solver # optional - CPLEX
             sage: p = get_solver(solver = "CPLEX")  # optional - CPLEX
             sage: p.ncols()                                       # optional - CPLEX
             0
@@ -1131,7 +1145,7 @@ cdef class CPLEXBackend(GenericBackend):
 
         EXAMPLE::
 
-            sage: from sage.numerical.backends.generic_backend import get_solver
+            sage: from sage.numerical.backends.generic_backend import get_solver # optional - CPLEX
             sage: p = get_solver(solver = "CPLEX")  # optional - CPLEX
             sage: p.ncols()                                       # optional - CPLEX
             0
@@ -1165,7 +1179,7 @@ cdef class CPLEXBackend(GenericBackend):
 
         EXAMPLE::
 
-            sage: from sage.numerical.backends.generic_backend import get_solver
+            sage: from sage.numerical.backends.generic_backend import get_solver # optional - CPLEX
             sage: p = get_solver(solver = "CPLEX") # optional - CPLEX
             sage: p.is_maximization()                             # optional - CPLEX
             True
@@ -1190,7 +1204,7 @@ cdef class CPLEXBackend(GenericBackend):
 
         EXAMPLE::
 
-            sage: from sage.numerical.backends.generic_backend import get_solver
+            sage: from sage.numerical.backends.generic_backend import get_solver # optional - CPLEX
             sage: p = get_solver(solver = "CPLEX")  # optional - CPLEX
             sage: p.add_variable()                                 # optional - CPLEX
             0
@@ -1205,7 +1219,8 @@ cdef class CPLEXBackend(GenericBackend):
         :trac:`14581`::
 
             sage: P = MixedIntegerLinearProgram(solver="CPLEX") # optional - CPLEX
-            sage: x = P["x"]                                    # optional - CPLEX
+            sage: var = P.new_variable(nonnegative=False)       # optional - CPLEX
+            sage: x = var["x"]                                  # optional - CPLEX
             sage: P.set_max(x, 0)                               # optional - CPLEX
             sage: P.get_max(x)                                  # optional - CPLEX
             0.0
@@ -1241,7 +1256,7 @@ cdef class CPLEXBackend(GenericBackend):
 
         EXAMPLE::
 
-            sage: from sage.numerical.backends.generic_backend import get_solver
+            sage: from sage.numerical.backends.generic_backend import get_solver # optional - CPLEX
             sage: p = get_solver(solver = "CPLEX")  # optional - CPLEX
             sage: p.add_variable()                                 # optional - CPLEX
             0
@@ -1256,7 +1271,8 @@ cdef class CPLEXBackend(GenericBackend):
         :trac:`14581`::
 
             sage: P = MixedIntegerLinearProgram(solver="CPLEX") # optional - CPLEX
-            sage: x = P["x"]                                    # optional - CPLEX
+            sage: var = P.new_variable(nonnegative=False)       # optional - CPLEX
+            sage: x = var["x"]                                  # optional - CPLEX
             sage: P.set_min(x, 5)                               # optional - CPLEX
             sage: P.set_min(x, 0)                               # optional - CPLEX
             sage: P.get_min(x)                                  # optional - CPLEX
@@ -1288,7 +1304,7 @@ cdef class CPLEXBackend(GenericBackend):
 
         EXAMPLE::
 
-            sage: from sage.numerical.backends.generic_backend import get_solver
+            sage: from sage.numerical.backends.generic_backend import get_solver # optional - CPLEX
             sage: p = get_solver(solver = "CPLEX")  # optional - CPLEX
             sage: p.add_variables(2)                               # optional - CPLEX
             1
@@ -1312,7 +1328,7 @@ cdef class CPLEXBackend(GenericBackend):
 
         EXAMPLE::
 
-            sage: from sage.numerical.backends.generic_backend import get_solver
+            sage: from sage.numerical.backends.generic_backend import get_solver # optional - CPLEX
             sage: p = get_solver(solver = "CPLEX")  # optional - CPLEX
             sage: p.add_variables(2)                               # optional - CPLEX
             1
@@ -1332,9 +1348,9 @@ cdef class CPLEXBackend(GenericBackend):
 
         EXAMPLE::
 
-            sage: from sage.numerical.backends.generic_backend import get_solver
+            sage: from sage.numerical.backends.generic_backend import get_solver # optional - CPLEX
             sage: p = MixedIntegerLinearProgram(solver = "CPLEX")        # optional - CPLEX
-            sage: b = p.new_variable()                         # optional - CPLEX
+            sage: b = p.new_variable(nonnegative=True)         # optional - CPLEX
             sage: p.add_constraint(b[1] + b[2] <= 6)           # optional - CPLEX
             sage: p.set_objective(b[1] + b[2])                 # optional - CPLEX
             sage: copy(p).solve()                              # optional - CPLEX
@@ -1367,19 +1383,76 @@ cdef class CPLEXBackend(GenericBackend):
         .. NOTE::
 
            The list of available parameters is available at
-           :meth:`sage.numerical.mip.MixedIntegerlinearProgram.solver_parameter`
+           :meth:`sage.numerical.mip.MixedIntegerLinearProgram.solver_parameter`
 
-        EXAMPLE::
+        EXAMPLE:
 
-            sage: from sage.numerical.backends.generic_backend import get_solver
+        Set a computation time limit::
+
+            sage: from sage.numerical.backends.generic_backend import get_solver # optional - CPLEX
             sage: p = get_solver(solver = "CPLEX")         # optional - CPLEX
             sage: p.solver_parameter("timelimit", 60)      # optional - CPLEX
             sage: p.solver_parameter("timelimit")          # optional - CPLEX
             60.0
+
+        Set the logfile (no log file by default)::
+
+            sage: from sage.numerical.backends.generic_backend import get_solver # optional - CPLEX
+            sage: p = get_solver(solver = "CPLEX")           # optional - CPLEX
+            sage: p.solver_parameter("logfile")              # optional - CPLEX
+            ''
+            sage: p.solver_parameter("logfile", '/dev/null') # optional - CPLEX
+            sage: p.solver_parameter("logfile")              # optional - CPLEX
+            '/dev/null'
+
+        Disable the logfile::
+
+            sage: from sage.numerical.backends.generic_backend import get_solver # optional - CPLEX
+            sage: p = get_solver(solver = "CPLEX")         # optional - CPLEX
+            sage: p.solver_parameter("logfile", '')        # optional - CPLEX
+            sage: p.solver_parameter("logfile")            # optional - CPLEX
+            ''
+
+        TEST:
+
+        Print the logfile's content (through :class:`MixedIntegerLinearProgram`)::
+
+            sage: filename = tmp_filename(ext='.txt')                  # optional - CPLEX
+            sage: p = MixedIntegerLinearProgram(solver="CPLEX")        # optional - CPLEX
+            sage: b = p.new_variable(binary=True)                      # optional - CPLEX
+            sage: for u,v in graphs.CycleGraph(5).edges(labels=False): # optional - CPLEX
+            ....:     p.add_constraint(b[u]+b[v]<=1)                   # optional - CPLEX
+            sage: p.set_objective(p.sum(b[x] for x in range(5)))       # optional - CPLEX
+            sage: p.solver_parameter("logfile", filename)              # optional - CPLEX
+            sage: p.solve()                                            # optional - CPLEX
+            2.0
+            sage: with open(filename,'r') as f:                        # optional - CPLEX
+            ....:     print f.read()                                   # optional - CPLEX
+            Found incumbent of value ...
+            Reduced MIP has 5 rows, 5 columns, and 10 nonzeros.
+            ...
+            Elapsed time = ... sec. (... ticks, tree = ... MB, solutions = ...)
         """
         cdef int intv
         cdef double doublev
         cdef char * strv
+
+        # Specific action for log file
+        cdef FILE *ff
+        if name.lower() == "logfile":
+            if value is None: # Return logfile name
+                return self._logfilename
+            elif not value:   # Close current logfile and disable logs
+                check( CPXsetlogfile(self.env, NULL) )
+                self._logfilename = ''
+            else:             # Set log file to logfilename
+                ff = fopen(value, "a")
+                if not ff:
+                    raise ValueError("Unable to append file {}.".format(value))
+                check( CPXsetlogfile(self.env, ff) )
+                self._logfilename = value
+            return
+
 
         # If the name has to be translated to a CPLEX parameter ID
         if name == "timelimit":

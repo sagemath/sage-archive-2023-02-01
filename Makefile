@@ -11,15 +11,11 @@ default: all
 
 build: all-build
 
-# Defer unknown targets to build/Makefile
+# Defer unknown targets to build/make/Makefile
 %::
-	$(MAKE) configure logs
-	+cd build && ./pipestatus \
-		"./install '$@' 2>&1" \
-		"tee -a ../logs/install.log"
-
-logs:
-	mkdir -p $@
+	$(MAKE) configure
+	+build/bin/sage-logger \
+		"cd build/make && ./install '$@'" logs/install.log
 
 # Preemptively download all standard upstream source tarballs.
 download:
@@ -42,7 +38,7 @@ misc-clean:
 	rm -rf tmp
 	rm -f aclocal.m4 config.log config.status confcache
 	rm -rf autom4te.cache
-	rm -f build/Makefile build/Makefile-auto
+	rm -f build/make/Makefile build/make/Makefile-auto
 	rm -f .BUILDSTART
 
 bdist-clean: clean
@@ -56,7 +52,7 @@ distclean: build-clean
 # Delete all auto-generated files which are distributed as part of the
 # source tarball
 bootstrap-clean:
-	rm -rf config configure build/Makefile-auto.in
+	rm -rf config configure build/make/Makefile-auto.in
 
 # Remove absolutely everything which isn't part of the git repo
 maintainer-clean: distclean bootstrap-clean

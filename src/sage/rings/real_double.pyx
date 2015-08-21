@@ -1645,7 +1645,7 @@ cdef class RealDoubleElement(FieldElement):
         """
         return gsl_isinf(self._value)
 
-    def __richcmp__(left, right, int op):
+    cpdef _richcmp_(left, Element right, int op):
         """
         Rich comparison of ``left`` and ``right``.
 
@@ -1668,9 +1668,6 @@ cdef class RealDoubleElement(FieldElement):
             sage: n == RDF(1)
             False
         """
-        return (<Element>left)._richcmp(right, op)
-
-    cpdef _richcmp_(left, Element right, int op):
         # We really need to use the correct operators, to deal
         # correctly with NaNs.
         cdef double x = (<RealDoubleElement>left)._value
@@ -2185,6 +2182,25 @@ cdef class RealDoubleElement(FieldElement):
             0.9092974268256817
         """
         return self._new_c(gsl_sf_sin(self._value))
+
+    def dilog(self):
+        r"""
+        Return the dilogarithm of ``self``.
+
+        This is defined by the
+        series `\sum_n x^n/n^2` for `|x| \le 1`. When the absolute
+        value of ``self`` is greater than 1, the returned value is the
+        real part of (the analytic continuation to `\CC` of) the
+        dilogarithm of ``self``.
+
+        EXAMPLES::
+
+            sage: RDF(1).dilog()  # rel tol 1.0e-13
+            1.6449340668482264
+            sage: RDF(2).dilog()  # rel tol 1.0e-13
+            2.46740110027234
+        """
+        return self._new_c(gsl_sf_dilog(self._value))
 
     def restrict_angle(self):
         r"""

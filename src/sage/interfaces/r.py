@@ -1200,17 +1200,6 @@ rel_re_terms = re.compile('terms\s*=\s*(.*?),')
 rel_re_call = re.compile('call\s*=\s*(.*?)\),')
 
 class RElement(ExpectElement):
-    def __reduce__(self):
-        """
-        EXAMPLES::
-
-            sage: a = r([1,2,3])
-            sage: dumps(a)
-            Traceback (most recent call last):
-            ...
-            NotImplementedError: pickling of R elements is not yet supported
-        """
-        raise NotImplementedError("pickling of R elements is not yet supported")
 
     def trait_names(self):
         """

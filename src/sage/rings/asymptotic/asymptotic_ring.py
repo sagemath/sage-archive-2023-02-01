@@ -397,7 +397,7 @@ class AsymptoticExpression(sage.rings.ring_element.RingElement):
             sage: O(x) == O(x)
             False
         """
-        return (self - other) == 0
+        return not bool(self - other)
 
 
     def has_same_summands(self, other):

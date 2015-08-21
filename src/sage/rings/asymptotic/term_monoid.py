@@ -651,8 +651,7 @@ class GenericTerm(sage.structure.element.MonoidElement):
             can be assumed that this asymptotic term is from the
             same parent as ``other``.
 
-            Only implemented in classes that are used within
-            :mod:`sage.rings.asymptotic.asymptotic_ring`.
+            Only implemented in concrete realizations.
 
         EXAMPLES::
 
@@ -663,10 +662,9 @@ class GenericTerm(sage.structure.element.MonoidElement):
             sage: t.is_same_term(t)
             Traceback (most recent call last):
             ...
-            NotImplementedError: Only implemented for terms used in the asymptotic ring.
+            NotImplementedError: Only implemented in concrete realizations.
         """
-        raise NotImplementedError('Only implemented for terms used in the '
-                                  'asymptotic ring.')
+        raise NotImplementedError('Only implemented in concrete realizations.')
 
 
     def _repr_(self):

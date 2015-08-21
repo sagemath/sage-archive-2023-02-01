@@ -183,6 +183,106 @@ def parent_to_repr_short(P):
         return rep
 
 
+class Variable(sage.structure.sage_object.SageObject):
+    r"""
+    TESTS::
+
+        sage: from sage.rings.asymptotic.growth_group import Variable
+        sage: v = Variable('x'); repr(v), v.variable_names()
+        ('x', ('x',))
+        sage: v = Variable('x1'); repr(v), v.variable_names()
+        ('x1', ('x1',))
+        sage: v = Variable('x_42'); repr(v), v.variable_names()
+        ('x_42', ('x_42',))
+        sage: v = Variable(' x'); repr(v), v.variable_names()
+        ('x', ('x',))
+        sage: v = Variable('x '); repr(v), v.variable_names()
+        ('x', ('x',))
+        sage: v = Variable('x '); repr(v), v.variable_names()
+        ('x', ('x',))
+
+    ::
+
+        sage: v = Variable(('x', 'y')); repr(v), v.variable_names()
+        ('x, y', ('x', 'y'))
+        sage: v = Variable(('x', 'log(y)')); repr(v), v.variable_names()
+        ('x, log(y)', ('x', 'y'))
+        sage: v = Variable(('x', 'log(x)')); repr(v), v.variable_names()
+        Traceback (most recent call last):
+        ...
+        ValueError: Variable names ('x', 'x') are not pairwise distinct.
+
+    ::
+
+        sage: v = Variable('log(x)'); repr(v), v.variable_names()
+        ('log(x)', ('x',))
+        sage: v = Variable('log(log(x))'); repr(v), v.variable_names()
+        ('log(log(x))', ('x',))
+
+    ::
+
+        sage: v = Variable('x', repr='log(x)'); repr(v), v.variable_names()
+        ('log(x)', ('x',))
+    """
+    def __init__(self, var, repr=None):
+        from sage.symbolic.ring import isidentifier
+
+        if not isinstance(var, (list, tuple)):
+            var = (var,)
+        var = tuple(str(v).strip() for v in var)
+
+        if repr is None:
+            var_bases = tuple(
+                self.extract_variable_name(v)
+                if not isidentifier(v) else v
+                for v in var)
+            var_repr = ', '.join(var)
+        else:
+            for v in var:
+                if not isidentifier(v):
+                    raise ValueError("'%s' is not a valid name for a variable." % (v,))
+            var_bases = var
+            var_repr = str(repr).strip()
+
+        if len(var_bases) != len(set(var_bases)):
+            raise ValueError('Variable names %s are not pairwise distinct.' %
+                             (var_bases,))
+        self.var_bases = var_bases
+        self.var_repr = var_repr
+
+
+    def _repr_(self):
+        return self.var_repr
+
+
+    def variable_names(self):
+        return self.var_bases
+
+
+    @staticmethod
+    def extract_variable_name(s):
+        from sage.symbolic.ring import isidentifier
+        s = s.strip()
+
+        def strip_fct(s):
+            op = s.find('(')
+            cl = s.rfind(')')
+            if op == -1 and cl == -1:
+                return s
+            if (op == -1) != (cl == -1):
+                raise ValueError("Unbalanced parentheses in '%s'." % (s,))
+            return s[op+1:cl]
+
+        s_old = ''
+        while s != s_old:
+            s_old = s
+            s = strip_fct(s)
+
+        if not isidentifier(s):
+            raise ValueError("'%s' is not a valid name for a variable." % (s,))
+        return s
+
+
 class GenericGrowthElement(sage.structure.element.MultiplicativeGroupElement):
     r"""
     An abstract implementation of a generic growth element.

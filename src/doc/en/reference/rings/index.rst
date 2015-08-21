@@ -26,7 +26,6 @@ General Rings, Ideals, and Morphisms
    sage/rings/fast_arith
    sage/rings/misc
    sage/rings/monomials
-   sage/rings/asymptotic_ring
 
    sage/rings/commutative_algebra
    sage/rings/commutative_algebra_element
@@ -43,6 +42,10 @@ General Rings, Ideals, and Morphisms
    sage/rings/principal_ideal_domain
    sage/rings/principal_ideal_domain_element
    sage/rings/ring_element
+
+   sage/rings/asymptotic/growth_group
+   sage/rings/asymptotic/term_monoid
+   sage/rings/asymptotic/asymptotic_ring
 
 
 .. include:: ../footer.txt

@@ -700,7 +700,7 @@ class GenericGrowthGroup(
 
         EXAMPLES:
 
-            sage: import sage.groups.asymptotic_growth_group as agg
+            sage: import sage.rings.asymptotic.growth_group as agg
             sage: tuple(agg.MonomialGrowthGroup(ZZ, 'z').some_elements())
             (1, z, 1/z, z^2, z^(-2), z^3, z^(-3),
              z^4, z^(-4), z^5, z^(-5), ...)

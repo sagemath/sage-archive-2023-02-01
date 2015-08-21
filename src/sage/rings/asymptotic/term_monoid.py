@@ -95,7 +95,7 @@ def product_diagonal(A, B):
 
     EXAMPLES::
 
-        sage: from sage.monoids.asymptotic_term_monoid import product_diagonal
+        sage: from sage.rings.asymptotic.term_monoid import product_diagonal
         sage: tuple(product_diagonal(srange(2), srange(2)))
         ((0, 0), (0, 1), (1, 0), (1, 1))
         sage: tuple(product_diagonal(srange(4), srange(2)))
@@ -1020,8 +1020,8 @@ class GenericTermMonoid(sage.structure.parent.Parent,
 
         EXAMPLES:
 
-            sage: import sage.groups.asymptotic_growth_group as agg
-            sage: import sage.monoids.asymptotic_term_monoid as atm
+            sage: import sage.rings.asymptotic.growth_group as agg
+            sage: import sage.rings.asymptotic.term_monoid as atm
             sage: G = agg.GrowthGroup('x^ZZ')
             sage: tuple(atm.OTermMonoid(G).some_elements())
             (O(1), O(x), O(1/x), O(x^2), O(x^(-2)), O(x^3), ...)
@@ -1805,8 +1805,8 @@ class TermWithCoefficientMonoid(GenericTermMonoid):
         EXAMPLES:
 
             sage: from itertools import islice
-            sage: import sage.groups.asymptotic_growth_group as agg
-            sage: import sage.monoids.asymptotic_term_monoid as atm
+            sage: import sage.rings.asymptotic.growth_group as agg
+            sage: import sage.rings.asymptotic.term_monoid as atm
             sage: G = agg.GrowthGroup('z^QQ')
             sage: T = atm.ExactTermMonoid(G, ZZ)
             sage: tuple(islice(T.some_elements(), 10))

@@ -1073,7 +1073,7 @@ class AsymptoticRing(sage.rings.ring.Ring,
             sage: AsymptoticRing(growth_group='z^QQ', coefficient_ring=QQ).an_element()
             -1/8*z^(3/2) + O(z^(1/2))
         """
-        from sage.monoids.asymptotic_term_monoid import TermMonoid
+        from sage.rings.asymptotic.term_monoid import TermMonoid
         E = TermMonoid('exact', self.growth_group, self.coefficient_ring)
         O = TermMonoid('O', self.growth_group, self.coefficient_ring)
         return -self(E.an_element())**3 + self(O.an_element())
@@ -1109,8 +1109,8 @@ class AsymptoticRing(sage.rings.ring.Ring,
              O(z^(-1/2)),
              -8*z^(3/2) + O(z^(1/2)))
         """
-        from sage.monoids.asymptotic_term_monoid import product_diagonal
-        from sage.monoids.asymptotic_term_monoid import TermMonoid
+        from sage.rings.asymptotic.term_monoid import product_diagonal
+        from sage.rings.asymptotic.term_monoid import TermMonoid
         E = TermMonoid('exact', self.growth_group, self.coefficient_ring)
         O = TermMonoid('O', self.growth_group, self.coefficient_ring)
         return iter(-self(e)**3 + self(o)

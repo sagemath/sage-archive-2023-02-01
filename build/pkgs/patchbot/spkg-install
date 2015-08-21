@@ -7,9 +7,7 @@ if [ "$SAGE_LOCAL" = "" ]; then
 fi
 
 # Delete any currently existing patchbot
-if [ -e "$SAGE_LOCAL/bin/patchbot" ]; then
-    rm -rf "$SAGE_LOCAL/bin/patchbot"
-fi
+rm -rf "$SAGE_LOCAL/bin/patchbot"
 
 # Copy into final location.
 # The sage-patchbot script knows how to call this...

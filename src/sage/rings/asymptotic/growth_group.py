@@ -1213,6 +1213,23 @@ class GenericGrowthGroup(
                                   " implementations.")
 
 
+    def variable_names(self):
+        r"""
+        Return the names of the variables.
+
+        OUTPUT:
+
+        A tuple of strings.
+
+        EXAMPLES::
+
+            sage: import sage.rings.asymptotic.growth_group as agg
+            sage: agg.GenericGrowthGroup(ZZ).variable_names()
+            ()
+        """
+        return tuple()
+
+
     CartesianProduct = CartesianProductGrowthGroups
 
 
@@ -1868,6 +1885,25 @@ class MonomialGrowthGroup(GenericGrowthGroup):
             1
         """
         return len(self.gens())
+
+
+    def variable_names(self):
+        r"""
+        Return the names of the variables.
+
+        OUTPUT:
+
+        A tuple of strings.
+
+        EXAMPLES::
+
+            sage: from sage.rings.asymptotic.growth_group import GrowthGroup
+            sage: GrowthGroup('x^ZZ').variable_names()
+            ('x',)
+            sage: GrowthGroup('log(x)^ZZ').variable_names()
+            ('x',)
+        """
+        return self._var_.variable_names()
 
 
 class GrowthGroupFactory(sage.structure.factory.UniqueFactory):

@@ -66,7 +66,7 @@ class CartesianProductFactory(sage.structure.factory.UniqueFactory):
 
         # check if multivariate and all have distinct single variables
         vg = tuple((g.variable_names(), g) for g in growth_groups)
-        vars = add(iter(v for v, _ in vg), tuple())
+        vars = sum(iter(v for v, _ in vg), tuple())
         if len(vars) != len(set(vars)):
             raise ValueError('Growth groups %s do not have distinct variables.' %
                              growth_groups)
@@ -311,6 +311,27 @@ class GenericProduct(CartesianProductPosets):
         for factor in self.cartesian_factors():
             t = t + factor.gens_monomial()
         return t
+
+
+    def variable_names(self):
+        r"""
+        Return the names of the variables.
+
+        OUTPUT:
+
+        A tuple of strings.
+
+        EXAMPLES::
+
+            sage: from sage.rings.asymptotic.growth_group import GrowthGroup
+            sage: GrowthGroup('x^ZZ * log(x)^ZZ * y^QQ * log(z)^ZZ').variable_names()
+            ('x', 'y', 'z')
+        """
+        vars = sum(iter(factor.variable_names()
+                        for factor in self.cartesian_factors()),
+                   tuple())
+        from itertools import groupby
+        return tuple(v for v, _ in groupby(vars))
 
 
     class Element(CartesianProductPosets.Element):

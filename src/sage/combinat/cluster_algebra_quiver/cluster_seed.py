@@ -766,10 +766,12 @@ class ClusterSeed(SageObject):
 
         INPUT:
 
-        - ``data`` -- The matrix to set the c matrix to.  Also allowed to be a quiver or cluster seed, 
-        in which case the b_matrix is used.
+        - ``data`` -- The matrix to set the c matrix to.  Also allowed
+          to be a quiver or cluster seed, in which case the b_matrix
+          is used.
 
         EXAMPLES::
+
             sage: S = ClusterSeed(['A',3]);
             sage: X = matrix([[0,0,1],[0,1,0],[1,0,0]])
             sage: S.set_c_matrix(X)
@@ -787,8 +789,6 @@ class ClusterSeed(SageObject):
             sage: S.set_c_matrix(Z)
             C matrix does not look to be valid - not a linearly independent set.
             Continuing...
-
-
         """
         if isinstance(data, ClusterQuiver):
             data = data.b_matrix()

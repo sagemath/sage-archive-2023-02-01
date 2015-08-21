@@ -591,6 +591,13 @@ class AsymptoticExpression(sage.rings.ring_element.RingElement):
             ValueError: Growth Group y^ZZ disallows taking y to the power of 1/7.
             sage: (x^(1/2) + O(x^0))^15
             x^(15/2) + O(x^7)
+
+        ::
+
+            sage: O(x)^(-1)
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: Negative powers are not implemented for the term O(x).
         """
         if len(self.summands) > 1:
             from sage.rings.integer_ring import ZZ
@@ -613,8 +620,12 @@ class AsymptoticExpression(sage.rings.ring_element.RingElement):
             new_coeff = expr.coefficient**power
             return P(expr.parent()(new_growth, new_coeff))
         else:
-            new_growth = expr.growth**power
-            return P(expr.parent()(new_growth))
+            if power >= 0:
+                new_growth = expr.growth**power
+                return P(expr.parent()(new_growth))
+            else:
+                raise NotImplementedError('Negative powers are not implemented'
+                                          ' for the term %s.' % (self, ))
 
 
 

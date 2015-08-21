@@ -69,6 +69,7 @@ import sage.rings.number_field.number_field as number_field
 from sage.categories.map import Map
 from sage.rings.rational_field import is_RationalField
 from sage.rings.complex_field import is_ComplexField
+from sage.rings.qqbar import is_AlgebraicField
 from sage.rings.ring import is_Ring
 
 from sage.misc.cachefunc                    import cached_method
@@ -874,7 +875,6 @@ class DirichletCharacter(MultiplicativeGroupElement):
             v.sort()
         return v
 
-
     def gauss_sum(self, a=1):
         r"""
         Return a Gauss sum associated to this Dirichlet character.
@@ -883,16 +883,13 @@ class DirichletCharacter(MultiplicativeGroupElement):
 
         .. math::
 
-                           g_a(\chi) = \sum_{r \in \ZZ/m\ZZ} \chi(r)\,\zeta^{ar},
+            g_a(\chi) = \sum_{r \in \ZZ/m\ZZ} \chi(r)\,\zeta^{ar},
 
-
-        where `m` is the modulus of `\chi` and
-        `\zeta` is a primitive `m^{th}` root of unity, i.e.,
-        `\zeta` is ``self.parent().zeta()``.
+        where `m` is the modulus of `\chi` and `\zeta` is a primitive
+        `m^{th}` root of unity.
 
         FACTS: If the modulus is a prime `p` and the character is
-        nontrivial, then the Gauss sum has absolute value
-        `\sqrt{p}`.
+        nontrivial, then the Gauss sum has absolute value `\sqrt{p}`.
 
         CACHING: Computed Gauss sums are *not* cached with this character.
 
@@ -918,6 +915,12 @@ class DirichletCharacter(MultiplicativeGroupElement):
 
         TESTS:
 
+        The field of algebraic numbers is supported (:trac:`19056`)::
+
+            sage: G = DirichletGroup(7, QQbar)
+            sage: G[1].gauss_sum()
+            -2.440133358345538? + 1.022618791871794?*I
+
         Check that :trac:`19060` is fixed::
 
             sage: K.<z> = CyclotomicField(8)
@@ -926,22 +929,25 @@ class DirichletCharacter(MultiplicativeGroupElement):
             sage: chi.gauss_sum()
             zeta52^22 + zeta52^21 + zeta52^19 - zeta52^16 + zeta52^15 + zeta52^14 + zeta52^12 - zeta52^11 - zeta52^10 - zeta52^7 - zeta52^5 + zeta52^4
         """
-        K = self.base_ring()
-        if is_ComplexField(K):
-            return self.gauss_sum_numerical()
-        if not (number_field.is_CyclotomicField(K) or is_RationalField(K)):
-            raise NotImplementedError("Gauss sums only currently implemented when the base ring is a cyclotomic field, QQ, or a complex field.")
-        g = 0
-        chi = self.minimize_base_ring()
-        G = chi.parent()
+        G = self.parent()
+        K = G.base_ring()
+        chi = self
         m = G.modulus()
-        L = rings.CyclotomicField(arith.lcm(m,G.zeta_order()))
-        zeta = L.gen(0)
-        n = zeta.multiplicative_order()
-        zeta = zeta ** (n // m)
-        if a != 1:
-            zeta = zeta**a
-        z = 1
+        if is_ComplexField(K):
+            return self.gauss_sum_numerical(a=a)
+        elif is_AlgebraicField(K):
+            L = K
+            zeta = L.zeta(m)
+        elif number_field.is_CyclotomicField(K) or is_RationalField(K):
+            chi = chi.minimize_base_ring()
+            n = arith.lcm(m, G.zeta_order())
+            L = rings.CyclotomicField(n)
+            zeta = L.gen(0) ** (n // m)
+        else:
+            raise NotImplementedError("Gauss sums only currently implemented when the base ring is a cyclotomic field, QQ, QQbar, or a complex field")
+        zeta = zeta ** a
+        g = L.zero()
+        z = L.one()
         for c in chi.values()[1:]:
             z *= zeta
             g += L(c)*z
@@ -954,22 +960,18 @@ class DirichletCharacter(MultiplicativeGroupElement):
 
         INPUT:
 
+        - ``prec`` -- integer (default: 53), *bits* of precision
 
-        - ``prec`` - integer (default: 53), *bits* of precision
-
-        - ``a`` - integer, as for gauss_sum.
-
+        - ``a`` -- integer, as for :meth:`gauss_sum`.
 
         The Gauss sum associated to `\chi` is
 
         .. math::
 
-           g_a(\chi) = \sum_{r \in \ZZ/m\ZZ} \chi(r)\,\zeta^{ar},
+            g_a(\chi) = \sum_{r \in \ZZ/m\ZZ} \chi(r)\,\zeta^{ar},
 
-
-        where `m` is the modulus of `\chi` and
-        `\zeta` is a primitive `m^{th}` root of unity, i.e.,
-        `\zeta` is ``self.parent().zeta()``.
+        where `m` is the modulus of `\chi` and `\zeta` is a primitive
+        `m^{th}` root of unity.
 
         EXAMPLES::
 
@@ -997,26 +999,32 @@ class DirichletCharacter(MultiplicativeGroupElement):
             3.60555127546...
             sage: sqrt(13.0)
             3.60555127546399
+
+        TESTS:
+
+        The field of algebraic numbers is supported (:trac:`19056`)::
+
+            sage: G = DirichletGroup(7, QQbar)
+            sage: G[1].gauss_sum_numerical()
+            -2.44013335834554 + 1.02261879187179*I
         """
         G = self.parent()
         K = G.base_ring()
-        if not (number_field.is_CyclotomicField(K) or is_RationalField(K)
-                or is_ComplexField(K)):
-            raise NotImplementedError("Gauss sums only currently implemented when the base ring is a cyclotomic field, QQ, or a complex field.")
-
         if is_ComplexField(K):
             phi = lambda t : t
             CC = K
-        else:
+        elif is_AlgebraicField(K):
+            from sage.rings.complex_field import ComplexField
+            CC = ComplexField(prec)
+            phi = CC.coerce_map_from(K)
+        elif number_field.is_CyclotomicField(K) or is_RationalField(K):
             phi = K.complex_embedding(prec)
             CC = phi.codomain()
-
-        g = 0
-        m = G.modulus()
-        zeta = CC.zeta(m)
-        if a != 1:
-            zeta = zeta**a
-        z = 1
+        else:
+            raise NotImplementedError("Gauss sums only currently implemented when the base ring is a cyclotomic field, QQ, QQbar, or a complex field")
+        zeta = CC.zeta(G.modulus()) ** a
+        g = CC.zero()
+        z = CC.one()
         for c in self.values()[1:]:
             z *= zeta
             g += phi(c)*z

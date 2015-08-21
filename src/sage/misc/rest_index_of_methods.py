@@ -66,6 +66,19 @@ def gen_rest_table_index(list_of_entries, sort=True, only_local_functions=True):
 
     TESTS:
 
+    When the first sentence of the docstring spans over several lines::
+
+        sage: def a():
+        ....:     r'''
+        ....:     Here is a very very very long sentence
+        ....:     that spans on several lines.
+        ....:
+        ....:     EXAMP...
+        ....:     '''
+        ....:     print "hey"
+        sage: 'Here is a very very very long sentence that spans on several lines' in gen_rest_table_index([a])
+        True
+
     The inherited methods do not show up::
 
         sage: gen_rest_table_index(sage.combinat.posets.lattices.FiniteLatticePoset).count('\n') < 50
@@ -134,8 +147,9 @@ def gen_rest_table_index(list_of_entries, sort=True, only_local_functions=True):
 
         # Descriptions of the method/function
         if e.__doc__:
-            desc = e.__doc__.splitlines()
-            desc = desc[0] if desc[0] else desc[1]
+            desc = e.__doc__.split('\n\n')[0]                       # first paragraph
+            desc = " ".join([x.strip() for x in desc.splitlines()]) # concatenate lines
+            desc = desc.strip()                                     # remove leading spaces
         else:
             desc = "NO DOCSTRING"
 

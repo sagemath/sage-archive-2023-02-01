@@ -167,7 +167,8 @@ CartesianProductGrowthGroups = CartesianProductFactory('CartesianProductGrowthGr
 
 
 from sage.sets.cartesian_product import CartesianProductPosets
-class GenericProduct(CartesianProductPosets):
+from sage.rings.asymptotic.growth_group import GenericGrowthGroup
+class GenericProduct(CartesianProductPosets, GenericGrowthGroup):
     r"""
     A cartesian product of growth groups.
 
@@ -356,6 +357,9 @@ class GenericProduct(CartesianProductPosets):
             except (ValueError, TypeError):
                 continue
 
+
+    def _coerce_map_from_(self, S):
+        pass
 
 
     def gens_monomial(self):

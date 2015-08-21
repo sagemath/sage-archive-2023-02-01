@@ -835,8 +835,8 @@ class GenericGrowthElement(sage.structure.element.MultiplicativeGroupElement):
 
 
 class GenericGrowthGroup(
-        sage.structure.parent.Parent,
-        sage.structure.unique_representation.UniqueRepresentation):
+        sage.structure.unique_representation.UniqueRepresentation,
+        sage.structure.parent.Parent):
     r"""
     An abstract implementation for growth groups.
 

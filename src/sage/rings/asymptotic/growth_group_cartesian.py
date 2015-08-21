@@ -42,8 +42,56 @@ AUTHORS:
 
 import sage
 
+
+class CartesianProductFactory(sage.structure.factory.UniqueFactory):
+    def create_key_and_extra_args(self, growth_groups, **kwds):
+        return tuple(growth_groups), kwds
+
+    def create_object(self, version, growth_groups, **kwds):
+        order = kwds.pop('order')
+        if order is not None:
+            return GenericProduct(growth_groups, order=order, **kwds)
+
+        # check if all groups have a variable
+        if not all(g.variable_names() for g in growth_groups):
+            raise NotImplementedError('Growth groups %s have no variable.' %
+                                      tuple(g for g in growth_groups
+                                            if not g.variable_names()))
+
+        # check if all are univariate
+        first_var = growth_groups[0].variable_names()
+        if len(first_var) == 1 and all(g.variable_names() == first_var
+                                       for g in growth_groups):
+            return UnivariateProduct(growth_groups, **kwds)
+
+        # check if multivariate and all have distinct single variables
+        vg = tuple((g.variable_names(), g) for g in growth_groups)
+        vars = add(iter(v for v, _ in vg), tuple())
+        if len(vars) != len(set(vars)):
+            raise ValueError('Growth groups %s do not have distinct variables.' %
+                             growth_groups)
+        if any(len(v) != 1 for v, _ in vg):
+            raise NotImplementedError('Cannot build cartesian product since growth '
+                                      'groups %s do not have single variables.' %
+                                      tuple(g for v, g in vg if len(v) != 1))
+
+        vg = sorted(vg, key=lambda k: k[0])
+        from itertools import groupby
+        sorted_groups = list()
+        for v, gs in groupby(vg, key=lambda k: k[0]):
+            gs = tuple(gs)
+            if len(gs) > 1:
+                raise ValueError('Growth groups %s do not have distinct variables.' %
+                                 gs)
+            sorted_groups.append(gs[0])
+        return MultivariateProduct(sorted_groups, **kwds)
+
+
+CartesianProductGrowthGroups = CartesianProductFactory('CartesianProductGrowthGroups')
+
+
 from sage.sets.cartesian_product import CartesianProductPosets
-class CartesianProductGrowthGroups(CartesianProductPosets):
+class GenericProduct(CartesianProductPosets):
     r"""
     A cartesian product of growth groups.
 
@@ -119,7 +167,7 @@ class CartesianProductGrowthGroups(CartesianProductPosets):
 
         if isinstance(data, list):
             try:
-                obj = super(CartesianProductGrowthGroups,
+                obj = super(GenericProduct,
                             self)._element_constructor_(data)
                 return obj
             except ValueError:
@@ -292,4 +340,22 @@ class CartesianProductGrowthGroups(CartesianProductPosets):
             return s
 
 
-CartesianProductGrowthGroups.CartesianProduct = CartesianProductGrowthGroups
+    CartesianProduct = CartesianProductGrowthGroups
+
+
+class UnivariateProduct(GenericProduct):
+    def __init__(self, sets, category, **kwargs):
+        super(CartesianProductUnivariateGrowthGroups, self).__init__(
+            sets, category, order='lex', **kwargs)
+
+
+    CartesianProduct = CartesianProductGrowthGroups
+
+
+class MultivariateProduct(GenericProduct):
+    def __init__(self, sets, category, **kwargs):
+        super(CartesianProductUnivariateGrowthGroups, self).__init__(
+            sets, category, order='components', **kwargs)
+
+
+    CartesianProduct = CartesianProductGrowthGroups

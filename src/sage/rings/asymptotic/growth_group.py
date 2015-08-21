@@ -261,10 +261,10 @@ class Variable(sage.structure.unique_representation.CachedRepresentation,
         var = tuple(str(v).strip() for v in var)
 
         if repr is None:
-            var_bases = tuple(
-                self.extract_variable_name(v)
-                if not isidentifier(v) else v
-                for v in var)
+            var_bases = sum(iter(
+                self.extract_variable_names(v)
+                if not isidentifier(v) else (v,)
+                for v in var), tuple())
             var_repr = ', '.join(var)
         else:
             for v in var:
@@ -368,7 +368,7 @@ class Variable(sage.structure.unique_representation.CachedRepresentation,
 
 
     @staticmethod
-    def extract_variable_name(s):
+    def extract_variable_names(s):
         r"""
         Finds the name of the variable for the given string.
 
@@ -378,30 +378,30 @@ class Variable(sage.structure.unique_representation.CachedRepresentation,
 
         OUTPUT:
 
-        A string.
+        A tuple of strings.
 
         EXAMPLES::
 
             sage: from sage.rings.asymptotic.growth_group import Variable
-            sage: Variable.extract_variable_name('x')
-            'x'
-            sage: Variable.extract_variable_name('exp(x)')
-            'x'
-            sage: Variable.extract_variable_name('sin(cos(ln(x)))')
-            'x'
-            sage: Variable.extract_variable_name('log(77)')
+            sage: Variable.extract_variable_names('x')
+            ('x',)
+            sage: Variable.extract_variable_names('exp(x)')
+            ('x',)
+            sage: Variable.extract_variable_names('sin(cos(ln(x)))')
+            ('x',)
+            sage: Variable.extract_variable_names('log(77)')
             Traceback (most recent call last):
             ....
             ValueError: '77' is not a valid name for a variable.
-            sage: Variable.extract_variable_name('log(x')
+            sage: Variable.extract_variable_names('log(x')
             Traceback (most recent call last):
             ....
             ValueError: Unbalanced parentheses in 'log(x'.
-            sage: Variable.extract_variable_name('x)')
+            sage: Variable.extract_variable_names('x)')
             Traceback (most recent call last):
             ....
             ValueError: Unbalanced parentheses in 'x)'.
-            sage: Variable.extract_variable_name('log)x(')
+            sage: Variable.extract_variable_names('log)x(')
             Traceback (most recent call last):
             ....
             ValueError: Unbalanced parentheses in 'log)x('.
@@ -425,7 +425,7 @@ class Variable(sage.structure.unique_representation.CachedRepresentation,
 
         if not isidentifier(s):
             raise ValueError("'%s' is not a valid name for a variable." % (s,))
-        return s
+        return (s,)
 
 
 class GenericGrowthElement(sage.structure.element.MultiplicativeGroupElement):

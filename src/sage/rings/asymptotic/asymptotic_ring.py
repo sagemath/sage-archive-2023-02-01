@@ -743,7 +743,7 @@ class AsymptoticExpression(sage.rings.ring_element.RingElement):
         result = 1
         while expanding:
             new_result = (geom * result + 1).truncate()
-            if new_result == result:
+            if new_result.has_same_summands(result):
                 expanding = False
             result = new_result
         return result / max_elem

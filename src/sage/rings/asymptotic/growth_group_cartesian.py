@@ -44,11 +44,83 @@ import sage
 
 
 class CartesianProductFactory(sage.structure.factory.UniqueFactory):
+    r"""
+    Creates various types of cartesian products depending on its input.
+
+    INPUT:
+
+    - ``growth_groups`` -- a tuple (or other iterable) of growth groups.
+
+    - ``order`` -- (default: ``None``) if specified, then this order
+      is taken for comparing two cartesian product elements. If ``order`` is
+      ``None`` this is determined automatically.
+
+    EXAMPLES::
+
+        sage: from sage.rings.asymptotic.growth_group import GrowthGroup
+        sage: A = GrowthGroup('x^ZZ'); A
+        Growth Group x^ZZ
+        sage: B = GrowthGroup('log(x)^ZZ'); B
+        Growth Group log(x)^ZZ
+        sage: C = cartesian_product([A, B]); C
+        Growth Group x^ZZ * log(x)^ZZ
+        sage: C._le_ == C.le_lex
+        True
+        sage: D = GrowthGroup('y^ZZ'); D
+        Growth Group y^ZZ
+        sage: E = cartesian_product([A, D]); E
+        Growth Group x^ZZ * y^ZZ
+        sage: E._le_ == E.le_components
+        True
+        sage: F = cartesian_product([C, D]); F
+        Growth Group x^ZZ * log(x)^ZZ * y^ZZ
+        sage: F._le_ == F.le_components
+        True
+        sage: cartesian_product([A, E]); G
+        Traceback (most recent call last):
+        ...
+        ValueError: Growth groups (Growth Group x^ZZ, Growth Group x^ZZ * y^ZZ)
+        do not have pairwise distinct variables.
+        sage: cartesian_product([A, B, D])
+        Traceback (most recent call last):
+        ...
+        ValueError: Growth groups
+        (Growth Group x^ZZ, Growth Group log(x)^ZZ, Growth Group y^ZZ)
+        do not have pairwise distinct variables.
+
+    TESTS::
+
+        sage: from sage.rings.asymptotic.growth_group_cartesian import CartesianProductFactory
+        sage: CartesianProductFactory('factory')([A, B], category=Sets())
+        Growth Group x^ZZ * log(x)^ZZ
+    """
     def create_key_and_extra_args(self, growth_groups, category, **kwds):
+        r"""
+        Given the arguments and keywords, create a key that uniquely
+        determines this object.
+
+        TESTS::
+
+            sage: from sage.rings.asymptotic.growth_group_cartesian import CartesianProductFactory
+            sage: from sage.rings.asymptotic.growth_group import GrowthGroup
+            sage: A = GrowthGroup('x^ZZ')
+            sage: CartesianProductFactory('factory').create_key_and_extra_args(
+            ....:     [A], category=Sets(), order='blub')
+            (((Growth Group x^ZZ,), Category of sets), {'order': 'blub'})
+        """
         return (tuple(growth_groups), category), kwds
 
 
     def create_object(self, version, args, **kwds):
+        r"""
+        Create an object from the given arguments.
+
+        TESTS::
+
+            sage: from sage.rings.asymptotic.growth_group import GrowthGroup
+            sage: cartesian_product([GrowthGroup('x^ZZ')])  # indirect doctest
+            Growth Group x^ZZ
+        """
         growth_groups, category = args
         order = kwds.pop('order', None)
         if order is not None:

@@ -1979,10 +1979,47 @@ class GrowthGroupFactory(sage.structure.factory.UniqueFactory):
             Traceback (most recent call last):
             ...
             ValueError: 'asdf' is not a valid string describing a growth group.
+            sage: agg.GrowthGroup.create_key_and_extra_args('log(x)^ZZ * y^QQ')
+            (('log(x)^ZZ', 'y^QQ'), {})
+            sage: agg.GrowthGroup.create_key_and_extra_args('log(x)**ZZ * y**QQ')
+            (('log(x)**ZZ', 'y**QQ'), {})
+            sage: agg.GrowthGroup.create_key_and_extra_args('a^b * * c^d')
+            Traceback (most recent call last):
+            ...
+            ValueError: 'a^b * * c^d' is invalid since a '*' follows a '*'
+            sage: agg.GrowthGroup.create_key_and_extra_args('a^b * (c*d^e)')
+            (('a^b', 'c*d^e'), {})
         """
-        factors = tuple(s.strip() for s in specification.split('*'))
+        factors = list()
+        balanced = True
+        if specification and specification[0] == '*':
+            raise ValueError("'%s' is invalid since it starts with a '*'." %
+                             (specification,))
+        for s in specification.split('*'):
+            if not s:
+                factors[-1] += '*'
+                balanced = False
+                continue
+            if not s.strip():
+                raise ValueError("'%s' is invalid since a '*' follows a '*'" %
+                                 (specification,))
+            if not balanced:
+                s = factors.pop() + '*' + s
+            balanced = s.count('(') == s.count(')')
+            factors.append(s)
+
+        def strip(s):
+            s = s.strip()
+            if not s:
+                return s
+            if s[0] == '(' and s[-1] == ')':
+                s = s[1:-1]
+            return s.strip()
+
+        factors = tuple(strip(f) for f in factors)
+
         for f in factors:
-            if '^' not in f:
+            if '^' not in f and '**' not in f:
                 raise ValueError("'%s' is not a valid string describing "
                                  "a growth group." % (f,))
 

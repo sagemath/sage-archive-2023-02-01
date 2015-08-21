@@ -715,15 +715,15 @@ class AsymptoticExpression(sage.rings.ring_element.RingElement):
 
         EXAMPLES::
 
-            sage: R.<x> = AsymptoticRing('x^ZZ', QQ)
+            sage: R.<x> = AsymptoticRing('x^ZZ', QQ, default_prec=4)
             sage: x._invert_()
             1/x
             sage: (x^42)._invert_()
             x^(-42)
             sage: (1 + x)._invert_()
-            asdf
+            1/x - x^(-2) + x^(-3) - x^(-4) + O(x^(-5))
             sage: (1 + O(1/x))._invert_()
-            asdf
+            1 + O(1/x)
         """
         if len(self.summands) == 0:
             raise ZeroDivisionError('Dividing by zero is not allowed.')

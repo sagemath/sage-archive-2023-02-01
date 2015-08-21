@@ -187,6 +187,18 @@ def parent_to_repr_short(P):
 class Variable(sage.structure.unique_representation.CachedRepresentation,
                sage.structure.sage_object.SageObject):
     r"""
+    A class managing the variable of a growth group.
+
+    INPUT:
+
+    - ``var`` -- an object whose representation string is used as the
+      variable. It has to be a valid Python identifier. ``var`` can
+      also be a tuple (or other iterable of such objects).
+
+    - ``repr`` (default: ``None``) -- if specified, then this string
+      will be displayed instead of ``var``. Use this to get
+      e.g. ``log(x)^ZZ``: ``var`` is then used to specify the variable `x`.
+
     TESTS::
 
         sage: from sage.rings.asymptotic.growth_group import Variable
@@ -231,6 +243,17 @@ class Variable(sage.structure.unique_representation.CachedRepresentation,
         ('log(x)', ('x',))
     """
     def __init__(self, var, repr=None):
+        r"""
+        See :class:`Variable` for details.
+
+        TESTS::
+
+            sage: from sage.rings.asymptotic.growth_group import Variable
+            sage: Variable('blub')
+            blub
+            sage: Variable('blub') is Variable('blub')
+            True
+        """
         from sage.symbolic.ring import isidentifier
 
         if not isinstance(var, (list, tuple)):
@@ -258,27 +281,131 @@ class Variable(sage.structure.unique_representation.CachedRepresentation,
 
 
     def __hash__(self):
+        r"""
+        Return the hash if this variable.
+
+        TESTS::
+
+            sage: from sage.rings.asymptotic.growth_group import Variable
+            sage: hash(Variable('blub'))  # random
+            -123456789
+        """
         return hash((self.var_repr,) + self.var_bases)
 
 
     def __eq__(self, other):
+        r"""
+        Compares if this variable equals ``other``.
+
+        INPUT:
+
+        - ``other`` -- another variable.
+
+        OUTPUT:
+
+        A boolean.
+
+        TESTS::
+
+            sage: from sage.rings.asymptotic.growth_group import Variable
+            sage: Variable('x') == Variable('x')
+            True
+            sage: Variable('x') == Variable('y')
+            False
+        """
         return self.var_repr == other.var_repr and self.var_bases == other.var_bases
 
 
     def _repr_(self):
+        r"""
+        Return a representation string of this variable.
+
+        TESTS::
+
+            sage: from sage.rings.asymptotic.growth_group import Variable
+            sage: Variable('blub')  # indirect doctest
+            blub
+        """
         return self.var_repr
 
 
     def variable_names(self):
+        r"""
+        Return the names of the variables.
+
+        OUTPUT:
+
+        A tuple of strings.
+
+        EXAMPLES::
+
+            sage: from sage.rings.asymptotic.growth_group import Variable
+            sage: Variable('x').variable_names()
+            ('x',)
+            sage: Variable('log(x)').variable_names()
+            ('x',)
+        """
         return self.var_bases
 
 
     def is_monomial(self):
+        r"""
+        Returns if this is a monomial variable.
+
+        OUTPUT:
+
+        A boolean.
+
+        EXAMPLES::
+
+            sage: from sage.rings.asymptotic.growth_group import Variable
+            sage: Variable('x').is_monomial()
+            True
+            sage: Variable('log(x)').is_monomial()
+            False
+        """
         return len(self.var_bases) == 1 and self.var_bases[0] == self.var_repr
 
 
     @staticmethod
     def extract_variable_name(s):
+        r"""
+        Finds the name of the variable for the given string.
+
+        INPUT:
+
+        - ``s`` -- a string.
+
+        OUTPUT:
+
+        A string.
+
+        EXAMPLES::
+
+            sage: from sage.rings.asymptotic.growth_group import Variable
+            sage: Variable.extract_variable_name('x')
+            'x'
+            sage: Variable.extract_variable_name('exp(x)')
+            'x'
+            sage: Variable.extract_variable_name('sin(cos(ln(x)))')
+            'x'
+            sage: Variable.extract_variable_name('log(77)')
+            Traceback (most recent call last):
+            ....
+            ValueError: '77' is not a valid name for a variable.
+            sage: Variable.extract_variable_name('log(x')
+            Traceback (most recent call last):
+            ....
+            ValueError: Unbalanced parentheses in 'log(x'.
+            sage: Variable.extract_variable_name('x)')
+            Traceback (most recent call last):
+            ....
+            ValueError: Unbalanced parentheses in 'x)'.
+            sage: Variable.extract_variable_name('log)x(')
+            Traceback (most recent call last):
+            ....
+            ValueError: Unbalanced parentheses in 'log)x('.
+        """
         from sage.symbolic.ring import isidentifier
         s = s.strip()
 
@@ -287,7 +414,7 @@ class Variable(sage.structure.unique_representation.CachedRepresentation,
             cl = s.rfind(')')
             if op == -1 and cl == -1:
                 return s
-            if (op == -1) != (cl == -1):
+            if (op == -1) != (cl == -1) or op > cl:
                 raise ValueError("Unbalanced parentheses in '%s'." % (s,))
             return s[op+1:cl]
 

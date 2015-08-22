@@ -610,8 +610,6 @@ cdef class ComplexBall(RingElement):
         sage: a = ComplexBallField()(1, 1)
         sage: a
         1.000000000000000 + 1.000000000000000*I
-        sage: a._interval()
-        1 + 1*I
     """
     def __cinit__(self):
         """
@@ -759,25 +757,108 @@ cdef class ComplexBall(RingElement):
             return "{} + {}*I".format(self.real()._repr_(),
                                         self.imag()._repr_())
 
-    cpdef ComplexIntervalFieldElement _interval(self):
+    # Conversions
+
+    cpdef ComplexIntervalFieldElement _complex_mpfi_(self, parent):
         """
         Return :class:`ComplexIntervalFieldElement` of the same value.
 
-        OUTPUT:
+        EXAMPLES::
 
-        A :class:`ComplexIntervalFieldElement`.
+            sage: from sage.rings.complex_ball_acb import CBF
+            sage: CIF(CBF(1/3, 1/3)) # indirect doctest
+            0.3333333333333333? + 0.3333333333333333?*I
+        """
+        cdef ComplexIntervalFieldElement res = parent.zero()
+        res = res._new() # FIXME after modernizing CIF
+        acb_to_ComplexIntervalFieldElement(res, self.value)
+        return res
+
+    def _integer_(self, _):
+        """
+        Check that this ball contains a single integer and return that integer.
 
         EXAMPLES::
 
-            sage: from sage.rings.complex_ball_acb import ComplexBallField
-            sage: CBF = ComplexBallField()
-            sage: a = CBF(CIF(2, 2))
-            sage: a._interval()
-            2 + 2*I
+            sage: from sage.rings.complex_ball_acb import CBF
+            sage: from sage.rings.real_arb import RBF
+            sage: ZZ(CBF(-42, RBF(.1, rad=.2))) # indirect doctest
+            -42
+            sage: ZZ(CBF(i))
+            Traceback (most recent call last):
+            ...
+            ValueError: 1.000000000000000*I does not contain a unique integer
         """
-        cdef ComplexIntervalFieldElement target = ComplexIntervalField(prec(self))(0)
-        acb_to_ComplexIntervalFieldElement(target, self.value)
-        return target
+        cdef sage.rings.integer.Integer res
+        cdef fmpz_t tmp
+        fmpz_init(tmp)
+        try:
+            if acb_get_unique_fmpz(tmp, self.value):
+                res = sage.rings.integer.Integer.__new__(sage.rings.integer.Integer)
+                fmpz_get_mpz(res.value, tmp)
+            else:
+                raise ValueError("{} does not contain a unique integer".format(self))
+        finally:
+            fmpz_clear(tmp)
+        return res
+
+    def _complex_mpfr_field_(self, parent):
+        r"""
+        Convert this complex ball to a complex number.
+
+        EXAMPLES::
+
+            sage: from sage.rings.complex_ball_acb import CBF
+            sage: CC(CBF(1/3, 1/3))
+            0.333333333333333 + 0.333333333333333*I
+            sage: ComplexField(100)(CBF(1/3, 1/3))
+            0.33333333333333331482961625625 + 0.33333333333333331482961625625*I
+        """
+        real_field = parent._real_field()
+        return parent(real_field(self.real()), real_field(self.imag()))
+
+    def _real_mpfi_(self, parent):
+        r"""
+        Try to convert this complex ball to a real number.
+
+        Fail if the imaginary part is not exactly zero.
+
+        EXAMPLES::
+
+            sage: from sage.rings.complex_ball_acb import CBF
+            sage: from sage.rings.real_arb import RBF
+            sage: RIF(CBF(RBF(1/3, rad=1e-5)))
+            0.3334?
+            sage: RIF(CBF(RBF(1/3, rad=1e-5), 1e-10))
+            Traceback (most recent call last):
+            ...
+            ValueError: nonzero imaginary part
+        """
+        if acb_is_real(self.value):
+            return parent(self.real())
+        else:
+            raise ValueError("nonzero imaginary part")
+
+    def _mpfr_(self, parent):
+        r"""
+        Try to convert this complex ball to a real number.
+
+        Fail if the imaginary part is not exactly zero.
+
+        EXAMPLES::
+
+            sage: from sage.rings.complex_ball_acb import CBF
+            sage: RR(CBF(1/3))
+            0.333333333333333
+            sage: RR(CBF(1, 1/3) - CBF(0, 1/3))
+            Traceback (most recent call last):
+            ...
+            ValueError: nonzero imaginary part
+        """
+        if acb_is_real(self.value):
+            return parent(self.real())
+        else:
+            raise ValueError("nonzero imaginary part")
 
     # Real and imaginary part, midpoint
 

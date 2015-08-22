@@ -590,10 +590,25 @@ class GenericProduct(CartesianProductPosets, GenericGrowthGroup):
             ...
             TypeError: no common canonical parent for objects with parents:
             'Growth Group QQ^x * x^ZZ' and 'Growth Group log(x)^ZZ * y^ZZ'
+
+        ::
+
+            sage: F = GrowthGroup('z^QQ')
+            sage: pushout(C, F)
+            Growth Group QQ^x * x^QQ * y^ZZ * z^QQ
         """
-        from growth_group import GenericGrowthGroup
-        if not isinstance(other, GenericGrowthGroup):
+        from growth_group import GenericGrowthGroup, AbstractGrowthGroupFunctor
+
+        if isinstance(other, GenericProduct):
+            Ofactors = other.cartesian_factors()
+        elif isinstance(other, GenericGrowthGroup):
+            Ofactors = (other,)
+        elif (other.construction() is not None and
+              isinstance(other.construction()[0], AbstractGrowthGroupFunctor)):
+            Ofactors = (other,)
+        else:
             return
+
 
         def pushout_univariate_factors(self, other, var, Sfactors, Ofactors):
             try:
@@ -633,9 +648,6 @@ class GenericProduct(CartesianProductPosets, GenericGrowthGroup):
                 'splitting the factors was unsuccessful.' % (self, other, var))
 
 
-        if not isinstance(other, GenericProduct):
-            return
-
         class it:
             def __init__(self, it):
                 self.it = it
@@ -651,7 +663,7 @@ class GenericProduct(CartesianProductPosets, GenericGrowthGroup):
 
         from itertools import groupby
         S = it(groupby(self.cartesian_factors(), key=lambda k: k.variable_names()))
-        O = it(groupby(other.cartesian_factors(), key=lambda k: k.variable_names()))
+        O = it(groupby(Ofactors, key=lambda k: k.variable_names()))
 
         newS = []
         newO = []

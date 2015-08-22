@@ -332,6 +332,15 @@ class CartesianProductPosets(CartesianProduct):
         sage: Cs((1, 1)) <= Cs((2, 0))
         True
 
+    TESTS::
+
+        sage: Cc.category()
+        Join of Category of finite posets and
+        Category of Cartesian products of finite enumerated sets
+        sage: Cs.category()
+        Join of Category of finite posets and
+        Category of Cartesian products of finite enumerated sets
+
     .. SEEALSO:
 
         :class:`CartesianProduct`
@@ -360,6 +369,8 @@ class CartesianProductPosets(CartesianProduct):
 
         super(CartesianProductPosets, self).__init__(
             sets, category, **kwargs)
+        from sage.categories.posets import Posets
+        self._refine_category_(Posets())
 
 
     def le(self, left, right):

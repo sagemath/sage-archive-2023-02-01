@@ -314,6 +314,9 @@ class RealBallField(UniqueRepresentation, Parent):
                 # FIXME: RBF is not even associative, but CompletionFunctor only works with rings.
                 category=category or sage.categories.rings.Rings().Infinite())
         self._prec = precision
+        from sage.rings.qqbar import AA
+        from sage.rings.real_lazy import RLF
+        self._populate_coercion_lists_([ZZ, QQ, AA, RLF])
 
     def _repr_(self):
         r"""
@@ -352,12 +355,8 @@ class RealBallField(UniqueRepresentation, Parent):
             sage: RealBallField().has_coerce_map_from(RR)
             False
         """
-        from sage.rings.qqbar import AA
-        from sage.rings.real_lazy import RLF
         if isinstance(other, RealBallField):
             return (other._prec >= self._prec)
-        elif (other is ZZ) or (other is QQ) or (other is AA) or (other is RLF):
-            return True
         else:
             return False
 
@@ -459,6 +458,27 @@ class RealBallField(UniqueRepresentation, Parent):
                                     self._prec,
                                     {'type': 'Ball'})
         return functor, QQ
+
+    def complex_field(self):
+        """
+        Return the complex ball field with the same precision.
+
+        EXAMPLES::
+
+            sage: from sage.rings.real_arb import RBF, RealBallField
+            sage: from sage.rings.complex_ball_acb import ComplexBallField
+            doctest:...: FutureWarning: This class/method/function is marked as experimental.
+            It, its functionality or its interface might change without a formal deprecation.
+            See http://trac.sagemath.org/17218 for details.
+            sage: RBF.complex_field()
+            Complex ball field with 53 bits precision
+            sage: RealBallField(3).algebraic_closure()
+            Complex ball field with 3 bits precision
+        """
+        from sage.rings.complex_ball_acb import ComplexBallField
+        return ComplexBallField(self._prec)
+
+    algebraic_closure = complex_field
 
     def precision(self):
         """

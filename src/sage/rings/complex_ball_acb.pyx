@@ -47,11 +47,10 @@ Comparison
 Two elements are equal if and only if they are the same object
 or if both are exact and equal::
 
-    sage: from sage.rings.complex_ball_acb import ComplexBallField
+    sage: from sage.rings.complex_ball_acb import CBF
     doctest:...: FutureWarning: This class/method/function is marked as experimental.
     It, its functionality or its interface might change without a formal deprecation.
     See http://trac.sagemath.org/17218 for details.
-    sage: CBF = ComplexBallField()
     sage: a = CBF(1, 2)
     sage: b = CBF(1, 2)
     sage: a is b
@@ -81,6 +80,18 @@ A ball is non-zero if and only if it does not contain zero. ::
     True
     sage: b != 0
     True
+
+Coercion
+========
+
+Automatic coercions work as expected::
+
+    sage: from sage.rings.real_arb import RealBallField
+    sage: bpol = 1/3*CBF(i) + AA(sqrt(2)) + (polygen(RealBallField(20), 'x') + QQbar(i))
+    sage: bpol
+    x + [1.41421 +/- 5.09e-6] + [1.33333 +/- 3.97e-6]*I
+    sage: bpol.parent()
+    Univariate Polynomial Ring in x over Complex ball field with 20 bits precision
 
 Classes and Methods
 ===================
@@ -218,12 +229,70 @@ class ComplexBallField(UniqueRepresentation, Parent):
             sage: CBF = ComplexBallField()
             sage: CBF(1)
             1.000000000000000
+
+        TESTS::
+
+            sage: from sage.rings.complex_ball_acb import CBF
+            sage: CBF.base()
+            Real ball field with 53 bits precision
+            sage: CBF.base_ring()
+            Real ball field with 53 bits precision
+
+        There are direct coercions from ZZ and QQ (for which arb provides
+        construction functions)::
+
+            sage: CBF.coerce_map_from(ZZ)
+            Conversion map:
+            From: Integer Ring
+            To:   Complex ball field with 53 bits precision
+            sage: CBF.coerce_map_from(QQ)
+            Conversion map:
+            From: Rational Field
+            To:   Complex ball field with 53 bits precision
+
+        Various other coercions are available through real ball fields or CLF::
+
+            sage: CBF.coerce_map_from(RLF)
+            Composite map:
+            From: Real Lazy Field
+            To:   Complex ball field with 53 bits precision
+            Defn:   Conversion map:
+                    From: Real Lazy Field
+                    To:   Real ball field with 53 bits precision
+                    then
+                    Conversion map:
+                    From: Real ball field with 53 bits precision
+                    To:   Complex ball field with 53 bits precision
+            sage: CBF.has_coerce_map_from(AA)
+            True
+            sage: CBF.has_coerce_map_from(QuadraticField(-1))
+            True
+            sage: CBF.has_coerce_map_from(QQbar)
+            True
+            sage: CBF.has_coerce_map_from(CLF)
+            True
         """
         if precision < 2:
             raise ValueError("Precision must be at least 2.")
-        super(ComplexBallField, self).__init__(category=category or [sage.categories.fields.Fields()])
+        real_field = RealBallField(precision)
+        super(ComplexBallField, self).__init__(
+                base=real_field,
+                category=category or [sage.categories.fields.Fields()])
         self._prec = precision
-        self.RealBallField = RealBallField(precision)
+        from sage.rings.integer_ring import ZZ
+        from sage.rings.rational_field import QQ
+        from sage.rings.real_lazy import CLF
+        self._populate_coercion_lists_([ZZ, QQ, real_field, CLF])
+
+    def _real_field(self):
+        """
+        TESTS::
+
+            sage: from sage.rings.complex_ball_acb import CBF
+            sage: CBF._real_field()
+            Real ball field with 53 bits precision
+        """
+        return self._base
 
     def _repr_(self):
         r"""
@@ -239,19 +308,104 @@ class ComplexBallField(UniqueRepresentation, Parent):
         """
         return "Complex ball field with {} bits precision".format(self._prec)
 
-    def _coerce_map_from_(self, S):
-        r"""
-        Currently, there is no coercion.
+    def construction(self):
+        """
+        Returns the construction of a complex ball field as the algebraic
+        closure of the real ball field with the same precision.
 
         EXAMPLES::
 
-            sage: from sage.rings.complex_ball_acb import ComplexBallField
-            sage: ComplexBallField()._coerce_map_from_(CIF)
+            sage: from sage.rings.complex_ball_acb import CBF
+            sage: functor, base = CBF.construction()
+            sage: functor, base
+            (AlgebraicClosureFunctor, Real ball field with 53 bits precision)
+            sage: functor(base) is CBF
+            True
+        """
+        from sage.categories.pushout import AlgebraicClosureFunctor
+        return (AlgebraicClosureFunctor(), self._real_field())
+
+    def ngens(self):
+        r"""
+        EXAMPLE::
+
+            sage: from sage.rings.complex_ball_acb import CBF
+            sage: CBF.ngens()
+            1
+        """
+        return 1
+
+    def gen(self, i):
+        r"""
+        EXAMPLE::
+
+            sage: from sage.rings.complex_ball_acb import CBF
+            sage: CBF.0
+            1.000000000000000*I
+            sage: CBF.gen(1)
+            Traceback (most recent call last):
+            ...
+            ValueError: only one generator
+        """
+        if i == 0:
+            return self(0, 1)
+        else:
+            raise ValueError("only one generator")
+
+    def gens(self):
+        r"""
+        EXAMPLE::
+
+            sage: from sage.rings.complex_ball_acb import CBF
+            sage: CBF.gens()
+            (1.000000000000000*I,)
+            sage: CBF.gens_dict()
+            {'1.000000000000000*I': 1.000000000000000*I}
+        """
+        return (self(0, 1),)
+
+    def _coerce_map_from_(self, other):
+        r"""
+        Parents that canonically coerce into complex ball fields include:
+
+        - anything that coerces into the corresponding real ball field;
+
+        - real and complex ball fields with a larger precision;
+
+        - various exact or lazy parents representing subsets of the complex
+          numbers, such as ``QQbar``, ``CLF``, and number fields equipped
+          with complex embeddings.
+
+        TESTS::
+
+            sage: from sage.rings.complex_ball_acb import CBF, ComplexBallField
+            sage: from sage.rings.real_arb import RBF, RealBallField
+            sage: CBF.coerce_map_from(CBF)
+            Identity endomorphism of Complex ball field with 53 bits precision
+            sage: CBF.coerce_map_from(ComplexBallField(100))
+            Conversion map:
+            From: Complex ball field with 100 bits precision
+            To:   Complex ball field with 53 bits precision
+            sage: CBF.has_coerce_map_from(ComplexBallField(42))
             False
-            sage: ComplexBallField()._coerce_map_from_(SR)
+            sage: CBF.has_coerce_map_from(RealBallField(54))
+            True
+            sage: CBF.has_coerce_map_from(RealBallField(52))
+            False
+
+        Check that there are no coercions from interval or floating-point parents::
+
+            sage: CBF.has_coerce_map_from(RIF)
+            False
+            sage: CBF.has_coerce_map_from(CIF)
+            False
+            sage: CBF.has_coerce_map_from(RR)
+            False
+            sage: CBF.has_coerce_map_from(CC)
             False
         """
-        return False
+        if isinstance(other, (RealBallField, ComplexBallField)):
+            return (other._prec >= self._prec)
 
     def _element_constructor_(self, x=None, y=None):
         r"""
@@ -282,6 +436,10 @@ class ComplexBallField(UniqueRepresentation, Parent):
             1.000000000000000*I
             sage: CBF(pi+I/3)
             [3.141592653589793 +/- 5.61e-16] + [0.3333333333333333 +/- 7.04e-17]*I
+            sage: CBF(QQbar(i/7))
+            [0.1428571428571428 +/- 9.09e-17]*I
+            sage: CBF(AA(sqrt(2)))
+            [1.414213562373095 +/- 4.10e-16]
             sage: CBF(CIF(0, 1))
             1.000000000000000*I
             sage: CBF(RBF(1/3))
@@ -315,7 +473,7 @@ class ComplexBallField(UniqueRepresentation, Parent):
 
         if y is None:
             try:
-                x = self.RealBallField(x)
+                x = self._real_field()(x)
                 return self.element_class(self, x)
             except (TypeError, ValueError):
                 pass
@@ -326,14 +484,14 @@ class ComplexBallField(UniqueRepresentation, Parent):
             except (AttributeError, TypeError):
                 pass
             try:
-                x = ComplexIntervalField(prec(self))(x)
+                x = ComplexIntervalField(self._prec)(x)
                 return self.element_class(self, x)
             except TypeError:
                 pass
             raise TypeError("unable to convert {} to a ComplexBall".format(x))
         else:
-            x = self.RealBallField(x)
-            y = self.RealBallField(y)
+            x = self._real_field()(x)
+            y = self._real_field()(y)
             return self.element_class(self, x, y)
 
     def _an_element_(self):
@@ -342,12 +500,11 @@ class ComplexBallField(UniqueRepresentation, Parent):
 
         EXAMPLES::
 
-            sage: from sage.rings.complex_ball_acb import ComplexBallField
-            sage: CBF = ComplexBallField()
-            sage: CBF._an_element_() # indirect doctest
-            [0.3333333333333333 +/- 1.49e-17] + [0.1666666666666667 +/- 4.26e-17]*I
+            sage: from sage.rings.complex_ball_acb import CBF
+            sage: CBF.an_element() # indirect doctest
+            [0.3333333333333333 +/- 1.49e-17] - [0.1666666666666667 +/- 4.26e-17]*I
         """
-        return self(1.0/3, 1.0/6)
+        return self(1.0/3, -1.0/6)
 
     def precision(self):
         """
@@ -412,7 +569,7 @@ cdef inline long prec(ComplexBall ball):
     return ball._parent._prec
 
 cdef inline Parent real_ball_field(ComplexBall ball):
-    return ball._parent.RealBallField
+    return ball._parent._real_field()
 
 cdef class ComplexBall(RingElement):
     """

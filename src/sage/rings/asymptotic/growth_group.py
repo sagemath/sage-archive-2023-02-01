@@ -33,26 +33,19 @@ AUTHORS:
 
     TESTS::
 
-        sage: import sage.rings.asymptotic.growth_group as agg
-        sage: G = agg.GenericGrowthGroup(ZZ); G
+        sage: from sage.rings.asymptotic.growth_group import GenericGrowthGroup, GrowthGroup
+        sage: GenericGrowthGroup(ZZ)
         doctest:...: FutureWarning: This class/method/function is marked as
         experimental. It, its functionality or its interface might change
         without a formal deprecation.
         See http://trac.sagemath.org/17601 for details.
         Growth Group Generic(ZZ)
-        sage: G = agg.MonomialGrowthGroup(ZZ, 'x'); G
+        sage: GrowthGroup('x^ZZ * log(x)^ZZ')
         doctest:...: FutureWarning: This class/method/function is marked as
         experimental. It, its functionality or its interface might change
         without a formal deprecation.
         See http://trac.sagemath.org/17601 for details.
-        Growth Group x^ZZ
-        sage: G = agg.ExponentialGrowthGroup(QQ, 'x'); G
-        doctest:...: FutureWarning: This class/method/function is marked as
-        experimental. It, its functionality or its interface might change
-        without a formal deprecation.
-        See http://trac.sagemath.org/17601 for details.
-        Growth Group QQ^x
-
+        Growth Group x^ZZ * log(x)^ZZ
 
 .. NOTE::
 
@@ -1453,7 +1446,9 @@ class GenericGrowthGroup(
             sage: import sage.rings.asymptotic.growth_group as agg
             sage: P = agg.GrowthGroup('QQ^x')
             sage: P.gen()
-            ()
+            Traceback (most recent call last):
+            ...
+            IndexError: tuple index out of range
         """
         return self.gens()[n]
 

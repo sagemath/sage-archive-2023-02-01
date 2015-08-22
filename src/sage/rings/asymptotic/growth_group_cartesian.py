@@ -14,19 +14,19 @@ AUTHORS:
 
     TESTS::
 
-        sage: import sage.rings.asymptotic.growth_group as agg
-        sage: G = agg.GenericGrowthGroup(ZZ); G
+        sage: from sage.rings.asymptotic.growth_group import GenericGrowthGroup, GrowthGroup
+        sage: GenericGrowthGroup(ZZ)
         doctest:...: FutureWarning: This class/method/function is marked as
         experimental. It, its functionality or its interface might change
         without a formal deprecation.
         See http://trac.sagemath.org/17601 for details.
         Growth Group Generic(ZZ)
-        sage: G = agg.MonomialGrowthGroup(ZZ, 'x'); G
+        sage: GrowthGroup('x^ZZ * log(x)^ZZ')
         doctest:...: FutureWarning: This class/method/function is marked as
         experimental. It, its functionality or its interface might change
         without a formal deprecation.
         See http://trac.sagemath.org/17601 for details.
-        Growth Group x^ZZ
+        Growth Group x^ZZ * log(x)^ZZ
 """
 
 #*****************************************************************************
@@ -87,7 +87,7 @@ class CartesianProductFactory(sage.structure.factory.UniqueFactory):
     TESTS::
 
         sage: from sage.rings.asymptotic.growth_group_cartesian import CartesianProductFactory
-        sage: CartesianProductFactory('factory')([A, B], category=Sets())
+        sage: CartesianProductFactory('factory')([A, B], category=Groups() & Posets())
         Growth Group x^ZZ * log(x)^ZZ
         sage: CartesianProductFactory('factory')([], category=Sets())
         Traceback (most recent call last):

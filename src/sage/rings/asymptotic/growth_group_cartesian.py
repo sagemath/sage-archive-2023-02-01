@@ -358,7 +358,7 @@ class GenericProduct(CartesianProductPosets, GenericGrowthGroup):
                    tuple())
         from itertools import groupby
         from growth_group import Variable
-        Vars = Variable(tuple(v for v, _ in groupby(vars)))
+        Vars = Variable(tuple(v for v, _ in groupby(vars)), repr=self._repr_short_())
 
         GenericGrowthGroup.__init__(self, sets[0], Vars, self.category(), **kwds)
 

@@ -16,7 +16,9 @@ from quadratic_form import is_QuadraticForm
 
 from sage.env import SAGE_LOCAL
 
-import random, tempfile, os
+import tempfile, os
+
+from random import random
 
 ################################################################################
 ## Routines to test if two quadratic forms over ZZ are globally equivalent.   ##
@@ -29,11 +31,11 @@ def is_globally_equivalent__souvigner(self, other, return_transformation=False):
 
     INPUT:
 
-        a QuadraticForm
+    a QuadraticForm
 
     OUTPUT:
 
-        boolean, and optionally a matrix
+    boolean, and optionally a matrix
 
     EXAMPLES::
 
@@ -48,7 +50,7 @@ def is_globally_equivalent__souvigner(self, other, return_transformation=False):
 
     """
     ## Write an input text file
-    F_filename = '/tmp/tmp_isom_input' + str(random.random()) + ".txt"
+    F_filename = '/tmp/tmp_isom_input' + str(random()) + ".txt"
     F = open(F_filename, 'w')
     #F = tempfile.NamedTemporaryFile(prefix='tmp_isom_input', suffix=".txt")  ## This failed because it may have hyphens, which are interpreted badly by the Souvigner code.
     F.write("\n #1 \n")
@@ -135,11 +137,11 @@ def is_globally_equivalent_to(self, other, return_matrix=False, check_theta_to_p
 
     INPUT:
 
-        a QuadraticForm
+    a QuadraticForm
 
     OUTPUT:
 
-        boolean, and optionally a matrix
+    boolean, and optionally a matrix
 
     EXAMPLES::
 
@@ -251,11 +253,11 @@ def is_locally_equivalent_to(self, other, check_primes_only=False, force_jordan_
 
     INPUT:
 
-        a QuadraticForm
+    a QuadraticForm
 
     OUTPUT:
 
-        boolean
+    boolean
 
     EXAMPLES::
 
@@ -311,11 +313,11 @@ def has_equivalent_Jordan_decomposition_at_prime(self, other, p):
 
     INPUT:
 
-        a QuadraticForm
+    a QuadraticForm
 
     OUTPUT:
 
-        boolean
+    boolean
 
     EXAMPLES::
 
@@ -464,10 +466,12 @@ def is_rationally_isometric(self, other):
     Determines if two regular quadratic forms over a number field are isometric.
 
     INPUT:
-        a quadratic form
+
+    a quadratic form
 
     OUTPUT:
-        boolean
+
+    boolean
 
     EXAMPLES::
 
@@ -622,4 +626,3 @@ def is_rationally_isometric(self, other):
                 return False
 
     return True
-

@@ -14,7 +14,8 @@ from sage.rings.arith import GCD
 from sage.misc.sage_eval import sage_eval
 from sage.env import SAGE_LOCAL
 
-import random, tempfile, os
+import tempfile, os
+from random import random
 
 
 def basis_of_short_vectors(self, show_lengths=False, safe_flag=True):

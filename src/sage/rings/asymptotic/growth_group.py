@@ -1553,6 +1553,7 @@ class GenericGrowthGroup(
 
     CartesianProduct = CartesianProductGrowthGroups
 
+
 from sage.categories.pushout import ConstructionFunctor
 class AbstractGrowthGroupFunctor(ConstructionFunctor):
     r"""
@@ -2044,6 +2045,16 @@ class MonomialGrowthGroup(GenericGrowthGroup):
         return (self(raw_element=self.base().one()),)
 
 
+    def construction(self):
+        r"""
+        EXAMPLES::
+
+            sage: from sage.rings.asymptotic.growth_group import GrowthGroup
+            sage: GrowthGroup('x^ZZ').construction()
+            (MonomialGrowthGroup[x], Integer Ring)
+       """
+        return MonomialGrowthGroupFunctor(self._var_), self.base()
+
 
 class MonomialGrowthGroupFunctor(AbstractGrowthGroupFunctor):
     r"""
@@ -2452,6 +2463,16 @@ class ExponentialGrowthGroup(GenericGrowthGroup):
         """
         return tuple()
 
+
+    def construction(self):
+        r"""
+        EXAMPLES::
+
+            sage: from sage.rings.asymptotic.growth_group import GrowthGroup
+            sage: GrowthGroup('QQ^x').construction()
+            (ExponentialGrowthGroup[x], Rational Field)
+        """
+        return ExponentialGrowthGroupFunctor(self._var_), self.base()
 
 
 class ExponentialGrowthGroupFunctor(AbstractGrowthGroupFunctor):

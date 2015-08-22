@@ -441,13 +441,13 @@ def SRG_from_RSHCD(v,k,l,mu, existence=False,check=True):
     raise ValueError("I do not know how to build a {}-SRG from a RSHCD".format((v,k,l,mu)))
 
 @cached_function
-def is_two_graph_descendant_of_srg(int v, int k0, int l, int mu):
+def is_twograph_descendant_of_srg(int v, int k0, int l, int mu):
     r"""
     Test whether some descendant graph of an s.r.g. is `(v,k_0,\lambda,\mu)`-s.r.g.
 
     We check whether there can exist (v+1,k,\lambda^*,\mu^*)-s.r.g. `G` so that ``self`` is a
     descendant graph of the regular two-graph specified by `G`.  Specifically, we must have
-    that `v+1=2(2k-\lambda^*-\mu^*)`, and `k_0=2(k-\mu^*)`, `lambda=k+\lambda^*-2\mu^*`, `\mu=k-\mu^*`,
+    that `v+1=2(2k-\lambda^*-\mu^*)`, and `k_0=2(k-\mu^*)`, `\lambda=k+\lambda^*-2\mu^*`, `\mu=k-\mu^*`,
     which give 2 independent linear conditions, say `k-\mu^*=\mu` and `\lambda^*-\mu^*=\lambda-\mu`.
     Further, there is a quadratic relation `2 k^2-(v+1+4 \mu) k+ 2 v \mu=0`.
 
@@ -465,14 +465,14 @@ def is_two_graph_descendant_of_srg(int v, int k0, int l, int mu):
 
     EXAMPLES::
 
-        sage: from sage.graphs.strongly_regular_db import is_two_graph_descendant_of_srg
-        sage: t = is_two_graph_descendant_of_srg(27, 10, 1, 5); t
-        (<cyfunction is_two_graph_descendant_of_srg.<locals>.la at...
+        sage: from sage.graphs.strongly_regular_db import is_twograph_descendant_of_srg
+        sage: t = is_twograph_descendant_of_srg(27, 10, 1, 5); t
+        (<cyfunction is_twograph_descendant_of_srg.<locals>.la at...
         sage: g = t[0](*t[1:]); g
-        Graph on 27 vertices
+        descendant of complement(Johnson graph with parameters 8,2) at {5, 7}: Graph on 27 vertices
         sage: g.is_strongly_regular(parameters=True)
         (27, 10, 1, 5)
-        sage: t = is_two_graph_descendant_of_srg(5,5,5,5); t
+        sage: t = is_twograph_descendant_of_srg(5,5,5,5); t
 
     TESTS::
 
@@ -494,7 +494,7 @@ def is_two_graph_descendant_of_srg(int v, int k0, int l, int mu):
                 def la(vv):
                     from sage.combinat.designs.twographs import twograph_descendant
                     g = strongly_regular_graph(vv, k, l - 2*mu + k)
-                    return twograph_descendant(g, g.vertex_iterator().next())
+                    return twograph_descendant(g, g.vertex_iterator().next(), name=True)
                 return(la, v+1)
     return
 
@@ -1468,7 +1468,7 @@ def strongly_regular_graph(int v,int k,int l,int mu=-1,bint existence=False):
                       is_steiner, is_affine_polar,
                       is_orthogonal_polar,
                       is_RSHCD,
-                      is_two_graph_descendant_of_srg]
+                      is_twograph_descendant_of_srg]
 
     # Going through all test functions, for the set of parameters and its
     # complement.

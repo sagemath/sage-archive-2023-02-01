@@ -5018,8 +5018,8 @@ class Graph(GenericGraph):
 
         Returns the graph obtained by Seidel switching of ``self``
         with respect to the subset of vertices ``s``. This is the graph
-        given by Seidel adjacency matrix DSD, for S the Seidel
-        adjacency matrix of ``self``, and D the diagonal matrix with -1s
+        given by Seidel adjacency matrix `DSD`, for `S` the Seidel
+        adjacency matrix of ``self``, and `D` the diagonal matrix with -1s
         at positions corresponding to ``s``, and 1s elsewhere.
 
         INPUT:
@@ -5028,10 +5028,6 @@ class Graph(GenericGraph):
 
         - ``inplace`` (boolean) -- whether to do the modification inplace, or to
           return a copy of the graph after switching.
-
-        OUTPUT:
-
-         - :class:`~Graph` which is the switching of ``self`` w.r.t. ``s``
 
         EXAMPLES::
 
@@ -5078,6 +5074,13 @@ class Graph(GenericGraph):
             True
             sage: T8.is_isomorphic(C)
             False
+
+        TESTS::
+
+            sage: from sage.combinat.designs.twographs import TwoGraph
+            sage: p=graphs.PetersenGraph().twograph()
+            sage: TwoGraph(p, check=True)
+            Incidence structure with 10 points and 60 blocks
 
         .. SEEALSO::
 

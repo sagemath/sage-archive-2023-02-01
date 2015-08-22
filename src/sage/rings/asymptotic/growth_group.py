@@ -2521,6 +2521,25 @@ class ExponentialGrowthGroup(GenericGrowthGroup):
         return len(self.gens())
 
 
+    def variable_names(self):
+        r"""
+        Return the names of the variables.
+
+        OUTPUT:
+
+        A tuple of strings.
+
+        EXAMPLES::
+
+            sage: from sage.rings.asymptotic.growth_group import GrowthGroup
+            sage: GrowthGroup('QQ^x').variable_names()
+            ('x',)
+            sage: GrowthGroup('QQ^(x*log(x))').variable_names()
+            ('x',)
+        """
+        return self._var_.variable_names()
+
+
 class GrowthGroupFactory(sage.structure.factory.UniqueFactory):
     r"""
     A factory creating asymptotic growth groups.

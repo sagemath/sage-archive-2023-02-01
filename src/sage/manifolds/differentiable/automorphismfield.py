@@ -1,6 +1,12 @@
 r"""
 Tangent-space automorphism fields
 
+The class :class:`AutomorphismField` implements fields of automorphisms of
+tangent spaces to a generic (i.e. a priori not parallelizable) differentiable
+manifold, while the class :class:`AutomorphismFieldParal`
+is devoted to fields of automorphisms of tangent spaces to a parallelizable
+manifold. The latter play the important role of transitions between vector
+frames sharing the same domain on a differentiable manifold.
 
 AUTHORS:
 
@@ -19,26 +25,41 @@ AUTHORS:
 
 from sage.tensor.modules.free_module_tensor import FreeModuleTensor
 from sage.tensor.modules.free_module_automorphism import FreeModuleAutomorphism
-from sage.manifolds.differentiable.tensorfield import TensorField, \
-                                                      TensorFieldParal
+from sage.manifolds.differentiable.tensorfield import TensorField
+from sage.manifolds.differentiable.tensorfield_paral import TensorFieldParal
 
 #******************************************************************************
 
 class AutomorphismField(TensorField):
     r"""
-    Field of tangent-space automorphisms with values on a open
-    subset of a differentiable manifold.
+    Field of automorphisms of tangent spaces to a generic (i.e. a priori
+    not parallelizable) differentiable manifold.
 
-    Given an open subset `U` of a differentiable manifold `S` and a
-    differentiable map `\Phi: U \rightarrow V`, where `V` is an open subset of
-    a differentiable manifold `M`, an instance of this class is a field of
-    tangent-space automorphisms along `U` with values in `V`.
+    Given a differentiable manifold `U` and a differentiable map
+    `\Phi: U \rightarrow M` to a differentiable manifold `M`,
+    a *field of tangent-space automorphisms along* `U` *with values on*
+    `M\supset\Phi(U)` is a differentiable map
+
+    .. MATH::
+
+        a:\ U  \longrightarrow T^{(1,1)}M
+
+    (`T^{(1,1)}M` being the tensor bundle of type `(1,1)` over `M`) such
+    that
+
+    .. MATH::
+
+        \forall p \in U,\ a(p) \in \mathrm{Aut}(T_{\Phi(p)} M)
+
+    i.e. `a(p)` is an automorphism of the tangent space to `M` at the point
+    `\Phi(p)`.
+
     The standard case of a field of tangent-space automorphisms *on* a
-    manifold corresponds to `S=M`, `U=V` and `\Phi = \mathrm{Id}_U`. Other
-    common cases are `\Phi` being an immersion and `\Phi` being a curve in `V`
+    manifold corresponds to `U=M` and `\Phi = \mathrm{Id}_M`. Other
+    common cases are `\Phi` being an immersion and `\Phi` being a curve in `M`
     (`U` is then an open interval of `\RR`).
 
-    If `V` is parallelizable, the class :class:`AutomorphismFieldParal`
+    If `M` is parallelizable, the class :class:`AutomorphismFieldParal`
     must be used instead.
 
     This is a Sage *element* class, the corresponding *parent* class being
@@ -47,7 +68,7 @@ class AutomorphismField(TensorField):
     INPUT:
 
     - ``vector_field_module`` -- module `\mathcal{X}(U,\Phi)` of vector
-      fields along `U` with values on `V`
+      fields along `U` with values on `M` via the map `\Phi`
     - ``name`` -- (default: ``None``) name given to the field
     - ``latex_name`` -- (default: ``None``) LaTeX symbol to denote the field;
       if none is provided, the LaTeX symbol is set to ``name``
@@ -592,14 +613,14 @@ class AutomorphismField(TensorField):
 
         INPUT:
 
-        - ``subdomain`` -- open subset `U` of ``self._domain`` (must be an
+        - ``subdomain`` -- open subset `V` of ``self._domain`` (must be an
           instance of
           :class:`~sage.manifolds.differentiable.manifold.DiffManifold`)
         - ``dest_map`` -- (default: ``None``) destination map
-          `\Phi:\ U \rightarrow V`, where `V` is a subdomain of
+          `\Phi:\ V \rightarrow N`, where `N` is a subdomain of
           ``self._codomain``
           (type: :class:`~sage.manifolds.differentiable.diff_map.DiffMap`)
-          If None, the restriction of ``self._vmodule._dest_map`` to `U` is
+          If None, the restriction of ``self._vmodule._dest_map`` to `V` is
           used.
 
         OUTPUT:
@@ -696,19 +717,34 @@ class AutomorphismField(TensorField):
 
 class AutomorphismFieldParal(FreeModuleAutomorphism, TensorFieldParal):
     r"""
-    Field of tangent-space automorphisms with values on a parallelizable open
-    subset of a differentiable manifold.
+    Field of tangent-space automorphisms with values on a parallelizable
+    manifold.
 
-    Given an open subset `U` of a differentiable manifold `S` and a
-    differentiable map `\Phi: U \rightarrow V`, where `V` is a parallelizable
-    open subset of a differentiable manifold `M`, an instance of this class is
-    a field of tangent-space automorphisms along `U` with values in `V`.
+    Given a differentiable manifold `U` and a differentiable map
+    `\Phi: U \rightarrow M` to a parallelizable manifold `M`,
+    a *field of tangent-space automorphisms along* `U` *with values on*
+    `M\supset\Phi(U)` is a differentiable map
+
+    .. MATH::
+
+        a:\ U  \longrightarrow T^{(1,1)}M
+
+    (`T^{(1,1)}M` being the tensor bundle of type `(1,1)` over `M`) such
+    that
+
+    .. MATH::
+
+        \forall p \in U,\ a(p) \in \mathrm{Aut}(T_{\Phi(p)} M)
+
+    i.e. `a(p)` is an automorphism of the tangent space to `M` at the point
+    `\Phi(p)`.
+
     The standard case of a field of tangent-space automorphisms *on* a
-    manifold corresponds to `S=M`, `U=V` and `\Phi = \mathrm{Id}_U`. Other
-    common cases are `\Phi` being an immersion and `\Phi` being a curve in `V`
+    manifold corresponds to `U=M` and `\Phi = \mathrm{Id}_M`. Other
+    common cases are `\Phi` being an immersion and `\Phi` being a curve in `M`
     (`U` is then an open interval of `\RR`).
 
-    If `V` is not parallelizable, the class :class:`AutomorphismField`
+    If `M` is not parallelizable, the class :class:`AutomorphismField`
     must be used instead.
 
     This is a Sage *element* class, the corresponding *parent* class being
@@ -717,7 +753,7 @@ class AutomorphismFieldParal(FreeModuleAutomorphism, TensorFieldParal):
     INPUT:
 
     - ``vector_field_module`` -- free module `\mathcal{X}(U,\Phi)` of vector
-      fields along `U` with values on `V`
+      fields along `U` with values on `M` via the map `\Phi`
     - ``name`` -- (default: ``None``) name given to the field
     - ``latex_name`` -- (default: ``None``) LaTeX symbol to denote the field;
       if none is provided, the LaTeX symbol is set to ``name``
@@ -996,19 +1032,19 @@ class AutomorphismFieldParal(FreeModuleAutomorphism, TensorFieldParal):
         If such restriction has not been defined yet, it is constructed here.
 
         This is a redefinition of
-        :meth:`sage.manifolds.differentiable.tensorfield.TensorFieldParal.restrict`
+        :meth:`sage.manifolds.differentiable.tensorfield_paral.TensorFieldParal.restrict`
         to take into account the identity map.
 
         INPUT:
 
-        - ``subdomain`` -- open subset `U` of ``self._domain`` (must be an
+        - ``subdomain`` -- open subset `V` of ``self._domain`` (must be an
           instance of
           :class:`~sage.manifolds.differentiable.manifold.DiffManifold`)
         - ``dest_map`` -- (default: ``None``) destination map
-          `\Phi:\ U \rightarrow V`, where `V` is a subset of
+          `\Phi:\ V \rightarrow N`, where `N` is a subset of
           ``self._codomain``
           (type: :class:`~sage.manifolds.differentiable.diff_map.DiffMap`)
-          If None, the restriction of ``self._vmodule._dest_map`` to `U` is
+          If None, the restriction of ``self._vmodule._dest_map`` to `V` is
           used.
 
         OUTPUT:

@@ -1,37 +1,36 @@
 r"""
 Differential forms
 
-Let `S` and `M` be two differentiable manifolds.
-Given a positive integer `p`, an open subset `U` of `S`,  an open subset
-`V` of `M` and differentiable map `\Phi: U \rightarrow V \subset M`,
+Let `U` and `M` be two differentiable manifolds.
+Given a positive integer `p` and a differentiable map `\Phi: U \rightarrow M`,
 a *differential form of degree* `p`, or *p-form*,
-*along* `U` *with values in* `V` is a field along `U` of alternating
-multilinear forms of degree `p` in the tangent spaces to `V`.
+*along* `U` *with values on* `M` is a field along `U` of alternating
+multilinear forms of degree `p` in the tangent spaces to `M`.
 The standard case of a differential form *on* a differentiable manifold
-corresponds to `S=M`, `U=V` and `\Phi = \mathrm{Id}_U`. Other common cases are
-`\Phi` being an immersion and `\Phi` being a curve in `V` (`U` is then an open
+corresponds to `U=M` and `\Phi = \mathrm{Id}_M`. Other common cases are
+`\Phi` being an immersion and `\Phi` being a curve in `M` (`U` is then an open
 interval of `\RR`).
 
-Two classes implement differential forms, depending whether the open
-set `V` is parallelizable:
+Two classes implement differential forms, depending whether the manifold
+`M` is parallelizable:
 
-* :class:`DiffFormParal` for the case where `V` is parallelizable
-* :class:`DiffForm` for the generic case, i.e. `V` not assumed
-  parallelizable.
+* :class:`DiffFormParal` when `M` is parallelizable
+* :class:`DiffForm` when `M` is not assumed parallelizable.
 
 .. NOTE::
 
     A difference with the preceding Sage class
     :class:`~sage.tensor.differential_form_element.DifferentialForm`
-    is that the present class lies at the tensor field level. Accordingly, an
-    instance of :class:`DiffForm` can have various sets of components, each in
-    a different coordinate system or coframe, while the class
+    is that the present classes lie at the tensor field level. Accordingly, an
+    instance of :class:`DiffForm` or :class:`DiffFormParal` can have various
+    sets of components, each in a different coordinate system (or more
+    generally in a different coframe), while the class
     :class:`~sage.tensor.differential_form_element.DifferentialForm` considers
     differential forms at the component level in a fixed chart. In this
     respect, the class
     :class:`~sage.tensor.differential_form_element.DifferentialForm` is closer
     to the class :class:`~sage.tensor.modules.comp.CompFullyAntiSym` than
-    to :class:`DiffForm`
+    to :class:`DiffForm`.
 
 AUTHORS:
 
@@ -51,8 +50,8 @@ REFERENCES:
 """
 
 #******************************************************************************
-#       Copyright (C) 2013, 2014 Eric Gourgoulhon <eric.gourgoulhon@obspm.fr>
-#       Copyright (C) 2013, 2014 Michal Bejger <bejger@camk.edu.pl>
+#       Copyright (C) 2015 Eric Gourgoulhon <eric.gourgoulhon@obspm.fr>
+#       Copyright (C) 2015 Michal Bejger <bejger@camk.edu.pl>
 #       Copyright (C) 2010 Joris Vankerschaver <joris.vankerschaver@gmail.com>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
@@ -62,25 +61,40 @@ REFERENCES:
 #******************************************************************************
 
 from sage.tensor.modules.free_module_alt_form import FreeModuleAltForm
-from sage.manifolds.differentiable.tensorfield import TensorField, \
-                                                               TensorFieldParal
+from sage.manifolds.differentiable.tensorfield import TensorField
+from sage.manifolds.differentiable.tensorfield_paral import TensorFieldParal
 
 class DiffForm(TensorField):
     r"""
-    Differential form with values in an open subset of a differentiable
-    manifold.
+    Differential form with values on a generic (i.e. a priori not
+    parallelizable) differentiable manifold.
 
-    Given an positive integer `p`, an open set `U` of a differentiable manifold
-    `S`, an open set `V` of a differentiable manifold `M`  and a differentiable
-    map `\Phi: U \rightarrow V`, an instance of this class is a field along `U`
-    of alternating multilinear forms of degree `p` in the tangent spaces to
-    `V`. The standard case of a differential form *on* a differentiable
-    manifold corresponds to `S=M`, `U=V` and `\Phi = \mathrm{Id}_U`. Other
-    common cases are `\Phi` being an immersion and `\Phi` being a curve in `V`
+    Given a differentiable manifold `U`,  a differentiable map
+    `\Phi: U \rightarrow M` to a differentiable manifold `M` and a positive
+    integer `p`, a *differential form of degree* `p` (or *p-form*)
+    *along* `U` *with values on* `M\supset\Phi(U)` is a differentiable map
+
+    .. MATH::
+
+        a:\ U  \longrightarrow T^{(0,p)}M
+
+    (`T^{(0,p)}M` being the tensor bundle of type `(0,p)` over `M`) such
+    that
+
+    .. MATH::
+
+        \forall x \in U,\ a(x) \in \Lambda^p(T_{\Phi(x)} M)
+
+    i.e. `a(x)` is an alternating multilinear form of degree `p` of the
+    tangent space to `M` at the point `\Phi(x)`.
+
+    The standard case of a differential form *on* a
+    manifold `M` corresponds to `U=M` and `\Phi = \mathrm{Id}_M`. Other
+    common cases are `\Phi` being an immersion and `\Phi` being a curve in `M`
     (`U` is then an open interval of `\RR`).
 
-    If `V` is parallelizable, the class :class:`DiffFormParal` must be
-    used instead.
+    If `M` is parallelizable, the class :class:`DiffFormParal`
+    must be used instead.
 
     This is a Sage *element* class, the corresponding *parent* class being
     :class:`~sage.manifolds.differentiable.diff_form_module.DiffFormModule`.
@@ -88,7 +102,7 @@ class DiffForm(TensorField):
     INPUT:
 
     - ``vector_field_module`` -- module `\mathcal{X}(U,\Phi)` of vector
-      fields along `U` associated with the map `\Phi: U \rightarrow V`.
+      fields along `U` with values on `M` via the map `\Phi`
     - ``degree`` -- the degree of the differential form (i.e. its tensor rank)
     - ``name`` -- (default: ``None``) name given to the differential form
     - ``latex_name`` -- (default: ``None``) LaTeX symbol to denote the
@@ -195,22 +209,41 @@ class DiffForm(TensorField):
         r"""
         Construct a differential form.
 
-        TEST::
+        TEST:
+
+        Construction via ``parent.element_class``, and not via a direct call
+        to ``DiffForm`, to fit with the category framework::
 
             sage: M = DiffManifold(2, 'M')
             sage: U = M.open_subset('U') ; V = M.open_subset('V')
             sage: M.declare_union(U,V)   # M is the union of U and V
             sage: c_xy.<x,y> = U.chart() ; c_uv.<u,v> = V.chart()
-            sage: transf = c_xy.transition_map(c_uv, (x+y, x-y),
-            ....:  intersection_name='W', restrictions1= x>0,
-            ....:  restrictions2= u+v>0)
-            sage: inv = transf.inverse()
+            sage: xy_to_uv = c_xy.transition_map(c_uv, (x+y, x-y),
+            ....:                    intersection_name='W', restrictions1= x>0,
+            ....:                    restrictions2= u+v>0)
+            sage: uv_to_xy = xy_to_uv.inverse()
             sage: W = U.intersection(V)
-            sage: eU = c_xy.frame() ; eV = c_uv.frame()
-            sage: a = M.diff_form(2, name='a') ; a
+            sage: e_xy = c_xy.frame() ; e_uv = c_uv.frame()
+            sage: A = M.diff_form_module(2)
+            sage: XM = M.vector_field_module()
+            sage: a = A.element_class(XM, 2, name='a'); a
             2-form a on the 2-dimensional differentiable manifold M
-            sage: a[eU,0,1] = x*y^2 + 2*x
-            sage: a.add_comp_by_continuation(eV, W, c_uv)
+            sage: a[e_xy,0,1] = x+y
+            sage: a.add_comp_by_continuation(e_uv, W, c_uv)
+            sage: TestSuite(a).run(skip='_test_pickling')
+
+        Construction with ``DiffManifold.diff_form``::
+
+            sage: a1 = M.diff_form(2, name='a'); a1
+            2-form a on the 2-dimensional differentiable manifold M
+            sage: type(a1) == type(a)
+            True
+            sage: a1.parent() is a.parent()
+            True
+
+        .. TODO::
+
+            fix _test_pickling (in the superclass TensorField)
 
         """
         TensorField.__init__(self, vector_field_module, (0,degree), name=name,
@@ -221,6 +254,21 @@ class DiffForm(TensorField):
     def _repr_(self):
         r"""
         String representation of the object.
+
+        TESTS::
+
+            sage: M = DiffManifold(3, 'M')
+            sage: a = M.diff_form(2, name='a')
+            sage: a._repr_()
+            '2-form a on the 3-dimensional differentiable manifold M'
+            sage: repr(a)  # indirect doctest
+            '2-form a on the 3-dimensional differentiable manifold M'
+            sage: a  # indirect doctest
+            2-form a on the 3-dimensional differentiable manifold M
+            sage: b = M.diff_form(2)
+            sage: b._repr_()
+            '2-form on the 3-dimensional differentiable manifold M'
+
         """
         description = "{}-form ".format(self._tensor_rank)
         if self._name is not None:
@@ -231,12 +279,31 @@ class DiffForm(TensorField):
         r"""
         Create an instance of the same class, of the same degree and on the
         same domain.
+
+        TESTS::
+
+            sage: M = DiffManifold(3, 'M')
+            sage: a = M.diff_form(2, name='a')
+            sage: a1 = a._new_instance(); a1
+            2-form on the 3-dimensional differentiable manifold M
+            sage: type(a1) == type(a)
+            True
+            sage: a1.parent() is a.parent()
+            True
+
         """
         return self.__class__(self._vmodule, self._tensor_rank)
 
     def _init_derived(self):
         r"""
         Initialize the derived quantities.
+
+        TEST::
+
+            sage: M = DiffManifold(3, 'M')
+            sage: a = M.diff_form(2, name='a')
+            sage: a._init_derived()
+
         """
         TensorField._init_derived(self)
         self._exterior_derivative = None
@@ -244,6 +311,13 @@ class DiffForm(TensorField):
     def _del_derived(self):
         r"""
         Delete the derived quantities.
+
+        TEST::
+
+            sage: M = DiffManifold(3, 'M')
+            sage: a = M.diff_form(2, name='a')
+            sage: a._del_derived()
+
         """
         TensorField._del_derived(self)
         self._exterior_derivative = None
@@ -254,9 +328,57 @@ class DiffForm(TensorField):
 
         OUTPUT:
 
-        - the exterior derivative of ``self``.
+        - instance of :class:`DiffForm` representing the exterior derivative
+          of the differential form
 
         EXAMPLE:
+
+        Exterior derivative of a 1-form on the 2-sphere::
+
+            sage: M = DiffManifold(2, 'M') # the 2-dimensional sphere S^2
+            sage: U = M.open_subset('U') # complement of the North pole
+            sage: c_xy.<x,y> = U.chart() # stereographic coordinates from the North pole
+            sage: V = M.open_subset('V') # complement of the South pole
+            sage: c_uv.<u,v> = V.chart() # stereographic coordinates from the South pole
+            sage: M.declare_union(U,V)   # S^2 is the union of U and V
+            sage: xy_to_uv = c_xy.transition_map(c_uv, (x/(x^2+y^2), y/(x^2+y^2)),
+            ....:                                intersection_name='W', restrictions1= x^2+y^2!=0,
+            ....:                                restrictions2= u^2+v^2!=0)
+            sage: uv_to_xy = xy_to_uv.inverse()
+            sage: e_xy = c_xy.frame(); e_uv = c_uv.frame()
+
+        The 1-form::
+
+            sage: a = M.diff_form(1, name='a')
+            sage: a[e_xy,:] = -y^2, x^2
+            sage: a.add_comp_by_continuation(e_uv, U.intersection(V), c_uv)
+            sage: a.display(e_xy)
+            a = -y^2 dx + x^2 dy
+            sage: a.display(e_uv)
+            a = -(2*u^3*v - u^2*v^2 + v^4)/(u^8 + 4*u^6*v^2 + 6*u^4*v^4 + 4*u^2*v^6 + v^8) du
+             + (u^4 - u^2*v^2 + 2*u*v^3)/(u^8 + 4*u^6*v^2 + 6*u^4*v^4 + 4*u^2*v^6 + v^8) dv
+
+        Its exterior derivative::
+
+            sage: da = a.exterior_der(); da
+            2-form da on the 2-dimensional differentiable manifold M
+            sage: da.display(e_xy)
+            da = (2*x + 2*y) dx/\dy
+            sage: da.display(e_uv)
+            da = -2*(u + v)/(u^6 + 3*u^4*v^2 + 3*u^2*v^4 + v^6) du/\dv
+
+        The outcome is cached, i.e. is not recomputed unless ``a`` is changed::
+
+            sage: a.exterior_der() is da
+            True
+
+        Let us check Cartan's identity::
+
+            sage: v = M.vector_field(name='v')
+            sage: v[e_xy, :] = -y, x
+            sage: v.add_comp_by_continuation(e_uv, U.intersection(V), c_uv)
+            sage: a.lie_der(v) == da.contract(0,v) + a(v).exterior_der()
+            True
 
         """
         from sage.tensor.modules.format_utilities import format_unop_txt, \
@@ -278,12 +400,40 @@ class DiffForm(TensorField):
 
         INPUT:
 
-        - ``other``: another differential form
+        - ``other``: another differential form (on the same manifold)
 
         OUTPUT:
 
         - instance of :class:`DiffForm` representing the exterior
           product self/\\other.
+
+        EXAMPLE:
+
+        Exterior product of two 1-forms on the 2-sphere::
+
+            sage: M = DiffManifold(2, 'M') # the 2-dimensional sphere S^2
+            sage: U = M.open_subset('U') # complement of the North pole
+            sage: c_xy.<x,y> = U.chart() # stereographic coordinates from the North pole
+            sage: V = M.open_subset('V') # complement of the South pole
+            sage: c_uv.<u,v> = V.chart() # stereographic coordinates from the South pole
+            sage: M.declare_union(U,V)   # S^2 is the union of U and V
+            sage: xy_to_uv = c_xy.transition_map(c_uv, (x/(x^2+y^2), y/(x^2+y^2)),
+            ....:                                intersection_name='W', restrictions1= x^2+y^2!=0,
+            ....:                                restrictions2= u^2+v^2!=0)
+            sage: uv_to_xy = xy_to_uv.inverse()
+            sage: e_xy = c_xy.frame(); e_uv = c_uv.frame()
+            sage: a = M.diff_form(1, name='a')
+            sage: a[e_xy,:] = y, x
+            sage: a.add_comp_by_continuation(e_uv, U.intersection(V), c_uv)
+            sage: b = M.diff_form(1, name='b')
+            sage: b[e_xy,:] = x^2 + y^2, y
+            sage: b.add_comp_by_continuation(e_uv, U.intersection(V), c_uv)
+            sage: c = a.wedge(b); c
+            2-form a/\b on the 2-dimensional differentiable manifold M
+            sage: c.display(e_xy)
+            a/\b = (-x^3 - (x - 1)*y^2) dx/\dy
+            sage: c.display(e_uv)
+            a/\b = -(v^2 - u)/(u^8 + 4*u^6*v^2 + 6*u^4*v^4 + 4*u^2*v^6 + v^8) du/\dv
 
         """
         from sage.tensor.modules.free_module_alt_form import FreeModuleAltForm
@@ -336,7 +486,23 @@ class DiffForm(TensorField):
 
     def degree(self):
         r"""
-        Return the degree of ``self``.
+        Return the degree of the differential form.
+
+        OUTPUT:
+
+        - integer p such that the differential form is a p-form.
+
+        EXAMPLES::
+
+            sage: M = DiffManifold(3, 'M')
+            sage: a = M.diff_form(2); a
+            2-form on the 3-dimensional differentiable manifold M
+            sage: a.degree()
+            2
+            sage: b = M.diff_form(1); b
+            1-form on the 3-dimensional differentiable manifold M
+            sage: b.degree()
+            1
 
         """
         return self._tensor_rank
@@ -346,20 +512,33 @@ class DiffForm(TensorField):
 
 class DiffFormParal(FreeModuleAltForm, TensorFieldParal):
     r"""
-    Differential form with values in a parallelizable open subset of a
-    differentiable manifold.
+    Differential form with values on a parallelizable manifold.
 
-    Given an positive integer `p`, an open set `U` of a differentiable manifold
-    `S`, a parallelizable open set `V` of a differentiable manifold `M`  and a
-    differentiable map `\Phi: U \rightarrow V`, an instance of this class is a
-    field along `U` of alternating multilinear forms of degree `p` in the
-    tangent spaces to `V`.
-    The standard case of a differential form *on* a differentiable manifold
-    corresponds to `S=M`, `U=V` and `\Phi = \mathrm{Id}_U`. Other common cases
-    are `\Phi` being an immersion and `\Phi` being a curve in `V` (`U` is then
-    an open interval of `\RR`).
+    Given a differentiable manifold `U`,  a differentiable map
+    `\Phi: U \rightarrow M` to a parallelizable manifold `M` and a positive
+    integer `p`, a *differential form of degree* `p` (or *p-form*)
+    *along* `U` *with values on* `M\supset\Phi(U)` is a differentiable map
 
-    If `V` is not parallelizable, the class :class:`DiffForm` must
+    .. MATH::
+
+        a:\ U  \longrightarrow T^{(0,p)}M
+
+    (`T^{(0,p)}M` being the tensor bundle of type `(0,p)` over `M`) such
+    that
+
+    .. MATH::
+
+        \forall x \in U,\ a(x) \in \Lambda^p(T_{\Phi(x)} M)
+
+    i.e. `a(x)` is an alternating multilinear form of degree `p` of the
+    tangent space to `M` at the point `\Phi(x)`.
+
+    The standard case of a differential form *on* a manifold `M` corresponds
+    to `U=M` and `\Phi = \mathrm{Id}_M`. Other common cases are `\Phi` being an
+    immersion and `\Phi` being a curve in `M` (`U` is then an open interval of
+    `\RR`).
+
+    If `M` is not parallelizable, the class :class:`DiffForm` must
     be used instead.
 
     This is a Sage *element* class, the corresponding *parent* class being
@@ -367,8 +546,8 @@ class DiffFormParal(FreeModuleAltForm, TensorFieldParal):
 
     INPUT:
 
-    - ``vector_field_module`` -- module `\mathcal{X}(U,\Phi)` of vector
-      fields along `U` associated with the map `\Phi: U \rightarrow V`.
+    - ``vector_field_module`` -- free module `\mathcal{X}(U,\Phi)` of vector
+      fields along `U` with values on `M` via the map `\Phi`
     - ``degree`` -- the degree of the differential form (i.e. its tensor rank)
     - ``name`` -- (default: ``None``) name given to the differential form
     - ``latex_name`` -- (default: ``None``) LaTeX symbol to denote the
@@ -630,18 +809,29 @@ class DiffFormParal(FreeModuleAltForm, TensorFieldParal):
         r"""
         Construct a differential form.
 
-        TEST::
+        TEST:
+
+        Construction via ``parent.element_class``, and not via a direct call
+        to ``DiffFormParal``, to fit with the category framework::
 
             sage: DiffManifold._clear_cache_() # for doctests only
             sage: M = DiffManifold(2, 'M')
-            sage: X.<x,y> = M.chart()
-            sage: a = M.diff_form(2, name='a') ; a
+            sage: X.<x,y> = M.chart()  # makes M parallelizable
+            sage: A = M.diff_form_module(2)
+            sage: XM = M.vector_field_module()
+            sage: a = A.element_class(XM, 2, name='a'); a
             2-form a on the 2-dimensional differentiable manifold M
-            sage: a.parent()
-            Free module /\^2(M) of 2-forms on the 2-dimensional differentiable
-             manifold M
             sage: a[0,1] = x*y
             sage: TestSuite(a).run()
+
+        Construction via ``DiffManifold.diff_form``::
+
+            sage: a1 = M.diff_form(2, name='a'); a1
+            2-form a on the 2-dimensional differentiable manifold M
+            sage: type(a1) == type(a)
+            True
+            sage: a1.parent() is a.parent()
+            True
 
         """
         FreeModuleAltForm.__init__(self, vector_field_module, degree,
@@ -656,6 +846,22 @@ class DiffFormParal(FreeModuleAltForm, TensorFieldParal):
     def _repr_(self):
         r"""
         String representation of the object.
+
+        TESTS::
+
+            sage: M = DiffManifold(3, 'M')
+            sage: X.<x,y,z> = M.chart()  # makes M parallelizable
+            sage: a = M.diff_form(2, name='a')
+            sage: a._repr_()
+            '2-form a on the 3-dimensional differentiable manifold M'
+            sage: repr(a)  # indirect doctest
+            '2-form a on the 3-dimensional differentiable manifold M'
+            sage: a  # indirect doctest
+            2-form a on the 3-dimensional differentiable manifold M
+            sage: b = M.diff_form(2)
+            sage: b._repr_()
+            '2-form on the 3-dimensional differentiable manifold M'
+
         """
         description = "{}-form ".format(self._tensor_rank)
         if self._name is not None:
@@ -666,12 +872,33 @@ class DiffFormParal(FreeModuleAltForm, TensorFieldParal):
         r"""
         Create an instance of the same class, of the same degree and on the
         same domain.
+
+        TESTS::
+
+            sage: M = DiffManifold(3, 'M')
+            sage: X.<x,y,z> = M.chart()  # makes M parallelizable
+            sage: a = M.diff_form(2, name='a')
+            sage: a1 = a._new_instance(); a1
+            2-form on the 3-dimensional differentiable manifold M
+            sage: type(a1) == type(a)
+            True
+            sage: a1.parent() is a.parent()
+            True
+
         """
         return self.__class__(self._fmodule, self._tensor_rank)
 
     def _init_derived(self):
         r"""
         Initialize the derived quantities
+
+        TEST::
+
+            sage: M = DiffManifold(3, 'M')
+            sage: X.<x,y,z> = M.chart()  # makes M parallelizable
+            sage: a = M.diff_form(2, name='a')
+            sage: a._init_derived()
+
         """
         TensorFieldParal._init_derived(self)
         self._exterior_derivative = None
@@ -682,8 +909,15 @@ class DiffFormParal(FreeModuleAltForm, TensorFieldParal):
 
         INPUT:
 
-        - ``del_restrictions`` -- (default: True) determines whether the
+        - ``del_restrictions`` -- (default: ``True``) determines whether the
           restrictions of ``self`` to subdomains are deleted.
+
+        TEST::
+
+            sage: M = DiffManifold(3, 'M')
+            sage: X.<x,y,z> = M.chart()  # makes M parallelizable
+            sage: a = M.diff_form(2, name='a')
+            sage: a._del_derived()
 
         """
         TensorFieldParal._del_derived(self, del_restrictions=del_restrictions)
@@ -694,6 +928,29 @@ class DiffFormParal(FreeModuleAltForm, TensorFieldParal):
         Redefinition of
         :meth:`~sage.tensor.modules.free_module_tensor.FreeModuleTensor.__call__`
         to allow for domain treatment
+
+        TEST::
+
+            sage: M = DiffManifold(2, 'M')
+            sage: X.<x,y> = M.chart()
+            sage: a = M.diff_form(2, name='a')
+            sage: a[0,1] = x*y
+            sage: a.display()
+            a = x*y dx/\dy
+            sage: u = M.vector_field(name='u')
+            sage: u[:] = [1+x, 2-y]
+            sage: v = M.vector_field(name='v')
+            sage: v[:] = [-y, x]
+            sage: s = a.__call__(u,v); s
+            Scalar field a(u,v) on the 2-dimensional differentiable manifold M
+            sage: s.display()
+            a(u,v): M --> R
+               (x, y) |--> -x*y^3 + 2*x*y^2 + (x^3 + x^2)*y
+            sage: s == a[[0,1]]*(u[[0]]*v[[1]] -u[[1]]*v[[0]])
+            True
+            sage: s == a(u,v)  # indirect doctest
+            True
+
         """
         return TensorFieldParal.__call__(self, *args)
 
@@ -703,7 +960,8 @@ class DiffFormParal(FreeModuleAltForm, TensorFieldParal):
 
         OUTPUT:
 
-        - the exterior derivative of ``self``.
+        - instance of :class:`DiffFormParal` representing the exterior
+          derivative of the differential form
 
         EXAMPLE:
 
@@ -721,6 +979,11 @@ class DiffFormParal(FreeModuleAltForm, TensorFieldParal):
              + (-2*x*z + 2*y) dy/\dz
             sage: latex(da)
             \mathrm{d}A
+
+        The outcome is cached, i.e. is not recomputed unless ``a`` is changed::
+
+            sage: a.exterior_der() is da
+            True
 
         The exterior derivative is nilpotent::
 
@@ -796,10 +1059,6 @@ class DiffFormParal(FreeModuleAltForm, TensorFieldParal):
         r"""
         Exterior product with another differential form.
 
-        This is a redefinition of
-        :meth:`sage.tensor.modules.free_module_alt_form.FreeModuleAltForm.wedge`
-        to treat properly the domains.
-
         INPUT:
 
         - ``other``: another differential form
@@ -808,6 +1067,30 @@ class DiffFormParal(FreeModuleAltForm, TensorFieldParal):
 
         - instance of :class:`DiffFormParal` representing the exterior
           product self/\\other.
+
+        EXAMPLE:
+
+        Exterior product of a 1-form and a 2-form on a 3-dimensional manifold::
+
+            sage: M = DiffManifold(3, 'M', start_index=1)
+            sage: X.<x,y,z> = M.chart()
+            sage: a = M.one_form(name='a')
+            sage: a[:] = [2, 1+x, y*z]
+            sage: b = M.diff_form(2, name='b')
+            sage: b[1,2], b[1,3], b[2,3] = y^2, z+x, z^2
+            sage: a.display()
+            a = 2 dx + (x + 1) dy + y*z dz
+            sage: b.display()
+            b = y^2 dx/\dy + (x + z) dx/\dz + z^2 dy/\dz
+            sage: s = a.wedge(b); s
+            3-form a/\b on the 3-dimensional differentiable manifold M
+            sage: s.display()
+            a/\b = (-x^2 + (y^3 - x - 1)*z + 2*z^2 - x) dx/\dy/\dz
+
+        Check::
+
+            sage: s[1,2,3] == a[1]*b[2,3] + a[2]*b[3,1] + a[3]*b[1,2]
+            True
 
         """
         from sage.tensor.modules.free_module_alt_form import FreeModuleAltForm

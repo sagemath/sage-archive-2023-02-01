@@ -1,16 +1,16 @@
 r"""
 Vector field modules
 
-The set of vector fields along an open subset `U` of some differentiable
-manifold `S` with values in a open subset `V` of a differentiable manifold `M`
-(possibly `S=M` and `U=V`) is a module over the algebra `C^k(U)` of
-differentiable scalar fields on `U`. It is a free module iff `V` is
+The set of vector fields along a differentiable manifold `U` with values on
+a differentiable manifold `M` via a differentiable map `\Phi: U\rightarrow M`
+(possibly `U=M` and `\Phi=\mathrm{Id}_M`) is a module over the algebra
+`C^k(U)` of differentiable scalar fields on `U`. It is a free module iff `M` is
 parallelizable. Accordingly, two classes are devoted to vector field modules:
 
-- :class:`VectorFieldModule` for vector fields with values in a
-  generic (in practice, not parallelizable) open set `V`
-- :class:`VectorFieldFreeModule` for vector fields with values in a
-  parallelizable open set `V`
+- :class:`VectorFieldModule` for vector fields with values on a
+  generic (in practice, not parallelizable) differentiable manifold `M`
+- :class:`VectorFieldFreeModule` for vector fields with values on a
+  parallelizable manifold `M`.
 
 AUTHORS:
 
@@ -45,53 +45,55 @@ from sage.manifolds.differentiable.vectorfield import VectorField, \
 
 class VectorFieldModule(UniqueRepresentation, Parent):
     r"""
-    Module of vector fields along an open subset `U` of some differentiable
-    manifold `S` with values in a open subset `V` of a differentiable
-    manifold `M`.
-
-    If `V` is parallelizable, the class :class:`VectorFieldFreeModule` should
-    be used instead.
+    Module of vector fields along a differentiable manifold `U` with values on
+    a differentiable manifold `M`, via a differentiable map `U\rightarrow M`.
 
     Given a differentiable map
 
     .. MATH::
 
-        \Phi:\ U\subset S \longrightarrow V\subset M
+        \Phi:\  U \longrightarrow M
 
-    the module `\mathcal{X}(U,\Phi)` is the set of all vector fields of
-    the type
+    the *vector field module* `\mathcal{X}(U,\Phi)` is the set of all vector
+    fields of the type
 
     .. MATH::
 
         v:\ U  \longrightarrow TM
 
-    such that
+    (where `TM` is the tangent bundle of `M`) such that
 
     .. MATH::
 
-        \forall p \in U,\ v(p) \in T_{\Phi(p)}M
+        \forall p \in U,\ v(p) \in T_{\Phi(p)}M,
 
+    where `T_{\Phi(p)}M` is the tangent space to `M` at the point `\Phi(p)`.
 
     The set `\mathcal{X}(U,\Phi)` is a module over `C^k(U)`, the ring
     (algebra) of differentiable scalar fields on `U` (see
     :class:`~sage.manifolds.differentiable.scalarfield_algebra.DiffScalarFieldAlgebra`).
 
     The standard case of vector fields *on* a differentiable manifold
-    corresponds to `S=M`, `U=V` and `\Phi = \mathrm{Id}_U`. Other common cases
-    are `\Phi` being an immersion and `\Phi` being a curve in `V` (`U` is then
-    an open interval of `\RR`).
+    corresponds to `U=M` and `\Phi = \mathrm{Id}_M`; we then denote
+    `\mathcal{X}(M,\mathrm{Id}_M)` by merely `\mathcal{X}(M)`. Other common
+    cases are `\Phi` being an immersion and `\Phi` being a curve in `M` (`U` is
+    then an open interval of `\RR`).
+
+    If `M` is parallelizable, the class :class:`VectorFieldFreeModule` should
+    be used instead.
 
     This is a Sage *parent* class, the corresponding *element* class being
     :class:`~sage.manifolds.differentiable.vectorfield.VectorField`.
 
     INPUT:
 
-    - ``domain`` -- open subset `U` on which the vector fields are defined
+    - ``domain`` -- differentiable manifold `U` along which the vector fields
+      are defined
     - ``dest_map`` -- (default: ``None``) destination map
-      `\Phi:\ U \rightarrow V`
-      (type: :class:`~sage.manifolds.differentiable.diff_map.DiffMap`);
-      if none is provided, the identity is assumed (case of vector fields *on*
-      `U`)
+      `\Phi:\ U \rightarrow M`
+      (type: :class:`~sage.manifolds.differentiable.diff_map.DiffMap`); if
+      ``None``, it is assumed that `U=M` and `\Phi` is the identity map of
+      `M` (case of vector fields *on* `M`)
 
     EXAMPLE:
 
@@ -395,7 +397,8 @@ class VectorFieldModule(UniqueRepresentation, Parent):
         - instance of
           :class:`~sage.manifolds.differentiable.tensorfield_module.TensorFieldModule`
           representing the module
-          `T^{(k,l)}(M)` of type-`(k,l)` tensors on the vector field module.
+          `T^{(k,l)}(U,\Phi)` of type-`(k,l)` tensors on the vector field
+          module.
 
         EXAMPLES:
 
@@ -438,7 +441,7 @@ class VectorFieldModule(UniqueRepresentation, Parent):
 
         If the vector field module is `\mathcal{X}(U,\Phi)`, the
         `p`-th exterior power of its dual is the set `\Lambda^p(U,\Phi)` of
-        `p`-forms along `U` with values in `\Phi(U)`. It is a module over
+        `p`-forms along `U` with values on `\Phi(U)`. It is a module over
         `C^k(U)`, the ring (algebra) of differentiable scalar fields on
         `U`.
 
@@ -501,13 +504,13 @@ class VectorFieldModule(UniqueRepresentation, Parent):
 
     def general_linear_group(self):
         r"""
-        Return the general linear group of ``self``.
+        Return the general linear group of the vector field module.
 
-        If ``self`` is the module `\mathcal{X}(U,\Phi)`, the *general
+        If the vector field module is `\mathcal{X}(U,\Phi)`, the *general
         linear group* is the group `\mathrm{GL}(\mathcal{X}(U,\Phi))` of
         automorphisms of `\mathcal{X}(U,\Phi)`. Note that an automorphism of
         `\mathcal{X}(U,\Phi)` can also be viewed as a *field* along `U` of
-        automorphisms of the tangent spaces of `V=\Phi(U)`.
+        automorphisms of the tangent spaces of `M\supset\Phi(U)`.
 
         OUTPUT:
 
@@ -569,8 +572,8 @@ class VectorFieldModule(UniqueRepresentation, Parent):
 
         - instance of
           :class:`~sage.manifolds.differentiable.tensorfield.TensorField`
-          representing the tensor defined on ``self`` with the provided
-          characteristics.
+          representing the tensor defined on the vector field module with the
+          provided characteristics.
 
         EXAMPLES::
 
@@ -625,7 +628,7 @@ class VectorFieldModule(UniqueRepresentation, Parent):
         Construct an alternating form on the vector field module.
 
         An alternating form on the vector field module is actually a
-        differential form along the open subset `U` over which
+        differential form along the differentiable manifold `U` over which
         the vector field module is defined.
 
         INPUT:
@@ -665,8 +668,8 @@ class VectorFieldModule(UniqueRepresentation, Parent):
         Construct a linear form on the vector field module.
 
         A linear form on the vector field module is actually a field
-        of linear forms (i.e. a 1-form) along the open subset `U` over which
-        the vector field module is defined.
+        of linear forms (i.e. a 1-form) along the differentiable manifold `U`
+        over which the vector field module is defined.
 
         INPUT:
 
@@ -703,8 +706,8 @@ class VectorFieldModule(UniqueRepresentation, Parent):
         Construct an automorphism of the vector field module.
 
         An automorphism of the vector field module is actually a field
-        of tangent-space automorphisms along the open subset `U` over which
-        the vector field module is defined.
+        of tangent-space automorphisms along the differentiable manifold `U`
+        over which the vector field module is defined.
 
         INPUT:
 
@@ -743,8 +746,8 @@ class VectorFieldModule(UniqueRepresentation, Parent):
         Construct the identity map on the vector field module.
 
         The identity map on the vector field module is actually a field
-        of tangent-space identity maps along the open subset `U` over which
-        the vector field module is defined.
+        of tangent-space identity maps along the differentiable manifold `U`
+        over which the vector field module is defined.
 
         INPUT:
 
@@ -780,52 +783,57 @@ class VectorFieldModule(UniqueRepresentation, Parent):
 
 class VectorFieldFreeModule(FiniteRankFreeModule):
     r"""
-    Free module of vector fields along an open subset `U` of some
-    differentiable manifold `S` with values in a parallelizable open subset `V`
-    of a differentiable manifold `M`.
+    Free module of vector fields along a differentiable manifold `U` with
+    values on a parallelizable manifold `M`, via a differentiable map
+    `U\rightarrow M`.
 
     Given a differentiable map
 
     .. MATH::
 
-        \Phi:\ U\subset S \longrightarrow V\subset M
+        \Phi:\  U \longrightarrow M
 
-    the module `\mathcal{X}(U,\Phi)` is the set of all vector fields of
-    the type
+    the *vector field module* `\mathcal{X}(U,\Phi)` is the set of all vector
+    fields of the type
 
     .. MATH::
 
         v:\ U  \longrightarrow TM
 
-    such that
+    (where `TM` is the tangent bundle of `M`) such that
 
     .. MATH::
 
-        \forall p \in U,\ v(p) \in T_{\Phi(p)}M
+        \forall p \in U,\ v(p) \in T_{\Phi(p)}M,
 
+    where `T_{\Phi(p)}M` is the tangent space to `M` at the point `\Phi(p)`.
 
-    Since `V` is parallelizable, the set `\mathcal{X}(U,\Phi)` is a free module
-    over `C^k(U)`, the ring (algebra) of differentiable scalar fields on
-    `U` (see
+    Since `M` is parallelizable, the set `\mathcal{X}(U,\Phi)` is a free module
+    over `C^k(U)`, the ring (algebra) of differentiable scalar fields on `U`
+    (see
     :class:`~sage.manifolds.differentiable.scalarfield_algebra.DiffScalarFieldAlgebra`).
-    Its rank is the dimension of `M`.
 
     The standard case of vector fields *on* a differentiable manifold
-    corresponds to `S=M`, `U=V` and `\Phi = \mathrm{Id}_U`. Other common cases
-    are `\Phi` being an immersion and `\Phi` being a curve in `V`
-    (`U` is then an open interval of `\RR`).
+    corresponds to `U=M` and `\Phi = \mathrm{Id}_M`; we then denote
+    `\mathcal{X}(M,\mathrm{Id}_M)` by merely `\mathcal{X}(M)`. Other common
+    cases are `\Phi` being an immersion and `\Phi` being a curve in `M` (`U` is
+    then an open interval of `\RR`).
+
+    If `M` is not parallelizable, the class :class:`VectorFieldModule` should
+    be used instead, for `\mathcal{X}(U,\Phi)` is no longer a free module.
 
     This is a Sage *parent* class, the corresponding *element* class being
     :class:`~sage.manifolds.differentiable.vectorfield.VectorFieldParal`.
 
     INPUT:
 
-    - ``domain`` -- open subset `U` on which the vector fields are defined
+    - ``domain`` -- differentiable manifold `U` along which the vector fields
+      are defined
     - ``dest_map`` -- (default: ``None``) destination map
-      `\Phi:\ U \rightarrow V`
-      (type: :class:`~sage.manifolds.differentiable.diff_map.DiffMap`);
-      if none is provided, the identity is assumed (case of vector fields *on*
-      `U`)
+      `\Phi:\ U \rightarrow M`
+      (type: :class:`~sage.manifolds.differentiable.diff_map.DiffMap`); if
+      ``None``, it is assumed that `U=M` and `\Phi` is the identity map of
+      `M` (case of vector fields *on* `M`)
 
     EXAMPLES:
 
@@ -1177,7 +1185,7 @@ class VectorFieldFreeModule(FiniteRankFreeModule):
         - instance of
           :class:`~sage.manifolds.differentiable.tensorfield_module.TensorFieldFreeModule`
           representing the free module of type-`(k,l)` tensors on the
-          free module ``self``.
+          vector field module.
 
         EXAMPLES:
 
@@ -1221,7 +1229,7 @@ class VectorFieldFreeModule(FiniteRankFreeModule):
 
         If the vector field module is `\mathcal{X}(U,\Phi)`, the
         `p`-th exterior power of its dual is the set `\Lambda^p(U,\Phi)` of
-        `p`-forms along `U` with values in `\Phi(U)`. It is a module over
+        `p`-forms along `U` with values on `\Phi(U)`. It is a module over
         `C^k(U)`, the ring (algebra) of differentiable scalar fields on
         `U`.
 
@@ -1309,7 +1317,8 @@ class VectorFieldFreeModule(FiniteRankFreeModule):
         Define a basis of the vector field module.
 
         A basis of the vector field module is actually a vector frame along
-        the open set `U` over which the vector field module is defined.
+        the differentiable manifold `U` over which the vector field module
+        is defined.
 
         If the basis specified by the given symbol already exists, it is
         simply returned.
@@ -1324,7 +1333,7 @@ class VectorFieldFreeModule(FiniteRankFreeModule):
           generic element of the basis; if ``None``, the value of ``symbol`` is
           used.
         - ``from_frame`` -- (default: ``None``) vector frame `\tilde e` on the
-          codomain `V` of the destination map `\Phi` of ``self``; the returned
+          codomain `M` of the destination map `\Phi` of ``self``; the returned
           basis `e` is then such that
           `\forall p \in U, e(p) = \tilde e(\Phi(p))`
 
@@ -1365,8 +1374,8 @@ class VectorFieldFreeModule(FiniteRankFreeModule):
         r"""
         Construct a tensor on the vector field module.
 
-        The tensor is actually a tensor field along the open subset `U` over
-        which the vector field module is defined.
+        The tensor is actually a tensor field along the differentiable manifold
+        `U` over which the vector field module is defined.
 
         INPUT:
 
@@ -1388,13 +1397,13 @@ class VectorFieldFreeModule(FiniteRankFreeModule):
           antisymmetries among the arguments, with the same convention as for
           ``sym``.
         - ``specific_type`` -- (default: ``None``) specific subclass of
-          :class:`~sage.manifolds.differentiable.tensorfield.TensorFieldParal`
+          :class:`~sage.manifolds.differentiable.tensorfield_paral.TensorFieldParal`
           for the output
 
         OUTPUT:
 
         - instance of
-          :class:`~sage.manifolds.differentiable.tensorfield.TensorFieldParal`
+          :class:`~sage.manifolds.differentiable.tensorfield_paral.TensorFieldParal`
           representing the tensor defined on ``self`` with the provided
           characteristics.
 
@@ -1412,7 +1421,7 @@ class VectorFieldFreeModule(FiniteRankFreeModule):
             2-form a on the 2-dimensional differentiable manifold M
 
         See
-        :class:`~sage.manifolds.differentiable.tensorfield.TensorFieldParal`
+        :class:`~sage.manifolds.differentiable.tensorfield_paral.TensorFieldParal`
         for more examples and documentation.
 
         """
@@ -1452,8 +1461,8 @@ class VectorFieldFreeModule(FiniteRankFreeModule):
         r"""
         Construct a tensor on the vector field module from a set of components.
 
-        The tensor is actually a tensor field along the open subset `U` over
-        which the vector field module is defined.
+        The tensor is actually a tensor field along the differentiable manifold
+        `U` over which the vector field module is defined.
         The tensor symmetries are deduced from those of the components.
 
         INPUT:
@@ -1469,7 +1478,7 @@ class VectorFieldFreeModule(FiniteRankFreeModule):
         OUTPUT:
 
         - instance of
-          :class:`~sage.manifolds.differentiable.tensorfield.TensorFieldParal`
+          :class:`~sage.manifolds.differentiable.tensorfield_paral.TensorFieldParal`
           representing the tensor defined on the vector field module with the
           provided characteristics.
 
@@ -1542,7 +1551,8 @@ class VectorFieldFreeModule(FiniteRankFreeModule):
 
         A symmetric bilinear form on the vector field module is
         actually a field of tangent-space symmetric bilinear forms along
-        the open subset `U` on which the vector field module is defined.
+        the differentiable manifold `U` over which the vector field module is
+        defined.
 
         INPUT:
 
@@ -1555,7 +1565,7 @@ class VectorFieldFreeModule(FiniteRankFreeModule):
         OUTPUT:
 
         - instance of
-          :class:`~sage.manifolds.differentiable.tensorfield.TensorFieldParal` of
+          :class:`~sage.manifolds.differentiable.tensorfield_paral.TensorFieldParal` of
           tensor type (0,2) and symmetric
 
         EXAMPLE::
@@ -1568,7 +1578,7 @@ class VectorFieldFreeModule(FiniteRankFreeModule):
              differentiable manifold M
 
         See
-        :class:`~sage.manifolds.differentiable.tensorfield.TensorFieldParal`
+        :class:`~sage.manifolds.differentiable.tensorfield_paral.TensorFieldParal`
         for more examples and documentation.
 
         """

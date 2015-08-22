@@ -7,3 +7,5 @@ Tensor fields
    sage/manifolds/differentiable/tensorfield_module
 
    sage/manifolds/differentiable/tensorfield
+
+   sage/manifolds/differentiable/tensorfield_paral

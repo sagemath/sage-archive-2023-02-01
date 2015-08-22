@@ -1,16 +1,16 @@
 r"""
 Tensor field modules
 
-The set of tensor fields along an open subset `U` of some differentiable
-manifold `S` with values in a open subset `V` of a differentiable manifold `M`
-(possibly `S=M` and `U=V`) is a module over the algebra `C^k(U)` of
-differentiable scalar fields on `U`. It is a free module iff `V` is
+The set of tensor fields along a differentiable manifold `U` with values on
+a differentiable manifold `M` via a differentiable map `\Phi: U\rightarrow M`
+(possibly `U=M` and `\Phi=\mathrm{Id}_M`) is a module over the algebra
+`C^k(U)` of differentiable scalar fields on `U`. It is a free module iff `M` is
 parallelizable. Accordingly, two classes are devoted to tensor field modules:
 
-- :class:`TensorFieldModule` for tensor fields with values in a generic (in
-  practice, not parallelizable) open set `V`
-- :class:`TensorFieldFreeModule` for tensor fields with values in a
-  parallelizable open set `V`
+- :class:`TensorFieldModule` for tensor fields with values on a generic (in
+  practice, not parallelizable) differentiable manifold `M`
+- :class:`TensorFieldFreeModule` for tensor fields with values on a
+  parallelizable manifold `M`.
 
 AUTHORS:
 
@@ -27,8 +27,8 @@ REFERENCES:
 """
 
 #******************************************************************************
-#       Copyright (C) 2014 Eric Gourgoulhon <eric.gourgoulhon@obspm.fr>
-#       Copyright (C) 2014 Michal Bejger <bejger@camk.edu.pl>
+#       Copyright (C) 2015 Eric Gourgoulhon <eric.gourgoulhon@obspm.fr>
+#       Copyright (C) 2015 Michal Bejger <bejger@camk.edu.pl>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #  as published by the Free Software Foundation; either version 2 of
@@ -40,48 +40,51 @@ from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.parent import Parent
 from sage.categories.modules import Modules
 from sage.tensor.modules.tensor_free_module import TensorFreeModule
-from sage.manifolds.differentiable.tensorfield import TensorField, \
-                                                               TensorFieldParal
+from sage.manifolds.differentiable.tensorfield import TensorField
+from sage.manifolds.differentiable.tensorfield_paral import TensorFieldParal
 from sage.manifolds.differentiable.diff_form import DiffForm, DiffFormParal
 from sage.manifolds.differentiable.automorphismfield import \
                                       AutomorphismField, AutomorphismFieldParal
 
 class TensorFieldModule(UniqueRepresentation, Parent):
     r"""
-    Module of tensor fields of a given type `(k,l)` along an open subset `U`
-    of some differentiable manifold `S` with values in a open subset `V` of a
-    differentiable manifold `M`,
+    Module of tensor fields of a given type `(k,l)` along a differentiable
+    manifold `U` with values on a differentiable manifold `M`, via a
+    differentiable map `U\rightarrow M`.
 
     Given two non-negative integers `k` and `l` and a differentiable map
 
     .. MATH::
 
-        \Phi:\ U\subset S \longrightarrow V\subset M
+        \Phi:\ U \longrightarrow M,
 
-    the tensor field module `T^{(k,l)}(U,\Phi)` is the set of all tensor
+    the *tensor field module* `T^{(k,l)}(U,\Phi)` is the set of all tensor
     fields of the type
 
     .. MATH::
 
         t:\ U  \longrightarrow T^{(k,l)}M
 
-    such that
+    (where `T^{(k,l)}M` is the tensor bundle of type `(k,l)` over `M`) such
+    that
 
     .. MATH::
 
         \forall p \in U,\ t(p) \in T^{(k,l)}(T_{\Phi(p)}M)
 
-    i.e. `t(p)` is a tensor on the vector space `T_{\Phi(p)}M`.
+    i.e. `t(p)` is a tensor of type `(k,l)` on the tangent vector space
+    `T_{\Phi(p)}M`.
     The set `T^{(k,l)}(U,\Phi)` is a module over `C^k(U)`, the ring
     (algebra) of differentiable scalar fields on `U` (see
     :class:`~sage.manifolds.differentiable.scalarfield_algebra.DiffScalarFieldAlgebra`).
 
     The standard case of tensor fields *on* a differentiable manifold
-    corresponds to `S=M`, `U=V` and `\Phi = \mathrm{Id}_U`. Other common cases
-    are `\Phi` being an immersion and `\Phi` being a curve in `V` (`U` is then
+    corresponds to `U=M` and `\Phi = \mathrm{Id}_M`; we then denote
+    `T^{(k,l)}(M,\mathrm{Id}_M)` by merely `T^{(k,l)}(M)`. Other common cases
+    are `\Phi` being an immersion and `\Phi` being a curve in `M` (`U` is then
     an open interval of `\RR`).
 
-    If `V` is parallelizable, the class :class:`TensorFieldFreeModule` should
+    If `M` is parallelizable, the class :class:`TensorFieldFreeModule` should
     be used instead.
 
     This is a Sage *parent* class, the corresponding *element* class being
@@ -90,7 +93,7 @@ class TensorFieldModule(UniqueRepresentation, Parent):
     INPUT:
 
     - ``vector_field_module`` -- module `\mathcal{X}(U,\Phi)` of vector
-      fields along `U` associated with the map `\Phi: U \rightarrow V`.
+      fields along `U` associated with the map `\Phi: U \rightarrow M`.
     - ``tensor_type`` -- pair `(k,l)` with `k` being the contravariant rank and
       `l` the covariant rank
 
@@ -290,9 +293,11 @@ class TensorFieldModule(UniqueRepresentation, Parent):
             sage: M.declare_union(U,V)
             sage: T20 = M.tensor_field_module((2,0))
             sage: t = T20._element_constructor_(comp=[[1+x, 2], [x*y, 3-y]], name='t'); t
-            Tensor field t of type (2,0) on the 2-dimensional differentiable manifold M
+            Tensor field t of type (2,0) on the 2-dimensional differentiable
+             manifold M
             sage: t.display(c_xy.frame())
-            t = (x + 1) d/dx*d/dx + 2 d/dx*d/dy + x*y d/dy*d/dx + (-y + 3) d/dy*d/dy
+            t = (x + 1) d/dx*d/dx + 2 d/dx*d/dy + x*y d/dy*d/dx
+             + (-y + 3) d/dy*d/dy
             sage: T20._element_constructor_(0) is T20.zero()
             True
 
@@ -515,48 +520,53 @@ class TensorFieldModule(UniqueRepresentation, Parent):
 
 class TensorFieldFreeModule(TensorFreeModule):
     r"""
-    Free module of tensor fields of a given type `(k,l)` along an open
-    subset `U` of some differentiable manifold `S` with values in a
-    parallelizable open subset `V` of a differentiable manifold `M`.
+    Free module of tensor fields of a given type `(k,l)` along a differentiable
+    manifold `U` with values on a parallelizable manifold `M`, via a
+    differentiable map `U\rightarrow M`.
 
     Given two non-negative integers `k` and `l` and a differentiable map
 
     .. MATH::
 
-        \Phi:\ U\subset S \longrightarrow V\subset M
+        \Phi:\ U \longrightarrow M,
 
-    the tensor field module `T^{(k,l)}(U,\Phi)` is the set of all tensor
+    the *tensor field module* `T^{(k,l)}(U,\Phi)` is the set of all tensor
     fields of the type
 
     .. MATH::
 
         t:\ U  \longrightarrow T^{(k,l)}M
 
-    such that
+    (where `T^{(k,l)}M` is the tensor bundle of type `(k,l)` over `M`) such
+    that
 
     .. MATH::
 
         \forall p \in U,\ t(p) \in T^{(k,l)}(T_{\Phi(p)}M)
 
-    i.e. `t(p)` is a tensor on the vector space `T_{\Phi(p)}M`.
-
-    The standard case of tensor fields *on* a differentiable manifold
-    corresponds to `S=M`, `U=V` and `\Phi = \mathrm{Id}_U`. Other common cases
-    are `\Phi` being an immersion and `\Phi` being a curve in `V` (`U` is then
-    an open interval of `\RR`).
-
-    Since `V` is parallelizable, the set `T^{(k,l)}(U,\Phi)` is a free
-    module over `C^k(U)`, the ring (algebra) of differentiable scalar
-    fields on `U` (see
+    i.e. `t(p)` is a tensor of type `(k,l)` on the tangent vector space
+    `T_{\Phi(p)}M`.
+    Since `M` is parallelizable, the set `T^{(k,l)}(U,\Phi)` is a free module
+    over `C^k(U)`, the ring (algebra) of differentiable scalar fields on `U`
+    (see
     :class:`~sage.manifolds.differentiable.scalarfield_algebra.DiffScalarFieldAlgebra`).
 
+    The standard case of tensor fields *on* a differentiable manifold
+    corresponds to `U=M` and `\Phi = \mathrm{Id}_M`; we then denote
+    `T^{(k,l)}(M,\mathrm{Id}_M)` by merely `T^{(k,l)}(M)`. Other common cases
+    are `\Phi` being an immersion and `\Phi` being a curve in `M` (`U` is then
+    an open interval of `\RR`).
+
+    If `M` is not parallelizable, the class :class:`TensorFieldModule` should
+    be used instead, for `T^{(k,l)}(U,\Phi)` is no longer a free module.
+
     This is a Sage *parent* class, the corresponding *element* class being
-    :class:`~sage.manifolds.differentiable.tensorfield.TensorFieldParal`.
+    :class:`~sage.manifolds.differentiable.tensorfield_paral.TensorFieldParal`.
 
     INPUT:
 
     - ``vector_field_module`` -- free module `\mathcal{X}(U,\Phi)` of vector
-      fields along `U` associated with the map `\Phi: U \rightarrow V`.
+      fields along `U` associated with the map `\Phi: U \rightarrow M`.
     - ``tensor_type`` -- pair `(k,l)` with `k` being the contravariant rank and
       `l` the covariant rank
 

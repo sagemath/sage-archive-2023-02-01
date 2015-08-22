@@ -1,34 +1,34 @@
 r"""
 Vector fields
 
-Given an open set `U` of a differentiable manifold `S`,  an open set `V`
-of a differentiable manifold `M` and a differentiable map
+Given two differentiable manifolds `U` and `M` over the same topological field
+`K` and a differentiable map
 
 .. MATH::
 
-    \Phi:\ U\subset S \longrightarrow V\subset M
+    \Phi:\ U \longrightarrow  M
 
-we define a *vector field along* `U` *with values on* `V` to be a
+we define a *vector field along* `U` *with values on* `M` to be a
 differentiable map
 
 .. MATH::
 
     v:\ U  \longrightarrow TM
 
-such that
+(`TM` being the tangent bundle of `M`) such that
 
 .. MATH::
 
     \forall p \in U,\ v(p) \in T_{\Phi(p)}M
 
 The standard case of vector fields *on* a differentiable manifold corresponds
-to `S=M`, `U=V` and `\Phi = \mathrm{Id}_U`. Other common cases are `\Phi`
-being an immersion and `\Phi` being a curve in `V` (`U` is then an open
+to `U=M` and `\Phi = \mathrm{Id}_M`. Other common cases are `\Phi`
+being an immersion and `\Phi` being a curve in `M` (`U` is then an open
 interval of `\RR`).
 
 Vector fields are implemented via two classes: :class:`VectorFieldParal` and
-:class:`VectorField`, depending respectively whether the open set `V`
-is parallelizable or not.
+:class:`VectorField`, depending respectively whether the manifold `M`
+is parallelizable or not, i.e. whether the bundle `TM` is trivial or not.
 
 
 AUTHORS:
@@ -56,24 +56,42 @@ REFERENCES:
 #******************************************************************************
 
 from sage.tensor.modules.free_module_tensor import FiniteRankFreeModuleElement
-from sage.manifolds.differentiable.tensorfield import TensorField, \
-                                                               TensorFieldParal
+from sage.manifolds.differentiable.tensorfield import TensorField
+from sage.manifolds.differentiable.tensorfield_paral import TensorFieldParal
 
 class VectorField(TensorField):
     r"""
-    Vector field along an open set of a differentiable manifold.
+    Vector field along a differentiable manifold.
 
-    An instance of this class is a vector field along an open subset `U`
-    of some differentiable manifold `S` with values in an open subset `V`
-    of a differentiable manifold `M`, via a differentiable map
-    `\Phi: U \rightarrow V`.
-    The standard case of a vector field *on* a differentiable manifold
-    corresponds to `S=M`, `U=V` and `\Phi = \mathrm{Id}_U`. Other common cases
-    are `\Phi` being an immersion and `\Phi` being a curve in `V` (`U` is then
-    an open interval of `\RR`).
+    An instance of this class is a vector field along a differentiable
+    manifold `U` with values on a differentiable manifold `M`, via a
+    differentiable map `U \rightarrow M`. More precisely, given a
+    differentiable map
 
-    If `V` is parallelizable, the class :class:`VectorFieldParal` must be
-    used instead.
+    .. MATH::
+
+        \Phi:\ U \longrightarrow M,
+
+    a *vector field along* `U` *with values on* `M` is a differentiable map
+
+    .. MATH::
+
+        v:\ U  \longrightarrow TM
+
+    (`TM` being the tangent bundle of `M`) such that
+
+    .. MATH::
+
+        \forall p \in U,\ v(p) \in T_{\Phi(p)}M
+
+    The standard case of vector fields *on* a differentiable manifold
+    corresponds to `U=M` and `\Phi = \mathrm{Id}_M`. Other common cases are
+    `\Phi` being an immersion and `\Phi` being a curve in `M` (`U` is then an
+    open interval of `\RR`).
+
+    If `M` is parallelizable, the class
+    :class:`~sage.manifolds.differentiable.vectorfield.VectorFieldParal`
+    must be used instead.
 
     This is a Sage *element* class, the corresponding *parent* class being
     :class:`~sage.manifolds.differentiable.vectorfield_module.VectorFieldModule`.
@@ -81,7 +99,7 @@ class VectorField(TensorField):
     INPUT:
 
     - ``vector_field_module`` -- module `\mathcal{X}(U,\Phi)` of vector
-      fields along `U` with values on `\Phi(U)\subset V \subset M`
+      fields along `U` with values on `M\supset\Phi(U)`
     - ``name`` -- (default: ``None``) name given to the vector field
     - ``latex_name`` -- (default: ``None``) LaTeX symbol to denote the vector
       field; if none is provided, the LaTeX symbol is set to ``name``
@@ -178,7 +196,6 @@ class VectorField(TensorField):
         Construct a vector field with values on a non-parallelizable manifold.
 
         TESTS:
-
 
         Construction via ``parent.element_class``, and not via a direct call
         to ``VectorField``, to fit with the category framework::
@@ -355,18 +372,40 @@ class VectorField(TensorField):
 
 class VectorFieldParal(FiniteRankFreeModuleElement, TensorFieldParal,
                        VectorField):
-    r"""
-    Vector field along an open set of a differentiable manifold,
-    with values on a parallelizable open set of a differentiable manifold.
 
-    An instance of this class is a vector field along an open subset `U`
-    of some differentiable manifold `S` with values in a parallelizable open
-    subset `V` of a differentiable manifold `M`, via a differentiable map
-    `\Phi: U \rightarrow V`. The standard case of a vector field *on* a
-    differentiable manifold corresponds to `S=M`, `U=V` and
-    `\Phi = \mathrm{Id}_U`. Other common cases are `\Phi` being an
-    immersion and `\Phi` being a curve in `V` (`U` is then an open interval
-    of `\RR`).
+    r"""
+    Vector field along a differentiable manifold, with values on a
+    parallelizable manifold.
+
+    An instance of this class is a vector field along a differentiable
+    manifold `U` with values on a parallelizable manifold `M`, via a
+    differentiable map `U \rightarrow M`. More precisely, given a
+    differentiable map
+
+    .. MATH::
+
+        \Phi:\ U \longrightarrow M,
+
+    a *vector field along* `U` *with values on* `M` is a differentiable map
+
+    .. MATH::
+
+        v:\ U  \longrightarrow TM
+
+    (`TM` being the tangent bundle of `M`) such that
+
+    .. MATH::
+
+        \forall p \in U,\ v(p) \in T_{\Phi(p)}M
+
+    The standard case of vector fields *on* a differentiable manifold
+    corresponds to `U=M` and `\Phi = \mathrm{Id}_M`. Other common cases are
+    `\Phi` being an immersion and `\Phi` being a curve in `M` (`U` is then an
+    open interval of `\RR`).
+
+    If `M` is not parallelizable, the class
+    :class:`~sage.manifolds.differentiable.vectorfield.VectorField`
+    must be used instead.
 
     This is a Sage *element* class, the corresponding *parent* class being
     :class:`~sage.manifolds.differentiable.vectorfield_module.VectorFieldFreeModule`.
@@ -374,7 +413,7 @@ class VectorFieldParal(FiniteRankFreeModuleElement, TensorFieldParal,
     INPUT:
 
     - ``vector_field_module`` -- free module `\mathcal{X}(U,\Phi)` of vector
-      fields along `U` with values on `\Phi(U)\subset V \subset M`
+      fields along `U` with values on `M\supset\Phi(U)`
     - ``name`` -- (default: ``None``) name given to the vector field
     - ``latex_name`` -- (default: ``None``) LaTeX symbol to denote the vector
       field; if none is provided, the LaTeX symbol is set to ``name``
@@ -514,7 +553,6 @@ class VectorFieldParal(FiniteRankFreeModuleElement, TensorFieldParal,
         Construct a vector field with values on a parallelizable manifold.
 
         TESTS:
-
 
         Construction via ``parent.element_class``, and not via a direct call
         to ``VectorFieldParal``, to fit with the category framework::

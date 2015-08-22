@@ -3,15 +3,15 @@ Vector frames
 
 The class :class:`VectorFrame` implements vector frames on differentiable
 manifolds.
-By *vector frame*, it is meant a field `e` on some open domain `U` of a
-differentiable manifold `S` endowed with a differentiable map
-`\Phi: U\rightarrow V` to a parallelizable domain `V` of a differentiable
+By *vector frame*, it is meant a field `e` on some
+differentiable manifold `U` endowed with a differentiable map
+`\Phi: U\rightarrow M` to a differentiable
 manifold `M` such that for each `p\in U`, `e(p)` is a vector basis of the
 tangent space `T_{\Phi(p)}M`.
 
-The standard case of a vector frame *on* `U` corresponds to `S=M`, `U=V`
-and `\Phi = \mathrm{Id}_U`. Other common cases are `\Phi` being an
-immersion and `\Phi` being a curve in `V` (`U` is then an open interval
+The standard case of a vector frame *on* `U` corresponds to `U=M`
+and `\Phi = \mathrm{Id}_M`. Other common cases are `\Phi` being an
+immersion and `\Phi` being a curve in `M` (`U` is then an open interval
 of `\RR`).
 
 A derived class of :class:`VectorFrame` is :class:`CoordFrame`; it regards the
@@ -180,31 +180,32 @@ class VectorFrame(FreeModuleBasis):
     r"""
     Vector frame on a differentiable manifold.
 
-    By *vector frame*, it is meant a field `e` on some open domain `U` of a
-    differentiable manifold `S` endowed with a differentiable map
-    `\Phi: U\rightarrow V` to a parallelizable domain `V` of a differentiable
-    manifold `M` such that for each `p\in U`, `e(p)` is a vector basis of the
-    tangent space `T_{\Phi(p)}M`.
+    By *vector frame*, it is meant a field `e` on some
+    differentiable manifold `U` endowed with a differentiable map
+    `\Phi: U\rightarrow M` to a differentiable manifold `M` such that for
+    each `p\in U`, `e(p)` is a vector basis of the tangent space
+    `T_{\Phi(p)}M`.
 
-    The standard case of a vector frame *on* `U` corresponds to `S=M`, `U=V`
-    and `\Phi = \mathrm{Id}_U`. Other common cases are `\Phi` being an
-    immersion and `\Phi` being a curve in `V` (`U` is then an open interval
+    The standard case of a vector frame *on* `U` corresponds to `U=M`
+    and `\Phi = \mathrm{Id}_M`. Other common cases are `\Phi` being an
+    immersion and `\Phi` being a curve in `M` (`U` is then an open interval
     of `\RR`).
 
     For each instanciation of a vector frame, a coframe is automatically
-    created, as an instance of the class :class:`CoFrame`.
+    created, as an instance of the class :class:`CoFrame`. It is returned by
+    the method :meth:`coframe`.
 
     INPUT:
 
     - ``vector_field_module`` -- free module `\mathcal{X}(U,\Phi)` of vector
-      fields along `U\subset S` with values on `\Phi(U)\subset V \subset M`
+      fields along `U` with values on `M\supset \Phi(U)`
     - ``symbol`` -- a letter (of a few letters) to denote a
       generic vector of the frame; can be set to None if the parameter
       ``from_frame`` is filled.
     - ``latex_symbol`` -- (default: ``None``) symbol to denote a generic vector
       of the frame; if ``None``, the value of ``symbol`` is used.
     - ``from_frame`` -- (default: ``None``) vector frame `\tilde e` on the
-      codomain `V` of the destination map `\Phi`; the constructed frame `e` is
+      codomain `M` of the destination map `\Phi`; the constructed frame `e` is
       then such that `\forall p \in U, e(p) = \tilde e(\Phi(p))`
 
     EXAMPLES:
@@ -465,15 +466,15 @@ class VectorFrame(FreeModuleBasis):
         r"""
         Define a new vector frame from the current one.
 
-        The new vector frame is defined on the same domain as the current one
-        from a field of automorphisms.
+        The new vector frame is defined from a field of tangent-space
+        automorphisms; its domain is the same as that of the current frame.
 
         INPUT:
 
         - ``change_of_frame`` -- instance of
-          :class:`~sage.manifolds.differentiable.automorphismfield.AutomorphismField`
-          describing the automorphism `P` that relates the current frame
-          `(e_i)` to the new frame `(n_i)` according
+          :class:`~sage.manifolds.differentiable.automorphismfield.AutomorphismFieldParal`
+          describing the field of tangent-space automorphisms `P` that relates
+          the current frame `(e_i)` to the new frame `(n_i)` according
           to `n_i = P(e_i)`
         - ``symbol`` -- a letter (of a few letters) to denote a generic vector
           of the frame
@@ -694,8 +695,8 @@ class VectorFrame(FreeModuleBasis):
         of the current frame.
 
         If `e` is the current vector frame, `V` its domain and if
-        `\Phi: U \rightarrow V` is a differentiable map from an open
-        set `U` of some manifold `M` to `V`, the returned object is
+        `\Phi: U \rightarrow V` is a differentiable map from some
+        differentiable manifold `U` to `V`, the returned object is
         a vector frame `\tilde e` along `U` with values on `V` such that
 
         .. MATH::
@@ -757,7 +758,7 @@ class CoordFrame(VectorFrame):
     Coordinate frame on a differentiable manifold.
 
     By *coordinate frame*, it is meant a vector frame on a differentiable
-    manifold `M` that is associated to a coordinate system (chart) on `M`.
+    manifold `M` that is associated to a coordinate chart on `M`.
 
     INPUT:
 
@@ -941,15 +942,15 @@ class CoFrame(FreeModuleCoBasis):
     r"""
     Coframe on a differentiable manifold.
 
-    By *coframe*, it is meant a field `f` on some open domain `U` of a
-    differentiable manifold `S` endowed with a differentiable map
-    `\Phi: U\rightarrow V` to a parallelizable domain `V` of a differentiable
-    manifold `M` such that for each `p\in U`, `f(p)` is a basis of the vector
-    space dual to the tangent space `T_{\Phi(p)}M`.
+    By *coframe*, it is meant a field `f` on some differentiable manifold `U`
+    endowed with a differentiable map `\Phi: U\rightarrow M` to a
+    differentiable manifold `M` such that for each `p\in U`, `f(p)` is a basis
+    of the vector space `T^*_{\Phi(p)}M` (the dual to the tangent space
+    `T_{\Phi(p)}M`).
 
-    The standard case of a coframe *on* `U` corresponds to `S=M`, `U=V`
-    and `\Phi = \mathrm{Id}_U`. Other common cases are `\Phi` being an
-    immersion and `\Phi` being a curve in `V` (`U` is then an open interval
+    The standard case of a coframe *on* `U` corresponds to `U=M` and
+    `\Phi = \mathrm{Id}_M`. Other common cases are `\Phi` being an
+    immersion and `\Phi` being a curve in `M` (`U` is then an open interval
     of `\RR`).
 
     INPUT:
@@ -974,8 +975,8 @@ class CoFrame(FreeModuleCoBasis):
 
     Instead of importing CoFrame in the global namespace, the coframe can be
     obtained by means of the method
-    :meth:`~sage.tensor.modules.free_module_basis.FreeModuleBasis.dual_basis`,
-    but the symbol is then the same as the frame::
+    :meth:`~sage.tensor.modules.free_module_basis.FreeModuleBasis.dual_basis`;
+    the symbol is then the same as that of the frame::
 
         sage: a = v.dual_basis() ; a
         Coframe (M, (v^1,v^2,v^3))

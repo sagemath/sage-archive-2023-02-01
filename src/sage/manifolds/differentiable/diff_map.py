@@ -540,7 +540,8 @@ class DiffMap(ContinuousMap):
             Phi_*(A) = 0
 
         """
-        from sage.manifolds.differentiable.tensorfield import TensorFieldParal
+        from sage.manifolds.differentiable.tensorfield_paral import \
+                                                               TensorFieldParal
         from sage.manifolds.differentiable.vectorframe import CoordFrame
         from sage.tensor.modules.comp import Components, CompWithSym, \
                                                  CompFullySym, CompFullyAntiSym

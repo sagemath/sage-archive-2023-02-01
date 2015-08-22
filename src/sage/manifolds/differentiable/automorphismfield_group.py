@@ -1,20 +1,21 @@
 r"""
 Group of tangent-space automorphism fields
 
-Given an open subset `U` of a differentiable manifold `S` and a differentiable
-map  `\Phi: U \rightarrow V`, where `V` is an open subset of a
-differentiable manifold `M`, the *group of tangent-space automorphism fields*
+Given a differentiable manifold `U` and a differentiable map
+`\Phi: U \rightarrow M` to a differentiable manifold `M` (possibly `U=M` and
+`\Phi=\mathrm{Id}_M`), the *group of tangent-space automorphism fields*
 associated with `U` and `\Phi` is the general linear group
 `\mathrm{GL}(\mathcal{X}(U,\Phi))` of the module `\mathcal{X}(U,\Phi)` of
-vector fields along `U` with values in `V\subset M` (see
+vector fields along `U` with values on `M\supset \Phi(U)`
+(see
 :class:`~sage.manifolds.differentiable.vectorfield_module.VectorFieldModule`).
 Note that `\mathcal{X}(U,\Phi)` is a module over
 `C^k(U)`, the algebra of differentiable scalar fields on `U`.
 Elements of `\mathrm{GL}(\mathcal{X}(U,\Phi))` are fields along `U` of
-automorphisms of the tangent spaces to `M`.
+automorphisms of tangent spaces to `M`.
 
 Two classes implement `\mathrm{GL}(\mathcal{X}(U,\Phi))` depending whether
-`V` is parallelizable or not:
+`M` is parallelizable or not:
 :class:`AutomorphismFieldParalGroup` and :class:`AutomorphismFieldGroup`.
 
 AUTHORS:
@@ -48,24 +49,23 @@ from sage.manifolds.differentiable.automorphismfield import \
 
 class AutomorphismFieldGroup(UniqueRepresentation, Parent):
     r"""
-    General linear group of the module of vector fields along an open subset
-    `U` of some differentiable manifold `S` with values in an open subset `V`
-    of a differentiable manifold `M`.
+    General linear group of the module of vector fields along a differentiable
+    manifold `U` with values on a differentiable manifold `M`.
 
-    Given an open subset `U` of a differentiable manifold `S` and a
-    differentiable map `\Phi: U \rightarrow V`, where `V` is an open subset of
-    a differentiable manifold `M`, the
-    *group of tangent-space automorphism fields* associated with `U` and
-    `\Phi` is the general linear group `\mathrm{GL}(\mathcal{X}(U,\Phi))` of
-    the module `\mathcal{X}(U,\Phi)` of vector fields along `U` with values in
-    `V\subset M` (see
+    Given a differentiable manifold `U` and a differentiable map
+    `\Phi: U \rightarrow M` to a differentiable manifold `M` (possibly `U=M`
+    and `\Phi=\mathrm{Id}_M`), the *group of tangent-space automorphism fields*
+    associated with `U` and `\Phi` is the general linear group
+    `\mathrm{GL}(\mathcal{X}(U,\Phi))` of the module `\mathcal{X}(U,\Phi)` of
+    vector fields along `U` with values on `M\supset \Phi(U)`
+    (see
     :class:`~sage.manifolds.differentiable.vectorfield_module.VectorFieldModule`).
     Note that `\mathcal{X}(U,\Phi)` is a module over
-    `C^k(U)`, the algebra of smooth scalar fields on `U`.
+    `C^k(U)`, the algebra of differentiable scalar fields on `U`.
     Elements of `\mathrm{GL}(\mathcal{X}(U,\Phi))` are fields along `U` of
-    automorphisms of the tangent spaces to `M`.
+    automorphisms of tangent spaces to `M`.
 
-    If `V` is parallelizable, the class
+    If `M` is parallelizable, the class
     :class:`AutomorphismFieldParalGroup` must be used instead.
 
     This is a Sage *parent* class, the corresponding *element* class being
@@ -74,7 +74,7 @@ class AutomorphismFieldGroup(UniqueRepresentation, Parent):
     INPUT:
 
     - ``vector_field_module`` -- module `\mathcal{X}(U,\Phi)` of vector fields
-      along `U` with values on `V`, as an instance of
+      along `U` with values on `M`, as an instance of
       :class:`~sage.manifolds.differentiable.vectorfield_module.VectorFieldModule`
 
     EXAMPLES:
@@ -381,24 +381,23 @@ class AutomorphismFieldGroup(UniqueRepresentation, Parent):
 
 class AutomorphismFieldParalGroup(FreeModuleLinearGroup):
     r"""
-    General linear group of the module of vector fields along an open subset
-    `U` of some differentiable manifold `S` with values in a parallelizable
-    open subset `V` of a differentiable manifold `M`.
+    General linear group of the module of vector fields along a differentiable
+    manifold `U` with values on a parallelizable manifold `M`.
 
-    Given an open subset `U` of a differentiable manifold `S` and a
-    differentiable map `\Phi: U \rightarrow V`, where `V` is a parrallelizable
-    open subset of a differentiable manifold `M`,
-    the *group of tangent-space automorphism fields* associated with `U` and
-    `\Phi` is the general linear group `\mathrm{GL}(\mathcal{X}(U,\Phi))` of
-    the module `\mathcal{X}(U,\Phi)` of vector fields along `U` with values in
-    `V\subset M` (see
+    Given a differentiable manifold `U` and a differentiable map
+    `\Phi: U \rightarrow M` to a parallelizable  manifold `M` (possibly `U=M`
+    and `\Phi=\mathrm{Id}_M`), the *group of tangent-space automorphism fields*
+    associated with `U` and `\Phi` is the general linear group
+    `\mathrm{GL}(\mathcal{X}(U,\Phi))` of the module `\mathcal{X}(U,\Phi)` of
+    vector fields along `U` with values on `M\supset \Phi(U)`
+    (see
     :class:`~sage.manifolds.differentiable.vectorfield_module.VectorFieldFreeModule`).
-    Note that `\mathcal{X}(U,\Phi)` is a module over
+    Note that `\mathcal{X}(U,\Phi)` is a free module over
     `C^k(U)`, the algebra of differentiable scalar fields on `U`.
     Elements of `\mathrm{GL}(\mathcal{X}(U,\Phi))` are fields along `U` of
-    automorphisms of the tangent spaces to `M`.
+    automorphisms of tangent spaces to `M`.
 
-    If `V` is not parallelizable, the class
+    If `M` is not parallelizable, the class
     :class:`AutomorphismFieldGroup` must be used instead.
 
     This is a Sage *parent* class, the corresponding *element* class being
@@ -407,7 +406,7 @@ class AutomorphismFieldParalGroup(FreeModuleLinearGroup):
     INPUT:
 
     - ``vector_field_module`` -- free module `\mathcal{X}(U,\Phi)` of vector
-      fields along `U` with values on `V`, as an instance of
+      fields along `U` with values on `M`, as an instance of
       :class:`~sage.manifolds.differentiable.vectorfield_module.VectorFieldFreeModule`
 
     EXAMPLES:
@@ -431,8 +430,8 @@ class AutomorphismFieldParalGroup(FreeModuleLinearGroup):
         sage: type(G)
         <class 'sage.manifolds.differentiable.automorphismfield_group.AutomorphismFieldParalGroup_with_category'>
 
-    Instead of importing ``AutomorphismFieldParalGroup`` in the global name
-    space, it is recommended to use the method
+    Instead of importing ``AutomorphismFieldParalGroup`` in the global
+    namespace, it is recommended to use the method
     :meth:`~sage.manifolds.differentiable.manifold.DiffManifold.automorphism_field_group`::
 
         sage: G = M.automorphism_field_group() ; G

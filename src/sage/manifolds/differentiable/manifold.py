@@ -1609,7 +1609,7 @@ class DiffManifold(TopManifold):
         - instance of
           :class:`~sage.manifolds.differentiable.tensorfield.TensorField`
           (or of
-          :class:`~sage.manifolds.differentiable.tensorfield.TensorFieldParal`
+          :class:`~sage.manifolds.differentiable.tensorfield_paral.TensorFieldParal`
           if `N` is parallelizable)
           representing the defined tensor field.
 
@@ -1693,7 +1693,7 @@ class DiffManifold(TopManifold):
         - instance of
           :class:`~sage.manifolds.differentiable.tensorfield.TensorField`
           (or of
-          :class:`~sage.manifolds.differentiable.tensorfield.TensorFieldParal`
+          :class:`~sage.manifolds.differentiable.tensorfield_paral.TensorFieldParal`
           if `N` is parallelizable)
           of tensor type (0,2) and symmetric representing the defined field of
           symmetric bilinear forms.

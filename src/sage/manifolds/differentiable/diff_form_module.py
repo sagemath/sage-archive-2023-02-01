@@ -1,17 +1,17 @@
 r"""
 Differential form modules
 
-The set `\Lambda^p(U,\Phi)` of `p`-forms along an open subset `U` of
-some differentiable manifold `S` with values in a open subset `V` of a
-differentiable manifold `M` (via a differentiable map `\Phi:\ U\rightarrow V`)
+The set `\Lambda^p(U,\Phi)` of `p`-forms along a differentiable manifold `U`
+with values on a differentiable manifold `M` via a differentiable map
+`\Phi:\ U\rightarrow M` (possibly `U=M` and `\Phi=\mathrm{Id}_M`)
 is a module over the algebra `C^k(U)` of differentiable scalar fields on `U`.
-It is a free module iff `V` is parallelizable. Accordingly, two classes
+It is a free module iff `M` is parallelizable. Accordingly, two classes
 implement `\Lambda^p(U,\Phi)`:
 
-- :class:`DiffFormModule` for differential forms with values in a generic (in
-  practice, not parallelizable) open set `V`
-- :class:`DiffFormFreeModule` for differential forms with values in a
-  parallelizable open set `V`
+- :class:`DiffFormModule` for differential forms with values on a generic (in
+  practice, not parallelizable) differentiable manifold `M`
+- :class:`DiffFormFreeModule` for differential forms with values on a
+  parallelizable manifold `M`
 
 AUTHORS:
 
@@ -39,29 +39,28 @@ from sage.structure.parent import Parent
 from sage.categories.modules import Modules
 from sage.tensor.modules.ext_pow_free_module import ExtPowerFreeModule
 from sage.manifolds.differentiable.diff_form import DiffForm, DiffFormParal
-from sage.manifolds.differentiable.tensorfield import TensorField, \
-                                                               TensorFieldParal
+from sage.manifolds.differentiable.tensorfield import TensorField
+from sage.manifolds.differentiable.tensorfield_paral import TensorFieldParal
 
 class DiffFormModule(UniqueRepresentation, Parent):
     r"""
-    Module of differential forms of a given degree `p` (`p`-forms) along an
-    open subset `U` of some differentiable manifold `S` with values in an open
-    subset `V` of a differentiable manifold `M`.
+    Module of differential forms of a given degree `p` (`p`-forms) along a
+    differentiable manifold `U` with values on a differentiable manifold `M`.
 
-    Given an open subset `U` of a differentiable manifold `S`, an open subset
-    `V` of a differentiable manifold `M` and a differentiable map
-    `\Phi:\; U \rightarrow V`, the set `\Lambda^p(U,\Phi)` of `p`-forms along
-    `U` with values in `V` is a module over `C^k(U)`, the commutative
-    algebra of differentiable scalar fields on `U` (see
+    Given a differentiable manifold `U` and a differentiable map
+    `\Phi:\; U \rightarrow M` to a differentiable manifold `M`, the set
+    `\Lambda^p(U,\Phi)` of `p`-forms along `U` with values on `M` is a module
+    over `C^k(U)`, the commutative algebra of differentiable scalar fields
+    on `U` (see
     :class:`~sage.manifolds.differentiable.scalarfield_algebra.DiffScalarFieldAlgebra`).
-    The standard case of `p`-forms *on* a differentiable manifold corresponds
-    to `S=M`, `U=V` and `\Phi = \mathrm{Id}_U`. Other common cases are `\Phi`
-    being an immersion and `\Phi` being a curve in `V` (`U` is then an open
-    interval of `\RR`).
+    The standard case of `p`-forms *on* a differentiable manifold `M`
+    corresponds to `U=M` and `\Phi = \mathrm{Id}_M`. Other common cases are
+    `\Phi` being an immersion and `\Phi` being a curve in `M` (`U` is then an
+    open interval of `\RR`).
 
-    This class implements `\Lambda^p(U,\Phi)` in the case where `V` is
+    This class implements `\Lambda^p(U,\Phi)` in the case where `M` is
     not assumed to be parallelizable; the module `\Lambda^p(U,\Phi)` is then
-    not necessarily free. If `V` is parallelizable, the class
+    not necessarily free. If `M` is parallelizable, the class
     :class:`DiffFormFreeModule` must be used instead.
 
     This is a Sage *parent* class, whose *element* class is
@@ -70,7 +69,7 @@ class DiffFormModule(UniqueRepresentation, Parent):
     INPUT:
 
     - ``vector_field_module`` -- module `\mathcal{X}(U,\Phi)` of vector
-      fields along `U` associated with the map `\Phi: U \rightarrow V`.
+      fields along `U` with values on `M` via the map `\Phi: U \rightarrow M`.
     - ``degree`` -- positive integer; the degree `p` of the differential forms
 
     EXAMPLES:
@@ -98,7 +97,7 @@ class DiffFormModule(UniqueRepresentation, Parent):
         sage: latex(A)
         \Lambda^{2}\left(M\right)
 
-    Instead of importing DiffFormModule in the global name space, it is
+    Instead of importing ``DiffFormModule`` in the global namespace, it is
     recommended to use the method
     :meth:`~sage.manifolds.differentiable.manifold.DiffManifold.diff_form_module`::
 
@@ -279,8 +278,8 @@ class DiffFormModule(UniqueRepresentation, Parent):
             sage: M.declare_union(U,V)   # M is the union of U and V
             sage: c_xy.<x,y> = U.chart() ; c_uv.<u,v> = V.chart()
             sage: transf = c_xy.transition_map(c_uv, (x+y, x-y),
-            ....:  intersection_name='W', restrictions1= x>0,
-            ....:  restrictions2= u+v>0)
+            ....:                    intersection_name='W', restrictions1= x>0,
+            ....:                    restrictions2= u+v>0)
             sage: inv = transf.inverse()
             sage: from sage.manifolds.differentiable.diff_form_module import \
             ....:                                                DiffFormModule
@@ -321,6 +320,20 @@ class DiffFormModule(UniqueRepresentation, Parent):
                               latex_name=None):
         r"""
         Construct a differential form.
+
+        TESTS::
+
+            sage: M = DiffManifold(2, 'M')
+            sage: U = M.open_subset('U'); V = M.open_subset('V')
+            sage: c_xy.<x,y> = U.chart(); c_uv.<u,v> = V.chart()
+            sage: M.declare_union(U,V)
+            sage: A = M.diff_form_module(2)
+            sage: a = A._element_constructor_(comp=[[0, x*y], [-x*y, 0]], name='a'); a
+            2-form a on the 2-dimensional differentiable manifold M
+            sage: a.display(c_xy.frame())
+            a = x*y dx/\dy
+            sage: A._element_constructor_(0) is A.zero()
+            True
 
         """
         if comp == 0:
@@ -366,14 +379,38 @@ class DiffFormModule(UniqueRepresentation, Parent):
         r"""
         Construct some (unamed) differential form.
 
+        TESTS::
+
+            sage: M = DiffManifold(2, 'M')
+            sage: U = M.open_subset('U'); V = M.open_subset('V')
+            sage: c_xy.<x,y> = U.chart(); c_uv.<u,v> = V.chart()
+            sage: M.declare_union(U,V)
+            sage: A = M.diff_form_module(2)
+            sage: A._an_element_()
+            2-form on the 2-dimensional differentiable manifold M
+
         """
-        resu = self.element_class(self._vmodule, self._degree)
-        #!# a zero element is returned
-        return resu
+        return self.element_class(self._vmodule, self._degree)
 
     def _coerce_map_from_(self, other):
         r"""
         Determine whether coercion to ``self`` exists from other parent.
+
+        TESTS::
+
+            sage: M = DiffManifold(3, 'M')
+            sage: A1 = M.diff_form_module(1)
+            sage: A1._coerce_map_from_(M.tensor_field_module((0,1)))
+            True
+            sage: A2 = M.diff_form_module(2)
+            sage: A2._coerce_map_from_(M.tensor_field_module((0,2)))
+            False
+            sage: U = M.open_subset('U')
+            sage: A2U = U.diff_form_module(2)
+            sage: A2U._coerce_map_from_(A2)
+            True
+            sage: A2._coerce_map_from_(A2U)
+            False
 
         """
         from sage.manifolds.differentiable.tensorfield_module import \
@@ -393,7 +430,19 @@ class DiffFormModule(UniqueRepresentation, Parent):
 
     def _repr_(self):
         r"""
-        Return a string representation of ``self``.
+        Return a string representation of the object.
+
+        TEST::
+
+            sage: M = DiffManifold(3, 'M')
+            sage: A2 = M.diff_form_module(2)
+            sage: A2._repr_()
+            'Module /\\^2(M) of 2-forms on the 3-dimensional differentiable manifold M'
+            sage: repr(A2)  # indirect doctest
+            'Module /\\^2(M) of 2-forms on the 3-dimensional differentiable manifold M'
+            sage: A2  # indirect doctest
+            Module /\^2(M) of 2-forms on the 3-dimensional differentiable
+             manifold M
 
         """
         description = "Module "
@@ -409,7 +458,16 @@ class DiffFormModule(UniqueRepresentation, Parent):
 
     def _latex_(self):
         r"""
-        Return a LaTeX representation of ``self``.
+        Return a LaTeX representation of the object.
+
+        TEST::
+
+            sage: M = DiffManifold(3, 'M', latex_name=r'\mathcal{M}')
+            sage: A2 = M.diff_form_module(2)
+            sage: A2._latex_()
+            '\\Lambda^{2}\\left(\\mathcal{M}\\right)'
+            sage: latex(A2)  # indirect doctest
+            \Lambda^{2}\left(\mathcal{M}\right)
 
         """
         if self._latex_name is None:
@@ -419,13 +477,15 @@ class DiffFormModule(UniqueRepresentation, Parent):
 
     def base_module(self):
         r"""
-        Return the vector field module on which ``self`` is constructed.
+        Return the vector field module on which the differential form module
+        is constructed.
 
         OUTPUT:
 
         - instance of class
           :class:`~sage.manifolds.differentiable.vectorfield_module.VectorFieldModule`
-          representing the module on which the tensor module is defined.
+          representing the module on which the differential form module is
+          defined.
 
         EXAMPLES::
 
@@ -452,11 +512,11 @@ class DiffFormModule(UniqueRepresentation, Parent):
 
     def degree(self):
         r"""
-        Return the degree of the differential forms in ``self``.
+        Return the degree of the differential forms in the module.
 
         OUTPUT:
 
-        - integer `p` such that ``self`` is a set of p-forms
+        - integer `p` such that the module is a set of p-forms
 
         EXAMPLES::
 
@@ -476,22 +536,21 @@ class DiffFormModule(UniqueRepresentation, Parent):
 class DiffFormFreeModule(ExtPowerFreeModule):
     r"""
     Free module of differential forms of a given degree `p` (`p`-forms) along
-    an open subset `U` of some differentiable manifold `S` with values in a
-    parallelizable open subset `V` of a differentiable manifold `M`.
+    a differentiable manifold `U` with values on a parallelizable manifold `M`.
 
-    Given an open subset `U` of a differentiable manifold `S`, an open
-    subset `V` of a differentiable manifold `M` and a differentiable map
-    `\Phi:\; U \rightarrow V`, the set `\Lambda^p(U,\Phi)` of `p`-forms along
-    `U` with values in `V` is a module over `C^k(U)`, the commutative
-    algebra of differentiable scalar fields on `U` (see
+    Given a differentiable manifold `U` and a differentiable map
+    `\Phi:\; U \rightarrow M` to a parallelizable manifold `M`, the set
+    `\Lambda^p(U,\Phi)` of `p`-forms along `U` with values on `M` is a
+    free module over `C^k(U)`, the commutative algebra of differentiable
+    scalar fields on `U` (see
     :class:`~sage.manifolds.differentiable.scalarfield_algebra.DiffScalarFieldAlgebra`).
-    The standard case of `p`-forms *on* a differentiable manifold corresponds
-    to `S=M`, `U=V` and `\Phi = \mathrm{Id}_U`. Other common cases are `\Phi`
-    being an immersion and `\Phi` being a curve in `V` (`U` is then an open
-    interval of `\RR`).
+    The standard case of `p`-forms *on* a differentiable manifold `M`
+    corresponds to `U=M` and `\Phi = \mathrm{Id}_M`. Other common cases are
+    `\Phi` being an immersion and `\Phi` being a curve in `M` (`U` is then an
+    open interval of `\RR`).
 
-    This class implements `\Lambda^p(U,\Phi)` in the case where `V` is
-    parallelizable; `\Lambda^p(U,\Phi)` is then a *free* module. If `V` is not
+    This class implements `\Lambda^p(U,\Phi)` in the case where `M` is
+    parallelizable; `\Lambda^p(U,\Phi)` is then a *free* module. If `M` is not
     parallelizable, the class :class:`DiffFormModule` must be used instead.
 
     This is a Sage *parent* class, whose *element* class is
@@ -523,7 +582,7 @@ class DiffFormFreeModule(ExtPowerFreeModule):
         sage: latex(A)
         \Lambda^{2}\left(M\right)
 
-    Instead of importing DiffFormFreeModule in the global name space, it is
+    Instead of importing ``DiffFormFreeModule`` in the global namespace, it is
     recommended to use the method
     :meth:`~sage.manifolds.differentiable.manifold.DiffManifold.diff_form_module`::
 
@@ -728,9 +787,21 @@ class DiffFormFreeModule(ExtPowerFreeModule):
     #### Parent methods
 
     def _element_constructor_(self, comp=[], frame=None, name=None,
-                              latex_name=None, sym=None, antisym=None):
+                              latex_name=None):
         r"""
         Construct a differential form.
+
+        TESTS::
+
+            sage: M = DiffManifold(2, 'M')
+            sage: X.<x,y> = M.chart()  # makes M parallelizable
+            sage: A = M.diff_form_module(2)
+            sage: a = A._element_constructor_(comp=[[0, x], [-x, 0]], name='a'); a
+            2-form a on the 2-dimensional differentiable manifold M
+            sage: a.display()
+            a = x dx/\dy
+            sage: A._element_constructor_(0) is A.zero()
+            True
 
         """
         if comp == 0:
@@ -763,9 +834,30 @@ class DiffFormFreeModule(ExtPowerFreeModule):
             resu.set_comp(frame)[:] = comp
         return resu
 
+    # Rem: _an_element_ is declared in the superclass ExtPowerFreeModule
+
     def _coerce_map_from_(self, other):
         r"""
         Determine whether coercion to ``self`` exists from other parent.
+
+        TESTS::
+
+            sage: M = DiffManifold(3, 'M')
+            sage: X.<x,y,z> = M.chart()
+            sage: A2 = M.diff_form_module(2)
+            sage: U = M.open_subset('U', coord_def = {X: z<0})
+            sage: A2U = U.diff_form_module(2)
+            sage: A2U._coerce_map_from_(A2)
+            True
+            sage: A2._coerce_map_from_(A2U)
+            False
+            sage: A1 = M.diff_form_module(1)
+            sage: A2U._coerce_map_from_(A1)
+            False
+            sage: A1._coerce_map_from_(M.tensor_field_module((0,1)))
+            True
+            sage: A1._coerce_map_from_(M.tensor_field_module((1,0)))
+            False
 
         """
         from sage.manifolds.differentiable.tensorfield_module import \
@@ -785,7 +877,20 @@ class DiffFormFreeModule(ExtPowerFreeModule):
 
     def _repr_(self):
         r"""
-        Return a string representation of ``self``.
+        Return a string representation of the object.
+
+        TESTS::
+
+            sage: M = DiffManifold(3, 'M')
+            sage: X.<x,y,z> = M.chart()
+            sage: A = M.diff_form_module(2)
+            sage: A._repr_()
+            'Free module /\\^2(M) of 2-forms on the 3-dimensional differentiable manifold M'
+            sage: repr(A)  # indirect doctest
+            'Free module /\\^2(M) of 2-forms on the 3-dimensional differentiable manifold M'
+            sage: A  # indirect doctest
+            Free module /\^2(M) of 2-forms on the 3-dimensional differentiable
+             manifold M
 
         """
         description = "Free module "

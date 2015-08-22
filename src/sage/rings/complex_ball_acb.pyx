@@ -116,9 +116,12 @@ cimport sage.rings.rational
 from sage.libs.arb.arb cimport *
 from sage.libs.arb.acb cimport *
 from sage.libs.arb.acb_hypgeom cimport *
+from sage.libs.arb.arf cimport arf_t, arf_init, arf_get_mpfr, arf_set_mpfr, arf_clear, arf_set_mag, arf_set
+from sage.libs.arb.mag cimport mag_t, mag_init, mag_clear, mag_add, mag_set_d, MAG_BITS, mag_is_inf, mag_is_finite, mag_zero
 from sage.libs.flint.fmpz cimport fmpz_t, fmpz_init, fmpz_get_mpz, fmpz_set_mpz, fmpz_clear
 from sage.libs.flint.fmpq cimport fmpq_t, fmpq_init, fmpq_set_mpq, fmpq_clear
 from sage.misc.superseded import experimental
+from sage.rings.complex_field import ComplexField
 from sage.rings.complex_interval_field import ComplexIntervalField
 from sage.rings.real_arb cimport mpfi_to_arb, arb_to_mpfi
 from sage.rings.real_arb import RealBallField
@@ -719,48 +722,6 @@ cdef class ComplexBall(RingElement):
         x._parent = self._parent
         return x
 
-    cpdef RealBall real(self):
-        """
-        Return the real part of this ball.
-
-        OUTPUT:
-
-        A :class:`RealBall`.
-
-        EXAMPLES::
-
-           sage: from sage.rings.complex_ball_acb import ComplexBallField
-           sage: CBF = ComplexBallField()
-           sage: a = CBF(1/3, 1/5)
-           sage: a.real()
-           [0.3333333333333333 +/- 7.04e-17]
-        """
-        cdef RealBall r
-        r = real_ball_field(self)(0)
-        arb_set(r.value, &self.value.real)
-        return r
-
-    cpdef RealBall imag(self):
-        """
-        Return the imaginary part of this ball.
-
-        OUTPUT:
-
-        A :class:`RealBall`.
-
-        EXAMPLES::
-
-           sage: from sage.rings.complex_ball_acb import ComplexBallField
-           sage: CBF = ComplexBallField()
-           sage: a = CBF(1/3, 1/5)
-           sage: a.imag()
-           [0.2000000000000000 +/- 4.45e-17]
-        """
-        cdef RealBall r
-        r = real_ball_field(self)(0)
-        arb_set(r.value, &self.value.imag)
-        return r
-
     def _repr_(self):
         """
         Return a string representation of ``self``.
@@ -817,6 +778,101 @@ cdef class ComplexBall(RingElement):
         cdef ComplexIntervalFieldElement target = ComplexIntervalField(prec(self))(0)
         acb_to_ComplexIntervalFieldElement(target, self.value)
         return target
+
+    # Real and imaginary part, midpoint
+
+    cpdef RealBall real(self):
+        """
+        Return the real part of this ball.
+
+        OUTPUT:
+
+        A :class:`RealBall`.
+
+        EXAMPLES::
+
+           sage: from sage.rings.complex_ball_acb import ComplexBallField
+           sage: CBF = ComplexBallField()
+           sage: a = CBF(1/3, 1/5)
+           sage: a.real()
+           [0.3333333333333333 +/- 7.04e-17]
+        """
+        cdef RealBall r
+        r = real_ball_field(self)(0)
+        arb_set(r.value, &self.value.real)
+        return r
+
+    cpdef RealBall imag(self):
+        """
+        Return the imaginary part of this ball.
+
+        OUTPUT:
+
+        A :class:`RealBall`.
+
+        EXAMPLES::
+
+           sage: from sage.rings.complex_ball_acb import ComplexBallField
+           sage: CBF = ComplexBallField()
+           sage: a = CBF(1/3, 1/5)
+           sage: a.imag()
+           [0.2000000000000000 +/- 4.45e-17]
+        """
+        cdef RealBall r
+        r = real_ball_field(self)(0)
+        arb_set(r.value, &self.value.imag)
+        return r
+
+    def mid(self):
+        """
+        Return the floating-point complex number formed by the centers of the
+        real and imaginary parts of this ball.
+
+        EXAMPLES::
+
+            sage: from sage.rings.complex_ball_acb import CBF
+            sage: CBF(1/3, 1).mid()
+            0.333333333333333 + 1.00000000000000*I
+            sage: CBF(1/3, 1).mid().parent()
+            Complex Field with 53 bits of precision
+            sage: CBF('inf', 'nan').mid()
+            +infinity - NaN*I
+            sage: CBF('nan', 'inf').mid()
+            NaN + +infinity*I
+            sage: CBF('nan').mid()
+            NaN
+            sage: CBF('inf').mid()
+            +infinity
+            sage: CBF(0, 'inf').mid()
+            +infinity*I
+        """
+        re, im = self.real().mid(), self.imag().mid()
+        field = ComplexField(max(prec(self), re.prec(), im.prec()))
+        return field(re, im)
+
+    def squash(self):
+        """
+        Return an exact ball with the same midpoint as this ball.
+
+        .. SEEALSO:: :meth:`mid`
+
+        EXAMPLES::
+
+            sage: from sage.rings.complex_ball_acb import CBF
+            sage: mid = CBF(1/3, 1/10).squash()
+            sage: mid
+            [0.3333333333333333 +/- 1.49e-17] + [0.09999999999999999 +/- 1.68e-18]*I
+            sage: mid.parent()
+            Complex ball field with 53 bits precision
+            sage: mid.is_exact()
+            True
+        """
+        cdef ComplexBall res = self._new()
+        arf_set(arb_midref(acb_realref(res.value)), arb_midref(acb_realref(self.value)))
+        arf_set(arb_midref(acb_imagref(res.value)), arb_midref(acb_imagref(self.value)))
+        mag_zero(arb_radref(acb_realref(res.value)))
+        mag_zero(arb_radref(acb_imagref(res.value)))
+        return res
 
     # Comparisons and predicates
 

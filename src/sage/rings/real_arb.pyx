@@ -1226,7 +1226,11 @@ cdef class RealBall(RingElement):
             sage: RealBallField(16)(1/3).mid()
             0.3333
             sage: RealBallField(16)(1/3).mid().parent()
-            Real Field with 15 bits of precision
+            Real Field with 16 bits of precision
+            sage: RealBallField(16)(RBF(1/3)).mid().parent()
+            Real Field with 53 bits of precision
+            sage: RBF('inf').mid()
+            +infinity
 
         ::
 
@@ -1236,7 +1240,7 @@ cdef class RealBall(RingElement):
             ...
             RuntimeError: unable to convert to MPFR (exponent out of range?)
         """
-        cdef long mid_prec = arb_bits(self.value) or prec(self)
+        cdef long mid_prec = max(arb_bits(self.value), prec(self))
         if mid_prec < MPFR_PREC_MIN:
             mid_prec = MPFR_PREC_MIN
         cdef RealField_class mid_field = RealField(mid_prec)
@@ -1271,7 +1275,7 @@ cdef class RealBall(RingElement):
 
     def squash(self):
         """
-        Return an exact ball with the same center of this ball.
+        Return an exact ball with the same center as this ball.
 
         .. SEEALSO:: :meth:`mid`, :meth:`rad_as_ball`
 
@@ -1329,7 +1333,7 @@ cdef class RealBall(RingElement):
             sage: b.mid()
             3.141592653589793238462643383
             sage: b.round().mid()
-            3.1415926535898
+            3.14159265358979
         """
         cdef RealBall res = self._new()
         if _do_sig(prec(self)): sig_on()
@@ -1376,11 +1380,11 @@ cdef class RealBall(RingElement):
         EXAMPLES::
 
             sage: from sage.rings.real_arb import RBF
-            sage: b = RBF(RIF(3.1415,3.1416))
+            sage: b = RBF(0.11111111111111, rad=.001)
             sage: b.mid()
-            3.14155000000000
+            0.111111111111110
             sage: b.trim().mid()
-            3.14155000
+            0.111111104488373
         """
         cdef RealBall res = self._new()
         if _do_sig(prec(self)): sig_on()

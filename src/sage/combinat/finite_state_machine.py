@@ -4096,7 +4096,7 @@ class FiniteStateMachine(SageObject):
         TEST:
 
         Check that :trac:`16357` is fixed::
-        
+
             sage: T = Transducer()
             sage: T.format_transition_label_reversed([])
             '\\varepsilon'

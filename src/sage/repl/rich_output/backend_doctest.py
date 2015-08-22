@@ -86,7 +86,7 @@ class BackendDoctest(BackendBase):
         backend.
 
         EXAMPLES::
-        
+
             sage: from sage.repl.rich_output.backend_doctest import BackendDoctest
             sage: backend = BackendDoctest()
             sage: backend.install()
@@ -104,7 +104,7 @@ class BackendDoctest(BackendBase):
         should never call it by hand.
 
         EXAMPLES::
-        
+
             sage: from sage.repl.rich_output.backend_doctest import BackendDoctest
             sage: backend = BackendDoctest()
             sage: backend.install()

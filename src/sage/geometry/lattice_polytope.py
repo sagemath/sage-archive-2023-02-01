@@ -2477,7 +2477,7 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
             2-d reflexive polytope #3 in 2-d lattice M
             
         You can get it in its normal form (in the default lattice) as ::
-        
+
             sage: lattice_polytope.ReflexivePolytope(2, 3).vertices_pc()
             M( 1,  0),
             M( 0,  1),
@@ -3165,7 +3165,7 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
         Return the Polyhedron object determined by this polytope's vertices.
         
         EXAMPLES::
-        
+
             sage: o = lattice_polytope.cross_polytope(2)
             sage: o.polyhedron()
             A 2-dimensional polyhedron in ZZ^2 defined as the convex hull of 4 vertices
@@ -3595,7 +3595,7 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
         :meth:`vertices` and :meth:`facets`.
 
         EXAMPLES::
-    
+
             sage: L = lattice_polytope.cross_polytope(3)
             sage: L.vertex_facet_pairing_matrix()
             [0 0 2 2 2 0]

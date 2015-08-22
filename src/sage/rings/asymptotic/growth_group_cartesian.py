@@ -167,7 +167,7 @@ CartesianProductGrowthGroups = CartesianProductFactory('CartesianProductGrowthGr
 
 
 from sage.sets.cartesian_product import CartesianProductPosets
-from sage.rings.asymptotic.growth_group import GenericGrowthGroup
+from growth_group import GenericGrowthGroup
 class GenericProduct(CartesianProductPosets, GenericGrowthGroup):
     r"""
     A cartesian product of growth groups.
@@ -211,7 +211,7 @@ class GenericProduct(CartesianProductPosets, GenericGrowthGroup):
                         for factor in self.cartesian_factors()),
                    tuple())
         from itertools import groupby
-        from sage.rings.asymptotic.growth_group import Variable
+        from growth_group import Variable
         Vars = Variable(tuple(v for v, _ in groupby(vars)))
 
         GenericGrowthGroup.__init__(self, sets[0], Vars, self.category(), **kwds)

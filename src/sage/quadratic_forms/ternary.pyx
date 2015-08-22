@@ -33,9 +33,11 @@ def red_mfact(a,b):
     Auxiliar function for reduction that finds the reduction factor of a, b integers.
 
     INPUT:
+
         - a, b integers
 
     OUTPUT:
+
         Integer
 
     EXAMPLES::

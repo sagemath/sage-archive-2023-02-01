@@ -285,7 +285,8 @@ cdef class PathAlgebraElement(RingElement):
             sage: X = sage_eval('a+2*b+3*c+5*e_0+3*e_2', A.gens_dict())
             sage: latex(X)  # indirect doctest
             5e_0 + a + 2b + 3c + 3e_2
-
+            sage: latex(X*X)
+            10e_0 + 3a\cdot c + 5a + b + 3c\cdot a + 6c\cdot b + 9e_2
         """
         return repr_lincomb(self._sorted_items_for_printing(),
                             scalar_mult       = self.parent()._print_options['scalar_mult'],

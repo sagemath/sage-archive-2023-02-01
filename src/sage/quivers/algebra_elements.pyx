@@ -194,7 +194,7 @@ cdef class PathAlgebraElement(RingElement):
             homog.setdefault((tmp.initial_vertex(),tmp.terminal_vertex()),[]).append((tmp,c))
         cdef path_homog_poly_t *HP
         for (s,e),L in sorted(homog.iteritems(), reverse=True):
-            HP = homog_poly_init_list(s,e,L,self.cmp_terms,0,-1)
+            HP = homog_poly_init_list(s,e,L,self.cmp_terms, -1, 0, 0)
             HP.nxt = self.data
             self.data = HP
 
@@ -726,7 +726,7 @@ cdef class PathAlgebraElement(RingElement):
         if H == NULL:
             return self.base_ring().zero()
         # Now, H points to the component that belongs to K
-        pM = mon_create_keep(P._path, 0, -1)
+        pM = mon_create_keep(P._path, 0, -1, 0)
         T = H.poly.lead
         while T != NULL:
             if self.cmp_terms(T.mon, pM) == 0:
@@ -780,7 +780,7 @@ cdef class PathAlgebraElement(RingElement):
         """
         Create a new path algebra element from C interface data.
         """
-        cdef PathAlgebraElement out = PY_NEW(type(self))
+        cdef PathAlgebraElement out = type(self).__new__(type(self))
         out._parent = self._parent
         out.cmp_terms = self.cmp_terms
         out.data = h
@@ -872,7 +872,7 @@ cdef class PathAlgebraElement(RingElement):
             if H == NULL:
                 return self.base_ring().zero()
             # Now, H points to the component that belongs to K
-            kM = mon_create_keep(K._path, 0, -1)
+            kM = mon_create_keep(K._path, 0, -1, 0)
             T = H.poly.lead
             while T != NULL:
                 if self.cmp_terms(T.mon, kM) == 0:
@@ -1400,7 +1400,7 @@ cdef class PathAlgebraElement(RingElement):
                             #assert poly_is_sane(out_orig.poly)
                             #print "out==0, T2!=0", H1.start, H1.end, H2.start,H2.end,
                             P1start = poly_iadd_lmul(out_orig.poly, <object>T2.coef, H1.poly,
-                                                     T2.mon.path, self.cmp_terms, 0, 0, -1, P1start)
+                                                     T2.mon.path, self.cmp_terms, 0, 0, 0, P1start)
                             if P1start == H1.poly.lead:
                                 P1start = out_orig.poly.lead
                             T2 = T2.nxt
@@ -1410,7 +1410,7 @@ cdef class PathAlgebraElement(RingElement):
                             #assert poly_is_sane(out.nxt.poly)
                             #print "out!=0, T2!=0", H1.start, H1.end, H2.start, H2.end, 
                             P1start = poly_iadd_lmul(out.nxt.poly, <object>T2.coef, H1.poly,
-                                                     T2.mon.path, self.cmp_terms, 0, 0, -1, P1start)
+                                                     T2.mon.path, self.cmp_terms, 0, 0, 0, P1start)
                             if P1start == H1.poly.lead:
                                 P1start = out.nxt.poly.lead
                             T2 = T2.nxt                                
@@ -1448,7 +1448,7 @@ cpdef PathAlgebraElement path_algebra_element_unpickle(P, list data):
         True
 
     """
-    cdef PathAlgebraElement out = PY_NEW(P.element_class)
+    cdef PathAlgebraElement out = P.element_class.__new__(P.element_class)
     out._parent = P
     order = P.order_string()
     if order=="negdegrevlex":

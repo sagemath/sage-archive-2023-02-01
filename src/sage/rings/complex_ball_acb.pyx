@@ -554,6 +554,31 @@ class ComplexBallField(UniqueRepresentation, Parent):
         """
         return 0
 
+    def some_elements(self):
+        """
+        Complex ball fields contain elements with exact, inexact, infinite, or
+        undefined real and imaginary parts.
+
+        EXAMPLES::
+
+            sage: from sage.rings.complex_ball_acb import CBF
+            sage: CBF.some_elements()
+                [1.000000000000000,
+                -0.5000000000000000*I,
+                1.000000000000000 + [0.3333333333333333 +/- 1.49e-17]*I,
+                [-0.3333333333333333 +/- 1.49e-17] + 0.2500000000000000*I,
+                [-2.175556475109056e+181961467118333366510562 +/- 1.29e+181961467118333366510545],
+                [+/- inf],
+                [+/- inf]*I,
+                [+/- inf] + [+/- inf]*I,
+                nan,
+                nan + nan*I,
+                [+/- inf] + nan*I]
+        """
+        return [self(1), self(0, -1./2), self(1, 1./3), self(-1./3, 1./4),
+                -self(1, 1)**(sage.rings.integer.Integer(2)**80),
+                self('inf'), self(1/3, 'inf'), self('inf', 'inf'),
+                self('nan'), self('nan', 'nan'), self('inf', 'nan')]
 
 cdef inline bint _do_sig(long prec):
     """

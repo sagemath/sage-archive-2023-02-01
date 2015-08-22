@@ -114,14 +114,17 @@ from sage.matroids.matroid cimport Matroid
 from sage.matroids.basis_exchange_matroid cimport BasisExchangeMatroid
 from lean_matrix cimport LeanMatrix, GenericMatrix, BinaryMatrix, TernaryMatrix, QuaternaryMatrix, IntegerMatrix, generic_identity
 from set_system cimport SetSystem
-from utilities import newlabel
+from utilities import newlabel, spanning_stars, spanning_forest, lift_cross_ratios
+from sage.graphs.spanning_tree import kruskal
+from sage.graphs.graph import Graph
 
 from sage.matrix.matrix2 cimport Matrix
 import sage.matrix.constructor
+from sage.matrix.constructor import matrix
 from copy import copy, deepcopy
 from sage.rings.all import ZZ, QQ, FiniteField, GF
 import itertools
-from itertools import combinations
+from itertools import combinations, product
 
 cdef bint GF2_not_defined = True
 cdef GF2, GF2_one, GF2_zero
@@ -457,7 +460,7 @@ cdef class LinearMatroid(BasisExchangeMatroid):
 
     # representations
 
-    cpdef representation(self, B=None, reduced=False, labels=None, order=None):
+    cpdef representation(self, B=None, reduced=False, labels=None, order=None, lift_map=None):
         """
         Return a matrix representing the matroid.
 
@@ -493,6 +496,10 @@ cdef class LinearMatroid(BasisExchangeMatroid):
         - ``order`` -- (default: ``None``) an ordering of the groundset
           elements. If provided, the columns (and, in case of a reduced
           representation, rows) will be presented in the given order.
+        - ``lift_map`` -- (default: ``None``) a dictionary containing the cross 
+          ratios of the representing matrix in it's domain. If provided, the 
+          representation will be transformed by mapping its cross ratios according
+          to ``lift_map``.
 
         OUTPUT:
 
@@ -507,7 +514,12 @@ cdef class LinearMatroid(BasisExchangeMatroid):
         ``M._forget()`` is called): either the matrix used as input to create
         the matroid, or a matrix in which the lexicographically least basis
         corresponds to an identity. If only ``order`` is not ``None``, the
-        columns of this matrix will be permuted accordingly.
+        columns of this matrix will be permuted accordingly. 
+        
+        If a ``lift_map`` is provided, then the resulting matrix will be lifted 
+        using the method
+        :func:`lift_cross_ratios() <sage.matroids.utilities.lift_cross_ratios>`
+        See the docstring of this method for further details.
 
         .. NOTE::
 
@@ -578,10 +590,16 @@ cdef class LinearMatroid(BasisExchangeMatroid):
                 B = set(B)
                 A = self._basic_representation(B)
             A = A.matrix_from_rows_and_columns(range(A.nrows()), order_idx)
-            if labels:
-                return (A._matrix_(), order)
+            if lift_map is None:
+                if labels:
+                    return (A._matrix_(), order)
+                else:
+                    return A._matrix_()
             else:
-                return A._matrix_()
+                if labels:
+                    return (lift_cross_ratios(A._matrix_(), lift_map), order)
+                else:
+                    return lift_cross_ratios(A._matrix_(), lift_map)
         else:
             if B is None:
                 B = self.basis()
@@ -604,10 +622,16 @@ cdef class LinearMatroid(BasisExchangeMatroid):
                     Ci.append(C.index(e))
                     Cl.append(e)
             A = A.matrix_from_rows_and_columns(Ri, Ci)
-            if labels or labels is None:
-                return (A._matrix_(), Rl, Cl)
+            if lift_map is None:
+                if labels or labels is None:
+                    return (A._matrix_(), Rl, Cl)
+                else:
+                    return A._matrix_()
             else:
-                return A._matrix_()
+                if labels or labels is None:
+                    return (lift_cross_ratios(A._matrix_(), lift_map), Rl, Cl)
+                else:
+                    return lift_cross_ratios(A._matrix_(), lift_map)        
 
     cpdef _current_rows_cols(self, B=None):
         """
@@ -2540,7 +2564,7 @@ cdef class LinearMatroid(BasisExchangeMatroid):
             if element in self.groundset():
                 raise ValueError("cannot extend by element already in groundset")
         cochains = self.linear_coextension_cochains(F, cosimple=cosimple, fundamentals=fundamentals)
-        return self._linear_coextensions(element, cochains)
+        return self._linear_coextensions(element, cochains)     
 
     cpdef is_valid(self):
         r"""
@@ -2589,6 +2613,196 @@ cdef class LinearMatroid(BasisExchangeMatroid):
         for x in CR:
             if not x ** (-1) in self.base_ring():
                 return False
+        return True
+
+    # connectivity
+
+    cpdef _is_3connected_shifting(self, certificate=False):
+        r"""
+        Return ``True`` if the matroid is 4-connected, ``False`` otherwise. It can
+        optionally return a separator as a witness.
+
+        INPUT:
+
+        - ``certificate`` -- (default: ``False``) a boolean; if ``True``,
+          then return ``True, None`` if the matroid is is 3-connected,
+          and ``False,`` `X` otherwise, where `X` is a `<3`-separation
+
+        OUTPUT:
+
+        boolean, or a tuple ``(boolean, frozenset)``
+
+        ALGORITHM:
+
+        The shifting algorithm
+
+        EXAMPLES::
+
+            sage: matroids.Uniform(2, 3)._is_3connected_shifting()
+            True
+            sage: M = Matroid(ring=QQ, matrix=[[1, 0, 0, 1, 1, 0],
+            ....:                              [0, 1, 0, 1, 2, 0],
+            ....:                              [0, 0, 1, 0, 0, 1]])
+            sage: M._is_3connected_shifting()
+            False
+            sage: N = Matroid(circuit_closures={2: ['abc', 'cdef'],
+            ....:                               3: ['abcdef']},
+            ....:             groundset='abcdef')
+            sage: N._is_3connected_shifting()
+            False
+            sage: matroids.named_matroids.BetsyRoss()._is_3connected_shifting()
+            True
+            sage: M = matroids.named_matroids.R6()
+            sage: M._is_3connected_shifting()
+            False
+            sage: B, X = M._is_3connected_shifting(True)
+            sage: M.connectivity(X)<3
+            True
+        """
+        if not self.is_connected():
+            if certificate:
+                return False, self.components()[0]
+            else:
+                return False
+        if self.rank()>self.size()-self.rank():
+            return self.dual()._is_3connected_shifting(certificate)
+        
+        # the partial matrix
+        M2 = self._reduced_representation()
+        M = M2._matrix_()
+        X, Y = self._current_rows_cols()
+
+        # create mapping between elements and columns
+        dX = dict(zip(range(len(X)),X))
+        dY = dict(zip(range(len(Y)),Y))
+
+        for (x,y) in spanning_forest(M):
+            P_rows=[x]
+            P_cols=[y]
+            Q_rows=[]
+            Q_cols=[]
+            sol,cert_pair = M2.shifting_all(P_rows, P_cols, Q_rows, Q_cols, 2)
+            if sol:
+                if certificate:
+                    cert = set([])
+                    for x in cert_pair[0]:
+                        cert.add(dX[x])
+                    for y in cert_pair[1]:
+                        cert.add(dY[y])
+                    return False, cert
+                return False
+        if certificate:
+            return True, None
+        return True
+
+    cpdef _is_4connected_shifting(self, certificate=False):
+        r"""
+        Return ``True`` if the matroid is 4-connected, ``False`` otherwise. It can
+        optionally return a separator as a witness.
+
+        INPUT:
+
+        - ``certificate`` -- (default: ``False``) a boolean; if ``True``,
+          then return ``True, None`` if the matroid is is 4-connected,
+          and ``False,`` `X` otherwise, where `X` is a `<4`-separation
+
+        OUTPUT:
+
+        boolean, or a tuple ``(boolean, frozenset)``
+
+        ALGORITHM:
+
+        The shifting algorithm
+
+        EXAMPLES::
+
+            sage: M = matroids.Uniform(2, 6)
+            sage: B, X = M._is_4connected_shifting(True)
+            sage: (B, M.connectivity(X)<=3)
+            (False, True)
+            sage: matroids.Uniform(4, 8)._is_4connected_shifting()
+            True
+            sage: M = Matroid(field=GF(2), matrix=[[1,0,0,1,0,1,1,0,0,1,1,1],
+            ....:                                  [0,1,0,1,0,1,0,1,0,0,0,1],
+            ....:                                  [0,0,1,1,0,0,1,1,0,1,0,1],
+            ....:                                  [0,0,0,0,1,1,1,1,0,0,1,1],
+            ....:                                  [0,0,0,0,0,0,0,0,1,1,1,1]])
+            sage: M._is_4connected_shifting()
+            True
+        """
+        if self.rank()>self.size()-self.rank():
+            return self.dual()._is_4connected_shifting(certificate)
+        if not self._is_3connected_shifting():
+            return self._is_3connected_shifting(certificate)
+
+        # the partial matrix
+        M2 = self._reduced_representation()
+        M = M2._matrix_()
+        X, Y = self._current_rows_cols()
+
+        dX = dict(zip(range(len(X)),X))
+        dY = dict(zip(range(len(Y)),Y))
+        n = len(X)
+        m = len(Y)
+
+        sol=False
+        T = spanning_stars(M)
+
+        for (x1,y1) in T:
+            # The whiting out
+            B = copy(M)
+            for (x,y) in product(range(n),range(m)):
+                if (x1!=x and y1!=y):
+                    if(M[x1,y]!=0 and
+                       M[x,y1]!=0 and
+                       M[x,y]!=0):
+                        B[x,y]=0
+            
+            # remove row x1 and y1
+            Xp = range(n)
+            Xp.remove(x1)
+            Yp = range(m)
+            Yp.remove(y1)
+
+            B = B.matrix_from_rows_and_columns(Xp,Yp)
+
+            # produce a spanning forest of B
+            for (x,y) in spanning_forest(B):
+                if x >= x1:
+                    x = x + 1
+                if y >= y1:
+                    y = y + 1
+                # rank 2 matrix and rank 0 matrix
+                P_rows = [x,x1]
+                P_cols = [y,y1]
+                Q_rows = []
+                Q_cols = []
+                # make sure the matrix has rank 2
+                if(M.matrix_from_rows_and_columns(P_rows,P_cols).rank()==2):
+                    sol,cert_pair = M2.shifting_all(P_rows, P_cols, Q_rows, Q_cols, 3)
+                    if sol:
+                        break
+                # rank 1 matrix and rank 1 matrix
+                P_rows = [x1]
+                P_cols = [y1]
+                Q_rows = [x]
+                Q_cols = [y]
+                # both matrix have rank 1
+                sol,cert_pair = M2.shifting_all(P_rows, P_cols, Q_rows, Q_cols, 3)
+                if sol:
+                    break
+            if sol:
+                if certificate:
+                    (certX, certY) = cert_pair
+                    cert = set([])
+                    for x in certX:
+                        cert.add(dX[x])
+                    for y in certY:
+                        cert.add(dY[y])
+                    return False, cert
+                return False
+        if certificate:
+            return True, None
         return True
 
     # Copying, loading, saving
@@ -3470,9 +3684,11 @@ cdef class BinaryMatroid(LinearMatroid):
         self._move_current_basis(contractions, deletions)
         bas = list(self.basis() - contractions)
         R = [self._prow[self._idx[b]] for b in bas]
-        C = [c for c in range(len(self._E)) if self._E[c] not in deletions | contractions]
-        return BinaryMatroid(matrix=(<BinaryMatrix>self._A).matrix_from_rows_and_columns(R, C),
-                             groundset=[self._E[c] for c in C],
+        F = self.groundset() - (deletions | contractions)
+        C = [self._idx[f] for f in F]
+        A, C2 = (<BinaryMatrix>self._A).matrix_from_rows_and_columns_reordered(R, C)
+        return BinaryMatroid(matrix= A ,
+                             groundset=[self._E[c] for c in C2],
                              basis=bas,
                              keep_initial_representation=False)
 
@@ -4417,11 +4633,13 @@ cdef class TernaryMatroid(LinearMatroid):
         self._move_current_basis(contractions, deletions)
         bas = list(self.basis() - contractions)
         R = [self._prow[self._idx[b]] for b in bas]
-        C = [c for c in range(len(self._E)) if self._E[c] not in deletions | contractions]
-        return TernaryMatroid(matrix=(<TernaryMatrix>self._A).matrix_from_rows_and_columns(R, C),
-                              groundset=[self._E[c] for c in C],
-                              basis=bas,
-                              keep_initial_representation=False)
+        F = self.groundset() - (deletions | contractions)
+        C = [self._idx[f] for f in F]
+        A, C2 = (<TernaryMatrix>self._A).matrix_from_rows_and_columns_reordered(R, C)
+        return TernaryMatroid(matrix= A ,
+                             groundset=[self._E[c] for c in C2],
+                             basis=bas,
+                             keep_initial_representation=False)
 
     cpdef is_valid(self):
         r"""
@@ -4438,6 +4656,66 @@ cdef class TernaryMatroid(LinearMatroid):
 
             sage: M = Matroid(Matrix(GF(3), [[]]))
             sage: M.is_valid()
+            True
+        """
+        return True
+
+    # representability
+
+    cpdef ternary_matroid(self, randomized_tests=1, verify = True):
+        r"""
+        Return a ternary matroid representing ``self``.
+
+        INPUT:
+
+        - ``randomized_tests`` -- Ignored.
+        - ``verify`` -- Ignored
+
+        OUTPUT:
+
+        A binary matroid.
+
+        ALGORITHM:
+
+        ``self`` is a ternary matroid, so just return ``self``.
+
+        .. SEEALSO::
+
+            :meth:`M.ternary_matroid()
+            <sage.matroids.matroid.Matroid.ternary_matroid>`
+
+        EXAMPLES::
+
+            sage: N = matroids.named_matroids.NonFano()
+            sage: N.ternary_matroid() is N
+            True
+        """
+        return self
+
+    cpdef is_ternary(self, randomized_tests=1):
+        r"""
+        Decide if ``self`` is a binary matroid.
+
+        INPUT:
+
+        - ``randomized_tests`` -- Ignored.
+
+        OUTPUT:
+
+        A Boolean.
+
+        ALGORITHM:
+
+        ``self`` is a ternary matroid, so just return ``True``.
+
+        .. SEEALSO::
+
+            :meth:`M.is_ternary() <sage.matroids.matroid.Matroid.is_ternary>`
+
+        EXAMPLES::
+
+            sage: N = matroids.named_matroids.NonFano()
+            sage: N.is_ternary()
             True
         """
         return True
@@ -5127,11 +5405,13 @@ cdef class QuaternaryMatroid(LinearMatroid):
         self._move_current_basis(contractions, deletions)
         bas = list(self.basis() - contractions)
         R = [self._prow[self._idx[b]] for b in bas]
-        C = [c for c in range(len(self._E)) if self._E[c] not in deletions | contractions]
-        return QuaternaryMatroid(matrix=(<QuaternaryMatrix>self._A).matrix_from_rows_and_columns(R, C),
-                                 groundset=[self._E[c] for c in C],
-                                 basis=bas,
-                                 keep_initial_representation=False)
+        F = self.groundset() - (deletions | contractions)
+        C = [self._idx[f] for f in F]
+        A, C2 = (<QuaternaryMatrix>self._A).matrix_from_rows_and_columns_reordered(R, C)
+        return QuaternaryMatroid(matrix= A ,
+                             groundset=[self._E[c] for c in C2],
+                             basis=bas,
+                             keep_initial_representation=False)
 
     cpdef is_valid(self):
         r"""
@@ -5977,6 +6257,66 @@ cdef class RegularMatroid(LinearMatroid):
 
             sage: N = matroids.named_matroids.R10()
             sage: N.is_binary()
+            True
+        """
+        return True
+
+    cpdef ternary_matroid(self, randomized_tests=1, verify = True):
+        r"""
+        Return a ternary matroid representing ``self``.
+
+        INPUT:
+
+        - ``randomized_tests`` -- Ignored.
+        - ``verify`` -- Ignored
+
+        OUTPUT:
+
+        A ternary matroid.
+
+        ALGORITHM:
+
+        ``self`` is a regular matroid, so just cast ``self`` to a TernaryMatroid.
+
+        .. SEEALSO::
+
+            :meth:`M.ternary_matroid()
+            <sage.matroids.matroid.Matroid.ternary_matroid>`
+
+        EXAMPLES::
+
+            sage: N = matroids.named_matroids.R10()
+            sage: N.ternary_matroid()
+            Ternary matroid of rank 5 on 10 elements, type 4+
+
+        """
+        A, E = self.representation(B = self.basis(), reduced = False, labels = True)
+        return TernaryMatroid(matrix = A, groundset = E)
+
+    cpdef is_ternary(self, randomized_tests=1):
+        r"""
+        Decide if ``self`` is a ternary matroid.
+
+        INPUT:
+
+        - ``randomized_tests`` -- Ignored.
+
+        OUTPUT:
+
+        A Boolean.
+
+        ALGORITHM:
+
+        ``self`` is a regular matroid, so just return ``True``.
+
+        .. SEEALSO::
+
+            :meth:`M.is_ternary() <sage.matroids.matroid.Matroid.is_ternary>`
+
+        EXAMPLES::
+
+            sage: N = matroids.named_matroids.R10()
+            sage: N.is_ternary()
             True
         """
         return True

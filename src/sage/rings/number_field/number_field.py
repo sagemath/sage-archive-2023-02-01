@@ -3219,13 +3219,21 @@ class NumberField_generic(number_field_base.NumberField):
 
     def pari_polynomial(self, name='x'):
         """
-        PARI polynomial with integer coefficients corresponding to the
-        polynomial that defines this number field.
+        Return the PARI polynomial corresponding to this number field.
 
-        By default, this is a polynomial in the variable "x".  PARI
-        prefers integral polynomials, so we clear the denominator.
-        Therefore, this is NOT the same as simply converting the defining
-        polynomial to PARI.
+        INPUT:
+
+        - ``name`` -- variable name (default: ``'x'``)
+
+        OUTPUT:
+
+        A polynomial with integral coefficients (PARI ``t_POL``)
+        defining the PARI number field corresponding to ``self``.
+
+        .. WARNING::
+
+            This is *not* the same as simply converting the defining
+            polynomial to PARI.
 
         EXAMPLES::
 
@@ -3237,6 +3245,25 @@ class NumberField_generic(number_field_base.NumberField):
             x^2 - 3/2*x + 5/3
             sage: k.pari_polynomial('a')
             6*a^2 - 9*a + 10
+
+        Some examples with relative number fields::
+
+            sage: k.<a, c> = NumberField([x^2 + 3, x^2 + 1])
+            sage: k.pari_polynomial()
+            x^4 + 8*x^2 + 4
+            sage: k.pari_polynomial('a')
+            a^4 + 8*a^2 + 4
+            sage: k.absolute_polynomial()
+            x^4 + 8*x^2 + 4
+            sage: k.relative_polynomial()
+            x^2 + 3
+
+            sage: k.<a, c> = NumberField([x^2 + 1/3, x^2 + 1/4])
+            doctest:...: UserWarning: PARI only handles integral absolute polynomials. Computations in this field might trigger PARI errors
+            sage: k.pari_polynomial()
+            144*x^4 + 168*x^2 + 1
+            sage: k.absolute_polynomial()
+            x^4 + 7/6*x^2 + 1/144
 
         This fails with arguments which are not a valid PARI variable name::
 
@@ -3255,7 +3282,7 @@ class NumberField_generic(number_field_base.NumberField):
         try:
             return self._pari_polynomial.change_variable_name(name)
         except AttributeError:
-            polypari = self.polynomial()._pari_with_name(name)
+            polypari = self.absolute_polynomial()._pari_with_name(name)
             polypari /= polypari.content()   # make polypari integral
             self._pari_polynomial = polypari
             return self._pari_polynomial
@@ -6074,6 +6101,59 @@ class NumberField_generic(number_field_base.NumberField):
         """
         return self.pari_nf().dirzetak(n)
 
+    def solve_CRT(self, reslist, Ilist, check=True):
+        r"""
+        Solve a Chinese remainder problem over this number field.
+
+        INPUT:
+
+        - ``reslist`` -- a list of residues, i.e. integral number field elements
+
+        - ``Ilist`` -- a list of integral ideals, assumed pairsise coprime
+
+        - ``check`` (boolean, default True) -- if True, result is checked
+
+        OUTPUT:
+
+        An integral element x such that x-reslist[i] is in Ilist[i] for all i.
+
+        .. note::
+
+           The current implementation requires the ideals to be pairwise
+           coprime.  A more general version would be possible.
+
+        EXAMPLES::
+
+            sage: K.<a> = NumberField(x^2-10)
+            sage: Ilist = [K.primes_above(p)[0] for p in prime_range(10)]
+            sage: b = K.solve_CRT([1,2,3,4],Ilist,True)
+            sage: all([b-i-1 in Ilist[i] for i in range(4)])
+            True
+            sage: Ilist = [K.ideal(a), K.ideal(2)]
+            sage: K.solve_CRT([0,1],Ilist,True)
+            Traceback (most recent call last):
+            ...
+            ArithmeticError: ideals in solve_CRT() must be pairwise coprime
+            sage: Ilist[0]+Ilist[1]
+            Fractional ideal (2, a)
+        """
+        n = len(reslist)
+        if n==0:
+            return K.zero()
+        if n==1:
+            return reslist[0]
+        if n==2:
+            try:
+                r = Ilist[0].element_1_mod(Ilist[1])
+            except TypeError:
+                raise ArithmeticError("ideals in solve_CRT() must be pairwise coprime")
+            x = ((1-r)*reslist[0]+r*reslist[1]).mod(prod(Ilist))
+        else:  # n>2;, use induction / recursion
+            x = self.solve_CRT([reslist[0],self.solve_CRT(reslist[1:],Ilist[1:])],
+                               [Ilist[0],prod(Ilist[1:])], check=check)
+        if check and not all([x-xi in Ii for xi,Ii in zip(reslist, Ilist)]):
+            raise RuntimeError("Error in number field solve_CRT()")
+        return x
 
 class NumberField_absolute(NumberField_generic):
     def __init__(self, polynomial, name, latex_name=None, check=True, embedding=None,
@@ -7323,8 +7403,7 @@ class NumberField_absolute(NumberField_generic):
             return Sequence([], immutable=True, check=False, universe=self.Hom(K))
 
         f = self.defining_polynomial()
-        r = f.roots(K, multiplicities=False)
-        r.sort()
+        r = sorted(f.roots(K, multiplicities=False))
         v = [self.hom([e], check=False) for e in r]
         # If there is an embedding that preserves variable names
         # then it is most natural, so we put it first.

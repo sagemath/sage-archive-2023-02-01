@@ -121,24 +121,6 @@ underscores).
 
    When implementing ``_add_`` in a Cython extension class, use
    ``cpdef _add_`` instead of ``def _add_``.
-
-For speed, there are also *inplace* versions of the arithmetic commands.
-**Do not** call them directly, they may mutate the object and will be called
-when and only when it has been determined that the old object will no longer
-be accessible from the calling function after this operation.
-
--  **def RingElement._iadd_**
-
-   This is the function you should override to implement inplace
-   addition in a Python subclass of RingElement.
-
-   The two arguments to this function are guaranteed to have the **same
-   parent**. Its return value **must** have the **same parent** as its
-   arguments.
-
-   The default implementation of this function is to call ``_add_``,
-   so if no one has defined a Python implementation, the correct Cython
-   implementation will get called.
 """
 
 ##################################################################
@@ -147,7 +129,6 @@ be accessible from the calling function after this operation.
 ##################################################################
 
 include "sage/ext/python.pxi"
-include "coerce.pxi"
 from sage.ext.stdsage cimport *
 
 from cpython.ref cimport PyObject
@@ -166,6 +147,7 @@ from sage.structure.parent cimport Parent
 from sage.structure.misc import is_extension_type, getattr_from_other_class
 from sage.misc.lazy_format import LazyFormat
 from sage.misc import sageinspect
+from sage.misc.classcall_metaclass cimport ClasscallMetaclass
 
 # Create a dummy attribute error, using some kind of lazy error message,
 # so that neither the error itself not the message need to be created
@@ -304,6 +286,7 @@ def is_Element(x):
     """
     return isinstance(x, Element)
 
+
 cdef class Element(SageObject):
     """
     Generic element of a structure. All other types of elements
@@ -315,6 +298,10 @@ cdef class Element(SageObject):
     .. automethod:: _cmp_
     .. automethod:: _richcmp_
     """
+    def __getmetaclass__(_):
+        from sage.misc.inherit_comparison import InheritComparisonMetaclass
+        return InheritComparisonMetaclass
+
     def __init__(self, parent):
         r"""
         INPUT:
@@ -695,15 +682,9 @@ cdef class Element(SageObject):
             sage: Integer(5).subs(x=4)
             5
         """
-        if not hasattr(self,'__call__'):
+        if not hasattr(self, '__call__'):
             return self
-        parent=self._parent
-        # We should better not test for ParentWIthGens,
-        # as this is essentially deprecated.
-        #from sage.structure.parent_gens import is_ParentWithGens
-        #if not is_ParentWithGens(parent):
-        #    return self
-        # Better: Duck typing!
+        parent = self._parent
         try:
             ngens = parent.ngens()
         except (AttributeError, NotImplementedError, TypeError):
@@ -986,9 +967,10 @@ cdef class Element(SageObject):
         Compare ``self`` and ``other`` using the coercion framework,
         comparing according to the comparison operator ``op``.
 
-        This method exists only because of the strange way that Python
-        handles inheritance of ``__richcmp__``. A Cython class should
-        always define ``__richcmp__`` as calling ``_richcmp``.
+        This method exists only because of historical reasons: before
+        :trac:`18329`, the ``__richcmp__`` method would not be
+        inherited if ``__hash__`` was defined. Eventually, we should
+        completely replace ``_richcmp`` by ``__richcmp__``.
 
         Normally, a class will not redefine ``_richcmp`` but rely on
         this ``Element._richcmp`` method which uses coercion to
@@ -1061,14 +1043,10 @@ cdef class Element(SageObject):
             return rich_to_bool(op, -1)
 
     ####################################################################
-    # For a derived Cython class, you **must** put the __richcmp__
-    # method below in your subclasses, in order for it to take
-    # advantage of the above generic comparison code.
-    #
-    # You must also define either _cmp_ (if your subclass is totally
-    # ordered), _richcmp_ (if your subclass is partially ordered), or
-    # both (if your class has both a total order and a partial order,
-    # or if that gives better performance).
+    # For a Cython class, you must define either _cmp_ (if your subclass
+    # is totally ordered), _richcmp_ (if your subclass is partially
+    # ordered), or both (if your class has both a total order and a
+    # partial order, or if implementing both gives better performance).
     #
     # Rich comparisons (like a < b) will default to using _richcmp_,
     # three-way comparisons (like cmp(a,b)) will default to using
@@ -1202,10 +1180,6 @@ cdef class ElementWithCachedMethod(Element):
         ....:     "        return '<%s>'%self.x",
         ....:     "    def __hash__(self):",
         ....:     "        return hash(self.x)",
-        ....:     "    def __cmp__(left, right):",
-        ....:     "        return (<Element>left)._cmp(right)",
-        ....:     "    def __richcmp__(left, right, op):",
-        ....:     "        return (<Element>left)._richcmp(right,op)",
         ....:     "    cpdef int _cmp_(left, Element right) except -2:",
         ....:     "        return cmp(left.x,right.x)",
         ....:     "    def raw_test(self):",
@@ -1221,10 +1195,6 @@ cdef class ElementWithCachedMethod(Element):
         ....:     "        return '<%s>'%self.x",
         ....:     "    def __hash__(self):",
         ....:     "        return hash(self.x)",
-        ....:     "    def __cmp__(left, right):",
-        ....:     "        return (<Element>left)._cmp(right)",
-        ....:     "    def __richcmp__(left, right, op):",
-        ....:     "        return (<Element>left)._richcmp(right,op)",
         ....:     "    cpdef int _cmp_(left, Element right) except -2:",
         ....:     "        return cmp(left.x,right.x)",
         ....:     "    def raw_test(self):",
@@ -1391,13 +1361,7 @@ cdef class ModuleElement(Element):
         # their types are *equal* (fast to check) then they are both
         # ModuleElements. Otherwise use the slower test via isinstance.)
         if have_same_parent_c(left, right):
-            # If we hold the only references to this object, we can
-            # safely mutate it. NOTE the threshold is different by one
-            # for __add__ and __iadd__.
-            if (<PyObject *>left).ob_refcnt < inplace_threshold:
-                return (<ModuleElement>left)._iadd_(<ModuleElement>right)
-            else:
-                return (<ModuleElement>left)._add_(<ModuleElement>right)
+            return (<ModuleElement>left)._add_(<ModuleElement>right)
         return coercion_model.bin_op(left, right, add)
 
     cpdef ModuleElement _add_(left, ModuleElement right):
@@ -1405,14 +1369,8 @@ cdef class ModuleElement(Element):
 
     def __iadd__(ModuleElement self, right):
         if have_same_parent_c(self, right):
-            if (<PyObject *>self).ob_refcnt <= inplace_threshold:
-                return self._iadd_(<ModuleElement>right)
-            else:
-                return self._add_(<ModuleElement>right)
+            return self._add_(<ModuleElement>right)
         return coercion_model.bin_op(self, right, iadd)
-
-    cpdef ModuleElement _iadd_(self, ModuleElement right):
-        return self._add_(right)
 
     ##################################################
     # Subtraction
@@ -1424,10 +1382,7 @@ cdef class ModuleElement(Element):
         See extensive documentation at the top of element.pyx.
         """
         if have_same_parent_c(left, right):
-            if (<PyObject *>left).ob_refcnt < inplace_threshold:
-                return (<ModuleElement>left)._isub_(<ModuleElement>right)
-            else:
-                return (<ModuleElement>left)._sub_(<ModuleElement>right)
+            return (<ModuleElement>left)._sub_(<ModuleElement>right)
         return coercion_model.bin_op(left, right, sub)
 
     cpdef ModuleElement _sub_(left, ModuleElement right):
@@ -1437,14 +1392,8 @@ cdef class ModuleElement(Element):
 
     def __isub__(ModuleElement self, right):
         if have_same_parent_c(self, right):
-            if (<PyObject *>self).ob_refcnt <= inplace_threshold:
-                return self._isub_(<ModuleElement>right)
-            else:
-                return self._sub_(<ModuleElement>right)
+            return self._sub_(<ModuleElement>right)
         return coercion_model.bin_op(self, right, isub)
-
-    cpdef ModuleElement _isub_(self, ModuleElement right):
-        return self._sub_(right)
 
     ##################################################
     # Negation
@@ -1510,9 +1459,6 @@ cdef class ModuleElement(Element):
         Generic path for multiplying by a C long, assumed to commute.
         """
         return coercion_model.bin_op(self, n, mul)
-
-    cpdef ModuleElement _ilmul_(self, RingElement right):
-        return self._lmul_(right)
 
     cdef RingElement coerce_to_base_ring(self, x):
         if isinstance(x, Element) and (<Element>x)._parent is self._parent._base:
@@ -1746,10 +1692,7 @@ cdef class RingElement(ModuleElement):
         See extensive documentation at the top of element.pyx.
         """
         if have_same_parent_c(left, right):
-            if (<PyObject *>left).ob_refcnt < inplace_threshold:
-                return (<ModuleElement>left)._iadd_(<ModuleElement>right)
-            else:
-                return (<ModuleElement>left)._add_(<ModuleElement>right)
+            return (<ModuleElement>left)._add_(<ModuleElement>right)
         if PyInt_CheckExact(right):
             return (<RingElement>left)._add_long(PyInt_AS_LONG(right))
         elif PyInt_CheckExact(left):
@@ -1770,10 +1713,7 @@ cdef class RingElement(ModuleElement):
         """
         cdef long n
         if have_same_parent_c(left, right):
-            if (<PyObject *>left).ob_refcnt < inplace_threshold:
-                return (<ModuleElement>left)._isub_(<ModuleElement>right)
-            else:
-                return (<ModuleElement>left)._sub_(<ModuleElement>right)
+            return (<ModuleElement>left)._sub_(<ModuleElement>right)
         if PyInt_CheckExact(right):
             n = PyInt_AS_LONG(right)
             # See UNARY_NEG_WOULD_OVERFLOW in Python's intobject.c
@@ -1906,10 +1846,7 @@ cdef class RingElement(ModuleElement):
         # types are *equal* (fast to check) then they are both RingElements.
         # Otherwise use the slower test via isinstance.)
         if have_same_parent_c(left, right):
-            if (<PyObject *>left).ob_refcnt < inplace_threshold:
-                return (<RingElement>left)._imul_(<RingElement>right)
-            else:
-                return (<RingElement>left)._mul_(<RingElement>right)
+            return (<RingElement>left)._mul_(<RingElement>right)
         if PyInt_CheckExact(right):
             return (<ModuleElement>left)._mul_long(PyInt_AS_LONG(right))
         elif PyInt_CheckExact(left):
@@ -1925,14 +1862,8 @@ cdef class RingElement(ModuleElement):
 
     def __imul__(left, right):
         if have_same_parent_c(left, right):
-            if (<PyObject *>left).ob_refcnt <= inplace_threshold:
-                return (<RingElement>left)._imul_(<RingElement>right)
-            else:
-                return (<RingElement>left)._mul_(<RingElement>right)
+            return (<RingElement>left)._mul_(<RingElement>right)
         return coercion_model.bin_op(left, right, imul)
-
-    cpdef RingElement _imul_(RingElement self, RingElement right):
-        return self._mul_(right)
 
     def __pow__(self, n, dummy):
         """
@@ -2053,10 +1984,7 @@ cdef class RingElement(ModuleElement):
         See extensive documentation at the top of element.pyx.
         """
         if have_same_parent_c(self, right):
-            if (<PyObject *>self).ob_refcnt < inplace_threshold:
-                return (<RingElement>self)._idiv_(<RingElement>right)
-            else:
-                return (<RingElement>self)._div_(<RingElement>right)
+            return (<RingElement>self)._div_(<RingElement>right)
         return coercion_model.bin_op(self, right, div)
 
     cpdef RingElement _div_(self, RingElement right):
@@ -2078,14 +2006,8 @@ cdef class RingElement(ModuleElement):
         See extensive documentation at the top of element.pyx.
         """
         if have_same_parent_c(self, right):
-            if (<PyObject *>self).ob_refcnt <= inplace_threshold:
-                return (<RingElement>self)._idiv_(<RingElement>right)
-            else:
-                return (<RingElement>self)._div_(<RingElement>right)
+            return (<RingElement>self)._div_(<RingElement>right)
         return coercion_model.bin_op(self, right, idiv)
-
-    cpdef RingElement _idiv_(RingElement self, RingElement right):
-        return self._div_(right)
 
     def __invert__(self):
         if self.is_one():

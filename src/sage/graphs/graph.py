@@ -1,4 +1,3 @@
-
 r"""
 Undirected graphs
 
@@ -30,7 +29,6 @@ graphs.
     :widths: 30, 70
     :delim: |
 
-    :meth:`~Graph.centrality_closeness` | Returns the closeness centrality (1/average distance to all vertices)
     :meth:`~Graph.centrality_degree` | Returns the degree centrality
 
 
@@ -106,19 +104,20 @@ graphs.
     :widths: 30, 70
     :delim: |
 
-    :meth:`~Graph.vertex_cover` | Returns a minimum vertex cover of self
+    :meth:`~Graph.vertex_cover` | Returns a minimum vertex cover.
     :meth:`~Graph.independent_set` | Returns a maximum independent set.
-    :meth:`~Graph.topological_minor` | Returns a topological `H`-minor from ``self`` if one exists.
-    :meth:`~Graph.convexity_properties` | Returns a ``ConvexityProperties`` objet corresponding to ``self``.
-    :meth:`~Graph.matching_polynomial` | Computes the matching polynomial of the graph `G`.
+    :meth:`~Graph.topological_minor` | Returns a topological `H`-minor of ``self`` if one exists.
+    :meth:`~Graph.convexity_properties` | Returns a ``ConvexityProperties`` object corresponding to ``self``.
+    :meth:`~Graph.matching_polynomial` | Computes the matching polynomial.
     :meth:`~Graph.rank_decomposition` | Returns an rank-decomposition of ``self`` achieving optiml rank-width.
-    :meth:`~Graph.minor` | Returns the vertices of a minor isomorphic to `H` in the current graph.
+    :meth:`~Graph.minor` | Returns the vertices of a minor isomorphic to `H`.
     :meth:`~Graph.independent_set_of_representatives` | Returns an independent set of representatives.
     :meth:`~Graph.coloring` | Returns the first (optimal) proper vertex-coloring found.
     :meth:`~Graph.has_homomorphism_to` | Checks whether there is a morphism between two graphs.
-    :meth:`~Graph.chromatic_number` | Returns the minimal number of colors needed to color the vertices of the graph.
-    :meth:`~Graph.chromatic_polynomial` | Returns the chromatic polynomial of the graph.
-    :meth:`~Graph.tutte_polynomial` | Returns the Tutte polynomial of the graph.
+    :meth:`~Graph.chromatic_number` | Returns the minimal number of colors needed to color the vertices.
+    :meth:`~Graph.chromatic_polynomial` | Returns the chromatic polynomial.
+    :meth:`~Graph.chromatic_symmetric_function` | Return the chromatic symmetric function.
+    :meth:`~Graph.tutte_polynomial` | Returns the Tutte polynomial.
     :meth:`~Graph.is_perfect` | Tests whether the graph is perfect.
     :meth:`~Graph.treewidth` | Computes the tree-width and provides a decomposition.
 
@@ -132,12 +131,13 @@ graphs.
 
     :meth:`~Graph.cores` | Returns the core number for each vertex in an ordered list.
     :meth:`~Graph.matching` | Returns a maximum weighted matching of the graph
-    :meth:`~Graph.fractional_chromatic_index` | Computes the fractional chromatic index of ``self``
-    :meth:`~Graph.kirchhoff_symanzik_polynomial` | Returns the Kirchhoff-Symanzik polynomial of the graph.
-    :meth:`~Graph.modular_decomposition` | Returns the modular decomposition of the current graph.
-    :meth:`~Graph.maximum_average_degree` | Returns the Maximum Average Degree (MAD) of the current graph.
+    :meth:`~Graph.fractional_chromatic_index` | Computes the fractional chromatic index.
+    :meth:`~Graph.lovasz_theta` | Returns the Lovasz number (a.k.a theta).
+    :meth:`~Graph.kirchhoff_symanzik_polynomial` | Returns the Kirchhoff-Symanzik polynomial.
+    :meth:`~Graph.modular_decomposition` | Returns the modular decomposition.
+    :meth:`~Graph.maximum_average_degree` | Returns the Maximum Average Degree (MAD).
     :meth:`~Graph.two_factor_petersen` | Returns a decomposition of the graph into 2-factors.
-    :meth:`~Graph.ihara_zeta_function_inverse` | Returns the inverse of the zeta function of the graph.
+    :meth:`~Graph.ihara_zeta_function_inverse` | Returns the inverse of the zeta function.
 
 AUTHORS:
 
@@ -335,6 +335,13 @@ examples are covered here.
        sage: g = Graph([(1,3),(3,8),(5,2)])
        sage: g
        Graph on 5 vertices
+
+-  an igraph Graph::
+
+       sage: import igraph                                # optional - python_igraph
+       sage: g = Graph(igraph.Graph([(1,3),(3,2),(0,2)])) # optional - python_igraph
+       sage: g                                            # optional - python_igraph
+       Graph on 4 vertices
 
 Generators
 ----------
@@ -543,6 +550,7 @@ from sage.graphs.digraph import DiGraph
 from sage.graphs.independent_sets import IndependentSets
 from sage.combinat.combinatorial_map import combinatorial_map
 
+
 class Graph(GenericGraph):
     r"""
     Undirected graph.
@@ -624,6 +632,8 @@ class Graph(GenericGraph):
 
       #.  A NetworkX graph
 
+      #.  An igraph graph (see http://igraph.org/python/)
+
     -  ``pos`` -  a positioning dictionary: for example, the
        spring layout from NetworkX for the 5-cycle is::
 
@@ -686,8 +696,7 @@ class Graph(GenericGraph):
                ``convert_empty_dict_labels_to_None`` to ``False`` (it is
                ``True`` by default).
 
-    -  ``boundary`` - a list of boundary vertices, if
-       empty, graph is considered as a 'graph without boundary'
+       - ``igraph`` - data must be an `igraph <http://igraph.org/>`__ graph.
 
     - ``sparse`` (boolean) -- ``sparse=True`` is an alias for
       ``data_structure="sparse"``, and ``sparse=False`` is an alias for
@@ -928,8 +937,6 @@ class Graph(GenericGraph):
           sage: g
           Graph on 5 vertices
 
-          ::
-
           sage: g = Graph([(1,2,"Peace"),(7,-9,"and"),(77,2, "Love")])
           sage: g
           Graph on 5 vertices
@@ -951,6 +958,30 @@ class Graph(GenericGraph):
            sage: DiGraph(g)
            Digraph on 5 vertices
 
+    #. An igraph Graph (see also
+       :meth:`~sage.graphs.generic_graph.GenericGraph.igraph_graph`)::
+
+           sage: import igraph                   # optional - python_igraph
+           sage: g = igraph.Graph([(0,1),(0,2)]) # optional - python_igraph
+           sage: Graph(g)                        # optional - python_igraph
+           Graph on 3 vertices
+
+       If ``vertex_labels`` is ``True``, the names of the vertices are given by
+       the vertex attribute ``'name'``, if available::
+
+           sage: g = igraph.Graph([(0,1),(0,2)], vertex_attrs={'name':['a','b','c']})  # optional - python_igraph
+           sage: Graph(g).vertices()                                                   # optional - python_igraph
+           ['a', 'b', 'c']
+           sage: g = igraph.Graph([(0,1),(0,2)], vertex_attrs={'label':['a','b','c']}) # optional - python_igraph
+           sage: Graph(g).vertices()                                                   # optional - python_igraph
+           [0, 1, 2]
+
+       If the igraph Graph has edge attributes, they are used as edge labels::
+
+           sage: g = igraph.Graph([(0,1),(0,2)], edge_attrs={'name':['a','b'], 'weight':[1,3]}) # optional - python_igraph
+           sage: Graph(g).edges()                                                               # optional - python_igraph
+           [(0, 1, {'name': 'a', 'weight': 1}), (0, 2, {'name': 'b', 'weight': 3})]
+
     By default, graphs are mutable and can thus not be used as a dictionary
     key::
 
@@ -962,7 +993,7 @@ class Graph(GenericGraph):
 
     When providing the optional arguments ``data_structure="static_sparse"``
     or ``immutable=True`` (both mean the same), then an immutable graph
-    results.
+    results. ::
 
           sage: G_imm = Graph(G, immutable=True)
           sage: H_imm = Graph(G, data_structure='static_sparse')
@@ -977,11 +1008,17 @@ class Graph(GenericGraph):
         Traceback (most recent call last):
         ...
         ValueError: Unknown input format 'HeyHeyHey'
+
+        sage: Graph(igraph.Graph(directed=True)) # optional - python_igraph
+        Traceback (most recent call last):
+        ...
+        ValueError: An *undirected* igraph graph was expected. To build an directed graph, call the DiGraph constructor.
+
     """
     _directed = False
 
     def __init__(self, data=None, pos=None, loops=None, format=None,
-                 boundary=None, weighted=None, implementation='c_graph',
+                 weighted=None, implementation='c_graph',
                  data_structure="sparse", vertex_labels=True, name=None,
                  multiedges=None, convert_empty_dict_labels_to_None=None,
                  sparse=True, immutable=False):
@@ -1048,12 +1085,6 @@ class Graph(GenericGraph):
             sage: grafo4.shortest_path(0,6,by_weight=True)
             [0, 1, 2, 5, 4, 6]
 
-        Get rid of mutable default argument for `boundary` (:trac:`14794`)::
-
-            sage: G = Graph(boundary=None)
-            sage: G._boundary
-            []
-
         Graphs returned when setting ``immutable=False`` are mutable::
 
             sage: g = graphs.PetersenGraph()
@@ -1116,7 +1147,7 @@ class Graph(GenericGraph):
         if data_structure in ["sparse", "static_sparse"]:
             CGB = SparseGraphBackend
         elif data_structure == "dense":
-             CGB = DenseGraphBackend
+            CGB = DenseGraphBackend
         else:
             raise ValueError("data_structure must be equal to 'sparse', "
                              "'static_sparse' or 'dense'")
@@ -1162,9 +1193,20 @@ class Graph(GenericGraph):
             import networkx
             if isinstance(data, (networkx.DiGraph, networkx.MultiDiGraph)):
                 data = data.to_undirected()
-                format = 'NX'
             elif isinstance(data, (networkx.Graph, networkx.MultiGraph)):
                 format = 'NX'
+
+        if (format is None          and
+            hasattr(data, 'vcount') and
+            hasattr(data, 'get_edgelist')):
+            try:
+                import igraph
+            except ImportError:
+                raise ImportError("The data seems to be a igraph object, but "+
+                                  "igraph is not installed in Sage. To install "+
+                                  "it, run 'sage -i python_igraph'")
+            if format is None and isinstance(data, igraph.Graph):
+                format = 'igraph'
         if format is None and isinstance(data, (int, Integer)):
             format = 'int'
         if format is None and data is None:
@@ -1375,6 +1417,19 @@ class Graph(GenericGraph):
             self.allow_multiple_edges(multiedges, check=False)
             self.add_vertices(data.nodes())
             self.add_edges((u,v,r(l)) for u,v,l in data.edges_iter(data=True))
+        elif format == 'igraph':
+            if data.is_directed():
+                raise ValueError("An *undirected* igraph graph was expected. "+
+                                 "To build an directed graph, call the DiGraph "+
+                                 "constructor.")
+
+            self.add_vertices(range(data.vcount()))
+            self.add_edges([(e.source, e.target, e.attributes()) for e in data.es()])
+
+            if vertex_labels and 'name' in data.vertex_attributes():
+                vs = data.vs()
+                self.relabel({v:vs[v]['name'] for v in self})
+
         elif format == 'rule':
             f = data[1]
             verts = data[0]
@@ -1534,7 +1589,7 @@ class Graph(GenericGraph):
         self._weighted = weighted
 
         self._pos = pos
-        self._boundary = boundary if boundary is not None else []
+
         if format != 'Graph' or name is not None:
             self.name(name)
 
@@ -2403,6 +2458,7 @@ class Graph(GenericGraph):
             ...          print "That's not good!"
 
         Asking for an unknown algorithm::
+
             sage: g.is_triangle_free(algorithm='tip top')
             Traceback (most recent call last):
             ...
@@ -3086,7 +3142,7 @@ class Graph(GenericGraph):
             True
         """
         # A semi-symmetric graph is always bipartite
-        if  not self.is_bipartite() :
+        if not self.is_bipartite():
             return False
 
         return (self.is_regular() and
@@ -3268,10 +3324,10 @@ class Graph(GenericGraph):
         while next_:
             e = next_.pop(-1)
             # We assume e[0] to be a `seen` vertex
-            e = e if seen.get(e[0],False) != False else (e[1],e[0],e[2])
+            e = e if seen.get(e[0],False) is not False else (e[1],e[0],e[2])
 
             # If we discovered a new vertex
-            if seen.get(e[1],False) == False:
+            if seen.get(e[1],False) is False:
                 d.add_edge(e)
                 next_.extend([ee for ee in self.edges_incident(e[1]) if (((e[0],e[1]) != (ee[0],ee[1])) and ((e[0],e[1]) != (ee[1],ee[0])))])
                 i+=1
@@ -3781,6 +3837,79 @@ class Graph(GenericGraph):
             return first_coloring(self, hex_colors=hex_colors)
         else:
             raise ValueError("The 'algorithm' keyword must be set to either 'DLX' or 'MILP'.")
+
+    def chromatic_symmetric_function(self, R=None):
+        r"""
+        Return the chromatic symmetric function of ``self``.
+
+        Let `G` be a graph. The chromatic symmetric function `X_G` was
+        described in [Stanley95]_, specifically Theorem 2.5 states that
+
+        .. MATH::
+
+            X_G = \sum_{F \subseteq E(G)} (-1)^{|F|} p_{\lambda(F)},
+
+        where `\lambda(F)` is the partition of the sizes of the connected
+        components of the subgraph induced by the edges `F` and `p_{\mu}`
+        is the powersum symmetric function.
+
+        INPUT:
+
+        - ``R`` -- (optional) the base ring for the symmetric functions;
+          this uses `\ZZ` by default
+
+        EXAMPLES::
+
+            sage: s = SymmetricFunctions(ZZ).s()
+            sage: G = graphs.CycleGraph(5)
+            sage: XG = G.chromatic_symmetric_function(); XG
+            p[1, 1, 1, 1, 1] - 5*p[2, 1, 1, 1] + 5*p[2, 2, 1]
+             + 5*p[3, 1, 1] - 5*p[3, 2] - 5*p[4, 1] + 4*p[5]
+            sage: s(XG)
+            30*s[1, 1, 1, 1, 1] + 10*s[2, 1, 1, 1] + 10*s[2, 2, 1]
+
+        Not all graphs have a postive Schur expansion::
+
+            sage: G = graphs.ClawGraph()
+            sage: XG = G.chromatic_symmetric_function(); XG
+            p[1, 1, 1, 1] - 3*p[2, 1, 1] + 3*p[3, 1] - p[4]
+            sage: s(XG)
+            8*s[1, 1, 1, 1] + 5*s[2, 1, 1] - s[2, 2] + s[3, 1]
+
+        We show that given a triangle `\{e_1, e_2, e_3\}`, we have
+        `X_G = X_{G - e_1} + X_{G - e_2} - X_{G - e_1 - e_2}`::
+
+            sage: G = Graph([[1,2],[1,3],[2,3]])
+            sage: XG = G.chromatic_symmetric_function()
+            sage: G1 = copy(G)
+            sage: G1.delete_edge([1,2])
+            sage: XG1 = G1.chromatic_symmetric_function()
+            sage: G2 = copy(G)
+            sage: G2.delete_edge([1,3])
+            sage: XG2 = G2.chromatic_symmetric_function()
+            sage: G3 = copy(G1)
+            sage: G3.delete_edge([1,3])
+            sage: XG3 = G3.chromatic_symmetric_function()
+            sage: XG == XG1 + XG2 - XG3
+            True
+
+        REFERENCES:
+
+        .. [Stanley95] R. P. Stanley, *A symmetric function generalization
+           of the chromatic polynomial of a graph*, Adv. Math., ***111***
+           no.1 (1995), 166-194.
+        """
+        from sage.combinat.sf.sf import SymmetricFunctions
+        from sage.combinat.partition import _Partitions
+        from sage.misc.misc import powerset
+        if R is None:
+            R = ZZ
+        p = SymmetricFunctions(R).p()
+        ret = p.zero()
+        for F in powerset(self.edges()):
+            la = _Partitions(self.subgraph(edges=F).connected_components_sizes())
+            ret += (-1)**len(F) * p[la]
+        return ret
 
     def matching(self, value_only=False, algorithm="Edmonds", use_edge_labels=True, solver=None, verbose=0):
         r"""
@@ -4602,7 +4731,7 @@ class Graph(GenericGraph):
 
         .. SEEALSO::
 
-            - :meth:`centrality_closeness`
+            - :meth:`~sage.graphs.generic_graph.GenericGraph.centrality_closeness`
             - :meth:`~sage.graphs.generic_graph.GenericGraph.centrality_betweenness`
 
         EXAMPLES::
@@ -4632,55 +4761,6 @@ class Graph(GenericGraph):
             return {v:self.degree(v)/n_minus_one for v in self}
         else:
             return self.degree(v)/n_minus_one
-
-    def centrality_closeness(self, v=None):
-        r"""
-        Returns the closeness centrality of a vertex.
-
-        The closeness centrality of a vertex `v` is equal to the inverse of [the
-        average distance between `v` and other vertices].
-
-        Measures of the centrality of a vertex within a graph determine the
-        relative importance of that vertex to its graph. 'Closeness
-        centrality may be defined as the total graph-theoretic distance of
-        a given vertex from all other vertices... Closeness is an inverse
-        measure of centrality in that a larger value indicates a less
-        central actor while a smaller value indicates a more central
-        actor,' [Borgatti95]_.
-
-        For more information, see the :wikipedia:`Centraliy`.
-
-        INPUT:
-
-        - ``v`` - a vertex. Set to ``None`` (default) to get a dictionary
-          associating each vertex with its centrality closeness.
-
-        .. SEEALSO::
-
-            - :meth:`centrality_degree`
-            - :meth:`~sage.graphs.generic_graph.GenericGraph.centrality_betweenness`
-
-        REFERENCE:
-
-        .. [Borgatti95] Stephen P Borgatti. (1995). Centrality and AIDS.
-          [Online] Available:
-          http://www.analytictech.com/networks/centaids.htm
-
-        EXAMPLES::
-
-            sage: (graphs.ChvatalGraph()).centrality_closeness()
-            {0: 0.61111111111111..., 1: 0.61111111111111..., 2: 0.61111111111111..., 3: 0.61111111111111..., 4: 0.61111111111111..., 5: 0.61111111111111..., 6: 0.61111111111111..., 7: 0.61111111111111..., 8: 0.61111111111111..., 9: 0.61111111111111..., 10: 0.61111111111111..., 11: 0.61111111111111...}
-            sage: D = DiGraph({0:[1,2,3], 1:[2], 3:[0,1]})
-            sage: D.show(figsize=[2,2])
-            sage: D = D.to_undirected()
-            sage: D.show(figsize=[2,2])
-            sage: D.centrality_closeness()
-            {0: 1.0, 1: 1.0, 2: 0.75, 3: 0.75}
-            sage: D.centrality_closeness(v=1)
-            1.0
-        """
-        import networkx
-        return networkx.closeness_centrality(self.networkx_graph(copy=False), v)
 
     ### Constructors
 
@@ -4735,7 +4815,6 @@ class Graph(GenericGraph):
         from sage.graphs.all import DiGraph
         D = DiGraph(name           = self.name(),
                     pos            = self._pos,
-                    boundary       = self._boundary,
                     multiedges     = self.allows_multiple_edges(),
                     loops          = self.allows_loops(),
                     implementation = implementation,
@@ -4819,9 +4898,9 @@ class Graph(GenericGraph):
         """
         if verbose_relabel is not None:
             deprecation(17053, "Instead of verbose_relabel=True/False use labels='pairs'/'integers'.")
-            if verbose_relabel == True:
+            if verbose_relabel is True:
                 labels="pairs"
-            if verbose_relabel == False:
+            if verbose_relabel is False:
                 labels="integers"
 
         G = self.disjoint_union(other, labels=labels)
@@ -5996,7 +6075,7 @@ class Graph(GenericGraph):
         for x in IndependentSets(self, complement = True):
             number_of[len(x)] += 1
         return sum(coeff*t**i for i,coeff in enumerate(number_of) if coeff)
-    
+
     ### Miscellaneous
 
     def cores(self, k = None, with_labels=False):
@@ -6375,7 +6454,7 @@ class Graph(GenericGraph):
 
         # Take any two vertices (u,v)
         it = vertices.__iter__()
-        u,v = it.next(),it.next()
+        u,v = next(it),next(it)
 
         # Compute a uv min-edge-cut.
         #
@@ -6501,6 +6580,8 @@ class Graph(GenericGraph):
         :trac:`16475`::
 
             sage: G = graphs.PetersenGraph()
+            sage: for u,v in G.edge_iterator(labels=False):
+            ....:     G.set_edge_label(u, v, 1)
             sage: for u, v in [(0, 1), (0, 4), (0, 5), (1, 2), (1, 6), (3, 4), (5, 7), (5, 8)]:
             ....:     G.set_edge_label(u, v, 2)
             sage: T = G.gomory_hu_tree()
@@ -6799,4 +6880,5 @@ Graph.is_line_graph = sage.graphs.line_graph.is_line_graph
 from sage.graphs.tutte_polynomial import tutte_polynomial
 Graph.tutte_polynomial = tutte_polynomial
 
-
+from sage.graphs.lovasz_theta import lovasz_theta
+Graph.lovasz_theta = lovasz_theta

@@ -578,6 +578,8 @@ If this all works, you can then make calls like:
         """
         Send an interrupt to the application.  This is used internally
         by :meth:`interrupt`.
+
+        First CTRL-C to stop the current command, then quit.
         """
         self._expect.sendline(chr(3))
         self._expect.sendline(self._quit_string())
@@ -820,9 +822,14 @@ If this all works, you can then make calls like:
             sage: singular._eval_using_file_cutoff = 4
             sage: singular._eval_line('for(int i=1;i<=3;i++){i=1;};', wait_for_prompt=False)
             ''
-            sage: singular.interrupt(timeout=3)  # sometimes very slow (up to 60s on sage.math, 2012)
-            False
+            sage: singular.interrupt()
+            True
             sage: singular._eval_using_file_cutoff = cutoff
+
+        The interface still works after this interrupt::
+
+            sage: singular('2+3')
+            5
 
         Last, we demonstrate that by default the execution of a command
         is tried twice if it fails the first time due to a crashed
@@ -838,7 +845,7 @@ If this all works, you can then make calls like:
         Since the test of the next method would fail, we re-start
         Singular now. ::
 
-            sage: singular(2+3)
+            sage: singular('2+3')
             Singular crashed -- automatically restarting.
             5
 
@@ -938,11 +945,10 @@ If this all works, you can then make calls like:
             self._expect.expect(self._prompt)
             raise KeyboardInterrupt("Ctrl-c pressed while running %s"%self)
 
-    def interrupt(self, tries=20, timeout=0.3, quit_on_fail=True):
+    def interrupt(self, tries=5, timeout=2.0, quit_on_fail=True):
         E = self._expect
         if E is None:
             return True
-        success = False
         try:
             for i in range(tries):
                 self._send_interrupt()
@@ -951,15 +957,13 @@ If this all works, you can then make calls like:
                 except (pexpect.TIMEOUT, pexpect.EOF):
                     pass
                 else:
-                    success = True
-                    break
+                    return True  # Success
         except Exception:
             pass
-        if success:
-            pass
-        elif quit_on_fail:
+        # Failed to interrupt...
+        if quit_on_fail:
             self.quit()
-        return success
+        return False
 
     ###########################################################################
     # BEGIN Synchronization code.
@@ -971,7 +975,7 @@ If this all works, you can then make calls like:
 
         EXAMPLES::
 
-            sage: singular(2+3)
+            sage: singular('2+3')
             5
             sage: singular._before()
             '5\r\n'
@@ -1066,35 +1070,22 @@ If this all works, you can then make calls like:
         """
         if expr is None:
             # the following works around gap._prompt_wait not being defined
-            expr = (hasattr(self,'_prompt_wait') and self._prompt_wait) or self._prompt
+            expr = getattr(self, '_prompt_wait', None) or self._prompt
         if self._expect is None:
             self._start()
         try:
             if timeout:
-                i = self._expect.expect(expr,timeout=timeout)
+                i = self._expect.expect(expr, timeout=timeout)
             else:
                 i = self._expect.expect(expr)
             if i > 0:
                 v = self._expect.before
                 self.quit()
                 raise ValueError("%s\nComputation failed due to a bug in %s -- NOTE: Had to restart."%(v, self))
-        except KeyboardInterrupt as err:
-            i = 0
-            while True:
-                try:
-                    print "Control-C pressed.  Interrupting %s. Please wait a few seconds..."%self
-                    self._sendstr('quit;\n'+chr(3))
-                    self._sendstr('quit;\n'+chr(3))
-                    self.interrupt()
-                    self.interrupt()
-                except KeyboardInterrupt:
-                    i += 1
-                    if i > 10:
-                        break
-                    pass
-                else:
-                    break
-            raise err
+        except KeyboardInterrupt:
+            print("Control-C pressed. Interrupting %s. Please wait a few seconds..."%self)
+            self.interrupt()
+            raise
 
     def _sendstr(self, str):
         r"""

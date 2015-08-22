@@ -77,7 +77,7 @@ from sage.structure.global_options import GlobalOptions
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.list_clone import ClonableList
 from sage.structure.parent import Parent
-from sage.misc.classcall_metaclass import ClasscallMetaclass
+from sage.misc.inherit_comparison import InheritComparisonClasscallMetaclass
 from sage.rings.infinity import PlusInfinity
 from sage.rings.arith import factorial
 from sage.rings.integer import Integer
@@ -251,7 +251,7 @@ class Tableau(ClonableList):
         ValueError: A tableau must be a list of iterables.
 
     """
-    __metaclass__ = ClasscallMetaclass
+    __metaclass__ = InheritComparisonClasscallMetaclass
 
     @staticmethod
     def __classcall_private__(cls, t):
@@ -1585,6 +1585,60 @@ class Tableau(ClonableList):
         """
         return all(row[i]<row[i+1] for row in self for i in range(len(row)-1))
 
+    def is_row_increasing(self, weak=False):
+        r"""
+        Return ``True`` if the entries in each row are in increasing order,
+        and ``False`` otherwise.
+
+        By default, this checks for strictly increasing rows. Set ``weak``
+        to ``True`` to test for weakly increasing rows.
+
+        EXAMPLES::
+
+            sage: T = Tableau([[1, 1, 3], [1, 2]])
+            sage: T.is_row_increasing(weak=True)
+            True
+            sage: T.is_row_increasing()
+            False
+            sage: Tableau([[2, 1]]).is_row_increasing(weak=True)
+            False
+        """
+        if weak:
+            def test(a, b):
+                return a <= b
+        else:
+            def test(a, b):
+                return a < b
+        return all(test(a, b) for row in self for (a, b) in zip(row, row[1:]))
+
+    def is_column_increasing(self, weak=False):
+        r"""
+        Return ``True`` if the entries in each column are in increasing order,
+        and ``False`` otherwise.
+
+        By default, this checks for strictly increasing columns. Set ``weak``
+        to ``True`` to test for weakly increasing columns.
+
+        EXAMPLES::
+
+            sage: T = Tableau([[1, 1, 3], [1, 2]])
+            sage: T.is_column_increasing(weak=True)
+            True
+            sage: T.is_column_increasing()
+            False
+            sage: Tableau([[2], [1]]).is_column_increasing(weak=True)
+            False
+        """
+        if weak:
+            def test(a, b):
+                return a <= b
+        else:
+            def test(a, b):
+                return a < b
+        def tworow(a, b):
+            return all(test(a[i], b_i) for i, b_i in enumerate(b))
+        return all(tworow(self[r], self[r+1]) for r in range(len(self) - 1))
+
     def is_column_strict(self):
         """
         Return ``True`` if ``self`` is a column strict tableau and ``False``
@@ -1615,6 +1669,29 @@ class Tableau(ClonableList):
         def tworow(a, b):
             return all(a[i] < b_i for i, b_i in enumerate(b))
         return all(tworow(self[r], self[r+1]) for r in range(len(self)-1))
+
+    def is_semistandard(self):
+        r"""
+        Return ``True`` if ``self`` is a semistandard tableau, and ``False``
+        otherwise.
+
+        A tableau is semistandard if its rows weakly increase and its columns
+        strictly increase.
+
+        EXAMPLES::
+
+            sage: Tableau([[1,1],[1,2]]).is_semistandard()
+            False
+            sage: Tableau([[1,2],[1,2]]).is_semistandard()
+            False
+            sage: Tableau([[1,1],[2,2]]).is_semistandard()
+            True
+            sage: Tableau([[1,2],[2,3]]).is_semistandard()
+            True
+            sage: Tableau([[4,1],[3,2]]).is_semistandard()
+            False
+        """
+        return self.is_row_increasing(weak=True) and self.is_column_increasing()
 
     def is_standard(self):
         """
@@ -2240,6 +2317,119 @@ class Tableau(ClonableList):
         for i in w:
             res = res.schensted_insert(i,left=left)
         return res
+
+    def reverse_bump(self, loc):
+        r"""
+        Reverse row bump the entry of ``self`` at the specified
+        location ``loc`` (given as a row index or a
+        corner ``(r, c)`` of the tableau).
+
+        This is the reverse of Schensted's row-insertion algorithm.
+        See Section 1.1, page 8, of Fulton's [Ful1997]_.
+
+        INPUT:
+
+        - ``loc`` -- Can be either of the following:
+
+          - The coordinates ``(r, c)`` of the square to reverse-bump
+            (which must be a corner of the tableau);
+          - The row index ``r`` of this square.
+
+          Note that both ``r`` and ``c`` are `0`-based, i.e., the
+          topmost row and the leftmost column are the `0`-th row
+          and the `0`-th column.
+
+        OUTPUT:
+
+        An ordered pair consisting of:
+
+        1. The resulting (smaller) tableau;
+        2. The entry bumped out at the end of the process.
+
+        .. SEEALSO::
+
+            :meth:`bump`
+
+        EXAMPLES:
+
+        This is the reverse of Schensted's bump::
+
+            sage: T = Tableau([[1, 1, 2, 2, 4], [2, 3, 3], [3, 4], [4]])
+            sage: T.reverse_bump(2)
+            ([[1, 1, 2, 3, 4], [2, 3, 4], [3], [4]], 2)
+            sage: T == T.reverse_bump(2)[0].bump(2)
+            True
+            sage: T.reverse_bump((3, 0))
+            ([[1, 2, 2, 2, 4], [3, 3, 3], [4, 4]], 1)
+
+        Some errors caused by wrong input::
+
+            sage: T.reverse_bump((3, 1))
+            Traceback (most recent call last):
+            ...
+            ValueError: invalid corner
+            sage: T.reverse_bump(4)
+            Traceback (most recent call last):
+            ...
+            IndexError: list index out of range
+            sage: Tableau([[2, 2, 1], [3, 3]]).reverse_bump(0)
+            Traceback (most recent call last):
+            ...
+            ValueError: Reverse bumping is only defined for semistandard tableaux
+
+        Some edge cases::
+
+            sage: Tableau([[1]]).reverse_bump(0)
+            ([], 1)
+            sage: Tableau([[1,1]]).reverse_bump(0)
+            ([[1]], 1)
+            sage: Tableau([]).reverse_bump(0)
+            Traceback (most recent call last):
+            ...
+            IndexError: list index out of range
+
+        .. NOTE::
+
+            Reverse row bumping is only implemented for tableaux with weakly increasing
+            and strictly increasing columns (though the tableau does not need to be an
+            instance of class :class:`SemistandardTableau`).
+
+        """
+        if not (self.is_semistandard()):
+            raise ValueError("Reverse bumping is only defined for semistandard tableaux")
+        try:
+            (r, c) = loc
+            if (r, c) not in self.corners():
+                raise ValueError("invalid corner")
+        except TypeError:
+            r = loc
+            c = len(self[r]) - 1
+
+        # make a copy of self
+        new_t = self.to_list()
+
+        # remove the last entry of row r from the tableau
+        to_move = new_t[r].pop()
+
+        # delete the row if it's now empty
+        if not new_t[r]:
+            new_t.pop()
+
+        from bisect import bisect_left
+
+        for row in reversed(new_t[:r]):
+            # Decide where to insert:
+            # the bisect_left command returns the greatest index such that
+            # every entry to its left is strictly less than to_move
+            c = bisect_left(row, to_move, lo=c) - 1
+
+            # swap it with to_move
+            row[c], to_move = to_move, row[c]
+
+        if isinstance(self, SemistandardTableau):
+            return SemistandardTableau(new_t), to_move
+        return Tableau(new_t), to_move
+
 
     def bump_multiply(left, right):
         """
@@ -3646,8 +3836,6 @@ class SemistandardTableau(Tableau):
         ...
         ValueError: entries must be positive integers
     """
-    __metaclass__ = ClasscallMetaclass
-
     @staticmethod
     def __classcall_private__(self, t):
         r"""
@@ -3781,8 +3969,6 @@ class StandardTableau(SemistandardTableau):
         ...
         ValueError: the entries in each row of a semistandard tableau must be weakly increasing
     """
-    __metaclass__ = ClasscallMetaclass
-
     @staticmethod
     def __classcall_private__(self, t):
         r"""

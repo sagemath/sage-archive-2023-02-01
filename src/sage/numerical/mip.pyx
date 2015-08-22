@@ -975,6 +975,12 @@ cdef class MixedIntegerLinearProgram(SageObject):
             as a solver, but keep an eye on the number of variables in the
             polyhedron, or on the output of :meth:`show`. Just in case.
 
+        .. SEEALSO::
+
+            :meth:`~sage.geometry.polyhedron.base.Polyhedron_base.to_linear_program`
+            -- return the :class:`MixedIntegerLinearProgram` object associated
+            with a :func:`Polyhedron` object.
+
         EXAMPLES:
 
         A LP on two variables::
@@ -2236,25 +2242,39 @@ cdef class MixedIntegerLinearProgram(SageObject):
         """
         Return or define a solver parameter
 
-        The solver parameters are by essence solver-specific, which
-        means their meaning heavily depends on the solver used.
+        The solver parameters are by essence solver-specific, which means their
+        meaning heavily depends on the solver used.
 
-        (If you do not know which solver you are using, then you
-        use GLPK).
+        (If you do not know which solver you are using, then you use GLPK).
 
         Aliases:
 
-        Very common parameters have aliases making them
-        solver-independent. For example, the following::
+        Very common parameters have aliases making them solver-independent. For
+        example, the following::
 
             sage: p = MixedIntegerLinearProgram(solver = "GLPK")
             sage: p.solver_parameter("timelimit", 60)
 
-        Sets the solver to stop its computations after 60 seconds, and
-        works with GLPK, CPLEX and Gurobi.
+        Sets the solver to stop its computations after 60 seconds, and works
+        with GLPK, CPLEX and Gurobi.
 
             - ``"timelimit"`` -- defines the maximum time spent on a
               computation. Measured in seconds.
+
+        Another example is the ``"logfile"`` parameter, which is used to specify
+        the file in which computation logs are recorded. By default, the logs
+        are not recorded, and we can disable this feature providing an empty
+        filename. This is currently working with CPLEX and Gurobi::
+
+            sage: p = MixedIntegerLinearProgram(solver = "CPLEX") # optional - CPLEX
+            sage: p.solver_parameter("logfile")                   # optional - CPLEX
+            ''
+            sage: p.solver_parameter("logfile", "/dev/null")      # optional - CPLEX
+            sage: p.solver_parameter("logfile")                   # optional - CPLEX
+            '/dev/null'
+            sage: p.solver_parameter("logfile", '')               # optional - CPLEX
+            sage: p.solver_parameter("logfile")                   # optional - CPLEX
+            ''
 
         Solver-specific parameters:
 

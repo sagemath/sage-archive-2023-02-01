@@ -22,9 +22,11 @@ from pexpect import *
 from cpython.ref cimport Py_INCREF
 from libc.signal cimport *
 from posix.signal cimport killpg
-from posix.unistd cimport getpgid, close, fork, _exit
+from posix.unistd cimport getpid, getpgid, close, fork
 
 from time import sleep
+
+from sage.parallel.safefork cimport ContainChildren
 
 
 class SageSpawn(spawn):
@@ -48,15 +50,10 @@ class SageSpawn(spawn):
         """
         self.__name = kwds.pop("name", self.__class__.__name__)
         self.quit_string = kwds.pop("quit_string", None)
-        try:
+
+        with ContainChildren(silent=True):
             spawn.__init__(self, *args, **kwds)
-        finally:
-            # Protect against a race condition where the child process
-            # is interrupted *before* calling execve(). Then the SIGINT
-            # signal will raise a Python KeyboardInterrupt and we end
-            # up here.
-            if self.pid == 0:
-                _exit(1)
+
 
     def __repr__(self):
         """
@@ -108,6 +105,42 @@ class SageSpawn(spawn):
             sage: os.kill(pid, SIGTERM)
         """
         Py_INCREF(self)
+
+    def expect_peek(self, *args, **kwds):
+        r"""
+        Like :meth:`expect` but restore the read buffer such that it
+        looks like nothing was actually read. The next reading will
+        continue at the current position.
+
+        EXAMPLES::
+
+            sage: from sage.interfaces.sagespawn import SageSpawn
+            sage: E = SageSpawn("sh", ["-c", "echo hello world"])
+            sage: _ = E.expect_peek("w")
+            sage: E.read()
+            'hello world\r\n'
+        """
+        ret = self.expect(*args, **kwds)
+        self.buffer = self.before + self.after + self.buffer
+        return ret
+
+    def expect_upto(self, *args, **kwds):
+        r"""
+        Like :meth:`expect` but restore the read buffer starting from
+        the matched string. The next reading will continue starting
+        with the matched string.
+
+        EXAMPLES::
+
+            sage: from sage.interfaces.sagespawn import SageSpawn
+            sage: E = SageSpawn("sh", ["-c", "echo hello world"])
+            sage: _ = E.expect_upto("w")
+            sage: E.read()
+            'world\r\n'
+        """
+        ret = self.expect(*args, **kwds)
+        self.buffer = self.after + self.buffer
+        return ret
 
     def close(self):
         """
@@ -169,13 +202,33 @@ class SageSpawn(spawn):
             ....:     else:
             ....:         break  # process got killed
         """
-        cdef int pg = getpgid(self.pid)
-        if fork():
-            # Parent process
-            return
+        cdef int pg, counter = 0
+        cdef int thispg = getpgid(getpid())
+        assert thispg != -1
 
-        # Child process
-        try:
+        with ContainChildren():
+            if fork():
+                # Parent process
+                return
+
+            # We need to avoid a race condition where the spawned
+            # process has not started up completely yet: we need to
+            # wait until the spawned process has changed its process
+            # group. See Trac #18741.
+            pg = getpgid(self.pid)
+            while pg == thispg:
+                counter += 1
+                if counter >= 20:
+                    # Something is seriously wrong, give up...
+                    raise RuntimeError("%r is not starting up" % self)
+                sleep(interval * 0.125)
+                pg = getpgid(self.pid)
+
+            # If we failed to determine the process group, probably
+            # this child is already dead...
+            if pg == -1:
+                return
+
             # If any of these killpg() calls fail, it's most likely
             # because the process is actually killed.
             if killpg(pg, SIGCONT): return
@@ -187,5 +240,3 @@ class SageSpawn(spawn):
             if killpg(pg, SIGTERM): return
             sleep(interval)
             if killpg(pg, SIGKILL): return
-        finally:
-            _exit(0)

@@ -336,7 +336,7 @@ class PathSemigroup(UniqueRepresentation, Parent):
         elif not data:
             raise ValueError("No data given to define this path")
         elif data == 1:
-            start = end = self._quiver.vertex_iterator().next()
+            start = end = next(self._quiver.vertex_iterator())
             path = []
         elif isinstance(data, six.string_types): # one edge
             i = L.get(data, None)
@@ -362,7 +362,7 @@ class PathSemigroup(UniqueRepresentation, Parent):
             path = []
         else:  # a list of edges
             if any(len(x) != 3 for x in data):
-                x = (x for x in data if len(x) != 3).next()
+                x = next((x for x in data if len(x) != 3))
                 raise ValueError("each edge must be a triple, got {}".format(x))
             start = data[0][0]
             end = data[-1][1]
@@ -380,7 +380,7 @@ class PathSemigroup(UniqueRepresentation, Parent):
                     raise ValueError("Start and endpoint of a path of length 0 must coincide")
             else:
                 if any(x is None for x in path):
-                    i = (i for i,x in enumerate(path) if x is None).next()
+                    i = next((i for i,x in enumerate(path) if x is None))
                     raise ValueError("{} is not an edge".format(data[i]))
                 for n in range(1,len(path)):
                     e0 = E[path[n-1]][1]

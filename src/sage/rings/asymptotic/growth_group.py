@@ -1356,9 +1356,9 @@ class GenericGrowthGroup(
             sage: import sage.rings.asymptotic.growth_group as agg
             sage: G_ZZ = agg.MonomialGrowthGroup(ZZ, 'x')
             sage: G_QQ = agg.MonomialGrowthGroup(QQ, 'x')
-            sage: bool(G_ZZ.has_coerce_map_from(G_QQ))  # indirect doctest
+            sage: G_ZZ.has_coerce_map_from(G_QQ)  # indirect doctest
             False
-            sage: bool(G_QQ.has_coerce_map_from(G_ZZ))  # indirect doctest
+            sage: G_QQ.has_coerce_map_from(G_ZZ)  # indirect doctest
             True
 
         ::
@@ -1366,18 +1366,18 @@ class GenericGrowthGroup(
             sage: import sage.rings.asymptotic.growth_group as agg
             sage: P_x_ZZ = agg.MonomialGrowthGroup(ZZ, 'x')
             sage: P_x_QQ = agg.MonomialGrowthGroup(QQ, 'x')
-            sage: bool(P_x_ZZ.has_coerce_map_from(P_x_QQ))  # indirect doctest
+            sage: P_x_ZZ.has_coerce_map_from(P_x_QQ)  # indirect doctest
             False
-            sage: bool(P_x_QQ.has_coerce_map_from(P_x_ZZ))  # indirect doctest
+            sage: P_x_QQ.has_coerce_map_from(P_x_ZZ)  # indirect doctest
             True
             sage: P_y_ZZ = agg.MonomialGrowthGroup(ZZ, 'y')
-            sage: bool(P_y_ZZ.has_coerce_map_from(P_x_ZZ))  # indirect doctest
+            sage: P_y_ZZ.has_coerce_map_from(P_x_ZZ)  # indirect doctest
             False
-            sage: bool(P_x_ZZ.has_coerce_map_from(P_y_ZZ))  # indirect doctest
+            sage: P_x_ZZ.has_coerce_map_from(P_y_ZZ)  # indirect doctest
             False
-            sage: bool(P_y_ZZ.has_coerce_map_from(P_x_QQ))  # indirect doctest
+            sage: P_y_ZZ.has_coerce_map_from(P_x_QQ)  # indirect doctest
             False
-            sage: bool(P_x_QQ.has_coerce_map_from(P_y_ZZ))  # indirect doctest
+            sage: P_x_QQ.has_coerce_map_from(P_y_ZZ)  # indirect doctest
             False
 
         ::
@@ -1385,18 +1385,18 @@ class GenericGrowthGroup(
             sage: import sage.rings.asymptotic.growth_group as agg
             sage: P_x_ZZ = agg.GrowthGroup('ZZ^x')
             sage: P_x_QQ = agg.GrowthGroup('QQ^x')
-            sage: bool(P_x_ZZ.has_coerce_map_from(P_x_QQ))  # indirect doctest
+            sage: P_x_ZZ.has_coerce_map_from(P_x_QQ)  # indirect doctest
             False
-            sage: bool(P_x_QQ.has_coerce_map_from(P_x_ZZ))  # indirect doctest
+            sage: P_x_QQ.has_coerce_map_from(P_x_ZZ)  # indirect doctest
             True
             sage: P_y_ZZ = agg.GrowthGroup('ZZ^y')
-            sage: bool(P_y_ZZ.has_coerce_map_from(P_x_ZZ))  # indirect doctest
+            sage: P_y_ZZ.has_coerce_map_from(P_x_ZZ)  # indirect doctest
             False
-            sage: bool(P_x_ZZ.has_coerce_map_from(P_y_ZZ))  # indirect doctest
+            sage: P_x_ZZ.has_coerce_map_from(P_y_ZZ)  # indirect doctest
             False
-            sage: bool(P_y_ZZ.has_coerce_map_from(P_x_QQ))  # indirect doctest
+            sage: P_y_ZZ.has_coerce_map_from(P_x_QQ)  # indirect doctest
             False
-            sage: bool(P_x_QQ.has_coerce_map_from(P_y_ZZ))  # indirect doctest
+            sage: P_x_QQ.has_coerce_map_from(P_y_ZZ)  # indirect doctest
             False
         """
         if isinstance(S, GenericGrowthGroup) and self._var_ == S._var_:

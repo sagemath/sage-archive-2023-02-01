@@ -874,6 +874,77 @@ cdef class ComplexBall(RingElement):
         mag_zero(arb_radref(acb_imagref(res.value)))
         return res
 
+    # Precision
+
+    def round(self):
+        """
+        Return a copy of this ball rounded to the precision of the parent.
+
+        .. SEEALSO:: :meth:`trim`
+
+        EXAMPLES::
+
+            sage: from sage.rings.complex_ball_acb import CBF
+            sage: b = CBF(exp(I*pi/3).n(100))
+            sage: b.mid()
+            0.50000000000000000000000000000 + 0.86602540378443864676372317075*I
+            sage: b.round().mid()
+            0.500000000000000 + 0.866025403784439*I
+        """
+        cdef ComplexBall res = self._new()
+        if _do_sig(prec(self)): sig_on()
+        acb_set_round(res.value, self.value, prec(self))
+        if _do_sig(prec(self)): sig_off()
+        return res
+
+    def accuracy(self):
+        """
+        Return the effective relative accuracy of this ball measured in bits.
+
+        This is computed as if calling
+        :meth:`~sage.rings.real_arb.RealBall.accuracy()`
+        on the real ball whose midpoint is the larger out of the real and
+        imaginary midpoints of this complex ball, and whose radius is the
+        larger out of the real and imaginary radii of this complex ball.
+
+        EXAMPLES::
+
+            sage: from sage.rings.complex_ball_acb import CBF
+            sage: CBF(exp(I*pi/3)).accuracy()
+            51
+            sage: CBF(I/2).accuracy()
+            9223372036854775807
+            sage: CBF('nan', 'inf').accuracy()
+            -9223372036854775807
+        """
+        return acb_rel_accuracy_bits(self.value)
+
+    def trim(self):
+        """
+        Return a trimmed copy of this ball.
+
+        Return a copy of this ball with both the real and imaginary parts
+        trimmed (see :meth:`~sage.rings.real_arb.RealBall.trim()`).
+
+        .. SEEALSO:: :meth:`round`
+
+        EXAMPLES::
+
+            sage: from sage.rings.complex_ball_acb import CBF
+            sage: from sage.rings.real_arb import RBF
+            sage: b = CBF(1/3, RBF(1/3, rad=.01))
+            sage: b.mid()
+            0.333333333333333 + 0.333333333333333*I
+            sage: b.trim().mid()
+            0.333333333333333 + 0.333333015441895*I
+
+        """
+        cdef ComplexBall res = self._new()
+        if _do_sig(prec(self)): sig_on()
+        acb_trim(res.value, self.value)
+        if _do_sig(prec(self)): sig_off()
+        return res
+
     # Comparisons and predicates
 
     def is_zero(self):

@@ -199,19 +199,7 @@ class GenericProduct(CartesianProductPosets, GenericGrowthGroup):
         :class:`~sage.sets.cartesian_product.CartesianProductPosets`.
     """
 
-    @staticmethod
-    def __classcall__(cls, *args, **kwds):
-        r"""
-        Normalizes the input in order to ensure a unique
-        representation.
-
-        TESTS::
-
-            sage: from sage.rings.asymptotic.growth_group import GrowthGroup
-            sage: GrowthGroup('x^ZZ * y^ZZ')  # indirect doctest
-            Growth Group x^ZZ * y^ZZ
-        """
-        return CartesianProductPosets.__classcall__(cls, *args, **kwds)
+    __classcall__ = CartesianProductPosets.__classcall__
 
 
     def __init__(self, sets, category, **kwds):
@@ -237,21 +225,7 @@ class GenericProduct(CartesianProductPosets, GenericGrowthGroup):
         GenericGrowthGroup.__init__(self, sets[0], Vars, self.category(), **kwds)
 
 
-    def __hash__(self):
-        r"""
-        Return a hash value for this cartesian product.
-
-        OUTPUT:
-
-        An integer.
-
-        TESTS::
-
-            sage: from sage.rings.asymptotic.growth_group import GrowthGroup
-            sage: hash(GrowthGroup('x^ZZ * y^ZZ'))  # indirect doctest, random
-            -1
-        """
-        return CartesianProductPosets.__hash__(self)
+    __hash__ = CartesianProductPosets.__hash__
 
 
     def _element_constructor_(self, data):
@@ -333,29 +307,7 @@ class GenericProduct(CartesianProductPosets, GenericGrowthGroup):
         return self(str_lst)
 
 
-    def _repr_(self, condense=False):
-        r"""
-        A representation string of this cartesian product of growth groups.
-
-        INPUT:
-
-        - ``condense`` -- (default: ``False``) if set, then a shorter
-          output is returned, e.g. the prefix-string ``Growth Group``
-          is not show in this case.
-
-        OUTPUT:
-
-        A string.
-
-        EXAMPLES::
-
-            sage: import sage.rings.asymptotic.growth_group as agg
-            sage: P = agg.MonomialGrowthGroup(QQ, 'x')
-            sage: L = agg.MonomialGrowthGroup(ZZ, 'log(x)')
-            sage: cartesian_product([P, L], order='lex')._repr_()
-            'Growth Group x^QQ * log(x)^ZZ'
-        """
-        return GenericGrowthGroup._repr_(self, condense)
+    _repr_ = GenericGrowthGroup._repr_
 
 
     def _repr_short_(self):
@@ -415,17 +367,7 @@ class GenericProduct(CartesianProductPosets, GenericGrowthGroup):
                 continue
 
 
-    def _coerce_map_from_(self, S):
-        r"""
-        Return ``True if there is a coercion from ``S``
-
-        EXAMPLES::
-
-            sage: from sage.rings.asymptotic.growth_group import GrowthGroup
-            sage: GrowthGroup('x^ZZ * log(x)^ZZ').has_coerce_map_from(QQ)  # indirect doctest
-            False
-        """
-        pass
+    _coerce_map_from_ = CartesianProductPosets._coerce_map_from_
 
 
     def gens_monomial(self):

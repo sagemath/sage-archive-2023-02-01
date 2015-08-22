@@ -2581,6 +2581,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
                     pass
         return PointCollection(normals, M)
 
+    @cached_method
     def facet_of(self):
         r"""
         Return *cones* of the ambient face lattice having ``self`` as a facet.
@@ -2613,12 +2614,10 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
             sage: len(one_cone.facet_of())
             2
         """
-        if "_facet_of" not in self.__dict__:
-            L = self._ambient._face_lattice_function()
-            H = L.hasse_diagram()
-            self._facet_of = self._sort_faces(f
-                    for f in H.neighbors_out(L(self)) if is_Cone(f))
-        return self._facet_of
+        L = self._ambient._face_lattice_function()
+        H = L.hasse_diagram()
+        return self._sort_faces(
+            f for f in H.neighbors_out(L(self)) if is_Cone(f))
 
     def facets(self):
         r"""

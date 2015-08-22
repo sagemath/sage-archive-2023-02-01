@@ -585,12 +585,18 @@ class GenericGrowthElement(sage.structure.element.MultiplicativeGroupElement):
 
         EXAMPLES::
 
-            sage: import sage.rings.asymptotic.growth_group as agg
-            sage: G = agg.GenericGrowthGroup(ZZ)
+            sage: from sage.rings.asymptotic.growth_group import GenericGrowthGroup
+            sage: G = GenericGrowthGroup(ZZ)
             sage: G(raw_element=42)  # indirect doctest
             GenericGrowthElement(42)
+            sage: H = GenericGrowthGroup(ZZ, 'h')
+            sage: H(raw_element=42)  # indirect doctest
+            GenericGrowthElement(42, h)
         """
-        return 'GenericGrowthElement(%s)' % (self._raw_element_,)
+        vars = ', '.join(self.parent()._var_.variable_names())
+        if vars:
+            vars = ', ' + vars
+        return 'GenericGrowthElement(%s%s)' % (self._raw_element_, vars)
 
 
     def __hash__(self):
@@ -1052,13 +1058,18 @@ class GenericGrowthGroup(
 
         EXAMPLES::
 
-            sage: import sage.rings.asymptotic.growth_group as agg
-            sage: agg.GenericGrowthGroup(QQ)._repr_short_()
+            sage: from sage.rings.asymptotic.growth_group import GenericGrowthGroup
+            sage: GenericGrowthGroup(QQ)._repr_short_()
             'Generic(QQ)'
-            sage: agg.GenericGrowthGroup(QQ)
+            sage: GenericGrowthGroup(QQ)
             Growth Group Generic(QQ)
+            sage: GenericGrowthGroup(QQ, ('a', 'b'))
+            Growth Group Generic(QQ, a, b)
         """
-        return 'Generic(%s)' % (parent_to_repr_short(self.base()),)
+        vars = ', '.join(self._var_.variable_names())
+        if vars:
+            vars = ', ' + vars
+        return 'Generic(%s%s)' % (parent_to_repr_short(self.base()), vars)
 
 
     def _repr_(self, condense=False):

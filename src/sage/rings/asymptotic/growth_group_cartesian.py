@@ -201,9 +201,29 @@ class GenericProduct(CartesianProductPosets, GenericGrowthGroup):
 
     @staticmethod
     def __classcall__(cls, *args, **kwds):
+        r"""
+        Normalizes the input in order to ensure a unique
+        representation.
+
+        TESTS::
+
+            sage: from sage.rings.asymptotic.growth_group import GrowthGroup
+            sage: GrowthGroup('x^ZZ * y^ZZ')  # indirect doctest
+            Growth Group x^ZZ * y^ZZ
+        """
         return CartesianProductPosets.__classcall__(cls, *args, **kwds)
 
+
     def __init__(self, sets, category, **kwds):
+        r"""
+        See :class:`GenericProduct` for details.
+
+        TESTS::
+
+            sage: from sage.rings.asymptotic.growth_group import GrowthGroup
+            sage: GrowthGroup('x^ZZ * y^ZZ')  # indirect doctest
+            Growth Group x^ZZ * y^ZZ
+        """
         order = kwds.pop('order')
         CartesianProductPosets.__init__(self, sets, category, order, **kwds)
 
@@ -218,6 +238,19 @@ class GenericProduct(CartesianProductPosets, GenericGrowthGroup):
 
 
     def __hash__(self):
+        r"""
+        Return a hash value for this cartesian product.
+
+        OUTPUT:
+
+        An integer.
+
+        TESTS::
+
+            sage: from sage.rings.asymptotic.growth_group import GrowthGroup
+            sage: hash(GrowthGroup('x^ZZ * y^ZZ'))  # indirect doctest, random
+            -1
+        """
         return CartesianProductPosets.__hash__(self)
 
 

@@ -981,7 +981,7 @@ class GenericGrowthGroup(
 
             sage: import sage.rings.asymptotic.growth_group as agg
             sage: agg.GenericGrowthGroup(ZZ).category()
-            Join of Category of groups and Category of posets
+            Join of Category of monoids and Category of posets
 
         ::
 
@@ -1015,7 +1015,7 @@ class GenericGrowthGroup(
             sage: G3 = agg.GenericGrowthGroup(ZZ, category=Rings())
             Traceback (most recent call last):
             ...
-            ValueError: (Category of rings,) is not a subcategory of Join of Category of groups and Category of posets
+            ValueError: (Category of rings,) is not a subcategory of Join of Category of monoids and Category of posets
 
         ::
 
@@ -1049,18 +1049,18 @@ class GenericGrowthGroup(
         """
         if not isinstance(base, sage.structure.parent.Parent):
             raise TypeError('%s is not a valid base' % (base,))
-        from sage.categories.groups import Groups
+        from sage.categories.monoids import Monoids
         from sage.categories.posets import Posets
 
         if category is None:
-            category = Groups() & Posets()
+            category = Monoids() & Posets()
         else:
             if not isinstance(category, tuple):
                 category = (category,)
-            if not any(cat.is_subcategory(Groups() & Posets()) for cat in
+            if not any(cat.is_subcategory(Monoids() & Posets()) for cat in
                        category):
                 raise ValueError('%s is not a subcategory of %s'
-                                 % (category, Groups() & Posets()))
+                                 % (category, Monoids() & Posets()))
 
         self._var_ = var
         super(GenericGrowthGroup, self).__init__(category=category,
@@ -1568,7 +1568,7 @@ class AbstractGrowthGroupFunctor(ConstructionFunctor):
             var = Variable(var)
         self.var = var
         super(ConstructionFunctor, self).__init__(
-            domain, sage.categories.groups.Groups())
+            domain, sage.categories.monoids.Monoids() & sage.categories.posets.Posets())
 
 
     def _repr_(self):
@@ -2065,7 +2065,7 @@ class MonomialGrowthGroupFunctor(AbstractGrowthGroupFunctor):
 
     def __init__(self, var):
         super(MonomialGrowthGroupFunctor, self).__init__(var,
-            sage.categories.commutative_additive_groups.CommutativeAdditiveGroups())
+            sage.categories.commutative_additive_monoids.CommutativeAdditiveMonoids())
 
 
     def _apply_functor(self, base):
@@ -2484,7 +2484,7 @@ class ExponentialGrowthGroupFunctor(AbstractGrowthGroupFunctor):
 
     def __init__(self, var):
         super(ExponentialGrowthGroupFunctor, self).__init__(var,
-            sage.categories.groups.Groups())
+            sage.categories.monoids.Monoids())
 
 
     def _apply_functor(self, base):

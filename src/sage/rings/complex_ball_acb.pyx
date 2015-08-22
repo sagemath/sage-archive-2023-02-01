@@ -1098,6 +1098,22 @@ cdef class ComplexBall(RingElement):
         """
         return acb_is_exact(self.value)
 
+    def is_real(self):
+        """
+        Return ``True`` iff the imaginary part of this ball is exactly zero.
+
+        EXAMPLES::
+
+            sage: from sage.rings.complex_ball_acb import CBF
+            sage: CBF(1/3, 0).is_real()
+            True
+            sage: (CBF(i/3) - CBF(1, 1/3)).is_real()
+            False
+            sage: CBF('inf').is_real()
+            True
+        """
+        return acb_is_real(self.value)
+
     cpdef _richcmp_(left, Element right, int op):
         """
         Compare ``left`` and ``right``.
@@ -1212,6 +1228,110 @@ cdef class ComplexBall(RingElement):
 
         elif op == Py_GT or op == Py_GE or op == Py_LT or op == Py_LE:
             raise TypeError("No order is defined for ComplexBalls.")
+
+    def identical(self, ComplexBall other):
+        """
+        Return True iff ``self`` and ``other`` are equal as set, i.e. if their
+        real and imaginary parts each have the same midpoint and radius.
+
+        Note that this is not the same thing as testing whether both ``self``
+        and ``other`` certainly represent the complex real number, unless either
+        ``self`` or ``other`` is exact (and neither contains NaN). To test
+        whether both operands might represent the same mathematical quantity,
+        use :meth:`overlaps` or :meth:`contains`, depending on the
+        circumstance.
+
+        EXAMPLES::
+
+            sage: from sage.rings.complex_ball_acb import CBF
+            sage: CBF(1, 1/3).identical(1 + CBF(0, 1)/3)
+            True
+            sage: CBF(1, 1).identical(1 + CBF(0, 1/3)*3)
+            False
+        """
+        return acb_equal(self.value, other.value)
+
+    def overlaps(self, ComplexBall other):
+        """
+        Return True iff ``self`` and ``other`` have some point in common.
+
+        EXAMPLES::
+
+            sage: from sage.rings.complex_ball_acb import CBF
+            sage: CBF(1, 1).overlaps(1 + CBF(0, 1/3)*3)
+            True
+            sage: CBF(1, 1).overlaps(CBF(1, 'nan'))
+            True
+            sage: CBF(1, 1).overlaps(CBF(0, 'nan'))
+            False
+        """
+        return acb_overlaps(self.value, other.value)
+
+    def contains_exact(self, other):
+        """
+        Returns nonzero *iff* the given number (or ball) ``other`` is contained
+        in the interval represented by ``self``.
+
+        Use ``other in self`` for a test that works for a wider range of inputs
+        but may return false negatives.
+
+        EXAMPLES::
+
+            sage: from sage.rings.complex_ball_acb import CBF
+            sage: from sage.rings.real_arb import RealBallField
+            sage: CBF(RealBallField(100)(1/3), 0).contains_exact(1/3)
+            True
+            sage: 1/3 in CBF(RealBallField(100)(1/3), 0)
+            False
+            sage: CBF(1).contains_exact(1)
+            True
+            sage: CBF(1).contains_exact(CBF(1))
+            True
+        """
+        cdef fmpz_t tmpz
+        cdef fmpq_t tmpq
+        if _do_sig(prec(self)): sig_on()
+        try:
+            if isinstance(other, ComplexBall):
+                res = acb_contains(self.value, (<ComplexBall> other).value)
+            elif isinstance(other, sage.rings.integer.Integer):
+                fmpz_init(tmpz)
+                fmpz_set_mpz(tmpz, (<sage.rings.integer.Integer> other).value)
+                res = acb_contains_fmpz(self.value, tmpz)
+                fmpz_clear(tmpz)
+            elif isinstance(other, sage.rings.rational.Rational):
+                fmpq_init(tmpq)
+                fmpq_set_mpq(tmpq, (<sage.rings.rational.Rational> other).value)
+                res = acb_contains_fmpq(self.value, tmpq)
+                fmpq_clear(tmpq)
+            else:
+                raise TypeError
+        finally:
+            if _do_sig(prec(self)): sig_off()
+        return res
+
+    def __contains__(self, other):
+        """
+        Return True if ``other`` can be verified to be contained in ``self``.
+
+        The test is done using interval arithmetic with a precision determined
+        by the parent of ``self`` and may return false negatives.
+
+        .. SEEALSO:: :meth:`contains_exact`
+
+        EXAMPLES::
+
+            sage: from sage.rings.complex_ball_acb import CBF
+            sage: 1/3*i in CBF(0, 1/3)
+            True
+
+        A false negative::
+
+            sage: from sage.rings.real_arb import RealBallField
+            sage: 1/3 in CBF(RealBallField(100)(1/3), 0)
+            False
+        """
+        return self.contains_exact(self._parent(other))
 
     # Arithmetic
 

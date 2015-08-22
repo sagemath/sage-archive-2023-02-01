@@ -1620,4 +1620,169 @@ cdef class ComplexBall(RingElement):
         if _do_sig(prec(self)): sig_off()
         return res
 
+    # Elementary functions
+
+    def log(self):
+        """
+        Return the principal branch of the natural logarithm of this ball.
+
+        EXAMPLES::
+
+            sage: from sage.rings.complex_ball_acb import CBF
+            sage: CBF(2*i).log()
+            [0.6931471805599453 +/- 4.16e-17] + [1.570796326794897 +/- 6.65e-16]*I
+            sage: CBF(-1).log()
+            [3.141592653589793 +/- 5.61e-16]*I
+            sage: CBF('inf').log()
+            nan + nan*I
+        """
+        cdef ComplexBall res = self._new()
+        if _do_sig(prec(self)): sig_on()
+        acb_log(res.value, self.value, prec(self))
+        if _do_sig(prec(self)): sig_off()
+        return res
+
+    def log1p(self):
+        """
+        Return ``log(1 + self)``, computed accurately when ``self`` is close to
+        zero.
+
+        EXAMPLES::
+
+            sage: from sage.rings.complex_ball_acb import CBF
+            sage: from sage.rings.real_arb import RBF
+            sage: eps = RBF(1e-50)
+            sage: CBF(1+eps, eps).log()
+            [+/- 2.23e-16] + [1.000000000000000e-50 +/- 2.30e-66]*I
+            sage: CBF(eps, eps).log1p()
+            [1.000000000000000e-50 +/- 7.63e-68] + [1.00000000000000e-50 +/- 2.30e-66]*I
+        """
+        cdef ComplexBall res = self._new()
+        if _do_sig(prec(self)): sig_on()
+        acb_log1p(res.value, self.value, prec(self))
+        if _do_sig(prec(self)): sig_off()
+        return res
+
+    def exp(self):
+        """
+        Return the exponential of this ball.
+
+        .. SEEALSO:: :meth:`exppii`
+
+        EXAMPLES::
+
+            sage: from sage.rings.complex_ball_acb import CBF
+            sage: CBF(i*pi).exp()
+            [-1.00000000000000 +/- 6.67e-16] + [+/- 5.68e-16]*I
+        """
+        cdef ComplexBall res = self._new()
+        if _do_sig(prec(self)): sig_on()
+        acb_exp(res.value, self.value, prec(self))
+        if _do_sig(prec(self)): sig_off()
+        return res
+
+    def exppii(self):
+        """
+        Return ``exp(pi*i*self)``.
+
+        EXAMPLES::
+
+            sage: from sage.rings.complex_ball_acb import CBF
+            sage: CBF(1/2).exppii()
+            1.000000000000000*I
+            sage: CBF(0, -1/pi).exppii()
+            [2.71828182845904 +/- 6.05e-15]
+        """
+        cdef ComplexBall res = self._new()
+        if _do_sig(prec(self)): sig_on()
+        acb_exp_pi_i(res.value, self.value, prec(self))
+        if _do_sig(prec(self)): sig_off()
+        return res
+
+    def sin(self):
+        """
+        Return the sine of this ball.
+
+        EXAMPLES::
+
+            sage: from sage.rings.complex_ball_acb import CBF
+            sage: CBF(i*pi).sin()
+            [11.5487393572577 +/- 5.34e-14]*I
+        """
+        cdef ComplexBall res = self._new()
+        if _do_sig(prec(self)): sig_on()
+        acb_sin(res.value, self.value, prec(self))
+        if _do_sig(prec(self)): sig_off()
+        return res
+
+    def cos(self):
+        """
+        Return the cosine of this ball.
+
+        EXAMPLES::
+
+            sage: from sage.rings.complex_ball_acb import CBF
+            sage: CBF(i*pi).cos()
+            [11.59195327552152 +/- 8.38e-15]
+        """
+        cdef ComplexBall res = self._new()
+        if _do_sig(prec(self)): sig_on()
+        acb_cos(res.value, self.value, prec(self))
+        if _do_sig(prec(self)): sig_off()
+        return res
+
+    def tan(self):
+        """
+        Return the tangent of this ball.
+
+        EXAMPLES::
+
+            sage: from sage.rings.complex_ball_acb import CBF
+            sage: CBF(pi/2, 1/10).tan()
+            [+/- 3.93e-14] + [10.033311132254 +/- 3.64e-13]*I
+            sage: CBF(pi/2).tan()
+            [+/- inf]
+        """
+        cdef ComplexBall res = self._new()
+        if _do_sig(prec(self)): sig_on()
+        acb_tan(res.value, self.value, prec(self))
+        if _do_sig(prec(self)): sig_off()
+        return res
+
+    def cot(self):
+        """
+        Return the cotangent of this ball.
+
+        EXAMPLES::
+
+            sage: from sage.rings.complex_ball_acb import CBF
+            sage: CBF(pi, 1/10).cot()
+            [+/- 5.65e-14] + [-10.033311132254 +/- 4.75e-13]*I
+            sage: CBF(pi).cot()
+            [+/- inf]
+        """
+        cdef ComplexBall res = self._new()
+        if _do_sig(prec(self)): sig_on()
+        acb_cot(res.value, self.value, prec(self))
+        if _do_sig(prec(self)): sig_off()
+        return res
+
+    def arctan(self):
+        """
+        Return the arctangent of this ball.
+
+        EXAMPLES::
+
+            sage: from sage.rings.complex_ball_acb import CBF
+            sage: CBF(1+i).arctan()
+            [1.017221967897851 +/- 4.93e-16] + [0.4023594781085251 +/- 8.52e-17]*I
+            sage: CBF(i).arctan()
+            nan + nan*I
+        """
+        cdef ComplexBall res = self._new()
+        if _do_sig(prec(self)): sig_on()
+        acb_atan(res.value, self.value, prec(self))
+        if _do_sig(prec(self)): sig_off()
+        return res
+
 CBF = ComplexBallField()

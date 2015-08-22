@@ -281,7 +281,7 @@ class CartesianProductFactory(sage.structure.factory.UniqueFactory):
 
         # check if variables are pairwise disjoint
         for u, w in product(iter(v for v, _ in vgs), repeat=2):
-            if u != w and set(u).intersection(set(w)):
+            if u != w and not set(u).isdisjoint(set(w)):
                 raise ValueError('Growth groups %s do not have pairwise disjoint '
                                  'variables.' % (growth_groups,))
 

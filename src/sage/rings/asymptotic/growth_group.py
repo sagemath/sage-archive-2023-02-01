@@ -1409,6 +1409,42 @@ class GenericGrowthGroup(
                 return True
 
 
+    def _pushout_(self, other):
+        r"""
+        Construct the pushout of this and the other growth group. This is called by
+        :func:`sage.categories.pushout.pushout`.
+
+        TESTS::
+
+            sage: from sage.rings.asymptotic.growth_group import GrowthGroup
+            sage: from sage.categories.pushout import pushout
+            sage: cm = sage.structure.element.get_coercion_model()
+            sage: A = GrowthGroup('QQ^x')
+            sage: B = GrowthGroup('y^ZZ')
+            sage: A._pushout_(B)
+            Growth Group QQ^x * y^ZZ
+            sage: cm.common_parent(A, B)
+            Growth Group QQ^x * y^ZZ
+            sage: C = GrowthGroup('x^QQ')
+            sage: cm.common_parent(A, C)
+            Traceback (most recent call last):
+            ...
+            TypeError: no common canonical parent for objects with parents:
+            'Growth Group QQ^x' and 'Growth Group x^QQ'
+        """
+        if isinstance(other, GenericGrowthGroup):
+            pass
+        if (other.construction() is not None and
+              isinstance(other.construction()[0], AbstractGrowthGroupFunctor)):
+            pass
+        else:
+            return
+
+        if set(self.variable_names()).isdisjoint(set(other.variable_names())):
+            from sage.categories.cartesian_product import cartesian_product
+            return cartesian_product([self, other])
+
+
     def gens_monomial(self):
         r"""
         Return a generator of this growth group, in case one exists.

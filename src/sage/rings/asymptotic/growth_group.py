@@ -1351,7 +1351,7 @@ class GenericGrowthGroup(
 
         A boolean.
 
-        EXAMPLES::
+        TESTS::
 
             sage: import sage.rings.asymptotic.growth_group as agg
             sage: G_ZZ = agg.MonomialGrowthGroup(ZZ, 'x')

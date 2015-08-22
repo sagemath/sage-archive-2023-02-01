@@ -960,6 +960,26 @@ class GenericGrowthGroup(
             sage: agg.GenericGrowthGroup(ZZ).category()
             Join of Category of groups and Category of posets
 
+        ::
+
+            sage: import sage.rings.asymptotic.growth_group as agg
+            sage: agg.MonomialGrowthGroup(ZZ, 'x')
+            Growth Group x^ZZ
+            sage: agg.MonomialGrowthGroup(QQ, SR.var('n'))
+            Growth Group n^QQ
+            sage: agg.MonomialGrowthGroup(ZZ, ZZ['y'].gen())
+            Growth Group y^ZZ
+            sage: agg.MonomialGrowthGroup(QQ, 'log(x)')
+            Growth Group log(x)^QQ
+
+        ::
+
+            sage: import sage.rings.asymptotic.growth_group as agg
+            sage: agg.ExponentialGrowthGroup(QQ, 'x')
+            Growth Group QQ^x
+            sage: agg.ExponentialGrowthGroup(SR, ZZ['y'].gen())
+            Growth Group SR^y
+
         TESTS::
 
             sage: import sage.rings.asymptotic.growth_group as agg
@@ -981,19 +1001,7 @@ class GenericGrowthGroup(
             ...
             TypeError: 42 is not a valid base
 
-        EXAMPLES::
-
-            sage: import sage.rings.asymptotic.growth_group as agg
-            sage: agg.MonomialGrowthGroup(ZZ, 'x')
-            Growth Group x^ZZ
-            sage: agg.MonomialGrowthGroup(QQ, SR.var('n'))
-            Growth Group n^QQ
-            sage: agg.MonomialGrowthGroup(ZZ, ZZ['y'].gen())
-            Growth Group y^ZZ
-            sage: agg.MonomialGrowthGroup(QQ, 'log(x)')
-            Growth Group log(x)^QQ
-
-        TESTS::
+        ::
 
             sage: agg.MonomialGrowthGroup('x', ZZ)
             Traceback (most recent call last):
@@ -1004,15 +1012,7 @@ class GenericGrowthGroup(
             ...
             TypeError: x is not a valid base
 
-        EXAMPLES::
-
-            sage: import sage.rings.asymptotic.growth_group as agg
-            sage: agg.ExponentialGrowthGroup(QQ, 'x')
-            Growth Group QQ^x
-            sage: agg.ExponentialGrowthGroup(SR, ZZ['y'].gen())
-            Growth Group SR^y
-
-        TESTS::
+        ::
 
             sage: agg.ExponentialGrowthGroup('x', ZZ)
             Traceback (most recent call last):
@@ -1121,14 +1121,14 @@ class GenericGrowthGroup(
             sage: hash(agg.GenericGrowthGroup(ZZ))  # random
             4242424242424242
 
-        EXAMPLES::
+        ::
 
             sage: import sage.rings.asymptotic.growth_group as agg
             sage: P = agg.MonomialGrowthGroup(ZZ, 'x')
             sage: hash(P)  # random
             -1234567890123456789
 
-        EXAMPLES::
+        ::
 
             sage: import sage.rings.asymptotic.growth_group as agg
             sage: P = agg.ExponentialGrowthGroup(ZZ, 'x')
@@ -1338,7 +1338,7 @@ class GenericGrowthGroup(
             sage: bool(G_QQ.has_coerce_map_from(G_ZZ))  # indirect doctest
             True
 
-        EXAMPLES::
+        ::
 
             sage: import sage.rings.asymptotic.growth_group as agg
             sage: P_x_ZZ = agg.MonomialGrowthGroup(ZZ, 'x')
@@ -1357,7 +1357,7 @@ class GenericGrowthGroup(
             sage: bool(P_x_QQ.has_coerce_map_from(P_y_ZZ))  # indirect doctest
             False
 
-        EXAMPLES::
+        ::
 
             sage: import sage.rings.asymptotic.growth_group as agg
             sage: P_x_ZZ = agg.GrowthGroup('ZZ^x')
@@ -1452,7 +1452,7 @@ class GenericGrowthGroup(
             sage: P.gen()
             x
 
-        EXAMPLES::
+        ::
 
             sage: import sage.rings.asymptotic.growth_group as agg
             sage: P = agg.GrowthGroup('QQ^x')
@@ -1485,7 +1485,7 @@ class GenericGrowthGroup(
             sage: agg.MonomialGrowthGroup(ZZ, 'log(x)').ngens()
             1
 
-        EXAMPLES::
+        ::
 
             sage: import sage.rings.asymptotic.growth_group as agg
             sage: P = agg.GrowthGroup('QQ^x')
@@ -1509,7 +1509,7 @@ class GenericGrowthGroup(
             sage: agg.GenericGrowthGroup(ZZ).variable_names()
             ()
 
-        EXAMPLES::
+        ::
 
             sage: from sage.rings.asymptotic.growth_group import GrowthGroup
             sage: GrowthGroup('x^ZZ').variable_names()
@@ -1517,7 +1517,7 @@ class GenericGrowthGroup(
             sage: GrowthGroup('log(x)^ZZ').variable_names()
             ('x',)
 
-        EXAMPLES::
+        ::
 
             sage: from sage.rings.asymptotic.growth_group import GrowthGroup
             sage: GrowthGroup('QQ^x').variable_names()

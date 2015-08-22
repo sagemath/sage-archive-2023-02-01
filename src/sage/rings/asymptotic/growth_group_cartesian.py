@@ -505,7 +505,41 @@ class GenericProduct(CartesianProductPosets, GenericGrowthGroup):
                 continue
 
 
-    _coerce_map_from_ = CartesianProductPosets._coerce_map_from_
+    def _coerce_map_from_(self, S):
+        r"""
+        Return if ``S`` coerces into this growth group.
+
+        INPUT:
+
+        - ``S`` -- a parent.
+
+        OUTPUT:
+
+        A boolean.
+
+        TESTS::
+
+            sage: from sage.rings.asymptotic.growth_group import GrowthGroup
+            sage: A = GrowthGroup('QQ^x * x^QQ')
+            sage: B = GrowthGroup('QQ^x * x^ZZ')
+            sage: A.has_coerce_map_from(B)
+            True
+            sage: B.has_coerce_map_from(A)
+            False
+        """
+        if CartesianProductPosets.has_coerce_map_from(self, S):
+            return True
+
+        elif isinstance(S, GenericProduct):
+            factors = S.cartesian_factors()
+        else:
+            factors = (S,)
+
+        if all(any(g.has_coerce_map_from(f) for g in self.cartesian_factors())
+               for f in factors):
+            return True
+
+
 
 
     def gens_monomial(self):

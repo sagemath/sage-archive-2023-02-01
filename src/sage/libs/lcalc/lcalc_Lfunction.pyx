@@ -139,13 +139,13 @@ cdef class Lfunction:
             sage: chi=DirichletGroup(5)[2] #This is a quadratic character
             sage: from sage.libs.lcalc.lcalc_Lfunction import *
             sage: L=Lfunction_from_character(chi, type="int")
-            sage: L.value(.5)  # abs tol 2e-17
+            sage: L.value(.5)  # abs tol 1e-15
             0.231750947504016 + 5.75329642226136e-18*I
             sage: L.value(.2+.4*I)
             0.102558603193... + 0.190840777924...*I
 
             sage: L=Lfunction_from_character(chi, type="double")
-            sage: L.value(.6)  # abs tol 2e-17
+            sage: L.value(.6)  # abs tol 1e-15
             0.274633355856345 + 6.59869267328199e-18*I
             sage: L.value(.6+I)
             0.362258705721... + 0.433888250620...*I

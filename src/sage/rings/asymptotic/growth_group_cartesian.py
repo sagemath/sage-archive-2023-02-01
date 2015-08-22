@@ -199,6 +199,28 @@ class GenericProduct(CartesianProductPosets, GenericGrowthGroup):
         :class:`~sage.sets.cartesian_product.CartesianProductPosets`.
     """
 
+    @staticmethod
+    def __classcall__(cls, *args, **kwds):
+        return CartesianProductPosets.__classcall__(cls, *args, **kwds)
+
+    def __init__(self, sets, category, **kwds):
+        order = kwds.pop('order')
+        CartesianProductPosets.__init__(self, sets, category, order, **kwds)
+
+        vars = sum(iter(factor.variable_names()
+                        for factor in self.cartesian_factors()),
+                   tuple())
+        from itertools import groupby
+        from sage.rings.asymptotic.growth_group import Variable
+        Vars = Variable(tuple(v for v, _ in groupby(vars)))
+
+        GenericGrowthGroup.__init__(self, sets[0], Vars, self.category(), **kwds)
+
+
+    def __hash__(self):
+        return CartesianProductPosets.__hash__(self)
+
+
     def _element_constructor_(self, data):
         r"""
         Converts the given object to an element of this cartesian

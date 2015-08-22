@@ -1862,7 +1862,7 @@ class PartitionTuples_level(PartitionTuples):
             sage: PartitionTuples(level=4).an_element()  # indirect doctest
             ([], [1], [2], [3])
         """
-        return self.element_class(self, tuple([l] for l in range(self.level())))
+        return self.element_class(self, tuple([l] for l in range(self.level()) ))
 
 
 class PartitionTuples_size(PartitionTuples):
@@ -1962,7 +1962,7 @@ class PartitionTuples_size(PartitionTuples):
             sage: PartitionTuples(size=4).an_element()  # indirect doctest
             ([1], [1], [1], [1])
         """
-        return self.element_class(self, tuple([1] for l in range(self.size())))
+        return self.element_class(self, tuple([1] for l in range(self.size()) ))
 
 
 class PartitionTuples_level_size(PartitionTuples):

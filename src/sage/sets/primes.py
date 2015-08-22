@@ -198,4 +198,4 @@ class Primes(Set_generic, UniqueRepresentation):
             sage: P.unrank(42)
             191
         """
-        return nth_prime(n + 1)
+        return nth_prime(n+1)

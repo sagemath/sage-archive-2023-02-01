@@ -540,6 +540,159 @@ class GenericProduct(CartesianProductPosets, GenericGrowthGroup):
             return True
 
 
+    def _pushout_(self, other):
+        r"""
+        Construct the pushout of this and the other growth group. This is called by
+        :func:`sage.categories.pushout.pushout`.
+
+        TESTS::
+
+            sage: from sage.rings.asymptotic.growth_group import GrowthGroup
+            sage: from sage.categories.pushout import pushout
+            sage: cm = sage.structure.element.get_coercion_model()
+            sage: A = GrowthGroup('QQ^x * x^ZZ')
+            sage: B = GrowthGroup('x^ZZ * log(x)^ZZ')
+            sage: A._pushout_(B)
+            Growth Group QQ^x * x^ZZ * log(x)^ZZ
+            sage: pushout(A, B)
+            Growth Group QQ^x * x^ZZ * log(x)^ZZ
+            sage: cm.discover_coercion(A, B)
+            ((map internal to coercion system -- copy before use)
+             Conversion map:
+               From: Growth Group QQ^x * x^ZZ
+               To:   Growth Group QQ^x * x^ZZ * log(x)^ZZ,
+             (map internal to coercion system -- copy before use)
+             Conversion map:
+               From: Growth Group x^ZZ * log(x)^ZZ
+               To:   Growth Group QQ^x * x^ZZ * log(x)^ZZ)
+            sage: cm.common_parent(A, B)
+            Growth Group QQ^x * x^ZZ * log(x)^ZZ
+
+        ::
+
+            sage: C = GrowthGroup('QQ^x * x^QQ * y^ZZ')
+            sage: D = GrowthGroup('x^ZZ * log(x)^QQ * QQ^z')
+            sage: C._pushout_(D)
+            Growth Group QQ^x * x^QQ * log(x)^QQ * y^ZZ * QQ^z
+            sage: cm.common_parent(C, D)
+            Growth Group QQ^x * x^QQ * log(x)^QQ * y^ZZ * QQ^z
+            sage: A._pushout_(D)
+            Growth Group QQ^x * x^ZZ * log(x)^QQ * QQ^z
+            sage: cm.common_parent(A, D)
+            Growth Group QQ^x * x^ZZ * log(x)^QQ * QQ^z
+            sage: cm.common_parent(B, D)
+            Growth Group x^ZZ * log(x)^QQ * QQ^z
+            sage: cm.common_parent(A, C)
+            Growth Group QQ^x * x^QQ * y^ZZ
+            sage: E = GrowthGroup('log(x)^ZZ * y^ZZ')
+            sage: cm.common_parent(A, E)
+            Traceback (most recent call last):
+            ...
+            TypeError: no common canonical parent for objects with parents:
+            'Growth Group QQ^x * x^ZZ' and 'Growth Group log(x)^ZZ * y^ZZ'
+        """
+        def pushout_univariate_factors(self, other, var, Sfactors, Ofactors):
+            try:
+                return merge_overlapping(
+                    Sfactors, Ofactors,
+                    lambda f: (type(f), f._var_.var_repr))
+            except ValueError:
+                pass
+
+            #print "search common", Sfactors, Ofactors
+            cm = sage.structure.element.get_coercion_model()
+            try:
+                Z = cm.common_parent(*Sfactors+Ofactors)
+                #print "found common", Z
+                return (Z,), (Z,)
+            except TypeError:
+                pass
+
+            def subfactors(F):
+                for f in F:
+                    if isinstance(f, GenericProduct):
+                        for g in subfactors(f.cartesian_factors()):
+                            yield g
+                    else:
+                        yield f
+
+            try:
+                return merge_overlapping(
+                    tuple(subfactors(Sfactors)), tuple(subfactors(Ofactors)),
+                    lambda f: (type(f), f._var_.var_repr))
+            except ValueError:
+                pass
+
+            from sage.structure.coerce_exceptions import CoercionException
+            raise CoercionException(
+                'Cannot construct the pushout of %s and %s: The factors '
+                'with variables %s are not overlapping, '
+                'no common parent was found, and '
+                'splitting the factors was unsuccessful.' % (self, other, var))
+
+
+        if isinstance(other, GenericProduct):
+            class it:
+                def __init__(self, it):
+                    self.it = it
+                    self.var = None
+                    self.factors = None
+                def next(self):
+                    try:
+                        self.var, factors = next(self.it)
+                        self.factors = tuple(factors)
+                    except StopIteration:
+                        self.var = None
+                        self.factors = tuple()
+
+            from itertools import groupby
+            S = it(groupby(self.cartesian_factors(), key=lambda k: k.variable_names()))
+            O = it(groupby(other.cartesian_factors(), key=lambda k: k.variable_names()))
+
+            newS = []
+            newO = []
+
+            S.next()
+            O.next()
+            while S.var is not None or O.var is not None:
+                #print S.var, S.factors, newS, O.var, O.factors, newO
+                if S.var is not None and S.var < O.var:
+                    newS.extend(S.factors)
+                    newO.extend(S.factors)
+                    S.next()
+                elif O.var is not None and S.var > O.var:
+                    newS.extend(O.factors)
+                    newO.extend(O.factors)
+                    O.next()
+                else:
+                    SL, OL = pushout_univariate_factors(self, other, S.var,
+                                                        S.factors, O.factors)
+                    newS.extend(SL)
+                    newO.extend(OL)
+                    S.next()
+                    O.next()
+
+            #print 'done', S.var, S.factors, newS, O.var, O.factors, newO
+            assert(len(newS) == len(newO))
+
+            if (len(self.cartesian_factors()) == len(newS) and
+                len(other.cartesian_factors()) == len(newO)):
+                # We had already all factors in each of the self and
+                # other, thus splitting it in subproblems (one for
+                # each factor) is the strategy to use. If a pushout is
+                # possible :func:`sage.categories.pushout.pushout`
+                # will manage this by itself.
+                return
+
+            from sage.categories.pushout import pushout
+            from sage.categories.cartesian_product import cartesian_product
+            return pushout(cartesian_product(newS), cartesian_product(newO))
+
+
+        #C = other.construction()[0]
+        #if isinstance(C, PolynomialFunctor):
+        #    return pushout(self, CartesianProductPolys((other,)))
+
 
 
     def gens_monomial(self):

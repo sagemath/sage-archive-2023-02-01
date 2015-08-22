@@ -1197,9 +1197,6 @@ ext_modules = [
 
     Extension('*', ['sage/quivers/*.pyx']),
 
-    Extension('sage.quivers.algebra_elements',
-              sources = ['sage/quivers/algebra_elements.pyx']),
-
     ################################
     ##
     ## sage.repl

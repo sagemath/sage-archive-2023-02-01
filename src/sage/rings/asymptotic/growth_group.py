@@ -2058,6 +2058,15 @@ class MonomialGrowthGroup(GenericGrowthGroup):
 
 class MonomialGrowthGroupFunctor(AbstractGrowthGroupFunctor):
     r"""
+
+    TESTS::
+
+        sage: from sage.rings.asymptotic.growth_group import GrowthGroup, MonomialGrowthGroupFunctor
+        sage: cm = sage.structure.element.get_coercion_model()
+        sage: A = GrowthGroup('x^QQ')
+        sage: B = MonomialGrowthGroupFunctor('x')(ZZ['t'])
+        sage: cm.common_parent(A, B)
+        Growth Group x^(Univariate Polynomial Ring in t over Rational Field)
     """
 
     _functor_name = 'MonomialGrowthGroup'
@@ -2477,6 +2486,15 @@ class ExponentialGrowthGroup(GenericGrowthGroup):
 
 class ExponentialGrowthGroupFunctor(AbstractGrowthGroupFunctor):
     r"""
+
+    TESTS::
+
+        sage: from sage.rings.asymptotic.growth_group import GrowthGroup, ExponentialGrowthGroupFunctor
+        sage: cm = sage.structure.element.get_coercion_model()
+        sage: A = GrowthGroup('QQ^x')
+        sage: B = ExponentialGrowthGroupFunctor('x')(ZZ['t'])
+        sage: cm.common_parent(A, B)
+        Growth Group (Univariate Polynomial Ring in t over Rational Field)^x
     """
 
     _functor_name = 'ExponentialGrowthGroup'

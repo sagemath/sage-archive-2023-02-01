@@ -1553,6 +1553,39 @@ class GenericGrowthGroup(
 
     CartesianProduct = CartesianProductGrowthGroups
 
+from sage.categories.pushout import ConstructionFunctor
+class AbstractGrowthGroupFunctor(ConstructionFunctor):
+    r"""
+    """
+    _functor_name = 'AbstractGrowthGroup'
+    rank = 13
+
+    def __init__(self, var, domain):
+        if var is None:
+            var = Variable('')
+        elif not isinstance(var, Variable):
+            var = Variable(var)
+        self.var = var
+        super(ConstructionFunctor, self).__init__(
+            domain, sage.categories.groups.Groups())
+
+
+    def _repr_(self):
+        return '%s[%s]' % (self._functor_name, self.var)
+
+
+    def merge(self, other):
+        if self == other:
+            return self
+
+
+    def __eq__(self, other):
+        return type(self) == type(other) and self.var == other.var
+
+
+    def __ne__(self, other):
+        return not self.__eq__(other)
+
 
 class MonomialGrowthElement(GenericGrowthElement):
     r"""
@@ -2011,6 +2044,23 @@ class MonomialGrowthGroup(GenericGrowthGroup):
         return (self(raw_element=self.base().one()),)
 
 
+
+class MonomialGrowthGroupFunctor(AbstractGrowthGroupFunctor):
+    r"""
+    """
+
+    _functor_name = 'MonomialGrowthGroup'
+
+
+    def __init__(self, var):
+        super(MonomialGrowthGroupFunctor, self).__init__(var,
+            sage.categories.commutative_additive_groups.CommutativeAdditiveGroups())
+
+
+    def _apply_functor(self, base):
+        return MonomialGrowthGroup(base, self.var)
+
+
 class ExponentialGrowthElement(GenericGrowthElement):
     r"""
     An implementation of exponential growth elements.
@@ -2401,6 +2451,23 @@ class ExponentialGrowthGroup(GenericGrowthGroup):
             ()
         """
         return tuple()
+
+
+
+class ExponentialGrowthGroupFunctor(AbstractGrowthGroupFunctor):
+    r"""
+    """
+
+    _functor_name = 'ExponentialGrowthGroup'
+
+
+    def __init__(self, var):
+        super(ExponentialGrowthGroupFunctor, self).__init__(var,
+            sage.categories.groups.Groups())
+
+
+    def _apply_functor(self, base):
+        return ExponentialGrowthGroup(base, self.var)
 
 
 class GrowthGroupFactory(sage.structure.factory.UniqueFactory):

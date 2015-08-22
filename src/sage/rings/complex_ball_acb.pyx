@@ -108,6 +108,8 @@ include 'sage/ext/interrupt.pxi'
 include "sage/ext/python.pxi"
 include "sage/ext/stdsage.pxi"
 
+import operator
+
 import sage.categories.fields
 
 cimport sage.rings.integer
@@ -1617,6 +1619,108 @@ cdef class ComplexBall(RingElement):
         cdef ComplexBall res = self._new()
         if _do_sig(prec(self)): sig_on()
         acb_div(res.value, self.value, (<ComplexBall> other).value, prec(self))
+        if _do_sig(prec(self)): sig_off()
+        return res
+
+    def __pow__(base, expo, _):
+        """
+        EXAMPLES::
+
+            sage: from sage.rings.complex_ball_acb import CBF
+            sage: from sage.rings.real_arb import RBF
+            sage: CBF(-1)**(1/2)
+            [+/- 2.84e-16] + [1.00000000000000 +/- 4.45e-16]*I
+            sage: CBF(e)**CBF(i*pi)
+            [-1.0000000000000 +/- 1.98e-15] + [+/- 2.32e-15]*I
+            sage: CBF(0, 1)**AA(2)**(1/2)
+            [-0.60569986707881 +/- 4.36e-15] + [0.79569320156748 +/- 2.53e-15]*I
+
+            sage: CBF(i)**RBF(2**1000)
+            [+/- 2.51] + [+/- 2.87]*I
+            sage: CBF(i)**(2**1000)
+            1.000000000000000
+
+            sage: CBF(0)^(1/3)
+            nan + nan*I
+            sage: CBF(0)^(-1)
+            [+/- inf]
+            sage: CBF(0)^(-2)
+            [+/- inf] + [+/- inf]*I
+
+        TESTS::
+
+            sage: (CBF(e)**CBF(i))**RBF(pi)
+            [-1.0000000000000 +/- 5.48e-15] + [+/- 4.14e-15]*I
+            sage: CBF(2*i)**10r
+            -1024.000000000000
+        """
+        cdef fmpz_t tmpz
+        if not isinstance(base, ComplexBall):
+            return sage.structure.element.bin_op(base, expo, operator.pow)
+        cdef ComplexBall self = base
+        cdef ComplexBall res = self._new()
+        if isinstance(expo, int):
+            if _do_sig(prec(self)): sig_on()
+            acb_pow_ui(res.value, self.value, PyInt_AS_LONG(expo), prec(self))
+            if _do_sig(prec(self)): sig_off()
+        elif isinstance(expo, sage.rings.integer.Integer):
+            if _do_sig(prec(self)): sig_on()
+            fmpz_init(tmpz)
+            fmpz_set_mpz(tmpz, (<sage.rings.integer.Integer> expo).value)
+            acb_pow_fmpz(res.value, self.value, tmpz, prec(self))
+            fmpz_clear(tmpz)
+            if _do_sig(prec(self)): sig_off()
+        elif isinstance(expo, ComplexBall):
+            if _do_sig(prec(self)): sig_on()
+            acb_pow(res.value, self.value, (<ComplexBall> expo).value, prec(self))
+            if _do_sig(prec(self)): sig_off()
+        elif isinstance(expo, RealBall):
+            if _do_sig(prec(self)): sig_on()
+            acb_pow_arb(res.value, self.value, (<RealBall> expo).value, prec(self))
+            if _do_sig(prec(self)): sig_off()
+        else:
+            return sage.structure.element.bin_op(base, expo, operator.pow)
+        return res
+
+    def sqrt(self):
+        """
+        Return the square root of this ball.
+
+        If either the real or imaginary part is exactly zero, only a single
+        real square root is needed.
+
+        EXAMPLES::
+
+            sage: from sage.rings.complex_ball_acb import CBF
+            sage: CBF(-2).sqrt()
+            [1.414213562373095 +/- 2.99e-16]*I
+        """
+        cdef ComplexBall res = self._new()
+        if _do_sig(prec(self)): sig_on()
+        acb_sqrt(res.value, self.value, prec(self))
+        if _do_sig(prec(self)): sig_off()
+        return res
+
+    def rsqrt(self):
+        """
+        Return the reciprocal square root of ``self``.
+
+        If either the real or imaginary part is exactly zero, only a single
+        real reciprocal square root is needed.
+
+        EXAMPLES::
+
+            sage: from sage.rings.complex_ball_acb import CBF
+            sage: CBF(-2).rsqrt()
+            [-0.707106781186547 +/- 5.73e-16]*I
+            sage: CBF(0, 1/2).rsqrt()
+            1.000000000000000 - 1.000000000000000*I
+            sage: CBF(0).rsqrt()
+            nan
+        """
+        cdef ComplexBall res = self._new()
+        if _do_sig(prec(self)): sig_on()
+        acb_rsqrt(res.value, self.value, prec(self))
         if _do_sig(prec(self)): sig_off()
         return res
 

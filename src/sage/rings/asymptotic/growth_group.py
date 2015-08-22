@@ -912,6 +912,42 @@ class GenericGrowthGroup(
     Element = GenericGrowthElement
 
 
+    @staticmethod
+    def __classcall__(cls, base, var, category=None):
+        r"""
+        Normalizes the input in order to ensure a unique
+        representation.
+
+        For more information see :class:`MonomialGrowthGroup`.
+
+        TESTS::
+
+            sage: import sage.rings.asymptotic.growth_group as agg
+            sage: P1 = agg.MonomialGrowthGroup(ZZ, 'x')
+            sage: P2 = agg.MonomialGrowthGroup(ZZ, ZZ['x'].gen())
+            sage: P3 = agg.MonomialGrowthGroup(ZZ, SR.var('x'))
+            sage: P1 is P2 and P2 is P3
+            True
+            sage: P4 = agg.MonomialGrowthGroup(ZZ, buffer('xylophone', 0, 1))
+            sage: P1 is P4
+            True
+            sage: P5 = agg.MonomialGrowthGroup(ZZ, 'x ')
+            sage: P1 is P5
+            True
+
+        ::
+
+            sage: L1 = agg.MonomialGrowthGroup(QQ, log(x))
+            sage: L2 = agg.MonomialGrowthGroup(QQ, 'log(x)')
+            sage: L1 is L2
+            True
+        """
+        if not isinstance(var, Variable):
+            var = Variable(var)
+        return super(MonomialGrowthGroup, cls).__classcall__(
+            cls, base, var, category)
+
+
     @sage.misc.superseded.experimental(trac_number=17601)
     def __init__(self, base, category=None):
         r"""
@@ -1269,6 +1305,32 @@ class GenericGrowthGroup(
         return tuple()
 
 
+    def gens(self):
+        r"""
+        Return a tuple of all generators of this monomial growth
+        group, even if the growth group is logarithmic.
+
+        INPUT:
+
+        Nothing.
+
+        OUTPUT:
+
+        A tuple whose entries are instances of
+        :class:`MonomialGrowthElement`.
+
+        EXAMPLES::
+
+            sage: import sage.rings.asymptotic.growth_group as agg
+            sage: P = agg.MonomialGrowthGroup(ZZ, 'x')
+            sage: P.gens()
+            (x,)
+            sage: agg.MonomialGrowthGroup(ZZ, 'log(x)').gens()
+            (log(x),)
+        """
+        return (self(raw_element=self.base().one()),)
+
+
     def variable_names(self):
         r"""
         Return the names of the variables.
@@ -1552,42 +1614,6 @@ class MonomialGrowthGroup(GenericGrowthGroup):
     Element = MonomialGrowthElement
 
 
-    @staticmethod
-    def __classcall__(cls, base, var, category=None):
-        r"""
-        Normalizes the input in order to ensure a unique
-        representation.
-
-        For more information see :class:`MonomialGrowthGroup`.
-
-        TESTS::
-
-            sage: import sage.rings.asymptotic.growth_group as agg
-            sage: P1 = agg.MonomialGrowthGroup(ZZ, 'x')
-            sage: P2 = agg.MonomialGrowthGroup(ZZ, ZZ['x'].gen())
-            sage: P3 = agg.MonomialGrowthGroup(ZZ, SR.var('x'))
-            sage: P1 is P2 and P2 is P3
-            True
-            sage: P4 = agg.MonomialGrowthGroup(ZZ, buffer('xylophone', 0, 1))
-            sage: P1 is P4
-            True
-            sage: P5 = agg.MonomialGrowthGroup(ZZ, 'x ')
-            sage: P1 is P5
-            True
-
-        ::
-
-            sage: L1 = agg.MonomialGrowthGroup(QQ, log(x))
-            sage: L2 = agg.MonomialGrowthGroup(QQ, 'log(x)')
-            sage: L1 is L2
-            True
-        """
-        if not isinstance(var, Variable):
-            var = Variable(var)
-        return super(MonomialGrowthGroup, cls).__classcall__(
-            cls, base, var, category)
-
-
     @sage.misc.superseded.experimental(trac_number=17601)
     def __init__(self, base, var, category):
         r"""
@@ -1869,32 +1895,6 @@ class MonomialGrowthGroup(GenericGrowthGroup):
         """
         if not self._var_.is_monomial():
             return tuple()
-        return (self(raw_element=self.base().one()),)
-
-
-    def gens(self):
-        r"""
-        Return a tuple of all generators of this monomial growth
-        group, even if the growth group is logarithmic.
-
-        INPUT:
-
-        Nothing.
-
-        OUTPUT:
-
-        A tuple whose entries are instances of
-        :class:`MonomialGrowthElement`.
-
-        EXAMPLES::
-
-            sage: import sage.rings.asymptotic.growth_group as agg
-            sage: P = agg.MonomialGrowthGroup(ZZ, 'x')
-            sage: P.gens()
-            (x,)
-            sage: agg.MonomialGrowthGroup(ZZ, 'log(x)').gens()
-            (log(x),)
-        """
         return (self(raw_element=self.base().one()),)
 
 

@@ -335,6 +335,29 @@ class Variable(sage.structure.unique_representation.CachedRepresentation,
         return self.var_repr == other.var_repr and self.var_bases == other.var_bases
 
 
+    def __ne__(self, other):
+        r"""
+        Compares if this variable does not equal ``other``.
+
+        INPUT:
+
+        - ``other`` -- another variable.
+
+        OUTPUT:
+
+        A boolean.
+
+        TESTS::
+
+            sage: from sage.rings.asymptotic.growth_group import Variable
+            sage: Variable('x') != Variable('x')
+            False
+            sage: Variable('x') != Variable('y')
+            True
+        """
+        return not self.__eq__(other)
+
+
     def _repr_(self):
         r"""
         Return a representation string of this variable.

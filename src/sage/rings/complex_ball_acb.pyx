@@ -122,9 +122,11 @@ from sage.libs.arb.arf cimport arf_t, arf_init, arf_get_mpfr, arf_set_mpfr, arf_
 from sage.libs.arb.mag cimport mag_t, mag_init, mag_clear, mag_add, mag_set_d, MAG_BITS, mag_is_inf, mag_is_finite, mag_zero
 from sage.libs.flint.fmpz cimport fmpz_t, fmpz_init, fmpz_get_mpz, fmpz_set_mpz, fmpz_clear
 from sage.libs.flint.fmpq cimport fmpq_t, fmpq_init, fmpq_set_mpq, fmpq_clear
+from sage.libs.gmp.mpz cimport mpz_fits_ulong_p, mpz_fits_slong_p, mpz_get_ui, mpz_get_si
 from sage.misc.superseded import experimental
 from sage.rings.complex_field import ComplexField
 from sage.rings.complex_interval_field import ComplexIntervalField
+from sage.rings.integer_ring import ZZ
 from sage.rings.real_arb cimport mpfi_to_arb, arb_to_mpfi
 from sage.rings.real_arb import RealBallField
 from sage.structure.element cimport Element, ModuleElement
@@ -284,7 +286,6 @@ class ComplexBallField(UniqueRepresentation, Parent):
                 base=real_field,
                 category=category or [sage.categories.fields.Fields()])
         self._prec = precision
-        from sage.rings.integer_ring import ZZ
         from sage.rings.rational_field import QQ
         from sage.rings.real_lazy import CLF
         self._populate_coercion_lists_([ZZ, QQ, real_field, CLF])
@@ -1723,6 +1724,60 @@ cdef class ComplexBall(RingElement):
         acb_rsqrt(res.value, self.value, prec(self))
         if _do_sig(prec(self)): sig_off()
         return res
+
+    def cube(self):
+        """
+        Return the cube of this ball.
+
+        The result is computed efficiently using two real squarings, two real
+        multiplications, and scalar operations.
+
+        EXAMPLES::
+
+            sage: from sage.rings.complex_ball_acb import CBF
+            sage: CBF(1, 1).cube()
+            -2.000000000000000 + 2.000000000000000*I
+        """
+        cdef ComplexBall res = self._new()
+        if _do_sig(prec(self)): sig_on()
+        acb_cube(res.value, self.value, prec(self))
+        if _do_sig(prec(self)): sig_off()
+        return res
+
+    def rising_factorial(self, n):
+        """
+        Return the ``n``-th rising factorial of this ball.
+
+        The `n`-th rising factorial of `x` is equal to `x (x+1) \cdots (x+n-1)`.
+
+        EXAMPLES::
+
+            sage: from sage.rings.complex_ball_acb import CBF
+            sage: CBF(1).rising_factorial(5)
+            120.0000000000000
+            sage: CBF(1/3, 1/2).rising_factorial(300)
+            [-3.87949484513701e+612 +/- 8.46e+597] + [-3.52042209762719e+612 +/- 7.70e+597]*I
+
+            sage: CBF(1).rising_factorial(-1)
+            Traceback (most recent call last):
+            ...
+            ValueError: expected a nonnegative index
+            sage: CBF(1).rising_factorial(2**64)
+            Traceback (most recent call last):
+            ...
+            OverflowError: index too large
+        """
+        cdef ComplexBall res = self._new()
+        cdef sage.rings.integer.Integer n_as_Integer = ZZ.coerce(n)
+        if mpz_fits_ulong_p(n_as_Integer.value):
+            if _do_sig(prec(self)): sig_on()
+            acb_rising_ui(res.value, self.value, mpz_get_ui(n_as_Integer.value), prec(self))
+            if _do_sig(prec(self)): sig_off()
+            return res
+        elif n_as_Integer < 0:
+            raise ValueError("expected a nonnegative index")
+        else:
+            raise OverflowError("index too large")
 
     # Elementary functions
 

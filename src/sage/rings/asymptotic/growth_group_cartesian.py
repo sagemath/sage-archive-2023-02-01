@@ -591,6 +591,10 @@ class GenericProduct(CartesianProductPosets, GenericGrowthGroup):
             TypeError: no common canonical parent for objects with parents:
             'Growth Group QQ^x * x^ZZ' and 'Growth Group log(x)^ZZ * y^ZZ'
         """
+        from growth_group import GenericGrowthGroup
+        if not isinstance(other, GenericGrowthGroup):
+            return
+
         def pushout_univariate_factors(self, other, var, Sfactors, Ofactors):
             try:
                 return merge_overlapping(
@@ -599,11 +603,9 @@ class GenericProduct(CartesianProductPosets, GenericGrowthGroup):
             except ValueError:
                 pass
 
-            #print "search common", Sfactors, Ofactors
             cm = sage.structure.element.get_coercion_model()
             try:
                 Z = cm.common_parent(*Sfactors+Ofactors)
-                #print "found common", Z
                 return (Z,), (Z,)
             except TypeError:
                 pass
@@ -631,62 +633,62 @@ class GenericProduct(CartesianProductPosets, GenericGrowthGroup):
                 'splitting the factors was unsuccessful.' % (self, other, var))
 
 
-        if isinstance(other, GenericProduct):
-            class it:
-                def __init__(self, it):
-                    self.it = it
+        if not isinstance(other, GenericProduct):
+            return
+
+        class it:
+            def __init__(self, it):
+                self.it = it
+                self.var = None
+                self.factors = None
+            def next(self):
+                try:
+                    self.var, factors = next(self.it)
+                    self.factors = tuple(factors)
+                except StopIteration:
                     self.var = None
-                    self.factors = None
-                def next(self):
-                    try:
-                        self.var, factors = next(self.it)
-                        self.factors = tuple(factors)
-                    except StopIteration:
-                        self.var = None
-                        self.factors = tuple()
+                    self.factors = tuple()
 
-            from itertools import groupby
-            S = it(groupby(self.cartesian_factors(), key=lambda k: k.variable_names()))
-            O = it(groupby(other.cartesian_factors(), key=lambda k: k.variable_names()))
+        from itertools import groupby
+        S = it(groupby(self.cartesian_factors(), key=lambda k: k.variable_names()))
+        O = it(groupby(other.cartesian_factors(), key=lambda k: k.variable_names()))
 
-            newS = []
-            newO = []
+        newS = []
+        newO = []
 
-            S.next()
-            O.next()
-            while S.var is not None or O.var is not None:
-                #print S.var, S.factors, newS, O.var, O.factors, newO
-                if S.var is not None and S.var < O.var:
-                    newS.extend(S.factors)
-                    newO.extend(S.factors)
-                    S.next()
-                elif O.var is not None and S.var > O.var:
-                    newS.extend(O.factors)
-                    newO.extend(O.factors)
-                    O.next()
-                else:
-                    SL, OL = pushout_univariate_factors(self, other, S.var,
-                                                        S.factors, O.factors)
-                    newS.extend(SL)
-                    newO.extend(OL)
-                    S.next()
-                    O.next()
+        S.next()
+        O.next()
+        while S.var is not None or O.var is not None:
+            if S.var is not None and S.var < O.var:
+                newS.extend(S.factors)
+                newO.extend(S.factors)
+                S.next()
+            elif O.var is not None and S.var > O.var:
+                newS.extend(O.factors)
+                newO.extend(O.factors)
+                O.next()
+            else:
+                SL, OL = pushout_univariate_factors(self, other, S.var,
+                                                    S.factors, O.factors)
+                newS.extend(SL)
+                newO.extend(OL)
+                S.next()
+                O.next()
 
-            #print 'done', S.var, S.factors, newS, O.var, O.factors, newO
-            assert(len(newS) == len(newO))
+        assert(len(newS) == len(newO))
 
-            if (len(self.cartesian_factors()) == len(newS) and
-                len(other.cartesian_factors()) == len(newO)):
-                # We had already all factors in each of the self and
-                # other, thus splitting it in subproblems (one for
-                # each factor) is the strategy to use. If a pushout is
-                # possible :func:`sage.categories.pushout.pushout`
-                # will manage this by itself.
-                return
+        if (len(self.cartesian_factors()) == len(newS) and
+            len(other.cartesian_factors()) == len(newO)):
+            # We had already all factors in each of the self and
+            # other, thus splitting it in subproblems (one for
+            # each factor) is the strategy to use. If a pushout is
+            # possible :func:`sage.categories.pushout.pushout`
+            # will manage this by itself.
+            return
 
-            from sage.categories.pushout import pushout
-            from sage.categories.cartesian_product import cartesian_product
-            return pushout(cartesian_product(newS), cartesian_product(newO))
+        from sage.categories.pushout import pushout
+        from sage.categories.cartesian_product import cartesian_product
+        return pushout(cartesian_product(newS), cartesian_product(newO))
 
 
         #C = other.construction()[0]

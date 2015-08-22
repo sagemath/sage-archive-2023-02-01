@@ -27,6 +27,44 @@ AUTHORS:
         without a formal deprecation.
         See http://trac.sagemath.org/17601 for details.
         Growth Group x^ZZ * log(x)^ZZ
+
+TESTS::
+
+    sage: from sage.rings.asymptotic.growth_group import GrowthGroup
+    sage: A = GrowthGroup('QQ^x * x^ZZ'); A
+    Growth Group QQ^x * x^ZZ
+    sage: A.construction()
+    (The cartesian_product functorial construction,
+     (Growth Group QQ^x, Growth Group x^ZZ))
+    sage: A.construction()[1][0].construction()
+    (ExponentialGrowthGroup[x], Rational Field)
+    sage: A.construction()[1][1].construction()
+    (MonomialGrowthGroup[x], Integer Ring)
+    sage: B = GrowthGroup('x^ZZ * y^ZZ'); B
+    Growth Group x^ZZ * y^ZZ
+    sage: B.construction()
+    (The cartesian_product functorial construction,
+     (Growth Group x^ZZ, Growth Group y^ZZ))
+    sage: C = GrowthGroup('x^ZZ * log(x)^ZZ * y^ZZ'); C
+    Growth Group x^ZZ * log(x)^ZZ * y^ZZ
+    sage: C.construction()
+    (The cartesian_product functorial construction,
+     (Growth Group x^ZZ * log(x)^ZZ, Growth Group y^ZZ))
+    sage: C.construction()[1][0].construction()
+    (The cartesian_product functorial construction,
+     (Growth Group x^ZZ, Growth Group log(x)^ZZ))
+    sage: C.construction()[1][1].construction()
+    (MonomialGrowthGroup[y], Integer Ring)
+
+::
+
+    sage: cm = sage.structure.element.get_coercion_model()
+    sage: D = GrowthGroup('QQ^x * x^QQ')
+    sage: cm.common_parent(A, D)
+    Growth Group QQ^x * x^QQ
+    sage: E = GrowthGroup('ZZ^x * x^QQ')
+    sage: cm.common_parent(A, E)
+    Growth Group QQ^x * x^QQ
 """
 
 #*****************************************************************************

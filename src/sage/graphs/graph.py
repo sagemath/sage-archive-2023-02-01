@@ -6580,6 +6580,8 @@ class Graph(GenericGraph):
         :trac:`16475`::
 
             sage: G = graphs.PetersenGraph()
+            sage: for u,v in G.edge_iterator(labels=False):
+            ....:     G.set_edge_label(u, v, 1)
             sage: for u, v in [(0, 1), (0, 4), (0, 5), (1, 2), (1, 6), (3, 4), (5, 7), (5, 8)]:
             ....:     G.set_edge_label(u, v, 2)
             sage: T = G.gomory_hu_tree()

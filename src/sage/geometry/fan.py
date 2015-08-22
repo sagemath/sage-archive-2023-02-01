@@ -672,7 +672,7 @@ def FaceFan(polytope, lattice=None):
         if any(d <= 0 for d in polytope.distances([0]*polytope.dim())):
             raise interior_point_error
         cones = (facet.vertices() for facet in polytope.facets())
-        rays = polytope.vertices_pc()
+        rays = polytope.vertices()
     else:
         origin = polytope.ambient_space().zero()
         if not (polytope.is_compact() and

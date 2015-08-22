@@ -361,6 +361,15 @@ class GenericProduct(CartesianProductPosets, GenericGrowthGroup):
 
 
     def _coerce_map_from_(self, S):
+        r"""
+        Return ``True if there is a coercion from ``S``
+
+        EXAMPLES::
+
+            sage: from sage.rings.asymptotic.growth_group import GrowthGroup
+            sage: GrowthGroup('x^ZZ * log(x)^ZZ').has_coerce_map_from(QQ)  # indirect doctest
+            False
+        """
         pass
 
 
@@ -447,6 +456,15 @@ class GenericProduct(CartesianProductPosets, GenericGrowthGroup):
 
 class UnivariateProduct(GenericProduct):
     def __init__(self, sets, category, **kwargs):
+        r"""
+        A cartesian product of growth groups with the same variables.
+
+        TEST::
+
+            sage: from sage.rings.asymptotic.growth_group import GrowthGroup
+            sage: type(GrowthGroup('x^ZZ * log(x)^ZZ'))  # indirect doctest
+            <class 'sage.rings.asymptotic.growth_group_cartesian.UnivariateProduct_with_category'>
+        """
         super(UnivariateProduct, self).__init__(
             sets, category, order='lex', **kwargs)
 
@@ -456,6 +474,15 @@ class UnivariateProduct(GenericProduct):
 
 class MultivariateProduct(GenericProduct):
     def __init__(self, sets, category, **kwargs):
+        r"""
+        A cartesian product of growth groups with the pairwise different variables.
+
+        TEST::
+
+            sage: from sage.rings.asymptotic.growth_group import GrowthGroup
+            sage: type(GrowthGroup('x^ZZ * y^ZZ'))  # indirect doctest
+            <class 'sage.rings.asymptotic.growth_group_cartesian.MultivariateProduct_with_category'>
+        """
         super(MultivariateProduct, self).__init__(
             sets, category, order='components', **kwargs)
 

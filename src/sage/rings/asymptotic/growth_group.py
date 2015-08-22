@@ -2039,7 +2039,7 @@ class GrowthGroupFactory(sage.structure.factory.UniqueFactory):
         TESTS::
 
             sage: import sage.rings.asymptotic.growth_group as agg
-            sage: agg.GrowthGroup('as^df')
+            sage: agg.GrowthGroup('as^df')  # indirect doctest
             Traceback (most recent call last):
             ...
             ValueError: 'as^df' is not a valid string describing a growth group.

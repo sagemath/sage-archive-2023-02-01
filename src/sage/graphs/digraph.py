@@ -2969,7 +2969,8 @@ class DiGraph(GenericGraph):
     ### Visualization
 
     def layout_acyclic(self, rankdir="up", **options):
-        """Return a ranked layout so that all edges point upward.
+        """
+        Return a ranked layout so that all edges point upward.
 
         To this end, the heights of the vertices are set according to the level
         set decomposition of the graph (see :meth:`.level_sets`).

@@ -326,7 +326,7 @@ class ComplexBallField(UniqueRepresentation, Parent):
             True
         """
         from sage.categories.pushout import AlgebraicClosureFunctor
-        return (AlgebraicClosureFunctor(), self._real_field())
+        return (AlgebraicClosureFunctor(), self._base)
 
     def ngens(self):
         r"""
@@ -476,13 +476,13 @@ class ComplexBallField(UniqueRepresentation, Parent):
 
         if y is None:
             try:
-                x = self._real_field()(x)
+                x = self._base(x)
                 return self.element_class(self, x)
             except (TypeError, ValueError):
                 pass
             try:
-                y = self._real_field()(x.imag())
-                x = self._real_field()(x.real())
+                y = self._base(x.imag())
+                x = self._base(x.real())
                 return self.element_class(self, x, y)
             except (AttributeError, TypeError):
                 pass
@@ -493,8 +493,8 @@ class ComplexBallField(UniqueRepresentation, Parent):
                 pass
             raise TypeError("unable to convert {} to a ComplexBall".format(x))
         else:
-            x = self._real_field()(x)
-            y = self._real_field()(y)
+            x = self._base(x)
+            y = self._base(y)
             return self.element_class(self, x, y)
 
     def _an_element_(self):
@@ -597,7 +597,7 @@ cdef inline long prec(ComplexBall ball):
     return ball._parent._prec
 
 cdef inline Parent real_ball_field(ComplexBall ball):
-    return ball._parent._real_field()
+    return ball._parent._base
 
 cdef class ComplexBall(RingElement):
     """
@@ -814,7 +814,7 @@ cdef class ComplexBall(RingElement):
             sage: ComplexField(100)(CBF(1/3, 1/3))
             0.33333333333333331482961625625 + 0.33333333333333331482961625625*I
         """
-        real_field = parent._real_field()
+        real_field = parent._base
         return parent(real_field(self.real()), real_field(self.imag()))
 
     def _real_mpfi_(self, parent):

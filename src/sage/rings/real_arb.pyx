@@ -1232,7 +1232,7 @@ cdef class RealBall(RingElement):
                     return field(0)
         raise ValueError("unknown rounding mode")
 
-    # Center and radius
+    # Center and radius, absolute value
 
     def mid(self):
         """
@@ -1336,6 +1336,20 @@ cdef class RealBall(RingElement):
         arf_set_mag(arb_midref(res.value), arb_radref(self.value))
         mag_zero(arb_radref(res.value))
         return res
+
+    def abs(self):
+        """
+        Return the absolute value of this ball.
+
+        EXAMPLES::
+
+            sage: from sage.rings.real_arb import RBF
+            sage: RBF(-1/3).abs()
+            [0.3333333333333333 +/- 7.04e-17]
+        """
+        cdef RealBall r = self._new()
+        arb_abs(r.value, self.value)
+        return r
 
     # Precision
 

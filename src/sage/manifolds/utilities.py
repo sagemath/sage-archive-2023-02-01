@@ -126,12 +126,14 @@ def simplify_sqrt_real(expr):
             if num < 0 or den < 0:
                 x = sqrt(-num) / sqrt(-den)  # new equivalent expression for x
         simpl = SR(x._maxima_().radcan())
-        if str(simpl)[:5] != 'sqrt(':
-            # the absolute value of radcan's output is taken, the call to simplify()
-            # taking into account possible assumptions regarding the sign of simpl:
-            ssimpl = str(abs(simpl).simplify())
-        else:
+        if str(simpl)[:5] == 'sqrt(' or str(simpl)[:7] == '1/sqrt(':
+            # no further simplification seems possible:
             ssimpl = str(simpl)
+        else:
+            # the absolute value of radcan's output is taken, the call to
+            # simplify() taking into account possible assumptions regarding the
+            # sign of simpl:
+            ssimpl = str(abs(simpl).simplify())
         # search for abs(1/sqrt(...)) term to simplify it into 1/sqrt(...):
         pstart = ssimpl.find('abs(1/sqrt(')
         if pstart != -1:

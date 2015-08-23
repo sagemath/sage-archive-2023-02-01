@@ -413,25 +413,7 @@ class TopManifold(TopManifoldSubset):
     The manifold passes all the tests of the test suite relative to the
     category of Sets::
 
-        sage: TestSuite(M).run(verbose=True)
-        running ._test_an_element() . . . pass
-        running ._test_category() . . . pass
-        running ._test_elements() . . .
-          Running the test suite of self.an_element()
-          running ._test_category() . . . pass
-          running ._test_eq() . . . pass
-          running ._test_not_implemented_methods() . . . pass
-          running ._test_pickling() . . . pass
-          pass
-        running ._test_elements_eq_reflexive() . . . pass
-        running ._test_elements_eq_symmetric() . . . pass
-        running ._test_elements_eq_transitive() . . . pass
-        running ._test_elements_neq() . . . pass
-        running ._test_eq() . . . pass
-        running ._test_not_implemented_methods() . . . pass
-        running ._test_pickling() . . . pass
-        running ._test_some_elements() . . . pass
-
+        sage: TestSuite(M).run()
 
     """
     def __init__(self, n, name, latex_name=None, field='real', start_index=0,
@@ -1230,25 +1212,26 @@ class TopManifold(TopManifoldSubset):
 
     def chart(self, coordinates='', names=None):
         r"""
-        Define a chart the domain of which is the manifold.
+        Define a chart, the domain of which is the manifold.
 
         A *chart* is a pair `(U,\varphi)`, where `U` is the current manifold
         and `\varphi: U \rightarrow V \subset K^n`
         is a homeomorphism from `U` to an open subset `V` of `K^n`, `K` being
-        the field on which the manifold containing the open set is defined.
+        the field on which the manifold is defined.
 
         The components `(x^1,\ldots,x^n)` of `\varphi`, defined by
-        `\varphi(p) = (x^1(p),\ldots,x^n(p))`, are called the *coordinates*
-        of the chart `(U,\varphi)`.
+        `\varphi(p) = (x^1(p),\ldots,x^n(p))\in K^n` for any point `p\in U`,
+        are called the *coordinates* of the chart `(U,\varphi)`.
 
         See :class:`~sage.manifolds.chart.Chart` for a complete
         documentation.
 
         INPUT:
 
-        - ``coordinates`` -- single string defining the coordinate symbols and
-          ranges: the coordinates are separated by ' ' (space) and each
-          coordinate has at most three fields, separated by ':':
+        - ``coordinates`` --  (default: '' (empty string)) single string
+          defining the coordinate symbols and ranges: the coordinates are
+          separated by ' ' (space) and each coordinate has at most three fields,
+          separated by ':':
 
           1. The coordinate symbol (a letter or a few letters)
           2. (optional, only for manifolds over `\RR`) The interval `I`
@@ -1260,8 +1243,8 @@ class TopManifold(TopManifoldSubset):
              (a,b] (or equivalently ]a,b]) are allowed.
              Note that the interval declaration must not contain any space
              character.
-          3. (optional) The LaTeX spelling of the coordinate; if not provided the
-             coordinate symbol given in the first field will be used.
+          3. (optional) The LaTeX spelling of the coordinate; if not provided
+             the coordinate symbol given in the first field will be used.
 
           The order of the fields 2 and 3 does not matter and each of them can
           be omitted.
@@ -1270,11 +1253,12 @@ class TopManifold(TopManifoldSubset):
           treatment of the backslash character (see examples below).
           If no interval range and no LaTeX spelling is to be provided for any
           coordinate, the argument ``coordinates`` can be omitted when the
-          shortcut operator <,> is used via Sage preparser (see examples below)
+          shortcut operator ``<,>`` is used via Sage preparser (see examples
+          below)
         - ``names`` -- (default: ``None``) unused argument, except if
           ``coordinates`` is not provided; it must then be a tuple containing
-          the coordinate symbols (this is guaranted if the shortcut operator <,>
-          is used).
+          the coordinate symbols (this is guaranted if the shortcut operator
+          ``<,>`` is used).
 
         OUTPUT:
 

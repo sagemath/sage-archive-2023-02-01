@@ -1,5 +1,5 @@
 r"""
-Coordinate charts on topological manifolds
+Coordinate charts
 
 The class :class:`Chart` implements coordinate charts on a topological manifold
 over a topological field `K`. The subclass :class:`RealChart` is devoted
@@ -50,8 +50,8 @@ class Chart(UniqueRepresentation, SageObject):
     an open subset `V` of `K^n`.
 
     The components `(x^1,\ldots,x^n)` of `\varphi`, defined by
-    `\varphi(p) = (x^1(p),\ldots,x^n(p))`, are called the *coordinates* of the
-    chart `(U,\varphi)`.
+    `\varphi(p) = (x^1(p),\ldots,x^n(p))\in K^n` for any point `p\in U`,
+    are called the *coordinates* of the chart `(U,\varphi)`.
 
     INPUT:
 
@@ -1051,8 +1051,8 @@ class RealChart(Chart):
     an open subset `V` of `\RR^n`.
 
     The components `(x^1,\ldots,x^n)` of `\varphi`, defined by
-    `\varphi(p) = (x^1(p),\ldots,x^n(p))`, are called the *coordinates* of the
-    chart `(U,\varphi)`.
+    `\varphi(p) = (x^1(p),\ldots,x^n(p))\in \RR^n` for any point `p\in U`,
+    are called the *coordinates* of the chart `(U,\varphi)`.
 
     INPUT:
 
@@ -1153,7 +1153,8 @@ class RealChart(Chart):
         sage: c_spher
         Chart (U, (r, th, ph))
 
-    Note the prefix 'r' for the string defining the coordinates in the arguments of ``Chart``.
+    Note the prefix 'r' for the string defining the coordinates in the
+    arguments of ``chart``.
 
     Coordinates are Sage symbolic variables (see
     :mod:`sage.symbolic.expression`)::
@@ -1887,8 +1888,7 @@ class CoordChange(SageObject):
         self._transf = chart1.multifunction(*transformations)
         self._inverse = None
         # If the two charts are on the same open subset, the coordinate change
-        # is added to the subset (and supersets) dictionary and the
-        # Jacobian matrix is added to the dictionary of changes of frame:
+        # is added to the subset (and supersets) dictionary:
         if chart1._domain == chart2._domain:
             domain = chart1._domain
             for sdom in domain._supersets:

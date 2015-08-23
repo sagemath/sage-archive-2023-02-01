@@ -34,10 +34,11 @@ typedef struct {
 
 // This struct is the output of the edge connectivity Boost algorithm.
 typedef struct {
-    vector<double> distances; // An array with all distances from the starting vertex
-    vector<v_index> predecessors; // For each vertex v, the first vertex in a shortest
+    std::vector<double> distances; // An array with all distances from the starting vertex
+    std::vector<v_index> predecessors; // For each vertex v, the first vertex in a shortest
                                   // path from the starting vertex to v.
 } result_distances;
+
 
 template <class OutEdgeListS, // How neighbors are stored
           class VertexListS,  // How vertices are stored
@@ -127,7 +128,7 @@ public:
         result_cc to_return;
         to_return.clust_of_v.resize(num_verts());
         to_return.average_clustering_coefficient = all_clustering_coefficients(*graph,
-                        make_iterator_property_map(to_return.clust_of_v.begin(), index));
+            boost::make_iterator_property_map(to_return.clust_of_v.begin(), index));
         return to_return;
     }
 
@@ -137,7 +138,7 @@ public:
                     boost::graph_traits<adjacency_list>::null_vertex());
 
         lengauer_tarjan_dominator_tree(*graph, (*vertices)[v],
-                                       make_iterator_property_map(
+                                       boost::make_iterator_property_map(
                                            fathers_descr.begin(), index));
 
         for (v_index i = 0; i < num_verts(); i++) {
@@ -185,7 +186,7 @@ public:
     std::vector<v_index> prim_min_spanning_tree() {
         std::vector<v_index> to_return;
         std::vector<vertex_descriptor> predecessors(num_verts());
-        prim_minimum_spanning_tree(*graph, make_iterator_property_map(predecessors.begin(), index));
+        prim_minimum_spanning_tree(*graph, boost::make_iterator_property_map(predecessors.begin(), index));
 
         for (unsigned int i = 0; i < predecessors.size(); i++) {
             if (index[predecessors[i]] != i) {
@@ -199,11 +200,11 @@ public:
     result_distances dijkstra_shortest_paths(v_index s) {
          v_index N = num_verts();
          result_distances to_return;
-         vector<double> distances(N, (std::numeric_limits < double >::max)());
-         vector<vertex_descriptor> predecessors(N);
+         std::vector<double> distances(N, (std::numeric_limits<double>::max)());
+         std::vector<vertex_descriptor> predecessors(N);
          try {
-             boost::dijkstra_shortest_paths(*graph, (*vertices)[s], distance_map(make_iterator_property_map(distances.begin(), index))
-                                            .predecessor_map(make_iterator_property_map(predecessors.begin(), index)));
+             boost::dijkstra_shortest_paths(*graph, (*vertices)[s], distance_map(boost::make_iterator_property_map(distances.begin(), index))
+                                            .predecessor_map(boost::make_iterator_property_map(predecessors.begin(), index)));
          } catch (boost::exception_detail::clone_impl<boost::exception_detail::error_info_injector<boost::negative_edge> > e) {
              return to_return;
          }
@@ -220,17 +221,17 @@ public:
      result_distances bellman_ford_shortest_paths(v_index s) {
          v_index N = num_verts();
 
-         std::vector<double> distance(N, (std::numeric_limits < double >::max)());
+         std::vector<double> distance(N, (std::numeric_limits<double>::max)());
          std::vector<vertex_descriptor> predecessors(N);
          result_distances to_return;
-         typename property_map<adjacency_list, edge_weight_t>::type weight = get(edge_weight, (*graph));
+         typename boost::property_map<adjacency_list, boost::edge_weight_t>::type weight = get(boost::edge_weight, (*graph));
 
          for (v_index i = 0; i < N; ++i)
              predecessors[i] = (*vertices)[i];
 
          distance[s] = 0;
          bool r = boost::bellman_ford_shortest_paths
-                 (*graph, N, weight_map(weight).distance_map(make_iterator_property_map(distance.begin(), index)).predecessor_map(make_iterator_property_map(predecessors.begin(), index)));
+             (*graph, N, boost::weight_map(weight).distance_map(boost::make_iterator_property_map(distance.begin(), index)).predecessor_map(boost::make_iterator_property_map(predecessors.begin(), index)));
 
          if (!r) {
              return to_return;
@@ -243,14 +244,14 @@ public:
          return to_return;
      }
 
-     vector< vector<double> > johnson_shortest_paths() {
+     std::vector<std::vector<double> > johnson_shortest_paths() {
          v_index N = num_verts();
 
-         vector< vector<double> > D(N, vector<double>(N));
+         std::vector<std::vector<double> > D(N, std::vector<double>(N));
          if (johnson_all_pairs_shortest_paths(*graph, D)) {
              return D;
          } else {
-             return vector< vector<double> >();
+             return std::vector<std::vector<double> >();
          }
      }
 };

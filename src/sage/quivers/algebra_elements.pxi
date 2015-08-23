@@ -1,4 +1,3 @@
-# cython: profile=True
 """
 Boilerplate functions for a cython implementation of elements of path algebras.
 
@@ -139,24 +138,33 @@ cdef inline int negdegrevlex(path_mon_t *M1, path_mon_t *M2):
     # 3. deg(s_i) < deg(s_j), otherwise
     # 4. a*s_i*b <_revlex c*s_j*d, otherwise
     # 5. i<j
-    cdef int c = cmp(M2.path.length-M2.s_len, M1.path.length-M1.s_len)
-    if c!=0:
-        return c
-    c = cmp(M2.mid, M1.mid)
-    if c!=0:
-        return c
-    c = cmp(M1.s_len, M2.s_len)
-    if c!=0:
-        return c
+    cdef mp_size_t l1 = M1.path.length + M2.s_len # sic!
+    cdef mp_size_t l2 = M2.path.length + M1.s_len
+    if l2<l1:
+        return -1
+    if l1<l2:
+        return 1
+    if M2.mid < M1.mid:
+        return -1
+    if M1.mid < M2.mid:
+        return 1
+    if M1.s_len < M2.s_len:
+        return -1
+    if M2.s_len < M1.s_len:
+        return 1
     # mpn_cmp does comparison of long integers. If the two long integers have
     # the same number of digits (this is the case her), it is the same as
     # lexicographic comparison of the numbers. The highest digit corresponds
     # to the right-most item in the path. Hence, it becomes
     # reverse-lexicographic order.
-    c = mpn_cmp(M1.path.data.bits, M2.path.data.bits, M1.path.data.limbs)
+    cdef int c = mpn_cmp(M1.path.data.bits, M2.path.data.bits, M1.path.data.limbs)
     if c!=0:
         return c
-    return cmp(M1.pos, M2.pos)
+    if M1.pos < M2.pos:
+        return -1
+    if M2.pos < M1.pos:
+        return 1
+    return 0
 
 cdef inline int degrevlex(path_mon_t *M1, path_mon_t *M2):
     # a*s_i*b<c*s_j*d <=>
@@ -165,24 +173,33 @@ cdef inline int degrevlex(path_mon_t *M1, path_mon_t *M2):
     # 3. deg(s_i) > deg(s_j), otherwise
     # 4. a*s_i*b <_revlex c*s_j*d, otherwise
     # 5. i<j
-    cdef int c = cmp(M1.path.length-M1.s_len, M2.path.length-M2.s_len)
-    if c!=0:
-        return c
-    c = cmp(M1.mid, M2.mid)
-    if c!=0:
-        return c
-    c = cmp(M2.s_len, M1.s_len)
-    if c!=0:
-        return c
+    cdef mp_size_t l1 = M1.path.length + M2.s_len # sic!
+    cdef mp_size_t l2 = M2.path.length + M1.s_len
+    if l2<l1:
+        return 1
+    if l1<l2:
+        return -1
+    if M2.mid < M1.mid:
+        return 1
+    if M1.mid < M2.mid:
+        return -1
+    if M1.s_len < M2.s_len:
+        return 1
+    if M2.s_len < M1.s_len:
+        return -1
     # mpn_cmp does comparison of long integers. If the two long integers have
     # the same number of digits (this is the case her), it is the same as
     # lexicographic comparison of the numbers. The highest digit corresponds
     # to the right-most item in the path. Hence, it becomes
     # reverse-lexicographic order.
-    c = mpn_cmp(M1.path.data.bits, M2.path.data.bits, M1.path.data.limbs)
+    cdef int c = mpn_cmp(M1.path.data.bits, M2.path.data.bits, M1.path.data.limbs)
     if c!=0:
         return c
-    return cmp(M1.pos, M2.pos)
+    if M1.pos < M2.pos:
+        return -1
+    if M2.pos < M1.pos:
+        return 1
+    return 0
 
 cdef inline int negdeglex(path_mon_t *M1, path_mon_t *M2):
     # a*s_i*b<c*s_j*d <=>
@@ -191,20 +208,33 @@ cdef inline int negdeglex(path_mon_t *M1, path_mon_t *M2):
     # 3. deg(s_i) < deg(s_j), otherwise
     # 4. a*s_i*b <_lex c*s_j*d, otherwise
     # 5. i<j
-    cdef int c = cmp(M2.path.length-M2.s_len, M1.path.length-M1.s_len)
-    if c!=0:
-        return c
-    c = cmp(M2.mid, M1.mid)
-    if c!=0:
-        return c
-    c = cmp(M1.s_len, M2.s_len)
-    if c!=0:
-        return c
+    cdef mp_size_t l1 = M1.path.length + M2.s_len # sic!
+    cdef mp_size_t l2 = M2.path.length + M1.s_len
+    cdef size_t item1, item2
+    if l2<l1:
+        return -1
+    if l1<l2:
+        return 1
+    if M2.mid < M1.mid:
+        return -1
+    if M1.mid < M2.mid:
+        return 1
+    if M1.s_len < M2.s_len:
+        return -1
+    if M2.s_len < M1.s_len:
+        return 1
     for index from 0 <= index < M1.path.length:
-        c = cmp(biseq_getitem(M1.path, index), biseq_getitem(M2.path, index))
-        if c:
-            return c
-    return cmp(M1.pos, M2.pos)
+        item1 = biseq_getitem(M1.path, index)
+        item2 = biseq_getitem(M2.path, index)
+        if item1<item2:
+            return -1
+        if item2<item1:
+            return 1
+    if M1.pos < M2.pos:
+        return -1
+    if M2.pos < M1.pos:
+        return 1
+    return 0
 
 cdef inline int deglex(path_mon_t *M1, path_mon_t *M2):
     # a*s_i*b<c*s_j*d <=>
@@ -213,20 +243,33 @@ cdef inline int deglex(path_mon_t *M1, path_mon_t *M2):
     # 3. deg(s_i) > deg(s_j), otherwise
     # 4. a*s_i*b <_lex c*s_j*d, otherwise
     # 5. i<j
-    cdef int c = cmp(M1.path.length-M1.s_len, M2.path.length-M2.s_len)
-    if c!=0:
-        return c
-    c = cmp(M1.mid, M2.mid)
-    if c!=0:
-        return c
-    c = cmp(M2.s_len, M1.s_len)
-    if c!=0:
-        return c
+    cdef mp_size_t l1 = M1.path.length + M2.s_len # sic!
+    cdef mp_size_t l2 = M2.path.length + M1.s_len
+    cdef size_t item1, item2
+    if l2<l1:
+        return 1
+    if l1<l2:
+        return -1
+    if M2.mid < M1.mid:
+        return 1
+    if M1.mid < M2.mid:
+        return -1
+    if M1.s_len < M2.s_len:
+        return 1
+    if M2.s_len < M1.s_len:
+        return -1
     for index from 0 <= index < M1.path.length:
-        c = cmp(biseq_getitem(M1.path, index), biseq_getitem(M2.path, index))
-        if c:
-            return c
-    return cmp(M1.pos, M2.pos)
+        item1 = biseq_getitem(M1.path, index)
+        item2 = biseq_getitem(M2.path, index)
+        if item1<item2:
+            return -1
+        if item2<item1:
+            return 1
+    if M1.pos < M2.pos:
+        return -1
+    if M2.pos < M1.pos:
+        return 1
+    return 0
 
 ########################################
 ##
@@ -261,7 +304,8 @@ cdef inline path_term_t *term_free(path_term_t *T):
     cdef path_term_t *out = T.nxt
     if kill_list.nterms < poolsize:
         preinc(kill_list.nterms)
-        T.nxt, kill_list.lead = kill_list.lead, T
+        T.nxt = kill_list.lead
+        kill_list.lead = T
         return out
     mon_free(T.mon)
     sage_free(T)
@@ -399,6 +443,8 @@ cdef inline path_term_t *term_unpickle(object coef, tuple mon_data) except NULL:
 ## Multiplication of monomials
 
 cdef inline path_mon_t *mon_mul_path(path_mon_t *T, biseq_t p) except NULL:
+    if p.length == 0:
+        return mon_copy(T)
     cdef path_mon_t *out = <path_mon_t*>sage_malloc(sizeof(path_mon_t))
     if out==NULL:
         raise MemoryError("Out of memory while allocating a path monomial")
@@ -410,6 +456,8 @@ cdef inline path_mon_t *mon_mul_path(path_mon_t *T, biseq_t p) except NULL:
     return out
 
 cdef inline path_mon_t *path_mul_mon(biseq_t p, path_mon_t *T) except NULL:
+    if p.length == 0:
+        return mon_copy(T)
     cdef path_mon_t *out = <path_mon_t*>sage_malloc(sizeof(path_mon_t))
     if out==NULL:
         raise MemoryError("Out of memory while allocating a path monomial")
@@ -422,6 +470,8 @@ cdef inline path_mon_t *path_mul_mon(biseq_t p, path_mon_t *T) except NULL:
 
 cdef path_mon_t *path_mul_mon_mul_path(biseq_t p, path_mon_t *T, biseq_t q) except NULL:
     # .mid and .s_len are taken care of externally!
+    if p.length==0 and q.length==0:
+        return mon_copy(T)
     cdef path_mon_t *out
     if p.length == 0:
         return mon_mul_path(T, q)

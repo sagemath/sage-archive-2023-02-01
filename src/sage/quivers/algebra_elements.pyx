@@ -1,4 +1,3 @@
-# cython: profile=True
 """
 Path algebra elements.
 

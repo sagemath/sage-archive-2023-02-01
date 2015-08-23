@@ -14069,6 +14069,7 @@ class GenericGraph(GenericGraph_pyx):
 
         .. SEEALSO::
 
+            - :func:`~sage.graphs.centrality.centrality_closeness_top_k`
             - :meth:`~sage.graphs.graph.Graph.centrality_degree`
             - :meth:`~centrality_betweenness`
 

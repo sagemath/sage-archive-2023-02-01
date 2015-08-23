@@ -938,6 +938,63 @@ cdef class ComplexBall(RingElement):
         acb_abs(r.value, self.value, prec(self))
         return r
 
+    def below_abs(self, test_zero=False):
+        """
+        Return a lower bound for the absolute value of this complex ball.
+
+        INPUT:
+
+        - ``test_zero`` (boolean, default False) -- if True, make sure that the
+          returned lower bound is positive, raising an error if the ball
+          contains zero.
+
+        .. SEEALSO:: :meth:`abs`, :meth:`above_abs`
+
+        EXAMPLES::
+
+            sage: from sage.rings.complex_ball_acb import ComplexBallField, CBF
+            sage: b = ComplexBallField(8)(1+i).below_abs()
+            sage: b
+            [1.4 +/- 0.0141]
+            sage: b.is_exact()
+            True
+            sage: QQ(b)*128
+            181
+            sage: (CBF(1/3) - 1/3).below_abs()
+            0
+            sage: (CBF(1/3) - 1/3).below_abs(test_zero=True)
+            Traceback (most recent call last):
+            ...
+            ValueError: ball contains zero
+        """
+        cdef RealBall res = RealBall(real_ball_field(self))
+        acb_get_abs_lbound_arf(arb_midref(res.value), self.value, prec(self))
+        if test_zero and arb_contains_zero(res.value):
+            assert acb_contains_zero(self.value)
+            raise ValueError("ball contains zero")
+        return res
+
+    def above_abs(self):
+        """
+        Return an upper bound for the absolute value of this complex ball.
+
+        .. SEEALSO:: :meth:`abs`, :meth:`below_abs`
+
+        EXAMPLES::
+
+            sage: from sage.rings.complex_ball_acb import ComplexBallField
+            sage: b = ComplexBallField(8)(1+i).above_abs()
+            sage: b
+            [1.4 +/- 0.0219]
+            sage: b.is_exact()
+            True
+            sage: QQ(b)*128
+            182
+        """
+        cdef RealBall res = RealBall(real_ball_field(self))
+        acb_get_abs_ubound_arf(arb_midref(res.value), self.value, prec(self))
+        return res
+
     def arg(self):
         """
         Return the argument of this complex ball.

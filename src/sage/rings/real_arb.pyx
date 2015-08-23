@@ -1351,6 +1351,66 @@ cdef class RealBall(RingElement):
         arb_abs(r.value, self.value)
         return r
 
+    def below_abs(self, test_zero=False):
+        """
+        Return a lower bound for the absolute value of this ball.
+
+        INPUT:
+
+        - ``test_zero`` (boolean, default False) -- if True, make sure that the
+          returned lower bound is positive, raising an error if the ball
+          contains zero.
+
+        .. SEEALSO:: :meth:`abs`, :meth:`above_abs`
+
+        EXAMPLES::
+
+            sage: from sage.rings.real_arb import RealBallField, RBF
+            sage: RealBallField(8)(1/3).below_abs()
+            [0.33 +/- 7.82e-5]
+            sage: b = RealBallField(8)(1/3).below_abs()
+            sage: b
+            [0.33 +/- 7.82e-5]
+            sage: b.is_exact()
+            True
+            sage: QQ(b)
+            169/512
+
+            sage: RBF(0).below_abs()
+            0
+            sage: RBF(0).below_abs(test_zero=True)
+            Traceback (most recent call last):
+            ...
+            ValueError: ball contains zero
+        """
+        cdef RealBall res = self._new()
+        arb_get_abs_lbound_arf(arb_midref(res.value), self.value, prec(self))
+        if test_zero and arb_contains_zero(res.value):
+            assert arb_contains_zero(self.value)
+            raise ValueError("ball contains zero")
+        return res
+
+    def above_abs(self):
+        """
+        Return an upper bound for the absolute value of this ball.
+
+        .. SEEALSO:: :meth:`abs`, :meth:`below_abs`
+
+        EXAMPLES::
+
+            sage: from sage.rings.real_arb import RealBallField
+            sage: b = RealBallField(8)(1/3).above_abs()
+            sage: b
+            [0.33 +/- 3.99e-3]
+            sage: b.is_exact()
+            True
+            sage: QQ(b)
+            171/512
+        """
+        cdef RealBall res = self._new()
+        arb_get_abs_ubound_arf(arb_midref(res.value), self.value, prec(self))
+        return res
+
     # Precision
 
     def round(self):

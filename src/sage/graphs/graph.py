@@ -5091,12 +5091,25 @@ class Graph(GenericGraph):
               -- ditto, but much faster.
         """
         from sage.combinat.designs.twographs import TwoGraph
-        from itertools import combinations
-        from sage.misc.functional import is_odd
+        v = self.vertices()
+        T = []
+        i = 0
+        for vi in v[:-2]: # add the triangles
+            i += 1
+            j = i
+            for vj in v[i:-1]:
+                j += 1
+                if self.has_edge(vi,vj):
+                    for vk in v[j:]:
+                        if self.has_edge(vi,vk) and self.has_edge(vj,vk):
+                            T.append((vi,vj,vk))
 
-        return TwoGraph(filter(lambda t:
-                                  is_odd(sum([i in self.neighbors(j) for i,j in combinations(t, 2)])),
-                               combinations(self.vertices(), 3)))
+        for vi, vj, _  in self.edges(): # add triples with just 1 edge
+            for vk in v:
+                if (not self.has_edge(vi,vk)) and (not self.has_edge(vj,vk)):
+                    T.append(tuple(sorted((vi,vj,vk))))
+        return TwoGraph(sorted(T))
+
 
     ### Visualization
 

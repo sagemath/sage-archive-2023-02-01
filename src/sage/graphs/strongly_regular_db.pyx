@@ -445,7 +445,7 @@ def is_twograph_descendant_of_srg(int v, int k0, int l, int mu):
     r"""
     Test whether some descendant graph of an s.r.g. is `(v,k_0,\lambda,\mu)`-s.r.g.
 
-    We check whether there can exist (v+1,k,\lambda^*,\mu^*)-s.r.g. `G` so that ``self`` is a
+    We check whether there can exist `(v+1,k,\lambda^*,\mu^*)`-s.r.g. `G` so that ``self`` is a
     descendant graph of the regular two-graph specified by `G`.  Specifically, we must have
     that `v+1=2(2k-\lambda^*-\mu^*)`, and `k_0=2(k-\mu^*)`, `\lambda=k+\lambda^*-2\mu^*`, `\mu=k-\mu^*`,
     which give 2 independent linear conditions, say `k-\mu^*=\mu` and `\lambda^*-\mu^*=\lambda-\mu`.

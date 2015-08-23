@@ -387,10 +387,21 @@ class FGP_Element(ModuleElement):
             (1, 3)
             sage: vector(CDF, x)
             (1.0, 3.0)
+
+        TESTS::
+
+            sage: V = span([[1/2,0,0],[3/2,2,1],[0,0,1]],ZZ)
+            sage: W = V.span([2*V.0+4*V.1, 9*V.0+12*V.1, 4*V.2])
+            sage: Q = V/W
+            sage: x = Q.0 + 3*Q.1
+            sage: vector(x).is_mutable()
+            True
+            sage: vector(CDF,x).is_mutable()
+            True
         """
         v = self.vector()
         if base_ring is None or v.base_ring() is base_ring:
-            return v
+            return v.__copy__()
         else:
             return v.change_ring(base_ring)
 

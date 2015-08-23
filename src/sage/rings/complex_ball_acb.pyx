@@ -1944,4 +1944,158 @@ cdef class ComplexBall(RingElement):
         if _do_sig(prec(self)): sig_off()
         return res
 
+    # Special functions
+
+    def gamma(self):
+        """
+        Return the image of this ball by the Euler Gamma function.
+
+        EXAMPLES::
+
+            sage: from sage.rings.complex_ball_acb import CBF
+            sage: CBF(1, 1).gamma()
+            [0.49801566811836 +/- 4.98e-15] + [-0.154949828301811 +/- 7.67e-16]*I
+            sage: CBF(-1).gamma()
+            nan
+        """
+        cdef ComplexBall res = self._new()
+        if _do_sig(prec(self)): sig_on()
+        acb_gamma(res.value, self.value, prec(self))
+        if _do_sig(prec(self)): sig_off()
+        return res
+
+    def log_gamma(self):
+        r"""
+        Return the image of this ball by the logarithmic Gamma function.
+
+        The branch cut of the logarithmic gamma function is placed on the
+        negative half-axis, which means that
+        ``log_gamma(z) + log z = log_gamma(z+1)`` holds for all `z`,
+        whereas ``log_gamma(z) != log(gamma(z))`` in general.
+
+        EXAMPLES::
+
+            sage: from sage.rings.complex_ball_acb import CBF
+            sage: CBF(1000, 1000).log_gamma()
+            [5466.22252162990 +/- 3.05e-12] + [7039.33429191119 +/- 3.81e-12]*I
+            sage: CBF(-1/2).log_gamma()
+            [1.26551212348465 +/- 7.54e-15] + [-3.141592653589793 +/- 5.61e-16]*I
+            sage: CBF(-1).log_gamma()
+            nan + [-3.141592653589793 +/- 5.68e-16]*I
+        """
+        cdef ComplexBall res = self._new()
+        if _do_sig(prec(self)): sig_on()
+        acb_lgamma(res.value, self.value, prec(self))
+        if _do_sig(prec(self)): sig_off()
+        return res
+
+    def psi(self):
+        """
+        Compute the digamma function with argument self.
+
+        EXAMPLES::
+
+            sage: from sage.rings.complex_ball_acb import CBF
+            sage: CBF(1, 1).psi()
+            [0.0946503206224770 +/- 7.34e-17] + [1.076674047468581 +/- 2.63e-16]*I
+            sage: CBF(-1).psi()
+            nan
+        """
+
+        cdef ComplexBall result = self._new()
+        if _do_sig(prec(self)): sig_on()
+        acb_digamma(result.value, self.value, prec(self))
+        if _do_sig(prec(self)): sig_off()
+        return result
+
+    def zeta(self, a=None):
+        """
+        Return the image of this ball by the Hurwitz zeta function.
+
+        For ``a = None``, this computes the Riemann zeta function.
+
+        EXAMPLES::
+
+            sage: from sage.rings.complex_ball_acb import CBF
+            sage: CBF(1, 1).zeta()
+            [0.5821580597520036 +/- 5.27e-17] + [-0.9268485643308071 +/- 2.81e-17]*I
+            sage: CBF(1, 1).zeta(1)
+            [0.5821580597520036 +/- 5.27e-17] + [-0.9268485643308071 +/- 2.81e-17]*I
+            sage: CBF(1, 1).zeta(1/2)
+            [1.497919876084167 +/- 2.91e-16] + [0.2448655353684164 +/- 4.22e-17]*I
+            sage: CBF(1, 1).zeta(CBF(1, 1))
+            [-0.3593983122202835 +/- 3.01e-17] + [-2.875283329756940 +/- 4.52e-16]*I
+            sage: CBF(1, 1).zeta(-1)
+            nan + nan*I
+        """
+        cdef ComplexBall a_ball
+        cdef ComplexBall res = self._new()
+        if a is None:
+            if _do_sig(prec(self)): sig_on()
+            acb_zeta(res.value, self.value, prec(self))
+            if _do_sig(prec(self)): sig_off()
+        else:
+            a_ball = self._parent.coerce(a)
+            if _do_sig(prec(self)): sig_on()
+            acb_hurwitz_zeta(res.value, self.value, a_ball.value, prec(self))
+            if _do_sig(prec(self)): sig_off()
+        return res
+
+    def polylog(self, s):
+        """
+        Return the polylogarithm `\operatorname{Li}_s(\mathrm{self})`.
+
+        EXAMPLES::
+
+            sage: from sage.rings.complex_ball_acb import CBF
+            sage: CBF(2).polylog(1)
+            [+/- 4.65e-15] + [-3.14159265358979 +/- 8.15e-15]*I
+            sage: CBF(1, 1).polylog(CBF(1, 1))
+            [0.3708160030469 +/- 2.38e-14] + [2.7238016577979 +/- 4.22e-14]*I
+
+        TESTS::
+
+            sage: CBF(2).polylog(1r)
+            [+/- 4.65e-15] + [-3.14159265358979 +/- 8.15e-15]*I
+        """
+        cdef ComplexBall s_as_ball
+        cdef sage.rings.integer.Integer s_as_Integer
+        cdef ComplexBall res = self._new()
+        try:
+            s_as_Integer = ZZ.coerce(s)
+            if mpz_fits_slong_p(s_as_Integer.value):
+                if _do_sig(prec(self)): sig_on()
+                acb_polylog_si(res.value, mpz_get_si(s_as_Integer.value), self.value, prec(self))
+                if _do_sig(prec(self)): sig_off()
+                return res
+        except TypeError:
+            pass
+        s_as_ball = self._parent.coerce(s)
+        if _do_sig(prec(self)): sig_on()
+        acb_polylog(res.value, s_as_ball.value, self.value, prec(self))
+        if _do_sig(prec(self)): sig_off()
+        return res
+
+    def agm1(self):
+        """
+        Return the arithmetic-geometric mean of 1 and ``self``.
+
+        The arithmetic-geometric mean is defined such that the function is
+        continuous in the complex plane except for a branch cut along the
+        negative half axis (where it is continuous from above). This
+        corresponds to always choosing an "optimal" branch for the square root
+        in the arithmetic-geometric mean iteration.
+
+        EXAMPLES::
+
+            sage: from sage.rings.complex_ball_acb import CBF
+            sage: CBF(0, -1).agm1()
+            [0.5990701173678 +/- 1.14e-14] + [-0.5990701173678 +/- 1.22e-14]*I
+        """
+        cdef ComplexBall res = self._new()
+        if _do_sig(prec(self)): sig_on()
+        acb_agm1(res.value, self.value, prec(self))
+        if _do_sig(prec(self)): sig_off()
+        return res
+
 CBF = ComplexBallField()

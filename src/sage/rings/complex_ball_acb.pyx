@@ -1946,9 +1946,10 @@ cdef class ComplexBall(RingElement):
 
     # Special functions
 
-    def gamma(self):
+    def gamma(self, z=None):
         """
-        Return the image of this ball by the Euler Gamma function.
+        Return the image of this ball by the Euler Gamma function (if
+        ``z = None``) or the incomplete Gamma function (otherwise).
 
         EXAMPLES::
 
@@ -1957,11 +1958,24 @@ cdef class ComplexBall(RingElement):
             [0.49801566811836 +/- 4.98e-15] + [-0.154949828301811 +/- 7.67e-16]*I
             sage: CBF(-1).gamma()
             nan
+            sage: CBF(1, 1).gamma(0)
+            [0.49801566811836 +/- 4.98e-15] + [-0.154949828301811 +/- 7.67e-16]*I
+            sage: CBF(1, 1).gamma(100)
+            [-3.6143867454139e-45 +/- 7.26e-59] + [-3.7022961377791e-44 +/- 4.71e-58]*I
+            sage: CBF(1, 1).gamma(CLF(i))
+            [0.32886684193500 +/- 5.49e-15] + [-0.18974945045621 +/- 1.49e-15]*I
         """
+        cdef ComplexBall my_z
         cdef ComplexBall res = self._new()
-        if _do_sig(prec(self)): sig_on()
-        acb_gamma(res.value, self.value, prec(self))
-        if _do_sig(prec(self)): sig_off()
+        if z is None:
+            if _do_sig(prec(self)): sig_on()
+            acb_gamma(res.value, self.value, prec(self))
+            if _do_sig(prec(self)): sig_off()
+        else:
+            my_z = self._parent.coerce(z)
+            if _do_sig(prec(self)): sig_on()
+            acb_hypgeom_gamma_upper(res.value, self.value, my_z.value, 0, prec(self))
+            if _do_sig(prec(self)): sig_off()
         return res
 
     def log_gamma(self):
@@ -1991,7 +2005,7 @@ cdef class ComplexBall(RingElement):
 
     def psi(self):
         """
-        Compute the digamma function with argument self.
+        Compute the digamma function with argument ``self``.
 
         EXAMPLES::
 
@@ -2097,5 +2111,326 @@ cdef class ComplexBall(RingElement):
         acb_agm1(res.value, self.value, prec(self))
         if _do_sig(prec(self)): sig_off()
         return res
+
+    def hypergeometric(self, a, b):
+        r"""
+        Return the generalized hypergeometric function of ``self``.
+
+        INPUT:
+
+        - ``a`` -- upper paramaters, list of complex numbers that coerce into
+          this ball's parent;
+
+        - ``b`` -- lower paramaters, list of complex numbers that coerce into
+          this ball's parent.
+
+        OUTPUT:
+
+        The generalized hypergeometric function defined by
+
+        .. math::
+
+            {}_pF_q(a_1,\ldots,a_p;b_1,\ldots,b_q;z)
+            = \sum_{k=0}^\infty \frac{(a_1)_k\dots(a_p)_k}{(b_1)_k\dots(b_q)_k} \frac {z^k} {k!}
+
+        extended using analytic continuation or regularization when the sum
+        does not converge.
+
+        EXAMPLES::
+
+            sage: from sage.rings.complex_ball_acb import CBF
+            sage: CBF(1, pi/2).hypergeometric([], [])
+            [+/- 3.57e-15] + [2.7182818284590 +/- 5.37e-14]*I
+
+            sage: CBF(0, 1).hypergeometric([], [1/2, 1/3, 1/4])
+            [-3.7991962344383 +/- 4.98e-14] + [23.8780971778049 +/- 5.40e-14]*I
+
+            sage: CBF(0).hypergeometric([1], [])
+            1.000000000000000
+            sage: CBF(1, 1).hypergeometric([1], [])
+            [+/- inf] + [+/- inf]*I
+
+        TESTS::
+
+            sage: CBF(0, 1).hypergeometric([QQbar(sqrt(2)), RLF(pi)], [1r, 1/2])
+            [-8.7029449215408 +/- 6.89e-14] + [-0.8499070546106 +/- 4.98e-14]*I
+        """
+        cdef ComplexBall tmp, res
+        cdef long p = len(a)
+        cdef long q = len(b)
+        cdef acb_ptr my_a = _acb_vec_init(p)
+        cdef acb_ptr my_b = _acb_vec_init(q + 1)
+        for i in range(p):
+            tmp = self._parent.coerce(a[i])
+            acb_set(&(my_a[i]), tmp.value)
+        for i in range(q):
+            tmp = self._parent.coerce(b[i])
+            acb_set(&(my_b[i]), tmp.value)
+        acb_one(&(my_b[q]))
+        res = self._new()
+        if _do_sig(prec(self)): sig_on()
+        acb_hypgeom_pfq_direct(res.value, my_a, p, my_b, q + 1,
+                               self.value, -1, prec(self))
+        if _do_sig(prec(self)): sig_off()
+        _acb_vec_clear(my_b, q + 1)
+        _acb_vec_clear(my_a, p)
+        return res
+
+    def hypergeometric_U(self, a, b):
+        """
+        Return the Tricomi confluent hypergeometric function U(a, b, self) of
+        this ball.
+
+        EXAMPLES::
+
+            sage: from sage.rings.complex_ball_acb import CBF
+            sage: CBF(1000, 1000).hypergeometric_U(RLF(pi), -100)
+            [-7.261605907166e-11 +/- 4.89e-24] + [-7.928136216391e-11 +/- 5.36e-24]*I
+            sage: CBF(1000, 1000).hypergeometric_U(0, -100)
+            1.000000000000000
+        """
+        cdef ComplexBall res = self._new()
+        cdef ComplexBall my_a = self._parent.coerce(a)
+        cdef ComplexBall my_b = self._parent.coerce(b)
+        if _do_sig(prec(self)): sig_on()
+        acb_hypgeom_u(res.value, my_a.value, my_b.value, self.value, prec(self))
+        if _do_sig(prec(self)): sig_off()
+        return res
+
+    def hypergeometric_M(self, a, b):
+        """
+        Return the Kummer confluent hypergeometric function M(a, b, self) of
+        this ball.
+
+        EXAMPLES::
+
+            sage: from sage.rings.complex_ball_acb import CBF
+            sage: CBF(1, pi).hypergeometric_M(1/4, 1/4)
+            [-2.7182818284590 +/- 8.63e-14] + [+/- 3.69e-14]*I
+            sage: CBF(1000, 1000).hypergeometric_M(100, AA(sqrt(2)))
+            [1.2796735556e+590 +/- 4.04e+579] + [-9.3233349199e+590 +/- 3.30e+579]*I
+        """
+        cdef ComplexBall res = self._new()
+        cdef ComplexBall my_a = self._parent.coerce(a)
+        cdef ComplexBall my_b = self._parent.coerce(b)
+        if _do_sig(prec(self)): sig_on()
+        acb_hypgeom_m(res.value, my_a.value, my_b.value, self.value, 0, prec(self))
+        if _do_sig(prec(self)): sig_off()
+        return res
+
+    def erf(self):
+        """
+        Return the error function with argument ``self``.
+
+        EXAMPLES::
+
+            sage: from sage.rings.complex_ball_acb import CBF
+            sage: CBF(1, 1).erf()
+            [1.31615128169795 +/- 8.80e-15] + [0.19045346923783 +/- 9.19e-15]*I
+        """
+
+        cdef ComplexBall result = self._new()
+        if _do_sig(prec(self)): sig_on()
+        acb_hypgeom_erf(result.value, self.value, prec(self))
+        if _do_sig(prec(self)): sig_off()
+        return result
+
+    def erfc(self):
+        """
+        Compute the complementary error function with argument ``self``.
+
+        EXAMPLES::
+
+            sage: from sage.rings.complex_ball_acb import CBF
+            sage: CBF(20).erfc()
+            [5.3958656116079e-176 +/- 1.08e-190]
+            sage: CBF(100, 100).erfc()
+            [0.00065234366376858 +/- 6.52e-18] + [-0.00393572636292141 +/- 5.16e-18]*I
+        """
+
+        cdef ComplexBall result = self._new()
+        if _do_sig(prec(self)): sig_on()
+        acb_hypgeom_erfc(result.value, self.value, prec(self))
+        if _do_sig(prec(self)): sig_off()
+        return result
+
+    def bessel_J(self, nu):
+        """
+        Return the Bessel function of the first kind with argument ``self``
+        and index ``nu``.
+
+        EXAMPLES::
+
+            sage: from sage.rings.complex_ball_acb import CBF
+            sage: CBF(1, 1).bessel_J(1)
+            [0.614160334922903 +/- 8.48e-16] + [0.365028028827088 +/- 6.62e-16]*I
+            sage: CBF(100, -100).bessel_J(1/3)
+            [1.108431870251e+41 +/- 5.53e+28] + [-8.952577603125e+41 +/- 2.91e+28]*I
+        """
+        cdef ComplexBall result = self._new()
+        cdef ComplexBall my_nu = self._parent.coerce(nu)
+        if _do_sig(prec(self)): sig_on()
+        acb_hypgeom_bessel_j(result.value, my_nu.value, self.value, prec(self))
+        if _do_sig(prec(self)): sig_off()
+        return result
+
+    def bessel_K(self, nu):
+        """
+        Return the modified Bessel function of the second kind with argument
+        ``self`` and index ``nu``.
+
+        EXAMPLES::
+
+            sage: from sage.rings.complex_ball_acb import CBF
+            sage: CBF(1, 1).bessel_K(0)
+            [0.08019772694652 +/- 3.19e-15] + [-0.35727745928533 +/- 1.08e-15]*I
+            sage: CBF(1, 1).bessel_K(1)
+            [0.02456830552374 +/- 6.22e-15] + [-0.45971947380119 +/- 6.74e-15]*I
+            sage: CBF(100, 100).bessel_K(QQbar(i))
+            [3.8693896656383e-45 +/- 2.43e-59] + [5.5071004234177e-46 +/- 7.41e-60]*I
+        """
+        cdef ComplexBall result = self._new()
+        cdef ComplexBall my_nu = self._parent.coerce(nu)
+        if _do_sig(prec(self)): sig_on()
+        acb_hypgeom_bessel_k(result.value, my_nu.value, self.value, prec(self))
+        if _do_sig(prec(self)): sig_off()
+        return result
+
+    def exp_integral_e(self, s):
+        """
+        Return the image of this ball by the generalized exponential integral
+        with index ``s``.
+
+        EXAMPLES::
+
+            sage: from sage.rings.complex_ball_acb import CBF
+            sage: CBF(1+i).exp_integral_e(1)
+            [0.00028162445198 +/- 2.78e-15] + [-0.17932453503936 +/- 2.56e-15]*I
+            sage: CBF(1+i).exp_integral_e(QQbar(i))
+            [-0.10396361883964 +/- 4.92e-15] + [-0.16268401277783 +/- 4.78e-15]*I
+        """
+        cdef ComplexBall res = self._new()
+        cdef ComplexBall my_s = self._parent.coerce(s)
+        if _do_sig(prec(self)): sig_on()
+        acb_hypgeom_expint(res.value, my_s.value, self.value, prec(self))
+        if _do_sig(prec(self)): sig_off()
+        return res
+
+    def ei(self):
+        """
+        Return the exponential integral with argument ``self``.
+
+        EXAMPLES::
+
+            sage: from sage.rings.complex_ball_acb import CBF
+            sage: CBF(1, 1).ei()
+            [1.76462598556385 +/- 6.65e-15] + [2.38776985151052 +/- 4.34e-15]*I
+            sage: CBF(0).ei()
+            nan
+        """
+        cdef ComplexBall result = self._new()
+        if _do_sig(prec(self)): sig_on()
+        acb_hypgeom_ei(result.value, self.value, prec(self))
+        if _do_sig(prec(self)): sig_off()
+        return result
+
+    def si(self):
+        """
+        Return the sine integral with argument ``self``.
+
+        EXAMPLES::
+
+            sage: from sage.rings.complex_ball_acb import CBF
+            sage: CBF(1, 1).si()
+            [1.10422265823558 +/- 2.16e-15] + [0.88245380500792 +/- 3.15e-15]*I
+            sage: CBF(0).si()
+            0
+        """
+        cdef ComplexBall result = self._new()
+        if _do_sig(prec(self)): sig_on()
+        acb_hypgeom_si(result.value, self.value, prec(self))
+        if _do_sig(prec(self)): sig_off()
+        return result
+
+    def ci(self):
+        """
+        Return the cosine integral with argument ``self``.
+
+        EXAMPLES::
+
+            sage: from sage.rings.complex_ball_acb import CBF
+            sage: CBF(1, 1).ci()
+            [0.882172180555936 +/- 4.85e-16] + [0.287249133519956 +/- 3.47e-16]*I
+            sage: CBF(0).ci()
+            nan + nan*I
+        """
+        cdef ComplexBall result = self._new()
+        if _do_sig(prec(self)): sig_on()
+        acb_hypgeom_ci(result.value, self.value, prec(self))
+        if _do_sig(prec(self)): sig_off()
+        return result
+
+    def shi(self):
+        """
+        Return the hyperbolic sine integral with argument ``self``.
+
+        EXAMPLES::
+
+            sage: from sage.rings.complex_ball_acb import CBF
+            sage: CBF(1, 1).shi()
+            [0.88245380500792 +/- 3.15e-15] + [1.10422265823558 +/- 2.16e-15]*I
+            sage: CBF(0).shi()
+            0
+        """
+
+        cdef ComplexBall result = self._new()
+        if _do_sig(prec(self)): sig_on()
+        acb_hypgeom_shi(result.value, self.value, prec(self))
+        if _do_sig(prec(self)): sig_off()
+        return result
+
+    def chi(self):
+        """
+        Return the hyperbolic cosine integral with argument ``self``.
+
+        EXAMPLES::
+
+            sage: from sage.rings.complex_ball_acb import CBF
+            sage: CBF(1, 1).chi()
+            [0.882172180555936 +/- 4.85e-16] + [1.28354719327494 +/- 1.05e-15]*I
+            sage: CBF(0).chi()
+            nan + nan*I
+        """
+        cdef ComplexBall result = self._new()
+        if _do_sig(prec(self)): sig_on()
+        acb_hypgeom_chi(result.value, self.value, prec(self))
+        if _do_sig(prec(self)): sig_off()
+        return result
+
+    def li(self, bint offset=False):
+        """
+        Return the logarithmic integral with argument ``self``.
+
+        If ``offset`` is True, return the offset logarithmic integral.
+
+        EXAMPLES::
+
+            sage: from sage.rings.complex_ball_acb import CBF
+            sage: CBF(1, 1).li()
+            [0.61391166922119 +/- 7.03e-15] + [2.05958421419258 +/- 8.25e-15]*I
+            sage: CBF(0).li()
+            0
+            sage: CBF(0).li(offset=True)
+            [-1.045163780117493 +/- 5.54e-16]
+            sage: li(0).n()
+            0.000000000000000
+            sage: Li(0).n()
+            -1.04516378011749
+        """
+        cdef ComplexBall result = self._new()
+        if _do_sig(prec(self)): sig_on()
+        acb_hypgeom_li(result.value, self.value, offset, prec(self))
+        if _do_sig(prec(self)): sig_off()
+        return result
 
 CBF = ComplexBallField()

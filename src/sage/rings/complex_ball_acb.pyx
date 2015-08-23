@@ -898,9 +898,8 @@ cdef class ComplexBall(RingElement):
            sage: a.real()
            [0.3333333333333333 +/- 7.04e-17]
         """
-        cdef RealBall r
-        r = real_ball_field(self)(0)
-        arb_set(r.value, &self.value.real)
+        cdef RealBall r = RealBall(real_ball_field(self))
+        arb_set(r.value, acb_realref(self.value))
         return r
 
     cpdef RealBall imag(self):
@@ -919,9 +918,42 @@ cdef class ComplexBall(RingElement):
            sage: a.imag()
            [0.2000000000000000 +/- 4.45e-17]
         """
-        cdef RealBall r
-        r = real_ball_field(self)(0)
-        arb_set(r.value, &self.value.imag)
+        cdef RealBall r = RealBall(real_ball_field(self))
+        arb_set(r.value, acb_imagref(self.value))
+        return r
+
+    def abs(self):
+        """
+        Return the absolute value of this complex ball.
+
+        EXAMPLES::
+
+            sage: from sage.rings.complex_ball_acb import CBF
+            sage: CBF(1 + i).abs()
+            [1.414213562373095 +/- 2.99e-16]
+            sage: CBF(1 + i).abs().parent()
+            Real ball field with 53 bits precision
+        """
+        cdef RealBall r = RealBall(real_ball_field(self))
+        acb_abs(r.value, self.value, prec(self))
+        return r
+
+    def arg(self):
+        """
+        Return the argument of this complex ball.
+
+        EXAMPLES::
+
+            sage: from sage.rings.complex_ball_acb import CBF
+            sage: CBF(1 + i).arg()
+            [0.785398163397448 +/- 3.91e-16]
+            sage: CBF(-1).arg()
+            [3.141592653589793 +/- 5.61e-16]
+            sage: CBF(-1).arg().parent()
+            Real ball field with 53 bits precision
+        """
+        cdef RealBall r = RealBall(real_ball_field(self))
+        acb_arg(r.value, self.value, prec(self))
         return r
 
     def mid(self):

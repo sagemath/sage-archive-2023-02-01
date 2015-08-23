@@ -308,7 +308,7 @@ def CPRFanoToricVariety(Delta=None,
     We start with the product of two projective lines::
 
         sage: diamond = lattice_polytope.cross_polytope(2)
-        sage: diamond.vertices_pc()
+        sage: diamond.vertices()
         M( 1,  0),
         M( 0,  1),
         M(-1,  0),
@@ -332,13 +332,13 @@ def CPRFanoToricVariety(Delta=None,
     square::
 
         sage: square = diamond.polar()
-        sage: square.vertices_pc()
+        sage: square.vertices()
         N(-1,  1),
         N( 1,  1),
         N(-1, -1),
         N( 1, -1)
         in 2-d lattice N
-        sage: square.points_pc()
+        sage: square.points()
         N(-1,  1),
         N( 1,  1),
         N(-1, -1),
@@ -1237,7 +1237,7 @@ class CPRFanoToricVariety_field(ToricVariety_field):
             fan = self.fan().cartesian_product(other.fan())
             Delta_polar = LatticePolytope(fan.rays())
 
-            points = Delta_polar.points_pc()
+            points = Delta_polar.points()
             point_to_ray = dict()
             coordinate_points = []
             for ray_index, ray in enumerate(fan.rays()):

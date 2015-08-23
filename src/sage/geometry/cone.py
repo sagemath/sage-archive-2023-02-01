@@ -3096,7 +3096,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
             See http://trac.sagemath.org/16180 for details.            
             sage: lp
             2-d lattice polytope in 2-d lattice N
-            sage: lp.vertices_pc()
+            sage: lp.vertices()
             N(1, 0),
             N(0, 1),
             N(0, 0)
@@ -3106,7 +3106,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
             sage: lp = line.lattice_polytope()
             sage: lp
             1-d lattice polytope in 2-d lattice N
-            sage: lp.vertices_pc()
+            sage: lp.vertices()
             N( 1, 0),
             N(-1, 0)
             in 2-d lattice N

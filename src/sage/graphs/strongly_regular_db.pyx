@@ -17,6 +17,14 @@ by Sage. Help us if you know any.
     `Andries E. Brouwer <http://www.win.tue.nl/~aeb/>`__ directly, in order to
     have a unique and updated source of information.
 
+REFERENCE:
+
+.. [vLintBrouwer84] A. Brouwer, J. van Lint,
+  Strongly regular graphs and partial geometries,
+  Enumeration and design (Waterloo, Ont., 1982)
+  (1984): 85-122. APA,
+  http://www.win.tue.nl/~aeb/preprints/srgsurvey.pdf
+
 Functions
 ---------
 """
@@ -40,6 +48,8 @@ from libc.math cimport sqrt
 from sage.matrix.constructor import Matrix
 from sage.rings.finite_rings.constructor import FiniteField as GF
 from sage.coding.linear_code import LinearCode
+from sage.rings.sum_of_squares cimport two_squares_c
+from libc.stdint cimport uint_fast32_t
 
 cdef dict _brouwer_database = None
 
@@ -328,6 +338,108 @@ def is_orthogonal_polar(int v,int k,int l,int mu):
                 from sage.graphs.generators.families import OrthogonalPolarGraph
                 return (OrthogonalPolarGraph, 2*m, q, "-")
 
+def is_RSHCD(int v,int k,int l,int mu):
+    r"""
+    Test whether some RSHCD graph is `(v,k,\lambda,\mu)`-strongly regular.
+
+    For more information, see :func:`SRG_from_RSHCD`.
+
+    INPUT:
+
+    - ``v,k,l,mu`` (integers)
+
+    OUTPUT:
+
+    A tuple ``t`` such that ``t[0](*t[1:])`` builds the requested graph if one
+    exists, and ``None`` otherwise.
+
+    EXAMPLES::
+
+        sage: from sage.graphs.strongly_regular_db import is_RSHCD
+        sage: t = is_RSHCD(64,27,10,12); t
+        [<built-in function SRG_from_RSHCD>, 64, 27, 10, 12]
+        sage: g = t[0](*t[1:]); g
+        Graph on 64 vertices
+        sage: g.is_strongly_regular(parameters=True)
+        (64, 27, 10, 12)
+
+    """
+    if SRG_from_RSHCD(v,k,l,mu,existence=True):
+        return [SRG_from_RSHCD,v,k,l,mu]
+
+def SRG_from_RSHCD(v,k,l,mu, existence=False,check=True):
+    r"""
+    Return a `(v,k,l,mu)`-strongly regular graph from a RSHCD
+
+    This construction appears in 8.D of [BvL84]_. For more information, see
+    :func:`~sage.combinat.matrices.hadamard_matrix.regular_symmetric_hadamard_matrix_with_constant_diagonal`.
+
+    INPUT:
+
+    - ``v,k,l,mu`` (integers)
+
+    - ``existence`` (boolean) -- whether to return a graph or to test if Sage
+      can build such a graph.
+
+    - ``check`` (boolean) -- whether to check that output is correct before
+      returning it. As this is expected to be useless (but we are cautious
+      guys), you may want to disable it whenever you want speed. Set to ``True``
+      by default.
+
+    EXAMPLES::
+
+        sage: from sage.graphs.strongly_regular_db import SRG_from_RSHCD
+        sage: SRG_from_RSHCD(784, 0, 14, 38, existence=True)
+        False
+        sage: SRG_from_RSHCD(784, 377, 180, 182, existence=True)
+        True
+        sage: SRG_from_RSHCD(144, 65, 28, 30)
+        Graph on 144 vertices
+
+    TESTS::
+
+        sage: SRG_from_RSHCD(784, 0, 14, 38)
+        Traceback (most recent call last):
+        ...
+        ValueError: I do not know how to build a (784, 0, 14, 38)-SRG from a RSHCD
+
+    REFERENCES:
+
+    .. [BvL84] A. Brouwer, J van Lint,
+      Strongly regular graphs and partial geometries,
+      Enumeration and design,
+      (Waterloo, Ont., 1982) (1984): 85-122.
+      http://oai.cwi.nl/oai/asset/1817/1817A.pdf
+    """
+    from sage.combinat.matrices.hadamard_matrix import regular_symmetric_hadamard_matrix_with_constant_diagonal
+    sgn = lambda x: 1 if x>=0 else -1
+    n = v
+    a = (n-4*mu)//2
+    e = 2*k - n + 1 + a
+    t = abs(a//2)
+
+    if (e**2 == 1              and
+        k == (n-1-a+e)/2       and
+        l == (n-2*a)/4 - (1-e) and
+        mu== (n-2*a)/4         and
+        regular_symmetric_hadamard_matrix_with_constant_diagonal(n,sgn(a)*e,existence=True)):
+        if existence:
+            return True
+        from sage.matrix.constructor import identity_matrix as I
+        from sage.matrix.constructor import ones_matrix     as J
+
+        H = regular_symmetric_hadamard_matrix_with_constant_diagonal(n,sgn(a)*e)
+        if list(H.column(0)[1:]).count(1) == k:
+            H = -H
+        G = Graph((J(n)-I(n)-H+H[0,0]*I(n))/2,loops=False,multiedges=False,format="adjacency_matrix")
+        if check:
+            assert G.is_strongly_regular(parameters=True) == (v,k,l,mu)
+        return G
+
+    if existence:
+        return False
+    raise ValueError("I do not know how to build a {}-SRG from a RSHCD".format((v,k,l,mu)))
+
 cdef eigenvalues(int v,int k,int l,int mu):
     r"""
     Return the eigenvalues of a (v,k,l,mu)-strongly regular graph.
@@ -348,6 +460,122 @@ cdef eigenvalues(int v,int k,int l,int mu):
         return [None,None]
     return [(-b+sqrt(D))/2.0,
             (-b-sqrt(D))/2.0]
+
+def _H_3_cayley_graph(L):
+    r"""
+    return the `L`-Cayley graph of the group `H_3` from Prop. 12 in [JK03]_.
+
+    INPUT:
+
+    - the list of words for the generating set in the format ["abc",...,"xyz"] for
+      a,b,...,z being integers between 0 and 4.
+
+    TESTS::
+
+        sage: from sage.graphs.strongly_regular_db import _H_3_cayley_graph
+        sage: _H_3_cayley_graph(["100","110","130","140","200","230","240","300"])
+        Graph on 100 vertices
+    """
+    from sage.groups.free_group import FreeGroup
+    from sage.groups.finitely_presented import FinitelyPresentedGroup
+    G = FreeGroup('x,y,z')
+    x,y,z = G.gens()
+    rels = (x**5,y**5,z**4,x*y*x**(-1)*y**(-1),z*x*z**(-1)*x**(-2),z*y*z**(-1)*y**(-2))
+    G = FinitelyPresentedGroup(G,rels)
+    x,y,z = G.gens()
+    H = G.as_permutation_group()
+    L = map(lambda x:map(int,x),L)
+    x,y,z=(H.gen(0),H.gen(1),H.gen(2))
+    L = [H(x**xx*y**yy*z**zz) for xx,yy,zz in L]
+    return Graph(H.cayley_graph(generators=L, simple=True))
+
+def SRG_100_44_18_20():
+    r"""
+    Return a `(100, 44, 18, 20)`-strongly regular graph.
+
+    This graph is built as a Cayley graph, using the construction for `\Delta_1`
+    with group `H_3` presented in Table 8.1 of [JK03]_
+
+    EXAMPLE::
+
+        sage: from sage.graphs.strongly_regular_db import SRG_100_44_18_20
+        sage: G = SRG_100_44_18_20()                 # long time
+        sage: G.is_strongly_regular(parameters=True) # long time
+        (100, 44, 18, 20)
+
+    REFERENCES:
+
+    .. [JK03] L. K. Jørgensen, M. Klin, M.,
+      Switching of edges in strongly regular graphs.
+      I. A family of partial difference sets on 100 vertices,
+      Electronic Journal of Combinatorics 10(1), 2003.
+    """
+    return _H_3_cayley_graph(["100","110","130","140","200","230","240","300",
+             "310","320","400","410","420","440","041","111","221","231","241",
+             "321","331","401","421","441","002","042","112","122","142","212",
+             "232","242","322","342","033","113","143","223","303","333","343",
+             "413","433","443"])
+
+def SRG_100_45_20_20():
+    r"""
+    Return a `(100, 45, 20, 20)`-strongly regular graph.
+
+    This graph is built as a Cayley graph, using the construction for `\Gamma_3`
+    with group `H_3` presented in Table 8.1 of [JK03]_.
+
+    EXAMPLE::
+
+        sage: from sage.graphs.strongly_regular_db import SRG_100_45_20_20
+        sage: G = SRG_100_45_20_20()              # long time
+        sage: G.is_strongly_regular(parameters=True) # long time
+        (100, 45, 20, 20)
+    """
+    return _H_3_cayley_graph(["120","140","200","210","201","401","411","321",
+             "002","012","022","042","303","403","013","413","240","031","102",
+             "323","300","231","132","133","310","141","142","233","340","241",
+             "202","333","410","341","222","433","430","441","242","302","312",
+             "322","332","442","143"])
+
+def SRG_196_91_42_42():
+    r"""
+    Return a `(196,91,42,42)`-strongly regular graph.
+
+    This strongly regular graph is built following the construction provided in
+    Corollary 8.2.27 of [IS06]_.
+
+    EXAMPLES::
+
+        sage: from sage.graphs.strongly_regular_db import SRG_196_91_42_42
+        sage: G = SRG_196_91_42_42()
+        sage: G.is_strongly_regular(parameters=True)
+        (196, 91, 42, 42)
+
+    REFERENCE:
+
+    .. [IS06] Y.J. Ionin, S. Shrikhande,
+      Combinatorics of symmetric designs.
+      Cambridge University Press, 2006.
+    """
+    from sage.rings.finite_rings.integer_mod_ring import IntegerModRing
+    from sage.graphs.generators.intersection import IntersectionGraph
+    k = 7
+    G = IntegerModRing(91)
+    A = map(G,{0, 10, 27, 28, 31, 43, 50})
+    B = map(G,{0, 11, 20, 25, 49, 55, 57})
+    H = map(G,[13*i for i in range(k)])
+    U = map(frozenset,[[x+z for x in A] for z in G])
+    V = map(frozenset,[[x+z for x in B] for z in G])
+    W = map(frozenset,[[x+z for x in H] for z in G])
+    G = IntersectionGraph(U+V+W)
+
+    # G = G.seidel_switching(U)
+    boundary = G.edge_boundary(U)
+    G.add_edges((x,y) for x in V+W for y in U)
+    G.delete_edges(boundary)
+
+    G.add_edges((-1,x) for x in U)
+    G.relabel()
+    return G
 
 def SRG_280_135_70_60():
     r"""
@@ -424,7 +652,7 @@ def strongly_regular_from_two_weight_code(L):
     G.relabel()
     return G
 
-def SRG_256_87_138_132():
+def SRG_256_187_138_132():
     r"""
     Return a `(256, 187, 138, 132)`-strongly regular graph.
 
@@ -439,8 +667,8 @@ def SRG_256_87_138_132():
 
     EXAMPLE::
 
-        sage: from sage.graphs.strongly_regular_db import SRG_256_87_138_132
-        sage: G = SRG_256_87_138_132()
+        sage: from sage.graphs.strongly_regular_db import SRG_256_187_138_132
+        sage: G = SRG_256_187_138_132()
         sage: G.is_strongly_regular(parameters=True)
         (256, 187, 138, 132)
     """
@@ -484,7 +712,7 @@ def SRG_729_532_391_380():
     M = Matrix(GF(3),[list(l) for l in x])
     return strongly_regular_from_two_weight_code(LinearCode(M))
 
-def SRG_729_60_433_420():
+def SRG_729_560_433_420():
     r"""
     Return a `(729, 560, 433, 420)`-strongly regular graph.
 
@@ -499,8 +727,8 @@ def SRG_729_60_433_420():
 
     EXAMPLE::
 
-        sage: from sage.graphs.strongly_regular_db import SRG_729_60_433_420
-        sage: G = SRG_729_60_433_420()               # long time
+        sage: from sage.graphs.strongly_regular_db import SRG_729_560_433_420
+        sage: G = SRG_729_560_433_420()               # long time
         sage: G.is_strongly_regular(parameters=True) # long time
         (729, 560, 433, 420)
     """
@@ -513,7 +741,7 @@ def SRG_729_60_433_420():
     M = Matrix(GF(3),[list(l) for l in x])
     return strongly_regular_from_two_weight_code(LinearCode(M))
 
-def SRG_729_16_523_506():
+def SRG_729_616_523_506():
     r"""
     Return a `(729, 616, 523, 506)`-strongly regular graph.
 
@@ -528,8 +756,8 @@ def SRG_729_16_523_506():
 
     EXAMPLE::
 
-        sage: from sage.graphs.strongly_regular_db import SRG_729_16_523_506
-        sage: G = SRG_729_16_523_506()               # not tested (3s)
+        sage: from sage.graphs.strongly_regular_db import SRG_729_616_523_506
+        sage: G = SRG_729_616_523_506()              # not tested (3s)
         sage: G.is_strongly_regular(parameters=True) # not tested (3s)
         (729, 616, 523, 506)
     """
@@ -569,7 +797,7 @@ def SRG_625_364_213_210():
     M = Matrix(GF(5),[list(l) for l in x])
     return strongly_regular_from_two_weight_code(LinearCode(M))
 
-def SRG_625_16_279_272():
+def SRG_625_416_279_272():
     r"""
     Return a `(625, 416, 279, 272)`-strongly regular graph.
 
@@ -584,8 +812,8 @@ def SRG_625_16_279_272():
 
     EXAMPLE::
 
-        sage: from sage.graphs.strongly_regular_db import SRG_625_16_279_272
-        sage: G = SRG_625_16_279_272()               # long time
+        sage: from sage.graphs.strongly_regular_db import SRG_625_416_279_272
+        sage: G = SRG_625_416_279_272()               # long time
         sage: G.is_strongly_regular(parameters=True) # long time
         (625, 416, 279, 272)
     """
@@ -596,7 +824,7 @@ def SRG_625_16_279_272():
     M = Matrix(GF(5),[list(l) for l in x])
     return strongly_regular_from_two_weight_code(LinearCode(M))
 
-def SRG_243_20_199_200():
+def SRG_243_220_199_200():
     r"""
     Return a `(243, 220, 199, 200)`-strongly regular graph.
 
@@ -611,8 +839,8 @@ def SRG_243_20_199_200():
 
     EXAMPLE::
 
-        sage: from sage.graphs.strongly_regular_db import SRG_243_20_199_200
-        sage: G = SRG_243_20_199_200()
+        sage: from sage.graphs.strongly_regular_db import SRG_243_220_199_200
+        sage: G = SRG_243_220_199_200()
         sage: G.is_strongly_regular(parameters=True)
         (243, 220, 199, 200)
     """
@@ -624,7 +852,7 @@ def SRG_243_20_199_200():
     M = Matrix(GF(3),[list(l) for l in x])
     return strongly_regular_from_two_weight_code(LinearCode(M))
 
-def SRG_729_76_313_306():
+def SRG_729_476_313_306():
     r"""
     Return a `(729, 476, 313, 306)`-strongly regular graph.
 
@@ -639,8 +867,8 @@ def SRG_729_76_313_306():
 
     EXAMPLE::
 
-        sage: from sage.graphs.strongly_regular_db import SRG_729_76_313_306
-        sage: G = SRG_729_76_313_306()               # not tested (5s)
+        sage: from sage.graphs.strongly_regular_db import SRG_729_476_313_306
+        sage: G = SRG_729_476_313_306()               # not tested (5s)
         sage: G.is_strongly_regular(parameters=True) # not tested (5s)
         (729, 476, 313, 306)
     """
@@ -653,7 +881,7 @@ def SRG_729_76_313_306():
     M = Matrix(GF(3),[list(l) for l in x])
     return strongly_regular_from_two_weight_code(LinearCode(M))
 
-def SRG_729_20_243_240():
+def SRG_729_420_243_240():
     r"""
     Return a `(729, 420, 243, 240)`-strongly regular graph.
 
@@ -668,8 +896,8 @@ def SRG_729_20_243_240():
 
     EXAMPLE::
 
-        sage: from sage.graphs.strongly_regular_db import SRG_729_20_243_240
-        sage: G = SRG_729_20_243_240()               # not tested (5s)
+        sage: from sage.graphs.strongly_regular_db import SRG_729_420_243_240
+        sage: G = SRG_729_420_243_240()               # not tested (5s)
         sage: G.is_strongly_regular(parameters=True) # not tested (5s)
         (729, 420, 243, 240)
     """
@@ -688,9 +916,9 @@ def SRG_729_20_243_240():
     M = Matrix(GF(3),[list(l) for l in x])
     return strongly_regular_from_two_weight_code(LinearCode(M))
 
-def SRG_1024_198_22_42():
+def SRG_1024_825_668_650():
     r"""
-    Return a `(1024, 198, 22, 42)`-strongly regular graph.
+    Return a `(1024, 825, 668, 650)`-strongly regular graph.
 
     This graph is built from a projective binary `[198,10]` code with weights
     `96, 112`, obtained from Eric Chen's `database of two-weight codes
@@ -703,10 +931,10 @@ def SRG_1024_198_22_42():
 
     EXAMPLE::
 
-        sage: from sage.graphs.strongly_regular_db import SRG_1024_198_22_42
-        sage: G = SRG_1024_198_22_42()               # not tested (13s)
-        sage: G.is_strongly_regular(parameters=True) # not tested (13s)
-        (1024, 198, 22, 42)
+        sage: from sage.graphs.strongly_regular_db import SRG_1024_825_668_650
+        sage: G = SRG_1024_825_668_650()               # not tested (13s)
+        sage: G.is_strongly_regular(parameters=True)   # not tested (13s)
+        (1024, 825, 668, 650)
     """
     x=("1000000000111111101010000100011001111101101010010010011110001101111001101100111000111101010101110011"+
        "11110010100111101001001100111101011110111100101101110100111100011111011011100111110010100110110000",
@@ -731,9 +959,9 @@ def SRG_1024_198_22_42():
     M = Matrix(GF(2),[list(l) for l in x])
     return strongly_regular_from_two_weight_code(LinearCode(M))
 
-def SRG_512_38_374_378():
+def SRG_512_73_12_10():
     r"""
-    Return a `(512, 438, 374, 378)`-strongly regular graph.
+    Return a `(512, 73, 12, 10)`-strongly regular graph.
 
     This graph is built from a projective binary `[219,9]` code with weights
     `96, 112`, obtained from Eric Chen's `database of two-weight codes
@@ -746,10 +974,10 @@ def SRG_512_38_374_378():
 
     EXAMPLE::
 
-        sage: from sage.graphs.strongly_regular_db import SRG_512_38_374_378
-        sage: G = SRG_512_38_374_378()               # not tested (3s)
+        sage: from sage.graphs.strongly_regular_db import SRG_512_73_12_10
+        sage: G = SRG_512_73_12_10()                 # not tested (3s)
         sage: G.is_strongly_regular(parameters=True) # not tested (3s)
-        (512, 438, 374, 378)
+        (512, 73, 12, 10)
     """
     x=("10100011001110100010100010010000100100001011110010001010011000000001101011110011001001000010011110111011111"+
        "0001001010110110110111001100111100011011101000000110101110001010100011110011111111110111010100101011000101111111",
@@ -772,7 +1000,7 @@ def SRG_512_38_374_378():
     M = Matrix(GF(2),[list(l) for l in x])
     return strongly_regular_from_two_weight_code(LinearCode(M))
 
-def SRG_512_19_106_84():
+def SRG_512_219_106_84():
     r"""
     Return a `(512, 219, 106, 84)`-strongly regular graph.
 
@@ -787,8 +1015,8 @@ def SRG_512_19_106_84():
 
     EXAMPLE::
 
-        sage: from sage.graphs.strongly_regular_db import SRG_512_19_106_84
-        sage: G = SRG_512_19_106_84()
+        sage: from sage.graphs.strongly_regular_db import SRG_512_219_106_84
+        sage: G = SRG_512_219_106_84()
         sage: G.is_strongly_regular(parameters=True)
         (512, 219, 106, 84)
     """
@@ -804,7 +1032,7 @@ def SRG_512_19_106_84():
     M = Matrix(GF(2),[list(l) for l in x])
     return strongly_regular_from_two_weight_code(LinearCode(M))
 
-def SRG_256_53_92_90():
+def SRG_256_153_92_90():
     r"""
     Return a `(256, 153, 92, 90)`-strongly regular graph.
 
@@ -819,8 +1047,8 @@ def SRG_256_53_92_90():
 
     EXAMPLE::
 
-        sage: from sage.graphs.strongly_regular_db import SRG_256_53_92_90
-        sage: G = SRG_256_53_92_90()
+        sage: from sage.graphs.strongly_regular_db import SRG_256_153_92_90
+        sage: G = SRG_256_153_92_90()
         sage: G.is_strongly_regular(parameters=True)
         (256, 153, 92, 90)
     """
@@ -834,7 +1062,7 @@ def SRG_256_53_92_90():
     M = Matrix(K,[map(K,l) for l in x])
     return strongly_regular_from_two_weight_code(LinearCode(M))
 
-def SRG_256_70_114_110():
+def SRG_256_170_114_110():
     r"""
     Return a `(256, 170, 114, 110)`-strongly regular graph.
 
@@ -849,8 +1077,8 @@ def SRG_256_70_114_110():
 
     EXAMPLE::
 
-        sage: from sage.graphs.strongly_regular_db import SRG_256_70_114_110
-        sage: G = SRG_256_70_114_110()
+        sage: from sage.graphs.strongly_regular_db import SRG_256_170_114_110
+        sage: G = SRG_256_170_114_110()
         sage: G.is_strongly_regular(parameters=True)
         (256, 170, 114, 110)
     """
@@ -864,6 +1092,59 @@ def SRG_256_70_114_110():
        "0000000100111010100010000111001110001111110101100011011010001100100110011010111000011")
     M = Matrix(GF(2),[list(l) for l in x])
     return strongly_regular_from_two_weight_code(LinearCode(M))
+
+def SRG_120_63_30_36():
+    r"""
+    Return a `(120,63,30,36)`-strongly regular graph
+
+    It is the distance-2 graph of :meth:`JohnsonGraph(10,3)
+    <sage.graphs.graph_generators.GraphGenerators.JohnsonGraph>`.
+
+    EXAMPLES::
+
+        sage: from sage.graphs.strongly_regular_db import SRG_120_63_30_36
+        sage: G =  SRG_120_63_30_36()
+        sage: G.is_strongly_regular(parameters=True)
+        (120, 63, 30, 36)
+    """
+    from sage.graphs.generators.families import JohnsonGraph
+    return JohnsonGraph(10,3).distance_graph([2])
+
+def SRG_126_25_8_4():
+    r"""
+    Return a `(126,25,8,4)`-strongly regular graph
+
+    It is the distance-(1 or 4) graph of :meth:`JohnsonGraph(9,4)
+    <sage.graphs.graph_generators.GraphGenerators.JohnsonGraph>`.
+
+    EXAMPLES::
+
+        sage: from sage.graphs.strongly_regular_db import SRG_126_25_8_4
+        sage: G =  SRG_126_25_8_4()
+        sage: G.is_strongly_regular(parameters=True)
+        (126, 25, 8, 4)
+    """
+    from sage.graphs.generators.families import JohnsonGraph
+    return JohnsonGraph(9,4).distance_graph([1,4])
+
+def SRG_175_72_20_36():
+    r"""
+    Return a `(175,72,20,36)`-strongly regular graph
+
+    This graph is obtained from the line graph of
+    :meth:`~sage.graphs.graph_generators.GraphGenerators.HoffmanSingletonGraph`. Setting
+    two vertices to be adjacent if their distance in the line graph is exactly
+    two yields the strongly regular graph. For more information, see
+    http://www.win.tue.nl/~aeb/graphs/McL.html.
+
+    EXAMPLES::
+
+        sage: from sage.graphs.strongly_regular_db import SRG_175_72_20_36
+        sage: G = SRG_175_72_20_36()
+        sage: G.is_strongly_regular(parameters=True)
+        (175, 72, 20, 36)
+    """
+    return HoffmanSingletonGraph().line_graph().distance_graph([2])
 
 def SRG_81_50_31_30():
     r"""
@@ -900,23 +1181,67 @@ cdef bint seems_feasible(int v, int k, int l, int mu):
 
     - ``v,k,l,mu`` (integers)
     """
-    cdef int lambda_r, lambda_s,l1,l2,K2,D,F,e
+    cdef int r,s,f,g
+    cdef uint_fast32_t tmp[2]
+
     if (v<0 or k<=0 or l<0 or mu<0 or
         k>=v-1 or l>=k or mu>=k or
         v-2*k+mu-2 < 0 or # lambda of complement graph >=0
-        v-2*k+l    < 0 or # mu of complement graph >=0
+        v-2*k+l    < 0 or # μ of complement graph >=0
         mu*(v-k-1) != k*(k-l-1)):
         return False
 
-    if (v-1)*(mu-l)-2*k == 0: # conference
-        return True
+    # Conference graphs. Only possible if 'v' is a sum of two squares (3.A of
+    # [vLintBrouwer84]
+    if (v-1)*(mu-l)-2*k == 0:
+        return two_squares_c(v,tmp)
 
-    r,s = eigenvalues(v,k,l,mu)
-    if r is None:
+    rr,ss = eigenvalues(v,k,l,mu)
+    if rr is None:
         return False
+    r,s = rr,ss
 
     # 1.3.1 of [Distance-regular graphs]
+    # "Integrality condition"
     if ((s+1)*(k-s)*k) % (mu*(s-r)):
+        return False
+
+    # Theorem 21.3 of [WilsonACourse] or
+    # 3.B of [vLintBrouwer84]
+    # (Krein conditions)
+    if ((r+1)*(k+r+2*r*s) > (k+r)*(s+1)**2 or
+        (s+1)*(k+s+2*r*s) > (k+s)*(r+1)**2):
+        return False
+
+    # multiplicity of eigenvalues 'r,s' (f=lambda_r, g=lambda_s)
+    #
+    # They are integers (checked by the 'integrality condition').
+    f = -k*(s+1)*(k-s)/((k+r*s)*(r-s))
+    g =  k*(r+1)*(k-r)/((k+r*s)*(r-s))
+
+    # 3.C of [vLintBrouwer84]
+    # (Absolute bound)
+    if (2*v > f*(f+3) or
+        2*v > g*(g+3)):
+        return False
+
+    # 3.D of [vLintBrouwer84]
+    # (Claw bound)
+    if (mu != s**2    and
+        mu != s*(s+1) and
+        2*(r+1) > s*(s+1)*(mu+1)):
+        return False
+
+    # 3.E of [vLintBrouwer84]
+    # (the Case μ=1)
+    if mu == 1:
+        if (   k  % (l+1) or
+            (v*k) % ((l+1)*(l+2))):
+            return False
+
+    # 3.F of [vLintBrouwer84]
+    # (the Case μ=2)
+    if mu == 2 and 2*k < l*(l+3) and k%(l+1):
         return False
 
     return True
@@ -967,7 +1292,7 @@ def strongly_regular_graph(int v,int k,int l,int mu=-1,bint existence=False):
         sage: graphs.strongly_regular_graph(5,5,5,5)
         Traceback (most recent call last):
         ...
-        ValueError: There exists no (5, 5, 5, 5)-strongly regular graph (basic arithmetic checks)
+        ValueError: There exists no (5, 5, 5, 5)-strongly regular graph
 
     An set of parameters proved in a paper to be infeasible::
 
@@ -977,7 +1302,7 @@ def strongly_regular_graph(int v,int k,int l,int mu=-1,bint existence=False):
         Traceback (most recent call last):
         ...
         EmptySetError: Andries Brouwer's database reports that no (324, 57, 0,
-        12)-strongly regular graph exists.Comments: <a
+        12)-strongly regular graph exists. Comments: <a
         href="srgtabrefs.html#GavrilyukMakhnev05">Gavrilyuk & Makhnev</a> and <a
         href="srgtabrefs.html#KaskiOstergard07">Kaski & stergrd</a>
 
@@ -1012,6 +1337,11 @@ def strongly_regular_graph(int v,int k,int l,int mu=-1,bint existence=False):
         Traceback (most recent call last):
         ...
         RuntimeError: Sage cannot figure out if a (1394,175,0,25)-strongly regular graph exists.
+
+    Test the Claw bound (see 3.D of [vLintBrouwer84]_):
+
+        sage: graphs.strongly_regular_graph(2058,242,91,20,existence=True)
+        False
     """
     load_brouwer_database()
     if mu == -1:
@@ -1023,8 +1353,7 @@ def strongly_regular_graph(int v,int k,int l,int mu=-1,bint existence=False):
     if not seems_feasible(v,k,l,mu):
         if existence:
             return False
-        raise ValueError("There exists no "+str(params)+"-strongly regular graph "+
-                         "(basic arithmetic checks)")
+        raise ValueError("There exists no "+str(params)+"-strongly regular graph")
 
     constructions = {
         ( 27,  16, 10,  8): [SchlaefliGraph],
@@ -1044,27 +1373,33 @@ def strongly_regular_graph(int v,int k,int l,int mu=-1,bint existence=False):
           '?PDDDw@A_CSRIS_P?GeGpg`@?EOcaJGccbDC_dLAc_pHOe@`ocEGgo@sRo?WRAbAcPc'+
           '?iCiHEKBO_hOiOWpOSGSTBQCUAW_DDIWOqHBO?gghw_?`kOAXH?\\Ds@@@CpIDKOpc@'+
           'OCoeIS_YOgGATGaqAhKGA?cqDOwQKGc?')],
-        ( 77,  16,  0,  4): [M22Graph],
-        (100,  22,  0,  6): [HigmanSimsGraph],
-        (162,  56, 10, 24): [LocalMcLaughlinGraph],
-        (231,  30,  9,  3): [CameronGraph],
-        (275, 112, 30, 56): [McLaughlinGraph],
-        (280, 135, 70, 60): [SRG_280_135_70_60],
-        (1024, 198, 22, 42): [SRG_1024_198_22_42],
-        (243,  20, 199,200): [SRG_243_20_199_200],
-        (256,  53,  92, 90): [SRG_256_53_92_90],
-        (256,  70, 114,110): [SRG_256_70_114_110],
-        (256,  87, 138,132): [SRG_256_87_138_132],
-        (512,  19, 106, 84): [SRG_512_19_106_84],
-        (512,  38, 374,378): [SRG_512_38_374_378],
-        (625,  16, 279,272): [SRG_625_16_279_272],
-        (625, 364, 213,210): [SRG_625_364_213_210],
-        (729,  16, 523,506): [SRG_729_16_523_506],
-        (729,  20, 243,240): [SRG_729_20_243_240],
-        (729,  60, 433,420): [SRG_729_60_433_420],
-        (729,  76, 313,306): [SRG_729_76_313_306],
-        (729, 532, 391,380): [SRG_729_532_391_380],
+        ( 77,  16,   0,  4): [M22Graph],
         ( 81,  50,  31, 30): [SRG_81_50_31_30],
+        (100,  22,   0,  6): [HigmanSimsGraph],
+        (100,  44,  18, 20): [SRG_100_44_18_20],
+        (100,  45,  20, 20): [SRG_100_45_20_20],
+        (120,  63,  30, 36): [SRG_120_63_30_36],
+        (126,  25,   8,  4): [SRG_126_25_8_4],
+        (162,  56,  10, 24): [LocalMcLaughlinGraph],
+        (175,  72,  20, 36): [SRG_175_72_20_36],
+        (196,  91,  42, 42): [SRG_196_91_42_42],
+        (231,  30,   9,  3): [CameronGraph],
+        (243, 220, 199,200): [SRG_243_220_199_200],
+        (256, 170, 114,110): [SRG_256_170_114_110],
+        (256, 187, 138,132): [SRG_256_187_138_132],
+        (256, 153,  92, 90): [SRG_256_153_92_90],
+        (275, 112,  30, 56): [McLaughlinGraph],
+        (280, 135,  70, 60): [SRG_280_135_70_60],
+        (512, 219, 106, 84): [SRG_512_219_106_84],
+        (512,  73,  12, 10): [SRG_512_73_12_10],
+        (625, 416, 279,272): [SRG_625_416_279_272],
+        (625, 364, 213,210): [SRG_625_364_213_210],
+        (729, 616, 523,506): [SRG_729_616_523_506],
+        (729, 420, 243,240): [SRG_729_420_243_240],
+        (729, 560, 433,420): [SRG_729_560_433_420],
+        (729, 476, 313,306): [SRG_729_476_313_306],
+        (729, 532, 391,380): [SRG_729_532_391_380],
+        (1024,825, 668,650): [SRG_1024_825_668_650],
     }
 
     if params in constructions:
@@ -1077,7 +1412,8 @@ def strongly_regular_graph(int v,int k,int l,int mu=-1,bint existence=False):
     test_functions = [is_paley, is_johnson,
                       is_orthogonal_array_block_graph,
                       is_steiner, is_affine_polar,
-                      is_orthogonal_polar]
+                      is_orthogonal_polar,
+                      is_RSHCD]
 
     # Going through all test functions, for the set of parameters and its
     # complement.
@@ -1105,7 +1441,7 @@ def strongly_regular_graph(int v,int k,int l,int mu=-1,bint existence=False):
             if existence:
                 return False
             raise EmptySetError("Andries Brouwer's database reports that no "+
-                                str((v,k,l,mu))+"-strongly regular graph exists."+
+                                str((v,k,l,mu))+"-strongly regular graph exists. "+
                                 "Comments: "+brouwer_data['comments'].encode('ascii','ignore'))
 
         if brouwer_data['status'] == 'open':
@@ -1134,10 +1470,8 @@ def apparently_feasible_parameters(int n):
     r"""
     Return a list of parameters `(v,k,\lambda,\mu)` which are a-priori feasible.
 
-    Only basic arithmetic checks are performed on the parameters that this
-    function return. Those that it does not return are infeasible for elementary
-    reasons. Note that some of those that it returns may also be infeasible for
-    more involved reasons.
+    Note that some of those that it returns may also be infeasible for more
+    involved reasons.
 
     INPUT:
 
@@ -1166,9 +1500,10 @@ def apparently_feasible_parameters(int n):
         sage: all(graphs.strongly_regular_graph(*x,existence=True) for x in small_feasible)
         True
 
-    But that becomes wrong for `v<30`::
+    But that becomes wrong for `v<60` (because of the non-existence of a
+    `(49,16,3,6)`-strongly regular graph)::
 
-        sage: small_feasible = apparently_feasible_parameters(30)
+        sage: small_feasible = apparently_feasible_parameters(60)
         sage: all(graphs.strongly_regular_graph(*x,existence=True) for x in small_feasible)
         False
 
@@ -1217,7 +1552,20 @@ def _check_database():
     """
     global _brouwer_database
     load_brouwer_database()
-    assert apparently_feasible_parameters(1301) == set(_brouwer_database)
+
+    # Check that all parameters detected as infeasible are actually infeasible
+    # in Brouwer's database, for a test that was implemented.
+    for params in set(_brouwer_database).difference(apparently_feasible_parameters(1301)):
+        if _brouwer_database[params]['status'] != "impossible":
+            raise RuntimeError("Brouwer's db does not seem to know that {} in unfeasible".format(params))
+        comment = _brouwer_database[params]['comments']
+        if ('Krein'    in comment or
+            'Absolute' in comment or
+            'Conf'     in comment or
+            'mu=1'     in comment or
+            '&mu;=2'   in comment):
+            continue
+        raise RuntimeError("We detected that {} was unfeasible, but maybe we should not have".format(params))
 
     # We empty the global database, to be sure that strongly_regular_graph does
     # not use its data to answer.

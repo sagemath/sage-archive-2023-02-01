@@ -1,27 +1,5 @@
 """
 Coercion via Construction Functors
-
-TESTS:
-
-A bug::
-
-    sage: from sage.categories.pushout import pushout
-    sage: from sage.sets.cartesian_product import CartesianProduct
-    sage: A = CartesianProduct((QQ['z'],), Sets().CartesianProducts())
-    sage: B = CartesianProduct((ZZ['t']['z'],), Sets().CartesianProducts())
-    sage: pushout(A, B)
-    The cartesian product of (Univariate Polynomial Ring in z over Univariate Polynomial Ring in t over Rational Field,)
-    sage: A.construction()
-    (The cartesian_product functorial construction,
-     (Univariate Polynomial Ring in z over Rational Field,))
-    sage: pushout(A, B)
-    The cartesian product of (Univariate Polynomial Ring in z over Univariate Polynomial Ring in t over Rational Field,)
-
-In ``A.construction()`` the functor (``CartesianProductFunctor``)
-seems not to be seen as ``ConstructionFunctor``` at the first pass,
-although it is inherited from
-``MultivariateConstructionFunctor``. Code needs to be more on the top
-of the file to be reproduced
 """
 from sage.misc.lazy_import import lazy_import
 from functor import Functor, IdentityFunctor_generic
@@ -679,6 +657,20 @@ class MultivariateConstructionFunctor(ConstructionFunctor):
     """
     An abstract base class for functors that take
     multiple inputs (e.g. cartesian products).
+
+    TESTS::
+
+        sage: from sage.categories.pushout import pushout
+        sage: from sage.sets.cartesian_product import CartesianProduct
+        sage: A = cartesian_product((QQ['z'],))
+        sage: B = cartesian_product((ZZ['t']['z'],))
+        sage: pushout(A, B)
+        The cartesian product of (Univariate Polynomial Ring in z over Univariate Polynomial Ring in t over Rational Field,)
+        sage: A.construction()
+        (The cartesian_product functorial construction,
+         (Univariate Polynomial Ring in z over Rational Field,))
+        sage: pushout(A, B)
+        The cartesian product of (Univariate Polynomial Ring in z over Univariate Polynomial Ring in t over Rational Field,)
     """
     def common_base(self, other_functor, self_bases, other_bases):
         r"""

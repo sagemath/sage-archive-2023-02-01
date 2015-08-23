@@ -1146,6 +1146,26 @@ cdef class RealBall(RingElement):
             fmpz_clear(tmp)
         return res
 
+    def _rational_(self):
+        """
+        Check that this ball contains a single rational number and return that
+        number.
+
+        EXAMPLES::
+
+            sage: from sage.rings.real_arb import RBF
+            sage: QQ(RBF(123456/2^12))
+            1929/64
+            sage: QQ(RBF(1/3))
+            Traceback (most recent call last):
+            ...
+            ValueError: [0.3333333333333333 +/- 7.04e-17] does not contain a unique rational number
+        """
+        if arb_is_exact(self.value):
+            return self.mid().exact_rational()
+        else:
+            raise ValueError("{} does not contain a unique rational number".format(self))
+
     def _mpfr_(self, RealField_class field):
         """
         Convert this real ball to a real number.

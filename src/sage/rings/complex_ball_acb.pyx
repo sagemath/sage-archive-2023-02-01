@@ -802,6 +802,26 @@ cdef class ComplexBall(RingElement):
             fmpz_clear(tmp)
         return res
 
+    def _rational_(self):
+        """
+        Check that this ball contains a single rational number and return that
+        number.
+
+        EXAMPLES::
+
+            sage: from sage.rings.complex_ball_acb import CBF
+            sage: QQ(CBF(12345/2^5))
+            12345/32
+            sage: QQ(CBF(i))
+            Traceback (most recent call last):
+            ...
+            ValueError: 1.000000000000000*I does not contain a unique rational number
+        """
+        if acb_is_real(self.value) and acb_is_exact(self.value):
+            return self.real().mid().exact_rational()
+        else:
+            raise ValueError("{} does not contain a unique rational number".format(self))
+
     def _complex_mpfr_field_(self, parent):
         r"""
         Convert this complex ball to a complex number.

@@ -318,6 +318,22 @@ class Ideal_generic(MonoidElement):
         """
         return "Ideal %s of %s"%(self._repr_short(), self.ring())
 
+    def __hash__(self):
+        r"""
+        Very stupid constant hash function!
+
+        TESTS::
+
+            sage: R = ZZ
+            sage: I = ZZ*2
+            sage: J = ZZ*(-2)
+            sage: hash(I)
+            0
+            sage: hash(J)
+            0
+        """
+        return 0
+
     def __cmp__(self, other):
         """
         Compares the generators of two ideals.
@@ -1228,6 +1244,22 @@ class Ideal_principal(Ideal_generic):
         if self.gen().is_zero():
             return x.is_zero()
         return self.gen().divides(x)
+
+    def __hash__(self):
+        r"""
+        Very stupid constant hash function!
+
+        TESTS::
+
+            sage: P.<x, y> = PolynomialRing(ZZ)
+            sage: I = P.ideal(x^2)
+            sage: J = [x, y^2 + x*y]*P
+            sage: hash(I)
+            0
+            sage: hash(J)
+            0
+        """
+        return 0
 
     def __cmp__(self, other):
         """

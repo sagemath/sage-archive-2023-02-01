@@ -3013,6 +3013,18 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
         Ideal_generic.__init__(self, ring, gens, coerce=coerce)
         self._gb_by_ordering = dict()
 
+    def __hash__(self):
+        r"""
+        Stupid constant hash function!
+
+        TESTS::
+
+            sage: R.<x,y> = PolynomialRing(IntegerRing(), 2, order='lex')
+            sage: hash(R.ideal([x, y]))
+            0
+        """
+        return 0
+
     @cached_method
     def gens(self):
         """

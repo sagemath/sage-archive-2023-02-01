@@ -1,3 +1,4 @@
+# cython: profile=True
 """
 Boilerplate functions for a cython implementation of elements of path algebras.
 
@@ -32,7 +33,7 @@ from sage.libs.gmp.mpn cimport mpn_cmp
 # reference counter.
 
 # Create a monomial by copying the given bounded integer sequence
-cdef inline path_mon_t *mon_create(biseq_t Mon, unsigned int Pos, int Mid, unsigned int S_len) except NULL:
+cdef inline path_mon_t *mon_create(biseq_t Mon, unsigned int Pos, int Mid, mp_size_t S_len) except NULL:
     if Mid == -1:
         assert Pos==S_len==0
     cdef path_mon_t *out = <path_mon_t*>sage_malloc(sizeof(path_mon_t))
@@ -46,7 +47,7 @@ cdef inline path_mon_t *mon_create(biseq_t Mon, unsigned int Pos, int Mid, unsig
     return out
 
 # the following is only used in the free-list for terms.
-cdef inline bint mon_realloc(path_mon_t *out, biseq_t Mon, unsigned int Pos, int Mid, unsigned int S_len) except -1:
+cdef inline bint mon_realloc(path_mon_t *out, biseq_t Mon, unsigned int Pos, int Mid, mp_size_t S_len) except -1:
     if Mid == -1:
         assert Pos==S_len==0
     bitset_realloc(out.path.data, Mon.data.size)
@@ -61,7 +62,7 @@ cdef inline bint mon_realloc(path_mon_t *out, biseq_t Mon, unsigned int Pos, int
     return True
 
 # Create a monomial without copying the given bounded integer sequence
-cdef inline path_mon_t *mon_create_keep(biseq_t Mon, unsigned int Pos, int Mid, unsigned int S_len) except NULL:
+cdef inline path_mon_t *mon_create_keep(biseq_t Mon, unsigned int Pos, int Mid, mp_size_t S_len) except NULL:
     if Mid == -1:
         assert Pos==S_len==0
     cdef path_mon_t *out = <path_mon_t*>sage_malloc(sizeof(path_mon_t))
@@ -74,7 +75,7 @@ cdef inline path_mon_t *mon_create_keep(biseq_t Mon, unsigned int Pos, int Mid, 
     out.ref = 1
     return out
 
-cdef inline bint mon_realloc_keep(path_mon_t *out, biseq_t Mon, unsigned int Pos, int Mid, unsigned int S_len) except -1:
+cdef inline bint mon_realloc_keep(path_mon_t *out, biseq_t Mon, unsigned int Pos, int Mid, mp_size_t S_len) except -1:
     if Mid == -1:
         assert Pos==S_len==0
     biseq_dealloc(out.path)
@@ -108,7 +109,7 @@ cdef path_mon_t *mon_unpickle(tuple data) except NULL:
     cdef mp_size_t length
     cdef unsigned int Pos
     cdef int Mid
-    cdef unsigned int S_len
+    cdef mp_size_t S_len
     bitset_data, itembitsize, length, Pos, Mid, S_len = data
     cdef path_mon_t *out = <path_mon_t*>sage_malloc(sizeof(path_mon_t))
     if out==NULL:
@@ -267,7 +268,7 @@ cdef inline path_term_t *term_free(path_term_t *T):
     return out
 
 # Create a term by copying the given bounded integer sequence
-cdef inline path_term_t *term_create(object coef, biseq_t Mon, unsigned int Pos, int Mid, unsigned int S_len) except NULL:
+cdef inline path_term_t *term_create(object coef, biseq_t Mon, unsigned int Pos, int Mid, mp_size_t S_len) except NULL:
     cdef path_term_t *out
     if kill_list.nterms > 0:
         predec(kill_list.nterms)
@@ -290,7 +291,7 @@ cdef inline path_term_t *term_create(object coef, biseq_t Mon, unsigned int Pos,
     return out
 
 # Create a term without copying the given bounded integer sequence
-cdef inline path_term_t *term_create_keep(object coef, biseq_t Mon, unsigned int Pos, int Mid, unsigned int S_len) except NULL:
+cdef inline path_term_t *term_create_keep(object coef, biseq_t Mon, unsigned int Pos, int Mid, mp_size_t S_len) except NULL:
     cdef path_term_t *out
     if kill_list.nterms > 0:
         predec(kill_list.nterms)
@@ -384,7 +385,7 @@ cdef inline path_term_t *term_copy_recursive(path_term_t *T) except NULL:
 cdef inline long term_hash(path_term_t *T):
     return (<long>hash(<object>T.coef)+(T.mon.mid<<5)+(T.mon.pos<<10))^bitset_hash(T.mon.path.data)
 
-cdef inline unsigned int term_total_degree(path_term_t *T):
+cdef inline mp_size_t term_total_degree(path_term_t *T):
     return T.mon.path.length-T.mon.s_len
 
 cdef inline tuple term_pickle(path_term_t *T):
@@ -566,7 +567,7 @@ cdef path_term_t *term_mul_coef(path_term_t *T, object coef) except NULL:
 cdef path_term_t *term_mul_term(path_term_t *T1, path_term_t *T2) except NULL:
     cdef int new_mid
     cdef int new_pos
-    cdef unsigned int new_s_len
+    cdef mp_size_t new_s_len
     if T1.mon.mid!=-1:
         if T2.mon.mid!=-1:
             raise ValueError("We cannot multiply two module elements")
@@ -1040,7 +1041,7 @@ cdef path_poly_t *poly_sub(path_poly_t *P1, path_poly_t *P2, path_order_t cmp_te
 ##
 ## In-place addition of a multiple of a polynomial
 
-cdef int poly_iadd_lrmul(path_poly_t *P1, object coef, biseq_t L, path_poly_t *P2, biseq_t R, path_order_t cmp_terms, int mid, int pos, unsigned int s_len) except -3:
+cdef int poly_iadd_lrmul(path_poly_t *P1, object coef, biseq_t L, path_poly_t *P2, biseq_t R, path_order_t cmp_terms, int mid, int pos, mp_size_t s_len) except -3:
     # Replace P1 by P1+coef*L*P2*R.
     #
     # Let m be a monomial of P2. If it is of module-type (i.e., m.mid!=-1),
@@ -1152,7 +1153,7 @@ cdef int poly_iadd_lrmul(path_poly_t *P1, object coef, biseq_t L, path_poly_t *P
         T1 = T1.nxt
     return deg
 
-cdef path_term_t *poly_iadd_lmul(path_poly_t *P1, object coef, path_poly_t *P2, biseq_t R, path_order_t cmp_terms, int mid, int pos, unsigned int s_len, path_term_t *P1start) except NULL:
+cdef path_term_t *poly_iadd_lmul(path_poly_t *P1, object coef, path_poly_t *P2, biseq_t R, path_order_t cmp_terms, int mid, int pos, mp_size_t s_len, path_term_t *P1start) except NULL:
     # Replace P1 by P1+coef*P2*R. Return a pointer to the first term of P1
     # that may be involved in a change when calling the function again with
     # P1, P2 and a "smaller" cofactor R. The return value should then be
@@ -1297,7 +1298,7 @@ cdef inline path_homog_poly_t *homog_poly_init_poly(int start, int end, path_pol
     out.nxt = NULL
     return out
 
-cdef path_homog_poly_t *homog_poly_init_list(int start, int end, list L, path_order_t cmp_terms, int mid, unsigned int pos, unsigned int s_len) except NULL:
+cdef path_homog_poly_t *homog_poly_init_list(int start, int end, list L, path_order_t cmp_terms, int mid, unsigned int pos, mp_size_t s_len) except NULL:
     # mid==-2 means that we have a left module element. I.e., the new mid is pathlength-s_len
     cdef path_homog_poly_t * out = homog_poly_create(start, end)
     cdef QuiverPath P

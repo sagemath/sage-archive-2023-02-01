@@ -35,7 +35,7 @@ cdef struct path_mon_t:
     # compared directly, but to each position is associated a monomial s_i,
     # and a*I_i*b is compared with c*I_j*d by first comparing a*s_i*b with
     # c*s_j*d. s_length is the length of s_i.
-    unsigned int s_len
+    mp_size_t s_len
     # paths are encoded as lists of integers. We store a*s_i*b if the monomial is
     # a*I_i*b.
     biseq_t path

@@ -1,3 +1,4 @@
+# cython: profile=True
 """
 Path algebra elements.
 
@@ -233,7 +234,7 @@ cdef class PathAlgebraElement(RingElement):
         cdef path_term_t * T
         L_total = []
         cdef list vertices = self._parent.quiver().vertices()
-        cdef unsigned int offset = len(vertices)
+        cdef mp_size_t offset = len(vertices)
         while H != NULL:
             L = []  # data for a single component (given by start- and endpoints)
             T = H.poly.lead

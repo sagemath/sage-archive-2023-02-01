@@ -12,9 +12,11 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
+from sage.misc.lazy_import import lazy_import
 from sage.categories.covariant_functorial_construction import CovariantFunctorialConstruction, CovariantConstructionCategory
+from sage.categories.pushout import MultivariateConstructionFunctor
 
-class CartesianProductFunctor(CovariantFunctorialConstruction):
+class CartesianProductFunctor(CovariantFunctorialConstruction, MultivariateConstructionFunctor):
     """
     A singleton class for the Cartesian product functor.
 
@@ -105,17 +107,19 @@ class CartesianProductFunctor(CovariantFunctorialConstruction):
     _functor_category = "CartesianProducts"
     symbol = " (+) "
 
-cartesian_product = CartesianProductFunctor()
-"""
-The cartesian product functorial construction.
+    def __init__(self):
+        r"""
+        Constructor. See :class:`CartesianProductFunctor` for details.
 
-See :class:`CartesianProductFunctor` for more information.
+        TESTS::
 
-EXAMPLES::
-
-    sage: cartesian_product
-    The cartesian_product functorial construction
-"""
+            sage: from sage.categories.cartesian_product import CartesianProductFunctor
+            sage: CartesianProductFunctor()
+            The cartesian_product functorial construction
+        """
+        CovariantFunctorialConstruction.__init__(self)
+        from sage.categories.sets_cat import Sets
+        MultivariateConstructionFunctor.__init__(self, Sets(), Sets())
 
 class CartesianProductsCategory(CovariantConstructionCategory):
     """
@@ -171,3 +175,17 @@ class CartesianProductsCategory(CovariantConstructionCategory):
             Integer Ring
         """
         return self.base_category().base_ring()
+
+# Moved to avoid circular imports
+lazy_import('sage.categories.sets_cat', 'cartesian_product')
+"""
+The cartesian product functorial construction
+
+See :class:`CartesianProductFunctor` for more information
+
+EXAMPLES::
+
+    sage: cartesian_product
+    The cartesian_product functorial construction
+"""
+

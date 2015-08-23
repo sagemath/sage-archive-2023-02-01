@@ -19,6 +19,7 @@ from category import Category, JoinCategory
 from category_types import Category_module, Category_over_base_ring
 from tensor import TensorProductsCategory
 from dual import DualObjectsCategory
+from sage.categories.cartesian_product import CartesianProductsCategory
 from sage.categories.sets_cat import Sets
 from sage.categories.bimodules import Bimodules
 from sage.categories.fields import Fields
@@ -576,3 +577,31 @@ class Modules(Category_module):
                 """
                 from magmatic_algebras import MagmaticAlgebras
                 return [MagmaticAlgebras(self.base_category().base_ring())]
+
+    class CartesianProducts(CartesianProductsCategory):
+        """
+        The category of modules constructed as cartesian products of modules
+
+        This construction gives the direct product of modules. See
+        discussion on:
+
+         - http://groups.google.fr/group/sage-devel/browse_thread/thread/35a72b1d0a2fc77a/348f42ae77a66d16#348f42ae77a66d16
+         - http://en.wikipedia.org/wiki/Direct_product
+        """
+        def extra_super_categories(self):
+            """
+            A cartesian product of modules is endowed with a natural
+            module structure.
+
+            EXAMPLES::
+
+                sage: Modules(ZZ).CartesianProducts().extra_super_categories()
+                [Category of modules over Integer Ring]
+                sage: Modules(ZZ).CartesianProducts().super_categories()
+                [Category of modules over Integer Ring, Category of Cartesian products of monoids]
+            """
+            return [self.base_category()]
+
+        class ParentMethods:
+            def base_ring(self):
+                return self._sets[0].base_ring()

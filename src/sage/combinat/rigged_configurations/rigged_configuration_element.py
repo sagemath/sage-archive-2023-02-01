@@ -828,7 +828,7 @@ class RiggedConfigurationElement(ClonableArray):
             return Integer(p_inf)
         return Integer(p_inf - min(0, min(self[a].rigging)))
 
-    def get_vacancy_number(self, a, i):
+    def vacancy_number(self, a, i):
         r"""
         Return the vacancy number `p_i^{(a)}`.
 
@@ -842,12 +842,20 @@ class RiggedConfigurationElement(ClonableArray):
 
             sage: RC = RiggedConfigurations(['A', 4, 1], [[2, 2]])
             sage: elt = RC(partition_list=[[1], [2,1], [1], []])
-            sage: elt.get_vacancy_number(2, 3)
+            sage: elt.vacancy_number(2, 3)
             -2
-            sage: elt.get_vacancy_number(2, 2)
+            sage: elt.vacancy_number(2, 2)
             -2
-            sage: elt.get_vacancy_number(2, 1)
+            sage: elt.vacancy_number(2, 1)
             -1
+
+            sage: RC = RiggedConfigurations(['D',4,1], [[2,1], [2,1]])
+            sage: x = RC(partition_list=[[3], [3,1,1], [2], [3,1]]); ascii_art(x)
+           -1[ ][ ][ ]-1  1[ ][ ][ ]1  0[ ][ ]0  -3[ ][ ][ ]-3
+                          0[ ]0                  -1[ ]-1
+                          0[ ]0
+            sage: x.vacancy_number(2,2)
+            1
         """
         a = self.cartan_type().classical().index_set().index(a)
         return self.parent()._calc_vacancy_number(self.nu(), a, i)

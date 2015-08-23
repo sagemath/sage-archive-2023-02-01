@@ -2,11 +2,11 @@ r"""
 Algebra of differentiable scalar fields
 
 The class :class:`DiffScalarFieldAlgebra` implements the commutative algebra
-`C^k(U)` of scalar fields on some open subset `U` of a differentiable manifold
-`M` of class `C^k` over a topological field `K` (in most applications,
-`K = \RR` or `K = \CC`). By *differentiable scalar field*, it is meant a
-function `U\rightarrow K` that is `k`-times continuously differentiable.
-`C^k(U)` is an algebra over `K`, whose ring product is the
+`C^k(U)` of differentiable scalar fields on some open subset `U` of a
+differentiable manifold `M` of class `C^k` over a topological field `K` (in
+most applications, `K = \RR` or `K = \CC`). By *differentiable scalar field*,
+it is meant a function `U\rightarrow K` that is `k`-times continuously
+differentiable. `C^k(U)` is an algebra over `K`, whose ring product is the
 pointwise multiplication of `K`-valued functions, which is clearly commutative.
 
 AUTHORS:
@@ -113,7 +113,8 @@ class DiffScalarFieldAlgebra(ScalarFieldAlgebra):
     Those of `C^k(W)` are scalar fields on `W`::
 
         sage: CW.an_element()
-        Scalar field on the Open subset W of the 2-dimensional differentiable manifold M
+        Scalar field on the Open subset W of the 2-dimensional differentiable
+         manifold M
         sage: CW.an_element().display()  # this sample element is a constant field
         W --> R
         (x, y) |--> 2
@@ -131,7 +132,8 @@ class DiffScalarFieldAlgebra(ScalarFieldAlgebra):
     ::
 
         sage: CW.zero()
-        Scalar field zero on the Open subset W of the 2-dimensional differentiable manifold M
+        Scalar field zero on the Open subset W of the 2-dimensional
+         differentiable manifold M
         sage: CW.zero().display()
         zero: W --> R
            (x, y) |--> 0
@@ -157,8 +159,8 @@ class DiffScalarFieldAlgebra(ScalarFieldAlgebra):
         (u, v) |--> 1
 
     A generic element can be constructed as for any parent in Sage, namely
-    by means of the ``__call__`` operator on the parent (here with the dictionary
-    of the coordinate expressions defining the scalar field)::
+    by means of the ``__call__`` operator on the parent (here with the
+    dictionary of the coordinate expressions defining the scalar field)::
 
         sage: f = CM({c_xy: atan(x^2+y^2), c_uv: pi/2 - atan(u^2+v^2)}); f
         Scalar field on the 2-dimensional differentiable manifold M
@@ -211,7 +213,8 @@ class DiffScalarFieldAlgebra(ScalarFieldAlgebra):
     on `M`::
 
         sage: fW = CW(f) ; fW
-        Scalar field on the Open subset W of the 2-dimensional differentiable manifold M
+        Scalar field on the Open subset W of the 2-dimensional differentiable
+         manifold M
         sage: fW.display()
         W --> R
         (x, y) |--> arctan(x^2 + y^2)
@@ -296,7 +299,8 @@ class DiffScalarFieldAlgebra(ScalarFieldAlgebra):
         sage: f/fW == CW.one()
         True
         sage: s = f*fW ; s
-        Scalar field on the Open subset W of the 2-dimensional differentiable manifold M
+        Scalar field on the Open subset W of the 2-dimensional differentiable
+         manifold M
         sage: s.display()
         W --> R
         (x, y) |--> arctan(x^2 + y^2)^2
@@ -326,34 +330,9 @@ class DiffScalarFieldAlgebra(ScalarFieldAlgebra):
         sage: 1/3*(f+2*f) == f
         True
 
-    Sage test suite for algebras is passed::
+    The Sage test suite for algebras is passed::
 
-        sage: TestSuite(CM).run(verbose=True)
-        running ._test_additive_associativity() . . . pass
-        running ._test_an_element() . . . pass
-        running ._test_associativity() . . . pass
-        running ._test_category() . . . pass
-        running ._test_characteristic() . . . pass
-        running ._test_distributivity() . . . pass
-        running ._test_elements() . . .
-          Running the test suite of self.an_element()
-          running ._test_category() . . . pass
-          running ._test_eq() . . . pass
-          running ._test_nonzero_equal() . . . pass
-          running ._test_not_implemented_methods() . . . pass
-          running ._test_pickling() . . . pass
-          pass
-        running ._test_elements_eq_reflexive() . . . pass
-        running ._test_elements_eq_symmetric() . . . pass
-        running ._test_elements_eq_transitive() . . . pass
-        running ._test_elements_neq() . . . pass
-        running ._test_eq() . . . pass
-        running ._test_not_implemented_methods() . . . pass
-        running ._test_one() . . . pass
-        running ._test_pickling() . . . pass
-        running ._test_prod() . . . pass
-        running ._test_some_elements() . . . pass
-        running ._test_zero() . . . pass
+        sage: TestSuite(CM).run()
 
     It is passed also for `C^k(W)`::
 

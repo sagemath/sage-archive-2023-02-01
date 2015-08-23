@@ -1155,7 +1155,8 @@ class RealChart(Chart):
         sage: c_spher
         Chart (U, (r, th, ph))
 
-    Note the prefix 'r' for the string defining the coordinates in the arguments of ``Chart``.
+    Note the prefix 'r' for the string defining the coordinates in the
+    arguments of ``chart``.
 
     Coordinates are Sage symbolic variables (see
     :mod:`sage.symbolic.expression`)::

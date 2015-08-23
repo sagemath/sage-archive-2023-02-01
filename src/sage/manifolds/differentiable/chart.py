@@ -19,8 +19,8 @@ AUTHORS:
 
 REFERENCES:
 
-.. [1] Chap. 1 of J.M. Lee : *Introduction to Smooth Manifolds*, 2nd ed., Springer
-   (New York) (2013)
+.. [1] Chap. 1 of J.M. Lee : *Introduction to Smooth Manifolds*, 2nd ed.,
+   Springer (New York) (2013)
 
 """
 
@@ -210,8 +210,8 @@ class DiffChart(Chart):
     charts whose name can be skipped in the argument list of functions having
     an optional ``chart=`` argument.
 
-    The chart map `\varphi` acting on a point is obtained by means of the
-    call operator, i.e. the operator ``()``::
+    The action of the chart map `\varphi` on a point is obtained by means of
+    the call operator, i.e. the operator ``()``::
 
         sage: p = M.point((1+i, 2), chart=X); p
         Point on the 2-dimensional complex manifold M
@@ -378,14 +378,15 @@ class DiffChart(Chart):
 
 #*****************************************************************************
 
-class RealDiffChart(RealChart, DiffChart):
+class RealDiffChart(DiffChart, RealChart):
     r"""
     Chart on a differentiable manifold over `\RR`.
 
-    Given a differentiable manifold `M` of dimension `n` over `\RR`, a *chart* is
-    a pair `(U,\varphi)`, where `U` is an open subset of `M` and
-    `\varphi: U \rightarrow V \subset \RR^n` is a homeomorphism from `U` to
-    an open subset `V` of `\RR^n`.
+    Given a differentiable manifold `M` of dimension `n` over `\RR`,
+    a *chart* is a member `(U,\varphi)` of the manifold's
+    differentiable atlas; `U` is then an open subset of `M` and
+    `\varphi: U \rightarrow V \subset \RR^n` is a homeomorphism from
+    `U` to an open subset `V` of `\RR^n`.
 
     The components `(x^1,\ldots,x^n)` of `\varphi`, defined by
     `\varphi(p) = (x^1(p),\ldots,x^n(p))\in \RR^n` for any point `p\in U`, are
@@ -490,7 +491,8 @@ class RealDiffChart(RealChart, DiffChart):
         sage: c_spher
         Chart (U, (r, th, ph))
 
-    Note the prefix 'r' for the string defining the coordinates in the arguments of ``Chart``.
+    Note the prefix 'r' for the string defining the coordinates in the
+    arguments of ``chart``.
 
     Coordinates are Sage symbolic variables (see
     :mod:`sage.symbolic.expression`)::
@@ -562,8 +564,8 @@ class RealDiffChart(RealChart, DiffChart):
     charts whose name can be skipped in the argument list of functions having
     an optional ``chart=`` argument.
 
-    The chart map `\varphi` acting on a point is obtained by means of the
-    call operator, i.e. the operator ``()``::
+    The action of the chart map `\varphi` on a point is obtained by means of
+    the call operator, i.e. the operator ``()``::
 
         sage: p = M.point((1,0,-2)); p
         Point on the 3-dimensional differentiable manifold R^3
@@ -698,3 +700,8 @@ class DiffCoordChange(CoordChange):
 
         """
         CoordChange.__init__(self, chart1, chart2, *transformations)
+        # Jacobian matrix:
+        self._jacobian  = self._transf.jacobian()
+        # Jacobian determinant:
+        if self._n1 == self._n2:
+            self._jacobian_det = self._transf.jacobian_det()

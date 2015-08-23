@@ -1,10 +1,8 @@
 r"""
 Differentiable manifolds
 
-Given a topological field `K` with sufficient structure to define
-differentiability, e.g. a complete metric field
-(in most applications, `K = \RR` or `K = \CC`;
-see however [4]_ for `K = \QQ_p` and [5]_ for other fields),
+Given a non-discrete topological field `K` (in most applications, `K = \RR` or
+`K = \CC`; see however [4]_ for `K = \QQ_p` and [5]_ for other fields),
 a *differentiable manifold over* `K` is a topological manifold `M` over `K`
 equipped with an atlas whose transitions maps are of class `C^k` (i.e.
 `k`-times  continuously differentiable) for a fixed positive integer `k`
@@ -318,8 +316,7 @@ class DiffManifold(TopManifold):
     r"""
     Differentiable manifold over a topological field `K`.
 
-    Given a topological field `K` with sufficient structure to define
-    differentiability, e.g. a complete metric field (in most applications,
+    Given a non-discrete topological field `K` (in most applications,
     `K = \RR` or `K = \CC`; see however [4]_ for `K = \QQ_p` and [5]_ for
     other fields), a *differentiable manifold over* `K` is a topological
     manifold `M` over `K` equipped with an atlas whose transitions maps are of
@@ -458,25 +455,7 @@ class DiffManifold(TopManifold):
     The manifold passes all the tests of the test suite relative to the
     category of Sets::
 
-        sage: TestSuite(M).run(verbose=True)
-        running ._test_an_element() . . . pass
-        running ._test_category() . . . pass
-        running ._test_elements() . . .
-          Running the test suite of self.an_element()
-          running ._test_category() . . . pass
-          running ._test_eq() . . . pass
-          running ._test_not_implemented_methods() . . . pass
-          running ._test_pickling() . . . pass
-          pass
-        running ._test_elements_eq_reflexive() . . . pass
-        running ._test_elements_eq_symmetric() . . . pass
-        running ._test_elements_eq_transitive() . . . pass
-        running ._test_elements_neq() . . . pass
-        running ._test_eq() . . . pass
-        running ._test_not_implemented_methods() . . . pass
-        running ._test_pickling() . . . pass
-        running ._test_some_elements() . . . pass
-
+        sage: TestSuite(M).run()
 
     """
     def __init__(self, n, name, latex_name=None, field='real',

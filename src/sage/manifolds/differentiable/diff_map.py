@@ -134,30 +134,34 @@ class DiffMap(ContinuousMap):
     arguments ``chart1`` and ``chart2`` have to be provided if the charts
     differ from the default ones on the domain and/or the codomain::
 
-        sage: Phi1 = M.diff_map(N, [2*x/(1+x^2+y^2), 2*y/(1+x^2+y^2), (x^2+y^2-1)/(1+x^2+y^2)], \
-        ....: chart1=c_xy, chart2=c_cart, name='Phi', latex_name=r'\Phi')
+        sage: Phi1 = M.diff_map(N, [2*x/(1+x^2+y^2), 2*y/(1+x^2+y^2), (x^2+y^2-1)/(1+x^2+y^2)],
+        ....:                   chart1=c_xy, chart2=c_cart, name='Phi', latex_name=r'\Phi')
 
     Since c_xy and c_cart are the default charts on respectively M and N, they
     can be omitted, so that the above declaration is equivalent to::
 
-        sage: Phi1 = M.diff_map(N, [2*x/(1+x^2+y^2), 2*y/(1+x^2+y^2), (x^2+y^2-1)/(1+x^2+y^2)], \
-        ....: name='Phi', latex_name=r'\Phi')
+        sage: Phi1 = M.diff_map(N, [2*x/(1+x^2+y^2), 2*y/(1+x^2+y^2), (x^2+y^2-1)/(1+x^2+y^2)],
+        ....:                   name='Phi', latex_name=r'\Phi')
 
     With such a declaration, the differentiable map is only partially defined
     on the manifold `S^2`, being known in only one chart::
 
         sage: Phi1.display()
         Phi: S^2 --> R^3
-        on U: (x, y) |--> (X, Y, Z) = (2*x/(x^2 + y^2 + 1), 2*y/(x^2 + y^2 + 1), (x^2 + y^2 - 1)/(x^2 + y^2 + 1))
+        on U: (x, y) |--> (X, Y, Z) = (2*x/(x^2 + y^2 + 1), 2*y/(x^2 + y^2 + 1),
+         (x^2 + y^2 - 1)/(x^2 + y^2 + 1))
 
     The definition can be completed by means of the method
     :meth:`~sage.manifolds.continuous_map.ContinuousMap.add_expr`::
 
-        sage: Phi1.add_expr(c_uv, c_cart, [2*u/(1+u^2+v^2), 2*v/(1+u^2+v^2), (1-u^2-v^2)/(1+u^2+v^2)])
+        sage: Phi1.add_expr(c_uv, c_cart, [2*u/(1+u^2+v^2), 2*v/(1+u^2+v^2),
+        ....:                              (1-u^2-v^2)/(1+u^2+v^2)])
         sage: Phi1.display()
         Phi: S^2 --> R^3
-        on U: (x, y) |--> (X, Y, Z) = (2*x/(x^2 + y^2 + 1), 2*y/(x^2 + y^2 + 1), (x^2 + y^2 - 1)/(x^2 + y^2 + 1))
-        on V: (u, v) |--> (X, Y, Z) = (2*u/(u^2 + v^2 + 1), 2*v/(u^2 + v^2 + 1), -(u^2 + v^2 - 1)/(u^2 + v^2 + 1))
+        on U: (x, y) |--> (X, Y, Z) = (2*x/(x^2 + y^2 + 1), 2*y/(x^2 + y^2 + 1),
+         (x^2 + y^2 - 1)/(x^2 + y^2 + 1))
+        on V: (u, v) |--> (X, Y, Z) = (2*u/(u^2 + v^2 + 1), 2*v/(u^2 + v^2 + 1),
+         -(u^2 + v^2 - 1)/(u^2 + v^2 + 1))
 
     At this stage, Phi1 and Phi are fully equivalent::
 
@@ -190,8 +194,8 @@ class DiffMap(ContinuousMap):
         sage: Psi = N.diff_map(P, (X/(1-Z), Y/(1-Z)), name='Psi',
         ....:                      latex_name=r'\Psi')
         sage: Psi
-        Differentiable map Psi from the 3-dimensional differentiable manifold R^3 to
-         the 2-dimensional differentiable manifold R^2
+        Differentiable map Psi from the 3-dimensional differentiable manifold
+         R^3 to the 2-dimensional differentiable manifold R^2
         sage: Psi.display()
         Psi: R^3 --> R^2
            (X, Y, Z) |--> (xP, yP) = (-X/(Z - 1), -Y/(Z - 1))
@@ -200,8 +204,8 @@ class DiffMap(ContinuousMap):
     `S^2\rightarrow \RR^2`::
 
         sage: ster = Psi*Phi ; ster
-        Differentiable map from the 2-dimensional differentiable manifold S^2 to the
-         2-dimensional differentiable manifold R^2
+        Differentiable map from the 2-dimensional differentiable manifold S^2
+         to the 2-dimensional differentiable manifold R^2
 
     Let us test on the South pole (``sp``) that ``ster`` is indeed the
     composite of ``Psi`` and ``Phi``::
@@ -233,8 +237,8 @@ class DiffMap(ContinuousMap):
         sage: R2 = DiffManifold(2, 'R^2')  # R^2
         sage: c_xy.<x,y> = R2.chart() # Cartesian coordinates on R^2
         sage: Phi = R.diff_map(R2, [cos(t), sin(t)], name='Phi') ; Phi
-        Differentiable map Phi from the 1-dimensional differentiable manifold R to
-         the 2-dimensional differentiable manifold R^2
+        Differentiable map Phi from the 1-dimensional differentiable manifold R
+         to the 2-dimensional differentiable manifold R^2
         sage: Phi.parent()
         Set of Morphisms from 1-dimensional differentiable manifold R to
          2-dimensional differentiable manifold R^2 in Category of sets
@@ -252,7 +256,8 @@ class DiffMap(ContinuousMap):
         ....:                        name='Phi', latex_name=r'\Phi')
         sage: Phi
         Diffeomorphism Phi from the Open subset D of the 2-dimensional
-         differentiable manifold R^2 to the 2-dimensional differentiable manifold R^2
+         differentiable manifold R^2 to the 2-dimensional differentiable
+         manifold R^2
         sage: Phi.parent()
         Set of Morphisms from Open subset D of the 2-dimensional differentiable
          manifold R^2 to 2-dimensional differentiable manifold R^2 in Category
@@ -304,8 +309,8 @@ class DiffMap(ContinuousMap):
     A special case of diffeomorphism: the identity map of the open unit disk::
 
         sage: id = D.identity_map() ; id
-        Identity map Id_D of the Open subset D of the 2-dimensional differentiable
-         manifold R^2
+        Identity map Id_D of the Open subset D of the 2-dimensional
+         differentiable manifold R^2
         sage: latex(id)
         \mathrm{Id}_{D}
         sage: id.parent()
@@ -352,8 +357,8 @@ class DiffMap(ContinuousMap):
             sage: N = DiffManifold(3, 'N')
             sage: Y.<u,v,w> = N.chart()
             sage: f = Hom(M,N)({(X,Y): (x+y, x*y, x-y)}, name='f') ; f
-            Differentiable map f from the 2-dimensional differentiable manifold M to
-             the 3-dimensional differentiable manifold N
+            Differentiable map f from the 2-dimensional differentiable manifold
+             M to the 3-dimensional differentiable manifold N
             sage: f.display()
             f: M --> N
                (x, y) |--> (u, v, w) = (x + y, x*y, x - y)
@@ -467,4 +472,3 @@ class DiffMap(ContinuousMap):
         ContinuousMap._del_derived(self)  # derived quantities of the mother
                                           # class
         self._diff.clear()
-

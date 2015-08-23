@@ -218,20 +218,21 @@ class KRTToRCBijectionAbstract:
         """
         # Check to make sure we have a valid index (currently removed)
         # If the current tableau is empty, there is nothing to do
-        if len(self.ret_rig_con[a]) == 0: # Check to see if we have vacancy numbers
+        if not self.ret_rig_con[a]: # Check to see if we have vacancy numbers
             return
 
         # Setup the first block
         block_len = self.ret_rig_con[a][0]
-        vac_num = self.ret_rig_con.parent()._calc_vacancy_number(self.ret_rig_con.nu(),
-                                                                 a, 0, dims=self.cur_dims)
+        nu = self.ret_rig_con.nu()
+        vac_num = self.ret_rig_con.parent()._calc_vacancy_number(nu, a, nu[a][0],
+                                                                 dims=self.cur_dims)
 
         for i, row_len in enumerate(self.ret_rig_con[a]):
             # If we've gone to a different sized block, then update the
             #   values which change when moving to a new block size
             if block_len != row_len:
-                vac_num = self.ret_rig_con.parent()._calc_vacancy_number(self.ret_rig_con.nu(),
-                                                                         a, i, dims=self.cur_dims)
+                vac_num = self.ret_rig_con.parent()._calc_vacancy_number(nu, a, row_len,
+                                                                         dims=self.cur_dims)
                 block_len = row_len
             self.ret_rig_con[a].vacancy_numbers[i] = vac_num
 
@@ -490,14 +491,16 @@ class RCToKRTBijectionAbstract:
         # Setup the first block
         block_len = partition[0]
         vac_num = self.rigged_con.parent()._calc_vacancy_number(self.cur_partitions,
-                                                                a, 0, dims=self.cur_dims)
+                                                                a, partition[0],
+                                                                dims=self.cur_dims)
 
         for i, row_len in enumerate(self.cur_partitions[a]):
             # If we've gone to a different sized block, then update the
             #   values which change when moving to a new block size
             if block_len != row_len:
                 vac_num = self.rigged_con.parent()._calc_vacancy_number(self.cur_partitions,
-                                                                        a, i, dims=self.cur_dims)
+                                                                        a, row_len,
+                                                                        dims=self.cur_dims)
                 block_len = row_len
 
             partition.vacancy_numbers[i] = vac_num

@@ -215,8 +215,8 @@ def twograph_descendant(G, v, name=None):
     one of s.r.g.'s from the :mod:`database <sage.graphs.strongly_regular_db>`::
 
         sage: from sage.combinat.designs.twographs import twograph_descendant
-        sage: A=graphs.strongly_regular_graph(280,135,70)
-        sage: twograph_descendant(A, 0).is_strongly_regular(parameters=True)
+        sage: A=graphs.strongly_regular_graph(280,135,70)                    # optional - gap_packages internet
+        sage: twograph_descendant(A, 0).is_strongly_regular(parameters=True) # optional - gap_packages internet
         (279, 150, 85, 75)
 
     TESTS::

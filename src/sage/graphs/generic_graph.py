@@ -479,14 +479,8 @@ class GenericGraph(GenericGraph_pyx):
         verts = self.vertices()
         # Finally, we are prepared to check edges:
         if not self.allows_multiple_edges():
-            for i in verts:
-                for j in verts:
-                    if self.has_edge(i,j) != other.has_edge(i,j):
-                        return False
-                    if self.has_edge(i,j) and self._weighted and other._weighted:
-                        if self.edge_label(i,j) != other.edge_label(i,j):
-                            return False
-            return True
+            return all(other.has_edge(*edge) for edge in self.edge_iterator(
+                                    labels=self._weighted and other._weighted))
         else:
             for i in verts:
                 for j in verts:

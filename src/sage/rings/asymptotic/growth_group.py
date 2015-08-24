@@ -1332,7 +1332,7 @@ class GenericGrowthGroup(
             sage: G_ZZ('blub')
             Traceback (most recent call last):
             ...
-            ValueError: Cannot convert blub.
+            ValueError: blub is not in Growth Group Generic(ZZ).
             sage: G_ZZ('x', raw_element=42)
             Traceback (most recent call last):
             ...
@@ -1345,7 +1345,7 @@ class GenericGrowthGroup(
             sage: G_y(x)
             Traceback (most recent call last):
             ...
-            ValueError: Cannot convert x.
+            ValueError: x is not in Growth Group y^ZZ.
         """
         if raw_element is None:
             if type(data) == self.element_class and data.parent() == self:
@@ -1353,7 +1353,7 @@ class GenericGrowthGroup(
             elif isinstance(data, self.element_class):
                 try:
                     if self._var_ != data.parent()._var_:
-                        raise ValueError('Cannot convert %s.' % (data,))
+                        raise ValueError('%s is not in %s.' % (data, self))
                 except AttributeError:
                     pass
                 raw_element = data._raw_element_
@@ -1362,7 +1362,7 @@ class GenericGrowthGroup(
             else:
                 raw_element = self._convert_(data)
             if raw_element is None:
-                raise ValueError('Cannot convert %s.' % (data,))
+                raise ValueError('%s is not in %s.' % (data, self))
         elif type(data) != int or data != 0:
             raise ValueError('Input is ambigous: '
                              '%s as well as raw_element=%s '
@@ -2018,7 +2018,7 @@ class MonomialGrowthGroup(GenericGrowthGroup):
             sage: P(log(x)^2)  # indirect doctest
             Traceback (most recent call last):
             ...
-            ValueError: Cannot convert log(x)^2.
+            ValueError: log(x)^2 is not in Growth Group x^ZZ.
 
         ::
 
@@ -2035,7 +2035,7 @@ class MonomialGrowthGroup(GenericGrowthGroup):
             sage: P(x^12 + O(x^17))
             Traceback (most recent call last):
             ...
-            ValueError: Cannot convert x^12 + O(x^17).
+            ValueError: x^12 + O(x^17) is not in Growth Group x^ZZ.
 
         ::
 
@@ -2045,7 +2045,7 @@ class MonomialGrowthGroup(GenericGrowthGroup):
             sage: P(w^4242)  # indirect doctest
             Traceback (most recent call last):
             ...
-            ValueError: Cannot convert w^4242.
+            ValueError: w^4242 is not in Growth Group x^ZZ.
 
         ::
 
@@ -2055,7 +2055,7 @@ class MonomialGrowthGroup(GenericGrowthGroup):
             sage: P(w^7)  # indirect doctest
             Traceback (most recent call last):
             ...
-            ValueError: Cannot convert w^7.
+            ValueError: w^7 is not in Growth Group x^ZZ.
 
         ::
 
@@ -2506,7 +2506,7 @@ class ExponentialGrowthGroup(GenericGrowthGroup):
             sage: P(0)  # indirect doctest
             Traceback (most recent call last):
             ...
-            ValueError: Cannot convert 0.
+            ValueError: 0 is not in Growth Group ZZ^x.
 
         ::
 

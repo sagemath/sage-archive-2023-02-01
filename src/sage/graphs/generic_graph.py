@@ -475,14 +475,27 @@ class GenericGraph(GenericGraph_pyx):
         # Finally, we are prepared to check edges:
         if not self.allows_multiple_edges():
             return all(other.has_edge(*edge) for edge in self.edge_iterator(
-                                    labels=self._weighted and other._weighted))
-        edges = other.edges(labels=self._weighted and other._weighted)
-        try:
-            for edge in self.edges(labels=self._weighted and other._weighted):
-                edges.remove(edge)
-        except ValueError:
-            return False
-        return True
+                                    labels=self._weighted))
+        else:
+            ii = jj = None
+            for i,j in self.edge_iterator(labels = False):
+                if i == ii and j == jj:
+                    continue
+                ii = i
+                jj = j
+
+                # The labels of edge ij in each graph
+                labels1 =  self.edge_label(i, j)
+                try:
+                    labels2 = other.edge_label(i, j)
+                except LookupError:
+                    return False
+
+                if len(labels1) != len(labels2):
+                    return False
+                if self._weighted and sorted(labels1) != sorted(labels2):
+                    return False
+            return True
 
     @cached_method
     def __hash__(self):

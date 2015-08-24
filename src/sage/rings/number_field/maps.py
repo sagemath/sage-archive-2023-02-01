@@ -288,7 +288,7 @@ class MapRelativeVectorSpaceToRelativeNumberField(NumberFieldIsomorphism):
         h = pari([to_B(a)._pari_('y') for a in v]).Polrev()
         # Rewrite the polynomial in terms of an absolute generator for
         # the relative number field.
-        g = K.pari_rnf().rnfeltreltoabs(h)
+        g = K._pari_rnfeq()._eltreltoabs(h)
         return K._element_class(K, g)
 
 class MapRelativeNumberFieldToRelativeVectorSpace(NumberFieldIsomorphism):
@@ -347,10 +347,10 @@ class MapRelativeNumberFieldToRelativeVectorSpace(NumberFieldIsomorphism):
         K = self.domain()
         # The element alpha is represented internally by an absolute
         # polynomial over QQ, and f is its PARI representation.
-        f = alpha._pari_('x')
+        f = alpha._pari_polynomial('x')
         # Convert f to a relative polynomial g; this is a polynomial
         # in x whose coefficients are polynomials in y.
-        g = K.pari_rnf().rnfeltabstorel(f).lift().lift()
+        g = K._pari_rnfeq()._eltabstorel_lift(f)
         # Convert the coefficients to elements of the base field.
         B, from_B, _ = K.absolute_base_field()
         return self.codomain()([from_B(B(z)) for z in g.Vecrev(-K.relative_degree())])

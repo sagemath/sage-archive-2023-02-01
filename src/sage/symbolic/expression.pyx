@@ -1912,6 +1912,14 @@ cdef class Expression(CommutativeRingElement):
 
             sage: SR(5).is_integer()
             True
+
+        TESTS:
+
+        Check that integer variables are recognized (:trac:`18921`)::
+
+            sage: _ = var('n', domain='integer')
+            sage: n.is_integer()
+            True
         """
         return self._gobj.info(info_integer)
 

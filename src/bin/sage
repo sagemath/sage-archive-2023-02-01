@@ -117,6 +117,8 @@ usage_advanced() {
     ####  1.......................26..................................................78
     ####  |.....................--.|...................................................|
     echo "Installing packages and upgrading:"
+    echo "  -package [args]     -- call the new package manager with given arguments."
+    echo "                         Run without arguments for package-specific help."
     echo "  -experimental       -- list all experimental packages that can be installed"
     echo "  -f [opts] [packages]-- shortcut for -i -f: force build of the given Sage"
     echo "                         packages"
@@ -796,6 +798,11 @@ install() {
     fi
     exit 0
 }
+
+if [ "$1" = '-package' -o "$1" = "--package" ]; then
+    shift
+    exec sage-package $@
+fi
 
 if [ "$1" = '-optional' -o "$1" = "--optional" ]; then
     shift

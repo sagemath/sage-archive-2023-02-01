@@ -1748,15 +1748,16 @@ class ExactTerm(TermWithCoefficient):
             sage: ET(x^0, 42)
             42
         """
-        if self.growth._raw_element_ == 0:
-            return '%s' % self.coefficient
+        g = repr(self.growth)
+        c = repr(self.coefficient)
+        if g == '1':
+            return c
+        elif c == '1':
+            return '%s' % (g,)
+        elif c == '-1':
+            return '-%s' % (g,)
         else:
-            if self.coefficient == 1:
-                return '%s' % self.growth
-            elif self.coefficient == -1:
-                return '-%s' % self.growth
-            else:
-                return '%s*%s' % (self.coefficient, self.growth)
+            return '%s*%s' % (c, g)
 
 
     def _can_absorb_(self, other):

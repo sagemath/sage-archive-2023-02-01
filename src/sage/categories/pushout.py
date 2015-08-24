@@ -199,7 +199,7 @@ class ConstructionFunctor(Functor):
         """
         return cmp(type(self), type(other))
 
-    def __str__(self):
+    def _repr_(self):
         """
         NOTE:
 
@@ -219,25 +219,6 @@ class ConstructionFunctor(Functor):
         s = str(type(self))
         import re
         return re.sub("<.*'.*\.([^.]*)'>", "\\1", s)
-
-    def _repr_(self):
-        """
-        NOTE:
-
-        By default, it returns the name of the construction functor's class.
-        Usually, this method will be overloaded.
-
-        TEST::
-
-            sage: F = QQ.construction()[0]
-            sage: F                  # indirect doctest
-            FractionField
-            sage: Q = ZZ.quo(2).construction()[0]
-            sage: Q                  # indirect doctest
-            QuotientFunctor
-
-        """
-        return str(self)
 
     def merge(self, other):
         """

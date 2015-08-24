@@ -1410,6 +1410,11 @@ class NumberField_generic(number_field_base.NumberField):
             sage: K(pari(b)) == b
             True
 
+            sage: F.<c> = NumberField(2*x^3 + x + 1)
+            sage: d = F.random_element()
+            sage: F(F.pari_nf().nfalgtobasis(d)) == d
+            True
+
         If the PARI polynomial is different from the Sage polynomial,
         a warning is printed unless ``check=False`` is specified::
 
@@ -1454,6 +1459,9 @@ class NumberField_generic(number_field_base.NumberField):
                     raise TypeError("cannot convert PARI element %s into %s" % (x, self))
                 x = x.lift()
                 check = False
+            elif x.type() == "t_COL":
+                x = self.pari_nf().nfbasistoalg_lift(x)
+                check = False
             if x.type() in ["t_INT", "t_FRAC"]:
                 pass
             elif x.type() == "t_POL":
@@ -1468,7 +1476,7 @@ class NumberField_generic(number_field_base.NumberField):
                     beta = self._pari_absolute_structure()[2]
                     x = x(beta).lift()
             else:
-                x = self.pari_nf().nfbasistoalg_lift(x)
+                raise TypeError("%s has unsupported PARI type %s" % (x, x.type()))
             x = self.absolute_polynomial().parent()(x)
             return self._element_class(self, x)
         elif sage.interfaces.gap.is_GapElement(x):
@@ -3910,7 +3918,7 @@ class NumberField_generic(number_field_base.NumberField):
 
             sage: K.<a> = NumberField(2*x^2 - 1/3)
             sage: K._S_class_group_and_units(tuple(K.primes_above(2) + K.primes_above(3)))
-            ([-6*a + 2, -1, 12*a + 5], [])
+            ([-6*a + 2, 6*a + 3, -1, 12*a + 5], [])
         """
         K_pari = self.pari_bnf(proof=proof)
         from sage.misc.all import uniq

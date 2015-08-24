@@ -250,7 +250,7 @@ class UnitGroup(AbelianGroupWithValues_class):
             sage: K.unit_group()
             Unit group with structure C2 x Z x Z of Number Field in a with defining polynomial 7/9*x^3 + 7/3*x^2 - 56*x + 123
             sage: UnitGroup(K, S=tuple(K.primes_above(7)))
-            S-unit group with structure C2 x Z x Z x Z of Number Field in a with defining polynomial 7/9*x^3 + 7/3*x^2 - 56*x + 123 with S = (Fractional ideal (-1/7*a^2 + 1),)
+            S-unit group with structure C2 x Z x Z x Z of Number Field in a with defining polynomial 7/9*x^3 + 7/3*x^2 - 56*x + 123 with S = (Fractional ideal (7/225*a^2 - 7/75*a - 42/25),)
         """
         proof = get_flag(proof, "number_field")
         K = number_field

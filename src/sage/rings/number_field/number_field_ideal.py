@@ -1861,6 +1861,17 @@ class NumberFieldFractionalIdeal(MultiplicativeGroupElement, NumberFieldIdeal):
             [(Fractional ideal (19, 1/2*a^2 + a - 17/2), 1), (Fractional ideal (19, 1/2*a^2 - a - 17/2), 1)]
             sage: F.prod()
             Fractional ideal (19)
+
+        TESTS:
+
+        Number fields defined by non-monic and non-integral
+        polynomials are supported (:trac:`252`)::
+
+            sage: F.<a> = NumberField(2*x^3 + x + 1)
+            sage: fact = F.factor(2); fact
+            (Fractional ideal (2*a^2 + 1))^2 * (Fractional ideal (-2*a^2))
+            sage: [p[0].norm() for p in fact]
+            [2, 2]
         """
         try:
             return self.__factorization

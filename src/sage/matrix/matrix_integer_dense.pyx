@@ -1644,7 +1644,8 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         - ``algorithm`` -- String. The algorithm to use. Valid options are:
 
           - ``'default'`` -- Let Sage pick an algorithm (default). Up
-            to 100 rows or columns: pari with flag 0; otherwise, flint.
+            to 10 rows or columns: padic; 100 rows or columns: pari with flag 0;
+            otherwise, flint.
 
           - ``'flint'`` - use flint
 
@@ -1877,7 +1878,7 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         if algorithm == 'default':
             if transformation: algorithm = 'flint'
             else:
-                if n < 100: algorithm = 'pari0'
+                if n < 75: algorithm = 'pari0'
                 else: algorithm = 'flint'
         proof = get_proof_flag(proof, "linear_algebra")
         pivots = None
@@ -1894,7 +1895,7 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
             H_m = self._new(nr, nc)
 
             if transformation:
-                U = self._new(nr, nc)
+                U = self._new(nr, nr)
                 sig_on()
                 fmpz_mat_hnf_transform(H_m._matrix, U._matrix, self._matrix)
                 sig_off()
@@ -1902,6 +1903,11 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
                 sig_on()
                 fmpz_mat_hnf(H_m._matrix, self._matrix)
                 sig_off()
+            if not include_zero_rows:
+                r = H_m.rank()
+                H_m = H_m[:r]
+                if transformation:
+                    U = U[:r]
         elif algorithm == "padic":
             import matrix_integer_dense_hnf
             self._init_mpz()
@@ -1959,9 +1965,9 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         pivots = tuple(pivots)
         rank = len(pivots)
         H_m.cache('pivots', pivots)
-        #self.cache('pivots', pivots)
+        self.cache('pivots', pivots)
         H_m.cache('rank', rank)
-        #self.cache('rank',rank)
+        self.cache('rank',rank)
         H_m.cache('in_echelon_form', True)
 
         if transformation:
@@ -1969,7 +1975,7 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
             ans = H_m, U
         else:
             ans = H_m
-        #self.cache(key, ans)
+        self.cache(key, ans)
         return ans
 
     def saturation(self, p=0, proof=None, max_dets=5):

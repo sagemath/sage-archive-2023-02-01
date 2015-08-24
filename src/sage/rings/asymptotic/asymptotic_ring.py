@@ -1019,6 +1019,8 @@ class AsymptoticRing(sage.rings.ring.Ring,
         """
         if self.coefficient_ring.has_coerce_map_from(R):
             return True
+        if self.growth_group.has_coerce_map_from(R):
+            return True
         elif isinstance(R, AsymptoticRing):
             if self.growth_group.has_coerce_map_from(R.growth_group) and \
                     self.coefficient_ring.has_coerce_map_from(R.coefficient_ring):

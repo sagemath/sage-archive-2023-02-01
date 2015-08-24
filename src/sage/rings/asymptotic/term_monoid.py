@@ -194,14 +194,11 @@ class GenericTerm(sage.structure.element.MonoidElement):
 
         if parent is None:
             raise ValueError('The parent must be provided')
-        if growth is None or not isinstance(growth, GenericGrowthElement):
-            raise ValueError('The growth must be provided and must inherit '
-                             'from GenericGrowthElement')
-        elif growth not in parent.growth_group:
-            raise ValueError("%s is not in the parent's "
-                             "specified growth group" % growth)
+        try:
+            self.growth = parent.growth_group(growth)
+        except ValueError, TypeError:
+            raise ValueError("%s is not in %s" % (growth, self.growth_group))
 
-        self.growth = growth
         super(GenericTerm, self).__init__(parent=parent)
 
 
@@ -1553,7 +1550,10 @@ class TermWithCoefficientMonoid(GenericTermMonoid):
         try:
             if coefficient is not None:
                 data = self.growth_group(data)
-                return self.element_class(self, data, coefficient)
+                try:
+                    return self.element_class(self, data, coefficient)
+                except:
+                    raise
             else:
                 P = data.parent()
                 from sage.symbolic.ring import SR

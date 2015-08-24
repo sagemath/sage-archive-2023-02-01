@@ -86,7 +86,7 @@ from sage.libs.pari.pari_instance cimport PariInstance, INTFRAC_to_mpq
 import sage.libs.pari.pari_instance
 cdef PariInstance pari = sage.libs.pari.pari_instance.pari
 
-include "sage/libs/pari/decl.pxi"
+from sage.libs.pari.paridecl cimport *
 include "sage/libs/pari/pari_err.pxi"
 
 #########################################################

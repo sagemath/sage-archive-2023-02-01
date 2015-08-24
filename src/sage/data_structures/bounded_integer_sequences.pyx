@@ -19,7 +19,7 @@ cimported in Cython modules:
 
   Deallocate the memory used by ``S``.
 
-- ``cdef bint biseq_init_copy(biseq_t R, biseq_t S)``
+- ``cdef bint biseq_init_copy(biseq_t R, biseq_t S) except -1``
 
   Initialize ``R`` as a copy of ``S``.
 
@@ -39,7 +39,7 @@ cimported in Cython modules:
 
   Hash value for ``S``.
 
-- ``cdef int biseq_cmp(biseq_t S1, biseq_t S2)``
+- ``cdef int biseq_cmp(biseq_t S1, biseq_t S2) except -2``
 
   Comparison of ``S1`` and ``S2``. This takes into account the bound, the
   length, and the list of items of the two sequences.
@@ -133,6 +133,7 @@ cdef bint biseq_init(biseq_t R, mp_size_t l, mp_bitcnt_t itemsize) except -1:
     items fitting in ``itemsize`` bits.
     """
     cdef mp_bitcnt_t totalbitsize
+    sig_check()
     if l:
         totalbitsize = l * itemsize
     else:
@@ -152,10 +153,9 @@ cdef bint biseq_init_copy(biseq_t R, biseq_t S) except -1:
     """
     Initialize ``R`` as a copy of ``S``.
     """
+    sig_check()
     biseq_init(R, S.length, S.itembitsize)
-    sig_on()
     bitset_copy(R.data, S.data)
-    sig_off()
 
 #
 # Pickling
@@ -202,7 +202,7 @@ cdef bint biseq_init_list(biseq_t R, list data, size_t bound) except -1:
 cdef inline Py_hash_t biseq_hash(biseq_t S):
     return S.itembitsize*(<Py_hash_t>1073807360)+bitset_hash(S.data)
 
-cdef int biseq_cmp(biseq_t S1, biseq_t S2):
+cdef int biseq_cmp(biseq_t S1, biseq_t S2) except -2:
     cdef int c = cmp(S1.itembitsize, S2.itembitsize)
     if c:
         return c
@@ -263,12 +263,10 @@ cdef mp_size_t biseq_index(biseq_t S, size_t item, mp_size_t start) except -2:
 
     """
     cdef mp_size_t index
-    sig_on()
     for index from start <= index < S.length:
+        sig_check()
         if biseq_getitem(S, index) == item:
-            sig_off()
             return index
-    sig_off()
     return -1
 
 
@@ -361,12 +359,10 @@ cdef bint biseq_init_slice(biseq_t R, biseq_t S, mp_size_t start, mp_size_t stop
     # In the general case, we move item by item.
     cdef mp_size_t src_index = start
     cdef mp_size_t tgt_index
-    sig_on()
     for tgt_index in range(length):
+        sig_check()
         biseq_inititem(R, tgt_index, biseq_getitem(S, src_index))
         src_index += step
-    sig_off()
-
 
 cdef mp_size_t biseq_contains(biseq_t S1, biseq_t S2, mp_size_t start) except -2:
     """
@@ -393,13 +389,11 @@ cdef mp_size_t biseq_contains(biseq_t S1, biseq_t S2, mp_size_t start) except -2
     if S2.length == 0:
         return start
     cdef mp_size_t index
-    sig_on()
     for index from start <= index <= S1.length-S2.length:
+        sig_check()
         if mpn_equal_bits_shifted(S2.data.bits, S1.data.bits,
                 S2.length*S2.itembitsize, index*S2.itembitsize):
-            sig_off()
             return index
-    sig_off()
     return -1
 
 cdef mp_size_t biseq_startswith_tail(biseq_t S1, biseq_t S2, mp_size_t start) except -2:
@@ -429,13 +423,11 @@ cdef mp_size_t biseq_startswith_tail(biseq_t S1, biseq_t S2, mp_size_t start) ex
     if S1.length < S2.length - start:
         start = S2.length - S1.length
     cdef mp_size_t index
-    sig_on()
     for index from start <= index < S2.length:
+        sig_check()
         if mpn_equal_bits_shifted(S1.data.bits, S2.data.bits,
                 (S2.length - index)*S2.itembitsize, index*S2.itembitsize):
-            sig_off()
             return index
-    sig_off()
     return -1
 
 

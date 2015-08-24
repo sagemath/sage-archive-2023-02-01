@@ -191,9 +191,11 @@ cdef class PathAlgebraElement(RingElement):
         cdef dict homog = {}
         cdef list L
         for tmp, c in data.iteritems():
+            sig_check()
             homog.setdefault((tmp.initial_vertex(),tmp.terminal_vertex()),[]).append((tmp,c))
         cdef path_homog_poly_t *HP
         for (s,e),L in sorted(homog.iteritems(), reverse=True):
+            sig_check()
             HP = homog_poly_init_list(s,e,L,self.cmp_terms, -1)
             HP.nxt = self.data
             self.data = HP
@@ -238,6 +240,7 @@ cdef class PathAlgebraElement(RingElement):
             L = []  # data for a single component (given by start- and endpoints)
             T = H.poly.lead
             while T!=NULL:
+                sig_check()
                 if T.mon.path.length:
                     L.append(([offset+biseq_getitem(T.mon.path,i) for i in range(T.mon.path.length)],
                               <object>(T.coef)))
@@ -327,6 +330,7 @@ cdef class PathAlgebraElement(RingElement):
         cdef size_t l = 0
         cdef path_homog_poly_t *H = self.data
         while H != NULL:
+            sig_check()
             l += H.poly.nterms
             H = H.nxt
         return l
@@ -354,16 +358,21 @@ cdef class PathAlgebraElement(RingElement):
         """
         cdef path_homog_poly_t *H = self.data
         cdef path_term_t *T
-        cdef ssize_t deg = -1
+        cdef mp_size_t deg = 0
+        cdef bint zero = True
         while H!=NULL:
+            sig_check()
             T = H.poly.lead
             while T!=NULL:
-                if deg == -1:
-                    deg = T.mon.path.length
-                elif deg != T.mon.path.length:
+                if zero:
+                    deg = term_total_degree(T)
+                elif deg != term_total_degree(T):
                     raise ValueError("Element is not homogeneous.")
+                zero = False
                 T = T.nxt
             H = H.nxt
+        if zero:
+            return -1
         return deg
 
     def is_homogeneous(self):
@@ -384,14 +393,17 @@ cdef class PathAlgebraElement(RingElement):
         """
         cdef path_homog_poly_t *H = self.data
         cdef path_term_t *T
-        cdef ssize_t deg = -1
+        cdef mp_size_t deg = 0
+        cdef bint zero = True
         while H!=NULL:
             T = H.poly.lead
             while T!=NULL:
-                if deg == -1:
-                    deg = T.mon.path.length
-                elif deg != T.mon.path.length:
+                sig_check()
+                if zero:
+                    deg = term_total_degree(T)
+                elif deg != term_total_degree(T):
                     return False
+                zero = False
                 T = T.nxt
             H = H.nxt
         return True
@@ -768,6 +780,7 @@ cdef class PathAlgebraElement(RingElement):
         while H!=NULL:
             T = H.poly.lead
             while T!=NULL:
+                sig_check()
                 tmp = sample._new_(H.start, H.end)
                 biseq_init_copy(tmp._path, T.mon.path)
                 yield (tmp, <object>T.coef)
@@ -873,6 +886,7 @@ cdef class PathAlgebraElement(RingElement):
             kM = mon_create_keep(K._path, -1, 0, 0)
             T = H.poly.lead
             while T != NULL:
+                sig_check()
                 if self.cmp_terms(T.mon, kM) == 0:
                     return <object>T.coef
                 T = T.nxt
@@ -907,6 +921,7 @@ cdef class PathAlgebraElement(RingElement):
         while H != NULL:
             out = self._new_(homog_poly_create(H.start, H.end))
             out.data.nxt = NULL
+            sig_check()
             poly_icopy(out.data.poly, H.poly)
             C.append((out, H.start, H.end))
             H = H.nxt
@@ -1029,12 +1044,12 @@ cdef class PathAlgebraElement(RingElement):
         cdef path_poly_t *P
         cdef path_homog_poly_t *out = NULL
         cdef path_homog_poly_t *tmp
-        cdef int c
         while True:
+            sig_check()
             if H1 == NULL:
                 if out == NULL:
                     if H2 == NULL:
-                        return self._new_(NULL)                    
+                        return self._new_(NULL)
                     return self._new_(homog_poly_copy(H2))
                 else:
                     if H2 != NULL:
@@ -1044,7 +1059,7 @@ cdef class PathAlgebraElement(RingElement):
             elif H2 == NULL:
                 if out == NULL:
                     if H1 == NULL:
-                        return self._new_(NULL)                    
+                        return self._new_(NULL)
                     return self._new_(homog_poly_copy(H1))
                 else:
                     if H1 != NULL:
@@ -1052,8 +1067,7 @@ cdef class PathAlgebraElement(RingElement):
                         tmp.nxt = homog_poly_copy(H1)
                     return self._new_(out)
             else:
-                c = cmp((H1.start, H1.end), (H2.start, H2.end))
-                if c == 1:
+                if (H1.start > H2.start) or (H1.start == H2.start and H1.end > H2.end):
                     if out == NULL:
                         out = homog_poly_create(H2.start, H2.end)
                         poly_icopy(out.poly, H2.poly)
@@ -1063,7 +1077,7 @@ cdef class PathAlgebraElement(RingElement):
                         tmp = tmp.nxt
                         poly_icopy(tmp.poly, H2.poly)
                     H2 = H2.nxt
-                elif c == -1:
+                elif (H1.start < H2.start) or (H1.end < H2.end):
                     if out == NULL:
                         out = homog_poly_create(H1.start, H1.end)
                         poly_icopy(out.poly, H1.poly)
@@ -1107,12 +1121,13 @@ cdef class PathAlgebraElement(RingElement):
         cdef path_poly_t *P
         cdef path_homog_poly_t *out = NULL
         cdef path_homog_poly_t *tmp
-        cdef int c
         while True:
+            sig_check()
             if H1 == NULL:
                 if out == NULL:
                     if H2 == NULL:
-                        return self._new_(NULL)                    
+                        return self._new_(NULL)
+                    sig_check()
                     return self._new_(homog_poly_copy(H2))
                 else:
                     if H2 != NULL:
@@ -1122,7 +1137,7 @@ cdef class PathAlgebraElement(RingElement):
             elif H2 == NULL:
                 if out == NULL:
                     if H1 == NULL:
-                        return self._new_(NULL)                    
+                        return self._new_(NULL)
                     return self._new_(homog_poly_copy(H1))
                 else:
                     if H1 != NULL:
@@ -1130,29 +1145,37 @@ cdef class PathAlgebraElement(RingElement):
                         tmp.nxt = homog_poly_copy(H1)
                     return self._new_(out)
             else:
-                c = cmp((H1.start, H1.end), (H2.start, H2.end))
-                if c == 1:
+                if (H1.start > H2.start) or (H1.start == H2.start and H1.end > H2.end):
                     if out == NULL:
+                        sig_on()
                         out = homog_poly_create(H2.start, H2.end)
                         poly_icopy(out.poly, H2.poly)
+                        sig_off()
                         tmp = out
                     else:
+                        sig_on()
                         tmp.nxt = homog_poly_create(H2.start, H2.end)
                         tmp = tmp.nxt
                         poly_icopy(tmp.poly, H2.poly)
+                        sig_off()
                     H2 = H2.nxt
-                elif c == -1:
+                elif (H1.start < H2.start) or (H1.end < H2.end):
                     if out == NULL:
+                        sig_on()
                         out = homog_poly_create(H1.start, H1.end)
                         poly_icopy(out.poly, H1.poly)
+                        sig_off()
                         tmp = out
                     else:
+                        sig_on()
                         tmp.nxt = homog_poly_create(H1.start, H1.end)
                         tmp = tmp.nxt
                         poly_icopy(tmp.poly, H1.poly)
+                        sig_off()
                     H1 = H1.nxt
                 else:
                     # start- and endpoints match
+                    sig_on()
                     P = poly_sub(H1.poly, H2.poly, self.cmp_terms)
                     if P.lead != NULL:
                         if out == NULL:
@@ -1163,6 +1186,7 @@ cdef class PathAlgebraElement(RingElement):
                             tmp = tmp.nxt
                     else:
                         poly_free(P)
+                    sig_off()
                     H1 = H1.nxt
                     H2 = H2.nxt
 
@@ -1240,12 +1264,30 @@ cdef class PathAlgebraElement(RingElement):
             sage: X = sage_eval('a+2*b+3*c+5*e_0+3*e_2', A.gens_dict())
             sage: X/2
             10*e_0 + 8*a + b + 9*c + 9*e_2
-            sage: (X/2)*2 == X
+            sage: (X/2)*2 == X    # indirect doctest
+            True
+
+        ::
+
+            sage: A = DiGraph({0:{1:['a'], 2:['b']}, 1:{0:['c'], 1:['d']}, 2:{0:['e'],2:['f']}}).path_semigroup().algebra(ZZ)
+            sage: A.inject_variables()
+            Defining e_0, e_1, e_2, a, b, c, d, e, f
+            sage: X = a+2*b+3*c+5*e_0+3*e_2
+            sage: X/4
+            5/4*e_0 + 1/4*a + 1/2*b + 3/4*c + 3/4*e_2
+            sage: (X/4).parent()
+            Path algebra of Looped multi-digraph on 3 vertices over Rational Field
+            sage: (X/4)*4 == X
             True
 
         """
+        cdef PathAlgebraElement sample
         if isinstance(self, PathAlgebraElement):
-            return (<PathAlgebraElement>self)._new_(homog_poly_scale((<PathAlgebraElement>self).data, ~(self.base_ring()( x ))))
+            sample = self
+            x = ~(sample._parent._base( x ))
+            if x.parent() is not sample._parent._base:
+                sample = sample._parent._semigroup.algebra(x.parent())(0)
+            return sample._new_(homog_poly_scale((<PathAlgebraElement>self).data, x))
         raise TypeError("Don't know how to divide {} by {}".format(x, self))
 
 ## Multiplication in the algebra
@@ -1301,6 +1343,7 @@ cdef class PathAlgebraElement(RingElement):
         while H1 != NULL:
             H2 = right.data
             while H2 != NULL:
+                sig_check()
                 if H2.start == H1.end:
                     out = homog_poly_get_predecessor_of_component(out_orig, H1.start, H2.end)
                     if out == NULL:
@@ -1335,11 +1378,12 @@ cdef class PathAlgebraElement(RingElement):
                                                      T2.mon.path, self.cmp_terms, -1, 0, 0, P1start)
                             if P1start == H1.poly.lead:
                                 P1start = out.nxt.poly.lead
-                            T2 = T2.nxt                                
+                            T2 = T2.nxt
                 H2 = H2.nxt
             H1 = H1.nxt
         while out_orig != NULL and out_orig.poly.lead == NULL:
             tmp = out_orig.nxt
+            sig_check()
             sage_free(out_orig.poly)
             sage_free(out_orig)
             out_orig = tmp
@@ -1348,6 +1392,7 @@ cdef class PathAlgebraElement(RingElement):
         tmp = out_orig
         while tmp.nxt != NULL:
             if tmp.nxt.poly.lead == NULL:
+                sig_check()
                 nxt = tmp.nxt.nxt
                 sage_free(tmp.nxt.poly)
                 sage_free(tmp.nxt)

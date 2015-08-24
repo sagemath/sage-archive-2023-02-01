@@ -54,11 +54,11 @@ cdef struct path_term_t:
 # Returns -1, 0 or 1, depending on whether the first argument is
 # smaller (wrt. the chosen ordering function), equal to, or greater
 # than the second argument.
-ctypedef int (*path_order_t)(path_mon_t*, path_mon_t*)
+ctypedef int (*path_order_t)(path_mon_t*, path_mon_t*) except -2
 
 # Polynomials are decreasingly sorted lists of terms, wrt. some fixed
-# monomial ordering. For convenience, the number of terms is directly
-# available.
+# monomial ordering. The list starts with pointer .lead. For convenience,
+# the number of terms is directly available by .nterms.
 cdef struct path_poly_t:
     path_term_t *lead
     size_t nterms

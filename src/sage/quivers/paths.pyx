@@ -737,12 +737,12 @@ cdef class QuiverPath(MonoidElement):
         out._parent = Q
         out._start = self._end
         out._end   = self._start
-        sig_on()
+        sig_check()
         biseq_init(out._path, self._path.length, self._path.itembitsize)
         cdef mp_size_t l = self._path.length - 1
         for i in range(self._path.length):
+            sig_check()
             biseq_inititem(out._path, i, biseq_getitem(self._path, l-i))
-        sig_off()
         return out
 
 cpdef QuiverPath NewQuiverPath(Q, start, end, biseq_data):

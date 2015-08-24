@@ -503,6 +503,29 @@ class GenericProduct(CartesianProductPosets, GenericGrowthGroup):
                 return factor(data)
             except (ValueError, TypeError):
                 continue
+    def cartesian_injection(self, factor, element):
+        r"""
+        Injects the given element into this cartesian product at the given factor.
+
+        INPUT:
+
+        - ``factor`` -- a growth group (a factor of this cartesian product).
+
+        - ``element`` -- an element of ``factor``.
+
+        OUTPUT:
+
+        An element of this cartesian product.
+
+        TESTS::
+
+            sage: from sage.rings.asymptotic.growth_group import GrowthGroup
+            sage: G = GrowthGroup('x^ZZ * y^QQ')
+            sage: G.cartesian_injection(G.cartesian_factors()[1], 'y^7')
+            y^7
+        """
+        return self(tuple((f.one() if f != factor else element)
+                          for f in self.cartesian_factors()))
 
 
     def _coerce_map_from_(self, S):

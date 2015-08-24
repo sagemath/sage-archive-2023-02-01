@@ -2,7 +2,7 @@
 Cython types for elements of path algebras
 """
 #*****************************************************************************
-#     Copyright (C) 2014 Simon King <simon.king@uni-jena.de>
+#     Copyright (C) 2015 Simon King <simon.king@uni-jena.de>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #  as published by the Free Software Foundation; either version 2 of
@@ -22,15 +22,14 @@ from sage.quivers.paths cimport QuiverPath
 # Type definitions
 
 cdef struct path_mon_t:
-    # if mid==-1, then we encode an element of a path semigroups, i.e., we use
-    # it for elements of an ideal.
-    #
-    # Otherwise, the monomial is of the form "a*I_i*b" with "a" a path
-    # of length "mid", and I_i the generator of the i-th component of a free module.
-    int mid
-    # In a sub-module of a direct sum, "pos" denotes the direct summand that
-    # this monomial belongs to. If mid==-1 then pos has to be 0.
-    unsigned int pos
+    # The monomial is of the form "a*I_i*b" with "a" a path
+    # of length "l_len", and I_i the generator of the i-th component of a free module.
+    mp_size_t l_len
+    # In a sub-module of a direct sum, "i=pos" denotes the direct summand that
+    # this monomial belongs to. If pos==-1 then the monomial is supposed to be
+    # element of a path algebra, and should be formed by a single path. In particular,
+    # l_len has to be zero.
+    long pos
     # In the Schreyer order, monomials of the form a*I_i*b are not
     # compared directly, but to each position is associated a monomial s_i,
     # and a*I_i*b is compared with c*I_j*d by first comparing a*s_i*b with
@@ -40,7 +39,7 @@ cdef struct path_mon_t:
     # a*I_i*b.
     biseq_t path
     # reference counter
-    unsigned int ref
+    size_t ref
 
 cdef struct path_term_t:
     path_mon_t *mon

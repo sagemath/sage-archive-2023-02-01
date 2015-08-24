@@ -39,7 +39,7 @@ cimported in Cython modules:
 
   Hash value for ``S``.
 
-- ``cdef inline int biseq_cmp(biseq_t S1, biseq_t S2)``
+- ``cdef int biseq_cmp(biseq_t S1, biseq_t S2)``
 
   Comparison of ``S1`` and ``S2``. This takes into account the bound, the
   length, and the list of items of the two sequences.
@@ -49,7 +49,7 @@ cimported in Cython modules:
   Concatenate ``S1`` and ``S2`` and write the result to ``R``. Does not test
   whether the sequences have the same bound!
 
-- ``cdef inline bint biseq_startswith(biseq_t S1, biseq_t S2)``
+- ``cdef bint biseq_startswith(biseq_t S1, biseq_t S2)``
 
   Is ``S1=S2+something``? Does not check whether the sequences have the same
   bound!
@@ -84,7 +84,7 @@ cimported in Cython modules:
   Set ``S[index] = item``, without checking margins and assuming that ``S[index]``
   has previously been zero.
 
-- ``cdef inline void biseq_clearitem(biseq_t S, mp_size_t index)``
+- ``cdef void biseq_clearitem(biseq_t S, mp_size_t index)``
 
   Set ``S[index] = 0``, without checking margins.
 
@@ -202,7 +202,7 @@ cdef bint biseq_init_list(biseq_t R, list data, size_t bound) except -1:
 cdef inline Py_hash_t biseq_hash(biseq_t S):
     return S.itembitsize*(<Py_hash_t>1073807360)+bitset_hash(S.data)
 
-cdef inline int biseq_cmp(biseq_t S1, biseq_t S2):
+cdef int biseq_cmp(biseq_t S1, biseq_t S2):
     cdef int c = cmp(S1.itembitsize, S2.itembitsize)
     if c:
         return c
@@ -234,28 +234,7 @@ cdef bint biseq_init_concat(biseq_t R, biseq_t S1, biseq_t S2) except -1:
     bitset_or(R.data, R.data, S1.data)
     sig_off()
 
-cdef bint biseq_realloc_concat(biseq_t R, biseq_t S1, biseq_t S2) except -1:
-    """
-    Concatenate two bounded integer sequences ``S1`` and ``S2``.
-
-    ASSUMPTION:
-
-    - The two sequences must have equivalent bounds, i.e., the items on the
-      sequences must fit into the same number of bits.
-
-    OUTPUT:
-
-    The result is written into ``R``, which must be initialised
-    """
-    bitset_realloc(R.data, S1.data.size + S2.data.size)
-    R.itembitsize = S1.itembitsize
-    R.length = S1.length+S2.length
-    R.mask_item = S1.mask_item
-    bitset_lshift(R.data, S2.data, S1.length * S1.itembitsize)
-    bitset_or(R.data, R.data, S1.data)
-
-
-cdef inline bint biseq_startswith(biseq_t S1, biseq_t S2) except -1:
+cdef bint biseq_startswith(biseq_t S1, biseq_t S2) except -1:
     """
     Tests if bounded integer sequence ``S1`` starts with bounded integer
     sequence ``S2``.
@@ -293,7 +272,7 @@ cdef mp_size_t biseq_index(biseq_t S, size_t item, mp_size_t start) except -2:
     return -1
 
 
-cdef inline size_t biseq_getitem(biseq_t S, mp_size_t index):
+cdef size_t biseq_getitem(biseq_t S, mp_size_t index):
     """
     Get item ``S[index]``, without checking margins.
 
@@ -319,7 +298,7 @@ cdef biseq_getitem_py(biseq_t S, mp_size_t index):
     cdef size_t out = biseq_getitem(S, index)
     return PyInt_FromSize_t(out)
 
-cdef inline void biseq_inititem(biseq_t S, mp_size_t index, size_t item):
+cdef void biseq_inititem(biseq_t S, mp_size_t index, size_t item):
     """
     Set ``S[index] = item``, without checking margins.
 
@@ -336,7 +315,7 @@ cdef inline void biseq_inititem(biseq_t S, mp_size_t index, size_t item):
         # Our item is stored using 2 limbs, add the part from the upper limb
         S.data.bits[limb_index+1] |= (item >> (GMP_LIMB_BITS - bit_index))
 
-cdef inline void biseq_clearitem(biseq_t S, mp_size_t index):
+cdef void biseq_clearitem(biseq_t S, mp_size_t index):
     """
     Set ``S[index] = 0``, without checking margins.
 

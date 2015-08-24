@@ -1,14 +1,14 @@
 """
-Path algebra elements.
+Path algebra elements
 
 AUTHORS:
 
-- Simon King (2014-12-04)
+- Simon King (2015-08)
 
 """
 
 #*****************************************************************************
-#     Copyright (C) 2014 Simon King <simon.king@uni-jena.de>
+#     Copyright (C) 2015 Simon King <simon.king@uni-jena.de>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #  as published by the Free Software Foundation; either version 2 of
@@ -194,7 +194,7 @@ cdef class PathAlgebraElement(RingElement):
             homog.setdefault((tmp.initial_vertex(),tmp.terminal_vertex()),[]).append((tmp,c))
         cdef path_homog_poly_t *HP
         for (s,e),L in sorted(homog.iteritems(), reverse=True):
-            HP = homog_poly_init_list(s,e,L,self.cmp_terms, -1, 0, 0)
+            HP = homog_poly_init_list(s,e,L,self.cmp_terms, -1)
             HP.nxt = self.data
             self.data = HP
 
@@ -727,7 +727,7 @@ cdef class PathAlgebraElement(RingElement):
         if H == NULL:
             return self.base_ring().zero()
         # Now, H points to the component that belongs to K
-        pM = mon_create_keep(P._path, 0, -1, 0)
+        pM = mon_create_keep(P._path, -1, 0, 0)
         T = H.poly.lead
         while T != NULL:
             if self.cmp_terms(T.mon, pM) == 0:
@@ -777,7 +777,7 @@ cdef class PathAlgebraElement(RingElement):
                 T = T.nxt
             H = H.nxt
 
-    cdef inline PathAlgebraElement _new_(self, path_homog_poly_t *h):
+    cdef PathAlgebraElement _new_(self, path_homog_poly_t *h):
         """
         Create a new path algebra element from C interface data.
         """
@@ -873,7 +873,7 @@ cdef class PathAlgebraElement(RingElement):
             if H == NULL:
                 return self.base_ring().zero()
             # Now, H points to the component that belongs to K
-            kM = mon_create_keep(K._path, 0, -1, 0)
+            kM = mon_create_keep(K._path, -1, 0, 0)
             T = H.poly.lead
             while T != NULL:
                 if self.cmp_terms(T.mon, kM) == 0:
@@ -944,78 +944,6 @@ cdef class PathAlgebraElement(RingElement):
         if self._hash==-1:
             self._hash = hash(frozenset(self.monomial_coefficients().items()))
         return self._hash
-
-    def __cmp__(left, right):
-        """
-        Comparison.
-
-        NOTE:
-
-        First, the comparison is by initial vertices of monomials. Then, the
-        terminal vertices are compared. Last, the given monomial order is
-        applied for monomials that have the same initial and terminal
-        vertices.
-
-        EXAMPLES::
-
-            sage: A1 = DiGraph({0:{1:['a'], 2:['b']}, 1:{0:['c'], 1:['d']}, 2:{0:['e'],2:['f']}}).path_semigroup().algebra(ZZ.quo(15))
-            sage: A1.inject_variables()
-            Defining e_0, e_1, e_2, a, b, c, d, e, f
-            sage: x = (b*e*b*e+4*b+e_0)^2
-            sage: y = (a*c*b+1)^3
-            sage: x.sort_by_vertices()
-            [(e_0 + 2*b*e*b*e + b*e*b*e*b*e*b*e, 0, 0), (4*b + 4*b*e*b*e*b, 0, 2)]
-            sage: y.sort_by_vertices()
-            [(e_0, 0, 0), (3*a*c*b, 0, 2), (e_1, 1, 1), (e_2, 2, 2)]
-
-        The two elements are distinguished by monomials with initial and
-        terminal vertex `0`. Hence, `x` should evaluate bigger than `y`::
-
-            sage: cmp(x, y)    # indirect doctest
-            1
-
-        """
-        return (<Element>left)._cmp(right)
-
-    def __richcmp__(left, right, int op):
-        """
-        Rich comparison.
-
-        NOTE:
-
-        First, the comparison is by initial vertices of monomials. Then, the
-        terminal vertices are compared. Last, the given monomial order is
-        applied for monomials that have the same initial and terminal
-        vertices.
-
-        EXAMPLES::
-
-            sage: A1 = DiGraph({0:{1:['a'], 2:['b']}, 1:{0:['c'], 1:['d']}, 2:{0:['e'],2:['f']}}).path_semigroup().algebra(ZZ.quo(15))
-            sage: A1.inject_variables()
-            Defining e_0, e_1, e_2, a, b, c, d, e, f
-            sage: x = (b*e*b*e+4*b+e_0)^2
-            sage: y = (a*c*b+1)^3
-            sage: x.sort_by_vertices()
-            [(e_0 + 2*b*e*b*e + b*e*b*e*b*e*b*e, 0, 0), (4*b + 4*b*e*b*e*b, 0, 2)]
-            sage: y.sort_by_vertices()
-            [(e_0, 0, 0), (3*a*c*b, 0, 2), (e_1, 1, 1), (e_2, 2, 2)]
-
-        The two elements are distinguished by monomials with initial and
-        terminal vertex `0`. Hence, `x` should evaluate bigger than `y`::
-
-            sage: x > y    # indirect doctest
-            True
-
-        TESTS::
-
-            sage: A = DiGraph({0:{1:['a'], 2:['b']}, 1:{0:['c'], 1:['d']}, 2:{0:['e'],2:['f']}}).path_semigroup().algebra(GF(3))
-            sage: x = sage_eval('b*e*b*e+4*b*e+e_0', A.gens_dict())
-            sage: y = sage_eval('a*c+d*c*b*f', A.gens_dict())
-            sage: x*(y+x) == x*y+x*x
-            True
-
-        """
-        return (<Element>left)._richcmp(right, op)
 
     cpdef int _cmp_(left, Element right) except -2:
         """
@@ -1401,7 +1329,7 @@ cdef class PathAlgebraElement(RingElement):
                             #assert poly_is_sane(out_orig.poly)
                             #print "out==0, T2!=0", H1.start, H1.end, H2.start,H2.end,
                             P1start = poly_iadd_lmul(out_orig.poly, <object>T2.coef, H1.poly,
-                                                     T2.mon.path, self.cmp_terms, 0, 0, 0, P1start)
+                                                     T2.mon.path, self.cmp_terms, -1, 0, 0, P1start)
                             if P1start == H1.poly.lead:
                                 P1start = out_orig.poly.lead
                             T2 = T2.nxt
@@ -1411,7 +1339,7 @@ cdef class PathAlgebraElement(RingElement):
                             #assert poly_is_sane(out.nxt.poly)
                             #print "out!=0, T2!=0", H1.start, H1.end, H2.start, H2.end, 
                             P1start = poly_iadd_lmul(out.nxt.poly, <object>T2.coef, H1.poly,
-                                                     T2.mon.path, self.cmp_terms, 0, 0, 0, P1start)
+                                                     T2.mon.path, self.cmp_terms, -1, 0, 0, P1start)
                             if P1start == H1.poly.lead:
                                 P1start = out.nxt.poly.lead
                             T2 = T2.nxt                                

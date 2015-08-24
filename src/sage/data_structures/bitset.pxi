@@ -69,7 +69,7 @@ cdef inline mp_limb_t limb_lower_bits_up(mp_bitcnt_t n):
 #############################################################################
 # Bitset Initalization
 #############################################################################
-cdef inline bint bitset_init(bitset_t bits, mp_bitcnt_t size) except -1:
+cdef bint bitset_init(bitset_t bits, mp_bitcnt_t size) except -1:
     """
     Allocate an empty bitset of size ``size``.
 
@@ -84,7 +84,7 @@ cdef inline bint bitset_init(bitset_t bits, mp_bitcnt_t size) except -1:
     if bits.bits == NULL:
         raise MemoryError
 
-cdef inline bint bitset_realloc(bitset_t bits, mp_bitcnt_t size) except -1:
+cdef bint bitset_realloc(bitset_t bits, mp_bitcnt_t size) except -1:
     """
     Reallocate a bitset to size size. If reallocation is larger, new bitset
     does not contain any of the extra bits.
@@ -150,7 +150,7 @@ cdef inline void bitset_fix(bitset_t bits):
 # Bitset Comparison
 #############################################################################
 
-cdef inline bint mpn_equal_bits(mp_srcptr b1, mp_srcptr b2, mp_bitcnt_t n):
+cdef bint mpn_equal_bits(mp_srcptr b1, mp_srcptr b2, mp_bitcnt_t n):
     """
     Return ``True`` iff the first n bits of *b1 and *b2 agree.
     """
@@ -165,7 +165,7 @@ cdef inline bint mpn_equal_bits(mp_srcptr b1, mp_srcptr b2, mp_bitcnt_t n):
     cdef mp_limb_t b2h = b2[nlimbs]
     return (b1h ^ b2h) & mask == 0
 
-cdef inline bint mpn_equal_bits_shifted(mp_srcptr b1, mp_srcptr b2, mp_bitcnt_t n, mp_bitcnt_t offset):
+cdef bint mpn_equal_bits_shifted(mp_srcptr b1, mp_srcptr b2, mp_bitcnt_t n, mp_bitcnt_t offset):
     """
     Return ``True`` iff the first n bits of *b1 and the bits ranging from
     offset to offset+n of *b2 agree.
@@ -381,7 +381,7 @@ cdef inline void bitset_flip(bitset_t bits, mp_bitcnt_t n):
     """
     bits.bits[n >> index_shift] ^= limb_one_set_bit(n)
 
-cdef inline void bitset_set_first_n(bitset_t bits, mp_bitcnt_t n):
+cdef void bitset_set_first_n(bitset_t bits, mp_bitcnt_t n):
     """
     Set exactly the first n bits.
     """
@@ -414,7 +414,7 @@ cdef inline long _bitset_first_in_limb(mp_limb_t limb):
         return -1
     return mpn_scan1(&limb, 0)
 
-cdef inline long bitset_first(bitset_t a):
+cdef long bitset_first(bitset_t a):
     """
     Calculate the index of the first element in the set. If the set
     is empty, returns -1.
@@ -425,7 +425,7 @@ cdef inline long bitset_first(bitset_t a):
             return (i << index_shift) | _bitset_first_in_limb_nonzero(a.bits[i])
     return -1
 
-cdef inline long bitset_first_in_complement(bitset_t a):
+cdef long bitset_first_in_complement(bitset_t a):
     """
     Calculate the index of the first element not in the set. If the set
     is full, returns -1.
@@ -463,7 +463,7 @@ cdef inline long bitset_first_diff(bitset_t a, bitset_t b):
             return (i << index_shift) | _bitset_first_in_limb_nonzero(a.bits[i] ^ b.bits[i])
     return -1
 
-cdef inline long bitset_next(bitset_t a, mp_bitcnt_t n):
+cdef long bitset_next(bitset_t a, mp_bitcnt_t n):
     """
     Calculate the index of the next element in the set, starting at
     (and including) n.  Return -1 if there are no elements from n
@@ -481,7 +481,7 @@ cdef inline long bitset_next(bitset_t a, mp_bitcnt_t n):
             return (i << index_shift) | _bitset_first_in_limb_nonzero(a.bits[i])
     return -1
 
-cdef inline long bitset_next_diff(bitset_t a, bitset_t b, mp_bitcnt_t n):
+cdef long bitset_next_diff(bitset_t a, bitset_t b, mp_bitcnt_t n):
     """
     Calculate the index of the next element that differs between a and
     b, starting at (and including) n.  Return -1 if there are no

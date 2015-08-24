@@ -588,7 +588,7 @@ cdef class QuiverPath(MonoidElement):
             (None, None)
             
         """
-        cdef size_t i = biseq_contains(self._path, subpath._path, 0)
+        cdef mp_size_t i = biseq_contains(self._path, subpath._path, 0)
         if i == -1:
             return (None, None)
         return self[:i], self[i+len(subpath):]
@@ -627,7 +627,6 @@ cdef class QuiverPath(MonoidElement):
             raise ValueError("The two paths belong to different quivers")
         if subpath._path.length == 0:
             raise ValueError("We only consider sub-paths of positive length")
-        cdef int v
         cdef size_t i
         cdef size_t max_i, bitsize
         if self._path.length < subpath._path.length:

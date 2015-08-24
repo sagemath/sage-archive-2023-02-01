@@ -204,6 +204,67 @@ def parent_to_repr_short(P):
         return rep
 
 
+def split_str_by_mul(string):
+    r"""
+    Split the given string into a tuple of substrings arising by
+    splitting by '*' and taking care of parentheses.
+
+    INPUT:
+
+    - ``string`` - a string.
+
+    OUTPUT:
+
+    A tuple of strings.
+
+    TESTS::
+
+        sage: from sage.rings.asymptotic.growth_group import split_str_by_mul
+        sage: split_str_by_mul('x^ZZ')
+        ('x^ZZ',)
+        sage: split_str_by_mul('log(x)^ZZ * y^QQ')
+        ('log(x)^ZZ', 'y^QQ')
+        sage: split_str_by_mul('log(x)**ZZ * y**QQ')
+        ('log(x)**ZZ', 'y**QQ')
+        sage: split_str_by_mul('a^b * * c^d')
+        Traceback (most recent call last):
+        ...
+        ValueError: 'a^b * * c^d' is invalid since a '*' follows a '*'
+        sage: split_str_by_mul('a^b * (c*d^e)')
+        ('a^b', 'c*d^e')
+    """
+    factors = list()
+    balanced = True
+    if string and string[0] == '*':
+        raise ValueError("'%s' is invalid since it starts with a '*'." %
+                         (string,))
+    for s in string.split('*'):
+        if not s:
+            factors[-1] += '*'
+            balanced = False
+            continue
+        if not s.strip():
+            raise ValueError("'%s' is invalid since a '*' follows a '*'" %
+                             (string,))
+        if not balanced:
+            s = factors.pop() + '*' + s
+        balanced = s.count('(') == s.count(')')
+        factors.append(s)
+
+    if not balanced:
+        raise ValueError("Parentheses in '%s' are not balanced" % (string,))
+
+    def strip(s):
+        s = s.strip()
+        if not s:
+            return s
+        if s[0] == '(' and s[-1] == ')':
+            s = s[1:-1]
+        return s.strip()
+
+    return tuple(strip(f) for f in factors)
+
+
 class Variable(sage.structure.unique_representation.CachedRepresentation,
                sage.structure.sage_object.SageObject):
     r"""
@@ -2590,50 +2651,12 @@ class GrowthGroupFactory(sage.structure.factory.UniqueFactory):
         TESTS::
 
             sage: import sage.rings.asymptotic.growth_group as agg
-            sage: agg.GrowthGroup.create_key_and_extra_args('x^ZZ')
-            (('x^ZZ',), {})
             sage: agg.GrowthGroup.create_key_and_extra_args('asdf')
             Traceback (most recent call last):
             ...
             ValueError: 'asdf' is not a valid string describing a growth group.
-            sage: agg.GrowthGroup.create_key_and_extra_args('log(x)^ZZ * y^QQ')
-            (('log(x)^ZZ', 'y^QQ'), {})
-            sage: agg.GrowthGroup.create_key_and_extra_args('log(x)**ZZ * y**QQ')
-            (('log(x)**ZZ', 'y**QQ'), {})
-            sage: agg.GrowthGroup.create_key_and_extra_args('a^b * * c^d')
-            Traceback (most recent call last):
-            ...
-            ValueError: 'a^b * * c^d' is invalid since a '*' follows a '*'
-            sage: agg.GrowthGroup.create_key_and_extra_args('a^b * (c*d^e)')
-            (('a^b', 'c*d^e'), {})
         """
-        factors = list()
-        balanced = True
-        if specification and specification[0] == '*':
-            raise ValueError("'%s' is invalid since it starts with a '*'." %
-                             (specification,))
-        for s in specification.split('*'):
-            if not s:
-                factors[-1] += '*'
-                balanced = False
-                continue
-            if not s.strip():
-                raise ValueError("'%s' is invalid since a '*' follows a '*'" %
-                                 (specification,))
-            if not balanced:
-                s = factors.pop() + '*' + s
-            balanced = s.count('(') == s.count(')')
-            factors.append(s)
-
-        def strip(s):
-            s = s.strip()
-            if not s:
-                return s
-            if s[0] == '(' and s[-1] == ')':
-                s = s[1:-1]
-            return s.strip()
-
-        factors = tuple(strip(f) for f in factors)
+        factors = split_str_by_mul(specification)
 
         for f in factors:
             if '^' not in f and '**' not in f:

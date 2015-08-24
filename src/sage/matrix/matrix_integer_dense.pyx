@@ -1643,9 +1643,9 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
 
         - ``algorithm`` -- String. The algorithm to use. Valid options are:
 
-          - ``'default'`` -- Let Sage pick an algorithm (default). Up
-            to 10 rows or columns: padic; 100 rows or columns: pari with flag 0;
-            otherwise, flint.
+          - ``'default'`` -- Let Sage pick an algorithm (default).
+            Up to 75 rows or columns with no transformation matrix,
+            use pari with flag 0; otherwise, use flint.
 
           - ``'flint'`` - use flint
 

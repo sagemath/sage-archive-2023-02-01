@@ -1168,3 +1168,9 @@ class AsymptoticRing(sage.rings.ring.Ring,
             return self(kwds['coefficient'])
 
         return self(TM(growth, **kwds))
+
+
+    def variable_names(self):
+        return self.growth_group.variable_names()
+
+

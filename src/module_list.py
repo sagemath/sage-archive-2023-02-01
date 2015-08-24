@@ -325,7 +325,8 @@ ext_modules = [
               sources = ['sage/graphs/base/static_dense_graph.pyx']),
 
     Extension('sage.graphs.base.static_sparse_graph',
-              sources = ['sage/graphs/base/static_sparse_graph.pyx']),
+              sources = ['sage/graphs/base/static_sparse_graph.pyx'],
+              language = 'c++'),
 
     Extension('sage.graphs.base.static_sparse_backend',
               sources = ['sage/graphs/base/static_sparse_backend.pyx']),
@@ -357,6 +358,9 @@ ext_modules = [
     Extension('sage.graphs.planarity',
               sources = ['sage/graphs/planarity.pyx'],
               libraries=['planarity']),
+
+    Extension('sage.graphs.strongly_regular_db',
+              sources = ['sage/graphs/strongly_regular_db.pyx']),
 
     Extension('sage.graphs.graph_decompositions.rankwidth',
               sources = ['sage/graphs/graph_decompositions/rankwidth.pyx'],

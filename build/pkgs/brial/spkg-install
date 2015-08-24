@@ -13,18 +13,18 @@ cd src
     --libdir="$SAGE_LOCAL/lib" \
     --enable-shared --disable-static
 if [ $? -ne 0 ]; then
-    echo "Error configuring PolyBoRi"
+    echo "Error configuring BRiAl"
     exit 1
 fi
 
 $MAKE
 if [ $? -ne 0 ]; then
-    echo "Error building PolyBoRi"
+    echo "Error building BRiAl"
     exit 1
 fi
 
 $MAKE install -j1
 if [ $? -ne 0 ]; then
-    echo "Error installing PolyBoRi"
+    echo "Error installing BRiAl"
     exit 1
 fi

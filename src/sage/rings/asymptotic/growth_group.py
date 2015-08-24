@@ -76,6 +76,8 @@ EXAMPLES::
     sage: G_xy.an_element()
     x * y
     sage: x = G_xy('x'); y = G_xy('y')
+    sage: x^2
+    x^2
     sage: elem = x^21 * y^21; elem^2
     x^42 * y^42
 
@@ -1492,6 +1494,15 @@ class GenericGrowthGroup(
             ...
             TypeError: no common canonical parent for objects with parents:
             'Growth Group QQ^x' and 'Growth Group x^QQ'
+            sage: cm.common_parent(GrowthGroup('x^ZZ'), GrowthGroup('y^ZZ'))
+            Growth Group x^ZZ * y^ZZ
+
+        ::
+
+            sage: cm.record_exceptions()
+            sage: cm.common_parent(GrowthGroup('x^ZZ'), GrowthGroup('y^ZZ'))
+            Growth Group x^ZZ * y^ZZ
+            sage: sage.structure.element.coercion_traceback()
         """
         if isinstance(other, GenericGrowthGroup):
             pass

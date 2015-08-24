@@ -1,0 +1,19 @@
+Differentiable manifolds
+========================
+
+.. toctree::
+   :maxdepth: 2
+
+   sage/manifolds/differentiable/manifold
+
+   sage/manifolds/differentiable/chart
+
+   diff_scalarfield
+
+   diff_map
+
+   vectorfield
+
+   tensorfield
+
+   diff_form

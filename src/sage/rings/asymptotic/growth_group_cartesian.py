@@ -86,7 +86,7 @@ TESTS::
 #*****************************************************************************
 
 import sage
-
+from growth_group import combine_exceptions
 
 def merge_overlapping(A, B, key=None):
     r"""
@@ -418,14 +418,31 @@ class GenericProduct(CartesianProductPosets, GenericGrowthGroup):
         ::
 
             sage: GrowthGroup('QQ^x * x^QQ')(['x^(1/2)'])
-            Traceback (most recent call last):
-            ...
-            ValueError: ('x^(1/2)',) should be of length 2
+            x^(1/2)
             sage: l = GrowthGroup('x^ZZ * log(x)^ZZ')(['x', 'log(x)']); l
             x * log(x)
             sage: type(l)
             <class 'sage.rings.asymptotic.growth_group_cartesian.UnivariateProduct_with_category.element_class'>
+            sage: GrowthGroup('QQ^x * x^QQ')(['2^log(x)'])
+            Traceback (most recent call last):
+            ...
+            ValueError: ['2^log(x)'] is not in Growth Group QQ^x * x^QQ.
+            previous: ValueError: 2^log(x) is not in any of the factors of
+            Growth Group QQ^x * x^QQ
+            sage: GrowthGroup('QQ^x * x^QQ')(['2^log(x)', 'x^55'])
+            Traceback (most recent call last):
+            ...
+            ValueError: ['2^log(x)', 'x^55'] is not in Growth Group QQ^x * x^QQ.
+            previous: ValueError: 2^log(x) is not in any of the factors of
+            Growth Group QQ^x * x^QQ
         """
+        def convert_factors(data, raw_data):
+            try:
+                return self._convert_factors_(data)
+            except ValueError as e:
+                raise combine_exceptions(
+                    ValueError('%s is not in %s.' % (raw_data, self)), e)
+
         if data == 1:
             return self.one()
 
@@ -443,11 +460,13 @@ class GenericProduct(CartesianProductPosets, GenericGrowthGroup):
             try:
                 return super(GenericProduct, self)._element_constructor_(data)
             except ValueError:
-                raise
+                pass
+
+            return convert_factors(data, data)
 
         elif isinstance(data, str):
             from growth_group import split_str_by_mul
-            return self._convert_factors_(split_str_by_mul(data))
+            return convert_factors(split_str_by_mul(data), data)
 
         elif hasattr(data, 'parent'):
             P = data.parent()
@@ -458,11 +477,11 @@ class GenericProduct(CartesianProductPosets, GenericGrowthGroup):
             elif P is sage.symbolic.ring.SR:
                 from sage.symbolic.operators import mul_vararg
                 if data.operator() == mul_vararg:
-                    return self._convert_factors_(data.operands())
+                    return convert_factors(data.operands(), data)
 
             # room for other parents (e.g. polynomial ring et al.)
 
-        return self._convert_factors_((data,))
+        return convert_factors((data,), data)
 
 
     _repr_ = GenericGrowthGroup._repr_
@@ -522,7 +541,7 @@ class GenericProduct(CartesianProductPosets, GenericGrowthGroup):
                     return factor, factor(data)
                 except (ValueError, TypeError):
                     pass
-            raise ValueError('%s is not in %s' % (data, self))
+            raise ValueError('%s is not in any of the factors of %s' % (data, self))
 
         return prod(list(self.cartesian_injection(*get_factor(f))
                          for f in factors))

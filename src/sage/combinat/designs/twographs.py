@@ -55,7 +55,6 @@ Methods
 """
 from sage.combinat.designs.incidence_structures import IncidenceStructure
 from itertools import combinations
-from sage.misc.functional import is_odd, is_even
 
 class TwoGraph(IncidenceStructure):
     r"""
@@ -187,10 +186,25 @@ def is_twograph(T):
         sage: is_twograph(designs.projective_plane(2))
         False
     """
-    B = map(frozenset, T.blocks())
-    return T.is_t_design(k=3) and \
-        all(map(lambda f: is_even(sum(map(lambda x: frozenset(x) in B,  combinations(f, 3)))),
-                    combinations(T.ground_set(), 4)))
+    if not T.is_t_design(t=2,k=3):
+        return False
+
+    # A structure for a fast triple existence check
+    v_to_blocks = {v:set() for v in range(T.num_points())}
+    for B in T._blocks:
+        B = frozenset(B)
+        for x in B:
+            v_to_blocks[x].add(B)
+
+    has_triple = lambda (x,y,z) : bool(v_to_blocks[x]&v_to_blocks[y]&v_to_blocks[z])
+
+    # Check that every quadruple contains an even number of triples
+    from __builtin__ import sum
+    for quad in combinations(range(T.num_points()),4):
+        if sum(map(has_triple,combinations(quad,3))) % 2 == 1:
+            return False
+
+    return True
 
 def twograph_descendant(G, v, name=None):
     r"""

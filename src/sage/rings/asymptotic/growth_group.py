@@ -267,6 +267,23 @@ def split_str_by_mul(string):
     return tuple(strip(f) for f in factors)
 
 
+def combine_exceptions(e, f):
+    r"""
+    Helper function which combines the messages of the two given exceptions.
+
+    EXAMPLES::
+
+        sage: from sage.rings.asymptotic.growth_group import combine_exceptions
+        sage: raise combine_exceptions(ValueError('Outer.'), TypeError('Inner.'))
+        Traceback (most recent call last):
+        ...
+        ValueError: Outer.
+        previous: TypeError: Inner.
+    """
+    e.args = ("%s\nprevious: %s: %s" % (e.args[0], f.__class__.__name__, str(f)),)
+    return e
+
+
 class Variable(sage.structure.unique_representation.CachedRepresentation,
                sage.structure.sage_object.SageObject):
     r"""

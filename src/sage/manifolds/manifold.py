@@ -414,25 +414,7 @@ class TopManifold(TopManifoldSubset):
     The manifold passes all the tests of the test suite relative to the
     category of Sets::
 
-        sage: TestSuite(M).run(verbose=True)
-        running ._test_an_element() . . . pass
-        running ._test_category() . . . pass
-        running ._test_elements() . . .
-          Running the test suite of self.an_element()
-          running ._test_category() . . . pass
-          running ._test_eq() . . . pass
-          running ._test_not_implemented_methods() . . . pass
-          running ._test_pickling() . . . pass
-          pass
-        running ._test_elements_eq_reflexive() . . . pass
-        running ._test_elements_eq_symmetric() . . . pass
-        running ._test_elements_eq_transitive() . . . pass
-        running ._test_elements_neq() . . . pass
-        running ._test_eq() . . . pass
-        running ._test_not_implemented_methods() . . . pass
-        running ._test_pickling() . . . pass
-        running ._test_some_elements() . . . pass
-
+        sage: TestSuite(M).run()
 
     """
     def __init__(self, n, name, latex_name=None, field='real', start_index=0,

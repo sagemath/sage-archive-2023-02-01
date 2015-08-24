@@ -162,29 +162,9 @@ class VectorFieldModule(UniqueRepresentation, Parent):
     The conversion map is actually the restriction of vector fields defined
     on `M` to `U`.
 
-    Sage test suite for modules is passed::
+    The Sage test suite for modules is passed::
 
-        sage: TestSuite(XM).run(verbose=True)
-        running ._test_additive_associativity() . . . pass
-        running ._test_an_element() . . . pass
-        running ._test_category() . . . pass
-        running ._test_elements() . . .
-          Running the test suite of self.an_element()
-          running ._test_category() . . . pass
-          running ._test_eq() . . . pass
-          running ._test_nonzero_equal() . . . pass
-          running ._test_not_implemented_methods() . . . pass
-          running ._test_pickling() . . . pass
-          pass
-        running ._test_elements_eq_reflexive() . . . pass
-        running ._test_elements_eq_symmetric() . . . pass
-        running ._test_elements_eq_transitive() . . . pass
-        running ._test_elements_neq() . . . pass
-        running ._test_eq() . . . pass
-        running ._test_not_implemented_methods() . . . pass
-        running ._test_pickling() . . . pass
-        running ._test_some_elements() . . . pass
-        running ._test_zero() . . . pass
+        sage: TestSuite(XM).run()
 
     """
 
@@ -994,29 +974,9 @@ class VectorFieldFreeModule(FiniteRankFreeModule):
     The conversion map is actually the restriction of vector fields defined
     on `S^1` to `U`.
 
-    Sage test suite for modules is passed::
+    The Sage test suite for modules is passed::
 
-        sage: TestSuite(XM).run(verbose=True)
-        running ._test_additive_associativity() . . . pass
-        running ._test_an_element() . . . pass
-        running ._test_category() . . . pass
-        running ._test_elements() . . .
-          Running the test suite of self.an_element()
-          running ._test_category() . . . pass
-          running ._test_eq() . . . pass
-          running ._test_nonzero_equal() . . . pass
-          running ._test_not_implemented_methods() . . . pass
-          running ._test_pickling() . . . pass
-          pass
-        running ._test_elements_eq_reflexive() . . . pass
-        running ._test_elements_eq_symmetric() . . . pass
-        running ._test_elements_eq_transitive() . . . pass
-        running ._test_elements_neq() . . . pass
-        running ._test_eq() . . . pass
-        running ._test_not_implemented_methods() . . . pass
-        running ._test_pickling() . . . pass
-        running ._test_some_elements() . . . pass
-        running ._test_zero() . . . pass
+        sage: TestSuite(XM).run()
 
     """
 

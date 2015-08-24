@@ -1078,10 +1078,14 @@ class AsymptoticRing(sage.rings.ring.Ring,
             sage: AR.<x> = AsymptoticRing(growth_group='x^ZZ', coefficient_ring=ZZ)
             sage: AR.gens()
             (x,)
+            sage: B.<y,z> = AsymptoticRing(growth_group='y^ZZ * z^ZZ', coefficient_ring=QQ)
+            sage: B.gens()
+            (y, z)
         """
-        from sage.rings.asymptotic.growth_group import MonomialGrowthGroup
-        if isinstance(self.growth_group, MonomialGrowthGroup):
-            return self.create_summand('exact', growth=self.growth_group.gen(), coefficient=1),
+        return tuple(self.create_summand('exact',
+                                         growth=g,
+                                         coefficient=self.coefficient_ring(1))
+                     for g in self.growth_group.gens_monomial())
 
 
     def gen(self, n=0):
@@ -1123,11 +1127,7 @@ class AsymptoticRing(sage.rings.ring.Ring,
             sage: AR.ngens()
             1
         """
-        from sage.rings.asymptotic.growth_group import MonomialGrowthGroup
-        if isinstance(self.growth_group, MonomialGrowthGroup):
-            return 1
-        else:
-            return 0
+        return len(self.growth_group.gens_monomial())
 
 
     def create_summand(self, type, growth, **kwds):

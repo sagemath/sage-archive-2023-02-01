@@ -42,6 +42,7 @@ cdef struct path_mon_t:
     size_t ref
 
 cdef struct path_term_t:
+    # A term is given by a monomial "mon" and a coefficient "coef".
     path_mon_t *mon
     # We need to manually take care of the reference count for the
     # coefficient!
@@ -50,24 +51,36 @@ cdef struct path_term_t:
     path_term_t *nxt
 
 # Type of monomial ordering functions.
+# Returns -1, 0 or 1, depending on whether the first argument is
+# smaller (wrt. the chosen ordering function), equal to, or greater
+# than the second argument.
 ctypedef int (*path_order_t)(path_mon_t*, path_mon_t*)
 
-# Polynomials are decreasingly sorted lists of terms. For convenience, the
-# number of terms is directly available.
+# Polynomials are decreasingly sorted lists of terms, wrt. some fixed
+# monomial ordering. For convenience, the number of terms is directly
+# available.
 cdef struct path_poly_t:
     path_term_t *lead
     size_t nterms
 
 # In path_poly_t, the terms need not to have all the same start and end
-# points. path_homog_poly_t provides a list of "start and end point
-# homogeneous polynomials". They are sorted by increasing (start, end)
+# points. path_homog_poly_t points to a path_poly_t whose terms are all
+# guaranteed to start and end at the given vertex labels (which are integers).
+# We will work with lists of path_homog_poly_t, and thus have a pointer
+# to the next start and end point homogeneous polynomial.
 cdef struct path_homog_poly_t:
     path_poly_t *poly
     int start, end
     path_homog_poly_t *nxt
 
 cdef class PathAlgebraElement(RingElement):
+    # The terms of path algebra element are stored as a list of start and
+    # end point homogeneous polynomials. These are sorted increasingly
+    # according to the (start, end) point pairs.
     cdef path_homog_poly_t *data
+    # A fixed term ordering is stored along with the path algebra element.
+    # This ordering has to be passed as an argument to all boilerplate
+    # functions.
     cdef path_order_t cmp_terms
     cdef long _hash
     cpdef ssize_t degree(self) except -2

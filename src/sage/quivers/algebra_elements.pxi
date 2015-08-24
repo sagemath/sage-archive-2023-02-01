@@ -553,7 +553,6 @@ cdef path_term_t *term_scale_recursive(path_term_t *T, object coef) except NULL:
     while T!=NULL:
         out.nxt = term_scale(T, coef)
         if out.nxt.coef == NULL:
-            #print "zwischendurch frei"
             sage_free(out.nxt)
             out.nxt = NULL
         else:
@@ -694,22 +693,6 @@ cdef bint poly_icopy_scale(path_poly_t *out, path_poly_t *P, object coef) except
         res.nxt = NULL
     return True
 
-cdef bint poly_is_sane(path_poly_t *P):
-    cdef int count = 0
-    cdef path_term_t *T = P.lead
-    while T != NULL:
-        count += 1
-        T = T.nxt
-    return count == P.nterms
-
-cdef bint poly_is_ordered(path_poly_t *P, path_order_t cmp_terms):
-    cdef path_term_t *T = P.lead
-    while T != NULL:
-        if T.nxt != NULL and cmp_terms(T.mon, T.nxt.mon)!=1:
-            return False
-        T = T.nxt
-    return True
-
 cdef list poly_pickle(path_poly_t *P):
     cdef list L = []
     cdef path_term_t *T = P.lead
@@ -734,8 +717,6 @@ cdef bint poly_inplace_unpickle(path_poly_t *P, list data) except -1:
         T.nxt = term_unpickle(coef, term_data)
         T = T.nxt
     T.nxt = NULL
-    if not poly_is_sane(P):
-        raise RuntimeError("Unpickling doesn't work")
     return True
 
 ############################################
@@ -1150,7 +1131,6 @@ cdef path_term_t *poly_iadd_lmul(path_poly_t *P1, object coef, path_poly_t *P2, 
                 if T2 == P2.lead:
                     out = prev
         T2 = T2.nxt
-    #poly_is_sane(P1)
     if out == NULL:
         return P2.lead
     return out

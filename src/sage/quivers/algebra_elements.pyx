@@ -246,9 +246,6 @@ cdef class PathAlgebraElement(RingElement):
                 T = T.nxt
             if len(L) != H.poly.nterms:
                 print "Term count of polynomial is wrong, got",len(L), "expected", H.poly.nterms
-            else:
-                if not poly_is_ordered(H.poly, self.cmp_terms):
-                    print "Term ordering of polynomial is wrong"
             L_total.extend(L)
             H = H.nxt
         return L_total
@@ -1326,8 +1323,6 @@ cdef class PathAlgebraElement(RingElement):
                     if out == NULL:
                         P1start = out_orig.poly.lead
                         while T2 != NULL:
-                            #assert poly_is_sane(out_orig.poly)
-                            #print "out==0, T2!=0", H1.start, H1.end, H2.start,H2.end,
                             P1start = poly_iadd_lmul(out_orig.poly, <object>T2.coef, H1.poly,
                                                      T2.mon.path, self.cmp_terms, -1, 0, 0, P1start)
                             if P1start == H1.poly.lead:
@@ -1336,8 +1331,6 @@ cdef class PathAlgebraElement(RingElement):
                     else:
                         P1start = out.nxt.poly.lead
                         while T2 != NULL:
-                            #assert poly_is_sane(out.nxt.poly)
-                            #print "out!=0, T2!=0", H1.start, H1.end, H2.start, H2.end, 
                             P1start = poly_iadd_lmul(out.nxt.poly, <object>T2.coef, H1.poly,
                                                      T2.mon.path, self.cmp_terms, -1, 0, 0, P1start)
                             if P1start == H1.poly.lead:

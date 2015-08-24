@@ -65,6 +65,13 @@ TESTS::
     sage: E = GrowthGroup('ZZ^x * x^QQ')
     sage: cm.common_parent(A, E)
     Growth Group QQ^x * x^QQ
+
+::
+
+    sage: A.an_element()
+    (1/2)^x * x
+    sage: tuple(E.an_element())
+    (1, x^(1/2))
 """
 
 #*****************************************************************************
@@ -402,47 +409,60 @@ class GenericProduct(CartesianProductPosets, GenericGrowthGroup):
 
             sage: G_log(log(x))
             log(x)
+
+        ::
+
+            sage: G(G.cartesian_factors()[0].gen())
+            x
+
+        ::
+
+            sage: GrowthGroup('QQ^x * x^QQ')(['x^(1/2)'])
+            Traceback (most recent call last):
+            ...
+            ValueError: ('x^(1/2)',) should be of length 2
+            sage: l = GrowthGroup('x^ZZ * log(x)^ZZ')(['x', 'log(x)']); l
+            x * log(x)
+            sage: type(l)
+            <class 'sage.rings.asymptotic.growth_group_cartesian.UnivariateProduct_with_category.element_class'>
         """
         if data == 1:
             return self.one()
 
-        if data is None:
+        elif data is None:
             raise ValueError('%s cannot be converted.' % (data,))
 
-        if isinstance(data, list):
-            try:
-                obj = super(GenericProduct,
-                            self)._element_constructor_(data)
-                return obj
-            except ValueError:
-                return self.prod(self(elem) for elem in data)
+        elif type(data) == self.element_class and data.parent() == self:
+            return data
 
-        if hasattr(data, 'parent'):
+        elif isinstance(data, self.element_class):
+            return self.element_class(self, data)
+
+        elif isinstance(data, (tuple, list,
+                               sage.sets.cartesian_product.CartesianProduct.Element)):
+            try:
+                return super(GenericProduct, self)._element_constructor_(data)
+            except ValueError:
+                raise
+
+        elif isinstance(data, str):
+            from growth_group import split_str_by_mul
+            return self._convert_factors_(split_str_by_mul(data))
+
+        elif hasattr(data, 'parent'):
             P = data.parent()
+
             if P is self:
                 return data
 
             elif P is sage.symbolic.ring.SR:
-                import operator
                 from sage.symbolic.operators import mul_vararg
-                op = data.operator()
-                if op == operator.pow or data.is_symbol() \
-                        or isinstance(op, sage.functions.log.Function_log):
-                    return self(self._convert_to_factor_(data))
-                elif op == mul_vararg:
-                    return self(data.operands())
+                if data.operator() == mul_vararg:
+                    return self._convert_factors_(data.operands())
+
             # room for other parents (e.g. polynomial ring et al.)
 
-        # try to convert the input to one of the factors
-        data_conv = self._convert_to_factor_(data)
-        if data_conv is not None:
-            factors = self.cartesian_factors()
-            return self([data_conv if factor == data_conv.parent() else 1 for
-                         factor in factors])
-
-        # final attempt: try parsing the representation string
-        str_lst = str(data).replace(' ', '').split('*')
-        return self(str_lst)
+        return self._convert_factors_((data,))
 
 
     _repr_ = GenericGrowthGroup._repr_
@@ -472,37 +492,42 @@ class GenericProduct(CartesianProductPosets, GenericGrowthGroup):
         return ' * '.join(S._repr_short_() for S in self.cartesian_factors())
 
 
-    def _convert_to_factor_(self, data):
+    def _convert_factors_(self, factors):
         r"""
-        Helper method. Try to convert some input ``data`` to an
-        element of one of the cartesian factors of this product.
+        Helper method. Try to convert some ``factors`` to an
+        element of one of the cartesian factors and returns the product of
+        all these factors.
 
         INPUT:
 
-        - ``data`` -- some input to be converted.
+        - ``factors`` -- a tuple or other iterable.
 
         OUTPUT:
 
-        An element of an cartesian factor of this product,
-        or ``None``.
+        An element of this cartesian product.
 
         EXAMPLES::
 
             sage: from sage.rings.asymptotic.growth_group import GrowthGroup
             sage: G = GrowthGroup('x^ZZ * log(x)^QQ * y^QQ')
-            sage: e1 = G._convert_to_factor_(x^2)
+            sage: e1 = G._convert_factors_([x^2])
             sage: (e1, e1.parent())
-            (x^2, Growth Group x^ZZ * log(x)^QQ)
-            sage: G._convert_to_factor_('asdf') is None
-            True
+            (x^2, Growth Group x^ZZ * log(x)^QQ * y^QQ)
         """
-        for factor in self.cartesian_factors():
-            try:
-                if hasattr(factor, '_convert_to_factor_'):
-                    return factor(factor._convert_to_factor_(data))
-                return factor(data)
-            except (ValueError, TypeError):
-                continue
+        from sage.misc.misc_c import prod
+
+        def get_factor(data):
+            for factor in self.cartesian_factors():
+                try:
+                    return factor, factor(data)
+                except (ValueError, TypeError):
+                    pass
+            raise ValueError('%s is not in %s' % (data, self))
+
+        return prod(list(self.cartesian_injection(*get_factor(f))
+                         for f in factors))
+
+
     def cartesian_injection(self, factor, element):
         r"""
         Injects the given element into this cartesian product at the given factor.
@@ -756,9 +781,15 @@ class GenericProduct(CartesianProductPosets, GenericGrowthGroup):
             sage: G = agg.GrowthGroup('x^ZZ * log(x)^ZZ * y^QQ * log(z)^ZZ')
             sage: G.gens_monomial()
             (x, y)
+
+        TESTS::
+
+            sage: all(g.parent() == G for g in G.gens_monomial())
+            True
         """
-        return sum(iter(factor.gens_monomial()
-                        for factor in self.cartesian_factors()),
+        return sum(iter(
+            tuple(self.cartesian_injection(factor, g) for g in factor.gens_monomial())
+            for factor in self.cartesian_factors()),
                    tuple())
 
 
@@ -784,6 +815,7 @@ class GenericProduct(CartesianProductPosets, GenericGrowthGroup):
 
 
     class Element(CartesianProductPosets.Element):
+
         def _repr_(self):
             r"""
             A representation string for this cartesian product element.

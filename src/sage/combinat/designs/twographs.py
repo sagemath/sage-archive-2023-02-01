@@ -175,18 +175,33 @@ def is_twograph(T):
 
     - ``T`` -- an :class:`incidence structure <sage.combinat.designs.IncidenceStructure>`
 
-    EXAMPLES::
+    EXAMPLES:
+
+    a two-graph from a graph::
 
         sage: from sage.combinat.designs.twographs import is_twograph
         sage: p=graphs.PetersenGraph().twograph()
         sage: is_twograph(p)
         True
+
+    a non-regular 2-uniform hypergraph which is a two-graph::
+
+        sage: is_twograph(designs.TwoGraph([[1,2,3],[1,2,4]]))
+        True
+
+    TESTS:
+
+    wrong size of blocks::
+
         sage: is_twograph(designs.projective_plane(3))
         False
+
+    a triple system which is not a two-graph::
+
         sage: is_twograph(designs.projective_plane(2))
         False
     """
-    if not T.is_t_design(t=2,k=3):
+    if not T.is_uniform(3):
         return False
 
     # A structure for a fast triple existence check

@@ -820,7 +820,7 @@ class AsymptoticRing(sage.rings.ring.Ring,
             raise ValueError('%s is not a ring. Cannot continue.' % (coefficient_ring,))
 
         if category is None:
-            category = Rings()
+            category = Rings() & sage.categories.posets.Posets()
         else:
             if not isinstance(category, tuple):
                 category = (category,)

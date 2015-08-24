@@ -37,26 +37,35 @@ class BialgebrasWithBasis(CategoryWithAxiom_over_base_ring):
             r"""
             Return the convolution product (a map) of the given maps.
 
-            INPUT:
-
-             - ``maps`` -- any number `n \geq 0` of linear maps `R, S, \dots,
-               T` on ``self``; or a single ``list`` or ``tuple`` of such maps.
-
-            OUTPUT:
-
-             - the new map `R * S * \cdots * T` representing their convolution
-               product.
+            Let `A` and `B` be bialgebras over a commutative ring `R`.
+            Given maps `f_i : A \to B` for `1 \leq i < n`, define the
+            convolution product
 
             .. MATH::
 
-                (R*S*\cdots*T) := \mu^{(n-1)} \circ (R \otimes S \otimes\cdot\otimes T) \circ \Delta^{(n-1)},
+                (f_1 * f_2 * \cdots * f_n) := \mu^{(n-1)} \circ (f_1 \otimes
+                f_2 \otimes \cdots \otimes f_n) \circ \Delta^{(n-1)},
 
-            where `\Delta^{(k)} := \bigl(\Delta \otimes \mathrm{Id}^{\otimes(k-1)}\bigr) \circ \Delta^{(k-1)}`,
-            with `\Delta^{(1)} = \Delta` (the ordinary coproduct) and `\Delta^{(0)} = \mathrm{Id}`;
-            and with `\mu^{(k)} := \mu \circ \bigl(\mu^{(k-1)} \otimes \mathrm{Id})` and `\mu^{(1)} = \mu`
-            (the ordinary product). See [Sw1969]_.
+            where `\Delta^{(k)} := \bigl(\Delta \otimes
+            \mathrm{Id}^{\otimes(k-1)}\bigr) \circ \Delta^{(k-1)}`,
+            with `\Delta^{(1)} = \Delta` (the ordinary coproduct in `A`) and
+            `\Delta^{(0)} = \mathrm{Id}`; and with `\mu^{(k)} := \mu \circ
+            \bigl(\mu^{(k-1)} \otimes \mathrm{Id})` and `\mu^{(1)} = \mu`
+            (the ordinary product in `B`). See [Sw1969]_.
 
-            (In the literature, one finds, e.g., `\Delta^{(2)}` for what we denote above as `\Delta^{(1)}`. See [KMN2012]_.)
+            (In the literature, one finds, e.g., `\Delta^{(2)}` for what we
+            denote above as `\Delta^{(1)}`. See [KMN2012]_.)
+
+            INPUT:
+
+            - ``maps`` -- any number `n \geq 0` of linear maps `f_1, f_2,
+              \ldots, f_n` on ``self``; or a single ``list`` or ``tuple``
+              of such maps
+
+            OUTPUT:
+
+            - the new map `f_1 * f_2 * \cdots * f_2` representing their
+              convolution product
 
             .. SEEALSO::
 
@@ -64,9 +73,7 @@ class BialgebrasWithBasis(CategoryWithAxiom_over_base_ring):
 
             AUTHORS:
 
-            Aaron Lauve - 12 June 2015 - Sage Days 65
-                - based off of .adams_operator() code in sage-trac ticket #18350
-                - by Jean-Baptiste Priez
+            - Aaron Lauve - 12 June 2015 - Sage Days 65
 
             .. TODO::
 
@@ -128,40 +135,39 @@ class BialgebrasWithBasis(CategoryWithAxiom_over_base_ring):
                 sage: T(x)
                 2*[1, 3, 2] + [2, 1, 3] + 2*[2, 3, 1] + 3*[3, 1, 2] + 3*[3, 2, 1]
             """
-            H = self
-            # TYPE-CHECK:
-            if not H in ModulesWithBasis:
-                raise AttributeError('`self` (%s) must belong to ModulesWithBasis. Try defining convolution product on a basis of `self` instead.' % H._repr_())
-
-            onbasis = lambda x: H.term(x).convolution_product(*maps)
-            return H.module_morphism(on_basis=onbasis, codomain=H)
+            onbasis = lambda x: self.term(x).convolution_product(*maps)
+            return self.module_morphism(on_basis=onbasis, codomain=self)
 
     class ElementMethods:
 
         def adams_operator(self, n):
             r"""
-            Compute the `n`-th convolution power of the identity morphism `Id`
-            on ``self``.
+            Compute the `n`-th convolution power of the identity morphism
+            `\mathrm{Id}` on ``self``.
 
             INPUT:
 
-            - ``n`` -- a nonnegative integer.
+            - ``n`` -- a nonnegative integer
 
             OUTPUT:
 
-            - the image of ``self`` under the convolution power `Id^{*n}`.
+            - the image of ``self`` under the convolution power `\mathrm{Id}^{*n}`
+
+            .. NOTE::
+
+                In the literature, this is also called a Hopf power or
+                Sweedler power, cf. [AL2015]_.
 
             .. SEEALSO::
 
-                :mod:`sage.categories.bialgebras.ElementMethods.convolution_product`
-
-                (In the literature, this is also called a Hopf power or Sweedler power, cf. [AL2015]_.)
+                :meth:`sage.categories.bialgebras.ElementMethods.convolution_product`
 
             REFERENCES:
 
-            .. [AL2015] The characteristic polynomial of the Adams operators on graded connected Hopf algebras.
-                Marcelo Aguiar and Aaron Lauve.
-                Algebra Number Theory, v.9, 2015, n.3, 2015.
+            .. [AL2015] *The characteristic polynomial of the Adams operators
+               on graded connected Hopf algebras*.
+               Marcelo Aguiar and Aaron Lauve.
+               Algebra Number Theory, v.9, 2015, n.3, 2015.
 
             .. TODO::
 
@@ -195,14 +201,13 @@ class BialgebrasWithBasis(CategoryWithAxiom_over_base_ring):
                 sage: m = SymmetricFunctionsNonCommutingVariables(QQ).m()
                 sage: m[[1,3],[2]].adams_operator(-2)
                 3*m{{1}, {2, 3}} + 3*m{{1, 2}, {3}} + 6*m{{1, 2, 3}} - 2*m{{1, 3}, {2}}
-
             """
             if n < 0:
                 if hasattr(self, 'antipode'):
                     T = lambda x: x.antipode()
                     n = abs(n)
                 else:
-                    raise ValueError("`self` has no antipode, hence cannot take negative convolution powers of identity_map: %s < 0" % str(n))
+                    raise ValueError("antipode not defined; cannot take negative convolution powers: {} < 0".format(n))
             else:
                 T = lambda x: x
             return self.convolution_product([T] * n)
@@ -212,40 +217,48 @@ class BialgebrasWithBasis(CategoryWithAxiom_over_base_ring):
             Return the image of ``self`` under the convolution product (map) of
             the maps.
 
-            INPUT:
-
-             - ``maps`` -- any number `n \geq 0` of linear maps `R, S, \dots,
-               T` on ``self.parent()``; or a single ``list`` or ``tuple`` of
-               such maps.
-
-            OUTPUT:
-
-             - `(R * S * \cdots * T)` applied to ``self``.
+            Let `A` and `B` be bialgebras over a commutative ring `R`.
+            Given maps `f_i : A \to B` for `1 \leq i < n`, define the
+            convolution product
 
             .. MATH::
 
-                (R*S*\cdots*T)(h) := \mu^{(n-1)} \circ (R \otimes S \otimes\cdot\otimes T) \circ \Delta^{(n-1)}(h),
+                (f_1 * f_2 * \cdots * f_n) := \mu^{(n-1)} \circ (f_1 \otimes
+                f_2 \otimes \cdots \otimes f_n) \circ \Delta^{(n-1)},
 
-            where `\Delta^{(k)} := \bigl(\Delta \otimes \mathrm{Id}^{\otimes(k-1)}\bigr) \circ \Delta^{(k-1)}`,
-            with `\Delta^{(1)} = \Delta` (the ordinary coproduct) and `\Delta^{(0)} = \mathrm{Id}`;
-            and with `\mu^{(k)} := \mu \circ \bigl(\mu^{(k-1)} \otimes \mathrm{Id})` and `\mu^{(1)} = \mu`
-            (the ordinary product). See [Sw1969]_.
+            where `\Delta^{(k)} := \bigl(\Delta \otimes
+            \mathrm{Id}^{\otimes(k-1)}\bigr) \circ \Delta^{(k-1)}`,
+            with `\Delta^{(1)} = \Delta` (the ordinary coproduct in `A`) and
+            `\Delta^{(0)} = \mathrm{Id}`; and with `\mu^{(k)} := \mu \circ
+            \bigl(\mu^{(k-1)} \otimes \mathrm{Id})` and `\mu^{(1)} = \mu`
+            (the ordinary product in `B`). See [Sw1969]_.
 
-            (In the literature, one finds, e.g., `\Delta^{(2)}` for what we denote above as `\Delta^{(1)}`. See [KMN2012]_.)
+            (In the literature, one finds, e.g., `\Delta^{(2)}` for what we
+            denote above as `\Delta^{(1)}`. See [KMN2012]_.)
+
+            INPUT:
+
+            - ``maps`` -- any number `n \geq 0` of linear maps `f_1, f_2,
+              \ldots, f_n` on ``self.parent()``; or a single ``list`` or
+              ``tuple`` of such maps
+
+            OUTPUT:
+
+            - the convolution product of ``maps`` applied to ``self``
 
             REFERENCES:
 
             .. [KMN2012] On the trace of the antipode and higher indicators.
-                Yevgenia Kashina and Susan Montgomery and Richard Ng.
-                Israel J. Math., v.188, 2012.
+               Yevgenia Kashina and Susan Montgomery and Richard Ng.
+               Israel J. Math., v.188, 2012.
 
             .. [Sw1969] Hopf algebras.
-                Moss Sweedler.
-                W.A. Benjamin, Math Lec Note Ser., 1969.
+               Moss Sweedler.
+               W.A. Benjamin, Math Lec Note Ser., 1969.
 
             AUTHORS:
 
-            Amy Pang - 12 June 2015 - Sage Days 65
+            - Amy Pang - 12 June 2015 - Sage Days 65
 
             .. TODO::
 
@@ -301,7 +314,6 @@ class BialgebrasWithBasis(CategoryWithAxiom_over_base_ring):
                 sage: x.convolution_product([Id]*6)
                 9*[1, 2, 3]
 
-
             TESTS::
 
                 sage: Id = lambda x: x
@@ -323,7 +335,8 @@ class BialgebrasWithBasis(CategoryWithAxiom_over_base_ring):
 
                 sage: S = NonCommutativeSymmetricFunctions(QQ).S()
                 sage: S[4].convolution_product([Id]*5)
-                5*S[1, 1, 1, 1] + 10*S[1, 1, 2] + 10*S[1, 2, 1] + 10*S[1, 3] + 10*S[2, 1, 1] + 10*S[2, 2] + 10*S[3, 1] + 5*S[4]
+                5*S[1, 1, 1, 1] + 10*S[1, 1, 2] + 10*S[1, 2, 1] + 10*S[1, 3]
+                 + 10*S[2, 1, 1] + 10*S[2, 2] + 10*S[3, 1] + 5*S[4]
 
             ::
 
@@ -360,7 +373,6 @@ class BialgebrasWithBasis(CategoryWithAxiom_over_base_ring):
 
                 sage: s[3,2].counit().parent() == s[3,2].convolution_product().parent()
                 False
-
             """
             # Be flexible on how the maps are entered: accept a list/tuple of
             # maps as well as multiple arguments
@@ -370,87 +382,27 @@ class BialgebrasWithBasis(CategoryWithAxiom_over_base_ring):
                 T = maps
 
             H = self.parent()
-            # TYPE-CHECK:
-            if not H in ModulesWithBasis:
-                raise AttributeError('`parent` (%s) must belong to ModulesWithBasis. Try defining convolution product on a basis of `parent` instead.' % H._repr_())
 
             n = len(T)
             if n == 0:
                 return H.one() * self.counit()
-            elif n == 1:
+            if n == 1:
                 return T[0](self)
-            else:
-                # We apply the maps T_i and products concurrently with coproducts, as this
-                # seems to be faster than applying a composition of maps, e.g., (H.nfold_product) * tensor(T) * (H.nfold_coproduct).
 
-                i = 0
-                out = tensor((H.one(),self))
-                HH = tensor((H,H))
+            # We apply the maps T_i and products concurrently with coproducts, as this
+            # seems to be faster than applying a composition of maps, e.g., (H.nfold_product) * tensor(T) * (H.nfold_coproduct).
 
+            out = tensor((H.one(),self))
+            HH = tensor((H,H))
+
+            for mor in T[:-1]:
                 #ALGORITHM:
                 #`split_convolve` moves terms of the form x # y to x*Ti(y1) # y2 in Sweedler notation.
-                split_convolve = lambda (x,y): (((xy1,y2),c*d) for ((y1,y2),d) in H.term(y).coproduct() for (xy1,c) in H.term(x)*T[i](H.term(y1)))
-                while i < n-1:
-                    out = HH.module_morphism(on_basis=lambda t: HH.sum_of_terms(split_convolve(t)), codomain = HH)(out)
-                    i += 1
+                split_convolve = lambda (x,y): ( ((xy1,y2),c*d)
+                                                 for ((y1,y2),d) in H.term(y).coproduct()
+                                                 for (xy1,c) in H.term(x)*mor(H.term(y1)) )
+                out = HH.module_morphism(on_basis=lambda t: HH.sum_of_terms(split_convolve(t)), codomain=HH)(out)
 
-                #Apply final map `T_n` to last term, `y`, and multiply.
-                out = HH.module_morphism(on_basis=lambda (x,y): H.term(x)*T[n-1](H.term(y)), codomain=H)(out)
+            #Apply final map `T_n` to last term, `y`, and multiply.
+            return HH.module_morphism(on_basis=lambda (x,y): H.term(x)*T[-1](H.term(y)), codomain=H)(out)
 
-                return out
-
-
-        def coproduct_iterated(self, n=1):
-            r"""
-            Apply `n` coproducts to ``self``.
-
-            .. TODO::
-
-                Remove dependency on ``modules_with_basis`` methods.
-
-            EXAMPLES::
-
-                sage: Psi = NonCommutativeSymmetricFunctions(QQ).Psi()
-                sage: Psi[2,2].coproduct_iterated(0)
-                Psi[2, 2]
-                sage: Psi[2,2].coproduct_iterated(2)
-                Psi[] # Psi[] # Psi[2, 2] + 2*Psi[] # Psi[2] # Psi[2] + Psi[] # Psi[2, 2] # Psi[] + 2*Psi[2] # Psi[] # Psi[2] + 2*Psi[2] # Psi[2] # Psi[] + Psi[2, 2] # Psi[] # Psi[]
-
-            TESTS::
-
-                sage: p = SymmetricFunctions(QQ).p()
-                sage: p[5,2,2].coproduct_iterated()
-                p[] # p[5, 2, 2] + 2*p[2] # p[5, 2] + p[2, 2] # p[5] + p[5] # p[2, 2] + 2*p[5, 2] # p[2] + p[5, 2, 2] # p[]
-                sage: p([]).coproduct_iterated(3)
-                p[] # p[] # p[] # p[]
-
-            ::
-
-                sage: Psi = NonCommutativeSymmetricFunctions(QQ).Psi()
-                sage: Psi[2,2].coproduct_iterated(0)
-                Psi[2, 2]
-                sage: Psi[2,2].coproduct_iterated(3)
-                Psi[] # Psi[] # Psi[] # Psi[2, 2] + 2*Psi[] # Psi[] # Psi[2] # Psi[2] + Psi[] # Psi[] # Psi[2, 2] # Psi[] + 2*Psi[] # Psi[2] # Psi[] # Psi[2] + 2*Psi[] # Psi[2] # Psi[2] # Psi[] + Psi[] # Psi[2, 2] # Psi[] # Psi[] + 2*Psi[2] # Psi[] # Psi[] # Psi[2] + 2*Psi[2] # Psi[] # Psi[2] # Psi[] + 2*Psi[2] # Psi[2] # Psi[] # Psi[] + Psi[2, 2] # Psi[] # Psi[] # Psi[]
-
-            ::
-
-                sage: m = SymmetricFunctionsNonCommutingVariables(QQ).m()
-                sage: m[[1,3],[2]].coproduct_iterated(2)
-                m{} # m{} # m{{1, 3}, {2}} + m{} # m{{1}} # m{{1, 2}} + m{} # m{{1, 2}} # m{{1}} + m{} # m{{1, 3}, {2}} # m{} + m{{1}} # m{} # m{{1, 2}} + m{{1}} # m{{1, 2}} # m{} + m{{1, 2}} # m{} # m{{1}} + m{{1, 2}} # m{{1}} # m{} + m{{1, 3}, {2}} # m{} # m{}
-                sage: m[[]].coproduct_iterated(3), m[[1,3],[2]].coproduct_iterated(0)
-                (m{} # m{} # m{} # m{}, m{{1, 3}, {2}})
-            """
-            if n < 0:
-                raise ValueError("cannot take fewer than 0 coproduct iterations: %s < 0" % str(n))
-            if n==0:
-                return self
-            elif n==1:
-                return self.coproduct()
-            else:
-                from sage.functions.all import floor, ceil
-                from sage.rings.all import Integer
-
-                # Use coassociativity of `\Delta` to perform many coproducts simultaneously.
-                fn = floor(Integer(n-1)/2); cn = ceil(Integer(n-1)/2)
-                def split(a,b): return tensor([a.coproduct_iterated(fn), b.coproduct_iterated(cn)])
-                return (self.coproduct()).apply_multilinear_morphism(split)

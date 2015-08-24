@@ -462,13 +462,13 @@ class GenericGraph(GenericGraph_pyx):
         g1_is_graph = isinstance(self, Graph) # otherwise, DiGraph
         g2_is_graph = isinstance(other, Graph) # otherwise, DiGraph
         # Fast checks
-        if any([g1_is_graph != g2_is_graph,
-                self.allows_multiple_edges() != other.allows_multiple_edges(),
-                self.allows_loops() != other.allows_loops(),
-                self.order() != other.order(),
-                self.size() != other.size(),
-                self.weighted() != other.weighted()]):
-            return False
+        if (g1_is_graph != g2_is_graph or
+            self.allows_multiple_edges() != other.allows_multiple_edges() or
+            self.allows_loops() != other.allows_loops() or
+            self.order() != other.order() or
+            self.size() != other.size() or
+            self.weighted() != other.weighted()):
+                return False
         # Vertices
         if any(x not in other for x in self):
             return False
@@ -476,14 +476,12 @@ class GenericGraph(GenericGraph_pyx):
         if not self.allows_multiple_edges():
             return all(other.has_edge(*edge) for edge in self.edge_iterator(
                                     labels=self._weighted and other._weighted))
-        for i in self:
-            for j in self:
-                edges1 = self.edge_label(i, j) if self.has_edge(i, j) else []
-                edges2 = other.edge_label(i, j) if other.has_edge(i, j) else []
-                if len(edges1) != len(edges2):
-                    return False
-                if self._weighted and other._weighted and sorted(edges1) != sorted(edges2):
-                    return False
+        edges = other.edges(labels=self._weighted and other._weighted)
+        try:
+            for edge in self.edges(labels=self._weighted and other._weighted):
+                edges.remove(edge)
+        except ValueError:
+            return False
         return True
 
     @cached_method

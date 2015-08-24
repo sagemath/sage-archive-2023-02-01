@@ -5091,25 +5091,23 @@ class Graph(GenericGraph):
               -- ditto, but much faster.
         """
         from sage.combinat.designs.twographs import TwoGraph
-        v = self.vertices()
+        G = self.relabel(inplace=False)
         T = []
-        i = 0
-        for vi in v[:-2]: # add the triangles
-            i += 1
-            j = i
-            for vj in v[i:-1]:
-                j += 1
-                if self.has_edge(vi,vj):
-                    for vk in v[j:]:
-                        if self.has_edge(vi,vk) and self.has_edge(vj,vk):
-                            T.append((vi,vj,vk))
 
-        for vi, vj, _  in self.edges(): # add triples with just 1 edge
-            for vk in v:
-                if (not self.has_edge(vi,vk)) and (not self.has_edge(vj,vk)):
-                    T.append(tuple(sorted((vi,vj,vk))))
-        return TwoGraph(sorted(T))
+        # Triangles
+        for x,y,z in G.subgraph_search_iterator(Graph({1:[2,3],2:[3]})):
+            if x < y and y < z:
+                T.append([x,y,z])
 
+        # Triples with just one edge
+        for x,y,z in G.subgraph_search_iterator(Graph({1:[2],3:[]}),induced=True):
+            if x < y:
+                T.append([x,y,z])
+
+        T = TwoGraph(T)
+        T.relabel({i:v for i,v in enumerate(self.vertices())})
+
+        return T
 
     ### Visualization
 

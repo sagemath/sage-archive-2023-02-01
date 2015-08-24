@@ -268,7 +268,7 @@ class LieAlgebraElementWrapper(ElementWrapper):
         """
         return self.__class__(self.parent(), self.value - rhs.value)
 
-    # This seems to work with 2 underscores and I don't understand why...
+    # We need to bypass the coercion framework
     # We let the universal enveloping algebra handle the rest if both
     #   arguments are non-zero
     def __mul__(self, x):
@@ -276,13 +276,16 @@ class LieAlgebraElementWrapper(ElementWrapper):
         If we are multiplying two non-zero elements, automatically
         lift up to the universal enveloping algebra.
 
+        .. TODO::
+
+            Write tests for this method once :trac:`16822` is
+            implemented.
+
         EXAMPLES::
 
             sage: G = SymmetricGroup(3)
             sage: S = GroupAlgebra(G, QQ)
             sage: L.<x,y> = LieAlgebra(associative=S.gens())
-            sage: x*y - y*x
-            (2,3) - (1,3)
             sage: u = x*3; u
             3*(1,2,3)
             sage: parent(u) == L
@@ -291,6 +294,9 @@ class LieAlgebraElementWrapper(ElementWrapper):
             3/2*(1,2,3)
             sage: parent(u) == L
             True
+            sage: elt = x*y - y*x; elt  # not tested: needs #16822
+            sage: S(elt)  # not tested: needs #16822
+            (2,3) - (1,3)
         """
         if self.value == 0 or x == 0:
             return self.parent().zero()

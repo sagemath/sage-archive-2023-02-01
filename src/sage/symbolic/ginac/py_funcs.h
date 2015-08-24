@@ -40,11 +40,14 @@ namespace GiNaC {
     int       (*py_is_prime)(PyObject* n);
     int       (*py_is_exact)(PyObject* a);
 
-	PyObject* (*py_int)(PyObject* n);
 	PyObject* (*py_integer_from_long)(long int x);
 	PyObject* (*py_integer_from_python_obj)(PyObject* x);
 	PyObject* (*py_integer_from_mpz)(mpz_t);
 	PyObject* (*py_rational_from_mpq)(mpq_t);
+	int (*py_is_Integer)(PyObject *);
+	int (*py_is_Rational)(PyObject *);
+	__mpz_struct* (*py_mpz_from_integer)(PyObject *);
+	__mpq_struct* (*py_mpq_from_rational)(PyObject *);
 
 	PyObject* (*py_float)(PyObject* a, PyObject* parent);
 	PyObject* (*py_RDF_from_double)(double x);

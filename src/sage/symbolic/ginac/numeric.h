@@ -105,7 +105,7 @@ public:
 	numeric(double d);
 	numeric(mpz_t bigint);
 	numeric(mpq_t bigrat);
-	numeric(PyObject*);
+	numeric(PyObject*, bool=false);
 
 	~numeric();
 

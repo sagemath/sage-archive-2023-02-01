@@ -424,11 +424,35 @@ numeric::numeric(const numeric& other) : basic(&numeric::tinfo_static) {
         }
 }
 
-numeric::numeric(PyObject* o) : basic(&numeric::tinfo_static) {
+numeric::numeric(PyObject* o, bool force_py) : basic(&numeric::tinfo_static) {
         if (!o) py_error("Error");
+        if PyInt_Check(o) {
+                t = MPZ;
+                mpz_init(v._bigint);
+                mpz_set_si(v._bigint, PyInt_AS_LONG(o));
+                setflag(status_flags::evaluated | status_flags::expanded);
+                return;
+        }
+        if (initialized and not force_py) {
+                if (py_funcs.py_is_Integer(o)) {
+                        t = MPZ;
+                        mpz_init_set(v._bigint, py_funcs.py_mpz_from_integer(o));
+                        setflag(status_flags::evaluated | status_flags::expanded);
+                        return;
+                }
+                else if (py_funcs.py_is_Rational(o)) {
+                        t = MPQ;
+                        mpq_init(v._bigrat);
+                        mpq_set(v._bigrat, py_funcs.py_mpq_from_rational(o));
+                        setflag(status_flags::evaluated | status_flags::expanded);
+                        return;
+                }
+        }
+
         t = PYOBJECT;
         v._pyobject = o; // STEAL a reference
         setflag(status_flags::evaluated | status_flags::expanded);
+
 }
 
 numeric::numeric(int i) : basic(&numeric::tinfo_static) {
@@ -792,10 +816,16 @@ unsigned numeric::calchash() const {
                         return (unsigned int) mpz_get_ui(v._bigint);
                 case MPQ:
                         mpz_t sum;
-                        mpz_init(sum);
-                        mpz_add(sum, mpq_numref(v._bigrat), mpq_denref(v._bigrat));
+                        mpq_t rat;
+                        mpq_init(rat);
+                        mpq_set(rat, v._bigrat);
+                        mpq_canonicalize(rat);
+                        mpz_init_set(sum, mpq_denref(rat));
+                        mpz_mul_ui(sum, sum, 429496751L);
+                        mpz_add(sum, sum, mpq_numref(rat));
                         res = mpz_get_ui(sum);
                         mpz_clear(sum);
+                        mpq_clear(rat);
                         return (unsigned int) res;
                 case PYOBJECT:
                         res = PyObject_Hash(v._pyobject);
@@ -995,66 +1025,88 @@ const numeric numeric::div(const numeric &other) const {
  *  returns result as numeric. */
 const numeric numeric::power(const numeric &exponent) const {
         verbose("pow");
-        if (exponent.t != MPZ)
-                throw std::runtime_error("noninteger exponent in numeric::power()");
-        if (not mpz_fits_sint_p(exponent.v._bigint)) {
-                throw std::runtime_error("numeric::power(): exponent doesn't fit in signed long");
-//                return power::power(ex(*this), ex(exponent));
-                }
-
-        long exp_si = mpz_get_si(exponent.v._bigint);
-        PyObject *o, *r;
-        switch (t) {
-                case DOUBLE:
-                        return ::pow(v._double, double(exp_si));
-                case MPZ:
-                        if (exp_si >= 0) {
-                                mpz_t bigint;
-                                mpz_init(bigint);
-                                mpz_pow_ui(bigint, v._bigint, exp_si);
-                                return bigint;
-                        }
-                        else {
-                                mpz_t bigint;
-                                mpz_init_set(bigint, v._bigint);
-                                mpz_pow_ui(bigint, bigint, -exp_si);
-                                mpq_t bigrat;
-                                mpq_init(bigrat);
-                                mpq_set_z(bigrat, bigint);
-                                mpq_inv(bigrat, bigrat);
-                                return bigrat;
-                        }
-                case MPQ:
-                        mpz_t bigint;
-                        mpq_t bigrat, obigrat;
-                        mpz_init(bigint);
-                        mpq_init(bigrat);
-                        mpq_init(obigrat);
-                        if (exp_si >= 0) {
-                                mpz_pow_ui(bigint, mpq_numref(v._bigrat), exp_si);
-                                mpq_set_z(bigrat, bigint);
-                                mpz_pow_ui(bigint, mpq_denref(v._bigrat), exp_si);
-                                mpq_set_z(obigrat, bigint);
-                                mpq_div(bigrat, bigrat, obigrat);
-                        }
-                        else {
-                                mpz_pow_ui(bigint, mpq_denref(v._bigrat), -exp_si);
-                                mpq_set_z(bigrat, bigint);
-                                mpz_pow_ui(bigint, mpq_numref(v._bigrat), -exp_si);
-                                mpq_set_z(obigrat, bigint);
-                                mpq_div(bigrat, bigrat, obigrat);
-                        }
-                        mpz_clear(bigint);
-                        mpq_clear(obigrat);
-                        return bigrat;
-                case PYOBJECT:
-                        o = Integer(exp_si);
-                        r = PyNumber_Power(o, exponent.v._pyobject, Py_None);
-                        Py_DECREF(o);
-                        return r;
-                default:
-                        stub("invalid type: pow numeric");
+        numeric ex(exponent);
+        if (exponent.t == PYOBJECT and PyInt_Check(exponent.v._pyobject)) {
+                ex.t = MPZ;
+                long si = PyInt_AsLong(exponent.v._pyobject);
+                mpz_set_si(ex.v._bigint, si);
         }
+        if (ex.t == MPZ) {
+                if (not mpz_fits_sint_p(ex.v._bigint)) {
+                        throw std::runtime_error("numeric::power(): exponent doesn't fit in signed long");
+                }
+                long exp_si = mpz_get_si(ex.v._bigint);
+                PyObject *o, *r;
+                switch (t) {
+                        case DOUBLE:
+                                return ::pow(v._double, double(exp_si));
+                        case MPZ:
+                                if (exp_si >= 0) {
+                                        mpz_t bigint;
+                                        mpz_init(bigint);
+                                        mpz_pow_ui(bigint, v._bigint, exp_si);
+                                        return bigint;
+                                }
+                                else {
+                                        mpz_t bigint;
+                                        mpz_init_set(bigint, v._bigint);
+                                        mpz_pow_ui(bigint, bigint, -exp_si);
+                                        mpq_t bigrat;
+                                        mpq_init(bigrat);
+                                        mpq_set_z(bigrat, bigint);
+                                        mpq_inv(bigrat, bigrat);
+                                        return bigrat;
+                                }
+                        case MPQ:
+                                mpz_t bigint;
+                                mpq_t bigrat, obigrat;
+                                mpz_init(bigint);
+                                mpq_init(bigrat);
+                                mpq_init(obigrat);
+                                if (exp_si >= 0) {
+                                        mpz_pow_ui(bigint, mpq_numref(v._bigrat), exp_si);
+                                        mpq_set_z(bigrat, bigint);
+                                        mpz_pow_ui(bigint, mpq_denref(v._bigrat), exp_si);
+                                        mpq_set_z(obigrat, bigint);
+                                        mpq_div(bigrat, bigrat, obigrat);
+                                }
+                                else {
+                                        mpz_pow_ui(bigint, mpq_denref(v._bigrat), -exp_si);
+                                        mpq_set_z(bigrat, bigint);
+                                        mpz_pow_ui(bigint, mpq_numref(v._bigrat), -exp_si);
+                                        mpq_set_z(obigrat, bigint);
+                                        mpq_div(bigrat, bigrat, obigrat);
+                                }
+                                mpz_clear(bigint);
+                                mpq_clear(obigrat);
+                                return bigrat;
+                        case PYOBJECT:
+                                o = Integer(exp_si);
+                                r = PyNumber_Power(v._pyobject, o, Py_None);
+                                Py_DECREF(o);
+                                return r;
+                        default:
+                                stub("invalid type: pow numeric");
+                }
+        }
+        if (t != exponent.t) {
+                numeric a, b;
+                coerce(a, b, *this, exponent);
+                return pow(a, b);
+        }
+        if (t == MPQ) {
+                mpq_t basis;
+                mpq_init(basis);
+                mpq_set(basis, v._bigrat);
+                PyObject *r1 = py_funcs.py_rational_from_mpq(basis);
+                PyObject *r2 = py_funcs.py_rational_from_mpq(ex.v._bigrat);
+                PyObject *r = PyNumber_Power(r1, r2, Py_None);
+                Py_DECREF(r1);
+                Py_DECREF(r2);
+                mpq_clear(basis);
+                return r;
+        }
+        return PyNumber_Power(v._pyobject, exponent.v._pyobject, Py_None);
 }
 
 
@@ -1310,7 +1362,7 @@ bool numeric::is_integer() const {
                         mpq_init(bigrat);
                         mpq_set(bigrat, v._bigrat);
                         mpq_canonicalize(bigrat);
-                        ret = mpz_cmp_ui(mpq_denref(bigrat), 1) !=0;
+                        ret = mpz_cmp_ui(mpq_denref(bigrat), 1) ==0;
                         mpq_clear(bigrat);
                         return ret;
                 case PYOBJECT:
@@ -1504,7 +1556,7 @@ bool numeric::operator==(const numeric &right) const {
                 case MPZ:
                         return mpz_cmp(v._bigint, right.v._bigint) ==0;
                 case MPQ:
-                        return mpq_equal(v._bigrat, right.v._bigrat) ==0;
+                        return mpq_equal(v._bigrat, right.v._bigrat) !=0;
                 case PYOBJECT:
                         return py_funcs.py_is_equal(v._pyobject, right.v._pyobject) != 0;
                 default:
@@ -1525,7 +1577,7 @@ bool numeric::operator!=(const numeric &right) const {
                 case MPZ:
                         return mpz_cmp(v._bigint, right.v._bigint) !=0;
                 case MPQ:
-                        return mpq_equal(v._bigrat, right.v._bigrat) !=0;
+                        return mpq_equal(v._bigrat, right.v._bigrat) ==0;
                 case PYOBJECT:
                         return (!py_funcs.py_is_equal(v._pyobject, right.v._pyobject));
                 default:
@@ -2038,7 +2090,7 @@ const numeric numeric::iquo(const numeric &b, numeric& r) const {
 }
 
 const numeric numeric::gcd(const numeric &b) const {
-        if (t == MPZ) {
+        if (t == MPZ and b.t == MPZ) {
                 mpz_t bigint;
                 mpz_init(bigint);
                 mpz_gcd(bigint, v._bigint, b.v._bigint);
@@ -2049,7 +2101,7 @@ const numeric numeric::gcd(const numeric &b) const {
 }
 
 const numeric numeric::lcm(const numeric &b) const {
-        if (t == MPZ) {
+        if (t == MPZ and b.t == MPZ) {
                 mpz_t bigint;
                 mpz_init(bigint);
                 mpz_lcm(bigint, v._bigint, b.v._bigint);
@@ -2087,6 +2139,7 @@ void coerce(numeric& new_left, numeric& new_right, const numeric& left, const nu
                 return;
         }
         mpq_t bigrat;
+        PyObject *o;
         switch (left.t) {
                 case MPZ:
                         switch (right.t) {
@@ -2095,7 +2148,6 @@ void coerce(numeric& new_left, numeric& new_right, const numeric& left, const nu
                                         new_right = right;
                                         return;
                                 case MPQ:
-                                        mpq_t bigrat;
                                         mpq_init(bigrat);
                                         mpq_set_z(bigrat, left.v._bigint);
                                         new_left = numeric(bigrat);
@@ -2104,7 +2156,8 @@ void coerce(numeric& new_left, numeric& new_right, const numeric& left, const nu
                                 case PYOBJECT:
                                         mpz_t bigint;
                                         mpz_init_set(bigint, left.v._bigint);
-                                        new_left = py_funcs.py_integer_from_mpz(bigint);
+                                        o = py_funcs.py_integer_from_mpz(bigint);
+                                        new_left = numeric(o, true);
                                         new_right = right;
                                         return;
                                 default:
@@ -2126,7 +2179,8 @@ void coerce(numeric& new_left, numeric& new_right, const numeric& left, const nu
                                 case PYOBJECT:
                                         mpq_init(bigrat);
                                         mpq_set(bigrat, left.v._bigrat);
-                                        new_left = py_funcs.py_rational_from_mpq(bigrat);
+                                        o = py_funcs.py_rational_from_mpq(bigrat);
+                                        new_left = numeric(o, true);
                                         new_right = right;
                                         return;
                                 default:

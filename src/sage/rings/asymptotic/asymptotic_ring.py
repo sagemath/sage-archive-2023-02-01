@@ -60,19 +60,19 @@ variable `z` this means, `g_1 \leq g_2` if
 
     TESTS::
 
-        sage: import sage.rings.asymptotic.growth_group as agg
-        sage: import sage.rings.asymptotic.term_monoid as atm
-        sage: G = agg.MonomialGrowthGroup(ZZ, 'x')
+        sage: from sage.rings.asymptotic.growth_group import GrowthGroup
+        sage: G = GrowthGroup('x^ZZ')
         doctest:...: FutureWarning: This class/method/function is marked as
         experimental. It, its functionality or its interface might change
         without a formal deprecation.
         See http://trac.sagemath.org/17601 for details.
-        sage: T = atm.ExactTermMonoid(G, ZZ)
+        sage: from sage.rings.asymptotic.term_monoid import TermMonoid
+        sage: T = TermMonoid('exact', G, ZZ)
         doctest:...: FutureWarning: This class/method/function is marked as
         experimental. It, its functionality or its interface might change
         without a formal deprecation.
         See http://trac.sagemath.org/17601 for details.
-        sage: R.<x> = AsymptoticRing(growth_group='x^ZZ', coefficient_ring=ZZ)
+        sage: R.<x, y> = AsymptoticRing(growth_group='x^ZZ * y^ZZ', coefficient_ring=ZZ)
 
 .. _asymptotic_ring_intro:
 
@@ -1173,4 +1173,64 @@ class AsymptoticRing(sage.rings.ring.Ring,
     def variable_names(self):
         return self.growth_group.variable_names()
 
+
+    def construction(self):
+        return AsymptoticRingFunctor(self.growth_group), self.coefficient_ring
+
+
+from sage.categories.pushout import ConstructionFunctor
+from growth_group import Variable
+class AsymptoticRingFunctor(ConstructionFunctor):
+    r"""
+
+    TESTS::
+
+        sage: X = AsymptoticRing(growth_group='x^ZZ', coefficient_ring=QQ)
+        sage: Y = AsymptoticRing(growth_group='y^ZZ', coefficient_ring=QQ)
+        sage: cm = sage.structure.element.get_coercion_model()
+        sage: cm.record_exceptions()
+        sage: cm.common_parent(X, Y)
+        Asymptotic Ring <x^ZZ * y^ZZ> over Rational Field
+        sage: sage.structure.element.coercion_traceback()
+    """
+    rank = 13
+
+    def __init__(self, growth_group):
+        self.growth_group = growth_group
+        super(ConstructionFunctor, self).__init__(
+            sage.categories.rings.Rings(),
+            sage.categories.rings.Rings() & sage.categories.posets.Posets())
+
+
+    def _repr_(self):
+        return 'AsymptoticRing<%s>' % (self.growth_group._repr_(condense=True),)
+
+
+    def _apply_functor(self, coefficients):
+        return AsymptoticRing(growth_group=self.growth_group,
+                              coefficient_ring=coefficients)
+
+
+    def merge(self, other):
+        if self == other:
+            return self
+
+        if isinstance(other, AsymptoticRingFunctor):
+            cm = sage.structure.element.get_coercion_model()
+            try:
+                G = cm.common_parent(self.growth_group, other.growth_group)
+            except TypeError:
+                pass
+            else:
+                return AsymptoticRingFunctor(G)
+
+
+    def __eq__(self, other):
+        return type(self) == type(other) and \
+            self.growth_group == other.growth_group and \
+            self.var == other.var
+
+
+    def __ne__(self, other):
+        return not self.__eq__(other)
 

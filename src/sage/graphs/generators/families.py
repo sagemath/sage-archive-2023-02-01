@@ -2276,15 +2276,15 @@ def RingedTree(k, vertex_labels = True):
 
     return g
 
-def SymplecticGraph(d,q):
+def SymplecticGraph(d,q,algorithm=None):
     r"""
-    Returns the Symplectic graph `Sp(d,q)`
+    Returns the Symplectic graph `Sp(d,q)`.
 
     The Symplectic Graph `Sp(d,q)` is built from a projective space of dimension
     `d-1` over a field `F_q`, and a symplectic form `f`. Two vertices `u,v` are
     made adjacent if `f(u,v)=0`.
 
-    See the `page on symplectic graphs on Andries Brouwer's website
+    See the page `on symplectic graphs on Andries Brouwer's website
     <http://www.win.tue.nl/~aeb/graphs/Sp.html>`_.
 
     INPUT:
@@ -2292,32 +2292,62 @@ def SymplecticGraph(d,q):
     - ``d,q`` (integers) -- note that only even values of `d` are accepted by
       the function.
 
-    EXAMPLES::
+    - ``algorithm`` -- if set to 'gap' then the computation is carried via GAP
+      library interface, computing totally singilar subspace, which is faster for `q>3`.
+      Otherwise it is done directly.
+
+    EXAMPLES:
+
+    Computation of the spectrum of Sp(6,2)::
 
         sage: g = graphs.SymplecticGraph(6,2)
         sage: g.is_strongly_regular(parameters=True)
         (63, 30, 13, 15)
         sage: set(g.spectrum()) == {-5, 3, 30}
         True
+
+    The parameters of Sp(4,q) are the same as of O(5,q), but they are
+    not isomorphic if q is odd::
+
+        sage: G = graphs.SymplecticGraph(4,3)
+        sage: G.is_strongly_regular(parameters=True)
+        (40, 12, 2, 4)
+        sage: O=graphs.OrthogonalPolarGraph(5,3)
+        sage: O.is_strongly_regular(parameters=True)
+        (40, 12, 2, 4)
+        sage: O.is_isomorphic(G)
+        False
+
+    TESTS::
+
+        sage: graphs.SymplecticGraph(6,4,algorithm="gap").is_strongly_regular(parameters=True) # long time
+        (1365, 340, 83, 85)
+
     """
-    from sage.rings.finite_rings.constructor import FiniteField
-    from sage.modules.free_module import VectorSpace
-    from sage.schemes.projective.projective_space import ProjectiveSpace
-    from sage.matrix.constructor import identity_matrix, block_matrix, zero_matrix
+    if algorithm != "gap":  # faster for small (q<4) fields
+        from sage.rings.finite_rings.constructor import FiniteField
+        from sage.modules.free_module import VectorSpace
+        from sage.schemes.projective.projective_space import ProjectiveSpace
+        from sage.matrix.constructor import identity_matrix, block_matrix, zero_matrix
 
-    if d < 1 or d%2 != 0:
-        raise ValueError("d must be even and greater than 2")
+        if d < 1 or d%2 != 0:
+            raise ValueError("d must be even and greater than 2")
 
-    F = FiniteField(q,"x")
-    M = block_matrix(F, 2, 2,
-                     [zero_matrix(F,d/2),
-                      identity_matrix(F,d/2),
-                      -identity_matrix(F,d/2),
-                      zero_matrix(F,d/2)])
+        F = FiniteField(q,"x")
+        M = block_matrix(F, 2, 2,
+                         [zero_matrix(F,d/2),
+                          identity_matrix(F,d/2),
+                          -identity_matrix(F,d/2),
+                          zero_matrix(F,d/2)])
 
-    V = VectorSpace(F,d)
-    PV = list(ProjectiveSpace(d-1,F))
-    G = Graph([[tuple(_) for _ in PV], lambda x,y:V(x)*(M*V(y)) == 0], loops = False)
+        V = VectorSpace(F,d)
+        PV = list(ProjectiveSpace(d-1,F))
+        G = Graph([[tuple(_) for _ in PV], lambda x,y:V(x)*(M*V(y)) == 0], loops = False)
+
+    else:   # faster for larger (q>3)  fields
+        from sage.libs.gap.libgap import libgap
+        G = _polar_Graph(d, q, libgap.SymplecticGroup(d, q))
+
     G.name("Symplectic Graph Sp("+str(d)+","+str(q)+")")
     G.relabel()
     return G
@@ -2344,7 +2374,7 @@ def AffineOrthogonalPolarGraph(d,q,sign="+"):
 
     - ``q`` (integer) -- a power of a prime number, as `F_q` must exist.
 
-    - ``sign`` -- must be qual to ``"+"``, ``"-"``, or ``None`` to compute
+    - ``sign`` -- must be equal to ``"+"``, ``"-"``, or ``None`` to compute
       (respectively) `VO^+(d,q),VO^-(d,q)` or `VO(d,q)`. By default
       ``sign="+"``.
 
@@ -2491,4 +2521,178 @@ def OrthogonalPolarGraph(m, q, sign="+"):
 
     G.relabel()
     G.name("Orthogonal Polar Graph O" + ("^" + sign if sign else "") + str((m, q)))
+    return G
+
+def _polar_Graph(m, q, g, intersection_size=None):
+    r"""
+    The helper function to build graphs U(m,q) and Sp(m,q)
+
+    Building the graph on an orbit of a group of mxm matrices over GF(q) on
+    the points isotropic w.r.t. the form F left invariant by the group g.
+
+    The only constraint is that the first m//2 elements of the standard
+    basis must generate a totally isotropic w.r.t. F subspace
+
+    TESTS::
+
+    sage: from sage.graphs.generators.families import _polar_Graph
+    sage: _polar_Graph(4, 4, libgap.GeneralUnitaryGroup(4, 2))
+    Graph on 45 vertices
+    sage: _polar_Graph(4, 4, libgap.GeneralUnitaryGroup(4, 2), intersection_size=1)
+    Graph on 27 vertices
+    """
+    from sage.libs.gap.libgap import libgap
+    from itertools import combinations
+    W=libgap.FullRowSpace(libgap.GF(q), m)  # F_q^m
+    B=libgap.Elements(libgap.Basis(W))      # the standard basis of W
+    V = libgap.Orbit(g,B[0],libgap.OnLines) # orbit on isotropic points
+    gp = libgap.Action(g,V,libgap.OnLines)  # make a permutation group
+    s = libgap.Subspace(W,[B[i] for i in range(m//2)]) # a totally isotropic subspace
+    # and the points there
+    sp = [libgap.Elements(libgap.Basis(x))[0] for x in libgap.Elements(s.Subspaces(1))]
+    h = libgap.Set(map(lambda x: libgap.Position(V, x), sp)) # indices of the points in s
+    L = libgap.Orbit(gp, h, libgap.OnSets) # orbit on these subspaces
+    if intersection_size == None:
+        G = Graph()
+        for x in L: # every pair of points in the subspace is adjacent to each other in G
+            G.add_edges(combinations(x, 2))
+        return G
+    else:
+        return Graph([L, lambda i,j: libgap.Size(libgap.Intersection(i,j))==intersection_size],
+                        loops=False)
+
+def UnitaryPolarGraph(m, q, algorithm="gap"):
+    r"""
+    Returns the Unitary Polar Graph `U(m,q)`.
+
+    For more information on Unitary Polar graphs, see the `page of
+    Andries Brouwer's website <http://www.win.tue.nl/~aeb/graphs/srghub.html>`_.
+
+    INPUT:
+
+    - ``m,q`` (integers) -- `q` must be a prime power.
+
+    EXAMPLES::
+
+        sage: G = graphs.UnitaryPolarGraph(4,2); G
+        Unitary Polar Graph O(4, 2); GQ(4, 2): Graph on 45 vertices
+        sage: G.is_strongly_regular(parameters=True)
+        (45, 12, 3, 3)
+        sage: graphs.UnitaryPolarGraph(5,2).is_strongly_regular(parameters=True)
+        (165, 36, 3, 9)
+        sage: graphs.UnitaryPolarGraph(6,2)    # long time
+        Unitary Polar Graph O(6, 2): Graph on 693 vertices
+
+    TESTS::
+
+        sage: graphs.UnitaryPolarGraph(4,3).is_strongly_regular(parameters=True) # long time
+        (280, 36, 8, 4)
+
+    """
+    if algorithm!="gap": # slow on large examples
+        from sage.schemes.projective.projective_space import ProjectiveSpace
+        from sage.rings.finite_rings.constructor import FiniteField
+        from sage.modules.free_module_element import free_module_element as vector
+        from __builtin__ import sum as psum
+        Fq = FiniteField(q**2, 'a')
+        PG = ProjectiveSpace(m - 1, Fq)
+        def P(xx,yy):
+            x = vector(xx)
+            y = vector(yy)
+            return psum(map(lambda j: x[j]*y[m-1-j]**q, xrange(m)))==0  
+
+        V = filter(lambda x: P(x,x), PG)
+        G = Graph([V,lambda x,y:  # bottleneck is here, of course:
+                     P(vector(x),vector(y))], loops=False)
+    else:
+        from sage.libs.gap.libgap import libgap
+        G = _polar_Graph(m, q**2, libgap.GeneralUnitaryGroup(m, q))
+
+    G.relabel()
+    G.name("Unitary Polar Graph U" + str((m, q)))
+    if m==4:
+        G.name(G.name()+'; GQ'+str((q**2,q)))
+    if m==5:
+        G.name(G.name()+'; GQ'+str((q**2,q**3)))
+    return G
+
+
+def UnitaryDualPolarGraph(m, q):
+    r"""
+    Returns the Dual Unitary Polar Graph `U(m,q)`.
+
+    For more information on Unitary Dual Polar graphs, see [BCN89]_.
+
+    INPUT:
+
+    - ``m,q`` (integers) -- `q` must be a prime power.
+
+    EXAMPLES:
+
+    The point graph of a generalized quadrangle of order (8,4)::
+
+        sage: G = graphs.UnitaryDualPolarGraph(5,2); G
+        Unitary Dual Polar Graph O(5, 2); GQ(8, 4): Graph on 297 vertices
+        sage: G.is_strongly_regular(parameters=True)
+        (297, 40, 7, 5)
+
+    Another way to get the  generalized quadrangle of order (2,4)::
+
+        sage: G = graphs.UnitaryDualPolarGraph(4,2); G
+        Unitary Dual Polar Graph O(4, 2); GQ(2, 4): Graph on 27 vertices
+        sage: G.is_isomorphic(graphs.OrthogonalPolarGraph(6,2,'-'))
+        True
+
+    TESTS::
+
+        sage: G = graphs.UnitaryDualPolarGraph(6,2); G           # long time
+        Unitary Dual Polar Graph O(6, 2): Graph on 891 vertices
+        sage: G.is_distance_regular(parameters=True)             # long time
+        ([42, 40, 32, None], [None, 1, 5, 21])
+
+    """
+    from sage.libs.gap.libgap import libgap
+    G = _polar_Graph(m, q**2, libgap.GeneralUnitaryGroup(m, q),
+            intersection_size=(q**(2*(m//2-1))-1)/(q**2-1))
+    G.relabel()
+    G.name("Unitary Dual Polar Graph DU" + str((m, q)))
+    if m==4:
+        G.name(G.name()+'; GQ'+str((q,q**2)))
+    if m==5:
+        G.name(G.name()+'; GQ'+str((q**3,q**2)))
+    return G
+
+
+def SymplecticDualPolarGraph(m, q):
+    r"""
+    Returns the Symplectic Dual Polar Graph `DSp(m,q)`.
+
+    For more information on Symplectic Dual Polar graphs, see [BCN89]_.
+
+    INPUT:
+
+    - ``m,q`` (integers) -- `q` must be a prime power, and `m` must be even.
+
+    EXAMPLES::
+
+    sage: G = graphs.SymplecticDualPolarGraph(6,2); G
+    Symplectic Polar Graph O(6, 2): Graph on 135 vertices
+    sage: G.is_distance_regular(parameters=True)
+    ([14, 12, 8, None], [None, 1, 3, 7])
+
+    TESTS::
+
+    sage: G = graphs.SymplecticDualPolarGraph(6,3); G       # long time
+    Symplectic Polar Graph O(6, 3): Graph on 1120 vertices
+    sage: G.is_distance_regular(parameters=True)            # long time
+    ([39, 36, 27, None], [None, 1, 4, 13])
+    """
+    from sage.libs.gap.libgap import libgap
+    G = _polar_Graph(m, q, libgap.SymplecticGroup(m, q),
+             intersection_size=(q**(m/2-1)-1)/(q-1))
+
+    G.relabel()
+    G.name("Symplectic Dual Polar Graph DSp" + str((m, q)))
+    if m==4:
+        G.name(G.name()+'; GQ'+str((q,q)))
     return G

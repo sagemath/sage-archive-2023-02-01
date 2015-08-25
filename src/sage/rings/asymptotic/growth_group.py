@@ -1,29 +1,43 @@
 r"""
 (Asymptotic) Growth Groups
 
-This module adds support for (asymptotic) growth groups. Such groups
-are equipped with a partial order: the elements can be seen as
-functions, and their behavior as the argument(s) get large (tend to
-`\infty`) is compared.
+This module provides support for (asymptotic) growth groups.
 
-Besides an abstract base class :class:`GenericGrowthGroup`, this module
-contains concrete realizations of growth groups. At the moment there
-is
+Such groups are equipped with a partial order: the elements can be
+seen as functions, and the behavior as their argument (or arguments)
+gets large (tend to `\infty`) is compared.
 
-- :class:`MonomialGrowthGroup` (whose elements are powers of a fixed symbol).
+Growth groups are used for the calculations done in the
+:mod:`asymptotic ring <sage.rings.asymptotic.asymptotic_ring>`.
 
-More complex growth groups can be constructed via cartesian products.
+A Formal Definition
+===================
 
-These growth groups are used behind the scenes when performing
-calculations in an asymptotic ring (to be implemented).
+The elements of a :mod:`growth group
+<sage.rings.asymptotic.growth_group>` are equipped with a partial
+ordering and usually contain a variable. Examples are (among many
+other possibilities)
 
-AUTHORS:
+- elements of the form `z^q` for some integer or rational `q` (growth
+  groups ``z^ZZ`` or ``z^QQ``),
 
-- Benjamin Hackl (2015-01): initial version
-- Daniel Krenn (2015-05-29): initial version and review
-- Daniel Krenn (2015-06-02): cartesian products
-- Benjamin Hackl (2015-07): growth group factory
-- Benjamin Hackl (2015-08): exponential growth group, initial version
+- elements of the form `log(z)^q` for some integer or rational `q` (growth
+  groups ``log(z)^ZZ`` or ``log(z)^QQ``),
+
+- elements of the form `a^z` for some
+  rational `a` (growth group ``QQ^z``), or
+
+- more sophisticated constructions like products `x^r log(x)^s \cdot
+  a^y \cdot y^q` (this corresponds to an element of the growth group
+  ``x^QQ * log(x)^ZZ * QQ^y * y^QQ``).
+
+The ordering in all these examples is the growth as `x`, `y`, or `z`
+(independently) tend to `\infty`. For elements only using the
+variable `z` this means, `g_1 \leq g_2` if
+
+.. MATH::
+
+    \lim_{z\to\infty} \frac{g_2}{g_1} \leq 1.
 
 .. WARNING::
 
@@ -47,24 +61,65 @@ AUTHORS:
         See http://trac.sagemath.org/17601 for details.
         Growth Group x^ZZ * log(x)^ZZ
 
-.. NOTE::
+Overview
+========
 
-    By using the following short notation for growth groups, their
-    creation is very simple: *Monomial growth groups* (i.e. the
-    group for powers of a fixed symbol;
-    :class:`~sage.rings.asymptotic.growth_group.MonomialGrowthGroup`)
-    are denoted as ``variable^base``, e.g. ``x^ZZ`` and ``y^QQ`` for
-    the group of integer powers of `x`, and the group of rational
-    powers of `y`, respectively.
+For many purposes the factory ``GrowthGroup`` (see
+:class:`GrowthGroupFactory`) is the most convenient way to generate a
+growth group.
 
-    This also enables us to construct *logarithmic growth groups*,
-    e.g. ``log(x)^ZZ``.
+    sage: from sage.rings.asymptotic.growth_group import GrowthGroup
 
-    Exponential growth groups, i.e. growth groups representing
-    elements of the form `\operatorname{base}^\operatorname{variable}`
-    are denoted as ``base^variable``. For example, ``QQ^x`` denotes
-    the multiplicative group of exponential expressions `q^x`, where
-    `q \in \mathbb{Q}^{\times}`.
+Here are some examples::
+
+    sage: GrowthGroup('z^ZZ')
+    sage: GrowthGroup('z^QQ')
+
+Each of these two generated groups is a :class:`MonomialGrowthGroup`,
+whose elements are powers of a fixed symbol (above ``'z'``).
+
+Similarly, we can construct logarithmic factors by::
+
+    sage: GrowthGroup('log(z)^QQ')
+
+which again creates a
+:class:`MonomialGrowthGroup`. An :class:`ExponentialGrowthGroup` is generated in the same way. Our factory gives
+::
+
+    sage: E = GrowthGroup('QQ^z'); E
+
+and a typical element looks like this::
+
+    sage: E.an_element()
+
+More complex groups are created in a similar fashion. For example
+
+    sage: C = GrowthGroup('QQ^z * z^QQ * log(z)^QQ')
+
+This contains elements of the form
+
+    sage: C.an_element()
+
+The group `C` itself is a cartesian product; to be precise a
+:class:`~sage.rings.asymptotic.growth_group_cartesian.UnivariateProduct`. We
+can see its factors::
+
+    sage: C.cartesian_factors()
+
+Multivariate constructions are also possible::
+
+    sage: GrowthGroup('x^QQ * y^QQ')
+
+This gives a
+:class:`~sage.rings.asymptotic.growth_group_cartesian.MultivariateProduct`.
+
+Both these cartesian products are derived from the class
+:class:`~sage.rings.asymptotic.growth_group_cartesian.GenericProduct`. Moreover
+all growth groups have the abstract base class
+:class:`GenericGrowthGroup` in common.
+
+Some Examples
+^^^^^^^^^^^^^
 
 EXAMPLES::
 
@@ -110,6 +165,14 @@ can be constructed easily::
     sage: (x, y) = var('x y')
     sage: G(2^x * log(x) * y^(1/2)) * G(x^(-5) * 5^x * y^(1/3))
     10^x * x^(-5) * log(x) * y^(5/6)
+
+AUTHORS:
+
+- Benjamin Hackl (2015-01): initial version
+- Daniel Krenn (2015-05-29): initial version and review
+- Daniel Krenn (2015-06-02): cartesian products
+- Benjamin Hackl (2015-07): growth group factory
+- Benjamin Hackl (2015-08): exponential growth group, initial version
 """
 
 #*****************************************************************************
@@ -1737,7 +1800,7 @@ class AbstractGrowthGroupFunctor(ConstructionFunctor):
         :mod:`sage.rings.asymptotic.asymptotic_ring`,
         :class:`ExponentialGrowthGroupFunctor`,
         :class:`MonomialGrowthGroupFunctor`,
-        :class:`sage.rings.asymptotic.asymptotic_ring.AsyptoticRingFunctor`,
+        :class:`sage.rings.asymptotic.asymptotic_ring.AsymptoticRingFunctor`,
         :class:`sage.categories.pushout.ConstructionFunctor`.
     """
 
@@ -2354,7 +2417,7 @@ class MonomialGrowthGroupFunctor(AbstractGrowthGroupFunctor):
         :mod:`sage.rings.asymptotic.asymptotic_ring`,
         :class:`AbstractGrowthGroupFunctor`,
         :class:`ExponentialGrowthGroupFunctor`,
-        :class:`sage.rings.asymptotic.asymptotic_ring.AsyptoticRingFunctor`,
+        :class:`sage.rings.asymptotic.asymptotic_ring.AsymptoticRingFunctor`,
         :class:`sage.categories.pushout.ConstructionFunctor`.
 
     TESTS::
@@ -2838,7 +2901,7 @@ class ExponentialGrowthGroupFunctor(AbstractGrowthGroupFunctor):
         :mod:`sage.rings.asymptotic.asymptotic_ring`,
         :class:`AbstractGrowthGroupFunctor`,
         :class:`MonomialGrowthGroupFunctor`,
-        :class:`sage.rings.asymptotic.asymptotic_ring.AsyptoticRingFunctor`,
+        :class:`sage.rings.asymptotic.asymptotic_ring.AsymptoticRingFunctor`,
         :class:`sage.categories.pushout.ConstructionFunctor`.
 
     TESTS::

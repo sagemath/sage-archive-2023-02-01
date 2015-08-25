@@ -124,6 +124,87 @@ class UniqueFactorizationDomains(Category_singleton):
             """
             return True
 
+        def _gcd_univariate_polynomial(self, f, g):
+            """
+            Return the greatest common divisor of ``f`` and ``g``.
+
+            INPUT:
+
+            - ``f``, ``g`` -- two polynomials defined over this UFD.
+
+            .. NOTE::
+
+                This is a helper method for
+                :meth:`sage.rings.polynomial.polynomial_element.Polynomial.gcd`.
+
+            ALGORITHM:
+
+            Algorithm 3.3.1 in [GTM138]_, based on pseudo-division.
+
+            EXAMPLES::
+
+                sage: R.<x> = PolynomialRing(ZZ, sparse=True)
+                sage: S.<T> = R[]
+                sage: p = (-3*x^2 - x)*T^3 - 3*x*T^2 + (x^2 - x)*T + 2*x^2 + 3*x - 2
+                sage: q = (-x^2 - 4*x - 5)*T^2 + (6*x^2 + x + 1)*T + 2*x^2 - x
+                sage: quo,rem=p.pseudo_quo_rem(q); quo,rem
+                ((3*x^4 + 13*x^3 + 19*x^2 + 5*x)*T + 18*x^4 + 12*x^3 + 16*x^2 + 16*x,
+                 (-113*x^6 - 106*x^5 - 133*x^4 - 101*x^3 - 42*x^2 - 41*x)*T - 34*x^6 + 13*x^5 + 54*x^4 + 126*x^3 + 134*x^2 - 5*x - 50)
+                sage: (-x^2 - 4*x - 5)^(3-2+1) * p == quo*q + rem
+                True
+
+            REFERENCES:
+
+            .. [GTM138] Henri Cohen. A Course in Computational Number Theory.
+               Graduate Texts in Mathematics, vol. 138. Springer, 1993.
+            """
+            if f.degree() < g.degree():
+                A,B = g, f
+            else:
+                A,B = f, g
+
+            if B.is_zero():
+                return A
+
+            a = b = self.zero()
+            for c in A.coefficients():
+                a = a.gcd(c)
+                if a.is_one():
+                    break
+            for c in B.coefficients():
+                b = b.gcd(c)
+                if b.is_one():
+                    break
+
+            parent = f.parent()
+
+            d = a.gcd(b)
+            A = parent(A/a)
+            B = parent(B/b)
+            g = h = 1
+
+            delta = A.degree()-B.degree()
+            _,R = A.pseudo_quo_rem(B)
+
+            while R.degree() > 0:
+                A = B
+                B = parent(R/(g*h**delta))
+                g = A.leading_coefficient()
+                h = self(h*g**delta/h**delta)
+                delta = A.degree() - B.degree()
+                _, R = A.pseudo_quo_rem(B)
+
+            if R.is_zero():
+                b = self.zero()
+                for c in B.coefficients():
+                    b = b.gcd(c)
+                    if b.is_one():
+                        break
+
+                return parent(d*B/b)
+
+            return d
+
     class ElementMethods:
         # prime?
         # squareFree

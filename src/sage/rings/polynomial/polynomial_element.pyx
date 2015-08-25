@@ -3909,12 +3909,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             The actual algorithm for computing greatest common divisors depends
             on the base ring underlying the polynomial ring. If the base ring
             defines a method ``_gcd_univariate_polynomial``, then this method
-            will be called (see examples below). If no such method exists, a
-            fallback algorithm is used.
-
-        ALGORITHM:
-
-        The fallback algorithm is Algorithm 3.3.1 in [GTM138]_.
+            will be called (see examples below).
 
         EXAMPLES::
 
@@ -3926,84 +3921,28 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: (2*x).gcd(0)
             x
 
-        A fallback algorithm is implemented for rings that have no method
+        One can easily add gcd functionality to new rings by providing a method
         ``_gcd_univariate_polynomial``::
 
-            sage: R.<x> = ZZ[]
-            sage: S.<y> = PolynomialRing(R, sparse=True)
-            sage: p = (-3*x^2 - x)*y^3 - 3*x*y^2 + (x^2 - x)*y + 2*x^2 + 3*x - 2
-            sage: q = (-x^2 - 4*x - 5)*y^2 + (6*x^2 + x + 1)*y + 2*x^2 - x
+            sage: O = ZZ[-sqrt(5)]
+            sage: R.<x> = O[]
+            sage: a = O.1
+            sage: p = x + a
+            sage: q = x^2 - 5
             sage: p.gcd(q)
-            1
-            sage: r = (1 + x)*y^2 + (x - 1)*y + 2*x + 3
-            sage: (p*r).gcd(q*r)
-            (x + 1)*y^2 + (x - 1)*y + 2*x + 3
-
-        One can easily provide a specialized gcd function for rings by providing
-        a method ``_gcd_univariate_polynomial``::
-
-            sage: T.<x,y> = QQ[]
-            sage: R._gcd_univariate_polynomial = lambda f,g: S(T(f).gcd(g))
-            sage: (p*r).gcd(q*r)
-            (x + 1)*y^2 + (x - 1)*y + 2*x + 3
-            sage: del R._gcd_univariate_polynomial
-
-        REFERENCES:
-
-        .. [GTM138] Henri Cohen. A Course in Computational Number Theory.
-           Graduate Texts in Mathematics, vol. 138. Springer, 1993.
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: Order in Number Field in a with defining polynomial x^2 - 5 does not provide a gcd implementation for univariate polynomials
+            sage: S.<x> = O.number_field()[]
+            sage: O._gcd_univariate_polynomial = lambda f,g : R(S(f).gcd(S(g)))
+            sage: p.gcd(q)
+            x + a
+            sage: del O._gcd_univariate_polynomial
         """
         if hasattr(self.base_ring(), '_gcd_univariate_polynomial'):
             return self.base_ring()._gcd_univariate_polynomial(self, other)
-
-        # Fallback algorithm: Algorithm 3.3.1 in Cohen [GTM 138]
-        if not self.parent().base_ring().is_unique_factorization_domain():
-            raise ValueError("The base ring must be a unique factorization domain")
-
-        if self.degree() < other.degree():
-            A,B = other, self
         else:
-            A,B = self, other
-
-        if B.is_zero():
-            return A
-
-        a = b = self.base_ring().zero()
-        for c in A.coefficients():
-            a = a.gcd(c)
-            if a.is_one():
-                break
-        for c in B.coefficients():
-            b = b.gcd(c)
-            if b.is_one():
-                break
-
-        d = a.gcd(b)
-        A = self.parent()(A/a)
-        B = self.parent()(B/b)
-        g = h = 1
-
-        delta = A.degree()-B.degree()
-        _,R = A.pseudo_quo_rem(B)
-
-        while R.degree() > 0:
-            A = B
-            B = self.parent()(R/(g*h**delta))
-            g = A.leading_coefficient()
-            h = self.parent().base_ring()(h*g**delta/h**delta)
-            delta = A.degree() - B.degree()
-            _, R = A.pseudo_quo_rem(B)
-
-        if R.is_zero():
-            b = self.base_ring().zero()
-            for c in B.coefficients():
-                b = b.gcd(c)
-                if b.is_one():
-                    break
-
-            return self.parent()(d*B/b)
-
-        return d
+            raise NotImplementedError("%s does not provide a gcd implementation for univariate polynomials"%self.base_ring())
 
     @coerce_binop
     def lcm(self, other):

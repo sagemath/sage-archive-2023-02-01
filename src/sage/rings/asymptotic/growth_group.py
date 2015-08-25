@@ -161,10 +161,14 @@ def repr_short_to_parent(s):
     """
     from sage.misc.sage_eval import sage_eval
     try:
-        return sage_eval(s)
+        P = sage_eval(s)
     except Exception as e:
         raise combine_exceptions(
             ValueError("Cannot create a parent out of '%s'." % (s,)), e)
+    from sage.structure.parent import is_Parent
+    if not is_Parent(P):
+        raise ValueError("'%s' does not describe a parent." % (s,))
+    return P
 
 
 def parent_to_repr_short(P):
@@ -2963,7 +2967,6 @@ class GrowthGroupFactory(sage.structure.factory.UniqueFactory):
             ...
             ValueError: Cannot decode x^y^z.
         """
-
         groups = []
         for factor in factors:
             b_and_e = factor.split('^')

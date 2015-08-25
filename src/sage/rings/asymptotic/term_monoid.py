@@ -1199,7 +1199,7 @@ class GenericTermMonoid(sage.structure.parent.Parent,
 
         An iterator.
 
-        EXAMPLES:
+        EXAMPLES::
 
             sage: import sage.rings.asymptotic.growth_group as agg
             sage: import sage.rings.asymptotic.term_monoid as atm
@@ -2078,7 +2078,7 @@ class TermWithCoefficientMonoid(GenericTermMonoid):
 
         An iterator.
 
-        EXAMPLES:
+        EXAMPLES::
 
             sage: from itertools import islice
             sage: import sage.rings.asymptotic.growth_group as agg

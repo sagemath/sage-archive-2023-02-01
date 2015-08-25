@@ -137,6 +137,9 @@ class ClusterAlgebraSeed(SageObject):
         seed._G = seed._G*J
 
         # F-polynomials
+        # TODO: we should record the path to g-vectors anyway; maybe the best
+        # options is to go back to _f_poly_dict and have a separate _paths_dict
+        # for this.
         if mutating_F:
             g_vector = seed.g_vector(k)
             if g_vector not in seed.parent().g_vectors_so_far():
@@ -342,7 +345,8 @@ class ClusterAlgebra(Parent):
 
     def retract(self, x):
         return self(x)
-
+    
+    #TODO: add option to avoid computing F-polynomials
     def seeds(self, depth=infinity):
         r"""
         Return an iterator producing all seeds of ``self`` up to distance

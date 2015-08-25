@@ -71,6 +71,16 @@ def O(*x, **kwds):
         sage: K(11^-12, 15)
         11^-12 + O(11^15)
 
+    We can also work with :mod:`asymptotic expressions
+    <sage.rings.asymptotic.asymptotic_ring>`::
+
+        sage: A.<n> = AsymptoticRing(growth_group='QQ^n * n^QQ * log(n)^QQ', coefficient_ring=QQ); A
+        doctest:...: FutureWarning:
+        This class/method/function is marked as experimental. ...
+        Asymptotic Ring <QQ^n * n^QQ * log(n)^QQ> over Rational Field
+        sage: O(n)
+        O(n)
+
     TESTS::
 
         sage: var('x, y')

@@ -511,7 +511,7 @@ class CompositeConstructionFunctor(ConstructionFunctor):
             all = other.all + [self]
         return CompositeConstructionFunctor(*all)
 
-    def __str__(self):
+    def _repr_(self):
         """
         TESTS::
 
@@ -870,7 +870,7 @@ class PolynomialFunctor(ConstructionFunctor):
         else:
             return None
 
-    def __str__(self):
+    def _repr_(self):
         """
         TEST::
 
@@ -1041,7 +1041,7 @@ class MultiPolynomialFunctor(ConstructionFunctor):
         else:
             return [MultiPolynomialFunctor((x,), self.term_order) for x in reversed(self.vars)]
 
-    def __str__(self):
+    def _repr_(self):
         """
         TEST::
 
@@ -1190,7 +1190,7 @@ class InfinitePolynomialFunctor(ConstructionFunctor):
         from sage.rings.polynomial.infinite_polynomial_ring import InfinitePolynomialRing
         return InfinitePolynomialRing(R, self._gens, order=self._order, implementation=self._imple)
 
-    def __str__(self):
+    def _repr_(self):
         """
         TEST::
 
@@ -2236,7 +2236,7 @@ class CompletionFunctor(ConstructionFunctor):
                 if self.type not in self._dvr_types:
                     raise ValueError("completion type must be one of %s"%(", ".join(self._dvr_types)))
 
-    def __str__(self):
+    def _repr_(self):
         """
         TEST::
 

@@ -700,10 +700,10 @@ class AsymptoticExpression(sage.rings.ring_element.RingElement):
             ...
             NotImplementedError: Negative powers are not implemented for the term O(x).
         """
-        return self * other._invert_()
+        return self * ~other
 
 
-    def _invert_(self):
+    def __invert__(self):
         r"""
         Return the multiplicative inverse of this element.
 
@@ -724,15 +724,15 @@ class AsymptoticExpression(sage.rings.ring_element.RingElement):
         EXAMPLES::
 
             sage: R.<x> = AsymptoticRing('x^ZZ', QQ, default_prec=4)
-            sage: x._invert_()
+            sage: ~x
             1/x
-            sage: (x^42)._invert_()
+            sage: ~(x^42)
             x^(-42)
-            sage: ex = (1 + x)._invert_(); ex
+            sage: ex = ~(1 + x); ex
             1/x - x^(-2) + x^(-3) - x^(-4) + O(x^(-5))
             sage: ex * (1 + x)
             1 + O(x^(-4))
-            sage: (1 + O(1/x))._invert_()
+            sage: ~(1 + O(1/x))
             1 + O(1/x)
         """
         if len(self.summands) == 0:

@@ -1,6 +1,14 @@
 r"""
 FindStat - the Combinatorial Statistic Finder.
 
+The FindStat database can be found at http://www.findstat.org .
+
+Fix the following three notions:
+
+- A *combinatorial collection* is a set `S` with interesting combinatorial properties,
+- a *combinatorial map* is a combinatorially interesting map `f: S \to S'` between combinatorial collections, and
+- a *combinatorial statistic* is a combinatorially interesting map `s: S \to \ZZ`.
+
 You can use the sage interface to FindStat to:
 
 - identify a combinatorial statistic from the values on a few small objects,
@@ -12,17 +20,12 @@ To access the database, use :class:`findstat<FindStat>`::
     sage: findstat
     The Combinatorial Statistic Finder (http://www.findstat.org/)
 
+AUTHORS:
+
+- Martin Rubey (2015): initial version.
+
 A guided tour
 -------------
-
-Introduction
-^^^^^^^^^^^^
-
-Let us fix three notions:
-
-- a combinatorial collection is a set `S` with interesting combinatorial properties,
-- a combinatorial map is a combinatorially interesting map `f: S \to S'`,
-- a combinatorial statistic is a combinatorially interesting map `s: S \to \ZZ`.
 
 Retrieving information
 ^^^^^^^^^^^^^^^^^^^^^^
@@ -47,14 +50,14 @@ element of each triple is a :class:`FindStatStatistic` `s: S \to
 
 The precise meaning of the result is as follows:
 
-    The composition `f_n o ... o f_2 o f_1` applied to
+    The composition `f_n \circ ... \circ f_2 \circ f_1` applied to
     the objects sent to FindStat agrees with `quality` many `(object,
     value)` pairs of `s` in the database.  Moreover, there are no
     other `(object, value)` pairs of `s` stored in the database,
     i.e., there is no disagreement of values.
 
 Put differently, if `quality` is not too small it is likely that the
-statistic sent to FindStat equals `s o f_n o ... o f_2 o f_1`.
+statistic sent to FindStat equals `s \circ f_n \circ ... \circ f_2 \circ f_1`.
 
 In the case at hand, the list of maps is empty and the integer
 `quality` equals the number of `(object, value)` pairs passed to
@@ -87,6 +90,9 @@ lists::
     1: (St000042: The number of crossings of a perfect matching. , [], 105)
     ...
 
+This results tells us that the database contains another entriy that is
+equidistributed with the number of nestings on perfect matchings of
+length `8`, namely the number of crossings.
 
 Let us now look at a slightly more complicated example, where the
 submitted statistic is the composition of a sequence of combinatorial
@@ -148,10 +154,6 @@ replace the value by using :meth:`FindStatStatistic.set_description`,
 :meth:`FindStatStatistic.set_references`, and then
 :meth:`FindStatStatistic.submit` your changes for review by the
 FindStat team.
-
-AUTHORS:
-
-- Martin Rubey (2015): initial version.
 
 Classes and methods
 -------------------

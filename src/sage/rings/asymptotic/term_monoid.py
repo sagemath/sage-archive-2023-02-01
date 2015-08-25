@@ -597,6 +597,91 @@ class GenericTerm(sage.structure.element.MonoidElement):
         return self.growth <= other.growth
 
 
+    def is_same(self, other):
+        r"""
+        Return if this asymptotic term is the same as ``other``.
+
+        INPUT:
+
+        - ``other`` -- an object.
+
+        OUTPUT:
+
+        A boolean.
+
+        .. NOTE::
+
+            This function uses the coercion model to find a common
+            parent for the two operands.
+
+        EXAMPLES::
+
+            sage: from sage.rings.asymptotic.growth_group import GrowthGroup
+            sage: from sage.rings.asymptotic.term_monoid import (GenericTermMonoid,
+            ....:      ExactTermMonoid, OTermMonoid)
+            sage: GT = GenericTermMonoid(GrowthGroup('x^ZZ'))
+            sage: ET = ExactTermMonoid(GrowthGroup('x^ZZ'), ZZ)
+            sage: OT = OTermMonoid(GrowthGroup('x^ZZ'))
+            sage: g = GT.an_element(); e = ET.an_element(); o = OT.an_element()
+            sage: g, e, o
+            (Generic Term with growth x, x, O(x))
+            sage: g.is_same(g^2)
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: Only implemented in concrete realizations.
+            sage: e.is_same(e^2)
+            False
+            sage: e.is_same(ET(x,1))
+            True
+            sage: o.is_same(OT(x^2))
+            False
+        """
+        from sage.structure.element import have_same_parent
+
+        if have_same_parent(self, other):
+            return self._is_same_(other)
+
+        from sage.structure.element import get_coercion_model
+
+        return get_coercion_model().bin_op(self, other,
+                                           lambda self, other:
+                                           self._is_same_(other))
+
+
+    def _is_same_(self, other):
+        r"""
+        Return if this asymptotic term is the same as ``other``.
+
+        INPUT:
+
+        - ``other`` -- an asymptotic term.
+
+        OUTPUT:
+
+        A boolean.
+
+        .. NOTE::
+
+            This method gets called by the coercion framework, so it
+            can be assumed that this asymptotic term is from the
+            same parent as ``other``.
+
+            Only implemented in concrete realizations.
+
+        EXAMPLES::
+
+            sage: from sage.rings.asymptotic.growth_group import GrowthGroup
+            sage: from sage.rings.asymptotic.term_monoid import GenericTermMonoid
+            sage: T = GenericTermMonoid(GrowthGroup('x^ZZ'))
+            sage: t = T.an_element()
+            sage: t.is_same(t)
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: Only implemented in concrete realizations.
+        """
+        raise NotImplementedError('Only implemented in concrete realizations.')
+
+
     def _repr_(self):
         r"""
         A representation string for this generic term.
@@ -1055,6 +1140,39 @@ class OTerm(GenericTerm):
         return self
 
 
+    def _is_same_(self, other):
+        r"""
+        Return if this :class:`OTerm` is the same as ``other``.
+
+        INPUT:
+
+        - ``other`` -- an :class:`OTerm`.
+
+        OUTPUT:
+
+        A boolean.
+
+        .. NOTE::
+
+            This method gets called by the coercion model, so it can
+            be assumed that this :class:`OTerm` and ``other`` come
+            from the same parent.
+
+        EXAMPLES::
+
+            sage: from sage.rings.asymptotic.growth_group import GrowthGroup
+            sage: from sage.rings.asymptotic.term_monoid import OTermMonoid
+            sage: OT = OTermMonoid(GrowthGroup('x^ZZ'))
+            sage: t = OT.an_element(); t
+            O(x)
+            sage: t.is_same(OT(x))  # indirect doctest
+            True
+            sage: t.is_same(OT(x^2))  # indirect doctest
+            False
+        """
+        return self.growth == other.growth
+
+
 class OTermMonoid(GenericTermMonoid):
     r"""
     Parent for asymptotic big `O`-terms.
@@ -1361,6 +1479,43 @@ class TermWithCoefficient(GenericTerm):
                 self.coefficient == other.coefficient
         else:
             return super(TermWithCoefficient, self)._le_(other)
+
+
+    def _is_same_(self, other):
+        r"""
+        Return if this :class:`TermWithCoefficient` is the same as
+        ``other``.
+
+        INPUT:
+
+        - ``other`` -- an :class:`TermWithCoefficient`.
+
+        OUTPUT:
+
+        A boolean.
+
+        .. NOTE::
+
+            This method gets called by the coercion model, so it can
+            be assumed that this :class:`TermWithCoefficient` and
+            ``other`` come from the same parent.
+
+        EXAMPLES::
+
+            sage: from sage.rings.asymptotic.growth_group import GrowthGroup
+            sage: from sage.rings.asymptotic.term_monoid import TermWithCoefficientMonoid
+            sage: T = TermWithCoefficientMonoid(GrowthGroup('x^ZZ'), ZZ)
+            sage: t = T.an_element(); t
+            Asymptotic Term with coefficient 1 and growth x
+            sage: t.is_same(T(x, 1))
+            True
+            sage: t.is_same(T(x, 2))
+            False
+            sage: t.is_same(T(x^2, 1))
+            False
+        """
+        return self.growth == other.growth and self.coefficient == other.coefficient
+
 
 
 class TermWithCoefficientMonoid(GenericTermMonoid):

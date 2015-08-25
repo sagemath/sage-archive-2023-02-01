@@ -234,6 +234,15 @@ class HTMLFragmentFactory(SageObject):
             sage: html('<a href="http://sagemath.org">sagemath</a>')
             '<a href="http://sagemath.org">sagemath</a>'
         """
+        if _old_and_deprecated_behavior:
+            message = """ 
+                html(...) will change soon, instead use
+                pretty_print(HtmlFragment(...)) for strings or just
+                pretty_print(...) for math.
+            """
+            message = ' '.join([l.strip() for l in message.splitlines()])
+            from sage.misc.superseded import deprecation
+            deprecation(18292, message)
         # Prefer dedicated _html_() method
         try:
             result = obj._html_()

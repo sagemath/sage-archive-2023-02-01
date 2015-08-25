@@ -26,7 +26,7 @@ add = sum
 
 from dev_tools import runsnake, import_statements
 
-from html import html
+from html import html, HtmlFragment
 
 from table import table
 

@@ -274,61 +274,32 @@ class GenericGrowthElement(sage.structure.element.MultiplicativeGroupElement):
         raise NotImplementedError('Only implemented in concrete realizations.')
 
 
-    def _div_(self, other):
+    def __invert__(self):
         r"""
-        Divide this growth element by another one.
-
-        INPUT:
-
-        - ``other`` -- an instance of :class:`GenericGrowthElement`.
+        Return the inverse of this growth element.
 
         OUTPUT:
 
         An instance of :class:`GenericGrowthElement`.
 
-        .. NOTE::
+        TESTS::
 
-            This method is called by the coercion framework, thus, it can be
-            assumed that this element, as well as ``other`` are of the same
-            type. The output will have this type.
-
-        EXAMPLES::
-
-            sage: import sage.rings.asymptotic.growth_group as agg
-            sage: P = agg.MonomialGrowthGroup(ZZ, 'x')
-            sage: e1 = P(raw_element=2)
-            sage: e2 = e1._div_(P.gen()); e2
-            x
-            sage: e2 == e1 / P.gen()
-            True
-        """
-        return self._mul_(~other)
-
-
-    def __pow__(self, power):
-        r"""
-        Takes this growth element to the given ``power``.
-
-        INPUT:
-
-        - ``power`` -- a number. This can anything that is valid to be
-          on the right hand side of ``*`` with an elements of the
-          parent's base.
-
-        OUTPUT:
-
-        The result of this exponentiation a :class:`MonomialGrowthElement`.
-
-        EXAMPLES::
-
-            sage: import sage.rings.asymptotic.growth_group as agg
-            sage: G = agg.GenericGrowthGroup(ZZ)
+            sage: from sage.rings.asymptotic.growth_group import GrowthGroup
+            sage: from sage.rings.asymptotic.growth_group import GenericGrowthGroup
+            sage: G = GenericGrowthGroup(ZZ)
+            sage: ~G.an_element()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: Inversion of GenericGrowthElement(1) not implemented.
             sage: G.an_element()^7
             Traceback (most recent call last):
             ...
             NotImplementedError: Only implemented in concrete realizations.
+            sage: P = GrowthGroup('x^ZZ')
+            sage: ~P.an_element()
+            1/x
         """
-        raise NotImplementedError('Only implemented in concrete realizations.')
+        raise NotImplementedError('Inversion of %s not implemented.' % (self,))
 
 
     def __eq__(self, other):

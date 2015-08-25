@@ -18,6 +18,7 @@ General Rings, Ideals, and Morphisms
    sage/rings/quotient_ring_element
    sage/rings/invariant_theory
 
+   sage/rings/asymptotic/asymptotic_ring
    sage/rings/bernmm
    sage/rings/bernoulli_mod_p
    sage/rings/big_oh
@@ -42,10 +43,6 @@ General Rings, Ideals, and Morphisms
    sage/rings/principal_ideal_domain
    sage/rings/principal_ideal_domain_element
    sage/rings/ring_element
-
-   sage/rings/asymptotic/growth_group
-   sage/rings/asymptotic/term_monoid
-   sage/rings/asymptotic/asymptotic_ring
 
 
 .. include:: ../footer.txt

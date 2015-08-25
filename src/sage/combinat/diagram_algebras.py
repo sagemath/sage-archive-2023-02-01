@@ -953,7 +953,7 @@ class BrauerDiagrams(AbstractPartitionDiagrams):
         entry is a list of arcs on the bottom row of the diagram, and the
         third entry is a permutation on the remaining nodes. This triple
         is called the *involution permutation triple*. For more
-        information, see [GL]_.
+        information, see [GL1996]_.
 
         INPUT:
 
@@ -964,7 +964,7 @@ class BrauerDiagrams(AbstractPartitionDiagrams):
 
         REFERENCES:
 
-        .. [GL] J.J. Graham and G.I. Lehrer, Cellular algebras.
+        .. [GL1996] J.J. Graham and G.I. Lehrer, Cellular algebras.
            Inventiones mathematicae 123 (1996), 1--34.
 
         EXAMPLES::

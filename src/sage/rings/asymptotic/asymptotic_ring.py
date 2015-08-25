@@ -106,11 +106,13 @@ variables `x` and `y` by
 
 ::
 
-    sage: B.<x, y> = AsymptoticRing(growth_group='x^QQ * log(x)^ZZ * QQ^y * y^QQ', coefficient_ring=QQ); B  # not tested
+    sage: B.<x, y> = AsymptoticRing(growth_group='x^QQ * log(x)^ZZ * QQ^y * y^QQ', coefficient_ring=QQ); B
+    Asymptotic Ring <x^QQ * log(x)^ZZ * QQ^y * y^QQ> over Rational Field
 
-Again, we can look at a typical element::
+Again, we can look at a typical (nontrivial) element::
 
-    sage: B.an_element()  # not tested
+    sage: B.an_element()
+    -1/8*x^(3/2) * log(x)^3 * (1/8)^y * y^(3/2) + O(x^(1/2) * log(x) * (1/2)^y * y^(1/2))
 
 Arithemtical Operations
 -----------------------
@@ -147,28 +149,44 @@ that the `O`-notation can be used. For example, we have
     sage: z^3 + z^2 + z + O(z^2)
     z^3 + O(z^2)
 
-and more advanced
+where the result is simplified automatically. More advanced
 
 ::
 
     sage: (z + 2*z^2 + 3*z^3 + 4*z^4) * (O(z) + z^2)
     4*z^6 + O(z^5)
 
-The division of asymptotic expressions is implemented as well::
+The asymptotic expressions support division. For example, we get can
+expand `1/(1-z)` to a geometric series::
 
-    sage: A.<z> = AsymptoticRing('z^QQ', QQ, default_prec=10)
     sage: 1/(z - 1)
-    1/z + z^(-2) + z^(-3) + z^(-4) + ... + z^(-10) + O(z^(-11))
+    1/z + z^(-2) + z^(-3) + z^(-4) + ... + z^(-20) + O(z^(-21))
+
+Since there is a default precision (parameter ``default_prec``)
+defined, only the first `20` summands are calculated. Here, we can
+work with more complicated expressions as well::
+
     sage: (1 + 4*z)/(z + z^2 + z^3)
-    4*z^(-2) - 3*z^(-3) - z^(-4) + 4*z^(-5) - 3*z^(-6) - ... - z^(-16) + O(z^(-17))
+    4*z^(-2) - 3*z^(-3) - z^(-4) + 4*z^(-5) - 3*z^(-6) - ... - z^(-31) + O(z^(-32))
 
-.. TODO::
+Note that not all elements are invertible, for instance,
 
-    arithmetic in the ring
+::
 
-    ::
+    sage: 1/O(z)
+    Traceback (most recent call last):
+    ...
+    ZeroDivisionError: Cannot invert O(z).
 
-        sage: B  # not tested
+is not invertible, since it includes `0`.
+
+Now let us move on to arithmetic in the multivariate ring
+
+::
+
+    sage: B
+    Asymptotic Ring <x^QQ * log(x)^ZZ * QQ^y * y^QQ> over Rational Field
+
 
 More Examples
 =============

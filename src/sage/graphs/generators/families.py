@@ -192,9 +192,9 @@ def BalancedTree(r, h):
 
     TESTS:
 
-     Normally we would only consider balanced trees whose root node
-     has degree `r \geq 2`, but the construction degenerates
-     gracefully::
+    Normally we would only consider balanced trees whose root node
+    has degree `r \geq 2`, but the construction degenerates
+    gracefully::
 
         sage: graphs.BalancedTree(1, 10)
         Balanced tree: Graph on 2 vertices
@@ -2535,11 +2535,11 @@ def _polar_Graph(m, q, g, intersection_size=None):
 
     TESTS::
 
-    sage: from sage.graphs.generators.families import _polar_Graph
-    sage: _polar_Graph(4, 4, libgap.GeneralUnitaryGroup(4, 2))
-    Graph on 45 vertices
-    sage: _polar_Graph(4, 4, libgap.GeneralUnitaryGroup(4, 2), intersection_size=1)
-    Graph on 27 vertices
+        sage: from sage.graphs.generators.families import _polar_Graph
+        sage: _polar_Graph(4, 4, libgap.GeneralUnitaryGroup(4, 2))
+        Graph on 45 vertices
+        sage: _polar_Graph(4, 4, libgap.GeneralUnitaryGroup(4, 2), intersection_size=1)
+        Graph on 27 vertices
     """
     from sage.libs.gap.libgap import libgap
     from itertools import combinations
@@ -2675,17 +2675,17 @@ def SymplecticDualPolarGraph(m, q):
 
     EXAMPLES::
 
-    sage: G = graphs.SymplecticDualPolarGraph(6,2); G
-    Symplectic Polar Graph O(6, 2): Graph on 135 vertices
-    sage: G.is_distance_regular(parameters=True)
-    ([14, 12, 8, None], [None, 1, 3, 7])
+        sage: G = graphs.SymplecticDualPolarGraph(6,2); G
+        Symplectic Polar Graph O(6, 2): Graph on 135 vertices
+        sage: G.is_distance_regular(parameters=True)
+        ([14, 12, 8, None], [None, 1, 3, 7])
 
     TESTS::
 
-    sage: G = graphs.SymplecticDualPolarGraph(6,3); G       # long time
-    Symplectic Polar Graph O(6, 3): Graph on 1120 vertices
-    sage: G.is_distance_regular(parameters=True)            # long time
-    ([39, 36, 27, None], [None, 1, 4, 13])
+        sage: G = graphs.SymplecticDualPolarGraph(6,3); G       # long time
+        Symplectic Polar Graph O(6, 3): Graph on 1120 vertices
+        sage: G.is_distance_regular(parameters=True)            # long time
+        ([39, 36, 27, None], [None, 1, 4, 13])
     """
     from sage.libs.gap.libgap import libgap
     G = _polar_Graph(m, q, libgap.SymplecticGroup(m, q),

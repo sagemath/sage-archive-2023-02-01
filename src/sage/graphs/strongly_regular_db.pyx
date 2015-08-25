@@ -1518,7 +1518,7 @@ def strongly_regular_graph(int v,int k,int l,int mu=-1,bint existence=False):
         ...
         RuntimeError: Sage cannot figure out if a (1394,175,0,25)-strongly regular graph exists.
 
-    Test the Claw bound (see 3.D of [vLintBrouwer84]_):
+    Test the Claw bound (see 3.D of [vLintBrouwer84]_)::
 
         sage: graphs.strongly_regular_graph(2058,242,91,20,existence=True)
         False

@@ -10,32 +10,6 @@ from sage.rings.integer_ring import ZZ
 ####
 # These my have to go in a more standard place or just outside this file
 
-# Define decorator to automatically transform vectors and lists to tuples
-# is there not a standard function wrapper we could use instead of this?
-# TODO: this messes up the function signature. In particular ? and ?? do not
-# give the desired results. It is a known issue that is fized in python 3.4!!!!
-# do we ever hope to have sage running on python 3?
-from functools import wraps
-def make_hashable(func):
-    @wraps(func)
-    def wrapper(*args, **kwargs):
-        hashable_args = []
-        for x in args:
-            try:
-                hashable_args.append(tuple(x))
-            except:
-                hashable_args.append(x)
-
-        hashable_kwargs = {}
-        for x in kwargs:
-            try:
-                hashable_kwargs[x] = tuple(kwargs[x])
-            except:
-                hashable_kwargs[x] = kwargs[x]
-
-        return func(*hashable_args, **hashable_kwargs)
-    return wrapper
-
 ####
 # Elements of a cluster algebra
 ####
@@ -309,16 +283,15 @@ class ClusterAlgebra(Parent):
         """
         return self._data_dict.keys()
 
-    @make_hashable
     def F_polynomial(self, g_vector):
+        g_vector= tuple(g_vector)
         try:
             return self._data_dict[g_vector][0]
         except:
             # TODO: improve this error message
             raise ValueError("This F-polynomial has not been computed yet. Did you explore the tree with compute_F=False ?")
 
-    @make_hashable
-    @cached_method
+    @cached_method(key=lambda a,b: tuple(a) )
     def cluster_variable(self, g_vector):
         if not g_vector in self.g_vectors_so_far():
             raise ValueError("This Cluster Variable has not been computed yet.")
@@ -328,7 +301,6 @@ class ClusterAlgebra(Parent):
         F_trop = self.ambient_field()(self.F_polynomial(g_vector).subs(self._y)).denominator()
         return self.retract(g_mon*F_std*F_trop)
 
-    @make_hashable
     def find_cluster_variable(self, g_vector, depth=infinity):
         r"""
         Returns the shortest mutation path to obtain the cluster variable with
@@ -336,6 +308,7 @@ class ClusterAlgebra(Parent):
 
         ``depth``: maximum distance from ``self.current_seed`` to reach.
         """
+        g_vector = tuple(g_vector)
         seeds = self.seeds(depth=depth)
         mutation_counter = 0
         while g_vector not in self.g_vectors_so_far():

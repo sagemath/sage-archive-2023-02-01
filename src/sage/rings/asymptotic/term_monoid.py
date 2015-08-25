@@ -207,7 +207,7 @@ class GenericTerm(sage.structure.element.MonoidElement):
 
     def _mul_(self, other):
         r"""
-        Abstract multiplication method for generic terms.
+        Multiplication of this term by another.
 
         INPUT:
 
@@ -215,8 +215,7 @@ class GenericTerm(sage.structure.element.MonoidElement):
 
         OUTPUT:
 
-        A :class:`GenericTerm` representing the product of ``self``
-        and ``other``.
+        A :class:`GenericTerm`.
 
         .. NOTE::
 
@@ -237,6 +236,68 @@ class GenericTerm(sage.structure.element.MonoidElement):
             Generic Term with growth x^3
         """
         return self.parent()(self.growth * other.growth)
+
+
+    def __div__(self, other):
+        r"""
+        Division of this term by another.
+
+        INPUT:
+
+        - ``other`` -- an asymptotic term.
+
+        OUTPUT:
+
+        A :class:`GenericTerm`.
+
+        .. NOTE::
+
+            This function uses the coercion model to find a common
+            parent for the two operands.
+
+            The comparison of two elements with the same parent is done in
+            :meth:`_div_`.
+        """
+        from sage.structures.element import have_same_parent
+        if have_same_parent(self, other):
+            return self._div_(other)
+
+        from sage.structure.element import get_coercion_model
+        import operator
+        return get_coercion_model().bin_op(self, other, operator.div)
+
+
+    def _div_(self, other):
+        r"""
+        Division of this term by another.
+
+        INPUT:
+
+        - ``other`` -- an asymptotic term.
+
+        OUTPUT:
+
+        A :class:`GenericTerm`.
+
+        .. NOTE::
+
+            This method is called by the coercion framework, thus,
+            it can be assumed that this element, as well as ``other``
+            are from a common parent.
+        """
+        return self * ~other
+
+
+    def __invert__(self):
+        r"""
+        Invert this term.
+
+        OUTPUT:
+
+        A :class:`GenericTerm`.
+        """
+        raise NotImplementedError('Inversion of %s not implemented '
+                                  '(in this abstract method).' % (self,))
 
 
     def can_absorb(self, other):
@@ -1069,6 +1130,10 @@ class OTerm(GenericTerm):
             O(x^3)
         """
         return 'O(%s)' % self.growth
+
+
+    def __invert__(self):
+        raise ZeroDivisionError('Cannot invert %s.' % (self,))
 
 
     def _can_absorb_(self, other):
@@ -1912,6 +1977,15 @@ class ExactTerm(TermWithCoefficient):
                 return '-%s' % self.growth
             else:
                 return '%s*%s' % (self.coefficient, self.growth)
+
+
+    def __invert__(self):
+        try:
+            c = ~self.coefficient
+        except ZeroDivisionError:
+            raise ZeroDivisionError('Cannot invert %s since its coefficient %s '
+                                    'cannot be inverted.' % (self, self.coefficient))
+        return self.parent()(~self.growth, self.coefficient)
 
 
     def _can_absorb_(self, other):

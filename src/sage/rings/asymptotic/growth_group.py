@@ -1519,7 +1519,7 @@ class GenericGrowthGroup(
             sage: cm.record_exceptions()
             sage: cm.common_parent(GrowthGroup('x^ZZ'), GrowthGroup('y^ZZ'))
             Growth Group x^ZZ * y^ZZ
-            sage: sage.structure.element.coercion_traceback()
+            sage: sage.structure.element.coercion_traceback()  # not tested
         """
         if isinstance(other, GenericGrowthGroup):
             pass
@@ -1701,6 +1701,14 @@ class AbstractGrowthGroupFunctor(ConstructionFunctor):
         sage: from sage.rings.asymptotic.growth_group import GrowthGroup
         sage: GrowthGroup('z^QQ').construction()[0]  # indirect doctest
         MonomialGrowthGroup[z]
+
+    .. SEEALSO::
+
+        :mod:`sage.rings.asymptotic.asymptotic_ring`,
+        :class:`ExponentialGrowthGroupFunctor`,
+        :class:`MonomialGrowthGroupFunctor`,
+        :class:`sage.rings.asymptotic.asymptotic_ring.AsyptoticRingFunctor`,
+        :class:`sage.categories.pushout.ConstructionFunctor`.
     """
 
     _functor_name = 'AbstractGrowthGroup'
@@ -2278,18 +2286,27 @@ class MonomialGrowthGroup(GenericGrowthGroup):
 
     def construction(self):
         r"""
+        Return the construction of this growth group.
+
+        OUTPUT:
+
+        A pair whose first entry is a
+        :class:`monomial construction functor <MonomialGrowthGroupFunctor>`
+        and its second entry the base.
+
         EXAMPLES::
 
             sage: from sage.rings.asymptotic.growth_group import GrowthGroup
             sage: GrowthGroup('x^ZZ').construction()
             (MonomialGrowthGroup[x], Integer Ring)
-       """
+        """
         return MonomialGrowthGroupFunctor(self._var_), self.base()
 
 
 class MonomialGrowthGroupFunctor(AbstractGrowthGroupFunctor):
     r"""
-    A construction functor for :class:`monomial growth groups <MonomialGrowthGroup>`.
+    A :class:`construction functor <sage.categories.pushout.ConstructionFunctor>`
+    for :class:`monomial growth groups <MonomialGrowthGroup>`.
 
     INPUT:
 
@@ -2301,6 +2318,14 @@ class MonomialGrowthGroupFunctor(AbstractGrowthGroupFunctor):
         sage: from sage.rings.asymptotic.growth_group import GrowthGroup, MonomialGrowthGroupFunctor
         sage: GrowthGroup('z^QQ').construction()[0]
         MonomialGrowthGroup[z]
+
+    .. SEEALSO::
+
+        :mod:`sage.rings.asymptotic.asymptotic_ring`,
+        :class:`AbstractGrowthGroupFunctor`,
+        :class:`ExponentialGrowthGroupFunctor`,
+        :class:`sage.rings.asymptotic.asymptotic_ring.AsyptoticRingFunctor`,
+        :class:`sage.categories.pushout.ConstructionFunctor`.
 
     TESTS::
 
@@ -2745,6 +2770,14 @@ class ExponentialGrowthGroup(GenericGrowthGroup):
 
     def construction(self):
         r"""
+        Return the construction of this growth group.
+
+        OUTPUT:
+
+        A pair whose first entry is an
+        :class:`exponential construction functor <ExponentialGrowthGroupFunctor>`
+        and its second entry the base.
+
         EXAMPLES::
 
             sage: from sage.rings.asymptotic.growth_group import GrowthGroup
@@ -2756,7 +2789,7 @@ class ExponentialGrowthGroup(GenericGrowthGroup):
 
 class ExponentialGrowthGroupFunctor(AbstractGrowthGroupFunctor):
     r"""
-    A construction functor for
+    A :class:`construction functor <sage.categories.pushout.ConstructionFunctor>`
     :class:`exponential growth groups <ExponentialGrowthGroup>`.
 
     INPUT:
@@ -2769,6 +2802,14 @@ class ExponentialGrowthGroupFunctor(AbstractGrowthGroupFunctor):
         sage: from sage.rings.asymptotic.growth_group import GrowthGroup, ExponentialGrowthGroupFunctor
         sage: GrowthGroup('QQ^z').construction()[0]
         ExponentialGrowthGroup[z]
+
+    .. SEEALSO::
+
+        :mod:`sage.rings.asymptotic.asymptotic_ring`,
+        :class:`AbstractGrowthGroupFunctor`,
+        :class:`MonomialGrowthGroupFunctor`,
+        :class:`sage.rings.asymptotic.asymptotic_ring.AsyptoticRingFunctor`,
+        :class:`sage.categories.pushout.ConstructionFunctor`.
 
     TESTS::
 

@@ -3,7 +3,7 @@ Asymptotic Term Monoid
 
 This module implements asymptotic term monoids. The elements of these
 monoids are used behind the scenes when performing calculations in an
-asymptotic ring (to be implemented).
+:mod:`asymptotic ring <sage.rings.asymptotic.asymptotic_ring>`.
 
 The monoids build upon the (asymptotic) growth groups. While growth
 elements only model the growth of a function as it tends towards
@@ -199,7 +199,7 @@ def product_diagonal(A, B):
 def absorption(left, right):
     r"""
     Helper method used by
-    :class:`~sage.rings.asymptotic_ring.AsymptoticExpression`.
+    :class:`~sage.rings.asymptotic.asymptotic_ring.AsymptoticExpression`.
 
     INPUT:
 
@@ -231,7 +231,7 @@ def absorption(left, right):
 def can_absorb(left, right):
     r"""
     Helper method used by
-    :class:`~sage.rings.asymptotic_ring.AsymptoticExpression`.
+    :class:`~sage.rings.asymptotic.asymptotic_ring.AsymptoticExpression`.
 
     INPUT:
 
@@ -463,11 +463,6 @@ class GenericTerm(sage.structure.element.MonoidElement):
         OUTPUT:
 
         A boolean.
-
-        .. NOTE::
-
-            This method calls :meth:`_can_absorb_`, which is has to be
-            implemented/overridden in inherited class.
 
         EXAMPLES:
 
@@ -1460,7 +1455,7 @@ class OTermMonoid(GenericTermMonoid):
         Asymptotic O-Term Monoid y^QQ
 
     `O`-term monoids can also be created by using the
-    :class:`term factory <TermMonoid>`::
+    :class:`term factory <TermMonoidFactory>`::
 
         sage: atm.TermMonoid('O', G_x_ZZ) is OT_x_ZZ
         True

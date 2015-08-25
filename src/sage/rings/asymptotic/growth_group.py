@@ -290,7 +290,8 @@ class GenericGrowthElement(sage.structure.element.MultiplicativeGroupElement):
             sage: ~G.an_element()
             Traceback (most recent call last):
             ...
-            NotImplementedError: Inversion of GenericGrowthElement(1) not implemented.
+            NotImplementedError: Inversion of GenericGrowthElement(1) not implemented
+            (in this abstract method).
             sage: G.an_element()^7
             Traceback (most recent call last):
             ...
@@ -299,7 +300,8 @@ class GenericGrowthElement(sage.structure.element.MultiplicativeGroupElement):
             sage: ~P.an_element()
             1/x
         """
-        raise NotImplementedError('Inversion of %s not implemented.' % (self,))
+        raise NotImplementedError('Inversion of %s not implemented '
+                                  '(in this abstract method).' % (self,))
 
 
     def __eq__(self, other):

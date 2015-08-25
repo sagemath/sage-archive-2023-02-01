@@ -351,9 +351,14 @@ class MapRelativeNumberFieldToRelativeVectorSpace(NumberFieldIsomorphism):
         # Convert f to a relative polynomial g; this is a polynomial
         # in x whose coefficients are polynomials in y.
         g = K._pari_rnfeq()._eltabstorel_lift(f)
+        # Now g is a polynomial in the standard generator of the PARI
+        # field; convert it to a polynomial in the Sage generator.
+        if g.poldegree() > 0:
+            beta = K._pari_relative_structure()[2]
+            g = g(beta).lift()
         # Convert the coefficients to elements of the base field.
         B, from_B, _ = K.absolute_base_field()
-        return self.codomain()([from_B(B(z)) for z in g.Vecrev(-K.relative_degree())])
+        return self.codomain()([from_B(B(z.lift(), check=False)) for z in g.Vecrev(-K.relative_degree())])
 
 class NameChangeMap(NumberFieldIsomorphism):
     r"""

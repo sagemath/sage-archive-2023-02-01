@@ -2963,6 +2963,7 @@ class GrowthGroupFactory(sage.structure.factory.UniqueFactory):
             ValueError: 'asdf' is not a valid string describing a growth group.
         """
         factors = split_str_by_mul(specification)
+        factors = tuple(f.replace('**', '^') for f in factors)
 
         for f in factors:
             if '^' not in f and '**' not in f:
@@ -2983,36 +2984,43 @@ class GrowthGroupFactory(sage.structure.factory.UniqueFactory):
             Traceback (most recent call last):
             ...
             ValueError: 'as^df' is not a valid string describing a growth group.
+            > *previous* ValueError: Cannot create a parent out of 'as'.
+            >> *previous* SyntaxError: unexpected EOF while parsing (<string>, line 1)
+            > *and* ValueError: Cannot create a parent out of 'df'.
+            >> *previous* NameError: name 'df' is not defined
             sage: agg.GrowthGroup('x^y^z')
             Traceback (most recent call last):
             ...
-            ValueError: Cannot decode x^y^z.
+            ValueError: 'x^y^z' is not a valid string describing a growth group.
+            > *previous* ValueError: Cannot create a parent out of 'x'.
+            >> *previous* NameError: name 'x' is not defined
+            > *and* ValueError: Cannot create a parent out of 'y^z'.
+            >> *previous* NameError: name 'y' is not defined
         """
         groups = []
         for factor in factors:
-            b_and_e = factor.split('^')
-            if len(b_and_e) != 2:
-                raise ValueError('Cannot decode %s.' % (factor,))
-            (b, e) = b_and_e
+            b, _, e = factor.partition('^')
 
             try:
-                # monomial growth group: 'var^base'
-                groups.append(
-                    MonomialGrowthGroup(repr_short_to_parent(e), b, **kwds))
-                continue
-            except (TypeError, ValueError):
-                pass
-
+                B = repr_short_to_parent(b)
+            except ValueError as exc_b:
+                B = None
             try:
-                # exponential growth group: 'base^var'
-                groups.append(
-                    ExponentialGrowthGroup(repr_short_to_parent(b), e, **kwds))
-                continue
-            except (TypeError, ValueError):
-                pass
+                E = repr_short_to_parent(e)
+            except ValueError as exc_e:
+                E = None
 
-            raise ValueError("'%s' is not a valid string describing "
-                             "a growth group." % (factor,))
+            if B is None and E is None:
+                raise combine_exceptions(
+                    ValueError("'%s' is not a valid string describing "
+                               "a growth group." % (factor,)), exc_b, exc_e)
+            elif B is None and E is not None:
+                groups.append(MonomialGrowthGroup(E, b, **kwds))
+            elif B is not None and E is None:
+                groups.append(ExponentialGrowthGroup(B, e, **kwds))
+            else:
+                raise ValueError("'%s' is an ambigous string of a growth group "
+                                 "description." % (factor,))
 
         if len(groups) == 1:
             return groups[0]

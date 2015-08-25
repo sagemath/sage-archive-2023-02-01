@@ -34,7 +34,6 @@ from sage.combinat.partition import Partitions
 from sage.combinat.symmetric_group_algebra import SymmetricGroupAlgebra
 from sage.combinat.permutation import Permutations
 from sage.combinat.combinat import (bell_number, catalan_number)
->>>>>>> t/18720/change_diagram_algebra_basis_set_partitions_from_list_to_generator
 from sage.sets.set import Set
 from sage.graphs.graph import Graph
 from sage.misc.cachefunc import cached_method

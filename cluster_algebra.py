@@ -120,6 +120,12 @@ class ClusterAlgebraSeed(SageObject):
         if k not in xrange(n):
             raise ValueError('Cannot mutate in direction ' + str(k) + '.')
 
+        # store mutation path
+        if seed._path != [] and seed._path[-1] == k:
+            seed._path.pop()
+        else:
+            seed._path.append(k)
+
         # find sign of k-th c-vector
         if any(x > 0 for x in seed._C.column(k)):
             eps = +1
@@ -136,14 +142,13 @@ class ClusterAlgebraSeed(SageObject):
         J[k,k] = -1
         seed._G = seed._G*J
 
-        # F-polynomials
-        # TODO: we should record the path to g-vectors anyway; maybe the best
-        # options is to go back to _f_poly_dict and have a separate _paths_dict
-        # for this.
-        if mutating_F:
-            g_vector = seed.g_vector(k)
-            if g_vector not in seed.parent().g_vectors_so_far():
-                seed.parent()._data_dict[g_vector] = (seed._mutated_F(k, old_g_vector), seed._path+[k]) 
+        # g-vector path list
+        g_vector = seed.g_vector(k)
+        if g_vector not in seed.parent().g_vectors_so_far():
+            seed.parent()._path_dict[g_vector] = copy(seed._path)
+            # F-polynomials
+            if mutating_F:
+                seed.parent()._F_poly_dict[g_vector] = seed._mutated_F(k, old_g_vector)
 
         # C-matrix
         J = identity_matrix(n)
@@ -154,12 +159,6 @@ class ClusterAlgebraSeed(SageObject):
 
         # B-matrix
         seed._B.mutate(k)
-
-        # store mutation path
-        if seed._path != [] and seed._path[-1] == k:
-            seed._path.pop()
-        else:
-            seed._path.append(k)
 
         # wrap up
         if not inplace:
@@ -249,8 +248,8 @@ class ClusterAlgebra(Parent):
 
         # dictionary of already computed data:
         # index is the g-vector, first entry is the F-polynomial, second entry is path from initial seed
-        self._data_dict = dict([ (tuple(v), (self._U(1),[])) for v in I.columns() ])
-
+        self._F_poly_dict = dict([ (tuple(v), self._U(1)) for v in I.columns() ])
+        self._path_dict = dict([ (tuple(v), []) for v in I.columns() ])
         base = LaurentPolynomialRing(scalars, 'x', n)
         # TODO: understand why using CommutativeAlgebras() instead of Rings() makes A(1) complain of missing _lmul_
         Parent.__init__(self, base=base, category=Rings(scalars).Subobjects())
@@ -299,14 +298,15 @@ class ClusterAlgebra(Parent):
         r"""
         Return the g-vectors of cluster variables encountered so far.
         """
-        return self._data_dict.keys()
+        return self._path_dict.keys()
 
     def F_polynomial(self, g_vector):
         g_vector= tuple(g_vector)
         try:
-            return self._data_dict[g_vector][0]
+            return self._F_poly_dict[g_vector]
         except:
-            # TODO: improve this error message
+            # TODO: improve this error message to include the case in which we
+            # already know the path
             raise ValueError("This F-polynomial has not been computed yet. Did you explore the tree with compute_F=False ?")
 
     @cached_method(key=lambda a,b: tuple(b) )
@@ -336,7 +336,7 @@ class ClusterAlgebra(Parent):
             except:
                 raise ValueError("Could not find a cluster variable with g-vector %s after %s mutations."%(str(g_vector),str(mutation_counter)))
             mutation_counter += 1
-        return copy(self._data_dict[g_vector][1])
+        return copy(self._path_dict[g_vector])
 
     def ambient(self):
         return self._ambient

@@ -770,12 +770,6 @@ class GenericProduct(CartesianProductPosets, GenericGrowthGroup):
         return pushout(cartesian_product(newS), cartesian_product(newO))
 
 
-        #C = other.construction()[0]
-        #if isinstance(C, PolynomialFunctor):
-        #    return pushout(self, CartesianProductPolys((other,)))
-
-
-
     def gens_monomial(self):
         r"""
         Return a tuple containing generators of this growth group.

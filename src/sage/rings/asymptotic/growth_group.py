@@ -1687,11 +1687,36 @@ class GenericGrowthGroup(
 from sage.categories.pushout import ConstructionFunctor
 class AbstractGrowthGroupFunctor(ConstructionFunctor):
     r"""
+    A base class for the functors constructing growth groups.
+
+    INPUT:
+
+    - ``var`` -- a string or list of strings (or anything else
+      :class:`Variable` accepts).
+
+    - ``domain`` -- a category.
+
+    EXAMPLES::
+
+        sage: from sage.rings.asymptotic.growth_group import GrowthGroup
+        sage: GrowthGroup('z^QQ').construction()[0]  # indirect doctest
+        MonomialGrowthGroup[z]
     """
+
     _functor_name = 'AbstractGrowthGroup'
+
     rank = 13
 
     def __init__(self, var, domain):
+        r"""
+        See :class:`AbstractGrowthGroupFunctor` for details.
+
+        TESTS::
+
+            sage: from sage.rings.asymptotic.growth_group import AbstractGrowthGroupFunctor
+            sage: AbstractGrowthGroupFunctor('x', Groups())
+            AbstractGrowthGroup[x]
+        """
         if var is None:
             var = Variable('')
         elif not isinstance(var, Variable):
@@ -1702,19 +1727,95 @@ class AbstractGrowthGroupFunctor(ConstructionFunctor):
 
 
     def _repr_(self):
+        r"""
+        Return a representation string of this functor.
+
+        OUTPUT:
+
+        A string.
+
+        TESTS::
+
+            sage: from sage.rings.asymptotic.growth_group import GrowthGroup
+            sage: GrowthGroup('QQ^t').construction()[0]  # indirect doctest
+            ExponentialGrowthGroup[t]
+        """
         return '%s[%s]' % (self._functor_name, self.var)
 
 
     def merge(self, other):
+        r"""
+        Merge this functor with ``other`` of possible.
+
+        INPUT:
+
+        - ``other`` -- a functor.
+
+        OUTPUT:
+
+        A functor or ``None``.
+
+        EXAMPLES::
+
+            sage: from sage.rings.asymptotic.growth_group import GrowthGroup
+            sage: F = GrowthGroup('QQ^t').construction()[0]
+            sage: G = GrowthGroup('t^QQ').construction()[0]
+            sage: F.merge(F)
+            ExponentialGrowthGroup[t]
+            sage: F.merge(G) is None
+            True
+        """
         if self == other:
             return self
 
 
     def __eq__(self, other):
+        r"""
+        Return if this functor is equal to ``other``.
+
+        INPUT:
+
+        - ``other`` -- a functor.
+
+        OUTPUT:
+
+        A boolean.
+
+        EXAMPLES::
+
+            sage: from sage.rings.asymptotic.growth_group import GrowthGroup
+            sage: F = GrowthGroup('QQ^t').construction()[0]
+            sage: G = GrowthGroup('t^QQ').construction()[0]
+            sage: F == F
+            True
+            sage: F == G
+            False
+        """
         return type(self) == type(other) and self.var == other.var
 
 
     def __ne__(self, other):
+        r"""
+        Return if this functor is not equal to ``other``.
+
+        INPUT:
+
+        - ``other`` -- a functor.
+
+        OUTPUT:
+
+        A boolean.
+
+        EXAMPLES::
+
+            sage: from sage.rings.asymptotic.growth_group import GrowthGroup
+            sage: F = GrowthGroup('QQ^t').construction()[0]
+            sage: G = GrowthGroup('t^QQ').construction()[0]
+            sage: F != F
+            False
+            sage: F != G
+            True
+        """
         return not self.__eq__(other)
 
 
@@ -2188,6 +2289,18 @@ class MonomialGrowthGroup(GenericGrowthGroup):
 
 class MonomialGrowthGroupFunctor(AbstractGrowthGroupFunctor):
     r"""
+    A construction functor for :class:`monomial growth groups <MonomialGrowthGroup>`.
+
+    INPUT:
+
+    - ``var`` -- a string or list of strings (or anything else
+      :class:`Variable` accepts).
+
+    EXAMPLES::
+
+        sage: from sage.rings.asymptotic.growth_group import GrowthGroup, MonomialGrowthGroupFunctor
+        sage: GrowthGroup('z^QQ').construction()[0]
+        MonomialGrowthGroup[z]
 
     TESTS::
 
@@ -2203,11 +2316,38 @@ class MonomialGrowthGroupFunctor(AbstractGrowthGroupFunctor):
 
 
     def __init__(self, var):
+        r"""
+        See :class:`MonomialGrowthGroupFunctor` for details.
+
+        TESTS::
+
+            sage: from sage.rings.asymptotic.growth_group import MonomialGrowthGroupFunctor
+            sage: MonomialGrowthGroupFunctor('x')
+            MonomialGrowthGroup[x]
+        """
         super(MonomialGrowthGroupFunctor, self).__init__(var,
             sage.categories.commutative_additive_monoids.CommutativeAdditiveMonoids())
 
 
     def _apply_functor(self, base):
+        r"""
+        Apply this functor to the given ``base``.
+
+        INPUT:
+
+        - ``base`` - anything :class:`MonomialGrowthGroup` accepts.
+
+        OUTPUT:
+
+        A monomial growth group.
+
+        EXAMPLES::
+
+            sage: from sage.rings.asymptotic.growth_group import GrowthGroup
+            sage: F, R = GrowthGroup('z^QQ').construction()
+            sage: F(R)  # indirect doctest
+            Growth Group z^QQ
+        """
         return MonomialGrowthGroup(base, self.var)
 
 
@@ -2616,6 +2756,19 @@ class ExponentialGrowthGroup(GenericGrowthGroup):
 
 class ExponentialGrowthGroupFunctor(AbstractGrowthGroupFunctor):
     r"""
+    A construction functor for
+    :class:`exponential growth groups <ExponentialGrowthGroup>`.
+
+    INPUT:
+
+    - ``var`` -- a string or list of strings (or anything else
+      :class:`Variable` accepts).
+
+    EXAMPLES::
+
+        sage: from sage.rings.asymptotic.growth_group import GrowthGroup, ExponentialGrowthGroupFunctor
+        sage: GrowthGroup('QQ^z').construction()[0]
+        ExponentialGrowthGroup[z]
 
     TESTS::
 
@@ -2631,11 +2784,38 @@ class ExponentialGrowthGroupFunctor(AbstractGrowthGroupFunctor):
 
 
     def __init__(self, var):
+        r"""
+        See :class:`ExponentialGrowthGroupFunctor` for details.
+
+        TESTS::
+
+            sage: from sage.rings.asymptotic.growth_group import ExponentialGrowthGroupFunctor
+            sage: ExponentialGrowthGroupFunctor('x')
+            ExponentialGrowthGroup[x]
+        """
         super(ExponentialGrowthGroupFunctor, self).__init__(var,
             sage.categories.monoids.Monoids())
 
 
     def _apply_functor(self, base):
+        r"""
+        Apply this functor to the given ``base``.
+
+        INPUT:
+
+        - ``base`` - anything :class:`ExponentialGrowthGroup` accepts.
+
+        OUTPUT:
+
+        An exponential growth group.
+
+        EXAMPLES::
+
+            sage: from sage.rings.asymptotic.growth_group import GrowthGroup
+            sage: F, R = GrowthGroup('QQ^z').construction()
+            sage: F(R)  # indirect doctest
+            Growth Group QQ^z
+        """
         return ExponentialGrowthGroup(base, self.var)
 
 

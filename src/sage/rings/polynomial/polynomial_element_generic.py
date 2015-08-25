@@ -728,25 +728,24 @@ class Polynomial_generic_sparse(Polynomial):
 
     def gcd(self,other,algorithm=None):
         """
-        Return the gcd of ``self`` and ``other``
+        Return the gcd of this polynomial and ``other``
 
         INPUT:
 
-        - ``other`` -- a polynomial defined over the same ring as ``self``
+        - ``other`` -- a polynomial defined over the same ring as this
+          polynomial.
 
-        Three algorithms are available:
+        ALGORITHM:
 
-        - "dense": The polynomials are converted to the dense representation,
-            their gcd are computed and is converted back to the sparse
-            representation.
-        - "fraction_field": The polynomials are coerced to the ring of
-            polynomials over the fraction field of their base ring. It won't
-            work with non integral domain as base rings. The gcd method is
-            called with the "dense" algorithm, in case there is no specific
-            sparse gcd method for the fraction field.
-        - "pseudo-division": Uses the gcd method of the class Polynomial.
+        Two algorithms are provided:
 
-        Default is "dense" for polynomials over ZZ and "pseudo-division" in the
+        - ``generic``: Uses the generic implementation, which depends on the
+          base ring being a UFD or a field.
+        - ``dense``: The polynomials are converted to the dense representation,
+          their gcd is computed and is converted back to the sparse
+          representation.
+
+        Default is ``dense`` for polynomials over ZZ and ``generic`` in the
         other cases.
 
         EXAMPLES::
@@ -758,14 +757,12 @@ class Polynomial_generic_sparse(Polynomial):
             x^2 + x + 1
             sage: gcd(p, q, algorithm = "dense")
             x^2 + x + 1
-            sage: gcd(p, q, algorithm = "fraction_field")
+            sage: gcd(p, q, algorithm = "generic")
             x^2 + x + 1
-            sage: gcd(p, q, algorithm = "pseudo-division")
-            x^2 + x + 1
-
-        AUTHORS:
-
-        - Bruno Grenet (2014-06-25)
+            sage: gcd(p, q, algorithm = "foobar")
+            Traceback (most recent call last):
+            ...
+            ValueError: Unknown algorithm 'foobar'
         """
 
         from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
@@ -775,7 +772,7 @@ class Polynomial_generic_sparse(Polynomial):
             if self.base_ring() == ZZ:
                 algorithm = "dense"
             else:
-                algorithm = "pseudo-division"
+                algorithm = "generic"
         if algorithm=="dense":
             S = self.parent()
             # FLINT is faster but a bug makes the conversion extremely slow,
@@ -791,14 +788,7 @@ class Polynomial_generic_sparse(Polynomial):
             D = PolynomialRing(S.base_ring(),'x',implementation=implementation)
             g = D(self).gcd(D(other))
             return S(g)
-        if algorithm=="fraction_field":
-            R = self.parent().base_ring()
-            F = R.fraction_field()
-            S = PolynomialRing(F,'x',sparse=True)
-            g = S(self).gcd(S(other),algorithm="dense")
-            d = lcm([gg.denominator() for gg in g.coefficients()])
-            return self.parent()(d*g)
-        if algorithm=="pseudo-division":
+        elif algorithm=="generic":
             return Polynomial.gcd(self,other)
         else:
             raise ValueError("Unknown algorithm '%s'" % algorithm)

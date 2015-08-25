@@ -197,6 +197,13 @@ class ClusterAlgebraSeed(SageObject):
     def path_form_initial_seed(self):
         return copy(self._path)
 
+    # TODO: ideally we should allow to mutate in direction "this g-vector" or
+    # "this cluster variable" or "sink", "urban renewal" and all the other
+    # options provided by Gregg et al. To do so I guess the best option is to
+    # have a generic function transforming all these into an index and use it as
+    # a decorator. In this way we can also use it in this __contains__ even
+    # though one may write weird things like "sink" in A.current_seed and get
+    # True as an answer.
     def __contains__(self, element):
         if isinstance(element, ClusterAlgebraElement ):
             cluster = [ self.cluster_variable(i) for i in xrange(self.parent().rk) ]

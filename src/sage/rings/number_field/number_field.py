@@ -379,6 +379,40 @@ def NumberField(polynomial, name=None, check=True, names=None, embedding=None, l
         sage: sqrtn3 + zeta
         2*zeta^5 + zeta + 1
 
+    Since SageMath 6.9, number fields may be defined by polynomials
+    that are not necessarily integral or monic.  The only notable
+    practical point is that in the PARI interface, a monic integral
+    polynomial defining the same number field is computed and used::
+
+        sage: K.<a> = NumberField(2*x^3 + x + 1)
+        sage: K.pari_polynomial()
+        x^3 - x^2 - 2
+
+    Elements and ideals may be converted to and from PARI as follows::
+
+        sage: pari(a)
+        Mod(-1/2*y^2 + 1/2*y, y^3 - y^2 - 2)
+        sage: K(pari(a))
+        a
+        sage: I = K.ideal(a); I
+        Fractional ideal (a)
+        sage: I.pari_hnf()
+        [1, 0, 0; 0, 1, 0; 0, 0, 1/2]
+        sage: K.ideal(I.pari_hnf())
+        Fractional ideal (a)
+
+    Here is an example where the field has non-trivial class group::
+
+        sage: L.<b> = NumberField(3*x^2 - 1/5)
+        sage: L.pari_polynomial()
+        x^2 - 15
+        sage: J = L.primes_above(2)[0]; J
+        Fractional ideal (2, 15*b + 1)
+        sage: J.pari_hnf()
+        [2, 1; 0, 1]
+        sage: L.ideal(J.pari_hnf())
+        Fractional ideal (2, 15*b + 1)
+
     An example involving a variable name that defines a function in
     PARI::
 

@@ -1504,7 +1504,7 @@ class BraidGroup_class(FinitelyPresentedGroup):
             # which takes a collection of partial basis elements, given in
             # terms of trivalent trees (i.e. a 'forest') and extends each of
             # the trees by one branch.
-            if len(forest) == 0:
+            if not forest:
                 raise ValueError("Forest has to start with a tree")
             if forest[0][0]+treesize % 2 == 0:
                 raise ValueError("Parity mismatch in forest creation")

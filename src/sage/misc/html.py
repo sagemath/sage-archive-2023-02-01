@@ -163,12 +163,28 @@ _old_and_deprecated_behavior = False
 def old_and_deprecated_wrapper(method):
     """
     Wrapper to reinstate the old behavior of ``html``
+
+    See :trac:`18292`.
+
+    EXAMPLES::
+
+        sage: from sage.misc.html import old_and_deprecated_wrapper
+        sage: @old_and_deprecated_wrapper
+        ....: def foo(): 
+        ....:     return 'foo'
+        sage: foo()
+        'foo'
+        sage: import sage.misc.html
+        sage: sage.misc.html._old_and_deprecated_behavior = True
+        sage: foo()
+        <html>foo</html>
+        sage: sage.misc.html._old_and_deprecated_behavior = False
     """
     def wrapped(*args, **kwds):
         output = method(*args, **kwds)
         if _old_and_deprecated_behavior:
             # workaround for the old SageNB interacts
-            print(output)
+            print('<html>{0}</html>'.format(output))
         else:
             return output
     return wrapped

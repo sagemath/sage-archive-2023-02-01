@@ -108,14 +108,14 @@ class ClusterAlgebraSeed(SageObject):
 
     def c_matrix(self):
         return copy(self._C)
-
+    
     def mutate(self, k, inplace=True, mutating_F=True):
         if inplace:
             seed = self
         else:
             seed = copy(self)
 
-        n = self.parent().rk
+        n = seed.parent().rk
 
         if k not in xrange(n):
             raise ValueError('Cannot mutate in direction ' + str(k) + '.')
@@ -127,7 +127,7 @@ class ClusterAlgebraSeed(SageObject):
             eps = -1
 
         # store the g-vector to be mutated in case we are mutating also F-polynomials
-        old_g_vector = self.g_vector(k)
+        old_g_vector = seed.g_vector(k)
 
         # G-matrix
         J = identity_matrix(n)
@@ -138,9 +138,9 @@ class ClusterAlgebraSeed(SageObject):
 
         # F-polynomials
         if mutating_F:
-            g_vector = self.g_vector(k)
-            if g_vector not in self.parent().g_vectors_so_far():
-                self.parent()._data_dict.setdefault( g_vector, (self._mutated_F(k, old_g_vector), self._path+[k]) )
+            g_vector = seed.g_vector(k)
+            if g_vector not in seed.parent().g_vectors_so_far():
+                seed.parent()._data_dict[g_vector] = (seed._mutated_F(k, old_g_vector), seed._path+[k]) 
 
         # C-matrix
         J = identity_matrix(n)
@@ -193,6 +193,14 @@ class ClusterAlgebraSeed(SageObject):
 
     def path_form_initial_seed(self):
         return copy(self._path)
+
+    def __contains__(self, element):
+        if isinstance(element, ClusterAlgebraElement ):
+            cluster = [ self.cluster_variable(i) for i in xrange(self.parent().rk) ]
+        else:
+            element = tuple(element)
+            cluster = map( tuple, self.g_matrix().columns() )
+        return element in cluster
 
 
 ####
@@ -291,8 +299,9 @@ class ClusterAlgebra(Parent):
             # TODO: improve this error message
             raise ValueError("This F-polynomial has not been computed yet. Did you explore the tree with compute_F=False ?")
 
-    @cached_method(key=lambda a,b: tuple(a) )
+    @cached_method(key=lambda a,b: tuple(b) )
     def cluster_variable(self, g_vector):
+        g_vector = tuple(g_vector)
         if not g_vector in self.g_vectors_so_far():
             raise ValueError("This Cluster Variable has not been computed yet.")
         g_mon = prod([self.ambient().gen(i)**g_vector[i] for i in xrange(self.rk)])

@@ -92,7 +92,7 @@ A typical element of this ring is
 
 ::
 
-    sage: A.an_element()  # not tested
+    sage: A.an_element()
     -z^(3/2) + O(z^(1/2))
 
 This element consists of two summands: the exact term with coefficient
@@ -1335,6 +1335,72 @@ class AsymptoticRing(sage.rings.ring.Ring,
         except TypeError:
             G = repr(self.growth_group)
         return 'Asymptotic Ring %s over %s' % (G, self.coefficient_ring)
+
+
+    def _an_element_(self):
+        r"""
+        Return an element of this asymptotic ring.
+
+        INPUT:
+
+        Nothing.
+
+        OUTPUT:
+
+        An :class:`AsymptoticExpression`.
+
+        EXAMPLES::
+
+            sage: AsymptoticRing(growth_group='z^QQ', coefficient_ring=ZZ).an_element()
+            -z^(3/2) + O(z^(1/2))
+            sage: AsymptoticRing(growth_group='z^ZZ', coefficient_ring=QQ).an_element()
+            -1/8*z^3 + O(z)
+            sage: AsymptoticRing(growth_group='z^QQ', coefficient_ring=QQ).an_element()
+            -1/8*z^(3/2) + O(z^(1/2))
+        """
+        from sage.rings.asymptotic.term_monoid import TermMonoid
+        E = TermMonoid('exact', self.growth_group, self.coefficient_ring)
+        O = TermMonoid('O', self.growth_group, self.coefficient_ring)
+        return -self(E.an_element())**3 + self(O.an_element())
+
+
+    def some_elements(self):
+        r"""
+        Return some elements of this term monoid.
+
+        See :class:`TestSuite` for a typical use case.
+
+        INPUT:
+
+        Nothing.
+
+        OUTPUT:
+
+        An iterator.
+
+        EXAMPLES:
+
+            sage: from itertools import islice
+            sage: A = AsymptoticRing(growth_group='z^QQ', coefficient_ring=ZZ)
+            sage: tuple(islice(A.some_elements(), 10))
+            (-z^(3/2) + O(z^(1/2)),
+             -z^(3/2) + O(z^(-1/2)),
+             z^(3/2) + O(z^(1/2)),
+             O(z^2),
+             z^(3/2) + O(z^(-1/2)),
+             O(z^(1/2)),
+             -z^(3/2) + O(z^(-2)),
+             O(z^2),
+             O(z^(-1/2)),
+             -8*z^(3/2) + O(z^(1/2)))
+        """
+        from sage.rings.asymptotic.term_monoid import product_diagonal
+        from sage.rings.asymptotic.term_monoid import TermMonoid
+        E = TermMonoid('exact', self.growth_group, self.coefficient_ring)
+        O = TermMonoid('O', self.growth_group, self.coefficient_ring)
+        return iter(-self(e)**3 + self(o)
+                    for e, o in product_diagonal(
+                            E.some_elements(), O.some_elements()))
 
 
     def gens(self):

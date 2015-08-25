@@ -70,10 +70,35 @@ def O(*x, **kwds):
         11^-12 + O(11^15)
         sage: K(11^-12, 15)
         11^-12 + O(11^15)
+
+    TESTS::
+
+        sage: var('x, y')
+        (x, y)
+        sage: O(x)
+        Traceback (most recent call last):
+        ...
+        ArithmeticError: O(x) not defined
+        sage: O(y)
+        Traceback (most recent call last):
+        ...
+        ArithmeticError: O(y) not defined
+        sage: O(x, y)
+        Traceback (most recent call last):
+        ...
+        ArithmeticError: O(x, y) not defined
+        sage: O(4, 2)
+        Traceback (most recent call last):
+        ...
+        ArithmeticError: O(4, 2) not defined
     """
     if len(x) > 1:
         if isinstance(x[0], multi_power_series_ring_element.MPowerSeries):
             return multi_power_series_ring_element.MO(x, **kwds)
+        else:
+            raise ArithmeticError("O(%s) not defined" %
+                                  (', '.join(str(e) for e in x),))
+
     x = x[0]
 
     if isinstance(x, power_series_ring_element.PowerSeries):
@@ -111,5 +136,4 @@ def O(*x, **kwds):
          return x.parent()(0, absprec=x.valuation(), **kwds)
     elif hasattr(x, 'O'):
         return x.O(**kwds)
-    raise ArithmeticError("O(x) not defined")
-
+    raise ArithmeticError("O(%s) not defined" % (x,))

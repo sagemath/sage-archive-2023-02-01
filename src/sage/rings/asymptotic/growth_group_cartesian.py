@@ -1,6 +1,8 @@
 r"""
 Growth Groups as Cartesian Products
 
+See :mod:`sage.rings.asymptotic.growth_group` for a description.
+
 AUTHORS:
 
 - Daniel Krenn (2015-06-02): cartesian products

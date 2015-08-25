@@ -1985,7 +1985,7 @@ class ExactTerm(TermWithCoefficient):
         except ZeroDivisionError:
             raise ZeroDivisionError('Cannot invert %s since its coefficient %s '
                                     'cannot be inverted.' % (self, self.coefficient))
-        return self.parent()(~self.growth, self.coefficient)
+        return self.parent()(~self.growth, c)
 
 
     def _can_absorb_(self, other):

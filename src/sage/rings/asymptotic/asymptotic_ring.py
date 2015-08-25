@@ -209,6 +209,46 @@ Selected Technical Details
 Coercions and Functorial Constructions
 --------------------------------------
 
+Data Structures
+---------------
+
+The summands of an
+:class:`asymptotic expression <AsymptoticExpression>' are wrapped
+:mod:`growth group elements <sage.rings.asymptotic.growth_group>`.
+This wrapping is done by the
+:mod:`term monoid module <sage.rings.asymptotic.term_monoid>`.
+However, inside an
+:class:`asymptotic expression <AsymptoticExpression>' these summands
+(terms) are stored together with their growth-relationship, i.e., each
+summand knows its direct predecessors and successors. As a data
+structure a special poset (namely a
+:mod:`mutable poset <sage.data_structures.mutable_poset>`)
+is used. We can have a look at this::
+
+    sage: b = x^3*y + x^2*y + x*y^2 + O(x) + O(y)
+    sage: print b.summands.repr_full(reverse=True)
+    poset(x * y^2, x^3 * y, x^2 * y, O(x), O(y))
+    +-- oo
+    |   +-- no successors
+    |   +-- predecessors:   x * y^2, x^3 * y
+    +-- x * y^2
+    |   +-- successors:   oo
+    |   +-- predecessors:   O(x), O(y)
+    +-- x^3 * y
+    |   +-- successors:   oo
+    |   +-- predecessors:   x^2 * y
+    +-- x^2 * y
+    |   +-- successors:   x^3 * y
+    |   +-- predecessors:   O(x), O(y)
+    +-- O(x)
+    |   +-- successors:   x * y^2, x^2 * y
+    |   +-- predecessors:   null
+    +-- O(y)
+    |   +-- successors:   x * y^2, x^2 * y
+    |   +-- predecessors:   null
+    +-- null
+    |   +-- successors:   O(x), O(y)
+    |   +-- no predecessors
 
 AUTHORS:
 

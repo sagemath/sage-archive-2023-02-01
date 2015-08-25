@@ -157,7 +157,7 @@ def repr_short_to_parent(s):
         Traceback (most recent call last):
         ...
         ValueError: Cannot create a parent out of 'abcdef'.
-        previous: NameError: name 'abcdef' is not defined
+        > *previous* NameError: name 'abcdef' is not defined
     """
     from sage.misc.sage_eval import sage_eval
     try:
@@ -270,9 +270,9 @@ def split_str_by_mul(string):
     return tuple(strip(f) for f in factors)
 
 
-def combine_exceptions(e, f):
+def combine_exceptions(e, *f):
     r"""
-    Helper function which combines the messages of the two given exceptions.
+    Helper function which combines the messages of the given exceptions.
 
     EXAMPLES::
 
@@ -281,9 +281,30 @@ def combine_exceptions(e, f):
         Traceback (most recent call last):
         ...
         ValueError: Outer.
-        previous: TypeError: Inner.
+        > *previous* TypeError: Inner.
+        sage: raise combine_exceptions(ValueError('Outer.'),
+        ....:                          TypeError('Inner1.'), TypeError('Inner2.'))
+        Traceback (most recent call last):
+        ...
+        ValueError: Outer.
+        > *previous* TypeError: Inner1.
+        > *and* TypeError: Inner2.
+        sage: raise combine_exceptions(ValueError('Outer.'),
+        ....:                          combine_exceptions(TypeError('Middle.'),
+        ....:                                             TypeError('Inner.')))
+        Traceback (most recent call last):
+        ...
+        ValueError: Outer.
+        > *previous* TypeError: Middle.
+        >> *previous* TypeError: Inner.
     """
-    e.args = ("%s\nprevious: %s: %s" % (e.args[0], f.__class__.__name__, str(f)),)
+    import re
+    msg = ('\n *previous* ' +
+           '\n *and* '.join("%s: %s" % (ff.__class__.__name__, str(ff)) for ff in f))
+    msg = re.sub(r'^([>]* \*previous\*)', r'>\1', msg, flags=re.MULTILINE)
+    msg = re.sub(r'^([>]* \*and\*)', r'>\1', msg, flags=re.MULTILINE)
+    msg = str(e.args if len(e.args) > 1 else e.args[0]) + msg
+    e.args = (msg,)
     return e
 
 

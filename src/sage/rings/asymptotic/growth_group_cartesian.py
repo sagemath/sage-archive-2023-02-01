@@ -427,13 +427,13 @@ class GenericProduct(CartesianProductPosets, GenericGrowthGroup):
             Traceback (most recent call last):
             ...
             ValueError: ['2^log(x)'] is not in Growth Group QQ^x * x^QQ.
-            previous: ValueError: 2^log(x) is not in any of the factors of
+            > *previous* ValueError: 2^log(x) is not in any of the factors of
             Growth Group QQ^x * x^QQ
             sage: GrowthGroup('QQ^x * x^QQ')(['2^log(x)', 'x^55'])
             Traceback (most recent call last):
             ...
             ValueError: ['2^log(x)', 'x^55'] is not in Growth Group QQ^x * x^QQ.
-            previous: ValueError: 2^log(x) is not in any of the factors of
+            > *previous* ValueError: 2^log(x) is not in any of the factors of
             Growth Group QQ^x * x^QQ
         """
         def convert_factors(data, raw_data):

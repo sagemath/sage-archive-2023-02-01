@@ -1,9 +1,8 @@
 r"""
 Asymptotic Ring
 
-This module implements a ring (called :class:`AsymptoticRing`) for
-computations with :class:`asymptotic expressions
-<AsymptoticExpression>`.
+This module provides a ring (called :class:`AsymptoticRing`) for
+computations with asymptotic expressions.
 
 Definition
 ==========
@@ -15,7 +14,7 @@ An asymptotic expression is a sum; its summands are the following:
 
 - `O`-terms `O(g)` (see :wikipedia:`Big O notation <Big_O_notation>`;
   also called *Bachmann--Landau notation*) for some :mod:`growth group
-  element <sage.groups.asymptotic_growth_group>` `g` (:ref:`see below
+  element <sage.rings.asymptotic.growth_group>` `g` (:ref:`see below
   <asymptotic_ring_growth>`).
 
 Examples of such elements can found :ref:`below <asymptotic_ring_intro>`.
@@ -27,7 +26,7 @@ Growth Elements
 
 The elements of a :mod:`growth group
 <sage.rings.asymptotic.growth_group>` are equipped with a partial
-ordering and usually contains a variable. Examples are (among many
+ordering and usually contain a variable. Examples are (among many
 other possibilities)
 
 - elements of the form `z^q` for some integer or rational `q` (growth
@@ -121,6 +120,9 @@ With the asymptotic rings constructed above (or more precisely with
 their elements) we can do a lot of different arithmetical
 calculations.
 
+The Ring Operations Plus and Times
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
 We start our calculations in the ring
 
 ::
@@ -156,6 +158,9 @@ where the result is simplified automatically. More advanced
     sage: (z + 2*z^2 + 3*z^3 + 4*z^4) * (O(z) + z^2)
     4*z^6 + O(z^5)
 
+Division
+^^^^^^^^
+
 The asymptotic expressions support division. For example, we get can
 expand `1/(1-z)` to a geometric series::
 
@@ -180,6 +185,9 @@ Note that not all elements are invertible, for instance,
 
 is not invertible, since it includes `0`.
 
+Multivariate Arithemtic
+^^^^^^^^^^^^^^^^^^^^^^^
+
 Now let us move on to arithmetic in the multivariate ring
 
 ::
@@ -194,6 +202,13 @@ More Examples
 .. TODO::
 
     write more examples
+
+Selected Technical Details
+==========================
+
+Coercions and Functorial Constructions
+--------------------------------------
+
 
 AUTHORS:
 
@@ -444,10 +459,9 @@ class AsymptoticExpression(sage.rings.ring_element.RingElement):
             While for example ``O(x) == O(x)`` yields ``False``,
             these expressions *do* have the same summands.
 
-            Also, this method uses the coercion model in order to
+            Moreover, this method uses the coercion model in order to
             find a common parent for this asymptotic expression and
-            ``other``. The method :meth:`_has_same_summands_` is
-            then used for the actual comparison.
+            ``other``.
 
         EXAMPLES::
 

@@ -73,7 +73,9 @@ growth group.
 Here are some examples::
 
     sage: GrowthGroup('z^ZZ')
+    Growth Group z^ZZ
     sage: GrowthGroup('z^QQ')
+    Growth Group z^QQ
 
 Each of these two generated groups is a :class:`MonomialGrowthGroup`,
 whose elements are powers of a fixed symbol (above ``'z'``).
@@ -81,34 +83,41 @@ whose elements are powers of a fixed symbol (above ``'z'``).
 Similarly, we can construct logarithmic factors by::
 
     sage: GrowthGroup('log(z)^QQ')
+    Growth Group log(z)^QQ
 
 which again creates a
 :class:`MonomialGrowthGroup`. An :class:`ExponentialGrowthGroup` is generated in the same way. Our factory gives
 ::
 
     sage: E = GrowthGroup('QQ^z'); E
+    Growth Group QQ^z
 
 and a typical element looks like this::
 
     sage: E.an_element()
+    (1/2)^z
 
 More complex groups are created in a similar fashion. For example
 
-    sage: C = GrowthGroup('QQ^z * z^QQ * log(z)^QQ')
+    sage: C = GrowthGroup('QQ^z * z^QQ * log(z)^QQ'); C
+    Growth Group QQ^z * z^QQ * log(z)^QQ
 
 This contains elements of the form
 
     sage: C.an_element()
+    (1/2)^z * z^(1/2) * log(z)^(1/2)
 
 The group `C` itself is a cartesian product; to be precise a
 :class:`~sage.rings.asymptotic.growth_group_cartesian.UnivariateProduct`. We
 can see its factors::
 
     sage: C.cartesian_factors()
+    (Growth Group QQ^z, Growth Group z^QQ, Growth Group log(z)^QQ)
 
 Multivariate constructions are also possible::
 
     sage: GrowthGroup('x^QQ * y^QQ')
+    Growth Group x^QQ * y^QQ
 
 This gives a
 :class:`~sage.rings.asymptotic.growth_group_cartesian.MultivariateProduct`.

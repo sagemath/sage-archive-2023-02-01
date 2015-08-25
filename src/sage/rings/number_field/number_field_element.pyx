@@ -34,6 +34,9 @@ include 'sage/ext/interrupt.pxi'
 from cpython.int cimport *
 include "sage/ext/stdsage.pxi"
 
+from sage.libs.gmp.mpz cimport *
+from sage.libs.gmp.mpq cimport *
+
 import sage.rings.field_element
 import sage.rings.infinity
 import sage.rings.polynomial.polynomial_element
@@ -53,8 +56,12 @@ from sage.categories.fields import Fields
 from sage.modules.free_module_element import vector
 
 from sage.libs.pari.all import pari_gen
+from sage.libs.pari.pari_instance cimport PariInstance
+
 from sage.structure.element cimport Element, generic_power_c
 from sage.structure.element import canonical_coercion, parent, coerce_binop
+
+cdef PariInstance pari = sage.libs.pari.pari_instance.pari
 
 QQ = sage.rings.rational_field.QQ
 ZZ = sage.rings.integer_ring.ZZ
@@ -322,30 +329,17 @@ cdef class NumberFieldElement(FieldElement):
             if f.type() in ["t_INT", "t_FRAC", "t_POL"]:
                 pass
             elif f.type() == "t_POLMOD":
-                # Check whether we are dealing with a *relative*
-                # number field element
-                if parent.is_relative():
-                    # If the modulus is a polynomial with polynomial
-                    # coefficients, then the element is relative.
-                    fmod = f.mod()
-                    for i from 0 <= i <= fmod.poldegree():
-                        if fmod.polcoeff(i).type() in ["t_POL", "t_POLMOD"]:
-                            # Convert relative element to absolute.
-                            # Sometimes the result is a polynomial,
-                            # sometimed a polmod. Lift to convert to a
-                            # polynomial in all cases.
-                            f = parent.pari_rnf().rnfeltreltoabs(f).lift()
-                            break
-                # Check that the modulus is actually the defining polynomial
-                # of the number field.
-                # Unfortunately, this check only works for absolute elements
-                # since the rnfeltreltoabs() destroys all information about
-                # the number field.
-                if f.type() == "t_POLMOD":
-                    fmod = f.mod()
-                    if fmod != parent.pari_polynomial(fmod.variable()):
-                        raise TypeError("Coercion of PARI polmod with modulus %s into number field with defining polynomial %s failed"%(fmod, parent.pari_polynomial()))
+                fmod = f.mod()
+                # If we are dealing with a *relative* number field
+                # element, convert it to an absolute element.
+                if parent.is_relative() and fmod == parent.pari_relative_polynomial():
+                    f = parent._pari_rnfeq()._eltreltoabs(f.liftpol())
+                # Check that the modulus is actually the defining
+                # polynomial of the number field.
+                elif fmod == parent.pari_polynomial(fmod.variable()):
                     f = f.lift()
+                else:
+                    raise TypeError("Coercion of PARI polmod with modulus %s into number field with defining polynomial %s failed"%(fmod, parent.pari_polynomial()))
             else:
                 f = parent.pari_nf().nfbasistoalg_lift(f)
         f = ppr(f)
@@ -578,6 +572,24 @@ cdef class NumberFieldElement(FieldElement):
         En = libgap(self.parent()).GeneratorsOfField()[0]
         return self.polynomial()(En)
 
+    def _pari_polynomial(self, name='y'):
+        """
+        Return a PARI polynomial representing ``self``.
+
+        TESTS:
+
+            sage: K.<a> = NumberField(x^3 + 2)
+            sage: K.zero()._pari_polynomial('x')
+            0
+            sage: K.one()._pari_polynomial()
+            1
+            sage: (a + 1)._pari_polynomial()
+            y + 1
+            sage: a._pari_polynomial('c')
+            c
+        """
+        return pari(self._coefficients()).Polrev(name)
+
     def _pari_(self, name='y'):
         r"""
         Return PARI representation of self.
@@ -671,17 +683,9 @@ cdef class NumberFieldElement(FieldElement):
             sage: c._pari_('c')
             Mod(c, c^12 + 2)
         """
-        try:
-            return self.__pari[name]
-        except KeyError:
-            pass
-        except TypeError:
-            self.__pari = {}
-        f = self.polynomial()._pari_or_constant(name)
+        f = self._pari_polynomial(name)
         g = self.number_field().pari_polynomial(name)
-        h = f.Mod(g)
-        self.__pari[name] = h
-        return h
+        return f.Mod(g)
 
     def _pari_init_(self, name='y'):
         """
@@ -777,7 +781,7 @@ cdef class NumberFieldElement(FieldElement):
         """
         return (<Element>left)._richcmp(right, op)
 
-    cdef int _cmp_c_impl(left, sage.structure.element.Element right) except -2:
+    cpdef int _cmp_(left, sage.structure.element.Element right) except -2:
         cdef NumberFieldElement _right = right
         return not (ZZX_equal(left.__numerator, _right.__numerator) and ZZ_equal(left.__denominator, _right.__denominator))
 
@@ -1348,7 +1352,7 @@ cdef class NumberFieldElement(FieldElement):
         x, q = self._pari_().rnfisnorm(rnf_data)
 
         # Convert x to an absolute element
-        x = L.pari_rnf().rnfeltreltoabs(x)
+        x = L._pari_rnfeq()._eltreltoabs(x.liftpol())
         return L(x), K(q)
 
     def _mpfr_(self, R):
@@ -2293,7 +2297,7 @@ cdef class NumberFieldElement(FieldElement):
             sage: SR(b.minpoly()).solve(SR('x'), explicit_solutions=True)
             []
             sage: SR(b)
-            1/8*((sqrt(4*(1/9*sqrt(109)*sqrt(3) + 2)^(1/3) - 4/3/(1/9*sqrt(109)*sqrt(3) + 2)^(1/3) + 17) + 5)^2 + 4)*(sqrt(4*(1/9*sqrt(109)*sqrt(3) + 2)^(1/3) - 4/3/(1/9*sqrt(109)*sqrt(3) + 2)^(1/3) + 17) + 5)
+            1/8*(sqrt(4*(1/9*sqrt(109)*sqrt(3) + 2)^(1/3) - 4/3/(1/9*sqrt(109)*sqrt(3) + 2)^(1/3) + 17) + 5)^3 + 1/2*sqrt(4*(1/9*sqrt(109)*sqrt(3) + 2)^(1/3) - 4/3/(1/9*sqrt(109)*sqrt(3) + 2)^(1/3) + 17) + 5/2
 
         """
         K = self._parent.fraction_field()
@@ -2588,41 +2592,32 @@ cdef class NumberFieldElement(FieldElement):
             True
 
         """
-        if self.__multiplicative_order is not None:
-            return self.__multiplicative_order
-
-        one = self.number_field().one()
-        infinity = sage.rings.infinity.infinity
-
-        if self == one:
-            self.__multiplicative_order = ZZ(1)
-            return self.__multiplicative_order
-        if self == -one:
-            self.__multiplicative_order = ZZ(2)
-            return self.__multiplicative_order
-
-        if isinstance(self.number_field(), number_field.NumberField_cyclotomic):
-            t = self.number_field()._multiplicative_order_table()
-            f = self.polynomial()
-            if f in t:
-                self.__multiplicative_order = t[f]
-                return self.__multiplicative_order
-            else:
+        if self.__multiplicative_order is None:
+            if self.is_rational():
+                if self.is_one():
+                    self.__multiplicative_order = ZZ(1)
+                elif (-self).is_one():
+                    self.__multiplicative_order = ZZ(2)
+                else:
+                    self.__multiplicative_order = sage.rings.infinity.infinity
+            elif not (self.is_integral() and self.norm().is_one()):
                 self.__multiplicative_order = sage.rings.infinity.infinity
-                return self.__multiplicative_order
+            elif isinstance(self.number_field(), number_field.NumberField_cyclotomic):
+                t = self.number_field()._multiplicative_order_table()
+                f = self.polynomial()
+                if f in t:
+                    self.__multiplicative_order = t[f]
+                else:
+                    self.__multiplicative_order = sage.rings.infinity.infinity
+            else:
+                # Now we have a unit of norm 1, and check if it is a root of unity
+                n = self.number_field().zeta_order()
+                if not self**n ==1:
+                    self.__multiplicative_order = sage.rings.infinity.infinity
+                else:
+                    from sage.groups.generic import order_from_multiple
+                    self.__multiplicative_order = order_from_multiple(self,n,operation='*')
 
-        if self.is_rational_c() or not self.is_integral() or not self.norm() ==1:
-            self.__multiplicative_order = infinity
-            return self.__multiplicative_order
-
-        # Now we have a unit of norm 1, and check if it is a root of unity
-
-        n = self.number_field().zeta_order()
-        if not self**n ==1:
-            self.__multiplicative_order = infinity
-            return self.__multiplicative_order
-        from sage.groups.generic import order_from_multiple
-        self.__multiplicative_order = order_from_multiple(self,n,operation='*')
         return self.__multiplicative_order
 
     def additive_order(self):
@@ -2640,11 +2635,79 @@ cdef class NumberFieldElement(FieldElement):
             sage: K.ring_of_integers().characteristic() # implicit doctest
             0
         """
-        if self == 0: return 1
+        if not self: return ZZ.one()
         else: return sage.rings.infinity.infinity
 
-    cdef bint is_rational_c(self):
-        return ZZX_deg(self.__numerator) == 0
+    cpdef bint is_one(self):
+        r"""
+        Test whether this number field element is `1`.
+
+        EXAMPLES::
+
+            sage: K.<a> = NumberField(x^3 + 3)
+            sage: K(1).is_one()
+            True
+            sage: K(0).is_one()
+            False
+            sage: K(-1).is_one()
+            False
+            sage: K(1/2).is_one()
+            False
+            sage: a.is_one()
+            False
+        """
+        return ZZX_IsOne(self.__numerator) == 1 and \
+               ZZ_IsOne(self.__denominator) == 1
+
+    cpdef bint is_rational(self):
+        r"""
+        Test whether this number field element is a rational number
+
+        .. SEEALSO:
+
+            - :meth:`is_integer` to test if this element is an integer
+            - :meth:`is_integral` to test if this element is an algebraic integer
+
+        EXAMPLES::
+
+            sage: K.<cbrt3> = NumberField(x^3 - 3)
+            sage: cbrt3.is_rational()
+            False
+            sage: (cbrt3**2 - cbrt3 + 1/2).is_rational()
+            False
+            sage: K(-12).is_rational()
+            True
+            sage: K(0).is_rational()
+            True
+            sage: K(1/2).is_rational()
+            True
+        """
+        return ZZX_deg(self.__numerator) <= 0
+
+    def is_integer(self):
+        r"""
+        Test whether this number field element is an integer
+
+        .. SEEALSO:
+
+            - :meth:`is_rational` to test if this element is a rational number
+            - :meth:`is_integral` to test if this element is an algebraic integer
+
+        EXAMPLES::
+
+            sage: K.<cbrt3> = NumberField(x^3 - 3)
+            sage: cbrt3.is_integer()
+            False
+            sage: (cbrt3**2 - cbrt3 + 2).is_integer()
+            False
+            sage: K(-12).is_integer()
+            True
+            sage: K(0).is_integer()
+            True
+            sage: K(1/2).is_integer()
+            False
+        """
+        return ZZX_deg(self.__numerator) <= 0 and ZZ_IsOne(self.__denominator) == 1
 
     def trace(self, K=None):
         """
@@ -4017,12 +4080,12 @@ cdef class NumberFieldElement_relative(NumberFieldElement):
             sage: L(e)
             a*b^2 + 1
 
-        This wrong modulus yields a PARI error::
+        A wrong modulus yields an error::
 
             sage: e = pari('Mod(y*x, x^4 + y^2*x + 2)'); L(e)
             Traceback (most recent call last):
             ...
-            PariError: inconsistent moduli in rnfeltreltoabs: x^4 + y^2*x + 2 != y^2 + y + 1
+            TypeError: Coercion of PARI polmod with modulus x^4 + y^2*x + 2 into number field with defining polynomial x^8 - x^5 + 4*x^4 + x^2 - 2*x + 4 failed
         """
         NumberFieldElement.__init__(self, parent, f)
 

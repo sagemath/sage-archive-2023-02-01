@@ -42,7 +42,7 @@ AUTHORS:
 - Daniel Krenn (2014-04-15): improved common docstring during review
 - Clemens Heuberger, Daniel Krenn, Sara Kropf (2014-04-16--2014-05-02):
   A couple of improvements. Details see
-  #16141, #16142, #16143, #16186.
+  :trac:`16141`, :trac:`16142`, :trac:`16143`, :trac:`16186`.
 - Sara Kropf (2014-04-29): weight transducer
 - Clemens Heuberger, Daniel Krenn (2014-07-18): transducers Wait, all,
   any
@@ -70,10 +70,12 @@ Functions and methods
 
 import collections
 import operator
+from sage.symbolic.operators import add_vararg, mul_vararg
 
 from sage.combinat.finite_state_machine import Transducer
 from sage.rings.integer_ring import ZZ
 from sage.rings.rational_field import QQ
+from functools import reduce
 
 class TransducerGenerators(object):
     r"""
@@ -125,7 +127,6 @@ class TransducerGenerators(object):
             [0, 1]
             sage: T.output_alphabet
             [0, 1]
-            sage: sage.combinat.finite_state_machine.FSMOldProcessOutput = False
             sage: T([0, 1, 0, 1, 1])
             [0, 1, 0, 1, 1]
 
@@ -183,7 +184,6 @@ class TransducerGenerators(object):
 
             Check some sequence::
 
-                sage: sage.combinat.finite_state_machine.FSMOldProcessOutput = False
                 sage: T([0, 1, 0, 1, 1, 0])
                 [0, 0, 1, 0, 0, 1]
 
@@ -201,7 +201,6 @@ class TransducerGenerators(object):
 
             Check some sequence::
 
-                sage: sage.combinat.finite_state_machine.FSMOldProcessOutput = False
                 sage: T([0, 1, 0, 1, 1, 0])
                 [0, 0, 0, 0, 1, 0]
 
@@ -226,7 +225,6 @@ class TransducerGenerators(object):
                  Transition from (1, 0, 1) to (): 2|0]
                 sage: input =  [0, 1, 0, 1, 0, 1, 0, 0, 1, 0, 1, 0, 2]
                 sage: output = [0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 1, 0]
-                sage: sage.combinat.finite_state_machine.FSMOldProcessOutput = False
                 sage: T(input) == output
                 True
 
@@ -750,7 +748,6 @@ class TransducerGenerators(object):
             sage: G = transducers.GrayCode()
             sage: G
             Transducer with 3 states
-            sage: sage.combinat.finite_state_machine.FSMOldProcessOutput = False
             sage: for v in srange(0, 10):
             ....:     print v, G(v.digits(base=2))
             0 []
@@ -989,7 +986,7 @@ class TransducerGenerators(object):
             if output == 0:
                 return []
             elif word_function is not None and output.operator() == word_function:
-                return list(map(convert_output, output.operands()))
+                return [convert_output(_) for _ in output.operands()]
             else:
                 return [convert_output(output)]
 
@@ -1034,7 +1031,7 @@ class TransducerGenerators(object):
             raise ValueError("%d is less than %d."
                              % (base_power_K, base))
 
-        if right_side.operator() == operator.add:
+        if right_side.operator() == add_vararg:
             function_calls = [o for o in right_side.operands()
                               if o.operator() == function]
             other_terms = [o for o in right_side.operands()
@@ -1647,7 +1644,8 @@ class TransducerGenerators(object):
 
             return ((c, j), output)
 
-        def transition_function((state_carry, state_level), input):
+        def transition_function(states2, input):
+            (state_carry, state_level) = states2
             ((carry, level), output) = recursion_transitions(
                 state_carry, state_level, False)
             # no more recursion transition is possible,

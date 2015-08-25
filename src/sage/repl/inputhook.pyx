@@ -20,20 +20,17 @@ disable Ctrl-C.
 include 'sage/ext/interrupt.pxi'
 
 cdef extern from 'pythonrun.h':
-    int (*PyOS_InputHook)() nogil except *
+    int (*PyOS_InputHook)() nogil except -1
 
 cdef extern from 'intrcheck.h':
     int PyOS_InterruptOccurred() nogil
 
-### See https://github.com/cython/cython/pull/313
-# from cpython.exc cimport PyErr_SetInterrupt
-### workaround
-    void PyErr_SetInterrupt() nogil
+from cpython.exc cimport PyErr_SetInterrupt
 
 from sage.repl.attach import reload_attached_files_if_modified
 
 
-cdef int c_sage_inputhook() nogil except *:
+cdef int c_sage_inputhook() nogil except -1:
     """
     This is the C function that is installed as PyOS_InputHook
     """
@@ -43,7 +40,6 @@ cdef int c_sage_inputhook() nogil except *:
         with gil:
             sage_inputhook()
             sig_check()
-    return 0
 
 def install():
     """

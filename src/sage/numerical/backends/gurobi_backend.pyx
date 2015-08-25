@@ -653,8 +653,8 @@ cdef class GurobiBackend(GenericBackend):
             sage: p.col_bounds(0)                                                   # optional - Gurobi
             (0.0, 5.0)
         """
-
-        cdef double lb[1], ub[1]
+        cdef double lb[1]
+        cdef double ub[1]
 
         error = GRBgetdblattrelement(self.model, "LB", index, <double *> lb)
         check(self.env, error)
@@ -1117,6 +1117,8 @@ cdef class GurobiBackend(GenericBackend):
 
         if name == "timelimit":
             name = "TimeLimit"
+        elif name.lower() == "logfile":
+            name = "LogFile"
 
         try:
             t = parameters_type[name]
@@ -1151,12 +1153,12 @@ cdef class GurobiBackend(GenericBackend):
 
         EXAMPLE::
 
-            sage: from sage.numerical.backends.generic_backend import get_solver    # optional - GUROBI
-            sage: p = MixedIntegerLinearProgram(solver = "GUROBI")                  # optional - GUROBI
-            sage: b = p.new_variable(nonnegative=True)                              # optional - GUROBI
-            sage: p.add_constraint(b[1] + b[2] <= 6)                                # optional - GUROBI
-            sage: p.set_objective(b[1] + b[2])                                      # optional - GUROBI
-            sage: copy(p).solve()                                                   # optional - GUROBI
+            sage: from sage.numerical.backends.generic_backend import get_solver    # optional - Gurobi
+            sage: p = MixedIntegerLinearProgram(solver = "GUROBI")                  # optional - Gurobi
+            sage: b = p.new_variable(nonnegative=True)                              # optional - Gurobi
+            sage: p.add_constraint(b[1] + b[2] <= 6)                                # optional - Gurobi
+            sage: p.set_objective(b[1] + b[2])                                      # optional - Gurobi
+            sage: copy(p).solve()                                                   # optional - Gurobi
             6.0
         """
         cdef GurobiBackend p = GurobiBackend(maximization = self.is_maximization())

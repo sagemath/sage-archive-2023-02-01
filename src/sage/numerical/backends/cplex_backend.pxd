@@ -7,19 +7,18 @@
 
 from sage.numerical.backends.generic_backend cimport GenericBackend
 
-include 'sage/ext/cdefs.pxi'
-
 cdef struct c_cpxlp
 
-cdef extern from *:
-    ctypedef double* const_double_ptr "double*"
-
+cdef extern from "stdio.h":
+    ctypedef struct FILE
+    FILE * fopen (const char * filename, const char * opentype)
 
 cdef class CPLEXBackend(GenericBackend):
     cdef bint _mixed
     cdef c_cpxlp * env
     cdef c_cpxlp * lp
     cdef current_sol
+    cdef str _logfilename
     cpdef CPLEXBackend copy(self)
 
 cdef extern from "cplex.h":
@@ -195,6 +194,9 @@ cdef extern from "cplex.h":
 
      # sets the value of a string parameter
      int CPXsetstrparam(c_cpxlp * env, int paramid, char * value)
+
+     # sets the log stream file
+     int CPXsetlogfile (c_cpxlp * env, FILE * f)
 
      # CONSTANTS
      int CPX_ON = 1

@@ -303,11 +303,14 @@ cdef class Matrix_double_dense(matrix_dense.Matrix_dense):
 
         """
         cdef Matrix_double_dense m
-        if nrows == -1:
+        if nrows == -1 and ncols == -1:
             nrows = self._nrows
-        if ncols == -1:
             ncols = self._ncols
-        parent = self.matrix_space(nrows, ncols)
+            parent = self._parent
+        else:
+            if nrows == -1: nrows = self._nrows
+            if ncols == -1: ncols = self._ncols
+            parent = self.matrix_space(nrows, ncols)
         m = self.__class__.__new__(self.__class__,parent,None,None,None)
         return m
 
@@ -386,7 +389,7 @@ cdef class Matrix_double_dense(matrix_dense.Matrix_dense):
         return M
 
 
-    #   * cdef _cmp_c_impl
+    #   * cpdef _cmp_
     # x * __copy__
     #   * _list -- list of underlying elements (need not be a copy)
     #   * _dict -- sparse dictionary of underlying elements (need not be a copy)
@@ -2482,7 +2485,7 @@ cdef class Matrix_double_dense(matrix_dense.Matrix_dense):
             True
             sage: U.is_unitary(algorithm='orthonormal')
             True
-            sage: V.is_unitary(algorithm='naive')  # not tested - known bug (trac #11248)
+            sage: V.is_unitary(algorithm='naive')
             True
 
         If we make the tolerance too strict we can get misleading results.  ::

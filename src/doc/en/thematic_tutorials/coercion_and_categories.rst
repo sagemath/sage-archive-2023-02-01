@@ -122,8 +122,8 @@ This base class provides a lot more methods than a general parent::
      '_coerce_self',
      '_coerce_try',
      '_default_category',
+     '_gcd_univariate_polynomial',
      '_gens',
-     '_gens_dict',
      '_has_coerce_map_from',
      '_ideal_class_',
      '_latex_names',
@@ -131,8 +131,8 @@ This base class provides a lot more methods than a general parent::
      '_one_element',
      '_pseudo_fraction_field',
      '_random_nonzero_element',
-     '_richcmp',
      '_unit_ideal',
+     '_xgcd_univariate_polynomial',
      '_zero_element',
      '_zero_ideal',
      'algebraic_closure',
@@ -311,10 +311,15 @@ considerations:
   etc. **We do not override the default double underscore __add__, __mul__**,
   since otherwise, we could not use Sage's coercion model.
 
-- In the single underscore methods and in ``__cmp__``, we can assume that
-  *both arguments belong to the same parent*. This is one benefit of the
-  coercion model. Note that ``__cmp__`` should be provided, since otherwise
-  comparison does not work in the way expected in Python::
+- Comparisons can be implemented using ``_cmp_``. This automatically
+  makes the relational operators like ``==`` and ``<`` work. In order
+  to support the Python ``cmp()`` function, it is safest to define both
+  ``_cmp_`` and ``__cmp__`` (because ``__cmp__`` is not inherited if
+  other comparison operators or ``__hash__`` are defined). Of course you
+  can just do ``__cmp__ = _cmp_``.
+
+  Note that ``_cmp_`` should be provided, since otherwise comparison
+  does not work::
 
       sage: class Foo(sage.structure.element.Element):
       ....:  def __init__(self, parent, x):
@@ -326,7 +331,11 @@ considerations:
       sage: cmp(a,b)
       Traceback (most recent call last):
       ...
-      NotImplementedError: BUG: sort algorithm for elements of 'None' not implemented
+      NotImplementedError: comparison not implemented for <class '__main__.Foo'>
+
+- In the single underscore methods, we can assume that
+  *both arguments belong to the same parent*.
+  This is one benefit of the coercion model.
 
 - When constructing new elements as the result of arithmetic operations, we do
   not directly name our class, but we use ``self.__class__``. Later, this will
@@ -360,8 +369,9 @@ This gives rise to the following code::
     ....:         return self.d
     ....:     def _repr_(self):
     ....:         return "(%s):(%s)"%(self.n,self.d)
-    ....:     def __cmp__(self, other):
+    ....:     def _cmp_(self, other):
     ....:         return cmp(self.n*other.denominator(), other.numerator()*self.d)
+    ....:     __cmp__ = _cmp_
     ....:     def _add_(self, other):
     ....:         C = self.__class__
     ....:         D = self.d*other.denominator()
@@ -459,9 +469,9 @@ And indeed, ``MS2`` has *more* methods than ``MS1``::
 
     sage: import inspect
     sage: len([s for s in dir(MS1) if inspect.ismethod(getattr(MS1,s,None))])
-    57
+    58
     sage: len([s for s in dir(MS2) if inspect.ismethod(getattr(MS2,s,None))])
-    85
+    86
 
 This is because the class of ``MS2`` also inherits from the parent
 class for algebras::
@@ -667,7 +677,7 @@ both ``MyElement`` defined above and of ``P.category().element_class``::
     sage: P.element_class
     <class '__main__.MyFrac_with_category.element_class'>
     sage: type(P.element_class)
-    <class 'sage.structure.dynamic_class.DynamicMetaclass'>
+    <class 'sage.structure.dynamic_class.DynamicInheritComparisonMetaclass'>
     sage: issubclass(P.element_class, MyElement)
     True
     sage: issubclass(P.element_class,P.category().element_class)
@@ -1534,6 +1544,7 @@ Here are the tests that form the test suite of quotient fields::
     ['_test_additive_associativity',
      '_test_an_element',
      '_test_associativity',
+     '_test_cardinality',
      '_test_characteristic',
      '_test_characteristic_fields',
      '_test_distributivity',
@@ -1577,6 +1588,7 @@ Let us see what tests are actually performed::
     running ._test_additive_associativity() . . . pass
     running ._test_an_element() . . . pass
     running ._test_associativity() . . . pass
+    running ._test_cardinality() . . . pass
     running ._test_category() . . . pass
     running ._test_characteristic() . . . pass
     running ._test_characteristic_fields() . . . pass
@@ -1745,6 +1757,7 @@ interesting.
     running ._test_additive_associativity() . . . pass
     running ._test_an_element() . . . pass
     running ._test_associativity() . . . pass
+    running ._test_cardinality() . . . pass
     running ._test_category() . . . pass
     running ._test_characteristic() . . . pass
     running ._test_characteristic_fields() . . . pass
@@ -1840,8 +1853,13 @@ Appendix: The complete code
         # into the same parent, which is a fraction field. Hence, we
         # are allowed to use the denominator() and numerator() methods
         # on the second argument.
-        def __cmp__(self, other):
+        def _cmp_(self, other):
             return cmp(self.n*other.denominator(), other.numerator()*self.d)
+
+        # Support for cmp() (in this example, we don't define __hash__
+        # so this is not strictly needed)
+        __cmp__ = _cmp_
+
         # Arithmetic methods, single underscore. We can assume that both
         # arguments are coerced into the same parent.
         # We return instances of self.__class__, because self.__class__ will

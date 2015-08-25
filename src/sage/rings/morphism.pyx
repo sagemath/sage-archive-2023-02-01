@@ -346,15 +346,14 @@ TESTS::
 #*****************************************************************************
 #       Copyright (C) 2006 William Stein <wstein@gmail.com>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
-#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-include "sage/ext/cdefs.pxi"
-
 import ideal
-
 import homset
 
 def is_RingHomomorphism(phi):
@@ -1152,7 +1151,7 @@ cdef class RingHomomorphism_im_gens(RingHomomorphism):
         """
         return (<Element>left)._richcmp(right, op)
 
-    cdef int _cmp_c_impl(self, Element other) except -2:
+    cpdef int _cmp_(self, Element other) except -2:
         r"""
         EXAMPLES:
 
@@ -1458,7 +1457,7 @@ cdef class RingHomomorphism_from_base(RingHomomorphism):
         """
         return (<Element>left)._richcmp(right, op)
 
-    cdef int _cmp_c_impl(self, Element other) except -2:
+    cpdef int _cmp_(self, Element other) except -2:
         r"""
         EXAMPLES:
 
@@ -2113,7 +2112,7 @@ cdef class FrobeniusEndomorphism_generic(RingHomomorphism):
     def __richcmp__(left, right, int op):
         return (<Element>left)._richcmp(right, op)
 
-    cdef int _cmp_c_impl(left, Element right) except -2:
+    cpdef int _cmp_(left, Element right) except -2:
         if left is right: return 0
         domain = left.domain()
         c = cmp(domain, right.domain())

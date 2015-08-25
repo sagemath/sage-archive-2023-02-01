@@ -211,8 +211,10 @@ class NumberField_relative(NumberField_generic):
 
             sage: l.<b> = k.extension(x^2 + 3/5)
             doctest:...: UserWarning: PARI only handles integral absolute polynomials. Computations in this field might trigger PARI errors
-            sage: b
-            <repr(<sage.rings.number_field.number_field_element.NumberFieldElement_relative at 0x...>) failed: PariError: incorrect type in core2partial (t_FRAC)>
+            sage: l.pari_rnf()
+            Traceback (most recent call last):
+            ...
+            PariError: incorrect type in core2partial (t_FRAC)
 
         However, if the polynomial is linear, rational coefficients should work::
 
@@ -670,7 +672,7 @@ class NumberField_relative(NumberField_generic):
             sage: O2.index_in(OK)
             144
 
-        The following was previously "ridiculously slow"; see trac #4738::
+        The following was previously "ridiculously slow"; see :trac:`4738`::
 
             sage: K.<a,b> = NumberField([x^4 + 1, x^4 - 3])
             sage: K.maximal_order()
@@ -678,10 +680,10 @@ class NumberField_relative(NumberField_generic):
 
         An example with nontrivial ``v``::
 
-            sage: L.<a,b> = NumberField([x^2 - 3, x^2 - 5])
+            sage: L.<a,b> = NumberField([x^2 - 3, x^2 - 5*49])
             sage: O3 = L.maximal_order([3])
             sage: O3.absolute_discriminant()
-            3686400
+            8643600
             sage: O3.is_maximal()
             False
         """
@@ -1052,39 +1054,6 @@ class NumberField_relative(NumberField_generic):
         if mor is not None:
             return self._internal_coerce_map_from(self.base_field()) * mor
 
-    def _rnfeltreltoabs(self, element, check=False):
-        r"""
-        Return PARI's ``rnfeltreltoabs()``, but without requiring
-        ``rnfinit()``.
-
-        TESTS::
-
-            sage: x = polygen(ZZ)
-            sage: K.<a> = NumberField(x^2 + 2)
-            sage: x = polygen(K)
-            sage: L.<b> = K.extension(x^3 + 3*a)
-            sage: M.<c> = L.extension(x^2 + 5*b)
-
-            sage: L._rnfeltreltoabs(b^2 + a, check=True)
-            -2/9*x^3 - 2
-            sage: M._rnfeltreltoabs(c*b, check=True)
-            1/625*x^6
-        """
-        z, a, k = self._pari_rnfequation()
-        # If the relative extension is L/K, then z is the absolute
-        # polynomial for L, a is a polynomial giving the absolute
-        # generator alpha of K as a polynomial in a root of z, and k
-        # is a small integer such that
-        #   theta = beta + k*alpha,
-        # where theta is a root of z and beta is a root of the
-        # relative polynomial for L/K.
-        pol = element.polynomial('y')
-        t2 = pol(a).lift()
-        if check:
-            t1 = self.pari_rnf().rnfeltreltoabs(pol).lift()
-            assert t1 == t2
-        return t2
-
     def __base_inclusion(self, element):
         """
         Given an element of the base field, give its inclusion into
@@ -1127,14 +1096,12 @@ class NumberField_relative(NumberField_generic):
         # Write element in terms of the absolute base field
         element = self.base_field().coerce(element)
         element = to_abs_base(element)
-        # Find an expression in terms of the absolute generator for self of element.
-        expr_x = self._rnfeltreltoabs(element)
-        # Convert to a Sage polynomial, then to one in gen(), and return it
-        R = self.polynomial_ring()
+        # Express element as a polynomial in the absolute generator of self
+        expr_x = self._pari_rnfeq()._eltreltoabs(element._pari_polynomial())
         # We do NOT call self(...) because this code is called by
         # __init__ before we initialize self.gens(), and self(...)
         # uses self.gens()
-        return self._element_class(self, R(expr_x))
+        return self._element_class(self, expr_x)
 
     def _fractional_ideal_class_(self):
         """
@@ -1171,15 +1138,13 @@ class NumberField_relative(NumberField_generic):
         abs_base, from_abs_base, to_abs_base = self.absolute_base_field()
         return abs_base.pari_bnf(proof, units)
 
-    @cached_method
     def _pari_base_nf(self):
         r"""
         Return the PARI number field representation of the absolute
         base field, in terms of the pari variable ``y``, suitable for
         extension by the pari variable ``x``.
 
-        In future, all caching will be done by the absolute base
-        field.
+        All caching is done by the absolute base field.
 
         EXAMPLES::
 
@@ -1324,7 +1289,7 @@ class NumberField_relative(NumberField_generic):
                 if not self.relative_degree() == other.relative_degree():
                     return False
                 R = PolynomialRing(o_base_field, 'x')
-                F = R(map(base_isom, self.relative_polynomial()))
+                F = R([base_isom(_) for _ in self.relative_polynomial()])
                 return len(F.roots(other)) > 0
             raise ValueError("base_isom is not a homomorphism from self's base_field to other's base_field")
         raise ValueError("other must be a relative number field.")
@@ -1492,18 +1457,24 @@ class NumberField_relative(NumberField_generic):
         return self.__absolute_base_field
 
     @cached_method
-    def _pari_rnfequation(self):
-        r"""
-        Internal helper that calls PARI's rnfequation for self without
-        first initializing any PARI structures.
+    def _pari_rnfeq(self):
+        """
+        Return PARI data attached to this relative number field.
+
+        OUTPUT:
+
+        A 5-element PARI vector containing an absolute polynomial and
+        further data needed for ``eltabstorel`` and ``eltreltoabs``,
+        obtained from PARI's ``nf_rnfeq`` function.  This means that
+        we do not have to initialize a full PARI ``rnf`` structure.
 
         TESTS::
 
             sage: K.<a> = NumberField(x^2 + 2)
             sage: x = polygen(K)
             sage: L.<b> = K.extension(x^5 + 2*a)
-            sage: L._pari_rnfequation()
-            [x^10 + 8, Mod(-1/2*x^5, x^10 + 8), 0]
+            sage: L._pari_rnfeq()
+            [x^10 + 8, -1/2*x^5, 0, y^2 + 2, x^5 + 2*y]
             sage: x = polygen(ZZ)
             sage: NumberField(x^10 + 8, 'a').is_isomorphic(L)
             True
@@ -1513,8 +1484,8 @@ class NumberField_relative(NumberField_generic):
             sage: K.<a> = NumberField(x^10 + 2000*x + 100001)
             sage: x = polygen(K)
             sage: L.<b> = K.extension(x^10 + 2*a)
-            sage: L._pari_rnfequation()
-            [x^100 - 1024000*x^10 + 102401024, Mod(-1/2*x^10, x^100 - 1024000*x^10 + 102401024), 0]
+            sage: L._pari_rnfeq()
+            [x^100 - 1024000*x^10 + 102401024, -1/2*x^10, 0, y^10 + 2000*y + 100001, x^10 + 2*y]
             sage: a + b
             b + a
             sage: b^100
@@ -1522,9 +1493,9 @@ class NumberField_relative(NumberField_generic):
             sage: (-2*a)^10
             -2048000*a - 102401024
         """
-        # Perhaps in future this should check if base_nf is known and
-        # use that, since it might be faster.
-        return self.pari_absolute_base_polynomial().rnfequation(self.pari_relative_polynomial(), 1)
+        f = self.pari_absolute_base_polynomial()
+        g = self.pari_relative_polynomial()
+        return f._nf_rnfeq(g)
 
     @cached_method
     def _gen_relative(self):
@@ -1545,46 +1516,10 @@ class NumberField_relative(NumberField_generic):
             0
         """
         from sage.libs.pari.all import pari
-        rnfeqn = self._pari_rnfequation()
-        f = (pari('x') - rnfeqn[2]*rnfeqn[1]).lift()
+        rnfeqn = self._pari_rnfeq()
+        f = pari('x') - rnfeqn[2]*rnfeqn[1]
         g = self._element_class(self, f)
         return g
-
-    def pari_polynomial(self, name='x'):
-        """
-        PARI polynomial with integer coefficients corresponding to the
-        polynomial that defines this field as an absolute number field.
-
-        By default, this is a polynomial in the variable "x".  PARI
-        prefers integral polynomials, so we clear the denominator.
-        Therefore, this is NOT the same as simply converting the absolute
-        defining polynomial to PARI.
-
-        EXAMPLES::
-
-            sage: k.<a, c> = NumberField([x^2 + 3, x^2 + 1])
-            sage: k.pari_polynomial()
-            x^4 + 8*x^2 + 4
-            sage: k.pari_polynomial('a')
-            a^4 + 8*a^2 + 4
-            sage: k.absolute_polynomial()
-            x^4 + 8*x^2 + 4
-            sage: k.relative_polynomial()
-            x^2 + 3
-
-        ::
-
-            sage: k.<a, c> = NumberField([x^2 + 1/3, x^2 + 1/4])
-            sage: k.pari_polynomial()
-            144*x^4 + 168*x^2 + 1
-            sage: k.absolute_polynomial()
-            x^4 + 7/6*x^2 + 1/144
-        """
-        try:
-            return self._pari_polynomial.change_variable_name(name)
-        except AttributeError:
-            self._pari_polynomial = self._pari_rnfequation()[0].change_variable_name(name)
-            return self._pari_polynomial
 
     @cached_method
     def pari_rnf(self):
@@ -1791,7 +1726,7 @@ class NumberField_relative(NumberField_generic):
             sage: k.relative_polynomial()
             x^2 + 1/3
         """
-        paripol = self._pari_rnfequation()[0]
+        paripol = self._pari_rnfeq()[0]
         return QQ['x'](paripol/paripol.pollead())
 
     def relative_polynomial(self):
@@ -2005,7 +1940,7 @@ class NumberField_relative(NumberField_generic):
         aas = L.automorphisms() # absolute automorphisms
 
         a = self_into_L(self.gen())
-        abs_base_gens = map(self_into_L, self.base_field().gens())
+        abs_base_gens = [self_into_L(_) for _ in self.base_field().gens()]
         v = sorted([ self.hom([ L_into_self(aa(a)) ]) for aa in aas if all(aa(g) == g for g in abs_base_gens) ])
         put_natural_embedding_first(v)
         self.__automorphisms = Sequence(v, cr = (v != []), immutable=True,
@@ -2164,7 +2099,7 @@ class NumberField_relative(NumberField_generic):
         to_base = abs_base.structure()[0]
         D, d = nf.rnfdisc(self.pari_relative_polynomial())
         D = map(abs_base, abs_base.pari_zk() * D)
-        D = map(to_base, D)
+        D = [to_base(_) for _ in D]
         return base.ideal(D)
 
     def discriminant(self):
@@ -2328,14 +2263,14 @@ class NumberField_relative(NumberField_generic):
             ...
             ValueError: The element b is not in the base field
         """
-        polmodmod_xy = self.pari_rnf().rnfeltabstorel( self(element)._pari_('x') )
-        # polmodmod_xy is a POLMOD with POLMOD coefficients in general.
-        # These POLMOD coefficients represent elements of the base field K.
-        # We do two lifts so we get a polynomial. We need the simplify() to
-        # make PARI check which variables really appear in the resulting
-        # polynomial (otherwise we always have a polynomial in two variables
-        # even though not all variables actually occur).
-        r = polmodmod_xy.lift().lift().simplify()
+        # Convert the element to a PARI polynomial with t_POLMOD
+        # coefficients representing elements of the base field.
+        r = self._pari_rnfeq()._eltabstorel_lift(self(element)._pari_polynomial('x'))
+        # Lift the coefficients and call simplify() to make PARI check
+        # which variables really appear in the resulting polynomial
+        # (otherwise we always have a polynomial in two variables even
+        # though not all variables actually occur).
+        r = r.lift().simplify()
 
         # Special case: check whether the result is simply an integer or rational
         if r.type() in ["t_INT", "t_FRAC"]:

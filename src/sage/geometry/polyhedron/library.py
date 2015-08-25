@@ -22,6 +22,7 @@ The following constructions are available
     :meth:`~sage.geometry.polyhedron.library.Polytopes.cyclic_polytope`
     :meth:`~sage.geometry.polyhedron.library.Polytopes.dodecahedron`
     :meth:`~sage.geometry.polyhedron.library.Polytopes.flow_polytope`
+    :meth:`~sage.geometry.polyhedron.library.Polytopes.Gosset_3_21`
     :meth:`~sage.geometry.polyhedron.library.Polytopes.great_rhombicuboctahedron`
     :meth:`~sage.geometry.polyhedron.library.Polytopes.hypercube`
     :meth:`~sage.geometry.polyhedron.library.Polytopes.hypersimplex`
@@ -604,6 +605,51 @@ class Polytopes():
               [-1,  1,  0], [-1, 0,-1], [-1,-1, 0] ]
         return Polyhedron(vertices=v, base_ring=ZZ)
 
+    def icosidodecahedron(self, exact=True):
+        """
+        Return the Icosidodecahedron
+
+        The Icosidodecahedron is a polyhedron with twenty triangular faces and
+        twelve pentagonal faces. For more information see the
+        :wikipedia:`Icosidodecahedron`.
+
+        INPUT:
+
+        - ``exact`` -- (boolean, default ``True``) If ``False`` use an
+          approximate ring for the coordinates.
+
+        EXAMPLES::
+
+            sage: gr = polytopes.icosidodecahedron()
+            sage: gr.f_vector()
+            (1, 30, 60, 32, 1)
+
+        TESTS::
+
+            sage: polytopes.icosidodecahedron(exact=False)
+            A 3-dimensional polyhedron in RDF^3 defined as the convex hull of 30 vertices
+        """
+        from sage.rings.number_field.number_field import QuadraticField
+        from itertools import product
+
+        K = QuadraticField(5, 'sqrt5')
+        one = K.one()
+        phi = (one+K.gen())/2
+
+        gens = [((-1)**a*one/2, (-1)**b*phi/2, (-1)**c*(one+phi)/2)
+                  for a,b,c in product([0,1],repeat=3)]
+        gens.extend([(0,0,phi), (0,0,-phi)])
+
+        verts = []
+        for p in AlternatingGroup(3):
+            verts.extend(p(x) for x in gens)
+
+        if exact:
+            return Polyhedron(vertices=verts,base_ring=K)
+        else:
+            verts = [(RR(x),RR(y),RR(z)) for x,y,z in verts]
+            return Polyhedron(vertices=verts)
+
     def buckyball(self, exact=True, base_ring=None):
         """
         Return the bucky ball.
@@ -808,6 +854,31 @@ class Polytopes():
             verts.extend(p(x) for x in pts)
         return Polyhedron(vertices=verts, base_ring=base_ring)
 
+    def Gosset_3_21(self):
+        r"""
+        Return the Gosset `3_{21}` polytope.
+
+        The Gosset `3_{21}` polytope is a uniform 7-polytope. It has 56
+        vertices, and 702 facets: `126` `3_{11}` and `576` `6`-simplex. For more
+        information, see the :wikipedia:`3_21_polytope`.
+
+        EXAMPLES::
+
+            sage: g = polytopes.Gosset_3_21(); g
+            A 7-dimensional polyhedron in ZZ^8 defined as the convex hull of 56 vertices
+            sage: g.f_vector() # not tested (~16s)
+            (1, 56, 756, 4032, 10080, 12096, 6048, 702, 1)
+        """
+        from itertools import combinations
+        verts = []
+        for i,j in combinations(range(8),2):
+            x = [1]*8
+            x[i] = x[j] = -3
+            verts.append(x)
+            verts.append([-xx for xx in x])
+
+        return Polyhedron(vertices=verts, base_ring=ZZ)
+
     @rename_keyword(deprecation=18213, points_n='n', dim_n='dim')
     def cyclic_polytope(self, dim, n, base_ring=QQ):
         """
@@ -881,11 +952,17 @@ class Polytopes():
         return Polyhedron(vertices=verts)
 
     def permutahedron(self, n, project=False):
-        """
-        Return the standard permutahedron of (1,...,n)
+        """Return the standard permutahedron of (1,...,n)
 
-        The premutahedron (or permutohedron) is the convex hull of the
-        permutations of `\{1,\ldots,n\}` seen as vectors.
+        The permutahedron (or permutohedron) is the convex hull of the
+        permutations of `\{1,\ldots,n\}` seen as vectors. The edges
+        between the permutations correspond to multiplication on the
+        right by an elementary transposition in the
+        :class:`~sage.groups.perm_gps.permgroup_named.SymmetricGroup`.
+
+        If we take the graph in which the vertices correspond to
+        vertices of the polyhedron, and edges to edges, we get the
+        :meth:`~sage.graphs.graph_generators.GraphGenerators.BubbleSortGraph`.
 
         INPUT:
 
@@ -912,6 +989,12 @@ class Polytopes():
             A 3-dimensional polyhedron in RDF^3 defined as the convex hull of 24 vertices
             sage: perm4.plot()
             Graphics3d Object
+            sage: perm4.graph().is_isomorphic(graphs.BubbleSortGraph(4))
+            True
+
+        .. SEEALSO::
+
+            * :meth:`~sage.graphs.graph_generators.GraphGenerators.BubbleSortGraph`
         """
         verts = list(itertools.permutations(range(1,n+1)))
         if project: verts = project_points(*verts)

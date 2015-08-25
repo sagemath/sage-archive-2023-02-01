@@ -96,6 +96,7 @@ pillow                      Apache License 2.0
 pip                         MIT License
 pkgconf                     ISC License (equivalent to Simplified BSD)
 pkgconfig                   MIT License
+planarity                   Modified BSD
 polybori                    GPLv2+
 polytopes_db                None (database)
 ppl                         GPLv3+
@@ -128,6 +129,7 @@ sympow                      Modified BSD
 sympy                       Modified BSD
 tachyon                     Modified BSD
 termcap                     GPLv2+
+threejs                     MIT License
 tornado                     Apache License
 zlib                        Custom (Modified BSD)
 zn_poly                     GPLv2 or GPLv3 (no later versions, see below)

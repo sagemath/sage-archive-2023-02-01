@@ -29,7 +29,7 @@ permutation_options = PermutationOptions
 
 # TODO: Remove this function and replace it with the class
 # TODO: Create parents for other bases (such as the seminormal basis)
-def SymmetricGroupAlgebra(R, W):
+def SymmetricGroupAlgebra(R, W, category=None):
     """
     Return the symmetric group algebra of order ``W`` over the ring ``R``.
 
@@ -37,6 +37,8 @@ def SymmetricGroupAlgebra(R, W):
 
     - ``W`` -- a symmetric group; alternatively an integer `n` can be
       provided, as shorthand for ``Permutations(n)``.
+    - ``R`` -- a base ring
+    - ``category`` -- a category (default: the category of ``W``)
 
     This supports several implementations of the symmetric group. At
     this point this has been tested with ``W=Permutations(n)`` and
@@ -169,6 +171,15 @@ def SymmetricGroupAlgebra(R, W):
         for multiplying permutations (these methods don't depend on the
         setting). See :trac:`14885` for more information.
 
+    We conclude by constructing the algebra of the symmetric group as
+    a monoid algebra::
+
+        sage: QS3 = SymmetricGroupAlgebra(QQ, 3, category=Monoids())
+        sage: QS3.category()
+        Category of finite dimensional monoid algebras over Rational Field
+        sage: TestSuite(QS3).run()
+
+
     TESTS::
 
         sage: QS3 = SymmetricGroupAlgebra(QQ, 3)
@@ -202,11 +213,13 @@ def SymmetricGroupAlgebra(R, W):
     from sage.rings.semirings.non_negative_integer_semiring import NN
     if W in NN:
         W = Permutations(W)
-    return SymmetricGroupAlgebra_n(R, W)
+    if category is None:
+        category = W.category()
+    return SymmetricGroupAlgebra_n(R, W, category.Algebras(R))
 
 class SymmetricGroupAlgebra_n(CombinatorialFreeModule):
 
-    def __init__(self, R, W):
+    def __init__(self, R, W, category):
         """
         TESTS::
 
@@ -243,9 +256,8 @@ class SymmetricGroupAlgebra_n(CombinatorialFreeModule):
             self.n = len(W.one().fixed_points())
         else:
             self.n = W.cartan_type().rank() + 1
-        cat = W.category().Algebras(R)
         CombinatorialFreeModule.__init__(self, R, W, prefix='',
-                                         latex_prefix='', category=cat)
+                                         latex_prefix='', category=category)
 
     def _repr_(self):
         """
@@ -375,7 +387,7 @@ class SymmetricGroupAlgebra_n(CombinatorialFreeModule):
         """
         try:
             W = self.basis().keys().__class__(n)
-        except StandardError:
+        except Exception:
             raise NotImplementedError("Constructing the sibling algebra of a different order "
                                       "only implemented for PermutationGroup and SymmetricGroup")
         return SymmetricGroupAlgebra(self.base_ring(), W)
@@ -2492,7 +2504,7 @@ class HeckeAlgebraSymmetricGroup_t(HeckeAlgebraSymmetricGroup_generic):
             sage: HeckeAlgebraSymmetricGroupT(QQ,3).algebra_generators()
             [T[2, 1, 3], T[1, 3, 2]]
         """
-        return map(self.t, range(1, self.n))
+        return [self.t(_) for _ in range(1, self.n)]
 
     def jucys_murphy(self, k):
         """

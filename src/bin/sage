@@ -43,7 +43,7 @@ usage() {
     echo "                           --help - show all testing options"
     echo "  -upgrade [version]  -- download, build and install the given version. Here,"
     echo "                         'version' is a git branch or tag name. Useful values"
-    echo "                         are 'master' (the currend development version, this"
+    echo "                         are 'master' (the current development version, this"
     echo "                         is the default) or a version number like '5.13'."
     echo "  -v, -version        -- display Sage version information"
     exit 0
@@ -117,6 +117,8 @@ usage_advanced() {
     ####  1.......................26..................................................78
     ####  |.....................--.|...................................................|
     echo "Installing packages and upgrading:"
+    echo "  -package [args]     -- call the new package manager with given arguments."
+    echo "                         Run without arguments for package-specific help."
     echo "  -experimental       -- list all experimental packages that can be installed"
     echo "  -f [opts] [packages]-- shortcut for -i -f: force build of the given Sage"
     echo "                         packages"
@@ -136,8 +138,9 @@ usage_advanced() {
    #echo "  -update-build       -- build and install all downloaded non-optional Sage packages"
     echo "  -upgrade [version]  -- download, build and install the given version. Here,"
     echo "                         'version' is a git branch or tag name. Useful values"
-    echo "                         are 'master' (the currend development version, this"
+    echo "                         are 'master' (the current development version, this"
     echo "                         is the default) or a version number like '5.13'."
+    echo "  -pip [...]          -- invoke pip, the Python package manager"
 
     echo
     ####  1.......................26..................................................78
@@ -205,9 +208,11 @@ usage_advanced() {
     ####  |.....................--.|...................................................|
     echo "Making Sage packages or distributions:"
     echo "  -bdist <tmpdir>     -- build a binary distribution of Sage"
+    echo "  -sdist              -- build a source distribution of Sage"
     echo "  -pkg <dir>          -- create Sage package dir.spkg from a given directory"
     echo "  -pkg_nc <dir>       -- as -pkg, but do not compress the package"
-    echo "  -sdist              -- build a source distribution of Sage"
+    echo "  -fix-pkg-checksums  -- fix the checksums from build/pkgs directories from "
+    echo "                         the packages located in upstream/"
 
     echo
     ####  1.......................26..................................................78
@@ -456,6 +461,11 @@ fi
 if [ "$1" = '-pip' -o "$1" = '--pip' ]; then
     shift
     exec pip "$@"
+fi
+
+if [ "$1" = '-fix-pkg-checksums' -o "$1" = '--fix-pkg-checksums' ]; then
+    shift
+    exec sage-fix-pkg-checksums "$@"
 fi
 
 if [ "$1" = '-python' -o "$1" = '--python' ]; then
@@ -771,9 +781,8 @@ install() {
         PKG_NAME=`echo "$PKG" | sed -e "s/\.spkg$//"`
         PKG_NAME=`basename "$PKG_NAME"`
 
-        "$SAGE_ROOT"/build/pipestatus \
-            "sage-spkg $OPTINFO $OPTF $OPTS $OPTC '$PKG' 2>&1" \
-            "(trap '' SIGINT; tee -a '$SAGE_ROOT/logs/install.log' '$SAGE_LOGS/$PKG_NAME.log')"
+        sage-logger \
+            "sage-spkg $OPTINFO $OPTF $OPTS $OPTC '$PKG'" "$SAGE_LOGS/$PKG_NAME.log"
         # Do not try to install further packages if one failed
         if [ $? -ne 0 ]; then
             exit 1
@@ -790,20 +799,29 @@ install() {
     exit 0
 }
 
+if [ "$1" = '-package' -o "$1" = "--package" ]; then
+    shift
+    exec sage-package $@
+fi
+
 if [ "$1" = '-optional' -o "$1" = "--optional" ]; then
-    exec sage-list-packages optional
+    shift
+    exec sage-list-packages optional $@
 fi
 
 if [ "$1" = '-experimental' -o "$1" = "--experimental" ]; then
-    exec sage-list-packages experimental
+    shift
+    exec sage-list-packages experimental $@
 fi
 
 if [ "$1" = '-standard' -o "$1" = "--standard" ]; then
-    exec sage-list-packages standard
+    shift
+    exec sage-list-packages standard $@
 fi
 
 if [ "$1" = '-installed' -o "$1" = "--installed" ]; then
-    exec sage-list-packages installed
+    shift
+    exec sage-list-packages installed $@
 fi
 
 if [ "$1" = '-i' ]; then

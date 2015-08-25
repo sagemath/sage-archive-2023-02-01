@@ -250,11 +250,17 @@ is used. We can have a look at this::
     |   +-- successors:   O(x), O(y)
     |   +-- no predecessors
 
+Various
+=======
+
 AUTHORS:
 
 - Benjamin Hackl (2015-06): initial version
 - Benjamin Hackl (2015-07): improvement user interface (short notation)
 - Daniel Krenn (2015-08): various improvents, review; documentation
+
+Methods
+=======
 """
 
 # *****************************************************************************

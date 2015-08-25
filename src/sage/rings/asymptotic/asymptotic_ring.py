@@ -528,10 +528,10 @@ class AsymptoticExpression(sage.rings.ring_element.RingElement):
 
         TESTS::
 
-            sage: import sage.rings.asymptotic.growth_group as agg
-            sage: import sage.rings.asymptotic.term_monoid as atm
-            sage: G = agg.GrowthGroup('x^ZZ')
-            sage: OT = atm.TermMonoid('O', G); ET = atm.TermMonoid('exact', G, ZZ)
+            sage: from sage.rings.asymptotic.growth_group import GrowthGroup
+            sage: from sage.rings.asymptotic.term_monoid import TermMonoid
+            sage: G = GrowthGroup('x^ZZ')
+            sage: OT = TermMonoid('O', G); ET = TermMonoid('exact', G, ZZ)
             sage: R = AsymptoticRing(G, ZZ)
             sage: lst = [ET(x,1), ET(x^2, 2), OT(x^3), ET(x^4, 4)]
             sage: expr = R(lst, simplify=False); expr  # indirect doctest
@@ -655,9 +655,9 @@ class AsymptoticExpression(sage.rings.ring_element.RingElement):
 
         TESTS::
 
-            sage: import sage.rings.asymptotic.term_monoid as atm
+            sage: from sage.rings.asymptotic.term_monoid import OTermMonoid
             sage: R.<x> = AsymptoticRing(growth_group='x^ZZ', coefficient_ring=ZZ)
-            sage: T = atm.OTermMonoid(R.growth_group)
+            sage: T = OTermMonoid(R.growth_group)
             sage: expr = 10*x^2 + O(x)
             sage: t = T(R.growth_group.gen())
             sage: expr._mul_term_(t)
@@ -973,8 +973,8 @@ class AsymptoticRing(sage.rings.ring.Ring,
     This is equivalent to the following code, which explicitly
     specifies the underlying growth group::
 
-        sage: import sage.rings.asymptotic.growth_group as agg
-        sage: G_QQ = agg.GrowthGroup('x^QQ')
+        sage: from sage.rings.asymptotic.growth_group import GrowthGroup
+        sage: G_QQ = GrowthGroup('x^QQ')
         sage: R2_x.<x> = AsymptoticRing(growth_group=G_QQ, coefficient_ring=QQ); R2_x
         Asymptotic Ring <x^QQ> over Rational Field
 
@@ -1042,8 +1042,8 @@ class AsymptoticRing(sage.rings.ring.Ring,
         are unique. Also, this enables the use of the generation
         framework::
 
-            sage: import sage.rings.asymptotic.growth_group as agg
-            sage: MG = agg.GrowthGroup('x^ZZ')
+            sage: from sage.rings.asymptotic.growth_group import GrowthGroup
+            sage: MG = GrowthGroup('x^ZZ')
             sage: AR1 = AsymptoticRing(growth_group=MG, coefficient_ring=ZZ)
             sage: AR2.<x> = AsymptoticRing(growth_group='x^ZZ', coefficient_ring=ZZ)
             sage: AR1 is AR2
@@ -1349,8 +1349,8 @@ class AsymptoticRing(sage.rings.ring.Ring,
 
         EXAMPLES::
 
-            sage: import sage.rings.asymptotic.growth_group as agg
-            sage: MG = agg.GrowthGroup('x^ZZ')
+            sage: from sage.rings.asymptotic.growth_group import GrowthGroup
+            sage: MG = GrowthGroup('x^ZZ')
             sage: AR = AsymptoticRing(growth_group=MG, coefficient_ring=ZZ)
             sage: repr(AR)  # indirect doctest
             'Asymptotic Ring <x^ZZ> over Integer Ring'

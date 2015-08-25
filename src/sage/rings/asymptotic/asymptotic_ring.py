@@ -41,7 +41,7 @@ other possibilities)
 
 - more sophisticated constructions like products `x^r log(x)^s \cdot
   a^y \cdot y^q` (this corresponds to an element of the growth group
-  ``x^QQ * \log(x)^ZZ * QQ^y * y^QQ``).
+  ``x^QQ * log(x)^ZZ * QQ^y * y^QQ``).
 
 The ordering in all these examples is the growth as `x`, `y`, or `z`
 (independently) tend to `\infty`. For elements only using the
@@ -96,9 +96,9 @@ A typical element of this ring is
     -z^(3/2) + O(z^(1/2))
 
 This element consists of two summands: the exact term with coefficient
-`-1` and growth `x^{3/2}` and the `O`-term `O(x^{1/2})`. Note that the
-growth of `x^{3/2}` is larger than the growth of `x^{1/2}` as
-`x\to\infty`, thus this expression cannot be simplified (which would
+`-1` and growth `z^{3/2}` and the `O`-term `O(z^{1/2})`. Note that the
+growth of `z^{3/2}` is larger than the growth of `z^{1/2}` as
+`z\to\infty`, thus this expression cannot be simplified (which would
 be done automatically, see below).
 
 Next, we construct a more sophisticated asymptotic ring in the
@@ -106,7 +106,7 @@ variables `x` and `y` by
 
 ::
 
-    sage: B.<x, y> = AsymptoticRing(growth_group='x^QQ * \log(x)^ZZ * QQ^y * y^QQ', coefficient_ring=QQ); B  # not tested
+    sage: B.<x, y> = AsymptoticRing(growth_group='x^QQ * log(x)^ZZ * QQ^y * y^QQ', coefficient_ring=QQ); B  # not tested
 
 Again, we can look at a typical element::
 

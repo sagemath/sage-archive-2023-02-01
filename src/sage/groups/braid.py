@@ -700,14 +700,12 @@ class Braid(FinitelyPresentedGroupElement):
         """
         if variab is None:
             R = LaurentPolynomialRing(IntegerRing(), 'A')
-            A = R.gens()[0]
         else:
             R = variab.parent()
-            A = variab
         n = self.strands()
         d = drain_size
         B = BraidGroup(n)
-        rep = B.TL_representation(d, A)
+        rep = B.TL_representation(d, variab)
         M = identity_matrix(R, B.dim_of_TL_space(d), sparse=sparse)
         for i in self.Tietze():
             if i > 0:
@@ -778,7 +776,7 @@ class Braid(FinitelyPresentedGroupElement):
         representation, the eigenvalues of the standard generators of the braid
         group are `1` and `-A^4`. If `variab` is unspecified, then the variable
         used in the result is this generator `A` for a univariate polynomial
-        ring over the integers.
+        ring over the integers. In this case, we also cache the result.
 
         INPUT:
 
@@ -799,6 +797,10 @@ class Braid(FinitelyPresentedGroupElement):
             A^4 * (A^4 + 1)^-3
         """
         if variab is None:
+            try:
+                return self._markov_cached
+            except AttributeError:
+                pass
             R = LaurentPolynomialRing(IntegerRing(), 'A')
             A = R.gens()[0]
         else:
@@ -809,9 +811,11 @@ class Braid(FinitelyPresentedGroupElement):
 
         def weighted_trace(d):
             quantum_integer = (A**(2*(d+1)) - A**(-2*(d+1)))/(A**2 - A**(-2))
-            return quantum_integer * self.TL_matrix(d, variab).trace()
+            return quantum_integer * self.TL_matrix(d, variab=variab).trace()
 
         traces = [weighted_trace(d) for d in drains]
+        if variab is None:
+            self._markov_cached = sum(traces) / (-delta)**n
         return sum(traces) / (-delta)**n
 
     def jones_polynomial(self, skein_normalisation=False, variab=None):
@@ -831,7 +835,8 @@ class Braid(FinitelyPresentedGroupElement):
         terms of the variable ``'t'``, also used in [Lic]_.
 
         The computation uses the representation of the braid group on the
-        Temperley--Lieb algebra.
+        Temperley--Lieb algebra. We cache the part of the calculation which
+        does not depend on the choices of variables or normalisations.
 
         INPUT:
 
@@ -907,15 +912,21 @@ class Braid(FinitelyPresentedGroupElement):
         """
         from sage.symbolic.ring import SR
         from sage.rings.integer_ring import ZZ
-        # We do the calculation of the polynomial over the general ring
-        R = LaurentPolynomialRing(IntegerRing(), 'A')
-        A = R.gens()[0]
-        D = -A**2 - A**(-2)
-        n = self.strands()
-        exp_sum = self.exponent_sum()
-        num_comp = self.components_in_closure()
-        trace = self.markov_trace(A)
-        jones_pol = (-1)**(num_comp-1) * (-D)**(n-1) * A**(2*exp_sum) * trace
+        try:
+            jones_pol = self._jones_cache
+            R = jones_pol.parent()
+            A = R.gens()[0]
+        except AttributeError:
+            # We do the calculation of the polynomial over the general ring
+            trace = self.markov_trace()
+            R = trace.parent()
+            A = R.gens()[0]
+            D = -A**2 - A**(-2)
+            n = self.strands()
+            exp_sum = self.exponent_sum()
+            num_comp = self.components_in_closure()
+            jones_pol = (-1)**(num_comp-1) * (-D)**(n-1) * A**(2*exp_sum) * trace
+            self._jones_cache = jones_pol
         
         if variab is None:
             if skein_normalisation:
@@ -1548,6 +1559,75 @@ class BraidGroup_class(FinitelyPresentedGroup):
         return forest
 
     @cached_method
+    def _TL_action(self, drain_size):
+        """
+        Return a matrix representing the action of cups and caps on
+        Temperley--Lieb diagrams.
+        
+        The action space is the space of non-crossing diagrams of `n+d` points,
+        where `n` is the number of strands, and `d` is specified by
+        ``drain_size``. As in ``TL_basis_with_drain``, we put certain
+        constraints on the diagrams.
+        
+        We essentially calculates the action of the TL-algebra generators e_i
+        on the algebra itself: the action of e_i on one of our basis
+        diagrams is itself a basis diagram, and auxmat will store the index
+        of this new basis diagram. 
+        
+        In some cases, the new diagram will connect two bottom points which
+        we explicitly disallow (as such a diagram is not one of our basis
+        elements). In this case, the corresponding auxmat entry will be -1.
+        
+        This is used in ``TL_representation`` below and could be included
+        entirely in that method. They are split for purposes of caching.
+
+        INPUT:
+
+        - ``drain_size`` -- integer between 0 and the number of strands (both
+          included)
+
+        OUTPUT:
+
+        A matrix.
+        """
+        n = self.strands()
+        d = drain_size
+        basis = self.TL_basis_with_drain(d)
+        auxmat = matrix(n-1, len(basis))
+        for i in range(1, n):  # For each of the e_i
+            for v in range(len(basis)):  # For each basis element
+                tree = basis[v]
+                if tree[i-1] < tree[i] and tree[i+1] < tree[i]:
+                    # Here, for instance, we've created an unknot.
+                    auxmat[i-1, v] = v
+                if tree[i-1] > tree[i] and tree[i+1] > tree[i]:
+                    newtree = list(tree)
+                    newtree[i] += 2
+                    auxmat[i-1, v] = basis.index(newtree)
+                if tree[i-1] > tree[i] and tree[i+1] < tree[i]:
+                    newtree = list(tree)
+                    newtree[i-1] -= 2
+                    j = 2
+                    while newtree[i-j] != newtree[i] and i-j >= 0:
+                        newtree[i-j] -= 2
+                        j += 1
+                    if newtree in basis:
+                        auxmat[i-1, v] = basis.index(newtree)
+                    else:
+                        auxmat[i-1, v] = -1
+                if tree[i-1] < tree[i] and tree[i+1] > tree[i]:
+                    newtree = list(tree)
+                    newtree[i+1] -= 2
+                    j = 2
+                    while newtree[i+j] != newtree[i] and i+j <= n:
+                        newtree[i+j] -= 2
+                        j += 1
+                    if newtree in basis:
+                        auxmat[i-1, v] = basis.index(newtree)
+                    else:
+                        auxmat[i-1, v] = -1
+        return auxmat
+
     def TL_representation(self, drain_size, variab=None):
         """
         Return representation matrices of the Temperley--Lieb--Jones
@@ -1564,14 +1644,12 @@ class BraidGroup_class(FinitelyPresentedGroup):
         are `1` and `-A^4`, where `A` is the generator of the Laurent
         polynomial ring.  If `variab` is unspecified, then the variable used in
         the result is this generator `A` for a univariate polynomial ring over
-        the integers.
+        the integers. In this case, we store the result.
 
         When `d = n - 2` and the variables are picked appropriately, the
         resulting representation is equivalent to the reduced Burau
         representation. When `d = n`, the resulting representation is trivial
         and 1-dimensional.
-
-        Store the result of the calculation as part of the braid group.
 
         INPUT:
 
@@ -1606,55 +1684,20 @@ class BraidGroup_class(FinitelyPresentedGroup):
         """
         n = self.strands()
         d = drain_size
-        basis = self.TL_basis_with_drain(d)
-        # We first create an auxilliary matrix which essentially keeps track
-        # of the actions of cups/caps pairs on basis elements. That is, we
-        # essentially calculate the action of the TL-algebra generators e_i
-        # on the algebra itself: the action of e_i on one of our basis
-        # diagrams is itself a basis diagram, and auxmat will store the index
-        # of this new basis diagram.
-        #
-        # In some cases, the new diagram will connect two bottom points which
-        # we explicitly disallow (as such a diagram is not one of our basis
-        # elements). In this case, the corresponding auxmat entry will be -1.
-        auxmat = matrix(n-1, len(basis))
-        for i in range(1, n):  # For each of the e_i
-            for v in range(len(basis)):  # For each basis element
-                tree = basis[v]
-                if tree[i-1] < tree[i] and tree[i+1] < tree[i]:
-                    # Here, for instance, we've created an unknot.
-                    auxmat[i-1, v] = v
-                if tree[i-1] > tree[i] and tree[i+1] > tree[i]:
-                    newtree = list(tree)
-                    newtree[i] += 2
-                    auxmat[i-1, v] = basis.index(newtree)
-                if tree[i-1] > tree[i] and tree[i+1] < tree[i]:
-                    newtree = list(tree)
-                    newtree[i-1] -= 2
-                    j = 2
-                    while newtree[i-j] != newtree[i] and i-j >= 0:
-                        newtree[i-j] -= 2
-                        j += 1
-                    if newtree in basis:
-                        auxmat[i-1, v] = basis.index(newtree)
-                    else:
-                        auxmat[i-1, v] = -1
-                if tree[i-1] < tree[i] and tree[i+1] > tree[i]:
-                    newtree = list(tree)
-                    newtree[i+1] -= 2
-                    j = 2
-                    while newtree[i+j] != newtree[i] and i+j <= n:
-                        newtree[i+j] -= 2
-                        j += 1
-                    if newtree in basis:
-                        auxmat[i-1, v] = basis.index(newtree)
-                    else:
-                        auxmat[i-1, v] = -1
-        # The action is of the sigma_i is given in terms of the actions of the
-        # e_i which we found above. Our choice of normalisation means that
-        # \sigma_i acts by the identity + A**2 e_i.
+        auxmat = self._TL_action(drain_size)
+        dimension = auxmat.ncols()
+        # The action of the sigma_i is given in terms of the actions of the
+        # e_i which is what auxmat describes. Our choice of normalisation means
+        # that \sigma_i acts by the identity + A**2 e_i.
         repmat = []  # The list which will store the actions of sigma_i
+
         if variab is None:
+            try:
+                self._TL_representation_dict
+            except AttributeError:
+                self._TL_representation_dict = {}
+            if d in self._TL_representation_dict:
+                return self._TL_representation_dict[d]
             R = LaurentPolynomialRing(IntegerRing(), 'A')
             A = R.gens()[0]
         else:
@@ -1662,14 +1705,18 @@ class BraidGroup_class(FinitelyPresentedGroup):
             A = variab
 
         for i in range(1, n):  # For each \sigma_i
-            repmatnew = identity_matrix(R, len(basis), sparse=True)
-            for v in range(len(basis)):
+            repmatnew = identity_matrix(R, dimension, sparse=True)
+            for v in range(dimension):
                 newmatentry = auxmat[i-1, v]
                 if newmatentry == v:  # Did we create an unknot?
                     repmatnew[v, v] = -A**4
                 elif newmatentry >= 0:
                     repmatnew[newmatentry, v] = A**2
             repmat.append(repmatnew)
+        
+        if variab is None:  # Cache the result in this case
+            self._TL_representation_dict[d] = repmat
+        
         return repmat
 
     def mapping_class_action(self, F):

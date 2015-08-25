@@ -702,12 +702,12 @@ class AsymptoticExpression(sage.rings.ring_element.RingElement):
             sage: x / O(x)
             Traceback (most recent call last):
             ...
-            NotImplementedError: Negative powers are not implemented for the term O(x).
+            ZeroDivisionError: Cannot invert O(x).
         """
-        return self * other._invert_()
+        return self * ~other
 
 
-    def _invert_(self):
+    def __invert__(self):
         r"""
         Return the multiplicative inverse of this element.
 
@@ -728,39 +728,41 @@ class AsymptoticExpression(sage.rings.ring_element.RingElement):
         EXAMPLES::
 
             sage: R.<x> = AsymptoticRing('x^ZZ', QQ, default_prec=4)
-            sage: x._invert_()
+            sage: ~x
             1/x
-            sage: (x^42)._invert_()
+            sage: ~(x^42)
             x^(-42)
-            sage: ex = (1 + x)._invert_(); ex
+            sage: ex = ~(1 + x); ex
             1/x - x^(-2) + x^(-3) - x^(-4) + O(x^(-5))
             sage: ex * (1 + x)
             1 + O(x^(-4))
-            sage: (1 + O(1/x))._invert_()
+            sage: ~(1 + O(1/x))
             1 + O(1/x)
         """
         if len(self.summands) == 0:
-            raise ZeroDivisionError('Dividing by zero is not allowed.')
+            raise ZeroDivisionError('Division by zero in %s.' % (self,))
 
         elif len(self.summands) == 1:
-            return self**(-1)
+            return self.parent()(~next(self.summands.elements()))
 
-        max_elem = list(self.summands.maximal_elements())
+        max_elem = tuple(self.summands.maximal_elements())
         if len(max_elem) != 1:
-            raise ValueError('Expression %s cannot be inverted: '
-                             'there are multiple maximal elements.' % (self, ))
+            raise ValueError('Expression %s cannot be inverted, since there '
+                             'are several maximal elements: %s.' % (self, max_elem))
 
-        max_elem = self.parent()(max_elem[0])
+        max_elem = max_elem[0]
+        imax_elem = ~max_elem
+        one = self.parent().one()
+        geom = one - self._mul_term_(imax_elem)
 
-        geom = 1 - self / max_elem
         expanding = True
-        result = 1
+        result = one
         while expanding:
-            new_result = (geom * result + 1).truncate()
+            new_result = (geom * result + one).truncate()
             if new_result.has_same_summands(result):
                 expanding = False
             result = new_result
-        return result / max_elem
+        return result._mul_term_(imax_elem)
 
 
     def truncate(self, prec=None):
@@ -838,15 +840,20 @@ class AsymptoticExpression(sage.rings.ring_element.RingElement):
             sage: O(x)^(-1)
             Traceback (most recent call last):
             ...
-            NotImplementedError: Negative powers are not implemented for the term O(x).
+            ZeroDivisionError: Cannot invert O(x).
         """
-        if len(self.summands) > 1:
-            from sage.rings.integer_ring import ZZ
-            if power not in ZZ:
-                raise NotImplementedError('Taking the sum %s to the '
-                                          'non-integer power %s not '
-                                          'implemented.' % (self, power))
+        from sage.rings.integer_ring import ZZ
+        try:
+            power = ZZ(power)
+        except (TypeError, ValueError):
+            pass
+        else:
             return super(AsymptoticExpression, self).__pow__(power)
+
+        if len(self.summands) > 1:
+            raise NotImplementedError('Taking the sum %s to the '
+                                      'non-integer power %s not '
+                                      'implemented.' % (self, power))
 
         P = self.parent()
         if power not in P.growth_group.base():

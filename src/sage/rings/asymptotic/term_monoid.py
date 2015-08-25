@@ -320,7 +320,7 @@ class GenericTerm(sage.structure.element.MonoidElement):
 
     def _mul_(self, other):
         r"""
-        Abstract multiplication method for generic terms.
+        Multiplication of this term by another.
 
         INPUT:
 
@@ -328,8 +328,7 @@ class GenericTerm(sage.structure.element.MonoidElement):
 
         OUTPUT:
 
-        A :class:`GenericTerm` representing the product of ``self``
-        and ``other``.
+        A :class:`GenericTerm`.
 
         .. NOTE::
 
@@ -337,7 +336,7 @@ class GenericTerm(sage.structure.element.MonoidElement):
             it can be assumed that this element, as well as ``other``
             are from a common parent.
 
-        EXAMPLES::
+        TESTS::
 
             sage: import sage.rings.asymptotic.term_monoid as atm
             sage: import sage.rings.asymptotic.growth_group as agg
@@ -350,6 +349,106 @@ class GenericTerm(sage.structure.element.MonoidElement):
             Generic Term with growth x^3
         """
         return self.parent()(self.growth * other.growth)
+
+
+    def __div__(self, other):
+        r"""
+        Division of this term by another.
+
+        INPUT:
+
+        - ``other`` -- an asymptotic term.
+
+        OUTPUT:
+
+        A :class:`GenericTerm`.
+
+        .. NOTE::
+
+            This function uses the coercion model to find a common
+            parent for the two operands.
+
+            The comparison of two elements with the same parent is done in
+            :meth:`_div_`.
+
+        TESTS::
+
+            sage: import sage.rings.asymptotic.term_monoid as atm
+            sage: import sage.rings.asymptotic.growth_group as agg
+            sage: G = agg.GrowthGroup('x^ZZ'); x = G.gen()
+            sage: T = atm.GenericTermMonoid(G)
+            sage: t1 = T(x); t2 = T(x^2)
+            sage: t1 / t2  # indirect doctest
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: Inversion of Generic Term with growth x^2
+            not implemented (in this abstract method).
+        """
+        from sage.structure.element import have_same_parent
+        if have_same_parent(self, other):
+            return self._div_(other)
+
+        from sage.structure.element import get_coercion_model
+        import operator
+        return get_coercion_model().bin_op(self, other, operator.div)
+
+
+    def _div_(self, other):
+        r"""
+        Division of this term by another.
+
+        INPUT:
+
+        - ``other`` -- an asymptotic term.
+
+        OUTPUT:
+
+        A :class:`GenericTerm`.
+
+        .. NOTE::
+
+            This method is called by the coercion framework, thus,
+            it can be assumed that this element, as well as ``other``
+            are from a common parent.
+
+        TESTS::
+
+            sage: import sage.rings.asymptotic.term_monoid as atm
+            sage: import sage.rings.asymptotic.growth_group as agg
+            sage: G = agg.GrowthGroup('x^ZZ'); x = G.gen()
+            sage: T = atm.GenericTermMonoid(G)
+            sage: t1 = T(x); t2 = T(x^2)
+            sage: t1 / t2  # indirect doctest
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: Inversion of Generic Term with growth x^2
+            not implemented (in this abstract method).
+        """
+        return self * ~other
+
+
+    def __invert__(self):
+        r"""
+        Invert this term.
+
+        OUTPUT:
+
+        A :class:`GenericTerm`.
+
+        TESTS::
+
+            sage: import sage.rings.asymptotic.term_monoid as atm
+            sage: import sage.rings.asymptotic.growth_group as agg
+            sage: G = agg.GrowthGroup('x^ZZ'); x = G.gen()
+            sage: T = atm.GenericTermMonoid(G)
+            sage: ~T(x) # indirect doctest
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: Inversion of Generic Term with growth x
+            not implemented (in this abstract method).
+        """
+        raise NotImplementedError('Inversion of %s not implemented '
+                                  '(in this abstract method).' % (self,))
 
 
     def can_absorb(self, other):
@@ -1207,6 +1306,28 @@ class OTerm(GenericTerm):
             O(x^3)
         """
         return 'O(%s)' % self.growth
+
+
+    def __invert__(self):
+        r"""
+        Invert this term.
+
+        OUTPUT:
+
+        A :class:`ZeroDivisionError` since `O`-terms cannot be inverted.
+
+        TESTS::
+
+            sage: import sage.rings.asymptotic.term_monoid as atm
+            sage: import sage.rings.asymptotic.growth_group as agg
+            sage: G = agg.GrowthGroup('x^ZZ'); x = G.gen()
+            sage: T = atm.OTermMonoid(G)
+            sage: ~T(x) # indirect doctest
+            Traceback (most recent call last):
+            ...
+            ZeroDivisionError: Cannot invert O(x).
+        """
+        raise ZeroDivisionError('Cannot invert %s.' % (self,))
 
 
     def _can_absorb_(self, other):
@@ -2087,6 +2208,31 @@ class ExactTerm(TermWithCoefficient):
             return '-%s' % (g,)
         else:
             return '%s*%s' % (c, g)
+
+
+    def __invert__(self):
+        r"""
+        Invert this term.
+
+        OUTPUT:
+
+        A term.
+
+        TESTS::
+
+            sage: import sage.rings.asymptotic.term_monoid as atm
+            sage: import sage.rings.asymptotic.growth_group as agg
+            sage: G = agg.GrowthGroup('x^ZZ'); x = G.gen()
+            sage: T = atm.ExactTermMonoid(G, QQ)
+            sage: ~T(x, 1/2)  # indirect doctest
+            2*1/x
+        """
+        try:
+            c = ~self.coefficient
+        except ZeroDivisionError:
+            raise ZeroDivisionError('Cannot invert %s since its coefficient %s '
+                                    'cannot be inverted.' % (self, self.coefficient))
+        return self.parent()(~self.growth, c)
 
 
     def _can_absorb_(self, other):

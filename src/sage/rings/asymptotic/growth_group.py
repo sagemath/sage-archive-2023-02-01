@@ -157,15 +157,14 @@ def repr_short_to_parent(s):
         Traceback (most recent call last):
         ...
         ValueError: Cannot create a parent out of 'abcdef'.
+        previous: NameError: name 'abcdef' is not defined
     """
-    if s == 'ZZ':
-        return sage.rings.integer_ring.ZZ
-    elif s == 'QQ':
-        return sage.rings.rational_field.QQ
-    elif s == 'SR':
-        return sage.symbolic.ring.SR
-    else:
-        raise ValueError("Cannot create a parent out of '%s'." % s)
+    from sage.misc.sage_eval import sage_eval
+    try:
+        return sage_eval(s)
+    except Exception as e:
+        raise combine_exceptions(
+            ValueError("Cannot create a parent out of '%s'." % (s,)), e)
 
 
 def parent_to_repr_short(P):

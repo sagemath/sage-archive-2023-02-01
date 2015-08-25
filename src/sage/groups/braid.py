@@ -913,7 +913,7 @@ class Braid(FinitelyPresentedGroupElement):
         from sage.symbolic.ring import SR
         from sage.rings.integer_ring import ZZ
         try:
-            jones_pol = self._jones_cache
+            jones_pol = self._jones_cached
             R = jones_pol.parent()
             A = R.gens()[0]
         except AttributeError:
@@ -926,7 +926,7 @@ class Braid(FinitelyPresentedGroupElement):
             exp_sum = self.exponent_sum()
             num_comp = self.components_in_closure()
             jones_pol = (-1)**(num_comp-1) * (-D)**(n-1) * A**(2*exp_sum) * trace
-            self._jones_cache = jones_pol
+            self._jones_cached = jones_pol
         
         if variab is None:
             if skein_normalisation:

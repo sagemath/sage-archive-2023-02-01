@@ -145,6 +145,7 @@ class ClusterAlgebraSeed(SageObject):
         # g-vector path list
         g_vector = seed.g_vector(k)
         if g_vector not in seed.parent().g_vectors_so_far():
+            seed.parent()._g_vect_set.add(g_vector)
             seed.parent()._path_dict[g_vector] = copy(seed._path)
             # F-polynomials
             if mutating_F:
@@ -177,7 +178,18 @@ class ClusterAlgebraSeed(SageObject):
                 pos *= self.F_polynomial(j)**self._B[j,k]
             elif self._B[j,k] <0:
                 neg *= self.F_polynomial(j)**(-self._B[j,k])
-        return (pos+neg)//alg.F_polynomial(old_g_vector)
+        # TODO: understand why using // instead of / here slows the code down by
+        # a factor of 3 but in the original experiments we made at sage days it
+        # was much faster with // (we were working with cluter variables at the
+        # time).
+        # By the way, as of August 28th 2015 we split in half the running time
+        # compared to sage days. With my laptop plugged in I get
+        # sage: A = ClusterAlgebra(['E',8])
+        # sage: seeds = A.seeds()
+        # sage: %time void = list(seeds)
+        # CPU times: user 26.8 s, sys: 21 ms, total: 26.9 s
+        # Wall time: 26.8 s
+        return (pos+neg)/alg.F_polynomial(old_g_vector)
 
     def mutation_sequence(self, sequence, inplace=True, mutating_F=True):
         seq = iter(sequence)
@@ -247,8 +259,9 @@ class ClusterAlgebra(Parent):
         self._U = PolynomialRing(scalars,['u%s'%i for i in xrange(n)])
 
         # dictionary of already computed data:
-        self._F_poly_dict = dict([ (tuple(v), self._U(1)) for v in I.columns() ])
-        self._path_dict = dict([ (tuple(v), []) for v in I.columns() ])
+        self._g_vect_set = set([ tuple(v) for v in I.columns() ])
+        self._F_poly_dict = dict([ (v, self._U(1)) for v in self._g_vect_set ])
+        self._path_dict = dict([ (v, []) for v in self._g_vect_set ])
         
         # setup Parent and ambient
         base = LaurentPolynomialRing(scalars, 'x', n)
@@ -300,7 +313,7 @@ class ClusterAlgebra(Parent):
         r"""
         Return the g-vectors of cluster variables encountered so far.
         """
-        return self._path_dict.keys()
+        return self._g_vect_set
 
     def F_polynomial(self, g_vector):
         g_vector= tuple(g_vector)
@@ -355,18 +368,19 @@ class ClusterAlgebra(Parent):
     def retract(self, x):
         return self(x)
     
-    #TODO: add option to avoid computing F-polynomials
-    def seeds(self, depth=infinity):
+    def seeds(self, depth=infinity, mutating_F=True):
         r"""
         Return an iterator producing all seeds of ``self`` up to distance
         ``depth`` from ``self.current_seed``.
+
+        If ``mutating_F`` is set to false it does not compute F_polynomials
         """
         yield self.current_seed
         depth_counter = 0
         n = self.rk
-        cl = Set(self.current_seed.g_matrix().columns())
+        cl = frozenset(self.current_seed.g_matrix().columns())
         clusters = {}
-        clusters[ cl ] = [ self.current_seed, range(n) ]
+        clusters[cl] = [ self.current_seed, range(n) ]
         gets_bigger = True
         while gets_bigger and depth_counter < depth:
             gets_bigger = False
@@ -375,8 +389,8 @@ class ClusterAlgebra(Parent):
                 sd, directions = clusters[key]
                 while directions:
                     i = directions.pop()
-                    new_sd  = sd.mutate( i, inplace=False )
-                    new_cl = Set(new_sd.g_matrix().columns())
+                    new_sd  = sd.mutate(i, inplace=False, mutating_F=mutating_F)
+                    new_cl = frozenset(new_sd.g_matrix().columns())
                     if new_cl in clusters:
                         if i in clusters[new_cl][1]:
                             clusters[new_cl][1].remove(i)
@@ -384,7 +398,7 @@ class ClusterAlgebra(Parent):
                         gets_bigger = True
                         # doublecheck this way of producing directions for the new seed: it is taken almost verbatim fom ClusterSeed
                         new_directions = [ j for j in xrange(n) if j > i or new_sd.b_matrix()[j,i] != 0 ]
-                        clusters[ new_cl ] = [ new_sd, new_directions ]
+                        clusters[new_cl] = [ new_sd, new_directions ]
                         yield new_sd
             depth_counter += 1
 

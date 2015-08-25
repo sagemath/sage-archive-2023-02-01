@@ -258,7 +258,11 @@ class ClusterAlgebra(Parent):
         # ambient space for F-polynomials
         self._U = PolynomialRing(scalars,['u%s'%i for i in xrange(n)])
 
-        # dictionary of already computed data:
+        # already computed data
+        # TODO: I am unhappy because _g_vect_set is slightly redundant (we could
+        # use _path_dict.keys() instead) but it is faster to check membership in
+        # sets than in lists and _path_dict.keys() returns a list. Depending on
+        # the number of cluster variables this may be relevant or not.
         self._g_vect_set = set([ tuple(v) for v in I.columns() ])
         self._F_poly_dict = dict([ (v, self._U(1)) for v in self._g_vect_set ])
         self._path_dict = dict([ (v, []) for v in self._g_vect_set ])

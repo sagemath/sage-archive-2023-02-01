@@ -247,16 +247,18 @@ class ClusterAlgebra(Parent):
         self._U = PolynomialRing(scalars,['u%s'%i for i in xrange(n)])
 
         # dictionary of already computed data:
-        # index is the g-vector, first entry is the F-polynomial, second entry is path from initial seed
         self._F_poly_dict = dict([ (tuple(v), self._U(1)) for v in I.columns() ])
         self._path_dict = dict([ (tuple(v), []) for v in I.columns() ])
+        
+        # setup Parent and ambient
         base = LaurentPolynomialRing(scalars, 'x', n)
         # TODO: understand why using CommutativeAlgebras() instead of Rings() makes A(1) complain of missing _lmul_
         Parent.__init__(self, base=base, category=Rings(scalars).Subobjects())
-
         self._ambient = LaurentPolynomialRing(scalars, 'x', m)
         self._ambient_field = self._ambient.fraction_field()
 
+        # these are used for computing cluster variables using separation of
+        # additions
         self._y = dict([ (self._U.gen(j), prod([self._ambient.gen(i)**B0[i,j] for i in xrange(n,m)])) for j in xrange(n)])
         self._yhat = dict([ (self._U.gen(j), prod([self._ambient.gen(i)**B0[i,j] for i in xrange(m)])) for j in xrange(n)])
 

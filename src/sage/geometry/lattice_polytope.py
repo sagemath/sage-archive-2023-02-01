@@ -763,6 +763,10 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
             ...         (-1,0,0), (0,-1,0), (0,0,0), (0,0,0)])
             sage: p._compute_faces()
             sage: p.facets()
+            doctest:...: DeprecationWarning: the output of this method will change, use facets_lp instead to get facets as lattice polytopes
+            See http://trac.sagemath.org/19071 for details.
+            doctest:...: DeprecationWarning: the output of this method will change, use faces_lp instead to get faces as lattice polytopes
+            See http://trac.sagemath.org/19071 for details.
             [[0, 3], [2, 3], [0, 1], [1, 2]]
         """
         # Remove with 19071 deprecations
@@ -955,6 +959,8 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
 
             sage: c = lattice_polytope.cross_polytope(3).polar()
             sage: f = c.facets()[0]
+            doctest:...: DeprecationWarning: the output of this method will change, use facets_lp instead to get facets as lattice polytopes
+            See http://trac.sagemath.org/19071 for details.
             sage: v = f.__dict__.pop("_interior_points", None)
             sage: "_interior_points" in f.__dict__
             False
@@ -1981,10 +1987,16 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
 
             sage: o = lattice_polytope.cross_polytope(3)
             sage: len(o.edges())
+            doctest:...: DeprecationWarning: the output of this method will change, use edges_lp instead to get edges as lattice polytopes
+            See http://trac.sagemath.org/19071 for details.
+            doctest:...: DeprecationWarning: the output of this method will change, use faces_lp instead to get faces as lattice polytopes
+            See http://trac.sagemath.org/19071 for details.
             12
             sage: o.edges()
             [[1, 5], [0, 5], [0, 1], [3, 5], [1, 3], [4, 5], [0, 4], [3, 4], [1, 2], [0, 2], [2, 3], [2, 4]]
         """
+        deprecation(19071, "the output of this method will change, use edges_lp"
+                    " instead to get edges as lattice polytopes")
         return self.faces(dim=1)
 
     def edges_lp(self):
@@ -2651,13 +2663,19 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
 
             sage: o = lattice_polytope.cross_polytope(3)
             sage: o.facets()
+            doctest:...: DeprecationWarning: the output of this method will change, use facets_lp instead to get facets as lattice polytopes
+            See http://trac.sagemath.org/19071 for details.
             [[0, 1, 5], [1, 3, 5], [0, 4, 5], [3, 4, 5], [0, 1, 2], [1, 2, 3], [0, 2, 4], [2, 3, 4]]
 
         Facets are the same as faces of codimension one::
 
             sage: o.facets() is o.faces(codim=1)
+            doctest:...: DeprecationWarning: the output of this method will change, use faces_lp instead to get faces as lattice polytopes
+            See http://trac.sagemath.org/19071 for details.
             True
         """
+        deprecation(19071, "the output of this method will change, use facets_lp"
+                    " instead to get facets as lattice polytopes")
         return self.faces(codim=1)
         
     def facets_lp(self):
@@ -4243,25 +4261,20 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
 
             sage: p = lattice_polytope.cross_polytope(2).polar()
             sage: p.traverse_boundary()
-            [0, 1, 3, 2]
+            [2, 0, 1, 3]
         """
         if self.dim() != 2:
             raise ValueError("Boundary can be traversed only for 2-polytopes!")
-        edges = self.edges()
-        l = [0]
-        for e in edges:
-            if 0 in e.vertices():
-                next = e.vertices()[0] if e.vertices()[0] != 0 else e.vertices()[1]
-        l.append(next)
-        prev = 0
+        zero_faces = set(self.faces_lp(0))
+        l = [self.faces_lp(0)[0]]
+        prev, next = zero_faces.intersection(l[0].adjacent())
+        l = [prev, l[0], next]
         while len(l) < self.nvertices():
-            for e in edges:
-                if next in e.vertices() and prev not in e.vertices():
-                    prev = next
-                    next = e.vertices()[0] if e.vertices()[0] != next else e.vertices()[1]
-                    l.append(next)
-                    break
-        return l
+            prev, next = zero_faces.intersection(l[-1].adjacent())
+            if next == l[-2]:
+                next = prev
+            l.append(next)
+        return [self.vertices().index(v.vertex(0)) for v in l]
 
     def vertex(self, i):
         r"""
@@ -4307,15 +4320,9 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
             [2 2 0 0 0 2]
         """
         V = self.vertices()
-        PM = []
-        for i in range(len(self.facets())):
-            n = self.facet_normal(i)
-            c = self.facet_constant(i)
-            row = []
-            for v in V:
-                row.append(n.dot_product(v) + c)
-            PM.append(row)
-        PM = matrix(ZZ, PM)
+        nv = self.nvertices()
+        PM = matrix(ZZ, [n * V + vector(ZZ, [c] * nv)
+            for n, c in zip(self.facet_normals(), self.facet_constants())])
         PM.set_immutable()
         return PM
 
@@ -5266,6 +5273,8 @@ class _PolytopeFace(SageObject):
 
             sage: p = lattice_polytope.cross_polytope(2)
             sage: f = p.facets()[0]
+            doctest:...: DeprecationWarning: the output of this method will change, use facets_lp instead to get facets as lattice polytopes
+            See http://trac.sagemath.org/19071 for details.
             sage: fl = loads(f.dumps())
             sage: f.vertices() == fl.vertices()
             True
@@ -5292,6 +5301,8 @@ class _PolytopeFace(SageObject):
 
             sage: o = lattice_polytope.cross_polytope(3)
             sage: f = o.facets()[0]
+            doctest:...: DeprecationWarning: the output of this method will change, use facets_lp instead to get facets as lattice polytopes
+            See http://trac.sagemath.org/19071 for details.
             sage: f._repr_()
             '[0, 1, 5]'
         """
@@ -5308,6 +5319,8 @@ class _PolytopeFace(SageObject):
             sage: o = lattice_polytope.cross_polytope(3)
             sage: cube = o.polar()
             sage: face = cube.facets()[0]
+            doctest:...: DeprecationWarning: the output of this method will change, use facets_lp instead to get facets as lattice polytopes
+            See http://trac.sagemath.org/19071 for details.
             sage: face.boundary_points()
             [0, 2, 4, 6, 8, 9, 11, 12]
         """
@@ -5336,6 +5349,8 @@ class _PolytopeFace(SageObject):
             sage: edge
             [1, 5]
             sage: o.facets()[0]
+            doctest:...: DeprecationWarning: the output of this method will change, use facets_lp instead to get facets as lattice polytopes
+            See http://trac.sagemath.org/19071 for details.
             [0, 1, 5]
             sage: o.facets()[1]
             [1, 3, 5]
@@ -5375,6 +5390,8 @@ class _PolytopeFace(SageObject):
             sage: o = lattice_polytope.cross_polytope(3)
             sage: cube = o.polar()
             sage: face = cube.facets()[0]
+            doctest:...: DeprecationWarning: the output of this method will change, use facets_lp instead to get facets as lattice polytopes
+            See http://trac.sagemath.org/19071 for details.
             sage: face.interior_points()
             [10]
         """
@@ -5394,6 +5411,8 @@ class _PolytopeFace(SageObject):
             sage: o = lattice_polytope.cross_polytope(3)
             sage: cube = o.polar()
             sage: face = cube.facets()[0]
+            doctest:...: DeprecationWarning: the output of this method will change, use facets_lp instead to get facets as lattice polytopes
+            See http://trac.sagemath.org/19071 for details.
             sage: face.nboundary_points()
             8
         """
@@ -5425,6 +5444,8 @@ class _PolytopeFace(SageObject):
             sage: o = lattice_polytope.cross_polytope(3)
             sage: cube = o.polar()
             sage: face = cube.facets()[0]
+            doctest:...: DeprecationWarning: the output of this method will change, use facets_lp instead to get facets as lattice polytopes
+            See http://trac.sagemath.org/19071 for details.
             sage: face.ninterior_points()
             1
         """
@@ -5443,6 +5464,8 @@ class _PolytopeFace(SageObject):
             sage: o = lattice_polytope.cross_polytope(3)
             sage: cube = o.polar()
             sage: face = cube.facets()[0]
+            doctest:...: DeprecationWarning: the output of this method will change, use facets_lp instead to get facets as lattice polytopes
+            See http://trac.sagemath.org/19071 for details.
             sage: face.npoints()
             9
         """
@@ -5461,6 +5484,8 @@ class _PolytopeFace(SageObject):
             sage: o = lattice_polytope.cross_polytope(3)
             sage: cube = o.polar()
             sage: face = cube.facets()[0]
+            doctest:...: DeprecationWarning: the output of this method will change, use facets_lp instead to get facets as lattice polytopes
+            See http://trac.sagemath.org/19071 for details.
             sage: face.nvertices()
             4
         """
@@ -5479,6 +5504,8 @@ class _PolytopeFace(SageObject):
             sage: o = lattice_polytope.cross_polytope(3)
             sage: c = o.polar()
             sage: e = c.edges()[0]
+            doctest:...: DeprecationWarning: the output of this method will change, use edges_lp instead to get edges as lattice polytopes
+            See http://trac.sagemath.org/19071 for details.
             sage: e.vertices()
             [0, 1]
             sage: e.ordered_points()
@@ -5512,6 +5539,8 @@ class _PolytopeFace(SageObject):
             sage: o = lattice_polytope.cross_polytope(3)
             sage: cube = o.polar()
             sage: face = cube.facets()[0]
+            doctest:...: DeprecationWarning: the output of this method will change, use facets_lp instead to get facets as lattice polytopes
+            See http://trac.sagemath.org/19071 for details.
             sage: face.points()
             [0, 2, 4, 6, 8, 9, 10, 11, 12]
         """
@@ -5532,9 +5561,15 @@ class _PolytopeFace(SageObject):
 
             sage: c = lattice_polytope.cross_polytope(3).polar()
             sage: f = c.facets()[0]
+            doctest:...: DeprecationWarning: the output of this method will change, use facets_lp instead to get facets as lattice polytopes
+            See http://trac.sagemath.org/19071 for details.
             sage: f.vertices()
             [0, 2, 4, 6]
             sage: f.traverse_boundary()
+            doctest:...: DeprecationWarning: the output of this method will change, use faces_lp instead to get faces as lattice polytopes
+            See http://trac.sagemath.org/19071 for details.
+            doctest:...: DeprecationWarning: the output of this method will change, use edges_lp instead to get edges as lattice polytopes
+            See http://trac.sagemath.org/19071 for details.
             [0, 4, 6, 2]
         """
         if self not in self._polytope.faces(dim=2):
@@ -5567,6 +5602,8 @@ class _PolytopeFace(SageObject):
             sage: o = lattice_polytope.cross_polytope(3)
             sage: cube = o.polar()
             sage: face = cube.facets()[0]
+            doctest:...: DeprecationWarning: the output of this method will change, use facets_lp instead to get facets as lattice polytopes
+            See http://trac.sagemath.org/19071 for details.
             sage: face.vertices()
             [0, 2, 4, 6]
         """

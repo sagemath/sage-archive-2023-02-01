@@ -608,8 +608,8 @@ def CPRFanoToricVariety(Delta=None,
         # single facet of Delta_polar, otherwise they do not form a
         # subdivision of the face fan of Delta_polar
         if check:
-            facet_sets = [frozenset(facet.points())
-                          for facet in Delta_polar.facets()]
+            facet_sets = [frozenset(facet.ambient_point_indices())
+                          for facet in Delta_polar.facets_lp()]
             for chart in charts:
                 is_bad = True
                 for fset in facet_sets:

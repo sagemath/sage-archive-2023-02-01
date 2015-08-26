@@ -164,7 +164,7 @@ Division
 The asymptotic expressions support division. For example, we get can
 expand `1/(1-z)` to a geometric series::
 
-    sage: 1/(z - 1)
+    sage: 1 / (z - 1)
     1/z + z^(-2) + z^(-3) + z^(-4) + ... + z^(-20) + O(z^(-21))
 
 Since there is a default precision (parameter ``default_prec``)
@@ -179,7 +179,7 @@ Note that not all elements are invertible, for instance,
 
 ::
 
-    sage: 1/O(z)
+    sage: 1 / O(z)
     Traceback (most recent call last):
     ...
     ZeroDivisionError: Cannot invert O(z).

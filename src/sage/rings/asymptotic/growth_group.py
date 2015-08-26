@@ -2891,6 +2891,10 @@ class ExponentialGrowthGroup(GenericGrowthGroup):
             sqrt(3)^x
             sage: P((3^(1/3))^x)
             (3^(1/3))^x
+            sage: P(e^x)
+            e^x
+            sage: P(exp(2*x))
+            (e^2)^x
         """
         if data == 1 or data == '1':
             return self.base().one()
@@ -2913,8 +2917,17 @@ class ExponentialGrowthGroup(GenericGrowthGroup):
         import operator
         from sage.symbolic.operators import mul_vararg
         if P is SR:
-            if data.operator() == operator.pow:
+            op = data.operator()
+            if op == operator.pow:
                 base, exponent = data.operands()
+                if str(exponent) == var:
+                    return base
+                elif exponent.operator() == mul_vararg:
+                    return base ** (exponent / SR(var))
+            elif isinstance(op, sage.functions.log.Function_exp):
+                from sage.functions.log import exp
+                base = exp(1)
+                exponent = data.operands()[0]
                 if str(exponent) == var:
                     return base
                 elif exponent.operator() == mul_vararg:

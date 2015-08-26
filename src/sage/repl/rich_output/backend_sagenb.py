@@ -278,42 +278,6 @@ class SageNbOutputSceneJmol(OutputSceneJmol):
 
 class BackendSageNB(BackendBase):
 
-    def install(self, **kwds):
-        """
-        Hook that will be called once before the backend is used for the
-        first time.
-
-        INPUT:
-
-        - ``kwds`` -- optional keyword arguments that are passed
-          through by the
-          :meth:`~sage.repl.rich_output.display_manager.DisplayManager.switch_backend`
-          method.
-
-        EXAMPLES::
-
-            sage: from sage.repl.rich_output.backend_sagenb import BackendSageNB
-            sage: backend = BackendSageNB()
-            sage: backend.install()
-        """
-        import sage.misc.html
-        sage.misc.html._old_and_deprecated_behavior = True
-        super(BackendSageNB, self).install(**kwds)
-
-    def uninstall(self):
-        """
-        Hook that will be called once right before the backend is removed.
-
-        EXAMPLES::
-
-            sage: from sage.repl.rich_output.backend_sagenb import BackendSageNB
-            sage: backend = BackendSageNB()
-            sage: backend.uninstall()
-        """
-        import sage.misc.html
-        sage.misc.html._old_and_deprecated_behavior = False
-        super(BackendSageNB, self).uninstall()
-
     def _repr_(self):
         """
         Return the string representation

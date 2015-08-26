@@ -23,6 +23,56 @@ from sage.misc.superseded import deprecation
 from sage.misc.decorators import rename_keyword
 
 
+
+# Various hacks for the deprecation period in :trac:`18292` are
+# conditional on this bool
+_old_and_deprecated_behavior = True
+
+def old_and_deprecated_wrapper(method):
+    """
+    Wrapper to reinstate the old behavior of ``html``
+
+    See :trac:`18292`.
+
+    EXAMPLES::
+
+        sage: from sage.misc.html import HtmlFragment, old_and_deprecated_wrapper
+        sage: @old_and_deprecated_wrapper
+        ....: def foo(): 
+        ....:     return HtmlFragment('foo')
+        sage: pretty_print(foo())
+        foo
+        sage: import sage.misc.html
+        sage: sage.misc.html._old_and_deprecated_behavior = False
+        sage: pretty_print(foo())
+        <html>foo</html>
+        sage: sage.misc.html._old_and_deprecated_behavior = True
+    """
+    from sage.repl.rich_output.pretty_print import pretty_print
+    def wrapped(*args, **kwds):
+        output = method(*args, **kwds)
+        assert isinstance(output, HtmlFragment)
+        if _old_and_deprecated_behavior:
+            # workaround for the old SageNB interacts
+            pretty_print(output)
+            return output
+        else:
+            return output
+    return wrapped
+
+
+def skip_pretty_print_old_and_deprecated(obj):
+    """
+    To be removed when the deprecation for :trac:`18292` expires.
+    """
+    if isinstance(obj, HtmlFragment) and obj._num_printed == 1:
+        # skip printing
+        obj._num_printed = 2
+        return True
+    else:
+        return False
+
+
 class HtmlFragment(str, SageObject):
     r"""
     A HTML fragment.
@@ -31,8 +81,29 @@ class HtmlFragment(str, SageObject):
     example, just a ``<div>...</div>`` piece and not the entire
     ``<html>...</html>``.
 
+    EXAMPLES::
+
+        sage: from sage.misc.html import HtmlFragment
+        sage: pretty_print(HtmlFragment('<b>test</b>'))
+        <b>test</b>
+
     .. automethod:: _rich_repr_
     """
+
+    # To be removed with _old_and_deprecated_behavior
+    _num_printed = 0
+
+    def __del__(self):
+        # print(self._num_printed, self)
+        if _old_and_deprecated_behavior and self._num_printed == 1:
+            message = """ 
+                html(...) will change soon to return HTML instead of
+                printing it. Instead use pretty_print(html(...)) for
+                strings or just pretty_print(...) for math.
+            """
+            message = ' '.join([l.strip() for l in message.splitlines()])
+            from sage.misc.superseded import deprecation
+            deprecation(18292, message)
 
     def _rich_repr_(self, display_manager, **kwds):
         """
@@ -47,9 +118,13 @@ class HtmlFragment(str, SageObject):
             sage: h = html(1/2)
             sage: h._rich_repr_(dm)    # the doctest backend does not suppot html
         """
+        if _old_and_deprecated_behavior:
+            self._num_printed += 1
         OutputHtml = display_manager.types.OutputHtml
         if OutputHtml in display_manager.supported_output():
             return OutputHtml(self)
+        else:
+            return display_manager.types.OutputPlainText(self)
 
 
 def math_parse(s):
@@ -81,14 +156,14 @@ def math_parse(s):
 
     EXAMPLES::
 
-        sage: sage.misc.html.math_parse('This is $2+2$.')
-        'This is <script type="math/tex">2+2</script>.'
-        sage: sage.misc.html.math_parse('This is $$2+2$$.')
-        'This is <script type="math/tex; mode=display">2+2</script>.'
-        sage: sage.misc.html.math_parse('This is \\[2+2\\].')
-        'This is <script type="math/tex; mode=display">2+2</script>.'
-        sage: sage.misc.html.math_parse(r'This is \[2+2\].')
-        'This is <script type="math/tex; mode=display">2+2</script>.'
+        sage: pretty_print(sage.misc.html.math_parse('This is $2+2$.'))
+        This is <script type="math/tex">2+2</script>.
+        sage: pretty_print(sage.misc.html.math_parse('This is $$2+2$$.'))
+        This is <script type="math/tex; mode=display">2+2</script>.
+        sage: pretty_print(sage.misc.html.math_parse('This is \\[2+2\\].'))
+        This is <script type="math/tex; mode=display">2+2</script>.
+        sage: pretty_print(sage.misc.html.math_parse(r'This is \[2+2\].'))
+        This is <script type="math/tex; mode=display">2+2</script>.
 
     TESTS::
 
@@ -158,38 +233,6 @@ def math_parse(s):
     return HtmlFragment(t)
 
 
-_old_and_deprecated_behavior = False
-
-def old_and_deprecated_wrapper(method):
-    """
-    Wrapper to reinstate the old behavior of ``html``
-
-    See :trac:`18292`.
-
-    EXAMPLES::
-
-        sage: from sage.misc.html import old_and_deprecated_wrapper
-        sage: @old_and_deprecated_wrapper
-        ....: def foo(): 
-        ....:     return 'foo'
-        sage: foo()
-        'foo'
-        sage: import sage.misc.html
-        sage: sage.misc.html._old_and_deprecated_behavior = True
-        sage: foo()
-        <html>foo</html>
-        sage: sage.misc.html._old_and_deprecated_behavior = False
-    """
-    def wrapped(*args, **kwds):
-        output = method(*args, **kwds)
-        if _old_and_deprecated_behavior:
-            # workaround for the old SageNB interacts
-            print('<html>{0}</html>'.format(output))
-        else:
-            return output
-    return wrapped
-
-
 class HTMLFragmentFactory(SageObject):
 
     def _repr_(self):
@@ -223,26 +266,17 @@ class HTMLFragmentFactory(SageObject):
      
         EXAMPLES::
      
-            sage: html('<hr>')
-            '<hr>'
+            sage: pretty_print(html('<hr>'))
+            <hr>
             sage: type(html('<hr>'))
             <class 'sage.misc.html.HtmlFragment'>
 
-            sage: html(1/2)
-            '<script type="math/tex">\\frac{1}{2}</script>'
+            sage: pretty_print(html(1/2))
+            <script type="math/tex">\\frac{1}{2}</script>
 
-            sage: html('<a href="http://sagemath.org">sagemath</a>')
-            '<a href="http://sagemath.org">sagemath</a>'
+            sage: pretty_print(html('<a href="http://sagemath.org">sagemath</a>'))
+            <a href="http://sagemath.org">sagemath</a>
         """
-        if _old_and_deprecated_behavior:
-            message = """ 
-                html(...) will change soon, instead use
-                pretty_print(HtmlFragment(...)) for strings or just
-                pretty_print(...) for math.
-            """
-            message = ' '.join([l.strip() for l in message.splitlines()])
-            from sage.misc.superseded import deprecation
-            deprecation(18292, message)
         # Prefer dedicated _html_() method
         try:
             result = obj._html_()
@@ -262,7 +296,7 @@ class HTMLFragmentFactory(SageObject):
         else:
             return math_parse('${0}$'.format(obj._latex_()))
         # If all else fails
-        return math_parse(HtmlFragment(obj))
+        return math_parse(str(obj))
          
     @old_and_deprecated_wrapper
     def eval(self, s, locals=None):
@@ -284,9 +318,9 @@ class HTMLFragmentFactory(SageObject):
 
             sage: a = 123
             sage: html.eval('<sage>a</sage>')
-            '<script type="math/tex">123</script>'
+            <script type="math/tex">123</script>
             sage: html.eval('<sage>a</sage>', locals={'a': 456})
-            '<script type="math/tex">456</script>'
+            <script type="math/tex">456</script>
         """
         if hasattr(s, '_html_'):
             deprecation(18292, 'html.eval() is for strings, use html() for sage objects')
@@ -331,9 +365,8 @@ class HTMLFragmentFactory(SageObject):
 
         EXAMPLES::
 
-            sage: output = html(table([(i, j, i == j) for i in [0..1] for j in [0..1]]))
-            sage: output
-            '<div.../div>'
+            sage: pretty_print(table([(i, j, i == j) for i in [0..1] for j in [0..1]]))
+            <div.../div>
             sage: print(output)
             <div class="notruncate">
             <table class="table_form">
@@ -362,10 +395,9 @@ class HTMLFragmentFactory(SageObject):
             </table>
             </div>
 
-            sage: output = html(table(
+            sage: pretty_print(html(table(
             ....:     [(x,n(sin(x), digits=2)) for x in range(4)],
-            ....:     header_row=["$x$", "$\sin(x)$"]))
-            sage: print(output)
+            ....:     header_row=["$x$", "$\sin(x)$"])))
             <div class="notruncate">
             <table class="table_form">
             <tbody>
@@ -420,23 +452,23 @@ class HTMLFragmentFactory(SageObject):
 
         EXAMPLES::
 
-            sage: html.iframe("sagemath.org")
-            '<iframe height="400" width="800"
-            src="http://sagemath.org"></iframe>'
-            sage: html.iframe("http://sagemath.org",30,40)
-            '<iframe height="30" width="40"
-            src="http://sagemath.org"></iframe>'
-            sage: html.iframe("https://sagemath.org",30)
-            '<iframe height="30" width="800"
-            src="https://sagemath.org"></iframe>'
-            sage: html.iframe("/home/admin/0/data/filename")
-            '<iframe height="400" width="800"
-            src="file:///home/admin/0/data/filename"></iframe>'
-            sage: html.iframe('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAA'
+            sage: pretty_print(html.iframe("sagemath.org"))
+            <iframe height="400" width="800"
+            src="http://sagemath.org"></iframe>
+            sage: pretty_print(html.iframe("http://sagemath.org",30,40))
+            <iframe height="30" width="40"
+            src="http://sagemath.org"></iframe>
+            sage: pretty_print(html.iframe("https://sagemath.org",30))
+            <iframe height="30" width="800"
+            src="https://sagemath.org"></iframe>
+            sage: pretty_print(html.iframe("/home/admin/0/data/filename"))
+            <iframe height="400" width="800"
+            src="file:///home/admin/0/data/filename"></iframe>
+            sage: pretty_print(html.iframe('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAA'
             ... 'AUAAAAFCAYAAACNbyblAAAAHElEQVQI12P4//8/w38GIAXDIBKE0DHxgljNBA'
-            ... 'AO9TXL0Y4OHwAAAABJRU5ErkJggg=="')
-            '<iframe height="400" width="800" 
-            src="http://data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAUAAAAFCAYAAACNbyblAAAAHElEQVQI12P4//8/w38GIAXDIBKE0DHxgljNBAAO9TXL0Y4OHwAAAABJRU5ErkJggg==""></iframe>'
+            ... 'AO9TXL0Y4OHwAAAABJRU5ErkJggg=="'))
+            <iframe height="400" width="800" 
+            src="http://data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAUAAAAFCAYAAACNbyblAAAAHElEQVQI12P4//8/w38GIAXDIBKE0DHxgljNBAAO9TXL0Y4OHwAAAABJRU5ErkJggg==""></iframe>
         """
         if url.startswith('/'):
             url = 'file://{0}'.format(url)

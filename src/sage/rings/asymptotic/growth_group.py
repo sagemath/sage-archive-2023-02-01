@@ -1080,6 +1080,46 @@ class GenericGrowthElement(sage.structure.element.MultiplicativeGroupElement):
         raise NotImplementedError('Only implemented in concrete realizations.')
 
 
+    def log(self, base=None):
+        r"""
+        The logarithm of this element.
+
+        INPUT:
+
+        - ``base`` -- the base of the logarithm. If ``None``
+          (default value) is used, the logarithm is the natural
+          logarithm.
+
+        OUTPUT:
+
+        A growth element.
+
+        .. NOTE::
+
+            The logarithm is only implemented for elements from a
+            Cartesian product of growth groups, see
+            :meth:`~sage.rings.asymptotic.growth_group_cartesian.GenericProduct.Element.log`.
+
+        EXAMPLES::
+
+            sage: from sage.rings.asymptotic.growth_group import (GrowthGroup, GenericGrowthGroup)
+            sage: x = GenericGrowthGroup(ZZ).an_element()
+            sage: log(x)  # indirect doctest
+            Traceback (most recent call last):
+            ...
+            ArithmeticError: building log(GenericGrowthElement(1)) is not possible.
+
+        ::
+
+            sage: x = GrowthGroup('x^ZZ').an_element()
+            sage: log(x)
+            Traceback (most recent call last):
+            ...
+            ArithmeticError: building log(x) is not possible.
+        """
+        raise ArithmeticError('building log(%s) is not possible.' % (self,))
+
+
 class GenericGrowthGroup(
         sage.structure.unique_representation.UniqueRepresentation,
         sage.structure.parent.Parent):

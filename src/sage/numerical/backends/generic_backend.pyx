@@ -495,6 +495,72 @@ cdef class GenericBackend:
 
         raise NotImplementedError()
 
+    cpdef get_best_objective_value(self):
+        r"""
+        Return the value of the currently best known bound.
+
+        For a regular MIP optimization, this value is also the best known bound
+        on the optimal solution value of the MIP problem. In fact, when a
+        problem has been solved to optimality, this value matches the optimal
+        solution value.
+        
+        .. NOTE::
+
+           Has no meaning unless ``solve`` has been called before.
+
+        EXAMPLE::
+
+            sage: p = MixedIntegerLinearProgram(solver="Nonexistent_LP_solver") # optional - Nonexistent_LP_solver
+            sage: b = p.new_variable(binary=True)                      # optional - Nonexistent_LP_solver
+            sage: for u,v in graphs.CycleGraph(5).edges(labels=False): # optional - Nonexistent_LP_solver
+            ....:     p.add_constraint(b[u]+b[v]<=1)                   # optional - Nonexistent_LP_solver
+            sage: p.set_objective(p.sum(b[x] for x in range(5)))       # optional - Nonexistent_LP_solver
+            sage: p.solve()                                            # optional - Nonexistent_LP_solver
+            2.0
+            sage: pb = p.get_backend()                                 # optional - Nonexistent_LP_solver
+            sage: pb.get_objective_value()                             # optional - Nonexistent_LP_solver
+            2.0
+            sage: pb.get_best_objective_value()                        # optional - Nonexistent_LP_solver
+            2.0
+        """
+        raise NotImplementedError()
+
+
+    cpdef get_relative_objective_gap(self):
+        r"""
+        Return the relative objective gap of the best known solution.
+
+        For a minimization problem, this value is computed by `(bestinteger -
+        bestobjective) / (1e-10 + |bestobjective|)`, where ``bestinteger`` is
+        the value returned by ``get_objective_value`` and ``bestobjective`` is
+        the value returned by ``get_best_objective_value``. For a maximization
+        problem, the value is computed by `(bestobjective - bestinteger) /
+        (1e-10 + |bestobjective|)`.
+        
+        .. NOTE::
+
+           Has no meaning unless ``solve`` has been called before.
+
+        EXAMPLE::
+
+            sage: p = MixedIntegerLinearProgram(solver="Nonexistent_LP_solver") # optional - Nonexistent_LP_solver
+            sage: b = p.new_variable(binary=True)                      # optional - Nonexistent_LP_solver
+            sage: for u,v in graphs.CycleGraph(5).edges(labels=False): # optional - Nonexistent_LP_solver
+            ....:     p.add_constraint(b[u]+b[v]<=1)                   # optional - Nonexistent_LP_solver
+            sage: p.set_objective(p.sum(b[x] for x in range(5)))       # optional - Nonexistent_LP_solver
+            sage: p.solve()                                            # optional - Nonexistent_LP_solver
+            2.0
+            sage: pb = p.get_backend()                                 # optional - Nonexistent_LP_solver
+            sage: pb.get_objective_value()                             # optional - Nonexistent_LP_solver
+            2.0
+            sage: pb.get_best_objective_value()                        # optional - Nonexistent_LP_solver
+            2.0
+            sage: pb.get_relative_objective_gap()                      # optional - Nonexistent_LP_solver
+            0.0
+        """
+        raise NotImplementedError()
+
+
     cpdef get_variable_value(self, int variable):
         """
         Return the value of a variable given by the solver.

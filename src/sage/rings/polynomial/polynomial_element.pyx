@@ -1315,6 +1315,18 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: q = p.inverse_series(10)
             sage: (p*q).truncate(11)
             (2*x^4 + 3*x^2 + 3)*y^10 + 1
+
+        Even noncommutative ones::
+
+            sage: M = MatrixSpace(ZZ,2)
+            sage: x = polygen(M)
+            sage: p = M([1,2,3,4])*x^3 + M([-1,0,0,1])*x^2 + M([1,3,-1,0])*x + M.one()
+            sage: q = p.inverse_series(5)
+            sage: (p*q).truncate(5) == M.one()
+            True
+            sage: q = p.inverse_series(13)
+            sage: (p*q).truncate(13) == M.one()
+            True
         """
         if not self[0].is_unit():
             raise ValueError("constant term {} is not a unit".format(self[0]))
@@ -1329,8 +1341,8 @@ cdef class Polynomial(CommutativeAlgebraElement):
         two = A(2)
         current = R(first_coeff)
         for next_prec in sage.misc.misc.newton_method_sizes(prec)[1:]:
-            z = (current*current) * self.truncate(next_prec)
-            current = two*current - z.truncate(next_prec)
+            z = current._mul_trunc_(self, next_prec)._mul_trunc_(current, next_prec)
+            current = two*current - z
         return current
 
     def __long__(self):

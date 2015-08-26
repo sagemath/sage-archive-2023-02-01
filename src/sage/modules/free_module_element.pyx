@@ -2538,7 +2538,7 @@ cdef class FreeModuleElement(Vector):   # abstract base class
             sage: u.cross_product(v)
             Traceback (most recent call last):
             ...
-            ArithmeticError: Cross product only defined for vectors of length three or seven, not (7 and 3)
+            TypeError: Cross product only defined for vectors of length three or seven, not (7 and 3)
 
         REFERENCES:
 
@@ -2568,7 +2568,7 @@ cdef class FreeModuleElement(Vector):   # abstract base class
                            l[0]*r[2] - l[2]*r[0] + l[1]*r[5] - l[5]*r[1] + l[3]*r[4] - l[4]*r[3]])
 
         else:
-            raise ArithmeticError("Cross product only defined for vectors of length three or seven, not (%s and %s)"%(len(l),len(r)))
+            raise TypeError("Cross product only defined for vectors of length three or seven, not (%s and %s)"%(len(l),len(r)))
 
     def cross_product_matrix(self):
         r"""
@@ -2628,7 +2628,7 @@ cdef class FreeModuleElement(Vector):   # abstract base class
             sage: random_vector(F, 5).cross_product_matrix()
             Traceback (most recent call last):
             ...
-            ArithmeticError: Cross product only defined for vectors of length three or seven, not 5
+            TypeError: Cross product only defined for vectors of length three or seven, not 5
         """
         from sage.matrix.matrix_space import MatrixSpace
         rank = self.parent().rank()
@@ -2653,7 +2653,7 @@ cdef class FreeModuleElement(Vector):   # abstract base class
                 [-s[4],  s[6], -s[3],  s[2],  s[0],  zero, -s[1]],
                 [-s[2], -s[5],  s[0], -s[4],  s[3],  s[1],  zero]])
         else:
-            raise ArithmeticError("Cross product only defined for vectors of length three or seven, not {}".format(rank))
+            raise TypeError("Cross product only defined for vectors of length three or seven, not {}".format(rank))
 
     def pairwise_product(self, right):
         """

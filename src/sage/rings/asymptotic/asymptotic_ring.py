@@ -65,12 +65,8 @@ variable `z` this means, `g_1 \leq g_2` if
         experimental. It, its functionality or its interface might change
         without a formal deprecation.
         See http://trac.sagemath.org/17601 for details.
-        sage: from sage.rings.asymptotic.term_monoid import TermMonoid
-        sage: T = TermMonoid('exact', G, ZZ)
-        doctest:...: FutureWarning: This class/method/function is marked as
-        experimental. It, its functionality or its interface might change
-        without a formal deprecation.
-        See http://trac.sagemath.org/17601 for details.
+        sage: from sage.rings.asymptotic.term_monoid import GenericTermMonoid
+        sage: T = GenericTermMonoid(G, ZZ)
         sage: R.<x, y> = AsymptoticRing(growth_group='x^ZZ * y^ZZ', coefficient_ring=ZZ)
         doctest:...: FutureWarning: This class/method/function is marked as
         experimental. It, its functionality or its interface might change
@@ -592,7 +588,7 @@ class AsymptoticExpression(sage.rings.ring_element.RingElement):
             sage: from sage.rings.asymptotic.growth_group import GrowthGroup
             sage: from sage.rings.asymptotic.term_monoid import TermMonoid
             sage: G = GrowthGroup('x^ZZ')
-            sage: OT = TermMonoid('O', G); ET = TermMonoid('exact', G, ZZ)
+            sage: OT = TermMonoid('O', G, ZZ); ET = TermMonoid('exact', G, ZZ)
             sage: R = AsymptoticRing(G, ZZ)
             sage: lst = [ET(x,1), ET(x^2, 2), OT(x^3), ET(x^4, 4)]
             sage: expr = R(lst, simplify=False); expr  # indirect doctest
@@ -718,7 +714,7 @@ class AsymptoticExpression(sage.rings.ring_element.RingElement):
 
             sage: from sage.rings.asymptotic.term_monoid import OTermMonoid
             sage: R.<x> = AsymptoticRing(growth_group='x^ZZ', coefficient_ring=ZZ)
-            sage: T = OTermMonoid(R.growth_group)
+            sage: T = OTermMonoid(R.growth_group, ZZ)
             sage: expr = 10*x^2 + O(x)
             sage: t = T(R.growth_group.gen())
             sage: expr._mul_term_(t)

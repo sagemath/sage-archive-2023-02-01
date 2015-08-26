@@ -2535,3 +2535,15 @@ class DiffManifold(TopManifold):
 
         """
         return not self._covering_frames == []
+
+    def tangent_space(self, point):
+        r"""
+        Tangent space to the manifold at a given point.
+        """
+        from sage.manifolds.point import TopManifoldPoint
+        from sage.manifolds.differentiable.tangent_space import TangentSpace
+        if not isinstance(point, TopManifoldPoint):
+            raise TypeError("{} is not a manifold point".format(point))
+        if point not in self:
+            raise ValueError("{} is not a point on the {}".format(point, self))
+        return TangentSpace(point)

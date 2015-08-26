@@ -547,6 +547,18 @@ class VectorFieldParal(FiniteRankFreeModuleElement, TensorFieldParal,
         sage: w.display()
         w = -sin(t) d/dx + cos(t) d/dy
 
+    Value at a given point::
+
+        sage: p = R((0,), name='p') ; p
+        Point p on the 1-dimensional differentiable manifold R
+        sage: w.at(p)
+        Tangent vector w at Point Phi(p) on the 2-dimensional differentiable
+         manifold M
+        sage: w.at(p).display()
+        w = d/dy
+        sage: w.at(p) == v.at(Phi(p))
+        True
+
     """
     def __init__(self, vector_field_module, name=None, latex_name=None):
         r"""

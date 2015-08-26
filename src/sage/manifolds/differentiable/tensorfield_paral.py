@@ -1678,3 +1678,142 @@ class TensorFieldParal(FreeModuleTensor, TensorField):
                                   index_latex_labels=index_latex_labels,
                                   only_nonzero=only_nonzero,
                                   only_nonredundant=only_nonredundant)
+
+    def at(self, point):
+        r"""
+        Value of the tensor field at a point of its domain.
+
+        If the current tensor field is
+
+        .. MATH::
+
+            t:\ U  \longrightarrow T^{(k,l)} M
+
+        associated with the differentiable map
+
+        .. MATH::
+
+            \Phi:\ U \longrightarrow M
+
+        where `U` and `M` are two manifolds (possibly `U=M` and
+        `\Phi=\mathrm{Id}_M`), then for any point `p\in U`, `t(p)` is a tensor
+        on the tangent space to `M` at the point `\Phi(p)`.
+
+        INPUT:
+
+        - ``point`` -- (instance of
+          :class:`~sage.manifolds.point.TopManifoldPoint`) point `p` in the
+          domain of the tensor field (`U`)
+
+        OUTPUT:
+
+        - instance of
+          :class:`~sage.tensor.modules.free_module_tensor.FreeModuleTensor`
+          representing the tensor `t(p)` on the tangent vector space
+          `T_{\Phi(p)} M`
+
+        EXAMPLES:
+
+        Vector in a tangent space of a 2-dimensional manifold::
+
+            sage: from sage.manifolds.differentiable.tangent_space import TangentSpace  # for doctests only
+            sage: TangentSpace._clear_cache_(); DiffManifold._clear_cache_() # for doctests only
+            sage: M = DiffManifold(2, 'M')
+            sage: c_xy.<x,y> = M.chart()
+            sage: p = M.point((-2,3), name='p')
+            sage: v = M.vector_field('v')
+            sage: v[:] = [y, x^2] ; v.display()
+            v = y d/dx + x^2 d/dy
+            sage: vp = v.at(p) ; vp
+            Tangent vector v at Point p on the 2-dimensional differentiable
+             manifold M
+            sage: vp.parent()
+            Tangent space at Point p on the 2-dimensional differentiable
+             manifold M
+            sage: vp.display()
+            v = 3 d/dx + 4 d/dy
+
+        A 1-form gives birth to a linear form in the tangent space::
+
+            sage: w = M.one_form('w')
+            sage: w[:] = [-x, 1+y] ; w.display()
+            w = -x dx + (y + 1) dy
+            sage: wp = w.at(p) ; wp
+            Linear form w on the Tangent space at Point p on the 2-dimensional
+             differentiable manifold M
+            sage: wp.parent()
+            Dual of the Tangent space at Point p on the 2-dimensional
+             differentiable manifold M
+            sage: wp.display()
+            w = 2 dx + 4 dy
+
+        A tensor field of type (1,1) yields a tensor of type(1,1) in the
+        tangent space::
+
+            sage: t = M.tensor_field(1, 1, name='t')
+            sage: t[0,0], t[0,1], t[1,1] = 1+x, x*y, 1-y
+            sage: t.display()
+            t = (x + 1) d/dx*dx + x*y d/dx*dy + (-y + 1) d/dy*dy
+            sage: tp = t.at(p) ; tp
+            Type-(1,1) tensor t on the Tangent space at Point p on the
+             2-dimensional differentiable manifold M
+            sage: tp.parent()
+            Free module of type-(1,1) tensors on the Tangent space at Point p
+             on the 2-dimensional differentiable manifold M
+            sage: tp.display()
+            t = -d/dx*dx - 6 d/dx*dy - 2 d/dy*dy
+
+        A 2-form yields an alternating form of degree 2 in the tangent space::
+
+            sage: a = M.diff_form(2, name='a')
+            sage: a[0,1] = x*y
+            sage: a.display()
+            a = x*y dx/\dy
+            sage: ap = a.at(p) ; ap
+            Alternating form a of degree 2 on the Tangent space at Point p on
+             the 2-dimensional differentiable manifold M
+            sage: ap.parent()
+            2nd exterior power of the dual of the Tangent space at Point p on
+             the 2-dimensional differentiable manifold M
+            sage: ap.display()
+            a = -6 dx/\dy
+
+        Example with a non trivial map `\Phi`::
+
+            sage: U = DiffManifold(1, 'U')  # (0,2*pi) as a 1-dimensional manifold
+            sage: T.<t> = U.chart(r't:(0,2*pi)')  # canonical chart on U
+            sage: Phi = U.diff_map(M, [cos(t), sin(t)], name='Phi',
+            ....:                  latex_name=r'\Phi')
+            sage: v = U.vector_field(name='v', dest_map=Phi) ; v
+            Vector field v along the 1-dimensional differentiable manifold U
+             with values on the 2-dimensional differentiable manifold M
+            sage: v[:] = [1+t, t^2]
+            sage: v.display()
+            v = (t + 1) d/dx + t^2 d/dy
+            sage: p = U((pi/6,))
+            sage: vp = v.at(p) ; vp
+            Tangent vector v at Point on the 2-dimensional differentiable
+             manifold M
+            sage: vp.parent() is M.tangent_space(Phi(p))
+            True
+            sage: vp.display()
+            v = (1/6*pi + 1) d/dx + 1/36*pi^2 d/dy
+
+        """
+        if point not in self._domain:
+            raise ValueError("the {} is not in the domain of ".format(point)
+                             + "the {}".format(self))
+        dest_map = self._fmodule._dest_map
+        if dest_map.is_identity():
+            amb_point = point
+        else:
+            amb_point = dest_map(point)  #  "ambient" point
+        ts = amb_point._manifold.tangent_space(amb_point)
+        resu = ts.tensor(self._tensor_type, name=self._name,
+                         latex_name=self._latex_name, sym=self._sym,
+                         antisym=self._antisym)
+        for frame, comp in self._components.iteritems():
+            comp_resu = resu.add_comp(frame.at(point))
+            for ind, val in comp._comp.iteritems():
+                comp_resu._comp[ind] = val(point)
+        return resu

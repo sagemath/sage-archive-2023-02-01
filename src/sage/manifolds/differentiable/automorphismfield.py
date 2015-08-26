@@ -1105,3 +1105,95 @@ class AutomorphismFieldParal(FreeModuleAutomorphism, TensorFieldParal):
             self._restrictions[subdomain] = smodule.identity_map()
         return self._restrictions[subdomain]
 
+    def at(self, point):
+        r"""
+        Value of the field of tangent-space automorphisms at a given point.
+
+        If the current field of tangent-space automorphisms is
+
+        .. MATH::
+
+            a:\ U  \longrightarrow T^{(1,1)} M
+
+        associated with the differentiable map
+
+        .. MATH::
+
+            \Phi:\ U \longrightarrow M
+
+        where `U` and `M` are two manifolds (possibly `U=M` and
+        `\Phi=\mathrm{Id}_M`), then for any point `p\in U`, `a(p)` is an
+        automorphism of the tangent space `T_{\Phi(p)}M`.
+
+        INPUT:
+
+        - ``point`` -- (instance of
+          :class:`~sage.manifolds.point.TopManifoldPoint`) point `p` in the
+          domain of the field of automorphisms `a`
+
+        OUTPUT:
+
+        - instance of
+          :class:`~sage.tensor.modules.free_module_automorphism.FreeModuleAutomorphism`
+          representing the automorphism `a(p)` of the tangent vector space
+          `T_{\Phi(p)}M`
+
+        EXAMPLES:
+
+        Automorphism at some point of a tangent space of a 2-dimensional
+        manifold::
+
+            sage: DiffManifold._clear_cache_() # for doctests only
+            sage: M = DiffManifold(2, 'M')
+            sage: c_xy.<x,y> = M.chart()
+            sage: a = M.automorphism_field(name='a')
+            sage: a[:] = [[1+exp(y), x*y], [0, 1+x^2]]
+            sage: a.display()
+            a = (e^y + 1) d/dx*dx + x*y d/dx*dy + (x^2 + 1) d/dy*dy
+            sage: p = M.point((-2,3), name='p') ; p
+            Point p on the 2-dimensional differentiable manifold M
+            sage: ap = a.at(p) ; ap
+            Automorphism a of the Tangent space at Point p on the
+             2-dimensional differentiable manifold M
+            sage: ap.display()
+            a = (e^3 + 1) d/dx*dx - 6 d/dx*dy + 5 d/dy*dy
+            sage: ap.parent()
+            General linear group of the Tangent space at Point p on the
+             2-dimensional differentiable manifold M
+
+        The identity map of the tangent space at point ``p``::
+
+            sage: id = M.tangent_identity_field() ; id
+            Field of tangent-space identity maps on the 2-dimensional
+             differentiable manifold M
+            sage: idp = id.at(p) ; idp
+            Identity map of the Tangent space at Point p on the 2-dimensional
+             differentiable manifold M
+            sage: idp is M.tangent_space(p).identity_map()
+            True
+            sage: idp.display()
+            Id = d/dx*dx + d/dy*dy
+            sage: idp.parent()
+            General linear group of the Tangent space at Point p on the
+             2-dimensional differentiable manifold M
+            sage: idp * ap == ap
+            True
+
+        """
+        if point not in self._domain:
+            raise TypeError("the {} is not in the domain of the {}".format(
+                                                                  point, self))
+        dest_map = self._fmodule._dest_map
+        if dest_map.is_identity():
+            amb_point = point
+        else:
+            amb_point = dest_map(point)  #  "ambient" point
+        ts = amb_point._manifold.tangent_space(amb_point)
+        if self._is_identity:
+            return ts.identity_map()
+        resu = ts.automorphism(name=self._name, latex_name=self._latex_name)
+        for frame, comp in self._components.iteritems():
+            comp_resu = resu.add_comp(frame.at(point))
+            for ind, val in comp._comp.iteritems():
+                comp_resu._comp[ind] = val(point)
+        return resu

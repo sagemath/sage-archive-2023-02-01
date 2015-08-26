@@ -841,7 +841,7 @@ class FindStatStatistic(SageObject):
 
         TESTS::
 
-            sage: findstat(999999)                                              # indirect doctest
+            sage: findstat(999999)                                              # optional -- internet, indirect doctest
             Traceback (most recent call last):
             ...
             ValueError: St999999 is not a FindStat statistic identifier.

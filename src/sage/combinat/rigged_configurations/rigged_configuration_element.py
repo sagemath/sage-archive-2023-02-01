@@ -851,9 +851,9 @@ class RiggedConfigurationElement(ClonableArray):
 
             sage: RC = RiggedConfigurations(['D',4,1], [[2,1], [2,1]])
             sage: x = RC(partition_list=[[3], [3,1,1], [2], [3,1]]); ascii_art(x)
-           -1[ ][ ][ ]-1  1[ ][ ][ ]1  0[ ][ ]0  -3[ ][ ][ ]-3
-                          0[ ]0                  -1[ ]-1
-                          0[ ]0
+            -1[ ][ ][ ]-1  1[ ][ ][ ]1  0[ ][ ]0  -3[ ][ ][ ]-3
+                           0[ ]0                  -1[ ]-1
+                           0[ ]0
             sage: x.vacancy_number(2,2)
             1
         """

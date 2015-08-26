@@ -1303,6 +1303,17 @@ class AsymptoticRing(sage.rings.ring.Ring,
             2*p^11
             sage: A(3*p^4 + 7/3*p - 8)
             3*p^4 + 7/3*p - 8
+
+        ::
+
+            sage: S = AsymptoticRing(growth_group='x^ZZ * y^ZZ', coefficient_ring=QQ)
+            sage: var('x, y')
+            (x, y)
+            sage: S(x + y)
+            x + y
+            sage: S(2*x - 4*x*y^6)
+            -4*x * y^6 + 2*x
+
         ::
 
             sage: A.<a,b> = AsymptoticRing('a^ZZ * b^ZZ', QQ)

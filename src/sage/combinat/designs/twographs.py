@@ -150,7 +150,10 @@ class TwoGraph(IncidenceStructure):
         The two-graph which is the complement of ``self``
 
         That is, the two-graph constisting exactly of triples not in ``self``.
-        Note that this is different from :meth:`complement <sage.combinat.designs.incidence_structures.IncidenceStructure.complement>` of the :class:`parent class <sage.combinat.designs.incidence_structures.IncidenceStructure>`.
+        Note that this is different from :meth:`complement
+        <sage.combinat.designs.incidence_structures.IncidenceStructure.complement>`
+        of the :class:`parent class
+        <sage.combinat.designs.incidence_structures.IncidenceStructure>`.
 
         EXAMPLES::
 

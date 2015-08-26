@@ -161,7 +161,7 @@ The asymptotic expressions support division. For example, we get can
 expand `1/(1-z)` to a geometric series::
 
     sage: 1 / (z-1)
-    1/z + z^(-2) + z^(-3) + z^(-4) + ... + z^(-20) + O(z^(-21))
+    z^(-1) + z^(-2) + z^(-3) + z^(-4) + ... + z^(-20) + O(z^(-21))
 
 Since there is a default precision (parameter ``default_prec``)
 defined, only the first `20` summands are calculated.
@@ -773,7 +773,7 @@ class AsymptoticExpression(sage.rings.ring_element.RingElement):
             sage: 1/x^42
             x^(-42)
             sage: (1 + 4*x) / (x + 2*x^2)
-            2*1/x - 1/2*x^(-2) + 1/4*x^(-3) - 1/8*x^(-4) + 1/16*x^(-5) + O(x^(-6))
+            2*x^(-1) - 1/2*x^(-2) + 1/4*x^(-3) - 1/8*x^(-4) + 1/16*x^(-5) + O(x^(-6))
             sage: x / O(x)
             Traceback (most recent call last):
             ...
@@ -804,15 +804,15 @@ class AsymptoticExpression(sage.rings.ring_element.RingElement):
 
             sage: R.<x> = AsymptoticRing('x^ZZ', QQ, default_prec=4)
             sage: ~x
-            1/x
+            x^(-1)
             sage: ~(x^42)
             x^(-42)
             sage: ex = ~(1 + x); ex
-            1/x - x^(-2) + x^(-3) - x^(-4) + O(x^(-5))
+            x^(-1) - x^(-2) + x^(-3) - x^(-4) + O(x^(-5))
             sage: ex * (1+x)
             1 + O(x^(-4))
             sage: ~(1 + O(1/x))
-            1 + O(1/x)
+            1 + O(x^(-1))
         """
         if len(self.summands) == 0:
             raise ZeroDivisionError('Division by zero in %s.' % (self,))
@@ -1318,7 +1318,7 @@ class AsymptoticRing(sage.rings.ring.Ring,
 
             sage: A.<a,b> = AsymptoticRing('a^ZZ * b^ZZ', QQ)
             sage: 1/a
-            1/a
+            a^(-1)
         """
         if summands is not None:
             if type(data) != int or data != 0:

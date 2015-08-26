@@ -720,7 +720,7 @@ class GenericTerm(sage.structure.element.MonoidElement):
             sage: g1 = GT(x); g2 = GT(x^2); g1, g2
             (Generic Term with growth x, Generic Term with growth x^2)
             sage: o1 = OT(x^-1); o2 = OT(x^3); o1, o2
-            (O(1/x), O(x^3))
+            (O(x^(-1)), O(x^3))
             sage: t1 = ET_ZZ(x^2, 5); t2 = ET_QQ(x^3, 2/7); t1, t2
             (5*x^2, 2/7*x^3)
 
@@ -732,7 +732,7 @@ class GenericTerm(sage.structure.element.MonoidElement):
             sage: g1 <= g2
             True
             sage: o1, g1
-            (O(1/x), Generic Term with growth x)
+            (O(x^(-1)), Generic Term with growth x)
             sage: o1 <= g1
             False
 
@@ -1421,7 +1421,7 @@ class GenericTermMonoid(sage.structure.parent.Parent,
             sage: import sage.rings.asymptotic.term_monoid as atm
             sage: G = agg.GrowthGroup('x^ZZ')
             sage: tuple(atm.OTermMonoid(G, QQ).some_elements())
-            (O(1), O(x), O(1/x), O(x^2), O(x^(-2)), O(x^3), ...)
+            (O(1), O(x), O(x^(-1)), O(x^2), O(x^(-2)), O(x^3), ...)
         """
         return iter(self(g) for g in self.growth_group.some_elements())
 
@@ -2277,7 +2277,7 @@ class ExactTerm(TermWithCoefficient):
             sage: G = agg.GrowthGroup('x^ZZ'); x = G.gen()
             sage: T = atm.ExactTermMonoid(G, QQ)
             sage: ~T(x, 1/2)  # indirect doctest
-            2*1/x
+            2*x^(-1)
         """
         try:
             c = ~self.coefficient

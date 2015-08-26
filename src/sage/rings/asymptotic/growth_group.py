@@ -874,7 +874,7 @@ class GenericGrowthElement(sage.structure.element.MultiplicativeGroupElement):
             NotImplementedError: Only implemented in concrete realizations.
             sage: P = GrowthGroup('x^ZZ')
             sage: ~P.an_element()
-            1/x
+            x^(-1)
         """
         raise NotImplementedError('Inversion of %s not implemented '
                                   '(in this abstract method).' % (self,))
@@ -1353,11 +1353,11 @@ class GenericGrowthGroup(
 
             sage: import sage.rings.asymptotic.growth_group as agg
             sage: tuple(agg.MonomialGrowthGroup(ZZ, 'z').some_elements())
-            (1, z, 1/z, z^2, z^(-2), z^3, z^(-3),
+            (1, z, z^(-1), z^2, z^(-2), z^3, z^(-3),
              z^4, z^(-4), z^5, z^(-5), ...)
             sage: tuple(agg.MonomialGrowthGroup(QQ, 'z').some_elements())
             (z^(1/2), z^(-1/2), z^2, z^(-2),
-             1, z, 1/z, z^42,
+             1, z, z^(-1), z^42,
              z^(2/3), z^(-2/3), z^(3/2), z^(-3/2),
              z^(4/5), z^(-4/5), z^(5/4), z^(-5/4), ...)
         """
@@ -2003,7 +2003,7 @@ class MonomialGrowthElement(GenericGrowthElement):
         TESTS::
 
             sage: P(x^-1)  # indirect doctest
-            1/x
+            x^(-1)
             sage: P(x^-42)  # indirect doctest
             x^(-42)
         """
@@ -2014,8 +2014,6 @@ class MonomialGrowthElement(GenericGrowthElement):
             return '1'
         elif self.exponent == 1:
             return var
-        elif self.exponent == -1:
-            return '1/' + var
         elif self.exponent in ZZ and self.exponent > 0:
             return var + '^' + str(self.exponent)
         else:
@@ -2301,7 +2299,7 @@ class MonomialGrowthGroup(GenericGrowthGroup):
             sage: P('x^7')
             x^7
             sage: P('1/x')
-            1/x
+            x^(-1)
             sage: P('x^(-2)')
             x^(-2)
             sage: P('x^-2')

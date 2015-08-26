@@ -457,15 +457,6 @@ class GenericProduct(CartesianProductPosets, GenericGrowthGroup):
         elif isinstance(data, self.element_class):
             return self.element_class(self, data)
 
-        elif isinstance(data, (tuple, list,
-                               sage.sets.cartesian_product.CartesianProduct.Element)):
-            try:
-                return super(GenericProduct, self)._element_constructor_(data)
-            except ValueError:
-                pass
-
-            return convert_factors(data, data)
-
         elif isinstance(data, str):
             from growth_group import split_str_by_mul
             return convert_factors(split_str_by_mul(data), data)
@@ -482,6 +473,15 @@ class GenericProduct(CartesianProductPosets, GenericGrowthGroup):
                     return convert_factors(data.operands(), data)
 
             # room for other parents (e.g. polynomial ring et al.)
+
+        else:
+            try:
+                return super(GenericProduct, self)._element_constructor_(data)
+            except ValueError:
+                pass
+            if isinstance(data, (tuple, list,
+                                 sage.sets.cartesian_product.CartesianProduct.Element)):
+                return convert_factors(tuple(data), data)
 
         return convert_factors((data,), data)
 

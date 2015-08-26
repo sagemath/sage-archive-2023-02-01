@@ -1303,6 +1303,11 @@ class AsymptoticRing(sage.rings.ring.Ring,
             2*p^11
             sage: A(3*p^4 + 7/3*p - 8)
             3*p^4 + 7/3*p - 8
+        ::
+
+            sage: A.<a,b> = AsymptoticRing('a^ZZ * b^ZZ', QQ)
+            sage: 1/a
+            1/a
         """
         if summands is not None:
             if type(data) != int or data != 0:

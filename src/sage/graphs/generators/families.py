@@ -486,7 +486,7 @@ def chang_graphs():
         sage: s=[K8.subgraph_search(c8).edges(),
         ....:    [(0,1,None),(2,3,None),(4,5,None),(6,7,None)],
         ....:    K8.subgraph_search(c3c5).edges()]
-        sage: map(lambda x,G: T8.seidel_switching(x).is_isomorphic(G),
+        sage: map(lambda x,G: T8.seidel_switching(x, inplace=False).is_isomorphic(G),
         ....:                  s, chang_graphs)
         [True, True, True]
 

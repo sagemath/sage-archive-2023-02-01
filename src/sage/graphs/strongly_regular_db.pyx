@@ -604,7 +604,7 @@ def is_twograph_descendant_of_srg(int v, int k0, int l, int mu):
 
         sage: graphs.strongly_regular_graph(279, 150, 85, 75, existence=True)
         True
-        sage: graphs.strongly_regular_graph(279, 150, 85, 75).is_strongly_regular(parameters=True)
+        sage: graphs.strongly_regular_graph(279, 150, 85, 75).is_strongly_regular(parameters=True) # optional - gap_packages internet
         (279, 150, 85, 75)
     """
     cdef int b, k, s

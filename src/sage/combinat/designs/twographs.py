@@ -55,7 +55,6 @@ Methods
 """
 from sage.combinat.designs.incidence_structures import IncidenceStructure
 from itertools import combinations
-from sage.misc.functional import is_odd, is_even
 
 class TwoGraph(IncidenceStructure):
     r"""
@@ -176,21 +175,51 @@ def is_twograph(T):
 
     - ``T`` -- an :class:`incidence structure <sage.combinat.designs.IncidenceStructure>`
 
-    EXAMPLES::
+    EXAMPLES:
+
+    a two-graph from a graph::
 
         sage: from sage.combinat.designs.twographs import is_twograph
         sage: p=graphs.PetersenGraph().twograph()
         sage: is_twograph(p)
         True
+
+    a non-regular 2-uniform hypergraph which is a two-graph::
+
+        sage: is_twograph(designs.TwoGraph([[1,2,3],[1,2,4]]))
+        True
+
+    TESTS:
+
+    wrong size of blocks::
+
         sage: is_twograph(designs.projective_plane(3))
         False
+
+    a triple system which is not a two-graph::
+
         sage: is_twograph(designs.projective_plane(2))
         False
     """
-    B = map(frozenset, T.blocks())
-    return T.is_t_design(k=3) and \
-        all(map(lambda f: is_even(sum(map(lambda x: frozenset(x) in B,  combinations(f, 3)))),
-                    combinations(T.ground_set(), 4)))
+    if not T.is_uniform(3):
+        return False
+
+    # A structure for a fast triple existence check
+    v_to_blocks = {v:set() for v in range(T.num_points())}
+    for B in T._blocks:
+        B = frozenset(B)
+        for x in B:
+            v_to_blocks[x].add(B)
+
+    has_triple = lambda (x,y,z) : bool(v_to_blocks[x]&v_to_blocks[y]&v_to_blocks[z])
+
+    # Check that every quadruple contains an even number of triples
+    from __builtin__ import sum
+    for quad in combinations(range(T.num_points()),4):
+        if sum(map(has_triple,combinations(quad,3))) % 2 == 1:
+            return False
+
+    return True
 
 def twograph_descendant(G, v, name=None):
     r"""
@@ -215,8 +244,8 @@ def twograph_descendant(G, v, name=None):
     one of s.r.g.'s from the :mod:`database <sage.graphs.strongly_regular_db>`::
 
         sage: from sage.combinat.designs.twographs import twograph_descendant
-        sage: A=graphs.strongly_regular_graph(280,135,70)
-        sage: twograph_descendant(A, 0).is_strongly_regular(parameters=True)
+        sage: A=graphs.strongly_regular_graph(280,135,70)                    # optional - gap_packages internet
+        sage: twograph_descendant(A, 0).is_strongly_regular(parameters=True) # optional - gap_packages internet
         (279, 150, 85, 75)
 
     TESTS::

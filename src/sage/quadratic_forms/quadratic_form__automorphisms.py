@@ -36,7 +36,7 @@ def basis_of_short_vectors(self, show_lengths=False, safe_flag=None):
         sage: Q.basis_of_short_vectors(True)
         (((1, 0, 0, 0), (0, 1, 0, 0), (0, 0, 1, 0), (0, 0, 0, 1)), (1, 3, 5, 7))
 
-    The returned vectors are immutable:
+    The returned vectors are immutable::
 
         sage: v = Q.basis_of_short_vectors()[0]
         sage: v

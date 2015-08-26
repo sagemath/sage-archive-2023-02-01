@@ -169,7 +169,7 @@ cdef extern from "flint/fmpq_poly.h":
     int fmpq_poly_is_monic(const fmpq_poly_t)
     void fmpq_poly_make_monic(fmpq_poly_t, const fmpq_poly_t)
 
-    # Transcendemtal functions
+    # Transcendental functions
     void fmpq_poly_log_series(fmpq_poly_t, const fmpq_poly_t, slong)
     void fmpq_poly_exp_series(fmpq_poly_t, const fmpq_poly_t, slong)
     void fmpq_poly_atan_series(fmpq_poly_t, const fmpq_poly_t, slong)

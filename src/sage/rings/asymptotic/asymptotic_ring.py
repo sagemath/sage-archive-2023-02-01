@@ -1291,7 +1291,8 @@ class AsymptoticRing(sage.rings.ring.Ring,
             sage: y = ZZ['y'].gen(); AR(y)
             Traceback (most recent call last):
             ...
-            TypeError: Cannot convert y to an asymptotic expression.
+            TypeError: Cannot convert y to an asymptotic expression
+            in Asymptotic Ring <x^ZZ> over Integer Ring.
         """
         if summands is not None:
             if type(data) != int or data != 0:
@@ -1313,12 +1314,13 @@ class AsymptoticRing(sage.rings.ring.Ring,
         if isinstance(data, (list, tuple)):
             if not all(isinstance(elem, GenericTerm) for elem in data):
                 raise TypeError('Not all list entries of %s '
-                                'are asymptotic terms.' % (data,))
+                                'are asymptotic terms, so cannot create an '
+                                'asymptotic expression in %s.' % (data, self))
             summands = AsymptoticRing._create_empty_summands_()
             summands.union_update(data)
             return self.element_class(self, summands, simplify=simplify)
 
-        if data == 0:
+        if not data or data == 0:
             summands = AsymptoticRing._create_empty_summands_()
             return self.element_class(self, summands, simplify=simplify)
 
@@ -1337,7 +1339,7 @@ class AsymptoticRing(sage.rings.ring.Ring,
             return self.create_summand('exact', growth=1, coefficient=coefficient)
 
         raise TypeError('Cannot convert %s to an asymptotic '
-                        'expression.' % (data,))
+                        'expression in %s.' % (data, self))
 
 
     def _coerce_map_from_(self, R):

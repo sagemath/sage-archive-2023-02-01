@@ -166,6 +166,36 @@ class TwoGraph(IncidenceStructure):
         """
         return super(TwoGraph, self).complement(uniform=True)
 
+def taylor_twograph(q):
+    r"""
+    constructing Taylor's two-graph for U_3(q), q odd
+
+    """
+    from sage.rings.arith import is_prime_power
+    p, k = is_prime_power(q,get_data=True)
+    if k==0 or p==2:
+       raise ValueError('q must be a an odd prime power')
+    from sage.schemes.projective.projective_space import ProjectiveSpace
+    from sage.rings.finite_rings.constructor import FiniteField
+    from sage.modules.free_module_element import free_module_element as vector
+    from sage.rings.finite_rings.integer_mod import mod
+    from __builtin__ import sum
+    Fq = FiniteField(q**2, 'a')
+    PG = ProjectiveSpace(2, Fq)
+    def S(xx,yy):
+        x = vector(xx)
+        y = vector(yy)
+        return sum(map(lambda j: x[j]*y[2-j]**q, xrange(3)))
+
+    V = filter(lambda x: S(x,x)==0, PG)
+    def make_tester():
+        if mod(q,4)==1:
+            return lambda (x,y,z): not (S(x,y)*S(y,z)*S(z,x)).is_square()
+        else:
+            return lambda (x,y,z): (S(x,y)*S(y,z)*S(z,x)).is_square()
+    f = make_tester()
+    T = filter(f, combinations(V,3))
+    return T
 
 def is_twograph(T):
     r"""

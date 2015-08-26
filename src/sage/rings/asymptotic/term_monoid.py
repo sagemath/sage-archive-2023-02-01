@@ -1140,25 +1140,21 @@ class GenericTermMonoid(sage.structure.parent.Parent,
                 return True
 
 
-    def _element_constructor_(self, data):
+    def _element_constructor_(self, data, coefficient=None):
         r"""
         Convert the given object to this term monoid.
 
         INPUT:
 
-        - ``data`` -- an object representing the element to be
-          initialized.
+        - ``data`` -- a growth element or an object representing the
+          element to be initialized.
+
+        - ``coefficient`` -- (default: ``None``)
+          an element of the coefficient ring.
 
         OUTPUT:
 
         An element of this term monoid.
-
-        .. NOTE::
-
-            The object ``data`` is either an asymptotic term that is
-            to be coerced into this term monoid, or an asymptotic
-            growth element that is used for creating an element
-            of this term monoid.
 
         EXAMPLES::
 
@@ -1195,6 +1191,15 @@ class GenericTermMonoid(sage.structure.parent.Parent,
             with (implicit) coefficients in Rational Field.
             > *previous* ValueError: 10*x^2 is not in Growth Group x^ZZ.
 
+        ::
+
+            sage: import sage.rings.asymptotic.term_monoid as atm
+            sage: import sage.rings.asymptotic.growth_group as agg
+            sage: G = agg.GrowthGroup('x^ZZ')
+            sage: T = atm.TermWithCoefficientMonoid(G, ZZ)
+            sage: t1 = T(x^2, 5); t1  # indirect doctest
+            Asymptotic Term with coefficient 5 and growth x^2
+
         TESTS::
 
             sage: O_ZZ = atm.OTermMonoid(G_ZZ, QQ)
@@ -1206,21 +1211,116 @@ class GenericTermMonoid(sage.structure.parent.Parent,
             ValueError: Growth 2*x^11 is not in O-Term Monoid x^ZZ
             with implicit coefficients in Rational Field.
             > *previous* ValueError: 2*x^11 is not in Growth Group x^ZZ.
+
+        ::
+
+            sage: T(5 * x^5)
+            Asymptotic Term with coefficient 5 and growth x^5
+            sage: T(G.gen()^10)
+            Asymptotic Term with coefficient 1 and growth x^10
+            sage: T(G.gen()^10, coefficient=10)
+            Asymptotic Term with coefficient 10 and growth x^10
+            sage: T(x^123)
+            Asymptotic Term with coefficient 1 and growth x^123
+
+        ::
+
+            sage: T(x)
+            Asymptotic Term with coefficient 1 and growth x
+
+        ::
+
+            sage: G_log = agg.GrowthGroup('log(x)^ZZ')
+            sage: T_log = atm.TermWithCoefficientMonoid(G_log, ZZ)
+            sage: T_log(log(x))
+            Asymptotic Term with coefficient 1 and growth log(x)
+
         """
         if type(data) == self.element_class and data.parent() == self:
             return data
+        elif isinstance(data, TermWithCoefficient):
+            return self._create_element_(data.growth, data.coefficient)
         elif isinstance(data, GenericTerm):
-            return self.element_class(self, data.growth)
+            return self._create_element_(data.growth, None)
         elif type(data) == int and data == 0:
-            raise ValueError('No input specified. Cannot continue.')
-        else:
-            from growth_group import combine_exceptions
+            raise ValueError('No input specified. Cannot continue '
+                             'creating an element of %s.' % (self,))
+
+        from growth_group import combine_exceptions
+        if coefficient is not None:
             try:
                 data = self.growth_group(data)
-                return self.element_class(self, data)
             except (ValueError, TypeError) as e:
                 raise combine_exceptions(
                     ValueError('Growth %s is not in %s.' % (data, self)), e)
+            return self._create_element_(data, coefficient)
+
+        try:
+            growth, coefficient = self._split_growth_and_coefficient_(data)
+        except ValueError as e:
+            raise combine_exceptions(
+                ValueError('%s is not in %s.' % (data, self)), e)
+
+        return self._create_element_(growth, coefficient)
+
+
+    def _create_element_(self, growth, coefficient):
+        if coefficient is not None and coefficient != self.coefficient_ring.one():
+            raise ValueError('Coefficient %s is not 1, but %s does not '
+                             'support coefficients.' % (coefficient, self))
+        return self.element_class(self, growth)
+
+
+    def _split_growth_and_coefficient_(self, data):
+        factors = self._get_factors_(data)
+
+        growth_group = self.growth_group
+        coefficient_ring = self.coefficient_ring
+
+        coefficients = []
+        growths = []
+        for f in factors:
+            try:
+                growths.append(growth_group(f))
+                continue
+            except (ValueError, TypeError):
+                pass
+
+            try:
+                coefficients.append(coefficient_ring(f))
+                continue
+            except (ValueError, TypeError):
+                pass
+
+            raise ValueError('Factor %s of %s is neither a coefficient (in %s) '
+                             'nor growth (in %s).' %
+                             (f, data, coefficient_ring, growth_group))
+
+        from sage.misc.misc_c import prod
+        growth = prod(growths) if growths else growth_group.one()
+        coefficient = prod(coefficients) if coefficients else coefficient_ring.one()
+        return (growth, coefficient)
+
+
+    def _get_factors_(self, data):
+
+        if isinstance(data, str):
+            from growth_group import split_str_by_mul
+            return split_str_by_mul(data)
+
+        try:
+            P = data.parent()
+        except AttributeError:
+            return (data,)
+
+        from sage.symbolic.ring import SR
+        if P is SR:
+            from sage.symbolic.operators import mul_vararg
+            op = data.operator()
+            if op == mul_vararg:
+                return data.operands()
+
+        return (data,)
 
 
     def _an_element_(self):
@@ -1532,6 +1632,10 @@ class OTermMonoid(GenericTermMonoid):
     """
     # enable the category framework for elements
     Element = OTerm
+
+
+    def _create_element_(self, growth, coefficient):
+        return self.element_class(self, growth)
 
 
     def _coerce_map_from_(self, S):
@@ -1890,137 +1994,8 @@ class TermWithCoefficientMonoid(GenericTermMonoid):
     Element = TermWithCoefficient
 
 
-    def _element_constructor_(self, data, coefficient=None):
-        r"""
-        Construct an asymptotic term with coefficient or convert
-        the given object ``data`` to this term monoid.
-
-        INPUT:
-
-        - ``data`` -- a growth element or an object representing the
-          element to be initialized.
-
-        - ``coefficient`` -- an element of the coefficient ring.
-
-        OUTPUT:
-
-        An asymptotic term.
-
-        .. NOTE::
-
-            The object ``data`` is either an asymptotic term with
-            coefficient that is to be coerced into this term monoid,
-            or an asymptotic growth element that is used together
-            with ``coefficient`` in order to create an element of
-            this term monoid.
-
-        EXAMPLES::
-
-            sage: import sage.rings.asymptotic.term_monoid as atm
-            sage: import sage.rings.asymptotic.growth_group as agg
-            sage: G = agg.GrowthGroup('x^ZZ')
-            sage: T = atm.TermWithCoefficientMonoid(G, ZZ)
-            sage: t1 = T(x^2, 5); t1  # indirect doctest
-            Asymptotic Term with coefficient 5 and growth x^2
-
-        TESTS::
-
-            sage: T(5 * x^5)
-            Asymptotic Term with coefficient 5 and growth x^5
-            sage: T(G.gen()^10)
-            Asymptotic Term with coefficient 1 and growth x^10
-            sage: T(G.gen()^10, coefficient=10)
-            Asymptotic Term with coefficient 10 and growth x^10
-            sage: T(x^123)
-            Asymptotic Term with coefficient 1 and growth x^123
-
-        ::
-
-            sage: T(x)
-            Asymptotic Term with coefficient 1 and growth x
-
-        ::
-
-            sage: G_log = agg.GrowthGroup('log(x)^ZZ')
-            sage: T_log = atm.TermWithCoefficientMonoid(G_log, ZZ)
-            sage: T_log(log(x))
-            Asymptotic Term with coefficient 1 and growth log(x)
-        """
-        if type(data) == self.element_class and data.parent() == self:
-            return data
-        elif isinstance(data, TermWithCoefficient):
-            return self.element_class(self, data.growth, data.coefficient)
-        elif type(data) == int and data == 0:
-            raise ValueError('No input specified. Cannot continue '
-                             'creating an element of %s.' % (self,))
-
-        from growth_group import combine_exceptions
-        if coefficient is not None:
-            try:
-                data = self.growth_group(data)
-            except (ValueError, TypeError) as e:
-                raise combine_exceptions(
-                    ValueError('Growth %s is not in %s.' % (data, self)), e)
-            return self.element_class(self, data, coefficient)
-
-        try:
-            growth, coefficient = self._split_growth_and_coefficient_(data)
-        except ValueError as e:
-            raise combine_exceptions(
-                ValueError('%s is not in %s.' % (data, self)), e)
-
+    def _create_element_(self, growth, coefficient):
         return self.element_class(self, growth, coefficient)
-
-
-    def _split_growth_and_coefficient_(self, data):
-        factors = self._get_factors_(data)
-
-        growth_group = self.growth_group
-        coefficient_ring = self.coefficient_ring
-
-        coefficient = coefficient_ring.one()
-        growth = self.growth_group.one()
-        for f in factors:
-            try:
-                g = growth_group(f)
-            except (ValueError, TypeError):
-                pass
-            else:
-                growth *= g
-                continue
-            try:
-                c = coefficient_ring(f)
-            except (ValueError, TypeError):
-                pass
-            else:
-                coefficient *= c
-                continue
-            raise ValueError('Factor %s of %s is neither a coefficient (in %s) '
-                             'nor growth (in %s).' %
-                             (f, data, coefficient_ring, growth_group))
-
-        return (growth, coefficient)
-
-
-    def _get_factors_(self, data):
-
-        if isinstance(data, str):
-            from growth_group import split_str_by_mul
-            return split_str_by_mul(data)
-
-        try:
-            P = data.parent()
-        except AttributeError:
-            return (data,)
-
-        from sage.symbolic.ring import SR
-        if P is SR:
-            from sage.symbolic.operators import mul_vararg
-            op = data.operator()
-            if op == mul_vararg:
-                return data.operands()
-
-        return (data,)
 
 
     def _an_element_(self):

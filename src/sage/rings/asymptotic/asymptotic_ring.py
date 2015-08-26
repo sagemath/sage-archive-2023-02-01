@@ -1558,7 +1558,7 @@ class AsymptoticRing(sage.rings.ring.Ring,
         return len(self.growth_group.gens_monomial())
 
 
-    def create_summand(self, type, growth, **kwds):
+    def create_summand(self, type, data=None, **kwds):
         r"""
         Create a simple asymptotic expression consisting of a single
         summand.
@@ -1567,9 +1567,16 @@ class AsymptoticRing(sage.rings.ring.Ring,
 
         - ``type`` -- 'O' or 'exact'.
 
+        - ``data`` -- the element out of which a summand has to be created.
+
         - ``growth`` -- an element of the :meth:`growth_group`.
 
         - ``coefficient`` -- an element of the :meth:`coefficient_ring`.
+
+        .. NOTE::
+
+            Either ``growth`` and ``coefficient`` or ``data`` have to
+            be specified.
 
         OUTPUT:
 
@@ -1584,27 +1591,32 @@ class AsymptoticRing(sage.rings.ring.Ring,
         EXAMPLES::
 
             sage: R = AsymptoticRing(growth_group='x^ZZ', coefficient_ring=ZZ)
-            sage: R.create_summand('O', growth=x^2)
+            sage: R.create_summand('O', x^2)
             O(x^2)
             sage: R.create_summand('exact', growth=x^456, coefficient=123)
             123*x^456
 
         TESTS::
 
-            sage: R.create_summand('O', growth=42*x^2)
+            sage: R.create_summand('O', growth=42*x^2, coefficient=1)
             Traceback (most recent call last):
             ...
-            ValueError: Growth 42*x^2 is not in O-Term Monoid x^ZZ
-            with implicit coefficients in Integer Ring.
+            ValueError: Growth 42*x^2 is not in O-Term Monoid x^ZZ with implicit coefficients in Integer Ring.
             > *previous* ValueError: 42*x^2 is not in Growth Group x^ZZ.
         """
         from sage.rings.asymptotic.term_monoid import TermMonoid
         TM = TermMonoid(type, self.growth_group, self.coefficient_ring)
 
+        if data is None:
+            try:
+                data = kwds.pop('growth')
+            except KeyError:
+                raise TypeError("Neither 'data' nor 'growth' are specified.")
+
         if type == 'exact' and kwds.get('coefficient') == 0:
             return self(kwds['coefficient'])
 
-        return self(TM(growth, **kwds))
+        return self(TM(data, **kwds))
 
 
     def variable_names(self):

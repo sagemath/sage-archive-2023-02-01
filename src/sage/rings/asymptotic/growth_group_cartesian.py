@@ -1019,6 +1019,118 @@ class GenericProduct(CartesianProductPosets, GenericGrowthGroup):
 
             return log_factors
 
+        def rpow(self, base):
+            r"""
+            Take ``base`` to the power of this element.
+
+            In other words, this is the exponential function with
+            ``base`` as its base.
+
+            INPUT:
+
+            - ``base`` -- the base of the exponential function.
+
+            OUTPUT:
+
+            A growth element.
+
+            EXAMPLES::
+
+                sage: from sage.rings.asymptotic.growth_group import GrowthGroup
+                sage: G = GrowthGroup('QQ^x * x^ZZ')
+                sage: x, = G.gens_monomial()
+                sage: x.rpow(2)
+                2^x
+                sage: x.rpow(1/2)
+                (1/2)^x
+
+            ::
+
+                sage: x.rpow(0)
+                Traceback (most recent call last):
+                ...
+                ValueError: 0 is not an allowed base.
+                sage: (x^2).rpow(2)
+                Traceback (most recent call last):
+                ...
+                ValueError: Cannot construct 2^(x^2) in Growth Group QQ^x * x^ZZ.
+
+            ::
+
+                sage: G = GrowthGroup('QQ^(x * log(x)) * x^ZZ * log(x)^ZZ')
+                sage: x, = G.gens_monomial()
+                sage: (x * log(x)).rpow(2)
+                2^(x * log(x))
+            """
+            P = self.parent()
+            factors = self.factor()
+            if base == 0:
+                raise ValueError('%s is not an allowed base.' % (base,))
+
+            from sage.rings.asymptotic.growth_group import MonomialGrowthGroup
+            if len(factors) == 1:
+                fp = factors[0].parent()
+                if isinstance(fp, MonomialGrowthGroup) and repr(fp._var_).startswith('log('):
+                    if factors[0]._raw_element_ == 1:
+                        from sage.functions.log import log
+                        new_elem = P(repr(fp._var_)[4:-1])
+                        if base == 'e':
+                            return new_elem
+                        base_ring = new_elem.factor()[0].base_ring()
+                        return new_elem ** log(base_ring(base))
+
+            from sage.rings.asymptotic.growth_group import ExponentialGrowthGroup
+            new_var = repr(self)
+            if '*' in new_var or '^' in new_var:
+                new_var = '(' + new_var + ')'
+
+            def check_factor(factor):
+                return new_var == repr(factor._var_) and \
+                       isinstance(factor, ExponentialGrowthGroup)
+
+            for cf in P.cartesian_factors():
+                if hasattr(cf, 'cartesian_factors'):
+                    for ccf in cf.cartesian_factors():
+                        if check_factor(ccf):
+                            return P(ccf(raw_element=ccf.base_ring()(base)))
+                else:
+                    if check_factor(cf):
+                        return P(cf(raw_element=cf.base_ring()(base)))
+
+            raise ValueError('Cannot construct %s^%s in %s.' % (base, new_var, P))
+
+
+        def exp(self):
+            r"""
+            The exponential function of this element.
+
+            INPUT:
+
+            Nothing.
+
+            OUTPUT:
+
+            A growth element.
+
+            EXAMPLES::
+
+                sage: from sage.rings.asymptotic.growth_group import GrowthGroup
+                sage: G = GrowthGroup('x^ZZ * log(x)^ZZ * log(log(x))^ZZ')
+                sage: x, = G.gens_monomial()
+                sage: exp(log(x))
+                x
+                sage: exp(log(log(x)))
+                log(x)
+
+            ::
+
+                sage: exp(x)
+                Traceback (most recent call last):
+                ...
+                ValueError: Cannot construct e^x in Growth Group x^ZZ * log(x)^ZZ * log(log(x))^ZZ.
+            """
+            return self.rpow('e')
+
 
     CartesianProduct = CartesianProductGrowthGroups
 

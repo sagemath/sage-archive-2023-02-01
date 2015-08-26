@@ -21,7 +21,7 @@ implements the following types of terms:
 - :class:`TermWithCoefficient` -- abstract base class for
   asymptotic terms with coefficients.
 - :class:`ExactTerm` -- this class represents a growth element
-  multiplied with some non-zero coefficient from a base ring.
+  multiplied with some non-zero coefficient from a coefficient ring.
 
 A characteristic property of asymptotic terms is that some terms are
 able to "absorb" other terms (see
@@ -474,7 +474,7 @@ class GenericTerm(sage.structure.element.MonoidElement):
             sage: import sage.rings.asymptotic.growth_group as agg
             sage: G = agg.GrowthGroup('x^ZZ'); x = G.gen()
             sage: OT = atm.OTermMonoid(growth_group=G)
-            sage: ET = atm.ExactTermMonoid(growth_group=G, base_ring=QQ)
+            sage: ET = atm.ExactTermMonoid(growth_group=G, coefficient_ring=QQ)
             sage: ot1 = OT(x); ot2 = OT(x^2)
             sage: et1 = ET(x^2, 2)
 
@@ -576,7 +576,7 @@ class GenericTerm(sage.structure.element.MonoidElement):
             sage: import sage.rings.asymptotic.growth_group as agg
             sage: G_QQ = agg.GrowthGroup('x^QQ'); x = G_QQ.gen()
             sage: OT = atm.OTermMonoid(G_QQ)
-            sage: ET = atm.ExactTermMonoid(growth_group=G_QQ, base_ring=QQ)
+            sage: ET = atm.ExactTermMonoid(growth_group=G_QQ, coefficient_ring=QQ)
             sage: ot1 = OT(x); ot2 = OT(x^2)
             sage: et1 = ET(x, 100); et2 = ET(x^2, 2)
             sage: et3 = ET(x^2, 1); et4 = ET(x^2, -2)
@@ -1568,7 +1568,7 @@ class TermWithCoefficient(GenericTerm):
     - ``growth`` -- an asymptotic growth element of
       the parent's growth group.
 
-    - ``coefficient`` -- an element of the parent's base ring.
+    - ``coefficient`` -- an element of the parent's coefficient ring.
 
     EXAMPLES::
 
@@ -1597,7 +1597,7 @@ class TermWithCoefficient(GenericTerm):
             sage: CT_ZZ = atm.TermWithCoefficientMonoid(G, ZZ)
             sage: CT_QQ = atm.TermWithCoefficientMonoid(G, QQ)
 
-        The coefficients have to be from the given base ring::
+        The coefficients have to be from the given coefficient ring::
 
             sage: t = CT_ZZ(x, 1/2)
             Traceback (most recent call last):
@@ -1624,7 +1624,7 @@ class TermWithCoefficient(GenericTerm):
             Asymptotic Term with coefficient 42 and growth x^42
         """
         try:
-            coefficient = parent.base_ring(coefficient)
+            coefficient = parent.coefficient_ring(coefficient)
         except (ValueError, TypeError):
             raise ValueError('%s is not a coefficient in %s.' %
                              (coefficient, parent))
@@ -1809,7 +1809,7 @@ class TermWithCoefficientMonoid(GenericTermMonoid):
       of ``Join of Category of monoids and Category of posets``. This
       is also the default category if ``None`` is specified.
 
-    - ``base_ring`` -- the ring which contains the
+    - ``coefficient_ring`` -- the ring which contains the
       coefficients of the elements.
 
     EXAMPLES::
@@ -1834,7 +1834,7 @@ class TermWithCoefficientMonoid(GenericTermMonoid):
     Element = TermWithCoefficient
 
     @sage.misc.superseded.experimental(trac_number=17601)
-    def __init__(self, growth_group, base_ring, category=None):
+    def __init__(self, growth_group, coefficient_ring, category=None):
         r"""
         For more information see :class:`TermWithCoefficientMonoid`.
 
@@ -1850,16 +1850,16 @@ class TermWithCoefficientMonoid(GenericTermMonoid):
             sage: T_QQ.category()
             Join of Category of monoids and Category of posets
         """
-        if base_ring is None:
-            raise ValueError('Base ring is not specified.')
-        self._base_ring_ = base_ring
+        if coefficient_ring is None:
+            raise ValueError('Coefficient ring is not specified.')
+        self._coefficient_ring_ = coefficient_ring
         super(TermWithCoefficientMonoid,
               self).__init__(growth_group=growth_group, category=category)
 
     @property
-    def base_ring(self):
+    def coefficient_ring(self):
         r"""
-        The base ring of this term monoid, i.e. the ring where
+        The coefficient ring of this term monoid, i.e. the ring where
         the coefficients are from.
 
         EXAMPLES::
@@ -1867,10 +1867,10 @@ class TermWithCoefficientMonoid(GenericTermMonoid):
             sage: import sage.rings.asymptotic.growth_group as agg
             sage: import sage.rings.asymptotic.term_monoid as atm
             sage: G = agg.GrowthGroup('x^ZZ')
-            sage: atm.ExactTermMonoid(G, ZZ).base_ring  # indirect doctest
+            sage: atm.ExactTermMonoid(G, ZZ).coefficient_ring  # indirect doctest
             Integer Ring
         """
-        return self._base_ring_
+        return self._coefficient_ring_
 
 
     def _coerce_map_from_(self, S):
@@ -1888,8 +1888,8 @@ class TermWithCoefficientMonoid(GenericTermMonoid):
         .. NOTE::
 
             Another term monoid ``S`` coerces into this exact term
-            monoid if both, the base ring as well as the growth
-            group underlying ``S`` coerce into the base ring and the
+            monoid if both, the coefficient ring as well as the growth
+            group underlying ``S`` coerce into the coefficient ring and the
             growth group underlying this term monoid.
 
         EXAMPLES::
@@ -1909,7 +1909,7 @@ class TermWithCoefficientMonoid(GenericTermMonoid):
         """
         if isinstance(S, TermWithCoefficientMonoid):
             return (super(TermWithCoefficientMonoid, self)._coerce_map_from_(S) and
-                    self.base_ring.has_coerce_map_from(S.base_ring))
+                    self.coefficient_ring.has_coerce_map_from(S.coefficient_ring))
 
 
     def _element_constructor_(self, data, coefficient=None):
@@ -1922,7 +1922,7 @@ class TermWithCoefficientMonoid(GenericTermMonoid):
         - ``data`` -- a growth element or an object representing the
           element to be initialized.
 
-        - ``coefficient`` -- an element of the base ring.
+        - ``coefficient`` -- an element of the coefficient ring.
 
         OUTPUT:
 
@@ -1998,7 +1998,7 @@ class TermWithCoefficientMonoid(GenericTermMonoid):
         factors = self._get_factors_(data)
 
         growth_group = self.growth_group
-        coefficient_ring = self.base_ring
+        coefficient_ring = self.coefficient_ring
 
         coefficient = coefficient_ring.one()
         growth = self.growth_group.one()
@@ -2067,7 +2067,7 @@ class TermWithCoefficientMonoid(GenericTermMonoid):
             'Term Monoid x^ZZ with coefficients from Integer Ring'
         """
         return 'Term Monoid %s with coefficients from ' \
-               '%s' % (self.growth_group._repr_short_(), self.base_ring)
+               '%s' % (self.growth_group._repr_short_(), self.coefficient_ring)
 
 
     def _an_element_(self):
@@ -2095,7 +2095,7 @@ class TermWithCoefficientMonoid(GenericTermMonoid):
             1/2*x
         """
         return self(self.growth_group.an_element(),
-                    self.base_ring.an_element())
+                    self.coefficient_ring.an_element())
 
 
     def some_elements(self):
@@ -2126,7 +2126,7 @@ class TermWithCoefficientMonoid(GenericTermMonoid):
         """
         return iter(self(g, c) for g, c in product_diagonal(
             self.growth_group.some_elements(),
-            iter(c for c in self.base_ring.some_elements() if c != 0)))
+            iter(c for c in self.coefficient_ring.some_elements() if c != 0)))
 
 
 class ExactTerm(TermWithCoefficient):
@@ -2142,7 +2142,7 @@ class ExactTerm(TermWithCoefficient):
     - ``growth`` -- an asymptotic growth element from
       ``parent.growth_group``.
 
-    - ``coefficient`` -- an element from ``parent.base_ring``.
+    - ``coefficient`` -- an element from ``parent.coefficient_ring``.
 
     EXAMPLES::
 
@@ -2365,7 +2365,7 @@ class ExactTermMonoid(TermWithCoefficientMonoid):
       of ``Join of Category of monoids and Category of posets``. This
       is also the default category if ``None`` is specified.
 
-    - ``base_ring`` -- the ring which contains the coefficients of
+    - ``coefficient_ring`` -- the ring which contains the coefficients of
       the elements.
 
     EXAMPLES::
@@ -2414,7 +2414,7 @@ class ExactTermMonoid(TermWithCoefficientMonoid):
             'Exact Term Monoid x^ZZ with coefficients from Rational Field'
         """
         return 'Exact Term Monoid %s with coefficients from %s' % \
-               (self.growth_group._repr_short_(), self.base_ring)
+               (self.growth_group._repr_short_(), self.coefficient_ring)
 
 
 class TermMonoidFactory(sage.structure.factory.UniqueFactory):
@@ -2433,7 +2433,7 @@ class TermMonoidFactory(sage.structure.factory.UniqueFactory):
 
     - ``growth_group`` -- a growth group.
 
-    - ``base_ring`` -- the base ring for coefficients.
+    - ``coefficient_ring`` -- a ring.
 
     OUTPUT:
 
@@ -2449,7 +2449,7 @@ class TermMonoidFactory(sage.structure.factory.UniqueFactory):
         sage: ET = atm.TermMonoid('exact', G, ZZ); ET
         Exact Term Monoid x^ZZ with coefficients from Integer Ring
     """
-    def create_key_and_extra_args(self, term, growth_group, base_ring=None,
+    def create_key_and_extra_args(self, term, growth_group, coefficient_ring=None,
                                   **kwds):
         r"""
         Given the arguments and keyword, create a key that uniquely
@@ -2467,7 +2467,7 @@ class TermMonoidFactory(sage.structure.factory.UniqueFactory):
             sage: atm.TermMonoid.create_key_and_extra_args('exact', G)
             Traceback (most recent call last):
             ...
-            ValueError: A base ring has to be specified
+            ValueError: A coefficient ring has to be specified
         """
         if term not in ['O', 'exact']:
             raise ValueError("%s has to be either 'exact' or 'O'" % term)
@@ -2477,12 +2477,12 @@ class TermMonoidFactory(sage.structure.factory.UniqueFactory):
             raise ValueError("%s has to be an asymptotic growth group"
                              % growth_group)
 
-        if term == 'exact' and base_ring is None:
-            raise ValueError("A base ring has to be specified")
+        if term == 'exact' and coefficient_ring is None:
+            raise ValueError("A coefficient ring has to be specified")
         elif term == 'O':
-            base_ring = None
+            coefficient_ring = None
 
-        return (term, growth_group, base_ring), kwds
+        return (term, growth_group, coefficient_ring), kwds
 
 
     def create_object(self, version, key, **kwds):
@@ -2500,11 +2500,11 @@ class TermMonoidFactory(sage.structure.factory.UniqueFactory):
             Exact Term Monoid x^ZZ with coefficients from Integer Ring
         """
 
-        term, growth_group, base_ring = key
+        term, growth_group, coefficient_ring = key
         if term == 'O':
             return OTermMonoid(growth_group, **kwds)
         else:
-            return ExactTermMonoid(growth_group, base_ring, **kwds)
+            return ExactTermMonoid(growth_group, coefficient_ring, **kwds)
 
 
 TermMonoid = TermMonoidFactory("TermMonoid")

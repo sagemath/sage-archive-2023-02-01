@@ -1258,6 +1258,28 @@ class GenericTermMonoid(sage.structure.parent.Parent,
 
 
     def _create_element_(self, growth, coefficient):
+        r"""
+        Helper method which creates an element by using the ``element_class``.
+
+        INPUT:
+
+        - ``growth`` -- a growth element.
+
+        - ``coefficient`` -- an element of the coefficient ring.
+
+        OUTPUT:
+
+        A term.
+
+        TESTS::
+
+            sage: import sage.rings.asymptotic.term_monoid as atm
+            sage: from sage.rings.asymptotic.growth_group import GrowthGroup
+            sage: G_ZZ = GrowthGroup('x^ZZ')
+            sage: T_ZZ = atm.GenericTermMonoid(G_ZZ, QQ)
+            sage: T_ZZ(G_ZZ.gen())  # indirect doctest
+            Generic Term with growth x
+        """
         if coefficient is not None and coefficient != self.coefficient_ring.one():
             raise ValueError('Coefficient %s is not 1, but %s does not '
                              'support coefficients.' % (coefficient, self))
@@ -1265,6 +1287,26 @@ class GenericTermMonoid(sage.structure.parent.Parent,
 
 
     def _split_growth_and_coefficient_(self, data):
+        r"""
+        Split given ``data`` into a growth element and a coefficient.
+
+        INPUT:
+
+        ``data`` -- an element.
+
+        OUTPUT:
+
+        A pair ``(growth, coefficient``).
+
+        TESTS::
+
+            sage: import sage.rings.asymptotic.term_monoid as atm
+            sage: from sage.rings.asymptotic.growth_group import GrowthGroup
+            sage: G_ZZ = GrowthGroup('x^ZZ')
+            sage: T_ZZ = atm.ExactTermMonoid(G_ZZ, QQ)
+            sage: T_ZZ._split_growth_and_coefficient_('2*x^3')
+            (x^3, 2)
+        """
         factors = self._get_factors_(data)
 
         growth_group = self.growth_group
@@ -1296,7 +1338,26 @@ class GenericTermMonoid(sage.structure.parent.Parent,
 
 
     def _get_factors_(self, data):
+        r"""
+        Split given ``data`` into separate factors.
 
+        INPUT:
+
+        - ``data`` -- an object.
+
+        OUTPUT:
+
+        A tuple.
+
+        TESTS::
+
+            sage: import sage.rings.asymptotic.term_monoid as atm
+            sage: from sage.rings.asymptotic.growth_group import GrowthGroup
+            sage: G_ZZ = GrowthGroup('x^ZZ')
+            sage: T_ZZ = atm.ExactTermMonoid(G_ZZ, QQ)
+            sage: T_ZZ._get_factors_(x^2 * log(x))
+            (x^2, log(x))
+        """
         if isinstance(data, str):
             from growth_group import split_str_by_mul
             return split_str_by_mul(data)
@@ -1310,7 +1371,7 @@ class GenericTermMonoid(sage.structure.parent.Parent,
         if P is SR:
             from sage.symbolic.operators import mul_vararg
             if data.operator() == mul_vararg:
-                return data.operands()
+                return tuple(data.operands())
 
         return (data,)
 
@@ -1627,6 +1688,29 @@ class OTermMonoid(GenericTermMonoid):
 
 
     def _create_element_(self, growth, coefficient):
+        r"""
+        Helper method which creates an element by using the ``element_class``.
+
+        INPUT:
+
+        - ``growth`` -- a growth element.
+
+        - ``coefficient`` -- an element of the coefficient ring (will be
+          ignored since we create an O-Term).
+
+        OUTPUT:
+
+        An O-term.
+
+        TESTS::
+
+            sage: import sage.rings.asymptotic.term_monoid as atm
+            sage: from sage.rings.asymptotic.growth_group import GrowthGroup
+            sage: G_ZZ = GrowthGroup('x^ZZ')
+            sage: T_ZZ = atm.OTermMonoid(G_ZZ, QQ)
+            sage: T_ZZ(G_ZZ.gen())  # indirect doctest
+            O(x)
+        """
         return self.element_class(self, growth)
 
 
@@ -1987,6 +2071,28 @@ class TermWithCoefficientMonoid(GenericTermMonoid):
 
 
     def _create_element_(self, growth, coefficient):
+        r"""
+        Helper method which creates an element by using the ``element_class``.
+
+        INPUT:
+
+        - ``growth`` -- a growth element.
+
+        - ``coefficient`` -- an element of the coefficient ring.
+
+        OUTPUT:
+
+        A term.
+
+        TESTS::
+
+            sage: import sage.rings.asymptotic.term_monoid as atm
+            sage: from sage.rings.asymptotic.growth_group import GrowthGroup
+            sage: G_ZZ = GrowthGroup('x^ZZ')
+            sage: T_ZZ = atm.ExactTermMonoid(G_ZZ, QQ)
+            sage: T_ZZ(G_ZZ.gen(), 4/3)  # indirect doctest
+            4/3*x
+        """
         return self.element_class(self, growth, coefficient)
 
 

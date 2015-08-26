@@ -1397,6 +1397,25 @@ class AsymptoticRing(sage.rings.ring.Ring,
 
 
     def _create_exact_summand_(self, data):
+        r"""
+        Create an exact summand.
+
+        This helper method is used in the element constructor.
+
+        INPUT:
+
+        - ``data`` -- an element.
+
+        OUTPUT:
+
+        An asymptotic expression.
+
+        TESTS::
+
+            sage: A.<a> = AsymptoticRing('a^ZZ', QQ)
+            sage: A._create_exact_summand_(38)
+            38
+        """
         try:
             coefficient = self.coefficient_ring(data)
         except (TypeError, ValueError):

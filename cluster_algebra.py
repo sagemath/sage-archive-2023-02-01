@@ -81,7 +81,12 @@ class ClusterAlgebraSeed(SageObject):
         return other
 
     def _repr_(self):
-        return "A seed in %s"%str(self.parent())
+        if self._path == []:
+            return "The initial seed of %s"%str(self.parent())
+        elif self._path.__len__() == 1:
+            return "The seed of %s obtained from the initial by mutating in direction %s"%(str(self.parent()),str(self._path[0]))
+        else:
+            return "The seed of %s obtained from the initial by mutating along the sequence %s"%(str(self.parent()),str(self._path))
 
     def parent(self):
         return self._parent

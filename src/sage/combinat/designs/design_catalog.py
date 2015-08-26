@@ -47,7 +47,6 @@ This module gathers the following designs :
     :meth:`~sage.combinat.designs.block_design.WittDesign`
     :meth:`~sage.combinat.designs.block_design.HadamardDesign`
     :meth:`~sage.combinat.designs.block_design.Hadamard3Design`
-    :meth:`~sage.combinat.designs.twographs.TwoGraph`
     :meth:`~sage.combinat.designs.latin_squares.mutually_orthogonal_latin_squares`
     :meth:`~sage.combinat.designs.orthogonal_arrays.transversal_design`
     :meth:`~sage.combinat.designs.orthogonal_arrays.orthogonal_array`
@@ -105,8 +104,6 @@ BalancedIncompleteBlockDesign = deprecated_function_alias(16446,
         balanced_incomplete_block_design)
 
 from orthogonal_arrays import OAMainFunctions as orthogonal_arrays
-
-from twographs import TwoGraph
 
 # When this deprecated function is removed, remove the handling of k=None in the
 # function orthogonal_arrays.orthogonal_array()

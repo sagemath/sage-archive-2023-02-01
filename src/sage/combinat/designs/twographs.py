@@ -179,14 +179,14 @@ def is_twograph(T):
 
     a two-graph from a graph::
 
-        sage: from sage.combinat.designs.twographs import is_twograph
+        sage: from sage.combinat.designs.twographs import (is_twograph, TwoGraph)
         sage: p=graphs.PetersenGraph().twograph()
         sage: is_twograph(p)
         True
 
     a non-regular 2-uniform hypergraph which is a two-graph::
 
-        sage: is_twograph(designs.TwoGraph([[1,2,3],[1,2,4]]))
+        sage: is_twograph(TwoGraph([[1,2,3],[1,2,4]]))
         True
 
     TESTS:

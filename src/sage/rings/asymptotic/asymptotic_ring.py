@@ -1287,9 +1287,11 @@ class AsymptoticRing(sage.rings.ring.Ring,
             sage: y = ZZ['y'].gen(); AR(y)
             Traceback (most recent call last):
             ...
-            ValueError: Growth y is not in Exact Term Monoid x^ZZ
-            with coefficients in Integer Ring.
-            > *previous* ValueError: y is not in Growth Group x^ZZ.
+            ValueError: Polynomial y is not in
+            Asymptotic Ring <x^ZZ> over Integer Ring
+            > *previous* ValueError: Growth y is not in
+            Exact Term Monoid x^ZZ with coefficients in Integer Ring.
+            >> *previous* ValueError: y is not in Growth Group x^ZZ.
 
         ::
 
@@ -1372,12 +1374,21 @@ class AsymptoticRing(sage.rings.ring.Ring,
 
         elif sage.rings.polynomial.polynomial_ring.is_PolynomialRing(P):
             p = P.gen()
-            return sum(self.create_summand('exact', growth=p**i, coefficient=c)
-                       for i, c in enumerate(data))
+            try:
+                return sum(self.create_summand('exact', growth=p**i,
+                                               coefficient=c)
+                           for i, c in enumerate(data))
+            except ValueError as e:
+                raise combine_exceptions(
+                    ValueError('Polynomial %s is not in %s' % (data, self)), e)
 
         elif sage.rings.polynomial.multi_polynomial_ring_generic.is_MPolynomialRing(P):
-            return sum(self.create_summand('exact', growth=g, coefficient=c)
-                       for c, g in iter(data))
+            try:
+                return sum(self.create_summand('exact', growth=g, coefficient=c)
+                           for c, g in iter(data))
+            except ValueError as e:
+                raise combine_exceptions(
+                    ValueError('Polynomial %s is not in %s' % (data, self)), e)
 
         elif sage.rings.power_series_ring.is_PowerSeriesRing(P):
             raise NotImplementedError(
@@ -1387,10 +1398,19 @@ class AsymptoticRing(sage.rings.ring.Ring,
             # Delete lines above as soon as we can deal with growths
             # other than the that at going to +oo.
             p = P.gen()
-            result = self(data.polynomial())
+            try:
+                result = self(data.polynomial())
+            except ValueError as e:
+                raise combine_exceptions(
+                    ValueError('Powerseries %s is not in %s' % (data, self)), e)
             prec = data.precision_absolute()
             if prec < sage.rings.infinity.PlusInfinity():
-                result += self.create_summand('O', growth=p**prec)
+                try:
+                    result += self.create_summand('O', growth=p**prec)
+                except ValueError as e:
+                    raise combine_exceptions(
+                        ValueError('Powerseries %s is not in %s' %
+                                   (data, self)), e)
             return result
 
         return self._create_exact_summand_(data)

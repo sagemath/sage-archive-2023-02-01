@@ -951,9 +951,9 @@ class GenericTermMonoid(sage.structure.parent.Parent,
         sage: T_x_ZZ = atm.GenericTermMonoid(G_x, QQ)
         sage: T_y_QQ = atm.GenericTermMonoid(G_y, QQ)
         sage: T_x_ZZ
-        Generic Term Monoid x^ZZ with (implicit) coefficients from Rational Field
+        Generic Term Monoid x^ZZ with (implicit) coefficients in Rational Field
         sage: T_y_QQ
-        Generic Term Monoid y^QQ with (implicit) coefficients from Rational Field
+        Generic Term Monoid y^QQ with (implicit) coefficients in Rational Field
     """
 
     # enable the category framework for elements
@@ -970,12 +970,12 @@ class GenericTermMonoid(sage.structure.parent.Parent,
             sage: import sage.rings.asymptotic.growth_group as agg
             sage: G_x = agg.GrowthGroup('x^ZZ')
             sage: T_x = atm.GenericTermMonoid(G_x, QQ); T_x
-            Generic Term Monoid x^ZZ with (implicit) coefficients from Rational Field
+            Generic Term Monoid x^ZZ with (implicit) coefficients in Rational Field
             sage: T_x.growth_group
             Growth Group x^ZZ
             sage: G_y = agg.GrowthGroup('y^QQ')
             sage: T_y = atm.GenericTermMonoid(G_y, QQ); T_y
-            Generic Term Monoid y^QQ with (implicit) coefficients from Rational Field
+            Generic Term Monoid y^QQ with (implicit) coefficients in Rational Field
             sage: T_x is T_y
             False
 
@@ -992,9 +992,9 @@ class GenericTermMonoid(sage.structure.parent.Parent,
             sage: import sage.rings.asymptotic.growth_group as agg
             sage: G = agg.GrowthGroup('x^ZZ'); x = G.gen()
             sage: T_ZZ = atm.TermWithCoefficientMonoid(G, ZZ); T_ZZ
-            Generic Term Monoid x^ZZ with (implicit) coefficients from Integer Ring
+            Generic Term Monoid x^ZZ with (implicit) coefficients in Integer Ring
             sage: T_QQ = atm.TermWithCoefficientMonoid(G, QQ); T_QQ
-            Generic Term Monoid x^ZZ with (implicit) coefficients from Rational Field
+            Generic Term Monoid x^ZZ with (implicit) coefficients in Rational Field
             sage: T_QQ.category()
             Join of Category of monoids and Category of posets
         """
@@ -1078,12 +1078,12 @@ class GenericTermMonoid(sage.structure.parent.Parent,
             sage: import sage.rings.asymptotic.growth_group as agg
             sage: G = agg.GenericGrowthGroup(ZZ)
             sage: atm.GenericTermMonoid(G, QQ)._repr_()
-            'Generic Term Monoid Generic(ZZ) with (implicit) coefficients from Rational Field'
+            'Generic Term Monoid Generic(ZZ) with (implicit) coefficients in Rational Field'
             sage: G = agg.GrowthGroup('x^ZZ')
             sage: atm.GenericTermMonoid(G, QQ)._repr_()
-            'Generic Term Monoid x^ZZ with (implicit) coefficients from Rational Field'
+            'Generic Term Monoid x^ZZ with (implicit) coefficients in Rational Field'
         """
-        return 'Generic Term Monoid %s with (implicit) coefficients from %s' % \
+        return 'Generic Term Monoid %s with (implicit) coefficients in %s' % \
             (self.growth_group._repr_short_(), self.coefficient_ring)
 
 
@@ -1112,10 +1112,10 @@ class GenericTermMonoid(sage.structure.parent.Parent,
             sage: G_ZZ = agg.GrowthGroup('x^ZZ')
             sage: G_ZZ = agg.GrowthGroup('x^ZZ')
             sage: T_ZZ = atm.GenericTermMonoid(G_ZZ, QQ); T_ZZ
-            Generic Term Monoid x^ZZ with (implicit) coefficients from Rational Field
+            Generic Term Monoid x^ZZ with (implicit) coefficients in Rational Field
             sage: G_QQ = agg.GrowthGroup('x^QQ')
             sage: T_QQ = atm.GenericTermMonoid(G_QQ, QQ); T_QQ
-            Generic Term Monoid x^QQ with (implicit) coefficients from Rational Field
+            Generic Term Monoid x^QQ with (implicit) coefficients in Rational Field
             sage: T_QQ.has_coerce_map_from(T_ZZ)  # indirect doctest
             True
 
@@ -1126,9 +1126,9 @@ class GenericTermMonoid(sage.structure.parent.Parent,
             sage: G_ZZ = agg.GrowthGroup('x^ZZ')
             sage: G_QQ = agg.GrowthGroup('x^QQ')
             sage: TC_ZZ = atm.TermWithCoefficientMonoid(G_ZZ, ZZ); TC_ZZ
-            Generic Term Monoid x^ZZ with (implicit) coefficients from Integer Ring
+            Generic Term Monoid x^ZZ with (implicit) coefficients in Integer Ring
             sage: TC_QQ = atm.TermWithCoefficientMonoid(G_QQ, QQ); TC_QQ
-            Generic Term Monoid x^QQ with (implicit) coefficients from Rational Field
+            Generic Term Monoid x^QQ with (implicit) coefficients in Rational Field
             sage: TC_QQ.has_coerce_map_from(TC_ZZ)  # indirect doctest
             True
             sage: TC_ZZ.has_coerce_map_from(TC_QQ)  # indirect doctest
@@ -1192,7 +1192,7 @@ class GenericTermMonoid(sage.structure.parent.Parent,
             Traceback (most recent call last):
             ...
             ValueError: Growth 10*x^2 is not in Generic Term Monoid x^ZZ
-            with (implicit) coefficients from Rational Field.
+            with (implicit) coefficients in Rational Field.
             > *previous* ValueError: 10*x^2 is not in Growth Group x^ZZ.
 
         TESTS::
@@ -1203,7 +1203,8 @@ class GenericTermMonoid(sage.structure.parent.Parent,
             sage: O_ZZ(2*x^11)
             Traceback (most recent call last):
             ...
-            ValueError: Growth 2*x^11 is not in O-Term Monoid x^ZZ.
+            ValueError: Growth 2*x^11 is not in O-Term Monoid x^ZZ
+            with implicit coefficients in Rational Field.
             > *previous* ValueError: 2*x^11 is not in Growth Group x^ZZ.
         """
         if type(data) == self.element_class and data.parent() == self:
@@ -1517,9 +1518,9 @@ class OTermMonoid(GenericTermMonoid):
         sage: G_x_ZZ = agg.GrowthGroup('x^ZZ')
         sage: G_y_QQ = agg.GrowthGroup('y^QQ')
         sage: OT_x_ZZ = atm.OTermMonoid(G_x_ZZ, QQ); OT_x_ZZ
-        O-Term Monoid x^ZZ
+        O-Term Monoid x^ZZ with implicit coefficients in Rational Field
         sage: OT_y_QQ = atm.OTermMonoid(G_y_QQ, QQ); OT_y_QQ
-        O-Term Monoid y^QQ
+        O-Term Monoid y^QQ with implicit coefficients in Rational Field
 
     `O`-term monoids can also be created by using the
     :class:`term factory <TermMonoidFactory>`::
@@ -1527,7 +1528,7 @@ class OTermMonoid(GenericTermMonoid):
         sage: atm.TermMonoid('O', G_x_ZZ, QQ) is OT_x_ZZ
         True
         sage: atm.TermMonoid('O', agg.GrowthGroup('x^QQ'), QQ)
-        O-Term Monoid x^QQ
+        O-Term Monoid x^QQ with implicit coefficients in Rational Field
     """
     # enable the category framework for elements
     Element = OTerm
@@ -1605,9 +1606,10 @@ class OTermMonoid(GenericTermMonoid):
             sage: import sage.rings.asymptotic.growth_group as agg
             sage: G = agg.GrowthGroup('x^ZZ'); x = G.gen()
             sage: atm.OTermMonoid(G, QQ)._repr_()
-            'O-Term Monoid x^ZZ'
+            'O-Term Monoid x^ZZ with implicit coefficients in Rational Field'
         """
-        return 'O-Term Monoid %s' % (self.growth_group._repr_short_(),)
+        return 'O-Term Monoid %s with implicit coefficients in %s' % \
+            (self.growth_group._repr_short_(), self.coefficient_ring)
 
 
 class TermWithCoefficient(GenericTerm):
@@ -1657,7 +1659,7 @@ class TermWithCoefficient(GenericTerm):
             Traceback (most recent call last):
             ...
             ValueError: 1/2 is not a coefficient in
-            Generic Term Monoid x^ZZ with (implicit) coefficients from Integer Ring.
+            Generic Term Monoid x^ZZ with (implicit) coefficients in Integer Ring.
             sage: t = CT_QQ(x, 1/2); t
             Asymptotic Term with coefficient 1/2 and growth x
 
@@ -1667,7 +1669,7 @@ class TermWithCoefficient(GenericTerm):
             Traceback (most recent call last):
             ...
             ValueError:  Zero coefficient 0 is not allowed in
-            Generic Term Monoid x^ZZ with (implicit) coefficients from Integer Ring.
+            Generic Term Monoid x^ZZ with (implicit) coefficients in Integer Ring.
 
         The conversion of growth elements also works for the creation
         of terms with coefficient::
@@ -1873,15 +1875,15 @@ class TermWithCoefficientMonoid(GenericTermMonoid):
         sage: G_ZZ = agg.GrowthGroup('x^ZZ'); x_ZZ = G_ZZ.gen()
         sage: G_QQ = agg.GrowthGroup('x^QQ'); x_QQ = G_QQ.gen()
         sage: TC_ZZ = atm.TermWithCoefficientMonoid(G_ZZ, QQ); TC_ZZ
-        Generic Term Monoid x^ZZ with (implicit) coefficients from Rational Field
+        Generic Term Monoid x^ZZ with (implicit) coefficients in Rational Field
         sage: TC_QQ = atm.TermWithCoefficientMonoid(G_QQ, QQ); TC_QQ
-        Generic Term Monoid x^QQ with (implicit) coefficients from Rational Field
+        Generic Term Monoid x^QQ with (implicit) coefficients in Rational Field
         sage: TC_ZZ == TC_QQ or TC_ZZ is TC_QQ
         False
         sage: TC_QQ.coerce_map_from(TC_ZZ)
         Conversion map:
-          From: Generic Term Monoid x^ZZ with (implicit) coefficients from Rational Field
-          To:   Generic Term Monoid x^QQ with (implicit) coefficients from Rational Field
+          From: Generic Term Monoid x^ZZ with (implicit) coefficients in Rational Field
+          To:   Generic Term Monoid x^QQ with (implicit) coefficients in Rational Field
     """
 
     # enable the category framework for elements
@@ -2396,7 +2398,7 @@ class TermMonoidFactory(sage.structure.factory.UniqueFactory):
         sage: import sage.rings.asymptotic.term_monoid as atm
         sage: G = agg.GrowthGroup('x^ZZ')
         sage: OT = atm.TermMonoid('O', G, QQ); OT
-        O-Term Monoid x^ZZ
+        O-Term Monoid x^ZZ with implicit coefficients in Rational Field
         sage: ET = atm.TermMonoid('exact', G, ZZ); ET
         Exact Term Monoid x^ZZ with coefficients from Integer Ring
     """
@@ -2446,7 +2448,7 @@ class TermMonoidFactory(sage.structure.factory.UniqueFactory):
             sage: import sage.rings.asymptotic.term_monoid as atm
             sage: G = agg.GrowthGroup('x^ZZ')
             sage: atm.TermMonoid('O', G, QQ)  # indirect doctest
-            O-Term Monoid x^ZZ
+            O-Term Monoid x^ZZ with implicit coefficients in Rational Field
             sage: atm.TermMonoid('exact', G, ZZ)  # indirect doctest
             Exact Term Monoid x^ZZ with coefficients from Integer Ring
         """

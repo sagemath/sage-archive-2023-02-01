@@ -1594,7 +1594,8 @@ class AsymptoticRing(sage.rings.ring.Ring,
             sage: R.create_summand('O', growth=42*x^2)
             Traceback (most recent call last):
             ...
-            ValueError: Growth 42*x^2 is not in O-Term Monoid x^ZZ.
+            ValueError: Growth 42*x^2 is not in O-Term Monoid x^ZZ
+            with implicit coefficients in Integer Ring.
             > *previous* ValueError: 42*x^2 is not in Growth Group x^ZZ.
         """
         from sage.rings.asymptotic.term_monoid import TermMonoid

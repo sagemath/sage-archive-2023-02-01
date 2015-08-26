@@ -915,6 +915,93 @@ class GenericProduct(CartesianProductPosets, GenericGrowthGroup):
                 return components
             raise ValueError('%s does not have a factorization.' % (self,))
 
+        def log_factor(self, base=None):
+            r"""
+            Return the logarithm of the factorization of this
+            element.
+
+            In particular, this function yields a list of pairs
+            consisting of the growth and the corresponding
+            coefficient resulting from taking the logarithm of every
+            atomic factor of this element.
+
+            INPUT:
+
+            - ``base`` -- the base of the logarithm. If ``None``
+              (default value) is used, the logarithm is the natural
+              logarithm.
+
+            OUTPUT:
+
+            A list.
+
+            .. SEEALSO::
+
+                :meth:`factor`,
+                :meth:`log`.
+
+            EXAMPLES::
+
+                sage: from sage.rings.asymptotic.growth_group import GrowthGroup
+                sage: G = GrowthGroup('QQ^x * x^ZZ * log(x)^ZZ * y^ZZ * log(y)^ZZ')
+                sage: x, y = G.gens_monomial()
+                sage: (x * y).log_factor()
+                [[log(x), 1], [log(y), 1]]
+                sage: (x^123).log_factor()
+                [[log(x), 123]]
+                sage: (G('2^x') * x^2).log_factor(base=2)
+                [[x, 1], [log(x), 2/log(2)]]
+
+            ::
+
+                sage: G(1).log_factor()
+                Traceback (most recent call last):
+                ...
+                ValueError: 1 does not have a factorization.
+
+            ::
+
+                sage: log(x).log_factor()
+                Traceback (most recent call last):
+                ...
+                ValueError: Logarithm of log(x) cannot be constructed in Growth
+                Group QQ^x * x^ZZ * log(x)^ZZ * y^ZZ * log(y)^ZZ.
+            """
+            P = self.parent()
+            factors = self.factor()
+            log_factors = []
+            from sage.rings.asymptotic.growth_group import ExponentialGrowthGroup, \
+                MonomialGrowthGroup
+            from sage.functions.log import log
+
+            for factor in factors:
+                try:
+                    FP = factor.parent()
+                    if isinstance(FP, MonomialGrowthGroup):
+                        if base is None:
+                            coef = factor._raw_element_
+                        else:
+                            coef = factor._raw_element_ / log(base)
+                        growth = P('log(' + repr(FP._var_) + ')')
+                        log_factors.append([growth, coef])
+
+                    elif isinstance(FP, ExponentialGrowthGroup):
+                        coef = log(factor._raw_element_, base=base)
+                        growth = P(repr(FP._var_))
+                        log_factors.append([growth, coef])
+
+                    else:
+                        raise NotImplementedError('Taking the Logarithm of %s '
+                                                  'is not implemented.' %
+                                                  (factor,))
+
+                except (ValueError, TypeError):
+                    raise ValueError('Logarithm of %s cannot be '
+                                         'constructed in %s.' % (factor, P))
+
+            return log_factors
+
+
     CartesianProduct = CartesianProductGrowthGroups
 
 

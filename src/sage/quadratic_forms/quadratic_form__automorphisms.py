@@ -36,6 +36,15 @@ def basis_of_short_vectors(self, show_lengths=False, safe_flag=None):
         sage: Q.basis_of_short_vectors(True)
         (((1, 0, 0, 0), (0, 1, 0, 0), (0, 0, 1, 0), (0, 0, 0, 1)), (1, 3, 5, 7))
 
+    The returned vectors are immutable:
+
+        sage: v = Q.basis_of_short_vectors()[0]
+        sage: v
+        (1, 0, 0, 0)
+        sage: v[0] = 0
+        Traceback (most recent call last):
+        ...
+        ValueError: vector is immutable; please change a copy instead (use copy())
     """
     if safe_flag is not None:
         from sage.misc.superseded import deprecation
@@ -82,6 +91,8 @@ def basis_of_short_vectors(self, show_lengths=False, safe_flag=None):
     ## Determine a basis of vectors of minimal length
     pivots = sorted_matrix.pivots()
     basis = tuple(sorted_matrix.column(i) for i in pivots)
+    for v in basis:
+        v.set_immutable()
 
     ## Return the appropriate result
     if show_lengths:

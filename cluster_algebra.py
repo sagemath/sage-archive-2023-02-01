@@ -260,7 +260,7 @@ class ClusterAlgebra(Parent):
 
         # add methods that are defined only for special cases
         if n == 2:
-            self.greedy_element = MethodType(greedy_element, self, self.__class__)
+            #self.greedy_element = MethodType(greedy_element, self, self.__class__)
             self.theta_basis_element = MethodType(theta_basis_element, self, self.__class__)
 
         # TODO: maybe here scalars can be replaced with ZZ
@@ -426,13 +426,101 @@ class ClusterAlgebra(Parent):
     def lower_bound(self):
         pass
 
+    def greedy_element(self, d_vector):
+        b = abs(self._B0[0,1])
+        c = abs(self._B0[1,0])
+        a1 = d_vector[0]
+        a2 = d_vector[1]
+        x1 = self._ambient.gens()[0]
+        x2 = self._ambient.gens()[1]
+        if a1 < 0:
+            if a2 < 0:
+                return x1**(-a1)*x2**(-a2)
+            else:
+                return x1**(-a1)*((1+x2**c)/x1)**a2
+        elif a2 < 0:
+            return ((1+x1**b)/x2)**a1*x2**(-a2)
+        output = 0
+        for p in xrange(0,a2+1):
+            for q in xrange(0,a1+1):
+                output += self.greedy_coeff(d_vector,p,q)*x1**(b*p)*x2**(c*q)
+        return x1**(-a1)*x2**(-a2)*output
+
+    def greedy_coeff(self,d_vector,p,q):
+        b = abs(self._B0[0,1])
+        c = abs(self._B0[1,0])
+        a1 = d_vector[0]
+        a2 = d_vector[1]
+        p = Integer(p)
+        q = Integer(q)
+        if p == 0 and q == 0:
+            return 1
+        sum1 = 0
+        for k in range(1,p+1):
+            bin = 0
+            if a2-c*q+k-1 >= k:
+                bin = binomial(a2-c*q+k-1,k)
+            sum1 += (-1)**(k-1)*self.greedy_coeff(d_vector,p-k,q)*bin
+        sum2 = 0
+        for l in range(1,q+1):
+            bin = 0
+            if a1-b*p+l-1 >= l:
+                bin = binomial(a1-b*p+l-1,l)
+            sum2 += (-1)**(l-1)*self.greedy_coeff(d_vector,p,q-l)*bin
+        #print "sum1=",sum1,"sum2=",sum2
+        return max(sum1,sum2)
+
+
+
 ####
 # Methods that are only defined for special cases
 ####
 
 # Greedy elements exist only in rank 2
-def greedy_element(self, d_vector):
-    pass
+# Does not yet take into account coefficients, this can probably be done by using the greedy coefficients to write down the F-polynomials
+#def greedy_element(self, d_vector):
+#    b = abs(self._B0[0,1])
+#    c = abs(self._B0[1,0])
+#    a1 = d_vector[0]
+#    a2 = d_vector[1]
+#    x1 = self._ambient._gens[0]
+#    x2 = self._ambient._gens[1]
+#    if a1 < 0:
+#        if a2 < 0:
+#            return x1**(-a1)*x2**(-a2)
+#        else:
+#            return x1**(-a1)*((1+x2**c)/x1)**a2
+#    elif a2 < 0:
+#        return ((1+x1**b)/x2)**a1*x2**(-a2)
+#    output = 0
+#    for p in xrange(0,a2+1):
+#        for q in xrange(0,a1+1):
+#            output += greedy_coeff(d_vector,p,q)*x1**(b*p)*x2**(c*q)
+#    return x1**(-a1)*x2**(-a2)*output
+
+#def greedy_coeff(self,d_vector,p,q):
+#    b = abs(self._B0[0,1])
+#    c = abs(self._B0[1,0])
+#    a1 = d_vector[0]
+#    a2 = d_vector[1]
+#    p = Integer(p)
+#    q = Integer(q)
+#    if p == 0 and q == 0:
+#        return 1
+#    sum1 = 0
+#    for k in range(1,p+1):
+#        bin = 0
+#        if a2-c*q+k-1 >= k:
+#            bin = binomial(a2-c*q+k-1,k)
+#        sum1 += (-1)^(k-1)*greedy_coeff(d_vector,p-k,q)*bin
+#    sum2 = 0
+#    for l in range(1,q+1):
+#        bin = 0
+#        if a1-b*p+l-1 >= l:
+#            bin = binomial(a1-b*p+l-1,l)
+#        sum2 += (-1)^(l-1)*greedy_coeff(d_vector,p,q-l)*bin
+#    #print "sum1=",sum1,"sum2=",sum2
+#    return max(sum1,sum2)
 
 # At the moment I know only how to compute theta basis in rank 2
 # maybe we should let ClusterAlgebra have this method for any rank and have a
@@ -464,4 +552,5 @@ def theta_basis_element(self, g_vector):
 #@x.deleter
 #def x(self):
 #    del self._x
+
 

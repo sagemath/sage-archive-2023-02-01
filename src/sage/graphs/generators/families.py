@@ -2575,13 +2575,13 @@ def UnitaryPolarGraph(m, q, algorithm="gap"):
     EXAMPLES::
 
         sage: G = graphs.UnitaryPolarGraph(4,2); G
-        Unitary Polar Graph O(4, 2); GQ(4, 2): Graph on 45 vertices
+        Unitary Polar Graph U(4, 2); GQ(4, 2): Graph on 45 vertices
         sage: G.is_strongly_regular(parameters=True)
         (45, 12, 3, 3)
         sage: graphs.UnitaryPolarGraph(5,2).is_strongly_regular(parameters=True)
         (165, 36, 3, 9)
         sage: graphs.UnitaryPolarGraph(6,2)    # long time
-        Unitary Polar Graph O(6, 2): Graph on 693 vertices
+        Unitary Polar Graph U(6, 2): Graph on 693 vertices
 
     TESTS::
 
@@ -2632,21 +2632,21 @@ def UnitaryDualPolarGraph(m, q):
     The point graph of a generalized quadrangle of order (8,4)::
 
         sage: G = graphs.UnitaryDualPolarGraph(5,2); G
-        Unitary Dual Polar Graph O(5, 2); GQ(8, 4): Graph on 297 vertices
+        Unitary Dual Polar Graph DU(5, 2); GQ(8, 4): Graph on 297 vertices
         sage: G.is_strongly_regular(parameters=True)
         (297, 40, 7, 5)
 
     Another way to get the  generalized quadrangle of order (2,4)::
 
         sage: G = graphs.UnitaryDualPolarGraph(4,2); G
-        Unitary Dual Polar Graph O(4, 2); GQ(2, 4): Graph on 27 vertices
+        Unitary Dual Polar Graph DU(4, 2); GQ(2, 4): Graph on 27 vertices
         sage: G.is_isomorphic(graphs.OrthogonalPolarGraph(6,2,'-'))
         True
 
     TESTS::
 
         sage: G = graphs.UnitaryDualPolarGraph(6,2); G           # long time
-        Unitary Dual Polar Graph O(6, 2): Graph on 891 vertices
+        Unitary Dual Polar Graph DU(6, 2): Graph on 891 vertices
         sage: G.is_distance_regular(parameters=True)             # long time
         ([42, 40, 32, None], [None, 1, 5, 21])
 
@@ -2676,14 +2676,14 @@ def SymplecticDualPolarGraph(m, q):
     EXAMPLES::
 
         sage: G = graphs.SymplecticDualPolarGraph(6,2); G
-        Symplectic Polar Graph O(6, 2): Graph on 135 vertices
+        Symplectic Dual Polar Graph DSp(6, 2): Graph on 135 vertices
         sage: G.is_distance_regular(parameters=True)
         ([14, 12, 8, None], [None, 1, 3, 7])
 
     TESTS::
 
         sage: G = graphs.SymplecticDualPolarGraph(6,3); G       # long time
-        Symplectic Polar Graph O(6, 3): Graph on 1120 vertices
+        Symplectic Dual Polar Graph DSp(6, 3): Graph on 1120 vertices
         sage: G.is_distance_regular(parameters=True)            # long time
         ([39, 36, 27, None], [None, 1, 4, 13])
     """

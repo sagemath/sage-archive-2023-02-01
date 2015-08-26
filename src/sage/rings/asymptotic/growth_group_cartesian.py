@@ -856,6 +856,24 @@ class GenericProduct(CartesianProductPosets, GenericGrowthGroup):
                 return '1'
             return s
 
+        def log(self, base=None):
+            r"""
+            The logarithm of this element.
+
+            INPUT:
+
+            - ``base`` -- the base of the logarithm. If ``None``
+              (default value) is used, the logarithm is the natural
+              logarithm.
+
+            OUTPUT:
+
+            A growth element.
+
+            """
+            lf = self.log_factor(base=base)
+            if len(lf) == 1 and lf[0][1] == 1:
+                return lf[0][0]
 
         def factor(self):
             r"""

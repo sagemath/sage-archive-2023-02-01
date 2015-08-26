@@ -107,7 +107,7 @@ variables `x` and `y` by
 Again, we can look at a typical (nontrivial) element::
 
     sage: B.an_element()
-    -1/8*x^(3/2) * log(x)^3 * (1/8)^y * y^(3/2) + O(x^(1/2) * log(x) * (1/2)^y * y^(1/2))
+    -1/8*x^(3/2)*log(x)^3*(1/8)^y*y^(3/2) + O(x^(1/2)*log(x)*(1/2)^y*y^(1/2))
 
 Arithemtical Operations
 -----------------------
@@ -128,7 +128,7 @@ We start our calculations in the ring
 
 Of course, we can perform the usual ring operations `+` and `*`::
 
-    sage: z^2 + 3*z*(1 - z)
+    sage: z^2 + 3*z*(1-z)
     -2*z^2 + 3*z
     sage: (3*z + 2)^3
     27*z^3 + 54*z^2 + 36*z + 8
@@ -136,7 +136,7 @@ Of course, we can perform the usual ring operations `+` and `*`::
 In addition to that, special powers---our growth group ``z^QQ`` allows
 the exponents to be out of `\QQ`---can also be computed::
 
-    sage: (z^(5/2) + z^(1/7)) * z^(-1/5)
+    sage: (z^(5/2)+z^(1/7)) * z^(-1/5)
     z^(23/10) + z^(-2/35)
 
 The central concepts of computations with asymptotic expressions is
@@ -151,7 +151,7 @@ where the result is simplified automatically. More advanced
 
 ::
 
-    sage: (z + 2*z^2 + 3*z^3 + 4*z^4) * (O(z) + z^2)
+    sage: (z+2*z^2+3*z^3+4*z^4) * (O(z)+z^2)
     4*z^6 + O(z^5)
 
 Division
@@ -160,7 +160,7 @@ Division
 The asymptotic expressions support division. For example, we get can
 expand `1/(1-z)` to a geometric series::
 
-    sage: 1 / (z - 1)
+    sage: 1 / (z-1)
     1/z + z^(-2) + z^(-3) + z^(-4) + ... + z^(-20) + O(z^(-21))
 
 Since there is a default precision (parameter ``default_prec``)
@@ -168,7 +168,7 @@ defined, only the first `20` summands are calculated.
 
 Of course, we can work with more complicated expressions as well::
 
-    sage: (4*z + 1) / (z^3 + z^2 + z + O(A(1)))
+    sage: (4*z+1) / (z^3+z^2+z+O(A(1)))
     4*z^(-2) - 3*z^(-3) - z^(-4) + O(z^(-5))
 
 Note that not all elements are invertible, for instance,
@@ -224,24 +224,24 @@ is used. We can have a look at this::
 
     sage: b = x^3*y + x^2*y + x*y^2 + O(x) + O(y)
     sage: print b.summands.repr_full(reverse=True)
-    poset(x * y^2, x^3 * y, x^2 * y, O(x), O(y))
+    poset(x*y^2, x^3*y, x^2*y, O(x), O(y))
     +-- oo
     |   +-- no successors
-    |   +-- predecessors:   x * y^2, x^3 * y
-    +-- x * y^2
+    |   +-- predecessors:   x*y^2, x^3*y
+    +-- x*y^2
     |   +-- successors:   oo
     |   +-- predecessors:   O(x), O(y)
-    +-- x^3 * y
+    +-- x^3*y
     |   +-- successors:   oo
-    |   +-- predecessors:   x^2 * y
-    +-- x^2 * y
-    |   +-- successors:   x^3 * y
+    |   +-- predecessors:   x^2*y
+    +-- x^2*y
+    |   +-- successors:   x^3*y
     |   +-- predecessors:   O(x), O(y)
     +-- O(x)
-    |   +-- successors:   x * y^2, x^2 * y
+    |   +-- successors:   x*y^2, x^2*y
     |   +-- predecessors:   null
     +-- O(y)
-    |   +-- successors:   x * y^2, x^2 * y
+    |   +-- successors:   x*y^2, x^2*y
     |   +-- predecessors:   null
     +-- null
     |   +-- successors:   O(x), O(y)
@@ -315,7 +315,7 @@ class AsymptoticExpression(sage.rings.ring_element.RingElement):
     expressions is that the `O`-notation (see
     :wikipedia:`Big_O_notation`) can be used. For example, we have::
 
-        sage: (x + 2*x^2 + 3*x^3 + 4*x^4) * (O(x) + x^2)
+        sage: (x+2*x^2+3*x^3+4*x^4) * (O(x)+x^2)
         4*x^6 + O(x^5)
 
     In particular, :meth:`~sage.rings.big_oh.O` can be used to
@@ -420,7 +420,7 @@ class AsymptoticExpression(sage.rings.ring_element.RingElement):
         EXAMPLES::
 
             sage: R.<x> = AsymptoticRing(growth_group='x^ZZ', coefficient_ring=ZZ)
-            sage: expr = 7 * x^12 + x^5 + O(x^3)
+            sage: expr = 7*x^12 + x^5 + O(x^3)
             sage: expr.summands
             poset(O(x^3), x^5, 7*x^12)
 
@@ -450,7 +450,7 @@ class AsymptoticExpression(sage.rings.ring_element.RingElement):
             False
             sage: bool(x)  # indirect doctest
             True
-            sage: bool(7 * x^12 + x^5 + O(x^3))  # indirect doctest
+            sage: bool(7*x^12 + x^5 + O(x^3))  # indirect doctest
             True
         """
         return bool(self._summands_)
@@ -616,9 +616,9 @@ class AsymptoticExpression(sage.rings.ring_element.RingElement):
         EXAMPLES::
 
             sage: R.<x> = AsymptoticRing(growth_group='x^ZZ', coefficient_ring=ZZ)
-            sage: (5*x^2 + 12*x) * (x^3 + O(x))  # indirect doctest
+            sage: (5*x^2+12*x) * (x^3+O(x))  # indirect doctest
             5*x^5 + 12*x^4 + O(x^3)
-            sage: (5*x^2 - 12*x) * (x^3 + O(x))  # indirect doctest
+            sage: (5*x^2-12*x) * (x^3+O(x))  # indirect doctest
             5*x^5 - 12*x^4 + O(x^3)
         """
         s = ' + '.join(repr(elem) for elem in
@@ -693,7 +693,7 @@ class AsymptoticExpression(sage.rings.ring_element.RingElement):
             sage: O(x) - O(x)
             O(x)
         """
-        return self + (-1) * other
+        return self + (-1)*other
 
 
     def _mul_term_(self, term):
@@ -809,7 +809,7 @@ class AsymptoticExpression(sage.rings.ring_element.RingElement):
             x^(-42)
             sage: ex = ~(1 + x); ex
             1/x - x^(-2) + x^(-3) - x^(-4) + O(x^(-5))
-            sage: ex * (1 + x)
+            sage: ex * (1+x)
             1 + O(x^(-4))
             sage: ~(1 + O(1/x))
             1 + O(1/x)
@@ -833,7 +833,7 @@ class AsymptoticExpression(sage.rings.ring_element.RingElement):
         expanding = True
         result = one
         while expanding:
-            new_result = (geom * result + one).truncate()
+            new_result = (geom*result + one).truncate()
             if new_result.has_same_summands(result):
                 expanding = False
             result = new_result
@@ -969,7 +969,7 @@ class AsymptoticExpression(sage.rings.ring_element.RingElement):
             sage: AR.<x> = AsymptoticRing(growth_group='x^ZZ', coefficient_ring=ZZ)
             sage: O(x)
             O(x)
-            sage: expr = 42 * x^42 + x^10 + O(x^2); expr
+            sage: expr = 42*x^42 + x^10 + O(x^2); expr
             42*x^42 + x^10 + O(x^2)
             sage: expr.O()
             O(x^42)
@@ -1312,7 +1312,7 @@ class AsymptoticRing(sage.rings.ring.Ring,
             sage: S(x + y)
             x + y
             sage: S(2*x - 4*x*y^6)
-            -4*x * y^6 + 2*x
+            -4*x*y^6 + 2*x
 
         ::
 

@@ -24,6 +24,8 @@ List of (semi)lattice methods
     :delim: |
 
     :meth:`~FiniteLatticePoset.complements` | Return the list of complements of an element, or the dictionary of complements for all elements.
+    :meth:`~FiniteLatticePoset.maximal_sublattices` | Return maximal sublattices of the lattice.
+    :meth:`~FiniteLatticePoset.frattini_sublattice` | Return the intersection of maximal sublattices.
     :meth:`~FiniteLatticePoset.is_atomic` | Return ``True`` if the lattice is atomic.
     :meth:`~FiniteLatticePoset.is_complemented` | Return ``True`` if the lattice is complemented.
     :meth:`~FiniteLatticePoset.is_distributive` | Return ``True`` if the lattice is distributive.

@@ -175,7 +175,8 @@ class TangentVector(FiniteRankFreeModuleElement):
             sage: p = M((2,2), name='p')
             sage: Tp = M.tangent_space(p)
             sage: v = Tp((2, 1), name='v') ; v
-            tangent vector v at point 'p' on 2-dimensional manifold 'M'
+            Tangent vector v at Point p on the 2-dimensional differentiable
+             manifold M
 
         Plot of the vector alone (arrow + label)::
 
@@ -208,7 +209,8 @@ class TangentVector(FiniteRankFreeModuleElement):
         Special case of the zero vector::
 
             sage: v = Tp.zero() ; v
-            tangent vector zero at point 'p' on 2-dimensional manifold 'M'
+            Tangent vector zero at Point p on the 2-dimensional differentiable
+             manifold M
             sage: show(X.plot() + v.plot())
 
         Vector tangent to a 4-dimensional manifold::
@@ -218,7 +220,8 @@ class TangentVector(FiniteRankFreeModuleElement):
             sage: p = M((0,1,2,3), name='p')
             sage: Tp = M.tangent_space(p)
             sage: v = Tp((5,4,3,2), name='v') ; v
-            tangent vector v at point 'p' on 4-dimensional manifold 'M'
+            Tangent vector v at Point p on the 4-dimensional differentiable
+             manifold M
 
         We cannot make a 4D plot directly::
 
@@ -255,14 +258,15 @@ class TangentVector(FiniteRankFreeModuleElement):
             sage: XS.<th,ph> = U.chart(r'th:(0,pi):\theta ph:(0,2*pi):\phi')
             sage: R3 = DiffManifold(3, 'R^3')
             sage: X3.<x,y,z> = R3.chart()
-            sage: F = S2.diff_mapping(R3, {(XS, X3): [sin(th)*cos(ph),
-            ....:                     sin(th)*sin(ph), cos(th)]}, name='F')
+            sage: F = S2.diff_map(R3, {(XS, X3): [sin(th)*cos(ph), sin(th)*sin(ph),
+            ....:                                 cos(th)]}, name='F')
             sage: F.display() # the standard embedding of S^2 into R^3
             F: S^2 --> R^3
             on U: (th, ph) |--> (x, y, z) = (cos(ph)*sin(th), sin(ph)*sin(th), cos(th))
             sage: p = U.point((pi/4, pi/4), name='p')
             sage: v = XS.frame()[1].at(p) ; v
-            tangent vector d/dph at point 'p' on 2-dimensional manifold 'S^2'
+            Tangent vector d/dph at Point p on the 2-dimensional differentiable
+             manifold S^2
             sage: graph_v = v.plot(mapping=F)
             sage: graph_S2 = XS.plot(chart=X3, mapping=F, nb_values=9)
             sage: show(graph_v + graph_S2)

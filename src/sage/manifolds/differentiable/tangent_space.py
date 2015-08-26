@@ -97,10 +97,13 @@ class TangentSpace(FiniteRankFreeModule):
 
         sage: c_uv.<u,v> = M.chart()
         sage: c_uv.frame().at(p)
-        Basis (d/du,d/dv) on the tangent space at point 'p' on 2-dimensional manifold 'M'
+        Basis (d/du,d/dv) on the Tangent space at Point p on the 2-dimensional
+         differentiable manifold M
         sage: Tp.bases()
-        [Basis (d/dx,d/dy) on the tangent space at point 'p' on 2-dimensional manifold 'M',
-         Basis (d/du,d/dv) on the tangent space at point 'p' on 2-dimensional manifold 'M']
+        [Basis (d/dx,d/dy) on the Tangent space at Point p on the 2-dimensional
+         differentiable manifold M,
+         Basis (d/du,d/dv) on the Tangent space at Point p on the 2-dimensional
+         differentiable manifold M]
 
     All the bases defined on ``Tp`` are on the same footing. Accordingly the
     tangent space is not in the category of modules with a distinguished

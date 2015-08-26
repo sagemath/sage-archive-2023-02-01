@@ -1187,9 +1187,10 @@ class GenericTermMonoid(sage.structure.parent.Parent,
             sage: T_ZZ(10 * x^2)
             Traceback (most recent call last):
             ...
-            ValueError: Growth 10*x^2 is not in Generic Term Monoid x^ZZ
+            ValueError: 10*x^2 is not in Generic Term Monoid x^ZZ
             with (implicit) coefficients in Rational Field.
-            > *previous* ValueError: 10*x^2 is not in Growth Group x^ZZ.
+            > *previous* ValueError: Factor 10*x^2 of 10*x^2 is neither a
+            coefficient (in Rational Field) nor growth (in Growth Group x^ZZ).
 
         ::
 
@@ -1205,17 +1206,9 @@ class GenericTermMonoid(sage.structure.parent.Parent,
             sage: O_ZZ = atm.OTermMonoid(G_ZZ, QQ)
             sage: O_ZZ(x^11)
             O(x^11)
-            sage: O_ZZ(2*x^11)
-            Traceback (most recent call last):
-            ...
-            ValueError: Growth 2*x^11 is not in O-Term Monoid x^ZZ
-            with implicit coefficients in Rational Field.
-            > *previous* ValueError: 2*x^11 is not in Growth Group x^ZZ.
 
         ::
 
-            sage: T(5 * x^5)
-            Asymptotic Term with coefficient 5 and growth x^5
             sage: T(G.gen()^10)
             Asymptotic Term with coefficient 1 and growth x^10
             sage: T(G.gen()^10, coefficient=10)
@@ -1316,8 +1309,7 @@ class GenericTermMonoid(sage.structure.parent.Parent,
         from sage.symbolic.ring import SR
         if P is SR:
             from sage.symbolic.operators import mul_vararg
-            op = data.operator()
-            if op == mul_vararg:
+            if data.operator() == mul_vararg:
                 return data.operands()
 
         return (data,)
@@ -2120,14 +2112,6 @@ class ExactTerm(TermWithCoefficient):
         Symbolic Ring
         sage: ET(5*x^2)
         5*x^2
-        sage: x = ZZ['x'].gen(); x.parent()
-        Univariate Polynomial Ring in x over Integer Ring
-        sage: ET(5*x^2)
-        5*x^2
-        sage: x = ZZ[['x']].gen(); x.parent()
-        Power Series Ring in x over Integer Ring
-        sage: ET(5*x^2)
-        5*x^2
     """
 
     def _repr_(self):
@@ -2303,20 +2287,20 @@ class ExactTermMonoid(TermWithCoefficientMonoid):
         sage: G_ZZ = agg.GrowthGroup('x^ZZ'); x_ZZ = G_ZZ.gen()
         sage: G_QQ = agg.GrowthGroup('x^QQ'); x_QQ = G_QQ.gen()
         sage: ET_ZZ = atm.ExactTermMonoid(G_ZZ, ZZ); ET_ZZ
-        Exact Term Monoid x^ZZ with coefficients from Integer Ring
+        Exact Term Monoid x^ZZ with coefficients in Integer Ring
         sage: ET_QQ = atm.ExactTermMonoid(G_QQ, QQ); ET_QQ
-        Exact Term Monoid x^QQ with coefficients from Rational Field
+        Exact Term Monoid x^QQ with coefficients in Rational Field
         sage: ET_QQ.coerce_map_from(ET_ZZ)
         Conversion map:
-          From: Exact Term Monoid x^ZZ with coefficients from Integer Ring
-          To:   Exact Term Monoid x^QQ with coefficients from Rational Field
+          From: Exact Term Monoid x^ZZ with coefficients in Integer Ring
+          To:   Exact Term Monoid x^QQ with coefficients in Rational Field
 
     Exact term monoids can also be created using the term factory::
 
         sage: atm.TermMonoid('exact', G_ZZ, ZZ) is ET_ZZ
         True
         sage: atm.TermMonoid('exact', agg.GrowthGroup('x^ZZ'), QQ)
-        Exact Term Monoid x^ZZ with coefficients from Rational Field
+        Exact Term Monoid x^ZZ with coefficients in Rational Field
     """
     # enable the category framework for elements
     Element = ExactTerm
@@ -2339,9 +2323,9 @@ class ExactTermMonoid(TermWithCoefficientMonoid):
             sage: import sage.rings.asymptotic.growth_group as agg
             sage: G = agg.GrowthGroup('x^ZZ'); x = G.gen()
             sage: atm.ExactTermMonoid(G, QQ)._repr_()
-            'Exact Term Monoid x^ZZ with coefficients from Rational Field'
+            'Exact Term Monoid x^ZZ with coefficients in Rational Field'
         """
-        return 'Exact Term Monoid %s with coefficients from %s' % \
+        return 'Exact Term Monoid %s with coefficients in %s' % \
                (self.growth_group._repr_short_(), self.coefficient_ring)
 
 
@@ -2375,7 +2359,7 @@ class TermMonoidFactory(sage.structure.factory.UniqueFactory):
         sage: OT = atm.TermMonoid('O', G, QQ); OT
         O-Term Monoid x^ZZ with implicit coefficients in Rational Field
         sage: ET = atm.TermMonoid('exact', G, ZZ); ET
-        Exact Term Monoid x^ZZ with coefficients from Integer Ring
+        Exact Term Monoid x^ZZ with coefficients in Integer Ring
     """
     def create_key_and_extra_args(self, term, growth_group, coefficient_ring=None,
                                   **kwds):
@@ -2425,7 +2409,7 @@ class TermMonoidFactory(sage.structure.factory.UniqueFactory):
             sage: atm.TermMonoid('O', G, QQ)  # indirect doctest
             O-Term Monoid x^ZZ with implicit coefficients in Rational Field
             sage: atm.TermMonoid('exact', G, ZZ)  # indirect doctest
-            Exact Term Monoid x^ZZ with coefficients from Integer Ring
+            Exact Term Monoid x^ZZ with coefficients in Integer Ring
         """
 
         term, growth_group, coefficient_ring = key

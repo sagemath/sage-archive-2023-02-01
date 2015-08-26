@@ -1287,8 +1287,22 @@ class AsymptoticRing(sage.rings.ring.Ring,
             sage: y = ZZ['y'].gen(); AR(y)
             Traceback (most recent call last):
             ...
-            TypeError: Cannot convert y to an asymptotic expression
-            in Asymptotic Ring <x^ZZ> over Integer Ring.
+            ValueError: Growth y is not in Exact Term Monoid x^ZZ
+            with coefficients in Integer Ring.
+            > *previous* ValueError: y is not in Growth Group x^ZZ.
+
+        ::
+
+            sage: A = AsymptoticRing(growth_group='p^ZZ', coefficient_ring=QQ)
+            sage: P.<p> = QQ[]
+            sage: A(p)
+            p
+            sage: A(p^11)
+            p^11
+            sage: A(2*p^11)
+            2*p^11
+            sage: A(3*p^4 + 7/3*p - 8)
+            3*p^4 + 7/3*p - 8
         """
         if summands is not None:
             if type(data) != int or data != 0:
@@ -1321,21 +1335,68 @@ class AsymptoticRing(sage.rings.ring.Ring,
             return self.element_class(self, summands, simplify=simplify)
 
         try:
-            summand = self.create_summand('exact', growth=data)
-        except (TypeError, ValueError):
-            pass
-        else:
-            return summand
+            P = data.parent()
+        except AttributeError:
+            return self._create_exact_summand_(data)
 
+        from growth_group import combine_exceptions
+        if P is sage.symbolic.ring.SR:
+            from sage.symbolic.operators import add_vararg
+            if data.operator() == add_vararg:
+                summands = []
+                for summand in data.operands():
+                    # TODO: check if summand is an O-Term here
+                    try:
+                        summands.append(self._create_exact_summand_(summand))
+                    except ValueError as e:
+                        raise combine_exceptions(
+                            ValueError('Symbolic expression %s is not in %s.' %
+                                       (data, self)), e)
+                return sum(summands)
+
+        elif sage.rings.polynomial.polynomial_ring.is_PolynomialRing(P):
+            p = P.gen()
+            return sum(self.create_summand('exact', growth=p**i, coefficient=c)
+                       for i, c in enumerate(data))
+
+        elif sage.rings.polynomial.multi_polynomial_ring_generic.is_MPolynomialRing(P):
+            return sum(self.create_summand('exact', growth=g, coefficient=c)
+                       for c, g in iter(data))
+
+        elif sage.rings.power_series_ring.is_PowerSeriesRing(P):
+            raise NotImplementedError(
+                'Cannot convert %s from the %s to an asymptotic expression '
+                'in %s, since growths at other points than +oo are not yet '
+                'supported.' % (data, P, self))
+            # Delete lines above as soon as we can deal with growths
+            # other than the that at going to +oo.
+            p = P.gen()
+            result = self(data.polynomial())
+            prec = data.precision_absolute()
+            if prec < sage.rings.infinity.PlusInfinity():
+                result += self.create_summand('O', growth=p**prec)
+            return result
+
+        return self._create_exact_summand_(data)
+
+
+    def _create_exact_summand_(self, data):
         try:
             coefficient = self.coefficient_ring(data)
         except (TypeError, ValueError):
             pass
         else:
-            return self.create_summand('exact', growth=1, coefficient=coefficient)
+            return self.create_summand('exact',
+                                       growth=self.growth_group.one(),
+                                       coefficient=coefficient)
 
-        raise TypeError('Cannot convert %s to an asymptotic '
-                        'expression in %s.' % (data, self))
+        try:
+            return self.create_summand('exact', data)
+        except (TypeError, ValueError):
+            pass
+
+        raise ValueError('Cannot convert %s to an exact summand in an '
+                         'asymptotic expression in %s.' % (data, self))
 
 
     def _coerce_map_from_(self, R):

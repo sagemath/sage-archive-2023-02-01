@@ -857,6 +857,64 @@ class GenericProduct(CartesianProductPosets, GenericGrowthGroup):
             return s
 
 
+        def factor(self):
+            r"""
+            Return a factorization of this element into growth
+            elements from atomic growth groups.
+
+            INPUT:
+
+            Nothing.
+
+            OUTPUT:
+
+            A list of growth elements.
+
+            EXAMPLES::
+
+                sage: from sage.rings.asymptotic.growth_group import GrowthGroup
+                sage: G = GrowthGroup('x^ZZ * log(x)^ZZ * y^ZZ')
+                sage: x, y = G.gens_monomial()
+                sage: x.factor()
+                [x]
+                sage: f = (x * y).factor(); f
+                [x, y]
+                sage: [factor.parent() for factor in f]
+                [Growth Group x^ZZ, Growth Group y^ZZ]
+                sage: f = (x * log(x)).factor(); f
+                [x, log(x)]
+                sage: [factor.parent() for factor in f]
+                [Growth Group x^ZZ, Growth Group log(x)^ZZ]
+
+            ::
+
+                sage: G = GrowthGroup('x^ZZ * log(x)^ZZ * log(log(x))^ZZ * y^QQ')
+                sage: x, y = G.gens_monomial()
+                sage: f = (x * log(x) * y).factor(); f
+                [x, log(x), y]
+                sage: [factor.parent() for factor in f]
+                [Growth Group x^ZZ, Growth Group log(x)^ZZ, Growth Group y^QQ]
+
+            ::
+
+                sage: G.one().factor()
+                Traceback (most recent call last):
+                ...
+                ValueError: 1 does not have a factorization.
+            """
+            components = []
+            for (component, factor) in zip(self.value,
+                                           self.parent().cartesian_factors()):
+                if component != factor.one():
+                    if hasattr(component, 'factor'):
+                        components = components + component.factor()
+                    else:
+                        components.append(component)
+
+            if components:
+                return components
+            raise ValueError('%s does not have a factorization.' % (self,))
+
     CartesianProduct = CartesianProductGrowthGroups
 
 

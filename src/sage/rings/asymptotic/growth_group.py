@@ -972,6 +972,40 @@ class GenericGrowthElement(sage.structure.element.MultiplicativeGroupElement):
         return self._raw_element_ == other._raw_element_
 
 
+    def __ne__(self, other):
+        r"""
+        Return if this growth element is not equal to ``other``.
+
+        INPUT:
+
+        - ``other`` -- an element.
+
+        OUTPUT:
+
+        A boolean.
+
+        .. NOTE::
+
+            This function uses the coercion model to find a common
+            parent for the two operands.
+
+            The comparison of two elements with the same parent is done in
+            :meth:`_eq_`.
+
+        TESTS::
+
+            sage: from sage.rings.asymptotic.growth_group import GrowthGroup
+            sage: G = GrowthGroup('x^ZZ')
+            sage: G.one() != G(1)
+            False
+            sage: G.one() != G.one()
+            False
+            sage: G(1) != G(1)
+            False
+        """
+        return not self.__eq__(other)
+
+
     def __le__(self, other):
         r"""
         Return if this growth element is at most (less than or equal

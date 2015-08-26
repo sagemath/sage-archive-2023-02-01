@@ -168,11 +168,12 @@ expand `1/(1-z)` to a geometric series::
     1/z + z^(-2) + z^(-3) + z^(-4) + ... + z^(-20) + O(z^(-21))
 
 Since there is a default precision (parameter ``default_prec``)
-defined, only the first `20` summands are calculated. Here, we can
-work with more complicated expressions as well::
+defined, only the first `20` summands are calculated.
 
-    sage: (1 + 4*z)/(z + z^2 + z^3)
-    4*z^(-2) - 3*z^(-3) - z^(-4) + 4*z^(-5) - 3*z^(-6) - ... - z^(-31) + O(z^(-32))
+Of course, we can work with more complicated expressions as well::
+
+    sage: (4*z + 1) / (z^3 + z^2 + z + O(A(1)))
+    4*z^(-2) - 3*z^(-3) - z^(-4) + O(z^(-5))
 
 Note that not all elements are invertible, for instance,
 

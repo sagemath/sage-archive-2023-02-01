@@ -977,21 +977,16 @@ class AsymptoticExpression(sage.rings.ring_element.RingElement):
             42*x^42 + x^10 + O(x^2)
             sage: expr.O()
             O(x^42)
-
-        TESTS::
-
             sage: O(AR(0))
-            Traceback (most recent call last):
-            ...
-            ValueError: Cannot build O(0).
+            0
+            sage: (2*x).O()
+            O(x)
 
         .. SEEALSO::
 
             :func:`sage.rings.power_series_ring.PowerSeriesRing`,
             :func:`sage.rings.laurent_series_ring.LaurentSeriesRing`.
         """
-        if not self:
-            raise ValueError('Cannot build O(%s).' % (self,))
         return sum(self.parent().create_summand('O', growth=element)
                    for element in self.summands.maximal_elements())
 

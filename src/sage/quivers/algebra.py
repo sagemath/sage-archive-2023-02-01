@@ -534,6 +534,58 @@ class PathAlgebra(CombinatorialFreeModule):
         """
         return self._semigroup
 
+    def degree_on_basis(self, x):
+        """
+        Return ``x.degree()``.
+
+        This function is here to make some methods work that are inherited
+        from :class:`~sage.combinat.free_module.CombinatorialFreeModule`.
+
+        EXAMPLES::
+
+            sage: A = DiGraph({0:{1:['a'], 2:['b']}, 1:{0:['c'], 1:['d']}, 2:{0:['e'],2:['f']}}).path_semigroup().algebra(ZZ)
+            sage: A.inject_variables()
+            Defining e_0, e_1, e_2, a, b, c, d, e, f
+            sage: X = a+2*b+3*c*e-a*d+5*e_0+3*e_2
+            sage: X
+            5*e_0 + a - a*d + 2*b + 3*e_2
+            sage: X.homogeneous_component(0)   # indirect doctest
+            5*e_0 + 3*e_2
+            sage: X.homogeneous_component(1)
+            a + 2*b
+            sage: X.homogeneous_component(2)
+            -a*d
+            sage: X.homogeneous_component(3)
+            0
+        """
+        return x.degree()
+
+    def sum(self, iter_of_elements):
+        """
+        Returns the sum of all elements in ``iter_of_elements``
+
+        INPUT:
+
+        - ``iter_of_elements``: iterator of elements of ``self``
+
+        NOTE:
+
+        It overrides a method inherited from
+        :class:`~sage.combinat.free_module.CombinatorialFreeModule`, which
+        relies on a private attribute of elements---an implementation
+        detail that is simply not available for
+        :class:`~sage.quivers.algebra_elements.PathAlgebraElement`.
+
+        EXAMPLES::
+
+            sage: A = DiGraph({0:{1:['a'], 2:['b']}, 1:{0:['c'], 1:['d']}, 2:{0:['e'],2:['f']}}).path_semigroup().algebra(ZZ)
+            sage: A.inject_variables()
+            Defining e_0, e_1, e_2, a, b, c, d, e, f
+            sage: A.sum((a, 2*b, 3*c*e, -a*d, 5*e_0, 3*e_2))
+            5*e_0 + a - a*d + 2*b + 3*e_2
+        """
+        return sum(iter_of_elements, self.zero())
+
     def homogeneous_component(self, n):
         """
         Return the `n`-th homogeneous piece of the path algebra.
@@ -559,6 +611,7 @@ class PathAlgebra(CombinatorialFreeModule):
             sage: A = P.algebra(ZZ)
             sage: A.homogeneous_component(3)
             Free module spanned by [a*b*c, b*c*a, c*a*b] over Integer Ring
+
         """
         basis = []
         for v in self._semigroup._quiver:

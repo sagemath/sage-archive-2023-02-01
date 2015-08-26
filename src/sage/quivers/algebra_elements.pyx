@@ -291,7 +291,6 @@ cdef class PathAlgebraElement(RingElement):
         return repr_lincomb(self._sorted_items_for_printing(),
                             scalar_mult       = self.parent()._print_options['scalar_mult'],
                             latex_scalar_mult = self.parent()._print_options['latex_scalar_mult'],
-                            latex_scalar_mult = None,
                             repr_monomial = self._parent._latex_monomial,
                             is_latex=True, strip_one = True)
 

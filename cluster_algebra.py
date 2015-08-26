@@ -94,25 +94,23 @@ class ClusterAlgebraSeed(SageObject):
     def b_matrix(self):
         return copy(self._B)
 
-    def F_polynomial(self, j):
-        g_vector = tuple(self._G.column(j))
-        return self.parent().F_polynomial(g_vector)
-
-    def cluster_variable(self, j):
-        g_vector = tuple(self._G.column(j))
-        return self.parent().cluster_variable(g_vector)
-
-    def g_vector(self, j):
-        return tuple(self._G.column(j))
-
-    def g_matrix(self):
-        return copy(self._G)
+    def c_matrix(self):
+        return copy(self._C)
 
     def c_vector(self, j):
         return tuple(self._C.column(j))
 
-    def c_matrix(self):
-        return copy(self._C)
+    def g_matrix(self):
+        return copy(self._G)
+
+    def g_vector(self, j):
+        return tuple(self._G.column(j))
+
+    def F_polynomial(self, j):
+        return self.parent().F_polynomial(self.g_vector(j))
+
+    def cluster_variable(self, j):
+        return self.parent().cluster_variable(self.g_vector(j))
     
     def mutate(self, k, inplace=True, mutating_F=True):
         if inplace:
@@ -132,12 +130,13 @@ class ClusterAlgebraSeed(SageObject):
             seed._path.append(k)
 
         # find sign of k-th c-vector
+        # Will this be used enough that it should be a built-in function?
         if any(x > 0 for x in seed._C.column(k)):
             eps = +1
         else:
             eps = -1
 
-        # store the g-vector to be mutated in case we are mutating also F-polynomials
+        # store the g-vector to be mutated in case we are mutating F-polynomials also
         old_g_vector = seed.g_vector(k)
 
         # G-matrix
@@ -239,6 +238,10 @@ class ClusterAlgebra(Parent):
     # Unfortunately to do this we need to inherit form ParentWithGens and, as a
     # drawback, we get several functions that are meaningless/misleading in a
     # cluster algebra like ngens() or gens()
+    # If we only care about initial cluster variables we can always do the following:
+    # def inject_variables(self, scope=None, verbose=True):
+    #     self._ambient.inject_variables(scope=scope,verbose=verbose)
+    # for labeled non-initial cluster variables we can also manually add them to the scope.
 
     Element = ClusterAlgebraElement
 
@@ -250,7 +253,8 @@ class ClusterAlgebra(Parent):
         B0 = Q.b_matrix()
         n = B0.ncols()
         # We use a different m than ClusterSeed and ClusterQuiver: their m is our m-n.
-        # Should we merge this behaviour? what is the notation in CA I-IV?
+        # Should we merge this behaviour? what is the notation in CA I-IV? 
+        # They use the m-n convention, the m convention comes out of Fock-Goncharov or Gekhtman-Shapiro-Vainshtein
         m = B0.nrows()
         I = identity_matrix(n)
 
@@ -331,6 +335,7 @@ class ClusterAlgebra(Parent):
         except:
             # TODO: improve this error message to include the case in which we
             # already know the path
+            # If the path is known, should this method perform that sequence of mutations to compute the desired F-polynomial?
             raise ValueError("This F-polynomial has not been computed yet. Did you explore the tree with compute_F=False ?")
 
     @cached_method(key=lambda a,b: tuple(b) )
@@ -411,7 +416,7 @@ class ClusterAlgebra(Parent):
                         yield new_sd
             depth_counter += 1
 
-    # DESIDERATA. Some of these are probably irrealistic
+    # DESIDERATA. Some of these are probably unrealistic
     def upper_cluster_algebra(self):
         pass
 
@@ -430,8 +435,9 @@ def greedy_element(self, d_vector):
     pass
 
 # At the moment I know only how to compute theta basis in rank 2
-# maybe we should let ClusterAlgebra have this methon for any rank and have a
+# maybe we should let ClusterAlgebra have this method for any rank and have a
 # NotImplementedError to encourage someone (read: Greg) to code this
+#I think Greg already has some code to do this
 def theta_basis_element(self, g_vector):
     pass
 
@@ -441,6 +447,7 @@ def theta_basis_element(self, g_vector):
 
 # Shall we use properties with setters and getters? This is the example
 # maybe it is not a great idea but it saves on parenthesis and makes quantities immutable at the same time
+# I am not sure I can give an opinion yet, maybe after I see it in action
 #class C(object):
 #def __init__(self):
 #    self._x = None

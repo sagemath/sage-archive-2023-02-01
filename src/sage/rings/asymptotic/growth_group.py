@@ -2633,7 +2633,7 @@ class ExponentialGrowthElement(GenericGrowthElement):
         var = repr(self.parent()._var_)
         if self.base == 1:
             return '1'
-        elif self.base in ZZ and self.base > 0 or str(self.base).startswith('sqrt'):
+        elif not any(s in str(self.base) for s in '-/^'):
             return str(self.base) + '^' + var
         else:
             return '(' + str(self.base) + ')^' + var

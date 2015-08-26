@@ -213,12 +213,12 @@ Data Structures
 ---------------
 
 The summands of an
-:class:`asymptotic expression <AsymptoticExpression>' are wrapped
+:class:`asymptotic expression <AsymptoticExpression>` are wrapped
 :mod:`growth group elements <sage.rings.asymptotic.growth_group>`.
 This wrapping is done by the
 :mod:`term monoid module <sage.rings.asymptotic.term_monoid>`.
 However, inside an
-:class:`asymptotic expression <AsymptoticExpression>' these summands
+:class:`asymptotic expression <AsymptoticExpression>` these summands
 (terms) are stored together with their growth-relationship, i.e., each
 summand knows its direct predecessors and successors. As a data
 structure a special poset (namely a

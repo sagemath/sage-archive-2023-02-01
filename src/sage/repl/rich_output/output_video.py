@@ -23,7 +23,7 @@ from sage.repl.rich_output.buffer import OutputBuffer
 
 class OutputVideoBase(OutputBase):
 
-    def __init__(self, video, attrs = {}):
+    def __init__(self, video, loop=True):
         """
         Abstract base class for rich video output
 
@@ -32,8 +32,7 @@ class OutputVideoBase(OutputBase):
         - ``video`` --
           :class:`~sage.repl.rich_output.buffer.OutputBuffer`.
           The video data.
-        - ``attrs`` -- dict. Attributes for a ``<video>`` tag in HTML.
-          Keys are strings, and values either strings or boolean values.
+        - ``loop`` -- boolean. Whether to repeat the video in an endless loop.
 
         EXAMPLES::
 
@@ -43,7 +42,7 @@ class OutputVideoBase(OutputBase):
         """
         assert isinstance(video, OutputBuffer)
         self.video = video
-        self.attrs = attrs
+        self.loop = loop
 
     @classmethod
     def example(cls):
@@ -92,17 +91,20 @@ class OutputVideoBase(OutputBase):
             sage: from sage.repl.rich_output.output_catalog import OutputVideoOgg
             sage: print(OutputVideoOgg.example().html_fragment
             ....:       ('foo', 'class="bar"').replace('><','>\n<'))
-            <video controls="controls">
+            <video autoplay="autoplay" controls="controls" loop="loop">
             <source src="foo" type="video/ogg" />
             <p>
             <a target="_new" href="foo" class="bar">Download video/ogg video</a>
             </p>
             </video>
         """
-        attrs = dict((k, (k if v is True else v))
-                     for k, v in self.attrs.iteritems()
-                     if v is not False)
-        attrs = ''.join(' {}="{}"'.format(k, v) for k, v in attrs.iteritems())
+        attrs = {
+            'autoplay': 'autoplay',
+            'controls': 'controls',
+        }
+        if self.loop: attrs['loop'] = 'loop'
+        attrs = ''.join(' {}="{}"'.format(k, v)
+                        for k, v in sorted(attrs.items()))
         return ('<video{attrs}>'
                 '<source src="{url}" type="{mimetype}" /><p>'
                 '<a target="_new" href="{url}" {link_attrs}>'

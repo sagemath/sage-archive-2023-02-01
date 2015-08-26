@@ -638,14 +638,8 @@ See www.imagemagick.org and www.ffmpeg.org for more information."""
             OutputImageGif container
         """
 
-        # Pop attributes for HTML5 <video> tag from kwds
-        attrs = { "autoplay": True, "controls": True, "loop": True }
         iterations = kwds.get('iterations', 0)
-        if iterations:
-            attrs["loop"] = False
-        for k in attrs:
-            if k in kwds:
-                attrs[k] = kwds.pop(k)
+        loop = (iterations == 0)
 
         t = display_manager.types
         supported = display_manager.supported_output()
@@ -689,7 +683,7 @@ See www.imagemagick.org and www.ffmpeg.org for more information."""
         self.save(filename, **kwds)
         from sage.repl.rich_output.buffer import OutputBuffer
         buf = OutputBuffer.from_file(filename)
-        return outputType(buf, attrs)
+        return outputType(buf, loop=loop)
 
     def show(self, delay=None, iterations=None, **kwds):
         r"""
@@ -712,12 +706,6 @@ See www.imagemagick.org and www.ffmpeg.org for more information."""
         - ``format`` - (default: gif) format to use for output.
           Currently supported formats are: gif,
           ogg, webm, mp4, flash, matroska, avi, wmv, quicktime.
-
-        - ``autoplay`` - (default: True) whether to automatically
-          start playback e.g. in a browser interface.
-
-        - ``controls`` - (default: True) whether to show playback
-          controls, e.g. in a browser interface.
 
         OUTPUT:
 
@@ -753,7 +741,7 @@ See www.imagemagick.org and www.ffmpeg.org for more information."""
             sage: a.show(format="ogg")         # optional -- ffmpeg
             sage: a.show(format="webm")        # optional -- ffmpeg
             sage: a.show(format="mp4")         # optional -- ffmpeg
-            sage: a.show(format="webm", iterations=1, autoplay=False)  # optional -- ffmpeg
+            sage: a.show(format="webm", iterations=1)  # optional -- ffmpeg
 
         Other backends may support other file formats as well::
 

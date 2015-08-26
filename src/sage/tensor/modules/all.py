@@ -1,3 +1,2 @@
 from finite_rank_free_module import FiniteRankFreeModule
-from parallel_utilities import set_nproc, get_nproc
-
+from parallel_utilities import set_nproc_tensor, get_nproc_tensor

@@ -6,7 +6,7 @@ This module defines
 - the singleton class :class:`TensorParallelCompute` to gather the information
   relative to the parallelization of tensor algebra (basically the number of
   processes to be used)
-- the global functions :func:`set_nproc` and :func:`get_nproc` to be used in
+- the global functions :func:`set_nproc` and :func:`get_nproc_tensor` to be used in
   a Sage session for managing the number of processes involved in the
   parallelization.
 
@@ -130,7 +130,7 @@ class TensorParallelCompute(Singleton, SageObject):
         self._use_paral = True if self._nproc!=1 else False
 
 
-def set_nproc(nproc=None):
+def set_nproc_tensor(nproc=None):
     r"""
     Set the number of processes for parallelizing computations
     relative to tensor algebra.
@@ -145,25 +145,25 @@ def set_nproc(nproc=None):
 
     The default is a single processor (no parallelization)::
 
-        sage: get_nproc()
+        sage: get_nproc_tensor()
         1
 
     Asking for parallelization on 4 cores::
 
-        sage: set_nproc(4)
-        sage: get_nproc()
+        sage: set_nproc_tensor(4)
+        sage: get_nproc_tensor()
         4
 
     Using all the cores available on the computer::
 
-        sage: set_nproc()
-        sage: get_nproc()  # random
+        sage: set_nproc_tensor()
+        sage: get_nproc_tensor()  # random
         8
 
     Switching off the parallelization::
 
-        sage: set_nproc(1)
-        sage: get_nproc()
+        sage: set_nproc_tensor(1)
+        sage: get_nproc_tensor()
         1
 
     See :meth:`sage.tensor.modules.comp.Components.contract` for a concrete
@@ -172,7 +172,7 @@ def set_nproc(nproc=None):
     """
     TensorParallelCompute().set(nproc)
 
-def get_nproc():
+def get_nproc_tensor():
     r"""
     Return the number of processes used in parallelized tensorial
     computations.
@@ -181,13 +181,13 @@ def get_nproc():
 
     The default is a single processor (no parallelization)::
 
-        sage: get_nproc()
+        sage: get_nproc_tensor()
         1
 
     Asking for parallelization on 4 cores::
 
-        sage: set_nproc(4)
-        sage: get_nproc()
+        sage: set_nproc_tensor(4)
+        sage: get_nproc_tensor()
         4
 
     """

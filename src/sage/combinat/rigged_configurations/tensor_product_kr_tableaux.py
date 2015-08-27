@@ -112,8 +112,8 @@ class HighestWeightTensorKRT(UniqueRepresentation):
             [[1], [2], [3]] (X) [[1], [2]]
         """
         if self._cache is None:
-            self._cache = [x.to_tensor_product_of_kirillov_reshetikhin_tableaux()
-                           for x in self.tp_krt.rigged_configurations().module_generators]
+            self._cache = tuple([x.to_tensor_product_of_kirillov_reshetikhin_tableaux()
+                                 for x in self.tp_krt.rigged_configurations().module_generators])
         return self._cache[i]
 
     def __iter__(self):
@@ -130,8 +130,8 @@ class HighestWeightTensorKRT(UniqueRepresentation):
             [[1], [-1]]
         """
         if self._cache is None:
-            self._cache = [x.to_tensor_product_of_kirillov_reshetikhin_tableaux()
-                           for x in self.tp_krt.rigged_configurations().module_generators]
+            self._cache = tuple([x.to_tensor_product_of_kirillov_reshetikhin_tableaux()
+                                 for x in self.tp_krt.rigged_configurations().module_generators])
         for x in self._cache:
             yield x
 
@@ -151,7 +151,8 @@ class HighestWeightTensorKRT(UniqueRepresentation):
     @cached_method
     def cardinality(self):
         """
-        Return the cardinality of ``self`` which is the number of highest weight elements.
+        Return the cardinality of ``self``, which is the number of
+        highest weight elements.
 
         EXAMPLES::
 

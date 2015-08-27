@@ -29,8 +29,7 @@ from sage.structure.parent import Parent
 from sage.combinat.misc import IterableFunctionCall
 import sage.combinat.tableau as tableau
 from sage.rings.all import QQ
-from sage.categories.finite_crystals import FiniteCrystals
-from sage.categories.regular_crystals import RegularCrystals
+from sage.categories.affine_derived_crystals import KirillovReshetikhinCrystals
 from sage.combinat.root_system.cartan_type import CartanType
 from sage.combinat.cartesian_product import CartesianProduct
 from sage.combinat.rigged_configurations.kleber_tree import KleberTree, VirtualKleberTree
@@ -405,6 +404,8 @@ class RiggedConfigurations(Parent, UniqueRepresentation):
 
         # Standardize B input into a tuple of tuples
         B = tuple(tuple(factor) for factor in B)
+        if not B:
+            raise ValueError("must contain at least one factor")
 
         if cartan_type.type() == 'BC': # Type `A_{2n}^{(2)}`
             return RCTypeA2Even(cartan_type, B)
@@ -442,7 +443,7 @@ class RiggedConfigurations(Parent, UniqueRepresentation):
         self._rc_index = cl.index_set()
         # We store the Cartan matrix for the vacancy number calculations for speed
         self._cartan_matrix = cl.cartan_matrix()
-        Parent.__init__(self, category=(RegularCrystals(), FiniteCrystals()))
+        Parent.__init__(self, category=KirillovReshetikhinCrystals().TensorProducts())
 
     def _repr_(self):
         """

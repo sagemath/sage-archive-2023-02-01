@@ -29,8 +29,7 @@ from sage.functions.other import floor, ceil
 from sage.combinat.combinat import CombinatorialObject
 from sage.structure.parent import Parent
 from sage.categories.crystals import CrystalMorphism
-from sage.categories.regular_crystals import RegularCrystals
-from sage.categories.finite_crystals import FiniteCrystals
+from sage.categories.affine_derived_crystals import KirillovReshetikhinCrystals
 from sage.categories.homset import Hom
 from sage.categories.map import Map
 from sage.rings.integer import Integer
@@ -457,8 +456,8 @@ class KirillovReshetikhinGenericCrystal(AffineCrystalFromClassical):
             sage: K.s()
             1
         """
-        # We need this here for the classical_decomposition() call
-        Parent.__init__(self, category = (RegularCrystals(), FiniteCrystals()))
+        # We need this here for the classic al_decomposition() call
+        Parent.__init__(self, category=KirillovReshetikhinCrystals())
         if dual is None:
             self._cartan_type = cartan_type
         else:
@@ -466,7 +465,8 @@ class KirillovReshetikhinGenericCrystal(AffineCrystalFromClassical):
         self._r = r
         self._s = s
         self._dual = dual
-        AffineCrystalFromClassical.__init__(self, cartan_type, self.classical_decomposition())
+        AffineCrystalFromClassical.__init__(self, cartan_type, self.classical_decomposition(),
+                                            KirillovReshetikhinCrystals())
 
     def _repr_(self):
         """
@@ -493,7 +493,7 @@ class KirillovReshetikhinGenericCrystal(AffineCrystalFromClassical):
             # Check to make sure it can be converted
             if elt.cartan_type() != self.cartan_type() \
               or elt.parent().r() != self._r or elt.parent().s() != self._s:
-                raise ValueError("The Kirillov-Reshetikhin tableau must have the same Cartan type and shape")
+                raise ValueError("the Kirillov-Reshetikhin tableau must have the same Cartan type and shape")
 
             to_hw = elt.to_classical_highest_weight()
             rows = []
@@ -860,7 +860,8 @@ class KirillovReshetikhinCrystalFromPromotion(KirillovReshetikhinGenericCrystal,
         KirillovReshetikhinGenericCrystal.__init__(self, cartan_type, r, s)
         AffineCrystalFromClassicalAndPromotion.__init__(self, cartan_type, self.classical_decomposition(),
                                                         self.promotion(), self.promotion_inverse(),
-                                                        self.dynkin_diagram_automorphism(0))
+                                                        self.dynkin_diagram_automorphism(0),
+                                                        KirillovReshetikhinCrystals())
 
 class KirillovReshetikhinCrystalFromPromotionElement(AffineCrystalFromClassicalAndPromotionElement,
                                                      KirillovReshetikhinGenericCrystalElement):
@@ -1974,7 +1975,8 @@ class KR_type_box(KirillovReshetikhinGenericCrystal, AffineCrystalFromClassical)
             sage: TestSuite(K).run()
         """
         KirillovReshetikhinGenericCrystal.__init__(self, cartan_type, r ,s)
-        AffineCrystalFromClassical.__init__(self, cartan_type, self.classical_decomposition())
+        AffineCrystalFromClassical.__init__(self, cartan_type, self.classical_decomposition(),
+                                            KirillovReshetikhinCrystals())
 
     def classical_decomposition(self):
         r"""

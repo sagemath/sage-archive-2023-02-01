@@ -233,13 +233,17 @@ class Crystals(Category_singleton):
 
         def weight_lattice_realization(self):
             """
-            Returns the weight lattice realization used to express weights.
+            Return the weight lattice realization used to express weights
+            in ``self``.
 
             This default implementation uses the ambient space of the
             root system for (non relabelled) finite types and the
             weight lattice otherwise. This is a legacy from when
             ambient spaces were partially implemented, and may be
             changed in the future.
+
+            For affine types, this returns the extended weight lattice
+            by default.
 
             EXAMPLES::
 
@@ -253,6 +257,8 @@ class Crystals(Category_singleton):
             F = self.cartan_type().root_system()
             if self.cartan_type().is_finite() and F.ambient_space() is not None:
                 return F.ambient_space()
+            if self.cartan_type().is_affine():
+                return F.weight_lattice(extended=True)
             return F.weight_lattice()
 
         def cartan_type(self):
@@ -734,7 +740,7 @@ class Crystals(Category_singleton):
 
         def digraph(self, subset=None, index_set=None):
             """
-            Returns the DiGraph associated to ``self``.
+            Return the :class:`DiGraph` associated to ``self``.
 
             INPUT:
 
@@ -809,12 +815,7 @@ class Crystals(Category_singleton):
             .. TODO:: Add more tests.
             """
             from sage.graphs.all import DiGraph
-            from sage.categories.highest_weight_crystals import HighestWeightCrystals
             d = {}
-            if self in HighestWeightCrystals:
-                f = lambda u_v_label: ({})
-            else:
-                f = lambda u_v_label: ({"backward": u_v_label[2] == 0})
 
             # Parse optional arguments
             if subset is None:
@@ -832,9 +833,8 @@ class Crystals(Category_singleton):
             G = DiGraph(d)
             if have_dot2tex():
                 G.set_latex_options(format="dot2tex",
-                                    edge_labels = True,
-                                    color_by_label = self.cartan_type()._index_set_coloring,
-                                    edge_options = f)
+                                    edge_labels=True,
+                                    color_by_label=self.cartan_type()._index_set_coloring)
             return G
 
         def latex_file(self, filename):

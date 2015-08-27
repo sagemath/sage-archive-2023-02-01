@@ -1203,8 +1203,9 @@ class LatticePolytope_PPL_class(C_Polyhedron):
           ``self`` (up to a lattice linear transformation) is
           returned. That is, the domain of the ``output='hom'`` map is
           returned. If the affine span of ``self`` is less or equal
-          2-dimnsional, the output is one of the following three
-          possibilities::
+          2-dimensional, the output is one of the following three
+          possibilities:
+
           :func:`~sage.geometry.polyhedron.ppl_lattice_polygon.polar_P2_polytope`,
           :func:`~sage.geometry.polyhedron.ppl_lattice_polygon.polar_P1xP1_polytope`,
           or

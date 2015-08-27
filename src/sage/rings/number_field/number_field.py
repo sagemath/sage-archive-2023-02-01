@@ -4140,6 +4140,7 @@ class NumberField_generic(number_field_base.NumberField):
               Defn: a |--> 19/14400*c^7 + 137/1800*c^5 + 2599/3600*c^3 + 8/15*c
 
         This is just one of four embeddings of Q1 into F::
+
             sage: Hom(Q1, F).order()
             4
 

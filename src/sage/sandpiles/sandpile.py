@@ -4847,6 +4847,7 @@ class SandpileDivisor(dict):
         SandpileDivisor
 
         EXAMPLES::
+
             sage: S = sandpiles.Cycle(3)
             sage: D = SandpileDivisor(S, [1,2,3])
             sage: D.dualize()
@@ -6615,6 +6616,7 @@ def random_DAG(num_verts, p=0.5, weight_max=1):
         Digraph on 5 vertices
 
     Check that bad inputs are rejected::
+
         sage: g = random_DAG(5,1.1)
         Traceback (most recent call last):
         ...

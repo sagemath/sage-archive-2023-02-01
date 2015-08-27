@@ -2879,7 +2879,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
             (3, 2)
             
         We check that :trac:`18613` is fixed::
-        
+
             sage: K = Cone([], ToricLattice(0))
             sage: K.is_isomorphic(K)
             True

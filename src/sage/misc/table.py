@@ -166,10 +166,11 @@ class table(SageObject):
         |   4 | 5 | 60 |
         +-----+---+----+
 
-    To generate HTML you should use ``html(table(...))``::
+    To generate HTML you should use ``html(table(...))`` but that
+    doesn't work :trac:`18292`; A workaround is ::
 
-        sage: output = html(table([["$x$", "$\sin(x)$"]] + [(x,n(sin(x), digits=2)) for x in [0..3]], 
-        ....:                     header_row=True, frame=True))
+        sage: output = table([["$x$", "$\sin(x)$"]] + [(x,n(sin(x), digits=2)) for x in [0..3]], 
+        ....:                     header_row=True, frame=True)._html_()
         sage: type(output)
         <class 'sage.misc.html.HtmlFragment'>
         sage: print(output)
@@ -641,7 +642,7 @@ class table(SageObject):
 
             sage: T = table([[r'$\sin(x)$', '$x$', 'text'], [1,34342,3], [identity_matrix(2),5,6]])
             sage: T._html_()
-            '<div.../div>'
+            <div.../div>
             sage: print(T._html_())
             <div class="notruncate">
             <table  class="table_form">
@@ -668,7 +669,9 @@ class table(SageObject):
             </table>
             </div>
 
-        Note that calling ``html(table(...))`` has the same effect as ``table(...)._html_()`::
+        Note that calling ``html(table(...))`` will have the same
+        effect as ``table(...)._html_()` after the deprecation period
+        in :trac:`18292`::
 
             sage: T = table([["$x$", "$\sin(x)$"]] + [(x,n(sin(x), digits=2)) for x in [0..3]], header_row=True, frame=True)
             sage: T

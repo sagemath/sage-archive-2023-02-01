@@ -2075,7 +2075,6 @@ class MonomialGrowthElement(GenericGrowthElement):
             sage: e2 == ~e1
             True
         """
-        return self.parent()(raw_element=-self.exponent)
         new_element = -self.exponent
         try:
             return self.parent()(raw_element=new_element)

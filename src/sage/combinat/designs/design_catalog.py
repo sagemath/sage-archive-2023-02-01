@@ -93,7 +93,7 @@ from sage.combinat.designs.difference_family import difference_family
 from difference_matrices import difference_matrix
 
 from sage.misc.superseded import deprecated_function_alias, deprecated_callable_import
-deprecated_callable_import(17034,
+deprecated_callable_import(19096,
                            'sage.combinat.designs.incidence_structures',
                            globals(),
                            locals(),

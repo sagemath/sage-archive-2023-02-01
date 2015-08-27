@@ -695,8 +695,7 @@ class DifferentialWeylAlgebra(Algebra, UniqueRepresentation):
              dx^2, dx*dy, dy^2, x^3, x^2*y, x^2*dx, x^2*dy, x*y^2]
         """
         n = self._n
-        # TODO in #17927: use IntegerVectors(length=2*n)
-        from sage.combinat.integer_list import IntegerListsNN
+        from sage.combinat.integer_lists.nn import IntegerListsNN
         I = IntegerListsNN(length=n*2)
         one = self.base_ring().one()
         f = lambda x: self.element_class(self, {(tuple(x[:n]),tuple(x[n:])): one})

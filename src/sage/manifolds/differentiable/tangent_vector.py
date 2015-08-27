@@ -96,6 +96,19 @@ class TangentVector(FiniteRankFreeModuleElement):
     def _repr_(self):
         r"""
         String representation of the object.
+
+        TESTS::
+
+            sage: M = DiffManifold(2, 'M')
+            sage: X.<x,y> = M.chart()
+            sage: p = M.point((1,-2), name='p')
+            sage: Tp = M.tangent_space(p)
+            sage: v = Tp([-3,2], name='v')
+            sage: v._repr_()
+            'Tangent vector v at Point p on the 2-dimensional differentiable manifold M'
+            sage: repr(v)  # indirect doctest
+            'Tangent vector v at Point p on the 2-dimensional differentiable manifold M'
+
         """
         desc = "Tangent vector"
         if self._name:
@@ -187,16 +200,67 @@ class TangentVector(FiniteRankFreeModuleElement):
 
             sage: show(X.plot() + v.plot())
 
+        .. PLOT::
+
+            M = DiffManifold(2, 'M')
+            X = M.chart('x y'); x, y = X[:]
+            p = M((2,2), name='p'); Tp = M.tangent_space(p)
+            v = Tp((2, 1), name='v')
+            g = X.plot() + v.plot()
+            sphinx_plot(g)
+
         Plots with various options::
 
             sage: show(X.plot() + v.plot(color='green', scale=2, label='V'))
+
+        .. PLOT::
+
+            M = DiffManifold(2, 'M')
+            X = M.chart('x y'); x, y = X[:]
+            p = M((2,2), name='p'); Tp = M.tangent_space(p)
+            v = Tp((2, 1), name='v')
+            g = X.plot() + v.plot(color='green', scale=2, label='V')
+            sphinx_plot(g)
+
+        ::
+
             sage: show(X.plot() + v.plot(print_label=False))
+
+        .. PLOT::
+
+            M = DiffManifold(2, 'M')
+            X = M.chart('x y'); x, y = X[:]
+            p = M((2,2), name='p'); Tp = M.tangent_space(p)
+            v = Tp((2, 1), name='v')
+            g = X.plot() + v.plot(print_label=False)
+            sphinx_plot(g)
+
+        ::
+
             sage: show(X.plot() + v.plot(color='green', label_color='black',
-            ....:                         fontsize=20, label_offset=0.2))
+            ....:                        fontsize=20, label_offset=0.2))
 
-        Plot with extra options::
+        .. PLOT::
 
-            sage: show(X.plot() + v.plot(linestyle=':', width=4, arrowsize=8))
+            M = DiffManifold(2, 'M')
+            X = M.chart('x y'); x, y = X[:]
+            p = M((2,2), name='p'); Tp = M.tangent_space(p)
+            v = Tp((2, 1), name='v')
+            g = X.plot() + v.plot(color='green', label_color='black', fontsize=20, label_offset=0.2)
+            sphinx_plot(g)
+
+        ::
+
+            sage: show(X.plot() + v.plot(linestyle=':', width=4, arrowsize=8, fontsize=20))
+
+        .. PLOT::
+
+            M = DiffManifold(2, 'M')
+            X = M.chart('x y'); x, y = X[:]
+            p = M((2,2), name='p'); Tp = M.tangent_space(p)
+            v = Tp((2, 1), name='v')
+            g = X.plot() + v.plot(linestyle=':', width=4, arrowsize=8, fontsize=20)
+            sphinx_plot(g)
 
         Plot with specific values of some free parameters::
 
@@ -236,6 +300,15 @@ class TangentVector(FiniteRankFreeModuleElement):
 
             sage: v.plot(ambient_coords=(x,y))
             Graphics object consisting of 2 graphics primitives
+
+        .. PLOT::
+
+            M = DiffManifold(4, 'M')
+            X = M.chart('t x y z'); t,x,y,z = X[:]
+            p = M((0,1,2,3), name='p'); Tp = M.tangent_space(p)
+            v = Tp((5,4,3,2), name='v')
+            g = X.plot(ambient_coords=(x,y)) + v.plot(ambient_coords=(x,y))
+            sphinx_plot(g)
 
         This plot involves only the components `v^x` and `v^y` of `v`.
         Similarly, for a 3-dimensional plot in terms of the coordinates

@@ -297,6 +297,8 @@ class TangentSpace(FiniteRankFreeModule):
             sage: Tp = M.tangent_space(p)
             sage: Tp._repr_()
             'Tangent space at Point p on the 2-dimensional differentiable manifold M'
+            sage: repr(Tp)  # indirect doctest
+            'Tangent space at Point p on the 2-dimensional differentiable manifold M'
 
         """
         description = "Tangent space at {}".format(self._point)

@@ -811,7 +811,7 @@ class Braid(FinitelyPresentedGroupElement):
         def weighted_trace(d):
             # We define the quantum integer through a series to avoid ending
             # up in the fraction field in sage whenever we can.
-            quantum_integer = A**(-2*d) * sum(A**(4*i) for i in range(d+1))
+            quantum_integer = (A**(2*(d+1))-A**(-2*(d+1))) // (A**2-A**(-2))
             return quantum_integer * self.TL_matrix(d, variab=variab).trace()
 
         trace_sum = sum([weighted_trace(d) for d in drains])
@@ -927,15 +927,7 @@ class Braid(FinitelyPresentedGroupElement):
             n = self.strands()
             exp_sum = self.exponent_sum()
             num_comp = self.components_in_closure()
-            almost_jones_pol = (-1)**(num_comp) * A**(2*exp_sum) * trace
-            # The Jones polynomial is obtained from this by dividing by D.
-            # Unfortunately, sage treats the result as a fraction field element
-            # which can not always be coerced back into the univariate
-            # polynomial ring; this fails, for instance, for
-            #     BraidGroup(2)([-1,-1,-1]).
-            # The following hack fixes that problem.
-            low_degree = min([d for d in almost_jones_pol.dict()])
-            jones_pol = R(almost_jones_pol * A**-low_degree / D) * A**low_degree
+            jones_pol = (-1)**(num_comp) * A**(2*exp_sum) * trace // D
             self._jones_cached = jones_pol
 
         if variab is None:

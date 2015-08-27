@@ -852,7 +852,7 @@ class AsymptoticExpression(sage.rings.ring_element.RingElement):
 
         EXAMPLES::
 
-            sage: R.<x> = AsymptoticRing('x^ZZ', QQ, default_prec=4)
+            sage: R.<x> = AsymptoticRing(growth_group='x^ZZ', coefficient_ring=QQ, default_prec=4)
             sage: ~x
             x^(-1)
             sage: ~(x^42)
@@ -863,12 +863,24 @@ class AsymptoticExpression(sage.rings.ring_element.RingElement):
             1 + O(x^(-4))
             sage: ~(1 + O(1/x))
             1 + O(x^(-1))
+
+        TESTS::
+
+            sage: A.<a> = AsymptoticRing(growth_group='a^ZZ', coefficient_ring=ZZ)
+            sage: (1 / a).parent()
         """
         if len(self.summands) == 0:
             raise ZeroDivisionError('Division by zero in %s.' % (self,))
 
         elif len(self.summands) == 1:
-            return self.parent()(~next(self.summands.elements()))
+            new_element = ~next(self.summands.elements())
+            try:
+                return self.parent()(new_element)
+            except (ValueError, TypeError):
+                new_parent = self.parent().change_parameter(
+                    growth_group=new_element.parent().growth_group,
+                    coefficient_ring=new_element.parent().coefficient_ring)
+                return new_parent(new_element)
 
         max_elem = tuple(self.summands.maximal_elements())
         if len(max_elem) != 1:

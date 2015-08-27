@@ -250,6 +250,35 @@ cdef class dancing_linksWrapper:
         return x
 
 
+    def number_of_solutions(self):
+        r"""
+        Return the number of distinct solutions.
+
+        OUPUT:
+
+            integer
+
+        EXAMPLES::
+
+            sage: from sage.combinat.matrices.dancing_links import dlx_solver
+            sage: rows = [[0,1,2]]
+            sage: rows += [[0,2]]
+            sage: rows += [[1]]
+            sage: rows += [[3]]
+            sage: x = dlx_solver(rows)
+            sage: x.number_of_solutions()
+            2
+
+        TESTS::
+
+            sage: dlx_solver([]).number_of_solutions()
+            0
+        """
+        cdef int N = 0
+        while self.search():
+            N += 1
+        return N
+
 def dlx_solver(rows):
     """
     Internal-use wrapper for the dancing links C++ code.

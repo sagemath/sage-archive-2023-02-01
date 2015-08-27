@@ -1276,6 +1276,46 @@ class AsymptoticRing(sage.rings.ring.Ring,
         return self._default_prec_
 
 
+    def change_parameter(self, **kwds):
+        r"""
+        Return an asymptotic ring with a change in one or more of the given parameters.
+
+        INPUT:
+
+        - ``growth_group`` -- (default: ``None``) the new growth group.
+
+        - ``coefficient_ring`` -- (default: ``None``) the new coefficient ring.
+
+        - ``category`` -- (default: ``None``) the new category.
+
+        - ``default_prec`` -- (default: ``None``) the new default precision.
+
+        OUTPUT:
+
+        An asymptotic ring.
+
+        EXAMPLES::
+
+            sage: A = AsymptoticRing(growth_group='x^ZZ', coefficient_ring=ZZ)
+            sage: A.change_parameter(coefficient_ring=QQ)
+            Asymptotic Ring <x^ZZ> over Rational Field
+
+        TESTS::
+
+            sage: A.change_parameter(coefficient_ring=ZZ) is A
+            True
+        """
+        parameters = ('growth_group', 'coefficient_ring', 'category', 'default_prec')
+        values = dict()
+        for parameter in parameters:
+            values[parameter] = kwds.get(parameter, getattr(self, parameter))
+        values['category'] = values['category']()
+        if all(values[parameter] is getattr(self, parameter)
+               for parameter in parameters):
+            return self
+        return self.__class__(**values)
+
+
     @staticmethod
     def _create_empty_summands_():
         r"""

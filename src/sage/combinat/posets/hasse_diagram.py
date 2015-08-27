@@ -1653,7 +1653,7 @@ class HasseDiagram(DiGraph):
             sage: H.frattini_sublattice()
             [0, 4]
 
-        .. note::
+        .. TODO::
 
             If an element e is both meet- and join-irreducible in
             the lattice L, then L\e is clearly a maximal sublattice.

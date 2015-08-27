@@ -809,8 +809,6 @@ class Braid(FinitelyPresentedGroupElement):
         drains = [d for d in range(n+1) if (n+d) % 2 == 0]
 
         def weighted_trace(d):
-            # We define the quantum integer through a series to avoid ending
-            # up in the fraction field in sage whenever we can.
             quantum_integer = (A**(2*(d+1))-A**(-2*(d+1))) // (A**2-A**(-2))
             return quantum_integer * self.TL_matrix(d, variab=variab).trace()
 

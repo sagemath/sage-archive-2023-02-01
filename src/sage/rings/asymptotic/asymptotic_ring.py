@@ -806,6 +806,15 @@ class AsymptoticExpression(sage.rings.ring_element.RingElement):
                    term_other in other.summands.elements())
 
 
+    def _rmul_(self, other):
+        from sage.rings.asymptotic.term_monoid import TermMonoid
+        E = TermMonoid('exact', asymptotic_ring=self.parent())
+        e = E(self.parent().growth_group.one(), coefficient=other)
+        return self._mul_term_(e)
+
+
+    _lmul_ = _rmul_
+
 
     def _div_(self, other):
         r"""

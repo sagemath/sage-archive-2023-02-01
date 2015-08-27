@@ -2453,12 +2453,15 @@ class TermMonoidFactory(sage.structure.factory.UniqueFactory):
 
     INPUT:
 
-    - ``term`` -- the kind of term that shall be created. Either
-      ``'exact'`` or ``'O'``.
+    - ``term`` -- the kind of term that shall be created. Either a string
+      ``'exact'`` or ``'O'``, or an existing instance of a term.
 
     - ``growth_group`` -- a growth group.
 
     - ``coefficient_ring`` -- a ring.
+
+    - ``asymptotic_ring`` -- if specified, then ``growth_group`` and
+      ``coefficient_ring`` are taken from this asymptotic ring.
 
     OUTPUT:
 
@@ -2474,7 +2477,9 @@ class TermMonoidFactory(sage.structure.factory.UniqueFactory):
         sage: ET = atm.TermMonoid('exact', G, ZZ); ET
         Exact Term Monoid x^ZZ with coefficients in Integer Ring
     """
-    def create_key_and_extra_args(self, term, growth_group, coefficient_ring=None,
+    def create_key_and_extra_args(self, term,
+                                  growth_group=None, coefficient_ring=None,
+                                  asymptotic_ring=None,
                                   **kwds):
         r"""
         Given the arguments and keyword, create a key that uniquely
@@ -2486,17 +2491,36 @@ class TermMonoidFactory(sage.structure.factory.UniqueFactory):
             sage: import sage.rings.asymptotic.term_monoid as atm
             sage: G = agg.GrowthGroup('x^ZZ')
             sage: atm.TermMonoid.create_key_and_extra_args('O', G, QQ)
-            (('O', Growth Group x^ZZ, Rational Field), {})
+            ((<class 'sage.rings.asymptotic.term_monoid.OTermMonoid'>,
+              Growth Group x^ZZ, Rational Field), {})
             sage: atm.TermMonoid.create_key_and_extra_args('exact', G, ZZ)
-            (('exact', Growth Group x^ZZ, Integer Ring), {})
+            ((<class 'sage.rings.asymptotic.term_monoid.ExactTermMonoid'>,
+              Growth Group x^ZZ, Integer Ring), {})
             sage: atm.TermMonoid.create_key_and_extra_args('exact', G)
             Traceback (most recent call last):
             ...
             ValueError: A coefficient ring has to be specified
             to create a term monoid of type 'exact'
         """
-        if term not in ['O', 'exact']:
-            raise ValueError("%s has to be either 'exact' or 'O'" % term)
+        if isinstance(term, GenericTermMonoid):
+            term_class = term.__class__
+        elif term == 'O':
+            term_class = OTermMonoid
+        elif term == 'exact':
+            term_class = ExactTermMonoid
+        else:
+            raise ValueError("Term specification '%s' has to be either 'exact' or 'O' "
+                             "or an instance of an existing term." % term)
+
+        if asymptotic_ring is not None and \
+                (growth_group is not None or coefficient_ring is not None):
+            raise ValueError("Input ambiguous: asymptotic ring %s as well as "
+                             "growth group %s or coefficient ring %s are given." %
+                             (asymptotic_ring, growth_group, coefficient_ring))
+
+        if asymptotic_ring is not None:
+            growth_group = asymptotic_ring.growth_group
+            coefficient_ring = asymptotic_ring.coefficient_ring
 
         from sage.rings.asymptotic.growth_group import GenericGrowthGroup
         if not isinstance(growth_group, GenericGrowthGroup):
@@ -2507,7 +2531,7 @@ class TermMonoidFactory(sage.structure.factory.UniqueFactory):
             raise ValueError("A coefficient ring has to be specified to "
                              "create a term monoid of type '%s'" % (term,))
 
-        return (term, growth_group, coefficient_ring), kwds
+        return (term_class, growth_group, coefficient_ring), kwds
 
 
     def create_object(self, version, key, **kwds):
@@ -2524,13 +2548,8 @@ class TermMonoidFactory(sage.structure.factory.UniqueFactory):
             sage: atm.TermMonoid('exact', G, ZZ)  # indirect doctest
             Exact Term Monoid x^ZZ with coefficients in Integer Ring
         """
-
-        term, growth_group, coefficient_ring = key
-        if term == 'O':
-            C = OTermMonoid
-        elif term == 'exact':
-            C = ExactTermMonoid
-        return C(growth_group, coefficient_ring, **kwds)
+        term_class, growth_group, coefficient_ring = key
+        return term_class(growth_group, coefficient_ring, **kwds)
 
 
 TermMonoid = TermMonoidFactory("TermMonoid")

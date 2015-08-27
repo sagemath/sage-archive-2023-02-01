@@ -770,7 +770,8 @@ class AsymptoticExpression(sage.rings.ring_element.RingElement):
             sage: expr._mul_term_(t)
             O(x^3)
         """
-        return self.parent()([term * elem for elem in self.summands.elements()])
+        return self.parent()([term * elem for elem in self.summands.elements()],
+                             convert=False)
 
 
     def _mul_(self, other):
@@ -801,8 +802,9 @@ class AsymptoticExpression(sage.rings.ring_element.RingElement):
             of the underlying poset shall be implemented at a later
             point.
         """
-        return self.parent()(sum(self._mul_term_(term_other) for
-                                 term_other in other.summands.elements()))
+        return sum(self._mul_term_(term_other) for
+                   term_other in other.summands.elements())
+
 
 
     def _div_(self, other):

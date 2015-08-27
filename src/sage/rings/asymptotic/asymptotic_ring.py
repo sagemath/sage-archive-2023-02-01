@@ -1904,6 +1904,12 @@ class AsymptoticRingFunctor(ConstructionFunctor):
         sage: cm.common_parent(X, Y)
         Asymptotic Ring <x^ZZ * y^ZZ> over Rational Field
         sage: sage.structure.element.coercion_traceback()  # not tested
+
+    ::
+
+        sage: from sage.categories.pushout import pushout
+        sage: pushout(AsymptoticRing(growth_group='x^ZZ', coefficient_ring=ZZ), QQ)
+        Asymptotic Ring <x^ZZ> over Rational Field
     """
 
     rank = 13
@@ -2052,4 +2058,3 @@ class AsymptoticRingFunctor(ConstructionFunctor):
             True
         """
         return not self.__eq__(other)
-

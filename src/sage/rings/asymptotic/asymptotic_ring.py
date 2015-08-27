@@ -231,14 +231,24 @@ coefficent. Another example is
     sage: C.an_element()
     -e^3*c^3 + O(c)
     sage: C.an_element() / 7
-    -e^3/7*c^3 + O(c)
+    -1/7*e^3*c^3 + O(c)
 
 Here the result's coefficient ring is the newly found
 ::
 
     sage: (C.an_element() / 7).parent()
     Asymptotic Ring <c^ZZ> over
-    Univariate Polynomial Ring in e over Integer Ring
+    Univariate Polynomial Ring in e over Rational Field
+
+Not only the coefficient ring can be extended, but the growth group as
+well. For example, we can add/multiply elements of the asymptotic
+rings ``A`` and ``C`` to get an expression of new asymptotic ring::
+
+    sage: r = c*z + c/2 + O(z); r
+    c*z + 1/2*c + O(z)
+    sage: r.parent()
+    Asymptotic Ring <c^ZZ * z^QQ> over
+    Univariate Polynomial Ring in e over Rational Field
 
 
 Data Structures

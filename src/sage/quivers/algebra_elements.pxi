@@ -37,76 +37,61 @@ cdef extern from *:  # Defined by Cython
 # reference counter.
 
 # Create a monomial by copying the given bounded integer sequence
-cdef path_mon_t *mon_create(biseq_t Mon, long Pos, mp_size_t L_len, mp_size_t S_len) except NULL:
-    cdef path_mon_t *out = <path_mon_t*>check_malloc(sizeof(path_mon_t))
+cdef bint mon_create(path_mon_t out, biseq_t Mon, long Pos, mp_size_t L_len, mp_size_t S_len) except -1:
     biseq_init_copy(out.path, Mon)
     out.pos = Pos
     out.l_len = L_len
     out.s_len = S_len
-    out.ref = 1
-    return out
 
 # The following is only used in the free-list for terms.
 # It changes an existing monomial in-place (which should NEVER
 # be done on a monomial that is in use), re-allocating memory
 # and filling it with a copy of the given bounded integer sequence.
-cdef bint mon_realloc(path_mon_t *out, biseq_t Mon, long Pos, mp_size_t L_len, mp_size_t S_len) except -1:
+cdef bint mon_realloc(path_mon_t out, biseq_t Mon, long Pos, mp_size_t L_len, mp_size_t S_len) except -1:
     biseq_dealloc(out.path)
     sig_check()
     biseq_init_copy(out.path, Mon)
     out.pos = Pos
     out.l_len = L_len
     out.s_len = S_len
-    out.ref = 1
-    return True
 
 # Create a monomial without copying the given bounded integer sequence
-cdef path_mon_t *mon_create_keep(biseq_t Mon, long Pos, mp_size_t L_len, mp_size_t S_len) except NULL:
-    cdef path_mon_t *out = <path_mon_t*>check_malloc(sizeof(path_mon_t))
+cdef bint mon_create_keep(path_mon_t out, biseq_t Mon, long Pos, mp_size_t L_len, mp_size_t S_len) except -1:
     out.path[0] = Mon[0]
     out.pos = Pos
     out.l_len = L_len
     out.s_len = S_len
-    out.ref = 1
-    return out
 
 # The following is only used in the free-list for terms.
 # It changes an existing monomial in-place (which should NEVER
 # be done on a monomial that is in use), re-allocating memory
 # and filling it with the given bounded integer sequence (not a copy).
-cdef bint mon_realloc_keep(path_mon_t *out, biseq_t Mon, long Pos, mp_size_t L_len, mp_size_t S_len):
+cdef bint mon_realloc_keep(path_mon_t out, biseq_t Mon, long Pos, mp_size_t L_len, mp_size_t S_len):
     biseq_dealloc(out.path)
     out.path[0] = Mon[0]
     out.pos = Pos
     out.l_len = L_len
     out.s_len = S_len
-    out.ref = 1
     return True
 
-# Copying a monomial just means to increase the reference count
-cdef inline path_mon_t *mon_copy(path_mon_t *M):
-    M.ref += 1
-    return M
+cdef inline bint mon_copy(path_mon_t out, path_mon_t M) except -1:
+    out.pos = M.pos
+    out.l_len = M.l_len
+    out.s_len = M.s_len
+    biseq_init_copy(out.path, M.path)
 
 # Deallocate the monomial, which means to decrease the reference count,
 # or to actually deallocate the data if there is no reference left.
-cdef inline void mon_free(path_mon_t *M):
-    if likely(predec(M.ref)):
-        return
-    sig_block()
-    #biseq_dealloc(M.path)
-    free(M.path.data.bits)
-    #sage_free(M)
-    free(M)
-    sig_unblock()
+cdef inline void mon_free(path_mon_t M):
+    biseq_dealloc(M.path)
 
 # Linearisation
-cdef inline tuple mon_pickle(path_mon_t *M):
+cdef inline tuple mon_pickle(path_mon_t M):
     return (bitset_pickle(M.path.data) if M.path.length>0 else (),
             M.path.itembitsize, M.path.length, M.pos, M.l_len, M.s_len)
 
 # De-linearisation
-cdef path_mon_t *mon_unpickle(tuple data) except NULL:
+cdef bint mon_unpickle(path_mon_t out, tuple data) except -1:
     cdef tuple bitset_data
     cdef mp_bitcnt_t itembitsize
     cdef mp_size_t length
@@ -114,7 +99,6 @@ cdef path_mon_t *mon_unpickle(tuple data) except NULL:
     cdef mp_size_t L_len
     cdef mp_size_t S_len
     bitset_data, itembitsize, length, Pos, L_len, S_len = data
-    cdef path_mon_t *out = <path_mon_t*>check_malloc(sizeof(path_mon_t))
     out.path.itembitsize = itembitsize
     out.path.mask_item = limb_lower_bits_up(itembitsize)
     out.path.length = length
@@ -128,8 +112,6 @@ cdef path_mon_t *mon_unpickle(tuple data) except NULL:
     out.pos = Pos
     out.l_len = L_len
     out.s_len = S_len
-    out.ref = 1
-    return out
 
 
 ########################################
@@ -137,7 +119,7 @@ cdef path_mon_t *mon_unpickle(tuple data) except NULL:
 ## Monomial orders---we only use degree orders
 
 # Negative degree reverse lexicographic ordering
-cdef int negdegrevlex(path_mon_t *M1, path_mon_t *M2) except -2:
+cdef int negdegrevlex(path_mon_t M1, path_mon_t M2) except -2:
     # a*s_i*b<c*s_j*d <=>
     # 1. deg(a*b) > deg(c*d), otherwise
     # 2. deg(a) > deg(c) (note that one of them may be -1), otherwise
@@ -175,7 +157,7 @@ cdef int negdegrevlex(path_mon_t *M1, path_mon_t *M2) except -2:
     return 0
 
 # Degree reverse lexicographic ordering
-cdef int degrevlex(path_mon_t *M1, path_mon_t *M2) except -2:
+cdef int degrevlex(path_mon_t M1, path_mon_t M2) except -2:
     # a*s_i*b<c*s_j*d <=>
     # 1. deg(a*b) < deg(c*d), otherwise
     # 2. deg(a) < deg(c) (note that one of them may be -1), otherwise
@@ -213,7 +195,7 @@ cdef int degrevlex(path_mon_t *M1, path_mon_t *M2) except -2:
     return 0
 
 # Negative degree lexicographic ordering
-cdef int negdeglex(path_mon_t *M1, path_mon_t *M2) except -2:
+cdef int negdeglex(path_mon_t M1, path_mon_t M2) except -2:
     # a*s_i*b<c*s_j*d <=>
     # 1. deg(a*b) > deg(c*d), otherwise
     # 2. deg(a) > deg(c) (note that one of them may be -1), otherwise
@@ -250,7 +232,7 @@ cdef int negdeglex(path_mon_t *M1, path_mon_t *M2) except -2:
     return 0
 
 # Degree lexicographic ordering
-cdef int deglex(path_mon_t *M1, path_mon_t *M2) except -2:
+cdef int deglex(path_mon_t M1, path_mon_t M2) except -2:
     # a*s_i*b<c*s_j*d <=>
     # 1. deg(a*b) < deg(c*d), otherwise
     # 2. deg(a) < deg(c) (note that one of them may be -1), otherwise
@@ -353,15 +335,10 @@ cdef path_term_t *term_create(object coef, biseq_t Mon, long Pos, mp_size_t L_le
     cdef path_term_t *out
     if likely(freelist.used > 0):
         out = freelist.pool[predec(freelist.used)]
-        if out.mon.ref > 1:
-            # This monomial is in use by other terms. It must be preserved!
-            out.mon.ref -= 1
-            out.mon = mon_create(Mon, Pos, L_len, S_len)
-        else:
-            mon_realloc(out.mon, Mon, Pos, L_len, S_len)
+        mon_realloc(out.mon, Mon, Pos, L_len, S_len)
     else:
         out = <path_term_t*>check_malloc(sizeof(path_term_t))
-        out.mon = mon_create(Mon, Pos, L_len, S_len)
+        mon_create(out.mon, Mon, Pos, L_len, S_len)
     Py_INCREF(coef)
     out.coef = <PyObject*>coef
     out.nxt = NULL
@@ -372,22 +349,17 @@ cdef path_term_t *term_create_keep(object coef, biseq_t Mon, long Pos, mp_size_t
     cdef path_term_t *out
     if likely(freelist.used) > 0:
         out = freelist.pool[predec(freelist.used)]
-        if out.mon.ref > 1:
-            # This monomial is in use by other terms. It must be preserved!
-            out.mon.ref -= 1
-            out.mon = mon_create_keep(Mon, Pos, L_len, S_len)
-        else:
-            mon_realloc_keep(out.mon, Mon, Pos, L_len, S_len)
+        mon_realloc_keep(out.mon, Mon, Pos, L_len, S_len)
     else:
         out = <path_term_t*>check_malloc(sizeof(path_term_t))
-        out.mon = mon_create_keep(Mon, Pos, L_len, S_len)
+        mon_create_keep(out.mon, Mon, Pos, L_len, S_len)
     Py_INCREF(coef)
     out.coef = <PyObject*>coef
     #out.nxt = NULL  # to be taken care of externally
     return out
 
-# Create a term from a path_mon_t, which is not copied
-cdef path_term_t *term_create_keep_mon(object coef, path_mon_t *Mon) except NULL:
+# Create a term with a given coefficient, but empty monomial
+cdef path_term_t *term_create_blank(object coef) except NULL:
     cdef path_term_t *out
     if likely(freelist.used > 0):
         out = freelist.pool[predec(freelist.used)]
@@ -396,7 +368,6 @@ cdef path_term_t *term_create_keep_mon(object coef, path_mon_t *Mon) except NULL
         out = <path_term_t*>check_malloc(sizeof(path_term_t))
     Py_INCREF(coef)
     out.coef = <PyObject*>coef
-    out.mon = Mon
     #out.nxt = NULL  # to be taken care of externally
     return out
 
@@ -415,7 +386,7 @@ cdef path_term_t *term_copy(path_term_t *T) except NULL:
     else:
         out = <path_term_t*>check_malloc(sizeof(path_term_t))
     sig_on()
-    out.mon = mon_copy(T.mon)
+    mon_copy(out.mon, T.mon)
     sig_off()
     Py_XINCREF(T.coef)
     out.coef = T.coef
@@ -451,57 +422,50 @@ cdef inline tuple term_pickle(path_term_t *T):
 
 # De-linearisation
 cdef inline path_term_t *term_unpickle(object coef, tuple mon_data) except NULL:
-    return term_create_keep_mon(coef, mon_unpickle(mon_data))
+    cdef path_term_t *out = term_create_blank(coef)
+    mon_unpickle(out.mon, mon_data)
+    return out
 
 ########################################
 ##
 ## Multiplication of monomials
 
 # Return T*p, for a path p and a monomial T.
-cdef path_mon_t *mon_mul_path(path_mon_t *T, biseq_t p) except NULL:
+cdef bint mon_mul_path(path_mon_t out, path_mon_t T, biseq_t p) except -1:
     if unlikely(p.length == 0):
-        return mon_copy(T)
-    cdef path_mon_t *out = <path_mon_t*>check_malloc(sizeof(path_mon_t))
+        return mon_copy(out, T)
     biseq_init_concat(out.path, T.path, p)
     out.pos = T.pos
     out.l_len = T.l_len
     out.s_len = T.s_len
-    out.ref = 1
-    return out
 
 # Return p*T, for a path p and a monomial T.
-cdef path_mon_t *path_mul_mon(biseq_t p, path_mon_t *T) except NULL:
+cdef bint path_mul_mon(path_mon_t out, biseq_t p, path_mon_t T) except -1:
     if unlikely(p.length == 0):
-        return mon_copy(T)
-    cdef path_mon_t *out = <path_mon_t*>check_malloc(sizeof(path_mon_t))
+        return mon_copy(out, T)
     biseq_init_concat(out.path, p, T.path)
     out.pos = T.pos
     out.l_len = 0 if T.pos==-1 else T.l_len+p.length
     out.s_len = T.s_len
-    out.ref = 1
-    return out
 
 # Return p*T*q, for paths p,q and a monomial T.
-cdef path_mon_t *path_mul_mon_mul_path(biseq_t p, path_mon_t *T, biseq_t q) except NULL:
+cdef bint path_mul_mon_mul_path(path_mon_t out, biseq_t p, path_mon_t T, biseq_t q) except -1:
     # .l_len and .s_len are taken care of externally!
     if unlikely(p.length==0 and q.length==0):
-        return mon_copy(T)
-    cdef path_mon_t *out
+        return mon_copy(out, T)
     if unlikely(p.length == 0):
-        return mon_mul_path(T, q)
+        return mon_mul_path(out, T, q)
     if unlikely(q.length == 0):
-        return path_mul_mon(p, T)
-    out = <path_mon_t*>check_malloc(sizeof(path_mon_t))
-    out.ref = 1
+        return path_mul_mon(out, p, T)
     out.pos = T.pos
     if unlikely(T.path.length == 0):
         biseq_init_concat(out.path, p, q)
-        return out
+        return True
     cdef mp_size_t pTlength = p.length + T.path.length
     cdef mp_size_t res_length = pTlength + q.length
     biseq_init(out.path, res_length, p.itembitsize)
     if res_length == 0:
-        return out
+        return False
     cdef mp_bitcnt_t pTsize = p.data.size+T.path.data.size
     sig_on()
     bitset_lshift(out.path.data, q.data, pTsize)
@@ -534,7 +498,6 @@ cdef path_mon_t *path_mul_mon_mul_path(biseq_t p, path_mon_t *T, biseq_t q) exce
             out.path.data.bits[p_limbs] |= (T.path.data.bits[T.path.data.limbs-1]<<p_offset)
     bitset_or(out.path.data, out.path.data, p.data)
     sig_off()
-    return out
 
 ########################################
 ## Addition and scaling of terms
@@ -550,7 +513,7 @@ cdef path_term_t *term_neg(path_term_t *T) except NULL:
     cdef object coef = -<object>T.coef
     out.coef = <PyObject*>coef
     Py_INCREF(coef)
-    out.mon = mon_copy(T.mon)
+    mon_copy(out.mon, T.mon)
     # out.nxt is supposed to be taken care of externally
     return out
 
@@ -579,7 +542,7 @@ cdef path_term_t *term_scale(path_term_t *T, object coef) except NULL:
     if new_coef:
         out.coef = <PyObject*>new_coef
         Py_INCREF(new_coef)
-        out.mon = mon_copy(T.mon)
+        mon_copy(out.mon, T.mon)
     else:
         out.coef = NULL
     # out.nxt is supposed to be taken care of externally
@@ -633,14 +596,8 @@ cdef path_term_t *term_mul_term(path_term_t *T1, path_term_t *T2) except NULL:
         if new_coef:
             out.coef = <PyObject*>(new_coef)
             Py_INCREF(new_coef)
-            if out.mon.ref>1:
-                out.mon.ref -= 1
-                out.mon = <path_mon_t*>check_malloc(sizeof(path_mon_t))
-                out.mon.ref = 1
-                biseq_init_concat(out.mon.path, T1.mon.path, T2.mon.path)
-            else:
-                biseq_dealloc(out.mon.path)
-                biseq_init_concat(out.mon.path, T1.mon.path, T2.mon.path)
+            biseq_dealloc(out.mon.path)
+            biseq_init_concat(out.mon.path, T1.mon.path, T2.mon.path)
         else:
             out.coef = NULL
     else:
@@ -648,8 +605,6 @@ cdef path_term_t *term_mul_term(path_term_t *T1, path_term_t *T2) except NULL:
         if new_coef:
             out.coef = <PyObject*>(new_coef)
             Py_INCREF(new_coef)
-            out.mon = <path_mon_t*>check_malloc(sizeof(path_mon_t))
-            out.mon.ref = 1
             biseq_init_concat(out.mon.path, T1.mon.path, T2.mon.path)
         else:
             out.coef = NULL
@@ -1112,7 +1067,7 @@ cdef path_poly_t *poly_sub(path_poly_t *P1, path_poly_t *P2, path_order_t cmp_te
 cdef path_term_t *poly_iadd_lmul(path_poly_t *P1, object coef, path_poly_t *P2, biseq_t R, path_order_t cmp_terms, long pos, mp_size_t l_len, mp_size_t s_len, path_term_t *P1start) except NULL:
     if not coef or P2.lead==NULL:
         return P1start
-    cdef path_mon_t *new_mon
+    cdef path_mon_t new_mon
     cdef object new_coef
     cdef path_term_t *prev = NULL
     cdef path_term_t *T1
@@ -1131,12 +1086,12 @@ cdef path_term_t *poly_iadd_lmul(path_poly_t *P1, object coef, path_poly_t *P2, 
             continue
 
         if T2.mon.pos!=-1:
-            new_mon = mon_mul_path(T2.mon, R)
+            mon_mul_path(new_mon, T2.mon, R)
             new_mon.pos = T2.mon.pos
             new_mon.l_len = T2.mon.l_len
             new_mon.s_len = T2.mon.s_len
         else:
-            new_mon = mon_mul_path(T2.mon, R)
+            mon_mul_path(new_mon, T2.mon, R)
             new_mon.pos = pos
             new_mon.l_len = l_len
             new_mon.s_len = s_len
@@ -1152,10 +1107,12 @@ cdef path_term_t *poly_iadd_lmul(path_poly_t *P1, object coef, path_poly_t *P2, 
         if T1==NULL:
             # We need to append to P1
             if prev==NULL:
-                P1.lead = term_create_keep_mon(new_coef, new_mon)
+                P1.lead = term_create_blank(new_coef)
+                P1.lead.mon[0] = new_mon[0]
                 prev = P1.lead
             else:
-                prev.nxt = term_create_keep_mon(new_coef, new_mon)
+                prev.nxt = term_create_blank(new_coef)
+                prev.nxt.mon[0] = new_mon[0]
                 prev = prev.nxt
             if T2 == P2.lead:
                 out = prev
@@ -1164,10 +1121,12 @@ cdef path_term_t *poly_iadd_lmul(path_poly_t *P1, object coef, path_poly_t *P2, 
         elif c==-1:
             # We need to insert between prev and T1
             if prev==NULL:
-                P1.lead = term_create_keep_mon(new_coef, new_mon)
+                P1.lead = term_create_blank(new_coef)
+                P1.lead.mon[0] = new_mon[0]
                 prev = P1.lead
             else:
-                prev.nxt = term_create_keep_mon(new_coef, new_mon)
+                prev.nxt = term_create_blank(new_coef)
+                prev.nxt.mon[0] = new_mon[0]
                 prev = prev.nxt
             if T2 == P2.lead:
                 out = prev

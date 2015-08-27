@@ -21,7 +21,7 @@ from sage.quivers.paths cimport QuiverPath
 
 # Type definitions
 
-cdef struct path_mon_t:
+cdef struct path_mon_s:
     # The monomial is of the form "a*I_i*b" with "a" a path
     # of length "l_len", and I_i the generator of the i-th component of a free module.
     mp_size_t l_len
@@ -38,12 +38,12 @@ cdef struct path_mon_t:
     # paths are encoded as lists of integers. We store a*s_i*b if the monomial is
     # a*I_i*b.
     biseq_t path
-    # reference counter
-    size_t ref
+
+ctypedef path_mon_s path_mon_t[1]
 
 cdef struct path_term_t:
     # A term is given by a monomial "mon" and a coefficient "coef".
-    path_mon_t *mon
+    path_mon_t mon
     # We need to manually take care of the reference count for the
     # coefficient!
     PyObject *coef
@@ -54,7 +54,7 @@ cdef struct path_term_t:
 # Returns -1, 0 or 1, depending on whether the first argument is
 # smaller (wrt. the chosen ordering function), equal to, or greater
 # than the second argument.
-ctypedef int (*path_order_t)(path_mon_t*, path_mon_t*) except -2
+ctypedef int (*path_order_t)(path_mon_t, path_mon_t) except -2
 
 # Polynomials are decreasingly sorted lists of terms, wrt. some fixed
 # monomial ordering. The list starts with pointer .lead. For convenience,

@@ -546,7 +546,8 @@ cdef class PathAlgebraElement(RingElement):
             T = H.poly.lead
             while T!=NULL:
                 out = homog_poly_create(H.start, H.end)
-                out.poly.lead = term_create_keep_mon(one, mon_copy(T.mon))
+                out.poly.lead = term_create_blank(one)
+                mon_copy(out.poly.lead.mon, T.mon)
                 out.poly.lead.nxt = NULL
                 out.poly.nterms = 1
                 L.append(self._new_(out))
@@ -735,7 +736,8 @@ cdef class PathAlgebraElement(RingElement):
         if H == NULL:
             return self.base_ring().zero()
         # Now, H points to the component that belongs to K
-        pM = mon_create_keep(P._path, -1, 0, 0)
+        cdef path_mon_t pM
+        mon_create_keep(pM, P._path, -1, 0, 0)
         T = H.poly.lead
         while T != NULL:
             if self.cmp_terms(T.mon, pM) == 0:
@@ -849,7 +851,7 @@ cdef class PathAlgebraElement(RingElement):
         """
         cdef path_homog_poly_t *H
         cdef path_term_t *T
-        cdef path_mon_t *kM
+        cdef path_mon_t kM
         cdef PathAlgebraElement out
         cdef QuiverPath K
         if isinstance(k, tuple):
@@ -882,7 +884,7 @@ cdef class PathAlgebraElement(RingElement):
             if H == NULL:
                 return self.base_ring().zero()
             # Now, H points to the component that belongs to K
-            kM = mon_create_keep(K._path, -1, 0, 0)
+            mon_create_keep(kM, K._path, -1, 0, 0)
             T = H.poly.lead
             while T != NULL:
                 sig_check()

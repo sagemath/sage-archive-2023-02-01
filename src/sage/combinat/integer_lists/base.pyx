@@ -28,6 +28,7 @@ from sage.structure.element cimport RingElement
 from sage.rings.integer cimport Integer
 
 Infinity = float('+inf')
+MInfinity = float('-inf')
 
 
 cdef class IntegerListsBackend(object):
@@ -51,7 +52,7 @@ cdef class IntegerListsBackend(object):
                  min_length=0, max_length=Infinity,
                  floor=None, ceiling=None,
                  min_part=0, max_part=Infinity,
-                 min_slope=-Infinity, max_slope=Infinity,
+                 min_slope=MInfinity, max_slope=Infinity,
                  min_sum=0, max_sum=Infinity):
         """
         Initialize ``self``.
@@ -375,7 +376,7 @@ cdef class Envelope(object):
     """
     def __init__(self, f, *,
                  min_part=0, max_part=Infinity,
-                 min_slope=-Infinity, max_slope=Infinity,
+                 min_slope=MInfinity, max_slope=Infinity,
                  min_length=0, max_length=Infinity, sign=1):
         r"""
         Initialize this envelope.

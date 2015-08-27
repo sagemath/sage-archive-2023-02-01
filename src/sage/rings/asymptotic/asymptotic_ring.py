@@ -91,7 +91,7 @@ A typical element of this ring is
 ::
 
     sage: A.an_element()
-    -z^(3/2) + O(z^(1/2))
+    z^(3/2) + O(z^(1/2))
 
 This element consists of two summands: the exact term with coefficient
 `-1` and growth `z^{3/2}` and the `O`-term `O(z^{1/2})`. Note that the
@@ -110,7 +110,7 @@ variables `x` and `y` by
 Again, we can look at a typical (nontrivial) element::
 
     sage: B.an_element()
-    -1/8*x^(3/2)*log(x)^3*(1/8)^y*y^(3/2) + O(x^(1/2)*log(x)*(1/2)^y*y^(1/2))
+    1/8*x^(3/2)*log(x)^3*(1/8)^y*y^(3/2) + O(x^(1/2)*log(x)*(1/2)^y*y^(1/2))
 
 
 Arithemtical Operations
@@ -229,9 +229,9 @@ coefficent. Another example is
 
     sage: C.<c> = AsymptoticRing(growth_group='c^ZZ', coefficient_ring=ZZ['e'])
     sage: C.an_element()
-    -e^3*c^3 + O(c)
+    e^3*c^3 + O(c)
     sage: C.an_element() / 7
-    -1/7*e^3*c^3 + O(c)
+    1/7*e^3*c^3 + O(c)
 
 Here the result's coefficient ring is the newly found
 ::
@@ -1683,16 +1683,16 @@ class AsymptoticRing(sage.rings.ring.Ring,
         EXAMPLES::
 
             sage: AsymptoticRing(growth_group='z^QQ', coefficient_ring=ZZ).an_element()
-            -z^(3/2) + O(z^(1/2))
+            z^(3/2) + O(z^(1/2))
             sage: AsymptoticRing(growth_group='z^ZZ', coefficient_ring=QQ).an_element()
-            -1/8*z^3 + O(z)
+            1/8*z^3 + O(z)
             sage: AsymptoticRing(growth_group='z^QQ', coefficient_ring=QQ).an_element()
-            -1/8*z^(3/2) + O(z^(1/2))
+            1/8*z^(3/2) + O(z^(1/2))
         """
         from sage.rings.asymptotic.term_monoid import TermMonoid
         E = TermMonoid('exact', self.growth_group, self.coefficient_ring)
         O = TermMonoid('O', self.growth_group, self.coefficient_ring)
-        return -self(E.an_element(), convert=False)**3 + \
+        return self(E.an_element(), convert=False)**3 + \
             self(O.an_element(), convert=False)
 
 
@@ -1715,22 +1715,22 @@ class AsymptoticRing(sage.rings.ring.Ring,
             sage: from itertools import islice
             sage: A = AsymptoticRing(growth_group='z^QQ', coefficient_ring=ZZ)
             sage: tuple(islice(A.some_elements(), 10))
-            (-z^(3/2) + O(z^(1/2)),
-             -z^(3/2) + O(z^(-1/2)),
-             z^(3/2) + O(z^(1/2)),
-             O(z^2),
+            (z^(3/2) + O(z^(1/2)),
              z^(3/2) + O(z^(-1/2)),
+             -z^(3/2) + O(z^(1/2)),
+             O(z^2),
+             -z^(3/2) + O(z^(-1/2)),
              O(z^(1/2)),
-             -z^(3/2) + O(z^(-2)),
+             z^(3/2) + O(z^(-2)),
              O(z^2),
              O(z^(-1/2)),
-             -8*z^(3/2) + O(z^(1/2)))
+             8*z^(3/2) + O(z^(1/2)))
         """
         from sage.rings.asymptotic.term_monoid import product_diagonal
         from sage.rings.asymptotic.term_monoid import TermMonoid
         E = TermMonoid('exact', self.growth_group, self.coefficient_ring)
         O = TermMonoid('O', self.growth_group, self.coefficient_ring)
-        return iter(-self(e, convert=False)**3 + self(o, convert=False)
+        return iter(self(e, convert=False)**3 + self(o, convert=False)
                     for e, o in product_diagonal(
                             E.some_elements(), O.some_elements()))
 
@@ -1911,7 +1911,6 @@ class AsymptoticRing(sage.rings.ring.Ring,
             :class:`AsymptoticRing`,
             :class:`AsymptoticRingFunctor`.
         """
-
         return AsymptoticRingFunctor(self.growth_group), self.coefficient_ring
 
 

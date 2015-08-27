@@ -1652,6 +1652,13 @@ class HasseDiagram(DiGraph):
             sage: H = Posets.PentagonPoset()._hasse_diagram
             sage: H.frattini_sublattice()
             [0, 4]
+
+        .. note::
+
+            If an element e is both meet- and join-irreducible in
+            the lattice L, then L\e is clearly a maximal sublattice.
+            This could be used as an optimization: first remove those
+            elements, as they can never be in the Frattini sublattice.
         """
         # Just a direct computation, no optimization at all.
         n = self.cardinality()

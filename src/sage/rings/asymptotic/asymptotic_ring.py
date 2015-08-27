@@ -1343,7 +1343,7 @@ class AsymptoticRing(sage.rings.ring.Ring,
                             merge=absorption)
 
 
-    def _element_constructor_(self, data, summands=None, simplify=True):
+    def _element_constructor_(self, data, simplify=True, convert=True):
         r"""
         Convert a given object to this asymptotic ring.
 
@@ -1352,12 +1352,12 @@ class AsymptoticRing(sage.rings.ring.Ring,
         - ``data`` -- an object representing the element to be
           initialized.
 
-        - ``summands`` -- (default: ``None``) if given, then this is
-          directly passed to the element constructor (i.e., no
-          conversion is performed).
-
         - ``simplify`` -- (default: ``True``) if set, then the constructed
           element is simplified (terms are absorbed) automatically.
+
+        - ``convert`` -- (default: ``True``) passed on to the element
+          constructor. If set, then it is assured that the terms belong
+          to this asymptotic ring (by converting them if needed).
 
         OUTPUT:
 
@@ -1411,19 +1411,29 @@ class AsymptoticRing(sage.rings.ring.Ring,
             sage: A.<a,b> = AsymptoticRing('a^ZZ * b^ZZ', QQ)
             sage: 1/a
             a^(-1)
+
+        ::
+
+            sage: M = AsymptoticRing('m^ZZ', ZZ)
+            sage: N = AsymptoticRing('n^ZZ', QQ)
+            sage: N(M.an_element())
+            Traceback (most recent call last):
+            ...
+            ValueError: Cannot include -m^3 with parent
+            Exact Term Monoid m^ZZ with coefficients in Integer Ring
+            in Asymptotic Ring <n^ZZ> over Rational Field
+            > *previous* ValueError: m^3 is not in Growth Group n^ZZ
         """
-        if summands is not None:
-            if type(data) != int or data != 0:
-                raise ValueError('Input is ambigous: '
-                                 '%s as well as summands=%s '
-                                 'are specified.' % (data, summands))
-            return self.element_class(self, summands, simplify=simplify)
+        from sage.data_structures.mutable_poset import MutablePoset
+        if isinstance(data, MutablePoset):
+            return self.element_class(self, data, simplify=simplify, convert=convert)
 
         if type(data) == self.element_class and data.parent() == self:
             return data
 
         if isinstance(data, AsymptoticExpression):
-            return self.element_class(self, data.summands, simplify=simplify)
+            return self.element_class(self, data.summands,
+                                      simplify=simplify, convert=convert)
 
         from sage.rings.asymptotic.term_monoid import GenericTerm
         if isinstance(data, GenericTerm):
@@ -1436,11 +1446,13 @@ class AsymptoticRing(sage.rings.ring.Ring,
                                 'asymptotic expression in %s.' % (data, self))
             summands = AsymptoticRing._create_empty_summands_()
             summands.union_update(data)
-            return self.element_class(self, summands, simplify=simplify)
+            return self.element_class(self, summands,
+                                      simplify=simplify, convert=convert)
 
         if not data or data == 0:
             summands = AsymptoticRing._create_empty_summands_()
-            return self.element_class(self, summands, simplify=simplify)
+            return self.element_class(self, summands,
+                                      simplify=simplify, convert=convert)
 
         try:
             P = data.parent()
@@ -1646,7 +1658,8 @@ class AsymptoticRing(sage.rings.ring.Ring,
         from sage.rings.asymptotic.term_monoid import TermMonoid
         E = TermMonoid('exact', self.growth_group, self.coefficient_ring)
         O = TermMonoid('O', self.growth_group, self.coefficient_ring)
-        return -self(E.an_element())**3 + self(O.an_element())
+        return -self(E.an_element(), convert=False)**3 + \
+            self(O.an_element(), convert=False)
 
 
     def some_elements(self):
@@ -1683,7 +1696,7 @@ class AsymptoticRing(sage.rings.ring.Ring,
         from sage.rings.asymptotic.term_monoid import TermMonoid
         E = TermMonoid('exact', self.growth_group, self.coefficient_ring)
         O = TermMonoid('O', self.growth_group, self.coefficient_ring)
-        return iter(-self(e)**3 + self(o)
+        return iter(-self(e, convert=False)**3 + self(o, convert=False)
                     for e, o in product_diagonal(
                             E.some_elements(), O.some_elements()))
 
@@ -1822,7 +1835,7 @@ class AsymptoticRing(sage.rings.ring.Ring,
         if type == 'exact' and kwds.get('coefficient') == 0:
             return self(kwds['coefficient'])
 
-        return self(TM(data, **kwds))
+        return self(TM(data, **kwds), convert=False)
 
 
     def variable_names(self):

@@ -425,7 +425,7 @@ class AsymptoticExpression(sage.rings.ring_element.RingElement):
         :mod:`sage.rings.asymptotic.term_monoid`,
         :mod:`sage.data_structures.mutable_poset`.
     """
-    def __init__(self, parent, summands, simplify=True):
+    def __init__(self, parent, summands, simplify=True, convert=True):
         r"""
         See :class:`AsymptoticExpression` for more information.
 
@@ -442,7 +442,21 @@ class AsymptoticExpression(sage.rings.ring_element.RingElement):
         """
         super(AsymptoticExpression, self).__init__(parent=parent)
 
+        if convert:
+            from growth_group import combine_exceptions
+            from term_monoid import TermMonoid
+            summands = summands.copy()
+            for shell in summands.shells():
+                element = shell._element_
+                T = TermMonoid(term=element.parent(), asymptotic_ring=parent)
+                try:
+                    shell._element_ = T(element)
+                except (ValueError, TypeError) as e:
+                    raise combine_exceptions(
+                        ValueError('Cannot include %s with parent %s in %s' %
+                                   (element, element.parent(), parent)), e)
         self._summands_ = summands
+
         if simplify:
             self._simplify_()
 

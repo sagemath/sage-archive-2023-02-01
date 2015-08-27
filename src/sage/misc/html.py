@@ -40,13 +40,42 @@ def old_and_deprecated_wrapper(method):
         sage: @old_and_deprecated_wrapper
         ....: def foo(): 
         ....:     return HtmlFragment('foo')
-        sage: pretty_print(foo())
-        foo
+
+    The old behavior is to print and return nothing::
+    
         sage: import sage.misc.html
-        sage: sage.misc.html._old_and_deprecated_behavior = False
-        sage: pretty_print(foo())
-        <html>foo</html>
         sage: sage.misc.html._old_and_deprecated_behavior = True
+        sage: f = foo()
+        foo
+        sage: f
+        <BLANKLINE>
+        sage: type(f)
+        <class 'sage.misc.html.WarnIfNotPrinted'>
+        sage: import sage.misc.html
+
+    The new behavior will be to return a HTML fragment::
+
+        sage: sage.misc.html._old_and_deprecated_behavior = False
+        sage: f = foo()
+        sage: f 
+        foo
+        sage: type(f)
+        <class 'sage.misc.html.HtmlFragment'>
+
+    A deprecation warning is generated if the html output is not printed::
+
+        sage: sage.misc.html._old_and_deprecated_behavior = True
+        sage: def html_without_print():
+        ....:    html('output without pretty_print')     
+        sage: html_without_print()
+        output without pretty_print
+        doctest:...: DeprecationWarning:  html(...) will change soon to return HTML instead of printing it. Instead use pretty_print(html(...)) for strings or just pretty_print(...) for math. 
+        See http://trac.sagemath.org/18292 for details.
+
+        sage: def html_with_print():
+        ....:    pretty_print(html('output with pretty_print'))
+        sage: html_with_print()
+        output with pretty_print
     """
     from sage.repl.rich_output.pretty_print import pretty_print
     def wrapped(*args, **kwds):
@@ -55,22 +84,42 @@ def old_and_deprecated_wrapper(method):
         if _old_and_deprecated_behavior:
             # workaround for the old SageNB interacts
             pretty_print(output)
-            return output
+            return WarnIfNotPrinted()
         else:
             return output
     return wrapped
 
 
-def skip_pretty_print_old_and_deprecated(obj):
+class WarnIfNotPrinted(SageObject):
     """
     To be removed when the deprecation for :trac:`18292` expires.
     """
-    if isinstance(obj, HtmlFragment) and obj._num_printed == 1:
-        # skip printing
-        obj._num_printed = 2
-        return True
-    else:
-        return False
+
+    _printed = False
+    
+    def _repr_(self):
+        self._printed = True
+        return ''
+
+    def __del__(self):
+        if not self._printed:
+            message = """ 
+                html(...) will change soon to return HTML instead of
+                printing it. Instead use pretty_print(html(...)) for
+                strings or just pretty_print(...) for math.
+            """
+            message = ' '.join([l.strip() for l in message.splitlines()])
+            from sage.misc.superseded import deprecation
+            deprecation(18292, message)
+
+    @classmethod
+    def skip_pretty_print(cls, obj):
+        if isinstance(obj, cls):
+            # Consider it printed, but don't actually print
+            obj._printed = True
+            return True
+        else:
+            return False
 
 
 class HtmlFragment(str, SageObject):
@@ -84,26 +133,11 @@ class HtmlFragment(str, SageObject):
     EXAMPLES::
 
         sage: from sage.misc.html import HtmlFragment
-        sage: pretty_print(HtmlFragment('<b>test</b>'))
+        sage: HtmlFragment('<b>test</b>')
         <b>test</b>
 
     .. automethod:: _rich_repr_
     """
-
-    # To be removed with _old_and_deprecated_behavior
-    _num_printed = 0
-
-    def __del__(self):
-        # print(self._num_printed, self)
-        if _old_and_deprecated_behavior and self._num_printed == 1:
-            message = """ 
-                html(...) will change soon to return HTML instead of
-                printing it. Instead use pretty_print(html(...)) for
-                strings or just pretty_print(...) for math.
-            """
-            message = ' '.join([l.strip() for l in message.splitlines()])
-            from sage.misc.superseded import deprecation
-            deprecation(18292, message)
 
     def _rich_repr_(self, display_manager, **kwds):
         """
@@ -115,11 +149,10 @@ class HtmlFragment(str, SageObject):
 
             sage: from sage.repl.rich_output import get_display_manager
             sage: dm = get_display_manager()
-            sage: h = html(1/2)
+            sage: h = sage.misc.html.HtmlFragment('<b>old</b>')
             sage: h._rich_repr_(dm)    # the doctest backend does not suppot html
+            OutputPlainText container
         """
-        if _old_and_deprecated_behavior:
-            self._num_printed += 1
         OutputHtml = display_manager.types.OutputHtml
         if OutputHtml in display_manager.supported_output():
             return OutputHtml(self)
@@ -168,7 +201,7 @@ def math_parse(s):
     TESTS::
 
         sage: sage.misc.html.math_parse(r'This \$\$is $2+2$.')
-        'This $$is <script type="math/tex">2+2</script>.'
+        This $$is <script type="math/tex">2+2</script>.
     """
     # first replace \\[ and \\] by <script type="math/tex; mode=display">
     # and </script>, respectively.
@@ -266,13 +299,13 @@ class HTMLFragmentFactory(SageObject):
      
         EXAMPLES::
      
-            sage: pretty_print(html('<hr>'))
+            sage: h = html('<hr>');  pretty_print(h)
             <hr>
-            sage: type(html('<hr>'))
-            <class 'sage.misc.html.HtmlFragment'>
+            sage: type(h)       # should be <class 'sage.misc.html.HtmlFragment'>
+            <class 'sage.misc.html.WarnIfNotPrinted'>
 
             sage: pretty_print(html(1/2))
-            <script type="math/tex">\\frac{1}{2}</script>
+            <script type="math/tex">\frac{1}{2}</script>
 
             sage: pretty_print(html('<a href="http://sagemath.org">sagemath</a>'))
             <a href="http://sagemath.org">sagemath</a>
@@ -365,9 +398,9 @@ class HTMLFragmentFactory(SageObject):
 
         EXAMPLES::
 
-            sage: pretty_print(table([(i, j, i == j) for i in [0..1] for j in [0..1]]))
-            <div.../div>
-            sage: print(output)
+            sage: pretty_print(html.table([(i, j, i == j) for i in [0..1] for j in [0..1]]))
+            doctest:...: DeprecationWarning: use table() instead of html.table()
+            See http://trac.sagemath.org/18292 for details.
             <div class="notruncate">
             <table class="table_form">
             <tbody>

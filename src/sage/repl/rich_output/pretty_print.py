@@ -231,7 +231,7 @@ def pretty_print(*args, **kwds):
     # Support deprecation :trac:`18292`
     if len(args) == 1:
         import sage.misc.html
-        if sage.misc.html.skip_pretty_print_old_and_deprecated(args[0]):
+        if sage.misc.html.WarnIfNotPrinted.skip_pretty_print(args[0]):
             return
 
     dm = get_display_manager()

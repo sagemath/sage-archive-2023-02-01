@@ -253,6 +253,37 @@ class Crystals(Category_singleton):
                 sage: K = crystals.KirillovReshetikhin(['A',2,1], 1, 1)
                 sage: K.weight_lattice_realization()
                 Weight lattice of the Root system of type ['A', 2, 1]
+
+            TESTS:
+
+            Check that crystals have the correct weight lattice realization::
+
+                sage: A = crystals.KirillovReshetikhin(['A',2,1], 1, 1).affinization()
+                sage: A.weight_lattice_realization()
+                Extended weight lattice of the Root system of type ['A', 2, 1]
+
+                sage: B = crystals.AlcovePaths(['A',2,1],[1,0,0])
+                sage: B.weight_lattice_realization()
+                Extended weight lattice of the Root system of type ['A', 2, 1]
+
+                sage: C = crystals.AlcovePaths("B3",[1,0,0])
+                sage: C.weight_lattice_realization()
+                Ambient space of the Root system of type ['B', 3]
+
+                sage: M = crystals.infinity.NakajimaMonomials(['A',3,2])
+                sage: M.weight_lattice_realization()
+                Extended weight lattice of the Root system of type ['B', 2, 1]^*
+                sage: M = crystals.infinity.NakajimaMonomials(['A',2])
+                sage: M.weight_lattice_realization()
+                Ambient space of the Root system of type ['A', 2]
+                sage: A = CartanMatrix([[2,-3],[-3,2]])
+                sage: M = crystals.infinity.NakajimaMonomials(A)
+                sage: M.weight_lattice_realization()
+                Weight lattice of the Root system of type Dynkin diagram of rank 2
+
+                sage: Y = crystals.infinity.GeneralizedYoungWalls(3)
+                sage: Y.weight_lattice_realization()
+                Extended weight lattice of the Root system of type ['A', 3, 1]
             """
             F = self.cartan_type().root_system()
             if self.cartan_type().is_finite() and F.ambient_space() is not None:

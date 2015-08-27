@@ -502,19 +502,6 @@ class KirillovReshetikhinTableaux(CrystalOfWords):
         """
         return KashiwaraNakashimaTableaux(self._cartan_type, self._r, self._s)
 
-    def affinization(self):
-        """
-        Return the corresponding affinization crystal of ``self``.
-
-        EXAMPLES::
-
-            sage: K = crystals.KirillovReshetikhin(['A',2,1], 1, 1, model='KR')
-            sage: K.affinization()
-            Affinization of Kirillov-Reshetikhin tableaux of type ['A', 2, 1] and shape (1, 1)
-        """
-        from sage.combinat.crystals.affinization import AffinizationOfCrystal
-        return AffinizationOfCrystal(self)
-
     def classical_decomposition(self):
         """
         Return the classical crystal decomposition of ``self``.
@@ -1385,28 +1372,6 @@ class KirillovReshetikhinTableauxElement(TensorProductOfRegularCrystalsElement):
         if i == 0:
             return self.to_kirillov_reshetikhin_crystal().phi0()
         return TensorProductOfRegularCrystalsElement.phi(self, i)
-
-    def lusztig_involution(self):
-        r"""
-        Return the result of the classical Lusztig involution on ``self``.
-
-        EXAMPLES::
-
-            sage: KRT = crystals.KirillovReshetikhin(['D',4,1], 2, 3, model='KR')
-            sage: mg = KRT.module_generators[1]
-            sage: mg.lusztig_involution()
-            [[-2, -2, 1], [-1, -1, 2]]
-            sage: elt = mg.f_string([2,1,3,2]); elt
-            [[3, -2, 1], [4, -1, 2]]
-            sage: elt.lusztig_involution()
-            [[-4, -2, 1], [-3, -1, 2]]
-        """
-        Cl = self.parent().cartan_type().classical()
-        I = Cl.index_set()
-        aut = Cl.opposition_automorphism()
-        hw = self.to_highest_weight(I)[1]
-        hw.reverse()
-        return self.to_lowest_weight(I)[0].e_string(aut[i] for i in hw)
 
     def left_split(self):
         r"""

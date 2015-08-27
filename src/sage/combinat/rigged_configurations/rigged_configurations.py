@@ -682,6 +682,19 @@ class RiggedConfigurations(Parent, UniqueRepresentation):
                     values[-1].extend(block)
         return values
 
+    def classically_highest_weight_vectors(self):
+        """
+        Return the classically highest weight elements of ``self``.
+
+        TESTS::
+
+            sage: RC = RiggedConfigurations(['A', 4, 1], [[2, 2]])
+            sage: ascii_art(RC.classically_highest_weight_vectors())
+            (                    )
+            ( (/)  (/)  (/)  (/) )
+        """
+        return self.module_generators
+
     def _element_constructor_(self, *lst, **options):
         """
         Construct a ``RiggedConfigurationElement``.
@@ -849,25 +862,6 @@ class RiggedConfigurations(Parent, UniqueRepresentation):
         """
         from sage.combinat.rigged_configurations.tensor_product_kr_tableaux import TensorProductOfKirillovReshetikhinTableaux
         return TensorProductOfKirillovReshetikhinTableaux(self._cartan_type, self.dims)
-
-    def cardinality(self):
-        """
-        Return the cardinality of ``self``.
-
-        EXAMPLES::
-
-            sage: RC = RiggedConfigurations(['A', 3, 1], [[3, 2], [1, 2]])
-            sage: RC.cardinality()
-            100
-            sage: RC = RiggedConfigurations(['B', 3, 1], [[2,2],[1,2]])
-            sage: RC.cardinality()
-            5130
-            sage: RC = RiggedConfigurations(['E', 7, 1], [[1,1]])
-            sage: RC.cardinality()
-            134
-        """
-        CWLR = self.cartan_type().classical().root_system().ambient_space()
-        return sum(CWLR.weyl_dimension(mg.classical_weight()) for mg in self.module_generators)
 
     @cached_method
     def tensor_product_of_kirillov_reshetikhin_crystals(self):

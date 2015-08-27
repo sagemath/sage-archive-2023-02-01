@@ -19,7 +19,7 @@ cimported in Cython modules:
 
   Deallocate the memory used by ``S``.
 
-- ``cdef bint biseq_init_copy(biseq_t R, biseq_t S) except -1``
+- ``cdef inline bint biseq_init_copy(biseq_t R, biseq_t S) except -1``
 
   Initialize ``R`` as a copy of ``S``.
 
@@ -39,39 +39,39 @@ cimported in Cython modules:
 
   Hash value for ``S``.
 
-- ``cdef int biseq_cmp(biseq_t S1, biseq_t S2) except -2``
+- ``cdef inline int biseq_cmp(biseq_t S1, biseq_t S2)``
 
   Comparison of ``S1`` and ``S2``. This takes into account the bound, the
   length, and the list of items of the two sequences.
 
-- ``cdef bint biseq_init_concat(biseq_t R, biseq_t S1, biseq_t S2) except -1``
+- ``cdef inline bint biseq_init_concat(biseq_t R, biseq_t S1, biseq_t S2) except -1``
 
   Concatenate ``S1`` and ``S2`` and write the result to ``R``. Does not test
   whether the sequences have the same bound!
 
-- ``cdef bint biseq_startswith(biseq_t S1, biseq_t S2)``
+- ``cdef inline bint biseq_startswith(biseq_t S1, biseq_t S2)``
 
   Is ``S1=S2+something``? Does not check whether the sequences have the same
   bound!
 
-- ``cdef mp_size_t biseq_contains(biseq_t S1, biseq_t S2, mp_size_t start) except -2``
+- ``cdef mp_size_t biseq_contains(biseq_t S1, biseq_t S2, mp_size_t start)``
 
   Return the position in ``S1`` of ``S2`` as a subsequence of
   ``S1[start:]``, or ``-1`` if ``S2`` is not a subsequence. Does not check
   whether the sequences have the same bound!
 
-- ``cdef mp_size_t biseq_starswith_tail(biseq_t S1, biseq_t S2, mp_size_t start) except -2:``
+- ``cdef mp_size_t biseq_starswith_tail(biseq_t S1, biseq_t S2, mp_size_t start)``
 
   Return the smallest number ``i`` such that the bounded integer sequence
   ``S1`` starts with the sequence ``S2[i:]``, where ``start <= i <
   S1.length``, or return ``-1`` if no such ``i`` exists.
 
-- ``cdef mp_size_t biseq_index(biseq_t S, size_t item, mp_size_t start) except -2``
+- ``cdef inline mp_size_t biseq_index(biseq_t S, size_t item, mp_size_t start)``
 
   Return the position in ``S`` of the item in ``S[start:]``, or ``-1`` if
   ``S[start:]`` does not contain the item.
 
-- ``cdef size_t biseq_getitem(biseq_t S, mp_size_t index)``
+- ``cdef inline size_t biseq_getitem(biseq_t S, mp_size_t index)``
 
   Return ``S[index]``, without checking margins.
 
@@ -79,12 +79,12 @@ cimported in Cython modules:
 
   Return ``S[index]`` as Python ``int`` or ``long``, without checking margins.
 
-- ``cdef biseq_inititem(biseq_t S, mp_size_t index, size_t item)``
+- ``cdef inline void biseq_inititem(biseq_t S, mp_size_t index, size_t item)``
 
   Set ``S[index] = item``, without checking margins and assuming that ``S[index]``
   has previously been zero.
 
-- ``cdef void biseq_clearitem(biseq_t S, mp_size_t index)``
+- ``cdef inline void biseq_clearitem(biseq_t S, mp_size_t index)``
 
   Set ``S[index] = 0``, without checking margins.
 
@@ -133,7 +133,6 @@ cdef bint biseq_init(biseq_t R, mp_size_t l, mp_bitcnt_t itemsize) except -1:
     items fitting in ``itemsize`` bits.
     """
     cdef mp_bitcnt_t totalbitsize
-    sig_check()
     if l:
         totalbitsize = l * itemsize
     else:
@@ -149,11 +148,10 @@ cdef inline void biseq_dealloc(biseq_t S):
     """
     bitset_free(S.data)
 
-cdef bint biseq_init_copy(biseq_t R, biseq_t S) except -1:
+cdef inline bint biseq_init_copy(biseq_t R, biseq_t S) except -1:
     """
     Initialize ``R`` as a copy of ``S``.
     """
-    sig_check()
     biseq_init(R, S.length, S.itembitsize)
     bitset_copy(R.data, S.data)
 
@@ -195,6 +193,7 @@ cdef bint biseq_init_list(biseq_t R, list data, size_t bound) except -1:
         sig_check()
         item_c = item
         if item_c > bound:
+
             raise OverflowError("list item {!r} larger than {}".format(item, bound) )
         biseq_inititem(R, index, item_c)
         index += 1
@@ -202,7 +201,7 @@ cdef bint biseq_init_list(biseq_t R, list data, size_t bound) except -1:
 cdef inline Py_hash_t biseq_hash(biseq_t S):
     return S.itembitsize*(<Py_hash_t>1073807360)+bitset_hash(S.data)
 
-cdef int biseq_cmp(biseq_t S1, biseq_t S2) except -2:
+cdef inline int biseq_cmp(biseq_t S1, biseq_t S2):
     cdef int c = cmp(S1.itembitsize, S2.itembitsize)
     if c:
         return c
@@ -215,7 +214,7 @@ cdef int biseq_cmp(biseq_t S1, biseq_t S2) except -2:
 # Arithmetics
 #
 
-cdef bint biseq_init_concat(biseq_t R, biseq_t S1, biseq_t S2) except -1:
+cdef inline bint biseq_init_concat(biseq_t R, biseq_t S1, biseq_t S2) except -1:
     """
     Concatenate two bounded integer sequences ``S1`` and ``S2``.
 
@@ -234,7 +233,7 @@ cdef bint biseq_init_concat(biseq_t R, biseq_t S1, biseq_t S2) except -1:
     bitset_or(R.data, R.data, S1.data)
     sig_off()
 
-cdef bint biseq_startswith(biseq_t S1, biseq_t S2) except -1:
+cdef inline bint biseq_startswith(biseq_t S1, biseq_t S2):
     """
     Tests if bounded integer sequence ``S1`` starts with bounded integer
     sequence ``S2``.
@@ -250,13 +249,11 @@ cdef bint biseq_startswith(biseq_t S1, biseq_t S2) except -1:
         return False
     if S2.length == 0:
         return True
-    sig_on()
     ret = mpn_equal_bits(S1.data.bits, S2.data.bits, S2.data.size)
-    sig_off()
     return ret
 
 
-cdef mp_size_t biseq_index(biseq_t S, size_t item, mp_size_t start) except -2:
+cdef inline mp_size_t biseq_index(biseq_t S, size_t item, mp_size_t start):
     """
     Returns the position in ``S`` of an item in ``S[start:]``, or -1 if
     ``S[start:]`` does not contain the item.
@@ -264,13 +261,12 @@ cdef mp_size_t biseq_index(biseq_t S, size_t item, mp_size_t start) except -2:
     """
     cdef mp_size_t index
     for index from start <= index < S.length:
-        sig_check()
         if biseq_getitem(S, index) == item:
             return index
     return -1
 
 
-cdef size_t biseq_getitem(biseq_t S, mp_size_t index):
+cdef inline size_t biseq_getitem(biseq_t S, mp_size_t index):
     """
     Get item ``S[index]``, without checking margins.
 
@@ -296,7 +292,7 @@ cdef biseq_getitem_py(biseq_t S, mp_size_t index):
     cdef size_t out = biseq_getitem(S, index)
     return PyInt_FromSize_t(out)
 
-cdef void biseq_inititem(biseq_t S, mp_size_t index, size_t item):
+cdef inline void biseq_inititem(biseq_t S, mp_size_t index, size_t item):
     """
     Set ``S[index] = item``, without checking margins.
 
@@ -313,7 +309,7 @@ cdef void biseq_inititem(biseq_t S, mp_size_t index, size_t item):
         # Our item is stored using 2 limbs, add the part from the upper limb
         S.data.bits[limb_index+1] |= (item >> (GMP_LIMB_BITS - bit_index))
 
-cdef void biseq_clearitem(biseq_t S, mp_size_t index):
+cdef inline void biseq_clearitem(biseq_t S, mp_size_t index):
     """
     Set ``S[index] = 0``, without checking margins.
 
@@ -349,9 +345,9 @@ cdef bint biseq_init_slice(biseq_t R, biseq_t S, mp_size_t start, mp_size_t stop
     if not length:
         return 0
 
+    sig_on()
     if step == 1:
         # Slicing essentially boils down to a shift operation.
-        sig_on()
         bitset_rshift(R.data, S.data, start*S.itembitsize)
         sig_off()
         return 0
@@ -360,11 +356,11 @@ cdef bint biseq_init_slice(biseq_t R, biseq_t S, mp_size_t start, mp_size_t stop
     cdef mp_size_t src_index = start
     cdef mp_size_t tgt_index
     for tgt_index in range(length):
-        sig_check()
         biseq_inititem(R, tgt_index, biseq_getitem(S, src_index))
         src_index += step
+    sig_off()
 
-cdef mp_size_t biseq_contains(biseq_t S1, biseq_t S2, mp_size_t start) except -2:
+cdef mp_size_t biseq_contains(biseq_t S1, biseq_t S2, mp_size_t start):
     """
     Tests if the bounded integer sequence ``S1[start:]`` contains a
     sub-sequence ``S2``.
@@ -390,13 +386,12 @@ cdef mp_size_t biseq_contains(biseq_t S1, biseq_t S2, mp_size_t start) except -2
         return start
     cdef mp_size_t index
     for index from start <= index <= S1.length-S2.length:
-        sig_check()
         if mpn_equal_bits_shifted(S2.data.bits, S1.data.bits,
                 S2.length*S2.itembitsize, index*S2.itembitsize):
             return index
     return -1
 
-cdef mp_size_t biseq_startswith_tail(biseq_t S1, biseq_t S2, mp_size_t start) except -2:
+cdef mp_size_t biseq_startswith_tail(biseq_t S1, biseq_t S2, mp_size_t start):
     """
     Return the smallest index ``i`` such that the bounded integer sequence
     ``S1`` starts with the sequence ``S2[i:]``, where ``start <= i <
@@ -424,7 +419,6 @@ cdef mp_size_t biseq_startswith_tail(biseq_t S1, biseq_t S2, mp_size_t start) ex
         start = S2.length - S1.length
     cdef mp_size_t index
     for index from start <= index < S2.length:
-        sig_check()
         if mpn_equal_bits_shifted(S1.data.bits, S2.data.bits,
                 (S2.length - index)*S2.itembitsize, index*S2.itembitsize):
             return index
@@ -1154,10 +1148,7 @@ cdef class BoundedIntegerSequence:
         """
         cdef mp_size_t out
         if not isinstance(other, BoundedIntegerSequence):
-            try:
-                out = biseq_index(self.data, other, 0)
-            except OverflowError:
-                out = -1
+            out = biseq_index(self.data, other, 0)
             if out >= 0:
                 return out
             raise ValueError("{!r} is not in sequence".format(other))
@@ -1435,6 +1426,10 @@ def _biseq_stresstest():
         elif branch == 4:
             S = L[randint(0,99)]
             T = L[randint(0,99)]
+            # The following three functions are not interruptible.
+            # Thus, we need to add signal handling here.
+            sig_on()
             biseq_startswith(S.data,T.data)
             biseq_contains(S.data, T.data, 0)
             biseq_startswith_tail(S.data, T.data, 0)
+            sig_off()

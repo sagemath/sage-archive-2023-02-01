@@ -206,6 +206,31 @@ Selected Technical Details
 Coercions and Functorial Constructions
 --------------------------------------
 
+The :class:`AsymptoticRing` fully supports
+`coercion <../../../../coercion/index.html>`_. For example, the coefficient ring is automatically extended when needed::
+
+    sage: A
+    Asymptotic Ring <z^QQ> over Integer Ring
+    sage: (z + 1/2).parent()
+    Asymptotic Ring <z^QQ> over Rational Field
+
+Here, the coefficient ring was extended to allow `1/2` as a
+coefficent. Another example is
+::
+
+    sage: C.<c> = AsymptoticRing(growth_group='c^ZZ', coefficient_ring=ZZ['e'])
+    sage: C.an_element()
+    -e^3*c^3 + O(c)
+    sage: C.an_element() / 7
+    -e^3/7*c^3 + O(c)
+
+Here the result's coefficient ring is the newly found
+::
+
+    sage: (C.an_element() / 7).parent()
+    Asymptotic Ring <c^ZZ> over
+    Univariate Polynomial Ring in e over Integer Ring
+
 Data Structures
 ---------------
 

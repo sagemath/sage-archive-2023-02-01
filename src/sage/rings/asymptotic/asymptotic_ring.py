@@ -319,7 +319,7 @@ Methods
 
 import sage
 
-class AsymptoticExpression(sage.rings.ring_element.RingElement):
+class AsymptoticExpression(sage.structure.element.CommutativeAlgebraElement):
     r"""
     Class for asymptotic expressions, i.e., the elements of an
     :class:`AsymptoticRing`.
@@ -1071,7 +1071,7 @@ class AsymptoticExpression(sage.rings.ring_element.RingElement):
 
 
 
-class AsymptoticRing(sage.rings.ring.Ring,
+class AsymptoticRing(sage.algebras.algebra.Algebra,
                      sage.structure.unique_representation.UniqueRepresentation):
     r"""
     A ring consisting of :class:`asymptotic expressions <AsymptoticExpression>`.
@@ -1253,7 +1253,7 @@ class AsymptoticRing(sage.rings.ring.Ring,
         self._coefficient_ring_ = coefficient_ring
         self._growth_group_ = growth_group
         self._default_prec_ = default_prec
-        super(AsymptoticRing, self).__init__(base=coefficient_ring,
+        super(AsymptoticRing, self).__init__(base_ring=coefficient_ring,
                                              category=category)
 
 

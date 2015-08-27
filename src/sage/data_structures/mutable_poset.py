@@ -160,7 +160,7 @@ import sage
 # *****************************************************************************
 
 
-class MutablePosetShell(sage.structure.sage_object.SageObject):
+class MutablePosetShell(object):
     r"""
     A shell for an element of a :class:`mutable poset <MutablePoset>`.
 
@@ -1125,7 +1125,7 @@ def is_MutablePoset(P):
     return isinstance(P, MutablePoset)
 
 
-class MutablePoset(sage.structure.sage_object.SageObject):
+class MutablePoset(object):
     r"""
     A mutable poset (partially ordered set) as data structure.
 

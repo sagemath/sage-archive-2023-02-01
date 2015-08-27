@@ -2317,21 +2317,23 @@ def SymplecticGraph(d,q,algorithm=None):
         (40, 12, 2, 4)
         sage: O.is_isomorphic(G)
         False
+        sage: graphs.SymplecticGraph(6,4,algorithm="gap").is_strongly_regular(parameters=True) # not tested (long time)
+        (1365, 340, 83, 85)
 
     TESTS::
 
-        sage: graphs.SymplecticGraph(6,4,algorithm="gap").is_strongly_regular(parameters=True) # long time
-        (1365, 340, 83, 85)
+        sage: graphs.SymplecticGraph(4,4,algorithm="gap").is_strongly_regular(parameters=True)
+        (85, 20, 3, 5)
 
     """
+    if d < 1 or d%2 != 0:
+        raise ValueError("d must be even and greater than 2")
+
     if algorithm != "gap":  # faster for small (q<4) fields
         from sage.rings.finite_rings.constructor import FiniteField
         from sage.modules.free_module import VectorSpace
         from sage.schemes.projective.projective_space import ProjectiveSpace
         from sage.matrix.constructor import identity_matrix, block_matrix, zero_matrix
-
-        if d < 1 or d%2 != 0:
-            raise ValueError("d must be even and greater than 2")
 
         F = FiniteField(q,"x")
         M = block_matrix(F, 2, 2,
@@ -2346,7 +2348,7 @@ def SymplecticGraph(d,q,algorithm=None):
 
     else:   # faster for larger (q>3)  fields
         from sage.libs.gap.libgap import libgap
-        G = _polar_Graph(d, q, libgap.SymplecticGroup(d, q))
+        G = _polar_graph(d, q, libgap.SymplecticGroup(d, q))
 
     G.name("Symplectic Graph Sp("+str(d)+","+str(q)+")")
     G.relabel()
@@ -2523,22 +2525,37 @@ def OrthogonalPolarGraph(m, q, sign="+"):
     G.name("Orthogonal Polar Graph O" + ("^" + sign if sign else "") + str((m, q)))
     return G
 
-def _polar_Graph(m, q, g, intersection_size=None):
+def _polar_graph(m, q, g, intersection_size=None):
     r"""
-    The helper function to build graphs U(m,q) and Sp(m,q)
+    The helper function to build graphs `(D)U(m,q)` and `(D)Sp(m,q)`
 
-    Building the graph on an orbit of a group of mxm matrices over GF(q) on
-    the points isotropic w.r.t. the form F left invariant by the group g.
+    Building a graph on an orbit of a group `g` of `m\times m` matrices over `GF(q)` on
+    the points (or subspaces of dimension ``m//2``) isotropic w.r.t. the form `F`
+    left invariant by the group `g`.
 
-    The only constraint is that the first m//2 elements of the standard
-    basis must generate a totally isotropic w.r.t. F subspace
+    The only constraint is that the first ``m//2`` elements of the standard
+    basis must generate a totally isotropic w.r.t. `F` subspace; this is the case with
+    these groups coming from GAP; namely, `F` has the anti-diagonal all-1 matrix.
+
+    INPUT:
+
+    - ``m`` -- the dimension of the underlying vector space
+
+    - ``q`` -- the size of the field
+
+    - ``g`` -- the group acting
+
+    - ``intersection_size`` -- if ``None``, build the graph on the isotropic points, with
+      adjacency being orthogonality w.r.t. `F`. Otherwise, build the graph on the maximal
+      totally isotropic subspaces, with adjacency specified by ``intersection_size`` being
+      as given.
 
     TESTS::
 
-        sage: from sage.graphs.generators.families import _polar_Graph
-        sage: _polar_Graph(4, 4, libgap.GeneralUnitaryGroup(4, 2))
+        sage: from sage.graphs.generators.families import _polar_graph
+        sage: _polar_graph(4, 4, libgap.GeneralUnitaryGroup(4, 2))
         Graph on 45 vertices
-        sage: _polar_Graph(4, 4, libgap.GeneralUnitaryGroup(4, 2), intersection_size=1)
+        sage: _polar_graph(4, 4, libgap.GeneralUnitaryGroup(4, 2), intersection_size=1)
         Graph on 27 vertices
     """
     from sage.libs.gap.libgap import libgap
@@ -2606,7 +2623,7 @@ def UnitaryPolarGraph(m, q, algorithm="gap"):
                      P(vector(x),vector(y))], loops=False)
     else:
         from sage.libs.gap.libgap import libgap
-        G = _polar_Graph(m, q**2, libgap.GeneralUnitaryGroup(m, q))
+        G = _polar_graph(m, q**2, libgap.GeneralUnitaryGroup(m, q))
 
     G.relabel()
     G.name("Unitary Polar Graph U" + str((m, q)))
@@ -2652,7 +2669,7 @@ def UnitaryDualPolarGraph(m, q):
 
     """
     from sage.libs.gap.libgap import libgap
-    G = _polar_Graph(m, q**2, libgap.GeneralUnitaryGroup(m, q),
+    G = _polar_graph(m, q**2, libgap.GeneralUnitaryGroup(m, q),
             intersection_size=(q**(2*(m//2-1))-1)/(q**2-1))
     G.relabel()
     G.name("Unitary Dual Polar Graph DU" + str((m, q)))
@@ -2688,7 +2705,7 @@ def SymplecticDualPolarGraph(m, q):
         ([39, 36, 27, None], [None, 1, 4, 13])
     """
     from sage.libs.gap.libgap import libgap
-    G = _polar_Graph(m, q, libgap.SymplecticGroup(m, q),
+    G = _polar_graph(m, q, libgap.SymplecticGroup(m, q),
              intersection_size=(q**(m/2-1)-1)/(q-1))
 
     G.relabel()

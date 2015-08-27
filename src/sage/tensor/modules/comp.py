@@ -1285,7 +1285,7 @@ class Components(SageObject):
 
         Parallel computation::
 
-            sage: set_nproc_tensor(2); print get_nproc_tensor()
+            sage: set_nproc_tensor(2); get_nproc_tensor()
             2
             sage: s = a.__add__(b) ; s
             1-index components w.r.t. [1, 2, 3]
@@ -1401,7 +1401,7 @@ class Components(SageObject):
 
         Parallel computation::
 
-            sage: set_nproc_tensor(2); print get_nproc_tensor()
+            sage: set_nproc_tensor(2); get_nproc_tensor()
             2
             sage: s = a.__sub__(b) ; s
             1-index components w.r.t. [1, 2, 3]
@@ -1474,7 +1474,7 @@ class Components(SageObject):
             True
 
         Parallel computation::
-            sage: set_nproc_tensor(2);print get_nproc_tensor()
+            sage: set_nproc_tensor(2); get_nproc_tensor()
             2
             sage: s = a.__mul__(b) ; s
             2-indices components w.r.t. [1, 2, 3]
@@ -1484,7 +1484,7 @@ class Components(SageObject):
             [-12 -15 -18]
             sage: s == a*b
             True
-            sage: set_nproc_tensor(1);print get_nproc_tensor()
+            sage: set_nproc_tensor(1); get_nproc_tensor()
             1
 
         """
@@ -1775,7 +1775,7 @@ class Components(SageObject):
 
         Parallel computation::
 
-            sage: set_nproc_tensor(2); print get_nproc_tensor()
+            sage: set_nproc_tensor(2); get_nproc_tensor()
             2
             sage: s = a.contract(0, b, 0) ; s
             1-index components w.r.t. [
@@ -1812,7 +1812,7 @@ class Components(SageObject):
 
         Parallel computation::
 
-            sage: set_nproc_tensor(2); print get_nproc_tensor()
+            sage: set_nproc_tensor(2); get_nproc_tensor()
             2
             sage: c = a*b ; c
             3-indices components w.r.t. [
@@ -3225,7 +3225,7 @@ class CompWithSym(Components):
             True
 
         Parallel computation::
-            sage: set_nproc_tensor(2);print get_nproc_tensor()
+            sage: set_nproc_tensor(2); get_nproc_tensor()
             2
             sage: s = a.__mul__(b) ; s
             4-indices components w.r.t. [1, 2, 3], with symmetry on the index positions (0, 1), with symmetry on the index positions (2, 3)
@@ -3243,7 +3243,7 @@ class CompWithSym(Components):
             True
             sage: s == a*c
             True
-            sage: set_nproc_tensor(1);print get_nproc_tensor()
+            sage: set_nproc_tensor(1); get_nproc_tensor()
             1
 
         """
@@ -4549,7 +4549,7 @@ class CompFullySym(CompWithSym):
 
         Parallel computation::
 
-            sage: set_nproc_tensor(2); print get_nproc_tensor()
+            sage: set_nproc_tensor(2); get_nproc_tensor()
             2
             sage: s = a.__add__(c) ; s  # the symmetry is lost
             2-indices components w.r.t. (1, 2, 3)

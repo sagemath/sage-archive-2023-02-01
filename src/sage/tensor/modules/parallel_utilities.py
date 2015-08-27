@@ -6,7 +6,7 @@ This module defines
 - the singleton class :class:`TensorParallelCompute` to gather the information
   relative to the parallelization of tensor algebra (basically the number of
   processes to be used)
-- the global functions :func:`set_nproc` and :func:`get_nproc_tensor` to be used in
+- the global functions :func:`set_nproc_tensor` and :func:`get_nproc_tensor` to be used in
   a Sage session for managing the number of processes involved in the
   parallelization.
 

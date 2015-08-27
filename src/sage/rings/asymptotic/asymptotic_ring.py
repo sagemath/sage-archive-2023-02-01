@@ -714,8 +714,7 @@ class AsymptoticExpression(sage.rings.ring_element.RingElement):
             sage: O(x) + x
             O(x)
         """
-        smds = self.summands.copy().union(other.summands)
-        return self.parent()(summands=smds)
+        return self.parent()(self.summands.union(other.summands), convert=False)
 
 
     def _sub_(self, other):

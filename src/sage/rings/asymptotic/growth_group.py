@@ -222,6 +222,8 @@ def repr_short_to_parent(s):
         Rational Field
         sage: agg.repr_short_to_parent('SR')
         Symbolic Ring
+        sage: agg.repr_short_to_parent('NN')
+        Non negative integer semiring
 
     TESTS::
 

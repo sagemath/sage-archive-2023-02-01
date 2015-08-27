@@ -2076,6 +2076,13 @@ class MonomialGrowthElement(GenericGrowthElement):
             True
         """
         return self.parent()(raw_element=-self.exponent)
+        new_element = -self.exponent
+        try:
+            return self.parent()(raw_element=new_element)
+        except (ValueError, TypeError):
+            new_parent = self.parent().__class__(new_element.parent(),
+                                                 self.parent()._var_)
+            return new_parent(raw_element=new_element)
 
 
     def __pow__(self, power):
@@ -2610,21 +2617,23 @@ class ExponentialGrowthElement(GenericGrowthElement):
 
         EXAMPLES::
 
-            sage: import sage.rings.asymptotic.growth_group as agg
-            sage: P = agg.GrowthGroup('ZZ^x')
+            sage: from sage.rings.asymptotic.growth_group import GrowthGroup
+            sage: P = GrowthGroup('ZZ^x')
             sage: e1 = P(raw_element=2)
             sage: e2 = e1.__invert__(); e2
             (1/2)^x
             sage: e2 == ~e1
             True
+            sage: e2.parent()
+            Growth Group QQ^x
         """
-        new_base = 1 / self.base
+        new_element = 1 / self.base
         try:
-            return self.parent()(raw_element=new_base)
+            return self.parent()(raw_element=new_element)
         except (ValueError, TypeError):
-            new_parent = ExponentialGrowthGroup(new_base.parent(),
-                                                self.parent()._var_)
-            return new_parent(raw_element=new_base)
+            new_parent = self.parent().__class__(new_element.parent(),
+                                                 self.parent()._var_)
+            return new_parent(raw_element=new_element)
 
 
     def __pow__(self, power):

@@ -857,6 +857,36 @@ class GenericProduct(CartesianProductPosets, GenericGrowthGroup):
             return s
 
 
+        def __invert__(self):
+            r"""
+            Return the multiplicative inverse of this cartesian product.
+
+            OUTPUT:
+
+            An growth element.
+
+            .. NOTE::
+
+                The result may live in a larger parent than we started with.
+
+            TESTS::
+
+                 sage: from sage.rings.asymptotic.growth_group import GrowthGroup
+                 sage: G = GrowthGroup('ZZ^x * x^ZZ')
+                 sage: g = G('2^x * x^3')
+                 sage: (~g).parent()
+                 Growth Group QQ^x * x^ZZ
+            """
+            new_element = tuple(~x for x in self.cartesian_factors())
+            try:
+                return self.parent()(new_element)
+            except (ValueError, TypeError):
+                from sage.categories.cartesian_product import cartesian_product
+                new_parent = cartesian_product(
+                    tuple(x.parent() for x in new_element))
+                return new_parent(new_element)
+
+
     CartesianProduct = CartesianProductGrowthGroups
 
 

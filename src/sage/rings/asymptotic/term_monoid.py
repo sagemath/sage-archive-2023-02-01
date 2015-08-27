@@ -2275,16 +2275,23 @@ class ExactTerm(TermWithCoefficient):
             sage: import sage.rings.asymptotic.term_monoid as atm
             sage: import sage.rings.asymptotic.growth_group as agg
             sage: G = agg.GrowthGroup('x^ZZ'); x = G.gen()
-            sage: T = atm.ExactTermMonoid(G, QQ)
-            sage: ~T(x, 1/2)  # indirect doctest
-            2*x^(-1)
+            sage: T = atm.ExactTermMonoid(G, ZZ)
+            sage: ~T(x, 2)  # indirect doctest
+            1/2*x^(-1)
+            sage: (~T(x, 2)).parent()
+            Exact Term Monoid x^ZZ with coefficients in Rational Field
         """
         try:
             c = ~self.coefficient
         except ZeroDivisionError:
             raise ZeroDivisionError('Cannot invert %s since its coefficient %s '
                                     'cannot be inverted.' % (self, self.coefficient))
-        return self.parent()(~self.growth, c)
+        g = ~self.growth
+        try:
+            return self.parent()(g, c)
+        except (ValueError, TypeError):
+            new_parent = self.parent().__class__(g.parent(), c.parent())
+            return new_parent(g, c)
 
 
     def _can_absorb_(self, other):

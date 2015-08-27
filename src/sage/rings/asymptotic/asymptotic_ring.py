@@ -4,6 +4,7 @@ Asymptotic Ring
 This module provides a ring (called :class:`AsymptoticRing`) for
 computations with asymptotic expressions.
 
+
 Definition
 ==========
 
@@ -20,6 +21,7 @@ An asymptotic expression is a sum; its summands are the following:
 Examples of such elements can found :ref:`below <asymptotic_ring_intro>`.
 
 .. _asymptotic_ring_growth:
+
 
 Growth Elements
 ---------------
@@ -73,6 +75,7 @@ variable `z` this means, `g_1 \leq g_2` if
         without a formal deprecation.
         See http://trac.sagemath.org/17601 for details.
 
+
 .. _asymptotic_ring_intro:
 
 Introductory Examples
@@ -109,12 +112,14 @@ Again, we can look at a typical (nontrivial) element::
     sage: B.an_element()
     -1/8*x^(3/2)*log(x)^3*(1/8)^y*y^(3/2) + O(x^(1/2)*log(x)*(1/2)^y*y^(1/2))
 
+
 Arithemtical Operations
 -----------------------
 
 With the asymptotic rings constructed above (or more precisely with
 their elements) we can do a lot of different arithmetical
 calculations.
+
 
 The Ring Operations Plus and Times
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -154,6 +159,7 @@ where the result is simplified automatically. More advanced
     sage: (z+2*z^2+3*z^3+4*z^4) * (O(z)+z^2)
     4*z^6 + O(z^5)
 
+
 Division
 ^^^^^^^^
 
@@ -182,6 +188,7 @@ Note that not all elements are invertible, for instance,
 
 is not invertible, since it includes `0`.
 
+
 Multivariate Arithemtic
 ^^^^^^^^^^^^^^^^^^^^^^^
 
@@ -200,8 +207,10 @@ More Examples
 
     write more examples
 
+
 Selected Technical Details
 ==========================
+
 
 Coercions and Functorial Constructions
 --------------------------------------
@@ -230,6 +239,7 @@ Here the result's coefficient ring is the newly found
     sage: (C.an_element() / 7).parent()
     Asymptotic Ring <c^ZZ> over
     Univariate Polynomial Ring in e over Integer Ring
+
 
 Data Structures
 ---------------
@@ -272,6 +282,7 @@ is used. We can have a look at this::
     |   +-- successors:   O(x), O(y)
     |   +-- no predecessors
 
+
 Various
 =======
 
@@ -280,6 +291,7 @@ AUTHORS:
 - Benjamin Hackl (2015-06): initial version
 - Benjamin Hackl (2015-07): improvement user interface (short notation)
 - Daniel Krenn (2015-08): various improvents, review; documentation
+
 
 Methods
 =======

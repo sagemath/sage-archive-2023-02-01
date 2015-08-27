@@ -1209,3 +1209,167 @@ cdef class CoinBackend(GenericBackend):
         p.prob_name = self.prob_name
 
         return p
+
+    cpdef get_basis_status(self):
+        """
+        Retrieve status information for column and row variables.
+
+        This method returns status as integer codes:
+
+          * 0: free
+          * 1: basic
+          * 2: nonbasic at upper bound
+          * 3: nonbasic at lower bound
+
+        OUTPUT:
+
+        - ``cstat`` -- The status of the column variables
+
+        - ``rstat`` -- The status of the row variables
+
+        .. NOTE::
+
+            Logical variables associated with rows are all assumed to have +1
+            coefficients, so for a <= constraint the logical will be at lower
+            bound if the constraint is tight.
+
+
+        EXAMPLE::
+
+            sage: lp = MixedIntegerLinearProgram(solver='Coin')   # optional - cbc
+            sage: v = lp.new_variable(nonnegative=True)           # optional - cbc
+            sage: x,y = v[0], v[1]                                # optional - cbc
+            sage: lp.add_constraint(2*x + 3*y, max = 6)           # optional - cbc
+            sage: lp.add_constraint(3*x + 2*y, max = 6)           # optional - cbc
+            sage: lp.set_objective(x + y + 7)                     # optional - cbc
+            sage: p = lp.get_backend()
+            sage: p.solve()                                       # optional - cbc
+            0
+            sage: p.get_basis_status()                            # optional - cbc
+            ([3, 3], [1, 1])
+
+            sage: from sage.numerical.backends.generic_backend import get_solver
+            sage: p = get_solver(solver = "Coin")                 # optional - cbc
+            sage: p.add_variables(2)                              # optional - cbc
+            1
+            sage: p.add_linear_constraint([(0, 2), (1, 3)], 0, 6) # optional - cbc
+            sage: p.add_linear_constraint([(0, 3), (1, 2)], 0, 6) # optional - cbc
+            sage: p.set_objective([1, 1], 7)                      # optional - cbc
+            sage: p.solve()                                       # optional - cbc
+            0
+            sage: p.get_basis_status()                            # optional - cbc
+            ([3, 3], [1, 1])
+
+            sage: p = get_solver(solver = "Coin")                 # optional - cbc
+            sage: p.add_variables(3)                              # optional - cbc
+            2
+            sage: p.add_linear_constraint(zip([0, 1, 2], [8, 6, 1]), None, 48)          # optional - cbc
+            sage: p.add_linear_constraint(zip([0, 1, 2], [4, 2, 1.5]), None, 20)        # optional - cbc
+            sage: p.add_linear_constraint(zip([0, 1, 2], [2, 1.5, 0.5]), None, 8)       # optional - cbc
+            sage: p.set_objective([60, 30, 20])                   # optional - cbc
+            sage: p.solve()                                       # optional - cbc
+            0
+            sage: p.get_basis_status()                            # optional - cbc
+            ([3, 3, 3], [1, 1, 1])
+
+        Note that in the last example, p.get_basis_status() would return ([1, 3, 1], [1, 3, 3]),
+        if solve() used simplex method instead of branch and bound.
+
+        """
+        cdef int n = self.si.getNumCols()
+        cdef int m = self.si.getNumRows()
+        cdef int * c_cstat = <int *>sage_malloc(n * sizeof(int))
+        cdef int * c_rstat = <int *>sage_malloc(m * sizeof(int))
+        cdef list cstat
+        cdef list rstat
+        # enableSimplexInterface must be set to use getBasisStatus().
+        # See projects.coin-or.org/Osi/ticket/84
+        self.si.enableSimplexInterface(True)
+        try:
+            sig_on()            # To catch SIGABRT
+            self.si.getBasisStatus(c_cstat, c_rstat)
+            sig_off()
+        except RuntimeError:    # corresponds to SIGABRT
+            raise MIPSolverException('CBC : Signal sent, getBasisStatus() fails')
+        else:
+            cstat = [c_cstat[j] for j in range(n)]
+            rstat = [c_rstat[j] for j in range(m)]
+            return (cstat, rstat)
+        finally:
+            sage_free(c_cstat)
+            sage_free(c_rstat)
+
+    cpdef int set_basis_status(self, list cstat, list rstat) except -1:
+        """
+        Set the status of column and row variables
+        and update the basis factorization and solution.
+
+        This method returns status as integer codes:
+
+        INPUT:
+
+        - ``cstat`` -- The status of the column variables
+
+        - ``rstat`` -- The status of the row variables
+
+        .. NOTE::
+
+            Status information should be coded as:
+
+              * 0: free
+              * 1: basic
+              * 2: nonbasic at upper bound
+              * 3: nonbasic at lower bound
+
+            Logical variables associated with rows are all assumed to have +1
+            coefficients, so for a <= constraint the logical will be at lower
+            bound if the constraint is tight.
+
+        OUTPUT:
+
+        Returns 0 if all goes well, 1 if something goes wrong.
+
+        EXAMPLES::
+
+            sage: from sage.numerical.backends.generic_backend import get_solver
+            sage: p = get_solver(solver = "Coin")                 # optional - cbc
+            sage: p.add_variables(3)                              # optional - cbc
+            2
+            sage: p.add_linear_constraint(zip([0, 1, 2], [8, 6, 1]), None, 48)          # optional - cbc
+            sage: p.add_linear_constraint(zip([0, 1, 2], [4, 2, 1.5]), None, 20)        # optional - cbc
+            sage: p.add_linear_constraint(zip([0, 1, 2], [2, 1.5, 0.5]), None, 8)       # optional - cbc
+            sage: p.set_objective([60, 30, 20])                   # optional - cbc
+            sage: p.get_basis_status()
+            ([3, 3, 3], [1, 1, 1])
+            sage: p.set_basis_status([1, 2, 1], [1, 2, 2])        # optional - cbc
+            0
+            sage: p.get_basis_status()                            # optional - cbc
+            ([1, 3, 1], [1, 3, 3])
+        """
+        cdef int n = len(cstat)
+        cdef int m = len(rstat)
+        cdef int * c_cstat
+        cdef int * c_rstat
+        cdef int result
+        if n != self.si.getNumCols() or m != self.si.getNumRows():
+            raise ValueError("Must provide the status of every column and row variables")
+        c_cstat = <int *>sage_malloc(n * sizeof(int))
+        c_rstat = <int *>sage_malloc(m * sizeof(int))
+        for i in range(n):
+            c_cstat[i] = cstat[i]
+        for i in range(m):
+            c_rstat[i] = rstat[i]
+        # enableSimplexInterface must be set to use getBasisStatus().
+        # See projects.coin-or.org/Osi/ticket/84
+        self.si.enableSimplexInterface(True)
+        try:
+            sig_on()            # To catch SIGABRT
+            result = self.si.setBasisStatus(c_cstat, c_rstat)
+            sig_off()
+        except RuntimeError:    # corresponds to SIGABRT
+            raise MIPSolverException('CBC : Signal sent, setBasisStatus() fails')
+        else:
+            return result
+        finally:
+            sage_free(c_cstat)
+            sage_free(c_rstat)

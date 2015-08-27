@@ -302,14 +302,12 @@ class GenericTerm(sage.structure.element.MonoidElement):
             sage: T(x^2)
             Generic Term with growth x^2
         """
-        from sage.rings.asymptotic.growth_group import GenericGrowthElement
-
         if parent is None:
             raise ValueError('The parent must be provided')
         try:
             self.growth = parent.growth_group(growth)
         except ValueError, TypeError:
-            raise ValueError("%s is not in %s" % (growth, self.growth_group))
+            raise ValueError("%s is not in %s" % (growth, parent.growth_group))
 
         super(GenericTerm, self).__init__(parent=parent)
 

@@ -1170,6 +1170,10 @@ class AsymptoticRing(sage.rings.ring.Ring,
             from sage.misc.defaults import series_precision
             default_prec = series_precision()
 
+        from sage.categories.rings import Rings
+        if category is None:
+            category = Rings() & sage.categories.posets.Posets()
+
         return super(AsymptoticRing,
                      cls).__classcall__(cls, growth_group, coefficient_ring,
                                         category=category,
@@ -1207,14 +1211,11 @@ class AsymptoticRing(sage.rings.ring.Ring,
         elif coefficient_ring not in Rings():
             raise ValueError('%s is not a ring. Cannot continue.' % (coefficient_ring,))
 
-        if category is None:
-            category = Rings() & sage.categories.posets.Posets()
-        else:
-            if not isinstance(category, tuple):
-                category = (category,)
-            if not any(cat.is_subcategory(Rings()) for cat in category):
-                raise ValueError('%s is not a subcategory of %s' % (category,
-                                 Rings()))
+        if not isinstance(category, tuple):
+            category = (category,)
+        if not any(cat.is_subcategory(Rings()) for cat in category):
+            raise ValueError('%s is not a subcategory of %s' % (category,
+                             Rings()))
 
         self._coefficient_ring_ = coefficient_ring
         self._growth_group_ = growth_group

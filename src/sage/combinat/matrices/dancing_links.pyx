@@ -256,9 +256,124 @@ cdef class dancing_linksWrapper:
         sig_off()
         return x
 
+    def split(self, column):
+        r"""
+        Return a dict of rows solving independant cases.
+
+        For each ``i``-th row containing a ``1`` in the ``column``, the
+        dict associates the list of rows where each other row containing a
+        ``1`` in the same ``column`` is replaced by the empty list.
+
+        This is used for parallel computations. If possible, a good choice
+        of column gives a partition of solutions where each part has about
+        the same number of solutions.
+
+        INPUT:
+
+        - ``column`` -- integer, the column used to split the problem
+
+        OUTPUT:
+
+            dict, row number -> list of rows
+
+        EXAMPLES::
+
+            sage: from sage.combinat.matrices.dancing_links import dlx_solver
+            sage: rows = [[0,1,2], [3,4,5], [0,1], [2,3,4,5], [0], [1,2,3,4,5]]
+            sage: d = dlx_solver(rows)
+            sage: d
+            Dancing links solver for 6 columns and 6 rows
+            sage: list(d.solutions_iterator())
+            [[0, 1], [2, 3], [4, 5]]
+
+        After the split each subproblem has the same number of columns and
+        rows and the same solutions as above::
+
+            sage: D = d.split(0)
+            sage: D
+            {0: [[0, 1, 2], [3, 4, 5], [], [2, 3, 4, 5], [], [1, 2, 3, 4, 5]],
+             2: [[], [3, 4, 5], [0, 1], [2, 3, 4, 5], [], [1, 2, 3, 4, 5]],
+             4: [[], [3, 4, 5], [], [2, 3, 4, 5], [0], [1, 2, 3, 4, 5]]}
+            sage: for a in D.values(): list(dlx_solver(a).solutions_iterator())
+            [[0, 1]]
+            [[2, 3]]
+            [[4, 5]]
+        """
+        from copy import deepcopy
+        indices = [i for (i,row) in enumerate(self._rows) if column in row]
+        D = dict()
+        for i in indices:
+            rows = deepcopy(self._rows)
+            for j in indices:
+                if j != i:
+                    rows[j] = []
+            D[i] = rows
+        return D
+
+    def solutions_iterator(self):
+        r"""
+        Return an iterator of the solutions.
+
+        EXAMPLES::
+
+            sage: from sage.combinat.matrices.dancing_links import dlx_solver
+            sage: rows = [[0,1,2], [3,4,5], [0,1], [2,3,4,5], [0], [1,2,3,4,5]]
+            sage: d = dlx_solver(rows)
+            sage: list(d.solutions_iterator())
+            [[0, 1], [2, 3], [4, 5]]
+        """
+        while self.search():
+            yield self.get_solution()
+
+    def number_of_solutions_iterator(self, ncpus=1, column=0):
+        r"""
+        Return an iterator over the number of solutions using each row
+        containing a ``1`` in the given ``column``.
+
+        INPUT:
+
+        - ``ncpus`` -- integer (default: ``1``), maximal number of
+          subprocesses to use at the same time
+        - ``column`` -- integer (default: ``0``), the column used to split
+          the problem (ignored if ``ncpus`` is ``None``)
+
+        OUPUT:
+
+            iterator of tuples (row number, number of solutions)
+
+        EXAMPLES::
+
+            sage: from sage.combinat.matrices.dancing_links import dlx_solver
+            sage: rows = [[0,1,2], [3,4,5], [0,1], [2,3,4,5], [0], [1,2,3,4,5]]
+            sage: d = dlx_solver(rows)
+            sage: sorted(d.number_of_solutions_iterator(ncpus=2, column=3))
+            [(1, 1), (3, 1), (5, 1)]
+
+        ::
+
+            sage: S = Subsets(range(5))
+            sage: rows = map(list, S)
+            sage: d = dlx_solver(rows)
+            sage: d.number_of_solutions()
+            52
+            sage: sum(b for a,b in d.number_of_solutions_iterator(ncpus=2, column=3))
+            52
+        """
+        D = self.split(column)
+        from sage.parallel.decorate import parallel
+        @parallel(ncpus=ncpus)
+        def nb_sol(i):
+            return dlx_solver(D[i]).number_of_solutions()
+        K = sorted(D.keys())
+        for ((args, kwds), val) in nb_sol(K):
+            yield args[0], val
+
     def number_of_solutions(self):
         r"""
         Return the number of distinct solutions.
+
+        See also :meth:`number_of_solutions_iterator` using parallel
+        capacities.
 
         OUPUT:
 

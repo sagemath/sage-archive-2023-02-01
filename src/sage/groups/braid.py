@@ -658,11 +658,11 @@ class Braid(FinitelyPresentedGroupElement):
             sage: B = BraidGroup(4)
             sage: b = B([1, 2, -3])
             sage: b.TL_matrix(0)
-            [-A^4 + 1   1/-A^2]
-            [    -A^6        0]
+            [1 - A^4   -A^-2]
+            [   -A^6       0]
             sage: R.<x> = LaurentPolynomialRing(GF(2))
             sage: b.TL_matrix(0, variab=x)
-            [x^4 + 1   1/x^2]
+            [1 + x^4    x^-2]
             [    x^6       0]
             sage: b = B([])
             sage: b.TL_matrix(0)
@@ -709,13 +709,9 @@ class Braid(FinitelyPresentedGroupElement):
         M = identity_matrix(R, B.dim_of_TL_space(d), sparse=sparse)
         for i in self.Tietze():
             if i > 0:
-                M = M*rep[i-1]
+                M = M*rep[i-1][0]
             if i < 0:
-                # Note: calculating the inverse might seem a bit silly at first
-                # glance since it's obtained simply by replacing A by A^(-1).
-                # However, in my testing, doing this calculation actually turns
-                # out to be faster than obtaining the inverse through lookups.
-                M = M*rep[-i-1]**(-1)
+                M = M*rep[-i-1][1]
         return M
 
     def tropical_coordinates(self):
@@ -768,7 +764,7 @@ class Braid(FinitelyPresentedGroupElement):
         T = TropicalSemiring(IntegerRing())
         return [T(_) for _ in coord]
 
-    def markov_trace(self, variab=None):
+    def markov_trace(self, variab=None, normalised=True):
         """
         Return the Markov trace of the braid.
         
@@ -776,18 +772,26 @@ class Braid(FinitelyPresentedGroupElement):
         representation, the eigenvalues of the standard generators of the braid
         group are `1` and `-A^4`. If `variab` is unspecified, then the variable
         used in the result is this generator `A` for a univariate polynomial
-        ring over the integers. In this case, we also cache the result.
+        ring over the integers.
+
+        If ``normalised`` is ``False``, return instead the Markov trace of the
+        braid, normalised by a factor of `(A^2+A^{-2})^n`. The result is then
+        an honest Laurent polynomial.
 
         INPUT:
 
         - ``variab`` -- variable (default: ``None``); the variable in the
           resulting polynomial. If ``None``, then use a default variable
           in `\mathbb{Z}[A,A^{-1}]`
+          
+        - ``normalised`` - boolean (default: ``True``); if specified to be
+          ``False``, return instead a rescaled Laurent polynomial version of
+          the Markov trace
 
         OUTPUT:
 
-        Quotient of Laurent polynomials over ``ring`` in the variable
-        ``variab``.
+        Quotient of Laurent polynomials or a Laurent polynomial, depending on
+        the value of ``normalised``
 
         EXAMPLES::
 
@@ -797,26 +801,24 @@ class Braid(FinitelyPresentedGroupElement):
             A^4 * (A^4 + 1)^-3
         """
         if variab is None:
-            try:
-                return self._markov_cached
-            except AttributeError:
-                pass
             R = LaurentPolynomialRing(IntegerRing(), 'A')
             A = R.gens()[0]
         else:
             A = variab
-        delta = -A**2 - A**(-2)
         n = self.strands()
         drains = [d for d in range(n+1) if (n+d) % 2 == 0]
 
         def weighted_trace(d):
-            quantum_integer = (A**(2*(d+1)) - A**(-2*(d+1)))/(A**2 - A**(-2))
+            # We define the quantum integer through a series to avoid ending
+            # up in the fraction field in sage whenever we can.
+            quantum_integer = A**(-2*d) * sum(A**(4*i) for i in range(d+1))
             return quantum_integer * self.TL_matrix(d, variab=variab).trace()
 
-        traces = [weighted_trace(d) for d in drains]
-        if variab is None:
-            self._markov_cached = sum(traces) / (-delta)**n
-        return sum(traces) / (-delta)**n
+        trace_sum = sum([weighted_trace(d) for d in drains])
+        if normalised:
+            delta = -A**2 - A**(-2)
+            trace_sum = trace_sum / (-delta)**n
+        return trace_sum
 
     def jones_polynomial(self, skein_normalisation=False, variab=None):
         """
@@ -918,16 +920,24 @@ class Braid(FinitelyPresentedGroupElement):
             A = R.gens()[0]
         except AttributeError:
             # We do the calculation of the polynomial over the general ring
-            trace = self.markov_trace()
+            trace = self.markov_trace(normalised=False)
             R = trace.parent()
             A = R.gens()[0]
             D = -A**2 - A**(-2)
             n = self.strands()
             exp_sum = self.exponent_sum()
             num_comp = self.components_in_closure()
-            jones_pol = (-1)**(num_comp-1) * (-D)**(n-1) * A**(2*exp_sum) * trace
+            almost_jones_pol = (-1)**(num_comp) * A**(2*exp_sum) * trace
+            # The Jones polynomial is obtained from this by dividing by D.
+            # Unfortunately, sage treats the result as a fraction field element
+            # which can not always be coerced back into the univariate
+            # polynomial ring; this fails, for instance, for
+            #     BraidGroup(2)([-1,-1,-1]).
+            # The following hack fixes that problem.
+            low_degree = min([d for d in almost_jones_pol.dict()])
+            jones_pol = R(almost_jones_pol * A**-low_degree / D) * A**low_degree
             self._jones_cached = jones_pol
-        
+
         if variab is None:
             if skein_normalisation:
                 output_var = A
@@ -1631,7 +1641,7 @@ class BraidGroup_class(FinitelyPresentedGroup):
     def TL_representation(self, drain_size, variab=None):
         """
         Return representation matrices of the Temperley--Lieb--Jones
-        representation of standard braid group generators.
+        representation of standard braid group generators and inverses.
         
         The basis is given by non-intersecting pairings of `(n+d)` points,
         where `n` is the number of strands, and `d` is given by ``drain_size``,
@@ -1662,25 +1672,47 @@ class BraidGroup_class(FinitelyPresentedGroup):
         OUTPUT:
 
         A list of matrices corresponding to the representations of each of the
-        standard generators.
+        standard generators and their inverses.
 
         EXAMPLES::
 
             sage: B = BraidGroup(4)
             sage: B.TL_representation(0)
-            [
-            [   1    0]  [-A^4  A^2]  [   1    0]
-            [ A^2 -A^4], [   0    1], [ A^2 -A^4]
-            ]
+            [[
+            [   1    0]  [    1     0]
+            [ A^2 -A^4], [ A^-2 -A^-4]
+            ],
+             [
+            [-A^4  A^2]  [-A^-4  A^-2]
+            [   0    1], [    0     1]
+            ],
+             [
+            [   1    0]  [    1     0]
+            [ A^2 -A^4], [ A^-2 -A^-4]
+            ]]
             sage: R.<A> = LaurentPolynomialRing(GF(2))
             sage: B.TL_representation(0, variab=A)
-            [
-            [  1   0]  [A^4 A^2]  [  1   0]
-            [A^2 A^4], [  0   1], [A^2 A^4]
-            ]
+            [[
+            [  1   0]  [   1    0]
+            [A^2 A^4], [A^-2 A^-4]
+            ],
+             [
+            [A^4 A^2]  [A^-4 A^-2]
+            [  0   1], [   0    1]
+            ],
+             [
+            [  1   0]  [   1    0]
+            [A^2 A^4], [A^-2 A^-4]
+            ]]
             sage: B = BraidGroup(8)
             sage: B.TL_representation(8)
-            [[1], [1], [1], [1], [1], [1], [1]]
+            [[[1], [1]],
+             [[1], [1]],
+             [[1], [1]],
+             [[1], [1]],
+             [[1], [1]],
+             [[1], [1]],
+             [[1], [1]]]
         """
         n = self.strands()
         d = drain_size
@@ -1689,15 +1721,15 @@ class BraidGroup_class(FinitelyPresentedGroup):
         # The action of the sigma_i is given in terms of the actions of the
         # e_i which is what auxmat describes. Our choice of normalisation means
         # that \sigma_i acts by the identity + A**2 e_i.
-        repmat = []  # The list which will store the actions of sigma_i
+        rep_matrices = []  # The list which will store the actions of sigma_i
 
         if variab is None:
             try:
-                self._TL_representation_dict
+                self._TL_representation_dict_alt
             except AttributeError:
-                self._TL_representation_dict = {}
-            if d in self._TL_representation_dict:
-                return self._TL_representation_dict[d]
+                self._TL_representation_dict_alt = {}
+            if d in self._TL_representation_dict_alt:
+                return self._TL_representation_dict_alt[d]
             R = LaurentPolynomialRing(IntegerRing(), 'A')
             A = R.gens()[0]
         else:
@@ -1705,19 +1737,22 @@ class BraidGroup_class(FinitelyPresentedGroup):
             A = variab
 
         for i in range(1, n):  # For each \sigma_i
-            repmatnew = identity_matrix(R, dimension, sparse=True)
+            rep_mat_new = identity_matrix(R, dimension, sparse=True)
+            rep_mat_new_inv = identity_matrix(R, dimension, sparse=True)
             for v in range(dimension):
-                newmatentry = auxmat[i-1, v]
-                if newmatentry == v:  # Did we create an unknot?
-                    repmatnew[v, v] = -A**4
-                elif newmatentry >= 0:
-                    repmatnew[newmatentry, v] = A**2
-            repmat.append(repmatnew)
+                new_mat_entry = auxmat[i-1, v]
+                if new_mat_entry == v:  # Did we create an unknot?
+                    rep_mat_new[v, v] = -A**4
+                    rep_mat_new_inv[v, v] = -A**(-4)
+                elif new_mat_entry >= 0:
+                    rep_mat_new[new_mat_entry, v] = A**2
+                    rep_mat_new_inv[new_mat_entry, v] = A**(-2)
+            rep_matrices.append([rep_mat_new, rep_mat_new_inv])
         
         if variab is None:  # Cache the result in this case
-            self._TL_representation_dict[d] = repmat
+            self._TL_representation_dict_alt[d] = rep_matrices
         
-        return repmat
+        return rep_matrices
 
     def mapping_class_action(self, F):
         """

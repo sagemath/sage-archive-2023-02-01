@@ -930,18 +930,16 @@ class Braid(FinitelyPresentedGroupElement):
             jones_pol = (-1)**(num_comp) * A**(2*exp_sum) * trace // D
             self._jones_cached = jones_pol
 
-        if variab is None:
-            if skein_normalisation:
-                output_var = A
-            else:
-                output_var = SR('t')
-        else:
-            output_var = variab
-
         if skein_normalisation:
-            return jones_pol.subs(A=output_var)
+            if variab is None:
+                return jones_pol
+            else:
+                return jones_pol.subs(A=variab)
         else:
-            return jones_pol.subs(A=output_var**(ZZ(1)/ZZ(4))).expand()
+            if variab is None:
+                return jones_pol.subs(A=SR('t')**(ZZ(1)/ZZ(4))).expand()
+            else:
+                return jones_pol.subs(A=variab**(ZZ(1)/ZZ(4))).expand()
 
     @cached_method
     def left_normal_form(self):

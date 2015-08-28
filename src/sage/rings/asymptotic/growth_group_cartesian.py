@@ -1065,7 +1065,7 @@ class GenericProduct(CartesianProductPosets, GenericGrowthGroup):
 
                 except (ValueError, TypeError):
                     raise ValueError('Logarithm of %s cannot be '
-                                         'constructed in %s.' % (factor, P))
+                                     'constructed in %s.' % (factor, P))
 
             return log_factors
 

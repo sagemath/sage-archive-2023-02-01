@@ -835,6 +835,9 @@ class AsymptoticExpression(sage.structure.element.CommutativeAlgebraElement):
             sage: 2*a
             2*a
         """
+        if other == 0:
+            return self.parent().zero()
+
         from sage.rings.asymptotic.term_monoid import TermMonoid
         E = TermMonoid('exact', asymptotic_ring=self.parent())
         e = E(self.parent().growth_group.one(), coefficient=other)
@@ -1178,6 +1181,7 @@ class AsymptoticRing(sage.algebras.algebra.Algebra,
         sage: R1_x is R2_x is R3_x
         True
     """
+
     # enable the category framework for elements
     Element = AsymptoticExpression
 
@@ -1501,7 +1505,7 @@ class AsymptoticRing(sage.algebras.algebra.Algebra,
         if not data or data == 0:
             summands = AsymptoticRing._create_empty_summands_()
             return self.element_class(self, summands,
-                                      simplify=simplify, convert=convert)
+                                      simplify=simplify, convert=False)
 
         try:
             P = data.parent()
@@ -1882,7 +1886,7 @@ class AsymptoticRing(sage.algebras.algebra.Algebra,
                 raise TypeError("Neither 'data' nor 'growth' are specified.")
 
         if type == 'exact' and kwds.get('coefficient') == 0:
-            return self(kwds['coefficient'])
+            return self.zero()
 
         return self(TM(data, **kwds), convert=False)
 

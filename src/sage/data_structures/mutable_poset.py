@@ -48,9 +48,8 @@ Let us look at the poset again::
     poset(3, 7, 13, 42)
 
 We see that they elements are sorted using `\leq` which exists on the
-integers `\ZZ`. Since this is even a total order, we could have used
-the more efficient :class:`MutableToset`. (Note that also other data
-structures are suitable for totally ordered sets.)
+integers `\ZZ`. Since this is even a total order, we could have used a
+more efficient data structure.
 
 
 A less boring Example
@@ -137,6 +136,7 @@ us; they are just there and sometimes useful.
 AUTHORS:
 
 - Daniel Krenn (2015-01-21): initial version
+- Daniel Krenn (2015-08-28): mapping methods, bug fixes, cleanup
 
 ACKNOWLEDGEMENT:
 
@@ -2976,34 +2976,6 @@ class MutablePoset(object):
             poset('(1, 2)', '(1, 3)', '(2, 1)', '(2, 2)', '(4, 4)')
         """
         return self.copy(mapping=function)
-
-
-# *****************************************************************************
-
-
-class MutableTosetShell(MutablePosetShell):
-    r"""
-    A shell containing an element of a mutable toset (totally ordered set).
-
-    .. TODO::
-
-        Implement this class.
-    """
-    pass
-
-
-# *****************************************************************************
-
-
-class MutableToset(MutablePoset):
-    r"""
-    A mutable toset (totally ordered set) as data structure.
-
-    .. TODO::
-
-        Implement this class.
-    """
-    pass
 
 
 # *****************************************************************************

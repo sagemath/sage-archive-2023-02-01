@@ -1360,16 +1360,15 @@ class AsymptoticRing(sage.algebras.algebra.Algebra,
             sage: A.change_parameter(coefficient_ring=ZZ) is A
             True
         """
-        parameters = ('growth_group', 'coefficient_ring', 'category', 'default_prec')
+        parameters = ('growth_group', 'coefficient_ring', 'default_prec')
         values = dict()
         for parameter in parameters:
             values[parameter] = kwds.get(parameter, getattr(self, parameter))
-        values['category'] = values['category']()
+        values['category'] = self.category()
         if all(values[parameter] is getattr(self, parameter)
-               for parameter in parameters):
+               for parameter in parameters) and values['category'] is self.category():
             return self
         return self.__class__(**values)
-
 
     @staticmethod
     def _create_empty_summands_():

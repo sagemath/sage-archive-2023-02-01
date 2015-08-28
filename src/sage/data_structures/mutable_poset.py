@@ -2799,6 +2799,18 @@ class MutablePoset(object):
 
             sage: copy(P).merge(reverse=False) == copy(P).merge(reverse=True)
             True
+
+        ::
+
+            sage: P = MP(srange(4),
+            ....:        merge=lambda l, r: l, can_merge=lambda l, r: l >= r); P
+            poset(0, 1, 2, 3)
+            sage: Q = P.copy()
+            sage: Q.merge(reverse=True); Q
+            poset(3)
+            sage: R = P.mapped(lambda x: x+1)
+            sage: R.merge(reverse=True); R
+            poset(4)
         """
         if key is None:
             for shell in tuple(self.shells_topological(reverse=reverse)):
@@ -2812,7 +2824,11 @@ class MutablePoset(object):
         for rev in (reverse, not reverse):
             to_merge = shell.iter_depth_first(
                 reverse=rev, condition=can_merge)
-            next(to_merge)
+            try:
+                next(to_merge)
+            except StopIteration:
+                raise RuntimeError('Stopping merge before started; the '
+                                   'can_merge-function is not reflexive.')
             for m in tuple(to_merge):
                 if m.is_special():
                     continue

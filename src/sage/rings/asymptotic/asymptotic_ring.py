@@ -760,7 +760,7 @@ class AsymptoticExpression(sage.structure.element.CommutativeAlgebraElement):
             sage: O(x) - O(x)
             O(x)
         """
-        return self + (-1)*other
+        return self + self.parent().coefficient_ring(-1)*other
 
 
     def _mul_term_(self, term):

@@ -71,7 +71,7 @@ TESTS::
 ::
 
     sage: A.an_element()
-    (1/2)^x * x
+    (1/2)^x*x
     sage: tuple(E.an_element())
     (1, x^(1/2))
 """
@@ -327,7 +327,7 @@ class GenericProduct(CartesianProductPosets, GenericGrowthGroup):
         sage: C = cartesian_product([P, L], order='lex'); C
         Growth Group x^QQ * log(x)^ZZ
         sage: C.an_element()
-        x^(1/2) * log(x)
+        x^(1/2)*log(x)
 
     ::
 
@@ -338,7 +338,7 @@ class GenericProduct(CartesianProductPosets, GenericGrowthGroup):
         sage: C = cartesian_product([Cx, Py], order='components'); C
         Growth Group x^QQ * log(x)^ZZ * y^QQ
         sage: C.an_element()
-        x^(1/2) * log(x) * y^(1/2)
+        x^(1/2)*log(x)*y^(1/2)
 
     .. SEEALSO:
 
@@ -389,8 +389,8 @@ class GenericProduct(CartesianProductPosets, GenericGrowthGroup):
         Conversion from the symbolic ring works::
 
             sage: x,y = var('x y')
-            sage: G(x^-3 * y^2)
-            x^(-3) * y^2
+            sage: G(x^-3*y^2)
+            x^(-3)*y^2
             sage: G(x^4), G(y^2)
             (x^4, y^2)
             sage: G(1)
@@ -398,8 +398,8 @@ class GenericProduct(CartesianProductPosets, GenericGrowthGroup):
 
         Even more complex expressions can be parsed::
 
-            sage: G_log(x^42 * log(x)^-42 * y^42)
-            x^42 * log(x)^(-42) * y^42
+            sage: G_log(x^42*log(x)^-42*y^42)
+            x^42*log(x)^(-42)*y^42
 
         TESTS::
 
@@ -422,7 +422,7 @@ class GenericProduct(CartesianProductPosets, GenericGrowthGroup):
             sage: GrowthGroup('QQ^x * x^QQ')(['x^(1/2)'])
             x^(1/2)
             sage: l = GrowthGroup('x^ZZ * log(x)^ZZ')(['x', 'log(x)']); l
-            x * log(x)
+            x*log(x)
             sage: type(l)
             <class 'sage.rings.asymptotic.growth_group_cartesian.UnivariateProduct_with_category.element_class'>
             sage: GrowthGroup('QQ^x * x^QQ')(['2^log(x)'])
@@ -849,9 +849,9 @@ class GenericProduct(CartesianProductPosets, GenericGrowthGroup):
                 sage: P = agg.MonomialGrowthGroup(QQ, 'x')
                 sage: L = agg.MonomialGrowthGroup(ZZ, 'log(x)')
                 sage: cartesian_product([P, L], order='lex').an_element()._repr_()
-                'x^(1/2) * log(x)'
+                'x^(1/2)*log(x)'
             """
-            s = ' * '.join(repr(v) for v in self.value if not v.is_one())
+            s = '*'.join(repr(v) for v in self.value if not v.is_one())
             if s == '':
                 return '1'
             return s
@@ -1130,6 +1130,36 @@ class GenericProduct(CartesianProductPosets, GenericGrowthGroup):
                 ValueError: Cannot construct e^x in Growth Group x^ZZ * log(x)^ZZ * log(log(x))^ZZ.
             """
             return self.rpow('e')
+
+
+        def __invert__(self):
+            r"""
+            Return the multiplicative inverse of this cartesian product.
+
+            OUTPUT:
+
+            An growth element.
+
+            .. NOTE::
+
+                The result may live in a larger parent than we started with.
+
+            TESTS::
+
+                 sage: from sage.rings.asymptotic.growth_group import GrowthGroup
+                 sage: G = GrowthGroup('ZZ^x * x^ZZ')
+                 sage: g = G('2^x * x^3')
+                 sage: (~g).parent()
+                 Growth Group QQ^x * x^ZZ
+            """
+            new_element = tuple(~x for x in self.cartesian_factors())
+            try:
+                return self.parent()(new_element)
+            except (ValueError, TypeError):
+                from sage.categories.cartesian_product import cartesian_product
+                new_parent = cartesian_product(
+                    tuple(x.parent() for x in new_element))
+                return new_parent(new_element)
 
 
     CartesianProduct = CartesianProductGrowthGroups

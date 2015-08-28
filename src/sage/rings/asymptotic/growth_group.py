@@ -105,7 +105,7 @@ More complex groups are created in a similar fashion. For example
 This contains elements of the form
 
     sage: C.an_element()
-    (1/2)^z * z^(1/2) * log(z)^(1/2)
+    (1/2)^z*z^(1/2)*log(z)^(1/2)
 
 The group `C` itself is a cartesian product; to be precise a
 :class:`~sage.rings.asymptotic.growth_group_cartesian.UnivariateProduct`. We
@@ -138,18 +138,18 @@ EXAMPLES::
     sage: G_xy = agg.GrowthGroup('x^ZZ * y^ZZ'); G_xy
     Growth Group x^ZZ * y^ZZ
     sage: G_xy.an_element()
-    x * y
+    x*y
     sage: x = G_xy('x'); y = G_xy('y')
     sage: x^2
     x^2
-    sage: elem = x^21 * y^21; elem^2
-    x^42 * y^42
+    sage: elem = x^21*y^21; elem^2
+    x^42*y^42
 
 A monomial growth group itself is totally ordered, all elements
 are comparable. However, this does **not** hold for cartesian
 products::
 
-    sage: e1 = x^2 * y; e2 = x * y^2
+    sage: e1 = x^2*y; e2 = x*y^2
     sage: e1 <= e2 or e2 <= e1
     False
 
@@ -170,10 +170,10 @@ can be constructed easily::
 
     sage: G = agg.GrowthGroup('QQ^x * x^ZZ * log(x)^QQ * y^QQ')
     sage: G.an_element()
-    (1/2)^x * x * log(x)^(1/2) * y^(1/2)
+    (1/2)^x*x*log(x)^(1/2)*y^(1/2)
     sage: (x, y) = var('x y')
-    sage: G(2^x * log(x) * y^(1/2)) * G(x^(-5) * 5^x * y^(1/3))
-    10^x * x^(-5) * log(x) * y^(5/6)
+    sage: G(2^x*log(x)*y^(1/2)) * G(x^(-5)*5^x*y^(1/3))
+    10^x*x^(-5)*log(x)*y^(5/6)
 
 AUTHORS:
 
@@ -222,6 +222,8 @@ def repr_short_to_parent(s):
         Rational Field
         sage: agg.repr_short_to_parent('SR')
         Symbolic Ring
+        sage: agg.repr_short_to_parent('NN')
+        Non negative integer semiring
 
     TESTS::
 
@@ -842,7 +844,7 @@ class GenericGrowthElement(sage.structure.element.MultiplicativeGroupElement):
             sage: import sage.rings.asymptotic.growth_group as agg
             sage: G = agg.GenericGrowthGroup(ZZ)
             sage: g = G.an_element()
-            sage: g * g
+            sage: g*g
             Traceback (most recent call last):
             ...
             NotImplementedError: Only implemented in concrete realizations.
@@ -874,7 +876,7 @@ class GenericGrowthElement(sage.structure.element.MultiplicativeGroupElement):
             NotImplementedError: Only implemented in concrete realizations.
             sage: P = GrowthGroup('x^ZZ')
             sage: ~P.an_element()
-            1/x
+            x^(-1)
         """
         raise NotImplementedError('Inversion of %s not implemented '
                                   '(in this abstract method).' % (self,))
@@ -964,7 +966,7 @@ class GenericGrowthElement(sage.structure.element.MultiplicativeGroupElement):
             sage: e1._eq_(P.gen())
             True
             sage: e2 = e1^4
-            sage: e2 == e1^2 * e1 * e1
+            sage: e2 == e1^2*e1*e1
             True
             sage: e2 == e1
             False
@@ -1427,11 +1429,11 @@ class GenericGrowthGroup(
 
             sage: import sage.rings.asymptotic.growth_group as agg
             sage: tuple(agg.MonomialGrowthGroup(ZZ, 'z').some_elements())
-            (1, z, 1/z, z^2, z^(-2), z^3, z^(-3),
+            (1, z, z^(-1), z^2, z^(-2), z^3, z^(-3),
              z^4, z^(-4), z^5, z^(-5), ...)
             sage: tuple(agg.MonomialGrowthGroup(QQ, 'z').some_elements())
             (z^(1/2), z^(-1/2), z^2, z^(-2),
-             1, z, 1/z, z^42,
+             1, z, z^(-1), z^42,
              z^(2/3), z^(-2/3), z^(3/2), z^(-3/2),
              z^(4/5), z^(-4/5), z^(5/4), z^(-5/4), ...)
         """
@@ -2077,7 +2079,7 @@ class MonomialGrowthElement(GenericGrowthElement):
         TESTS::
 
             sage: P(x^-1)  # indirect doctest
-            1/x
+            x^(-1)
             sage: P(x^-42)  # indirect doctest
             x^(-42)
         """
@@ -2088,8 +2090,6 @@ class MonomialGrowthElement(GenericGrowthElement):
             return '1'
         elif self.exponent == 1:
             return var
-        elif self.exponent == -1:
-            return '1/' + var
         elif self.exponent in ZZ and self.exponent > 0:
             return var + '^' + str(self.exponent)
         else:
@@ -2121,9 +2121,9 @@ class MonomialGrowthElement(GenericGrowthElement):
             sage: b = P(x^3)
             sage: c = a._mul_(b); c
             x^5
-            sage: c == a * b
+            sage: c == a*b
             True
-            sage: a * b * a  # indirect doctest
+            sage: a*b*a  # indirect doctest
             x^7
         """
         return self.parent()(raw_element=self.exponent + other.exponent)
@@ -2151,7 +2151,13 @@ class MonomialGrowthElement(GenericGrowthElement):
             sage: e2 == ~e1
             True
         """
-        return self.parent()(raw_element=-self.exponent)
+        new_element = -self.exponent
+        try:
+            return self.parent()(raw_element=new_element)
+        except (ValueError, TypeError):
+            new_parent = self.parent().__class__(new_element.parent(),
+                                                 self.parent()._var_)
+            return new_parent(raw_element=new_element)
 
 
     def __pow__(self, power):
@@ -2375,7 +2381,7 @@ class MonomialGrowthGroup(GenericGrowthGroup):
             sage: P('x^7')
             x^7
             sage: P('1/x')
-            1/x
+            x^(-1)
             sage: P('x^(-2)')
             x^(-2)
             sage: P('x^-2')
@@ -2664,9 +2670,9 @@ class ExponentialGrowthElement(GenericGrowthElement):
             sage: b = P(3^x)
             sage: c = a._mul_(b); c
             6^x
-            sage: c == a * b
+            sage: c == a*b
             True
-            sage: a * b * a  # indirect doctest
+            sage: a*b*a  # indirect doctest
             12^x
         """
         return self.parent()(raw_element=self.base * other.base)
@@ -2686,21 +2692,23 @@ class ExponentialGrowthElement(GenericGrowthElement):
 
         EXAMPLES::
 
-            sage: import sage.rings.asymptotic.growth_group as agg
-            sage: P = agg.GrowthGroup('ZZ^x')
+            sage: from sage.rings.asymptotic.growth_group import GrowthGroup
+            sage: P = GrowthGroup('ZZ^x')
             sage: e1 = P(raw_element=2)
             sage: e2 = e1.__invert__(); e2
             (1/2)^x
             sage: e2 == ~e1
             True
+            sage: e2.parent()
+            Growth Group QQ^x
         """
-        new_base = 1 / self.base
+        new_element = 1 / self.base
         try:
-            return self.parent()(raw_element=new_base)
+            return self.parent()(raw_element=new_element)
         except (ValueError, TypeError):
-            new_parent = ExponentialGrowthGroup(new_base.parent(),
-                                                self.parent()._var_)
-            return new_parent(raw_element=new_base)
+            new_parent = self.parent().__class__(new_element.parent(),
+                                                 self.parent()._var_)
+            return new_parent(raw_element=new_element)
 
 
     def __pow__(self, power):

@@ -608,7 +608,7 @@ class MutablePosetShell(object):
     __eq__ = eq
 
 
-    def _copy_all_linked_(self, memo, poset):
+    def _copy_all_linked_(self, memo, poset, mapping):
         r"""
         Helper function for :meth:`MutablePoset.copy`.
 
@@ -618,6 +618,8 @@ class MutablePosetShell(object):
           calling shell to a copy of it.
 
         - ``poset`` -- the poset to which the newly created shells belongs.
+
+        - ``mapping`` -- a function which is applied on each of the elements.
 
         OUTPUT:
 
@@ -629,7 +631,7 @@ class MutablePosetShell(object):
             sage: P = MP()
             sage: Q = MP()
             sage: memo = {}
-            sage: z = P.null._copy_all_linked_(memo, Q)
+            sage: z = P.null._copy_all_linked_(memo, Q, lambda e: e)
             sage: z.poset is Q
             True
             sage: oo = z.successors().pop()
@@ -641,12 +643,13 @@ class MutablePosetShell(object):
         except KeyError:
             pass
 
-        new = self.__class__(poset, self.element)
+        new = self.__class__(poset, mapping(self.element)
+                             if self.element is not None else None)
         memo[id(self)] = new
 
         for reverse in (False, True):
             for e in self.successors(reverse):
-                new.successors(reverse).add(e._copy_all_linked_(memo, poset))
+                new.successors(reverse).add(e._copy_all_linked_(memo, poset, mapping))
 
         return new
 
@@ -1231,7 +1234,7 @@ class MutablePoset(object):
         if is_MutablePoset(data):
             if key is not None:
                 raise TypeError('Cannot use key when data is a poset.')
-            self._copy_shells_(data)
+            self._copy_shells_(data, lambda e: e)
 
         else:
             self.clear()
@@ -1435,7 +1438,7 @@ class MutablePoset(object):
         return self._key_(element)
 
 
-    def _copy_shells_(self, other):
+    def _copy_shells_(self, other, mapping):
         r"""
         Helper function for copying shells.
 
@@ -1443,6 +1446,8 @@ class MutablePoset(object):
 
         - ``other`` -- the mutable poset from which the shells
           should be copied this poset.
+
+        - ``mapping`` -- a function which is applied on each of the elements.
 
         OUTPUT:
 
@@ -1461,7 +1466,7 @@ class MutablePoset(object):
             sage: P.add(T((4, 4)))
             sage: P.add(T((1, 2)))
             sage: Q = MP()
-            sage: Q._copy_shells_(P)
+            sage: Q._copy_shells_(P, lambda e: e)
             sage: P.repr_full() == Q.repr_full()
             True
         """
@@ -1470,20 +1475,20 @@ class MutablePoset(object):
         self._merge_ = copy(other._merge_)
         self._can_merge_ = copy(other._can_merge_)
         memo = {}
-        self._null_ = other._null_._copy_all_linked_(memo, self)
+        self._null_ = other._null_._copy_all_linked_(memo, self, mapping)
         self._oo_ = memo[id(other._oo_)]
         self._shells_ = dict((f.key, f) for f in
                               iter(memo[id(e)]
                                    for e in other._shells_.itervalues()))
 
 
-    def copy(self):
+    def copy(self, mapping=None):
         r"""
         Creates a shallow copy.
 
         INPUT:
 
-        Nothing.
+        - ``mapping`` -- a function which is applied on each of the elements.
 
         OUTPUT:
 
@@ -1505,8 +1510,10 @@ class MutablePoset(object):
             sage: P.repr_full() == Q.repr_full()
             True
         """
+        if mapping is None:
+            mapping = lambda element: element
         new = self.__class__()
-        new._copy_shells_(self)
+        new._copy_shells_(self, mapping)
         return new
 
 

@@ -1049,6 +1049,7 @@ class AsymptoticExpression(sage.structure.element.CommutativeAlgebraElement):
             raise NotImplementedError('Taking the sum %s to the '
                                       'non-integer power %s not '
                                       'implemented.' % (self, power))
+        expr = next(self.summands.elements())
 
         P = self.parent()
         if power not in P.growth_group.base():
@@ -1057,7 +1058,6 @@ class AsymptoticExpression(sage.structure.element.CommutativeAlgebraElement):
                              (P.growth_group, self, power))
 
         from sage.rings.asymptotic.term_monoid import TermWithCoefficient
-        expr = self.summands.elements().next()
         if isinstance(expr, TermWithCoefficient):
             new_growth = expr.growth**power
             new_coeff = expr.coefficient**power

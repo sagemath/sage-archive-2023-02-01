@@ -1215,14 +1215,47 @@ class AsymptoticRing(sage.algebras.algebra.Algebra,
             sage: AR.<lx> = AsymptoticRing(growth_group='log(x)^ZZ', coefficient_ring=ZZ)
             Traceback (most recent call last):
             ...
-            ValueError: Growth Group log(x)^ZZ does not have a generator.
+            ValueError:  Growth Group log(x)^ZZ does not privide any generators
+            but name 'lx' given.
+
+        ::
+
+            sage: A.<a,b> = AsymptoticRing(growth_group='x^ZZ * y^ZZ', coefficient_ring=ZZ)
+            Traceback (most recent call last):
+            ...
+            ValueError: Names 'a', 'b' do not coincide with
+            generators 'x', 'y' of Growth Group x^ZZ * y^ZZ.
+            sage: A.<x,b> = AsymptoticRing(growth_group='x^ZZ * y^ZZ', coefficient_ring=ZZ)
+            Traceback (most recent call last):
+            ...
+            ValueError: Names 'x', 'b' do not coincide with
+            generators 'x', 'y' of Growth Group x^ZZ * y^ZZ.
+            sage: A.<x> = AsymptoticRing(growth_group='x^ZZ * y^ZZ', coefficient_ring=ZZ)
+            Traceback (most recent call last):
+            ...
+            ValueError: Name 'x' do not coincide with
+            generators 'x', 'y' of Growth Group x^ZZ * y^ZZ.
+            sage: A.<x,y,z> = AsymptoticRing(growth_group='x^ZZ * y^ZZ', coefficient_ring=ZZ)
+            Traceback (most recent call last):
+            ...
+            ValueError: Names 'x', 'y', 'z' do not coincide with
+            generators 'x', 'y' of Growth Group x^ZZ * y^ZZ.
         """
         if isinstance(growth_group, str):
             from sage.rings.asymptotic.growth_group import GrowthGroup
             growth_group = GrowthGroup(growth_group)
 
-        if names is not None and not growth_group.gens_monomial():
-            raise ValueError("%s does not have a generator." % (growth_group,))
+        strgens = list(str(g) for g in growth_group.gens_monomial())
+        def format_names(N):
+            return ('s ' if len(N) != 1 else ' ') + ', '.join("'%s'" % n for n in N)
+        if names and not strgens:
+            raise ValueError('%s does not privide any generators but name%s given.' %
+                             (growth_group, format_names(names)))
+        elif names is not None and len(names) == 1 and len(strgens) == 1:
+            pass
+        elif names is not None and sorted(names) != strgens:
+            raise ValueError('Name%s do not coincide with generator%s of %s.' %
+                             (format_names(names), format_names(strgens), growth_group))
 
         if default_prec is None:
             from sage.misc.defaults import series_precision

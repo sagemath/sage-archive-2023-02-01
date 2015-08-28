@@ -1220,12 +1220,19 @@ class AsymptoticRing(sage.algebras.algebra.Algebra,
 
         ::
 
-            sage: A.<a,b> = AsymptoticRing(growth_group='x^ZZ * y^ZZ', coefficient_ring=ZZ)
+            sage: A.<x, y> = AsymptoticRing(growth_group='x^ZZ * y^ZZ', coefficient_ring=ZZ); A
+            Asymptotic Ring <x^ZZ * y^ZZ> over Integer Ring
+            sage: A.<y, x> = AsymptoticRing(growth_group='x^ZZ * y^ZZ', coefficient_ring=ZZ)
+            Traceback (most recent call last):
+            ...
+            ValueError: Names 'y', 'x' do not coincide with
+            generators 'x', 'y' of Growth Group x^ZZ * y^ZZ.
+            sage: A.<a, b> = AsymptoticRing(growth_group='x^ZZ * y^ZZ', coefficient_ring=ZZ)
             Traceback (most recent call last):
             ...
             ValueError: Names 'a', 'b' do not coincide with
             generators 'x', 'y' of Growth Group x^ZZ * y^ZZ.
-            sage: A.<x,b> = AsymptoticRing(growth_group='x^ZZ * y^ZZ', coefficient_ring=ZZ)
+            sage: A.<x, b> = AsymptoticRing(growth_group='x^ZZ * y^ZZ', coefficient_ring=ZZ)
             Traceback (most recent call last):
             ...
             ValueError: Names 'x', 'b' do not coincide with
@@ -1235,7 +1242,7 @@ class AsymptoticRing(sage.algebras.algebra.Algebra,
             ...
             ValueError: Name 'x' do not coincide with
             generators 'x', 'y' of Growth Group x^ZZ * y^ZZ.
-            sage: A.<x,y,z> = AsymptoticRing(growth_group='x^ZZ * y^ZZ', coefficient_ring=ZZ)
+            sage: A.<x, y, z> = AsymptoticRing(growth_group='x^ZZ * y^ZZ', coefficient_ring=ZZ)
             Traceback (most recent call last):
             ...
             ValueError: Names 'x', 'y', 'z' do not coincide with
@@ -1245,7 +1252,7 @@ class AsymptoticRing(sage.algebras.algebra.Algebra,
             from sage.rings.asymptotic.growth_group import GrowthGroup
             growth_group = GrowthGroup(growth_group)
 
-        strgens = list(str(g) for g in growth_group.gens_monomial())
+        strgens = tuple(str(g) for g in growth_group.gens_monomial())
         def format_names(N):
             return ('s ' if len(N) != 1 else ' ') + ', '.join("'%s'" % n for n in N)
         if names and not strgens:
@@ -1253,7 +1260,7 @@ class AsymptoticRing(sage.algebras.algebra.Algebra,
                              (growth_group, format_names(names)))
         elif names is not None and len(names) == 1 and len(strgens) == 1:
             pass
-        elif names is not None and sorted(names) != strgens:
+        elif names is not None and names != strgens:
             raise ValueError('Name%s do not coincide with generator%s of %s.' %
                              (format_names(names), format_names(strgens), growth_group))
 

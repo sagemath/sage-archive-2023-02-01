@@ -57,6 +57,8 @@ from sage.misc.randstate cimport randstate, current_randstate
 from sage.structure.sage_object cimport rich_to_bool
 from sage.misc.superseded import deprecation, deprecated_function_alias
 
+from .paridecl cimport *
+from .paripriv cimport *
 include 'pari_err.pxi'
 include 'sage/ext/stdsage.pxi'
 include 'sage/ext/python.pxi'
@@ -1050,9 +1052,6 @@ cdef class gen(gen_auto):
     # comparisons
     ###########################################
 
-    def __richcmp__(left, right, int op):
-        return (<Element>left)._richcmp(right, op)
-
     cpdef _richcmp_(left, Element right, int op):
         """
         Compare ``left`` and ``right`` using ``op``.
@@ -1125,9 +1124,6 @@ cdef class gen(gen_auto):
             r = rich_to_bool(op, gcmp(x, y))
         pari_catch_sig_off()
         return r
-
-    def __cmp__(left, right):
-        return (<Element>left)._cmp(right)
 
     cpdef int _cmp_(left, Element right) except -2:
         """

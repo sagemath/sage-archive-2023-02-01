@@ -1,3 +1,5 @@
+# distutils: depends = NTL/ZZ.h
+
 cdef extern from "sage/libs/ntl/ntlwrap.cpp":
     ctypedef struct GF2_c "struct GF2":
         pass

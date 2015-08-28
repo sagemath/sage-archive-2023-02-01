@@ -303,11 +303,14 @@ cdef class Matrix_double_dense(matrix_dense.Matrix_dense):
 
         """
         cdef Matrix_double_dense m
-        if nrows == -1:
+        if nrows == -1 and ncols == -1:
             nrows = self._nrows
-        if ncols == -1:
             ncols = self._ncols
-        parent = self.matrix_space(nrows, ncols)
+            parent = self._parent
+        else:
+            if nrows == -1: nrows = self._nrows
+            if ncols == -1: ncols = self._ncols
+            parent = self.matrix_space(nrows, ncols)
         m = self.__class__.__new__(self.__class__,parent,None,None,None)
         return m
 

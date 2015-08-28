@@ -1122,7 +1122,7 @@ class AsymptoticExpression(sage.structure.element.CommutativeAlgebraElement):
                    for element in self.summands.maximal_elements())
 
 
-    def log(self, base=None, prec=None):
+    def log(self, base=None, precision=None):
         r"""
         The logarithm of this asymptotic expression.
 
@@ -1132,7 +1132,7 @@ class AsymptoticExpression(sage.structure.element.CommutativeAlgebraElement):
           (default value) is used, the logarithm is the natural
           logarithm.
 
-        - ``prec`` -- the precision used for truncating the
+        - ``precision`` -- the precision used for truncating the
           expansion. If ``None`` (default value) is used, the
           default precision from the parent is used.
 
@@ -1191,7 +1191,7 @@ class AsymptoticExpression(sage.structure.element.CommutativeAlgebraElement):
         k = 1
         while expanding:
             k += 1
-            new_result = (result - geom**k / k).truncate(prec=prec)
+            new_result = (result - geom**k / k).truncate(precision=precision)
             if new_result.has_same_summands(result):
                 expanding = False
             result = new_result

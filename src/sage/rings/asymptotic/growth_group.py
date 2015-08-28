@@ -2078,9 +2078,9 @@ class MonomialGrowthElement(GenericGrowthElement):
             True
         """
         new_element = -self.exponent
-        try:
+        if new_element.parent() is self.exponent.parent():
             return self.parent()(raw_element=new_element)
-        except (ValueError, TypeError):
+        else:
             new_parent = self.parent().__class__(new_element.parent(),
                                                  self.parent()._var_)
             return new_parent(raw_element=new_element)
@@ -2627,11 +2627,16 @@ class ExponentialGrowthElement(GenericGrowthElement):
             True
             sage: e2.parent()
             Growth Group QQ^x
+
+        ::
+
+            sage: (~P(raw_element=1)).parent()
+            Growth Group QQ^x
         """
         new_element = 1 / self.base
-        try:
+        if new_element.parent() is self.base.parent():
             return self.parent()(raw_element=new_element)
-        except (ValueError, TypeError):
+        else:
             new_parent = self.parent().__class__(new_element.parent(),
                                                  self.parent()._var_)
             return new_parent(raw_element=new_element)

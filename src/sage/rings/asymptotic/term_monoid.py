@@ -2285,9 +2285,9 @@ class ExactTerm(TermWithCoefficient):
             raise ZeroDivisionError('Cannot invert %s since its coefficient %s '
                                     'cannot be inverted.' % (self, self.coefficient))
         g = ~self.growth
-        try:
+        if c.parent() is self.coefficient.parent() and g.parent() is self.growth.parent():
             return self.parent()(g, c)
-        except (ValueError, TypeError):
+        else:
             new_parent = self.parent().__class__(g.parent(), c.parent())
             return new_parent(g, c)
 

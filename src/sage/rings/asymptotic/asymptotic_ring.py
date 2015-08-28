@@ -910,7 +910,7 @@ class AsymptoticExpression(sage.structure.element.CommutativeAlgebraElement):
 
             sage: A.<a> = AsymptoticRing(growth_group='a^ZZ', coefficient_ring=ZZ)
             sage: (1 / a).parent()
-            Asymptotic Ring <a^ZZ> over Integer Ring
+            Asymptotic Ring <a^ZZ> over Rational Field
             sage: (a / 2).parent()
             Asymptotic Ring <a^ZZ> over Rational Field
         """
@@ -918,10 +918,13 @@ class AsymptoticExpression(sage.structure.element.CommutativeAlgebraElement):
             raise ZeroDivisionError('Division by zero in %s.' % (self,))
 
         elif len(self.summands) == 1:
-            new_element = ~next(self.summands.elements())
-            try:
+            element = next(self.summands.elements())
+            new_element = ~element
+            if new_element.parent() is element.parent():
                 return self.parent()(new_element)
-            except (ValueError, TypeError):
+            else:
+                # Insert an 'if' here once terms can have different
+                # coefficient rings, as this will be for L-terms.
                 new_parent = self.parent().change_parameter(
                     growth_group=new_element.parent().growth_group,
                     coefficient_ring=new_element.parent().coefficient_ring)
@@ -931,11 +934,21 @@ class AsymptoticExpression(sage.structure.element.CommutativeAlgebraElement):
         if len(max_elem) != 1:
             raise ValueError('Expression %s cannot be inverted, since there '
                              'are several maximal elements: %s.' % (self, max_elem))
-
         max_elem = max_elem[0]
+
         imax_elem = ~max_elem
-        one = self.parent().one()
-        geom = one - self._mul_term_(imax_elem)
+        if imax_elem.parent() is max_elem.parent():
+            new_self = self
+        else:
+            # Insert an 'if' here once terms can have different
+            # coefficient rings, as this will be for L-terms.
+            new_parent = self.parent().change_parameter(
+                growth_group=imax_elem.parent().growth_group,
+                coefficient_ring=imax_elem.parent().coefficient_ring)
+            new_self = new_parent(self)
+
+        one = new_self.parent().one()
+        geom = one - new_self._mul_term_(imax_elem)
 
         expanding = True
         result = one

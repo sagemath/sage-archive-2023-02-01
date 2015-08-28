@@ -878,9 +878,10 @@ class GenericProduct(CartesianProductPosets, GenericGrowthGroup):
                  Growth Group QQ^x * x^ZZ
             """
             new_element = tuple(~x for x in self.cartesian_factors())
-            try:
+            if all(n.parent() is x.parent()
+                   for n, x in zip(new_element, self.cartesian_factors())):
                 return self.parent()(new_element)
-            except (ValueError, TypeError):
+            else:
                 from sage.categories.cartesian_product import cartesian_product
                 new_parent = cartesian_product(
                     tuple(x.parent() for x in new_element))

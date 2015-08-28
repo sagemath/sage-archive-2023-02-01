@@ -239,6 +239,11 @@ def repr_short_to_parent(s):
     except Exception as e:
         raise combine_exceptions(
             ValueError("Cannot create a parent out of '%s'." % (s,)), e)
+
+    from sage.misc.lazy_import import LazyImport
+    if type(P) is LazyImport:
+        P = P._get_object()
+
     from sage.structure.parent import is_Parent
     if not is_Parent(P):
         raise ValueError("'%s' does not describe a parent." % (s,))
@@ -1189,16 +1194,30 @@ class GenericGrowthGroup(
             sage: L1 is L2
             True
         """
+        from sage.categories.sets_cat import Sets
+        Sets_parent_class = Sets().parent_class
+        while issubclass(cls, Sets_parent_class):
+            cls = cls.__base__
+
+        if not isinstance(base, sage.structure.parent.Parent):
+            raise TypeError('%s is not a valid base.' % (base,))
+
         if var is None:
             var = Variable('')
         elif not isinstance(var, Variable):
             var = Variable(var)
+
+        if category is None:
+            from sage.categories.monoids import Monoids
+            from sage.categories.posets import Posets
+            category = Monoids() & Posets()
+
         return super(GenericGrowthGroup, cls).__classcall__(
             cls, base, var, category)
 
 
     @sage.misc.superseded.experimental(trac_number=17601)
-    def __init__(self, base, var, category=None):
+    def __init__(self, base, var, category):
         r"""
         See :class:`GenericGrowthElement` for more information.
 
@@ -1237,56 +1256,37 @@ class GenericGrowthGroup(
             sage: G2 = agg.GenericGrowthGroup(ZZ, category=FiniteGroups() & Posets())
             sage: G2.category()
             Join of Category of finite groups and Category of finite posets
-            sage: G3 = agg.GenericGrowthGroup(ZZ, category=Rings())
-            Traceback (most recent call last):
-            ...
-            ValueError: (Category of rings,) is not a subcategory of Join of Category of monoids and Category of posets
 
         ::
 
             sage: G = agg.GenericGrowthGroup('42')
             Traceback (most recent call last):
             ...
-            TypeError: 42 is not a valid base
+            TypeError: 42 is not a valid base.
 
         ::
 
             sage: agg.MonomialGrowthGroup('x', ZZ)
             Traceback (most recent call last):
             ...
-            ValueError: 'Integer Ring' is not a valid name for a variable.
+            TypeError: x is not a valid base.
             sage: agg.MonomialGrowthGroup('x', 'y')
             Traceback (most recent call last):
             ...
-            TypeError: x is not a valid base
+            TypeError: x is not a valid base.
 
         ::
 
             sage: agg.ExponentialGrowthGroup('x', ZZ)
             Traceback (most recent call last):
             ...
-            ValueError: 'Integer Ring' is not a valid name for a variable.
+            TypeError: x is not a valid base.
             sage: agg.ExponentialGrowthGroup('x', 'y')
             Traceback (most recent call last):
             ...
-            TypeError: x is not a valid base
+            TypeError: x is not a valid base.
 
         """
-        if not isinstance(base, sage.structure.parent.Parent):
-            raise TypeError('%s is not a valid base' % (base,))
-        from sage.categories.monoids import Monoids
-        from sage.categories.posets import Posets
-
-        if category is None:
-            category = Monoids() & Posets()
-        else:
-            if not isinstance(category, tuple):
-                category = (category,)
-            if not any(cat.is_subcategory(Monoids() & Posets()) for cat in
-                       category):
-                raise ValueError('%s is not a subcategory of %s'
-                                 % (category, Monoids() & Posets()))
-
         self._var_ = var
         super(GenericGrowthGroup, self).__init__(category=category,
                                                  base=base)

@@ -970,8 +970,8 @@ class GenericTerm(sage.structure.element.MonoidElement):
         return 'Generic Term with growth ' + repr(self.growth)
 
 
-class GenericTermMonoid(sage.structure.parent.Parent,
-                        sage.structure.unique_representation.UniqueRepresentation):
+class GenericTermMonoid(sage.structure.unique_representation.UniqueRepresentation,
+                        sage.structure.parent.Parent):
     r"""
     Parent for generic asymptotic terms.
 
@@ -1015,71 +1015,86 @@ class GenericTermMonoid(sage.structure.parent.Parent,
     # enable the category framework for elements
     Element = GenericTerm
 
+
+    @staticmethod
+    def __classcall__(cls, growth_group, coefficient_ring, category=None):
+        r"""
+        Normalizes the input in order to ensure a unique
+        representation of the parent.
+
+        TESTS::
+
+            sage: from sage.rings.asymptotic.term_monoid import GenericTermMonoid
+            sage: from sage.rings.asymptotic.growth_group import GrowthGroup
+            sage: G = GrowthGroup('x^ZZ')
+            sage: T = GenericTermMonoid(G, QQ)
+            sage: T.__class__(G, QQ) is T
+            True
+        """
+        from sage.categories.sets_cat import Sets
+        Sets_parent_class = Sets().parent_class
+        while issubclass(cls, Sets_parent_class):
+            cls = cls.__base__
+
+        from sage.rings.asymptotic.growth_group import GenericGrowthGroup
+        if growth_group is None:
+            raise ValueError('No growth group specified.')
+        if not isinstance(growth_group, sage.structure.parent.Parent):
+            raise TypeError('%s is not a valid growth group.' % (growth_group,))
+
+        if coefficient_ring is None:
+            raise ValueError('No coefficient ring specified.')
+        if not isinstance(coefficient_ring, sage.structure.parent.Parent):
+            raise TypeError('%s is not a valid coefficient ring.' % (coefficient_ring,))
+
+        if category is None:
+            from sage.categories.monoids import Monoids
+            from sage.categories.posets import Posets
+            category = Monoids() & Posets()
+
+        return super(GenericTermMonoid, cls).__classcall__(
+            cls, growth_group, coefficient_ring, category)
+
+
     @sage.misc.superseded.experimental(trac_number=17601)
-    def __init__(self, growth_group, coefficient_ring, category=None):
+    def __init__(self, growth_group, coefficient_ring, category):
         r"""
         See :class:`GenericTermMonoid` for more information.
 
         EXAMPLES::
 
-            sage: import sage.rings.asymptotic.term_monoid as atm
-            sage: import sage.rings.asymptotic.growth_group as agg
-            sage: G_x = agg.GrowthGroup('x^ZZ')
-            sage: T_x = atm.GenericTermMonoid(G_x, QQ); T_x
+            sage: from sage.rings.asymptotic.term_monoid import GenericTermMonoid, TermWithCoefficientMonoid
+            sage: from sage.rings.asymptotic.growth_group import GrowthGroup
+            sage: G_x = GrowthGroup('x^ZZ')
+            sage: T_x = GenericTermMonoid(G_x, QQ); T_x
             Generic Term Monoid x^ZZ with (implicit) coefficients in Rational Field
             sage: T_x.growth_group
             Growth Group x^ZZ
-            sage: G_y = agg.GrowthGroup('y^QQ')
-            sage: T_y = atm.GenericTermMonoid(G_y, QQ); T_y
+            sage: G_y = GrowthGroup('y^QQ')
+            sage: T_y = GenericTermMonoid(G_y, QQ); T_y
             Generic Term Monoid y^QQ with (implicit) coefficients in Rational Field
             sage: T_x is T_y
             False
 
         ::
 
-            sage: atm.GenericTermMonoid(None, None)
+            sage: GenericTermMonoid(None, None)
             Traceback (most recent call last):
             ...
-            ValueError: Growth Group has to be specified
+            ValueError: No growth group specified.
 
         ::
 
-            sage: import sage.rings.asymptotic.term_monoid as atm
-            sage: import sage.rings.asymptotic.growth_group as agg
-            sage: G = agg.GrowthGroup('x^ZZ'); x = G.gen()
-            sage: T_ZZ = atm.TermWithCoefficientMonoid(G, ZZ); T_ZZ
+            sage: G = GrowthGroup('x^ZZ'); x = G.gen()
+            sage: T_ZZ = TermWithCoefficientMonoid(G, ZZ); T_ZZ
             Generic Term Monoid x^ZZ with (implicit) coefficients in Integer Ring
-            sage: T_QQ = atm.TermWithCoefficientMonoid(G, QQ); T_QQ
+            sage: T_QQ = TermWithCoefficientMonoid(G, QQ); T_QQ
             Generic Term Monoid x^ZZ with (implicit) coefficients in Rational Field
             sage: T_QQ.category()
             Join of Category of monoids and Category of posets
         """
-        from sage.categories.monoids import Monoids
-        from sage.categories.posets import Posets
-        from sage.rings.asymptotic.growth_group import GenericGrowthGroup
-
-        if category is None:
-            category = Monoids() & Posets()
-        else:
-            if not isinstance(category, tuple):
-                category = (category,)
-            if not any(cat.is_subcategory(Monoids() & Posets()) for cat in
-                       category):
-                raise ValueError('%s is not a subcategory of %s'
-                                 % (category, Monoids() & Posets()))
-
-        if growth_group is None:
-            raise ValueError('Growth Group has to be specified')
-        else:
-            if not isinstance(growth_group, GenericGrowthGroup):
-                raise ValueError('%s does not inherit from %s'
-                                 % (growth_group, GenericGrowthGroup()))
         self._growth_group_ = growth_group
-
-        if coefficient_ring is None:
-            raise ValueError('Coefficient ring is not specified.')
         self._coefficient_ring_ = coefficient_ring
-
         super(GenericTermMonoid, self).__init__(category=category)
 
 
@@ -1754,6 +1769,7 @@ class OTermMonoid(GenericTermMonoid):
         sage: atm.TermMonoid('O', agg.GrowthGroup('x^QQ'), QQ)
         O-Term Monoid x^QQ with implicit coefficients in Rational Field
     """
+
     # enable the category framework for elements
     Element = OTerm
 
@@ -2098,7 +2114,6 @@ class TermWithCoefficient(GenericTerm):
         """
         return super(TermWithCoefficient, self)._eq_(other) and \
             self.coefficient == other.coefficient
-
 
 
 class TermWithCoefficientMonoid(GenericTermMonoid):
@@ -2543,8 +2558,10 @@ class ExactTermMonoid(TermWithCoefficientMonoid):
         sage: atm.TermMonoid('exact', agg.GrowthGroup('x^ZZ'), QQ)
         Exact Term Monoid x^ZZ with coefficients in Rational Field
     """
+
     # enable the category framework for elements
     Element = ExactTerm
+
 
     def _repr_(self):
         r"""

@@ -984,6 +984,13 @@ class GenericProduct(CartesianProductPosets, GenericGrowthGroup):
                 ...
                 ValueError: Logarithm of log(x) cannot be constructed in Growth
                 Group QQ^x * x^ZZ * log(x)^ZZ * y^ZZ * log(y)^ZZ.
+
+            TESTS::
+
+                sage: G = GrowthGroup("QQ['e']^x * x^ZZ * log(x)^ZZ")
+                sage: x, = G.gens_monomial()
+                sage: (exp(x) * x).log_factor()
+                [[x, 1], [log(x), 1]]
             """
             P = self.parent()
             factors = self.factor()

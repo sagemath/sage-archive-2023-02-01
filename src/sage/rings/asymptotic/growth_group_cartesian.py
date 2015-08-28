@@ -870,6 +870,37 @@ class GenericProduct(CartesianProductPosets, GenericGrowthGroup):
 
             A growth element.
 
+            EXAMPLES::
+
+                sage: from sage.rings.asymptotic.growth_group import GrowthGroup
+                sage: G = GrowthGroup('x^ZZ * log(x)^ZZ')
+                sage: x, = G.gens_monomial()
+                sage: log(x)  # indirect doctest
+                log(x)
+                sage: log(x^5)
+                Traceback (most recent call last):
+                ...
+                ValueError: The logarithm of x^5 cannot be constructed in Growth Group x^ZZ * log(x)^ZZ.
+
+            ::
+
+                sage: G = GrowthGroup('QQ^x * x^ZZ')
+                sage: x, = G.gens_monomial()
+                sage: el = x.rpow(2); el
+                2^x
+                sage: log(el)
+                Traceback (most recent call last):
+                ...
+                ValueError: The logarithm of 2^x cannot be constructed in Growth Group QQ^x * x^ZZ.
+                sage: log(el, base=2)
+                x
+
+            TESTS::
+
+                sage: G = GrowthGroup("QQ['e']^x * x^ZZ")
+                sage: x, = G.gens_monomial()
+                sage: log(exp(x))
+                x
             """
             lf = self.log_factor(base=base)
             if len(lf) == 1 and lf[0][1] == 1:

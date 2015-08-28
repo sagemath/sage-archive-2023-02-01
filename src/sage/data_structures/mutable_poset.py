@@ -2883,7 +2883,7 @@ class MutablePoset(object):
                     if not shell.is_special())
 
 
-    def map(self, function):
+    def map(self, function, topological=False, reverse=False):
         r"""
         Applies the given ``function`` on each element.
 
@@ -2891,9 +2891,19 @@ class MutablePoset(object):
 
         - ``function`` -- a function mapping an existing element to a new element.
 
+        - ``topological`` -- (default: ``False``) if set, then the mapping is done
+          in topological order, otherwise unordered.
+
+        - ``reverse`` -- is passed on to topological ordering.
+
         OUTPUT:
 
         Nothing.
+
+        .. NOTE::
+
+            Since this method works inplace, it is not allowed that
+            ``function`` alters the key of an element.
 
         EXAMPLES::
 
@@ -2911,7 +2921,9 @@ class MutablePoset(object):
             sage: P
             poset('(1, 2)', '(1, 3)', '(2, 1)', '(2, 2)', '(4, 4)')
         """
-        for shell in self.shells():
+        shells = self.shells_topological(reverse=reverse) \
+            if topological else self.shells()
+        for shell in shells:
             shell._element_ = function(shell._element_)
 
 
@@ -2923,9 +2935,14 @@ class MutablePoset(object):
 
         - ``function`` -- a function mapping an existing element to a new element.
 
+        - ``topological`` -- (default: ``False``) if set, then the mapping is done
+          in topological order, otherwise unordered.
+
+        - ``reverse`` -- is passed on to topological ordering.
+
         OUTPUT:
 
-        A :class:`MutablePoset`
+        A :class:`MutablePoset`.
 
         EXAMPLES::
 
@@ -2942,9 +2959,7 @@ class MutablePoset(object):
             sage: P.mapped(lambda e: str(e))
             poset('(1, 2)', '(1, 3)', '(2, 1)', '(2, 2)', '(4, 4)')
         """
-        new = self.copy()
-        new.map(function)
-        return new
+        return self.copy(mapping=function)
 
 
 # *****************************************************************************

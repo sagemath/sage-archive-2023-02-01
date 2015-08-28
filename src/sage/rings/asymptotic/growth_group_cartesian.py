@@ -874,6 +874,12 @@ class GenericProduct(CartesianProductPosets, GenericGrowthGroup):
             lf = self.log_factor(base=base)
             if len(lf) == 1 and lf[0][1] == 1:
                 return lf[0][0]
+            if base:
+                raise ValueError('The logarithm of %s with base %s cannot be '
+                                 'constructed in %s.' % (self, base, self.parent()))
+
+            raise ValueError('The logarithm of %s cannot be constructed in '
+                             '%s.' % (self, self.parent()))
 
         def factor(self):
             r"""

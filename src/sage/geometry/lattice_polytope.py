@@ -3890,7 +3890,7 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
         Return the Polyhedron object determined by this polytope's vertices.
         
         EXAMPLES::
-        
+
             sage: o = lattice_polytope.cross_polytope(2)
             sage: o.polyhedron()
             A 2-dimensional polyhedron in ZZ^2 defined as the convex hull of 4 vertices
@@ -4307,7 +4307,7 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
         :meth:`vertices` and :meth:`facets`.
 
         EXAMPLES::
-    
+
             sage: L = lattice_polytope.cross_polytope(3)
             sage: L.vertex_facet_pairing_matrix()
             [0 0 2 2 2 0]
@@ -4367,7 +4367,7 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
             return self._vertices(*args, **kwds)
         else:
             return self._vertices
-        
+
     vertices_pc = deprecated_function_alias(19070, vertices)
 
 

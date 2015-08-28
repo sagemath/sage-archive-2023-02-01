@@ -52,6 +52,7 @@ class HasseDiagram(DiGraph):
     def _repr_(self):
         r"""
         TESTS::
+
             sage: from sage.combinat.posets.hasse_diagram import HasseDiagram
             sage: H = HasseDiagram({0:[1,2],1:[3],2:[3],3:[]})
             sage: H._repr_()

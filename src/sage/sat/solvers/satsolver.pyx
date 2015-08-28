@@ -92,7 +92,19 @@ cdef class SatSolver:
 
         Reads in DIMAC formatted lines (lazily) from a
         file or file object and adds the corresponding
-        clauses into this solver instance.
+        clauses into this solver instance. Note that the
+        DIMACS format is not well specified, see
+        http://people.sc.fsu.edu/~jburkardt/data/cnf/cnf.html,
+        http://www.satcompetition.org/2009/format-benchmarks2009.html,
+        and http://elis.dvo.ru/~lab_11/glpk-doc/cnfsat.pdf.
+        The differences were summarized in the discussion on
+        the ticket :trac:`16924`. This method assumes the following
+        DIMACS format
+
+        - Any line starting with "c" is a comment
+        - Any line starting with "p" is a header
+        - Any variable 1-n can be used
+        - Every line containing a clause must end with a "0"
 
         INPUT:
 

@@ -1086,7 +1086,6 @@ class AsymptoticExpression(sage.structure.element.CommutativeAlgebraElement):
                                           ' for the term %s.' % (self, ))
 
 
-
     def O(self):
         r"""
         Convert all terms in this asymptotic expression to `O`-terms.
@@ -1120,7 +1119,6 @@ class AsymptoticExpression(sage.structure.element.CommutativeAlgebraElement):
         """
         return sum(self.parent().create_summand('O', growth=element)
                    for element in self.summands.maximal_elements())
-
 
 
 class AsymptoticRing(sage.algebras.algebra.Algebra,

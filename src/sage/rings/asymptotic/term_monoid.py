@@ -2001,7 +2001,6 @@ class TermWithCoefficient(GenericTerm):
             self.coefficient == other.coefficient
 
 
-
 class TermWithCoefficientMonoid(GenericTermMonoid):
     r"""
     This class implements the base structure for parents of

@@ -420,12 +420,12 @@ class AsymptoticExpression(sage.rings.ring_element.RingElement):
         .. NOTE::
 
             While for example ``O(x) == O(x)`` yields ``False``,
-            these expressions *do* have the same summands.
+            these expressions *do* have the same summands and this method
+            returns ``True``.
 
-            Also, this method uses the coercion model in order to
+            Moreover, this method uses the coercion model in order to
             find a common parent for this asymptotic expression and
-            ``other``. The method :meth:`_has_same_summands_` is
-            then used for the actual comparison.
+            ``other``.
 
         EXAMPLES::
 
@@ -437,12 +437,10 @@ class AsymptoticExpression(sage.rings.ring_element.RingElement):
             False
         """
         from sage.structure.element import have_same_parent
-
         if have_same_parent(self, other):
             return self._has_same_summands_(other)
 
         from sage.structure.element import get_coercion_model
-
         return get_coercion_model().bin_op(self, other,
                                            lambda self, other:
                                            self._has_same_summands_(other))

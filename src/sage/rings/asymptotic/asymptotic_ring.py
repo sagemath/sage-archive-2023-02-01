@@ -786,7 +786,7 @@ class AsymptoticExpression(sage.structure.element.CommutativeAlgebraElement):
 
     def _mul_(self, other):
         r"""
-        Multiply ``other`` to this asymptotic expression.
+        Multiply this asymptotic expression by another asymptotic expression ``other``.
 
         INPUT:
 
@@ -817,6 +817,24 @@ class AsymptoticExpression(sage.structure.element.CommutativeAlgebraElement):
 
 
     def _rmul_(self, other):
+        r"""
+        Multiply this asymptotic expression by an element ``other`` of its
+        coefficient ring.
+
+        INPUT:
+
+        - ``other`` -- an element of the coefficient ring.
+
+        OUTPUT:
+
+        An :class:`AsymptoticExpression`.
+
+        TESTS::
+
+            sage: A.<a> = AsymptoticRing(growth_group='QQ^a * a^QQ * log(a)^QQ', coefficient_ring=ZZ)
+            sage: 2*a
+            2*a
+        """
         from sage.rings.asymptotic.term_monoid import TermMonoid
         E = TermMonoid('exact', asymptotic_ring=self.parent())
         e = E(self.parent().growth_group.one(), coefficient=other)

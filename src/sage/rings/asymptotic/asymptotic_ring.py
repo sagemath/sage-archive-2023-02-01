@@ -460,17 +460,19 @@ class AsymptoticExpression(sage.structure.element.CommutativeAlgebraElement):
         if convert:
             from growth_group import combine_exceptions
             from term_monoid import TermMonoid
-            summands = summands.copy()
-            for shell in summands.shells():
-                element = shell._element_
+            def convert_terms(element):
                 T = TermMonoid(term=element.parent(), asymptotic_ring=parent)
                 try:
-                    shell._element_ = T(element)
+                    return T(element)
                 except (ValueError, TypeError) as e:
                     raise combine_exceptions(
                         ValueError('Cannot include %s with parent %s in %s' %
                                    (element, element.parent(), parent)), e)
-        self._summands_ = summands
+            new_summands = summands.copy()
+            new_summands.map(convert_terms, topological=True, reverse=True)
+            self._summands_ = new_summands
+        else:
+            self._summands_ = summands
 
         if simplify:
             self._simplify_()
@@ -664,7 +666,7 @@ class AsymptoticExpression(sage.structure.element.CommutativeAlgebraElement):
             sage: R(lst)  # indirect doctest
             4*x^4 + O(x^3)
         """
-        self.summands.merge(reverse=True)
+        self._summands_.merge(reverse=True)
 
 
     def _repr_(self):
@@ -1539,7 +1541,7 @@ class AsymptoticRing(sage.algebras.algebra.Algebra,
             sage: N(M.an_element())
             Traceback (most recent call last):
             ...
-            ValueError: Cannot include -m^3 with parent
+            ValueError: Cannot include m^3 with parent
             Exact Term Monoid m^ZZ with coefficients in Integer Ring
             in Asymptotic Ring <n^ZZ> over Rational Field
             > *previous* ValueError: m^3 is not in Growth Group n^ZZ

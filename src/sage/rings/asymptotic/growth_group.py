@@ -239,6 +239,11 @@ def repr_short_to_parent(s):
     except Exception as e:
         raise combine_exceptions(
             ValueError("Cannot create a parent out of '%s'." % (s,)), e)
+
+    from sage.misc.lazy_import import LazyImport
+    if type(P) is LazyImport:
+        P = P._get_object()
+
     from sage.structure.parent import is_Parent
     if not is_Parent(P):
         raise ValueError("'%s' does not describe a parent." % (s,))

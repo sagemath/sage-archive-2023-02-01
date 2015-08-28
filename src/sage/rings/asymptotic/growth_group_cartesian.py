@@ -1057,10 +1057,10 @@ class GenericProduct(CartesianProductPosets, GenericGrowthGroup):
 
             ::
 
-                sage: G = GrowthGroup('QQ^(x * log(x)) * x^ZZ * log(x)^ZZ')
+                sage: G = GrowthGroup('QQ^(x*log(x)) * x^ZZ * log(x)^ZZ')
                 sage: x, = G.gens_monomial()
                 sage: (x * log(x)).rpow(2)
-                2^(x * log(x))
+                2^(x*log(x))
             """
             P = self.parent()
             factors = self.factor()

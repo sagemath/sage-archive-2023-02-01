@@ -561,7 +561,8 @@ class AsymptoticExpression(sage.structure.element.CommutativeAlgebraElement):
         .. NOTE::
 
             While for example ``O(x) == O(x)`` yields ``False``,
-            these expressions *do* have the same summands.
+            these expressions *do* have the same summands and this method
+            returns ``True``.
 
             Moreover, this method uses the coercion model in order to
             find a common parent for this asymptotic expression and
@@ -577,12 +578,10 @@ class AsymptoticExpression(sage.structure.element.CommutativeAlgebraElement):
             False
         """
         from sage.structure.element import have_same_parent
-
         if have_same_parent(self, other):
             return self._has_same_summands_(other)
 
         from sage.structure.element import get_coercion_model
-
         return get_coercion_model().bin_op(self, other,
                                            lambda self, other:
                                            self._has_same_summands_(other))
@@ -616,9 +615,10 @@ class AsymptoticExpression(sage.structure.element.CommutativeAlgebraElement):
         """
         if len(self.summands) != len(other.summands):
             return False
-        pairs = zip(self.summands.elements_topological(),
-                    other.summands.elements_topological())
-        return all(p[0].is_same(p[1]) for p in pairs)
+        from itertools import izip
+        return all(s == o for s, o in
+                   izip(self.summands.elements_topological(),
+                        other.summands.elements_topological()))
 
 
     def _simplify_(self):

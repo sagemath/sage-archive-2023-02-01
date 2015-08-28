@@ -907,6 +907,9 @@ class AsymptoticExpression(sage.structure.element.CommutativeAlgebraElement):
 
             sage: A.<a> = AsymptoticRing(growth_group='a^ZZ', coefficient_ring=ZZ)
             sage: (1 / a).parent()
+            Asymptotic Ring <a^ZZ> over Integer Ring
+            sage: (a / 2).parent()
+            Asymptotic Ring <a^ZZ> over Rational Field
         """
         if len(self.summands) == 0:
             raise ZeroDivisionError('Division by zero in %s.' % (self,))

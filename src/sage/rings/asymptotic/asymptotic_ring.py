@@ -452,6 +452,11 @@ class AsymptoticExpression(sage.structure.element.CommutativeAlgebraElement):
         """
         super(AsymptoticExpression, self).__init__(parent=parent)
 
+        from sage.data_structures.mutable_poset import MutablePoset
+        if not isinstance(summands, MutablePoset):
+            raise TypeError('Summands %s are not in a mutable poset as expected '
+                            'when creating an element of %s.' % (summands, parent))
+
         if convert:
             from growth_group import combine_exceptions
             from term_monoid import TermMonoid

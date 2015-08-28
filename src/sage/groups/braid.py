@@ -1587,6 +1587,25 @@ class BraidGroup_class(FinitelyPresentedGroup):
         OUTPUT:
 
         A matrix.
+
+        EXAMPLES::
+
+        sage: B = BraidGroup(4)
+        sage: B._TL_action(2)
+        [ 0  0 -1]
+        [ 1  1  1]
+        [-1  2  2]
+        sage: B._TL_action(0)
+        [1 1]
+        [0 0]
+        [1 1]
+        sage: B = BraidGroup(6)
+        sage: B._TL_action(2)
+        [ 1  1  2  3  1  2  3 -1 -1]
+        [ 0  0  5  6  5  5  6  5  6]
+        [ 1  1  1 -1  4  4  8  8  8]
+        [ 5  2  2  2  5  5  5  7  7]
+        [-1 -1  3  3  8  6  6  8  8]
         """
         n = self.strands()
         d = drain_size

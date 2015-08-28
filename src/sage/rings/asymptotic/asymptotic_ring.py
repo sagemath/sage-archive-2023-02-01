@@ -476,9 +476,10 @@ class AsymptoticExpression(sage.rings.ring_element.RingElement):
         """
         if len(self.summands) != len(other.summands):
             return False
-        pairs = zip(self.summands.elements_topological(),
-                    other.summands.elements_topological())
-        return all(p[0].is_same(p[1]) for p in pairs)
+        from itertools import izip
+        return all(s == o for s, o in
+                   izip(self.summands.elements_topological(),
+                        other.summands.elements_topological()))
 
 
     def _simplify_(self):

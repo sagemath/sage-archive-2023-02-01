@@ -284,10 +284,10 @@ std::ostream& operator<<(std::ostream& os, const numeric& s) {
         switch (s.t) {
                 case MPZ:
                         p = mpz_get_str(nullptr, 10, s.v._bigint);
-                        os << p;
+                        return os << p;
                 case MPQ:
                         p = mpq_get_str(nullptr, 10, s.v._bigrat);
-                        os << p;
+                        return os << p;
                 case DOUBLE:
                         return os << s.v._double;
                 case PYOBJECT:
@@ -554,12 +554,20 @@ inherited(n, sym_lst) {
                 throw std::runtime_error("archive error: cannot read type info");
         t = Type(t_tmp);
         std::string str;
+        // read object to a string
+        if (!n.find_string("S", str))
+                throw (std::runtime_error("archive error: cannot read object data"));
         PyObject *arg;
         switch (t) {
+                case MPZ:
+                        mpz_init(v._bigint);
+                        mpz_set_str(v._bigint, str.c_str(), 10);
+                        return;
+                case MPQ:
+                        mpq_init(v._bigrat);
+                        mpq_set_str(v._bigrat, str.c_str(), 10);
+                        return;
                 case PYOBJECT:
-                        // read pickled python object to a string
-                        if (!n.find_string("S", str))
-                                throw (std::runtime_error("archive error: cannot read pyobject data"));
                         arg = Py_BuildValue("s#", str.c_str(), str.size());
                         // unpickle
                         v._pyobject = py_funcs.py_loads(arg);
@@ -582,7 +590,25 @@ void numeric::archive(archive_node &n) const {
 
         // create a string representation of this object
         std::string *tstr;
+        char *cp;
+        size_t size;
         switch (t) {
+                case MPZ:
+                        cp = new char(2+mpz_sizeinbase(v._bigint, 10));
+                        mpz_get_str(cp, 10, v._bigint);
+                        tstr = new std::string(cp);
+                        delete cp;
+                        break;
+
+                case MPQ:
+                        size = mpz_sizeinbase(mpq_numref(v._bigrat), 10)
+                             + mpz_sizeinbase(mpq_denref(v._bigrat), 10) + 3;
+                        cp = new char(size);
+                        mpq_get_str(cp, 10, v._bigrat);
+                        tstr = new std::string(cp);
+                        delete cp;
+                        break;
+                        
                 case PYOBJECT:
                         tstr = py_funcs.py_dumps(v._pyobject);
                         if (PyErr_Occurred()) {
@@ -1035,7 +1061,7 @@ const numeric numeric::power(const numeric &exponent) const {
                 if (not mpz_fits_sint_p(ex.v._bigint)) {
                         throw std::runtime_error("numeric::power(): exponent doesn't fit in signed long");
                 }
-                long exp_si = mpz_get_si(ex.v._bigint);
+                signed long int exp_si = mpz_get_si(ex.v._bigint);
                 PyObject *o, *r;
                 switch (t) {
                         case DOUBLE:
@@ -1724,12 +1750,12 @@ bool numeric::operator>=(const numeric &right) const {
 long numeric::to_long() const {
         GINAC_ASSERT(this->is_integer());
         verbose("operator long int");
-        long int n;
+        signed long int n;
         switch (t) {
                 case DOUBLE:
                         return (long int) v._double;
                 case MPZ:
-                        return mpz_get_si(v._bigint);
+                        return (long int) mpz_get_si(v._bigint);
                 case MPQ:
                         mpz_t bigint;
                         mpz_init(bigint);
@@ -2206,6 +2232,7 @@ void coerce(numeric& new_left, numeric& new_right, const numeric& left, const nu
                                         stub("** invalid coercion -- left DOUBLE ** ");
                         }
                 case PYOBJECT:
+                        new_left = left;
                         new_right = right.to_pyobject();
                         return;
         }

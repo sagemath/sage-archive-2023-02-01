@@ -1059,7 +1059,7 @@ class GenericProduct(CartesianProductPosets, GenericGrowthGroup):
                         log_factors.append([growth, coef])
 
                     else:
-                        raise NotImplementedError('Taking the Logarithm of %s '
+                        raise NotImplementedError('Taking the logarithm of %s '
                                                   'is not implemented.' %
                                                   (factor,))
 

@@ -1004,7 +1004,13 @@ class GenericProduct(CartesianProductPosets, GenericGrowthGroup):
                         log_factors.append([growth, coef])
 
                     elif isinstance(FP, ExponentialGrowthGroup):
-                        coef = log(factor._raw_element_, base=base)
+                        b = factor._raw_element_
+                        if hasattr(b, 'is_monomial') and b.is_monomial():
+                            if b.variable_name() == 'e' and not base:
+                                coef = b.valuation()
+                        else:
+                            coef = log(b, base=base)
+
                         growth = P(repr(FP._var_))
                         log_factors.append([growth, coef])
 

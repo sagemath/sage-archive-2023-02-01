@@ -2876,4 +2876,68 @@ class MutablePoset(object):
                     if not shell.is_special())
 
 
+    def map(self, function):
+        r"""
+        Applies the given ``function`` on each element.
+
+        INPUT:
+
+        - ``function`` -- a function mapping an existing element to a new element.
+
+        OUTPUT:
+
+        Nothing.
+
+        EXAMPLES::
+
+            sage: from sage.data_structures.mutable_poset import MutablePoset as MP
+            sage: class T(tuple):
+            ....:     def __le__(left, right):
+            ....:         return all(l <= r for l, r in zip(left, right))
+            sage: P = MP()
+            sage: P.add(T((1, 3)))
+            sage: P.add(T((2, 1)))
+            sage: P.add(T((4, 4)))
+            sage: P.add(T((1, 2)))
+            sage: P.add(T((2, 2)))
+            sage: P.map(lambda e: str(e))
+            sage: P
+            poset('(1, 2)', '(1, 3)', '(2, 1)', '(2, 2)', '(4, 4)')
+        """
+        for shell in self.shells():
+            shell._element_ = function(shell._element_)
+
+
+    def mapped(self, function):
+        r"""
+        Return a poset where on each element the given ``function`` was applied.
+
+        INPUT:
+
+        - ``function`` -- a function mapping an existing element to a new element.
+
+        OUTPUT:
+
+        A :class:`MutablePoset`
+
+        EXAMPLES::
+
+            sage: from sage.data_structures.mutable_poset import MutablePoset as MP
+            sage: class T(tuple):
+            ....:     def __le__(left, right):
+            ....:         return all(l <= r for l, r in zip(left, right))
+            sage: P = MP()
+            sage: P.add(T((1, 3)))
+            sage: P.add(T((2, 1)))
+            sage: P.add(T((4, 4)))
+            sage: P.add(T((1, 2)))
+            sage: P.add(T((2, 2)))
+            sage: P.mapped(lambda e: str(e))
+            poset('(1, 2)', '(1, 3)', '(2, 1)', '(2, 2)', '(4, 4)')
+        """
+        new = self.copy()
+        new.map(function)
+        return new
+
+
 # *****************************************************************************

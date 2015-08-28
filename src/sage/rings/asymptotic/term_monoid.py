@@ -882,7 +882,7 @@ class GenericTerm(sage.structure.element.MonoidElement):
         ::
 
             sage: from sage.rings.asymptotic.term_monoid import OTermMonoid
-            sage: OT = OTermMonoid(GrowthGroup('x^ZZ'))
+            sage: OT = OTermMonoid(GrowthGroup('x^ZZ'), QQ)
             sage: t = OT.an_element(); t
             O(x)
             sage: t == OT(x)  # indirect doctest

@@ -987,6 +987,81 @@ class AsymptoticExpression(sage.rings.ring_element.RingElement):
                    for element in self.summands.maximal_elements())
 
 
+    def log(self, base=None, prec=None):
+        r"""
+        The logarithm of this asymptotic expression.
+
+        INPUT:
+
+        - ``base`` -- the base of the logarithm. If ``None``
+          (default value) is used, the logarithm is the natural
+          logarithm.
+
+        - ``prec`` -- the precision used for truncating the
+          expansion. If ``None`` (default value) is used, the
+          default precision from the parent is used.
+
+        OUTPUT:
+
+        An asymptotic expression.
+
+        .. NOTE::
+
+            Computing the logarithm of an asymptotic expression
+            is possible if and only if there is exactly one maximal
+            term in the expression.
+
+            In case the expression has more than one term,
+            the well-known expansion for `\log(1+t)` is used.
+
+        EXAMPLES::
+
+            sage: R.<x> = AsymptoticRing('x^ZZ * log(x)^ZZ', QQ)
+            sage: log(x)
+            log(x)
+            sage: log(x^2)
+            2*log(x)
+            sage: log(x-1)
+            log(x) - x^(-1) - 1/2*x^(-2) - 1/3*x^(-3) - ... + O(x^(-21))
+
+        ::
+
+            sage: log(R(1))
+            0
+        """
+        P = self.parent()
+
+        if len(self.summands) == 0:
+            from sage.rings.infinity import minus_infinity
+            return minus_infinity
+
+        elif len(self.summands) == 1:
+            if self == 1:
+                return P(0)
+            return P(next(self.summands.elements()).log_term())
+
+        max_elem = tuple(self.summands.maximal_elements())
+        if len(max_elem) != 1:
+            raise ValueError('log(%s) cannot be constructed since there '
+                             'are several maximal elements: %s.' % (self, max_elem))
+
+        from sage.functions.log import log
+        max_elem = max_elem[0]
+        imax_elem = ~max_elem
+        one = P.one()
+        geom = one - self._mul_term_(imax_elem)
+
+        expanding = True
+        result = -geom
+        k = 1
+        while expanding:
+            k += 1
+            new_result = (result - geom**k / k).truncate(prec=prec)
+            if new_result.has_same_summands(result):
+                expanding = False
+            result = new_result
+        return log(P(max_elem)) + result
+
 
 class AsymptoticRing(sage.rings.ring.Ring,
                      sage.structure.unique_representation.UniqueRepresentation):

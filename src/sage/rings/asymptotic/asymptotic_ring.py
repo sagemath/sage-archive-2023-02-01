@@ -960,13 +960,13 @@ class AsymptoticExpression(sage.structure.element.CommutativeAlgebraElement):
         return result._mul_term_(imax_elem)
 
 
-    def truncate(self, prec=None):
+    def truncate(self, precision=None):
         r"""
         Truncate this asymptotic expression.
 
         INPUT:
 
-        - ``prec`` -- a positive integer or ``None``. Number of
+        - ``precision`` -- a positive integer or ``None``. Number of
           summands that are kept. If ``None`` (default value) is
           given, then ``default_prec`` from the parent is used.
 
@@ -977,32 +977,40 @@ class AsymptoticExpression(sage.structure.element.CommutativeAlgebraElement):
         .. NOTE::
 
             For example, truncating an asymptotic expression with
-            ``prec=20`` does not yield an expression with exactly 20
+            ``precision=20`` does not yield an expression with exactly 20
             summands! Rather than that, it keeps the 20 summands
-            with the largest growth, and adds an appropriate
-            `O`-Term.
+            with the largest growth, and adds appropriate
+            `O`-Terms.
 
         EXAMPLES::
 
             sage: R.<x> = AsymptoticRing('x^ZZ', QQ)
             sage: ex = sum(x^k for k in range(5)); ex
             x^4 + x^3 + x^2 + x + 1
-            sage: ex.truncate(prec=2)
+            sage: ex.truncate(precision=2)
             x^4 + x^3 + O(x^2)
-            sage: ex.truncate(prec=0)
+            sage: ex.truncate(precision=0)
             O(x^4)
             sage: ex.truncate()
             x^4 + x^3 + x^2 + x + 1
         """
-        if prec is None:
-            prec = self.parent().default_prec
+        if precision is None:
+            precision = self.parent().default_prec
 
-        if len(self.summands) <= prec:
+        if len(self.summands) <= precision:
             return self
-        else:
-            g = self.summands.elements_topological(reverse=True)
-            main_part = self.parent()([g.next() for _ in range(prec)])
-            return main_part + (self - main_part).O()
+
+        summands = self.summands.copy()
+        from term_monoid import TermMonoid
+        def convert_terms(element):
+            if convert_terms.count < precision:
+                convert_terms.count += 1
+                return element
+            T = TermMonoid(term='O', asymptotic_ring=self.parent())
+            return T(element)
+        convert_terms.count = 0
+        summands.map(convert_terms, topological=True, reverse=True)
+        return self.parent()(summands, simplify=True, convert=False)
 
 
     def __pow__(self, power):
@@ -1421,6 +1429,7 @@ class AsymptoticRing(sage.algebras.algebra.Algebra,
                for parameter in parameters) and values['category'] is self.category():
             return self
         return self.__class__(**values)
+
 
     @staticmethod
     def _create_empty_summands_():

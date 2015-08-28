@@ -452,20 +452,27 @@ class AsymptoticExpression(sage.structure.element.CommutativeAlgebraElement):
         """
         super(AsymptoticExpression, self).__init__(parent=parent)
 
+        from sage.data_structures.mutable_poset import MutablePoset
+        if not isinstance(summands, MutablePoset):
+            raise TypeError('Summands %s are not in a mutable poset as expected '
+                            'when creating an element of %s.' % (summands, parent))
+
         if convert:
             from growth_group import combine_exceptions
             from term_monoid import TermMonoid
-            summands = summands.copy()
-            for shell in summands.shells():
-                element = shell._element_
+            def convert_terms(element):
                 T = TermMonoid(term=element.parent(), asymptotic_ring=parent)
                 try:
-                    shell._element_ = T(element)
+                    return T(element)
                 except (ValueError, TypeError) as e:
                     raise combine_exceptions(
                         ValueError('Cannot include %s with parent %s in %s' %
                                    (element, element.parent(), parent)), e)
-        self._summands_ = summands
+            new_summands = summands.copy()
+            new_summands.map(convert_terms, topological=True, reverse=True)
+            self._summands_ = new_summands
+        else:
+            self._summands_ = summands
 
         if simplify:
             self._simplify_()
@@ -561,7 +568,8 @@ class AsymptoticExpression(sage.structure.element.CommutativeAlgebraElement):
         .. NOTE::
 
             While for example ``O(x) == O(x)`` yields ``False``,
-            these expressions *do* have the same summands.
+            these expressions *do* have the same summands and this method
+            returns ``True``.
 
             Moreover, this method uses the coercion model in order to
             find a common parent for this asymptotic expression and
@@ -577,12 +585,10 @@ class AsymptoticExpression(sage.structure.element.CommutativeAlgebraElement):
             False
         """
         from sage.structure.element import have_same_parent
-
         if have_same_parent(self, other):
             return self._has_same_summands_(other)
 
         from sage.structure.element import get_coercion_model
-
         return get_coercion_model().bin_op(self, other,
                                            lambda self, other:
                                            self._has_same_summands_(other))
@@ -616,9 +622,10 @@ class AsymptoticExpression(sage.structure.element.CommutativeAlgebraElement):
         """
         if len(self.summands) != len(other.summands):
             return False
-        pairs = zip(self.summands.elements_topological(),
-                    other.summands.elements_topological())
-        return all(p[0].is_same(p[1]) for p in pairs)
+        from itertools import izip
+        return all(s == o for s, o in
+                   izip(self.summands.elements_topological(),
+                        other.summands.elements_topological()))
 
 
     def _simplify_(self):
@@ -659,7 +666,7 @@ class AsymptoticExpression(sage.structure.element.CommutativeAlgebraElement):
             sage: R(lst)  # indirect doctest
             4*x^4 + O(x^3)
         """
-        self.summands.merge(reverse=True)
+        self._summands_.merge(reverse=True)
 
 
     def _repr_(self):
@@ -780,7 +787,7 @@ class AsymptoticExpression(sage.structure.element.CommutativeAlgebraElement):
             sage: expr._mul_term_(t)
             O(x^3)
         """
-        return self.parent()([term * elem for elem in self.summands.elements()],
+        return self.parent()(self.summands.mapped(lambda element: term * element),
                              convert=False)
 
 
@@ -960,13 +967,13 @@ class AsymptoticExpression(sage.structure.element.CommutativeAlgebraElement):
         return result._mul_term_(imax_elem)
 
 
-    def truncate(self, prec=None):
+    def truncate(self, precision=None):
         r"""
         Truncate this asymptotic expression.
 
         INPUT:
 
-        - ``prec`` -- a positive integer or ``None``. Number of
+        - ``precision`` -- a positive integer or ``None``. Number of
           summands that are kept. If ``None`` (default value) is
           given, then ``default_prec`` from the parent is used.
 
@@ -977,32 +984,40 @@ class AsymptoticExpression(sage.structure.element.CommutativeAlgebraElement):
         .. NOTE::
 
             For example, truncating an asymptotic expression with
-            ``prec=20`` does not yield an expression with exactly 20
+            ``precision=20`` does not yield an expression with exactly 20
             summands! Rather than that, it keeps the 20 summands
-            with the largest growth, and adds an appropriate
-            `O`-Term.
+            with the largest growth, and adds appropriate
+            `O`-Terms.
 
         EXAMPLES::
 
             sage: R.<x> = AsymptoticRing('x^ZZ', QQ)
             sage: ex = sum(x^k for k in range(5)); ex
             x^4 + x^3 + x^2 + x + 1
-            sage: ex.truncate(prec=2)
+            sage: ex.truncate(precision=2)
             x^4 + x^3 + O(x^2)
-            sage: ex.truncate(prec=0)
+            sage: ex.truncate(precision=0)
             O(x^4)
             sage: ex.truncate()
             x^4 + x^3 + x^2 + x + 1
         """
-        if prec is None:
-            prec = self.parent().default_prec
+        if precision is None:
+            precision = self.parent().default_prec
 
-        if len(self.summands) <= prec:
+        if len(self.summands) <= precision:
             return self
-        else:
-            g = self.summands.elements_topological(reverse=True)
-            main_part = self.parent()([g.next() for _ in range(prec)])
-            return main_part + (self - main_part).O()
+
+        summands = self.summands.copy()
+        from term_monoid import TermMonoid
+        def convert_terms(element):
+            if convert_terms.count < precision:
+                convert_terms.count += 1
+                return element
+            T = TermMonoid(term='O', asymptotic_ring=self.parent())
+            return T(element)
+        convert_terms.count = 0
+        summands.map(convert_terms, topological=True, reverse=True)
+        return self.parent()(summands, simplify=True, convert=False)
 
 
     def __pow__(self, power):
@@ -1501,6 +1516,7 @@ class AsymptoticRing(sage.algebras.algebra.Algebra,
             return self
         return self.__class__(**values)
 
+
     @staticmethod
     def _create_empty_summands_():
         r"""
@@ -1604,7 +1620,7 @@ class AsymptoticRing(sage.algebras.algebra.Algebra,
             sage: N(M.an_element())
             Traceback (most recent call last):
             ...
-            ValueError: Cannot include -m^3 with parent
+            ValueError: Cannot include m^3 with parent
             Exact Term Monoid m^ZZ with coefficients in Integer Ring
             in Asymptotic Ring <n^ZZ> over Rational Field
             > *previous* ValueError: m^3 is not in Growth Group n^ZZ

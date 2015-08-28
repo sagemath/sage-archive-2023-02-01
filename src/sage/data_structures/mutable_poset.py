@@ -608,7 +608,7 @@ class MutablePosetShell(object):
     __eq__ = eq
 
 
-    def _copy_all_linked_(self, memo, poset):
+    def _copy_all_linked_(self, memo, poset, mapping):
         r"""
         Helper function for :meth:`MutablePoset.copy`.
 
@@ -618,6 +618,8 @@ class MutablePosetShell(object):
           calling shell to a copy of it.
 
         - ``poset`` -- the poset to which the newly created shells belongs.
+
+        - ``mapping`` -- a function which is applied on each of the elements.
 
         OUTPUT:
 
@@ -629,7 +631,7 @@ class MutablePosetShell(object):
             sage: P = MP()
             sage: Q = MP()
             sage: memo = {}
-            sage: z = P.null._copy_all_linked_(memo, Q)
+            sage: z = P.null._copy_all_linked_(memo, Q, lambda e: e)
             sage: z.poset is Q
             True
             sage: oo = z.successors().pop()
@@ -641,12 +643,13 @@ class MutablePosetShell(object):
         except KeyError:
             pass
 
-        new = self.__class__(poset, self.element)
+        new = self.__class__(poset, mapping(self.element)
+                             if self.element is not None else None)
         memo[id(self)] = new
 
         for reverse in (False, True):
             for e in self.successors(reverse):
-                new.successors(reverse).add(e._copy_all_linked_(memo, poset))
+                new.successors(reverse).add(e._copy_all_linked_(memo, poset, mapping))
 
         return new
 
@@ -1231,7 +1234,7 @@ class MutablePoset(object):
         if is_MutablePoset(data):
             if key is not None:
                 raise TypeError('Cannot use key when data is a poset.')
-            self._copy_shells_(data)
+            self._copy_shells_(data, lambda e: e)
 
         else:
             self.clear()
@@ -1435,7 +1438,7 @@ class MutablePoset(object):
         return self._key_(element)
 
 
-    def _copy_shells_(self, other):
+    def _copy_shells_(self, other, mapping):
         r"""
         Helper function for copying shells.
 
@@ -1443,6 +1446,8 @@ class MutablePoset(object):
 
         - ``other`` -- the mutable poset from which the shells
           should be copied this poset.
+
+        - ``mapping`` -- a function which is applied on each of the elements.
 
         OUTPUT:
 
@@ -1461,7 +1466,7 @@ class MutablePoset(object):
             sage: P.add(T((4, 4)))
             sage: P.add(T((1, 2)))
             sage: Q = MP()
-            sage: Q._copy_shells_(P)
+            sage: Q._copy_shells_(P, lambda e: e)
             sage: P.repr_full() == Q.repr_full()
             True
         """
@@ -1470,20 +1475,20 @@ class MutablePoset(object):
         self._merge_ = copy(other._merge_)
         self._can_merge_ = copy(other._can_merge_)
         memo = {}
-        self._null_ = other._null_._copy_all_linked_(memo, self)
+        self._null_ = other._null_._copy_all_linked_(memo, self, mapping)
         self._oo_ = memo[id(other._oo_)]
         self._shells_ = dict((f.key, f) for f in
                               iter(memo[id(e)]
                                    for e in other._shells_.itervalues()))
 
 
-    def copy(self):
+    def copy(self, mapping=None):
         r"""
         Creates a shallow copy.
 
         INPUT:
 
-        Nothing.
+        - ``mapping`` -- a function which is applied on each of the elements.
 
         OUTPUT:
 
@@ -1505,8 +1510,10 @@ class MutablePoset(object):
             sage: P.repr_full() == Q.repr_full()
             True
         """
+        if mapping is None:
+            mapping = lambda element: element
         new = self.__class__()
-        new._copy_shells_(self)
+        new._copy_shells_(self, mapping)
         return new
 
 
@@ -2792,6 +2799,18 @@ class MutablePoset(object):
 
             sage: copy(P).merge(reverse=False) == copy(P).merge(reverse=True)
             True
+
+        ::
+
+            sage: P = MP(srange(4),
+            ....:        merge=lambda l, r: l, can_merge=lambda l, r: l >= r); P
+            poset(0, 1, 2, 3)
+            sage: Q = P.copy()
+            sage: Q.merge(reverse=True); Q
+            poset(3)
+            sage: R = P.mapped(lambda x: x+1)
+            sage: R.merge(reverse=True); R
+            poset(4)
         """
         if key is None:
             for shell in tuple(self.shells_topological(reverse=reverse)):
@@ -2805,7 +2824,11 @@ class MutablePoset(object):
         for rev in (reverse, not reverse):
             to_merge = shell.iter_depth_first(
                 reverse=rev, condition=can_merge)
-            next(to_merge)
+            try:
+                next(to_merge)
+            except StopIteration:
+                raise RuntimeError('Stopping merge before started; the '
+                                   'can_merge-function is not reflexive.')
             for m in tuple(to_merge):
                 if m.is_special():
                     continue
@@ -2874,6 +2897,85 @@ class MutablePoset(object):
         return iter(shell.element
                     for shell in self.null.successors()
                     if not shell.is_special())
+
+
+    def map(self, function, topological=False, reverse=False):
+        r"""
+        Applies the given ``function`` on each element.
+
+        INPUT:
+
+        - ``function`` -- a function mapping an existing element to a new element.
+
+        - ``topological`` -- (default: ``False``) if set, then the mapping is done
+          in topological order, otherwise unordered.
+
+        - ``reverse`` -- is passed on to topological ordering.
+
+        OUTPUT:
+
+        Nothing.
+
+        .. NOTE::
+
+            Since this method works inplace, it is not allowed that
+            ``function`` alters the key of an element.
+
+        EXAMPLES::
+
+            sage: from sage.data_structures.mutable_poset import MutablePoset as MP
+            sage: class T(tuple):
+            ....:     def __le__(left, right):
+            ....:         return all(l <= r for l, r in zip(left, right))
+            sage: P = MP()
+            sage: P.add(T((1, 3)))
+            sage: P.add(T((2, 1)))
+            sage: P.add(T((4, 4)))
+            sage: P.add(T((1, 2)))
+            sage: P.add(T((2, 2)))
+            sage: P.map(lambda e: str(e))
+            sage: P
+            poset('(1, 2)', '(1, 3)', '(2, 1)', '(2, 2)', '(4, 4)')
+        """
+        shells = self.shells_topological(reverse=reverse) \
+            if topological else self.shells()
+        for shell in shells:
+            shell._element_ = function(shell._element_)
+
+
+    def mapped(self, function):
+        r"""
+        Return a poset where on each element the given ``function`` was applied.
+
+        INPUT:
+
+        - ``function`` -- a function mapping an existing element to a new element.
+
+        - ``topological`` -- (default: ``False``) if set, then the mapping is done
+          in topological order, otherwise unordered.
+
+        - ``reverse`` -- is passed on to topological ordering.
+
+        OUTPUT:
+
+        A :class:`MutablePoset`.
+
+        EXAMPLES::
+
+            sage: from sage.data_structures.mutable_poset import MutablePoset as MP
+            sage: class T(tuple):
+            ....:     def __le__(left, right):
+            ....:         return all(l <= r for l, r in zip(left, right))
+            sage: P = MP()
+            sage: P.add(T((1, 3)))
+            sage: P.add(T((2, 1)))
+            sage: P.add(T((4, 4)))
+            sage: P.add(T((1, 2)))
+            sage: P.add(T((2, 2)))
+            sage: P.mapped(lambda e: str(e))
+            poset('(1, 2)', '(1, 3)', '(2, 1)', '(2, 2)', '(4, 4)')
+        """
+        return self.copy(mapping=function)
 
 
 # *****************************************************************************

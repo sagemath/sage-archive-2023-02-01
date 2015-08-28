@@ -1279,9 +1279,22 @@ class AsymptoticRing(sage.algebras.algebra.Algebra,
             ValueError: Names 'x', 'y', 'z' do not coincide with
             generators 'x', 'y' of Growth Group x^ZZ * y^ZZ.
         """
+        from sage.categories.sets_cat import Sets
+        Sets_parent_class = Sets().parent_class
+        while issubclass(cls, Sets_parent_class):
+            cls = cls.__base__
+
         if isinstance(growth_group, str):
             from sage.rings.asymptotic.growth_group import GrowthGroup
             growth_group = GrowthGroup(growth_group)
+
+        if growth_group is None:
+            raise ValueError('Growth group not specified. Cannot continue.')
+
+        if coefficient_ring is None:
+            raise ValueError('Coefficient ring not specified. Cannot continue.')
+        if coefficient_ring not in sage.categories.rings.Rings():
+            raise ValueError('%s is not a ring. Cannot continue.' % (coefficient_ring,))
 
         strgens = tuple(str(g) for g in growth_group.gens_monomial())
         def format_names(N):
@@ -1295,16 +1308,15 @@ class AsymptoticRing(sage.algebras.algebra.Algebra,
             raise ValueError('Name%s do not coincide with generator%s of %s.' %
                              (format_names(names), format_names(strgens), growth_group))
 
-        if default_prec is None:
-            from sage.misc.defaults import series_precision
-            default_prec = series_precision()
-
         if category is None:
             from sage.categories.commutative_algebras import CommutativeAlgebras
             from sage.categories.rings import Rings
             from sage.categories.posets import Posets
-
             category = CommutativeAlgebras(Rings()) & Posets()
+
+        if default_prec is None:
+            from sage.misc.defaults import series_precision
+            default_prec = series_precision()
 
         return super(AsymptoticRing,
                      cls).__classcall__(cls, growth_group, coefficient_ring,
@@ -1313,8 +1325,7 @@ class AsymptoticRing(sage.algebras.algebra.Algebra,
 
 
     @sage.misc.superseded.experimental(trac_number=17601)
-    def __init__(self, growth_group, coefficient_ring, category=None,
-                 default_prec=None):
+    def __init__(self, growth_group, coefficient_ring, category, default_prec):
         r"""
         See :class:`AsymptoticRing` for more information.
 
@@ -1334,13 +1345,6 @@ class AsymptoticRing(sage.algebras.algebra.Algebra,
             ...
             TypeError: __classcall__() takes at least 3 arguments (2 given)
         """
-        if growth_group is None:
-            raise ValueError('Growth group not specified. Cannot continue.')
-        elif coefficient_ring is None:
-            raise ValueError('Coefficient ring not specified. Cannot continue.')
-        elif coefficient_ring not in sage.categories.rings.Rings():
-            raise ValueError('%s is not a ring. Cannot continue.' % (coefficient_ring,))
-
         self._coefficient_ring_ = coefficient_ring
         self._growth_group_ = growth_group
         self._default_prec_ = default_prec

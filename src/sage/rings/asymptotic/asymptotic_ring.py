@@ -1158,7 +1158,7 @@ class AsymptoticExpression(sage.structure.element.CommutativeAlgebraElement):
         elif len(self.summands) == 1:
             if self == 1:
                 return P(0)
-            return P(next(self.summands.elements()).log_term())
+            return P(next(self.summands.elements()).log_term(base=base))
 
         max_elem = tuple(self.summands.maximal_elements())
         if len(max_elem) != 1:
@@ -1180,7 +1180,11 @@ class AsymptoticExpression(sage.structure.element.CommutativeAlgebraElement):
             if new_result.has_same_summands(result):
                 expanding = False
             result = new_result
-        return log(P(max_elem)) + result
+
+        result = log(P(max_elem)) + result
+        if base:
+            result = result / log(base)
+        return result
 
 
 class AsymptoticRing(sage.algebras.algebra.Algebra,

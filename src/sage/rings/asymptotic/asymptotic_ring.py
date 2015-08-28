@@ -787,7 +787,7 @@ class AsymptoticExpression(sage.structure.element.CommutativeAlgebraElement):
             sage: expr._mul_term_(t)
             O(x^3)
         """
-        return self.parent()([term * elem for elem in self.summands.elements()],
+        return self.parent()(self.summands.mapped(lambda element: term * element),
                              convert=False)
 
 

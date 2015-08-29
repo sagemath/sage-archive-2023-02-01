@@ -417,7 +417,8 @@ static ex sin_eval(const ex & x)
 	// sin(n/d*Pi) -> { all known radicals with nesting depth 2 }
 	const ex SixtyExOverPi = _ex60*x/Pi;
 	ex sign = _ex1;
-	if (SixtyExOverPi.info(info_flags::integer)) {
+	if (is_exactly_a<numeric>(SixtyExOverPi)
+                and SixtyExOverPi.info(info_flags::integer)) {
 		numeric z = mod(ex_to<numeric>(SixtyExOverPi),*_num120_p);
 		if (z>=*_num60_p) {
 			// wrap to interval [0, Pi)
@@ -467,7 +468,8 @@ static ex sin_eval(const ex & x)
 
 	const ex TwentyforExOverPi = _ex24*x/Pi;
         sign = _ex1;
-	if (TwentyforExOverPi.info(info_flags::integer)) {
+	if (is_exactly_a<numeric>(TwentyforExOverPi)
+                and TwentyforExOverPi.info(info_flags::integer)) {
 		numeric z = mod(ex_to<numeric>(TwentyforExOverPi),*_num48_p);
 		if (z>=*_num24_p) {
 			// wrap to interval [0, Pi)
@@ -509,7 +511,7 @@ static ex sin_eval(const ex & x)
 	}
 	
 	// sin(float) -> float
-	if (x.info(info_flags::numeric) && !x.info(info_flags::crational))
+        if (x.info(info_flags::numeric) && !x.info(info_flags::crational))
 		return sin(ex_to<numeric>(x));
 
 	// sin() is odd
@@ -575,7 +577,8 @@ static ex cos_eval(const ex & x)
 	// cos(n/d*Pi) -> { all known radicals with nesting depth 2 }
 	const ex SixtyExOverPi = _ex60*x/Pi;
 	ex sign = _ex1;
-	if (SixtyExOverPi.info(info_flags::integer)) {
+	if (is_exactly_a<numeric>(SixtyExOverPi)
+                and SixtyExOverPi.info(info_flags::integer)) {
 		numeric z = mod(ex_to<numeric>(SixtyExOverPi),*_num120_p);
 		if (z>=*_num60_p) {
 			// wrap to interval [0, Pi)
@@ -728,7 +731,8 @@ static ex tan_eval(const ex & x)
 	// tan(n/d*Pi) -> { all known non-nested radicals }
 	const ex SixtyExOverPi = _ex60*x/Pi;
 	ex sign = _ex1;
-	if (SixtyExOverPi.info(info_flags::integer)) {
+	if (is_exactly_a<numeric>(SixtyExOverPi)
+                and SixtyExOverPi.info(info_flags::integer)) {
 		numeric z = mod(ex_to<numeric>(SixtyExOverPi),*_num60_p);
 		if (z>=*_num60_p) {
 			// wrap to interval [0, Pi)

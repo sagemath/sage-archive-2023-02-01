@@ -309,16 +309,16 @@ class Polyhedron_base(Element):
 
             sage: vertices = [(0,0,0,0),(1,0,0,0),(0,1,0,0),(1,1,0,0),(0,0,1,0),(0,0,0,1)]
             sage: def loop_polyhedra():
-            ...       for i in range(0,100):
-            ...           p = Polyhedron(vertices)
+            ....:     for i in range(0,100):
+            ....:         p = Polyhedron(vertices)
 
             sage: timeit('loop_polyhedra()')                   # not tested - random
             5 loops, best of 3: 79.5 ms per loop
 
             sage: def loop_polyhedra_with_recycling():
-            ...       for i in range(0,100):
-            ...           p = Polyhedron(vertices)
-            ...           p._delete()
+            ....:     for i in range(0,100):
+            ....:         p = Polyhedron(vertices)
+            ....:         p._delete()
 
             sage: timeit('loop_polyhedra_with_recycling()')    # not tested - random
             5 loops, best of 3: 57.3 ms per loop

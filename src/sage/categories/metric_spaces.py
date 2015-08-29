@@ -94,7 +94,7 @@ class MetricSpaces(MetricSpacesCategory):
             r"""
             Test that this metric space has a properly implemented metric.
 
-            INPUT::
+            INPUT:
 
             - ``options`` -- any keyword arguments accepted
               by :meth:`_tester`

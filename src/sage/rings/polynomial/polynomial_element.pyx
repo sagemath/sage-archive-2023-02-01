@@ -1182,6 +1182,12 @@ cdef class Polynomial(CommutativeAlgebraElement):
         polynomial or an ideal (for consistency with inverse_mod in other
         rings).
 
+        .. SEEALSO::
+
+            If you are only interested in the inverse modulo a monomial `x^k`
+            then you might use the specialized method :meth:`inverse_series`
+            which is much faster.
+
         EXAMPLES::
 
             sage: S.<t> = QQ[]
@@ -1284,6 +1290,11 @@ cdef class Polynomial(CommutativeAlgebraElement):
         r"""
         Return a polynomial approximation of precision ``prec`` of the inverse
         series of this polynomial.
+
+        .. SEEALSO::
+
+            The method :meth:`inverse_mod` allows more generally to invert this
+            polynomial with respect to any ideal.
 
         EXAMPLES::
 

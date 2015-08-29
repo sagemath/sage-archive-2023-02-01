@@ -1018,7 +1018,7 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
         sig_off()
         return res
 
-    cpdef Polynomial inverse_series(self, long prec):
+    cpdef Polynomial inverse_series_trunc(self, long prec):
         r"""
         Return a polynomial approximation of precision ``prec`` of the inverse
         series of this polynomial.
@@ -1027,23 +1027,23 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
 
             sage: x = polygen(ZZ)
             sage: p = 1+x+2*x**2
-            sage: q5 = p.inverse_series(5)
+            sage: q5 = p.inverse_series_trunc(5)
             sage: q5
             -x^4 + 3*x^3 - x^2 - x + 1
             sage: p*q5
             -2*x^6 + 5*x^5 + 1
 
-            sage: q100 = p.inverse_series(100)
+            sage: q100 = p.inverse_series_trunc(100)
             sage: (q100 * p).truncate(100)
             1
 
         TESTS::
 
-            sage: ZZ['x'].zero().inverse_series(4)
+            sage: ZZ['x'].zero().inverse_series_trunc(4)
             Traceback (most recent call last):
             ...
             ValueError: constant term is zero
-            sage: ZZ['x'](2).inverse_series(4)
+            sage: ZZ['x'](2).inverse_series_trunc(4)
             Traceback (most recent call last):
             ...
             ValueError: constant term 2 is not a unit

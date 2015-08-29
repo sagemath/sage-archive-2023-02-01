@@ -1185,8 +1185,8 @@ cdef class Polynomial(CommutativeAlgebraElement):
         .. SEEALSO::
 
             If you are only interested in the inverse modulo a monomial `x^k`
-            then you might use the specialized method :meth:`inverse_series`
-            which is much faster.
+            then you might use the specialized method
+            :meth:`inverse_series_trunc` which is much faster.
 
         EXAMPLES::
 
@@ -1286,7 +1286,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             else:
                 raise ValueError("Impossible inverse modulo")
 
-    cpdef Polynomial inverse_series(self, long prec):
+    cpdef Polynomial inverse_series_trunc(self, long prec):
         r"""
         Return a polynomial approximation of precision ``prec`` of the inverse
         series of this polynomial.
@@ -1299,7 +1299,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
         EXAMPLES::
 
             sage: x = polygen(ZZ)
-            sage: s = (1+x).inverse_series(5)
+            sage: s = (1+x).inverse_series_trunc(5)
             sage: s
             x^4 - x^3 + x^2 - x + 1
             sage: s * (1+x)
@@ -1309,11 +1309,11 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
             sage: ZZx.<x> = ZZ[]
             sage: ZZxy.<y> = ZZx[]
-            sage: (1+x + y**2).inverse_series(4)
+            sage: (1+x + y**2).inverse_series_trunc(4)
             Traceback (most recent call last):
             ...
             ValueError: constant term x + 1 is not a unit
-            sage: (1+x + y**2).change_ring(ZZx.fraction_field()).inverse_series(4)
+            sage: (1+x + y**2).change_ring(ZZx.fraction_field()).inverse_series_trunc(4)
             (-1/(x^2 + 2*x + 1))*y^2 + 1/(x + 1)
 
         The method works on any polynomial ring::
@@ -1323,7 +1323,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: Rxy.<y> = Rx[]
 
             sage: p = 1 + (1+2*x)*y + x**2*y**4
-            sage: q = p.inverse_series(10)
+            sage: q = p.inverse_series_trunc(10)
             sage: (p*q).truncate(11)
             (2*x^4 + 3*x^2 + 3)*y^10 + 1
 
@@ -1332,10 +1332,10 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: M = MatrixSpace(ZZ,2)
             sage: x = polygen(M)
             sage: p = M([1,2,3,4])*x^3 + M([-1,0,0,1])*x^2 + M([1,3,-1,0])*x + M.one()
-            sage: q = p.inverse_series(5)
+            sage: q = p.inverse_series_trunc(5)
             sage: (p*q).truncate(5) == M.one()
             True
-            sage: q = p.inverse_series(13)
+            sage: q = p.inverse_series_trunc(13)
             sage: (p*q).truncate(13) == M.one()
             True
         """

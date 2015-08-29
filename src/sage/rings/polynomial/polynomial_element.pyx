@@ -1834,6 +1834,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             x^59049 + t^59049 + 1
 
         Check that the algorithm used is indeed correct::
+
             sage: from sage.structure.element import generic_power
             sage: R.<x> = PolynomialRing(GF(17), sparse=True)
             sage: for d in [17, 264, 516]:

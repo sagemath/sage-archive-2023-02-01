@@ -387,6 +387,37 @@ def combine_exceptions(e, *f):
     return e
 
 
+def underlying_class(P):
+    r"""
+    Return the underlying class (class without the attached
+    categories) of the given instance.
+
+    OUTPUT:
+
+    A class.
+
+    EXAMPLES::
+
+        sage: from sage.rings.asymptotic.growth_group import underlying_class
+        sage: type(QQ)
+        <class 'sage.rings.rational_field.RationalField_with_category'>
+        sage: underlying_class(QQ)
+        <class 'sage.rings.rational_field.RationalField'>
+    """
+    cls = type(P)
+    if not P._is_category_initialized():
+        return cls
+    from sage.structure.misc import is_extension_type
+    if is_extension_type(cls):
+        return cls
+
+    from sage.categories.sets_cat import Sets
+    Sets_parent_class = Sets().parent_class
+    while issubclass(cls, Sets_parent_class):
+        cls = cls.__base__
+    return cls
+
+
 class Variable(sage.structure.unique_representation.CachedRepresentation,
                sage.structure.sage_object.SageObject):
     r"""
@@ -1120,11 +1151,6 @@ class GenericGrowthGroup(
             sage: L1 is L2
             True
         """
-        from sage.categories.sets_cat import Sets
-        Sets_parent_class = Sets().parent_class
-        while issubclass(cls, Sets_parent_class):
-            cls = cls.__base__
-
         if not isinstance(base, sage.structure.parent.Parent):
             raise TypeError('%s is not a valid base.' % (base,))
 
@@ -2081,8 +2107,8 @@ class MonomialGrowthElement(GenericGrowthElement):
         if new_element.parent() is self.exponent.parent():
             return self.parent()(raw_element=new_element)
         else:
-            new_parent = self.parent().__class__(new_element.parent(),
-                                                 self.parent()._var_)
+            new_parent = underlying_class(self.parent())(new_element.parent(),
+                                                         self.parent()._var_)
             return new_parent(raw_element=new_element)
 
 
@@ -2637,8 +2663,8 @@ class ExponentialGrowthElement(GenericGrowthElement):
         if new_element.parent() is self.base.parent():
             return self.parent()(raw_element=new_element)
         else:
-            new_parent = self.parent().__class__(new_element.parent(),
-                                                 self.parent()._var_)
+            new_parent = underlying_class(self.parent())(new_element.parent(),
+                                                         self.parent()._var_)
             return new_parent(raw_element=new_element)
 
 

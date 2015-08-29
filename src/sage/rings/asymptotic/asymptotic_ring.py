@@ -1442,7 +1442,8 @@ class AsymptoticRing(sage.algebras.algebra.Algebra,
         if all(values[parameter] is getattr(self, parameter)
                for parameter in parameters) and values['category'] is self.category():
             return self
-        return self.__class__(**values)
+        from sage.rings.asymptotic.growth_group import underlying_class
+        return underlying_class(self)(**values)
 
 
     @staticmethod

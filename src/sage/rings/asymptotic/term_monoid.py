@@ -977,14 +977,10 @@ class GenericTermMonoid(sage.structure.unique_representation.UniqueRepresentatio
             sage: from sage.rings.asymptotic.growth_group import GrowthGroup
             sage: G = GrowthGroup('x^ZZ')
             sage: T = GenericTermMonoid(G, QQ)
-            sage: T.__class__(G, QQ) is T
+            sage: from sage.rings.asymptotic.growth_group import underlying_class
+            sage: underlying_class(T)(G, QQ) is T
             True
         """
-        from sage.categories.sets_cat import Sets
-        Sets_parent_class = Sets().parent_class
-        while issubclass(cls, Sets_parent_class):
-            cls = cls.__base__
-
         from sage.rings.asymptotic.growth_group import GenericGrowthGroup
         if growth_group is None:
             raise ValueError('No growth group specified.')
@@ -2278,7 +2274,8 @@ class ExactTerm(TermWithCoefficient):
         if c.parent() is self.coefficient.parent() and g.parent() is self.growth.parent():
             return self.parent()(g, c)
         else:
-            new_parent = self.parent().__class__(g.parent(), c.parent())
+            from sage.rings.asymptotic.growth_group import underlying_class
+            new_parent = underlying_class(self.parent())(g.parent(), c.parent())
             return new_parent(g, c)
 
 
@@ -2493,7 +2490,8 @@ class TermMonoidFactory(sage.structure.factory.UniqueFactory):
             to create a term monoid of type 'exact'
         """
         if isinstance(term, GenericTermMonoid):
-            term_class = term.__class__
+            from sage.rings.asymptotic.growth_group import underlying_class
+            term_class = underlying_class(term)
         elif term == 'O':
             term_class = OTermMonoid
         elif term == 'exact':

@@ -91,7 +91,8 @@ static ex exp_eval(const ex & x)
 	}
 	if (PyErr_Occurred()) {
 		PyErr_Clear();
-	} else if (TwoExOverPiI.info(info_flags::integer)) {
+	} else if (is_exactly_a<numeric>(TwoExOverPiI)
+                and TwoExOverPiI.info(info_flags::integer)) {
 		const numeric z = mod(ex_to<numeric>(TwoExOverPiI),*_num4_p);
 		if (z.is_equal(*_num0_p))
 			return _ex1;

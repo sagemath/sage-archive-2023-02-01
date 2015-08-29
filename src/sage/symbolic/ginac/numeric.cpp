@@ -2211,7 +2211,7 @@ void coerce(numeric& new_left, numeric& new_right, const numeric& left, const nu
                                         return;
                                 default:
                                         std::cerr << "type = " << right.t << "\n";
-                                        stub("** invalid coercion -- left MPZ**");
+                                        stub("** invalid coercion -- left MPQ**");
                         }
                 case DOUBLE:
                         switch (right.t) {
@@ -2233,8 +2233,26 @@ void coerce(numeric& new_left, numeric& new_right, const numeric& left, const nu
                         }
                 case PYOBJECT:
                         new_left = left;
-                        new_right = right.to_pyobject();
-                        return;
+                        switch (right.t) {
+                                case MPZ:
+                                        mpz_t bigint;
+                                        mpz_init_set(bigint, right.v._bigint);
+                                        o = py_funcs.py_integer_from_mpz(bigint);
+                                        new_right = numeric(o, true);
+                                        return;
+                                case MPQ:
+                                        mpq_init(bigrat);
+                                        mpq_set(bigrat, right.v._bigrat);
+                                        o = py_funcs.py_rational_from_mpq(bigrat);
+                                        new_right = numeric(o, true);
+                                        return;
+                                case DOUBLE:
+                                        new_left = PyFloat_FromDouble(right.to_double());
+                                        return;
+                                default:
+                                        std::cerr << "type = " << right.t << "\n";
+                                        stub("** invalid coercion -- left PYOBJECT**");
+                        }
         }
         std::cerr << "type = " << left.t << "\n";
         stub("** invalid coercion **");

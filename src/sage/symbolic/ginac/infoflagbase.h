@@ -31,7 +31,7 @@ private:
 		info_flags::negative, info_flags::nonnegative,
 		info_flags::posint, info_flags::negint, info_flags::nonnegint,
 		info_flags::even, info_flags::odd, info_flags::prime,
-		info_flags::nonzero,
+		info_flags::nonzero, info_flags::numeric,
 		};
 
 	static unsigned index[info_flags::relation];

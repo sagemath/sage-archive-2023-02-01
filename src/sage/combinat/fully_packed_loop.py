@@ -244,6 +244,7 @@ REFERENCES:
    :arxiv:`abs/1503.08898`
 """
 from sage.misc.classcall_metaclass import ClasscallMetaclass
+from sage.misc.inherit_comparison import InheritComparisonClasscallMetaclass
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.parent import Parent
 from sage.structure.element import Element
@@ -259,10 +260,10 @@ from sage.rings.integer import Integer
 from sage.misc.all import prod
 
 class FullyPackedLoop(Element):
-    """
+    r"""
     A class for fully packed loops
     """
-    __metaclass__ = ClasscallMetaclass
+    __metaclass__ = InheritComparisonClasscallMetaclass
 
     @staticmethod
     def __classcall_private__(cls, generator):

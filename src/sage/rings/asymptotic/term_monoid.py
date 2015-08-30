@@ -505,10 +505,12 @@ class GenericTerm(sage.structure.element.MonoidElement):
         zero = self.parent().coefficient_ring.zero()
         try:
             _ = zero ** exponent
-        except (TypeError, ValueError, ZeroDivisionError) as e:
+        except (TypeError, ValueError,
+                ZeroDivisionError, FloatingPointError) as e:
             from sage.rings.asymptotic.growth_group import combine_exceptions
             raise combine_exceptions(
-                ZeroDivisionError('Cannot take %s to exponent %s.' % (self, exponent)), e)
+                ZeroDivisionError('Cannot take %s to exponent %s.' %
+                                  (self, exponent)), e)
         return self._calculate_pow_(exponent)
 
 

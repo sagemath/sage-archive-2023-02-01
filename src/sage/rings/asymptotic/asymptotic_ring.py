@@ -1042,7 +1042,8 @@ class AsymptoticExpression(sage.structure.element.CommutativeAlgebraElement):
             sage: O(x)^(-1)
             Traceback (most recent call last):
             ...
-            ZeroDivisionError: Cannot invert O(x).
+            ZeroDivisionError: Cannot take O(x) to exponent -1.
+            > *previous* FloatingPointError: Floating point exception.
         """
         if not self.summands:
             if exponent == 0:

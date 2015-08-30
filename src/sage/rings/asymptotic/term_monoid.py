@@ -1329,7 +1329,7 @@ class GenericTermMonoid(sage.structure.unique_representation.UniqueRepresentatio
             sage: G = agg.GrowthGroup('x^ZZ')
             sage: T = atm.TermWithCoefficientMonoid(G, ZZ)
             sage: t1 = T(x^2, 5); t1  # indirect doctest
-            Asymptotic Term with coefficient 5 and growth x^2
+            Term with coefficient 5 and growth x^2
 
         TESTS::
 
@@ -1340,23 +1340,23 @@ class GenericTermMonoid(sage.structure.unique_representation.UniqueRepresentatio
         ::
 
             sage: T(G.gen()^10)
-            Asymptotic Term with coefficient 1 and growth x^10
+            Term with coefficient 1 and growth x^10
             sage: T(G.gen()^10, coefficient=10)
-            Asymptotic Term with coefficient 10 and growth x^10
+            Term with coefficient 10 and growth x^10
             sage: T(x^123)
-            Asymptotic Term with coefficient 1 and growth x^123
+            Term with coefficient 1 and growth x^123
 
         ::
 
             sage: T(x)
-            Asymptotic Term with coefficient 1 and growth x
+            Term with coefficient 1 and growth x
 
         ::
 
             sage: G_log = agg.GrowthGroup('log(x)^ZZ')
             sage: T_log = atm.TermWithCoefficientMonoid(G_log, ZZ)
             sage: T_log(log(x))
-            Asymptotic Term with coefficient 1 and growth log(x)
+            Term with coefficient 1 and growth log(x)
 
         """
         if type(data) == self.element_class and data.parent() == self:
@@ -1976,9 +1976,9 @@ class TermWithCoefficient(GenericTerm):
         sage: CT_ZZ = atm.TermWithCoefficientMonoid(G, ZZ)
         sage: CT_QQ = atm.TermWithCoefficientMonoid(G, QQ)
         sage: CT_ZZ(x^2, 5)
-        Asymptotic Term with coefficient 5 and growth x^2
+        Term with coefficient 5 and growth x^2
         sage: CT_QQ(x^3, 3/8)
-        Asymptotic Term with coefficient 3/8 and growth x^3
+        Term with coefficient 3/8 and growth x^3
     """
 
     def __init__(self, parent, growth, coefficient):
@@ -2003,7 +2003,7 @@ class TermWithCoefficient(GenericTerm):
             ValueError: 1/2 is not a coefficient in
             Generic Term Monoid x^ZZ with (implicit) coefficients in Integer Ring.
             sage: t = CT_QQ(x, 1/2); t
-            Asymptotic Term with coefficient 1/2 and growth x
+            Term with coefficient 1/2 and growth x
 
         For technical reasons, the coefficient 0 is not allowed::
 
@@ -2019,7 +2019,7 @@ class TermWithCoefficient(GenericTerm):
             sage: x = SR('x'); x.parent()
             Symbolic Ring
             sage: CT_ZZ(x^42, 42)
-            Asymptotic Term with coefficient 42 and growth x^42
+            Term with coefficient 42 and growth x^42
         """
         try:
             coefficient = parent.coefficient_ring(coefficient)
@@ -2053,9 +2053,9 @@ class TermWithCoefficient(GenericTerm):
             sage: G = agg.GrowthGroup('x^ZZ'); x = G.gen()
             sage: T = atm.TermWithCoefficientMonoid(G, ZZ)
             sage: T(x^2, 5)._repr_()
-            'Asymptotic Term with coefficient 5 and growth x^2'
+            'Term with coefficient 5 and growth x^2'
         """
-        return 'Asymptotic Term with coefficient %s and growth %s' % \
+        return 'Term with coefficient %s and growth %s' % \
                (self.coefficient, self.growth)
 
 
@@ -2093,7 +2093,7 @@ class TermWithCoefficient(GenericTerm):
 
             sage: t1 = CT(x^2, 2); t2 = CT(x^3, 3)
             sage: t1 * t2
-            Asymptotic Term with coefficient 6 and growth x^5
+            Term with coefficient 6 and growth x^5
 
             And now, an example for exact terms::
 
@@ -2124,11 +2124,11 @@ class TermWithCoefficient(GenericTerm):
             sage: from sage.rings.asymptotic.growth_group import GrowthGroup
             sage: G = GrowthGroup('z^ZZ')
             sage: t = TermWithCoefficientMonoid(G, ZZ).an_element(); t
-            Asymptotic Term with coefficient 1 and growth z
+            Term with coefficient 1 and growth z
             sage: t._calculate_pow_(3)
-            Asymptotic Term with coefficient 1 and growth z^3
+            Term with coefficient 1 and growth z^3
             sage: t._calculate_pow_(-2)
-            Asymptotic Term with coefficient 1 and growth z^(-2)
+            Term with coefficient 1 and growth z^(-2)
         """
         try:
             c = self.coefficient ** exponent
@@ -2215,7 +2215,7 @@ class TermWithCoefficient(GenericTerm):
             sage: from sage.rings.asymptotic.term_monoid import TermWithCoefficientMonoid
             sage: T = TermWithCoefficientMonoid(GrowthGroup('x^ZZ'), ZZ)
             sage: t = T.an_element(); t
-            Asymptotic Term with coefficient 1 and growth x
+            Term with coefficient 1 and growth x
             sage: t == T(x, 1)
             True
             sage: t == T(x, 2)
@@ -2312,7 +2312,7 @@ class TermWithCoefficientMonoid(GenericTermMonoid):
             sage: import sage.rings.asymptotic.term_monoid as atm
             sage: G = agg.GrowthGroup('x^ZZ')
             sage: atm.TermWithCoefficientMonoid(G, ZZ).an_element()  # indirect doctest
-            Asymptotic Term with coefficient 1 and growth x
+            Term with coefficient 1 and growth x
             sage: atm.ExactTermMonoid(G, ZZ).an_element()  # indirect doctest
             x
             sage: atm.ExactTermMonoid(G, QQ).an_element()  # indirect doctest

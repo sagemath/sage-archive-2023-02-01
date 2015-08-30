@@ -1393,6 +1393,38 @@ class GenericGrowthGroup(
                     for e in self.base().some_elements())
 
 
+    def _create_element_via_parent_(self, raw_element, old_parent=None):
+        r"""
+        Create an element with a possibly other parent.
+
+        INPUT:
+
+        - ``raw_element`` -- the element data.
+
+        - ``old_parent`` -- the parent of ``raw_element`` is compared to ``old_parent``.
+
+        OUTPUT:
+
+        An element.
+
+            sage: from sage.rings.asymptotic.growth_group import GrowthGroup
+            sage: G = GrowthGroup('z^ZZ')
+            sage: G._create_element_via_parent_(3).parent()
+            Growth Group z^ZZ
+            sage: G._create_element_via_parent_(1/2).parent()
+            Traceback (most recent call last):
+            ...
+            TypeError: no conversion of this rational to integer
+            sage: G._create_element_via_parent_(1/2, ZZ).parent()
+            Growth Group z^QQ
+        """
+        if old_parent is None or raw_element.parent() is old_parent:
+            parent = self
+        else:
+            parent = underlying_class(self)(raw_element.parent(), self._var_)
+        return parent(raw_element=raw_element)
+
+
     def le(self, left, right):
         r"""
         Return if the growth of ``left`` is at most (less than or

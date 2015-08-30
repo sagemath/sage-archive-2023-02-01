@@ -1086,7 +1086,7 @@ class AsymptoticExpression(sage.structure.element.CommutativeAlgebraElement):
 
         ::
 
-            sage: O(x)^(-1)
+            sage: O(x)^(-1)  # not tested  # see #19110
             Traceback (most recent call last):
             ...
             ZeroDivisionError: Cannot take O(x) to exponent -1.

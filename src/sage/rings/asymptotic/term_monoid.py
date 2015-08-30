@@ -389,8 +389,7 @@ class GenericTerm(sage.structure.element.MonoidElement):
         zero = self.parent().coefficient_ring.zero()
         try:
             zero ** exponent
-        except (TypeError, ValueError,
-                ZeroDivisionError, FloatingPointError) as e:
+        except (TypeError, ValueError, ZeroDivisionError) as e:
             from misc import combine_exceptions
             raise combine_exceptions(
                 ZeroDivisionError('Cannot take %s to exponent %s.' %

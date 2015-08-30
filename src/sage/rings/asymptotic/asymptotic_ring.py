@@ -929,35 +929,22 @@ class AsymptoticExpression(sage.structure.element.CommutativeAlgebraElement):
 
         elif len(self.summands) == 1:
             element = next(self.summands.elements())
-            new_element = ~element
-            if new_element.parent() is element.parent():
-                return self.parent()(new_element,
-                                     simplify=False, convert=False)
-            else:
-                # Insert an 'if' here once terms can have different
-                # coefficient rings, as this will be for L-terms.
-                new_parent = self.parent().change_parameter(
-                    growth_group=new_element.parent().growth_group,
-                    coefficient_ring=new_element.parent().coefficient_ring)
-                return new_parent(new_element,
-                                  simplify=False, convert=False)
+            return self.parent()._create_element_via_parent_(
+                ~element, element.parent())
 
         max_elem = tuple(self.summands.maximal_elements())
         if len(max_elem) != 1:
             raise ValueError('Expression %s cannot be inverted, since there '
-                             'are several maximal elements: %s.' % (self, max_elem))
+                             'are several maximal elements: %s.' %
+                             (self, max_elem))
         max_elem = max_elem[0]
 
         imax_elem = ~max_elem
         if imax_elem.parent() is max_elem.parent():
             new_self = self
         else:
-            # Insert an 'if' here once terms can have different
-            # coefficient rings, as this will be for L-terms.
-            new_parent = self.parent().change_parameter(
-                growth_group=imax_elem.parent().growth_group,
-                coefficient_ring=imax_elem.parent().coefficient_ring)
-            new_self = new_parent(self)
+            new_self = self.parent()._create_element_via_parent_(
+                imax_elem, max_elem.parent()).parent()(self)
 
         one = new_self.parent().one()
         geom = one - new_self._mul_term_(imax_elem)
@@ -1071,18 +1058,8 @@ class AsymptoticExpression(sage.structure.element.CommutativeAlgebraElement):
 
         elif len(self.summands) == 1:
             element = next(self.summands.elements())
-            new_element = element ** exponent
-            if new_element.parent() is element.parent():
-                return self.parent()(new_element,
-                                     simplify=False, convert=False)
-            else:
-                # Insert an 'if' here once terms can have different
-                # coefficient rings, as this will be for L-terms.
-                new_parent = self.parent().change_parameter(
-                    growth_group=new_element.parent().growth_group,
-                    coefficient_ring=new_element.parent().coefficient_ring)
-                return new_parent(new_element,
-                                  simplify=False, convert=False)
+            return self.parent()._create_element_via_parent_(
+                element ** exponent, element.parent())
 
         from sage.rings.integer_ring import ZZ
         try:

@@ -8,15 +8,10 @@ quadratic forms over the rationals.
 #*****************************************************************************
 #       Copyright (C) 2007 William Stein and Jonathan Hanke
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
-#
-#    This code is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-#    General Public License for more details.
-#
-#  The full text of the GPL is available at:
-#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
@@ -27,6 +22,7 @@ quadratic forms over the rationals.
 ###########################################################################
 
 
+from copy import deepcopy
 from sage.rings.integer_ring import ZZ
 from sage.rings.rational_field import QQ
 from sage.rings.real_mpfr import RR
@@ -36,7 +32,6 @@ from sage.matrix.matrix_space import MatrixSpace
 from sage.misc.cachefunc import cached_method
 
 
-@cached_method
 def rational_diagonal_form(self, return_matrix=False):
     """
     Return a diagonal form equivalent to the given quadratic from
@@ -130,6 +125,78 @@ def rational_diagonal_form(self, return_matrix=False):
         [   0    0    1    0]
         [   0    0    0    1]
         )
+
+    TESTS:
+
+    Changing the output quadratic form does not affect the caching::
+
+        sage: Q, T = Q1.rational_diagonal_form(return_matrix=True)
+        sage: Q[0,0] = 13
+        sage: Q1.rational_diagonal_form()
+        Quadratic form in 4 variables over Rational Field with coefficients:
+        [ 1 0 0 0 ]
+        [ * 3/4 0 0 ]
+        [ * * 1 0 ]
+        [ * * * 18 ]
+
+    The transformation matrix is immutable::
+
+        sage: T[0,0] = 13
+        Traceback (most recent call last):
+        ...
+        ValueError: matrix is immutable; please change a copy instead (i.e., use copy(M) to change a copy of M).
+    """
+    Q, T = self._rational_diagonal_form_and_transformation()
+
+    # Quadratic forms do not support immutability, so we need to make
+    # a copy to be safe. The matrix T is already immutable.
+    Q = deepcopy(Q)
+
+    if return_matrix:
+        return Q, T
+    else:
+        return Q
+
+
+@cached_method
+def _rational_diagonal_form_and_transformation(self):
+    """
+    Return a diagonal form equivalent to the given quadratic from and
+    the corresponding transformation matrix. This is over the fraction
+    field of the base ring of the given quadratic form.
+
+    OUTPUT: a tuple ``(D,T)`` where
+
+    - ``D`` -- the diagonalized form of this quadratic form.
+
+    - ``T`` -- transformation matrix. This is such that
+      ``T.transpose() * self.matrix() * T`` gives ``D.matrix()``.
+
+    Both ``D`` and ``T`` are defined over the fraction field of the
+    base ring of the given form.
+
+    EXAMPLES::
+
+        sage: Q = QuadraticForm(ZZ, 4, [1, 1, 0, 0, 1, 0, 0, 1, 0, 18])
+        sage: Q
+        Quadratic form in 4 variables over Integer Ring with coefficients:
+        [ 1 1 0 0 ]
+        [ * 1 0 0 ]
+        [ * * 1 0 ]
+        [ * * * 18 ]
+        sage: Q._rational_diagonal_form_and_transformation()
+        (
+        Quadratic form in 4 variables over Rational Field with coefficients:
+        [ 1 0 0 0 ]
+        [ * 3/4 0 0 ]
+        [ * * 1 0 ]
+        [ * * * 18 ]                                                         ,
+        <BLANKLINE>
+        [   1 -1/2    0    0]
+        [   0    1    0    0]
+        [   0    0    1    0]
+        [   0    0    0    1]
+        )
     """
     n = self.dim()
     K = self.base_ring().fraction_field()
@@ -166,10 +233,8 @@ def rational_diagonal_form(self, return_matrix=False):
         Q = Q(temp)
         T = T * temp
 
-    if return_matrix:
-        return Q, T
-    else:
-        return Q
+    T.set_immutable()
+    return Q, T
 
 
 def signature_vector(self):

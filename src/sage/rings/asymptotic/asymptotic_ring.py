@@ -548,8 +548,48 @@ class AsymptoticExpression(sage.structure.element.CommutativeAlgebraElement):
             True
             sage: O(x) == O(x)
             False
+
+        TESTS::
+
+            sage: x == None
+            False
         """
+        if other is None:
+            return False
         return not bool(self - other)
+
+
+    def __ne__(self, other):
+        r"""
+        Return if this asymptotic expression is not equal to ``other``.
+
+        INPUT:
+
+        - ``other`` -- an object.
+
+        OUTPUT:
+
+        A boolean.
+
+        .. NOTE::
+
+            This function uses the coercion model to find a common
+            parent for the two operands.
+
+        EXAMPLES::
+
+            sage: R.<x> = AsymptoticRing('x^ZZ', QQ)
+            sage: (1 + 2*x + 3*x^2) != (3*x^2 + 2*x + 1)  # indirect doctest
+            False
+            sage: O(x) != O(x)
+            True
+
+        TESTS::
+
+            sage: x != None
+            True
+        """
+        return not self == other
 
 
     def has_same_summands(self, other):
@@ -583,7 +623,14 @@ class AsymptoticExpression(sage.structure.element.CommutativeAlgebraElement):
             True
             sage: O(x_ZZ) == O(x_QQ)
             False
+
+        TESTS::
+
+            sage: x_ZZ.has_same_summands(None)
+            False
         """
+        if other is None:
+            return False
         from sage.structure.element import have_same_parent
         if have_same_parent(self, other):
             return self._has_same_summands_(other)

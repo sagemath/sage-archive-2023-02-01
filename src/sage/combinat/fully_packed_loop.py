@@ -274,7 +274,7 @@ class FullyPackedLoop(Element):
     @staticmethod
     def __classcall_private__(cls, generator):
         """
-        Create an ASM.
+        Create a FPL.
 
         EXAMPLES::
 
@@ -313,8 +313,26 @@ class FullyPackedLoop(Element):
             SVM = generator.to_six_vertex_model()
         elif isinstance(generator, SquareIceModel.Element):
             SVM = generator
-        else:
-            raise TypeError('The generator for a fully packed loop must either be an AlternatingSignMatrix or a SquareIceModel.Element')
+        elif isinstance(generator, SixVertexConfiguration):
+            # Check that this is an ice square model
+            generator = SixVertexModel(generator.parent()._nrows, \
+            boundary_conditions='ice')(generator)
+            M = generator.to_alternating_sign_matrix().to_matrix()
+            M = AlternatingSignMatrix(M)
+            SVM = generator
+        else: # Not ASM nor SVM
+            try:
+                SVM = AlternatingSignMatrix(generator).to_six_vertex_model()
+            except (TypeError, ValueError):
+                generator = matrix(generator)
+                generator = SixVertexModel(generator.nrows(), boundary_conditions='ice')(generator)
+                # Check that this is an ice square model
+                M = generator.to_alternating_sign_matrix()
+                SVM = generator
+
+        if not SVM:
+            raise TypeError('generator for FullyPackedLoop must either be an \
+            AlternatingSignMatrix or a SquareIceModel.Element')
         FPLs = FullyPackedLoops(len(SVM))
         return FPLs(generator)
 
@@ -340,6 +358,26 @@ class FullyPackedLoop(Element):
                 +    + -- +
                 |         |
                 |         |
+            sage: FullyPackedLoops(3)(A) == fpl
+            True
+
+        We can also input a matrix::
+
+            sage: FullyPackedLoop([[0, 0, 1], [0, 1, 0], [1, 0, 0]])
+                |         |
+                |         |
+                + -- +    +
+                     |    |
+                     |    |
+             -- +    +    + --
+                |    |
+                |    |
+                +    + -- +
+                |         |
+                |         |
+            sage: FullyPackedLoop([[0, 0, 1], [0, 1, 0], [1, 0, 0]]) ==\
+            ....: FullyPackedLoops(3)([[0, 0, 1], [0, 1, 0], [1, 0, 0]])
+            True
 
         Otherwise we initiate a fully packed loop using a six vertex model::
 
@@ -357,28 +395,80 @@ class FullyPackedLoop(Element):
                 +    + -- +
                 |         |
                 |         |
+
+            sage: FullyPackedLoops(3)(S) == FullyPackedLoop(S)
+            True
+
             sage: fpl.six_vertex_model().to_alternating_sign_matrix()
             [0 0 1]
             [0 1 0]
             [1 0 0]
+
+        We can also input the matrix associated to a six vertex model::
+
+            sage: SixVertexModel(2)([[3,1],[5,3]])
+                ^    ^
+                |    |
+            --> # <- # <--
+                |    ^
+                V    |
+            --> # -> # <--
+                |    |
+                V    V
+
+            sage: FullyPackedLoop([[3,1],[5,3]])
+                |
+                |
+                +    + --
+                |    |
+                |    |
+             -- +    +
+                     |
+                     |
+
+            sage: FullyPackedLoops(2)([[3,1],[5,3]]) == FullyPackedLoop([[3,1],[5,3]])
+            True
+
+        Note that the matrix corresponding to a six vertex model without
+        the ice boundary condition is not allowed::
+
+            sage: SixVertexModel(2)([[3,1],[5,5]])
+                ^    ^
+                |    |
+            --> # <- # <--
+                |    ^
+                V    V
+            --> # -> # -->
+                |    |
+                V    V
+
+            sage: FullyPackedLoop([[3,1],[5,5]])
+            Traceback (most recent call last):
+            ...
+            ValueError: Invalid alternating sign matrix
+
+            sage: FullyPackedLoops(2)([[3,1],[5,5]])
+            Traceback (most recent call last):
+            ...
+            ValueError: Invalid alternating sign matrix
 
         Note that if anything else is used to generate the fully packed loop an error will occur::
 
             sage: fpl = FullyPackedLoop(5)
             Traceback (most recent call last):
             ...
-            TypeError: The generator for a fully packed loop must either be an AlternatingSignMatrix or a SquareIceModel.Element
+            ValueError: Invalid alternating sign matrix
 
             sage: fpl = FullyPackedLoop((1, 2, 3))
             Traceback (most recent call last):
             ...
-            TypeError: The generator for a fully packed loop must either be an AlternatingSignMatrix or a SquareIceModel.Element
+            ValueError: The alternating sign matrices must be square
 
             sage: SVM = SixVertexModel(3)[0]
             sage: FullyPackedLoop(SVM)
             Traceback (most recent call last):
             ...
-            TypeError: The generator for a fully packed loop must either be an AlternatingSignMatrix or a SquareIceModel.Element
+            ValueError: Invalid alternating sign matrix
 
         TESTS::
 
@@ -389,10 +479,8 @@ class FullyPackedLoop(Element):
         """
         if isinstance(generator, AlternatingSignMatrix):
             self._six_vertex_model = generator.to_six_vertex_model()
-        elif isinstance(generator, SixVertexConfiguration):
+        elif isinstance(generator, SquareIceModel.Element):
             self._six_vertex_model = generator
-        else:
-            raise TypeError('The generator for a fully packed loop must either be an AlternatingSignMatrix or a SixVertexConfiguration')
 
         self.end_points = self._end_point_dictionary()
         self.configuration = matrix(list(self._six_vertex_model))
@@ -1186,7 +1274,8 @@ class FullyPackedLoops(Parent, UniqueRepresentation):
         EXAMPLES::
 
             sage: FPLs = FullyPackedLoops(4)
-            sage: A = AlternatingSignMatrix([[1,0,0,0],[0,1,0,0],[0,0,1,0],[0,0,0,1]])
+            sage: M = [[1,0,0,0],[0,1,0,0],[0,0,1,0],[0,0,0,1]]
+            sage: A = AlternatingSignMatrix(M)
             sage: elt = FullyPackedLoop(A)
             sage: FPL = FPLs(elt); FPL
                 |         |
@@ -1207,18 +1296,39 @@ class FullyPackedLoops(Parent, UniqueRepresentation):
             sage: FPLs(A) == FPL
             True
 
+            sage: FPLs(M) == FPL
+            True
+
             sage: FPLs(FPL._six_vertex_model) == FPL
             True
 
             sage: FPL.parent() is FPLs
             True
+
+            sage: FPL = FullyPackedLoops(2)
+            sage: FPL([[3,1],[5,3]])
+                |
+                |
+                +    + --
+                |    |
+                |    |
+             -- +    +
+                     |
+                     |
         """
         if isinstance(generator, AlternatingSignMatrix):
             SVM = generator.to_six_vertex_model()
-        elif isinstance(generator, SquareIceModel.Element):
+        elif isinstance(generator, SquareIceModel.Element) or \
+        isinstance(generator, SixVertexConfiguration):
             SVM = generator
-        else:
-            raise TypeError('The generator for a fully packed loop must either be an AlternatingSignMatrix or a SquareIceModel.Element')
+        else: # Not ASM nor SVM
+            try:
+                SVM = AlternatingSignMatrix(generator).to_six_vertex_model()
+            except (TypeError, ValueError):
+                SVM = SixVertexModel(self._n, boundary_conditions='ice')(generator)
+                M = SVM.to_alternating_sign_matrix()
+        #else:
+        #    raise TypeError('The generator for a fully packed loop must either be an AlternatingSignMatrix or a SquareIceModel.Element')
 
         if len(SVM) != self._n:
             raise ValueError("invalid size")

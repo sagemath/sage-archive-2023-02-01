@@ -1920,7 +1920,6 @@ class MonomialGrowthElement(GenericGrowthElement):
             sage: e2 == ~e1
             True
         """
-        new_element = -self.exponent
         return self.parent()._create_element_via_parent_(-self.exponent, self.exponent.parent())
 
 
@@ -2466,7 +2465,6 @@ class ExponentialGrowthElement(GenericGrowthElement):
             sage: (~P(raw_element=1)).parent()
             Growth Group QQ^x
         """
-        new_element = 1 / self.base
         return self.parent()._create_element_via_parent_(1 / self.base, self.base.parent())
 
 
@@ -2658,7 +2656,6 @@ class ExponentialGrowthGroup(GenericGrowthGroup):
         try:
             P = data.parent()
         except AttributeError:
-            import re
             if var not in str(data):
                 return  # this has to end here
 

@@ -190,7 +190,7 @@ class GenericTerm(sage.structure.element.MonoidElement):
             raise ValueError('The parent must be provided')
         try:
             self.growth = parent.growth_group(growth)
-        except ValueError, TypeError:
+        except (ValueError, TypeError):
             raise ValueError("%s is not in %s" % (growth, parent.growth_group))
 
         super(GenericTerm, self).__init__(parent=parent)
@@ -388,7 +388,7 @@ class GenericTerm(sage.structure.element.MonoidElement):
         """
         zero = self.parent().coefficient_ring.zero()
         try:
-            _ = zero ** exponent
+            zero ** exponent
         except (TypeError, ValueError,
                 ZeroDivisionError, FloatingPointError) as e:
             from misc import combine_exceptions
@@ -981,7 +981,6 @@ class GenericTermMonoid(sage.structure.unique_representation.UniqueRepresentatio
             sage: underlying_class(T)(G, QQ) is T
             True
         """
-        from growth_group import GenericGrowthGroup
         if growth_group is None:
             raise ValueError('No growth group specified.')
         if not isinstance(growth_group, sage.structure.parent.Parent):

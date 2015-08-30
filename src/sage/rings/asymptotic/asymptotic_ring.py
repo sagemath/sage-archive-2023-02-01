@@ -2032,7 +2032,6 @@ class AsymptoticRing(sage.algebras.algebra.Algebra,
 
 
 from sage.categories.pushout import ConstructionFunctor
-from growth_group import Variable
 class AsymptoticRingFunctor(ConstructionFunctor):
     r"""
     A :class:`construction functor <sage.categories.pushout.ConstructionFunctor>`

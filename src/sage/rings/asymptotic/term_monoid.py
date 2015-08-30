@@ -391,7 +391,7 @@ class GenericTerm(sage.structure.element.MonoidElement):
             _ = zero ** exponent
         except (TypeError, ValueError,
                 ZeroDivisionError, FloatingPointError) as e:
-            from sage.rings.asymptotic.growth_group import combine_exceptions
+            from misc import combine_exceptions
             raise combine_exceptions(
                 ZeroDivisionError('Cannot take %s to exponent %s.' %
                                   (self, exponent)), e)
@@ -439,7 +439,7 @@ class GenericTerm(sage.structure.element.MonoidElement):
         try:
             g = self.growth ** exponent
         except (ValueError, TypeError, ZeroDivisionError) as e:
-            from sage.rings.asymptotic.growth_group import combine_exceptions
+            from misc import combine_exceptions
             raise combine_exceptions(
                 ValueError('Cannot take %s to the exponent %s.' % (self, exponent)), e)
 
@@ -977,7 +977,7 @@ class GenericTermMonoid(sage.structure.unique_representation.UniqueRepresentatio
             sage: from sage.rings.asymptotic.growth_group import GrowthGroup
             sage: G = GrowthGroup('x^ZZ')
             sage: T = GenericTermMonoid(G, QQ)
-            sage: from sage.rings.asymptotic.growth_group import underlying_class
+            sage: from sage.rings.asymptotic.misc import underlying_class
             sage: underlying_class(T)(G, QQ) is T
             True
         """
@@ -1255,7 +1255,7 @@ class GenericTermMonoid(sage.structure.unique_representation.UniqueRepresentatio
             raise ValueError('No input specified. Cannot continue '
                              'creating an element of %s.' % (self,))
 
-        from growth_group import combine_exceptions
+        from misc import combine_exceptions
         if coefficient is not None:
             try:
                 data = self.growth_group(data)
@@ -1333,7 +1333,7 @@ class GenericTermMonoid(sage.structure.unique_representation.UniqueRepresentatio
             coefficient is not None and coefficient.parent() is old_parent_coefficient):
             parent = self
         else:
-            from sage.rings.asymptotic.growth_group import underlying_class
+            from misc import underlying_class
             parent = underlying_class(self)(growth.parent(),
                                             coefficient.parent()
                                             if coefficient is not None
@@ -1414,7 +1414,7 @@ class GenericTermMonoid(sage.structure.unique_representation.UniqueRepresentatio
             (x^2, log(x))
         """
         if isinstance(data, str):
-            from growth_group import split_str_by_mul
+            from misc import split_str_by_mul
             return split_str_by_mul(data)
 
         try:
@@ -2021,7 +2021,7 @@ class TermWithCoefficient(GenericTerm):
         try:
             c = self.coefficient ** exponent
         except (TypeError, ValueError, ZeroDivisionError) as e:
-            from sage.rings.asymptotic.growth_group import combine_exceptions
+            from misc import combine_exceptions
             raise combine_exceptions(
                 ZeroDivisionError('Cannot take %s to the exponent %s since its '
                                   'coefficient %s cannot be taken to this exponent.' %
@@ -2236,6 +2236,7 @@ class TermWithCoefficientMonoid(GenericTermMonoid):
              z^2, -2*z^(1/2), 2*z^(-1/2), -z^2, z^(-2))
 
         """
+        from misc import product_diagonal
         return iter(self(g, c) for g, c in product_diagonal(
             self.growth_group.some_elements(),
             iter(c for c in self.coefficient_ring.some_elements() if c != 0)))
@@ -2615,7 +2616,7 @@ class TermMonoidFactory(sage.structure.factory.UniqueFactory):
             to create a term monoid of type 'exact'
         """
         if isinstance(term, GenericTermMonoid):
-            from sage.rings.asymptotic.growth_group import underlying_class
+            from misc import underlying_class
             term_class = underlying_class(term)
         elif term == 'O':
             term_class = OTermMonoid

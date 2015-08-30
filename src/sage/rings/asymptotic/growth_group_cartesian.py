@@ -342,6 +342,7 @@ class GenericProduct(CartesianProductPosets, GenericGrowthGroup):
             try:
                 return self._convert_factors_(data)
             except ValueError as e:
+                from misc import combine_exceptions
                 raise combine_exceptions(
                     ValueError('%s is not in %s.' % (raw_data, self)), e)
 
@@ -358,7 +359,7 @@ class GenericProduct(CartesianProductPosets, GenericGrowthGroup):
             return self.element_class(self, data)
 
         elif isinstance(data, str):
-            from growth_group import split_str_by_mul
+            from misc import split_str_by_mul
             return convert_factors(split_str_by_mul(data), data)
 
         elif hasattr(data, 'parent'):
@@ -567,6 +568,7 @@ class GenericProduct(CartesianProductPosets, GenericGrowthGroup):
             Growth Group QQ^x * x^QQ * y^ZZ * z^QQ
         """
         from growth_group import GenericGrowthGroup, AbstractGrowthGroupFunctor
+        from misc import merge_overlapping
 
         if isinstance(other, GenericProduct):
             Ofactors = other.cartesian_factors()

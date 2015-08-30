@@ -1048,6 +1048,7 @@ class GenericGrowthGroup(
             sage: GenericGrowthGroup(QQ, ('a', 'b'))
             Growth Group Generic(QQ, a, b)
         """
+        from misc import parent_to_repr_short
         vars = ', '.join(self._var_.variable_names())
         if vars:
             vars = ', ' + vars
@@ -1201,6 +1202,7 @@ class GenericGrowthGroup(
             sage: G._create_element_via_parent_(1/2, ZZ).parent()
             Growth Group z^QQ
         """
+        from misc import underlying_class
         if old_parent is None or raw_element.parent() is old_parent:
             parent = self
         else:
@@ -2056,6 +2058,7 @@ class MonomialGrowthGroup(GenericGrowthGroup):
             sage: agg.MonomialGrowthGroup(PolynomialRing(QQ, 'x'), 'a')._repr_short_()
             'a^(Univariate Polynomial Ring in x over Rational Field)'
         """
+        from misc import parent_to_repr_short
         return '%s^%s' % (self._var_, parent_to_repr_short(self.base()))
 
 
@@ -2594,6 +2597,7 @@ class ExponentialGrowthGroup(GenericGrowthGroup):
             sage: agg.ExponentialGrowthGroup(PolynomialRing(QQ, 'x'), 'a')._repr_short_()
             '(Univariate Polynomial Ring in x over Rational Field)^a'
         """
+        from misc import parent_to_repr_short
         return '%s^%s' % (parent_to_repr_short(self.base()), self._var_)
 
 
@@ -2837,6 +2841,7 @@ class GrowthGroupFactory(sage.structure.factory.UniqueFactory):
             ...
             ValueError: 'asdf' is not a valid string describing a growth group.
         """
+        from misc import split_str_by_mul
         factors = split_str_by_mul(specification)
         factors = tuple(f.replace('**', '^') for f in factors)
 
@@ -2872,6 +2877,7 @@ class GrowthGroupFactory(sage.structure.factory.UniqueFactory):
             > *and* ValueError: Cannot create a parent out of 'y^z'.
             >> *previous* NameError: name 'y' is not defined
         """
+        from misc import repr_short_to_parent
         groups = []
         for factor in factors:
             b, _, e = factor.partition('^')
@@ -2886,6 +2892,7 @@ class GrowthGroupFactory(sage.structure.factory.UniqueFactory):
                 E = None
 
             if B is None and E is None:
+                from misc import combine_exceptions
                 raise combine_exceptions(
                     ValueError("'%s' is not a valid string describing "
                                "a growth group." % (factor,)), exc_b, exc_e)

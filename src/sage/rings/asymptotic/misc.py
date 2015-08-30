@@ -10,6 +10,9 @@ Methods
 =======
 """
 
+import sage
+
+
 def repr_short_to_parent(s):
     r"""
     Helper method for the growth group factory, which converts a short
@@ -25,7 +28,7 @@ def repr_short_to_parent(s):
 
     EXAMPLES::
 
-        sage: import sage.rings.asymptotic.growth_group as agg
+        sage: import sage.rings.asymptotic.misc as agg
         sage: agg.repr_short_to_parent('ZZ')
         Integer Ring
         sage: agg.repr_short_to_parent('QQ')
@@ -75,7 +78,7 @@ def parent_to_repr_short(P):
 
     EXAMPLES::
 
-        sage: import sage.rings.asymptotic.growth_group as agg
+        sage: import sage.rings.asymptotic.misc as agg
         sage: agg.parent_to_repr_short(ZZ)
         'ZZ'
         sage: agg.parent_to_repr_short(QQ)
@@ -113,7 +116,7 @@ def split_str_by_mul(string):
 
     TESTS::
 
-        sage: from sage.rings.asymptotic.growth_group import split_str_by_mul
+        sage: from sage.rings.asymptotic.misc import split_str_by_mul
         sage: split_str_by_mul('x^ZZ')
         ('x^ZZ',)
         sage: split_str_by_mul('log(x)^ZZ * y^QQ')
@@ -165,7 +168,7 @@ def combine_exceptions(e, *f):
 
     EXAMPLES::
 
-        sage: from sage.rings.asymptotic.growth_group import combine_exceptions
+        sage: from sage.rings.asymptotic.misc import combine_exceptions
         sage: raise combine_exceptions(ValueError('Outer.'), TypeError('Inner.'))
         Traceback (most recent call last):
         ...
@@ -208,7 +211,7 @@ def underlying_class(P):
 
     EXAMPLES::
 
-        sage: from sage.rings.asymptotic.growth_group import underlying_class
+        sage: from sage.rings.asymptotic.misc import underlying_class
         sage: type(QQ)
         <class 'sage.rings.rational_field.RationalField_with_category'>
         sage: underlying_class(QQ)
@@ -234,7 +237,7 @@ def merge_overlapping(A, B, key=None):
 
     TESTS::
 
-        sage: from sage.rings.asymptotic.growth_group_cartesian import merge_overlapping
+        sage: from sage.rings.asymptotic.misc import merge_overlapping
         sage: def f(L, s):
         ....:     return list((ell, s) for ell in L)
         sage: key = lambda k: k[0]
@@ -343,7 +346,7 @@ def product_diagonal(A, B):
 
     EXAMPLES::
 
-        sage: from sage.rings.asymptotic.term_monoid import product_diagonal
+        sage: from sage.rings.asymptotic.misc import product_diagonal
         sage: tuple(product_diagonal(srange(2), srange(2)))
         ((0, 0), (0, 1), (1, 0), (1, 1))
         sage: tuple(product_diagonal(srange(4), srange(2)))

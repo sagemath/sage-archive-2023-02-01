@@ -458,7 +458,7 @@ class AsymptoticExpression(sage.structure.element.CommutativeAlgebraElement):
                             'when creating an element of %s.' % (summands, parent))
 
         if convert:
-            from growth_group import combine_exceptions
+            from misc import combine_exceptions
             from term_monoid import TermMonoid
             def convert_terms(element):
                 T = TermMonoid(term=element.parent(), asymptotic_ring=parent)
@@ -1073,7 +1073,7 @@ class AsymptoticExpression(sage.structure.element.CommutativeAlgebraElement):
         try:
             return (exponent * self.log()).exp()
         except (TypeError, ValueError, ZeroDivisionError) as e:
-            from sage.rings.asymptotic.growth_group import combine_exceptions
+            from misc import combine_exceptions
             raise combine_exceptions(
                 ValueError('Cannot take %s to the exponent %s.' % (self, exponent)), e)
 
@@ -1429,7 +1429,7 @@ class AsymptoticRing(sage.algebras.algebra.Algebra,
         if all(values[parameter] is getattr(self, parameter)
                for parameter in parameters) and values['category'] is self.category():
             return self
-        from sage.rings.asymptotic.growth_group import underlying_class
+        from misc import underlying_class
         return underlying_class(self)(**values)
 
 
@@ -1610,7 +1610,7 @@ class AsymptoticRing(sage.algebras.algebra.Algebra,
         except AttributeError:
             return self._create_exact_summand_(data)
 
-        from growth_group import combine_exceptions
+        from misc import combine_exceptions
         if P is sage.symbolic.ring.SR:
             from sage.symbolic.operators import add_vararg
             if data.operator() == add_vararg:
@@ -1843,8 +1843,8 @@ class AsymptoticRing(sage.algebras.algebra.Algebra,
              O(z^(-1/2)),
              8*z^(3/2) + O(z^(1/2)))
         """
-        from sage.rings.asymptotic.term_monoid import product_diagonal
-        from sage.rings.asymptotic.term_monoid import TermMonoid
+        from misc import product_diagonal
+        from term_monoid import TermMonoid
         E = TermMonoid('exact', self.growth_group, self.coefficient_ring)
         O = TermMonoid('O', self.growth_group, self.coefficient_ring)
         return iter(self(e, simplify=False, convert=False)**3 +

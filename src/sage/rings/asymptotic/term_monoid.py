@@ -445,6 +445,122 @@ class GenericTerm(sage.structure.element.MonoidElement):
                                   '(in this abstract method).' % (self,))
 
 
+    def __pow__(self, exponent):
+        r"""
+        Calculate the power of this element to the given ``exponent``.
+
+        INPUT:
+
+        - ``exponent`` -- an element.
+
+        OUTPUT:
+
+        Raise a :class:`NotImplementedError` since it is an abstract base class.
+
+        TESTS::
+
+            sage: from sage.rings.asymptotic.term_monoid import GenericTermMonoid
+            sage: from sage.rings.asymptotic.growth_group import GrowthGroup
+            sage: G = GrowthGroup('z^ZZ')
+            sage: t = GenericTermMonoid(G, ZZ).an_element(); t
+            Generic Term with growth z
+            sage: t^3  # indirect doctest
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: Taking powers of Generic Term with growth z
+            not implemented (in this abstract method).
+        """
+        raise NotImplementedError('Taking powers of %s not implemented '
+                                  '(in this abstract method).' % (self,))
+
+
+    def _calculate_pow_test_zero_(self, exponent):
+        r"""
+        Helper function for :meth:`__pow__` which calculates the power of this
+        element to the given ``exponent`` only if zero to this exponent is possible.
+
+        INPUT:
+
+        - ``exponent`` -- an element.
+
+        OUTPUT:
+
+        A term.
+
+        TESTS::
+
+            sage: from sage.rings.asymptotic.term_monoid import GenericTermMonoid
+            sage: from sage.rings.asymptotic.growth_group import GrowthGroup
+            sage: G = GrowthGroup('z^ZZ')
+            sage: t = GenericTermMonoid(G, ZZ).an_element(); t
+            Generic Term with growth z
+            sage: t._calculate_pow_test_zero_(3)
+            Generic Term with growth z^3
+            sage: t._calculate_pow_test_zero_(-2)
+            Traceback (most recent call last):
+            ...
+            ZeroDivisionError: Cannot take Generic Term with growth z to exponent -2.
+            > *previous* ZeroDivisionError: Rational division by zero
+        """
+        zero = self.parent().coefficient_ring.zero()
+        try:
+            _ = zero ** exponent
+        except (TypeError, ValueError, ZeroDivisionError) as e:
+            from sage.rings.asymptotic.growth_group import combine_exceptions
+            raise combine_exceptions(
+                ZeroDivisionError('Cannot take %s to exponent %s.' % (self, exponent)), e)
+        return self._calculate_pow_(exponent)
+
+
+    def _calculate_pow_(self, exponent, coefficient=None):
+        r"""
+        Helper function for :meth:`__pow__` which calculates the power of this
+        element to the given ``exponent``.
+
+        INPUT:
+
+        - ``exponent`` -- an element.
+
+        - ``coefficient`` -- if not ``None`` this is passed on to the
+          construction of the element (in particular, not taken to any power).
+
+        OUTPUT:
+
+        A term.
+
+        TESTS::
+
+            sage: from sage.rings.asymptotic.term_monoid import GenericTermMonoid
+            sage: from sage.rings.asymptotic.growth_group import GrowthGroup
+            sage: G = GrowthGroup('z^ZZ')
+            sage: t = GenericTermMonoid(G, ZZ).an_element(); t
+            Generic Term with growth z
+            sage: t._calculate_pow_(3)
+            Generic Term with growth z^3
+            sage: t._calculate_pow_(3, coefficient=2)
+            Traceback (most recent call last):
+            ...
+            ValueError: Coefficient 2 is not 1, but Generic Term Monoid z^ZZ with
+            (implicit) coefficients in Integer Ring does not support coefficients.
+            sage: t._calculate_pow_(-2)
+            Generic Term with growth z^(-2)
+            sage: t._calculate_pow_(-2, coefficient=2)
+            Traceback (most recent call last):
+            ...
+            ValueError: Coefficient 2 is not 1, but Generic Term Monoid z^ZZ with
+            (implicit) coefficients in Integer Ring does not support coefficients.
+        """
+        try:
+            g = self.growth ** exponent
+        except (ValueError, TypeError, ZeroDivisionError) as e:
+            from sage.rings.asymptotic.growth_group import combine_exceptions
+            raise combine_exceptions(
+                ValueError('Cannot take %s to the exponent %s.' % (self, exponent)), e)
+
+        return self.parent()._create_element_via_parent_(
+            g, coefficient, self.parent().growth_group, self.parent().coefficient_ring)
+
+
     def can_absorb(self, other):
         r"""
         Check, whether this asymptotic term is able to absorb
@@ -829,8 +945,6 @@ class GenericTerm(sage.structure.element.MonoidElement):
             sage: g = GT.an_element(); e = ET.an_element(); o = OT.an_element()
             sage: g, e, o
             (Generic Term with growth x, x, O(x))
-            sage: g == g^2  # indirect doctest
-            False
             sage: e == e^2  # indirect doctest
             False
             sage: e == ET(x,1)  # indirect doctest
@@ -1599,6 +1713,33 @@ class OTerm(GenericTerm):
         raise ZeroDivisionError('Cannot invert %s.' % (self,))
 
 
+    def __pow__(self, exponent):
+        r"""
+        Calculate the power of this :class:`OTerm` to the given ``exponent``.
+
+        INPUT:
+
+        - ``exponent`` -- an element.
+
+        OUTPUT:
+
+        An :class:`OTerm`.
+
+        TESTS::
+
+            sage: from sage.rings.asymptotic.term_monoid import TermMonoid
+            sage: from sage.rings.asymptotic.growth_group import GrowthGroup
+            sage: G = GrowthGroup('z^ZZ')
+            sage: t = TermMonoid('O', G, ZZ).an_element(); t
+            O(z)
+            sage: t^3  # indirect doctest
+            O(z^3)
+            sage: t^(1/2)  # indirect doctest
+            O(z^(1/2))
+        """
+        return self._calculate_pow_test_zero_(exponent)
+
+
     def _can_absorb_(self, other):
         r"""
         Check, whether this `O`-term can absorb ``other``.
@@ -1964,6 +2105,42 @@ class TermWithCoefficient(GenericTerm):
                              self.coefficient * other.coefficient)
 
 
+    def _calculate_pow_(self, exponent):
+        r"""
+        Helper function for :meth:`__pow__` which calculates the power of this
+        element to the given ``exponent``.
+
+        INPUT:
+
+        - ``exponent`` -- an element.
+
+        OUTPUT:
+
+        A term.
+
+        TESTS::
+
+            sage: from sage.rings.asymptotic.term_monoid import TermWithCoefficientMonoid
+            sage: from sage.rings.asymptotic.growth_group import GrowthGroup
+            sage: G = GrowthGroup('z^ZZ')
+            sage: t = TermWithCoefficientMonoid(G, ZZ).an_element(); t
+            Asymptotic Term with coefficient 1 and growth z
+            sage: t._calculate_pow_(3)
+            Asymptotic Term with coefficient 1 and growth z^3
+            sage: t._calculate_pow_(-2)
+            Asymptotic Term with coefficient 1 and growth z^(-2)
+        """
+        try:
+            c = self.coefficient ** exponent
+        except (TypeError, ValueError, ZeroDivisionError) as e:
+            from sage.rings.asymptotic.growth_group import combine_exceptions
+            raise combine_exceptions(
+                ZeroDivisionError('Cannot take %s to the exponent %s since its '
+                                  'coefficient %s cannot be taken to this exponent.' %
+                                  (self, exponent, self.coefficient)), e)
+        return super(TermWithCoefficient, self)._calculate_pow_(exponent, coefficient=c)
+
+
     def _le_(self, other):
         r"""
         Return whether this asymptotic term with coefficient grows
@@ -2308,12 +2485,35 @@ class ExactTerm(TermWithCoefficient):
             raise ZeroDivisionError('Cannot invert %s since its coefficient %s '
                                     'cannot be inverted.' % (self, self.coefficient))
         g = ~self.growth
-        if c.parent() is self.coefficient.parent() and g.parent() is self.growth.parent():
-            return self.parent()(g, c)
-        else:
-            from sage.rings.asymptotic.growth_group import underlying_class
-            new_parent = underlying_class(self.parent())(g.parent(), c.parent())
-            return new_parent(g, c)
+        return self.parent()._create_element_via_parent_(
+            g, c, self.parent().growth_group, self.parent().coefficient_ring)
+
+
+    def __pow__(self, exponent):
+        r"""
+        Calculate the power of this :class:`ExactTerm` to the given ``exponent``.
+
+        INPUT:
+
+        - ``exponent`` -- an element.
+
+        OUTPUT:
+
+        An :class:`ExactTerm`.
+
+        TESTS::
+
+            sage: from sage.rings.asymptotic.term_monoid import TermMonoid
+            sage: from sage.rings.asymptotic.growth_group import GrowthGroup
+            sage: G = GrowthGroup('z^ZZ')
+            sage: t = TermMonoid('exact', G, ZZ).an_element(); t
+            z
+            sage: t^3  # indirect doctest
+            z^3
+            sage: t^(1/2)  # indirect doctest
+            z^(1/2)
+        """
+        return self._calculate_pow_(exponent)
 
 
     def _can_absorb_(self, other):

@@ -70,7 +70,6 @@ class const_iterator;
 class const_preorder_iterator;
 class const_postorder_iterator;
 
-
 /** Lightweight wrapper for GiNaC's symbolic objects.  It holds a pointer to
  *  the other object in order to do garbage collection by the method of
  *  reference counting.  I.e., it is a smart pointer.  Also, the constructor
@@ -346,29 +345,6 @@ int ex::compare(const ex & other) const
 	}
 #endif
 	return cmpval;
-}
-
-inline
-bool ex::is_equal(const ex & other) const
-{
-#ifdef GINAC_COMPARE_STATISTICS
-	compare_statistics.total_is_equals++;
-#endif
-	if (bp == other.bp)  // trivial case: both expressions point to same basic
-		return true;
-#ifdef GINAC_COMPARE_STATISTICS
-	compare_statistics.nontrivial_is_equals++;
-#endif
-	const bool equal = bp->is_equal(*other.bp);
-#if 0
-	if (equal) {
-		// Expressions point to different, but equal, trees: conserve
-		// memory and make subsequent compare() operations faster by
-		// making both expressions point to the same tree.
-		share(other);
-	}
-#endif
-	return equal;
 }
 
 

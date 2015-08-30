@@ -227,6 +227,30 @@ ex & ex::operator[](size_t i)
 	return (*bp)[i];
 }
 
+bool ex::is_equal(const ex & other) const
+{
+#ifdef GINAC_COMPARE_STATISTICS
+	compare_statistics.total_is_equals++;
+#endif
+	if (bp == other.bp)  // trivial case: both expressions point to same basic
+		return true;
+#ifdef GINAC_COMPARE_STATISTICS
+	compare_statistics.nontrivial_is_equals++;
+#endif
+	if (is_exactly_a<numeric>(*this) and is_exactly_a<numeric>(other))
+		return ex_to<numeric>(*this).is_equal(ex_to<numeric>(other));
+	const bool equal = bp->is_equal(*other.bp);
+#if 0
+	if (equal) {
+		// Expressions point to different, but equal, trees: conserve
+		// memory and make subsequent compare() operations faster by
+		// making both expressions point to the same tree.
+		share(other);
+	}
+#endif
+	return equal;
+}
+
 /** Left hand side of relational expression. */
 ex ex::lhs() const
 {

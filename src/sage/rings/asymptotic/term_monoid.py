@@ -1302,6 +1302,43 @@ class GenericTermMonoid(sage.structure.unique_representation.UniqueRepresentatio
         return self.element_class(self, growth)
 
 
+    def _create_element_via_parent_(self, growth, coefficient,
+                                    old_parent_growth=None, old_parent_coefficient=None):
+        r"""
+        Create an element with a possibly other parent.
+
+        INPUT:
+
+        - ``raw_element`` -- the element data.
+
+        - ``old_parent`` -- the parent of ``raw_element`` is compared to ``old_parent``.
+
+        OUTPUT:
+
+        An element.
+
+            sage: from sage.rings.asymptotic.term_monoid import TermMonoid
+            sage: from sage.rings.asymptotic.growth_group import GrowthGroup
+            sage: G = GrowthGroup('z^ZZ')
+            sage: T = TermMonoid('exact', G, ZZ)
+            sage: T._create_element_via_parent_(G.an_element(), 3, G, ZZ)
+            3*z
+            sage: T._create_element_via_parent_(G.an_element(), 3/2, G, ZZ).parent()
+            Exact Term Monoid z^ZZ with coefficients in Rational Field
+        """
+        if (old_parent_growth is None or growth.parent() is old_parent_growth) and \
+           (old_parent_coefficient is None or
+            coefficient is not None and coefficient.parent() is old_parent_coefficient):
+            parent = self
+        else:
+            from sage.rings.asymptotic.growth_group import underlying_class
+            parent = underlying_class(self)(growth.parent(),
+                                            coefficient.parent()
+                                            if coefficient is not None
+                                            else old_parent_coefficient)
+        return parent(growth, coefficient)
+
+
     def _split_growth_and_coefficient_(self, data):
         r"""
         Split given ``data`` into a growth element and a coefficient.

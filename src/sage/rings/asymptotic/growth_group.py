@@ -2136,21 +2136,16 @@ class MonomialGrowthElement(GenericGrowthElement):
             True
         """
         new_element = -self.exponent
-        if new_element.parent() is self.exponent.parent():
-            return self.parent()(raw_element=new_element)
-        else:
-            new_parent = underlying_class(self.parent())(new_element.parent(),
-                                                         self.parent()._var_)
-            return new_parent(raw_element=new_element)
+        return self.parent()._create_element_via_parent_(-self.exponent, self.exponent.parent())
 
 
-    def __pow__(self, power):
+    def __pow__(self, exponent):
         r"""
-        Raises this growth element to the given ``power``.
+        Calculate the power of this growth element to the given ``exponent``.
 
         INPUT:
 
-        - ``power`` -- a number. This can be anything that is a
+        - ``exponent`` -- a number. This can be anything that is a
           valid right hand side of ``*`` with elements of the
           parent's base.
 
@@ -2160,28 +2155,22 @@ class MonomialGrowthElement(GenericGrowthElement):
 
         EXAMPLES::
 
-            sage: import sage.rings.asymptotic.growth_group as agg
-            sage: P = agg.MonomialGrowthGroup(ZZ, 'x')
+            sage: from sage.rings.asymptotic.growth_group import GrowthGroup
+            sage: P = GrowthGroup('x^ZZ')
             sage: x = P.gen()
             sage: a = x^7; a
             x^7
             sage: a^(1/2)
-            Traceback (most recent call last):
-            ...
-            ValueError: Growth Group x^ZZ disallows taking x^7 to the power of 1/2.
-            sage: P = agg.MonomialGrowthGroup(QQ, 'x')
+            x^(7/2)
+            sage: (a^(1/2)).parent()
+            Growth Group x^QQ
+            sage: P = GrowthGroup('x^QQ')
             sage: b = P.gen()^(7/2); b
             x^(7/2)
             sage: b^12
             x^42
         """
-        new_exponent = self.exponent * power
-        P = self.parent()
-        if new_exponent in P.base():
-            return P(raw_element=new_exponent)
-        else:
-            raise ValueError('%s disallows taking %s to the power '
-                             'of %s.' % (P, self, power))
+        return self.parent()._create_element_via_parent_(self.exponent * exponent, self.exponent.parent())
 
 
     def _le_(self, other):
@@ -2692,21 +2681,16 @@ class ExponentialGrowthElement(GenericGrowthElement):
             Growth Group QQ^x
         """
         new_element = 1 / self.base
-        if new_element.parent() is self.base.parent():
-            return self.parent()(raw_element=new_element)
-        else:
-            new_parent = underlying_class(self.parent())(new_element.parent(),
-                                                         self.parent()._var_)
-            return new_parent(raw_element=new_element)
+        return self.parent()._create_element_via_parent_(1 / self.base, self.base.parent())
 
 
-    def __pow__(self, power):
+    def __pow__(self, exponent):
         r"""
-        Takes this growth element to the given ``power``.
+        Calculate the power of this growth element to the given ``exponent``.
 
         INPUT:
 
-        - ``power`` -- a number. This can anything that is valid to be
+        - ``exponent`` -- a number. This can anything that is valid to be
           on the right hand side of ``*`` with an elements of the
           parent's base.
 
@@ -2727,15 +2711,7 @@ class ExponentialGrowthElement(GenericGrowthElement):
             sage: b^12
             117649^x
         """
-        new_base = self.base ** power
-        try:
-            return self.parent()(raw_element=new_base)
-        except (ValueError, TypeError):
-            pass
-
-        new_parent = ExponentialGrowthGroup(new_base.parent(),
-                                            self.parent()._var_)
-        return new_parent(raw_element=new_base)
+        return self.parent()._create_element_via_parent_(self.base ** exponent, self.base.parent())
 
 
     def _le_(self, other):

@@ -2807,23 +2807,95 @@ class GrowthGroupFactory(sage.structure.factory.UniqueFactory):
 
     EXAMPLES::
 
-        sage: import sage.rings.asymptotic.growth_group as agg
-        sage: agg.GrowthGroup('x^ZZ')
+        sage: from sage.rings.asymptotic.growth_group import GrowthGroup
+        sage: GrowthGroup('x^ZZ')
         Growth Group x^ZZ
-        sage: agg.GrowthGroup('log(x)^QQ')
+        sage: GrowthGroup('log(x)^QQ')
         Growth Group log(x)^QQ
 
     This factory can also be used to construct Cartesian products
     of growth groups::
 
-        sage: agg.GrowthGroup('x^ZZ * y^ZZ')
+        sage: GrowthGroup('x^ZZ * y^ZZ')
         Growth Group x^ZZ * y^ZZ
-        sage: agg.GrowthGroup('x^ZZ * log(x)^ZZ')
+        sage: GrowthGroup('x^ZZ * log(x)^ZZ')
         Growth Group x^ZZ * log(x)^ZZ
-        sage: agg.GrowthGroup('x^ZZ * log(x)^ZZ * y^QQ')
+        sage: GrowthGroup('x^ZZ * log(x)^ZZ * y^QQ')
         Growth Group x^ZZ * log(x)^ZZ * y^QQ
-        sage: agg.GrowthGroup('QQ^x * x^ZZ * y^QQ * QQ^z')
+        sage: GrowthGroup('QQ^x * x^ZZ * y^QQ * QQ^z')
         Growth Group QQ^x * x^ZZ * y^QQ * QQ^z
+
+    TESTS::
+
+        sage: TestSuite(GrowthGroup('x^ZZ')).run(verbose=True)
+        running ._test_an_element() . . . pass
+        running ._test_associativity() . . . pass
+        running ._test_category() . . . pass
+        running ._test_elements() . . .
+          Running the test suite of self.an_element()
+          running ._test_category() . . . pass
+          running ._test_eq() . . . pass
+          running ._test_not_implemented_methods() . . . pass
+          running ._test_pickling() . . . pass
+          pass
+        running ._test_elements_eq_reflexive() . . . pass
+        running ._test_elements_eq_symmetric() . . . pass
+        running ._test_elements_eq_transitive() . . . pass
+        running ._test_elements_neq() . . . pass
+        running ._test_eq() . . . pass
+        running ._test_not_implemented_methods() . . . pass
+        running ._test_one() . . . pass
+        running ._test_pickling() . . . pass
+        running ._test_prod() . . . pass
+        running ._test_some_elements() . . . pass
+
+    ::
+
+        sage: TestSuite(GrowthGroup('QQ^y')).run(verbose=True)
+        running ._test_an_element() . . . pass
+        running ._test_associativity() . . . pass
+        running ._test_category() . . . pass
+        running ._test_elements() . . .
+          Running the test suite of self.an_element()
+          running ._test_category() . . . pass
+          running ._test_eq() . . . pass
+          running ._test_not_implemented_methods() . . . pass
+          running ._test_pickling() . . . pass
+          pass
+        running ._test_elements_eq_reflexive() . . . pass
+        running ._test_elements_eq_symmetric() . . . pass
+        running ._test_elements_eq_transitive() . . . pass
+        running ._test_elements_neq() . . . pass
+        running ._test_eq() . . . pass
+        running ._test_not_implemented_methods() . . . pass
+        running ._test_one() . . . pass
+        running ._test_pickling() . . . pass
+        running ._test_prod() . . . pass
+        running ._test_some_elements() . . . pass
+
+    ::
+
+        sage: TestSuite(GrowthGroup('x^QQ * log(x)^ZZ')).run(verbose=True)
+        running ._test_an_element() . . . pass
+        running ._test_associativity() . . . pass
+        running ._test_category() . . . pass
+        running ._test_elements() . . .
+          Running the test suite of self.an_element()
+          running ._test_category() . . . pass
+          running ._test_eq() . . . pass
+          running ._test_not_implemented_methods() . . . pass
+          running ._test_pickling() . . . pass
+          pass
+        running ._test_elements_eq_reflexive() . . . pass
+        running ._test_elements_eq_symmetric() . . . pass
+        running ._test_elements_eq_transitive() . . . pass
+        running ._test_elements_neq() . . . pass
+        running ._test_eq() . . . pass
+        running ._test_not_implemented_methods() . . . pass
+        running ._test_one() . . . pass
+        running ._test_pickling() . . . pass
+        running ._test_prod() . . . pass
+        running ._test_some_elements() . . . pass
     """
     def create_key_and_extra_args(self, specification, **kwds):
         r"""

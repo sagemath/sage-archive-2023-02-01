@@ -473,7 +473,7 @@ static ex sin_eval(const ex & x)
 		numeric z = mod(ex_to<numeric>(TwentyforExOverPi),*_num48_p);
 		if (z>=*_num24_p) {
 			// wrap to interval [0, Pi)
-			z -= *_num48_p;
+			z -= *_num24_p;
 			sign = _ex_1;
 		}
 		if (z>*_num12_p) {
@@ -481,17 +481,17 @@ static ex sin_eval(const ex & x)
 			z = *_num24_p-z;
 		}
 		if (z.is_equal(*_num1_p))  // sin(Pi/24) -> 1/4*sqrt(8-2*sqrt(6)-2*sqrt(2))
-			return _ex1_4*sqrt(_ex8 - _ex2*sqrt(_ex6) - _ex2*sqrt(_ex2));
+			return sign*(_ex1_4*sqrt(_ex8 - _ex2*sqrt(_ex6) - _ex2*sqrt(_ex2)));
 		if (z.is_equal(*_num3_p))  // sin(Pi/8) -> 1/2*sqrt(-sqrt(2) + 2)
-			return _ex1_2*sqrt(_ex2-sqrt(_ex2));
+			return sign*(_ex1_2*sqrt(_ex2-sqrt(_ex2)));
 		if (z.is_equal(*_num5_p))  // sin(5*Pi/24) -> 1/4*sqrt(8-2*sqrt(6)+2*sqrt(2))
-			return _ex1_4*sqrt(_ex8 - _ex2*sqrt(_ex6) + _ex2*sqrt(_ex2));
+			return sign*(_ex1_4*sqrt(_ex8 - _ex2*sqrt(_ex6) + _ex2*sqrt(_ex2)));
 		if (z.is_equal(*_num7_p))  // sin(7*Pi/24) -> 1/4*sqrt(8+2*sqrt(6)-2*sqrt(2))
-			return _ex1_4*sqrt(_ex8 + _ex2*sqrt(_ex6) - _ex2*sqrt(_ex2));
+			return sign *(_ex1_4*sqrt(_ex8 + _ex2*sqrt(_ex6) - _ex2*sqrt(_ex2)));
 		if (z.is_equal(*_num9_p))  // sin(3*Pi/8) -> 1/2*sqrt(-sqrt(2) + 2)
-			return _ex1_2*sqrt(_ex2+sqrt(_ex2));
+			return sign*(_ex1_2*sqrt(_ex2+sqrt(_ex2)));
 		if (z.is_equal(*_num11_p))  // sin(11*Pi/24) -> 1/4*sqrt(8+2*sqrt(6)+2*sqrt(2))
-			return _ex1_4*sqrt(_ex8 + _ex2*sqrt(_ex6) + _ex2*sqrt(_ex2));
+			return sign *(_ex1_4*sqrt(_ex8 + _ex2*sqrt(_ex6) + _ex2*sqrt(_ex2)));
 	}
 
 	if (is_exactly_a<function>(x)) {
@@ -628,24 +628,24 @@ static ex cos_eval(const ex & x)
 		if (z>=*_num24_p) {
 			// wrap to interval [0, Pi)
 			z -= *_num48_p;
-			sign = _ex_1;
 		}
 		if (z>*_num12_p) {
 			// wrap to interval [0, Pi/2)
 			z = *_num24_p-z;
+			sign = _ex_1;
 		}
 		if (z.is_equal(*_num1_p))  // cos(Pi/24) -> 1/4*sqrt(8+2*sqrt(6)+2*sqrt(2))
-			return _ex1_4*sqrt(_ex8 + _ex2*sqrt(_ex6) + _ex2*sqrt(_ex2));
+			return sign*(_ex1_4*sqrt(_ex8 + _ex2*sqrt(_ex6) + _ex2*sqrt(_ex2)));
 		if (z.is_equal(*_num3_p))  // cos(Pi/8) -> 1/2*sqrt(sqrt(2) + 2)
-			return _ex1_2*sqrt(_ex2+sqrt(_ex2));
+			return sign*(_ex1_2*sqrt(_ex2+sqrt(_ex2)));
 		if (z.is_equal(*_num5_p))  // cos(5*Pi/24) -> 1/4*sqrt(8+2*sqrt(6)-2*sqrt(2))
-			return _ex1_4*sqrt(_ex8 + _ex2*sqrt(_ex6) - _ex2*sqrt(_ex2));
+			return sign*(_ex1_4*sqrt(_ex8 + _ex2*sqrt(_ex6) - _ex2*sqrt(_ex2)));
 		if (z.is_equal(*_num7_p))  // cos(7*Pi/24) -> 1/4*sqrt(8-2*sqrt(6)+2*sqrt(2))
-			return _ex1_4*sqrt(_ex8 - _ex2*sqrt(_ex6) + _ex2*sqrt(_ex2));
+			return sign*(_ex1_4*sqrt(_ex8 - _ex2*sqrt(_ex6) + _ex2*sqrt(_ex2)));
 		if (z.is_equal(*_num9_p))  // cos(3*Pi/8) -> 1/2*sqrt(-sqrt(2) + 2)
-			return _ex1_2*sqrt(_ex2-sqrt(_ex2));
+			return sign*(_ex1_2*sqrt(_ex2-sqrt(_ex2)));
 		if (z.is_equal(*_num11_p))  // cos(11*Pi/24) -> 1/4*sqrt(8-2*sqrt(6)-2*sqrt(2))
-			return _ex1_4*sqrt(_ex8 - _ex2*sqrt(_ex6) - _ex2*sqrt(_ex2));
+			return sign*(_ex1_4*sqrt(_ex8 - _ex2*sqrt(_ex6) - _ex2*sqrt(_ex2)));
 	}
 
 	if (is_exactly_a<function>(x)) {
@@ -783,32 +783,32 @@ static ex tan_eval(const ex & x)
 		if (z>=*_num48_p) {
 			// wrap to interval [0, Pi)
 			z -= *_num48_p;
-			sign = _ex_1;
 		}
 		if (z>*_num24_p) {
 			// wrap to interval [0, Pi/2)
 			z = *_num48_p-z;
+			sign = _ex_1;
 		}
 		if (z.is_equal(*_num2_p))  // tan(Pi/24) -> sqrt(6) - sqrt(-2*sqrt(6) + 5) - 2
-			return _ex_2+sqrt(_ex6)+sqrt(_ex2)-sqrt(_ex3);
+			return sign *(_ex_2+sqrt(_ex6)+sqrt(_ex2)-sqrt(_ex3));
 		if (z.is_equal(*_num3_p))  // tan(Pi/16) -> -sqrt(2) + sqrt(2*sqrt(2) + 4) - 1
-			return _ex_1-sqrt(_ex2)+sqrt(_ex2*sqrt(_ex2)+_ex4);
+			return sign*(_ex_1-sqrt(_ex2)+sqrt(_ex2*sqrt(_ex2)+_ex4));
 		if (z.is_equal(*_num6_p))  // tan(Pi/8) -> sqrt(2)-1
-			return sqrt(_ex2)-_ex1;
+			return sign*(sqrt(_ex2)-_ex1);
 		if (z.is_equal(*_num9_p))  // tan(3*Pi/16) -> -sqrt(2) + sqrt(-2*sqrt(2) + 4) + 1
-			return _ex1-sqrt(_ex2)+sqrt(_ex4-_ex2*sqrt(_ex2));
+			return sign*(_ex1-sqrt(_ex2)+sqrt(_ex4-_ex2*sqrt(_ex2)));
 		if (z.is_equal(*_num10_p))  // tan(5*Pi/24) -> sqrt(6) + sqrt(-2*sqrt(6) + 5) - 2
-			return _ex_2+sqrt(_ex6)-sqrt(_ex2)+sqrt(_ex3);
+			return sign*(_ex_2+sqrt(_ex6)-sqrt(_ex2)+sqrt(_ex3));
 		if (z.is_equal(*_num14_p))  // tan(7*Pi/24) -> sqrt(6) - sqrt(2*sqrt(6) + 5) + 2
-			return _ex2+sqrt(_ex6)-sqrt(_ex2)-sqrt(_ex3);
+			return sign*(_ex2+sqrt(_ex6)-sqrt(_ex2)-sqrt(_ex3));
 		if (z.is_equal(*_num15_p))  // tan(5*Pi/16) -> sqrt(2) + sqrt(-2*sqrt(2) + 4) + 1
-			return _ex_1+sqrt(_ex2)+sqrt(_ex4-_ex2*sqrt(_ex2));
+			return sign*(_ex_1+sqrt(_ex2)+sqrt(_ex4-_ex2*sqrt(_ex2)));
 		if (z.is_equal(*_num18_p))  // tan(3*Pi/8) -> sqrt(2)+1
-			return sqrt(_ex2)+_ex1;
+			return sign*(sqrt(_ex2)+_ex1);
 		if (z.is_equal(*_num21_p))  // tan(7*Pi/16) -> sqrt(2) + sqrt(2*sqrt(2) + 4) + 1
-			return _ex1+sqrt(_ex2)+sqrt(_ex2*sqrt(_ex2)+_ex4);
+			return sign*(_ex1+sqrt(_ex2)+sqrt(_ex2*sqrt(_ex2)+_ex4));
 		if (z.is_equal(*_num22_p))  // tan(11*Pi/24) -> sqrt(6) + sqrt(2*sqrt(6) + 5) + 2
-			return _ex2+sqrt(_ex6)+sqrt(_ex2)+sqrt(_ex3);
+			return sign*(_ex2+sqrt(_ex6)+sqrt(_ex2)+sqrt(_ex3));
 	}
 
 	if (is_exactly_a<function>(x)) {

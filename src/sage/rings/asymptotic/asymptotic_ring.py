@@ -848,7 +848,7 @@ class AsymptoticExpression(sage.structure.element.CommutativeAlgebraElement):
         if other == 0:
             return self.parent().zero()
 
-        from sage.rings.asymptotic.term_monoid import TermMonoid
+        from term_monoid import TermMonoid
         E = TermMonoid('exact', asymptotic_ring=self.parent())
         e = E(self.parent().growth_group.one(), coefficient=other)
         return self._mul_term_(e)
@@ -1272,7 +1272,7 @@ class AsymptoticRing(sage.algebras.algebra.Algebra,
             cls = cls.__base__
 
         if isinstance(growth_group, str):
-            from sage.rings.asymptotic.growth_group import GrowthGroup
+            from growth_group import GrowthGroup
             growth_group = GrowthGroup(growth_group)
 
         if growth_group is None:
@@ -1453,8 +1453,7 @@ class AsymptoticRing(sage.algebras.algebra.Algebra,
             poset()
         """
         from sage.data_structures.mutable_poset import MutablePoset
-        from sage.rings.asymptotic.term_monoid import \
-            can_absorb, absorption
+        from term_monoid import can_absorb, absorption
         return MutablePoset(key=lambda element: element.growth,
                             can_merge=can_absorb,
                             merge=absorption)
@@ -1586,7 +1585,7 @@ class AsymptoticRing(sage.algebras.algebra.Algebra,
             return self.element_class(self, data.summands,
                                       simplify=simplify, convert=convert)
 
-        from sage.rings.asymptotic.term_monoid import GenericTerm
+        from term_monoid import GenericTerm
         if isinstance(data, GenericTerm):
             data = (data,)
 
@@ -1806,7 +1805,7 @@ class AsymptoticRing(sage.algebras.algebra.Algebra,
             sage: AsymptoticRing(growth_group='z^QQ', coefficient_ring=QQ).an_element()
             1/8*z^(3/2) + O(z^(1/2))
         """
-        from sage.rings.asymptotic.term_monoid import TermMonoid
+        from term_monoid import TermMonoid
         E = TermMonoid('exact', self.growth_group, self.coefficient_ring)
         O = TermMonoid('O', self.growth_group, self.coefficient_ring)
         return self(E.an_element(), simplify=False, convert=False)**3 + \
@@ -1975,7 +1974,7 @@ class AsymptoticRing(sage.algebras.algebra.Algebra,
             ValueError: Growth 42*x^2 is not in O-Term Monoid x^ZZ with implicit coefficients in Integer Ring.
             > *previous* ValueError: 42*x^2 is not in Growth Group x^ZZ.
         """
-        from sage.rings.asymptotic.term_monoid import TermMonoid
+        from term_monoid import TermMonoid
         TM = TermMonoid(type, self.growth_group, self.coefficient_ring)
 
         if data is None:

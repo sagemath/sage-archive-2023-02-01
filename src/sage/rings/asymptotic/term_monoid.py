@@ -981,7 +981,7 @@ class GenericTermMonoid(sage.structure.unique_representation.UniqueRepresentatio
             sage: underlying_class(T)(G, QQ) is T
             True
         """
-        from sage.rings.asymptotic.growth_group import GenericGrowthGroup
+        from growth_group import GenericGrowthGroup
         if growth_group is None:
             raise ValueError('No growth group specified.')
         if not isinstance(growth_group, sage.structure.parent.Parent):
@@ -2636,7 +2636,7 @@ class TermMonoidFactory(sage.structure.factory.UniqueFactory):
             growth_group = asymptotic_ring.growth_group
             coefficient_ring = asymptotic_ring.coefficient_ring
 
-        from sage.rings.asymptotic.growth_group import GenericGrowthGroup
+        from growth_group import GenericGrowthGroup
         if not isinstance(growth_group, GenericGrowthGroup):
             raise ValueError("%s has to be an asymptotic growth group"
                              % growth_group)

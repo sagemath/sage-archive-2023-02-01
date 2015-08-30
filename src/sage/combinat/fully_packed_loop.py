@@ -1,9 +1,14 @@
 r"""
 Fully packed loops
 
-A fully packed loop is a collection of non-intersecting lattice paths on a square grid such that every vertex is part of some path, and the paths are either closed internal loops or have endpoints corresponding to alternate points on the boundary [Propp2001]_. They are known to be in bijection with alternating sign matrices.
+A fully packed loop is a collection of non-intersecting lattice paths on a square grid
+such that every vertex is part of some path, and the paths are either closed internal
+loops or have endpoints corresponding to alternate points on the boundary [Propp2001]_.
+They are known to be in bijection with alternating sign matrices.
 
-To each fully packed loop, we assign a link pattern, which is the non-crossing matching attained by seeing which points on the boundary are connected by open paths in the fully packed loop.
+To each fully packed loop, we assign a link pattern, which is the non-crossing
+matching attained by seeing which points on the boundary are connected
+by open paths in the fully packed loop.
 
 We can create a fully packed loop using the corresponding alternating sign
 matrix and also extract the link pattern.::
@@ -207,8 +212,8 @@ Here are some more examples using bigger ASMs::
         PerfectMatching(rotated_ncp)
         True
 
-        sage: mat = AlternatingSignMatrix([[0,0,1,0,0,0,0],[1,0,-1,0,1,0,0],[0,0,1,0,0,0,0],\
-        [0,1,-1,0,0,1,0],[0,0,1,0,0,0,0],[0,0,0,1,0,0,0],[0,0,0,0,0,0,1]])
+        sage: mat = AlternatingSignMatrix([[0,0,1,0,0,0,0],[1,0,-1,0,1,0,0],\
+        [0,0,1,0,0,0,0],[0,1,-1,0,0,1,0],[0,0,1,0,0,0,0],[0,0,0,1,0,0,0],[0,0,0,0,0,0,1]])
         sage: fpl = FullyPackedLoop(mat) # n=7
         sage: ncp = fpl.link_pattern()
         sage: rotated_ncp=[]
@@ -220,8 +225,8 @@ Here are some more examples using bigger ASMs::
         PerfectMatching(rotated_ncp)
         True
 
-        sage: mat = AlternatingSignMatrix([[0,0,0,1,0,0], [0,0,1,-1,1,0], [0,1,0,0,-1,1], [1,0,-1,1,0,0], \
-        [0,0,1,0,0,0], [0,0,0,0,1,0]])
+        sage: mat = AlternatingSignMatrix([[0,0,0,1,0,0], [0,0,1,-1,1,0],\
+        [0,1,0,0,-1,1], [1,0,-1,1,0,0], [0,0,1,0,0,0], [0,0,0,0,1,0]])
         sage: fpl = FullyPackedLoop(mat) # n =6
         sage: ncp = fpl.link_pattern()
         sage: rotated_ncp=[]
@@ -249,7 +254,8 @@ from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.parent import Parent
 from sage.structure.element import Element
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
-from sage.combinat.six_vertex_model import SquareIceModel, SixVertexConfiguration, SixVertexModel
+from sage.combinat.six_vertex_model import SquareIceModel, \
+SixVertexConfiguration, SixVertexModel
 from sage.combinat.alternating_sign_matrix import AlternatingSignMatrix
 from sage.plot.graphics import Graphics
 from sage.matrix.constructor import matrix
@@ -591,7 +597,8 @@ class FullyPackedLoop(Element):
             Line defined by 2 points:       [(3.0, 1.0), (2.0, 1.0)]
             Line defined by 2 points:       [(3.0, 1.0), (2.0, 1.0)]
 
-        Here are the other 3 by 3 Alternating Sign Matrices and their corresponding fully packed loops:
+        Here are the other 3 by 3 Alternating Sign Matrices and their corresponding
+        fully packed loops:
 
         .. MATH::
 
@@ -703,7 +710,8 @@ class FullyPackedLoop(Element):
 
         EXAMPLES::
 
-                sage: A = AlternatingSignMatrix([[0, 1, 0, 0], [1, -1, 0, 1], [0, 1, 0, 0],[0, 0, 1, 0]])
+                sage: A = AlternatingSignMatrix([[0, 1, 0, 0], [1, -1, 0, 1], \
+                [0, 1, 0, 0],[0, 0, 1, 0]])
                 sage: fpl = FullyPackedLoop(A)
                 sage: print fpl.plot().description()
                 Line defined by 2 points:       [(-1.0, 0.0), (0.0, 0.0)]
@@ -971,7 +979,7 @@ class FullyPackedLoop(Element):
 
     def _get_coordinates(self, current):
         """
-        Returns a list of 2 coordinates that refer to the moves that could
+        Return a list of 2 coordinates that refer to the moves that could
         potentialy be made.
 
         TESTS::
@@ -1166,10 +1174,12 @@ class FullyPackedLoops(Parent, UniqueRepresentation):
             False
             sage: FullyPackedLoop(AlternatingSignMatrix([[1,0,0,0],[0,1,0,0],[0,0,1,0],[0,0,0,1]])) in FPLs
             False
+            sage: [1,2,3] in FPLs
+            False
         """
         if isinstance(fpl, FullyPackedLoop):
             return fpl._n == self._n
-        return True
+        return False
 
     def _element_constructor_(self, generator):
         """

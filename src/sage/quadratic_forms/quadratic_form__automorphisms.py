@@ -376,6 +376,7 @@ def number_of_automorphisms(self, recompute=None):
     the quadratic form.
 
     OUTPUT:
+
         an integer >= 2.
 
     EXAMPLES::
@@ -401,7 +402,6 @@ def number_of_automorphisms(self, recompute=None):
     except AttributeError:
         self._compute_automorphisms()
         return self.__number_of_automorphisms
-
 
 def set_number_of_automorphisms(self, num_autos):
     """

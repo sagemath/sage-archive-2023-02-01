@@ -457,52 +457,50 @@ class GenericGraph(GenericGraph_pyx):
         """
         # inputs must be (di)graphs:
         if not isinstance(other, GenericGraph):
-            raise TypeError("cannot compare graph to non-graph (%s)"%str(other))
+            return False
         from sage.graphs.all import Graph
         g1_is_graph = isinstance(self, Graph) # otherwise, DiGraph
         g2_is_graph = isinstance(other, Graph) # otherwise, DiGraph
-
-        if (g1_is_graph != g2_is_graph):
-            return False
-        if self.allows_multiple_edges() != other.allows_multiple_edges():
-            return False
-        if self.allows_loops() != other.allows_loops():
-            return False
-        if self.order() != other.order():
-            return False
-        if self.size() != other.size():
-            return False
+        # Fast checks
+        if (g1_is_graph != g2_is_graph or
+            self.allows_multiple_edges() != other.allows_multiple_edges() or
+            self.allows_loops() != other.allows_loops() or
+            self.order() != other.order() or
+            self.size() != other.size() or
+            self.weighted() != other.weighted()):
+                return False
+        # Vertices
         if any(x not in other for x in self):
             return False
-        if self.weighted() != other.weighted():
-            return False
-        verts = self.vertices()
         # Finally, we are prepared to check edges:
         if not self.allows_multiple_edges():
-            for i in verts:
-                for j in verts:
-                    if self.has_edge(i,j) != other.has_edge(i,j):
+            return all(other.has_edge(*edge)
+                       for edge in self.edge_iterator(labels=self._weighted))
+        # The problem with multiple edges is that labels may not have total
+        # ordering, which makes it difficult to compare lists of labels.
+        last_i = last_j = None
+        for i, j in self.edge_iterator(labels=False):
+            if i == last_i and j == last_j:
+                continue
+            last_i, last_j = i, j
+            # All labels between i and j
+            labels1 = self.edge_label(i, j)
+            try:
+                labels2 = other.edge_label(i, j)
+            except LookupError:
+                return False
+            if len(labels1) != len(labels2):
+                return False
+            if self._weighted:
+                # If there is total ordering, sorting will speed up things
+                labels1.sort()
+                labels2.sort()
+                for l in labels1:
+                    try:
+                        labels2.remove(l)
+                    except ValueError:
                         return False
-                    if self.has_edge(i,j) and self._weighted and other._weighted:
-                        if self.edge_label(i,j) != other.edge_label(i,j):
-                            return False
-            return True
-        else:
-            for i in verts:
-                for j in verts:
-                    if self.has_edge(i, j):
-                        edges1 = self.edge_label(i, j)
-                    else:
-                        edges1 = []
-                    if other.has_edge(i, j):
-                        edges2 = other.edge_label(i, j)
-                    else:
-                        edges2 = []
-                    if len(edges1) != len(edges2):
-                        return False
-                    if sorted(edges1) != sorted(edges2) and self._weighted and other._weighted:
-                        return False
-            return True
+        return True
 
     @cached_method
     def __hash__(self):
@@ -1629,7 +1627,7 @@ class GenericGraph(GenericGraph_pyx):
         Returns the adjacency matrix of the (di)graph.
 
         The matrix returned is over the integers. If a different ring is
-        desired, use either the change_ring function or the matrix
+        desired, use either :meth:`sage.matrix.matrix0.Matrix.change_ring` method or :func:`matrix`
         function.
 
         INPUT:
@@ -14069,6 +14067,7 @@ class GenericGraph(GenericGraph_pyx):
 
         .. SEEALSO::
 
+            - :func:`~sage.graphs.centrality.centrality_closeness_top_k`
             - :meth:`~sage.graphs.graph.Graph.centrality_degree`
             - :meth:`~centrality_betweenness`
 

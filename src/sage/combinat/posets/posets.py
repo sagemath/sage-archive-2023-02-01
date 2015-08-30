@@ -5682,6 +5682,7 @@ class FinitePosets_n(UniqueRepresentation, Parent):
            transitively-reduced, acyclic digraphs.
 
         EXAMPLES::
+
             sage: P = Posets(2)
             sage: list(P)
             [Finite poset containing 2 elements, Finite poset containing 2 elements]

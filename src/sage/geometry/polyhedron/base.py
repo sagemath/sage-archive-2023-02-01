@@ -3828,7 +3828,7 @@ class Polyhedron_base(Element):
             sage: P = Polyhedron( vertices = [(1, 0), (0, 1), (-1, 0), (0, -1)])
             sage: lp = P.lattice_polytope(); lp
             2-d reflexive polytope #3 in 2-d lattice M
-            sage: lp.vertices_pc()
+            sage: lp.vertices()
             M(-1,  0),
             M( 0, -1),
             M( 0,  1),
@@ -3846,7 +3846,7 @@ class Polyhedron_base(Element):
             lattice polytope.
             sage: lp = P.lattice_polytope(True); lp
             2-d reflexive polytope #5 in 2-d lattice M
-            sage: lp.vertices_pc()
+            sage: lp.vertices()
             M(-1,  0),
             M( 0, -1),
             M( 0,  1),
@@ -3888,7 +3888,7 @@ class Polyhedron_base(Element):
 
             sage: Polyhedron(vertices=[(-1,-1),(1,0),(1,1),(0,1)])._integral_points_PALP()
             [M(-1, -1), M(0, 1), M(1, 0), M(1, 1), M(0, 0)]
-            sage: Polyhedron(vertices=[(-1/2,-1/2),(1,0),(1,1),(0,1)]).lattice_polytope(True).points_pc()
+            sage: Polyhedron(vertices=[(-1/2,-1/2),(1,0),(1,1),(0,1)]).lattice_polytope(True).points()
             M( 0, -1),
             M(-1,  0),
             M(-1, -1),
@@ -3910,8 +3910,8 @@ class Polyhedron_base(Element):
         except AttributeError:
             pass
         if self.is_lattice_polytope():
-            return list(lp.points_pc())
-        return [p for p in lp.points_pc() if self.contains(p)]
+            return list(lp.points())
+        return [p for p in lp.points() if self.contains(p)]
 
     @cached_method
     def bounding_box(self, integral=False):
@@ -4089,7 +4089,7 @@ class Polyhedron_base(Element):
             sage: pts1 = P.integral_points()                     # Sage's own code
             sage: all(P.contains(p) for p in pts1)
             True
-            sage: pts2 = LatticePolytope(v).points_pc()          # PALP
+            sage: pts2 = LatticePolytope(v).points()          # PALP
             sage: for p in pts1: p.set_immutable()
             sage: set(pts1) == set(pts2)
             True

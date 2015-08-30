@@ -77,6 +77,7 @@ Display Backend Infrastructure
    sage/repl/rich_output/output_basic
    sage/repl/rich_output/output_graphics
    sage/repl/rich_output/output_graphics3d
+   sage/repl/rich_output/output_video
    sage/repl/rich_output/output_catalog
    
    sage/repl/rich_output/backend_base

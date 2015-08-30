@@ -144,9 +144,6 @@ System-specific requirements
 On Mac OS X, there are various developer tools needed which may require
 some registration on Apple's developer site; see :ref:`section_macprereqs`.
 
-On recent Debian or Ubuntu systems, the **dpkg-dev** package is needed for
-`multiarch <http://wiki.debian.org/Multiarch>`_ support.
-
 On Cygwin, the **lapack** and **liblapack-devel** packages are required to
 provide ATLAS support as the Sage package for ATLAS is not built by default.
 

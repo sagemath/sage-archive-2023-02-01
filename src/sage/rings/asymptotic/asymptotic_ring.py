@@ -1025,13 +1025,13 @@ class AsymptoticExpression(sage.structure.element.CommutativeAlgebraElement):
         return self.parent()(summands, simplify=True, convert=False)
 
 
-    def __pow__(self, power):
+    def __pow__(self, exponent):
         r"""
-        Takes this element to the given ``power``.
+        Calculate the power of this element to the given ``exponent``.
 
         INPUT:
 
-        - ``power`` -- an element.
+        - ``exponent`` -- an element.
 
         OUTPUT:
 
@@ -1044,9 +1044,9 @@ class AsymptoticExpression(sage.structure.element.CommutativeAlgebraElement):
             x^(1/7)
             sage: R_ZZ.<y> = AsymptoticRing(growth_group='y^ZZ', coefficient_ring=ZZ)
             sage: y^(1/7)
-            Traceback (most recent call last):
-            ...
-            ValueError: Growth Group y^ZZ disallows taking y to the power of 1/7.
+            y^(1/7)
+            sage: (y^(1/7)).parent()
+            Asymptotic Ring <y^QQ> over Rational Field
             sage: (x^(1/2) + O(x^0))^15
             x^(15/2) + O(x^7)
 
@@ -1057,38 +1057,47 @@ class AsymptoticExpression(sage.structure.element.CommutativeAlgebraElement):
             ...
             ZeroDivisionError: Cannot invert O(x).
         """
+        if not self.summands:
+            if exponent == 0:
+                return self.parent().one()
+            elif exponent > 0:
+                return self.parent().zero()
+            elif exponent < 0:
+                raise ZeroDivisionError('Cannot take %s to the negative exponent %s.' %
+                                        (self, exponent))
+            else:
+                raise NotImplementedError('Taking %s to the exponent %s not implemented.' %
+                                          (self, exponent))
+
+        elif len(self.summands) == 1:
+            element = next(self.summands.elements())
+            new_element = element ** exponent
+            if new_element.parent() is element.parent():
+                return self.parent()(new_element,
+                                     simplify=False, convert=False)
+            else:
+                # Insert an 'if' here once terms can have different
+                # coefficient rings, as this will be for L-terms.
+                new_parent = self.parent().change_parameter(
+                    growth_group=new_element.parent().growth_group,
+                    coefficient_ring=new_element.parent().coefficient_ring)
+                return new_parent(new_element,
+                                  simplify=False, convert=False)
+
         from sage.rings.integer_ring import ZZ
         try:
-            power = ZZ(power)
+            exponent = ZZ(exponent)
         except (TypeError, ValueError):
             pass
         else:
-            return super(AsymptoticExpression, self).__pow__(power)
+            return super(AsymptoticExpression, self).__pow__(exponent)
 
-        if len(self.summands) > 1:
-            raise NotImplementedError('Taking the sum %s to the '
-                                      'non-integer power %s not '
-                                      'implemented.' % (self, power))
-        expr = next(self.summands.elements())
-
-        P = self.parent()
-        if power not in P.growth_group.base():
-            raise ValueError('%s disallows taking %s '
-                             'to the power of %s.' %
-                             (P.growth_group, self, power))
-
-        from sage.rings.asymptotic.term_monoid import TermWithCoefficient
-        if isinstance(expr, TermWithCoefficient):
-            new_growth = expr.growth**power
-            new_coeff = expr.coefficient**power
-            return P(expr.parent()(new_growth, new_coeff))
-        else:
-            if power >= 0:
-                new_growth = expr.growth**power
-                return P(expr.parent()(new_growth))
-            else:
-                raise NotImplementedError('Negative powers are not implemented'
-                                          ' for the term %s.' % (self, ))
+        try:
+            return (exponent * self.log()).exp()
+        except (TypeError, ValueError, ZeroDivisionError) as e:
+            from sage.rings.asymptotic.growth_group import combine_exceptions
+            raise combine_exceptions(
+                ValueError('Cannot take %s to the exponent %s.' % (self, exponent)), e)
 
 
     def O(self):

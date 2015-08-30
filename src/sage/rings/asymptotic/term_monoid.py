@@ -1423,9 +1423,11 @@ class GenericTermMonoid(sage.structure.unique_representation.UniqueRepresentatio
 
         INPUT:
 
-        - ``raw_element`` -- the element data.
+        - ``growth`` and ``coefficient`` -- the element data.
 
-        - ``old_parent`` -- the parent of ``raw_element`` is compared to ``old_parent``.
+        - ``old_parent_growth`` and ``old_parent_coefficient`` -- the
+          parents of ``growth`` and ``coefficient`` are compared to
+          these parents.
 
         OUTPUT:
 

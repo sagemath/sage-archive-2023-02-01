@@ -1482,6 +1482,40 @@ class AsymptoticRing(sage.algebras.algebra.Algebra,
                             merge=absorption)
 
 
+    def _create_element_via_parent_(self, term, old_parent=None):
+        r"""
+        Create an element with a possibly other parent.
+
+        INPUT:
+
+        - ``term`` -- the element data.
+
+        - ``old_parent`` -- the parent of ``term`` is compared to this parent.
+
+        OUTPUT:
+
+        An element.
+
+            sage: from sage.rings.asymptotic.term_monoid import TermMonoid
+            sage: from sage.rings.asymptotic.growth_group import GrowthGroup
+            sage: G = GrowthGroup('z^ZZ')
+            sage: T = TermMonoid('exact', G, ZZ)
+            sage: T._create_element_via_parent_(G.an_element(), 3, G, ZZ)
+            3*z
+            sage: T._create_element_via_parent_(G.an_element(), 3/2, G, ZZ).parent()
+            Exact Term Monoid z^ZZ with coefficients in Rational Field
+        """
+        if old_parent is None or term.parent() is old_parent:
+            parent = self
+        else:
+            # Insert an 'if' here once terms can have different
+            # coefficient rings, as this will be for L-terms.
+            parent = self.change_parameter(
+                growth_group=term.parent().growth_group,
+                coefficient_ring=term.parent().coefficient_ring)
+        return parent(term, simplify=False, convert=False)
+
+
     def _element_constructor_(self, data, simplify=True, convert=True):
         r"""
         Convert a given object to this asymptotic ring.

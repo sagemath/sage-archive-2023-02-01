@@ -1245,6 +1245,20 @@ class AsymptoticRing(sage.algebras.algebra.Algebra,
         Asymptotic Ring <x^QQ> over Rational Field
         sage: R1_x is R2_x is R3_x
         True
+
+    ::
+
+        sage: from sage.rings.asymptotic.asymptotic_ring import AsymptoticRing as AR_class
+        sage: class AR(AR_class):
+        ....:     class Element(AR_class.Element):
+        ....:         __eq__ = AR_class.Element.has_same_summands
+        sage: A = AR(growth_group='z^QQ', coefficient_ring=QQ)
+        sage: from itertools import islice
+        sage: TestSuite(A).run(  # not tested  # long
+        ....:     verbose=True,
+        ....:     elements=tuple(islice(A.some_elements(), 10)),
+        ....:     skip=('_test_some_elements',  # to many elements
+        ....:           '_test_distributivity'))  # due to cancellations: O(z) != O(z^2)
     """
 
     # enable the category framework for elements

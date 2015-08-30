@@ -1146,8 +1146,6 @@ class FullyPackedLoops(Parent, UniqueRepresentation):
         for X in SixVertexModel(self._n, boundary_conditions='ice'):
             yield self.element_class(self, X)
 
-    #Element = FullyPackedLoop
-
     def _repr_(self):
         r"""
         Return a string representation of ``self``.
@@ -1221,8 +1219,10 @@ class FullyPackedLoops(Parent, UniqueRepresentation):
             SVM = generator
         else:
             raise TypeError('The generator for a fully packed loop must either be an AlternatingSignMatrix or a SquareIceModel.Element')
-        FPLs = FullyPackedLoops(len(SVM))
-        return FPLs.element_class(FPLs, SVM)
+
+        if len(SVM) != self._n:
+            raise ValueError("invalid size")
+        return self.element_class(self,SVM)
 
     Element = FullyPackedLoop
 

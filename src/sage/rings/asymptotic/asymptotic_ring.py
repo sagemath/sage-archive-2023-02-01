@@ -1806,8 +1806,8 @@ class AsymptoticRing(sage.algebras.algebra.Algebra,
             1/8*z^(3/2) + O(z^(1/2))
         """
         from term_monoid import TermMonoid
-        E = TermMonoid('exact', self.growth_group, self.coefficient_ring)
-        O = TermMonoid('O', self.growth_group, self.coefficient_ring)
+        E = TermMonoid('exact', asymptotic_ring=self)
+        O = TermMonoid('O', asymptotic_ring=self)
         return self(E.an_element(), simplify=False, convert=False)**3 + \
             self(O.an_element(), simplify=False, convert=False)
 
@@ -1844,8 +1844,8 @@ class AsymptoticRing(sage.algebras.algebra.Algebra,
         """
         from misc import product_diagonal
         from term_monoid import TermMonoid
-        E = TermMonoid('exact', self.growth_group, self.coefficient_ring)
-        O = TermMonoid('O', self.growth_group, self.coefficient_ring)
+        E = TermMonoid('exact', asymptotic_ring=self)
+        O = TermMonoid('O', asymptotic_ring=self)
         return iter(self(e, simplify=False, convert=False)**3 +
                     self(o, simplify=False, convert=False)
                     for e, o in product_diagonal(
@@ -1975,7 +1975,7 @@ class AsymptoticRing(sage.algebras.algebra.Algebra,
             > *previous* ValueError: 42*x^2 is not in Growth Group x^ZZ.
         """
         from term_monoid import TermMonoid
-        TM = TermMonoid(type, self.growth_group, self.coefficient_ring)
+        TM = TermMonoid(type, asymptotic_ring=self)
 
         if data is None:
             try:

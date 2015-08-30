@@ -1028,8 +1028,7 @@ class InfinitePolynomial_sparse(RingElement):
         # "not Fbig" is now impossible, because we only consider *global* monomial orderings.
         # These are the occurring shifts:
         Lsmall = sorted(Fsmall.keys())
-        Lbig   = Fbig.keys()
-        Lbig.sort()
+        Lbig   = sorted(Fbig.keys())
         P = range(Lbig[-1]+1)
         gens = xrange(PARENT.ngens())
         if Lsmall[0]==0:

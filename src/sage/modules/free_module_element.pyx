@@ -833,21 +833,21 @@ cdef class FreeModuleElement(Vector):   # abstract base class
         """
         EXAMPLES::
 
-            sage: v = vector(ZZ, 4, range(4))               #optional - giac
-            sage: giac(v)+v                                #optional -  giac
+            sage: v = vector(ZZ, 4, range(4))              # optional - giac
+            sage: giac(v)+v                                # optional -  giac
             [0,2,4,6]
 
         ::
 
-            sage: v = vector(QQ, 3, [2/3, 0, 5/4])          #optional
-            sage: giac(v)                                  #optional
+            sage: v = vector(QQ, 3, [2/3, 0, 5/4])         # optional -  giac
+            sage: giac(v)                                  # optional -  giac
             [2/3,0,5/4]
 
         ::
 
-            sage: P.<x> = ZZ[]                                       #optional
-            sage: v = vector(P, 3, [x^2 + 2, 2*x + 1, -2*x^2 + 4*x]) #optional
-            sage: giac(v)                                           #optional
+            sage: P.<x> = ZZ[]                                       # optional -  giac
+            sage: v = vector(P, 3, [x^2 + 2, 2*x + 1, -2*x^2 + 4*x]) # optional -  giac
+            sage: giac(v)                                            # optional -  giac
             [x^2+2,2*x+1,-2*x^2+4*x]
         """
         return self.list()
@@ -1022,6 +1022,7 @@ cdef class FreeModuleElement(Vector):   # abstract base class
         Return hash of this vector.  Only mutable vectors are hashable.
 
         EXAMPLES::
+
             sage: v = vector([1,2/3,pi])
             sage: v.__hash__()
             Traceback (most recent call last):
@@ -1382,6 +1383,7 @@ cdef class FreeModuleElement(Vector):   # abstract base class
         is mutable).
 
         EXAMPLES::
+
             sage: v = vector([1,2/3,pi])
             sage: v.__hash__()
             Traceback (most recent call last):
@@ -1684,17 +1686,7 @@ cdef class FreeModuleElement(Vector):   # abstract base class
             True
             sage: w > v
             False
-        """
-        cdef Py_ssize_t i
-        cdef int c
-        for i in range(left._degree):
-            c = cmp(left[i], right[i])
-            if c: return c
-        return 0
 
-    # see sage/structure/element.pyx
-    def __richcmp__(left, right, int op):
-        """
         TESTS::
 
             sage: F.<y> = PolynomialRing(QQ, 'y')
@@ -1705,7 +1697,12 @@ cdef class FreeModuleElement(Vector):   # abstract base class
             sage: vector(F, [0,0,0,0]) == vector(F, [0,2,0,y])
             False
         """
-        return (<Element>left)._richcmp(right, op)
+        cdef Py_ssize_t i
+        cdef int c
+        for i in range(left._degree):
+            c = cmp(left[i], right[i])
+            if c: return c
+        return 0
 
     def __getitem__(self, i):
         """
@@ -2006,25 +2003,24 @@ cdef class FreeModuleElement(Vector):   # abstract base class
         """
         EXAMPLES::
 
-            sage: v = vector(ZZ, 4, range(4))               #optional
-            sage: maple(v)                                  #optional
+            sage: v = vector(ZZ, 4, range(4))
+            sage: maple(v)  # optional - maple
             Vector[row](4, [0,1,2,3])
 
         ::
 
-            sage: v = vector(QQ, 3, [2/3, 0, 5/4])          #optional
-            sage: maple(v)                                  #optional
+            sage: v = vector(QQ, 3, [2/3, 0, 5/4])
+            sage: maple(v)  # optional - maple
             Vector[row](3, [2/3,0,5/4])
 
         ::
 
-            sage: P.<x> = ZZ[]                                       #optional
-            sage: v = vector(P, 3, [x^2 + 2, 2*x + 1, -2*x^2 + 4*x]) #optional
-            sage: maple(v)                                           #optional
+            sage: P.<x> = ZZ[]
+            sage: v = vector(P, 3, [x^2 + 2, 2*x + 1, -2*x^2 + 4*x])
+            sage: maple(v)  # optional - maple
             Vector[row](3, [x^2+2,2*x+1,-2*x^2+4*x])
         """
         return "Vector[row](%s)"%(str(self.list()))
-
 
     def degree(self):
         """
@@ -2542,7 +2538,7 @@ cdef class FreeModuleElement(Vector):   # abstract base class
             sage: u.cross_product(v)
             Traceback (most recent call last):
             ...
-            ArithmeticError: Cross product only defined for vectors of length three or seven, not (7 and 3)
+            TypeError: Cross product only defined for vectors of length three or seven, not (7 and 3)
 
         REFERENCES:
 
@@ -2572,7 +2568,92 @@ cdef class FreeModuleElement(Vector):   # abstract base class
                            l[0]*r[2] - l[2]*r[0] + l[1]*r[5] - l[5]*r[1] + l[3]*r[4] - l[4]*r[3]])
 
         else:
-            raise ArithmeticError("Cross product only defined for vectors of length three or seven, not (%s and %s)"%(len(l),len(r)))
+            raise TypeError("Cross product only defined for vectors of length three or seven, not (%s and %s)"%(len(l),len(r)))
+
+    def cross_product_matrix(self):
+        r"""
+        Return the matrix which describes a cross product
+        between ``self`` and some other vector.
+
+        This operation is sometimes written using the `hat operator`_.
+        It is only defined for vectors of length 3 or 7.
+        For a vector `v` the cross product matrix `\hat{v}`
+        is a matrix which satisfies `\hat{v} \cdot w = v \times w`
+        and also `w \cdot \hat{v} = w \times v` for all vectors `w`.
+        The basis vectors are assumed to be orthonormal.
+
+        .. _hat operator: http://en.wikipedia.org/wiki/Hat_operator#Cross_product
+
+        OUTPUT:
+
+        The cross product matrix of this vector.
+
+        EXAMPLES::
+
+            sage: v = vector([1, 2, 3])
+            sage: vh = v.cross_product_matrix()
+            sage: vh
+            [ 0 -3  2]
+            [ 3  0 -1]
+            [-2  1  0]
+            sage: w = random_vector(3, x=1, y=100)
+            sage: vh*w == v.cross_product(w)
+            True
+            sage: w*vh == w.cross_product(v)
+            True
+            sage: vh.is_alternating()
+            True
+
+        TESTS::
+
+            sage: F = GF(previous_prime(2^32))
+            sage: v = random_vector(F, 3)
+            sage: w = random_vector(F, 3)
+            sage: vh = v.cross_product_matrix()
+            sage: vh*w == v.cross_product(w)
+            True
+            sage: w*vh == w.cross_product(v)
+            True
+            sage: vh.is_alternating()
+            True
+            sage: v = random_vector(F, 7)
+            sage: w = random_vector(F, 7)
+            sage: vh = v.cross_product_matrix()
+            sage: vh*w == v.cross_product(w)
+            True
+            sage: w*vh == w.cross_product(v)
+            True
+            sage: vh.is_alternating()
+            True
+            sage: random_vector(F, 5).cross_product_matrix()
+            Traceback (most recent call last):
+            ...
+            TypeError: Cross product only defined for vectors of length three or seven, not 5
+        """
+        from sage.matrix.matrix_space import MatrixSpace
+        rank = self.parent().rank()
+        R = self.base_ring()
+        zero = R.zero()
+        if rank == 3:
+            MS = MatrixSpace(R, rank, rank, sparse=self.is_sparse())
+            s = self.list(copy=False)
+            return MS([
+                [ zero, -s[2],  s[1]],
+                [ s[2],  zero, -s[0]],
+                [-s[1],  s[0],  zero]])
+        elif rank == 7:
+            MS = MatrixSpace(R, rank, rank, sparse=self.is_sparse())
+            s = self.list(copy=False)
+            return MS([
+                [ zero, -s[3], -s[6],  s[1], -s[5],  s[4],  s[2]],
+                [ s[3],  zero, -s[4], -s[0],  s[2], -s[6],  s[5]],
+                [ s[6],  s[4],  zero, -s[5], -s[1],  s[3], -s[0]],
+                [-s[1],  s[0],  s[5],  zero, -s[6], -s[2],  s[4]],
+                [ s[5], -s[2],  s[1],  s[6],  zero, -s[0], -s[3]],
+                [-s[4],  s[6], -s[3],  s[2],  s[0],  zero, -s[1]],
+                [-s[2], -s[5],  s[0], -s[4],  s[3],  s[1],  zero]])
+        else:
+            raise TypeError("Cross product only defined for vectors of length three or seven, not {}".format(rank))
 
     def pairwise_product(self, right):
         """
@@ -3798,6 +3879,19 @@ cdef class FreeModuleElement_generic_dense(FreeModuleElement):
         sage: v = (QQ['x']^3).0
         sage: loads(dumps(v)) == v
         True
+
+    ::
+
+        sage: v = vector([1,2/3,pi])
+        sage: v == v
+        True
+
+    ::
+
+        sage: v = vector(RR, [1,2/3,pi])
+        sage: v.set_immutable()
+        sage: isinstance(hash(v), int)
+        True
     """
     cdef _new_c(self, object v):
         """
@@ -4025,29 +4119,6 @@ cdef class FreeModuleElement_generic_dense(FreeModuleElement):
         v = [(<RingElement> a[i])._mul_(<RingElement> b[i]) for i in range(left._degree)]
         return left._new_c(v)
 
-    # see sage/structure/element.pyx
-    def __richcmp__(left, right, int op):
-        """
-        TESTS::
-
-            sage: v = vector([1,2/3,pi])
-            sage: v == v
-            True
-        """
-        return (<Element>left)._richcmp(right, op)
-
-    # __hash__ is not properly inherited if comparison is changed
-    def __hash__(self):
-        """
-        TESTS::
-
-            sage: v = vector(RR, [1,2/3,pi])
-            sage: v.set_immutable()
-            sage: isinstance(hash(v), int)
-            True
-        """
-        return FreeModuleElement.__hash__(self)
-
     def __reduce__(self):
         """
         EXAMPLES::
@@ -4234,7 +4305,12 @@ cdef class FreeModuleElement_generic_sparse(FreeModuleElement):
     A generic sparse free module element is a dictionary with keys ints
     i and entries in the base ring.
 
-    EXAMPLES:
+    TESTS::
+
+        sage: v = vector([1,2/3,pi], sparse=True)
+        sage: v.set_immutable()
+        sage: isinstance(hash(v), int)
+        True
 
     Pickling works::
 
@@ -4566,30 +4642,6 @@ cdef class FreeModuleElement_generic_sparse(FreeModuleElement):
         b = [(-x,y) for x, y in b]
 
         return cmp(a, b)
-
-    # see sage/structure/element.pyx
-    def __richcmp__(left, right, int op):
-        """
-        TESTS::
-
-            sage: v = vector([1,2/3,pi], sparse=True)
-            sage: v == v
-            True
-        """
-        return (<Element>left)._richcmp(right, op)
-
-    # __hash__ is not properly inherited if comparison is changed
-    def __hash__(self):
-        """
-        TESTS::
-
-            sage: v = vector([1,2/3,pi], sparse=True)
-            sage: v.set_immutable()
-            sage: isinstance(hash(v), int)
-            True
-        """
-        return FreeModuleElement.__hash__(self)
-
 
     def iteritems(self):
         """

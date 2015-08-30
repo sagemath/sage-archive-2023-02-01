@@ -489,22 +489,22 @@ class Animation(SageObject):
 
             sage: g = a.graphics_array(); print g
             Graphics Array of size 2 x 3
-            sage: g.show(figsize=[6,3]) # optional
+            sage: g.show(figsize=[6,3])  # not tested
 
         Specify different arrangement of array and save it with a given file name::
 
             sage: g = a.graphics_array(ncols=2); print g
             Graphics Array of size 2 x 2
             sage: f = tmp_filename(ext='.png')
-            sage: g.save(f) # optional
+            sage: g.save(f)
 
         Frames can be specified as a generator too; it is internally converted to a list::
 
             sage: t = var('t')
             sage: b = animate((plot(sin(c*pi*t)) for c in sxrange(1,2,.2)))
-            sage: g = b.graphics_array(); print g
+            sage: g = b.graphics_array()
+            sage: g
             Graphics Array of size 2 x 3
-            sage: g.show() # optional
         """
         ncols = int(ncols)
         frame_list = list(self._frames)
@@ -637,13 +637,55 @@ See www.imagemagick.org and www.ffmpeg.org for more information."""
             sage: a._rich_repr_(dm)       # optional -- ImageMagick
             OutputImageGif container
         """
-        OutputImageGif = display_manager.types.OutputImageGif
-        if OutputImageGif not in display_manager.supported_output():
-            return
-        return display_manager.graphics_from_save(
-            self.save, kwds, '.gif', OutputImageGif)
 
-    def show(self, delay=20, iterations=0):
+        iterations = kwds.get('iterations', 0)
+        loop = (iterations == 0)
+
+        t = display_manager.types
+        supported = display_manager.supported_output()
+        format = kwds.pop("format", None)
+        if format is None:
+            if t.OutputImageGif in supported:
+                format = "gif"
+            else:
+                return # No supported format could be guessed
+        suffix = None
+        outputType = None
+        if format == "gif":
+            outputType = t.OutputImageGif
+            suffix = ".gif"
+        if format == "ogg":
+            outputType = t.OutputVideoOgg
+        if format == "webm":
+            outputType = t.OutputVideoWebM
+        if format == "mp4":
+            outputType = t.OutputVideoMp4
+        if format == "flash":
+            outputType = t.OutputVideoFlash
+        if format == "matroska":
+            outputType = t.OutputVideoMatroska
+        if format == "avi":
+            outputType = t.OutputVideoAvi
+        if format == "wmv":
+            outputType = t.OutputVideoWmv
+        if format == "quicktime":
+            outputType = t.OutputVideoQuicktime
+        if format is None:
+            raise ValueError("Unknown video format")
+        if outputType not in supported:
+            return # Sorry, requested format is not supported
+        if suffix is not None:
+            return display_manager.graphics_from_save(
+                self.save, kwds, suffix, outputType)
+
+        # Now we save for OutputVideoBase
+        filename = tmp_filename(ext=outputType.ext)
+        self.save(filename, **kwds)
+        from sage.repl.rich_output.buffer import OutputBuffer
+        buf = OutputBuffer.from_file(filename)
+        return outputType(buf, loop=loop)
+
+    def show(self, delay=None, iterations=None, **kwds):
         r"""
         Show this animation immediately.
 
@@ -656,10 +698,14 @@ See www.imagemagick.org and www.ffmpeg.org for more information."""
         INPUT:
 
         -  ``delay`` -- (default: 20) delay in hundredths of a
-           second between frames
+           second between frames.
 
         -  ``iterations`` -- integer (default: 0); number of
            iterations of animation. If 0, loop forever.
+
+        - ``format`` - (default: gif) format to use for output.
+          Currently supported formats are: gif,
+          ogg, webm, mp4, flash, matroska, avi, wmv, quicktime.
 
         OUTPUT:
 
@@ -690,6 +736,28 @@ See www.imagemagick.org and www.ffmpeg.org for more information."""
 
             sage: a.show(delay=50)        # optional -- ImageMagick
 
+        You can also make use of the HTML5 video element in the Sage Notebook::
+
+            sage: a.show(format="ogg")         # optional -- ffmpeg
+            sage: a.show(format="webm")        # optional -- ffmpeg
+            sage: a.show(format="mp4")         # optional -- ffmpeg
+            sage: a.show(format="webm", iterations=1)  # optional -- ffmpeg
+
+        Other backends may support other file formats as well::
+
+            sage: a.show(format="flash")       # optional -- ffmpeg
+            sage: a.show(format="matroska")    # optional -- ffmpeg
+            sage: a.show(format="avi")         # optional -- ffmpeg
+            sage: a.show(format="wmv")         # optional -- ffmpeg
+            sage: a.show(format="quicktime")   # optional -- ffmpeg
+
+        TESTS:
+
+        Use of positional parameters is discouraged, will likely get
+        deprecated, but should still work for the time being::
+
+            sage: a.show(50, 3)           # optional -- ImageMagick
+
         .. note::
 
            If you don't have ffmpeg or ImageMagick installed, you will
@@ -701,9 +769,16 @@ See www.imagemagick.org and www.ffmpeg.org for more information."""
 
               See www.imagemagick.org and www.ffmpeg.org for more information.
         """
+
+        # Positional parameters for the sake of backwards compatibility
+        if delay is not None:
+            kwds.setdefault("delay", delay)
+        if iterations is not None:
+            kwds.setdefault("iterations", iterations)
+
         from sage.repl.rich_output import get_display_manager
         dm = get_display_manager()
-        dm.display_immediately(self, delay=delay, iterations=iterations)
+        dm.display_immediately(self, **kwds)
 
     def _have_ffmpeg(self):
         """

@@ -1,6 +1,7 @@
 """
 Coercion via Construction Functors
 """
+import six
 from functor import Functor
 from basic import *
 
@@ -1431,10 +1432,10 @@ class LaurentPolynomialFunctor(ConstructionFunctor):
 
         """
         Functor.__init__(self, Rings(), Rings())
-        if not isinstance(var, (basestring,tuple,list)):
+        if not isinstance(var, (six.string_types,tuple,list)):
             raise TypeError("variable name or list of variable names expected")
         self.var = var
-        self.multi_variate = multi_variate or not isinstance(var, basestring)
+        self.multi_variate = multi_variate or not isinstance(var, six.string_types)
 
     def _apply_functor(self, R):
         """
@@ -2367,7 +2368,7 @@ class QuotientFunctor(ConstructionFunctor):
         self.I = I
         if names is None:
             self.names = None
-        elif isinstance(names, basestring):
+        elif isinstance(names, six.string_types):
             self.names = (names,)
         else:
             self.names = tuple(names)
@@ -2464,7 +2465,7 @@ class QuotientFunctor(ConstructionFunctor):
             Finite Field of size 5
 
         """
-        if not isinstance(self, type(other)):
+        if type(self) is not type(other):
             return None
         if self.names != other.names:
             return None
@@ -3033,6 +3034,7 @@ class BlackBoxConstructionFunctor(ConstructionFunctor):
     def __init__(self, box):
         """
         TESTS::
+
             sage: from sage.categories.pushout import BlackBoxConstructionFunctor
             sage: FG = BlackBoxConstructionFunctor(gap)
             sage: FM = BlackBoxConstructionFunctor(maxima)
@@ -3064,6 +3066,7 @@ class BlackBoxConstructionFunctor(ConstructionFunctor):
     def __cmp__(self, other):
         """
         TESTS::
+
             sage: from sage.categories.pushout import BlackBoxConstructionFunctor
             sage: FG = BlackBoxConstructionFunctor(gap)
             sage: FM = BlackBoxConstructionFunctor(maxima)

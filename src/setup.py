@@ -4,6 +4,39 @@ from __future__ import print_function
 import os, sys, time, errno, platform, subprocess, glob
 from distutils.core import setup
 
+
+def excepthook(*exc):
+    """
+    When an error occurs, display an error message similar to the error
+    messages from ``sage-spkg``.
+
+    In particular, ``build/make/install`` will recognize "sage" as a failed
+    package, see :trac:`16774`.
+    """
+    stars = '*' * 72
+
+    print(stars, file=sys.stderr)
+    import traceback
+    traceback.print_exception(*exc, file=sys.stderr)
+    print(stars, file=sys.stderr)
+    print("Error building the Sage library", file=sys.stderr)
+    print(stars, file=sys.stderr)
+
+    try:
+        logfile = os.path.join(os.environ['SAGE_LOGS'],
+                "sage-%s.log" % os.environ['SAGE_VERSION'])
+    except:
+        pass
+    else:
+        print("Please email sage-devel (http://groups.google.com/group/sage-devel)", file=sys.stderr)
+        print("explaining the problem and including the relevant part of the log file", file=sys.stderr)
+        print("  " + logfile, file=sys.stderr)
+        print("Describe your computer, operating system, etc.", file=sys.stderr)
+        print(stars, file=sys.stderr)
+
+sys.excepthook = excepthook
+
+
 #########################################################
 ### List of Extensions
 ###
@@ -30,14 +63,8 @@ except KeyError:
     compile_result_dir = None
     keep_going = False
 
-SAGE_INC = os.path.join(SAGE_LOCAL, 'include')
-
 # search for dependencies and add to gcc -I<path>
-import numpy
-include_dirs = [SAGE_INC,
-                SAGE_SRC,
-                os.path.join(SAGE_SRC, 'sage', 'ext'),
-                os.path.join(numpy.get_include())]
+include_dirs = sage_include_directories(use_sources=True)
 
 # Manually add -fno-strict-aliasing, which is needed to compile Cython
 # and disappears from the default flags if the user has set CFLAGS.
@@ -550,7 +577,6 @@ def run_cythonize():
     version_file = os.path.join(os.path.dirname(__file__), '.cython_version')
     version_stamp = '\n'.join([
         'cython version: ' + str(Cython.__version__),
-        'embedsignature: True',
         'debug: ' + str(debug),
         'profile: ' + str(profile),
     ""])
@@ -561,7 +587,7 @@ def run_cythonize():
     ext_modules = cythonize(
         ext_modules,
         nthreads=int(os.environ.get('SAGE_NUM_THREADS', 0)),
-        build_dir='build/cythonized',
+        build_dir=SAGE_CYTHONIZED,
         force=force,
         aliases=aliases,
         compiler_directives={
@@ -579,15 +605,17 @@ print("Finished Cythonizing, time: %.2f seconds." % (time.time() - t))
 
 
 #########################################################
-### Discovering Python Sources
+### Discovering Sources
 #########################################################
 
-print("Discovering Python source code....")
+print("Discovering Python/Cython source code....")
 t = time.time()
-from sage_setup.find import find_python_sources
+from sage_setup.find import find_python_sources, find_extra_files
 python_packages, python_modules = find_python_sources(
     SAGE_SRC, ['sage', 'sage_setup'])
-print("Discovered Python source, time: %.2f seconds." % (time.time() - t))
+python_data_files = find_extra_files(python_packages,
+    ".", SAGE_CYTHONIZED, SAGE_LIB, ["ntlwrap.cpp"])
+print("Discovered Python/Cython sources, time: %.2f seconds." % (time.time() - t))
 
 
 #########################################################
@@ -600,7 +628,8 @@ from sage_setup.clean import clean_install_dir
 output_dirs = SITE_PACKAGES + glob.glob(os.path.join(SAGE_SRC, 'build', 'lib*'))
 for output_dir in output_dirs:
     print('- cleaning {0}'.format(output_dir))
-    clean_install_dir(output_dir, python_packages, python_modules, ext_modules)
+    clean_install_dir(output_dir, python_packages, python_modules,
+            ext_modules, python_data_files)
 print('Finished cleaning, time: %.2f seconds.' % (time.time() - t))
 
 
@@ -616,6 +645,7 @@ code = setup(name = 'sage',
       author_email= 'http://groups.google.com/group/sage-support',
       url         = 'http://www.sagemath.org',
       packages    = python_packages,
+      data_files  = python_data_files,
       scripts = [],
       cmdclass = { 'build_ext': sage_build_ext },
       ext_modules = ext_modules)

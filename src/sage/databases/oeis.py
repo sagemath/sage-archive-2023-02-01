@@ -1637,10 +1637,9 @@ class OEISSequence(SageObject):
 
         EXAMPLES::
 
-            sage: f = oeis(45) ; f                      # optional -- internet, webbrowser
+            sage: f = oeis(45) ; f                      # optional -- internet
             A000045: Fibonacci numbers: F(n) = F(n-1) + F(n-2) with F(0) = 0 and F(1) = 1.
-
-            sage: f.browse()                            # optional -- internet, webbrowser
+            sage: f.browse()                            # optional -- internet webbrowser
 
         TESTS::
 
@@ -1784,6 +1783,7 @@ class FancyTuple(tuple):
         index of the value in ``self``.
 
         EXAMPLES::
+
             sage: from sage.databases.oeis import FancyTuple
             sage: t = FancyTuple(['zero', 'one', 'two', 'three', 4]) ; t
             0: zero

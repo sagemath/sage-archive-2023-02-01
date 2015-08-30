@@ -910,7 +910,7 @@ done from the right side.""")
         ``check`` is ``True``, confirm that the
         element specified by x does in fact lie in self.
 
-        .. note:::
+        .. note::
 
            In the case of an inexact base ring (i.e. RDF), we don't
            verify that the element is in the subspace, even when
@@ -2073,7 +2073,7 @@ done from the right side.""")
         EXAMPLES::
 
             sage: R = QQ^2
-            sage: macaulay2(R) # optional
+            sage: macaulay2(R) # optional - macaulay2
               2
             QQ
         """

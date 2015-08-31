@@ -972,6 +972,28 @@ class GenericProduct(CartesianProductPosets, GenericGrowthGroup):
 
 
         def _log_factor_(self, base=None):
+            r"""
+            Helper method for calculating the logarithm of the factorization
+            of this element.
+
+            INPUT:
+
+            - ``base`` -- the base of the logarithm. If ``None``
+              (default value) is used, the natural logarithm is taken.
+
+            OUTPUT:
+
+            A tuple of pairs, where the first entry is either a growth
+            element or something out of which we can construct a growth element
+            and the second a multiplicative coefficient.
+
+            TESTS::
+
+                sage: from sage.rings.asymptotic.growth_group import GrowthGroup
+                sage: G = GrowthGroup('QQ^x * x^ZZ * log(x)^ZZ * y^ZZ * log(y)^ZZ')
+                sage: x, y = G.gens_monomial()
+                sage: (x * y).log_factor()  # indirect doctest
+            """
             if self == self.parent().one():
                 return tuple()
 

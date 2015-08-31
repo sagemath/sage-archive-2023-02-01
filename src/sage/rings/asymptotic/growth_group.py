@@ -940,8 +940,29 @@ class GenericGrowthElement(sage.structure.element.MultiplicativeGroupElement):
 
 
     def _log_factor_(self, base=None):
-        raise ValueError('Cannot determine logarithmized factorization of %s '
-                         'in abstract base class.' % (self,))
+        r"""
+        Helper method for calculating the logarithm of the factorization
+        of this element.
+
+        INPUT:
+
+        - ``base`` -- the base of the logarithm. If ``None``
+          (default value) is used, the natural logarithm is taken.
+
+        OUTPUT:
+
+        A tuple of pairs, where the first entry is either a growth
+        element or something out of which we can construct a growth element
+        and the second a multiplicative coefficient.
+
+        TESTS::
+
+            sage: from sage.rings.asymptotic.growth_group import GrowthGroup
+            sage: G = GrowthGroup('QQ^x')
+            sage: G('x').log_factor()  # indirect doctest
+        """
+        raise NotImplementedError('Cannot determine logarithmized factorization '
+                                  'of %s in abstract base class.' % (self,))
 
 
     def factors(self):
@@ -2055,6 +2076,27 @@ class MonomialGrowthElement(GenericGrowthElement):
 
 
     def _log_factor_(self, base=None):
+        r"""
+        Helper method for calculating the logarithm of the factorization
+        of this element.
+
+        INPUT:
+
+        - ``base`` -- the base of the logarithm. If ``None``
+          (default value) is used, the natural logarithm is taken.
+
+        OUTPUT:
+
+        A tuple of pairs, where the first entry is either a growth
+        element or something out of which we can construct a growth element
+        and the second a multiplicative coefficient.
+
+        TESTS::
+
+            sage: from sage.rings.asymptotic.growth_group import GrowthGroup
+            sage: G = GrowthGroup('QQ^x')
+            sage: G('x').log_factor()  # indirect doctest
+        """
         if self == self.parent().one():
             return tuple()
         coefficient = self.exponent
@@ -2606,6 +2648,27 @@ class ExponentialGrowthElement(GenericGrowthElement):
 
 
     def _log_factor_(self, base=None):
+        r"""
+        Helper method for calculating the logarithm of the factorization
+        of this element.
+
+        INPUT:
+
+        - ``base`` -- the base of the logarithm. If ``None``
+          (default value) is used, the natural logarithm is taken.
+
+        OUTPUT:
+
+        A tuple of pairs, where the first entry is either a growth
+        element or something out of which we can construct a growth element
+        and the second a multiplicative coefficient.
+
+        TESTS::
+
+            sage: from sage.rings.asymptotic.growth_group import GrowthGroup
+            sage: G = GrowthGroup('QQ^x')
+            sage: G('x').log_factor()  # indirect doctest
+        """
         if self == self.parent().one():
             return tuple()
         b = self.base

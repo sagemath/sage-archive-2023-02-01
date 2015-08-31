@@ -20,6 +20,4 @@ finite number of indeterminates.
 
    sage/monoids/string_ops
 
-   sage/rings/asymptotic/term_monoid
-
 .. include:: ../footer.txt

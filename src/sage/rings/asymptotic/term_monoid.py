@@ -1852,6 +1852,15 @@ class OTermMonoid(GenericTermMonoid):
             sage: T_ZZ(G_ZZ.gen())  # indirect doctest
             O(x)
         """
+        if coefficient is not None:
+            try:
+                self.coefficient_ring(coefficient)
+            except (TypeError, ValueError) as e:
+                from misc import combine_exceptions
+                raise combine_exceptions(
+                    ValueError('Cannot create O(%s) since given coefficient %s '
+                               'is not a valid in %s.' %
+                               (growth, coefficient, self)), e)
         return self.element_class(self, growth)
 
 

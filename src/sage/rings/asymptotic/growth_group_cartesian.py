@@ -770,6 +770,9 @@ class GenericProduct(CartesianProductPosets, GenericGrowthGroup):
 
     class Element(CartesianProductPosets.Element):
 
+        from growth_group import is_lt_one
+        is_lt_one = is_lt_one
+
         def _repr_(self):
             r"""
             A representation string for this cartesian product element.

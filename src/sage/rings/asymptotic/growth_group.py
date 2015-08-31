@@ -200,6 +200,30 @@ from sage.misc.lazy_import import lazy_import
 lazy_import('sage.rings.asymptotic.growth_group_cartesian', 'CartesianProductGrowthGroups')
 
 
+def is_lt_one(self):
+    r"""
+    Return if this element is less than `1`.
+
+    INPUT:
+
+    Nothing.
+
+    OUTPUT:
+
+    A boolean.
+
+    EXAMPLES::
+
+        sage: from sage.rings.asymptotic.growth_group import GrowthGroup
+        sage: G = GrowthGroup('x^ZZ'); x = G(x)
+        sage: (x^42).is_lt_one()
+        False
+        sage: (x^(-42)).is_lt_one()
+        True
+    """
+    one = self.parent().one()
+    return self <= one and self != one
+
 class Variable(sage.structure.unique_representation.CachedRepresentation,
                sage.structure.sage_object.SageObject):
     r"""
@@ -938,6 +962,8 @@ class GenericGrowthElement(sage.structure.element.MultiplicativeGroupElement):
             ArithmeticError: building log(x) is not possible.
         """
         raise ArithmeticError('building log(%s) is not possible.' % (self,))
+
+    is_lt_one = is_lt_one
 
 
 class GenericGrowthGroup(

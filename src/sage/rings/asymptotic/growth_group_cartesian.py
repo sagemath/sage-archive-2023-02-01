@@ -819,7 +819,8 @@ class GenericProduct(CartesianProductPosets, GenericGrowthGroup):
                 sage: log(x^5)
                 Traceback (most recent call last):
                 ...
-                ValueError: The logarithm of x^5 cannot be constructed in Growth Group x^ZZ * log(x)^ZZ.
+                ArithmeticError: When calculating log(x^5) a factor 5 != 1 appeared,
+                which is not contained in Growth Group x^ZZ * log(x)^ZZ.
 
             ::
 
@@ -830,7 +831,8 @@ class GenericProduct(CartesianProductPosets, GenericGrowthGroup):
                 sage: log(el)
                 Traceback (most recent call last):
                 ...
-                ValueError: The logarithm of 2^x cannot be constructed in Growth Group QQ^x * x^ZZ.
+                ArithmeticError: When calculating log(2^x) a factor log(2) != 1
+                appeared, which is not contained in Growth Group QQ^x * x^ZZ.
                 sage: log(el, base=2)
                 x
 
@@ -840,16 +842,33 @@ class GenericProduct(CartesianProductPosets, GenericGrowthGroup):
                 sage: x, = G.gens_monomial()
                 sage: log(exp(x))
                 x
-            """
-            lf = self.log_factor(base=base)
-            if len(lf) == 1 and lf[0][1] == 1:
-                return lf[0][0]
-            if base:
-                raise ValueError('The logarithm of %s with base %s cannot be '
-                                 'constructed in %s.' % (self, base, self.parent()))
 
-            raise ValueError('The logarithm of %s cannot be constructed in '
-                             '%s.' % (self, self.parent()))
+            ::
+
+                sage: G.one().log()
+                Traceback (most recent call last):
+                ...
+                ArithmeticError: log(1) is zero, which is not contained in
+                Growth Group (Univariate Polynomial Ring in e over
+                Rational Field)^x * x^ZZ.
+            """
+            log_factor = self.log_factor(base=base)
+            if not log_factor:
+                raise ArithmeticError('log(%s) is zero, '
+                                      'which is not contained in %s.' %
+                                      (self, self.parent()))
+
+            if len(log_factor) != 1:
+                raise ArithmeticError('Calculating log(%s) results in a sum, '
+                                      'which is not contained in %s.' %
+                                      (self, self.parent()))
+            g, c = log_factor[0]
+            if c != 1:
+                raise ArithmeticError('When calculating log(%s) a factor %s != 1 '
+                                      'appeared, which is not contained in %s.' %
+                                      (self, c, self.parent()))
+            return g
+
 
 
         def factors(self):

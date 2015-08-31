@@ -855,7 +855,7 @@ class GenericProduct(CartesianProductPosets, GenericGrowthGroup):
         def factors(self):
             r"""
             Return the atomic factors of this growth element. An atomic factor
-            cannot be split further.
+            cannot be split further and is not the identity (`1`).
 
             INPUT:
 
@@ -927,6 +927,7 @@ class GenericProduct(CartesianProductPosets, GenericGrowthGroup):
                 sage: G = GrowthGroup('QQ^x * x^ZZ * log(x)^ZZ * y^ZZ * log(y)^ZZ')
                 sage: x, y = G.gens_monomial()
                 sage: (x * y).log_factor()  # indirect doctest
+                ((log(x), 1), (log(y), 1))
             """
             if self == self.parent().one():
                 return tuple()

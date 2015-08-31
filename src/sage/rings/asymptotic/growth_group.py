@@ -1030,9 +1030,13 @@ class GenericGrowthElement(sage.structure.element.MultiplicativeGroupElement):
 
         TESTS::
 
-            sage: from sage.rings.asymptotic.growth_group import GrowthGroup
-            sage: G = GrowthGroup('QQ^x')
-            sage: G('x').log_factor()  # indirect doctest
+            sage: from sage.rings.asymptotic.growth_group import GenericGrowthGroup
+            sage: G = GenericGrowthGroup(QQ)
+            sage: G.an_element().log_factor()  # indirect doctest
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: Cannot determine logarithmized factorization of
+            GenericGrowthElement(1/2) in abstract base class.
         """
         raise NotImplementedError('Cannot determine logarithmized factorization '
                                   'of %s in abstract base class.' % (self,))
@@ -2167,8 +2171,12 @@ class MonomialGrowthElement(GenericGrowthElement):
         TESTS::
 
             sage: from sage.rings.asymptotic.growth_group import GrowthGroup
-            sage: G = GrowthGroup('QQ^x')
+            sage: G = GrowthGroup('x^QQ')
             sage: G('x').log_factor()  # indirect doctest
+            Traceback (most recent call last):
+            ...
+            ArithmeticError: Cannot build log(x) since log(x) is not in
+            Growth Group x^QQ.
         """
         if self == self.parent().one():
             return tuple()
@@ -2740,7 +2748,11 @@ class ExponentialGrowthElement(GenericGrowthElement):
 
             sage: from sage.rings.asymptotic.growth_group import GrowthGroup
             sage: G = GrowthGroup('QQ^x')
-            sage: G('x').log_factor()  # indirect doctest
+            sage: G('4^x').log_factor(base=2)  # indirect doctest
+            Traceback (most recent call last):
+            ...
+            ArithmeticError: Cannot build log(4^x) since x is not in
+            Growth Group QQ^x.
         """
         if self == self.parent().one():
             return tuple()

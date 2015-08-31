@@ -173,6 +173,12 @@ def taylor_twograph(q):
     r"""
     constructing Taylor's two-graph for U_3(q), q odd
 
+    EXAMPLES::
+
+        sage: from sage.combinat.designs.twographs import taylor_twograph
+        sage: taylor_twograph(3)                # long time
+        Incidence structure with 28 points and 1260 blocks
+
     """
     from sage.rings.arith import is_prime_power
     p, k = is_prime_power(q,get_data=True)
@@ -197,8 +203,7 @@ def taylor_twograph(q):
         else:
             return lambda (x,y,z): (S(x,y)*S(y,z)*S(z,x)).is_square()
     f = make_tester()
-    T = filter(f, combinations(V,3))
-    return T
+    return TwoGraph(filter(f, combinations(V,3)))
 
 def is_twograph(T):
     r"""

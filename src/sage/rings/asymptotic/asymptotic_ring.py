@@ -931,13 +931,15 @@ class AsymptoticExpression(sage.structure.element.CommutativeAlgebraElement):
         return self * ~other
 
 
-    def __invert__(self):
+    def __invert__(self, precision=None):
         r"""
         Return the multiplicative inverse of this element.
 
         INPUT:
 
-        Nothing.
+        - ``precision`` -- the precision used for truncating the
+          expansion. If ``None`` (default value) is used, the
+          default precision of the parent is used.
 
         OUTPUT:
 
@@ -971,7 +973,7 @@ class AsymptoticExpression(sage.structure.element.CommutativeAlgebraElement):
             sage: (a / 2).parent()
             Asymptotic Ring <a^ZZ> over Rational Field
         """
-        if len(self.summands) == 0:
+        if not self.summands:
             raise ZeroDivisionError('Division by zero in %s.' % (self,))
 
         elif len(self.summands) == 1:
@@ -981,9 +983,9 @@ class AsymptoticExpression(sage.structure.element.CommutativeAlgebraElement):
 
         max_elem = tuple(self.summands.maximal_elements())
         if len(max_elem) != 1:
-            raise ValueError('Expression %s cannot be inverted, since there '
-                             'are several maximal elements: %s.' %
-                             (self, max_elem))
+            raise ValueError('Expression %s cannot be inverted since there '
+                             'are several maximal elements %s.' %
+                             (self, ', '.join(str(e) for e in max_elem)))
         max_elem = max_elem[0]
 
         imax_elem = ~max_elem
@@ -999,7 +1001,7 @@ class AsymptoticExpression(sage.structure.element.CommutativeAlgebraElement):
         expanding = True
         result = one
         while expanding:
-            new_result = (geom*result + one).truncate()
+            new_result = (geom*result + one).truncate(precision=precision)
             if new_result.has_same_summands(result):
                 expanding = False
             result = new_result

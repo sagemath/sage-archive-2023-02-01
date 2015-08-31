@@ -441,8 +441,7 @@ class GenericTerm(sage.structure.element.MonoidElement):
             raise combine_exceptions(
                 ValueError('Cannot take %s to the exponent %s.' % (self, exponent)), e)
 
-        return self.parent()._create_element_via_parent_(
-            g, coefficient, self.parent().growth_group, self.parent().coefficient_ring)
+        return self.parent()._create_element_via_parent_(g, coefficient)
 
 
     def can_absorb(self, other):
@@ -1351,18 +1350,13 @@ class GenericTermMonoid(sage.structure.unique_representation.UniqueRepresentatio
         return self.element_class(self, growth)
 
 
-    def _create_element_via_parent_(self, growth, coefficient,
-                                    old_parent_growth=None, old_parent_coefficient=None):
+    def _create_element_via_parent_(self, growth, coefficient):
         r"""
         Create an element with a possibly other parent.
 
         INPUT:
 
         - ``growth`` and ``coefficient`` -- the element data.
-
-        - ``old_parent_growth`` and ``old_parent_coefficient`` -- the
-          parents of ``growth`` and ``coefficient`` are compared to
-          these parents.
 
         OUTPUT:
 
@@ -1372,21 +1366,20 @@ class GenericTermMonoid(sage.structure.unique_representation.UniqueRepresentatio
             sage: from sage.rings.asymptotic.growth_group import GrowthGroup
             sage: G = GrowthGroup('z^ZZ')
             sage: T = TermMonoid('exact', G, ZZ)
-            sage: T._create_element_via_parent_(G.an_element(), 3, G, ZZ)
+            sage: T._create_element_via_parent_(G.an_element(), 3)
             3*z
-            sage: T._create_element_via_parent_(G.an_element(), 3/2, G, ZZ).parent()
+            sage: T._create_element_via_parent_(G.an_element(), 3/2).parent()
             Exact Term Monoid z^ZZ with coefficients in Rational Field
         """
-        if (old_parent_growth is None or growth.parent() is old_parent_growth) and \
-           (old_parent_coefficient is None or
-            coefficient is not None and coefficient.parent() is old_parent_coefficient):
+        if (growth.parent() is self.growth_group) and \
+           (coefficient is None or coefficient.parent() is self.coefficient_ring):
             parent = self
         else:
             from misc import underlying_class
             parent = underlying_class(self)(growth.parent(),
                                             coefficient.parent()
                                             if coefficient is not None
-                                            else old_parent_coefficient)
+                                            else self.coefficient_ring)
         return parent(growth, coefficient)
 
 
@@ -2471,8 +2464,7 @@ class ExactTerm(TermWithCoefficient):
             raise ZeroDivisionError('Cannot invert %s since its coefficient %s '
                                     'cannot be inverted.' % (self, self.coefficient))
         g = ~self.growth
-        return self.parent()._create_element_via_parent_(
-            g, c, self.parent().growth_group, self.parent().coefficient_ring)
+        return self.parent()._create_element_via_parent_(g, c)
 
 
     def __pow__(self, exponent):

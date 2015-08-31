@@ -1250,7 +1250,7 @@ class GenericGrowthGroup(
                     for e in self.base().some_elements())
 
 
-    def _create_element_via_parent_(self, raw_element, old_parent=None):
+    def _create_element_via_parent_(self, raw_element):
         r"""
         Create an element with a possibly other parent.
 
@@ -1270,14 +1270,10 @@ class GenericGrowthGroup(
             sage: G._create_element_via_parent_(3).parent()
             Growth Group z^ZZ
             sage: G._create_element_via_parent_(1/2).parent()
-            Traceback (most recent call last):
-            ...
-            TypeError: no conversion of this rational to integer
-            sage: G._create_element_via_parent_(1/2, ZZ).parent()
             Growth Group z^QQ
         """
         from misc import underlying_class
-        if old_parent is None or raw_element.parent() is old_parent:
+        if raw_element.parent() is self.base():
             parent = self
         else:
             parent = underlying_class(self)(raw_element.parent(), self._var_)
@@ -1994,7 +1990,7 @@ class MonomialGrowthElement(GenericGrowthElement):
             sage: e2 == ~e1
             True
         """
-        return self.parent()._create_element_via_parent_(-self.exponent, self.exponent.parent())
+        return self.parent()._create_element_via_parent_(-self.exponent)
 
 
     def __pow__(self, exponent):
@@ -2028,7 +2024,7 @@ class MonomialGrowthElement(GenericGrowthElement):
             sage: b^12
             x^42
         """
-        return self.parent()._create_element_via_parent_(self.exponent * exponent, self.exponent.parent())
+        return self.parent()._create_element_via_parent_(self.exponent * exponent)
 
 
     def _le_(self, other):
@@ -2539,7 +2535,7 @@ class ExponentialGrowthElement(GenericGrowthElement):
             sage: (~P(raw_element=1)).parent()
             Growth Group QQ^x
         """
-        return self.parent()._create_element_via_parent_(1 / self.base, self.base.parent())
+        return self.parent()._create_element_via_parent_(1 / self.base)
 
 
     def __pow__(self, exponent):
@@ -2569,7 +2565,7 @@ class ExponentialGrowthElement(GenericGrowthElement):
             sage: b^12
             117649^x
         """
-        return self.parent()._create_element_via_parent_(self.base ** exponent, self.base.parent())
+        return self.parent()._create_element_via_parent_(self.base ** exponent)
 
 
     def _le_(self, other):

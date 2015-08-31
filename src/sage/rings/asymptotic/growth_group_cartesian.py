@@ -949,9 +949,7 @@ class GenericProduct(CartesianProductPosets, GenericGrowthGroup):
             ::
 
                 sage: G(1).log_factor()
-                Traceback (most recent call last):
-                ...
-                ValueError: 1 does not have a factorization.
+                []
 
             ::
 
@@ -969,6 +967,10 @@ class GenericProduct(CartesianProductPosets, GenericGrowthGroup):
                 [[x, 1], [log(x), 1]]
             """
             P = self.parent()
+
+            if self == P.one():
+                return []
+
             factors = self.factor()
             log_factors = []
             from sage.rings.asymptotic.growth_group import ExponentialGrowthGroup, \

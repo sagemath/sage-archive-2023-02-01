@@ -176,8 +176,11 @@ also implements the :class:`MIPSolverException` exception, as well as the
     :meth:`~MixedIntegerLinearProgram.base_ring`                 | Return the base ring
     :meth:`~MixedIntegerLinearProgram.constraints`               | Returns a list of constraints, as 3-tuples
     :meth:`~MixedIntegerLinearProgram.get_backend`               | Returns the backend instance used
+    :meth:`~MixedIntegerLinearProgram.get_best_objective_value`  | Return the value of the currently best known bound
     :meth:`~MixedIntegerLinearProgram.get_max`                   | Returns the maximum value of a variable
     :meth:`~MixedIntegerLinearProgram.get_min`                   | Returns the minimum value of a variable
+    :meth:`~MixedIntegerLinearProgram.get_objective_value`       | Return the value of the objective function
+    :meth:`~MixedIntegerLinearProgram.get_relative_objective_gap`| Return the relative objective gap of the best known solution
     :meth:`~MixedIntegerLinearProgram.get_values`                | Return values found by the previous call to ``solve()``
     :meth:`~MixedIntegerLinearProgram.is_binary`                 | Tests whether the variable ``e`` is binary
     :meth:`~MixedIntegerLinearProgram.is_integer`                | Tests whether the variable is an integer
@@ -2382,6 +2385,103 @@ cdef class MixedIntegerLinearProgram(SageObject):
             9.4
         """
         return self._backend
+
+    def get_objective_value(self):
+        """
+        Return the value of the objective function.
+
+        .. NOTE::
+
+           Behaviour is undefined unless ``solve`` has been called before.
+
+        EXAMPLE::
+
+            sage: p = MixedIntegerLinearProgram(solver="GLPK")
+            sage: x, y = p[0], p[1]
+            sage: p.add_constraint(2*x + 3*y, max = 6)
+            sage: p.add_constraint(3*x + 2*y, max = 6)
+            sage: p.set_objective(x + y + 7)
+            sage: p.solve()
+            9.4
+            sage: p.get_objective_value()
+            9.4
+        """
+        return self._backend.get_objective_value()
+
+    def get_best_objective_value(self):
+        r"""
+        Return the value of the currently best known bound.
+
+        This method returns the currently best known bound of all the remaining
+        open nodes in a branch-and-cut tree. It is computed for a minimization
+        problem as the minimum objective function value of all remaining
+        unexplored nodes. Similarly, it is computed for a maximization problem
+        as the maximum objective function value of all remaining unexplored
+        nodes.
+
+        For a regular MIP optimization, this value is also the best known bound
+        on the optimal solution value of the MIP problem.
+
+        .. NOTE::
+
+           Has no meaning unless ``solve`` has been called before.
+
+        EXAMPLE::
+
+            sage: g = graphs.CubeGraph(9)
+            sage: p = MixedIntegerLinearProgram(solver="GLPK")
+            sage: p.solver_parameter("mip_gap_tolerance",100)
+            sage: b = p.new_variable(binary=True)
+            sage: p.set_objective(p.sum(b[v] for v in g))
+            sage: for v in g:
+            ....:     p.add_constraint(b[v]+p.sum(b[u] for u in g.neighbors(v)) <= 1)
+            sage: p.add_constraint(b[v] == 1) # Force an easy non-0 solution
+            sage: p.solve() # rel tol 100
+            1.0
+            sage: p.get_best_objective_value() # random
+            48.0
+        """
+        return self._backend.get_best_objective_value()
+
+    def get_relative_objective_gap(self):
+        r"""
+        Return the relative objective gap of the best known solution.
+
+        For a minimization problem, this value is computed by `(bestinteger -
+        bestobjective) / (1e-10 + |bestobjective|)`, where ``bestinteger`` is
+        the value returned by ``get_objective_value`` and ``bestobjective`` is
+        the value returned by ``get_best_objective_value``. For a maximization
+        problem, the value is computed by `(bestobjective - bestinteger) /
+        (1e-10 + |bestobjective|)`.
+
+        .. NOTE::
+
+           Has no meaning unless ``solve`` has been called before.
+
+        EXAMPLE::
+
+            sage: g = graphs.CubeGraph(9)
+            sage: p = MixedIntegerLinearProgram(solver="GLPK")
+            sage: p.solver_parameter("mip_gap_tolerance",100)
+            sage: b = p.new_variable(binary=True)
+            sage: p.set_objective(p.sum(b[v] for v in g))
+            sage: for v in g:
+            ....:     p.add_constraint(b[v]+p.sum(b[u] for u in g.neighbors(v)) <= 1)
+            sage: p.add_constraint(b[v] == 1) # Force an easy non-0 solution
+            sage: p.solve() # rel tol 100
+            1.0
+            sage: p.get_relative_objective_gap() # random
+            46.99999999999999
+
+        TESTS:
+
+        Just make sure that the variable *has* been defined, and is not just
+        undefined::
+
+            sage: p.get_relative_objective_gap() > 1
+            True
+        """
+        return self._backend.get_relative_objective_gap()
 
 
 class MIPSolverException(RuntimeError):

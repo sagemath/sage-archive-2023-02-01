@@ -1006,7 +1006,7 @@ cdef class Matrix(matrix1.Matrix):
 
         These numbers are the coefficients of a modified Laguerre polynomial::
 
-            sage: x = polygen(ZZ)
+            sage: x = polygen(QQ)
             sage: factorial(8) * laguerre(8,-x)
             x^8 + 64*x^7 + 1568*x^6 + 18816*x^5 + 117600*x^4 + 376320*x^3 +
             564480*x^2 + 322560*x + 40320

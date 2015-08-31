@@ -507,6 +507,96 @@ cdef class Matrix_symbolic_dense(Matrix_generic_dense):
         sub_dict = {var: SR.var(var)}
         return Factorization(self.charpoly(var).subs(**sub_dict).factor_list())
 
+    def jordan_form(self, transformation=False):
+        """
+        Return a Jordan normal form of ``self``.
+
+        INPUT:
+
+        - ``self`` -- a square matrix
+
+        - ``transformation`` -- boolean (default: ``False``)
+
+        OUTPUT:
+
+        If ``transformation`` is ``False``, only a Jordan normal form
+        (unique up to the ordering of the Jordan blocks) is returned.
+        Otherwise, a pair ``(J, P)`` is returned, where ``J`` is a
+        Jordan normal form and ``P`` is an invertible matrix such that
+        ``self`` equals ``P * J * P^(-1)``.
+
+        EXAMPLES:
+
+        We start with some examples of diagonalisable matrices::
+
+            sage: a,b,c,d = var('a,b,c,d')
+            sage: matrix([a]).jordan_form()
+            [a]
+            sage: matrix([[a, 0], [1, d]]).jordan_form()
+            [d 0]
+            [0 a]
+            sage: matrix([[a, x, x], [0, b, x], [0, 0, c]]).jordan_form()
+            [c 0 0]
+            [0 b 0]
+            [0 0 a]
+
+        In the following examples, we compute Jordan forms of some
+        non-diagonalisable matrices::
+
+            sage: matrix([[a, a], [0, a]]).jordan_form()
+            [a 1]
+            [0 a]
+            sage: matrix([[a, 0, b], [0, c, 0], [0, 0, a]]).jordan_form()
+            [c 0 0]
+            [0 a 1]
+            [0 0 a]
+
+        The following examples illustrate the ``transformation`` flag.
+        Note that symbolic expressions may need to be simplified to
+        make consistency checks succeed::
+
+            sage: A = matrix([[x - a*c, a^2], [-c^2, x + a*c]])
+            sage: J, P = A.jordan_form(transformation=True)
+            sage: J, P
+            (
+            [x 1]  [-a*c    1]
+            [0 x], [-c^2    0]
+            )
+            sage: A1 = P * J * ~P; A1
+            [             -a*c + x (a*c - x)*a/c + a*x/c]
+            [                 -c^2               a*c + x]
+            sage: A1.simplify_rational() == A
+            True
+
+            sage: B = matrix([[a, b, c], [0, a, d], [0, 0, a]])
+            sage: J, T = B.jordan_form(transformation=True)
+            sage: J, T
+            (
+            [a 1 0]  [b*d   c   0]
+            [0 a 1]  [  0   d   0]
+            [0 0 a], [  0   0   1]
+            )
+            sage: (B * T).simplify_rational() == T * J
+            True
+
+        Finally, some examples involving square roots::
+
+            sage: matrix([[a, -b], [b, a]]).jordan_form()
+            [a - I*b       0]
+            [      0 a + I*b]
+            sage: matrix([[a, b], [c, d]]).jordan_form()
+            [1/2*a + 1/2*d - 1/2*sqrt(a^2 + 4*b*c - 2*a*d + d^2)                                                   0]
+            [                                                  0 1/2*a + 1/2*d + 1/2*sqrt(a^2 + 4*b*c - 2*a*d + d^2)]
+        """
+        A = self._maxima_lib_()
+        jordan_info = A.jordan()
+        J = jordan_info.dispJordan()._sage_()
+        if transformation:
+            P = A.diag_mode_matrix(jordan_info)._sage_()
+            return J, P
+        else:
+            return J
+
     def simplify(self):
         """
         Simplifies self.

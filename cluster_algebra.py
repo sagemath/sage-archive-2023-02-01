@@ -424,10 +424,6 @@ class ClusterAlgebra(Parent):
         clusters = {}
         clusters[cl] = [ self.current_seed, range(n) ]
         gets_bigger = True
-        #&&&
-        #Do we need to have a maximum depth built into the iterator?
-        #I would hope that we can remove it and add dynamic changing of the depth in find_cluster_variables
-        #using something like *** above
         while gets_bigger and depth_counter < depth:
             gets_bigger = False
             keys = clusters.keys()
@@ -445,7 +441,9 @@ class ClusterAlgebra(Parent):
                         # doublecheck this way of producing directions for the new seed: it is taken almost verbatim fom ClusterSeed
                         new_directions = [ j for j in xrange(n) if j > i or new_sd.b_matrix()[j,i] != 0 ]
                         clusters[new_cl] = [ new_sd, new_directions ]
-                        yield new_sd
+                        new_depth = yield new_sd
+                        if new_depth > depth:
+                            depth = new_depth
             depth_counter += 1
 
     # DESIDERATA. Some of these are probably unrealistic

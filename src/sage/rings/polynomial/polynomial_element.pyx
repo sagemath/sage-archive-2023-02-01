@@ -8051,7 +8051,7 @@ cdef class Polynomial_generic_dense_inexact(Polynomial_generic_dense):
 
     - Xavier Caruso (2013-03)
     """
-    cdef void __normalize(self):
+    cdef int __normalize(self) except -1:
         cdef list x = self.__coeffs
         cdef Py_ssize_t n = len(x) - 1
         cdef RingElement c

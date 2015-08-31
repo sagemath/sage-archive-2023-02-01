@@ -193,7 +193,7 @@ class ClusterAlgebraSeed(SageObject):
         # sage: %time void = list(seeds)
         # CPU times: user 26.8 s, sys: 21 ms, total: 26.9 s
         # Wall time: 26.8 s
-        return (pos+neg)/alg.F_polynomial(old_g_vector)
+        return alg._U((pos+neg)/alg.F_polynomial(old_g_vector))
 
     def mutation_sequence(self, sequence, inplace=True, mutating_F=True):
         seq = iter(sequence)
@@ -264,9 +264,9 @@ class ClusterAlgebra(Parent):
             self.greedy_coeff = MethodType(greedy_coeff, self, self.__class__)
             self.theta_basis_element = MethodType(theta_basis_element, self, self.__class__)
 
-        # TODO: maybe here scalars can be replaced with ZZ
+        # TODO: is ZZ the correct ambient here?
         # ambient space for F-polynomials
-        self._U = PolynomialRing(scalars,['u%s'%i for i in xrange(n)])
+        self._U = PolynomialRing(ZZ, ['u%s'%i for i in xrange(n)])
 
         # already computed data
         # TODO: I am unhappy because _g_vect_set is slightly redundant (we could
@@ -278,11 +278,22 @@ class ClusterAlgebra(Parent):
         self._path_dict = dict([ (v, []) for v in self._g_vect_set ])
         
         # setup Parent and ambient
-        base = LaurentPolynomialRing(scalars, 'x', n)
+        # TODO: at the moment self.base() is not a subobject of self.ambient()
+        # unfortunately if we change `scalars` to `base` in *** it becomes
+        # harder to list generators of ambient 
+        if m>n: 
+            # do we want change this to its fraction field (so that we can
+            # invert coefficients)? 
+            base = LaurentPolynomialRing(scalars, ['x%s'%i for i in xrange(n,m)])
+        else:
+            base = scalars
         # TODO: understand why using CommutativeAlgebras() instead of Rings() makes A(1) complain of missing _lmul_
         Parent.__init__(self, base=base, category=Rings(scalars).Subobjects())
+        # *** here we might want to replace scalars with base and m with n
         self._ambient = LaurentPolynomialRing(scalars, 'x', m)
         self._ambient_field = self._ambient.fraction_field()
+        # TODO: understand if we need this
+        #self._populate_coercion_lists_()
 
         # these are used for computing cluster variables using separation of
         # additions
@@ -293,6 +304,10 @@ class ClusterAlgebra(Parent):
         self._n = n
         self._m = m
         self.reset_current_seed()
+    
+    # enable standard cohercions: everything that is in the base can be coherced
+    def _coerce_map_from_(self, other):
+        return self.base().has_coerce_map_from(other)
 
     def _repr_(self):
         return "Cluster Algebra of rank %s"%self.rk

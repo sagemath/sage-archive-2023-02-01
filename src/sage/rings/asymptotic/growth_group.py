@@ -1009,6 +1009,9 @@ class GenericGrowthElement(sage.structure.element.MultiplicativeGroupElement):
         raise ArithmeticError('building log(%s) is not possible.' % (self,))
 
 
+    log_factor = log_factor
+
+
     def _log_factor_(self, base=None):
         r"""
         Helper method for calculating the logarithm of the factorization

@@ -901,6 +901,8 @@ class GenericProduct(CartesianProductPosets, GenericGrowthGroup):
                        tuple())
 
 
+        from growth_group import log_factor
+        log_factor = log_factor
 
 
         def _log_factor_(self, base=None):

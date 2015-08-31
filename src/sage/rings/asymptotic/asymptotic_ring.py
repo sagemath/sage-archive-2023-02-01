@@ -1209,38 +1209,49 @@ class AsymptoticExpression(sage.structure.element.CommutativeAlgebraElement):
         """
         P = self.parent()
 
-        if len(self.summands) == 0:
+        if not self.summands:
             from sage.rings.infinity import minus_infinity
             return minus_infinity
 
         elif len(self.summands) == 1:
             if self == 1:
-                return P(0)
-            return P(next(self.summands.elements()).log_term(base=base))
+                return self.parent().zero()
+            element = next(self.summands.elements())
+            return sum(self.parent()._create_element_via_parent_(l, element.parent())
+                       for l in element.log_term(base=base))
 
         max_elem = tuple(self.summands.maximal_elements())
         if len(max_elem) != 1:
             raise ValueError('log(%s) cannot be constructed since there '
-                             'are several maximal elements: %s.' % (self, max_elem))
-
-        from sage.functions.log import log
+                             'are several maximal elements %s.' %
+                             (self, ', '.join(str(e) for e in max_elem)))
         max_elem = max_elem[0]
+
         imax_elem = ~max_elem
-        one = P.one()
-        geom = one - self._mul_term_(imax_elem)
+        if imax_elem.parent() is max_elem.parent():
+            new_self = self
+        else:
+            new_self = self.parent()._create_element_via_parent_(
+                imax_elem, max_elem.parent()).parent()(self)
+
+        one = new_self.parent().one()
+        geom = one - new_self._mul_term_(imax_elem)
 
         expanding = True
         result = -geom
-        k = 1
+        geom_k = geom
+        k = one
         while expanding:
-            k += 1
-            new_result = (result - geom**k / k).truncate(precision=precision)
+            k += one
+            geom_k *= geom
+            new_result = (result - geom_k / k).truncate(precision=precision)
             if new_result.has_same_summands(result):
                 expanding = False
             result = new_result
 
-        result = log(P(max_elem)) + result
+        result += new_self.parent()(max_elem).log()
         if base:
+            from sage.functions.log import log
             result = result / log(base)
         return result
 

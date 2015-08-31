@@ -21,13 +21,13 @@ other possibilities)
 - elements of the form `z^q` for some integer or rational `q` (growth
   groups ``z^ZZ`` or ``z^QQ``),
 
-- elements of the form `log(z)^q` for some integer or rational `q` (growth
+- elements of the form `\log(z)^q` for some integer or rational `q` (growth
   groups ``log(z)^ZZ`` or ``log(z)^QQ``),
 
 - elements of the form `a^z` for some
   rational `a` (growth group ``QQ^z``), or
 
-- more sophisticated constructions like products `x^r log(x)^s \cdot
+- more sophisticated constructions like products `x^r \log(x)^s \cdot
   a^y \cdot y^q` (this corresponds to an element of the growth group
   ``x^QQ * log(x)^ZZ * QQ^y * y^QQ``).
 

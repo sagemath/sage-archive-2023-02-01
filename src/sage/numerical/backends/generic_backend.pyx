@@ -502,10 +502,10 @@ cdef class GenericBackend:
         This method returns the current best upper (resp. lower) bound on the
         optimal value of the objective function in a maximization
         (resp. minimization) problem. It is equal to the output of
-        :meth:get_objective_value if the MILP found an optimal solution, but it
-        can differ if it was interrupted manually or after a time limit (cf
-        :meth:solver_parameter).
-        
+        :meth:`get_objective_value` if the MILP found an optimal solution, but
+        it can differ if it was interrupted manually or after a time limit (cf
+        :meth:`solver_parameter`).
+
         .. NOTE::
 
            Has no meaning unless ``solve`` has been called before.
@@ -532,13 +532,14 @@ cdef class GenericBackend:
         r"""
         Return the relative objective gap of the best known solution.
 
-        For a minimization problem, this value is computed by `(bestinteger -
-        bestobjective) / (1e-10 + |bestobjective|)`, where ``bestinteger`` is
-        the value returned by ``get_objective_value`` and ``bestobjective`` is
-        the value returned by ``get_best_objective_value``. For a maximization
-        problem, the value is computed by `(bestobjective - bestinteger) /
-        (1e-10 + |bestobjective|)`.
-        
+        For a minimization problem, this value is computed by
+        `(\texttt{bestinteger} - \texttt{bestobjective}) / (1e-10 +
+        |\texttt{bestobjective}|)`, where ``bestinteger`` is the value returned
+        by :meth:`get_objective_value` and ``bestobjective`` is the value
+        returned by :meth:`best_known_objective_bound`. For a maximization
+        problem, the value is computed by `(\texttt{bestobjective} -
+        \texttt{bestinteger}) / (1e-10 + |\texttt{bestobjective}|)`.
+
         .. NOTE::
 
            Has no meaning unless ``solve`` has been called before.

@@ -21,7 +21,7 @@ cdef class GenericBackend:
     cpdef add_linear_constraints(self, int number, lower_bound, upper_bound, names=*)
     cpdef int solve(self) except -1
     cpdef get_objective_value(self)
-    cpdef get_best_objective_value(self)
+    cpdef best_known_objective_bound(self)
     cpdef get_relative_objective_gap(self)
     cpdef get_variable_value(self, int variable)
     cpdef bint is_maximization(self)

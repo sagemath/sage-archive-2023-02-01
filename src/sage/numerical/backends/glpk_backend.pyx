@@ -986,19 +986,16 @@ cdef class GLPKBackend(GenericBackend):
         else:
           return glp_get_obj_val(self.lp)
 
-    cpdef get_best_objective_value(self):
+    cpdef best_known_objective_bound(self):
         r"""
         Return the value of the currently best known bound.
 
-        This method returns the currently best known bound of all the remaining
-        open nodes in a branch-and-cut tree. It is computed for a minimization
-        problem as the minimum objective function value of all remaining
-        unexplored nodes. Similarly, it is computed for a maximization problem
-        as the maximum objective function value of all remaining unexplored
-        nodes.
-
-        For a regular MIP optimization, this value is also the best known bound
-        on the optimal solution value of the MIP problem.
+        This method returns the current best upper (resp. lower) bound on the
+        optimal value of the objective function in a maximization
+        (resp. minimization) problem. It is equal to the output of
+        :meth:get_objective_value if the MILP found an optimal solution, but it
+        can differ if it was interrupted manually or after a time limit (cf
+        :meth:solver_parameter).
 
         .. NOTE::
 
@@ -1017,7 +1014,7 @@ cdef class GLPKBackend(GenericBackend):
             sage: p.solve() # rel tol 100
             1.0
             sage: backend = p.get_backend()
-            sage: backend.get_best_objective_value() # random
+            sage: backend.best_known_objective_bound() # random
             48.0
         """
         return self.search_tree_data.best_bound

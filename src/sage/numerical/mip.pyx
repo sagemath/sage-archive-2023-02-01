@@ -174,9 +174,9 @@ also implements the :class:`MIPSolverException` exception, as well as the
 
     :meth:`~MixedIntegerLinearProgram.add_constraint`            | Adds a constraint to the ``MixedIntegerLinearProgram``
     :meth:`~MixedIntegerLinearProgram.base_ring`                 | Return the base ring
+    :meth:`~MixedIntegerLinearProgram.best_known_objective_bound`| Return the value of the currently best known bound
     :meth:`~MixedIntegerLinearProgram.constraints`               | Returns a list of constraints, as 3-tuples
     :meth:`~MixedIntegerLinearProgram.get_backend`               | Returns the backend instance used
-    :meth:`~MixedIntegerLinearProgram.get_best_objective_value`  | Return the value of the currently best known bound
     :meth:`~MixedIntegerLinearProgram.get_max`                   | Returns the maximum value of a variable
     :meth:`~MixedIntegerLinearProgram.get_min`                   | Returns the minimum value of a variable
     :meth:`~MixedIntegerLinearProgram.get_objective_value`       | Return the value of the objective function
@@ -2401,26 +2401,23 @@ cdef class MixedIntegerLinearProgram(SageObject):
             sage: p.add_constraint(2*x + 3*y, max = 6)
             sage: p.add_constraint(3*x + 2*y, max = 6)
             sage: p.set_objective(x + y + 7)
-            sage: p.solve()
+            sage: p.solve()  # rel tol 1e-5
             9.4
-            sage: p.get_objective_value()
+            sage: p.get_objective_value()  # rel tol 1e-5
             9.4
         """
         return self._backend.get_objective_value()
 
-    def get_best_objective_value(self):
+    def best_known_objective_bound(self):
         r"""
         Return the value of the currently best known bound.
 
-        This method returns the currently best known bound of all the remaining
-        open nodes in a branch-and-cut tree. It is computed for a minimization
-        problem as the minimum objective function value of all remaining
-        unexplored nodes. Similarly, it is computed for a maximization problem
-        as the maximum objective function value of all remaining unexplored
-        nodes.
-
-        For a regular MIP optimization, this value is also the best known bound
-        on the optimal solution value of the MIP problem.
+        This method returns the current best upper (resp. lower) bound on the
+        optimal value of the objective function in a maximization
+        (resp. minimization) problem. It is equal to the output of
+        :meth:get_objective_value if the MILP found an optimal solution, but it
+        can differ if it was interrupted manually or after a time limit (cf
+        :meth:solver_parameter).
 
         .. NOTE::
 
@@ -2438,10 +2435,10 @@ cdef class MixedIntegerLinearProgram(SageObject):
             sage: p.add_constraint(b[v] == 1) # Force an easy non-0 solution
             sage: p.solve() # rel tol 100
             1.0
-            sage: p.get_best_objective_value() # random
+            sage: p.best_known_objective_bound() # random
             48.0
         """
-        return self._backend.get_best_objective_value()
+        return self._backend.best_known_objective_bound()
 
     def get_relative_objective_gap(self):
         r"""

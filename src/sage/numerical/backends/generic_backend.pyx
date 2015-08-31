@@ -495,14 +495,16 @@ cdef class GenericBackend:
 
         raise NotImplementedError()
 
-    cpdef get_best_objective_value(self):
+    cpdef best_known_objective_bound(self):
         r"""
         Return the value of the currently best known bound.
 
-        For a regular MIP optimization, this value is also the best known bound
-        on the optimal solution value of the MIP problem. In fact, when a
-        problem has been solved to optimality, this value matches the optimal
-        solution value.
+        This method returns the current best upper (resp. lower) bound on the
+        optimal value of the objective function in a maximization
+        (resp. minimization) problem. It is equal to the output of
+        :meth:get_objective_value if the MILP found an optimal solution, but it
+        can differ if it was interrupted manually or after a time limit (cf
+        :meth:solver_parameter).
         
         .. NOTE::
 
@@ -520,7 +522,7 @@ cdef class GenericBackend:
             sage: pb = p.get_backend()                                 # optional - Nonexistent_LP_solver
             sage: pb.get_objective_value()                             # optional - Nonexistent_LP_solver
             2.0
-            sage: pb.get_best_objective_value()                        # optional - Nonexistent_LP_solver
+            sage: pb.best_known_objective_bound()                      # optional - Nonexistent_LP_solver
             2.0
         """
         raise NotImplementedError()

@@ -926,21 +926,16 @@ cdef class CPLEXBackend(GenericBackend):
         return value + self.obj_constant_term
 
 
-    cpdef get_best_objective_value(self):
+    cpdef best_known_objective_bound(self):
         r"""
         Return the value of the currently best known bound.
 
-        This method returns the currently best known bound of all the remaining
-        open nodes in a branch-and-cut tree.  It is computed for a minimization
-        problem as the minimum objective function value of all remaining
-        unexplored nodes. Similarly, it is computed for a maximization problem
-        as the maximum objective function value of all remaining unexplored
-        nodes.
-
-        For a regular MIP optimization, this value is also the best known bound
-        on the optimal solution value of the MIP problem. In fact, when a
-        problem has been solved to optimality, this value matches the optimal
-        solution value.
+        This method returns the current best upper (resp. lower) bound on the
+        optimal value of the objective function in a maximization
+        (resp. minimization) problem. It is equal to the output of
+        :meth:get_objective_value if the MILP found an optimal solution, but it
+        can differ if it was interrupted manually or after a time limit (cf
+        :meth:solver_parameter).
         
         .. NOTE::
 
@@ -963,7 +958,7 @@ cdef class CPLEXBackend(GenericBackend):
             sage: pb = p.get_backend()                                 # optional - CPLEX
             sage: pb.get_objective_value()                             # optional - CPLEX
             2.0
-            sage: pb.get_best_objective_value()                        # optional - CPLEX
+            sage: pb.best_known_objective_bound()                      # optional - CPLEX
             2.0
         """
         cdef int status

@@ -1,5 +1,5 @@
-Asymptotic Computations
-=======================
+Asymptotic Ring
+===============
 
 
 .. toctree::

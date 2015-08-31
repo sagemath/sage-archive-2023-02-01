@@ -53,12 +53,13 @@ AUTHORS:
     TESTS::
 
         sage: from sage.rings.asymptotic.growth_group import GrowthGroup
-        sage: from sage.rings.asymptotic.term_monoid import (GenericTermMonoid, TermMonoid)
+        sage: from sage.rings.asymptotic.term_monoid import GenericTermMonoid
         sage: G = GrowthGroup('x^ZZ * log(x)^ZZ')
         doctest:...: FutureWarning: This class/method/function is marked as
         experimental. It, its functionality or its interface might change
         without a formal deprecation.
         See http://trac.sagemath.org/17601 for details.
+        sage: T = GenericTermMonoid(G, ZZ)
 """
 
 # *****************************************************************************

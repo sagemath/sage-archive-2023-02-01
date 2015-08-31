@@ -17,13 +17,13 @@ by Sage. Help us if you know any.
     `Andries E. Brouwer <http://www.win.tue.nl/~aeb/>`__ directly, in order to
     have a unique and updated source of information.
 
-REFERENCE:
+REFERENCES:
 
-.. [vLintBrouwer84] A. Brouwer, J. van Lint,
-  Strongly regular graphs and partial geometries,
-  Enumeration and design (Waterloo, Ont., 1982)
-  (1984): 85-122. APA,
-  http://www.win.tue.nl/~aeb/preprints/srgsurvey.pdf
+.. [BvL84] A. Brouwer, J van Lint,
+   Strongly regular graphs and partial geometries,
+   Enumeration and design,
+   (Waterloo, Ont., 1982) (1984): 85-122.
+   http://oai.cwi.nl/oai/asset/1817/1817A.pdf
 
 Functions
 ---------
@@ -403,13 +403,6 @@ def SRG_from_RSHCD(v,k,l,mu, existence=False,check=True):
         ...
         ValueError: I do not know how to build a (784, 0, 14, 38)-SRG from a RSHCD
 
-    REFERENCES:
-
-    .. [BvL84] A. Brouwer, J van Lint,
-      Strongly regular graphs and partial geometries,
-      Enumeration and design,
-      (Waterloo, Ont., 1982) (1984): 85-122.
-      http://oai.cwi.nl/oai/asset/1817/1817A.pdf
     """
     from sage.combinat.matrices.hadamard_matrix import regular_symmetric_hadamard_matrix_with_constant_diagonal
     sgn = lambda x: 1 if x>=0 else -1
@@ -1377,7 +1370,7 @@ cdef bint seems_feasible(int v, int k, int l, int mu):
         return False
 
     # Conference graphs. Only possible if 'v' is a sum of two squares (3.A of
-    # [vLintBrouwer84]
+    # [BvL84]
     if (v-1)*(mu-l)-2*k == 0:
         return two_squares_c(v,tmp)
 
@@ -1392,7 +1385,7 @@ cdef bint seems_feasible(int v, int k, int l, int mu):
         return False
 
     # Theorem 21.3 of [WilsonACourse] or
-    # 3.B of [vLintBrouwer84]
+    # 3.B of [BvL84]
     # (Krein conditions)
     if ((r+1)*(k+r+2*r*s) > (k+r)*(s+1)**2 or
         (s+1)*(k+s+2*r*s) > (k+s)*(r+1)**2):
@@ -1404,27 +1397,27 @@ cdef bint seems_feasible(int v, int k, int l, int mu):
     f = -k*(s+1)*(k-s)/((k+r*s)*(r-s))
     g =  k*(r+1)*(k-r)/((k+r*s)*(r-s))
 
-    # 3.C of [vLintBrouwer84]
+    # 3.C of [BvL84]
     # (Absolute bound)
     if (2*v > f*(f+3) or
         2*v > g*(g+3)):
         return False
 
-    # 3.D of [vLintBrouwer84]
+    # 3.D of [BvL84]
     # (Claw bound)
     if (mu != s**2    and
         mu != s*(s+1) and
         2*(r+1) > s*(s+1)*(mu+1)):
         return False
 
-    # 3.E of [vLintBrouwer84]
+    # 3.E of [BvL84]
     # (the Case μ=1)
     if mu == 1:
         if (   k  % (l+1) or
             (v*k) % ((l+1)*(l+2))):
             return False
 
-    # 3.F of [vLintBrouwer84]
+    # 3.F of [BvL84]
     # (the Case μ=2)
     if mu == 2 and 2*k < l*(l+3) and k%(l+1):
         return False
@@ -1527,7 +1520,7 @@ def strongly_regular_graph(int v,int k,int l,int mu=-1,bint existence=False,bint
         ...
         RuntimeError: Sage cannot figure out if a (1394,175,0,25)-strongly regular graph exists.
 
-    Test the Claw bound (see 3.D of [vLintBrouwer84]_)::
+    Test the Claw bound (see 3.D of [BvL84]_)::
 
         sage: graphs.strongly_regular_graph(2058,242,91,20,existence=True)
         False

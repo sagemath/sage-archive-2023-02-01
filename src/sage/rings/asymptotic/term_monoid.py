@@ -693,30 +693,27 @@ class GenericTerm(sage.structure.element.MonoidElement):
 
     def log_term(self, base=None):
         r"""
-        Return the logarithm of this term.
-
-        This method returns a list with the summands that come from
-        applying the rule `\log(x\cdot y) = \log(x) + \log(y)`.
+        Determine the logarithm of this term.
 
         INPUT:
 
         - ``base`` -- the base of the logarithm. If ``None``
-              (default value) is used, the logarithm is the natural
-              logarithm.
+          (default value) is used, the natural logarithm is taken.
 
         OUTPUT:
 
-        A list.
+        A tuple of terms.
 
         .. NOTE::
 
-            This method is only implemented for :class:`ExactTerm` and
-            :class:`OTerm`.
+            This method returns a tuple with the summands that come from
+            applying the rule `\log(x\cdot y) = \log(x) + \log(y)`.
 
-        .. SEEALSO::
+        .. NOTE::
 
-            :meth:`ExactTerm.log_term`,
-            :meth:`OTerm.log_term`.
+            This abstract method raises a
+            :class:`NotImplementedError`. See :class:`ExactTerm` and
+            :class:`OTerm` for a concrete implementation.
 
         EXAMPLES::
 
@@ -726,8 +723,8 @@ class GenericTerm(sage.structure.element.MonoidElement):
             sage: T.an_element().log_term()
             Traceback (most recent call last):
             ...
-            NotImplementedError: This method is only implemented for terms used
-            in AsymptoticExpression.
+            NotImplementedError: This method is not implemented in
+            this abstract base class.
 
         ::
 
@@ -736,8 +733,13 @@ class GenericTerm(sage.structure.element.MonoidElement):
             sage: T.an_element().log_term()
             Traceback (most recent call last):
             ...
-            NotImplementedError: This method is only implemented for terms used
-            in AsymptoticExpression.
+            NotImplementedError: This method is not implemented in
+            this abstract base class.
+
+        .. SEEALSO::
+
+            :meth:`ExactTerm.log_term`,
+            :meth:`OTerm.log_term`.
         """
         raise NotImplementedError('This method is only implemented for terms'
                                   ' used in AsymptoticExpression.')
@@ -1745,29 +1747,21 @@ class OTerm(GenericTerm):
 
     def log_term(self, base=None):
         r"""
-        Return the logarithm of this term.
-
-        This method returns a list with the summands that come from
-        applying the rule `\log(x\cdot y) = \log(x) + \log(y)`.
+        Determine the logarithm of this O-term.
 
         INPUT:
 
         - ``base`` -- the base of the logarithm. If ``None``
-              (default value) is used, the logarithm is the natural
-              logarithm.
+          (default value) is used, the natural logarithm is taken.
 
         OUTPUT:
 
-        A list.
+        A tuple of terms.
 
         .. NOTE::
 
-            This method is only implemented for :class:`ExactTerm` and
-            :class:`OTerm`.
-
-        .. SEEALSO::
-
-            :meth:`ExactTerm.log_term`.
+            This method returns a tuple with the summands that come from
+            applying the rule `\log(x\cdot y) = \log(x) + \log(y)`.
 
         EXAMPLES::
 
@@ -2588,29 +2582,21 @@ class ExactTerm(TermWithCoefficient):
 
     def log_term(self, base=None):
         r"""
-        Return the logarithm of this term.
-
-        This method returns a list with the summands that come from
-        applying the rule `\log(x\cdot y) = \log(x) + \log(y)`.
+        Determine the logarithm of this exact term.
 
         INPUT:
 
         - ``base`` -- the base of the logarithm. If ``None``
-              (default value) is used, the logarithm is the natural
-              logarithm.
+          (default value) is used, the natural logarithm is taken.
 
         OUTPUT:
 
-        A list.
+        A tuple of terms.
 
         .. NOTE::
 
-            This method is only implemented for :class:`ExactTerm` and
-            :class:`OTerm`.
-
-        .. SEEALSO::
-
-            :meth:`OTerm.log_term`.
+            This method returns a tuple with the summands that come from
+            applying the rule `\log(x\cdot y) = \log(x) + \log(y)`.
 
         EXAMPLES::
 

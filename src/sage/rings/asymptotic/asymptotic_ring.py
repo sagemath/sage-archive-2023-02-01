@@ -1169,8 +1169,7 @@ class AsymptoticExpression(sage.structure.element.CommutativeAlgebraElement):
         INPUT:
 
         - ``base`` -- the base of the logarithm. If ``None``
-          (default value) is used, the logarithm is the natural
-          logarithm.
+          (default value) is used, the natural logarithm is taken.
 
         - ``precision`` -- the precision used for truncating the
           expansion. If ``None`` (default value) is used, the

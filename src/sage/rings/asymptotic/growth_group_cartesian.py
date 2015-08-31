@@ -795,6 +795,7 @@ class GenericProduct(CartesianProductPosets, GenericGrowthGroup):
                 return '1'
             return s
 
+
         def log(self, base=None):
             r"""
             Return the logarithm of this element.
@@ -850,6 +851,7 @@ class GenericProduct(CartesianProductPosets, GenericGrowthGroup):
             raise ValueError('The logarithm of %s cannot be constructed in '
                              '%s.' % (self, self.parent()))
 
+
         def factors(self):
             r"""
             Return the atomic factors of this growth element. An atomic factor
@@ -893,7 +895,9 @@ class GenericProduct(CartesianProductPosets, GenericGrowthGroup):
                 sage: G.one().factors()
                 ()
             """
-            return sum(iter(f.factors() for f in self.value if f != f.parent().one()),
+            return sum(iter(f.factors()
+                            for f in self.cartesian_factors()
+                            if f != f.parent().one()),
                        tuple())
 
 
@@ -902,25 +906,20 @@ class GenericProduct(CartesianProductPosets, GenericGrowthGroup):
             Return the logarithm of the factorization of this
             element.
 
-            In particular, this function yields a list of pairs
-            consisting of the growth and the corresponding
-            coefficient resulting from taking the logarithm of every
-            atomic factor of this element.
-
             INPUT:
 
             - ``base`` -- the base of the logarithm. If ``None``
-              (default value) is used, the logarithm is the natural
-              logarithm.
+              (default value) is used, the natural logarithm is taken.
 
             OUTPUT:
 
-            A list.
+            A tuple of pairs, where the first entry is a growth
+            element and the second a multiplicative coefficient.
 
-            .. SEEALSO::
+            .. ALGORITHM::
 
-                :meth:`factor`,
-                :meth:`log`.
+                This function factors the given element and calculates
+                the logarithm of each of these factors.
 
             EXAMPLES::
 
@@ -928,11 +927,11 @@ class GenericProduct(CartesianProductPosets, GenericGrowthGroup):
                 sage: G = GrowthGroup('QQ^x * x^ZZ * log(x)^ZZ * y^ZZ * log(y)^ZZ')
                 sage: x, y = G.gens_monomial()
                 sage: (x * y).log_factor()
-                [[log(x), 1], [log(y), 1]]
+                ((log(x), 1), (log(y), 1))
                 sage: (x^123).log_factor()
-                [[log(x), 123]]
+                ((log(x), 123),)
                 sage: (G('2^x') * x^2).log_factor(base=2)
-                [[x, 1], [log(x), 2/log(2)]]
+                ((x, 1), (log(x), 2/log(2)))
 
             ::
 
@@ -944,55 +943,56 @@ class GenericProduct(CartesianProductPosets, GenericGrowthGroup):
                 sage: log(x).log_factor()
                 Traceback (most recent call last):
                 ...
-                ValueError: Logarithm of log(x) cannot be constructed in Growth
-                Group QQ^x * x^ZZ * log(x)^ZZ * y^ZZ * log(y)^ZZ.
+                ArithmeticError: Cannot build log(log(x)) since log(log(x)) is
+                not in Growth Group QQ^x * x^ZZ * log(x)^ZZ * y^ZZ * log(y)^ZZ.
+
+            .. SEEALSO::
+
+                :meth:`factor`,
+                :meth:`log`.
 
             TESTS::
 
                 sage: G = GrowthGroup("QQ['e']^x * x^ZZ * log(x)^ZZ")
                 sage: x, = G.gens_monomial()
                 sage: (exp(x) * x).log_factor()
-                [[x, 1], [log(x), 1]]
+                ((x, 1), (log(x), 1))
             """
-            P = self.parent()
-            factors = self.factors()
-            log_factors = []
-            from sage.rings.asymptotic.growth_group import ExponentialGrowthGroup, \
-                MonomialGrowthGroup
-            from sage.functions.log import log
+            log_factor = self._log_factor_(base=base)
 
-            for factor in factors:
+            from growth_group import GenericGrowthGroup
+            for g, c in log_factor:
+                if hasattr(g, 'parent') and \
+                   isinstance(g.parent(), GenericGrowthGroup):
+                    continue
+                raise ArithmeticError('Cannot build log(%s) since %s '
+                                      'is not in %s.' % (self, g, self.parent()))
+
+            return log_factor
+
+
+        def _log_factor_(self, base=None):
+            if self == self.parent().one():
+                return tuple()
+
+            def try_create_growth(g):
                 try:
-                    FP = factor.parent()
-                    if isinstance(FP, MonomialGrowthGroup):
-                        if base is None:
-                            coef = factor._raw_element_
-                        else:
-                            coef = factor._raw_element_ / log(base)
-                        growth = P('log(' + repr(FP._var_) + ')')
-                        log_factors.append([growth, coef])
+                    return self.parent()(g)
+                except (TypeError, ValueError):
+                    return g
 
-                    elif isinstance(FP, ExponentialGrowthGroup):
-                        b = factor._raw_element_
-                        if hasattr(b, 'is_monomial') and b.is_monomial():
-                            if b.variable_name() == 'e' and not base:
-                                coef = b.valuation()
-                        else:
-                            coef = log(b, base=base)
+            try:
+                return sum(iter(tuple((try_create_growth(g), c)
+                                      for g, c in factor._log_factor_(base=base))
+                                for factor in self.cartesian_factors()
+                                if factor != factor.parent().one()),
+                           tuple())
+            except (ArithmeticError, TypeError, ValueError) as e:
+                from misc import combine_exceptions
+                raise combine_exceptions(
+                    ArithmeticError('Cannot build log(%s) in %s.' %
+                                    (self, self.parent())), e)
 
-                        growth = P(repr(FP._var_))
-                        log_factors.append([growth, coef])
-
-                    else:
-                        raise NotImplementedError('Taking the logarithm of %s '
-                                                  'is not implemented.' %
-                                                  (factor,))
-
-                except (ValueError, TypeError):
-                    raise ValueError('Logarithm of %s cannot be '
-                                     'constructed in %s.' % (factor, P))
-
-            return log_factors
 
         def rpow(self, base):
             r"""

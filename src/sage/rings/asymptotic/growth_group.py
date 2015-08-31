@@ -939,6 +939,11 @@ class GenericGrowthElement(sage.structure.element.MultiplicativeGroupElement):
         raise ArithmeticError('building log(%s) is not possible.' % (self,))
 
 
+    def _log_factor_(self, base=None):
+        raise ValueError('Cannot determine logarithmized factorization of %s '
+                         'in abstract base class.' % (self,))
+
+
     def factors(self):
         r"""
         Return the atomic factors of this growth element. An atomic factor
@@ -2049,6 +2054,16 @@ class MonomialGrowthElement(GenericGrowthElement):
         return self.parent()._create_element_via_parent_(self.exponent * exponent)
 
 
+    def _log_factor_(self, base=None):
+        if self == self.parent().one():
+            return tuple()
+        coefficient = self.exponent
+        if base is not None:
+            from sage.functions.log import log
+            coefficient = coefficient / log(base)
+        return (('log(%s)' % (self.parent()._var_,), coefficient),)
+
+
     def _le_(self, other):
         r"""
         Return if this :class:`MonomialGrowthElement` is at most
@@ -2588,6 +2603,21 @@ class ExponentialGrowthElement(GenericGrowthElement):
             117649^x
         """
         return self.parent()._create_element_via_parent_(self.base ** exponent)
+
+
+    def _log_factor_(self, base=None):
+        if self == self.parent().one():
+            return tuple()
+        b = self.base
+        if base is None and \
+           hasattr(b, 'is_monomial') and b.is_monomial() and \
+           b.variable_name() == 'e':
+                coefficient = b.valuation()
+        else:
+            from sage.functions.log import log
+            coefficient = log(b, base=base)
+
+        return ((str(self.parent()._var_), coefficient),)
 
 
     def _le_(self, other):

@@ -2994,7 +2994,6 @@ class ExponentialGrowthGroup(GenericGrowthGroup):
             else:
                 return  # end of parsing
 
-
         from sage.symbolic.ring import SR
         import operator
         from sage.symbolic.operators import mul_vararg

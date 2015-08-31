@@ -979,7 +979,7 @@ class GenericProduct(CartesianProductPosets, GenericGrowthGroup):
 
         def exp(self):
             r"""
-            The exponential function of this element.
+            The exponential of this element.
 
             INPUT:
 
@@ -993,7 +993,7 @@ class GenericProduct(CartesianProductPosets, GenericGrowthGroup):
 
                 sage: from sage.rings.asymptotic.growth_group import GrowthGroup
                 sage: G = GrowthGroup('x^ZZ * log(x)^ZZ * log(log(x))^ZZ')
-                sage: x, = G.gens_monomial()
+                sage: x = G('x')
                 sage: exp(log(x))
                 x
                 sage: exp(log(log(x)))
@@ -1005,6 +1005,15 @@ class GenericProduct(CartesianProductPosets, GenericGrowthGroup):
                 Traceback (most recent call last):
                 ...
                 ValueError: Cannot construct e^x in Growth Group x^ZZ * log(x)^ZZ * log(log(x))^ZZ.
+
+            TESTS::
+
+                sage: E = GrowthGroup("QQ['e']^y * y^QQ * log(y)^QQ")
+                sage: y = E('y')
+                sage: log(exp(y))
+                y
+                sage: exp(log(y))
+                y
             """
             return self.rpow('e')
 

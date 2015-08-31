@@ -691,6 +691,74 @@ def log_factor(self, base=None):
     return log_factor
 
 
+def rpow(self, base):
+    r"""
+    Calculate the power of ``base`` to this element.
+
+    INPUT:
+
+    - ``base`` -- an element.
+
+    OUTPUT:
+
+    A growth element.
+
+    EXAMPLES::
+
+        sage: from sage.rings.asymptotic.growth_group import GrowthGroup
+        sage: G = GrowthGroup('QQ^x * x^ZZ')
+        sage: x = G('x')
+        sage: x.rpow(2)
+        2^x
+        sage: x.rpow(1/2)
+        (1/2)^x
+
+    ::
+
+        sage: x.rpow(0)
+        Traceback (most recent call last):
+        ...
+        ValueError: 0 is not an allowed base for calculating the power to x.
+        sage: (x^2).rpow(2)
+        Traceback (most recent call last):
+        ...
+        ArithmeticError: Cannot construct 2^(x^2) in Growth Group QQ^x * x^ZZ
+        > *previous* TypeError: unsupported operand parent(s) for '*':
+        'Growth Group QQ^x * x^ZZ' and 'Growth Group ZZ^(x^2)'
+
+    ::
+
+        sage: G = GrowthGroup('QQ^(x*log(x)) * x^ZZ * log(x)^ZZ')
+        sage: x = G('x')
+        sage: (x * log(x)).rpow(2)
+        2^(x*log(x))
+    """
+    if base == 0:
+        raise ValueError('%s is not an allowed base for calculating the '
+                         'power to %s.' % (base, self))
+    try:
+        return self.parent().one() * self._rpow_element_(base)
+    except (TypeError, ValueError) as e:
+        from misc import combine_exceptions
+        var = str(self)
+        if '*' in var or '^' in var:
+            var = '(' + var + ')'
+        raise combine_exceptions(
+            ArithmeticError('Cannot construct %s^%s in %s' %
+                            (base, var, self.parent())), e)
+
+
+def _rpow_element_(self, base):
+    new_var = str(self)
+    if '*' in new_var or '^' in new_var:
+        new_var = '(' + new_var + ')'
+    if base == 'e':
+        from sage.rings.integer_ring import ZZ
+        base = ZZ[base](base)
+    E = ExponentialGrowthGroup(base.parent(), new_var)
+    return E(raw_element=base)
+
+
 class GenericGrowthElement(sage.structure.element.MultiplicativeGroupElement):
     r"""
     An abstract implementation of a generic growth element.
@@ -1095,6 +1163,14 @@ class GenericGrowthElement(sage.structure.element.MultiplicativeGroupElement):
         """
         raise NotImplementedError('Cannot determine logarithmized factorization '
                                   'of %s in abstract base class.' % (self,))
+
+
+
+    rpow = rpow
+
+
+    def _rpow_element_(self, base):
+        raise NotImplementedError()
 
 
     def factors(self):
@@ -2242,6 +2318,29 @@ class MonomialGrowthElement(GenericGrowthElement):
         return (('log(%s)' % (self.parent()._var_,), coefficient),)
 
 
+    def _rpow_element_(self, base):
+        try:
+            return self._rpow_element_from_log_(base)
+        except ValueError:
+            return _rpow_element_from_log(self, base)
+
+
+    def _rpow_element_from_log_(self, base):
+        var = str(self.parent()._var_)
+        if not(var.startswith('log(') and self.exponent == 1):
+            raise ValueError('Variable %s is not a log of something.')
+        new_var = var[4:-1]
+        if base == 'e':
+            from sage.rings.integer_ring import ZZ
+            M = MonomialGrowthGroup(ZZ, new_var)
+            return M(raw_element=ZZ(1))
+        else:
+            from sage.functions.log import log
+            new_exponent = log(base)
+            M = MonomialGrowthGroup(new_exponent.parent(), new_var)
+            return M(raw_element=new_exponent)
+
+
     def _le_(self, other):
         r"""
         Return if this :class:`MonomialGrowthElement` is at most
@@ -2821,6 +2920,9 @@ class ExponentialGrowthElement(GenericGrowthElement):
             coefficient = log(b, base=base)
 
         return ((str(self.parent()._var_), coefficient),)
+
+
+    _rpow_element_ = _rpow_element_
 
 
     def _le_(self, other):

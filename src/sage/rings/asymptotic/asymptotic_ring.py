@@ -1174,7 +1174,7 @@ class AsymptoticExpression(sage.structure.element.CommutativeAlgebraElement):
 
         - ``precision`` -- the precision used for truncating the
           expansion. If ``None`` (default value) is used, the
-          default precision from the parent is used.
+          default precision of the parent is used.
 
         OUTPUT:
 
@@ -1184,10 +1184,13 @@ class AsymptoticExpression(sage.structure.element.CommutativeAlgebraElement):
 
             Computing the logarithm of an asymptotic expression
             is possible if and only if there is exactly one maximal
-            term in the expression.
+            summand in the expression.
 
-            In case the expression has more than one term,
-            the well-known expansion for `\log(1+t)` is used.
+        .. ALGORITHM::
+
+            If the expression has more than one summands,
+            the asymptotic expansion for `\log(1+t)` as `t` tends to `0`
+            is used.
 
         EXAMPLES::
 
@@ -1199,7 +1202,7 @@ class AsymptoticExpression(sage.structure.element.CommutativeAlgebraElement):
             sage: log(x-1)
             log(x) - x^(-1) - 1/2*x^(-2) - 1/3*x^(-3) - ... + O(x^(-21))
 
-        ::
+        TESTS::
 
             sage: log(R(1))
             0

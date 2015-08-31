@@ -1256,6 +1256,53 @@ class AsymptoticExpression(sage.structure.element.CommutativeAlgebraElement):
         return result
 
 
+    def exp(self, precision=None):
+        r"""
+        Return the exponential function `\exp(\,\cdot\,)` of this
+        asymptotic expression.
+
+        INPUT:
+
+        - ``precision`` -- the precision used for truncating the
+          expansion. If ``None`` (default value) is used, the
+          default precision of the parent is used.
+
+        OUTPUT:
+
+        An asymptotic expression.
+
+        .. NOTE::
+
+            The exponential function of this expression can only be
+            computed exactly, if the respective growth element can be
+            constructed in the underlying growth group.
+
+        ALGORITHM:
+
+        If the corresponding growth can be constructed, return
+        the exact exponential function. Otherwise, if this term
+        is within `O(1)`, try to expand the series and truncate
+        according to the given precision.
+
+        EXAMPLES::
+
+            sage: A.<x> = AsymptoticRing('SR^x * x^ZZ * log(x)^ZZ', SR)
+            sage: exp(x)  # not tested
+            e^x
+            sage: exp(2*x)  # not tested
+            (e^2)^x
+            sage: exp(x + log(x))  # not tested
+            e^x*x
+
+        ::
+
+            sage: exp(x^(-1))  # not tested
+            1 + x^(-1) + 1/2*x^(-2) + 1/6*x^(-3) + ... + O(x^(-21))
+        """
+        return self._rpow_('e')
+
+
+
 class AsymptoticRing(sage.algebras.algebra.Algebra,
                      sage.structure.unique_representation.UniqueRepresentation):
     r"""

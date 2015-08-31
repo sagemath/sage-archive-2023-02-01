@@ -384,14 +384,18 @@ class ClusterAlgebra(Parent):
                 next(seeds)
             except:
                 raise ValueError("Could not find a cluster variable with g-vector %s after %s mutations."%(str(g_vector),str(mutation_counter)))
-            #*** referred to in &&& below
-            #cont = raw_input("Could not find a cluster variable with g-vector %s after %s mutations."%(str(g_vector),str(mutation_counter))+"  Continue searching? (y or n):")
+
+            # If there was a way to have the seeds iterator continue after the depth_counter reaches depth, 
+            # the following code would allow the user to continue searching the exchange graph
+            #cont = raw_input("Could not find a cluster variable with g-vector %s up to mutation depth %s."%(str(g_vector),str(depth))+"  Continue searching? (y or n):")
             #if cont == 'y':
             #    new_depth = 0
-            #    while int(new_depth) <= mutation_counter:
-            #        new_depth = raw_input("Please enter a new depth greater than %s:"%str(mutation_counter))
+            #    while new_depth <= depth:
+            #        new_depth = raw_input("Please enter a new mutation search depth greater than %s:"%str(depth))
+            #    seeds.send(new_depth)
             #else:
             #    raise ValueError("Could not find a cluster variable with g-vector %s after %s mutations."%(str(g_vector),str(mutation_counter)))
+
             mutation_counter += 1
         return copy(self._path_dict[g_vector])
 

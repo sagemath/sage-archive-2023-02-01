@@ -796,81 +796,6 @@ class GenericProduct(CartesianProductPosets, GenericGrowthGroup):
             return s
 
 
-        def log(self, base=None):
-            r"""
-            Return the logarithm of this element.
-
-            INPUT:
-
-            - ``base`` -- the base of the logarithm. If ``None``
-              (default value) is used, the natural logarithm is taken.
-
-            OUTPUT:
-
-            A growth element.
-
-            EXAMPLES::
-
-                sage: from sage.rings.asymptotic.growth_group import GrowthGroup
-                sage: G = GrowthGroup('x^ZZ * log(x)^ZZ')
-                sage: x, = G.gens_monomial()
-                sage: log(x)  # indirect doctest
-                log(x)
-                sage: log(x^5)
-                Traceback (most recent call last):
-                ...
-                ArithmeticError: When calculating log(x^5) a factor 5 != 1 appeared,
-                which is not contained in Growth Group x^ZZ * log(x)^ZZ.
-
-            ::
-
-                sage: G = GrowthGroup('QQ^x * x^ZZ')
-                sage: x, = G.gens_monomial()
-                sage: el = x.rpow(2); el
-                2^x
-                sage: log(el)
-                Traceback (most recent call last):
-                ...
-                ArithmeticError: When calculating log(2^x) a factor log(2) != 1
-                appeared, which is not contained in Growth Group QQ^x * x^ZZ.
-                sage: log(el, base=2)
-                x
-
-            TESTS::
-
-                sage: G = GrowthGroup("QQ['e']^x * x^ZZ")
-                sage: x, = G.gens_monomial()
-                sage: log(exp(x))
-                x
-
-            ::
-
-                sage: G.one().log()
-                Traceback (most recent call last):
-                ...
-                ArithmeticError: log(1) is zero, which is not contained in
-                Growth Group (Univariate Polynomial Ring in e over
-                Rational Field)^x * x^ZZ.
-            """
-            log_factor = self.log_factor(base=base)
-            if not log_factor:
-                raise ArithmeticError('log(%s) is zero, '
-                                      'which is not contained in %s.' %
-                                      (self, self.parent()))
-
-            if len(log_factor) != 1:
-                raise ArithmeticError('Calculating log(%s) results in a sum, '
-                                      'which is not contained in %s.' %
-                                      (self, self.parent()))
-            g, c = log_factor[0]
-            if c != 1:
-                raise ArithmeticError('When calculating log(%s) a factor %s != 1 '
-                                      'appeared, which is not contained in %s.' %
-                                      (self, c, self.parent()))
-            return g
-
-
-
         def factors(self):
             r"""
             Return the atomic factors of this growth element. An atomic factor
@@ -920,7 +845,8 @@ class GenericProduct(CartesianProductPosets, GenericGrowthGroup):
                        tuple())
 
 
-        from growth_group import log_factor
+        from growth_group import log_factor, log
+        log = log
         log_factor = log_factor
 
 

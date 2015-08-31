@@ -352,6 +352,10 @@ class ClusterAlgebra(Parent):
             # TODO: improve this error message to include the case in which we
             # already know the path
             # If the path is known, should this method perform that sequence of mutations to compute the desired F-polynomial?
+            # Yes, perhaps with the a prompt first, something like:
+            #comp = raw_input("This F-polynomial has not been computed yet.  It can be found using %s mutations.  Continue? (y or n):"%str(directions.__len__()))
+            #if comp == 'y':
+            #    ...compute the F-polynomial...
             raise ValueError("This F-polynomial has not been computed yet. Did you explore the tree with compute_F=False ?")
 
     @cached_method(key=lambda a,b: tuple(b) )
@@ -380,6 +384,14 @@ class ClusterAlgebra(Parent):
                 next(seeds)
             except:
                 raise ValueError("Could not find a cluster variable with g-vector %s after %s mutations."%(str(g_vector),str(mutation_counter)))
+            #*** referred to in &&& below
+            #cont = raw_input("Could not find a cluster variable with g-vector %s after %s mutations."%(str(g_vector),str(mutation_counter))+"  Continue searching? (y or n):")
+            #if cont == 'y':
+            #    new_depth = 0
+            #    while int(new_depth) <= mutation_counter:
+            #        new_depth = raw_input("Please enter a new depth greater than %s:"%str(mutation_counter))
+            #else:
+            #    raise ValueError("Could not find a cluster variable with g-vector %s after %s mutations."%(str(g_vector),str(mutation_counter)))
             mutation_counter += 1
         return copy(self._path_dict[g_vector])
 
@@ -412,6 +424,10 @@ class ClusterAlgebra(Parent):
         clusters = {}
         clusters[cl] = [ self.current_seed, range(n) ]
         gets_bigger = True
+        #&&&
+        #Do we need to have a maximum depth built into the iterator?
+        #I would hope that we can remove it and add dynamic changing of the depth in find_cluster_variables
+        #using something like *** above
         while gets_bigger and depth_counter < depth:
             gets_bigger = False
             keys = clusters.keys()

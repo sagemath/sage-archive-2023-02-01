@@ -1911,7 +1911,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             return self.parent()(v, check=False)
         if right > 20: # no gain below
             p = self.parent().characteristic()
-            if p > 0 and p <= right and self.base_ring() in sage.categories.integral_domains.IntegralDomains():
+            if p > 0 and p <= right and (self.base_ring() in sage.categories.integral_domains.IntegralDomains() or p.is_prime()):
                 x = self.parent().gen()
                 one = self.parent().one()
                 ret = one

@@ -36,3 +36,14 @@ from .output_graphics3d import (
     OutputSceneWavefront,
     OutputSceneCanvas3d,
 )
+
+from .output_video import (
+    OutputVideoOgg,
+    OutputVideoWebM,
+    OutputVideoMp4,
+    OutputVideoFlash,
+    OutputVideoMatroska,
+    OutputVideoAvi,
+    OutputVideoWmv,
+    OutputVideoQuicktime,
+)

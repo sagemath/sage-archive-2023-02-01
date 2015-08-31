@@ -1643,9 +1643,14 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
 
         - ``algorithm`` -- String. The algorithm to use. Valid options are:
 
-          - ``'default'`` -- Let Sage pick an algorithm (default). Up
-            to 10 rows or columns: pari with flag 0; Up to 75 rows or
-            columns: pari with flag 1; Larger: use padic algorithm.
+          - ``'default'`` -- Let Sage pick an algorithm (default).
+            Up to 75 rows or columns with no transformation matrix,
+            use pari with flag 0; otherwise, use flint.
+
+          - ``'flint'`` - use flint
+
+          - ``'ntl'`` - use NTL (only works for square matrices of
+            full rank!)
 
           - ``'padic'`` - an asymptotically fast p-adic modular
             algorithm, If your matrix has large coefficients and is
@@ -1659,9 +1664,6 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
 
           - ``'pari4'`` - use PARI with flag 4 (use heuristic LLL)
 
-          - ``'ntl'`` - use NTL (only works for square matrices of
-            full rank!)
-
         -  ``proof`` - (default: True); if proof=False certain
            determinants are computed using a randomized hybrid p-adic
            multimodular strategy until it stabilizes twice (instead of up to
@@ -1672,7 +1674,7 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
            don't include zero rows
 
         -  ``transformation`` - if given, also compute
-           transformation matrix; only valid for padic algorithm
+           transformation matrix; only valid for flint and padic algorithm
 
         -  ``D`` - (default: None) if given and the algorithm
            is 'ntl', then D must be a multiple of the determinant and this
@@ -1857,22 +1859,27 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
             Full MatrixSpace of 0 by 2 dense matrices over Integer Ring
             sage: H == U * m
             True
+            sage: m = random_matrix(ZZ, 100, 100, x=-1000, y=1000, density=.1)
+            sage: m.parent()
+            Full MatrixSpace of 100 by 100 dense matrices over Integer Ring
+            sage: H, U = m.hermite_form(algorithm="flint", transformation=True)
+            sage: H == U*m
+            True
         """
         key = 'hnf-%s-%s'%(include_zero_rows,transformation)
         ans = self.fetch(key)
         if ans is not None: return ans
 
-        cdef Matrix_integer_dense H_m,w
+        cdef Matrix_integer_dense H_m,w,U
         cdef Py_ssize_t nr, nc, n, i, j
         nr = self._nrows
         nc = self._ncols
         n = nr if nr >= nc else nc
         if algorithm == 'default':
-            if transformation: algorithm = 'padic'
+            if transformation: algorithm = 'flint'
             else:
-                if n <= 10: algorithm = 'pari0'
-                elif n <= 75: algorithm = 'pari'
-                else: algorithm = 'padic'
+                if n < 75: algorithm = 'pari0'
+                else: algorithm = 'flint'
         proof = get_proof_flag(proof, "linear_algebra")
         pivots = None
 
@@ -1884,6 +1891,23 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
             else:
                 H_m = self.new_matrix(0, nc)
                 U = self.new_matrix(0, nr)
+        elif algorithm == "flint":
+            H_m = self._new(nr, nc)
+
+            if transformation:
+                U = self._new(nr, nr)
+                sig_on()
+                fmpz_mat_hnf_transform(H_m._matrix, U._matrix, self._matrix)
+                sig_off()
+            else:
+                sig_on()
+                fmpz_mat_hnf(H_m._matrix, self._matrix)
+                sig_off()
+            if not include_zero_rows:
+                r = H_m.rank()
+                H_m = H_m[:r]
+                if transformation:
+                    U = U[:r]
         elif algorithm == "padic":
             import matrix_integer_dense_hnf
             self._init_mpz()

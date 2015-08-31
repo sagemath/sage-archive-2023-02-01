@@ -1783,6 +1783,7 @@ class FancyTuple(tuple):
         index of the value in ``self``.
 
         EXAMPLES::
+
             sage: from sage.databases.oeis import FancyTuple
             sage: t = FancyTuple(['zero', 'one', 'two', 'three', 4]) ; t
             0: zero

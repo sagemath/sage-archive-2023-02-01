@@ -20,7 +20,6 @@ import tempfile, os
 
 from random import random
 
-
 ################################################################################
 ## Routines to test if two quadratic forms over ZZ are globally equivalent.   ##
 ## (For now, we require both forms to be positive definite.)                  ##
@@ -31,10 +30,12 @@ def is_globally_equivalent__souvigner(self, other, return_transformation=False):
     Uses the Souvigner code to compute the number of automorphisms.
 
     INPUT:
-        a QuadraticForm
+
+    a QuadraticForm
 
     OUTPUT:
-        boolean, and optionally a matrix
+
+    boolean, and optionally a matrix
 
     EXAMPLES::
 
@@ -135,10 +136,12 @@ def is_globally_equivalent_to(self, other, return_matrix=False, check_theta_to_p
     the transformation matrix M so that self(M) == other.
 
     INPUT:
-        a QuadraticForm
+
+    a QuadraticForm
 
     OUTPUT:
-        boolean, and optionally a matrix
+
+    boolean, and optionally a matrix
 
     EXAMPLES::
 
@@ -249,10 +252,12 @@ def is_locally_equivalent_to(self, other, check_primes_only=False, force_jordan_
     prime, and the dimension and signature at the real place.
 
     INPUT:
-        a QuadraticForm
+
+    a QuadraticForm
 
     OUTPUT:
-        boolean
+
+    boolean
 
     EXAMPLES::
 
@@ -307,10 +312,12 @@ def has_equivalent_Jordan_decomposition_at_prime(self, other, p):
     equivalent to that of self.
 
     INPUT:
-        a QuadraticForm
+
+    a QuadraticForm
 
     OUTPUT:
-        boolean
+
+    boolean
 
     EXAMPLES::
 
@@ -459,10 +466,12 @@ def is_rationally_isometric(self, other):
     Determines if two regular quadratic forms over a number field are isometric.
 
     INPUT:
-        a quadratic form
+
+    a quadratic form
 
     OUTPUT:
-        boolean
+
+    boolean
 
     EXAMPLES::
 
@@ -617,4 +626,3 @@ def is_rationally_isometric(self, other):
                 return False
 
     return True
-

@@ -150,7 +150,10 @@ class TwoGraph(IncidenceStructure):
         The two-graph which is the complement of ``self``
 
         That is, the two-graph constisting exactly of triples not in ``self``.
-        Note that this is different from :meth:`complement <sage.combinat.designs.incidence_structures.IncidenceStructure.complement>` of the :class:`parent class <sage.combinat.designs.incidence_structures.IncidenceStructure>`.
+        Note that this is different from :meth:`complement
+        <sage.combinat.designs.incidence_structures.IncidenceStructure.complement>`
+        of the :class:`parent class
+        <sage.combinat.designs.incidence_structures.IncidenceStructure>`.
 
         EXAMPLES::
 
@@ -209,14 +212,14 @@ def is_twograph(T):
 
     a two-graph from a graph::
 
-        sage: from sage.combinat.designs.twographs import is_twograph
+        sage: from sage.combinat.designs.twographs import (is_twograph, TwoGraph)
         sage: p=graphs.PetersenGraph().twograph()
         sage: is_twograph(p)
         True
 
     a non-regular 2-uniform hypergraph which is a two-graph::
 
-        sage: is_twograph(designs.TwoGraph([[1,2,3],[1,2,4]]))
+        sage: is_twograph(TwoGraph([[1,2,3],[1,2,4]]))
         True
 
     TESTS:

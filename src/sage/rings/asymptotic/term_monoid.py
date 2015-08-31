@@ -2629,6 +2629,19 @@ class ExactTerm(TermWithCoefficient):
             [log(x), log(y)]
             sage: T('4 * x * y').log_term(base=2)
             [log(4)/log(2), 1/log(2)*log(x), 1/log(2)*log(y)]
+
+        TESTS::
+
+            sage: T = TermMonoid('exact', GrowthGroup('x^ZZ * log(x)^ZZ'), SR)
+            sage: T('2 * x').log_term()
+            [log(2), log(x)]
+            sage: T(7).log_term()
+            [log(7)]
+            sage: T(1).log_term()
+            []
+            sage: T(49).log_term(base=7)
+            [log(49)/log(7)]
+
         """
         from sage.functions.log import log
         growth_log = self.growth.log_factor(base=base)

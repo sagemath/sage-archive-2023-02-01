@@ -1867,6 +1867,26 @@ cdef class Polynomial(CommutativeAlgebraElement):
             3*t^3 + (2*x + 3)*t^2 + (2*x + 2)*t + 2*x + 2
             sage: pow(f, 10**7, h)
             4*x*t^3 + 2*x*t^2 + 4*x*t + 4
+
+        Check that :trac:`18457` is fixed::
+
+            sage: R.<x> = PolynomialRing(GF(5), sparse=True)
+            sage: (1+x)^(5^10) # used to hang forever
+            x^9765625 + 1
+            sage: S.<t> = GF(3)[]
+            sage: R1.<x> = PolynomialRing(S, sparse=True)
+            sage: (1+x+t)^(3^10)
+            x^59049 + t^59049 + 1
+            sage: R2.<x> = PolynomialRing(S, sparse=False)
+            sage: (1+x+t)^(3^10)
+            x^59049 + t^59049 + 1
+
+        Check that the algorithm used is indeed correct::
+
+            sage: from sage.structure.element import generic_power
+            sage: R.<x> = PolynomialRing(GF(17), sparse=True)
+            sage: for d in [17, 264, 516]:
+            ....:     assert((1+x)^d == generic_power(1+x,d))
         """
         if type(right) is not Integer:
             try:
@@ -1876,12 +1896,12 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
         if self.degree() <= 0:
             return self.parent()(self[0]**right)
-        elif right < 0:
+        if right < 0:
             return (~self)**(-right)
-        elif modulus:
+        if modulus:
             from sage.rings.arith import power_mod
             return power_mod(self, right, modulus)
-        elif (<Polynomial>self) == self.parent().gen():   # special case x**n should be faster!
+        if (<Polynomial>self) == self.parent().gen():   # special case x**n should be faster!
             P = self.parent()
             R = P.base_ring()
             if P.is_sparse():
@@ -1889,8 +1909,58 @@ cdef class Polynomial(CommutativeAlgebraElement):
             else:
                 v = [R.zero()]*right + [R.one()]
             return self.parent()(v, check=False)
-        else:
-            return generic_power(self,right)
+        if right > 20: # no gain below
+            p = self.parent().characteristic()
+            # characteristic 2 is special
+            if p > 2 and p <= right and (self.base_ring().is_field() or p.is_prime()):
+                x = self.parent().gen()
+                one = self.parent().one()
+                ret = one
+                e = 1
+                q = right
+                sparse = self.parent().is_sparse()
+                finite = self.parent().base_ring().is_finite()
+                if finite:
+                    if sparse:
+                        while q > 0:
+                            q, r = q.quo_rem(p)
+                            if r != 0:
+                                d = self.dict()
+                                tmp = self.parent()({e*k:d[k] for k in d})
+                                ret *= generic_power(tmp, r, one=one)
+                            e *= p
+                    else:
+                        while q > 0:
+                            q, r = q.quo_rem(p)
+                            if r != 0:
+                                c = self.coefficients(sparse=False)
+                                tmp = [0] * (e*len(c))
+                                for i in range(len(c)):
+                                    tmp[e*i] = c[i]
+                                ret *= generic_power(self.parent()(tmp), r, one=one)
+                            e *= p
+                else:
+                    if sparse:
+                        while q > 0:
+                            q, r = q.quo_rem(p)
+                            if r != 0:
+                                d = self.dict()
+                                tmp = self.parent()({e*k : d[k]**e for k in d})
+                                ret *= generic_power(tmp, r, one=one)
+                            e *= p
+                    else:
+                        while q > 0:
+                            q, r = q.quo_rem(p)
+                            if r != 0:
+                                c = self.coefficients(sparse=False)
+                                tmp = [0] * (e*len(c)-e+1)
+                                for i in range(len(c)):
+                                    tmp[e*i] = c[i]**e
+                                ret *= generic_power(self.parent()(tmp), r, one=one)
+                            e *= p
+                return ret
+
+        return generic_power(self,right)
 
     def _pow(self, right):
         # TODO: fit __pow__ into the arithmetic structure

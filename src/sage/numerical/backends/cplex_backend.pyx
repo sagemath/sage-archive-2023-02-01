@@ -1520,6 +1520,13 @@ cdef class CPLEXBackend(GenericBackend):
             Reduced MIP has 5 rows, 5 columns, and 10 nonzeros.
             ...
             Elapsed time = ... sec. (... ticks, tree = ... MB, solutions = ...)
+
+        Bad name::
+
+            sage: p.solver_parameter("Heyyyyyyyyyyy Joeeeeeeeee !!",-4) # optional - CPLEX
+            Traceback (most recent call last):
+            ...
+            ValueError: This parameter is not available.
         """
         cdef int intv
         cdef double doublev
@@ -1553,28 +1560,29 @@ cdef class CPLEXBackend(GenericBackend):
 
         # Type of the parameter. Can be INT (1), Double(2) or String(3)
         cdef int paramtype
-        CPXgetparamtype(self.env, paramid, &paramtype)
+        check(CPXgetparamtype(self.env, paramid, &paramtype))
 
         if value is None:
             if paramtype == 1:
-                CPXgetintparam(self.env, paramid, &intv)
+                check(CPXgetintparam(self.env, paramid, &intv))
                 return intv
             elif paramtype == 2:
-                CPXgetdblparam(self.env, paramid, &doublev)
+                check(CPXgetdblparam(self.env, paramid, &doublev))
                 return doublev
             else:
                 strv = <char *>sage_malloc(500*sizeof(char))
-                CPXgetstrparam(self.env, paramid, strv)
+                status = CPXgetstrparam(self.env, paramid, strv)
                 s = str(strv)
                 sage_free(strv)
+                check(status)
                 return s
         else:
             if paramtype == 1:
-                CPXsetintparam(self.env, paramid, value)
+                check(CPXsetintparam(self.env, paramid, value))
             elif paramtype == 2:
-                CPXsetdblparam(self.env, paramid, value)
+                check(CPXsetdblparam(self.env, paramid, value))
             else:
-                CPXsetstrparam(self.env, paramid, value)
+                check(CPXsetstrparam(self.env, paramid, value))
 
     def __dealloc__(self):
         r"""

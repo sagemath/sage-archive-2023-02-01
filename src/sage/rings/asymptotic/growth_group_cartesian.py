@@ -88,106 +88,6 @@ TESTS::
 #*****************************************************************************
 
 import sage
-from growth_group import combine_exceptions
-
-def merge_overlapping(A, B, key=None):
-    r"""
-    Merge the two overlapping tuples/lists.
-
-    TESTS::
-
-        sage: from sage.rings.asymptotic.growth_group_cartesian import merge_overlapping
-        sage: def f(L, s):
-        ....:     return list((ell, s) for ell in L)
-        sage: key = lambda k: k[0]
-        sage: merge_overlapping(f([0..3], 'a'), f([5..7], 'b'), key)
-        Traceback (most recent call last):
-        ...
-        ValueError: Input does not have an overlap.
-        sage: merge_overlapping(f([0..2], 'a'), f([4..7], 'b'), key)
-        Traceback (most recent call last):
-        ...
-        ValueError: Input does not have an overlap.
-        sage: merge_overlapping(f([4..7], 'a'), f([0..2], 'b'), key)
-        Traceback (most recent call last):
-        ...
-        ValueError: Input does not have an overlap.
-        sage: merge_overlapping(f([0..3], 'a'), f([3..4], 'b'), key)
-        ([(0, 'a'), (1, 'a'), (2, 'a'), (3, 'a'), (4, 'b')],
-         [(0, 'a'), (1, 'a'), (2, 'a'), (3, 'b'), (4, 'b')])
-        sage: merge_overlapping(f([3..4], 'a'), f([0..3], 'b'), key)
-        ([(0, 'b'), (1, 'b'), (2, 'b'), (3, 'a'), (4, 'a')],
-         [(0, 'b'), (1, 'b'), (2, 'b'), (3, 'b'), (4, 'a')])
-        sage: merge_overlapping(f([0..1], 'a'), f([0..4], 'b'), key)
-        ([(0, 'a'), (1, 'a'), (2, 'b'), (3, 'b'), (4, 'b')],
-         [(0, 'b'), (1, 'b'), (2, 'b'), (3, 'b'), (4, 'b')])
-        sage: merge_overlapping(f([0..3], 'a'), f([0..1], 'b'), key)
-        ([(0, 'a'), (1, 'a'), (2, 'a'), (3, 'a')],
-         [(0, 'b'), (1, 'b'), (2, 'a'), (3, 'a')])
-        sage: merge_overlapping(f([0..3], 'a'), f([1..3], 'b'), key)
-        ([(0, 'a'), (1, 'a'), (2, 'a'), (3, 'a')],
-         [(0, 'a'), (1, 'b'), (2, 'b'), (3, 'b')])
-        sage: merge_overlapping(f([1..3], 'a'), f([0..3], 'b'), key)
-        ([(0, 'b'), (1, 'a'), (2, 'a'), (3, 'a')],
-         [(0, 'b'), (1, 'b'), (2, 'b'), (3, 'b')])
-        sage: merge_overlapping(f([0..6], 'a'), f([3..4], 'b'), key)
-        ([(0, 'a'), (1, 'a'), (2, 'a'), (3, 'a'), (4, 'a'), (5, 'a'), (6, 'a')],
-         [(0, 'a'), (1, 'a'), (2, 'a'), (3, 'b'), (4, 'b'), (5, 'a'), (6, 'a')])
-        sage: merge_overlapping(f([0..3], 'a'), f([1..2], 'b'), key)
-        ([(0, 'a'), (1, 'a'), (2, 'a'), (3, 'a')],
-         [(0, 'a'), (1, 'b'), (2, 'b'), (3, 'a')])
-        sage: merge_overlapping(f([1..2], 'a'), f([0..3], 'b'), key)
-        ([(0, 'b'), (1, 'a'), (2, 'a'), (3, 'b')],
-         [(0, 'b'), (1, 'b'), (2, 'b'), (3, 'b')])
-        sage: merge_overlapping(f([1..3], 'a'), f([1..3], 'b'), key)
-        ([(1, 'a'), (2, 'a'), (3, 'a')],
-         [(1, 'b'), (2, 'b'), (3, 'b')])
-    """
-    if key is None:
-        key = lambda k: k
-
-    def find_overlapping_index(A, B):
-        if len(B) > len(A) - 2:
-            raise StopIteration
-        matches = iter(i for i in xrange(1, len(A) - len(B))
-                       if all(key(a) == key(b) for a, b in zip(A[i:i+len(B)], B)))
-        return next(matches)
-
-    def find_mergedoverlapping_index(A, B):
-        """
-        Return in index i where to merge two overlapping tuples/lists ``A`` and ``B``.
-
-        Then ``A + B[i:]`` or ``A[:-i] + B`` are the merged tuples/lists.
-
-        Adapted from http://stackoverflow.com/a/30056066/1052778.
-        """
-        matches = iter(i for i in xrange(min(len(A), len(B)), 0, -1)
-                       if all(key(a) == key(b) for a, b in zip(A[-i:], B[:i])))
-        return next(matches, 0)
-
-    i = find_mergedoverlapping_index(A, B)
-    if i > 0:
-        return A + B[i:], A[:-i] + B
-
-    i = find_mergedoverlapping_index(B, A)
-    if i > 0:
-        return B[:-i] + A, B + A[i:]
-
-    try:
-        i = find_overlapping_index(A, B)
-    except StopIteration:
-        pass
-    else:
-        return A, A[:i] + B + A[i+len(B):]
-
-    try:
-        i = find_overlapping_index(B, A)
-    except StopIteration:
-        pass
-    else:
-        return B[:i] + A + B[i+len(A):], B
-
-    raise ValueError('Input does not have an overlap.')
 
 
 class CartesianProductFactory(sage.structure.factory.UniqueFactory):
@@ -375,6 +275,43 @@ class GenericProduct(CartesianProductPosets, GenericGrowthGroup):
     __hash__ = CartesianProductPosets.__hash__
 
 
+    def some_elements(self):
+        r"""
+        Return some elements of this cartesian product of growth groups.
+
+        See :class:`TestSuite` for a typical use case.
+
+        INPUT:
+
+        Nothing.
+
+        OUTPUT:
+
+        An iterator.
+
+        EXAMPLES::
+
+            sage: from itertools import islice
+            sage: from sage.rings.asymptotic.growth_group import GrowthGroup
+            sage: G = GrowthGroup('QQ^y * x^QQ * log(x)^ZZ')
+            sage: tuple(islice(G.some_elements(), 10))
+            (x^(1/2)*(1/2)^y,
+             x^(-1/2)*log(x)*(-1/2)^y,
+             x^2*log(x)^(-1)*2^y,
+             x^(-2)*log(x)^2*(-2)^y,
+             log(x)^(-2)*(0)^y,
+             x*log(x)^3,
+             x^(-1)*log(x)^(-3)*(-1)^y,
+             x^42*log(x)^4*42^y,
+             x^(2/3)*log(x)^(-4)*(2/3)^y,
+             x^(-2/3)*log(x)^5*(-2/3)^y)
+        """
+        from itertools import izip
+        return iter(
+            self(c) for c in
+            izip(*tuple(F.some_elements() for F in self.cartesian_factors())))
+
+
     def _element_constructor_(self, data):
         r"""
         Converts the given object to an element of this cartesian
@@ -442,6 +379,7 @@ class GenericProduct(CartesianProductPosets, GenericGrowthGroup):
             try:
                 return self._convert_factors_(data)
             except ValueError as e:
+                from misc import combine_exceptions
                 raise combine_exceptions(
                     ValueError('%s is not in %s.' % (raw_data, self)), e)
 
@@ -458,7 +396,7 @@ class GenericProduct(CartesianProductPosets, GenericGrowthGroup):
             return self.element_class(self, data)
 
         elif isinstance(data, str):
-            from growth_group import split_str_by_mul
+            from misc import split_str_by_mul
             return convert_factors(split_str_by_mul(data), data)
 
         elif hasattr(data, 'parent'):
@@ -667,6 +605,7 @@ class GenericProduct(CartesianProductPosets, GenericGrowthGroup):
             Growth Group QQ^x * x^QQ * y^ZZ * z^QQ
         """
         from growth_group import GenericGrowthGroup, AbstractGrowthGroupFunctor
+        from misc import merge_overlapping
 
         if isinstance(other, GenericProduct):
             Ofactors = other.cartesian_factors()

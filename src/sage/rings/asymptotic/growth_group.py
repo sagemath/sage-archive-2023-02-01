@@ -200,193 +200,6 @@ from sage.misc.lazy_import import lazy_import
 lazy_import('sage.rings.asymptotic.growth_group_cartesian', 'CartesianProductGrowthGroups')
 
 
-def repr_short_to_parent(s):
-    r"""
-    Helper method for the growth group factory, which converts a short
-    representation string to a parent.
-
-    INPUT:
-
-    A string.
-
-    OUTPUT:
-
-    A parent.
-
-    EXAMPLES::
-
-        sage: import sage.rings.asymptotic.growth_group as agg
-        sage: agg.repr_short_to_parent('ZZ')
-        Integer Ring
-        sage: agg.repr_short_to_parent('QQ')
-        Rational Field
-        sage: agg.repr_short_to_parent('SR')
-        Symbolic Ring
-        sage: agg.repr_short_to_parent('NN')
-        Non negative integer semiring
-
-    TESTS::
-
-        sage: agg.repr_short_to_parent('abcdef')
-        Traceback (most recent call last):
-        ...
-        ValueError: Cannot create a parent out of 'abcdef'.
-        > *previous* NameError: name 'abcdef' is not defined
-    """
-    from sage.misc.sage_eval import sage_eval
-    try:
-        P = sage_eval(s)
-    except Exception as e:
-        raise combine_exceptions(
-            ValueError("Cannot create a parent out of '%s'." % (s,)), e)
-
-    from sage.misc.lazy_import import LazyImport
-    if type(P) is LazyImport:
-        P = P._get_object()
-
-    from sage.structure.parent import is_Parent
-    if not is_Parent(P):
-        raise ValueError("'%s' does not describe a parent." % (s,))
-    return P
-
-
-def parent_to_repr_short(P):
-    r"""
-    Helper method which generates a short(er) representation string
-    out of a parent.
-
-    INPUT:
-
-    A parent.
-
-    OUTPUT:
-
-    A string.
-
-    EXAMPLES::
-
-        sage: import sage.rings.asymptotic.growth_group as agg
-        sage: agg.parent_to_repr_short(ZZ)
-        'ZZ'
-        sage: agg.parent_to_repr_short(QQ)
-        'QQ'
-        sage: agg.parent_to_repr_short(SR)
-        'SR'
-        sage: agg.parent_to_repr_short(ZZ[x])
-        '(Univariate Polynomial Ring in x over Integer Ring)'
-    """
-    if P is sage.rings.integer_ring.ZZ:
-        return 'ZZ'
-    elif P is sage.rings.rational_field.QQ:
-        return 'QQ'
-    elif P is sage.symbolic.ring.SR:
-        return 'SR'
-    else:
-        rep = repr(P)
-        if ' ' in rep:
-            rep = '(' + rep + ')'
-        return rep
-
-
-def split_str_by_mul(string):
-    r"""
-    Split the given string into a tuple of substrings arising by
-    splitting by '*' and taking care of parentheses.
-
-    INPUT:
-
-    - ``string`` - a string.
-
-    OUTPUT:
-
-    A tuple of strings.
-
-    TESTS::
-
-        sage: from sage.rings.asymptotic.growth_group import split_str_by_mul
-        sage: split_str_by_mul('x^ZZ')
-        ('x^ZZ',)
-        sage: split_str_by_mul('log(x)^ZZ * y^QQ')
-        ('log(x)^ZZ', 'y^QQ')
-        sage: split_str_by_mul('log(x)**ZZ * y**QQ')
-        ('log(x)**ZZ', 'y**QQ')
-        sage: split_str_by_mul('a^b * * c^d')
-        Traceback (most recent call last):
-        ...
-        ValueError: 'a^b * * c^d' is invalid since a '*' follows a '*'
-        sage: split_str_by_mul('a^b * (c*d^e)')
-        ('a^b', 'c*d^e')
-    """
-    factors = list()
-    balanced = True
-    if string and string[0] == '*':
-        raise ValueError("'%s' is invalid since it starts with a '*'." %
-                         (string,))
-    for s in string.split('*'):
-        if not s:
-            factors[-1] += '*'
-            balanced = False
-            continue
-        if not s.strip():
-            raise ValueError("'%s' is invalid since a '*' follows a '*'" %
-                             (string,))
-        if not balanced:
-            s = factors.pop() + '*' + s
-        balanced = s.count('(') == s.count(')')
-        factors.append(s)
-
-    if not balanced:
-        raise ValueError("Parentheses in '%s' are not balanced" % (string,))
-
-    def strip(s):
-        s = s.strip()
-        if not s:
-            return s
-        if s[0] == '(' and s[-1] == ')':
-            s = s[1:-1]
-        return s.strip()
-
-    return tuple(strip(f) for f in factors)
-
-
-def combine_exceptions(e, *f):
-    r"""
-    Helper function which combines the messages of the given exceptions.
-
-    EXAMPLES::
-
-        sage: from sage.rings.asymptotic.growth_group import combine_exceptions
-        sage: raise combine_exceptions(ValueError('Outer.'), TypeError('Inner.'))
-        Traceback (most recent call last):
-        ...
-        ValueError: Outer.
-        > *previous* TypeError: Inner.
-        sage: raise combine_exceptions(ValueError('Outer.'),
-        ....:                          TypeError('Inner1.'), TypeError('Inner2.'))
-        Traceback (most recent call last):
-        ...
-        ValueError: Outer.
-        > *previous* TypeError: Inner1.
-        > *and* TypeError: Inner2.
-        sage: raise combine_exceptions(ValueError('Outer.'),
-        ....:                          combine_exceptions(TypeError('Middle.'),
-        ....:                                             TypeError('Inner.')))
-        Traceback (most recent call last):
-        ...
-        ValueError: Outer.
-        > *previous* TypeError: Middle.
-        >> *previous* TypeError: Inner.
-    """
-    import re
-    msg = ('\n *previous* ' +
-           '\n *and* '.join("%s: %s" % (ff.__class__.__name__, str(ff)) for ff in f))
-    msg = re.sub(r'^([>]* \*previous\*)', r'>\1', msg, flags=re.MULTILINE)
-    msg = re.sub(r'^([>]* \*and\*)', r'>\1', msg, flags=re.MULTILINE)
-    msg = str(e.args if len(e.args) > 1 else e.args[0]) + msg
-    e.args = (msg,)
-    return e
-
-
 class Variable(sage.structure.unique_representation.CachedRepresentation,
                sage.structure.sage_object.SageObject):
     r"""
@@ -1194,11 +1007,6 @@ class GenericGrowthGroup(
             sage: L1 is L2
             True
         """
-        from sage.categories.sets_cat import Sets
-        Sets_parent_class = Sets().parent_class
-        while issubclass(cls, Sets_parent_class):
-            cls = cls.__base__
-
         if not isinstance(base, sage.structure.parent.Parent):
             raise TypeError('%s is not a valid base.' % (base,))
 
@@ -1314,6 +1122,7 @@ class GenericGrowthGroup(
             sage: GenericGrowthGroup(QQ, ('a', 'b'))
             Growth Group Generic(QQ, a, b)
         """
+        from misc import parent_to_repr_short
         vars = ', '.join(self._var_.variable_names())
         if vars:
             vars = ', ' + vars
@@ -1439,6 +1248,40 @@ class GenericGrowthGroup(
         """
         return iter(self.element_class(self, e)
                     for e in self.base().some_elements())
+
+
+    def _create_element_via_parent_(self, raw_element, old_parent=None):
+        r"""
+        Create an element with a possibly other parent.
+
+        INPUT:
+
+        - ``raw_element`` -- the element data.
+
+        - ``old_parent`` -- the parent of ``raw_element`` is compared
+          to this parent.
+
+        OUTPUT:
+
+        An element.
+
+            sage: from sage.rings.asymptotic.growth_group import GrowthGroup
+            sage: G = GrowthGroup('z^ZZ')
+            sage: G._create_element_via_parent_(3).parent()
+            Growth Group z^ZZ
+            sage: G._create_element_via_parent_(1/2).parent()
+            Traceback (most recent call last):
+            ...
+            TypeError: no conversion of this rational to integer
+            sage: G._create_element_via_parent_(1/2, ZZ).parent()
+            Growth Group z^QQ
+        """
+        from misc import underlying_class
+        if old_parent is None or raw_element.parent() is old_parent:
+            parent = self
+        else:
+            parent = underlying_class(self)(raw_element.parent(), self._var_)
+        return parent(raw_element=raw_element)
 
 
     def le(self, left, right):
@@ -2151,22 +1994,16 @@ class MonomialGrowthElement(GenericGrowthElement):
             sage: e2 == ~e1
             True
         """
-        new_element = -self.exponent
-        if new_element.parent() is self.exponent.parent():
-            return self.parent()(raw_element=new_element)
-        else:
-            new_parent = self.parent().__class__(new_element.parent(),
-                                                 self.parent()._var_)
-            return new_parent(raw_element=new_element)
+        return self.parent()._create_element_via_parent_(-self.exponent, self.exponent.parent())
 
 
-    def __pow__(self, power):
+    def __pow__(self, exponent):
         r"""
-        Raises this growth element to the given ``power``.
+        Calculate the power of this growth element to the given ``exponent``.
 
         INPUT:
 
-        - ``power`` -- a number. This can be anything that is a
+        - ``exponent`` -- a number. This can be anything that is a
           valid right hand side of ``*`` with elements of the
           parent's base.
 
@@ -2176,28 +2013,22 @@ class MonomialGrowthElement(GenericGrowthElement):
 
         EXAMPLES::
 
-            sage: import sage.rings.asymptotic.growth_group as agg
-            sage: P = agg.MonomialGrowthGroup(ZZ, 'x')
+            sage: from sage.rings.asymptotic.growth_group import GrowthGroup
+            sage: P = GrowthGroup('x^ZZ')
             sage: x = P.gen()
             sage: a = x^7; a
             x^7
             sage: a^(1/2)
-            Traceback (most recent call last):
-            ...
-            ValueError: Growth Group x^ZZ disallows taking x^7 to the power of 1/2.
-            sage: P = agg.MonomialGrowthGroup(QQ, 'x')
+            x^(7/2)
+            sage: (a^(1/2)).parent()
+            Growth Group x^QQ
+            sage: P = GrowthGroup('x^QQ')
             sage: b = P.gen()^(7/2); b
             x^(7/2)
             sage: b^12
             x^42
         """
-        new_exponent = self.exponent * power
-        P = self.parent()
-        if new_exponent in P.base():
-            return P(raw_element=new_exponent)
-        else:
-            raise ValueError('%s disallows taking %s to the power '
-                             'of %s.' % (P, self, power))
+        return self.parent()._create_element_via_parent_(self.exponent * exponent, self.exponent.parent())
 
 
     def _le_(self, other):
@@ -2300,6 +2131,7 @@ class MonomialGrowthGroup(GenericGrowthGroup):
             sage: agg.MonomialGrowthGroup(PolynomialRing(QQ, 'x'), 'a')._repr_short_()
             'a^(Univariate Polynomial Ring in x over Rational Field)'
         """
+        from misc import parent_to_repr_short
         return '%s^%s' % (self._var_, parent_to_repr_short(self.base()))
 
 
@@ -2707,22 +2539,16 @@ class ExponentialGrowthElement(GenericGrowthElement):
             sage: (~P(raw_element=1)).parent()
             Growth Group QQ^x
         """
-        new_element = 1 / self.base
-        if new_element.parent() is self.base.parent():
-            return self.parent()(raw_element=new_element)
-        else:
-            new_parent = self.parent().__class__(new_element.parent(),
-                                                 self.parent()._var_)
-            return new_parent(raw_element=new_element)
+        return self.parent()._create_element_via_parent_(1 / self.base, self.base.parent())
 
 
-    def __pow__(self, power):
+    def __pow__(self, exponent):
         r"""
-        Takes this growth element to the given ``power``.
+        Calculate the power of this growth element to the given ``exponent``.
 
         INPUT:
 
-        - ``power`` -- a number. This can anything that is valid to be
+        - ``exponent`` -- a number. This can anything that is valid to be
           on the right hand side of ``*`` with an elements of the
           parent's base.
 
@@ -2743,15 +2569,7 @@ class ExponentialGrowthElement(GenericGrowthElement):
             sage: b^12
             117649^x
         """
-        new_base = self.base ** power
-        try:
-            return self.parent()(raw_element=new_base)
-        except (ValueError, TypeError):
-            pass
-
-        new_parent = ExponentialGrowthGroup(new_base.parent(),
-                                            self.parent()._var_)
-        return new_parent(raw_element=new_base)
+        return self.parent()._create_element_via_parent_(self.base ** exponent, self.base.parent())
 
 
     def _le_(self, other):
@@ -2851,6 +2669,7 @@ class ExponentialGrowthGroup(GenericGrowthGroup):
             sage: agg.ExponentialGrowthGroup(PolynomialRing(QQ, 'x'), 'a')._repr_short_()
             '(Univariate Polynomial Ring in x over Rational Field)^a'
         """
+        from misc import parent_to_repr_short
         return '%s^%s' % (parent_to_repr_short(self.base()), self._var_)
 
 
@@ -2915,7 +2734,6 @@ class ExponentialGrowthGroup(GenericGrowthGroup):
         try:
             P = data.parent()
         except AttributeError:
-            import re
             if var not in str(data):
                 return  # this has to end here
 
@@ -3076,23 +2894,95 @@ class GrowthGroupFactory(sage.structure.factory.UniqueFactory):
 
     EXAMPLES::
 
-        sage: import sage.rings.asymptotic.growth_group as agg
-        sage: agg.GrowthGroup('x^ZZ')
+        sage: from sage.rings.asymptotic.growth_group import GrowthGroup
+        sage: GrowthGroup('x^ZZ')
         Growth Group x^ZZ
-        sage: agg.GrowthGroup('log(x)^QQ')
+        sage: GrowthGroup('log(x)^QQ')
         Growth Group log(x)^QQ
 
     This factory can also be used to construct Cartesian products
     of growth groups::
 
-        sage: agg.GrowthGroup('x^ZZ * y^ZZ')
+        sage: GrowthGroup('x^ZZ * y^ZZ')
         Growth Group x^ZZ * y^ZZ
-        sage: agg.GrowthGroup('x^ZZ * log(x)^ZZ')
+        sage: GrowthGroup('x^ZZ * log(x)^ZZ')
         Growth Group x^ZZ * log(x)^ZZ
-        sage: agg.GrowthGroup('x^ZZ * log(x)^ZZ * y^QQ')
+        sage: GrowthGroup('x^ZZ * log(x)^ZZ * y^QQ')
         Growth Group x^ZZ * log(x)^ZZ * y^QQ
-        sage: agg.GrowthGroup('QQ^x * x^ZZ * y^QQ * QQ^z')
+        sage: GrowthGroup('QQ^x * x^ZZ * y^QQ * QQ^z')
         Growth Group QQ^x * x^ZZ * y^QQ * QQ^z
+
+    TESTS::
+
+        sage: TestSuite(GrowthGroup('x^ZZ')).run(verbose=True)
+        running ._test_an_element() . . . pass
+        running ._test_associativity() . . . pass
+        running ._test_category() . . . pass
+        running ._test_elements() . . .
+          Running the test suite of self.an_element()
+          running ._test_category() . . . pass
+          running ._test_eq() . . . pass
+          running ._test_not_implemented_methods() . . . pass
+          running ._test_pickling() . . . pass
+          pass
+        running ._test_elements_eq_reflexive() . . . pass
+        running ._test_elements_eq_symmetric() . . . pass
+        running ._test_elements_eq_transitive() . . . pass
+        running ._test_elements_neq() . . . pass
+        running ._test_eq() . . . pass
+        running ._test_not_implemented_methods() . . . pass
+        running ._test_one() . . . pass
+        running ._test_pickling() . . . pass
+        running ._test_prod() . . . pass
+        running ._test_some_elements() . . . pass
+
+    ::
+
+        sage: TestSuite(GrowthGroup('QQ^y')).run(verbose=True)
+        running ._test_an_element() . . . pass
+        running ._test_associativity() . . . pass
+        running ._test_category() . . . pass
+        running ._test_elements() . . .
+          Running the test suite of self.an_element()
+          running ._test_category() . . . pass
+          running ._test_eq() . . . pass
+          running ._test_not_implemented_methods() . . . pass
+          running ._test_pickling() . . . pass
+          pass
+        running ._test_elements_eq_reflexive() . . . pass
+        running ._test_elements_eq_symmetric() . . . pass
+        running ._test_elements_eq_transitive() . . . pass
+        running ._test_elements_neq() . . . pass
+        running ._test_eq() . . . pass
+        running ._test_not_implemented_methods() . . . pass
+        running ._test_one() . . . pass
+        running ._test_pickling() . . . pass
+        running ._test_prod() . . . pass
+        running ._test_some_elements() . . . pass
+
+    ::
+
+        sage: TestSuite(GrowthGroup('x^QQ * log(x)^ZZ')).run(verbose=True)
+        running ._test_an_element() . . . pass
+        running ._test_associativity() . . . pass
+        running ._test_category() . . . pass
+        running ._test_elements() . . .
+          Running the test suite of self.an_element()
+          running ._test_category() . . . pass
+          running ._test_eq() . . . pass
+          running ._test_not_implemented_methods() . . . pass
+          running ._test_pickling() . . . pass
+          pass
+        running ._test_elements_eq_reflexive() . . . pass
+        running ._test_elements_eq_symmetric() . . . pass
+        running ._test_elements_eq_transitive() . . . pass
+        running ._test_elements_neq() . . . pass
+        running ._test_eq() . . . pass
+        running ._test_not_implemented_methods() . . . pass
+        running ._test_one() . . . pass
+        running ._test_pickling() . . . pass
+        running ._test_prod() . . . pass
+        running ._test_some_elements() . . . pass
     """
     def create_key_and_extra_args(self, specification, **kwds):
         r"""
@@ -3107,6 +2997,7 @@ class GrowthGroupFactory(sage.structure.factory.UniqueFactory):
             ...
             ValueError: 'asdf' is not a valid string describing a growth group.
         """
+        from misc import split_str_by_mul
         factors = split_str_by_mul(specification)
         factors = tuple(f.replace('**', '^') for f in factors)
 
@@ -3142,6 +3033,7 @@ class GrowthGroupFactory(sage.structure.factory.UniqueFactory):
             > *and* ValueError: Cannot create a parent out of 'y^z'.
             >> *previous* NameError: name 'y' is not defined
         """
+        from misc import repr_short_to_parent
         groups = []
         for factor in factors:
             b, _, e = factor.partition('^')
@@ -3156,6 +3048,7 @@ class GrowthGroupFactory(sage.structure.factory.UniqueFactory):
                 E = None
 
             if B is None and E is None:
+                from misc import combine_exceptions
                 raise combine_exceptions(
                     ValueError("'%s' is not a valid string describing "
                                "a growth group." % (factor,)), exc_b, exc_e)

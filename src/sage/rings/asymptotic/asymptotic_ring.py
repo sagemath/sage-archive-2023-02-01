@@ -458,7 +458,7 @@ class AsymptoticExpression(sage.structure.element.CommutativeAlgebraElement):
                             'when creating an element of %s.' % (summands, parent))
 
         if convert:
-            from growth_group import combine_exceptions
+            from misc import combine_exceptions
             from term_monoid import TermMonoid
             def convert_terms(element):
                 T = TermMonoid(term=element.parent(), asymptotic_ring=parent)
@@ -548,8 +548,48 @@ class AsymptoticExpression(sage.structure.element.CommutativeAlgebraElement):
             True
             sage: O(x) == O(x)
             False
+
+        TESTS::
+
+            sage: x == None
+            False
         """
+        if other is None:
+            return False
         return not bool(self - other)
+
+
+    def __ne__(self, other):
+        r"""
+        Return if this asymptotic expression is not equal to ``other``.
+
+        INPUT:
+
+        - ``other`` -- an object.
+
+        OUTPUT:
+
+        A boolean.
+
+        .. NOTE::
+
+            This function uses the coercion model to find a common
+            parent for the two operands.
+
+        EXAMPLES::
+
+            sage: R.<x> = AsymptoticRing('x^ZZ', QQ)
+            sage: (1 + 2*x + 3*x^2) != (3*x^2 + 2*x + 1)  # indirect doctest
+            False
+            sage: O(x) != O(x)
+            True
+
+        TESTS::
+
+            sage: x != None
+            True
+        """
+        return not self == other
 
 
     def has_same_summands(self, other):
@@ -583,7 +623,14 @@ class AsymptoticExpression(sage.structure.element.CommutativeAlgebraElement):
             True
             sage: O(x_ZZ) == O(x_QQ)
             False
+
+        TESTS::
+
+            sage: x_ZZ.has_same_summands(None)
+            False
         """
+        if other is None:
+            return False
         from sage.structure.element import have_same_parent
         if have_same_parent(self, other):
             return self._has_same_summands_(other)
@@ -848,7 +895,7 @@ class AsymptoticExpression(sage.structure.element.CommutativeAlgebraElement):
         if other == 0:
             return self.parent().zero()
 
-        from sage.rings.asymptotic.term_monoid import TermMonoid
+        from term_monoid import TermMonoid
         E = TermMonoid('exact', asymptotic_ring=self.parent())
         e = E(self.parent().growth_group.one(), coefficient=other)
         return self._mul_term_(e)
@@ -929,35 +976,22 @@ class AsymptoticExpression(sage.structure.element.CommutativeAlgebraElement):
 
         elif len(self.summands) == 1:
             element = next(self.summands.elements())
-            new_element = ~element
-            if new_element.parent() is element.parent():
-                return self.parent()(new_element,
-                                     simplify=False, convert=False)
-            else:
-                # Insert an 'if' here once terms can have different
-                # coefficient rings, as this will be for L-terms.
-                new_parent = self.parent().change_parameter(
-                    growth_group=new_element.parent().growth_group,
-                    coefficient_ring=new_element.parent().coefficient_ring)
-                return new_parent(new_element,
-                                  simplify=False, convert=False)
+            return self.parent()._create_element_via_parent_(
+                ~element, element.parent())
 
         max_elem = tuple(self.summands.maximal_elements())
         if len(max_elem) != 1:
             raise ValueError('Expression %s cannot be inverted, since there '
-                             'are several maximal elements: %s.' % (self, max_elem))
+                             'are several maximal elements: %s.' %
+                             (self, max_elem))
         max_elem = max_elem[0]
 
         imax_elem = ~max_elem
         if imax_elem.parent() is max_elem.parent():
             new_self = self
         else:
-            # Insert an 'if' here once terms can have different
-            # coefficient rings, as this will be for L-terms.
-            new_parent = self.parent().change_parameter(
-                growth_group=imax_elem.parent().growth_group,
-                coefficient_ring=imax_elem.parent().coefficient_ring)
-            new_self = new_parent(self)
+            new_self = self.parent()._create_element_via_parent_(
+                imax_elem, max_elem.parent()).parent()(self)
 
         one = new_self.parent().one()
         geom = one - new_self._mul_term_(imax_elem)
@@ -1025,13 +1059,13 @@ class AsymptoticExpression(sage.structure.element.CommutativeAlgebraElement):
         return self.parent()(summands, simplify=True, convert=False)
 
 
-    def __pow__(self, power):
+    def __pow__(self, exponent):
         r"""
-        Takes this element to the given ``power``.
+        Calculate the power of this element to the given ``exponent``.
 
         INPUT:
 
-        - ``power`` -- an element.
+        - ``exponent`` -- an element.
 
         OUTPUT:
 
@@ -1044,51 +1078,51 @@ class AsymptoticExpression(sage.structure.element.CommutativeAlgebraElement):
             x^(1/7)
             sage: R_ZZ.<y> = AsymptoticRing(growth_group='y^ZZ', coefficient_ring=ZZ)
             sage: y^(1/7)
-            Traceback (most recent call last):
-            ...
-            ValueError: Growth Group y^ZZ disallows taking y to the power of 1/7.
+            y^(1/7)
+            sage: (y^(1/7)).parent()
+            Asymptotic Ring <y^QQ> over Rational Field
             sage: (x^(1/2) + O(x^0))^15
             x^(15/2) + O(x^7)
 
         ::
 
-            sage: O(x)^(-1)
+            sage: O(x)^(-1)  # not tested  # see #19110
             Traceback (most recent call last):
             ...
-            ZeroDivisionError: Cannot invert O(x).
+            ZeroDivisionError: Cannot take O(x) to exponent -1.
+            > *previous* FloatingPointError: Floating point exception.
         """
+        if not self.summands:
+            if exponent == 0:
+                return self.parent().one()
+            elif exponent > 0:
+                return self.parent().zero()
+            elif exponent < 0:
+                raise ZeroDivisionError('Cannot take %s to the negative exponent %s.' %
+                                        (self, exponent))
+            else:
+                raise NotImplementedError('Taking %s to the exponent %s not implemented.' %
+                                          (self, exponent))
+
+        elif len(self.summands) == 1:
+            element = next(self.summands.elements())
+            return self.parent()._create_element_via_parent_(
+                element ** exponent, element.parent())
+
         from sage.rings.integer_ring import ZZ
         try:
-            power = ZZ(power)
+            exponent = ZZ(exponent)
         except (TypeError, ValueError):
             pass
         else:
-            return super(AsymptoticExpression, self).__pow__(power)
+            return super(AsymptoticExpression, self).__pow__(exponent)
 
-        if len(self.summands) > 1:
-            raise NotImplementedError('Taking the sum %s to the '
-                                      'non-integer power %s not '
-                                      'implemented.' % (self, power))
-        expr = next(self.summands.elements())
-
-        P = self.parent()
-        if power not in P.growth_group.base():
-            raise ValueError('%s disallows taking %s '
-                             'to the power of %s.' %
-                             (P.growth_group, self, power))
-
-        from sage.rings.asymptotic.term_monoid import TermWithCoefficient
-        if isinstance(expr, TermWithCoefficient):
-            new_growth = expr.growth**power
-            new_coeff = expr.coefficient**power
-            return P(expr.parent()(new_growth, new_coeff))
-        else:
-            if power >= 0:
-                new_growth = expr.growth**power
-                return P(expr.parent()(new_growth))
-            else:
-                raise NotImplementedError('Negative powers are not implemented'
-                                          ' for the term %s.' % (self, ))
+        try:
+            return (exponent * self.log()).exp()
+        except (TypeError, ValueError, ZeroDivisionError) as e:
+            from misc import combine_exceptions
+            raise combine_exceptions(
+                ValueError('Cannot take %s to the exponent %s.' % (self, exponent)), e)
 
 
     def O(self):
@@ -1291,6 +1325,20 @@ class AsymptoticRing(sage.algebras.algebra.Algebra,
         Asymptotic Ring <x^QQ> over Rational Field
         sage: R1_x is R2_x is R3_x
         True
+
+    ::
+
+        sage: from sage.rings.asymptotic.asymptotic_ring import AsymptoticRing as AR_class
+        sage: class AR(AR_class):
+        ....:     class Element(AR_class.Element):
+        ....:         __eq__ = AR_class.Element.has_same_summands
+        sage: A = AR(growth_group='z^QQ', coefficient_ring=QQ)
+        sage: from itertools import islice
+        sage: TestSuite(A).run(  # not tested  # long
+        ....:     verbose=True,
+        ....:     elements=tuple(islice(A.some_elements(), 10)),
+        ....:     skip=('_test_some_elements',  # to many elements
+        ....:           '_test_distributivity'))  # due to cancellations: O(z) != O(z^2)
     """
 
     # enable the category framework for elements
@@ -1365,7 +1413,7 @@ class AsymptoticRing(sage.algebras.algebra.Algebra,
             cls = cls.__base__
 
         if isinstance(growth_group, str):
-            from sage.rings.asymptotic.growth_group import GrowthGroup
+            from growth_group import GrowthGroup
             growth_group = GrowthGroup(growth_group)
 
         if growth_group is None:
@@ -1522,7 +1570,8 @@ class AsymptoticRing(sage.algebras.algebra.Algebra,
         if all(values[parameter] is getattr(self, parameter)
                for parameter in parameters) and values['category'] is self.category():
             return self
-        return self.__class__(**values)
+        from misc import underlying_class
+        return underlying_class(self)(**values)
 
 
     @staticmethod
@@ -1545,11 +1594,44 @@ class AsymptoticRing(sage.algebras.algebra.Algebra,
             poset()
         """
         from sage.data_structures.mutable_poset import MutablePoset
-        from sage.rings.asymptotic.term_monoid import \
-            can_absorb, absorption
+        from term_monoid import can_absorb, absorption
         return MutablePoset(key=lambda element: element.growth,
                             can_merge=can_absorb,
                             merge=absorption)
+
+
+    def _create_element_via_parent_(self, term, old_parent=None):
+        r"""
+        Create an element with a possibly other parent.
+
+        INPUT:
+
+        - ``term`` -- the element data.
+
+        - ``old_parent`` -- the parent of ``term`` is compared to this parent.
+
+        OUTPUT:
+
+        An element.
+
+            sage: from sage.rings.asymptotic.term_monoid import TermMonoid
+            sage: from sage.rings.asymptotic.growth_group import GrowthGroup
+            sage: G = GrowthGroup('z^ZZ')
+            sage: T = TermMonoid('exact', G, ZZ)
+            sage: T._create_element_via_parent_(G.an_element(), 3, G, ZZ)
+            3*z
+            sage: T._create_element_via_parent_(G.an_element(), 3/2, G, ZZ).parent()
+            Exact Term Monoid z^ZZ with coefficients in Rational Field
+        """
+        if old_parent is None or term.parent() is old_parent:
+            parent = self
+        else:
+            # Insert an 'if' here once terms can have different
+            # coefficient rings, as this will be for L-terms.
+            parent = self.change_parameter(
+                growth_group=term.parent().growth_group,
+                coefficient_ring=term.parent().coefficient_ring)
+        return parent(term, simplify=False, convert=False)
 
 
     def _element_constructor_(self, data, simplify=True, convert=True):
@@ -1644,7 +1726,7 @@ class AsymptoticRing(sage.algebras.algebra.Algebra,
             return self.element_class(self, data.summands,
                                       simplify=simplify, convert=convert)
 
-        from sage.rings.asymptotic.term_monoid import GenericTerm
+        from term_monoid import GenericTerm
         if isinstance(data, GenericTerm):
             data = (data,)
 
@@ -1668,7 +1750,7 @@ class AsymptoticRing(sage.algebras.algebra.Algebra,
         except AttributeError:
             return self._create_exact_summand_(data)
 
-        from growth_group import combine_exceptions
+        from misc import combine_exceptions
         if P is sage.symbolic.ring.SR:
             from sage.symbolic.operators import add_vararg
             if data.operator() == add_vararg:
@@ -1864,9 +1946,9 @@ class AsymptoticRing(sage.algebras.algebra.Algebra,
             sage: AsymptoticRing(growth_group='z^QQ', coefficient_ring=QQ).an_element()
             1/8*z^(3/2) + O(z^(1/2))
         """
-        from sage.rings.asymptotic.term_monoid import TermMonoid
-        E = TermMonoid('exact', self.growth_group, self.coefficient_ring)
-        O = TermMonoid('O', self.growth_group, self.coefficient_ring)
+        from term_monoid import TermMonoid
+        E = TermMonoid('exact', asymptotic_ring=self)
+        O = TermMonoid('O', asymptotic_ring=self)
         return self(E.an_element(), simplify=False, convert=False)**3 + \
             self(O.an_element(), simplify=False, convert=False)
 
@@ -1901,10 +1983,10 @@ class AsymptoticRing(sage.algebras.algebra.Algebra,
              O(z^(-1/2)),
              8*z^(3/2) + O(z^(1/2)))
         """
-        from sage.rings.asymptotic.term_monoid import product_diagonal
-        from sage.rings.asymptotic.term_monoid import TermMonoid
-        E = TermMonoid('exact', self.growth_group, self.coefficient_ring)
-        O = TermMonoid('O', self.growth_group, self.coefficient_ring)
+        from misc import product_diagonal
+        from term_monoid import TermMonoid
+        E = TermMonoid('exact', asymptotic_ring=self)
+        O = TermMonoid('O', asymptotic_ring=self)
         return iter(self(e, simplify=False, convert=False)**3 +
                     self(o, simplify=False, convert=False)
                     for e, o in product_diagonal(
@@ -2033,8 +2115,8 @@ class AsymptoticRing(sage.algebras.algebra.Algebra,
             ValueError: Growth 42*x^2 is not in O-Term Monoid x^ZZ with implicit coefficients in Integer Ring.
             > *previous* ValueError: 42*x^2 is not in Growth Group x^ZZ.
         """
-        from sage.rings.asymptotic.term_monoid import TermMonoid
-        TM = TermMonoid(type, self.growth_group, self.coefficient_ring)
+        from term_monoid import TermMonoid
+        TM = TermMonoid(type, asymptotic_ring=self)
 
         if data is None:
             try:
@@ -2091,7 +2173,6 @@ class AsymptoticRing(sage.algebras.algebra.Algebra,
 
 
 from sage.categories.pushout import ConstructionFunctor
-from growth_group import Variable
 class AsymptoticRingFunctor(ConstructionFunctor):
     r"""
     A :class:`construction functor <sage.categories.pushout.ConstructionFunctor>`

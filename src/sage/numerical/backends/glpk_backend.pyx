@@ -986,8 +986,57 @@ cdef class GLPKBackend(GenericBackend):
         else:
           return glp_get_obj_val(self.lp)
 
+    cpdef get_best_objective_value(self):
+        r"""
+        Return the value of the currently best known bound.
+
+        This method returns the currently best known bound of all the remaining
+        open nodes in a branch-and-cut tree. It is computed for a minimization
+        problem as the minimum objective function value of all remaining
+        unexplored nodes. Similarly, it is computed for a maximization problem
+        as the maximum objective function value of all remaining unexplored
+        nodes.
+
+        For a regular MIP optimization, this value is also the best known bound
+        on the optimal solution value of the MIP problem.
+
+        .. NOTE::
+
+           Has no meaning unless ``solve`` has been called before.
+
+        EXAMPLE::
+
+            sage: g = graphs.CubeGraph(9)
+            sage: p = MixedIntegerLinearProgram(solver="GLPK")
+            sage: p.solver_parameter("mip_gap_tolerance",100)
+            sage: b = p.new_variable(binary=True)
+            sage: p.set_objective(p.sum(b[v] for v in g))
+            sage: for v in g:
+            ....:     p.add_constraint(b[v]+p.sum(b[u] for u in g.neighbors(v)) <= 1)
+            sage: p.add_constraint(b[v] == 1) # Force an easy non-0 solution
+            sage: p.solve() # rel tol 100
+            1.0
+            sage: backend = p.get_backend()
+            sage: backend.get_best_objective_value() # random
+            48.0
+        """
+        return self.search_tree_data.best_bound
+
     cpdef get_relative_objective_gap(self):
         r"""
+        Return the relative objective gap of the best known solution.
+
+        For a minimization problem, this value is computed by `(bestinteger -
+        bestobjective) / (1e-10 + |bestobjective|)`, where ``bestinteger`` is
+        the value returned by ``get_objective_value`` and ``bestobjective`` is
+        the value returned by ``get_best_objective_value``. For a maximization
+        problem, the value is computed by `(bestobjective - bestinteger) /
+        (1e-10 + |bestobjective|)`.
+
+        .. NOTE::
+
+           Has no meaning unless ``solve`` has been called before.
+
         EXAMPLE::
 
             sage: g = graphs.CubeGraph(9)

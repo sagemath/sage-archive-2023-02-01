@@ -797,13 +797,12 @@ class GenericProduct(CartesianProductPosets, GenericGrowthGroup):
 
         def log(self, base=None):
             r"""
-            The logarithm of this element.
+            Return the logarithm of this element.
 
             INPUT:
 
             - ``base`` -- the base of the logarithm. If ``None``
-              (default value) is used, the logarithm is the natural
-              logarithm.
+              (default value) is used, the natural logarithm is taken.
 
             OUTPUT:
 

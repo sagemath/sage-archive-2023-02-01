@@ -37,6 +37,9 @@ cdef class GLPKBackend(GenericBackend):
         glp_init_smcp(self.smcp)
         self.iocp = <c_glp_iocp* > sage_malloc(sizeof(c_glp_iocp))
         glp_init_iocp(self.iocp)
+
+        self.iocp.cb_func = glp_callback                      # callback function
+        self.iocp.cb_info = <void *> &(self.search_tree_data) # callback data
         self.iocp.presolve = GLP_ON
         self.set_verbosity(0)
         self.obj_constant_term = 0.0
@@ -982,6 +985,34 @@ cdef class GLPKBackend(GenericBackend):
           return glp_mip_obj_val(self.lp)
         else:
           return glp_get_obj_val(self.lp)
+
+    cpdef get_relative_objective_gap(self):
+        r"""
+        EXAMPLE::
+
+            sage: g = graphs.CubeGraph(9)
+            sage: p = MixedIntegerLinearProgram(solver="GLPK")
+            sage: p.solver_parameter("mip_gap_tolerance",100)
+            sage: b = p.new_variable(binary=True)
+            sage: p.set_objective(p.sum(b[v] for v in g))
+            sage: for v in g:
+            ....:     p.add_constraint(b[v]+p.sum(b[u] for u in g.neighbors(v)) <= 1)
+            sage: p.add_constraint(b[v] == 1) # Force an easy non-0 solution
+            sage: p.solve() # rel tol 100
+            1.0
+            sage: backend = p.get_backend()
+            sage: backend.get_relative_objective_gap() # random
+            46.99999999999999
+
+        TESTS:
+
+        Just make sure that the variable *has* been defined, and is not just
+        undefined::
+
+            sage: backend.get_relative_objective_gap() > 1
+            True
+        """
+        return self.search_tree_data.mip_gap
 
     cpdef get_variable_value(self, int variable):
         """
@@ -2296,6 +2327,29 @@ cdef class GLPKBackend(GenericBackend):
         glp_delete_prob(self.lp)
         sage_free(self.iocp)
         sage_free(self.smcp)
+
+cdef void glp_callback(c_glp_tree* tree, void* info):
+    r"""
+    A callback routine called by glp_intopt
+
+    This function fills the ``search_tree_data`` structure of a ``GLPKBackend``
+    object. It is fed to ``glp_intopt`` (which calls it while the search tree is
+    being built) through ``iocp.cb_func``.
+
+    INPUT:
+
+    - ``tree`` -- a pointer toward ``c_glp_tree``, which is GLPK's search tree
+
+    - ``info`` -- a ``void *`` to let the function know *where* it should store
+      the data we need. The value of ``info`` is equal to the one stored in
+      iocp.cb_info.
+
+    """
+    cdef search_tree_data_t * data = <search_tree_data_t *> info
+    data.mip_gap = glp_ios_mip_gap(tree)
+
+    cdef int node_id = glp_ios_best_node(tree)
+    data.best_bound = glp_ios_node_bound(tree, node_id)
 
 # parameter names
 

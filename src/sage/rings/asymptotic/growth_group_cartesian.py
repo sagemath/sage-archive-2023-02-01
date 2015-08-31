@@ -850,10 +850,10 @@ class GenericProduct(CartesianProductPosets, GenericGrowthGroup):
             raise ValueError('The logarithm of %s cannot be constructed in '
                              '%s.' % (self, self.parent()))
 
-        def factor(self):
+        def factors(self):
             r"""
-            Return a factorization of this element into growth
-            elements from atomic growth groups.
+            Return the atomic factors of this growth element. An atomic factor
+            cannot be split further.
 
             INPUT:
 
@@ -861,52 +861,41 @@ class GenericProduct(CartesianProductPosets, GenericGrowthGroup):
 
             OUTPUT:
 
-            A list of growth elements.
+            A tuple of growth elements.
 
             EXAMPLES::
 
                 sage: from sage.rings.asymptotic.growth_group import GrowthGroup
                 sage: G = GrowthGroup('x^ZZ * log(x)^ZZ * y^ZZ')
                 sage: x, y = G.gens_monomial()
-                sage: x.factor()
-                [x]
-                sage: f = (x * y).factor(); f
-                [x, y]
-                sage: [factor.parent() for factor in f]
-                [Growth Group x^ZZ, Growth Group y^ZZ]
-                sage: f = (x * log(x)).factor(); f
-                [x, log(x)]
-                sage: [factor.parent() for factor in f]
-                [Growth Group x^ZZ, Growth Group log(x)^ZZ]
+                sage: x.factors()
+                (x,)
+                sage: f = (x * y).factors(); f
+                (x, y)
+                sage: tuple(factor.parent() for factor in f)
+                (Growth Group x^ZZ, Growth Group y^ZZ)
+                sage: f = (x * log(x)).factors(); f
+                (x, log(x))
+                sage: tuple(factor.parent() for factor in f)
+                (Growth Group x^ZZ, Growth Group log(x)^ZZ)
 
             ::
 
                 sage: G = GrowthGroup('x^ZZ * log(x)^ZZ * log(log(x))^ZZ * y^QQ')
                 sage: x, y = G.gens_monomial()
-                sage: f = (x * log(x) * y).factor(); f
-                [x, log(x), y]
-                sage: [factor.parent() for factor in f]
-                [Growth Group x^ZZ, Growth Group log(x)^ZZ, Growth Group y^QQ]
+                sage: f = (x * log(x) * y).factors(); f
+                (x, log(x), y)
+                sage: tuple(factor.parent() for factor in f)
+                (Growth Group x^ZZ, Growth Group log(x)^ZZ, Growth Group y^QQ)
 
             ::
 
-                sage: G.one().factor()
-                Traceback (most recent call last):
-                ...
-                ValueError: 1 does not have a factorization.
+                sage: G.one().factors()
+                ()
             """
-            components = []
-            for (component, factor) in zip(self.value,
-                                           self.parent().cartesian_factors()):
-                if component != factor.one():
-                    if hasattr(component, 'factor'):
-                        components = components + component.factor()
-                    else:
-                        components.append(component)
+            return sum(iter(f.factors() for f in self.value if f != f.parent().one()),
+                       tuple())
 
-            if components:
-                return components
-            raise ValueError('%s does not have a factorization.' % (self,))
 
         def log_factor(self, base=None):
             r"""
@@ -948,9 +937,7 @@ class GenericProduct(CartesianProductPosets, GenericGrowthGroup):
             ::
 
                 sage: G(1).log_factor()
-                Traceback (most recent call last):
-                ...
-                ValueError: 1 does not have a factorization.
+                ()
 
             ::
 
@@ -968,7 +955,7 @@ class GenericProduct(CartesianProductPosets, GenericGrowthGroup):
                 [[x, 1], [log(x), 1]]
             """
             P = self.parent()
-            factors = self.factor()
+            factors = self.factors()
             log_factors = []
             from sage.rings.asymptotic.growth_group import ExponentialGrowthGroup, \
                 MonomialGrowthGroup
@@ -1051,7 +1038,7 @@ class GenericProduct(CartesianProductPosets, GenericGrowthGroup):
                 2^(x*log(x))
             """
             P = self.parent()
-            factors = self.factor()
+            factors = self.factors()
             if base == 0:
                 raise ValueError('%s is not an allowed base.' % (base,))
 
@@ -1064,7 +1051,7 @@ class GenericProduct(CartesianProductPosets, GenericGrowthGroup):
                         new_elem = P(repr(fp._var_)[4:-1])
                         if base == 'e':
                             return new_elem
-                        base_ring = new_elem.factor()[0].base_ring()
+                        base_ring = new_elem.factors()[0].base_ring()
                         return new_elem ** log(base_ring(base))
 
             from sage.rings.asymptotic.growth_group import ExponentialGrowthGroup

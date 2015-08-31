@@ -939,6 +939,29 @@ class GenericGrowthElement(sage.structure.element.MultiplicativeGroupElement):
         raise ArithmeticError('building log(%s) is not possible.' % (self,))
 
 
+    def factors(self):
+        r"""
+        Return the atomic factors of this growth element. An atomic factor
+        cannot be split further.
+
+        INPUT:
+
+        Nothing.
+
+        OUTPUT:
+
+        A tuple of growth elements.
+
+        EXAMPLES::
+
+            sage: from sage.rings.asymptotic.growth_group import GrowthGroup
+            sage: G = GrowthGroup('x^ZZ')
+            sage: G.an_element().factors()
+            (x,)
+        """
+        return (self,)
+
+
 class GenericGrowthGroup(
         sage.structure.unique_representation.UniqueRepresentation,
         sage.structure.parent.Parent):

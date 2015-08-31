@@ -351,7 +351,7 @@ class Variable(sage.structure.unique_representation.CachedRepresentation,
             sage: Variable('x') != Variable('y')
             True
         """
-        return not self.__eq__(other)
+        return not self == other
 
 
     def _repr_(self):
@@ -823,7 +823,7 @@ class GenericGrowthElement(sage.structure.element.MultiplicativeGroupElement):
             sage: G(1) != G(1)
             False
         """
-        return not self.__eq__(other)
+        return not self == other
 
 
     def __le__(self, other):
@@ -1841,7 +1841,7 @@ class AbstractGrowthGroupFunctor(ConstructionFunctor):
             sage: F != G
             True
         """
-        return not self.__eq__(other)
+        return not self == other
 
 
 class MonomialGrowthElement(GenericGrowthElement):

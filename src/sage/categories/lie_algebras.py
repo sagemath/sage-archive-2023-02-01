@@ -500,7 +500,7 @@ class LieAlgebras(Category_over_base_ring):
             Test that the Jacobi identity is satisfied on (not
             necessarily all) elements of this set.
 
-            INPUT::
+            INPUT:
 
             - ``options`` -- any keyword arguments accepted by :meth:`_tester`.
 
@@ -539,7 +539,7 @@ class LieAlgebras(Category_over_base_ring):
             Test that the antisymmetry axiom is satisfied on (not
             necessarily all) elements of this set.
 
-            INPUT::
+            INPUT:
 
             - ``options`` -- any keyword arguments accepted by :meth:`_tester`.
 
@@ -571,7 +571,7 @@ class LieAlgebras(Category_over_base_ring):
             Test the distributivity of the Lie bracket `[,]` on `+` on (not
             necessarily all) elements of this set.
 
-            INPUT::
+            INPUT:
 
             - ``options`` -- any keyword arguments accepted by :meth:`_tester`.
 

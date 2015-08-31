@@ -1431,7 +1431,7 @@ cdef bint seems_feasible(int v, int k, int l, int mu):
 
     return True
 
-def strongly_regular_graph(int v,int k,int l,int mu=-1,bint existence=False):
+def strongly_regular_graph(int v,int k,int l,int mu=-1,bint existence=False,bint check=True):
     r"""
     Return a `(v,k,\lambda,\mu)`-strongly regular graph.
 
@@ -1455,6 +1455,11 @@ def strongly_regular_graph(int v,int k,int l,int mu=-1,bint existence=False):
           regular graph exists (see :mod:`sage.misc.unknown`).
 
         - ``False`` -- meaning that no such strongly regular graph exists.
+
+    - ``check`` -- (boolean) Whether to check that output is correct before
+      returning it. As this is expected to be useless (but we are cautious
+      guys), you may want to disable it whenever you want speed. Set to
+      ``True`` by default.
 
     EXAMPLES:
 
@@ -1539,6 +1544,11 @@ def strongly_regular_graph(int v,int k,int l,int mu=-1,bint existence=False):
             return False
         raise ValueError("There exists no "+str(params)+"-strongly regular graph")
 
+    def check_srg(G):
+        if check and (v,k,l,mu) != G.is_strongly_regular(parameters=True):
+            raise RuntimeError("Sage built an incorrect {}-SRG.".format((v,k,l,mu)))
+        return G
+
     constructions = {
         ( 27,  16, 10,  8): [SchlaefliGraph],
         ( 36,  14,  4,  6): [Graph,('c~rLDEOcKTPO`U`HOIj@MWFLQFAaRIT`HIWqPsQQJ'+
@@ -1588,10 +1598,10 @@ def strongly_regular_graph(int v,int k,int l,int mu=-1,bint existence=False):
 
     if params in constructions:
         val = constructions[params]
-        return True if existence else val[0](*val[1:])
+        return True if existence else check_srg(val[0](*val[1:]))
     if params_complement in constructions:
         val = constructions[params_complement]
-        return True if existence else val[0](*val[1:]).complement()
+        return True if existence else check_srg(val[0](*val[1:]).complement())
 
     test_functions = [is_paley, is_johnson,
                       is_orthogonal_array_block_graph,
@@ -1609,12 +1619,12 @@ def strongly_regular_graph(int v,int k,int l,int mu=-1,bint existence=False):
             if existence:
                 return True
             ans = f(*params)
-            return ans[0](*ans[1:])
+            return check_srg(ans[0](*ans[1:]))
         if f(*params_complement):
             if existence:
                 return True
             ans = f(*params_complement)
-            return ans[0](*ans[1:]).complement()
+            return check_srg(ans[0](*ans[1:]).complement())
 
     # From now on, we have no idea how to build the graph.
     #

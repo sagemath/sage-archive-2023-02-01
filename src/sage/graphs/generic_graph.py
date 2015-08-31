@@ -16333,7 +16333,7 @@ class GenericGraph(GenericGraph_pyx):
 
         The name is not updated when there was none in the first place::
 
-            sage: sage: g = Graph(graphs.PetersenGraph().edges()); g
+            sage: g = Graph(graphs.PetersenGraph().edges()); g
             Graph on 10 vertices
             sage: g.complement()
             Graph on 10 vertices

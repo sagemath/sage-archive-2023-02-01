@@ -741,8 +741,40 @@ class GenericTerm(sage.structure.element.MonoidElement):
             :meth:`ExactTerm.log_term`,
             :meth:`OTerm.log_term`.
         """
-        raise NotImplementedError('This method is only implemented for terms'
-                                  ' used in AsymptoticExpression.')
+        raise NotImplementedError('This method is not implemented in this '
+                                  'abstract base class.')
+
+
+    def _log_growth_(self, base=None):
+        r"""
+        Helper function to calculate the logarithm of the growth of this element.
+
+        INPUT:
+
+        - ``base`` -- the base of the logarithm. If ``None``
+          (default value) is used, the natural logarithm is taken.
+
+        OUTPUT:
+
+        A tuple of terms.
+
+        EXAMPLES::
+
+            sage: from sage.rings.asymptotic.growth_group import GrowthGroup
+            sage: from sage.rings.asymptotic.term_monoid import TermMonoid
+            sage: T = TermMonoid('O', GrowthGroup('x^ZZ * log(x)^ZZ'), QQ)
+            sage: T(x^2)._log_growth_()
+            (O(log(x)),)
+            sage: T(x^1234).log_term()  # indirect doctest
+            (O(log(x)),)
+
+        .. SEEALSO::
+
+            :meth:`ExactTerm.log_term`,
+            :meth:`OTerm.log_term`.
+        """
+        return tuple(self.parent()._create_element_via_parent_(g, c)
+                     for g, c in self.growth.log_factor(base=base))
 
 
     def __le__(self, other):
@@ -1769,20 +1801,22 @@ class OTerm(GenericTerm):
             sage: from sage.rings.asymptotic.term_monoid import TermMonoid
             sage: T = TermMonoid('O', GrowthGroup('x^ZZ * log(x)^ZZ'), QQ)
             sage: T(x^2).log_term()
-            [O(log(x))]
+            (O(log(x)),)
             sage: T(x^1234).log_term()
-            [O(log(x))]
+            (O(log(x)),)
 
         ::
 
             sage: from sage.rings.asymptotic.term_monoid import TermWithCoefficientMonoid
             sage: T = TermMonoid('O', GrowthGroup('x^ZZ * log(x)^ZZ * y^ZZ * log(y)^ZZ'), QQ)
             sage: T('x * y').log_term()
-            [O(log(x)), O(log(y))]
+            (O(log(x)), O(log(y)))
+
+        .. SEEALSO::
+
+            :meth:`ExactTerm.log_term`.
         """
-        growth_log = self.growth.log_factor(base=base)
-        P = self.parent()
-        return [P(factor[0]) for factor in growth_log]
+        return self._log_growth_(base=base)
 
 
 class OTermMonoid(GenericTermMonoid):
@@ -2121,6 +2155,41 @@ class TermWithCoefficient(GenericTerm):
                                   'coefficient %s cannot be taken to this exponent.' %
                                   (self, exponent, self.coefficient)), e)
         return super(TermWithCoefficient, self)._calculate_pow_(exponent, coefficient=c)
+
+
+    def _log_coefficient_(self, base=None):
+        r"""
+        Helper function to calculate the logarithm of the coefficient of this element.
+
+        INPUT:
+
+        - ``base`` -- the base of the logarithm. If ``None``
+          (default value) is used, the natural logarithm is taken.
+
+        OUTPUT:
+
+        A tuple of terms.
+
+        EXAMPLES::
+
+            sage: from sage.rings.asymptotic.growth_group import GrowthGroup
+            sage: from sage.rings.asymptotic.term_monoid import TermMonoid
+            sage: T = TermMonoid('exact', GrowthGroup('x^ZZ * log(x)^ZZ'), QQ)
+            sage: T(3*x^2)._log_coefficient_()
+            (log(3),)
+            sage: T(x^1234).log_term()  # indirect doctest
+            (1234*log(x),)
+
+        .. SEEALSO::
+
+            :meth:`ExactTerm.log_term`,
+            :meth:`OTerm.log_term`.
+        """
+        if self.coefficient == self.parent().coefficient_ring.one():
+            return tuple()
+        from sage.functions.log import log
+        return (self.parent()._create_element_via_parent_(
+            self.parent().growth_group.one(), log(self.coefficient, base=base)),)
 
 
     def _le_(self, other):
@@ -2604,28 +2673,25 @@ class ExactTerm(TermWithCoefficient):
             sage: from sage.rings.asymptotic.term_monoid import TermMonoid
             sage: T = TermMonoid('exact', GrowthGroup('x^ZZ * log(x)^ZZ'), SR)
             sage: T(3*x^2).log_term()
-            [log(3), 2*log(x)]
+            (log(3), 2*log(x))
             sage: T(x^1234).log_term()
-            [1234*log(x)]
+            (1234*log(x),)
             sage: T(49*x^7).log_term(base=7)
-            [log(49)/log(7), 7/log(7)*log(x)]
+            (log(49)/log(7), 7/log(7)*log(x))
 
         ::
 
             sage: T = TermMonoid('exact', GrowthGroup('x^ZZ * log(x)^ZZ * y^ZZ * log(y)^ZZ'), SR)
             sage: T('x * y').log_term()
-            [log(x), log(y)]
+            (log(x), log(y))
             sage: T('4 * x * y').log_term(base=2)
-            [log(4)/log(2), 1/log(2)*log(x), 1/log(2)*log(y)]
+            (log(4)/log(2), 1/log(2)*log(x), 1/log(2)*log(y))
+
+        .. SEEALSO::
+
+            :meth:`OTerm.log_term`.
         """
-        from sage.functions.log import log
-        growth_log = self.growth.log_factor(base=base)
-        P = self.parent()
-        lst = [P(factor[0], factor[1]) for factor in growth_log]
-        if self.coefficient != P.coefficient_ring.one():
-            lst = [P(self.growth.parent().one(),
-                     log(self.coefficient, base=base))] + lst
-        return lst
+        return self._log_coefficient_(base=base) + self._log_growth_(base=base)
 
 
 class ExactTermMonoid(TermWithCoefficientMonoid):

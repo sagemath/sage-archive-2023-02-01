@@ -27,7 +27,7 @@ A characteristic property of asymptotic terms is that some terms are
 able to "absorb" other terms (see
 :meth:`~sage.rings.asymptotic.term_monoid.GenericTerm.absorb`). For
 instance, `O(x^2)` is able to absorb `O(x)` (with result
-`O(x^2)`), and `3*x^5` is able to absorb `-2*x^5` (with result
+`O(x^2)`), and `3\cdot x^5` is able to absorb `-2\cdot x^5` (with result
 `x^5`). Essentially, absorption can be interpreted as the
 addition of "compatible" terms (partial addition).
 

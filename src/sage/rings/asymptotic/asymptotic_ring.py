@@ -1215,9 +1215,9 @@ class AsymptoticExpression(sage.structure.element.CommutativeAlgebraElement):
 
         elif len(self.summands) == 1:
             if self == 1:
-                return self.parent().zero()
+                return P.zero()
             element = next(self.summands.elements())
-            return sum(self.parent()._create_element_via_parent_(l, element.parent())
+            return sum(P._create_element_via_parent_(l, element.parent())
                        for l in element.log_term(base=base))
 
         max_elem = tuple(self.summands.maximal_elements())
@@ -1231,7 +1231,7 @@ class AsymptoticExpression(sage.structure.element.CommutativeAlgebraElement):
         if imax_elem.parent() is max_elem.parent():
             new_self = self
         else:
-            new_self = self.parent()._create_element_via_parent_(
+            new_self = P._create_element_via_parent_(
                 imax_elem, max_elem.parent()).parent()(self)
 
         one = new_self.parent().one()

@@ -568,6 +568,25 @@ def log(self, base=None):
         sage: log(el, base=2)
         x
 
+    ::
+
+        sage: from sage.rings.asymptotic.growth_group import GenericGrowthGroup
+        sage: x = GenericGrowthGroup(ZZ).an_element()
+        sage: log(x)  # indirect doctest
+        Traceback (most recent call last):
+        ...
+        NotImplementedError: Cannot determine logarithmized factorization of
+        GenericGrowthElement(1) in abstract base class.
+
+    ::
+
+        sage: x = GrowthGroup('x^ZZ').an_element()
+        sage: log(x)
+        Traceback (most recent call last):
+        ...
+        ArithmeticError: Cannot build log(x) since log(x) is not in
+        Growth Group x^ZZ.
+
     TESTS::
 
         sage: G = GrowthGroup("QQ['e']^x * x^ZZ")
@@ -1042,45 +1061,6 @@ class GenericGrowthElement(sage.structure.element.MultiplicativeGroupElement):
             NotImplementedError: Only implemented in concrete realizations.
         """
         raise NotImplementedError('Only implemented in concrete realizations.')
-
-
-    def log(self, base=None):
-        r"""
-        Return the logarithm of this element.
-
-        INPUT:
-
-        - ``base`` -- the base of the logarithm. If ``None``
-          (default value) is used, the natural logarithm is taken.
-
-        OUTPUT:
-
-        A growth element.
-
-        .. NOTE::
-
-            The logarithm is only implemented for elements from a
-            Cartesian product of growth groups, see
-            :meth:`~sage.rings.asymptotic.growth_group_cartesian.GenericProduct.Element.log`.
-
-        EXAMPLES::
-
-            sage: from sage.rings.asymptotic.growth_group import (GrowthGroup, GenericGrowthGroup)
-            sage: x = GenericGrowthGroup(ZZ).an_element()
-            sage: log(x)  # indirect doctest
-            Traceback (most recent call last):
-            ...
-            ArithmeticError: building log(GenericGrowthElement(1)) is not possible.
-
-        ::
-
-            sage: x = GrowthGroup('x^ZZ').an_element()
-            sage: log(x)
-            Traceback (most recent call last):
-            ...
-            ArithmeticError: building log(x) is not possible.
-        """
-        raise ArithmeticError('building log(%s) is not possible.' % (self,))
 
 
     log = log

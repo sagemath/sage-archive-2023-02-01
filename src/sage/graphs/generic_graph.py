@@ -16345,7 +16345,7 @@ class GenericGraph(GenericGraph_pyx):
         G = copy(self)
         G.delete_edges(G.edges())
         if self.name():
-            G.name('complement(%s)'%self.name())
+            G.name("complement({})".format(self.name()))
         for u in self:
             for v in self:
                 if not self.has_edge(u,v):

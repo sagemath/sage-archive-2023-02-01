@@ -38,11 +38,17 @@ addition of "compatible" terms (partial addition).
 
 AUTHORS:
 
-- Benjamin Hackl (2015-01): initial version
-- Benjamin Hackl, Daniel Krenn (2015-05): conception of the asymptotic ring
-- Benjamin Hackl (2015-06): refactoring caused by refactoring growth groups
-- Daniel Krenn (2015-07): extensive review and patches
-- Benjamin Hackl (2015-07): cross-review; short notation
+- Benjamin Hackl (2015-01-01): initial version
+- Benjamin Hackl, Daniel Krenn (2015-05-15): conception of the asymptotic ring
+- Benjamin Hackl (2015-06-00): refactoring caused by refactoring growth groups
+- Daniel Krenn (2015-07-00): extensive review and patches
+- Benjamin Hackl (2015-07-00): cross-review; short notation
+- Daniel Krenn (2015-08-31): various improvements, review; documentation
+
+ACKNOWLEDGEMENT:
+
+- Benjamin Hackl, Clemens Heuberger and Daniel Krenn are supported by the
+  Austrian Science Fund (FWF): P 24644-N26.
 
 .. WARNING::
 

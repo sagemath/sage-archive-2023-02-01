@@ -330,9 +330,14 @@ Various
 
 AUTHORS:
 
-- Benjamin Hackl (2015-06): initial version
-- Benjamin Hackl (2015-07): improvement user interface (short notation)
-- Daniel Krenn (2015-08): various improvents, review; documentation
+- Benjamin Hackl (2015-06-00): initial version
+- Benjamin Hackl (2015-07-00): improvement user interface (short notation)
+- Daniel Krenn (2015-08-31): various improvements, review; documentation
+
+ACKNOWLEDGEMENT:
+
+- Benjamin Hackl, Clemens Heuberger and Daniel Krenn are supported by the
+  Austrian Science Fund (FWF): P 24644-N26.
 
 
 Classes and Methods

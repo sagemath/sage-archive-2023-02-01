@@ -178,11 +178,17 @@ can be constructed easily::
 
 AUTHORS:
 
-- Benjamin Hackl (2015-01): initial version
+- Benjamin Hackl (2015-01-01): initial version
 - Daniel Krenn (2015-05-29): initial version and review
 - Daniel Krenn (2015-06-02): cartesian products
-- Benjamin Hackl (2015-07): growth group factory
-- Benjamin Hackl (2015-08): exponential growth group, initial version
+- Benjamin Hackl (2015-07-00): growth group factory
+- Benjamin Hackl (2015-08-00): exponential growth group, initial version
+- Daniel Krenn (2015-08-31): various improvements, review; documentation
+
+ACKNOWLEDGEMENT:
+
+- Benjamin Hackl, Clemens Heuberger and Daniel Krenn are supported by the
+  Austrian Science Fund (FWF): P 24644-N26.
 
 Classes and Methods
 ===================

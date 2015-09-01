@@ -10,7 +10,6 @@ Affine Derived Subalgebra Crystals
 
 from sage.misc.abstract_method import abstract_method
 from sage.misc.cachefunc import cached_method
-#from sage.categories.category_with_axiom import CategoryWithAxiom
 from sage.categories.category_singleton import Category_singleton
 from sage.categories.crystals import Crystals
 from sage.categories.regular_crystals import RegularCrystals
@@ -32,7 +31,7 @@ class AffineDerivedSubalgebraCrystals(Category_singleton):
         sage: C
         Category of affine derived subalgebra crystals
         sage: C.super_categories()
-        [Category of regular crystals]
+        [Category of crystals]
         sage: C.example()
         Kirillov-Reshetikhin crystal of type ['A', 3, 1] with (r,s)=(1,1)
 
@@ -73,9 +72,9 @@ class AffineDerivedSubalgebraCrystals(Category_singleton):
 
             sage: from sage.categories.affine_derived_crystals import AffineDerivedSubalgebraCrystals
             sage: AffineDerivedSubalgebraCrystals().super_categories()
-            [Category of regular crystals]
+            [Category of crystals]
         """
-        return [RegularCrystals()]
+        return [Crystals()]
 
     def example(self, n = 3):
         """
@@ -121,7 +120,7 @@ class AffineDerivedSubalgebraCrystals(Category_singleton):
               which the digraph should be constructed
 
             - ``index_set`` -- (optional) the index set to draw arrows
-
+ 
             .. SEEALSO::
 
                 :meth:`sage.categories.crystals.Crystals.ParentMethods.digraph`
@@ -141,6 +140,44 @@ class AffineDerivedSubalgebraCrystals(Category_singleton):
                 G.set_latex_options(edge_options=f)
             return G
 
+# TODO: Should we make "regular" an axiom?
+class RegularAffineDerivedSubalgebraCrystals(Category_singleton):
+    r"""
+    The category of regular `U_q'(\mathfrak{g})`-crystals, where
+    `\mathfrak{g}` is of affine type.
+    """
+    @cached_method
+    def super_categories(self):
+        """
+        EXAMPLES::
+
+            sage: from sage.categories.affine_derived_crystals import RegularAffineDerivedSubalgebraCrystals
+            sage: RegularAffineDerivedSubalgebraCrystals().super_categories()
+            [Category of regular crystals,
+             Category of affine derived subalgebra crystals]
+        """
+        return [RegularCrystals(), AffineDerivedSubalgebraCrystals()]
+
+    class ElementMethods:
+        def classical_weight(self):
+            """
+            Return the classical weight of ``self``.
+
+            EXAMPLES::
+
+                sage: R = RootSystem(['A',2,1])
+                sage: La = R.weight_space().basis()
+                sage: LS = crystals.ProjectedLevelZeroLSPaths(2*La[1])
+                sage: hw = LS.classically_highest_weight_vectors()
+                sage: [(v.weight(), v.classical_weight()) for v in hw]
+                [(-2*Lambda[0] + 2*Lambda[1], (2, 0, 0)),
+                 (-Lambda[0] + Lambda[2], (1, 1, 0))]
+            """
+            CT = self.cartan_type().classical()
+            I0 = CT.index_set()
+            La = CT.root_system().ambient_space().fundamental_weights()
+            return sum(La[i] * (self.phi(i) - self.epsilon(i)) for i in I0)
+
 class KirillovReshetikhinCrystals(Category_singleton):
     """
     Category of Kirillov-Reshetikhin crystals.
@@ -152,9 +189,9 @@ class KirillovReshetikhinCrystals(Category_singleton):
 
             sage: from sage.categories.affine_derived_crystals import KirillovReshetikhinCrystals
             sage: KirillovReshetikhinCrystals().super_categories()
-            [Category of finite affine derived subalgebra crystals]
+            [Category of finite regular affine derived subalgebra crystals]
         """
-        return [AffineDerivedSubalgebraCrystals().Finite()]
+        return [RegularAffineDerivedSubalgebraCrystals().Finite()]
 
     class ParentMethods:
         @abstract_method
@@ -384,9 +421,9 @@ class KirillovReshetikhinCrystals(Category_singleton):
 
                 sage: from sage.categories.affine_derived_crystals import KirillovReshetikhinCrystals
                 sage: KirillovReshetikhinCrystals().TensorProducts().extra_super_categories()
-                [Category of finite affine derived subalgebra crystals]
+                [Category of finite regular affine derived subalgebra crystals]
             """
-            return [AffineDerivedSubalgebraCrystals().Finite()]
+            return [RegularAffineDerivedSubalgebraCrystals().Finite()]
 
         class ParentMethods:
             @cached_method

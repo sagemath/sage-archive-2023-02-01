@@ -2398,7 +2398,7 @@ cdef class Rational(sage.structure.element.FieldElement):
 
         if nn < 0:
             sig_on()
-            if mpz_sgn(mpq_numref(x.value)) == 0:
+            if mpz_sgn(mpq_numref(_self.value)) == 0:
                 sig_off()
                 raise ZeroDivisionError('rational division by zero')
             # mpz_pow_ui(mpq_denref(x.value), mpq_numref(_self.value), <unsigned long int>(-nn))

@@ -32,7 +32,7 @@ class AffineDerivedSubalgebraCrystals(Category_singleton):
         sage: C
         Category of affine derived subalgebra crystals
         sage: C.super_categories()
-        [Category of finite regular crystals]
+        [Category of regular crystals]
         sage: C.example()
         Kirillov-Reshetikhin crystal of type ['A', 3, 1] with (r,s)=(1,1)
 
@@ -73,9 +73,9 @@ class AffineDerivedSubalgebraCrystals(Category_singleton):
 
             sage: from sage.categories.affine_derived_crystals import AffineDerivedSubalgebraCrystals
             sage: AffineDerivedSubalgebraCrystals().super_categories()
-            [Category of finite regular crystals]
+            [Category of regular crystals]
         """
-        return [RegularCrystals().Finite()]
+        return [RegularCrystals()]
 
     def example(self, n = 3):
         """
@@ -152,7 +152,7 @@ class KirillovReshetikhinCrystals(Category_singleton):
 
             sage: from sage.categories.affine_derived_crystals import KirillovReshetikhinCrystals
             sage: KirillovReshetikhinCrystals().super_categories()
-            [Category of affine derived subalgebra crystals]
+            [Category of finite affine derived subalgebra crystals]
         """
         return [AffineDerivedSubalgebraCrystals().Finite()]
 
@@ -377,6 +377,17 @@ class KirillovReshetikhinCrystals(Category_singleton):
         """
         The category of tensor products of Kirillov-Reshetikhin crystals.
         """
+        @cached_method
+        def extra_super_categories(self):
+            """
+            EXAMPLES::
+
+                sage: from sage.categories.affine_derived_crystals import KirillovReshetikhinCrystals
+                sage: KirillovReshetikhinCrystals().TensorProducts().extra_super_categories()
+                [Category of finite affine derived subalgebra crystals]
+            """
+            return [AffineDerivedSubalgebraCrystals().Finite()]
+
         class ParentMethods:
             @cached_method
             def classically_highest_weight_vectors(self):

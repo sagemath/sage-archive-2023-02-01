@@ -1255,6 +1255,43 @@ class AsymptoticExpression(sage.structure.element.CommutativeAlgebraElement):
         return result
 
 
+    def is_little_o_of_one(self):
+        r"""
+        Return if this expression is of order `o(1)`.
+
+        INPUT:
+
+        Nothing.
+
+        OUTPUT:
+
+        A boolean.
+
+        EXAMPLES::
+
+            sage: A.<x> = AsymptoticRing('x^ZZ * log(x)^ZZ', QQ)
+            sage: (x^4 * log(x)^(-2) + x^(-4) * log(x)^2).is_little_o_of_one()
+            False
+            sage: (x^(-1) * log(x)^1234 + x^(-2) + O(x^(-3))).is_little_o_of_one()
+            True
+            sage: (log(x) - log(x-1)).is_little_o_of_one()
+            True
+
+        ::
+
+            sage: A.<x, y> = AsymptoticRing('x^QQ * y^QQ * log(y)^ZZ', QQ)
+            sage: (x^(-1/16) * y^32 + x^32 * y^(-1/16)).is_little_o_of_one()
+            False
+            sage: (x^(-1) * y^(-3) + x^(-3) * y^(-1)).is_little_o_of_one()
+            True
+            sage: (x^(-1) * y / log(y)).is_little_o_of_one()
+            False
+            sage: (log(y-1)/log(y) - 1).is_little_o_of_one()
+            True
+        """
+        return all(term.is_little_o_of_one() for term in self.summands.maximal_elements())
+
+
     def exp(self, precision=None):
         r"""
         Return the exponential function `\exp(\,\cdot\,)` of this

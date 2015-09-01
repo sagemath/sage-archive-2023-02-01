@@ -6964,7 +6964,7 @@ class Graph(GenericGraph):
         D = matrix.diagonal(PolynomialRing(ZZ, name, self.size()).gens())
         return (circuit_mtrx.transpose() * D * circuit_mtrx).determinant()
 
-    def ihara_zeta_function_inverse(self):
+    def ihara_zeta_function_inverse(self, algorithm='fast'):
         """
         Compute the inverse of the Ihara zeta function of the graph
 
@@ -6974,6 +6974,8 @@ class Graph(GenericGraph):
         See :wikipedia:`Ihara zeta function`
 
         ALGORITHM:
+
+        TO BE CHANGED!
 
         This is computed here using the determinant of a square matrix
         of size twice the number of edges, related to the adjacency
@@ -7014,6 +7016,31 @@ class Graph(GenericGraph):
         """
         from sage.matrix.constructor import matrix
         from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
+        if algorithm == 'new':
+            H = G.copy()
+            # first prune vertices of degree at most 1
+            done = False
+            while not done:
+                H.delete_vertices([v for v in H.vertices() if H.degree(v) < 2])
+                if min(H.degree_sequence()) >= 2:
+                    done = True
+            E = H.edges()
+            m = len(E)
+            # compute (Hashimoto) edge matrix T
+            T = matrix(ZZ, 2 * m, 2 * m, 0)
+            for i in range(m):
+                for j in range(m):
+                    if i != j:
+                        if E[i][1] == E[j][0]:  # same orientation
+                            T[2 * i, 2 * j] = 1
+                            T[2 * j + 1, 2 * i + 1] = 1
+                        if E[i][1] == E[j][1]:  # opposite orientation (towards)
+                            T[2 * i, 2 * j + 1] = 1
+                            T[2 * j, 2 * i + 1] = 1
+                        if E[i][0] == E[j][0]:  # opposite orientation (away)
+                            T[2 * i + 1, 2 * j] = 1
+                            T[2 * j + 1, 2 * i] = 1
+            return T.charpoly('t').reverse()
 
         ring = PolynomialRing(ZZ, 't')
         t = ring.gen()

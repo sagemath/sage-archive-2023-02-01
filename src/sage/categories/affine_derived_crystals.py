@@ -390,6 +390,20 @@ class KirillovReshetikhinCrystals(Category_singleton):
 
         class ParentMethods:
             @cached_method
+            def maximal_vector(self):
+                """
+                Return the maximal vector of ``self``.
+
+                EXAMPLES::
+
+                    sage: K = crystals.KirillovReshetikhin(['A',2,1],1,1)
+                    sage: T = crystals.TensorProduct(K,K,K)
+                    sage: T.maximal_vector()
+                    [[[1]], [[1]], [[1]]]
+                """
+                return self(*[K.maximal_vector() for K in self.crystals])
+
+            @cached_method
             def classically_highest_weight_vectors(self):
                 """
                 Return the classically highest weight elements of ``self``.

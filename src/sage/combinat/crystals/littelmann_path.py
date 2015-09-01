@@ -707,9 +707,33 @@ class CrystalOfProjectedLevelZeroLSPaths(CrystalOfLSPaths):
         return super(CrystalOfLSPaths, cls).__classcall__(cls, weight, starting_weight_parent = weight.parent())
 
     @cached_method
+    def maximal_vector(self):
+        """
+        Return the maximal vector of ``self``.
+
+        EXAMPLES::
+
+            sage: R = RootSystem(['A',2,1])
+            sage: La = R.weight_space().basis()
+            sage: LS = crystals.ProjectedLevelZeroLSPaths(2*La[1]+La[2])
+            sage: LS.maximal_vector()
+            (-3*Lambda[0] + 2*Lambda[1] + Lambda[2],)
+        """
+        return self.module_generators[0]
+
+    @cached_method
     def classically_highest_weight_vectors(self):
         r"""
         Return the classically highest weight vectors of ``self``.
+
+        EXAMPLES::
+
+            sage: R = RootSystem(['A',2,1])
+            sage: La = R.weight_space().basis()
+            sage: LS = crystals.ProjectedLevelZeroLSPaths(2*La[1])
+            sage: LS.classically_highest_weight_vectors()
+            ((-2*Lambda[0] + 2*Lambda[1],),
+             (-Lambda[0] + Lambda[1], -Lambda[1] + Lambda[2]))
         """
         I0 = self.cartan_type().classical().index_set()
         return tuple([x for x in self.list() if x.is_highest_weight(I0)])

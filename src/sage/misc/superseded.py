@@ -274,12 +274,13 @@ class DeprecatedFunctionAlias(object):
     - Florent Hivert (2009-11-23), with the help of Mike Hansen.
     - Luca De Feo (2011-07-11), printing the full module path when different from old path
     """
-    def __init__(self, trac_number, func, module):
+    def __init__(self, trac_number, func, module, instance = None, unbound = None):
         r"""
         TESTS::
 
             sage: from sage.misc.superseded import deprecated_function_alias
             sage: g = deprecated_function_alias(13109, number_of_partitions)
+            sage: from sage.misc.superseded import deprecated_function_alias
             sage: g.__doc__
             'Deprecated: Use :func:`number_of_partitions` instead.\nSee :trac:`13109` for details.\n\n'
         """
@@ -290,7 +291,8 @@ class DeprecatedFunctionAlias(object):
             pass # Cython classes don't have __dict__
         self.func = func
         self.trac_number  = trac_number
-        self.instance = None # for use with methods
+        self.instance = instance # for use with methods
+        self.unbound = unbound
         self.__module__ = module
         if isinstance(func, type(deprecation)):
             sphinxrole = "func"
@@ -350,6 +352,12 @@ class DeprecatedFunctionAlias(object):
                 for key, val in ref_copy.iteritems():
                     if val is self:
                         return key
+        for ref in gc.get_referrers(self.unbound):
+            if is_class(ref):
+                ref_copy = copy.copy(ref)
+                for key, val in ref_copy.iteritems():
+                    if val is self.unbound:
+                        return key
         raise AttributeError("The name of this deprecated function can not be determined")
 
     def __call__(self, *args, **kwds):
@@ -388,8 +396,7 @@ class DeprecatedFunctionAlias(object):
             sage: obj.old_meth.instance is obj
             True
         """
-        self.instance = inst
-        return self
+        return DeprecatedFunctionAlias(self.trac_number, self.func, self.__module__, instance = inst, unbound = self)
 
 
 def deprecated_function_alias(trac_number, func):

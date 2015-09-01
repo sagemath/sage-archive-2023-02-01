@@ -2214,9 +2214,9 @@ class MonomialGrowthElement(GenericGrowthElement):
         from sage.rings.integer_ring import ZZ
 
         var = repr(self.parent()._var_)
-        if self.exponent == 0:
+        if self.exponent.is_zero():
             return '1'
-        elif self.exponent == 1:
+        elif self.exponent.is_one():
             return var
         elif self.exponent in ZZ and self.exponent > 0:
             return var + '^' + str(self.exponent)
@@ -2342,7 +2342,7 @@ class MonomialGrowthElement(GenericGrowthElement):
             ArithmeticError: Cannot build log(x) since log(x) is not in
             Growth Group x^QQ.
         """
-        if self == self.parent().one():
+        if self.is_one():
             return tuple()
         coefficient = self.exponent
         if base is not None:
@@ -2382,7 +2382,7 @@ class MonomialGrowthElement(GenericGrowthElement):
             Growth Group x^ZZ
         """
         var = str(self.parent()._var_)
-        if not(var.startswith('log(') and self.exponent == 1):
+        if not(var.startswith('log(') and self.exponent.is_one()):
             raise ValueError('Variable %s is not a log of something.')
         new_var = var[4:-1]
         if base == 'e':
@@ -2834,7 +2834,7 @@ class ExponentialGrowthElement(GenericGrowthElement):
         from sage.rings.integer_ring import ZZ
 
         var = repr(self.parent()._var_)
-        if self.base == 1:
+        if self.base.is_one():
             return '1'
         elif not any(s in str(self.base) for s in '-/^'):
             return str(self.base) + '^' + var
@@ -2963,7 +2963,7 @@ class ExponentialGrowthElement(GenericGrowthElement):
             ArithmeticError: Cannot build log(4^x) since x is not in
             Growth Group QQ^x.
         """
-        if self == self.parent().one():
+        if self.is_one():
             return tuple()
         b = self.base
         if base is None and \

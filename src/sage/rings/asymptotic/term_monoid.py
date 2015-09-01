@@ -2194,7 +2194,7 @@ class TermWithCoefficient(GenericTerm):
             :meth:`ExactTerm.log_term`,
             :meth:`OTerm.log_term`.
         """
-        if self.coefficient == self.parent().coefficient_ring.one():
+        if self.coefficient.is_one():
             return tuple()
         from sage.functions.log import log
         return (self.parent()._create_element_via_parent_(
@@ -2652,7 +2652,7 @@ class ExactTerm(TermWithCoefficient):
             ArithmeticError: x^5 cannot absorb 2*x^2
         """
         coeff_new = self.coefficient + other.coefficient
-        if coeff_new == 0:
+        if coeff_new.is_zero():
             return None
         else:
             return self.parent()(self.growth, coeff_new)

@@ -1338,7 +1338,18 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: q = p.inverse_series_trunc(13)
             sage: (p*q).truncate(13) == M.one()
             True
+
+        TESTS::
+
+            sage: x = polygen(ZZ['a','b'])
+            sage: (x+1).inverse_series_trunc(0)
+            Traceback (most recent call last):
+            ...
+            ValueError: the precision must be positive, got 0
         """
+        if prec <= 0:
+            raise ValueError("the precision must be positive, got {}".format(prec))
+
         if not self[0].is_unit():
             raise ValueError("constant term {} is not a unit".format(self[0]))
 

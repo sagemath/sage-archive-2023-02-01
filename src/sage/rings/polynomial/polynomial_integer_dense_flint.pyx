@@ -1047,7 +1047,15 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
             Traceback (most recent call last):
             ...
             ValueError: constant term 2 is not a unit
+            sage: x = polygen(ZZ)
+            sage: (x+1).inverse_series_trunc(0)
+            Traceback (most recent call last):
+            ...
+            ValueError: the precision must be positive, got 0
         """
+        if prec <= 0:
+            raise ValueError("the precision must be positive, got {}".format(prec))
+
         if fmpz_poly_degree(self.__poly) == -1:
             raise ValueError("constant term is zero")
         cdef fmpz_t c = fmpz_poly_get_coeff_ptr(self.__poly, 0)

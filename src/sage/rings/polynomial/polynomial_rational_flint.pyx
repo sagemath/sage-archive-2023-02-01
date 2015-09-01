@@ -1261,7 +1261,13 @@ cdef class Polynomial_rational_flint(Polynomial):
             Traceback (most recent call last):
             ...
             ValueError: constant term is zero
+            sage: (x+1).inverse_series_trunc(0)
+            Traceback (most recent call last):
+            ...
+            ValueError: the precision must be positive, got 0
         """
+        if prec <= 0:
+            raise ValueError("the precision must be positive, got {}".format(prec))
         if fmpq_poly_degree(self.__poly) == -1 or \
            fmpz_is_zero(fmpq_poly_numref(self.__poly)):
             raise ValueError("constant term is zero")

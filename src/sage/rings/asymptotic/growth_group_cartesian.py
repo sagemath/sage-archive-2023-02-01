@@ -799,6 +799,40 @@ class GenericProduct(CartesianProductPosets, GenericGrowthGroup):
             return s
 
 
+        def __pow__(self, exponent):
+            r"""
+            Calculate the power of this growth element to the given
+            ``exponent``.
+
+            INPUT:
+
+            - ``exponent`` -- a number. This can be anything that is a
+              valid right hand side of ``*`` with elements of the
+              parent's base.
+
+            OUTPUT:
+
+            A growth element.
+
+            EXAMPLES::
+
+                sage: from sage.rings.asymptotic.growth_group import GrowthGroup
+                sage: G = GrowthGroup('x^ZZ * y^QQ * z^ZZ')
+                sage: x, y, z = G.gens_monomial()
+                sage: (x^5 * y * z^5)^(1/5)  # indirect doctest
+                x*y^(1/5)*z
+
+            ::
+
+                sage: G = GrowthGroup('x^QQ * log(x)^QQ'); x = G('x')
+                sage: (x^(21/5) * log(x)^7)^(1/42)  # indirect doctest
+                x^(1/10)*log(x)^(1/6)
+            """
+            P = self.parent()
+            return P.prod(P.cartesian_injection(elt.parent(), elt ** exponent)
+                          for elt in self.value)
+
+
         def factors(self):
             r"""
             Return the atomic factors of this growth element. An atomic factor

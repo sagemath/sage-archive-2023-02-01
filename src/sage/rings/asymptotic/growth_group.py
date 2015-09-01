@@ -97,12 +97,14 @@ and a typical element looks like this::
     sage: E.an_element()
     (1/2)^z
 
-More complex groups are created in a similar fashion. For example::
+More complex groups are created in a similar fashion. For example
+::
 
     sage: C = GrowthGroup('QQ^z * z^QQ * log(z)^QQ'); C
     Growth Group QQ^z * z^QQ * log(z)^QQ
 
-This contains elements of the form::
+This contains elements of the form
+::
 
     sage: C.an_element()
     (1/2)^z*z^(1/2)*log(z)^(1/2)

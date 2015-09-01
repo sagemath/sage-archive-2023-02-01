@@ -1884,9 +1884,14 @@ cdef class Polynomial(CommutativeAlgebraElement):
         Check that the algorithm used is indeed correct::
 
             sage: from sage.structure.element import generic_power
-            sage: R.<x> = PolynomialRing(GF(17), sparse=True)
-            sage: for d in [17, 264, 516]:
-            ....:     assert((1+x)^d == generic_power(1+x,d))
+            sage: R1 = PolynomialRing(GF(8,'a'), 'x')
+            sage: R2 = PolynomialRing(GF(9,'b'), 'x', sparse=True)
+            sage: R3 = PolynomialRing(R2, 'y')
+            sage: R4 = PolynomialRing(R1, 'y', sparse=True)
+            sage: for d in range(20,40): # long time
+            ....:     for R in [R1, R2, R3, R3]:
+            ....:         a = R.random_element()
+            ....:         assert a^d == generic_power(a,d)
         """
         if type(right) is not Integer:
             try:

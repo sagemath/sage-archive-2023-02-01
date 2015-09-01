@@ -7016,8 +7016,8 @@ class Graph(GenericGraph):
         """
         from sage.matrix.constructor import matrix
         from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
-        if algorithm == 'new':
-            H = G.subgraph(vertices=G.cores(k=2)[1])
+        if algorithm == 'fast':
+            H = self.subgraph(vertices=self.cores(k=2)[1])
             E = H.edges()
             m = len(E)
             # compute (Hashimoto) edge matrix T

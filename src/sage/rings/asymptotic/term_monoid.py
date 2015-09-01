@@ -3050,7 +3050,8 @@ class ExactTerm(TermWithCoefficient):
             base = 'e'
 
         if self.is_constant():
-            return P(P.growth_group.one(), coefficient=base**self.coefficient)
+            return P(P.growth_group.one(),
+                     coefficient=P.coefficient_ring(base)**self.coefficient)
 
         elem = P(self.growth.rpow(base=base),
                  coefficient=P.coefficient_ring.one())

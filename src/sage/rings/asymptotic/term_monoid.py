@@ -1,5 +1,5 @@
 r"""
-Asymptotic Term Monoid
+(Asymptotic) Term Monoids
 
 This module implements asymptotic term monoids. The elements of these
 monoids are used behind the scenes when performing calculations in an
@@ -60,6 +60,9 @@ AUTHORS:
         without a formal deprecation.
         See http://trac.sagemath.org/17601 for details.
         sage: T = GenericTermMonoid(G, ZZ)
+
+Classes and Methods
+===================
 """
 
 # *****************************************************************************

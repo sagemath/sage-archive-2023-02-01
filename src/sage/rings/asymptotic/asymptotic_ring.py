@@ -303,8 +303,8 @@ AUTHORS:
 - Daniel Krenn (2015-08): various improvents, review; documentation
 
 
-Methods
-=======
+Classes and Methods
+===================
 """
 
 # *****************************************************************************

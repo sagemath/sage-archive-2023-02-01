@@ -1,13 +1,13 @@
 r"""
-Asymptotic Ring -- Misc
+Asymptotic Ring --- Miscellaneous
 
 AUTHORS:
 
 - Daniel Krenn (2015-08): move functions from other files to this file
 
 
-Methods
-=======
+Functions, Classes and Methods
+==============================
 """
 
 import sage

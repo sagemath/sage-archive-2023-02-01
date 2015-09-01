@@ -184,6 +184,9 @@ AUTHORS:
 - Daniel Krenn (2015-06-02): cartesian products
 - Benjamin Hackl (2015-07): growth group factory
 - Benjamin Hackl (2015-08): exponential growth group, initial version
+
+Classes and Methods
+===================
 """
 
 #*****************************************************************************

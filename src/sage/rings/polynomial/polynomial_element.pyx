@@ -1316,7 +1316,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: (1+x + y**2).change_ring(ZZx.fraction_field()).inverse_series_trunc(4)
             (-1/(x^2 + 2*x + 1))*y^2 + 1/(x + 1)
 
-        The method works on any polynomial ring::
+        The method works over any polynomial ring::
 
             sage: R = Zmod(4)
             sage: Rx.<x> = R[]

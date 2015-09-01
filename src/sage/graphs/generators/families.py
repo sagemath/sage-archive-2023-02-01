@@ -2753,19 +2753,21 @@ def SymplecticDualPolarGraph(m, q):
         G.name(G.name()+'; GQ'+str((q,q)))
     return G
 
-def TaylorTwographDescendantSRG(q, clique_partition=None, v0=None):
+def TaylorTwographDescendantSRG(q, clique_partition=None):
     r"""
-    constructing the descendant graph of the Taylor's two-graph for U_3(q), q odd
+    constructing the descendant graph of the Taylor's two-graph for `U_3(q)`, `q` odd
 
     This is a strongly regular graph with parameters
     `(v,k,\lambda,\mu)=(q^3, (q^2+1)(q-1)/2, (q-1)^3/4-1, (q^2+1)(q-1)/4)`
     obtained as a two-graph descendant of the
-    :func:`Taylor two-graph <sage.combinat.designs.twographs.taylor_twograph>`.
-    This graph admits a partition into cliques of size `q`, useful to construct
-    a strongly regular graph on `q^3+1` vertices in its Seidel switching class,
-    for which we need `(q^2+1)/2` cliques.
-    The cliques are the `q^2` lines on `v_0` of the projective plane intersecting
-    the unital (i.e. the vertices of the graph and the point we remove) in `q+1` points.
+    :func:`Taylor's two-graph <sage.combinat.designs.twographs.taylor_twograph>` `T`.
+    This graph admits a partition into cliques of size `q`, which are useful to construct
+    :func:`TaylorTwographSRG <sage.graphs.generators.families.TaylorTwographSRG>`,
+    a strongly regular graph on `q^3+1` vertices in the
+    Seidel switching class of `T`, for which we need `(q^2+1)/2` cliques.
+    The cliques are the `q^2` lines on `v_0` of the projective plane containing the unital
+    for `U_3(q)`, and intersecting the unital (i.e. the vertices of the graph and the point
+    we remove) in `q+1` points.
 
     INPUT:
 
@@ -2836,12 +2838,16 @@ def TaylorTwographDescendantSRG(q, clique_partition=None, v0=None):
 
 def TaylorTwographSRG(q):
     r"""
-    constructing a strongly regular graph from the Taylor's two-graph for U_3(q), q odd
+    constructing a strongly regular graph from the Taylor's two-graph for `U_3(q)`, `q` odd
 
     This is a strongly regular graph with parameters
     `(v,k,\lambda,\mu)=(q^3+1, q(q^2+1)/2, (q^2+3)(q-1)/4, (q^2+1)(q+1)/4)`
     in the Seidel switching class of
     :func:`Taylor two-graph <sage.combinat.designs.twographs.taylor_twograph>`.
+
+    .. SEEALSO::
+
+    `TaylorTwographDescendantSRG <sage.graphs.generators.families.TaylorTwographDescendantSRG>`
 
     EXAMPLES::
 
@@ -2854,7 +2860,7 @@ def TaylorTwographSRG(q):
     from sage.misc.flatten import flatten
     from sage.graphs.generators.families import TaylorTwographDescendantSRG
     H, l, v0 = TaylorTwographDescendantSRG(q, clique_partition=True)
-    G = H.union(Graph([[v0], lambda x, y: x != y]))
+    G = H.union(Graph([[v0], lambda x, y: x != y])) # to make sure vertices are not relabeled
     G.seidel_switching(flatten(l[:(q**2+1)/2]))
     G.name("Taylor two-graph SRG")
     return G

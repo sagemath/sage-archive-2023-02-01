@@ -47,6 +47,7 @@ This module's functions are the following :
     :widths: 30, 70
     :delim: |
 
+    :func:`~taylor_twograph` | constructs Taylor's two-graph for `U_3(q)`
     :func:`~is_twograph`         | checks that the incidence system is a two-graph
     :func:`~twograph_descendant`  | returns the descendant graph w.r.t. a given vertex of the two-graph of a given graph
 
@@ -171,13 +172,25 @@ class TwoGraph(IncidenceStructure):
 
 def taylor_twograph(q):
     r"""
-    constructing Taylor's two-graph for U_3(q), q odd
+    constructing Taylor's two-graph for `U_3(q)`, `q` odd prime power
+
+    The Taylor's two-graph `T` has the `q^3+1` points of the projective plane over `F_{q^2}`
+    singular w.r.t. the non-degenerate Hermitean form `S` preserved by `U_3(q)` as its ground set;
+    the triples are `\{x,y,z\}` satisfying the condition that `S(x,y)S(y,z)S(z,x)` is square
+    (respectively non-square) if `q \cong 1 \mod 4` (respectively if `q \cong 3 \mod 4`).
+
+    There is also a `2-(q^3+1,q,1)`-design on these `q^3+1` points, known as the unital of
+    order `q`, also invariant under `U_3(q)`.
 
     EXAMPLES::
 
         sage: from sage.combinat.designs.twographs import taylor_twograph
-        sage: taylor_twograph(3)                # long time
+        sage: T=taylor_twograph(3); T                      # long time
         Incidence structure with 28 points and 1260 blocks
+        sage: t=graphs.TaylorTwographSRG(3).twograph(); t  # faster to build
+        Incidence structure with 28 points and 1260 blocks
+        sage: t.is_isomorphic(T)                           # long time
+        True
 
     """
     from sage.rings.arith import is_prime_power

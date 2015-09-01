@@ -7017,13 +7017,7 @@ class Graph(GenericGraph):
         from sage.matrix.constructor import matrix
         from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
         if algorithm == 'new':
-            H = G.copy()
-            # first prune vertices of degree at most 1
-            done = False
-            while not done:
-                H.delete_vertices([v for v in H.vertices() if H.degree(v) < 2])
-                if min(H.degree_sequence()) >= 2:
-                    done = True
+            H = G.subgraph(vertices=G.cores(k=2)[1])
             E = H.edges()
             m = len(E)
             # compute (Hashimoto) edge matrix T

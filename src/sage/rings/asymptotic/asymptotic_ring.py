@@ -1365,7 +1365,7 @@ class AsymptoticRing(sage.algebras.algebra.Algebra,
 
 
     @staticmethod
-    def __classcall__(cls, growth_group, coefficient_ring, names=None,
+    def __classcall__(cls, growth_group=None, coefficient_ring=None, names=None,
                       category=None, default_prec=None):
         r"""
         Normalizes the input in order to ensure a unique
@@ -1490,7 +1490,7 @@ class AsymptoticRing(sage.algebras.algebra.Algebra,
             sage: R3 = AsymptoticRing('x^ZZ')
             Traceback (most recent call last):
             ...
-            TypeError: __classcall__() takes at least 3 arguments (2 given)
+            ValueError: Coefficient ring not specified. Cannot continue.
         """
         self._coefficient_ring_ = coefficient_ring
         self._growth_group_ = growth_group

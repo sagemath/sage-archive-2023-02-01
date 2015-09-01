@@ -199,6 +199,24 @@ Note that not all elements are invertible, for instance,
 is not invertible, since it includes `0`.
 
 
+Powers, Expontials and Logarithms
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+It works as simple as it can be; just use the usual operators ``^``,
+``exp`` and ``log``. For example, we obtain the usual series expansion
+of the logarithm
+::
+
+    sage: -log(1-1/z)
+    z^(-1) + 1/2*z^(-2) + 1/3*z^(-3) + ... + O(z^(-21))
+
+as `z \to \infty`.
+
+.. TODO::
+
+    write more here
+
+
 Multivariate Arithemtic
 ^^^^^^^^^^^^^^^^^^^^^^^
 
@@ -208,6 +226,10 @@ Now let us move on to arithmetic in the multivariate ring
 
     sage: B
     Asymptotic Ring <x^QQ * log(x)^ZZ * QQ^y * y^QQ> over Rational Field
+
+.. TODO::
+
+    write this part
 
 
 More Examples

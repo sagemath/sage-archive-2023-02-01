@@ -1535,7 +1535,7 @@ class HasseDiagram(DiGraph):
     def maximal_sublattices(self):
         """
         Return maximal sublattices of the lattice.
- 
+
         EXAMPLES::
 
             sage: L = Posets.PentagonPoset()

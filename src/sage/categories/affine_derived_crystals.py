@@ -219,7 +219,7 @@ class KirillovReshetikhinCrystals(Category_singleton):
                 4
             """
 
-        @abstract_method
+        @abstract_method(optional=True)
         def classical_decomposition(self):
             """
             Return the classical decomposition of ``self``.
@@ -244,6 +244,24 @@ class KirillovReshetikhinCrystals(Category_singleton):
             """
             I0 = self.cartan_type().classical().index_set()
             return tuple([x for x in self if x.is_highest_weight(I0)])
+
+        # TODO: This is duplicated in tensor product category
+        def cardinality(self):
+            """
+            Return the cardinality of ``self``.
+
+            EXAMPLES::
+
+                sage: K = crystals.KirillovReshetikhin(['E',6,1], 1,1)
+                sage: K.cardinality()
+                27
+                sage: K = crystals.KirillovReshetikhin(['C',6,1], 4,3)
+                sage: K.cardinality()
+                4736732
+            """
+            CWLR = self.cartan_type().classical().root_system().ambient_space()
+            return sum(CWLR.weyl_dimension(mg.classical_weight())
+                       for mg in self.classically_highest_weight_vectors())
 
         @cached_method
         def maximal_vector(self):
@@ -609,6 +627,7 @@ class KirillovReshetikhinCrystals(Category_singleton):
                         it.append( iter(self.crystals[-len(path)-1]) )
                 return tuple(ret)
 
+            # TODO: This is duplicated in KR crystals category
             def cardinality(self):
                 """
                 Return the cardinality of ``self``.

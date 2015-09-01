@@ -986,6 +986,42 @@ class GenericTerm(sage.structure.element.MonoidElement):
         return self.growth == other.growth
 
 
+    def is_constant(self):
+        r"""
+        Return if this term is an (exact) constant.
+
+        INPUT:
+
+        Nothing.
+
+        OUTPUT:
+
+        A boolean.
+
+        .. NOTE::
+
+            Only :class:`ExactTerm` with constant growth (`1`) are
+            constant.
+
+        EXAMPLES::
+
+            sage: from sage.rings.asymptotic.growth_group import GrowthGroup
+            sage: from sage.rings.asymptotic.term_monoid import (GenericTermMonoid, TermMonoid)
+            sage: T = GenericTermMonoid(GrowthGroup('x^ZZ * log(x)^ZZ'), QQ)
+            sage: T.an_element().is_constant()
+            False
+
+        ::
+
+            sage: T = TermMonoid('O', GrowthGroup('x^ZZ'), QQ)
+            sage: T('x').is_constant()
+            False
+            sage: T(1).is_constant()
+            False
+        """
+        return False
+
+
     def is_little_o_of_one(self):
         r"""
         Return if this term is of order `o(1)`.
@@ -2782,6 +2818,40 @@ class ExactTerm(TermWithCoefficient):
             :meth:`OTerm.log_term`.
         """
         return self._log_coefficient_(base=base) + self._log_growth_(base=base)
+
+
+    def is_constant(self):
+        r"""
+        Return if this term is an (exact) constant.
+
+        INPUT:
+
+        Nothing.
+
+        OUTPUT:
+
+        A boolean.
+
+        .. NOTE::
+
+            Only :class:`ExactTerm` with constant growth (`1`) are
+            constant.
+
+        EXAMPLES::
+
+            sage: from sage.rings.asymptotic.growth_group import GrowthGroup
+            sage: from sage.rings.asymptotic.term_monoid import TermMonoid
+            sage: T = TermMonoid('exact', GrowthGroup('x^ZZ * log(x)^ZZ'), QQ)
+            sage: T('x * log(x)').is_constant()
+            False
+            sage: T('3*x').is_constant()
+            False
+            sage: T(1/2).is_constant()
+            True
+            sage: T(42).is_constant()
+            True
+        """
+        return self.growth.is_one()
 
 
     def is_little_o_of_one(self):

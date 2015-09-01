@@ -902,15 +902,16 @@ class GenericProduct(CartesianProductPosets, GenericGrowthGroup):
 
         def _rpow_element_(self, base):
             factors = self.factors()
-            if len(factors) == 1:
-                for factor in factors:
-                    from growth_group import MonomialGrowthGroup
-                    if not isinstance(factor.parent(), MonomialGrowthGroup):
-                        continue
-                    try:
-                        return factor._rpow_element_(base)
-                    except ValueError:
-                        pass
+            if len(factors) != 1:
+                return
+            from growth_group import MonomialGrowthGroup
+            for factor in factors:
+                if not isinstance(factor.parent(), MonomialGrowthGroup):
+                    continue
+                try:
+                    return factor._rpow_element_(base)
+                except ValueError:
+                    pass
 
 
         def exp(self):

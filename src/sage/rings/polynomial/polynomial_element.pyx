@@ -1923,45 +1923,22 @@ cdef class Polynomial(CommutativeAlgebraElement):
                 e = 1
                 q = right
                 sparse = self.parent().is_sparse()
-                finite = self.parent().base_ring().is_finite()
-                if finite:
-                    if sparse:
-                        while q > 0:
-                            q, r = q.quo_rem(p)
-                            if r != 0:
-                                d = self.dict()
-                                tmp = self.parent()({e*k:d[k] for k in d})
-                                ret *= generic_power(tmp, r, one=one)
-                            e *= p
-                    else:
-                        while q > 0:
-                            q, r = q.quo_rem(p)
-                            if r != 0:
-                                c = self.coefficients(sparse=False)
-                                tmp = [0] * (e*len(c))
-                                for i in range(len(c)):
-                                    tmp[e*i] = c[i]
-                                ret *= generic_power(self.parent()(tmp), r, one=one)
-                            e *= p
+                if sparse:
+                    d = self.dict()
                 else:
-                    if sparse:
-                        while q > 0:
-                            q, r = q.quo_rem(p)
-                            if r != 0:
-                                d = self.dict()
-                                tmp = self.parent()({e*k : d[k]**e for k in d})
-                                ret *= generic_power(tmp, r, one=one)
-                            e *= p
-                    else:
-                        while q > 0:
-                            q, r = q.quo_rem(p)
-                            if r != 0:
-                                c = self.coefficients(sparse=False)
-                                tmp = [0] * (e*len(c)-e+1)
-                                for i in range(len(c)):
-                                    tmp[e*i] = c[i]**e
-                                ret *= generic_power(self.parent()(tmp), r, one=one)
-                            e *= p
+                    c = self.list()
+                while q > 0:
+                    q, r = q.quo_rem(p)
+                    if r != 0:
+                        if sparse:
+                            tmp = self.parent()({e*k : d[k]**e for k in d})
+                        else:
+                            tmp = [0] * (e * len(c) - e + 1)
+                            for i in range(len(c)):
+                                tmp[e*i] = c[i]**e
+                            tmp = self.parent()(tmp)
+                        ret *= generic_power(tmp, r, one=one)
+                    e *= p
                 return ret
 
         return generic_power(self,right)

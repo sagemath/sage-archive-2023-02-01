@@ -736,27 +736,31 @@ def rpow(self, base):
     if base == 0:
         raise ValueError('%s is not an allowed base for calculating the '
                          'power to %s.' % (base, self))
+
+    element = None
     try:
-        return self.parent().one() * self._rpow_element_(base)
+        element = self._rpow_element_(base)
+    except ValueError:
+        pass
+
+    var = str(self)
+    if '*' in var or '^' in var:
+        var = '(' + var + ')'
+
+    if element is None:
+        if base == 'e':
+            from sage.rings.integer_ring import ZZ
+            base = ZZ[base](base)
+        E = ExponentialGrowthGroup(base.parent(), var)
+        element = E(raw_element=base)
+
+    try:
+        return self.parent().one() * element
     except (TypeError, ValueError) as e:
         from misc import combine_exceptions
-        var = str(self)
-        if '*' in var or '^' in var:
-            var = '(' + var + ')'
         raise combine_exceptions(
             ArithmeticError('Cannot construct %s^%s in %s' %
                             (base, var, self.parent())), e)
-
-
-def _rpow_element_(self, base):
-    new_var = str(self)
-    if '*' in new_var or '^' in new_var:
-        new_var = '(' + new_var + ')'
-    if base == 'e':
-        from sage.rings.integer_ring import ZZ
-        base = ZZ[base](base)
-    E = ExponentialGrowthGroup(base.parent(), new_var)
-    return E(raw_element=base)
 
 
 class GenericGrowthElement(sage.structure.element.MultiplicativeGroupElement):
@@ -1170,7 +1174,7 @@ class GenericGrowthElement(sage.structure.element.MultiplicativeGroupElement):
 
 
     def _rpow_element_(self, base):
-        raise NotImplementedError()
+        pass
 
 
     def factors(self):
@@ -2319,13 +2323,6 @@ class MonomialGrowthElement(GenericGrowthElement):
 
 
     def _rpow_element_(self, base):
-        try:
-            return self._rpow_element_from_log_(base)
-        except ValueError:
-            return _rpow_element_from_log(self, base)
-
-
-    def _rpow_element_from_log_(self, base):
         var = str(self.parent()._var_)
         if not(var.startswith('log(') and self.exponent == 1):
             raise ValueError('Variable %s is not a log of something.')
@@ -2920,9 +2917,6 @@ class ExponentialGrowthElement(GenericGrowthElement):
             coefficient = log(b, base=base)
 
         return ((str(self.parent()._var_), coefficient),)
-
-
-    _rpow_element_ = _rpow_element_
 
 
     def _le_(self, other):

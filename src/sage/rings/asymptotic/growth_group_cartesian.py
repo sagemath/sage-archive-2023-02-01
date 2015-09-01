@@ -908,11 +908,9 @@ class GenericProduct(CartesianProductPosets, GenericGrowthGroup):
                     if not isinstance(factor.parent(), MonomialGrowthGroup):
                         continue
                     try:
-                        return factor._rpow_element_from_log_(base)
+                        return factor._rpow_element_(base)
                     except ValueError:
                         pass
-            from growth_group import _rpow_element_
-            return _rpow_element_(self, base)
 
 
         def exp(self):

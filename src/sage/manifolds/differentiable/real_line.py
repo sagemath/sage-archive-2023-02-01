@@ -203,13 +203,11 @@ class OpenInterval(DiffManifold):
     The construction of a subinterval can be performed via the argument
     ``subinterval_of`` of ``OpenInterval``::
 
-        sage: I = OpenInterval(0, pi, name='I')
         sage: J = OpenInterval(0, 1, subinterval_of=I); J
         Real interval (0, 1)
 
     However, it is recommended to use the method :meth:`open_interval` instead::
 
-        sage: I = OpenInterval(0, pi)
         sage: J = I.open_interval(0, 1); J
         Real interval (0, 1)
         sage: J.is_subset(I)
@@ -348,8 +346,9 @@ class OpenInterval(DiffManifold):
                 restrictions = t<upper
             else:
                 restrictions = None
-        if subinterval_of is None and restrictions is not None:
-            self._canon_chart.add_restrictions(restrictions)
+        if subinterval_of is None:
+            if restrictions is not None:
+                self._canon_chart.add_restrictions(restrictions)
         else:
             self._canon_chart = subinterval_of.canonical_chart().restrict(self,
                                                      restrictions=restrictions)
@@ -458,6 +457,30 @@ class OpenInterval(DiffManifold):
         return super(OpenInterval, self)._element_constructor_(coords=coords,
                                  chart=chart, name=name, latex_name=latex_name,
                                  check_coords=check_coords)
+
+    def _Hom_(self, other, category=None):
+        r"""
+        Construct the set of curves in ``other`` with parameter in the current
+        open interval.
+
+        INPUT:
+
+        - ``other`` -- a differentiable manifold
+        - ``category`` -- (default: ``None``) not used here (to ensure
+          compatibility with generic hook ``_Hom_``)
+
+        OUTPUT:
+
+        - the set of curves I --> M,  where I is ``self`` and M is ``other``
+
+        See class
+        :class:`~sage.manifolds.differentiable.manifold_homset.DiffManifoldCurveSet`
+        for more documentation.
+
+        """
+        from sage.manifolds.differentiable.manifold_homset import \
+                                                           DiffManifoldCurveSet
+        return DiffManifoldCurveSet(self, other)
 
     def canonical_chart(self):
         r"""
@@ -624,5 +647,201 @@ class OpenInterval(DiffManifold):
         """
         if lower == self._lower and upper == self._upper:
             return self
+        # To cope with the unique representation framework, we have to
+        # distinguish several cases, instead of performing a mere
+        # return OpenInterval(lower, upper, subinterval_of=self, name=name,
+        #                     latex_name=latex_name)
+        if name is None:
+            if latex_name is None:
+                return OpenInterval(lower, upper, subinterval_of=self)
+            return OpenInterval(lower, upper, subinterval_of=self,
+                                latex_name=latex_name)
+        if latex_name is None:
+            return OpenInterval(lower, upper, subinterval_of=self, name=name)
         return OpenInterval(lower, upper, subinterval_of=self, name=name,
                             latex_name=latex_name)
+
+
+#******************************************************************************
+
+class RealLine(OpenInterval):
+    r"""
+    Field of real numbers, as a differentiable manifold of dimension 1 (real
+    line) with a canonical coordinate chart.
+
+    INPUT:
+
+    - ``name`` -- (default: 'R') string; name (symbol) given to the real line
+    - ``latex_name`` -- (default: r'\\RR') string; LaTeX symbol to denote the
+      real line
+    - ``coordinate`` -- (default: ``None``) string defining the symbol of the
+      canonical coordinate set on the real line; if none is provided and
+      ``names`` is ``None``, the symbol 't' is used
+    - ``names`` -- (default: ``None``) used only when ``coordinate`` is
+      ``None``: it must be a single-element tuple containing the canonical
+      coordinate symbol (this is guaranted if the shortcut operator ``<>`` is
+      used, see examples below)
+    - ``start_index`` -- (default: 0) unique value of the index for vectors and
+      forms on the real line manifold.
+
+    EXAMPLES:
+
+    Constructing the real line without any argument::
+
+        sage: R = RealLine() ; R
+        Field R of real numbers
+        sage: latex(R)
+        \RR
+
+    ``R`` is a 1-dimensional differentiable manifold::
+
+        sage: isinstance(R, DiffManifold)
+        True
+        sage: dim(R)
+        1
+
+    It is endowed with a canonical chart::
+
+        sage: R.canonical_chart()
+        Chart (R, (t,))
+        sage: R.canonical_chart() is R.default_chart()
+        True
+        sage: R.atlas()
+        [Chart (R, (t,))]
+
+    The instance is unique (as long as the constructor arguments are the
+    same)::
+
+        sage: R is RealLine()
+        True
+        sage: R is RealLine(latex_name='R')
+        False
+
+    The canonical coordinate is returned by the method
+    :meth:`~sage.manifolds.differentiable.real_line.OpenInterval.canonical_coordinate`::
+
+        sage: R.canonical_coordinate()
+        t
+        sage: t = R.canonical_coordinate()
+        sage: type(t)
+        <type 'sage.symbolic.expression.Expression'>
+
+    However, it can be obtained in the same step as the real line construction
+    by means of the shortcut operator ``<>``::
+
+        sage: R.<t> = RealLine()
+        sage: t
+        t
+        sage: type(t)
+        <type 'sage.symbolic.expression.Expression'>
+
+    The trick is performed by Sage preparser::
+
+        sage: preparse("R.<t> = RealLine()")
+        "R = RealLine(names=('t',)); (t,) = R._first_ngens(1)"
+
+    In particular the ``<>`` operator is to be used to set a canonical
+    coordinate symbol different from 't'::
+
+        sage: R.<x> = RealLine()
+        sage: R.canonical_chart()
+        Chart (R, (x,))
+        sage: R.atlas()
+        [Chart (R, (x,))]
+        sage: R.canonical_coordinate()
+        x
+
+    The LaTeX symbol of the canonical coordinate can be adjusted via the same
+    syntax as a chart declaration (see
+    :class:`~sage.manifolds.chart.RealChart`)::
+
+        sage: R.<x> = RealLine(coordinate=r'x:\xi')
+        sage: latex(x)
+        {\xi}
+        sage: latex(R.canonical_chart())
+        \left(\RR,({\xi})\right)
+
+    The LaTeX symbol of the real line itself can also be customized::
+
+        sage: R.<x> = RealLine(latex_name=r'\mathbb{R}')
+        sage: latex(R)
+        \mathbb{R}
+
+    Elements of the real line can be constructed directly from a number::
+
+        sage: p = R(2) ; p
+        Point on the Field R of real numbers
+        sage: p.coord()
+        (2,)
+        sage: p = R(1.742) ; p
+        Point on the Field R of real numbers
+        sage: p.coord()
+        (1.74200000000000,)
+
+    Symbolic variables can also be used::
+
+        sage: p = R(pi, name='pi') ; p
+        Point pi on the Field R of real numbers
+        sage: p.coord()
+        (pi,)
+        sage: a = var('a')
+        sage: p = R(a) ; p
+        Point on the Field R of real numbers
+        sage: p.coord()
+        (a,)
+
+    The real line is considered as the open interval `(-\infty,+\infty)`::
+
+        sage: isinstance(R, OpenInterval)
+        True
+        sage: R.lower_bound()
+        -Infinity
+        sage: R.upper_bound()
+        +Infinity
+
+    A real interval can be created from ``R`` means of the method
+    :meth:`~sage.manifolds.differentiable.real_line.OpenInterval.open_interval`::
+
+        sage: I = R.open_interval(0, 1); I
+        Real interval (0, 1)
+        sage: I.manifold()
+        Field R of real numbers
+        sage: R.list_of_subsets()
+        [Real interval (0, 1), Field R of real numbers]
+
+    """
+    def __init__(self, name='R', latex_name=r'\RR', coordinate=None, names=None,
+                 start_index=0):
+        r"""
+        Construct the real line manifold.
+
+        TESTS::
+
+            sage: R = RealLine() ; R
+            Field R of real numbers
+            sage: R.category()
+            Category of sets
+            sage: TestSuite(R).run()
+
+        """
+        OpenInterval.__init__(self, minus_infinity, infinity, name=name,
+                              latex_name=latex_name, coordinate=coordinate,
+                              names=names, start_index=start_index)
+
+    def _repr_(self):
+        r"""
+        String representation of the object.
+
+        TESTS::
+
+            sage: R = RealLine()
+            sage: R._repr_()
+            'Field R of real numbers'
+            sage: R = RealLine(name='r')
+            sage: R._repr_()
+            'Field r of real numbers'
+
+        """
+        return "Field " + self._name + " of real numbers"
+
+

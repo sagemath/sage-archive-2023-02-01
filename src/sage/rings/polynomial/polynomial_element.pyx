@@ -1360,11 +1360,10 @@ cdef class Polynomial(CommutativeAlgebraElement):
         except AttributeError:
             first_coeff = A(~self[0])
 
-        two = A(2)
         current = R(first_coeff)
         for next_prec in sage.misc.misc.newton_method_sizes(prec)[1:]:
             z = current._mul_trunc_(self, next_prec)._mul_trunc_(current, next_prec)
-            current = two*current - z
+            current = current + current - z
         return current
 
     def __long__(self):

@@ -2732,6 +2732,17 @@ class Polyhedron_base(Element):
             A 0-dimensional polyhedron in QQ^2 defined as the convex hull of 1 vertex
             sage: _.Vrepresentation()
             (A vertex at (1/2, 1/2),)
+
+        TESTS:
+
+        Check that :trac:`19012` is fixed::
+
+            sage: K.<a> = QuadraticField(5)
+            sage: P = Polyhedron([[0,0],[0,a],[1,1]])
+            sage: Q = Polyhedron(ieqs=[[-1,a,1]])
+            sage: P.intersection(Q)
+            A 2-dimensional polyhedron in (Number Field in a with defining
+            polynomial x^2 - 5)^2 defined as the convex hull of 4 vertices
         """
         new_ieqs = self.inequalities() + other.inequalities()
         new_eqns = self.equations() + other.equations()
@@ -3107,7 +3118,38 @@ class Polyhedron_base(Element):
             sage: s4.is_eulerian()
             True
         """
-        return Graph(self.vertex_adjacency_matrix(), loops=False)
+        from itertools import combinations
+        inequalities = self.inequalities()
+        vertices     = self.vertices()
+
+        # Associated to 'v' the inequalities in contact with v
+        vertex_ineq_incidence = [frozenset([i for i,ineq in enumerate(inequalities) if self._is_zero(ineq.eval(v))])
+                                 for i,v in enumerate(vertices)]
+
+        # the dual incidence structure
+        ineq_vertex_incidence = [set() for _ in range(len(inequalities))]
+        for v,ineq_list in enumerate(vertex_ineq_incidence):
+            for ineq in ineq_list:
+                ineq_vertex_incidence[ineq].add(v)
+
+        d = self.dim()
+        n = len(vertices)
+        X = set(range(n))
+
+        pairs = []
+        for i,j in combinations(range(n),2):
+            common_ineq = vertex_ineq_incidence[i]&vertex_ineq_incidence[j]
+            if not common_ineq: # or len(common_ineq) < d-2:
+                continue
+
+            if len(X.intersection(*[ineq_vertex_incidence[k] for k in common_ineq])) == 2:
+                pairs.append((i,j))
+
+        from sage.graphs.graph import Graph
+        g = Graph()
+        g.add_vertices(vertices)
+        g.add_edges((vertices[i],vertices[j]) for i,j in pairs)
+        return g
 
     graph = vertex_graph
 
@@ -3786,7 +3828,7 @@ class Polyhedron_base(Element):
             sage: P = Polyhedron( vertices = [(1, 0), (0, 1), (-1, 0), (0, -1)])
             sage: lp = P.lattice_polytope(); lp
             2-d reflexive polytope #3 in 2-d lattice M
-            sage: lp.vertices_pc()
+            sage: lp.vertices()
             M(-1,  0),
             M( 0, -1),
             M( 0,  1),
@@ -3804,7 +3846,7 @@ class Polyhedron_base(Element):
             lattice polytope.
             sage: lp = P.lattice_polytope(True); lp
             2-d reflexive polytope #5 in 2-d lattice M
-            sage: lp.vertices_pc()
+            sage: lp.vertices()
             M(-1,  0),
             M( 0, -1),
             M( 0,  1),
@@ -3846,7 +3888,7 @@ class Polyhedron_base(Element):
 
             sage: Polyhedron(vertices=[(-1,-1),(1,0),(1,1),(0,1)])._integral_points_PALP()
             [M(-1, -1), M(0, 1), M(1, 0), M(1, 1), M(0, 0)]
-            sage: Polyhedron(vertices=[(-1/2,-1/2),(1,0),(1,1),(0,1)]).lattice_polytope(True).points_pc()
+            sage: Polyhedron(vertices=[(-1/2,-1/2),(1,0),(1,1),(0,1)]).lattice_polytope(True).points()
             M( 0, -1),
             M(-1,  0),
             M(-1, -1),
@@ -3868,8 +3910,8 @@ class Polyhedron_base(Element):
         except AttributeError:
             pass
         if self.is_lattice_polytope():
-            return list(lp.points_pc())
-        return [p for p in lp.points_pc() if self.contains(p)]
+            return list(lp.points())
+        return [p for p in lp.points() if self.contains(p)]
 
     @cached_method
     def bounding_box(self, integral=False):
@@ -4047,7 +4089,7 @@ class Polyhedron_base(Element):
             sage: pts1 = P.integral_points()                     # Sage's own code
             sage: all(P.contains(p) for p in pts1)
             True
-            sage: pts2 = LatticePolytope(v).points_pc()          # PALP
+            sage: pts2 = LatticePolytope(v).points()          # PALP
             sage: for p in pts1: p.set_immutable()
             sage: set(pts1) == set(pts2)
             True
@@ -4149,10 +4191,10 @@ class Polyhedron_base(Element):
             Permutation Group with generators [(3,4)]
         """
         G = Graph()
-        for edge in self.vertex_graph().edges():
-            i = edge[0]
-            j = edge[1]
-            G.add_edge(i+1, j+1, (self.Vrepresentation(i).type(), self.Vrepresentation(j).type()) )
+        for u,v in self.vertex_graph().edges(labels=False):
+            i = u.index()
+            j = v.index()
+            G.add_edge(i+1, j+1, (u.type(), v.type()) )
 
         group = G.automorphism_group(edge_labels=True)
         self._combinatorial_automorphism_group = group

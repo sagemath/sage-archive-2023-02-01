@@ -197,6 +197,12 @@ class KirillovReshetikhinCrystals(Category_singleton):
         def classically_highest_weight_vectors(self):
             """
             Return the classically highest weight elements of ``self``.
+
+            EXAMPLES::
+
+                sage: K = crystals.KirillovReshetikhin(['E',6,1],1,1)
+                sage: K.classically_highest_weight_vectors()
+                ([(1,)],)
             """
             I0 = self.cartan_type().classical().index_set()
             return tuple([x for x in self if x.is_highest_weight(I0)])
@@ -210,14 +216,14 @@ class KirillovReshetikhinCrystals(Category_singleton):
             EXAMPLES::
 
                 sage: K = crystals.KirillovReshetikhin(['C',2,1],1,2)
-                sage: K.module_generator()
+                sage: K.maximal_vector()
                 [[1, 1]]
                 sage: K = crystals.KirillovReshetikhin(['E',6,1],1,1)
-                sage: K.module_generator()
+                sage: K.maximal_vector()
                 [(1,)]
 
                 sage: K = crystals.KirillovReshetikhin(['D',4,1],2,1)
-                sage: K.module_generator()
+                sage: K.maximal_vector()
                 [[1], [2]]
             """
             R = self.weight_lattice_realization()
@@ -383,16 +389,13 @@ class KirillovReshetikhinCrystals(Category_singleton):
 
                 EXAMPLES::
 
-                    sage: C = crystals.Tableaux(['D',4], shape=[2,2])
-                    sage: D = crystals.Tableaux(['D',4], shape=[1])
-                    sage: T = crystals.TensorProduct(D, C)
-                    sage: T.highest_weight_vectors()
-                    ([[[1]], [[1, 1], [2, 2]]],
-                     [[[3]], [[1, 1], [2, 2]]],
-                     [[[-2]], [[1, 1], [2, 2]]])
-                    sage: L = filter(lambda x: x.is_highest_weight(), T)
-                    sage: tuple(L) == T.highest_weight_vectors()
-                    True
+                    sage: K = crystals.KirillovReshetikhin(['A',2,1],1,1)
+                    sage: T = crystals.TensorProduct(K,K,K)
+                    sage: T.classically_highest_weight_vectors()
+                    ([[[1]], [[1]], [[1]]],
+                     [[[2]], [[1]], [[1]]],
+                     [[[1]], [[2]], [[1]]],
+                     [[[3]], [[2]], [[1]]])
                 """
                 n = len(self.crystals)
                 I0 = self.cartan_type().classical().index_set()
@@ -409,7 +412,7 @@ class KirillovReshetikhinCrystals(Category_singleton):
                         continue
 
                     b = self.element_class(self, [x] + path)
-                    if not b.is_highest_weight():
+                    if not b.is_highest_weight(index_set=I0):
                         continue
                     path.insert(0, x)
                     if len(path) == n:

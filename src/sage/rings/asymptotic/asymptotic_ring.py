@@ -931,13 +931,15 @@ class AsymptoticExpression(sage.structure.element.CommutativeAlgebraElement):
         return self * ~other
 
 
-    def __invert__(self):
+    def __invert__(self, precision=None):
         r"""
         Return the multiplicative inverse of this element.
 
         INPUT:
 
-        Nothing.
+        - ``precision`` -- the precision used for truncating the
+          expansion. If ``None`` (default value) is used, the
+          default precision of the parent is used.
 
         OUTPUT:
 
@@ -971,7 +973,7 @@ class AsymptoticExpression(sage.structure.element.CommutativeAlgebraElement):
             sage: (a / 2).parent()
             Asymptotic Ring <a^ZZ> over Rational Field
         """
-        if len(self.summands) == 0:
+        if not self.summands:
             raise ZeroDivisionError('Division by zero in %s.' % (self,))
 
         elif len(self.summands) == 1:
@@ -981,9 +983,9 @@ class AsymptoticExpression(sage.structure.element.CommutativeAlgebraElement):
 
         max_elem = tuple(self.summands.maximal_elements())
         if len(max_elem) != 1:
-            raise ValueError('Expression %s cannot be inverted, since there '
-                             'are several maximal elements: %s.' %
-                             (self, max_elem))
+            raise ValueError('Expression %s cannot be inverted since there '
+                             'are several maximal elements %s.' %
+                             (self, ', '.join(str(e) for e in max_elem)))
         max_elem = max_elem[0]
 
         imax_elem = ~max_elem
@@ -999,7 +1001,7 @@ class AsymptoticExpression(sage.structure.element.CommutativeAlgebraElement):
         expanding = True
         result = one
         while expanding:
-            new_result = (geom*result + one).truncate()
+            new_result = (geom*result + one).truncate(precision=precision)
             if new_result.has_same_summands(result):
                 expanding = False
             result = new_result
@@ -1158,6 +1160,99 @@ class AsymptoticExpression(sage.structure.element.CommutativeAlgebraElement):
         """
         return sum(self.parent().create_summand('O', growth=element)
                    for element in self.summands.maximal_elements())
+
+
+    def log(self, base=None, precision=None):
+        r"""
+        The logarithm of this asymptotic expression.
+
+        INPUT:
+
+        - ``base`` -- the base of the logarithm. If ``None``
+          (default value) is used, the natural logarithm is taken.
+
+        - ``precision`` -- the precision used for truncating the
+          expansion. If ``None`` (default value) is used, the
+          default precision of the parent is used.
+
+        OUTPUT:
+
+        An asymptotic expression.
+
+        .. NOTE::
+
+            Computing the logarithm of an asymptotic expression
+            is possible if and only if there is exactly one maximal
+            summand in the expression.
+
+        .. ALGORITHM::
+
+            If the expression has more than one summands,
+            the asymptotic expansion for `\log(1+t)` as `t` tends to `0`
+            is used.
+
+        EXAMPLES::
+
+            sage: R.<x> = AsymptoticRing('x^ZZ * log(x)^ZZ', QQ)
+            sage: log(x)
+            log(x)
+            sage: log(x^2)
+            2*log(x)
+            sage: log(x-1)
+            log(x) - x^(-1) - 1/2*x^(-2) - 1/3*x^(-3) - ... + O(x^(-21))
+
+        TESTS::
+
+            sage: log(R(1))
+            0
+        """
+        P = self.parent()
+
+        if not self.summands:
+            from sage.rings.infinity import minus_infinity
+            return minus_infinity
+
+        elif len(self.summands) == 1:
+            if self == 1:
+                return self.parent().zero()
+            element = next(self.summands.elements())
+            return sum(self.parent()._create_element_via_parent_(l, element.parent())
+                       for l in element.log_term(base=base))
+
+        max_elem = tuple(self.summands.maximal_elements())
+        if len(max_elem) != 1:
+            raise ValueError('log(%s) cannot be constructed since there '
+                             'are several maximal elements %s.' %
+                             (self, ', '.join(str(e) for e in max_elem)))
+        max_elem = max_elem[0]
+
+        imax_elem = ~max_elem
+        if imax_elem.parent() is max_elem.parent():
+            new_self = self
+        else:
+            new_self = self.parent()._create_element_via_parent_(
+                imax_elem, max_elem.parent()).parent()(self)
+
+        one = new_self.parent().one()
+        geom = one - new_self._mul_term_(imax_elem)
+
+        expanding = True
+        result = -geom
+        geom_k = geom
+        k = one
+        while expanding:
+            k += one
+            geom_k *= geom
+            new_result = (result - geom_k / k).truncate(precision=precision)
+            if new_result.has_same_summands(result):
+                expanding = False
+            result = new_result
+
+        result += new_self.parent()(max_elem).log()
+        if base:
+            from sage.functions.log import log
+            result = result / log(base)
+        return result
 
 
 class AsymptoticRing(sage.algebras.algebra.Algebra,
@@ -1534,14 +1629,10 @@ class AsymptoticRing(sage.algebras.algebra.Algebra,
 
         An element.
 
-            sage: from sage.rings.asymptotic.term_monoid import TermMonoid
-            sage: from sage.rings.asymptotic.growth_group import GrowthGroup
-            sage: G = GrowthGroup('z^ZZ')
-            sage: T = TermMonoid('exact', G, ZZ)
-            sage: T._create_element_via_parent_(G.an_element(), 3, G, ZZ)
-            3*z
-            sage: T._create_element_via_parent_(G.an_element(), 3/2, G, ZZ).parent()
-            Exact Term Monoid z^ZZ with coefficients in Rational Field
+            sage: A = AsymptoticRing('z^ZZ', ZZ)
+            sage: term = next(A.an_element().summands.elements_topological())
+            sage: A._create_element_via_parent_(term, A)
+            O(z)
         """
         if old_parent is None or term.parent() is old_parent:
             parent = self

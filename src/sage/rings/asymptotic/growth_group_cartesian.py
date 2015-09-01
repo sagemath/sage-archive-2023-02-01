@@ -299,7 +299,7 @@ class GenericProduct(CartesianProductPosets, GenericGrowthGroup):
              x^(-1/2)*log(x)*(-1/2)^y,
              x^2*log(x)^(-1)*2^y,
              x^(-2)*log(x)^2*(-2)^y,
-             log(x)^(-2)*(0)^y,
+             log(x)^(-2)*0^y,
              x*log(x)^3,
              x^(-1)*log(x)^(-3)*(-1)^y,
              x^42*log(x)^4*42^y,
@@ -794,6 +794,191 @@ class GenericProduct(CartesianProductPosets, GenericGrowthGroup):
             if s == '':
                 return '1'
             return s
+
+
+        def factors(self):
+            r"""
+            Return the atomic factors of this growth element. An atomic factor
+            cannot be split further and is not the identity (`1`).
+
+            INPUT:
+
+            Nothing.
+
+            OUTPUT:
+
+            A tuple of growth elements.
+
+            EXAMPLES::
+
+                sage: from sage.rings.asymptotic.growth_group import GrowthGroup
+                sage: G = GrowthGroup('x^ZZ * log(x)^ZZ * y^ZZ')
+                sage: x, y = G.gens_monomial()
+                sage: x.factors()
+                (x,)
+                sage: f = (x * y).factors(); f
+                (x, y)
+                sage: tuple(factor.parent() for factor in f)
+                (Growth Group x^ZZ, Growth Group y^ZZ)
+                sage: f = (x * log(x)).factors(); f
+                (x, log(x))
+                sage: tuple(factor.parent() for factor in f)
+                (Growth Group x^ZZ, Growth Group log(x)^ZZ)
+
+            ::
+
+                sage: G = GrowthGroup('x^ZZ * log(x)^ZZ * log(log(x))^ZZ * y^QQ')
+                sage: x, y = G.gens_monomial()
+                sage: f = (x * log(x) * y).factors(); f
+                (x, log(x), y)
+                sage: tuple(factor.parent() for factor in f)
+                (Growth Group x^ZZ, Growth Group log(x)^ZZ, Growth Group y^QQ)
+
+            ::
+
+                sage: G.one().factors()
+                ()
+            """
+            return sum(iter(f.factors()
+                            for f in self.cartesian_factors()
+                            if f != f.parent().one()),
+                       tuple())
+
+
+        from growth_group import log_factor, log
+        log = log
+        log_factor = log_factor
+
+
+        def _log_factor_(self, base=None):
+            r"""
+            Helper method for calculating the logarithm of the factorization
+            of this element.
+
+            INPUT:
+
+            - ``base`` -- the base of the logarithm. If ``None``
+              (default value) is used, the natural logarithm is taken.
+
+            OUTPUT:
+
+            A tuple of pairs, where the first entry is either a growth
+            element or something out of which we can construct a growth element
+            and the second a multiplicative coefficient.
+
+            TESTS::
+
+                sage: from sage.rings.asymptotic.growth_group import GrowthGroup
+                sage: G = GrowthGroup('QQ^x * x^ZZ * log(x)^ZZ * y^ZZ * log(y)^ZZ')
+                sage: x, y = G.gens_monomial()
+                sage: (x * y).log_factor()  # indirect doctest
+                ((log(x), 1), (log(y), 1))
+            """
+            if self == self.parent().one():
+                return tuple()
+
+            def try_create_growth(g):
+                try:
+                    return self.parent()(g)
+                except (TypeError, ValueError):
+                    return g
+
+            try:
+                return sum(iter(tuple((try_create_growth(g), c)
+                                      for g, c in factor._log_factor_(base=base))
+                                for factor in self.cartesian_factors()
+                                if factor != factor.parent().one()),
+                           tuple())
+            except (ArithmeticError, TypeError, ValueError) as e:
+                from misc import combine_exceptions
+                raise combine_exceptions(
+                    ArithmeticError('Cannot build log(%s) in %s.' %
+                                    (self, self.parent())), e)
+
+
+        from growth_group import rpow
+        rpow = rpow
+
+
+        def _rpow_element_(self, base):
+            r"""
+            Return an element which is the power of ``base`` to this
+            element; it lives (in contrast to :meth:`rpow`) in its own group.
+
+            INPUT:
+
+            - ``base`` -- an element.
+
+            OUTPUT:
+
+            A growth element or ``None``.
+
+            TESTS::
+
+                sage: from sage.rings.asymptotic.growth_group import GrowthGroup
+                sage: G = GrowthGroup('QQ^x * x^ZZ * log(x)^ZZ')
+                sage: lx = log(G('x'))
+                sage: rp = lx._rpow_element_('e'); rp
+                x
+                sage: rp.parent()
+                Growth Group x^ZZ
+            """
+            factors = self.factors()
+            if len(factors) != 1:
+                return
+            from growth_group import MonomialGrowthGroup
+            for factor in factors:
+                if not isinstance(factor.parent(), MonomialGrowthGroup):
+                    continue
+                try:
+                    return factor._rpow_element_(base)
+                except ValueError:
+                    pass
+
+
+        def exp(self):
+            r"""
+            The exponential of this element.
+
+            INPUT:
+
+            Nothing.
+
+            OUTPUT:
+
+            A growth element.
+
+            EXAMPLES::
+
+                sage: from sage.rings.asymptotic.growth_group import GrowthGroup
+                sage: G = GrowthGroup('x^ZZ * log(x)^ZZ * log(log(x))^ZZ')
+                sage: x = G('x')
+                sage: exp(log(x))
+                x
+                sage: exp(log(log(x)))
+                log(x)
+
+            ::
+
+                sage: exp(x)
+                Traceback (most recent call last):
+                ...
+                ArithmeticError: Cannot construct e^x in
+                Growth Group x^ZZ * log(x)^ZZ * log(log(x))^ZZ
+                > *previous* TypeError: unsupported operand parent(s) for '*':
+                'Growth Group x^ZZ * log(x)^ZZ * log(log(x))^ZZ' and
+                'Growth Group (Univariate Polynomial Ring in e over Integer Ring)^x'
+
+            TESTS::
+
+                sage: E = GrowthGroup("QQ['e']^y * y^QQ * log(y)^QQ")
+                sage: y = E('y')
+                sage: log(exp(y))
+                y
+                sage: exp(log(y))
+                y
+            """
+            return self.rpow('e')
 
 
         def __invert__(self):

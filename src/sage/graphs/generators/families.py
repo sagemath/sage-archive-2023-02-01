@@ -3,13 +3,6 @@ r"""
 Families of graphs
 
 The methods defined here appear in :mod:`sage.graphs.graph_generators`.
-
-AUTHORS:
-
-- David Coudert (2012) Ringed Trees
-
-- cf. ``git blame`` for the others involved
-
 """
 
 ###########################################################################

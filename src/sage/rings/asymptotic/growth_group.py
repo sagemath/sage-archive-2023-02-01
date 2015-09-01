@@ -638,7 +638,7 @@ def log_factor(self, base=None):
     A tuple of pairs, where the first entry is a growth
     element and the second a multiplicative coefficient.
 
-    .. ALGORITHM::
+    ALGORITHM:
 
         This function factors the given element and calculates
         the logarithm of each of these factors.

@@ -1185,7 +1185,7 @@ class AsymptoticExpression(sage.structure.element.CommutativeAlgebraElement):
             is possible if and only if there is exactly one maximal
             summand in the expression.
 
-        .. ALGORITHM::
+        ALGORITHM:
 
             If the expression has more than one summands,
             the asymptotic expansion for `\log(1+t)` as `t` tends to `0`

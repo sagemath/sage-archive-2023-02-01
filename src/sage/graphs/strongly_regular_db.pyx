@@ -621,6 +621,50 @@ def is_twograph_descendant_of_srg(int v, int k0, int l, int mu):
                 return(la, v+1)
     return
 
+@cached_function
+def is_taylor_twograph_srg(int v,int k,int l,int mu):
+    r"""
+    Test whether some Taylor two-graph SRG is `(v,k,\lambda,\mu)`-strongly regular.
+
+    For more information, see http://www.win.tue.nl/~aeb/graphs/srghub.html.
+    INPUT:
+
+    - ``v,k,l,mu`` (integers)
+
+    OUTPUT:
+
+    A tuple ``t`` such that ``t[0](*t[1:])`` builds the requested graph if one
+    exists, and ``None`` otherwise.
+
+    EXAMPLES::
+
+        sage: from sage.graphs.strongly_regular_db import is_taylor_twograph_srg
+        sage: t = is_taylor_twograph_srg(28, 15, 6, 10); t
+        (<function TaylorTwographSRG at ...>, 3)
+        sage: g = t[0](*t[1:]); g
+        Taylor two-graph SRG: Graph on 28 vertices
+        sage: g.is_strongly_regular(parameters=True)
+        (28, 15, 6, 10)
+        sage: t = is_taylor_twograph_srg(5,5,5,5); t
+
+    TESTS::
+
+        sage: is_taylor_twograph_srg(730, 369, 168, 205)
+        (<function TaylorTwographSRG at ...>, 9)
+
+    """
+    r,s = eigenvalues(v,k,l,mu)
+    if r is None:
+        return
+    p,t = is_prime_power(v-1, get_data=True)
+    if p**t+1 != v or t % 3 != 0 or p % 2 == 0:
+        return
+    q = p**(t//3)
+    if (k, l, mu) == (q*(q**2+1)/2, (q**2+3)*(q-1)/4, (q**2+1)*(q+1)/4):
+        from sage.graphs.generators.families import TaylorTwographSRG
+        return (TaylorTwographSRG, q)
+    return
+
 cdef eigenvalues(int v,int k,int l,int mu):
     r"""
     Return the eigenvalues of a (v,k,l,mu)-strongly regular graph.
@@ -1603,7 +1647,8 @@ def strongly_regular_graph(int v,int k,int l,int mu=-1,bint existence=False,bint
                       is_unitary_polar,
                       is_unitary_dual_polar,
                       is_RSHCD,
-                      is_twograph_descendant_of_srg]
+                      is_twograph_descendant_of_srg,
+                      is_taylor_twograph_srg]
 
     # Going through all test functions, for the set of parameters and its
     # complement.

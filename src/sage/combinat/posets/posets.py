@@ -3549,7 +3549,7 @@ class FinitePoset(UniqueRepresentation, Parent):
 
     def connected_components(self):
         """
-        Return the connected components of ``self`` as subposets.
+        Return the connected components of the poset as subposets.
 
         EXAMPLES::
 
@@ -3565,7 +3565,7 @@ class FinitePoset(UniqueRepresentation, Parent):
         """
         comps = self._hasse_diagram.connected_components()
         if len(comps) == 1:
-            return self
+            return [self]
         return [self.subposet(self._vertex_to_element(x) for x in cc)
                 for cc in comps]
 

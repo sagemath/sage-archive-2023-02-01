@@ -1169,8 +1169,7 @@ class AsymptoticExpression(sage.structure.element.CommutativeAlgebraElement):
         INPUT:
 
         - ``base`` -- the base of the logarithm. If ``None``
-          (default value) is used, the logarithm is the natural
-          logarithm.
+          (default value) is used, the natural logarithm is taken.
 
         - ``precision`` -- the precision used for truncating the
           expansion. If ``None`` (default value) is used, the
@@ -1677,14 +1676,10 @@ class AsymptoticRing(sage.algebras.algebra.Algebra,
 
         An element.
 
-            sage: from sage.rings.asymptotic.term_monoid import TermMonoid
-            sage: from sage.rings.asymptotic.growth_group import GrowthGroup
-            sage: G = GrowthGroup('z^ZZ')
-            sage: T = TermMonoid('exact', G, ZZ)
-            sage: T._create_element_via_parent_(G.an_element(), 3, G, ZZ)
-            3*z
-            sage: T._create_element_via_parent_(G.an_element(), 3/2, G, ZZ).parent()
-            Exact Term Monoid z^ZZ with coefficients in Rational Field
+            sage: A = AsymptoticRing('z^ZZ', ZZ)
+            sage: term = next(A.an_element().summands.elements_topological())
+            sage: A._create_element_via_parent_(term, A)
+            O(z)
         """
         if old_parent is None or term.parent() is old_parent:
             parent = self

@@ -920,7 +920,7 @@ class GenericProduct(CartesianProductPosets, GenericGrowthGroup):
                 sage: (x * y).log_factor()  # indirect doctest
                 ((log(x), 1), (log(y), 1))
             """
-            if self == self.parent().one():
+            if self.is_one():
                 return tuple()
 
             def try_create_growth(g):

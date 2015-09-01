@@ -929,7 +929,7 @@ class AsymptoticExpression(sage.structure.element.CommutativeAlgebraElement):
             sage: 2*a
             2*a
         """
-        if other == 0:
+        if other.is_zero():
             return self.parent().zero()
 
         from term_monoid import TermMonoid
@@ -1254,7 +1254,7 @@ class AsymptoticExpression(sage.structure.element.CommutativeAlgebraElement):
             raise ArithmeticError('Cannot build log(0) in %s.' % (self.parent(),))
 
         elif len(self.summands) == 1:
-            if self == 1:
+            if self.is_one():
                 return P.zero()
             element = next(self.summands.elements())
             return sum(P._create_element_via_parent_(l, element.parent())

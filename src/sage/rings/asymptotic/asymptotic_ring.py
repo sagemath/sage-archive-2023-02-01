@@ -1145,6 +1145,8 @@ class AsymptoticExpression(sage.structure.element.CommutativeAlgebraElement):
 
         elif len(self.summands) == 1:
             element = next(self.summands.elements())
+            if isinstance(exponent, AsymptoticExpression) and element.is_constant():
+                return exponent._rpow_(base=element.coefficient)
             return self.parent()._create_element_via_parent_(
                 element ** exponent, element.parent())
 

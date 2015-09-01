@@ -298,7 +298,7 @@ if [ "$1" = '-i' ]; then
     $MAKE all-toolchain
     echo
 
-    INSTALL_OPTIONS="-f"  # Options to sage-spkg
+    INSTALL_OPTIONS=""  # Options to sage-spkg
     for PKG in "$@"
     do
         case "$PKG" in

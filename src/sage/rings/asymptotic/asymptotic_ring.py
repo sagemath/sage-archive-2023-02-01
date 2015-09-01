@@ -1468,6 +1468,19 @@ class AsymptoticExpression(sage.structure.element.CommutativeAlgebraElement):
 
             sage: (x^(-1)).exp(precision=7)
             1 + x^(-1) + 1/2*x^(-2) + 1/6*x^(-3) + ... + O(x^(-7))
+
+        TESTS::
+
+            sage: A.<x> = AsymptoticRing('SR^x * x^QQ * log(x)^QQ', SR)
+            sage: exp(log(x))
+            x
+            sage: log(exp(x))
+            x
+
+        ::
+
+            sage: exp(x+1)
+            e*e^x
         """
         return self._rpow_(precision=precision)
 

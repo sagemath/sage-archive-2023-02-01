@@ -1333,6 +1333,97 @@ class AsymptoticExpression(sage.structure.element.CommutativeAlgebraElement):
         return all(term.is_little_o_of_one() for term in self.summands.maximal_elements())
 
 
+    def _rpow_(self, base=None, precision=None):
+        r"""
+        Helper function. Handles exponentiation of this asymptotic
+        expression where the base is an element of the coefficient
+        ring.
+
+        INPUT:
+
+        - ``base`` -- the base of the exponential function. If
+          ``None`` (default value) is used, the Eulerian constant
+          `e` is taken as the base.
+
+        - ``precision`` -- a positive integer or ``None``.
+          Determines the precision used for expansion of the
+          exponential function.
+
+        ALGORITHM:
+
+            The strategy for computing the exponential function is
+            as follows:
+
+            - This asymptotic expression is split into a part that
+              is in `o(1)` and the rest.
+
+            - The part that is in `o(1)` is expanded according to
+              the series expansion of `\exp(t)` for `t \to 0`.
+
+            - The remaining part of the expression is taken exactly.
+              In particular, this means that the respective growth
+              elements have to be constructed.
+
+        EXAMPLES::
+
+            sage: A.<x, y> = AsymptoticRing('x^ZZ * y^ZZ', QQ)
+            sage: (1/x)._rpow_(precision=5)
+            1 + x^(-1) + 1/2*x^(-2) + 1/6*x^(-3) + 1/24*x^(-4) + O(x^(-5))
+        """
+        P = self.parent()
+
+        # first: remove terms from a copy of this term such that a
+        # term in o(1) remains
+
+        expr_o = self.summands.copy()
+        large_terms = []
+        for term in self.summands.elements():
+            if not term.is_little_o_of_one():
+                large_terms.append(term)
+                expr_o.remove(term.growth)
+
+        expr_o = P(expr_o)
+
+        # next: try to take the exponential function of the large elements
+
+        try:
+            for k in range(len(large_terms)):
+                term = large_terms[k]
+                large_terms[k] = term._construct_exp_(base=base)
+        except (ValueError, TypeError):
+            raise ValueError('Cannot construct the exponential function of '
+                             'the term %s.' % (term,))
+        else:
+            large_result = P.prod(P(term) for term in large_terms)
+
+        # then: expand expr_o
+
+        if not expr_o:
+            return large_result
+
+        from sage.functions.other import factorial
+        from sage.functions.log import log
+
+        if not base or base == 'e':
+            geom = expr_o
+        else:
+            geom = expr_o * log(base)
+
+        expanding = True
+        result = P.one()
+        geom_k = geom
+        k = 1
+        while expanding:
+            new_result = (result + geom_k / factorial(k)).truncate(precision=precision)
+            if new_result.has_same_summands(result):
+                expanding = False
+            result = new_result
+            k += 1
+            geom_k *= geom
+
+        return result * large_result
+
+
     def exp(self, precision=None):
         r"""
         Return the exponential function `\exp(\,\cdot\,)` of this

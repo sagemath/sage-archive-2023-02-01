@@ -89,6 +89,20 @@ class DiffManifoldCurve(DiffMap):
         sage: type(c)
         <class 'sage.manifolds.differentiable.curve.DiffManifoldCurveSet_with_category.element_class'>
 
+    A graphical view of the curve is provided by the method :meth:`plot`::
+
+        sage: c.plot(aspect_ratio=1)
+        Graphics object consisting of 1 graphics primitive
+
+    .. PLOT::
+
+        M = DiffManifold(2, 'M')
+        X = M.chart('x y')
+        t = RealLine().canonical_coordinate()
+        c = M.curve([sin(t), sin(2*t)/2], (t, 0, 2*pi), name='c')
+        g = c.plot(aspect_ratio=1)
+        sphinx_plot(g)
+
     Curves are considered as (manifold) morphisms from real intervals to
     differentiable manifolds::
 
@@ -108,7 +122,7 @@ class DiffManifoldCurve(DiffMap):
     Accordingly, all methods of
     :class:`~sage.manifolds.differentiable.diff_map.DiffMap` are available
     for them. In particular, the method
-    :meth:`~sage.manifolds.differentiable.diff_map.DiffMap.display`
+    :meth:`~sage.manifolds.continuous_map.ContinuousMap.display`
     shows the coordinate representations in various charts of manifold ``M``::
 
         sage: c.display()
@@ -120,7 +134,7 @@ class DiffManifoldCurve(DiffMap):
 
         sage: t0 = pi/2
         sage: I(t0)
-        Point on the Field R of real numbers
+        Point on the Real number line R
         sage: c(I(t0))
         Point on the 2-dimensional differentiable manifold M
         sage: c(I(t0)).coord(X)
@@ -186,7 +200,22 @@ class DiffManifoldCurve(DiffMap):
         sage: v.display()
         c' = cos(t) d/dx + (2*cos(t)^2 - 1) d/dy
 
-    Its value at `t=\pi`::
+    Plot of the curve and its tangent vector field::
+
+        sage: show(c.plot(thickness=2, aspect_ratio=1) +
+        ....:      v.plot(chart=X, nb_values=17, scale=0.5))
+
+    .. PLOT::
+
+        M = DiffManifold(2, 'M')
+        X = M.chart('x y')
+        t = RealLine().canonical_coordinate()
+        c = M.curve([sin(t), sin(2*t)/2], (t, 0, 2*pi), name='c')
+        v = c.tangent_vector_field()
+        g = c.plot(thickness=2, aspect_ratio=1) + v.plot(chart=X, nb_values=17, scale=0.5)
+        sphinx_plot(g)
+
+    Value of the tangent vector field at `t=\pi`::
 
         sage: v.at(R(pi))
         Tangent vector c' at Point on the 2-dimensional differentiable
@@ -202,12 +231,12 @@ class DiffManifoldCurve(DiffMap):
         sage: f = R.curve(t^2, (t,-oo,+oo))
         sage: g = R.curve(cos(t), (t,-oo,+oo))
         sage: s = g*f ; s
-        Differentiable map from the Field R of real numbers to itself
+        Differentiable map from the Real number line R to itself
         sage: s.display()
         R --> R
            t |--> cos(t^2)
         sage: s = f*g ; s
-        Differentiable map from the Field R of real numbers to itself
+        Differentiable map from the Real number line R to itself
         sage: s.display()
         R --> R
            t |--> cos(t)^2
@@ -268,7 +297,7 @@ class DiffManifoldCurve(DiffMap):
 
     def _repr_(self):
         r"""
-        Return a string representation of ``self``.
+        Return a string representation of the object.
 
         TESTS::
 
@@ -293,7 +322,7 @@ class DiffManifoldCurve(DiffMap):
 
     def coord_expr(self, chart=None):
         r"""
-        Return the coordinate functions expressing ``self`` in a given chart.
+        Return the coordinate functions expressing the curve in a given chart.
 
         INPUT:
 
@@ -408,7 +437,7 @@ class DiffManifoldCurve(DiffMap):
 
     def tangent_vector_field(self, name=None, latex_name=None):
         r"""
-        Return the tangent vector field to ``self`` (velocity vector).
+        Return the tangent vector field to the curve (velocity vector).
 
         INPUT:
 
@@ -486,10 +515,10 @@ class DiffManifoldCurve(DiffMap):
             ....:              name='c') ; c
             Curve c in the 2-dimensional differentiable manifold M
             sage: vc = c.tangent_vector_field() ; vc
-            Vector field c' along the Field R of real numbers with values on
+            Vector field c' along the Real number line R with values on
              the 2-dimensional differentiable manifold M
             sage: vc.parent()
-            Module X(R,c) of vector fields along the Field R of real numbers
+            Module X(R,c) of vector fields along the Real number line R
              mapped into the 2-dimensional differentiable manifold M
             sage: vc.display(c_spher.frame().along(c.restrict(R,A)))
             c' = -1/5*e^(1/10*t)/(e^(1/5*t) + 1) d/dth + d/dph
@@ -532,14 +561,14 @@ class DiffManifoldCurve(DiffMap):
              thickness=1, plot_points=75, label_axes=True,
              aspect_ratio='automatic'):
         r"""
-        Plot the current curve (``self``) in a Cartesian graph based on the
+        Plot the current curve in a Cartesian graph based on the
         coordinates of some ambient chart.
 
         The curve is drawn in terms of two (2D graphics) or three (3D graphics)
         coordinates of a given chart, called hereafter the *ambient chart*.
         The ambient chart's domain must overlap with the curve's codomain or
         with the codomain of the composite curve `\Phi\circ c`, where `c` is
-        ``self`` and `\Phi` some manifold differential mapping (argument
+        the current curve and `\Phi` some manifold differential map (argument
         ``mapping`` below).
 
         INPUT:
@@ -554,9 +583,9 @@ class DiffManifoldCurve(DiffMap):
         - ``mapping`` -- (default: ``None``) differentiable mapping `\Phi`
           (instance of
           :class:`~sage.manifolds.differentiable.diff_map.DiffMap`)
-          providing the link between ``self`` and the ambient chart ``chart``
+          providing the link between the curve and the ambient chart ``chart``
           (cf. above); if ``None``, the ambient chart is supposed to be defined
-          on the codomain of the curve ``self``.
+          on the codomain of the curve.
         - ``prange`` -- (default: ``None``) range of the curve parameter for
           the plot; if ``None``, the entire parameter range declared during the
           curve construction is considered (with -Infinity
@@ -575,7 +604,7 @@ class DiffManifoldCurve(DiffMap):
           -Infinity
         - ``parameters`` -- (default: ``None``) dictionary giving the numerical
           values of the parameters that may appear in the coordinate expression
-          of ``self``
+          of the curve
         - ``color`` -- (default: 'red') color of the drawn curve
         - ``style`` -- (default: '-') color of the drawn curve; NB: ``style``
           is effective only for 2D plots
@@ -608,15 +637,42 @@ class DiffManifoldCurve(DiffMap):
             sage: c.plot()  # 2D plot
             Graphics object consisting of 1 graphics primitive
 
+        .. PLOT::
+
+            R2 = DiffManifold(2, 'R^2')
+            X = R2.chart('x y')
+            t = RealLine().canonical_coordinate()
+            c = R2.curve([sin(t), sin(2*t)/2], (t, 0, 2*pi), name='c')
+            g = c.plot()
+            sphinx_plot(g)
+
         Plot for a subinterval of the curve's domain::
 
             sage: c.plot(prange=(0,pi))
             Graphics object consisting of 1 graphics primitive
 
+        .. PLOT::
+
+            R2 = DiffManifold(2, 'R^2')
+            X = R2.chart('x y')
+            t = RealLine().canonical_coordinate()
+            c = R2.curve([sin(t), sin(2*t)/2], (t, 0, 2*pi), name='c')
+            g = c.plot(prange=(0,pi))
+            sphinx_plot(g)
+
         Plot with various options::
 
             sage: c.plot(color='green', style=':', thickness=3, aspect_ratio=1)
             Graphics object consisting of 1 graphics primitive
+
+        .. PLOT::
+
+            R2 = DiffManifold(2, 'R^2')
+            X = R2.chart('x y')
+            t = RealLine().canonical_coordinate()
+            c = R2.curve([sin(t), sin(2*t)/2], (t, 0, 2*pi), name='c')
+            g = c.plot(color='green', style=':', thickness=3, aspect_ratio=1)
+            sphinx_plot(g)
 
         Plot via a mapping to another manifold: loxodrome of a sphere viewed
         in `\RR^3`::
@@ -648,6 +704,16 @@ class DiffManifoldCurve(DiffMap):
 
             sage: c.plot(parameters={a: 2, b: -3}, aspect_ratio=1)
             Graphics object consisting of 1 graphics primitive
+
+        .. PLOT::
+
+            R2 = DiffManifold(2, 'R^2')
+            X = R2.chart('x y')
+            t = RealLine().canonical_coordinate()
+            a, b = var('a b')
+            c = R2.curve([a*cos(t) + b, a*sin(t)], (t, 0, 2*pi), name='c')
+            g = c.plot(parameters={a: 2, b: -3}, aspect_ratio=1)
+            sphinx_plot(g)
 
         """
         from sage.rings.infinity import Infinity

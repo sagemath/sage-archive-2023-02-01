@@ -220,11 +220,11 @@ class DiffManifoldCurveSet(DiffManifoldHomset):
 
     - ``domain`` -- open interval `I\subset \RR` (domain of the morphisms),
       as an instance of
-      :class:`~sage.manifolds.differentiable.manifold.OpenInterval` or
-      of :class:`~sage.manifolds.differentiable.manifold.RealLine` if `I=\RR`
-    - ``codomain`` -- open subset `U\subset M` (codomain of the morphisms),
+      :class:`~sage.manifolds.differentiable.real_line.OpenInterval` or
+      of :class:`~sage.manifolds.differentiable.real_line.RealLine` if `I=\RR`
+    - ``codomain`` -- differentiable manifold `M` (codomain of the morphisms),
       as an instance of
-      :class:`~sage.manifolds.differentiable.domain.ManifoldOpenSubset`
+      :class:`~sage.manifolds.differentiable.manifold.DiffManifold`
     - ``name`` -- (default: ``None``) string; name given to the set of
       curves; if none is provided, Hom(I,U) will be used
     - ``latex_name`` -- (default: ``None``) string; LaTeX symbol to denote the
@@ -238,9 +238,9 @@ class DiffManifoldCurveSet(DiffManifoldHomset):
         sage: M = DiffManifold(2, 'M')
         sage: X.<x,y> = M.chart()
         sage: R.<t> = RealLine() ; R
-        Field R of real numbers
+        Real number line R
         sage: H = Hom(R, M) ; H
-        Set of Morphisms from Field R of real numbers to 2-dimensional
+        Set of Morphisms from Real number line R to 2-dimensional
          differentiable manifold M in Category of sets
         sage: type(H)
         <class 'sage.manifolds.differentiable.manifold_homset.DiffManifoldCurveSet_with_category'>
@@ -249,7 +249,7 @@ class DiffManifoldCurveSet(DiffManifoldHomset):
         sage: latex(H)
         \mathrm{Hom}\left(\RR,M\right)
         sage: H.domain()
-        Field R of real numbers
+        Real number line R
         sage: H.codomain()
         2-dimensional differentiable manifold M
 
@@ -291,8 +291,8 @@ class DiffManifoldCurveSet(DiffManifoldHomset):
     endomorphisms::
 
         sage: E = Hom(R, R) ; E
-        Set of Morphisms from Field R of real numbers to Field R of real
-         numbers in Category of sets
+        Set of Morphisms from Real number line R to Real number line R in
+         Category of sets
         sage: E.category()
         Category of endsets of sets
         sage: E.is_endomorphism_set()
@@ -308,7 +308,7 @@ class DiffManifoldCurveSet(DiffManifoldHomset):
     The identity element of the monoid is of course the identity map of `\RR`::
 
         sage: E.one()
-        Identity map Id_R of the Field R of real numbers
+        Identity map Id_R of the Real number line R
         sage: E.one() is R.identity_map()
         True
         sage: E.one().display()
@@ -365,14 +365,14 @@ class DiffManifoldCurveSet(DiffManifoldHomset):
             sage: R.<t> = RealLine()
             sage: from sage.manifolds.differentiable.manifold_homset import DiffManifoldCurveSet
             sage: H = DiffManifoldCurveSet(R, M) ; H
-            Set of Morphisms from Field R of real numbers to 3-dimensional
+            Set of Morphisms from Real number line R to 3-dimensional
              differentiable manifold M in Category of sets
             sage: TestSuite(H).run()
             sage: DiffManifoldCurveSet(R, M) is Hom(R, M)
             True
             sage: H = DiffManifoldCurveSet(R, R) ; H
-            Set of Morphisms from Field R of real numbers to Field R of real
-             numbers in Category of sets
+            Set of Morphisms from Real number line R to Real number line R in
+             Category of sets
             sage: TestSuite(H).run()
             sage: I = R.open_interval(-1, 2)
             sage: H =  DiffManifoldCurveSet(I, M) ; H
@@ -410,12 +410,12 @@ class DiffManifoldCurveSet(DiffManifoldHomset):
             sage: M = DiffManifold(2, 'M')
             sage: X.<x,y> = M.chart()
             sage: R.<t> = RealLine() ; R
-            Field R of real numbers
+            Real number line R
             sage: H = Hom(R, M)
             sage: c = H._element_constructor_({X: [sin(t), sin(2*t)/2]}, name='c') ; c
             Curve c in the 2-dimensional differentiable manifold M
             sage: c = Hom(R, R)._element_constructor_({}, is_identity=True) ; c
-            Identity map Id_R of the Field R of real numbers
+            Identity map Id_R of the Real number line R
 
         """
         # Standard construction

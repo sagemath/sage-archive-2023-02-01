@@ -465,17 +465,27 @@ class OpenInterval(DiffManifold):
 
         INPUT:
 
-        - ``other`` -- a differentiable manifold
+        - ``other`` -- a differentiable manifold `M`
         - ``category`` -- (default: ``None``) not used here (to ensure
           compatibility with generic hook ``_Hom_``)
 
         OUTPUT:
 
-        - the set of curves I --> M,  where I is ``self`` and M is ``other``
+        - the set of curves I --> M,  where I is the current open interval
 
         See class
         :class:`~sage.manifolds.differentiable.manifold_homset.DiffManifoldCurveSet`
         for more documentation.
+
+        TESTS::
+
+            sage: I = OpenInterval(-1,1)
+            sage: M = DiffManifold(3, 'M')
+            sage: H = I._Hom_(M); H
+            Set of Morphisms from Real interval (-1, 1) to 3-dimensional
+             differentiable manifold M in Category of sets
+            sage: H is Hom(I, M)
+            True
 
         """
         from sage.manifolds.differentiable.manifold_homset import \
@@ -689,7 +699,7 @@ class RealLine(OpenInterval):
     Constructing the real line without any argument::
 
         sage: R = RealLine() ; R
-        Field R of real numbers
+        Real number line R
         sage: latex(R)
         \RR
 
@@ -770,23 +780,23 @@ class RealLine(OpenInterval):
     Elements of the real line can be constructed directly from a number::
 
         sage: p = R(2) ; p
-        Point on the Field R of real numbers
+        Point on the Real number line R
         sage: p.coord()
         (2,)
         sage: p = R(1.742) ; p
-        Point on the Field R of real numbers
+        Point on the Real number line R
         sage: p.coord()
         (1.74200000000000,)
 
     Symbolic variables can also be used::
 
         sage: p = R(pi, name='pi') ; p
-        Point pi on the Field R of real numbers
+        Point pi on the Real number line R
         sage: p.coord()
         (pi,)
         sage: a = var('a')
         sage: p = R(a) ; p
-        Point on the Field R of real numbers
+        Point on the Real number line R
         sage: p.coord()
         (a,)
 
@@ -805,9 +815,9 @@ class RealLine(OpenInterval):
         sage: I = R.open_interval(0, 1); I
         Real interval (0, 1)
         sage: I.manifold()
-        Field R of real numbers
+        Real number line R
         sage: R.list_of_subsets()
-        [Real interval (0, 1), Field R of real numbers]
+        [Real interval (0, 1), Real number line R]
 
     """
     def __init__(self, name='R', latex_name=r'\RR', coordinate=None, names=None,
@@ -818,7 +828,7 @@ class RealLine(OpenInterval):
         TESTS::
 
             sage: R = RealLine() ; R
-            Field R of real numbers
+            Real number line R
             sage: R.category()
             Category of sets
             sage: TestSuite(R).run()
@@ -836,12 +846,12 @@ class RealLine(OpenInterval):
 
             sage: R = RealLine()
             sage: R._repr_()
-            'Field R of real numbers'
+            'Real number line R'
             sage: R = RealLine(name='r')
             sage: R._repr_()
-            'Field r of real numbers'
+            'Real number line r'
 
         """
-        return "Field " + self._name + " of real numbers"
+        return "Real number line " + self._name
 
 

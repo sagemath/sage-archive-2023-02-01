@@ -1,5 +1,5 @@
-Differentiable maps
-===================
+Differentiable maps and curves
+==============================
 
 .. toctree::
    :maxdepth: 2

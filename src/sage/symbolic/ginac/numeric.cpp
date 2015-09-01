@@ -426,26 +426,31 @@ numeric::numeric(const numeric& other) : basic(&numeric::tinfo_static) {
 
 numeric::numeric(PyObject* o, bool force_py) : basic(&numeric::tinfo_static) {
         if (!o) py_error("Error");
-        if PyInt_Check(o) {
-                t = MPZ;
-                mpz_init(v._bigint);
-                mpz_set_si(v._bigint, PyInt_AS_LONG(o));
-                setflag(status_flags::evaluated | status_flags::expanded);
-                return;
-        }
-        if (initialized and not force_py) {
-                if (py_funcs.py_is_Integer(o)) {
+        if (not force_py) {
+                if (PyInt_Check(o)) {
                         t = MPZ;
-                        mpz_init_set(v._bigint, py_funcs.py_mpz_from_integer(o));
+                        mpz_init(v._bigint);
+                        mpz_set_si(v._bigint, PyInt_AS_LONG(o));
                         setflag(status_flags::evaluated | status_flags::expanded);
+                        Py_DECREF(o);
                         return;
                 }
-                else if (py_funcs.py_is_Rational(o)) {
-                        t = MPQ;
-                        mpq_init(v._bigrat);
-                        mpq_set(v._bigrat, py_funcs.py_mpq_from_rational(o));
-                        setflag(status_flags::evaluated | status_flags::expanded);
-                        return;
+                if (initialized) {
+                        if (py_funcs.py_is_Integer(o)) {
+                                t = MPZ;
+                                mpz_init_set(v._bigint, py_funcs.py_mpz_from_integer(o));
+                                setflag(status_flags::evaluated | status_flags::expanded);
+                                Py_DECREF(o);
+                                return;
+                        }
+                        else if (py_funcs.py_is_Rational(o)) {
+                                t = MPQ;
+                                mpq_init(v._bigrat);
+                                mpq_set(v._bigrat, py_funcs.py_mpq_from_rational(o));
+                                setflag(status_flags::evaluated | status_flags::expanded);
+                                Py_DECREF(o);
+                                return;
+                        }
                 }
         }
 
@@ -1130,7 +1135,8 @@ const numeric numeric::power(const numeric &exponent) const {
                 Py_DECREF(r1);
                 Py_DECREF(r2);
                 mpq_clear(basis);
-                return r;
+                numeric p(r, true);
+                return p;
         }
         return PyNumber_Power(v._pyobject, exponent.v._pyobject, Py_None);
 }
@@ -1790,12 +1796,14 @@ PyObject* numeric::to_pyobject() const {
                         mpz_t bigint;
                         mpz_init_set(bigint, v._bigint);
                         o = py_funcs.py_integer_from_mpz(bigint);
+                        mpz_clear(bigint);
                         return o;
                 case MPQ:
                         mpq_t bigrat;
                         mpq_init(bigrat);
                         mpq_set(bigrat, v._bigrat);
                         o = py_funcs.py_rational_from_mpq(bigrat);
+                        mpq_clear(bigrat);
                         return o;
                 case DOUBLE:
                         if (!(o = PyFloat_FromDouble(v._double)))
@@ -2238,12 +2246,14 @@ void coerce(numeric& new_left, numeric& new_right, const numeric& left, const nu
                                         mpz_t bigint;
                                         mpz_init_set(bigint, right.v._bigint);
                                         o = py_funcs.py_integer_from_mpz(bigint);
+                                        mpz_clear(bigint);
                                         new_right = numeric(o, true);
                                         return;
                                 case MPQ:
                                         mpq_init(bigrat);
                                         mpq_set(bigrat, right.v._bigrat);
                                         o = py_funcs.py_rational_from_mpq(bigrat);
+                                        mpq_clear(bigrat);
                                         new_right = numeric(o, true);
                                         return;
                                 case DOUBLE:

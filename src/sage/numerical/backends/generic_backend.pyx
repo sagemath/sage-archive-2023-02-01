@@ -535,10 +535,11 @@ cdef class GenericBackend:
         For a minimization problem, this value is computed by
         `(\texttt{bestinteger} - \texttt{bestobjective}) / (1e-10 +
         |\texttt{bestobjective}|)`, where ``bestinteger`` is the value returned
-        by :meth:`get_objective_value` and ``bestobjective`` is the value
-        returned by :meth:`best_known_objective_bound`. For a maximization
-        problem, the value is computed by `(\texttt{bestobjective} -
-        \texttt{bestinteger}) / (1e-10 + |\texttt{bestobjective}|)`.
+        by :meth:`~MixedIntegerLinearProgram.get_objective_value` and
+        ``bestobjective`` is the value returned by
+        :meth:`~MixedIntegerLinearProgram.best_known_objective_bound`. For a
+        maximization problem, the value is computed by `(\texttt{bestobjective}
+        - \texttt{bestinteger}) / (1e-10 + |\texttt{bestobjective}|)`.
 
         .. NOTE::
 

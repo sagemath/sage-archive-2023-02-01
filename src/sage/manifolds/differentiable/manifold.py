@@ -379,7 +379,7 @@ from sage.categories.sets_cat import Sets
 #*# After #18175:
 # from sage.categories.manifolds import Manifolds
 from sage.categories.homset import Hom
-from sage.rings.infinity import infinity
+from sage.rings.infinity import infinity, minus_infinity
 from sage.misc.latex import latex
 from sage.manifolds.manifold import TopManifold
 from sage.manifolds.differentiable.scalarfield_algebra import DiffScalarFieldAlgebra
@@ -2662,23 +2662,23 @@ class DiffManifold(TopManifold):
             sage: X.<x,y> = M.chart()
             sage: R.<t> = RealLine()
             sage: c = M.curve([sin(t), sin(2*t)/2], (t, 0, 2*pi), name='c') ; c
-            Curve 'c' in the 2-dimensional manifold 'M'
+            Curve c in the 2-dimensional differentiable manifold M
 
         The same definition with the coordinate expression passed as a
         dictionary::
 
             sage: c = M.curve({X: [sin(t), sin(2*t)/2]}, (t, 0, 2*pi), name='c') ; c
-            Curve 'c' in the 2-dimensional manifold 'M'
+            Curve c in the 2-dimensional differentiable manifold M
 
         An example of definition with ``t_min`` and ``t_max`` omitted: a helix
         in `\RR^3`::
 
-            sage: R3 = Manifold(3, 'R^3')
+            sage: R3 = DiffManifold(3, 'R^3')
             sage: X.<x,y,z> = R3.chart()
             sage: c = R3.curve([cos(t), sin(t), t], t, name='c') ; c
-            Curve 'c' in the 3-dimensional manifold 'R^3'
+            Curve c in the 3-dimensional differentiable manifold R^3
             sage: c.domain() # check that t is unbounded
-            field R of real numbers
+            Real number line R
 
         See the documentation of
         :class:`~sage.manifolds.differentiable.curve.DiffManifoldCurve` for
@@ -2687,7 +2687,7 @@ class DiffManifold(TopManifold):
         """
         from sage.manifolds.differentiable.real_line import RealLine
         if not isinstance(param, (tuple, list)):
-            param = (param, -Infinity, Infinity)
+            param = (param, minus_infinity, infinity)
         elif len(param) != 3:
             raise TypeError("the argument 'param' must be of the type " +
                             "(t, t_min, t_max)")
@@ -2710,4 +2710,3 @@ class DiffManifold(TopManifold):
                 # case self.dim()=1
                 coord_expression = {chart: (coord_expression,)}
         return curve_set(coord_expression, name=name, latex_name=latex_name)
-

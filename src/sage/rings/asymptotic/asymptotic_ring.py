@@ -1455,19 +1455,19 @@ class AsymptoticExpression(sage.structure.element.CommutativeAlgebraElement):
         EXAMPLES::
 
             sage: A.<x> = AsymptoticRing('SR^x * x^ZZ * log(x)^ZZ', SR)
-            sage: exp(x)  # not tested
+            sage: exp(x)
             e^x
-            sage: exp(2*x)  # not tested
+            sage: exp(2*x)
             (e^2)^x
-            sage: exp(x + log(x))  # not tested
+            sage: exp(x + log(x))
             e^x*x
 
         ::
 
-            sage: exp(x^(-1))  # not tested
-            1 + x^(-1) + 1/2*x^(-2) + 1/6*x^(-3) + ... + O(x^(-21))
+            sage: (x^(-1)).exp(precision=7)
+            1 + x^(-1) + 1/2*x^(-2) + 1/6*x^(-3) + ... + O(x^(-7))
         """
-        return self._rpow_('e')
+        return self._rpow_(precision=precision)
 
 
 

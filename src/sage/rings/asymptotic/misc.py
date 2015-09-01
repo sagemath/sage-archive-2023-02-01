@@ -78,27 +78,59 @@ def parent_to_repr_short(P):
 
     EXAMPLES::
 
-        sage: import sage.rings.asymptotic.misc as agg
-        sage: agg.parent_to_repr_short(ZZ)
+        sage: from sage.rings.asymptotic.misc import parent_to_repr_short
+        sage: parent_to_repr_short(ZZ)
         'ZZ'
-        sage: agg.parent_to_repr_short(QQ)
+        sage: parent_to_repr_short(QQ)
         'QQ'
-        sage: agg.parent_to_repr_short(SR)
+        sage: parent_to_repr_short(SR)
         'SR'
-        sage: agg.parent_to_repr_short(ZZ[x])
-        '(Univariate Polynomial Ring in x over Integer Ring)'
+        sage: parent_to_repr_short(ZZ['x'])
+        'ZZ[x]'
+        sage: parent_to_repr_short(QQ['d, k'])
+        '(QQ[d, k])'
+        sage: parent_to_repr_short(QQ['e'])
+        'QQ[e]'
+        sage: parent_to_repr_short(SR[['a, r']])
+        '(SR[[a, r]])'
+        sage: parent_to_repr_short(Zmod(3))
+        '(Ring of integers modulo 3)'
+        sage: parent_to_repr_short(Zmod(3)['g'])
+        '(Univariate Polynomial Ring in g over Ring of integers modulo 3)'
     """
-    if P is sage.rings.integer_ring.ZZ:
-        return 'ZZ'
-    elif P is sage.rings.rational_field.QQ:
-        return 'QQ'
-    elif P is sage.symbolic.ring.SR:
-        return 'SR'
+    def abbreviate(P):
+        if P is sage.rings.integer_ring.ZZ:
+            return 'ZZ'
+        elif P is sage.rings.rational_field.QQ:
+            return 'QQ'
+        elif P is sage.symbolic.ring.SR:
+            return 'SR'
+        raise ValueError('Cannot abbreviate %s.' % (P,))
+
+    poly = sage.rings.polynomial.polynomial_ring.is_PolynomialRing(P) or \
+           sage.rings.polynomial.multi_polynomial_ring_generic.is_MPolynomialRing(P)
+    from sage.rings import multi_power_series_ring
+    power = sage.rings.power_series_ring.is_PowerSeriesRing(P) or \
+            multi_power_series_ring.is_MPowerSeriesRing(P)
+
+    if poly or power:
+        if poly:
+            op, cl = ('[', ']')
+        else:
+            op, cl = ('[[', ']]')
+        try:
+            s = abbreviate(P.base_ring()) + op + ', '.join(P.variable_names()) + cl
+        except ValueError:
+            s = str(P)
     else:
-        rep = repr(P)
-        if ' ' in rep:
-            rep = '(' + rep + ')'
-        return rep
+        try:
+            s = abbreviate(P)
+        except ValueError:
+            s = str(P)
+
+    if ' ' in s:
+        s = '(' + s + ')'
+    return s
 
 
 def split_str_by_mul(string):

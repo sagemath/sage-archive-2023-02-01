@@ -967,7 +967,7 @@ class GenericProduct(CartesianProductPosets, GenericGrowthGroup):
                 Growth Group x^ZZ * log(x)^ZZ * log(log(x))^ZZ
                 > *previous* TypeError: unsupported operand parent(s) for '*':
                 'Growth Group x^ZZ * log(x)^ZZ * log(log(x))^ZZ' and
-                'Growth Group (Univariate Polynomial Ring in e over Integer Ring)^x'
+                'Growth Group ZZ[e]^x'
 
             TESTS::
 

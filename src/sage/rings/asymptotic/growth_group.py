@@ -602,8 +602,7 @@ def log(self, base=None):
         Traceback (most recent call last):
         ...
         ArithmeticError: log(1) is zero, which is not contained in
-        Growth Group (Univariate Polynomial Ring in e over
-        Rational Field)^x * x^ZZ.
+        Growth Group QQ[e]^x * x^ZZ.
     """
     log_factor = self.log_factor(base=base)
     if not log_factor:
@@ -2487,7 +2486,7 @@ class MonomialGrowthGroup(GenericGrowthGroup):
             sage: agg.MonomialGrowthGroup(QQ, 'a')._repr_short_()
             'a^QQ'
             sage: agg.MonomialGrowthGroup(PolynomialRing(QQ, 'x'), 'a')._repr_short_()
-            'a^(Univariate Polynomial Ring in x over Rational Field)'
+            'a^QQ[x]'
         """
         from misc import parent_to_repr_short
         return '%s^%s' % (self._var_, parent_to_repr_short(self.base()))
@@ -2706,7 +2705,7 @@ class MonomialGrowthGroupFunctor(AbstractGrowthGroupFunctor):
         sage: A = GrowthGroup('x^QQ')
         sage: B = MonomialGrowthGroupFunctor('x')(ZZ['t'])
         sage: cm.common_parent(A, B)
-        Growth Group x^(Univariate Polynomial Ring in t over Rational Field)
+        Growth Group x^QQ[t]
     """
 
     _functor_name = 'MonomialGrowthGroup'
@@ -3065,7 +3064,7 @@ class ExponentialGrowthGroup(GenericGrowthGroup):
             sage: agg.ExponentialGrowthGroup(QQ, 'a')._repr_short_()
             'QQ^a'
             sage: agg.ExponentialGrowthGroup(PolynomialRing(QQ, 'x'), 'a')._repr_short_()
-            '(Univariate Polynomial Ring in x over Rational Field)^a'
+            'QQ[x]^a'
         """
         from misc import parent_to_repr_short
         return '%s^%s' % (parent_to_repr_short(self.base()), self._var_)
@@ -3235,7 +3234,7 @@ class ExponentialGrowthGroupFunctor(AbstractGrowthGroupFunctor):
         sage: A = GrowthGroup('QQ^x')
         sage: B = ExponentialGrowthGroupFunctor('x')(ZZ['t'])
         sage: cm.common_parent(A, B)
-        Growth Group (Univariate Polynomial Ring in t over Rational Field)^x
+        Growth Group QQ[t]^x
     """
 
     _functor_name = 'ExponentialGrowthGroup'

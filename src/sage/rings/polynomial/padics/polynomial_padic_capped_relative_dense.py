@@ -1349,8 +1349,6 @@ class Polynomial_padic_capped_relative_dense(Polynomial_generic_cdv, Polynomial_
     def factor_mod(self):
         r"""
         Return the factorization of ``self`` modulo `p`.
-
-        EXAMPLES::
         """
         self._normalize()
         if self._valbase < 0:

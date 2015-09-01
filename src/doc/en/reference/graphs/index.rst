@@ -73,6 +73,7 @@ Libraries of algorithms
    sage/graphs/trees
    sage/graphs/matchpoly
    sage/graphs/genus
+   sage/graphs/lovasz_theta
    sage/graphs/linearextensions
    sage/graphs/schnyder
    sage/graphs/graph_plot
@@ -80,6 +81,7 @@ Libraries of algorithms
    sage/graphs/graph_decompositions/vertex_separation
    sage/graphs/graph_decompositions/rankwidth
    sage/graphs/graph_decompositions/bandwidth
+   sage/graphs/graph_decompositions/cutwidth
    sage/graphs/graph_decompositions/graph_products
    sage/graphs/convexity_properties
    sage/graphs/weakly_chordal
@@ -88,6 +90,7 @@ Libraries of algorithms
    sage/graphs/graph_editor
    sage/graphs/graph_list
    sage/graphs/hyperbolicity
+   sage/graphs/strongly_regular_db
    sage/graphs/tutte_polynomial
    sage/graphs/generic_graph_pyx
 

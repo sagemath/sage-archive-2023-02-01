@@ -83,7 +83,6 @@ from sage.structure.unique_representation import UniqueRepresentation
 from sage.combinat.root_system.cartan_type import CartanType
 from sage.combinat.root_system.root_system import RootSystem
 from sage.rings.integer import Integer
-from sage.rings.infinity import Infinity
 
 class AbstractSingleCrystalElement(Element):
     r"""

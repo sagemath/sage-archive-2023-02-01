@@ -536,6 +536,7 @@ class ReducedPermutationIET(ReducedPermutation, PermutationIET):
         Returns a hash value (does not depends of the alphabet).
 
         TESTS::
+
             sage: p = iet.Permutation([1,2],[1,2], reduced=True)
             sage: q = iet.Permutation([1,2],[2,1], reduced=True)
             sage: r = iet.Permutation([2,1],[1,2], reduced=True)
@@ -582,7 +583,7 @@ class ReducedPermutationIET(ReducedPermutation, PermutationIET):
             sage: q4 < q5 and q5 > q4
             True
         """
-        if not isinstance(self, type(other)):
+        if type(self) is not type(other):
             raise ValueError("Permutations must be of the same type")
 
         if len(self) > len(other):
@@ -962,13 +963,14 @@ class ReducedPermutationLI(ReducedPermutation, PermutationLI):
             sage: p == r
             True
         """
-        return isinstance(self, type(other)) and self._twin == other._twin
+        return type(self) is type(other) and self._twin == other._twin
 
     def __ne__(self, other) :
         """
         Tests difference.
 
         TESTS::
+
             sage: p = iet.GeneralizedPermutation('a b b', 'c c a', reduced = True)
             sage: q = iet.GeneralizedPermutation('b b a', 'c c a', reduced = True)
             sage: r = iet.GeneralizedPermutation('i j j', 'k k i', reduced = True)
@@ -977,7 +979,7 @@ class ReducedPermutationLI(ReducedPermutation, PermutationLI):
             sage: p != r
             False
         """
-        return not isinstance(self, type(other)) or (self._twin != other._twin)
+        return type(self) is not type(other) or (self._twin != other._twin)
 
     def _get_loser_to(self, winner) :
         r"""
@@ -1406,7 +1408,7 @@ class FlippedReducedPermutationIET(
             sage: p1 < r and p2 < r and p3 < r
             True
         """
-        if not isinstance(self, type(other)):
+        if type(self) is not type(other):
             return -1
 
         if len(self) > len(other):
@@ -1437,9 +1439,8 @@ class FlippedReducedPermutationIET(
         - ``flips`` - boolean (default: False) if True the output contains
            2-uple of (label, flip)
 
-        EXAMPLES:
+        EXAMPLES::
 
-        ::
             sage: p = iet.Permutation('a b','b a',reduced=True,flips='b')
             sage: p.list(flips=True)
             [[('a', 1), ('b', -1)], [('b', -1), ('a', 1)]]
@@ -1675,7 +1676,7 @@ class FlippedReducedPermutationLI(
             sage: p == r or q == r
             False
         """
-        return (isinstance(self, type(other)) and
+        return (type(self) is type(other) and
             self._twin == other._twin and
             self._flips == other._flips)
 
@@ -1696,7 +1697,7 @@ class FlippedReducedPermutationLI(
             sage: p != r and q != r
             True
         """
-        return (not isinstance(self, type(other)) or
+        return (type(self) is not type(other) or
             self._twin != other._twin or
             self._flips != other._flips)
 

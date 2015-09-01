@@ -453,6 +453,52 @@ def BubbleSortGraph(n):
         d[''.join(v)] = tmp_dict
     return Graph(d, name="Bubble sort")
 
+def chang_graphs():
+    r"""
+    Return the three Chang graphs.
+
+    Three of the four strongly regular graphs of parameters `(28,12,6,4)` are
+    called the Chang graphs. The fourth is the line graph of `K_8`. For more
+    information about the Chang graphs, see :wikipedia:`Chang_graphs` or
+    http://www.win.tue.nl/~aeb/graphs/Chang.html.
+
+    EXAMPLES: check that we get 4 non-isomorphic s.r.g.'s with the
+    same parameters::
+
+        sage: chang_graphs = graphs.chang_graphs()
+        sage: K8 = graphs.CompleteGraph(8)
+        sage: T8 = K8.line_graph()
+        sage: four_srg = chang_graphs + [T8]
+        sage: for g in four_srg:
+        ....:     print g.is_strongly_regular(parameters=True)
+        (28, 12, 6, 4)
+        (28, 12, 6, 4)
+        (28, 12, 6, 4)
+        (28, 12, 6, 4)
+        sage: from itertools import combinations
+        sage: for g1,g2 in combinations(four_srg,2):
+        ....:     assert not g1.is_isomorphic(g2)
+
+    Construct the Chang graphs by Seidel switching::
+
+        sage: c3c5=graphs.CycleGraph(3).disjoint_union(graphs.CycleGraph(5))
+        sage: c8=graphs.CycleGraph(8)
+        sage: s=[K8.subgraph_search(c8).edges(),
+        ....:    [(0,1,None),(2,3,None),(4,5,None),(6,7,None)],
+        ....:    K8.subgraph_search(c3c5).edges()]
+        sage: map(lambda x,G: T8.seidel_switching(x, inplace=False).is_isomorphic(G),
+        ....:                  s, chang_graphs)
+        [True, True, True]
+
+    """
+    g1 = Graph("[}~~EebhkrRb_~SoLOIiAZ?LBBxDb?bQcggjHKEwoZFAaiZ?Yf[?dxb@@tdWGkwn",
+               loops=False, multiedges=False)
+    g2 = Graph("[~z^UipkkZPr_~Y_LOIiATOLBBxPR@`acoojBBSoWXTaabN?Yts?Yji_QyioClXZ",
+               loops=False, multiedges=False)
+    g3 = Graph("[~~vVMWdKFpV`^UGIaIERQ`\DBxpA@g`CbGRI`AxICNaFM[?fM\?Ytj@CxrGGlYt",
+               loops=False, multiedges=False)
+    return [g1,g2,g3]
+
 def CirculantGraph(n, adjacency):
     r"""
     Returns a circulant graph with n nodes.
@@ -1484,7 +1530,8 @@ def PaleyGraph(q):
     """
     from sage.rings.finite_rings.integer_mod import mod
     from sage.rings.finite_rings.constructor import FiniteField
-    assert q.is_prime_power(), "Parameter q must be a prime power"
+    from sage.rings.arith import is_prime_power
+    assert is_prime_power(q), "Parameter q must be a prime power"
     assert mod(q,4)==1, "Parameter q must be congruent to 1 mod 4"
     g = Graph([FiniteField(q,'a'), lambda i,j: (i-j).is_square()],
     loops=False, name = "Paley graph with parameter %d"%q)

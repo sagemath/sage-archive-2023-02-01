@@ -27,7 +27,8 @@ from sage.misc.cachefunc import cached_method
 from sage.matrix.constructor import matrix
 from sage.matrix.matrix import is_Matrix
 from sage.matrix.matrix_space import MatrixSpace
-from sage.misc.classcall_metaclass import ClasscallMetaclass, typecall
+from sage.misc.inherit_comparison import InheritComparisonClasscallMetaclass
+from sage.misc.classcall_metaclass import typecall
 from sage.misc.misc import powerset
 from sage.matrix.matrix_integer_sparse import Matrix_integer_sparse
 from sage.rings.all import ZZ
@@ -193,7 +194,7 @@ class CartanMatrix(Matrix_integer_sparse, CartanType_abstract):
         :meth:`row_with_indices()` and :meth:`column_with_indices()`
         respectively.
     """
-    __metaclass__ = ClasscallMetaclass
+    __metaclass__ = InheritComparisonClasscallMetaclass
 
     @staticmethod
     def __classcall_private__(cls, *args, **kwds):
@@ -451,6 +452,25 @@ class CartanMatrix(Matrix_integer_sparse, CartanType_abstract):
             return self
         return self._cartan_type
 
+    def subtype(self, index_set):
+        """
+        Return a subtype of ``self`` given by ``index_set``.
+
+        A subtype can be considered the Dynkin diagram induced from
+        the Dynkin diagram of ``self`` by ``index_set``.
+
+        EXAMPLES::
+
+            sage: C = CartanMatrix(['F',4])
+            sage: C.subtype([1,2,3])
+            [ 2 -1  0]
+            [-1  2 -1]
+            [ 0 -2  2]
+        """
+        ind = self.index_set()
+        I = [ind.index(i) for i in index_set]
+        return CartanMatrix(self.matrix_from_rows_and_columns(I, I))
+
     def rank(self):
         r"""
         Return the rank of ``self``.
@@ -695,7 +715,7 @@ class CartanMatrix(Matrix_integer_sparse, CartanType_abstract):
         - ``compact`` -- if ``True``, check if matrix is compact hyperbolic  
         
         EXAMPLES::
-            
+
             sage: M = CartanMatrix([[2,-2,0],[-2,2,-1],[0,-1,2]])
             sage: M.is_hyperbolic()
             True
@@ -731,7 +751,7 @@ class CartanMatrix(Matrix_integer_sparse, CartanType_abstract):
         and exactly one negative eigenvalue.
         
         EXAMPLES::
-        
+
             sage: M = CartanMatrix([[2,-3],[-3,2]])
             sage: M.is_lorentzian()
             True
@@ -749,7 +769,7 @@ class CartanMatrix(Matrix_integer_sparse, CartanType_abstract):
         Return if ``self`` is an indefinite type or ``False`` otherwise.
         
         EXAMPLES::
-        
+
            sage: M = CartanMatrix([[2,-3],[-3,2]])
            sage: M.is_indefinite()
            True
@@ -765,7 +785,7 @@ class CartanMatrix(Matrix_integer_sparse, CartanType_abstract):
         Return if ``self`` is an indecomposable matrix or ``False`` otherwise.
         
         EXAMPLES::
-        
+
             sage: M = CartanMatrix(['A',5])
             sage: M.is_indecomposable()
             True
@@ -786,7 +806,7 @@ class CartanMatrix(Matrix_integer_sparse, CartanType_abstract):
         - ``proper`` -- if ``True``, return only proper submatrices 
         
         EXAMPLES::
-        
+
             sage: M = CartanMatrix(['A',2])
             sage: M.principal_submatrices()
             [
@@ -810,7 +830,7 @@ class CartanMatrix(Matrix_integer_sparse, CartanType_abstract):
         Return a tuple of all indecomposable blocks of ``self``.
         
         EXAMPLES::
-        
+
             sage: M = CartanMatrix(['A',2])
             sage: M.indecomposable_blocks()
             (

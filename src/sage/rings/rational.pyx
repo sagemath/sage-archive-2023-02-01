@@ -2317,6 +2317,13 @@ cdef class Rational(sage.structure.element.FieldElement):
             1/8*8^(4/5)
             sage: 3^(-3/2)
             1/9*sqrt(3)
+
+        TESTS::
+
+            sage: QQ(0)^(-1)
+            Traceback (most recent call last):
+            ...
+            ZeroDivisionError: rational division by zero
         """
         if dummy is not None:
             raise ValueError, "__pow__ dummy variable not used"

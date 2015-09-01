@@ -977,6 +977,38 @@ class GenericTerm(sage.structure.element.MonoidElement):
         return self.growth == other.growth
 
 
+    def is_little_o_of_one(self):
+        r"""
+        Return if this term is of order `o(1)`.
+
+        INPUT:
+
+        Nothing.
+
+        OUTPUT:
+
+        A boolean.
+
+        EXAMPLES::
+
+            sage: from sage.rings.asymptotic.growth_group import GrowthGroup
+            sage: from sage.rings.asymptotic.term_monoid import (GenericTermMonoid,
+            ....:                                                TermWithCoefficientMonoid)
+            sage: T = GenericTermMonoid(GrowthGroup('x^ZZ'), QQ)
+            sage: T.an_element().is_little_o_of_one()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: Growth comparison not implemented (for this abstract method).
+            sage: T = TermWithCoefficientMonoid(GrowthGroup('x^ZZ'), QQ)
+            sage: T.an_element().is_little_o_of_one()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: Growth comparison not implemented (for this abstract method).
+        """
+        raise NotImplementedError('Growth comparison not implemented '
+                                  '(for this abstract method).')
+
+
     def _repr_(self):
         r"""
         A representation string for this generic term.
@@ -1817,6 +1849,55 @@ class OTerm(GenericTerm):
             :meth:`ExactTerm.log_term`.
         """
         return self._log_growth_(base=base)
+
+
+    def is_little_o_of_one(self):
+        r"""
+        Return if this term is of order `o(1)`.
+
+        INPUT:
+
+        Nothing.
+
+        OUTPUT:
+
+        A boolean.
+
+        EXAMPLES::
+
+            sage: from sage.rings.asymptotic.growth_group import GrowthGroup
+            sage: from sage.rings.asymptotic.term_monoid import TermMonoid
+            sage: T = TermMonoid('O', GrowthGroup('x^ZZ'), QQ)
+            sage: T(x).is_little_o_of_one()
+            False
+            sage: T(1).is_little_o_of_one()
+            False
+            sage: T(x^(-1)).is_little_o_of_one()
+            True
+
+        ::
+
+            sage: T = TermMonoid('O', GrowthGroup('x^ZZ * y^ZZ'), QQ)
+            sage: T('x * y^(-1)').is_little_o_of_one()
+            False
+            sage: T('x^(-1) * y').is_little_o_of_one()
+            False
+            sage: T('x^(-2) * y^(-3)').is_little_o_of_one()
+            True
+
+        ::
+
+            sage: T = TermMonoid('O', GrowthGroup('x^QQ * log(x)^QQ'), QQ)
+            sage: T('x * log(x)^2').is_little_o_of_one()
+            False
+            sage: T('x^2 * log(x)^(-1234)').is_little_o_of_one()
+            False
+            sage: T('x^(-1) * log(x)^4242').is_little_o_of_one()
+            True
+            sage: T('x^(-1/100) * log(x)^(1000/7)').is_little_o_of_one()
+            True
+        """
+        return self.growth.is_lt_one()
 
 
 class OTermMonoid(GenericTermMonoid):
@@ -2692,6 +2773,55 @@ class ExactTerm(TermWithCoefficient):
             :meth:`OTerm.log_term`.
         """
         return self._log_coefficient_(base=base) + self._log_growth_(base=base)
+
+
+    def is_little_o_of_one(self):
+        r"""
+        Return if this term is of order `o(1)`.
+
+        INPUT:
+
+        Nothing.
+
+        OUTPUT:
+
+        A boolean.
+
+        EXAMPLES::
+
+            sage: from sage.rings.asymptotic.growth_group import GrowthGroup
+            sage: from sage.rings.asymptotic.term_monoid import TermMonoid
+            sage: T = TermMonoid('exact', GrowthGroup('x^ZZ'), QQ)
+            sage: T(x).is_little_o_of_one()
+            False
+            sage: T(1).is_little_o_of_one()
+            False
+            sage: T(x^(-1)).is_little_o_of_one()
+            True
+
+        ::
+
+            sage: T = TermMonoid('exact', GrowthGroup('x^ZZ * y^ZZ'), QQ)
+            sage: T('x * y^(-1)').is_little_o_of_one()
+            False
+            sage: T('x^(-1) * y').is_little_o_of_one()
+            False
+            sage: T('x^(-2) * y^(-3)').is_little_o_of_one()
+            True
+
+        ::
+
+            sage: T = TermMonoid('exact', GrowthGroup('x^QQ * log(x)^QQ'), QQ)
+            sage: T('x * log(x)^2').is_little_o_of_one()
+            False
+            sage: T('x^2 * log(x)^(-1234)').is_little_o_of_one()
+            False
+            sage: T('x^(-1) * log(x)^4242').is_little_o_of_one()
+            True
+            sage: T('x^(-1/100) * log(x)^(1000/7)').is_little_o_of_one()
+            True
+        """
+        return self.growth.is_lt_one()
 
 
 class ExactTermMonoid(TermWithCoefficientMonoid):

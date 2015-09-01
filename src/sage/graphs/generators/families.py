@@ -8,6 +8,8 @@ AUTHORS:
 
 - David Coudert (2012) Ringed Trees
 
+- cf. ``git blame`` for the others involved
+
 """
 
 ###########################################################################
@@ -2761,13 +2763,13 @@ def TaylorTwographDescendantSRG(q, clique_partition=None):
     `(v,k,\lambda,\mu)=(q^3, (q^2+1)(q-1)/2, (q-1)^3/4-1, (q^2+1)(q-1)/4)`
     obtained as a two-graph descendant of the
     :func:`Taylor's two-graph <sage.combinat.designs.twographs.taylor_twograph>` `T`.
-    This graph admits a partition into cliques of size `q`, which are useful to construct
+    This graph admits a partition into cliques of size `q`, which are useful in
     :func:`TaylorTwographSRG <sage.graphs.generators.families.TaylorTwographSRG>`,
     a strongly regular graph on `q^3+1` vertices in the
     Seidel switching class of `T`, for which we need `(q^2+1)/2` cliques.
     The cliques are the `q^2` lines on `v_0` of the projective plane containing the unital
     for `U_3(q)`, and intersecting the unital (i.e. the vertices of the graph and the point
-    we remove) in `q+1` points.
+    we remove) in `q+1` points. This is all taken from §7E of [BvL84]_.
 
     INPUT:
 
@@ -2844,10 +2846,11 @@ def TaylorTwographSRG(q):
     `(v,k,\lambda,\mu)=(q^3+1, q(q^2+1)/2, (q^2+3)(q-1)/4, (q^2+1)(q+1)/4)`
     in the Seidel switching class of
     :func:`Taylor two-graph <sage.combinat.designs.twographs.taylor_twograph>`.
+    Details are in §7E of [BvL84]_.
 
     .. SEEALSO::
 
-    `TaylorTwographDescendantSRG <sage.graphs.generators.families.TaylorTwographDescendantSRG>`
+        * :func:`TaylorTwographDescendantSRG <sage.graphs.generators.families.TaylorTwographDescendantSRG>`
 
     EXAMPLES::
 

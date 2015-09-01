@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 r"""
 Two-graphs
 
@@ -178,6 +179,7 @@ def taylor_twograph(q):
     singular w.r.t. the non-degenerate Hermitean form `S` preserved by `U_3(q)` as its ground set;
     the triples are `\{x,y,z\}` satisfying the condition that `S(x,y)S(y,z)S(z,x)` is square
     (respectively non-square) if `q \cong 1 \mod 4` (respectively if `q \cong 3 \mod 4`).
+    See §7E of [BvL84]_.
 
     There is also a `2-(q^3+1,q,1)`-design on these `q^3+1` points, known as the unital of
     order `q`, also invariant under `U_3(q)`.

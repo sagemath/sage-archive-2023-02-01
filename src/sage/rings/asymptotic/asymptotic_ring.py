@@ -8,17 +8,28 @@ computations with asymptotic expressions.
 Definition
 ==========
 
-An asymptotic expression is a sum; its summands are the following:
+An asymptotic expression is a sum such as
+
+.. MATH::
+
+    5z^3 + 4z^2 + O(z)
+
+or
+
+.. MATH::
+
+    3x^{42}y^2 + 7x^3y^3 + O(x^2) + O(y)
+
+Its summands are the following:
 
 - Exact terms `c\cdot g` with a coefficient `c` and an element `g` of
-  an :ref:`growth group <asymptotic_ring_growth>`.
+  an growth group (:ref:`see below <asymptotic_ring_growth>`).
 
 - `O`-terms `O(g)` (see :wikipedia:`Big O notation <Big_O_notation>`;
-  also called *Bachmann--Landau notation*) for some :mod:`growth group
-  element <sage.rings.asymptotic.growth_group>` `g` (:ref:`see below
-  <asymptotic_ring_growth>`).
+  also called *Bachmann--Landau notation*) for growth group
+  element `g` (:ref:`again see below <asymptotic_ring_growth>`).
 
-Examples of such elements can found :ref:`below <asymptotic_ring_intro>`.
+Further examples of such elements can be found :ref:`here <asymptotic_ring_intro>`.
 
 .. _asymptotic_ring_growth:
 
@@ -26,8 +37,7 @@ Examples of such elements can found :ref:`below <asymptotic_ring_intro>`.
 Growth Elements
 ---------------
 
-The elements of a :mod:`growth group
-<sage.rings.asymptotic.growth_group>` are equipped with a partial
+The elements of a :doc:`growth group <growth_group>` are equipped with a partial
 ordering and usually contain a variable. Examples are (among many
 other possibilities)
 

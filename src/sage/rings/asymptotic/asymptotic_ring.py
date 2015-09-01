@@ -266,9 +266,9 @@ Data Structures
 
 The summands of an
 :class:`asymptotic expression <AsymptoticExpression>` are wrapped
-:mod:`growth group elements <sage.rings.asymptotic.growth_group>`.
+:doc:`growth group elements <growth_group>`.
 This wrapping is done by the
-:mod:`term monoid module <sage.rings.asymptotic.term_monoid>`.
+:doc:`term monoid module <term_monoid>`.
 However, inside an
 :class:`asymptotic expression <AsymptoticExpression>` these summands
 (terms) are stored together with their growth-relationship, i.e., each
@@ -441,8 +441,8 @@ class AsymptoticExpression(sage.structure.element.CommutativeAlgebraElement):
 
     .. SEEALSO::
 
-        :mod:`sage.rings.asymptotic.growth_group`,
-        :mod:`sage.rings.asymptotic.term_monoid`,
+        :doc:`growth_group`,
+        :doc:`term_monoid`,
         :mod:`sage.data_structures.mutable_poset`.
     """
     def __init__(self, parent, summands, simplify=True, convert=True):
@@ -829,7 +829,7 @@ class AsymptoticExpression(sage.structure.element.CommutativeAlgebraElement):
         INPUT:
 
         - ``term`` -- an asymptotic term (see
-          :mod:`~sage.rings.asymptotic.term_monoid`).
+          :doc:`term_monoid`).
 
         OUTPUT:
 
@@ -1277,7 +1277,7 @@ class AsymptoticRing(sage.algebras.algebra.Algebra,
     INPUT:
 
     - ``growth_group`` -- either a partially ordered group (see
-      :mod:`~sage.rings.asymptotic.growth_group`) or a string
+      :doc:`growth_group`) or a string
       describing such a growth group (see
       :class:`~sage.rings.asymptotic.growth_group.GrowthGroupFactory`).
 
@@ -1323,7 +1323,7 @@ class AsymptoticRing(sage.algebras.algebra.Algebra,
         sage: R_log = AsymptoticRing(growth_group='log(x)^ZZ', coefficient_ring=QQ); R_log
         Asymptotic Ring <log(x)^ZZ> over Rational Field
 
-    Other growth groups are available. See :mod:`~sage.rings.asymptotic.asymptotic_ring` for
+    Other growth groups are available. See :doc:`asymptotic_ring` for
     a lot more examples.
 
     Below there are some technical details.
@@ -1522,7 +1522,7 @@ class AsymptoticRing(sage.algebras.algebra.Algebra,
 
         .. SEEALSO::
 
-            :mod:`sage.rings.asymptotic.growth_group`
+            :doc:`growth_group`
         """
         return self._growth_group_
 
@@ -2190,7 +2190,7 @@ class AsymptoticRing(sage.algebras.algebra.Algebra,
 
         .. SEEALSO::
 
-            :mod:`sage.rings.asymptotic.asymptotic_ring`,
+            :doc:`asymptotic_ring`,
             :class:`AsymptoticRing`,
             :class:`AsymptoticRingFunctor`.
         """
@@ -2207,7 +2207,7 @@ class AsymptoticRingFunctor(ConstructionFunctor):
 
     - ``growth_group`` -- a partially ordered group (see
       :class:`AsymptoticRing` or
-      :mod:`~sage.rings.asymptotic.growth_group` for details).
+      :doc:`growth_group` for details).
 
     EXAMPLES::
 
@@ -2216,7 +2216,7 @@ class AsymptoticRingFunctor(ConstructionFunctor):
 
     .. SEEALSO::
 
-        :mod:`sage.rings.asymptotic.asymptotic_ring`,
+        :doc:`asymptotic_ring`,
         :class:`AsymptoticRing`,
         :class:`sage.rings.asymptotic.growth_group.AbstractGrowthGroupFunctor`,
         :class:`sage.rings.asymptotic.growth_group.ExponentialGrowthGroupFunctor`,

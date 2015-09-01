@@ -3,12 +3,12 @@ r"""
 
 This module implements asymptotic term monoids. The elements of these
 monoids are used behind the scenes when performing calculations in an
-:mod:`asymptotic ring <sage.rings.asymptotic.asymptotic_ring>`.
+:doc:`asymptotic ring <asymptotic_ring>`.
 
 The monoids build upon the (asymptotic) growth groups. While growth
 elements only model the growth of a function as it tends towards
 infinity (or tends towards another fixed point; see
-:mod:`~sage.rings.asymptotic.growth_group` for more details), an
+:doc:`growth_group` for more details), an
 asymptotic term additionally specifies its "type" and performs the
 actual arithmetic operations (multiplication and partial
 addition/absorption of terms).
@@ -558,8 +558,8 @@ class GenericTerm(sage.structure.element.MonoidElement):
         .. NOTE::
 
             For a more detailed explanation of the *absorption* of
-            asymptotic terms see the introduction of :mod:`this module
-            <sage.rings.asymptotic.term_monoid>`, or the examples
+            asymptotic terms see the introduction of
+            :doc:`this module <term_monoid>`, or the examples
             below.
 
         EXAMPLES:

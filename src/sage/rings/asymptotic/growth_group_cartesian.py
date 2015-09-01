@@ -1,7 +1,7 @@
 r"""
 Growth Groups as Cartesian Products
 
-See :mod:`sage.rings.asymptotic.growth_group` for a description.
+See :doc:`growth_group` for a description.
 
 AUTHORS:
 

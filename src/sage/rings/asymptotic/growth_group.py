@@ -8,13 +8,12 @@ seen as functions, and the behavior as their argument (or arguments)
 gets large (tend to `\infty`) is compared.
 
 Growth groups are used for the calculations done in the
-:mod:`asymptotic ring <sage.rings.asymptotic.asymptotic_ring>`.
+:doc:`asymptotic ring <asymptotic_ring>`.
 
 A Formal Definition
 ===================
 
-The elements of a :mod:`growth group
-<sage.rings.asymptotic.growth_group>` are equipped with a partial
+The elements of a :doc:`growth group <growth_group>` are equipped with a partial
 ordering and usually contain a variable. Examples are (among many
 other possibilities)
 
@@ -672,8 +671,8 @@ def log_factor(self, base=None):
 
     .. SEEALSO::
 
-        :meth:`factor`,
-        :meth:`log`.
+        :meth:`~GenericGrowthElement.factors`,
+        :meth:`~GenericGrowthElement.log`.
 
     TESTS::
 
@@ -2005,7 +2004,7 @@ class AbstractGrowthGroupFunctor(ConstructionFunctor):
 
     .. SEEALSO::
 
-        :mod:`sage.rings.asymptotic.asymptotic_ring`,
+        :doc:`asymptotic_ring`,
         :class:`ExponentialGrowthGroupFunctor`,
         :class:`MonomialGrowthGroupFunctor`,
         :class:`sage.rings.asymptotic.asymptotic_ring.AsymptoticRingFunctor`,
@@ -2695,7 +2694,7 @@ class MonomialGrowthGroupFunctor(AbstractGrowthGroupFunctor):
 
     .. SEEALSO::
 
-        :mod:`sage.rings.asymptotic.asymptotic_ring`,
+        :doc:`asymptotic_ring`,
         :class:`AbstractGrowthGroupFunctor`,
         :class:`ExponentialGrowthGroupFunctor`,
         :class:`sage.rings.asymptotic.asymptotic_ring.AsymptoticRingFunctor`,
@@ -3224,7 +3223,7 @@ class ExponentialGrowthGroupFunctor(AbstractGrowthGroupFunctor):
 
     .. SEEALSO::
 
-        :mod:`sage.rings.asymptotic.asymptotic_ring`,
+        :doc:`asymptotic_ring`,
         :class:`AbstractGrowthGroupFunctor`,
         :class:`MonomialGrowthGroupFunctor`,
         :class:`sage.rings.asymptotic.asymptotic_ring.AsymptoticRingFunctor`,

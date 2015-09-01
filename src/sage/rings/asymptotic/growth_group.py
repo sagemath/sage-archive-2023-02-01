@@ -1174,6 +1174,26 @@ class GenericGrowthElement(sage.structure.element.MultiplicativeGroupElement):
 
 
     def _rpow_element_(self, base):
+        r"""
+        Return an element which is the power of ``base`` to this
+        element; it lives (in contrast to :meth:`rpow`) in its own group.
+
+        INPUT:
+
+        - ``base`` -- an element.
+
+        OUTPUT:
+
+        A growth element or ``None``.
+
+        TESTS::
+
+            sage: from sage.rings.asymptotic.growth_group import GrowthGroup
+            sage: G = GrowthGroup('QQ^x')
+            sage: x = G(raw_element=3)
+            sage: x._rpow_element_(2) is None
+            True
+        """
         pass
 
 
@@ -2323,6 +2343,35 @@ class MonomialGrowthElement(GenericGrowthElement):
 
 
     def _rpow_element_(self, base):
+        r"""
+        Return an element which is the power of ``base`` to this
+        element; it lives (in contrast to :meth:`rpow`) in its own group.
+
+        INPUT:
+
+        - ``base`` -- an element.
+
+        OUTPUT:
+
+        A growth element or ``None``.
+
+        TESTS::
+
+            sage: from sage.rings.asymptotic.growth_group import GrowthGroup
+            sage: G = GrowthGroup('x^ZZ')
+            sage: x = G('x')
+            sage: x._rpow_element_(2)
+            Traceback (most recent call last):
+            ...
+            ValueError: Variable %s is not a log of something.
+            sage: G = GrowthGroup('log(x)^ZZ')
+            sage: lx = G(raw_element=1); lx
+            log(x)
+            sage: rp = lx._rpow_element_('e'); rp
+            x
+            sage: rp.parent()
+            Growth Group x^ZZ
+        """
         var = str(self.parent()._var_)
         if not(var.startswith('log(') and self.exponent == 1):
             raise ValueError('Variable %s is not a log of something.')

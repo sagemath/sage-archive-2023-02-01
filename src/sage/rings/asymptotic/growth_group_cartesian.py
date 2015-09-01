@@ -901,6 +901,28 @@ class GenericProduct(CartesianProductPosets, GenericGrowthGroup):
 
 
         def _rpow_element_(self, base):
+            r"""
+            Return an element which is the power of ``base`` to this
+            element; it lives (in contrast to :meth:`rpow`) in its own group.
+
+            INPUT:
+
+            - ``base`` -- an element.
+
+            OUTPUT:
+
+            A growth element or ``None``.
+
+            TESTS::
+
+                sage: from sage.rings.asymptotic.growth_group import GrowthGroup
+                sage: G = GrowthGroup('QQ^x * x^ZZ * log(x)^ZZ')
+                sage: lx = log(G('x'))
+                sage: rp = lx._rpow_element_('e'); rp
+                x
+                sage: rp.parent()
+                Growth Group x^ZZ
+            """
             factors = self.factors()
             if len(factors) != 1:
                 return

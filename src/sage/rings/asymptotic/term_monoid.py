@@ -1,14 +1,14 @@
 r"""
-Asymptotic Term Monoid
+(Asymptotic) Term Monoids
 
 This module implements asymptotic term monoids. The elements of these
 monoids are used behind the scenes when performing calculations in an
-:mod:`asymptotic ring <sage.rings.asymptotic.asymptotic_ring>`.
+:doc:`asymptotic ring <asymptotic_ring>`.
 
 The monoids build upon the (asymptotic) growth groups. While growth
 elements only model the growth of a function as it tends towards
 infinity (or tends towards another fixed point; see
-:mod:`~sage.rings.asymptotic.growth_group` for more details), an
+:doc:`growth_group` for more details), an
 asymptotic term additionally specifies its "type" and performs the
 actual arithmetic operations (multiplication and partial
 addition/absorption of terms).
@@ -27,7 +27,7 @@ A characteristic property of asymptotic terms is that some terms are
 able to "absorb" other terms (see
 :meth:`~sage.rings.asymptotic.term_monoid.GenericTerm.absorb`). For
 instance, `O(x^2)` is able to absorb `O(x)` (with result
-`O(x^2)`), and `3*x^5` is able to absorb `-2*x^5` (with result
+`O(x^2)`), and `3\cdot x^5` is able to absorb `-2\cdot x^5` (with result
 `x^5`). Essentially, absorption can be interpreted as the
 addition of "compatible" terms (partial addition).
 
@@ -38,11 +38,17 @@ addition of "compatible" terms (partial addition).
 
 AUTHORS:
 
-- Benjamin Hackl (2015-01): initial version
-- Benjamin Hackl, Daniel Krenn (2015-05): conception of the asymptotic ring
-- Benjamin Hackl (2015-06): refactoring caused by refactoring growth groups
-- Daniel Krenn (2015-07): extensive review and patches
-- Benjamin Hackl (2015-07): cross-review; short notation
+- Benjamin Hackl (2015-01-01): initial version
+- Benjamin Hackl, Daniel Krenn (2015-05-15): conception of the asymptotic ring
+- Benjamin Hackl (2015-06-00): refactoring caused by refactoring growth groups
+- Daniel Krenn (2015-07-00): extensive review and patches
+- Benjamin Hackl (2015-07-00): cross-review; short notation
+- Daniel Krenn (2015-08-31): various improvements, review; documentation
+
+ACKNOWLEDGEMENT:
+
+- Benjamin Hackl, Clemens Heuberger and Daniel Krenn are supported by the
+  Austrian Science Fund (FWF): P 24644-N26.
 
 .. WARNING::
 
@@ -60,6 +66,9 @@ AUTHORS:
         without a formal deprecation.
         See http://trac.sagemath.org/17601 for details.
         sage: T = GenericTermMonoid(G, ZZ)
+
+Classes and Methods
+===================
 """
 
 # *****************************************************************************
@@ -555,8 +564,8 @@ class GenericTerm(sage.structure.element.MonoidElement):
         .. NOTE::
 
             For a more detailed explanation of the *absorption* of
-            asymptotic terms see the introduction of :mod:`this module
-            <sage.rings.asymptotic.term_monoid>`, or the examples
+            asymptotic terms see the introduction of
+            :doc:`this module <term_monoid>`, or the examples
             below.
 
         EXAMPLES:
@@ -2919,13 +2928,61 @@ class TermMonoidFactory(sage.structure.factory.UniqueFactory):
 
     EXAMPLES::
 
-        sage: import sage.rings.asymptotic.growth_group as agg
-        sage: import sage.rings.asymptotic.term_monoid as atm
-        sage: G = agg.GrowthGroup('x^ZZ')
-        sage: OT = atm.TermMonoid('O', G, QQ); OT
+        sage: from sage.rings.asymptotic.growth_group import GrowthGroup
+        sage: from sage.rings.asymptotic.term_monoid import TermMonoid
+        sage: G = GrowthGroup('x^ZZ')
+        sage: OT = TermMonoid('O', G, QQ); OT
         O-Term Monoid x^ZZ with implicit coefficients in Rational Field
-        sage: ET = atm.TermMonoid('exact', G, ZZ); ET
+        sage: ET = TermMonoid('exact', G, ZZ); ET
         Exact Term Monoid x^ZZ with coefficients in Integer Ring
+
+    TESTS::
+
+        sage: TestSuite(TermMonoid('exact', GrowthGroup('x^ZZ'), QQ)).run(verbose=True)  # long time
+        running ._test_an_element() . . . pass
+        running ._test_associativity() . . . pass
+        running ._test_category() . . . pass
+        running ._test_elements() . . .
+          Running the test suite of self.an_element()
+          running ._test_category() . . . pass
+          running ._test_eq() . . . pass
+          running ._test_not_implemented_methods() . . . pass
+          running ._test_pickling() . . . pass
+          pass
+        running ._test_elements_eq_reflexive() . . . pass
+        running ._test_elements_eq_symmetric() . . . pass
+        running ._test_elements_eq_transitive() . . . pass
+        running ._test_elements_neq() . . . pass
+        running ._test_eq() . . . pass
+        running ._test_not_implemented_methods() . . . pass
+        running ._test_one() . . . pass
+        running ._test_pickling() . . . pass
+        running ._test_prod() . . . pass
+        running ._test_some_elements() . . . pass
+
+    ::
+
+        sage: TestSuite(TermMonoid('O', GrowthGroup('x^QQ'), ZZ)).run(verbose=True)  # long time
+        running ._test_an_element() . . . pass
+        running ._test_associativity() . . . pass
+        running ._test_category() . . . pass
+        running ._test_elements() . . .
+          Running the test suite of self.an_element()
+          running ._test_category() . . . pass
+          running ._test_eq() . . . pass
+          running ._test_not_implemented_methods() . . . pass
+          running ._test_pickling() . . . pass
+          pass
+        running ._test_elements_eq_reflexive() . . . pass
+        running ._test_elements_eq_symmetric() . . . pass
+        running ._test_elements_eq_transitive() . . . pass
+        running ._test_elements_neq() . . . pass
+        running ._test_eq() . . . pass
+        running ._test_not_implemented_methods() . . . pass
+        running ._test_one() . . . pass
+        running ._test_pickling() . . . pass
+        running ._test_prod() . . . pass
+        running ._test_some_elements() . . . pass
     """
     def create_key_and_extra_args(self, term,
                                   growth_group=None, coefficient_ring=None,

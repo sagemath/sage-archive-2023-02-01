@@ -1,12 +1,18 @@
 r"""
 Growth Groups as Cartesian Products
 
-See :mod:`sage.rings.asymptotic.growth_group` for a description.
+See :doc:`growth_group` for a description.
 
 AUTHORS:
 
 - Daniel Krenn (2015-06-02): cartesian products
-- Benjamin Hackl (2015-07)
+- Benjamin Hackl (2015-07-00)
+- Daniel Krenn (2015-08-31): various improvements, review; documentation
+
+ACKNOWLEDGEMENT:
+
+- Benjamin Hackl, Clemens Heuberger and Daniel Krenn are supported by the
+  Austrian Science Fund (FWF): P 24644-N26.
 
 .. WARNING::
 
@@ -74,6 +80,9 @@ TESTS::
     (1/2)^x*x
     sage: tuple(E.an_element())
     (1, x^(1/2))
+
+Classes and Methods
+===================
 """
 
 #*****************************************************************************
@@ -1004,7 +1013,7 @@ class GenericProduct(CartesianProductPosets, GenericGrowthGroup):
                 Growth Group x^ZZ * log(x)^ZZ * log(log(x))^ZZ
                 > *previous* TypeError: unsupported operand parent(s) for '*':
                 'Growth Group x^ZZ * log(x)^ZZ * log(log(x))^ZZ' and
-                'Growth Group (Univariate Polynomial Ring in e over Integer Ring)^x'
+                'Growth Group ZZ[e]^x'
 
             TESTS::
 

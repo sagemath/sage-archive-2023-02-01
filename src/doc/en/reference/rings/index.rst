@@ -18,7 +18,7 @@ General Rings, Ideals, and Morphisms
    sage/rings/quotient_ring_element
    sage/rings/invariant_theory
 
-   sage/rings/asymptotic/asymptotic_ring
+   asymptotic_ring_index
    sage/rings/bernmm
    sage/rings/bernoulli_mod_p
    sage/rings/big_oh

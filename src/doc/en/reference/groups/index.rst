@@ -56,9 +56,6 @@ Groups
    sage/groups/perm_gps/partn_ref
    sage/groups/perm_gps/partn_ref2
 
-   sage/rings/asymptotic/growth_group
-   sage/rings/asymptotic/growth_group_cartesian
-
 
 Internals
 ---------

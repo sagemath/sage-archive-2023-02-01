@@ -8,26 +8,25 @@ seen as functions, and the behavior as their argument (or arguments)
 gets large (tend to `\infty`) is compared.
 
 Growth groups are used for the calculations done in the
-:mod:`asymptotic ring <sage.rings.asymptotic.asymptotic_ring>`.
+:doc:`asymptotic ring <asymptotic_ring>`.
 
 A Formal Definition
 ===================
 
-The elements of a :mod:`growth group
-<sage.rings.asymptotic.growth_group>` are equipped with a partial
+The elements of a :doc:`growth group <growth_group>` are equipped with a partial
 ordering and usually contain a variable. Examples are (among many
 other possibilities)
 
 - elements of the form `z^q` for some integer or rational `q` (growth
   groups ``z^ZZ`` or ``z^QQ``),
 
-- elements of the form `log(z)^q` for some integer or rational `q` (growth
+- elements of the form `\log(z)^q` for some integer or rational `q` (growth
   groups ``log(z)^ZZ`` or ``log(z)^QQ``),
 
 - elements of the form `a^z` for some
   rational `a` (growth group ``QQ^z``), or
 
-- more sophisticated constructions like products `x^r log(x)^s \cdot
+- more sophisticated constructions like products `x^r \log(x)^s \cdot
   a^y \cdot y^q` (this corresponds to an element of the growth group
   ``x^QQ * log(x)^ZZ * QQ^y * y^QQ``).
 
@@ -98,11 +97,13 @@ and a typical element looks like this::
     (1/2)^z
 
 More complex groups are created in a similar fashion. For example
+::
 
     sage: C = GrowthGroup('QQ^z * z^QQ * log(z)^QQ'); C
     Growth Group QQ^z * z^QQ * log(z)^QQ
 
 This contains elements of the form
+::
 
     sage: C.an_element()
     (1/2)^z*z^(1/2)*log(z)^(1/2)
@@ -177,11 +178,20 @@ can be constructed easily::
 
 AUTHORS:
 
-- Benjamin Hackl (2015-01): initial version
+- Benjamin Hackl (2015-01-01): initial version
 - Daniel Krenn (2015-05-29): initial version and review
 - Daniel Krenn (2015-06-02): cartesian products
-- Benjamin Hackl (2015-07): growth group factory
-- Benjamin Hackl (2015-08): exponential growth group, initial version
+- Benjamin Hackl (2015-07-00): growth group factory
+- Benjamin Hackl (2015-08-00): exponential growth group, initial version
+- Daniel Krenn (2015-08-31): various improvements, review; documentation
+
+ACKNOWLEDGEMENT:
+
+- Benjamin Hackl, Clemens Heuberger and Daniel Krenn are supported by the
+  Austrian Science Fund (FWF): P 24644-N26.
+
+Classes and Methods
+===================
 """
 
 #*****************************************************************************
@@ -624,8 +634,7 @@ def log(self, base=None):
         Traceback (most recent call last):
         ...
         ArithmeticError: log(1) is zero, which is not contained in
-        Growth Group (Univariate Polynomial Ring in e over
-        Rational Field)^x * x^ZZ.
+        Growth Group QQ[e]^x * x^ZZ.
     """
     log_factor = self.log_factor(base=base)
     if not log_factor:
@@ -692,8 +701,8 @@ def log_factor(self, base=None):
 
     .. SEEALSO::
 
-        :meth:`factor`,
-        :meth:`log`.
+        :meth:`~GenericGrowthElement.factors`,
+        :meth:`~GenericGrowthElement.log`.
 
     TESTS::
 
@@ -2027,7 +2036,7 @@ class AbstractGrowthGroupFunctor(ConstructionFunctor):
 
     .. SEEALSO::
 
-        :mod:`sage.rings.asymptotic.asymptotic_ring`,
+        :doc:`asymptotic_ring`,
         :class:`ExponentialGrowthGroupFunctor`,
         :class:`MonomialGrowthGroupFunctor`,
         :class:`sage.rings.asymptotic.asymptotic_ring.AsymptoticRingFunctor`,
@@ -2511,7 +2520,7 @@ class MonomialGrowthGroup(GenericGrowthGroup):
             sage: agg.MonomialGrowthGroup(QQ, 'a')._repr_short_()
             'a^QQ'
             sage: agg.MonomialGrowthGroup(PolynomialRing(QQ, 'x'), 'a')._repr_short_()
-            'a^(Univariate Polynomial Ring in x over Rational Field)'
+            'a^QQ[x]'
         """
         from misc import parent_to_repr_short
         return '%s^%s' % (self._var_, parent_to_repr_short(self.base()))
@@ -2717,7 +2726,7 @@ class MonomialGrowthGroupFunctor(AbstractGrowthGroupFunctor):
 
     .. SEEALSO::
 
-        :mod:`sage.rings.asymptotic.asymptotic_ring`,
+        :doc:`asymptotic_ring`,
         :class:`AbstractGrowthGroupFunctor`,
         :class:`ExponentialGrowthGroupFunctor`,
         :class:`sage.rings.asymptotic.asymptotic_ring.AsymptoticRingFunctor`,
@@ -2730,7 +2739,7 @@ class MonomialGrowthGroupFunctor(AbstractGrowthGroupFunctor):
         sage: A = GrowthGroup('x^QQ')
         sage: B = MonomialGrowthGroupFunctor('x')(ZZ['t'])
         sage: cm.common_parent(A, B)
-        Growth Group x^(Univariate Polynomial Ring in t over Rational Field)
+        Growth Group x^QQ[t]
     """
 
     _functor_name = 'MonomialGrowthGroup'
@@ -2810,7 +2819,7 @@ class ExponentialGrowthElement(GenericGrowthElement):
         r"""
         The base of this exponential growth element.
 
-        EXAMPLES:
+        EXAMPLES::
 
             sage: import sage.rings.asymptotic.growth_group as agg
             sage: P = agg.GrowthGroup('ZZ^x')
@@ -3089,7 +3098,7 @@ class ExponentialGrowthGroup(GenericGrowthGroup):
             sage: agg.ExponentialGrowthGroup(QQ, 'a')._repr_short_()
             'QQ^a'
             sage: agg.ExponentialGrowthGroup(PolynomialRing(QQ, 'x'), 'a')._repr_short_()
-            '(Univariate Polynomial Ring in x over Rational Field)^a'
+            'QQ[x]^a'
         """
         from misc import parent_to_repr_short
         return '%s^%s' % (parent_to_repr_short(self.base()), self._var_)
@@ -3246,7 +3255,7 @@ class ExponentialGrowthGroupFunctor(AbstractGrowthGroupFunctor):
 
     .. SEEALSO::
 
-        :mod:`sage.rings.asymptotic.asymptotic_ring`,
+        :doc:`asymptotic_ring`,
         :class:`AbstractGrowthGroupFunctor`,
         :class:`MonomialGrowthGroupFunctor`,
         :class:`sage.rings.asymptotic.asymptotic_ring.AsymptoticRingFunctor`,
@@ -3259,7 +3268,7 @@ class ExponentialGrowthGroupFunctor(AbstractGrowthGroupFunctor):
         sage: A = GrowthGroup('QQ^x')
         sage: B = ExponentialGrowthGroupFunctor('x')(ZZ['t'])
         sage: cm.common_parent(A, B)
-        Growth Group (Univariate Polynomial Ring in t over Rational Field)^x
+        Growth Group QQ[t]^x
     """
 
     _functor_name = 'ExponentialGrowthGroup'
@@ -3335,7 +3344,7 @@ class GrowthGroupFactory(sage.structure.factory.UniqueFactory):
 
     TESTS::
 
-        sage: TestSuite(GrowthGroup('x^ZZ')).run(verbose=True)
+        sage: TestSuite(GrowthGroup('x^ZZ')).run(verbose=True)  # long time
         running ._test_an_element() . . . pass
         running ._test_associativity() . . . pass
         running ._test_category() . . . pass
@@ -3359,7 +3368,7 @@ class GrowthGroupFactory(sage.structure.factory.UniqueFactory):
 
     ::
 
-        sage: TestSuite(GrowthGroup('QQ^y')).run(verbose=True)
+        sage: TestSuite(GrowthGroup('QQ^y')).run(verbose=True)  # long time
         running ._test_an_element() . . . pass
         running ._test_associativity() . . . pass
         running ._test_category() . . . pass
@@ -3383,7 +3392,7 @@ class GrowthGroupFactory(sage.structure.factory.UniqueFactory):
 
     ::
 
-        sage: TestSuite(GrowthGroup('x^QQ * log(x)^ZZ')).run(verbose=True)
+        sage: TestSuite(GrowthGroup('x^QQ * log(x)^ZZ')).run(verbose=True)  # long time
         running ._test_an_element() . . . pass
         running ._test_associativity() . . . pass
         running ._test_category() . . . pass

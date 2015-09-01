@@ -555,66 +555,19 @@ class KirillovReshetikhinGenericCrystal(AffineCrystalFromClassical):
         """
         return self._s
 
-    def is_perfect(self):
-        r"""
-        Returns True or False depending on whether ``self`` is a perfect crystal or not, respectively.
-
-        If ``self`` is the Kirillov-Reshetikhin crystal `B^{r,s}`, then it was proven in [FOS2010]_
-        that it is perfect if and only if `s/c_r` is an integer (where `c_r` is a constant related to the
-        type of the crystal).
-
-        REFERENCES:
-
-        .. [FOS2010] G. Fourier, M. Okado, A. Schilling.
-           Perfectness of Kirillov-Reshetikhin crystals for nonexceptional types
-           Contemp. Math. 506 (2010) 127-143 ( :arxiv:`0811.1604` )
+    @cached_method
+    def classically_highest_weight_vectors(self):
+        """
+        Return the classically highest weight vectors of ``self``.
 
         EXAMPLES::
 
-            sage: K = crystals.KirillovReshetikhin(['A',2,1], 1, 1)
-            sage: K.is_perfect()
-            True
-
-            sage: K = crystals.KirillovReshetikhin(['C',2,1], 1, 1)
-            sage: K.is_perfect()
-            False
-
-            sage: K = crystals.KirillovReshetikhin(['C',2,1], 1, 2)
-            sage: K.is_perfect()
-            True
+            sage: K = crystals.KirillovReshetikhin(['D', 4, 1], 2, 2)
+            sage: K.classically_highest_weight_vectors()
+            ([], [[1], [2]], [[1, 1], [2, 2]])
         """
-        x = self.s()/self.cartan_type().c()[self.r()]
-        return x - ceil(x) == 0
-
-    def level(self):
-        r"""
-        Returns the level of ``self`` assuming that it is a perfect crystal.
-
-        If ``self`` is the Kirillov-Reshetikhin crystal `B^{r,s}`, then it was proven in [FOS2010]_
-        that its level is `s/c_r` which is an integer if ``self`` is perfect
-        (here `c_r` is a constant related to the type of the crystal).
-
-        EXAMPLES::
-
-            sage: K = crystals.KirillovReshetikhin(['A',2,1], 1, 1)
-            sage: K.level()
-            1
-            sage: K = crystals.KirillovReshetikhin(['C',2,1], 1, 2)
-            sage: K.level()
-            1
-            sage: K = crystals.KirillovReshetikhin(['D',4,1], 1, 3)
-            sage: K.level()
-            3
-
-            sage: K = crystals.KirillovReshetikhin(['C',2,1], 1, 1)
-            sage: K.level()
-            Traceback (most recent call last):
-            ...
-            ValueError: this crystal is not perfect
-        """
-        if not self.is_perfect():
-            raise ValueError("this crystal is not perfect")
-        return self.s()/self.cartan_type().c()[self.r()]
+        return tuple([self.retract(mg)
+                      for mg in self.classical_decomposition().module_generators])
 
     def kirillov_reshetikhin_tableaux(self):
         """

@@ -17,6 +17,7 @@ from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
 from sage.categories.tensor import TensorProductsCategory
 from sage.graphs.dot2tex_utils import have_dot2tex
 from sage.functions.other import ceil
+from sage.rings.all import ZZ
 
 
 class AffineDerivedSubalgebraCrystals(Category_singleton):
@@ -368,6 +369,130 @@ class KirillovReshetikhinCrystals(Category_singleton):
             gen2 = T2( K.maximal_vector(), self.maximal_vector() )
             g = { gen1 : gen2 }
             return T1.crystal_morphism(g, check=False)
+
+        def is_perfect(self, ell=None):
+            r"""
+            Check if ``self`` is a perfect crystal of level ``ell``.
+
+            A crystal `\mathcal{B}` is perfect of level `\ell` if:
+
+            #. `\mathcal{B}` is isomorphic to the crystal graph of a
+               finite-dimensional `U_q^{'}(\mathfrak{g})`-module.
+            #. `\mathcal{B}\otimes \mathcal{B}` is connected.
+            #. There exists a `\lambda\in X`, such that
+               `\mathrm{wt}(\mathcal{B}) \subset \lambda + \sum_{i\in I}
+                \ZZ_{\le 0} \alpha_i` and there is a unique element in
+               `\mathcal{B}` of classical weight `\lambda`.
+            #. For all `b \in \mathcal{B}`,
+               `\mathrm{level}(\varepsilon (b)) \geq \ell`.
+            #. For all `\Lambda` dominant weights of level `\ell`, there
+               exist unique elements `b_{\Lambda}, b^{\Lambda} \in
+               \mathcal{B}`, such that `\varepsilon ( b_{\Lambda}) =
+               \Lambda = \varphi( b^{\Lambda})`.
+
+            Points (1)-(3) are known to hold. This method checks
+            points (4) and (5).
+
+            If ``self`` is the Kirillov-Reshetikhin crystal `B^{r,s}`,
+            then it was proven for non-exceptional types in [FOS2010]_
+            that it is perfect if and only if `s/c_r` is an integer
+            (where `c_r` is a constant related to the type of the crystal).
+
+            It is conjectured this is true for all affine types.
+
+            INPUT:
+
+            - ``ell`` -- (default: `s / c_r`) integer; the level
+
+            REFERENCES:
+
+            .. [FOS2010] G. Fourier, M. Okado, A. Schilling. *Perfectness of
+               Kirillov-Reshetikhin crystals for nonexceptional types*.
+               Contemp. Math. 506 (2010) 127-143 ( :arxiv:`0811.1604` )
+
+            EXAMPLES::
+
+                sage: K = crystals.KirillovReshetikhin(['A',2,1], 1, 1)
+                sage: K.is_perfect()
+                True
+
+                sage: K = crystals.KirillovReshetikhin(['C',2,1], 1, 1)
+                sage: K.is_perfect()
+                False
+
+                sage: K = crystals.KirillovReshetikhin(['C',2,1], 1, 2)
+                sage: K.is_perfect()
+                True
+
+            .. TODO::
+
+                Implement a version for tensor products of KR crystals.
+            """
+            if ell is None:
+                ell = self.s() / self.cartan_type().c()[self.r()]
+                if ell not in ZZ:
+                    return False
+
+            if ell not in ZZ:
+                raise ValueError("perfectness not defined for non-integral levels")
+
+            # [FOS2010]_ check
+            if self.cartan_type().classical().type() not in ['E','F','G']:
+                return ell == self.s() / self.cartan_type().c()[self.r()]
+
+            # Check by definition
+            # TODO: This is duplicated from ProjectedLevelZeroLSPaths, combine the two methods.
+            # TODO: Similarly, don't duplicate in the tensor product category, maybe
+            #   move this to the derived affine category?
+            MPhi = []
+            for b in self:
+                p = b.Phi().level()
+                assert p == b.Epsilon().level()
+                if p < level:
+                    return False
+                if p == level:
+                    MPhi += [b]
+            weights = []
+            I = self.index_set()
+            rank = len(I)
+            La = self.weight_lattice_realization().basis()
+            from sage.combinat.integer_vector import IntegerVectors
+            for n in range(1,level+1):
+                for c in IntegerVectors(n, rank):
+                    w = sum(c[i]*La[i] for i in I)
+                    if w.level() == level:
+                        weights.append(w)
+            return sorted(b.Phi() for b in MPhi) == sorted(weights)
+
+        def level(self):
+            r"""
+            Return the level of ``self`` when ``self`` is a perfect crystal.
+
+            .. SEEALSO::
+
+                :meth:`~sage.categories.affine_derived_crystals.KirillovReshetikhinCrystals.ParentMethods.is_perfect`
+
+            EXAMPLES::
+
+                sage: K = crystals.KirillovReshetikhin(['A',2,1], 1, 1)
+                sage: K.level()
+                1
+                sage: K = crystals.KirillovReshetikhin(['C',2,1], 1, 2)
+                sage: K.level()
+                1
+                sage: K = crystals.KirillovReshetikhin(['D',4,1], 1, 3)
+                sage: K.level()
+                3
+
+                sage: K = crystals.KirillovReshetikhin(['C',2,1], 1, 1)
+                sage: K.level()
+                Traceback (most recent call last):
+                ...
+                ValueError: this crystal is not perfect
+            """
+            if not self.is_perfect():
+                raise ValueError("this crystal is not perfect")
+            return self.s() / self.cartan_type().c()[self.r()]
 
         def q_dimension(self, q=None, prec=None, use_product=False):
             """

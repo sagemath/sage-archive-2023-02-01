@@ -1205,12 +1205,16 @@ class AsymptoticExpression(sage.structure.element.CommutativeAlgebraElement):
 
             sage: log(R(1))
             0
+            sage: log(R(0))
+            Traceback (most recent call last):
+            ...
+            ArithmeticError: Cannot build log(0) in
+            Asymptotic Ring <x^ZZ * log(x)^ZZ> over Rational Field.
         """
         P = self.parent()
 
         if not self.summands:
-            from sage.rings.infinity import minus_infinity
-            return minus_infinity
+            raise ArithmeticError('Cannot build log(0) in %s.' % (self.parent(),))
 
         elif len(self.summands) == 1:
             if self == 1:

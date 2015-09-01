@@ -2799,7 +2799,7 @@ class TermMonoidFactory(sage.structure.factory.UniqueFactory):
 
     TESTS::
 
-        sage: TestSuite(TermMonoid('exact', GrowthGroup('x^ZZ'), QQ)).run(verbose=True)
+        sage: TestSuite(TermMonoid('exact', GrowthGroup('x^ZZ'), QQ)).run(verbose=True)  # long time
         running ._test_an_element() . . . pass
         running ._test_associativity() . . . pass
         running ._test_category() . . . pass
@@ -2823,7 +2823,7 @@ class TermMonoidFactory(sage.structure.factory.UniqueFactory):
 
     ::
 
-        sage: TestSuite(TermMonoid('O', GrowthGroup('x^QQ'), ZZ)).run(verbose=True)
+        sage: TestSuite(TermMonoid('O', GrowthGroup('x^QQ'), ZZ)).run(verbose=True)  # long time
         running ._test_an_element() . . . pass
         running ._test_associativity() . . . pass
         running ._test_category() . . . pass

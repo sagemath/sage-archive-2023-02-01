@@ -3311,7 +3311,7 @@ class GrowthGroupFactory(sage.structure.factory.UniqueFactory):
 
     TESTS::
 
-        sage: TestSuite(GrowthGroup('x^ZZ')).run(verbose=True)
+        sage: TestSuite(GrowthGroup('x^ZZ')).run(verbose=True)  # long time
         running ._test_an_element() . . . pass
         running ._test_associativity() . . . pass
         running ._test_category() . . . pass
@@ -3335,7 +3335,7 @@ class GrowthGroupFactory(sage.structure.factory.UniqueFactory):
 
     ::
 
-        sage: TestSuite(GrowthGroup('QQ^y')).run(verbose=True)
+        sage: TestSuite(GrowthGroup('QQ^y')).run(verbose=True)  # long time
         running ._test_an_element() . . . pass
         running ._test_associativity() . . . pass
         running ._test_category() . . . pass
@@ -3359,7 +3359,7 @@ class GrowthGroupFactory(sage.structure.factory.UniqueFactory):
 
     ::
 
-        sage: TestSuite(GrowthGroup('x^QQ * log(x)^ZZ')).run(verbose=True)
+        sage: TestSuite(GrowthGroup('x^QQ * log(x)^ZZ')).run(verbose=True)  # long time
         running ._test_an_element() . . . pass
         running ._test_associativity() . . . pass
         running ._test_category() . . . pass

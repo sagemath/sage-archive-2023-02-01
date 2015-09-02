@@ -820,7 +820,7 @@ class GenericTerm(sage.structure.element.MonoidElement):
             (5*x^2, 2/7*x^3)
 
         In order for the comparison to work, the terms have come from
-        or coerce into the same parent. Concretely, comparing
+        or coerce into the same parent. In particular, comparing
         :class:`GenericTerm` to, for example, an :class:`OTerm`
         always yields ``False``::
 

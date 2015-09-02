@@ -2363,9 +2363,9 @@ class TermWithCoefficient(GenericTerm):
         except (TypeError, ValueError, ZeroDivisionError) as e:
             from misc import combine_exceptions
             raise combine_exceptions(
-                ZeroDivisionError('Cannot take %s to the exponent %s since its '
-                                  'coefficient %s cannot be taken to this exponent.' %
-                                  (self, exponent, self.coefficient)), e)
+                ArithmeticError('Cannot take %s to the exponent %s in %s since its '
+                                'coefficient %s cannot be taken to this exponent.' %
+                                (self, exponent, self.parent(), self.coefficient)), e)
         return super(TermWithCoefficient, self)._calculate_pow_(exponent, coefficient=c)
 
 

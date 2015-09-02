@@ -1175,6 +1175,13 @@ class AsymptoticExpression(sage.structure.element.CommutativeAlgebraElement):
             ...
             ZeroDivisionError: Cannot take O(x) to exponent -1.
             > *previous* FloatingPointError: Floating point exception.
+
+        ::
+
+            sage: B.<z> = AsymptoticRing(growth_group='z^QQ * log(z)^QQ', coefficient_ring=QQ, default_prec=5)
+            sage: z^(1+1/z)
+            z + log(z) + 1/2*z^(-1)*log(z)^2 + 1/6*z^(-2)*log(z)^3 +
+            1/24*z^(-3)*log(z)^4 + O(z^(-4)*log(z)^5)
         """
         if not self.summands:
             if exponent == 0:
@@ -1192,8 +1199,12 @@ class AsymptoticExpression(sage.structure.element.CommutativeAlgebraElement):
             element = next(self.summands.elements())
             if isinstance(exponent, AsymptoticExpression) and element.is_constant():
                 return exponent.rpow(base=element.coefficient, precision=precision)
-            return self.parent()._create_element_via_parent_(
-                element ** exponent, element.parent())
+            try:
+                return self.parent()._create_element_via_parent_(
+                    element ** exponent, element.parent())
+            except (ArithmeticError, TypeError, ValueError):
+                if not isinstance(exponent, AsymptoticExpression):
+                    raise
 
         from sage.rings.integer_ring import ZZ
         try:

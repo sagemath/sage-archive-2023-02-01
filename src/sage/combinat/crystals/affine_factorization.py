@@ -18,9 +18,8 @@ from sage.combinat.root_system.weyl_group import WeylGroup
 
 class AffineFactorizationCrystal(UniqueRepresentation, Parent):
     r"""
-    This is an implementation of the crystal on affine factorizations
-    with a cut-point, as introduced by Morse and Schilling,
-    "Crystal operators and flag Gromov-Witten invariants".
+    The crystal on affine factorizations with a cut-point, as introduced
+    by [MS14]_.
 
     INPUT:
 
@@ -89,6 +88,12 @@ class AffineFactorizationCrystal(UniqueRepresentation, Parent):
         Traceback (most recent call last):
         ...
         ValueError: x cannot be in reduced word of s0*s3*s2
+
+    REFERENCES:
+
+    .. [MS14] Jennifer Morse and Anne Schilling.
+       *Crystal approach to affine Schubert calculus*.
+       :arxiv:`1408.0320`.
     """
     @staticmethod
     def __classcall_private__(cls, w, n, x = None, k = None):
@@ -283,6 +288,50 @@ class AffineFactorizationCrystal(UniqueRepresentation, Parent):
                     left_unbracketed += [m]
             return [[j for j in left_unbracketed],[j for j in right_n]]
 
+        def to_tableau(self):
+            """
+            Return the tableau representation of ``self``.
+
+            Uses the recording tableau of a minor varition of
+            Edelman-Greene insertion. See Theorem 4.11 in [MS14]_.
+
+            EXAMPLES::
+
+                sage: W = WeylGroup(['A',3,1], prefix='s')
+                sage: w = W.from_reduced_word([2,1,3,2])
+                sage: B = crystals.AffineFactorization(w,3)
+                sage: for x in B:
+                ....:     x
+                ....:     x.to_tableau().pp()
+                (1, s2*s1, s3*s2)
+                  1  1
+                  2  2
+                (s2, s1, s3*s2)
+                  1  1
+                  2  3
+                (s2, s3*s1, s2)
+                  1  2
+                  2  3
+                (s2*s1, 1, s3*s2)
+                  1  1
+                  3  3
+                (s2*s1, s3, s2)
+                  1  2
+                  3  3
+                (s2*s1, s3*s2, 1)
+                  2  2
+                  3  3
+            """
+            from sage.combinat.rsk import RSK
+            p = []
+            q = []
+            for i,factor in enumerate(reversed(self.value)):
+                word = factor.reduced_word()
+                p += [i+1]*len(word)
+                # We sort for those pesky commutative elements
+                # The word is most likely in reverse order to begin with
+                q += sorted(reversed(word))
+            return RSK(p, q, insertion='EG')[1]
 
 def affine_factorizations(w, l, weight=None):
     r"""

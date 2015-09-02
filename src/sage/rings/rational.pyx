@@ -2335,10 +2335,10 @@ cdef class Rational(sage.structure.element.FieldElement):
             return x
 
         if nn < 0:
-            sig_on()
             if mpz_sgn(mpq_numref(_self.value)) == 0:
-                sig_off()
                 raise ZeroDivisionError('rational division by zero')
+
+            sig_on()
             # mpz_pow_ui(mpq_denref(x.value), mpq_numref(_self.value), <unsigned long int>(-nn))
             # mpz_pow_ui(mpq_numref(x.value), mpq_denref(_self.value), <unsigned long int>(-nn))
             # The above causes segfaults, so swap after instead...

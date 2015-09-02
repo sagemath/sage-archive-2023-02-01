@@ -714,7 +714,7 @@ class AbstractLinearCode(module.Module):
 
     - ``length``, the length of the code
 
-    - ``decoder_default_name``, the name of the decoder that will be used if no encoder name is passed
+    - ``default_decoder_name``, the name of the decoder that will be used if no encoder name is passed
       to an encoder-related method (``decode_to_code``, ``decode_to_message``)
 
     - ``_registered_decoders``, a dictionary of all decoders available for this class
@@ -754,7 +754,7 @@ class AbstractLinearCode(module.Module):
 
     _registered_decoders = {}
 
-    def __init__(self, base_field, length, decoder_default_name):
+    def __init__(self, base_field, length, default_decoder_name):
         """
         Initializes mandatory parameters for a Linear Code object.
 
@@ -768,7 +768,7 @@ class AbstractLinearCode(module.Module):
 
         - ``length`` -- the length of ``self``
 
-        - ``decoder_default_name`` -- the name of the default decoder of ``self``
+        - ``default_decoder_name`` -- the name of the default decoder of ``self``
 
         EXAMPLES:
 
@@ -842,10 +842,10 @@ class AbstractLinearCode(module.Module):
         self._registered_decoders = copy(self._registered_decoders)
         if not isinstance(length, (int, Integer)):
             raise ValueError("length must be a Python int or a Sage Integer")
-        if not decoder_default_name in self._registered_decoders:
+        if not default_decoder_name in self._registered_decoders:
             raise ValueError("You must set a valid decoder as default decoder for this code")
         self._length = Integer(length)
-        self._decoder_default_name = decoder_default_name
+        self._default_decoder_name = default_decoder_name
         cat = Modules(base_field).FiniteDimensional().WithBasis().Finite()
         facade_for = VectorSpace(base_field, self._length)
         self.Element = type(facade_for.an_element()) #for when we made this a non-facade parent
@@ -929,7 +929,7 @@ class AbstractLinearCode(module.Module):
             ValueError: There is already a registered decoder with this name
         """
         reg_dec = self._registered_decoders
-        if(name in reg_dec.keys()):
+        if(name in reg_dec):
             raise ValueError("There is already a registered decoder with this name")
         reg_dec[name] = decoder
 
@@ -1503,7 +1503,7 @@ class AbstractLinearCode(module.Module):
         else:
             return self.decode_to_code(right, name=algorithm)
 
-    def decode_to_code(self, word, name=None, **kwargs):
+    def decode_to_code(self, word, decoder_name=None, **kwargs):
         r"""
         Correct the errors in word and returns a codeword.
 
@@ -1512,9 +1512,11 @@ class AbstractLinearCode(module.Module):
         - ``word`` -- a vector of the same length as ``self`` over test
           the base field of ``self``
 
-        - ``name`` -- (default: ``None``) Name of the decoder which will be used
+        - ``decoder_name`` -- (default: ``None``) Name of the decoder which will be used
           to decode ``word``. The default decoder of ``self`` will be used if
           default value is kept.
+
+        - ``kwargs`` -- all additional arguments are forwarded to :meth:`decoder`
 
         OUTPUT:
 
@@ -1539,7 +1541,7 @@ class AbstractLinearCode(module.Module):
         D = self.decoder(name, **kwargs)
         return D.decode_to_code(word)
 
-    def decode_to_message(self, word, name=None, **kwargs):
+    def decode_to_message(self, word, decoder_name=None, **kwargs):
         r"""
         Correct the errors in word and decodes it to the message space.
 
@@ -1548,9 +1550,11 @@ class AbstractLinearCode(module.Module):
         - ``word`` -- a vector of the same length as ``self`` over the
           base field of ``self``
 
-        - ``name`` -- (default: ``None``) Name of the decoder which will be used
+        - ``decoder_name`` -- (default: ``None``) Name of the decoder which will be used
           to decode ``word``. The default decoder of ``self`` will be used if
           default value is kept.
+
+        - ``kwargs`` -- all additional arguments are forwarded to :meth:`decoder`
 
         OUTPUT:
 
@@ -1574,15 +1578,18 @@ class AbstractLinearCode(module.Module):
         return self.unencode(self.decode_to_code(word, name, **kwargs), **kwargs)
 
     @cached_method
-    def decoder(self, name=None, **kwargs):
+    def decoder(self, decoder_name=None, **kwargs):
         r"""
         Return a decoder of ``self``.
 
         INPUT:
 
-        - ``name`` -- (default: ``None``) name of the decoder which will be
+        - ``decoder_name`` -- (default: ``None``) name of the decoder which will be
           returned. The default decoder of ``self`` will be used if
           default value is kept.
+
+        - ``kwargs`` -- all additional arguments will be forwarded to the constructor of the decoder
+          that will be returned by this method
 
         OUTPUT:
 
@@ -1609,11 +1616,11 @@ class AbstractLinearCode(module.Module):
             ...
             ValueError: Passed Decoder name not known
         """
-        if name is None:
-            name = self._decoder_default_name
-            return self.decoder(name, **kwargs)
-        if name in self._registered_decoders:
-            decClass = self._registered_decoders[name]
+        if decoder_name is None:
+            name = self._default_decoder_name
+            return self.decoder(decoder_name, **kwargs)
+        if decoder_name in self._registered_decoders:
+            decClass = self._registered_decoders[decoder_name]
             D = decClass(self, **kwargs)
             return D
         else:
@@ -1630,7 +1637,10 @@ class AbstractLinearCode(module.Module):
             sage: C.decoders_available()
             ['Syndrome', 'NearestNeighbor']
         """
+        if values == True:
+            return copy(self._registered_decoders)
         return self._registered_decoders.keys()
+
     def divisor(self):
         r"""
         Returns the divisor of a code, which is the smallest integer `d_0 > 0`
@@ -2538,7 +2548,7 @@ class AbstractLinearCode(module.Module):
                     print "\n Using the %s codewords of weight %s \n Supergroup size: \n %s\n "%(wts[wt],wt,size)
                 gap.eval("Cwt:=Filtered(eltsC,c->WeightCodeword(c)=%s)"%wt)   # bottleneck 2 (repeated
                 gap.eval("matCwt:=List(Cwt,c->VectorCodeword(c))")            # for each i until stop = 1)
-                if gap("Length(matCwt)") > 0: 
+                if gap("Length(matCwt)") > 0:
                     A = gap("MatrixAutomorphisms(matCwt)")
                     G2 = gap("Intersection2(%s,%s)"%(str(A).replace("\n",""),str(Gp).replace("\n",""))) #  bottleneck 3
                     Gp = G2
@@ -3020,7 +3030,7 @@ class AbstractLinearCode(module.Module):
             input = code2leon(self) + "::code"
             import os, subprocess
             lines = subprocess.check_output([os.path.join(guava_bin_dir, 'wtdist'), input])
-            import StringIO  # to use the already present output parser 
+            import StringIO  # to use the already present output parser
             wts = [0]*(n+1)
             s = 0
             for L in StringIO.StringIO(lines).readlines():
@@ -3538,7 +3548,7 @@ class LinearCode(AbstractLinearCode):
 
 
 ####################### decoders ###############################
-from decoder import Decoder, DecodingFailure
+from decoder import Decoder, DecodingError
 class LinearCodeSyndromeDecoder(Decoder):
     r"""
     Construct a decoder for Linear Codes. This decoder will use a syndrome

@@ -28,24 +28,11 @@ class Decoder(SageObject):
 
     Every decoder class should inherit from this abstract class.
 
-    This class provides:
-
-    - ``code``, the associated code of the decoder
-
-    - ``input_space``, the space of every input for the decoder
-
-    - ``connected_encoder_name``, the name of the encoder used to recover the original message
-      from the word to decode
-
-    - ``decoder_type``, a set of keywords which describe the behaviour of the decoder.
-
-    - some methods for decoder objects
-
     To implement an decoder, you need to:
 
     - inherit from :class:`Decoder`
 
-    - call :class:`Decoder`'s :meth:`__init__` in the subclass constructor.
+    - call ``Decoder.__init__`` in the subclass constructor.
       Example: ``super(SubclassName, self).__init__(code, input_space,
       connected_encoder_name, decoder_type)``.
       By doing that, your subclass will have all the parameters described above initialized.
@@ -61,13 +48,6 @@ class Decoder(SageObject):
 
     As :class:`Decoder` is not designed to be implemented, it does not have any representation
     methods. You should implement ``_repr_`` and ``_latex_`` methods in the sublclass.
-
-    .. NOTE::
-
-        For consistency on decoders, please follow this convention on names for subclasses:
-        for a new decoder named ``DecName``, for code family ``CodeFam``, call it
-        ``CodeFamDecNameDecoder``.
-
     """
 
     def __init__(self, code, input_space, connected_encoder_name,\
@@ -145,7 +125,7 @@ class Decoder(SageObject):
         Corrects the errors in ``r`` and returns a codeword.
 
         This is a default implementation which assumes that the method
-        :meth:`decode_to_message()` has been implemented, else it returns an exception.
+        :meth:`decode_to_message` has been implemented, else it returns an exception.
 
         INPUT:
 
@@ -187,10 +167,10 @@ class Decoder(SageObject):
 
     def decode_to_message(self, r):
         r"""
-        Decodes ``r`` to the message space of ``self.code()``.
+        Decodes ``r`` to the message space of meth:`code`.
 
         This is a default implementation, which assumes that the method
-        :meth:`decode_to_code()` has been implemented, else it returns an exception.
+        :meth:`decode_to_code` has been implemented, else it returns an exception.
 
         EXAMPLES::
 
@@ -207,7 +187,7 @@ class Decoder(SageObject):
 
     def code(self):
         r"""
-        Returns the code in which ``self.decode_to_code()`` has its output.
+        Returns the code in which :meth:`decode_to_code` has its output.
 
         EXAMPLES::
 
@@ -259,8 +239,8 @@ class Decoder(SageObject):
         """
         raise NotImplementedError
 
-class DecodingFailure(Exception):
+class DecodingError(Exception):
     r"""
-    Special exception class to indicate a failure during decoding.
+    Special exception class to indicate an error during decoding.
     """
     pass

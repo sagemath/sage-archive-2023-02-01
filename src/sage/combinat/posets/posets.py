@@ -3555,13 +3555,18 @@ class FinitePoset(UniqueRepresentation, Parent):
 
             sage: P = Poset({1:[2,3], 3:[4,5]})
             sage: CC = P.connected_components()
-            sage: CC is P
+            sage: CC[0] is P
             True
 
             sage: P = Poset({1:[2,3], 3:[4,5], 6:[7,8]})
             sage: sorted(P.connected_components(), key=len)
             [Finite poset containing 3 elements,
              Finite poset containing 5 elements]
+
+        TESTS::
+
+            sage: Poset().connected_components() # Test empty poset
+            []
         """
         comps = self._hasse_diagram.connected_components()
         if len(comps) == 1:

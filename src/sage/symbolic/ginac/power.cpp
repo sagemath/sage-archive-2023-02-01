@@ -1201,14 +1201,14 @@ ex power::expand_add_2(const add & a, unsigned options) const
 		for (auto cit1=cit0+1; cit1!=last; ++cit1) {
 			const ex & r1 = cit1->rest;
 			const ex & c1 = cit1->coeff;
-			sum.push_back(a.combine_ex_with_coeff_to_pair((new mul(r,r1))->setflag(status_flags::dynallocated),
+			sum.push_back(a.combine_ex_with_coeff_to_pair(mul(r,r1).expand(options),
 			                                              _num2_p->mul(ex_to<numeric>(c)).mul_dyn(ex_to<numeric>(c1))));
 		}
 	}
 	
 	GINAC_ASSERT(sum.size()==(a.seq.size()*(a.seq.size()+1))/2);
 	
-	// second part: add terms coming from overall_factor (if != 0)
+	// second part: add terms coming from overall_coeff (if != 0)
 	if (!a.overall_coeff.is_zero()) {
                 for (const auto & elem : a.seq)
 			sum.push_back(a.combine_pair_with_coeff_to_pair(elem, ex_to<numeric>(a.overall_coeff).mul_dyn(*_num2_p)));

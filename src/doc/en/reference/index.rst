@@ -120,7 +120,7 @@ Miscellaneous
 -------------
 
 * :doc:`Cryptography <cryptography/index>`
-* :doc:`Optimization <numerical/index>`
+* :doc:`Numerical Optimization <numerical/index>`
 * :doc:`Databases <databases/index>`
 * :doc:`Games <games/index>`
 

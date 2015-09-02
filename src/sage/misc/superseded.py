@@ -346,17 +346,15 @@ class DeprecatedFunctionAlias(object):
             is_python_class = '__module__' in gc_ref or '__package__' in gc_ref
             is_cython_class = '__new__' in gc_ref
             return is_python_class or is_cython_class
-        for ref in gc.get_referrers(self):
-            if is_class(ref):
+        if self.unbound is None:
+            search_for=self
+        else:
+            search_for=self.unbound
+        for ref in gc.get_referrers(search_for):
+            if is_class(ref) and ref is not self.__dict__:
                 ref_copy = copy.copy(ref)
                 for key, val in ref_copy.iteritems():
-                    if val is self:
-                        return key
-        for ref in gc.get_referrers(self.unbound):
-            if is_class(ref):
-                ref_copy = copy.copy(ref)
-                for key, val in ref_copy.iteritems():
-                    if val is self.unbound:
+                    if val is search_for:
                         return key
         raise AttributeError("The name of this deprecated function can not be determined")
 
@@ -371,6 +369,8 @@ class DeprecatedFunctionAlias(object):
             doctest:...: DeprecationWarning: blo is deprecated. Please use bla instead.
             See http://trac.sagemath.org/13109 for details.
             42
+
+        
         """
         if self.instance is None and self.__module__ != self.func.__module__:
             other = self.func.__module__ + "." + self.func.__name__
@@ -395,8 +395,27 @@ class DeprecatedFunctionAlias(object):
             sage: obj = cls()
             sage: obj.old_meth.instance is obj
             True
+
+        :trac:`19125`::
+
+            sage: from sage.misc.superseded import deprecated_function_alias
+            sage: class A:
+            ....:    def __init__(self, x):
+            ....:        self.x = x
+            ....:    def f(self, y):
+            ....:        return self.x+y
+            ....:    g = deprecated_function_alias(42, f)
+            sage: a1 = A(1)
+            sage: a2 = A(2)
+            sage: a1.g(a2.g(0))
+            doctest:...: DeprecationWarning: g is deprecated. Please use f instead.
+            See http://trac.sagemath.org/42 for details.
+            3
+            sage: a1.f(a2.f(0))
+            3
+
         """
-        return DeprecatedFunctionAlias(self.trac_number, self.func, self.__module__, instance = inst, unbound = self)
+        return self if (inst is None) else DeprecatedFunctionAlias(self.trac_number, self.func, self.__module__, instance = inst, unbound = self)
 
 
 def deprecated_function_alias(trac_number, func):

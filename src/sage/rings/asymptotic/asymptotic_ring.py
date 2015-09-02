@@ -1134,6 +1134,8 @@ class AsymptoticExpression(sage.structure.element.CommutativeAlgebraElement):
             x^(log(2))
             sage: 2^(x + 1/x)
             2^x + log(2)*2^x*x^(-1) + 1/2*log(2)^2*2^x*x^(-2) + ... + O(2^x*x^(-20))
+            sage: _.parent()
+            Asymptotic Ring <QQ^x * x^SR * log(x)^ZZ> over Symbolic Ring
 
         ::
 
@@ -1347,7 +1349,7 @@ class AsymptoticExpression(sage.structure.element.CommutativeAlgebraElement):
         return all(term.is_little_o_of_one() for term in self.summands.maximal_elements())
 
 
-    def _rpow_(self, base=None, precision=None):
+    def _rpow_(self, base, precision=None):
         r"""
         Helper function. Handles exponentiation of this asymptotic
         expression where the base is an element of the coefficient
@@ -1355,13 +1357,11 @@ class AsymptoticExpression(sage.structure.element.CommutativeAlgebraElement):
 
         INPUT:
 
-        - ``base`` -- the base of the exponential function. If
-          ``None`` (default value) is used, the Eulerian constant
-          `e` is taken as the base.
+        - ``base`` -- an element or the ``'e'``.
 
-        - ``precision`` -- a positive integer or ``None``.
-          Determines the precision used for expansion of the
-          exponential function.
+        - ``precision`` -- the precision used for truncating the
+          expansion. If ``None`` (default value) is used, the
+          default precision of the parent is used.
 
         ALGORITHM:
 
@@ -1381,9 +1381,12 @@ class AsymptoticExpression(sage.structure.element.CommutativeAlgebraElement):
         EXAMPLES::
 
             sage: A.<x, y> = AsymptoticRing('x^ZZ * y^ZZ', QQ)
-            sage: (1/x)._rpow_(precision=5)
+            sage: (1/x)._rpow_('e', precision=5)
             1 + x^(-1) + 1/2*x^(-2) + 1/6*x^(-3) + 1/24*x^(-4) + O(x^(-5))
         """
+        if base is None:
+            base = 'e'
+
         P = self.parent()
 
         # first: remove terms from a copy of this term such that a
@@ -1391,7 +1394,7 @@ class AsymptoticExpression(sage.structure.element.CommutativeAlgebraElement):
 
         expr_o = self.summands.copy()
         large_terms = []
-        for term in self.summands.elements():
+        for term in self.summands.elements_topological():
             if not term.is_little_o_of_one():
                 large_terms.append(term)
                 expr_o.remove(term.growth)
@@ -1401,14 +1404,15 @@ class AsymptoticExpression(sage.structure.element.CommutativeAlgebraElement):
         # next: try to take the exponential function of the large elements
 
         try:
-            for k in range(len(large_terms)):
-                term = large_terms[k]
-                large_terms[k] = term._construct_exp_(base=base)
-        except (ValueError, TypeError):
-            raise ValueError('Cannot construct the exponential function of '
-                             'the term %s.' % (term,))
-        else:
-            large_result = P.prod(P(term) for term in large_terms)
+            large_result = P.prod(
+                P._create_element_via_parent_(term.rpow(base),
+                                              term.parent())
+                for term in large_terms)
+        except (TypeError, ValueError) as e:
+            from misc import combine_exceptions
+            raise combine_exceptions(
+                ValueError('Cannot construct the power of %s to the exponent %s in %s.' %
+                           (base, self, self.parent())), e)
 
         # then: expand expr_o
 
@@ -1418,22 +1422,23 @@ class AsymptoticExpression(sage.structure.element.CommutativeAlgebraElement):
         from sage.functions.other import factorial
         from sage.functions.log import log
 
-        if not base or base == 'e':
+        if base == 'e':
             geom = expr_o
         else:
             geom = expr_o * log(base)
+        P = geom.parent()
 
         expanding = True
         result = P.one()
-        geom_k = geom
-        k = 1
+        geom_k = P.one()
+        k = 0
         while expanding:
+            k += 1
+            geom_k *= geom
             new_result = (result + geom_k / factorial(k)).truncate(precision=precision)
             if new_result.has_same_summands(result):
                 expanding = False
             result = new_result
-            k += 1
-            geom_k *= geom
 
         return result * large_result
 
@@ -1494,7 +1499,7 @@ class AsymptoticExpression(sage.structure.element.CommutativeAlgebraElement):
             sage: exp(x+1)
             e*e^x
         """
-        return self._rpow_(precision=precision)
+        return self._rpow_('e', precision=precision)
 
 
 

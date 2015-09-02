@@ -1050,37 +1050,34 @@ class GenericTerm(sage.structure.element.MonoidElement):
             ...
             NotImplementedError: Growth comparison not implemented (for this abstract method).
         """
-        raise NotImplementedError('Growth comparison not implemented '
-                                  '(for this abstract method).')
+        raise NotImplementedError('Cannot check if %s is o(1) in the '
+                                  'abstract base class.' % (self, self.parent()))
 
 
-    def _construct_exp_(self, base=None):
+    def rpow(self, base):
         r"""
-        Helper function to compute the exponential function with
-        the given ``base`` of this element.
+        Return the power of ``base`` to this generic term.
 
-         INPUT:
+        INPUT:
 
-         - ``base`` -- the base of the exponential function. If
-           ``None`` (default value) is used, the Euler constant
-           `e` is taken as the base.
+        - ``base`` -- an element or the ``'e'``.
 
         OUTPUT:
 
-        An asymptotic term.
+        A term.
 
         EXAMPLES::
 
             sage: from sage.rings.asymptotic.growth_group import GrowthGroup
             sage: from sage.rings.asymptotic.term_monoid import GenericTermMonoid
             sage: T = GenericTermMonoid(GrowthGroup('x^ZZ * log(x)^ZZ'), QQ)
-            sage: T.an_element()._construct_exp_()
+            sage: T.an_element().rpow('e')
             Traceback (most recent call last):
             ...
             NotImplementedError: Exponential function not implemented for this (abstract) term.
         """
-        raise NotImplementedError('Exponential function not implemented for '
-                                  'this (abstract) term.')
+        raise NotImplementedError('Cannot take %s to the exponent %s in the '
+                                  'abstract base class %s.' % (base, self, self.parent())
 
 
     def _repr_(self):
@@ -1974,50 +1971,47 @@ class OTerm(GenericTerm):
         return self.growth.is_lt_one()
 
 
-    def _construct_exp_(self, base=None):
+    def rpow(self, base):
         r"""
-        Helper function to compute the exponential function with
-        the given ``base`` of this element.
+        Return the power of ``base`` to this O-term.
 
-         INPUT:
+        INPUT:
 
-         - ``base`` -- the base of the exponential function. If
-           ``None`` (default value) is used, the Euler constant
-           `e` is taken as the base.
+        - ``base`` -- an element or the ``'e'``.
 
         OUTPUT:
 
-        An asymptotic term.
+        A term.
 
         .. NOTE::
 
-            For :class:`OTerm`, the exponential function can only be
-            constructed for `O(1)`, or if ``base`` is `1`.
+            For :class:`OTerm`, the powers can only be
+            constructed for exponents `O(1)` or if ``base`` is `1`.
 
         EXAMPLES::
 
             sage: from sage.rings.asymptotic.growth_group import GrowthGroup
             sage: from sage.rings.asymptotic.term_monoid import TermMonoid
             sage: T = TermMonoid('O', GrowthGroup('x^ZZ * log(x)^ZZ'), QQ)
-            sage: T(1)._construct_exp_()
+            sage: T(1).rpow('e')
             O(1)
-            sage: T(1)._construct_exp_(base=2)
+            sage: T(1).rpow(2)
             O(1)
 
         ::
 
-            sage: T.an_element()._construct_exp_(base=1)
+            sage: T.an_element().rpow(1)
             1
-            sage: T('x^2')._construct_exp_(base=1)
+            sage: T('x^2').rpow(1)
             1
 
         ::
 
-            sage: T.an_element()._construct_exp_()
+            sage: T.an_element().rpow('e')
             Traceback (most recent call last):
             ...
             ValueError: Exponential function of O(x*log(x)) cannot be constructed.
-            sage: T('log(x)')._construct_exp_()
+            sage: T('log(x)').rpow('e')
             Traceback (most recent call last):
             ...
             ValueError: Exponential function of O(log(x)) cannot be constructed.
@@ -2027,8 +2021,8 @@ class OTerm(GenericTerm):
         if base == 1:
             P = self.parent()
             return ExactTermMonoid(P.growth_group, P.coefficient_ring).one()
-        raise ValueError('Exponential function of %s cannot be '
-                         'constructed.' % (self,))
+        raise ValueError('Cannot take %s to the exponent %s in %s' %
+                         (base, self, self.parent()))
 
 
 class OTermMonoid(GenericTermMonoid):
@@ -2367,25 +2361,6 @@ class TermWithCoefficient(GenericTerm):
                                   'coefficient %s cannot be taken to this exponent.' %
                                   (self, exponent, self.coefficient)), e)
         return super(TermWithCoefficient, self)._calculate_pow_(exponent, coefficient=c)
-
-
-    def _construct_exp_(self, base=None):
-        r"""
-        Helper function to compute the exponential function with
-        the given ``base`` of this element.
-
-         INPUT:
-
-         - ``base`` -- the base of the exponential function. If
-           ``None`` (default value) is used, the Euler constant
-           `e` is taken as the base.
-
-        OUTPUT:
-
-        An asymptotic term.
-
-
-        """
 
 
     def _log_coefficient_(self, base=None):
@@ -3008,38 +2983,35 @@ class ExactTerm(TermWithCoefficient):
         return self.growth.is_lt_one()
 
 
-    def _construct_exp_(self, base=None):
+    def rpow(self, base):
         r"""
-        Helper function to compute the exponential function with
-        the given ``base`` of this element.
+        Return the power of ``base`` to this term.
 
-         INPUT:
+        INPUT:
 
-         - ``base`` -- the base of the exponential function. If
-           ``None`` (default value) is used, the Euler constant
-           `e` is taken as the base.
+        - ``base`` -- an element or the ``'e'``.
 
         OUTPUT:
 
-        An asymptotic term.
+        A term.
 
         EXAMPLES::
 
             sage: from sage.rings.asymptotic.growth_group import GrowthGroup
             sage: from sage.rings.asymptotic.term_monoid import TermMonoid
             sage: T = TermMonoid('exact', GrowthGroup('QQ^x * x^ZZ * log(x)^ZZ'), QQ)
-            sage: T('x')._construct_exp_(base=2)
+            sage: T('x').rpow(base=2)
             2^x
-            sage: T('log(x)')._construct_exp_()
+            sage: T('log(x)').rpow()
             x
-            sage: T('42*log(x)')._construct_exp_()
+            sage: T('42*log(x)').rpow()
             x^42
-            sage: T('3*x')._construct_exp_(base=2)
+            sage: T('3*x').rpow(base=2)
             8^x
 
         ::
 
-            sage: T('3*x^2')._construct_exp_(base=2)
+            sage: T('3*x^2').rpow(base=2)
             Traceback (most recent call last):
             ...
             ArithmeticError: Cannot construct 2^(x^2) in Growth Group QQ^x * x^ZZ * log(x)^ZZ

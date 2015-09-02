@@ -16330,13 +16330,22 @@ class GenericGraph(GenericGraph_pyx):
             sage: G = graphs.PathGraph(5).copy(immutable=True)
             sage: G.complement()
             complement(Path graph): Graph on 5 vertices
+
+        The name is not updated when there was none in the first place::
+
+            sage: g = Graph(graphs.PetersenGraph().edges()); g
+            Graph on 10 vertices
+            sage: g.complement()
+            Graph on 10 vertices
+
         """
         if self.has_multiple_edges():
             raise TypeError('complement not well defined for (di)graphs with multiple edges')
         self._scream_if_not_simple()
         G = copy(self)
         G.delete_edges(G.edges())
-        G.name('complement(%s)'%self.name())
+        if self.name():
+            G.name("complement({})".format(self.name()))
         for u in self:
             for v in self:
                 if not self.has_edge(u,v):

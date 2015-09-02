@@ -138,6 +138,12 @@ cdef extern from "flint/fmpq_poly.h":
 
     void fmpq_poly_resultant(fmpq_t, const fmpq_poly_t, const fmpq_poly_t)
 
+    # Power series division
+    void fmpq_poly_inv_series_newton(fmpq_poly_t, const fmpq_poly_t, slong)
+    void fmpq_poly_inv_series(fmpq_poly_t, const fmpq_poly_t, slong)
+    void fmpq_poly_div_series(
+            fmpq_poly_t, const fmpq_poly_t, const fmpq_poly_t, slong)
+
     # Derivative and integral
     void fmpq_poly_derivative(fmpq_poly_t, const fmpq_poly_t)
     void fmpq_poly_integral(fmpq_poly_t, const fmpq_poly_t)

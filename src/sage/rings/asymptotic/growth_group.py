@@ -1573,9 +1573,6 @@ class GenericGrowthGroup(
 
         - ``raw_element`` -- the element data.
 
-        - ``old_parent`` -- the parent of ``raw_element`` is compared
-          to this parent.
-
         OUTPUT:
 
         An element.

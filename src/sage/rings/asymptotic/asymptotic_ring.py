@@ -1135,7 +1135,7 @@ class AsymptoticExpression(sage.structure.element.CommutativeAlgebraElement):
             sage: 2^(x + 1/x)
             2^x + log(2)*2^x*x^(-1) + 1/2*log(2)^2*2^x*x^(-2) + ... + O(2^x*x^(-20))
             sage: _.parent()
-            Asymptotic Ring <QQ^x * x^SR * log(x)^ZZ> over Symbolic Ring
+            Asymptotic Ring <QQ^x * x^SR * log(x)^QQ> over Symbolic Ring
 
         ::
 

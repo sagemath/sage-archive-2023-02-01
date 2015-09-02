@@ -3028,17 +3028,16 @@ class ExactTerm(TermWithCoefficient):
             'Growth Group QQ^x * x^ZZ * log(x)^ZZ' and 'Growth Group ZZ^(x^2)'
         """
         P = self.parent()
-        if not base:
-            base = 'e'
 
         if self.is_constant():
-            return P(P.growth_group.one(),
-                     coefficient=P.coefficient_ring(base)**self.coefficient)
+            if not hasattr(base, 'parent'):
+                base = P.coefficient_ring(base)
+            return P._create_element_via_parent_(
+                P.growth_group.one(), base ** self.coefficient)
 
-        elem = P(self.growth.rpow(base=base),
-                 coefficient=P.coefficient_ring.one())
-        return elem**self.coefficient
-
+        elem = P._create_element_via_parent_(
+            self.growth.rpow(base), P.coefficient_ring.one())
+        return elem ** self.coefficient
 
 
 class ExactTermMonoid(TermWithCoefficientMonoid):

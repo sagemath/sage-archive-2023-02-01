@@ -1125,6 +1125,18 @@ class AsymptoticExpression(sage.structure.element.CommutativeAlgebraElement):
 
         ::
 
+            sage: A.<x> = AsymptoticRing('QQ^x * x^SR * log(x)^ZZ', QQ)
+            sage: x * 2^x
+            2^x*x
+            sage: 5^x * 2^x
+            10^x
+            sage: 2^log(x)
+            x^(log(2))
+            sage: 2^(x + 1/x)
+            2^x + log(2)*2^x*x^(-1) + 1/2*log(2)^2*2^x*x^(-2) + ... + O(2^x*x^(-20))
+
+        ::
+
             sage: O(x)^(-1)  # not tested  # see #19110
             Traceback (most recent call last):
             ...

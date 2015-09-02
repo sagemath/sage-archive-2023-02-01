@@ -1043,7 +1043,7 @@ class GenericTerm(sage.structure.element.MonoidElement):
             sage: T.an_element().is_little_o_of_one()
             Traceback (most recent call last):
             ...
-            NotImplementedError:  Cannot check if Generic Term with growth x is o(1)
+            NotImplementedError: Cannot check if Generic Term with growth x is o(1)
             in the abstract base class
             Generic Term Monoid x^ZZ with (implicit) coefficients in Rational Field.
             sage: T = TermWithCoefficientMonoid(GrowthGroup('x^ZZ'), QQ)

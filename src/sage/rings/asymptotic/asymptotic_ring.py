@@ -1431,23 +1431,23 @@ class AsymptoticExpression(sage.structure.element.CommutativeAlgebraElement):
         if not expr_o:
             return large_result
 
-        from sage.functions.other import factorial
-        from sage.functions.log import log
 
         if base == 'e':
             geom = expr_o
         else:
+            from sage.functions.log import log
             geom = expr_o * log(base)
         P = geom.parent()
 
         expanding = True
         result = P.one()
         geom_k = P.one()
-        k = 0
+        from sage.rings.integer_ring import ZZ
+        k = ZZ(0)
         while expanding:
-            k += 1
+            k += ZZ(1)
             geom_k *= geom
-            new_result = (result + geom_k / factorial(k)).truncate(precision=precision)
+            new_result = (result + geom_k / k.factorial()).truncate(precision=precision)
             if new_result.has_same_summands(result):
                 expanding = False
             result = new_result

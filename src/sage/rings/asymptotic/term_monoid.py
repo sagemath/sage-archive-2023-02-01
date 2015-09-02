@@ -1043,15 +1043,19 @@ class GenericTerm(sage.structure.element.MonoidElement):
             sage: T.an_element().is_little_o_of_one()
             Traceback (most recent call last):
             ...
-            NotImplementedError: Growth comparison not implemented (for this abstract method).
+            NotImplementedError:  Cannot check if Generic Term with growth x is o(1)
+            in the abstract base class
+            Generic Term Monoid x^ZZ with (implicit) coefficients in Rational Field.
             sage: T = TermWithCoefficientMonoid(GrowthGroup('x^ZZ'), QQ)
             sage: T.an_element().is_little_o_of_one()
             Traceback (most recent call last):
             ...
-            NotImplementedError: Growth comparison not implemented (for this abstract method).
+            NotImplementedError: Cannot check if Term with coefficient 1/2 and growth x
+            is o(1) in the abstract base class
+            Generic Term Monoid x^ZZ with (implicit) coefficients in Rational Field.
         """
         raise NotImplementedError('Cannot check if %s is o(1) in the '
-                                  'abstract base class.' % (self, self.parent()))
+                                  'abstract base class %s.' % (self, self.parent()))
 
 
     def rpow(self, base):
@@ -1074,10 +1078,12 @@ class GenericTerm(sage.structure.element.MonoidElement):
             sage: T.an_element().rpow('e')
             Traceback (most recent call last):
             ...
-            NotImplementedError: Exponential function not implemented for this (abstract) term.
+            NotImplementedError: Cannot take e to the exponent
+            Generic Term with growth x*log(x) in the abstract base class
+            Generic Term Monoid x^ZZ * log(x)^ZZ with (implicit) coefficients in Rational Field.
         """
         raise NotImplementedError('Cannot take %s to the exponent %s in the '
-                                  'abstract base class %s.' % (base, self, self.parent())
+                                  'abstract base class %s.' % (base, self, self.parent()))
 
 
     def _repr_(self):
@@ -2010,11 +2016,13 @@ class OTerm(GenericTerm):
             sage: T.an_element().rpow('e')
             Traceback (most recent call last):
             ...
-            ValueError: Exponential function of O(x*log(x)) cannot be constructed.
+            ValueError: Cannot take e to the exponent O(x*log(x)) in
+            O-Term Monoid x^ZZ * log(x)^ZZ with implicit coefficients in Rational Field
             sage: T('log(x)').rpow('e')
             Traceback (most recent call last):
             ...
-            ValueError: Exponential function of O(log(x)) cannot be constructed.
+            ValueError: Cannot take e to the exponent O(log(x)) in
+            O-Term Monoid x^ZZ * log(x)^ZZ with implicit coefficients in Rational Field
         """
         if self.is_one() and base != 0:
             return self
@@ -2985,7 +2993,7 @@ class ExactTerm(TermWithCoefficient):
 
     def rpow(self, base):
         r"""
-        Return the power of ``base`` to this term.
+        Return the power of ``base`` to this exact term.
 
         INPUT:
 
@@ -3000,22 +3008,24 @@ class ExactTerm(TermWithCoefficient):
             sage: from sage.rings.asymptotic.growth_group import GrowthGroup
             sage: from sage.rings.asymptotic.term_monoid import TermMonoid
             sage: T = TermMonoid('exact', GrowthGroup('QQ^x * x^ZZ * log(x)^ZZ'), QQ)
-            sage: T('x').rpow(base=2)
+            sage: T('x').rpow(2)
             2^x
-            sage: T('log(x)').rpow()
+            sage: T('log(x)').rpow('e')
             x
-            sage: T('42*log(x)').rpow()
+            sage: T('42*log(x)').rpow('e')
             x^42
-            sage: T('3*x').rpow(base=2)
+            sage: T('3*x').rpow(2)
             8^x
 
         ::
 
-            sage: T('3*x^2').rpow(base=2)
+            sage: T('3*x^2').rpow(2)
             Traceback (most recent call last):
             ...
-            ArithmeticError: Cannot construct 2^(x^2) in Growth Group QQ^x * x^ZZ * log(x)^ZZ
-            > *previous* TypeError: unsupported operand parent(s) for '*': 'Growth Group QQ^x * x^ZZ * log(x)^ZZ' and 'Growth Group ZZ^(x^2)'
+            ArithmeticError: Cannot construct 2^(x^2) in
+            Growth Group QQ^x * x^ZZ * log(x)^ZZ
+            > *previous* TypeError: unsupported operand parent(s) for '*':
+            'Growth Group QQ^x * x^ZZ * log(x)^ZZ' and 'Growth Group ZZ^(x^2)'
         """
         P = self.parent()
         if not base:

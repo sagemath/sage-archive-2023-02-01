@@ -348,7 +348,8 @@ class GenericTerm(sage.structure.element.MonoidElement):
 
         OUTPUT:
 
-        Raise a :class:`NotImplementedError` since it is an abstract base class.
+        Raise a :python:`NotImplementedError<library/exceptions.html#exceptions.NotImplementedError>`
+        since it is an abstract base class.
 
         TESTS::
 
@@ -721,8 +722,9 @@ class GenericTerm(sage.structure.element.MonoidElement):
         .. NOTE::
 
             This abstract method raises a
-            :class:`NotImplementedError`. See :class:`ExactTerm` and
-            :class:`OTerm` for a concrete implementation.
+            :python:`NotImplementedError<library/exceptions.html#exceptions.NotImplementedError>`.
+            See :class:`ExactTerm` and :class:`OTerm` for a concrete
+            implementation.
 
         EXAMPLES::
 

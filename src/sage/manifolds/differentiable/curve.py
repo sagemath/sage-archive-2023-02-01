@@ -83,11 +83,20 @@ class DiffManifoldCurve(DiffMap):
 
         sage: M = DiffManifold(2, 'M')
         sage: X.<x,y> = M.chart()
-        sage: R.<t> = RealLine()
+        sage: t = var('t')
         sage: c = M.curve({X: [sin(t), sin(2*t)/2]}, (t, 0, 2*pi), name='c') ; c
         Curve c in the 2-dimensional differentiable manifold M
         sage: type(c)
         <class 'sage.manifolds.differentiable.curve.DiffManifoldCurveSet_with_category.element_class'>
+
+    Instead of declaring the parameter `t`  as a symbolic variable by means
+    of ``var('t')``, it is equivalent to get it as the canonical coordinate
+    of the real number line (see
+    :class:`~sage.manifolds.differentiable.real_line.RealLine`)::
+
+        sage: R.<t> = RealLine()
+        sage: c = M.curve({X: [sin(t), sin(2*t)/2]}, (t, 0, 2*pi), name='c') ; c
+        Curve c in the 2-dimensional differentiable manifold M
 
     A graphical view of the curve is provided by the method :meth:`plot`::
 

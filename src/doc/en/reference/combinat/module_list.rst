@@ -166,6 +166,7 @@ Comprehensive Module list
     sage/combinat/posets/incidence_algebras
     sage/combinat/posets/lattices
     sage/combinat/posets/linear_extensions
+    sage/combinat/posets/mobius_algebra
     sage/combinat/posets/poset_examples
     sage/combinat/posets/posets
     sage/combinat/q_analogues

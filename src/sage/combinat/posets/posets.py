@@ -189,6 +189,7 @@ List of Poset methods
     :meth:`~FinitePoset.is_linear_extension` | Return whether ``l`` is a linear extension of ``self``.
     :meth:`~FinitePoset.isomorphic_subposets_iterator` | Return an iterator over the subposets isomorphic to another poset.
     :meth:`~FinitePoset.isomorphic_subposets` | Return all subposets isomorphic to another poset.
+    :meth:`~FinitePoset.kazhdan_lusztig_polynomial` | Return the Kazhdan-Lusztig polynomial `P_{x,y}(q)` of ``self``.
     :meth:`~FinitePoset.lequal_matrix` | Computes the matrix whose ``(i,j)`` entry is 1 if ``self.linear_extension()[i] < self.linear_extension()[j]`` and 0 otherwise.
     :meth:`~FinitePoset.level_sets` | Return a list l such that l[i+1] is the set of minimal elements of the poset obtained by removing the elements in l[0], l[1], ..., l[i].
     :meth:`~FinitePoset.linear_extension` | Return a linear extension of this poset.
@@ -228,6 +229,7 @@ import copy
 from sage.misc.cachefunc import cached_method
 from sage.misc.lazy_attribute import lazy_attribute
 from sage.misc.misc_c import prod
+from sage.functions.other import floor
 from sage.categories.category import Category
 from sage.categories.sets_cat import Sets
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
@@ -239,6 +241,7 @@ from sage.rings.integer import Integer
 from sage.rings.integer_ring import ZZ
 from sage.rings.rational_field import QQ
 from sage.rings.polynomial.polynomial_ring import polygen
+from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.graphs.digraph import DiGraph
 from sage.graphs.digraph_generators import digraphs
 from sage.combinat.posets.hasse_diagram import HasseDiagram
@@ -5610,6 +5613,137 @@ class FinitePoset(UniqueRepresentation, Parent):
         """
         from sage.combinat.posets.incidence_algebras import IncidenceAlgebra
         return IncidenceAlgebra(R, self, prefix)
+
+    @cached_method(key=lambda self,x,y,l: (x,y))
+    def _kl_poly(self, x=None, y=None, canonical_labels=None):
+        r"""
+        Cached Kazhdan-Lusztig polynomial of ``self`` for generic `q`.
+
+        .. SEEALSO::
+
+            :meth:`kazhdan_lusztig_polynomial`
+
+        EXAMPLES::
+
+            sage: L = posets.SymmetricGroupWeakOrderPoset(4)
+            sage: L._kl_poly()
+            1
+            sage: x = '2314'
+            sage: y = '3421'
+            sage: L._kl_poly(x, y)
+            -q + 1
+
+        AUTHORS:
+
+        - Travis Scrimshaw (27-12-2014)
+        """
+        R = PolynomialRing(ZZ, 'q')
+        q = R.gen(0)
+
+        # Handle some special cases
+        if self.cardinality() == 0:
+            return q.parent().zero()
+        if not self.rank():
+            return q.parent().one()
+
+        if canonical_labels is None:
+            canonical_labels = x is None and y is None
+
+        if x is not None or y is not None:
+            if x == y:
+                return q.parent().one()
+            if x is None:
+                x = self.minimal_elements()[0]
+            if y is None:
+                y = self.maximal_elements()[0]
+            if not self.le(x, y):
+                return q.parent().zero()
+            P = self.subposet(self.interval(x, y))
+            return P.kazhdan_lusztig_polynomial(q=q, canonical_labels=canonical_labels)
+
+        min_elt = self.minimal_elements()[0]
+        if canonical_labels:
+            sublat = lambda P: self.subposet(P).canonical_label()
+        else:
+            sublat = lambda P: self.subposet(P)
+        poly = -sum(sublat(self.order_ideal([x])).characteristic_polynomial()
+                    * sublat(self.order_filter([x])).kazhdan_lusztig_polynomial()
+                    for x in self if x != min_elt)
+        tr = floor(self.rank()/2) + 1
+        ret = poly.truncate(tr)
+        return ret(q=q)
+
+    def kazhdan_lusztig_polynomial(self, x=None, y=None, q=None, canonical_labels=None):
+        r"""
+        Return the Kazhdan-Lusztig polynomial `P_{x,y}(q)` of ``self``.
+
+        We follow the definition given in [EPW14]_. Let `G` denote a
+        graded poset with unique minimal and maximal elements and `\chi_G`
+        denote the characteristic polynomial of `G`. Let `I_x` and `F^x`
+        denote the order ideal and filter of `x` respectively. Define the
+        *Kazhdan-Lusztig polynomial* of `G` as the unique polynomial
+        `P_G(q)` satisfying the following:
+
+        1. If `\operatorname{rank} G = 0`, then `P_G(q) = 1`.
+        2. If `\operatorname{rank} G > 0`, then `\deg P_G(q) <
+           \frac{1}{2} \operatorname{rank} G`.
+        3. We have
+
+           .. MATH::
+
+                q^{\operatorname{rank} G} P_G(q^{-1})
+                = \sum_{x \in G} \chi_{I_x}(q) P_{F^x}(q).
+
+        We then extend this to `P_{x,y}(q)` by considering the subposet
+        corresponding to the (closed) interval `[x, y]`. We also
+        define `P_{\emptyset}(q) = 0` (so if `x \not\leq y`,
+        then `P_{x,y}(q) = 0`).
+
+        INPUT:
+
+        - ``q`` -- (default: `q \in \ZZ[q]`) the indeterminate `q`
+        - ``x`` -- (default: the minimal element) the element `x`
+        - ``y`` -- (default: the maximal element) the element `y`
+        - ``canonical_labels`` -- (optional) for subposets, use the
+          canonical labeling (this can limit recursive calls for posets
+          with large amounts of symmetry, but producing the labeling
+          takes time); if not specified, this is ``True`` if ``x``
+          and ``y`` are both not specified and ``False`` otherwise
+
+        EXAMPLES::
+
+            sage: L = posets.BooleanLattice(3)
+            sage: L.kazhdan_lusztig_polynomial()
+            1
+
+        ::
+
+            sage: L = posets.SymmetricGroupWeakOrderPoset(4)
+            sage: L.kazhdan_lusztig_polynomial()
+            1
+            sage: x = '2314'
+            sage: y = '3421'
+            sage: L.kazhdan_lusztig_polynomial(x, y)
+            -q + 1
+            sage: L.kazhdan_lusztig_polynomial(x, y, var('t'))
+            -t + 1
+
+        REFERENCES:
+
+        .. [EPW14] Ben Elias, Nicholas Proudfoot, and Max Wakefield.
+           *The Kazhdan-Lusztig polynomial of a matroid*. 2014.
+           :arxiv:`1412.7408`.
+
+        AUTHORS:
+
+        - Travis Scrimshaw (27-12-2014)
+        """
+        if not self.is_ranked():
+            raise ValueError("poset is not ranked")
+        if q is None:
+            q = PolynomialRing(ZZ, 'q').gen(0)
+        poly = self._kl_poly(x, y, canonical_labels)
+        return poly(q=q)
 
 FinitePoset._dual_class = FinitePoset
 

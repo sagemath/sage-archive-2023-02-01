@@ -52,6 +52,7 @@ List of (semi)lattice methods
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+
 from sage.categories.finite_lattice_posets import FiniteLatticePosets
 from sage.combinat.posets.posets import Poset, FinitePoset
 from sage.combinat.posets.elements import (LatticePosetElement,
@@ -947,7 +948,39 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
             return [self.sublattice([self.bottom()]), self.sublattice([self.top()])]
         return [self.sublattice([self[x] for x in d]) for d in self._hasse_diagram.maximal_sublattices()]
 
-############################################################################
+    def mobius_algebra(self, R):
+        """
+        Return the Mobius algebra of ``self`` over ``R``.
+
+        EXAMPLES::
+
+            sage: L = posets.BooleanLattice(4)
+            sage: L.mobius_algebra(QQ)
+            Mobius algebra of Finite lattice containing 16 elements over Rational Field
+        """
+        from sage.combinat.posets.mobius_algebra import MobiusAlgebra
+        return MobiusAlgebra(R, self)
+
+    def quantum_mobius_algebra(self, q=None):
+        """
+        Return the quantum Mobius algebra of ``self`` with parameter ``q``.
+
+        INPUT:
+
+        - ``q`` -- (optional) the deformation parameter `q`
+
+        EXAMPLES::
+
+            sage: L = posets.BooleanLattice(4)
+            sage: L.quantum_mobius_algebra()
+            Quantum Mobius algebra of Finite lattice containing 16 elements
+             with q=q over Univariate Laurent Polynomial Ring in q over Integer Ring
+        """
+        from sage.combinat.posets.mobius_algebra import QuantumMobiusAlgebra
+        return QuantumMobiusAlgebra(self, q)
+
+####################################################################################
+
 
 FiniteMeetSemilattice._dual_class = FiniteJoinSemilattice
 FiniteJoinSemilattice._dual_class = FiniteMeetSemilattice

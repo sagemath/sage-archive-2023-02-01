@@ -2995,8 +2995,7 @@ class ExponentialGrowthElement(GenericGrowthElement):
         if base is None and hasattr(b, 'is_monomial') and b.is_monomial() and \
                         b.variable_name() == 'e':
             coefficient = b.valuation()
-        elif base is None and hasattr(b, 'is_symbol') and b.is_symbol() and \
-                        repr(b) == 'e':
+        elif base is None and str(b) == 'e':
             coefficient = self.parent().base().one()
         else:
             from sage.functions.log import log

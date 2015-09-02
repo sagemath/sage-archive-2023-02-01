@@ -1523,7 +1523,8 @@ class GenericTermMonoid(sage.structure.unique_representation.UniqueRepresentatio
             parent = underlying_class(self)(growth.parent(),
                                             coefficient.parent()
                                             if coefficient is not None
-                                            else self.coefficient_ring)
+                                            else self.coefficient_ring,
+                                            category=self.category())
         return parent(growth, coefficient)
 
 

@@ -342,8 +342,6 @@ class GenericProduct(CartesianProductPosets, GenericGrowthGroup):
             sage: G._create_element_via_parent_((z^(1/2), lz)).parent()
             Growth Group z^QQ * log(z)^ZZ
         """
-        from misc import underlying_class
-
         factors = self.cartesian_factors()
         if len(element) != len(factors):
             raise ValueError('Cannot create %s as a cartesian product like %s.' %
@@ -352,6 +350,7 @@ class GenericProduct(CartesianProductPosets, GenericGrowthGroup):
         if all(n.parent() is f for n, f in zip(element, factors)):
             parent = self
         else:
+            from misc import underlying_class
             parent = underlying_class(self)(tuple(n.parent() for n in element),
                                             category=self.category())
         return parent(element)

@@ -1584,11 +1584,12 @@ class GenericGrowthGroup(
             sage: G._create_element_via_parent_(1/2).parent()
             Growth Group z^QQ
         """
-        from misc import underlying_class
         if raw_element.parent() is self.base():
             parent = self
         else:
-            parent = underlying_class(self)(raw_element.parent(), self._var_)
+            from misc import underlying_class
+            parent = underlying_class(self)(raw_element.parent(), self._var_,
+                                            category=self.category())
         return parent(raw_element=raw_element)
 
 

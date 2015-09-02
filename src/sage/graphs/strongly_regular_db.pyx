@@ -626,15 +626,17 @@ def is_taylor_twograph_srg(int v,int k,int l,int mu):
     r"""
     Test whether some Taylor two-graph SRG is `(v,k,\lambda,\mu)`-strongly regular.
 
-    For more information, see http://www.win.tue.nl/~aeb/graphs/srghub.html.
+    For more information, see §7E of [BvL84]_.
+
     INPUT:
 
     - ``v,k,l,mu`` (integers)
 
     OUTPUT:
 
-    A tuple ``t`` such that ``t[0](*t[1:])`` builds the requested graph if one
-    exists, and ``None`` otherwise.
+    A tuple ``t`` such that ``t[0](*t[1:])`` builds the requested graph
+    :func:`TaylorTwographSRG <sage.graphs.generators.families.TaylorTwographSRG>`
+    if the parameters match, and ``None`` otherwise.
 
     EXAMPLES::
 

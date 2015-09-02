@@ -181,7 +181,7 @@ def taylor_twograph(q):
     (respectively non-square) if `q \cong 1 \mod 4` (respectively if `q \cong 3 \mod 4`).
     See §7E of [BvL84]_.
 
-    There is also a `2-(q^3+1,q,1)`-design on these `q^3+1` points, known as the unital of
+    There is also a `2-(q^3+1,q+1,1)`-design on these `q^3+1` points, known as the unital of
     order `q`, also invariant under `U_3(q)`.
 
     EXAMPLES::

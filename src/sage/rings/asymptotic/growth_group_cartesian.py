@@ -1059,6 +1059,13 @@ class GenericProduct(CartesianProductPosets, GenericGrowthGroup):
                 y
                 sage: exp(log(y))
                 y
+                sage: E = GrowthGroup("SR^y * y^QQ * log(y)^QQ")
+                sage: y = E('y')
+                sage: log(exp(y))
+                y
+                sage: exp(log(y))
+                y
+
             """
             return self.rpow('e')
 

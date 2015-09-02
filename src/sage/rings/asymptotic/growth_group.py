@@ -629,14 +629,23 @@ def log(self, base=None):
         sage: x, = G.gens_monomial()
         sage: log(exp(x))
         x
-
-    ::
-
         sage: G.one().log()
         Traceback (most recent call last):
         ...
         ArithmeticError: log(1) is zero, which is not contained in
         Growth Group QQ[e]^x * x^ZZ.
+
+    ::
+
+        sage: G = GrowthGroup("SR^x * x^ZZ")
+        sage: x, = G.gens_monomial()
+        sage: log(exp(x))
+        x
+        sage: G.one().log()
+        Traceback (most recent call last):
+        ...
+        ArithmeticError: log(1) is zero, which is not contained in
+        Growth Group SR^x * x^ZZ.
     """
     log_factor = self.log_factor(base=base)
     if not log_factor:
@@ -703,12 +712,16 @@ def log_factor(self, base=None):
 
     .. SEEALSO::
 
-        :meth:`~GenericGrowthElement.factors`,
-        :meth:`~GenericGrowthElement.log`.
+        :meth:`~sage.rings.asymptotic.growth_group.GenericGrowthElement.factors`,
+        :meth:`~sage.rings.asymptotic.growth_group.GenericGrowthElement.log`.
 
     TESTS::
 
         sage: G = GrowthGroup("QQ['e']^x * x^ZZ * log(x)^ZZ")
+        sage: x, = G.gens_monomial()
+        sage: (exp(x) * x).log_factor()
+        ((x, 1), (log(x), 1))
+        sage: G = GrowthGroup("SR^x * x^ZZ * log(x)^ZZ")
         sage: x, = G.gens_monomial()
         sage: (exp(x) * x).log_factor()
         ((x, 1), (log(x), 1))
@@ -1256,6 +1269,7 @@ class GenericGrowthElement(sage.structure.element.MultiplicativeGroupElement):
             (x,)
         """
         return (self,)
+
 
     is_lt_one = is_lt_one
 

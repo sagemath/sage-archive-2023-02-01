@@ -235,6 +235,28 @@ Now let us move on to arithmetic in the multivariate ring
 More Examples
 =============
 
+
+The mathematical constant e as a limit
+--------------------------------------
+
+The base of the natural logarithm `e` satisfies the equation
+
+.. MATH::
+
+    e = \lim_{n\to\infty} \left(1+\frac{1}{n}\right)^n
+
+By using asymptotic expressions, we obtain the more precise result
+::
+
+    sage: E.<n> = AsymptoticRing(growth_group='n^ZZ', coefficient_ring=SR, default_prec=5); E
+    Asymptotic Ring <n^ZZ> over Symbolic Ring
+    sage: (1 + 1/n)^n
+    e - 1/2*e*n^(-1) + 11/24*e*n^(-2) - 7/16*e*n^(-3) + 2447/5760*e*n^(-4) + O(n^(-5))
+
+
+Example n+1
+-----------
+
 .. TODO::
 
     write more examples

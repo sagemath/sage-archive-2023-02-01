@@ -232,9 +232,9 @@ class GenericProduct(CartesianProductPosets, GenericGrowthGroup):
 
     EXAMPLES::
 
-        sage: import sage.rings.asymptotic.growth_group as agg
-        sage: P = agg.MonomialGrowthGroup(QQ, 'x')
-        sage: L = agg.MonomialGrowthGroup(ZZ, 'log(x)')
+        sage: from sage.rings.asymptotic.growth_group import GrowthGroup
+        sage: P = GrowthGroup('x^QQ')
+        sage: L = GrowthGroup('log(x)^ZZ')
         sage: C = cartesian_product([P, L], order='lex'); C
         Growth Group x^QQ * log(x)^ZZ
         sage: C.an_element()
@@ -242,10 +242,10 @@ class GenericProduct(CartesianProductPosets, GenericGrowthGroup):
 
     ::
 
-        sage: Px = agg.MonomialGrowthGroup(QQ, 'x')
-        sage: Lx = agg.MonomialGrowthGroup(ZZ, 'log(x)')
+        sage: Px = GrowthGroup('x^QQ')
+        sage: Lx = GrowthGroup('log(x)^ZZ')
         sage: Cx = cartesian_product([Px, Lx], order='lex')
-        sage: Py = agg.MonomialGrowthGroup(QQ, 'y')
+        sage: Py = GrowthGroup('y^QQ')
         sage: C = cartesian_product([Cx, Py], order='components'); C
         Growth Group x^QQ * log(x)^ZZ * y^QQ
         sage: C.an_element()
@@ -488,9 +488,9 @@ class GenericProduct(CartesianProductPosets, GenericGrowthGroup):
 
         EXAMPLES::
 
-            sage: import sage.rings.asymptotic.growth_group as agg
-            sage: P = agg.MonomialGrowthGroup(QQ, 'x')
-            sage: L = agg.MonomialGrowthGroup(ZZ, 'log(x)')
+            sage: from sage.rings.asymptotic.growth_group import GrowthGroup
+            sage: P = GrowthGroup('x^QQ')
+            sage: L = GrowthGroup('log(x)^ZZ')
             sage: cartesian_product([P, L], order='lex')._repr_short_()
             'x^QQ * log(x)^ZZ'
         """
@@ -777,8 +777,8 @@ class GenericProduct(CartesianProductPosets, GenericGrowthGroup):
 
         EXAMPLES::
 
-            sage: import sage.rings.asymptotic.growth_group as agg
-            sage: G = agg.GrowthGroup('x^ZZ * log(x)^ZZ * y^QQ * log(z)^ZZ')
+            sage: from sage.rings.asymptotic.growth_group import GrowthGroup
+            sage: G = GrowthGroup('x^ZZ * log(x)^ZZ * y^QQ * log(z)^ZZ')
             sage: G.gens_monomial()
             (x, y)
 
@@ -833,9 +833,9 @@ class GenericProduct(CartesianProductPosets, GenericGrowthGroup):
 
             EXAMPLES::
 
-                sage: import sage.rings.asymptotic.growth_group as agg
-                sage: P = agg.MonomialGrowthGroup(QQ, 'x')
-                sage: L = agg.MonomialGrowthGroup(ZZ, 'log(x)')
+                sage: from sage.rings.asymptotic.growth_group import GrowthGroup
+                sage: P = GrowthGroup('x^QQ')
+                sage: L = GrowthGroup('log(x)^ZZ')
                 sage: cartesian_product([P, L], order='lex').an_element()._repr_()
                 'x^(1/2)*log(x)'
             """

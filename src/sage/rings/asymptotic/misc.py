@@ -36,19 +36,19 @@ def repr_short_to_parent(s):
 
     EXAMPLES::
 
-        sage: import sage.rings.asymptotic.misc as agg
-        sage: agg.repr_short_to_parent('ZZ')
+        sage: from sage.rings.asymptotic.misc import repr_short_to_parent
+        sage: repr_short_to_parent('ZZ')
         Integer Ring
-        sage: agg.repr_short_to_parent('QQ')
+        sage: repr_short_to_parent('QQ')
         Rational Field
-        sage: agg.repr_short_to_parent('SR')
+        sage: repr_short_to_parent('SR')
         Symbolic Ring
-        sage: agg.repr_short_to_parent('NN')
+        sage: repr_short_to_parent('NN')
         Non negative integer semiring
 
     TESTS::
 
-        sage: agg.repr_short_to_parent('abcdef')
+        sage: repr_short_to_parent('abcdef')
         Traceback (most recent call last):
         ...
         ValueError: Cannot create a parent out of 'abcdef'.

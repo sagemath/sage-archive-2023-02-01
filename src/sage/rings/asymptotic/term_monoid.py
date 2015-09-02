@@ -1064,7 +1064,7 @@ class GenericTerm(sage.structure.element.MonoidElement):
 
         INPUT:
 
-        - ``base`` -- an element or the ``'e'``.
+        - ``base`` -- an element or ``'e'``.
 
         OUTPUT:
 
@@ -1984,7 +1984,7 @@ class OTerm(GenericTerm):
 
         INPUT:
 
-        - ``base`` -- an element or the ``'e'``.
+        - ``base`` -- an element or ``'e'``.
 
         OUTPUT:
 
@@ -2998,7 +2998,7 @@ class ExactTerm(TermWithCoefficient):
 
         INPUT:
 
-        - ``base`` -- an element or the ``'e'``.
+        - ``base`` -- an element or ``'e'``.
 
         OUTPUT:
 

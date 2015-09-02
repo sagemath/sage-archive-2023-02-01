@@ -1098,13 +1098,17 @@ class AsymptoticExpression(sage.structure.element.CommutativeAlgebraElement):
         return self.parent()(summands, simplify=True, convert=False)
 
 
-    def __pow__(self, exponent):
+    def __pow__(self, exponent, precision=None):
         r"""
-        Calculate the power of this element to the given ``exponent``.
+        Calculate the power of this asymptotic expression to the given ``exponent``.
 
         INPUT:
 
         - ``exponent`` -- an element.
+
+        - ``precision`` -- the precision used for truncating the
+          expansion. If ``None`` (default value) is used, the
+          default precision of the parent is used.
 
         OUTPUT:
 
@@ -1160,7 +1164,7 @@ class AsymptoticExpression(sage.structure.element.CommutativeAlgebraElement):
         elif len(self.summands) == 1:
             element = next(self.summands.elements())
             if isinstance(exponent, AsymptoticExpression) and element.is_constant():
-                return exponent._rpow_(base=element.coefficient)
+                return exponent.rpow(base=element.coefficient, precision=precision)
             return self.parent()._create_element_via_parent_(
                 element ** exponent, element.parent())
 
@@ -1173,11 +1177,14 @@ class AsymptoticExpression(sage.structure.element.CommutativeAlgebraElement):
             return super(AsymptoticExpression, self).__pow__(exponent)
 
         try:
-            return (exponent * self.log()).exp()
+            return (exponent * self.log(precision=precision)).exp(precision=precision)
         except (TypeError, ValueError, ZeroDivisionError) as e:
             from misc import combine_exceptions
             raise combine_exceptions(
                 ValueError('Cannot take %s to the exponent %s.' % (self, exponent)), e)
+
+
+    pow = __pow__
 
 
     def O(self):
@@ -1349,19 +1356,21 @@ class AsymptoticExpression(sage.structure.element.CommutativeAlgebraElement):
         return all(term.is_little_o_of_one() for term in self.summands.maximal_elements())
 
 
-    def _rpow_(self, base, precision=None):
+    def rpow(self, base, precision=None):
         r"""
-        Helper function. Handles exponentiation of this asymptotic
-        expression where the base is an element of the coefficient
-        ring.
+        Return the power of ``base`` to this asymptotic expression.
 
         INPUT:
 
-        - ``base`` -- an element or the ``'e'``.
+        - ``base`` -- an element or ``'e'``.
 
         - ``precision`` -- the precision used for truncating the
           expansion. If ``None`` (default value) is used, the
           default precision of the parent is used.
+
+        OUTPUT:
+
+        An asymptotic expression.
 
         ALGORITHM:
 
@@ -1381,11 +1390,11 @@ class AsymptoticExpression(sage.structure.element.CommutativeAlgebraElement):
         EXAMPLES::
 
             sage: A.<x, y> = AsymptoticRing('x^ZZ * y^ZZ', QQ)
-            sage: (1/x)._rpow_('e', precision=5)
+            sage: (1/x).rpow('e', precision=5)
             1 + x^(-1) + 1/2*x^(-2) + 1/6*x^(-3) + 1/24*x^(-4) + O(x^(-5))
         """
-        if base is None:
-            base = 'e'
+        if isinstance(base, AsymptoticExpression):
+            return base.__pow__(self, precision=precision)
 
         P = self.parent()
 
@@ -1445,8 +1454,7 @@ class AsymptoticExpression(sage.structure.element.CommutativeAlgebraElement):
 
     def exp(self, precision=None):
         r"""
-        Return the exponential function `\exp(\,\cdot\,)` of this
-        asymptotic expression.
+        Return the exponential of (i.e., the power of `e` to) this asymptotic expression.
 
         INPUT:
 
@@ -1499,7 +1507,7 @@ class AsymptoticExpression(sage.structure.element.CommutativeAlgebraElement):
             sage: exp(x+1)
             e*e^x
         """
-        return self._rpow_('e', precision=precision)
+        return self.rpow('e', precision=precision)
 
 
 

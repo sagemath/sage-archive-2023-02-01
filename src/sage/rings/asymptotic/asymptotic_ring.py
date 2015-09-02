@@ -212,9 +212,16 @@ of the logarithm
 
 as `z \to \infty`.
 
-.. TODO::
+Similarly, we can apply the exponential function of an asymptotic expression::
 
-    write more here
+    sage: exp(1/z)
+    1 + z^(-1) + 1/2*z^(-2) + 1/6*z^(-3) + 1/24*z^(-4) + ... + O(z^(-20))
+
+Arbitrary powers work as well; for example, we have
+::
+
+    sage: (1 + 1/z + O(1/z^5))^(1 + 1/z)
+    1 + z^(-1) + z^(-2) + 1/2*z^(-3) + 1/3*z^(-4) + O(z^(-5))
 
 
 Multivariate Arithemtic

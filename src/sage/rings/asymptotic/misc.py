@@ -11,6 +11,8 @@ ACKNOWLEDGEMENT:
 - Benjamin Hackl, Clemens Heuberger and Daniel Krenn are supported by the
   Austrian Science Fund (FWF): P 24644-N26.
 
+- Benjamin Hackl is supported by the Google Summer of Code 2015.
+
 
 Functions, Classes and Methods
 ==============================

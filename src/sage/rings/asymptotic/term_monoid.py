@@ -1024,7 +1024,7 @@ class GenericTerm(sage.structure.element.MonoidElement):
 
     def is_little_o_of_one(self):
         r"""
-        Return if this term is of order `o(1)`.
+        Return if this generic term is of order `o(1)`.
 
         INPUT:
 
@@ -1930,7 +1930,7 @@ class OTerm(GenericTerm):
 
     def is_little_o_of_one(self):
         r"""
-        Return if this term is of order `o(1)`.
+        Return if this O-term is of order `o(1)`.
 
         INPUT:
 
@@ -2944,7 +2944,7 @@ class ExactTerm(TermWithCoefficient):
 
     def is_little_o_of_one(self):
         r"""
-        Return if this term is of order `o(1)`.
+        Return if this exact term is of order `o(1)`.
 
         INPUT:
 

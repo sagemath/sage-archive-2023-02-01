@@ -986,7 +986,7 @@ class AsymptoticExpression(sage.structure.element.CommutativeAlgebraElement):
 
             Due to truncation of infinite expansions, the element
             returned by this method might not fulfill
-            ``el * el._invert_() == 1``.
+            ``el * ~el == 1``.
 
         EXAMPLES::
 
@@ -1043,6 +1043,9 @@ class AsymptoticExpression(sage.structure.element.CommutativeAlgebraElement):
                 expanding = False
             result = new_result
         return result._mul_term_(imax_elem)
+
+
+    invert = __invert__
 
 
     def truncate(self, precision=None):

@@ -324,30 +324,6 @@ ex::ex(const std::string &s, const ex &l) : bp(construct_from_string_and_lst(s, 
 	GINAC_ASSERT(bp->flags & status_flags::dynallocated);
 }
 
-inline
-int ex::compare(const ex & other) const
-{
-#ifdef GINAC_COMPARE_STATISTICS
-	compare_statistics.total_compares++;
-#endif
-	if (bp == other.bp)  // trivial case: both expressions point to same basic
-		return 0;
-#ifdef GINAC_COMPARE_STATISTICS
-	compare_statistics.nontrivial_compares++;
-#endif
-	const int cmpval = bp->compare(*other.bp);
-#if 1
-	if (cmpval == 0) {
-		// Expressions point to different, but equal, trees: conserve
-		// memory and make subsequent compare() operations faster by
-		// making both expressions point to the same tree.
-		share(other);
-	}
-#endif
-	return cmpval;
-}
-
-
 // Iterators
 
 class const_iterator : public std::iterator<std::random_access_iterator_tag, ex, ptrdiff_t, const ex *, const ex &> {

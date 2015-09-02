@@ -358,13 +358,24 @@ int numeric::compare_same_type(const numeric& right) const {
                 coerce(a, b, *this, right);
                 return a.compare_same_type(b);
         }
+        int ret;
         switch (t) {
                 case DOUBLE:
                         return (v._double < right.v._double) ? -1 : (v._double > right.v._double);
                 case MPZ:
-                        return mpz_cmp(v._bigint, right.v._bigint);
+                        ret = mpz_cmp(v._bigint, right.v._bigint);
+                        if (ret > 0)
+                                ret = 1;
+                        else if (ret < 0)
+                                ret = -1;
+                        return ret;
                 case MPQ:
-                        return mpq_cmp(v._bigrat, right.v._bigrat);
+                        ret = mpq_cmp(v._bigrat, right.v._bigrat);
+                        if (ret > 0)
+                                ret = 1;
+                        else if (ret < 0)
+                                ret = -1;
+                        return ret;
                 case PYOBJECT:
                         return Pynac_PyObj_Cmp(v._pyobject, right.v._pyobject, "compare_same_type");
                 default:

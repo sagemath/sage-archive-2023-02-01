@@ -1237,11 +1237,9 @@ const numeric
 multinomial_coefficient(const std::vector<int> p)
 {
 	numeric n = 0, d = 1;
-	std::vector<int>::const_iterator it = p.begin(), itend = p.end();
-	while (it != itend) {
-		n += numeric(*it);
-		d *= factorial(numeric(*it));
-		++it;
+        for (auto elem: p) {
+		n += numeric(elem);
+		d *= factorial(numeric(elem));
 	}
 	return factorial(numeric(n)) / d;
 }
@@ -1342,16 +1340,16 @@ ex power::expand_add(const add & a, int n, unsigned options) const
 		partition_generator partitions(k, a.seq.size());
 		do {
 			const std::vector<int>& partition = partitions.current();
-			const numeric coeff = multinomial_coefficient(partition) * binomial_coefficient;
+			const numeric coef = multinomial_coefficient(partition) * binomial_coefficient;
 
 			// Iterate over all compositions of the current partition.
 			composition_generator compositions(partition);
 			do {
-				const std::vector<int>& exponent = compositions.current();
+				const std::vector<int>& exp = compositions.current();
 				exvector term;
 				term.reserve(n);
-				numeric factor = coeff;
-				for (unsigned i = 0; i < exponent.size(); ++i) {
+				numeric factor = coef;
+				for (unsigned i = 0; i < exp.size(); ++i) {
 					const ex & r = a.seq[i].rest;
 					const ex & c = a.seq[i].coeff;
 					GINAC_ASSERT(!is_exactly_a<add>(r));
@@ -1361,15 +1359,15 @@ ex power::expand_add(const add & a, int n, unsigned options) const
 						     !is_exactly_a<add>(ex_to<power>(r).basis) ||
 						     !is_exactly_a<mul>(ex_to<power>(r).basis) ||
 						     !is_exactly_a<power>(ex_to<power>(r).basis));
-					if (exponent[i] == 0) {
+					if (exp[i] == 0) {
 						// optimize away
-					} else if (exponent[i] == 1) {
+					} else if (exp[i] == 1) {
 						// optimized
 						term.push_back(r);
 						factor = factor.mul(ex_to<numeric>(c));
 					} else { // general case exponent[i] > 1
-						term.push_back((new power(r, exponent[i]))->setflag(status_flags::dynallocated));
-						factor = factor.mul(ex_to<numeric>(c).power(exponent[i]));
+						term.push_back((new power(r, exp[i]))->setflag(status_flags::dynallocated));
+						factor = factor.mul(ex_to<numeric>(c).power(exp[i]));
 					}
 				}
 				result.push_back(a.combine_ex_with_coeff_to_pair(mul(term).expand(options), factor));

@@ -701,8 +701,8 @@ def log_factor(self, base=None):
 
     .. SEEALSO::
 
-        :meth:`~GenericGrowthElement.factors`,
-        :meth:`~GenericGrowthElement.log`.
+        :meth:`~sage.rings.asymptotic.growth_group.GenericGrowthElement.factors`,
+        :meth:`~sage.rings.asymptotic.growth_group.GenericGrowthElement.log`.
 
     TESTS::
 
@@ -1251,6 +1251,7 @@ class GenericGrowthElement(sage.structure.element.MultiplicativeGroupElement):
             (x,)
         """
         return (self,)
+
 
     is_lt_one = is_lt_one
 

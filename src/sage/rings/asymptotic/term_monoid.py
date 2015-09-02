@@ -1376,9 +1376,11 @@ class GenericTermMonoid(sage.structure.unique_representation.UniqueRepresentatio
             sage: T_QQ = atm.GenericTermMonoid(G_QQ, QQ)
             sage: term1 = T_ZZ(G_ZZ.gen())
             sage: term2 = T_QQ(G_QQ.gen()^2)
-            sage: term1 <= term2  # in order for two terms to be compared,
-            ....:                 # a coercion into one of the parents
-            ....:                 # has to be found.
+
+        In order for two terms to be compared, a coercion into one
+        of the parents has to be found::
+
+            sage: term1 <= term2
             True
             sage: T_QQ.coerce(term1)  # coercion does not fail
             Generic Term with growth x

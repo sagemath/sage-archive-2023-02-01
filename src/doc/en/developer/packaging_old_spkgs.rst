@@ -530,11 +530,11 @@ command line options ``--pkg`` or ``--pkg_nc`` (or tar and bzip2).
 
 To install your replacement spkg, you use::
 
-    sage -f http://URL/to/package-x.y.z.spkg
+    sage -p http://URL/to/package-x.y.z.spkg
 
 or::
 
-    sage -f /path/to/package-x.y.z.spkg
+    sage -p /path/to/package-x.y.z.spkg
 
 To compile Sage from source with the replacement (standard) spkg,
 untar a Sage source tarball, remove the existing spkg under

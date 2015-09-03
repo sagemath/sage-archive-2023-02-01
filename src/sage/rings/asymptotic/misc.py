@@ -213,6 +213,46 @@ def split_str_by_op(string, op, strip_parentheses=True):
     return tuple(strip(f) for f in factors)
 
 
+def repr_op(left, op, right=None):
+    r"""
+    Create a string ``left op right`` with
+    taking care of parentheses in its operands.
+
+    INPUT:
+
+    - ``left`` -- an element.
+
+    - ``op`` -- a string.
+
+    - ``right`` -- an alement.
+
+    OUTPUT:
+
+    A string.
+
+    EXAMPLES::
+
+        sage: from sage.rings.asymptotic.misc import repr_op
+        sage: repr_op('a^b', '^', 'c')
+        '(a^b)^c'
+    """
+    left = str(left)
+    right = str(right) if right is not None else ''
+
+    def add_parentheses(s, op):
+        if op == '^':
+            signals = ('^', '*', '+', ' ')
+        else:
+            return s
+        if any(sig in s for sig in signals):
+            return '(%s)' % (s,)
+        else:
+            return s
+
+    return add_parentheses(left, op) + op +\
+        add_parentheses(right, op)
+
+
 def combine_exceptions(e, *f):
     r"""
     Helper function which combines the messages of the given exceptions.

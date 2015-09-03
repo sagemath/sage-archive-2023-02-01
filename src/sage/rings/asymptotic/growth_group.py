@@ -3444,16 +3444,16 @@ class GrowthGroupFactory(sage.structure.factory.UniqueFactory):
             sage: GrowthGroup.create_key_and_extra_args('asdf')
             Traceback (most recent call last):
             ...
-            ValueError: 'asdf' is not a valid string describing a growth group.
+            ValueError: 'asdf' is not a valid substring of 'asdf' describing a growth group.
         """
-        from misc import split_str_by_mul
-        factors = split_str_by_mul(specification)
+        from misc import split_str_by_op
+        factors = split_str_by_op(specification, '*')
         factors = tuple(f.replace('**', '^') for f in factors)
 
         for f in factors:
-            if '^' not in f and '**' not in f:
-                raise ValueError("'%s' is not a valid string describing "
-                                 "a growth group." % (f,))
+            if '^' not in f:
+                raise ValueError("'%s' is not a valid substring of '%s' describing "
+                                 "a growth group." % (f, specification))
 
         return factors, kwds
 
@@ -3468,7 +3468,8 @@ class GrowthGroupFactory(sage.structure.factory.UniqueFactory):
             sage: GrowthGroup('as^df')  # indirect doctest
             Traceback (most recent call last):
             ...
-            ValueError: 'as^df' is not a valid string describing a growth group.
+            ValueError: 'as^df' is not a valid substring of as^df
+            describing a growth group.
             > *previous* ValueError: Cannot create a parent out of 'as'.
             >> *previous* SyntaxError: unexpected EOF while parsing (<string>, line 1)
             > *and* ValueError: Cannot create a parent out of 'df'.
@@ -3476,17 +3477,38 @@ class GrowthGroupFactory(sage.structure.factory.UniqueFactory):
             sage: GrowthGroup('x^y^z')
             Traceback (most recent call last):
             ...
-            ValueError: 'x^y^z' is not a valid string describing a growth group.
+            ValueError: 'x^y^z' is an ambigous substring of
+            a growth group description of 'x^y^z'.
+            Use parentheses to make it unique.
+            sage: GrowthGroup('(x^y)^z')
+            Traceback (most recent call last):
+            ...
+            ValueError: '(x^y)^z' is not a valid substring of (x^y)^z
+            describing a growth group.
+            > *previous* ValueError: Cannot create a parent out of '(x^y)'.
+            >> *previous* NameError: name 'x' is not defined
+            > *and* ValueError: Cannot create a parent out of 'z'.
+            >> *previous* NameError: name 'z' is not defined
+            sage: GrowthGroup('x^(y^z)')
+            Traceback (most recent call last):
+            ...
+            ValueError: 'x^(y^z)' is not a valid substring of x^(y^z)
+            describing a growth group.
             > *previous* ValueError: Cannot create a parent out of 'x'.
             >> *previous* NameError: name 'x' is not defined
-            > *and* ValueError: Cannot create a parent out of 'y^z'.
+            > *and* ValueError: Cannot create a parent out of '(y^z)'.
             >> *previous* NameError: name 'y' is not defined
         """
-        from misc import repr_short_to_parent
+        from misc import repr_short_to_parent, split_str_by_op
         groups = []
         for factor in factors:
-            b, _, e = factor.partition('^')
+            split = split_str_by_op(factor, '^', strip_parentheses=False)
+            if len(split) != 2:
+                raise ValueError("'%s' is an ambigous substring of a growth group "
+                                 "description of '%s'. Use parentheses to make it "
+                                 "unique." % (factor, ' * '.join(factors)))
 
+            b, e = split
             try:
                 B = repr_short_to_parent(b)
             except ValueError as exc_b:
@@ -3499,15 +3521,16 @@ class GrowthGroupFactory(sage.structure.factory.UniqueFactory):
             if B is None and E is None:
                 from misc import combine_exceptions
                 raise combine_exceptions(
-                    ValueError("'%s' is not a valid string describing "
-                               "a growth group." % (factor,)), exc_b, exc_e)
+                    ValueError("'%s' is not a valid substring of %s describing "
+                               "a growth group." % (factor, ' * '.join(factors))),
+                    exc_b, exc_e)
             elif B is None and E is not None:
                 groups.append(MonomialGrowthGroup(E, b, **kwds))
             elif B is not None and E is None:
                 groups.append(ExponentialGrowthGroup(B, e, **kwds))
             else:
-                raise ValueError("'%s' is an ambigous string of a growth group "
-                                 "description." % (factor,))
+                raise ValueError("'%s' is an ambigous substring of a growth group "
+                                 "description of '%s'." % (factor, ' * '.join(factors)))
 
         if len(groups) == 1:
             return groups[0]

@@ -442,8 +442,8 @@ class GenericProduct(CartesianProductPosets, GenericGrowthGroup):
             return self.element_class(self, data)
 
         elif isinstance(data, str):
-            from misc import split_str_by_mul
-            return convert_factors(split_str_by_mul(data), data)
+            from misc import split_str_by_op
+            return convert_factors(split_str_by_op(data, '*'), data)
 
         elif hasattr(data, 'parent'):
             P = data.parent()

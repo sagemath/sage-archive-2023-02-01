@@ -1597,8 +1597,8 @@ class GenericTermMonoid(sage.structure.unique_representation.UniqueRepresentatio
             (x^2, log(x))
         """
         if isinstance(data, str):
-            from misc import split_str_by_mul
-            return split_str_by_mul(data)
+            from misc import split_str_by_op
+            return split_str_by_op(data, '*')
 
         try:
             P = data.parent()

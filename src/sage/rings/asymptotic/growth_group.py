@@ -803,23 +803,23 @@ def rpow(self, base):
         pass
 
     var = str(self)
-    if '*' in var or '^' in var:
-        var = '(' + var + ')'
 
     if element is None:
         if base == 'e':
             from sage.rings.integer_ring import ZZ
-            base = ZZ[base](base)
-        E = ExponentialGrowthGroup(base.parent(), var)
-        element = E(raw_element=base)
+            M = MonomialGrowthGroup(ZZ, 'e^' + var, ignore_variables=('e',))
+            element = M(raw_element=ZZ(1))
+        else:
+            E = ExponentialGrowthGroup(base.parent(), var)
+            element = E(raw_element=base)
 
     try:
         return self.parent().one() * element
     except (TypeError, ValueError) as e:
-        from misc import combine_exceptions
+        from misc import combine_exceptions, repr_op
         raise combine_exceptions(
-            ArithmeticError('Cannot construct %s^%s in %s' %
-                            (base, var, self.parent())), e)
+            ArithmeticError('Cannot construct %s in %s' %
+                            (repr_op(base, '^', var), self.parent())), e)
 
 
 class GenericGrowthElement(sage.structure.element.MultiplicativeGroupElement):
@@ -2404,6 +2404,21 @@ class MonomialGrowthElement(GenericGrowthElement):
         if self.is_one():
             return tuple()
         coefficient = self.exponent
+
+        var = str(self.parent()._var_)
+
+        from misc import split_str_by_op
+        split = split_str_by_op(var, '^')
+        if len(split) == 2:
+            b, e = split
+            if base is None and b == 'e' or \
+               base is not None and b == str(base):
+                return ((e, coefficient),)
+
+        if var.startswith('exp('):
+            assert(var[-1] == ')')
+            return ((var[4:-1], coefficient),)
+
         if base is not None:
             from sage.functions.log import log
             coefficient = coefficient / log(base)

@@ -1953,7 +1953,7 @@ cdef class NumberFieldElement(FieldElement):
             sage: I/0 # indirect doctest
             Traceback (most recent call last):
             ...
-            ZeroDivisionError: rational division by zero
+            ZeroDivisionError: Rational division by zero
 
         ::
 

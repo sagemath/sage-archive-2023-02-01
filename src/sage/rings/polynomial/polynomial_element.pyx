@@ -4397,7 +4397,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: f.monic()
             Traceback (most recent call last):
             ...
-            ZeroDivisionError: rational division by zero
+            ZeroDivisionError: Rational division by zero
 
         Notice that the monic version of a polynomial over the integers is
         defined over the rationals.

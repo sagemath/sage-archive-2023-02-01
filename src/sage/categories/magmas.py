@@ -599,7 +599,7 @@ class Magmas(Category_singleton):
                         sage: ~C([0,2,2,2])
                         Traceback (most recent call last):
                         ...
-                        ZeroDivisionError: Rational division by zero
+                        ZeroDivisionError: rational division by zero
 
                         sage: ~C([2,2,2,2])
                         Traceback (most recent call last):

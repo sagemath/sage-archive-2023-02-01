@@ -141,14 +141,18 @@ def parent_to_repr_short(P):
     return s
 
 
-def split_str_by_mul(string):
+def split_str_by_op(string, op, strip_parentheses=True):
     r"""
     Split the given string into a tuple of substrings arising by
     splitting by '*' and taking care of parentheses.
 
     INPUT:
 
-    - ``string`` - a string.
+    - ``string`` -- a string.
+
+    - ``op`` -- a string.
+
+    - ``strip_parentheses`` -- (default: ``True``) a boolean.
 
     OUTPUT:
 
@@ -156,46 +160,53 @@ def split_str_by_mul(string):
 
     TESTS::
 
-        sage: from sage.rings.asymptotic.misc import split_str_by_mul
-        sage: split_str_by_mul('x^ZZ')
+        sage: from sage.rings.asymptotic.misc import split_str_by_op
+        sage: split_str_by_op('x^ZZ', '*')
         ('x^ZZ',)
-        sage: split_str_by_mul('log(x)^ZZ * y^QQ')
+        sage: split_str_by_op('log(x)^ZZ * y^QQ', '*')
         ('log(x)^ZZ', 'y^QQ')
-        sage: split_str_by_mul('log(x)**ZZ * y**QQ')
+        sage: split_str_by_op('log(x)**ZZ * y**QQ', '*')
         ('log(x)**ZZ', 'y**QQ')
-        sage: split_str_by_mul('a^b * * c^d')
+        sage: split_str_by_op('a^b * * c^d', '*')
         Traceback (most recent call last):
         ...
-        ValueError: 'a^b * * c^d' is invalid since a '*' follows a '*'
-        sage: split_str_by_mul('a^b * (c*d^e)')
+        ValueError: 'a^b * * c^d' is invalid since a '*' follows a '*'.
+        sage: split_str_by_op('a^b * (c*d^e)', '*')
         ('a^b', 'c*d^e')
+
+    ::
+
+        sage: split_str_by_op('(a^b)^c', '^')
+        ('a^b', 'c')
+        sage: split_str_by_op('a^(b^c)', '^')
+        ('a', 'b^c')
     """
     factors = list()
     balanced = True
-    if string and string[0] == '*':
-        raise ValueError("'%s' is invalid since it starts with a '*'." %
-                         (string,))
-    for s in string.split('*'):
+    if string and string.startswith(op):
+        raise ValueError("'%s' is invalid since it starts with a '%s'." %
+                         (string, op))
+    for s in string.split(op):
         if not s:
-            factors[-1] += '*'
+            factors[-1] += op
             balanced = False
             continue
         if not s.strip():
-            raise ValueError("'%s' is invalid since a '*' follows a '*'" %
-                             (string,))
+            raise ValueError("'%s' is invalid since a '%s' follows a '%s'." %
+                             (string, op, op))
         if not balanced:
-            s = factors.pop() + '*' + s
+            s = factors.pop() + op + s
         balanced = s.count('(') == s.count(')')
         factors.append(s)
 
     if not balanced:
-        raise ValueError("Parentheses in '%s' are not balanced" % (string,))
+        raise ValueError("Parentheses in '%s' are not balanced." % (string,))
 
     def strip(s):
         s = s.strip()
         if not s:
             return s
-        if s[0] == '(' and s[-1] == ')':
+        if strip_parentheses and s[0] == '(' and s[-1] == ')':
             s = s[1:-1]
         return s.strip()
 

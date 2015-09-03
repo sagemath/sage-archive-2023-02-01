@@ -206,12 +206,11 @@ class ClusterSeed(SageObject):
         self._mut_path = None
 
         # constructs a cluster seed from a cluster seed
-        # when constructing a cluster seed from 'data' = cluster seed, boolean inputs ignored and booleans taken exclusively from 'data' .
         if isinstance(data, ClusterSeed):
             if frozen:
                 print "The input \'frozen\' is ignored"
 
-            # Copy the following attributes from data regardless of boolean parameters
+            # Copy the following attributes from data
             self._M = copy( data._M )
             self._B = copy( data._B )
             self._n = data._n
@@ -279,11 +278,10 @@ class ClusterSeed(SageObject):
             self._description = 'A seed for a cluster algebra of rank %d' %(self._n)
             self._quiver = quiver
 
-            # We are now updating boolean flags from user's most recent choice. These may be overridden for efficiency and sanitization
+            # We are now updating labels from user's most recent choice.
             self._is_principal = is_principal
             self._user_labels = user_labels
             self._user_labels_prefix = user_labels_prefix
-
 
             # initialize the rest
             
@@ -293,15 +291,13 @@ class ClusterSeed(SageObject):
             self._G = matrix.identity(self._n)
             self._use_g_vec = True
 
-            self._C = matrix.identity(self._n)
             self._BC = copy(self._M).stack(self.c_matrix())
-            self._use_c_vec = True
             self._bot_is_c=False
 
             self._D = -matrix.identity(self._n)
             self._use_d_vec = True
 
-            self._mut_path = [ ] 
+            self._mut_path = [ ]
             self._track_mut = True
                         
             if user_labels:

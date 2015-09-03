@@ -464,7 +464,7 @@ cdef class QuaternionAlgebraElement_abstract(AlgebraElement):
             sage: 1/Q(0)
             Traceback (most recent call last):
             ...
-            ZeroDivisionError: Rational division by zero
+            ZeroDivisionError: rational division by zero
 
         Note that the quaternion algebra need not be a division
         algebra, in which case we can get a ZeroDivisionException::
@@ -476,7 +476,7 @@ cdef class QuaternionAlgebraElement_abstract(AlgebraElement):
             sage: 1/theta
             Traceback (most recent call last):
             ...
-            ZeroDivisionError: Rational division by zero
+            ZeroDivisionError: rational division by zero
 
         The ``universal`` test:
 

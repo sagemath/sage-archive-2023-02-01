@@ -326,7 +326,7 @@ cdef int singular_polynomial_div_coeff(poly** ret, poly *p, poly *q, ring *r) ex
         sage: x/0
         Traceback (most recent call last):
         ...
-        ZeroDivisionError: Rational division by zero
+        ZeroDivisionError: rational division by zero
     """
     if q == NULL:
         raise ZeroDivisionError

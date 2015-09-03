@@ -1612,7 +1612,7 @@ cdef class NCPolynomial_plural(RingElement):
             sage: x/0
             Traceback (most recent call last):
             ...
-            ZeroDivisionError: Rational division by zero
+            ZeroDivisionError: rational division by zero
         """
         cdef poly *p
         cdef bint is_field = left._parent._base.is_field()

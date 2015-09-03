@@ -2141,10 +2141,10 @@ cdef class Rational(sage.structure.element.FieldElement):
             sage: 3/0 # indirect doctest
             Traceback (most recent call last):
             ...
-            ZeroDivisionError: Rational division by zero
+            ZeroDivisionError: rational division by zero
         """
         if mpq_cmp_si((<Rational> right).value, 0, 1) == 0:
-            raise ZeroDivisionError, "Rational division by zero"
+            raise ZeroDivisionError('rational division by zero')
         cdef Rational x
         x = <Rational> Rational.__new__(Rational)
         mpq_div(x.value, self.value, (<Rational>right).value)
@@ -2168,7 +2168,7 @@ cdef class Rational(sage.structure.element.FieldElement):
             -17/4
         """
         if self.is_zero():
-            raise ZeroDivisionError('Rational division by zero')
+            raise ZeroDivisionError('rational division by zero')
         cdef Rational x
         x = <Rational> Rational.__new__(Rational)
         mpq_inv(x.value, self.value)
@@ -2261,7 +2261,7 @@ cdef class Rational(sage.structure.element.FieldElement):
             sage: QQ(0)^(-1)
             Traceback (most recent call last):
             ...
-            ZeroDivisionError: Rational division by zero
+            ZeroDivisionError: rational division by zero
         """
         if dummy is not None:
             raise ValueError, "__pow__ dummy variable not used"
@@ -2336,7 +2336,7 @@ cdef class Rational(sage.structure.element.FieldElement):
 
         if nn < 0:
             if mpz_sgn(mpq_numref(_self.value)) == 0:
-                raise ZeroDivisionError('Rational division by zero')
+                raise ZeroDivisionError('rational division by zero')
 
             sig_on()
             # mpz_pow_ui(mpq_denref(x.value), mpq_numref(_self.value), <unsigned long int>(-nn))

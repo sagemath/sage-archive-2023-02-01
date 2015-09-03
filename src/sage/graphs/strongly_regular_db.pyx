@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 r"""
 Database of strongly regular graphs
 

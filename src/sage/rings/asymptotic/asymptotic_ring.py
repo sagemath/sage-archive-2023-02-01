@@ -1526,11 +1526,11 @@ class AsymptoticExpression(sage.structure.element.CommutativeAlgebraElement):
 
         EXAMPLES::
 
-            sage: A.<x> = AsymptoticRing('SR^x * x^ZZ * log(x)^ZZ', SR)
+            sage: A.<x> = AsymptoticRing('(e^x)^ZZ * x^ZZ * log(x)^ZZ', SR)
             sage: exp(x)
             e^x
             sage: exp(2*x)
-            (e^2)^x
+            (e^x)^2
             sage: exp(x + log(x))
             e^x*x
 
@@ -1541,7 +1541,7 @@ class AsymptoticExpression(sage.structure.element.CommutativeAlgebraElement):
 
         TESTS::
 
-            sage: A.<x> = AsymptoticRing('SR^x * x^QQ * log(x)^QQ', SR)
+            sage: A.<x> = AsymptoticRing('(e^x)^ZZ * x^QQ * log(x)^QQ', SR)
             sage: exp(log(x))
             x
             sage: log(exp(x))

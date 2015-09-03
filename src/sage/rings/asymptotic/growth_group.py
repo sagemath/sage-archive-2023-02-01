@@ -636,7 +636,7 @@ def log(self, base=None):
 
     TESTS::
 
-        sage: G = GrowthGroup("QQ['e']^x * x^ZZ")
+        sage: G = GrowthGroup("(e^x)^QQ * x^ZZ")
         sage: x, = G.gens_monomial()
         sage: log(exp(x))
         x
@@ -644,11 +644,11 @@ def log(self, base=None):
         Traceback (most recent call last):
         ...
         ArithmeticError: log(1) is zero, which is not contained in
-        Growth Group QQ[e]^x * x^ZZ.
+        Growth Group (e^x)^QQ * x^ZZ.
 
     ::
 
-        sage: G = GrowthGroup("SR^x * x^ZZ")
+        sage: G = GrowthGroup("(e^x)^ZZ * x^ZZ")
         sage: x, = G.gens_monomial()
         sage: log(exp(x))
         x
@@ -656,7 +656,7 @@ def log(self, base=None):
         Traceback (most recent call last):
         ...
         ArithmeticError: log(1) is zero, which is not contained in
-        Growth Group SR^x * x^ZZ.
+        Growth Group (e^x)^ZZ * x^ZZ.
     """
     log_factor = self.log_factor(base=base)
     if not log_factor:
@@ -728,11 +728,7 @@ def log_factor(self, base=None):
 
     TESTS::
 
-        sage: G = GrowthGroup("QQ['e']^x * x^ZZ * log(x)^ZZ")
-        sage: x, = G.gens_monomial()
-        sage: (exp(x) * x).log_factor()
-        ((x, 1), (log(x), 1))
-        sage: G = GrowthGroup("SR^x * x^ZZ * log(x)^ZZ")
+        sage: G = GrowthGroup("(e^x)^ZZ * x^ZZ * log(x)^ZZ")
         sage: x, = G.gens_monomial()
         sage: (exp(x) * x).log_factor()
         ((x, 1), (log(x), 1))
@@ -2271,6 +2267,7 @@ class MonomialGrowthElement(GenericGrowthElement):
             x^(-42)
         """
         from sage.rings.integer_ring import ZZ
+        from misc import repr_op
 
         var = repr(self.parent()._var_)
         if self.exponent.is_zero():
@@ -2278,9 +2275,9 @@ class MonomialGrowthElement(GenericGrowthElement):
         elif self.exponent.is_one():
             return var
         elif self.exponent in ZZ and self.exponent > 0:
-            return var + '^' + str(self.exponent)
+            return repr_op(var, '^') + str(self.exponent)
         else:
-            return var + '^(' + str(self.exponent) + ')'
+            return repr_op(var, '^') + '(' + str(self.exponent) + ')'
 
 
     def _mul_(self, other):
@@ -2570,8 +2567,8 @@ class MonomialGrowthGroup(GenericGrowthGroup):
             sage: MonomialGrowthGroup(PolynomialRing(QQ, 'x'), 'a')._repr_short_()
             'a^QQ[x]'
         """
-        from misc import parent_to_repr_short
-        return '%s^%s' % (self._var_, parent_to_repr_short(self.base()))
+        from misc import parent_to_repr_short, repr_op
+        return repr_op(self._var_, '^', parent_to_repr_short(self.base()))
 
 
     def _convert_(self, data):
@@ -2906,14 +2903,15 @@ class ExponentialGrowthElement(GenericGrowthElement):
             (-1)^x
         """
         from sage.rings.integer_ring import ZZ
+        from misc import repr_op
 
         var = repr(self.parent()._var_)
         if self.base.is_one():
             return '1'
         elif not any(s in str(self.base) for s in '-/^'):
-            return str(self.base) + '^' + var
+            return str(self.base) + repr_op('', '^', var)
         else:
-            return '(' + str(self.base) + ')^' + var
+            return '(' + str(self.base) + ')' + repr_op('', '^', var)
 
 
     def _mul_(self, other):
@@ -3149,8 +3147,8 @@ class ExponentialGrowthGroup(GenericGrowthGroup):
             sage: ExponentialGrowthGroup(PolynomialRing(QQ, 'x'), 'a')._repr_short_()
             'QQ[x]^a'
         """
-        from misc import parent_to_repr_short
-        return '%s^%s' % (parent_to_repr_short(self.base()), self._var_)
+        from misc import parent_to_repr_short, repr_op
+        return repr_op(parent_to_repr_short(self.base()), '^', self._var_)
 
 
     def _convert_(self, data):
@@ -3526,7 +3524,7 @@ class GrowthGroupFactory(sage.structure.factory.UniqueFactory):
             ...
             ValueError: '(x^y)^z' is not a valid substring of (x^y)^z
             describing a growth group.
-            > *previous* ValueError: Cannot create a parent out of '(x^y)'.
+            > *previous* ValueError: Cannot create a parent out of 'x^y'.
             >> *previous* NameError: name 'x' is not defined
             > *and* ValueError: Cannot create a parent out of 'z'.
             >> *previous* NameError: name 'z' is not defined
@@ -3537,13 +3535,13 @@ class GrowthGroupFactory(sage.structure.factory.UniqueFactory):
             describing a growth group.
             > *previous* ValueError: Cannot create a parent out of 'x'.
             >> *previous* NameError: name 'x' is not defined
-            > *and* ValueError: Cannot create a parent out of '(y^z)'.
+            > *and* ValueError: Cannot create a parent out of 'y^z'.
             >> *previous* NameError: name 'y' is not defined
         """
         from misc import repr_short_to_parent, split_str_by_op
         groups = []
         for factor in factors:
-            split = split_str_by_op(factor, '^', strip_parentheses=False)
+            split = split_str_by_op(factor, '^')
             if len(split) != 2:
                 raise ValueError("'%s' is an ambigous substring of a growth group "
                                  "description of '%s'. Use parentheses to make it "

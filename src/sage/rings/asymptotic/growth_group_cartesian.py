@@ -1049,23 +1049,16 @@ class GenericProduct(CartesianProductPosets, GenericGrowthGroup):
                 Growth Group x^ZZ * log(x)^ZZ * log(log(x))^ZZ
                 > *previous* TypeError: unsupported operand parent(s) for '*':
                 'Growth Group x^ZZ * log(x)^ZZ * log(log(x))^ZZ' and
-                'Growth Group ZZ[e]^x'
+                'Growth Group (e^x)^ZZ'
 
             TESTS::
 
-                sage: E = GrowthGroup("QQ['e']^y * y^QQ * log(y)^QQ")
+                sage: E = GrowthGroup("(e^y)^QQ * y^QQ * log(y)^QQ")
                 sage: y = E('y')
                 sage: log(exp(y))
                 y
                 sage: exp(log(y))
                 y
-                sage: E = GrowthGroup("SR^y * y^QQ * log(y)^QQ")
-                sage: y = E('y')
-                sage: log(exp(y))
-                y
-                sage: exp(log(y))
-                y
-
             """
             return self.rpow('e')
 

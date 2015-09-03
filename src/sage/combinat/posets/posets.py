@@ -113,7 +113,7 @@ List of Poset methods
     :widths: 30, 70
     :delim: |
 
-    :meth:`~FinitePoset.is_chain_of_poset` | Return ``True`` if given list is a chain of the poset.
+    :meth:`~FinitePoset.is_chain_of_poset` | Return ``True`` if the given list is a chain of the poset.
     :meth:`~FinitePoset.chains` | Return the chains of the poset.
     :meth:`~FinitePoset.antichains` | Return the antichains of the poset.
     :meth:`~FinitePoset.maximal_chains` | Return the maximal chains of the poset.
@@ -2402,8 +2402,9 @@ class FinitePoset(UniqueRepresentation, Parent):
           of the poset
 
         - ``ordered`` -- a Boolean. If ``True``, then return ``True``
-          only if elements in `elms` are strictly increasing in the poset. If
-          ``False`` (the default), then elements can be repeated and be in any
+          only if elements in `elms` are strictly increasing in the
+          poset; this makes no sense if `elms` is a set. If ``False``
+          (the default), then elements can be repeated and be in any
           order.
 
         EXAMPLES::
@@ -2433,18 +2434,12 @@ class FinitePoset(UniqueRepresentation, Parent):
             False
             sage: P.is_chain_of_poset({10})
             True
-            sage: P.is_chain_of_poset({10}, ordered=True)
-            Traceback (most recent call last):
-            ...
-            TypeError: ordered=True not compatible with type <type 'set'> for elms
             sage: P.is_chain_of_poset([32])
             Traceback (most recent call last):
             ...
             ValueError: element (=32) not in poset
         """
         if ordered:
-            if not hasattr(elms, '__getitem__'):
-                raise TypeError("ordered=True not compatible with type %s for elms" % type(elms))
             sorted_o = elms
             return all(self.lt(a, b) for a, b in zip(sorted_o, sorted_o[1:]))
         else:

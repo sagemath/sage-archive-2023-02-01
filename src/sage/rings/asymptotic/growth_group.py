@@ -1301,6 +1301,10 @@ class GenericGrowthGroup(
       Category of groups and Category of posets``. This is also the
       default category if ``None`` is specified.
 
+    - ``ignore_variables`` -- (default: ``None``) a tuple (or other
+      iterable) of strings. The specified names are not considered as
+      a variable.
+
     .. NOTE::
 
         This class should be derived to get concrete implementations.
@@ -1323,7 +1327,7 @@ class GenericGrowthGroup(
 
 
     @staticmethod
-    def __classcall__(cls, base, var=None, category=None):
+    def __classcall__(cls, base, var=None, category=None, ignore_variables=None):
         r"""
         Normalizes the input in order to ensure a unique
         representation.
@@ -1358,7 +1362,7 @@ class GenericGrowthGroup(
         if var is None:
             var = Variable('')
         elif not isinstance(var, Variable):
-            var = Variable(var)
+            var = Variable(var, ignore=ignore_variables)
 
         if category is None:
             from sage.categories.monoids import Monoids

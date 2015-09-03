@@ -1371,6 +1371,27 @@ def SRG_175_72_20_36():
     """
     return HoffmanSingletonGraph().line_graph().distance_graph([2])
 
+def SRG_126_50_13_24():
+    r"""
+    Return a `(126,50,13,24)`-strongly regular graph
+
+    This graph is a subgraph of
+    :meth:`~sage.graphs.strongly_regular_db.SRG_175_72_20_36`.
+    This construction, due to Goethals, is given in §10B.(vii) of [BvL84]_.
+
+    EXAMPLES::
+
+        sage: from sage.graphs.strongly_regular_db import SRG_126_50_13_24
+        sage: G = SRG_126_50_13_24()
+        sage: G.is_strongly_regular(parameters=True)
+        (126, 50, 13, 24)
+    """
+    from sage.graphs.generators.smallgraphs import HoffmanSingletonGraph
+    from sage.graphs.strongly_regular_db import SRG_175_72_20_36
+    hs = HoffmanSingletonGraph()
+    s = set(hs.vertices()).difference(hs.neighbors(0)+[0])
+    return SRG_175_72_20_36().subgraph(hs.edge_boundary(s,s))
+
 def SRG_81_50_31_30():
     r"""
     Return a `(81, 50, 31, 30)`-strongly regular graph.
@@ -1549,12 +1570,12 @@ def strongly_regular_graph(int v,int k,int l,int mu=-1,bint existence=False,bint
 
     A realizable set of parameters that Sage cannot realize (help us!)::
 
-        sage: graphs.strongly_regular_graph(126,50,13,24,existence=True)
+        sage: graphs.strongly_regular_graph(1288, 495, 206, existence=True)
         True
-        sage: graphs.strongly_regular_graph(126,50,13)
+        sage: graphs.strongly_regular_graph(1288, 495, 206)
         Traceback (most recent call last):
         ...
-        RuntimeError: Andries Brouwer's database claims that such a (126,50,13,24)-strongly
+        RuntimeError: Andries Brouwer's database claims that such a (1288,495,206,180)-strongly
         regular graph exists, but Sage does not know how to build it.
         ...
 
@@ -1614,6 +1635,7 @@ def strongly_regular_graph(int v,int k,int l,int mu=-1,bint existence=False,bint
         (100,  45,  20, 20): [SRG_100_45_20_20],
         (120,  63,  30, 36): [SRG_120_63_30_36],
         (126,  25,   8,  4): [SRG_126_25_8_4],
+        (126,  50,  13, 24): [SRG_126_50_13_24],
         (162,  56,  10, 24): [LocalMcLaughlinGraph],
         (175,  72,  20, 36): [SRG_175_72_20_36],
         (196,  91,  42, 42): [SRG_196_91_42_42],

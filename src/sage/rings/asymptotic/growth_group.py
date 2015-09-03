@@ -3352,6 +3352,11 @@ class GrowthGroupFactory(sage.structure.factory.UniqueFactory):
 
     - ``specification`` -- a string.
 
+    - keyword arguments are passed on to the growth group
+      constructor. If not specified, then the argument
+      ``ignore_variables=('e',)`` (to ignore ``e`` as a variable name)
+      is added.
+
     OUTPUT:
 
     An asymptotic growth group.
@@ -3375,6 +3380,10 @@ class GrowthGroupFactory(sage.structure.factory.UniqueFactory):
         Growth Group x^ZZ * log(x)^ZZ * y^QQ
         sage: GrowthGroup('QQ^x * x^ZZ * y^QQ * QQ^z')
         Growth Group QQ^x * x^ZZ * y^QQ * QQ^z
+        sage: GrowthGroup('exp(x)^ZZ * x^ZZ')
+        Growth Group exp(x)^ZZ * x^ZZ
+        sage: GrowthGroup('(e^x)^ZZ * x^ZZ')
+        Growth Group (e^x)^ZZ * x^ZZ
 
     TESTS::
 
@@ -3469,6 +3478,8 @@ class GrowthGroupFactory(sage.structure.factory.UniqueFactory):
             if '^' not in f:
                 raise ValueError("'%s' is not a valid substring of '%s' describing "
                                  "a growth group." % (f, specification))
+
+        kwds.setdefault('ignore_variables', ('e',))
 
         return factors, kwds
 

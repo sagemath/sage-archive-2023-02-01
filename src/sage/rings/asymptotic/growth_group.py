@@ -251,6 +251,8 @@ class Variable(sage.structure.unique_representation.CachedRepresentation,
       will be displayed instead of ``var``. Use this to get
       e.g. ``log(x)^ZZ``: ``var`` is then used to specify the variable `x`.
 
+    - ``ignore`` -- (default: ``None``) a tuple (or other iterable)
+      of strings which are not variables.
 
     TESTS::
 
@@ -292,8 +294,13 @@ class Variable(sage.structure.unique_representation.CachedRepresentation,
 
         sage: v = Variable('x', repr='log(x)'); repr(v), v.variable_names()
         ('log(x)', ('x',))
+
+    ::
+
+        sage: v = Variable('e^x', ignore=('e',)); repr(v), v.variable_names()
+        ('e^x', ('x',))
     """
-    def __init__(self, var, repr=None):
+    def __init__(self, var, repr=None, ignore=None):
         r"""
         See :class:`Variable` for details.
 
@@ -311,11 +318,14 @@ class Variable(sage.structure.unique_representation.CachedRepresentation,
             var = (var,)
         var = tuple(str(v).strip() for v in var)
 
+        if ignore is None:
+            ignore = tuple()
+
         if repr is None:
-            var_bases = sum(iter(
+            var_bases = tuple(i for i in sum(iter(
                 self.extract_variable_names(v)
                 if not isidentifier(v) else (v,)
-                for v in var), tuple())
+                for v in var), tuple()) if i not in ignore)
             var_repr = ', '.join(var)
         else:
             for v in var:

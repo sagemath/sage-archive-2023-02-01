@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 r"""
 Two-graphs
 
@@ -47,6 +48,7 @@ This module's functions are the following :
     :widths: 30, 70
     :delim: |
 
+    :func:`~taylor_twograph` | constructs Taylor's two-graph for `U_3(q)`
     :func:`~is_twograph`         | checks that the incidence system is a two-graph
     :func:`~twograph_descendant`  | returns the descendant graph w.r.t. a given vertex of the two-graph of a given graph
 
@@ -169,6 +171,54 @@ class TwoGraph(IncidenceStructure):
         """
         return super(TwoGraph, self).complement(uniform=True)
 
+def taylor_twograph(q):
+    r"""
+    constructing Taylor's two-graph for `U_3(q)`, `q` odd prime power
+
+    The Taylor's two-graph `T` has the `q^3+1` points of the projective plane over `F_{q^2}`
+    singular w.r.t. the non-degenerate Hermitean form `S` preserved by `U_3(q)` as its ground set;
+    the triples are `\{x,y,z\}` satisfying the condition that `S(x,y)S(y,z)S(z,x)` is square
+    (respectively non-square) if `q \cong 1 \mod 4` (respectively if `q \cong 3 \mod 4`).
+    See §7E of [BvL84]_.
+
+    There is also a `2-(q^3+1,q+1,1)`-design on these `q^3+1` points, known as the unital of
+    order `q`, also invariant under `U_3(q)`.
+
+    EXAMPLES::
+
+        sage: from sage.combinat.designs.twographs import taylor_twograph
+        sage: T=taylor_twograph(3); T                      # long time
+        Incidence structure with 28 points and 1260 blocks
+        sage: t=graphs.TaylorTwographSRG(3).twograph(); t  # faster to build
+        Incidence structure with 28 points and 1260 blocks
+        sage: t.is_isomorphic(T)                           # long time
+        True
+
+    """
+    from sage.rings.arith import is_prime_power
+    p, k = is_prime_power(q,get_data=True)
+    if k==0 or p==2:
+       raise ValueError('q must be a an odd prime power')
+    from sage.schemes.projective.projective_space import ProjectiveSpace
+    from sage.rings.finite_rings.constructor import FiniteField
+    from sage.modules.free_module_element import free_module_element as vector
+    from sage.rings.finite_rings.integer_mod import mod
+    from __builtin__ import sum
+    Fq = FiniteField(q**2, 'a')
+    PG = ProjectiveSpace(2, Fq)
+    def S(xx,yy):
+        x = vector(xx)
+        y = vector(yy)
+        return sum(map(lambda j: x[j]*y[2-j]**q, xrange(3)))
+
+    V = filter(lambda x: S(x,x)==0, PG)
+    def make_tester():
+        if mod(q,4)==1:
+            return lambda (x,y,z): not (S(x,y)*S(y,z)*S(z,x)).is_square()
+        else:
+            return lambda (x,y,z): (S(x,y)*S(y,z)*S(z,x)).is_square()
+    f = make_tester()
+    return TwoGraph(filter(f, combinations(V,3)))
 
 def is_twograph(T):
     r"""

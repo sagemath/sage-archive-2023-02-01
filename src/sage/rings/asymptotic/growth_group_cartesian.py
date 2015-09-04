@@ -420,6 +420,13 @@ class GenericProduct(CartesianProductPosets, GenericGrowthGroup):
             ValueError: ['2^log(x)', 'x^55'] is not in Growth Group QQ^x * x^QQ.
             > *previous* ValueError: 2^log(x) is not in any of the factors of
             Growth Group QQ^x * x^QQ
+
+        TESTS::
+
+            sage: n = GrowthGroup('n^ZZ * log(n)^ZZ')('n')
+            sage: G = GrowthGroup('QQ^n * n^ZZ * log(n)^ZZ')
+            sage: G(n).value
+            (1, n, 1)
         """
         def convert_factors(data, raw_data):
             try:
@@ -438,9 +445,6 @@ class GenericProduct(CartesianProductPosets, GenericGrowthGroup):
         elif type(data) == self.element_class and data.parent() == self:
             return data
 
-        elif isinstance(data, self.element_class):
-            return self.element_class(self, data)
-
         elif isinstance(data, str):
             from misc import split_str_by_op
             return convert_factors(split_str_by_op(data, '*'), data)
@@ -458,14 +462,13 @@ class GenericProduct(CartesianProductPosets, GenericGrowthGroup):
 
             # room for other parents (e.g. polynomial ring et al.)
 
-        else:
-            try:
-                return super(GenericProduct, self)._element_constructor_(data)
-            except ValueError:
-                pass
-            if isinstance(data, (tuple, list,
-                                 sage.sets.cartesian_product.CartesianProduct.Element)):
-                return convert_factors(tuple(data), data)
+        try:
+            return super(GenericProduct, self)._element_constructor_(data)
+        except (TypeError, ValueError):
+            pass
+        if isinstance(data, (tuple, list,
+                             sage.sets.cartesian_product.CartesianProduct.Element)):
+            return convert_factors(tuple(data), data)
 
         return convert_factors((data,), data)
 
@@ -818,6 +821,7 @@ class GenericProduct(CartesianProductPosets, GenericGrowthGroup):
 
         from growth_group import is_lt_one
         is_lt_one = is_lt_one
+
 
         def _repr_(self):
             r"""

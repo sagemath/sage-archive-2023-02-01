@@ -193,7 +193,7 @@ def split_str_by_op(string, op, strip_parentheses=True):
     """
     factors = list()
     balanced = True
-    if string and string.startswith(op):
+    if string and op is not None and string.startswith(op):
         raise ValueError("'%s' is invalid since it starts with a '%s'." %
                          (string, op))
     for s in string.split(op):

@@ -198,6 +198,5 @@ from binary_recurrence_sequences import BinaryRecurrenceSequence
 lazy_import('sage.combinat.six_vertex_model', 'SixVertexModel')
 
 # Fully Packed Loop
-from fully_packed_loop import FullyPackedLoop, FullyPackedLoops
-#lazy_import('sage.combinat.fully_packed_loop', 'FullyPackedLoop', 'FullyPackedLoops')
+lazy_import('sage.combinat.fully_packed_loop', ['FullyPackedLoop', 'FullyPackedLoops'])
 

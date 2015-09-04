@@ -264,6 +264,7 @@ from sage.combinat.perfect_matching import PerfectMatching
 from sage.rings.arith import factorial
 from sage.rings.integer import Integer
 from sage.misc.all import prod
+from sage.misc.lazy_attribute import lazy_attribute
 
 class FullyPackedLoop(Element):
     r"""
@@ -482,9 +483,8 @@ class FullyPackedLoop(Element):
         elif isinstance(generator, SquareIceModel.Element):
             self._six_vertex_model = generator
 
-        #self.end_points = self._end_point_dictionary()
         self.configuration = matrix(list(self._six_vertex_model))
-        self._n = len(self._end_point_dictionary())/2
+        self._n = len(self._end_point_dictionary)/2
         Element.__init__(self, parent)
 
     def _repr_(self):
@@ -621,7 +621,7 @@ class FullyPackedLoop(Element):
             False
         """
         return repr(self) == repr(other) and \
-        self._end_point_dictionary() == other._end_point_dictionary()\
+        self._end_point_dictionary == other._end_point_dictionary\
         and self._six_vertex_model == other._six_vertex_model
 
     def to_alternating_sign_matrix(self):
@@ -963,7 +963,7 @@ class FullyPackedLoop(Element):
 
         TESTS:
 
-        We test a previous bug which showed up when this method is called twice::
+        We test previous two bugs which showed up when this method is called twice::
 
             sage: A = AlternatingSignMatrices(6)
             sage: B = A.random_element()
@@ -975,8 +975,8 @@ class FullyPackedLoop(Element):
 
         """
         link_pattern = []
-        boundary_d = self._end_point_dictionary().copy()
-        vertices_d = self._vertex_dictionary()
+        boundary_d = self._end_point_dictionary.copy()
+        vertices_d = self._vertex_dictionary.copy()
 
         while len(boundary_d) > 2:
             startpoint = boundary_d.keys()[0]
@@ -1039,6 +1039,7 @@ class FullyPackedLoop(Element):
         """
         return self._six_vertex_model
 
+    @lazy_attribute
     def _vertex_dictionary(self):
         """
         A function to create a dictionary of all the coordinates.
@@ -1047,7 +1048,7 @@ class FullyPackedLoop(Element):
 
             sage: B = AlternatingSignMatrix([[1, 0, 0], [0, 1, 0], [0, 0, 1]])
             sage: fpl = FullyPackedLoop(B)
-            sage: fpl._vertex_dictionary()
+            sage: fpl._vertex_dictionary
             {(0, 0): 1,
              (0, 1): 0,
              (0, 2): 2,
@@ -1057,6 +1058,8 @@ class FullyPackedLoop(Element):
              (2, 0): 5,
              (2, 1): 0,
              (2, 2): 4}
+             sage: fpl._vertex_dictionary[(2,2)]
+             4
         """
         n = len(self._six_vertex_model)
         vertices = {}
@@ -1064,7 +1067,7 @@ class FullyPackedLoop(Element):
             for j in range(n):
                 vertices[(i, j)] = 0
 
-        for end, vertex in self._end_point_dictionary().iteritems():
+        for end, vertex in self._end_point_dictionary.iteritems():
             vertices[vertex] = end
 
         return vertices
@@ -1137,6 +1140,7 @@ class FullyPackedLoop(Element):
 
         return [(current[0] + d[0], current[1] + d[1]) for d in potential_directions]
 
+    @lazy_attribute
     def _end_point_dictionary(self):
         r"""
         A function create a dictionary of the endpoints and their
@@ -1146,8 +1150,10 @@ class FullyPackedLoop(Element):
 
             sage: B = AlternatingSignMatrix([[1, 0, 0], [0, 1, 0], [0, 0, 1]])
             sage: fpl = FullyPackedLoop(B)
-            sage: fpl._end_point_dictionary()
+            sage: fpl._end_point_dictionary
             {1: (0, 0), 2: (0, 2), 3: (1, 2), 4: (2, 2), 5: (2, 0), 6: (1, 0)}
+            sage: fpl._end_point_dictionary[2]
+            (0, 2)
 
         """
         n = len(self._six_vertex_model)

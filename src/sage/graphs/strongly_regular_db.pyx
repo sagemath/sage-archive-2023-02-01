@@ -255,12 +255,12 @@ def is_affine_polar(int v,int k,int l,int mu):
         if (k == (q**(e-1) + 1)*(q**e-1) and
             l == q*(q**(e-2) + 1)*(q**(e-1)-1)+q-2 and
             mu== q**(e-1)*(q**(e-1) + 1)):
-            from sage.graphs.generators.families import AffineOrthogonalPolarGraph
+            from sage.graphs.generators.classical_geometries import AffineOrthogonalPolarGraph
             return (lambda d,q : AffineOrthogonalPolarGraph(d,q,sign='+'),2*e,q)
         if (k == (q**(e-1) - 1)*(q**e+1) and
             l == q*(q**(e-2)- 1)*(q**(e-1)+1)+q-2 and
             mu== q**(e-1)*(q**(e-1) - 1)):
-            from sage.graphs.generators.families import AffineOrthogonalPolarGraph
+            from sage.graphs.generators.classical_geometries import AffineOrthogonalPolarGraph
             return (lambda d,q : AffineOrthogonalPolarGraph(d,q,sign='-'),2*e,q)
 
 @cached_function
@@ -320,7 +320,7 @@ def is_orthogonal_polar(int v,int k,int l,int mu):
                 k == q*(q**(2*m-2)-1)/(q-1)          and
                 l == q**2*(q**(2*m-4)-1)/(q-1) + q-1 and
                 mu== (q**(2*m-2)-1)/(q-1)):
-                from sage.graphs.generators.families import OrthogonalPolarGraph
+                from sage.graphs.generators.classical_geometries import OrthogonalPolarGraph
                 return (OrthogonalPolarGraph, 2*m+1, q, "")
 
             # O^+(2m,q)
@@ -328,7 +328,7 @@ def is_orthogonal_polar(int v,int k,int l,int mu):
                 k == q*(q**(2*m-3)-1)/(q-1) + q**(m-1) and
                 k == q**(2*m-3) + l + 1                  and
                 mu== k/q):
-                from sage.graphs.generators.families import OrthogonalPolarGraph
+                from sage.graphs.generators.classical_geometries import OrthogonalPolarGraph
                 return (OrthogonalPolarGraph, 2*m, q, "+")
 
             # O^+(2m+1,q)
@@ -336,7 +336,7 @@ def is_orthogonal_polar(int v,int k,int l,int mu):
                 k == q*(q**(2*m-3)-1)/(q-1) - q**(m-1) and
                 k == q**(2*m-3) + l + 1                  and
                 mu== k/q):
-                from sage.graphs.generators.families import OrthogonalPolarGraph
+                from sage.graphs.generators.classical_geometries import OrthogonalPolarGraph
                 return (OrthogonalPolarGraph, 2*m, q, "-")
 
 def is_RSHCD(int v,int k,int l,int mu):
@@ -498,14 +498,14 @@ def is_unitary_polar(int v,int k,int l,int mu):
     if (v == (q**d - 1)*((q**d)*p**t + 1)/(q - 1)               and
         k == q*(q**(d-1) - 1)*((q**d)/(p**t) + 1)/(q - 1)       and
         l == q*q*(q**(d-2)-1)*((q**(d-1))/(p**t) + 1)/(q - 1) + q - 1):
-        from sage.graphs.generators.families import UnitaryPolarGraph
+        from sage.graphs.generators.classical_geometries import UnitaryPolarGraph
         return (UnitaryPolarGraph, 2*d+1, p**t)
 
     # U(2d,q);
     if (v == (q**d - 1)*((q**d)/(p**t) + 1)/(q - 1)             and
         k == q*(q**(d-1) - 1)*((q**(d-1))/(p**t) + 1)/(q - 1)   and
         l == q*q*(q**(d-2)-1)*((q**(d-2))/(p**t) + 1)/(q - 1) + q - 1):
-        from sage.graphs.generators.families import UnitaryPolarGraph
+        from sage.graphs.generators.classical_geometries import UnitaryPolarGraph
         return (UnitaryPolarGraph, 2*d, p**t)
 
 @cached_function
@@ -557,7 +557,7 @@ def is_unitary_dual_polar(int v,int k,int l,int mu):
     if (v == (q**2*p**t + 1)*(q*p**t + 1)  and
         k == q*p**t*(q + 1)                and
         l == k - 1 - q**2*p**t):
-        from sage.graphs.generators.families import UnitaryDualPolarGraph
+        from sage.graphs.generators.classical_geometries import UnitaryDualPolarGraph
         return (UnitaryDualPolarGraph, 5, p**t)
 
 @cached_function
@@ -636,7 +636,7 @@ def is_taylor_twograph_srg(int v,int k,int l,int mu):
     OUTPUT:
 
     A tuple ``t`` such that ``t[0](*t[1:])`` builds the requested graph
-    :func:`TaylorTwographSRG <sage.graphs.generators.families.TaylorTwographSRG>`
+    :func:`TaylorTwographSRG <sage.graphs.generators.classical_geometries.TaylorTwographSRG>`
     if the parameters match, and ``None`` otherwise.
 
     EXAMPLES::
@@ -664,7 +664,7 @@ def is_taylor_twograph_srg(int v,int k,int l,int mu):
         return
     q = p**(t//3)
     if (k, l, mu) == (q*(q**2+1)/2, (q**2+3)*(q-1)/4, (q**2+1)*(q+1)/4):
-        from sage.graphs.generators.families import TaylorTwographSRG
+        from sage.graphs.generators.classical_geometries import TaylorTwographSRG
         return (TaylorTwographSRG, q)
     return
 

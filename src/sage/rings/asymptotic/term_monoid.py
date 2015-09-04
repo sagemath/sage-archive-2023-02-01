@@ -394,7 +394,16 @@ class GenericTerm(sage.structure.element.MonoidElement):
             Traceback (most recent call last):
             ...
             ZeroDivisionError: Cannot take Generic Term with growth z to exponent -2.
-            > *previous* ZeroDivisionError: Rational division by zero
+            > *previous* ZeroDivisionError: rational division by zero
+
+        ::
+
+            sage: from sage.rings.asymptotic.term_monoid import TermMonoid
+            sage: TermMonoid('O', G, QQ)('z')._calculate_pow_test_zero_(-1)
+            Traceback (most recent call last):
+            ...
+            ZeroDivisionError: Cannot take O(z) to exponent -1.
+            > *previous* ZeroDivisionError: rational division by zero
         """
         zero = self.parent().coefficient_ring.zero()
         try:

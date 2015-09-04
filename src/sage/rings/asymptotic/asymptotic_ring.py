@@ -1188,11 +1188,11 @@ class AsymptoticExpansion(sage.structure.element.CommutativeAlgebraElement):
 
         ::
 
-            sage: O(x)^(-1)  # not tested  # see #19110
+            sage: O(x)^(-1)  # see :trac:`19110`
             Traceback (most recent call last):
             ...
             ZeroDivisionError: Cannot take O(x) to exponent -1.
-            > *previous* FloatingPointError: Floating point exception.
+            > *previous* ZeroDivisionError: rational division by zero
 
         ::
 

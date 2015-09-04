@@ -266,16 +266,32 @@ class Polynomial_generic_sparse(Polynomial):
             1/2*x*t^2 + t
             sage: (x*t+1).integral(x)
             1/2*x^2*t + x
+
+        Check the correctness when the base ring is not an integral domain::
+
+            sage: R.<x> = PolynomialRing(Zmod(4), sparse=True)
+            sage: (x^4 + 2*x^2  + 3).integral()
+            x^5 + 2*x^3 + 3*x
+            sage: x.integral()
+            Traceback (most recent call last):
+            ...
+            ZeroDivisionError: Inverse does not exist.
         """
-        base = self.base_ring()
-        if base.is_field():
-            Q = self.parent()
-        else:
-            F = self.base_ring().fraction_field() 
-            Q = self.parent().change_ring(F)
+        R = self.parent()
+        # TODO:
+        # calling the coercion model bin_op is much more accurate than using the
+        # true division (which is bypassed by polynomials). But it does not work
+        # in all cases!!
+        from sage.structure.element import get_coercion_model
+        cm = get_coercion_model()
+        import operator
+        try:
+            Q = cm.bin_op(R.one(), ZZ.one(), operator.div).parent()
+        except TypeError:
+            F = (R.base_ring().one()/ZZ.one()).parent()
+            Q = R.change_ring(F)
 
-
-        if var is not None and var != self.parent().gen():
+        if var is not None and var != R.gen():
             return Q({k:v.integral(var) for k,v in self.__coeffs.iteritems()}, check=False)
 
         return Q({ k+1:v/(k+1) for k,v in self.__coeffs.iteritems()}, check=False)

@@ -598,6 +598,71 @@ def SRG_100_45_20_20():
              "202","333","410","341","222","433","430","441","242","302","312",
              "322","332","442","143"])
 
+def SRG_120_77_52_44():
+    r"""
+    Return a `(120,77,52,44)`-strongly regular graph.
+
+    To build this graph, we first build a `2-(21,7,12)` design, by removing two
+    points from the :func:`~sage.combinat.designs.block_design.WittDesign` on 23
+    points. We then build the intersection graph of blocks with intersection
+    size 3.
+
+    EXAMPLE::
+
+        sage: from sage.graphs.strongly_regular_db import SRG_120_77_52_44
+        sage: G = SRG_120_77_52_44()
+        sage: G.is_strongly_regular(parameters=True)
+        (120, 77, 52, 44)
+    """
+    from sage.combinat.designs.block_design import WittDesign
+    from sage.combinat.designs.incidence_structures import IncidenceStructure
+    W = WittDesign(23)
+    H = IncidenceStructure([x for x in W if 22 not in x and 21 not in x])
+    return H.intersection_graph(3)
+
+def SRG_176_105_68_54():
+    r"""
+    Return a `(176, 105, 68, 54)`-strongly regular graph.
+
+    To build this graph, we first build a `2-(22,7,16)` design, by removing one
+    point from the :func:`~sage.combinat.designs.block_design.WittDesign` on 23
+    points. We then build the intersection graph of blocks with intersection
+    size 3.
+
+    EXAMPLE::
+
+        sage: from sage.graphs.strongly_regular_db import SRG_176_105_68_54
+        sage: G = SRG_176_105_68_54()
+        sage: G.is_strongly_regular(parameters=True)
+        (176, 105, 68, 54)
+    """
+    from sage.combinat.designs.block_design import WittDesign
+    from sage.combinat.designs.incidence_structures import IncidenceStructure
+    W = WittDesign(23)
+    H = IncidenceStructure([x for x in W if 22 not in x])
+    return H.intersection_graph(3)
+
+def SRG_253_140_87_65():
+    r"""
+    Return a `(176, 105, 68, 54)`-strongly regular graph.
+
+    To build this graph, we first build the
+    :func:`~sage.combinat.designs.block_design.WittDesign` on 23 points which is
+    a `2-(23,7,21)` design. We then build the intersection graph of blocks with
+    intersection size 3.
+
+    EXAMPLE::
+
+        sage: from sage.graphs.strongly_regular_db import SRG_253_140_87_65
+        sage: G = SRG_253_140_87_65()
+        sage: G.is_strongly_regular(parameters=True)
+        (253, 140, 87, 65)
+    """
+    from sage.combinat.designs.block_design import WittDesign
+    from sage.combinat.designs.incidence_structures import IncidenceStructure
+    W = WittDesign(23)
+    return W.intersection_graph(3)
+
 def SRG_196_91_42_42():
     r"""
     Return a `(196,91,42,42)`-strongly regular graph.
@@ -1437,12 +1502,15 @@ def strongly_regular_graph(int v,int k,int l,int mu=-1,bint existence=False):
         (100,  44,  18, 20): [SRG_100_44_18_20],
         (100,  45,  20, 20): [SRG_100_45_20_20],
         (120,  63,  30, 36): [SRG_120_63_30_36],
+        (120,  77,  52, 44): [SRG_120_77_52_44],
         (126,  25,   8,  4): [SRG_126_25_8_4],
         (162,  56,  10, 24): [LocalMcLaughlinGraph],
         (175,  72,  20, 36): [SRG_175_72_20_36],
+        (176, 105,  68, 54): [SRG_176_105_68_54],
         (196,  91,  42, 42): [SRG_196_91_42_42],
         (231,  30,   9,  3): [CameronGraph],
         (243, 220, 199,200): [SRG_243_220_199_200],
+        (253, 140,  87, 65): [SRG_253_140_87_65],
         (256, 170, 114,110): [SRG_256_170_114_110],
         (256, 187, 138,132): [SRG_256_187_138_132],
         (256, 153,  92, 90): [SRG_256_153_92_90],

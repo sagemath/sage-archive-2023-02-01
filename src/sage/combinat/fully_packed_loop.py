@@ -1,191 +1,214 @@
 r"""
 Fully packed loops
+"""
+from sage.misc.classcall_metaclass import ClasscallMetaclass
+from sage.misc.inherit_comparison import InheritComparisonClasscallMetaclass
+from sage.structure.unique_representation import UniqueRepresentation
+from sage.structure.parent import Parent
+from sage.structure.element import Element
+from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
+from sage.combinat.six_vertex_model import SquareIceModel, \
+SixVertexConfiguration, SixVertexModel
+from sage.combinat.alternating_sign_matrix import AlternatingSignMatrix
+from sage.plot.graphics import Graphics
+from sage.matrix.constructor import matrix
+from sage.plot.line import line
+from sage.combinat.perfect_matching import PerfectMatching
+from sage.rings.arith import factorial
+from sage.rings.integer import Integer
+from sage.misc.all import prod
+from sage.misc.lazy_attribute import lazy_attribute
 
-A fully packed loop is a collection of non-intersecting lattice paths on a square grid
-such that every vertex is part of some path, and the paths are either closed internal
-loops or have endpoints corresponding to alternate points on the boundary [Propp2001]_.
-They are known to be in bijection with alternating sign matrices.
+class FullyPackedLoop(Element):
+    r"""
+    A class for fully packed loops.
 
-To each fully packed loop, we assign a link pattern, which is the non-crossing
-matching attained by seeing which points on the boundary are connected
-by open paths in the fully packed loop.
+    A fully packed loop is a collection of non-intersecting lattice paths on a square
+    grid such that every vertex is part of some path, and the paths are either closed
+    internal loops or have endpoints corresponding to alternate points on the
+    boundary [Propp2001]_.
 
-We can create a fully packed loop using the corresponding alternating sign
-matrix and also extract the link pattern::
+    They are known to be in bijection with alternating sign matrices.
 
-    sage: A = AlternatingSignMatrix([[0, 0, 1], [0, 1, 0], [1, 0, 0]])
-    sage: fpl = FullyPackedLoop(A)
-    sage: fpl.link_pattern()
-    [(1, 4), (2, 3), (5, 6)]
-    sage: fpl
-        |         |
-        |         |
-        + -- +    +
-             |    |
-             |    |
-     -- +    +    + --
-        |    |
-        |    |
-        +    + -- +
-        |         |
-        |         |
-    sage: B = AlternatingSignMatrix([[1, 0, 0], [0, 1, 0], [0, 0, 1]])
-    sage: fplb = FullyPackedLoop(B)
-    sage: fplb.link_pattern()
-    [(1, 6), (2, 5), (3, 4)]
-    sage: fplb
-        |         |
-        |         |
-        +    + -- +
-        |    |
-        |    |
-     -- +    +    + --
-             |    |
-             |    |
-        + -- +    +
-        |         |
-        |         |
+    To each fully packed loop, we assign a link pattern, which is the non-crossing
+    matching attained by seeing which points on the boundary are connected
+    by open paths in the fully packed loop.
 
-The class also has a plot method::
+    We can create a fully packed loop using the corresponding alternating sign
+    matrix and also extract the link pattern::
 
-    sage: fpl.plot()
-    Graphics object consisting of 15 graphics primitives
+        sage: A = AlternatingSignMatrix([[0, 0, 1], [0, 1, 0], [1, 0, 0]])
+        sage: fpl = FullyPackedLoop(A)
+        sage: fpl.link_pattern()
+        [(1, 4), (2, 3), (5, 6)]
+        sage: fpl
+                |         |
+                |         |
+                + -- +    +
+                     |    |
+                     |    |
+             -- +    +    + --
+                |    |
+                |    |
+                +    + -- +
+                |         |
+                |         |
+        sage: B = AlternatingSignMatrix([[1, 0, 0], [0, 1, 0], [0, 0, 1]])
+        sage: fplb = FullyPackedLoop(B)
+        sage: fplb.link_pattern()
+        [(1, 6), (2, 5), (3, 4)]
+        sage: fplb
+                |         |
+                |         |
+                +    + -- +
+                |    |
+                |    |
+             -- +    +    + --
+                     |    |
+                     |    |
+                + -- +    +
+                |         |
+                |         |
 
-which gives:
+    The class also has a plot method::
 
-.. PLOT::
-    :width: 200 px
+        sage: fpl.plot()
+        Graphics object consisting of 15 graphics primitives
 
-    A = AlternatingSignMatrix([[0, 0, 1], [0, 1, 0], [1, 0, 0]])
-    fpl = FullyPackedLoop(A)
-    p = fpl.plot()
-    sphinx_plot(p)
+    which gives:
 
-Note that we can also create a fully packed loop from a six vertex model configuration::
+    .. PLOT::
+        :width: 200 px
 
-    sage: S = SixVertexModel(3, boundary_conditions='ice').from_alternating_sign_matrix(A)
-    sage: S
-        ^    ^    ^
-        |    |    |
-    --> # -> # -> # <--
-        ^    ^    |
-        |    |    V
-    --> # -> # <- # <--
-        ^    |    |
-        |    V    V
-    --> # <- # <- # <--
-        |    |    |
-        V    V    V
-    sage: fpl = FullyPackedLoop(S)
-    sage: fpl
-        |         |
-        |         |
-        + -- +    +
-             |    |
-             |    |
-     -- +    +    + --
-        |    |
-        |    |
-        +    + -- +
-        |         |
-        |         |
+        A = AlternatingSignMatrix([[0, 0, 1], [0, 1, 0], [1, 0, 0]])
+        fpl = FullyPackedLoop(A)
+        p = fpl.plot()
+        sphinx_plot(p)
 
-Once we have a fully packed loop we can obtain the corresponding alternating sign matrix::
+    Note that we can also create a fully packed loop from a six vertex model configuration::
 
-    sage: fpl.to_alternating_sign_matrix()
-    [0 0 1]
-    [0 1 0]
-    [1 0 0]
+        sage: S = SixVertexModel(3, boundary_conditions='ice').from_alternating_sign_matrix(A)
+        sage: S
+            ^    ^    ^
+            |    |    |
+        --> # -> # -> # <--
+            ^    ^    |
+            |    |    V
+        --> # -> # <- # <--
+            ^    |    |
+            |    V    V
+        --> # <- # <- # <--
+            |    |    |
+            V    V    V
+        sage: fpl = FullyPackedLoop(S)
+        sage: fpl
+            |         |
+            |         |
+            + -- +    +
+                 |    |
+                 |    |
+         -- +    +    + --
+            |    |
+            |    |
+            +    + -- +
+            |         |
+            |         |
 
-Here are some more examples using bigger ASMs::
+    Once we have a fully packed loop we can obtain the corresponding alternating sign matrix::
 
-    sage: A = AlternatingSignMatrix([[0,1,0,0],[0,0,1,0],[1,-1,0,1],[0,1,0,0]])
-    sage: S = SixVertexModel(4, boundary_conditions='ice').from_alternating_sign_matrix(A)
-    sage: fpl = FullyPackedLoop(S)
-    sage: fpl.link_pattern()
-    [(1, 2), (3, 6), (4, 5), (7, 8)]
-    sage: fpl
-        |         |
-        |         |
-        + -- + -- +    + --
-                       |
-                       |
-     -- +    + -- + -- +
-        |    |
-        |    |
-        +    +    + -- + --
-        |    |    |
-        |    |    |
-     -- +    +    + -- +
-             |         |
-             |         |
+        sage: fpl.to_alternating_sign_matrix()
+        [0 0 1]
+        [0 1 0]
+        [1 0 0]
 
-    sage: m = AlternatingSignMatrix([[0,0,1,0,0,0],
-    ....:                            [1,0,-1,0,1,0],
-    ....:                            [0,0,0,1,0,0],
-    ....:                            [0,1,0,0,-1,1],
-    ....:                            [0,0,0,0,1,0],
-    ....:                            [0,0,1,0,0,0]])
-    sage: fpl = FullyPackedLoop(m)
-    sage: fpl.link_pattern()
-    [(1, 12), (2, 7), (3, 4), (5, 6), (8, 9), (10, 11)]
-    sage: fpl
-        |         |         |
-        |         |         |
-        + -- +    +    + -- +    + --
-             |    |    |         |
-             |    |    |         |
-     -- + -- +    +    + -- + -- +
-                  |
-                  |
-        + -- +    + -- + -- +    + --
-        |    |              |    |
-        |    |              |    |
-     -- +    +    + -- +    +    +
-             |    |    |    |    |
-             |    |    |    |    |
-        + -- +    + -- +    +    + --
-        |                   |
-        |                   |
-     -- +    + -- + -- +    + -- +
-             |         |         |
-             |         |         |
+    Here are some more examples using bigger ASMs::
 
-    sage: m = AlternatingSignMatrix([[0,1,0,0,0,0,0],
-    ....:                            [1,-1,0,0,1,0,0],
-    ....:                            [0,0,0,1,0,0,0],
-    ....:                            [0,1,0,0,-1,1,0],
-    ....:                            [0,0,0,0,1,0,0],
-    ....:                            [0,0,1,0,-1,0,1],
-    ....:                            [0,0,0,0,1,0,0]])
-    sage: fpl = FullyPackedLoop(m)
-    sage: fpl.link_pattern()
-    [(1, 2), (3, 4), (5, 6), (7, 8), (9, 14), (10, 11), (12, 13)]
-    sage: fpl
-        |         |         |         |
-        |         |         |         |
-        + -- + -- +    + -- +    + -- +
-                       |         |
-                       |         |
-     -- + -- + -- +    + -- + -- +    + --
-                  |                   |
-                  |                   |
-        + -- +    + -- + -- +    + -- +
-        |    |              |    |
-        |    |              |    |
-     -- +    +    + -- +    +    +    + --
-             |    |    |    |    |    |
-             |    |    |    |    |    |
-        + -- +    + -- +    +    + -- +
-        |                   |
-        |                   |
-     -- +    + -- + -- +    +    + -- + --
-             |         |    |    |
-             |         |    |    |
-        + -- +    + -- +    +    + -- +
-        |         |         |         |
-        |         |         |         |
+        sage: A = AlternatingSignMatrix([[0,1,0,0],[0,0,1,0],[1,-1,0,1],[0,1,0,0]])
+        sage: S = SixVertexModel(4, boundary_conditions='ice').from_alternating_sign_matrix(A)
+        sage: fpl = FullyPackedLoop(S)
+        sage: fpl.link_pattern()
+        [(1, 2), (3, 6), (4, 5), (7, 8)]
+        sage: fpl
+            |         |
+            |         |
+            + -- + -- +    + --
+                           |
+                           |
+         -- +    + -- + -- +
+            |    |
+            |    |
+            +    +    + -- + --
+            |    |    |
+            |    |    |
+         -- +    +    + -- +
+                 |         |
+                 |         |
 
+        sage: m = AlternatingSignMatrix([[0,0,1,0,0,0],
+        ....:                            [1,0,-1,0,1,0],
+        ....:                            [0,0,0,1,0,0],
+        ....:                            [0,1,0,0,-1,1],
+        ....:                            [0,0,0,0,1,0],
+        ....:                            [0,0,1,0,0,0]])
+        sage: fpl = FullyPackedLoop(m)
+        sage: fpl.link_pattern()
+        [(1, 12), (2, 7), (3, 4), (5, 6), (8, 9), (10, 11)]
+        sage: fpl
+            |         |         |
+            |         |         |
+            + -- +    +    + -- +    + --
+                 |    |    |         |
+                 |    |    |         |
+         -- + -- +    +    + -- + -- +
+                      |
+                      |
+            + -- +    + -- + -- +    + --
+            |    |              |    |
+            |    |              |    |
+         -- +    +    + -- +    +    +
+                 |    |    |    |    |
+                 |    |    |    |    |
+            + -- +    + -- +    +    + --
+            |                   |
+            |                   |
+         -- +    + -- + -- +    + -- +
+                 |         |         |
+                 |         |         |
+
+        sage: m = AlternatingSignMatrix([[0,1,0,0,0,0,0],
+        ....:                            [1,-1,0,0,1,0,0],
+        ....:                            [0,0,0,1,0,0,0],
+        ....:                            [0,1,0,0,-1,1,0],
+        ....:                            [0,0,0,0,1,0,0],
+        ....:                            [0,0,1,0,-1,0,1],
+        ....:                            [0,0,0,0,1,0,0]])
+        sage: fpl = FullyPackedLoop(m)
+        sage: fpl.link_pattern()
+        [(1, 2), (3, 4), (5, 6), (7, 8), (9, 14), (10, 11), (12, 13)]
+        sage: fpl
+            |         |         |         |
+            |         |         |         |
+            + -- + -- +    + -- +    + -- +
+                           |         |
+                           |         |
+         -- + -- + -- +    + -- + -- +    + --
+                      |                   |
+                      |                   |
+            + -- +    + -- + -- +    + -- +
+            |    |              |    |
+            |    |              |    |
+         -- +    +    + -- +    +    +    + --
+                 |    |    |    |    |    |
+                 |    |    |    |    |    |
+            + -- +    + -- +    +    + -- +
+            |                   |
+            |                   |
+         -- +    + -- + -- +    +    + -- + --
+                 |         |    |    |
+                 |         |    |    |
+            + -- +    + -- +    +    + -- +
+            |         |         |         |
+            |         |         |         |
 
     Gyration on an alternating sign matrix/fully packed loop ``fpl``
     of the link pattern corresponding to ``fpl``::
@@ -238,39 +261,7 @@ Here are some more examples using bigger ASMs::
         PerfectMatching(rotated_ncp)
         True
 
-REFERENCES:
-
-.. [Propp2001] James Propp.
-   *The Many Faces of Alternating Sign Matrices*
-   Discrete Mathematics and Theoretical Computer Science 43 (2001): 58
-
-.. [Striker2015] Jessica Striker
-   *The toggle group, homomesy, and the Razumov-Stroganov correspondence*
-   :arxiv:`abs/1503.08898`
-"""
-from sage.misc.classcall_metaclass import ClasscallMetaclass
-from sage.misc.inherit_comparison import InheritComparisonClasscallMetaclass
-from sage.structure.unique_representation import UniqueRepresentation
-from sage.structure.parent import Parent
-from sage.structure.element import Element
-from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
-from sage.combinat.six_vertex_model import SquareIceModel, \
-SixVertexConfiguration, SixVertexModel
-from sage.combinat.alternating_sign_matrix import AlternatingSignMatrix
-from sage.plot.graphics import Graphics
-from sage.matrix.constructor import matrix
-from sage.plot.line import line
-from sage.combinat.perfect_matching import PerfectMatching
-from sage.rings.arith import factorial
-from sage.rings.integer import Integer
-from sage.misc.all import prod
-from sage.misc.lazy_attribute import lazy_attribute
-
-class FullyPackedLoop(Element):
-    r"""
-    A class for fully packed loops.
-
-    EXAMPLES::
+    More examples::
 
         We can initiate a fully packed loop using an alternating sign matrix::
 
@@ -399,6 +390,16 @@ class FullyPackedLoop(Element):
             Traceback (most recent call last):
             ...
             ValueError: Invalid alternating sign matrix
+
+    REFERENCES:
+
+    .. [Propp2001] James Propp.
+       *The Many Faces of Alternating Sign Matrices*
+       Discrete Mathematics and Theoretical Computer Science 43 (2001): 58
+
+    .. [Striker2015] Jessica Striker
+       *The toggle group, homomesy, and the Razumov-Stroganov correspondence*
+       :arxiv:`abs/1503.08898`
     """
     __metaclass__ = InheritComparisonClasscallMetaclass
 
@@ -1072,7 +1073,7 @@ class FullyPackedLoop(Element):
 
         return vertices
 
-    def _get_coordinates(self, current):
+    def _get_coordinates(self, current_pos):
         """
         Return a list of 2 coordinates that refer to the moves that could
         potentialy be made.
@@ -1095,7 +1096,6 @@ class FullyPackedLoop(Element):
             [(-1, 2), (0, 1)]
             sage: fpl._get_coordinates((2, 1))
             [(1, 1), (2, 0)]
-
 
             sage: B = AlternatingSignMatrix([[0, 1, 0], [1, -1, 1], [0, 1, 0]])
             sage: fpl = FullyPackedLoop(B)
@@ -1130,15 +1130,15 @@ class FullyPackedLoop(Element):
                5: [(1, 0), (0, 1)]
                }
 
-        parity = sum(current)
-        conf = self.configuration[current]
+        parity = sum(current_pos)
+        conf = self.configuration[current_pos]
 
         if parity % 2 == 0:
             potential_directions = even[conf]
         else:
             potential_directions = odd[conf]
 
-        return [(current[0] + d[0], current[1] + d[1]) for d in potential_directions]
+        return [(current_pos[0] + d[0], current_pos[1] + d[1]) for d in potential_directions]
 
     @lazy_attribute
     def _end_point_dictionary(self):

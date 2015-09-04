@@ -2118,10 +2118,10 @@ cdef class ComplexBall(RingElement):
 
         INPUT:
 
-        - ``a`` -- upper paramaters, list of complex numbers that coerce into
+        - ``a`` -- upper parameters, list of complex numbers that coerce into
           this ball's parent;
 
-        - ``b`` -- lower paramaters, list of complex numbers that coerce into
+        - ``b`` -- lower parameters, list of complex numbers that coerce into
           this ball's parent.
 
         OUTPUT:
@@ -2142,6 +2142,12 @@ cdef class ComplexBall(RingElement):
             sage: CBF(1, pi/2).hypergeometric([], [])
             [+/- 3.57e-15] + [2.7182818284590 +/- 5.37e-14]*I
 
+            sage: CBF(1, pi).hypergeometric([1/4], [1/4])
+            [-2.7182818284590 +/- 8.63e-14] + [+/- 3.69e-14]*I
+
+            sage: CBF(1000, 1000).hypergeometric([100], [AA(sqrt(2))])
+            [1.2796735556e+590 +/- 4.04e+579] + [-9.3233349199e+590 +/- 3.30e+579]*I
+
             sage: CBF(0, 1).hypergeometric([], [1/2, 1/3, 1/4])
             [-3.7991962344383 +/- 4.98e-14] + [23.8780971778049 +/- 5.40e-14]*I
 
@@ -2155,25 +2161,44 @@ cdef class ComplexBall(RingElement):
             sage: CBF(0, 1).hypergeometric([QQbar(sqrt(2)), RLF(pi)], [1r, 1/2])
             [-8.7029449215408 +/- 6.89e-14] + [-0.8499070546106 +/- 4.98e-14]*I
         """
-        cdef ComplexBall tmp, res
+        cdef ComplexBall tmp, my_a, my_b
+        cdef ComplexBall res = self._new()
         cdef long p = len(a)
         cdef long q = len(b)
-        cdef acb_ptr my_a = _acb_vec_init(p)
-        cdef acb_ptr my_b = _acb_vec_init(q + 1)
-        for i in range(p):
-            tmp = self._parent.coerce(a[i])
-            acb_set(&(my_a[i]), tmp.value)
+        if p == q == 1:
+            my_a = self._parent.coerce(a[0])
+            my_b = self._parent.coerce(b[0])
+            if _do_sig(prec(self)): sig_on()
+            acb_hypgeom_m(res.value, my_a.value, my_b.value, self.value, 0,
+                          prec(self))
+            if _do_sig(prec(self)): sig_off()
+            return res
+        cdef long i1 = -1
+        cdef long s
+        try:
+            i1 = a.index(1)
+            s = 1
+        except ValueError:
+            s = 0
+        cdef acb_ptr vec_a = _acb_vec_init(p - s)
+        cdef acb_ptr vec_b = _acb_vec_init(q + 1 - s)
+        cdef long j = 0
+        for i in xrange(p):
+            if i != i1:
+                tmp = self._parent.coerce(a[i])
+                acb_set(&(vec_a[j]), tmp.value)
+                j += 1
         for i in range(q):
             tmp = self._parent.coerce(b[i])
-            acb_set(&(my_b[i]), tmp.value)
-        acb_one(&(my_b[q]))
-        res = self._new()
+            acb_set(&(vec_b[i]), tmp.value)
+        if s == 0:
+            acb_one(&(vec_b[q]))
         if _do_sig(prec(self)): sig_on()
-        acb_hypgeom_pfq_direct(res.value, my_a, p, my_b, q + 1,
+        acb_hypgeom_pfq_direct(res.value, vec_a, p - s, vec_b, q + 1 - s,
                                self.value, -1, prec(self))
         if _do_sig(prec(self)): sig_off()
-        _acb_vec_clear(my_b, q + 1)
-        _acb_vec_clear(my_a, p)
+        _acb_vec_clear(vec_b, q + 1 - s)
+        _acb_vec_clear(vec_a, p - s)
         return res
 
     def hypergeometric_U(self, a, b):
@@ -2194,27 +2219,6 @@ cdef class ComplexBall(RingElement):
         cdef ComplexBall my_b = self._parent.coerce(b)
         if _do_sig(prec(self)): sig_on()
         acb_hypgeom_u(res.value, my_a.value, my_b.value, self.value, prec(self))
-        if _do_sig(prec(self)): sig_off()
-        return res
-
-    def hypergeometric_M(self, a, b):
-        """
-        Return the Kummer confluent hypergeometric function M(a, b, self) of
-        this ball.
-
-        EXAMPLES::
-
-            sage: from sage.rings.complex_ball_acb import CBF
-            sage: CBF(1, pi).hypergeometric_M(1/4, 1/4)
-            [-2.7182818284590 +/- 8.63e-14] + [+/- 3.69e-14]*I
-            sage: CBF(1000, 1000).hypergeometric_M(100, AA(sqrt(2)))
-            [1.2796735556e+590 +/- 4.04e+579] + [-9.3233349199e+590 +/- 3.30e+579]*I
-        """
-        cdef ComplexBall res = self._new()
-        cdef ComplexBall my_a = self._parent.coerce(a)
-        cdef ComplexBall my_b = self._parent.coerce(b)
-        if _do_sig(prec(self)): sig_on()
-        acb_hypgeom_m(res.value, my_a.value, my_b.value, self.value, 0, prec(self))
         if _do_sig(prec(self)): sig_off()
         return res
 

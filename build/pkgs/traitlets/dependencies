@@ -1,4 +1,4 @@
-$(INST)/$(PYTHON) $(INST)/$(JINJA2) $(INST)/$(TORNADO) $(INST)/$(PYZMQ) $(INST)/$(PICKLESHARE) $(INST)/$(SIMPLEGENERIC) $(INST)/$(TRAITLETS)
+$(INST)/$(PYTHON) $(INST)/$(IPYTHON_GENUTILS) $(INST)/$(DECORATOR)
 
 ----------
 All lines of this file are ignored except the first.

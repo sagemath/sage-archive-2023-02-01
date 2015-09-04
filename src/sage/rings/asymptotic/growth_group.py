@@ -275,6 +275,13 @@ class Variable(sage.structure.unique_representation.CachedRepresentation,
 
         sage: v = Variable('e^x', ignore=('e',)); repr(v), v.variable_names()
         ('e^x', ('x',))
+
+    ::
+
+        sage: v = Variable('(e^n)', ignore=('e',)); repr(v), v.variable_names()
+        ('e^n', ('n',))
+        sage: v = Variable('(e^(n*log(n)))', ignore=('e',)); repr(v), v.variable_names()
+        ('e^(n*log(n))', ('n',))
     """
     def __init__(self, var, repr=None, ignore=None):
         r"""
@@ -291,7 +298,8 @@ class Variable(sage.structure.unique_representation.CachedRepresentation,
         from sage.symbolic.ring import isidentifier
 
         if not isinstance(var, (list, tuple)):
-            var = (var,)
+            from misc import split_str_by_op
+            var = split_str_by_op(str(var), None)  # we strip off parentheses
         var = tuple(str(v).strip() for v in var)
 
         if ignore is None:

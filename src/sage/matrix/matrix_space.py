@@ -324,6 +324,25 @@ class MatrixSpace(UniqueRepresentation, parent_gens.ParentWithGens):
         sage.structure.parent.Parent.__init__(self, category=category)
         #sage.structure.category_object.CategoryObject._init_category_(self, category)
 
+    def cardinality(self):
+        r"""
+        Return the number of elements in self.
+
+        EXAMPLES::
+
+            sage: MatrixSpace(GF(3), 2, 3).cardinality()
+            729
+            sage: MatrixSpace(ZZ, 2).cardinality()
+            +Infinity
+            sage: MatrixSpace(ZZ, 0, 3).cardinality()
+            1
+        """
+        from sage.rings.integer_ring import ZZ
+        if not self.__nrows or not self.__ncols:
+            return ZZ.one()
+        else:
+            return self.base_ring().cardinality() ** (self.__nrows * self.__ncols)
+
     def full_category_initialisation(self):
         """
         Make full use of the category framework.

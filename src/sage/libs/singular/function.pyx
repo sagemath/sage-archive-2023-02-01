@@ -1311,11 +1311,8 @@ cdef class SingularFunction(SageObject):
                     from sage.all import QQ, PolynomialRing
                     dummy_ring = PolynomialRing(QQ,"dummy",1) # seems a reasonable default                       dummy_ring = 
                 ring = dummy_ring
-            else:
-                if isinstance(ring, MPolynomialRing_libsingular) or isinstance(ring, NCPolynomialRing_plural):
-                    last_ring = ring
-                else:
-                    raise TypeError("Cannot call Singular function '%s' with ring parameter of type '%s'"%(self._name,type(ring)))
+        if not (isinstance(ring, MPolynomialRing_libsingular) or isinstance(ring, NCPolynomialRing_plural)):
+            raise TypeError("Cannot call Singular function '%s' with ring parameter of type '%s'"%(self._name,type(ring)))
         return call_function(self, args, ring, interruptible, attributes)
 
     def _sage_doc_(self):

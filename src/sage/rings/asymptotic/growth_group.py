@@ -804,7 +804,9 @@ def rpow(self, base):
     if element is None:
         if base == 'e':
             from sage.rings.integer_ring import ZZ
-            M = MonomialGrowthGroup(ZZ, 'e^' + var, ignore_variables=('e',))
+            from misc import repr_op
+            M = MonomialGrowthGroup(ZZ, repr_op('e', '^', var),
+                                    ignore_variables=('e',))
             element = M(raw_element=ZZ(1))
         else:
             E = ExponentialGrowthGroup(base.parent(), var)

@@ -261,6 +261,15 @@ class MatrixSpace(UniqueRepresentation, parent_gens.ParentWithGens):
             sage: A = MatrixSpace(RDF,1000,1000).random_element()
             sage: B = MatrixSpace(RDF,1000,1000).random_element()
             sage: C = A * B
+
+        We check that :trac:`18186` is fixed::
+
+            sage: MatrixSpace(ZZ,0,3) in FiniteSets()
+            True
+            sage: MatrixSpace(Zmod(4),2) in FiniteSets()
+            True
+            sage: MatrixSpace(ZZ,2) in Sets().Infinite()
+            True
         """
         self._implementation = implementation
 
@@ -297,6 +306,20 @@ class MatrixSpace(UniqueRepresentation, parent_gens.ParentWithGens):
             category = Algebras(base_ring.category())
         else:
             category = Modules(base_ring.category())
+
+        if not self.__nrows or not self.__ncols:
+            is_finite = True
+        else:
+            is_finite = None
+            try:
+                is_finite = base_ring.is_finite()
+            except (AttributeError,NotImplementedError):
+                pass
+
+        if is_finite is True:
+            category = category.Finite()
+        elif is_finite is False:
+            category = category.Infinite()
 
         sage.structure.parent.Parent.__init__(self, category=category)
         #sage.structure.category_object.CategoryObject._init_category_(self, category)

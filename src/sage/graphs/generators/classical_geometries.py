@@ -24,7 +24,7 @@ from sage.graphs import graph
 
 def SymplecticPolarGraph(d, q, algorithm=None):
     r"""
-    Returns the Symplectic polar graph `Sp(d,q)`.
+    Returns the Symplectic Polar Graph `Sp(d,q)`.
 
     The Symplectic Polar Graph `Sp(d,q)` is built from a projective space of dimension
     `d-1` over a field `F_q`, and a symplectic form `f`. Two vertices `u,v` are
@@ -47,6 +47,8 @@ def SymplecticPolarGraph(d, q, algorithm=None):
     Computation of the spectrum of `Sp(6,2)`::
 
         sage: g = graphs.SymplecticPolarGraph(6,2)
+        doctest:...: DeprecationWarning: SymplecticGraph is deprecated. Please use sage.graphs.generators.classical_geometries.SymplecticPolarGraph instead.
+        See http://trac.sagemath.org/19136 for details.
         sage: g.is_strongly_regular(parameters=True)
         (63, 30, 13, 15)
         sage: set(g.spectrum()) == {-5, 3, 30}
@@ -55,7 +57,7 @@ def SymplecticPolarGraph(d, q, algorithm=None):
     The parameters of `Sp(4,q)` are the same as of `O(5,q)`, but they are
     not isomorphic if `q` is odd::
 
-        sage: G = graphs.SymplecticiPolarGraph(4,3)
+        sage: G = graphs.SymplecticPolarGraph(4,3)
         sage: G.is_strongly_regular(parameters=True)
         (40, 12, 2, 4)
         sage: O=graphs.OrthogonalPolarGraph(5,3)
@@ -205,11 +207,11 @@ def AffineOrthogonalPolarGraph(d,q,sign="+"):
     G.relabel()
     return G
 
-def OrthogonalPolarGraph(m, q, sign="+"):
+def _orthogonal_polar_graph(m, q, sign="+", point_type=0):
     r"""
-    Returns the Orthogonal Polar Graph `O^{\epsilon}(m,q)`.
+    A helper function to build ``OrthogonalPolarGraph`` and ``NO`` graphs.
 
-    For more information on Orthogonal Polar graphs, see see the `page of
+    See see the `page of
     Andries Brouwer's website <http://www.win.tue.nl/~aeb/graphs/srghub.html>`_.
 
     INPUT:
@@ -218,6 +220,9 @@ def OrthogonalPolarGraph(m, q, sign="+"):
 
     - ``sign`` -- ``"+"`` or ``"-"`` if `m` is even, ``"+"`` (default)
       otherwise.
+
+    - ``point_type`` -- `0` - isotropic (default) , or `1` - ``"+"``-type,
+      or `-1` -  ``"-"``-type
 
     EXAMPLES::
 
@@ -274,11 +279,59 @@ def OrthogonalPolarGraph(m, q, sign="+"):
     def F(x):
         return x*M*x
 
-    V = [x for x in PG if F(vector(x)) == 0]
+    def P(x,y):
+        return x*M*y+y*M*x
 
-    G = Graph([V,lambda x,y:F(vector(x)-vector(y))==0],loops=False)
+    V = [x for x in PG if F(vector(x)) == point_type*Fq.one()]
+
+    G = Graph([V,lambda x,y:P(vector(x),vector(y))==0],loops=False)
 
     G.relabel()
+    return G
+
+def OrthogonalPolarGraph(m, q, sign="+"):
+    r"""
+    Returns the Orthogonal Polar Graph `O^{\epsilon}(m,q)`.
+
+    For more information on Orthogonal Polar graphs, see see the `page of
+    Andries Brouwer's website <http://www.win.tue.nl/~aeb/graphs/srghub.html>`_.
+
+    INPUT:
+
+    - ``m,q`` (integers) -- `q` must be a prime power.
+
+    - ``sign`` -- ``"+"`` or ``"-"`` if `m` is even, ``"+"`` (default)
+      otherwise.
+
+    EXAMPLES::
+
+        sage: G = graphs.OrthogonalPolarGraph(6,3,"+"); G
+        Orthogonal Polar Graph O^+(6, 3): Graph on 130 vertices
+        sage: G.is_strongly_regular(parameters=True)
+        (130, 48, 20, 16)
+        sage: G = graphs.OrthogonalPolarGraph(6,3,"-"); G
+        Orthogonal Polar Graph O^-(6, 3): Graph on 112 vertices
+        sage: G.is_strongly_regular(parameters=True)
+        (112, 30, 2, 10)
+        sage: G = graphs.OrthogonalPolarGraph(5,3); G
+        Orthogonal Polar Graph O(5, 3): Graph on 40 vertices
+        sage: G.is_strongly_regular(parameters=True)
+        (40, 12, 2, 4)
+
+    TESTS::
+
+        sage: G = graphs.OrthogonalPolarGraph(4,3,"")
+        Traceback (most recent call last):
+        ...
+        ValueError: sign must be equal to either '-' or '+' when m is even
+        sage: G = graphs.OrthogonalPolarGraph(5,3,"-")
+        Traceback (most recent call last):
+        ...
+        ValueError: sign must be equal to either '' or '+' when m is odd
+    """
+    G = _orthogonal_polar_graph(m, q, sign=sign)
+    if m % 2 != 0:
+        sign = ""
     G.name("Orthogonal Polar Graph O" + ("^" + sign if sign else "") + str((m, q)))
     return G
 

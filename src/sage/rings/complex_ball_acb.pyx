@@ -14,9 +14,9 @@ version 2, or later.
 
 .. SEEALSO::
 
-    - :mod:`sage.rings.real_arb`
-    - :mod:`sage.rings.complex_interval_field`
-    - :mod:`sage.rings.complex_interval`
+    - :mod:`Real intervals using Arb <sage.rings.real_arb>`
+    - :mod:`Complex interval field (using MPFI) <sage.rings.complex_interval_field>`
+    - :mod:`Complex intervals (using MPFI) <sage.rings.complex_interval>`
 
 Data Structure
 ==============
@@ -313,7 +313,7 @@ class ComplexBallField(UniqueRepresentation, Parent):
 
     def construction(self):
         """
-        Returns the construction of a complex ball field as the algebraic
+        Return the construction of a complex ball field as the algebraic
         closure of the real ball field with the same precision.
 
         EXAMPLES::
@@ -330,6 +330,8 @@ class ComplexBallField(UniqueRepresentation, Parent):
 
     def ngens(self):
         r"""
+        Return 1 as the only generator is the imaginary unit.
+
         EXAMPLE::
 
             sage: from sage.rings.complex_ball_acb import CBF
@@ -340,6 +342,8 @@ class ComplexBallField(UniqueRepresentation, Parent):
 
     def gen(self, i):
         r"""
+        For i = 0, return the imaginary unit in this complex ball field.
+
         EXAMPLE::
 
             sage: from sage.rings.complex_ball_acb import CBF
@@ -357,6 +361,9 @@ class ComplexBallField(UniqueRepresentation, Parent):
 
     def gens(self):
         r"""
+        Return the tuple of generators of this complex ball field, i.e.
+        ``(i,)``.
+
         EXAMPLE::
 
             sage: from sage.rings.complex_ball_acb import CBF

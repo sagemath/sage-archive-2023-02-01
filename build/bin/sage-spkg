@@ -178,7 +178,6 @@ fi
 # Parse options
 INFO=0
 FORCE=0
-DOWNLOAD_ONLY=0
 while true; do
     case "$1" in
         --info)
@@ -186,7 +185,7 @@ while true; do
         -f)
             FORCE=1;;
         -d)
-            DOWNLOAD_ONLY=1;;
+            SAGE_INSTALL_FETCH_ONLY=1;;
         -s)
             export SAGE_KEEP_BUILT_SPKGS=yes;;
         -c|--check)
@@ -398,7 +397,7 @@ if [ -n "$SAGE_SPKG_COPY_UPSTREAM" ]; then
         exit 1
     fi
 fi
-if [ $DOWNLOAD_ONLY -ne 0 ]; then
+if [ -n "$SAGE_INSTALL_FETCH_ONLY" ]; then
     exit 0
 fi
 

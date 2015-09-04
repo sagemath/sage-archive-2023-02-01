@@ -11,7 +11,7 @@ matching attained by seeing which points on the boundary are connected
 by open paths in the fully packed loop.
 
 We can create a fully packed loop using the corresponding alternating sign
-matrix and also extract the link pattern.::
+matrix and also extract the link pattern::
 
     sage: A = AlternatingSignMatrix([[0, 0, 1], [0, 1, 0], [1, 0, 0]])
     sage: fpl = FullyPackedLoop(A)
@@ -267,80 +267,9 @@ from sage.misc.all import prod
 
 class FullyPackedLoop(Element):
     r"""
-    A class for fully packed loops
-    """
-    __metaclass__ = InheritComparisonClasscallMetaclass
+    A class for fully packed loops.
 
-    @staticmethod
-    def __classcall_private__(cls, generator):
-        """
-        Create a FPL.
-
-        EXAMPLES::
-
-            sage: A = AlternatingSignMatrix([[1, 0, 0],[0, 1, 0],[0, 0, 1]])
-            sage: FullyPackedLoop(A)
-                |         |
-                |         |
-                +    + -- +
-                |    |
-                |    |
-             -- +    +    + --
-                     |    |
-                     |    |
-                + -- +    +
-                |         |
-                |         |
-
-            sage: SVM = SixVertexModel(4, boundary_conditions='ice')[0]
-            sage: FullyPackedLoop(SVM)
-                |         |
-                |         |
-                +    + -- +    + --
-                |    |         |
-                |    |         |
-             -- +    +    + -- +
-                     |    |
-                     |    |
-                + -- +    +    + --
-                |         |    |
-                |         |    |
-             -- +    + -- +    +
-                     |         |
-                     |         |
-        """
-        if isinstance(generator, AlternatingSignMatrix):
-            SVM = generator.to_six_vertex_model()
-        elif isinstance(generator, SquareIceModel.Element):
-            SVM = generator
-        elif isinstance(generator, SixVertexConfiguration):
-            # Check that this is an ice square model
-            generator = SixVertexModel(generator.parent()._nrows, \
-            boundary_conditions='ice')(generator)
-            M = generator.to_alternating_sign_matrix().to_matrix()
-            M = AlternatingSignMatrix(M)
-            SVM = generator
-        else: # Not ASM nor SVM
-            try:
-                SVM = AlternatingSignMatrix(generator).to_six_vertex_model()
-            except (TypeError, ValueError):
-                generator = matrix(generator)
-                generator = SixVertexModel(generator.nrows(), boundary_conditions='ice')(generator)
-                # Check that this is an ice square model
-                M = generator.to_alternating_sign_matrix()
-                SVM = generator
-
-        if not SVM:
-            raise TypeError('generator for FullyPackedLoop must either be an \
-            AlternatingSignMatrix or a SquareIceModel.Element')
-        FPLs = FullyPackedLoops(len(SVM))
-        return FPLs(generator)
-
-    def __init__(self, parent, generator):
-        """
-        Initialise object, can take ASM of FPL as generator.
-
-        EXAMPLES:
+    EXAMPLES::
 
         We can initiate a fully packed loop using an alternating sign matrix::
 
@@ -469,6 +398,77 @@ class FullyPackedLoop(Element):
             Traceback (most recent call last):
             ...
             ValueError: Invalid alternating sign matrix
+    """
+    __metaclass__ = InheritComparisonClasscallMetaclass
+
+    @staticmethod
+    def __classcall_private__(cls, generator):
+        """
+        Create a FPL.
+
+        EXAMPLES::
+
+            sage: A = AlternatingSignMatrix([[1, 0, 0],[0, 1, 0],[0, 0, 1]])
+            sage: FullyPackedLoop(A)
+                |         |
+                |         |
+                +    + -- +
+                |    |
+                |    |
+             -- +    +    + --
+                     |    |
+                     |    |
+                + -- +    +
+                |         |
+                |         |
+
+            sage: SVM = SixVertexModel(4, boundary_conditions='ice')[0]
+            sage: FullyPackedLoop(SVM)
+                |         |
+                |         |
+                +    + -- +    + --
+                |    |         |
+                |    |         |
+             -- +    +    + -- +
+                     |    |
+                     |    |
+                + -- +    +    + --
+                |         |    |
+                |         |    |
+             -- +    + -- +    +
+                     |         |
+                     |         |
+        """
+        if isinstance(generator, AlternatingSignMatrix):
+            SVM = generator.to_six_vertex_model()
+        elif isinstance(generator, SquareIceModel.Element):
+            SVM = generator
+        elif isinstance(generator, SixVertexConfiguration):
+            # Check that this is an ice square model
+            generator = SixVertexModel(generator.parent()._nrows, \
+            boundary_conditions='ice')(generator)
+            M = generator.to_alternating_sign_matrix().to_matrix()
+            M = AlternatingSignMatrix(M)
+            SVM = generator
+        else: # Not ASM nor SVM
+            try:
+                SVM = AlternatingSignMatrix(generator).to_six_vertex_model()
+            except (TypeError, ValueError):
+                generator = matrix(generator)
+                generator = SixVertexModel(generator.nrows(), boundary_conditions='ice')(generator)
+                # Check that this is an ice square model
+                M = generator.to_alternating_sign_matrix()
+                SVM = generator
+
+        if not SVM:
+            raise TypeError('generator for FullyPackedLoop must either be an \
+            AlternatingSignMatrix or a SquareIceModel.Element')
+        FPLs = FullyPackedLoops(len(SVM))
+        return FPLs(generator)
+
+    def __init__(self, parent, generator):
+        """
+        Initialise object, can take ASM of FPL as generator.
 
         TESTS::
 
@@ -625,7 +625,6 @@ class FullyPackedLoop(Element):
 
     def to_alternating_sign_matrix(self):
         """
-
         Returns the alternating sign matrix corresponding to this class.
 
         EXAMPLES::
@@ -798,34 +797,34 @@ class FullyPackedLoop(Element):
 
         EXAMPLES::
 
-                sage: A = AlternatingSignMatrix([[0, 1, 0, 0], [1, -1, 0, 1], \
-                [0, 1, 0, 0],[0, 0, 1, 0]])
-                sage: fpl = FullyPackedLoop(A)
-                sage: print fpl.plot().description()
-                Line defined by 2 points:       [(-1.0, 0.0), (0.0, 0.0)]
-                Line defined by 2 points:       [(-1.0, 2.0), (0.0, 2.0)]
-                Line defined by 2 points:       [(0.0, 1.0), (0.0, 0.0)]
-                Line defined by 2 points:       [(0.0, 1.0), (1.0, 1.0)]
-                Line defined by 2 points:       [(0.0, 3.0), (0.0, 4.0)]
-                Line defined by 2 points:       [(0.0, 3.0), (0.0, 4.0)]
-                Line defined by 2 points:       [(0.0, 3.0), (1.0, 3.0)]
-                Line defined by 2 points:       [(1.0, 0.0), (1.0, -1.0)]
-                Line defined by 2 points:       [(1.0, 0.0), (2.0, 0.0)]
-                Line defined by 2 points:       [(1.0, 2.0), (0.0, 2.0)]
-                Line defined by 2 points:       [(1.0, 2.0), (2.0, 2.0)]
-                Line defined by 2 points:       [(2.0, 1.0), (1.0, 1.0)]
-                Line defined by 2 points:       [(2.0, 1.0), (2.0, 2.0)]
-                Line defined by 2 points:       [(2.0, 3.0), (1.0, 3.0)]
-                Line defined by 2 points:       [(2.0, 3.0), (2.0, 4.0)]
-                Line defined by 2 points:       [(2.0, 3.0), (2.0, 4.0)]
-                Line defined by 2 points:       [(3.0, 0.0), (2.0, 0.0)]
-                Line defined by 2 points:       [(3.0, 0.0), (3.0, -1.0)]
-                Line defined by 2 points:       [(3.0, 2.0), (3.0, 1.0)]
-                Line defined by 2 points:       [(3.0, 2.0), (3.0, 3.0)]
-                Line defined by 2 points:       [(4.0, 1.0), (3.0, 1.0)]
-                Line defined by 2 points:       [(4.0, 1.0), (3.0, 1.0)]
-                Line defined by 2 points:       [(4.0, 3.0), (3.0, 3.0)]
-                Line defined by 2 points:       [(4.0, 3.0), (3.0, 3.0)]
+            sage: A = AlternatingSignMatrix([[0, 1, 0, 0], [1, -1, 0, 1], \
+            [0, 1, 0, 0],[0, 0, 1, 0]])
+            sage: fpl = FullyPackedLoop(A)
+            sage: print fpl.plot().description()
+            Line defined by 2 points:       [(-1.0, 0.0), (0.0, 0.0)]
+            Line defined by 2 points:       [(-1.0, 2.0), (0.0, 2.0)]
+            Line defined by 2 points:       [(0.0, 1.0), (0.0, 0.0)]
+            Line defined by 2 points:       [(0.0, 1.0), (1.0, 1.0)]
+            Line defined by 2 points:       [(0.0, 3.0), (0.0, 4.0)]
+            Line defined by 2 points:       [(0.0, 3.0), (0.0, 4.0)]
+            Line defined by 2 points:       [(0.0, 3.0), (1.0, 3.0)]
+            Line defined by 2 points:       [(1.0, 0.0), (1.0, -1.0)]
+            Line defined by 2 points:       [(1.0, 0.0), (2.0, 0.0)]
+            Line defined by 2 points:       [(1.0, 2.0), (0.0, 2.0)]
+            Line defined by 2 points:       [(1.0, 2.0), (2.0, 2.0)]
+            Line defined by 2 points:       [(2.0, 1.0), (1.0, 1.0)]
+            Line defined by 2 points:       [(2.0, 1.0), (2.0, 2.0)]
+            Line defined by 2 points:       [(2.0, 3.0), (1.0, 3.0)]
+            Line defined by 2 points:       [(2.0, 3.0), (2.0, 4.0)]
+            Line defined by 2 points:       [(2.0, 3.0), (2.0, 4.0)]
+            Line defined by 2 points:       [(3.0, 0.0), (2.0, 0.0)]
+            Line defined by 2 points:       [(3.0, 0.0), (3.0, -1.0)]
+            Line defined by 2 points:       [(3.0, 2.0), (3.0, 1.0)]
+            Line defined by 2 points:       [(3.0, 2.0), (3.0, 3.0)]
+            Line defined by 2 points:       [(4.0, 1.0), (3.0, 1.0)]
+            Line defined by 2 points:       [(4.0, 1.0), (3.0, 1.0)]
+            Line defined by 2 points:       [(4.0, 3.0), (3.0, 3.0)]
+            Line defined by 2 points:       [(4.0, 3.0), (3.0, 3.0)]
 
         Here is the plot:
 
@@ -888,7 +887,11 @@ class FullyPackedLoop(Element):
     def link_pattern(self):
         """
         Return a list (a non-crossing partition) corresponding to a fully packed loop.
-        Note: by convention, we choose the top left vertex to be even. See [Propp2001]_.
+
+        .. NOTE::
+
+            by convention, we choose the top left vertex to be even.
+            See [Propp2001]_ and [Striker2015]_.
 
         EXAMPLES:
 
@@ -1002,7 +1005,7 @@ class FullyPackedLoop(Element):
 
     def six_vertex_model(self):
         """
-        Return the underlying six vertex model configuration
+        Return the underlying six vertex model configuration.
 
         EXAMPLES::
 
@@ -1181,7 +1184,8 @@ class FullyPackedLoop(Element):
 
 class FullyPackedLoops(Parent, UniqueRepresentation):
     r"""
-    Class of all fully packed loops on an  `n \times n` grid
+    Class of all fully packed loops on an  `n \times n` grid.
+
     INPUT:
 
     - ``n`` -- the number of row (and column) or grid
@@ -1327,8 +1331,6 @@ class FullyPackedLoops(Parent, UniqueRepresentation):
             except (TypeError, ValueError):
                 SVM = SixVertexModel(self._n, boundary_conditions='ice')(generator)
                 M = SVM.to_alternating_sign_matrix()
-        #else:
-        #    raise TypeError('The generator for a fully packed loop must either be an AlternatingSignMatrix or a SquareIceModel.Element')
 
         if len(SVM) != self._n:
             raise ValueError("invalid size")
@@ -1357,7 +1359,7 @@ class FullyPackedLoops(Parent, UniqueRepresentation):
         .. MATH::
 
             \prod_{k=0}^{n-1} \frac{(3k+1)!}{(n+k)!} = \frac{1! 4! 7! 10!
-            \cdots (3n-2)!}{n! (n+1)! (n+2)! (n+3)! \cdots (2n-1)!}
+            \cdots (3n-2)!}{n! (n+1)! (n+2)! (n+3)! \cdots (2n-1)!}.
 
         EXAMPLES::
 

@@ -30,6 +30,16 @@ cdef class Matrix_generic_dense(matrix_dense.Matrix_dense):
         sage: type(A)
         <type 'sage.matrix.matrix_generic_dense.Matrix_generic_dense'>
         sage: TestSuite(A).run()
+
+    Test comparisons::
+
+        sage: A = random_matrix(Integers(25)['x'],2)
+        sage: cmp(A,A)
+        0
+        sage: cmp(A,A+1)
+        -1
+        sage: cmp(A+1,A)
+        1
     """
     ########################################################################
     # LEVEL 1 functionality
@@ -156,19 +166,6 @@ cdef class Matrix_generic_dense(matrix_dense.Matrix_dense):
             self._entries = data
         else:
             raise RuntimeError, "unknown matrix version"
-
-    def __richcmp__(matrix.Matrix self, right, int op):  # always need for mysterious reasons.
-        """
-        EXAMPLES:
-            sage: A = random_matrix(Integers(25)['x'],2)
-            sage: cmp(A,A)
-            0
-            sage: cmp(A,A+1)
-            -1
-            sage: cmp(A+1,A)
-            1
-        """
-        return self._richcmp(right, op)
 
     def __hash__(self):
         """

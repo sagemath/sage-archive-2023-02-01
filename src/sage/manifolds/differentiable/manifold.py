@@ -2710,3 +2710,41 @@ class DiffManifold(TopManifold):
                 # case self.dim()=1
                 coord_expression = {chart: (coord_expression,)}
         return curve_set(coord_expression, name=name, latex_name=latex_name)
+
+
+    def aff_connection(self, name, latex_name=None):
+        r"""
+        Define an affine connection on the manifold.
+
+        See :class:`~sage.manifolds.differentiable.affine_connection.AffConnection`
+        for a complete documentation.
+
+        INPUT:
+
+        - ``name`` -- name given to the affine connection
+        - ``latex_name`` -- (default: ``None``) LaTeX symbol to denote the affine
+          connection
+
+        OUTPUT:
+
+        - the affine connection, as an instance of
+          :class:`~sage.manifolds.differentiable.affine_connection.AffConnection`
+
+        EXAMPLE:
+
+        Affine connection on an open subset of a 3-dimensional smooth manifold::
+
+            sage: DiffManifold._clear_cache_() # for doctests only
+            sage: M = DiffManifold(3, 'M', start_index=1)
+            sage: A = M.open_subset('A', latex_name=r'\mathcal{A}')
+            sage: nab = A.aff_connection('nabla', r'\nabla') ; nab
+            affine connection 'nabla' on the subset 'A' of the 3-dimensional manifold 'M'
+
+        See the documentation of class
+        :class:`~sage.manifolds.differentiable.affine_connection.AffConnection`
+        for more examples.
+
+        """
+        from sage.manifolds.differentiable.affine_connection import AffConnection
+        return AffConnection(self, name, latex_name)
+

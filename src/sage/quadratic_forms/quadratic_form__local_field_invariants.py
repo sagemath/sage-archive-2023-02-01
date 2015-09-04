@@ -46,9 +46,11 @@ def rational_diagonal_form(self, return_matrix=False):
     second argument.
 
     INPUT:
+
         none
 
     OUTPUT:
+
         Q -- the diagonalized form of this quadratic form
         (optional) T -- matrix which diagonalizes Q (over it's fraction field)
 
@@ -219,12 +221,15 @@ def signature(self):
     of the matrix of the quadratic form.
 
     INPUT:
+
         None
 
     OUTPUT:
+
         an integer
 
     EXAMPLES:
+
         sage: Q = DiagonalQuadraticForm(ZZ, [1,0,0,-4,3,11,3])
         sage: Q.signature()
         3
@@ -277,9 +282,11 @@ def hasse_invariant(self, p):
 
 
     INPUT:
+
         `p` -- a prime number > 0
 
     OUTPUT:
+
         1 or -1
 
     EXAMPLES::
@@ -361,9 +368,11 @@ def hasse_invariant__OMeara(self, p):
 
 
     INPUT:
+
         `p` -- a prime number > 0
 
     OUTPUT:
+
         1 or -1
 
     EXAMPLES::
@@ -434,14 +443,17 @@ def is_hyperbolic(self, p):
     the p-adic numbers Q_p.
 
     REFERENCES:
+
         This criteria follows from Cassels's "Rational Quadratic Forms":
             - local invariants for hyperbolic plane (Lemma 2.4, p58)
             - direct sum formulas (Lemma 2.3 on p58)
 
     INPUT:
+
         `p` -- a prime number > 0
 
     OUTPUT:
+
         boolean
 
     EXAMPLES::
@@ -489,9 +501,11 @@ def is_anisotropic(self, p):
     Checks if the quadratic form is anisotropic over the p-adic numbers `Q_p`.
 
     INPUT:
+
         `p` -- a prime number > 0
 
     OUTPUT:
+
         boolean
 
     EXAMPLES::
@@ -553,9 +567,11 @@ def is_isotropic(self, p):
     Checks if Q is isotropic over the p-adic numbers `Q_p`.
 
     INPUT:
+
         `p` -- a prime number > 0
 
     OUTPUT:
+
         boolean
 
     EXAMPLES::
@@ -598,9 +614,11 @@ def anisotropic_primes(self):
 
 
     INPUT:
+
         None
 
     OUTPUT:
+
         Returns a list of prime numbers >0.
 
     EXAMPLES::
@@ -657,9 +675,11 @@ def compute_definiteness(self):
     Note:  The zero-dim'l form is considered both positive definite and negative definite.
 
     INPUT:
+
         QuadraticForm
 
     OUTPUT:
+
         boolean
 
     EXAMPLES::
@@ -742,12 +762,15 @@ def compute_definiteness_string_by_determinants(self):
     self.compute_definiteness() for more documentation.
 
     INPUT:
+
         None
 
     OUTPUT:
+
         string describing the definiteness
 
     EXAMPLES:
+
         sage: Q = DiagonalQuadraticForm(ZZ, [1,1,1,1,1])
         sage: Q.compute_definiteness_string_by_determinants()
         'pos_def'
@@ -831,9 +854,11 @@ def is_positive_definite(self):
     Note:  The zero-dim'l form is considered both positive definite and negative definite.
 
     INPUT:
+
         None
 
     OUTPUT:
+
         boolean -- True or False
 
     EXAMPLES::
@@ -870,9 +895,11 @@ def is_negative_definite(self):
     Note:  The zero-dim'l form is considered both positive definite and negative definite.
 
     INPUT:
+
         None
 
     OUTPUT:
+
         boolean -- True or False
 
     EXAMPLES::
@@ -908,9 +935,11 @@ def is_indefinite(self):
     Note:  The zero-dim'l form is not considered indefinite.
 
     INPUT:
+
         None
 
     OUTPUT:
+
         boolean -- True or False
 
     EXAMPLES::
@@ -945,9 +974,11 @@ def is_definite(self):
     Note:  The zero-dim'l form is considered indefinite.
 
     INPUT:
+
         None
 
     OUTPUT:
+
         boolean -- True or False
 
     EXAMPLES::

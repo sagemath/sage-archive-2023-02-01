@@ -462,10 +462,13 @@ def chang_graphs():
     information about the Chang graphs, see :wikipedia:`Chang_graphs` or
     http://www.win.tue.nl/~aeb/graphs/Chang.html.
 
-    EXAMPLES::
+    EXAMPLES: check that we get 4 non-isomorphic s.r.g.'s with the
+    same parameters::
 
         sage: chang_graphs = graphs.chang_graphs()
-        sage: four_srg = chang_graphs + [graphs.CompleteGraph(8).line_graph()]
+        sage: K8 = graphs.CompleteGraph(8)
+        sage: T8 = K8.line_graph()
+        sage: four_srg = chang_graphs + [T8]
         sage: for g in four_srg:
         ....:     print g.is_strongly_regular(parameters=True)
         (28, 12, 6, 4)
@@ -475,6 +478,18 @@ def chang_graphs():
         sage: from itertools import combinations
         sage: for g1,g2 in combinations(four_srg,2):
         ....:     assert not g1.is_isomorphic(g2)
+
+    Construct the Chang graphs by Seidel switching::
+
+        sage: c3c5=graphs.CycleGraph(3).disjoint_union(graphs.CycleGraph(5))
+        sage: c8=graphs.CycleGraph(8)
+        sage: s=[K8.subgraph_search(c8).edges(),
+        ....:    [(0,1,None),(2,3,None),(4,5,None),(6,7,None)],
+        ....:    K8.subgraph_search(c3c5).edges()]
+        sage: map(lambda x,G: T8.seidel_switching(x, inplace=False).is_isomorphic(G),
+        ....:                  s, chang_graphs)
+        [True, True, True]
+
     """
     g1 = Graph("[}~~EebhkrRb_~SoLOIiAZ?LBBxDb?bQcggjHKEwoZFAaiZ?Yf[?dxb@@tdWGkwn",
                loops=False, multiedges=False)

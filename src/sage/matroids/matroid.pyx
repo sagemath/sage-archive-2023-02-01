@@ -285,6 +285,7 @@ REFERENCES
 ==========
 
 ..  [BC79] R. E. Bixby, W. H. Cunningham, Matroids, Graphs, and 3-Connectivity. In Graph theory and related topics (Proc. Conf., Univ. Waterloo, Waterloo, ON, 1977), 91-103
+..  [Cunningham86] W. H. Cunningham, Improved Bounds for Matroid Partition and Intersection Algorithms. SIAM Journal on Computing 1986 15:4, 948-957
 ..  [CMO11] C. Chun, D. Mayhew, J. Oxley, A chain theorem for internally 4-connected binary matroids. J. Combin. Theory Ser. B 101 (2011), 141-189.
 ..  [CMO12] C. Chun, D. Mayhew, J. Oxley,  Towards a splitter theorem for internally 4-connected binary matroids. J. Combin. Theory Ser. B 102 (2012), 688-700.
 ..  [GG12] Jim Geelen and Bert Gerards, Characterizing graphic matroids by a system of linear equations, submitted, 2012. Preprint: http://www.gerardsbase.nl/papers/geelen_gerards=testing-graphicness%5B2013%5D.pdf
@@ -6500,6 +6501,65 @@ cdef class Matroid(SageObject):
                 u = predecessor[u]
                 path.add(u)
             return True, frozenset(path)
+
+    cpdef partition(self):
+        r"""
+        Returns a minimum number of disjoint independent sets that covers the 
+        groundset.
+
+        OUTPUT:
+
+        A list of disjoint independent sets that covers the goundset.
+
+        EXAMPLES::
+
+            sage: M = matroids.named_matroids.Block_9_4()
+            sage: P = M.partition()
+            sage: all(map(M.is_independent,P))
+            True
+            sage: set.union(*P)==M.groundset()
+            True
+            sage: sum(map(len,P))==len(M.groundset())
+            True
+
+        ALGORITHM:
+
+        Reduce partition to a matroid intersection between a matroid sum 
+        and a partition matroid. It's known the direct method doesn't gain
+        much advantage over matroid intersection. [Cunningham86]
+        """
+        from sage.matroids.union_matroid import MatroidSum, PartitionMatroid
+        if self.loops():
+            raise ValueError("Cannot partition matroids with loops.")
+
+        # doubling search for minimum independent sets that partitions the groundset
+        n = self.size()
+        r = self.rank()
+        hi = -(-n//r)
+        lo = hi
+        X = set()
+        # doubling step
+        while True:
+            p = PartitionMatroid([[(i,x) for i in range(hi)] for x in self.groundset()])
+            X = MatroidSum([self]*hi).intersection(p)
+            if len(X)==self.size():
+                break
+            lo = hi
+            hi = min(hi*2,n)
+        # binary search step
+        while lo < hi:
+            mid = (lo+hi)//2
+            p = PartitionMatroid([[(i,x) for i in range(mid)] for x in self.groundset()])
+            X = MatroidSum([self]*mid).intersection(p)
+            if len(X)!=self.size() : lo = mid+1
+            else: hi = mid
+
+        partition = {}
+        for (i,x) in X:
+            if not i in partition:
+                partition[i] = set()
+            partition[i].add(x)
+        return partition.values()
 
     # invariants
 

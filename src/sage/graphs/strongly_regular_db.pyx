@@ -440,6 +440,68 @@ def SRG_from_RSHCD(v,k,l,mu, existence=False,check=True):
         return False
     raise ValueError("I do not know how to build a {}-SRG from a RSHCD".format((v,k,l,mu)))
 
+@cached_function
+def is_twograph_descendant_of_srg(int v, int k0, int l, int mu):
+    r"""
+    Test whether some descendant graph of an s.r.g. is `(v,k_0,\lambda,\mu)`-s.r.g.
+
+    We check whether there can exist `(v+1,k,\lambda^*,\mu^*)`-s.r.g. `G` so
+    that ``self`` is a descendant graph of the regular two-graph specified
+    by `G`.
+    Specifically, we must have that `v+1=2(2k-\lambda^*-\mu^*)`, and
+    `k_0=2(k-\mu^*)`, `\lambda=k+\lambda^*-2\mu^*`, `\mu=k-\mu^*`, which give 2
+    independent linear conditions, say `k-\mu^*=\mu` and
+    `\lambda^*-\mu^*=\lambda-\mu`.  Further, there is a quadratic relation
+    `2 k^2-(v+1+4 \mu) k+ 2 v \mu=0`.
+
+    If we can contruct such `G` then we return a function to build a
+    `(v,k_0,\lambda,\mu)`-s.r.g.  For more information,
+    see 10.3 in http://www.win.tue.nl/~aeb/2WF02/spectra.pdf
+
+    INPUT:
+
+    - ``v,k0,l,mu`` (integers)
+
+    OUTPUT:
+
+    A tuple ``t`` such that ``t[0](*t[1:])`` builds the requested graph if one
+    exists and is known, and ``None`` otherwise.
+
+    EXAMPLES::
+
+        sage: from sage.graphs.strongly_regular_db import is_twograph_descendant_of_srg
+        sage: t = is_twograph_descendant_of_srg(27, 10, 1, 5); t
+        (<cyfunction is_twograph_descendant_of_srg.<locals>.la at...
+        sage: g = t[0](*t[1:]); g
+        descendant of complement(Johnson graph with parameters 8,2) at {5, 7}: Graph on 27 vertices
+        sage: g.is_strongly_regular(parameters=True)
+        (27, 10, 1, 5)
+        sage: t = is_twograph_descendant_of_srg(5,5,5,5); t
+
+    TESTS::
+
+        sage: graphs.strongly_regular_graph(279, 150, 85, 75, existence=True)
+        True
+        sage: graphs.strongly_regular_graph(279, 150, 85, 75).is_strongly_regular(parameters=True) # optional - gap_packages internet
+        (279, 150, 85, 75)
+    """
+    cdef int b, k, s
+    if k0 != 2*mu or v % 2 == 0:
+        return
+    b = v+1+4*mu
+    D = sqrt(b**2-16*v*mu)
+    if int(D)==D:
+        for kf in [(-D+b)/4, (D+b)/4]:
+            k = int(kf)
+            if k == kf and \
+                strongly_regular_graph(v+1, k, l - 2*mu + k , k - mu,  existence=True):
+                def la(vv):
+                    from sage.combinat.designs.twographs import twograph_descendant
+                    g = strongly_regular_graph(vv, k, l - 2*mu + k)
+                    return twograph_descendant(g, g.vertex_iterator().next(), name=True)
+                return(la, v+1)
+    return
+
 cdef eigenvalues(int v,int k,int l,int mu):
     r"""
     Return the eigenvalues of a (v,k,l,mu)-strongly regular graph.
@@ -568,10 +630,7 @@ def SRG_196_91_42_42():
     W = map(frozenset,[[x+z for x in H] for z in G])
     G = IntersectionGraph(U+V+W)
 
-    # G = G.seidel_switching(U)
-    boundary = G.edge_boundary(U)
-    G.add_edges((x,y) for x in V+W for y in U)
-    G.delete_edges(boundary)
+    G.seidel_switching(U)
 
     G.add_edges((-1,x) for x in U)
     G.relabel()
@@ -1319,15 +1378,14 @@ def strongly_regular_graph(int v,int k,int l,int mu=-1,bint existence=False):
 
     A realizable set of parameters that Sage cannot realize (help us!)::
 
-        sage: graphs.strongly_regular_graph(279,128,52,64,existence=True)
+        sage: graphs.strongly_regular_graph(126,50,13,24,existence=True)
         True
-        sage: graphs.strongly_regular_graph(279,128,52,64)
+        sage: graphs.strongly_regular_graph(126,50,13)
         Traceback (most recent call last):
         ...
-        RuntimeError: Andries Brouwer's database claims that such a
-        (279,128,52,64)-strongly regular graph exists, but Sage does not know
-        how to build it. If *you* do, please get in touch with us on sage-devel!
-        Comments: pg(8,15,4)?; 2-graph*
+        RuntimeError: Andries Brouwer's database claims that such a (126,50,13,24)-strongly
+        regular graph exists, but Sage does not know how to build it.
+        ...
 
     A large unknown set of parameters (not in Andries Brouwer's database)::
 
@@ -1413,7 +1471,8 @@ def strongly_regular_graph(int v,int k,int l,int mu=-1,bint existence=False):
                       is_orthogonal_array_block_graph,
                       is_steiner, is_affine_polar,
                       is_orthogonal_polar,
-                      is_RSHCD]
+                      is_RSHCD,
+                      is_twograph_descendant_of_srg]
 
     # Going through all test functions, for the set of parameters and its
     # complement.

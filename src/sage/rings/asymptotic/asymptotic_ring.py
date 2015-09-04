@@ -377,6 +377,7 @@ Classes and Methods
 
 # *****************************************************************************
 # Copyright (C) 2015 Benjamin Hackl <benjamin.hackl@aau.at>
+#               2015 Daniel Krenn <dev@danielkrenn.at>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by

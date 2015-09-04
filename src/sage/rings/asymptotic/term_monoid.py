@@ -90,7 +90,7 @@ import sage
 def absorption(left, right):
     r"""
     Helper method used by
-    :class:`~sage.rings.asymptotic.asymptotic_ring.AsymptoticExpression`.
+    :class:`~sage.rings.asymptotic.asymptotic_ring.AsymptoticExpansion`.
 
     INPUT:
 
@@ -121,7 +121,7 @@ def absorption(left, right):
 def can_absorb(left, right):
     r"""
     Helper method used by
-    :class:`~sage.rings.asymptotic.asymptotic_ring.AsymptoticExpression`.
+    :class:`~sage.rings.asymptotic.asymptotic_ring.AsymptoticExpansion`.
 
     INPUT:
 

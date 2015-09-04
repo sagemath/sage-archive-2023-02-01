@@ -2,13 +2,13 @@ r"""
 Asymptotic Ring
 
 This module provides a ring (called :class:`AsymptoticRing`) for
-computations with asymptotic expressions.
+computations with asymptotic expansions.
 
 
 Definition
 ==========
 
-An asymptotic expression is a sum such as
+An asymptotic expansion is a sum such as
 
 .. MATH::
 
@@ -106,7 +106,7 @@ A typical element of this ring is
 This element consists of two summands: the exact term with coefficient
 `-1` and growth `z^{3/2}` and the `O`-term `O(z^{1/2})`. Note that the
 growth of `z^{3/2}` is larger than the growth of `z^{1/2}` as
-`z\to\infty`, thus this expression cannot be simplified (which would
+`z\to\infty`, thus this expansion cannot be simplified (which would
 be done automatically, see below).
 
 Next, we construct a more sophisticated asymptotic ring in the
@@ -154,7 +154,7 @@ the exponents to be out of `\QQ`---can also be computed::
     sage: (z^(5/2)+z^(1/7)) * z^(-1/5)
     z^(23/10) + z^(-2/35)
 
-The central concepts of computations with asymptotic expressions is
+The central concepts of computations with asymptotic expansions is
 that the `O`-notation can be used. For example, we have
 
 ::
@@ -173,7 +173,7 @@ where the result is simplified automatically. More advanced
 Division
 ^^^^^^^^
 
-The asymptotic expressions support division. For example, we get can
+The asymptotic expansions support division. For example, we get can
 expand `1/(1-z)` to a geometric series::
 
     sage: 1 / (z-1)
@@ -187,7 +187,7 @@ only want the first `5` exact terms, we cut of the rest by using
     sage: (1 / (z-1)).truncate(5)
     z^(-1) + z^(-2) + z^(-3) + z^(-4) + z^(-5) + O(z^(-6))
 
-Of course, we can work with more complicated expressions as well::
+Of course, we can work with more complicated expansions as well::
 
     sage: (4*z+1) / (z^3+z^2+z+O(A(1)))
     4*z^(-2) - 3*z^(-3) - z^(-4) + O(z^(-5))
@@ -217,7 +217,7 @@ of the logarithm
 
 as `z \to \infty`.
 
-Similarly, we can apply the exponential function of an asymptotic expression::
+Similarly, we can apply the exponential function of an asymptotic expansion::
 
     sage: exp(1/z)
     1 + z^(-1) + 1/2*z^(-2) + 1/6*z^(-3) + 1/24*z^(-4) + ... + O(z^(-20))
@@ -257,7 +257,7 @@ The base of the natural logarithm `e` satisfies the equation
 
     e = \lim_{n\to\infty} \left(1+\frac{1}{n}\right)^n
 
-By using asymptotic expressions, we obtain the more precise result
+By using asymptotic expansions, we obtain the more precise result
 ::
 
     sage: E.<n> = AsymptoticRing(growth_group='n^ZZ', coefficient_ring=SR, default_prec=5); E
@@ -308,7 +308,7 @@ Here the result's coefficient ring is the newly found
 
 Not only the coefficient ring can be extended, but the growth group as
 well. For example, we can add/multiply elements of the asymptotic
-rings ``A`` and ``C`` to get an expression of new asymptotic ring::
+rings ``A`` and ``C`` to get an expansion of new asymptotic ring::
 
     sage: r = c*z + c/2 + O(z); r
     c*z + 1/2*c + O(z)
@@ -321,12 +321,12 @@ Data Structures
 ---------------
 
 The summands of an
-:class:`asymptotic expression <AsymptoticExpression>` are wrapped
+:class:`asymptotic expansion <AsymptoticExpansion>` are wrapped
 :doc:`growth group elements <growth_group>`.
 This wrapping is done by the
 :doc:`term monoid module <term_monoid>`.
 However, inside an
-:class:`asymptotic expression <AsymptoticExpression>` these summands
+:class:`asymptotic expansion <AsymptoticExpansion>` these summands
 (terms) are stored together with their growth-relationship, i.e., each
 summand knows its direct predecessors and successors. As a data
 structure a special poset (namely a
@@ -393,25 +393,25 @@ Classes and Methods
 
 import sage
 
-class AsymptoticExpression(sage.structure.element.CommutativeAlgebraElement):
+class AsymptoticExpansion(sage.structure.element.CommutativeAlgebraElement):
     r"""
-    Class for asymptotic expressions, i.e., the elements of an
+    Class for asymptotic expansions, i.e., the elements of an
     :class:`AsymptoticRing`.
 
     INPUT:
 
-    - ``parent`` -- the parent of the asymptotic expression.
+    - ``parent`` -- the parent of the asymptotic expansion.
 
     - ``summands`` -- the summands as a
       :class:`~sage.data_structures.mutable_poset.MutablePoset`, which
       represents the underlying structure.
 
     - ``simplify`` -- a boolean (default: ``True``). It controls
-      automatic simplification (absorption) of the asymptotic expression.
+      automatic simplification (absorption) of the asymptotic expansion.
 
     EXAMPLES:
 
-    There are several ways to create asymptotic expressions; usually
+    There are several ways to create asymptotic expansions; usually
     this is done by using the corresponding rings/parents::
 
         sage: R_x.<x> = AsymptoticRing(growth_group='x^QQ', coefficient_ring=QQ); R_x
@@ -419,7 +419,7 @@ class AsymptoticExpression(sage.structure.element.CommutativeAlgebraElement):
         sage: R_y.<y> = AsymptoticRing(growth_group='y^ZZ', coefficient_ring=ZZ); R_y
         Asymptotic Ring <y^ZZ> over Integer Ring
 
-    At this point, `x` and `y` are already asymptotic expressions::
+    At this point, `x` and `y` are already asymptotic expansions::
 
         sage: type(x)
         <class 'sage.rings.asymptotic.asymptotic_ring.AsymptoticRing_with_category.element_class'>
@@ -433,16 +433,16 @@ class AsymptoticExpression(sage.structure.element.CommutativeAlgebraElement):
         27*x + 54*x^(2/3) + 36*x^(1/3) + 8
 
     One of the central ideas behind computing with asymptotic
-    expressions is that the `O`-notation (see
+    expansions is that the `O`-notation (see
     :wikipedia:`Big_O_notation`) can be used. For example, we have::
 
         sage: (x+2*x^2+3*x^3+4*x^4) * (O(x)+x^2)
         4*x^6 + O(x^5)
 
     In particular, :meth:`~sage.rings.big_oh.O` can be used to
-    construct the asymptotic expressions. With the help of the
+    construct the asymptotic expansions. With the help of the
     :meth:`summands`, we can also have a look at the inner structure
-    of an asymptotic expression::
+    of an asymptotic expansion::
 
         sage: expr1 = x + 2*x^2 + 3*x^3 + 4*x^4; expr2 = O(x) + x^2
         sage: print(expr1.summands.repr_full())
@@ -511,7 +511,7 @@ class AsymptoticExpression(sage.structure.element.CommutativeAlgebraElement):
     """
     def __init__(self, parent, summands, simplify=True, convert=True):
         r"""
-        See :class:`AsymptoticExpression` for more information.
+        See :class:`AsymptoticExpansion` for more information.
 
         TESTS::
 
@@ -524,7 +524,7 @@ class AsymptoticExpression(sage.structure.element.CommutativeAlgebraElement):
             sage: ex1 * ex2
             5*x^6 + O(x^5)
         """
-        super(AsymptoticExpression, self).__init__(parent=parent)
+        super(AsymptoticExpansion, self).__init__(parent=parent)
 
         from sage.data_structures.mutable_poset import MutablePoset
         if not isinstance(summands, MutablePoset):
@@ -555,7 +555,7 @@ class AsymptoticExpression(sage.structure.element.CommutativeAlgebraElement):
     @property
     def summands(self):
         r"""
-        The summands of this asymptotic expression stored in the
+        The summands of this asymptotic expansion stored in the
         underlying data structure (a
         :class:`~sage.data_structures.mutable_poset.MutablePoset`).
 
@@ -575,7 +575,7 @@ class AsymptoticExpression(sage.structure.element.CommutativeAlgebraElement):
 
     def __nonzero__(self):
         r"""
-        Return if this asymptotic expression is not identically zero.
+        Return if this asymptotic expansion is not identically zero.
 
         INPUT:
 
@@ -600,7 +600,7 @@ class AsymptoticExpression(sage.structure.element.CommutativeAlgebraElement):
 
     def __eq__(self, other):
         r"""
-        Return if this asymptotic expression is equal to ``other``.
+        Return if this asymptotic expansion is equal to ``other``.
 
         INPUT:
 
@@ -635,7 +635,7 @@ class AsymptoticExpression(sage.structure.element.CommutativeAlgebraElement):
 
     def __ne__(self, other):
         r"""
-        Return if this asymptotic expression is not equal to ``other``.
+        Return if this asymptotic expansion is not equal to ``other``.
 
         INPUT:
 
@@ -668,12 +668,12 @@ class AsymptoticExpression(sage.structure.element.CommutativeAlgebraElement):
 
     def has_same_summands(self, other):
         r"""
-        Return if this asymptotic expression and ``other`` have the
+        Return if this asymptotic expansion and ``other`` have the
         same summands.
 
         INPUT:
 
-        - ``other`` -- an asymptotic expression.
+        - ``other`` -- an asymptotic expansion.
 
         OUTPUT:
 
@@ -682,11 +682,11 @@ class AsymptoticExpression(sage.structure.element.CommutativeAlgebraElement):
         .. NOTE::
 
             While for example ``O(x) == O(x)`` yields ``False``,
-            these expressions *do* have the same summands and this method
+            these expansions *do* have the same summands and this method
             returns ``True``.
 
             Moreover, this method uses the coercion model in order to
-            find a common parent for this asymptotic expression and
+            find a common parent for this asymptotic expansion and
             ``other``.
 
         EXAMPLES::
@@ -717,12 +717,12 @@ class AsymptoticExpression(sage.structure.element.CommutativeAlgebraElement):
 
     def _has_same_summands_(self, other):
         r"""
-        Return, if this :class:`AsymptoticExpression` has the same
+        Return, if this :class:`AsymptoticExpansion` has the same
         summands as ``other``.
 
         INPUT:
 
-        - ``other`` -- an :class:`AsymptoticExpression`.
+        - ``other`` -- an :class:`AsymptoticExpansion`.
 
         OUTPUT:
 
@@ -730,7 +730,7 @@ class AsymptoticExpression(sage.structure.element.CommutativeAlgebraElement):
 
         .. NOTE::
 
-            This method compares two :class:`AsymptoticExpression`
+            This method compares two :class:`AsymptoticExpansion`
             with the same parent.
 
         EXAMPLES::
@@ -751,7 +751,7 @@ class AsymptoticExpression(sage.structure.element.CommutativeAlgebraElement):
 
     def _simplify_(self):
         r"""
-        Simplify this asymptotic expression.
+        Simplify this asymptotic expansion.
 
         INPUT:
 
@@ -759,17 +759,17 @@ class AsymptoticExpression(sage.structure.element.CommutativeAlgebraElement):
 
         OUTPUT:
 
-        Nothing, but modifies this asymptotic expression.
+        Nothing, but modifies this asymptotic expansion.
 
         .. NOTE::
 
             This method is usually called during initialization of
-            this asymptotic expression.
+            this asymptotic expansion.
 
         .. NOTE::
 
-            This asymptotic expression is simplified by letting
-            `O`-terms that are included in this expression absorb all
+            This asymptotic expansion is simplified by letting
+            `O`-terms that are included in this expansion absorb all
             terms with smaller growth.
 
         TESTS::
@@ -792,7 +792,7 @@ class AsymptoticExpression(sage.structure.element.CommutativeAlgebraElement):
 
     def _repr_(self):
         r"""
-        A representation string for this asymptotic expression.
+        A representation string for this asymptotic expansion.
 
         INPUT:
 
@@ -820,15 +820,15 @@ class AsymptoticExpression(sage.structure.element.CommutativeAlgebraElement):
 
     def _add_(self, other):
         r"""
-        Add ``other`` to this asymptotic expression.
+        Add ``other`` to this asymptotic expansion.
 
         INPUT:
 
-        - ``other`` -- an :class:`AsymptoticExpression`.
+        - ``other`` -- an :class:`AsymptoticExpansion`.
 
         OUTPUT:
 
-        The sum as an :class:`AsymptoticExpression`.
+        The sum as an :class:`AsymptoticExpansion`.
 
         EXAMPLES::
 
@@ -839,7 +839,7 @@ class AsymptoticExpression(sage.structure.element.CommutativeAlgebraElement):
             sage: expr1 + expr2  # indirect doctest
             x^321 + x^123
 
-        If an `O`-term is added to an asymptotic expression, then
+        If an `O`-term is added to an asymptotic expansion, then
         the `O`-term absorbs everything it can::
 
             sage: x^123 + x^321 + O(x^555)  # indirect doctest
@@ -858,19 +858,19 @@ class AsymptoticExpression(sage.structure.element.CommutativeAlgebraElement):
 
     def _sub_(self, other):
         r"""
-        Subtract ``other`` from this asymptotic expression.
+        Subtract ``other`` from this asymptotic expansion.
 
         INPUT:
 
-        - ``other`` -- an :class:`AsymptoticExpression`.
+        - ``other`` -- an :class:`AsymptoticExpansion`.
 
         OUTPUT:
 
-        The difference as an :class:`AsymptoticExpression`.
+        The difference as an :class:`AsymptoticExpansion`.
 
         .. NOTE::
 
-            Subtraction of two asymptotic expressions is implemented
+            Subtraction of two asymptotic expansions is implemented
             by means of addition: `e_1 - e_2 = e_1 + (-1)\cdot e_2`.
 
         EXAMPLES::
@@ -887,7 +887,7 @@ class AsymptoticExpression(sage.structure.element.CommutativeAlgebraElement):
 
     def _mul_term_(self, term):
         r"""
-        Helper method: multiply this asymptotic expression with the
+        Helper method: multiply this asymptotic expansion with the
         asymptotic term ``term``.
 
         INPUT:
@@ -897,7 +897,7 @@ class AsymptoticExpression(sage.structure.element.CommutativeAlgebraElement):
 
         OUTPUT:
 
-        The product as an :class:`AsymptoticExpression`.
+        The product as an :class:`AsymptoticExpansion`.
 
         TESTS::
 
@@ -917,15 +917,15 @@ class AsymptoticExpression(sage.structure.element.CommutativeAlgebraElement):
 
     def _mul_(self, other):
         r"""
-        Multiply this asymptotic expression by another asymptotic expression ``other``.
+        Multiply this asymptotic expansion by another asymptotic expansion ``other``.
 
         INPUT:
 
-        - ``other`` -- an :class:`AsymptoticExpression`.
+        - ``other`` -- an :class:`AsymptoticExpansion`.
 
         OUTPUT:
 
-        The product as an :class:`AsymptoticExpression`.
+        The product as an :class:`AsymptoticExpansion`.
 
         EXAMPLES::
 
@@ -949,7 +949,7 @@ class AsymptoticExpression(sage.structure.element.CommutativeAlgebraElement):
 
     def _rmul_(self, other):
         r"""
-        Multiply this asymptotic expression by an element ``other`` of its
+        Multiply this asymptotic expansion by an element ``other`` of its
         coefficient ring.
 
         INPUT:
@@ -958,7 +958,7 @@ class AsymptoticExpression(sage.structure.element.CommutativeAlgebraElement):
 
         OUTPUT:
 
-        An :class:`AsymptoticExpression`.
+        An :class:`AsymptoticExpansion`.
 
         TESTS::
 
@@ -984,11 +984,11 @@ class AsymptoticExpression(sage.structure.element.CommutativeAlgebraElement):
 
         INPUT:
 
-        - ``other`` -- an asymptotic expression.
+        - ``other`` -- an asymptotic expansion.
 
         OUTPUT:
 
-        An asymptotic expression.
+        An asymptotic expansion.
 
         EXAMPLES::
 
@@ -1017,7 +1017,7 @@ class AsymptoticExpression(sage.structure.element.CommutativeAlgebraElement):
 
         OUTPUT:
 
-        An asymptotic expression.
+        An asymptotic expansion.
 
         .. WARNING::
 
@@ -1057,7 +1057,7 @@ class AsymptoticExpression(sage.structure.element.CommutativeAlgebraElement):
 
         max_elem = tuple(self.summands.maximal_elements())
         if len(max_elem) != 1:
-            raise ValueError('Expression %s cannot be inverted since there '
+            raise ValueError('Expansion %s cannot be inverted since there '
                              'are several maximal elements %s.' %
                              (self, ', '.join(str(e) for e in max_elem)))
         max_elem = max_elem[0]
@@ -1087,7 +1087,7 @@ class AsymptoticExpression(sage.structure.element.CommutativeAlgebraElement):
 
     def truncate(self, precision=None):
         r"""
-        Truncate this asymptotic expression.
+        Truncate this asymptotic expansion.
 
         INPUT:
 
@@ -1097,12 +1097,12 @@ class AsymptoticExpression(sage.structure.element.CommutativeAlgebraElement):
 
         OUTPUT:
 
-        An asymptotic expression.
+        An asymptotic expansion.
 
         .. NOTE::
 
-            For example, truncating an asymptotic expression with
-            ``precision=20`` does not yield an expression with exactly 20
+            For example, truncating an asymptotic expansion with
+            ``precision=20`` does not yield an expansion with exactly 20
             summands! Rather than that, it keeps the 20 summands
             with the largest growth, and adds appropriate
             `O`-Terms.
@@ -1140,7 +1140,7 @@ class AsymptoticExpression(sage.structure.element.CommutativeAlgebraElement):
 
     def __pow__(self, exponent, precision=None):
         r"""
-        Calculate the power of this asymptotic expression to the given ``exponent``.
+        Calculate the power of this asymptotic expansion to the given ``exponent``.
 
         INPUT:
 
@@ -1152,7 +1152,7 @@ class AsymptoticExpression(sage.structure.element.CommutativeAlgebraElement):
 
         OUTPUT:
 
-        An asymptotic expression.
+        An asymptotic expansion.
 
         TESTS::
 
@@ -1210,13 +1210,13 @@ class AsymptoticExpression(sage.structure.element.CommutativeAlgebraElement):
 
         elif len(self.summands) == 1:
             element = next(self.summands.elements())
-            if isinstance(exponent, AsymptoticExpression) and element.is_constant():
+            if isinstance(exponent, AsymptoticExpansion) and element.is_constant():
                 return exponent.rpow(base=element.coefficient, precision=precision)
             try:
                 return self.parent()._create_element_via_parent_(
                     element ** exponent, element.parent())
             except (ArithmeticError, TypeError, ValueError):
-                if not isinstance(exponent, AsymptoticExpression):
+                if not isinstance(exponent, AsymptoticExpansion):
                     raise
 
         from sage.rings.integer_ring import ZZ
@@ -1225,7 +1225,7 @@ class AsymptoticExpression(sage.structure.element.CommutativeAlgebraElement):
         except (TypeError, ValueError):
             pass
         else:
-            return super(AsymptoticExpression, self).__pow__(exponent)
+            return super(AsymptoticExpansion, self).__pow__(exponent)
 
         try:
             return (exponent * self.log(precision=precision)).exp(precision=precision)
@@ -1240,7 +1240,7 @@ class AsymptoticExpression(sage.structure.element.CommutativeAlgebraElement):
 
     def O(self):
         r"""
-        Convert all terms in this asymptotic expression to `O`-terms.
+        Convert all terms in this asymptotic expansion to `O`-terms.
 
         INPUT:
 
@@ -1248,7 +1248,7 @@ class AsymptoticExpression(sage.structure.element.CommutativeAlgebraElement):
 
         OUTPUT:
 
-        An asymptotic expression.
+        An asymptotic expansion.
 
         EXAMPLES::
 
@@ -1275,7 +1275,7 @@ class AsymptoticExpression(sage.structure.element.CommutativeAlgebraElement):
 
     def log(self, base=None, precision=None):
         r"""
-        The logarithm of this asymptotic expression.
+        The logarithm of this asymptotic expansion.
 
         INPUT:
 
@@ -1288,17 +1288,17 @@ class AsymptoticExpression(sage.structure.element.CommutativeAlgebraElement):
 
         OUTPUT:
 
-        An asymptotic expression.
+        An asymptotic expansion.
 
         .. NOTE::
 
-            Computing the logarithm of an asymptotic expression
+            Computing the logarithm of an asymptotic expansion
             is possible if and only if there is exactly one maximal
-            summand in the expression.
+            summand in the expansion.
 
         ALGORITHM:
 
-        If the expression has more than one summand,
+        If the expansion has more than one summand,
         the asymptotic expansion for `\log(1+t)` as `t` tends to `0`
         is used.
 
@@ -1372,7 +1372,7 @@ class AsymptoticExpression(sage.structure.element.CommutativeAlgebraElement):
 
     def is_little_o_of_one(self):
         r"""
-        Return if this expression is of order `o(1)`.
+        Return if this expansion is of order `o(1)`.
 
         INPUT:
 
@@ -1409,7 +1409,7 @@ class AsymptoticExpression(sage.structure.element.CommutativeAlgebraElement):
 
     def rpow(self, base, precision=None):
         r"""
-        Return the power of ``base`` to this asymptotic expression.
+        Return the power of ``base`` to this asymptotic expansion.
 
         INPUT:
 
@@ -1421,20 +1421,20 @@ class AsymptoticExpression(sage.structure.element.CommutativeAlgebraElement):
 
         OUTPUT:
 
-        An asymptotic expression.
+        An asymptotic expansion.
 
         ALGORITHM:
 
             The strategy for computing the exponential function is
             as follows:
 
-            - This asymptotic expression is split into a part that
+            - This asymptotic expansion is split into a part that
               is in `o(1)` and the rest.
 
             - The part that is in `o(1)` is expanded according to
               the series expansion of `\exp(t)` for `t \to 0`.
 
-            - The remaining part of the expression is taken exactly.
+            - The remaining part of the expansion is taken exactly.
               In particular, this means that the respective growth
               elements have to be constructed.
 
@@ -1444,7 +1444,7 @@ class AsymptoticExpression(sage.structure.element.CommutativeAlgebraElement):
             sage: (1/x).rpow('e', precision=5)
             1 + x^(-1) + 1/2*x^(-2) + 1/6*x^(-3) + 1/24*x^(-4) + O(x^(-5))
         """
-        if isinstance(base, AsymptoticExpression):
+        if isinstance(base, AsymptoticExpansion):
             return base.__pow__(self, precision=precision)
 
         P = self.parent()
@@ -1505,7 +1505,7 @@ class AsymptoticExpression(sage.structure.element.CommutativeAlgebraElement):
 
     def exp(self, precision=None):
         r"""
-        Return the exponential of (i.e., the power of `e` to) this asymptotic expression.
+        Return the exponential of (i.e., the power of `e` to) this asymptotic expansion.
 
         INPUT:
 
@@ -1515,11 +1515,11 @@ class AsymptoticExpression(sage.structure.element.CommutativeAlgebraElement):
 
         OUTPUT:
 
-        An asymptotic expression.
+        An asymptotic expansion.
 
         .. NOTE::
 
-            The exponential function of this expression can only be
+            The exponential function of this expansion can only be
             computed exactly, if the respective growth element can be
             constructed in the underlying growth group.
 
@@ -1565,7 +1565,7 @@ class AsymptoticExpression(sage.structure.element.CommutativeAlgebraElement):
 class AsymptoticRing(sage.algebras.algebra.Algebra,
                      sage.structure.unique_representation.UniqueRepresentation):
     r"""
-    A ring consisting of :class:`asymptotic expressions <AsymptoticExpression>`.
+    A ring consisting of :class:`asymptotic expansions <AsymptoticExpansion>`.
 
     INPUT:
 
@@ -1575,7 +1575,7 @@ class AsymptoticRing(sage.algebras.algebra.Algebra,
       :class:`~sage.rings.asymptotic.growth_group.GrowthGroupFactory`).
 
     - ``coefficient_ring`` -- the ring which contains the
-      coefficients of the expressions.
+      coefficients of the expansions.
 
     - ``default_prec`` -- a positive integer. This is the number of
       summands that are kept before truncating an infinite series.
@@ -1664,7 +1664,7 @@ class AsymptoticRing(sage.algebras.algebra.Algebra,
     """
 
     # enable the category framework for elements
-    Element = AsymptoticExpression
+    Element = AsymptoticExpansion
 
 
     @staticmethod
@@ -1841,7 +1841,7 @@ class AsymptoticRing(sage.algebras.algebra.Algebra,
 
         This is the parameter used to determine how many summands
         are kept before truncating an infinite series (which occur
-        when inverting asymptotic expressions).
+        when inverting asymptotic expansions).
 
         EXAMPLES::
 
@@ -2043,7 +2043,7 @@ class AsymptoticRing(sage.algebras.algebra.Algebra,
         if type(data) == self.element_class and data.parent() == self:
             return data
 
-        if isinstance(data, AsymptoticExpression):
+        if isinstance(data, AsymptoticExpansion):
             return self.element_class(self, data.summands,
                                       simplify=simplify, convert=convert)
 
@@ -2055,7 +2055,7 @@ class AsymptoticRing(sage.algebras.algebra.Algebra,
             if not all(isinstance(elem, GenericTerm) for elem in data):
                 raise TypeError('Not all list entries of %s '
                                 'are asymptotic terms, so cannot create an '
-                                'asymptotic expression in %s.' % (data, self))
+                                'asymptotic expansion in %s.' % (data, self))
             summands = AsymptoticRing._create_empty_summands_()
             summands.union_update(data)
             return self.element_class(self, summands,
@@ -2106,7 +2106,7 @@ class AsymptoticRing(sage.algebras.algebra.Algebra,
 
         elif sage.rings.power_series_ring.is_PowerSeriesRing(P):
             raise NotImplementedError(
-                'Cannot convert %s from the %s to an asymptotic expression '
+                'Cannot convert %s from the %s to an asymptotic expansion '
                 'in %s, since growths at other points than +oo are not yet '
                 'supported.' % (data, P, self))
             # Delete lines above as soon as we can deal with growths
@@ -2142,7 +2142,7 @@ class AsymptoticRing(sage.algebras.algebra.Algebra,
 
         OUTPUT:
 
-        An asymptotic expression.
+        An asymptotic expansion.
 
         TESTS::
 
@@ -2165,7 +2165,7 @@ class AsymptoticRing(sage.algebras.algebra.Algebra,
             pass
 
         raise ValueError('Cannot convert %s to an exact summand in an '
-                         'asymptotic expression in %s.' % (data, self))
+                         'asymptotic expansion in %s.' % (data, self))
 
 
     def _coerce_map_from_(self, R):
@@ -2256,7 +2256,7 @@ class AsymptoticRing(sage.algebras.algebra.Algebra,
 
         OUTPUT:
 
-        An :class:`AsymptoticExpression`.
+        An :class:`AsymptoticExpansion`.
 
         EXAMPLES::
 
@@ -2324,7 +2324,7 @@ class AsymptoticRing(sage.algebras.algebra.Algebra,
 
         OUTPUT:
 
-        A tuple of asymptotic expressions.
+        A tuple of asymptotic expansions.
 
         .. NOTE::
 
@@ -2358,7 +2358,7 @@ class AsymptoticRing(sage.algebras.algebra.Algebra,
 
         OUTPUT:
 
-        An asymptotic expression.
+        An asymptotic expansion.
 
         EXAMPLES::
 
@@ -2392,7 +2392,7 @@ class AsymptoticRing(sage.algebras.algebra.Algebra,
 
     def create_summand(self, type, data=None, **kwds):
         r"""
-        Create a simple asymptotic expression consisting of a single
+        Create a simple asymptotic expansion consisting of a single
         summand.
 
         INPUT:
@@ -2412,7 +2412,7 @@ class AsymptoticRing(sage.algebras.algebra.Algebra,
 
         OUTPUT:
 
-        An asymptotic expression.
+        An asymptotic expansion.
 
         .. NOTE::
 

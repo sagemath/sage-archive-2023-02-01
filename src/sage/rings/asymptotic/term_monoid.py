@@ -1123,6 +1123,11 @@ class GenericTerm(sage.structure.element.MonoidElement):
         return 'Generic Term with growth ' + repr(self.growth)
 
 
+    def _substitute_(self, rules, domain):
+        raise NotImplementedError('Cannot substitute in %s in the abstract '
+                                  'base class %s.' % (self, self.parent()))
+
+
 class GenericTermMonoid(sage.structure.unique_representation.UniqueRepresentation,
                         sage.structure.parent.Parent):
     r"""
@@ -2037,6 +2042,40 @@ class OTerm(GenericTerm):
             return ExactTermMonoid(P.growth_group, P.coefficient_ring).one()
         raise ValueError('Cannot take %s to the exponent %s in %s' %
                          (base, self, self.parent()))
+
+
+    def _substitute_(self, rules, domain):
+        try:
+            g = self.growth._substitute_(rules, domain)
+        except (ArithmeticError, NotImplementedError,
+                TypeError, ValueError) as e:
+            from misc import substitute_raise_exception
+            substitute_raise_exception(self, e, rules, domain)
+
+        try:
+            return rules['O'](g)
+        except KeyError:
+            pass
+
+        from asymptotic_ring import AsymptoticRing
+        if isinstance(g.parent(), AsymptoticRing):
+            return g.O()
+
+        elif isinstance(g.parent(), sage.symbolic.ring.SR):
+            return g.Order()
+
+        elif domain is sage.symbolic.ring.SR:
+            try:
+                return domain(g).Order()
+            except (TypeError, ValueError) as e:
+                from misc import substitute_raise_exception
+                substitute_raise_exception(self, e, rules, domain)
+
+        try:
+            return sage.rings.big_oh.O(g)
+        except (TypeError, ValueError) as e:
+            from misc import substitute_raise_exception
+            substitute_raise_exception(self, e, rules, domain)
 
 
 class OTermMonoid(GenericTermMonoid):
@@ -3045,6 +3084,23 @@ class ExactTerm(TermWithCoefficient):
         elem = P._create_element_via_parent_(
             self.growth.rpow(base), P.coefficient_ring.one())
         return elem ** self.coefficient
+
+
+    def _substitute_(self, rules, domain):
+        try:
+            g = self.growth._substitute_(rules, domain)
+        except (ArithmeticError, NotImplementedError,
+                TypeError, ValueError) as e:
+            from misc import substitute_raise_exception
+            substitute_raise_exception(self, e, rules, domain)
+
+        c = self.coefficient
+
+        try:
+            return c * g
+        except (TypeError, ValueError) as e:
+            from misc import substitute_raise_exception
+            substitute_raise_exception(self, e, rules, domain)
 
 
 class ExactTermMonoid(TermWithCoefficientMonoid):

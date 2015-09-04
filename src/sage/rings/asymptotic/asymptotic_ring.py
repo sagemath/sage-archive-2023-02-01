@@ -1566,6 +1566,104 @@ class AsymptoticExpansion(sage.structure.element.CommutativeAlgebraElement):
         return self.rpow('e', precision=precision)
 
 
+    def substitute(self, rules=None, domain=None, **kwds):
+        r"""
+        EXAMPLES::
+
+            sage: A.<x> = AsymptoticRing(growth_group='(e^x)^QQ * x^ZZ * log(x)^ZZ', coefficient_ring=QQ, default_prec=5)
+
+        ::
+
+            sage: (e^x * x^2 + log(x)).subs(x=SR('s'))
+            s^2*e^s + log(s)
+            sage: _.parent()
+            Symbolic Ring
+
+        ::
+
+            sage: (x^3 + x + log(x)).subs(x=x+5).truncate(5)
+            x^3 + 15*x^2 + 76*x + log(x) + 130 + O(x^(-1))
+            sage: _.parent()
+            Asymptotic Ring <(e^x)^QQ * x^ZZ * log(x)^ZZ> over Rational Field
+
+        ::
+
+            sage: (e^x * x^2 + log(x)).subs(x=2*x)
+            4*(e^x)^2*x^2 + log(x) + log(2)
+            sage: _.parent()
+            Asymptotic Ring <(e^x)^QQ * x^QQ * log(x)^QQ> over Symbolic Ring
+
+        ::
+
+            sage: (x^2 + log(x)).subs(x=4*x+2).truncate(5)
+            16*x^2 + 16*x + log(x) + log(4) + 4 + 1/2*x^(-1) + O(x^(-2))
+            sage: _.parent()
+            Asymptotic Ring <(e^x)^QQ * x^ZZ * log(x)^ZZ> over Symbolic Ring
+
+        ::
+
+            sage: (e^x * x^2 + log(x)).subs(x=RIF(pi))
+            229.534211738584?
+            sage: _.parent()
+            Real Interval Field with 53 bits of precision
+        """
+        if not rules and not kwds:
+            return self
+
+        gens = self.parent().gens()
+        locals = dict((str(g), g) for g in gens)
+
+        if isinstance(rules, dict):
+            locals.update(rules)
+        elif rules is not None:
+            raise TypeError('Substitution rules %s have to be a dictionary.' %
+                            (rules,))
+
+        if kwds:
+            gens_str = tuple(str(g) for g in gens)
+            for k, v in kwds.iteritems():
+                k = str(k)
+                if k not in gens_str:
+                    raise ValueError('Cannot substitute %s by %s in %s '
+                                     'since it is not a generator of %s.' %
+                                     (k, v, self, self.parent()))
+                locals[k] = v
+
+        if domain is None:
+            P = self.parent()
+            for g in gens:
+                G = locals[str(g)].parent()
+                if G is not P:
+                    domain = G
+                    break
+            else:
+                domain = P
+
+        try:
+            return self._substitute_(locals, domain)
+        except TypeError as e:
+            from misc import combine_exceptions
+            raise combine_exceptions(
+                TypeError('Cannot apply the substitution rules %s at %s '
+                          'in %s.' % (locals, self, self.parent())), e)
+
+
+    subs = substitute
+
+
+    def _substitute_(self, rules, domain):
+        if not self.summands:
+            return domain.zero()
+        from sage.symbolic.operators import add_vararg
+        try:
+            return add_vararg(
+                *tuple(s._substitute_(rules, domain)
+                       for s in self.summands.elements_topological()))
+        except (ArithmeticError, NotImplementedError,
+                TypeError, ValueError) as e:
+            from misc import substitute_raise_exception
+            substitute_raise_exception(self, e, rules, domain)
+
 
 class AsymptoticRing(sage.algebras.algebra.Algebra,
                      sage.structure.unique_representation.UniqueRepresentation):

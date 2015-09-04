@@ -301,6 +301,12 @@ def combine_exceptions(e, *f):
     return e
 
 
+def substitute_raise_exception(self, e, rules, domain):
+    raise combine_exceptions(
+        TypeError('Cannot substitute in %s in %s.' %
+                  (self, self.parent())), e)
+
+
 def underlying_class(P):
     r"""
     Return the underlying class (class without the attached

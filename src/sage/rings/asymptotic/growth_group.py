@@ -559,6 +559,16 @@ class Variable(sage.structure.unique_representation.CachedRepresentation,
         return tuple(vars)
 
 
+    def _substitute_(self, rules, domain):
+        from sage.misc.sage_eval import sage_eval
+        try:
+            return sage_eval(self.var_repr, locals=rules)
+        except (ArithmeticError, NotImplementedError,
+                TypeError, ValueError) as e:
+            from misc import substitute_raise_exception
+            substitute_raise_exception(self, e, rules, domain)
+
+
 def is_lt_one(self):
     r"""
     Return if this element is less than `1`.
@@ -1290,6 +1300,13 @@ class GenericGrowthElement(sage.structure.element.MultiplicativeGroupElement):
 
 
     is_lt_one = is_lt_one
+
+
+    def _substitute_(self, rules, domain):
+        if self.is_one():
+            return domain.one()
+        raise NotImplementedError('Cannot substitute in %s in the abstract '
+                                  'base class %s.' % (self, self.parent()))
 
 
 class GenericGrowthGroup(
@@ -2507,6 +2524,17 @@ class MonomialGrowthElement(GenericGrowthElement):
         return self.exponent <= other.exponent
 
 
+    def _substitute_(self, rules, domain):
+        if self.is_one():
+            return domain.one()
+        try:
+            return self.parent()._var_._substitute_(rules, domain) ** self.exponent
+        except (ArithmeticError, NotImplementedError,
+                TypeError, ValueError) as e:
+            from misc import substitute_raise_exception
+            substitute_raise_exception(self, e, rules, domain)
+
+
 class MonomialGrowthGroup(GenericGrowthGroup):
     r"""
     A growth group dealing with powers of a fixed object/symbol.
@@ -3088,6 +3116,17 @@ class ExponentialGrowthElement(GenericGrowthElement):
             True
         """
         return bool(abs(self.base) <= abs(other.base))
+
+
+    def _substitute_(self, rules, domain):
+        if self.is_one():
+            return domain.one()
+        try:
+            return self.base ** self.parent()._var_._substitute_(rules, domain)
+        except (ArithmeticError, NotImplementedError,
+                TypeError, ValueError) as e:
+            from misc import substitute_raise_exception
+            substitute_raise_exception(self, e, rules, domain)
 
 
 class ExponentialGrowthGroup(GenericGrowthGroup):

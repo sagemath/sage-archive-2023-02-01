@@ -1884,6 +1884,9 @@ class AsymptoticRing(sage.algebras.algebra.Algebra,
         for parameter in parameters:
             values[parameter] = kwds.get(parameter, getattr(self, parameter))
         values['category'] = self.category()
+        if isinstance(values['growth_group'], str):
+            from growth_group import GrowthGroup
+            values['growth_group'] = GrowthGroup(values['growth_group'])
         if all(values[parameter] is getattr(self, parameter)
                for parameter in parameters) and values['category'] is self.category():
             return self

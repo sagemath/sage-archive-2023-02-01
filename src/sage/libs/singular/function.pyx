@@ -1152,8 +1152,8 @@ cdef class KernelCallHandler(BaseCallHandler):
         """
         return True
 
-# The Sage ring used in the last call of SingularFunction instances.
-cdef object last_ring
+# The Sage ring used as a dummy for singular function calls.
+cdef object dummy_ring
 
 cdef class SingularFunction(SageObject):
     """
@@ -1174,8 +1174,6 @@ cdef class SingularFunction(SageObject):
             sage: SingularFunction('foobar')
             foobar (singular function)
         """
-        global last_ring
-
         self._name = name
         global currRingHdl
         if currRingHdl == NULL:
@@ -1183,9 +1181,6 @@ cdef class SingularFunction(SageObject):
             if currRingHdl == NULL:
                 currRingHdl = enterid("my_awesome_sage_ring", 0, RING_CMD, &IDROOT, 1)
             currRingHdl.data.uring.ref += 1
-        if last_ring == None:
-            from sage.all import QQ, PolynomialRing
-            last_ring = PolynomialRing(QQ,2,names='x,y') # seems a reasonable default
 
     cdef BaseCallHandler get_call_handler(self):
         """
@@ -1226,8 +1221,8 @@ cdef class SingularFunction(SageObject):
           attributes assigned to Singular objects (default: ``None``)
 
         If ``ring`` is not specified, it is guessed from the given arguments.
-        If this is not possible, then the ring in the last call of a Singular
-        function is used.
+        If this is not possible, then a dummy ring, univariate polynomial ring
+        over ``QQ``, is used.
 
         EXAMPLE::
 
@@ -1307,19 +1302,20 @@ cdef class SingularFunction(SageObject):
             sage: triangL(G,attributes={G:{'isSB':1}})
             [[e + d + c + b + a, ...]]
         """
-        global last_ring
+        global dummy_ring
         
         if ring is None:
             ring = self.common_ring(args, ring)
             if ring is None:
-                ring = last_ring
+                if dummy_ring is None:
+                    from sage.all import QQ, PolynomialRing
+                    dummy_ring = PolynomialRing(QQ,"dummy",1) # seems a reasonable default                       dummy_ring = 
+                ring = dummy_ring
             else:
                 if isinstance(ring, MPolynomialRing_libsingular) or isinstance(ring, NCPolynomialRing_plural):
                     last_ring = ring
                 else:
                     raise TypeError("Cannot call Singular function '%s' with ring parameter of type '%s'"%(self._name,type(ring)))
-        else:
-            last_ring = ring
         return call_function(self, args, ring, interruptible, attributes)
 
     def _sage_doc_(self):
@@ -1353,8 +1349,8 @@ INPUT:
   assigned to Singular objects (default: ``None``)
 
 If ``ring`` is not specified, it is guessed from the given arguments.
-If this is not possible, then the ring in the last call of a Singular
-function is used.
+If this is not possible, then a dummy ring, univariate polynomial ring
+over ``QQ``, is used.
 
 EXAMPLES::
 

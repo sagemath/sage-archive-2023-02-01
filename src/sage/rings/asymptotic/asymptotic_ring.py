@@ -2,11 +2,11 @@ r"""
 Asymptotic Ring
 
 This module provides a ring (called :class:`AsymptoticRing`) for
-computations with asymptotic expansions.
+computations with :wikipedia:`asymptotic expansions <Asymptotic_expansion>`.
 
 
-Definition
-==========
+(Informal) Definition
+=====================
 
 An asymptotic expansion is a sum such as
 
@@ -14,13 +14,17 @@ An asymptotic expansion is a sum such as
 
     5z^3 + 4z^2 + O(z)
 
-or
+as `z \to \infty` or
 
 .. MATH::
 
     3x^{42}y^2 + 7x^3y^3 + O(x^2) + O(y)
 
-Its summands are the following:
+as `x` and `y` tend to `\infty`. It is a truncated series (after a
+finite number of terms), which approximates a function.
+
+The summands of the asymptotic expansions are partially ordered. In
+this module these summands are the following:
 
 - Exact terms `c\cdot g` with a coefficient `c` and an element `g` of
   an growth group (:ref:`see below <asymptotic_ring_growth>`).
@@ -29,10 +33,11 @@ Its summands are the following:
   also called *Bachmann--Landau notation*) for growth group
   element `g` (:ref:`again see below <asymptotic_ring_growth>`).
 
+See :wikipedia:`Asymptotic_expansion` for more details.
 Further examples of such elements can be found :ref:`here <asymptotic_ring_intro>`.
 
-.. _asymptotic_ring_growth:
 
+.. _asymptotic_ring_growth:
 
 Growth Elements
 ---------------

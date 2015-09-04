@@ -482,9 +482,9 @@ class FullyPackedLoop(Element):
         elif isinstance(generator, SquareIceModel.Element):
             self._six_vertex_model = generator
 
-        self.end_points = self._end_point_dictionary()
+        #self.end_points = self._end_point_dictionary()
         self.configuration = matrix(list(self._six_vertex_model))
-        self._n = len(self.end_points)/2
+        self._n = len(self._end_point_dictionary())/2
         Element.__init__(self, parent)
 
     def _repr_(self):
@@ -620,7 +620,8 @@ class FullyPackedLoop(Element):
             sage: FullyPackedLoop(M) == M
             False
         """
-        return repr(self) == repr(other) and self.end_points == self.end_points\
+        return repr(self) == repr(other) and \
+        self._end_point_dictionary() == other._end_point_dictionary()\
         and self._six_vertex_model == other._six_vertex_model
 
     def to_alternating_sign_matrix(self):
@@ -974,7 +975,7 @@ class FullyPackedLoop(Element):
 
         """
         link_pattern = []
-        boundary_d = self.end_points.copy()
+        boundary_d = self._end_point_dictionary().copy()
         vertices_d = self._vertex_dictionary()
 
         while len(boundary_d) > 2:
@@ -1063,7 +1064,7 @@ class FullyPackedLoop(Element):
             for j in range(n):
                 vertices[(i, j)] = 0
 
-        for end, vertex in self.end_points.iteritems():
+        for end, vertex in self._end_point_dictionary().iteritems():
             vertices[vertex] = end
 
         return vertices

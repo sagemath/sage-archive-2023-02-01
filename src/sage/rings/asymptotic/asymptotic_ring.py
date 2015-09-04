@@ -180,7 +180,12 @@ expand `1/(1-z)` to a geometric series::
     z^(-1) + z^(-2) + z^(-3) + z^(-4) + ... + z^(-20) + O(z^(-21))
 
 Since there is a default precision (parameter ``default_prec``)
-defined, only the first `20` summands are calculated.
+defined, only the first `20` summands are calculated. However, if we
+only want the first `5` exact terms, we cut of the rest by using
+::
+
+    sage: (1 / (z-1)).truncate(5)
+    z^(-1) + z^(-2) + z^(-3) + z^(-4) + z^(-5) + O(z^(-6))
 
 Of course, we can work with more complicated expressions as well::
 

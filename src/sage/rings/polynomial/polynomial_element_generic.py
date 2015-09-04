@@ -242,7 +242,7 @@ class Polynomial_generic_sparse(Polynomial):
 
         .. NOTE::
 
-            The integral is always chosen so the constant term is 0.
+            The integral is always chosen so that the constant term is 0.
 
         EXAMPLES::
 

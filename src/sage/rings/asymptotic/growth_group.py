@@ -3403,6 +3403,19 @@ class GrowthGroupFactory(sage.structure.factory.UniqueFactory):
 
     TESTS::
 
+        sage: G = GrowthGroup('(e^(n*log(n)))^ZZ')
+        sage: G, G._var_
+        (Growth Group (e^(n*log(n)))^ZZ, e^(n*log(n)))
+        sage: G = GrowthGroup('(e^n)^ZZ')
+        sage: G, G._var_
+        (Growth Group (e^n)^ZZ, e^n)
+        sage: G = GrowthGroup('(e^(n*log(n)))^ZZ * (e^n)^ZZ * n^ZZ * log(n)^ZZ')
+        sage: G, tuple(F._var_ for F in G.cartesian_factors())
+        (Growth Group (e^(n*log(n)))^ZZ * (e^n)^ZZ * n^ZZ * log(n)^ZZ,
+         (e^(n*log(n)), e^n, n, log(n)))
+
+    TESTS::
+
         sage: TestSuite(GrowthGroup('x^ZZ')).run(verbose=True)  # long time
         running ._test_an_element() . . . pass
         running ._test_associativity() . . . pass

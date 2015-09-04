@@ -544,7 +544,8 @@ class Variable(sage.structure.unique_representation.CachedRepresentation,
             # else: a variable
             if not isidentifier(s):
                 raise ValueError("'%s' is not a valid name for a variable." % (s,))
-            vars.append(s)
+            if s not in vars:
+                vars.append(s)
 
         strip(s)
         return tuple(vars)

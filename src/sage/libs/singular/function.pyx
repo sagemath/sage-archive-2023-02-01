@@ -1309,7 +1309,7 @@ cdef class SingularFunction(SageObject):
             if ring is None:
                 if dummy_ring is None:
                     from sage.all import QQ, PolynomialRing
-                    dummy_ring = PolynomialRing(QQ,"dummy",1) # seems a reasonable default                       dummy_ring = 
+                    dummy_ring = PolynomialRing(QQ,"dummy",1) # seems a reasonable default
                 ring = dummy_ring
         if not (isinstance(ring, MPolynomialRing_libsingular) or isinstance(ring, NCPolynomialRing_plural)):
             raise TypeError("Cannot call Singular function '%s' with ring parameter of type '%s'"%(self._name,type(ring)))

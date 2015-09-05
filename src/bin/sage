@@ -771,35 +771,23 @@ fi
 install() {
     maybe_sage_location
 
-    mkdir -p "$SAGE_LOGS"
     for PKG in "$@"
     do
         # Check for options
         case "$PKG" in
-            -f) OPTF="-f"
-                continue;;
-            -m) OPTS="-s"
-                echo >&2 "Warning: the -m option is deprecated since Sage 5.0.  Use -s instead."
-                continue;;
-            -s) OPTS="-s"
-                continue;;
-            -c) OPTC="-c"
-                continue;;
-            --check) OPTC="-c"
-                continue;;
-            -info) OPTINFO="--info"
-                continue;;
-            --info) OPTINFO="--info"
-                continue;;
-            -*) echo >&2 "Error: unknown option '$PKG'"
+            -info)
+                echo >&2 "Error: 'sage -i -info <package>' is no longer supported, use 'sage --info <package>' instead."
                 exit 2;;
+            -*)
+                INSTALL_OPTIONS="$INSTALL_OPTIONS $PKG"
+                continue;;
         esac
 
         PKG_NAME=`echo "$PKG" | sed -e "s/\.spkg$//"`
         PKG_NAME=`basename "$PKG_NAME"`
 
         sage-logger \
-            "sage-spkg $OPTINFO $OPTF $OPTS $OPTC '$PKG'" "$SAGE_LOGS/$PKG_NAME.log"
+            "sage-spkg $INSTALL_OPTIONS '$PKG'" "$SAGE_LOGS/$PKG_NAME.log"
         # Do not try to install further packages if one failed
         if [ $? -ne 0 ]; then
             exit 1

@@ -629,6 +629,10 @@ class FullyPackedLoop(Element):
         """
         Returns the alternating sign matrix corresponding to this class.
 
+        .. SEEALSO::
+
+            :class:AlternatingSignMatrix
+
         EXAMPLES::
 
             sage: A = AlternatingSignMatrix([[0, 1, 0], [1, -1, 1], [0, 1, 0]])

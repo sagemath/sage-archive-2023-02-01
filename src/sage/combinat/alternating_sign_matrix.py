@@ -308,7 +308,7 @@ class AlternatingSignMatrix(Element):
         number of the permutation.
 
         This definition is equivalent to the one given in [MiRoRu]_.
-        
+
         EXAMPLES::
 
             sage: A = AlternatingSignMatrices(3)
@@ -495,6 +495,10 @@ class AlternatingSignMatrix(Element):
     def to_fully_packed_loop(self):
         r"""
         Return the fully packed loop configuration from ``self``.
+
+        .. SEEALSO::
+
+            :class:FullyPackedLoop
 
         EXAMPLES::
 

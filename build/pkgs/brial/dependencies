@@ -1,4 +1,4 @@
-$(INST)/$(BOOST_CROPPED) $(INST)/$(M4RI) $(INST)/$(LIBPNG)
+$(INST)/$(BOOST_CROPPED) $(INST)/$(M4RI) $(INST)/$(LIBPNG) $(INST)/$(PKGCONF)
 
 ----------
 All lines of this file are ignored except the first.

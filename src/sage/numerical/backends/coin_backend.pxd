@@ -125,6 +125,10 @@ cdef extern from "coin/OsiSolverInterface.hpp":
         # Enable Simplex
         void enableSimplexInterface(bool doingPrimal)
 
+        # Get tableau
+        void getBInvARow(int row, double* z, double * slack)
+        void getBInvACol(int col, double* vec)
+
 cdef extern from "coin/CbcModel.hpp":
      cdef cppclass CbcModel:
          # default constructor
@@ -183,3 +187,5 @@ cdef class CoinBackend(GenericBackend):
     cpdef CoinBackend copy(self)
     cpdef get_basis_status(self)
     cpdef int set_basis_status(self, list cstat, list rstat) except -1
+    cpdef get_binva_row(self, int i)
+    cpdef get_binva_col(self, int j)

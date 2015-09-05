@@ -789,7 +789,7 @@ cdef class CoinBackend(GenericBackend):
 
         .. NOTE::
 
-           Has no meaning unless ``solve`` has been called before.
+           Has no meaning unless ``solve`` or ``set_basis_status`` has been called before.
 
         EXAMPLE::
 
@@ -816,7 +816,7 @@ cdef class CoinBackend(GenericBackend):
 
         .. NOTE::
 
-           Has no meaning unless ``solve`` has been called before.
+           Has no meaning unless ``solve`` or ``set_basis_status`` has been called before.
 
         EXAMPLE::
 
@@ -1233,6 +1233,9 @@ cdef class CoinBackend(GenericBackend):
             coefficients, so for a <= constraint the logical will be at lower
             bound if the constraint is tight.
 
+            Behaviour is undefined unless ``solve`` or ``set_basis_status`` 
+            has been called before.
+
 
         EXAMPLE::
 
@@ -1240,8 +1243,8 @@ cdef class CoinBackend(GenericBackend):
             sage: p = get_solver(solver = "Coin")                 # optional - cbc
             sage: p.add_variables(2)                              # optional - cbc
             1
-            sage: p.add_linear_constraint([(0, 2), (1, 3)], 0, 6) # optional - cbc
-            sage: p.add_linear_constraint([(0, 3), (1, 2)], 0, 6) # optional - cbc
+            sage: p.add_linear_constraint([(0, 2), (1, 3)], None, 6) # optional - cbc
+            sage: p.add_linear_constraint([(0, 3), (1, 2)], None, 6) # optional - cbc
             sage: p.set_objective([1, 1], 7)                      # optional - cbc
             sage: p.solve()                                       # optional - cbc
             0
@@ -1251,13 +1254,13 @@ cdef class CoinBackend(GenericBackend):
             sage: p = get_solver(solver = "Coin")                  # optional - cbc
             sage: p.add_variables(2)                               # optional - cbc
             1
-            sage: p.add_linear_constraint([(0, 2), (1, -3)], 0, 6) # optional - cbc
-            sage: p.add_linear_constraint([(0, 3), (1, 2)], 0, 6)  # optional - cbc
+            sage: p.add_linear_constraint([(0, 2), (1, -3)], None, 6) # optional - cbc
+            sage: p.add_linear_constraint([(0, 3), (1, 2)], None, 6)  # optional - cbc
             sage: p.set_objective([1, 1])                          # optional - cbc
             sage: p.solve()
             0
             sage: p.get_basis_status()                             # optional - cbc
-            ([1, 1], [2, 3])
+            ([3, 1], [1, 3])
 
             sage: p = get_solver(solver = "Coin")                 # optional - cbc
             sage: p.add_variables(3)                              # optional - cbc
@@ -1270,6 +1273,7 @@ cdef class CoinBackend(GenericBackend):
             0
             sage: p.get_basis_status()                            # optional - cbc
             ([1, 3, 1], [1, 3, 3])
+
 
             sage: lp = MixedIntegerLinearProgram(solver='Coin')   # optional - cbc
             sage: v = lp.new_variable(nonnegative=True)           # optional - cbc
@@ -1345,8 +1349,8 @@ cdef class CoinBackend(GenericBackend):
             sage: p = get_solver(solver = "Coin")                  # optional - cbc
             sage: p.add_variables(2)                               # optional - cbc
             1
-            sage: p.add_linear_constraint([(0, 2), (1, -3)], 0, 6) # optional - cbc
-            sage: p.add_linear_constraint([(0, 3), (1, 2)], 0, 6)  # optional - cbc
+            sage: p.add_linear_constraint([(0, 2), (1, -3)], None, 6) # optional - cbc
+            sage: p.add_linear_constraint([(0, 3), (1, 2)], None, 6)  # optional - cbc
             sage: p.set_objective([1, 1])                          # optional - cbc
 
             sage: p.set_basis_status([3, 3], [1, 1])               # optional - cbc
@@ -1357,12 +1361,12 @@ cdef class CoinBackend(GenericBackend):
             0
             sage: p.get_objective_value()                          # optional - cbc
             2.0
-            sage: p.set_basis_status([1, 1], [2, 3])               # optional - cbc
+            sage: p.set_basis_status([3, 1], [1, 3])               # optional - cbc
             0
             sage: p.get_objective_value()                          # optional - cbc
-            2.3076923076923075
+            3.0
             sage: p.get_basis_status()                             # optional - cbc
-            ([1, 1], [2, 3])
+            ([3, 1], [1, 3])
 
             sage: p = get_solver(solver = "Coin")                 # optional - cbc
             sage: p.add_variables(3)                              # optional - cbc
@@ -1372,8 +1376,9 @@ cdef class CoinBackend(GenericBackend):
             sage: p.add_linear_constraint(zip([0, 1, 2], [2, 1.5, 0.5]), None, 8)       # optional - cbc
             sage: p.set_objective([60, 30, 20])                   # optional - cbc
             sage: p.set_basis_status([3, 3, 3], [1, 1, 1])        # optional - cbc
-            sage: p.get_objective_value()                         # optional - cbc
             0
+            sage: p.get_objective_value()                         # optional - cbc
+            0.0
             sage: p.set_basis_status([1, 3, 3], [1, 1, 3])        # optional - cbc
             0
             sage: p.get_objective_value()                         # optional - cbc
@@ -1434,3 +1439,131 @@ cdef class CoinBackend(GenericBackend):
         finally:
             sage_free(c_cstat)
             sage_free(c_rstat)
+
+    cpdef get_binva_row(self, int i):
+        """
+        Return the i-th row of the tableau and the slacks.
+
+        .. NOTE::
+
+           Has no meaning unless ``solve`` or ``set_basis_status`` 
+           has been called before.
+
+        EXAMPLES::
+
+            sage: from sage.numerical.backends.generic_backend import get_solver
+
+            sage: p = get_solver(solver = "Coin")                  # optional - cbc
+            sage: p.add_variables(2)                               # optional - cbc
+            1
+            sage: p.add_linear_constraint([(0, 2), (1, -3)], None, 6) # optional - cbc
+            sage: p.add_linear_constraint([(0, 3), (1, 2)], None, 6)  # optional - cbc
+            sage: p.set_objective([1, 1])                          # optional - cbc
+
+            sage: p.set_basis_status([3, 3], [1, 1])               # optional - cbc
+            0
+            sage: p.get_binva_row(0)                               # optional - cbc
+            ([2.0, -3.0], [1.0, 0.0])
+            sage: p.get_binva_row(1)                               # optional - cbc
+            ([3.0, 2.0], [0.0, 1.0])
+
+            sage: p.set_basis_status([1, 3], [1, 3])               # optional - cbc
+            0
+            sage: p.get_binva_row(0)                               # optional - cbc
+            ([0.0, -4.333333333333333], [1.0, -0.6666666666666666])
+            sage: p.get_binva_row(1)                               # optional - cbc
+            ([1.0, 0.6666666666666666], [0.0, 0.3333333333333333])
+
+            sage: p.set_basis_status([3, 1], [1, 3])               # optional - cbc
+            0
+            sage: p.get_binva_row(0)                               # optional - cbc
+            ([6.5, 0.0], [1.0, 1.5])
+            sage: p.get_binva_row(1)                               # optional - cbc
+            ([1.5, 1.0], [0.0, 0.5])
+
+        """
+        cdef int n = self.model.solver().getNumCols()
+        cdef int m = self.model.solver().getNumRows()
+        if i < 0 or i >= m:
+            raise ValueError("i = %s. The i-th row of the tableau doesn't exist" % i)
+        
+        cdef double * c_slack = <double *>sage_malloc(m * sizeof(double))
+        cdef double * c_z = <double *>sage_malloc(n * sizeof(double))
+        cdef list slack
+        cdef list ithrow
+        # enableSimplexInterface must be set to use getBasisStatus().
+        # See projects.coin-or.org/Osi/ticket/84
+        self.model.solver().enableSimplexInterface(True)
+        try:
+            sig_on()            # To catch SIGABRT
+            self.model.solver().getBInvARow(i, c_z, c_slack)
+            sig_off()
+        except RuntimeError:    # corresponds to SIGABRT
+            raise MIPSolverException('CBC : Signal sent, getBinvARow() fails')
+        else:
+            slack = [c_slack[j] for j in range(m)]
+            ithrow = [c_z[j] for j in range(n)]
+            return (ithrow, slack)
+        finally:
+            sage_free(c_slack)
+            sage_free(c_z)
+
+    cpdef get_binva_col(self, int j):
+        """
+        Return the j-th column of the tableau.
+       
+        EXAMPLES::
+
+            sage: from sage.numerical.backends.generic_backend import get_solver
+
+            sage: p = get_solver(solver = "Coin")                  # optional - cbc
+            sage: p.add_variables(2)                               # optional - cbc
+            1
+            sage: p.add_linear_constraint([(0, 2), (1, -3)], None, 6) # optional - cbc
+            sage: p.add_linear_constraint([(0, 3), (1, 2)], None, 6)  # optional - cbc
+            sage: p.set_objective([1, 1])                          # optional - cbc
+
+            sage: p.set_basis_status([3, 3], [1, 1])               # optional - cbc
+            0
+            sage: p.get_binva_col(0)                               # optional - cbc
+            [2.0, 3.0]
+            sage: p.get_binva_col(1)                               # optional - cbc
+            [-3.0, 2.0]
+
+            sage: p.set_basis_status([1, 3], [1, 3])               # optional - cbc
+            0
+            sage: p.get_binva_col(0)                               # optional - cbc
+            [-0.0, 1.0]
+            sage: p.get_binva_col(1)                               # optional - cbc
+            [-4.333333333333333, 0.6666666666666666]
+
+            sage: p.set_basis_status([3, 1], [1, 3])               # optional - cbc
+            0
+            sage: p.get_binva_col(0)                               # optional - cbc
+            [6.5, 1.5]
+            sage: p.get_binva_col(1)                               # optional - cbc
+            [-0.0, 1.0]
+        """
+        cdef int n = self.model.solver().getNumCols()
+        cdef int m = self.model.solver().getNumRows()
+        if j < 0 or j >= n + m:
+            # it seems that when n <= j < m+n,
+            # getBInvACol(j) is getBinvCol(j-n) 
+            raise ValueError("j = %s. The j-th column of the tableau doesn't exist" % j)
+
+        cdef double * c_vec = <double *>sage_malloc(m * sizeof(double))
+        cdef list jthcol
+        # enableSimplexInterface must be set to use getBasisStatus().
+        # See projects.coin-or.org/Osi/ticket/84
+        self.model.solver().enableSimplexInterface(True)
+        try:
+            sig_on()            # To catch SIGABRT
+            self.model.solver().getBInvACol(j, c_vec)
+            sig_off()
+        except RuntimeError:    # corresponds to SIGABRT
+            raise MIPSolverException('CBC : Signal sent, getBinvACol() fails')
+        else:
+            jthcol = [c_vec[i] for i in range(m)]
+            return jthcol
+        finally:
+            sage_free(c_vec)

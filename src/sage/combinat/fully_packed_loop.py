@@ -29,6 +29,11 @@ class FullyPackedLoop(Element):
     boundary [Propp2001]_.
 
     They are known to be in bijection with alternating sign matrices.
+    [TODO]
+
+    .. SEEALSO::
+
+        :class:`AlternatingSignMatrix`
 
     To each fully packed loop, we assign a link pattern, which is the non-crossing
     matching attained by seeing which points on the boundary are connected
@@ -399,7 +404,7 @@ class FullyPackedLoop(Element):
 
     .. [Striker2015] Jessica Striker
        *The toggle group, homomesy, and the Razumov-Stroganov correspondence*
-       :arxiv:`abs/1503.08898`
+       :arxiv:`arXiv:1503.08898`
     """
     __metaclass__ = InheritComparisonClasscallMetaclass
 
@@ -631,7 +636,7 @@ class FullyPackedLoop(Element):
 
         .. SEEALSO::
 
-            :class:AlternatingSignMatrix
+            :class:`AlternatingSignMatrix`
 
         EXAMPLES::
 
@@ -1214,6 +1219,13 @@ class FullyPackedLoop(Element):
 class FullyPackedLoops(Parent, UniqueRepresentation):
     r"""
     Class of all fully packed loops on an  `n \times n` grid.
+
+    They are known to be in bijection with alternating sign matrices.
+    [TODO]
+
+    .. SEEALSO::
+
+        :class:`AlternatingSignMatrices`
 
     INPUT:
 

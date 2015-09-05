@@ -843,20 +843,16 @@ class IntegerListsLex(Parent):
             sage: C.cardinality().parent() is ZZ
             True
             sage: TestSuite(C).run()
-
-            sage: IntegerListsLex(min_sum=Infinity).list()
-            Traceback (most recent call last):
-            ...
-            TypeError: unable to coerce <class 'sage.rings.infinity.PlusInfinity'> to an integer
-            sage: IntegerListsLex(min_sum=1.4).list()
-            Traceback (most recent call last):
-            ...
-            TypeError: Attempt to coerce non-integral RealNumber to Integer
         """
         if category is None:
             category = EnumeratedSets().Finite()
 
         self._check = check
+
+        if global_options is not None:
+            from sage.misc.superseded import deprecation
+            deprecation(15525, 'the global_options argument is deprecated since, in general,'
+                               ' pickling is broken; create your own class instead')
 
         if n is not None:
             min_sum = n

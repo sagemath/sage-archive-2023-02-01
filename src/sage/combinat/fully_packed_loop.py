@@ -888,7 +888,25 @@ class FullyPackedLoop(Element):
 
     def link_pattern(self):
         """
-        Return a list (a non-crossing partition) corresponding to a fully packed loop.
+        Return a link pattern corresponding to a fully packed loop.
+
+        Here we define a link pattern `LP` to be a partition of the list
+        `[1, ..., 2k]` into 2-element sets (such a partition is also known as
+        a perfect matching) such that the following non-crossing condition holds:
+        Let the numbers `1, ..., 2k` be written on the perimeter of a circle.
+        For every 2-element set `(a,b)` of the partition `LP`, draw an arc
+        linking the two numbers `a` and `b`. We say that `LP` is non-crossing
+        if every arc can be drawn so that no two arcs intersect.
+
+        Since every endpoint of a fully packed loop `fpl` is connected to a different
+        endpoint, there is a natural surjection from the fully packed loops on an
+        nxn grid onto the link patterns on the list `[1, \dots, 2n]`.
+        The pairs of connected endpoints of a fully packed loop `fpl` correspond to
+        the 2-element tuples of the corresponding link pattern.
+
+        .. SEEALSO::
+
+            :class:`PerfectMatching`
 
         .. NOTE::
 

@@ -17,7 +17,7 @@ q-Numbers
 #*****************************************************************************
 
 from sage.misc.cachefunc import cached_function
-from sage.misc.misc import prod
+from sage.misc.all import prod
 from sage.rings.all import ZZ
 from sage.rings.polynomial.laurent_polynomial_ring import LaurentPolynomialRing
 

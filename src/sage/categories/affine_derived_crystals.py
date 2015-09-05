@@ -121,7 +121,7 @@ class AffineDerivedSubalgebraCrystals(Category_singleton):
               which the digraph should be constructed
 
             - ``index_set`` -- (optional) the index set to draw arrows
- 
+
             .. SEEALSO::
 
                 :meth:`sage.categories.crystals.Crystals.ParentMethods.digraph`

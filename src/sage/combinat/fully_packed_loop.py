@@ -1070,7 +1070,10 @@ class FullyPackedLoop(Element):
     @lazy_attribute
     def _vertex_dictionary(self):
         """
-        A function to create a dictionary of all the coordinates.
+        A helper function for :meth:`link_pattern`.
+        Return a dictionary where the keys are the coordinates of each vertex and
+        the values are either 0 or the values 1 ,..., 2n. The vertices connected to
+        endpoints of paths have values 1, ..., 2n. Other vertices have values 0.
 
         TESTS::
 
@@ -1170,8 +1173,9 @@ class FullyPackedLoop(Element):
     @lazy_attribute
     def _end_point_dictionary(self):
         r"""
-        A function create a dictionary of the endpoints and their
-        coordinates.
+        A helper function for :meth:`link_pattern`.
+        Return a dictionary where the keys are the labels 1, ..., 2n and the values
+        are the coordinates of the endpoints of the paths of ``self``.
 
         TESTS::
 

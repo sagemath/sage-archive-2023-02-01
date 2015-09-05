@@ -28,9 +28,9 @@ asymptotic expressions. For example,
 ::
 
     sage: asymptotic_expansions.Stirling('n', precision=5)
-    e^(1/2*log(2*pi))*e^(n*log(n))*(e^n)^(-1)*n^(1/2) +
-    1/12*e^(1/2*log(2*pi))*e^(n*log(n))*(e^n)^(-1)*n^(-1/2) +
-    1/288*e^(1/2*log(2*pi))*e^(n*log(n))*(e^n)^(-1)*n^(-3/2) +
+    sqrt(2)*sqrt(pi)*e^(n*log(n))*(e^n)^(-1)*n^(1/2) +
+    1/12*sqrt(2)*sqrt(pi)*e^(n*log(n))*(e^n)^(-1)*n^(-1/2) +
+    1/288*sqrt(2)*sqrt(pi)*e^(n*log(n))*(e^n)^(-1)*n^(-3/2) +
     O(e^(n*log(n))*(e^n)^(-1)*n^(-5/2))
 
 generates the first 5 summands of Stirling's approximation formula for
@@ -91,27 +91,50 @@ class AsymptoticExpansionGenerators(object):
     """
 
     @staticmethod
-    def Stirling(var, precision=None):
+    def Stirling(var, precision=None, skip_constant_factor=False):
         r"""
 
         EXAMPLES::
 
             sage: asymptotic_expansions.Stirling('n', precision=5)
-            e^(1/2*log(2*pi))*e^(n*log(n))*(e^n)^(-1)*n^(1/2) +
-            1/12*e^(1/2*log(2*pi))*e^(n*log(n))*(e^n)^(-1)*n^(-1/2) +
-            1/288*e^(1/2*log(2*pi))*e^(n*log(n))*(e^n)^(-1)*n^(-3/2) +
+            sqrt(2)*sqrt(pi)*e^(n*log(n))*(e^n)^(-1)*n^(1/2) +
+            1/12*sqrt(2)*sqrt(pi)*e^(n*log(n))*(e^n)^(-1)*n^(-1/2) +
+            1/288*sqrt(2)*sqrt(pi)*e^(n*log(n))*(e^n)^(-1)*n^(-3/2) +
             O(e^(n*log(n))*(e^n)^(-1)*n^(-5/2))
             sage: _.parent()
+            Asymptotic Ring <(e^(n*log(n)))^QQ * (e^n)^QQ * n^QQ * log(n)^QQ>
+            over Symbolic Ring
+
+        TESTS::
+
+            sage: asymptotic_expansions.Stirling('n', precision=5,
+            ....:                                skip_constant_factor=True)
+            e^(n*log(n))*(e^n)^(-1)*n^(1/2) +
+            1/12*e^(n*log(n))*(e^n)^(-1)*n^(-1/2) +
+            1/288*e^(n*log(n))*(e^n)^(-1)*n^(-3/2) +
+            O(e^(n*log(n))*(e^n)^(-1)*n^(-5/2))
+            sage: _.parent()
+            Asymptotic Ring <(e^(n*log(n)))^QQ * (e^n)^QQ * n^QQ * log(n)^QQ>
+            over Rational Field
         """
         from sage.functions.log import exp
-        log_Stirling = AsymptoticExpansionGenerators.log_Stirling(var, precision)
+
+        log_Stirling = AsymptoticExpansionGenerators.log_Stirling(
+            var, precision=precision, skip_constant_summand=True)
+
         P = log_Stirling.parent().change_parameter(
-            growth_group='(e^(n*log(n)))^ZZ * (e^n)^ZZ * n^ZZ * log(n)^ZZ')
-        return exp(P(log_Stirling))
+            growth_group='(e^(n*log(n)))^QQ * (e^n)^QQ * n^QQ * log(n)^QQ')
+        result = exp(P(log_Stirling))
+
+        if not skip_constant_factor:
+            from sage.symbolic.ring import SR
+            result *= (2*SR('pi')).sqrt()
+
+        return result
 
 
     @staticmethod
-    def log_Stirling(var, precision=None):
+    def log_Stirling(var, precision=None, skip_constant_summand=False):
         r"""
         EXAMPLES::
 
@@ -131,11 +154,26 @@ class AsymptoticExpansionGenerators(object):
             - 7709321041217/505920*n^(-31) + O(n^(-33))
             sage: _.parent()
             Asymptotic Ring <n^ZZ * log(n)^ZZ> over Symbolic Ring
+
+        ::
+
+            sage: asymptotic_expansions.log_Stirling(
+            ....:     'n', precision=7, skip_constant_summand=True)
+            n*log(n) - n + 1/2*log(n) + 1/12*n^(-1) - 1/360*n^(-3) +
+            1/1260*n^(-5) + O(n^(-7))
+            sage: _.parent()
+            Asymptotic Ring <n^ZZ * log(n)^ZZ> over Rational Field
         """
+        if not skip_constant_summand:
+            from sage.symbolic.ring import SR
+            coefficient_ring = SR
+        else:
+            from sage.rings.rational_field import QQ
+            coefficient_ring = QQ
+
         from asymptotic_ring import AsymptoticRing
-        from sage.symbolic.ring import SR
         A = AsymptoticRing(growth_group='%s^ZZ * log(%s)^ZZ' % ((var,)*2),
-                           coefficient_ring=SR)
+                           coefficient_ring=coefficient_ring)
         n = A.gen()
 
         if precision is None:
@@ -149,7 +187,7 @@ class AsymptoticExpansionGenerators(object):
             result += -n
         if precision >= 3:
             result += log(n) / 2
-        if precision >= 4:
+        if precision >= 4 and not skip_constant_summand:
             result += log(2*SR('pi')) / 2
 
         from sage.misc.misc import srange

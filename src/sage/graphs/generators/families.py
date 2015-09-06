@@ -2794,11 +2794,11 @@ def TaylorTwographDescendantSRG(q, clique_partition=None):
         sage: graphs.TaylorTwographDescendantSRG(4)
         Traceback (most recent call last):
         ...
-        ValueError: q must be a an odd prime power 
+        ValueError: q must be a an odd prime power
         sage: graphs.TaylorTwographDescendantSRG(6)
         Traceback (most recent call last):
         ...
-        ValueError: q must be a an odd prime power 
+        ValueError: q must be a an odd prime power
     """
     from sage.rings.arith import is_prime_power
     p, k = is_prime_power(q,get_data=True)
@@ -2810,10 +2810,8 @@ def TaylorTwographDescendantSRG(q, clique_partition=None):
     from sage.rings.finite_rings.integer_mod import mod
     from __builtin__ import sum
     Fq = FiniteField(q**2, 'a')
-    PG = ProjectiveSpace(2, Fq)
-    def S(xx,yy):
-        x = vector(xx)
-        y = vector(yy)
+    PG = map(tuple,ProjectiveSpace(2, Fq))
+    def S(x,y):
         return sum(map(lambda j: x[j]*y[2-j]**q, xrange(3)))
 
     V = filter(lambda x: S(x,x)==0, PG) # the points of the unital
@@ -2825,7 +2823,7 @@ def TaylorTwographDescendantSRG(q, clique_partition=None):
         G = Graph([V,lambda y,z:     (S(v0,y)*S(y,z)*S(z,v0)).is_square()], loops=False)
     G.name("Taylor two-graph descendant SRG")
     if clique_partition:
-        lines = map(lambda x: filter(lambda t: vector((Fq.one(), x, Fq.zero()))*vector(t)==0, V),
+        lines = map(lambda x: filter(lambda t: t[0]+x*t[1]==0, V),
                      filter(lambda z: z != 0, Fq))
         return (G, lines, v0)
     else:
@@ -2853,10 +2851,8 @@ def TaylorTwographSRG(q):
         (28, 15, 6, 10)
 
     """
-    from sage.misc.flatten import flatten
-    from sage.graphs.generators.families import TaylorTwographDescendantSRG
     H, l, v0 = TaylorTwographDescendantSRG(q, clique_partition=True)
     G = H.union(Graph([[v0], lambda x, y: x != y])) # to make sure vertices are not relabeled
-    G.seidel_switching(flatten(l[:(q**2+1)/2]))
+    G.seidel_switching(sum(l[:(q**2+1)/2],[]))
     G.name("Taylor two-graph SRG")
     return G

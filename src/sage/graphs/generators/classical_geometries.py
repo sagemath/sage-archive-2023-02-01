@@ -207,7 +207,7 @@ def AffineOrthogonalPolarGraph(d,q,sign="+"):
     G.relabel()
     return G
 
-def _orthogonal_polar_graph(m, q, sign="+", point_type=0):
+def _orthogonal_polar_graph(m, q, sign="+", point_type=[0]):
     r"""
     A helper function to build ``OrthogonalPolarGraph`` and ``NO`` graphs.
 
@@ -221,34 +221,75 @@ def _orthogonal_polar_graph(m, q, sign="+", point_type=0):
     - ``sign`` -- ``"+"`` or ``"-"`` if `m` is even, ``"+"`` (default)
       otherwise.
 
-    - ``point_type`` -- `0` - isotropic (default) , or `1` - ``"+"``-type,
-      or `-1` -  ``"-"``-type
+    - ``point_type`` -- a list of elements from `F_q`
 
-    EXAMPLES::
+    EXAMPLES:
+    
+    Petersen graph::
 
-        sage: G = graphs.OrthogonalPolarGraph(6,3,"+"); G
-        Orthogonal Polar Graph O^+(6, 3): Graph on 130 vertices
-        sage: G.is_strongly_regular(parameters=True)
-        (130, 48, 20, 16)
-        sage: G = graphs.OrthogonalPolarGraph(6,3,"-"); G
-        Orthogonal Polar Graph O^-(6, 3): Graph on 112 vertices
-        sage: G.is_strongly_regular(parameters=True)
-        (112, 30, 2, 10)
-        sage: G = graphs.OrthogonalPolarGraph(5,3); G
-        Orthogonal Polar Graph O(5, 3): Graph on 40 vertices
-        sage: G.is_strongly_regular(parameters=True)
-        (40, 12, 2, 4)
+        sage: g=_orthogonal_polar_graph(3,5,point_type=[2,3])
+        sage: g.is_strongly_regular(parameters=True)
+        (10, 3, 0, 1)
+
+    A locally Petersen graph (a.k.a. Doro graph, a.k.a. Hall graph)::
+
+        sage: g=_orthogonal_polar_graph(4,5,'-',point_type=[2,3])
+        sage: g.is_distance_regular(parameters=True)
+        ([10, 6, 4, None], [None, 1, 2, 5])
+
+    Various big and slow to build graphs:
+
+    `NO^+(7,3)`::
+
+        sage: g=_orthogonal_polar_graph(7,3,point_type=[1])  # not tested (long time)
+        sage: g.is_strongly_regular(parameters=True)       # not tested (long time)
+        (378, 117, 36, 36)
+
+    `NO^-(7,3)`::
+
+        sage: g=_orthogonal_polar_graph(7,3,point_type=[-1]) # not tested (long time)
+        sage: g.is_strongly_regular(parameters=True)       # not tested (long time)
+        (351, 126, 45, 45)
+
+    `NO^+(8,2)`::
+
+        sage: g=_orthogonal_polar_graph(8,2,point_type=[1])  # not tested (long time)
+        sage: g.is_strongly_regular(parameters=True)       # not tested (long time)
+        (120, 63, 30, 36)
+
+    `NO^+(6,3)`::
+
+        sage: g=_orthogonal_polar_graph(6,3,point_type=[1])  # not tested (long time)
+        sage: g.is_strongly_regular(parameters=True)       # not tested (long time)
+        (117, 36, 15, 9)
+
+    `NO^-(6,3)`::
+
+        sage: g=_orthogonal_polar_graph(6,3,'-',point_type=[1]) # not tested (long time)
+        sage: g.is_strongly_regular(parameters=True)          # not tested (long time)
+        (126, 45, 12, 18)
+
+    `NO^{-,\perp}(5,5)`::
+
+        sage: g=_orthogonal_polar_graph(5,5,point_type=[2,3]) # not tested (long time)
+        sage: g.is_strongly_regular(parameters=True) # not tested (long time)
+        (300, 65, 10, 15)
+
+    `NO^{+,\perp}(5,5)`::
+
+        sage: g=_orthogonal_polar_graph(5,5,point_type=[1,-1]) # not tested (long time)
+        sage: g.is_strongly_regular(parameters=True) # not tested (long time)
+        (325, 60, 15, 10)
 
     TESTS::
 
-        sage: G = graphs.OrthogonalPolarGraph(4,3,"")
-        Traceback (most recent call last):
-        ...
-        ValueError: sign must be equal to either '-' or '+' when m is even
-        sage: G = graphs.OrthogonalPolarGraph(5,3,"-")
-        Traceback (most recent call last):
-        ...
-        ValueError: sign must be equal to either '' or '+' when m is odd
+        sage: g=_orthogonal_polar_graph(5,3,point_type=[-1])
+        sage: g.is_strongly_regular(parameters=True)
+        (45, 12, 3, 3)
+        sage: g=_orthogonal_polar_graph(5,3,point_type=[1])
+        sage: g.is_strongly_regular(parameters=True)
+        (36, 15, 6, 6)
+
     """
     from sage.schemes.projective.projective_space import ProjectiveSpace
     from sage.rings.finite_rings.constructor import FiniteField
@@ -279,10 +320,14 @@ def _orthogonal_polar_graph(m, q, sign="+", point_type=0):
     def F(x):
         return x*M*x
 
-    def P(x,y):
-        return x*M*y+y*M*x
+    if q % 2 == 0:
+        def P(x,y):
+            return F(x-y)
+    else:
+        def P(x,y):
+            return x*M*y+y*M*x
 
-    V = [x for x in PG if F(vector(x)) == point_type*Fq.one()]
+    V = [x for x in PG if F(vector(x)) in point_type]
 
     G = Graph([V,lambda x,y:P(vector(x),vector(y))==0],loops=False)
 
@@ -320,6 +365,14 @@ def OrthogonalPolarGraph(m, q, sign="+"):
 
     TESTS::
 
+        sage: G = graphs.OrthogonalPolarGraph(8,2,"+"); G
+        Orthogonal Polar Graph O^+(8, 2): Graph on 135 vertices
+        sage: G.is_strongly_regular(parameters=True)
+        (135, 70, 37, 35)
+        sage: G = graphs.OrthogonalPolarGraph(8,2,"-"); G
+        Orthogonal Polar Graph O^-(8, 2): Graph on 119 vertices
+        sage: G.is_strongly_regular(parameters=True)
+        (119, 54, 21, 27)
         sage: G = graphs.OrthogonalPolarGraph(4,3,"")
         Traceback (most recent call last):
         ...

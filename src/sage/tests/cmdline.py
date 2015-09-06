@@ -199,7 +199,7 @@ def test_executable(args, input="", timeout=100.0, **kwds):
         0
 
     Test ``sage --info [packages]`` and the equivalent
-    ``sage -i --info --info [packages]`` (the doubling of ``--info``
+    ``sage -p --info --info [packages]`` (the doubling of ``--info``
     is intentional, that option should be idempotent)::
 
         sage: out, err, ret = test_executable(["sage", "--info", "sqlite"])
@@ -215,7 +215,7 @@ def test_executable(args, input="", timeout=100.0, **kwds):
         sage: ret
         0
 
-        sage: out, err, ret = test_executable(["sage", "-i", "--info", "--info", "sqlite"])
+        sage: out, err, ret = test_executable(["sage", "-p", "--info", "--info", "sqlite"])
         sage: print out
         Found local metadata for sqlite-...
         = SQLite =

@@ -60,7 +60,7 @@ export LC_ALL=C
 usage()
 {
 cat <<EOF
-Usage: sage -i <options> <package name>
+Usage: sage -p <options> <package name>
 
 If <package name> is a URL, download and install it. If it is a file
 name, install it. Otherwise, search Sage's list of packages (see

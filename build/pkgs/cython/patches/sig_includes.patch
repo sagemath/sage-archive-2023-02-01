@@ -1,0 +1,66 @@
+Additions to includes
+
+diff --git a/Cython/Includes/libc/setjmp.pxd b/Cython/Includes/libc/setjmp.pxd
+index 74d1c59..f2283fe 100644
+--- a/Cython/Includes/libc/setjmp.pxd
++++ b/Cython/Includes/libc/setjmp.pxd
+@@ -3,3 +3,8 @@ cdef extern from "setjmp.h" nogil:
+         pass
+     int setjmp(jmp_buf state)
+     void longjmp(jmp_buf state, int value)
++
++    ctypedef struct sigjmp_buf:
++        pass
++    int sigsetjmp(sigjmp_buf state, int savesigs)
++    void siglongjmp(sigjmp_buf state, int value)
+diff --git a/Cython/Includes/posix/select.pxd b/Cython/Includes/posix/select.pxd
+new file mode 100644
+index 0000000..37bc9d3
+--- /dev/null
++++ b/Cython/Includes/posix/select.pxd
+@@ -0,0 +1,19 @@
++from .types cimport sigset_t
++from .time cimport timeval, timespec
++
++cdef extern from "sys/select.h" nogil:
++    ctypedef struct fd_set:
++        pass
++
++    int FD_SETSIZE
++    void FD_SET(int, fd_set*)
++    void FD_CLR(int, fd_set*)
++    bint FD_ISSET(int, fd_set*)
++    void FD_ZERO(fd_set*)
++
++    int select(int nfds, fd_set *readfds, fd_set *writefds,
++        fd_set *exceptfds, const timeval *timeout)
++
++    int pselect(int nfds, fd_set *readfds, fd_set *writefds,
++        fd_set *exceptfds, const timespec *timeout,
++        const sigset_t *sigmask)
+diff --git a/Cython/Includes/posix/signal.pxd b/Cython/Includes/posix/signal.pxd
+index 9168b2f..2d6cce8 100644
+--- a/Cython/Includes/posix/signal.pxd
++++ b/Cython/Includes/posix/signal.pxd
+@@ -12,7 +12,7 @@ cdef extern from "signal.h" nogil:
+         int    sigev_notify
+         int    sigev_signo
+         sigval sigev_value
+-        void   *sigev_notify_function(sigval)
++        void   sigev_notify_function(sigval)
+ 
+     ctypedef struct siginfo_t:
+         int    si_signo
+@@ -26,10 +26,10 @@ cdef extern from "signal.h" nogil:
+         sigval si_value
+ 
+     cdef struct sigaction_t "sigaction":
+-        void     *sa_handler(int)
++        void     sa_handler(int)
++        void     sa_sigaction(int, siginfo_t *, void *)
+         sigset_t sa_mask
+         int      sa_flags
+-        void     sa_sigaction(int, siginfo_t *, void *)
+ 
+     enum: SA_NOCLDSTOP
+     enum: SIG_BLOCK

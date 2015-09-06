@@ -2851,8 +2851,8 @@ def TaylorTwographSRG(q):
         (28, 15, 6, 10)
 
     """
-    H, l, v0 = TaylorTwographDescendantSRG(q, clique_partition=True)
-    G = H.union(Graph([[v0], lambda x, y: x != y])) # to make sure vertices are not relabeled
+    G, l, v0 = TaylorTwographDescendantSRG(q, clique_partition=True)
+    G.add_vertex(v0)
     G.seidel_switching(sum(l[:(q**2+1)/2],[]))
     G.name("Taylor two-graph SRG")
     return G

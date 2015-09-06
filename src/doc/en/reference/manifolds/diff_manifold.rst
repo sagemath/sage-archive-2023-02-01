@@ -21,3 +21,5 @@ Differentiable manifolds
    tensorfield
 
    diff_form
+
+   sage/manifolds/differentiable/affine_connection

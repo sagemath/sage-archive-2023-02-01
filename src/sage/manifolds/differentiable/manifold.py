@@ -2712,11 +2712,11 @@ class DiffManifold(TopManifold):
         return curve_set(coord_expression, name=name, latex_name=latex_name)
 
 
-    def aff_connection(self, name, latex_name=None):
+    def affine_connection(self, name, latex_name=None):
         r"""
         Define an affine connection on the manifold.
 
-        See :class:`~sage.manifolds.differentiable.affine_connection.AffConnection`
+        See :class:`~sage.manifolds.differentiable.affine_connection.AffineConnection`
         for a complete documentation.
 
         INPUT:
@@ -2728,7 +2728,7 @@ class DiffManifold(TopManifold):
         OUTPUT:
 
         - the affine connection, as an instance of
-          :class:`~sage.manifolds.differentiable.affine_connection.AffConnection`
+          :class:`~sage.manifolds.differentiable.affine_connection.AffineConnection`
 
         EXAMPLE:
 
@@ -2737,14 +2737,15 @@ class DiffManifold(TopManifold):
             sage: DiffManifold._clear_cache_() # for doctests only
             sage: M = DiffManifold(3, 'M', start_index=1)
             sage: A = M.open_subset('A', latex_name=r'\mathcal{A}')
-            sage: nab = A.aff_connection('nabla', r'\nabla') ; nab
-            affine connection 'nabla' on the subset 'A' of the 3-dimensional manifold 'M'
+            sage: nab = A.affine_connection('nabla', r'\nabla') ; nab
+            Affine connection nabla on the Open subset A of the 3-dimensional
+             differentiable manifold M
 
         See the documentation of class
-        :class:`~sage.manifolds.differentiable.affine_connection.AffConnection`
+        :class:`~sage.manifolds.differentiable.affine_connection.AffineConnection`
         for more examples.
 
         """
-        from sage.manifolds.differentiable.affine_connection import AffConnection
-        return AffConnection(self, name, latex_name)
+        from sage.manifolds.differentiable.affine_connection import AffineConnection
+        return AffineConnection(self, name, latex_name)
 

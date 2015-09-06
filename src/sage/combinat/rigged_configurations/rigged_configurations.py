@@ -249,7 +249,7 @@ class RiggedConfigurations(UniqueRepresentation, Parent):
         6
         sage: len(RC.list()) == RC.cardinality()
         True
-        sage: RC.list()
+        sage: RC.list() # random
         [
         <BLANKLINE>
                                                  0[ ]0

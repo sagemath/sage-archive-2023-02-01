@@ -1317,7 +1317,7 @@ class GenericGraph(GenericGraph_pyx):
 
             This routine needs the optional package igraph to be installed:
             to do so, it is enough to
-            run ``sage -i igraph`` followed by ``sage -i python_igraph``. For
+            run ``sage -i python_igraph``. For
             more information on the Python version of igraph, see
             http://igraph.org/python/.
 
@@ -1445,8 +1445,7 @@ class GenericGraph(GenericGraph_pyx):
             import igraph
         except ImportError:
             raise ImportError("The package igraph is not available. To " +
-                              "install it, run 'sage -i igraph' followed by " +
-                              "'sage -i python_igraph'.")
+                              "install it, run 'sage -i python_igraph'")
 
         v_to_int = {v:i for i,v in enumerate(self.vertices())}
         edges = [(v_to_int[v], v_to_int[w]) for v,w in self.edge_iterator(labels=False)]
@@ -7810,8 +7809,7 @@ class GenericGraph(GenericGraph_pyx):
                 import igraph
             except ImportError:
                 raise ImportError("The igraph library is not available. " +
-                                 "Please, install it with sage -i igraph " +
-                                 "followed by sage -i python_igraph.")
+                                 "Please, install it with sage -i python_igraph")
             vertices = self.vertices()
             x_int = vertices.index(x)
             y_int = vertices.index(y)
@@ -17687,8 +17685,7 @@ class GenericGraph(GenericGraph_pyx):
            are in your path. The graphviz suite can be download from
            http://graphviz.org.
 
-         - Download dot2tex-2.8.?.spkg from http://trac.sagemath.org/sage_trac/ticket/7004
-           and install it with ``sage -i dot2tex-2.8.?.spkg``
+         - Install dot2tex with ``sage -i dot2tex``
 
         .. TODO::
 

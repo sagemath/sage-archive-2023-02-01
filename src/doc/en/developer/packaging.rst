@@ -24,7 +24,11 @@ options can be:
 
 Not all packages are built by default, they are divided into standard,
 optional and experimental ones. Standard packages are built by default
-and have much more stringent quality requirements.
+and have stringent quality requirements. Optional packages are subject
+to the same requirements (although these are tested not as much,
+so in practice they might break more often than standard packages).
+For experimental packages, the bar is much lower: even if there are some
+problems, the package can still be accepted.
 
 The section :ref:`section-directory-structure` describes the structure
 of each individual package in ``SAGE_ROOT/build/pkgs``. In section
@@ -299,12 +303,16 @@ installation via::
 
 or::
 
-    [user@localhost]$ sage -i -f package_name
+    [user@localhost]$ sage -f package_name
 
 to force a reinstallation. If your package contains a ``spkg-check``
 script (see :ref:`section-spkg-check`) it can be run with::
 
     [user@localhost]$ sage -i -c package_name
+
+or::
+
+    [user@localhost]$ sage -f -c package_name
 
 If all went fine, open a ticket, put a link to the original tarball in
 the ticket and upload a branch with the code under

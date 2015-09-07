@@ -105,7 +105,9 @@ cdef class Matrix_generic_dense(matrix_dense.Matrix_dense):
             elif copy:
                 self._entries = self._entries[:]
         elif self._nrows == self._ncols:
-            self._entries = [entries if i==j else zero for i in range(self._nrows) for j in range(self._nrows)]
+            self._entries = [zero]*(self._nrows*self._nrows)
+            for i in range(self._nrows):
+                self._entries[i+self._ncols*i]=entries
         elif entries == zero:
             self._entries = [zero]*(self._nrows*self._ncols)
         else:

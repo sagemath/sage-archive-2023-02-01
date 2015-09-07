@@ -32,6 +32,12 @@ def gen_rest_table_index(list_of_entries, sort=True, only_local_functions=True):
       will be filtered out. This can be useful to disable for making indexes of
       e.g. catalog modules such as :mod:`sage.coding.codes_catalog`.
 
+    .. WARNING::
+
+        The ReST tables returned by this function use '@' as a delimiter for
+        cells. This can cause trouble if the first sentence in the documentation
+        of a function contains the '@' character.
+
     EXAMPLE::
 
         sage: from sage.misc.rest_index_of_methods import gen_rest_table_index

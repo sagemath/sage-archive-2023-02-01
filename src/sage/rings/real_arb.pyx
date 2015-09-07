@@ -2001,6 +2001,22 @@ cdef class RealBall(RingElement):
         """
         return self.contains_exact(self._parent(other))
 
+    def contains_zero(self):
+        """
+        Return ``True`` iff this ball contains zero.
+
+        EXAMPLES::
+
+            sage: from sage.rings.real_arb import RBF
+            sage: RBF(0).contains_zero()
+            True
+            sage: RBF(RIF(-1,1)).contains_zero()
+            True
+            sage: RBF(1/3).contains_zero()
+            False
+        """
+        return arb_contains_zero(self.value)
+
     def is_negative_infinity(self):
         """
         Return ``True`` if this ball is the point -∞.

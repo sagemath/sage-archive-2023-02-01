@@ -1521,6 +1521,22 @@ cdef class ComplexBall(RingElement):
             other = self._parent(other)
         return self.contains_exact(other)
 
+    def contains_zero(self):
+        """
+        Return ``True`` iff this ball contains zero.
+
+        EXAMPLES::
+
+            sage: from sage.rings.complex_ball_acb import CBF
+            sage: CBF(0).contains_zero()
+            True
+            sage: CBF(RIF(-1,1)).contains_zero()
+            True
+            sage: CBF(i).contains_zero()
+            False
+        """
+        return acb_contains_zero(self.value)
+
     # Arithmetic
 
     def __neg__(self):

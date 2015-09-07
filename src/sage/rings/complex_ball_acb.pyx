@@ -737,13 +737,12 @@ cdef class ComplexBall(RingElement):
 
         EXAMPLES::
 
-           sage: from sage.rings.complex_ball_acb import ComplexBallField
-           sage: CBF = ComplexBallField()
+           sage: from sage.rings.complex_ball_acb import CBF
            sage: CBF(1/3)
            [0.3333333333333333 +/- 7.04e-17]
            sage: CBF(0, 1/3)
            [0.3333333333333333 +/- 7.04e-17]*I
-           sage: ComplexBallField()(1/3, 1/6)
+           sage: CBF(1/3, 1/6)
            [0.3333333333333333 +/- 7.04e-17] + [0.1666666666666667 +/- 7.04e-17]*I
 
         TESTS::

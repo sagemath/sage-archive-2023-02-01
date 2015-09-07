@@ -21,6 +21,7 @@ REFERENCES:
 #******************************************************************************
 #       Copyright (C) 2015 Eric Gourgoulhon <eric.gourgoulhon@obspm.fr>
 #       Copyright (C) 2015 Michal Bejger <bejger@camk.edu.pl>
+#       Copyright (C) 2015 Marco Mancini <marco.mancini@obspm.fr>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #  as published by the Free Software Foundation; either version 2 of
@@ -28,6 +29,7 @@ REFERENCES:
 #                  http://www.gnu.org/licenses/
 #******************************************************************************
 
+from sage.rings.integer import Integer
 from sage.structure.sage_object import SageObject
 from sage.manifolds.differentiable.manifold import DiffManifold
 from sage.parallel.all import parallel
@@ -135,6 +137,15 @@ class AffineConnection(SageObject):
         {Coordinate frame (M, (d/dx,d/dy,d/dz)): 3-indices components w.r.t.
          Coordinate frame (M, (d/dx,d/dy,d/dz))}
 
+    If not the default one, the vector frame w.r.t. which the connection
+    coefficients are defined can be specified as the first argument inside the
+    square brackets; hence the above definition is equivalent to::
+
+        sage: nab[c_xyz.frame(), 1,1,2], nab[c_xyz.frame(),3,2,3] = x^2, y*z
+        sage: nab._coefficients
+        {Coordinate frame (M, (d/dx,d/dy,d/dz)): 3-indices components w.r.t.
+         Coordinate frame (M, (d/dx,d/dy,d/dz))}
+
     Unset components are initialized to zero::
 
         sage: nab[:] # list of coefficients relative to the manifold's default vector frame
@@ -142,11 +153,28 @@ class AffineConnection(SageObject):
         [[0, 0, 0], [0, 0, 0], [0, 0, 0]],
         [[0, 0, 0], [0, 0, y*z], [0, 0, 0]]]
 
-    The treatment of connection coefficients in vector frames different
-    from the manifold's default one is similar to that of tensor components;
-    see therefore the class
+    The treatment of connection coefficients in a given vector frame is similar
+    to that of tensor components; see therefore the class
     :class:`~sage.manifolds.differentiable.tensorfield.TensorField` for the
-    documentation.
+    documentation. In particular, the square brackets return the connection
+    coefficients as instances of
+    :class:`~sage.manifolds.coord_func.CoordFunction` (of the subclass
+    :class:`~sage.manifolds.coord_func_symb.CoordFunctionSymb` in the current
+    example), while the double square brackets return a scalar field::
+
+        sage: nab[1,1,2]
+        x^2
+        sage: nab[1,1,2].display()
+        (x, y, z) |--> x^2
+        sage: type(nab[1,1,2])
+        <class 'sage.manifolds.coord_func_symb.CoordFunctionSymb'>
+        sage: nab[[1,1,2]]
+        Scalar field on the 3-dimensional differentiable manifold M
+        sage: nab[[1,1,2]].display()
+        M --> R
+        (x, y, z) |--> x^2
+        sage: nab[[1,1,2]].coord_function() is nab[1,1,2]
+        True
 
     Action on a scalar field::
 
@@ -172,7 +200,8 @@ class AffineConnection(SageObject):
 
     .. MATH::
 
-        \nabla_j \nabla_i \, f - \nabla_i \nabla_j \, f = T^k_{\ \, ij} \nabla_k \, f ,
+        \nabla_j \nabla_i \, f - \nabla_i \nabla_j \, f =
+            T^k_{\ \, ij} \nabla_k \, f ,
 
     where the `T^k_{\ \, ij}`'s are the components of the connection's
     torsion tensor::
@@ -198,7 +227,8 @@ class AffineConnection(SageObject):
         sage: U = M.open_subset('U') ; V = M.open_subset('V')
         sage: M.declare_union(U,V)   # M is the union of U and V
         sage: c_xy.<x,y> = U.chart() ; c_uv.<u,v> = V.chart()
-        sage: transf = c_xy.transition_map(c_uv, (x+y, x-y), intersection_name='W', restrictions1= x>0, restrictions2= u+v>0)
+        sage: transf = c_xy.transition_map(c_uv, (x+y, x-y), intersection_name='W',
+        ....:                              restrictions1= x>0, restrictions2= u+v>0)
         sage: inv = transf.inverse()
         sage: W = U.intersection(V)
         sage: eU = c_xy.frame() ; eV = c_uv.frame()
@@ -264,10 +294,27 @@ class AffineConnection(SageObject):
 
     """
     def __init__(self, domain, name, latex_name=None):
+        r"""
+        Construct an affine connection.
+
+        TESTS::
+
+            sage: DiffManifold._clear_cache_()  # for doctests only
+            sage: M = DiffManifold(3, 'M')
+            sage: from sage.manifolds.differentiable.affine_connection import \
+                                                                AffineConnection
+            sage: nab = AffineConnection(M, 'nabla', latex_name=r'\nabla')
+            sage: nab
+            Affine connection nabla on the 3-dimensional differentiable
+             manifold M
+            sage: X.<x,y,z> = M.chart()
+            sage: nab[0,1,0] = x*y*z
+            sage: TestSuite(nab).run()
+
+        """
         if not isinstance(domain, DiffManifold):
             raise TypeError("the first argument must be a differentiable " +
                             "manifold")
-        self._manifold = domain._manifold
         self._domain = domain
         self._name = name
         if latex_name is None:
@@ -282,6 +329,16 @@ class AffineConnection(SageObject):
     def _repr_(self):
         r"""
         String representation of the object.
+
+        TESTS::
+
+            sage: M = DiffManifold(5, 'M')
+            sage: nab = M.affine_connection('nabla', latex_name=r'\nabla')
+            sage: nab._repr_()
+            'Affine connection nabla on the 5-dimensional differentiable manifold M'
+            sage: repr(nab)  # indirect doctest
+            'Affine connection nabla on the 5-dimensional differentiable manifold M'
+
         """
         description = "Affine connection"
         if self._name is not None:
@@ -292,15 +349,103 @@ class AffineConnection(SageObject):
     def _latex_(self):
         r"""
         LaTeX representation of the object.
+
+        TESTS::
+
+            sage: M = DiffManifold(5, 'M')
+            sage: nab = M.affine_connection('nabla', latex_name=r'\nabla')
+            sage: nab._latex_()
+            '\\nabla'
+            sage: latex(nab)  # indirect doctest
+            \nabla
+            sage: nab = M.affine_connection('D')
+            sage: nab._latex_()
+            'D'
+            sage: latex(nab)  # indirect doctest
+            D
+
         """
-        if self._latex_name is None:
-            return r'\mbox{' + str(self) + r'}'
-        else:
-           return self._latex_name
+        return self._latex_name
+
+    def __eq__(self, other):
+        r"""
+        Comparison (equality) operator.
+
+        INPUT:
+
+        - ``other`` -- an affine connection
+
+        OUTPUT:
+
+        - ``True`` if ``self`` is equal to ``other`` and ``False`` otherwise
+
+        TESTS::
+
+            sage: DiffManifold._clear_cache_() # for doctests only
+            sage: M = DiffManifold(2, 'M')
+            sage: X.<x,y> = M.chart()
+            sage: nab = M.affine_connection('nabla', latex_name=r'\nabla')
+            sage: nab[0,1,0], nab[0,1,1] = 1+x, x*y
+            sage: nab.display()
+            Gam^x_yx = x + 1
+            Gam^x_yy = x*y
+            sage: nab1 = M.affine_connection('nabla', latex_name=r'\nabla')
+            sage: nab1.__eq__(nab)
+            False
+            sage: nab.__eq__(nab1)
+            False
+            sage: nab1[0,1,0], nab1[0,1,1] = 2, 3-y
+            sage: nab1.__eq__(nab)
+            False
+            sage: nab.__eq__(nab1)
+            False
+            sage: nab1[0,1,0], nab1[0,1,1] = 1+x, x*y
+            sage: nab1.__eq__(nab)
+            True
+            sage: nab.__eq__(nab1)
+            True
+            sage: nab2 = M.affine_connection('nabla', latex_name=r'\nabla')
+            sage: a = M.automorphism_field()
+            sage: a[:] = [[0,1], [1,0]]
+            sage: e = X.frame().new_frame(a, 'e')
+            sage: nab2.set_coef(e)[1,0,1] = 1+x
+            sage: nab2.set_coef(e)[1,0,0] = x*y
+            sage: nab2.__eq__(nab)
+            True
+            sage: nab.__eq__(nab2)
+            True
+            sage: f = M.vector_frame('f')
+            sage: nab2.set_coef(f)[1,0,1] = x-y
+            sage: nab2.__eq__(nab)
+            False
+            sage: nab.__eq__(nab2)
+            False
+
+        """
+        if not isinstance(other, AffineConnection):
+            return False
+        if other._domain != self._domain:
+            return False
+        if self._coefficients == {}:
+            return False
+        for frame, coef in self._coefficients.iteritems():
+            try:
+                if other.coef(frame) != coef:
+                    return False
+            except ValueError:
+                return False
+        return True
 
     def _init_derived(self):
         r"""
-        Initialize the derived quantities
+        Initialize the derived quantities.
+
+        TEST::
+
+            sage: M = DiffManifold(4, 'M')
+            sage: nab = M.affine_connection('nabla', latex_name=r'\nabla')
+            sage: nab._init_derived()
+
         """
         self._restrictions = {} # dict. of restrictions of ``self`` on some
                                 # subdomains, with the subdomains as keys
@@ -313,7 +458,14 @@ class AffineConnection(SageObject):
 
     def _del_derived(self):
         r"""
-        Delete the derived quantities
+        Delete the derived quantities.
+
+        TEST::
+
+            sage: M = DiffManifold(4, 'M')
+            sage: nab = M.affine_connection('nabla', latex_name=r'\nabla')
+            sage: nab._del_derived()
+
         """
         self._restrictions.clear()
         self._torsion = None
@@ -357,11 +509,19 @@ class AffineConnection(SageObject):
         classes to adapt the output to the relevant subclass of
         :class:`~sage.tensor.modules.comp.Components`.
 
+        TEST::
+
+            sage: M = DiffManifold(2, 'M')
+            sage: X.<x,y> = M.chart()
+            sage: nab = M.affine_connection('nabla', latex_name=r'\nabla')
+            sage: nab._new_coef(X.frame())
+            3-indices components w.r.t. Coordinate frame (M, (d/dx,d/dy))
+
         """
         from sage.tensor.modules.comp import Components
         from sage.manifolds.differentiable.scalarfield import DiffScalarField
         return Components(frame._domain.scalar_field_algebra(), frame, 3,
-                          start_index=self._manifold._sindex,
+                          start_index=self._domain._sindex,
                           output_formatter=DiffScalarField.coord_function)
 
     def coef(self, frame=None):
@@ -432,7 +592,7 @@ class AffineConnection(SageObject):
                     break
             else:
                 # If not, the coefficients must be computed from scratch:
-                manif = self._manifold
+                manif = self._domain
                 ev = frame  # the vector frame
                 ef = ev._coframe # the dual frame
                 gam = self._new_coef(ev)
@@ -458,8 +618,8 @@ class AffineConnection(SageObject):
         INPUT:
 
         - ``frame`` -- (default: ``None``) vector frame in which the connection
-          coefficients are defined; if none is provided, the domain's default
-          frame is assumed.
+          coefficients are defined; if ``None``, the default frame of the
+          connection's domain is assumed.
 
         OUTPUT:
 
@@ -469,14 +629,67 @@ class AffineConnection(SageObject):
           See method :meth:`coef` for the storage convention of the connection
           coefficents.
 
+        EXAMPLES:
+
+        Setting the coefficients of an affine connection w.r.t. some coordinate
+        frame::
+
+            sage: M = DiffManifold(2, 'M', start_index=1)
+            sage: X.<x,y> = M.chart()
+            sage: nab = M.affine_connection('nabla', latex_name=r'\nabla')
+            sage: eX = X.frame(); eX
+            Coordinate frame (M, (d/dx,d/dy))
+            sage: nab.set_coef(eX)
+            3-indices components w.r.t. Coordinate frame (M, (d/dx,d/dy))
+            sage: nab.set_coef(eX)[1,2,1] = x*y
+            sage: nab.display(eX)
+            Gam^x_yx = x*y
+
+        Since ``eX`` is the manifold's default vector frame, its mention may
+        be omitted::
+
+            sage: nab.set_coef()[1,2,1] = x*y
+            sage: nab.set_coef()
+            3-indices components w.r.t. Coordinate frame (M, (d/dx,d/dy))
+            sage: nab.set_coef()[1,2,1] = x*y
+            sage: nab.display()
+            Gam^x_yx = x*y
+
+        To set the coefficients in the default frame, one can even bypass the
+        method ``set_coef()`` and call directly the operator ``[]`` on the
+        connection object::
+
+            sage: nab[1,2,1] = x*y
+            sage: nab.display()
+                Gam^x_yx = x*y
+
+        Setting the connection coefficients w.r.t. to another vector frame::
+
+            sage: e = M.vector_frame('e')
+            sage: nab.set_coef(e)
+            3-indices components w.r.t. Vector frame (M, (e_1,e_2))
+            sage: nab.set_coef(e)[2,1,1] = x+y
+            sage: nab.set_coef(e)[2,1,2] = x-y
+            sage: nab.display(e)
+            Gam^2_11 = x + y
+            Gam^2_12 = x - y
+
+        The coefficients w.r.t. the frame ``eX`` have been deleted::
+
+            sage: nab.display(eX)
+            Traceback (most recent call last):
+            ...
+            ValueError: no common frame found for the computation
+
+        To keep them, use the method :meth:`add_coef` instead.
 
         """
-        if frame is None: frame = self._domain._def_frame
+        if frame is None:
+            frame = self._domain._def_frame
         if frame not in self._coefficients:
             if frame not in self._domain._frames:
-                raise ValueError("The vector frame " + frame +
-                                 " has not been defined on the " +
-                                 str(self._domain))
+                raise ValueError("the {} is not".format(frame) +
+                                 " a frame on the {}".format(self._domain))
             self._coefficients[frame] = self._new_coef(frame)
         self._del_derived() # deletes the derived quantities
         self.del_other_coef(frame)
@@ -496,8 +709,8 @@ class AffineConnection(SageObject):
         INPUT:
 
         - ``frame`` -- (default: ``None``) vector frame in which the connection
-          coefficients are defined; if none is provided, the domain's default
-          frame is assumed.
+          coefficients are defined; if ``None``, the default frame of the
+          connection's domain is assumed.
 
         .. WARNING::
 
@@ -514,27 +727,109 @@ class AffineConnection(SageObject):
           coefficents.
 
 
+        EXAMPLES:
+
+        Setting the coefficients of an affine connection w.r.t. some coordinate
+        frame::
+
+            sage: M = DiffManifold(2, 'M', start_index=1)
+            sage: X.<x,y> = M.chart()
+            sage: nab = M.affine_connection('nabla', latex_name=r'\nabla')
+            sage: eX = X.frame(); eX
+            Coordinate frame (M, (d/dx,d/dy))
+            sage: nab.add_coef(eX)
+            3-indices components w.r.t. Coordinate frame (M, (d/dx,d/dy))
+            sage: nab.add_coef(eX)[1,2,1] = x*y
+            sage: nab.display(eX)
+            Gam^x_yx = x*y
+
+        Since ``eX`` is the manifold's default vector frame, its mention may
+        be omitted::
+
+            sage: nab.add_coef()[1,2,1] = x*y
+            sage: nab.add_coef()
+            3-indices components w.r.t. Coordinate frame (M, (d/dx,d/dy))
+            sage: nab.add_coef()[1,2,1] = x*y
+            sage: nab.display()
+            Gam^x_yx = x*y
+
+        Adding connection coefficients w.r.t. to another vector frame::
+
+            sage: e = M.vector_frame('e')
+            sage: nab.add_coef(e)
+            3-indices components w.r.t. Vector frame (M, (e_1,e_2))
+            sage: nab.add_coef(e)[2,1,1] = x+y
+            sage: nab.add_coef(e)[2,1,2] = x-y
+            sage: nab.display(e)
+            Gam^2_11 = x + y
+            Gam^2_12 = x - y
+
+        The coefficients w.r.t. the frame ``eX`` have been kept::
+
+            sage: nab.display(eX)
+            Gam^x_yx = x*y
+
+        To delete them, use the method :meth:`set_coef` instead.
+
+
         """
-        if frame is None: frame = self._domain._def_frame
+        if frame is None:
+            frame = self._domain._def_frame
         if frame not in self._coefficients:
             if frame not in self._domain._frames:
-                raise ValueError("The vector frame " + frame +
-                                 " has not been defined on the " +
-                                 str(self._domain))
+                raise ValueError("the {} is not".format(frame) +
+                                 " a frame on the {}".format(self._domain))
             self._coefficients[frame] = self._new_coef(frame)
         self._del_derived() # deletes the derived quantities
         return self._coefficients[frame]
-
 
     def del_other_coef(self, frame=None):
         r"""
         Delete all the coefficients but those corresponding to ``frame``.
 
+        INPUT:
+
+        - ``frame`` -- (default: ``None``) vector frame, the connection
+          coefficients w.r.t. which are to be kept; if ``None``, the default
+          frame of the connection's domain is assumed.
+
+        EXAMPLE:
+
+        We first create two sets of connection coefficients::
+
+            sage: M = DiffManifold(2, 'M', start_index=1)
+            sage: X.<x,y> = M.chart()
+            sage: nab = M.affine_connection('nabla', latex_name=r'\nabla')
+            sage: eX = X.frame()
+            sage: nab.set_coef(eX)[1,2,1] = x*y
+            sage: e = M.vector_frame('e')
+            sage: nab.add_coef(e)[2,1,1] = x+y
+            sage: nab.display(eX)
+            Gam^x_yx = x*y
+            sage: nab.display(e)
+            Gam^2_11 = x + y
+
+        Let us delete the connection coefficients w.r.t. all frames except for
+        frame ``eX``::
+
+            sage: nab.del_other_coef(eX)
+            sage: nab.display(eX)
+            Gam^x_yx = x*y
+
+        The connection coefficients w.r.t. frame ``e`` have indeed been
+        deleted::
+
+            sage: nab.display(e)
+            Traceback (most recent call last):
+            ...
+            ValueError: no common frame found for the computation
+
         """
-        if frame is None: frame = self._domain._def_frame
+        if frame is None:
+            frame = self._domain._def_frame
         if frame not in self._coefficients:
-            raise ValueError("The coefficients w.r.t. the vector frame " +
-                             frame + " have not been defined.")
+            raise ValueError("the coefficients w.r.t. {}".format(frame) +
+                             " have not been defined")
         to_be_deleted = []
         for other_frame in self._coefficients:
             if other_frame != frame:
@@ -542,29 +837,149 @@ class AffineConnection(SageObject):
         for other_frame in to_be_deleted:
             del self._coefficients[other_frame]
 
-    def __getitem__(self, indices):
+    def __getitem__(self, args):
         r"""
-        Return the connection coefficient w.r.t. the default frame of the
-        connection's domain corresponding to the given indices.
+        Return the connection coefficient w.r.t. some frame corresponding to
+        the given indices.
 
         INPUT:
 
-        - ``indices`` -- list of indices
+        - ``args`` -- list of indices defining the coefficient; if ``[:]`` is
+          provided, all the coefficients are returned. The frame can be passed
+          as the first item of ``args``; if not, the default frame of the
+          connection's domain is assumed
+
+        OUTPUT:
+
+        - the connection coefficient corresponding to the specified frame and
+          indices, as an instance of
+          :class:`~sage.manifolds.coord_func.CoordFunction`
+          (or the list of all connection coefficients if ``args==[:]`` or
+          ``args=[frame,:]``).
+
+        TESTS::
+
+            sage: M = DiffManifold(2, 'M', start_index=1)
+            sage: X.<x,y> = M.chart()
+            sage: nab = M.affine_connection('nabla', latex_name=r'\nabla')
+            sage: nab.set_coef(X.frame())[1,2,1] = x*y
+            sage: nab.__getitem__((1,2,1))
+            x*y
+            sage: nab[1,2,1]  # equivalent to above
+            x*y
+            sage: type(nab.__getitem__((1,2,1)))
+            <class 'sage.manifolds.coord_func_symb.CoordFunctionSymb'>
+            sage: nab.__getitem__((X.frame(),1,2,1))
+            x*y
+            sage: nab[X.frame(),1,2,1]  # equivalent to above
+            x*y
+
+        Returning the full set of coefficients::
+
+            sage: nab.__getitem__(slice(None))
+            [[[0, 0], [x*y, 0]], [[0, 0], [0, 0]]]
+            sage: nab[:]  # equivalent to above
+            [[[0, 0], [x*y, 0]], [[0, 0], [0, 0]]]
+            sage: nab.__getitem__((X.frame(), slice(None)))
+            [[[0, 0], [x*y, 0]], [[0, 0], [0, 0]]]
+            sage: nab[X.frame(), :]  # equivalent to above
+            [[[0, 0], [x*y, 0]], [[0, 0], [0, 0]]]
+
+        Returning a scalar field::
+
+            sage: nab.__getitem__(([1,2,1]))
+            Scalar field on the 2-dimensional differentiable manifold M
+            sage: nab[[1,2,1]]  # equivalent to above
+            Scalar field on the 2-dimensional differentiable manifold M
+            sage: nab.__getitem__(([X.frame(),1,2,1])).coord_function() is nab[1,2,1]
+            True
 
         """
-        return self.coef()[indices]
+        if isinstance(args, list):  # case of [[...]] syntax
+            if isinstance(args[0], (int, Integer, slice)):
+                frame = self._domain._def_frame
+            else:
+                frame = args[0]
+                args = args[1:]
+        else:
+            if isinstance(args, (int, Integer, slice)):
+                frame = self._domain._def_frame
+            elif not isinstance(args[0], (int, Integer, slice)):
+                frame = args[0]
+                args = args[1:]
+                if len(args) == 1:
+                    args = args[0]  # to accommodate for [e,:] syntax
+            else:
+                frame = self._domain._def_frame
+        return self.coef(frame)[args]
 
-    def __setitem__(self, indices, value):
+    def __setitem__(self, args, value):
         r"""
-        Set the connection coefficient w.r.t. the default frame of the
-        connection's domain corresponding to the given indices.
+        Set the connection coefficient w.r.t. some frame corresponding to the
+        given indices.
 
         INPUT:
 
-        - ``indices`` -- list of indices
+        - ``args`` -- list of indices defining the coefficient; if ``[:]`` is
+          provided, all the coefficients are set. The frame can be passed
+          as the first item of ``args``; if not, the default frame of the
+          connection's domain is assumed
+        - ``value`` -- the value to be set or a list of values if
+          ``args = [:]``
+
+        TESTS::
+
+            sage: M = DiffManifold(2, 'M', start_index=1)
+            sage: X.<x,y> = M.chart()
+            sage: nab = M.affine_connection('nabla', latex_name=r'\nabla')
+            sage: nab.__setitem__((1,2,1), x*y)
+            sage: nab[:]
+            [[[0, 0], [x*y, 0]], [[0, 0], [0, 0]]]
+            sage: nab[1,2,1] = x*y  # equivalent to __setitem__ above
+            sage: nab[:]
+            [[[0, 0], [x*y, 0]], [[0, 0], [0, 0]]]
+            sage: nab.__setitem__((X.frame(),1,2,1), -x^2)
+            sage: nab[1,2,1]
+            -x^2
+            sage: nab[X.frame(), 1,2,1] = -x^2  # equivalent to __setitem__ above
+            sage: nab[1,2,1]
+            -x^2
+
+        Setting all the coefficients at once::
+
+            sage: nab.__setitem__(slice(None),
+            ....:                 [[[-x^2, 0], [x*y, 0]], [[0, 1+y], [0, 0]]])
+            sage: nab[:]
+            [[[-x^2, 0], [x*y, 0]], [[0, y + 1], [0, 0]]]
+            sage: nab[:] = [[[-x^2, 0], [x*y, 0]], [[0, 1+y], [0, 0]]]  # equivalent to above
+            sage: nab[:]
+            [[[-x^2, 0], [x*y, 0]], [[0, y + 1], [0, 0]]]
+
+        Providing a scalar field as value::
+
+            sage: f = M.scalar_field({X: x*y})
+            sage: nab.__setitem__((1,2,1), f)
+            sage: nab[1,2,1]
+            x*y
 
         """
-        self.set_coef()[indices] = value
+        if isinstance(args, list):  # case of [[...]] syntax
+            if isinstance(args[0], (int, Integer, slice)):
+                frame = self._domain._def_frame
+            else:
+                frame = args[0]
+                args = args[1:]
+        else:
+            if isinstance(args, (int, Integer, slice)):
+                frame = self._domain._def_frame
+            elif not isinstance(args[0], (int, Integer, slice)):
+                frame = args[0]
+                args = args[1:]
+                if len(args) == 1:
+                    args = args[0]  # to accommodate for [e,:] syntax
+            else:
+                frame = self._domain._def_frame
+        self.set_coef(frame)[args] = value
 
     def display(self, frame=None, chart=None, symbol=None, latex_symbol=None,
                 index_labels=None, index_latex_labels=None,
@@ -622,7 +1037,9 @@ class AffineConnection(SageObject):
             Gam^x_xy = x^2
             Gam^z_yz = y*z
             sage: latex(nab.display())
-            \begin{array}{lcl} \Gamma_{ \phantom{\, x } \, x \, y }^{ \, x \phantom{\, x } \phantom{\, y } } & = & x^{2} \\ \Gamma_{ \phantom{\, z } \, y \, z }^{ \, z \phantom{\, y } \phantom{\, z } } & = & y z \end{array}
+            \begin{array}{lcl} \Gamma_{ \phantom{\, x } \, x \, y }^{ \, x \phantom{\, x } \phantom{\, y } }
+             & = & x^{2} \\ \Gamma_{ \phantom{\, z } \, y \, z }^{ \, z \phantom{\, y } \phantom{\, z } }
+             & = & y z \end{array}
 
         By default, the displayed connection coefficients are those w.r.t.
         to the default frame of the connection's domain, so the above is
@@ -653,7 +1070,9 @@ class AffineConnection(SageObject):
             C^x_xy = x^2
             C^z_yz = y*z
             sage: latex(nab.display(symbol='C', latex_symbol='C'))
-            \begin{array}{lcl} C_{ \phantom{\, x } \, x \, y }^{ \, x \phantom{\, x } \phantom{\, y } } & = & x^{2} \\ C_{ \phantom{\, z } \, y \, z }^{ \, z \phantom{\, y } \phantom{\, z } } & = & y z \end{array}
+            \begin{array}{lcl} C_{ \phantom{\, x } \, x \, y }^{ \, x \phantom{\, x } \phantom{\, y } }
+             & = & x^{2} \\ C_{ \phantom{\, z } \, y \, z }^{ \, z \phantom{\, y } \phantom{\, z } }
+             & = & y z \end{array}
 
         """
         from sage.misc.latex import latex
@@ -772,6 +1191,21 @@ class AffineConnection(SageObject):
 
         - common frame; if no common frame is found, None is returned.
 
+        TESTS::
+
+            sage: M = DiffManifold(2, 'M', start_index=1)
+            sage: X.<x,y> = M.chart()
+            sage: nab = M.affine_connection('nabla', latex_name=r'\nabla')
+            sage: nab[1,2,1] = x*y
+            sage: v = M.vector_field()
+            sage: v[:] = [-y, x]
+            sage: nab._common_frame(v)
+            Coordinate frame (M, (d/dx,d/dy))
+            sage: e = M.vector_frame('e')
+            sage: u = M.vector_field()
+            sage: u[e,:] = [-3, 2]
+            sage: nab._common_frame(u)  # no common frame is found
+
         """
         # The domain of search is restricted to other._domain:
         dom = other._domain
@@ -829,6 +1263,22 @@ class AffineConnection(SageObject):
 
         - tensor field `\nabla T`.
 
+        TEST::
+
+            sage: M = DiffManifold(2, 'M', start_index=1)
+            sage: X.<x,y> = M.chart()
+            sage: nab = M.affine_connection('nabla', latex_name=r'\nabla')
+            sage: nab[1,2,1] = x*y
+            sage: v = M.vector_field()
+            sage: v[:] = [-y, x]
+            sage: nab.__call__(v)
+            Tensor field of type (1,1) on the 2-dimensional differentiable
+             manifold M
+
+        See documentation of
+        :class:`~sage.manifolds.differentiable.affine_connection.AffineConnection`
+        for more examples.
+
         """
         from sage.manifolds.differentiable.tensorfield_paral import \
                                                                TensorFieldParal
@@ -881,27 +1331,39 @@ class AffineConnection(SageObject):
 
         - tensor field `\nabla T`.
 
+        TEST::
+
+            sage: M = DiffManifold(2, 'M', start_index=1)
+            sage: X.<x,y> = M.chart()
+            sage: nab = M.affine_connection('nabla', latex_name=r'\nabla')
+            sage: nab[1,2,1] = x*y
+            sage: v = M.vector_field()
+            sage: v[:] = [-y, x]
+            sage: nab._derive_paral(v)
+            Tensor field of type (1,1) on the 2-dimensional differentiable
+             manifold M
+
         """
         from sage.manifolds.differentiable.scalarfield import DiffScalarField
         from sage.tensor.modules.comp import Components, CompWithSym
         from sage.tensor.modules.format_utilities import format_unop_latex
-        manif = self._manifold
+        manif = self._domain
         tdom = tensor._domain
         frame = self._common_frame(tensor)
         if frame is None:
-            raise ValueError("No common frame found for the computation.")
+            raise ValueError("no common frame found for the computation")
         # Component computation in the common frame:
         tc = tensor._components[frame]
         gam = self._coefficients[frame]
         if tensor._sym == [] and tensor._antisym == []:
             resc = Components(tdom.scalar_field_algebra(), frame,
                               tensor._tensor_rank+1,
-                              start_index=self._manifold._sindex,
+                              start_index=self._domain._sindex,
                               output_formatter=DiffScalarField.coord_function)
         else:
             resc = CompWithSym(tdom.scalar_field_algebra(), frame,
                               tensor._tensor_rank+1,
-                              start_index=self._manifold._sindex,
+                              start_index=self._domain._sindex,
                               output_formatter=DiffScalarField.coord_function,
                               sym=tensor._sym, antisym=tensor._antisym)
         n_con = tensor._tensor_type[0]
@@ -922,7 +1384,8 @@ class AffineConnection(SageObject):
             # definition of the list of input parameters
             listParalInput = []
             for ind_part in local_list:
-                listParalInput.append((ind_part,tc,gam,frame,n_con,tensor._tensor_rank,manif))
+                listParalInput.append((ind_part,tc,gam,frame,n_con,
+                                       tensor._tensor_rank,manif))
 
             # definition of the parallel function
             @parallel(p_iter='multiprocessing',ncpus=nproc)
@@ -1009,6 +1472,7 @@ class AffineConnection(SageObject):
 
         Torsion of an affine connection on a 3-dimensional manifold::
 
+            sage: DiffManifold._clear_cache_() # for doctests only
             sage: M = DiffManifold(3, 'M', start_index=1)
             sage: c_xyz.<x,y,z> = M.chart()
             sage: nab = M.affine_connection('nabla', r'\nabla')
@@ -1065,7 +1529,8 @@ class AffineConnection(SageObject):
             sage: U = M.open_subset('U') ; V = M.open_subset('V')
             sage: M.declare_union(U,V)   # M is the union of U and V
             sage: c_xy.<x,y> = U.chart() ; c_uv.<u,v> = V.chart()
-            sage: transf = c_xy.transition_map(c_uv, (x+y, x-y), intersection_name='W', restrictions1= x>0, restrictions2= u+v>0)
+            sage: transf = c_xy.transition_map(c_uv, (x+y, x-y), intersection_name='W',
+            ....:                              restrictions1= x>0, restrictions2= u+v>0)
             sage: inv = transf.inverse()
             sage: W = U.intersection(V)
             sage: eU = c_xy.frame() ; eV = c_uv.frame()
@@ -1105,7 +1570,7 @@ class AffineConnection(SageObject):
 
         """
         if self._torsion is None:
-            manif = self._manifold
+            manif = self._domain
             resu = self._domain.tensor_field(1, 2, antisym=(1,2))
             for frame, gam in self._coefficients.iteritems():
                 sc = frame.structure_coef()
@@ -1122,7 +1587,7 @@ class AffineConnection(SageObject):
         r"""
         Return the connection's Riemann curvature tensor.
 
-        The Riemann curvature tensor is the tensor field `R` of type (1,3)
+        The *Riemann curvature tensor* is the tensor field `R` of type (1,3)
         defined by
 
         .. MATH::
@@ -1175,6 +1640,12 @@ class AffineConnection(SageObject):
             [[0, 0, 0], [0, 0, z], [0, -z, 0]],
             [[0, 0, 0], [0, 0, 0], [0, 0, 0]]]]
 
+        The result is cached (until the connection is modified via
+        :meth:`set_coef` or :meth:`add_coef`)::
+
+            sage: nab.riemann() is r
+            True
+
         Another example: Riemann curvature tensor of some connection on a
         non-parallelizable 2-dimensional manifold::
 
@@ -1182,7 +1653,8 @@ class AffineConnection(SageObject):
             sage: U = M.open_subset('U') ; V = M.open_subset('V')
             sage: M.declare_union(U,V)   # M is the union of U and V
             sage: c_xy.<x,y> = U.chart() ; c_uv.<u,v> = V.chart()
-            sage: transf = c_xy.transition_map(c_uv, (x+y, x-y), intersection_name='W', restrictions1= x>0, restrictions2= u+v>0)
+            sage: transf = c_xy.transition_map(c_uv, (x+y, x-y), intersection_name='W',
+            ....:                              restrictions1= x>0, restrictions2= u+v>0)
             sage: inv = transf.inverse()
             sage: W = U.intersection(V)
             sage: eU = c_xy.frame() ; eV = c_uv.frame()
@@ -1202,9 +1674,18 @@ class AffineConnection(SageObject):
             Module T^(1,3)(M) of type-(1,3) tensors fields on the 2-dimensional
              differentiable manifold M
             sage: r.display(eU)
-            (x^2*y - x*y^2) d/dx*dx*dx*dy + (-x^2*y + x*y^2) d/dx*dx*dy*dx + d/dx*dy*dx*dy - d/dx*dy*dy*dx - (x^2 - 1)*y d/dy*dx*dx*dy + (x^2 - 1)*y d/dy*dx*dy*dx + (-x^2*y + x*y^2) d/dy*dy*dx*dy + (x^2*y - x*y^2) d/dy*dy*dy*dx
+            (x^2*y - x*y^2) d/dx*dx*dx*dy + (-x^2*y + x*y^2) d/dx*dx*dy*dx + d/dx*dy*dx*dy
+             - d/dx*dy*dy*dx - (x^2 - 1)*y d/dy*dx*dx*dy + (x^2 - 1)*y d/dy*dx*dy*dx
+             + (-x^2*y + x*y^2) d/dy*dy*dx*dy + (x^2*y - x*y^2) d/dy*dy*dy*dx
             sage: r.display(eV)
-            (1/32*u^3 - 1/32*u*v^2 - 1/32*v^3 + 1/32*(u^2 + 4)*v - 1/8*u - 1/4) d/du*du*du*dv + (-1/32*u^3 + 1/32*u*v^2 + 1/32*v^3 - 1/32*(u^2 + 4)*v + 1/8*u + 1/4) d/du*du*dv*du + (1/32*u^3 - 1/32*u*v^2 + 3/32*v^3 - 1/32*(3*u^2 - 4)*v - 1/8*u + 1/4) d/du*dv*du*dv + (-1/32*u^3 + 1/32*u*v^2 - 3/32*v^3 + 1/32*(3*u^2 - 4)*v + 1/8*u - 1/4) d/du*dv*dv*du + (-1/32*u^3 + 1/32*u*v^2 + 5/32*v^3 - 1/32*(5*u^2 + 4)*v + 1/8*u - 1/4) d/dv*du*du*dv + (1/32*u^3 - 1/32*u*v^2 - 5/32*v^3 + 1/32*(5*u^2 + 4)*v - 1/8*u + 1/4) d/dv*du*dv*du + (-1/32*u^3 + 1/32*u*v^2 + 1/32*v^3 - 1/32*(u^2 + 4)*v + 1/8*u + 1/4) d/dv*dv*du*dv + (1/32*u^3 - 1/32*u*v^2 - 1/32*v^3 + 1/32*(u^2 + 4)*v - 1/8*u - 1/4) d/dv*dv*dv*du
+            (1/32*u^3 - 1/32*u*v^2 - 1/32*v^3 + 1/32*(u^2 + 4)*v - 1/8*u - 1/4) d/du*du*du*dv
+             + (-1/32*u^3 + 1/32*u*v^2 + 1/32*v^3 - 1/32*(u^2 + 4)*v + 1/8*u + 1/4) d/du*du*dv*du
+             + (1/32*u^3 - 1/32*u*v^2 + 3/32*v^3 - 1/32*(3*u^2 - 4)*v - 1/8*u + 1/4) d/du*dv*du*dv
+             + (-1/32*u^3 + 1/32*u*v^2 - 3/32*v^3 + 1/32*(3*u^2 - 4)*v + 1/8*u - 1/4) d/du*dv*dv*du
+             + (-1/32*u^3 + 1/32*u*v^2 + 5/32*v^3 - 1/32*(5*u^2 + 4)*v + 1/8*u - 1/4) d/dv*du*du*dv
+             + (1/32*u^3 - 1/32*u*v^2 - 5/32*v^3 + 1/32*(5*u^2 + 4)*v - 1/8*u + 1/4) d/dv*du*dv*du
+             + (-1/32*u^3 + 1/32*u*v^2 + 1/32*v^3 - 1/32*(u^2 + 4)*v + 1/8*u + 1/4) d/dv*dv*du*dv
+             + (1/32*u^3 - 1/32*u*v^2 - 1/32*v^3 + 1/32*(u^2 + 4)*v - 1/8*u - 1/4) d/dv*dv*dv*du
 
         The same computation parallelized on 2 cores::
 
@@ -1223,14 +1704,23 @@ class AffineConnection(SageObject):
             Module T^(1,3)(M) of type-(1,3) tensors fields on the 2-dimensional
              differentiable manifold M
             sage: r.display(eU)
-            (x^2*y - x*y^2) d/dx*dx*dx*dy + (-x^2*y + x*y^2) d/dx*dx*dy*dx + d/dx*dy*dx*dy - d/dx*dy*dy*dx - (x^2 - 1)*y d/dy*dx*dx*dy + (x^2 - 1)*y d/dy*dx*dy*dx + (-x^2*y + x*y^2) d/dy*dy*dx*dy + (x^2*y - x*y^2) d/dy*dy*dy*dx
+            (x^2*y - x*y^2) d/dx*dx*dx*dy + (-x^2*y + x*y^2) d/dx*dx*dy*dx + d/dx*dy*dx*dy
+             - d/dx*dy*dy*dx - (x^2 - 1)*y d/dy*dx*dx*dy + (x^2 - 1)*y d/dy*dx*dy*dx
+             + (-x^2*y + x*y^2) d/dy*dy*dx*dy + (x^2*y - x*y^2) d/dy*dy*dy*dx
             sage: r.display(eV)
-            (1/32*u^3 - 1/32*u*v^2 - 1/32*v^3 + 1/32*(u^2 + 4)*v - 1/8*u - 1/4) d/du*du*du*dv + (-1/32*u^3 + 1/32*u*v^2 + 1/32*v^3 - 1/32*(u^2 + 4)*v + 1/8*u + 1/4) d/du*du*dv*du + (1/32*u^3 - 1/32*u*v^2 + 3/32*v^3 - 1/32*(3*u^2 - 4)*v - 1/8*u + 1/4) d/du*dv*du*dv + (-1/32*u^3 + 1/32*u*v^2 - 3/32*v^3 + 1/32*(3*u^2 - 4)*v + 1/8*u - 1/4) d/du*dv*dv*du + (-1/32*u^3 + 1/32*u*v^2 + 5/32*v^3 - 1/32*(5*u^2 + 4)*v + 1/8*u - 1/4) d/dv*du*du*dv + (1/32*u^3 - 1/32*u*v^2 - 5/32*v^3 + 1/32*(5*u^2 + 4)*v - 1/8*u + 1/4) d/dv*du*dv*du + (-1/32*u^3 + 1/32*u*v^2 + 1/32*v^3 - 1/32*(u^2 + 4)*v + 1/8*u + 1/4) d/dv*dv*du*dv + (1/32*u^3 - 1/32*u*v^2 - 1/32*v^3 + 1/32*(u^2 + 4)*v - 1/8*u - 1/4) d/dv*dv*dv*du
+            (1/32*u^3 - 1/32*u*v^2 - 1/32*v^3 + 1/32*(u^2 + 4)*v - 1/8*u - 1/4) d/du*du*du*dv
+             + (-1/32*u^3 + 1/32*u*v^2 + 1/32*v^3 - 1/32*(u^2 + 4)*v + 1/8*u + 1/4) d/du*du*dv*du
+             + (1/32*u^3 - 1/32*u*v^2 + 3/32*v^3 - 1/32*(3*u^2 - 4)*v - 1/8*u + 1/4) d/du*dv*du*dv
+             + (-1/32*u^3 + 1/32*u*v^2 - 3/32*v^3 + 1/32*(3*u^2 - 4)*v + 1/8*u - 1/4) d/du*dv*dv*du
+             + (-1/32*u^3 + 1/32*u*v^2 + 5/32*v^3 - 1/32*(5*u^2 + 4)*v + 1/8*u - 1/4) d/dv*du*du*dv
+             + (1/32*u^3 - 1/32*u*v^2 - 5/32*v^3 + 1/32*(5*u^2 + 4)*v - 1/8*u + 1/4) d/dv*du*dv*du
+             + (-1/32*u^3 + 1/32*u*v^2 + 1/32*v^3 - 1/32*(u^2 + 4)*v + 1/8*u + 1/4) d/dv*dv*du*dv
+             + (1/32*u^3 - 1/32*u*v^2 - 1/32*v^3 + 1/32*(u^2 + 4)*v - 1/8*u - 1/4) d/dv*dv*dv*du
             sage: set_nproc_tensor(1) # revert to a single core
 
         """
         if self._riemann is None:
-            manif = self._manifold
+            manif = self._domain
             resu = self._domain.tensor_field(1, 3, antisym=(2,3))
             for frame, gam in self._coefficients.iteritems():
                 # The computation is performed only on the top frames:
@@ -1308,7 +1798,7 @@ class AffineConnection(SageObject):
         r"""
         Return the connection's Ricci tensor.
 
-        The Ricci tensor is the tensor field `Ric` of type (0,2)
+        The *Ricci tensor* is the tensor field `Ric` of type (0,2)
         defined from the Riemann curvature tensor `R` by
 
         .. MATH::
@@ -1341,6 +1831,12 @@ class AffineConnection(SageObject):
             [  0  -z   0]
             [  0   0   0]
 
+        The result is cached (until the connection is modified via
+        :meth:`set_coef` or :meth:`add_coef`)::
+
+            sage: nab.ricci() is r
+            True
+
         """
         if self._ricci is None:
             self._ricci = self.riemann().trace(0,2)
@@ -1351,7 +1847,7 @@ class AffineConnection(SageObject):
         Return the connection 1-form corresponding to the given index and
         vector frame.
 
-        The connection 1-forms with respect to the frame `(e_i)` are the
+        The *connection 1-forms* with respect to the frame `(e_i)` are the
         `n^2` 1-forms `\omega^i_{\ \, j}` defined by
 
         .. MATH::
@@ -1374,8 +1870,8 @@ class AffineConnection(SageObject):
 
         - ``i``, ``j`` -- indices identifying the 1-form `\omega^i_{\ \, j}`
         - ``frame`` -- (default: ``None``) vector frame relative to which the
-          connection 1-forms are defined; if none is provided, the default
-          frame of the connection's domain is assumed.
+          connection 1-forms are defined; if ``None``, the default frame of the
+          connection's domain is assumed.
 
         OUTPUT:
 
@@ -1399,6 +1895,12 @@ class AffineConnection(SageObject):
              differentiable manifold M
             sage: nab.connection_form(1,1)[:]
             [x*y*z, x^2, -y*z]
+
+        The result is cached (until the connection is modified via
+        :meth:`set_coef` or :meth:`add_coef`)::
+
+            sage: nab.connection_form(1,1) is nab.connection_form(1,1)
+            True
 
         Connection 1-forms w.r.t. a non-holonomic frame::
 
@@ -1459,16 +1961,16 @@ class AffineConnection(SageObject):
         if frame not in self._connection_forms:
             forms = {}
             frame_dom = frame._domain
-            for i1 in self._manifold.irange():
-                for j1 in self._manifold.irange():
+            for i1 in self._domain.irange():
+                for j1 in self._domain.irange():
                     name = self._name + " connection 1-form (" + str(i1) + \
                            "," + str(j1) + ")"
-                    latex_name = r"\omega^" + str(i1) + r"_{\ \, " + str(j1) + \
-                                 "}"
+                    latex_name = r"\omega^" + str(i1) + r"_{\ \, " + \
+                                 str(j1) + "}"
                     omega = frame_dom.one_form(name=name,
                                                latex_name=latex_name)
                     comega = omega.set_comp(frame)
-                    for k in self._manifold.irange():
+                    for k in self._domain.irange():
                         comega[k] = self.coef(frame)[[i1,j1,k]]
                     forms[(i1,j1)] = omega
             self._connection_forms[frame] = forms
@@ -1479,7 +1981,7 @@ class AffineConnection(SageObject):
         Return the torsion 2-form corresponding to the given index and
         vector frame.
 
-        The torsion 2-forms with respect to the frame `(e_i)` are the
+        The *torsion 2-forms* with respect to the frame `(e_i)` are the
         `n` 2-forms `\theta^i` defined by
 
         .. MATH::
@@ -1494,8 +1996,8 @@ class AffineConnection(SageObject):
 
         - ``i`` -- index identifying the 2-form `\theta^i`
         - ``frame`` -- (default: ``None``) vector frame relative to which the
-          torsion 2-forms are defined; if none is provided, the default frame
-          of the connection's domain is assumed.
+          torsion 2-forms are defined; if ``None``, the default frame of the
+          connection's domain is assumed.
 
         OUTPUT:
 
@@ -1515,8 +2017,8 @@ class AffineConnection(SageObject):
             sage: nab[2,3,1], nab[2,3,3], nab[3,1,2] = x^2+y^2+z^2, y^2-z^2, x*y+z^2
             sage: nab[3,2,1], nab[3,2,2], nab[3,3,3] = x*y+z, z^3 -y^2, x*z^2 - z*y^2
             sage: nab.torsion_form(1)
-            2-form nabla torsion 2-form (1) on the 3-dimensional differentiable
-             manifold M
+            2-form torsion (1) of connection nabla w.r.t. Coordinate frame
+             (M, (d/dx,d/dy,d/dz)) on the 3-dimensional differentiable manifold M
             sage: nab.torsion_form(1)[:]
             [               0             -x^2      (y^2 + y)*z]
             [             x^2                0  x^3 - x^2 + y^2]
@@ -1533,8 +2035,8 @@ class AffineConnection(SageObject):
             sage: ef[1][:], ef[2][:], ef[3][:]
             ([1/y, 0, 0], [0, 1/z, 0], [0, 0, 1/x])
             sage: nab.torsion_form(1, e)
-            2-form nabla torsion 2-form (1) on the 3-dimensional differentiable
-             manifold M
+            2-form torsion (1) of connection nabla w.r.t. Vector frame
+             (M, (e_1,e_2,e_3)) on the 3-dimensional differentiable manifold M
             sage: nab.torsion_form(1, e).comp(e)[:]
             [                       0                   -x^2*z          (x*y^2 + x*y)*z]
             [                   x^2*z                        0  (x^4 - x^3 + x*y^2)*z/y]
@@ -1562,14 +2064,15 @@ class AffineConnection(SageObject):
         if frame not in self._torsion_forms:
             forms = {}
             frame_dom = frame._domain
-            for i1 in self._manifold.irange():
-                name = self._name + " torsion 2-form (" + str(i1) + ")"
+            for i1 in self._domain.irange():
+                name = "torsion ({}) of connection ".format(i1) + \
+                       self._name + " w.r.t. {}".format(frame)
                 latex_name = r"\theta^" + str(i1)
                 theta = frame_dom.diff_form(2, name=name,
                                             latex_name=latex_name)
                 ctheta = theta.set_comp(frame)
-                for k in self._manifold.irange():
-                    for l in self._manifold.irange(start=k+1):
+                for k in self._domain.irange():
+                    for l in self._domain.irange(start=k+1):
                         ctheta[k,l] = self.torsion().comp(frame)[[i1,k,l]]
                 forms[i1] = theta
             self._torsion_forms[frame] = forms
@@ -1580,7 +2083,7 @@ class AffineConnection(SageObject):
         Return the curvature 2-form corresponding to the given index and
         vector frame.
 
-        The curvature 2-forms with respect to the frame `(e_i)` are the
+        The *curvature 2-forms* with respect to the frame `(e_i)` are the
         `n^2` 2-forms `\Omega^i_{\ \, j}` defined by
 
         .. MATH::
@@ -1588,14 +2091,14 @@ class AffineConnection(SageObject):
             \Omega^i_{\ \, j}(u,v) = R(e^i, e_j, u, v)
 
         where `R` is the connection's Riemann curvature tensor (cf.
-        :meth:`riemann`), `(e^i)` is the coframe dual to `(e_i)` and `(u,v)` is a
-        generic pair of vectors.
+        :meth:`riemann`), `(e^i)` is the coframe dual to `(e_i)` and `(u,v)` is
+        a generic pair of vectors.
 
         INPUT:
 
         - ``i``, ``j`` -- indices identifying the 2-form `\Omega^i_{\ \, j}`
         - ``frame`` -- (default: ``None``) vector frame relative to which the
-          curvature 2-forms are defined; if none is provided, the default frame
+          curvature 2-forms are defined; if ``None``, the default frame
           of the connection's domain is assumed.
 
         OUTPUT:
@@ -1616,9 +2119,12 @@ class AffineConnection(SageObject):
             sage: nab[2,3,1], nab[2,3,3], nab[3,1,2] = x^2+y^2+z^2, y^2-z^2, x*y+z^2
             sage: nab[3,2,1], nab[3,2,2], nab[3,3,3] = x*y+z, z^3 -y^2, x*z^2 - z*y^2
             sage: nab.curvature_form(1,1)  # long time
-            2-form 'nabla curvature 2-form (1,1)' on the 3-dimensional manifold 'M'
+            2-form curvature (1,1) of connection nabla w.r.t. Coordinate frame
+             (M, (d/dx,d/dy,d/dz)) on the 3-dimensional differentiable manifold M
             sage: nab.curvature_form(1,1).display()  # long time (if above is skipped)
-            nabla curvature 2-form (1,1) = (y^2*z^3 + (x*y^3 - x)*z + 2*x) dx/\dy + (x^3*z^2 - x*y) dx/\dz + (x^4*y*z^2 - z) dy/\dz
+            curvature (1,1) of connection nabla w.r.t. Coordinate frame
+             (M, (d/dx,d/dy,d/dz)) = (y^2*z^3 + (x*y^3 - x)*z + 2*x) dx/\dy
+              + (x^3*z^2 - x*y) dx/\dz + (x^4*y*z^2 - z) dy/\dz
 
         Curvature 2-forms w.r.t. a non-holonomic frame::
 
@@ -1631,9 +2137,12 @@ class AffineConnection(SageObject):
             sage: ef[1].display(), ef[2].display(), ef[3].display()
             (e^1 = 1/y dx, e^2 = 1/z dy, e^3 = 1/x dz)
             sage: nab.curvature_form(1,1,e)  # long time
-            2-form 'nabla curvature 2-form (1,1)' on the 3-dimensional manifold 'M'
+            2-form curvature (1,1) of connection nabla w.r.t. Vector frame
+             (M, (e_1,e_2,e_3)) on the 3-dimensional differentiable manifold M
             sage: nab.curvature_form(1,1,e).display(e)  # long time (if above is skipped)
-            nabla curvature 2-form (1,1) = (y^3*z^4 + 2*x*y*z + (x*y^4 - x*y)*z^2) e^1/\e^2 + (x^4*y*z^2 - x^2*y^2) e^1/\e^3 + (x^5*y*z^3 - x*z^2) e^2/\e^3
+             curvature (1,1) of connection nabla w.r.t. Vector frame (M, (e_1,e_2,e_3)) =
+              (y^3*z^4 + 2*x*y*z + (x*y^4 - x*y)*z^2) e^1/\e^2
+              + (x^4*y*z^2 - x^2*y^2) e^1/\e^3 + (x^5*y*z^3 - x*z^2) e^2/\e^3
 
         Cartan's second structure equation is
 
@@ -1660,20 +2169,19 @@ class AffineConnection(SageObject):
         if frame not in self._curvature_forms:
             forms = {}
             frame_dom = frame._domain
-            for i1 in self._manifold.irange():
-                for j1 in self._manifold.irange():
-                    name = self._name + " curvature 2-form (" + str(i1) + \
-                           "," + str(j1) + ")"
+            for i1 in self._domain.irange():
+                for j1 in self._domain.irange():
+                    name = "curvature ({},{}) of connection ".format(i1,j1) + \
+                           self._name + " w.r.t. {}".format(frame)
                     latex_name = r"\Omega^" + str(i1) + r"_{\ \, " + \
                                 str(j1) + "}"
                     omega = frame_dom.diff_form(2, name=name,
                                                 latex_name=latex_name)
                     comega = omega.set_comp(frame)
-                    for k in self._manifold.irange():
-                        for l in self._manifold.irange(start=k+1):
+                    for k in self._domain.irange():
+                        for l in self._domain.irange(start=k+1):
                             comega[k,l] = \
                                         self.riemann().comp(frame)[[i1,j1,k,l]]
                     forms[(i1,j1)] = omega
             self._curvature_forms[frame] = forms
         return  self._curvature_forms[frame][(i,j)]
-

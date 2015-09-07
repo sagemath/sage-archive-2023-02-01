@@ -652,6 +652,20 @@ class QuadraticForm(SageObject):
 # TO DO:    def __cmp__(self, other):
 ######################################
 
+    def __hash__(self):
+        r"""
+        TESTS::
+
+            sage: Q1 = QuadraticForm(QQ, 2, [1,1,1])
+            sage: Q2 = QuadraticForm(QQ, 2, [1,1,1])
+            sage: Q3 = QuadraticForm(QuadraticField(2), 2, [1,1,1])
+            sage: hash(Q1) == hash(Q2)
+            True
+            sage: hash(Q1) == hash(Q3)
+            False
+        """
+        return hash(self.__base_ring) ^ hash(tuple(self.__coeffs))
+
     def __eq__(self, right):
         """
         Determines if two quadratic forms are equal.

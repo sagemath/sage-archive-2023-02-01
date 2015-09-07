@@ -21,9 +21,7 @@ Here is an example of a linear function tensored with a vector space::
 
 from cpython.object cimport *
 
-cdef extern from "limits.h":
-    long LONG_MAX
-
+from sage.misc.fast_methods cimport hash_by_id
 from sage.structure.element cimport ModuleElement, RingElement
 from sage.numerical.linear_functions cimport LinearFunction, is_LinearFunction
 
@@ -454,7 +452,7 @@ cdef class LinearTensor(ModuleElement):
             sage: d[f] = 3
         """
         # see _cmp_() if you want to change the hash function
-        return id(self) % LONG_MAX
+        return hash_by_id(<void *> self)
 
     cpdef int _cmp_(left, Element right) except -2:
         """

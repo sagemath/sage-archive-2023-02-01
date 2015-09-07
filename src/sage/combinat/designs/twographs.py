@@ -184,6 +184,10 @@ def taylor_twograph(q):
     There is also a `2-(q^3+1,q+1,1)`-design on these `q^3+1` points, known as the unital of
     order `q`, also invariant under `U_3(q)`.
 
+    INPUT:
+
+    - ``q`` -- a power of an odd prime
+
     EXAMPLES::
 
         sage: from sage.combinat.designs.twographs import taylor_twograph
@@ -191,10 +195,6 @@ def taylor_twograph(q):
         Incidence structure with 28 points and 1260 blocks
     """
     from sage.graphs.generators.families import TaylorTwographSRG
-    from sage.rings.arith import is_prime_power
-    p, k = is_prime_power(q,get_data=True)
-    if k==0 or p==2:
-       raise ValueError('q must be a an odd prime power')
     return TaylorTwographSRG(q).twograph()
 
 def is_twograph(T):

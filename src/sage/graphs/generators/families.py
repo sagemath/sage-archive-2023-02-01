@@ -2766,7 +2766,7 @@ def TaylorTwographDescendantSRG(q, clique_partition=None):
 
     INPUT:
 
-    - ``q`` -- an odd prime power
+    - ``q`` -- a power of an odd prime number
 
     - ``clique_partition`` -- if ``True``, return `q^2-1` cliques of size `q`
       with empty pairwise intersection. (Removing all of them leaves a clique, too),
@@ -2838,6 +2838,10 @@ def TaylorTwographSRG(q):
     in the Seidel switching class of
     :func:`Taylor two-graph <sage.combinat.designs.twographs.taylor_twograph>`.
     Details are in §7E of [BvL84]_.
+
+    INPUT:
+
+    - ``q`` -- a power of an odd prime number
 
     .. SEEALSO::
 

@@ -776,8 +776,8 @@ def SRG_120_77_52_44():
     EXAMPLE::
 
         sage: from sage.graphs.strongly_regular_db import SRG_120_77_52_44
-        sage: G = SRG_120_77_52_44()
-        sage: G.is_strongly_regular(parameters=True)
+        sage: G = SRG_120_77_52_44()                 # optional - gap_packages
+        sage: G.is_strongly_regular(parameters=True) # optional - gap_packages
         (120, 77, 52, 44)
     """
     from sage.combinat.designs.block_design import WittDesign
@@ -798,8 +798,8 @@ def SRG_176_105_68_54():
     EXAMPLE::
 
         sage: from sage.graphs.strongly_regular_db import SRG_176_105_68_54
-        sage: G = SRG_176_105_68_54()
-        sage: G.is_strongly_regular(parameters=True)
+        sage: G = SRG_176_105_68_54()                # optional - gap_packages
+        sage: G.is_strongly_regular(parameters=True) # optional - gap_packages
         (176, 105, 68, 54)
     """
     from sage.combinat.designs.block_design import WittDesign
@@ -810,7 +810,7 @@ def SRG_176_105_68_54():
 
 def SRG_253_140_87_65():
     r"""
-    Return a `(176, 105, 68, 54)`-strongly regular graph.
+    Return a `(253, 140, 87, 65)`-strongly regular graph.
 
     To build this graph, we first build the
     :func:`~sage.combinat.designs.block_design.WittDesign` on 23 points which is
@@ -820,8 +820,8 @@ def SRG_253_140_87_65():
     EXAMPLE::
 
         sage: from sage.graphs.strongly_regular_db import SRG_253_140_87_65
-        sage: G = SRG_253_140_87_65()
-        sage: G.is_strongly_regular(parameters=True)
+        sage: G = SRG_253_140_87_65()                # optional - gap_packages
+        sage: G.is_strongly_regular(parameters=True) # optional - gap_packages
         (253, 140, 87, 65)
     """
     from sage.combinat.designs.block_design import WittDesign

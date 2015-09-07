@@ -221,10 +221,13 @@ __append_to_doc(
      "quadrangulations",
      "RingedTree",
      "SierpinskiGasketGraph",
+     "SymplecticDualPolarGraph",
      "SymplecticGraph",
      "strongly_regular_graph",
      "trees",
      "triangulations",
+     "UnitaryDualPolarGraph",
+     "UnitaryPolarGraph",
      "WheelGraph"])
 
 __doc__ += """
@@ -1971,9 +1974,12 @@ class GraphGenerators():
     petersen_family        = staticmethod(sage.graphs.generators.families.petersen_family)
     RingedTree             = staticmethod(sage.graphs.generators.families.RingedTree)
     SierpinskiGasketGraph  = staticmethod(sage.graphs.generators.families.SierpinskiGasketGraph)
+    SymplecticDualPolarGraph = staticmethod(sage.graphs.generators.families.SymplecticDualPolarGraph)
     SymplecticGraph        = staticmethod(sage.graphs.generators.families.SymplecticGraph)
     strongly_regular_graph = staticmethod(sage.graphs.strongly_regular_db.strongly_regular_graph)
     trees                  = staticmethod(sage.graphs.generators.families.trees)
+    UnitaryDualPolarGraph  = staticmethod(sage.graphs.generators.families.UnitaryDualPolarGraph)
+    UnitaryPolarGraph      = staticmethod(sage.graphs.generators.families.UnitaryPolarGraph)
     WheelGraph             = staticmethod(sage.graphs.generators.families.WheelGraph)
 
 ###########################################################################

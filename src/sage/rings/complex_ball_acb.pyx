@@ -1377,7 +1377,7 @@ cdef class ComplexBall(RingElement):
 
     def contains_exact(self, other):
         """
-        Returns nonzero *iff* the given number (or ball) ``other`` is contained
+        Return ``True`` *iff* the given number (or ball) ``other`` is contained
         in the interval represented by ``self``.
 
         Use ``other in self`` for a test that works for a wider range of inputs

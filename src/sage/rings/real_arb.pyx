@@ -1232,7 +1232,7 @@ cdef class RealBall(RingElement):
                     return field(0)
         raise ValueError("unknown rounding mode")
 
-    # Center and radius, absolute value
+    # Center and radius, absolute value, endpoints
 
     def mid(self):
         """
@@ -1265,6 +1265,8 @@ cdef class RealBall(RingElement):
             mid_prec = MPFR_PREC_MIN
         cdef RealField_class mid_field = RealField(mid_prec)
         return self._mpfr_(mid_field)
+
+    center = mid
 
     def rad(self):
         """
@@ -1410,6 +1412,49 @@ cdef class RealBall(RingElement):
         cdef RealBall res = self._new()
         arb_get_abs_ubound_arf(arb_midref(res.value), self.value, prec(self))
         return res
+
+    def upper(self, rnd=None):
+        """
+        Return the right endpoint of this ball, viewed as an interval.
+
+        EXAMPLES::
+
+            sage: from sage.rings.real_arb import RBF
+            sage: RBF(-1/3).upper()
+            -0.333333333333333
+            sage: RBF(-1/3).upper().parent()
+            Real Field with 53 bits of precision and rounding RNDU
+        """
+        # naive and slow
+        return self._real_mpfi_(RealIntervalField(prec(self))).upper(rnd)
+
+    def lower(self, rnd=None):
+        """
+        Return the right endpoint of this ball, viewed as an interval.
+
+        EXAMPLES::
+
+            sage: from sage.rings.real_arb import RBF
+            sage: RBF(-1/3).lower()
+            -0.333333333333334
+            sage: RBF(-1/3).lower().parent()
+            Real Field with 53 bits of precision and rounding RNDD
+        """
+        # naive and slow
+        return self._real_mpfi_(RealIntervalField(prec(self))).lower(rnd)
+
+    def endpoints(self, rnd=None):
+        """
+        Return the endpoints of this ball, viewed as an interval.
+
+        EXAMPLES::
+
+            sage: from sage.rings.real_arb import RBF
+            sage: RBF(-1/3).endpoints()
+            (-0.333333333333334, -0.333333333333333)
+        """
+        # naive and slow
+        return self._real_mpfi_(RealIntervalField(prec(self))).endpoints(rnd)
 
     # Precision
 

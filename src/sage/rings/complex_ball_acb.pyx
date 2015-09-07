@@ -1,3 +1,4 @@
+# -*- coding: utf-8
 r"""
 Arbitrary Precision Complex Balls using Arb
 
@@ -68,18 +69,25 @@ or if both are exact and equal::
     sage: a == b
     False
 
-A ball is non-zero if and only if it does not contain zero. ::
+A ball is non-zero in the sense of usual comparison if and only if it does not
+contain zero::
 
     sage: a = CBF(RIF(-0.5, 0.5))
-    sage: bool(a)
-    False
     sage: a != 0
     False
     sage: b = CBF(1/3, 1/5)
-    sage: bool(b)
-    True
     sage: b != 0
     True
+
+However, ``bool(b)`` returns ``True`` for a ball ``b`` only if ``b`` is exactly
+zero::
+
+    sage: bool(a)
+    True
+    sage: bool(b)
+    True
+    sage: bool(CBF.zero())
+    False
 
 Coercion
 ========
@@ -1188,25 +1196,57 @@ cdef class ComplexBall(RingElement):
         """
         return acb_is_zero(self.value)
 
-    def __nonzero__(self):
+    def is_nonzero(self):
         """
         Return ``True`` iff zero is not contained in the interval represented
         by this ball.
+
+        .. NOTE::
+
+            Use :meth:`__nonzero__` or :meth:`is_zero` to check that a ball is
+            not exactly the zero ball (for instance, to determine the “degree”
+            of a polynomial with ball coefficients).
 
         EXAMPLES::
 
             sage: from sage.rings.complex_ball_acb import ComplexBallField
             sage: CBF = ComplexBallField()
-            sage: bool(CBF(pi, 1/3))
+            sage: CBF(pi, 1/3).is_nonzero()
             True
-            sage: bool(CBF(RIF(-0.5, 0.5), 1/3))
+            sage: CBF(RIF(-0.5, 0.5), 1/3).is_nonzero()
             True
-            sage: bool(CBF(1/3, RIF(-0.5, 0.5)))
+            sage: CBF(1/3, RIF(-0.5, 0.5)).is_nonzero()
             True
-            sage: bool(CBF(RIF(-0.5, 0.5), RIF(-0.5, 0.5)))
+            sage: CBF(RIF(-0.5, 0.5), RIF(-0.5, 0.5)).is_nonzero()
             False
         """
         return acb_is_nonzero(self.value)
+
+    def __nonzero__(self):
+        """
+        Return ``True`` iff this complex ball is not the zero ball, i.e. if the
+        midpoint and radius of its real and imaginary parts are not all zero.
+
+        This is the preferred way, for instance, to determine the “degree” of a
+        polynomial with ball coefficients.
+
+        .. WARNING::
+
+            A “nonzero” ball in the sense of this method may represent the
+            value zero. Use :meth:`is_nonzero` to check that a complex number
+            represented by a ``ComplexBall`` object is known to be nonzero.
+
+        EXAMPLES::
+
+            sage: from sage.rings.complex_ball_acb import CBF
+            sage: bool(CBF(0)) # indirect doctest
+            False
+            sage: bool(CBF(i))
+            True
+            sage: bool(CBF(RIF(-0.5, 0.5)))
+            True
+        """
+        return not acb_is_zero(self.value)
 
     def is_exact(self):
         """

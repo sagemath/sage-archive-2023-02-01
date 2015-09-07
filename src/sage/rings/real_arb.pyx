@@ -1,3 +1,4 @@
+# -*- coding: utf-8
 r"""
 Arbitrary precision real intervals using Arb
 
@@ -45,18 +46,25 @@ or if both are exact and equal::
     sage: a == b
     False
 
-A ball is non-zero if and only if it does not contain zero. ::
+A ball is non-zero in the sense of comparison if and only if it does not
+contain zero. ::
 
     sage: a = RBF(RIF(-0.5, 0.5))
-    sage: bool(a)
-    False
     sage: a != 0
     False
     sage: b = RBF(1/3)
-    sage: bool(b)
-    True
     sage: b != 0
     True
+
+However, ``bool(b)`` returns ``True`` for a ball ``b`` only if ``b`` is exactly
+zero::
+
+    sage: bool(a)
+    True
+    sage: bool(b)
+    True
+    sage: bool(RBF.zero())
+    False
 
 A ball ``left`` is less than a ball ``right`` if all elements of
 ``left`` are less than all elements of ``right``. ::
@@ -1424,6 +1432,7 @@ cdef class RealBall(RingElement):
             -0.333333333333333
             sage: RBF(-1/3).upper().parent()
             Real Field with 53 bits of precision and rounding RNDU
+
         """
         # naive and slow
         return self._real_mpfi_(RealIntervalField(prec(self))).upper(rnd)
@@ -1548,21 +1557,53 @@ cdef class RealBall(RingElement):
         """
         return arb_is_zero(self.value)
 
-    def __nonzero__(self):
+    def is_nonzero(self):
         """
         Return ``True`` iff zero is not contained in the interval represented
         by this ball.
+
+        .. NOTE::
+
+            Use :meth:`__nonzero__` or :meth:`is_zero` to check that a ball is
+            not exactly the zero ball (for instance, to determine the “degree”
+            of a polynomial with ball coefficients).
 
         EXAMPLES::
 
             sage: from sage.rings.real_arb import RealBallField
             sage: RBF = RealBallField()
-            sage: bool(RBF(pi))
+            sage: RBF(pi).is_nonzero()
             True
-            sage: bool(RBF(RIF(-0.5, 0.5)))
+            sage: RBF(RIF(-0.5, 0.5)).is_nonzero()
             False
         """
         return arb_is_nonzero(self.value)
+
+    def __nonzero__(self):
+        """
+        Return ``True`` iff this ball is not the zero ball, i.e. if it its
+        midpoint and radius are not both zero.
+
+        This is the preferred way, for instance, to determine the “degree” of a
+        polynomial with ball coefficients.
+
+        .. WARNING::
+
+            A “nonzero” ball in the sense of this method may represent the
+            value zero. Use :meth:`is_nonzero` to check that a real number
+            represented by a ``RealBall`` object is known to be nonzero.
+
+        EXAMPLES::
+
+            sage: from sage.rings.real_arb import RBF
+            sage: bool(RBF(0)) # indirect doctest
+            False
+            sage: bool(RBF(1/3))
+            True
+            sage: bool(RBF(RIF(-0.5, 0.5)))
+            True
+        """
+        return not arb_is_zero(self.value)
 
     def is_exact(self):
         """

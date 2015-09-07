@@ -159,3 +159,7 @@ class SageKernel(IPythonKernel):
                 'url': "http://help.github.com/articles/github-flavored-markdown",
             },
         ]
+
+    def pre_handler_hook(self):
+        from sage.ext.interrupt.interrupt import init_interrupts
+        self.saved_sigint_handler = init_interrupts()

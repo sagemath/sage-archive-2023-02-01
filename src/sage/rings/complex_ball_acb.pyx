@@ -950,9 +950,9 @@ cdef class ComplexBall(RingElement):
 
         INPUT:
 
-        - ``test_zero`` (boolean, default False) -- if True, make sure that the
-          returned lower bound is positive, raising an error if the ball
-          contains zero.
+        - ``test_zero`` (boolean, default ``False``) -- if ``True``,
+          make sure that the returned lower bound is positive, raising
+          an error if the ball contains zero.
 
         .. SEEALSO:: :meth:`abs`, :meth:`above_abs`
 
@@ -1565,10 +1565,8 @@ cdef class ComplexBall(RingElement):
 
             sage: from sage.rings.complex_ball_acb import CBF
             sage: from sage.rings.real_arb import RBF
-
             sage: CBF(-2, 1)/CBF(1, 1/3)
             [-1.50000000000000 +/- 1.27e-15] + [1.500000000000000 +/- 8.94e-16]*I
-
             sage: CBF(2+I)/CBF(0)
             [+/- inf] + [+/- inf]*I
             sage: CBF(1)/CBF(0)

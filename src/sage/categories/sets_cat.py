@@ -1188,13 +1188,8 @@ class Sets(Category_singleton):
             tester = self._tester(**options)
             S = list(tester.some_elements()) + [None, 0]
             n = tester._max_runs
-            from sage.combinat.cartesian_product import CartesianProduct
-            S = CartesianProduct(S,S)
-            if len(S) > n:
-                from random import sample
-                S = sample(S, n)
-
-            for x, y in S:
+            from sage.misc.misc import bounded_number_of_tuples
+            for x,y in bounded_number_of_tuples(S, 2, tester._max_runs):
                 tester.assertEqual(x==y, y==x,
                     LazyFormat("non symmetric equality: %s but %s")%(
                         print_compare(x, y), print_compare(y, x)))
@@ -1280,14 +1275,9 @@ class Sets(Category_singleton):
             """
             tester = self._tester(**options)
             S = list(tester.some_elements()) + [None, 0]
-            n = tester._max_runs
-            from sage.combinat.cartesian_product import CartesianProduct
-            S = CartesianProduct(S,S)
-            if len(S) > n:
-                from random import sample
-                S = sample(S, n)
 
-            for x,y in S:
+            from sage.misc.misc import bounded_number_of_tuples
+            for x,y in bounded_number_of_tuples(S, 2, tester._max_runs):
                 tester.assertNotEqual(x == y, x != y,
                     LazyFormat("__eq__ and __ne__ inconsistency:\n"
                         "  %s == %s returns %s  but  %s != %s returns %s")%(

@@ -37,10 +37,11 @@ Sage example in ./nonlinear.tex, line 202::
 
 Sage example in ./nonlinear.tex, line 231::
 
+    sage: from itertools import product
     sage: def build_complex_roots(degree):
     ....:     R.<x> = PolynomialRing(CDF, 'x')
     ....:     v = []
-    ....:     for c in CartesianProduct(*[[-1, 1]] * (degree + 1)):
+    ....:     for c in product([-1, 1], repeat=degree+1):
     ....:         v.extend(R(c).roots(multiplicities=False))
     ....:     return v
     sage: data = build_complex_roots(12) # long time

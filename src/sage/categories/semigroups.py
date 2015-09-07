@@ -114,8 +114,8 @@ class Semigroups(CategoryWithAxiom):
             """
             tester = self._tester(**options)
             S = tester.some_elements()
-            from sage.combinat.cartesian_product import CartesianProduct
-            for x,y,z in tester.some_elements(CartesianProduct(S,S,S)):
+            from itertools import product
+            for x,y,z in product(S, repeat=3):
                 tester.assert_((x * y) * z == x * (y * z))
 
         @abstract_method(optional=True)

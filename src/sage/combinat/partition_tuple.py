@@ -256,7 +256,8 @@ subgroup::
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from cartesian_product import CartesianProduct
+import itertools
+
 from combinat import CombinatorialElement
 from integer_vector import IntegerVectors
 from partition import Partition, Partitions, Partitions_n, _Partitions
@@ -2049,7 +2050,7 @@ class PartitionTuples_level_size(PartitionTuples):
         """
         p = [Partitions(i) for i in range(self.size()+1)]
         for iv in IntegerVectors(self.size(),self.level()):
-            for cp in CartesianProduct(*[p[i] for i in iv]):
+            for cp in itertools.product(*[p[i] for i in iv]):
                 yield self._element_constructor_(cp)
 
 

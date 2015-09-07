@@ -15,7 +15,7 @@ Basic enumerated sets
 - :class:`~sage.combinat.subset.Subsets`, :class:`~sage.combinat.combination.Combinations`
 - :class:`~sage.combinat.permutation.Arrangements`, :class:`~sage.combinat.tuple.Tuples`
 - :class:`~sage.sets.finite_enumerated_set.FiniteEnumeratedSet`
-- :class:`~DisjointUnionEnumeratedSets`, :class:`~CartesianProduct`
+- :class:`~DisjointUnionEnumeratedSets`
 
 Integer lists
 -------------

@@ -1168,16 +1168,16 @@ class ToricDivisor_generic(Divisor_generic):
 
         Example 6.1.3, 6.1.11, 6.1.17 of [CLS]_::
 
+            sage: from itertools import product
             sage: fan = Fan(cones=[(0,1), (1,2), (2,3), (3,0)],
-            ...             rays=[(-1,2), (0,1), (1,0), (0,-1)])
+            ....:           rays=[(-1,2), (0,1), (1,0), (0,-1)])
             sage: F2 = ToricVariety(fan,'u1, u2, u3, u4')
             sage: def D(a,b): return a*F2.divisor(2) + b*F2.divisor(3)
-            ...
-            sage: [ (a,b) for a,b in CartesianProduct(range(-3,3),range(-3,3))
-            ...           if D(a,b).is_ample() ]
+            sage: [ (a,b) for a,b in product(range(-3,3), repeat=2)
+            ....:         if D(a,b).is_ample() ]
             [(1, 1), (1, 2), (2, 1), (2, 2)]
-            sage: [ (a,b) for a,b in CartesianProduct(range(-3,3),range(-3,3))
-            ...           if D(a,b).is_nef() ]
+            sage: [ (a,b) for a,b in product(range(-3,3), repeat=2)
+            ....:         if D(a,b).is_nef() ]
             [(0, 0), (0, 1), (0, 2), (1, 0),
              (1, 1), (1, 2), (2, 0), (2, 1), (2, 2)]
 
@@ -1246,16 +1246,16 @@ class ToricDivisor_generic(Divisor_generic):
 
         Example 6.1.3, 6.1.11, 6.1.17 of [CLS]_::
 
+            sage: from itertools import product
             sage: fan = Fan(cones=[(0,1), (1,2), (2,3), (3,0)],
-            ...             rays=[(-1,2), (0,1), (1,0), (0,-1)])
+            ....:           rays=[(-1,2), (0,1), (1,0), (0,-1)])
             sage: F2 = ToricVariety(fan,'u1, u2, u3, u4')
             sage: def D(a,b): return a*F2.divisor(2) + b*F2.divisor(3)
-            ...
-            sage: [ (a,b) for a,b in CartesianProduct(range(-3,3),range(-3,3))
-            ...           if D(a,b).is_ample() ]
+            sage: [ (a,b) for a,b in product(range(-3,3), repeat=2)
+            ....:         if D(a,b).is_ample() ]
             [(1, 1), (1, 2), (2, 1), (2, 2)]
-            sage: [ (a,b) for a,b in CartesianProduct(range(-3,3),range(-3,3))
-            ...           if D(a,b).is_nef() ]
+            sage: [ (a,b) for a,b in product(range(-3,3), repeat=2)
+            ....:         if D(a,b).is_nef() ]
             [(0, 0), (0, 1), (0, 2), (1, 0),
              (1, 1), (1, 2), (2, 0), (2, 1), (2, 2)]
         """

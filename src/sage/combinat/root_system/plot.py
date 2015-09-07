@@ -671,7 +671,7 @@ class PlotOptions:
         # Bounding box
         from sage.rings.real_mpfr import RR
         from sage.geometry.polyhedron.all import Polyhedron
-        from sage.combinat.cartesian_product import CartesianProduct
+        from itertools import product
         if bounding_box in RR:
             bounding_box = [[-bounding_box,bounding_box]] * self.dimension
         else:
@@ -679,7 +679,7 @@ class PlotOptions:
                 raise TypeError("bounding_box argument doesn't match with the plot dimension")
             elif not all(len(b)==2 for b in bounding_box):
                 raise TypeError("Invalid bounding box %s"%bounding_box)
-        self.bounding_box = Polyhedron(vertices=CartesianProduct(*bounding_box))
+        self.bounding_box = Polyhedron(vertices=product(*bounding_box))
 
     @cached_method
     def in_bounding_box(self, x):

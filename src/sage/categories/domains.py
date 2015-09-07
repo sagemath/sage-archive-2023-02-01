@@ -84,10 +84,10 @@ class Domains(CategoryWithAxiom):
             # Filter out zero
             S = [s for s in tester.some_elements() if not s.is_zero()]
 
-            from sage.combinat.cartesian_product import CartesianProduct
-            for a,b in tester.some_elements(CartesianProduct(S,S)):
-                p = a * b
-                tester.assertFalse(p.is_zero())
+            for a in S:
+                for b in S:
+                    p = a * b
+                    tester.assertFalse(p.is_zero())
 
     class ElementMethods:
         pass

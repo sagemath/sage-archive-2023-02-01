@@ -1636,6 +1636,24 @@ class HasseDiagram(DiGraph):
 
         return result
 
+    def frattini_sublattice(self):
+        """
+        Return the list of elements of the Frattini sublattice of the lattice.
+
+        EXAMPLES::
+
+            sage: H = Posets.PentagonPoset()._hasse_diagram
+            sage: H.frattini_sublattice()
+            [0, 4]
+        """
+        # Just a direct computation, no optimization at all.
+        n = self.cardinality()
+        if n == 0 or n == 2: return []
+        if n == 1: return [0]
+        max_sublats = self.maximal_sublattices()
+        return [e for e in range(self.cardinality()) if
+                all(e in ms for ms in max_sublats)]
+
 from sage.misc.rest_index_of_methods import gen_rest_table_index
 import sys
 __doc__ = __doc__.format(INDEX_OF_FUNCTIONS=gen_rest_table_index(HasseDiagram))

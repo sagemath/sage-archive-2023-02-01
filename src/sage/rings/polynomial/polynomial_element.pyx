@@ -1182,6 +1182,12 @@ cdef class Polynomial(CommutativeAlgebraElement):
         polynomial or an ideal (for consistency with inverse_mod in other
         rings).
 
+        .. SEEALSO::
+
+            If you are only interested in the inverse modulo a monomial `x^k`
+            then you might use the specialized method
+            :meth:`inverse_series_trunc` which is much faster.
+
         EXAMPLES::
 
             sage: S.<t> = QQ[]
@@ -1279,6 +1285,86 @@ cdef class Polynomial(CommutativeAlgebraElement):
                 return a.parent()(list(x)[0:n])
             else:
                 raise ValueError("Impossible inverse modulo")
+
+    cpdef Polynomial inverse_series_trunc(self, long prec):
+        r"""
+        Return a polynomial approximation of precision ``prec`` of the inverse
+        series of this polynomial.
+
+        .. SEEALSO::
+
+            The method :meth:`inverse_mod` allows more generally to invert this
+            polynomial with respect to any ideal.
+
+        EXAMPLES::
+
+            sage: x = polygen(ZZ)
+            sage: s = (1+x).inverse_series_trunc(5)
+            sage: s
+            x^4 - x^3 + x^2 - x + 1
+            sage: s * (1+x)
+            x^5 + 1
+
+        Note that the constant coefficient needs to be a unit::
+
+            sage: ZZx.<x> = ZZ[]
+            sage: ZZxy.<y> = ZZx[]
+            sage: (1+x + y**2).inverse_series_trunc(4)
+            Traceback (most recent call last):
+            ...
+            ValueError: constant term x + 1 is not a unit
+            sage: (1+x + y**2).change_ring(ZZx.fraction_field()).inverse_series_trunc(4)
+            (-1/(x^2 + 2*x + 1))*y^2 + 1/(x + 1)
+
+        The method works over any polynomial ring::
+
+            sage: R = Zmod(4)
+            sage: Rx.<x> = R[]
+            sage: Rxy.<y> = Rx[]
+
+            sage: p = 1 + (1+2*x)*y + x**2*y**4
+            sage: q = p.inverse_series_trunc(10)
+            sage: (p*q).truncate(11)
+            (2*x^4 + 3*x^2 + 3)*y^10 + 1
+
+        Even noncommutative ones::
+
+            sage: M = MatrixSpace(ZZ,2)
+            sage: x = polygen(M)
+            sage: p = M([1,2,3,4])*x^3 + M([-1,0,0,1])*x^2 + M([1,3,-1,0])*x + M.one()
+            sage: q = p.inverse_series_trunc(5)
+            sage: (p*q).truncate(5) == M.one()
+            True
+            sage: q = p.inverse_series_trunc(13)
+            sage: (p*q).truncate(13) == M.one()
+            True
+
+        TESTS::
+
+            sage: x = polygen(ZZ['a','b'])
+            sage: (x+1).inverse_series_trunc(0)
+            Traceback (most recent call last):
+            ...
+            ValueError: the precision must be positive, got 0
+        """
+        if prec <= 0:
+            raise ValueError("the precision must be positive, got {}".format(prec))
+
+        if not self[0].is_unit():
+            raise ValueError("constant term {} is not a unit".format(self[0]))
+
+        R = self._parent
+        A = R.base_ring()
+        try:
+            first_coeff = self[0].inverse_of_unit()
+        except AttributeError:
+            first_coeff = A(~self[0])
+
+        current = R(first_coeff)
+        for next_prec in sage.misc.misc.newton_method_sizes(prec)[1:]:
+            z = current._mul_trunc_(self, next_prec)._mul_trunc_(current, next_prec)
+            current = current + current - z
+        return current
 
     def __long__(self):
         """

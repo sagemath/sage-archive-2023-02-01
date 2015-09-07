@@ -60,7 +60,7 @@ cdef class Matrix_generic_dense(matrix_dense.Matrix_dense):
         """
         matrix.Matrix.__init__(self, parent)
 
-        cdef Py_ssize_t i
+        cdef Py_ssize_t i,j
         cdef bint is_list
 
         R = parent.base_ring()
@@ -104,13 +104,12 @@ cdef class Matrix_generic_dense(matrix_dense.Matrix_dense):
                 self._entries = [R(x) for x in self._entries]
             elif copy:
                 self._entries = self._entries[:]
-        else:
+        elif self._nrows == self._ncols:
+            self._entries = [entries if i==j else zero for i in range(self._nrows) for j in range(self._nrows)]
+        elif entries == zero:
             self._entries = [zero]*(self._nrows*self._ncols)
-            if entries != zero:
-                if self._nrows != self._ncols:
-                    raise TypeError("nonzero scalar matrix must be square")
-                for i in range(self._nrows):
-                    self._entries[i*self._ncols + i] = entries
+        else:
+            raise TypeError("nonzero scalar matrix must be square")
 
     cdef Matrix_generic_dense _new(self, Py_ssize_t nrows, Py_ssize_t ncols):
         r"""

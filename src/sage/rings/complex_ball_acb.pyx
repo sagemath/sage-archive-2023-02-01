@@ -1649,6 +1649,89 @@ cdef class ComplexBall(RingElement):
         if _do_sig(prec(self)): sig_off()
         return res
 
+    def __lshift__(val, shift):
+        r"""
+        If ``val`` is a ``ComplexBall`` and ``shift`` is an integer, return the
+        ball obtained by shifting the center and radius of ``val`` to the left
+        by ``shift`` bits.
+
+        INPUT:
+
+        - ``shift`` -- integer, may be negative.
+
+        EXAMPLES::
+
+            sage: from sage.rings.complex_ball_acb import CBF
+            sage: CBF(i/3) << 2
+            [1.333333333333333 +/- 4.82e-16]*I
+            sage: CBF(i) << -2
+            0.2500000000000000*I
+
+        TESTS::
+
+            sage: CBF(i) << (2^65)
+            [3.636549880934858e+11106046577046714264 +/- 1.91e+11106046577046714248]*I
+            sage: 'a' << CBF(1/3)
+            Traceback (most recent call last):
+            ...
+            TypeError: unsupported operand type(s) for <<: 'str' and
+            'ComplexBall'
+            sage: CBF(1) << 1/2
+            Traceback (most recent call last):
+            ...
+            TypeError: shift should be an integer
+        """
+        cdef fmpz_t tmpz
+        # the ComplexBall might be shift, not val
+        if not isinstance(val, ComplexBall):
+            raise TypeError("unsupported operand type(s) for <<: '{}' and '{}'"
+                            .format(type(val).__name__, type(shift).__name__))
+        cdef ComplexBall self = val
+        cdef ComplexBall res = self._new()
+        if isinstance(shift, int):
+             acb_mul_2exp_si(res.value, self.value, PyInt_AS_LONG(shift))
+        elif isinstance(shift, sage.rings.integer.Integer):
+            sig_on()
+            fmpz_init(tmpz)
+            fmpz_set_mpz(tmpz, (<sage.rings.integer.Integer> shift).value)
+            acb_mul_2exp_fmpz(res.value, self.value, tmpz)
+            fmpz_clear(tmpz)
+            sig_off()
+        else:
+            raise TypeError("shift should be an integer")
+        return res
+
+    def __rshift__(val, shift):
+        r"""
+        If ``val`` is a ``ComplexBall`` and ``shift`` is an integer, return the
+        ball obtained by shifting the center and radius of ``val`` to the right
+        by ``shift`` bits.
+
+        INPUT:
+
+        - ``shift`` -- integer, may be negative.
+
+        EXAMPLES::
+
+            sage: from sage.rings.complex_ball_acb import CBF
+            sage: CBF(1+I) >> 2
+            0.2500000000000000 + 0.2500000000000000*I
+
+        TESTS::
+
+            sage: 'a' >> CBF(1/3)
+            Traceback (most recent call last):
+            ...
+            TypeError: unsupported operand type(s) for >>: 'str' and
+            'ComplexBall'
+        """
+        # the ComplexBall might be shift, not val
+        if isinstance(val, ComplexBall):
+            return val << (-shift)
+        else:
+            raise TypeError("unsupported operand type(s) for >>: '{}' and '{}'"
+                            .format(type(val).__name__, type(shift).__name__))
+
     cpdef RingElement _div_(self, RingElement other):
         """
         Return the quotient of two balls, rounded to the ambient field's

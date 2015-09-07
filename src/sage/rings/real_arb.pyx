@@ -2364,6 +2364,92 @@ cdef class RealBall(RingElement):
         if _do_sig(prec(self)): sig_off()
         return res
 
+    def __lshift__(val, shift):
+        r"""
+        If ``val`` is a ``RealBall`` and ``shift`` is an integer, return the
+        ball obtained by shifting the center and radius of ``val`` to the left
+        by ``shift`` bits.
+
+        INPUT:
+
+        - ``shift`` -- integer, may be negative.
+
+        EXAMPLES::
+
+            sage: from sage.rings.real_arb import RBF
+            sage: RBF(1/3) << 2 # indirect doctest
+            [1.333333333333333 +/- 4.82e-16]
+            sage: RBF(1) << -1
+            0.5000000000000000
+
+        TESTS::
+
+            sage: RBF(1) << (2^100)
+            [2.285367694229514e+381600854690147056244358827360 +/- 2.98e+381600854690147056244358827344]
+            sage: RBF(1) << (-2^100)
+            [4.375663498372584e-381600854690147056244358827361 +/- 9.57e-381600854690147056244358827378]
+
+            sage: "a" << RBF(1/3)
+            Traceback (most recent call last):
+            ...
+            TypeError: unsupported operand type(s) for <<: 'str' and 'RealBall'
+            sage: RBF(1) << RBF(1/3)
+            Traceback (most recent call last):
+            ...
+            TypeError: shift should be an integer
+        """
+        cdef fmpz_t tmpz
+        # the RealBall might be shift, not val
+        if not isinstance(val, RealBall):
+            raise TypeError("unsupported operand type(s) for <<: '{}' and '{}'"
+                            .format(type(val).__name__, type(shift).__name__))
+        cdef RealBall self = val
+        cdef RealBall res = self._new()
+        if isinstance(shift, int):
+            arb_mul_2exp_si(res.value, self.value, PyInt_AS_LONG(shift))
+        elif isinstance(shift, sage.rings.integer.Integer):
+            sig_on()
+            fmpz_init(tmpz)
+            fmpz_set_mpz(tmpz, (<sage.rings.integer.Integer> shift).value)
+            arb_mul_2exp_fmpz(res.value, self.value, tmpz)
+            fmpz_clear(tmpz)
+            sig_off()
+        else:
+            raise TypeError("shift should be an integer")
+        return res
+
+    def __rshift__(val, shift):
+        r"""
+        If ``val`` is a ``RealBall`` and ``shift`` is an integer, return the
+        ball obtained by shifting the center and radius of ``val`` to the right
+        by ``shift`` bits.
+
+        INPUT:
+
+        - ``shift`` -- integer, may be negative.
+
+        EXAMPLES::
+
+            sage: from sage.rings.real_arb import RBF
+            sage: RBF(4) >> 2
+            1.000000000000000
+            sage: RBF(1/3) >> -2
+            [1.333333333333333 +/- 4.82e-16]
+
+        TESTS::
+
+            sage: "a" >> RBF(1/3)
+            Traceback (most recent call last):
+            ...
+            TypeError: unsupported operand type(s) for >>: 'str' and 'RealBall'
+        """
+        # the RealBall might be shift, not val
+        if isinstance(val, RealBall):
+            return val << (-shift)
+        else:
+            raise TypeError("unsupported operand type(s) for >>: '{}' and '{}'"
+                            .format(type(val).__name__, type(shift).__name__))
+
     # Elementary functions
 
     def log(self):

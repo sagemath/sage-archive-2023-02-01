@@ -1,0 +1,45 @@
+From 443f56f982fb678041c0a9dfb85348e6d646053b Mon Sep 17 00:00:00 2001
+From: Jeroen Demeyer <jdemeyer@cage.ugent.be>
+Date: Fri, 4 Sep 2015 16:24:28 +0200
+Subject: [PATCH] Abstract signal handler changes in hooks
+
+---
+ ipykernel/kernelbase.py | 14 +++++++++++---
+ 1 file changed, 11 insertions(+), 3 deletions(-)
+
+diff --git a/ipykernel/kernelbase.py b/ipykernel/kernelbase.py
+index a7869f4..07546e6 100644
+--- a/ipykernel/kernelbase.py
++++ b/ipykernel/kernelbase.py
+@@ -206,20 +206,28 @@ def dispatch_shell(self, stream, msg):
+         if handler is None:
+             self.log.error("UNKNOWN MESSAGE TYPE: %r", msg_type)
+         else:
+-            # ensure default_int_handler during handler call
+-            sig = signal(SIGINT, default_int_handler)
+             self.log.debug("%s: %s", msg_type, msg)
++            self.pre_handler_hook()
+             try:
+                 handler(stream, idents, msg)
+             except Exception:
+                 self.log.error("Exception in message handler:", exc_info=True)
+             finally:
+-                signal(SIGINT, sig)
++                self.post_handler_hook()
+ 
+         sys.stdout.flush()
+         sys.stderr.flush()
+         self._publish_status(u'idle')
+ 
++    def pre_handler_hook(self):
++        """Hook to execute before calling message handler"""
++        # ensure default_int_handler during handler call
++        self.saved_sigint_handler = signal(SIGINT, default_int_handler)
++
++    def post_handler_hook(self):
++        """Hook to execute after calling message handler"""
++        signal(SIGINT, self.saved_sigint_handler)
++
+     def enter_eventloop(self):
+         """enter eventloop"""
+         self.log.info("entering eventloop %s", self.eventloop)

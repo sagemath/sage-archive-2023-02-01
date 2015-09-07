@@ -1357,9 +1357,9 @@ cdef class RealBall(RingElement):
 
         INPUT:
 
-        - ``test_zero`` (boolean, default False) -- if True, make sure that the
-          returned lower bound is positive, raising an error if the ball
-          contains zero.
+        - ``test_zero`` (boolean, default ``False``) -- if ``True``,
+          make sure that the returned lower bound is positive, raising
+          an error if the ball contains zero.
 
         .. SEEALSO:: :meth:`abs`, :meth:`above_abs`
 

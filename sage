@@ -125,18 +125,10 @@ export SAGE_ROOT
 
 # Run the actual Sage script
 if [ -x "$SAGE_ROOT/src/bin/sage" ]; then
-    "$SAGE_ROOT/src/bin/sage" "$@"
+    exec "$SAGE_ROOT/src/bin/sage" "$@"
 elif [ -x "$SAGE_ROOT/local/bin/sage" ]; then # if in a stripped binary
-    "$SAGE_ROOT/local/bin/sage" "$@"
+    exec "$SAGE_ROOT/local/bin/sage" "$@"
 else
     echo >&2 "$0: no Sage installation found in \$SAGE_ROOT=$SAGE_ROOT"
     exit 1
 fi
-
-# Kill all processes in the current process group.  In practice, this
-# means all child processes not running their own pty.
-# Uncomment this if you have trouble with orphans.
-# We do this in the background after waiting 10 seconds to give the
-# various processes (including this shell script) some time to exit
-# cleanly.
-# { sleep 10; kill -9 -$$ 2>/dev/null; } &

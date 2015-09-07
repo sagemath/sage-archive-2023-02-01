@@ -12316,7 +12316,7 @@ class GenericGraph(GenericGraph_pyx):
         - ``induced`` - boolean (default: ``True``) If set to ``True`` tests
           whether the graph is an *induced* subgraph of ``other`` that is if
           the vertices of the graph are also vertices of ``other``, and the
-          edges of the poset are equal to the edges of ``other`` between the
+          edges of the graph are equal to the edges of ``other`` between the
           vertices contained in the graph.
 
           If set to ``False`` tests whether the graph is a subgraph of

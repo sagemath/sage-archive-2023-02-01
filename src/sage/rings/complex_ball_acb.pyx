@@ -1,5 +1,5 @@
 r"""
-Arbitrary Precision Complex Intervals using Arb
+Arbitrary Precision Complex Balls using Arb
 
 AUTHORS:
 

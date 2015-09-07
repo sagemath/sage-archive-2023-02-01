@@ -234,6 +234,7 @@ quadrics and Hermitean varieties there.
 
 __append_to_doc(
     ["AffineOrthogonalPolarGraph",
+     "NonisotropicOrthogonalPolarGraphF2",
      "OrthogonalPolarGraph",
      "SymplecticDualPolarGraph",
      "SymplecticPolarGraph",
@@ -1993,6 +1994,7 @@ class GraphGenerators():
 ###########################################################################
     import sage.graphs.generators.classical_geometries
     AffineOrthogonalPolarGraph = staticmethod(sage.graphs.generators.classical_geometries.AffineOrthogonalPolarGraph)
+    NonisotropicOrthogonalPolarGraphF2 = staticmethod(sage.graphs.generators.classical_geometries.NonisotropicOrthogonalPolarGraphF2)
     OrthogonalPolarGraph   = staticmethod(sage.graphs.generators.classical_geometries.OrthogonalPolarGraph)
     SymplecticDualPolarGraph = staticmethod(sage.graphs.generators.classical_geometries.SymplecticDualPolarGraph)
     SymplecticPolarGraph   = staticmethod(sage.graphs.generators.classical_geometries.SymplecticGraph)

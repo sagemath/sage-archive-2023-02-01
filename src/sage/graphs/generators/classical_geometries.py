@@ -209,7 +209,7 @@ def AffineOrthogonalPolarGraph(d,q,sign="+"):
 
 def _orthogonal_polar_graph(m, q, sign="+", point_type=[0]):
     r"""
-    A helper function to build ``OrthogonalPolarGraph`` and ``NO`` graphs.
+    A helper function to build ``OrthogonalPolarGraph`` and ``NO2,3,5`` graphs.
 
     See see the `page of
     Andries Brouwer's website <http://www.win.tue.nl/~aeb/graphs/srghub.html>`_.
@@ -226,7 +226,8 @@ def _orthogonal_polar_graph(m, q, sign="+", point_type=[0]):
     EXAMPLES:
     
     Petersen graph::
-
+`
+        sage: from sage.graphs.generators.classical_geometries import _orthogonal_polar_graph
         sage: g=_orthogonal_polar_graph(3,5,point_type=[2,3])
         sage: g.is_strongly_regular(parameters=True)
         (10, 3, 0, 1)
@@ -250,12 +251,6 @@ def _orthogonal_polar_graph(m, q, sign="+", point_type=[0]):
         sage: g=_orthogonal_polar_graph(7,3,point_type=[-1]) # not tested (long time)
         sage: g.is_strongly_regular(parameters=True)       # not tested (long time)
         (351, 126, 45, 45)
-
-    `NO^+(8,2)`::
-
-        sage: g=_orthogonal_polar_graph(8,2,point_type=[1])  # not tested (long time)
-        sage: g.is_strongly_regular(parameters=True)       # not tested (long time)
-        (120, 63, 30, 36)
 
     `NO^+(6,3)`::
 
@@ -362,17 +357,17 @@ def OrthogonalPolarGraph(m, q, sign="+"):
         Orthogonal Polar Graph O(5, 3): Graph on 40 vertices
         sage: G.is_strongly_regular(parameters=True)
         (40, 12, 2, 4)
+        sage: G = graphs.OrthogonalPolarGraph(8,2,"+"); G # not tested (long time)
+        Orthogonal Polar Graph O^+(8, 2): Graph on 135 vertices
+        sage: G.is_strongly_regular(parameters=True) # not tested (long time)
+        (135, 70, 37, 35)
+        sage: G = graphs.OrthogonalPolarGraph(8,2,"-"); G # not tested (long time)
+        Orthogonal Polar Graph O^-(8, 2): Graph on 119 vertices
+        sage: G.is_strongly_regular(parameters=True) # not tested (long time)
+        (119, 54, 21, 27)
 
     TESTS::
 
-        sage: G = graphs.OrthogonalPolarGraph(8,2,"+"); G
-        Orthogonal Polar Graph O^+(8, 2): Graph on 135 vertices
-        sage: G.is_strongly_regular(parameters=True)
-        (135, 70, 37, 35)
-        sage: G = graphs.OrthogonalPolarGraph(8,2,"-"); G
-        Orthogonal Polar Graph O^-(8, 2): Graph on 119 vertices
-        sage: G.is_strongly_regular(parameters=True)
-        (119, 54, 21, 27)
         sage: G = graphs.OrthogonalPolarGraph(4,3,"")
         Traceback (most recent call last):
         ...
@@ -382,10 +377,65 @@ def OrthogonalPolarGraph(m, q, sign="+"):
         ...
         ValueError: sign must be equal to either '' or '+' when m is odd
     """
+    from sage.graphs.generators.classical_geometries import _orthogonal_polar_graph
     G = _orthogonal_polar_graph(m, q, sign=sign)
     if m % 2 != 0:
         sign = ""
     G.name("Orthogonal Polar Graph O" + ("^" + sign if sign else "") + str((m, q)))
+    return G
+
+def NonisotropicOrthogonalPolarGraphF2(m, sign="+"):
+    r"""
+    Returns the Graph of Nonisotropic Points of a quadric `NO^{\epsilon}_{2m}(2)`.
+
+    Nonisotropic points in the projective space over `F_2` of dimension `2m-1`,
+    endowed with a nondegenerate quadratic form `F` of type ``sign``, 
+    joined whenever they are on a tangent line to the quadric specified by `F`.
+    In other words, two points `x`, `y` are joined in the graph iff `F(x-y)=0`.  
+
+    For more information, see see the `page of
+    Andries Brouwer's website <http://www.win.tue.nl/~aeb/graphs/srghub.html>`_.
+
+    INPUT:
+
+    - ``m``  - integer,  half the dimension of the underlying vectorspace
+
+    - ``sign`` -- ``"+"`` (default) or ``"-"``.
+
+    EXAMPLES:
+
+    `NO^-(4,2)` is isomorphic to Petersen graph::
+
+        sage: g=graphs.NonisotropicOrthogonalPolarGraphF2(2,'-'); g
+        NO^-(4, 2): Graph on 10 vertices
+        sage: g.is_strongly_regular(parameters=True)
+        (10, 3, 0, 1)
+
+    `NO^-(6,2)` and `NO^+(6,2)`::
+
+        sage: g=graphs.NonisotropicOrthogonalPolarGraphF2(3,'-')
+        sage: g.is_strongly_regular(parameters=True)
+        (36, 15, 6, 6)
+        sage: g=graphs.NonisotropicOrthogonalPolarGraphF2(3,'+'); g
+        NO^+(6, 2): Graph on 28 vertices
+        sage: g.is_strongly_regular(parameters=True)
+        (28, 15, 6, 10)
+
+    `NO^+(8,2)`::
+
+        sage: g=graphs.NonisotropicOrthogonalPolarGraphF2(4,'+') # not tested (long time)
+        sage: g.is_strongly_regular(parameters=True)       # not tested (long time)
+        (120, 63, 30, 36)
+
+    TESTS::
+
+        sage: g=graphs.NonisotropicOrthogonalPolarGraphF2(2); g
+        NO^+(4, 2): Graph on 6 vertices
+
+    """
+    from sage.graphs.generators.classical_geometries import _orthogonal_polar_graph
+    G = _orthogonal_polar_graph(2*m, 2, sign=sign, point_type=[1])
+    G.name("NO" + "^" + sign  + str((2*m, 2)))
     return G
 
 def _polar_graph(m, q, g, intersection_size=None):

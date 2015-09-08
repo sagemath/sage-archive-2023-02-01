@@ -108,7 +108,7 @@ class AutomatonGenerators(object):
 
         INPUT:
 
-        - ``word`` -- an iterable
+        - ``word`` -- an iterable.
 
         - ``input_alphabet`` -- a list or ``None``. If ``None``,
           then the letters occurring in the word are used.

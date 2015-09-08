@@ -440,6 +440,194 @@ def SRG_from_RSHCD(v,k,l,mu, existence=False,check=True):
         return False
     raise ValueError("I do not know how to build a {}-SRG from a RSHCD".format((v,k,l,mu)))
 
+@cached_function
+def is_unitary_polar(int v,int k,int l,int mu):
+    r"""
+    Test whether some Unitary Polar graph is `(v,k,\lambda,\mu)`-strongly regular.
+
+    For more information, see http://www.win.tue.nl/~aeb/graphs/srghub.html.
+
+    INPUT:
+
+    - ``v,k,l,mu`` (integers)
+
+    OUTPUT:
+
+    A tuple ``t`` such that ``t[0](*t[1:])`` builds the requested graph if one
+    exists, and ``None`` otherwise.
+
+    EXAMPLES::
+
+        sage: from sage.graphs.strongly_regular_db import is_unitary_polar
+        sage: t = is_unitary_polar(45, 12, 3, 3); t
+        (<function UnitaryPolarGraph at ...>, 4, 2)
+        sage: g = t[0](*t[1:]); g
+        Unitary Polar Graph U(4, 2); GQ(4, 2): Graph on 45 vertices
+        sage: g.is_strongly_regular(parameters=True)
+        (45, 12, 3, 3)
+
+        sage: t = is_unitary_polar(5,5,5,5); t
+
+    TESTS:
+
+    All the ``U(n,q)`` appear::
+
+        sage: t = is_unitary_polar(45, 12, 3, 3); t
+        (<function UnitaryPolarGraph at ...>, 4, 2)
+        sage: t = is_unitary_polar(165, 36, 3, 9); t
+        (<function UnitaryPolarGraph at ...>, 5, 2)
+        sage: t = is_unitary_polar(693, 180, 51, 45); t
+        (<function UnitaryPolarGraph at ...>, 6, 2)
+        sage: t = is_unitary_polar(1105, 80, 15, 5); t
+        (<function UnitaryPolarGraph at ...>, 4, 4)
+    """
+    r,s = eigenvalues(v,k,l,mu)
+    if r is None:
+        return
+    q = k/mu
+    if q*mu != k or q < 2:
+        return
+    p,t = is_prime_power(q, get_data=True)
+    if p**t != q or t % 2 != 0:
+        return
+    # at this point we know that we should have U(n,q) for some n and q=p^t, t even
+    if r > 0:
+        q_pow_d_minus_one = r+1
+    else:
+        q_pow_d_minus_one = -s-1
+    ppp,ttt = is_prime_power(q_pow_d_minus_one, get_data=True)
+    d = ttt/t + 1
+    if ppp != p or (d-1)*t != ttt:
+        return
+    t /= 2
+    # U(2d+1,q); write q^(1/2) as p^t
+    if (v == (q**d - 1)*((q**d)*p**t + 1)/(q - 1)               and
+        k == q*(q**(d-1) - 1)*((q**d)/(p**t) + 1)/(q - 1)       and
+        l == q*q*(q**(d-2)-1)*((q**(d-1))/(p**t) + 1)/(q - 1) + q - 1):
+        from sage.graphs.generators.families import UnitaryPolarGraph
+        return (UnitaryPolarGraph, 2*d+1, p**t)
+
+    # U(2d,q);
+    if (v == (q**d - 1)*((q**d)/(p**t) + 1)/(q - 1)             and
+        k == q*(q**(d-1) - 1)*((q**(d-1))/(p**t) + 1)/(q - 1)   and
+        l == q*q*(q**(d-2)-1)*((q**(d-2))/(p**t) + 1)/(q - 1) + q - 1):
+        from sage.graphs.generators.families import UnitaryPolarGraph
+        return (UnitaryPolarGraph, 2*d, p**t)
+
+@cached_function
+def is_unitary_dual_polar(int v,int k,int l,int mu):
+    r"""
+    Test whether some Unitary Dual Polar graph is `(v,k,\lambda,\mu)`-strongly regular.
+
+    This must be the U_5(q) on totally isotropic lines.
+    For more information, see http://www.win.tue.nl/~aeb/graphs/srghub.html.
+
+    INPUT:
+
+    - ``v,k,l,mu`` (integers)
+
+    OUTPUT:
+
+    A tuple ``t`` such that ``t[0](*t[1:])`` builds the requested graph if one
+    exists, and ``None`` otherwise.
+
+    EXAMPLES::
+
+        sage: from sage.graphs.strongly_regular_db import is_unitary_dual_polar
+        sage: t = is_unitary_dual_polar(297, 40, 7, 5); t
+        (<function UnitaryDualPolarGraph at ...>, 5, 2)
+        sage: g = t[0](*t[1:]); g
+        Unitary Dual Polar Graph DU(5, 2); GQ(8, 4): Graph on 297 vertices
+        sage: g.is_strongly_regular(parameters=True)
+        (297, 40, 7, 5)
+        sage: t = is_unitary_dual_polar(5,5,5,5); t
+
+    TESTS::
+
+        sage: is_unitary_dual_polar(6832, 270, 26, 10)
+        (<function UnitaryDualPolarGraph at ...>, 5, 3)
+    """
+    r,s = eigenvalues(v,k,l,mu)
+    if r is None:
+        return
+    q = mu - 1
+    if q < 2:
+        return
+    p,t = is_prime_power(q, get_data=True)
+    if p**t != q or t % 2 != 0:
+        return
+    if (r < 0 and q != -r - 1) or (s < 0 and q != -s - 1):
+       return
+    t /= 2
+    # we have correct mu, negative eigenvalue, and q=p^(2t)
+    if (v == (q**2*p**t + 1)*(q*p**t + 1)  and
+        k == q*p**t*(q + 1)                and
+        l == k - 1 - q**2*p**t):
+        from sage.graphs.generators.families import UnitaryDualPolarGraph
+        return (UnitaryDualPolarGraph, 5, p**t)
+
+@cached_function
+def is_twograph_descendant_of_srg(int v, int k0, int l, int mu):
+    r"""
+    Test whether some descendant graph of an s.r.g. is `(v,k_0,\lambda,\mu)`-s.r.g.
+
+    We check whether there can exist `(v+1,k,\lambda^*,\mu^*)`-s.r.g. `G` so
+    that ``self`` is a descendant graph of the regular two-graph specified
+    by `G`.
+    Specifically, we must have that `v+1=2(2k-\lambda^*-\mu^*)`, and
+    `k_0=2(k-\mu^*)`, `\lambda=k+\lambda^*-2\mu^*`, `\mu=k-\mu^*`, which give 2
+    independent linear conditions, say `k-\mu^*=\mu` and
+    `\lambda^*-\mu^*=\lambda-\mu`.  Further, there is a quadratic relation
+    `2 k^2-(v+1+4 \mu) k+ 2 v \mu=0`.
+
+    If we can contruct such `G` then we return a function to build a
+    `(v,k_0,\lambda,\mu)`-s.r.g.  For more information,
+    see 10.3 in http://www.win.tue.nl/~aeb/2WF02/spectra.pdf
+
+    INPUT:
+
+    - ``v,k0,l,mu`` (integers)
+
+    OUTPUT:
+
+    A tuple ``t`` such that ``t[0](*t[1:])`` builds the requested graph if one
+    exists and is known, and ``None`` otherwise.
+
+    EXAMPLES::
+
+        sage: from sage.graphs.strongly_regular_db import is_twograph_descendant_of_srg
+        sage: t = is_twograph_descendant_of_srg(27, 10, 1, 5); t
+        (<cyfunction is_twograph_descendant_of_srg.<locals>.la at...
+        sage: g = t[0](*t[1:]); g
+        descendant of complement(Johnson graph with parameters 8,2) at {5, 7}: Graph on 27 vertices
+        sage: g.is_strongly_regular(parameters=True)
+        (27, 10, 1, 5)
+        sage: t = is_twograph_descendant_of_srg(5,5,5,5); t
+
+    TESTS::
+
+        sage: graphs.strongly_regular_graph(279, 150, 85, 75, existence=True)
+        True
+        sage: graphs.strongly_regular_graph(279, 150, 85, 75).is_strongly_regular(parameters=True) # optional - gap_packages internet
+        (279, 150, 85, 75)
+    """
+    cdef int b, k, s
+    if k0 != 2*mu or v % 2 == 0:
+        return
+    b = v+1+4*mu
+    D = sqrt(b**2-16*v*mu)
+    if int(D)==D:
+        for kf in [(-D+b)/4, (D+b)/4]:
+            k = int(kf)
+            if k == kf and \
+                strongly_regular_graph(v+1, k, l - 2*mu + k , k - mu,  existence=True):
+                def la(vv):
+                    from sage.combinat.designs.twographs import twograph_descendant
+                    g = strongly_regular_graph(vv, k, l - 2*mu + k)
+                    return twograph_descendant(g, g.vertex_iterator().next(), name=True)
+                return(la, v+1)
+    return
+
 cdef eigenvalues(int v,int k,int l,int mu):
     r"""
     Return the eigenvalues of a (v,k,l,mu)-strongly regular graph.
@@ -568,10 +756,7 @@ def SRG_196_91_42_42():
     W = map(frozenset,[[x+z for x in H] for z in G])
     G = IntersectionGraph(U+V+W)
 
-    # G = G.seidel_switching(U)
-    boundary = G.edge_boundary(U)
-    G.add_edges((x,y) for x in V+W for y in U)
-    G.delete_edges(boundary)
+    G.seidel_switching(U)
 
     G.add_edges((-1,x) for x in U)
     G.relabel()
@@ -1246,7 +1431,7 @@ cdef bint seems_feasible(int v, int k, int l, int mu):
 
     return True
 
-def strongly_regular_graph(int v,int k,int l,int mu=-1,bint existence=False):
+def strongly_regular_graph(int v,int k,int l,int mu=-1,bint existence=False,bint check=True):
     r"""
     Return a `(v,k,\lambda,\mu)`-strongly regular graph.
 
@@ -1270,6 +1455,11 @@ def strongly_regular_graph(int v,int k,int l,int mu=-1,bint existence=False):
           regular graph exists (see :mod:`sage.misc.unknown`).
 
         - ``False`` -- meaning that no such strongly regular graph exists.
+
+    - ``check`` -- (boolean) Whether to check that output is correct before
+      returning it. As this is expected to be useless (but we are cautious
+      guys), you may want to disable it whenever you want speed. Set to
+      ``True`` by default.
 
     EXAMPLES:
 
@@ -1319,15 +1509,14 @@ def strongly_regular_graph(int v,int k,int l,int mu=-1,bint existence=False):
 
     A realizable set of parameters that Sage cannot realize (help us!)::
 
-        sage: graphs.strongly_regular_graph(279,128,52,64,existence=True)
+        sage: graphs.strongly_regular_graph(126,50,13,24,existence=True)
         True
-        sage: graphs.strongly_regular_graph(279,128,52,64)
+        sage: graphs.strongly_regular_graph(126,50,13)
         Traceback (most recent call last):
         ...
-        RuntimeError: Andries Brouwer's database claims that such a
-        (279,128,52,64)-strongly regular graph exists, but Sage does not know
-        how to build it. If *you* do, please get in touch with us on sage-devel!
-        Comments: pg(8,15,4)?; 2-graph*
+        RuntimeError: Andries Brouwer's database claims that such a (126,50,13,24)-strongly
+        regular graph exists, but Sage does not know how to build it.
+        ...
 
     A large unknown set of parameters (not in Andries Brouwer's database)::
 
@@ -1338,7 +1527,7 @@ def strongly_regular_graph(int v,int k,int l,int mu=-1,bint existence=False):
         ...
         RuntimeError: Sage cannot figure out if a (1394,175,0,25)-strongly regular graph exists.
 
-    Test the Claw bound (see 3.D of [vLintBrouwer84]_):
+    Test the Claw bound (see 3.D of [vLintBrouwer84]_)::
 
         sage: graphs.strongly_regular_graph(2058,242,91,20,existence=True)
         False
@@ -1354,6 +1543,11 @@ def strongly_regular_graph(int v,int k,int l,int mu=-1,bint existence=False):
         if existence:
             return False
         raise ValueError("There exists no "+str(params)+"-strongly regular graph")
+
+    def check_srg(G):
+        if check and (v,k,l,mu) != G.is_strongly_regular(parameters=True):
+            raise RuntimeError("Sage built an incorrect {}-SRG.".format((v,k,l,mu)))
+        return G
 
     constructions = {
         ( 27,  16, 10,  8): [SchlaefliGraph],
@@ -1404,16 +1598,19 @@ def strongly_regular_graph(int v,int k,int l,int mu=-1,bint existence=False):
 
     if params in constructions:
         val = constructions[params]
-        return True if existence else val[0](*val[1:])
+        return True if existence else check_srg(val[0](*val[1:]))
     if params_complement in constructions:
         val = constructions[params_complement]
-        return True if existence else val[0](*val[1:]).complement()
+        return True if existence else check_srg(val[0](*val[1:]).complement())
 
     test_functions = [is_paley, is_johnson,
                       is_orthogonal_array_block_graph,
                       is_steiner, is_affine_polar,
                       is_orthogonal_polar,
-                      is_RSHCD]
+                      is_unitary_polar,
+                      is_unitary_dual_polar,
+                      is_RSHCD,
+                      is_twograph_descendant_of_srg]
 
     # Going through all test functions, for the set of parameters and its
     # complement.
@@ -1422,12 +1619,12 @@ def strongly_regular_graph(int v,int k,int l,int mu=-1,bint existence=False):
             if existence:
                 return True
             ans = f(*params)
-            return ans[0](*ans[1:])
+            return check_srg(ans[0](*ans[1:]))
         if f(*params_complement):
             if existence:
                 return True
             ans = f(*params_complement)
-            return ans[0](*ans[1:]).complement()
+            return check_srg(ans[0](*ans[1:]).complement())
 
     # From now on, we have no idea how to build the graph.
     #

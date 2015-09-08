@@ -579,7 +579,7 @@ class ComplexBallField(UniqueRepresentation, Parent):
              [-0.3333333333333333 +/- 1.49e-17] + 0.2500000000000000*I,
              [-2.175556475109056e+181961467118333366510562 +/- 1.29e+181961467118333366510545],
              [+/- inf],
-             [+/- inf]*I,
+             [0.3333333333333333 +/- 1.49e-17] + [+/- inf]*I,
              [+/- inf] + [+/- inf]*I,
              nan,
              nan + nan*I,
@@ -587,7 +587,7 @@ class ComplexBallField(UniqueRepresentation, Parent):
         """
         return [self(1), self(0, -1./2), self(1, 1./3), self(-1./3, 1./4),
                 -self(1, 1)**(sage.rings.integer.Integer(2)**80),
-                self('inf'), self(1/3, 'inf'), self('inf', 'inf'),
+                self('inf'), self(1./3, 'inf'), self('inf', 'inf'),
                 self('nan'), self('nan', 'nan'), self('inf', 'nan')]
 
 cdef inline bint _do_sig(long prec):
@@ -682,7 +682,7 @@ cdef class ComplexBall(RingElement):
         cdef fmpz_t tmpz
         cdef fmpq_t tmpq
 
-        Element.__init__(self, parent)
+        RingElement.__init__(self, parent)
 
         if x is None:
             return
@@ -832,6 +832,11 @@ cdef class ComplexBall(RingElement):
         r"""
         Convert this complex ball to a complex number.
 
+        INPUT:
+
+        - ``parent`` - :class:`~sage.rings.complex_field.ComplexField_class`,
+          target parent.
+
         EXAMPLES::
 
             sage: from sage.rings.complex_ball_acb import CBF
@@ -845,9 +850,14 @@ cdef class ComplexBall(RingElement):
 
     def _real_mpfi_(self, parent):
         r"""
-        Try to convert this complex ball to a real number.
+        Try to convert this complex ball to a real interval.
 
         Fail if the imaginary part is not exactly zero.
+
+        INPUT:
+
+        - ``parent`` - :class:`~sage.rings.real_mpfi.RealIntervalField_class`,
+          target parent.
 
         EXAMPLES::
 
@@ -870,6 +880,11 @@ cdef class ComplexBall(RingElement):
         Try to convert this complex ball to a real number.
 
         Fail if the imaginary part is not exactly zero.
+
+        INPUT:
+
+        - ``parent`` - :class:`~sage.rings.real_mpfr.RealField_class`,
+          target parent.
 
         EXAMPLES::
 
@@ -1021,8 +1036,15 @@ cdef class ComplexBall(RingElement):
 
     def mid(self):
         """
-        Return the floating-point complex number formed by the centers of the
-        real and imaginary parts of this ball.
+        Return the midpoint of this ball.
+
+        OUTPUT:
+
+        :class:`~sage.rings.complex_number.ComplexNumber`, floating-point
+        complex number formed by the centers of the real and imaginary parts of
+        this ball.
+
+        .. SEEALSO:: :meth:`squash`
 
         EXAMPLES::
 
@@ -1049,6 +1071,10 @@ cdef class ComplexBall(RingElement):
     def squash(self):
         """
         Return an exact ball with the same midpoint as this ball.
+
+        OUTPUT:
+
+        A :class:`ComplexBall`.
 
         .. SEEALSO:: :meth:`mid`
 
@@ -1326,14 +1352,22 @@ cdef class ComplexBall(RingElement):
 
     def identical(self, ComplexBall other):
         """
-        Return True iff ``self`` and ``other`` are equal as set, i.e. if their
+        Return whether ``self`` and ``other`` represent the same ball.
+
+        INPUT:
+
+        - ``other`` -- a :class:`ComplexBall`.
+
+        OUTPUT:
+
+        Return True iff ``self`` and ``other`` are equal as sets, i.e. if their
         real and imaginary parts each have the same midpoint and radius.
 
         Note that this is not the same thing as testing whether both ``self``
-        and ``other`` certainly represent the complex real number, unless either
-        ``self`` or ``other`` is exact (and neither contains NaN). To test
-        whether both operands might represent the same mathematical quantity,
-        use :meth:`overlaps` or :meth:`contains`, depending on the
+        and ``other`` certainly represent the complex real number, unless
+        either ``self`` or ``other`` is exact (and neither contains NaN). To
+        test whether both operands might represent the same mathematical
+        quantity, use :meth:`overlaps` or ``in``, depending on the
         circumstance.
 
         EXAMPLES::
@@ -1350,6 +1384,10 @@ cdef class ComplexBall(RingElement):
         """
         Return True iff ``self`` and ``other`` have some point in common.
 
+        INPUT:
+
+        - ``other`` -- a :class:`ComplexBall`.
+
         EXAMPLES::
 
             sage: from sage.rings.complex_ball_acb import CBF
@@ -1364,11 +1402,18 @@ cdef class ComplexBall(RingElement):
 
     def contains_exact(self, other):
         """
-        Return ``True`` *iff* the given number (or ball) ``other`` is contained
-        in the interval represented by ``self``.
+        Return ``True`` *iff* ``other`` is contained in ``self``.
 
-        Use ``other in self`` for a test that works for a wider range of inputs
-        but may return false negatives.
+        INPUT:
+
+        - ``other`` -- :class:`ComplexBall`,
+          :class:`~sage.rings.integer.Integer`,
+          or :class:`~sage.rings.rational.Rational`
+
+        .. SEEALSO::
+
+            Use ``other in self`` for a test that works for a wider range of
+            inputs but may return false negatives.
 
         EXAMPLES::
 
@@ -1376,8 +1421,6 @@ cdef class ComplexBall(RingElement):
             sage: from sage.rings.real_arb import RealBallField
             sage: CBF(RealBallField(100)(1/3), 0).contains_exact(1/3)
             True
-            sage: 1/3 in CBF(RealBallField(100)(1/3), 0)
-            False
             sage: CBF(1).contains_exact(1)
             True
             sage: CBF(1).contains_exact(CBF(1))
@@ -1409,8 +1452,9 @@ cdef class ComplexBall(RingElement):
         """
         Return True if ``other`` can be verified to be contained in ``self``.
 
-        The test is done using interval arithmetic with a precision determined
-        by the parent of ``self`` and may return false negatives.
+        Depending on the type of ``other``, the test may use interval
+        arithmetic with a precision determined by the parent of ``self`` and
+        may return false negatives.
 
         .. SEEALSO:: :meth:`contains_exact`
 
@@ -1423,10 +1467,15 @@ cdef class ComplexBall(RingElement):
         A false negative::
 
             sage: from sage.rings.real_arb import RealBallField
-            sage: 1/3 in CBF(RealBallField(100)(1/3), 0)
+            sage: RLF(1/3) in CBF(RealBallField(100)(1/3), 0)
             False
         """
-        return self.contains_exact(self._parent(other))
+        if not isinstance(other, (
+                ComplexBall,
+                sage.rings.integer.Integer,
+                sage.rings.rational.Rational)):
+            other = self._parent(other)
+        return self.contains_exact(other)
 
     # Arithmetic
 

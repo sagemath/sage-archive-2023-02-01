@@ -4108,9 +4108,11 @@ def get_green_vertices(C):
         [0, 3]
 
     """
-    import numpy as np
-    max_entries = [ np.max(np.array(C.column(i))) for i in xrange(C.ncols()) ]
-    return [i for i in xrange(C.ncols()) if max_entries[i] > 0]
+    return [ i for (i,v) in enumerate(C.columns()) if any(x > 0 for x in v) ]
+    ## old code commented out
+    #import numpy as np
+    #max_entries = [ np.max(np.array(C.column(i))) for i in xrange(C.ncols()) ]
+    #return [i for i in xrange(C.ncols()) if max_entries[i] > 0]
 
 def get_red_vertices(C):
     r"""
@@ -4128,9 +4130,11 @@ def get_red_vertices(C):
         [1, 2]
 
     """
-    import numpy as np
-    min_entries = [ np.min(np.array(C.column(i))) for i in xrange(C.ncols()) ]
-    return [i for i in xrange(C.ncols()) if min_entries[i] < 0]
+    return [ i for (i,v) in enumerate(C.columns()) if any(x < 0 for x in v) ]
+    ## old code commented out
+    #import numpy as np
+    #min_entries = [ np.min(np.array(C.column(i))) for i in xrange(C.ncols()) ]
+    #return [i for i in xrange(C.ncols()) if min_entries[i] < 0]
 
 class ClusterVariable(FractionFieldElement):
     r"""

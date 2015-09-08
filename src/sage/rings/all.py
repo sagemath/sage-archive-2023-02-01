@@ -25,17 +25,11 @@ from dedekind_domain import DedekindDomain
 from principal_ideal_domain import PrincipalIdealDomain
 from euclidean_domain import EuclideanDomain
 
-from commutative_algebra_element import CommutativeAlgebraElement
-
 # Ring element base classes
-from ring_element import RingElement
-from commutative_ring_element import CommutativeRingElement
-from integral_domain_element import IntegralDomainElement
-from dedekind_domain_element import DedekindDomainElement
-from principal_ideal_domain_element import PrincipalIdealDomainElement
-from euclidean_domain_element import EuclideanDomainElement
-from field_element import FieldElement
-
+from sage.structure.element import (CommutativeAlgebraElement,
+        RingElement, CommutativeRingElement, IntegralDomainElement,
+        DedekindDomainElement, PrincipalIdealDomainElement,
+        EuclideanDomainElement, FieldElement)
 
 # Ideals
 from ideal import Ideal

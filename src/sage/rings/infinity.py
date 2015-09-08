@@ -207,12 +207,9 @@ We check that :trac:`17990` is fixed::
     [(+Infinity)]
 """
 
-from sage.rings.ring_element import RingElement
 from sage.rings.ring import Ring
 from sage.structure.element import RingElement, InfinityElement, PlusInfinityElement, MinusInfinityElement
 from sage.structure.parent_gens import ParentWithGens
-#import sage.rings.real_double
-#import sage.rings.real_mpfr
 import sage.rings.integer
 import sage.rings.rational
 

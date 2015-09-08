@@ -61,7 +61,6 @@ import power_series_ring_element
 import power_series_ring
 import sage.rings.polynomial.polynomial_element as polynomial
 import sage.misc.latex
-import sage.rings.ring_element as ring_element
 from sage.rings.integer import Integer
 from sage.rings.polynomial.laurent_polynomial import LaurentPolynomial_univariate
 

@@ -102,7 +102,6 @@ from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 import sage.rings.polynomial.polynomial_element
 import power_series_ring
 import sage.misc.misc
-import ring_element
 import arith
 import sage.misc.latex
 import rational_field, integer_ring

@@ -5603,7 +5603,11 @@ class FinitePoset(UniqueRepresentation, Parent):
 
     def is_subposet(self, other):
         r"""
-        Return ``True`` if the poset is a subposet of ``other``, and ``False`` otherwise.
+        Return ``True`` if the poset is a subposet of ``other``, and
+        ``False`` otherwise.
+
+        A poset $P$ is an (induced) subposet of `Q` if every element
+        of `P` is an element of `Q`, and `x \le_P y` iff `x \le_Q y`.
 
         .. NOTE::
 
@@ -5622,7 +5626,10 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: P.is_subposet(R)
             True
         """
-        return self.hasse_diagram().is_subgraph(other.hasse_diagram().transitive_closure())
+        if hasattr(other, 'hasse_diagram'):
+            return other.subposet(self) == self
+        else:
+            raise ValueError('the input is not a finite poset')
         
 FinitePoset._dual_class = FinitePoset
 

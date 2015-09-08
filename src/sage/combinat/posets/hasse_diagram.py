@@ -1308,10 +1308,10 @@ class HasseDiagram(DiGraph):
             jn = self.join_matrix()
         except ValueError:
             return False
-        n = self.cardinality()-1
-        for row1,row2 in izip(mt, jn):
-            for c1,c2 in izip(row1,row2):
-                if c1==0 and c2==n:
+        n = self.cardinality() - 1
+        for row1, row2 in izip(mt, jn):
+            for c1, c2 in izip(row1, row2):
+                if c1 == 0 and c2 == n:
                     break
             else:
                 return False

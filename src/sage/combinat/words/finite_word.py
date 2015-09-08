@@ -6804,6 +6804,8 @@ class FiniteWord_class(Word_class):
             False
             sage: Word('00100').is_christoffel()
             False
+            sage: Word('0').is_christoffel()
+            True
 
         TESTS::
 

@@ -99,6 +99,7 @@ Properties
     :meth:`~FiniteStateMachine.is_Markov_chain` | Checks for a Markov chain
     :meth:`~FiniteStateMachine.is_monochromatic` | Checks whether the colors of all states are equal
     :meth:`~FiniteStateMachine.asymptotic_moments` | Main terms of expectation and variance of sums of labels
+    :meth:`~FiniteStateMachine.moments_waiting_time` | Moments of the waiting time for first true output
     :meth:`~FiniteStateMachine.epsilon_successors` | Epsilon successors of a state
     :meth:`Automaton.shannon_parry_markov_chain` | Compute Markov chain with Parry measure
 
@@ -9361,6 +9362,408 @@ class FiniteStateMachine(SageObject):
         return {'expectation': e_2*variable + SR(1).Order(),
                 'variance': v_2*variable + SR(1).Order(),
                 'covariance': c*variable + SR(1).Order()}
+
+
+    def moments_waiting_time(self, test=bool, is_zero=None,
+                             expectation_only=False):
+        ur"""
+        If this finite state machine acts as a Markov chain, return
+        the expectation and variance of the number of steps until
+        first writing ``True``.
+
+        INPUT:
+
+        - ``test`` -- (default: ``bool``) a callable deciding whether
+          an output label is to be considered ``True``. By default, the
+          standard conversion to boolean is used.
+
+        - ``is_zero`` -- (default: ``None``) a callable deciding
+          whether an expression for a probability is zero. By default,
+          checking for zero is simply done by
+          :meth:`~sage.structure.element.Element.is_zero`.  This
+          parameter can be used to provide a more sophisticated check
+          for zero, e.g. in the case of symbolic probabilities, see
+          the examples below. This parameter is passed on to
+          :meth:`is_Markov_chain`. This parameter only affects the
+          input of the Markov chain.
+
+        - ``expectation_only`` -- (default: ``False``) if set, the
+          variance is not computed (in order to save time). By default,
+          the variance is computed.
+
+        OUTPUT:
+
+        A dictionary (if ``expectation_only=False``) consisting of
+
+        - ``expectation``,
+        - ``variance``.
+
+        Otherwise, just the expectation is returned (no dictionary for
+        ``expectation_only=True``).
+
+        Expectation and variance of the number of steps until first
+        writing ``True`` (as determined by the parameter ``test``).
+
+        ALGORITHM:
+
+        Relies on a (classical and easy) probabilistic argument,
+        cf. [FGT1992]_, Eqns. (6) and (7).
+
+        For the variance, see [FHP2015]_, Section 2.
+
+        EXAMPLES:
+
+        #.  The simplest example is to wait for the first `1` in a
+            `0`-`1`-string where both digits appear with probability
+            `1/2`. In fact, the waiting time equals `k` if and only if
+            the string starts with `0^{k-1}1`. This event occurs with
+            probability `2^{-k}`. Therefore, the expected waiting time
+            and the variance are `\sum_{k\ge 1} k2^{-k}=2` and
+            `\sum_{k\ge 1} (k-2)^2 2^{-k}=2`::
+
+                sage: var('k')
+                k
+                sage: sum(k * 2^(-k), k, 1, infinity)
+                2
+                sage: sum((k-2)^2 * 2^(-k), k, 1, infinity)
+                2
+
+            We now compute the same expectation and variance by using a
+            Markov chain::
+
+                sage: from sage.combinat.finite_state_machine import (
+                ....:     duplicate_transition_add_input)
+                sage: T = Transducer(
+                ....:     [(0, 0, 1/2, 0), (0, 0, 1/2, 1)],
+                ....:     on_duplicate_transition=\
+                ....:         duplicate_transition_add_input,
+                ....:     initial_states=[0],
+                ....:     final_states=[0])
+                sage: T.moments_waiting_time()
+                {'expectation': 2, 'variance': 2}
+                sage: T.moments_waiting_time(expectation_only=True)
+                2
+
+            In the following, we replace the output ``0`` by ``-1`` and
+            demonstrate the use of the parameter ``test``::
+
+                sage: T.delete_transition((0, 0, 1/2, 0))
+                sage: T.add_transition((0, 0, 1/2, -1))
+                Transition from 0 to 0: 1/2|-1
+                sage: T.moments_waiting_time(test=lambda x: x<0)
+                {'expectation': 2, 'variance': 2}
+
+        #.  Make sure that the transducer is actually a Markov
+            chain. Although this is checked by the code, unexpected
+            behaviour may still occur if the transducer looks like a
+            Markov chain. In the following example, we 'forget' to
+            assign probabilities, but due to a coincidence, all
+            'probabilities' add up to one. Nevertheless, `0` is never
+            written, so the expectation is `1`.
+
+            ::
+
+                sage: T = Transducer([(0, 0, 0, 0), (0, 0, 1, 1)],
+                ....:                on_duplicate_transition=\
+                ....:                    duplicate_transition_add_input,
+                ....:                initial_states=[0],
+                ....:                final_states=[0])
+                sage: T.moments_waiting_time()
+                {'expectation': 1, 'variance': 0}
+
+        #.  If ``True`` is never written, the moments are
+            ``+Infinity``::
+
+                sage: T = Transducer([(0, 0, 1, 0)],
+                ....:                on_duplicate_transition=\
+                ....:                    duplicate_transition_add_input,
+                ....:                initial_states=[0],
+                ....:                final_states=[0])
+                sage: T.moments_waiting_time()
+                {'expectation': +Infinity, 'variance': +Infinity}
+
+        #.  Let `h` and `r` be positive integers. We consider random
+            strings of letters `1`, `\ldots`, `r` where the letter `j`
+            occurs with probability `p_j`. Let `B` be the random
+            variable giving the first position of a block of `h`
+            consecutive identical letters. Then
+
+            .. MATH::
+
+                \begin{aligned}
+                \mathbb{E}(B)&=\frac1{\displaystyle\sum_{i=1}^r
+                \frac1{p_i^{-1}+\cdots+p_i^{-h}}},\\
+                \mathbb{V}(B)&=\frac{\displaystyle\sum_{i=1}^r\biggl(
+                \frac{p_i +p_i^h}{1-p_i^h}
+                - 2h\frac{ p_i^h(1-p_i)}{(1-p_i^h)^2}\biggr)}
+                {\displaystyle\biggl(\sum_{i=1}^r
+                \frac1{p_i^{-1}+\cdots+p_i^{-h}}\biggr)^2}
+                \end{aligned}
+
+            cf. [S1986]_, p. 62, or [FHP2015]_, Theorem 1. We now
+            verify this with a transducer approach.
+
+            ::
+
+                sage: def test(h, r):
+                ....:     R = PolynomialRing(
+                ....:             QQ,
+                ....:             names=['p_%d' % j for j in range(r)])
+                ....:     p = R.gens()
+                ....:     def is_zero(polynomial):
+                ....:         return polynomial in (sum(p) - 1) * R
+                ....:     theory_expectation = 1/(sum(1/sum(p[j]^(-i)
+                ....:                     for i in range(1, h+1))
+                ....:                     for j in range(r)))
+                ....:     theory_variance = sum(
+                ....:         (p[i] + p[i]^h)/(1 - p[i]^h)
+                ....:         - 2*h*p[i]^h * (1 - p[i])/(1 - p[i]^h)^2
+                ....:         for i in range(r)
+                ....:         ) * theory_expectation^2
+                ....:     alphabet = range(r)
+                ....:     counters = [
+                ....:         transducers.CountSubblockOccurrences([j]*h,
+                ....:                     alphabet)
+                ....:         for j in alphabet]
+                ....:     all_counter = counters[0].cartesian_product(
+                ....:         counters[1:])
+                ....:     adder = transducers.add(input_alphabet=[0, 1],
+                ....:         number_of_operands=r)
+                ....:     probabilities = Transducer(
+                ....:        [(0, 0, p[j], j) for j in alphabet],
+                ....:        initial_states=[0],
+                ....:        final_states=[0],
+                ....:        on_duplicate_transition=\
+                ....:            duplicate_transition_add_input)
+                ....:     chain = adder(all_counter(probabilities))
+                ....:     result = chain.moments_waiting_time(
+                ....:        is_zero=is_zero)
+                ....:     return is_zero((result['expectation'] -
+                ....:                theory_expectation).numerator()) \
+                ....:            and \
+                ....:            is_zero((result['variance'] -
+                ....:                 theory_variance).numerator())
+                sage: test(2, 2)
+                True
+                sage: test(2, 3)
+                True
+                sage: test(3, 3)
+                True
+
+        #.  Consider the alphabet `\{0, \ldots, r-1\}`, some `1\le j\le
+            r` and some `h\ge 1`.  For some probabilities `p_0`,
+            `\ldots`, `p_{r-1}`, we consider infinite words where the
+            letters occur independently with the given probabilities.
+            The random variable `B_j` is the first position `n` such
+            that there exist `j` of the `r` letters having an `h`-run.
+            The expectation of `B_j` is given in [FHP2015]_, Theorem 2.
+            Here, we verify this result by using transducers::
+
+                sage: def test(h, r, j):
+                ....:     R = PolynomialRing(
+                ....:             QQ,
+                ....:             names=['p_%d' % i for i in range(r)])
+                ....:     p = R.gens()
+                ....:     def is_zero(polynomial):
+                ....:         return polynomial in (sum(p) - 1) * R
+                ....:     alphabet = range(r)
+                ....:     counters = [
+                ....:         transducers.Wait([0, 1])(
+                ....:             transducers.CountSubblockOccurrences(
+                ....:                 [i]*h,
+                ....:                 alphabet))
+                ....:         for i in alphabet]
+                ....:     all_counter = counters[0].cartesian_product(
+                ....:         counters[1:])
+                ....:     adder = transducers.add(input_alphabet=[0, 1],
+                ....:         number_of_operands=r)
+                ....:     threshold = transducers.map(
+                ....:         f=lambda x: x >= j,
+                ....:         input_alphabet=srange(r+1))
+                ....:     probabilities = Transducer(
+                ....:         [(0, 0, p[i], i) for i in alphabet],
+                ....:         initial_states=[0],
+                ....:         final_states=[0],
+                ....:         on_duplicate_transition=\
+                ....:             duplicate_transition_add_input)
+                ....:     chain = threshold(adder(all_counter(
+                ....:         probabilities)))
+                ....:     result = chain.moments_waiting_time(
+                ....:         is_zero=is_zero,
+                ....:         expectation_only=True)
+                ....:
+                ....:     R_v = PolynomialRing(
+                ....:             QQ,
+                ....:             names=['p_%d' % i for i in range(r)])
+                ....:     v = R_v.gens()
+                ....:     S = 1/(1 - sum(v[i]/(1+v[i])
+                ....:                    for i in range(r)))
+                ....:     alpha = [(p[i] - p[i]^h)/(1 - p[i])
+                ....:              for i in range(r)]
+                ....:     gamma = [p[i]/(1 - p[i]) for i in range(r)]
+                ....:     alphabet_set = set(alphabet)
+                ....:     expectation = 0
+                ....:     for q in range(j):
+                ....:         for M in Subsets(alphabet_set, q):
+                ....:             summand = S
+                ....:             for i in M:
+                ....:                 summand = summand.subs(
+                ....:                     {v[i]: gamma[i]}) -\
+                ....:                     summand.subs({v[i]: alpha[i]})
+                ....:             for i in alphabet_set - set(M):
+                ....:                 summand = summand.subs(
+                ....:                     {v[i]: alpha[i]})
+                ....:             expectation += summand
+                ....:     return is_zero((result - expectation).\
+                ....:             numerator())
+                sage: test(2, 3, 2)
+                True
+
+        REFERENCES:
+
+        .. [FGT1992] Philippe Flajolet, Danièle Gardy, Loÿs Thimonier,
+           *Birthday paradox, coupon collectors, caching algorithms and
+           self-organizing search*, Discrete Appl. Math. 39 (1992),
+           207--229, :doi:`10.1016/0166-218X(92)90177-C`.
+
+        .. [FHP2015] Uta Freiberg, Clemens Heuberger, Helmut Prodinger,
+           *Application of Smirnov Words to Waiting Time Distributions
+           of Runs*, :arxiv:`1503.08096`.
+
+        .. [S1986] Gábor J. Székely, *Paradoxes in Probability Theory
+           and Mathematical Statistics*, D. Reidel Publishing Company.
+
+        TESTS:
+
+        Only Markov chains are acceptable::
+
+            sage: T = transducers.Identity([0, 1, 2])
+            sage: T.moments_waiting_time()
+            Traceback (most recent call last):
+            ...
+            ValueError: Only Markov chains can compute
+            moments_waiting_time.
+
+        There must be a unique initial state::
+
+            sage: T = Transducer([(0, 1, 1, 1), (1, 0, 1, 0)],
+            ....:                on_duplicate_transition=\
+            ....:                    duplicate_transition_add_input)
+            sage: T.moments_waiting_time()
+            Traceback (most recent call last):
+            ...
+            ValueError: Unique initial state is required.
+
+        Using `0` as initial state in this example, a `1` is written in
+        the first step with probability `1`, so the waiting time is
+        always `1`::
+
+            sage: T.state(0).is_initial = True
+            sage: T.moments_waiting_time()
+            {'expectation': 1, 'variance': 0}
+
+        Using both `0` and `1` as initial states again yields an error
+        message::
+
+            sage: T.state(1).is_initial = True
+            sage: T.moments_waiting_time()
+            Traceback (most recent call last):
+            ...
+            ValueError: Unique initial state is required.
+
+        Detection of infinite waiting time for symbolic probabilities::
+
+            sage: R.<p, q> = PolynomialRing(QQ)
+            sage: T = Transducer([(0, 0, p, 0), (0, 0, q, 0)],
+            ....:                initial_states=[0],
+            ....:                on_duplicate_transition=\
+            ....:                    duplicate_transition_add_input)
+            sage: T.moments_waiting_time(
+            ....:     is_zero=lambda e: e in (p + q - 1)*R)
+            {'expectation': +Infinity, 'variance': +Infinity}
+        """
+        from sage.modules.free_module_element import vector
+        from sage.matrix.constructor import identity_matrix
+        from sage.rings.polynomial.polynomial_ring_constructor import\
+            PolynomialRing
+
+        def default_is_zero(expression):
+            return expression.is_zero()
+
+        is_zero_function = default_is_zero
+        if is_zero is not None:
+            is_zero_function = is_zero
+
+        if not self.is_Markov_chain(is_zero):
+            raise ValueError("Only Markov chains can compute "
+                             "moments_waiting_time.")
+
+        if len(self.initial_states()) != 1:
+            raise ValueError("Unique initial state is required.")
+
+        def entry(transition):
+            word_out = transition.word_out
+            if len(word_out) == 0 or (
+                len(word_out) == 1 and not test(word_out[0])):
+                return transition.word_in[0]
+            else:
+                return 0
+
+        relabeled = self.relabeled()
+        n = len(relabeled.states())
+        assert [s.label() for s in relabeled.states()] == range(n)
+        entry_vector = vector(ZZ(s.is_initial)
+                              for s in relabeled.states())
+        exit_vector = vector([1] * n)
+        transition_matrix = relabeled.adjacency_matrix(entry=entry)
+        # transition_matrix is the probability transition matrix
+        # of the part of the transducer before the occurrence of true
+        # output.
+        # We cannot use the input parameter of adjacency_matrix
+        # because we want to check for "true" input in the sense
+        # of python's boolean conversion. So we cannot give
+        # input=[False] as this might lead to strange phenomena.
+        if all(map(is_zero_function,
+                   transition_matrix * exit_vector - exit_vector)):
+            import sage.rings.infinity
+            expectation = sage.rings.infinity.PlusInfinity()
+            variance = sage.rings.infinity.PlusInfinity()
+        else:
+            if expectation_only:
+                system_matrix = identity_matrix(n) - transition_matrix
+                expectation = entry_vector * \
+                    system_matrix.solve_right(exit_vector)
+            else:
+                base_ring = transition_matrix.parent().base_ring()
+                from sage.rings.polynomial.multi_polynomial_ring \
+                    import is_MPolynomialRing
+                if is_MPolynomialRing(base_ring):
+                    # if base_ring is already a multivariate polynomial
+                    # ring, extend it instead of creating a univariate
+                    # polynomial ring over a polynomial ring.  This
+                    # should improve performance.
+                    R = PolynomialRing(
+                        base_ring.base_ring(),
+                        base_ring.variable_names()
+                            + ('Z_waiting_time',))
+                else:
+                    R = PolynomialRing(base_ring, 'Z_waiting_time')
+                Z = R.gens()[-1]
+                system_matrix = identity_matrix(n) - Z * \
+                    transition_matrix
+                G = entry_vector *  system_matrix.solve_right(
+                    exit_vector)
+                expectation = G.subs({Z: 1})
+                variance = 2 * G.derivative(Z).subs({Z: 1}) \
+                    + expectation \
+                    - expectation**2
+
+        if expectation_only:
+            return expectation
+        else:
+            return {'expectation': expectation,
+                    'variance': variance}
+
 
 
     def is_monochromatic(self):

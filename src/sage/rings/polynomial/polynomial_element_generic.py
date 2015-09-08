@@ -869,7 +869,7 @@ class Polynomial_generic_sparse(Polynomial):
         """
         if degree is None:
             degree = self.degree()
-        if not isinstance(degree, int) and not isinstance(degree, Integer):
+        if not isinstance(degree, (int,Integer)):
             raise ValueError("degree argument must be a nonnegative integer, got %s"%degree)
         d = {}
         for k,v in self.__coeffs.iteritems():

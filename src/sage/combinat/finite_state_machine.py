@@ -6809,7 +6809,7 @@ class FiniteStateMachine(SageObject):
 
         INPUT:
 
-        - ``other`` -- a :class:`FiniteStateMachine`
+        - ``other`` -- a :class:`FiniteStateMachine`.
 
         OUTPUT:
 
@@ -6835,7 +6835,7 @@ class FiniteStateMachine(SageObject):
         possible) and ``None`` otherwise. In the latter case, try
         calling :meth:`.determine_alphabets`.
 
-        Instead of ``A.concatenation(B)``, the notation ``A*B`` can be
+        Instead of ``A.concatenation(B)``, the notation ``A * B`` can be
         used.
 
         EXAMPLES:
@@ -6884,7 +6884,7 @@ class FiniteStateMachine(SageObject):
 
         Alternative notation as multiplication::
 
-            sage: C == A*B
+            sage: C == A * B
             True
 
         Final output words are taken into account::
@@ -6897,7 +6897,7 @@ class FiniteStateMachine(SageObject):
             ....:                initial_states=[0],
             ....:                final_states=[1])
             sage: B.state(1).final_word_out = 4
-            sage: C = A*B
+            sage: C = A * B
             sage: C([0, 0])
             [1, 2, 3, 4]
 
@@ -6915,11 +6915,11 @@ class FiniteStateMachine(SageObject):
             True
             sage: D.input_alphabet
             [[0, 0]]
-            sage: (A*B).input_alphabet
+            sage: (A * B).input_alphabet
             [0, 1, 2]
-            sage: (A*C).input_alphabet is None
+            sage: (A * C).input_alphabet is None
             True
-            sage: (A*D).input_alphabet is None
+            sage: (A * D).input_alphabet is None
             True
 
         .. SEEALSO::
@@ -6930,17 +6930,17 @@ class FiniteStateMachine(SageObject):
 
             sage: A = Automaton()
             sage: F = FiniteStateMachine()
-            sage: A*F
+            sage: A * F
             Traceback (most recent call last):
             ...
             TypeError: Cannot concatenate finite state machines of
             different types.
-            sage: F*A
+            sage: F * A
             Traceback (most recent call last):
             ...
             TypeError: Cannot concatenate finite state machines of
             different types.
-            sage: F*5
+            sage: F * 5
             Traceback (most recent call last):
             ...
             TypeError: A finite state machine can only be concatenated

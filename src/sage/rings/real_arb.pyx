@@ -410,6 +410,24 @@ class RealBallField(UniqueRepresentation, Parent):
             pass
         raise TypeError("unable to convert {} to a RealBall".format(mid))
 
+    def _repr_option(self, key):
+        """
+        Declare that real balls print atomically.
+
+        TESTS::
+
+            sage: from sage.rings.real_arb import RBF
+            sage: RBF._repr_option('element_is_atomic')
+            True
+            sage: RBF['x']([-2,-2,-2/3])
+            [-0.666666666666667 +/- 4.82e-16]*x^2 - 2.000000000000000*x
+            - 2.000000000000000
+        """
+        if key == 'element_is_atomic':
+            return True
+
+        return super(RealIntervalField, self)._repr_option(key)
+
     def gens(self):
         r"""
         EXAMPLE::

@@ -771,6 +771,30 @@ cdef class ComplexBall(RingElement):
             return "{} + {}*I".format(self.real()._repr_(),
                                         self.imag()._repr_())
 
+    def _is_atomic(self):
+        r"""
+        Declare that complex balls print atomically in some cases.
+
+        TESTS::
+
+            sage: from sage.rings.complex_ball_acb import CBF
+            sage: CBF(-1/3)._is_atomic()
+            True
+
+        This method should in principle ensure that ``CBF['x']([1, -1/3])``
+        is printed as::
+
+            sage: CBF['x']([1, -1/3]) # todo - not tested
+            [-0.3333333333333333 +/- 7.04e-17]*x + 1.000000000000000
+
+        However, this facility is not really used in Sage at this point, and we
+        still get::
+
+            sage: CBF['x']([1, -1/3])
+            ([-0.3333333333333333 +/- 7.04e-17])*x + 1.000000000000000
+        """
+        return self.is_real() or self.imag().is_zero()
+
     # Conversions
 
     cpdef ComplexIntervalFieldElement _complex_mpfi_(self, parent):

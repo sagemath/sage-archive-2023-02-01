@@ -714,15 +714,10 @@ class Polynomial_generic_sparse(Polynomial):
         if n == 0:
             return self
         if n > 0:
-            output = {}
-            for (index, coeff) in self.__coeffs.iteritems():
-                output[index + n] = coeff
+            output = {index+n: coeff for index, coeff in self.__coeffs.iteritems()}
             return self.parent()(output, check=False)
         if n < 0:
-            output = {}
-            for (index, coeff) in self.__coeffs.iteritems():
-                if index + n >= 0:
-                    output[index + n] = coeff
+            output = {index+n:coeff for index, coeff in self.__coeffs.iteritems() if index + n >= 0}
             return self.parent()(output, check=False)
 
     @coerce_binop
@@ -873,11 +868,7 @@ class Polynomial_generic_sparse(Polynomial):
             degree = self.degree()
         if not isinstance(degree, (int,Integer)):
             raise ValueError("degree argument must be a nonnegative integer, got %s"%degree)
-        d = {}
-        for k,v in self.__coeffs.iteritems():
-            deg = degree - k
-            if deg >= 0:
-                d[deg] = v
+        d = {degree-k: v for k,v in self.__coeffs.iteritems() if degree >= k}
         return self.parent()(d, check=False)
 
     def truncate(self, n):

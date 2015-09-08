@@ -5603,10 +5603,10 @@ class FinitePoset(UniqueRepresentation, Parent):
 
     def is_subposet(self, other):
         r"""
-        Return ``True`` if the poset is a subposet of ``other``, and
+        Return ``True`` if the poset is an induced subposet of ``other``, and
         ``False`` otherwise.
 
-        A poset `P` is an (induced) subposet of `Q` if every element
+        A poset `P` is an induced subposet of `Q` if every element
         of `P` is an element of `Q`, and `x \le_P y` iff `x \le_Q y`.
 
         .. NOTE::
@@ -5614,8 +5614,11 @@ class FinitePoset(UniqueRepresentation, Parent):
             This method does not check whether the poset is a
             subposet *isomorphic* (i.e., up to relabeling) to ``other``,
             but only if ``other`` directly contains the poset as an
-            (induced) subposet. For isomorphic subposets see
+            induced subposet. For isomorphic subposets see
             :meth:`has_isomorphic_subposet`.
+
+            Also note that "induced" here has somewhat different
+            meaning compared to that of graphs.
 
         EXAMPLES::
 
@@ -5626,13 +5629,27 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: R = Poset({0:[1], 1:[3, 4], 3:[5], 4:[2]})
             sage: P.is_subposet(R)
             True
+
+        TESTS::
+
+            sage: P = Poset({2:[1]}, facade=True)
+            sage: Q = Poset({2:[1]}, facade=False)
+            sage: P.is_subposet(Q), Q.is_subposet(P)
+            (True, True)
+            sage: Poset().is_subposet(P)
+            True
+            sage: Poset().is_subposet(Poset())
+            True
+            sage: P.is_subposet(Poset())
+            False
         """
-        if hasattr(other, 'hasse_diagram'):
-            return (Poset(other.subposet(self), facade=True) ==
-                    Poset(self, facade=True))
-        else:
+        if not hasattr(other, 'hasse_diagram'):
             raise ValueError('the input is not a finite poset')
-        
+        self_ = Poset(self, facade=True)
+        other_ = Poset(other, facade=True)
+        return (set(self_).issubset(set(other_)) and
+                other_.subposet(self_) == self_)
+
 FinitePoset._dual_class = FinitePoset
 
 ##### Posets #####

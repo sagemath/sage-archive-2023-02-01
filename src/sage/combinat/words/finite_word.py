@@ -6781,7 +6781,7 @@ class FiniteWord_class(Word_class):
         Equivalently, `w` is a Christoffel word iff `w` is a symmetric 
         non-empty word and `w[1:n-1]` is a palindrome. 
 
-        See for instance _[1] and _[2].
+        See for instance [1]_ and [2]_.
 
         INPUT:
 
@@ -6818,11 +6818,11 @@ class FiniteWord_class(Word_class):
 
         REFERENCES:
 
-        -   [1]  Jean Berstel. Sturmian and episturmian words (a survey of
+        .. [1]  Jean Berstel. Sturmian and episturmian words (a survey of
             some recent results). In S. Bozapalidis and G. Rahonis, editors,
             CAI 2007,volume 4728 of Lecture Notes in Computer Science, 
             pages 23-47. Springer-Verlag, 2007.
-        -   [2]  J. Berstel, A. Lauve, C. R., F. Saliola, Combinatorics on
+        .. [2]  J. Berstel, A. Lauve, C. R., F. Saliola, Combinatorics on
             words: Christoffel words and repetitions in words, CRM Monograph 
             Series, 27. American Mathematical Society, Providence, RI, 2009. 
             xii+147 pp. ISBN: 978-0-8218-4480-9

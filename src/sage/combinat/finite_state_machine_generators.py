@@ -140,13 +140,20 @@ class AutomatonGenerators(object):
             sage: A = automata.word([0, 1, 0], input_alphabet=[0, 1, 2])
             sage: A.input_alphabet
             [0, 1, 2]
+
+        TESTS::
+
+            sage: from sage.rings.integer import is_Integer
+            sage: all(is_Integer(s.label()) for s in A.states())
+            True
         """
         letters = list(word)
         length = len(letters)
-        return Automaton([(i, i+1, letter)
+        from sage.rings.integer_ring import ZZ
+        return Automaton([(ZZ(i), ZZ(i+1), letter)
                           for i, letter in enumerate(letters)],
-                         initial_states=[0],
-                         final_states=[length],
+                         initial_states=[ZZ(0)],
+                         final_states=[ZZ(length)],
                          input_alphabet=input_alphabet)
 
 

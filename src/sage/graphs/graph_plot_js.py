@@ -122,9 +122,8 @@ def gen_html_code(G,
     - ``edge_partition`` -- same as ``vertex_partition``, with edges
       instead. Set to ``[]`` by default.
 
-    - ``force_spring_layout`` -- whether to take sage's position into account if
-      there is one (see :class:`~sage.graphs.generic_graph.GenericGraph` and
-      :class:`~sage.graphs.generic_graph.GenericGraph`), or to compute a spring
+    - ``force_spring_layout`` -- whether to take previously computed position
+      of nodes into account if there is one, or to compute a spring
       layout. Set to ``False`` by default.
 
     - ``vertex_size`` -- The size of a vertex' circle. Set to `7` by default.

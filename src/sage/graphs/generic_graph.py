@@ -12325,21 +12325,23 @@ class GenericGraph(GenericGraph_pyx):
 
         OUTPUT:
 
-        boolean -- ``True`` iff the graph is a (possibly induced) subgraph of ``other``.
+        boolean -- ``True`` iff the graph is a (possibly induced)
+        subgraph of ``other``.
 
         .. SEEALSO::
 
-            If you are interested in the (possibly induced) subgraphs isomorphic
-            to ``self`` in ``other``, you are looking for the following methods:
+            If you are interested in the (possibly induced) subgraphs
+            isomorphic to the graph in ``other``, you are looking for
+            the following methods:
 
-            - :meth:`~GenericGraph.subgraph_search` -- finds a subgraph
-              isomorphic to `G` inside of a `self`
+            - :meth:`~GenericGraph.subgraph_search` -- Find a subgraph
+              isomorphic to ``other`` inside of the graph.
 
-            - :meth:`~GenericGraph.subgraph_search_count` -- Counts the number
+            - :meth:`~GenericGraph.subgraph_search_count` -- Count the number
               of such copies.
 
-            - :meth:`~GenericGraph.subgraph_search_iterator` -- Iterate over all
-              the copies of `G` contained in `self`.
+            - :meth:`~GenericGraph.subgraph_search_iterator` --
+              Iterate over all the copies of ``other`` contained in the graph.
 
         EXAMPLES::
 
@@ -12369,6 +12371,7 @@ class GenericGraph(GenericGraph_pyx):
             Traceback (most recent call last):
             ...
             ValueError: The input parameter must be a DiGraph.
+
         """
         from sage.graphs.graph import Graph
         from sage.graphs.digraph import DiGraph

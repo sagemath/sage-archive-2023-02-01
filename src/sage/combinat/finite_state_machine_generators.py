@@ -95,7 +95,7 @@ class AutomatonGenerators(object):
 
     A list of all automata in this database is available via tab
     completion. Type "``automata.``" and then hit tab to see which
-    transducers are available.
+    automata are available.
 
     The automata currently in this class include:
 

@@ -7784,9 +7784,9 @@ class FiniteStateMachine(SageObject):
         An input alphabet must be given::
 
             sage: F = FiniteStateMachine([(0, 0, 0, 0),
-            ....:                           (0, 1, 1, 1),
-            ....:                           (1, 1, 0, 0)],
-            ....:                          determine_alphabets=False)
+            ....:                         (0, 1, 1, 1),
+            ....:                         (1, 1, 0, 0)],
+            ....:                        determine_alphabets=False)
             sage: F.is_complete()
             Traceback (most recent call last):
             ...

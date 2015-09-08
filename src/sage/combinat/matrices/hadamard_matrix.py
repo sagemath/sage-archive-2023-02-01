@@ -379,7 +379,8 @@ def regular_symmetric_hadamard_matrix_with_constant_diagonal(n,e,existence=False
 
     .. [BH12] A. Brouwer and W. Haemers,
       Spectra of graphs,
-      Springer, 2012.
+      Springer, 2012,
+      http://homepages.cwi.nl/~aeb/math/ipm/ipm.pdf
 
     .. [HX10] W. Haemers and Q. Xiang,
       Strongly regular graphs with parameters `(4m^4,2m^4+m^2,m^4+m^2,m^4+m^2)` exist for all `m>1`,

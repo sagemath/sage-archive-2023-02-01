@@ -384,17 +384,27 @@ def OrthogonalPolarGraph(m, q, sign="+"):
     G.name("Orthogonal Polar Graph O" + ("^" + sign if sign else "") + str((m, q)))
     return G
 
-def NonisotropicOrthogonalPolarGraphF2(m, sign="+"):
+def NonisotropicOrthogonalPolarGraph(m, q, sign="+", perp=None):
     r"""
-    Returns the Graph of Nonisotropic Points of a quadric `NO^{\epsilon}_{2m}(2)`.
+    Returns the Graph `NO^{\epsilon,\perp}_{m}(q)`
 
-    Nonisotropic points in the projective space over `F_2` of dimension `2m-1`,
-    endowed with a nondegenerate quadratic form `F` of type ``sign``, 
-    joined whenever they are on a tangent line to the quadric specified by `F`.
-    In other words, two points `x`, `y` are joined in the graph iff `F(x-y)=0`.  
+    Let the vectorspace of dimension `m` over `F_q` be
+    endowed with a nondegenerate quadratic form `F`, of type ``sign`` for `m` even.
 
-    For more information, see see the `page of
-    Andries Brouwer's website <http://www.win.tue.nl/~aeb/graphs/srghub.html>`_.
+    * `m` even: assume further that `q=2` or `3`. Returns the graph of the
+      points (in the underlying projective space) `x` satisfying `F(x)=1`, with adjacency
+      given by orthogonality w.r.t. `F`. Parameter ``perp`` is ignored.
+
+    * `m` odd: if ``perp`` is not ``None``, then we assume that `q=5` and
+      return the graph of the points `x` satisfying `F(x)=\pm 1` if ``sign="+"``,
+      respectively `F(x) \in \{2,3\}` if ``sign="-"``, with adjacency
+      given by orthogonality w.r.t. `F`. Otherwise return the graph
+      of nongenerate hyperplanes of type ``sign``, adjacent whenever the intersection
+      is degenerate.
+
+    For more information, see Sect. 9.9 of [BH12]_ and [BvL84]_. Note that the `page of
+    Andries Brouwer's website <http://www.win.tue.nl/~aeb/graphs/srghub.html>`_
+    uses different notation.
 
     INPUT:
 
@@ -406,37 +416,72 @@ def NonisotropicOrthogonalPolarGraphF2(m, sign="+"):
 
     `NO^-(4,2)` is isomorphic to Petersen graph::
 
-        sage: g=graphs.NonisotropicOrthogonalPolarGraphF2(2,'-'); g
+        sage: g=graphs.NonisotropicOrthogonalPolarGraph(4,2,'-'); g
         NO^-(4, 2): Graph on 10 vertices
         sage: g.is_strongly_regular(parameters=True)
         (10, 3, 0, 1)
 
     `NO^-(6,2)` and `NO^+(6,2)`::
 
-        sage: g=graphs.NonisotropicOrthogonalPolarGraphF2(3,'-')
+        sage: g=graphs.NonisotropicOrthogonalPolarGraph(6,2,'-')
         sage: g.is_strongly_regular(parameters=True)
         (36, 15, 6, 6)
-        sage: g=graphs.NonisotropicOrthogonalPolarGraphF2(3,'+'); g
+        sage: g=graphs.NonisotropicOrthogonalPolarGraph(6,2,'+'); g
         NO^+(6, 2): Graph on 28 vertices
         sage: g.is_strongly_regular(parameters=True)
         (28, 15, 6, 10)
 
     `NO^+(8,2)`::
 
-        sage: g=graphs.NonisotropicOrthogonalPolarGraphF2(4,'+') # not tested (long time)
+        sage: g=graphs.NonisotropicOrthogonalPolarGraph(8,2,'+') # not tested (long time)
         sage: g.is_strongly_regular(parameters=True)       # not tested (long time)
         (120, 63, 30, 36)
 
+    Wilbrink's graphs for `q=5`::
+
+        sage: graphs.NonisotropicOrthogonalPolarGraph(5,5,perp=1).is_strongly_regular(parameters=True) # not tested (long time)
+        (325, 60, 15, 10)
+        sage: graphs.NonisotropicOrthogonalPolarGraph(5,5,'+',perp=1).is_strongly_regular(parameters=True) # not tested (long time)
+        (325, 60, 15, 10)
+
     TESTS::
 
-        sage: g=graphs.NonisotropicOrthogonalPolarGraphF2(2); g
+        sage: g=graphs.NonisotropicOrthogonalPolarGraph(4,2); g
         NO^+(4, 2): Graph on 6 vertices
-
+        sage: graphs.NonisotropicOrthogonalPolarGraph(4,3,'-').is_strongly_regular(parameters=True)
+        (15, 6, 1, 3)
+        sage: g=graphs.NonisotropicOrthogonalPolarGraph(3,5,'-',perp=1); g
+        NO^,perp-(3, 5): Graph on 10 vertices
+        sage: g.is_strongly_regular(parameters=True)
+        (10, 3, 0, 1)
+        sage: g=graphs.NonisotropicOrthogonalPolarGraph(6,3,'+')   # long time
+        sage: g.is_strongly_regular(parameters=True)               # long time
+        (117, 36, 15, 9)
+        sage: g=graphs.NonisotropicOrthogonalPolarGraph(6,3,'-'); g # long time
+        NO^-(6, 3): Graph on 126 vertices
+        sage: g.is_strongly_regular(parameters=True)                # long time
+        (126, 45, 12, 18)
     """
     from sage.graphs.generators.classical_geometries import _orthogonal_polar_graph
-    G = _orthogonal_polar_graph(2*m, 2, sign=sign, point_type=[1])
-    G.name("NO" + "^" + sign  + str((2*m, 2)))
-    return G
+    if m % 2 == 0:
+        if q in [2,3]:
+            G = _orthogonal_polar_graph(m, q, sign=sign, point_type=[1])
+            G.name("NO" + "^" + sign  + str((m, q)))
+            return G
+        else:
+            raise ValueError("for m even q must be 2 or 3")
+    else:
+        if not perp is None:
+            if q == 5:
+                G = _orthogonal_polar_graph(m, q, point_type=\
+                    [-1,1] if sign=='+' else [2,3] if sign=='-' else [])
+                G.name("NO" + "^,perp" + sign  + str((m, q)))
+                return G
+            else:
+                raise ValueError("for perp not None q must be 5")
+        else:
+            raise NotImplementedError("todo...")
+
 
 def _polar_graph(m, q, g, intersection_size=None):
     r"""
@@ -667,7 +712,7 @@ def TaylorTwographDescendantSRG(q, clique_partition=None):
     obtained as a two-graph descendant of the
     :func:`Taylor's two-graph <sage.combinat.designs.twographs.taylor_twograph>` `T`.
     This graph admits a partition into cliques of size `q`, which are useful in
-    :func:`TaylorTwographSRG <sage.graphs.generators.families.TaylorTwographSRG>`,
+    :func:`TaylorTwographSRG <sage.graphs.generators.classical_geometries.TaylorTwographSRG>`,
     a strongly regular graph on `q^3+1` vertices in the
     Seidel switching class of `T`, for which we need `(q^2+1)/2` cliques.
     The cliques are the `q^2` lines on `v_0` of the projective plane containing the unital
@@ -755,7 +800,7 @@ def TaylorTwographSRG(q):
 
     .. SEEALSO::
 
-        * :func:`TaylorTwographDescendantSRG <sage.graphs.generators.families.TaylorTwographDescendantSRG>`
+        * :func:`TaylorTwographDescendantSRG <sage.graphs.generators.classical_geometries.TaylorTwographDescendantSRG>`
 
     EXAMPLES::
 

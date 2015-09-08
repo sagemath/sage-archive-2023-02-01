@@ -6773,9 +6773,9 @@ class FiniteWord_class(Word_class):
         The *Christoffel word* of slope `p/q` is obtained from the Cayley 
         graph of `\ZZ/(p+q)\ZZ` with generator q as follows. If `u 
         \rightarrow v` is an edge in the Cayley graph, then, `v = u + p 
-        \mod{p+q}`. Label the edge `u \rightarrow v` by ``alphabet[1]`` 
-        if u < v and ``alphabet[0]`` otherwise. The Christoffel word is 
-        the word obtained by reading the edge labels along the cycle 
+        \mod{p+q}`. Let `a`,`b` be the alphabet of `w`. Label the edge 
+        `u \rightarrow v` by `a` if u < v and `b` otherwise. The Christoffel 
+        word is the word obtained by reading the edge labels along the cycle 
         beginning from 0.
 
         Equivalently, `w` is a Christoffel word iff `w` is a symmetric 

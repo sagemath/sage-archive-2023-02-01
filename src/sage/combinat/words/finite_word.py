@@ -6827,7 +6827,7 @@ class FiniteWord_class(Word_class):
 
         """
         # A Christoffel word is a non-empty word over a binary alphabet
-        if len(self) = 0 or len(self.letters()) > 2 or (self.is_palindrome() and len(self) > 1):
+        if len(self) == 0 or len(self.letters()) > 2 or (self.is_palindrome() and len(self) > 1):
             return False
         elif self.is_symmetric() and self[1:len(self) - 1].is_palindrome():
             return True

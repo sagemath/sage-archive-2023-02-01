@@ -811,9 +811,11 @@ class Polynomial_generic_sparse(Polynomial):
         """
         Return the `p`-adic slopes of the Newton polygon of the polynomial.
 
-        OUTPUT: If `lengths` is `False`, a list of rational numbers. If
-        `lengths` is `True, a list of couples `(s,l)` where `s` is the slope and
-        `l` the length of the corresponding segment in the Newton polygon.
+        OUTPUT:
+
+        If `lengths` is `False`, a list of rational numbers. If `lengths` is
+        `True`, a list of couples `(s,l)` where `s` is the slope and `l` the
+        length of the corresponding segment in the Newton polygon.
 
         EXAMPLES::
 

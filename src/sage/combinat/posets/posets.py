@@ -5606,15 +5606,16 @@ class FinitePoset(UniqueRepresentation, Parent):
         Return ``True`` if the poset is a subposet of ``other``, and
         ``False`` otherwise.
 
-        A poset $P$ is an (induced) subposet of `Q` if every element
+        A poset `P` is an (induced) subposet of `Q` if every element
         of `P` is an element of `Q`, and `x \le_P y` iff `x \le_Q y`.
 
         .. NOTE::
 
             This method does not check whether the poset is a
-            subposet *isomorphic* to ``other``, but only if ``other``
-            directly contains the poset as an (induced) subposet.
-            For isomorphic subposets see :meth:`has_isomorphic_subposet`.
+            subposet *isomorphic* (i.e., up to relabeling) to ``other``,
+            but only if ``other`` directly contains the poset as an
+            (induced) subposet. For isomorphic subposets see
+            :meth:`has_isomorphic_subposet`.
 
         EXAMPLES::
 
@@ -5627,7 +5628,8 @@ class FinitePoset(UniqueRepresentation, Parent):
             True
         """
         if hasattr(other, 'hasse_diagram'):
-            return other.subposet(self) == self
+            return (Poset(other.subposet(self), facade=True) ==
+                    Poset(self, facade=True))
         else:
             raise ValueError('the input is not a finite poset')
         

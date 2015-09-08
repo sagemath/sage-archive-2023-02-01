@@ -1288,7 +1288,7 @@ class HasseDiagram(DiGraph):
 
     def is_complemented_lattice(self):
         r"""
-        Returns ``True`` if ``self`` is the Hasse diagram of a
+        Return ``True`` if ``self`` is the Hasse diagram of a
         complemented lattice, and ``False`` otherwise.
 
         EXAMPLES::
@@ -1302,19 +1302,13 @@ class HasseDiagram(DiGraph):
             sage: H.is_complemented_lattice()
             False
         """
+        n = self.cardinality()
         try:
-            jn = self.join_matrix()
-            mt = self.meet_matrix()
+            M = self.meet_matrix()*n + self.join_matrix()
         except ValueError:
             return False
-        n = self.cardinality()
-        c = [-1 for x in range(n)]
-        for x in range(n):
-            for y in range(x,n):
-                if jn[x][y]==n-1 and mt[x][y]==0:
-                    c[x]=y
-                    c[y]=x
-        return all([c[x]!=-1 for x in range(n)])
+        n = n-1
+        return all(n in row for row in M)
 
     def complements(self):
         r"""

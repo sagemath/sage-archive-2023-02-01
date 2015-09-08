@@ -1302,13 +1302,20 @@ class HasseDiagram(DiGraph):
             sage: H.is_complemented_lattice()
             False
         """
-        n = self.cardinality()
+        from itertools import izip
         try:
-            M = self.meet_matrix()*n + self.join_matrix()
+            mt = self.meet_matrix()
+            jn = self.join_matrix()
         except ValueError:
             return False
-        n = n-1
-        return all(n in row for row in M)
+        n = self.cardinality()-1
+        for row1,row2 in izip(mt, jn):
+            for c1,c2 in izip(row1,row2):
+                if c1==0 and c2==n:
+                    break
+            else:
+                return False
+        return True
 
     def complements(self):
         r"""

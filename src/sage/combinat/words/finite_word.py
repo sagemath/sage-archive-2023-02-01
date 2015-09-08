@@ -6779,7 +6779,7 @@ class FiniteWord_class(Word_class):
         beginning from 0.
 
         Equivalently, `w` is a Christoffel word iff `w` is a symmetric 
-        non-empty word and `w[1:n-2]` is a palindrome. 
+        non-empty word and `w[1:n-1]` is a palindrome. 
 
         See for instance _[1] and _[2].
 

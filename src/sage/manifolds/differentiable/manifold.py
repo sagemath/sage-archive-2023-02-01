@@ -2749,3 +2749,53 @@ class DiffManifold(TopManifold):
         from sage.manifolds.differentiable.affine_connection import AffineConnection
         return AffineConnection(self, name, latex_name)
 
+    def metric(self, name, signature=None, latex_name=None, dest_map=None):
+        r"""
+        Define a pseudo-Riemannian metric on the manifold.
+
+        See
+        :class:`~sage.manifolds.differentiable.metric.PseudoRiemannianMetric`
+        for a complete documentation.
+
+        INPUT:
+
+        - ``name`` -- name given to the metric
+        - ``signature`` -- (default: ``None``) signature `S` of the metric as a
+          single integer: `S = n_+ - n_-`, where `n_+` (resp. `n_-`) is the
+          number of positive terms (resp. number of negative terms) in any
+          diagonal writing of the metric components; if ``signature`` is not
+          provided, `S` is set to the manifold's dimension (Riemannian
+          signature)
+        - ``latex_name`` -- (default: ``None``) LaTeX symbol to denote the
+          metric; if ``None``, it is formed from ``name``
+        - ``dest_map`` -- (default: ``None``) instance of
+          class :class:`~sage.manifolds.differentiable.diff_map.DiffMap`
+          representing the destination map `\Phi:\ U \rightarrow M`, where `U`
+          is the current manifold; if ``None``, the identity map is assumed
+          (case of a metric field *on* `U`)
+
+        OUTPUT:
+
+        - instance of
+          :class:`~sage.manifolds.differentiable.metric.PseudoRiemannianMetric`
+          representing the defined pseudo-Riemannian metric.
+
+        EXAMPLE:
+
+        Metric on a 3-dimensional manifold::
+
+            sage: DiffManifold._clear_cache_() # for doctests only
+            sage: M = DiffManifold(3, 'M', start_index=1)
+            sage: c_xyz.<x,y,z> = M.chart()
+            sage: g = M.metric('g'); g
+            pseudo-Riemannian metric 'g' on the 3-dimensional manifold 'M'
+
+        See the documentation of class
+        :class:`~sage.manifolds.differentiable.metric.PseudoRiemannianMetric`
+        for more examples.
+
+        """
+        vmodule = self.vector_field_module(dest_map)
+        return vmodule.metric(name, signature=signature, latex_name=latex_name)
+
+

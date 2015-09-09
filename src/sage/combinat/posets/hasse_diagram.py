@@ -1288,33 +1288,34 @@ class HasseDiagram(DiGraph):
 
     def is_complemented_lattice(self):
         r"""
-        Returns ``True`` if ``self`` is the Hasse diagram of a
+        Return ``True`` if ``self`` is the Hasse diagram of a
         complemented lattice, and ``False`` otherwise.
 
         EXAMPLES::
 
             sage: from sage.combinat.posets.hasse_diagram import HasseDiagram
-            sage: H = HasseDiagram({0:[1,2,3],1:[4],2:[4],3:[4]})
+            sage: H = HasseDiagram({0:[1, 2, 3], 1:[4], 2:[4], 3:[4]})
             sage: H.is_complemented_lattice()
             True
 
-            sage: H = HasseDiagram({0:[1,2],1:[3],2:[3],3:[4]})
+            sage: H = HasseDiagram({0:[1, 2], 1:[3], 2:[3], 3:[4]})
             sage: H.is_complemented_lattice()
             False
         """
+        from itertools import izip
         try:
-            jn = self.join_matrix()
             mt = self.meet_matrix()
+            jn = self.join_matrix()
         except ValueError:
             return False
-        n = self.cardinality()
-        c = [-1 for x in range(n)]
-        for x in range(n):
-            for y in range(x,n):
-                if jn[x][y]==n-1 and mt[x][y]==0:
-                    c[x]=y
-                    c[y]=x
-        return all([c[x]!=-1 for x in range(n)])
+        n = self.cardinality() - 1
+        for row1, row2 in izip(mt, jn):
+            for c1, c2 in izip(row1, row2):
+                if c1 == 0 and c2 == n:
+                    break
+            else:
+                return False
+        return True
 
     def complements(self):
         r"""

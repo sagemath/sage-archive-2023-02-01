@@ -49,7 +49,7 @@ A mixed integer linear program can give you an answer:
 
   #. You have to create an instance of :class:`MixedIntegerLinearProgram` and
      -- in our case -- specify that it is a minimization.
-  #. Create an dictionary ``w`` of integer variables ``w`` via ``w =
+  #. Create a dictionary ``w`` of integer variables ``w`` via ``w =
      p.new_variable(integer=True)`` (note that **by default all variables are
      non-negative**, cf :meth:`~MixedIntegerLinearProgram.new_variable`).
   #. Add those three equations as equality constraints via
@@ -174,10 +174,13 @@ also implements the :class:`MIPSolverException` exception, as well as the
 
     :meth:`~MixedIntegerLinearProgram.add_constraint`            | Adds a constraint to the ``MixedIntegerLinearProgram``
     :meth:`~MixedIntegerLinearProgram.base_ring`                 | Return the base ring
+    :meth:`~MixedIntegerLinearProgram.best_known_objective_bound`| Return the value of the currently best known bound
     :meth:`~MixedIntegerLinearProgram.constraints`               | Returns a list of constraints, as 3-tuples
     :meth:`~MixedIntegerLinearProgram.get_backend`               | Returns the backend instance used
     :meth:`~MixedIntegerLinearProgram.get_max`                   | Returns the maximum value of a variable
     :meth:`~MixedIntegerLinearProgram.get_min`                   | Returns the minimum value of a variable
+    :meth:`~MixedIntegerLinearProgram.get_objective_value`       | Return the value of the objective function
+    :meth:`~MixedIntegerLinearProgram.get_relative_objective_gap`| Return the relative objective gap of the best known solution
     :meth:`~MixedIntegerLinearProgram.get_values`                | Return values found by the previous call to ``solve()``
     :meth:`~MixedIntegerLinearProgram.is_binary`                 | Tests whether the variable ``e`` is binary
     :meth:`~MixedIntegerLinearProgram.is_integer`                | Tests whether the variable is an integer
@@ -220,7 +223,6 @@ AUTHORS:
 #*****************************************************************************
 
 include "sage/ext/interrupt.pxi"
-include "sage/ext/cdefs.pxi"
 
 from copy import copy
 from sage.structure.parent cimport Parent
@@ -637,16 +639,16 @@ cdef class MixedIntegerLinearProgram(SageObject):
             sage: p = MixedIntegerLinearProgram()
             sage: x = p.new_variable(nonnegative=True)
 
-        It behaves exactly as an usual dictionary would. It can use any key
+        It behaves exactly as a usual dictionary would. It can use any key
         argument you may like, as ``x[5]`` or ``x["b"]``, and has methods
         ``items()`` and ``keys()``.
 
         .. SEEALSO::
 
-            - :meth:`set_min`,:meth:`get_min` -- set/get the lower bound of a
+            - :meth:`set_min`, :meth:`get_min` -- set/get the lower bound of a
               variable. Note that by default, all variables are non-negative.
 
-            - :meth:`set_max`,:meth:`get_max` -- set/get the upper bound of a
+            - :meth:`set_max`, :meth:`get_max` -- set/get the upper bound of a
               variable.
 
         INPUT:
@@ -969,12 +971,18 @@ cdef class MixedIntegerLinearProgram(SageObject):
 
             The polyhedron is built from the variables stored by the LP solver
             (i.e. the output of :meth:`show`). While they usually match the ones
-            created explicitely when defining the LP, a solver like Gurobi has
+            created explicitly when defining the LP, a solver like Gurobi has
             been known to introduce additional variables to store constraints of
             the type ``lower_bound <= linear_function <= upper bound``. You
             should be fine if you did not install Gurobi or if you do not use it
             as a solver, but keep an eye on the number of variables in the
             polyhedron, or on the output of :meth:`show`. Just in case.
+
+        .. SEEALSO::
+
+            :meth:`~sage.geometry.polyhedron.base.Polyhedron_base.to_linear_program`
+            -- return the :class:`MixedIntegerLinearProgram` object associated
+            with a :func:`Polyhedron` object.
 
         EXAMPLES:
 
@@ -2237,25 +2245,39 @@ cdef class MixedIntegerLinearProgram(SageObject):
         """
         Return or define a solver parameter
 
-        The solver parameters are by essence solver-specific, which
-        means their meaning heavily depends on the solver used.
+        The solver parameters are by essence solver-specific, which means their
+        meaning heavily depends on the solver used.
 
-        (If you do not know which solver you are using, then you use
-        use GLPK).
+        (If you do not know which solver you are using, then you use GLPK).
 
         Aliases:
 
-        Very common parameters have aliases making them
-        solver-independent. For example, the following::
+        Very common parameters have aliases making them solver-independent. For
+        example, the following::
 
             sage: p = MixedIntegerLinearProgram(solver = "GLPK")
             sage: p.solver_parameter("timelimit", 60)
 
-        Sets the solver to stop its computations after 60 seconds, and
-        works with GLPK, CPLEX and Gurobi.
+        Sets the solver to stop its computations after 60 seconds, and works
+        with GLPK, CPLEX and Gurobi.
 
             - ``"timelimit"`` -- defines the maximum time spent on a
               computation. Measured in seconds.
+
+        Another example is the ``"logfile"`` parameter, which is used to specify
+        the file in which computation logs are recorded. By default, the logs
+        are not recorded, and we can disable this feature providing an empty
+        filename. This is currently working with CPLEX and Gurobi::
+
+            sage: p = MixedIntegerLinearProgram(solver = "CPLEX") # optional - CPLEX
+            sage: p.solver_parameter("logfile")                   # optional - CPLEX
+            ''
+            sage: p.solver_parameter("logfile", "/dev/null")      # optional - CPLEX
+            sage: p.solver_parameter("logfile")                   # optional - CPLEX
+            '/dev/null'
+            sage: p.solver_parameter("logfile", '')               # optional - CPLEX
+            sage: p.solver_parameter("logfile")                   # optional - CPLEX
+            ''
 
         Solver-specific parameters:
 
@@ -2339,7 +2361,7 @@ cdef class MixedIntegerLinearProgram(SageObject):
         r"""
         Returns the backend instance used.
 
-        This might be useful when acces to additional functions provided by
+        This might be useful when access to additional functions provided by
         the backend is needed.
 
         EXAMPLE:
@@ -2363,6 +2385,102 @@ cdef class MixedIntegerLinearProgram(SageObject):
             9.4
         """
         return self._backend
+
+    def get_objective_value(self):
+        """
+        Return the value of the objective function.
+
+        .. NOTE::
+
+           Behaviour is undefined unless ``solve`` has been called before.
+
+        EXAMPLE::
+
+            sage: p = MixedIntegerLinearProgram(solver="GLPK")
+            sage: x, y = p[0], p[1]
+            sage: p.add_constraint(2*x + 3*y, max = 6)
+            sage: p.add_constraint(3*x + 2*y, max = 6)
+            sage: p.set_objective(x + y + 7)
+            sage: p.solve()  # rel tol 1e-5
+            9.4
+            sage: p.get_objective_value()  # rel tol 1e-5
+            9.4
+        """
+        return self._backend.get_objective_value()
+
+    def best_known_objective_bound(self):
+        r"""
+        Return the value of the currently best known bound.
+
+        This method returns the current best upper (resp. lower) bound on the
+        optimal value of the objective function in a maximization
+        (resp. minimization) problem. It is equal to the output of
+        :meth:get_objective_value if the MILP found an optimal solution, but it
+        can differ if it was interrupted manually or after a time limit (cf
+        :meth:solver_parameter).
+
+        .. NOTE::
+
+           Has no meaning unless ``solve`` has been called before.
+
+        EXAMPLE::
+
+            sage: g = graphs.CubeGraph(9)
+            sage: p = MixedIntegerLinearProgram(solver="GLPK")
+            sage: p.solver_parameter("mip_gap_tolerance",100)
+            sage: b = p.new_variable(binary=True)
+            sage: p.set_objective(p.sum(b[v] for v in g))
+            sage: for v in g:
+            ....:     p.add_constraint(b[v]+p.sum(b[u] for u in g.neighbors(v)) <= 1)
+            sage: p.add_constraint(b[v] == 1) # Force an easy non-0 solution
+            sage: p.solve() # rel tol 100
+            1.0
+            sage: p.best_known_objective_bound() # random
+            48.0
+        """
+        return self._backend.best_known_objective_bound()
+
+    def get_relative_objective_gap(self):
+        r"""
+        Return the relative objective gap of the best known solution.
+
+        For a minimization problem, this value is computed by
+        `(\texttt{bestinteger} - \texttt{bestobjective}) / (1e-10 +
+        |\texttt{bestobjective}|)`, where ``bestinteger`` is the value returned
+        by :meth:`~MixedIntegerLinearProgram.get_objective_value` and
+        ``bestobjective`` is the value returned by
+        :meth:`~MixedIntegerLinearProgram.best_known_objective_bound`. For a
+        maximization problem, the value is computed by `(\texttt{bestobjective}
+        - \texttt{bestinteger}) / (1e-10 + |\texttt{bestobjective}|)`.
+
+        .. NOTE::
+
+           Has no meaning unless ``solve`` has been called before.
+
+        EXAMPLE::
+
+            sage: g = graphs.CubeGraph(9)
+            sage: p = MixedIntegerLinearProgram(solver="GLPK")
+            sage: p.solver_parameter("mip_gap_tolerance",100)
+            sage: b = p.new_variable(binary=True)
+            sage: p.set_objective(p.sum(b[v] for v in g))
+            sage: for v in g:
+            ....:     p.add_constraint(b[v]+p.sum(b[u] for u in g.neighbors(v)) <= 1)
+            sage: p.add_constraint(b[v] == 1) # Force an easy non-0 solution
+            sage: p.solve() # rel tol 100
+            1.0
+            sage: p.get_relative_objective_gap() # random
+            46.99999999999999
+
+        TESTS:
+
+        Just make sure that the variable *has* been defined, and is not just
+        undefined::
+
+            sage: p.get_relative_objective_gap() > 1
+            True
+        """
+        return self._backend.get_relative_objective_gap()
 
 
 class MIPSolverException(RuntimeError):

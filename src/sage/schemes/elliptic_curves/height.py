@@ -1799,7 +1799,8 @@ class EllipticCurveCanonicalHeight:
         This curve does have a point of good reduction whose canonical
         point is approximately 1.68::
 
-            sage: P = E.gens(lim3=5)[0]
+            sage: P = E.simon_two_descent(lim3=5)[2][0]; P
+            (1/3*a^2 + a + 5/3 : -2*a^2 - 4/3*a - 5/3 : 1)
             sage: P.height()
             1.68038085233673
             sage: P.has_good_reduction()

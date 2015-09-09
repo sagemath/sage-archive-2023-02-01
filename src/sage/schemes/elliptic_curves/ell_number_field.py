@@ -92,7 +92,6 @@ REFERENCE:
 
 from ell_field import EllipticCurve_field
 import ell_point
-import sage.matrix.all as matrix
 from sage.rings.ring import Ring
 from sage.rings.arith import gcd, prime_divisors, primes
 from sage.misc.all import prod
@@ -106,7 +105,7 @@ import sage.misc.misc
 from sage.misc.misc import verbose, forall
 from sage.rings.integer import Integer
 from sage.rings.arith import valuation
-from sage.matrix.all import matrix
+from sage.matrix.all import matrix, MatrixSpace
 from sage.modules.all import vector
 
 import gal_reps_number_field
@@ -606,7 +605,7 @@ class EllipticCurve_number_field(EllipticCurve_field):
             RR = RealField()
         else:
             RR = RealField(precision)
-        M = matrix.MatrixSpace(RR, r)
+        M = MatrixSpace(RR, r)
         mat = M()
         for j in range(r):
             mat[j,j] = points[j].height(precision=precision)

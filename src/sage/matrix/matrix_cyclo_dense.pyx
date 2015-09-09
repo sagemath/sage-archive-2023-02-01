@@ -27,20 +27,24 @@ AUTHORS:
    * Craig Citro
 """
 
-######################################################################
-#       Copyright (C) 2008 William Stein
-#  Distributed under the terms of the GNU General Public License (GPL)
-#  The full text of the GPL is available at:
+#*****************************************************************************
+#       Copyright (C) 2008 William Stein <wstein@gmail.com>
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
-######################################################################
+#*****************************************************************************
+
 
 include "sage/ext/interrupt.pxi"
 include "sage/ext/cdefs.pxi"
-include "sage/ext/random.pxi"
 include "sage/libs/ntl/decl.pxi"
 
 from sage.structure.element cimport ModuleElement, RingElement, Element, Vector
 from sage.misc.randstate cimport randstate, current_randstate
+from sage.libs.gmp.randomize cimport *
 
 from constructor import matrix
 from matrix_space import MatrixSpace

@@ -1294,11 +1294,11 @@ class HasseDiagram(DiGraph):
         EXAMPLES::
 
             sage: from sage.combinat.posets.hasse_diagram import HasseDiagram
-            sage: H = HasseDiagram({0:[1,2,3],1:[4],2:[4],3:[4]})
+            sage: H = HasseDiagram({0:[1, 2, 3], 1:[4], 2:[4], 3:[4]})
             sage: H.is_complemented_lattice()
             True
 
-            sage: H = HasseDiagram({0:[1,2],1:[3],2:[3],3:[4]})
+            sage: H = HasseDiagram({0:[1, 2], 1:[3], 2:[3], 3:[4]})
             sage: H.is_complemented_lattice()
             False
         """

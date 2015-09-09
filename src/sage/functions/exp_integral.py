@@ -575,7 +575,7 @@ class Function_log_integral_offset(BuiltinFunction):
         -x*log_integral(2) + x*log_integral(x) - Ei(2*log(x))
         sage: Li(x).integrate(x,2.0,4.5)
         -2.5*log_integral(2) + 5.799321147411334
-        sage: N(f.integrate(x,2.0,3.0))
+        sage: N(f.integrate(x,2.0,3.0))   # abs tol 1e-15
         0.601621785860587
 
     ALGORITHM:
@@ -1310,7 +1310,7 @@ class Function_exp_integral(BuiltinFunction):
     The precision for the result is deduced from the precision of the
     input. Convert the input to a higher precision explicitly if a
     result with higher precision is desired::
-        
+
         sage: Ei(RealField(300)(1.1))
         2.16737827956340282358378734233807621497112737591639704719499002090327541763352339357795426
         

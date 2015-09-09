@@ -986,13 +986,13 @@ class SymmetricFunctionsBases(Category_realization_of_parent):
                  - h[4, 2] - h[5, 1] + h[6]
 
             Gessel-Reutenauer functions indexed by partitions::
-            
+
                 sage: h.gessel_reutenauer([2, 1])
                 h[1, 1, 1] - h[2, 1]
                 sage: h.gessel_reutenauer([2, 2])
                 h[1, 1, 1, 1] - 3*h[2, 1, 1] + 2*h[2, 2] + h[3, 1] - h[4]
 
-            The Gessel-Reutenauer functions are Schur-postive::
+            The Gessel-Reutenauer functions are Schur-positive::
 
                 sage: s = Sym.s()
                 sage: s.gessel_reutenauer([2, 1])
@@ -2105,7 +2105,7 @@ class SymmetricFunctionAlgebra_generic(CombinatorialFreeModule):
         m = []
         for row_part in Plist:
             z = basis(self(row_part))
-            m.append( map( lambda col_part: z.coefficient(col_part), Plist ) )
+            m.append( [z.coefficient(col_part) for col_part in Plist] )
         return matrix(m)
 
 
@@ -4531,7 +4531,7 @@ class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
         parent = self.parent()
         m = parent.realization_of().monomial()
         from sage.combinat.partition import Partition
-        dct = {Partition(map(lambda i: n * i, lam)): coeff
+        dct = {Partition([n * i for i in lam]): coeff
                for (lam, coeff) in m(self)}
         result_in_m_basis = m._from_dict(dct)
         return parent(result_in_m_basis)
@@ -4667,7 +4667,7 @@ class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
         parent = self.parent()
         h = parent.realization_of().homogeneous()
         from sage.combinat.partition import Partition
-        dct = {Partition(map(lambda i: i // n, lam)): coeff
+        dct = {Partition([i // n for i in lam]): coeff
                for (lam, coeff) in h(self)
                if all( i % n == 0 for i in lam )}
         result_in_h_basis = h._from_dict(dct)
@@ -4932,7 +4932,7 @@ class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
             sage: s(0).degree()
             0
         """
-        return max( map( sum, self._monomial_coefficients ) + [0] )
+        return max( [sum(_) for _ in self._monomial_coefficients] + [0] )
 
     def restrict_degree(self, d, exact = True):
         r"""

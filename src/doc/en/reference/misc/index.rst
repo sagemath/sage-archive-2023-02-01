@@ -17,6 +17,14 @@ General Infrastructure
 Programming Utilities
 ---------------------
 
+Python 2 and 3 Compatibility
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. toctree::
+   :maxdepth: 1
+
+   sage/misc/six
+
 Special Base Classes, Decorators, etc.
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -29,6 +37,7 @@ Special Base Classes, Decorators, etc.
    sage/misc/constant_function
    sage/misc/classcall_metaclass
    sage/misc/cython_metaclass
+   sage/misc/inherit_comparison
    sage/misc/method_decorator
    sage/misc/object_multiplexer
    sage/misc/fast_methods
@@ -46,16 +55,6 @@ Lists and Iteration, etc.
    sage/misc/mrange
    sage/misc/multireplace
    sage/misc/map_threaded
-
-Integer Arithmetic
-~~~~~~~~~~~~~~~~~~
-
-.. toctree::
-   :maxdepth: 1
-
-   sage/rings/sum_of_squares
-   sage/ext/multi_modular
-   sage/rings/arith
 
 File and OS Access
 ~~~~~~~~~~~~~~~~~~
@@ -95,6 +94,7 @@ Warnings
 
    sage/misc/stopgap
    sage/misc/superseded
+
 
 Miscellaneous Useful Functions
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -171,7 +171,11 @@ Formatted Output
 .. toctree::
    :maxdepth: 1
 
-   sage/misc/ascii_art
+   sage/typeset/symbols
+   sage/typeset/character_art
+   sage/typeset/character_art_factory
+   sage/typeset/ascii_art
+   sage/typeset/unicode_art
    sage/misc/sage_input
    sage/misc/table
 
@@ -279,6 +283,7 @@ Miscellaneous Inspection and Development Tools
    sage/misc/dev_tools
    sage/misc/function_mangling
    sage/misc/memory_info
+   sage/misc/rest_index_of_methods
 
 Low-Level Utilities
 -------------------

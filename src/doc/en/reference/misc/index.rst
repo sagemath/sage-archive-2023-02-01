@@ -12,7 +12,6 @@ General Infrastructure
    sage/misc/randstate
    sage/misc/prandom
    sage/misc/unknown
-   sage/misc/exceptions
 
 Programming Utilities
 ---------------------

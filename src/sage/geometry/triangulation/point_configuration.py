@@ -20,9 +20,9 @@ Finding a single triangulation and listing all connected
 triangulations is implemented natively in this package. However, for
 more advanced options [TOPCOM]_ needs to be installed. It is available
 as an optional package for Sage, and you can install it with the
-command::
+shell command ::
 
-    sage: install_package('topcom')     # not tested
+    sage -i topcom
 
 .. note::
 

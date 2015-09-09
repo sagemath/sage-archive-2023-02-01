@@ -6049,10 +6049,11 @@ class FiniteStateMachine(SageObject):
             if len(outputs) >1:
                 raise RuntimeError("Process has branched. Try it "
                                    "without the option 'simple'.")
-            output = outputs[0]
-            for o in output:
+            for o in outputs[0]:
                 yield o
-            outputs[0] = []        
+            outputs[0] = []  # Reset output so that in the next round
+                             # (of "for current in iterator") only new
+                             # output is returned (by the yield).
 
 
     #*************************************************************************

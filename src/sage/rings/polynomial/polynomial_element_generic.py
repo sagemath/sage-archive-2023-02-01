@@ -802,51 +802,6 @@ class Polynomial_generic_sparse(Polynomial):
             rem = rem[:rem.degree()] - c*other[:d].shift(e)
         return (quo,rem)
 
-    def newton_slopes(self, p, lengths=False):
-        """
-        Return the `p`-adic slopes of the Newton polygon of the polynomial.
-
-        OUTPUT:
-
-        If `lengths` is `False`, a list of rational numbers. If `lengths` is
-        `True`, a list of couples `(s,l)` where `s` is the slope and `l` the
-        length of the corresponding segment in the Newton polygon.
-
-        EXAMPLES::
-
-            sage: R.<x> = PolynomialRing(ZZ, sparse=True)
-            sage: p = x^5 + 6*x^2 + 4
-            sage: p.newton_slopes(2)
-            [1/2, 1/2, 1/3, 1/3, 1/3]
-            sage: p.newton_slopes(2, lengths=True)
-            [(1/2, 2), (1/3, 3)]
-            sage: (x^2^100 + 27).newton_slopes(3, lengths=True)
-            [(3/1267650600228229401496703205376, 1267650600228229401496703205376)]
-        """
-        if not lengths:
-            return Polynomial.newton_slopes(self, p)
-
-        e = self.exponents()
-        c = self.coefficients()
-        if len(e) == 0: return []
-        if len(e) == 1:
-            if e[0] == 0: return []
-            else:         return [(infinity, e[0])]
-
-        points = [(e[0], c[0].valuation(p)), (e[1], c[1].valuation(p))]
-        slopes = [(-(c[1].valuation(p)-c[0].valuation(p))/(e[1] - e[0]), e[1]-e[0])]
-        for i in range(2, len(e)):
-            v = c[i].valuation(p)
-            s = -(v-points[-1][1])/(e[i]-points[-1][0])
-            while len(slopes) > 0 and s >= slopes[-1][0]:
-                slopes = slopes[:-1]
-                points = points[:-1]
-                s = -(v-points[-1][1])/(e[i]-points[-1][0])
-            slopes.append((s,e[i]-points[-1][0]))
-            points.append((e[i],v))
-
-        return slopes
-
     def reverse(self, degree=None):
         """
         Return this polynomial but with the coefficients reversed.

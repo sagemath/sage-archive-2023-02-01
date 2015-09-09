@@ -20,22 +20,17 @@ Pickling test::
     True
 """
 
-########################################################################
+#*****************************************************************************
 #       Copyright (C) 2009 William Stein <wstein@gmail.com>
-#       Copyright (C) 2009 Jonathon Bober <jwbober@gmail.com>
+#       Copyright (C) 2009 Jonathan Bober <jwbober@gmail.com>
 #       Copyright (C) 2014 Julian Rueth <julian.rueth@fsfe.org>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
-#
-#    This code is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-#    General Public License for more details.
-#
-#  The full text of the GPL is available at:
-#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
-########################################################################
+#*****************************************************************************
 
 
 from sage.rings.arith import (GCD,
@@ -2500,6 +2495,7 @@ class QuaternionFractionalIdeal_rational(QuaternionFractionalIdeal):
         Returns whether x is in self.
 
         EXAMPLES::
+
             sage: R.<i,j,k> = QuaternionAlgebra(-3, -13)
             sage: I = R.ideal([2+i, 3*i, 5*j, j+k])
             sage: 2+i in I

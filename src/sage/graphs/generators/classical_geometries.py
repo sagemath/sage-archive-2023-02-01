@@ -441,8 +441,8 @@ def NonisotropicOrthogonalPolarGraph(m, q, sign="+", perp=None):
 
         sage: graphs.NonisotropicOrthogonalPolarGraph(5,5,perp=1).is_strongly_regular(parameters=True) # not tested (long time)
         (325, 60, 15, 10)
-        sage: graphs.NonisotropicOrthogonalPolarGraph(5,5,'+',perp=1).is_strongly_regular(parameters=True) # not tested (long time)
-        (325, 60, 15, 10)
+        sage: graphs.NonisotropicOrthogonalPolarGraph(5,5,'-',perp=1).is_strongly_regular(parameters=True) # not tested (long time)
+        (300, 65, 10, 15)
 
     TESTS::
 
@@ -603,6 +603,70 @@ def UnitaryPolarGraph(m, q, algorithm="gap"):
         G.name(G.name()+'; GQ'+str((q**2,q**3)))
     return G
 
+def NonisotropicUnitaryPolarGraph(m, q):
+    r"""
+    Returns the Graph `NU(m,q)`.
+
+    Returns the graph on nonisotropic, with respect to a nondegenerate
+    Hermitean form, points of the `(m-1)`-dimensional projective space over `F_q`,
+    with points adjacent whenever they lie on a tangent (to the set of isotropic points)
+    line.
+    For more information, see Sect. 9.9.of [BH12]_.
+
+    INPUT:
+
+    - ``m,q`` (integers) -- `q` must be a prime power.
+
+    EXAMPLES::
+
+        sage: g=graphs.NonisotropicUnitaryPolarGraph(5,2); g
+        NU(5, 2): Graph on 176 vertices
+        sage: g.is_strongly_regular(parameters=True)
+        (176, 135, 102, 108)
+
+    TESTS::
+
+        sage: graphs.NonisotropicUnitaryPolarGraph(4,2).is_strongly_regular(parameters=True)
+        (40, 27, 18, 18)
+        sage: graphs.NonisotropicUnitaryPolarGraph(4,3).is_strongly_regular(parameters=True) # long time
+        (540, 224, 88, 96)
+        sage: graphs.NonisotropicUnitaryPolarGraph(6,6)
+        Traceback (most recent call last):
+        ...
+        ValueError: q must be a prime power
+    """
+    from sage.rings.arith import is_prime_power
+    p, k = is_prime_power(q,get_data=True)
+    if k==0:
+       raise ValueError('q must be a prime power')
+    from sage.libs.gap.libgap import libgap
+    from itertools import combinations
+    F=libgap.GF(q**2)  # F_{q^2}
+    W=libgap.FullRowSpace(F, m)  # F_{q^2}^m
+    B=libgap.Elements(libgap.Basis(W))      # the standard basis of W
+    if m % 2 != 0:
+        point = B[(m-1)/2]
+    else:
+        if p==2:
+            point = B[m/2] + F.PrimitiveRoot()*B[(m-2)/2]
+        else:
+            point = B[(m-2)/2] + B[m/2]
+    g = libgap.GeneralUnitaryGroup(m,q)
+    V = libgap.Orbit(g,point,libgap.OnLines) # orbit on nonisotropic points
+    gp = libgap.Action(g,V,libgap.OnLines)  # make a permutation group
+
+    s = libgap.Subspace(W,[point, point+B[0]]) # a tangent line on point
+
+    # and the points there
+    sp = [libgap.Elements(libgap.Basis(x))[0] for x in libgap.Elements(s.Subspaces(1))]
+    h = libgap.Set(map(lambda x: libgap.Position(V, x), libgap.Intersection(V,sp))) # indices
+    L = libgap.Orbit(gp, h, libgap.OnSets) # orbit on the tangent lines
+    G = Graph()
+    for x in L: # every pair of points in the subspace is adjacent to each other in G
+        G.add_edges(combinations(x, 2))
+    G.relabel()
+    G.name("NU" + str((m, q)))
+    return G
 
 def UnitaryDualPolarGraph(m, q):
     r"""
@@ -749,16 +813,16 @@ def TaylorTwographDescendantSRG(q, clique_partition=None):
         sage: graphs.TaylorTwographDescendantSRG(4)
         Traceback (most recent call last):
         ...
-        ValueError: q must be a an odd prime power
+        ValueError: q must be an odd prime power
         sage: graphs.TaylorTwographDescendantSRG(6)
         Traceback (most recent call last):
         ...
-        ValueError: q must be a an odd prime power
+        ValueError: q must be an odd prime power
     """
     from sage.rings.arith import is_prime_power
     p, k = is_prime_power(q,get_data=True)
     if k==0 or p==2:
-       raise ValueError('q must be a an odd prime power')
+       raise ValueError('q must be an odd prime power')
     from sage.schemes.projective.projective_space import ProjectiveSpace
     from sage.rings.finite_rings.constructor import FiniteField
     from sage.modules.free_module_element import free_module_element as vector

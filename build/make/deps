@@ -137,7 +137,7 @@ sagelib: \
 		$(INST)/$(NUMPY) \
 		$(INST)/$(PARI) \
 		$(INST)/$(PLANARITY) \
-		$(INST)/$(POLYBORI) \
+		$(INST)/$(BRIAL) \
 		$(INST)/$(PPL) \
 		$(INST)/$(PYNAC) \
 		$(INST)/$(PYTHON) \

@@ -3133,57 +3133,6 @@ class DiGraph(GenericGraph):
             level = new_level
         return Levels
 
-    def strongly_connected_components(self):
-        """
-        Returns the list of strongly connected components.
-
-        EXAMPLES::
-
-            sage: D = DiGraph( { 0 : [1, 3], 1 : [2], 2 : [3], 4 : [5, 6], 5 : [6] } )
-            sage: D.connected_components()
-            [[0, 1, 2, 3], [4, 5, 6]]
-            sage: D = DiGraph( { 0 : [1, 3], 1 : [2], 2 : [3], 4 : [5, 6], 5 : [6] } )
-            sage: D.strongly_connected_components()
-            [[0], [1], [2], [3], [4], [5], [6]]
-            sage: D.add_edge([2,0])
-            sage: D.strongly_connected_components()
-            [[0, 1, 2], [3], [4], [5], [6]]
-
-        TESTS:
-
-        Checking against NetworkX, and another of Sage's implementations::
-
-            sage: from sage.graphs.base.static_sparse_graph import strongly_connected_components
-            sage: import networkx
-            sage: for i in range(100):                                     # long
-            ...        g = digraphs.RandomDirectedGNP(100,.05)             # long
-            ...        h = g.networkx_graph()                              # long
-            ...        scc1 = g.strongly_connected_components()            # long
-            ...        scc2 = networkx.strongly_connected_components(h)    # long
-            ...        scc3 = strongly_connected_components(g)             # long
-            ...        s1 = Set(map(Set,scc1))                             # long
-            ...        s2 = Set(map(Set,scc2))                             # long
-            ...        s3 = Set(map(Set,scc3))                             # long
-            ...        if s1 != s2:                                        # long
-            ...            print "Ooch !"                                  # long
-            ...        if s1 != s3:                                        # long
-            ...            print "Oooooch !"                               # long
-
-        """
-
-        try:
-            vertices = set(self.vertices())
-            scc = []
-            while vertices:
-                tmp = self.strongly_connected_component_containing_vertex(next(vertices.__iter__()))
-                vertices.difference_update(set(tmp))
-                scc.append(tmp)
-            return scc
-
-        except AttributeError:
-            import networkx
-            return networkx.strongly_connected_components(self.networkx_graph(copy=False))
-
     def strongly_connected_component_containing_vertex(self, v):
         """
         Returns the strongly connected component containing a given vertex
@@ -3269,7 +3218,7 @@ class DiGraph(GenericGraph):
             sage: scc_digraph.vertices()
             [{0}, {3}, {1, 2}]
             sage: scc_digraph.edges()
-            [({0}, {3}, None), ({0}, {1, 2}, None), ({1, 2}, {3}, None)]
+            [({0}, {1, 2}, None), ({0}, {3}, None), ({1, 2}, {3}, None)]
 
         By default, the labels are discarded, and the result has no
         loops nor multiple edges. If ``keep_labels`` is ``True``, then
@@ -3284,10 +3233,12 @@ class DiGraph(GenericGraph):
             sage: scc_digraph.vertices()
             [{0}, {3}, {1, 2}]
             sage: scc_digraph.edges()
-            [({0}, {3}, '0-3'), ({0}, {1, 2}, '0-12'),
-             ({1, 2}, {3}, '1-3'), ({1, 2}, {3}, '2-3'),
-             ({1, 2}, {1, 2}, '1-2'), ({1, 2}, {1, 2}, '2-1')]
-
+            [({0}, {1, 2}, '0-12'),
+             ({0}, {3}, '0-3'),
+             ({1, 2}, {1, 2}, '1-2'),
+             ({1, 2}, {1, 2}, '2-1'),
+             ({1, 2}, {3}, '1-3'),
+             ({1, 2}, {3}, '2-3')]
         """
 
         from sage.sets.set import Set
@@ -3639,3 +3590,6 @@ import types
 
 import sage.graphs.comparability
 DiGraph.is_transitive = types.MethodType(sage.graphs.comparability.is_transitive, None, DiGraph)
+
+from sage.graphs.base.static_sparse_graph import tarjan_strongly_connected_components
+DiGraph.strongly_connected_components = types.MethodType(tarjan_strongly_connected_components, None, DiGraph)

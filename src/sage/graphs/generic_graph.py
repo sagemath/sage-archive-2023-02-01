@@ -195,6 +195,7 @@ can be applied on both. Here is what it can do:
     :delim: |
 
     :meth:`~GenericGraph.centrality_betweenness` | Return the betweenness centrality
+    :meth:`~GenericGraph.centrality_closeness` | Returns the closeness centrality (1/average distance to all vertices)
     :meth:`~GenericGraph.distance` | Return the (directed) distance from u to v in the (di)graph
     :meth:`~GenericGraph.distance_all_pairs` | Return the distances between all pairs of vertices.
     :meth:`~GenericGraph.distances_distribution` | Return the distances distribution of the (di)graph in a dictionary.
@@ -456,52 +457,50 @@ class GenericGraph(GenericGraph_pyx):
         """
         # inputs must be (di)graphs:
         if not isinstance(other, GenericGraph):
-            raise TypeError("cannot compare graph to non-graph (%s)"%str(other))
+            return False
         from sage.graphs.all import Graph
         g1_is_graph = isinstance(self, Graph) # otherwise, DiGraph
         g2_is_graph = isinstance(other, Graph) # otherwise, DiGraph
-
-        if (g1_is_graph != g2_is_graph):
-            return False
-        if self.allows_multiple_edges() != other.allows_multiple_edges():
-            return False
-        if self.allows_loops() != other.allows_loops():
-            return False
-        if self.order() != other.order():
-            return False
-        if self.size() != other.size():
-            return False
+        # Fast checks
+        if (g1_is_graph != g2_is_graph or
+            self.allows_multiple_edges() != other.allows_multiple_edges() or
+            self.allows_loops() != other.allows_loops() or
+            self.order() != other.order() or
+            self.size() != other.size() or
+            self.weighted() != other.weighted()):
+                return False
+        # Vertices
         if any(x not in other for x in self):
             return False
-        if self.weighted() != other.weighted():
-            return False
-        verts = self.vertices()
         # Finally, we are prepared to check edges:
         if not self.allows_multiple_edges():
-            for i in verts:
-                for j in verts:
-                    if self.has_edge(i,j) != other.has_edge(i,j):
+            return all(other.has_edge(*edge)
+                       for edge in self.edge_iterator(labels=self._weighted))
+        # The problem with multiple edges is that labels may not have total
+        # ordering, which makes it difficult to compare lists of labels.
+        last_i = last_j = None
+        for i, j in self.edge_iterator(labels=False):
+            if i == last_i and j == last_j:
+                continue
+            last_i, last_j = i, j
+            # All labels between i and j
+            labels1 = self.edge_label(i, j)
+            try:
+                labels2 = other.edge_label(i, j)
+            except LookupError:
+                return False
+            if len(labels1) != len(labels2):
+                return False
+            if self._weighted:
+                # If there is total ordering, sorting will speed up things
+                labels1.sort()
+                labels2.sort()
+                for l in labels1:
+                    try:
+                        labels2.remove(l)
+                    except ValueError:
                         return False
-                    if self.has_edge(i,j) and self._weighted and other._weighted:
-                        if self.edge_label(i,j) != other.edge_label(i,j):
-                            return False
-            return True
-        else:
-            for i in verts:
-                for j in verts:
-                    if self.has_edge(i, j):
-                        edges1 = self.edge_label(i, j)
-                    else:
-                        edges1 = []
-                    if other.has_edge(i, j):
-                        edges2 = other.edge_label(i, j)
-                    else:
-                        edges2 = []
-                    if len(edges1) != len(edges2):
-                        return False
-                    if sorted(edges1) != sorted(edges2) and self._weighted and other._weighted:
-                        return False
-            return True
+        return True
 
     @cached_method
     def __hash__(self):
@@ -1326,22 +1325,27 @@ class GenericGraph(GenericGraph_pyx):
 
         - ``vertex_attrs`` (dictionary) - a dictionary where the key is a string
           (the attribute name), and the value is an iterable containing in
-          position i the label of the ith vertex (see
-          http://igraph.org/python/doc/igraph.Graph-class.html#__init__ for
+          position i the label of the ith vertex returned by :meth:`vertices`
+          (see http://igraph.org/python/doc/igraph.Graph-class.html#__init__ for
           more information).
 
         - ``edge_attrs`` (dictionary) - a dictionary where the key is a string
           (the attribute name), and the value is an iterable containing in
           position i the label of the ith edge in the list outputted by
-          ``self.edges()`` (see
-          http://igraph.org/python/doc/igraph.Graph-class.html#__init__
-          for more information).
+          :meth:`edge_iterator` (see
+          http://igraph.org/python/doc/igraph.Graph-class.html#__init__ for more
+          information).
 
         .. NOTE::
 
             In igraph, a graph is weighted if the edge labels have attribute
             ``weight``. Hence, to create a weighted graph, it is enough to add
             this attribute.
+
+        .. NOTE::
+
+            Often, Sage uses its own defined types for integer/floats. These
+            types may not be igraph-compatible (see example below).
 
         EXAMPLES:
 
@@ -1380,6 +1384,16 @@ class GenericGraph(GenericGraph_pyx):
             sage: H = G.igraph_graph(vertex_attrs={'name':G.vertices()}) # optional - python_igraph
             sage: H.vs()['name']                                         # optional - python_igraph
             [(0, 0), (0, 1), (1, 0), (1, 1)]
+
+        Sometimes, Sage integer/floats are not compatible with igraph::
+
+            sage: G = Graph([(0,1,2)])                                                    # optional - python_igraph
+            sage: H = G.igraph_graph(edge_attrs = {'capacity':[e[2] for e in G.edges()]}) # optional - python_igraph
+            sage: H.maxflow_value(0, 1, 'capacity')                                       # optional - python_igraph
+            1.0
+            sage: H = G.igraph_graph(edge_attrs = {'capacity':[float(e[2]) for e in G.edges()]}) # optional - python_igraph
+            sage: H.maxflow_value(0, 1, 'capacity')                                              # optional - python_igraph
+            2.0
 
         TESTS:
 
@@ -1613,7 +1627,7 @@ class GenericGraph(GenericGraph_pyx):
         Returns the adjacency matrix of the (di)graph.
 
         The matrix returned is over the integers. If a different ring is
-        desired, use either the change_ring function or the matrix
+        desired, use either :meth:`sage.matrix.matrix0.Matrix.change_ring` method or :func:`matrix`
         function.
 
         INPUT:
@@ -5733,12 +5747,19 @@ class GenericGraph(GenericGraph_pyx):
         - ``method`` -- There are currently two different
           implementations of this method :
 
-              * If ``method = "FF"`` (default), a Python
-                implementation of the Ford-Fulkerson algorithm is
-                used.
+              * If ``method = "FF"``, a Python implementation of the
+                Ford-Fulkerson algorithm is used
 
               * If ``method = "LP"``, the flow problem is solved using
                 Linear Programming.
+
+              * If ``method = "igraph"``, the igraph implementation of the
+                Goldberg-Tarjan algorithm is used (only available when
+                igraph is installed)
+
+              * If ``method = None`` (default), we use ``LP`` if
+                ``vertex_bound = True``, otherwise, we use ``igraph`` if
+                it is available, ``FF`` if it is not available.
 
         - ``solver`` -- (default: ``None``) Specify a Linear Program (LP)
           solver to be used. If set to ``None``, the default one is used. For
@@ -5809,14 +5830,16 @@ class GenericGraph(GenericGraph_pyx):
            sage: g.edge_cut(0,1, method="Divination")
            Traceback (most recent call last):
            ...
-           ValueError: The method argument has to be equal to either "FF" or "LP"
+           ValueError: The method argument has to be equal to "FF", "LP", "igraph", or None
 
-        Same result for both methods::
+        Same result for all three methods::
 
            sage: g = graphs.RandomGNP(20,.3)
            sage: for u,v in g.edges(labels=False):
            ...      g.set_edge_label(u,v,round(random(),5))
            sage: g.edge_cut(0,1, method="FF") == g.edge_cut(0,1,method="LP")
+           True
+           sage: g.edge_cut(0,1, method="FF") == g.edge_cut(0,1,method="igraph") # optional - python_igraph
            True
 
         Rounded return value when using the LP method::
@@ -5845,7 +5868,7 @@ class GenericGraph(GenericGraph_pyx):
         else:
             weight = lambda x: 1
 
-        if method == "FF":
+        if method in ["FF", "igraph", None]:
             if value_only:
                 return self.flow(s,t,value_only=value_only,use_edge_labels=use_edge_labels, method=method)
 
@@ -5872,7 +5895,8 @@ class GenericGraph(GenericGraph_pyx):
             return return_value
 
         if method != "LP":
-            raise ValueError("The method argument has to be equal to either \"FF\" or \"LP\"")
+            raise ValueError("The method argument has to be equal to \"FF\", " +
+                             "\"LP\", \"igraph\", or None")
 
         from sage.numerical.mip import MixedIntegerLinearProgram
         g = self
@@ -7621,13 +7645,13 @@ class GenericGraph(GenericGraph_pyx):
             has the flow using it as a label, the edges without flow being
             omitted).
 
-        - ``integer`` -- boolean (default: ``False``)
+        - ``integer`` -- boolean (default: ``True``)
 
           - When set to ``True``, computes an optimal solution under the
             constraint that the flow going through an edge has to be an
             integer.
 
-        - ``use_edge_labels`` -- boolean (default: ``True``)
+        - ``use_edge_labels`` -- boolean (default: ``False``)
 
           - When set to ``True``, computes a maximum flow
             where each edge has a capacity defined by its label. (If
@@ -7651,8 +7675,13 @@ class GenericGraph(GenericGraph_pyx):
               * If ``method = "LP"``, the flow problem is solved using
                 Linear Programming.
 
-              * If ``method = None`` (default), the Ford-Fulkerson
-                implementation is used iif ``vertex_bound = False``.
+              * If ``method = "igraph"``, the igraph implementation of the
+                Goldberg-Tarjan algorithm is used (only available when
+                igraph is installed and ``vertex_bound = False``)
+
+              * If ``method = None`` (default), we use ``LP`` if
+                ``vertex_bound = True``, otherwise, we use ``igraph`` if
+                it is available, ``FF`` if it is not available.
 
         - ``solver`` -- Specify a Linear Program solver to be used.
           If set to ``None``, the default one is used.  function of
@@ -7668,7 +7697,7 @@ class GenericGraph(GenericGraph_pyx):
 
         .. NOTE::
 
-           Even though the two different implementations are meant to
+           Even though the three different implementations are meant to
            return the same Flow values, they can not be expected to
            return the same Flow graphs.
 
@@ -7681,13 +7710,13 @@ class GenericGraph(GenericGraph_pyx):
         ``ButterflyGraph`` with parameter `2` ::
 
            sage: g=graphs.PappusGraph()
-           sage: g.flow(1,2)
+           sage: int(g.flow(1,2))
            3
 
         ::
 
            sage: b=digraphs.ButterflyGraph(2)
-           sage: b.flow(('00',1),('00',2))
+           sage: int(b.flow(('00',1),('00',2)))
            1
 
         The flow method can be used to compute a matching in a bipartite graph
@@ -7704,22 +7733,37 @@ class GenericGraph(GenericGraph_pyx):
             sage: len(flow_graph.edges())
             4
 
+        The undirected case::
+
+            sage: g = Graph()
+            sage: g.add_edges([('s',i) for i in range(4)])
+            sage: g.add_edges([(i,4+j) for i in range(4) for j in range(4)])
+            sage: g.add_edges([(4+i,'t') for i in range(4)])
+            sage: [cardinal, flow_graph] = g.flow('s','t',integer=True,value_only=False)
+            sage: flow_graph.delete_vertices(['s','t'])
+            sage: len(flow_graph.edges())
+            4
+
         TESTS:
 
-        An exception if raised when forcing "FF" with ``vertex_bound = True``::
+        An exception if raised when forcing "FF" or "igraph" with ``vertex_bound = True``::
 
             sage: g = graphs.PetersenGraph()
             sage: g.flow(0,1,vertex_bound = True, method = "FF")
             Traceback (most recent call last):
             ...
-            ValueError: This method does not support both vertex_bound=True and method="FF".
+            ValueError: This method does not support both vertex_bound=True and method='FF'.
+            sage: g.flow(0,1,vertex_bound = True, method = "igraph")
+            Traceback (most recent call last):
+            ...
+            ValueError: This method does not support both vertex_bound=True and method='igraph'.
 
         Or if the method is different from the expected values::
 
             sage: g.flow(0,1, method="Divination")
             Traceback (most recent call last):
             ...
-            ValueError: The method argument has to be equal to either "FF", "LP" or None
+            ValueError: The method argument has to be equal to either "FF", "LP", "igraph", or None
 
         The two methods are indeed returning the same results (possibly with
         some numerical noise, cf. :trac:`12362`)::
@@ -7728,32 +7772,90 @@ class GenericGraph(GenericGraph_pyx):
            sage: for u,v in g.edges(labels=False):
            ...      g.set_edge_label(u,v,round(random(),5))
            sage: flow_ff = g.flow(0,1, method="FF")
-           sage: flow_lp = g.flow(0,1,method="LP")
+           sage: flow_lp = g.flow(0,1, method="LP")
            sage: abs(flow_ff-flow_lp) < 0.01
            True
+           sage: flow_igraph = g.flow(0,1, method="igraph") # optional python_igraph
+           sage: abs(flow_ff-flow_igraph) < 0.00001         # optional python_igraph
+           True
         """
+        from sage.misc.package import is_package_installed
         self._scream_if_not_simple(allow_loops=True)
-        if vertex_bound and method == "FF":
-            raise ValueError("This method does not support both vertex_bound=True and method=\"FF\".")
+        if vertex_bound and method in ["FF", "igraph"]:
+            raise ValueError("This method does not support both " +
+                             "vertex_bound=True and method='" + method + "'.")
+        if use_edge_labels:
+            from sage.rings.real_mpfr import RR
+            if integer:
+                from math import floor
+                capacity=lambda x: floor(x) if x in RR else 1
+            else:
+                capacity=lambda x: x if x in RR else 1
+        else:
+            capacity=lambda x: 1
 
-        if (method == "FF" or
-            (method is None and not vertex_bound)):
+        if method is None:
+            if vertex_bound:
+                method = "LP"
+            elif is_package_installed("python_igraph"):
+                method = "igraph"
+            else:
+                method = "FF"
+
+        if (method == "FF"):
             return self._ford_fulkerson(x,y, value_only=value_only, integer=integer, use_edge_labels=use_edge_labels)
+        elif (method == 'igraph'):
 
-        if method != "LP" and not method is None:
-            raise ValueError("The method argument has to be equal to either \"FF\", \"LP\" or None")
+            try:
+                import igraph
+            except ImportError:
+                raise ImportError("The igraph library is not available. " +
+                                 "Please, install it with sage -i igraph " +
+                                 "followed by sage -i python_igraph.")
+            vertices = self.vertices()
+            x_int = vertices.index(x)
+            y_int = vertices.index(y)
+            if use_edge_labels:
+                g_igraph = self.igraph_graph(edge_attrs={'capacity':[float(capacity(e[2])) for e in self.edge_iterator()]})
+                maxflow = g_igraph.maxflow(x_int, y_int, 'capacity')
+            else:
+                g_igraph = self.igraph_graph()
+                maxflow = g_igraph.maxflow(x_int, y_int)
+
+            if value_only:
+                return maxflow.value
+            else:
+                from sage.graphs.digraph import DiGraph
+                igraph_flow = iter(maxflow.flow)
+                flow_digraph = DiGraph()
+                if self.is_directed():
+                    for e in g_igraph.es():
+                        f = maxflow.flow[e.index]
+                        if f != 0:
+                            flow_digraph.add_edge(e.source, e.target, f)
+                else:
+                    # If the graph is undirected, the output of igraph is a list
+                    # of weights: a positive weight means that the flow is from
+                    # the vertex with minimum label to the vertex with maximum
+                    # label, a negative weight means the converse.
+                    for e in g_igraph.es():
+                        f = maxflow.flow[e.index]
+                        if (f > 0 and e.source < e.target) or (f < 0 and e.source > e.target):
+                            flow_digraph.add_edge(e.source, e.target, abs(f))
+                        elif f != 0:
+                            flow_digraph.add_edge(e.target, e.source, abs(f))
+                flow_digraph.relabel({i:vertices[i] for i in flow_digraph})
+                return [maxflow.value, flow_digraph]
+
+        if method != "LP":
+            raise ValueError("The method argument has to be equal to either " +
+                             "\"FF\", \"LP\", \"igraph\", or None")
 
 
         from sage.numerical.mip import MixedIntegerLinearProgram
         g=self
         p=MixedIntegerLinearProgram(maximization=True, solver = solver)
         flow=p.new_variable(nonnegative=True)
-
-        if use_edge_labels:
-            from sage.rings.real_mpfr import RR
-            capacity=lambda x: x if x in RR else 1
-        else:
-            capacity=lambda x: 1
 
         if g.is_directed():
             # This function return the balance of flow at X
@@ -13820,7 +13922,7 @@ class GenericGraph(GenericGraph_pyx):
         .. SEEALSO::
 
             - :meth:`~sage.graphs.graph.Graph.centrality_degree`
-            - :meth:`~sage.graphs.graph.Graph.centrality_closeness`
+            - :meth:`~centrality_closeness`
 
         EXAMPLES::
 
@@ -13882,6 +13984,303 @@ class GenericGraph(GenericGraph_pyx):
         else:
             raise ValueError("'algorithm' can be \"NetworkX\", \"Sage\" or None")
 
+
+    def centrality_closeness(self, vert=None, by_weight=False, algorithm=None,
+                             weight_function=None, check_weight=True):
+        r"""
+        Returns the closeness centrality of all vertices in variable ``vert``.
+
+        In a (strongly) connected graph, the closeness centrality of a vertex
+        `v` is equal
+        to the inverse of the average distance between `v` and other vertices.
+        If the graph is disconnected, the closeness centrality of `v` is
+        multiplied by the fraction of reachable vertices in the graph:
+        this way, central vertices should also reach several other vertices
+        in the graph [OLJ14]_. In formulas,
+
+        .. MATH::
+        
+            c(v)=\frac{r(v)-1}{\sum_{w \in R(v)} d(v,w)}\frac{r(v)-1}{n-1}
+
+        where `R(v)` is the set of vertices reachable from `v`, and
+        `r(v)` is the cardinality of `R(v)`.
+
+        'Closeness
+        centrality may be defined as the total graph-theoretic distance of
+        a given vertex from all other vertices... Closeness is an inverse
+        measure of centrality in that a larger value indicates a less
+        central actor while a smaller value indicates a more central
+        actor,' [Borgatti95]_.
+
+        For more information, see the :wikipedia:`Centrality`.
+
+        INPUT:
+
+        - ``vert`` - the vertex or the list of vertices we want to analyze. If
+          ``None`` (default), all vertices are considered.
+
+        - ``by_weight`` (boolean) - if ``True``, the edges in the graph are
+          weighted; if ``False``, all edges have weight 1.
+
+        - ``algorithm`` (string) - one of the following algorithms:
+
+          - ``'BFS'``: performs a BFS from each vertex that has to be analyzed.
+            Does not work with edge weights.
+
+          - ``'NetworkX'``: the NetworkX algorithm (works only with positive
+            weights).
+
+          - ``'Dijkstra_Boost'``: the Dijkstra algorithm, implemented in Boost
+            (works only with positive weights).
+
+          - ``'Floyd-Warshall-Cython'`` - the Cython implementation of
+            the Floyd-Warshall algorithm. Works only if ``by_weight==False`` and
+            all centralities are needed.
+
+          - ``'Floyd-Warshall-Python'`` - the Python implementation of
+            the Floyd-Warshall algorithm. Works only if all centralities are
+            needed, but it can deal with weighted graphs, even
+            with negative weights (but no negative cycle is allowed).
+
+          - ``'Johnson_Boost'``: the Johnson algorithm, implemented in
+            Boost (works also with negative weights, if there is no negative
+            cycle).
+
+          - ``None`` (default): Sage chooses the best algorithm: ``'BFS'`` if
+            ``by_weight`` is ``False``, ``'Dijkstra_Boost'`` if all weights are
+            positive, ``'Johnson_Boost'`` otherwise.
+
+        - ``weight_function`` (function) - a function that inputs an edge
+          ``(u, v, l)`` and outputs its weight. If not ``None``, ``by_weight``
+          is automatically set to ``True``. If ``None`` and ``by_weight`` is
+          ``True``, we use the edge label ``l`` as a weight.
+
+        - ``check_weight`` (boolean) - if ``True``, we check that the
+          weight_function outputs a number for each edge.
+
+        OUTPUT:
+
+        If ``vert`` is a vertex, the closeness centrality of that vertex.
+        Otherwise, a dictionary associating to each vertex in ``vert`` its
+        closeness centrality. If a vertex has (out)degree 0, its closeness
+        centrality is not defined, and the vertex is not included in the output.
+
+        .. SEEALSO::
+
+            - :func:`~sage.graphs.centrality.centrality_closeness_top_k`
+            - :meth:`~sage.graphs.graph.Graph.centrality_degree`
+            - :meth:`~centrality_betweenness`
+
+        REFERENCES:
+
+        .. [Borgatti95] Stephen P. Borgatti. (1995). Centrality and AIDS.
+          [Online] Available:
+          http://www.analytictech.com/networks/centaids.htm
+
+        .. [OLJ14] Paul W. Olsen, Alan G. Labouseur, Jeong-Hyon Hwang.
+          Efficient Top-k Closeness Centrality Search
+          Proceedings of the IEEE 30th International Conference on Data
+          Engineering (ICDE), 2014
+
+        EXAMPLES:
+
+        Standard examples::
+
+            sage: (graphs.ChvatalGraph()).centrality_closeness()
+            {0: 0.61111111111111..., 1: 0.61111111111111..., 2: 0.61111111111111..., 3: 0.61111111111111..., 4: 0.61111111111111..., 5: 0.61111111111111..., 6: 0.61111111111111..., 7: 0.61111111111111..., 8: 0.61111111111111..., 9: 0.61111111111111..., 10: 0.61111111111111..., 11: 0.61111111111111...}
+            sage: D = DiGraph({0:[1,2,3], 1:[2], 3:[0,1]})
+            sage: D.show(figsize=[2,2])
+            sage: D.centrality_closeness(vert=[0,1])
+            {0: 1.0, 1: 0.3333333333333333}
+            sage: D = D.to_undirected()
+            sage: D.show(figsize=[2,2])
+            sage: D.centrality_closeness()
+            {0: 1.0, 1: 1.0, 2: 0.75, 3: 0.75}
+        
+        In a (strongly) connected (di)graph, the closeness centrality of `v`
+        is inverse of the average distance between `v` and all other vertices::
+        
+            sage: g = graphs.PathGraph(5)
+            sage: g.centrality_closeness(0)
+            0.4
+            sage: dist = g.shortest_path_lengths(0).values()
+            sage: float(len(dist)-1) / sum(dist)
+            0.4
+            sage: d = g.to_directed()
+            sage: d.centrality_closeness(0)
+            0.4
+            sage: dist = d.shortest_path_lengths(0).values()
+            sage: float(len(dist)-1) / sum(dist)
+            0.4
+            
+        If a vertex has (out)degree 0, its closeness centrality is not defined::
+        
+            sage: g = Graph(5)
+            sage: g.centrality_closeness()
+            {}
+            sage: print g.centrality_closeness(0)
+            None
+
+        Weighted graphs::
+
+            sage: D = graphs.GridGraph([2,2])
+            sage: weight_function = lambda e:10
+            sage: D.centrality_closeness([(0,0),(0,1)])                          # tol abs 1e-12
+            {(0, 0): 0.75, (0, 1): 0.75}
+            sage: D.centrality_closeness((0,0), weight_function=weight_function) # tol abs 1e-12
+            0.075
+
+        TESTS:
+
+        The result does not depend on the algorithm::
+
+            sage: import random
+            sage: import itertools
+            sage: for i in range(10):                           # long time
+            ....:     n = random.randint(2,20)
+            ....:     m = random.randint(0, n*(n-1)/2)
+            ....:     g = graphs.RandomGNM(n,m)
+            ....:     c1 = g.centrality_closeness(algorithm='BFS')
+            ....:     c2 = g.centrality_closeness(algorithm='NetworkX')
+            ....:     c3 = g.centrality_closeness(algorithm='Dijkstra_Boost')
+            ....:     c4 = g.centrality_closeness(algorithm='Floyd-Warshall-Cython')
+            ....:     c5 = g.centrality_closeness(algorithm='Floyd-Warshall-Python')
+            ....:     c6 = g.centrality_closeness(algorithm='Johnson_Boost')
+            ....:     assert(len(c1)==len(c2)==len(c3)==len(c4)==len(c5)==len(c6))
+            ....:     c = [c1,c2,c3,c4,c5,c6]
+            ....:     for (ci,cj) in itertools.combinations(c, 2):
+            ....:         assert(sum([abs(ci[v] - cj[v]) for v in g.vertices() if g.degree(v) != 0]) < 1e-12)
+
+        Directed graphs::
+
+            sage: import random
+            sage: import itertools
+            sage: for i in range(10):                           # long time
+            ....:     n = random.randint(2,20)
+            ....:     m = random.randint(0, n*(n-1)/2)
+            ....:     g = digraphs.RandomDirectedGNM(n,m)
+            ....:     c1 = g.centrality_closeness(algorithm='BFS')
+            ....:     c2 = g.centrality_closeness(algorithm='NetworkX')
+            ....:     c3 = g.centrality_closeness(algorithm='Dijkstra_Boost')
+            ....:     c4 = g.centrality_closeness(algorithm='Floyd-Warshall-Cython')
+            ....:     c5 = g.centrality_closeness(algorithm='Floyd-Warshall-Python')
+            ....:     c6 = g.centrality_closeness(algorithm='Johnson_Boost')
+            ....:     assert(len(c1)==len(c2)==len(c3)==len(c4)==len(c5)==len(c6))
+            ....:     c = [c1,c2,c3,c4,c5,c6]
+            ....:     for (ci,cj) in itertools.combinations(c, 2):
+            ....:         assert(sum([abs(ci[v] - cj[v]) for v in g.vertices() if g.out_degree(v) != 0]) < 1e-12)
+
+        Weighted graphs::
+
+            sage: import random
+            sage: import itertools
+            sage: for i in range(10):                           # long time
+            ....:     n = random.randint(2,20)
+            ....:     m = random.randint(0, n*(n-1)/2)
+            ....:     g = graphs.RandomGNM(n,m)
+            ....:     for v,w in g.edges(labels=False):
+            ....:         g.set_edge_label(v,w,float(random.uniform(1,100)))
+            ....:     c1 = g.centrality_closeness(by_weight=True, algorithm='NetworkX')
+            ....:     c2 = g.centrality_closeness(by_weight=True, algorithm='Dijkstra_Boost')
+            ....:     c3 = g.centrality_closeness(by_weight=True, algorithm='Floyd-Warshall-Python')
+            ....:     c4 = g.centrality_closeness(by_weight=True, algorithm='Johnson_Boost')
+            ....:     assert(len(c1)==len(c2)==len(c3)==len(c4))
+            ....:     c = [c1,c2,c3,c4]
+            ....:     for (ci,cj) in itertools.combinations(c, 2):
+            ....:         assert(sum([abs(ci[v] - cj[v]) for v in g.vertices() if g.degree(v) != 0]) < 1e-12)
+        """
+        if weight_function is not None:
+            by_weight=True
+        elif by_weight:
+            weight_function = lambda e:e[2]
+
+        onlyone = False
+        if vert in self.vertices():
+            v_iter = iter([vert])
+            onlyone = True
+        elif vert is None:
+            v_iter = self.vertex_iterator()
+        else:
+            v_iter = iter(vert)
+
+        if algorithm is None:
+            if not by_weight:
+                algorithm='BFS'
+            else:
+                for e in self.edge_iterator():
+                    try:
+                        if float(weight_function(e)) < 0:
+                            algorithm='Johnson_Boost'
+                            break
+                    except (ValueError, TypeError):
+                        raise ValueError("The weight function cannot find the" +
+                                         " weight of " + str(e) + ".")
+            if algorithm is None:
+                algorithm='Dijkstra_Boost'
+
+        if algorithm == 'NetworkX':
+            if by_weight and check_weight:
+                self._check_weight_function(weight_function)
+            import networkx
+            if by_weight:
+                if self.is_directed():
+                    G = networkx.DiGraph([(e[0], e[1], dict(weight=weight_function(e))) for e in self.edge_iterator()])
+                else:
+                    G = networkx.Graph([(e[0], e[1], dict(weight=weight_function(e))) for e in self.edge_iterator()])
+            else:
+                G = self.networkx_graph(copy=False)
+            G.add_nodes_from(self.vertices())
+
+            if vert is None:
+                closeness = networkx.closeness_centrality(G,vert,
+                                                          distance = 'weight'
+                                                          if by_weight
+                                                          else None)
+                return {v:c for v,c in closeness.iteritems() if c != 0}
+            closeness = {}
+            degree = self.out_degree if self.is_directed else self.degree
+            for x in v_iter:
+                if degree(x) != 0:
+                    closeness[x] = networkx.closeness_centrality(G, x,
+                                                             distance = 'weight'
+                                                             if by_weight
+                                                             else None)
+            if onlyone:
+                return closeness.get(vert, None)
+            else:
+                return closeness
+        elif algorithm=="Johnson_Boost":
+            from sage.graphs.base.boost_graph import johnson_closeness_centrality
+            self.weighted(by_weight)
+            closeness = johnson_closeness_centrality(self, weight_function)
+            if onlyone:
+                return closeness.get(vert, None)
+            else:
+                return {v: closeness[v] for v in v_iter if v in closeness}
+        else:
+            closeness = dict()
+            distances = None
+            if algorithm in ["Floyd-Warshall-Cython",
+                             "Floyd-Warshall-Python"]:
+                distances = self.shortest_path_all_pairs(by_weight,algorithm,
+                                                         weight_function,
+                                                         check_weight)[0]
+
+            for v in v_iter:
+                if distances is None:
+                    distv = self.shortest_path_lengths(v, by_weight, algorithm,
+                                                       weight_function,
+                                                       check_weight)
+                else:
+                    distv = distances[v]
+                try:
+                    closeness[v] = float(len(distv) - 1) * (len(distv) - 1) / (float(sum(distv.values())) * (self.num_verts() - 1))
+                except ZeroDivisionError:
+                    pass
+            if onlyone:
+                return closeness.get(vert, None)
+            else:
+                return closeness
 
     ### Paths
 
@@ -14180,8 +14579,6 @@ class GenericGraph(GenericGraph_pyx):
             [0, 1, 2, 3]
             sage: G.shortest_path(0, 3, by_weight=True, algorithm='Dijkstra_Bid_NetworkX')
             [0, 1, 2, 3]
-
-        If
 
         TESTS:
 
@@ -15933,13 +16330,22 @@ class GenericGraph(GenericGraph_pyx):
             sage: G = graphs.PathGraph(5).copy(immutable=True)
             sage: G.complement()
             complement(Path graph): Graph on 5 vertices
+
+        The name is not updated when there was none in the first place::
+
+            sage: g = Graph(graphs.PetersenGraph().edges()); g
+            Graph on 10 vertices
+            sage: g.complement()
+            Graph on 10 vertices
+
         """
         if self.has_multiple_edges():
             raise TypeError('complement not well defined for (di)graphs with multiple edges')
         self._scream_if_not_simple()
         G = copy(self)
         G.delete_edges(G.edges())
-        G.name('complement(%s)'%self.name())
+        if self.name():
+            G.name("complement({})".format(self.name()))
         for u in self:
             for v in self:
                 if not self.has_edge(u,v):
@@ -19847,9 +20253,9 @@ class GenericGraph(GenericGraph_pyx):
 
         -  ``edge_labels`` - default ``False``, otherwise allows
            only permutations respecting edge labels.
-           
+
         OUTPUT:
-        
+
         - either a boolean or, if ``certify`` is ``True``, a tuple consisting
           of a boolean and a map or ``None``
 
@@ -20037,9 +20443,9 @@ class GenericGraph(GenericGraph_pyx):
             sage: h = Graph()
             sage: g.is_isomorphic(h)
             True
-            
+
         as well as :trac:`18613`::
-        
+
             sage: g.is_isomorphic(h, certify=True)
             (True, None)
         """

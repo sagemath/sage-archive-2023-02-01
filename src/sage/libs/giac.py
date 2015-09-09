@@ -233,6 +233,10 @@ def groebner_basis(gens, proba_epsilon=None, threads=None, prot=False, *args, **
         sage: gb_giac(I) # optional - giacpy, long time (3s)
         Polynomial Sequence with 74 Polynomials in 8 Variables
 
+        sage: I=ideal(P(0),P(0)) # optional - giacpy
+        sage: I.groebner_basis() == gb_giac(I) # optional - giacpy
+        True
+
     """
     try:
         from giacpy import libgiac, giacsettings
@@ -248,6 +252,11 @@ def groebner_basis(gens, proba_epsilon=None, threads=None, prot=False, *args, **
     P = iter(gens).next().parent()
     K = P.base_ring()
     p = K.characteristic()
+
+    # check if the ideal is zero. (giac 1.2.0.19 segfault)
+    from sage.rings.ideal import Ideal
+    if (Ideal(gens)).is_zero():
+        return PolynomialSequence([P(0)], P, immutable=True)
 
     # check for name confusions
     blackgiacconstants = ['i', 'e'] # NB e^k is expanded to exp(k)

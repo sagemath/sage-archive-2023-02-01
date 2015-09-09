@@ -816,7 +816,7 @@ cdef unsigned sage_domain_to_ginac_domain(object domain) except -1:
     elif domain is CC or domain == 'complex':
         return domain_complex
     elif domain is ZZ or domain == 'integer':
-        pass
+        return domain_integer
     else:
         raise ValueError(repr(domain)+": domain must be one of 'complex', 'real', 'positive' or 'integer'")
 

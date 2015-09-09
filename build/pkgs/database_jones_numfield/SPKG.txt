@@ -1,6 +1,4 @@
-= PACKAGE_NAME =
-
-database_jones_numfield
+= database_jones_numfield =
 
 == Description ==
 

@@ -6025,6 +6025,15 @@ class FiniteStateMachine(SageObject):
             sage: it_simple = inverter._iter_process_simple_(it)
             sage: list(it_simple)
             [1, 0, 1, 1, 0, 1, 0, 1, 1, 0]
+
+        .. SEEALSO::
+
+            :meth:`iter_process`,
+            :meth:`FiniteStateMachine.process`,
+            :meth:`Automaton.process`,
+            :meth:`Transducer.process`,
+            :meth:`~FiniteStateMachine.__call__`,
+            :class:`FSMProcessIterator`.
         """
         for current in iterator:
             if not current:

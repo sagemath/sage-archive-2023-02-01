@@ -6034,21 +6034,53 @@ class FiniteStateMachine(SageObject):
             :meth:`Transducer.process`,
             :meth:`~FiniteStateMachine.__call__`,
             :class:`FSMProcessIterator`.
+
+        TESTS::
+
+            sage: T = Transducer([(0, 0, [0, 0], 0), (0, 1, 0, 0)],
+            ....:                initial_states=[0], final_states=[0])
+            sage: list(T.iter_process([0, 0], iterator_type='simple'))
+            Traceback (most recent call last):
+            ...
+            RuntimeError: Process has branched (2 branches exist).
+            Try it without the option 'simple'.
+            sage: T = Transducer([(0, 0, 0, 0), (0, 1, 0, 0)],
+            ....:                initial_states=[0], final_states=[0])
+            sage: list(T.iter_process([0], iterator_type='simple'))
+            Traceback (most recent call last):
+            ...
+            RuntimeError: Process has branched (visiting 2 states in branch).
+            Try it without the option 'simple'.
+            sage: T = Transducer([(0, 1, 0, 1), (0, 1, 0, 2)],
+            ....:                initial_states=[0], final_states=[0])
+            sage: list(T.iter_process([0], iterator_type='simple'))
+            Traceback (most recent call last):
+            ...
+            RuntimeError: Process has branched. (2 different outputs in branch).
+            Try it without the option 'simple'.
         """
         for current in iterator:
             if not current:
                 return
+
             if len(current) > 1:
-                raise RuntimeError("Process has branched. Try it "
-                                   "without the option 'simple'.")
+                raise RuntimeError("Process has branched "
+                                   "(%s branches exist). Try it "
+                                   "without the option 'simple'." %
+                                   (len(current),))
             pos, states = next(current.iteritems())
             if len(states) > 1:
-                raise RuntimeError("Process has branched. Try it "
-                                   "without the option 'simple'.")
+                raise RuntimeError("Process has branched "
+                                   "(visiting %s states in branch). Try it "
+                                   "without the option 'simple'." %
+                                   (len(states),))
             state, (tape_cache, outputs) = next(states.iteritems())
-            if len(outputs) >1:
-                raise RuntimeError("Process has branched. Try it "
-                                   "without the option 'simple'.")
+            if len(outputs) > 1:
+                raise RuntimeError("Process has branched. "
+                                   "(%s different outputs in branch). Try it "
+                                   "without the option 'simple'." %
+                                   (len(outputs),))
+
             for o in outputs[0]:
                 yield o
             outputs[0] = []  # Reset output so that in the next round

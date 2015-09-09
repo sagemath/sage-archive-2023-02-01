@@ -5893,7 +5893,7 @@ class FiniteStateMachine(SageObject):
 
     def iter_process(self, input_tape=None, initial_state=None,
                      iterator_type=None, **kwargs):
-        """
+        r"""
         This function returns an iterator for processing the input.
         See :meth:`.process` (which runs this iterator until the end)
         for more information.
@@ -5943,7 +5943,25 @@ class FiniteStateMachine(SageObject):
             + at state 'A'
             +-- tape at 4, [[1, 0, 1, 1]]
 
+        The following show the difference between using the ``'simple'``-option
+        and not using it. With this option, we have
         ::
+
+            sage: it = inverter.iter_process(input_tape=[0, 1, 1],
+            ....:                            iterator_type='simple')
+            sage: for i, o in enumerate(it):
+            ....:     print 'step %s: output %s' % (i, o)
+            step 0: output 1
+            step 1: output 0
+            step 2: output 0
+
+        So :meth:`iter_process` is a generator expression which gives
+        a new output letter in each step (and not more). In many cases
+        this is sufficient.
+
+        Doing the same without the ``'simple'``-option does not give
+        the output directly; it has to be extracted first. On the
+        other hand, additional information is presented::
 
             sage: it = inverter.iter_process(input_tape=[0, 1, 1])
             sage: for current in it:
@@ -5960,6 +5978,9 @@ class FiniteStateMachine(SageObject):
             process (0 branches)
             sage: it.result()
             [(True, 'A', [1, 0, 0])]
+
+        One can see the growing of the output (the list of lists at
+        the end of each entry).
 
         .. SEEALSO::
 

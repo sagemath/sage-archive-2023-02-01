@@ -5608,6 +5608,8 @@ class FinitePoset(UniqueRepresentation, Parent):
 
         A poset `P` is an induced subposet of `Q` if every element
         of `P` is an element of `Q`, and `x \le_P y` iff `x \le_Q y`.
+        Note that "induced" here has somewhat different meaning compared
+        to that of graphs.
 
         .. NOTE::
 
@@ -5616,9 +5618,6 @@ class FinitePoset(UniqueRepresentation, Parent):
             but only if ``other`` directly contains the poset as an
             induced subposet. For isomorphic subposets see
             :meth:`has_isomorphic_subposet`.
-
-            Also note that "induced" here has somewhat different
-            meaning compared to that of graphs.
 
         EXAMPLES::
 

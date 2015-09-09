@@ -958,17 +958,13 @@ class RationalField(Singleton, number_field_base.NumberField):
 
     def some_elements(self):
         r"""
-        Return some elements of this rational field.
+        Return some elements of `\QQ`.
 
         See :func:`TestSuite` for a typical use case.
 
-        INPUT:
-
-        Nothing.
-
         OUTPUT:
 
-        An iterator of 100 elements of this rational field.
+        An iterator over 100 elements of `\QQ`.
 
         EXAMPLES::
 
@@ -1231,7 +1227,7 @@ class RationalField(Singleton, number_field_base.NumberField):
 
         EXAMPLES::
 
-            sage: macaulay2(QQ)   # optional- macaulay2 # indirect doctest
+            sage: macaulay2(QQ)   # optional - macaulay2 # indirect doctest
             QQ
         """
         return "QQ"

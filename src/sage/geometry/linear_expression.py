@@ -378,7 +378,7 @@ class LinearExpression(ModuleElement):
             sage: x == 'test'
             False
         """
-        assert (isinstance(self, type(other))) and (self.parent() is other.parent()) # guaranteed by framework
+        assert type(self) is type(other) and self.parent() is other.parent()  # guaranteed by framework
         c = cmp(self._coeffs, other._coeffs)
         if c != 0: return c
         c = cmp(self._const, other._const)
@@ -398,7 +398,7 @@ class LinearExpression(ModuleElement):
         The linear expression `Ax + b` evaluated at the point `x`.
 
         EXAMPLES::
-        
+
             sage: from sage.geometry.linear_expression import LinearExpressionModule
             sage: L.<x,y> = LinearExpressionModule(QQ)
             sage: ex = 2*x + 3* y + 4
@@ -554,7 +554,7 @@ class LinearExpressionModule(Parent, UniqueRepresentation):
             x + 2*y + 3*z + 4
 
         Construct from linear expression::
-       
+
             sage: M = LinearExpressionModule(ZZ, ('u', 'v', 'w'))
             sage: m = M([1, 2, 3], 4)
             sage: L._element_constructor(m)
@@ -582,7 +582,7 @@ class LinearExpressionModule(Parent, UniqueRepresentation):
                 const = arg0[0]
                 coeffs = arg0[1:]
         else:
-            # arg1 is not None, construct from coeffients and constant term::
+            # arg1 is not None, construct from coeffients and constant term
             coeffs = list(arg0)
             const = arg1
         coeffs = self.ambient_module()(coeffs)
@@ -669,7 +669,7 @@ class LinearExpressionModule(Parent, UniqueRepresentation):
         Return whether there is a coercion.
    
         TESTS::
-        
+
             sage: from sage.geometry.linear_expression import LinearExpressionModule
             sage: L.<x> = LinearExpressionModule(QQ)
             sage: M.<y> = LinearExpressionModule(ZZ)

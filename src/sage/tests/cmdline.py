@@ -37,7 +37,6 @@ test.spyx
 --root
 --rst2txt
 --rst2sws
---scons
 --sh
 --singular
 --sqlite3
@@ -568,14 +567,6 @@ def test_executable(args, input="", timeout=100.0, **kwds):
 
         sage: (out, err, ret) = test_executable(["sage", "--R", "--version"])
         sage: out.find("R version ") >= 0
-        True
-        sage: err
-        ''
-        sage: ret
-        0
-
-        sage: (out, err, ret) = test_executable(["sage", "--scons", "--version"])
-        sage: out.find("SCons") >= 0
         True
         sage: err
         ''

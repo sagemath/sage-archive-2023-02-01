@@ -12,16 +12,16 @@ EXAMPLES::
     [3 4]
 """
 
-################################################################################
+#*****************************************************************************
 #       Copyright (C) 2005, 2006 William Stein <wstein@gmail.com>
 #
-#  Distributed under the terms of the GNU General Public License (GPL).
-#  The full text of the GPL is available at:
-#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
-################################################################################
+#*****************************************************************************
 
-include "sage/ext/cdefs.pxi"
 include "sage/ext/python.pxi"
 from cpython.list cimport *
 from cpython.object cimport *
@@ -535,7 +535,7 @@ cdef class Matrix(sage.structure.element.Matrix):
         EXAMPLES::
 
             sage: m=matrix(2,[1,2,3,4])
-            sage: m.__iter__().next()
+            sage: next(m.__iter__())
             (1, 2)
         """
 
@@ -1802,13 +1802,47 @@ cdef class Matrix(sage.structure.element.Matrix):
         # - crossing lines           (cl)
         if shape is None:
             shape = "round" if unicode else "square"
+        if unicode:
+            import unicodedata
+            hl = unicodedata.lookup('BOX DRAWINGS LIGHT HORIZONTAL')
+            vl = unicodedata.lookup('BOX DRAWINGS LIGHT VERTICAL')
+            cl = unicodedata.lookup('BOX DRAWINGS LIGHT VERTICAL AND HORIZONTAL')
+        else:
+            hl = '-'        # - horizontal line
+            vl = '|'        # - vertical line
+            cl = '+'        # - crossing lines
         if shape == "square":
-            symbols = u"⎡⎢⎣[⎤⎥⎦]│─┼" if unicode else "[[[[]]]]|-+"
+            if unicode:
+                from sage.typeset.symbols import (
+                    unicode_left_square_bracket as left,
+                    unicode_right_square_bracket as right
+                )
+            else:
+                from sage.typeset.symbols import (
+                    ascii_left_square_bracket as left,
+                    ascii_right_square_bracket as right
+                )
         elif shape == "round":
-            symbols = u"⎛⎜⎝(⎞⎟⎠)│─┼" if unicode else "(((())))|-+"
+            if unicode:
+                from sage.typeset.symbols import (
+                    unicode_left_parenthesis as left,
+                    unicode_right_parenthesis as right
+                )
+            else:
+                from sage.typeset.symbols import (
+                    ascii_left_parenthesis as left,
+                    ascii_right_parenthesis as right
+                )
         else:
             raise ValueError("No such shape")
-        tlb, mlb, blb, slb, trb, mrb, brb, srb, vl, hl, cl = symbols
+        tlb = left.top              # - top left bracket
+        mlb = left.extension        # - extension piece left bracket
+        blb = left.bottom           # - bottom left bracket
+        slb = left.character        # - single-row left bracket
+        trb = right.top             # - top right bracket
+        mrb = right.extension       # - extension piece right bracket
+        brb = right.bottom          # - bottom right bracket
+        srb = right.character       # - single-row right bracket
 
         if nr == 0 or nc == 0:
             return slb + srb
@@ -1880,35 +1914,34 @@ cdef class Matrix(sage.structure.element.Matrix):
         s = "\n".join(rows)
         return s
 
-##     def _latex_sparse(self, variable="x"):
-##         r"""
-##         Return a latex string that represents this matrix as a sparse
-##         matrix.  The rows are printed as sums $\sum a_i x_i$, where
-##         $x$ is the variable.
+    def _unicode_art_(self):
+        """
+        Unicode art representation of matrices
 
-##         EXAMPLES:
+        EXAMPLES::
 
-##         """
-##         cdef Py_ssize_t nr, nc, i, j
-##         nr = self._nrows
-##         nc = self._ncols
-##         s = "\\left(\\begin{align*}\n"
-##         for i from 0 <= i < nr:
-##             v = []
-##             for j from 0 <= j < nc:
-##                 x = self.get_unsafe(i, j)
-##                 if x != 0:
-##                     v.append((j, x))
-##             for j from 0 <= j < len(v):
-##                 s  = s + "%s*%s_{%s}"%(v[j][1], variable, v[j][0])
-##                 if j == 0:
-##                     s = s + "& + "
-##                 elif j < len(v) - 1:
-##                     s =  s + " + "
-##                 else:
-##                     s =  s + "\\\\\n"
-##         s = s + "\n\\end{align*}"
-##         return s
+            sage: A = matrix([[1,2], [3,4], [5,6]])
+            sage: A._unicode_art_()
+            ⎛1 2⎞
+            ⎜3 4⎟
+            ⎝5 6⎠
+            sage: unicode_art(A)    # indirect doctest
+            ⎛1 2⎞
+            ⎜3 4⎟
+            ⎝5 6⎠
+
+        If the matrix is too big, don't print all of the elements::
+
+            sage: A = random_matrix(ZZ, 100)
+            sage: unicode_art(A)
+            100 x 100 dense matrix over Integer Ring
+        """
+        from sage.typeset.unicode_art import UnicodeArt
+        if self._nrows < max_rows and self._ncols < max_cols:
+            output = self.str(unicode=True)
+        else:
+            output = self.__repr__()
+        return UnicodeArt(output.splitlines())
 
     def _latex_(self):
         r"""
@@ -4023,6 +4056,8 @@ cdef class Matrix(sage.structure.element.Matrix):
         """
         return self.is_square() and self.determinant().is_unit()
 
+    is_unit = is_invertible
+
     def is_singular(self):
         r"""
         Returns ``True`` if ``self`` is singular.
@@ -4727,7 +4762,7 @@ cdef class Matrix(sage.structure.element.Matrix):
             MS = self.matrix_space(n, m)
             return MS(X).transpose()
 
-    cpdef ModuleElement _add_(self, ModuleElement right):
+    cpdef ModuleElement _add_(self, ModuleElement _right):
         """
         Add two matrices with the same parent.
 
@@ -4743,13 +4778,14 @@ cdef class Matrix(sage.structure.element.Matrix):
         """
         cdef Py_ssize_t i, j
         cdef Matrix A
+        cdef Matrix right = _right
         A = self.new_matrix()
-        for i from 0 <= i < self._nrows:
-            for j from 0 <= j < self._ncols:
-                A.set_unsafe(i,j, self.get_unsafe(i,j) + (<Matrix>right).get_unsafe(i,j))
+        for i in range(self._nrows):
+            for j in range(self._ncols):
+                A.set_unsafe(i,j,self.get_unsafe(i,j)._add_(right.get_unsafe(i,j)))
         return A
 
-    cpdef ModuleElement _sub_(self, ModuleElement right):
+    cpdef ModuleElement _sub_(self, ModuleElement _right):
         """
         Subtract two matrices with the same parent.
 
@@ -4765,22 +4801,22 @@ cdef class Matrix(sage.structure.element.Matrix):
         """
         cdef Py_ssize_t i, j
         cdef Matrix A
+        cdef Matrix right = _right
         A = self.new_matrix()
-        for i from 0 <= i < self._nrows:
-            for j from 0 <= j < self._ncols:
-                A.set_unsafe(i,j, self.get_unsafe(i,j) - (<Matrix>right).get_unsafe(i,j))
+        for i in range(self._nrows):
+            for j in range(self._ncols):
+                A.set_unsafe(i,j,self.get_unsafe(i,j)._sub_(right.get_unsafe(i,j)))
         return A
-
 
     def __mod__(self, p):
         r"""
         Return matrix mod `p`, returning again a matrix over the
         same base ring.
 
-        .. note::
+        .. NOTE::
 
-           Use ``A.Mod(p)`` to obtain a matrix over the residue class
-           ring modulo `p`.
+           Use :meth:`mod` to obtain a matrix over the residue class ring
+           modulo `p`.
 
         EXAMPLES::
 
@@ -4791,11 +4827,13 @@ cdef class Matrix(sage.structure.element.Matrix):
             sage: parent(M % 7)
             Full MatrixSpace of 2 by 2 dense matrices over Integer Ring
         """
-        cdef Py_ssize_t i
-        v = self.list()
-        for i from 0 <= i < len(v):
-            v[i] = v[i] % p
-        return self.new_matrix(entries = v, copy=False, coerce=True)
+        cdef Py_ssize_t i, j
+        cdef Matrix s = self
+        cdef Matrix A = s.new_matrix()
+        for i in range(A._nrows):
+            for j in range(A._ncols):
+                A[i,j] = s.get_unsafe(i,j) % p
+        return A
 
     def mod(self, p):
         """

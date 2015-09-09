@@ -186,7 +186,7 @@ class Rings(CategoryWithAxiom):
             r"""
             Returns the homset from ``self`` to ``Y`` in the category ``category``
 
-            INPUT::
+            INPUT:
 
             - ``Y`` -- a ring
             - ``category`` -- a subcategory of :class:`Rings`() or None
@@ -894,14 +894,11 @@ class Rings(CategoryWithAxiom):
                 sage: MS.zero().is_unit()
                 False
                 sage: MS([1,2,3,4]).is_unit()
-                Traceback (most recent call last):
-                ...
-                NotImplementedError
-
+                False
             """
-            if self == 1 or self == -1:
+            if self.is_one() or (-self).is_one():
                 return True
-            if self == 0: # now 0 != 1
+            if self.is_zero(): # now 0 != 1
                 return False
             raise NotImplementedError
 

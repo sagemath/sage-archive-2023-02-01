@@ -9,9 +9,15 @@ cdef class Polynomial(CommutativeAlgebraElement):
     cdef char _is_gen
     cdef CompiledPolynomialFunction _compiled
     cpdef Polynomial truncate(self, long n)
+    cpdef Polynomial inverse_series_trunc(self, long prec)
     cdef long _hash_c(self) except -1
     cpdef constant_coefficient(self)
     cpdef Polynomial _new_constant_poly(self, a, Parent P)
+
+    cpdef bint is_zero(self)
+    cpdef bint is_one(self)
+
+    cpdef Polynomial _mul_trunc_(self, Polynomial right, long n)
 
     # UNSAFE, only call from an inplace operator
     # may return a new element if not possible to modify inplace

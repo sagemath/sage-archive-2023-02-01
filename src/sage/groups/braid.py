@@ -1133,7 +1133,7 @@ class BraidGroup_class(FinitelyPresentedGroup):
         self._nstrands_ = n+1
 
         # For caching TL_representation()
-        self._TL_representation_dict_alt = {}
+        self._TL_representation_dict = {}
 
     def __reduce__(self):
         """
@@ -1728,8 +1728,8 @@ class BraidGroup_class(FinitelyPresentedGroup):
              ([1], [1])]
         """
         if variab is None:
-            if drain_size in self._TL_representation_dict_alt:
-                return self._TL_representation_dict_alt[drain_size]
+            if drain_size in self._TL_representation_dict:
+                return self._TL_representation_dict[drain_size]
             R = LaurentPolynomialRing(IntegerRing(), 'A')
             A = R.gens()[0]
         else:
@@ -1767,7 +1767,7 @@ class BraidGroup_class(FinitelyPresentedGroup):
             for mat_pair in rep_matrices:
                 mat_pair[0].set_immutable()
                 mat_pair[1].set_immutable()
-            self._TL_representation_dict_alt[drain_size] = rep_matrices
+            self._TL_representation_dict[drain_size] = rep_matrices
 
         return rep_matrices
 

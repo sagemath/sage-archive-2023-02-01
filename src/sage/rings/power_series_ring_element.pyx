@@ -1021,7 +1021,7 @@ cdef class PowerSeries(AlgebraElement):
             sage: ~R(2)
             Traceback (most recent call last):
             ...
-            ZeroDivisionError: leading coefficient must be a unit
+            ValueError: constant term is not a unit
 
         A test for the case where the precision is 0::
 

@@ -904,7 +904,7 @@ def TravellersDilemma(max_value=10):
         ....:      (3, 4): [4, 8], (0, 2): [6, 10], (8, 4): [4, 0]}
         sage: g == d
         True
-        sage: g.obtain_nash() # optional - lrs
+        sage: g.obtain_nash() # optional - lrslib
         [[(0, 0, 0, 0, 0, 0, 0, 0, 1), (0, 0, 0, 0, 0, 0, 0, 0, 1)]]
 
     Note that this command can be used to create travellers dilemma for a

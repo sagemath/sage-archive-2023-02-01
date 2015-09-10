@@ -625,6 +625,50 @@ class Simplex(SageObject):
             answer.append(Simplex(new))
         return answer
 
+    def alexander_whitney(self, dim):
+        r"""
+        Subdivide this simplex into a pair of simplices.
+
+        If this simplex has vertices `v_0`, `v_1`, ..., `v_n`, then
+        subdivide it into simplices `(v_0, v_1, ..., v_{dim})` and
+        `(v_{dim}, v_{dim + 1}, ..., v_n)`.
+
+        INPUTS:
+
+        - ``dim`` -- integer between 0 and one more than the
+          dimension of this simplex
+
+        OUTPUT:
+
+        - a list containing just the triple ``(1, left, right)``,
+          where ``left`` and ``right`` are the two simplices described
+          above.
+
+        This method allows one to construct a coproduct from the
+        `p+q`-chains to the tensor product of the `p`-chains and the
+        `q`-chains. The number 1 (a Sage integer) is the coefficient
+        of ``left tensor right`` in this coproduct. (The corresponding
+        formula is more complicated for the cubes that make up a
+        cubical complex, and the output format is intended to be
+        consistent for both cubes and simplices.)
+
+        Calling this method ``alexander_whitney`` is an abuse of
+        notation, since the actual Alexander-Whitney map goes from
+        `C(X \times Y) \to C(X) \otimes C(Y)`, where `C(-)` denotes
+        the chain complex of singular chains, but this subdivision of
+        simplices is at the heart of it.
+
+        EXAMPLES::
+
+            sage: s = Simplex((0,1,3,4))
+            sage: s.alexander_whitney(0)
+            [(1, (0,), (0, 1, 3, 4))]
+            sage: s.alexander_whitney(2)
+            [(1, (0, 1, 3), (3, 4))]
+        """
+        return [(ZZ.one(), Simplex(self.tuple()[:dim+1]),
+                 Simplex(self.tuple()[dim:]))]
+
     def __cmp__(self, other):
         """
         Return ``True`` iff this simplex is the same as ``other``: that

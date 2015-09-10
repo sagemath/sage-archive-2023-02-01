@@ -139,7 +139,7 @@ List of Poset methods
     :delim: |
 
     :meth:`~FinitePoset.is_isomorphic` | Return ``True`` if both posets are isomorphic.
-    :meth:`~FinitePoset.is_subposet` | Return ``True`` if give poset is an induced subposet of this poset.
+    :meth:`~FinitePoset.is_subposet` | Return ``True`` if given poset is an induced subposet of this poset.
 
 **Polynomials**
 

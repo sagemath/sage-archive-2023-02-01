@@ -38,8 +38,7 @@ GNU Lesser General Public License (LGPL), version unspecified
 
 == SPKG Maintainer ==
 
- * William Stein (?)
- * Michael Abshoff (?)
+ * Travis Scrimshaw
 
 == Upstream Contact ==
 

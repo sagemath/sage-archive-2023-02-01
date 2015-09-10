@@ -249,6 +249,15 @@ class NumberField_relative(NumberField_generic):
             Traceback (most recent call last):
             ...
             ValueError: defining polynomial (x^2 + 2) must be irreducible
+
+        Error checks::
+
+            sage: x = polygen(ZZ)
+            sage: K.<a> = NumberField(x^2 + 1)
+            sage: K.extension(x^2 + 2, 'a')
+            Traceback (most recent call last):
+            ...
+            ValueError: base field and extension cannot have the same name 'a'
         """
         if embedding is not None:
             raise NotImplementedError("Embeddings not implemented for relative number fields")
@@ -261,7 +270,7 @@ class NumberField_relative(NumberField_generic):
             except (AttributeError, TypeError) as msg:
                 raise TypeError("polynomial (=%s) must be a polynomial."%repr(polynomial))
         if name == base.variable_name():
-            raise ValueError("Base field and extension cannot have the same name")
+            raise ValueError("base field and extension cannot have the same name %r" % name)
         if polynomial.parent().base_ring() != base:
             polynomial = polynomial.change_ring(base)
             #raise ValueError, "The polynomial must be defined over the base field"
@@ -2492,10 +2501,10 @@ class NumberField_relative(NumberField_generic):
             sage: K_into_M = L_into_M * K_into_L
 
             sage: L_over_K = L.relativize(K_into_L, 'c'); L_over_K
-            Number Field in c0 with defining polynomial x^2 + a0_0 over its base field
+            Number Field in c with defining polynomial x^2 + a0_0 over its base field
             sage: L_over_K_to_L, L_to_L_over_K = L_over_K.structure()
             sage: M_over_L_over_K = M.relativize(L_into_M * L_over_K_to_L, 'd'); M_over_L_over_K
-            Number Field in d0 with defining polynomial x^2 + c0 over its base field
+            Number Field in d with defining polynomial x^2 + c over its base field
             sage: M_over_L_over_K.base_field() is L_over_K
             True
 
@@ -2513,7 +2522,7 @@ class NumberField_relative(NumberField_generic):
         generator)::
 
             sage: L = K.relativize(K3_into_K, 'b'); L
-            Number Field in b0 with defining polynomial x^2 + a0 over its base field
+            Number Field in b with defining polynomial x^2 + a0 over its base field
             sage: L_to_K, K_to_L = L.structure()
             sage: L_over_K2 = L.relativize(K_to_L(K2_into_K(K2.gen() + 1)), 'c'); L_over_K2
             Number Field in c0 with defining polynomial x^3 - c1 + 1 over its base field
@@ -2524,7 +2533,7 @@ class NumberField_relative(NumberField_generic):
 
             sage: K2_into_L = K_to_L * K2_into_K
             sage: L_over_K2 = L.relativize(K2_into_L, 'c'); L_over_K2
-            Number Field in c0 with defining polynomial x^3 - a0 over its base field
+            Number Field in c with defining polynomial x^3 - a0 over its base field
             sage: L_over_K2.base_field() is K2
             True
         """

@@ -453,7 +453,7 @@ class NumberFieldFractionalIdeal_rel(NumberFieldFractionalIdeal):
             sage: K0
             Number Field in a0 with defining polynomial x^2 - 6*x + 24
             sage: L = K.relativize(K0_into_K, 'c'); L
-            Number Field in c0 with defining polynomial x^2 + a0 over its base field
+            Number Field in c with defining polynomial x^2 + a0 over its base field
             sage: L.base_field() is K0
             True
             sage: L.ideal(7)

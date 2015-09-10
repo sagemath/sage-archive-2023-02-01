@@ -217,6 +217,39 @@ class ChainComplexMorphism(SageObject):
             cols = self._domain.free_module_rank(n)
             return zero_matrix(self._domain.base_ring(), rows, cols)
 
+    def dual(self):
+        """
+        The dual chain map to this one.
+
+        That is, the map from the dual of the codomain of this one to
+        the dual of its domain, represented in each degree by the
+        transpose of the corresponding matrix.
+
+        EXAMPLES::
+
+            sage: X = simplicial_complexes.Simplex(1)
+            sage: Y = simplicial_complexes.Simplex(0)
+            sage: g = Hom(X,Y)({0:0, 1:0})
+            sage: f = g.associated_chain_complex_morphism()
+            sage: f.in_degree(0)
+            [1 1]
+            sage: f.dual()
+            Chain complex morphism from Chain complex with at most 1 nonzero terms over Integer Ring to Chain complex with at most 2 nonzero terms over Integer Ring
+            sage: f.dual().in_degree(0)
+            [1]
+            [1]
+            sage: ascii_art(f._domain)
+                        [-1]
+                        [ 1]
+             0 <-- C_0 <----- C_1 <-- 0
+            sage: ascii_art(f.dual()._codomain)
+                        [-1  1]
+             0 <-- C_1 <-------- C_0 <-- 0
+        """
+        matrix_dict = self._matrix_dictionary
+        matrices = {i: matrix_dict[i].transpose() for i in matrix_dict}
+        return ChainComplexMorphism(matrices, self._codomain.dual(), self._domain.dual())
+
     def __neg__(self):
         """
         Returns ``-x``.

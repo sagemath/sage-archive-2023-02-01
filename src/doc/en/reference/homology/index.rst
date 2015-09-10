@@ -13,6 +13,7 @@ cell complexes.
 
    sage/homology/chain_complex
    sage/homology/chain_complex_morphism
+   sage/homology/chain_homotopy
    sage/homology/chain_complex_homspace
    sage/homology/simplicial_complex
    sage/homology/simplicial_complex_morphism

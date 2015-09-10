@@ -4144,7 +4144,7 @@ def BIBD_45_9_8(from_code=False):
 
     TESTS:
 
-    From the definition (takes around 47s)::
+    From the definition (takes around 12s)::
 
         sage: B2 = Hypergraph(BIBD_45_9_8(from_code=True)) # not tested
         sage: B2.is_isomorphic(B)                          # not tested
@@ -4162,9 +4162,10 @@ def BIBD_45_9_8(from_code=False):
         from sage.coding.code_constructions import ExtendedQuadraticResidueCode
         from sage.rings.finite_rings.constructor import FiniteField
         C = ExtendedQuadraticResidueCode(47,FiniteField(2))
-        min_weight = [map(int,x) for x in C
-                      if x[0]==1 and x[1]==1 and x[2]==1]
-        min_weight = [x[3:] for x in min_weight if sum(x) == 12]
+        min_weight = [map(int,x)[3:] for x in C
+                      if x.hamming_weight() == 12 and
+                      x[0]==1 and x[1]==1 and x[2]==1]
+
         return [[i for i,v in enumerate(x) if v] for x in min_weight]
 
     from sage.rings.integer import Integer

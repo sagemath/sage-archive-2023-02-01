@@ -398,9 +398,11 @@ def NonisotropicOrthogonalPolarGraph(m, q, sign="+", perp=None):
     * `m` odd: if ``perp`` is not ``None``, then we assume that `q=5` and
       return the graph of the points `x` satisfying `F(x)=\pm 1` if ``sign="+"``,
       respectively `F(x) \in \{2,3\}` if ``sign="-"``, with adjacency
-      given by orthogonality w.r.t. `F`. Otherwise return the graph
+      given by orthogonality w.r.t. `F` (cf. Sect 7.D of [BvL84]_).
+      Otherwise return the graph
       of nongenerate hyperplanes of type ``sign``, adjacent whenever the intersection
-      is degenerate. Note that for `q=2` one will get a complete graph.
+      is degenerate (cf. Sect. 7.C of [BvL84]_).
+      Note that for `q=2` one will get a complete graph.
 
     For more information, see Sect. 9.9 of [BH12]_ and [BvL84]_. Note that the `page of
     Andries Brouwer's website <http://www.win.tue.nl/~aeb/graphs/srghub.html>`_
@@ -451,8 +453,7 @@ def NonisotropicOrthogonalPolarGraph(m, q, sign="+", perp=None):
         (136, 75, 42, 40)
         sage: g=graphs.NonisotropicOrthogonalPolarGraph(5,4,'-') 
         sage: g.is_strongly_regular(parameters=True)
-        (136, 60, 24, 28) --- WRONG!
-must be (120, 51, 18, 24)
+        (120, 51, 18, 24)
         sage: g=graphs.NonisotropicOrthogonalPolarGraph(7,4,'+'); g # not tested (long time)
         NO^+(7, 4): Graph on 2080 vertices
         sage: g.is_strongly_regular(parameters=True) # not tested (long time)
@@ -465,7 +466,7 @@ must be (120, 51, 18, 24)
         sage: graphs.NonisotropicOrthogonalPolarGraph(4,3,'-').is_strongly_regular(parameters=True)
         (15, 6, 1, 3)
         sage: g=graphs.NonisotropicOrthogonalPolarGraph(3,5,'-',perp=1); g
-        NO^,perp-(3, 5): Graph on 10 vertices
+        NO^-,perp(3, 5): Graph on 10 vertices
         sage: g.is_strongly_regular(parameters=True)
         (10, 3, 0, 1)
         sage: g=graphs.NonisotropicOrthogonalPolarGraph(6,3,'+')   # long time
@@ -475,6 +476,9 @@ must be (120, 51, 18, 24)
         NO^-(6, 3): Graph on 126 vertices
         sage: g.is_strongly_regular(parameters=True)                # long time
         (126, 45, 12, 18)
+        sage: g=graphs.NonisotropicOrthogonalPolarGraph(5,5,'-')    # long time
+        sage: g.is_strongly_regular(parameters=True)                # long time
+        (300, 104, 28, 40)
         sage: g=graphs.NonisotropicOrthogonalPolarGraph(6,4,'+')
         Traceback (most recent call last):
         ...
@@ -493,7 +497,7 @@ must be (120, 51, 18, 24)
             if q == 5:
                 G = _orthogonal_polar_graph(m, q, point_type=\
                     [-1,1] if sign=='+' else [2,3] if sign=='-' else [])
-                dec = "perp"
+                dec = ",perp"
             else:
                 raise ValueError("for perp not None q must be 5")
         else:
@@ -504,7 +508,6 @@ must be (120, 51, 18, 24)
             if not sign in ['+','-']:
                 raise ValueError("sign must be '+' or '-'")
             from sage.libs.gap.libgap import libgap
-            from itertools import combinations
             g0 = libgap.GeneralOrthogonalGroup(m,q)
             g = libgap.Group(libgap.List(g0.GeneratorsOfGroup(),libgap.TransposedMat))
             F=libgap.GF(q)  # F_q
@@ -512,26 +515,23 @@ must be (120, 51, 18, 24)
             e = 1 if sign=='+' else -1
             n = (m-1)/2
             #
-            # build (q^n(q^n+e)/2, (q^n-e)(q^(m-1)+e), 2(q^(2n-2)-1)+eq^(n-1)(q-1),
+            # build (q^n(q^n+e)/2, (q^n-e)(q^(n-1)+e), 2(q^(2n-2)-1)+eq^(n-1)(q-1),
             #                                          2q^(n-1)(q^(n-1)+e))-srg
             # with eigenvalues -eq^(n-1)-1 and eq^(n-1)(q-2)-1
             #
-            B=libgap.Elements(libgap.Basis(W))      # the standard basis of W
-                    # ordered as x_{m-1}, x_{m-2}, ..., x_0
-            if p==2: # F=x_1^2 + x_{m}x_{(m-1)/2+1} + x_{m-1}x_{(m-1)/2}+...+ x_{m-(m-1)/2+1}x_2
-                if sign == '+':
-                    point = B[m-1] 
-                else:
-                    raise NotImplementedError("todo...")
-                    point = B[m-1] + B[0] + B[(m-1)/2]
-                point_p = point + B[2]
-            else:
-                raise NotImplementedError("todo...")
-            V = libgap.Orbit(g,point,libgap.OnLines) # orbit on nondeg. hplanes of type sign 
+            nvert = (q**n)*(q**n+e)/2     # v
+            deg = (q**n-e)*(q**(n-1)+e)   # k
+            S=map(lambda x: libgap.Elements(libgap.Basis(x))[0], \
+                libgap.Elements(libgap.Subspaces(W,1)))
+            V = filter(lambda x: len(x)==nvert, libgap.Orbits(g,S,libgap.OnLines))
+            assert len(V)==1
+            V = V[0]
             gp = libgap.Action(g,V,libgap.OnLines)  # make a permutation group
-#            h = libgap.Stabilizer(gp,1)
-#            Vh = libgap.Orbits(h,libgap.Orbit(gp,1))
-            L = libgap.Orbit(gp, [libgap.Position(V,point), libgap.Position(V,point_p)], libgap.OnSets)
+            h = libgap.Stabilizer(gp,1)
+            Vh = filter(lambda x: len(x)==deg, libgap.Orbits(h,libgap.Orbit(gp,1)))
+            assert len(Vh)==1
+            Vh = Vh[0][0]
+            L = libgap.Orbit(gp, [1, Vh], libgap.OnSets)
             G = Graph()
             G.add_edges(L)
     G.name("NO^" + sign + dec + str((m, q)))

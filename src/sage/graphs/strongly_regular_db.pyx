@@ -339,6 +339,230 @@ def is_orthogonal_polar(int v,int k,int l,int mu):
                 from sage.graphs.generators.classical_geometries import OrthogonalPolarGraph
                 return (OrthogonalPolarGraph, 2*m, q, "-")
 
+@cached_function
+def is_NOodd(int v,int k,int l,int mu):
+    r"""
+    Test whether some NO^e(2n+1,q) graph is `(v,k,\lambda,\mu)`-strongly regular.
+
+    For more information, see
+    :func:`sage.graphs.generators.classical_geometries.NonisotropicOrthogonalPolarGraph`
+    and Sect. 7.C of [BvL84]_.
+
+    INPUT:
+
+    - ``v,k,l,mu`` (integers)
+
+    OUTPUT:
+
+    A tuple ``t`` such that ``t[0](*t[1:])`` builds the requested graph if one
+    exists, and ``None`` otherwise.
+
+    EXAMPLES::
+
+        sage: from sage.graphs.strongly_regular_db import is_NOodd
+        sage: t = is_NOodd(120, 51, 18, 24); t
+        (<function NonisotropicOrthogonalPolarGraph at ...>, 5, 4, '-')
+        sage: g = t[0](*t[1:]); g
+        NO^-(5, 4): Graph on 120 vertices
+        sage: g.is_strongly_regular(parameters=True)
+        (120, 51, 18, 24)
+
+        sage: t = is_NOodd(5,5,5,5); t
+
+    TESTS:
+
+    All of ``NO^+(2m+1,q)`` and ``NO^-(2m+1,q)`` appear::
+
+        sage: t = is_NOodd(120, 51, 18, 24); t
+        (<function NonisotropicOrthogonalPolarGraph at ...>, 5, 4, '-')
+        sage: t = is_NOodd(136, 75, 42, 40); t
+        (<function NonisotropicOrthogonalPolarGraph at ...>, 5, 4, '+')
+    """
+    cdef int n, q
+    r,s = eigenvalues(v,k,l,mu) # -eq^(n-1)-1 and eq^(n-1)(q-2)-1
+    if r is None:
+        return
+    r += 1
+    s += 1
+    if abs(r)>abs(s):
+        (r,s) = (s,r) # r=-eq^(n-1) s= eq^(n-1)(q-2)
+    q = 2 - s/r
+    e = 1 if r<0 else -1
+    p, t = is_prime_power(q, get_data=True)
+    pp, kk = is_prime_power(abs(r), get_data=True)
+    if p == pp and t != 0:
+        n  = kk/t + 1
+        if (v  == (q**n)*(q**n+e)/2                 and
+            k  == (q**n-e)*(q**(n-1)+e)             and
+            l  == 2*(q**(2*n-2)-1)+e*q**(n-1)*(q-1) and
+            mu == 2*q**(n-1)*(q**(n-1)+e)):
+            from sage.graphs.generators.classical_geometries import NonisotropicOrthogonalPolarGraph
+            return (NonisotropicOrthogonalPolarGraph, 2*n+1, q, '+' if e==1 else '-')
+
+@cached_function
+def is_NOperp_F5(int v,int k,int l,int mu):
+    r"""
+    Test whether some NO^e,perp(2n+1,5) graph is `(v,k,\lambda,\mu)`-strongly regular.
+
+    For more information, see
+    :func:`sage.graphs.generators.classical_geometries.NonisotropicOrthogonalPolarGraph`
+    and Sect. 7.D of [BvL84]_.
+
+    INPUT:
+
+    - ``v,k,l,mu`` (integers)
+
+    OUTPUT:
+
+    A tuple ``t`` such that ``t[0](*t[1:])`` builds the requested graph if one
+    exists, and ``None`` otherwise.
+
+    EXAMPLES::
+
+        sage: from sage.graphs.strongly_regular_db import is_NOperp_F5
+        sage: t = is_NOperp_F5(10, 3, 0, 1); t
+        (<function NonisotropicOrthogonalPolarGraph at ...>, 3, 5, '-', 1)
+        sage: g = t[0](*t[1:]); g
+        NO^-,perp(3, 5): Graph on 10 vertices
+        sage: g.is_strongly_regular(parameters=True)
+        (10, 3, 0, 1)
+
+        sage: t = is_NOperp_F5(5,5,5,5); t
+
+    TESTS:
+
+    All of ``NO^+,perp(2m+1,5)`` and ``NO^-,perp(2m+1,5)`` appear::
+
+        sage: t = is_NOperp_F5(325, 60, 15, 10); t
+        (<function NonisotropicOrthogonalPolarGraph at ...>, 5, 5, '+', 1)
+        sage: t = is_NOperp_F5(300, 65, 10, 15); t
+        (<function NonisotropicOrthogonalPolarGraph at ...>, 5, 5, '-', 1)
+    """
+    cdef int n
+    r,s = eigenvalues(v,k,l,mu) # 2*e*5**(n-1), -e*5**(n-1); note exceptional case n=1
+    if r is None:
+        return
+    if abs(r)<abs(s):
+        (r,s) = (s,r)
+    e = 1 if s<0 else -1
+    p, n = is_prime_power(abs(s), get_data=True)
+    if (5 == p and n != 0) or (abs(r)==2 and abs(s)==1):
+        n += 1
+        if (v  == (5**n)*(5**n+e)/2           and
+            k  == (5**n-e)*5**(n-1)/2         and
+            l  == 5**(n-1)*(5**(n-1)+e)/2     and
+            mu == 5**(n-1)*(5**(n-1)-e)/2):
+            from sage.graphs.generators.classical_geometries import NonisotropicOrthogonalPolarGraph
+            return (NonisotropicOrthogonalPolarGraph, 2*n+1, 5, '+' if e==1 else '-', 1)
+
+@cached_function
+def is_NO_F2(int v,int k,int l,int mu):
+    r"""
+    Test whether some NO^e,perp(2n,2) graph is `(v,k,\lambda,\mu)`-strongly regular.
+
+    For more information, see
+    :func:`sage.graphs.generators.classical_geometries.NonisotropicOrthogonalPolarGraph`
+    and  
+
+    INPUT:
+
+    - ``v,k,l,mu`` (integers)
+
+    OUTPUT:
+
+    A tuple ``t`` such that ``t[0](*t[1:])`` builds the requested graph if one
+    exists, and ``None`` otherwise.
+
+    EXAMPLES::
+
+        sage: from sage.graphs.strongly_regular_db import is_NO_F2
+        sage: t = is_NO_F2(10, 3, 0, 1); t
+        (<function NonisotropicOrthogonalPolarGraph at ...>, 4, 2, '-')
+        sage: g = t[0](*t[1:]); g
+        NO^-(4, 2): Graph on 10 vertices
+        sage: g.is_strongly_regular(parameters=True)
+        (10, 3, 0, 1)
+
+        sage: t = is_NO_F2(5,5,5,5); t
+
+    TESTS:
+
+    All of ``NO^+(2m,2)`` and ``NO^-(2m,2)`` appear::
+
+        sage: t = is_NO_F2(36, 15, 6, 6); t
+        (<function NonisotropicOrthogonalPolarGraph at ...>, 6, 2, '-')
+        sage: t = is_NO_F2(28, 15, 6, 10); t
+        (<function NonisotropicOrthogonalPolarGraph at ...>, 6, 2, '+')
+    """
+    cdef int n, e, p
+    p, n = is_prime_power(k+1, get_data=True) # k+1==2**(2*n-2)
+    if 2 == p and n != 0 and n % 2 == 0:
+        n = (n+2)/2
+        e = (2**(2*n-1)-v)/2**(n-1)
+        if (abs(e) == 1                           and
+            v  == 2**(2*n-1)-e*2**(n-1)           and
+            k  == 2**(2*n-2)-1                    and
+            l  == 2**(2*n-3)-2                    and
+            mu == 2**(2*n-3)+e*2**(n-2)):
+            from sage.graphs.generators.classical_geometries import NonisotropicOrthogonalPolarGraph
+            return (NonisotropicOrthogonalPolarGraph, 2*n, 2, '+' if e==1 else '-')
+
+@cached_function
+def is_NO_F3(int v,int k,int l,int mu):
+    r"""
+    Test whether some NO^e,perp(2n,3) graph is `(v,k,\lambda,\mu)`-strongly regular.
+
+    For more information, see
+    :func:`sage.graphs.generators.classical_geometries.NonisotropicOrthogonalPolarGraph`
+    and  
+
+    INPUT:
+
+    - ``v,k,l,mu`` (integers)
+
+    OUTPUT:
+
+    A tuple ``t`` such that ``t[0](*t[1:])`` builds the requested graph if one
+    exists, and ``None`` otherwise.
+
+    EXAMPLES::
+
+        sage: from sage.graphs.strongly_regular_db import is_NO_F3
+        sage: t = is_NO_F3(15, 6, 1, 3); t
+        (<function NonisotropicOrthogonalPolarGraph at ...>, 4, 3, '-')
+        sage: g = t[0](*t[1:]); g
+        NO^-(4, 3): Graph on 15 vertices
+        sage: g.is_strongly_regular(parameters=True)
+        (15, 6, 1, 3)
+
+        sage: t = is_NO_F3(5,5,5,5); t
+
+    TESTS:
+
+    All of ``NO^+(2m,3)`` and ``NO^-(2m,3)`` appear::
+
+        sage: t = is_NO_F3(126, 45, 12, 18); t
+        (<function NonisotropicOrthogonalPolarGraph at ...>, 6, 3, '-')
+        sage: t = is_NO_F3(117, 36, 15, 9); t
+        (<function NonisotropicOrthogonalPolarGraph at ...>, 6, 3, '+')
+    """
+    cdef int n, e, p
+    r,s = eigenvalues(v,k,l,mu) # e*3**(n-1), -e*3**(n-2)
+    if r is None:
+        return
+    if abs(r)<abs(s):
+        (r,s) = (s,r)
+    e = 1 if r>0 else -1
+    p, n = is_prime_power(abs(r), get_data=True)
+    if (3 == p and n != 0):
+        n += 1
+        if (v  == 3**(n-1)*(3**n-e)/2           and
+            k  == 3**(n-1)*(3**(n-1)-e)/2           and
+            l  == 3**(n-2)*(3**(n-1)+e)/2           and
+            mu == 3**(n-1)*(3**(n-2)-e)/2):
+            from sage.graphs.generators.classical_geometries import NonisotropicOrthogonalPolarGraph
+            return (NonisotropicOrthogonalPolarGraph, 2*n, 3, '+' if e==1 else '-')
+
 def is_RSHCD(int v,int k,int l,int mu):
     r"""
     Test whether some RSHCD graph is `(v,k,\lambda,\mu)`-strongly regular.
@@ -1736,7 +1960,8 @@ def strongly_regular_graph(int v,int k,int l,int mu=-1,bint existence=False,bint
     test_functions = [is_paley, is_johnson,
                       is_orthogonal_array_block_graph,
                       is_steiner, is_affine_polar,
-                      is_orthogonal_polar,
+                      is_orthogonal_polar, 
+                      is_NOodd, is_NOperp_F5, is_NO_F2, is_NO_F3,
                       is_unitary_polar,
                       is_unitary_dual_polar,
                       is_RSHCD,

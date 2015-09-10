@@ -8,10 +8,10 @@ if [ -z "$SAGE_LOCAL" ]; then
     exit 1
 fi
 
-mkdir -p $SAGE_LOCAL/share/cluster_algebra_quiver && cp src/* $SAGE_LOCAL/share/cluster_algebra_quiver
+mkdir -p $SAGE_SHARE/cluster_algebra_quiver && cp src/* $SAGE_SHARE/cluster_algebra_quiver
 
 if [ $? -ne 0 ]; then
-    echo >&2 "Error: Failed to copy the data to $SAGE_LOCAL/share/cluster_algebra_quiver. database_mutation_class-1.0 exiting"
+    echo >&2 "Error: Failed to copy the data to $SAGE_SHARE/cluster_algebra_quiver. database_mutation_class-1.0 exiting"
     exit 1
 fi
 

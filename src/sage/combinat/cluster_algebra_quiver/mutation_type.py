@@ -1216,13 +1216,16 @@ def load_data(n):
     containing all mutation equivalent quivers as dig6 data.
 
     We check
-     - if the data is stored by the user, and if this is not the case
-     - if the data is stored by the optional package install
+
+    - if the data is stored by the user, and if this is not the case
+    - if the data is stored by the optional package install.
 
     EXAMPLES::
 
         sage: from sage.combinat.cluster_algebra_quiver.mutation_type import load_data
-        sage: load_data(2) # random
+        sage: load_data(1)
+        {}
+        sage: load_data(2) # optional database_mutation_class
         {('G', 2): [('AO', (((0, 1), (1, -3)),)), ('AO', (((0, 1), (3, -1)),))]}
     """
     import os.path

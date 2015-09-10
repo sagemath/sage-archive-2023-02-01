@@ -139,6 +139,7 @@ List of Poset methods
     :delim: |
 
     :meth:`~FinitePoset.is_isomorphic` | Return ``True`` if both posets are isomorphic.
+    :meth:`~FinitePoset.is_subposet` | Return ``True`` if give poset is an induced subposet of this poset.
 
 **Polynomials**
 
@@ -5631,10 +5632,7 @@ class FinitePoset(UniqueRepresentation, Parent):
 
         TESTS::
 
-            sage: P = Poset({2:[1]}, facade=True)
-            sage: Q = Poset({2:[1]}, facade=False)
-            sage: P.is_subposet(Q), Q.is_subposet(P)
-            (True, True)
+            sage: P = Poset({2:[1]})
             sage: Poset().is_subposet(P)
             True
             sage: Poset().is_subposet(Poset())
@@ -5643,11 +5641,11 @@ class FinitePoset(UniqueRepresentation, Parent):
             False
         """
         if not hasattr(other, 'hasse_diagram'):
-            raise ValueError('the input is not a finite poset')
-        self_ = Poset(self, facade=True)
-        other_ = Poset(other, facade=True)
-        return (set(self_).issubset(set(other_)) and
-                other_.subposet(self_) == self_)
+            raise TypeError('the input is not a finite poset')
+        if not self._is_facade or not other._is_facade:
+            raise TypeError('the function is not defined on non-facade posets')
+        return (set(self).issubset(set(other)) and
+                other.subposet(self) == self)
 
 FinitePoset._dual_class = FinitePoset
 

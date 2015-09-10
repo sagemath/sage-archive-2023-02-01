@@ -4,7 +4,7 @@
 ###############################################################################
 
 # Do not put an explicit path for sage-spkg here, it will be found in $PATH.
-SAGE_SPKG = sage-spkg -f
+SAGE_SPKG = sage-spkg
 STARTED = $(SAGE_LOCAL)/etc/sage-started.txt
 
 # Tell make not to look for files with these names:

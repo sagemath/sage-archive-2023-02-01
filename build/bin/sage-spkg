@@ -6,7 +6,6 @@
 #      sage -i <options> <package name>...
 #
 #  Options can be:
-#   -f: install a package even if the same version is already installed
 #   -s: do not delete temporary build directory
 #   -c: after installing, run the test suite for the spkg. This should
 #       override the settings of SAGE_CHECK and SAGE_CHECK_PACKAGES.
@@ -68,7 +67,6 @@ name, install it. Otherwise, search Sage's list of packages (see
 found, install it.
 
 Options:
-   -f: force installation even if the package is already installed
    -s: do not delete the temporary build directory
    -c: after installing, run the test suite for the package
    -d: only download the package
@@ -177,13 +175,10 @@ fi
 
 # Parse options
 INFO=0
-FORCE=0
 while true; do
     case "$1" in
         --info)
             INFO=1;;
-        -f)
-            FORCE=1;;
         -d)
             SAGE_INSTALL_FETCH_ONLY=1;;
         -s)
@@ -217,8 +212,6 @@ done
 # 3.  <package>, i.e. the name of the package without a version number.
 # 4.  <URL>/<package>-x.y.z.spkg, i.e. the full URL where the package
 #     is hosted.  Any local packages matching <package> are ignored.
-#     The package is only downloaded if it has not yet been installed
-#     (unless -f is given, then it's always downloaded and installed).
 #
 # In cases 2a and 3 we first look locally inside spkg/* for a
 # matching package.  Otherwise, we try to download it.  In all cases,
@@ -304,18 +297,6 @@ if [ $INFO -ne 0 -a "$USE_LOCAL_SCRIPTS" = yes ]; then
     exit 0
 fi
 
-# Check whether the package is already installed.  We do this before
-# we download the package.  We do a second check later, in case the
-# user didn't supply a version number and we don't find a local
-# matching package (case 3 above).
-if [ $INFO -eq 0 -a $FORCE -eq 0 -a -f "$SAGE_SPKG_INST/$PKG_NAME" ]; then
-    echo "Package $PKG_NAME is already installed."
-    echo "Use 'sage -f $PKG_BASE' to force a reinstallation."
-    # Touch installed file such that "make" considers it up-to-date.
-    touch "$SAGE_SPKG_INST/$PKG_NAME"
-    exit 0
-fi
-
 # If we haven't found the package yet, we must download it
 if [ ! -f "$PKG_SRC" ]; then
     if [ -n "$PKG_NAME_UPSTREAM" ]; then
@@ -340,15 +321,6 @@ if [ ! -f "$PKG_SRC" ]; then
                 echo >&2 "       Try 'sage --package list' to see the available packages"
 		echo >&2 "       $(sage-package apropos $PKG_NAME)"
                 exit 1
-            fi
-
-            # Check a second time whether the package is already installed.
-            if [ $INFO -eq 0 -a $FORCE -eq 0 -a -f "$SAGE_SPKG_INST/$PKG_NAME" ]; then
-                echo "Package $PKG_NAME is already installed."
-                echo "Use 'sage -f $PKG_BASE' to force a reinstallation."
-                # Touch installed file such that "make" considers it up-to-date.
-                touch "$SAGE_SPKG_INST/$PKG_NAME"
-                exit 0
             fi
         fi
 
@@ -438,7 +410,7 @@ if [ ! -w "$SAGE_BUILD_DIR" ]; then
     exit 1
 fi
 if [ ! -d "$SAGE_LOCAL" ]; then
-    # If you just unpack Sage and run "sage -f <pkg>" then local does not yet exist
+    # If you just unpack Sage and run "sage -p <pkg>" then local does not yet exist
     mkdir "$SAGE_LOCAL"
 fi
 if [ ! -w "$SAGE_LOCAL" ]; then

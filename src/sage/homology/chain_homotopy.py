@@ -156,7 +156,7 @@ class ChainHomotopy(SageObject):
             sage: H = ChainHomotopy(H_d, f, g)
             Traceback (most recent call last):
             ...
-            AssertionError: the chain maps are not compatible
+            ValueError: the chain maps are not compatible
         """
         domain = f._domain
         codomain = f._codomain
@@ -168,8 +168,9 @@ class ChainHomotopy(SageObject):
                 codomain.degree_of_differential()), 'the chain complexes are not compatible'
         if g:
             # Check that the chain maps are compatible.
-            assert (domain == g._domain and codomain ==
-                    g._codomain), 'the chain maps are not compatible'
+            if not (domain == g._domain and codomain ==
+                    g._codomain):
+                raise ValueError('the chain maps are not compatible')
             # Check that the data define a chain homotopy.
             for i in domain.differential():
                 if i in matrices and i+deg in matrices:
@@ -232,9 +233,7 @@ class ChainHomotopy(SageObject):
             sage: H.is_algebraic_gradient_vector_field()
             False
         """
-        try:
-            assert self._domain == self._codomain
-        except AssertionError:
+        if self._domain != self._codomain:
             return False
         deg = self._domain.degree_of_differential()
         matrices = self._matrix_dictionary
@@ -420,7 +419,7 @@ class ChainContraction(ChainHomotopy):
             sage: H = ChainContraction({0: zero_matrix(ZZ, 0, 1), 1: zero_matrix(ZZ, 1), 2: identity_matrix(ZZ, 1)}, pi, iota)
             Traceback (most recent call last):
             ...
-            AssertionError: the chain maps are not composable
+            ValueError: the chain maps are not composable
 
         `\iota` is okay, but wrong data defining `H`::
 
@@ -428,13 +427,14 @@ class ChainContraction(ChainHomotopy):
             sage: H = ChainContraction({0: zero_matrix(ZZ, 0, 1), 1: identity_matrix(ZZ, 1), 2: identity_matrix(ZZ, 1)}, pi, iota)
             Traceback (most recent call last):
             ...
-            AssertionError: not an algebraic gradient vector field
+            ValueError: not an algebraic gradient vector field
         """
         from sage.matrix.constructor import identity_matrix
         from chain_complex_morphism import ChainComplexMorphism
 
-        assert (pi._domain == iota._codomain
-                and pi._codomain == iota._domain), 'the chain maps are not composable'
+        if not (pi._domain == iota._codomain
+                and pi._codomain == iota._domain):
+            raise ValueError('the chain maps are not composable')
         C = pi._domain
         D = pi._codomain
         base_ring = C.base_ring()
@@ -454,7 +454,8 @@ class ChainContraction(ChainHomotopy):
         # - `H` is a chain homotopy between `id_C` and `\iota \pi`
         # - `HH = 0`
         ChainHomotopy.__init__(self, matrices, id_C, iota * pi)
-        assert self.is_algebraic_gradient_vector_field(), 'not an algebraic gradient vector field'
+        if not self.is_algebraic_gradient_vector_field():
+            raise ValueError('not an algebraic gradient vector field')
         # Check that `\pi H = 0`:
         deg = C.degree_of_differential()
         for i in matrices:

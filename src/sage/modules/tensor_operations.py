@@ -168,6 +168,13 @@ class VectorCollection(FreeModule_ambient_field):
         True
     """
     def __init__(self, vector_collection, base_ring, dim):
+        """
+        EXAMPLES::
+
+            sage: from sage.modules.tensor_operations import VectorCollection
+            sage: VectorCollection([(1,0), (4,1), (1,2)], QQ, 2)
+            Vector space of dimension 2 over Rational Field
+        """
         super(VectorCollection, self).__init__(base_ring, dim)
         self._n_vectors = len(vector_collection)
         self._vectors = tuple(self(r) for r in vector_collection)
@@ -252,6 +259,15 @@ class TensorOperation(VectorCollection):
         ((1, 0), (-1, 0), (1, 2), (-1, -2))
     """
     def __init__(self, vector_collections, operation='product'):
+        """
+        EXAMPLES::
+
+            sage: from sage.modules.tensor_operations import VectorCollection, TensorOperation
+            sage: R = VectorCollection([(1,0), (5,2), (-1,-2)], QQ, 2)
+            sage: S = VectorCollection([(1,), (-1,)], QQ, 1)
+            sage: TensorOperation([S, R])
+            Vector space of dimension 2 over Rational Field
+        """
         assert all(isinstance(V, VectorCollection) for V in vector_collections)
         self._base_ring = base_ring = vector_collections[0].base_ring()
         assert all(V.base_ring() is base_ring for V in vector_collections)

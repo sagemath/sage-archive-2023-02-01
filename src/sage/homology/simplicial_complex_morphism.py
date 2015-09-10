@@ -624,3 +624,64 @@ class SimplicialComplexMorphism(SageObject):
             for i in range(facet.dimension()+1):
                 facets.append(tuple(left[:i+1]+right[i:]))
         return simplicial_complex.SimplicialComplex(facets)
+
+    def induced_homology_morphism(self, base_ring=None, cohomology=False):
+        """The map in (co)homology induced by this map
+
+        INPUTS:
+
+        - ``base_ring`` -- must be a field (optional, default ``QQ``)
+
+        - ``cohomology`` -- boolean (optional, default ``False``). If
+          ``True``, the map induced in cohomology rather than homology.
+
+        EXAMPLES::
+
+            sage: S = simplicial_complexes.Sphere(1)
+            sage: T = S.product(S, is_mutable=False)
+            sage: H = Hom(S,T)
+            sage: diag = H.diagonal_morphism()
+            sage: h = diag.induced_homology_morphism(QQ)
+            sage: h
+            Homology morphism induced by Simplicial complex morphism {0: 'L0R0', 1: 'L1R1', 2: 'L2R2'} from Simplicial complex with vertex set (0, 1, 2) and facets {(1, 2), (0, 2), (0, 1)} to Simplicial complex with 9 vertices and 18 facets
+
+        We can view the matrix form for the homomorphism::
+
+            sage: h.to_matrix(0)
+            [1]
+            sage: h.to_matrix(1)
+            [ 2]
+            [-1]
+
+        We can evaluate it on (co)homology classes::
+
+            sage: coh = diag.induced_homology_morphism(QQ, cohomology=True)
+            sage: coh.to_matrix(1)
+            [1 1]
+            sage: x,y = T.cohomology_with_basis(1, QQ).basis()
+            sage: coh(x)
+            h^{1,0}
+            sage: coh(2*x+3*y)
+            5*h^{1,0}
+
+        Note that the complexes must be immutable for this to
+        work. Many, but not all, complexes are immutable when
+        constructed::
+
+            sage: S.is_immutable()
+            True
+            sage: S.barycentric_subdivision().is_immutable()
+            False
+            sage: S2 = S.suspension()
+            sage: S2.is_immutable()
+            False
+            sage: h = Hom(S,S2)({0: 0, 1:1, 2:2}).induced_homology_morphism()
+            Traceback (most recent call last):
+            ...
+            ValueError: the domain and codomain complexes must be immutable
+            sage: S2.set_immutable(); S2.is_immutable()
+            True
+            sage: h = Hom(S,S2)({0: 0, 1:1, 2:2}).induced_homology_morphism()
+        """
+        from homology_morphism import InducedHomologyMorphism
+        return InducedHomologyMorphism(self, base_ring, cohomology)

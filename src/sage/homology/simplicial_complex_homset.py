@@ -119,7 +119,9 @@ class SimplicialComplexHomset(sage.categories.homset.Homset):
         """
 
         if self._codomain == self._domain.product(self._domain,rename_vertices=rename_vertices):
-            X = self._domain.product(self._domain,rename_vertices=rename_vertices)
+            # Preserve whether the codomain is mutable when renaming the vertices.
+            mutable = self._codomain.is_mutable()
+            X = self._domain.product(self._domain,rename_vertices=rename_vertices, is_mutable=mutable)
             f = dict()
             if rename_vertices:
                 for i in self._domain.vertices().set():

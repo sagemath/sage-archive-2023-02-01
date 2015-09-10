@@ -340,9 +340,10 @@ class HomologyVectorSpaceWithBasis(CombinatorialFreeModule):
             """
             complex = self.parent().complex()
             base_ring = self.base_ring()
-            assert (complex == other.parent().complex()
+            if not (complex == other.parent().complex()
                     and self.parent()._cohomology
-                    and other.parent()._cohomology), 'these are not cohomology classes from the same complex'
+                    and other.parent()._cohomology):
+                raise ValueError('these are not cohomology classes from the same complex')
             deg_left = self.parent().degree()
             deg_right = other.parent().degree()
             deg_tot = deg_left + deg_right

@@ -743,7 +743,8 @@ class GenericCellComplex(SageObject):
         if not isinstance(self, (CubicalComplex, SimplicialComplex)):
             raise NotImplementedError('only implemented for simplicial and cubical complexes')
         try:
-            assert self.is_immutable(), 'the complex must be immutable'
+            if not self.is_immutable():
+                raise ValueError('the complex must be immutable')
         except AttributeError:
             # Cubical complexes don't have an is_immutable method, and
             # they are always immutable.
@@ -1172,12 +1173,13 @@ class Chains(CombinatorialFreeModule):
                 sage: c.eval(c) # can't evaluate a cochain on a cochain
                 Traceback (most recent call last):
                 ...
-                AssertionError: the elements are not compatible
+                ValueError: the elements are not compatible
             """
             if self.parent()._cochains:
-                assert (other.parent().indices() == self.parent().indices()
+                if not (other.parent().indices() == self.parent().indices()
                         and other.base_ring() == self.base_ring()
-                        and not other.parent()._cochains), 'the elements are not compatible'
+                        and not other.parent()._cochains):
+                    raise ValueError('the elements are not compatible')
                 result = sum(coeff * other.coefficient(cell) for cell, coeff in self)
                 return result
             else:

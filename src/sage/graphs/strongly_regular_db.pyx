@@ -1091,6 +1091,28 @@ def SRG_196_91_42_42():
     G.relabel()
     return G
 
+def SRG_220_84_38_28():
+    r"""
+    Return a `(280, 135, 70, 60)`-strongly regular graph.
+
+    This graph is obtained from the
+    :meth:`~IncidenceStructure.intersection_graph` of a
+    :func:`~sage.combinat.designs.database.BIBD_45_9_8`. This construction
+    appears in VII.11.2 from [DesignHandbook]_
+
+    EXAMPLE::
+
+        sage: from sage.graphs.strongly_regular_db import SRG_220_84_38_28
+        sage: g=SRG_220_84_38_28()
+        sage: g.is_strongly_regular(parameters=True)
+        (220, 84, 38, 28)
+    """
+    from sage.combinat.designs.database import BIBD_45_9_8
+    from sage.combinat.designs.incidence_structures import IncidenceStructure
+    G = IncidenceStructure(BIBD_45_9_8()).intersection_graph(3)
+    G.relabel()
+    return G
+
 def SRG_280_135_70_60():
     r"""
     Return a strongly regular graph with parameters (280, 135, 70, 60).
@@ -1930,6 +1952,7 @@ def strongly_regular_graph(int v,int k,int l,int mu=-1,bint existence=False,bint
         (175,  72,  20, 36): [SRG_175_72_20_36],
         (176, 105,  68, 54): [SRG_176_105_68_54],
         (196,  91,  42, 42): [SRG_196_91_42_42],
+        (220,  84,  38, 28): [SRG_220_84_38_28],
         (231,  30,   9,  3): [CameronGraph],
         (243, 220, 199,200): [SRG_243_220_199_200],
         (253, 140,  87, 65): [SRG_253_140_87_65],

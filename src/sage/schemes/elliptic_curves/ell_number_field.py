@@ -2463,7 +2463,7 @@ class EllipticCurve_number_field(EllipticCurve_field):
             sage: E == loads(dumps(E))
             True
             sage: E.gens()
-            [(0 : 0 : 1), (1/8*a + 5/8 : -3/16*a - 7/16 : 1)]
+            [(-2 : 1/2*a - 1/2 : 1), (0 : 0 : 1)]
 
         It can happen that no points are found if the height bounds
         used in the search are too small (see :trac:`10745`)::
@@ -2475,23 +2475,12 @@ class EllipticCurve_number_field(EllipticCurve_field):
             sage: E.rank(), E.gens()  # long time (about 3 s)
             (1, [(9/25*y^2 + 26/25 : -229/125*y^3 - 67/25*y^2 - 731/125*y - 213/25 : 1)])
 
-        Here is a curve of rank 2, yet the list contains many points::
+        Here is a curve of rank 2::
 
             sage: K.<t> = NumberField(x^2-17)
             sage: E = EllipticCurve(K,[-4,0])
             sage: E.gens()
-            [(-1/2*t + 1/2 : -1/2*t + 1/2 : 1),
-            (-2*t + 8 : -8*t + 32 : 1),
-            (1/2*t + 3/2 : -1/2*t - 7/2 : 1),
-            (-1/8*t - 7/8 : -1/16*t - 23/16 : 1),
-            (1/8*t - 7/8 : -1/16*t + 23/16 : 1),
-            (t + 3 : -2*t - 10 : 1),
-            (2*t + 8 : -8*t - 32 : 1),
-            (1/2*t + 1/2 : -1/2*t - 1/2 : 1),
-            (-1/2*t + 3/2 : -1/2*t + 7/2 : 1),
-            (t + 7 : -4*t - 20 : 1),
-            (-t + 7 : -4*t + 20 : 1),
-            (-t + 3 : -2*t + 10 : 1)]
+            [(-16/17 : 120/289*t : 1), (-2/17 : 48/289*t : 1)]
             sage: E.rank()
             2
 
@@ -2507,11 +2496,16 @@ class EllipticCurve_number_field(EllipticCurve_field):
 
         IMPLEMENTATION:
 
-        Uses Denis Simon's PARI/GP scripts from
-        http://www.math.unicaen.fr/~simon/.
+        For curves over quadratic fields which are base-changes from
+        `\QQ`, we delegate the work to :meth:`gens_quadratic` where
+        methods over `\QQ` suffice.  Otherwise, we use Denis Simon's
+        PARI/GP scripts from http://www.math.unicaen.fr/~simon/.
         """
-        _ = self.simon_two_descent(**kwds)
-        return self._known_points
+        try:
+            return self.gens_quadratic(**kwds)
+        except ValueError:
+            _ = self.simon_two_descent(**kwds)
+            return self._known_points
 
     def period_lattice(self, embedding):
         r"""
@@ -3312,8 +3306,8 @@ class EllipticCurve_number_field(EllipticCurve_field):
             sage: E = EllipticCurve(K, '37')
             sage: E.lll_reduce(E.gens())
             (
-                                                    [ 1 -1]
-            [(0 : 0 : 1), (-2 : -1/2*a - 1/2 : 1)], [ 0  1]
+                                                   [0 1]
+            [(0 : 0 : 1), (-2 : 1/2*a - 1/2 : 1)], [1 0]
             )
 
         ::
@@ -3555,409 +3549,458 @@ class EllipticCurve_number_field(EllipticCurve_field):
                          % (field,self.base_field()))
 
 
-    def saturation(self, points, verbose=False, max_prime=0, odd_primes_only=False, reg_bound=None, reg=None, debug=False):
-       r"""
-       Given a list of K-rational points on E, compute the saturation in
-       E(K) of the subgroup they generate.
+    def saturation(self, points, verbose=False,
+                   max_prime=0, one_prime=0, odd_primes_only=False,
+                   lower_ht_bound=None, reg=None, debug=False):
+        r"""
+        Given a list of K-rational points on E, compute the saturation in
+        E(K) of the subgroup they generate.
 
-       INPUT:
+        INPUT:
 
+        -  ``points (list)`` - list of points on E
 
-       -  ``points (list)`` - list of points on E
+        -  ``verbose (bool)`` - (default: False), if True, give
+        verbose output
 
-       -  ``verbose (bool)`` - (default: False), if True, give
-          verbose output
+        -  ``max_prime (int)`` - (default: 0), saturation is
+        performed for all primes up to max_prime. If max_prime==0,
+        perform saturation at *all* primes, i.e., compute the true
+        saturation.
 
-       -  ``max_prime (int)`` - (default: 0), saturation is
-          performed for all primes up to max_prime. If max_prime==0,
-          perform saturation at *all* primes, i.e., compute the true
-          saturation.
+        -  ``odd_primes_only (bool)`` - (default: False), only do saturation
+        at odd primes
 
-       -  ``odd_primes_only (bool)`` - (default: False), only do saturation
-          at odd primes
+        - ``one_prime (int)`` - (default: 0), if nonzero, only do
+        saturation at this prime
 
-       The following two inputs are optional, and may be provided to speed
-       up the computation.
+        The following two inputs are optional, and may be provided to speed
+        up the computation.
 
-       -  ``reg_bound (real)`` - (default: None), lower bound in the
-          regulator E(K), if known
+        -  ``lower_ht_bound (real)`` - (default: None), lower bound of the
+        regulator E(K), if known
 
-       -  ``reg (real)`` - (default: None), regulator of the span of points,
-          if known
+        -  ``reg (real)`` - (default: None), regulator of the span of points,
+        if known
 
-       - ``debug (int)`` - (default: 0), used for debugging and testing
+        - ``debug (int)`` - (default: 0), used for debugging and testing
 
+        OUTPUT:
 
-       OUTPUT:
+        -  ``saturation (list)`` - points that form a basis for
+        the saturation
 
+        -  ``index (int)`` - the index of the group generated
+        by the input points in their saturation
 
-       -  ``saturation (list)`` - points that form a basis for
-          the saturation
+        -  ``regulator (real with default precision or None)`` -
+        regulator of saturated points
 
-       -  ``index (int)`` - the index of the group generated
-          by points in their saturation
-
-       -  ``regulator (real with default precision or None)`` -
-          regulator of saturated points
-
-       EXAMPLES::
-
-           sage: K.<i> = QuadraticField(-1)
-           sage: E = EllipticCurve('389a')
-           sage: P,Q = E.gens()
-           sage: EK = E.change_ring(K)
-
-           sage: EK.saturation([2*P], max_prime=2)
-           ([(-1 : 1 : 1)], 2, 0.686667083306)
-           sage: EK.saturation([12*P], max_prime=2)
-           ([(26/361 : -5720/6859 : 1)], 4, 6.18000374975)
-           sage: EK.saturation([12*P], reg_bound=0.1)
-           ([(-1 : 1 : 1)], 12, 0.686667083306)
-
-           sage: EK.saturation([2*P, Q], max_prime=2)
-           ([(-1 : 1 : 1), (0 : -1 : 1)], 2, 0.152460177943)
-           sage: EK.saturation([P+Q, P-Q], reg_bound=.1, debug=2)
-           ([(4 : 8 : 1), (-1 : 1 : 1)], 2, 0.152460177943)
-           sage: EK.saturation([P+Q, 17*Q], reg_bound=0.1)
-           ([(4 : 8 : 1), (0 : -1 : 1)], 17, 0.152460177943)
-
-           sage: P, Q, R = EK.gens()
-           sage: print P, Q, R
-           (-1 : 1 : 1) (0 : -1 : 1) (i - 2 : -i - 3 : 1)
-           sage: EK.saturation([P+Q, Q+R, R+P], reg_bound=0.1)
-           ([(4 : 8 : 1), (-1/25*i + 18/25 : -69/125*i - 58/125 : 1), (841/1369*i - 171/1369 : 41334/50653*i - 74525/50653 : 1)], 2, 0.103174443217)
-           sage: EK.saturation([26*R], reg_bound=0.1)
-           ([(i - 2 : -i - 3 : 1)], 26, 1.06438645309)
-
-       Another number field::
-
-           sage: E = EllipticCurve('389a')
-           sage: P, Q = E.gens()
-           sage: K.<a> = NumberField(x^3-x+1)
-           sage: EK = E.change_ring(K)
-           sage: EK.saturation([P+Q, P-Q], reg_bound=0.1)
-           ([(4 : 8 : 1), (-1 : 1 : 1)], 2, 0.152460177943)
-           sage: EK.saturation([3*P, P+5*Q], reg_bound=0.1)
-           ([(-1 : 1 : 1), (4 : 8 : 1)], 15, 0.152460177943)
-
-       A different curve::
-
-           sage: K.<a> = QuadraticField(3)
-           sage: E = EllipticCurve('37a')
-           sage: EK = EllipticCurve('37a').change_ring(K)
-           sage: P, Q = EK.gens()
-           sage: EK.saturation([3*P-Q, 3*P+Q], reg_bound=.01)
-           ([(1/2*a : 1/4*a - 3/4 : 1), (0 : -1 : 1)], 6, 0.0317814530726)
-
-       The points must be linearly independent::
-
-           sage: EK.saturation([2*P, 3*Q, P-Q])
-           Traceback (most recent call last):
-           ...
-           ValueError: points not linearly independent
-
-       Degenerate case::
-
-           sage: EK.saturation([])
-           ([], 1, 1.00000000000000)
-
-       ALGORITHM:
-
-           For rank 1 subgroups, simply do trial divison up to the maximal
-           prime divisor. For higher rank subgroups, perform trial divison
-           on all linear combinations for small primes, and look for
-           projections $E(K) \rightarrow \oplus E(k) \otimes \FF_p$ which 
-           are either full rank or provide p-divisble linear combinations, 
-           where the $k$ here are residue fields of $K$.
-
-       TESTS::
-
-           sage: K.<i> = QuadraticField(-1)
-           sage: E = EllipticCurve('389a')
-           sage: P,Q = E.gens()
-           sage: EK = E.change_ring(K)
-
-           sage: EK.saturation([P+Q, P-Q], reg_bound=.1, debug=2)
-           ([(4 : 8 : 1), (-1 : 1 : 1)], 2, 0.152460177943)
-           sage: EK.saturation([5*P+6*Q, 5*P-3*Q], reg_bound=.1)
-           ([(-1696464703914542290/25600964182280974369 : -145311084734320503143074826065/129534210658407920857712927153 : 1), (4 : 8 : 1)], 45, 0.152460177943)
-           sage: EK.saturation([5*P+6*Q, 5*P-3*Q], reg_bound=.1, debug=2)
-           ([(-1696464703914542290/25600964182280974369 : -145311084734320503143074826065/129534210658407920857712927153 : 1), (4 : 8 : 1)], 45, 0.152460177943)
-           """
-       # This code does a lot of residue field construction and elliptic curve
-       # group structure computations, and would benifit immensly if those
-       # were sped up. 
-       full_saturation = max_prime == 0
-       span = [self(P) for P in points]
-       n = len(span)
-
-       if len(span) == 0:
-           return span, ZZ(1), RR(1)
-
-       if reg is None:
-           mat = matrix(RDF, n)
-           heights = [P.height() for P in span]
-           for i in range(n):
-               for j in range(n):
-                   if i == j:
-                       mat[i,j] = heights[i]
-                   else:
-                       mat[i,j] = mat[j,i] = ((span[i] + span[j]).height() - heights[i] - heights[j])/2
-           reg = mat.det()
-           if reg / min(heights) < 1e-6:
-               raise ValueError, "points not linearly independent"
-
-       if full_saturation:
-           if reg_bound is None:
-               # TODO: Hmm... verify this for rank > 1
-               reg_bound = self.height_function().min(.1, 5) ** n
-           bound = (reg/reg_bound).sqrt()
-           prime_list = prime_range(bound.ceil() + 1)
-           if verbose:
-               print "Testing primes up to", prime_list[-1]
-       else:
-           prime_list = prime_range(max_prime+1)
-       if odd_primes_only and 2 in prime_list:
-           prime_list.remove(2)
-
-       index = ZZ(1)
-
-       if len(span) == 1:
-           # Rank one, trial division.
-           P = span[0]
-           for p in prime_list:
-               if full_saturation and p > bound / index:
-                   break
-               division_points = P.division_points(p)
-               while division_points:
-                   if verbose:
-                       print "    divisible by", p
-                   P = division_points[0]
-                   index *= p
-                   division_points = P.division_points(p)
-           return [P], index, reg / index**2
-
-       else:
-
-           # For small enough primes, attempt trial division on all
-           # (normalized) linear combinations.
-           small_primes = [p for p in prime_list if p==2 or p**n < 100]
-           from sage.groups.generic import multiples
-           if small_primes and debug < 2:
-               if verbose:
-                   print "Trial divison for", small_primes
-               max_small_prime = max(small_primes)
-               while True:
-                   found_divisor = False
-                   lin_combs = {(0,) * n: self(0)}
-                   for i, P in reversed(list(enumerate(span))):
-                       mults = multiples(P, max_small_prime)
-                       for key, val in lin_combs.items():
-                           is_first = sum(key) == 0
-                           lin_comb = list(key)
-                           for j, jP in enumerate(mults):
-                               if j == 0: continue
-                               lin_comb[i] = j
-                               lin_combs[tuple(lin_comb)] = val + jP
-                               if is_first: break # The *last* non-zero entry is always 1.
-
-                   for p in small_primes:
-                       for v in GF(p)**n:
-                           if v == 0: continue
-                           if v[v.nonzero_positions()[-1]] != 1: continue
-                           divisors = lin_combs[tuple(v)].division_points(p)
-                           if divisors:
-                               if verbose:
-                                   print "    divisible by", p
-                               span[v.nonzero_positions()[-1]] = divisors[0]
-                               found_divisor = True
-                               index *= p
-                               if full_saturation:
-                                   prime_list = [p for p in prime_list if p <= bound/index]
-                                   small_primes = [p for p in small_primes if p in prime_list]
-                               break
-                       if found_divisor:
-                           # recompute lin_combs
-                           break
-
-                   if not found_divisor:
-                       # went through lin_combs for all p, exit main while loop
-                       if verbose:
-                           print "    saturated at", small_primes
-                       for p in small_primes:
-                           prime_list.remove(p)
-                       break
-
-           # Now compute maps E(K) \oplus F_p -> E(F_q) \oplus F_p.
-           # Perhaps this could be done in parallel with the code above. 
-           K = self.base_ring()
-           D = self.discriminant()
-           all_projections = dict((p, ([], [], set())) for p in prime_list)
-
-           # First define two utility functions.
-           def projection(Ek, p):
-               """
-               Project span onto distinct copies of E(k) \otimes \F_p.
-               """
-               G = Ek.abelian_group() # cached!
-               invs = G.invariants()
-               gens = G.gens()
-               c = invs[0]
-               g = gens[0]
-               if len(invs) == 1:
-                   cc = c
-               else:
-                   cc = c // invs[1]
-               if not p.divides(cc):
-                   return None
-               cofactor = c // p
-               gg = cofactor * g
-               logs = {}
-               print("p = %s" % p)
-               print("gg = %s with order %s" % (gg,gg.order()))
-               for j, jgg in enumerate(multiples(gg, p)):
-                   logs[jgg] = j
-               print("logs: %s" % logs)
-               v = []
-               for P in span:
-                   try:
-                       Pk = Ek(P)
-                   except ZeroDivisionError:
-                       Pk = Ek(0)
-                   pt = cofactor*Pk
-                   print("looking up %s" % pt)
-                   print("log is %s" % logs[pt])
-                   v.append(logs[cofactor * Pk])
-               return vector(GF(p), v)
-
-           def verify_independence(p):
-               """
-               Verifies that there are no mod p linear dependancies coming
-               from the projections down to each E(k).
-               """
-               index = 1
-               projections, proj_primes, faux_combs = all_projections[p]
-               if len(projections) < n:
-                   return 1
-
-               m = matrix(projections).transpose()
-               if m.rank() == n:
-                   prime_list.remove(p)
-                   del all_projections[p]
-                   if verbose:
-                       if len(prime_list) < 10:
-                           prime_list_str = str(prime_list)
-                       else:
-                           prime_list_str = str(prime_list[:5] + ["..."] + prime_list[-3:])
-                       print "saturated at", p, "(remaining %s)" % prime_list_str
-                   return 1
-
-               for v in m.left_kernel().gens():
-                   v.set_immutable()
-                   if v in faux_combs:
-                       continue
-                   faux_combs.add(v)
-                   Q = sum(int(a)*P for a, P in zip(v, span))
-                   divisors = Q.division_points(p)
-                   if divisors:
-                       if verbose:
-                           print "    divisible by", p
-                       replaced = v.nonzero_positions()[-1]
-                       v /= v[replaced] # normalize
-                       Q = sum(int(a)*P for a, P in zip(v, span) if a)
-                       span[replaced] = Q.division_points(p)[0]
-                       # We have to fix all the other projections...
-                       for other_p, (proj, proj_primes, faux_combs) in all_projections.items():
-                           faux_combs.clear()
-                           if other_p == p:
-                               proj = []
-                               for pp in proj_primes:
-                                   proj.append(projection(self.reduction(pp), p))
-                           else:
-                               inv_p = 1/GF(other_p)(p)
-                               for other_v in proj:
-                                   other_v[replaced] = inv_p * sum(int(a)*b for a,b in zip(v, other_v))
-                       return p * verify_independence(p)
-
-               return 1
-
-           # Now we enter the actual loop.
-           proj_count = 0
-           curve_count = 0
-           for rat_p in primes(3, 1e9):
-               for pp, e in K.factor(rat_p):
-                   if not prime_list:
-                       if verbose:
-                           print "searched up to p =", rat_p, ", %s curves (%s used)" % (curve_count, proj_count)
-                       return span, index, reg / index**2
-                   if pp.divides(D):
-                       continue
-                   if verbose > 1:
-                       print "rat_p", rat_p, "prime_list", prime_list, "count %s (%s)" % (curve_count, proj_count)
-                   Ek = self.reduction(pp)
-                   curve_count += 1
-                   for p in prime_list:
-                       v = projection(Ek, p)
-                       if v is not None:
-                           proj_count += 1
-                           projections, proj_primes, faux_combs = all_projections[p]
-                           projections.append(v)
-                           proj_primes.append(pp)
-                           old_index = index
-                           index *= verify_independence(p)
-                           if full_saturation and index != old_index:
-                               for p in prime_list[:]:
-                                   if p > bound / index:
-                                       del all_projections[p]
-                                       prime_list.remove(p)
-
-    def gens(self, **kwds):
-        """
-        Compute and return generators for the Mordell-Weil group E(K)
-        *modulo* torsion. Only implemented for K quadratic, E defined over Q.  
-        Any keyword arguments are passed on to E(Q).gens().
- 
         EXAMPLES::
- 
+
+            sage: K.<i> = QuadraticField(-1)
+            sage: E = EllipticCurve('389a')
+            sage: P,Q = E.gens()
+            sage: EK = E.change_ring(K)
+
+            sage: EK.saturation([2*P], max_prime=2)
+            ([(-1 : 1 : 1)], 2, 0.686667083305587)
+            sage: EK.saturation([12*P], max_prime=2)
+            ([(26/361 : -5720/6859 : 1)], 4, 6.18000374975028)
+            sage: EK.saturation([12*P], lower_ht_bound=0.1)
+            ([(-1 : 1 : 1)], 12, 0.686667083305587)
+
+            sage: EK.saturation([2*P, Q], max_prime=2)
+            ([(-1 : 1 : 1), (0 : 0 : 1)], 2, 0.152460177943144)
+            sage: EK.saturation([P+Q, P-Q], lower_ht_bound=.1, debug=2)
+            ([(-1 : 1 : 1), (4 : 8 : 1)], 2, 0.152460177943144)
+            sage: EK.saturation([P+Q, 17*Q], lower_ht_bound=0.1)
+            ([(1 : 0 : 1), (0 : 0 : 1)], 17, 0.152460177943144)
+
+            sage: P, Q, R = EK.gens()
+            sage: print P, Q, R
+            (i + 1 : -2*i - 1 : 1) (-1 : 1 : 1) (0 : 0 : 1)
+            sage: EK.saturation([P+Q, Q+R, R+P], lower_ht_bound=0.1)
+            ([(-5*i : -9*i - 8 : 1), (1 : 0 : 1), (1/2*i : 3/4*i - 5/4 : 1)],
+             2,
+             0.103174443217351)
+            sage: EK.saturation([26*R], lower_ht_bound=0.1)
+            ([(0 : 0 : 1)], 26, 0.327000773651605)
+
+        Another number field::
+
+            sage: E = EllipticCurve('389a')
+            sage: P, Q = E.gens()
+            sage: K.<a> = NumberField(x^3-x+1)
+            sage: EK = E.change_ring(K)
+            sage: EK.saturation([P+Q, P-Q], lower_ht_bound=0.1)
+            ([(-1 : 1 : 1), (4 : 8 : 1)], 2, 0.152460177943144)
+            sage: EK.saturation([3*P, P+5*Q], lower_ht_bound=0.1)
+            ([(-14/25 : -216/125 : 1), (445/49 : -9955/343 : 1)], 15, 0.152460177943144)
+
+        A different curve::
+
+            sage: K.<a> = QuadraticField(3)
             sage: E = EllipticCurve('37a')
-            sage: E.change_ring(QuadraticField(-1, 'i')).gens()
-            [(0 : -1 : 1)]
-            sage: E.change_ring(QuadraticField(3, 'i')).gens()
-            [(0 : -1 : 1), (-i + 2 : 2*i - 4 : 1)]
- 
-            sage: K.<a> = QuadraticField(-7)
-            sage: EllipticCurve('11a').change_ring(K).gens()
-            [(-6 : -11/2*a - 1/2 : 1)]
-            sage: EllipticCurve('389a').change_ring(K).gens()
-            [(-1 : 1 : 1), (0 : -1 : 1), (1/8*a + 5/8 : -5/16*a - 9/16 : 1)]
- 
-            sage: E = EllipticCurve([1, a])
-            sage: E.gens()
+            sage: EK = EllipticCurve('37a').change_ring(K)
+            sage: P, Q = EK.gens()
+            sage: EK.saturation([3*P-Q, 3*P+Q], lower_ht_bound=.01)
+            ([(a + 2 : 2*a + 3 : 1),
+            (-8820833592677/3284478409969*a + 13569900067225/3284478409969 : 43082636045850669307/5952502920606148297*a - 82320003668904640054/5952502920606148297 : 1)],
+            6,
+            0.0317814530725985)
+
+        The points must be linearly independent::
+
+            sage: EK.saturation([2*P, 3*Q, P-Q])
             Traceback (most recent call last):
             ...
-            NotImplementedError
+            ValueError: points not linearly independent in saturation()
+
+        Degenerate case::
+
+            sage: EK.saturation([])
+            ([], 1, 1.00000000000000)
+
+        ALGORITHM:
+
+        For rank 1 subgroups, simply do trial divison up to the maximal
+        prime divisor. For higher rank subgroups, perform trial divison
+        on all linear combinations for small primes, and look for
+        projections $E(K) \rightarrow \oplus E(k) \otimes \FF_p$ which
+        are either full rank or provide p-divisble linear combinations,
+        where the $k$ here are residue fields of $K$.
+
+        TESTS::
+
+            sage: K.<i> = QuadraticField(-1)
+            sage: E = EllipticCurve('389a')
+            sage: P,Q = E.gens()
+            sage: EK = E.change_ring(K)
+
+            sage: EK.saturation([P+Q, P-Q], lower_ht_bound=.1, debug=2)
+            ([(-1 : 1 : 1), (4 : 8 : 1)], 2, 0.152460177943144)
+            sage: EK.saturation([5*P+6*Q, 5*P-3*Q], lower_ht_bound=.1)
+            ([(-51/25 : -68/125 : 1),
+            (1433882253389/379703672401 : 1707565715369408803/233973782637168601 : 1)],
+            45,
+            0.152460177943144)
+            sage: EK.saturation([5*P+6*Q, 5*P-3*Q], lower_ht_bound=.1, debug=2)
+            ([(-51/25 : -68/125 : 1),
+            (1433882253389/379703672401 : 1707565715369408803/233973782637168601 : 1)],
+            45,
+            0.152460177943144)
+        """
+        full_saturation = (max_prime == 0) and (one_prime==0)
+        Plist = [self(P) for P in points]
+        n = len(Plist)
+        index = ZZ(1)
+
+        if n == 0:
+            return Plist, index, RealField()(1)
+
+
+        # compute the list of primes p at which p-saturation is
+        # required.
+
+        heights = [P.height() for P in Plist]
+        if reg is None:
+            reg = self.regulator_of_points(Plist)
+        if reg / min(heights) < 1e-6:
+            raise ValueError, "points not linearly independent in saturation()"
+        sat_reg = reg
+
+        if full_saturation:
+            if lower_ht_bound is None:
+                # TODO (robertb): verify this for rank > 1
+                lower_ht_bound = self.height_function().min(.1, 5) ** n
+            index_bound = (reg/lower_ht_bound).sqrt()
+            prime_list = prime_range(index_bound.ceil() + 1)
+            if verbose:
+                print "Testing primes up to", prime_list[-1]
+        else:
+            if one_prime:
+                prime_list = [one_prime]
+            else:
+                prime_list = prime_range(max_prime+1)
+        if odd_primes_only and 2 in prime_list:
+            prime_list.remove(2)
+
+        # Now saturate at each prime in prime_list.  The dict
+        # lin_combs keeps the values of linear combinations of the
+        # points, indexed by coefficient tuples, for efficiency; it is
+        # rest whenever the point list changes.
+
+        lin_combs = dict()
+        for p in prime_list:
+            if full_saturation and (p > index_bound): break
+            if verbose:
+                print("Saturating at p=%s" % p)
+            newPlist, expo = full_p_saturation(Plist, p, lin_combs, verbose)
+            if expo:
+                if verbose:
+                    print("...gaining index %s^%s" % (p,expo))
+                pe = p**expo
+                index *= pe
+                if full_saturation: index_bound /= pe
+                sat_reg /= pe**2
+                Plist = newPlist
+            else:
+                if verbose:
+                    print("...already %s-saturated" % p)
+
+        return Plist, index, sat_reg
+
+
+    def gens_quadratic(self, **kwds):
+        """Return generators for the Mordell-Weil group modulo torsion, for a
+        curve which is a base change from `\QQ` to a quadratic field.
+
+        EXAMPLES::
+
+            sage: E = EllipticCurve('37a')
+            sage: E.change_ring(QuadraticField(-1, 'i')).gens_quadratic()
+            [(0 : 0 : 1)]
+            sage: E.change_ring(QuadraticField(3, 'i')).gens_quadratic()
+            [(i + 2 : 2*i + 3 : 1), (1/12 : 17/72*i - 1/2 : 1)]
+
+            sage: K.<a> = QuadraticField(-7)
+            sage: EllipticCurve('11a').change_ring(K).gens_quadratic()
+            [(-6 : 11/2*a - 1/2 : 1)]
+            sage: EllipticCurve('389a').change_ring(K).gens_quadratic()
+            [(1/2*a - 1/2 : 1/2*a - 5/2 : 1), (-1 : 1 : 1), (0 : 0 : 1)]
+
+            sage: E = EllipticCurve([1, a])
+            sage: E.gens_quadratic()
+            Traceback (most recent call last):
+            ...
+            ValueError: gens_quadratic() requires the elliptic curve to be a base change from Q
+
         """
         if not kwds:
             try:
                 return list(self.__gens)
             except AttributeError:
                 pass
- 
-        K = self.base_ring()
-        if K.absolute_degree() == 2:
-            try:
-                E = self.change_ring(QQ)
-            except TypeError:
-                pass
-            else:
-                ED = E.quadratic_twist(K.disc())
-                E_gens = E.gens(**kwds)
-                ED_gens = ED.gens(**kwds)
-                phi = ED.change_ring(K).isomorphism_to(E)
-                EK_span = [self(P) for P in E_gens] + [phi(P) for P in ED_gens]
-                gens = self.saturation(EK_span, max_prime=2)[0]
-                if not kwds:
-                    self.__gens = gens
-                    return gens
-                    raise NotImplementedError
 
+        K = self.base_ring()
+        if K.absolute_degree() != 2:
+            raise ValueError, "gens_quadratic() requires the base field to be quadratic"
+
+        EE = self.descend_to(QQ)
+        if len(EE)==0:
+            raise ValueError, "gens_quadratic() requires the elliptic curve to be a base change from Q"
+
+        # In all cases there are exactly two distinct curves /Q whose
+        # base-change to K is the original.  NB These need not be
+        # quadratic twists of each other!  For example, '32a1' and
+        # '32a2' are not quadratic twists of each other (each is its
+        # own twist by -1) but they become isomorphic over
+        # Q(sqrt(-1)).
+
+        EQ1 = EE[0]
+        EQ2 = EE[1]
+        iso1 = EQ1.change_ring(K).isomorphism_to(self)
+        iso2 = EQ2.change_ring(K).isomorphism_to(self)
+        gens1 = [iso1(P) for P in EQ1.gens(**kwds)]
+        gens2 = [iso2(P) for P in EQ2.gens(**kwds)]
+        gens = self.saturation(gens1+gens2, max_prime=2)[0]
+        self.__gens = gens
+        return gens
+
+def p_saturation(Plist, p, sieve=True, lin_combs = dict(), verbose=False):
+    r""" Checks whether the list of independent points is `p`-saturated.
+
+    INPUT:
+
+    - ``Plist`` (list) - a list of independent points on one elliptic curve
+
+    - ``p`` (integer) - a prime number
+
+    - ``sieve`` (boolean) - if True, use a sieve (when there are at
+      least 2 points); otherwise test all combinations.
+
+    - ``lin_combs`` (dict) - a dict, possibly empty, with keys
+      coefficient tuples and values the corresponding linear
+      combinations of the points in ``Plist``
+
+    .. note::
+
+       The sieve is much more efficient when the points are saturated
+       and the number of points or the prime are large.
+
+    OUTPUT:
+
+    Either (``True``, ``lin_combs``) if the points are `p`-saturated,
+    or (``False``, ``i``, ``newP``) if they are not `p`-saturated, in
+    which case after replacing the i'th point with ``newP``, the
+    subgrouyp generated contains that generated by ``Plist`` with
+    index `p`.  Note that while proving the points `p`-saturated, the
+    ``lin_combs`` dict may have been enlarged, so is returned.
+    """
+    # This code does a lot of residue field construction and elliptic curve
+    # group structure computations, and would benefit immensely if those
+    # were sped up.
+    n = len(Plist)
+    if n==0:
+        return (True, lin_combs)
+
+    if n==1:
+        try:
+            return (False, 0, Plist[0].division_points(p)[0])
+        except IndexError:
+            return (True, lin_combs)
+
+    if not sieve:
+        mults = [list(multiples(P, p)) for P in Plist[:-1]] + [list(multiples(Plist[-1],2))]
+        def lin_comb(vec):
+            return sum([m[c] for m,c in zip(mults,vec)],self(0))
+
+        from sage.schemes.projective.projective_space import ProjectiveSpace
+        for v in ProjectiveSpace(GF(p),n-1): # an iterator
+            w = tuple(int(x) for x in v)
+            try:
+                P = lin_combs[w]
+            except KeyError:
+                P = lin_comb(w)
+                lin_combs[w] = P
+            divisors = P.division_points(p)
+            if divisors:
+                if verbose:
+                    print("  points not saturated at %s, increasing index" % p)
+                # w will certainly have a coordinate equal to 1
+                return (False, w.index(1), divisors[0])
+        # we only get here if no linear combination is divisible by p,
+        # so the points are p-saturated:
+        return (True, lin_combs)
+
+    # Now we use the more sophiticated sieve to either prove
+    # p-saturation, or compute a much smaller list of possible points
+    # to test for p-divisibility:
+
+    E = Plist[1].curve()
+    K = E.base_ring()
+
+    def projections(Q, p):
+        """
+        Project points onto (E mod Q)(K mod Q) \otimes \F_p.
+
+        Returns a list of 0, 1 or 2 vectors in \F_p^n
+        """
+        Ek = E.reduction(Q)
+        G = Ek.abelian_group() # cached!
+
+        if not p.divides(G.order()):
+            return []
+
+        def proj1(pt):
+            try:
+                return Ek(pt)
+            except ZeroDivisionError:
+                return Ek(0)
+
+        projPlist = [proj1(pt) for pt in Plist]
+        ans = []
+        for i,m in enumerate(G.invariants()):
+            if p.divides(m):
+                cof = m//p
+                v = [G.coordinate_vector(cof*pt)[i]//cof for pt in projPlist]
+                ans += [vector(GF(p),v)]
+        return ans
+
+    if verbose:
+        print("Using sieve method to saturate...")
+    A = matrix(GF(p), 0, n)
+    rankA = 0
+    count = 0
+    for Q in K.primes_of_bounded_norm_iter(1000):
+        if E.has_bad_reduction(Q):
+            continue
+        vecs = projections(Q,p)
+        if len(vecs)==0:
+            continue
+        for v in vecs:
+            if verbose:
+                print("...from prime %s, adding row %s" % (Q,v))
+            A = matrix(A.rows()+[v])
+        newrank = A.rank()
+        if verbose:
+            print("After using Q=%s, rank is %s" % (Q, newrank))
+        if newrank==n:
+            if verbose:
+                print("points were %s-saturated" % p)
+            return (True, lin_combs)
+        if newrank == rankA:
+            count+=1
+            if count==10:
+                if verbose:
+                    print("rank same for 10 steps, checking kernel...")
+                # no increase in rank for the last 10 primes Q
+                # find the points in the kernel and call the no-sieve version
+                vecs = A.right_kernel().basis()
+                Rlist = [sum([int(vi)*Pi for vi,Pi in zip(v,Plist)],E(0))
+                         for v in vecs]
+
+                res = p_saturation(Rlist, p, sieve=False, lin_combs = dict(), verbose=verbose)
+                if res[0]: # points really were saturated
+                    if verbose:
+                        print("points were %s-saturated" % p)
+                    return (True, lin_combs)
+                else: # they were not, and Rlist[res[1]] can be
+                      # replaced by res[2] to enlarge the span; we
+                      # need to find a point in Plist which can be
+                      # replaced: any one with a nonzero coordinate in
+                      # the appropriate kernel vector will do.
+                    if verbose:
+                        print("points were not %s-saturated, gaining index %s" % (p,p))
+                    j = (i for i,x in enumerate(vecs[res[1]]) if x).next()
+                    return (False, j, res[2])
+            else: # rank stayed same; carry on using more Qs
+                pass
+        else: # rank went up but is <n; carry on using more Qs
+            rankA = newrank
+            count = 0
+    # We reach here only if using all good primes of norm<1000 the
+    # rank never stuck for 10 consecutive Qs but is still < n.  That
+    # means that n is rather large, or perhaps that E has a large
+    # number of bad primes.  So we fall back to the naive method,
+    # still making use of any partial information aboute the kernel we
+    # have acquired.
+
+    vecs = A.right_kernel().basis()
+    Rlist = [sum([int(vi)*Pi for vi,Pi in zip(v,Plist)],E(0))
+             for v in vecs]
+    res = p_saturation(Rlist, p, sieve=False, lin_combs = dict(), verbose=verbose)
+    if res[0]: # points really were saturated
+        return (True, lin_combs)
+    else:
+        v = list(vecs[res[1]])
+        j = (i for i,x in enumerate(vecs[res[1]]) if x).next()
+        return (False, j, res[2])
+
+def full_p_saturation(Plist, p, lin_combs = dict(), verbose=False):
+    r""" Full `p`-saturation of ``Plist``.
+
+    INPUT:
+
+    - ``Plist`` (list) - a list of independent points on one elliptic curve
+
+    - ``p`` (integer) - a prime number
+
+    - ``lin_combs`` (dict, default null) - a dict, possibly empty,
+      with keys coefficient tuples and values the corresponding linear
+      combinations of the points in ``Plist``
+
+    OUTPUT:
+
+    (``newPlist``, exponent) where ``newPlist`` has the same length as
+    ``Plist`` and spans the `p`-saturation of the span of ``Plist``,
+    which contains that span with index ``p**exponent``.
+    """
+    exponent = 0
+    res = p_saturation(Plist, p, True, lin_combs, verbose)
+    while not res[0]:
+        exponent +=1
+        Plist[res[1]] = res[2]
+        res = p_saturation(Plist, p, True, lin_combs, verbose)
+    return (Plist, exponent)

@@ -914,13 +914,8 @@ or the algebra of `2\times 2` matrices over the finite field
     [0 0]  [1 1]  [1 1]  [1 0]  [0 1]  [1 1]
     [1 1], [1 0], [0 1], [1 1], [1 1], [1 1]
     ]
-
-The command below should return 16, but it is not yet implemented::
-
     sage: C.cardinality()
-    Traceback (most recent call last):
-    ...
-    AttributeError: 'MatrixSpace_with_category' object has no attribute 'cardinality'
+    16
 
 .. topic:: Exercise
 

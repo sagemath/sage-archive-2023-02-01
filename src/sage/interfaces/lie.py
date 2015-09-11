@@ -512,12 +512,16 @@ class LiE(Expect):
         """
         EXAMPLES::
 
-            sage: lie.trait_names() # optional - lie
-            ['Cartan_type',
+            sage: sorted(lie.trait_names()) # optional - lie
+            ['Adams',
+             ...
+             'Cartan_type',
+             ...
              'cent_roots',
              ...
-             'n_comp']
-
+             'n_comp',
+             ...
+             'write']
         """
         if self._trait_names_dict is None:
             self._read_info_files()
@@ -929,7 +933,7 @@ def lie_version():
         sage: lie_version() # optional - lie
         '2.1'
     """
-    f = open(SAGE_LOCAL + 'lib/LiE/INFO.0')
+    f = open(SAGE_LOCAL + '/lib/LiE/INFO.0')
     lines = f.readlines()
     f.close()
     i = lines.index('@version()\n')

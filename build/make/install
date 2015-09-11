@@ -276,9 +276,7 @@ newest_version() {
         echo -n $PKG-
         cat "$SAGE_ROOT/build/pkgs/$PKG/package-version.txt"
     else
-        echo >&2 "Cannot determine latest version of $PKG."
         echo "$PKG"
-        return 1
     fi
 }
 
@@ -300,6 +298,7 @@ newest_version() {
 filtered_packages_list() {
     # for each package in pkgs/
     for DIR in $SAGE_ROOT/build/pkgs/*; do
+        test -d "$DIR" || continue
 
         PKG_TYPE_FILE="$DIR/type"
         if [ -f "$PKG_TYPE_FILE" ]; then
@@ -311,8 +310,12 @@ filtered_packages_list() {
         fi
 
         # Check consistency of 'DIR/type' file
-        if [ "$PKG_TYPE" != "base" ] && [ "$PKG_TYPE" != "standard" ] && [ "$PKG_TYPE" != "optional" ] && [ "$PKG_TYPE" != "experimental" ]; then
-            echo >&2 "The content of \"$PKG_TYPE_FILE\" must be 'base', 'standard', 'optional' or 'experimental'"
+        if [ "$PKG_TYPE" != "base" ] && \
+           [ "$PKG_TYPE" != "standard" ] && \
+           [ "$PKG_TYPE" != "optional" ] && \
+           [ "$PKG_TYPE" != "experimental" ] && \
+           [ "$PKG_TYPE" != "pip" ]; then
+            echo >&2 "The content of \"$PKG_TYPE_FILE\" must be 'base', 'standard', 'optional', 'experimental' or 'pip'"
             return 1
         fi
 
@@ -332,8 +335,10 @@ filtered_packages_list none || exit $?
 echo >&5 "# All Sage packages"
 
 filtered_packages_list all | while read PKG_NAME PKG_VERSION PKG_VAR; do
-    echo >&5 "$PKG_VAR = $PKG_VERSION"
-    echo "$PKG_VAR=$PKG_VERSION"
+    if [ "$PKG_NAME" != "$PKG_VERSION" ]; then
+        echo >&5 "$PKG_VAR = $PKG_VERSION"
+        echo "$PKG_VAR=$PKG_VERSION"
+    fi
 done
 
 cat >&5 <<EOF
@@ -435,26 +440,42 @@ EOF
 # Add a Makefile target corresponding to a given package
 filtered_packages_list all | while read PKG_NAME PKG_VERSION PKG_VAR; do
     DEP_FILE="$SAGE_ROOT/build/pkgs/$PKG_NAME/dependencies"
-    TYPE_FILE="$SAGE_ROOT/build/pkgs/$PKG_NAME/type"
+    TYPE=`cat "$SAGE_ROOT/build/pkgs/$PKG_NAME/type"`
     if [ -f "$DEP_FILE" ]; then
         DEPS=" $(head -n 1 $DEP_FILE)"
-    elif [ x`cat "$TYPE_FILE"` = xoptional ]; then
+    elif [ "$TYPE" = optional ]; then
         DEPS=' | $(STANDARD_PACKAGES)' # default for optional packages
+    elif [ "$TYPE" = pip ]; then
+        DEPS=' | $(INST)/$(PIP)'
     else
         DEPS=""
     fi
-    echo >&5 "\$(INST)/$PKG_VERSION:$DEPS"
-    echo >&5 "	+sage-logger '\$(SAGE_SPKG) \$($PKG_VAR)' '\$(SAGE_LOGS)/\$($PKG_VAR).log'"
-    echo >&5
 
-    # Add a target with just the bare package name for "sage -i"
-    echo >&5 "$PKG_NAME: \$(INST)/\$($PKG_VAR)"
-    echo >&5
+    if [ "$TYPE" = pip ]; then
+        # Special rules using PIP
+        echo >&5 "$PKG_NAME:$DEPS"
+        echo >&5 "	sage-logger 'sage --pip install $PKG_NAME' \$(SAGE_LOGS)/$PKG_NAME.log"
+        echo >&5
 
-    # Add a target to remove the "installed" file for "sage -f"
-    echo >&5 "$PKG_NAME-clean:"
-    echo >&5 "	rm -f \$(INST)/\$($PKG_VAR)"
-    echo >&5
+        # Add a target to remove the "installed" file for "sage -f"
+        echo >&5 "$PKG_NAME-clean:"
+        echo >&5 "	-sage --pip uninstall -y $PKG_NAME"
+        echo >&5
+    else
+        # Normal Sage packages
+        echo >&5 "\$(INST)/$PKG_VERSION:$DEPS"
+        echo >&5 "	+sage-logger '\$(SAGE_SPKG) \$($PKG_VAR)' '\$(SAGE_LOGS)/\$($PKG_VAR).log'"
+        echo >&5
+
+        # Add a target with just the bare package name for "sage -i"
+        echo >&5 "$PKG_NAME: \$(INST)/\$($PKG_VAR)"
+        echo >&5
+
+        # Add a target to remove the "installed" file for "sage -f"
+        echo >&5 "$PKG_NAME-clean:"
+        echo >&5 "	rm -f \$(INST)/\$($PKG_VAR)"
+        echo >&5
+    fi
 done
 
 # Close the Makefile

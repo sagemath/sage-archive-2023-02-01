@@ -479,6 +479,9 @@ def NonisotropicOrthogonalPolarGraph(m, q, sign="+", perp=None):
         sage: g=graphs.NonisotropicOrthogonalPolarGraph(5,5,'-')    # long time
         sage: g.is_strongly_regular(parameters=True)                # long time
         (300, 104, 28, 40)
+        sage: g=graphs.NonisotropicOrthogonalPolarGraph(5,5,'+')    # long time
+        sage: g.is_strongly_regular(parameters=True)                # long time
+        (325, 144, 68, 60)
         sage: g=graphs.NonisotropicOrthogonalPolarGraph(6,4,'+')
         Traceback (most recent call last):
         ...

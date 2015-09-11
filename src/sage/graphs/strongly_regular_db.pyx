@@ -344,7 +344,7 @@ def is_NOodd(int v,int k,int l,int mu):
     r"""
     Test whether some NO^e(2n+1,q) graph is `(v,k,\lambda,\mu)`-strongly regular.
 
-    For more information, see
+    Here `q>2`, for in the case `q=2` this graph is complete. For more information, see
     :func:`sage.graphs.generators.classical_geometries.NonisotropicOrthogonalPolarGraph`
     and Sect. 7.C of [BvL84]_.
 
@@ -381,10 +381,14 @@ def is_NOodd(int v,int k,int l,int mu):
         (<function NonisotropicOrthogonalPolarGraph at ...>, 5, 3, '+')
         sage: t=is_NOodd(351, 224, 142, 144); t
         (<function NonisotropicOrthogonalPolarGraph at ...>, 7, 3, '-')
+        sage: t = is_NOodd(325, 144, 68, 60); t
+        (<function NonisotropicOrthogonalPolarGraph at ...>, 5, 5, '+')
+        sage: t = is_NOodd(300, 104, 28, 40); t
+        (<function NonisotropicOrthogonalPolarGraph at ...>, 5, 5, '-')
         sage: t = is_NOodd(5,5,5,5); t
     """
     cdef int n, q
-    r,s = eigenvalues(v,k,l,mu) # -eq^(n-1)-1 and eq^(n-1)(q-2)-1
+    r,s = eigenvalues(v,k,l,mu) # -eq^(n-1)-1 and eq^(n-1)(q-2)-1; q=3 is special case
     if r is None:
         return
     r += 1
@@ -392,11 +396,11 @@ def is_NOodd(int v,int k,int l,int mu):
     if abs(r)>abs(s):
         (r,s) = (s,r) # r=-eq^(n-1) s= eq^(n-1)(q-2)
     q = 2 - s/r
-    e = 1 if r<0 else -1
     p, t = is_prime_power(q, get_data=True)
     pp, kk = is_prime_power(abs(r), get_data=True)
     if p == pp and t != 0:
         n  = kk/t + 1
+        e = 1 if v  == (q**n)*(q**n+1)/2 else -1
         if (v  == (q**n)*(q**n+e)/2                 and
             k  == (q**n-e)*(q**(n-1)+e)             and
             l  == 2*(q**(2*n-2)-1)+e*q**(n-1)*(q-1) and

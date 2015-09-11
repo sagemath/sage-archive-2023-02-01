@@ -1535,7 +1535,7 @@ def GossetGraph():
     Return the Gosset graph.
 
     The Gosset graph is the skeleton of the
-    :meth:`~sage.geometry.polyhedron.library.polytopes.gosset_3_21` polytope. It
+    :meth:`~sage.geometry.polyhedron.library.Polytopes.Gosset_3_21` polytope. It
     has with 56 vertices and degree 27. For more information, see the
     :wikipedia:`Gosset_graph`.
 

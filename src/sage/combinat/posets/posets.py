@@ -3875,10 +3875,10 @@ class FinitePoset(UniqueRepresentation, Parent):
 
         INPUT:
 
-        - ``relabeling`` -- a function or dictionnary
+        - ``relabeling`` -- a function or dictionary
 
-          This function should map each (non-wrapped) element of
-          ``self`` to some distinct object.
+        This function should map each (non-wrapped) element of
+        ``self`` to some distinct object.
 
         EXAMPLES::
 

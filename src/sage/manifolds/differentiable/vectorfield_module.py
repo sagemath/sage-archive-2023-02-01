@@ -595,17 +595,14 @@ class VectorFieldModule(UniqueRepresentation, Parent):
                 return self.tensor_module(*tensor_type).element_class(self,
                                  tensor_type, name=name, latex_name=latex_name,
                                  sym=sym, antisym=antisym)
-        elif tensor_type==(0,2):
+        elif tensor_type==(0,2) and specific_type is not None:
             if issubclass(specific_type, PseudoRiemannianMetric):
                 return self.metric(name, latex_name=latex_name)
                 # NB: the signature is not treated
-            return self.tensor_module(0,2).element_class(self, (0,2),
-                                              name=name, latex_name=latex_name,
-                                              sym=sym, antisym=antisym)
         # Generic case
         return self.tensor_module(*tensor_type).element_class(self,
-         tensor_type, name=name, latex_name=latex_name, sym=sym,
-         antisym=antisym)
+                        tensor_type, name=name, latex_name=latex_name, sym=sym,
+                        antisym=antisym)
 
     def alternating_form(self, degree, name=None, latex_name=None):
         r"""
@@ -1448,17 +1445,14 @@ class VectorFieldFreeModule(FiniteRankFreeModule):
                 return self.tensor_module(*tensor_type).element_class(self,
                                  tensor_type, name=name, latex_name=latex_name,
                                  sym=sym, antisym=antisym)
-        elif tensor_type==(0,2):
+        elif tensor_type==(0,2) and specific_type is not None:
             if issubclass(specific_type, PseudoRiemannianMetric):
                 return self.metric(name, latex_name=latex_name)
                 # NB: the signature is not treated
-            return self.tensor_module(0,2).element_class(self, (0,2),
-                                              name=name, latex_name=latex_name,
-                                              sym=sym, antisym=antisym)
         # Generic case
         return self.tensor_module(*tensor_type).element_class(self,
-         tensor_type, name=name, latex_name=latex_name, sym=sym,
-         antisym=antisym)
+                        tensor_type, name=name, latex_name=latex_name, sym=sym,
+                        antisym=antisym)
 
     def tensor_from_comp(self, tensor_type, comp, name=None, latex_name=None):
         r"""

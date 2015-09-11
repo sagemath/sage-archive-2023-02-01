@@ -594,7 +594,7 @@ class PseudoRiemannianMetric(TensorField):
             True
 
         """
-        from sage.manifolds.differentiable.connection import \
+        from sage.manifolds.differentiable.levi_civita_connection import \
                                                            LeviCivitaConnection
         if self._connection is None:
             if latex_name is None:

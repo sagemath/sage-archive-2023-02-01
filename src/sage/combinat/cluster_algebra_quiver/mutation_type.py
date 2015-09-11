@@ -1240,9 +1240,9 @@ def load_data(n):
         ....:     data = cPickle.load(f)
         ....:     f.close()
         ....:     return data
-        sage: test_database(2) # optional database_mutation_class
+        sage: test_database(2) # optional - database_mutation_class
         {('G', 2): [('AO', (((0, 1), (1, -3)),)), ('AO', (((0, 1), (3, -1)),))]}
-        sage: sorted(test_database(3).items()) # optional database_mutation_class
+        sage: sorted(test_database(3).items()) # optional - database_mutation_class
         [(('G', 2, -1),
           [('BH?', (((1, 2), (1, -3)),)),
            ('BGO', (((2, 1), (3, -1)),)),

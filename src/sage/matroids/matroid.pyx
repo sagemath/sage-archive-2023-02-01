@@ -121,6 +121,7 @@ additional functionality (e.g. linear extensions).
     - :meth:`max_weight_independent() <sage.matroids.matroid.Matroid.max_weight_independent>`
     - :meth:`max_weight_coindependent() <sage.matroids.matroid.Matroid.max_weight_coindependent>`
     - :meth:`intersection() <sage.matroids.matroid.Matroid.intersection>`
+    - :meth:`intersection_unweighted() <sage.matroids.matroid.Matroid.intersection_unweighted>`
 
 - Invariants
     - :meth:`tutte_polynomial() <sage.matroids.matroid.Matroid.tutte_polynomial>`
@@ -6334,12 +6335,6 @@ cdef class Matroid(SageObject):
 
         A subset of the groundset.
 
-        .. NOTE::
-
-            There is an ``_intersection_augmentation_unweighted()`` method
-            that might be faster for unweighted intersections, depending on
-            both the matroids involved and the size of the intersection.
-
         EXAMPLES::
 
             sage: M = matroids.named_matroids.T12()
@@ -6508,6 +6503,42 @@ cdef class Matroid(SageObject):
                 u = predecessor[u]
                 path.add(u)
             return True, frozenset(path)
+
+    cpdef intersection_unweighted(self, other):
+        r"""
+        Return a maximum-cardinality common independent set.
+
+        A *common independent set* of matroids `M` and `N` with the same
+        groundset `E` is a subset of `E` that is independent both in `M` and
+        `N`. 
+
+        INPUT:
+
+        - ``other`` -- a second matroid with the same groundset as this
+          matroid.
+
+        OUTPUT:
+
+        A subset of the groundset.
+
+        EXAMPLES::
+
+            sage: M = matroids.named_matroids.T12()
+            sage: N = matroids.named_matroids.ExtendedTernaryGolayCode()
+            sage: len(M.intersection_unweighted(N))
+            6
+            sage: M = matroids.named_matroids.Fano()
+            sage: N = matroids.Uniform(4, 7)
+            sage: M.intersection_unweighted(N)
+            Traceback (most recent call last):
+            ...
+            ValueError: matroid intersection requires equal groundsets.
+        """
+        if not isinstance(other, Matroid):
+            raise TypeError("can only intersect two matroids.")
+        if not self.groundset() == other.groundset():
+            raise ValueError("matroid intersection requires equal groundsets.")
+        return self._intersection_unweighted(other)
 
     cpdef _intersection_unweighted(self, other):
         r"""

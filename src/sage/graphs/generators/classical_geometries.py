@@ -665,7 +665,14 @@ def NonisotropicUnitaryPolarGraph(m, q):
     Hermitean form, points of the `(m-1)`-dimensional projective space over `F_q`,
     with points adjacent whenever they lie on a tangent (to the set of isotropic points)
     line.
-    For more information, see Sect. 9.9.of [BH12]_.
+    For more information, see Sect. 9.9 of [BH12]_ and series C14 in [Hu75]_.
+
+    REFERENCE:
+
+    .. [Hu75] X. L. Hubaut.
+      Strongly regular graphs.
+      Disc. Math. 13(1975), pp 357--381.
+      http://dx.doi.org/10.1016/0012-365X(75)90057-6
 
     INPUT:
 

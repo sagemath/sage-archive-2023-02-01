@@ -326,7 +326,7 @@ class ChainHomotopy(SageObject):
             Chain complex with at most 1 nonzero terms over Integer Ring
         """
         return self._domain
-        
+
     def codomain(self):
         """
         The domain of this chain homotopy.

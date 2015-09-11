@@ -289,6 +289,7 @@ AUTHORS:
 from expect import Expect, ExpectElement, ExpectFunction, FunctionElement, AsciiArtString
 from sage.misc.all import prod
 from sage.env import DOT_SAGE, SAGE_LOCAL
+import os
 
 
 COMMANDS_CACHE = '%s/lie_commandlist_cache.sobj'%DOT_SAGE
@@ -907,7 +908,7 @@ def reduce_load_lie():
     """
     return lie
 
-import os
+
 def lie_console():
     """
     Spawn a new LiE command-line session.
@@ -933,7 +934,7 @@ def lie_version():
         sage: lie_version() # optional - lie
         '2.1'
     """
-    f = open(SAGE_LOCAL + '/lib/LiE/INFO.0')
+    f = open(os.path.join(SAGE_LOCAL, 'lib/LiE/INFO.0'))
     lines = f.readlines()
     f.close()
     i = lines.index('@version()\n')

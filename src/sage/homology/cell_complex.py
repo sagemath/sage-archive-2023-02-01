@@ -718,7 +718,7 @@ class GenericCellComplex(SageObject):
         Note that from the chain contraction ``H``, one can recover the
         chain maps `\pi` and `\iota` via ``H.pi()`` and
         ``H.iota()``. Then one can recover `C` and `M` from, for
-        example, ``H.pi()._domain`` and ``H.pi()._codomain``,
+        example, ``H.pi().domain()`` and ``H.pi().codomain()``,
         respectively.
 
         EXAMPLES::

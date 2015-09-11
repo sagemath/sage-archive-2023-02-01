@@ -308,16 +308,17 @@ if [ "$1" = '-i' ]; then
             -f) FORCE_INSTALL=yes;;
             -*) INSTALL_OPTIONS="$INSTALL_OPTIONS $PKG";;
             *)
-                if [ x$FORCE_INSTALL = xyes ]; then
-                    rm -f "local/var/lib/sage/installed/$PKG"-*
-                fi
                 # First check that $PKG is actually a Makefile target
                 if ! grep "^$PKG: " build/make/Makefile >/dev/null; then
                     echo >&2 "Error: package '$PKG' not found"
                     echo >&2 "Assuming it is an old-style package... (this is deprecated: use -p instead of -i to install old-style packages)"
+                    echo >&2
                     sleep 5
                     ./sage -p $INSTALL_OPTIONS "$PKG"
                 else
+                    if [ x$FORCE_INSTALL = xyes ]; then
+                        $MAKE "$PKG-clean"
+                    fi
                     $MAKE SAGE_SPKG="sage-spkg $INSTALL_OPTIONS" "$PKG"
                 fi;;
         esac

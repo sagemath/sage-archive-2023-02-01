@@ -26,10 +26,8 @@ class FullyPackedLoop(Element):
     A fully packed loop is a collection of non-intersecting lattice paths on a square
     grid such that every vertex is part of some path, and the paths are either closed
     internal loops or have endpoints corresponding to alternate points on the
-    boundary [Propp2001]_.
-
-    They are known to be in bijection with alternating sign matrices.
-    [TODO]
+    boundary [Propp2001]_. They are known to be in bijection with alternating sign
+    matrices.
 
     .. SEEALSO::
 
@@ -399,12 +397,14 @@ class FullyPackedLoop(Element):
     REFERENCES:
 
     .. [Propp2001] James Propp.
-       *The Many Faces of Alternating Sign Matrices*
+       *The Many Faces of Alternating Sign Matrices*,
        Discrete Mathematics and Theoretical Computer Science 43 (2001): 58
+       :arxiv:`math/0208125`
 
-    .. [Striker2015] Jessica Striker
-       *The toggle group, homomesy, and the Razumov-Stroganov correspondence*
-       :arxiv:`arXiv:1503.08898`
+    .. [Striker2015] Jessica Striker.
+       *The toggle group, homomesy, and the Razumov-Stroganov correspondence*,
+       Electron. J. Combin. 22 (2015) no. 2
+       :arxiv:`1503.08898`
     """
     __metaclass__ = InheritComparisonClasscallMetaclass
 
@@ -659,12 +659,16 @@ class FullyPackedLoop(Element):
         return self._six_vertex_model.to_alternating_sign_matrix()
 
     def plot(self):
-        """
+        r"""
         Return a graphical object of the Fully Packed Loop
 
         EXAMPLES:
 
-        Here is the fully packed for :math:`\\begin{pmatrix}0&1&1\\\\1&-1&1\\\\0&1&0\end{pmatrix}`:
+        Here is the fully packed loop for
+
+        .. MATH::
+
+            \begin{pmatrix} 0&1&1 \\ 1&-1&1 \\ 0&1&0 \end{pmatrix}:
 
         .. PLOT::
             :width: 200 px
@@ -700,11 +704,7 @@ class FullyPackedLoop(Element):
 
         .. MATH::
 
-            A = \\begin{pmatrix}
-                1&0&0\\\\
-                0&1&0\\\\
-                0&0&1\\\\
-                \end{pmatrix}
+            A = \begin{pmatrix} 1&0&0 \\ 0&1&0 \\ 0&0&1 \\ \end{pmatrix}
 
         gives:
 
@@ -718,11 +718,7 @@ class FullyPackedLoop(Element):
 
         .. MATH::
 
-            A = \\begin{pmatrix}
-                1&0&0\\\\
-                0&0&1\\\\
-                0&1&0\\\\
-                \end{pmatrix}
+            A = \begin{pmatrix} 1&0&0 \\ 0&0&1 \\ 0&1&0 \\ \end{pmatrix}
 
         gives:
 
@@ -736,11 +732,7 @@ class FullyPackedLoop(Element):
 
         .. MATH::
 
-            A = \\begin{pmatrix}
-                0&1&0\\\\
-                1&0&0\\\\
-                0&0&1\\\\
-                \end{pmatrix}
+            A = \begin{pmatrix} 0&1&0\\ 1&0&0\\ 0&0&1\\ \end{pmatrix}
 
         gives:
 
@@ -754,11 +746,7 @@ class FullyPackedLoop(Element):
 
         .. MATH::
 
-            A = \\begin{pmatrix}
-                0&1&0\\\\
-                0&0&1\\\\
-                1&0&0\\\\
-                \end{pmatrix}
+            A = \begin{pmatrix} 0&1&0\\ 0&0&1\\ 1&0&0\\ \end{pmatrix}
 
         gives:
 
@@ -772,11 +760,7 @@ class FullyPackedLoop(Element):
 
         .. MATH::
 
-            A = \\begin{pmatrix}
-                0&0&1\\\\
-                1&0&0\\\\
-                0&1&0\\\\
-                \end{pmatrix}
+            A = \begin{pmatrix} 0&0&1\\ 1&0&0\\ 0&1&0\\ \end{pmatrix}
 
         gives:
 
@@ -790,11 +774,7 @@ class FullyPackedLoop(Element):
 
         .. MATH::
 
-            A = \\begin{pmatrix}
-                0&0&1\\\\
-                0&1&0\\\\
-                1&0&0\\\\
-                \end{pmatrix}
+            A = \begin{pmatrix} 0&0&1\\ 0&1&0\\ 1&0&0\\ \end{pmatrix}
 
         gives:
 
@@ -1225,7 +1205,6 @@ class FullyPackedLoops(Parent, UniqueRepresentation):
     Class of all fully packed loops on an  `n \times n` grid.
 
     They are known to be in bijection with alternating sign matrices.
-    [TODO]
 
     .. SEEALSO::
 

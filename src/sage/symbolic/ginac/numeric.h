@@ -62,10 +62,11 @@ void ginac_pyinit_I(PyObject*);
 namespace GiNaC {
 
 enum Type {
+//	LONG,
+	DOUBLE=1,
+	PYOBJECT,
 	MPZ,
 	MPQ,
-	DOUBLE,
-	PYOBJECT,
 //	MPFR,
 //	MPFC,
 //	MPQC

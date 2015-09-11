@@ -584,6 +584,9 @@ inherited(n, sym_lst) {
                         mpq_set_str(v._bigrat, str.c_str(), 10);
                         return;
                 case PYOBJECT:
+                        // read pickled python object to a string
+                        if (!n.find_string("S", str))
+                                throw (std::runtime_error("archive error: cannot read pyobject data"));
                         arg = Py_BuildValue("s#", str.c_str(), str.size());
                         // unpickle
                         v._pyobject = py_funcs.py_loads(arg);

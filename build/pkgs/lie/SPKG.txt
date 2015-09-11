@@ -46,5 +46,7 @@ GNU Lesser General Public License (LGPL), version unspecified
 
 == Dependencies ==
 
+ * readline
+ * ncurses
  * bison (not included in this package or in Sage!)
 

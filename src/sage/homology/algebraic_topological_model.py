@@ -68,7 +68,7 @@ def algebraic_topological_model(K, base_ring=None):
 
     Given an algebraic topological model for `K`, it is then easy to
     compute cup products and cohomology operations on the cohomology
-    of `K`, as described in [G-DR]_ and [PR]_.
+    of `K`, as described in [G-DR03]_ and [PR]_.
 
     Implementation details: the cell complex `K` must have a
     :meth:`cell_complex.GenericCellComplex.n_cells` method from which
@@ -87,7 +87,7 @@ def algebraic_topological_model(K, base_ring=None):
     Note that from the chain contraction ``\phi``, one can recover the
     chain maps `\pi` and `\iota` via ``phi.pi()`` and
     ``phi.iota()``. Then one can recover `C` and `M` from, for
-    example, ``phi.pi()._domain`` and ``phi.pi()._codomain``,
+    example, ``phi.pi().domain()`` and ``phi.pi().codomain()``,
     respectively.
 
     EXAMPLES::
@@ -116,7 +116,13 @@ def algebraic_topological_model(K, base_ring=None):
         sage: M.dual().degree_of_differential()
         1
         sage: phi.dual()
-        Chain homotopy between Chain complex morphism from Chain complex with at most 3 nonzero terms over Rational Field to Chain complex with at most 3 nonzero terms over Rational Field and Chain complex morphism from Chain complex with at most 3 nonzero terms over Rational Field to Chain complex with at most 3 nonzero terms over Rational Field
+        Chain homotopy between
+          Chain complex morphism
+            From: Chain complex with at most 3 nonzero terms over Rational Field
+            To: Chain complex with at most 3 nonzero terms over Rational Field
+          and Chain complex morphism
+            From: Chain complex with at most 3 nonzero terms over Rational Field
+            To: Chain complex with at most 3 nonzero terms over Rational Field
 
     In degree 0, the inclusion of the homology `M` into the chain
     complex `C` sends the homology generator to a single vertex::

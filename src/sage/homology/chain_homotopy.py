@@ -105,7 +105,9 @@ class ChainHomotopy(SageObject):
     Note that the maps `f` and `g` are stored in the attributes ``H._f`` and ``H._g``::
 
         sage: H._f
-        Chain complex morphism from Chain complex with at most 2 nonzero terms over Integer Ring to Chain complex with at most 2 nonzero terms over Integer Ring
+        Chain complex morphism
+          From: Chain complex with at most 2 nonzero terms over Integer Ring
+          To: Chain complex with at most 2 nonzero terms over Integer Ring
         sage: H._f.in_degree(0)
         [1]
         sage: H._g.in_degree(0)
@@ -309,6 +311,38 @@ class ChainHomotopy(SageObject):
             cols = self._domain.free_module_rank(n)
             return zero_matrix(self._domain.base_ring(), rows, cols)
 
+    def domain(self):
+        """
+        The domain of this chain homotopy.
+
+        EXAMPLES::
+
+            sage: from sage.homology.chain_homotopy import ChainHomotopy
+            sage: C = ChainComplex({1: matrix(ZZ, 0, 2)}) # one nonzero term in degree 1
+            sage: D = ChainComplex({0: matrix(ZZ, 0, 1)}) # one nonzero term in degree 0
+            sage: f = Hom(C, D)({})
+            sage: H = ChainHomotopy({1: matrix(ZZ, 1, 2, (3,1))}, f, f)
+            sage: H.domain()
+            Chain complex with at most 1 nonzero terms over Integer Ring
+        """
+        return self._domain
+        
+    def codomain(self):
+        """
+        The domain of this chain homotopy.
+
+        EXAMPLES::
+
+            sage: from sage.homology.chain_homotopy import ChainHomotopy
+            sage: C = ChainComplex({1: matrix(ZZ, 0, 2)}) # one nonzero term in degree 1
+            sage: D = ChainComplex({0: matrix(ZZ, 0, 1)}) # one nonzero term in degree 0
+            sage: f = Hom(C, D)({})
+            sage: H = ChainHomotopy({1: matrix(ZZ, 1, 2, (3,1))}, f, f)
+            sage: H.codomain()
+            Chain complex with at most 1 nonzero terms over Integer Ring
+        """
+        return self._codomain
+
     def dual(self):
         """
         Dual chain homotopy to this one.
@@ -349,9 +383,18 @@ class ChainHomotopy(SageObject):
             sage: f = Hom(C,D)({0: identity_matrix(ZZ, 1), 1: zero_matrix(ZZ, 1)})
             sage: g = Hom(C,D)({0: zero_matrix(ZZ, 1), 1: zero_matrix(ZZ, 1)})
             sage: ChainHomotopy({0: zero_matrix(ZZ, 0, 1), 1: identity_matrix(ZZ, 1)}, f, g)
-            Chain homotopy between Chain complex morphism from Chain complex with at most 2 nonzero terms over Integer Ring to Chain complex with at most 2 nonzero terms over Integer Ring and Chain complex morphism from Chain complex with at most 2 nonzero terms over Integer Ring to Chain complex with at most 2 nonzero terms over Integer Ring
+            Chain homotopy between
+              Chain complex morphism
+                From: Chain complex with at most 2 nonzero terms over Integer Ring
+                To: Chain complex with at most 2 nonzero terms over Integer Ring
+              and Chain complex morphism
+                From: Chain complex with at most 2 nonzero terms over Integer Ring
+                To: Chain complex with at most 2 nonzero terms over Integer Ring
         """
-        return 'Chain homotopy between {} and {}'.format(self._f, self._g)
+        s = 'Chain homotopy between'
+        s += '\n  {}'.format('\n  '.join(self._f._repr_().split('\n')))
+        s += '\n  and {}'.format('\n  '.join(self._g._repr_().split('\n')))
+        return s
 
 class ChainContraction(ChainHomotopy):
     r"""
@@ -478,7 +521,9 @@ class ChainContraction(ChainHomotopy):
             sage: S2 = simplicial_complexes.Sphere(2)
             sage: phi, M = S2.algebraic_topological_model(QQ)
             sage: phi.pi()
-            Chain complex morphism from Chain complex with at most 3 nonzero terms over Rational Field to Chain complex with at most 3 nonzero terms over Rational Field
+            Chain complex morphism
+              From: Chain complex with at most 3 nonzero terms over Rational Field
+              To: Chain complex with at most 3 nonzero terms over Rational Field
             sage: phi.pi().in_degree(0)  # Every vertex represents a homology class.
             [1 1 1 1]
             sage: phi.pi().in_degree(1)  # No homology in degree 1.
@@ -500,7 +545,9 @@ class ChainContraction(ChainHomotopy):
             sage: S2 = simplicial_complexes.Sphere(2)
             sage: phi, M = S2.algebraic_topological_model(QQ)
             sage: phi.iota()
-            Chain complex morphism from Chain complex with at most 3 nonzero terms over Rational Field to Chain complex with at most 3 nonzero terms over Rational Field
+            Chain complex morphism
+              From: Chain complex with at most 3 nonzero terms over Rational Field
+              To: Chain complex with at most 3 nonzero terms over Rational Field
 
         Lifting the degree zero homology class gives a single vertex::
 
@@ -531,7 +578,9 @@ class ChainContraction(ChainHomotopy):
             sage: S2 = simplicial_complexes.Sphere(2)
             sage: phi, M = S2.algebraic_topological_model(QQ)
             sage: phi.iota()
-            Chain complex morphism from Chain complex with at most 3 nonzero terms over Rational Field to Chain complex with at most 3 nonzero terms over Rational Field
+            Chain complex morphism
+              From: Chain complex with at most 3 nonzero terms over Rational Field
+              To: Chain complex with at most 3 nonzero terms over Rational Field
 
         Lifting the degree zero homology class gives a single vertex,
         but the degree zero cohomology class needs to be detected on
@@ -559,6 +608,6 @@ class ChainContraction(ChainHomotopy):
             [1]
         """
         matrix_dict = self._matrix_dictionary
-        deg = self._domain.degree_of_differential()
+        deg = self.domain().degree_of_differential()
         matrices = {i-deg: matrix_dict[i].transpose() for i in matrix_dict}
         return ChainContraction(matrices, self.iota().dual(), self.pi().dual())

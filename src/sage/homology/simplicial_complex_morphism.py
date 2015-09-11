@@ -274,7 +274,9 @@ class SimplicialComplexMorphism(SageObject):
             Simplicial complex morphism {0: 0, 1: 1, 2: 2} from Simplicial complex with vertex set (0, 1, 2) and facets {(1, 2), (0, 2), (0, 1)} to Simplicial complex with vertex set (0, 1, 2, 3) and facets {(0, 2, 3), (0, 1, 2), (1, 2, 3), (0, 1, 3)}
             sage: a = x.associated_chain_complex_morphism()
             sage: a
-            Chain complex morphism from Chain complex with at most 2 nonzero terms over Integer Ring to Chain complex with at most 3 nonzero terms over Integer Ring
+            Chain complex morphism
+              From: Chain complex with at most 2 nonzero terms over Integer Ring
+              To: Chain complex with at most 3 nonzero terms over Integer Ring
             sage: a._matrix_dictionary
             {0: [0 0 0]
             [0 1 0]
@@ -288,13 +290,21 @@ class SimplicialComplexMorphism(SageObject):
             [0 0 1],
              2: []}
             sage: x.associated_chain_complex_morphism(augmented=True)
-            Chain complex morphism from Chain complex with at most 3 nonzero terms over Integer Ring to Chain complex with at most 4 nonzero terms over Integer Ring
+            Chain complex morphism
+              From: Chain complex with at most 3 nonzero terms over Integer Ring
+              To: Chain complex with at most 4 nonzero terms over Integer Ring
             sage: x.associated_chain_complex_morphism(cochain=True)
-            Chain complex morphism from Chain complex with at most 3 nonzero terms over Integer Ring to Chain complex with at most 2 nonzero terms over Integer Ring
+            Chain complex morphism
+              From: Chain complex with at most 3 nonzero terms over Integer Ring
+              To: Chain complex with at most 2 nonzero terms over Integer Ring
             sage: x.associated_chain_complex_morphism(augmented=True,cochain=True)
-            Chain complex morphism from Chain complex with at most 4 nonzero terms over Integer Ring to Chain complex with at most 3 nonzero terms over Integer Ring
+            Chain complex morphism
+              From: Chain complex with at most 4 nonzero terms over Integer Ring
+              To: Chain complex with at most 3 nonzero terms over Integer Ring
             sage: x.associated_chain_complex_morphism(base_ring=GF(11))
-            Chain complex morphism from Chain complex with at most 2 nonzero terms over Finite Field of size 11 to Chain complex with at most 3 nonzero terms over Finite Field of size 11
+            Chain complex morphism
+              From: Chain complex with at most 2 nonzero terms over Finite Field of size 11
+              To: Chain complex with at most 3 nonzero terms over Finite Field of size 11
 
         Some simplicial maps which reverse the orientation of a few simplices::
 

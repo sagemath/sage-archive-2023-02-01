@@ -139,7 +139,7 @@ List of Poset methods
     :delim: |
 
     :meth:`~FinitePoset.is_isomorphic` | Return ``True`` if both posets are isomorphic.
-    :meth:`~FinitePoset.is_subposet` | Return ``True`` if given poset is an induced subposet of this poset.
+    :meth:`~FinitePoset.is_induced_subposet` | Return ``True`` if given poset is an induced subposet of this poset.
 
 **Polynomials**
 
@@ -5602,7 +5602,7 @@ class FinitePoset(UniqueRepresentation, Parent):
         from sage.combinat.posets.incidence_algebras import IncidenceAlgebra
         return IncidenceAlgebra(R, self, prefix)
 
-    def is_subposet(self, other):
+    def is_induced_subposet(self, other):
         r"""
         Return ``True`` if the poset is an induced subposet of ``other``, and
         ``False`` otherwise.
@@ -5615,7 +5615,7 @@ class FinitePoset(UniqueRepresentation, Parent):
         .. NOTE::
 
             This method does not check whether the poset is a
-            subposet *isomorphic* (i.e., up to relabeling) to ``other``,
+            *isomorphic* (i.e., up to relabeling) subposet of ``other``,
             but only if ``other`` directly contains the poset as an
             induced subposet. For isomorphic subposets see
             :meth:`has_isomorphic_subposet`.
@@ -5624,20 +5624,20 @@ class FinitePoset(UniqueRepresentation, Parent):
 
             sage: P = Poset({1:[2, 3]})
             sage: Q = Poset({1:[2, 4], 2:[3]})
-            sage: P.is_subposet(Q)
+            sage: P.is_induced_subposet(Q)
             False
             sage: R = Poset({0:[1], 1:[3, 4], 3:[5], 4:[2]})
-            sage: P.is_subposet(R)
+            sage: P.is_induced_subposet(R)
             True
 
         TESTS::
 
             sage: P = Poset({2:[1]})
-            sage: Poset().is_subposet(P)
+            sage: Poset().is_induced_subposet(P)
             True
-            sage: Poset().is_subposet(Poset())
+            sage: Poset().is_induced_subposet(Poset())
             True
-            sage: P.is_subposet(Poset())
+            sage: P.is_induced_subposet(Poset())
             False
         """
         if not hasattr(other, 'hasse_diagram'):

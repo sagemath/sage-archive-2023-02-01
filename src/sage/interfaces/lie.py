@@ -364,10 +364,15 @@ class LiE(Expect):
             True
             sage: lie._read_info_files(use_disk_cache=False) #optional - lie
             sage: lie._trait_names_list # optional - lie
-            ['history',
-             'version',
+            ['Adams',
              ...
-             'sort']
+             'history',
+             ...
+             'sort',
+             ...
+             'version',
+             'void',
+             'write']
         """
         import sage.misc.persist
         if use_disk_cache:
@@ -377,7 +382,7 @@ class LiE(Expect):
                 v = []
                 for key in trait_dict:
                     v += trait_dict[key]
-                self._trait_names_list = v
+                self._trait_names_list = sorted(v)
                 self._trait_names_dict = trait_dict
                 self._help_dict = help_dict
                 return
@@ -452,7 +457,7 @@ class LiE(Expect):
 
         #Save the data
         self._trait_names_dict = commands
-        self._trait_names_list = l
+        self._trait_names_list = sorted(l)
         self._help_dict = help
 
         #Write them to file
@@ -513,7 +518,7 @@ class LiE(Expect):
         """
         EXAMPLES::
 
-            sage: sorted(lie.trait_names()) # optional - lie
+            sage: lie.trait_names() # optional - lie
             ['Adams',
              ...
              'Cartan_type',
@@ -527,7 +532,7 @@ class LiE(Expect):
         if self._trait_names_dict is None:
             self._read_info_files()
         if type:
-            return self._trait_names_dict[type]
+            return sorted(self._trait_names_dict[type])
         else:
             return self._trait_names_list
 
@@ -748,11 +753,15 @@ class LiEElement(ExpectElement):
 
             sage: a4 = lie('A4')   # optional - lie
             sage: a4.trait_names() # optional - lie
-            ['center',
+            ['Cartan',
+             ...
+             'center',
+             'det_Cartan',
              'diagram',
              ...
-             'n_comp']
-
+             'n_comp',
+             ...
+             'res_mat']
         """
         return self.parent().trait_names(type=self.type())
 
@@ -934,7 +943,7 @@ def lie_version():
         sage: lie_version() # optional - lie
         '2.1'
     """
-    f = open(os.path.join(SAGE_LOCAL, 'lib/LiE/INFO.0'))
+    f = open(os.path.join(SAGE_LOCAL, 'lib', 'LiE', 'INFO.0'))
     lines = f.readlines()
     f.close()
     i = lines.index('@version()\n')

@@ -446,7 +446,8 @@ following libraries are currently supported:
   `COIN-OR <http://www.coin-or.org/>`_
 
   Provided under the open source license CPL, but incompatible with
-  GPL. CBC can be installed using the shell command ``sage -i cbc && make``.
+  GPL. CBC can be installed using the shell command
+  ``sage -i cbc sagelib``.
 
 * `CPLEX
   <http://www-01.ibm.com/software/integration/optimization/cplex/>`_:

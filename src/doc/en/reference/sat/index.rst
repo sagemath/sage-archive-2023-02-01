@@ -26,7 +26,7 @@ features. For this, the optional CryptoMiniSat package must be
 installed, this can be accomplished by typing the following in the
 shell::
 
-    sage -i cryptominisat && make
+    sage -i cryptominisat sagelib
 
 Since by default Sage does not include any SAT solver, we demonstrate key features by instantiating
 a fake DIMACS-based solver. We start with a trivial example::

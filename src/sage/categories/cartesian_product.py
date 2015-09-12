@@ -105,6 +105,43 @@ class CartesianProductFunctor(CovariantFunctorialConstruction):
     _functor_category = "CartesianProducts"
     symbol = " (+) "
 
+    def __call__(self, args):
+        r"""
+        Functorial construction application.
+
+        Specializes the generic ``__call__`` from
+        :class:`CartesianProductFunctor` to handle the case of some Python
+        objects.
+
+        EXAMPLES::
+
+            sage: cartesian_product([[0,1], ('a','b','c')])
+            The cartesian product of ({0, 1}, {'a', 'b', 'c'})
+            sage: _.category()
+            Category of Cartesian products of finite enumerated sets
+
+            sage: cartesian_product([set([0,1,2]), [0,1])
+            The cartesian product of ({0, 1, 2}, {0, 1})
+            sage: _.category()
+            Category of Cartesian products of sets
+        """
+        if any(type(arg) is tuple or \
+               type(arg) is list or  \
+               type(arg) is set or   \
+               type(arg) is frozenset for arg in args):
+            aargs = []
+            from sage.sets.set import Set
+            from sage.sets.finite_enumerated_set import FiniteEnumeratedSet
+            for arg in args:
+                if type(arg) is tuple or type(arg) is list:
+                    aargs.append(FiniteEnumeratedSet(arg))
+                elif type(arg) is set or type(arg) is frozenset:
+                    aargs.append(Set(arg))
+                else:
+                    aargs.append(arg)
+            args = aargs
+        return super(CartesianProductFunctor, self).__call__(args)
+
 cartesian_product = CartesianProductFunctor()
 """
 The cartesian product functorial construction.

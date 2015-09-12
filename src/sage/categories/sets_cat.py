@@ -1976,6 +1976,101 @@ Please use, e.g., S.algebra(QQ, category=Semigroups())""".format(self))
 
 
         class ParentMethods:
+            def __iter__(self):
+                r"""
+                Return a lexicographic iterator for the elements of this cartesian product.
+
+                EXAMPLES::
+
+                    sage: for x,y in cartesian_product([Set([1,2]), Set(['a','b'])]):
+                    ....:     print x,y
+
+                    sage: A = FiniteEnumeratedSets()(["a", "b"])
+                    sage: B = FiniteEnumeratedSets().example(); B
+                    An example of a finite enumerated set: {1,2,3}
+                    sage: C = cartesian_product([A, B, A]); C
+                    The cartesian product of ({'a', 'b'}, An example of a finite enumerated set: {1,2,3}, {'a', 'b'})
+                    sage: C in FiniteEnumeratedSets()
+                    True
+                    sage: list(C)
+                    [('a', 1, 'a'), ('a', 1, 'b'), ('a', 2, 'a'), ('a', 2, 'b'), ('a', 3, 'a'), ('a', 3, 'b'),
+                     ('b', 1, 'a'), ('b', 1, 'b'), ('b', 2, 'a'), ('b', 2, 'b'), ('b', 3, 'a'), ('b', 3, 'b')]
+                    sage: C.__iter__.__module__
+                    'sage.categories.enumerated_sets'
+
+                    sage: F22 = GF(2).cartesian_product(GF(2))
+                    sage: list(F22)
+                    [(0, 0), (0, 1), (1, 0), (1, 1)]
+
+                    sage: C = cartesian_product([Permutations(10)]*4)
+                    sage: it = iter(C)
+                    sage: next(it)
+                    ([1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+                     [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+                     [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+                     [1, 2, 3, 4, 5, 6, 7, 8, 9, 10])
+                    sage: next(it)
+                    ([1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+                     [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+                     [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+                     [1, 2, 3, 4, 5, 6, 7, 8, 10, 9])
+
+                .. WARNING::
+
+                    The elements are returned in lexicographic order,
+                    which gives a valid enumeration only if all
+                    factors, but possibly the first one, are
+                    finite. So the following one is fine::
+
+                        sage: it = iter(cartesian_product([ZZ, GF(2)]))
+                        sage: [next(it) for _ in range(10)]
+                        [(0, 0), (0, 1), (1, 0), (1, 1),
+                         (-1, 0), (-1, 1), (2, 0), (2, 1),
+                         (-2, 0), (-2, 1)]
+
+                    But this one is not::
+
+                        sage: it = iter(cartesian_product([GF(2), ZZ]))
+                        sage: [next(it) for _ in range(10)]
+                        doctest:...: UserWarning: Sage is not able to determine
+                        whether the factors of this cartesian product are
+                        finite. The lexicographic ordering might not go through
+                        all elements.
+                        [(0, 0), (0, 1), (0, -1), (0, 2), (0, -2),
+                         (0, 3), (0, -3), (0, 4), (0, -4), (0, 5)]
+
+                .. NOTE::
+
+                    Here it would be faster to use :func:`itertools.product` for sets
+                    of small size. But the latter expands all factor in memory!
+                    So we can not reasonably use it in general.
+
+                ALGORITHM:
+
+                Recipe 19.9 in the Python Cookbook by Alex Martelli
+                and David Ascher.
+                """
+                if any(f not in Sets().Finite() for f in self.cartesian_factors()[1:]):
+                    from warnings import warn
+                    warn("Sage is not able to determine whether the factors of "
+                         "this cartesian product are finite. The lexicographic "
+                         "ordering might not go through all elements.")
+
+                # visualize an odometer, with "wheels" displaying "digits"...:
+                factors = list(self.cartesian_factors())
+                wheels = map(iter, factors)
+                digits = [next(it) for it in wheels]
+                while True:
+                    yield self._cartesian_product_of_elements(digits)
+                    for i in range(len(digits)-1, -1, -1):
+                        try:
+                            digits[i] = next(wheels[i])
+                            break
+                        except StopIteration:
+                            wheels[i] = iter(factors[i])
+                            digits[i] = next(wheels[i])
+                    else:
+                        break
 
             @cached_method
             def an_element(self):
@@ -2024,7 +2119,13 @@ Please use, e.g., S.algebra(QQ, category=Semigroups())""".format(self))
                     True
                 """
                 f = self.cartesian_factors()
-                return any(c.is_empty() for c in f) or all(c.is_finite() for c in f)
+                try:
+                    # Note: some parent might not implement "is_empty". So we
+                    # carefully isolate this test.
+                    return any(c.is_empty() for c in f)
+                except Exception:
+                    pass
+                return all(c.is_finite() for c in f)
 
             def cardinality(self):
                 r"""

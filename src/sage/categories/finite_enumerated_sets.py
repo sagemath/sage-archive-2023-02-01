@@ -496,7 +496,7 @@ class FiniteEnumeratedSets(CategoryWithAxiom):
                 'sage.categories.sets_cat'
 
                 sage: C.__iter__.__module__
-                'sage.categories.enumerated_sets'
+                'sage.categories.sets_cat'
             """
 
             # Ambiguity resolution between methods inherited from

@@ -231,7 +231,7 @@ class Sets(Category_singleton):
           in the future::
 
               sage: S = Sets()([1, 2, 3]); S.category()
-              Category of sets
+              Category of finite sets
               sage: S = Sets()([1, 2, 3], True); S.category()
               Category of facade finite enumerated sets
         """

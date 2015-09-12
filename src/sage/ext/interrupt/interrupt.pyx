@@ -157,6 +157,8 @@ def init_interrupts():
 
     This is normally done exactly once during Sage startup when
     importing this module.
+
+    OUTPUT: the old Python-level interrupt handler
     """
     # Set the Python-level interrupt handler. When a SIGINT occurs,
     # this will not be called directly. Instead, a SIGINT is caught by
@@ -167,9 +169,11 @@ def init_interrupts():
     # now). This handler issues a sig_check() which finally raises the
     # KeyboardInterrupt exception.
     import signal
-    signal.signal(signal.SIGINT, sage_python_check_interrupt)
+    old = signal.signal(signal.SIGINT, sage_python_check_interrupt)
 
     setup_sage_signal_handler()
+
+    return old
 
 
 def sig_on_reset():

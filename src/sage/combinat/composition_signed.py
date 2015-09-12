@@ -131,7 +131,7 @@ class SignedCompositions(Compositions_n):
         """
         for comp in Compositions_n.__iter__(self):
             l = len(comp)
-            for sign in itertools.product([-1,1], repeat=l):
+            for sign in itertools.product([1,-1], repeat=l):
                 yield [ sign[i]*comp[i] for i in range(l)]
 
 from sage.structure.sage_object import register_unpickle_override

@@ -1,25 +1,14 @@
 r"""
-Sage package management commands
+Listing Sage packages
 
-A Sage package has the extension .spkg. It is a tarball that is
-(usually) bzip2 compressed that contains arbitrary data and an
-spkg-install file. An Sage package typically has the following
-components:
+This module can be used to see which Sage packages are installed
+and which packages are available for installation.
 
+For more information about creating Sage packages, see
+the "Packaging Third-Party Code" section of the
+Sage Developer's Guide.
 
--  spkg-install - shell script that is run to install the package
-
--  Sage.txt - file that describes how the package was made, who
-   maintains it, etc.
-
--  sage - directory with extra patched version of files that needed
-   during the install
-
-
-Use the :func:``optional_packages`` command to list all
-optional packages available on the central Sage server.
-
-Actually installing the packages should be done via the Sage command
+Actually installing the packages should be done via the command
 line, using the following commands:
 
 - ``sage -i PACKAGE_NAME`` -- install the given package
@@ -28,35 +17,58 @@ line, using the following commands:
   was already installed
 """
 
+#*****************************************************************************
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
+#                  http://www.gnu.org/licenses/
+#*****************************************************************************
+
 import os
-
-__installed_packages = None
-
 
 def install_package(package=None, force=None):
     """
-    Return a list of all packages that have been installed into this
-    Sage install.
+    This function is obsolete. Run ``sage -i PKGNAME`` from a shell
+    to install a package. Use the function :func:`installed_packages`
+    to list all installed packages.
+
+    TESTS::
+
+        sage: install_package()
+        doctest:...: DeprecationWarning: use installed_packages() to list all installed packages
+        See http://trac.sagemath.org/16759 for details.
+        [...'atlas...'python...]
+        sage: install_package("autotools")
+        Traceback (most recent call last):
+        ...
+        NotImplementedError: installing Sage packages using 'install_package()' is obsolete.
+        Run 'sage -i autotools' from a shell prompt instead
+    """
+    if package is not None:
+        # deprecation(16759, ...)
+        raise NotImplementedError("installing Sage packages using 'install_package()' is obsolete.\nRun 'sage -i {}' from a shell prompt instead".format(package))
+
+    from sage.misc.superseded import deprecation
+    deprecation(16759, "use installed_packages() to list all installed packages")
+    return installed_packages()
+
+
+def installed_packages():
+    """
+    Return a list of all installed packages, with version numbers.
 
     EXAMPLES::
 
-        sage: install_package()
+        sage: installed_packages()
         [...'atlas...'python...]
 
     .. seealso::
 
         :func:`standard_packages`, :func:`optional_packages`, :func:`experimental_packages`
     """
-    if package is not None:
-        from sage.misc.stopgap import stopgap
-        stopgap("Installing Sage packages using 'install_package()' is obsolete.\nRun 'sage -i {}' from a shell prompt instead.".format(package), 16759)
-        return
-
-    global __installed_packages
-    if __installed_packages is None:
-        import sage.env
-        __installed_packages = sorted(os.listdir(sage.env.SAGE_SPKG_INST))
-    return __installed_packages
+    from sage.env import SAGE_SPKG_INST
+    return sorted(os.listdir(SAGE_SPKG_INST))
 
 
 def is_package_installed(package):
@@ -76,7 +88,7 @@ def is_package_installed(package):
     Otherwise, installing "pillow" will cause this function to think
     that "pil" is installed, for example.
     """
-    return any(p.split('-')[0] == package for p in install_package())
+    return any(p.split('-')[0] == package for p in installed_packages())
 
 def package_versions(package_type, local=False):
     r"""
@@ -250,10 +262,17 @@ def experimental_packages():
 def upgrade():
     """
     Obsolete function, run 'sage --upgrade' from a shell prompt instead.
+
+    TESTS::
+
+        sage: upgrade()
+        Traceback (most recent call last):
+        ...
+        NotImplementedError: upgrading Sage using 'upgrade()' is obsolete.
+        Run 'sage --upgrade' from a shell prompt instead
     """
-    from sage.misc.stopgap import stopgap
-    stopgap("Upgrading Sage using 'upgrade()' is obsolete.\nRun 'sage --upgrade' from a shell prompt instead.", 16759)
-    return
+    # deprecation(16759, ..)
+    raise NotImplementedError("upgrading Sage using 'upgrade()' is obsolete.\nRun 'sage --upgrade' from a shell prompt instead")
 
 
 class PackageNotFoundError(RuntimeError):

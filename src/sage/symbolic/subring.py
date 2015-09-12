@@ -11,7 +11,7 @@ class SymbolicSubringFactory(sage.structure.factory.UniqueFactory):
     EXAMPLES::
 
         sage: from sage.symbolic.subring import SymbolicSubring
-        sage: V = var('a, b, c, r, s, t')
+        sage: V = var('a, b, c, r, s, t, x, y, z')
         sage: def var_in_subring(s, S):
         ....:     try:
         ....:         S(s)
@@ -24,21 +24,27 @@ class SymbolicSubringFactory(sage.structure.factory.UniqueFactory):
         sage: A = SymbolicSubring(accepting_variables=(a, b, c)); A
         Symbolic Subring accepting variables a, b, c
         sage: tuple((v, var_in_subring(v, A)) for v in V)
-        ((a, True), (b, True), (c, True), (r, False), (s, False), (t, False))
+        ((a, True), (b, True), (c, True),
+         (r, False), (s, False), (t, False),
+         (x, False), (y, False), (z, False))
 
     ::
 
         sage: R = SymbolicSubring(rejecting_variables=(r, s, t)); R
         Symbolic Subring rejecting variables r, s, t
         sage: tuple((v, var_in_subring(v, R)) for v in V)
-        ((a, True), (b, True), (c, True), (r, False), (s, False), (t, False))
+        ((a, True), (b, True), (c, True),
+         (r, False), (s, False), (t, False),
+         (x, True), (y, True), (z, True))
 
     ::
 
         sage: C = SymbolicSubring(only_constants=True); C
         Symbolic Constants Subring
         sage: tuple((v, var_in_subring(v, C)) for v in V)
-        ((a, False), (b, False), (c, False), (r, False), (s, False), (t, False))
+        ((a, False), (b, False), (c, False),
+         (r, False), (s, False), (t, False),
+         (x, False), (y, False), (z, False))
 
     TESTS::
 

@@ -2126,9 +2126,11 @@ Please use, e.g., S.algebra(QQ, category=Semigroups())""".format(self))
                 try:
                     # Note: some parent might not implement "is_empty". So we
                     # carefully isolate this test.
-                    return any(c.is_empty() for c in f)
+                    test = any(c.is_empty() for c in f)
                 except Exception:
                     pass
+                else:
+                    if test: return test
                 return all(c.is_finite() for c in f)
 
             def cardinality(self):

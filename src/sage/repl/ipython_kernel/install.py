@@ -8,11 +8,9 @@ in the IPython notebook's kernel drop-down. This is done by
 
 import os
 import errno
-import copy
 
-from IPython.kernel.kernelspec import (
-    get_kernel_spec, install_kernel_spec, NoSuchKernel)
-from IPython.utils.path import get_ipython_dir
+from jupyter_client.kernelspec import get_kernel_spec, install_kernel_spec
+from IPython.paths import get_ipython_dir
 
 from sage.env import (
     SAGE_ROOT, SAGE_DOC, SAGE_LOCAL, SAGE_EXTCODE,
@@ -113,7 +111,7 @@ class SageKernelSpec(object):
         EXAMPLES::
 
             sage: from sage.repl.ipython_kernel.install import SageKernelSpec
-            sage: from IPython.utils.path import get_ipython_dir
+            sage: from IPython.paths import get_ipython_dir
             sage: spec = SageKernelSpec()
             sage: spec.use_local_mathjax()
             sage: ipython_dir = get_ipython_dir()
@@ -257,7 +255,7 @@ def have_prerequisites():
     Check that we have all prerequisites to run the IPython notebook.
 
     In particular, the IPython notebook requires OpenSSL whether or
-    not you are using https. See trac:`17318`.
+    not you are using https. See :trac:`17318`.
 
     OUTPUT:
 
@@ -270,9 +268,9 @@ def have_prerequisites():
         True
     """
     try:
-        from IPython.html.notebookapp import NotebookApp
+        from notebook.notebookapp import NotebookApp
         return True
-    except ImportError as err:
+    except ImportError:
         return False
 
 

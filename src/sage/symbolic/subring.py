@@ -4,6 +4,103 @@ from ring import SymbolicRing, SR
 from expression import Expression
 
 
+class SymbolicSubringFactory(sage.structure.factory.UniqueFactory):
+    r"""
+    A factory creating a symbolic subring.
+
+    EXAMPLES::
+
+        sage: from sage.symbolic.subring import SymbolicSubring
+        sage: V = var('a, b, c, r, s, t')
+        sage: def var_in_subring(s, S):
+        ....:     try:
+        ....:         S(s)
+        ....:         return True
+        ....:     except ValueError:
+        ....:         return False
+
+    ::
+
+        sage: A = SymbolicSubring(accepting_variables=(a, b, c)); A
+        Symbolic Subring accepting variables a, b, c
+        sage: tuple((v, var_in_subring(v, A)) for v in V)
+        ((a, True), (b, True), (c, True), (r, False), (s, False), (t, False))
+
+    ::
+
+        sage: R = SymbolicSubring(rejecting_variables=(r, s, t)); R
+        Symbolic Subring rejecting variables r, s, t
+        sage: tuple((v, var_in_subring(v, R)) for v in V)
+        ((a, True), (b, True), (c, True), (r, False), (s, False), (t, False))
+
+    ::
+
+        sage: C = SymbolicSubring(only_constants=True); C
+        Symbolic Constants Subring
+        sage: tuple((v, var_in_subring(v, C)) for v in V)
+        ((a, False), (b, False), (c, False), (r, False), (s, False), (t, False))
+
+    TESTS::
+
+        sage: SymbolicSubring(accepting_variables=tuple()) is C
+        True
+
+    ::
+
+        sage: SymbolicSubring(rejecting_variables=tuple()) is SR
+        True
+    """
+    def create_key_and_extra_args(
+            self, accepting_variables=None, rejecting_variables=None,
+            only_constants=False, **kwds):
+        r"""
+        Given the arguments and keyword, create a key that uniquely
+        determines this object.
+        """
+        if accepting_variables is None and \
+           rejecting_variables is None and \
+           only_constants == False:
+            raise ValueError('Cannot create a symbolic subring '
+                             'since nothing specified.')
+        if accepting_variables is not None and \
+           rejecting_variables is not None or \
+           rejecting_variables is not None and \
+           only_constants == True or \
+           only_constants == True and \
+           accepting_variables is not None:
+            raise ValueError('Cannot create a symbolic subring '
+                             'since input is ambiguous.')
+
+        if accepting_variables is not None:
+            vars = tuple(accepting_variables)
+            if vars:
+                cls = SymbolicSubringAcceptingVars
+            else:
+                cls = SymbolicConstantsSubring
+        elif rejecting_variables is not None:
+            vars = tuple(rejecting_variables)
+            cls = SymbolicSubringRejectingVars
+        elif only_constants:
+            vars = tuple()
+            cls = SymbolicConstantsSubring
+
+        vars = tuple(sorted(iter(SR(v) for v in vars), key=str))
+        return (cls, vars), kwds
+
+
+    def create_object(self, version, key, **kwds):
+        r"""
+        Create an object from the given arguments.
+        """
+        cls, vars = key
+        if cls is SymbolicSubringRejectingVars and not vars:
+            return SR
+        return cls(vars, **kwds)
+
+
+SymbolicSubring = SymbolicSubringFactory("SymbolicSubring")
+
+
 class GenericSymbolicSubring(SymbolicRing):
 
     def __init__(self, vars):

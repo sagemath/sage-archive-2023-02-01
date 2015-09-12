@@ -120,7 +120,7 @@ class CartesianProductFunctor(CovariantFunctorialConstruction):
             sage: _.category()
             Category of Cartesian products of finite enumerated sets
 
-            sage: cartesian_product([set([0,1,2]), [0,1])
+            sage: cartesian_product([set([0,1,2]), [0,1]])
             The cartesian product of ({0, 1, 2}, {0, 1})
             sage: _.category()
             Category of Cartesian products of sets

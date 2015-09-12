@@ -31,14 +31,14 @@ form of an element `x` with respect to `I` (i.e., we have
     sage: from sage.rings.noncommutative_ideals import Ideal_nc
     sage: from itertools import product
     sage: class PowerIdeal(Ideal_nc):
-    ...    def __init__(self, R, n):
-    ...        self._power = n
-    ...        self._power = n
-    ...        Ideal_nc.__init__(self,R,[R.prod(m) for m in product(R.gens(), repeat=n)])
-    ...    def reduce(self,x):
-    ...        R = self.ring()
-    ...        return add([c*R(m) for m,c in x if len(m)<self._power],R(0))
-    ...
+    ....:     def __init__(self, R, n):
+    ....:         self._power = n
+    ....:         self._power = n
+    ....:         Ideal_nc.__init__(self, R, [R.prod(m) for m in product(R.gens(), repeat=n)])
+    ....:     def reduce(self,x):
+    ....:         R = self.ring()
+    ....:         return add([c*R(m) for m,c in x if len(m)<self._power],R(0))
+    ....:
     sage: F.<x,y,z> = FreeAlgebra(QQ, 3)
     sage: I3 = PowerIdeal(F,3); I3
     Twosided Ideal (x^3, x^2*y, x^2*z, x*y*x, x*y^2, x*y*z, x*z*x, x*z*y,

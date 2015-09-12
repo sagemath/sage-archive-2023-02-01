@@ -639,6 +639,56 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
                 return False
         return True
 
+    def is_upward_planar(self):
+        r"""
+        Return ``True`` if the lattice is (upward) planar, and ``False``
+        otherwise.
+
+        A lattice is upward planar if it's Hasse diagram has an upward
+        planar drawing. In other words, it can be drawn without
+        crossing lines and every covering relation directed upwards.
+
+        This is called planar lattice in many papers. Name here is
+        chosen to prevent confusion with planarity in graphs.
+
+        EXAMPLES:
+
+        The Boolean lattice of `2^3` elements is not upward planar, even if
+        it's covering relations graph is planar::
+
+            sage: B3 = Posets.BooleanLattice(3)
+            sage: B3.is_upward_planar()
+            False
+            sage: G = B3.cover_relations_graph()
+            sage: G.is_planar()
+            True
+
+        Ordinal product of planar lattices is obviously planar. Same does
+        not apply to cartesian products::
+
+            sage: P = Posets.PentagonPoset()
+            sage: Pc = P.product(P)
+            sage: Po = P.ordinal_product(P)
+            sage: Pc.is_upward_planar()
+            False
+            sage: Po.is_upward_planar()
+            True
+
+        TESTS::
+
+            sage: Posets.ChainPoset(0).is_upward_planar()
+            True
+            sage: Posets.ChainPoset(1).is_upward_planar()
+            True
+        """
+        from sage.graphs.graph import Graph
+        # The 8-element Boolean lattice is the smallest non-planar lattice.
+        if self.cardinality() < 8:
+            return True
+        g = Graph(self._hasse_diagram)
+        g.add_edge(0, self.cardinality()-1)
+        return g.is_planar()
+
     def is_modular(self, L=None):
         r"""
         Return ``True`` if the lattice is modular and ``False`` otherwise.

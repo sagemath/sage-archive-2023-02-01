@@ -2034,6 +2034,120 @@ class ClusterSeed(SageObject):
             raise ValueError("Greedy elements are only currently "
                              "defined for cluster seeds of rank two.")
 
+    def find_upper_bound(self, verbose=False):
+        r"""
+        Return the upper bound of the given cluster algebra as a quotient_ring.
+
+        The upper bound is the intersection of the Laurent polynomial
+        rings of the initial cluster and its neighboring clusters.  As
+        such, it always contains both the cluster algebra and the
+        upper cluster algebra.  This function uses the algorithm from
+        [MaMu]_.
+
+        When the initial seed is totally coprime (for example, when
+        the unfrozen part of the exchange matrix has full rank), the
+        upper bound is equal to the upper cluster algebra by
+        [BeFoZe]_.
+
+        .. WARNING::
+
+            The computation time grows rapidly with the size
+            of the seed and the number of steps.  For most seeds
+            larger than four vertices, the algorithm may take an
+            infeasible amount of time.  Additionally, it will run
+            forever without terminating whenever the upper bound is
+            infinitely-generated (such as the example in [Sp]_).
+
+        INPUT:
+
+        - ``verbose`` -- (default: ``False``) if ``True``, prints output
+          during the computation.
+
+        EXAMPLES:
+
+        - finite type::
+
+            sage: S = ClusterSeed(['A',3])
+            sage: S.find_upper_bound(silent=True)
+            Quotient of Multivariate Polynomial Ring in x0, x1, x2, x0p, x1p, x2p, z0 over Rational Field by the ideal (x0*x0p - x1 - 1, x1*x1p - x0*x2 - 1, x2*x2p - x1 - 1, x0*z0 - x2p, x1*z0 + z0 - x0p*x2p, x2*z0 - x0p, x1p*z0 + z0 - x0p*x1p*x2p + x1 + 1)
+
+        - Markov::
+
+            sage: B = matrix([[0,2,-2],[-2,0,2],[2,-2,0]])
+            sage: S = ClusterSeed(B)
+            sage: S.find_upper_bound(silent=True)
+            Quotient of Multivariate Polynomial Ring in x0, x1, x2, x0p, x1p, x2p, z0 over Rational Field by the ideal (x0*x0p - x2^2 - x1^2, x1*x1p - x2^2 - x0^2, x2*x2p - x1^2 - x0^2, x0p*x1p*x2p - x0*x1*x2p - x0*x2*x1p - x1*x2*x0p - 2*x0*x1*x2, x0^3*z0 - x1p*x2p + x1*x2, x0*x1*z0 - x2p - x2, x1^3*z0 - x0p*x2p + x0*x2, x0*x2*z0 - x1p - x1, x1*x2*z0 - x0p - x0, x2^3*z0 - x0p*x1p + x0*x1)
+
+        REFERENCES:
+
+        .. [BeFoZe] Berenstein-Fomin-Zelevinsky, Cluster algebras III: Upper bounds and double Bruhat cells, Duke Math. J., 126(1):1-52, 2005.
+        .. [MaMu] Matherne-Muller, Computing upper cluster algebras, Int. Math. Res. Not. IMRN, 2015, 3121-3149.
+        .. [Sp] Speyer, An infinitely generated upper cluster algebra, :arxiv:`1305.6867`.
+        """
+        rank = self.n()
+        LowerVar = self.cluster()
+        for t in range(self.b_matrix().nrows()):
+            LowerVar += [(self.mutate(t, inplace=False)).cluster()[t]]
+        gens = ['x{}'.format(t) for t in range(rank)]
+        gens += ['x{}p'.format(t) for t in range(rank)]
+
+        initial_product = '*'.join(str(gens[i]) for i in range(rank))
+
+        deep_gens = [initial_product]
+        for t in range(rank):
+            neighbor_product = ''
+            for s in range(rank):
+                if s:
+                    neighbor_product += '*'
+                if t == s:
+                    neighbor_product += 'x{}p'.format(s)
+                else:
+                    neighbor_product += 'x'.format(s)
+            deep_gens += [neighbor_product]
+        rels = []
+        for t in range(rank):
+            rels += [str(gens[t]) + '*' + str(gens[t + rank]) + '-('+str(LowerVar[t + rank].numerator()) + ')']
+        while True:
+            R = PolynomialRing(QQ, gens, order='invlex');
+            I = rels * R
+            J = initial_product * R
+            if verbose:
+                msg = 'Computing relations among {} generators'
+                print msg.format(len(gens))
+            start = time.time()
+            ISat = I.saturation(J)[0]
+            spend = time.time() - start
+            if verbose:
+                msg = 'Computed {} relations in {} seconds'
+                print msg.format(len(ISat.gens()), spend)
+            deep_ideal = deep_gens * R + ISat
+            initial_product_ideal = initial_product * R + ISat
+            if verbose:
+                print 'Attempting to find a new element of the upper bound'
+            start = time.time()
+            M = initial_product_ideal.saturation(deep_ideal)[0]
+            spend = time.time() - start
+            if M == initial_product_ideal:
+                if verbose:
+                    print 'Verified that there are no new elements in', spend, 'seconds'
+                    print 'Returning a presentation for the upper bound'
+                return R.quotient_ring(ISat)
+            else:
+                gens.append('z' + str(len(gens) - 2 * rank))
+                new_gen_found = False
+                i = 0
+                M_gens = M.gens()
+                while (not new_gen_found) and i < len(M_gens):
+                    f = initial_product_ideal.reduce(M_gens[i])
+                    if f != 0:
+                        rels.append('z' + str(len(gens) - 2 * rank - 1) + '*' + initial_product + '-(' + str(f) + ')')
+                        new_gen_found = True
+                        if verbose:
+                            print 'Found a new element in', spend, 'seconds!'
+                            print ''
+                    i += 1
+
+
 def _bino(n, k):
     """
     Binomial coefficient which we define as zero for negative n.

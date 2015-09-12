@@ -1563,7 +1563,7 @@ class PartitionTuples(UniqueRepresentation, Parent):
 
         """
         # one way or another these two cases need to be treated separately
-        if mu==[] or mu==[[]]:
+        if mu == [] or mu == () or mu == [[]]:
             return Partition([])
 
         # As partitions are 1-tuples of partitions we need to treat them separately

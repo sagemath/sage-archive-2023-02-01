@@ -197,7 +197,12 @@ class ChainHomotopy(SageObject):
             g = ChainComplexMorphism(g_data, domain, codomain)
         self._domain = domain
         self._codomain = codomain
-        self._matrix_dictionary = matrices
+        self._matrix_dictionary = {}
+        for i in matrices:
+            m = matrices[i]
+            # Use immutable matrices because they're hashable.
+            m.set_immutable()
+            self._matrix_dictionary[i] = m
         self._f = f
         self._g = g
 
@@ -370,6 +375,20 @@ class ChainHomotopy(SageObject):
         deg = self._domain.degree_of_differential()
         matrices = {i-deg: matrix_dict[i].transpose() for i in matrix_dict}
         return ChainHomotopy(matrices, self._f.dual(), self._g.dual())
+
+    def __hash__(self):
+        """
+        TESTS::
+
+            sage: from sage.homology.chain_homotopy import ChainHomotopy
+            sage: C = ChainComplex({1: matrix(ZZ, 0, 2)}) # one nonzero term in degree 1
+            sage: D = ChainComplex({0: matrix(ZZ, 0, 1)}) # one nonzero term in degree 0
+            sage: f = Hom(C, D)({})
+            sage: H = ChainHomotopy({1: matrix(ZZ, 1, 2, (3,1))}, f, f)
+            sage: hash(H)  # random
+            314159265358979
+        """
+        return hash(self._f) ^ hash(self._g) ^ hash(tuple(self._matrix_dictionary.items()))
 
     def _repr_(self):
         """

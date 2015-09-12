@@ -182,6 +182,12 @@ class ChainComplexMorphism(SageObject):
                 mC = matrices[i+d] * C.differential(i)
                 if mC != Dm:
                     raise ValueError('matrices must define a chain complex morphism')
+        self._matrix_dictionary = {}
+        for i in matrices:
+            m = matrices[i]
+            # Use immutable matrices because they're hashable.
+            m.set_immutable()
+            self._matrix_dictionary[i] = m
         self._matrix_dictionary = matrices
         self._domain = C
         self._codomain = D
@@ -519,6 +525,18 @@ class ChainComplexMorphism(SageObject):
                 and self.codomain() == x.codomain() \
                 and self.domain() == x.domain() \
                 and self._matrix_dictionary == x._matrix_dictionary
+
+    def __hash__(self):
+        """
+        TESTS::
+
+            sage: C = ChainComplex({0: identity_matrix(ZZ, 1)})
+            sage: D = ChainComplex({0: zero_matrix(ZZ, 1)})
+            sage: f = Hom(C,D)({0: identity_matrix(ZZ, 1), 1: zero_matrix(ZZ, 1)})
+            sage: hash(f)  # random
+            17
+        """
+        return hash(self.domain()) ^ hash(self.codomain()) ^ hash(tuple(self._matrix_dictionary.items()))
 
     def _repr_(self):
         """

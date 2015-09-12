@@ -399,6 +399,9 @@ inline bool is_the_function(const ex & x)
 // Check whether OBJ is the specified symbolic function.
 #define is_ex_the_function(OBJ, FUNCNAME) (GiNaC::is_the_function<FUNCNAME##_SERIAL>(OBJ))
 
+bool has_function(const ex & x);
+bool has_symbol_or_function(const ex & x);
+
 } // namespace GiNaC
 
 #endif // ndef __GINAC_FUNCTION_H__

@@ -656,13 +656,37 @@ void function::print(const print_context & c, unsigned level) const
 		std::string* sout;
 		if (is_a<print_latex>(c)) {
 			sout = py_funcs.py_latex_function(serial, args);
-		} else 
-			sout = py_funcs.py_print_function(serial, args);
-
-		if (PyErr_Occurred()) { 
-			throw(std::runtime_error("function::print(): python print function raised exception"));
+                        if (PyErr_Occurred()) {
+                                throw(std::runtime_error("function::print(): python print function raised exception"));
+                        }
+                        c.s << *sout << std::endl;
+                        c.s.flush();
 		}
-		c.s<<*sout;
+		else if (is_a<print_tree>(c)) {
+			sout = py_funcs.py_print_function(serial, args);
+                        if (PyErr_Occurred()) {
+                                throw(std::runtime_error("function::print(): python print function raised exception"));
+                        }
+                        std::string fname = sout->substr(0, sout->find_first_of('('));
+			c.s << std::string(level, ' ') << class_name() << " "
+			    << fname << " @" << this << ", serial=" << serial
+			    << std::hex << ", hash=0x" << hashvalue << ", flags=0x" << flags << std::dec
+			    << ", nops=" << nops()
+			    << std::endl;
+			unsigned delta_indent = static_cast<const print_tree &>(c).delta_indent;
+			for (size_t i=0; i<seq.size(); ++i)
+				seq[i].print(c, level + delta_indent);
+			c.s << std::string(level + delta_indent, ' ') << "=====" << std::endl;
+		}
+                else {
+			sout = py_funcs.py_print_function(serial, args);
+                        if (PyErr_Occurred()) {
+                                throw(std::runtime_error("function::print(): python print function raised exception"));
+                        }
+                        c.s << *sout;
+                        c.s.flush();
+		}
+
 		delete sout;
 		Py_DECREF(args);
 	} else {
@@ -686,7 +710,7 @@ next_context:
 		if (is_a<print_tree>(c)) {
 
 			c.s << std::string(level, ' ') << class_name() << " "
-			    << opt.name << " @" << this
+			    << opt.name << " @" << this << ", serial=" << serial
 			    << std::hex << ", hash=0x" << hashvalue << ", flags=0x" << flags << std::dec
 			    << ", nops=" << nops()
 			    << std::endl;
@@ -1598,6 +1622,29 @@ bool function::info(unsigned inf) const
 
 	return iflags.get(inf);
 }
+
+bool has_function(const ex & x)
+{
+	if (is_exactly_a<function>(x))
+		return true;
+	for (size_t i=0; i<x.nops(); ++i)
+		if (has_function(x.op(i)))
+			return true;
+
+	return false;
+}
+
+bool has_symbol_or_function(const ex & x)
+{
+	if (is_exactly_a<symbol>(x) or is_exactly_a<function>(x))
+		return true;
+	for (size_t i=0; i<x.nops(); ++i)
+		if (has_symbol_or_function(x.op(i)))
+			return true;
+
+	return false;
+}
+
 
 } // namespace GiNaC
 

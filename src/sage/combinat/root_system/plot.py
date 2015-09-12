@@ -416,7 +416,7 @@ We conclude with a rank `3 + 1` alcove walk::
     ::
 
         sage: L = RootSystem(["A",3,1]).ambient_space()
-        sage: alcoves = CartesianProduct([0,1],[0,1],[0,1])
+        sage: alcoves = cartesian_product([[0,1],[0,1],[0,1]])
         sage: color = lambda i: "black" if i==0 else None
         sage: L.plot_alcoves(alcoves=alcoves, color=color, bounding_box=10,wireframe=True).show(frame=False) # long time
 

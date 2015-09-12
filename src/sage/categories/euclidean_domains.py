@@ -87,16 +87,16 @@ class EuclideanDomains(Category_singleton):
                 tester.assertGreaterEqual(a.euclidean_degree(), min_degree)
                 tester.assertEqual(a.euclidean_degree() == min_degree, a.is_unit())
 
-            for a in S:
-                for b in S:
-                    p = a * b
-                    # For rings which are not exact, we might get something that
-                    #   acts like a zero divisor.
-                    # Therefore we skip the product if it evaluates to zero.
-                    # Let the category of Domains handle the test for zero divisors.
-                    if p.is_zero():
-                        continue
-                    tester.assertLessEqual(a.euclidean_degree(), p.euclidean_degree())
+            from sage.misc.misc import bounded_number_of_tuples
+            for a,b in bounded_number_of_tuples(S, 2, tester._max_runs):
+                p = a * b
+                # For rings which are not exact, we might get something that
+                #   acts like a zero divisor.
+                # Therefore we skip the product if it evaluates to zero.
+                # Let the category of Domains handle the test for zero divisors.
+                if p.is_zero():
+                    continue
+                tester.assertLessEqual(a.euclidean_degree(), p.euclidean_degree())
 
         def _test_quo_rem(self, **options):
             r"""
@@ -114,17 +114,17 @@ class EuclideanDomains(Category_singleton):
             """
             tester = self._tester(**options)
             S = tester.some_elements()
-            for a in S:
-                for b in S:
-                    if b.is_zero():
-                        tester.assertRaises(ZeroDivisionError, lambda: a.quo_rem(b))
-                    else:
-                        q,r = a.quo_rem(b)
-                        tester.assertIn(q, self)
-                        tester.assertIn(r, self)
-                        tester.assertEqual(a,q*b+r)
-                        if r != 0:
-                            tester.assertLess(r.euclidean_degree(), b.euclidean_degree())
+            from sage.misc.misc import bounded_number_of_tuples
+            for a,b in bounded_number_of_tuples(S, 2, tester._max_runs):
+                if b.is_zero():
+                    tester.assertRaises(ZeroDivisionError, lambda: a.quo_rem(b))
+                else:
+                    q,r = a.quo_rem(b)
+                    tester.assertIn(q, self)
+                    tester.assertIn(r, self)
+                    tester.assertEqual(a,q*b+r)
+                    if r != 0:
+                        tester.assertLess(r.euclidean_degree(), b.euclidean_degree())
 
     class ElementMethods:
         @abstract_method

@@ -114,8 +114,8 @@ class Semigroups(CategoryWithAxiom):
             """
             tester = self._tester(**options)
             S = tester.some_elements()
-            from itertools import product
-            for x,y,z in product(S, repeat=3):
+            from sage.misc.misc import bounded_number_of_tuples
+            for x,y,z in bounded_number_of_tuples(S, 3, tester._max_runs):
                 tester.assert_((x * y) * z == x * (y * z))
 
         @abstract_method(optional=True)

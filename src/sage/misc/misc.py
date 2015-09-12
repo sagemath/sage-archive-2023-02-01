@@ -1722,7 +1722,26 @@ def random_sublist(X, s):
     return [a for a in X if random.random() <= s]
 
 
+def bounded_number_of_tuples(elements, repeat, bound):
+    r"""
+    Return at most ``bound`` number of ``repeat``-tuples of ``elements``.
 
+    TESTS::
+
+        sage: from sage.misc.misc import bounded_number_of_tuples
+        sage: l = bounded_number_of_tuples([0,1,2,3], 2, 3)
+        sage: l # random
+        [(0,3), (1,2), (3,4)]
+        sage: len(l)
+        3
+    """
+    from itertools import product
+    tuples = product(elements, repeat=repeat)
+    if len(elements) ** repeat < bound:
+        return tuples
+    else:
+        from sage.misc.prandom import sample
+        return sample(list(tuples), bound)
 
 def powerset(X):
     r"""

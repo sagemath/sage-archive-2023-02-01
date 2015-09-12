@@ -1731,10 +1731,11 @@ def bounded_number_of_tuples(elements, repeat, bound):
 
         sage: from sage.misc.misc import bounded_number_of_tuples
         sage: l = bounded_number_of_tuples([0,1,2,3], 2, 3)
-        sage: list(l) # random
-        [(0,3), (1,2), (3,4)]
-        sage: len(l)
+        sage: l
+        <generator object <genexpr> at ...>
+        sage: len(list(l))
         3
+
         sage: l = bounded_number_of_tuples(range(50), 3, 10)
         sage: len(list(l))
         10

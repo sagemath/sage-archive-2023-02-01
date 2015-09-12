@@ -1984,6 +1984,10 @@ Please use, e.g., S.algebra(QQ, category=Semigroups())""".format(self))
 
                     sage: for x,y in cartesian_product([Set([1,2]), Set(['a','b'])]):
                     ....:     print x,y
+                    1 a
+                    1 b
+                    2 a
+                    2 b
 
                     sage: A = FiniteEnumeratedSets()(["a", "b"])
                     sage: B = FiniteEnumeratedSets().example(); B

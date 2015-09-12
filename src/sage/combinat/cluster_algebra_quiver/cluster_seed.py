@@ -2068,14 +2068,14 @@ class ClusterSeed(SageObject):
         - finite type::
 
             sage: S = ClusterSeed(['A',3])
-            sage: S.find_upper_bound(silent=True)
+            sage: S.find_upper_bound()
             Quotient of Multivariate Polynomial Ring in x0, x1, x2, x0p, x1p, x2p, z0 over Rational Field by the ideal (x0*x0p - x1 - 1, x1*x1p - x0*x2 - 1, x2*x2p - x1 - 1, x0*z0 - x2p, x1*z0 + z0 - x0p*x2p, x2*z0 - x0p, x1p*z0 + z0 - x0p*x1p*x2p + x1 + 1)
 
         - Markov::
 
             sage: B = matrix([[0,2,-2],[-2,0,2],[2,-2,0]])
             sage: S = ClusterSeed(B)
-            sage: S.find_upper_bound(silent=True)
+            sage: S.find_upper_bound()
             Quotient of Multivariate Polynomial Ring in x0, x1, x2, x0p, x1p, x2p, z0 over Rational Field by the ideal (x0*x0p - x2^2 - x1^2, x1*x1p - x2^2 - x0^2, x2*x2p - x1^2 - x0^2, x0p*x1p*x2p - x0*x1*x2p - x0*x2*x1p - x1*x2*x0p - 2*x0*x1*x2, x0^3*z0 - x1p*x2p + x1*x2, x0*x1*z0 - x2p - x2, x1^3*z0 - x0p*x2p + x0*x2, x0*x2*z0 - x1p - x1, x1*x2*z0 - x0p - x0, x2^3*z0 - x0p*x1p + x0*x1)
 
         REFERENCES:
@@ -2085,32 +2085,30 @@ class ClusterSeed(SageObject):
         .. [Sp] Speyer, An infinitely generated upper cluster algebra, :arxiv:`1305.6867`.
         """
         rank = self.n()
-        LowerVar = self.cluster()
-        for t in range(self.b_matrix().nrows()):
-            LowerVar += [(self.mutate(t, inplace=False)).cluster()[t]]
-        gens = ['x{}'.format(t) for t in range(rank)]
-        gens += ['x{}p'.format(t) for t in range(rank)]
 
-        initial_product = '*'.join(str(gens[i]) for i in range(rank))
+        xvars = ['x{}'.format(t) for t in range(rank)]
+        xpvars = ['x{}p'.format(t) for t in range(rank)]
+        gens = xvars + xpvars
+        initial_product = '*'.join(g for g in xvars)
+
+        lower_var = self.cluster()
+        for t in range(self.b_matrix().nrows()):
+            lower_var += [(self.mutate(t, inplace=False)).cluster()[t]]
 
         deep_gens = [initial_product]
         for t in range(rank):
-            neighbor_product = ''
-            for s in range(rank):
-                if s:
-                    neighbor_product += '*'
-                if t == s:
-                    neighbor_product += 'x{}p'.format(s)
-                else:
-                    neighbor_product += 'x'.format(s)
+            neighbor_product = '*'.join(xpvars[s] if s == t else xvars[s]
+                                        for s in range(rank))
             deep_gens += [neighbor_product]
-        rels = []
-        for t in range(rank):
-            rels += [str(gens[t]) + '*' + str(gens[t + rank]) + '-('+str(LowerVar[t + rank].numerator()) + ')']
+
+        rels = ["-{}*{}+{}".format(gens[t], gens[t + rank],
+                                   lower_var[t + rank].numerator())
+                for t in range(rank)]
+
         while True:
-            R = PolynomialRing(QQ, gens, order='invlex');
-            I = rels * R
-            J = initial_product * R
+            R = PolynomialRing(QQ, gens, order='invlex')
+            I = R.ideal(rels)
+            J = R.ideal(initial_product)
             if verbose:
                 msg = 'Computing relations among {} generators'
                 print msg.format(len(gens))
@@ -2120,8 +2118,8 @@ class ClusterSeed(SageObject):
             if verbose:
                 msg = 'Computed {} relations in {} seconds'
                 print msg.format(len(ISat.gens()), spend)
-            deep_ideal = deep_gens * R + ISat
-            initial_product_ideal = initial_product * R + ISat
+            deep_ideal = R.ideal(deep_gens) + ISat
+            initial_product_ideal = R.ideal(initial_product) + ISat
             if verbose:
                 print 'Attempting to find a new element of the upper bound'
             start = time.time()

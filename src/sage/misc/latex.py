@@ -2346,7 +2346,6 @@ def repr_lincomb(symbols, coeffs):
 
     Verify that it works when ``bv in CC`` raises an error::
 
-
         sage: x = FormalSum([(1,'x'),(2,'y')])
         sage: latex(x)
         \text{\texttt{x}} + 2\text{\texttt{y}}
@@ -2365,7 +2364,7 @@ def repr_lincomb(symbols, coeffs):
                 if first:
                     s += b
                 else:
-                    s += " + %s"%b
+                    s += " + %s" % b
             else:
                 coeff = coeff_repr(c)
                 if coeff == "-1":
@@ -2373,17 +2372,17 @@ def repr_lincomb(symbols, coeffs):
                 if first:
                     coeff = str(coeff)
                 else:
-                    coeff = " + %s"%coeff
+                    coeff = " + %s" % coeff
                 # this is a hack: i want to say that if the symbol
                 # happens to be a number, then we should put a
                 # multiplication sign in
                 try:
                     if bv in CC:
-                        s += "%s\cdot %s"%(coeff, b)
+                        s += "%s\cdot %s" % (coeff, b)
                     else:
-                        s += "%s%s"%(coeff, b)
+                        s += "%s%s" % (coeff, b)
                 except Exception:
-                    s += "%s%s"%(coeff, b)
+                    s += "%s%s" % (coeff, b)
             first = False
         i += 1
     if first:

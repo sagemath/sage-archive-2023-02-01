@@ -36,7 +36,7 @@ def coerce_AA(p):
         sage: from sage.modular.modform_hecketriangle.hecke_triangle_group_element import coerce_AA
         sage: p = (791264*AA(2*cos(pi/8))^2 - 463492).sqrt()
         sage: AA(p)._exact_field()
-        Number Field in a with defining polynomial y^16 ... with a in ...
+        Number Field in a with defining polynomial y^8 ... with a in ...
         sage: coerce_AA(p)._exact_field()
         Number Field in a with defining polynomial y^4 - 1910*y^2 - 3924*y + 681058 with a in 39.710518724...?
     """

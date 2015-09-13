@@ -153,11 +153,11 @@ for where the partial derivatives with respect to ``x``
 and ``y`` are zero. Then it substitutes one of the solutions
 into the Hessian matrix ``H`` for ``f``::
 
-    sage: f(x,y)=x^2*y+y^2+y
-    sage: solutions=solve(list(f.diff()),[x,y],solution_dict=True)
+    sage: f(x,y) = x^2*y+y^2+y
+    sage: solutions = solve(list(f.diff()),[x,y],solution_dict=True)
     sage: solutions
     [{y: 0, x: -I}, {y: 0, x: I}, {y: -1/2, x: 0}]
-    sage: H=f.diff(2)  # Hessian matrix
+    sage: H = f.diff(2) # Hessian matrix
     sage: H.subs(solutions[2])
     [(x, y) |--> -1  (x, y) |--> 0]
     [ (x, y) |--> 0  (x, y) |--> 2]

@@ -393,8 +393,8 @@ Fundamental Theorem of Calculus is not entirely helpful.  Recall that
 
 ::
 
-    sage: integral(h,(x,0,pi/8))
-    1/2*log(sin(1/8*pi) + 1) - 1/2*log(-sin(1/8*pi) + 1)
+    sage: integral(h,(x,0,pi/7))
+    1/2*log(sin(1/7*pi) + 1) - 1/2*log(-sin(1/7*pi) + 1)
 
 Here, just a number might be more helpful.  Sage has several ways of
 numerical evaluating integrals.
@@ -411,7 +411,7 @@ was also mentioned in the introductory tutorial.
 ::
 
     sage: N(integral(h,(x,0,pi/8)))
-    0.403199719161512
+    0.403199719161511
 
 The second function, ``numerical_integral``, uses a powerful numerical
 program (the GNU Scientific Library).

@@ -5982,6 +5982,25 @@ class FiniteStateMachine(SageObject):
         One can see the growing of the output (the list of lists at
         the end of each entry).
 
+        Even if the transducer has transitions with empty or multiletter
+        output, the simple iterator returns one new output letter in
+        each step::
+
+            sage: T = Transducer([(0, 0, 0, []),
+            ....:                 (0, 0, 1, [1]),
+            ....:                 (0, 0, 2, [2, 2])],
+            ....:                initial_states=[0])
+            sage: it = T.iter_process(input_tape=[0, 1, 2, 0, 1, 2],
+            ....:                     iterator_type='simple')
+            sage: for i, o in enumerate(it):
+            ....:     print 'step %s: output %s' % (i, o)
+            step 0: output 1
+            step 1: output 2
+            step 2: output 2
+            step 3: output 1
+            step 4: output 2
+            step 5: output 2
+
         .. SEEALSO::
 
             :meth:`FiniteStateMachine.process`,

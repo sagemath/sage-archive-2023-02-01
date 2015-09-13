@@ -30,6 +30,16 @@ cdef class Matrix_generic_dense(matrix_dense.Matrix_dense):
         sage: type(A)
         <type 'sage.matrix.matrix_generic_dense.Matrix_generic_dense'>
         sage: TestSuite(A).run()
+
+    Test comparisons::
+
+        sage: A = random_matrix(Integers(25)['x'],2)
+        sage: cmp(A,A)
+        0
+        sage: cmp(A,A+1)
+        -1
+        sage: cmp(A+1,A)
+        1
     """
     ########################################################################
     # LEVEL 1 functionality
@@ -60,7 +70,7 @@ cdef class Matrix_generic_dense(matrix_dense.Matrix_dense):
         """
         matrix.Matrix.__init__(self, parent)
 
-        cdef Py_ssize_t i
+        cdef Py_ssize_t i,j
         cdef bint is_list
 
         R = parent.base_ring()
@@ -104,13 +114,14 @@ cdef class Matrix_generic_dense(matrix_dense.Matrix_dense):
                 self._entries = [R(x) for x in self._entries]
             elif copy:
                 self._entries = self._entries[:]
-        else:
+        elif self._nrows == self._ncols:
+            self._entries = [zero]*(self._nrows*self._nrows)
+            for i in range(self._nrows):
+                self._entries[i+self._ncols*i]=entries
+        elif entries == zero:
             self._entries = [zero]*(self._nrows*self._ncols)
-            if entries != zero:
-                if self._nrows != self._ncols:
-                    raise TypeError("nonzero scalar matrix must be square")
-                for i in range(self._nrows):
-                    self._entries[i*self._ncols + i] = entries
+        else:
+            raise TypeError("nonzero scalar matrix must be square")
 
     cdef Matrix_generic_dense _new(self, Py_ssize_t nrows, Py_ssize_t ncols):
         r"""
@@ -156,19 +167,6 @@ cdef class Matrix_generic_dense(matrix_dense.Matrix_dense):
             self._entries = data
         else:
             raise RuntimeError, "unknown matrix version"
-
-    def __richcmp__(matrix.Matrix self, right, int op):  # always need for mysterious reasons.
-        """
-        EXAMPLES:
-            sage: A = random_matrix(Integers(25)['x'],2)
-            sage: cmp(A,A)
-            0
-            sage: cmp(A,A+1)
-            -1
-            sage: cmp(A+1,A)
-            1
-        """
-        return self._richcmp(right, op)
 
     def __hash__(self):
         """

@@ -128,7 +128,7 @@ def KirillovReshetikhinCrystal(cartan_type, r, s):
     return RiggedConfigurations(cartan_type, [[r,s]])
 
 # Note on implementation, this class is used for simply-laced types only
-class RiggedConfigurations(Parent, UniqueRepresentation):
+class RiggedConfigurations(UniqueRepresentation, Parent):
     r"""
     Rigged configurations as `U_q^{\prime}(\mathfrak{g})`-crystals.
 
@@ -248,7 +248,7 @@ class RiggedConfigurations(Parent, UniqueRepresentation):
         6
         sage: len(RC.list()) == RC.cardinality()
         True
-        sage: RC.list()
+        sage: RC.list() # random
         [
         <BLANKLINE>
                                                  0[ ]0
@@ -490,11 +490,11 @@ class RiggedConfigurations(Parent, UniqueRepresentation):
             <BLANKLINE>
             (/)
             <BLANKLINE>
-            sage: next(g)
+            sage: next(g) # random
             <BLANKLINE>
-            (/)
+            0[ ]0
             <BLANKLINE>
-            -1[ ]-1
+            0[ ]0
             <BLANKLINE>
             (/)
             <BLANKLINE>

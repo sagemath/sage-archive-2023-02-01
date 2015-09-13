@@ -310,7 +310,6 @@ def _orthogonal_polar_graph(m, q, sign="+", point_type=[0]):
     M = Matrix(libgap.InvariantQuadraticForm(libgap.GeneralOrthogonalGroup(e,m,q))['matrix'])
     Fq = libgap.GF(q).sage()
     PG = ProjectiveSpace(m - 1, Fq)
-    m_over_two = m // 2
 
     def F(x):
         return x*M*x
@@ -412,6 +411,8 @@ def NonisotropicOrthogonalPolarGraph(m, q, sign="+", perp=None):
 
     - ``m``  - integer,  half the dimension of the underlying vectorspace
 
+    - ``q``  - a power of a prime number, the size of the underlying field
+
     - ``sign`` -- ``"+"`` (default) or ``"-"``.
 
     EXAMPLES:
@@ -489,54 +490,51 @@ def NonisotropicOrthogonalPolarGraph(m, q, sign="+", perp=None):
 
     """
     from sage.graphs.generators.classical_geometries import _orthogonal_polar_graph
+    from sage.rings.arith import is_prime_power
+    p, k = is_prime_power(q,get_data=True)
+    if k==0:
+        raise ValueError('q must be a prime power')
     dec = ''
     if m % 2 == 0:
         if q in [2,3]:
             G = _orthogonal_polar_graph(m, q, sign=sign, point_type=[1])
         else:
             raise ValueError("for m even q must be 2 or 3")
-    else:
-        if not perp is None:
-            if q == 5:
-                G = _orthogonal_polar_graph(m, q, point_type=\
-                    [-1,1] if sign=='+' else [2,3] if sign=='-' else [])
-                dec = ",perp"
-            else:
-                raise ValueError("for perp not None q must be 5")
+    elif not perp is None:
+        if q == 5:
+            G = _orthogonal_polar_graph(m, q, point_type=\
+                [-1,1] if sign=='+' else [2,3] if sign=='-' else [])
+            dec = ",perp"
         else:
-            from sage.rings.arith import is_prime_power
-            p, k = is_prime_power(q,get_data=True)
-            if k==0:
-                raise ValueError('q must be a prime power')
-            if not sign in ['+','-']:
-                raise ValueError("sign must be '+' or '-'")
-            from sage.libs.gap.libgap import libgap
-            g0 = libgap.GeneralOrthogonalGroup(m,q)
-            g = libgap.Group(libgap.List(g0.GeneratorsOfGroup(),libgap.TransposedMat))
-            F=libgap.GF(q)  # F_q
-            W=libgap.FullRowSpace(F, m)  # F_q^m
-            e = 1 if sign=='+' else -1
-            n = (m-1)/2
-            #
-            # build (q^n(q^n+e)/2, (q^n-e)(q^(n-1)+e), 2(q^(2n-2)-1)+eq^(n-1)(q-1),
-            #                                          2q^(n-1)(q^(n-1)+e))-srg
-            # with eigenvalues -eq^(n-1)-1 and eq^(n-1)(q-2)-1
-            #
-            nvert = (q**n)*(q**n+e)/2     # v
-            deg = (q**n-e)*(q**(n-1)+e)   # k
-            S=map(lambda x: libgap.Elements(libgap.Basis(x))[0], \
-                libgap.Elements(libgap.Subspaces(W,1)))
-            V = filter(lambda x: len(x)==nvert, libgap.Orbits(g,S,libgap.OnLines))
-            assert len(V)==1
-            V = V[0]
-            gp = libgap.Action(g,V,libgap.OnLines)  # make a permutation group
-            h = libgap.Stabilizer(gp,1)
-            Vh = filter(lambda x: len(x)==deg, libgap.Orbits(h,libgap.Orbit(gp,1)))
-            assert len(Vh)==1
-            Vh = Vh[0][0]
-            L = libgap.Orbit(gp, [1, Vh], libgap.OnSets)
-            G = Graph()
-            G.add_edges(L)
+            raise ValueError("for perp not None q must be 5")
+    else:
+        if not sign in ['+','-']:
+            raise ValueError("sign must be '+' or '-'")
+        from sage.libs.gap.libgap import libgap
+        g0 = libgap.GeneralOrthogonalGroup(m,q)
+        g = libgap.Group(libgap.List(g0.GeneratorsOfGroup(),libgap.TransposedMat))
+        F=libgap.GF(q)  # F_q
+        W=libgap.FullRowSpace(F, m)  # F_q^m
+        e = 1 if sign=='+' else -1
+        n = (m-1)/2
+        # we build (q^n(q^n+e)/2, (q^n-e)(q^(n-1)+e), 2(q^(2n-2)-1)+eq^(n-1)(q-1),
+        #                                          2q^(n-1)(q^(n-1)+e))-srg
+        # **use** v and k to select appropriate orbit and orbital
+        nvert = (q**n)*(q**n+e)/2     # v
+        deg = (q**n-e)*(q**(n-1)+e)   # k
+        S=map(lambda x: libgap.Elements(libgap.Basis(x))[0], \
+            libgap.Elements(libgap.Subspaces(W,1)))
+        V = filter(lambda x: len(x)==nvert, libgap.Orbits(g,S,libgap.OnLines))
+        assert len(V)==1
+        V = V[0]
+        gp = libgap.Action(g,V,libgap.OnLines)  # make a permutation group
+        h = libgap.Stabilizer(gp,1)
+        Vh = filter(lambda x: len(x)==deg, libgap.Orbits(h,libgap.Orbit(gp,1)))
+        assert len(Vh)==1
+        Vh = Vh[0][0]
+        L = libgap.Orbit(gp, [1, Vh], libgap.OnSets)
+        G = Graph()
+        G.add_edges(L)
     G.name("NO^" + sign + dec + str((m, q)))
     return G
 
@@ -670,13 +668,6 @@ def NonisotropicUnitaryPolarGraph(m, q):
     line.
     For more information, see Sect. 9.9 of [BH12]_ and series C14 in [Hu75]_.
 
-    REFERENCE:
-
-    .. [Hu75] X. L. Hubaut.
-      Strongly regular graphs.
-      Disc. Math. 13(1975), pp 357--381.
-      http://dx.doi.org/10.1016/0012-365X(75)90057-6
-
     INPUT:
 
     - ``m,q`` (integers) -- `q` must be a prime power.
@@ -698,6 +689,13 @@ def NonisotropicUnitaryPolarGraph(m, q):
         Traceback (most recent call last):
         ...
         ValueError: q must be a prime power
+
+    REFERENCE:
+
+    .. [Hu75] X. L. Hubaut.
+      Strongly regular graphs.
+      Disc. Math. 13(1975), pp 357--381.
+      http://dx.doi.org/10.1016/0012-365X(75)90057-6
     """
     from sage.rings.arith import is_prime_power
     p, k = is_prime_power(q,get_data=True)
@@ -792,13 +790,6 @@ def SymplecticDualPolarGraph(m, q):
     For more information on Symplectic Dual Polar graphs, see [BCN89]_ and
     Sect. 2.3.1 of [Co81]_.
 
-    REFERENCE:
-
-    .. [Co81] A. M. Cohen,
-      `A synopsis of known distance-regular graphs with large diameters
-      <http://persistent-identifier.org/?identifier=urn:nbn:nl:ui:18-6775>`_,
-      Stichting Mathematisch Centrum, 1981.
-
     INPUT:
 
     - ``m,q`` (integers) -- `q` must be a prime power, and `m` must be even.
@@ -820,6 +811,13 @@ def SymplecticDualPolarGraph(m, q):
         Traceback (most recent call last):
         ...
         ValueError: libGAP: Error, <subfield> must be a prime or a finite field
+    
+    REFERENCE:
+
+    .. [Co81] A. M. Cohen,
+      `A synopsis of known distance-regular graphs with large diameters
+      <http://persistent-identifier.org/?identifier=urn:nbn:nl:ui:18-6775>`_,
+      Stichting Mathematisch Centrum, 1981.
     """
     from sage.libs.gap.libgap import libgap
     G = _polar_graph(m, q, libgap.SymplecticGroup(m, q),

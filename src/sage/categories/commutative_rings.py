@@ -12,6 +12,7 @@ Commutative rings
 #******************************************************************************
 
 from sage.categories.category_with_axiom import CategoryWithAxiom
+from sage.categories.cartesian_product import CartesianProductsCategory
 
 class CommutativeRings(CategoryWithAxiom):
     """
@@ -48,6 +49,15 @@ class CommutativeRings(CategoryWithAxiom):
         pass
 
     class Finite(CategoryWithAxiom):
+        r"""
+        Check that Sage knows that cartesian products of finite commutative
+        rings is a finite commutative ring.
+
+        EXAMPLES::
+
+            sage: cartesian_product([Zmod(34), GF(5)]) in Rings().Commutative().Finite()
+            True
+        """
         class ParentMethods:
             def cyclotomic_cosets(self, q, cosets=None):
                 r"""
@@ -134,8 +144,9 @@ class CommutativeRings(CategoryWithAxiom):
 
                 Cyclotomic cosets of fields are useful in combinatorial design
                 theory to provide so called difference families (see
-                :wikipedia:`Difference_set`). This is illustrated on the
-                following examples::
+                :wikipedia:`Difference_set` and
+                :mod:`~sage.combinat.designs.difference_family`). This is
+                illustrated on the following examples::
 
                     sage: K = GF(5)
                     sage: a = K.multiplicative_generator()
@@ -150,6 +161,14 @@ class CommutativeRings(CategoryWithAxiom):
                     [[1, 7, 9, 10, 12, 16, 26, 33, 34]]
                     sage: sorted(x-y for D in H for x in D for y in D if x != y)
                     [1, 1, 2, 2, 3, 3, 4, 4, 5, 5, ..., 33, 34, 34, 35, 35, 36, 36]
+
+                The method ``cyclotomic_cosets`` works on any finite commutative
+                ring::
+
+                    sage: R = cartesian_product([GF(7), Zmod(14)])
+                    sage: a = R((3,5))
+                    sage: R.cyclotomic_cosets((3,5), [(1,1)])
+                    [[(1, 1), (3, 5), (2, 11), (6, 13), (4, 9), (5, 3)]]
                 """
                 q = self(q)
 
@@ -177,3 +196,18 @@ class CommutativeRings(CategoryWithAxiom):
 
                 orbits.sort()
                 return orbits
+
+    class CartesianProducts(CartesianProductsCategory):
+        def extra_super_categories(self):
+            r"""
+            Let Sage knows that cartesian products of commutative rings is a
+            commutative ring.
+
+            EXAMPLES::
+
+                sage: CommutativeRings().Commutative().CartesianProducts().extra_super_categories()
+                [Category of commutative rings]
+                sage: cartesian_product([ZZ, Zmod(34), QQ, GF(5)]) in CommutativeRings()
+                True
+            """
+            return [CommutativeRings()]

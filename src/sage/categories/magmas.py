@@ -378,6 +378,22 @@ class Magmas(Category_singleton):
                 """
                 return [Magmas().Commutative()]
 
+        class CartesianProducts(CartesianProductsCategory):
+            def extra_super_categories(self):
+                r"""
+                Implement the fact that a cartesian product of commutative
+                additive magmas is still an commutative additive magmas.
+
+                EXAMPLES::
+
+                    sage: C = Magmas().Commutative().CartesianProducts()
+                    sage: C.extra_super_categories()
+                    [Category of commutative magmas]
+                    sage: C.axioms()
+                    frozenset({'Commutative'})
+                """
+                return [Magmas().Commutative()]
+
     class Unital(CategoryWithAxiom):
 
         def additional_structure(self):
@@ -1020,9 +1036,11 @@ class Magmas(Category_singleton):
                 sage: C = Magmas().CartesianProducts().example(); C
                 The cartesian product of (Rational Field, Integer Ring, Integer Ring)
                 sage: C.category()
-                Join of Category of rings ...
+                Category of Cartesian products of commutative rings
                 sage: sorted(C.category().axioms())
-                ['AdditiveAssociative', 'AdditiveCommutative', 'AdditiveInverse', 'AdditiveUnital', 'Associative', 'Distributive', 'Unital']
+                ['AdditiveAssociative', 'AdditiveCommutative', 'AdditiveInverse',
+                 'AdditiveUnital', 'Associative', 'Commutative',
+                 'Distributive', 'Unital']
 
                 sage: TestSuite(C).run()
             """

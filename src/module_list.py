@@ -903,6 +903,11 @@ ext_modules = [
     Extension('sage.matrix.matrix_window',
               sources = ['sage/matrix/matrix_window.pyx']),
 
+    OptionalExtension("sage.matrix.matrix_gfpn_dense",
+              sources = ['sage/matrix/matrix_gfpn_dense.pyx'],
+              libraries = ['mtx'],
+              package = 'meataxe'),
+
     Extension('sage.matrix.misc',
               sources = ['sage/matrix/misc.pyx'],
               libraries=['mpfr']),

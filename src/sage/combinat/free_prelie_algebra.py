@@ -81,7 +81,7 @@ class FreePreLieAlgebra(CombinatorialFreeModule):
         sage: x * (y * z) == (x * y) * z
         False
 
-    The default product is with left paretheses::
+    The default product is with left parentheses::
 
         sage: x * y * z == (x * y) * z
         True

@@ -1999,7 +1999,8 @@ class GraphGenerators():
     NonisotropicUnitaryPolarGraph = staticmethod(sage.graphs.generators.classical_geometries.NonisotropicUnitaryPolarGraph)
     OrthogonalPolarGraph   = staticmethod(sage.graphs.generators.classical_geometries.OrthogonalPolarGraph)
     SymplecticDualPolarGraph = staticmethod(sage.graphs.generators.classical_geometries.SymplecticDualPolarGraph)
-    SymplecticPolarGraph   = staticmethod(sage.graphs.generators.classical_geometries.SymplecticGraph)
+    SymplecticGraph   = staticmethod(sage.graphs.generators.classical_geometries.SymplecticGraph)
+    SymplecticPolarGraph   = staticmethod(sage.graphs.generators.classical_geometries.SymplecticPolarGraph)
     TaylorTwographDescendantSRG = \
              staticmethod(sage.graphs.generators.classical_geometries.TaylorTwographDescendantSRG)
     TaylorTwographSRG      = staticmethod(sage.graphs.generators.classical_geometries.TaylorTwographSRG)

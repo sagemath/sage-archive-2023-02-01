@@ -4456,7 +4456,7 @@ class Tableaux(UniqueRepresentation, Parent):
         sage: [] in Tableaux(0)
         True
 
-    Check that trac:`14145` has been fixed::
+    Check that :trac:`14145` has been fixed::
 
         sage: 1 in Tableaux()
         False

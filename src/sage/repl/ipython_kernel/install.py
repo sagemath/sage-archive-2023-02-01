@@ -257,7 +257,7 @@ def have_prerequisites():
     Check that we have all prerequisites to run the IPython notebook.
 
     In particular, the IPython notebook requires OpenSSL whether or
-    not you are using https. See trac:`17318`.
+    not you are using https. See :trac:`17318`.
 
     OUTPUT:
 

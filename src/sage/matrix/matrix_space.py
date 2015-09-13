@@ -510,7 +510,7 @@ class MatrixSpace(UniqueRepresentation, parent_gens.ParentWithGens):
             cannot be converted to a matrix in
             Full MatrixSpace of 3 by 5 dense matrices over Integer Ring!
 
-        Check that trac:`15110` is fixed::
+        Check that :trac:`15110` is fixed::
 
             sage: S.<t> = LaurentSeriesRing(ZZ)
             sage: MS = MatrixSpace(S,1,1)

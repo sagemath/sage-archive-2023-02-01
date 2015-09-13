@@ -6062,21 +6062,21 @@ class FiniteStateMachine(SageObject):
             Traceback (most recent call last):
             ...
             RuntimeError: Process has branched (2 branches exist).
-            Try it without the option 'simple'.
+            The 'simple' iterator cannot be used here.
             sage: T = Transducer([(0, 0, 0, 0), (0, 1, 0, 0)],
             ....:                initial_states=[0], final_states=[0])
             sage: list(T.iter_process([0], iterator_type='simple'))
             Traceback (most recent call last):
             ...
             RuntimeError: Process has branched (visiting 2 states in branch).
-            Try it without the option 'simple'.
+            The 'simple' iterator cannot be used here.
             sage: T = Transducer([(0, 1, 0, 1), (0, 1, 0, 2)],
             ....:                initial_states=[0], final_states=[0])
             sage: list(T.iter_process([0], iterator_type='simple'))
             Traceback (most recent call last):
             ...
             RuntimeError: Process has branched. (2 different outputs in branch).
-            Try it without the option 'simple'.
+            The 'simple' iterator cannot be used here.
         """
         for current in iterator:
             if not current:
@@ -6084,20 +6084,23 @@ class FiniteStateMachine(SageObject):
 
             if len(current) > 1:
                 raise RuntimeError("Process has branched "
-                                   "(%s branches exist). Try it "
-                                   "without the option 'simple'." %
+                                   "(%s branches exist). The "
+                                   "'simple' iterator cannot be used "
+                                   "here." %
                                    (len(current),))
             pos, states = next(current.iteritems())
             if len(states) > 1:
                 raise RuntimeError("Process has branched "
-                                   "(visiting %s states in branch). Try it "
-                                   "without the option 'simple'." %
+                                   "(visiting %s states in branch). The "
+                                   "'simple' iterator cannot be used "
+                                   "here." %
                                    (len(states),))
             state, (tape_cache, outputs) = next(states.iteritems())
             if len(outputs) > 1:
                 raise RuntimeError("Process has branched. "
-                                   "(%s different outputs in branch). Try it "
-                                   "without the option 'simple'." %
+                                   "(%s different outputs in branch). The "
+                                   "'simple' iterator cannot be used "
+                                   "here." %
                                    (len(outputs),))
 
             for o in outputs[0]:

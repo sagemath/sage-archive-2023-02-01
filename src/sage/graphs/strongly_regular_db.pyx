@@ -609,7 +609,6 @@ def is_NU(int v,int k,int l,int mu):
     """
     cdef int n, q, e               # special cases: n=3 or q=2
     r,s = eigenvalues(v,k,l,mu) #r,s = eq^{n-2} - 1, -e(q^2-q-1)q^{n-3} - 1, e=(-1)^n
-#    print "ev: ", r, " ", s, "\n"
     if r is None:
         return
     r += 1
@@ -617,26 +616,17 @@ def is_NU(int v,int k,int l,int mu):
     if abs(r)>abs(s):
         (r,s) = (s,r)
     p, t = is_prime_power(abs(r), get_data=True)
-#    print "p=", p, " t=", t, " r=", r, " s=", s,"\n"
     if p==2: # it can be that q=2, then we'd have r>s now
         pp, kk = is_prime_power(abs(s), get_data=True)
         if pp==2 and kk>0:
             (r,s) = (s,r)
             p, t = is_prime_power(abs(r), get_data=True)
-#            print "2nd try: p=", p, " t=", t, " r=", r, " s=", s,"\n"
     if r==1:
         return
     kr = k/(r-1) # eq^{n-1}+1
     e = 1 if kr>0 else -1
     q = (kr-1)/r
     pp, kk = is_prime_power(q, get_data=True)
-
-#    print "q=", q, "e=", e, "\n"
-#    n  = t/kk + 2
-#    print q**(n-1)*(q**n - e)/(q + 1), " ",\
-#          (q**(n-1) + e)*(q**(n-2) - e), " ",\
-#          q**(2*n-5)*(q+1) - e*q**(n-2)*(q-1) - 2, " ",\
-#          q**(n-3)*(q + 1)*(q**(n-2) - e),"\n"
     if p == pp and kk != 0:
         n  = t/kk + 2
         if (v  == q**(n-1)*(q**n - e)/(q + 1)               and

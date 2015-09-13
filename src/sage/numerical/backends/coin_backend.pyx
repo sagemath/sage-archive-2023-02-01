@@ -446,7 +446,7 @@ cdef class CoinBackend(GenericBackend):
         """
         cdef int i, c
         cdef int m = len(constraints)
-        cdef int * rows = <int *>sage_malloc(m * sizeof(int *))
+        cdef int * rows = <int *>check_malloc(m * sizeof(int *))
         cdef int nrows = self.si.getNumRows()
 
         for i in xrange(m):
@@ -701,8 +701,8 @@ cdef class CoinBackend(GenericBackend):
         """
 
         cdef int n = len(indices)
-        cdef int * c_indices = <int*>sage_malloc(n*sizeof(int))
-        cdef double * c_values  = <double*>sage_malloc(n*sizeof(double))
+        cdef int * c_indices = <int*>check_malloc(n*sizeof(int))
+        cdef double * c_values  = <double*>check_malloc(n*sizeof(double))
         cdef int i
 
         for 0<= i< n:
@@ -1291,8 +1291,8 @@ cdef class CoinBackend(GenericBackend):
         """
         cdef int n = self.model.solver().getNumCols()
         cdef int m = self.model.solver().getNumRows()
-        cdef int * c_cstat = <int *>sage_malloc(n * sizeof(int))
-        cdef int * c_rstat = <int *>sage_malloc(m * sizeof(int))
+        cdef int * c_cstat = <int *>check_malloc(n * sizeof(int))
+        cdef int * c_rstat = <int *>check_malloc(m * sizeof(int))
         cdef list cstat
         cdef list rstat
         # enableSimplexInterface must be set to use getBasisStatus().
@@ -1419,8 +1419,8 @@ cdef class CoinBackend(GenericBackend):
         
         if n != self.model.solver().getNumCols() or m != self.model.solver().getNumRows():
             raise ValueError("Must provide the status of every column and row variables")
-        c_cstat = <int *>sage_malloc(n * sizeof(int))
-        c_rstat = <int *>sage_malloc(m * sizeof(int))
+        c_cstat = <int *>check_malloc(n * sizeof(int))
+        c_rstat = <int *>check_malloc(m * sizeof(int))
         for i in range(n):
             c_cstat[i] = cstat[i]
         for i in range(m):
@@ -1487,8 +1487,8 @@ cdef class CoinBackend(GenericBackend):
         if i < 0 or i >= m:
             raise ValueError("i = %s. The i-th row of the tableau doesn't exist" % i)
         
-        cdef double * c_slack = <double *>sage_malloc(m * sizeof(double))
-        cdef double * c_z = <double *>sage_malloc(n * sizeof(double))
+        cdef double * c_slack = <double *>check_malloc(m * sizeof(double))
+        cdef double * c_z = <double *>check_malloc(n * sizeof(double))
         cdef list slack
         cdef list ithrow
         # enableSimplexInterface must be set to use getBasisStatus().
@@ -1551,7 +1551,7 @@ cdef class CoinBackend(GenericBackend):
             # getBInvACol(j) is getBinvCol(j-n) 
             raise ValueError("j = %s. The j-th column of the tableau doesn't exist" % j)
 
-        cdef double * c_vec = <double *>sage_malloc(m * sizeof(double))
+        cdef double * c_vec = <double *>check_malloc(m * sizeof(double))
         cdef list jthcol
         # enableSimplexInterface must be set to use getBasisStatus().
         # See projects.coin-or.org/Osi/ticket/84

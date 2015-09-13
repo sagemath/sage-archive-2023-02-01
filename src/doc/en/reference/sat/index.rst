@@ -22,12 +22,11 @@ Any SAT solver supporting the DIMACS input format is easily interfaced using the
 :class:`sage.sat.solvers.dimacs.DIMACS` blueprint. Sage ships with pre-written interfaces for *RSat*
 [RS]_ and *Glucose* [GL]_. Furthermore, Sage provides a C++ interface to the *CryptoMiniSat* [CMS]_ SAT
 solver which can be used interchangably with DIMACS-based solvers, but also provides advanced
-features. For this, the optional CryptoMiniSat package must be installed, this can be accomplished
-by typing::
+features. For this, the optional CryptoMiniSat package must be
+installed, this can be accomplished by typing the following in the
+shell::
 
-    sage: install_package('cryptominisat') # not tested
-
-and by running ``sage -b`` from the shell afterwards to build Sage's CryptoMiniSat extension module.
+    sage -i cryptominisat sagelib
 
 Since by default Sage does not include any SAT solver, we demonstrate key features by instantiating
 a fake DIMACS-based solver. We start with a trivial example::

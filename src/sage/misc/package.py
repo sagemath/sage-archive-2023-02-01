@@ -1,187 +1,74 @@
 r"""
-Sage package management commands
+Listing Sage packages
 
-A Sage package has the extension .spkg. It is a tarball that is
-(usually) bzip2 compressed that contains arbitrary data and an
-spkg-install file. An Sage package typically has the following
-components:
+This module can be used to see which Sage packages are installed
+and which packages are available for installation.
 
+For more information about creating Sage packages, see
+the "Packaging Third-Party Code" section of the
+Sage Developer's Guide.
 
--  spkg-install - shell script that is run to install the package
+Actually installing the packages should be done via the command
+line, using the following commands:
 
--  Sage.txt - file that describes how the package was made, who
-   maintains it, etc.
+- ``sage -i PACKAGE_NAME`` -- install the given package
 
--  sage - directory with extra patched version of files that needed
-   during the install
-
-
-Use the ``install_package`` command to install a new
-package, and use ``optional_packages`` to list all
-optional packages available on the central Sage server. The
-``upgrade`` command upgrades all *standard* packages -
-there is no auto-upgrade command for optional packages.
-
-All package management can also be done via the Sage command line.
+- ``sage -f PACKAGE_NAME`` -- re-install the given package, even if it
+  was already installed
 """
+
+#*****************************************************************************
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
+#                  http://www.gnu.org/licenses/
+#*****************************************************************************
 
 import os
 
-__installed_packages = None
+def install_package(package=None, force=None):
+    """
+    This function is obsolete. Run ``sage -i PKGNAME`` from a shell
+    to install a package. Use the function :func:`installed_packages`
+    to list all installed packages.
+
+    TESTS::
+
+        sage: install_package()
+        doctest:...: DeprecationWarning: use installed_packages() to list all installed packages
+        See http://trac.sagemath.org/16759 for details.
+        [...'atlas...'python...]
+        sage: install_package("autotools")
+        Traceback (most recent call last):
+        ...
+        NotImplementedError: installing Sage packages using 'install_package()' is obsolete.
+        Run 'sage -i autotools' from a shell prompt instead
+    """
+    if package is not None:
+        # deprecation(16759, ...)
+        raise NotImplementedError("installing Sage packages using 'install_package()' is obsolete.\nRun 'sage -i {}' from a shell prompt instead".format(package))
+
+    from sage.misc.superseded import deprecation
+    deprecation(16759, "use installed_packages() to list all installed packages")
+    return installed_packages()
 
 
-def install_all_optional_packages(force=True, dry_run=False):
-    r"""
-    Install all available optional spkg's in the official Sage spkg
-    repository.  Returns a list of all spkg's that *fail* to install.
-
-    INPUT:
-
-    - ``force`` -- bool (default: ``True``); whether to force
-      reinstall of spkg's that are already installed.
-
-    - ``dry_run`` -- bool (default: ``False``); if ``True``, just list
-      the packages that would be installed in order, but don't
-      actually install them.
-
-    OUTPUT:
-
-        list of strings
-
-    .. NOTE::
-
-        This is designed mainly for testing purposes.  This also
-        doesn't do anything with respect to dependencies -- the
-        packages are installed in alphabetical order.  Dependency
-        issues will be dealt with in a future version.
-
-
-    AUTHOR:
-
-        -- William Stein (2008-12)
+def installed_packages():
+    """
+    Return a list of all installed packages, with version numbers.
 
     EXAMPLES::
 
-        sage: sage.misc.package.install_all_optional_packages(dry_run=True)  # optional - internet
-        Installing ...
-        []
-    """
-    # Get list of all packages from the package server
-    installed, not_installed = optional_packages()
-    if force:
-        v = installed + not_installed
-    else:
-        v = not_installed
-    failed = []
-
-    # sort the list of packages in alphabetical order
-    v.sort()
-
-    # install each one
-    for pkg in v:
-        try:
-            print("Installing {}...".format(pkg))
-            if not dry_run:
-                # only actually do the install of the package if dry_run is False
-                install_package(pkg, force=force)
-        except ValueError as msg:
-            # An error occurred -- catch exception and record this in
-            # the list of failed installed.
-            print("*"*70)
-            print("FAILED to install '{}'".format(pkg))
-            print("*"*70)
-            failed.append(pkg)
-    return failed
-
-def install_package(package=None, force=False):
-    """
-    Install a package or return a list of all packages that have been
-    installed into this Sage install.
-
-    You must have an internet connection. Also, you will have to
-    restart Sage for the changes to take affect.
-
-    It is not needed to provide the version number.
-
-    INPUT:
-
-    -  ``package`` -- optional; if specified, install the
-       given package. If not, list all installed packages.
-
-    - ``force`` -- boolean (default: ``False``); if ``True``, reinstall
-      the package given if it is already installed. (Otherwise, an already
-      installed package doesn't get reinstalled, as with 'sage -i ...'.)
-
-    EXAMPLES:
-
-    With no arguments, list the installed packages::
-
-        sage: install_package()
+        sage: installed_packages()
         [...'atlas...'python...]
 
-    With an argument, install the named package::
+    .. seealso::
 
-        sage: install_package('chomp')  # not tested
-        Attempting to download package chomp-20100213.p2
-        ...
-
-    IMPLEMENTATION:
-
-    Calls 'sage -f ...' to (re)install the package if a package name is
-    given. If no package name is given, simply list the contents of
-    ``spkg/installed``.
-
-    .. seealso:: :func:`optional_packages`, :func:`upgrade`
+        :func:`standard_packages`, :func:`optional_packages`, :func:`experimental_packages`
     """
-    global __installed_packages
-    if os.uname()[0][:6] == 'CYGWIN' and package is not None:
-        print("install_package may not work correctly under Microsoft Windows")
-        print("since you can't change an opened file.  Quit all")
-        print("instances of Sage and use 'sage -i {}' instead or".format(package))
-        print("use the force option to install_package().")
-
-    if package is None:
-        if __installed_packages is None:
-            import sage.env
-            __installed_packages = sorted(os.listdir(sage.env.SAGE_SPKG_INST))
-        return __installed_packages
-
-
-
-    import stopgap
-    stopgap.stopgap("The Sage function 'install_packages' is currently broken: it does not correctly install new packages. Please use 'sage -i {}' from a shell prompt instead.".format(package), 16759)
-    return
-
-
-
-    # Get full package name / list of candidates:
-    if force:
-        # Also search packages already installed.
-        S = [P for P in standard_packages()[0] if P.startswith(package)]
-        O = [P for P in optional_packages()[0] if P.startswith(package)]
-        E = [P for P in experimental_packages()[0] if P.startswith(package)]
-    else:
-        S,O,E = [], [], []
-    S.extend([P for P in standard_packages()[1] if P.startswith(package)])
-    O.extend([P for P in optional_packages()[1] if P.startswith(package)])
-    E.extend([P for P in experimental_packages()[1] if P.startswith(package)])
-    L = S+O+E
-    if len(L) > 1:
-        if force:
-            print("Possible package names starting with '{}' are:".format(package))
-        else:
-            print("Possible names of non-installed packages starting with '{}':".format(package))
-        for P in L:
-            print(" ", P)
-        raise ValueError("There is more than one package name starting with '{}'. Please specify!".format(package))
-    if len(L) == 0:
-        if not force:
-            if is_package_installed(package):
-                raise ValueError("Package is already installed. Try install_package('{}',force=True)".format(package))
-        raise ValueError("There is no package name starting with '{}'.".format(package))
-    # len(L) == 1, i.e. exactly one package matches the given one.
-    os.system('sage -f "{}"'.format(L[0]))
-    __installed_packages = None
+    from sage.env import SAGE_SPKG_INST
+    return sorted(os.listdir(SAGE_SPKG_INST))
 
 
 def is_package_installed(package):
@@ -201,7 +88,7 @@ def is_package_installed(package):
     Otherwise, installing "pillow" will cause this function to think
     that "pil" is installed, for example.
     """
-    return any(p.split('-')[0] == package for p in install_package())
+    return any(p.split('-')[0] == package for p in installed_packages())
 
 def package_versions(package_type, local=False):
     r"""
@@ -304,10 +191,8 @@ def standard_packages():
 
     -  NOT installed standard packages (as a list)
 
-    Use ``install_package(package_name)`` to install or
-    re-install a given package.
-
-    .. seealso:: :func:`install_package`, :func:`upgrade`
+    Run ``sage -i package_name`` from a shell to install a given
+    package or ``sage -f package_name`` to re-install it.
 
     EXAMPLE::
 
@@ -333,11 +218,8 @@ def optional_packages():
 
     -  NOT installed optional packages (as a list)
 
-
-    Use ``install_package(package_name)`` to install or
-    re-install a given package.
-
-    .. seealso:: :func:`install_package`, :func:`upgrade`
+    Run ``sage -i package_name`` from a shell to install a given
+    package or ``sage -f package_name`` to re-install it.
 
     EXAMPLE::
 
@@ -362,11 +244,8 @@ def experimental_packages():
 
     -  NOT installed experimental packages (as a list)
 
-
-    Use ``install_package(package_name)`` to install or
-    re-install a given package.
-
-    .. seealso:: :func:`install_package`, :func:`upgrade`
+    Run ``sage -i package_name`` from a shell to install a given
+    package or ``sage -f package_name`` to re-install it.
 
     EXAMPLE::
 
@@ -379,42 +258,58 @@ def experimental_packages():
     """
     return _package_lists_from_sage_output('experimental')
 
-#################################################################
-# Upgrade to latest version of Sage
-#################################################################
-
 
 def upgrade():
     """
-    Download and build the latest version of Sage.
+    Obsolete function, run 'sage --upgrade' from a shell prompt instead.
 
-    You must have an internet connection. Also, you will have to
-    restart Sage for the changes to take affect.
+    TESTS::
 
-    This upgrades to the latest version of core packages (optional
-    packages are not automatically upgraded).
-
-    This will not work on systems that don't have a C compiler.
-
-    .. seealso:: :func:`install_package`, :func:`optional_packages`
+        sage: upgrade()
+        Traceback (most recent call last):
+        ...
+        NotImplementedError: upgrading Sage using 'upgrade()' is obsolete.
+        Run 'sage --upgrade' from a shell prompt instead
     """
-    global __installed_packages
-    if os.uname()[0][:6] == 'CYGWIN':
-        print("Upgrade may not work correctly under Microsoft Windows")
-        print("since you can't change an opened file.  Quit all")
-        print("instances of Sage and use 'sage -upgrade' instead.")
-        return
-
-    os.system('sage -upgrade')
-    __installed_packages = None
-    print("You should quit and restart Sage now.")
+    # deprecation(16759, ..)
+    raise NotImplementedError("upgrading Sage using 'upgrade()' is obsolete.\nRun 'sage --upgrade' from a shell prompt instead")
 
 
-def package_mesg(package_name):
-    mesg  = 'To install the package %s type install_package("%s")\n'%(package_name, package_name)
-    mesg += 'at the sage prompt.  Note, the version number might\n'
-    mesg += 'change; if so, type optional_packages() to see a list \n'
-    mesg += 'of possibilities.   All this requires an internet connection.'
-    mesg += 'For more help, type optional_packages?'
-    return mesg
+class PackageNotFoundError(RuntimeError):
+    """
+    This class defines the exception that should be raised when a
+    function, method, or class cannot detect a Sage package that it
+    depends on.
 
+    This exception should be raised with a single argument, namely
+    the name of the package.
+
+    When an ``PackageNotFoundError`` is raised, this means one of the
+    following:
+
+    - The required optional package is not installed.
+
+    - The required optional package is installed, but the relevant
+      interface to that package is unable to detect the package.
+
+    EXAMPLES::
+
+        sage: from sage.misc.package import PackageNotFoundError
+        sage: raise PackageNotFoundError("my_package")
+        Traceback (most recent call last):
+        ...
+        PackageNotFoundError: the package 'my_package' was not found. You can install it by running 'sage -i my_package' in a shell
+    """
+    def __str__(self):
+        """
+        Return the actual error message.
+
+        EXAMPLES::
+
+            sage: from sage.misc.package import PackageNotFoundError
+            sage: str(PackageNotFoundError("my_package"))
+            "the package 'my_package' was not found. You can install it by running 'sage -i my_package' in a shell"
+        """
+        return ("the package {0!r} was not found. "
+            "You can install it by running 'sage -i {0}' in a shell"
+            .format(self.args[0]))

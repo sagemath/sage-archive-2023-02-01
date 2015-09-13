@@ -2174,9 +2174,8 @@ def PrimitiveGroups(d=None):
 
     .. attention::
 
-        PrimitiveGroups requires the optional GAP database
-        package. Please install it with
-        ``install_package(`database_gap')``.
+        PrimitiveGroups requires the optional GAP database package.
+        Please install it by running ``sage -i database_gap``.
 
     EXAMPLES::
 

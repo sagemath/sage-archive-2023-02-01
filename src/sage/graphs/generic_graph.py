@@ -20213,18 +20213,11 @@ class GenericGraph(GenericGraph_pyx):
             sage: g.is_hamiltonian()
             False
 
-        TESTS:
+        TESTS::
 
-        When no solver is installed, a
-        ``OptionalPackageNotFoundError`` exception is raised::
-
-            sage: from sage.misc.exceptions import OptionalPackageNotFoundError
-            sage: try:
-            ...       g = graphs.ChvatalGraph()
-            ...       if not g.is_hamiltonian():
-            ...          print "There is something wrong here !"
-            ... except OptionalPackageNotFoundError:
-            ...       pass
+            sage: g = graphs.ChvatalGraph()
+            sage: g.is_hamiltonian()
+            True
 
         :trac:`16210`::
 

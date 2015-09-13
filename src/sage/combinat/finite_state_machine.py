@@ -6703,12 +6703,12 @@ class FiniteStateMachine(SageObject):
 
         EXAMPLES::
 
-            sage: A = Automaton([(0, 1, 0, 0), (1, 0, 1, 0)],
+            sage: A = Automaton([(0, 1, 0), (1, 0, 1)],
             ....:               initial_states=[0],
             ....:               final_states=[0])
             sage: A([0, 1, 0, 1])
             True
-            sage: B = Automaton([(0, 1, 0, 0), (1, 2, 0, 0), (2, 0, 1, 0)],
+            sage: B = Automaton([(0, 1, 0), (1, 2, 0), (2, 0, 1)],
             ....:               initial_states=[0],
             ....:               final_states=[0])
             sage: B([0, 0, 1])
@@ -6717,11 +6717,11 @@ class FiniteStateMachine(SageObject):
             sage: C
             Automaton with 5 states
             sage: C.transitions()
-            [Transition from (0, 0) to (0, 1): 0|0,
-             Transition from (0, 1) to (0, 0): 1|0,
-             Transition from (1, 0) to (1, 1): 0|0,
-             Transition from (1, 1) to (1, 2): 0|0,
-             Transition from (1, 2) to (1, 0): 1|0]
+            [Transition from (0, 0) to (0, 1): 0|-,
+             Transition from (0, 1) to (0, 0): 1|-,
+             Transition from (1, 0) to (1, 1): 0|-,
+             Transition from (1, 1) to (1, 2): 0|-,
+             Transition from (1, 2) to (1, 0): 1|-]
             sage: C([0, 0, 1])
             True
             sage: C([0, 1, 0, 1])
@@ -6741,14 +6741,22 @@ class FiniteStateMachine(SageObject):
             sage: C2 == C
             True
 
-        In general, the disjoint union is not deterministic::
+        In general, the disjoint union is not deterministic. In order
+        to get a consistent order for the doctests, we relabel the
+        states with custom labels using the parameter ``label_dict``::
 
             sage: C.is_deterministic()
             False
-            sage: D = C.determinisation().minimization().relabeled()
-            sage: D.initial_states()
+            sage: D = C.determinisation().minimization()
+            sage: label_dict_paths = {0: [1], 1: [], 2: [0, 0, 1], 3: [0, 1],
+            ....:                     4: [0, 0], 5: [0, 1, 0],
+            ....:                     6: [0, 0, 1, 0], 7: [0]}
+            sage: label_dict = dict((D.process(path)[1].label(), label)
+            ....:      for label, path in label_dict_paths.iteritems())
+            sage: E = D.relabeled(labels=label_dict)
+            sage: E.initial_states()
             [1]
-            sage: D.transitions()
+            sage: sorted(E.transitions())
             [Transition from 0 to 0: 0|-,
              Transition from 0 to 0: 1|-,
              Transition from 1 to 7: 0|-,

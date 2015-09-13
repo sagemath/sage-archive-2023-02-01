@@ -50,14 +50,12 @@ import sage.rings.rational
 import sage.rings.integer
 import polynomial_ring
 import sage.rings.arith
-#import sage.rings.ring_element
 import sage.rings.integer_ring
 import sage.rings.rational_field
 import sage.rings.finite_rings.integer_mod_ring
 import sage.rings.complex_field
 import sage.rings.fraction_field_element
 import sage.rings.infinity as infinity
-#import sage.misc.misc as misc
 from sage.misc.sage_eval import sage_eval
 from sage.misc.latex import latex
 from sage.structure.factorization import Factorization
@@ -1473,7 +1471,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
           ordinary multiplication, and it's frequently used, so subclasses
           may choose to provide a specialised squaring routine.
 
-        - Perhaps this even belongs at a lower level? ring_element or
+        - Perhaps this even belongs at a lower level? RingElement or
           something?
 
         AUTHORS:

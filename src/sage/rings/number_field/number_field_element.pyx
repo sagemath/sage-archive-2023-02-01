@@ -37,7 +37,6 @@ include "sage/ext/stdsage.pxi"
 from sage.libs.gmp.mpz cimport *
 from sage.libs.gmp.mpq cimport *
 
-import sage.rings.field_element
 import sage.rings.infinity
 import sage.rings.polynomial.polynomial_element
 import sage.rings.rational_field
@@ -58,7 +57,7 @@ from sage.modules.free_module_element import vector
 from sage.libs.pari.all import pari_gen
 from sage.libs.pari.pari_instance cimport PariInstance
 
-from sage.structure.element cimport Element, generic_power_c
+from sage.structure.element cimport Element, generic_power_c, FieldElement
 from sage.structure.element import canonical_coercion, parent, coerce_binop
 
 cdef PariInstance pari = sage.libs.pari.pari_instance.pari
@@ -264,7 +263,7 @@ cdef class NumberFieldElement(FieldElement):
             sage: loads(s.dumps()) == s
             True
         """
-        sage.rings.field_element.FieldElement.__init__(self, parent)
+        FieldElement.__init__(self, parent)
         self.__fld_numerator, self.__fld_denominator = parent.absolute_polynomial_ntl()
 
         cdef ZZ_c coeff

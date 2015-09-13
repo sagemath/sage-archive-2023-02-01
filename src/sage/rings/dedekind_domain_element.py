@@ -17,6 +17,9 @@ Base class for Dedekind domain elements
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
+from sage.misc.superseded import deprecation
+deprecation(19167, "the module sage.rings.dedekind_domain_element is deprecated, import from sage.structure.element instead")
+
 from sage.structure.element import DedekindDomainElement
 
 def is_DedekindDomainElement(x):
@@ -25,6 +28,9 @@ def is_DedekindDomainElement(x):
 
     EXAMPLES::
 
+        sage: import sage.rings.dedekind_domain_element
+        doctest:...: DeprecationWarning: the module sage.rings.dedekind_domain_element is deprecated, import from sage.structure.element instead
+        See http://trac.sagemath.org/19167 for details.
         sage: sage.rings.dedekind_domain_element.is_DedekindDomainElement(DedekindDomainElement(QQ))
         True
     """

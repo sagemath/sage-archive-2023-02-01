@@ -1257,7 +1257,7 @@ cdef class CoinBackend(GenericBackend):
             sage: p.add_linear_constraint([(0, 2), (1, -3)], None, 6) # optional - cbc
             sage: p.add_linear_constraint([(0, 3), (1, 2)], None, 6)  # optional - cbc
             sage: p.set_objective([1, 1])                          # optional - cbc
-            sage: p.solve()
+            sage: p.solve()                                        # optional - cbc
             0
             sage: p.get_basis_status()                             # optional - cbc
             ([3, 1], [1, 3])
@@ -1282,7 +1282,7 @@ cdef class CoinBackend(GenericBackend):
             sage: lp.add_constraint(4*x + 2*y + 1.5*z, max = 20)  # optional - cbc
             sage: lp.add_constraint(2*x + 1.5*y + 0.5*z, max = 8) # optional - cbc
             sage: lp.set_objective(60*x + 30*y + 20*z)            # optional - cbc
-            sage: lp_coin = lp.get_backend()
+            sage: lp_coin = lp.get_backend()                      # optional - cbc
             sage: lp_coin.solve()                                 # optional - cbc
             0
             sage: lp_coin.get_basis_status()                      # optional - cbc

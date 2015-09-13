@@ -254,20 +254,20 @@ def _orthogonal_polar_graph(m, q, sign="+", point_type=[0]):
 
     `NO^+(6,3)`::
 
-        sage: g=_orthogonal_polar_graph(6,3,point_type=[1])  # not tested (long time)
-        sage: g.is_strongly_regular(parameters=True)       # not tested (long time)
+        sage: g=_orthogonal_polar_graph(6,3,point_type=[1])
+        sage: g.is_strongly_regular(parameters=True)
         (117, 36, 15, 9)
 
     `NO^-(6,3)`::
 
-        sage: g=_orthogonal_polar_graph(6,3,'-',point_type=[1]) # not tested (long time)
-        sage: g.is_strongly_regular(parameters=True)          # not tested (long time)
+        sage: g=_orthogonal_polar_graph(6,3,'-',point_type=[1])
+        sage: g.is_strongly_regular(parameters=True)
         (126, 45, 12, 18)
 
     `NO^{-,\perp}(5,5)`::
 
-        sage: g=_orthogonal_polar_graph(5,5,point_type=[2,3]) # not tested (long time)
-        sage: g.is_strongly_regular(parameters=True) # not tested (long time)
+        sage: g=_orthogonal_polar_graph(5,5,point_type=[2,3]) # long time
+        sage: g.is_strongly_regular(parameters=True)          # long time
         (300, 65, 10, 15)
 
     `NO^{+,\perp}(5,5)`::
@@ -309,7 +309,8 @@ def _orthogonal_polar_graph(m, q, sign="+", point_type=[0]):
 
     M = Matrix(libgap.InvariantQuadraticForm(libgap.GeneralOrthogonalGroup(e,m,q))['matrix'])
     Fq = libgap.GF(q).sage()
-    PG = ProjectiveSpace(m - 1, Fq)
+    PG = map(vector, ProjectiveSpace(m - 1, Fq))
+    map(lambda x: x.set_immutable(), PG)
 
     def F(x):
         return x*M*x
@@ -321,9 +322,9 @@ def _orthogonal_polar_graph(m, q, sign="+", point_type=[0]):
         def P(x,y):
             return x*M*y+y*M*x
 
-    V = [x for x in PG if F(vector(x)) in point_type]
+    V = [x for x in PG if F(x) in point_type]
 
-    G = Graph([V,lambda x,y:P(vector(x),vector(y))==0],loops=False)
+    G = Graph([V,lambda x,y:P(x,y)==0],loops=False)
 
     G.relabel()
     return G
@@ -356,13 +357,13 @@ def OrthogonalPolarGraph(m, q, sign="+"):
         Orthogonal Polar Graph O(5, 3): Graph on 40 vertices
         sage: G.is_strongly_regular(parameters=True)
         (40, 12, 2, 4)
-        sage: G = graphs.OrthogonalPolarGraph(8,2,"+"); G # not tested (long time)
+        sage: G = graphs.OrthogonalPolarGraph(8,2,"+"); G
         Orthogonal Polar Graph O^+(8, 2): Graph on 135 vertices
-        sage: G.is_strongly_regular(parameters=True) # not tested (long time)
+        sage: G.is_strongly_regular(parameters=True)
         (135, 70, 37, 35)
-        sage: G = graphs.OrthogonalPolarGraph(8,2,"-"); G # not tested (long time)
+        sage: G = graphs.OrthogonalPolarGraph(8,2,"-"); G
         Orthogonal Polar Graph O^-(8, 2): Graph on 119 vertices
-        sage: G.is_strongly_regular(parameters=True) # not tested (long time)
+        sage: G.is_strongly_regular(parameters=True)
         (119, 54, 21, 27)
 
     TESTS::
@@ -436,15 +437,15 @@ def NonisotropicOrthogonalPolarGraph(m, q, sign="+", perp=None):
 
     `NO^+(8,2)`::
 
-        sage: g=graphs.NonisotropicOrthogonalPolarGraph(8,2,'+') # not tested (long time)
-        sage: g.is_strongly_regular(parameters=True)       # not tested (long time)
+        sage: g=graphs.NonisotropicOrthogonalPolarGraph(8,2,'+')
+        sage: g.is_strongly_regular(parameters=True)
         (120, 63, 30, 36)
 
     Wilbrink's graphs for `q=5`::
 
-        sage: graphs.NonisotropicOrthogonalPolarGraph(5,5,perp=1).is_strongly_regular(parameters=True) # not tested (long time)
+        sage: graphs.NonisotropicOrthogonalPolarGraph(5,5,perp=1).is_strongly_regular(parameters=True) # long time
         (325, 60, 15, 10)
-        sage: graphs.NonisotropicOrthogonalPolarGraph(5,5,'-',perp=1).is_strongly_regular(parameters=True) # not tested (long time)
+        sage: graphs.NonisotropicOrthogonalPolarGraph(5,5,'-',perp=1).is_strongly_regular(parameters=True) # long time
         (300, 65, 10, 15)
 
     Wilbrink's graphs::
@@ -621,7 +622,7 @@ def UnitaryPolarGraph(m, q, algorithm="gap"):
 
         sage: graphs.UnitaryPolarGraph(4,3, algorithm="gap").is_strongly_regular(parameters=True)
         (280, 36, 8, 4)
-        sage: graphs.UnitaryPolarGraph(4,3).is_strongly_regular(parameters=True) # not tested (long time)
+        sage: graphs.UnitaryPolarGraph(4,3).is_strongly_regular(parameters=True)
         (280, 36, 8, 4)
         sage: graphs.UnitaryPolarGraph(4,3, algorithm="foo")
         Traceback (most recent call last):
@@ -638,15 +639,14 @@ def UnitaryPolarGraph(m, q, algorithm="gap"):
         from sage.modules.free_module_element import free_module_element as vector
         from __builtin__ import sum as psum
         Fq = FiniteField(q**2, 'a')
-        PG = ProjectiveSpace(m - 1, Fq)
-        def P(xx,yy):
-            x = vector(xx)
-            y = vector(yy)
+        PG = map(vector, ProjectiveSpace(m - 1, Fq))
+        map(lambda x: x.set_immutable(), PG)
+        def P(x,y):
             return psum(map(lambda j: x[j]*y[m-1-j]**q, xrange(m)))==0  
 
         V = filter(lambda x: P(x,x), PG)
         G = Graph([V,lambda x,y:  # bottleneck is here, of course:
-                     P(vector(x),vector(y))], loops=False)
+                     P(x,y)], loops=False)
     else:
         raise ValueError("unknown algorithm!")
 

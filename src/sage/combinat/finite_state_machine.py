@@ -3479,7 +3479,8 @@ class FiniteStateMachine(SageObject):
         (with ``full_output=False``). If the input is not finite
         (``is_finite`` of input is ``False``), then
         :meth:`.iter_process` (with ``iterator_type='simple'``) is
-        called. Moreover, the flag ``automatic_output_type`` is set.
+        called. Moreover, the flag ``automatic_output_type`` is set
+        (unless ``format_output`` is specified).
         See the documentation of these functions for possible
         parameters.
 
@@ -3695,7 +3696,7 @@ class FiniteStateMachine(SageObject):
             if not 'list_of_outputs' in kwargs:
                 kwargs['list_of_outputs'] = False
             if not 'automatic_output_type' in kwargs:
-                kwargs['automatic_output_type'] = None
+                kwargs['automatic_output_type'] = not 'format_output' in kwargs
             input_tape = args[0]
             if hasattr(input_tape, 'is_finite') and \
                     input_tape.is_finite() == False:
@@ -5679,12 +5680,11 @@ class FiniteStateMachine(SageObject):
           then :class:`FSMProcessIterator` is taken. An instance of this
           class is created and is used during the processing.
 
-        - ``automatic_output_type`` -- (default: ``False``) a boolean
-          or ``None``. If set and the input has a parent, then the
+        - ``automatic_output_type`` -- (default: ``False``) a boolean.
+          If set and the input has a parent, then the
           output will have the same parent. If the input does not have
           a parent, then the output will be of the same type as the
-          input. If ``None``, then ``automatic_output_type`` will check
-          whether ``format_output`` is present and use it instead.
+          input.
 
         OUTPUT:
 
@@ -6124,8 +6124,6 @@ class FiniteStateMachine(SageObject):
         if automatic_output_type and kwargs.has_key('format_output'):
             raise ValueError("Parameter 'automatic_output_type' set, but "
                              "'format_output' specified as well.")
-        if automatic_output_type is None:
-            automatic_output_type = not 'format_output' in kwargs
         if automatic_output_type:
             try:
                 kwargs['format_output'] = input_tape.parent()
@@ -6142,9 +6140,9 @@ class FiniteStateMachine(SageObject):
             return it
         elif iterator_type == 'simple':
             simple_it = self._iter_process_simple_(it)
-            if automatic_output_type:
+            try:
                 return kwargs['format_output'](simple_it)
-            else:
+            except KeyError:
                 return simple_it
         else:
             raise ValueError('Iterator type %s unknown.' % (iterator_type,))
@@ -11110,11 +11108,10 @@ class Transducer(FiniteStateMachine):
           class is created and is used during the processing.
 
         - ``automatic_output_type`` -- (default: ``False``) a boolean
-          or ``None``. If set and the input has a parent, then the
+          If set and the input has a parent, then the
           output will have the same parent. If the input does not have
           a parent, then the output will be of the same type as the
-          input. If ``None``, then ``automatic_output_type`` will check
-          whether ``format_output`` is present and use it instead.
+          input.
 
         OUTPUT:
 

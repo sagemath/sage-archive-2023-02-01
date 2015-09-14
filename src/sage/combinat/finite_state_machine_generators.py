@@ -91,7 +91,6 @@ import operator
 from sage.combinat.finite_state_machine import Automaton, Transducer
 from sage.rings.integer_ring import ZZ
 from sage.rings.rational_field import QQ
-from functools import reduce
 
 
 class AutomatonGenerators(object):
@@ -1998,11 +1997,10 @@ class TransducerGenerators(object):
                     "Too many initial conditions, only give one of %s." %
                     cycle[1:])
             required_initial_values.update(intersection)
-            output_sum = reduce(operator.add,
-                                [edge[2]
-                                 for edge in recursion_digraph.\
-                                     outgoing_edge_iterator(cycle[1:])],
-                                [])
+            output_sum = sum([edge[2]
+                              for edge in recursion_digraph.\
+                                  outgoing_edge_iterator(cycle[1:])],
+                             [])
             if not is_zero(output_sum):
                 raise ValueError(
                     "Conflicting recursion for %s." %

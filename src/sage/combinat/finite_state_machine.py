@@ -6743,38 +6743,21 @@ class FiniteStateMachine(SageObject):
             sage: C2 == C
             True
 
-        In general, the disjoint union is not deterministic. In order
-        to get a consistent order for the doctests, we relabel the
-        states with custom labels using the parameter ``label_dict``::
+        In general, the disjoint union is not deterministic.::
 
             sage: C.is_deterministic()
             False
             sage: D = C.determinisation().minimization()
-            sage: label_dict_paths = {0: [1], 1: [], 2: [0, 0, 1], 3: [0, 1],
-            ....:                     4: [0, 0], 5: [0, 1, 0],
-            ....:                     6: [0, 0, 1, 0], 7: [0]}
-            sage: label_dict = dict((D.process(path)[1].label(), label)
-            ....:      for label, path in label_dict_paths.iteritems())
-            sage: E = D.relabeled(labels=label_dict)
-            sage: E.initial_states()
-            [1]
-            sage: sorted(E.transitions())
-            [Transition from 0 to 0: 0|-,
-             Transition from 0 to 0: 1|-,
-             Transition from 1 to 7: 0|-,
-             Transition from 1 to 0: 1|-,
-             Transition from 2 to 6: 0|-,
-             Transition from 2 to 0: 1|-,
-             Transition from 3 to 5: 0|-,
-             Transition from 3 to 0: 1|-,
-             Transition from 4 to 0: 0|-,
-             Transition from 4 to 2: 1|-,
-             Transition from 5 to 0: 0|-,
-             Transition from 5 to 3: 1|-,
-             Transition from 6 to 4: 0|-,
-             Transition from 6 to 0: 1|-,
-             Transition from 7 to 4: 0|-,
-             Transition from 7 to 3: 1|-]
+            sage: for s in D.iter_states(): # superfluous after #19199
+            ....:     s.color = None
+            sage: D.is_equivalent(Automaton([(0, 0, 0), (0, 0, 1),
+            ....:    (1, 7, 0), (1, 0, 1), (2, 6, 0), (2, 0, 1),
+            ....:    (3, 5, 0), (3, 0, 1), (4, 0, 0), (4, 2, 1),
+            ....:    (5, 0, 0), (5, 3, 1), (6, 4, 0), (6, 0, 1),
+            ....:    (7, 4, 0), (7, 3, 1)],
+            ....:    initial_states=[1],
+            ....:    final_states=[1, 2, 3]))
+            True
 
         Disjoint union of transducers::
 

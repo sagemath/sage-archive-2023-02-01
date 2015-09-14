@@ -33,6 +33,10 @@ from copy import copy
 from linear_code import AbstractLinearCode
 from encoder import Encoder
 from sage.misc.misc_c import prod
+from sage.functions.other import binomial
+from sage.calculus.var import var
+from sage.misc.functional import symbolic_sum
+from sage.rings.integer_ring import ZZ
 
 class GeneralizedReedSolomonCode(AbstractLinearCode):
     r"""
@@ -338,6 +342,92 @@ class GeneralizedReedSolomonCode(AbstractLinearCode):
         alphas = self.evaluation_points()
         return matrix(F, d-1, n, lambda i,j : alphas[j] ** i) *\
                 diagonal_matrix(F, self.parity_column_multipliers())
+
+    def dual_code(self):
+        r"""
+        Returns the dual code of ``self``.
+
+        EXAMPLES::
+
+            sage: C = GeneralizedReedSolomonCode(GF(59).list()[:40], 12)
+            sage: Cd = C.dual_code()
+
+        Dual code of the dual code is the original code::
+
+            sage: C == Cd.dual_code()
+            True
+        """
+        col_mults = self.parity_column_multipliers()
+        return GeneralizedReedSolomonCode(self.evaluation_points(), self.length() - self.dimension(), col_mults)
+
+    def covering_radius(self):
+        r"""
+        Returns the covering radius of ``self``.
+
+        The covering radius of a linear code `C` is the smallest number `r` s.t. any element of
+        the ambient space of `C` is at most at distance `r` to `C`.
+
+        As Reed-Solomon codes are MDS codes, their covering radius is always `d-1`, where `d` is
+        the minimum distance.
+
+        EXAMPLES::
+
+            sage: F = GF(11)
+            sage: n, k = 10, 5
+            sage: C = codes.GeneralizedReedSolomonCode(F.list()[:n], k)
+            sage: C.covering_radius()
+            5
+        """
+        return self.length() - self.dimension()
+
+    @cached_method
+    def weight_distribution(self):
+        r"""
+        Returns the weight distribution of ``self``.
+
+        The weight distribution is returned as a list, where the `i-th` entry corresponds to
+        the number of words of weight `i` in the code.
+
+        EXAMPLES::
+
+            sage: F = GF(11)
+            sage: n, k = 10, 5
+            sage: C = GeneralizedReedSolomonCode(F.list()[:n], k)
+            sage: C.weight_distribution()
+            [1, 0, 0, 0, 0, 0, 2100, 6000, 29250, 61500, 62200]
+        """
+        d = self.minimum_distance()
+        n = self.length()
+        q = self.base_ring().order()
+        s = var('s')
+        wd = [1] + [0] * (d - 1)
+        for i in range(d, n+1):
+            tmp = binomial(n, i) * (q - 1)
+            wd.append(tmp * symbolic_sum(binomial(i-1, s) * (-1) ** s * q ** (i - d - s), s, 0, i-d))
+        return wd
+
+    def weight_enumerator(self):
+        r"""
+        Returns the weight enumerator of ``self``.
+
+        EXAMPLES::
+
+            sage: F = GF(11)
+            sage: n, k = 10, 5
+            sage: C = GeneralizedReedSolomonCode(F.list()[:n], k)
+            sage: C.weight_enumerator()
+            62200*x^10 + 61500*x^9 + 29250*x^8 + 6000*x^7 + 2100*x^6 + 1
+        """
+        PolRing = ZZ['x']
+        x = PolRing.gen()
+        s = var('s')
+        wd = self.weight_distribution()
+        d = self.minimum_distance()
+        n = self.length()
+        w_en = PolRing(1)
+        for i in range(n + 1 - d):
+            w_en += wd[i] * x ** (i + d)
+        return w_en
 
 
 

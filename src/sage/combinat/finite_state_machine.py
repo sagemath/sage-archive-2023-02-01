@@ -3,11 +3,22 @@ r"""
 Finite State Machines, Automata, Transducers
 
 This module adds support for finite state machines, automata and
-transducers. See classes :class:`Automaton` and :class:`Transducer`
-(or the more general class :class:`FiniteStateMachine`) and the
-:ref:`examples <finite_state_machine_examples>` below for details
-creating one. You can also use a :doc:`preconstructed and commonly used one
-<finite_state_machine_generators>`.
+transducers.
+
+For creating automata and transducers you can use classes
+
+- :class:`Automaton` and :class:`Transducer`
+  (or the more general class :class:`FiniteStateMachine`)
+
+or the generators
+
+- :class:`automata <sage.combinat.finite_state_machine_generators.AutomatonGenerators>` and
+  :class:`transducers <sage.combinat.finite_state_machine_generators.TransducerGenerators>`
+
+which contain :doc:`preconstructed and commonly used automata and transducers
+<finite_state_machine_generators>`. See also the
+:ref:`examples <finite_state_machine_examples>` below.
+
 
 Contents
 ========

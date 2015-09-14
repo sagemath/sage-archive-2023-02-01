@@ -1,28 +1,7 @@
 """
 Coercion via Construction Functors
-
-TESTS:
-
-A bug::
-
-    sage: from sage.categories.pushout import pushout
-    sage: from sage.sets.cartesian_product import CartesianProduct
-    sage: A = CartesianProduct((QQ['z'],), Sets().CartesianProducts())
-    sage: B = CartesianProduct((ZZ['t']['z'],), Sets().CartesianProducts())
-    sage: pushout(A, B)
-    The cartesian product of (Univariate Polynomial Ring in z over Univariate Polynomial Ring in t over Rational Field,)
-    sage: A.construction()
-    (The cartesian_product functorial construction,
-     (Univariate Polynomial Ring in z over Rational Field,))
-    sage: pushout(A, B)
-    The cartesian product of (Univariate Polynomial Ring in z over Univariate Polynomial Ring in t over Rational Field,)
-
-In ``A.construction()`` the functor (``CartesianProductFunctor``)
-seems not to be seen as ``ConstructionFunctor``` at the first pass,
-although it is inherited from
-``MultivariateConstructionFunctor``. Code needs to be more on the top
-of the file to be reproduced
 """
+import six
 from sage.misc.lazy_import import lazy_import
 from functor import Functor, IdentityFunctor_generic
 
@@ -660,6 +639,20 @@ class MultivariateConstructionFunctor(ConstructionFunctor):
     """
     An abstract base class for functors that take
     multiple inputs (e.g. cartesian products).
+
+    TESTS::
+
+        sage: from sage.categories.pushout import pushout
+        sage: from sage.sets.cartesian_product import CartesianProduct
+        sage: A = cartesian_product((QQ['z'],))
+        sage: B = cartesian_product((ZZ['t']['z'],))
+        sage: pushout(A, B)
+        The cartesian product of (Univariate Polynomial Ring in z over Univariate Polynomial Ring in t over Rational Field,)
+        sage: A.construction()
+        (The cartesian_product functorial construction,
+         (Univariate Polynomial Ring in z over Rational Field,))
+        sage: pushout(A, B)
+        The cartesian product of (Univariate Polynomial Ring in z over Univariate Polynomial Ring in t over Rational Field,)
     """
     def common_base(self, other_functor, self_bases, other_bases):
         r"""
@@ -712,7 +705,9 @@ class MultivariateConstructionFunctor(ConstructionFunctor):
             self._raise_common_base_exception_(
                 other_functor, self_bases, other_bases,
                 'Functors need the same number of arguments')
-        Z_bases = tuple(pushout(S, O) for S, O in zip(self_bases, other_bases))
+        from sage.structure.element import get_coercion_model
+        Z_bases = tuple(get_coercion_model().common_parent(S, O)
+                        for S, O in zip(self_bases, other_bases))
         return self(Z_bases)
 
 
@@ -1582,10 +1577,10 @@ class LaurentPolynomialFunctor(ConstructionFunctor):
 
         """
         Functor.__init__(self, Rings(), Rings())
-        if not isinstance(var, (basestring,tuple,list)):
+        if not isinstance(var, (six.string_types,tuple,list)):
             raise TypeError("variable name or list of variable names expected")
         self.var = var
-        self.multi_variate = multi_variate or not isinstance(var, basestring)
+        self.multi_variate = multi_variate or not isinstance(var, six.string_types)
 
     def _apply_functor(self, R):
         """
@@ -2520,7 +2515,7 @@ class QuotientFunctor(ConstructionFunctor):
         self.I = I
         if names is None:
             self.names = None
-        elif isinstance(names, basestring):
+        elif isinstance(names, six.string_types):
             self.names = (names,)
         else:
             self.names = tuple(names)
@@ -2617,7 +2612,7 @@ class QuotientFunctor(ConstructionFunctor):
             Finite Field of size 5
 
         """
-        if not isinstance(self, type(other)):
+        if type(self) is not type(other):
             return None
         if self.names != other.names:
             return None
@@ -2783,6 +2778,15 @@ class AlgebraicExtensionFunctor(ConstructionFunctor):
             Univariate Quotient Polynomial Ring in a over Univariate Polynomial Ring in t over Integer Ring with modulus a^3 + a^2 + 1
             sage: F(RR)       # indirect doctest
             Univariate Quotient Polynomial Ring in a over Real Field with 53 bits of precision with modulus a^3 + a^2 + 1.00000000000000
+
+        Check that :trac:`13538` is fixed::
+
+            sage: K = Qp(3,3)
+            sage: R.<a> = K[]
+            sage: AEF = sage.categories.pushout.AlgebraicExtensionFunctor([a^2-3], ['a'], [None])
+            sage: AEF(K)
+            Eisenstein Extension of 3-adic Field with capped relative precision 3 in a defined by (1 + O(3^3))*a^2 + (O(3^4))*a + (2*3 + 2*3^2 + 2*3^3 + O(3^4))
+
         """
         from sage.all import QQ, ZZ, CyclotomicField
         if self.cyclotomic:
@@ -2791,8 +2795,8 @@ class AlgebraicExtensionFunctor(ConstructionFunctor):
             if R==ZZ:
                 return CyclotomicField(self.cyclotomic).maximal_order()
         if len(self.polys) == 1:
-            return R.extension(self.polys[0], self.names[0], embedding=self.embeddings[0], **self.kwds)
-        return R.extension(self.polys, self.names, embedding=self.embeddings)
+            return R.extension(self.polys[0], names=self.names[0], embedding=self.embeddings[0], **self.kwds)
+        return R.extension(self.polys, names=self.names, embedding=self.embeddings)
 
     def __cmp__(self, other):
         """

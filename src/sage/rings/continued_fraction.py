@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 r"""
 Continued fractions
 
@@ -328,6 +329,161 @@ class ContinuedFraction_base(SageObject):
         """
         self._pn = [ZZ_0, ZZ_1]
         self._qn = [ZZ_1, ZZ_0]
+
+    def str(self, nterms=10, unicode=False, join=True):
+        r"""
+        Return a string representing this continued fraction.
+
+        INPUT:
+
+        - ``nterms`` -- the maximum number of terms to use
+
+        - ``unicode`` -- (default ``False``) whether to use unicode character
+
+        - ``join`` -- (default ``True``) if ``False`` instead of returning a
+          string return a list of string, each of them representing a line
+
+        EXAMPLES::
+
+            sage: print continued_fraction(pi).str()
+                                         1                          
+            3 + ----------------------------------------------------
+                                            1                       
+                 7 + -----------------------------------------------
+                                               1                    
+                      15 + -----------------------------------------
+                                                 1                  
+                            1 + ------------------------------------
+                                                     1              
+                                 292 + -----------------------------
+                                                       1            
+                                        1 + ------------------------
+                                                          1         
+                                             1 + -------------------
+                                                            1       
+                                                  1 + --------------
+                                                               1    
+                                                       2 + ---------
+                                                            1 + ... 
+            sage: print continued_fraction(pi).str(nterms=1)
+            3 + ...
+            sage: print continued_fraction(pi).str(nterms=2)
+                    1    
+            3 + ---------
+                 7 + ... 
+
+            sage: print continued_fraction(243/354).str()
+                       1           
+            -----------------------
+                         1         
+             1 + ------------------
+                            1      
+                  2 + -------------
+                              1    
+                       5 + --------
+                                 1 
+                            3 + ---
+                                 2 
+            sage: continued_fraction(243/354).str(join=False)
+            ['           1           ',
+             '-----------------------',
+             '             1         ',
+             ' 1 + ------------------',
+             '                1      ',
+             '      2 + -------------',
+             '                  1    ',
+             '           5 + --------',
+             '                     1 ',
+             '                3 + ---',
+             '                     2 ']
+
+            sage: print continued_fraction(243/354).str(unicode=True)
+                       1           
+            ───────────────────────
+                         1         
+             1 + ──────────────────
+                            1      
+                  2 + ─────────────
+                              1    
+                       5 + ────────
+                                 1 
+                            3 + ───
+                                 2 
+        """
+        nterms = int(nterms)
+        if nterms < 0:
+            raise ValueError("nterms must be positive")
+
+        if unicode:
+            import unicodedata
+            frac = unicodedata.lookup('BOX DRAWINGS LIGHT HORIZONTAL')
+        else:
+            frac = '-'
+
+        # get the partial quotients
+        cf = [self.quotient(i) for i in range(nterms)]
+        continued = self.quotient(nterms) is not Infinity
+        while cf[-1] is Infinity:
+            cf.pop()
+
+        # write the lines starting from the end
+        a = cf.pop()
+        lines = [' {} + ... '.format(a) if continued else ' {} '.format(a)]
+        w = len(lines[0])
+        for a in reversed(cf):
+            s = ' {} + '.format(a) if a else ' '
+            w1 = len(s)
+            s += frac * w
+            lines.append(s)
+            lines.append(' ' * w1  + '{:^{width}}'.format(1, width=w))
+            w += w1
+
+        # change the order
+        lines.reverse()
+
+        # remove extra whitespaces and equalize the width
+        if len(lines) == 1:
+            lines[0] = lines[0].strip()
+        else:
+            lines[0] = lines[0][1:]
+            lines[1] = lines[1][1:]
+            w = len(lines[0])
+            for i,l in enumerate(lines):
+                lines[i] = ' ' * (w-len(l)) + l
+
+        return '\n'.join(lines) if join else lines
+
+    def _ascii_art_(self):
+        r"""
+        EXAMPLES::
+
+            sage: ascii_art(continued_fraction(43/30))
+                      1      
+            1 + -------------
+                        1    
+                 2 + --------
+                           1 
+                      3 + ---
+                           4 
+        """
+        from sage.typeset.ascii_art import AsciiArt
+        return AsciiArt(self.str(unicode=False, join=False))
+
+    def _unicode_art_(self):
+        r"""
+        EXAMPLES::
+
+            sage: unicode_art(continued_fraction(43/30))
+                      1      
+            1 + ─────────────
+                        1    
+                 2 + ────────
+                           1 
+                      3 + ───
+                           4 
+        """
+        from sage.typeset.unicode_art import UnicodeArt
+        return UnicodeArt(self.str(unicode=True, join=False))
 
     def __abs__(self):
         """
@@ -1519,7 +1675,7 @@ class ContinuedFraction_real(ContinuedFraction_base):
             if self.value() - other.value() > 0:
                 return 1
             return -1
-        except StandardError:
+        except Exception:
             return ContinuedFraction_base.__cmp__(self, other)
 
     def _repr_(self):

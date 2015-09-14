@@ -588,6 +588,7 @@ class Monoids(CategoryWithAxiom):
                 # Infinitely generated
                 # This does not return a good output, but it is "correct"
                 # TODO: Figure out a better way to do things
+                from sage.categories.cartesian_product import cartesian_product
                 gens_prod = cartesian_product([Family(M.monoid_generators(),
                                                       lambda g: (i, g))
                                                for i,M in enumerate(F)])

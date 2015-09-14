@@ -98,8 +98,9 @@ class UniqueFactorizationDomains(Category_singleton):
             sage: R = Zmod(7)
             sage: R.category()
             Join of Category of finite commutative rings
-             and Category of subquotients of monoids
-             and Category of quotients of semigroups
+                and Category of subquotients of monoids
+                and Category of quotients of semigroups
+                and Category of finite enumerated sets
             sage: ID = UniqueFactorizationDomains()
             sage: ID._contains_helper(R)
             False

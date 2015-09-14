@@ -4,6 +4,7 @@
 /local
 /logs
 /upstream
+/src/mac-app/build
 
 #############################
 # Autotools generated files #
@@ -14,8 +15,6 @@
 /config.log
 /config.status
 /configure
-/build/Makefile-auto
-/build/Makefile-auto.in
 
 ###################
 # Temporary Files #

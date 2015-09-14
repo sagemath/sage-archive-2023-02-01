@@ -780,7 +780,7 @@ closer examination:
 
 .. skip
 
-::
+:: 
 
     sage: %prun -r A*A
     sage: stats = _

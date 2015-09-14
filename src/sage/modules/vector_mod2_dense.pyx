@@ -4,7 +4,6 @@ Vectors with elements in GF(2).
 AUTHOR:
 
 - Martin Albrecht (2009-12): initial implementation
-
 - Thomas Feulner (2012-11): added :meth:`Vector_mod2_dense.hamming_weight`
 
 EXAMPLES::
@@ -16,17 +15,26 @@ EXAMPLES::
     (0, 1, 1)
     sage: e + f
     (1, 1, 1)
+
+TESTS::
+
+    sage: w = vector(GF(2), [-1,0,0,0])
+    sage: w.set_immutable()
+    sage: isinstance(hash(w), int)
+    True
 """
 
-##############################################################################
+#*****************************************************************************
 #       Copyright (C) 2009 Martin Albrecht <M.R.Albrecht@rhul.ac.uk>
-#  Distributed under the terms of the GNU General Public License (GPL)
-#  The full text of the GPL is available at:
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
-##############################################################################
+#*****************************************************************************
 
 include 'sage/ext/interrupt.pxi'
-include 'sage/ext/stdsage.pxi'
 
 from sage.rings.finite_rings.integer_mod cimport IntegerMod_int, IntegerMod_abstract
 from sage.rings.integer cimport Integer
@@ -186,7 +194,7 @@ cdef class Vector_mod2_dense(free_module_element.FreeModuleElement):
         if self._entries:
             mzd_free(self._entries)
 
-    cdef int _cmp_c_impl(left, Element right) except -2:
+    cpdef int _cmp_(left, Element right) except -2:
         """
         EXAMPLES::
             sage: v = vector(GF(2), [0,0,0,0])
@@ -201,35 +209,32 @@ cdef class Vector_mod2_dense(free_module_element.FreeModuleElement):
             False
             sage: w > v
             True
+            sage: w = vector(GF(2), [-1,0,0,0])
+            sage: w == w
+            True
         """
         if left._degree == 0:
             return 0
         return mzd_cmp(left._entries, (<Vector_mod2_dense>right)._entries)
 
-    # see sage/structure/element.pyx
-    def __richcmp__(left, right, int op):
+    cdef get_unsafe(self, Py_ssize_t i):
         """
-        TEST::
+        EXAMPLES::
 
-            sage: w = vector(GF(2), [-1,0,0,0])
-            sage: w == w
-            True
+            sage: v = vector(GF(2), [1,2,3]); v
+            (1, 0, 1)
+            sage: v[0]
+            1
+            sage: v[2]
+            1
+            sage: v[-2]
+            0
+            sage: v[0:2]
+            (1, 0)
         """
-        return (<Element>left)._richcmp(right, op)
+        return self._base_ring(mzd_read_bit(self._entries, 0, i))
 
-    # __hash__ is not properly inherited if comparison is changed
-    def __hash__(self):
-        """
-        TEST::
-
-            sage: w = vector(GF(2), [-1,0,0,0])
-            sage: w.set_immutable()
-            sage: isinstance(hash(w), int)
-            True
-        """
-        return free_module_element.FreeModuleElement.__hash__(self)
-
-    def __setitem__(self, i, value):
+    cdef int set_unsafe(self, Py_ssize_t i, value) except -1:
         """
         EXAMPLES::
 
@@ -243,65 +248,10 @@ cdef class Vector_mod2_dense(free_module_element.FreeModuleElement):
             sage: v[4] = 0
             Traceback (most recent call last):
             ...
-            IndexError: Index '4' out of bound.
+            IndexError: vector index out of range
         """
-        if not self._is_mutable:
-            raise ValueError("vector is immutable; please change a copy instead (use copy())")
-        cdef IntegerMod_int m
-        cdef Py_ssize_t k, d, n
-        if isinstance(i, slice):
-            start, stop = i.start, i.stop
-            d = self.degree()
-            R = self.base_ring()
-            n = 0
-            for k from start <= k < stop:
-                if k >= d:
-                    return
-                if k >= 0:
-                    self[k] = R(value[n])
-                    n = n + 1
-        else:
-            m = self.base_ring()(value)
-            if i < 0 or i >= self._degree:
-                raise IndexError("Index '%s' out of bound."%(i))
-            else:
-                mzd_write_bit(self._entries, 0, i, m)
+        mzd_write_bit(self._entries, 0, i, value)
 
-    def __getitem__(self, i):
-        """
-        Returns `i`-th entry or slice of self.
-
-        EXAMPLES::
-
-            sage: v = vector(GF(2), [1,2,3]); v
-            (1, 0, 1)
-            sage: v[0]
-            1
-            sage: v[2]
-            1
-            sage: v[-2]
-            0
-            sage: v[0:2]
-            (1, 0)
-            sage: v[5]
-            Traceback (most recent call last):
-            ...
-            IndexError: index '5' out of range
-
-            sage: v[-5]
-            Traceback (most recent call last):
-            ...
-            IndexError: index '-2' out of range
-        """
-        if isinstance(i, slice):
-            start, stop, step = i.indices(len(self))
-            return vector(self.base_ring(), self.list()[start:stop])
-        else:
-            if i < 0:
-                i += self._degree
-            if i < 0 or i >= self._degree:
-                raise IndexError("index '%s' out of range"%(i,))
-            return self._base_ring(mzd_read_bit(self._entries, 0, i))
 
     def __reduce__(self):
         """
@@ -500,7 +450,7 @@ cdef class Vector_mod2_dense(free_module_element.FreeModuleElement):
 
         INPUT:
 
-        - ``copy`` - always ``True
+        - ``copy`` - always ``True``
 
         EXAMPLE::
 

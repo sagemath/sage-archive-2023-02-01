@@ -14,7 +14,6 @@ from sage.symbolic.expression cimport Expression, new_Expression_from_GEx
 from sage.symbolic.ring import SR
 
 from ginac cimport *
-include "sage/ext/stdsage.pxi"
 
 cdef extern from "pynac/constant.h":
     pass
@@ -192,10 +191,10 @@ cdef class E(Expression):
             1.1793740787340171819619895873183164984596816017589156131574
             sage: maxima(e).float()
             2.718281828459045
-            sage: t = mathematica(e)               # optional
-            sage: t                                # optional
+            sage: t = mathematica(e)               # optional - mathematica
+            sage: t                                # optional - mathematica
             E
-            sage: float(t)                         # optional
+            sage: float(t)                         # optional - mathematica
             2.718281828459045...
 
             sage: loads(dumps(e))
@@ -207,7 +206,7 @@ cdef class E(Expression):
             2.718281828459045...
             sage: e._mpfr_(RealField(100))
             2.7182818284590452353602874714
-            sage: e._real_double_(RDF)
+            sage: e._real_double_(RDF)   # abs tol 5e-16
             2.718281828459045
             sage: import sympy
             sage: sympy.E == e # indirect doctest

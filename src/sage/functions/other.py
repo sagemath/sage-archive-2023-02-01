@@ -236,7 +236,7 @@ class Function_erf(BuiltinFunction):
 
         TESTS:
 
-        Check if #8568 is fixed::
+        Check if :trac:`8568` is fixed::
 
             sage: var('c,x')
             (c, x)
@@ -267,7 +267,7 @@ class Function_abs(GinacFunction):
             sage: sqrt(x^2)
             sqrt(x^2)
             sage: abs(sqrt(x))
-            abs(sqrt(x))
+            sqrt(abs(x))
             sage: complex(abs(3*I))
             (3+0j)
 
@@ -464,6 +464,16 @@ class Function_ceil(BuiltinFunction):
                 return Integer(int(math.ceil(x)))
         return None
 
+    def _evalf_(self, x, **kwds):
+        """
+        TESTS::
+
+            sage: h(x) = ceil(x)
+            sage: h(pi)._numerical_approx()
+            4
+        """
+        return self._eval_(x)
+
 ceil = Function_ceil()
 
 
@@ -626,6 +636,16 @@ class Function_floor(BuiltinFunction):
                 return Integer(int(math.floor(x)))
         return None
 
+    def _evalf_(self, x, **kwds):
+        """
+        TESTS::
+
+            sage: h(x) = floor(x)
+            sage: h(pi)._numerical_approx()
+            3
+        """
+        return self._eval_(x)
+
 floor = Function_floor()
 
 class Function_gamma(GinacFunction):
@@ -738,7 +758,7 @@ class Function_gamma(GinacFunction):
             sage: CDF(-1).gamma()
             Infinity
 
-        Check if #8297 is fixed::
+        Check if :trac:`8297` is fixed::
 
             sage: latex(gamma(1/4))
             \Gamma\left(\frac{1}{4}\right)
@@ -935,7 +955,7 @@ class Function_gamma_inc(BuiltinFunction):
             (-0.8231640121031085+3.141592653589793j)
             sage: incomplete_gamma(RR(-1), RR(-1))
             -0.823164012103109 + 3.14159265358979*I
-            sage: incomplete_gamma(-1, float(-log(3))) - incomplete_gamma(-1, float(-log(2)))
+            sage: incomplete_gamma(-1, float(-log(3))) - incomplete_gamma(-1, float(-log(2))) # abs tol 1e-15
             (1.2730972164471142+0j)
 
         Check that :trac:`17130` is fixed::
@@ -1390,6 +1410,16 @@ class Function_factorial(GinacFunction):
             return py_factorial_py(x)
 
         return None
+
+    def _evalf_(self, x, **kwds):
+        """
+        TESTS::
+
+            sage: h(x) = factorial(x)
+            sage: h(5)._numerical_approx()
+            120.000000000000
+        """
+        return self._eval_(x)
 
 factorial = Function_factorial()
 
@@ -2011,7 +2041,7 @@ class Function_real_part(GinacFunction):
             sage: real_part(x)._sympy_()
             re(x)
 
-        Check if #6401 is fixed::
+        Check if :trac:`6401` is fixed::
 
             sage: latex(x.real())
             \Re \left( x \right)
@@ -2081,7 +2111,7 @@ class Function_imag_part(GinacFunction):
             sage: imag_part(x)._sympy_()
             im(x)
 
-        Check if #6401 is fixed::
+        Check if :trac:`6401` is fixed::
 
             sage: latex(x.imag())
             \Im \left( x \right)
@@ -2161,7 +2191,7 @@ class Function_conjugate(GinacFunction):
             sage: x.conjugate().operator() == conjugate
             True
 
-        Check if #8755 is fixed::
+        Check if :trac:`8755` is fixed::
 
             sage: conjugate(sqrt(-3))
             conjugate(sqrt(-3))
@@ -2176,7 +2206,7 @@ class Function_conjugate(GinacFunction):
             sage: conjugate(sqrt(y))
             sqrt(y)
 
-        Check if #10964 is fixed::
+        Check if :trac:`10964` is fixed::
 
             sage: z= I*sqrt(-3); z
             I*sqrt(-3)

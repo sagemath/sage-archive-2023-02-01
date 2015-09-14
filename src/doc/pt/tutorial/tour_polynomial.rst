@@ -306,9 +306,6 @@ erros em outras rotinas que usam bases de Gröbner).
 
 ::
 
-    sage: B.parent()
-    Category of sequences in Multivariate Polynomial Ring in x, y over Rational 
-    Field
     sage: B.universe()
     Multivariate Polynomial Ring in x, y over Rational Field
     sage: B[1] = x

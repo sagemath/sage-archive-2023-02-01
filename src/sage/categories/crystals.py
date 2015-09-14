@@ -40,7 +40,8 @@ class Crystals(Category_singleton):
     - ``module_generators``: a list (or container) of distinct elements
       which generate the crystal using `f_i`
 
-    Furthermore, their elements should implement the following methods:
+    Furthermore, their elements ``x`` should implement the following
+    methods:
 
     - ``x.e(i)`` (returning `e_i(x)`)
 
@@ -62,6 +63,7 @@ class Crystals(Category_singleton):
         sage: B = Crystals().example()
         sage: TestSuite(B).run(verbose = True)
         running ._test_an_element() . . . pass
+        running ._test_cardinality() . . . pass
         running ._test_category() . . . pass
         running ._test_elements() . . .
           Running the test suite of self.an_element()
@@ -101,14 +103,14 @@ class Crystals(Category_singleton):
         :meth:`Category.example()
         <sage.categories.category.Category.example>`.
 
-        INPUT::
+        INPUT:
 
-         - ``choice`` -- str [default: 'highwt']. Can be either 'highwt'
-           for the highest weight crystal of type A, or 'naive' for an
-           example of a broken crystal.
+        - ``choice`` -- str [default: 'highwt']. Can be either 'highwt'
+          for the highest weight crystal of type A, or 'naive' for an
+          example of a broken crystal.
 
-         - ``**kwds`` -- keyword arguments passed onto the constructor for the
-           chosen crystal.
+        - ``**kwds`` -- keyword arguments passed onto the constructor for the
+          chosen crystal.
 
         EXAMPLES::
 
@@ -159,10 +161,9 @@ class Crystals(Category_singleton):
                 Weight lattice of the Root system of type ['A', 2, 1]
             """
             F = self.cartan_type().root_system()
-            if F.is_finite() and F.ambient_space() is not None:
+            if self.cartan_type().is_finite() and F.ambient_space() is not None:
                 return F.ambient_space()
-            else:
-                return F.weight_lattice()
+            return F.weight_lattice()
 
         def cartan_type(self):
             """
@@ -223,16 +224,12 @@ class Crystals(Category_singleton):
                 sage: C.__iter__.__module__
                 'sage.categories.crystals'
                 sage: g = C.__iter__()
-                sage: next(g)
+                sage: for _ in range(5): next(g)
                 (-Lambda[0] + Lambda[2],)
-                sage: next(g)
                 (Lambda[0] - Lambda[1] + delta,)
-                sage: next(g)
-                (Lambda[1] - Lambda[2] + delta,)
-                sage: next(g)
-                (-Lambda[0] + Lambda[2] + delta,)
-                sage: next(g)
                 (Lambda[1] - Lambda[2],)
+                (Lambda[0] - Lambda[1],)
+                (Lambda[1] - Lambda[2] + delta,)
 
                 sage: sorted(C.__iter__(index_set=[1,2]), key=str)
                 [(-Lambda[0] + Lambda[2],),
@@ -245,17 +242,12 @@ class Crystals(Category_singleton):
                  (Lambda[1] - Lambda[2],)]
 
             """
+            from sage.sets.recursively_enumerated_set import RecursivelyEnumeratedSet
             if index_set is None:
                 index_set = self.index_set()
-            if max_depth < float('inf'):
-                from sage.combinat.backtrack import TransitiveIdealGraded
-                return TransitiveIdealGraded(lambda x: [x.f(i) for i in index_set]
-                                                     + [x.e(i) for i in index_set],
-                                             self.module_generators, max_depth).__iter__()
-            from sage.combinat.backtrack import TransitiveIdeal
-            return TransitiveIdeal(lambda x: [x.f(i) for i in index_set]
-                                           + [x.e(i) for i in index_set],
-                                   self.module_generators).__iter__()
+            succ = lambda x: [x.f(i) for i in index_set] + [x.e(i) for i in index_set]
+            R = RecursivelyEnumeratedSet(self.module_generators, succ, structure=None)
+            return R.breadth_first_search_iterator(max_depth)
 
         def subcrystal(self, index_set=None, generators=None, max_depth=float("inf"),
                        direction="both"):
@@ -302,19 +294,19 @@ class Crystals(Category_singleton):
                 index_set = self.index_set()
             if generators is None:
                 generators = self.module_generators
-            from sage.combinat.backtrack import TransitiveIdealGraded
+            from sage.sets.recursively_enumerated_set import RecursivelyEnumeratedSet
 
             if direction == 'both':
-                return TransitiveIdealGraded(lambda x: [x.f(i) for i in index_set]
-                                                     + [x.e(i) for i in index_set],
-                                             generators, max_depth)
-            if direction == 'upper':
-                return TransitiveIdealGraded(lambda x: [x.e(i) for i in index_set],
-                                             generators, max_depth)
-            if direction == 'lower':
-                return TransitiveIdealGraded(lambda x: [x.f(i) for i in index_set],
-                                             generators, max_depth)
-            raise ValueError("direction must be either 'both', 'upper', or 'lower'")
+                succ = lambda x: [x.f(i) for i in index_set] + [x.e(i) for i in index_set]
+            elif direction == 'upper':
+                succ = lambda x: [x.e(i) for i in index_set]
+            elif direction == 'lower':
+                succ = lambda x: [x.f(i) for i in index_set]
+            else:
+                raise ValueError("direction must be either 'both', 'upper', or 'lower'")
+            return RecursivelyEnumeratedSet(generators, succ,
+                                            structure=None, enumeration='breadth',
+                                            max_depth=max_depth)
 
         def crystal_morphism(self, g, index_set = None, automorphism = lambda i : i, direction = 'down', direction_image = 'down',
                              similarity_factor = None, similarity_factor_domain = None, cached = False, acyclic = True):
@@ -483,21 +475,21 @@ class Crystals(Category_singleton):
 
                 sage: C = Crystals().example(3)
                 sage: G = C.digraph()
-                sage: view(G, pdflatex=True, tightpage=True)  #optional - dot2tex graphviz
+                sage: view(G, pdflatex=True, tightpage=True)  # optional - dot2tex graphviz, not tested (opens external window)
 
             One may also overwrite the colors::
 
                 sage: C = Crystals().example(3)
                 sage: G = C.digraph()
                 sage: G.set_latex_options(color_by_label = {1:"red", 2:"purple", 3:"blue"})
-                sage: view(G, pdflatex=True, tightpage=True)  #optional - dot2tex graphviz
+                sage: view(G, pdflatex=True, tightpage=True)  # optional - dot2tex graphviz, not tested (opens external window)
 
             Or one may add colors to yet unspecified edges::
 
                 sage: C = Crystals().example(4)
                 sage: G = C.digraph()
                 sage: C.cartan_type()._index_set_coloring[4]="purple"
-                sage: view(G, pdflatex=True, tightpage=True)  #optional - dot2tex graphviz
+                sage: view(G, pdflatex=True, tightpage=True)  # optional - dot2tex graphviz, not tested (opens external window)
 
             Here is an example of how to take the top part up to a given depth of an infinite dimensional
             crystal::
@@ -527,7 +519,7 @@ class Crystals(Category_singleton):
                 sage: G = B.digraph(subset=D.support())
                 sage: G.vertices()
                 [[[1, 1], [2]], [[1, 2], [2]], [[1, 3], [2]], [[1, 1], [3]], [[1, 3], [3]]]
-                sage: view(G, pdflatex=True, tightpage=True)  #optional - dot2tex graphviz
+                sage: view(G, pdflatex=True, tightpage=True)  # optional - dot2tex graphviz, not tested (opens external window)
 
             We can also choose to display particular arrows using the
             ``index_set`` option::
@@ -536,7 +528,7 @@ class Crystals(Category_singleton):
                 sage: G = C.digraph(index_set=[1,3])
                 sage: len(G.edges())
                 20
-                sage: view(G, pdflatex=True, tightpage=True)  #optional - dot2tex graphviz
+                sage: view(G, pdflatex=True, tightpage=True)  # optional - dot2tex graphviz, not tested (opens external window)
 
             TODO: add more tests
             """
@@ -578,7 +570,7 @@ class Crystals(Category_singleton):
             EXAMPLES::
 
                 sage: C = crystals.Letters(['A', 5])
-                sage: C.latex_file('/tmp/test.tex') #optional - dot2tex
+                sage: C.latex_file('/tmp/test.tex')  # optional - dot2tex graphviz
             """
             header = r"""\documentclass{article}
             \usepackage[x11names, rgb]{xcolor}
@@ -608,9 +600,9 @@ class Crystals(Category_singleton):
             EXAMPLES::
 
                 sage: T = crystals.Tableaux(['A',2],shape=[1])
-                sage: T._latex_()   #optional - dot2tex
+                sage: T._latex_()  # optional - dot2tex graphviz
                 '...tikzpicture...'
-                sage: view(T, pdflatex = True, tightpage = True) #optional - dot2tex graphviz
+                sage: view(T, pdflatex = True, tightpage = True) # optional - dot2tex graphviz, not tested (opens external window)
 
             One can for example also color the edges using the following options::
 
@@ -618,10 +610,7 @@ class Crystals(Category_singleton):
                 sage: T._latex_(color_by_label = {0:"black", 1:"red", 2:"blue"})   #optional - dot2tex graphviz
                 '...tikzpicture...'
             """
-            if not have_dot2tex():
-                print "dot2tex not available.  Install after running \'sage -sh\'"
-                return
-            G=self.digraph()
+            G = self.digraph()
             G.set_latex_options(**options)
             return G._latex_()
 
@@ -663,12 +652,12 @@ class Crystals(Category_singleton):
             EXAMPLES::
 
                 sage: C = crystals.Letters(['A', 2])
-                sage: C.metapost('/tmp/test.mp') #optional
+                sage: C.metapost(tmp_filename())
 
             ::
 
                 sage: C = crystals.Letters(['A', 5])
-                sage: C.metapost('/tmp/test.mp')
+                sage: C.metapost(tmp_filename())
                 Traceback (most recent call last):
                 ...
                 NotImplementedError
@@ -946,7 +935,7 @@ class Crystals(Category_singleton):
         @abstract_method
         def weight(self):
             r"""
-            Returns the weight of this crystal element
+            Return the weight of this crystal element.
 
             This method should be implemented by the element class of
             the crystal.
@@ -959,10 +948,11 @@ class Crystals(Category_singleton):
             """
 
         def phi_minus_epsilon(self, i):
-            """
-            Returns `\phi_i - \epsilon_i` of self. There are sometimes
-            better implementations using the weight for this. It is used
-            for reflections along a string.
+            r"""
+            Return `\varphi_i - \varepsilon_i` of ``self``.
+
+            There are sometimes better implementations using the
+            weight for this. It is used for reflections along a string.
 
             EXAMPLES::
 
@@ -1112,7 +1102,7 @@ class Crystals(Category_singleton):
 
         def to_highest_weight(self, index_set = None):
             r"""
-            Yields the highest weight element `u` and a list `[i_1,...,i_k]`
+            Return the highest weight element `u` and a list `[i_1,...,i_k]`
             such that `self = f_{i_1} ... f_{i_k} u`, where `i_1,...,i_k` are
             elements in `index_set`. By default the index set is assumed to be
             the full index set of self.
@@ -1151,7 +1141,7 @@ class Crystals(Category_singleton):
 
         def to_lowest_weight(self, index_set = None):
             r"""
-            Yields the lowest weight element `u` and a list `[i_1,...,i_k]`
+            Return the lowest weight element `u` and a list `[i_1,...,i_k]`
             such that `self = e_{i_1} ... e_{i_k} u`, where `i_1,...,i_k` are
             elements in `index_set`. By default the index set is assumed to be
             the full index set of self.
@@ -1192,8 +1182,8 @@ class Crystals(Category_singleton):
 
         def all_paths_to_highest_weight(self, index_set=None):
             r"""
-            Return all paths to the highest weight from ``self`` with respect
-            to `index_set`.
+            Iterate over all paths to the highest weight from ``self``
+            with respect to `index_set`.
 
             INPUT:
 

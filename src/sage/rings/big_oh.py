@@ -17,12 +17,15 @@ def O(*x):
     Big O constructor for various types.
 
     EXAMPLES:
-    This is useful for writing power series elements.
+
+    This is useful for writing power series elements. ::
+
         sage: R.<t> = ZZ[['t']]
         sage: (1+t)^10 + O(t^5)
         1 + 10*t + 45*t^2 + 120*t^3 + 210*t^4 + O(t^5)
 
-    A power series ring is created implicitly if a polynomial element is passed in.
+    A power series ring is created implicitly if a polynomial element is passed in. ::
+
         sage: R.<x> = QQ['x']
         sage: O(x^100)
         O(x^100)
@@ -32,23 +35,27 @@ def O(*x):
         sage: 1 + u + v^2 + O(u, v)^5
         1 + u + v^2 + O(u, v)^5
 
-    This is also useful to create p-adic numbers.
+    This is also useful to create p-adic numbers. ::
+
         sage: O(7^6)
         O(7^6)
         sage: 1/3 + O(7^6)
         5 + 4*7 + 4*7^2 + 4*7^3 + 4*7^4 + 4*7^5 + O(7^6)
 
-    It behaves well with respect to adding negative powers of p:
+    It behaves well with respect to adding negative powers of p::
+
         sage: a = O(11^-32); a
         O(11^-32)
         sage: a.parent()
         11-adic Field with capped relative precision 20
 
-    There are problems if you add a rational with very negative valuation to a big_oh.
+    There are problems if you add a rational with very negative valuation to a big_oh. ::
+
         sage: 11^-12 + O(11^15)
         11^-12 + O(11^8)
 
-    The reason that this fails is that the O function doesn't know the right precision cap to use.  If you cast explicitly or use other means of element creation, you can get around this issue.
+    The reason that this fails is that the O function doesn't know the right precision cap to use.  If you cast explicitly or use other means of element creation, you can get around this issue. ::
+
         sage: K = Qp(11, 30)
         sage: K(11^-12) + O(11^15)
         11^-12 + O(11^15)

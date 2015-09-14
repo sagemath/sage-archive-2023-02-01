@@ -37,6 +37,11 @@ TESTS::
     sage: v = vector(QQ, [1,2/5,-3/8,4])
     sage: loads(dumps(v)) == v
     True
+
+    sage: w = vector(QQ, [-1,0,0,0])
+    sage: w.set_immutable()
+    sage: isinstance(hash(w), int)
+    True
 """
 
 ###############################################################################
@@ -140,15 +145,13 @@ cdef class Vector_rational_dense(free_module_element.FreeModuleElement):
     def __dealloc__(self):
         cdef Py_ssize_t i
         if self._entries:
-            sig_on()
+            # Do *not* use sig_on() here, since __dealloc__
+            # cannot raise exceptions!
             for i from 0 <= i < self._degree:
-                #print "clearing gmp's entry %s"%i
                 mpq_clear(self._entries[i])
-            sig_off()
-            #print "clearing python entries"
             sage_free(self._entries)
 
-    cdef int _cmp_c_impl(left, Element right) except -2:
+    cpdef int _cmp_(left, Element right) except -2:
         """
         EXAMPLES::
 
@@ -164,6 +167,9 @@ cdef class Vector_rational_dense(free_module_element.FreeModuleElement):
             True
             sage: w > v
             False
+            sage: w = vector(QQ, [-1,0,0,0])
+            sage: w == w
+            True
         """
         cdef Py_ssize_t i
         cdef int c
@@ -175,56 +181,8 @@ cdef class Vector_rational_dense(free_module_element.FreeModuleElement):
                 return 1
         return 0
 
-    # see sage/structure/element.pyx
-    def __richcmp__(left, right, int op):
+    cdef get_unsafe(self, Py_ssize_t i):
         """
-        TEST::
-
-            sage: w = vector(QQ, [-1,0,0,0])
-            sage: w == w
-            True
-        """
-        return (<Element>left)._richcmp(right, op)
-
-    # __hash__ is not properly inherited if comparison is changed
-    def __hash__(self):
-        """
-        TEST::
-
-            sage: w = vector(QQ, [-1,0,0,0])
-            sage: w.set_immutable()
-            sage: isinstance(hash(w), int)
-            True
-        """
-        return free_module_element.FreeModuleElement.__hash__(self)
-
-    def __setitem__(self, i, value):
-        if not self._is_mutable:
-            raise ValueError("vector is immutable; please change a copy instead (use copy())")
-        cdef Rational z
-        cdef Py_ssize_t k, d, n
-        if isinstance(i, slice):
-            start, stop = i.start, i.stop
-            d = self.degree()
-            R = self.base_ring()
-            n = 0
-            for k from start <= k < stop:
-                if k >= d:
-                    return
-                if k >= 0:
-                    self[k] = R(value[n])
-                    n = n + 1
-        else:
-            if i < 0 or i >= self._degree:
-                raise IndexError
-            else:
-                z = Rational(value)
-                mpq_set(self._entries[i], z.value)
-
-    def __getitem__(self, i):
-        """
-        Returns `i`-th entry or slice of self.
-
         EXAMPLES::
 
             sage: v = vector([1/2,2/3,3/4]); v
@@ -238,24 +196,27 @@ cdef class Vector_rational_dense(free_module_element.FreeModuleElement):
             sage: v[5]
             Traceback (most recent call last):
             ...
-            IndexError: index out of range
+            IndexError: vector index out of range
             sage: v[-5]
             Traceback (most recent call last):
             ...
-            IndexError: index out of range
+            IndexError: vector index out of range
         """
         cdef Rational z = Rational.__new__(Rational)
-        if isinstance(i, slice):
-            start, stop, step = i.indices(len(self))
-            return vector(self.base_ring(), self.list()[start:stop])
-        else:
-            if i < 0:
-                i += self._degree
-            if i < 0 or i >= self._degree:
-                raise IndexError('index out of range')
-            else:
-                mpq_set(z.value, self._entries[i])
-                return z
+        mpq_set(z.value, self._entries[i])
+        return z
+
+    cdef int set_unsafe(self, Py_ssize_t i, value) except -1:
+        """
+        EXAMPLES::
+
+            sage: v = vector(QQ, [1/2,2/5,0]); v
+            (1/2, 2/5, 0)
+            sage: v.set(2, -15/17); v
+            (1/2, 2/5, -15/17)
+        """
+        mpq_set(self._entries[i], (<Rational>value).value)
+
 
     def list(self,copy=True):
         """

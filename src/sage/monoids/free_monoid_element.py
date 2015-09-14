@@ -137,7 +137,7 @@ class FreeMonoidElement(MonoidElement):
             sage: z = F([(0,5),(1,2),(0,10),(0,2),(1,2)])
             sage: z._latex_()
             'a_{0}^{5}a_{1}^{2}a_{0}^{12}a_{1}^{2}'
-            sage: F, (alpha,beta,gamma) = FreeMonoid(3, 'alpha,beta,gamma').objgens()
+            sage: F.<alpha,beta,gamma> = FreeMonoid(3)
             sage: latex(alpha*beta*gamma)
             \alpha\beta\gamma
         """
@@ -367,7 +367,7 @@ class FreeMonoidElement(MonoidElement):
         gens = self.parent().gens()
         if alph is None:
             alph = gens
-        alph = map(str, alph)
+        alph = [str(_) for _ in alph]
         W = Words(alph)
         return W(sum([ [alph[gens.index(i[0])]] * i[1] for i in list(self) ], []))
 

@@ -37,6 +37,14 @@ A summand of an asymptotic expression is basically a term out of the following m
 - :doc:`sage/rings/asymptotic/term_monoid`.
 
 
+Miscellaneous
+^^^^^^^^^^^^^
+
+Various useful functions and tools are collected in
+
+- :doc:`sage/rings/asymptotic/misc`.
+
+
 Asymptotic Expansions --- Table of Contents
 -------------------------------------------
 
@@ -46,5 +54,6 @@ Asymptotic Expansions --- Table of Contents
    sage/rings/asymptotic/growth_group
    sage/rings/asymptotic/growth_group_cartesian
    sage/rings/asymptotic/term_monoid
+   sage/rings/asymptotic/misc
 
 .. include:: ../footer.txt

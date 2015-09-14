@@ -63,6 +63,7 @@ AUTHORS:
   any
 - Clemens Heuberger (2014-08-10): transducer Recursion
 - Clemens Heuberger (2015-07-31): automaton word
+- Daniel Krenn (2015-09-14): cleanup :trac:`18227`
 
 ACKNOWLEDGEMENT:
 
@@ -75,7 +76,7 @@ Functions and methods
 """
 #*****************************************************************************
 #       Copyright (C) 2014--2015 Clemens Heuberger <clemens.heuberger@aau.at>
-#                     2014 Daniel Krenn <dev@danielkrenn.at>
+#                     2014--2015 Daniel Krenn <dev@danielkrenn.at>
 #                     2014 Sara Kropf <sara.kropf@aau.at>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)

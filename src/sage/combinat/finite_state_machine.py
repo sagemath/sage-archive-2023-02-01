@@ -894,6 +894,7 @@ AUTHORS:
   :trac:`16229`, :trac:`16253`, :trac:`16254`, :trac:`16255`, :trac:`16266`, :trac:`16355`, :trac:`16357`, :trac:`16387`,
   :trac:`16425`, :trac:`16539`, :trac:`16555`, :trac:`16557`, :trac:`16588`, :trac:`16589`, :trac:`16666`, :trac:`16668`,
   :trac:`16674`, :trac:`16675`, :trac:`16677`.
+- Daniel Krenn (2015-09-14): cleanup :trac:`18227`
 
 ACKNOWLEDGEMENT:
 
@@ -904,9 +905,9 @@ Methods
 =======
 """
 #*****************************************************************************
-# Copyright (C) 2012--2014 Clemens Heuberger <clemens.heuberger@aau.at>
-#               2012--2014 Daniel Krenn <dev@danielkrenn.at>
-#               2012--2014 Sara Kropf <sara.kropf@aau.at>
+# Copyright (C) 2012--2015 Clemens Heuberger <clemens.heuberger@aau.at>
+#               2012--2015 Daniel Krenn <dev@danielkrenn.at>
+#               2012--2015 Sara Kropf <sara.kropf@aau.at>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #  as published by the Free Software Foundation; either version 2 of

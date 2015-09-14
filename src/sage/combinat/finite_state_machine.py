@@ -6748,8 +6748,6 @@ class FiniteStateMachine(SageObject):
             sage: C.is_deterministic()
             False
             sage: D = C.determinisation().minimization()
-            sage: for s in D.iter_states(): # superfluous after #19199
-            ....:     s.color = None
             sage: D.is_equivalent(Automaton([(0, 0, 0), (0, 0, 1),
             ....:    (1, 7, 0), (1, 0, 1), (2, 6, 0), (2, 0, 1),
             ....:    (3, 5, 0), (3, 0, 1), (4, 0, 0), (4, 2, 1),
@@ -7186,7 +7184,9 @@ class FiniteStateMachine(SageObject):
         ``final_function`` on the constituent states.
 
         The color of a new state is the tuple of colors of the
-        constituent states of ``self`` and ``other``.
+        constituent states of ``self`` and ``other``. However,
+        if all constituent states have color ``None``, then
+        the state has color ``None``, too.
 
         EXAMPLES::
 
@@ -7202,6 +7202,8 @@ class FiniteStateMachine(SageObject):
             [Transition from ('A', 1) to ('B', 1): 2|-,
              Transition from ('A', 1) to ('A', 1): 1|-,
              Transition from ('B', 1) to ('A', 1): 3|-]
+            sage: [s.color for s in H.iter_states()]
+            [None, None]
             sage: H1 = F.product_FiniteStateMachine(G, addition, [0, 1, 2, 3], only_accessible_components=False)
             sage: H1.states()[0].label()[0] is F.states()[0]
             True
@@ -7297,8 +7299,8 @@ class FiniteStateMachine(SageObject):
             sage: A = Automaton([[0, 0, 0]], initial_states=[0])
             sage: B = A.product_FiniteStateMachine(A,
             ....:                                  lambda t1, t2: (0, None))
-            sage: B.states()[0].color
-            (None, None)
+            sage: B.states()[0].color is None
+            True
             sage: B.determinisation()
             Automaton with 1 state
 
@@ -7388,7 +7390,10 @@ class FiniteStateMachine(SageObject):
             if all(s.is_final for s in state.label()):
                 state.is_final = True
                 state.final_word_out = final_function(*state.label())
-            state.color = tuple(s.color for s in state.label())
+            if all(s.color is None for s in state.label()):
+                state.color = None
+            else:
+                state.color = tuple(s.color for s in state.label())
 
         if only_accessible_components:
             if result.input_alphabet is None:
@@ -7789,15 +7794,19 @@ class FiniteStateMachine(SageObject):
              Transition from ('B', 1) to ('B', 1): 0|0,
              Transition from ('B', 1) to ('B', 2): 1|0]
 
-        Check that colors are correctly dealt with. In particular, the
-        new colors have to be hashable such that
+        Check that colors are correctly dealt with, cf. :trac:`19199`.
+        In particular, the new colors have to be hashable such that
         :meth:`Automaton.determinisation` does not fail::
 
             sage: T = Transducer([[0, 0, 0, 0]], initial_states=[0])
             sage: A = T.input_projection()
             sage: B = A.composition(T, algorithm='explorative')
+            sage: B.states()[0].color is None
+            True
+            sage: A.state(0).color = 0
+            sage: B = A.composition(T, algorithm='explorative')
             sage: B.states()[0].color
-            (None, None)
+            (None, 0)
             sage: B.determinisation()
             Automaton with 1 state
         """
@@ -7853,7 +7862,10 @@ class FiniteStateMachine(SageObject):
                     state.is_final = True
                     state.final_word_out = final_output_second[0][2]
 
-            state.color = tuple(s.color for s in state.label())
+            if all(s.color is None for s in state.label()):
+                state.color = None
+            else:
+                state.color = tuple(s.color for s in state.label())
 
         F.output_alphabet = second.output_alphabet
         return F
@@ -10472,7 +10484,8 @@ class Automaton(FiniteStateMachine):
         of states of ``self``. The color of a new state is the
         frozenset of colors of the constituent states of ``self``.
         Therefore, the colors of the constituent states have to be
-        hashable.
+        hashable. However, if all constituent states have color
+        ``None``, then the resulting color is ``None``, too.
 
         The input alphabet must be specified.
 
@@ -10534,6 +10547,15 @@ class Automaton(FiniteStateMachine):
             sage: A.state(0).color = ()
             sage: A.determinisation()
             Automaton with 1 state
+
+        If the colors of all constituent states are ``None``,
+        the resulting color is ``None``, too (:trac:`19199`)::
+
+            sage: A = Automaton([(0, 0, 0)],
+            ....:               initial_states=[0],
+            ....:               final_states=[0])
+            sage: [s.color for s in A.determinisation().iter_states()]
+            [None]
 
         TESTS:
 
@@ -10631,7 +10653,10 @@ class Automaton(FiniteStateMachine):
 
         for state in result.iter_states():
             state.is_final = any(s.is_final for s in state.label())
-            state.color = frozenset(s.color for s in state.label())
+            if all(s.color is None for s in state.label()):
+                state.color = None
+            else:
+                state.color = frozenset(s.color for s in state.label())
 
         return result
 

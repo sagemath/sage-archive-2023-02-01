@@ -13447,7 +13447,7 @@ class _FSMProcessIteratorEpsilon_(FSMProcessIterator):
 
 class _FSMProcessIteratorAll_(FSMProcessIterator):
     r"""
-    This class is similar to :class:`FSMProcessIterator`, but only
+    This class is similar to :class:`FSMProcessIterator`, but
     accepts all transitions during process. See
     :class:`FSMProcessIterator` for more information.
 

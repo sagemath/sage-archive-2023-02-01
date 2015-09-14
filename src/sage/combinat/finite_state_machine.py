@@ -6,8 +6,8 @@ This module adds support for finite state machines, automata and
 transducers. See classes :class:`Automaton` and :class:`Transducer`
 (or the more general class :class:`FiniteStateMachine`) and the
 :ref:`examples <finite_state_machine_examples>` below for details
-creating one. You can also use a :mod:`preconstructed and commonly used one
-<sage.combinat.finite_state_machine_generators>`.
+creating one. You can also use a :doc:`preconstructed and commonly used one
+<finite_state_machine_generators>`.
 
 Contents
 ========
@@ -368,8 +368,7 @@ Alternatively, we could call that by
 
 which gives additionally the state in which we arrived.
 
-We can also let an automaton act on a :mod:`word
-<sage.combinat.words.words>`::
+We can also let an automaton act on a :doc:`word <words/words>`::
 
     sage: W = Words([-1, 0, 1]); W
     Words over {-1, 0, 1}
@@ -513,7 +512,7 @@ Transducers and (in)finite Words
 --------------------------------
 
 A transducer can also act on everything iterable, in particular, on
-Sage's :mod:`~sage.combinat.words.words`.
+Sage's :doc:`words <words/words>`.
 
 ::
 
@@ -3602,7 +3601,7 @@ class FiniteStateMachine(sage.structure.sage_object.SageObject):
             sage: binary_inverter([0, 1, 0, 0, 1, 1])
             [1, 0, 1, 1, 0, 0]
 
-        We can also let them act on :mod:`~sage.combinat.words.words`::
+        We can also let them act on :doc:`words <words/words>`::
 
             sage: W = Words([0, 1]); W
             Words over {0, 1}
@@ -5930,7 +5929,7 @@ class FiniteStateMachine(sage.structure.sage_object.SageObject):
         both nonzero (see also the example on
         :ref:`non-adjacent forms <finite_state_machine_recognizing_NAFs_example>`
         in the documentation of the module
-        :mod:`~sage.combinat.finite_state_machine`)::
+        :doc:`finite_state_machine`)::
 
             sage: NAF = FiniteStateMachine(
             ....:     {'_': [('_', 0), (1, 1)], 1: [('_', 0)]},
@@ -11506,7 +11505,7 @@ class Automaton(FiniteStateMachine):
         accepts non-adjacent forms (see also the example on
         :ref:`non-adjacent forms <finite_state_machine_recognizing_NAFs_example>`
         in the documentation of the module
-        :mod:`~sage.combinat.finite_state_machine`)
+        :doc:`finite_state_machine`)
         and then test it by feeding it with several binary digit
         expansions.
 

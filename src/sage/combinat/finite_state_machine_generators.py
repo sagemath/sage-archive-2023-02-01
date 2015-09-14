@@ -13,7 +13,7 @@ generates an identity transducer on the alphabet `\{0, 1, 2\}`.
 
 To construct automata and transducers manually, you can use the
 classes :class:`Automaton` and :class:`Transducer`, respectively. See
-:mod:`~sage.combinat.finite_state_machine` for more details and a lot
+:doc:`finite_state_machine` for more details and a lot
 of examples.
 
 **Automata**
@@ -1037,7 +1037,7 @@ class TransducerGenerators(object):
 
         In the example :ref:`Gray Code <finite_state_machine_gray_code_example>`
         in the documentation of the
-        :mod:`~sage.combinat.finite_state_machine` module, the Gray code
+        :doc:`finite_state_machine` module, the Gray code
         transducer is derived from the algorithm converting the binary
         expansion to the Gray code. The result is the same as the one
         given here.

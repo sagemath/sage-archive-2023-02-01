@@ -1314,18 +1314,6 @@ class HasseDiagram(DiGraph):
             [3]
         """
         n = self.cardinality()
-
-        if not return_list:
-            e = 0
-            m = 0
-            for i in range(n-1):
-                for j in self.outgoing_edge_iterator(i):
-                    m = max(m, j[1])
-                if m == i+1:
-                    break
-            return m < n-1
-
-        # Compute decomposition elements
         result = [] # Never take the bottom element to list.
         e = 0
         m = 0
@@ -1333,6 +1321,8 @@ class HasseDiagram(DiGraph):
             for j in self.outgoing_edge_iterator(i):
                 m = max(m, j[1])
             if m == i+1:
+                if not return_list:
+                    return m < n-1
                 result.append(m)
         result.pop() # Remove the top element.
         return result

@@ -5993,16 +5993,77 @@ class FiniteStateMachine(SageObject):
         return (accept_input, current_state, output)
 
 
-    def iter_process(self, input_tape=None, initial_state=None, **kwargs):
-        """
-        This function returns an instance of
-        :class:`FSMProcessIterator`. See :meth:`.process` (which runs
-        this iterator until the end) for more information.
+    def iter_process(self, input_tape=None, initial_state=None,
+                     iterator_type=None, **kwargs):
+        r"""
+        This function returns an iterator for processing the input.
+        See :meth:`.process` (which runs this iterator until the end)
+        for more information.
+
+        INPUT:
+
+        - ``iterator_type`` -- If ``None`` (default), then
+          an instance of :class:`FSMProcessIterator` is returned. If
+          this is ``'simple'`` only an iterator over one output is
+          returned (an exception is raised if this is not the case, i.e.,
+          if the process has branched).
+
+        See :meth:`process` for a description of the other parameters.
+
+        OUTPUT:
+
+        An iterator.
 
         EXAMPLES::
 
             sage: inverter = Transducer({'A': [('A', 0, 1), ('A', 1, 0)]},
             ....:     initial_states=['A'], final_states=['A'])
+            sage: words.FibonacciWord()
+            word: 0100101001001010010100100101001001010010...
+            sage: it = inverter.iter_process(
+            ....:     words.FibonacciWord(), iterator_type='simple')
+            sage: Words([0,1])(it)
+            word: 1011010110110101101011011010110110101101...
+
+        ::
+
+            sage: from itertools import islice
+            sage: it = inverter.iter_process(words.FibonacciWord())
+            sage: for current in islice(it, 4):
+            ....:     print current
+            process (1 branch)
+            + at state 'A'
+            +-- tape at 1, [[1]]
+            process (1 branch)
+            + at state 'A'
+            +-- tape at 2, [[1, 0]]
+            process (1 branch)
+            + at state 'A'
+            +-- tape at 3, [[1, 0, 1]]
+            process (1 branch)
+            + at state 'A'
+            +-- tape at 4, [[1, 0, 1, 1]]
+
+        The following show the difference between using the ``'simple'``-option
+        and not using it. With this option, we have
+        ::
+
+            sage: it = inverter.iter_process(input_tape=[0, 1, 1],
+            ....:                            iterator_type='simple')
+            sage: for i, o in enumerate(it):
+            ....:     print 'step %s: output %s' % (i, o)
+            step 0: output 1
+            step 1: output 0
+            step 2: output 0
+
+        So :meth:`iter_process` is a generator expression which gives
+        a new output letter in each step (and not more). In many cases
+        this is sufficient.
+
+        Doing the same without the ``'simple'``-option does not give
+        the output directly; it has to be extracted first. On the
+        other hand, additional information is presented::
+
             sage: it = inverter.iter_process(input_tape=[0, 1, 1])
             sage: for current in it:
             ....:     print current
@@ -6019,6 +6080,28 @@ class FiniteStateMachine(SageObject):
             sage: it.result()
             [(True, 'A', [1, 0, 0])]
 
+        One can see the growing of the output (the list of lists at
+        the end of each entry).
+
+        Even if the transducer has transitions with empty or multiletter
+        output, the simple iterator returns one new output letter in
+        each step::
+
+            sage: T = Transducer([(0, 0, 0, []),
+            ....:                 (0, 0, 1, [1]),
+            ....:                 (0, 0, 2, [2, 2])],
+            ....:                initial_states=[0])
+            sage: it = T.iter_process(input_tape=[0, 1, 2, 0, 1, 2],
+            ....:                     iterator_type='simple')
+            sage: for i, o in enumerate(it):
+            ....:     print 'step %s: output %s' % (i, o)
+            step 0: output 1
+            step 1: output 2
+            step 2: output 2
+            step 3: output 1
+            step 4: output 2
+            step 5: output 2
+
         .. SEEALSO::
 
             :meth:`FiniteStateMachine.process`,
@@ -6027,10 +6110,105 @@ class FiniteStateMachine(SageObject):
             :meth:`~FiniteStateMachine.__call__`,
             :class:`FSMProcessIterator`.
         """
-        return FSMProcessIterator(self,
-                                  input_tape=input_tape,
-                                  initial_state=initial_state,
-                                  **kwargs)
+        it = FSMProcessIterator(self,
+                                input_tape=input_tape,
+                                initial_state=initial_state,
+                                **kwargs)
+        if iterator_type is None:
+            return it
+        elif iterator_type == 'simple':
+            return self._iter_process_simple_(it)
+        else:
+            raise ValueError('Iterator type %s unknown.' % (iterator_type,))
+
+
+    def _iter_process_simple_(self, iterator):
+        r"""
+        Converts a :class:`process iterator <FSMProcessIterator>` to a simpler
+        iterator, which only outputs the written letters.
+
+        INPUT:
+
+        - ``iterator`` -- in instance of :class:`FSMProcessIterator`.
+
+        OUTPUT:
+
+        A generator.
+
+        An exception is raised if the process branches.
+
+        EXAMPLES::
+
+            sage: inverter = Transducer({'A': [('A', 0, 1), ('A', 1, 0)]},
+            ....:     initial_states=['A'], final_states=['A'])
+            sage: it = inverter.iter_process(words.FibonacciWord()[:10])
+            sage: it_simple = inverter._iter_process_simple_(it)
+            sage: list(it_simple)
+            [1, 0, 1, 1, 0, 1, 0, 1, 1, 0]
+
+        .. SEEALSO::
+
+            :meth:`iter_process`,
+            :meth:`FiniteStateMachine.process`,
+            :meth:`Automaton.process`,
+            :meth:`Transducer.process`,
+            :meth:`~FiniteStateMachine.__call__`,
+            :class:`FSMProcessIterator`.
+
+        TESTS::
+
+            sage: T = Transducer([(0, 0, [0, 0], 0), (0, 1, 0, 0)],
+            ....:                initial_states=[0], final_states=[0])
+            sage: list(T.iter_process([0, 0], iterator_type='simple'))
+            Traceback (most recent call last):
+            ...
+            RuntimeError: Process has branched (2 branches exist).
+            The 'simple' iterator cannot be used here.
+            sage: T = Transducer([(0, 0, 0, 0), (0, 1, 0, 0)],
+            ....:                initial_states=[0], final_states=[0])
+            sage: list(T.iter_process([0], iterator_type='simple'))
+            Traceback (most recent call last):
+            ...
+            RuntimeError: Process has branched (visiting 2 states in branch).
+            The 'simple' iterator cannot be used here.
+            sage: T = Transducer([(0, 1, 0, 1), (0, 1, 0, 2)],
+            ....:                initial_states=[0], final_states=[0])
+            sage: list(T.iter_process([0], iterator_type='simple'))
+            Traceback (most recent call last):
+            ...
+            RuntimeError: Process has branched. (2 different outputs in branch).
+            The 'simple' iterator cannot be used here.
+        """
+        for current in iterator:
+            if not current:
+                return
+
+            if len(current) > 1:
+                raise RuntimeError("Process has branched "
+                                   "(%s branches exist). The "
+                                   "'simple' iterator cannot be used "
+                                   "here." %
+                                   (len(current),))
+            pos, states = next(current.iteritems())
+            if len(states) > 1:
+                raise RuntimeError("Process has branched "
+                                   "(visiting %s states in branch). The "
+                                   "'simple' iterator cannot be used "
+                                   "here." %
+                                   (len(states),))
+            state, (tape_cache, outputs) = next(states.iteritems())
+            if len(outputs) > 1:
+                raise RuntimeError("Process has branched. "
+                                   "(%s different outputs in branch). The "
+                                   "'simple' iterator cannot be used "
+                                   "here." %
+                                   (len(outputs),))
+
+            for o in outputs[0]:
+                yield o
+            outputs[0] = []  # Reset output so that in the next round
+                             # (of "for current in iterator") only new
+                             # output is returned (by the yield).
 
 
     #*************************************************************************

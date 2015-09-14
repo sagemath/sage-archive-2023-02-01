@@ -1058,6 +1058,42 @@ class PermutationGroup_generic(group.FiniteGroup):
         """
         return self._domain_from_gap[Integer(self._gap_().SmallestMovedPoint())]
 
+    def representative_action(self,x,y):
+        r"""
+        Return an element of self that maps `x` to `y` if it exists.
+
+        This method wraps the gap function ``RepresentativeAction``, which can
+        also return elements that map a given set of points on another set of
+        points.
+
+        INPUT:
+
+        - ``x,y`` -- two elements of the domain.
+
+        EXAMPLE::
+
+            sage: G = groups.permutation.Cyclic(14)
+            sage: g = G.representative_action(1,10)
+            sage: all(g(x) == 1+((x+9-1)%14) for x in G.domain())
+            True
+
+        TESTS::
+
+            sage: g = graphs.PetersenGraph()
+            sage: g.relabel(list("abcdefghik"))
+            sage: g.vertices()
+            ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'k']
+            sage: ag = g.automorphism_group()
+            sage: a = ag.representative_action('a','b')
+            sage: g == g.relabel(a,inplace=False)
+            True
+            sage: a('a') == 'b'
+            True
+        """
+        ans = self._gap_().RepresentativeAction(self._domain_to_gap[x],
+                                                self._domain_to_gap[y])
+        return self._element_class()(ans, self, check=False)
+
     @cached_method
     def orbits(self):
         """

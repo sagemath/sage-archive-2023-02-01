@@ -40,6 +40,7 @@ This module gathers the following designs :
     :meth:`~sage.combinat.designs.block_design.ProjectiveGeometryDesign`
     :meth:`~sage.combinat.designs.block_design.DesarguesianProjectivePlaneDesign`
     :meth:`~sage.combinat.designs.block_design.HughesPlane`
+    :meth:`~sage.combinat.designs.database.HigmanSimsDesign`
     :meth:`~sage.combinat.designs.bibd.balanced_incomplete_block_design`
     :meth:`~sage.combinat.designs.resolvable_bibd.resolvable_balanced_incomplete_block_design`
     :meth:`~sage.combinat.designs.resolvable_bibd.kirkman_triple_system`
@@ -79,6 +80,8 @@ from sage.combinat.designs.block_design import (BlockDesign,
                                                 HadamardDesign,
                                                 Hadamard3Design,
                                                 HughesPlane)
+
+from database import HigmanSimsDesign
 
 from sage.combinat.designs.steiner_quadruple_systems import steiner_quadruple_system
 

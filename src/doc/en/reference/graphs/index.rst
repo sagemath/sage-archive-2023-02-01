@@ -26,6 +26,7 @@ Constructors and databases
    sage/graphs/digraph_generators
    sage/graphs/graph_generators_pyx
    sage/graphs/graph_database
+   sage/graphs/strongly_regular_db
    sage/graphs/isgci
 
 
@@ -91,7 +92,6 @@ Libraries of algorithms
    sage/graphs/graph_editor
    sage/graphs/graph_list
    sage/graphs/hyperbolicity
-   sage/graphs/strongly_regular_db
    sage/graphs/tutte_polynomial
    sage/graphs/generic_graph_pyx
 

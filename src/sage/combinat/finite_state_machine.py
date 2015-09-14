@@ -396,8 +396,8 @@ hand, we can construct such an automaton by forbidding the word
 On the other hand, we can write this as a regular expression and
 translate that into automata operations::
 
-    sage: zero = automata.word([0])
-    sage: one = automata.word([1])
+    sage: zero = automata.Word([0])
+    sage: one = automata.Word([1])
     sage: epsilon = automata.EmptyWord(input_alphabet=[0, 1])
     sage: NAF_positive = (zero + one*zero).kleene_star() * (epsilon + one)
 
@@ -408,7 +408,7 @@ We check that the two approaches are equivalent::
 
 .. SEEALSO::
    :meth:`~sage.combinat.finite_state_machine_generators.AutomatonGenerators.ContainsWord`,
-   :meth:`~sage.combinat.finite_state_machine_generators.AutomatonGenerators.word`,
+   :meth:`~sage.combinat.finite_state_machine_generators.AutomatonGenerators.Word`,
    :meth:`~Automaton.complement`,
    :meth:`~FiniteStateMachine.kleene_star`,
    :meth:`~sage.combinat.finite_state_machine_generators.AutomatonGenerators.EmptyWord`,
@@ -7223,8 +7223,8 @@ class FiniteStateMachine(SageObject):
 
         Concatenation of two automata::
 
-            sage: A = automata.word([0])
-            sage: B = automata.word([1])
+            sage: A = automata.Word([0])
+            sage: B = automata.Word([1])
             sage: C = A.concatenation(B)
             sage: C.transitions()
             [Transition from (0, 0) to (0, 1): 0|-,
@@ -7406,7 +7406,7 @@ class FiniteStateMachine(SageObject):
 
         Kleene star of an automaton::
 
-            sage: A = automata.word([0, 1])
+            sage: A = automata.Word([0, 1])
             sage: B = A.kleene_star()
             sage: B.transitions()
             [Transition from 0 to 1: 0|-,
@@ -11242,7 +11242,7 @@ class Automaton(FiniteStateMachine):
 
         EXAMPLES::
 
-            sage: A = automata.word([0, 1])
+            sage: A = automata.Word([0, 1])
             sage: [w for w in
             ....:  [], [0], [1], [0, 0], [0, 1], [1, 0], [1, 1]
             ....:  if A(w)]
@@ -11264,7 +11264,7 @@ class Automaton(FiniteStateMachine):
 
         The automaton must be deterministic::
 
-            sage: A = automata.word([0]) * automata.word([1])
+            sage: A = automata.Word([0]) * automata.Word([1])
             sage: A.complement()
             Traceback (most recent call last):
             ...

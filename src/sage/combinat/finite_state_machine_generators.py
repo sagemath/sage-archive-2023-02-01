@@ -26,7 +26,7 @@ of examples.
     :meth:`~AutomatonGenerators.AnyLetter` | Return an automaton recognizing any letter.
     :meth:`~AutomatonGenerators.AnyWord` | Return an automaton recognizing any word.
     :meth:`~AutomatonGenerators.EmptyWord` | Return an automaton recognizing the empty word.
-    :meth:`~AutomatonGenerators.word` | Return an automaton recognizing the given word.
+    :meth:`~AutomatonGenerators.Word` | Return an automaton recognizing the given word.
     :meth:`~AutomatonGenerators.ContainsWord` | Return an automaton recognizing words containing the given word.
 
 **Transducers**
@@ -106,7 +106,7 @@ class AutomatonGenerators(object):
     - :meth:`~AnyLetter`
     - :meth:`~AnyWord`
     - :meth:`~EmptyWord`
-    - :meth:`~word`
+    - :meth:`~Word`
     - :meth:`~ContainsWord`
     """
 
@@ -210,7 +210,7 @@ class AutomatonGenerators(object):
                          input_alphabet=input_alphabet)
 
 
-    def word(self, word, input_alphabet=None):
+    def Word(self, word, input_alphabet=None):
         r"""
         Return an automaton recognizing the given word.
 
@@ -227,12 +227,12 @@ class AutomatonGenerators(object):
 
         EXAMPLES::
 
-            sage: A = automata.word([0])
+            sage: A = automata.Word([0])
             sage: A.transitions()
             [Transition from 0 to 1: 0|-]
             sage: [A(w) for w in ([], [0], [1])]
             [False, True, False]
-            sage: A = automata.word([0, 1, 0])
+            sage: A = automata.Word([0, 1, 0])
             sage: A.transitions()
             [Transition from 0 to 1: 0|-,
             Transition from 1 to 2: 1|-,
@@ -245,7 +245,7 @@ class AutomatonGenerators(object):
 
             sage: A.input_alphabet
             [0, 1]
-            sage: A = automata.word([0, 1, 0], input_alphabet=[0, 1, 2])
+            sage: A = automata.Word([0, 1, 0], input_alphabet=[0, 1, 2])
             sage: A.input_alphabet
             [0, 1, 2]
 
@@ -297,7 +297,7 @@ class AutomatonGenerators(object):
         method immediately gives a minimized version::
 
             sage: B = (automata.AnyWord([0, 1]) *
-            ....:     automata.word([0, 1, 0, 1, 1], [0, 1]) *
+            ....:     automata.Word([0, 1, 0, 1, 1], [0, 1]) *
             ....:     automata.AnyWord([0, 1])).minimization()
             sage: B.is_equivalent(A)
             True

@@ -26,7 +26,7 @@ AUTHORS:
 
 
 from sage.misc.prandom import sample
-from sage.misc.misc import bounded_number_of_tuples
+from sage.misc.misc import some_tuples
 
 from sage.categories.principal_ideal_domains import PrincipalIdealDomains
 from sage.categories.fields import Fields
@@ -523,7 +523,7 @@ class pAdicGeneric(PrincipalIdealDomain, LocalGeneric):
             tester.assertEqual(y.precision_absolute(),x.precision_absolute())
             tester.assertEqual(y.precision_relative(),x.precision_relative())
 
-        for x,y in bounded_number_of_tuples(elements, 2, tester._max_runs):
+        for x,y in some_tuples(elements, 2, tester._max_runs):
             z = x + y
             tester.assertIs(z.parent(), self)
             tester.assertEqual(z.precision_absolute(), min(x.precision_absolute(), y.precision_absolute()))
@@ -559,7 +559,7 @@ class pAdicGeneric(PrincipalIdealDomain, LocalGeneric):
             tester.assertEqual(y.precision_absolute(), x.precision_absolute())
             tester.assertEqual(y.precision_relative(), x.precision_relative())
 
-        for x,y in bounded_number_of_tuples(elements, 2, tester._max_runs):
+        for x,y in some_tuples(elements, 2, tester._max_runs):
             z = x - y
             tester.assertIs(z.parent(), self)
             tester.assertEqual(z.precision_absolute(), min(x.precision_absolute(), y.precision_absolute()))
@@ -624,7 +624,7 @@ class pAdicGeneric(PrincipalIdealDomain, LocalGeneric):
         tester = self._tester(**options)
 
         elements = list(tester.some_elements())
-        for x,y in bounded_number_of_tuples(elements, 2, tester._max_runs):
+        for x,y in some_tuples(elements, 2, tester._max_runs):
             z = x * y
             tester.assertIs(z.parent(), self)
             tester.assertLessEqual(z.precision_relative(), min(x.precision_relative(), y.precision_relative()))
@@ -651,7 +651,7 @@ class pAdicGeneric(PrincipalIdealDomain, LocalGeneric):
         tester = self._tester(**options)
 
         elements = list(tester.some_elements())
-        for x,y in bounded_number_of_tuples(elements, 2, tester._max_runs):
+        for x,y in some_tuples(elements, 2, tester._max_runs):
             try:
                 z = x / y
             except (ZeroDivisionError, PrecisionError, ValueError):

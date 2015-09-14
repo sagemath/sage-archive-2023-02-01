@@ -84,8 +84,8 @@ class Domains(CategoryWithAxiom):
             # Filter out zero
             S = [s for s in tester.some_elements() if not s.is_zero()]
 
-            from sage.misc.misc import bounded_number_of_tuples
-            for a,b in bounded_number_of_tuples(S, 2, tester._max_runs):
+            from sage.misc.misc import some_tuples
+            for a,b in some_tuples(S, 2, tester._max_runs):
                 p = a * b
                 tester.assertFalse(p.is_zero())
 

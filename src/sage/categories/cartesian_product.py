@@ -14,6 +14,8 @@ AUTHORS:
 
 from sage.categories.covariant_functorial_construction import CovariantFunctorialConstruction, CovariantConstructionCategory
 
+native_python_containers   = set([tuple, list, set, frozenset])
+
 class CartesianProductFunctor(CovariantFunctorialConstruction):
     """
     A singleton class for the Cartesian product functor.
@@ -110,8 +112,9 @@ class CartesianProductFunctor(CovariantFunctorialConstruction):
         Functorial construction application.
 
         Specializes the generic ``__call__`` from
-        :class:`CartesianProductFunctor` to handle the case of some Python
-        objects.
+        :class:`CovariantFunctorialConstruction` to handle the case of some
+        Python objects. Namely ``frozenset``, ``list``, ``set`` and ``tuple``.
+        See the examples below.
 
         EXAMPLES::
 
@@ -125,21 +128,10 @@ class CartesianProductFunctor(CovariantFunctorialConstruction):
             sage: _.category()
             Category of Cartesian products of sets
         """
-        if any(type(arg) is tuple or \
-               type(arg) is list or  \
-               type(arg) is set or   \
-               type(arg) is frozenset for arg in args):
-            aargs = []
-            from sage.sets.set import Set
-            from sage.sets.finite_enumerated_set import FiniteEnumeratedSet
-            for arg in args:
-                if type(arg) is tuple or type(arg) is list:
-                    aargs.append(FiniteEnumeratedSet(arg))
-                elif type(arg) is set or type(arg) is frozenset:
-                    aargs.append(Set(arg))
-                else:
-                    aargs.append(arg)
-            args = aargs
+        if any(type(arg) in native_python_containers for arg in args):
+            from sage.categories.sets_cat import Sets
+            S = Sets()
+            args = [S(a, enumerated_set=True) for a in args]
         return super(CartesianProductFunctor, self).__call__(args)
 
 cartesian_product = CartesianProductFunctor()

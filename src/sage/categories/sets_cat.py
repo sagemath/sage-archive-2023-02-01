@@ -205,9 +205,17 @@ class Sets(Category_singleton):
         """
         return [SetsWithPartialMaps()]
 
-    def _call_(self, X, enumerated_set_if_possible = False):
+    def _call_(self, X, enumerated_set=False):
         r"""
-        Construct an object in this category from the data in ``X``.
+        Construct an object in this category from the data ``X``.
+
+        INPUT:
+
+        - ``X`` -- an object to be converted into a set
+
+        - ``enumerated_set`` -- if set to ``True`` and the input is either a
+          Python tuple or a Python list then the output will be a finite
+          enumerated set.
 
         EXAMPLES::
 
@@ -216,33 +224,24 @@ class Sets(Category_singleton):
             sage: Sets()([1, 2, 3])
             {1, 2, 3}
 
-        .. note::
+            sage: S = Sets()([1, 2, 3]); S.category()
+            Category of finite sets
+            sage: S = Sets()([1, 2, 3], enumerated_set=True); S.category()
+            Category of facade finite enumerated sets
 
-           Using ``Sets()(A)`` used to implement some sort of
-           forgetful functor into the ``Sets()`` category. This
-           feature has been removed, because it was not consistent
-           with the semantic of :meth:`Category.__call__`. Proper
-           forgetful functors will eventually be implemented, with
+        .. NOTE::
+
+           Using ``Sets()(A)`` used to implement some sort of forgetful functor
+           into the ``Sets()`` category. This feature has been removed, because
+           it was not consistent with the semantic of :meth:`Category.__call__`.
+           Proper forgetful functors will eventually be implemented, with
            another syntax.
-
-        - ``enumerated_set_if_possible`` -- an option to ask Sage to
-          try to build an ``EnumeratedSets()`` rather that a
-          ``Sets()`` if possible.  This is experimental an may change
-          in the future::
-
-              sage: S = Sets()([1, 2, 3]); S.category()
-              Category of finite sets
-              sage: S = Sets()([1, 2, 3], True); S.category()
-              Category of facade finite enumerated sets
         """
-        import sage.sets.all
-        if enumerated_set_if_possible:
+        if enumerated_set and type(X) in (tuple,list):
             from sage.categories.enumerated_sets import EnumeratedSets
-            try:
-                return EnumeratedSets()(X)
-            except NotImplementedError:
-                pass
-        return sage.sets.all.Set(X)
+            return EnumeratedSets()(X)
+        from sage.sets.set import Set
+        return Set(X)
 
     def example(self, choice = None):
         """

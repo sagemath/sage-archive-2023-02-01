@@ -1288,10 +1288,11 @@ class CombinatorialFreeModule(UniqueRepresentation, Module, IndexedGenerators):
         if element_class is not None:
             self.Element = element_class
 
-        # The following is needed by e.g. root systems that don't call
-        # the classcall and passes lists as basis_keys
-        if isinstance(basis_keys, (list, tuple)):
-            basis_keys = FiniteEnumeratedSet(basis_keys)
+        # The following is to ensure that basis keys is indeed a parent.
+        # tuple/list are converted to FiniteEnumeratedSet and set/frozenset to
+        # Set
+        # (e.g. root systems passes lists)
+        basis_keys = Sets()(basis_keys, enumerated_set=True)
 
         # ignore the optional 'key' since it only affects CachedRepresentation
         kwds.pop('key', None)

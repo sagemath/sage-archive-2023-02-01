@@ -496,8 +496,6 @@ We can even input something infinite like an infinite word::
     sage: inverter(tm)
     word: 1001011001101001011010011001011001101001...
 
-Here processing works with iterators in background.
-
 
 A transducer which performs division by `3` in binary
 -----------------------------------------------------

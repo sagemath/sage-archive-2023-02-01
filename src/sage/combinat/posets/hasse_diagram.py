@@ -1314,6 +1314,11 @@ class HasseDiagram(DiGraph):
             [3]
         """
         n = self.cardinality()
+        if n < 3:
+            if return_list:
+                return []
+            else:
+                return False
         result = [] # Never take the bottom element to list.
         e = 0
         m = 0

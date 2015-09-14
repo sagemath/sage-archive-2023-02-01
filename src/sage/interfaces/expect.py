@@ -822,9 +822,14 @@ If this all works, you can then make calls like:
             sage: singular._eval_using_file_cutoff = 4
             sage: singular._eval_line('for(int i=1;i<=3;i++){i=1;};', wait_for_prompt=False)
             ''
-            sage: singular.interrupt(timeout=3)  # sometimes very slow (up to 60s on sage.math, 2012)
-            False
+            sage: singular.interrupt()
+            True
             sage: singular._eval_using_file_cutoff = cutoff
+
+        The interface still works after this interrupt::
+
+            sage: singular('2+3')
+            5
 
         Last, we demonstrate that by default the execution of a command
         is tried twice if it fails the first time due to a crashed

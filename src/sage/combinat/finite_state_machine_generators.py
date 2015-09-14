@@ -315,14 +315,11 @@ class AutomatonGenerators(object):
         def transition_function(read, input):
             if read == word:
                 return (word, None)
-            current = read + (input, )
-            if starts_with(word, current):
-                return (current, None)
-            else:
-                k = 1
-                while not starts_with(word, current[k:]):
-                    k += 1
-                return (current[k:], None)
+            current = read + (input,)
+            k = 0
+            while not starts_with(word, current[k:]):
+                k += 1
+            return (current[k:], None)
 
         return Automaton(
             transition_function,

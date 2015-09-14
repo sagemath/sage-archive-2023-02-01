@@ -188,7 +188,6 @@ class ChainComplexMorphism(SageObject):
             # Use immutable matrices because they're hashable.
             m.set_immutable()
             self._matrix_dictionary[i] = m
-        self._matrix_dictionary = matrices
         self._domain = C
         self._codomain = D
 

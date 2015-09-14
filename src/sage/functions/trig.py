@@ -39,6 +39,43 @@ class Function_sin(GinacFunction):
             sage: sin(complex(1,1))     # rel tol 1e-15
             (1.2984575814159773+0.6349639147847361j)
 
+            sage: sin(pi/5)
+            1/4*sqrt(-2*sqrt(5) + 10)
+            sage: sin(pi/8)
+            1/2*sqrt(-sqrt(2) + 2)
+            sage: sin(pi/24)
+            1/4*sqrt(-2*sqrt(6) - 2*sqrt(2) + 8)
+            sage: sin(pi/30)
+            -1/8*sqrt(5) + 1/4*sqrt(-3/2*sqrt(5) + 15/2) - 1/8
+            sage: cos(pi/8)
+            1/2*sqrt(sqrt(2) + 2)
+            sage: cos(pi/10)
+            1/2*sqrt(1/2*sqrt(5) + 5/2)
+            sage: cos(pi/12)
+            1/12*sqrt(6)*(sqrt(3) + 3)
+            sage: cos(pi/15)
+            1/8*sqrt(5) + 1/4*sqrt(3/2*sqrt(5) + 15/2) - 1/8
+            sage: cos(pi/24)
+            1/4*sqrt(2*sqrt(6) + 2*sqrt(2) + 8)
+            sage: tan(pi/5)
+            sqrt(-2*sqrt(5) + 5)
+            sage: tan(pi/8)
+            sqrt(2) - 1
+            sage: tan(pi/10)
+            sqrt(-2/5*sqrt(5) + 1)
+            sage: tan(pi/16)
+            -sqrt(2) + sqrt(2*sqrt(2) + 4) - 1
+            sage: tan(pi/20)
+            sqrt(5) - 1/2*sqrt(8*sqrt(5) + 20) + 1
+            sage: tan(pi/24)
+            sqrt(6) - sqrt(3) + sqrt(2) - 2
+
+            sage: all(sin(rat*pi).n(200)-sin(rat*pi,hold=True).n(200) < 1e-30 for rat in [1/5,2/5,1/30,7/30,11/30,13/30,1/8,3/8,1/24,5/24,7/24,11/24])
+            True
+            sage: all(cos(rat*pi).n(200)-cos(rat*pi,hold=True).n(200) < 1e-30 for rat in [1/10,3/10,1/12,5/12,1/15,2/15,4/15,7/15,1/8,3/8,1/24,5/24,11/24])
+            True
+            sage: all(tan(rat*pi).n(200)-tan(rat*pi,hold=True).n(200) < 1e-30 for rat in [1/5,2/5,1/10,3/10,1/20,3/20,7/20,9/20,1/8,3/8,1/16,3/16,5/16,7/16,1/24,5/24,7/24,11/24])
+            True
         """
         GinacFunction.__init__(self, "sin", latex_name=r"\sin",
                 conversions=dict(maxima='sin',mathematica='Sin'))

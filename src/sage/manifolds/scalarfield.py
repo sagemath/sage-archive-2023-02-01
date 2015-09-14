@@ -2021,10 +2021,26 @@ class ScalarField(CommutativeAlgebraElement):
                 if chart_var:
                     # Some symbolic variables in number are chart coordinates
                     for chart, expr in self._express.iteritems():
-                        # The multiplication is performed only if all the
-                        # symbolic variables involved in number are chart
-                        # coordinates:
-                        if all(s in chart[:] for s in var):
+                        # The multiplication is performed only if
+                        # either
+                        # (i) all the symbolic variables in number are
+                        # coordinates of this chart
+                        # or (ii) no symbolic variable in number belongs to a
+                        # different chart
+                        chart_coords = chart[:]
+                        var_not_in_chart = [s for s in var
+                                            if not s in chart_coords]
+                        any_in_other_chart = False
+                        if var_not_in_chart != []:
+                            for other_chart in self._domain.atlas():
+                                other_chart_coords = other_chart[:]
+                                for s in var_not_in_chart:
+                                    if s in other_chart_coords:
+                                        any_in_other_chart = True
+                                        break
+                                if any_in_other_chart:
+                                    break
+                        if not any_in_other_chart:
                             result._express[chart] = number * expr
                     return result
         # General case: the multiplication is performed on all charts:

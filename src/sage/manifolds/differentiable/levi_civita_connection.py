@@ -1,7 +1,7 @@
 r"""
 Levi-Civita connections
 
-The class :class:`Levi-Civita Connection` implements the Levi-Civita
+The class :class:`LeviCivitaConnection` implements the Levi-Civita
 connection associated with some pseudo-Riemannian metric on a smooth
 manifold.
 
@@ -126,18 +126,20 @@ class LeviCivitaConnection(AffineConnection):
         sage: DiffManifold._clear_cache_() # for doctests only
         sage: forget() # for doctests only
         sage: M = DiffManifold(3, 'R^3', start_index=1)
-        sage: c_spher.<r,th,ph> = M.chart(r'r:[0,+oo) th:[0,pi]:\theta ph:[0,2*pi):\phi')
+        sage: c_spher.<r,th,ph> = M.chart(r'r:(0,+oo) th:(0,pi):\theta ph:(0,2*pi):\phi')
         sage: g = M.metric('g')
         sage: g[1,1], g[2,2], g[3,3] = 1, r^2 , (r*sin(th))^2
         sage: g.display()
         g = dr*dr + r^2 dth*dth + r^2*sin(th)^2 dph*dph
         sage: nab = g.connection(name='nabla', latex_name=r'\nabla') ; nab
-        Levi-Civita connection 'nabla' associated with the pseudo-Riemannian metric 'g' on the 3-dimensional manifold 'R^3'
+        Levi-Civita connection nabla associated with the Pseudo-Riemannian
+         metric g on the 3-dimensional differentiable manifold R^3
 
     Let us check that the connection is compatible with the metric::
 
         sage: Dg = nab(g) ; Dg
-        tensor field 'nabla g' of type (0,3) on the 3-dimensional manifold 'R^3'
+        Tensor field nabla(g) of type (0,3) on the 3-dimensional
+         differentiable manifold R^3
         sage: Dg == 0
         True
 
@@ -155,14 +157,47 @@ class LeviCivitaConnection(AffineConnection):
     symbols, since the default frame is a coordinate frame::
 
         sage: M.default_frame()
-        coordinate frame (R^3, (d/dr,d/dth,d/dph))
+        Coordinate frame (R^3, (d/dr,d/dth,d/dph))
         sage: nab.coef()
-        3-indices components w.r.t. coordinate frame (R^3, (d/dr,d/dth,d/dph)), with symmetry on the index positions (1, 2)
-        sage: # note that the Christoffel symbols are symmetric with respect to their last two indices (positions (1,2))
-        sage: nab.coef()[:]
+        3-indices components w.r.t. Coordinate frame (R^3, (d/dr,d/dth,d/dph)),
+         with symmetry on the index positions (1, 2)
+
+    We note that the Christoffel symbols are symmetric with respect to their
+    last two indices (positions (1,2)); their expression is::
+
+        sage: nab.coef()[:]  # display as a array
         [[[0, 0, 0], [0, -r, 0], [0, 0, -r*sin(th)^2]],
-        [[0, 1/r, 0], [1/r, 0, 0], [0, 0, -cos(th)*sin(th)]],
-        [[0, 0, 1/r], [0, 0, cos(th)/sin(th)], [1/r, cos(th)/sin(th), 0]]]
+         [[0, 1/r, 0], [1/r, 0, 0], [0, 0, -cos(th)*sin(th)]],
+         [[0, 0, 1/r], [0, 0, cos(th)/sin(th)], [1/r, cos(th)/sin(th), 0]]]
+        sage: nab.display()  # display only the non-vanishing symbols
+        Gam^r_th,th = -r
+        Gam^r_ph,ph = -r*sin(th)^2
+        Gam^th_r,th = 1/r
+        Gam^th_th,r = 1/r
+        Gam^th_ph,ph = -cos(th)*sin(th)
+        Gam^ph_r,ph = 1/r
+        Gam^ph_th,ph = cos(th)/sin(th)
+        Gam^ph_ph,r = 1/r
+        Gam^ph_ph,th = cos(th)/sin(th)
+        sage: nab.display(only_nonredundant=True)  # skip redundancy due to symmetry
+        Gam^r_th,th = -r
+        Gam^r_ph,ph = -r*sin(th)^2
+        Gam^th_r,th = 1/r
+        Gam^th_ph,ph = -cos(th)*sin(th)
+        Gam^ph_r,ph = 1/r
+        Gam^ph_th,ph = cos(th)/sin(th)
+
+    The same display can be obtained via the function
+    :meth:`~sage.manifolds.differentiable.metric.PseudoRiemannianMetric.christoffel_symbols_display`
+    acting on the metric::
+
+        sage: g.christoffel_symbols_display(chart=c_spher)
+        Gam^r_th,th = -r
+        Gam^r_ph,ph = -r*sin(th)^2
+        Gam^th_r,th = 1/r
+        Gam^th_ph,ph = -cos(th)*sin(th)
+        Gam^ph_r,ph = 1/r
+        Gam^ph_th,ph = cos(th)/sin(th)
 
     """
     def __init__(self, metric, name, latex_name=None, init_coef=True):
@@ -310,14 +345,15 @@ class LeviCivitaConnection(AffineConnection):
         the Euclidean metric on `\RR^3` expressed in spherical coordinates::
 
             sage: M = DiffManifold(3, 'R^3', start_index=1)
-            sage: c_spher.<r,th,ph> = M.chart(r'r:[0,+oo) th:[0,pi]:\theta ph:[0,2*pi):\phi')
+            sage: c_spher.<r,th,ph> = M.chart(r'r:(0,+oo) th:(0,pi):\theta ph:(0,2*pi):\phi')
             sage: g = M.metric('g')
             sage: g[1,1], g[2,2], g[3,3] = 1, r^2 , (r*sin(th))^2
             sage: g.display()
             g = dr*dr + r^2 dth*dth + r^2*sin(th)^2 dph*dph
             sage: nab = g.connection()
             sage: gam = nab.coef() ; gam
-            3-indices components w.r.t. coordinate frame (R^3, (d/dr,d/dth,d/dph)), with symmetry on the index positions (1, 2)
+            3-indices components w.r.t. Coordinate frame (R^3, (d/dr,d/dth,d/dph)),
+             with symmetry on the index positions (1, 2)
             sage: gam[:]
             [[[0, 0, 0], [0, -r, 0], [0, 0, -r*sin(th)^2]],
             [[0, 1/r, 0], [1/r, 0, 0], [0, 0, -cos(th)*sin(th)]],
@@ -337,7 +373,7 @@ class LeviCivitaConnection(AffineConnection):
             sage: ch_basis[1,1], ch_basis[2,2], ch_basis[3,3] = 1, 1/r, 1/(r*sin(th))
             sage: e = c_spher.frame().new_frame(ch_basis, 'e')
             sage: gam_e = nab.coef(e) ; gam_e
-            3-indices components w.r.t. vector frame (R^3, (e_1,e_2,e_3))
+            3-indices components w.r.t. Vector frame (R^3, (e_1,e_2,e_3))
             sage: gam_e[:]
             [[[0, 0, 0], [0, -1/r, 0], [0, 0, -1/r]],
             [[0, 1/r, 0], [0, 0, 0], [0, 0, -cos(th)/(r*sin(th))]],
@@ -549,15 +585,17 @@ class LeviCivitaConnection(AffineConnection):
         Ricci tensor of the standard connection on the 2-dimensional sphere::
 
             sage: M = DiffManifold(2, 'S^2', start_index=1)
-            sage: c_spher.<th,ph> = M.chart(r'th:[0,pi]:\theta ph:[0,2*pi):\phi')
+            sage: c_spher.<th,ph> = M.chart(r'th:(0,pi):\theta ph:(0,2*pi):\phi')
             sage: g = M.metric('g')
             sage: g[1,1], g[2,2] = 1, sin(th)^2
             sage: g.display() # standard metric on S^2:
             g = dth*dth + sin(th)^2 dph*dph
             sage: nab = g.connection() ; nab
-            Levi-Civita connection 'nabla_g' associated with the pseudo-Riemannian metric 'g' on the 2-dimensional manifold 'S^2'
+            Levi-Civita connection nabla_g associated with the Pseudo-Riemannian
+             metric g on the 2-dimensional differentiable manifold S^2
             sage: ric = nab.ricci() ; ric
-            field of symmetric bilinear forms 'Ric(g)' on the 2-dimensional manifold 'S^2'
+            Field of symmetric bilinear forms Ric(g) on the 2-dimensional
+             differentiable manifold S^2
             sage: ric.display()
             Ric(g) = dth*dth + sin(th)^2 dph*dph
 
@@ -573,9 +611,11 @@ class LeviCivitaConnection(AffineConnection):
             sage: g.display()
             g = (2*m - r)/r dt*dt - r/(2*m - r) dr*dr + r^2 dth*dth + r^2*sin(th)^2 dph*dph
             sage: nab = g.connection() ; nab
-            Levi-Civita connection 'nabla_g' associated with the pseudo-Riemannian metric 'g' on the 4-dimensional manifold 'M'
+            Levi-Civita connection nabla_g associated with the Pseudo-Riemannian
+             metric g on the 4-dimensional differentiable manifold M
             sage: ric = nab.ricci() ; ric
-            field of symmetric bilinear forms 'Ric(g)' on the 4-dimensional manifold 'M'
+            Field of symmetric bilinear forms Ric(g) on the 4-dimensional
+             differentiable manifold M
             sage: ric == 0
             True
 

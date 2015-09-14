@@ -1,8 +1,10 @@
 r"""
 Common Automata and Transducers (Finite State Machines Generators)
 
-Automata and Transducers in Sage can be built through the ``automata``
-and ``transducers`` objects, respectively. It contains generators for
+Automata and Transducers in Sage can be built through the
+:class:`automata <AutomatonGenerators>`
+and :class:`transducers <TransducerGenerators>` objects, respectively.
+It contains generators for
 common finite state machines. For example,
 
 ::

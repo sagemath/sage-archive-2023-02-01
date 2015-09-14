@@ -87,7 +87,6 @@ Functions and methods
 
 import collections
 import operator
-from sage.symbolic.operators import add_vararg, mul_vararg
 
 from sage.combinat.finite_state_machine import Automaton, Transducer
 from sage.rings.integer_ring import ZZ
@@ -1307,6 +1306,7 @@ class TransducerGenerators(object):
             raise ValueError("%d is less than %d."
                              % (base_power_K, base))
 
+        from sage.symbolic.operators import add_vararg
         if right_side.operator() == add_vararg:
             function_calls = [o for o in right_side.operands()
                               if o.operator() == function]

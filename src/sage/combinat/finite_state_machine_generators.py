@@ -97,7 +97,7 @@ from sage.rings.rational_field import QQ
 
 class AutomatonGenerators(object):
     r"""
-    A class consisting of constructors for several common automata.
+    A collection of constructors for several common automata.
 
     A list of all automata in this database is available via tab
     completion. Type "``automata.``" and then hit tab to see which
@@ -350,7 +350,7 @@ class AutomatonGenerators(object):
 
 class TransducerGenerators(object):
     r"""
-    A class consisting of constructors for several common transducers.
+    A collection of constructors for several common transducers.
 
     A list of all transducers in this database is available via tab
     completion. Type "``transducers.``" and then hit tab to see which

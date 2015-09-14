@@ -974,6 +974,83 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
         return LatticePoset(self.subposet([self[x] for x in
                 self._hasse_diagram.frattini_sublattice()]))
 
+    def is_dismantlable(self, certificate=False):
+        r"""
+        Return ``True`` if the lattice is dismantlable, and ``False``
+        otherwise.
+
+        An `n`-element lattice `L_n` is dismantlable if there is a sublattice
+        chain `L_{n-1} \supset L_{n-2}, \supset \cdots, \supset L_0` so that
+        every `L_i` is a sublattice of `L_{i+1}` with one element less, and
+        `L_0` is the empty lattice. In other words, a dismantlable lattice
+        can be reduced to empty lattice removing doubly irreducible
+        element one by one.
+
+        INPUT:
+
+        - ``certificate`` -- (boolean; default: ``False``) -- whether to return
+          a yes/no -answer or a certificate, i.e. a list of elements to remove.
+          If the lattice is not dismantlable, then the certificate is ``None``.
+
+        EXAMPLES::
+
+            sage: DL12 = LatticePoset((divisors(12), attrcall("divides")))
+            sage: DL12.is_dismantlable()
+            True
+            sage: DL12.is_dismantlable(certificate=True)
+            [4, 2, 1, 3, 6, 12]
+
+            sage: B3=Posets.BooleanLattice(3)
+            sage: B3.is_dismantlable()
+            False
+
+        Every planar lattice is dismantlable. Converse is not true::
+
+            sage: L = LatticePoset( ([], [[0, 1], [0, 2], [0, 3], [0, 4],
+            ....:                         [1, 7], [2, 6], [3, 5], [4, 5],
+            ....:                         [4, 6], [4, 7], [5, 8], [6, 8],
+            ....:                         [7, 8]]) )
+            sage: L.is_dismantlable()
+            True
+            sage: L.is_planar() # Not tested. Wait for ticket #19191.
+            False
+
+        TESTS::
+
+            sage: Posets.ChainPoset(0).is_dismantlable()
+            True
+            sage: Posets.ChainPoset(1).is_dismantlable()
+            True
+        """
+        from copy import copy
+        H = copy(self._hasse_diagram)
+        cert = []
+        # Smallest lattice that is not dismantlable is
+        # The Boolean lattice with 2^3=8 elements. Hence the limit 7.
+        limit = 0 if certificate else 7
+
+        while H.order() > limit:
+            for e in H:
+                i = H.in_degree(e)
+                o = H.out_degree(e)
+                if i < 2 and o < 2:
+                    if certificate: cert.append(e)
+                    if i == 1 and o == 1: # Remove inside the lattice
+                        lower = H.neighbors_in(e)[0]
+                        upper = H.neighbors_out(e)[0]
+                        H.delete_vertex(e)
+                        if not H.is_connected():
+                            H.add_edge(lower, upper)
+                    else: # Remove the top or bottom element
+                        H.delete_vertex(e)
+                    break
+            else:
+                return None if certificate else False
+        if certificate:
+            return [self[e] for e in cert]
+        else:
+            return True
+
 ############################################################################
 
 FiniteMeetSemilattice._dual_class = FiniteJoinSemilattice

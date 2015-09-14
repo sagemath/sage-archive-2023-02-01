@@ -27,6 +27,7 @@ of examples.
     :meth:`~AutomatonGenerators.AnyWord` | Return an automaton recognizing any word.
     :meth:`~AutomatonGenerators.EmptyWord` | Return an automaton recognizing the empty word.
     :meth:`~AutomatonGenerators.word` | Return an automaton recognizing the given word.
+    :meth:`~AutomatonGenerators.ContainsWord` | Return an automaton recognizing words containing the given word.
 
 **Transducers**
 
@@ -106,6 +107,7 @@ class AutomatonGenerators(object):
     - :meth:`~AnyWord`
     - :meth:`~EmptyWord`
     - :meth:`~word`
+    - :meth:`~ContainsWord`
     """
 
     def AnyLetter(self, input_alphabet):
@@ -247,7 +249,8 @@ class AutomatonGenerators(object):
             sage: A.input_alphabet
             [0, 1, 2]
 
-        .. SEEALSO:: :meth:`AnyWord`
+        .. SEEALSO:: :meth:`AnyWord`,
+           :meth:`ContainsWord`
 
         TESTS::
 
@@ -264,6 +267,68 @@ class AutomatonGenerators(object):
                          final_states=[ZZ(length)],
                          input_alphabet=input_alphabet)
 
+    def ContainsWord(self, word, input_alphabet):
+        r"""
+        Return an automaton recognizing the words containing
+        the given word as a factor.
+
+        INPUT:
+
+        - ``word`` -- a list (or other iterable) of letters, the
+          word we are looking for.
+
+        - ``input_alphabet`` -- a list or other iterable, the input
+          alphabet.
+
+        OUTPUT:
+
+        An :class:`~Automaton`.
+
+        EXAMPLES::
+
+            sage: A = automata.ContainsWord([0, 1, 0, 1, 1], [0, 1])
+            sage: A([1, 0, 1, 0, 1, 0, 1, 1, 0, 0])
+            True
+            sage: A([1, 0, 1, 0, 1, 0, 1, 0])
+            False
+
+        This is equivalent to taking the concatenation of :meth:`AnyWord`,
+        :meth:`word` and :meth:`AnyWord` and minimizing the result. This
+        method immediately gives a minimized version::
+
+            sage: B = (automata.AnyWord([0, 1]) *
+            ....:     automata.word([0, 1, 0, 1, 1], [0, 1]) *
+            ....:     automata.AnyWord([0, 1])).minimization()
+            sage: B.is_equivalent(A)
+            True
+
+        .. SEEALSO::  :meth:`~TransducerGenerators.CountSubblockOccurrences`,
+           :meth:`AnyWord`,
+           :meth:`word`
+        """
+        word = tuple(word)
+
+        def starts_with(what, pattern):
+            return len(what) >= len(pattern) \
+                and what[:len(pattern)] == pattern
+
+        def transition_function(read, input):
+            if read == word:
+                return (word, None)
+            current = read + (input, )
+            if starts_with(word, current):
+                return (current, None)
+            else:
+                k = 1
+                while not starts_with(word, current[k:]):
+                    k += 1
+                return (current[k:], None)
+
+        return Automaton(
+            transition_function,
+            input_alphabet=input_alphabet,
+            initial_states=[()],
+            final_states=[word])
 
 class TransducerGenerators(object):
     r"""
@@ -416,6 +481,7 @@ class TransducerGenerators(object):
                 sage: T(input) == output
                 True
 
+        .. SEEALSO:: :meth:`~AutomatonGenerators.ContainsWord`
         """
         block_as_tuple = tuple(block)
 

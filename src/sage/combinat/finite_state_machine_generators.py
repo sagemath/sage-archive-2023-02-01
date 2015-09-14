@@ -135,10 +135,12 @@ class AutomatonGenerators(object):
 
         .. SEEALSO:: :meth:`AnyWord`
         """
+        z = ZZ(0)
+        o = ZZ(1)
+        return Automaton([(z, o, _) for _ in input_alphabet],
+                         initial_states=[z],
+                         final_states=[o])
 
-        return Automaton([(0, 1, _) for _ in input_alphabet],
-                         initial_states=[0],
-                         final_states=[1])
 
     def AnyWord(self, input_alphabet):
         r"""
@@ -175,10 +177,11 @@ class AutomatonGenerators(object):
 
         .. SEEALSO:: :meth:`AnyLetter`, :meth:`word`
         """
+        z = ZZ(0)
+        return Automaton([(z, z, _) for _ in input_alphabet],
+                         initial_states=[z],
+                         final_states=[z])
 
-        return Automaton([(0, 0, _) for _ in input_alphabet],
-                         initial_states=[0],
-                         final_states=[0])
 
     def EmptyWord(self, input_alphabet=None):
         r"""
@@ -203,8 +206,9 @@ class AutomatonGenerators(object):
 
         .. SEEALSO:: :meth:`AnyLetter`, :meth:`AnyWord`
         """
-        return Automaton(initial_states=[0],
-                         final_states=[0],
+        z = ZZ(0)
+        return Automaton(initial_states=[z],
+                         final_states=[z],
                          input_alphabet=input_alphabet)
 
 

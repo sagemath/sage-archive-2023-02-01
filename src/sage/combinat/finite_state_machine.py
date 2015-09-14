@@ -6040,10 +6040,9 @@ class FiniteStateMachine(SageObject):
         To see what is going on, we use :meth:`iter_process` without
         arguments::
 
+            sage: from itertools import islice
             sage: it = inverter.iter_process(words.FibonacciWord())
-            sage: for n, current in enumerate(it):
-            ....:     if n >= 4:
-            ....:         break
+            sage: for current in islice(it, 4):
             ....:     print current
             process (1 branch)
             + at state 'A'

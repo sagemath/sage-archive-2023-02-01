@@ -764,6 +764,47 @@ def SRG_100_45_20_20():
              "202","333","410","341","222","433","430","441","242","302","312",
              "322","332","442","143"])
 
+
+def SRG_105_32_4_12():
+    r"""
+    Return a `(105, 32, 4, 12)`-strongly regular graph.
+
+    The vertices are the flags of the projective plane of order 4. Two flags
+    `(a,A)` and `(b,B)` are adjacent if the point `a` is on the line `B` or
+    the point `b` is  on the line `A`, and `a \neq b`, `A \neq B`. See
+    Theorem 2.7 in [GS70]_, and [Co06]_.
+
+    EXAMPLE::
+
+        sage: from sage.graphs.strongly_regular_db import SRG_105_32_4_12
+        sage: G = SRG_105_32_4_12(); G
+        Graph on 105 vertices
+        sage: G.is_strongly_regular(parameters=True)
+        (105, 32, 4, 12)
+
+    REFERENCES:
+
+    .. [GS70] J.-M. Goethals and J. J. Seidel,
+       Strongly regular graphs derived from combinatorial designs,
+       Can. J. Math. 22 (1970) 597-614.
+       http://dx.doi.org/10.4153/CJM-1970-067-9
+
+    .. [Co06] K. Coolsaet,
+       The uniqueness of the strongly regular graph srg(105,32,4,12),
+       Bull. Belg. Math. Soc. 12(2006), 707-718.
+       http://projecteuclid.org/euclid.bbms/1136902608
+    """
+    from sage.combinat.designs.block_design import ProjectiveGeometryDesign
+    P = ProjectiveGeometryDesign(2,1,GF(4,'a'))
+    IG = P.incidence_graph().line_graph()
+    a = IG.automorphism_group()
+    h = a.stabilizer(a.domain()[0])
+    o = filter(lambda x: len(x)==32, h.orbits())[0][0]
+    e = a.orbit((a.domain()[0],o),action="OnSets")
+    G = Graph()
+    G.add_edges(e)
+    return G
+
 def SRG_120_77_52_44():
     r"""
     Return a `(120,77,52,44)`-strongly regular graph.
@@ -818,7 +859,6 @@ def SRG_176_49_12_14():
     # Looking for an involution that maps a point of the design to one of the
     # blocks that contains it. It is called a polarity with only absolute
     # points in
-    polarity=None
     for aut in ag:
         try:
             0 in aut(0)
@@ -826,11 +866,9 @@ def SRG_176_49_12_14():
             continue
         if (aut.order() == 2 and
             all(i in aut(i) for i in d.ground_set())):
-            polarity=aut
-            break
-    g = Graph()
-    g.add_edges((u,v) for u in d.ground_set() for v in polarity(u))
-    return g
+            g = Graph()
+            g.add_edges((u,v) for u in d.ground_set() for v in aut(u))
+            return g
 
 def SRG_176_105_68_54():
     r"""
@@ -1766,6 +1804,7 @@ def strongly_regular_graph(int v,int k,int l,int mu=-1,bint existence=False,bint
         (100,  22,   0,  6): [HigmanSimsGraph],
         (100,  44,  18, 20): [SRG_100_44_18_20],
         (100,  45,  20, 20): [SRG_100_45_20_20],
+        (105,  32,   4, 12): [SRG_105_32_4_12],
         (120,  63,  30, 36): [SRG_120_63_30_36],
         (120,  77,  52, 44): [SRG_120_77_52_44],
         (126,  25,   8,  4): [SRG_126_25_8_4],

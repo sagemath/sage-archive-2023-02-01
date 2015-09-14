@@ -4447,7 +4447,7 @@ def HigmanSimsDesign():
 
     The design is then obtained from the incidence structure produced by the
     blocks `A\in W_a` and `B\in W_b` whose intersection has cardinality 2. This
-    construction is presented in [KY04]_.
+    construction, due to M.Smith, can be found in [KY04]_ or in 10.A.(v) of [BvL84]_.
 
     EXAMPLE::
 
@@ -4485,10 +4485,10 @@ def HigmanSimsDesign():
           if (b     in B and
               a not in B)]
 
-    H = [[i for i,A in enumerate(Wa) if len(A&B)==2]
+    H = [[i for i,A in enumerate(Wa) if len(A&B) != 2]
          for B in Wb]
 
-    H = IncidenceStructure(H).complement()
+    H = IncidenceStructure(H)
 
     return H
 

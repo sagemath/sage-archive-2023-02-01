@@ -407,12 +407,13 @@ We check that the two approaches are equivalent::
     True
 
 .. SEEALSO::
-   :meth:`~sage.combinat.finite_state_machine_generators.AutomatonGenerators.ContainsWord`,
-   :meth:`~sage.combinat.finite_state_machine_generators.AutomatonGenerators.word`,
-   :meth:`~Automaton.complement`,
-   :meth:`~FiniteStateMachine.kleene_star`,
-   :meth:`~sage.combinat.finite_state_machine_generators.AutomatonGenerators.EmptyWord`,
-   :meth:`~Automaton.is_equivalent`.
+
+    :meth:`~sage.combinat.finite_state_machine_generators.AutomatonGenerators.ContainsWord`,
+    :meth:`~sage.combinat.finite_state_machine_generators.AutomatonGenerators.word`,
+    :meth:`~Automaton.complement`,
+    :meth:`~FiniteStateMachine.kleene_star`,
+    :meth:`~sage.combinat.finite_state_machine_generators.AutomatonGenerators.EmptyWord`,
+    :meth:`~Automaton.is_equivalent`.
 
 .. _finite_state_machine_LaTeX_output:
 
@@ -2973,7 +2974,7 @@ class FiniteStateMachine(sage.structure.sage_object.SageObject):
     .. SEEALSO::
 
         :class:`FiniteStateMachine`, :meth:`is_Markov_chain`,
-        :meth:`markov_chain_simplification`
+        :meth:`markov_chain_simplification`.
     """
 
     input_alphabet = None
@@ -2989,7 +2990,7 @@ class FiniteStateMachine(sage.structure.sage_object.SageObject):
     .. SEEALSO::
 
         :class:`FiniteStateMachine`, :meth:`determine_alphabets`,
-        :attr:`output_alphabet`
+        :attr:`output_alphabet`.
     """
 
     output_alphabet = None
@@ -3004,8 +3005,9 @@ class FiniteStateMachine(sage.structure.sage_object.SageObject):
 
     .. SEEALSO::
 
-        :class:`FiniteStateMachine`, :meth:`determine_alphabets`,
-        :attr:`input_alphabet`
+        :class:`FiniteStateMachine`,
+        :meth:`determine_alphabets`,
+        :attr:`input_alphabet`.
     """
 
     #*************************************************************************
@@ -3505,7 +3507,7 @@ class FiniteStateMachine(sage.structure.sage_object.SageObject):
 
             :meth:`.disjoint_union`, :meth:`.__and__`,
             :meth:`Automaton.intersection`,
-            :meth:`Transducer.intersection`
+            :meth:`Transducer.intersection`.
 
         TESTS::
 
@@ -7174,7 +7176,8 @@ class FiniteStateMachine(sage.structure.sage_object.SageObject):
         .. SEEALSO::
 
             :meth:`Automaton.intersection`,
-            :meth:`Transducer.intersection`, :meth:`.determine_alphabets`.
+            :meth:`Transducer.intersection`,
+            :meth:`.determine_alphabets`.
         """
         result = self.empty_copy()
         for s in self.iter_states():
@@ -7323,7 +7326,8 @@ class FiniteStateMachine(sage.structure.sage_object.SageObject):
 
         .. SEEALSO::
 
-            :meth:`~.disjoint_union`, :meth:`.determine_alphabets`.
+            :meth:`~.disjoint_union`,
+            :meth:`.determine_alphabets`.
 
         TESTS::
 
@@ -8645,8 +8649,10 @@ class FiniteStateMachine(sage.structure.sage_object.SageObject):
 
         .. SEEALSO::
 
-            :meth:`is_complete`, :meth:`split_transitions`,
-            :meth:`determine_alphabets`, :meth:`is_deterministic`
+            :meth:`is_complete`,
+            :meth:`split_transitions`,
+            :meth:`determine_alphabets`,
+            :meth:`is_deterministic`.
 
         TESTS:
 
@@ -9606,7 +9612,9 @@ class FiniteStateMachine(sage.structure.sage_object.SageObject):
             sage: T.graph()
             Looped multi-digraph on 1 vertex
 
-        .. SEEALSO:: :class:`DiGraph`
+        .. SEEALSO::
+
+            :class:`DiGraph`
         """
         if edge_labels == 'words_in_out':
             label_fct = lambda t:t._in_out_label_()

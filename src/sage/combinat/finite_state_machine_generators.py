@@ -136,7 +136,9 @@ class AutomatonGenerators(object):
             sage: A([0, 0])
             False
 
-        .. SEEALSO:: :meth:`AnyWord`
+        .. SEEALSO::
+
+            :meth:`AnyWord`
         """
         z = ZZ(0)
         o = ZZ(1)
@@ -178,7 +180,10 @@ class AutomatonGenerators(object):
            sage: B == A
            True
 
-        .. SEEALSO:: :meth:`AnyLetter`, :meth:`word`
+        .. SEEALSO::
+
+            :meth:`AnyLetter`,
+            :meth:`word`.
         """
         z = ZZ(0)
         return Automaton([(z, z, _) for _ in input_alphabet],
@@ -207,7 +212,10 @@ class AutomatonGenerators(object):
             sage: A([0])
             False
 
-        .. SEEALSO:: :meth:`AnyLetter`, :meth:`AnyWord`
+        .. SEEALSO::
+
+            :meth:`AnyLetter`,
+            :meth:`AnyWord`.
         """
         z = ZZ(0)
         return Automaton(initial_states=[z],
@@ -254,8 +262,10 @@ class AutomatonGenerators(object):
             sage: A.input_alphabet
             [0, 1, 2]
 
-        .. SEEALSO:: :meth:`AnyWord`,
-           :meth:`ContainsWord`
+        .. SEEALSO::
+
+            :meth:`AnyWord`,
+            :meth:`ContainsWord`.
 
         TESTS::
 
@@ -309,9 +319,11 @@ class AutomatonGenerators(object):
             sage: B.is_equivalent(A)
             True
 
-        .. SEEALSO::  :meth:`~TransducerGenerators.CountSubblockOccurrences`,
-           :meth:`AnyWord`,
-           :meth:`word`
+        .. SEEALSO::
+
+            :meth:`~TransducerGenerators.CountSubblockOccurrences`,
+            :meth:`AnyWord`,
+            :meth:`word`.
         """
         word = tuple(word)
 
@@ -486,7 +498,9 @@ class TransducerGenerators(object):
                 sage: T(input) == output
                 True
 
-        .. SEEALSO:: :meth:`~AutomatonGenerators.ContainsWord`
+        .. SEEALSO::
+
+            :meth:`~AutomatonGenerators.ContainsWord`
         """
         block_as_tuple = tuple(block)
 

@@ -286,7 +286,8 @@ class AutomatonGenerators(object):
 
         EXAMPLES::
 
-            sage: A = automata.ContainsWord([0, 1, 0, 1, 1], [0, 1])
+            sage: A = automata.ContainsWord([0, 1, 0, 1, 1],
+            ....:                           input_alphabet=[0, 1])
             sage: A([1, 0, 1, 0, 1, 0, 1, 1, 0, 0])
             True
             sage: A([1, 0, 1, 0, 1, 0, 1, 0])
@@ -326,6 +327,7 @@ class AutomatonGenerators(object):
             input_alphabet=input_alphabet,
             initial_states=[()],
             final_states=[word])
+
 
 class TransducerGenerators(object):
     r"""

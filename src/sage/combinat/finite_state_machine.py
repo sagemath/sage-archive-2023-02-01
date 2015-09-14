@@ -386,7 +386,7 @@ simplicity, we only use the input alphabet ``[0, 1]``. On the one
 hand, we can construct such an automaton by forbidding the word
 ``11``::
 
-    sage: forbidden = automata.ContainsWord([1, 1], [0, 1])
+    sage: forbidden = automata.ContainsWord([1, 1], input_alphabet=[0, 1])
     sage: NAF_negative = forbidden.complement()
     sage: NAF_negative([1, 1, 0, 1])
     False
@@ -398,7 +398,8 @@ translate that into automata operations::
 
     sage: zero = automata.word([0])
     sage: one = automata.word([1])
-    sage: NAF_positive = (zero + one*zero).kleene_star()*(automata.EmptyWord([0, 1]) + one)
+    sage: epsilon = automata.EmptyWord(input_alphabet=[0, 1])
+    sage: NAF_positive = (zero + one*zero).kleene_star() * (epsilon + one)
 
 We check that the two approaches are equivalent::
 

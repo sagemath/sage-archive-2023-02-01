@@ -1356,6 +1356,189 @@ class PseudoRiemannianMetric(TensorField):
                 self._vol_forms.append(epsk)
         return self._vol_forms[contra]
 
+    def hodge_star(self, pform):
+        r"""
+        Compute the Hodge dual of a differential form with respect to the
+        metric.
+
+        If the differential form is a `p`-form `A`, its *Hodge dual* with
+        respect to the metric `g` is the
+        `(n-p)`-form `*A` defined by (`n` being the manifold's dimension)
+
+        .. MATH::
+
+            *A_{i_1\ldots i_{n-p}} = \frac{1}{p!} A_{k_1\ldots k_p}
+                \epsilon^{k_1\ldots k_p}_{\qquad\ i_1\ldots i_{n-p}}
+
+        where `\epsilon` is the volume form associated with `g` (see
+        :meth:`volume_form`) and the indices `k_1,\ldots, k_p` are raised
+        with `g`.
+
+        INPUT:
+
+        - ``pform``: a `p`-form `A`; must be an instance of
+          :class:`~sage.manifolds.differentiable.scalarfield.DiffScalarField`
+          for `p=0` and of
+          :class:`~sage.manifolds.differentiable.diff_form.DiffForm` or
+          :class:`~sage.manifolds.differentiable.diff_form.DiffFormParal`
+          for `p\geq 1`.
+
+        OUTPUT:
+
+        - the `(n-p)`-form `*A`
+
+        EXAMPLES:
+
+        Hodge star of a 1-form in the Euclidean space `R^3`::
+
+            sage: DiffManifold._clear_cache_() # for doctests only
+            sage: M = DiffManifold(3, 'M', start_index=1)
+            sage: X.<x,y,z> = M.chart()
+            sage: g = M.metric('g')
+            sage: g[1,1], g[2,2], g[3,3] = 1, 1, 1
+            sage: a = M.one_form('A')
+            sage: var('Ax Ay Az')
+            (Ax, Ay, Az)
+            sage: a[:] = (Ax, Ay, Az)
+            sage: sa = g.hodge_star(a) ; sa
+            2-form *A on the 3-dimensional differentiable manifold M
+            sage: sa.display()
+            *A = Az dx/\dy - Ay dx/\dz + Ax dy/\dz
+            sage: ssa = g.hodge_star(sa) ; ssa
+            1-form **A on the 3-dimensional differentiable manifold M
+            sage: ssa.display()
+            **A = Ax dx + Ay dy + Az dz
+            sage: ssa == a  # must hold for a Riemannian metric in dimension 3
+            True
+
+        Hodge star of a 0-form (scalar field) in `R^3`::
+
+            sage: f = M.scalar_field(function('F',x,y,z), name='f')
+            sage: sf = g.hodge_star(f) ; sf
+            3-form *f on the 3-dimensional differentiable manifold M
+            sage: sf.display()
+            *f = F(x, y, z) dx/\dy/\dz
+            sage: ssf = g.hodge_star(sf) ; ssf
+            Scalar field **f on the 3-dimensional differentiable manifold M
+            sage: ssf.display()
+            **f: M --> R
+               (x, y, z) |--> F(x, y, z)
+            sage: ssf == f # must hold for a Riemannian metric
+            True
+
+        Hodge star of a 0-form in Minkowksi spacetime::
+
+            sage: M = DiffManifold(4, 'M')
+            sage: X.<t,x,y,z> = M.chart()
+            sage: g = M.metric('g', signature=2)
+            sage: g[0,0], g[1,1], g[2,2], g[3,3] = -1, 1, 1, 1
+            sage: g.display()  # Minkowski metric
+            g = -dt*dt + dx*dx + dy*dy + dz*dz
+            sage: var('f0')
+            f0
+            sage: f = M.scalar_field(f0, name='f')
+            sage: sf = g.hodge_star(f) ; sf
+            4-form *f on the 4-dimensional differentiable manifold M
+            sage: sf.display()
+            *f = f0 dt/\dx/\dy/\dz
+            sage: ssf = g.hodge_star(sf) ; ssf
+            Scalar field **f on the 4-dimensional differentiable manifold M
+            sage: ssf.display()
+            **f: M --> R
+               (t, x, y, z) |--> -f0
+            sage: ssf == -f  # must hold for a Lorentzian metric
+            True
+
+        Hodge star of a 1-form in Minkowksi spacetime::
+
+            sage: a = M.one_form('A')
+            sage: var('At Ax Ay Az')
+            (At, Ax, Ay, Az)
+            sage: a[:] = (At, Ax, Ay, Az)
+            sage: a.display()
+            A = At dt + Ax dx + Ay dy + Az dz
+            sage: sa = g.hodge_star(a) ; sa
+            3-form *A on the 4-dimensional differentiable manifold M
+            sage: sa.display()
+            *A = -Az dt/\dx/\dy + Ay dt/\dx/\dz - Ax dt/\dy/\dz - At dx/\dy/\dz
+            sage: ssa = g.hodge_star(sa) ; ssa
+            1-form **A on the 4-dimensional differentiable manifold M
+            sage: ssa.display()
+            **A = At dt + Ax dx + Ay dy + Az dz
+            sage: ssa == a  # must hold for a Lorentzian metric in dimension 4
+            True
+
+        Hodge star of a 2-form in Minkowksi spacetime::
+
+            sage: F = M.diff_form(2, 'F')
+            sage: var('Ex Ey Ez Bx By Bz')
+            (Ex, Ey, Ez, Bx, By, Bz)
+            sage: F[0,1], F[0,2], F[0,3] = -Ex, -Ey, -Ez
+            sage: F[1,2], F[1,3], F[2,3] = Bz, -By, Bx
+            sage: F[:]
+            [  0 -Ex -Ey -Ez]
+            [ Ex   0  Bz -By]
+            [ Ey -Bz   0  Bx]
+            [ Ez  By -Bx   0]
+            sage: sF = g.hodge_star(F) ; sF
+            2-form *F on the 4-dimensional differentiable manifold M
+            sage: sF[:]
+            [  0  Bx  By  Bz]
+            [-Bx   0  Ez -Ey]
+            [-By -Ez   0  Ex]
+            [-Bz  Ey -Ex   0]
+            sage: ssF = g.hodge_star(sF) ; ssF
+            2-form **F on the 4-dimensional differentiable manifold M
+            sage: ssF[:]
+            [  0  Ex  Ey  Ez]
+            [-Ex   0 -Bz  By]
+            [-Ey  Bz   0 -Bx]
+            [-Ez -By  Bx   0]
+            sage: ssF.display()
+            **F = Ex dt/\dx + Ey dt/\dy + Ez dt/\dz - Bz dx/\dy + By dx/\dz
+             - Bx dy/\dz
+            sage: F.display()
+            F = -Ex dt/\dx - Ey dt/\dy - Ez dt/\dz + Bz dx/\dy - By dx/\dz
+             + Bx dy/\dz
+            sage: ssF == -F  # must hold for a Lorentzian metric in dimension 4
+            True
+
+        Test of the standard identity
+
+        .. MATH::
+
+            *(A\wedge B) = \epsilon(A^\sharp, B^\sharp, ., .)
+
+        where `A` and `B` are any 1-forms and `A^\sharp` and `B^\sharp` the
+        vectors associated to them by the metric `g` (index raising)::
+
+            sage: b = M.one_form('B')
+            sage: var('Bt Bx By Bz')
+            (Bt, Bx, By, Bz)
+            sage: b[:] = (Bt, Bx, By, Bz) ; b.display()
+            B = Bt dt + Bx dx + By dy + Bz dz
+            sage: epsilon = g.volume_form()
+            sage: g.hodge_star(a.wedge(b)) == epsilon.contract(0,a.up(g)).contract(0,b.up(g))
+            True
+
+        """
+        from sage.functions.other import factorial
+        from sage.tensor.modules.format_utilities import format_unop_txt, \
+                                                         format_unop_latex
+        p = pform.tensor_type()[1]
+        eps = self.volume_form(p)
+        if p == 0:
+            dom_resu = self._domain.intersection(pform.domain())
+            resu = pform.restrict(dom_resu) * eps.restrict(dom_resu)
+        else:
+            args = range(p) + [eps] + range(p)
+            resu = pform.contract(*args)
+        if p > 1:
+            resu = resu / factorial(p)
+        resu.set_name(name=format_unop_txt('*', pform._name),
+                    latex_name=format_unop_latex(r'\star ', pform._latex_name))
+        return resu
+
 
 #******************************************************************************
 

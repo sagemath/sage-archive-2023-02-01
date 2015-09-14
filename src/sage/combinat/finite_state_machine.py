@@ -10363,7 +10363,7 @@ class Automaton(FiniteStateMachine):
             state = A.state(v)
             state_address = address[state]
             for t in A.iter_transitions(state):
-                if not t.to_state in address:
+                if t.to_state not in address:
                     address[t.to_state] = state_address + tuple(t.word_in)
 
         B = other.minimization().relabeled()

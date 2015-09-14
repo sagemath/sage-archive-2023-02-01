@@ -659,7 +659,7 @@ void function::print(const print_context & c, unsigned level) const
                         if (PyErr_Occurred()) {
                                 throw(std::runtime_error("function::print(): python print function raised exception"));
                         }
-                        c.s << *sout << std::endl;
+                        c.s << *sout;
                         c.s.flush();
 		}
 		else if (is_a<print_tree>(c)) {

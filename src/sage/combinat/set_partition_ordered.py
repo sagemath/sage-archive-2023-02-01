@@ -65,7 +65,7 @@ class OrderedSetPartition(ClonableArray):
     function is
     
     .. MATH::
-    
+
         \sum_n {T_n \over n!} x^n = {1 \over 2-e^x}.
 
     (See sequence A000670 in OEIS.)

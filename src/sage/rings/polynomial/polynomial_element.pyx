@@ -433,24 +433,30 @@ cdef class Polynomial(CommutativeAlgebraElement):
         return self.__call__(*x, **kwds)
     substitute = subs
 
-    def __call__(self, *x, **kwds):
+    def __call__(self, *args, **kwds):
         """
-        Evaluate polynomial at x=a.
+        Evaluate this polynomial.
 
         INPUT:
 
+        - ``*args`` -- ring elements, need not be in the coefficient ring of
+            the polynomial. The **first** positional argument is substituted
+            for the polynomial's indeterminate. Remaining arguments, if any,
+            are used **from left to right** to evaluate the coefficients.
+        - ``**kwds`` -- variable name-value pairs.
 
-        -  ``x``:
+        OUTPUT:
 
-           - ring element a; need not be in the
-             coefficient ring of the polynomial.
+        The value of the polynomial at the point specified by the arguments.
 
-           - a dictionary for kwds:value pairs. If the variable name
-             of the polynomial is a kwds it is substituted in;
-             otherwise this polynomial is returned unchanged.
+        ALGORITHM:
 
+        By default, use Horner's method or create a
+        :class:`~sage.rings.polynomial.polynomial_compiled.CompiledPolynomialFunction`
+        depending on the polynomial's degree.
 
-        OUTPUT: the value of f at a.
+        Element classes may define a method called `_evaluate_polynomial` to
+        provide a specific evaluation algorithm for a given argument type.
 
         EXAMPLES::
 
@@ -505,8 +511,8 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: f(x=10)   # x isn't mentioned
             w^3 + 3*w + 2
 
-        Nested polynomial ring elements can be called like multi-variate
-        polynomials. ::
+        Nested polynomial ring elements can be called like multivariate
+        polynomials. Note the order of the arguments::
 
             sage: R.<x> = QQ[]; S.<y> = R[]
             sage: f = x+y*x+y^2
@@ -529,7 +535,15 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: f(x=y)
             2*y^2 + y
 
-        Polynomial ring elements can also, like multi-variate
+        Also observe that ``f(y0, x0)`` means ``f(x=x0)(y=y0)``, not
+        ``f(y=y0)(x=x0)``. The two expressions may take different values::
+
+            sage: f(y, x)
+            y^2 + x*y + x
+            sage: f(y)(x)
+            2*x^2 + x
+
+        Polynomial ring elements can also, like multivariate
         polynomials, be called with an argument that is a list or
         tuple containing the values to be substituted, though it is
         perhaps more natural to just unpack the list::
@@ -614,6 +628,50 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: g(x=3)
             3*y + 1
 
+        ::
+
+            sage: Pol_x.<x> = QQ[]
+            sage: Pol_xy.<y> = Pol_x[]
+            sage: pol = 1000*x^2*y^2 + 100*y + 10*x + 1
+
+            sage: pol(y, 0)
+            100*y + 1
+
+            sage: pol(~y, 0)
+            (y + 100)/y
+
+            sage: pol(y=x, x=1)
+            1000*x^2 + 100*x + 11
+
+            sage: zero = Pol_xy(0)
+            sage: zero(1).parent()
+            Univariate Polynomial Ring in x over Rational Field
+
+            sage: zero = QQ['x'](0)
+            sage: a = matrix(ZZ, [[1]])
+            sage: zero(a).parent()
+            Full MatrixSpace of 1 by 1 dense matrices over Rational Field
+
+            sage: pol(y, x).parent() is pol(x, y).parent() is pol(y, y).parent() is Pol_xy
+            True
+
+            sage: pol(x, x).parent()
+            Univariate Polynomial Ring in x over Rational Field
+
+            sage: one = Pol_xy(1)
+            sage: one(1, 1.).parent()
+            Real Field with 53 bits of precision
+
+            sage: zero = GF(2)['x'](0)
+            sage: zero(1.).parent() # should raise an error
+            Traceback (most recent call last):
+            TypeError: unsupported operand parent(s) for '+': ...
+
+            sage: pol(x, y, x=1)
+            Traceback (most recent call last):
+            ...
+            TypeError: Wrong number of arguments
+
         AUTHORS:
 
         -  David Joyner (2005-04-10)
@@ -634,105 +692,72 @@ cdef class Polynomial(CommutativeAlgebraElement):
         -  Francis Clarke (2012-08-26): fix keyword substitution in the
            leading coefficient.
         """
-        cdef long i, d = self.degree()
+        cdef long i
+        cdef long d = self.degree()
+        cdef Polynomial pol
 
-        if kwds:
-            P = self.parent()
-            name = P.variable_name()
-            if name in kwds:
-                if len(x) > 0:
-                    raise ValueError("must not specify both a keyword and positional argument")
-                a = self(kwds[name])
-                del kwds[name]
-                try:
-                    return a(**kwds)
-                except TypeError:
-                    return a
-            elif len(x) > 0:
-                a = self(*x)
-                try:
-                    return a(**kwds)
-                except TypeError:
-                    return a
-            else:
-                try:
-                    result = self[d](**kwds)
-                except TypeError:
-                    result = self[d]
-                a = P.gen()
-                i = d - 1
-                while i >= 0:
-                    try:
-                        s = self[i](**kwds)
-                    except TypeError:
-                        s = self[i]
-                    result = result * a + s
-                    i -= 1
-                return result
+        # Isolate the variable we are interested in, check remaining arguments
 
-        if len(x) == 0:
-            return self
+        a = kwds.pop(self.variable_name(), None)
+        if args:
+            if a is not None:
+                raise TypeError("unsupported mix of keyword and positional arguments")
+            if isinstance(args[0], (list, tuple)):
+                if len(args) > 1:
+                    raise TypeError("invalid arguments")
+                args = args[0]
+            a, args = args[0], args[1:]
+        if a is None:
+            a = self._parent.gen()
 
-        if isinstance(x[0], (list, tuple)):
-            x = x[0]
-        a = x[0]
-
-        result = self[d]
-        if len(x) > 1:
-            other_args = x[1:]
-            try: #if hasattr(result, '__call__'):
-                result = result(other_args)
-            except TypeError: #else:
-                raise TypeError("Wrong number of arguments")
-
-        if d == -1:
+        cst = self[0]
+        eval_coeffs = False
+        if args or kwds:
             try:
-                return a.parent().zero()
-            except AttributeError:
-                pass
-            try: # for things like the interface to the PARI C library
-                return a.parent()(0)
-            except AttributeError:
-                return result
+                # Note that we may be calling a different implementation that
+                # is more permissive about its arguments than we are.
+                cst = cst(*args, **kwds)
+                eval_coeffs = True
+            except TypeError:
+                if args: # bwd compat: nonsense *keyword* arguments are okay
+                    raise TypeError("Wrong number of arguments")
 
-        if d == 0:
-            try:
-                return a.parent().one() * result
-            except AttributeError:
-                pass
-            try: # for things like the interface to the PARI C library
-                return a.parent()(1) * result
-            except AttributeError:
-                return result
+        # Handle optimized special cases. The is_exact() clause should not be
+        # necessary, but power series and perhaps other inexact rings use
+        # is_zero() in the sense of "is zero up to the precision to which it is
+        # known".
 
-        if parent(a) is self._parent and a.is_gen():
-            return self
-        elif is_FractionField(parent(a)):
-            try:
-                a_inverse = ~a
-                if a_inverse.denominator() == 1:
-                    a_inverse = a_inverse.numerator()
-                    return self.reverse()(a_inverse) / a_inverse**self.degree()
-            except AttributeError:
-                pass
+        if d <= 0 or (isinstance(a, Element) and a.parent().is_exact()
+                      and a.is_zero()):
+            return cst + parent(a)(0)
 
-        i = d - 1
-        if len(x) > 1:
-            while i >= 0:
-                result = result * a + self[i](other_args)
-                i -= 1
-        elif not a and isinstance(a, Element) and a.parent().is_exact(): #without the exactness test we can run into trouble with interval fields.
-            c = self[0]
-            return c + c*a
-        elif (d < 4 or d > 50000) and self._compiled is None:
-            while i >= 0:
-                result = result * a + self[i]
-                i -= 1
+        # Evaluate the coefficients
+
+        if eval_coeffs:
+            pol = self.map_coefficients(lambda c: c(*args, **kwds),
+                                        new_base_ring=cst.parent())
         else:
-            if self._compiled is None:
-                self._compiled = CompiledPolynomialFunction(self.list())
-            result = self._compiled.eval(a)
-        return result
+            pol = self
+
+        # Evaluate the resulting univariate polynomial
+
+        if parent(a) is pol._parent and a.is_gen():
+            return pol
+
+        try:
+            return a._evaluate_polynomial(pol)
+        except (AttributeError, NotImplementedError):
+            pass
+
+        if pol._compiled is None:
+            if d < 4 or d > 50000:
+                result = pol[d]
+                for i in xrange(d - 1, -1, -1):
+                    result = result * a + pol[i]
+                return result
+            pol._compiled = CompiledPolynomialFunction(pol.list())
+
+        return pol._compiled.eval(a)
 
     def _compile(self):
         # For testing
@@ -1095,7 +1120,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: R.<x> = QQ[]
             sage: f = x^3 + x
             sage: g = f._symbolic_(SR); g
-            (x^2 + 1)*x
+            x^3 + x
             sage: g(x=2)
             10
 
@@ -1156,6 +1181,12 @@ cdef class Polynomial(CommutativeAlgebraElement):
         if no such inverse exists. The parameter m may be either a single
         polynomial or an ideal (for consistency with inverse_mod in other
         rings).
+
+        .. SEEALSO::
+
+            If you are only interested in the inverse modulo a monomial `x^k`
+            then you might use the specialized method
+            :meth:`inverse_series_trunc` which is much faster.
 
         EXAMPLES::
 
@@ -1254,6 +1285,86 @@ cdef class Polynomial(CommutativeAlgebraElement):
                 return a.parent()(list(x)[0:n])
             else:
                 raise ValueError("Impossible inverse modulo")
+
+    cpdef Polynomial inverse_series_trunc(self, long prec):
+        r"""
+        Return a polynomial approximation of precision ``prec`` of the inverse
+        series of this polynomial.
+
+        .. SEEALSO::
+
+            The method :meth:`inverse_mod` allows more generally to invert this
+            polynomial with respect to any ideal.
+
+        EXAMPLES::
+
+            sage: x = polygen(ZZ)
+            sage: s = (1+x).inverse_series_trunc(5)
+            sage: s
+            x^4 - x^3 + x^2 - x + 1
+            sage: s * (1+x)
+            x^5 + 1
+
+        Note that the constant coefficient needs to be a unit::
+
+            sage: ZZx.<x> = ZZ[]
+            sage: ZZxy.<y> = ZZx[]
+            sage: (1+x + y**2).inverse_series_trunc(4)
+            Traceback (most recent call last):
+            ...
+            ValueError: constant term x + 1 is not a unit
+            sage: (1+x + y**2).change_ring(ZZx.fraction_field()).inverse_series_trunc(4)
+            (-1/(x^2 + 2*x + 1))*y^2 + 1/(x + 1)
+
+        The method works over any polynomial ring::
+
+            sage: R = Zmod(4)
+            sage: Rx.<x> = R[]
+            sage: Rxy.<y> = Rx[]
+
+            sage: p = 1 + (1+2*x)*y + x**2*y**4
+            sage: q = p.inverse_series_trunc(10)
+            sage: (p*q).truncate(11)
+            (2*x^4 + 3*x^2 + 3)*y^10 + 1
+
+        Even noncommutative ones::
+
+            sage: M = MatrixSpace(ZZ,2)
+            sage: x = polygen(M)
+            sage: p = M([1,2,3,4])*x^3 + M([-1,0,0,1])*x^2 + M([1,3,-1,0])*x + M.one()
+            sage: q = p.inverse_series_trunc(5)
+            sage: (p*q).truncate(5) == M.one()
+            True
+            sage: q = p.inverse_series_trunc(13)
+            sage: (p*q).truncate(13) == M.one()
+            True
+
+        TESTS::
+
+            sage: x = polygen(ZZ['a','b'])
+            sage: (x+1).inverse_series_trunc(0)
+            Traceback (most recent call last):
+            ...
+            ValueError: the precision must be positive, got 0
+        """
+        if prec <= 0:
+            raise ValueError("the precision must be positive, got {}".format(prec))
+
+        if not self[0].is_unit():
+            raise ValueError("constant term {} is not a unit".format(self[0]))
+
+        R = self._parent
+        A = R.base_ring()
+        try:
+            first_coeff = self[0].inverse_of_unit()
+        except AttributeError:
+            first_coeff = A(~self[0])
+
+        current = R(first_coeff)
+        for next_prec in sage.misc.misc.newton_method_sizes(prec)[1:]:
+            z = current._mul_trunc_(self, next_prec)._mul_trunc_(current, next_prec)
+            current = current + current - z
+        return current
 
     def __long__(self):
         """

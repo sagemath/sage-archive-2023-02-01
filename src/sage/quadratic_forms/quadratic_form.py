@@ -370,10 +370,10 @@ class QuadraticForm(SageObject):
 
     ## Routines to test the local and global equivalence/isometry of two quadratic forms.
     from sage.quadratic_forms.quadratic_form__equivalence_testing import \
-            is_globally_equivalent__souvigner, \
             is_globally_equivalent_to, \
             is_locally_equivalent_to, \
-            has_equivalent_Jordan_decomposition_at_prime
+            has_equivalent_Jordan_decomposition_at_prime, \
+            is_rationally_isometric
 
     def __init__(self, R, n=None, entries=None, unsafe_initialization=False, number_of_automorphisms=None, determinant=None):
         """

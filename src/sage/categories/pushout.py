@@ -3181,6 +3181,7 @@ class BlackBoxConstructionFunctor(ConstructionFunctor):
     def __init__(self, box):
         """
         TESTS::
+
             sage: from sage.categories.pushout import BlackBoxConstructionFunctor
             sage: FG = BlackBoxConstructionFunctor(gap)
             sage: FM = BlackBoxConstructionFunctor(maxima)
@@ -3212,6 +3213,7 @@ class BlackBoxConstructionFunctor(ConstructionFunctor):
     def __cmp__(self, other):
         """
         TESTS::
+
             sage: from sage.categories.pushout import BlackBoxConstructionFunctor
             sage: FG = BlackBoxConstructionFunctor(gap)
             sage: FM = BlackBoxConstructionFunctor(maxima)

@@ -14,7 +14,7 @@ generates an identity transducer on the alphabet `\{0, 1, 2\}`.
 To construct automata and transducers manually, you can use the
 classes :class:`Automaton` and :class:`Transducer`, respectively. See
 :doc:`finite_state_machine` for more details and a lot
-of examples.
+of :ref:`examples <finite_state_machine_examples>`.
 
 **Automata**
 

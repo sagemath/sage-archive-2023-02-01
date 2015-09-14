@@ -184,7 +184,7 @@ class AutomatonGenerators(object):
         .. SEEALSO::
 
             :meth:`AnyLetter`,
-            :meth:`word`.
+            :meth:`Word`.
         """
         z = ZZ(0)
         return Automaton([(z, z, _) for _ in input_alphabet],
@@ -311,7 +311,7 @@ class AutomatonGenerators(object):
             False
 
         This is equivalent to taking the concatenation of :meth:`AnyWord`,
-        :meth:`word` and :meth:`AnyWord` and minimizing the result. This
+        :meth:`Word` and :meth:`AnyWord` and minimizing the result. This
         method immediately gives a minimized version::
 
             sage: B = (automata.AnyWord([0, 1]) *
@@ -324,7 +324,7 @@ class AutomatonGenerators(object):
 
             :meth:`~TransducerGenerators.CountSubblockOccurrences`,
             :meth:`AnyWord`,
-            :meth:`word`.
+            :meth:`Word`.
         """
         word = tuple(word)
 

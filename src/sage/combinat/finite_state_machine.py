@@ -175,7 +175,7 @@ Conversion
     :widths: 30, 70
     :delim: |
 
-    :meth:`~FiniteStateMachine.adjacency_matrix` | (Weighted) adjacency :class:`matrix <Matrix>`
+    :meth:`~FiniteStateMachine.adjacency_matrix` | (Weighted) adjacency :class:`matrix <sage.matrix.constructor.MatrixFactory>`
     :meth:`~FiniteStateMachine.graph` | Underlying :class:`DiGraph`
     :meth:`~FiniteStateMachine.plot` | Plot
 
@@ -11498,7 +11498,7 @@ class Automaton(FiniteStateMachine):
 
         Internally this function creates and works with an instance of
         :class:`FSMProcessIterator`. This iterator can also be obtained
-        with :meth:`iter_process`.
+        with :meth:`~FiniteStateMachine.iter_process`.
 
         If working with multi-tape finite state machines, all input
         words of transitions are words of `k`-tuples of letters.
@@ -12622,7 +12622,7 @@ class Transducer(FiniteStateMachine):
 
         Internally this function creates and works with an instance of
         :class:`FSMProcessIterator`. This iterator can also be obtained
-        with :meth:`iter_process`.
+        with :meth:`~FiniteStateMachine.iter_process`.
 
         If working with multi-tape finite state machines, all input
         words of transitions are words of `k`-tuples of letters.
@@ -14336,7 +14336,7 @@ class FSMProcessIterator(sage.structure.sage_object.SageObject,
         It returns the current status of the iterator (see below). A
         ``StopIteration`` exception is thrown when there is/was
         nothing to do (i.e. all branches ended with previous call
-        of :meth:`.__next__`).
+        of :meth:`.next`).
 
         The current status is a dictionary (encapsulated into an instance of
         :class:`~FSMProcessIterator.Current`).

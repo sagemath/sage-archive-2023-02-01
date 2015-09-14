@@ -23,6 +23,9 @@ of examples.
     :widths: 30, 70
     :delim: |
 
+    :meth:`~AutomatonGenerators.AnyLetter` | Return an automaton recognizing any letter.
+    :meth:`~AutomatonGenerators.AnyWord` | Return an automaton recognizing any word.
+    :meth:`~AutomatonGenerators.EmptyWord` | Return an automaton recognizing the empty word.
     :meth:`~AutomatonGenerators.word` | Return an automaton recognizing the given word.
 
 **Transducers**
@@ -99,8 +102,115 @@ class AutomatonGenerators(object):
 
     The automata currently in this class include:
 
+    - :meth:`~AnyLetter`
+    - :meth:`~AnyWord`
+    - :meth:`~EmptyWord`
     - :meth:`~word`
     """
+
+    def AnyLetter(self, input_alphabet):
+        r"""
+        Return an automaton recognizing any letter of the given
+        input alphabet.
+
+        INPUT:
+
+        - ``input_alphabet`` -- a list, the input alphabet
+
+        OUTPUT:
+
+        An :class:`~Automaton`.
+
+        EXAMPLES::
+
+            sage: A = automata.AnyLetter([0, 1])
+            sage: A([])
+            False
+            sage: A([0])
+            True
+            sage: A([1])
+            True
+            sage: A([0, 0])
+            False
+
+        .. SEEALSO:: :meth:`AnyWord`
+        """
+        z = ZZ(0)
+        o = ZZ(1)
+        return Automaton([(z, o, _) for _ in input_alphabet],
+                         initial_states=[z],
+                         final_states=[o])
+
+
+    def AnyWord(self, input_alphabet):
+        r"""
+        Return an automaton recognizing any word of the given
+        input alphabet.
+
+        INPUT:
+
+        - ``input_alphabet`` -- a list, the input alphabet
+
+        OUTPUT:
+
+        An :class:`~Automaton`.
+
+        EXAMPLES::
+
+            sage: A = automata.AnyWord([0, 1])
+            sage: A([0])
+            True
+            sage: A([1])
+            True
+            sage: A([0, 1])
+            True
+            sage: A([0, 2])
+            False
+
+        This is equivalent to taking the :meth:`~FiniteStateMachine.kleene_star`
+        of :meth:`AnyLetter` and minimizing the result. This method
+        immediately gives a minimized version::
+
+           sage: B = automata.AnyLetter([0, 1]).kleene_star().minimization().relabeled()
+           sage: B == A
+           True
+
+        .. SEEALSO:: :meth:`AnyLetter`, :meth:`word`
+        """
+        z = ZZ(0)
+        return Automaton([(z, z, _) for _ in input_alphabet],
+                         initial_states=[z],
+                         final_states=[z])
+
+
+    def EmptyWord(self, input_alphabet=None):
+        r"""
+        Return an automaton recognizing the empty word.
+
+        INPUT:
+
+        - ``input_alphabet`` -- (default: ``None``) an iterable
+          or ``None``.
+
+        OUTPUT:
+
+        An :class:`~Automaton`.
+
+        EXAMPLES::
+
+            sage: A = automata.EmptyWord()
+            sage: A([])
+            True
+            sage: A([0])
+            False
+
+        .. SEEALSO:: :meth:`AnyLetter`, :meth:`AnyWord`
+        """
+        z = ZZ(0)
+        return Automaton(initial_states=[z],
+                         final_states=[z],
+                         input_alphabet=input_alphabet)
+
 
     def word(self, word, input_alphabet=None):
         r"""
@@ -140,6 +250,8 @@ class AutomatonGenerators(object):
             sage: A = automata.word([0, 1, 0], input_alphabet=[0, 1, 2])
             sage: A.input_alphabet
             [0, 1, 2]
+
+        .. SEEALSO:: :meth:`AnyWord`
 
         TESTS::
 

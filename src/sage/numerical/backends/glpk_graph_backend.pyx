@@ -907,7 +907,7 @@ cdef class GLPKGraphBackend(object):
         - ``u`` -- The name (as ``str``) of the tail vertex of the edge
         - ``v`` -- The name (as ``str``) of the tail vertex of the edge
         - ``params`` -- ``params`` -- An optional ``dict`` containing the edge
-          parameters (see meth:``add_edge``). If this parameter
+          parameters (see :meth:``add_edge``). If this parameter
           is not provided, all edges connecting ``u`` and ``v`` are deleted.
           Otherwise only edges with matching parameters are deleted.
 

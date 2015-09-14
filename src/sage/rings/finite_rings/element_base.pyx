@@ -342,7 +342,7 @@ cdef class FinitePolyExtElement(FiniteRingElement):
 
         TESTS:
 
-        The following tests against a bug fixed in trac:`11530`::
+        The following tests against a bug fixed in :trac:`11530`::
 
             sage: F.<d> = GF(3^4)
             sage: F.modulus()

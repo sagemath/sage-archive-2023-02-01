@@ -21,7 +21,9 @@ class Semirings(CategoryWithAxiom):
     `(S,+)` and a multiplicative monoid `(S,*)`, where `*` distributes
     over `+`.
 
-    .. SEEALSO: :wikipedia:`Semiring`
+    .. SEEALSO::
+
+        :wikipedia:`Semiring`
 
     EXAMPLES::
 

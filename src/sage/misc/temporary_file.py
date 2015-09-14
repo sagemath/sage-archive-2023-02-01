@@ -6,7 +6,7 @@ AUTHORS:
 - Volker Braun, Jeroen Demeyer (2012-10-18): move these functions here
   from sage/misc/misc.py and make them secure, see :trac:`13579`.
 
-- Jeroen Demeyer (2013-03-17): add class:`atomic_write`,
+- Jeroen Demeyer (2013-03-17): add :class:`atomic_write`,
   see :trac:`14292`.
 """
 

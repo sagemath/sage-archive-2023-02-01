@@ -3685,6 +3685,25 @@ class FiniteStateMachine(SageObject):
             ValueError: Invalid input sequence.
             sage: T([2, 4], format_output=f, list_of_outputs=True)
             [None, None]
+
+        ::
+
+            sage: from itertools import islice
+            sage: inverter = Transducer({'A': [('A', 0, 1), ('A', 1, 0)]},
+            ....:     initial_states=['A'], final_states=['A'])
+            sage: inverter(words.FibonacciWord())
+            word: 1011010110110101101011011010110110101101...
+            sage: inverter(words.FibonacciWord(), automatic_output_type=True)
+            word: 1011010110110101101011011010110110101101...
+            sage: tuple(islice(inverter(words.FibonacciWord(),
+            ....:                       automatic_output_type=False), 10))
+            (1, 0, 1, 1, 0, 1, 0, 1, 1, 0)
+            sage: type(inverter((1, 0, 1, 1, 0, 1, 0, 1, 1, 0),
+            ....:               automatic_output_type=False))
+            <type 'list'>
+            sage: type(inverter((1, 0, 1, 1, 0, 1, 0, 1, 1, 0),
+            ....:               automatic_output_type=True))
+            <type 'tuple'>
         """
         if len(args) == 0:
             raise TypeError("Called with too few arguments.")

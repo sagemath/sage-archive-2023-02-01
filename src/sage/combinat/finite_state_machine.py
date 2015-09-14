@@ -7006,47 +7006,117 @@ class FiniteStateMachine(sage.structure.sage_object.SageObject):
 
     def disjoint_union(self, other):
         """
-        TESTS::
+        Return the disjoint union of this and another finite state
+        machine.
 
-            sage: F = FiniteStateMachine([('A', 'A')])
-            sage: FiniteStateMachine().disjoint_union(F)
-            Traceback (most recent call last):
-            ...
-            NotImplementedError
-        """
-        raise NotImplementedError
+        INPUT:
 
+        -   ``other`` -- a :class:`FiniteStateMachine`.
 
-    def concatenation(self, other):
-        """
-        TESTS::
+        OUTPUT:
 
-            sage: F = FiniteStateMachine([('A', 'A')])
-            sage: FiniteStateMachine().concatenation(F)
-            Traceback (most recent call last):
-            ...
-            NotImplementedError
-        """
-        raise NotImplementedError
+        A finite state machine of the same type as this finite state
+        machine.
 
+        In general, the disjoint union of two finite state machines is
+        non-deterministic. In the case of a automata, the language
+        accepted by the disjoint union is the union of the languages
+        accepted by the constituent automata. In the case of
+        transducer, for each successful path in one of the constituent
+        transducers, there will be one successful path with the same input
+        and output labels in the disjoint union.
 
-    def Kleene_closure(self):
-        """
-        TESTS::
+        The labels of the states of the disjoint union are pairs ``(i,
+        s)``: for each state ``s`` of this finite state machine, there
+        is a state ``(0, s)`` in the disjoint union; for each state
+        ``s`` of the other finite state machine, there is a state ``(1,
+        s)`` in the disjoint union.
 
-            sage: FiniteStateMachine().Kleene_closure()
-            Traceback (most recent call last):
-            ...
-            NotImplementedError
-        """
-        raise NotImplementedError
+        The input alphabet is the union of the input alphabets (if
+        possible) and ``None`` otherwise. In the latter case, try
+        calling :meth:`.determine_alphabets`.
 
+        The disjoint union can also be written as ``A + B`` or ``A | B``.
 
-    def intersection(self, other):
-        """
-        TESTS::
+        EXAMPLES::
 
-            sage: FiniteStateMachine().intersection(FiniteStateMachine())
+            sage: A = Automaton([(0, 1, 0, 0), (1, 0, 1, 0)],
+            ....:               initial_states=[0],
+            ....:               final_states=[0])
+            sage: A([0, 1, 0, 1])
+            True
+            sage: B = Automaton([(0, 1, 0, 0), (1, 2, 0, 0), (2, 0, 1, 0)],
+            ....:               initial_states=[0],
+            ....:               final_states=[0])
+            sage: B([0, 0, 1])
+            True
+            sage: C = A.disjoint_union(B)
+            sage: C
+            Automaton with 5 states
+            sage: C.transitions()
+            [Transition from (0, 0) to (0, 1): 0|0,
+             Transition from (0, 1) to (0, 0): 1|0,
+             Transition from (1, 0) to (1, 1): 0|0,
+             Transition from (1, 1) to (1, 2): 0|0,
+             Transition from (1, 2) to (1, 0): 1|0]
+            sage: C([0, 0, 1])
+            True
+            sage: C([0, 1, 0, 1])
+            True
+            sage: C([1])
+            False
+            sage: C.initial_states()
+            [(0, 0), (1, 0)]
+
+        Instead of ``.disjoint_union``, alternative notations are
+        available::
+
+            sage: C1 = A + B
+            sage: C1 == C
+            True
+            sage: C2 = A | B
+            sage: C2 == C
+            True
+
+        In general, the disjoint union is not deterministic::
+
+            sage: C.is_deterministic()
+            False
+            sage: D = C.determinisation().minimization().relabeled()
+            sage: D.initial_states()
+            [1]
+            sage: D.transitions()
+            [Transition from 0 to 0: 0|-,
+             Transition from 0 to 0: 1|-,
+             Transition from 1 to 7: 0|-,
+             Transition from 1 to 0: 1|-,
+             Transition from 2 to 6: 0|-,
+             Transition from 2 to 0: 1|-,
+             Transition from 3 to 5: 0|-,
+             Transition from 3 to 0: 1|-,
+             Transition from 4 to 0: 0|-,
+             Transition from 4 to 2: 1|-,
+             Transition from 5 to 0: 0|-,
+             Transition from 5 to 3: 1|-,
+             Transition from 6 to 4: 0|-,
+             Transition from 6 to 0: 1|-,
+             Transition from 7 to 4: 0|-,
+             Transition from 7 to 3: 1|-]
+
+        Disjoint union of transducers::
+
+            sage: T1 = Transducer([(0, 0, 0, 1)],
+            ....:                 initial_states=[0],
+            ....:                 final_states=[0])
+            sage: T2 = Transducer([(0, 0, 0, 2)],
+            ....:                 initial_states=[0],
+            ....:                 final_states=[0])
+            sage: T1([0])
+            [1]
+            sage: T2([0])
+            [2]
+            sage: T = T1.disjoint_union(T2)
+            sage: T([0])
             Traceback (most recent call last):
             ...
             ValueError: Found more than one accepting path.
@@ -7102,6 +7172,315 @@ class FiniteStateMachine(sage.structure.sage_object.SageObject):
             result.input_alphabet = None
 
         return result
+
+
+    def concatenation(self, other):
+        """
+        Concatenate this finite state machine with another finite
+        state machine.
+
+        INPUT:
+
+        - ``other`` -- a :class:`FiniteStateMachine`.
+
+        OUTPUT:
+
+        A :class:`FiniteStateMachine` of the same type as this finite
+        state machine.
+
+        Assume that both finite state machines are automata. If
+        `\mathcal{L}_1` is the language accepted by this automaton and
+        `\mathcal{L}_2` is the language accepted by the other automaton,
+        then the language accepted by the concatenated automaton is
+        `\{ w_1w_2 \mid w_1\in\mathcal{L}_1, w_2\in\mathcal{L}_2\}` where
+        `w_1w_2` denotes the concatenation of the words `w_1` and `w_2`.
+
+        Assume that both finite state machines are transducers and that
+        this transducer maps words `w_1\in\mathcal{L}_1` to words
+        `f_1(w_1)` and that the other transducer maps words
+        `w_2\in\mathcal{L}_2` to words `f_2(w_2)`. Then the concatenated
+        transducer maps words `w_1w_2` with `w_1\in\mathcal{L}_1` and
+        `w_2\in\mathcal{L}_2` to `f_1(w_1)f_2(w_2)`. Here, `w_1w_2` and
+        `f_1(w_1)f_2(w_2)` again denote concatenation of words.
+
+        The input alphabet is the union of the input alphabets (if
+        possible) and ``None`` otherwise. In the latter case, try
+        calling :meth:`.determine_alphabets`.
+
+        Instead of ``A.concatenation(B)``, the notation ``A * B`` can be
+        used.
+
+        EXAMPLES:
+
+        Concatenation of two automata::
+
+            sage: A = automata.word([0])
+            sage: B = automata.word([1])
+            sage: C = A.concatenation(B)
+            sage: C.transitions()
+            [Transition from (0, 0) to (0, 1): 0|-,
+             Transition from (0, 1) to (1, 0): -|-,
+             Transition from (1, 0) to (1, 1): 1|-]
+            sage: [w
+            ....:  for w in ([0, 0], [0, 1], [1, 0], [1, 1])
+            ....:  if C(w)]
+            [[0, 1]]
+            sage: from sage.combinat.finite_state_machine import (
+            ....:     is_Automaton, is_Transducer)
+            sage: is_Automaton(C)
+            True
+
+        Concatenation of two transducers::
+
+            sage: A = Transducer([(0, 1, 0, 1), (0, 1, 1, 2)],
+            ....:                initial_states=[0],
+            ....:                final_states=[1])
+            sage: B = Transducer([(0, 1, 0, 1), (0, 1, 1, 0)],
+            ....:                initial_states=[0],
+            ....:                final_states=[1])
+            sage: C = A.concatenation(B)
+            sage: C.transitions()
+            [Transition from (0, 0) to (0, 1): 0|1,
+             Transition from (0, 0) to (0, 1): 1|2,
+             Transition from (0, 1) to (1, 0): -|-,
+             Transition from (1, 0) to (1, 1): 0|1,
+             Transition from (1, 0) to (1, 1): 1|0]
+            sage: [(w, C(w)) for w in ([0, 0], [0, 1], [1, 0], [1, 1])]
+            [([0, 0], [1, 1]),
+             ([0, 1], [1, 0]),
+             ([1, 0], [2, 1]),
+             ([1, 1], [2, 0])]
+            sage: is_Transducer(C)
+            True
+
+
+        Alternative notation as multiplication::
+
+            sage: C == A * B
+            True
+
+        Final output words are taken into account::
+
+            sage: A = Transducer([(0, 1, 0, 1)],
+            ....:                initial_states=[0],
+            ....:                final_states=[1])
+            sage: A.state(1).final_word_out = 2
+            sage: B = Transducer([(0, 1, 0, 3)],
+            ....:                initial_states=[0],
+            ....:                final_states=[1])
+            sage: B.state(1).final_word_out = 4
+            sage: C = A * B
+            sage: C([0, 0])
+            [1, 2, 3, 4]
+
+        Handling of the input alphabet::
+
+            sage: A = Automaton([(0, 0, 0)])
+            sage: B = Automaton([(0, 0, 1)], input_alphabet=[1, 2])
+            sage: C = Automaton([(0, 0, 2)], determine_alphabets=False)
+            sage: D = Automaton([(0, 0, [[0, 0]])], input_alphabet=[[0, 0]])
+            sage: A.input_alphabet
+            [0]
+            sage: B.input_alphabet
+            [1, 2]
+            sage: C.input_alphabet is None
+            True
+            sage: D.input_alphabet
+            [[0, 0]]
+            sage: (A * B).input_alphabet
+            [0, 1, 2]
+            sage: (A * C).input_alphabet is None
+            True
+            sage: (A * D).input_alphabet is None
+            True
+
+        .. SEEALSO::
+
+            :meth:`~.disjoint_union`, :meth:`.determine_alphabets`.
+
+        TESTS::
+
+            sage: A = Automaton()
+            sage: F = FiniteStateMachine()
+            sage: A * F
+            Traceback (most recent call last):
+            ...
+            TypeError: Cannot concatenate finite state machines of
+            different types.
+            sage: F * A
+            Traceback (most recent call last):
+            ...
+            TypeError: Cannot concatenate finite state machines of
+            different types.
+            sage: F * 5
+            Traceback (most recent call last):
+            ...
+            TypeError: A finite state machine can only be concatenated
+            with a another finite state machine.
+        """
+        if not is_FiniteStateMachine(other):
+            raise TypeError('A finite state machine can only be concatenated '
+                            'with a another finite state machine.')
+        if is_Automaton(other) != is_Automaton(self):
+            raise TypeError('Cannot concatenate finite state machines of '
+                            'different types.')
+
+        result = self.empty_copy()
+        first_states = {}
+        second_states = {}
+        for s in self.iter_states():
+            new_state = s.relabeled((0, s.label()))
+            new_state.final_word_out = None
+            new_state.is_final = False
+            first_states[s] = new_state
+            result.add_state(new_state)
+
+        for s in other.iter_states():
+            new_state = s.relabeled((1, s.label()))
+            new_state.is_initial = False
+            second_states[s] = new_state
+            result.add_state(new_state)
+
+        for t in self.iter_transitions():
+            result.add_transition(first_states[t.from_state],
+                                  first_states[t.to_state],
+                                  t.word_in,
+                                  t.word_out)
+
+        for t in other.iter_transitions():
+            result.add_transition(second_states[t.from_state],
+                                  second_states[t.to_state],
+                                  t.word_in,
+                                  t.word_out)
+
+        for s in self.iter_final_states():
+            first_state = first_states[s]
+            for t in other.iter_initial_states():
+                second_state = second_states[t]
+                result.add_transition(first_state,
+                                      second_state,
+                                      [],
+                                      s.final_word_out)
+
+        try:
+            result.input_alphabet = list(set(self.input_alphabet)
+                                         | set(other.input_alphabet))
+        except TypeError:
+            # e.g. None or unhashable letters
+            result.input_alphabet = None
+
+        return result
+
+
+    __mul__ = concatenation
+
+
+    def kleene_star(self):
+        r"""
+        Compute the Kleene closure of this finite state machine.
+
+        OUTPUT:
+
+        A :class:`FiniteStateMachine` of the same type as this finite
+        state machine.
+
+        Assume that this finite state machine is an automaton
+        recognizing the language `\mathcal{L}`.  Then the Kleene star
+        recognizes the language `\mathcal{L}^*=\{ w_1\ldots w_n \mid
+        n\ge 0, w_j\in\mathcal{L} \text{ for all } j\}`.
+
+        Assume that this finite state machine is a transducer realizing
+        a function `f` on some alphabet `\mathcal{L}`. Then the Kleene
+        star realizes a function `g` on `\mathcal{L}^*` with
+        `g(w_1\ldots w_n)=f(w_1)\ldots f(w_n)`.
+
+        EXAMPLES:
+
+        Kleene star of an automaton::
+
+            sage: A = automata.word([0, 1])
+            sage: B = A.kleene_star()
+            sage: B.transitions()
+            [Transition from 0 to 1: 0|-,
+             Transition from 2 to 0: -|-,
+             Transition from 1 to 2: 1|-]
+            sage: from sage.combinat.finite_state_machine import (
+            ....:     is_Automaton, is_Transducer)
+            sage: is_Automaton(B)
+            True
+            sage: [w for w in ([], [0, 1], [0, 1, 0], [0, 1, 0, 1], [0, 1, 1, 1])
+            ....:  if B(w)]
+            [[],
+             [0, 1],
+             [0, 1, 0, 1]]
+
+        Kleene star of a transducer::
+
+            sage: T = Transducer([(0, 1, 0, 1), (0, 1, 1, 0)],
+            ....:                initial_states=[0],
+            ....:                final_states=[1])
+            sage: S = T.kleene_star()
+            sage: S.transitions()
+            [Transition from 0 to 1: 0|1,
+             Transition from 0 to 1: 1|0,
+             Transition from 1 to 0: -|-]
+            sage: is_Transducer(S)
+            True
+            sage: for w in ([], [0], [1], [0, 0], [0, 1]):
+            ....:     print w, S.process(w)
+            []     (True, 0, [])
+            [0]    [(True, 0, [1]), (True, 1, [1])]
+            [1]    [(True, 0, [0]), (True, 1, [0])]
+            [0, 0] [(True, 0, [1, 1]), (True, 1, [1, 1])]
+            [0, 1] [(True, 0, [1, 0]), (True, 1, [1, 0])]
+
+        Final output words are taken into account::
+
+            sage: T = Transducer([(0, 1, 0, 1)],
+            ....:                initial_states=[0],
+            ....:                final_states=[1])
+            sage: T.state(1).final_word_out = 2
+            sage: S = T.kleene_star()
+            sage: S.process([0, 0])
+            [(True, 0, [1, 2, 1, 2]), (True, 1, [1, 2, 1, 2])]
+
+        Final output words may lead to undesirable situations if initial
+        states and final states coincide::
+
+            sage: T = Transducer(initial_states=[0], final_states=[0])
+            sage: T.state(0).final_word_out = 1
+            sage: T([])
+            [1]
+            sage: S = T.kleene_star()
+            sage: S([])
+            Traceback (most recent call last):
+            ...
+            RuntimeError: State 0 is in an epsilon cycle (no input), but
+            output is written.
+        """
+        from copy import deepcopy
+        result = deepcopy(self)
+        for initial in result.iter_initial_states():
+            for final in result.iter_final_states():
+                result.add_transition(final, initial, [], final.final_word_out)
+
+        for initial in result.iter_initial_states():
+            initial.is_final = True
+
+        return result
+
+
+    def intersection(self, other):
+        """
+        TESTS::
+
+            sage: FiniteStateMachine().intersection(FiniteStateMachine())
+            Traceback (most recent call last):
+            ...
+            NotImplementedError
+        """
+        raise NotImplementedError
+
 
     def product_FiniteStateMachine(self, other, function,
                                    new_input_alphabet=None,

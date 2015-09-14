@@ -10586,7 +10586,6 @@ class FiniteStateMachine(sage.structure.sage_object.SageObject):
                     'variance': variance}
 
 
-
     def is_monochromatic(self):
         """
         Checks whether the colors of all states are equal.

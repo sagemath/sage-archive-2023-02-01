@@ -342,7 +342,7 @@ if [ ! -f "$PKG_SRC" ]; then
             if [ $? -ne 0 ]; then
                 exit 1
             fi
-            for repo in optional experimental standard huge archive; do
+            for repo in optional experimental huge; do
                 # Download the list of packages.
                 echo ">>> Checking online list of $repo packages."
                 # File inside DOT_SAGE should be writable
@@ -371,7 +371,7 @@ if [ ! -f "$PKG_SRC" ]; then
                         # fall through and use the .spkg file.
                     else
                         # Warn and ask the user if downloading an
-                        # experimental or archive package.
+                        # experimental package.
                         # Add a deprecation note for other packages,
                         # since old-style packages are deprecated.
                         if [ $repo = experimental ]; then
@@ -379,18 +379,6 @@ if [ ! -f "$PKG_SRC" ]; then
                             echo "You are about to download and install an unmaintained experimental"
                             echo "package. This probably won't work at all for you! There is no guarantee"
                             echo "that it will build correctly, or behave as expected. Use at your own risk!"
-                            echo
-                            echo "This package will be removed in future versions of SageMath. If you care"
-                            echo "about this package, you should make a proper new-style package instead."
-                            echo "For more information about making Sage packages, see"
-                            echo "http://doc.sagemath.org/html/en/developer/packaging.html"
-                            echo "=========================================================================="
-                            ask_download=yes
-                        elif [ $repo = archive ]; then
-                            echo "================================ WARNING ================================="
-                            echo "You are about to download and install an unmaintained archived package."
-                            echo "This probably won't work at all for you! There is no guarantee that it"
-                            echo "will build correctly, or behave as expected. Use at your own risk!"
                             echo
                             echo "This package will be removed in future versions of SageMath. If you care"
                             echo "about this package, you should make a proper new-style package instead."

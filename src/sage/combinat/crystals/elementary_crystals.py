@@ -83,7 +83,6 @@ from sage.structure.unique_representation import UniqueRepresentation
 from sage.combinat.root_system.cartan_type import CartanType
 from sage.combinat.root_system.root_system import RootSystem
 from sage.rings.integer import Integer
-from sage.rings.infinity import Infinity
 
 class AbstractSingleCrystalElement(Element):
     r"""
@@ -182,7 +181,7 @@ class AbstractSingleCrystalElement(Element):
         """
         return None
 
-class TCrystal(Parent, UniqueRepresentation):
+class TCrystal(UniqueRepresentation, Parent):
     r"""
     The crystal `T_{\lambda}`.
 
@@ -417,7 +416,7 @@ class TCrystal(Parent, UniqueRepresentation):
             """
             return self.parent()._weight
 
-class RCrystal(Parent, UniqueRepresentation):
+class RCrystal(UniqueRepresentation, Parent):
     r"""
     The crystal `R_{\lambda}`.
 
@@ -673,7 +672,7 @@ class RCrystal(Parent, UniqueRepresentation):
             """
             return self.parent()._weight
 
-class ElementaryCrystal(Parent, UniqueRepresentation):
+class ElementaryCrystal(UniqueRepresentation, Parent):
     r"""
     The elementary crystal `B_i`.
 
@@ -987,7 +986,7 @@ class ElementaryCrystal(Parent, UniqueRepresentation):
             Q = self.parent().weight_lattice_realization()
             return self._m * Q.simple_root(self.parent()._i)
 
-class ComponentCrystal(Parent,UniqueRepresentation):
+class ComponentCrystal(UniqueRepresentation, Parent):
     r"""
     The component crystal.
 

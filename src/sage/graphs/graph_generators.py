@@ -155,6 +155,8 @@ __append_to_doc(
      "SzekeresSnarkGraph",
      "ThomsenGraph",
      "TietzeGraph",
+     "TruncatedIcosidodecahedralGraph",
+     "TruncatedTetrahedralGraph",
      "Tutte12Cage",
      "TutteCoxeterGraph",
      "TutteGraph",
@@ -219,9 +221,15 @@ __append_to_doc(
      "quadrangulations",
      "RingedTree",
      "SierpinskiGasketGraph",
+     "SymplecticDualPolarGraph",
      "SymplecticGraph",
+     "strongly_regular_graph",
+     "TaylorTwographDescendantSRG",
+     "TaylorTwographSRG",
      "trees",
      "triangulations",
+     "UnitaryDualPolarGraph",
+     "UnitaryPolarGraph",
      "WheelGraph"])
 
 __doc__ += """
@@ -366,6 +374,7 @@ Functions and methods
 
 # import from Sage library
 import graph
+import sage.graphs.strongly_regular_db
 
 class GraphGenerators():
     r"""
@@ -1915,6 +1924,8 @@ class GraphGenerators():
     ThomsenGraph             = staticmethod(sage.graphs.generators.smallgraphs.ThomsenGraph)
     TietzeGraph              = staticmethod(sage.graphs.generators.smallgraphs.TietzeGraph)
     Tutte12Cage              = staticmethod(sage.graphs.generators.smallgraphs.Tutte12Cage)
+    TruncatedIcosidodecahedralGraph = staticmethod(sage.graphs.generators.smallgraphs.TruncatedIcosidodecahedralGraph)
+    TruncatedTetrahedralGraph= staticmethod(sage.graphs.generators.smallgraphs.TruncatedTetrahedralGraph)
     TutteCoxeterGraph        = staticmethod(sage.graphs.generators.smallgraphs.TutteCoxeterGraph)
     TutteGraph               = staticmethod(sage.graphs.generators.smallgraphs.TutteGraph)
     WagnerGraph              = staticmethod(sage.graphs.generators.smallgraphs.WagnerGraph)
@@ -1965,8 +1976,15 @@ class GraphGenerators():
     petersen_family        = staticmethod(sage.graphs.generators.families.petersen_family)
     RingedTree             = staticmethod(sage.graphs.generators.families.RingedTree)
     SierpinskiGasketGraph  = staticmethod(sage.graphs.generators.families.SierpinskiGasketGraph)
+    SymplecticDualPolarGraph = staticmethod(sage.graphs.generators.families.SymplecticDualPolarGraph)
     SymplecticGraph        = staticmethod(sage.graphs.generators.families.SymplecticGraph)
+    strongly_regular_graph = staticmethod(sage.graphs.strongly_regular_db.strongly_regular_graph)
+    TaylorTwographDescendantSRG = \
+             staticmethod(sage.graphs.generators.families.TaylorTwographDescendantSRG)
+    TaylorTwographSRG      = staticmethod(sage.graphs.generators.families.TaylorTwographSRG)
     trees                  = staticmethod(sage.graphs.generators.families.trees)
+    UnitaryDualPolarGraph  = staticmethod(sage.graphs.generators.families.UnitaryDualPolarGraph)
+    UnitaryPolarGraph      = staticmethod(sage.graphs.generators.families.UnitaryPolarGraph)
     WheelGraph             = staticmethod(sage.graphs.generators.families.WheelGraph)
 
 ###########################################################################

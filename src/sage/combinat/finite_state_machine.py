@@ -3701,8 +3701,6 @@ class FiniteStateMachine(SageObject):
                     input_tape.is_finite() == False:
                 if not 'iterator_type' in kwargs:
                     kwargs['iterator_type'] = 'simple'
-                if not 'automatic_output_type' in kwargs:
-                    kwargs['automatic_output_type'] = None
                 return self.iter_process(*args, **kwargs)
             return self.process(*args, **kwargs)
         raise TypeError("Do not know what to do with that arguments.")

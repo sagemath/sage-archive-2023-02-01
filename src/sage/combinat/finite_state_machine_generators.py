@@ -93,6 +93,7 @@ from sage.rings.integer_ring import ZZ
 from sage.rings.rational_field import QQ
 from functools import reduce
 
+
 class AutomatonGenerators(object):
     r"""
     A class consisting of constructors for several common automata.
@@ -271,6 +272,7 @@ class AutomatonGenerators(object):
                          final_states=[ZZ(length)],
                          input_alphabet=input_alphabet)
 
+
     def ContainsWord(self, word, input_alphabet):
         r"""
         Return an automaton recognizing the words containing
@@ -353,7 +355,6 @@ class TransducerGenerators(object):
     - :meth:`~CountSubblockOccurrences`
     - :meth:`~Wait`
     - :meth:`~GrayCode`
-
     """
 
     def Identity(self, input_alphabet):
@@ -393,6 +394,7 @@ class TransducerGenerators(object):
             output_alphabet=input_alphabet,
             initial_states=[0],
             final_states=[0])
+
 
     def CountSubblockOccurrences(self, block, input_alphabet):
         """
@@ -512,6 +514,7 @@ class TransducerGenerators(object):
             s.is_final = True
         return T
 
+
     def Wait(self, input_alphabet, threshold=1):
         r"""
         Writes ``False`` until reading the ``threshold``-th occurrence
@@ -554,6 +557,7 @@ class TransducerGenerators(object):
             s.is_final = True
 
         return T
+
 
     def map(self, f, input_alphabet):
         r"""
@@ -788,7 +792,6 @@ class TransducerGenerators(object):
                              input_alphabet, number_of_operands)
 
 
-
     def add(self, input_alphabet, number_of_operands=2):
         """
         Returns a transducer which realizes addition on pairs over the
@@ -882,6 +885,7 @@ class TransducerGenerators(object):
             [0, -1, 1, 0]
         """
         return self.operator(operator.sub, input_alphabet)
+
 
     def weight(self, input_alphabet, zero=0):
         r"""

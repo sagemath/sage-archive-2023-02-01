@@ -5601,7 +5601,8 @@ class FiniteStateMachine(SageObject):
 
         - ``process_iterator_class`` -- (default: ``None``) a class
           inherited from :class:`FSMProcessIterator`. If ``None``,
-          then :class:`FSMProcessIterator` is taken.
+          then :class:`FSMProcessIterator` is taken. An instance of this
+          class is created and is used during the processing.
 
         OUTPUT:
 
@@ -9923,7 +9924,8 @@ class Automaton(FiniteStateMachine):
 
         - ``process_iterator_class`` -- (default: ``None``) a class
           inherited from :class:`FSMProcessIterator`. If ``None``,
-          then :class:`FSMProcessIterator` is taken.
+          then :class:`FSMProcessIterator` is taken. An instance of this
+          class is created and is used during the processing.
 
         OUTPUT:
 
@@ -10933,7 +10935,8 @@ class Transducer(FiniteStateMachine):
 
         - ``process_iterator_class`` -- (default: ``None``) a class
           inherited from :class:`FSMProcessIterator`. If ``None``,
-          then :class:`FSMProcessIterator` is taken.
+          then :class:`FSMProcessIterator` is taken. An instance of this
+          class is created and is used during the processing.
 
         OUTPUT:
 

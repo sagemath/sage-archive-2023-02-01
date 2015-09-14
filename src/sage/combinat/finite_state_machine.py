@@ -6221,7 +6221,7 @@ class FiniteStateMachine(sage.structure.sage_object.SageObject):
             +-- tape at 3, [[1, 0, 0]]
             process (0 branches)
             sage: it.result()
-            [Branch(True, 'A', [1, 0, 0])]
+            [Branch(accept=True, state='A', output=[1, 0, 0])]
 
         One can see the growing of the output (the list of lists at
         the end of each entry).
@@ -6360,7 +6360,7 @@ class FiniteStateMachine(sage.structure.sage_object.SageObject):
                                    "(%s different outputs in branch). The "
                                    "'simple' iterator cannot be used "
                                    "here." %
-                                   (len(outputs),))
+                                   (len(branch.outputs),))
 
             for o in branch.outputs[0]:
                 yield o
@@ -8246,6 +8246,7 @@ class FiniteStateMachine(sage.structure.sage_object.SageObject):
             sage: G.state(2) is s
             True
         """
+        from copy import deepcopy
         result = deepcopy(self)
         if result.is_complete():
             return result
@@ -8261,6 +8262,7 @@ class FiniteStateMachine(sage.structure.sage_object.SageObject):
             except LookupError:
                 pass
         else:
+            from sage.rings.integer_ring import ZZ
             sink = 1 + max(itertools.chain(
                     [-1],
                     (s.label() for s in result.iter_states()
@@ -10102,6 +10104,7 @@ class FiniteStateMachine(sage.structure.sage_object.SageObject):
         relabeled = self.relabeled()
         n = len(relabeled.states())
         assert [s.label() for s in relabeled.states()] == range(n)
+        from sage.rings.integer_ring import ZZ
         entry_vector = vector(ZZ(s.is_initial)
                               for s in relabeled.states())
         exit_vector = vector([1] * n)
@@ -11225,6 +11228,7 @@ class Automaton(FiniteStateMachine):
             raise NotImplementedError("Automaton must be strongly connected.")
         if not all(s.is_final for s in self.iter_states()):
             raise NotImplementedError("All states must be final.")
+        from sage.rings.integer_ring import ZZ
         M = self.adjacency_matrix().change_ring(ZZ)
         states = {state: i for i, state in enumerate(self.iter_states())}
         w_all = sorted(M.eigenvectors_right(),

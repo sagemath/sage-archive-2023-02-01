@@ -96,6 +96,7 @@ Properties
     :meth:`~FiniteStateMachine.is_deterministic` | Checks for a deterministic machine
     :meth:`~FiniteStateMachine.is_complete` | Checks for a complete machine
     :meth:`~FiniteStateMachine.is_connected` | Checks for a connected machine
+    :meth:`Automaton.is_equivalent` | Checks for equivalent automata
     :meth:`~FiniteStateMachine.is_Markov_chain` | Checks for a Markov chain
     :meth:`~FiniteStateMachine.is_monochromatic` | Checks whether the colors of all states are equal
     :meth:`~FiniteStateMachine.asymptotic_moments` | Main terms of expectation and variance of sums of labels
@@ -10330,6 +10331,48 @@ class Automaton(FiniteStateMachine):
             state.is_final = not state.is_final
 
         return result
+
+    def is_equivalent(self, other):
+        """
+        Test whether two automata are equivalent, i.e., accept the same
+        language.
+
+        INPUT:
+
+        - ``other`` -- an :class:`Automaton`.
+
+        EXAMPLES::
+
+            sage: A = Automaton([(0, 0, 0), (0, 1, 1), (1, 0, 1)],
+            ....:               initial_states=[0],
+            ....:               final_states=[0])
+            sage: B = Automaton([('a', 'a', 0), ('a', 'b', 1), ('b', 'a', 1)],
+            ....:               initial_states=['a'],
+            ....:               final_states=['a'])
+            sage: A.is_equivalent(B)
+            True
+            sage: B.add_transition('b', 'a', 0)
+            Transition from 'b' to 'a': 0|-
+            sage: A.is_equivalent(B)
+            False
+        """
+        A = self.minimization().relabeled()
+        [initial] = A.initial_states()
+        address = {initial: ()}
+        for v in A.digraph().breadth_first_search(initial.label()):
+            state = A.state(v)
+            state_address = address[state]
+            for t in A.iter_transitions(state):
+                if not t.to_state in address:
+                    address[t.to_state] = state_address + tuple(t.word_in)
+
+        B = other.minimization().relabeled()
+        labels = {B.process(path)[1].label(): state.label()
+                  for (state, path) in address.iteritems()}
+        try:
+            return A == B.relabeled(labels=labels)
+        except KeyError:
+            return False
 
 
     def process(self, *args, **kwargs):

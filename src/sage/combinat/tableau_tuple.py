@@ -1628,7 +1628,7 @@ class TableauTuples(UniqueRepresentation, Parent):
         sage: TestSuite( TableauTuples(level=6, size=1) ).run()
         sage: TestSuite( TableauTuples(level=6, size=10) ).run()
 
-    Check that trac:`14145` has been fixed::
+    Check that :trac:`14145` has been fixed::
 
         sage: 1 in TableauTuples()
         False

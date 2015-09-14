@@ -20430,7 +20430,7 @@ class GenericGraph(GenericGraph_pyx):
             sage: g.is_isomorphic(gg)
             False
 
-        Ensure that trac:`14777` is fixed ::
+        Ensure that :trac:`14777` is fixed ::
 
             sage: g = Graph()
             sage: h = Graph()

@@ -1203,7 +1203,7 @@ class EllipticCurveCanonicalHeight:
         OUTPUT:
 
         The union of intervals `S^{(v)}(\xi_1,\xi_2)` defined in [TT]_
-        sectoin 6.1.
+        section 6.1.
 
         EXAMPLES:
 

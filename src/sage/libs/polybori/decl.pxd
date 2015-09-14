@@ -1,6 +1,4 @@
-
-
-cdef extern from "pb_wrap.h":
+cdef extern from "sage/libs/polybori/pb_wrap.h":
     ctypedef struct std_string "std::string":
         char *(* c_str)()
 
@@ -12,8 +10,8 @@ cdef extern from "pb_wrap.h":
         pbdp_asc        "CTypes::dp_asc"
         pbblock_dlex    "CTypes::block_dlex"
         pbblock_dp_asc  "CTypes::block_dp_asc"
-        pbdp            "17"
-        pbblock_dp      "19"
+        pbdp            "static_cast<COrderEnums::ordercodes>(17)"
+        pbblock_dp      "static_cast<COrderEnums::ordercodes>(19)"
 
     cdef enum comparecodes "CCompareEnums::comparecodes":
         less_than               "CTypes::less_than"
@@ -291,10 +289,10 @@ cdef extern from "pb_wrap.h":
         int (* size)()
         PBPolyEntry (* get "operator[]")(int)
 
-    ctypedef struct PBFglmStrategy "WrappedPtr<FGLMStrategy>":
+    ctypedef struct PBFglmStrategy "PBWrappedPtr<FGLMStrategy>":
         PBPolyVector (* main "operator->()->main")()
 
-    PBFglmStrategy PBFglmStrategy_Constructor "WrappedPtr<FGLMStrategy>" \
+    PBFglmStrategy PBFglmStrategy_Constructor "PBWrappedPtr<FGLMStrategy>" \
         (PBRing from_ring, PBRing to_ring, PBPolyVector vec)
 
     cdef cppclass PBGBStrategy "GroebnerStrategy":
@@ -349,7 +347,7 @@ cdef extern from "pb_wrap.h":
         PBPolyVector (* faugereStepDense)(PBPolyVector v)
         bint (* generators_leadingTerms_owns  "generators.leadingTerms.owns")(PBMonom term)
 
-    PBGBStrategy PBGBStrategy_Constructor "WrappedPtr<GroebnerStrategy>" \
+    PBGBStrategy PBGBStrategy_Constructor "PBWrappedPtr<GroebnerStrategy>" \
         (PBRing r)
 
 

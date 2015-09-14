@@ -210,10 +210,6 @@ hardly by used.
     ....: "        return '<%s>'%self.x",
     ....: "    def __hash__(self):",
     ....: "        return hash(self.x)",
-    ....: "    def __cmp__(left, right):",
-    ....: "        return (<Element>left)._cmp(right)",
-    ....: "    def __richcmp__(left, right, op):",
-    ....: "        return (<Element>left)._richcmp(right,op)",
     ....: "    cpdef int _cmp_(left, Element right) except -2:",
     ....: "        return cmp(left.x,right.x)",
     ....: "    def raw_test(self):",
@@ -229,10 +225,6 @@ hardly by used.
     ....: "        return '<%s>'%self.x",
     ....: "    def __hash__(self):",
     ....: "        return hash(self.x)",
-    ....: "    def __cmp__(left, right):",
-    ....: "        return (<Element>left)._cmp(right)",
-    ....: "    def __richcmp__(left, right, op):",
-    ....: "        return (<Element>left)._richcmp(right,op)",
     ....: "    cpdef int _cmp_(left, Element right) except -2:",
     ....: "        return cmp(left.x,right.x)",
     ....: "    def raw_test(self):",
@@ -789,7 +781,7 @@ cdef class CachedFunction(object):
                Return the reduced Groebner basis of this ideal.
             ...
                ALGORITHM: Uses Singular, Magma (if available), Macaulay2 (if
-               available), or a toy implementation.
+               available), Giac (if available), or a toy implementation.
 
         Test that :trac:`15184` is fixed::
 

@@ -5593,10 +5593,11 @@ class FiniteStateMachine(SageObject):
           process iterator is activated. See also the notes below for
           multi-tape machines.
 
-        - ``write_in_every_step`` -- (default: ``False``) a boolean.
-          If ``True``, then the output is stored in each step of the
-          iteration process (instead of only storing it after a branch
-          of the process finished).
+        - ``process_all_prefixes_of_input`` -- (default: ``False``) a
+          boolean. If ``True``, then each prefix of the input word is
+          processed (instead of processing the whole input word at
+          once). Consequently, there is an output generated for each
+          of these prefixes.
 
         - ``process_iterator_class`` -- (default: ``None``) a class
           inherited from :class:`FSMProcessIterator`. If ``None``,
@@ -9314,7 +9315,7 @@ class FiniteStateMachine(SageObject):
             sage: it = T.iter_process(
             ....:     process_iterator_class=_FSMProcessIteratorAll_,
             ....:     max_length=3,
-            ....:     write_in_every_step=True)
+            ....:     process_all_prefixes_of_input=True)
             sage: for current in it:
             ....:     print current
             ....:     print "finished:", [o for accept, _, o in it._finished_]
@@ -9331,7 +9332,7 @@ class FiniteStateMachine(SageObject):
         """
         kwargs['process_iterator_class'] = _FSMProcessIteratorAll_
         kwargs['max_length'] = max_length
-        kwargs['write_in_every_step'] = True
+        kwargs['process_all_prefixes_of_input'] = True
         it = self.iter_process(**kwargs)
         for _ in it:
             for accept, _, o in it._finished_:
@@ -9914,10 +9915,11 @@ class Automaton(FiniteStateMachine):
           process iterator is activated. See also the notes below for
           multi-tape machines.
 
-        - ``write_in_every_step`` -- (default: ``False``) a boolean.
-          If ``True``, then the output is stored in each step of the
-          iteration process (instead of only storing it after a branch
-          of the process finished).
+        - ``process_all_prefixes_of_input`` -- (default: ``False``) a
+          boolean. If ``True``, then each prefix of the input word is
+          processed (instead of processing the whole input word at
+          once). Consequently, there is an output generated for each
+          of these prefixes.
 
         - ``process_iterator_class`` -- (default: ``None``) a class
           inherited from :class:`FSMProcessIterator`. If ``None``,
@@ -10923,10 +10925,11 @@ class Transducer(FiniteStateMachine):
           process iterator is activated. See also the notes below for
           multi-tape machines.
 
-        - ``write_in_every_step`` -- (default: ``False``) a boolean.
-          If ``True``, then the output is stored in each step of the
-          iteration process (instead of only storing it after a branch
-          of the process finished).
+        - ``process_all_prefixes_of_input`` -- (default: ``False``) a
+          boolean. If ``True``, then each prefix of the input word is
+          processed (instead of processing the whole input word at
+          once). Consequently, there is an output generated for each
+          of these prefixes.
 
         - ``process_iterator_class`` -- (default: ``None``) a class
           inherited from :class:`FSMProcessIterator`. If ``None``,
@@ -12139,10 +12142,11 @@ class FSMProcessIterator(SageObject, collections.Iterator):
       process iterator is activated. See also the notes below for
       multi-tape machines.
 
-    - ``write_in_every_step`` -- (default: ``False``) a boolean.
-      If ``True``, then the output is stored in each step of the
-      iteration process (instead of only storing it after a branch
-      of the process finished).
+    - ``process_all_prefixes_of_input`` -- (default: ``False``) a
+      boolean. If ``True``, then each prefix of the input word is
+      processed (instead of processing the whole input word at
+      once). Consequently, there is an output generated for each
+      of these prefixes.
 
     OUTPUT:
 
@@ -12392,7 +12396,7 @@ class FSMProcessIterator(SageObject, collections.Iterator):
                  check_epsilon_transitions=True,
                  write_final_word_out=True,
                  format_output=None,
-                 write_in_every_step=False,
+                 process_all_prefixes_of_input=False,
                  **kwargs):
         """
         See :class:`FSMProcessIterator` for more information.
@@ -12452,7 +12456,7 @@ class FSMProcessIterator(SageObject, collections.Iterator):
 
         self.check_epsilon_transitions = check_epsilon_transitions
         self.write_final_word_out = write_final_word_out
-        self.write_in_every_step = write_in_every_step
+        self.process_all_prefixes_of_input = process_all_prefixes_of_input
 
         # init branches
         self._current_ = self.Current()
@@ -12785,13 +12789,13 @@ class FSMProcessIterator(SageObject, collections.Iterator):
                 # this branch has to end here...
                 if not (input_tape.finished() or
                         state_said_finished or
-                        self.write_in_every_step):
+                        self.process_all_prefixes_of_input):
                     return
 
-            if not next_transitions or self.write_in_every_step:
+            if not next_transitions or self.process_all_prefixes_of_input:
                 # this branch has to end here... (continued)
                 successful = current_state.is_final
-                if self.write_in_every_step:
+                if self.process_all_prefixes_of_input:
                     write_outputs = deepcopy(outputs)
                 else:
                     write_outputs = outputs

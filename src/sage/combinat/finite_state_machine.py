@@ -11975,7 +11975,7 @@ class _FSMTapeCacheDetectAll_(_FSMTapeCache_):
     """
     def compare_to_tape(self, track_number, word):
         """
-        Returns whether it is possible to read a word of the same length
+        Return whether it is possible to read a word of the same length
         as ``word`` (but ignoring its actual content)
         from the given track successfully.
 

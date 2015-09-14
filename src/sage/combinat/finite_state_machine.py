@@ -96,6 +96,7 @@ Properties
     :meth:`~FiniteStateMachine.is_deterministic` | Checks for a deterministic machine
     :meth:`~FiniteStateMachine.is_complete` | Checks for a complete machine
     :meth:`~FiniteStateMachine.is_connected` | Checks for a connected machine
+    :meth:`Automaton.is_equivalent` | Checks for equivalent automata
     :meth:`~FiniteStateMachine.is_Markov_chain` | Checks for a Markov chain
     :meth:`~FiniteStateMachine.is_monochromatic` | Checks whether the colors of all states are equal
     :meth:`~FiniteStateMachine.asymptotic_moments` | Main terms of expectation and variance of sums of labels
@@ -114,6 +115,7 @@ Operations
     :meth:`~FiniteStateMachine.disjoint_union` | Disjoint union
     :meth:`~FiniteStateMachine.concatenation` | Concatenation
     :meth:`~FiniteStateMachine.kleene_star` | Kleene star
+    :meth:`Automaton.complement` | Complement of an automaton
     :meth:`Automaton.intersection` | Intersection of automata
     :meth:`Transducer.intersection` | Intersection of transducers
     :meth:`Transducer.cartesian_product` | Cartesian product of a transducer with another finite state machine
@@ -10766,6 +10768,102 @@ class Automaton(FiniteStateMachine):
         else:
             raise NotImplementedError("Minimization via Moore's Algorithm is only " \
                                       "implemented for deterministic finite state machines")
+
+
+    def complement(self):
+        r"""
+        Return the complement of this automaton.
+
+        OUTPUT:
+
+        An :class:`Automaton`.
+
+        If this automaton recognizes language `\mathcal{L}` over an
+        input alphabet `\mathcal{A}`, then the complement recognizes
+        `\mathcal{A}\setminus\mathcal{L}`.
+
+        EXAMPLES::
+
+            sage: A = automata.word([0, 1])
+            sage: [w for w in
+            ....:  [], [0], [1], [0, 0], [0, 1], [1, 0], [1, 1]
+            ....:  if A(w)]
+            [[0, 1]]
+            sage: Ac = A.complement()
+            sage: Ac.transitions()
+            [Transition from 0 to 1: 0|-,
+             Transition from 0 to 3: 1|-,
+             Transition from 2 to 3: 0|-,
+             Transition from 2 to 3: 1|-,
+             Transition from 1 to 2: 1|-,
+             Transition from 1 to 3: 0|-,
+             Transition from 3 to 3: 0|-,
+             Transition from 3 to 3: 1|-]
+            sage: [w for w in
+            ....:  [], [0], [1], [0, 0], [0, 1], [1, 0], [1, 1]
+            ....:  if Ac(w)]
+            [[], [0], [1], [0, 0], [1, 0], [1, 1]]
+
+        The automaton must be deterministic::
+
+            sage: A = automata.word([0]) * automata.word([1])
+            sage: A.complement()
+            Traceback (most recent call last):
+            ...
+            ValueError: The finite state machine must be deterministic.
+            sage: Ac = A.determinisation().complement()
+            sage: [w for w in
+            ....:  [], [0], [1], [0, 0], [0, 1], [1, 0], [1, 1]
+            ....:  if Ac(w)]
+            [[], [0], [1], [0, 0], [1, 0], [1, 1]]
+        """
+        result = self.completion()
+        for state in result.iter_states():
+            state.is_final = not state.is_final
+
+        return result
+
+    def is_equivalent(self, other):
+        """
+        Test whether two automata are equivalent, i.e., accept the same
+        language.
+
+        INPUT:
+
+        - ``other`` -- an :class:`Automaton`.
+
+        EXAMPLES::
+
+            sage: A = Automaton([(0, 0, 0), (0, 1, 1), (1, 0, 1)],
+            ....:               initial_states=[0],
+            ....:               final_states=[0])
+            sage: B = Automaton([('a', 'a', 0), ('a', 'b', 1), ('b', 'a', 1)],
+            ....:               initial_states=['a'],
+            ....:               final_states=['a'])
+            sage: A.is_equivalent(B)
+            True
+            sage: B.add_transition('b', 'a', 0)
+            Transition from 'b' to 'a': 0|-
+            sage: A.is_equivalent(B)
+            False
+        """
+        A = self.minimization().relabeled()
+        [initial] = A.initial_states()
+        address = {initial: ()}
+        for v in A.digraph().breadth_first_search(initial.label()):
+            state = A.state(v)
+            state_address = address[state]
+            for t in A.iter_transitions(state):
+                if not t.to_state in address:
+                    address[t.to_state] = state_address + tuple(t.word_in)
+
+        B = other.minimization().relabeled()
+        labels = {B.process(path)[1].label(): state.label()
+                  for (state, path) in address.iteritems()}
+        try:
+            return A == B.relabeled(labels=labels)
+        except KeyError:
+            return False
 
 
     def process(self, *args, **kwargs):

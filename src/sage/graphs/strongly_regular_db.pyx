@@ -44,6 +44,7 @@ from sage.graphs.generators.smallgraphs import HoffmanSingletonGraph
 from sage.graphs.generators.smallgraphs import SchlaefliGraph
 from sage.graphs.generators.smallgraphs import HigmanSimsGraph
 from sage.graphs.generators.smallgraphs import LocalMcLaughlinGraph
+from sage.graphs.generators.smallgraphs import SuzukiGraph
 from sage.graphs.graph import Graph
 from libc.math cimport sqrt
 from sage.matrix.constructor import Matrix
@@ -1079,6 +1080,55 @@ def SRG_256_187_138_132():
     M = Matrix(GF(2),[list(l) for l in x])
     return strongly_regular_from_two_weight_code(LinearCode(M))
 
+def SRG_416_100_36_20():
+    r"""
+    Return a `(416,100,36,20)`-strongly regular graph.
+
+    This graph is obtained from the neighborhood of the from :meth:`Suzuki Graph
+    <sage.graphs.graph_generators.GraphGenerators.SuzukiGraph>`.
+
+    EXAMPLE::
+
+        sage: from sage.graphs.strongly_regular_db import SRG_416_100_36_20
+        sage: g = SRG_416_100_36_20()                # not tested
+        sage: g.is_strongly_regular(parameters=True) # not tested
+
+    """
+    from sage.graphs.generators.smallgraphs import SuzukiGraph
+    G = SuzukiGraph()
+    G = G.subgraph(G.neighbors(0))
+    G.relabel()
+    return G
+
+def SRG_560_208_72_80():
+    r"""
+    Return a `(560,208,72,80)`-strongly regular graph
+
+    This graph is obtained by the union of 4 orbits of sets of cardinality 2
+    (among the 13 that exists) in the group Suzuki(8).
+
+    EXAMPLE::
+
+        sage: from sage.graphs.strongly_regular_db import SRG_560_208_72_80
+        sage: g = SRG_560_208_72_80()                # optional - database_gap # not tested (~6s)
+        sage: g.is_strongly_regular(parameters=True) # optional - database_gap # not tested (~6s)
+        (560, 208, 72, 80)
+    """
+    from sage.interfaces.gap import gap
+    from sage.groups.perm_gps.permgroup import PermutationGroup
+    gap.load_package("AtlasRep")
+    g=gap('AtlasGroup("Sz8",NrMovedPoints,560)')
+    g=PermutationGroup(gap_group=g)
+
+    h = Graph()
+    h.add_edges(g.orbit((1,2),"OnSets"))
+    h.add_edges(g.orbit((1,4),"OnSets"))
+    h.add_edges(g.orbit((1,8),"OnSets"))
+    h.add_edges(g.orbit((1,27),"OnSets"))
+    h.relabel()
+    return h
+
+
 def SRG_729_532_391_380():
     r"""
     Return a `(729, 532, 391, 380)`-strongly regular graph.
@@ -1823,8 +1873,10 @@ def strongly_regular_graph(int v,int k,int l,int mu=-1,bint existence=False,bint
         (256, 153,  92, 90): [SRG_256_153_92_90],
         (275, 112,  30, 56): [McLaughlinGraph],
         (280, 135,  70, 60): [SRG_280_135_70_60],
+        (416, 100,  36, 20): [SRG_416_100_36_20],
         (512, 219, 106, 84): [SRG_512_219_106_84],
         (512,  73,  12, 10): [SRG_512_73_12_10],
+        (560, 208,  72, 80): [SRG_560_208_72_80],
         (625, 416, 279,272): [SRG_625_416_279_272],
         (625, 364, 213,210): [SRG_625_364_213_210],
         (729, 616, 523,506): [SRG_729_616_523_506],
@@ -1833,6 +1885,7 @@ def strongly_regular_graph(int v,int k,int l,int mu=-1,bint existence=False,bint
         (729, 476, 313,306): [SRG_729_476_313_306],
         (729, 532, 391,380): [SRG_729_532_391_380],
         (1024,825, 668,650): [SRG_1024_825_668_650],
+        (1782,416, 100, 96): [SuzukiGraph],
     }
 
     if params in constructions:

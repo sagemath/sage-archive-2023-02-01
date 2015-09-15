@@ -921,7 +921,7 @@ class MonomialGrowthElement(GenericGrowthElement):
         r"""
         The exponent of this growth element.
 
-        EXAMPLES:
+        EXAMPLES::
 
             sage: import sage.rings.asymptotic.growth_group as agg
             sage: P = agg.MonomialGrowthGroup(ZZ, 'x')

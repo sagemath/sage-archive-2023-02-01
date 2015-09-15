@@ -1,18 +1,14 @@
-##########################################################
-# Setup the c-library and GMP random number generators.
-# seed it when module is loaded.
+"""
+Generate random rationals in Sage
+"""
 
-# The c_random() method on randstate objects gives a value
-# 0 <= n <= SAGE_RAND_MAX
-cdef int SAGE_RAND_MAX = 2147483647 # 2^31 - 1
-
-
-from sage.libs.gmp.all cimport *
-from sage.misc.randstate cimport randstate, current_randstate
+from sage.libs.gmp.mpz cimport *
+from sage.libs.gmp.mpq cimport *
+from sage.misc.randstate cimport randstate, current_randstate, SAGE_RAND_MAX
 
 ###########################
 
-cdef void mpq_randomize_entry(mpq_t x, mpz_t num_bound, mpz_t den_bound):
+cdef inline void mpq_randomize_entry(mpq_t x, mpz_t num_bound, mpz_t den_bound):
     cdef randstate rstate = current_randstate()
     mpz_urandomm(mpq_numref(x), rstate.gmp_state, num_bound)
     mpz_urandomm(mpq_denref(x), rstate.gmp_state, den_bound)
@@ -22,7 +18,7 @@ cdef void mpq_randomize_entry(mpq_t x, mpz_t num_bound, mpz_t den_bound):
         mpz_mul_si(mpq_numref(x), mpq_numref(x), -1)
     mpq_canonicalize(x)
 
-cdef void mpq_randomize_entry_as_int(mpq_t x, mpz_t bound):
+cdef inline void mpq_randomize_entry_as_int(mpq_t x, mpz_t bound):
     cdef randstate rstate = current_randstate()
     mpz_urandomm(mpq_numref(x), rstate.gmp_state, bound)
     mpz_set_si(mpq_denref(x), 1)

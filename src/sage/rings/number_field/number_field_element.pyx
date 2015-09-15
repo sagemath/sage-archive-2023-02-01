@@ -257,45 +257,11 @@ cdef class NumberFieldElement(FieldElement):
             sage: (b^2 + b + 1)^3
             12*b^2 + 15*b + 19
 
-        We can create number field elements from PARI::
-
-            sage: K.<a> = NumberField(x^3 - 17)
-            sage: K(pari(42))
-            42
-            sage: K(pari("5/3"))
-            5/3
-            sage: K(pari("[3/2, -5, 0]~"))    # Uses Z-basis
-            -5/3*a^2 + 5/3*a - 1/6
-
-        From a PARI polynomial or ``POLMOD``, note that the variable
-        name does not matter::
-
-            sage: K(pari("-5/3*q^2 + 5/3*q - 1/6"))
-            -5/3*a^2 + 5/3*a - 1/6
-            sage: K(pari("Mod(-5/3*q^2 + 5/3*q - 1/6, q^3 - 17)"))
-            -5/3*a^2 + 5/3*a - 1/6
-            sage: K(pari("x^5/17"))
-            a^2
-            sage: K(pari("Mod(-5/3*q^2 + 5/3*q - 1/6, q^3 - 999)"))  # Wrong modulus
-            Traceback (most recent call last):
-            ...
-            TypeError: Coercion of PARI polmod with modulus q^3 - 999 into number field with defining polynomial x^3 - 17 failed
-
         This example illustrates save and load::
 
             sage: K.<a> = NumberField(x^17 - 2)
             sage: s = a^15 - 19*a + 3
             sage: loads(s.dumps()) == s
-            True
-
-        TESTS:
-
-        Test round-trip conversion to PARI and back::
-
-            sage: x = polygen(QQ)
-            sage: K.<a> = NumberField(x^3 - 1/2*x + 1/3)
-            sage: b = K.random_element()
-            sage: K(pari(b)) == b
             True
         """
         sage.rings.field_element.FieldElement.__init__(self, parent)
@@ -309,7 +275,6 @@ cdef class NumberFieldElement(FieldElement):
             ZZX_SetCoeff( self.__numerator, 0, coeff )
             ZZ_conv_from_int( self.__denominator, 1 )
             return
-
         elif isinstance(f, NumberFieldElement):
             if type(self) is type(f):
                 self.__numerator = (<NumberFieldElement>f).__numerator
@@ -318,42 +283,14 @@ cdef class NumberFieldElement(FieldElement):
             else:
                 f = f.polynomial()
 
-        from sage.rings.number_field import number_field_rel
-        if isinstance(parent, number_field_rel.NumberField_relative):
-            ppr = parent.base_field().polynomial_ring()
-        else:
-            ppr = parent.polynomial_ring()
+        modulus = parent.absolute_polynomial()
+        f = modulus.parent()(f)
+        if f.degree() >= modulus.degree():
+            f %= modulus
 
         cdef long i
-        if isinstance(f, pari_gen):
-            if f.type() in ["t_INT", "t_FRAC", "t_POL"]:
-                pass
-            elif f.type() == "t_POLMOD":
-                fmod = f.mod()
-                # If we are dealing with a *relative* number field
-                # element, convert it to an absolute element.
-                if parent.is_relative() and fmod == parent.pari_relative_polynomial():
-                    f = parent._pari_rnfeq()._eltreltoabs(f.liftpol())
-                # Check that the modulus is actually the defining
-                # polynomial of the number field.
-                elif fmod == parent.pari_polynomial(fmod.variable()):
-                    f = f.lift()
-                else:
-                    raise TypeError("Coercion of PARI polmod with modulus %s into number field with defining polynomial %s failed"%(fmod, parent.pari_polynomial()))
-            else:
-                f = parent.pari_nf().nfbasistoalg_lift(f)
-        f = ppr(f)
-        if f.degree() >= parent.absolute_degree():
-            from sage.rings.number_field import number_field_rel
-            if isinstance(parent, number_field_rel.NumberField_relative):
-                f %= ppr(parent.absolute_polynomial())
-            else:
-                f %= parent.polynomial()
-
-        # Set Denominator
         den = f.denominator()
         (<Integer>ZZ(den))._to_ZZ(&self.__denominator)
-
         num = f * den
         for i from 0 <= i <= num.degree():
             (<Integer>ZZ(num[i]))._to_ZZ(&coeff)
@@ -588,7 +525,11 @@ cdef class NumberFieldElement(FieldElement):
             sage: a._pari_polynomial('c')
             c
         """
-        return pari(self._coefficients()).Polrev(name)
+        f = pari(self._coefficients()).Polrev()
+        if f.poldegree() > 0:
+            alpha = self.number_field()._pari_absolute_structure()[1]
+            f = f(alpha).lift()
+        return f.change_variable_name(name)
 
     def _pari_(self, name='y'):
         r"""
@@ -1335,6 +1276,16 @@ cdef class NumberFieldElement(FieldElement):
             sage: s == t[0].norm(K)*t[1]
             True
 
+        TESTS:
+
+        Number fields defined by non-monic and non-integral
+        polynomials are supported (:trac:`252`)::
+
+            sage: K.<a> = NumberField(x^2 + 1/2)
+            sage: L.<b> = K.extension(x^2 - 1/2)
+            sage: a._rnfisnorm(L)
+            (a*b + a + 1/2, 1)
+
         AUTHORS:
 
         - Craig Citro (2008-04-05)
@@ -1350,10 +1301,7 @@ cdef class NumberFieldElement(FieldElement):
 
         rnf_data = K.pari_rnfnorm_data(L, proof=proof)
         x, q = self._pari_().rnfisnorm(rnf_data)
-
-        # Convert x to an absolute element
-        x = L._pari_rnfeq()._eltreltoabs(x.liftpol())
-        return L(x), K(q)
+        return L(x, check=False), K(q, check=False)
 
     def _mpfr_(self, R):
         """
@@ -4054,38 +4002,6 @@ cdef class NumberFieldElement_relative(NumberFieldElement):
             sage: L.<a, b> = NumberField([x^2 + 1, x^2 + 2])
             sage: type(a) # indirect doctest
             <type 'sage.rings.number_field.number_field_element.NumberFieldElement_relative'>
-
-        We can create relative number field elements from PARI::
-
-            sage: y = polygen(QQ)
-            sage: K.<a> = NumberField(y^2 + y + 1)
-            sage: x = polygen(K)
-            sage: L.<b> = NumberField(x^4 + a*x + 2)
-            sage: e = (a*b)._pari_('x'); e
-            Mod(-x^4 - 2, x^8 - x^5 + 4*x^4 + x^2 - 2*x + 4)
-            sage: L(e)  # Conversion from PARI absolute number field element
-            a*b
-            sage: e = L.pari_rnf().rnfeltabstorel(e); e
-            Mod(Mod(y, y^2 + y + 1)*x, x^4 + Mod(y, y^2 + y + 1)*x + 2)
-            sage: L(e)  # Conversion from PARI relative number field element
-            a*b
-            sage: e = pari('Mod(0, x^8 + 1)'); L(e)  # Wrong modulus
-            Traceback (most recent call last):
-            ...
-            TypeError: Coercion of PARI polmod with modulus x^8 + 1 into number field with defining polynomial x^8 - x^5 + 4*x^4 + x^2 - 2*x + 4 failed
-
-        We test a relative number field element created "by hand"::
-
-            sage: e = pari("Mod(Mod(y, y^2 + y + 1)*x^2 + Mod(1, y^2 + y + 1), x^4 + y*x + 2)")
-            sage: L(e)
-            a*b^2 + 1
-
-        A wrong modulus yields an error::
-
-            sage: e = pari('Mod(y*x, x^4 + y^2*x + 2)'); L(e)
-            Traceback (most recent call last):
-            ...
-            TypeError: Coercion of PARI polmod with modulus x^4 + y^2*x + 2 into number field with defining polynomial x^8 - x^5 + 4*x^4 + x^2 - 2*x + 4 failed
         """
         NumberFieldElement.__init__(self, parent, f)
 

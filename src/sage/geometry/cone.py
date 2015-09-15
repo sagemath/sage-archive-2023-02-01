@@ -1131,6 +1131,68 @@ class IntegralRayCollection(SageObject,
         return (self.lattice_dim() - self.dim())
 
 
+    def span(self, base_ring=None):
+        r"""
+        Return the span of ``self``.
+
+        INPUT:
+
+        - ``base_ring`` -- (default: from lattice) the base ring to use
+                           for the generated module.
+
+        OUTPUT:
+
+        A module spanned by the generators of ``self``.
+
+        EXAMPLES:
+
+        The span of a single ray is a one-dimensional sublattice::
+
+            sage: K1 = Cone([(1,)])
+            sage: K1.span()
+            Sublattice <N(1)>
+            sage: K2 = Cone([(1,0)])
+            sage: K2.span()
+            Sublattice <N(1, 0)>
+
+        The span of the nonnegative orthant is the entire ambient lattice::
+
+            sage: K = Cone([(1,0,0),(0,1,0),(0,0,1)])
+            sage: K.span() == K.lattice()
+            True
+
+        By specifying a ``base_ring``, we can obtain a vector space::
+
+            sage: K = Cone([(1,0,0),(0,1,0),(0,0,1)])
+            sage: K.span(base_ring=QQ)
+            Vector space of degree 3 and dimension 3 over Rational Field
+            Basis matrix:
+            [1 0 0]
+            [0 1 0]
+            [0 0 1]
+
+        TESTS:
+
+        We can take the span of the trivial cone::
+
+            sage: K = Cone([], ToricLattice(0))
+            sage: K.span()
+            Sublattice <>
+
+        The span of a solid cone is the entire ambient space::
+
+            sage: set_random_seed()
+            sage: K = random_cone(max_ambient_dim=6, max_rays=8, solid=True)
+            sage: K.span().vector_space() == K.lattice().vector_space()
+            True
+        """
+        L = self.lattice()
+
+        if base_ring is None:
+            base_ring = L.base_ring()
+
+        return L.span(self, base_ring)
+
 
 def classify_cone_2d(ray0, ray1, check=True):
     """
@@ -2581,6 +2643,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
                     pass
         return PointCollection(normals, M)
 
+    @cached_method
     def facet_of(self):
         r"""
         Return *cones* of the ambient face lattice having ``self`` as a facet.
@@ -2613,12 +2676,10 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
             sage: len(one_cone.facet_of())
             2
         """
-        if "_facet_of" not in self.__dict__:
-            L = self._ambient._face_lattice_function()
-            H = L.hasse_diagram()
-            self._facet_of = self._sort_faces(f
-                    for f in H.neighbors_out(L(self)) if is_Cone(f))
-        return self._facet_of
+        L = self._ambient._face_lattice_function()
+        H = L.hasse_diagram()
+        return self._sort_faces(
+            f for f in H.neighbors_out(L(self)) if is_Cone(f))
 
     def facets(self):
         r"""
@@ -2880,7 +2941,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
             (3, 2)
             
         We check that :trac:`18613` is fixed::
-        
+
             sage: K = Cone([], ToricLattice(0))
             sage: K.is_isomorphic(K)
             True
@@ -3034,7 +3095,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
             See http://trac.sagemath.org/16180 for details.            
             sage: lp
             2-d lattice polytope in 2-d lattice N
-            sage: lp.vertices_pc()
+            sage: lp.vertices()
             N(1, 0),
             N(0, 1),
             N(0, 0)
@@ -3044,7 +3105,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
             sage: lp = line.lattice_polytope()
             sage: lp
             1-d lattice polytope in 2-d lattice N
-            sage: lp.vertices_pc()
+            sage: lp.vertices()
             N( 1, 0),
             N(-1, 0)
             in 2-d lattice N

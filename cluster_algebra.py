@@ -479,8 +479,9 @@ class ClusterAlgebra(Parent):
 
     def explore_to_depth(self, depth):
         while self._explored_depth <= depth:
-            seed = next(self._sd_iter)
-            self._explored_depth = seed.depth
+            try:
+                seed = next(self._sd_iter)
+                self._explored_depth = seed.depth
 
     # DESIDERATA. Some of these are probably unrealistic
     def upper_cluster_algebra(self):

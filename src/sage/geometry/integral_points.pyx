@@ -10,8 +10,8 @@ Cython helper methods to compute integral points in polyhedra.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from itertools import product
 import copy
+import itertools
 
 from sage.matrix.constructor import matrix, column_matrix, vector, diagonal_matrix
 from sage.rings.all import QQ, RR, ZZ, gcd, lcm
@@ -210,7 +210,7 @@ cpdef loop_over_parallelotope_points(e, d, VDinv, R, lattice, A=None, b=None):
     s = ZZ.zero()  # summation variable
     gen = lattice(0)
     q_times_d = vector(ZZ, dim)
-    for base in product(*[ range(0,i) for i in e ]):
+    for base in itertools.product(*[ range(0,i) for i in e ]):
         for i in range(0, dim):
             s = ZZ.zero()
             for j in range(0, dim):

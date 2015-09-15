@@ -162,7 +162,7 @@ class GenericGrowthElement(sage.structure.element.MultiplicativeGroupElement):
 
     def _repr_(self):
         r"""
-        A representation string for this abstract generic element.
+        A representation string for this generic element.
 
         INPUT:
 
@@ -475,7 +475,7 @@ class GenericGrowthGroup(
 
     .. NOTE::
 
-        This class should be derived to get concrete implementations.
+        This class should be derived for concrete implementations.
 
     EXAMPLES::
 

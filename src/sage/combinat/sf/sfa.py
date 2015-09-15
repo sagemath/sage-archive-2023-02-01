@@ -865,11 +865,11 @@ class SymmetricFunctionsBases(Category_realization_of_parent):
                 ...
                 ValueError: not a valid skew partition
             """
-            s = self.realization_of().schur()
             from sage.combinat.skew_partition import SkewPartitions
-            import sage.libs.lrcalc.lrcalc as lrcalc
             if x not in SkewPartitions():
                 raise ValueError("not a valid skew partition")
+            import sage.libs.lrcalc.lrcalc as lrcalc
+            s = self.realization_of().schur()
             skewschur = lrcalc.skew(x[0], x[1])
             return self(s._from_dict(skewschur))
 

@@ -1009,7 +1009,10 @@ class LazyFamily(AbstractFamily):
 
         Check that :trac:`15195` is fixed::
 
-            sage: F = Family(PositiveIntegers(), lambda x: x)
+            sage: C = cartesian_product([PositiveIntegers(), [1,2,3]])
+            sage: C.cardinality()
+            +Infinity
+            sage: F = Family(C, lambda x: x)
             sage: F.cardinality()
             +Infinity
             """

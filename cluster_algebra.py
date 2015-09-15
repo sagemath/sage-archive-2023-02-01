@@ -87,6 +87,10 @@ class ClusterAlgebraSeed(SageObject):
             return "The seed of %s obtained from the initial by mutating in direction %s"%(str(self.parent()),str(self._path[0]))
         else:
             return "The seed of %s obtained from the initial by mutating along the sequence %s"%(str(self.parent()),str(self._path))
+    
+    @property
+    def depth(self):
+        return len(self._path)
 
     def parent(self):
         return self._parent
@@ -304,7 +308,10 @@ class ClusterAlgebra(Parent):
         self._n = n
         self._m = m
         self.reset_current_seed()
-    
+
+        # internal data for exploring the exchange graph
+        self.reset_exploring_iterator()
+
     # enable standard cohercions: everything that is in the base can be coherced
     def _coerce_map_from_(self, other):
         return self.base().has_coerce_map_from(other)
@@ -334,9 +341,17 @@ class ClusterAlgebra(Parent):
         r"""
         Reset the current seed to the initial one
         """
+        self._seed = self.initial_seed
+
+    @property
+    def initial_seed(self):
+        r"""
+        Return the initial seed
+        """
         n = self.rk
         I = identity_matrix(n)
-        self._seed = ClusterAlgebraSeed(self._B0[:n,:n], I, I, self)
+        return ClusterAlgebraSeed(self._B0[:n,:n], I, I, self)
+
 
     def g_vectors_so_far(self):
         r"""
@@ -377,11 +392,11 @@ class ClusterAlgebra(Parent):
         ``depth``: maximum distance from ``self.current_seed`` to reach.
         """
         g_vector = tuple(g_vector)
-        seeds = self.seeds(depth=depth)
         mutation_counter = 0
-        while g_vector not in self.g_vectors_so_far():
+        while g_vector not in self.g_vectors_so_far() and self._explored_depth <= depth:
             try:
-                next(seeds)
+                seed = next(self._sd_iter)
+                self._explored_depth = seed.depth
             except:
                 raise ValueError("Could not find a cluster variable with g-vector %s after %s mutations."%(str(g_vector),str(mutation_counter)))
 
@@ -414,19 +429,24 @@ class ClusterAlgebra(Parent):
     def retract(self, x):
         return self(x)
     
-    def seeds(self, depth=infinity, mutating_F=True):
+    def seeds(self, depth=infinity, mutating_F=True, from_current_seed=False):
         r"""
         Return an iterator producing all seeds of ``self`` up to distance
-        ``depth`` from ``self.current_seed``.
+        ``depth`` from ``self.initial_seed`` or ``self.current_seed``.
 
         If ``mutating_F`` is set to false it does not compute F_polynomials
         """
-        yield self.current_seed
+        if from_current_seed:
+            seed = self.current_seed
+        else:
+            seed = self.initial_seed
+
+        yield seed
         depth_counter = 0
         n = self.rk
-        cl = frozenset(self.current_seed.g_matrix().columns())
+        cl = frozenset(seed.g_matrix().columns())
         clusters = {}
-        clusters[cl] = [ self.current_seed, range(n) ]
+        clusters[cl] = [ seed, range(n) ]
         gets_bigger = True
         while gets_bigger and depth_counter < depth:
             gets_bigger = False
@@ -445,10 +465,22 @@ class ClusterAlgebra(Parent):
                         # doublecheck this way of producing directions for the new seed: it is taken almost verbatim fom ClusterSeed
                         new_directions = [ j for j in xrange(n) if j > i or new_sd.b_matrix()[j,i] != 0 ]
                         clusters[new_cl] = [ new_sd, new_directions ]
-                        new_depth = yield new_sd
-                        if new_depth > depth:
-                            depth = new_depth
+                        # Use this if we want to have the user pass info to the
+                        # iterator
+                        #new_depth = yield new_sd
+                        #if new_depth > depth:
+                        #    depth = new_depth
+                        yield new_sd
             depth_counter += 1
+
+    def reset_exploring_iterator(self):
+        self._sd_iter = self.seeds()
+        self._explored_depth = 0 
+
+    def explore_to_depth(self, depth):
+        while self._explored_depth <= depth:
+            seed = next(self._sd_iter)
+            self._explored_depth = seed.depth
 
     # DESIDERATA. Some of these are probably unrealistic
     def upper_cluster_algebra(self):

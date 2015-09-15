@@ -517,7 +517,8 @@ class GenericGrowthGroup(
             sage: G3 = agg.GenericGrowthGroup(ZZ, category=Rings())
             Traceback (most recent call last):
             ...
-            ValueError: (Category of rings,) is not a subcategory of Join of Category of groups and Category of posets
+            ValueError: (Category of rings,) is not a subcategory of
+            Join of Category of groups and Category of posets
 
         ::
 

@@ -208,12 +208,13 @@ done
 #     path.
 # 2a. <package>-x.y.z, i.e. the name of the package plus the package's
 #     version numbers.
-# 2b. DELETED
+# 2b. <package>-x.y.z.spkg, i.e. the name of the package in addition to
+#     the version numbers and the ".spkg" extension.
 # 3.  <package>, i.e. the name of the package without a version number.
 # 4.  <URL>/<package>-x.y.z.spkg, i.e. the full URL where the package
 #     is hosted.  Any local packages matching <package> are ignored.
 #
-# In cases 2a and 3 we first look locally inside spkg/* for a
+# In cases 2a, 2b and 3 we first look locally inside spkg/* for a
 # matching package.  Otherwise, we try to download it.  In all cases,
 # we reduce to case 1a.
 #
@@ -265,7 +266,6 @@ elif [ -z "$PKG_HAS_PATH" ]; then
 
         # Warning for experimental packages
         if [ x`cat "$PKG_SCRIPTS/type"` = x"experimental" ]; then
-            echo # The following message appears twice in this file
             echo "=========================== WARNING ==========================="
             echo "You are about to download and install an experimental package."
             echo "This probably won't work at all for you! There is no guarantee"
@@ -316,10 +316,86 @@ if [ ! -f "$PKG_SRC" ]; then
         if [ -n "$PKG_HAS_PATH" ]; then
             PKG_URL="$PKG_SRC"
         else
+            # Handle cases 2a and 3, where the package name is something
+            # like "foo" or "foo-1.2.3".
+            MIRROR=$(sage-download-file --print-fastest-mirror)/spkg
+            if [ $? -ne 0 ]; then
+                exit 1
+            fi
+            for repo in optional experimental huge; do
+                # Download the list of packages.
+                echo ">>> Checking online list of $repo packages."
+                # File inside DOT_SAGE should be writable
+                repolist="${DOT_SAGE}/${repo}.list"
+                sage-download-file --quiet "$MIRROR/$repo/list" $repolist
+                if [ $? -ne 0 ]; then
+                    rm -f $repolist
+                    exit 1
+                fi
+
+                # The contrived sed commands print out either ${PKG_NAME} if
+                # it appears as a complete line or some string starting with
+                # ${PKG_NAME}- whichever occurs first.
+                # Tested with GNU sed, BSD sed (on OS X) and Solaris sed.
+                pkg=`sed -n -f <( echo "/^${PKG_NAME}\$/{p;q;}" && echo "/^${PKG_NAME}-/{p;q;}" ) $repolist`
+                rm -f $repolist
+                if [ -n "$pkg" ]; then
+                    echo ">>> Found $pkg"
+                    PKG_NAME=$pkg
+
+                    # If INFO is set, try downloading only the .txt file
+                    if [ $INFO -eq 1 ]; then
+                        PKG_URL="$MIRROR/$repo/$pkg.txt"
+                        sage-download-file --quiet "$PKG_URL" && exit 0
+                        # If the download failed (for whatever reason),
+                        # fall through and use the .spkg file.
+                    else
+                        # Warn and ask the user if downloading an
+                        # experimental package.
+                        # Add a deprecation note for other packages,
+                        # since old-style packages are deprecated.
+                        if [ $repo = experimental ]; then
+                            echo "================================ WARNING ================================="
+                            echo "You are about to download and install an unmaintained experimental"
+                            echo "package. This probably won't work at all for you! There is no guarantee"
+                            echo "that it will build correctly, or behave as expected. Use at your own risk!"
+                            echo
+                            echo "This package will be removed in future versions of SageMath. If you care"
+                            echo "about this package, you should make a proper new-style package instead."
+                            echo "For more information about making Sage packages, see"
+                            echo "http://doc.sagemath.org/html/en/developer/packaging.html"
+                            echo "=========================================================================="
+                            read -p "Are you sure you want to continue [Y/n]? " answer
+                            case "$answer" in
+                                n*|N*) exit 0;;
+                            esac
+                        else
+                            # Deprecated since Sage 6.9, Trac #19158
+                            echo "================================== NOTE =================================="
+                            echo "You are about to download and install an old-style package. While this"
+                            echo "might still work fine, old-style packages are unmaintained and deprecated."
+                            echo
+                            echo "This package will be removed in future versions of SageMath. If you care"
+                            echo "about this package, you should make a proper new-style package instead."
+                            echo "For more information about making Sage packages, see"
+                            echo "http://doc.sagemath.org/html/en/developer/packaging.html"
+                            echo "=========================================================================="
+                            echo
+                            read -t 30 -p "Are you sure (automatically continuing in 30 seconds) [Y/n]? " answer
+                            case "$answer" in
+                                n*|N*) exit 0;;
+                            esac
+                        fi
+                    fi
+                    PKG_URL="$MIRROR/$repo/$pkg.spkg"
+                    break
+                fi
+            done
+
             if [ -z "$PKG_URL" ]; then
                 echo >&2 "Error: could not find a package matching $PKG_NAME"
                 echo >&2 "       Try 'sage --package list' to see the available packages"
-		echo >&2 "       $(sage-package apropos $PKG_NAME)"
+                echo >&2 "       $(sage-package apropos $PKG_NAME)"
                 exit 1
             fi
         fi

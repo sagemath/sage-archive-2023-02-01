@@ -25,8 +25,7 @@ from sage.rings.infinity import infinity
 
 def CartesianProduct(*iters):
     """
-    Returns the combinatorial class of the Cartesian product of
-    \*iters.
+    This is deprecated. Use ``cartesian_product`` instead.
 
     EXAMPLES::
 
@@ -103,6 +102,53 @@ def CartesianProduct(*iters):
     return cartesian_product(iters)
 
 class CartesianProduct_iters(CombinatorialClass):
+    r"""
+    Cartesian product of finite sets.
+
+    This class will be soonly deprecated (see :trac:`18411` and :trac:`19195`).
+    One should instead use the functorial construction
+    :class:`cartesian_product <sage.categories.cartesian_product.CartesianProductFunctor>`.
+    The main differences in behavior are:
+
+    - at creation: as many argument as there are factors with
+      ``CartesianProduct`` whereas only a list of factors for
+      ``cartesian_product``;
+
+    - representation of elements: a Python list for ``CartesianProduct`` versus
+      a dedicated element class for ``cartesian_product``;
+
+    - membership test: because the objects are different the membership tests
+      differ.
+
+    All of these is illustrated in the examples below.
+
+    EXAMPLES::
+
+        sage: F1 = ['a', 'b']
+        sage: F2 = [1, 2, 3, 4]
+        sage: F3 = Permutations(3)
+        sage: from sage.combinat.cartesian_product import CartesianProduct_iters
+        sage: C = CartesianProduct_iters(F1, F2, F3)
+        sage: c = cartesian_product([F1, F2, F3])
+
+        sage: type(C.an_element())
+        <type 'list'>
+        sage: type(c.an_element())
+        <class 'sage.sets.cartesian_product.CartesianProduct_with_category.element_class'>
+
+        sage: l = ['a', 1, Permutation([3,2,1])]
+        sage: l in C
+        True
+        sage: l in c
+        False
+        sage: elt = c(l)
+        sage: elt
+        ('a', 1, [3, 2, 1])
+        sage: elt in c
+        True
+        sage: elt.parent() is c
+        True
+    """
     def __init__(self, *iters):
         """
         TESTS::

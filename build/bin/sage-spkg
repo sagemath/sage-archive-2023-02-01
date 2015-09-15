@@ -228,7 +228,7 @@ fi
 # PKG_NAME is the last path component without .spkg
 # This already reduces case 2b to case 2a.
 PKG_NAME=`basename "$PKG_SRC" | sed 's/\.spkg$//'`
-PKG_BASE=`echo "$PKG_NAME" | sed 's/-[0-9].*//'`
+PKG_BASE=`echo "$PKG_NAME" | sed 's/-.*//'`
 
 # USE_LOCAL_SCRIPTS is a flag that if non-empty will cause
 # this script to try to install the package using local metadata

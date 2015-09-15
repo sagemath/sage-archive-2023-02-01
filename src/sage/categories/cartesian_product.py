@@ -111,13 +111,14 @@ class CartesianProductFunctor(CovariantFunctorialConstruction):
         r"""
         Functorial construction application.
 
-        Specializes the generic ``__call__`` from
+        This specializes the generic ``__call__`` from
         :class:`CovariantFunctorialConstruction` to:
-        
-        - handle the case of some Python containes. Namely ``frozenset``,
-          ``list``, ``set`` and ``tuple``.
 
-        - handle the case of the empty list.
+        - handle the following plain Python containers as input:
+          :class:`frozenset`, :class:`list`, :class:`set` and
+          :class:`tuple`.
+
+        - handle the empty list of factors.
 
         See the examples below.
 

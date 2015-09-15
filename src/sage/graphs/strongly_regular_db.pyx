@@ -1105,26 +1105,24 @@ def SRG_560_208_72_80():
     Return a `(560,208,72,80)`-strongly regular graph
 
     This graph is obtained by the union of 4 orbits of sets of cardinality 2
-    (among the 13 that exists) in the group Suzuki(8).
+    (among the 13 that exists) in the group Sz(8).
 
     EXAMPLE::
 
         sage: from sage.graphs.strongly_regular_db import SRG_560_208_72_80
-        sage: g = SRG_560_208_72_80()                # optional - database_gap # not tested (~6s)
-        sage: g.is_strongly_regular(parameters=True) # optional - database_gap # not tested (~6s)
+        sage: g = SRG_560_208_72_80()                # optional - database_gap # not tested (~2s)
+        sage: g.is_strongly_regular(parameters=True) # optional - database_gap # not tested (~2s)
         (560, 208, 72, 80)
     """
-    from sage.interfaces.gap import gap
-    from sage.groups.perm_gps.permgroup import PermutationGroup
-    gap.load_package("AtlasRep")
-    g=gap('AtlasGroup("Sz8",NrMovedPoints,560)')
-    g=PermutationGroup(gap_group=g)
+    from sage.libs.gap.libgap import libgap
+    libgap.LoadPackage("AtlasRep")
+    g=libgap.AtlasGroup("Sz8",libgap.NrMovedPoints,560)
 
     h = Graph()
-    h.add_edges(g.orbit((1,2),"OnSets"))
-    h.add_edges(g.orbit((1,4),"OnSets"))
-    h.add_edges(g.orbit((1,8),"OnSets"))
-    h.add_edges(g.orbit((1,27),"OnSets"))
+    h.add_edges(g.Orbit([1,2],libgap.OnSets))
+    h.add_edges(g.Orbit([1,4],libgap.OnSets))
+    h.add_edges(g.Orbit([1,8],libgap.OnSets))
+    h.add_edges(g.Orbit([1,27],libgap.OnSets))
     h.relabel()
     return h
 

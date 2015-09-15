@@ -482,6 +482,8 @@ class ClusterAlgebra(Parent):
             try:
                 seed = next(self._sd_iter)
                 self._explored_depth = seed.depth
+            except:
+                pass
 
     # DESIDERATA. Some of these are probably unrealistic
     def upper_cluster_algebra(self):

@@ -322,6 +322,38 @@ class PseudoRiemannianMetric(TensorField):
     """
     def __init__(self, vector_field_module, name, signature=None,
                  latex_name=None):
+        r"""
+        Construct a metric.
+
+        TESTS::
+
+            sage: M = DiffManifold(2, 'M')
+            sage: U = M.open_subset('U') ; V = M.open_subset('V')
+            sage: M.declare_union(U,V)   # M is the union of U and V
+            sage: c_xy.<x,y> = U.chart() ; c_uv.<u,v> = V.chart()
+            sage: xy_to_uv = c_xy.transition_map(c_uv, (x+y, x-y),
+            ....:               intersection_name='W', restrictions1= x>0,
+            ....:               restrictions2= u+v>0)
+            sage: uv_to_xy = xy_to_uv.inverse()
+            sage: W = U.intersection(V)
+            sage: e_xy = c_xy.frame() ; e_uv = c_uv.frame()
+            sage: XM = M.vector_field_module()
+            sage: from sage.manifolds.differentiable.metric import \
+            ....:                                        PseudoRiemannianMetric
+            sage: g = PseudoRiemannianMetric(XM, 'g', signature=0); g
+            Pseudo-Riemannian metric g on the 2-dimensional differentiable
+             manifold M
+            sage: g[e_xy,0,0], g[e_xy,1,1] = -(1+x^2), 1+y^2
+            sage: g.add_comp_by_continuation(e_uv, W, c_uv)
+            sage: TestSuite(g).run(skip=['_test_category', '_test_pickling'])
+
+        .. TODO::
+
+            - fix _test_pickling (in the superclass TensorField)
+            - add a specific parent to the metrics, to fit with the category
+              framework
+
+        """
         TensorField.__init__(self, vector_field_module, (0,2),
                              name=name, latex_name=latex_name, sym=(0,1))
         # signature:
@@ -348,6 +380,14 @@ class PseudoRiemannianMetric(TensorField):
     def _repr_(self):
         r"""
         String representation of the object.
+
+        TEST::
+
+            sage: M = DiffManifold(5, 'M')
+            sage: g = M.metric('g')
+            sage: g._repr_()
+            'Pseudo-Riemannian metric g on the 5-dimensional differentiable manifold M'
+
         """
         description = "Pseudo-Riemannian metric " + self._name + " "
         return self._final_repr(description)
@@ -357,6 +397,20 @@ class PseudoRiemannianMetric(TensorField):
         Create an instance of the same class as ``self`` with the same
         signature.
 
+        TESTS::
+
+            sage: M = DiffManifold(5, 'M')
+            sage: g = M.metric('g', signature=3)
+            sage: g1 = g._new_instance(); g1
+            Pseudo-Riemannian metric unnamed metric on the 5-dimensional
+             differentiable manifold M
+            sage: type(g1) == type(g)
+            True
+            sage: g1.parent() is g.parent()
+            True
+            sage: g1.signature() == g.signature()
+            True
+
         """
         return self.__class__(self._vmodule, 'unnamed metric',
                               signature=self._signature,
@@ -364,7 +418,14 @@ class PseudoRiemannianMetric(TensorField):
 
     def _init_derived(self):
         r"""
-        Initialize the derived quantities
+        Initialize the derived quantities.
+
+        TEST::
+
+            sage: M = DiffManifold(5, 'M')
+            sage: g = M.metric('g')
+            sage: g._init_derived()
+
         """
         # Initialization of quantities pertaining to the mother class:
         TensorField._init_derived(self)
@@ -383,7 +444,14 @@ class PseudoRiemannianMetric(TensorField):
 
     def _del_derived(self):
         r"""
-        Delete the derived quantities
+        Delete the derived quantities.
+
+        TEST::
+
+            sage: M = DiffManifold(5, 'M')
+            sage: g = M.metric('g')
+            sage: g._del_derived()
+
         """
         # First the derived quantities from the mother class are deleted:
         TensorField._del_derived(self)
@@ -401,7 +469,14 @@ class PseudoRiemannianMetric(TensorField):
 
     def _del_inverse(self):
         r"""
-        Delete the inverse metric
+        Delete the inverse metric.
+
+        TEST::
+
+            sage: M = DiffManifold(5, 'M')
+            sage: g = M.metric('g')
+            sage: g._del_inverse()
+
         """
         self._inverse._restrictions.clear()
         self._inverse._del_derived()
@@ -422,7 +497,6 @@ class PseudoRiemannianMetric(TensorField):
         Signatures on a 2-dimensional manifold::
 
             sage: M = DiffManifold(2, 'M')
-            sage: X.<x,y> = M.chart()
             sage: g = M.metric('g') # if not specified, the signature is Riemannian
             sage: g.signature()
             2
@@ -457,7 +531,17 @@ class PseudoRiemannianMetric(TensorField):
 
         EXAMPLES:
 
-        See the top documentation of :class:`PseudoRiemannianMetric`.
+            sage: M = DiffManifold(5, 'M')
+            sage: g = M.metric('g', signature=3)
+            sage: U = M.open_subset('U')
+            sage: g.restrict(U)
+            Pseudo-Riemannian metric g on the Open subset U of the
+             5-dimensional differentiable manifold M
+            sage: g.restrict(U).signature()
+            3
+
+        See the top documentation of :class:`PseudoRiemannianMetric` for more
+        examples.
 
         """
         if subdomain == self._domain:
@@ -1363,16 +1447,16 @@ class PseudoRiemannianMetric(TensorField):
 
         If the differential form is a `p`-form `A`, its *Hodge dual* with
         respect to the metric `g` is the
-        `(n-p)`-form `*A` defined by (`n` being the manifold's dimension)
+        `(n-p)`-form `*A` defined by
 
         .. MATH::
 
             *A_{i_1\ldots i_{n-p}} = \frac{1}{p!} A_{k_1\ldots k_p}
                 \epsilon^{k_1\ldots k_p}_{\qquad\ i_1\ldots i_{n-p}}
 
-        where `\epsilon` is the volume form associated with `g` (see
-        :meth:`volume_form`) and the indices `k_1,\ldots, k_p` are raised
-        with `g`.
+        where `n` is the manifold's dimension, `\epsilon` is the volume
+        `n`-form associated with `g` (see :meth:`volume_form`) and the indices
+        `k_1,\ldots, k_p` are raised with `g`.
 
         INPUT:
 
@@ -1389,7 +1473,7 @@ class PseudoRiemannianMetric(TensorField):
 
         EXAMPLES:
 
-        Hodge star of a 1-form in the Euclidean space `R^3`::
+        Hodge dual of a 1-form in the Euclidean space `R^3`::
 
             sage: DiffManifold._clear_cache_() # for doctests only
             sage: M = DiffManifold(3, 'M', start_index=1)
@@ -1411,7 +1495,7 @@ class PseudoRiemannianMetric(TensorField):
             sage: ssa == a  # must hold for a Riemannian metric in dimension 3
             True
 
-        Hodge star of a 0-form (scalar field) in `R^3`::
+        Hodge dual of a 0-form (scalar field) in `R^3`::
 
             sage: f = M.scalar_field(function('F',x,y,z), name='f')
             sage: sf = g.hodge_star(f) ; sf
@@ -1426,7 +1510,7 @@ class PseudoRiemannianMetric(TensorField):
             sage: ssf == f # must hold for a Riemannian metric
             True
 
-        Hodge star of a 0-form in Minkowksi spacetime::
+        Hodge dual of a 0-form in Minkowksi spacetime::
 
             sage: M = DiffManifold(4, 'M')
             sage: X.<t,x,y,z> = M.chart()
@@ -1449,7 +1533,7 @@ class PseudoRiemannianMetric(TensorField):
             sage: ssf == -f  # must hold for a Lorentzian metric
             True
 
-        Hodge star of a 1-form in Minkowksi spacetime::
+        Hodge dual of a 1-form in Minkowksi spacetime::
 
             sage: a = M.one_form('A')
             sage: var('At Ax Ay Az')
@@ -1468,7 +1552,7 @@ class PseudoRiemannianMetric(TensorField):
             sage: ssa == a  # must hold for a Lorentzian metric in dimension 4
             True
 
-        Hodge star of a 2-form in Minkowksi spacetime::
+        Hodge dual of a 2-form in Minkowksi spacetime::
 
             sage: F = M.diff_form(2, 'F')
             sage: var('Ex Ey Ez Bx By Bz')

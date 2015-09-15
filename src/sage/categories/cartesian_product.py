@@ -112,8 +112,13 @@ class CartesianProductFunctor(CovariantFunctorialConstruction):
         Functorial construction application.
 
         Specializes the generic ``__call__`` from
-        :class:`CovariantFunctorialConstruction` to handle the case of some
-        Python objects. Namely ``frozenset``, ``list``, ``set`` and ``tuple``.
+        :class:`CovariantFunctorialConstruction` to:
+        
+        - handle the case of some Python containes. Namely ``frozenset``,
+          ``list``, ``set`` and ``tuple``.
+
+        - handle the case of the empty list.
+
         See the examples below.
 
         EXAMPLES::
@@ -127,11 +132,28 @@ class CartesianProductFunctor(CovariantFunctorialConstruction):
             The cartesian product of ({0, 1, 2}, {0, 1})
             sage: _.category()
             Category of Cartesian products of sets
+
+        Check that the empty product is handled correctly:
+
+            sage: C = cartesian_product([])
+            sage: C
+            The cartesian product of ()
+            sage: C.cardinality()
+            1
+            sage: C.an_element()
+            ()
+            sage: C.category()
+            Category of Cartesian products of sets
         """
         if any(type(arg) in native_python_containers for arg in args):
             from sage.categories.sets_cat import Sets
             S = Sets()
             args = [S(a, enumerated_set=True) for a in args]
+        elif not args:
+            from sage.categories.sets_cat import Sets
+            from sage.sets.cartesian_product import CartesianProduct
+            return CartesianProduct((), Sets().CartesianProducts())
+
         return super(CartesianProductFunctor, self).__call__(args)
 
 cartesian_product = CartesianProductFunctor()

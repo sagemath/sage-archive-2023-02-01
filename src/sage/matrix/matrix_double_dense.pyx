@@ -96,7 +96,6 @@ cdef class Matrix_double_dense(matrix_dense.Matrix_dense):
     #   * __init__
     #   * set_unsafe
     #   * get_unsafe
-    #   * __richcmp__    -- always the same
     #   * __hash__       -- always simple
     ########################################################################
     def __cinit__(self, parent, entries, copy, coerce):
@@ -129,9 +128,6 @@ cdef class Matrix_double_dense(matrix_dense.Matrix_dense):
     def __dealloc__(self):
         """ Deallocate any memory that was initialized."""
         return
-
-    def __richcmp__(Matrix self, right, int op):  # always need for mysterious reasons.
-        return self._richcmp(right, op)
 
     def __hash__(self):
         """
@@ -303,11 +299,14 @@ cdef class Matrix_double_dense(matrix_dense.Matrix_dense):
 
         """
         cdef Matrix_double_dense m
-        if nrows == -1:
+        if nrows == -1 and ncols == -1:
             nrows = self._nrows
-        if ncols == -1:
             ncols = self._ncols
-        parent = self.matrix_space(nrows, ncols)
+            parent = self._parent
+        else:
+            if nrows == -1: nrows = self._nrows
+            if ncols == -1: ncols = self._ncols
+            parent = self.matrix_space(nrows, ncols)
         m = self.__class__.__new__(self.__class__,parent,None,None,None)
         return m
 
@@ -2482,7 +2481,7 @@ cdef class Matrix_double_dense(matrix_dense.Matrix_dense):
             True
             sage: U.is_unitary(algorithm='orthonormal')
             True
-            sage: V.is_unitary(algorithm='naive')  # not tested - known bug (trac #11248)
+            sage: V.is_unitary(algorithm='naive')
             True
 
         If we make the tolerance too strict we can get misleading results.  ::

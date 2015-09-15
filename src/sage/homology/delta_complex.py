@@ -474,6 +474,19 @@ class DeltaComplex(GenericCellComplex):
         sub._is_subcomplex_of = {self: new_data}
         return sub
 
+    def __hash__(self):
+        r"""
+        TESTS::
+
+            sage: hash(delta_complexes.Sphere(2))
+            -789842226           # 32-bit
+            -5090854238868998450 # 64-bit
+            sage: hash(delta_complexes.Sphere(4))
+            376965290           # 32-bit
+            8539734868592429226 # 64-bit
+        """
+        return hash(frozenset(self._cells_dict.items()))
+
     def __cmp__(self,right):
         r"""
         Two `\Delta`-complexes are equal, according to this, if they have
@@ -602,7 +615,7 @@ class DeltaComplex(GenericCellComplex):
             sage: T = delta_complexes.Torus()
             sage: T.chain_complex(subcomplex=T)
             Trivial chain complex over Integer Ring
-            sage: T.homology(subcomplex=T)
+            sage: T.homology(subcomplex=T, algorithm='no_chomp')
             {0: 0, 1: 0, 2: 0}
             sage: A = T.subcomplex({2: [1]})  # one of the two triangles forming T
             sage: T.chain_complex(subcomplex=A)

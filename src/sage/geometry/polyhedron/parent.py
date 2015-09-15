@@ -155,7 +155,7 @@ class Polyhedra_base(UniqueRepresentation, Parent):
 
             sage: p = Polyhedron([(0,0),(1,0),(0,1)])
             sage: n = len(p.parent()._Vertex_pool)
-            sage: p.delete()
+            sage: p._delete()
             sage: len(p.parent()._Vertex_pool) - n
             3
         """
@@ -421,9 +421,9 @@ class Polyhedra_base(UniqueRepresentation, Parent):
             def convert_base_ring(lstlst):
                 return [ [self.base_ring()(x) for x in lst] for lst in lstlst]
             if convert and Hrep:
-                Hrep = map(convert_base_ring, Hrep)
+                Hrep = [convert_base_ring(_) for _ in Hrep]
             if convert and Vrep:
-                Vrep = map(convert_base_ring, Vrep)
+                Vrep = [convert_base_ring(_) for _ in Vrep]
             return self.element_class(self, Vrep, Hrep, **kwds)
         if nargs==1 and is_Polyhedron(args[0]):
             polyhedron = args[0]

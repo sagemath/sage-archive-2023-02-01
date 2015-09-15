@@ -1,6 +1,7 @@
 """
 Coercion via Construction Functors
 """
+import six
 from functor import Functor
 from basic import *
 
@@ -171,7 +172,7 @@ class ConstructionFunctor(Functor):
         """
         return cmp(type(self), type(other))
 
-    def __str__(self):
+    def _repr_(self):
         """
         NOTE:
 
@@ -191,25 +192,6 @@ class ConstructionFunctor(Functor):
         s = str(type(self))
         import re
         return re.sub("<.*'.*\.([^.]*)'>", "\\1", s)
-
-    def _repr_(self):
-        """
-        NOTE:
-
-        By default, it returns the name of the construction functor's class.
-        Usually, this method will be overloaded.
-
-        TEST::
-
-            sage: F = QQ.construction()[0]
-            sage: F                  # indirect doctest
-            FractionField
-            sage: Q = ZZ.quo(2).construction()[0]
-            sage: Q                  # indirect doctest
-            QuotientFunctor
-
-        """
-        return str(self)
 
     def merge(self, other):
         """
@@ -421,7 +403,7 @@ class CompositeConstructionFunctor(ConstructionFunctor):
             all = other.all + [self]
         return CompositeConstructionFunctor(*all)
 
-    def __str__(self):
+    def _repr_(self):
         """
         TESTS::
 
@@ -719,7 +701,7 @@ class PolynomialFunctor(ConstructionFunctor):
         else:
             return None
 
-    def __str__(self):
+    def _repr_(self):
         """
         TEST::
 
@@ -890,7 +872,7 @@ class MultiPolynomialFunctor(ConstructionFunctor):
         else:
             return [MultiPolynomialFunctor((x,), self.term_order) for x in reversed(self.vars)]
 
-    def __str__(self):
+    def _repr_(self):
         """
         TEST::
 
@@ -1039,7 +1021,7 @@ class InfinitePolynomialFunctor(ConstructionFunctor):
         from sage.rings.polynomial.infinite_polynomial_ring import InfinitePolynomialRing
         return InfinitePolynomialRing(R, self._gens, order=self._order, implementation=self._imple)
 
-    def __str__(self):
+    def _repr_(self):
         """
         TEST::
 
@@ -1431,10 +1413,10 @@ class LaurentPolynomialFunctor(ConstructionFunctor):
 
         """
         Functor.__init__(self, Rings(), Rings())
-        if not isinstance(var, (basestring,tuple,list)):
+        if not isinstance(var, (six.string_types,tuple,list)):
             raise TypeError("variable name or list of variable names expected")
         self.var = var
-        self.multi_variate = multi_variate or not isinstance(var, basestring)
+        self.multi_variate = multi_variate or not isinstance(var, six.string_types)
 
     def _apply_functor(self, R):
         """
@@ -2083,7 +2065,7 @@ class CompletionFunctor(ConstructionFunctor):
                 if self.type not in self._dvr_types:
                     raise ValueError("completion type must be one of %s"%(", ".join(self._dvr_types)))
 
-    def __str__(self):
+    def _repr_(self):
         """
         TEST::
 
@@ -2367,7 +2349,7 @@ class QuotientFunctor(ConstructionFunctor):
         self.I = I
         if names is None:
             self.names = None
-        elif isinstance(names, basestring):
+        elif isinstance(names, six.string_types):
             self.names = (names,)
         else:
             self.names = tuple(names)
@@ -2464,7 +2446,7 @@ class QuotientFunctor(ConstructionFunctor):
             Finite Field of size 5
 
         """
-        if not isinstance(self, type(other)):
+        if type(self) is not type(other):
             return None
         if self.names != other.names:
             return None
@@ -2630,6 +2612,15 @@ class AlgebraicExtensionFunctor(ConstructionFunctor):
             Univariate Quotient Polynomial Ring in a over Univariate Polynomial Ring in t over Integer Ring with modulus a^3 + a^2 + 1
             sage: F(RR)       # indirect doctest
             Univariate Quotient Polynomial Ring in a over Real Field with 53 bits of precision with modulus a^3 + a^2 + 1.00000000000000
+
+        Check that :trac:`13538` is fixed::
+
+            sage: K = Qp(3,3)
+            sage: R.<a> = K[]
+            sage: AEF = sage.categories.pushout.AlgebraicExtensionFunctor([a^2-3], ['a'], [None])
+            sage: AEF(K)
+            Eisenstein Extension of 3-adic Field with capped relative precision 3 in a defined by (1 + O(3^3))*a^2 + (O(3^4))*a + (2*3 + 2*3^2 + 2*3^3 + O(3^4))
+
         """
         from sage.all import QQ, ZZ, CyclotomicField
         if self.cyclotomic:
@@ -2638,8 +2629,8 @@ class AlgebraicExtensionFunctor(ConstructionFunctor):
             if R==ZZ:
                 return CyclotomicField(self.cyclotomic).maximal_order()
         if len(self.polys) == 1:
-            return R.extension(self.polys[0], self.names[0], embedding=self.embeddings[0], **self.kwds)
-        return R.extension(self.polys, self.names, embedding=self.embeddings)
+            return R.extension(self.polys[0], names=self.names[0], embedding=self.embeddings[0], **self.kwds)
+        return R.extension(self.polys, names=self.names, embedding=self.embeddings)
 
     def __cmp__(self, other):
         """
@@ -3024,6 +3015,7 @@ class BlackBoxConstructionFunctor(ConstructionFunctor):
     def __init__(self, box):
         """
         TESTS::
+
             sage: from sage.categories.pushout import BlackBoxConstructionFunctor
             sage: FG = BlackBoxConstructionFunctor(gap)
             sage: FM = BlackBoxConstructionFunctor(maxima)
@@ -3055,6 +3047,7 @@ class BlackBoxConstructionFunctor(ConstructionFunctor):
     def __cmp__(self, other):
         """
         TESTS::
+
             sage: from sage.categories.pushout import BlackBoxConstructionFunctor
             sage: FG = BlackBoxConstructionFunctor(gap)
             sage: FM = BlackBoxConstructionFunctor(maxima)

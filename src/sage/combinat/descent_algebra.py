@@ -30,7 +30,7 @@ from sage.combinat.subset import SubsetsSorted
 from sage.combinat.symmetric_group_algebra import SymmetricGroupAlgebra
 from sage.combinat.ncsf_qsym.ncsf import NonCommutativeSymmetricFunctions
 
-class DescentAlgebra(Parent, UniqueRepresentation):
+class DescentAlgebra(UniqueRepresentation, Parent):
     r"""
     Solomon's descent algebra.
 
@@ -453,7 +453,7 @@ class DescentAlgebra(Parent, UniqueRepresentation):
             IM = IntegerMatrices(list(p), list(q))
             P = Compositions(self.realization_of()._n)
             to_composition = lambda m: P( [x for x in m.list() if x != 0] )
-            return self.sum_of_monomials(map(to_composition, IM))
+            return self.sum_of_monomials([to_composition(_) for _ in IM])
 
         @cached_method
         def one_basis(self):

@@ -25,7 +25,7 @@ from sage.rings.infinity import infinity
 
 def CartesianProduct(*iters):
     """
-    This is deprecated. Use ``cartesian_product`` instead.
+    This is deprecated. Use :obj:`cartesian_product` instead.
 
     EXAMPLES::
 
@@ -105,20 +105,21 @@ class CartesianProduct_iters(CombinatorialClass):
     r"""
     Cartesian product of finite sets.
 
-    This class will be soonly deprecated (see :trac:`18411` and :trac:`19195`).
+    This class will soon be deprecated (see :trac:`18411` and :trac:`19195`).
     One should instead use the functorial construction
     :class:`cartesian_product <sage.categories.cartesian_product.CartesianProductFunctor>`.
     The main differences in behavior are:
 
-    - at creation: as many argument as there are factors with
-      ``CartesianProduct`` whereas only a list of factors for
-      ``cartesian_product``;
+    - construction: ``CartesianProduct`` takes as many argument as
+      there are factors whereas ``cartesian_product`` takes a single
+      list (or iterable) of factors;
 
-    - representation of elements: a Python list for ``CartesianProduct`` versus
-      a dedicated element class for ``cartesian_product``;
+    - representation of elements: elements are represented by plain
+      Python list for ``CartesianProduct`` versus a custom element
+      class for ``cartesian_product``;
 
-    - membership test: because the objects are different the membership tests
-      differ.
+    - membership testing: because of the above, plain Python lists are
+      not considered as elements of a ``cartesian_product``.
 
     All of these is illustrated in the examples below.
 

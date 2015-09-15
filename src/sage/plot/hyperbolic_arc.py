@@ -7,6 +7,7 @@ AUTHORS:
 """
 #*****************************************************************************
 #       Copyright (C) 2011 Hartmut Monien <monien@th.physik.uni-bonn.de>,
+#                     2015 Stefan Kraemer <skraemer@th.physik.uni-bonn.de>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #
@@ -70,7 +71,7 @@ class HyperbolicArc(BezierPath):
         the hyperbolic arc between the complex numbers z0 and z3 in the
         hyperbolic plane.
         """
-        if (z0-z3).real() == 0:
+        if abs((z0-z3).real()) < 10.**(-3):
             self.path.append([(z0.real(),z0.imag()), (z3.real(),z3.imag())])
             return
         z0, z3 = (CC(z0), CC(z3))

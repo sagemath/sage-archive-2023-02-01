@@ -633,7 +633,7 @@ As a shortcut, in this setting, one can also use the notation::
     {2, 4}
 
 but this should be used with care because some sets have a
-natural indexing other than by `(0,\dots)`.
+natural indexing other than by `(0, 1, \dots)`.
 
 Conversely, one can calculate the position of an object in this order::
 
@@ -654,7 +654,7 @@ calculate its cardinality (`2^{2^{2^4}}`)::
 
 which is roughly `2\cdot 10^{19728}`::
 
-    sage: n.ndigits()                         # long time
+    sage: n.ndigits()
     19729
 
 or ask for its `237102124`-th element::
@@ -1552,7 +1552,7 @@ constraints on the sum and the length, and bounds on the parts and on
 the consecutive differences between the parts. Here are some more
 examples::
 
-    sage: IntegerListsLex(10, length=3,
+    sage: IntegerListsLex(10, length = 3,
     ....:                 min_part = 2, max_part = 5,
     ....:                 floor = [2, 4, 2]).list()
     [[4, 4, 2], [3, 5, 2], [3, 4, 3], [2, 5, 3], [2, 4, 4]]
@@ -1565,10 +1565,10 @@ examples::
     sage: IntegerListsLex(5, min_part = 1, max_slope = -1).list()
     [[5], [4, 1], [3, 2]]
 
-    sage: list(Compositions(5, max_length=2))
+    sage: list(Compositions(5, max_length = 2))
     [[5], [4, 1], [3, 2], [2, 3], [1, 4]]
 
-    sage: list(IntegerListsLex(5, max_length=2, min_part=1))
+    sage: list(IntegerListsLex(5, max_length = 2, min_part = 1))
     [[5], [4, 1], [3, 2], [2, 3], [1, 4]]
 
 The point of the model of ``IntegerListsLex`` is in the compromise

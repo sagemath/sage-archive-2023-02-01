@@ -2126,7 +2126,7 @@ Please use, e.g., S.algebra(QQ, category=Semigroups())""".format(self))
                     # Note: some parent might not implement "is_empty". So we
                     # carefully isolate this test.
                     test = any(c.is_empty() for c in f)
-                except Exception:
+                except (AttributeError, NotImplementedError):
                     pass
                 else:
                     if test: return test
@@ -2163,7 +2163,7 @@ Please use, e.g., S.algebra(QQ, category=Semigroups())""".format(self))
                     # Note: some parent might not implement "is_empty". So we
                     # carefully isolate this test.
                     is_empty = any(c.is_empty() for c in f)
-                except Exception:
+                except (AttributeError,NotImplementedError):
                     pass
                 else:
                     if is_empty:

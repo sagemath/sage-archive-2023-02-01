@@ -34,6 +34,7 @@ from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.parent import Parent
 from sage.sets.set import Set
+from sage.sets.finite_enumerated_set import FiniteEnumeratedSet
 from sage.rings.all import ZZ
 from combinat import CombinatorialElement
 from sage.categories.cartesian_product import cartesian_product
@@ -756,7 +757,7 @@ class Composition(CombinatorialElement):
             {[]}
         """
         if not self:
-            return Set([self])
+            return FiniteEnumeratedSet([self])
         else:
             return cartesian_product([Compositions(i) for i in self]).map(Composition.sum)
 

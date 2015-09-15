@@ -33,7 +33,6 @@ from sage.categories.infinite_enumerated_sets import InfiniteEnumeratedSets
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.parent import Parent
-from sage.sets.set import Set
 from sage.sets.finite_enumerated_set import FiniteEnumeratedSet
 from sage.rings.all import ZZ
 from combinat import CombinatorialElement

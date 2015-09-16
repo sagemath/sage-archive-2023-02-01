@@ -713,6 +713,10 @@ class GenericGrowthGroup(
 
         .. NOTE::
 
+            Either ``data`` or ``raw_element`` has to be given. If
+            ``raw_element`` is specified, then no positional argument
+            may be passed.
+
             This method calls :meth:`_convert_`, which does the actual
             conversion from ``data``.
 
@@ -720,22 +724,22 @@ class GenericGrowthGroup(
 
             sage: import sage.rings.asymptotic.growth_group as agg
             sage: G_ZZ = agg.GenericGrowthGroup(ZZ)
-            sage: z = G_ZZ(raw_element=42); z
+            sage: z = G_ZZ(raw_element=42); z  # indirect doctest
             GenericGrowthElement(42)
-            sage: z is G_ZZ(z)
+            sage: z is G_ZZ(z)  # indirect doctest
             True
 
         ::
 
             sage: G_QQ = agg.GenericGrowthGroup(QQ)
-            sage: q = G_QQ(raw_element=42)
+            sage: q = G_QQ(raw_element=42)  # indirect doctest
             sage: q is z
             False
-            sage: G_ZZ(q)
+            sage: G_ZZ(q)  # indirect doctest
             GenericGrowthElement(42)
-            sage: G_QQ(z)
+            sage: G_QQ(z)  # indirect doctest
             GenericGrowthElement(42)
-            sage: q is G_ZZ(q)
+            sage: q is G_ZZ(q)  # indirect doctest
             False
 
         ::
@@ -744,20 +748,21 @@ class GenericGrowthGroup(
             Traceback (most recent call last):
             ...
             ValueError: No input specified. Cannot continue.
-            sage: G_ZZ('blub')
+            sage: G_ZZ('blub')  # indirect doctest
             Traceback (most recent call last):
             ...
             ValueError: Cannot convert blub.
-            sage: G_ZZ('x', raw_element=42)
+            sage: G_ZZ('x', raw_element=42)  # indirect doctest
             Traceback (most recent call last):
             ...
             ValueError: Input is ambigous: x as well as raw_element=42 are specified.
 
         ::
 
-            sage: x = agg.MonomialGrowthGroup(ZZ, 'x')(raw_element=1)
+            sage: G_x = agg.MonomialGrowthGroup(ZZ, 'x')
+            sage: x = G_x(raw_element=1)  # indirect doctest
             sage: G_y = agg.MonomialGrowthGroup(ZZ, 'y')
-            sage: G_y(x)
+            sage: G_y(x)  # indirect doctest
             Traceback (most recent call last):
             ...
             ValueError: Cannot convert x.

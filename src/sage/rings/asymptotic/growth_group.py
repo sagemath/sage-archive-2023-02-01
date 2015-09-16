@@ -100,7 +100,7 @@ def parent_to_repr_short(P):
 
 class GenericGrowthElement(sage.structure.element.MultiplicativeGroupElement):
     r"""
-    An abstract implementation of a generic growth element.
+    A basic implementation of a generic growth element.
 
     Growth elements form a group by multiplication, and (some of) the
     elements can be compared to each other, i.e., all elements form a
@@ -461,7 +461,7 @@ class GenericGrowthGroup(
         sage.structure.parent.Parent,
         sage.structure.unique_representation.UniqueRepresentation):
     r"""
-    An abstract implementation for growth groups.
+    A basic implementation for growth groups.
 
     INPUT:
 

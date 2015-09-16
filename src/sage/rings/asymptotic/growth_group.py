@@ -67,11 +67,13 @@ def repr_short_to_parent(s):
 
     INPUT:
 
-    A string.
+    - ``s`` -- a string, short representation of a parent.
 
     OUTPUT:
 
     A parent.
+
+    The possible short representations are shown in the examples below.
 
     EXAMPLES::
 

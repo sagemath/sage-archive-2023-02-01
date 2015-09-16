@@ -1231,8 +1231,8 @@ class GenericGrowthGroup(
 
     def gens_monomial(self):
         r"""
-        Return a monomial generator of this growth group, in case
-        one exists.
+        Return a tuple containing monomial generators of this growth
+        group.
 
         INPUT:
 

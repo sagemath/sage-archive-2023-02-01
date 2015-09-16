@@ -314,7 +314,7 @@ class ConstructionFunctor(Functor):
             Traceback (most recent call last):
             ...
             CoercionException: No common base ("join") found for
-            FractionField(Integer Ring) and CartesianProductFunctor(Integer Ring).
+            FractionField(Integer Ring) and The cartesian_product functorial construction(Integer Ring).
         """
         self._raise_common_base_exception_(
             other_functor, self_bases, other_bases)
@@ -343,7 +343,7 @@ class ConstructionFunctor(Functor):
             Traceback (most recent call last):
             ...
             CoercionException: No common base ("join") found for
-            FractionField(Integer Ring) and CartesianProductFunctor(Rational Field).
+            FractionField(Integer Ring) and The cartesian_product functorial construction(Rational Field).
         """
         if not isinstance(self_bases, (tuple, list)):
             self_bases = (self_bases,)
@@ -687,14 +687,14 @@ class MultivariateConstructionFunctor(ConstructionFunctor):
             Traceback (most recent call last):
             ...
             CoercionException: No common base ("join") found for
-            CartesianProductFunctor(Integer Ring) and FractionField(Integer Ring):
+            The cartesian_product functorial construction(Integer Ring) and FractionField(Integer Ring):
             (Multivariate) functors are inkompatibel.
             sage: pushout(cartesian_product([ZZ]), cartesian_product([ZZ, QQ]))  # indirect doctest
             Traceback (most recent call last):
             ...
             CoercionException: No common base ("join") found for
-            CartesianProductFunctor(Integer Ring) and
-            CartesianProductFunctor(Integer Ring, Rational Field):
+            The cartesian_product functorial construction(Integer Ring) and
+            The cartesian_product functorial construction(Integer Ring, Rational Field):
             Functors need the same number of arguments.
         """
         if self != other_functor:

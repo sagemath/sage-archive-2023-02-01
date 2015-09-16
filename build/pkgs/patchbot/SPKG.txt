@@ -4,7 +4,12 @@
 
 Apply branches and run tests on open Sage tickets.
 
-The patchbot is used to automate the testing of git branches. It has two different aspects: a server side and a client side.
+The patchbot is used to automate the testing of git branches. It has two
+different aspects: a server side and a client side.
+
+Instructions for using the client side can be found at
+
+http://wiki.sagemath.org/buildbot/details
 
 == License ==
 
@@ -18,4 +23,4 @@ https://github.com/robertwb/sage-patchbot/
 
 == Dependencies ==
 
-python, sage-scripts
+python, python-dateutil, sage-scripts

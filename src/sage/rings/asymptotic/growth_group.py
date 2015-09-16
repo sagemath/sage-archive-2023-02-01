@@ -702,7 +702,7 @@ class GenericGrowthGroup(
 
     def _element_constructor_(self, data, raw_element=None):
         r"""
-        Converts a given object to this growth group.
+        Convert a given object to this growth group.
 
         INPUT:
 
@@ -794,7 +794,7 @@ class GenericGrowthGroup(
 
     def _convert_(self, data):
         r"""
-        Converts ``data`` to something the constructor of the
+        Convert ``data`` to something the constructor of the
         element class accepts (``raw_element``).
 
         INPUT:
@@ -1272,7 +1272,7 @@ class MonomialGrowthGroup(GenericGrowthGroup):
 
     def _convert_(self, data):
         r"""
-        Converts ``data`` to something the constructor of the
+        Convert ``data`` to something the constructor of the
         element class accepts (``raw_element``).
 
         INPUT:

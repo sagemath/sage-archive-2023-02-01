@@ -828,6 +828,34 @@ def SRG_120_77_52_44():
     H = IncidenceStructure([x for x in W if 22 not in x and 21 not in x])
     return H.intersection_graph(3)
 
+def SRG_144_39_6_12():
+    r"""
+    Return a `(144,39,6,12)`-strongly regular graph.
+
+    This graph is obtained as an orbit of length 2808 on sets of cardinality 2
+    (among 2 such orbits) of the group `PGL_3(3)` acting on the (right) cosets of
+    a subgroup of order 39.
+
+    EXAMPLE::
+
+        sage: from sage.graphs.strongly_regular_db import SRG_144_39_6_12
+        sage: G = SRG_144_39_6_12()
+        sage: G.is_strongly_regular(parameters=True)
+        (144, 39, 6, 12)
+    """
+
+    from sage.libs.gap.libgap import libgap
+    g=libgap.ProjectiveGeneralLinearGroup(3,3)
+    ns=g.Normalizer(g.SylowSubgroup(13))
+    G=g.Action(g.RightCosets(ns),libgap.OnRight)
+    H=G.Stabilizer(1)
+    for o in filter(lambda x: len(x)==39, H.Orbits()):
+        h = Graph()
+        h.add_edges(G.Orbit([1,o[0]],libgap.OnSets))
+        if h.is_strongly_regular():
+            h.relabel()
+            return h
+
 def SRG_176_49_12_14():
     r"""
     Return a `(176,49,12,14)`-strongly regular graph.
@@ -1084,28 +1112,33 @@ def SRG_416_100_36_20():
     r"""
     Return a `(416,100,36,20)`-strongly regular graph.
 
-    This graph is obtained from the neighborhood of the from :meth:`Suzuki Graph
-    <sage.graphs.graph_generators.GraphGenerators.SuzukiGraph>`.
+    This graph is obtained as an orbit on sets of cardinality 2
+    (among 2 that exists) of the group `G_2(4)`.
+    This graph is isomorphic to the subgraph of the from :meth:`Suzuki Graph
+    <sage.graphs.graph_generators.GraphGenerators.SuzukiGraph>` induced on
+    the neighbors of a vertex.
 
     EXAMPLE::
 
         sage: from sage.graphs.strongly_regular_db import SRG_416_100_36_20
-        sage: g = SRG_416_100_36_20()                # not tested
-        sage: g.is_strongly_regular(parameters=True) # not tested
-
+        sage: g = SRG_416_100_36_20()                # optional - gap_packages # long time
+        sage: g.is_strongly_regular(parameters=True) # optional - gap_packages # long time
+        (416, 100, 36, 20)
     """
-    from sage.graphs.generators.smallgraphs import SuzukiGraph
-    G = SuzukiGraph()
-    G = G.subgraph(G.neighbors(0))
-    G.relabel()
-    return G
+    from sage.libs.gap.libgap import libgap
+    libgap.LoadPackage("AtlasRep")
+    g=libgap.AtlasGroup("G2(4)",libgap.NrMovedPoints,416)
+    h = Graph()
+    h.add_edges(g.Orbit([1,5],libgap.OnSets))
+    h.relabel()
+    return h
 
 def SRG_560_208_72_80():
     r"""
     Return a `(560,208,72,80)`-strongly regular graph
 
-    This graph is obtained by the union of 4 orbits of sets of cardinality 2
-    (among the 13 that exists) in the group Sz(8).
+    This graph is obtained as the union of 4 orbits of sets of cardinality 2
+    (among the 13 that exists) of the group `Sz(8)`.
 
     EXAMPLE::
 
@@ -1125,7 +1158,6 @@ def SRG_560_208_72_80():
     h.add_edges(g.Orbit([1,27],libgap.OnSets))
     h.relabel()
     return h
-
 
 def SRG_729_532_391_380():
     r"""
@@ -1857,6 +1889,7 @@ def strongly_regular_graph(int v,int k,int l,int mu=-1,bint existence=False,bint
         (120,  77,  52, 44): [SRG_120_77_52_44],
         (126,  25,   8,  4): [SRG_126_25_8_4],
         (126,  50,  13, 24): [SRG_126_50_13_24],
+        (144,  39,   6, 12): [SRG_144_39_6_12],
         (162,  56,  10, 24): [LocalMcLaughlinGraph],
         (175,  72,  20, 36): [SRG_175_72_20_36],
         (176,  49,  12, 14): [SRG_176_49_12_14],

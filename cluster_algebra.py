@@ -346,13 +346,15 @@ class ClusterAlgebra(Parent):
         r"""
         Set ``self._seed`` to ``seed`` if it makes sense.
         """
-        computed_sd = self.initial_seed
-        computed_sd.mutation_sequence(seed._path, mutating_F=False)
-        if computed_sd == seed:
+        if self.contains_seed(seed):
             self._seed = seed
         else:
             raise ValueError("This is not a seed in this cluster algebra.")
 
+    def contains_seed(self, seed):
+        computed_sd = self.initial_seed
+        computed_sd.mutation_sequence(seed._path, mutating_F=False)
+        return computed_sd == seed 
 
     def reset_current_seed(self):
         r"""

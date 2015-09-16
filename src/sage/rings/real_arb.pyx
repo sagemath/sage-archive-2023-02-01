@@ -1884,6 +1884,74 @@ cdef class RealBall(RingElement):
                 return True
         assert False, "not reached"
 
+    def min(self, *others):
+        """
+        Return a ball containing the minimum of this ball and the
+        remaining arguments.
+
+        EXAMPLES::
+
+            sage: from sage.rings.real_arb import RBF
+            sage: RBF(1, rad=.5).min(0)
+            0
+
+            sage: RBF(0, rad=2.).min(RBF(0, rad=1.)).endpoints()
+            (-2.00000000651926, 1.00000000465662)
+
+            sage: RBF(infinity).min(3, 1/3)
+            [0.3333333333333333 +/- 7.04e-17]
+
+        Note that calls involving NaNs try to return a number when possible.
+        This is consistent with IEEE-754-2008 but may be surprising. ::
+
+            sage: RBF('nan').min(0)
+            0
+            sage: RBF('nan').min(RBF('nan'))
+            nan
+
+        TESTS::
+
+            sage: RBF(0).min()
+            0
+        """
+        iv = self._real_mpfi_(RealIntervalField(prec(self)))
+        my_others = [self._parent.coerce(x) for x in others]
+        return self._parent(iv.min(*my_others))
+
+    def max(self, *others):
+        """
+        Return a ball containing the maximum of this ball and the
+        remaining arguments.
+
+        EXAMPLES::
+
+            sage: from sage.rings.real_arb import RBF
+            sage: RBF(-1, rad=.5).max(0)
+            0
+
+            sage: RBF(0, rad=2.).max(RBF(0, rad=1.)).endpoints()
+            (-1.00000000465662, 2.00000000651926)
+
+            sage: RBF(-infinity).max(-3, 1/3)
+            [0.3333333333333333 +/- 7.04e-17]
+
+        Note that calls involving NaNs try to return a number when possible.
+        This is consistent with IEEE-754-2008 but may be surprising. ::
+
+            sage: RBF('nan').max(0)
+            0
+            sage: RBF('nan').max(RBF('nan'))
+            nan
+
+        TESTS::
+
+            sage: RBF(0).max()
+            0
+        """
+        iv = self._real_mpfi_(RealIntervalField(prec(self)))
+        my_others = [self._parent.coerce(x) for x in others]
+        return self._parent(iv.max(*my_others))
+
     def is_finite(self):
         """
         Return True iff the midpoint and radius of this ball are both

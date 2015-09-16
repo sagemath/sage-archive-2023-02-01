@@ -1374,15 +1374,17 @@ cdef class RealBall(RingElement):
         mag_zero(arb_radref(res.value))
         return res
 
-    def abs(self):
+    def __abs__(self):
         """
         Return the absolute value of this ball.
 
         EXAMPLES::
 
             sage: from sage.rings.real_arb import RBF
-            sage: RBF(-1/3).abs()
+            sage: RBF(-1/3).abs() # indirect doctest
             [0.3333333333333333 +/- 7.04e-17]
+            sage: abs(RBF(-1))
+            1.000000000000000
         """
         cdef RealBall r = self._new()
         arb_abs(r.value, self.value)

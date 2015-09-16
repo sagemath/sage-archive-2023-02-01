@@ -987,15 +987,18 @@ cdef class ComplexBall(RingElement):
         arb_set(r.value, acb_imagref(self.value))
         return r
 
-    def abs(self):
+    def __abs__(self):
         """
         Return the absolute value of this complex ball.
 
         EXAMPLES::
 
             sage: from sage.rings.complex_ball_acb import CBF
-            sage: CBF(1 + i).abs()
+            sage: CBF(1 + i).abs() # indirect doctest
             [1.414213562373095 +/- 2.99e-16]
+            sage: abs(CBF(i))
+            1.000000000000000
+
             sage: CBF(1 + i).abs().parent()
             Real ball field with 53 bits precision
         """

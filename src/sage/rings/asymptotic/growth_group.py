@@ -890,7 +890,7 @@ class MonomialGrowthElement(GenericGrowthElement):
 
     INPUT:
 
-    - ``parent`` -- a :class:`GenericGrowthGroup`.
+    - ``parent`` -- a :class:`MonomialGrowthGroup`.
 
     - ``raw_element`` -- an element from the base ring of the parent.
 

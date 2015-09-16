@@ -1093,7 +1093,7 @@ class AsymptoticRing(sage.rings.ring.Ring,
 
         An iterator.
 
-        EXAMPLES:
+        EXAMPLES::
 
             sage: from itertools import islice
             sage: A = AsymptoticRing(growth_group='z^QQ', coefficient_ring=ZZ)

@@ -785,6 +785,15 @@ class VectorFieldModule(UniqueRepresentation, Parent):
           :class:`~sage.manifolds.differentiable.metric.PseudoRiemannianMetric`
           representing the defined pseudo-Riemannian metric.
 
+        EXAMPLES:
+
+            sage: M = DiffManifold(2, 'M')
+            sage: XM = M.vector_field_module()
+            sage: XM.metric('g')
+            Riemannian metric g on the 2-dimensional differentiable manifold M
+            sage: XM.metric('g', signature=0)
+            Lorentzian metric g on the 2-dimensional differentiable manifold M
+
         See the class
         :class:`~sage.manifolds.differentiable.metric.PseudoRiemannianMetric`
         for further documentation.
@@ -1608,6 +1617,16 @@ class VectorFieldFreeModule(FiniteRankFreeModule):
         - instance of
           :class:`~sage.manifolds.differentiable.metric.PseudoRiemannianMetricParal`
           representing the defined pseudo-Riemannian metric.
+
+        EXAMPLES::
+
+            sage: M = DiffManifold(2, 'M')
+            sage: X.<x,y> = M.chart()  # makes M parallelizable
+            sage: XM = M.vector_field_module()
+            sage: XM.metric('g')
+            Riemannian metric g on the 2-dimensional differentiable manifold M
+            sage: XM.metric('g', signature=0)
+            Lorentzian metric g on the 2-dimensional differentiable manifold M
 
         See the class
         :class:`~sage.manifolds.differentiable.metric.PseudoRiemannianMetricParal`

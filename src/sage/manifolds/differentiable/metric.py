@@ -356,7 +356,7 @@ class PseudoRiemannianMetric(TensorField):
         TensorField.__init__(self, vector_field_module, (0,2),
                              name=name, latex_name=latex_name, sym=(0,1))
         # signature:
-        ndim = self._ambient_domain._manifold._dim
+        ndim = self._ambient_domain.dimension()
         if signature is None:
             signature = ndim
         else:
@@ -394,10 +394,11 @@ class PseudoRiemannianMetric(TensorField):
             'Pseudo-Riemannian metric g on the 5-dimensional differentiable manifold M'
 
         """
-        n = self._domain.dimension()
-        if self._signature == n:
+        n = self._ambient_domain.dimension()
+        s = self._signature
+        if s == n:
             description = "Riemannian metric "
-        elif self._signature == n-2:
+        elif s == n-2 or s == 2-n:
             description = "Lorentzian metric "
         else:
             description = "Pseudo-Riemannian metric "
@@ -732,10 +733,16 @@ class PseudoRiemannianMetric(TensorField):
             Levi-Civita connection nabla_g associated with the Riemannian
              metric g on the Open subset U of the 3-dimensional differentiable
              manifold R^3
-            sage: g.connection()[:]  # Christoffel symbols w.r.t. spherical coordinates
-            [[[0, 0, 0], [0, -r, 0], [0, 0, -r*sin(th)^2]],
-            [[0, 1/r, 0], [1/r, 0, 0], [0, 0, -cos(th)*sin(th)]],
-            [[0, 0, 1/r], [0, 0, cos(th)/sin(th)], [1/r, cos(th)/sin(th), 0]]]
+            sage: g.connection().display()  # Nonzero connection coefficients
+            Gam^r_th,th = -r
+            Gam^r_ph,ph = -r*sin(th)^2
+            Gam^th_r,th = 1/r
+            Gam^th_th,r = 1/r
+            Gam^th_ph,ph = -cos(th)*sin(th)
+            Gam^ph_r,ph = 1/r
+            Gam^ph_th,ph = cos(th)/sin(th)
+            Gam^ph_ph,r = 1/r
+            Gam^ph_ph,th = cos(th)/sin(th)
 
         Test of compatibility with the metric::
 
@@ -1166,7 +1173,7 @@ class PseudoRiemannianMetric(TensorField):
 
         """
         if self._weyl is None:
-            n = self._ambient_domain._manifold._dim
+            n = self._ambient_domain.dimension()
             if n < 3:
                 raise ValueError("The Weyl tensor is not defined for a " +
                                  "manifold of dimension n <= 2.")
@@ -1247,7 +1254,6 @@ class PseudoRiemannianMetric(TensorField):
         """
         from sage.matrix.constructor import matrix
         from sage.manifolds.utilities import simplify_chain_real
-        manif = self._ambient_domain._manifold
         dom = self._domain
         if frame is None:
             frame = dom._def_frame
@@ -1258,8 +1264,9 @@ class PseudoRiemannianMetric(TensorField):
         if frame not in self._determinants:
             # a new computation is necessary
             resu = frame._domain.scalar_field()
+            manif = self._ambient_domain
             gg = self.comp(frame)
-            i1 = manif._sindex
+            i1 = manif.start_index()
             for chart in gg[[i1, i1]]._express:
                 gm = matrix( [[ gg[i, j, chart]._express
                             for j in manif.irange()] for i in manif.irange()] )
@@ -1460,14 +1467,15 @@ class PseudoRiemannianMetric(TensorField):
         """
         if self._vol_forms == []:
             # a new computation is necessary
-            manif = self._ambient_domain._manifold
+            manif = self._ambient_domain
             dom = self._domain
-            ndim = manif._dim
+            ndim = manif.dimension()
             # The result is constructed on the vector field module,
             # so that dest_map is taken automatically into account:
             eps = self._vmodule.alternating_form(ndim, name='eps_'+self._name,
                                 latex_name=r'\epsilon_{'+self._latex_name+r'}')
-            ind = tuple(range(manif._sindex, manif._sindex+ndim))
+            si = manif.start_index()
+            ind = tuple(range(si, si+ndim))
             for frame in dom._top_frames:
                 eps.add_comp(frame)[[ind]] = self.sqrt_abs_det(frame)
             self._vol_forms.append(eps)  # Levi-Civita tensor constructed
@@ -1555,7 +1563,7 @@ class PseudoRiemannianMetric(TensorField):
 
             sage: M = DiffManifold(4, 'M')
             sage: X.<t,x,y,z> = M.chart()
-            sage: g = M.metric('g', signature=2)
+            sage: g = M.lorentz_metric('g')
             sage: g[0,0], g[1,1], g[2,2], g[3,3] = -1, 1, 1, 1
             sage: g.display()  # Minkowski metric
             g = -dt*dt + dx*dx + dy*dy + dz*dz
@@ -1802,7 +1810,7 @@ class PseudoRiemannianMetricParal(PseudoRiemannianMetric, TensorFieldParal):
         TensorFieldParal.__init__(self, vector_field_module, (0,2),
                                   name=name, latex_name=latex_name, sym=(0,1))
         # signature:
-        ndim = self._ambient_domain._manifold._dim
+        ndim = self._ambient_domain.dimension()
         if signature is None:
             signature = ndim
         else:
@@ -1904,7 +1912,7 @@ class PseudoRiemannianMetricParal(PseudoRiemannianMetric, TensorFieldParal):
 
             sage: M = DiffManifold(2, 'M')
             sage: X.<x,y> = M.chart()
-            sage: g = M.metric('g', signature=0)
+            sage: g = M.lorentz_metric('g')
             sage: g[0,0], g[1,1] = -1, 1
             sage: U = M.open_subset('U', coord_def={X: y>0})
             sage: gU = g.restrict(U); gU
@@ -2097,7 +2105,7 @@ class PseudoRiemannianMetricParal(PseudoRiemannianMetric, TensorFieldParal):
 
         """
         if self._ricci_scalar is None:
-            manif = self._domain._manifold
+            manif = self._ambient_domain
             ric = self.ricci()
             ig = self.inverse()
             frame = ig.common_basis(ric)

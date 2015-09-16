@@ -201,6 +201,27 @@ class LeviCivitaConnection(AffineConnection):
 
     """
     def __init__(self, metric, name, latex_name=None, init_coef=True):
+        r"""
+        Construct a Levi-Civita connection.
+
+        TESTS:
+
+        Levi-Civita connection of the hyperbolic plane::
+
+            sage: DiffManifold._clear_cache_()  # for doctests only
+            sage: M = DiffManifold(2, 'M')
+            sage: X.<r,ph> = M.chart(r'r:(0,+oo) ph:(0,2*pi)')
+            sage: g = M.metric('g')
+            sage: g[0,0], g[1,1] = 1/(1+r^2), r^2
+            sage: from sage.manifolds.differentiable.levi_civita_connection \
+            ....:                                   import LeviCivitaConnection
+            sage: nab = LeviCivitaConnection(g, 'nabla', latex_name=r'\nabla')
+            sage: nab
+            Levi-Civita connection nabla associated with the Riemannian metric
+             g on the 2-dimensional differentiable manifold M
+            sage: TestSuite(nab).run()
+
+        """
         AffineConnection.__init__(self, metric._domain, name, latex_name)
         self._metric = metric
         # Initialization of the derived quantities:
@@ -221,6 +242,16 @@ class LeviCivitaConnection(AffineConnection):
         r"""
         String representation of the object.
 
+        TESTS::
+
+            sage: M = DiffManifold(5, 'M')
+            sage: g = M.metric('g')
+            sage: nab = g.connection()
+            sage: nab._repr_()
+            'Levi-Civita connection nabla_g associated with the Riemannian metric g on the 5-dimensional differentiable manifold M'
+            sage: repr(nab)  # indirect doctest
+            'Levi-Civita connection nabla_g associated with the Riemannian metric g on the 5-dimensional differentiable manifold M'
+
         """
         description = "Levi-Civita connection"
         if self._name is not None:
@@ -230,33 +261,74 @@ class LeviCivitaConnection(AffineConnection):
 
     def _init_derived(self):
         r"""
-        Initialize the derived quantities
+        Initialize the derived quantities.
+
+        TEST::
+
+            sage: M = DiffManifold(5, 'M')
+            sage: g = M.metric('g')
+            sage: nab = g.connection()
+            sage: nab._init_derived()
+
         """
         AffineConnection._init_derived(self)
 
     def _del_derived(self):
         r"""
-        Delete the derived quantities
+        Delete the derived quantities.
+
+        TEST::
+
+            sage: M = DiffManifold(5, 'M')
+            sage: g = M.metric('g')
+            sage: nab = g.connection()
+            sage: nab._del_derived()
+
         """
         AffineConnection._del_derived(self)
 
     def restrict(self, subdomain):
         r"""
-        Return the restriction of ``self`` to some subdomain.
+        Return the restriction of the connection to some subdomain.
 
         If such restriction has not been defined yet, it is constructed here.
 
         INPUT:
 
-        - ``subdomain`` -- open subset `U` of ``self._domain`` (must be an
-          instance of
+        - ``subdomain`` -- open subset `U` of the connection's domain (must be
+          an instance of
           :class:`~sage.manifolds.differentiable.manifold.DiffManifold`)
 
         OUTPUT:
 
-        - instance of :class:`LeviCivitaConnection` representing the restriction.
+        - instance of :class:`LeviCivitaConnection` representing the
+          restriction.
 
-        EXAMPLE:
+        EXAMPLE::
+
+            sage: DiffManifold._clear_cache_() # for doctests only
+            sage: M = DiffManifold(2, 'M')
+            sage: X.<x,y> = M.chart()
+            sage: g = M.metric('g')
+            sage: g[0,0], g[1,1] = 1+y^2, 1+x^2
+            sage: nab = g.connection()
+            sage: nab[:]
+            [[[0, y/(y^2 + 1)], [y/(y^2 + 1), -x/(y^2 + 1)]],
+             [[-y/(x^2 + 1), x/(x^2 + 1)], [x/(x^2 + 1), 0]]]
+            sage: U = M.open_subset('U', coord_def={X: x>0})
+            sage: nabU = nab.restrict(U); nabU
+            Levi-Civita connection nabla_g associated with the Riemannian
+             metric g on the Open subset U of the 2-dimensional differentiable
+             manifold M
+            sage: nabU[:]
+            [[[0, y/(y^2 + 1)], [y/(y^2 + 1), -x/(y^2 + 1)]],
+             [[-y/(x^2 + 1), x/(x^2 + 1)], [x/(x^2 + 1), 0]]]
+
+        Let us check that the restriction is the connection compatible with the
+        restriction of the metric::
+
+            sage: nabU(g.restrict(U)).display()
+            nabla_g(g) = 0
 
         """
         if subdomain == self._domain:
@@ -290,6 +362,20 @@ class LeviCivitaConnection(AffineConnection):
     def _new_coef(self, frame):
         r"""
         Create the connection coefficients w.r.t. the given frame.
+
+        TESTS::
+
+            sage: M = DiffManifold(2, 'M')
+            sage: X.<x,y> = M.chart()
+            sage: g = M.metric('g')
+            sage: g[0,0], g[1,1] = 1, 1
+            sage: nab = g.connection()
+            sage: nab._new_coef(X.frame())
+            3-indices components w.r.t. Coordinate frame (M, (d/dx,d/dy)), with
+             symmetry on the index positions (1, 2)
+            sage: e = M.vector_frame('e')
+            sage: nab._new_coef(e)
+            3-indices components w.r.t. Vector frame (M, (e_0,e_1))
 
         """
         from sage.tensor.modules.comp import Components, CompWithSym
@@ -489,6 +575,22 @@ class LeviCivitaConnection(AffineConnection):
         - the torsion tensor `T`, as a vanishing instance of
           :class:`~sage.manifolds.differentiable.tensorfield.TensorField`
 
+        EXAMPLE::
+
+            sage: M = DiffManifold(2, 'M')
+            sage: X.<x,y> = M.chart()
+            sage: g = M.metric('g')
+            sage: g[0,0], g[1,1] = 1+y^2, 1+x^2
+            sage: nab = g.connection()
+            sage: t = nab.torsion(); t
+            Tensor field of type (1,2) on the 2-dimensional differentiable
+             manifold M
+
+        The torsion of a Levi-Civita connection is always zero::
+
+            sage: t.display()
+            0
+
         """
         if self._torsion is None:
             resu = self._domain.tensor_field(1, 2, antisym=(1,2))
@@ -500,7 +602,7 @@ class LeviCivitaConnection(AffineConnection):
 
     def riemann(self, name=None, latex_name=None):
         r"""
-        Return the Riemann curvature tensor associated with the metric.
+        Return the Riemann curvature tensor of the connection.
 
         This method redefines
         :meth:`sage.manifolds.differentiable.affine_connection.AffineConnection.riemann`
@@ -529,6 +631,26 @@ class LeviCivitaConnection(AffineConnection):
         - the Riemann curvature tensor `R`, as an instance of
           :class:`~sage.manifolds.differentiable.tensorfield.TensorField`
 
+        EXAMPLE:
+
+        Riemann tensor of the Levi-Civita connection associated with the
+        metric of the hyperbolic plane (Poincare disk model)::
+
+            sage: M = DiffManifold(2, 'M', start_index=1)
+            sage: X.<x,y> = M.chart('x:(-1,1) y:(-1,1)')  # Cartesian coord. on the Poincare disk
+            sage: X.add_restrictions(x^2+y^2<1)
+            sage: g = M.metric('g')
+            sage: g[1,1], g[2,2] = 4/(1-x^2-y^2)^2, 4/(1-x^2-y^2)^2
+            sage: nab = g.connection()
+            sage: riem = nab.riemann(); riem
+            Tensor field Riem(g) of type (1,3) on the 2-dimensional
+             differentiable manifold M
+            sage: riem.display_comp()
+            Riem(g)^x_yxy = -4/(x^4 + y^4 + 2*(x^2 - 1)*y^2 - 2*x^2 + 1)
+            Riem(g)^x_yyx = 4/(x^4 + y^4 + 2*(x^2 - 1)*y^2 - 2*x^2 + 1)
+            Riem(g)^y_xxy = 4/(x^4 + y^4 + 2*(x^2 - 1)*y^2 - 2*x^2 + 1)
+            Riem(g)^y_xyx = -4/(x^4 + y^4 + 2*(x^2 - 1)*y^2 - 2*x^2 + 1)
+
         """
         if self._riemann is None:
             AffineConnection.riemann(self)
@@ -553,8 +675,8 @@ class LeviCivitaConnection(AffineConnection):
 
         This method redefines
         :meth:`sage.manifolds.differentiable.affine_connection.AffineConnection.ricci`
-        to take into account
-        the symmetry of the Ricci tensor for a Levi-Civita connection.
+        to take into account the symmetry of the Ricci tensor for a
+        Levi-Civita connection.
 
         The Ricci tensor is the tensor field `Ric` of type (0,2)
         defined from the Riemann curvature tensor `R` by
@@ -600,11 +722,12 @@ class LeviCivitaConnection(AffineConnection):
             Ric(g) = dth*dth + sin(th)^2 dph*dph
 
         Checking that the Ricci tensor of the Levi-Civita connection associated
-        to Schwarzschild metric is identically zero::
+        to Schwarzschild metric is identically zero (as a solution of the
+        Einstein equation)::
 
             sage: M = DiffManifold(4, 'M')
-            sage: c_BL.<t,r,th,ph> = M.chart(r't r:(0,+oo) th:(0,pi):\theta ph:(0,2*pi):\phi') # Boyer-Linquist coordinates
-            sage: g = M.metric('g', signature=2)
+            sage: c_BL.<t,r,th,ph> = M.chart(r't r:(0,+oo) th:(0,pi):\theta ph:(0,2*pi):\phi') # Schwarzschild-Droste coordinates
+            sage: g = M.lorentz_metric('g')
             sage: m = var('m')  # mass in Schwarzschild metric
             sage: g[0,0], g[1,1] = -(1-2*m/r), 1/(1-2*m/r)
             sage: g[2,2], g[3,3] = r^2, (r*sin(th))^2

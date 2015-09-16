@@ -1128,14 +1128,14 @@ class AffineConnection(SageObject):
 
     def restrict(self, subdomain):
         r"""
-        Return the restriction of ``self`` to some subdomain.
+        Return the restriction of the connection to some subdomain.
 
         If such restriction has not been defined yet, it is constructed here.
 
         INPUT:
 
-        - ``subdomain`` -- open subset `U` of ``self._domain`` (must be an
-          instance of
+        - ``subdomain`` -- open subset `U` of the connection's domain (must be
+          an instance of
           :class:`~sage.manifolds.differentiable.manifold.DiffManifold`)
 
         OUTPUT:

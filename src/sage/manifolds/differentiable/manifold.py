@@ -2753,7 +2753,8 @@ class DiffManifold(TopManifold):
         r"""
         Define a pseudo-Riemannian metric on the manifold.
 
-        See
+        A *pseudo-Riemannian metric* is a field of nondegenerate symmetric
+        bilinear forms acting in the tangent spaces. See
         :class:`~sage.manifolds.differentiable.metric.PseudoRiemannianMetric`
         for a complete documentation.
 
@@ -2788,7 +2789,7 @@ class DiffManifold(TopManifold):
             sage: M = DiffManifold(3, 'M', start_index=1)
             sage: c_xyz.<x,y,z> = M.chart()
             sage: g = M.metric('g'); g
-            pseudo-Riemannian metric 'g' on the 3-dimensional manifold 'M'
+            Riemannian metric g on the 3-dimensional differentiable manifold M
 
         See the documentation of class
         :class:`~sage.manifolds.differentiable.metric.PseudoRiemannianMetric`
@@ -2798,4 +2799,66 @@ class DiffManifold(TopManifold):
         vmodule = self.vector_field_module(dest_map)
         return vmodule.metric(name, signature=signature, latex_name=latex_name)
 
+    def lorentz_metric(self, name, signature='positive', latex_name=None,
+                       dest_map=None):
+        r"""
+        Define a Lorentzian metric on the manifold.
 
+        A *Lorentzian metric* is a field of nondegenerate symmetric bilinear
+        forms acting in the tangent spaces, with signature `(-,+,\cdots,+)` or
+        `(+,-,\cdots,-)`.
+
+        See
+        :class:`~sage.manifolds.differentiable.metric.PseudoRiemannianMetric`
+        for a complete documentation.
+
+        INPUT:
+
+        - ``name`` -- name given to the metric
+        - ``signature`` -- (default: 'positive') sign of the metric
+          signature:
+
+          * if set to 'positive', the signature is n-2, where n is the manifold's
+            dimension, i.e. `(-,+,\cdots,+)`
+          * if set to 'negative', the signature is -n+2, i.e. `(+,-,\cdots,-)`
+
+        - ``latex_name`` -- (default: ``None``) LaTeX symbol to denote the
+          metric; if ``None``, it is formed from ``name``
+        - ``dest_map`` -- (default: ``None``) instance of
+          class :class:`~sage.manifolds.differentiable.diff_map.DiffMap`
+          representing the destination map `\Phi:\ U \rightarrow M`, where `U`
+          is the current manifold; if ``None``, the identity map is assumed
+          (case of a metric field *on* `U`)
+
+        EXAMPLE:
+
+        Metric of Minkowski spacetime::
+
+            sage: M = DiffManifold(4, 'M')
+            sage: X.<t,x,y,z> = M.chart()
+            sage: g = M.lorentz_metric('g'); g
+            Lorentzian metric g on the 4-dimensional differentiable manifold M
+            sage: g[0,0], g[1,1], g[2,2], g[3,3] = -1, 1, 1, 1
+            sage: g.display()
+            g = -dt*dt + dx*dx + dy*dy + dz*dz
+            sage: g.signature()
+            2
+
+        Choice of a negative signature::
+
+            sage: g = M.lorentz_metric('g', signature='negative'); g
+            Lorentzian metric g on the 4-dimensional differentiable manifold M
+            sage: g[0,0], g[1,1], g[2,2], g[3,3] = 1, -1, -1, -1
+            sage: g.display()
+            g = dt*dt - dx*dx - dy*dy - dz*dz
+            sage: g.signature()
+            -2
+
+        """
+        vmodule = self.vector_field_module(dest_map)
+        dim = vmodule._ambient_domain.dimension()
+        if signature=='positive':
+            signat = dim - 2
+        else:
+            signat = 2 - dim
+        return vmodule.metric(name, signature=signat, latex_name=latex_name)

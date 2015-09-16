@@ -1990,7 +1990,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
         if modulus:
             from sage.rings.arith import power_mod
             return power_mod(self, right, modulus)
-        if (<Polynomial>self) == self.parent().gen():   # special case x**n should be faster!
+        if (<Polynomial>self).is_gen():   # special case x**n should be faster!
             P = self.parent()
             R = P.base_ring()
             if P.is_sparse():

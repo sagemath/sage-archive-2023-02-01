@@ -1298,10 +1298,10 @@ class TermWithCoefficient(GenericTerm):
             sage: CT = atm.TermWithCoefficientMonoid(G, ZZ)
             sage: ET = atm.ExactTermMonoid(G, ZZ)
 
-            This method handles the multiplication of abstract terms
-            with coefficient (i.e. :class:`TermWithCoefficient`) and
-            exact terms (i.e. :class:`ExactTerm`). First, an example
-            for abstract terms::
+        This method handles the multiplication of abstract terms
+        with coefficient (i.e. :class:`TermWithCoefficient`) and
+        exact terms (i.e. :class:`ExactTerm`). First, an example
+        for abstract terms::
 
             sage: t1 = CT(x^2, 2); t2 = CT(x^3, 3)
             sage: t1 * t2

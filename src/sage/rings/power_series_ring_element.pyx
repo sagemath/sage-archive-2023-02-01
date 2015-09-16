@@ -1029,7 +1029,7 @@ cdef class PowerSeries(AlgebraElement):
 
         - David Harvey (2006-09-09): changed to use Newton's method
         """
-        if self == 1:
+        if self.is_one():
             return self
         prec = self.prec()
         if prec is infinity and self.degree() > 0:

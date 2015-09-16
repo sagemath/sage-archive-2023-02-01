@@ -1514,7 +1514,7 @@ cdef class RealBall(RingElement):
         # naive and slow
         return self._real_mpfi_(RealIntervalField(prec(self))).endpoints(rnd)
 
-    # Precision
+    # Precision and accuracy
 
     def round(self):
         """
@@ -1587,6 +1587,34 @@ cdef class RealBall(RingElement):
         if _do_sig(prec(self)): sig_on()
         arb_trim(res.value, self.value)
         if _do_sig(prec(self)): sig_off()
+        return res
+
+    def add_error(self, ampl):
+        """
+        Increase the radius of this ball by (an upper bound on) ``ampl``.
+
+        If ``ampl`` is negative, the radius in unchanged.
+
+        EXAMPLES::
+
+            sage: from sage.rings.real_arb import RBF
+            sage: err = RBF(10^-16)
+            sage: RBF(1).add_error(err)
+            [1.000000000000000 +/- 1.01e-16]
+
+        TESTS::
+
+            sage: RBF(1).add_error(-1)
+            1.000000000000000
+            sage: RBF(0).add_error(RBF(1, rad=2.)).endpoints()
+            (-3.00000000745059, 3.00000000745059)
+        """
+        cdef RealBall res = self._new()
+        cdef RealBall my_ampl = self._parent(ampl)
+        if my_ampl < 0:
+            my_ampl = self._parent.zero()
+        arb_set(res.value, self.value)
+        arb_add_error(res.value, my_ampl.value)
         return res
 
     # Comparisons and predicates

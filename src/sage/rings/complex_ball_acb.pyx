@@ -1234,6 +1234,21 @@ cdef class ComplexBall(RingElement):
         if _do_sig(prec(self)): sig_off()
         return res
 
+    def add_error(self, ampl):
+        """
+        Increase the radii of the real and imaginary parts by (an upper bound
+        on) ``ampl``.
+
+        If ``ampl`` is negative, the radii remain unchanged.
+
+        EXAMPLES::
+
+            sage: from sage.rings.complex_ball_acb import CBF
+            sage: CBF(1+i).add_error(10^-16)
+            [1.000000000000000 +/- 1.01e-16] + [1.000000000000000 +/- 1.01e-16]*I
+        """
+        return ComplexBall(self._parent, self.real().add_error(ampl), self.imag().add_error(ampl))
+
     # Comparisons and predicates
 
     def is_zero(self):

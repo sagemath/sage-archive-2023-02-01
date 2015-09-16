@@ -99,7 +99,7 @@ def repr_short_to_parent(s):
     elif s == 'SR':
         return sage.symbolic.ring.SR
     else:
-        raise ValueError("Cannot create a parent out of '%s'." % s)
+        raise ValueError("Cannot create a parent out of '%s'." % (s,))
 
 
 def parent_to_repr_short(P):

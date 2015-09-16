@@ -165,7 +165,7 @@ def are_hyperplanes_in_projective_geometry_parameters(v, k, lmbda, return_parame
 
     return (True, (q,d)) if return_parameters else True
 
-def ProjectiveGeometryDesign(n, d, F, algorithm=None, check=True):
+def ProjectiveGeometryDesign(n, d, F, algorithm=None, coordinates=None, check=True):
     """
     Return a projective geometry design.
 
@@ -188,6 +188,10 @@ def ProjectiveGeometryDesign(n, d, F, algorithm=None, check=True):
       GAP's "design" package must be available in this case, and that it can be
       installed with the ``gap_packages`` spkg.
 
+    - ``coordinates`` -- ``None`` by default. In this case and also if
+      ``algorithm="gap"``, the ground set is indexed by integers,
+      Otherwise it is indexed by coordinates in `F^{n+1}`.
+
     EXAMPLES:
 
     The set of `d`-dimensional subspaces in a `n`-dimensional projective space
@@ -202,6 +206,12 @@ def ProjectiveGeometryDesign(n, d, F, algorithm=None, check=True):
         sage: PG = designs.ProjectiveGeometryDesign(3,1,GF(4,'z'))
         sage: PG.is_t_design(return_parameters=True)
         (True, (2, 85, 5, 1))
+
+    Use coordinates::
+
+        sage: PG = designs.ProjectiveGeometryDesign(2,1,GF(3),coordinates=1)
+        sage: PG.blocks()[0]
+        [(1, 0, 0), (1, 0, 1), (1, 0, 2), (0, 0, 1)]
 
     Check that the constructor using gap also works::
 
@@ -224,7 +234,10 @@ def ProjectiveGeometryDesign(n, d, F, algorithm=None, check=True):
                 m.set_immutable()
                 b.append(points[m])
             blocks.append(b)
-        return BlockDesign(len(points), blocks, name="ProjectiveGeometryDesign", check=check)
+        B = BlockDesign(len(points), blocks, name="ProjectiveGeometryDesign", check=check)
+        if not coordinates is None:
+            B.relabel({i:p[0] for p,i in points.iteritems()})
+        return B
     if algorithm == "gap":   # Requires GAP's Design
         from sage.interfaces.gap import gap
         gap.load_package("design")

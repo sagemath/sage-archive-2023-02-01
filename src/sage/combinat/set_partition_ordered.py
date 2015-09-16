@@ -191,7 +191,7 @@ class OrderedSetPartition(ClonableArray):
         """
         return Composition([len(_) for _ in self])
 
-class OrderedSetPartitions(Parent, UniqueRepresentation):
+class OrderedSetPartitions(UniqueRepresentation, Parent):
     """
     Return the combinatorial class of ordered set partitions of ``s``.
 

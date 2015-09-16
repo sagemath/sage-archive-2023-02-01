@@ -1953,6 +1953,31 @@ cdef class Polynomial(CommutativeAlgebraElement):
             3*t^3 + (2*x + 3)*t^2 + (2*x + 2)*t + 2*x + 2
             sage: pow(f, 10**7, h)
             4*x*t^3 + 2*x*t^2 + 4*x*t + 4
+
+        Check that :trac:`18457` is fixed::
+
+            sage: R.<x> = PolynomialRing(GF(5), sparse=True)
+            sage: (1+x)^(5^10) # used to hang forever
+            x^9765625 + 1
+            sage: S.<t> = GF(3)[]
+            sage: R1.<x> = PolynomialRing(S, sparse=True)
+            sage: (1+x+t)^(3^10)
+            x^59049 + t^59049 + 1
+            sage: R2.<x> = PolynomialRing(S, sparse=False)
+            sage: (1+x+t)^(3^10)
+            x^59049 + t^59049 + 1
+
+        Check that the algorithm used is indeed correct::
+
+            sage: from sage.structure.element import generic_power
+            sage: R1 = PolynomialRing(GF(8,'a'), 'x')
+            sage: R2 = PolynomialRing(GF(9,'b'), 'x', sparse=True)
+            sage: R3 = PolynomialRing(R2, 'y')
+            sage: R4 = PolynomialRing(R1, 'y', sparse=True)
+            sage: for d in range(20,40): # long time
+            ....:     for R in [R1, R2, R3, R3]:
+            ....:         a = R.random_element()
+            ....:         assert a^d == generic_power(a,d)
         """
         if type(right) is not Integer:
             try:
@@ -1962,12 +1987,12 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
         if self.degree() <= 0:
             return self.parent()(self[0]**right)
-        elif right < 0:
+        if right < 0:
             return (~self)**(-right)
-        elif modulus:
+        if modulus:
             from sage.rings.arith import power_mod
             return power_mod(self, right, modulus)
-        elif (<Polynomial>self) == self.parent().gen():   # special case x**n should be faster!
+        if (<Polynomial>self) == self.parent().gen():   # special case x**n should be faster!
             P = self.parent()
             R = P.base_ring()
             if P.is_sparse():
@@ -1975,8 +2000,34 @@ cdef class Polynomial(CommutativeAlgebraElement):
             else:
                 v = [R.zero()]*right + [R.one()]
             return self.parent()(v, check=False)
-        else:
-            return generic_power(self,right)
+        if right > 20: # no gain below
+            p = self.parent().characteristic()
+            if p > 0 and p <= right and (self.base_ring() in sage.categories.integral_domains.IntegralDomains() or p.is_prime()):
+                x = self.parent().gen()
+                one = self.parent().one()
+                ret = one
+                e = 1
+                q = right
+                sparse = self.parent().is_sparse()
+                if sparse:
+                    d = self.dict()
+                else:
+                    c = self.list()
+                while q > 0:
+                    q, r = q.quo_rem(p)
+                    if r != 0:
+                        if sparse:
+                            tmp = self.parent()({e*k : d[k]**e for k in d})
+                        else:
+                            tmp = [0] * (e * len(c) - e + 1)
+                            for i in range(len(c)):
+                                tmp[e*i] = c[i]**e
+                            tmp = self.parent()(tmp)
+                        ret *= generic_power(tmp, r, one=one)
+                    e *= p
+                return ret
+
+        return generic_power(self,right)
 
     def _pow(self, right):
         # TODO: fit __pow__ into the arithmetic structure

@@ -11,7 +11,7 @@ STARTED = $(SAGE_LOCAL)/etc/sage-started.txt
 .PHONY: all all-sage all-toolchain all-build start \
 	base toolchain toolchain-deps sagelib \
 	doc doc-html doc-html-jsmath doc-html-mathjax doc-pdf \
-	doc-clean clean lib-clean build-clean
+	doc-clean clean sagelib-clean build-clean
 
 # Build everything and start Sage.
 # Note that we put the "doc" target first in the rule below because
@@ -227,7 +227,7 @@ clean:
 	@echo "Deleting package build directories..."
 	rm -rf "$(SAGE_LOCAL)/var/tmp/sage/build"
 
-lib-clean:
+sagelib-clean:
 	cd "$(SAGE_SRC)" && $(MAKE) clean
 
-build-clean: clean doc-clean lib-clean
+build-clean: clean doc-clean sagelib-clean

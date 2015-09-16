@@ -644,15 +644,17 @@ class MultivariateConstructionFunctor(ConstructionFunctor):
 
         sage: from sage.categories.pushout import pushout
         sage: from sage.sets.cartesian_product import CartesianProduct
-        sage: A = cartesian_product((QQ['z'],))
-        sage: B = cartesian_product((ZZ['t']['z'],))
+        sage: A = cartesian_product((QQ['z'], QQ))
+        sage: B = cartesian_product((ZZ['t']['z'], QQ))
         sage: pushout(A, B)
-        The cartesian product of (Univariate Polynomial Ring in z over Univariate Polynomial Ring in t over Rational Field,)
+        The cartesian product of (Univariate Polynomial Ring in z over
+        Univariate Polynomial Ring in t over Rational Field,
+        Rational Field)
         sage: A.construction()
         (The cartesian_product functorial construction,
-         (Univariate Polynomial Ring in z over Rational Field,))
+         (Univariate Polynomial Ring in z over Rational Field, Rational Field))
         sage: pushout(A, B)
-        The cartesian product of (Univariate Polynomial Ring in z over Univariate Polynomial Ring in t over Rational Field,)
+        The cartesian product of (Univariate Polynomial Ring in z over Univariate Polynomial Ring in t over Rational Field, Rational Field)
     """
     def common_base(self, other_functor, self_bases, other_bases):
         r"""

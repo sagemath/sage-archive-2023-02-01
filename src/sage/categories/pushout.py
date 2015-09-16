@@ -3656,7 +3656,7 @@ def pushout(R, S):
             Ss.pop()
         Z = Rs.pop()
 
-    if Z is None:
+    if Z is None and R_tower[-1][0] is not None:
         Z = R_tower[-1][0].common_base(S_tower[-1][0], R_tower[-1][1], S_tower[-1][1])
         R_tower = expand_tower(R_tower[:len(Rs)])
         S_tower = expand_tower(S_tower[:len(Ss)])

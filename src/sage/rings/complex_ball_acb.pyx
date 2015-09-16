@@ -103,6 +103,11 @@ Automatic coercions work as expected::
     sage: bpol/3
     ([0.333333 +/- 4.93e-7])*x + [0.47140 +/- 5.39e-6] + [0.44444 +/- 4.98e-6]*I
 
+TESTS::
+
+    sage: polygen(CBF, x)^3
+    x^3
+
 Classes and Methods
 ===================
 """

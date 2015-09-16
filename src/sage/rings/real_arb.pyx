@@ -121,6 +121,9 @@ TESTS::
     sage: (RBF(pi) * identity_matrix(QQ, 3)).parent()
     Full MatrixSpace of 3 by 3 dense matrices over Real ball field with 53 bits precision
 
+    sage: polygen(RBF, x)^3
+    x^3
+
 Classes and Methods
 ===================
 """

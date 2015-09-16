@@ -97,7 +97,7 @@ List of Poset methods
     :meth:`~FinitePoset.disjoint_union` | Return the disjoint union of the poset with other poset.
     :meth:`~FinitePoset.ordinal_sum` | Return the ordinal sum of the poset with other poset.
     :meth:`~FinitePoset.ordinal_product` | Return the ordinal product of the poset with other poset.
-    :meth:`~FinitePoset.product` | Return the cartesian product of the poset with other poset.
+    :meth:`~FinitePoset.product` | Return the Cartesian product of the poset with other poset.
     :meth:`~FinitePoset.dual` | Return the dual poset of this poset.
     :meth:`~FinitePoset.completion_by_cuts` | Return the Dedekind-MacNeille completion of the poset.
     :meth:`~FinitePoset.connected_components` | Return the connected components of the poset as subposets.
@@ -3571,9 +3571,9 @@ class FinitePoset(UniqueRepresentation, Parent):
 
     def product(self, other):
         """
-        Return the cartesian product of the poset with ``other``.
+        Return the Cartesian product of the poset with ``other``.
 
-        The cartesian (or 'direct') product of `P` and
+        The Cartesian (or 'direct') product of `P` and
         `Q` is defined by `(p, q) \le (p', q')` iff `p \le p'`
         in `P` and `q \le q'` in `Q`.
 
@@ -3599,6 +3599,12 @@ class FinitePoset(UniqueRepresentation, Parent):
 
             sage: Poset({0:[1]}).product(Poset())  # Product with empty poset
             Finite poset containing 0 elements
+
+        We check that :trac:`19113` is fixed::
+
+            sage: L = LatticePoset({1:[]})
+            sage: type(L) == type(L.product(L))
+            True
         """
         from sage.combinat.posets.lattices import LatticePoset, \
              JoinSemilattice, MeetSemilattice, FiniteLatticePoset, \

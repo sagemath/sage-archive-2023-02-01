@@ -1781,9 +1781,15 @@ cdef class ComplexBall(RingElement):
 
     # Elementary functions
 
-    def log(self):
+    def log(self, base=None):
         """
-        Return the principal branch of the natural logarithm of this ball.
+        General logarithm (principal branch).
+
+        INPUT:
+
+        - ``base`` (optional, complex ball or number) -- if ``None``, return
+          the principal branch of the natural logarithm ``ln(self)``,
+          otherwise, return the general logarithm ``ln(self)/ln(base)``
 
         EXAMPLES::
 
@@ -1792,12 +1798,26 @@ cdef class ComplexBall(RingElement):
             [0.6931471805599453 +/- 4.16e-17] + [1.570796326794897 +/- 6.65e-16]*I
             sage: CBF(-1).log()
             [3.141592653589793 +/- 5.61e-16]*I
+
+            sage: CBF(2*i).log(2)
+            [1.000000000000000 +/- 8.01e-17] + [2.26618007091360 +/- 4.23e-15]*I
+            sage: CBF(2*i).log(CBF(i))
+            [1.000000000000000 +/- 2.83e-16] + [-0.441271200305303 +/- 2.82e-16]*I
+
             sage: CBF('inf').log()
             nan + nan*I
+            sage: CBF(2).log(0)
+            nan + nan*I
         """
+        cdef ComplexBall cst
         cdef ComplexBall res = self._new()
         if _do_sig(prec(self)): sig_on()
         acb_log(res.value, self.value, prec(self))
+        if base is not None:
+            cst = self._parent.coerce(base).log()
+            if _do_sig(prec(self)): sig_on()
+            acb_div(res.value, res.value, cst.value, prec(self))
+            if _do_sig(prec(self)): sig_off()
         if _do_sig(prec(self)): sig_off()
         return res
 

@@ -198,10 +198,24 @@ def test_executable(args, input="", timeout=100.0, **kwds):
         sage: ret
         0
 
-    Test ``sage --info [packages]``, unless this is a binary (bdist)
-    distribution which doesn't ship spkgs::
+    Test ``sage --info [packages]`` and the equivalent
+    ``sage -p --info --info [packages]`` (the doubling of ``--info``
+    is intentional, that option should be idempotent)::
 
         sage: out, err, ret = test_executable(["sage", "--info", "sqlite"])
+        sage: print out
+        Found local metadata for sqlite-...
+        = SQLite =
+        ...
+        SQLite is a software library that implements a self-contained,
+        serverless, zero-configuration, transactional SQL database engine.
+        ...
+        sage: err
+        ''
+        sage: ret
+        0
+
+        sage: out, err, ret = test_executable(["sage", "-p", "--info", "--info", "sqlite"])
         sage: print out
         Found local metadata for sqlite-...
         = SQLite =

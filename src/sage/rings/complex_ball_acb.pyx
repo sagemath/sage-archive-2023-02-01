@@ -128,6 +128,8 @@ import sage.categories.fields
 cimport sage.rings.integer
 cimport sage.rings.rational
 
+from libc.stdlib cimport abort
+from sage.libs.mpfr cimport GMP_RNDU
 from sage.libs.arb.arb cimport *
 from sage.libs.arb.acb cimport *
 from sage.libs.arb.acb_hypgeom cimport *
@@ -140,6 +142,7 @@ from sage.rings.complex_field import ComplexField
 from sage.rings.complex_interval_field import ComplexIntervalField
 from sage.rings.real_arb cimport mpfi_to_arb, arb_to_mpfi
 from sage.rings.real_arb import RealBallField
+from sage.rings.real_mpfr cimport RealField_class, RealField, RealNumber
 from sage.rings.ring import Field
 from sage.structure.element cimport Element, ModuleElement
 from sage.structure.parent cimport Parent
@@ -961,7 +964,7 @@ cdef class ComplexBall(RingElement):
         else:
             raise ValueError("nonzero imaginary part")
 
-    # Real and imaginary part, midpoint
+    # Real and imaginary part, midpoint, radius
 
     cpdef RealBall real(self):
         """
@@ -1159,7 +1162,56 @@ cdef class ComplexBall(RingElement):
         mag_zero(arb_radref(acb_imagref(res.value)))
         return res
 
-    # Precision
+    def rad(self):
+        """
+        Return an upper bound for the error radius of this ball.
+
+        OUTPUT:
+
+        A :class:`~sage.rings.real_mpfr.RealNumber` of the same precision as
+        the radii of real balls.
+
+        .. WARNING::
+
+            Unlike a :class:`RealBall`, a :class:`ComplexBall` is *not* defined
+            by its midpoint and radius. (Instances of :class:`ComplexBall` are
+            actually rectangles, not balls.)
+
+        EXAMPLES::
+
+            sage: from sage.rings.complex_ball_acb import CBF
+            sage: CBF(1 + i).rad()
+            0.00000000
+            sage: CBF(i/3).rad()
+            1.1102230e-16
+            sage: CBF(i/3).rad().parent()
+            Real Field with 30 bits of precision
+
+        TESTS::
+
+            sage: (CBF(0, 1/3) << (2^64)).rad()
+            Traceback (most recent call last):
+            ...
+            RuntimeError: unable to convert the radius to MPFR (exponent out of range?)
+        """
+        # Should we return a real number with rounding towards +∞ (or away from
+        # zero if/when implemented)?
+        cdef RealField_class rad_field = RealField(MAG_BITS)
+        cdef RealNumber rad = RealNumber(rad_field, None)
+        cdef arf_t tmp
+        arf_init(tmp)
+        acb_get_rad_ubound_arf(tmp, self.value, MAG_BITS)
+        sig_str("unable to convert the radius to MPFR (exponent out of range?)")
+        if arf_get_mpfr(rad.value, tmp, GMP_RNDU):
+            abort()
+        sig_off()
+        arf_clear(tmp)
+        return rad
+
+    # Should we implement rad_as_ball? If we do, should it return an enclosure
+    # of the radius (which radius?), or an upper bound?
+
+    # Precision and accuracy
 
     def round(self):
         """

@@ -156,6 +156,7 @@ cimport sage.rings.integer
 cimport sage.rings.rational
 cimport sage.structure.element
 
+from libc.stdlib cimport abort
 from sage.libs.arb.arb cimport *
 from sage.libs.arb.arf cimport (
         arf_t, arf_init, arf_get_mpfr, arf_set_mpfr, arf_clear, arf_set_mag,
@@ -1331,11 +1332,18 @@ cdef class RealBall(RingElement):
 
         EXAMPLES::
 
-            sage: from sage.rings.real_arb import RealBallField
-            sage: RealBallField()(1/3).rad()
+            sage: from sage.rings.real_arb import RBF
+            sage: RBF(1/3).rad()
             5.5511151e-17
-            sage: RealBallField()(1/3).rad().parent()
+            sage: RBF(1/3).rad().parent()
             Real Field with 30 bits of precision
+
+        TESTS::
+
+            sage: (RBF(1, rad=.1) << (2^64)).rad()
+            Traceback (most recent call last):
+            ...
+            RuntimeError: unable to convert the radius to MPFR (exponent out of range?)
         """
         # Should we return a real number with rounding towards +∞ (or away from
         # zero if/when implemented)?
@@ -1343,11 +1351,12 @@ cdef class RealBall(RingElement):
         cdef RealNumber rad = RealNumber(rad_field, None)
         cdef arf_t tmp
         arf_init(tmp)
+        sig_str("unable to convert the radius to MPFR (exponent out of range?)")
         arf_set_mag(tmp, arb_radref(self.value))
-        cdef int rnd = arf_get_mpfr(rad.value, tmp, GMP_RNDN)
+        if arf_get_mpfr(rad.value, tmp, GMP_RNDN):
+            abort()
+        sig_off()
         arf_clear(tmp)
-        if rnd != 0:
-            raise OverflowError("Unable to represent the radius of this ball within the exponent range of RealNumbers")
         return rad
 
     def squash(self):

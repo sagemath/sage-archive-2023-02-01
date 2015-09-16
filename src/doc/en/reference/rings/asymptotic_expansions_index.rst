@@ -1,11 +1,50 @@
 Asymptotic Expansions
 =====================
 
+
+The Asymptotic Ring
+-------------------
+
+The asymptotic ring, as well as its main documentation is contained in
+the module
+
+- :doc:`sage/rings/asymptotic/asymptotic_ring`.
+
+
+Supplements
+-----------
+
+Behind the scenes of working with asymptotic expressions a couple of
+additional classes and tools turn up. For instance the growth in each
+summand is managed in growth groups, see below.
+
+
+Growth Groups
+^^^^^^^^^^^^^
+
+The growth of a summand of an asymptotic expression is managed in
+
+- :doc:`sage/rings/asymptotic/growth_group` and
+
+- :doc:`sage/rings/asymptotic/growth_group_cartesian`.
+
+
+Term Monoids
+^^^^^^^^^^^^
+
+A summand of an asymptotic expression is basically a term out of the following monoid:
+
+- :doc:`sage/rings/asymptotic/term_monoid`.
+
+
+Asymptotic Expansions --- Table of Contents
+-------------------------------------------
+
 .. toctree::
 
+   sage/rings/asymptotic/asymptotic_ring
    sage/rings/asymptotic/growth_group
    sage/rings/asymptotic/growth_group_cartesian
    sage/rings/asymptotic/term_monoid
-   sage/rings/asymptotic/asymptotic_ring
 
 .. include:: ../footer.txt

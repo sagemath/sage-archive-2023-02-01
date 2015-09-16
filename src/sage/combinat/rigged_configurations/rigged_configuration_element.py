@@ -245,13 +245,13 @@ class RiggedConfigurationElement(ClonableArray):
 
             # Setup the first block
             block_len = partition[0]
-            vac_num = parent._calc_vacancy_number(nu, a, 0)
+            vac_num = parent._calc_vacancy_number(nu, a, block_len)
 
             for i, row_len in enumerate(partition):
                 # If we've gone to a different sized block, then update the
                 #   values which change when moving to a new block size
                 if block_len != row_len:
-                    vac_num = parent._calc_vacancy_number(nu, a, i)
+                    vac_num = parent._calc_vacancy_number(nu, a, row_len)
                     block_len = row_len
 
                 partition.vacancy_numbers[i] = vac_num
@@ -587,10 +587,11 @@ class RiggedConfigurationElement(ClonableArray):
                 new_partitions.append(RiggedPartition(new_list, new_rigging, new_vac_nums))
 
         ret_RC = self.__class__(self.parent(), new_partitions)
+        nu = ret_RC.nu()
         if k != 1 and not set_vac_num: # If we did not remove a row nor found another row of length k-1
             # Update that row's vacancy number
             ret_RC[a].vacancy_numbers[rigging_index] = \
-              self.parent()._calc_vacancy_number(ret_RC.nu(), a, rigging_index)
+              self.parent()._calc_vacancy_number(nu, a, nu[a][rigging_index])
         return(ret_RC)
 
     def _generate_partition_e(self, a, b, k):
@@ -729,7 +730,8 @@ class RiggedConfigurationElement(ClonableArray):
                 new_partitions.append(RiggedPartition(new_list, new_rigging, new_vac_nums))
 
         new_partitions[a].vacancy_numbers[add_index] = \
-          self.parent()._calc_vacancy_number(new_partitions, a, add_index)
+          self.parent()._calc_vacancy_number(new_partitions, a,
+                                             new_partitions[a][add_index])
 
         # Note that we do not need to sort the rigging since if there was a
         #   smaller rigging in a larger row, then `k` would be larger.
@@ -821,30 +823,12 @@ class RiggedConfigurationElement(ClonableArray):
             [1 1]
         """
         a = self.parent()._rc_index.index(a)
-        p_inf = self.parent()._calc_vacancy_number(self, a, None)
+        p_inf = self.parent()._calc_vacancy_number(self, a, float("inf"))
         if not self[a]:
             return Integer(p_inf)
         return Integer(p_inf - min(0, min(self[a].rigging)))
 
-    def get_vacancy_numbers(self, a):
-        r"""
-        Return the list of all vacancy numbers of the rigged partition
-        `\nu^{(a)}` (with duplicates).
-
-        INPUT:
-
-        - ``a`` -- the index of the rigged partition
-
-        EXAMPLES::
-
-            sage: RC = RiggedConfigurations(['A', 4, 1], [[2, 2]])
-            sage: RC(partition_list=[[1], [2,1], [1], []]).get_vacancy_numbers(2)
-            [-2, -1]
-        """
-        a = self.parent()._rc_index.index(a)
-        return self[a].vacancy_numbers
-
-    def get_vacancy_number(self, a, i):
+    def vacancy_number(self, a, i):
         r"""
         Return the vacancy number `p_i^{(a)}`.
 
@@ -858,20 +842,23 @@ class RiggedConfigurationElement(ClonableArray):
 
             sage: RC = RiggedConfigurations(['A', 4, 1], [[2, 2]])
             sage: elt = RC(partition_list=[[1], [2,1], [1], []])
-            sage: elt.get_vacancy_number(2, 3)
-            sage: elt.get_vacancy_number(2, 2)
+            sage: elt.vacancy_number(2, 3)
             -2
-            sage: elt.get_vacancy_number(2, 1)
+            sage: elt.vacancy_number(2, 2)
+            -2
+            sage: elt.vacancy_number(2, 1)
             -1
+
+            sage: RC = RiggedConfigurations(['D',4,1], [[2,1], [2,1]])
+            sage: x = RC(partition_list=[[3], [3,1,1], [2], [3,1]]); ascii_art(x)
+            -1[ ][ ][ ]-1  1[ ][ ][ ]1  0[ ][ ]0  -3[ ][ ][ ]-3
+                           0[ ]0                  -1[ ]-1
+                           0[ ]0
+            sage: x.vacancy_number(2,2)
+            1
         """
-        a = self.parent()._rc_index.index(a)
-        partition = self[a]
-        for k, val in enumerate(partition):
-            if val == i:
-                return partition.vacancy_numbers[k]
-            elif val < i:
-                return None
-        return None
+        a = self.cartan_type().classical().index_set().index(a)
+        return self.parent()._calc_vacancy_number(self.nu(), a, i)
 
     def partition_rigging_lists(self):
         """
@@ -1897,7 +1884,7 @@ class KRRiggedConfigurationElement(RiggedConfigurationElement):
         rig = []
         for a,p in enumerate(mg):
             nu.append(list(p))
-            vac_nums = mg.get_vacancy_numbers(a+1)
+            vac_nums = p.vacancy_numbers
             riggings = [vac - p.rigging[i] for i,vac in enumerate(vac_nums)]
             block = 0
             for j,i in enumerate(p):
@@ -2197,7 +2184,7 @@ class KRRCTypeA2DualElement(KRRCNonSimplyLacedElement):
             return self.to_tensor_product_of_kirillov_reshetikhin_tableaux().phi(a)
 
         a = self.parent()._rc_index.index(a)
-        p_inf = self.parent()._calc_vacancy_number(self, a, None)
+        p_inf = self.parent()._calc_vacancy_number(self, a, float("inf"))
         if not self[a]:
             phi = p_inf
         else:

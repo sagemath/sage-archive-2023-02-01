@@ -142,12 +142,6 @@ class GenericGrowthElement(sage.structure.element.MultiplicativeGroupElement):
 
         ::
 
-            sage: G = agg.GenericGrowthGroup(ZZ)
-            sage: G(raw_element=42).category()
-            Category of elements of Growth Group Generic(ZZ)
-
-        ::
-
             sage: agg.GenericGrowthElement(None, 0)
             Traceback (most recent call last):
             ...

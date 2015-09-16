@@ -132,8 +132,8 @@ class LeviCivitaConnection(AffineConnection):
         sage: g.display()
         g = dr*dr + r^2 dth*dth + r^2*sin(th)^2 dph*dph
         sage: nab = g.connection(name='nabla', latex_name=r'\nabla') ; nab
-        Levi-Civita connection nabla associated with the Pseudo-Riemannian
-         metric g on the 3-dimensional differentiable manifold R^3
+        Levi-Civita connection nabla associated with the Riemannian metric g on
+         the 3-dimensional differentiable manifold R^3
 
     Let us check that the connection is compatible with the metric::
 
@@ -591,7 +591,7 @@ class LeviCivitaConnection(AffineConnection):
             sage: g.display() # standard metric on S^2:
             g = dth*dth + sin(th)^2 dph*dph
             sage: nab = g.connection() ; nab
-            Levi-Civita connection nabla_g associated with the Pseudo-Riemannian
+            Levi-Civita connection nabla_g associated with the Riemannian
              metric g on the 2-dimensional differentiable manifold S^2
             sage: ric = nab.ricci() ; ric
             Field of symmetric bilinear forms Ric(g) on the 2-dimensional
@@ -604,14 +604,14 @@ class LeviCivitaConnection(AffineConnection):
 
             sage: M = DiffManifold(4, 'M')
             sage: c_BL.<t,r,th,ph> = M.chart(r't r:(0,+oo) th:(0,pi):\theta ph:(0,2*pi):\phi') # Boyer-Linquist coordinates
-            sage: g = M.metric('g')
+            sage: g = M.metric('g', signature=2)
             sage: m = var('m')  # mass in Schwarzschild metric
             sage: g[0,0], g[1,1] = -(1-2*m/r), 1/(1-2*m/r)
             sage: g[2,2], g[3,3] = r^2, (r*sin(th))^2
             sage: g.display()
             g = (2*m - r)/r dt*dt - r/(2*m - r) dr*dr + r^2 dth*dth + r^2*sin(th)^2 dph*dph
             sage: nab = g.connection() ; nab
-            Levi-Civita connection nabla_g associated with the Pseudo-Riemannian
+            Levi-Civita connection nabla_g associated with the Lorentzian
              metric g on the 4-dimensional differentiable manifold M
             sage: ric = nab.ricci() ; ric
             Field of symmetric bilinear forms Ric(g) on the 4-dimensional

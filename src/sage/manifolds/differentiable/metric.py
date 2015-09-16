@@ -47,8 +47,8 @@ class PseudoRiemannianMetric(TensorField):
     immersion and `\Phi` being a curve in `V` (`U` is then an open interval
     of `\RR`).
 
-    If `V` is parallelizable, the class :class:`PseudoRiemannianMetricParal` should be
-    used instead.
+    If `V` is parallelizable, the class :class:`PseudoRiemannianMetricParal`
+    should be used instead.
 
     A *metric* `g` is a field on `U`, so that at each
     point `p\in U`, `g(p)` is a bilinear map of the type:
@@ -86,17 +86,16 @@ class PseudoRiemannianMetric(TensorField):
         sage: U = M.open_subset('U') ; V = M.open_subset('V')
         sage: M.declare_union(U,V)   # S^2 is the union of U and V
         sage: c_xy.<x,y> = U.chart() ; c_uv.<u,v> = V.chart() # stereographic coord
-        sage: transf = c_xy.transition_map(c_uv, (x/(x^2+y^2), y/(x^2+y^2)),
+        sage: xy_to_uv = c_xy.transition_map(c_uv, (x/(x^2+y^2), y/(x^2+y^2)),
         ....:                 intersection_name='W', restrictions1= x^2+y^2!=0,
         ....:                 restrictions2= u^2+v^2!=0)
-        sage: inv = transf.inverse()
+        sage: uv_to_xy = xy_to_uv.inverse()
         sage: W = U.intersection(V) # The complement of the two poles
         sage: eU = c_xy.frame() ; eV = c_uv.frame()
         sage: c_xyW = c_xy.restrict(W) ; c_uvW = c_uv.restrict(W)
         sage: eUW = c_xyW.frame() ; eVW = c_uvW.frame()
         sage: g = M.metric('g') ; g
-        Pseudo-Riemannian metric g on the 2-dimensional differentiable
-         manifold S^2
+        Riemannian metric g on the 2-dimensional differentiable manifold S^2
 
     The metric is considered as a tensor field of type (0,2) on `S^2`::
 
@@ -146,7 +145,7 @@ class PseudoRiemannianMetric(TensorField):
     same symbol)::
 
         sage: g.restrict(U)
-        Pseudo-Riemannian metric g on the Open subset U of the 2-dimensional
+        Riemannian metric g on the Open subset U of the 2-dimensional
          differentiable manifold S^2
         sage: g.restrict(U).parent()
         Free module T^(0,2)(U) of type-(0,2) tensors fields on the Open subset
@@ -223,8 +222,8 @@ class PseudoRiemannianMetric(TensorField):
     The Levi-Civita connection associated with the metric `g`::
 
         sage: nabla = g.connection() ; nabla
-        Levi-Civita connection nabla_g associated with the Pseudo-Riemannian
-         metric g on the 2-dimensional differentiable manifold S^2
+        Levi-Civita connection nabla_g associated with the Riemannian metric g
+         on the 2-dimensional differentiable manifold S^2
         sage: latex(nabla)
         \nabla_{g}
 
@@ -341,7 +340,7 @@ class PseudoRiemannianMetric(TensorField):
             sage: from sage.manifolds.differentiable.metric import \
             ....:                                        PseudoRiemannianMetric
             sage: g = PseudoRiemannianMetric(XM, 'g', signature=0); g
-            Pseudo-Riemannian metric g on the 2-dimensional differentiable
+            Lorentzian metric g on the 2-dimensional differentiable
              manifold M
             sage: g[e_xy,0,0], g[e_xy,1,1] = -(1+x^2), 1+y^2
             sage: g.add_comp_by_continuation(e_uv, W, c_uv)
@@ -381,15 +380,28 @@ class PseudoRiemannianMetric(TensorField):
         r"""
         String representation of the object.
 
-        TEST::
+        TESTS::
 
             sage: M = DiffManifold(5, 'M')
             sage: g = M.metric('g')
             sage: g._repr_()
+            'Riemannian metric g on the 5-dimensional differentiable manifold M'
+            sage: g = M.metric('g', signature=3)
+            sage: g._repr_()
+            'Lorentzian metric g on the 5-dimensional differentiable manifold M'
+            sage: g = M.metric('g', signature=1)
+            sage: g._repr_()
             'Pseudo-Riemannian metric g on the 5-dimensional differentiable manifold M'
 
         """
-        description = "Pseudo-Riemannian metric " + self._name + " "
+        n = self._domain.dimension()
+        if self._signature == n:
+            description = "Riemannian metric "
+        elif self._signature == n-2:
+            description = "Lorentzian metric "
+        else:
+            description = "Pseudo-Riemannian metric "
+        description += self._name + " "
         return self._final_repr(description)
 
     def _new_instance(self):
@@ -402,7 +414,7 @@ class PseudoRiemannianMetric(TensorField):
             sage: M = DiffManifold(5, 'M')
             sage: g = M.metric('g', signature=3)
             sage: g1 = g._new_instance(); g1
-            Pseudo-Riemannian metric unnamed metric on the 5-dimensional
+            Lorentzian metric unnamed metric on the 5-dimensional
              differentiable manifold M
             sage: type(g1) == type(g)
             True
@@ -529,13 +541,13 @@ class PseudoRiemannianMetric(TensorField):
         - instance of :class:`PseudoRiemannianMetric` representing the
           restriction.
 
-        EXAMPLES:
+        EXAMPLES::
 
             sage: M = DiffManifold(5, 'M')
             sage: g = M.metric('g', signature=3)
             sage: U = M.open_subset('U')
             sage: g.restrict(U)
-            Pseudo-Riemannian metric g on the Open subset U of the
+            Lorentzian metric g on the Open subset U of the
              5-dimensional differentiable manifold M
             sage: g.restrict(U).signature()
             3
@@ -592,9 +604,9 @@ class PseudoRiemannianMetric(TensorField):
             sage: U = M.open_subset('U') ; V = M.open_subset('V')
             sage: M.declare_union(U,V)   # M is the union of U and V
             sage: c_xy.<x,y> = U.chart() ; c_uv.<u,v> = V.chart()
-            sage: transf = c_xy.transition_map(c_uv, (x+y, x-y), intersection_name='W',
+            sage: xy_to_uv = c_xy.transition_map(c_uv, (x+y, x-y), intersection_name='W',
             ....:                              restrictions1= x>0, restrictions2= u+v>0)
-            sage: inv = transf.inverse()
+            sage: uv_to_xy = xy_to_uv.inverse()
             sage: W = U.intersection(V)
             sage: eU = c_xy.frame() ; eV = c_uv.frame()
             sage: h = M.sym_bilin_form_field(name='h')
@@ -646,7 +658,36 @@ class PseudoRiemannianMetric(TensorField):
 
         EXAMPLES:
 
-        See the top documentation of :class:`PseudoRiemannianMetric`.
+        Inverse of the standard metric on the 2-sphere::
+
+            sage: M = DiffManifold(2, 'S^2', start_index=1)
+            sage: U = M.open_subset('U') ; V = M.open_subset('V')
+            sage: M.declare_union(U,V)  # S^2 is the union of U and V
+            sage: c_xy.<x,y> = U.chart() ; c_uv.<u,v> = V.chart() # stereographic coord.
+            sage: xy_to_uv = c_xy.transition_map(c_uv, (x/(x^2+y^2), y/(x^2+y^2)),
+            ....:                 intersection_name='W', restrictions1= x^2+y^2!=0,
+            ....:                 restrictions2= u^2+v^2!=0)
+            sage: uv_to_xy = xy_to_uv.inverse()
+            sage: W = U.intersection(V)  # the complement of the two poles
+            sage: eU = c_xy.frame() ; eV = c_uv.frame()
+            sage: g = M.metric('g')
+            sage: g[eU,1,1], g[eU,2,2] = 4/(1+x^2+y^2)^2, 4/(1+x^2+y^2)^2
+            sage: g.add_comp_by_continuation(eV, W, c_uv)
+            sage: ginv = g.inverse(); ginv
+            Tensor field inv_g of type (2,0) on the 2-dimensional differentiable manifold S^2
+            sage: ginv.display(eU)
+            inv_g = (1/4*x^4 + 1/4*y^4 + 1/2*(x^2 + 1)*y^2 + 1/2*x^2 + 1/4) d/dx*d/dx
+             + (1/4*x^4 + 1/4*y^4 + 1/2*(x^2 + 1)*y^2 + 1/2*x^2 + 1/4) d/dy*d/dy
+            sage: ginv.display(eV)
+            inv_g = (1/4*u^4 + 1/4*v^4 + 1/2*(u^2 + 1)*v^2 + 1/2*u^2 + 1/4) d/du*d/du
+             + (1/4*u^4 + 1/4*v^4 + 1/2*(u^2 + 1)*v^2 + 1/2*u^2 + 1/4) d/dv*d/dv
+
+        Let us check that ``ginv`` is indeed the inverse of ``g``::
+
+            sage: s = g.contract(ginv); s  # contraction of last index of g with first index of ginv
+            Tensor field of type (1,1) on the 2-dimensional differentiable manifold S^2
+            sage: s == M.tangent_identity_field()
+            True
 
         """
         # Is the inverse metric up to date ?
@@ -688,7 +729,7 @@ class PseudoRiemannianMetric(TensorField):
             sage: g = U.metric('g')
             sage: g[1,1], g[2,2], g[3,3] = 1, r^2 , (r*sin(th))^2  # the Euclidean metric
             sage: g.connection()
-            Levi-Civita connection nabla_g associated with the Pseudo-Riemannian
+            Levi-Civita connection nabla_g associated with the Riemannian
              metric g on the Open subset U of the 3-dimensional differentiable
              manifold R^3
             sage: g.connection()[:]  # Christoffel symbols w.r.t. spherical coordinates
@@ -1672,7 +1713,7 @@ class PseudoRiemannianMetricParal(PseudoRiemannianMetric, TensorFieldParal):
         sage: M = DiffManifold(2, 'M', start_index=1)
         sage: c_xy.<x,y> = M.chart()
         sage: g = M.metric('g') ; g
-        Pseudo-Riemannian metric g on the 2-dimensional differentiable manifold M
+        Riemannian metric g on the 2-dimensional differentiable manifold M
         sage: latex(g)
         g
 
@@ -1737,6 +1778,27 @@ class PseudoRiemannianMetricParal(PseudoRiemannianMetric, TensorFieldParal):
     """
     def __init__(self, vector_field_module, name, signature=None,
                  latex_name=None):
+        r"""
+        Construct a metric on a parallelizable manifold.
+
+        TESTS::
+
+            sage: M = DiffManifold(2, 'M')
+            sage: X.<x,y> = M.chart()  # makes M parallelizable
+            sage: XM = M.vector_field_module()
+            sage: from sage.manifolds.differentiable.metric import \
+            ....:                                   PseudoRiemannianMetricParal
+            sage: g = PseudoRiemannianMetricParal(XM, 'g', signature=0); g
+            Lorentzian metric g on the 2-dimensional differentiable manifold M
+            sage: g[0,0], g[1,1] = -(1+x^2), 1+y^2
+            sage: TestSuite(g).run(skip='_test_category')
+
+        .. TODO::
+
+            - add a specific parent to the metrics, to fit with the category
+              framework
+
+        """
         TensorFieldParal.__init__(self, vector_field_module, (0,2),
                                   name=name, latex_name=latex_name, sym=(0,1))
         # signature:
@@ -1762,7 +1824,15 @@ class PseudoRiemannianMetricParal(PseudoRiemannianMetric, TensorFieldParal):
 
     def _init_derived(self):
         r"""
-        Initialize the derived quantities
+        Initialize the derived quantities.
+
+        TEST::
+
+            sage: M = DiffManifold(3, 'M')
+            sage: X.<x,y,z> = M.chart()  # makes M parallelizable
+            sage: g = M.metric('g')
+            sage: g._init_derived()
+
         """
         # Initialization of quantities pertaining to the mother classes:
         TensorFieldParal._init_derived(self)
@@ -1770,12 +1840,20 @@ class PseudoRiemannianMetricParal(PseudoRiemannianMetric, TensorFieldParal):
 
     def _del_derived(self, del_restrictions=True):
         r"""
-        Delete the derived quantities
+        Delete the derived quantities.
 
         INPUT:
 
         - ``del_restrictions`` -- (default: True) determines whether the
           restrictions of ``self`` to subdomains are deleted.
+
+        TEST::
+
+            sage: M = DiffManifold(3, 'M')
+            sage: X.<x,y,z> = M.chart()  # makes M parallelizable
+            sage: g = M.metric('g')
+            sage: g._del_derived(del_restrictions=False)
+            sage: g._del_derived()
 
         """
         # The derived quantities from the mother classes are deleted:
@@ -1784,7 +1862,15 @@ class PseudoRiemannianMetricParal(PseudoRiemannianMetric, TensorFieldParal):
 
     def _del_inverse(self):
         r"""
-        Delete the inverse metric
+        Delete the inverse metric.
+
+        TEST::
+
+            sage: M = DiffManifold(3, 'M')
+            sage: X.<x,y,z> = M.chart()  # makes M parallelizable
+            sage: g = M.metric('g')
+            sage: g._del_inverse()
+
         """
         self._inverse._components.clear()
         self._inverse._del_derived()
@@ -1798,7 +1884,8 @@ class PseudoRiemannianMetricParal(PseudoRiemannianMetric, TensorFieldParal):
         INPUT:
 
         - ``subdomain`` -- open subset `U` of ``self._domain`` (must be an
-          instance of :class:`~sage.manifolds.differentiable.manifold.DiffManifold`)
+          instance of
+          :class:`~sage.manifolds.differentiable.manifold.DiffManifold`)
         - ``dest_map`` -- (default: ``None``) destination map
           `\Phi:\ U \rightarrow V`, where `V` is a subdomain of
           ``self._codomain``
@@ -1808,7 +1895,25 @@ class PseudoRiemannianMetricParal(PseudoRiemannianMetric, TensorFieldParal):
 
         OUTPUT:
 
-        - instance of :class:`PseudoRiemannianMetricParal` representing the restriction.
+        - instance of :class:`PseudoRiemannianMetricParal` representing the
+          restriction.
+
+        EXAMPLE:
+
+        Restriction of a Lorentzian metric on `\RR^2` to the upper half plane::
+
+            sage: M = DiffManifold(2, 'M')
+            sage: X.<x,y> = M.chart()
+            sage: g = M.metric('g', signature=0)
+            sage: g[0,0], g[1,1] = -1, 1
+            sage: U = M.open_subset('U', coord_def={X: y>0})
+            sage: gU = g.restrict(U); gU
+            Lorentzian metric g on the Open subset U of the 2-dimensional
+             differentiable manifold M
+            sage: gU.signature()
+            0
+            sage: gU.display()
+            g = -dx*dx + dy*dy
 
         """
         if subdomain == self._domain:
@@ -1842,7 +1947,7 @@ class PseudoRiemannianMetricParal(PseudoRiemannianMetric, TensorFieldParal):
 
     def set(self, symbiform):
         r"""
-        Defines the metric from a field of symmetric bilinear forms
+        Define the metric from a field of symmetric bilinear forms.
 
         INPUT:
 
@@ -1850,17 +1955,28 @@ class PseudoRiemannianMetricParal(PseudoRiemannianMetric, TensorFieldParal):
           :class:`~sage.manifolds.differentiable.tensorfield_paral.TensorFieldParal`
           representing a field of symmetric bilinear forms
 
+        EXAMPLE::
+
+            sage: M = DiffManifold(2, 'M')
+            sage: X.<x,y> = M.chart()
+            sage: s = M.sym_bilin_form_field(name='s')
+            sage: s[0,0], s[0,1], s[1,1] = 1+x^2, x*y, 1+y^2
+            sage: g = M.metric('g')
+            sage: g.set(s)
+            sage: g.display()
+            g = (x^2 + 1) dx*dx + x*y dx*dy + x*y dy*dx + (y^2 + 1) dy*dy
+
         """
         if not isinstance(symbiform, TensorFieldParal):
-            raise TypeError("The argument must be a tensor field with " +
-                            "values on a parallelizable domain.")
+            raise TypeError("the argument must be a tensor field with " +
+                            "values on a parallelizable domain")
         if symbiform._tensor_type != (0,2):
-            raise TypeError("The argument must be of tensor type (0,2).")
+            raise TypeError("the argument must be of tensor type (0,2)")
         if symbiform._sym != [(0,1)]:
-            raise TypeError("The argument must be symmetric.")
+            raise TypeError("the argument must be symmetric")
         if symbiform._vmodule is not self._vmodule:
-            raise TypeError("The symmetric bilinear form and the metric are " +
-                            "not defined on the same vector field module.")
+            raise TypeError("the symmetric bilinear form and the metric are " +
+                            "not defined on the same vector field module")
         self._del_derived()
         self._components.clear()
         for frame in symbiform._components:

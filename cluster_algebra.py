@@ -8,7 +8,7 @@ from sage.rings.integer_ring import ZZ
 ####
 # Helper functions.
 ####
-# These my have to go in a more standard place or just outside this file
+# These may have to go in a more standard place or just outside this file
 
 ####
 # Elements of a cluster algebra
@@ -79,6 +79,10 @@ class ClusterAlgebraSeed(SageObject):
         other._parent = self._parent
         other._path = copy(self._path)
         return other
+
+    def _eq_(self, other):
+        P = self.c_matrix().inverse()*other.c_matrix()
+        return frozenset(P.columns()) == frozenset(identity_matrix(self.parent().rk).columns()) and self.g_matrix()*P == other.g_matrix() and P.inverse()*self.b_matrix()*P == other.b_matrix() and self.parent() == other.parent()
 
     def _repr_(self):
         if self._path == []:
@@ -336,6 +340,19 @@ class ClusterAlgebra(Parent):
         The current seed of ``self``.
         """
         return self._seed
+
+    @current_seed.setter
+    def current_seed(self, seed):
+        r"""
+        Set ``self._seed`` to ``seed`` if it makes sense.
+        """
+        computed_sd = self.initial_seed
+        computed_sd.mutation_sequence(seed.path, mutating_F=False)
+        if computed_sd == seed:
+            self._seed = seed
+        else:
+            raise ValueError("This is not a seed in this cluster algebra.")
+
 
     def reset_current_seed(self):
         r"""

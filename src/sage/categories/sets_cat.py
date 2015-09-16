@@ -1400,9 +1400,30 @@ class Sets(Category_singleton):
         # Functorial constructions
 
         CartesianProduct = CartesianProduct
-        def cartesian_product(*parents):
+        def cartesian_product(*parents, **kwargs):
             """
             Return the cartesian product of the parents.
+
+            INPUT:
+
+            - ``parents`` -- a list (or other iterable) of parents.
+
+            - ``category`` -- (default: ``None``) the category the
+              cartesian product belongs to. If ``None``, then
+              :meth:`~sage.categories.covariant_functorial_construction.CovariantFactorialConstruction.category_from_parents`
+              is used the determine category.
+
+            - ``extra_category`` -- (default: ``None``) this category is
+              added to the cartesian product additionally to the
+              categories obtained from the parents.
+
+            - other keyword arguments will passed on to the class used
+              for this cartesian product (see also
+              :class:`~sage.sets.cartesian_product.CartesianProduct`).
+
+            OUTPUT:
+
+            The cartesian product.
 
             EXAMPLES::
 
@@ -1423,10 +1444,37 @@ class Sets(Category_singleton):
                 sage: C.category()
                 Join of Category of rings and ...
                     and Category of Cartesian products of commutative additive groups
+
+            ::
+
+                sage: cartesian_product([ZZ, ZZ], category=Sets()).category()
+                Category of sets
+                sage: cartesian_product([ZZ, ZZ]).category()
+                Join of
+                Category of rings and
+                Category of Cartesian products of distributive magmas and additive magmas and
+                Category of Cartesian products of monoids and
+                Category of Cartesian products of commutative additive groups and
+                Category of Cartesian products of enumerated sets
+                sage: cartesian_product([ZZ, ZZ], extra_category=Posets()).category()
+                Join of
+                Category of rings and
+                Category of Cartesian products of distributive magmas and additive magmas and
+                Category of Cartesian products of monoids and
+                Category of Cartesian products of commutative additive groups and
+                Category of posets and
+                Category of Cartesian products of enumerated sets
             """
-            return parents[0].CartesianProduct(
-                parents,
-                category = cartesian_product.category_from_parents(parents))
+            category = kwargs.pop('category', None)
+            extra_category = kwargs.pop('extra_category', None)
+
+            category = category or cartesian_product.category_from_parents(parents)
+            if extra_category:
+                if isinstance(category, (list, tuple)):
+                    category = tuple(category) + (extra_category,)
+                else:
+                    category = category & extra_category
+            return parents[0].CartesianProduct(parents, category=category, **kwargs)
 
         def algebra(self, base_ring, category=None):
             """

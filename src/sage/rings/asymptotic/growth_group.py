@@ -768,22 +768,22 @@ class GenericGrowthGroup(
             ValueError: Cannot convert x.
         """
         if raw_element is None:
-            if type(data) == self.element_class and data.parent() == self:
-                return data
-            elif isinstance(data, self.element_class):
+            if isinstance(data, self.element_class):
+                if data.parent() == self:
+                    return data
                 try:
                     if self._var_ != data.parent()._var_:
                         raise ValueError('Cannot convert %s.' % (data,))
                 except AttributeError:
                     pass
                 raw_element = data._raw_element_
-            elif type(data) == int and data == 0:
+            elif isinstance(data, int) and data == 0:
                 raise ValueError('No input specified. Cannot continue.')
             else:
                 raw_element = self._convert_(data)
             if raw_element is None:
                 raise ValueError('Cannot convert %s.' % (data,))
-        elif type(data) != int or data != 0:
+        elif not isinstance(data, int) or data != 0:
             raise ValueError('Input is ambigous: '
                              '%s as well as raw_element=%s '
                              'are specified.' % (data, raw_element))

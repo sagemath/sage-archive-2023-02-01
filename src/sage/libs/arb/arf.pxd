@@ -9,7 +9,13 @@ cdef extern from "arf.h":
     ctypedef arf_struct arf_t[1]
     ctypedef arf_struct * arf_ptr
     ctypedef const arf_struct * arf_srcptr
-    ctypedef int arf_rnd_t
+    cdef enum arf_rnd_t:
+        ARF_RND_DOWN
+        ARF_RND_UP
+        ARF_RND_FLOOR
+        ARF_RND_CEIL
+        ARF_RND_NEAR
+    ctypedef long ARF_PREC_EXACT
 
     void arf_init(arf_t x)
     void arf_clear(arf_t x)

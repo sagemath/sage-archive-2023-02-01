@@ -139,6 +139,9 @@ Classes and Methods
 include 'sage/ext/interrupt.pxi'
 include "sage/ext/python.pxi"
 
+cdef extern from "math.h":
+    long lrint(double)
+
 import operator
 
 import sage.categories.fields
@@ -154,8 +157,11 @@ cimport sage.rings.rational
 cimport sage.structure.element
 
 from sage.libs.arb.arb cimport *
-from sage.libs.arb.arf cimport arf_t, arf_init, arf_get_mpfr, arf_set_mpfr, arf_clear, arf_set_mag, arf_set
-from sage.libs.arb.arf cimport arf_equal, arf_is_nan, arf_is_neg_inf, arf_is_pos_inf, arf_get_mag, ARF_PREC_EXACT
+from sage.libs.arb.arf cimport (
+        arf_t, arf_init, arf_get_mpfr, arf_set_mpfr, arf_clear, arf_set_mag,
+        arf_set, arf_get_d, arf_abs_bound_lt_2exp_si, ARF_RND_UP, ARF_PREC_EXACT
+)
+from sage.libs.arb.arf cimport arf_equal, arf_is_nan, arf_is_neg_inf, arf_is_pos_inf, arf_get_mag
 from sage.libs.arb.mag cimport mag_t, mag_init, mag_clear, mag_add, mag_set_d, MAG_BITS, mag_is_inf, mag_is_finite, mag_zero
 from sage.libs.flint.flint cimport flint_free
 from sage.libs.flint.fmpz cimport fmpz_t, fmpz_init, fmpz_get_mpz, fmpz_set_mpz, fmpz_clear
@@ -856,7 +862,6 @@ class RealBallField(UniqueRepresentation, Field):
         """
         return ARF_PREC_EXACT
 
-
 cdef inline bint _do_sig(long prec):
     """
     Whether signal handlers should be installed for calls to arb.
@@ -1101,6 +1106,21 @@ cdef class RealBall(RingElement):
         x = RealBall.__new__(RealBall)
         x._parent = self._parent
         return x
+
+    def __hash__(self):
+        """
+        TESTS::
+
+            sage: from sage.rings.real_arb import RealBallField, RBF
+            sage: hash(RealBallField(10)(1)) == hash(RealBallField(20)(1))
+            True
+            sage: hash(RBF(1/3)) == hash(RBF(1/3, rad=.1))
+            False
+        """
+        cdef arf_t mid = arb_midref(self.value)
+        return (lrint(arf_get_d(mid, ARF_RND_UP))
+                ^ (arf_abs_bound_lt_2exp_si(mid) << 10)
+                ^ arb_rel_error_bits(self.value) << 20)
 
     def _repr_(self):
         """

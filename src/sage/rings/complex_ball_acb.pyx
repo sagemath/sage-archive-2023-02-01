@@ -747,6 +747,22 @@ cdef class ComplexBall(RingElement):
         x._parent = self._parent
         return x
 
+    def __hash__(self):
+        """
+        TESTS::
+
+            sage: from sage.rings.real_arb import RBF
+            sage: from sage.rings.complex_ball_acb import CBF
+            sage: hash(CBF(1/3)) == hash(RBF(1/3))
+            True
+            sage: hash(CBF(1/3 + 2*i)) != hash(CBF(1/3 + i))
+            True
+        """
+        if self.is_real():
+            return hash(self.real())
+        else:
+            return (hash(self.real()) >> 7) ^ hash(self.imag())
+
     def _repr_(self):
         """
         Return a string representation of ``self``.

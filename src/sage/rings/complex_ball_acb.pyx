@@ -100,6 +100,8 @@ Automatic coercions work as expected::
     x + [1.41421 +/- 5.09e-6] + [1.33333 +/- 3.97e-6]*I
     sage: bpol.parent()
     Univariate Polynomial Ring in x over Complex ball field with 20 bits precision
+    sage: bpol/3
+    ([0.333333 +/- 4.93e-7])*x + [0.47140 +/- 5.39e-6] + [0.44444 +/- 4.98e-6]*I
 
 Classes and Methods
 ===================
@@ -133,6 +135,7 @@ from sage.rings.complex_field import ComplexField
 from sage.rings.complex_interval_field import ComplexIntervalField
 from sage.rings.real_arb cimport mpfi_to_arb, arb_to_mpfi
 from sage.rings.real_arb import RealBallField
+from sage.rings.ring import Field
 from sage.structure.element cimport Element, ModuleElement
 from sage.structure.parent cimport Parent
 from sage.structure.unique_representation import UniqueRepresentation
@@ -183,7 +186,7 @@ cdef int acb_to_ComplexIntervalFieldElement(
     arb_to_mpfi(target.__im, &source.imag, precision)
     return 0
 
-class ComplexBallField(UniqueRepresentation, Parent):
+class ComplexBallField(UniqueRepresentation, Field):
     r"""
     An approximation of the field of complex numbers using pairs of mid-rad
     intervals.
@@ -287,8 +290,8 @@ class ComplexBallField(UniqueRepresentation, Parent):
             raise ValueError("Precision must be at least 2.")
         real_field = RealBallField(precision)
         super(ComplexBallField, self).__init__(
-                base=real_field,
-                category=category or [sage.categories.fields.Fields()])
+                base_ring=real_field,
+                category=category or sage.categories.fields.Fields().Infinite())
         self._prec = precision
         from sage.rings.integer_ring import ZZ
         from sage.rings.rational_field import QQ
@@ -551,6 +554,10 @@ class ComplexBallField(UniqueRepresentation, Parent):
     def is_finite(self):
         """
         Complex ball fields are infinite.
+
+        They already specify it via their category, but we currently need to
+        re-implement this method due to the legacy implementation in
+        :class:`sage.rings.ring`.
 
         EXAMPLES::
 

@@ -138,6 +138,7 @@ include "sage/ext/python.pxi"
 
 import operator
 
+import sage.categories.fields
 import sage.symbolic.constants
 
 from sage.rings.integer_ring import ZZ
@@ -162,6 +163,7 @@ from sage.libs.mpfr cimport mpfr_t, mpfr_init2, mpfr_clear, mpfr_sgn, MPFR_PREC_
 from sage.libs.mpfr cimport GMP_RNDN, GMP_RNDU, GMP_RNDD, GMP_RNDZ
 from sage.rings.real_double cimport RealDoubleElement
 from sage.rings.real_mpfr cimport RealField_class, RealField, RealNumber
+from sage.rings.ring import Field
 from sage.structure.element cimport Element, ModuleElement, RingElement
 
 cdef void mpfi_to_arb(arb_t target, const mpfi_t source, const long precision):
@@ -232,7 +234,7 @@ cdef int arb_to_mpfi(mpfi_t target, arb_t source, const long precision) except -
         mpfr_clear(left)
         mpfr_clear(right)
 
-class RealBallField(UniqueRepresentation, Parent):
+class RealBallField(UniqueRepresentation, Field):
     r"""
     An approximation of the field of real numbers using mid-rad intervals, also
     known as balls.
@@ -314,13 +316,25 @@ class RealBallField(UniqueRepresentation, Parent):
             Traceback (most recent call last):
             ...
             ValueError: Precision must be at least 2.
+
+        TESTS::
+
+            sage: from sage.rings.real_arb import RBF
+            sage: RBF.base()
+            Real ball field with 53 bits precision
+            sage: RBF.base_ring()
+            Real ball field with 53 bits precision
+
         """
         if precision < 2:
             raise ValueError("Precision must be at least 2.")
         super(RealBallField, self).__init__(
+                base_ring=self,
                 #category=category or sage.categories.magmas_and_additive_magmas.MagmasAndAdditiveMagmas().Infinite(),
-                # FIXME: RBF is not even associative, but CompletionFunctor only works with rings.
-                category=category or sage.categories.rings.Rings().Infinite())
+                # FIXME: RBF is not even associative, but CompletionFunctor
+                # only works with rings, and other coercion features require
+                # methods like is_integral_domain() to be defined
+                category=category or sage.categories.fields.Fields().Infinite())
         self._prec = precision
         from sage.rings.qqbar import AA
         from sage.rings.real_lazy import RLF
@@ -440,30 +454,6 @@ class RealBallField(UniqueRepresentation, Parent):
         """
         return (self.one(),)
 
-    def base(self):
-        """
-        Real ball fields are their own base.
-
-        EXAMPLE::
-
-            sage: from sage.rings.real_arb import RBF
-            sage: RBF.base()
-            Real ball field with 53 bits precision
-        """
-        return self
-
-    def base_ring(self):
-        """
-        Real ball fields are their own base ring.
-
-        EXAMPLE::
-
-            sage: from sage.rings.real_arb import RBF
-            sage: RBF.base_ring()
-            Real ball field with 53 bits precision
-        """
-        return self
-
     def construction(self):
         """
         Return the construction of a real ball field as a completion of the
@@ -526,6 +516,22 @@ class RealBallField(UniqueRepresentation, Parent):
 
             sage: from sage.rings.real_arb import RealBallField
             sage: RealBallField().is_exact()
+            False
+        """
+        return False
+
+    def is_finite(self):
+        """
+        Real ball fields are infinite.
+
+        They already specify it via their category, but we currently need to
+        re-implement this method due to the legacy implementation in
+        :class:`sage.rings.ring`.
+
+        EXAMPLES::
+
+            sage: from sage.rings.real_arb import RealBallField
+            sage: RealBallField().is_finite()
             False
         """
         return False

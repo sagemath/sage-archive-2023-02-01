@@ -1131,8 +1131,8 @@ class OTermMonoid(GenericTermMonoid):
         Now, the :class:`OTermMonoid` whose growth group is over the
         integer ring has to coerce into the :class:`OTermMonoid` with
         the growth group over the rational field, and the
-        :class:`ExactTermMonoid` also has to coerce in both the
-        :class:`OTermMonoid`s::
+        :class:`ExactTermMonoid` also has to coerce in each of the
+        given :class:`OTermMonoid`::
 
             sage: OT_QQ.has_coerce_map_from(OT_ZZ)  # indirect doctest
             True

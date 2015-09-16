@@ -1129,7 +1129,7 @@ class OTermMonoid(GenericTermMonoid):
             sage: ET = atm.ExactTermMonoid(G_ZZ, ZZ)
 
         Now, the :class:`OTermMonoid` whose growth group is over the
-        interger ring has to coerce into the :class:`OTermMonoid` with
+        integer ring has to coerce into the :class:`OTermMonoid` with
         the growth group over the rational field, and the
         :class:`ExactTermMonoid` also has to coerce in both the
         :class:`OTermMonoid`s::

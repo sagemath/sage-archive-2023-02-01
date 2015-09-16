@@ -855,7 +855,8 @@ class GenericGrowthGroup(
 
     def gens_monomial(self):
         r"""
-        Return a generator of this growth group, in case one exists.
+        Return a monomial generator of this growth group, in case
+        one exists.
 
         INPUT:
 
@@ -866,6 +867,12 @@ class GenericGrowthGroup(
         An element of this growth group or ``None``.
 
         .. NOTE::
+
+            A generator is called monomial generator if the variable
+            of the underlying growth group is a valid identifier. For
+            example, ``x^ZZ`` has ``x`` as a monomial generator,
+            while ``log(x)^ZZ`` or ``icecream(x)^ZZ`` do not have
+            monomial generators.
 
             This method is only implemented for concrete growth
             group implementations.
@@ -1417,7 +1424,8 @@ class MonomialGrowthGroup(GenericGrowthGroup):
 
     def gens_monomial(self):
         r"""
-        Return a tuple containing generators of this growth group.
+        Return a tuple containing monomial generators of this growth
+        group.
 
         INPUT:
 
@@ -1429,9 +1437,11 @@ class MonomialGrowthGroup(GenericGrowthGroup):
 
         .. NOTE::
 
-            If a :class:`MonomialGrowthGroup` models a logarithmic
-            growth group (by having a variable name of the form
-            ``log(...)``), an empty tuple is returned.
+            A generator is called monomial generator if the variable
+            of the underlying growth group is a valid identifier. For
+            example, ``x^ZZ`` has ``x`` as a monomial generator,
+            while ``log(x)^ZZ`` or ``icecream(x)^ZZ`` do not have
+            monomial generators.
 
         TESTS::
 
@@ -1449,7 +1459,7 @@ class MonomialGrowthGroup(GenericGrowthGroup):
     def gens(self):
         r"""
         Return a tuple of all generators of this monomial growth
-        group, even if the growth group is logarithmic.
+        group.
 
         INPUT:
 

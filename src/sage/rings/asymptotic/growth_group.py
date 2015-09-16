@@ -757,7 +757,7 @@ class GenericGrowthGroup(
             sage: G_ZZ('x', raw_element=42)
             Traceback (most recent call last):
             ...
-            ValueError: Input is ambigous: x as well as raw_element=42 are specified
+            ValueError: Input is ambigous: x as well as raw_element=42 are specified.
 
         ::
 
@@ -787,7 +787,7 @@ class GenericGrowthGroup(
         elif type(data) != int or data != 0:
             raise ValueError('Input is ambigous: '
                              '%s as well as raw_element=%s '
-                             'are specified' % (data, raw_element))
+                             'are specified.' % (data, raw_element))
 
         return self.element_class(self, raw_element)
 

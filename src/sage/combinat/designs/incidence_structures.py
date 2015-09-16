@@ -1091,6 +1091,42 @@ class IncidenceStructure(object):
         gB = [[x+1 for x in b] for b in self._blocks]
         return "BlockDesign("+str(v)+","+str(gB)+")"
 
+    def intersection_graph(self,sizes=None):
+        r"""
+        Return the intersection graph of the incidence structure.
+
+        The vertices of this graph are the :meth:`blocks` of the incidence
+        structure. Two of them are adjacent if the size of their intersection
+        belongs to the set ``sizes``.
+
+        INPUT:
+
+        - ``sizes`` -- a list/set of integers. For convenience, setting
+          ``sizes`` to ``5`` has the same effect as ``sizes=[5]``. When set to
+          ``None`` (default), behaves as ``sizes=PositiveIntegers()``.
+
+        EXAMPLE:
+
+        The intersection graph of a
+        :func:`~sage.combinat.designs.bibd.balanced_incomplete_block_design` is
+        a :meth:`strongly regular graph <Graph.is_strongly_regular>` (when it is
+        not trivial)::
+
+            sage: BIBD =  designs.balanced_incomplete_block_design(19,3)
+            sage: G = BIBD.intersection_graph(1)
+            sage: G.is_strongly_regular(parameters=True)
+            (57, 24, 11, 9)
+        """
+        from sage.sets.positive_integers import PositiveIntegers
+        from sage.graphs.graph import Graph
+        from sage.sets.set import Set
+        if sizes is None:
+            sizes = PositiveIntegers()
+        elif sizes in PositiveIntegers():
+            sizes = (sizes,)
+        V = map(Set,self)
+        return Graph([V,lambda x,y: len(x&y) in sizes],loops=False)
+
     def incidence_matrix(self):
         r"""
         Return the incidence matrix `A` of the design. A is a `(v \times b)`

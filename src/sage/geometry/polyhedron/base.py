@@ -291,7 +291,7 @@ class Polyhedron_base(Element):
                 set_adjacent(Vrep[0], Vrep[1])
         return M
 
-    def delete(self):
+    def _delete(self):
         """
         Delete this polyhedron.
 
@@ -305,20 +305,20 @@ class Polyhedron_base(Element):
         EXAMPLES::
 
             sage: p = Polyhedron([(0,0),(1,0),(0,1)])
-            sage: p.delete()
+            sage: p._delete()
 
             sage: vertices = [(0,0,0,0),(1,0,0,0),(0,1,0,0),(1,1,0,0),(0,0,1,0),(0,0,0,1)]
             sage: def loop_polyhedra():
-            ...       for i in range(0,100):
-            ...           p = Polyhedron(vertices)
+            ....:     for i in range(0,100):
+            ....:         p = Polyhedron(vertices)
 
             sage: timeit('loop_polyhedra()')                   # not tested - random
             5 loops, best of 3: 79.5 ms per loop
 
             sage: def loop_polyhedra_with_recycling():
-            ...       for i in range(0,100):
-            ...           p = Polyhedron(vertices)
-            ...           p.delete()
+            ....:     for i in range(0,100):
+            ....:         p = Polyhedron(vertices)
+            ....:         p._delete()
 
             sage: timeit('loop_polyhedra_with_recycling()')    # not tested - random
             5 loops, best of 3: 57.3 ms per loop

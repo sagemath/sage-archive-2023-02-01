@@ -314,7 +314,7 @@ class ConstructionFunctor(Functor):
             Traceback (most recent call last):
             ...
             CoercionException: No common base ("join") found for
-            FractionField(Integer Ring) and CartesianProductFunctor(Integer Ring).
+            FractionField(Integer Ring) and The cartesian_product functorial construction(Integer Ring).
         """
         self._raise_common_base_exception_(
             other_functor, self_bases, other_bases)
@@ -343,7 +343,7 @@ class ConstructionFunctor(Functor):
             Traceback (most recent call last):
             ...
             CoercionException: No common base ("join") found for
-            FractionField(Integer Ring) and CartesianProductFunctor(Rational Field).
+            FractionField(Integer Ring) and The cartesian_product functorial construction(Rational Field).
         """
         if not isinstance(self_bases, (tuple, list)):
             self_bases = (self_bases,)
@@ -644,15 +644,17 @@ class MultivariateConstructionFunctor(ConstructionFunctor):
 
         sage: from sage.categories.pushout import pushout
         sage: from sage.sets.cartesian_product import CartesianProduct
-        sage: A = cartesian_product((QQ['z'],))
-        sage: B = cartesian_product((ZZ['t']['z'],))
+        sage: A = cartesian_product((QQ['z'], QQ))
+        sage: B = cartesian_product((ZZ['t']['z'], QQ))
         sage: pushout(A, B)
-        The cartesian product of (Univariate Polynomial Ring in z over Univariate Polynomial Ring in t over Rational Field,)
+        The cartesian product of (Univariate Polynomial Ring in z over
+        Univariate Polynomial Ring in t over Rational Field,
+        Rational Field)
         sage: A.construction()
         (The cartesian_product functorial construction,
-         (Univariate Polynomial Ring in z over Rational Field,))
+         (Univariate Polynomial Ring in z over Rational Field, Rational Field))
         sage: pushout(A, B)
-        The cartesian product of (Univariate Polynomial Ring in z over Univariate Polynomial Ring in t over Rational Field,)
+        The cartesian product of (Univariate Polynomial Ring in z over Univariate Polynomial Ring in t over Rational Field, Rational Field)
     """
     def common_base(self, other_functor, self_bases, other_bases):
         r"""
@@ -687,14 +689,14 @@ class MultivariateConstructionFunctor(ConstructionFunctor):
             Traceback (most recent call last):
             ...
             CoercionException: No common base ("join") found for
-            CartesianProductFunctor(Integer Ring) and FractionField(Integer Ring):
+            The cartesian_product functorial construction(Integer Ring) and FractionField(Integer Ring):
             (Multivariate) functors are inkompatibel.
             sage: pushout(cartesian_product([ZZ]), cartesian_product([ZZ, QQ]))  # indirect doctest
             Traceback (most recent call last):
             ...
             CoercionException: No common base ("join") found for
-            CartesianProductFunctor(Integer Ring) and
-            CartesianProductFunctor(Integer Ring, Rational Field):
+            The cartesian_product functorial construction(Integer Ring) and
+            The cartesian_product functorial construction(Integer Ring, Rational Field):
             Functors need the same number of arguments.
         """
         if self != other_functor:
@@ -3579,7 +3581,7 @@ def pushout(R, S):
     AUTHORS:
 
     - Robert Bradshaw
-    - Peter Bruin(Peter Bruin -..- --
+    - Peter Bruin
     - Simon King
     - Daniel Krenn
     - David Roe

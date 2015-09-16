@@ -45,7 +45,6 @@ other types will also coerce to the integers, when it makes sense.
 include "sage/ext/cdefs.pxi"
 include "sage/ext/stdsage.pxi"
 include "sage/ext/interrupt.pxi"  # ctrl-c interrupt block support
-include "sage/ext/random.pxi"
 
 from cpython.int cimport *
 from cpython.list cimport *
@@ -64,6 +63,7 @@ from sage.structure.parent_gens import ParentWithGens
 from sage.structure.parent cimport Parent
 from sage.structure.sequence import Sequence
 from sage.misc.misc_c import prod
+from sage.misc.randstate cimport randstate, current_randstate, SAGE_RAND_MAX
 
 cimport integer
 cimport rational

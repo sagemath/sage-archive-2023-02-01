@@ -1380,7 +1380,8 @@ class MonomialGrowthGroup(GenericGrowthGroup):
                 if data.is_monomial() and data.precision_absolute() not in ZZ:
                     if self._var_ == str(data.variables()[0]):
                         return data.degree()
-            elif self._var_ == str(data.variable()[0]):
+            elif len(P.variable_names()) == 1 and \
+                            self._var_ == str(data.variable()[0]):
                 from sage.rings.integer_ring import ZZ
                 if data.is_monomial() and data.precision_absolute() not in ZZ:
                     return data.degree()

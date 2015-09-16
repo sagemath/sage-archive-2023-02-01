@@ -67,7 +67,7 @@ def parent_to_repr_short(P):
 
     INPUT:
 
-    A parent.
+    - ``P`` -- a parent.
 
     OUTPUT:
 

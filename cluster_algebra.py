@@ -80,7 +80,7 @@ class ClusterAlgebraSeed(SageObject):
         other._path = copy(self._path)
         return other
 
-    def _eq_(self, other):
+    def __eq__(self, other):
         P = self.c_matrix().inverse()*other.c_matrix()
         return frozenset(P.columns()) == frozenset(identity_matrix(self.parent().rk).columns()) and self.g_matrix()*P == other.g_matrix() and P.inverse()*self.b_matrix()*P == other.b_matrix() and self.parent() == other.parent()
 
@@ -347,7 +347,7 @@ class ClusterAlgebra(Parent):
         Set ``self._seed`` to ``seed`` if it makes sense.
         """
         computed_sd = self.initial_seed
-        computed_sd.mutation_sequence(seed.path, mutating_F=False)
+        computed_sd.mutation_sequence(seed._path, mutating_F=False)
         if computed_sd == seed:
             self._seed = seed
         else:

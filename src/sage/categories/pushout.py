@@ -3579,7 +3579,7 @@ def pushout(R, S):
     AUTHORS:
 
     - Robert Bradshaw
-    - Peter Bruin(Peter Bruin -..- --
+    - Peter Bruin
     - Simon King
     - Daniel Krenn
     - David Roe

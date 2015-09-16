@@ -214,7 +214,7 @@ class GenericGrowthElement(sage.structure.element.MultiplicativeGroupElement):
 
         OUTPUT:
 
-        A class:`GenericGrowthElement` representing the product with
+        A :class:`GenericGrowthElement` representing the product with
         ``other``.
 
         .. NOTE::

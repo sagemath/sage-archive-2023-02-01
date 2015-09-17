@@ -1191,7 +1191,8 @@ def BIBD_from_arc_in_desarguesian_projective_plane(n,k,existence=False):
     from sage.libs.gap.libgap import libgap
     from sage.matrix.constructor import Matrix
 
-    K  = GF(q,'a')
+    K   = GF(q,'a')
+    one = K.one()
 
     # An irreducible quadratic form over K[X,Y]
     GO = libgap.GeneralOrthogonalGroup(-1,2,q)
@@ -1204,16 +1205,15 @@ def BIBD_from_arc_in_desarguesian_projective_plane(n,k,existence=False):
     # [Denniston69] is the set of all elements of K of degree < log_n
     # (seeing elements of K as polynomials in 'a')
 
-    K_to_int = {v:i for i,v in enumerate(K)}
+    K_iter = list(K) # faster iterations
     log_n = is_prime_power(n,get_data=True)[1]
-    C = [K_to_int[x]*q+K_to_int[y]
-         for x in K_to_int
-         for y in K_to_int
+    C = [(x,y,one)
+         for x in K_iter
+         for y in K_iter
          if Q(x,y).polynomial().degree() < log_n]
 
     from sage.combinat.designs.block_design import DesarguesianProjectivePlaneDesign
-    D = DesarguesianProjectivePlaneDesign(q).trace(C)
-    return D._blocks
+    return DesarguesianProjectivePlaneDesign(q).trace(C)._blocks
 
 class PairwiseBalancedDesign(GroupDivisibleDesign):
     r"""

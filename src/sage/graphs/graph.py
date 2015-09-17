@@ -7028,10 +7028,10 @@ class Graph(GenericGraph):
                     if E[i][1] == E[j][0]:  # same orientation
                         T[2 * i, 2 * j] = 1
                         T[2 * j + 1, 2 * i + 1] = 1
-                    if E[i][1] == E[j][1]:  # opposite orientation (towards)
+                    elif E[i][1] == E[j][1]:  # opposite orientation (towards)
                         T[2 * i, 2 * j + 1] = 1
                         T[2 * j, 2 * i + 1] = 1
-                    if E[i][0] == E[j][0]:  # opposite orientation (away)
+                    elif E[i][0] == E[j][0]:  # opposite orientation (away)
                         T[2 * i + 1, 2 * j] = 1
                         T[2 * j + 1, 2 * i] = 1
         return T.charpoly('t').reverse()

@@ -502,6 +502,22 @@ class SymbolicSubringAcceptingVars(GenericSymbolicSubring):
         return SR(variable) in self._vars_
 
 
+    def construction(self):
+        r"""
+        Return the functorial construction of this symbolic subring.
+
+        OUTPUT:
+
+        A tuple whose first entry is a construction functor and its second
+        is the symbolic ring.
+
+        EXAMPLES::
+
+            sage: from sage.symbolic.subring import SymbolicSubring
+            sage: SymbolicSubring(accepting_variables=('a',)).construction()
+            (Subring<accepting a>, Symbolic Ring)
+        """
+        return (SymbolicSubringAcceptingVarsFunctor(self._vars_), SR)
 class SymbolicSubringRejectingVars(GenericSymbolicSubring):
 
     def _repr_(self):
@@ -513,6 +529,24 @@ class SymbolicSubringRejectingVars(GenericSymbolicSubring):
 
 class SymbolicConstantsSubring(GenericSymbolicSubring):
         return SR(variable) not in self._vars_
+
+
+    def construction(self):
+        r"""
+        Return the functorial construction of this symbolic subring.
+
+        OUTPUT:
+
+        A tuple whose first entry is a construction functor and its second
+        is the symbolic ring.
+
+        EXAMPLES::
+
+            sage: from sage.symbolic.subring import SymbolicSubring
+            sage: SymbolicSubring(rejecting_variables=('r',)).construction()
+            (Subring<rejecting r>, Symbolic Ring)
+        """
+        return (SymbolicSubringRejectingVarsFunctor(self._vars_), SR)
 
     def _repr_(self):
         return 'Symbolic Constants Subring'

@@ -1774,7 +1774,7 @@ class EllipticCurveCanonicalHeight:
 
         - ``mu`` (real) - a positive real number
 
-        - ``N`` (integer) - upper bounf do the multiples to be used.
+        - ``N`` (integer) - upper bound on the multiples to be used.
 
         - ``verbose`` (boolean, default True) - verbosity flag.
 
@@ -1903,7 +1903,7 @@ class EllipticCurveCanonicalHeight:
             sage: E = EllipticCurve([0,1-i,i,-i,0])
             sage: H = E.height_function()
             sage: H.min_gr(0.01,5)
-            0.015043796434657225
+            0.020153685521979152
 
         In this example the point `P=(0,0)` has height 0.023 so our
         lower bound is quite good::
@@ -1923,6 +1923,26 @@ class EllipticCurveCanonicalHeight:
             sage: H.min_gr(0.1,5) # long time (7.2s)
             0.25
 
+        TESTS:
+
+        This example from the LMFDB gave problems before the fix in :trac:`8829`::
+
+            sage: K.<a> = NumberField(x^2-x-1)
+            sage: phi = a
+            sage: E = EllipticCurve([phi + 1, -phi + 1, 1, 20*phi - 39, 196*phi + 237])
+            sage: H = E.height_function()
+            sage: H.min_gr(.1,5,True) # long time (~22s)
+            B_1(1) = 1540.19924637
+            ...
+            halving mu to 0.25 and increasing n_max to 6
+            ...
+            halving mu to 0.001953125 and increasing n_max to 13
+            doubling mu to 0.0078125
+            doubling mu to 0.015625
+            height bound in [0.0078125, 0.015625] using n_max = 13
+            ...
+            height bound in [0.0120485220735, 0.0131390064883] using n_max = 13
+            0.012048522073499539
         """
         test = self.test_mu
         if test(1, n_max, verbose):
@@ -1934,14 +1954,28 @@ class EllipticCurveCanonicalHeight:
             mu = .5
             while not test(mu, n_max, False):
                 mu /= 2
+                n_max += 1
+                if verbose:
+                    print("halving mu to %s and increasing n_max to %s" % (mu,n_max))
+            # now we have (mu,n_max) which work we can try to increase
+            # mu again using this larger n_max:
+            mu *= 2
+            while test(mu, n_max, False):
+                mu *= 2
+                if verbose:
+                    print("doubling mu to %s" % mu)
+            mu /= 2
+
         # The true value lies between mu and eps * mu.
         eps = 2.0
         while eps > tol+1:
             if verbose:
-                print "height bound in [%s, %s]" % (mu, mu*eps)
+                print("height bound in [%s, %s] using n_max = %s" % (mu, mu*eps,n_max))
             eps = math.sqrt(eps)
             if test(mu*eps, n_max, False):
                 mu = mu*eps
+        if verbose:
+            print("height bound in [%s, %s] using n_max = %s" % (mu, mu*eps,n_max))
         return RDF(mu)
 
     def min(self, tol, n_max, verbose=False):
@@ -1989,7 +2023,7 @@ class EllipticCurveCanonicalHeight:
             sage: E = EllipticCurve([0,1-i,i,-i,0])
             sage: H = E.height_function()
             sage: H.min(0.01,5) # long time (4s)
-            0.015043796434657225
+            0.020153685521979152
 
         In this example the point `P=(0,0)` has height 0.023 so our
         lower bound is quite good::

@@ -3714,11 +3714,15 @@ class EllipticCurve_number_field(EllipticCurve_field):
         if full_saturation:
             if lower_ht_bound is None:
                 # TODO (robertb): verify this for rank > 1
+                if verbose:
+                    print("Computing lower height bound..")
                 lower_ht_bound = self.height_function().min(.1, 5) ** n
+                if verbose:
+                    print("..done: %s" % lower_ht_bound)
             index_bound = (reg/lower_ht_bound).sqrt()
             prime_list = prime_range(index_bound.ceil() + 1)
             if verbose:
-                print "Testing primes up to", prime_list[-1]
+                print("Testing primes up to %s" % prime_list[-1])
         else:
             if one_prime:
                 prime_list = [one_prime]
@@ -4177,7 +4181,12 @@ def full_p_saturation(Plist, p, lin_combs = dict(), verbose=False):
     Tgens = E.torsion_subgroup().gens()
     for T in Tgens:
         if p.divides(T.order()):
-            Plist += [T]
+            # NB The following line creates a new list of points,
+            # which is essential.  If it is replaced by Plist+=[T]
+            # then while this function would return the correct
+            # output, there would be a very bad side effect: the
+            # caller's list would have been changed here.
+            Plist = Plist + [T]
             nx += 1
     extra_torsion = nx-n
     if extra_torsion:

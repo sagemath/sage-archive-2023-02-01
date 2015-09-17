@@ -178,11 +178,47 @@ SymbolicSubring = SymbolicSubringFactory("SymbolicSubring")
 class GenericSymbolicSubring(SymbolicRing):
 
     def __init__(self, vars):
+        r"""
+        An abstract base class for a symbolic subring.
+
+        INPUT:
+
+        - ``vars`` -- a tuple of symbolic variables.
+
+        TESTS::
+
+            sage: from sage.symbolic.subring import SymbolicSubring
+            sage: SymbolicSubring(accepting_variables=('a',))  # indirect doctest
+            Symbolic Subring accepting the variable a
+            sage: SymbolicSubring(rejecting_variables=('r',))  # indirect doctest
+            Symbolic Subring rejecting the variable r
+            sage: SymbolicSubring(only_constants=True)  # indirect doctest
+            Symbolic Constants Subring
+            sage: SymbolicSubring(rejecting_variables=tuple())  # indirect doctest
+            Symbolic Ring
+        """
         super(GenericSymbolicSubring, self).__init__()
         self._vars_ = set(vars)
 
 
     def _repr_variables_(self):
+        r"""
+        Return a representation string of the variables.
+
+        OUTPUT:
+
+        A string.
+
+        TESTS::
+
+            sage: from sage.symbolic.subring import SymbolicSubring
+            sage: SymbolicSubring(accepting_variables=tuple())._repr_variables_()
+            'no variable'
+            sage: SymbolicSubring(accepting_variables=('a',))._repr_variables_()
+            'the variable a'
+            sage: SymbolicSubring(accepting_variables=('a', 'b'))._repr_variables_()
+            'the variables a, b'
+        """
         if not self._vars_:
             s = 'no variable'
         elif len(self._vars_) == 1:
@@ -193,14 +229,75 @@ class GenericSymbolicSubring(SymbolicRing):
 
 
     def is_variable_valid(self, variable):
+        r"""
+        Return whether the given ``variable`` is valid in this subring.
+
+        INPUT:
+
+        - ``variable`` -- a symbolic variable.
+
+        OUTPUT:
+
+        A boolean.
+
+        EXAMPLES::
+
+            sage: from sage.symbolic.subring import GenericSymbolicSubring
+            sage: GenericSymbolicSubring(vars=tuple()).is_variable_valid(x)
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: Not implemented in this abstract base class
+        """
         raise NotImplementedError('Not implemented in this abstract base class')
 
 
     def _element_constructor_(self, x):
+        r"""
+        Creates the element of this subring specified by the input ``x``.
+
+        INPUT:
+
+        - ``x`` -- an object.
+
+        OUTPUT:
+
+        An element of this symbolic subring.
+
+        TESTS::
+
+            sage: from sage.symbolic.subring import SymbolicSubring
+            sage: S = SymbolicSubring(accepting_variables=('a',))
+            sage: S('a')  # indirect doctest
+            sage: S('x')  # indirect doctest
+            Traceback (most recent call last):
+            ...
+            ValueError: x is not contained in Symbolic Subring accepting the variable a
+        """
         expression = super(GenericSymbolicSubring, self)._element_constructor_(x)
         if not all(self.is_variable_valid(var)
                    for var in expression.variables()):
             raise ValueError('%s is not contained in %s' % (x, self))
+
+    def _coerce_map_from_(self, P):
+        r"""
+        Return whether ``P`` coerces into this symbolic subring.
+
+        INPUT:
+
+        - ``P`` -- a parent.
+
+        OUTPUT:
+
+        A boolean or ``None``.
+
+        TESTS::
+
+            sage: from sage.symbolic.subring import GenericSymbolicSubring
+            sage: GenericSymbolicSubring(vars=tuple()).has_coerce_map_from(SR)  # indirect doctest
+            False
+        """
+        pass
+
 
 from sage.categories.pushout import ConstructionFunctor
 class GenericSymbolicSubringFunctor(ConstructionFunctor):

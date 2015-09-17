@@ -604,12 +604,12 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
         indegs = [H.in_degree(i) for i in range(n)]
         max_breadth = max(indegs)
 
-        for B in range(max_breadth, 2, -1):
-            possible_j = [e for e in H if indegs[e] >= B]
+        for B in range(max_breadth, 1, -1):
+            for j in H:
+                if indegs[j] < B: continue
 
-            for j in possible_j:
                 # Get elements more than B levels below it.
-                too_close = list(H.depth_first_search(j,
+                too_close = set(H.breadth_first_search(j,
                                                       neighbors=H.neighbors_in,
                                                       distance=B-2))
                 elems = [e for e in H.order_ideal([j]) if e not in too_close]
@@ -618,22 +618,14 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
                                           lambda x,y: H.are_incomparable(x,y))
                 achains_n = achains.elements_of_depth_iterator(B)
 
-                for x in achains_n:
-                    if join(x) == j:
-                        if all(join(x[:i]+x[i+1:]) != j for i in range(B)):
+                for A in achains_n:
+                    if join(A) == j:
+                        if all(join(A[:i]+A[i+1:]) != j for i in range(B)):
                             if certificate:
-                                return [self[e] for e in x]
+                                return [self[e] for e in A]
                             else:
                                 return B
-
-        # Breadth is exactly two if we got here.
-        if not certificate:
-            return 2
-        i = 1
-        while True:
-            if H.are_incomparable(i, i+1):
-                return [self[i], self[i+1]]
-            i += 1
+        assert False, "BUG: breadth() in lattices.py have an error."
 
     def complements(self, element=None):
         r"""

@@ -523,6 +523,23 @@ class SymbolicSubringAcceptingVars(GenericSymbolicSubring):
         return (SymbolicSubringAcceptingVarsFunctor(self._vars_), SR)
 
 
+    def _an_element_(self):
+        r"""
+        Return an element of this symbolic subring.
+
+        OUTPUT:
+
+        A symbolic expression.
+
+        TESTS::
+
+            sage: from sage.symbolic.subring import SymbolicSubring
+            sage: SymbolicSubring(accepting_variables=('a',)).an_element()
+            a
+        """
+        return sorted(self._vars_, key=str)[0]
+
+
 class SymbolicSubringAcceptingVarsFunctor(GenericSymbolicSubringFunctor):
 
     _functor_name = 'SymbolicSubringAcceptingVarsFunctor'
@@ -629,6 +646,32 @@ class SymbolicSubringRejectingVars(GenericSymbolicSubring):
         return (SymbolicSubringRejectingVarsFunctor(self._vars_), SR)
 
 
+    def _an_element_(self):
+        r"""
+        Return an element of this symbolic subring.
+
+        OUTPUT:
+
+        A symbolic expression.
+
+        TESTS::
+
+            sage: from sage.symbolic.subring import SymbolicSubring
+            sage: SymbolicSubring(rejecting_variables=('r',)).an_element()
+            some_variable
+            sage: SymbolicSubring(rejecting_variables=('some_variable',)).an_element()
+            some_some_variable
+            sage: SymbolicSubring(rejecting_variables=('some_some_variable',)).an_element()
+            some_variable
+            sage: SymbolicSubring(rejecting_variables=('some_variable','some_some_variable')).an_element()
+            some_some_some_variable
+        """
+        v = SR.an_element()
+        while not self.is_variable_valid(v):
+            v = SR('some_' + str(v))
+        return v
+
+
 class SymbolicSubringRejectingVarsFunctor(GenericSymbolicSubringFunctor):
 
     _functor_name = 'SymbolicSubringRejectingVarsFunctor'
@@ -713,3 +756,20 @@ class SymbolicConstantsSubring(SymbolicSubringAcceptingVars):
             False
         """
         return False
+
+
+    def _an_element_(self):
+        r"""
+        Return an element of this symbolic subring.
+
+        OUTPUT:
+
+        A symbolic expression.
+
+        TESTS::
+
+            sage: from sage.symbolic.subring import SymbolicSubring
+            sage: SymbolicSubring(only_constants=True).an_element()
+            I*pi*e
+        """
+        return SR('I') * SR('pi') * SR('e')

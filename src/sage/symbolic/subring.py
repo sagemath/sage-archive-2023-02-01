@@ -268,15 +268,18 @@ class GenericSymbolicSubring(SymbolicRing):
             sage: from sage.symbolic.subring import SymbolicSubring
             sage: S = SymbolicSubring(accepting_variables=('a',))
             sage: S('a')  # indirect doctest
+            a
             sage: S('x')  # indirect doctest
             Traceback (most recent call last):
             ...
             ValueError: x is not contained in Symbolic Subring accepting the variable a
         """
-        expression = super(GenericSymbolicSubring, self)._element_constructor_(x)
+        expression = SR(x)
         if not all(self.is_variable_valid(var)
                    for var in expression.variables()):
             raise ValueError('%s is not contained in %s' % (x, self))
+        return expression
+
 
     def _coerce_map_from_(self, P):
         r"""

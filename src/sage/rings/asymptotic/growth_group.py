@@ -60,6 +60,48 @@ AUTHORS:
 
 import sage
 
+def repr_short_to_parent(s):
+    r"""
+    Helper method for the growth group factory, which converts a short
+    representation string to a parent.
+
+    INPUT:
+
+    - ``s`` -- a string, short representation of a parent.
+
+    OUTPUT:
+
+    A parent.
+
+    The possible short representations are shown in the examples below.
+
+    EXAMPLES::
+
+        sage: import sage.rings.asymptotic.growth_group as agg
+        sage: agg.repr_short_to_parent('ZZ')
+        Integer Ring
+        sage: agg.repr_short_to_parent('QQ')
+        Rational Field
+        sage: agg.repr_short_to_parent('SR')
+        Symbolic Ring
+
+    TESTS::
+
+        sage: agg.repr_short_to_parent('abcdef')
+        Traceback (most recent call last):
+        ...
+        ValueError: Cannot create a parent out of 'abcdef'.
+    """
+    if s == 'ZZ':
+        return sage.rings.integer_ring.ZZ
+    elif s == 'QQ':
+        return sage.rings.rational_field.QQ
+    elif s == 'SR':
+        return sage.symbolic.ring.SR
+    else:
+        raise ValueError("Cannot create a parent out of '%s'." % (s,))
+
+
 def parent_to_repr_short(P):
     r"""
     Helper method which generates a short(er) representation string
@@ -1526,3 +1568,104 @@ class MonomialGrowthGroup(GenericGrowthGroup):
             1
         """
         return len(self.gens())
+
+
+class GrowthGroupFactory(sage.structure.factory.UniqueFactory):
+    r"""
+    A factory creating asymptotic growth groups.
+
+    INPUT:
+
+    - ``specification`` -- a string.
+
+    OUTPUT:
+
+    An asymptotic growth group.
+
+    EXAMPLES::
+
+        sage: import sage.rings.asymptotic.growth_group as agg
+        sage: agg.GrowthGroup('x^ZZ')
+        Growth Group x^ZZ
+        sage: agg.GrowthGroup('log(x)^QQ')
+        Growth Group log(x)^QQ
+    """
+    def create_key_and_extra_args(self, specification, **kwds):
+        r"""
+        Given the arguments and keyword, create a key that uniquely
+        determines this object.
+
+        EXAMPLES::
+
+            sage: import sage.rings.asymptotic.growth_group as agg
+            sage: agg.GrowthGroup.create_key_and_extra_args('x^ZZ')
+            (('x^ZZ',), {})
+            sage: agg.GrowthGroup.create_key_and_extra_args('asdf')
+            Traceback (most recent call last):
+            ...
+            ValueError: 'asdf' is not a valid string describing a growth group.
+        """
+        factors = tuple(s.strip() for s in specification.split('*'))
+        for f in factors:
+            if '^' not in f:
+                raise ValueError("'%s' is not a valid string describing "
+                                 "a growth group." % (f,))
+
+        return factors, kwds
+
+
+    def create_object(self, version, factors, **kwds):
+        r"""
+        Create an object from the given arguments.
+
+        TESTS::
+
+            sage: import sage.rings.asymptotic.growth_group as agg
+            sage: agg.GrowthGroup('as^df')
+            Traceback (most recent call last):
+            ...
+            ValueError: 'as^df' is not a valid string describing a growth group.
+            sage: agg.GrowthGroup('x^y^z')
+            Traceback (most recent call last):
+            ...
+            ValueError: Cannot decode x^y^z.
+        """
+        if len(factors) > 1:
+            raise NotImplementedError('Cartesian product of growth groups not '
+                                      'yet implemented.')
+        # note: implementation already prepared for cartesian products!
+
+        groups = []
+        for factor in factors:
+            b_and_e = factor.split('^')
+            if len(b_and_e) != 2:
+                raise ValueError('Cannot decode %s.' % (factor,))
+            (b, e) = b_and_e
+
+            try:
+                # monomial growth group: 'var^base'
+                groups.append(
+                    MonomialGrowthGroup(repr_short_to_parent(e), b, **kwds))
+                continue
+            except (TypeError, ValueError):
+                pass
+
+            raise ValueError("'%s' is not a valid string describing "
+                             "a growth group." % (factor,))
+            # todo: once exponential growth groups are implemented,
+            #       move line above to the bottom of this loop
+
+            try:
+                # exponential growth group: 'base^var'
+                groups.append(
+                    ExponentialGrowthGroup(repr_short_to_parent(b), e, **kwds))
+                continue
+            except (TypeError, ValueError):
+                pass
+
+        # todo: groups --> lists with groups over same variable.
+        return groups[0]
+
+
+GrowthGroup = GrowthGroupFactory("GrowthGroup")
+

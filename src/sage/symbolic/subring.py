@@ -301,6 +301,156 @@ class GenericSymbolicSubring(SymbolicRing):
 
 from sage.categories.pushout import ConstructionFunctor
 class GenericSymbolicSubringFunctor(ConstructionFunctor):
+    r"""
+    A base class for the functors constructing symbolic subrings.
+
+    INPUT:
+
+    - ``vars`` -- a tuple, set, or other iterable of symbolic variables.
+
+    EXAMPLES::
+
+        sage: from sage.symbolic.subring import SymbolicSubring
+        sage: SymbolicSubring(only_constants=True).construction()[0]  # indirect doctest
+        Subring<accepting no variable>
+
+    .. SEEALSO::
+
+        :class:`sage.categories.pushout.ConstructionFunctor`.
+    """
+
+    _functor_name = 'GenericSymbolicSubringFunctor'
+
+    rank = 11
+
+    # The symbolic subring construction returns an object admitting a
+    # coercion map into the original, not vice versa.
+    coercion_reversed = True
+
+    _repr_type_ = 'generic'
+
+
+    def __init__(self, vars):
+        r"""
+        See :class:`GenericSymbolicSubringFunctor` for details.
+
+        TESTS::
+
+            sage: from sage.symbolic.subring import SymbolicSubring
+            sage: SymbolicSubring(accepting_variables=('a',)).construction()[0]  # indirect doctest
+            Subring<accepting a>
+        """
+        self.vars = set(vars)
+        from sage.categories.rings import Rings
+        super(ConstructionFunctor, self).__init__(Rings(), Rings())
+
+
+    def _repr_variables_(self):
+        r"""
+        Return a representation string of the variables.
+
+        OUTPUT:
+
+        A string.
+
+        TESTS::
+
+            sage: from sage.symbolic.subring import SymbolicSubring
+            sage: F = SymbolicSubring(accepting_variables=('a',)).construction()[0]
+            sage: F._repr_variables_()
+            'a'
+        """
+        return ', '.join(str(v) for v in sorted(self.vars, key=str))
+
+
+    def _repr_(self):
+        r"""
+        Return a representation string of this functor.
+
+        OUTPUT:
+
+        A string.
+
+        TESTS::
+
+            sage: from sage.symbolic.subring import SymbolicSubring
+            sage: SymbolicSubring(accepting_variables=('a',))  # indirect doctest
+            Symbolic Subring accepting the variable a
+            sage: SymbolicSubring(rejecting_variables=('r',))  # indirect doctest
+            Symbolic Subring rejecting the variable r
+            sage: SymbolicSubring(only_constants=True)  # indirect doctest
+            Symbolic Constants Subring
+        """
+        return 'Subring<%s%s%s>' % (
+            self._repr_type_, ' ' if self._repr_type_ else '',
+            self._repr_variables_() if self.vars else 'no variable')
+
+
+    def merge(self, other):
+        r"""
+        Merge this functor with ``other`` if possible.
+
+        INPUT:
+
+        - ``other`` -- a functor.
+
+        OUTPUT:
+
+        A functor or ``None``.
+
+        EXAMPLES::
+
+            sage: from sage.symbolic.subring import SymbolicSubring
+            sage: F = SymbolicSubring(accepting_variables=('a',)).construction()[0]
+            sage: F.merge(F) is F
+            True
+        """
+        if self == other:
+            return self
+
+
+    def __eq__(self, other):
+        r"""
+        Return if this functor is equal to ``other``.
+
+        INPUT:
+
+        - ``other`` -- a functor.
+
+        OUTPUT:
+
+        A boolean.
+
+        EXAMPLES::
+
+            sage: from sage.symbolic.subring import SymbolicSubring
+            sage: F = SymbolicSubring(accepting_variables=('a',)).construction()[0]
+            sage: F == F
+            True
+        """
+        return type(self) == type(other) and self.vars == other.vars
+
+
+    def __ne__(self, other):
+        r"""
+        Return if this functor is not equal to ``other``.
+
+        INPUT:
+
+        - ``other`` -- a functor.
+
+        OUTPUT:
+
+        A boolean.
+
+        EXAMPLES::
+
+            sage: from sage.symbolic.subring import SymbolicSubring
+            sage: F = SymbolicSubring(accepting_variables=('a',)).construction()[0]
+            sage: F != F
+            False
+        """
+        return not self == other
 
 
 class SymbolicSubringAcceptingVars(GenericSymbolicSubring):

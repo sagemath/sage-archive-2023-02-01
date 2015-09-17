@@ -134,6 +134,8 @@ Operations
     :meth:`Automaton.process` | Process input of an automaton (output differs from general case)
     :meth:`Transducer.process` | Process input of a transducer (output differs from general case)
     :meth:`~FiniteStateMachine.iter_process` | Return process iterator
+    :meth:`~FiniteStateMachine.language` | Return all possible output words
+    :meth:`Automaton.language` | Return all possible accepted words
 
 
 Simplification
@@ -5694,6 +5696,17 @@ class FiniteStateMachine(SageObject):
           process iterator is activated. See also the notes below for
           multi-tape machines.
 
+        - ``process_all_prefixes_of_input`` -- (default: ``False``) a
+          boolean. If ``True``, then each prefix of the input word is
+          processed (instead of processing the whole input word at
+          once). Consequently, there is an output generated for each
+          of these prefixes.
+
+        - ``process_iterator_class`` -- (default: ``None``) a class
+          inherited from :class:`FSMProcessIterator`. If ``None``,
+          then :class:`FSMProcessIterator` is taken. An instance of this
+          class is created and is used during the processing.
+
         OUTPUT:
 
         A triple (or a list of triples,
@@ -5996,6 +6009,7 @@ class FiniteStateMachine(SageObject):
 
 
     def iter_process(self, input_tape=None, initial_state=None,
+                     process_iterator_class=None,
                      iterator_type=None, **kwargs):
         r"""
         This function returns an iterator for processing the input.
@@ -6112,10 +6126,12 @@ class FiniteStateMachine(SageObject):
             :meth:`~FiniteStateMachine.__call__`,
             :class:`FSMProcessIterator`.
         """
-        it = FSMProcessIterator(self,
-                                input_tape=input_tape,
-                                initial_state=initial_state,
-                                **kwargs)
+        if process_iterator_class is None:
+            process_iterator_class = FSMProcessIterator
+        it = process_iterator_class(self,
+                                    input_tape=input_tape,
+                                    initial_state=initial_state,
+                                    **kwargs)
         if iterator_type is None:
             return it
         elif iterator_type == 'simple':
@@ -10395,6 +10411,100 @@ class FiniteStateMachine(SageObject):
         return equal(s.color for s in self.iter_states())
 
 
+    def language(self, max_length=None, **kwargs):
+        r"""
+        Return all words that can be written by this transducer.
+
+        INPUT:
+
+        - ``max_length`` -- an integer or ``None`` (default). Only
+          output words which come from inputs of length at most
+          ``max_length`` will be considered. If ``None``, then this
+          iterates over all possible words without length restrictions.
+
+        - ``kwargs`` -- will be passed on to to the :class:`process
+          iterator <FSMProcessIterator>`. See :meth:`process` for a
+          description.
+
+        OUTPUT:
+
+        An iterator.
+
+        EXAMPLES::
+
+            sage: NAF = Transducer([('I', 0, 0, None), ('I', 1, 1, None),
+            ....:                   (0, 0, 0, 0), (0, 1, 1, 0),
+            ....:                   (1, 0, 0, 1), (1, 2, 1, -1),
+            ....:                   (2, 1, 0, 0), (2, 2, 1, 0)],
+            ....:                  initial_states=['I'], final_states=[0],
+            ....:                  input_alphabet=[0, 1])
+            sage: sorted(NAF.language(4),
+            ....:        key=lambda o: (ZZ(o, base=2), len(o)))
+            [[], [0], [0, 0], [0, 0, 0],
+             [1], [1, 0], [1, 0, 0],
+             [0, 1], [0, 1, 0],
+             [-1, 0, 1],
+             [0, 0, 1],
+             [1, 0, 1]]
+
+        ::
+
+            sage: iterator = NAF.language()
+            sage: next(iterator)
+            []
+            sage: next(iterator)
+            [0]
+            sage: next(iterator)
+            [1]
+            sage: next(iterator)
+            [0, 0]
+            sage: next(iterator)
+            [0, 1]
+
+        .. SEEALSO::
+
+            :meth:`Automaton.language`,
+            :meth:`process`.
+
+        TESTS::
+
+            sage: T = Transducer([(0, 1, 0, 'a'), (1, 2, 1, 'b')],
+            ....:                initial_states=[0], final_states=[0, 1, 2])
+            sage: T.determine_alphabets()
+            sage: list(T.language(2))
+            [[], ['a'], ['a', 'b']]
+            sage: list(T.language(3))
+            [[], ['a'], ['a', 'b']]
+            sage: from sage.combinat.finite_state_machine import  _FSMProcessIteratorAll_
+            sage: it = T.iter_process(
+            ....:     process_iterator_class=_FSMProcessIteratorAll_,
+            ....:     max_length=3,
+            ....:     process_all_prefixes_of_input=True)
+            sage: for current in it:
+            ....:     print current
+            ....:     print "finished:", [o for accept, _, o in it._finished_]
+            process (1 branch)
+            + at state 1
+            +-- tape at 1, [['a']]
+            finished: [[]]
+            process (1 branch)
+            + at state 2
+            +-- tape at 2, [['a', 'b']]
+            finished: [[], ['a']]
+            process (0 branches)
+            finished: [[], ['a'], ['a', 'b']]
+        """
+        kwargs['process_iterator_class'] = _FSMProcessIteratorAll_
+        kwargs['max_length'] = max_length
+        kwargs['process_all_prefixes_of_input'] = True
+        it = self.iter_process(**kwargs)
+        for _ in it:
+            for accept, _, o in it._finished_:
+                if accept:
+                    yield o
+            it._finished_ = []
+
+
 #*****************************************************************************
 
 
@@ -11115,6 +11225,17 @@ class Automaton(FiniteStateMachine):
           process iterator is activated. See also the notes below for
           multi-tape machines.
 
+        - ``process_all_prefixes_of_input`` -- (default: ``False``) a
+          boolean. If ``True``, then each prefix of the input word is
+          processed (instead of processing the whole input word at
+          once). Consequently, there is an output generated for each
+          of these prefixes.
+
+        - ``process_iterator_class`` -- (default: ``None``) a class
+          inherited from :class:`FSMProcessIterator`. If ``None``,
+          then :class:`FSMProcessIterator` is taken. An instance of this
+          class is created and is used during the processing.
+
         OUTPUT:
 
         The full output is a pair (or a list of pairs,
@@ -11560,6 +11681,58 @@ class Automaton(FiniteStateMachine):
         for t in new.iter_transitions():
             t.word_out = word_out_function(t)
         return new
+
+
+    def language(self, max_length=None, **kwargs):
+        r"""
+        Return all words accepted by this automaton.
+
+        INPUT:
+
+        - ``max_length`` -- an integer or ``None`` (default). Only
+          inputs of length at most ``max_length`` will be
+          considered. If ``None``, then this iterates over all
+          possible words without length restrictions.
+
+        - ``kwargs`` -- will be passed on to to the :class:`process
+          iterator <FSMProcessIterator>`. See :meth:`process` for a
+          description.
+
+        OUTPUT:
+
+        An iterator.
+
+        EXAMPLES::
+
+            sage: NAF = Automaton(
+            ....:     {'A': [('A', 0), ('B', 1), ('B', -1)],
+            ....:      'B': [('A', 0)]},
+            ....:     initial_states=['A'], final_states=['A', 'B'])
+            sage: list(NAF.language(3))
+            [[],
+             [0], [-1], [1],
+             [-1, 0], [0, 0], [1, 0], [0, -1], [0, 1],
+             [-1, 0, 0], [0, -1, 0], [0, 0, 0], [0, 1, 0], [1, 0, 0],
+             [-1, 0, -1], [-1, 0, 1], [0, 0, -1],
+             [0, 0, 1], [1, 0, -1], [1, 0, 1]]
+
+        .. SEEALSO::
+
+            :meth:`FiniteStateMachine.language`,
+            :meth:`process`.
+
+        TESTS::
+
+            sage: def R(ell):
+            ....:     return (2^(ell+2)-(-1)^ell)/3
+            sage: import itertools
+            sage: all(len(list(NAFs)) == R(ell) for ell, NAFs in
+            ....:     itertools.groupby(NAF.language(5), key=len))
+            True
+        """
+        T = self.with_output()
+        return T.language(max_length)
+
 
 #*****************************************************************************
 
@@ -12160,6 +12333,17 @@ class Transducer(FiniteStateMachine):
           boolean. If ``True``, then the multi-tape mode of the
           process iterator is activated. See also the notes below for
           multi-tape machines.
+
+        - ``process_all_prefixes_of_input`` -- (default: ``False``) a
+          boolean. If ``True``, then each prefix of the input word is
+          processed (instead of processing the whole input word at
+          once). Consequently, there is an output generated for each
+          of these prefixes.
+
+        - ``process_iterator_class`` -- (default: ``None``) a class
+          inherited from :class:`FSMProcessIterator`. If ``None``,
+          then :class:`FSMProcessIterator` is taken. An instance of this
+          class is created and is used during the processing.
 
         OUTPUT:
 
@@ -13181,34 +13365,54 @@ class _FSMTapeCacheDetectAll_(_FSMTapeCache_):
     This is a class is similar to :class:`_FSMTapeCache_` but accepts
     each transition.
     """
-    def _transition_possible_test_(self, word_in):
+    def compare_to_tape(self, track_number, word):
         """
-        This helper function returns ``True``, i.e., accepts every
-        ``word_in`` of every transition.
+        Return whether it is possible to read a word of the same length
+        as ``word`` (but ignoring its actual content)
+        from the given track successfully.
 
         INPUT:
 
-        - ``word_in`` -- an input word of a transition.
+        - ``track_number`` -- an integer.
+
+        - ``word`` -- a tuple or list of letters. Only its length is used.
 
         OUTPUT:
 
-        ``True``.
+        ``True`` or ``False``.
+
+        Note that this method usually returns ``True``. ``False`` can
+        only be returned at the end of the input tape.
 
         TESTS::
 
-            sage: from sage.combinat.finite_state_machine import (
-            ....:     _FSMTapeCacheDetectAll_)
-            sage: TCA = _FSMTapeCacheDetectAll_([], (xsrange(37, 42), xsrange(11,15)),
-            ....:                      [False, False], ((0, 0), (0, 1)), True)
-            sage: TCA._transition_possible_test_([(37, 11), (38, 12)])
+            sage: from sage.combinat.finite_state_machine import _FSMTapeCacheDetectAll_
+            sage: TC = _FSMTapeCacheDetectAll_(
+            ....:     [], (iter((11, 12)),),
+            ....:     [False], ((0, 0),), False)
+            sage: TC.compare_to_tape(0, [])
             True
-            sage: TCA._transition_possible_test_([(37, 11), (38, 13)])
+            sage: TC.compare_to_tape(0, [37])
             True
-            sage: TCA._transition_possible_test_([])
+            sage: TC.compare_to_tape(0, [37, 38])
             True
-            sage: TCA._transition_possible_test_([(None, None)])
+            sage: TC.compare_to_tape(0, [37, 38, 39])
+            False
+            sage: TC.compare_to_tape(0, [1, 2])
             True
         """
+        track_cache = self.cache[track_number]
+        it_word = iter(word)
+
+        # process letters in cache
+        for _ in track_cache:
+            next(it_word)
+
+        # check letters not already cached
+        for letter_in_word in it_word:
+            successful, letter_on_track = self.read(track_number)
+            if not successful:
+                return False
         return True
 
 
@@ -13332,6 +13536,12 @@ class FSMProcessIterator(SageObject, collections.Iterator):
       boolean. If ``True``, then the multi-tape mode of the
       process iterator is activated. See also the notes below for
       multi-tape machines.
+
+    - ``process_all_prefixes_of_input`` -- (default: ``False``) a
+      boolean. If ``True``, then each prefix of the input word is
+      processed (instead of processing the whole input word at
+      once). Consequently, there is an output generated for each
+      of these prefixes.
 
     OUTPUT:
 
@@ -13581,6 +13791,7 @@ class FSMProcessIterator(SageObject, collections.Iterator):
                  check_epsilon_transitions=True,
                  write_final_word_out=True,
                  format_output=None,
+                 process_all_prefixes_of_input=False,
                  **kwargs):
         """
         See :class:`FSMProcessIterator` for more information.
@@ -13640,6 +13851,7 @@ class FSMProcessIterator(SageObject, collections.Iterator):
 
         self.check_epsilon_transitions = check_epsilon_transitions
         self.write_final_word_out = write_final_word_out
+        self.process_all_prefixes_of_input = process_all_prefixes_of_input
 
         # init branches
         self._current_ = self.Current()
@@ -13970,14 +14182,26 @@ class FSMProcessIterator(SageObject, collections.Iterator):
 
             if not next_transitions:
                 # this branch has to end here...
-                if not (input_tape.finished() or state_said_finished):
+                if not (input_tape.finished() or
+                        state_said_finished or
+                        self.process_all_prefixes_of_input):
                     return
+
+            if not next_transitions or self.process_all_prefixes_of_input:
+                # this branch has to end here... (continued)
                 successful = current_state.is_final
+                if self.process_all_prefixes_of_input:
+                    write_outputs = deepcopy(outputs)
+                else:
+                    write_outputs = outputs
                 if successful and self.write_final_word_out:
-                    write_word(outputs, current_state.final_word_out)
-                for o in outputs:
+                    write_word(write_outputs, current_state.final_word_out)
+                for o in write_outputs:
                     self._finished_.append((successful, current_state,
                                             self.format_output(o)))
+
+            if not next_transitions:
+                # this branch has to end here... (continued)
                 return
 
             # at this point we know that there is at least one
@@ -14618,6 +14842,81 @@ class _FSMProcessIteratorEpsilon_(FSMProcessIterator):
         # updated manually.
         self._current_[tape_cache.position][state][0]._visited_states_.update(
             tape_cache._visited_states_)
+
+
+class _FSMProcessIteratorAll_(FSMProcessIterator):
+    r"""
+    This class is similar to :class:`FSMProcessIterator`, but
+    accepts all transitions during process. See
+    :class:`FSMProcessIterator` for more information.
+
+    This is used in :meth:`FiniteStateMachine.language`.
+
+    EXAMPLES::
+
+        sage: F = FiniteStateMachine(
+        ....:     {'A': [('A', 0, 'z'), ('B', 1, 'o'), ('B', -1, 'm')],
+        ....:      'B': [('A', 0, 'z')]},
+        ....:     initial_states=['A'], final_states=['A', 'B'])
+        sage: from sage.combinat.finite_state_machine import _FSMProcessIteratorAll_
+        sage: it = _FSMProcessIteratorAll_(F, max_length=3,
+        ....:                              format_output=lambda o: ''.join(o))
+        sage: for current in it:
+        ....:     print current
+        process (2 branches)
+        + at state 'A'
+        +-- tape at 1, [['z']]
+        + at state 'B'
+        +-- tape at 1, [['m'], ['o']]
+        process (2 branches)
+        + at state 'A'
+        +-- tape at 2, [['m', 'z'], ['o', 'z'], ['z', 'z']]
+        + at state 'B'
+        +-- tape at 2, [['z', 'm'], ['z', 'o']]
+        process (2 branches)
+        + at state 'A'
+        +-- tape at 3, [['m', 'z', 'z'], ['o', 'z', 'z'], ['z', 'm', 'z'],
+                        ['z', 'o', 'z'], ['z', 'z', 'z']]
+        + at state 'B'
+        +-- tape at 3, [['m', 'z', 'm'], ['m', 'z', 'o'], ['o', 'z', 'm'],
+                        ['o', 'z', 'o'], ['z', 'z', 'm'], ['z', 'z', 'o']]
+        process (0 branches)
+        sage: it.result()
+        [(True, 'A', 'mzz'),
+         (True, 'A', 'ozz'),
+         (True, 'A', 'zmz'),
+         (True, 'A', 'zoz'),
+         (True, 'A', 'zzz'),
+         (True, 'B', 'mzm'),
+         (True, 'B', 'mzo'),
+         (True, 'B', 'ozm'),
+         (True, 'B', 'ozo'),
+         (True, 'B', 'zzm'),
+         (True, 'B', 'zzo')]
+    """
+    def __init__(self, *args, **kwargs):
+        """
+        See :class:`_FSMProcessIteratorAll_` and
+        :class:`FSMProcessIterator` for more information.
+
+        TESTS::
+
+            sage: T = Transducer([(0, 1, 0, 'a'), (1, 2, 1, 'b')],
+            ....:                initial_states=[0], final_states=[0, 1, 2])
+            sage: T.determine_alphabets()
+            sage: list(T.language(2))  # indirect doctest
+            [[], ['a'], ['a', 'b']]
+       """
+        max_length = kwargs.get('max_length')
+        if max_length is None:
+            kwargs['input_tape'] = itertools.count()
+        else:
+            kwargs['input_tape'] = iter(0 for _ in xrange(max_length))
+        self.TapeCache = _FSMTapeCacheDetectAll_
+        self.visited_states = {}
+        kwargs['check_epsilon_transitions'] = False
+        return super(_FSMProcessIteratorAll_, self).__init__(*args, **kwargs)
+
 
 #*****************************************************************************
 

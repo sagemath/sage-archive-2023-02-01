@@ -29,6 +29,20 @@ class SymbolicSubringFactory(UniqueFactory):
     r"""
     A factory creating a symbolic subring.
 
+    INPUT:
+
+    - ``accepting_variables`` (default: ``None``) -- a tuple or other
+      iterable of variables. If specified, then a symbolic subring of expressions
+      in only these variables is created.
+
+    - ``rejecting_variables`` (default: ``None``) -- a tuple or other
+      iterable of variables. If specified, then a symbolic subring of expressions
+      in variables not distinct of these variables is created.
+
+    - ``only_constants`` (default: ``False``) -- a boolean. If set,
+      then a symbolic subring of constant expressions (i.e.,
+      expressions without a variable) is created.
+
     EXAMPLES::
 
         sage: from sage.symbolic.subring import SymbolicSubring
@@ -43,7 +57,7 @@ class SymbolicSubringFactory(UniqueFactory):
     ::
 
         sage: A = SymbolicSubring(accepting_variables=(a, b, c)); A
-        Symbolic Subring accepting variables a, b, c
+        Symbolic Subring accepting the variables a, b, c
         sage: tuple((v, var_in_subring(v, A)) for v in V)
         ((a, True), (b, True), (c, True),
          (r, False), (s, False), (t, False),
@@ -52,7 +66,7 @@ class SymbolicSubringFactory(UniqueFactory):
     ::
 
         sage: R = SymbolicSubring(rejecting_variables=(r, s, t)); R
-        Symbolic Subring rejecting variables r, s, t
+        Symbolic Subring rejecting the variables r, s, t
         sage: tuple((v, var_in_subring(v, R)) for v in V)
         ((a, True), (b, True), (c, True),
          (r, False), (s, False), (t, False),
@@ -83,6 +97,31 @@ class SymbolicSubringFactory(UniqueFactory):
         r"""
         Given the arguments and keyword, create a key that uniquely
         determines this object.
+
+        See :class:`SymbolicSubringFactory` for details.
+
+        TESTS::
+
+            sage: from sage.symbolic.subring import SymbolicSubring
+            sage: SymbolicSubring.create_key_and_extra_args()
+            Traceback (most recent call last):
+            ...
+            ValueError: Cannot create a symbolic subring since nothing specified.
+            sage: SymbolicSubring.create_key_and_extra_args(
+            ....:     accepting_variables=('a',), rejecting_variables=('r',))
+            Traceback (most recent call last):
+            ...
+            ValueError: Cannot create a symbolic subring since input is ambiguous.
+            sage: SymbolicSubring.create_key_and_extra_args(
+            ....:     accepting_variables=('a',), only_constants=True)
+            Traceback (most recent call last):
+            ...
+            ValueError: Cannot create a symbolic subring since input is ambiguous.
+            sage: SymbolicSubring.create_key_and_extra_args(
+            ....:     rejecting_variables=('r',), only_constants=True)
+            Traceback (most recent call last):
+            ...
+            ValueError: Cannot create a symbolic subring since input is ambiguous.
         """
         if accepting_variables is None and \
            rejecting_variables is None and \
@@ -118,6 +157,14 @@ class SymbolicSubringFactory(UniqueFactory):
     def create_object(self, version, key, **kwds):
         r"""
         Create an object from the given arguments.
+
+        See :class:`SymbolicSubringFactory` for details.
+
+        TESTS::
+
+            sage: from sage.symbolic.subring import SymbolicSubring
+            sage: SymbolicSubring(rejecting_variables=tuple()) is SR  # indirect doctest
+            True
         """
         cls, vars = key
         if cls is SymbolicSubringRejectingVars and not vars:

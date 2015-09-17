@@ -20,12 +20,12 @@ Classes and Methods
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-import sage
 from ring import SymbolicRing, SR
 from expression import Expression
 
 
-class SymbolicSubringFactory(sage.structure.factory.UniqueFactory):
+from sage.structure.factory import UniqueFactory
+class SymbolicSubringFactory(UniqueFactory):
     r"""
     A factory creating a symbolic subring.
 
@@ -148,6 +148,9 @@ class GenericSymbolicSubring(SymbolicRing):
         if not all(self.is_variable_valid(var)
                    for var in expression.variables()):
             raise ValueError('%s is not contained in %s' % (x, self))
+
+from sage.categories.pushout import ConstructionFunctor
+class GenericSymbolicSubringFunctor(ConstructionFunctor):
 
 
 class SymbolicSubringAcceptingVars(GenericSymbolicSubring):

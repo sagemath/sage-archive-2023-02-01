@@ -4431,6 +4431,67 @@ def BIBD_171_6_1():
     bibd = RecursivelyEnumeratedSet(map(frozenset,bibd), successors=gens)
     return IncidenceStructure(bibd)._blocks
 
+def HigmanSimsDesign():
+    r"""
+    Return the Higman-Sims designs, which is a `(176, 50, 14)`-BIBD.
+
+    This design is built from a from the :func:`WittDesign
+    <sage.combinat.designs.block_design.WittDesign>` `W` on 24 points. We define
+    two points `a,b`, and consider:
+
+    - The collection `W_a` of all blocks of `W` containing `a` but not
+      containing `b`.
+
+    - The collection `W_b` of all blocks of `W` containing `b` but not
+      containing `a`.
+
+    The design is then obtained from the incidence structure produced by the
+    blocks `A\in W_a` and `B\in W_b` whose intersection has cardinality 2. This
+    construction, due to M.Smith, can be found in [KY04]_ or in 10.A.(v) of [BvL84]_.
+
+    EXAMPLE::
+
+        sage: H = designs.HigmanSimsDesign(); H  # optional - gap_packages
+        Incidence structure with 176 points and 176 blocks
+        sage: H.is_t_design(return_parameters=1) # optional - gap_packages
+        (True, (2, 176, 50, 14))
+
+    Make sure that the automorphism group of this designs is isomorphic to the
+    automorphism group of the
+    :func:`~sage.graphs.generators.smallgraphs.HigmanSimsGraph`. Note that the
+    first of those permutation groups acts on 176 points, while the second acts
+    on 100::
+
+        sage: gH = H.automorphism_group()                        # optional - gap_packages
+        sage: gG = graphs.HigmanSimsGraph().automorphism_group() # optional - gap_packages
+        sage: gG.is_isomorphic(gG)                   # long time # optional - gap_packages
+        True
+
+    REFERENCE:
+
+    .. [KY04] S. Klee and L. Yates,
+       Tight Subdesigns of the Higman-Sims Design,
+       Rose-Hulman Undergraduate Math. J 5.2 (2004).
+       https://www.rose-hulman.edu/mathjournal/archives/2004/vol5-n2/paper9/v5n2-9pd.pdf
+    """
+    from sage.combinat.designs.block_design import WittDesign
+    from incidence_structures import IncidenceStructure
+    W = WittDesign(24)
+    a,b = 0,1
+    Wa = [set(B) for B in W
+          if (a     in B and
+              b not in B)]
+    Wb = [set(B) for B in W
+          if (b     in B and
+              a not in B)]
+
+    H = [[i for i,A in enumerate(Wa) if len(A&B) != 2]
+         for B in Wb]
+
+    H = IncidenceStructure(H)
+
+    return H
+
 def BIBD_196_6_1():
     r"""
     Return a (196,6,1)-BIBD.
@@ -4511,6 +4572,7 @@ BIBD_constructions = {
     (136,6,1): BIBD_136_6_1,
     (141,6,1): BIBD_141_6_1,
     (171,6,1): BIBD_171_6_1,
+    (176,50,14): HigmanSimsDesign,
     (196,6,1): BIBD_196_6_1,
     (201,6,1): BIBD_201_6_1,
 }

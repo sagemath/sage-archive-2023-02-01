@@ -163,7 +163,8 @@ __append_to_doc(
      "WagnerGraph",
      "WatkinsSnarkGraph",
      "WellsGraph",
-     "WienerArayaGraph"])
+     "WienerArayaGraph",
+     "SuzukiGraph"])
 
 __doc__ += """
 **Platonic solids** (ordered ascending by number of vertices)
@@ -1945,6 +1946,7 @@ class GraphGenerators():
     WagnerGraph              = staticmethod(sage.graphs.generators.smallgraphs.WagnerGraph)
     WatkinsSnarkGraph        = staticmethod(sage.graphs.generators.smallgraphs.WatkinsSnarkGraph)
     WienerArayaGraph         = staticmethod(sage.graphs.generators.smallgraphs.WienerArayaGraph)
+    SuzukiGraph              = staticmethod(sage.graphs.generators.smallgraphs.SuzukiGraph)
 
 ###########################################################################
 # Platonic Solids

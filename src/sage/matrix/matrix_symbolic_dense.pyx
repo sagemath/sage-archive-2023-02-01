@@ -507,13 +507,15 @@ cdef class Matrix_symbolic_dense(Matrix_generic_dense):
         sub_dict = {var: SR.var(var)}
         return Factorization(self.charpoly(var).subs(**sub_dict).factor_list())
 
-    def jordan_form(self, transformation=False):
+    def jordan_form(self, subdivide=True, transformation=False):
         """
         Return a Jordan normal form of ``self``.
 
         INPUT:
 
         - ``self`` -- a square matrix
+
+        - ``subdivide`` -- boolean (default: ``True``)
 
         - ``transformation`` -- boolean (default: ``False``)
 
@@ -525,6 +527,10 @@ cdef class Matrix_symbolic_dense(Matrix_generic_dense):
         Jordan normal form and ``P`` is an invertible matrix such that
         ``self`` equals ``P * J * P^(-1)``.
 
+        If ``subdivide`` is ``True``, the Jordan blocks in the
+        returned matrix ``J`` are indicated by a subdivision in
+        the sense of :meth:`~sage.matrix.matrix2.subdivide`.
+
         EXAMPLES:
 
         We start with some examples of diagonalisable matrices::
@@ -532,13 +538,19 @@ cdef class Matrix_symbolic_dense(Matrix_generic_dense):
             sage: a,b,c,d = var('a,b,c,d')
             sage: matrix([a]).jordan_form()
             [a]
-            sage: matrix([[a, 0], [1, d]]).jordan_form()
+            sage: matrix([[a, 0], [1, d]]).jordan_form(subdivide=True)
+            [d|0]
+            [-+-]
+            [0|a]
+            sage: matrix([[a, 0], [1, d]]).jordan_form(subdivide=False)
             [d 0]
             [0 a]
             sage: matrix([[a, x, x], [0, b, x], [0, 0, c]]).jordan_form()
-            [c 0 0]
-            [0 b 0]
-            [0 0 a]
+            [c|0|0]
+            [-+-+-]
+            [0|b|0]
+            [-+-+-]
+            [0|0|a]
 
         In the following examples, we compute Jordan forms of some
         non-diagonalisable matrices::
@@ -547,9 +559,10 @@ cdef class Matrix_symbolic_dense(Matrix_generic_dense):
             [a 1]
             [0 a]
             sage: matrix([[a, 0, b], [0, c, 0], [0, 0, a]]).jordan_form()
-            [c 0 0]
-            [0 a 1]
-            [0 0 a]
+            [c|0 0]
+            [-+---]
+            [0|a 1]
+            [0|0 a]
 
         The following examples illustrate the ``transformation`` flag.
         Note that symbolic expressions may need to be simplified to
@@ -582,15 +595,20 @@ cdef class Matrix_symbolic_dense(Matrix_generic_dense):
         Finally, some examples involving square roots::
 
             sage: matrix([[a, -b], [b, a]]).jordan_form()
-            [a - I*b       0]
-            [      0 a + I*b]
-            sage: matrix([[a, b], [c, d]]).jordan_form()
+            [a - I*b|      0]
+            [-------+-------]
+            [      0|a + I*b]
+            sage: matrix([[a, b], [c, d]]).jordan_form(subdivide=False)
             [1/2*a + 1/2*d - 1/2*sqrt(a^2 + 4*b*c - 2*a*d + d^2)                                                   0]
             [                                                  0 1/2*a + 1/2*d + 1/2*sqrt(a^2 + 4*b*c - 2*a*d + d^2)]
         """
         A = self._maxima_lib_()
         jordan_info = A.jordan()
         J = jordan_info.dispJordan()._sage_()
+        if subdivide:
+            v = [x[1] for x in jordan_info]
+            w = [sum(v[0:i]) for i in xrange(1, len(v))]
+            J.subdivide(w, w)
         if transformation:
             P = A.diag_mode_matrix(jordan_info)._sage_()
             return J, P

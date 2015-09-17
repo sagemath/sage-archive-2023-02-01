@@ -625,9 +625,50 @@ class SymbolicSubringRejectingVars(GenericSymbolicSubring):
         """
         return (SymbolicSubringRejectingVarsFunctor(self._vars_), SR)
 
+
+class SymbolicConstantsSubring(SymbolicSubringAcceptingVars):
+    r"""
+    The symbolic subring consisting of symbolic constants.
+    """
+
     def _repr_(self):
+        r"""
+        Return a representation string of this symbolic subring.
+
+        OUTPUT:
+
+        A string.
+
+        TESTS::
+
+            sage: from sage.symbolic.subring import SymbolicSubring
+            sage: SymbolicSubring(only_constants=True)  # indirect doctest
+            Symbolic Constants Subring
+        """
         return 'Symbolic Constants Subring'
 
 
-    def is_variable_valid(self, var):
+    def is_variable_valid(self, variable):
+        r"""
+        Return whether the given ``variable`` is valid in this subring.
+
+        INPUT:
+
+        - ``variable`` -- a symbolic variable.
+
+        OUTPUT:
+
+        A boolean.
+
+        EXAMPLES::
+
+            sage: from sage.symbolic.subring import SymbolicSubring
+            sage: S = SymbolicSubring(only_constants=True)
+            sage: S.is_variable_valid('a')
+            False
+            sage: S.is_variable_valid('r')
+            False
+            sage: S.is_variable_valid('x')
+            False
+        """
         return False

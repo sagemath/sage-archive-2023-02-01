@@ -301,7 +301,7 @@ class CartesianProductPosets(CartesianProduct):
     - ``category`` -- a subcategory of
       ``Sets().CartesianProducts() & Posets()``.
 
-    - ``order`` -- a string or function specifing an order less or equal.
+    - ``order`` -- a string or function specifying an order less or equal.
       It can be one of the following:
 
       - ``'lex'`` -- elements are ordered lexicographically.
@@ -348,7 +348,7 @@ class CartesianProductPosets(CartesianProduct):
 
     def __init__(self, sets, category, order, **kwargs):
         r"""
-        See :class:`CartesianProductPosets` for details,
+        See :class:`CartesianProductPosets` for details.
 
         TESTS::
 
@@ -375,7 +375,7 @@ class CartesianProductPosets(CartesianProduct):
 
     def le(self, left, right):
         r"""
-        Tests if ``left`` is smaller or equal to ``right``.
+        Tests if ``left`` is less than or equal to ``right``.
 
         INPUT:
 
@@ -390,7 +390,7 @@ class CartesianProductPosets(CartesianProduct):
         .. NOTE::
 
             This method uses the order defined on creation of this
-            cartesian product. See :class:`CartesianProductPosets`
+            cartesian product. See :class:`CartesianProductPosets`.
 
         EXAMPLES::
 

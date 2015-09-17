@@ -378,6 +378,42 @@ We can also let an automaton act on a :mod:`word
     sage: NAF(w)
     True
 
+Recognizing NAFs via Automata Operations
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Alternatively, we can use automata operations to recognize NAFs; for
+simplicity, we only use the input alphabet ``[0, 1]``. On the one
+hand, we can construct such an automaton by forbidding the word
+``11``::
+
+    sage: forbidden = automata.ContainsWord([1, 1], input_alphabet=[0, 1])
+    sage: NAF_negative = forbidden.complement()
+    sage: NAF_negative([1, 1, 0, 1])
+    False
+    sage: NAF_negative([1, 0, 1, 0, 1])
+    True
+
+On the other hand, we can write this as a regular expression and
+translate that into automata operations::
+
+    sage: zero = automata.word([0])
+    sage: one = automata.word([1])
+    sage: epsilon = automata.EmptyWord(input_alphabet=[0, 1])
+    sage: NAF_positive = (zero + one*zero).kleene_star() * (epsilon + one)
+
+We check that the two approaches are equivalent::
+
+    sage: NAF_negative.is_equivalent(NAF_positive)
+    True
+
+.. SEEALSO::
+   :meth:`~sage.combinat.finite_state_machine_generators.AutomatonGenerators.ContainsWord`,
+   :meth:`~sage.combinat.finite_state_machine_generators.AutomatonGenerators.word`,
+   :meth:`~Automaton.complement`,
+   :meth:`~FiniteStateMachine.kleene_star`,
+   :meth:`~sage.combinat.finite_state_machine_generators.AutomatonGenerators.EmptyWord`,
+   :meth:`~Automaton.is_equivalent`.
+
 .. _finite_state_machine_LaTeX_output:
 
 LaTeX output

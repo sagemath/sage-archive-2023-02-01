@@ -454,12 +454,51 @@ class GenericSymbolicSubringFunctor(ConstructionFunctor):
 
 
 class SymbolicSubringAcceptingVars(GenericSymbolicSubring):
+    r"""
+    The symbolic subring consisting of symbolic expressions in the given variables.
+    """
 
     def _repr_(self):
-        return 'Symbolic Subring accepting variables %s' % \
+        r"""
+        Return a representation string of this symbolic subring.
+
+        OUTPUT:
+
+        A string.
+
+        TESTS::
+
+            sage: from sage.symbolic.subring import SymbolicSubring
+            sage: SymbolicSubring(accepting_variables=('a',))  # indirect doctest
+            Symbolic Subring accepting the variable a
+        """
+        return 'Symbolic Subring accepting %s' % \
             (self._repr_variables_())
 
 
+    def is_variable_valid(self, variable):
+        r"""
+        Return whether the given ``variable`` is valid in this subring.
+
+        INPUT:
+
+        - ``variable`` -- a symbolic variable.
+
+        OUTPUT:
+
+        A boolean.
+
+        EXAMPLES::
+
+            sage: from sage.symbolic.subring import SymbolicSubring
+            sage: S = SymbolicSubring(accepting_variables=('a',))
+            sage: S.is_variable_valid('a')
+            True
+            sage: S.is_variable_valid('r')
+            False
+            sage: S.is_variable_valid('x')
+            False
+        """
         return SR(variable) in self._vars_
 
 

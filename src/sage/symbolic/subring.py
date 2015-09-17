@@ -183,10 +183,16 @@ class GenericSymbolicSubring(SymbolicRing):
 
 
     def _repr_variables_(self):
-        return ', '.join(str(v) for v in sorted(self._vars_, key=str))
+        if not self._vars_:
+            s = 'no variable'
+        elif len(self._vars_) == 1:
+            s = 'the variable '
+        else:
+            s = 'the variables '
+        return s + ', '.join(str(v) for v in sorted(self._vars_, key=str))
 
 
-    def is_variable_valid(self, var):
+    def is_variable_valid(self, variable):
         raise NotImplementedError('Not implemented in this abstract base class')
 
 

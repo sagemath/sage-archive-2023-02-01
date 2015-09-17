@@ -169,7 +169,7 @@ from sage.libs.flint.fmpz cimport fmpz_t, fmpz_init, fmpz_get_mpz, fmpz_set_mpz,
 from sage.libs.flint.fmpq cimport fmpq_t, fmpq_init, fmpq_set_mpq, fmpq_clear
 from sage.libs.gmp.mpz cimport mpz_fits_ulong_p, mpz_fits_slong_p, mpz_get_ui, mpz_get_si
 from sage.libs.mpfi cimport mpfi_get_left, mpfi_get_right, mpfi_interv_fr
-from sage.libs.mpfr cimport mpfr_t, mpfr_init2, mpfr_clear, mpfr_sgn, MPFR_PREC_MIN
+from sage.libs.mpfr cimport mpfr_t, mpfr_init2, mpfr_clear, mpfr_sgn, MPFR_PREC_MIN, mpfr_equal_p
 from sage.libs.mpfr cimport GMP_RNDN, GMP_RNDU, GMP_RNDD, GMP_RNDZ
 from sage.rings.real_double cimport RealDoubleElement
 from sage.rings.real_mpfr cimport RealField_class, RealField, RealNumber
@@ -187,6 +187,18 @@ cdef void mpfi_to_arb(arb_t target, const mpfi_t source, const long precision):
     - ``source`` -- an ``mpfi_t``.
 
     - ``precision`` -- an integer `\ge 2`.
+
+    TESTS::
+
+        sage: from sage.rings.real_arb import RBF
+        sage: RBF(RIF(infinity)).endpoints()
+        (+infinity, +infinity)
+        sage: RBF(RIF(-infinity)).endpoints()
+        (-infinity, -infinity)
+        sage: RIF(RBF(infinity)).endpoints()
+        (+infinity, +infinity)
+        sage: RIF(RBF(-infinity)).endpoints()
+        (-infinity, -infinity)
     """
     cdef mpfr_t left
     cdef mpfr_t right
@@ -197,10 +209,10 @@ cdef void mpfi_to_arb(arb_t target, const mpfi_t source, const long precision):
     if _do_sig(precision): sig_on()
     mpfi_get_left(left, source)
     mpfi_get_right(right, source)
-    arb_set_interval_mpfr(target,
-                          left,
-                          right,
-                          precision)
+    arb_set_interval_mpfr(target, left, right, precision)
+    # Work around weakness of arb_set_interval_mpfr(tgt, inf, inf)
+    if mpfr_equal_p(left, right):
+        mag_zero(arb_radref(target))
     if _do_sig(precision): sig_off()
 
     mpfr_clear(left)
@@ -1969,6 +1981,8 @@ cdef class RealBall(RingElement):
 
             sage: RBF(0).min()
             0
+            sage: RBF(infinity).min().rad()
+            0.00000000
         """
         iv = self._real_mpfi_(RealIntervalField(prec(self)))
         my_others = [self._parent.coerce(x) for x in others]

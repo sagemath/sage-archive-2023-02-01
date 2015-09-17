@@ -518,6 +518,45 @@ class SymbolicSubringAcceptingVars(GenericSymbolicSubring):
             (Subring<accepting a>, Symbolic Ring)
         """
         return (SymbolicSubringAcceptingVarsFunctor(self._vars_), SR)
+
+
+class SymbolicSubringAcceptingVarsFunctor(GenericSymbolicSubringFunctor):
+
+    _functor_name = 'SymbolicSubringAcceptingVarsFunctor'
+
+    _repr_type_ = 'accepting'
+
+
+    def merge(self, other):
+        r"""
+        Merge this functor with ``other`` if possible.
+
+        INPUT:
+
+        - ``other`` -- a functor.
+
+        OUTPUT:
+
+        A functor or ``None``.
+
+        EXAMPLES::
+
+            sage: from sage.symbolic.subring import SymbolicSubring
+            sage: F = SymbolicSubring(accepting_variables=('a',)).construction()[0]
+            sage: G = SymbolicSubring(rejecting_variables=('r',)).construction()[0]
+            sage: F.merge(F) is F
+            True
+            sage: F.merge(G) is G
+            True
+        """
+        if self == other:
+            return self
+        elif type(self) == type(other):
+            return type(self)(self.vars | other.vars)
+        elif isinstance(other, SymbolicSubringRejectingVarsFunctor):
+            if not (self.vars & other.vars):
+                return other
+
 class SymbolicSubringRejectingVars(GenericSymbolicSubring):
 
     def _repr_(self):

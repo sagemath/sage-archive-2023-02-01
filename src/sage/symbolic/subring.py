@@ -460,8 +460,7 @@ class SymbolicSubringAcceptingVars(GenericSymbolicSubring):
             (self._repr_variables_())
 
 
-    def is_variable_valid(self, var):
-        return var in self._vars_
+        return SR(variable) in self._vars_
 
 
 class SymbolicSubringRejectingVars(GenericSymbolicSubring):
@@ -471,11 +470,10 @@ class SymbolicSubringRejectingVars(GenericSymbolicSubring):
             (self._repr_variables_())
 
 
-    def is_variable_valid(self, var):
-        return var not in self._vars_
 
 
 class SymbolicConstantsSubring(GenericSymbolicSubring):
+        return SR(variable) not in self._vars_
 
     def _repr_(self):
         return 'Symbolic Constants Subring'

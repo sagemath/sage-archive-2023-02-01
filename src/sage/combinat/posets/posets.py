@@ -70,6 +70,7 @@ List of Poset methods
     :meth:`~FinitePoset.is_connected` | Return ``True`` if the poset is connected, and ``False`` otherwise.
     :meth:`~FinitePoset.is_graded` | Return whether this poset is graded.
     :meth:`~FinitePoset.is_ranked` | Return whether this poset is ranked.
+    :meth:`~FinitePoset.is_ranked` | Return ``True`` if the poset is rank symmetric.
     :meth:`~FinitePoset.is_incomparable_chain_free` | Return whether the poset is `(m+n)`-free.
     :meth:`~FinitePoset.is_slender` | Return whether the poset ``self`` is slender or not.
     :meth:`~FinitePoset.is_join_semilattice` | Return ``True`` is the poset has a join operation, and False otherwise.
@@ -5241,6 +5242,41 @@ class FinitePoset(UniqueRepresentation, Parent):
         - Anne Schilling (2012-02-18)
         """
         return self.linear_extension().evacuation().to_poset()
+
+    def is_rank_symmetric(self):
+        """
+        Return ``True`` if the poset is rank symmetric, and ``False`` otherwise.
+
+        The poset is expected to be graded and connected.
+
+        A poset of rank `h` (maximal chains have `h+1` elements) is rank
+        symmetric if the number of elements are equal in ranks `i` and
+        `h-i` for every `i` in `0, 1, \ldots, h`.
+
+        EXAMPLES::
+
+            sage: P = Poset({1:[2], 2:[3,4], 3:[5], 4:[5]})
+            sage: P.is_rank_symmetric()
+            False
+            sage: P = Poset({1:[3,4,5], 2:[3,4,5], 3:[6], 4:[7], 5:[7]})
+            sage: P.is_rank_symmetric()
+            True
+
+        TESTS::
+
+            sage: Poset().is_rank_symmetric()  # Test empty poset
+            True
+        """
+        if not self.is_connected():
+            raise TypeError('the poset is not connected')
+        if not self.is_graded():
+            raise TypeError('the poset is not graded')
+        levels = self._hasse_diagram.level_sets()
+        h = len(levels)
+        for i in range(h/2):
+            if len(levels[i]) != len(levels[h-1-i]):
+                return False
+        return True
 
     def is_slender(self):
         r"""

@@ -557,16 +557,54 @@ class SymbolicSubringAcceptingVarsFunctor(GenericSymbolicSubringFunctor):
             if not (self.vars & other.vars):
                 return other
 
+
 class SymbolicSubringRejectingVars(GenericSymbolicSubring):
+    r"""
+    The symbolic subring consisting of symbolic expressions whose variables
+    are none of the given variables.
+    """
 
     def _repr_(self):
-        return 'Symbolic Subring rejecting variables %s' % \
+        r"""
+        Return a representation string of this symbolic subring.
+
+        OUTPUT:
+
+        A string.
+
+        TESTS::
+
+            sage: from sage.symbolic.subring import SymbolicSubring
+            sage: SymbolicSubring(rejecting_variables=('r',))  # indirect doctest
+            Symbolic Subring rejecting the variable r
+        """
+        return 'Symbolic Subring rejecting %s' % \
             (self._repr_variables_())
 
 
+    def is_variable_valid(self, variable):
+        r"""
+        Return whether the given ``variable`` is valid in this subring.
 
+        INPUT:
 
-class SymbolicConstantsSubring(GenericSymbolicSubring):
+        - ``variable`` -- a symbolic variable.
+
+        OUTPUT:
+
+        A boolean.
+
+        EXAMPLES::
+
+            sage: from sage.symbolic.subring import SymbolicSubring
+            sage: S = SymbolicSubring(rejecting_variables=('r',))
+            sage: S.is_variable_valid('a')
+            True
+            sage: S.is_variable_valid('r')
+            False
+            sage: S.is_variable_valid('x')
+            True
+        """
         return SR(variable) not in self._vars_
 
 

@@ -1409,13 +1409,14 @@ class Sets(Category_singleton):
             - ``parents`` -- a list (or other iterable) of parents.
 
             - ``category`` -- (default: ``None``) the category the
-              cartesian product belongs to. If ``None``, then
+              cartesian product belongs to. If ``None`` is passed,
+              then
               :meth:`~sage.categories.covariant_functorial_construction.CovariantFactorialConstruction.category_from_parents`
-              is used the determine category.
+              is used to determine the category.
 
-            - ``extra_category`` -- (default: ``None``) this category is
-              added to the cartesian product additionally to the
-              categories obtained from the parents.
+            - ``extra_category`` -- (default: ``None``) a category
+              that is added to the cartesian product in addition
+              to the categories obtained from the parents.
 
             - other keyword arguments will passed on to the class used
               for this cartesian product (see also

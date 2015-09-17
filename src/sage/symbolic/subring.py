@@ -626,6 +626,44 @@ class SymbolicSubringRejectingVars(GenericSymbolicSubring):
         return (SymbolicSubringRejectingVarsFunctor(self._vars_), SR)
 
 
+class SymbolicSubringRejectingVarsFunctor(GenericSymbolicSubringFunctor):
+
+    _functor_name = 'SymbolicSubringRejectingVarsFunctor'
+
+    _repr_type_ = 'rejecting'
+
+
+    def merge(self, other):
+        r"""
+        Merge this functor with ``other`` if possible.
+
+        INPUT:
+
+        - ``other`` -- a functor.
+
+        OUTPUT:
+
+        A functor or ``None``.
+
+        EXAMPLES::
+
+            sage: from sage.symbolic.subring import SymbolicSubring
+            sage: F = SymbolicSubring(accepting_variables=('a',)).construction()[0]
+            sage: G = SymbolicSubring(rejecting_variables=('r',)).construction()[0]
+            sage: G.merge(G) is G
+            True
+            sage: G.merge(F) is G
+            True
+        """
+        if self == other:
+            return self
+        elif type(self) == type(other):
+            return type(self)(self.vars & other.vars)
+        elif isinstance(other, SymbolicSubringAcceptingVarsFunctor):
+            if not (self.vars & other.vars):
+                return self
+
+
 class SymbolicConstantsSubring(SymbolicSubringAcceptingVars):
     r"""
     The symbolic subring consisting of symbolic constants.

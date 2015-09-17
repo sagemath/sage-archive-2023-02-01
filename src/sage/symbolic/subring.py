@@ -296,10 +296,77 @@ class GenericSymbolicSubring(SymbolicRing):
         TESTS::
 
             sage: from sage.symbolic.subring import GenericSymbolicSubring
-            sage: GenericSymbolicSubring(vars=tuple()).has_coerce_map_from(SR)  # indirect doctest
+            sage: GenericSymbolicSubring(vars=tuple()).has_coerce_map_from(SR)  # indirect doctest  # not tested see #19231
+            False
+
+        ::
+            sage: from sage.symbolic.subring import SymbolicSubring
+            sage: C = SymbolicSubring(only_constants=True)
+            sage: C.has_coerce_map_from(ZZ)  # indirect doctest
+            True
+            sage: C.has_coerce_map_from(QQ)  # indirect doctest
+            True
+            sage: C.has_coerce_map_from(RR)  # indirect doctest
+            True
+            sage: C.has_coerce_map_from(RIF)  # indirect doctest
+            True
+            sage: C.has_coerce_map_from(CC)  # indirect doctest
+            True
+            sage: C.has_coerce_map_from(CIF)  # indirect doctest
+            True
+            sage: C.has_coerce_map_from(AA)  # indirect doctest
+            True
+            sage: C.has_coerce_map_from(QQbar)  # indirect doctest
+            True
+            sage: C.has_coerce_map_from(SR)  # indirect doctest  # not tested see #19231
             False
         """
-        pass
+        from sage.rings.real_mpfr import mpfr_prec_min
+        from sage.rings.all import (ComplexField,
+                                    RLF, CLF, AA, QQbar, InfinityRing)
+        from sage.rings.real_mpfi import is_RealIntervalField
+        from sage.rings.complex_interval_field import is_ComplexIntervalField
+
+        if isinstance(P, type):
+            return SR._coerce_map_from_(P)
+
+        elif RLF.has_coerce_map_from(P) or \
+             CLF.has_coerce_map_from(P) or \
+             AA.has_coerce_map_from(P) or \
+             QQbar.has_coerce_map_from(P):
+            return True
+
+        elif (P is InfinityRing
+              or is_RealIntervalField(P) or is_ComplexIntervalField(P)):
+            return True
+
+        elif ComplexField(mpfr_prec_min()).has_coerce_map_from(P):
+            return P not in (RLF, CLF, AA, QQbar)
+
+
+    def __cmp__(self, other):
+        """
+        Compare two symbolic subrings.
+
+        EXAMPLES::
+
+            sage: from sage.symbolic.subring import SymbolicSubring
+            sage: A = SymbolicSubring(accepting_variables=('a',))
+            sage: B = SymbolicSubring(accepting_variables=('b',))
+            sage: AB = SymbolicSubring(accepting_variables=('a', 'b'))
+            sage: A == A
+            True
+            sage: A == B
+            False
+            sage: A == AB
+            False
+        """
+        c = cmp(type(self), type(other))
+        if c != 0:
+            return c
+        if self._vars_ == other._vars_:
+            return 0
+        return 1
 
 
 from sage.categories.pushout import ConstructionFunctor
@@ -523,6 +590,33 @@ class SymbolicSubringAcceptingVars(GenericSymbolicSubring):
         return (SymbolicSubringAcceptingVarsFunctor(self._vars_), SR)
 
 
+    def _coerce_map_from_(self, P):
+        r"""
+        Return whether ``P`` coerces into this symbolic subring.
+
+        INPUT:
+
+        - ``P`` -- a parent.
+
+        OUTPUT:
+
+        A boolean or ``None``.
+
+        TESTS::
+
+            sage: from sage.symbolic.subring import SymbolicSubring
+            sage: A = SymbolicSubring(accepting_variables=('a',))
+            sage: AB = SymbolicSubring(accepting_variables=('a', 'b'))
+            sage: A.has_coerce_map_from(AB)  # indirect doctest
+            False
+            sage: AB.has_coerce_map_from(A)  # indirect doctest
+            True
+        """
+        if isinstance(P, SymbolicSubringAcceptingVars):
+            return self._vars_ >= P._vars_
+        return super(SymbolicSubringAcceptingVars, self)._coerce_map_from_(P)
+
+
     def _an_element_(self):
         r"""
         Return an element of this symbolic subring.
@@ -644,6 +738,33 @@ class SymbolicSubringRejectingVars(GenericSymbolicSubring):
             (Subring<rejecting r>, Symbolic Ring)
         """
         return (SymbolicSubringRejectingVarsFunctor(self._vars_), SR)
+
+
+    def _coerce_map_from_(self, P):
+        r"""
+        Return whether ``P`` coerces into this symbolic subring.
+
+        INPUT:
+
+        - ``P`` -- a parent.
+
+        OUTPUT:
+
+        A boolean or ``None``.
+
+        TESTS::
+
+            sage: from sage.symbolic.subring import SymbolicSubring
+            sage: R = SymbolicSubring(rejecting_variables=('r',))
+            sage: RS = SymbolicSubring(rejecting_variables=('r', 's'))
+            sage: RS.has_coerce_map_from(R)  # indirect doctest
+            False
+            sage: R.has_coerce_map_from(RS)  # indirect doctest
+            True
+        """
+        if isinstance(P, SymbolicSubringRejectingVars):
+            return self._vars_ <= P._vars_
+        return super(SymbolicSubringRejectingVars, self)._coerce_map_from_(P)
 
 
     def _an_element_(self):

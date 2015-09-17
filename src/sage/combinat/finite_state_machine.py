@@ -368,6 +368,15 @@ Alternatively, we could call that by
 
 which gives additionally the state in which we arrived.
 
+We can also let an automaton act on a :mod:`word
+<sage.combinat.words.words>`::
+
+    sage: W = Words([-1, 0, 1]); W
+    Words over {-1, 0, 1}
+    sage: w = W([1, 0, 1, 0, -1]); w
+    word: 1,0,1,0,-1
+    sage: NAF(w)
+    True
 
 .. _finite_state_machine_LaTeX_output:
 
@@ -461,6 +470,37 @@ Now we apply a word to it and see what the transducer does::
 ``'A'``, and we also got an output.
 
 .. _finite_state_machine_division_by_3_example:
+
+
+Transducers and (in)finite Words
+--------------------------------
+
+A transducer can also act on everything iterable, in particular, on
+Sage's :mod:`~sage.combinat.words.words`.
+
+::
+
+    sage: W = Words([0, 1]); W
+    Words over {0, 1}
+
+Let us take the inverter from the previous section and feed some
+finite word into it::
+
+    sage: w = W([1, 1, 0, 1]); w
+    word: 1101
+    sage: inverter(w)
+    word: 0010
+
+We see that the output is again a word (this is a consequence of
+calling :meth:`~Transducer.process` with ``automatic_output_type``).
+
+We can even input something infinite like an infinite word::
+
+    sage: tm = words.ThueMorseWord(); tm
+    word: 0110100110010110100101100110100110010110...
+    sage: inverter(tm)
+    word: 1001011001101001011010011001011001101001...
+
 
 A transducer which performs division by `3` in binary
 -----------------------------------------------------
@@ -3493,18 +3533,18 @@ class FiniteStateMachine(SageObject):
 
     def __call__(self, *args, **kwargs):
         """
-        Call either method :meth:`.composition` or :meth:`.process` (with
-        ``full_output=False``). See the documentation of these functions for
-        possible parameters.
+        Call either method :meth:`.composition` or :meth:`.process`
+        (with ``full_output=False``). If the input is not finite
+        (``is_finite`` of input is ``False``), then
+        :meth:`.iter_process` (with ``iterator_type='simple'``) is
+        called. Moreover, the flag ``automatic_output_type`` is set
+        (unless ``format_output`` is specified).
+        See the documentation of these functions for possible
+        parameters.
 
-        EXAMPLES::
+        EXAMPLES:
 
-            sage: binary_inverter = Transducer({'A': [('A', 0, 1), ('A', 1, 0)]},
-            ....:                              initial_states=['A'], final_states=['A'])
-            sage: binary_inverter([0, 1, 0, 0, 1, 1])
-            [1, 0, 1, 1, 0, 0]
-
-        ::
+        The following code performs a :meth:`composition`::
 
             sage: F = Transducer([('A', 'B', 1, 0), ('B', 'B', 1, 1),
             ....:                 ('B', 'B', 0, 0)],
@@ -3515,6 +3555,28 @@ class FiniteStateMachine(SageObject):
             sage: H = G(F)
             sage: H.states()
             [('A', 1), ('B', 1), ('B', 2)]
+
+        An automaton or transducer can also act on an input (an list
+        or other iterable of letters)::
+
+            sage: binary_inverter = Transducer({'A': [('A', 0, 1), ('A', 1, 0)]},
+            ....:                              initial_states=['A'], final_states=['A'])
+            sage: binary_inverter([0, 1, 0, 0, 1, 1])
+            [1, 0, 1, 1, 0, 0]
+
+        We can also let them act on :mod:`~sage.combinat.words.words`::
+
+            sage: W = Words([0, 1]); W
+            Words over {0, 1}
+            sage: binary_inverter(W([0, 1, 1, 0, 1, 1]))
+            word: 100100
+
+        Infinite words work as well::
+
+            sage: words.FibonacciWord()
+            word: 0100101001001010010100100101001001010010...
+            sage: binary_inverter(words.FibonacciWord())
+            word: 1011010110110101101011011010110110101101...
 
         When only one successful path is found in a non-deterministic
         transducer, the result of that path is returned.
@@ -3532,6 +3594,7 @@ class FiniteStateMachine(SageObject):
 
             :meth:`.composition`,
             :meth:`~FiniteStateMachine.process`,
+            :meth:`~FiniteStateMachine.iter_process`,
             :meth:`Automaton.process`,
             :meth:`Transducer.process`.
 
@@ -3680,6 +3743,25 @@ class FiniteStateMachine(SageObject):
             ValueError: Invalid input sequence.
             sage: T([2, 4], format_output=f, list_of_outputs=True)
             [None, None]
+
+        ::
+
+            sage: from itertools import islice
+            sage: inverter = Transducer({'A': [('A', 0, 1), ('A', 1, 0)]},
+            ....:     initial_states=['A'], final_states=['A'])
+            sage: inverter(words.FibonacciWord())
+            word: 1011010110110101101011011010110110101101...
+            sage: inverter(words.FibonacciWord(), automatic_output_type=True)
+            word: 1011010110110101101011011010110110101101...
+            sage: tuple(islice(inverter(words.FibonacciWord(),
+            ....:                       automatic_output_type=False), 10))
+            (1, 0, 1, 1, 0, 1, 0, 1, 1, 0)
+            sage: type(inverter((1, 0, 1, 1, 0, 1, 0, 1, 1, 0),
+            ....:               automatic_output_type=False))
+            <type 'list'>
+            sage: type(inverter((1, 0, 1, 1, 0, 1, 0, 1, 1, 0),
+            ....:               automatic_output_type=True))
+            <type 'tuple'>
         """
         if len(args) == 0:
             raise TypeError("Called with too few arguments.")
@@ -3690,6 +3772,14 @@ class FiniteStateMachine(SageObject):
                 kwargs['full_output'] = False
             if not 'list_of_outputs' in kwargs:
                 kwargs['list_of_outputs'] = False
+            if not 'automatic_output_type' in kwargs:
+                kwargs['automatic_output_type'] = not 'format_output' in kwargs
+            input_tape = args[0]
+            if hasattr(input_tape, 'is_finite') and \
+                    input_tape.is_finite() == False:
+                if not 'iterator_type' in kwargs:
+                    kwargs['iterator_type'] = 'simple'
+                return self.iter_process(*args, **kwargs)
             return self.process(*args, **kwargs)
         raise TypeError("Do not know what to do with that arguments.")
 
@@ -5635,7 +5725,8 @@ class FiniteStateMachine(SageObject):
     _process_default_options_ = {'full_output': True,
                                  'list_of_outputs': None,
                                  'only_accepted': False,
-                                 'always_include_output': False}
+                                 'always_include_output': False,
+                                 'automatic_output_type': False}
 
     def process(self, *args, **kwargs):
         """
@@ -5706,6 +5797,12 @@ class FiniteStateMachine(SageObject):
           inherited from :class:`FSMProcessIterator`. If ``None``,
           then :class:`FSMProcessIterator` is taken. An instance of this
           class is created and is used during the processing.
+
+        - ``automatic_output_type`` -- (default: ``False``) a boolean.
+          If set and the input has a parent, then the
+          output will have the same parent. If the input does not have
+          a parent, then the output will be of the same type as the
+          input.
 
         OUTPUT:
 
@@ -6010,7 +6107,8 @@ class FiniteStateMachine(SageObject):
 
     def iter_process(self, input_tape=None, initial_state=None,
                      process_iterator_class=None,
-                     iterator_type=None, **kwargs):
+                     iterator_type=None,
+                     automatic_output_type=False, **kwargs):
         r"""
         This function returns an iterator for processing the input.
         See :meth:`.process` (which runs this iterator until the end)
@@ -6030,7 +6128,9 @@ class FiniteStateMachine(SageObject):
 
         An iterator.
 
-        EXAMPLES::
+        EXAMPLES:
+
+        We can use :meth:`iter_process` to deal with infinite words::
 
             sage: inverter = Transducer({'A': [('A', 0, 1), ('A', 1, 0)]},
             ....:     initial_states=['A'], final_states=['A'])
@@ -6041,7 +6141,20 @@ class FiniteStateMachine(SageObject):
             sage: Words([0,1])(it)
             word: 1011010110110101101011011010110110101101...
 
-        ::
+        This can also be done by::
+
+            sage: inverter.iter_process(words.FibonacciWord(),
+            ....:                       iterator_type='simple',
+            ....:                       automatic_output_type=True)
+            word: 1011010110110101101011011010110110101101...
+
+        or even simpler by::
+
+            sage: inverter(words.FibonacciWord())
+            word: 1011010110110101101011011010110110101101...
+
+        To see what is going on, we use :meth:`iter_process` without
+        arguments::
 
             sage: from itertools import islice
             sage: it = inverter.iter_process(words.FibonacciWord())
@@ -6126,6 +6239,15 @@ class FiniteStateMachine(SageObject):
             :meth:`~FiniteStateMachine.__call__`,
             :class:`FSMProcessIterator`.
         """
+        if automatic_output_type and kwargs.has_key('format_output'):
+            raise ValueError("Parameter 'automatic_output_type' set, but "
+                             "'format_output' specified as well.")
+        if automatic_output_type:
+            try:
+                kwargs['format_output'] = input_tape.parent()
+            except AttributeError:
+                kwargs['format_output'] = type(input_tape)
+
         if process_iterator_class is None:
             process_iterator_class = FSMProcessIterator
         it = process_iterator_class(self,
@@ -6135,7 +6257,11 @@ class FiniteStateMachine(SageObject):
         if iterator_type is None:
             return it
         elif iterator_type == 'simple':
-            return self._iter_process_simple_(it)
+            simple_it = self._iter_process_simple_(it)
+            try:
+                return kwargs['format_output'](simple_it)
+            except KeyError:
+                return simple_it
         else:
             raise ValueError('Iterator type %s unknown.' % (iterator_type,))
 
@@ -12345,6 +12471,12 @@ class Transducer(FiniteStateMachine):
           then :class:`FSMProcessIterator` is taken. An instance of this
           class is created and is used during the processing.
 
+        - ``automatic_output_type`` -- (default: ``False``) a boolean
+          If set and the input has a parent, then the
+          output will have the same parent. If the input does not have
+          a parent, then the output will be of the same type as the
+          input.
+
         OUTPUT:
 
         The full output is a triple (or a list of triples,
@@ -12414,6 +12546,24 @@ class Transducer(FiniteStateMachine):
 
             sage: binary_inverter([0, 1, 0, 0, 1, 1])
             [1, 0, 1, 1, 0, 0]
+
+        This can also be used with words as input::
+
+            sage: W = Words([0, 1]); W
+            Words over {0, 1}
+            sage: w = W([0, 1, 0, 0, 1, 1]); w
+            word: 010011
+            sage: binary_inverter(w)
+            word: 101100
+
+        In this case it is automatically determined that the output is
+        a word. The call above is equivalent to::
+
+            sage: binary_inverter.process(w,
+            ....:                         full_output=False,
+            ....:                         list_of_outputs=False,
+            ....:                         automatic_output_type=True)
+            word: 101100
 
         The following transducer transforms `0^n 1` to `1^n 2`::
 

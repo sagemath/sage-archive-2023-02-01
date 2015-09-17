@@ -191,18 +191,17 @@ cdef void mpfi_to_arb(arb_t target, const mpfi_t source, const long precision):
     cdef mpfr_t left
     cdef mpfr_t right
 
-    if _do_sig(precision): sig_on()
-
     mpfr_init2(left, precision)
     mpfr_init2(right, precision)
 
+    if _do_sig(precision): sig_on()
     mpfi_get_left(left, source)
     mpfi_get_right(right, source)
-
     arb_set_interval_mpfr(target,
                           left,
                           right,
                           precision)
+    if _do_sig(precision): sig_off()
 
     mpfr_clear(left)
     mpfr_clear(right)

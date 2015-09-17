@@ -858,6 +858,81 @@ def is_unitary_dual_polar(int v,int k,int l,int mu):
         return (UnitaryDualPolarGraph, 5, p**t)
 
 @cached_function
+def is_GQqmqp(int v,int k,int l,int mu):
+    r"""
+    Test whether some `GQ(q-1,q+1)` or `GQ(q+1,q-1)`-graph is `(v,k,\lambda,\mu)`-srg.
+
+    INPUT:
+
+    - ``v,k,l,mu`` (integers)
+
+    OUTPUT:
+
+    A tuple ``t`` such that ``t[0](*t[1:])`` builds the requested graph if one
+    exists, and ``None`` otherwise.
+
+    EXAMPLES::
+
+        sage: from sage.graphs.strongly_regular_db import is_GQqmqp
+        sage: t = is_GQqmqp(27,10,1,5); t
+        (<function AhrensSzekeresGQ at ...>, 3, False)
+        sage: g = t[0](*t[1:]); g
+        AS(3); GQ(2, 4): Graph on 27 vertices
+        sage: t = is_GQqmqp(45,12,3,3); t
+        (<function AhrensSzekeresGQ at ...>, 3, True)
+        sage: g = t[0](*t[1:]); g
+        AS(3)*; GQ(4, 2): Graph on 45 vertices
+        sage: g.is_strongly_regular(parameters=True)
+        (45, 12, 3, 3)
+        sage: t = is_GQqmqp(16,6,2,2); t
+        (<function T2starGQ at ...>, 2, True)
+        sage: g = t[0](*t[1:]); g
+        T2*(O,2)*; GQ(3, 1): Graph on 16 vertices
+        sage: g.is_strongly_regular(parameters=True)
+        (16, 6, 2, 2)
+        sage: t = is_GQqmqp(64,18,2,6); t
+        (<function T2starGQ at ...>, 4, False)
+        sage: g = t[0](*t[1:]); g
+        T2*(O,4); GQ(3, 5): Graph on 64 vertices
+        sage: g.is_strongly_regular(parameters=True)
+        (64, 18, 2, 6)
+
+    TESTS::
+
+        sage: (S,T)=(127,129)
+        sage: t = is_GQqmqp((S+1)*(S*T+1), S*(T+1), S-1, T+1); t
+        (<function T2starGQ at ...>, 128, False)
+        sage: (S,T)=(129,127)
+        sage: t = is_GQqmqp((S+1)*(S*T+1), S*(T+1), S-1, T+1); t
+        (<function T2starGQ at ...>, 128, True)
+        sage: (S,T)=(124,126)
+        sage: t = is_GQqmqp((S+1)*(S*T+1), S*(T+1), S-1, T+1); t
+        (<function AhrensSzekeresGQ at ...>, 125, False)
+        sage: (S,T)=(126,124)
+        sage: t = is_GQqmqp((S+1)*(S*T+1), S*(T+1), S-1, T+1); t
+        (<function AhrensSzekeresGQ at ...>, 125, True)
+        sage: t = is_GQqmqp(5,5,5,5); t
+    """
+    # do we have GQ(s,t)? we must have mu=t+1, s=l+1,
+    # v=(s+1)(st+1), k=s(t+1)
+    S=l+1
+    T=mu-1
+    if (v == (S+1)*(S*T+1)      and
+        k == S*(T+1)            and
+        (S+T) % 2 == 0):
+        q = (S+T)/2
+        p, k = is_prime_power(q, get_data=True)
+        if p % 2 == 0:
+            from sage.graphs.generators.classical_geometries import T2starGQ as F
+        else:
+            from sage.graphs.generators.classical_geometries import AhrensSzekeresGQ as F
+        if k != 0:
+            if (S,T) == (q-1, q+1):
+                return (F, q, False)
+            elif (S,T) == (q+1, q-1):
+                return (F, q, True)
+
+@cached_function
 def is_twograph_descendant_of_srg(int v, int k0, int l, int mu):
     r"""
     Test whether some descendant graph of an s.r.g. is `(v,k_0,\lambda,\mu)`-s.r.g.
@@ -2058,8 +2133,7 @@ def strongly_regular_graph(int v,int k,int l,int mu=-1,bint existence=False,bint
                       is_steiner, is_affine_polar,
                       is_orthogonal_polar, 
                       is_NOodd, is_NOperp_F5, is_NO_F2, is_NO_F3, is_NU,
-                      is_unitary_polar,
-                      is_unitary_dual_polar,
+                      is_unitary_polar, is_unitary_dual_polar, is_GQqmqp,
                       is_RSHCD,
                       is_twograph_descendant_of_srg,
                       is_taylor_twograph_srg]

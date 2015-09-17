@@ -234,6 +234,7 @@ quadrics and Hermitean varieties there.
 
 __append_to_doc(
     ["AffineOrthogonalPolarGraph",
+     "AhrensSzekeresGQ",
      "NonisotropicOrthogonalPolarGraph",
      "NonisotropicUnitaryPolarGraph",
      "OrthogonalPolarGraph",
@@ -241,6 +242,7 @@ __append_to_doc(
      "SymplecticPolarGraph",
      "TaylorTwographDescendantSRG",
      "TaylorTwographSRG",
+     "T2starGQ",
      "UnitaryDualPolarGraph",
      "UnitaryPolarGraph"])
 
@@ -1995,6 +1997,7 @@ class GraphGenerators():
 ###########################################################################
     import sage.graphs.generators.classical_geometries
     AffineOrthogonalPolarGraph = staticmethod(sage.graphs.generators.classical_geometries.AffineOrthogonalPolarGraph)
+    AhrensSzekeresGQ = staticmethod(sage.graphs.generators.classical_geometries.AhrensSzekeresGQ)
     NonisotropicOrthogonalPolarGraph = staticmethod(sage.graphs.generators.classical_geometries.NonisotropicOrthogonalPolarGraph)
     NonisotropicUnitaryPolarGraph = staticmethod(sage.graphs.generators.classical_geometries.NonisotropicUnitaryPolarGraph)
     OrthogonalPolarGraph   = staticmethod(sage.graphs.generators.classical_geometries.OrthogonalPolarGraph)
@@ -2004,6 +2007,7 @@ class GraphGenerators():
     TaylorTwographDescendantSRG = \
              staticmethod(sage.graphs.generators.classical_geometries.TaylorTwographDescendantSRG)
     TaylorTwographSRG      = staticmethod(sage.graphs.generators.classical_geometries.TaylorTwographSRG)
+    T2starGQ      = staticmethod(sage.graphs.generators.classical_geometries.T2starGQ)
     UnitaryDualPolarGraph  = staticmethod(sage.graphs.generators.classical_geometries.UnitaryDualPolarGraph)
     UnitaryPolarGraph      = staticmethod(sage.graphs.generators.classical_geometries.UnitaryPolarGraph)
 

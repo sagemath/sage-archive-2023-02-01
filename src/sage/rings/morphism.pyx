@@ -1615,12 +1615,12 @@ cdef class RingHomomorphism_cover(RingHomomorphism):
             sage: f(-5)                 # indirect doctest
             1
 
-        TESTS::
+        TESTS:
 
         We verify that calling directly raises the expected error
         (just coercing into the codomain), but calling with __call__
         (the second call below) gives a TypeError since 1/2 can't be
-        coerced into the domain.
+        coerced into the domain. ::
 
             sage: f._call_(1/2)
             Traceback (most recent call last):

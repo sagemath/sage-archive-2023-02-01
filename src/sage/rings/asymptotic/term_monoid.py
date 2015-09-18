@@ -781,7 +781,6 @@ class GenericTermMonoid(sage.structure.parent.Parent,
             sage: import sage.rings.asymptotic.term_monoid as atm
             sage: import sage.rings.asymptotic.growth_group as agg
             sage: G_ZZ = agg.GrowthGroup('x^ZZ')
-            sage: G_ZZ = agg.GrowthGroup('x^ZZ')
             sage: T_ZZ = atm.GenericTermMonoid(growth_group=G_ZZ); T_ZZ
             Generic Term Monoid x^ZZ
             sage: G_QQ = agg.GrowthGroup('x^QQ')

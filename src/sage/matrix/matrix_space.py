@@ -46,7 +46,7 @@ import matrix_generic_sparse
 import matrix_modn_sparse
 
 import matrix_mod2_dense
-import matrix_mod2e_dense
+import matrix_gf2e_dense
 
 import matrix_integer_dense
 import matrix_integer_sparse
@@ -1012,7 +1012,7 @@ class MatrixSpace(UniqueRepresentation, parent_gens.ParentWithGens):
                     return matrix_modn_dense_double.Matrix_modn_dense_double
                 return matrix_generic_dense.Matrix_generic_dense
             elif sage.rings.finite_rings.constructor.is_FiniteField(R) and R.characteristic() == 2 and R.order() <= 65536:
-                return matrix_mod2e_dense.Matrix_mod2e_dense
+                return matrix_gf2e_dense.Matrix_gf2e_dense
             elif sage.rings.polynomial.multi_polynomial_ring_generic.is_MPolynomialRing(R) and R.base_ring() in _Fields:
                 return matrix_mpolynomial_dense.Matrix_mpolynomial_dense
             #elif isinstance(R, sage.rings.padics.padic_ring_capped_relative.pAdicRingCappedRelative):

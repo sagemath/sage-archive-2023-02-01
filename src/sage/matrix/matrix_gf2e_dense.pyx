@@ -10,7 +10,7 @@ The M4RIE library offers two matrix representations:
   words such that each element is filled with zeroes until the next
   power of two. Thus, for example, elements of `\GF{2^3}` are
   represented as ``[0xxx|0xxx|0xxx|0xxx|...]``. This representation is
-  wrapped as :class:`Matrix_mod2e_dense` in Sage.
+  wrapped as :class:`Matrix_gf2e_dense` in Sage.
 
   Multiplication and elimination both use "Newton-John" tables. These
   tables are simply all possible multiples of a given row in a matrix
@@ -50,7 +50,7 @@ AUTHOR:
 
 TESTS::
 
-    sage: TestSuite(sage.matrix.matrix_mod2e_dense.Matrix_mod2e_dense).run(verbose=True)
+    sage: TestSuite(sage.matrix.matrix_gf2e_dense.Matrix_gf2e_dense).run(verbose=True)
     running ._test_pickling() . . . pass
 
 TODO:
@@ -65,6 +65,16 @@ REFERENCES:
    arXiv:0901.1413v1, 2009.
    http://arxiv.org/abs/0901.1413
 """
+
+#*****************************************************************************
+#       Copyright (C) 2010 Martin Albrecht <martinralbrecht@googlemail.com>
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
+#                  http://www.gnu.org/licenses/
+#*****************************************************************************
 
 include "sage/ext/interrupt.pxi"
 
@@ -100,9 +110,9 @@ cdef class M4RIE_finite_field:
         """
         EXAMPLE::
 
-            sage: from sage.matrix.matrix_mod2e_dense import M4RIE_finite_field
+            sage: from sage.matrix.matrix_gf2e_dense import M4RIE_finite_field
             sage: K = M4RIE_finite_field(); K
-            <sage.matrix.matrix_mod2e_dense.M4RIE_finite_field object at 0x...>
+            <sage.matrix.matrix_gf2e_dense.M4RIE_finite_field object at 0x...>
         """
         pass
 
@@ -110,7 +120,7 @@ cdef class M4RIE_finite_field:
         """
         EXAMPLE::
 
-            sage: from sage.matrix.matrix_mod2e_dense import M4RIE_finite_field
+            sage: from sage.matrix.matrix_gf2e_dense import M4RIE_finite_field
             sage: K = M4RIE_finite_field()
             sage: del K
         """
@@ -123,7 +133,7 @@ cdef m4ri_word poly_to_word(f):
 cdef object word_to_poly(w, F):
     return F.fetch_int(w)
 
-cdef class Matrix_mod2e_dense(matrix_dense.Matrix_dense):
+cdef class Matrix_gf2e_dense(matrix_dense.Matrix_dense):
     ########################################################################
     # LEVEL 1 functionality
     ########################################################################
@@ -336,11 +346,11 @@ cdef class Matrix_mod2e_dense(matrix_dense.Matrix_dense):
             [a^3 + a^2 + 1 a^3 + a^2 + a a^3 + a^2 + a       a^3 + 1]
             [a^3 + a^2 + 1     a^3 + a^2     a^3 + a^2           a^2]
         """
-        cdef Matrix_mod2e_dense A
-        A = Matrix_mod2e_dense.__new__(Matrix_mod2e_dense, self._parent, 0, 0, 0, alloc=False)
+        cdef Matrix_gf2e_dense A
+        A = Matrix_gf2e_dense.__new__(Matrix_gf2e_dense, self._parent, 0, 0, 0, alloc=False)
         if self._nrows == 0 or self._ncols == 0:
             return A
-        A._entries = mzed_add(NULL, self._entries, (<Matrix_mod2e_dense>right)._entries)
+        A._entries = mzed_add(NULL, self._entries, (<Matrix_gf2e_dense>right)._entries)
 
         return A
 
@@ -348,7 +358,7 @@ cdef class Matrix_mod2e_dense(matrix_dense.Matrix_dense):
         """
         EXAMPLE::
 
-            sage: from sage.matrix.matrix_mod2e_dense import Matrix_mod2e_dense
+            sage: from sage.matrix.matrix_gf2e_dense import Matrix_gf2e_dense
             sage: K.<a> = GF(2^4)
             sage: m,n  = 3, 4
             sage: MS = MatrixSpace(K,m,n)
@@ -406,13 +416,13 @@ cdef class Matrix_mod2e_dense(matrix_dense.Matrix_dense):
         if self._ncols != right._nrows:
             raise ArithmeticError("left ncols must match right nrows")
 
-        cdef Matrix_mod2e_dense ans
+        cdef Matrix_gf2e_dense ans
 
         ans = self.new_matrix(nrows = self.nrows(), ncols = right.ncols())
         if self._nrows == 0 or self._ncols == 0 or right._ncols == 0:
             return ans
         sig_on()
-        ans._entries = mzed_mul_naive(ans._entries, self._entries, (<Matrix_mod2e_dense>right)._entries)
+        ans._entries = mzed_mul_naive(ans._entries, self._entries, (<Matrix_gf2e_dense>right)._entries)
         sig_off()
         return ans
 
@@ -449,17 +459,17 @@ cdef class Matrix_mod2e_dense(matrix_dense.Matrix_dense):
         if self._ncols != right._nrows:
             raise ArithmeticError("left ncols must match right nrows")
 
-        cdef Matrix_mod2e_dense ans
+        cdef Matrix_gf2e_dense ans
 
         ans = self.new_matrix(nrows = self.nrows(), ncols = right.ncols())
         if self._nrows == 0 or self._ncols == 0 or right._ncols == 0:
             return ans
         sig_on()
-        ans._entries = mzed_mul(ans._entries, self._entries, (<Matrix_mod2e_dense>right)._entries)
+        ans._entries = mzed_mul(ans._entries, self._entries, (<Matrix_gf2e_dense>right)._entries)
         sig_off()
         return ans
 
-    cpdef Matrix_mod2e_dense _multiply_newton_john(Matrix_mod2e_dense self, Matrix_mod2e_dense right):
+    cpdef Matrix_gf2e_dense _multiply_newton_john(Matrix_gf2e_dense self, Matrix_gf2e_dense right):
         """
         Return A*B using Newton-John tables.
 
@@ -510,18 +520,18 @@ cdef class Matrix_mod2e_dense(matrix_dense.Matrix_dense):
         if self._ncols != right._nrows:
             raise ArithmeticError("left ncols must match right nrows")
 
-        cdef Matrix_mod2e_dense ans
+        cdef Matrix_gf2e_dense ans
 
         ans = self.new_matrix(nrows = self.nrows(), ncols = right.ncols())
         if self._nrows == 0 or self._ncols == 0 or right._ncols == 0:
             return ans
 
         sig_on()
-        ans._entries = mzed_mul_newton_john(ans._entries, self._entries, (<Matrix_mod2e_dense>right)._entries)
+        ans._entries = mzed_mul_newton_john(ans._entries, self._entries, (<Matrix_gf2e_dense>right)._entries)
         sig_off()
         return ans
 
-    cpdef Matrix_mod2e_dense _multiply_karatsuba(Matrix_mod2e_dense self, Matrix_mod2e_dense right):
+    cpdef Matrix_gf2e_dense _multiply_karatsuba(Matrix_gf2e_dense self, Matrix_gf2e_dense right):
         """
         Matrix multiplication using Karatsuba over polynomials with
         matrix coefficients over GF(2).
@@ -558,18 +568,18 @@ cdef class Matrix_mod2e_dense(matrix_dense.Matrix_dense):
         if self._ncols != right._nrows:
             raise ArithmeticError("left ncols must match right nrows")
 
-        cdef Matrix_mod2e_dense ans
+        cdef Matrix_gf2e_dense ans
 
         ans = self.new_matrix(nrows = self.nrows(), ncols = right.ncols())
         if self._nrows == 0 or self._ncols == 0 or right._ncols == 0:
             return ans
 
         sig_on()
-        ans._entries = mzed_mul_karatsuba(ans._entries, self._entries, (<Matrix_mod2e_dense>right)._entries)
+        ans._entries = mzed_mul_karatsuba(ans._entries, self._entries, (<Matrix_gf2e_dense>right)._entries)
         sig_off()
         return ans
 
-    cpdef Matrix_mod2e_dense _multiply_strassen(Matrix_mod2e_dense self, Matrix_mod2e_dense right, cutoff=0):
+    cpdef Matrix_gf2e_dense _multiply_strassen(Matrix_gf2e_dense self, Matrix_gf2e_dense right, cutoff=0):
         """
         Winograd-Strassen matrix multiplication with Newton-John
         multiplication as base case.
@@ -609,17 +619,17 @@ cdef class Matrix_mod2e_dense(matrix_dense.Matrix_dense):
         if self._ncols != right._nrows:
             raise ArithmeticError("left ncols must match right nrows")
 
-        cdef Matrix_mod2e_dense ans
+        cdef Matrix_gf2e_dense ans
 
         ans = self.new_matrix(nrows = self.nrows(), ncols = right.ncols())
         if self._nrows == 0 or self._ncols == 0 or right._ncols == 0:
             return ans
 
         if cutoff == 0:
-            cutoff = _mzed_strassen_cutoff(ans._entries, self._entries, (<Matrix_mod2e_dense>right)._entries)
+            cutoff = _mzed_strassen_cutoff(ans._entries, self._entries, (<Matrix_gf2e_dense>right)._entries)
 
         sig_on()
-        ans._entries = mzed_mul_strassen(ans._entries, self._entries, (<Matrix_mod2e_dense>right)._entries, cutoff)
+        ans._entries = mzed_mul_strassen(ans._entries, self._entries, (<Matrix_gf2e_dense>right)._entries, cutoff)
         sig_off()
         return ans
 
@@ -660,7 +670,7 @@ cdef class Matrix_mod2e_dense(matrix_dense.Matrix_dense):
              [    a     1     0     a a + 1     0     0 a + 1     1 a + 1]
         """
         cdef m4ri_word a = poly_to_word(right)
-        cdef Matrix_mod2e_dense C = Matrix_mod2e_dense.__new__(Matrix_mod2e_dense, self._parent, 0, 0, 0)
+        cdef Matrix_gf2e_dense C = Matrix_gf2e_dense.__new__(Matrix_gf2e_dense, self._parent, 0, 0, 0)
         mzed_mul_scalar(C._entries, a, self._entries)
         return C
 
@@ -696,7 +706,7 @@ cdef class Matrix_mod2e_dense(matrix_dense.Matrix_dense):
         """
         if self._nrows == 0 or self._ncols == 0:
             return 0
-        return mzed_cmp(self._entries, (<Matrix_mod2e_dense>right)._entries)
+        return mzed_cmp(self._entries, (<Matrix_gf2e_dense>right)._entries)
 
     def __copy__(self):
         """
@@ -718,8 +728,8 @@ cdef class Matrix_mod2e_dense(matrix_dense.Matrix_dense):
             sage: A2[0,0]
             a^2
         """
-        cdef Matrix_mod2e_dense A
-        A = Matrix_mod2e_dense.__new__(Matrix_mod2e_dense, self._parent, 0, 0, 0)
+        cdef Matrix_gf2e_dense A
+        A = Matrix_gf2e_dense.__new__(Matrix_gf2e_dense, self._parent, 0, 0, 0)
 
         if self._nrows and self._ncols:
             mzed_copy(A._entries, <const_mzed_t *>self._entries)
@@ -997,8 +1007,8 @@ cdef class Matrix_mod2e_dense(matrix_dense.Matrix_dense):
             [0 1 0]
             [0 0 1]
         """
-        cdef Matrix_mod2e_dense A
-        A = Matrix_mod2e_dense.__new__(Matrix_mod2e_dense, self._parent, 0, 0, 0)
+        cdef Matrix_gf2e_dense A
+        A = Matrix_gf2e_dense.__new__(Matrix_gf2e_dense, self._parent, 0, 0, 0)
 
         if self._nrows and self._nrows == self._ncols:
             mzed_invert_newton_john(A._entries, self._entries)
@@ -1132,7 +1142,7 @@ cdef class Matrix_mod2e_dense(matrix_dense.Matrix_dense):
         """
         mzed_col_swap(self._entries, col1, col2)
 
-    def augment(self, Matrix_mod2e_dense right):
+    def augment(self, Matrix_gf2e_dense right):
         """
         Augments ``self`` with ``right``.
 
@@ -1190,7 +1200,7 @@ cdef class Matrix_mod2e_dense(matrix_dense.Matrix_dense):
             sage: M.augment(N)
             []
         """
-        cdef Matrix_mod2e_dense A
+        cdef Matrix_gf2e_dense A
 
         if self._nrows != right._nrows:
             raise TypeError, "Both numbers of rows must match."
@@ -1206,7 +1216,7 @@ cdef class Matrix_mod2e_dense(matrix_dense.Matrix_dense):
         A._entries = mzed_concat(A._entries, self._entries, right._entries)
         return A
 
-    def stack(self, Matrix_mod2e_dense other):
+    def stack(self, Matrix_gf2e_dense other):
         """
         Stack ``self`` on top of ``other``.
 
@@ -1269,7 +1279,7 @@ cdef class Matrix_mod2e_dense(matrix_dense.Matrix_dense):
         if other._nrows == 0:
             return self.__copy__()
 
-        cdef Matrix_mod2e_dense A
+        cdef Matrix_gf2e_dense A
         A = self.new_matrix(nrows = self._nrows + other._nrows)
         if self._ncols == 0:
             return A
@@ -1335,7 +1345,7 @@ cdef class Matrix_mod2e_dense(matrix_dense.Matrix_dense):
         if highr > self._entries.nrows:
             raise TypeError("Expected highr <= self.nrows(), but got %d > %d instead."%(highr, self._entries.nrows))
 
-        cdef Matrix_mod2e_dense A = self.new_matrix(nrows = nrows, ncols = ncols)
+        cdef Matrix_gf2e_dense A = self.new_matrix(nrows = nrows, ncols = ncols)
         if ncols == 0 or nrows == 0:
             return A
         A._entries = mzed_submatrix(A._entries, self._entries, row, col, highr, highc)
@@ -1388,8 +1398,8 @@ cdef class Matrix_mod2e_dense(matrix_dense.Matrix_dense):
             sage: K.<a> = GF(2^8)
             sage: A = random_matrix(K,70,70)
             sage: f, s= A.__reduce__()
-            sage: from sage.matrix.matrix_mod2e_dense import unpickle_matrix_mod2e_dense_v0
-            sage: f == unpickle_matrix_mod2e_dense_v0
+            sage: from sage.matrix.matrix_gf2e_dense import unpickle_matrix_gf2e_dense_v0
+            sage: f == unpickle_matrix_gf2e_dense_v0
             True
             sage: f(*s) == A
             True
@@ -1400,7 +1410,7 @@ cdef class Matrix_mod2e_dense(matrix_dense.Matrix_dense):
         MS = MatrixSpace(GF(2), self._entries.x.nrows, self._entries.x.ncols)
         A = Matrix_mod2_dense.__new__(Matrix_mod2_dense, MS, 0, 0, 0, alloc = False)
         A._entries = mzd_copy( NULL, self._entries.x)
-        return unpickle_matrix_mod2e_dense_v0, (A, self.base_ring(), self.nrows(), self.ncols())
+        return unpickle_matrix_gf2e_dense_v0, (A, self.base_ring(), self.nrows(), self.ncols())
 
     def slice(self):
         r"""
@@ -1587,15 +1597,15 @@ cdef class Matrix_mod2e_dense(matrix_dense.Matrix_dense):
         mzed_cling(self._entries, v)
         mzd_slice_free(v)
 
-def unpickle_matrix_mod2e_dense_v0(Matrix_mod2_dense a, base_ring, nrows, ncols):
+def unpickle_matrix_gf2e_dense_v0(Matrix_mod2_dense a, base_ring, nrows, ncols):
     """
     EXAMPLE::
 
         sage: K.<a> = GF(2^2)
         sage: A = random_matrix(K,10,10)
         sage: f, s= A.__reduce__()
-        sage: from sage.matrix.matrix_mod2e_dense import unpickle_matrix_mod2e_dense_v0
-        sage: f == unpickle_matrix_mod2e_dense_v0
+        sage: from sage.matrix.matrix_gf2e_dense import unpickle_matrix_gf2e_dense_v0
+        sage: f == unpickle_matrix_gf2e_dense_v0
         True
         sage: f(*s) == A
         True
@@ -1603,6 +1613,6 @@ def unpickle_matrix_mod2e_dense_v0(Matrix_mod2_dense a, base_ring, nrows, ncols)
     from sage.matrix.matrix_space import MatrixSpace
 
     MS = MatrixSpace(base_ring, nrows, ncols)
-    cdef Matrix_mod2e_dense A  = Matrix_mod2e_dense.__new__(Matrix_mod2e_dense, MS, 0, 0, 0)
+    cdef Matrix_gf2e_dense A  = Matrix_gf2e_dense.__new__(Matrix_gf2e_dense, MS, 0, 0, 0)
     mzd_copy(A._entries.x, a._entries)
     return A

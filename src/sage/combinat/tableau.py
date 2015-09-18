@@ -4998,7 +4998,7 @@ class SemistandardTableaux(Tableaux):
 
     def __getitem__(self, r):
         r"""
-        The default implementation of ``__getitem``__ for enumerated sets
+        The default implementation of ``__getitem__`` for enumerated sets
         does not allow slices so we override it.
 
         EXAMPLES::

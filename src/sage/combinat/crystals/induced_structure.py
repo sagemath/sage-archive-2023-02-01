@@ -108,14 +108,14 @@ class InducedCrystal(UniqueRepresentation, Parent):
 
         TESTS::
 
-        sage: D = crystals.Tableaux(['A',3], shapes=PartitionsInBox(4,3))
-        sage: G = GelfandTsetlinPatterns(4, 3)
-        sage: phi = lambda x: D(x.to_tableau())
-        sage: phi_inv = lambda x: G(x.to_tableau())
-        sage: I1 = crystals.Induced(G, phi, phi_inv)
-        sage: I2 = crystals.Induced(G, phi, phi_inv)
-        sage: I1 is I2
-        True
+            sage: D = crystals.Tableaux(['A',3], shapes=PartitionsInBox(4,3))
+            sage: G = GelfandTsetlinPatterns(4, 3)
+            sage: phi = lambda x: D(x.to_tableau())
+            sage: phi_inv = lambda x: G(x.to_tableau())
+            sage: I1 = crystals.Induced(G, phi, phi_inv)
+            sage: I2 = crystals.Induced(G, phi, phi_inv)
+            sage: I1 is I2
+            True
         """
         if from_crystal:
             return InducedFromCrystal(X, phi, inverse)

@@ -752,20 +752,23 @@ class WeylGroupElement(MatrixGroupElement_gap):
 
     def _latex_(self):
         """
+        Return the latex representation of self.
+
         EXAMPLES::
 
             sage: W = WeylGroup(['A',2,1], prefix="s")
-            sage: [s0,s1,s2]=W.simple_reflections()
-            sage: latex(s0*s1) # indirect doctest
+            sage: [s0,s1,s2] = W.simple_reflections()
+            sage: latex(s0*s1)  # indirect doctest
             s_{0}s_{1}
             sage: W = WeylGroup(['A',2,1])
-            sage: [s0,s1,s2]=W.simple_reflections()
+            sage: [s0,s1,s2] = W.simple_reflections()
             sage: latex(s0*s1)
             \left(\begin{array}{rrr}
             0 & -1 & 2 \\
             1 & -1 & 1 \\
             0 & 0 & 1
             \end{array}\right)
+
         """
         if self._parent._prefix is None:
             return MatrixGroupElement_gap._latex_(self)

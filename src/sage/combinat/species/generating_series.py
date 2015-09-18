@@ -1345,8 +1345,6 @@ def LogarithmCycleIndexSeries(R = RationalField()):
 
     REFERENCES:
 
-    .. [BLL] F. Bergeron, G. Labelle, and P. Leroux. "Combinatorial species and tree-like structures". Encyclopedia of Mathematics and its Applications, vol. 67, Cambridge Univ. Press. 1998.
-
     .. [Labelle] G. Labelle. "New combinatorial computational methods arising from pseudo-singletons." DMTCS Proceedings 1, 2008.
     """
     CIS = CycleIndexSeriesRing(R)

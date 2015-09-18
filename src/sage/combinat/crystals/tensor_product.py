@@ -84,9 +84,9 @@ class TestParent(UniqueRepresentation, Parent):
         """
         EXAMPLES::
 
-        sage: from sage.combinat.crystals.tensor_product import TestParent
-        sage: TestParent()
-        A parent for tests
+            sage: from sage.combinat.crystals.tensor_product import TestParent
+            sage: TestParent()
+            A parent for tests
         """
         return "A parent for tests"
 

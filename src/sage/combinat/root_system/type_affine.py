@@ -387,7 +387,9 @@ class AmbientSpace(CombinatorialFreeModule):
         keeping an extra coordinate for the coefficient of
         `\delta^\vee` to keep the level information.
 
-        .. SEEALSO:: :meth:`sage.combinat.root_system.root_lattice_realizations.RootLatticeRealizations._plot_projection`
+        .. SEEALSO::
+
+            :meth:`sage.combinat.root_system.root_lattice_realizations.RootLatticeRealizations._plot_projection`
 
         EXAMPLES::
 

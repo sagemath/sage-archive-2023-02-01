@@ -19,6 +19,7 @@ Sageで「関数」と呼ばれるべきものを定義する方法は何通り�
        sage: f(3)
        9
        sage: plot(f, 0, 2)
+       Graphics object consisting of 1 graphics primitive
 
 
 最終行の書法に注目していただきたい．
@@ -36,7 +37,7 @@ Sageで「関数」と呼ばれるべきものを定義する方法は何通り�
        sage: f(z)
        z^2
        sage: plot(f(z), 0, 2)
-
+       Graphics object consisting of 1 graphics primitive
 
 こうすると ``f(z)`` はシンボリック表現になる．シンボリック表現については，次の項目で解説する．
 
@@ -60,7 +61,7 @@ Sageで「関数」と呼ばれるべきものを定義する方法は何通り�
        sage: type(g)
        <type 'sage.symbolic.expression.Expression'>
        sage: plot(g, 0, 2)
-
+       Graphics object consisting of 1 graphics primitive
 
 ``g`` は呼び出し可能シンボリック表現だが， ``g(x)`` の方はこれに関係はあっても異なる種類のオブジェクトである．
 やはりプロットと微積分などが可能なのだが，違っている点もあるので注意を要する．
@@ -77,7 +78,7 @@ Sageで「関数」と呼ばれるべきものを定義する方法は何通り�
        sage: g(x).derivative()
        2*x
        sage: plot(g(x), 0, 2)
-
+       Graphics object consisting of 1 graphics primitive
 
 
 3. Sageで定義済みの「初等関数」(calculus function)を使う. 
@@ -89,10 +90,11 @@ Sageで「関数」と呼ばれるべきものを定義する方法は何通り�
        sage: type(sin)
        <class 'sage.functions.trig.Function_sin'>
        sage: plot(sin, 0, 2)
+       Graphics object consisting of 1 graphics primitive
        sage: type(sin(x))
        <type 'sage.symbolic.expression.Expression'>
        sage: plot(sin(x), 0, 2)
-
+       Graphics object consisting of 1 graphics primitive
 
 そのままでは ``sin`` は微分演算を受けつけない．
 少なくとも ``cos`` にはならない．

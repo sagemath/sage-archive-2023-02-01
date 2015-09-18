@@ -341,12 +341,12 @@ Cremonaのデータベースへ直接にアクセスすることも可能だ．
 
     sage: G.gens()
     (Dirichlet character modulo 20 of conductor 4 mapping 11 |--> -1, 17 |--> 1,
-    Dirichlet character modulo 20 of conductor 5 mapping 11 |--> 1, 17 |--> -i)
+     Dirichlet character modulo 20 of conductor 5 mapping 11 |--> 1, 17 |--> i)
 
     sage: G.unit_gens()
     (11, 17)
     sage: G.zeta()
-    -i
+    i
     sage: G.zeta_order()
     4
 

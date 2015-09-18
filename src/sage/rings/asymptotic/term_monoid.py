@@ -1082,7 +1082,7 @@ class OTermMonoid(GenericTermMonoid):
         Asymptotic O-Term Monoid y^QQ
 
     `O`-term monoids can also be created by using the
-    :class:`term factory <TermMonoid>`::
+    :class:`term factory <TermMonoidFactory>`::
 
         sage: atm.TermMonoid('O', G_x_ZZ) is OT_x_ZZ
         True
@@ -1872,7 +1872,8 @@ class ExactTermMonoid(TermWithCoefficientMonoid):
           From: Exact Term Monoid x^ZZ with coefficients from Integer Ring
           To:   Exact Term Monoid x^QQ with coefficients from Rational Field
 
-    Exact term monoids can also be created using the term factory::
+    Exact term monoids can also be created using the
+    :class:`term factory <TermMonoidFactory>`::
 
         sage: atm.TermMonoid('exact', G_ZZ, ZZ) is ET_ZZ
         True

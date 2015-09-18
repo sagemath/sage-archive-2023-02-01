@@ -447,10 +447,13 @@ filtered_packages_list all | while read PKG_NAME PKG_VERSION PKG_VAR; do
     echo >&5 "	+sage-logger '\$(SAGE_SPKG) \$($PKG_VAR)' '\$(SAGE_LOGS)/\$($PKG_VAR).log'"
     echo >&5
 
-    # Add a target with just the bare package name such that
-    # "make ccache" for example builds the ccache package with
-    # dependency checking.
+    # Add a target with just the bare package name for "sage -i"
     echo >&5 "$PKG_NAME: \$(INST)/\$($PKG_VAR)"
+    echo >&5
+
+    # Add a target to remove the "installed" file for "sage -f"
+    echo >&5 "$PKG_NAME-clean:"
+    echo >&5 "	rm -f \$(INST)/\$($PKG_VAR)"
     echo >&5
 done
 

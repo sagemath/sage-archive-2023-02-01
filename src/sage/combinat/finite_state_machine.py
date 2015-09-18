@@ -96,6 +96,7 @@ Properties
     :meth:`~FiniteStateMachine.is_deterministic` | Checks for a deterministic machine
     :meth:`~FiniteStateMachine.is_complete` | Checks for a complete machine
     :meth:`~FiniteStateMachine.is_connected` | Checks for a connected machine
+    :meth:`Automaton.is_equivalent` | Checks for equivalent automata
     :meth:`~FiniteStateMachine.is_Markov_chain` | Checks for a Markov chain
     :meth:`~FiniteStateMachine.is_monochromatic` | Checks whether the colors of all states are equal
     :meth:`~FiniteStateMachine.asymptotic_moments` | Main terms of expectation and variance of sums of labels
@@ -114,6 +115,7 @@ Operations
     :meth:`~FiniteStateMachine.disjoint_union` | Disjoint union
     :meth:`~FiniteStateMachine.concatenation` | Concatenation
     :meth:`~FiniteStateMachine.kleene_star` | Kleene star
+    :meth:`Automaton.complement` | Complement of an automaton
     :meth:`Automaton.intersection` | Intersection of automata
     :meth:`Transducer.intersection` | Intersection of transducers
     :meth:`Transducer.cartesian_product` | Cartesian product of a transducer with another finite state machine
@@ -5993,16 +5995,77 @@ class FiniteStateMachine(SageObject):
         return (accept_input, current_state, output)
 
 
-    def iter_process(self, input_tape=None, initial_state=None, **kwargs):
-        """
-        This function returns an instance of
-        :class:`FSMProcessIterator`. See :meth:`.process` (which runs
-        this iterator until the end) for more information.
+    def iter_process(self, input_tape=None, initial_state=None,
+                     iterator_type=None, **kwargs):
+        r"""
+        This function returns an iterator for processing the input.
+        See :meth:`.process` (which runs this iterator until the end)
+        for more information.
+
+        INPUT:
+
+        - ``iterator_type`` -- If ``None`` (default), then
+          an instance of :class:`FSMProcessIterator` is returned. If
+          this is ``'simple'`` only an iterator over one output is
+          returned (an exception is raised if this is not the case, i.e.,
+          if the process has branched).
+
+        See :meth:`process` for a description of the other parameters.
+
+        OUTPUT:
+
+        An iterator.
 
         EXAMPLES::
 
             sage: inverter = Transducer({'A': [('A', 0, 1), ('A', 1, 0)]},
             ....:     initial_states=['A'], final_states=['A'])
+            sage: words.FibonacciWord()
+            word: 0100101001001010010100100101001001010010...
+            sage: it = inverter.iter_process(
+            ....:     words.FibonacciWord(), iterator_type='simple')
+            sage: Words([0,1])(it)
+            word: 1011010110110101101011011010110110101101...
+
+        ::
+
+            sage: from itertools import islice
+            sage: it = inverter.iter_process(words.FibonacciWord())
+            sage: for current in islice(it, 4):
+            ....:     print current
+            process (1 branch)
+            + at state 'A'
+            +-- tape at 1, [[1]]
+            process (1 branch)
+            + at state 'A'
+            +-- tape at 2, [[1, 0]]
+            process (1 branch)
+            + at state 'A'
+            +-- tape at 3, [[1, 0, 1]]
+            process (1 branch)
+            + at state 'A'
+            +-- tape at 4, [[1, 0, 1, 1]]
+
+        The following show the difference between using the ``'simple'``-option
+        and not using it. With this option, we have
+        ::
+
+            sage: it = inverter.iter_process(input_tape=[0, 1, 1],
+            ....:                            iterator_type='simple')
+            sage: for i, o in enumerate(it):
+            ....:     print 'step %s: output %s' % (i, o)
+            step 0: output 1
+            step 1: output 0
+            step 2: output 0
+
+        So :meth:`iter_process` is a generator expression which gives
+        a new output letter in each step (and not more). In many cases
+        this is sufficient.
+
+        Doing the same without the ``'simple'``-option does not give
+        the output directly; it has to be extracted first. On the
+        other hand, additional information is presented::
+
             sage: it = inverter.iter_process(input_tape=[0, 1, 1])
             sage: for current in it:
             ....:     print current
@@ -6019,6 +6082,28 @@ class FiniteStateMachine(SageObject):
             sage: it.result()
             [(True, 'A', [1, 0, 0])]
 
+        One can see the growing of the output (the list of lists at
+        the end of each entry).
+
+        Even if the transducer has transitions with empty or multiletter
+        output, the simple iterator returns one new output letter in
+        each step::
+
+            sage: T = Transducer([(0, 0, 0, []),
+            ....:                 (0, 0, 1, [1]),
+            ....:                 (0, 0, 2, [2, 2])],
+            ....:                initial_states=[0])
+            sage: it = T.iter_process(input_tape=[0, 1, 2, 0, 1, 2],
+            ....:                     iterator_type='simple')
+            sage: for i, o in enumerate(it):
+            ....:     print 'step %s: output %s' % (i, o)
+            step 0: output 1
+            step 1: output 2
+            step 2: output 2
+            step 3: output 1
+            step 4: output 2
+            step 5: output 2
+
         .. SEEALSO::
 
             :meth:`FiniteStateMachine.process`,
@@ -6027,10 +6112,105 @@ class FiniteStateMachine(SageObject):
             :meth:`~FiniteStateMachine.__call__`,
             :class:`FSMProcessIterator`.
         """
-        return FSMProcessIterator(self,
-                                  input_tape=input_tape,
-                                  initial_state=initial_state,
-                                  **kwargs)
+        it = FSMProcessIterator(self,
+                                input_tape=input_tape,
+                                initial_state=initial_state,
+                                **kwargs)
+        if iterator_type is None:
+            return it
+        elif iterator_type == 'simple':
+            return self._iter_process_simple_(it)
+        else:
+            raise ValueError('Iterator type %s unknown.' % (iterator_type,))
+
+
+    def _iter_process_simple_(self, iterator):
+        r"""
+        Converts a :class:`process iterator <FSMProcessIterator>` to a simpler
+        iterator, which only outputs the written letters.
+
+        INPUT:
+
+        - ``iterator`` -- in instance of :class:`FSMProcessIterator`.
+
+        OUTPUT:
+
+        A generator.
+
+        An exception is raised if the process branches.
+
+        EXAMPLES::
+
+            sage: inverter = Transducer({'A': [('A', 0, 1), ('A', 1, 0)]},
+            ....:     initial_states=['A'], final_states=['A'])
+            sage: it = inverter.iter_process(words.FibonacciWord()[:10])
+            sage: it_simple = inverter._iter_process_simple_(it)
+            sage: list(it_simple)
+            [1, 0, 1, 1, 0, 1, 0, 1, 1, 0]
+
+        .. SEEALSO::
+
+            :meth:`iter_process`,
+            :meth:`FiniteStateMachine.process`,
+            :meth:`Automaton.process`,
+            :meth:`Transducer.process`,
+            :meth:`~FiniteStateMachine.__call__`,
+            :class:`FSMProcessIterator`.
+
+        TESTS::
+
+            sage: T = Transducer([(0, 0, [0, 0], 0), (0, 1, 0, 0)],
+            ....:                initial_states=[0], final_states=[0])
+            sage: list(T.iter_process([0, 0], iterator_type='simple'))
+            Traceback (most recent call last):
+            ...
+            RuntimeError: Process has branched (2 branches exist).
+            The 'simple' iterator cannot be used here.
+            sage: T = Transducer([(0, 0, 0, 0), (0, 1, 0, 0)],
+            ....:                initial_states=[0], final_states=[0])
+            sage: list(T.iter_process([0], iterator_type='simple'))
+            Traceback (most recent call last):
+            ...
+            RuntimeError: Process has branched (visiting 2 states in branch).
+            The 'simple' iterator cannot be used here.
+            sage: T = Transducer([(0, 1, 0, 1), (0, 1, 0, 2)],
+            ....:                initial_states=[0], final_states=[0])
+            sage: list(T.iter_process([0], iterator_type='simple'))
+            Traceback (most recent call last):
+            ...
+            RuntimeError: Process has branched. (2 different outputs in branch).
+            The 'simple' iterator cannot be used here.
+        """
+        for current in iterator:
+            if not current:
+                return
+
+            if len(current) > 1:
+                raise RuntimeError("Process has branched "
+                                   "(%s branches exist). The "
+                                   "'simple' iterator cannot be used "
+                                   "here." %
+                                   (len(current),))
+            pos, states = next(current.iteritems())
+            if len(states) > 1:
+                raise RuntimeError("Process has branched "
+                                   "(visiting %s states in branch). The "
+                                   "'simple' iterator cannot be used "
+                                   "here." %
+                                   (len(states),))
+            state, (tape_cache, outputs) = next(states.iteritems())
+            if len(outputs) > 1:
+                raise RuntimeError("Process has branched. "
+                                   "(%s different outputs in branch). The "
+                                   "'simple' iterator cannot be used "
+                                   "here." %
+                                   (len(outputs),))
+
+            for o in outputs[0]:
+                yield o
+            outputs[0] = []  # Reset output so that in the next round
+                             # (of "for current in iterator") only new
+                             # output is returned (by the yield).
 
 
     #*************************************************************************
@@ -6703,12 +6883,12 @@ class FiniteStateMachine(SageObject):
 
         EXAMPLES::
 
-            sage: A = Automaton([(0, 1, 0, 0), (1, 0, 1, 0)],
+            sage: A = Automaton([(0, 1, 0), (1, 0, 1)],
             ....:               initial_states=[0],
             ....:               final_states=[0])
             sage: A([0, 1, 0, 1])
             True
-            sage: B = Automaton([(0, 1, 0, 0), (1, 2, 0, 0), (2, 0, 1, 0)],
+            sage: B = Automaton([(0, 1, 0), (1, 2, 0), (2, 0, 1)],
             ....:               initial_states=[0],
             ....:               final_states=[0])
             sage: B([0, 0, 1])
@@ -6717,11 +6897,11 @@ class FiniteStateMachine(SageObject):
             sage: C
             Automaton with 5 states
             sage: C.transitions()
-            [Transition from (0, 0) to (0, 1): 0|0,
-             Transition from (0, 1) to (0, 0): 1|0,
-             Transition from (1, 0) to (1, 1): 0|0,
-             Transition from (1, 1) to (1, 2): 0|0,
-             Transition from (1, 2) to (1, 0): 1|0]
+            [Transition from (0, 0) to (0, 1): 0|-,
+             Transition from (0, 1) to (0, 0): 1|-,
+             Transition from (1, 0) to (1, 1): 0|-,
+             Transition from (1, 1) to (1, 2): 0|-,
+             Transition from (1, 2) to (1, 0): 1|-]
             sage: C([0, 0, 1])
             True
             sage: C([0, 1, 0, 1])
@@ -6741,30 +6921,19 @@ class FiniteStateMachine(SageObject):
             sage: C2 == C
             True
 
-        In general, the disjoint union is not deterministic::
+        In general, the disjoint union is not deterministic.::
 
             sage: C.is_deterministic()
             False
-            sage: D = C.determinisation().minimization().relabeled()
-            sage: D.initial_states()
-            [1]
-            sage: D.transitions()
-            [Transition from 0 to 0: 0|-,
-             Transition from 0 to 0: 1|-,
-             Transition from 1 to 7: 0|-,
-             Transition from 1 to 0: 1|-,
-             Transition from 2 to 6: 0|-,
-             Transition from 2 to 0: 1|-,
-             Transition from 3 to 5: 0|-,
-             Transition from 3 to 0: 1|-,
-             Transition from 4 to 0: 0|-,
-             Transition from 4 to 2: 1|-,
-             Transition from 5 to 0: 0|-,
-             Transition from 5 to 3: 1|-,
-             Transition from 6 to 4: 0|-,
-             Transition from 6 to 0: 1|-,
-             Transition from 7 to 4: 0|-,
-             Transition from 7 to 3: 1|-]
+            sage: D = C.determinisation().minimization()
+            sage: D.is_equivalent(Automaton([(0, 0, 0), (0, 0, 1),
+            ....:    (1, 7, 0), (1, 0, 1), (2, 6, 0), (2, 0, 1),
+            ....:    (3, 5, 0), (3, 0, 1), (4, 0, 0), (4, 2, 1),
+            ....:    (5, 0, 0), (5, 3, 1), (6, 4, 0), (6, 0, 1),
+            ....:    (7, 4, 0), (7, 3, 1)],
+            ....:    initial_states=[1],
+            ....:    final_states=[1, 2, 3]))
+            True
 
         Disjoint union of transducers::
 
@@ -7193,7 +7362,9 @@ class FiniteStateMachine(SageObject):
         ``final_function`` on the constituent states.
 
         The color of a new state is the tuple of colors of the
-        constituent states of ``self`` and ``other``.
+        constituent states of ``self`` and ``other``. However,
+        if all constituent states have color ``None``, then
+        the state has color ``None``, too.
 
         EXAMPLES::
 
@@ -7209,6 +7380,8 @@ class FiniteStateMachine(SageObject):
             [Transition from ('A', 1) to ('B', 1): 2|-,
              Transition from ('A', 1) to ('A', 1): 1|-,
              Transition from ('B', 1) to ('A', 1): 3|-]
+            sage: [s.color for s in H.iter_states()]
+            [None, None]
             sage: H1 = F.product_FiniteStateMachine(G, addition, [0, 1, 2, 3], only_accessible_components=False)
             sage: H1.states()[0].label()[0] is F.states()[0]
             True
@@ -7304,8 +7477,8 @@ class FiniteStateMachine(SageObject):
             sage: A = Automaton([[0, 0, 0]], initial_states=[0])
             sage: B = A.product_FiniteStateMachine(A,
             ....:                                  lambda t1, t2: (0, None))
-            sage: B.states()[0].color
-            (None, None)
+            sage: B.states()[0].color is None
+            True
             sage: B.determinisation()
             Automaton with 1 state
 
@@ -7395,7 +7568,10 @@ class FiniteStateMachine(SageObject):
             if all(s.is_final for s in state.label()):
                 state.is_final = True
                 state.final_word_out = final_function(*state.label())
-            state.color = tuple(s.color for s in state.label())
+            if all(s.color is None for s in state.label()):
+                state.color = None
+            else:
+                state.color = tuple(s.color for s in state.label())
 
         if only_accessible_components:
             if result.input_alphabet is None:
@@ -7796,15 +7972,19 @@ class FiniteStateMachine(SageObject):
              Transition from ('B', 1) to ('B', 1): 0|0,
              Transition from ('B', 1) to ('B', 2): 1|0]
 
-        Check that colors are correctly dealt with. In particular, the
-        new colors have to be hashable such that
+        Check that colors are correctly dealt with, cf. :trac:`19199`.
+        In particular, the new colors have to be hashable such that
         :meth:`Automaton.determinisation` does not fail::
 
             sage: T = Transducer([[0, 0, 0, 0]], initial_states=[0])
             sage: A = T.input_projection()
             sage: B = A.composition(T, algorithm='explorative')
+            sage: B.states()[0].color is None
+            True
+            sage: A.state(0).color = 0
+            sage: B = A.composition(T, algorithm='explorative')
             sage: B.states()[0].color
-            (None, None)
+            (None, 0)
             sage: B.determinisation()
             Automaton with 1 state
         """
@@ -7860,7 +8040,10 @@ class FiniteStateMachine(SageObject):
                     state.is_final = True
                     state.final_word_out = final_output_second[0][2]
 
-            state.color = tuple(s.color for s in state.label())
+            if all(s.color is None for s in state.label()):
+                state.color = None
+            else:
+                state.color = tuple(s.color for s in state.label())
 
         F.output_alphabet = second.output_alphabet
         return F
@@ -10479,7 +10662,8 @@ class Automaton(FiniteStateMachine):
         of states of ``self``. The color of a new state is the
         frozenset of colors of the constituent states of ``self``.
         Therefore, the colors of the constituent states have to be
-        hashable.
+        hashable. However, if all constituent states have color
+        ``None``, then the resulting color is ``None``, too.
 
         The input alphabet must be specified.
 
@@ -10541,6 +10725,15 @@ class Automaton(FiniteStateMachine):
             sage: A.state(0).color = ()
             sage: A.determinisation()
             Automaton with 1 state
+
+        If the colors of all constituent states are ``None``,
+        the resulting color is ``None``, too (:trac:`19199`)::
+
+            sage: A = Automaton([(0, 0, 0)],
+            ....:               initial_states=[0],
+            ....:               final_states=[0])
+            sage: [s.color for s in A.determinisation().iter_states()]
+            [None]
 
         TESTS:
 
@@ -10638,7 +10831,10 @@ class Automaton(FiniteStateMachine):
 
         for state in result.iter_states():
             state.is_final = any(s.is_final for s in state.label())
-            state.color = frozenset(s.color for s in state.label())
+            if all(s.color is None for s in state.label()):
+                state.color = None
+            else:
+                state.color = frozenset(s.color for s in state.label())
 
         return result
 
@@ -10758,6 +10954,102 @@ class Automaton(FiniteStateMachine):
         else:
             raise NotImplementedError("Minimization via Moore's Algorithm is only " \
                                       "implemented for deterministic finite state machines")
+
+
+    def complement(self):
+        r"""
+        Return the complement of this automaton.
+
+        OUTPUT:
+
+        An :class:`Automaton`.
+
+        If this automaton recognizes language `\mathcal{L}` over an
+        input alphabet `\mathcal{A}`, then the complement recognizes
+        `\mathcal{A}\setminus\mathcal{L}`.
+
+        EXAMPLES::
+
+            sage: A = automata.word([0, 1])
+            sage: [w for w in
+            ....:  [], [0], [1], [0, 0], [0, 1], [1, 0], [1, 1]
+            ....:  if A(w)]
+            [[0, 1]]
+            sage: Ac = A.complement()
+            sage: Ac.transitions()
+            [Transition from 0 to 1: 0|-,
+             Transition from 0 to 3: 1|-,
+             Transition from 2 to 3: 0|-,
+             Transition from 2 to 3: 1|-,
+             Transition from 1 to 2: 1|-,
+             Transition from 1 to 3: 0|-,
+             Transition from 3 to 3: 0|-,
+             Transition from 3 to 3: 1|-]
+            sage: [w for w in
+            ....:  [], [0], [1], [0, 0], [0, 1], [1, 0], [1, 1]
+            ....:  if Ac(w)]
+            [[], [0], [1], [0, 0], [1, 0], [1, 1]]
+
+        The automaton must be deterministic::
+
+            sage: A = automata.word([0]) * automata.word([1])
+            sage: A.complement()
+            Traceback (most recent call last):
+            ...
+            ValueError: The finite state machine must be deterministic.
+            sage: Ac = A.determinisation().complement()
+            sage: [w for w in
+            ....:  [], [0], [1], [0, 0], [0, 1], [1, 0], [1, 1]
+            ....:  if Ac(w)]
+            [[], [0], [1], [0, 0], [1, 0], [1, 1]]
+        """
+        result = self.completion()
+        for state in result.iter_states():
+            state.is_final = not state.is_final
+
+        return result
+
+    def is_equivalent(self, other):
+        """
+        Test whether two automata are equivalent, i.e., accept the same
+        language.
+
+        INPUT:
+
+        - ``other`` -- an :class:`Automaton`.
+
+        EXAMPLES::
+
+            sage: A = Automaton([(0, 0, 0), (0, 1, 1), (1, 0, 1)],
+            ....:               initial_states=[0],
+            ....:               final_states=[0])
+            sage: B = Automaton([('a', 'a', 0), ('a', 'b', 1), ('b', 'a', 1)],
+            ....:               initial_states=['a'],
+            ....:               final_states=['a'])
+            sage: A.is_equivalent(B)
+            True
+            sage: B.add_transition('b', 'a', 0)
+            Transition from 'b' to 'a': 0|-
+            sage: A.is_equivalent(B)
+            False
+        """
+        A = self.minimization().relabeled()
+        [initial] = A.initial_states()
+        address = {initial: ()}
+        for v in A.digraph().breadth_first_search(initial.label()):
+            state = A.state(v)
+            state_address = address[state]
+            for t in A.iter_transitions(state):
+                if t.to_state not in address:
+                    address[t.to_state] = state_address + tuple(t.word_in)
+
+        B = other.minimization().relabeled()
+        labels = {B.process(path)[1].label(): state.label()
+                  for (state, path) in address.iteritems()}
+        try:
+            return A == B.relabeled(labels=labels)
+        except KeyError:
+            return False
 
 
     def process(self, *args, **kwargs):

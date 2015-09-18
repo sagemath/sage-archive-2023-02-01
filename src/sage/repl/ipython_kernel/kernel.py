@@ -15,9 +15,9 @@ notebook or remote IPython sessions.
 #*****************************************************************************
 
 import sys
-from IPython.kernel.zmq.ipkernel import IPythonKernel
-from IPython.kernel.zmq.zmqshell import ZMQInteractiveShell
-from IPython.utils.traitlets import Type
+from ipykernel.ipkernel import IPythonKernel
+from ipykernel.zmqshell import ZMQInteractiveShell
+from traitlets import Type
 
 from sage.env import SAGE_VERSION, SAGE_EXTCODE, SAGE_DOC
 from sage.repl.interpreter import SageNotebookInteractiveShell
@@ -159,3 +159,7 @@ class SageKernel(IPythonKernel):
                 'url': "http://help.github.com/articles/github-flavored-markdown",
             },
         ]
+
+    def pre_handler_hook(self):
+        from sage.ext.interrupt.interrupt import init_interrupts
+        self.saved_sigint_handler = init_interrupts()

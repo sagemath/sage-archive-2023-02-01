@@ -438,8 +438,8 @@ def best_known_linear_code(n, k, F):
 
     This means that best possible binary linear code of length 10 and
     dimension 5 is a code with minimum distance 4 and covering radius
-    somewhere between 2 and 4. Use ``minimum_distance_why(10,5,GF(2))`` or
-    ``print bounds_minimum_distance(10,5,GF(2))`` for further details.
+    somewhere between 2 and 4.
+    Use ``bounds_minimum_distance(10,5,GF(2))`` for further details.
     """
     q = F.order()
     C = gap("BestKnownLinearCode(%s,%s,GF(%s))"%(n,k,q))
@@ -530,8 +530,7 @@ def bounds_minimum_distance(n, k, F):
 
     The values for the lower and upper bound are obtained from a table
     constructed by Cen Tjhai for GUAVA, derived from the table of
-    Brouwer. (See http://www.codetables.de/ or use the
-    Sage function ``minimum_distance_why`` for the most recent data.)
+    Brouwer. See http://www.codetables.de/ for the most recent data.
     These tables contain lower and upper bounds for `q=2` (when ``n <= 257``),
     `q=3` (when ``n <= 243``), `q=4` (``n <= 256``). (Current as of
     11 May 2006.) For codes over other fields and for larger word lengths,
@@ -2223,10 +2222,6 @@ class AbstractLinearCode(module.Module):
             raise ValueError("The algorithm argument must be one of None, "
                         "'gap' or 'guava'; got '{0}'".format(algorithm))
 
-        #sage: C.minimum_distance_upper_bound()  # optional (net connection)
-        #5
-        #    sage: C.minimum_distance_why()          # optional (net connection)
-        #    Ub(10,5) = 5 follows by the Griesmer bound.
         F = self.base_ring()
         q = F.order()
         G = self.generator_matrix()
@@ -3285,11 +3280,6 @@ class LinearCode(AbstractLinearCode):
 
     - David Joyner (11-2005)
     """
-    #    sage: C.minimum_distance_upper_bound()   # optional (net connection)
-    #    3
-    #    sage: C.minimum_distance_why()     # optional (net connection)
-    #    Ub(7,4) = 3 follows by the Griesmer bound.
-
     def __init__(self, generator_matrix, d=None):
         r"""
         See the docstring for :meth:`LinearCode`.

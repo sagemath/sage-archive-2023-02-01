@@ -23,7 +23,11 @@ of examples.
     :widths: 30, 70
     :delim: |
 
+    :meth:`~AutomatonGenerators.AnyLetter` | Return an automaton recognizing any letter.
+    :meth:`~AutomatonGenerators.AnyWord` | Return an automaton recognizing any word.
+    :meth:`~AutomatonGenerators.EmptyWord` | Return an automaton recognizing the empty word.
     :meth:`~AutomatonGenerators.word` | Return an automaton recognizing the given word.
+    :meth:`~AutomatonGenerators.ContainsWord` | Return an automaton recognizing words containing the given word.
 
 **Transducers**
 
@@ -99,8 +103,116 @@ class AutomatonGenerators(object):
 
     The automata currently in this class include:
 
+    - :meth:`~AnyLetter`
+    - :meth:`~AnyWord`
+    - :meth:`~EmptyWord`
     - :meth:`~word`
+    - :meth:`~ContainsWord`
     """
+
+    def AnyLetter(self, input_alphabet):
+        r"""
+        Return an automaton recognizing any letter of the given
+        input alphabet.
+
+        INPUT:
+
+        - ``input_alphabet`` -- a list, the input alphabet
+
+        OUTPUT:
+
+        An :class:`~Automaton`.
+
+        EXAMPLES::
+
+            sage: A = automata.AnyLetter([0, 1])
+            sage: A([])
+            False
+            sage: A([0])
+            True
+            sage: A([1])
+            True
+            sage: A([0, 0])
+            False
+
+        .. SEEALSO:: :meth:`AnyWord`
+        """
+        z = ZZ(0)
+        o = ZZ(1)
+        return Automaton([(z, o, _) for _ in input_alphabet],
+                         initial_states=[z],
+                         final_states=[o])
+
+
+    def AnyWord(self, input_alphabet):
+        r"""
+        Return an automaton recognizing any word of the given
+        input alphabet.
+
+        INPUT:
+
+        - ``input_alphabet`` -- a list, the input alphabet
+
+        OUTPUT:
+
+        An :class:`~Automaton`.
+
+        EXAMPLES::
+
+            sage: A = automata.AnyWord([0, 1])
+            sage: A([0])
+            True
+            sage: A([1])
+            True
+            sage: A([0, 1])
+            True
+            sage: A([0, 2])
+            False
+
+        This is equivalent to taking the :meth:`~FiniteStateMachine.kleene_star`
+        of :meth:`AnyLetter` and minimizing the result. This method
+        immediately gives a minimized version::
+
+           sage: B = automata.AnyLetter([0, 1]).kleene_star().minimization().relabeled()
+           sage: B == A
+           True
+
+        .. SEEALSO:: :meth:`AnyLetter`, :meth:`word`
+        """
+        z = ZZ(0)
+        return Automaton([(z, z, _) for _ in input_alphabet],
+                         initial_states=[z],
+                         final_states=[z])
+
+
+    def EmptyWord(self, input_alphabet=None):
+        r"""
+        Return an automaton recognizing the empty word.
+
+        INPUT:
+
+        - ``input_alphabet`` -- (default: ``None``) an iterable
+          or ``None``.
+
+        OUTPUT:
+
+        An :class:`~Automaton`.
+
+        EXAMPLES::
+
+            sage: A = automata.EmptyWord()
+            sage: A([])
+            True
+            sage: A([0])
+            False
+
+        .. SEEALSO:: :meth:`AnyLetter`, :meth:`AnyWord`
+        """
+        z = ZZ(0)
+        return Automaton(initial_states=[z],
+                         final_states=[z],
+                         input_alphabet=input_alphabet)
+
 
     def word(self, word, input_alphabet=None):
         r"""
@@ -141,6 +253,9 @@ class AutomatonGenerators(object):
             sage: A.input_alphabet
             [0, 1, 2]
 
+        .. SEEALSO:: :meth:`AnyWord`,
+           :meth:`ContainsWord`
+
         TESTS::
 
             sage: from sage.rings.integer import is_Integer
@@ -155,6 +270,67 @@ class AutomatonGenerators(object):
                          initial_states=[ZZ(0)],
                          final_states=[ZZ(length)],
                          input_alphabet=input_alphabet)
+
+    def ContainsWord(self, word, input_alphabet):
+        r"""
+        Return an automaton recognizing the words containing
+        the given word as a factor.
+
+        INPUT:
+
+        - ``word`` -- a list (or other iterable) of letters, the
+          word we are looking for.
+
+        - ``input_alphabet`` -- a list or other iterable, the input
+          alphabet.
+
+        OUTPUT:
+
+        An :class:`~Automaton`.
+
+        EXAMPLES::
+
+            sage: A = automata.ContainsWord([0, 1, 0, 1, 1],
+            ....:                           input_alphabet=[0, 1])
+            sage: A([1, 0, 1, 0, 1, 0, 1, 1, 0, 0])
+            True
+            sage: A([1, 0, 1, 0, 1, 0, 1, 0])
+            False
+
+        This is equivalent to taking the concatenation of :meth:`AnyWord`,
+        :meth:`word` and :meth:`AnyWord` and minimizing the result. This
+        method immediately gives a minimized version::
+
+            sage: B = (automata.AnyWord([0, 1]) *
+            ....:     automata.word([0, 1, 0, 1, 1], [0, 1]) *
+            ....:     automata.AnyWord([0, 1])).minimization()
+            sage: B.is_equivalent(A)
+            True
+
+        .. SEEALSO::  :meth:`~TransducerGenerators.CountSubblockOccurrences`,
+           :meth:`AnyWord`,
+           :meth:`word`
+        """
+        word = tuple(word)
+
+        def starts_with(what, pattern):
+            return len(what) >= len(pattern) \
+                and what[:len(pattern)] == pattern
+
+        def transition_function(read, input):
+            if read == word:
+                return (word, None)
+            current = read + (input,)
+            k = 0
+            while not starts_with(word, current[k:]):
+                k += 1
+            return (current[k:], None)
+
+        return Automaton(
+            transition_function,
+            input_alphabet=input_alphabet,
+            initial_states=[()],
+            final_states=[word])
 
 
 class TransducerGenerators(object):
@@ -308,6 +484,7 @@ class TransducerGenerators(object):
                 sage: T(input) == output
                 True
 
+        .. SEEALSO:: :meth:`~AutomatonGenerators.ContainsWord`
         """
         block_as_tuple = tuple(block)
 

@@ -711,17 +711,6 @@ class AbstractLinearCode(module.Module):
     So, every Linear Code-related class should inherit from this abstract
     class.
 
-    This class provides:
-
-    - ``length``, the length of the code
-
-    - ``default_encoder_name``, the name of the encoder that will be used if no encoder name is passed
-      to an encoder-related method (``generator_matrix``, ``encode``, ``unencode``)
-
-    - ``_registered_encoders``, a dictionary of all encoders available for this class
-
-    - numerous methods that will work for any linear code (including families)
-
     To implement a linear code, you need to:
 
     - inherit from AbstractLinearCode
@@ -733,7 +722,7 @@ class AbstractLinearCode(module.Module):
       You need of course to complete the constructor by adding any additional parameter
       needed to describe properly the code defined in the subclass.
 
-    - fill the dictionary of its encoders in ``sage.coding.__init__`` file. Example:
+    - fill the dictionary of its encoders in ``sage.coding.__init__.py`` file. Example:
       I want to link the encoder ``MyEncoderClass`` to ``MyNewCodeClass``
       under the name ``MyEncoderName``.
       All I need to do is to write this line in the ``__init__.py`` file:
@@ -745,11 +734,14 @@ class AbstractLinearCode(module.Module):
 
     .. NOTE::
 
-        AbstractLinearCode embeds some generic implementations of helper methods like ``__cmp__``
-        or ``__eq__``.
-        As they are designed to fit for every linear code, they mostly use the generator matrix
-        and thus can be long for certain families of code.
-        In that case, overriding these methods is encouraged.
+        :class:`AbstractLinearCode` has generic implementations of the comparison methods ``__cmp``
+        and ``__eq__`` which use the generator matrix and are quite slow. In subclasses you are
+        encouraged to override these functions.
+
+    .. WARNING::
+
+        The default encoder should always have `F^{k}` as message space, with `k` the dimension
+        of the code and `F` its base ring.
 
         A lot of methods of the abstract class rely on the knowledge of a generator matrix.
         It is thus strongly recommended to set an encoder with a generator matrix implemented
@@ -841,14 +833,13 @@ class AbstractLinearCode(module.Module):
             sage: C = CodeExample(GF(17), 10, 5, generator_matrix)
             Traceback (most recent call last):
             ...
-            ValueError: You must set a valid encoder as default encoder for this code
+            ValueError: You must set a valid encoder as default encoder for this code, by completing __init__.py
         """
-        self._registered_encoders = copy(self._registered_encoders)
         if not isinstance(length, (int, Integer)):
             raise ValueError("length must be a Python int or a Sage Integer")
         self._length = Integer(length)
         if not default_encoder_name in self._registered_encoders:
-            raise ValueError("You must set a valid encoder as default encoder for this code")
+            raise ValueError("You must set a valid encoder as default encoder for this code, by completing  __init__.py")
         self._default_encoder_name = default_encoder_name
         cat = Modules(base_field).FiniteDimensional().WithBasis().Finite()
         facade_for = VectorSpace(base_field, self._length)
@@ -891,6 +882,12 @@ class AbstractLinearCode(module.Module):
         r"""
         Adds an encoder to the list of registered encoders of ``self``.
 
+        .. NOTE::
+
+            This method only adds ``encoder`` to ``self``, and not to any member of the class
+            of ``self``. To know how to add an :class:`sage.coding.encoder.Encoder`, please refer
+            to the documentation of :class:`AbstractLinearCode`.
+
         INPUT:
 
         - ``name`` -- the string name for the encoder
@@ -932,10 +929,16 @@ class AbstractLinearCode(module.Module):
             ...
             ValueError: There is already a registered encoder with this name
         """
-        reg_enc = self._registered_encoders
-        if name in reg_enc:
-            raise ValueError("There is already a registered encoder with this name")
-        reg_enc[name] = encoder
+        if self._registered_encoders == self.__class__._registered_encoders:
+            self._registered_encoders = copy(self._registered_encoders)
+            reg_enc = self._registered_encoders
+            if name in reg_enc:
+                raise ValueError("There is already a registered encoder with this name")
+            reg_enc[name] = encoder
+        else:
+            if name in self._registered_encoders:
+                raise ValueError("There is already a registered encoder with this name")
+            reg_enc[name] = encoder
 
     def automorphism_group_gens(self, equivalence="semilinear"):
         r"""
@@ -1734,21 +1737,27 @@ class AbstractLinearCode(module.Module):
 
     def encode(self, word, encoder_name=None, **kwargs):
         r"""
-        Transforms an element of the message space into a codeword.
+        Transforms an element of a message space into a codeword.
 
         INPUT:
 
-        - ``word`` -- a vector of the message space of the code
+        - ``word`` -- a vector of a message space of the code.
 
         - ``encoder_name`` -- (default: ``None``) Name of the encoder which will be used
           to encode ``word``. The default encoder of ``self`` will be used if
-          default value is kept
+          default value is kept.
 
-        - ``kwargs`` -- all additional arguments are forwarded to :meth:`encoder`
+        - ``kwargs`` -- all additional arguments are forwarded to the construction of the
+          encoder that is used.
+
+        .. NOTE::
+
+            The default encoder always has `F^{k}` as message space, with `k` the dimension
+            of ``self`` and `F` the base ring of ``self``.
 
         OUTPUT:
 
-        - a vector of ``self``
+        - a vector of ``self``.
 
         EXAMPLES::
 
@@ -1774,7 +1783,9 @@ class AbstractLinearCode(module.Module):
         r"""
         Returns an encoder of ``self``.
 
-        This methods creates a new instance of the encoder subclass designated by ``name``.
+        The returned encoder provided by this method is cached.
+
+        This methods creates a new instance of the encoder subclass designated by ``encoder_name``.
         While it is also possible to do the same by directly calling the subclass' constructor,
         it is strongly advised to use this method to take advantage of the caching mechanism.
 
@@ -1785,12 +1796,16 @@ class AbstractLinearCode(module.Module):
           default value is kept.
 
         - ``kwargs`` -- all additional arguments are forwarded to the constructor of the encoder
-          this method will return
+          this method will return.
 
         OUTPUT:
 
-        - an Encoder object
+        - an Encoder object.
 
+        .. NOTE::
+
+            The default encoder always has `F^{k}` as message space, with `k` the dimension
+            of ``self`` and `F` the base ring of ``self``.
 
         EXAMPLES::
 
@@ -1798,6 +1813,11 @@ class AbstractLinearCode(module.Module):
             sage: C = LinearCode(G)
             sage: C.encoder()
             Generator matrix-based encoder for the Linear code of length 7, dimension 4 over Finite Field of size 2
+
+        We check that the returned encoder is cached::
+
+            sage: C.encoder.is_in_cache()
+            True
 
         If the name of an encoder which is not known by ``self`` is passed,
         an exception will be raised::
@@ -1811,7 +1831,6 @@ class AbstractLinearCode(module.Module):
         """
         if encoder_name is None:
             encoder_name = self._default_encoder_name
-            return self.encoder(encoder_name, **kwargs)
         if encoder_name in self._registered_encoders:
             encClass = self._registered_encoders[encoder_name]
             E = encClass(self, **kwargs)
@@ -1819,14 +1838,14 @@ class AbstractLinearCode(module.Module):
         else:
             raise ValueError("Passed Encoder name not known")
 
-    def encoders_available(self, values=False):
+    def encoders_available(self, classes=False):
         r"""
         Returns a list of the available encoders' names for ``self``.
 
         INPUT:
 
-        - ``values`` -- (default: ``False``) if values is set to ``True``, it also
-          returns the encoders' classes associated with the encoders' names
+        - ``classes`` -- (default: ``False``) if ``classes`` is set to ``True``, it also
+          returns the encoders' classes associated with the encoders' names.
 
         EXAMPLES::
 
@@ -1839,10 +1858,9 @@ class AbstractLinearCode(module.Module):
             {'GeneratorMatrix':
             <class 'sage.coding.linear_code.LinearCodeGeneratorMatrixEncoder'>}
         """
-        reg_enc = self._registered_encoders
-        if values == True:
+        if classes == True:
             return copy(self._registered_encoders)
-        return reg_enc.keys()
+        return self._registered_encoders.keys()
 
     def extended_code(self):
         r"""
@@ -2025,7 +2043,8 @@ class AbstractLinearCode(module.Module):
           used to compute the generator matrix. The default encoder of ``self``
           will be used if default value is kept.
 
-        - ``kwargs`` -- all additional arguments are forwarded to :meth:`encoder`
+        - ``kwargs`` -- all additional arguments are forwarded to the construction of the
+          encoder that is used.
 
         EXAMPLES::
 
@@ -2128,6 +2147,8 @@ class AbstractLinearCode(module.Module):
     def information_set(self):
         """
         Return an information set of the code.
+
+        Return value of this method is cached.
 
         A set of column positions of a generator matrix of a code
         is called an information set if the corresponding columns
@@ -3246,6 +3267,8 @@ class AbstractLinearCode(module.Module):
         r"""
         Returns the message corresponding to ``c``.
 
+        This is the inverse of :meth:`encode`.
+
         INPUT:
 
         - ``c`` -- a vector of the same length as ``self`` over the
@@ -3255,14 +3278,17 @@ class AbstractLinearCode(module.Module):
           to decode ``word``. The default decoder of ``self`` will be used if
           default value is kept.
 
-        - ``nocheck`` -- (default: ``False``) checks if ``c`` is in self. If this is set
-          to True, the return value of this method is not guaranteed to be correct.
+        - ``nocheck`` -- (default: ``False``) checks if ``c`` is in ``self``. You might set
+          this to ``True`` to disable the check for saving computation. Note that if ``c`` is
+          not in ``self`` and ``nocheck = True``, then the output of :meth:`unencode` is
+          not defined (except that it will be in the message space of ``self``).
 
-        - ``kwargs`` -- all additional arguments are forwarded to :meth:`encoder`
+        - ``kwargs`` -- all additional arguments are forwarded to the construction of the
+          encoder that is used.
 
         OUTPUT:
 
-        - a vector
+        - an element of the message space of ``encoder_name`` of ``self``.
 
         EXAMPLES::
 
@@ -3639,7 +3665,8 @@ class LinearCode(AbstractLinearCode):
           used to compute the generator matrix. ``self._generator_matrix``
           will be returned if default value is kept.
 
-        - ``kwargs`` -- all additional arguments are forwarded to :meth:`encoder`
+        - ``kwargs`` -- all additional arguments are forwarded to the construction of the
+          encoder that is used.
 
         EXAMPLES::
 
@@ -3649,10 +3676,9 @@ class LinearCode(AbstractLinearCode):
             [1 2 1]
             [2 1 1]
         """
-        if hasattr(self, "_generator_matrix"):
+        if encoder_name is None or encoder_name is 'GeneratorMatrix':
             return self._generator_matrix
-        E = self.encoder(encoder_name, **kwargs)
-        return E.generator_matrix()
+        return super(LinearCode, self).generator_matrix(encoder_name, **kwargs)
 
 
 

@@ -27,29 +27,27 @@ class Encoder(SageObject):
 
     To implement an encoder, you need to:
 
-    - inherit from :class:`Encoder`
+    - inherit from :class:`Encoder`,
 
     - call ``Encoder.__init__`` in the subclass constructor.
       Example: ``super(SubclassName, self).__init__(code)``.
       By doing that, your subclass will have its ``code`` parameter initialized.
-      You need of course to complete the constructor by adding any additional parameter
-      needed to describe properly the code defined in the subclass.
 
-    Then, if the message space is a vector space, default implementations of :meth:`encode` and
-    :meth:`unencode_nocheck` methods are provided. These implementations rely on :meth:`generator_matrix`
-    which you need to override to use the default implementations.
+    - Then, if the message space is a vector space, default implementations of :meth:`encode` and
+      :meth:`unencode_nocheck` methods are provided. These implementations rely on :meth:`generator_matrix`
+      which you need to override to use the default implementations.
 
-    If the message space is not of the form `F^k`, where `F` is a finite field,
-    you cannot have a generator matrix.
-    In that case, you need to override :meth:`encode` and :meth:`unencode_nocheck`.
+    - If the message space is not of the form `F^k`, where `F` is a finite field,
+      you cannot have a generator matrix.
+      In that case, you need to override :meth:`encode`, :meth:`unencode_nocheck` and
+      :meth:`message_space`.
 
-    Equality methods (``__eq__`` and ``__ne__``) might be useful for encoding in advanced
-    codes constructions (like concatenated codes). If provided default implementation of
-    these methods is not enough for your subclass, you are strongly encouraged to override
-    them.
+    - By default, comparison of :class:`Encoder` (using methods ``__eq__`` and ``__ne__`` ) are
+      by memory reference: if you build the same encoder twice, they will be different. If you
+      need something more clever, override ``__eq__`` and ``__ne__`` in your subclass.
 
-    As :class:`Encoder` is not designed to be instanciated, it does not have any representation
-    methods. You should implement ``_repr_`` and ``_latex_`` methods in the sublclass.
+    - As :class:`Encoder` is not designed to be instanciated, it does not have any representation
+      methods. You should implement ``_repr_`` and ``_latex_`` methods in the sublclass.
 
     REFERENCES:
 
@@ -94,18 +92,18 @@ class Encoder(SageObject):
         Transforms an element of the message space into a codeword.
 
         This is a default implementation which assumes that the message
-        space of the encoder is `F^k`, where `F` is
+        space of the encoder is `F^{k}`, where `F` is
         :meth:`sage.coding.linear_code.AbstractLinearCode.base_field`
-        and ``k`` is :meth:`sage.coding.linear_code.AbstractLinearCode.dimension`.
+        and `k` is :meth:`sage.coding.linear_code.AbstractLinearCode.dimension`.
         If this is not the case, this method should be overwritten by the subclass.
 
         INPUT:
 
-        - ``word`` -- a vector of the message space of the code
+        - ``word`` -- a vector of the message space of the ``self``.
 
         OUTPUT:
 
-        - a vector of ``self``
+        - a vector of :meth:`code`.
 
         EXAMPLES::
 
@@ -122,45 +120,60 @@ class Encoder(SageObject):
             sage: E.encode(word)
             Traceback (most recent call last):
             ...
-            ValueError: Vector to encode must be in a Vector space of dimension 4 over Finite Field of size 2
+            ValueError: The value to encode must be in Vector space of dimension 4 over Finite Field of size 2
         """
         M = self.message_space()
         if word not in M:
-            raise ValueError("Vector to encode must be in a %s" % M)
+            raise ValueError("The value to encode must be in %s" % M)
         return vector(word) * self.generator_matrix()
 
     def unencode(self, c, nocheck=False):
         r"""
-        Returns the message corresponding to ``c``.
+        Returns the message corresponding to the codeword ``c``.
+
+        This is the inverse of :meth:`encode`.
 
         INPUT:
 
-        - ``c`` -- a vector of the same length as ``self`` over the
-          base field of ``self``
+        - ``c`` -- a vector of the same length as :meth:`code` over the
+          base field of :meth:`code`.
 
-        - ``nocheck`` -- (default: ``False``) checks if ``c`` is in ``self``. If this is set
-          to ``True``, the return value of this method is not guaranteed to be correct.
+        - ``nocheck`` -- (default: ``False``) checks if ``c`` is in ``self``. You might set
+          this to ``True`` to disable the check for saving computation. Note that if ``c`` is
+          not in ``self`` and ``nocheck = True``, then the output of :meth:`unencode` is
+          not defined (except that it will be in the message space of ``self``).
 
         OUTPUT:
 
-        - a vector of the message space of ``self``
+        - an element of the message space of ``self``
 
         EXAMPLES::
 
             sage: G = Matrix(GF(2), [[1,1,1,0,0,0,0],[1,0,0,1,1,0,0],[0,1,0,1,0,1,0],[1,1,0,1,0,0,1]])
             sage: C = LinearCode(G)
             sage: c = vector(GF(2), (1, 1, 0, 0, 1, 1, 0))
+            sage: c in C
+            True
             sage: E = codes.encoders.LinearCodeGeneratorMatrixEncoder(C)
             sage: E.unencode(c)
             (0, 1, 1, 0)
+
+        TESTS:
+
+        If ``nocheck`` is set to ``False``, and one provides a word which is not in
+        :meth:`code`, :meth:`unencode` will return an error::
+
+            sage: c = vector(GF(2), (0, 1, 0, 0, 1, 1, 0))
+            sage: c in C
+            False
+            sage: E.unencode(c, False)
+            Traceback (most recent call last):
+            ...
+            EncodingError: Given word is not in the code
         """
-        if nocheck == False:
-            if c not in self.code():
-                raise EncodingError("Given word is not in the code")
-            else:
-                return self.unencode_nocheck(c)
-        else:
-            return self.unencode_nocheck(c)
+        if nocheck == False and c not in self.code():
+            raise EncodingError("Given word is not in the code")
+        return self.unencode_nocheck(c)
 
     @cached_method
     def _unencoder_matrix(self):
@@ -216,7 +229,8 @@ class Encoder(SageObject):
             sage: E.unencode_nocheck(c)
             (0, 1, 1, 0)
 
-        We take a vector that does not belong to C::
+        Taking a vector that does not belong to ``C`` will not raise an error but
+        probably just give a non-sensical result::
 
             sage: c = vector(GF(2), (1, 1, 0, 0, 1, 1, 1))
             sage: c in C
@@ -236,15 +250,15 @@ class Encoder(SageObject):
 
     def code(self):
         r"""
-        Returns the code in which :meth:`encode` has its output.
+        Returns the code for this :class:`Encoder`.
 
         EXAMPLES::
 
             sage: G = Matrix(GF(2), [[1,1,1,0,0,0,0],[1,0,0,1,1,0,0],[0,1,0,1,0,1,0],[1,1,0,1,0,0,1]])
             sage: C = LinearCode(G)
             sage: E = C.encoder()
-            sage: E.code()
-            Linear code of length 7, dimension 4 over Finite Field of size 2
+            sage: E.code() == C
+            True
         """
         return self._code
 
@@ -273,6 +287,17 @@ class Encoder(SageObject):
         Reimplementing this for each subclass of :class:`Encoder` is not mandatory
         (as a generator matrix only makes sense when the message space is of the `F^k`,
         where `F` is the base field of :meth:`code`.)
+
+        EXAMPLES::
+
+            sage: G = Matrix(GF(2), [[1,1,1,0,0,0,0],[1,0,0,1,1,0,0],[0,1,0,1,0,1,0],[1,1,0,1,0,0,1]])
+            sage: C = LinearCode(G)
+            sage: E = C.encoder()
+            sage: E.generator_matrix()
+            [1 1 1 0 0 0 0]
+            [1 0 0 1 1 0 0]
+            [0 1 0 1 0 1 0]
+            [1 1 0 1 0 0 1]
         """
 
 class EncodingError(Exception):

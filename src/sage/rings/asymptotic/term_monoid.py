@@ -16,7 +16,7 @@ addition/absorption of terms).
 Besides an abstract base term :class:`GenericTerm`, this module
 implements the following types of terms:
 
-- :class:`OTerm` -- `O`-terms in infinity, see
+- :class:`OTerm` -- `O`-terms at infinity, see
   :wikipedia:`Big_O_notation`.
 - :class:`TermWithCoefficient` -- abstract base class for
   asymptotic terms with coefficients.
@@ -27,7 +27,7 @@ A characteristic property of asymptotic terms is that some terms are
 able to "absorb" other terms (see
 :meth:`~sage.rings.asymptotic.term_monoid.GenericTerm.absorb`). For
 instance, `O(x^2)` is able to absorb `O(x)` (with result
-`O(x^2)`), and `3*x^5` is able to absorb `-2*x^5` (with result
+`O(x^2)`), and `3x^5` is able to absorb `-2x^5` (with result
 `x^5`). Essentially, absorption can be interpreted as the
 addition of "compatible" terms (partial addition).
 
@@ -82,7 +82,7 @@ import sage
 
 def absorption(left, right):
     r"""
-    Helper method used by
+    Helper function used by
     :class:`~sage.rings.asymptotic_ring.AsymptoticExpression`.
 
     INPUT:
@@ -114,7 +114,7 @@ def absorption(left, right):
 
 def can_absorb(left, right):
     r"""
-    Helper method used by
+    Helper function used by
     :class:`~sage.rings.asymptotic_ring.AsymptoticExpression`.
 
     INPUT:
@@ -129,7 +129,7 @@ def can_absorb(left, right):
 
     .. NOTE::
 
-        This method returns whether one of the two input terms is
+        This function returns whether one of the two input terms is
         able to absorb the other.
 
     EXAMPLES::
@@ -241,7 +241,7 @@ class GenericTerm(sage.structure.element.MonoidElement):
 
     def can_absorb(self, other):
         r"""
-        Check, whether this asymptotic term is able to absorb
+        Check whether this asymptotic term is able to absorb
         the asymptotic term ``other``.
 
         INPUT:
@@ -255,7 +255,7 @@ class GenericTerm(sage.structure.element.MonoidElement):
         .. NOTE::
 
             This method calls :meth:`_can_absorb_`, which is has to be
-            implemented/overridden in inherited class.
+            implemented/overridden in a derived class.
 
         EXAMPLES:
 
@@ -301,7 +301,7 @@ class GenericTerm(sage.structure.element.MonoidElement):
 
     def _can_absorb_(self, other):
         r"""
-        Check, whether this generic term can absorb ``other``.
+        Check whether this generic term can absorb ``other``.
 
         INPUT:
 
@@ -335,7 +335,7 @@ class GenericTerm(sage.structure.element.MonoidElement):
 
     def absorb(self, other, check=True):
         r"""
-        Absorb the asymptotic term ``other`` and returns the resulting
+        Absorb the asymptotic term ``other`` and return the resulting
         asymptotic term.
 
         INPUT:
@@ -388,7 +388,7 @@ class GenericTerm(sage.structure.element.MonoidElement):
 
         The first example above corresponds to `O(x) + O(x) = O(x)`, and
         the second to `O(x) + 100x = O(x)`.
-        If absorb is called on a term that cannot be absorbed, an
+        If ``absorb`` is called on a term that cannot be absorbed, an
         :python:`ArithmeticError<library/exceptions.html#exceptions.ArithmeticError>`
         is raised::
 
@@ -522,7 +522,7 @@ class GenericTerm(sage.structure.element.MonoidElement):
             (5*x^2, 2/7*x^3)
 
         In order for the comparison to work, the terms have come from
-        or coerce into the same parent. Concretely, comparing
+        or coerce into the same parent. In particular, comparing
         :class:`GenericTerm` to, for example, an :class:`OTerm`
         always yields ``False``::
 
@@ -988,7 +988,7 @@ class OTerm(GenericTerm):
 
     def _can_absorb_(self, other):
         r"""
-        Check, whether this `O`-term can absorb ``other``.
+        Check whether this `O`-term can absorb ``other``.
 
         INPUT:
 

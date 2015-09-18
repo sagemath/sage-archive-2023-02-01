@@ -2892,6 +2892,15 @@ class EllipticCurve_number_field(EllipticCurve_field):
         rotated!::
 
             sage: G.show3d(color_by_label=True) # long time
+
+        TESTS:
+
+        An example which failed until fixed at :trac:`19229`::
+
+            sage: K.<a> = NumberField(x^2-x+1)
+            sage: E = EllipticCurve([a+1,1,1,0,0])
+            sage: C = E.isogeny_class(); len(C)
+            4
         """
         try:
             return self._isoclass

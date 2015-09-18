@@ -1921,7 +1921,7 @@ class TermMonoidFactory(sage.structure.factory.UniqueFactory):
     INPUT:
 
     - ``term`` -- the kind of term that shall be created. Either
-      ``'exact'`` or ``'O'``.
+      ``'exact'`` or ``'O'`` (capital letter ``O``).
 
     - ``growth_group`` -- a growth group.
 

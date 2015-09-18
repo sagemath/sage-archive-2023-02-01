@@ -262,9 +262,9 @@ class IntegerListsLex(Parent):
          [0, 0, 0, 0, 0]]
         sage: [motzkin_words(n).cardinality() for n in range(8)]
         [1, 1, 2, 4, 9, 21, 51, 127]
-        sage: oeis(_)                  # optional -- internet
-        0: A001006: Motzkin numbers: number of ways of drawing any number
-        of nonintersecting chords joining n (labeled) points on a circle.
+        sage: oeis(_)[0]                    # optional -- internet
+        A001006: Motzkin numbers: number of ways of drawing any number of
+        nonintersecting chords joining n (labeled) points on a circle.
 
     or Dyck words (see also :class:`DyckWords`), through the bijection
     with paths from `(0,0)` to `(n,n)` with left and up steps that remain

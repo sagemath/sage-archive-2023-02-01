@@ -3970,7 +3970,7 @@ class GenericGraph(GenericGraph_pyx):
 
         .. NOTE::
 
-            the argument on_embedding takes precedence over
+            The argument on_embedding takes precedence over
             ``set_embedding``. This means that only the ``on_embedding``
             combinatorial embedding will be tested for planarity and no
             ``_embedding`` attribute will be set as a result of this function
@@ -4091,6 +4091,11 @@ class GenericGraph(GenericGraph_pyx):
             sage: emb = {0 : [2,3,1], 1: [2,3,0], 2: [1,3,0], 3:[0,1,2]}
             sage: g.is_planar(on_embedding=emb)
             False
+
+        :trac:`19193`::
+
+            sage: Posets.BooleanLattice(3).cover_relations_graph().is_planar()
+            True
         """
         if self.has_multiple_edges() or self.has_loops():
             if set_embedding or (on_embedding is not None) or set_pos:
@@ -4104,6 +4109,8 @@ class GenericGraph(GenericGraph_pyx):
         else:
             from sage.graphs.planarity import is_planar
             G = self.to_undirected()
+            if hasattr(G, '_immutable'):
+                G = copy(G)
             planar = is_planar(G,kuratowski=kuratowski,set_pos=set_pos,set_embedding=set_embedding)
             if kuratowski:
                 bool_result = planar[0]

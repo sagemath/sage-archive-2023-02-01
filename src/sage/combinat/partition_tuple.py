@@ -538,9 +538,10 @@ class PartitionTuple(CombinatorialElement):
 
         EXAMPLES::
 
-            sage: PartitionTuple(([2,1],[3,2],[1,1,1]))._repr_diagram()
-            '   **   ***   *\n   *    **    *\n              *'
-
+            sage: print PartitionTuple(([2,1],[3,2],[1,1,1]))._repr_diagram()
+               **   ***   *
+               *    **    *
+                          *
         """
         return self.diagram()
 
@@ -2115,7 +2116,6 @@ class PartitionTuples_level_size(PartitionTuples):
             Partition tuples of level 7 and size 3
             sage: loads(dumps( PartitionTuples(7,3) ))  # indirect doctest for unpickling a Tableau element
             Partition tuples of level 7 and size 3
-
         """
         if isinstance(state, dict):   # for old pickles from Tableau_class
             parts=PartitionTuples(state['k'], state['n'])

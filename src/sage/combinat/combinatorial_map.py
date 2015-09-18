@@ -269,11 +269,10 @@ class CombinatorialMap(object):
             sage: cm = p.left_tableau; cm
             Combinatorial map: Robinson-Schensted insertion tableau
             sage: (src, lines) = cm._sage_src_lines_()
-            sage: src[0]
-            "    @combinatorial_map(name='Robinson-Schensted insertion tableau')\n"
-            sage: lines # random
+            sage: src[0].strip()
+            "@combinatorial_map(name='Robinson-Schensted insertion tableau')\n"
+            sage: lines  # random
             2653
-
         """
         from sage.misc.sageinspect import sage_getsourcelines
         return sage_getsourcelines(self._f)

@@ -164,7 +164,6 @@ class Core(CombinatorialElement):
             \lr{\phantom{x}}\\\cline{1-1}
             \end{array}$}
             }
-
         """
         return self.to_partition()._latex_()
 

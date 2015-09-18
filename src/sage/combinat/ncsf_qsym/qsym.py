@@ -22,7 +22,7 @@ REFERENCES:
 
 .. [Haz2004] Michiel Hazewinkel, *Explicit polynomial generators for the
    ring of quasisymmetric functions over the integers*.
-   :arXiv:`math/0410366v1`
+   :arxiv:`math/0410366v1`
 
 .. [Rad1979] David E. Radford, *A natural ring basis for the shuffle algebra
    and an application to group schemes*, J. Algebra **58** (1979), 432-454.
@@ -41,6 +41,12 @@ REFERENCES:
    quasisymmetric functions, and Young composition tableaux*,
    May 23, 2013, Springer.
    http://www.math.ubc.ca/%7Esteph/papers/QuasiSchurBook.pdf
+
+.. [BBSSZ2012] Chris Berg, Nantel Bergeron, Franco Saliola,
+   Luis Serrano, Mike Zabrocki,
+   *A lift of the Schur and Hall-Littlewood bases to
+   non-commutative symmetric functions*,
+   :arxiv:`1208.5191v3`.
 
 AUTHOR:
 
@@ -2729,14 +2735,6 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
             The dual immaculate basis of the quasi-symmetric functions.
 
             This basis first appears in [BBSSZ2012]_.
-
-            REFERENCES:
-
-            .. [BBSSZ2012] Chris Berg, Nantel Bergeron, Franco Saliola,
-               Luis Serrano, Mike Zabrocki,
-               *A lift of the Schur and Hall-Littlewood bases to
-               non-commutative symmetric functions*,
-               :arXiv:`1208.5191v3`.
 
             EXAMPLES::
 

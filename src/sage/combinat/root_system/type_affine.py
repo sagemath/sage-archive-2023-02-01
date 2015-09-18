@@ -378,7 +378,7 @@ class AmbientSpace(CombinatorialFreeModule):
         return self
 
     def _plot_projection(self, x):
-        """
+        r"""
         Implements the default projection to be used for plots
 
         For affine ambient spaces, the default implementation is to

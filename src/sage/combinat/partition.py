@@ -593,7 +593,6 @@ class Partition(CombinatorialElement):
             [3, 2, 1]
             sage: loads(dumps( Partition([3,2,1]) ))  # indirect doctest
             [3, 2, 1]
-
         """
         if isinstance(state, dict):   # for old pickles from Partition_class
             self._set_parent(_Partitions)

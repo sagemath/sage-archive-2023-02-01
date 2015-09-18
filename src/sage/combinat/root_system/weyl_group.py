@@ -768,7 +768,6 @@ class WeylGroupElement(MatrixGroupElement_gap):
             1 & -1 & 1 \\
             0 & 0 & 1
             \end{array}\right)
-
         """
         if self._parent._prefix is None:
             return MatrixGroupElement_gap._latex_(self)

@@ -1808,15 +1808,15 @@ class CrystalOfTableaux(CrystalOfWords):
 
     def __init__(self, cartan_type, shapes):
         """
-        Construct the crystal of all tableaux of the given shapes
+        Construct the crystal of all tableaux of the given shapes.
 
         INPUT:
 
-        - ``cartan_type`` - (data coercible into) a Cartan type
-        - ``shapes``      - a list (or iterable) of shapes
-        - ``shape` `      - a shape
+        - ``cartan_type`` -- (data coercible into) a Cartan type
+        - ``shapes``      -- a list (or iterable) of shapes
+        - ``shape``       -- a shape
 
-        shapes themselves are lists (or iterable) of integers
+        Shapes themselves are lists (or iterable) of integers.
 
         EXAMPLES::
 

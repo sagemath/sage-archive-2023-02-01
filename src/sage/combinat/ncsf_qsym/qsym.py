@@ -2773,13 +2773,13 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
 
             EXAMPLES::
 
-            sage: dI = QuasiSymmetricFunctions(QQ).dI()
-            sage: dI._to_Monomial_on_basis(Composition([1,3]))
-            M[1, 1, 1, 1] + M[1, 1, 2] + M[1, 2, 1] + M[1, 3]
-            sage: dI._to_Monomial_on_basis(Composition([]))
-            M[]
-            sage: dI._to_Monomial_on_basis(Composition([2,1,2]))
-            4*M[1, 1, 1, 1, 1] + 3*M[1, 1, 1, 2] + 2*M[1, 1, 2, 1] + M[1, 1, 3] + M[1, 2, 1, 1] + M[1, 2, 2] + M[2, 1, 1, 1] + M[2, 1, 2]
+                sage: dI = QuasiSymmetricFunctions(QQ).dI()
+                sage: dI._to_Monomial_on_basis(Composition([1,3]))
+                M[1, 1, 1, 1] + M[1, 1, 2] + M[1, 2, 1] + M[1, 3]
+                sage: dI._to_Monomial_on_basis(Composition([]))
+                M[]
+                sage: dI._to_Monomial_on_basis(Composition([2,1,2]))
+                4*M[1, 1, 1, 1, 1] + 3*M[1, 1, 1, 2] + 2*M[1, 1, 2, 1] + M[1, 1, 3] + M[1, 2, 1, 1] + M[1, 2, 2] + M[2, 1, 1, 1] + M[2, 1, 2]
             """
             M = self.realization_of().Monomial()
             if not J._list:

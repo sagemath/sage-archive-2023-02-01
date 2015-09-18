@@ -1945,7 +1945,7 @@ class QuiverMutationType_Reducible(QuiverMutationType_abstract):
         INPUT:
 
         - ``data`` -- a list each of whose entries is a
-        QuiverMutationType_Irreducible
+          QuiverMutationType_Irreducible
 
         EXAMPLES::
 

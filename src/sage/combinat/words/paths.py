@@ -842,8 +842,8 @@ class WordPaths_cube_grid(WordPaths_all):
 
         INPUT:
 
-        - ``alphabet - ordered alphabet of length 6. The order for the steps
-          is : e_x, e_y, e_z, -e_x, -e_y, -e_z, where e_v denotes
+        - ``alphabet`` - ordered alphabet of length 6. The order for the steps
+          is : `e_x, e_y, e_z, -e_x, -e_y, -e_z`, where `e_v` denotes
           the canonical basis.
 
         EXAMPLES::

@@ -370,7 +370,8 @@ class WordDatatype_callable_with_caching(WordDatatype_callable):
             sage: w.length()
             12
 
-        Test getitems with indexes.
+        Test getitems with indexes::
+
             sage: w[0]
             'a'
             sage: w[4]

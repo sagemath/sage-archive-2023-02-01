@@ -10,10 +10,6 @@ Sources can be obtained from http://gforge.inria.fr/projects/ecm/
 
 LGPL V3+
 
-== SPKG Maintainers ==
-
- * Jeroen Demeyer
-
 == Upstream Contact ==
 
  * ecm-discuss@lists.gforge.inria.fr (requires subscription)

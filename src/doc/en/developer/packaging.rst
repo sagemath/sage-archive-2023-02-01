@@ -189,12 +189,6 @@ The ``SPKG.txt`` file should follow this pattern::
 
      What is the license? If non-standard, is it GPLv3+ compatible?
 
-     == SPKG Maintainers ==
-
-     * Mary Smith
-     * Bill Jones
-     * Leonhard Euler
-
      == Upstream Contact ==
 
      Provide information for upstream contact.

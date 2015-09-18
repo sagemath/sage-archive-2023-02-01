@@ -15,10 +15,6 @@ Distributed under the terms of the GNU General Public License (GPL)
 
 http://www.gnu.org/licenses/
 
-== SPKG Maintainers ==
-
-* Manuel Kauers (manuel@kauers.de)
-
 == Dependencies ==
 
 None.

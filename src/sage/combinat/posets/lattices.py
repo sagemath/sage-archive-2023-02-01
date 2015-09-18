@@ -528,6 +528,105 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
         """
         return self._hasse_diagram.is_complemented_lattice()
 
+    def breadth(self, certificate=False):
+        r"""
+        Return the breadth of the lattice.
+
+        The breadth of a lattice is the largest integer `n` such that
+        any join of elements `x_1, x_2, \ldots, x_{n+1}` is join of a
+        proper subset of `x_i`.
+
+        INPUT:
+
+        - ``certificate`` -- (boolean; default: ``False``) -- whether to
+          return an integer (the breadth) or a certificate, i.e. a biggest
+          set whose join differs from the join of any subset.
+
+        EXAMPLES::
+
+            sage: D10 = Posets.DiamondPoset(10)
+            sage: D10.breadth()
+            2
+
+            sage: B3 = Posets.BooleanLattice(3)
+            sage: B3.breadth()
+            3
+            sage: B3.breadth(certificate=True)
+            [1, 2, 4]
+
+        Smallest example of a lattice with breadth 4::
+
+            sage: L = LatticePoset(DiGraph('O]???w?K_@S?E_??Q?@_?D??I??W?B??@??C??O?@???'))
+            sage: L.breadth()
+            4
+
+        ALGORITHM:
+
+        For a lattice to have breadth at least `n`, it must have an
+        `n`-element antichain `A` with join `j`. Element `j` must
+        cover at least `n` elements. There must also be `n-2` levels
+        of elements between `A` and `j`.  So we start by searching
+        elements that could be our `j` and then just check possible
+        antichains `A`.
+
+        TESTS::
+
+            sage: Posets.ChainPoset(0).breadth()
+            0
+            sage: Posets.ChainPoset(1).breadth()
+            1
+        """
+        # A place for optimization: Adding a doubly irreducible element to
+        # a lattice does not change the breadth, except from 1 to 2.
+        # Hence we could start by removing double irreducibles.
+
+        from sage.combinat.subsets_pairwise import PairwiseCompatibleSubsets
+
+        # First check if breadth is zero (empty lattice) or one (a chain).
+        n = self.cardinality()
+        if n == 0:
+            return [] if certificate else 0
+        if self.is_chain():
+            return [self.bottom()] if certificate else 1
+        # Breadth is at least two.
+
+        # Work directly with the Hasse diagram
+        H = self._hasse_diagram
+
+        # Helper function: Join of elements in the list L.
+        jn = H._join
+        def join(L):
+            j = 0
+            for i in L:
+                j = jn[i, j]
+            return j
+
+        indegs = [H.in_degree(i) for i in range(n)]
+        max_breadth = max(indegs)
+
+        for B in range(max_breadth, 1, -1):
+            for j in H:
+                if indegs[j] < B: continue
+
+                # Get elements more than B levels below it.
+                too_close = set(H.breadth_first_search(j,
+                                                      neighbors=H.neighbors_in,
+                                                      distance=B-2))
+                elems = [e for e in H.order_ideal([j]) if e not in too_close]
+
+                achains = PairwiseCompatibleSubsets(elems,
+                                          lambda x,y: H.are_incomparable(x,y))
+                achains_n = achains.elements_of_depth_iterator(B)
+
+                for A in achains_n:
+                    if join(A) == j:
+                        if all(join(A[:i]+A[i+1:]) != j for i in range(B)):
+                            if certificate:
+                                return [self._vertex_to_element(e) for e in A]
+                            else:
+                                return B
+        assert False, "BUG: breadth() in lattices.py have an error."
+
     def complements(self, element=None):
         r"""
         Return the list of complements of an element in the lattice,

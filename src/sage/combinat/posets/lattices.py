@@ -622,7 +622,7 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
                     if join(A) == j:
                         if all(join(A[:i]+A[i+1:]) != j for i in range(B)):
                             if certificate:
-                                return [self[e] for e in A]
+                                return [self._vertex_to_element(e) for e in A]
                             else:
                                 return B
         assert False, "BUG: breadth() in lattices.py have an error."

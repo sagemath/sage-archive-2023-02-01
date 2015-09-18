@@ -43,16 +43,16 @@ class MirrorList(object):
 
     def __init__(self):
         self.filename = os.path.join(SAGE_DISTFILES, 'mirror_list')
+        self.mirrors = None
+
         try:
             self.mirrorfile = open(self.filename, 'r+t')
         except IOError:
             self.mirrorfile = open(self.filename, 'w+t')
-        self.mirrorfd = self.mirrorfile.fileno()
 
-        self.mirrors = None
-
-        try_lock(self.mirrorfd, LOCK_SH)  # shared (read) lock
         with self.mirrorfile:
+            self.mirrorfd = self.mirrorfile.fileno()
+            try_lock(self.mirrorfd, LOCK_SH)  # shared (read) lock
             if self._must_refresh():
                 try_lock(self.mirrorfd, LOCK_EX)  # exclusive (write) lock
                 # Maybe the mirror list file was updated by a different

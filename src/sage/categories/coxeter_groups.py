@@ -86,6 +86,7 @@ class CoxeterGroups(Category_singleton):
         sage: W = CoxeterGroups().example(); TestSuite(W).run(verbose = "True")
         running ._test_an_element() . . . pass
         running ._test_associativity() . . . pass
+        running ._test_cardinality() . . . pass
         running ._test_category() . . . pass
         running ._test_elements() . . .
           Running the test suite of self.an_element()
@@ -825,6 +826,8 @@ class CoxeterGroups(Category_singleton):
                 sage: w.has_right_descent(1)
                 False
                 sage: w.has_right_descent(2)
+                True
+                sage: WeylGroup(['A',2]).long_element().has_right_descent(1)
                 True
             """
             return (~self).has_left_descent(i)

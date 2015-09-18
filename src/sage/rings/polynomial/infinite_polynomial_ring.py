@@ -235,6 +235,7 @@ all constituents coerce.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
+import six
 from sage.rings.ring import CommutativeRing
 from sage.structure.all import SageObject, parent
 from sage.structure.factory import UniqueFactory
@@ -444,7 +445,7 @@ class InfiniteGenDict:
             <class 'sage.rings.polynomial.infinite_polynomial_element.InfinitePolynomial_dense'>
         """
 
-        if not isinstance(k,basestring):
+        if not isinstance(k, six.string_types):
             raise KeyError("String expected")
         L = k.split('_')
         try:
@@ -662,12 +663,12 @@ class InfinitePolynomialRing_sparse(CommutativeRing):
         if not names:
             names = ['x']
         for n in names:
-            if not (isinstance(n,basestring) and n.isalnum() and (not n[0].isdigit())):
+            if not (isinstance(n, six.string_types) and n.isalnum() and (not n[0].isdigit())):
                 raise ValueError("generator names must be alpha-numeric strings not starting with a  digit, but %s isn't"%n)
         if len(names)!=len(set(names)):
             raise ValueError("generator names must be pairwise different")
         self._names = tuple(names)
-        if not isinstance(order, basestring):
+        if not isinstance(order, six.string_types):
             raise TypeError("The monomial order must be given as a string")
         try:
             if not (hasattr(R,'is_ring') and R.is_ring() and hasattr(R,'is_commutative') and R.is_commutative()):
@@ -853,7 +854,7 @@ class InfinitePolynomialRing_sparse(CommutativeRing):
         # In many cases, the easiest solution is to "simply" evaluate
         # the string representation.
         from sage.misc.sage_eval import sage_eval
-        if isinstance(x, basestring):
+        if isinstance(x, six.string_types):
             try:
                 return sage_eval(x, self.gens_dict())
             except Exception:

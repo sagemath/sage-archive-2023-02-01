@@ -1,3 +1,5 @@
+# distutils: depends = NTL/ZZ.h
+
 from sage.libs.ntl.ntl_lzz_p_decl cimport zz_p_c
 from sage.libs.ntl.ntl_ZZ_decl cimport ZZ_c
 

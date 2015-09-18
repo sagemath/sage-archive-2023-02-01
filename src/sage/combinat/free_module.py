@@ -1255,7 +1255,7 @@ class CombinatorialFreeModule(UniqueRepresentation, Module, IndexedGenerators):
 
         TESTS:
 
-        Regression test for :trac:10127`: ``self._indices`` needs to be
+        Regression test for :trac:`10127`: ``self._indices`` needs to be
         set early enough, in case the initialization of the categories
         use ``self.basis().keys()``. This occured on several occasions
         in non trivial constructions. In the following example,
@@ -1332,7 +1332,7 @@ class CombinatorialFreeModule(UniqueRepresentation, Module, IndexedGenerators):
         try:
             if m == self.one_basis():
                 return AsciiArt(["1"])
-        except StandardError:
+        except Exception:
             pass
         return IndexedGenerators._ascii_art_generator(self, m)
 

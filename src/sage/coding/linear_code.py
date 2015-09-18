@@ -438,8 +438,8 @@ def best_known_linear_code(n, k, F):
 
     This means that best possible binary linear code of length 10 and
     dimension 5 is a code with minimum distance 4 and covering radius
-    somewhere between 2 and 4. Use ``minimum_distance_why(10,5,GF(2))`` or
-    ``print bounds_minimum_distance(10,5,GF(2))`` for further details.
+    somewhere between 2 and 4.
+    Use ``bounds_minimum_distance(10,5,GF(2))`` for further details.
     """
     q = F.order()
     C = gap("BestKnownLinearCode(%s,%s,GF(%s))"%(n,k,q))
@@ -479,11 +479,12 @@ def best_known_linear_code_www(n, k, F, verbose=False):
         Construction of a linear code
         [72,36,15] over GF(2):
         [1]:  [73, 36, 16] Cyclic Linear Code over GF(2)
-             CyclicCode of length 73 with generating polynomial x^37 + x^36 + x^34
-        x^33 + x^32 + x^27 + x^25 + x^24 + x^22 + x^21 + x^19 + x^18 + x^15 + x^11
+             CyclicCode of length 73 with generating polynomial x^37 + x^36 + x^34 +
+        x^33 + x^32 + x^27 + x^25 + x^24 + x^22 + x^21 + x^19 + x^18 + x^15 + x^11 +
         x^10 + x^8 + x^7 + x^5 + x^3 + 1
         [2]:  [72, 36, 15] Linear Code over GF(2)
              Puncturing of [1] at 1
+        <BLANKLINE>
         last modified: 2002-03-20
 
     This function raises an ``IOError`` if an error occurs downloading data or
@@ -529,8 +530,7 @@ def bounds_minimum_distance(n, k, F):
 
     The values for the lower and upper bound are obtained from a table
     constructed by Cen Tjhai for GUAVA, derived from the table of
-    Brouwer. (See http://www.codetables.de/ or use the
-    Sage function ``minimum_distance_why`` for the most recent data.)
+    Brouwer. See http://www.codetables.de/ for the most recent data.
     These tables contain lower and upper bounds for `q=2` (when ``n <= 257``),
     `q=3` (when ``n <= 243``), `q=4` (``n <= 256``). (Current as of
     11 May 2006.) For codes over other fields and for larger word lengths,
@@ -1187,7 +1187,7 @@ class AbstractLinearCode(module.Module):
         return aut_group_can_label.get_canonical_form(), \
                aut_group_can_label.get_transporter()
 
-    def __contains__(self,v):
+    def __contains__(self, v):
         r"""
         Returns True if `v` can be coerced into `self`. Otherwise, returns False.
 
@@ -1201,9 +1201,9 @@ class AbstractLinearCode(module.Module):
             sage: vector((1, 0, 0, 0, 0, 1/2, 1)) in C # indirect doctest
             False
         """
-        A = self.ambient_space()
-        C = A.subspace(self.gens())
-        return C.__contains__(v)
+        if not v in self.ambient_space() or len(v) != self.length():
+            return False
+        return self.syndrome(v) == 0
 
     def characteristic(self):
         r"""
@@ -2222,10 +2222,6 @@ class AbstractLinearCode(module.Module):
             raise ValueError("The algorithm argument must be one of None, "
                         "'gap' or 'guava'; got '{0}'".format(algorithm))
 
-        #sage: C.minimum_distance_upper_bound()  # optional (net connection)
-        #5
-        #    sage: C.minimum_distance_why()          # optional (net connection)
-        #    Ub(10,5) = 5 follows by the Griesmer bound.
         F = self.base_ring()
         q = F.order()
         G = self.generator_matrix()
@@ -2354,6 +2350,7 @@ class AbstractLinearCode(module.Module):
             sage: GG == G # long time
             True
             sage: C.permutation_automorphism_group(algorithm="gap")  # optional - gap_packages (Guava package)
+            Permutation Group with generators [(1,3)(4,5), (1,4)(3,5)]
             sage: C = codes.TernaryGolayCode()
             sage: C.permutation_automorphism_group(algorithm="gap")  # optional - gap_packages (Guava package)
             Permutation Group with generators [(3,4)(5,7)(6,9)(8,11), (3,5,8)(4,11,7)(6,9,10), (2,3)(4,6)(5,8)(7,10), (1,2)(4,11)(5,8)(9,10)]
@@ -2393,20 +2390,20 @@ class AbstractLinearCode(module.Module):
                     size = Gp.Size()
                     print "\n Using the %s codewords of weight %s \n Supergroup size: \n %s\n "%(wts[wt],wt,size)
                 gap.eval("Cwt:=Filtered(eltsC,c->WeightCodeword(c)=%s)"%wt)   # bottleneck 2 (repeated
-                gap.eval("matCwt:=List(Cwt,c->VectorCodeword(c))")            #        for each i until stop = 1)
-                A = gap("MatrixAutomorphisms(matCwt)")
-                #print "A = ",A, "\n Gp = ", Gp, "\n strGp = ", str(Gp)
-                G2 = gap("Intersection2(%s,%s)"%(str(A).replace("\n",""),str(Gp).replace("\n",""))) #  bottleneck 3
-                Gp = G2
-                if Gp.Size()==1:
-                    return PermutationGroup([()])
-                autgp_gens = Gp.GeneratorsOfGroup()
-                gens = [Sn(str(x).replace("\n","")) for x in autgp_gens]
-                stop = 1                         # get ready to stop
-                for x in gens:                   # if one of these gens is not an auto then don't stop
-                    if not(self.is_permutation_automorphism(x)):
-                        stop = 0
-                        break
+                gap.eval("matCwt:=List(Cwt,c->VectorCodeword(c))")            # for each i until stop = 1)
+                if gap("Length(matCwt)") > 0: 
+                    A = gap("MatrixAutomorphisms(matCwt)")
+                    G2 = gap("Intersection2(%s,%s)"%(str(A).replace("\n",""),str(Gp).replace("\n",""))) #  bottleneck 3
+                    Gp = G2
+                    if Gp.Size()==1:
+                        return PermutationGroup([()])
+                    autgp_gens = Gp.GeneratorsOfGroup()
+                    gens = [Sn(str(x).replace("\n","")) for x in autgp_gens]
+                    stop = 1                    # get ready to stop
+                    for x in gens:              # if one of these gens is not an auto then don't stop
+                        if not(self.is_permutation_automorphism(x)):
+                            stop = 0
+                            break
             G = PermutationGroup(gens)
             return G
         if algorithm=="partition":
@@ -2873,18 +2870,13 @@ class AbstractLinearCode(module.Module):
             # version of the Guava libraries, so gives us the location of the Guava binaries too.
             guava_bin_dir = gap.eval('DirectoriesPackagePrograms("guava")[1]')
             guava_bin_dir = guava_bin_dir[guava_bin_dir.index('"') + 1:guava_bin_dir.rindex('"')]
-            input = code2leon(self)
-            from sage.misc.temporary_file import tmp_filename
-            output = tmp_filename()
-            import os
-            status = os.system(os.path.join(guava_bin_dir, 'wtdist')
-                               + ' ' + input + "::code > " + output)
-            if status != 0:
-                raise RuntimeError("Problem calling Leon's wtdist program. Install gap_packages*.spkg and run './configure ../..; make'.")
-            f = open(output); lines = f.readlines(); f.close()
+            input = code2leon(self) + "::code"
+            import os, subprocess
+            lines = subprocess.check_output([os.path.join(guava_bin_dir, 'wtdist'), input])
+            import StringIO  # to use the already present output parser 
             wts = [0]*(n+1)
             s = 0
-            for L in lines:
+            for L in StringIO.StringIO(lines).readlines():
                 L = L.strip()
                 if len(L) > 0:
                     o = ord(L[0])
@@ -3288,11 +3280,6 @@ class LinearCode(AbstractLinearCode):
 
     - David Joyner (11-2005)
     """
-    #    sage: C.minimum_distance_upper_bound()   # optional (net connection)
-    #    3
-    #    sage: C.minimum_distance_why()     # optional (net connection)
-    #    Ub(7,4) = 3 follows by the Griesmer bound.
-
     def __init__(self, generator_matrix, d=None):
         r"""
         See the docstring for :meth:`LinearCode`.

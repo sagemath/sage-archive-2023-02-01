@@ -31,14 +31,6 @@ import homset
 include "sage/ext/stdsage.pxi"
 from sage.structure.element cimport Element
 
-def make_morphism(_class, parent, _dict, _slots):
-    # from element.pyx
-    cdef Morphism mor = _class.__new__(_class)
-    mor._set_parent(parent)
-    mor._update_slots(_slots)
-    if HAS_DICTIONARY(mor):
-        mor.__dict__ = _dict
-    return mor
 
 def is_Morphism(x):
     return isinstance(x, Morphism)
@@ -340,9 +332,6 @@ cdef class Morphism(Map):
         except (AttributeError, NotImplementedError):
             definition = repr(self)
         return hash((domain, codomain, definition))
-
-    def __richcmp__(left, right, int op):
-        return (<Element>left)._richcmp(right, op)
 
     cpdef int _cmp_(left, Element right) except -2:
         if left is right: return 0

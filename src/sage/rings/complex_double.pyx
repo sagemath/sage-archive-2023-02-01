@@ -66,16 +66,17 @@ import operator
 
 from sage.misc.randstate cimport randstate, current_randstate
 
+from sage.libs.pari.paridecl cimport *
 include 'sage/ext/interrupt.pxi'
-include 'sage/libs/pari/decl.pxi'
 include 'sage/libs/pari/pari_err.pxi'
+
+from sage.libs.gsl.complex cimport *
 
 cdef extern from "<complex.h>":
     double complex csqrt(double complex)
     double cabs(double complex)
 
 cimport sage.rings.ring
-
 cimport sage.rings.integer
 
 from sage.structure.element cimport RingElement, Element, ModuleElement, FieldElement

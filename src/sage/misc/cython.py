@@ -19,7 +19,7 @@ from __future__ import print_function
 
 import os, sys, platform, __builtin__
 
-from sage.env import SAGE_LOCAL, SAGE_SRC, UNAME
+from sage.env import SAGE_LOCAL, SAGE_SRC, SAGE_LIB, UNAME
 from misc import SPYX_TMP
 from temporary_file import tmp_filename
 
@@ -68,14 +68,6 @@ def atlas():
         return 'blas'
     else:
         return 'atlas'
-
-include_dirs = [os.path.join(SAGE_LOCAL,'include'),
-                os.path.join(SAGE_LOCAL,'include','python'+platform.python_version().rsplit('.', 1)[0]),
-                os.path.join(SAGE_LOCAL,'lib','python','site-packages','numpy','core','include'),
-                os.path.join(SAGE_SRC,'sage','ext'),
-                os.path.join(SAGE_SRC),
-                os.path.join(SAGE_SRC,'sage','gsl')]
-
 
 standard_libs = ['mpfr', 'gmp', 'gmpxx', 'stdc++', 'pari', 'm', \
                  'ec', 'gsl', cblas(), atlas(), 'ntl']
@@ -210,11 +202,10 @@ def pyx_preparse(s):
         ...,
         'ntl'],
         ['.../include',
-        '.../include/python2.7',
-        '.../lib/python/site-packages/numpy/core/include',
-        '.../sage/ext',
+        '.../include/python...',
+        '.../lib/python.../site-packages/numpy/core/include',
         '...',
-        '.../sage/gsl'],
+        '.../sage/ext'],
         'c',
         [], ['-w', '-O2'])
         sage: s, libs, inc, lang, f, args = pyx_preparse("# clang c++\n #clib foo\n # cinclude bar\n")
@@ -236,11 +227,10 @@ def pyx_preparse(s):
         sage: inc
         ['bar',
         '.../include',
-        '.../include/python2.7',
-        '.../lib/python/site-packages/numpy/core/include',
-        '.../sage/ext',
+        '.../include/python...',
+        '.../lib/python.../site-packages/numpy/core/include',
         '...',
-        '.../sage/gsl']
+        '.../sage/ext']
 
         sage: s, libs, inc, lang, f, args = pyx_preparse("# cargs -O3 -ggdb\n")
         sage: args
@@ -253,6 +243,8 @@ def pyx_preparse(s):
         sage: module.evaluate_at_power_of_gen(x^3 + x - 7, 5)  # long time
         x^15 + x^5 - 7
     """
+    from sage.env import sage_include_directories
+
     lang, s = parse_keywords('clang', s)
     if lang:
         lang = lang[0].lower() # this allows both C++ and c++
@@ -265,7 +257,7 @@ def pyx_preparse(s):
     additional_source_files, s = parse_keywords('cfile', s)
 
     v, s = parse_keywords('cinclude', s)
-    inc = [environ_parse(x.replace('"','').replace("'","")) for x in v] + include_dirs
+    inc = [environ_parse(x.replace('"','').replace("'","")) for x in v] + sage_include_directories()
     s = """\ninclude "cdefs.pxi"\n""" + s
     s = """\ninclude "interrupt.pxi"  # ctrl-c interrupt block support\ninclude "stdsage.pxi"\n""" + s
     args, s = parse_keywords('cargs', s)

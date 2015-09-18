@@ -914,7 +914,6 @@ class DiGraphGenerators():
         G.name( "Kautz digraph (k=%s, D=%s)"%(k,D) )
         return G
 
-
     def RandomDirectedGN(self, n, kernel=lambda x:x, seed=None):
         """
         Returns a random GN (growing network) digraph with n vertices.

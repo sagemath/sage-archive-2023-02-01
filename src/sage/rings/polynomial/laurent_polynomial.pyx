@@ -501,23 +501,6 @@ cdef class LaurentPolynomial_univariate(LaurentPolynomial_generic):
         # 3. Add
         return LaurentPolynomial_univariate(self._parent, f1 + f2, m)
 
-    cpdef ModuleElement _iadd_(self, ModuleElement right_m):
-        """
-        EXAMPLES::
-
-            sage: R.<t> = LaurentPolynomialRing(QQ)
-            sage: f = t+t
-            sage: f += t; f
-            3*t
-            sage: f += t*t; f
-            3*t + t^2
-        """
-        cdef LaurentPolynomial_univariate right = <LaurentPolynomial_univariate>right_m
-        if self.__n == right.__n:
-            self.__u += right.__u
-            return self
-        return self._add_(right)
-
     cpdef ModuleElement _sub_(self, ModuleElement right_m):
         """
         Subtract two Laurent polynomials with the same parent.
@@ -596,21 +579,6 @@ cdef class LaurentPolynomial_univariate(LaurentPolynomial_generic):
                              self.__u * right.__u,
                              self.__n + right.__n)
 
-    cpdef RingElement _imul_(self, RingElement right_r):
-        """
-        EXAMPLES::
-
-            sage: R.<x> = LaurentPolynomialRing(ZZ)
-            sage: f = 1/x^3 + x + x^2 + 3*x^4
-            sage: g = 1 - x + x^2 - x^4
-            sage: f *= g; f
-            x^-3 - x^-2 + x^-1 + 4*x^4 - 4*x^5 + 2*x^6 - 3*x^8
-        """
-        cdef LaurentPolynomial_univariate right = <LaurentPolynomial_univariate>right_r
-        self.__u *= right.__u
-        self.__n += right.__n
-        return self
-
     cpdef ModuleElement _rmul_(self, RingElement c):
         """
         EXAMPLES::
@@ -632,17 +600,6 @@ cdef class LaurentPolynomial_univariate(LaurentPolynomial_generic):
             3*x^-3 + 3*x + 3*x^2 + 9*x^4
         """
         return LaurentPolynomial_univariate(self._parent, self.__u._lmul_(c), self.__n)
-
-    cpdef ModuleElement _ilmul_(self, RingElement c):
-        """
-        EXAMPLES::
-
-            sage: R.<x> = LaurentPolynomialRing(ZZ)
-            sage: f = 1/x^3 + x + x^2 + 3*x^4
-            sage: f *= 3
-        """
-        self.__u *= c
-        return self
 
     def is_monomial(self):
         """

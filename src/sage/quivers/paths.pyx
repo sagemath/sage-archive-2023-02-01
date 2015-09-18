@@ -260,9 +260,21 @@ cdef class QuiverPath(MonoidElement):
         """
         return self._path.length != 0
 
-    def __cmp__(left, right):
+    cpdef int _cmp_(left, Element right) except -2:
         """
-        Generic comparison code, copied from :class:`~sage.structure.element.Element`.
+        Comparison for :class:`QuiverPaths`.
+
+        The following data (listed in order of preferance) is used for
+        comparison:
+
+        - **Negative** length of the paths
+        - initial and terminal vertices of the paths
+        - Edge sequence of the paths, by reverse lexicographical ordering.
+
+        .. NOTE::
+
+            This code is used by :class:`CombinatorialFreeModule` to order
+            the monomials when printing elements of path algebras.
 
         EXAMPLES:
 
@@ -283,25 +295,6 @@ cdef class QuiverPath(MonoidElement):
             False
             sage: D(1) == 1
             False
-
-        """
-        return (<Element>left)._cmp(right)
-
-    cpdef int _cmp_(left, Element right) except -2:
-        """
-        Comparison for :class:`QuiverPaths`.
-
-        The following data (listed in order of preferance) is used for
-        comparison:
-
-        - **Negative** length of the paths
-        - initial and terminal vertices of the paths
-        - Edge sequence of the paths, by reverse lexicographical ordering.
-
-        .. NOTE::
-
-            This code is used by :class:`CombinatorialFreeModule` to order
-            the monomials when printing elements of path algebras.
 
         TESTS::
 

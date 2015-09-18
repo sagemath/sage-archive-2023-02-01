@@ -1,3 +1,5 @@
+# distutils: depends = NTL/ZZ.h
+
 from sage.ext.memory cimport sage_free
 
 # Unset the signal handler and create a string from the buffer,

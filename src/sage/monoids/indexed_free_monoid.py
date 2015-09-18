@@ -538,7 +538,7 @@ class IndexedFreeAbelianMonoidElement(IndexedMonoidElement):
         v = self._monomial.items()
         try:
             v.sort(cmp = print_options['generator_cmp'])
-        except StandardError: # Sorting the output is a plus, but if we can't, no big deal
+        except Exception: # Sorting the output is a plus, but if we can't, no big deal
             pass
         return v
 

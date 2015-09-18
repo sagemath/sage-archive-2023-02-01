@@ -293,7 +293,7 @@ cdef double LOG_TEN_TWO_PLUS_EPSILON = 3.321928094887363 # a small overestimate 
 # The real field is in Cython, so mpfi elements will have access to
 # their parent via direct C calls, which will be faster.
 
-cdef public dict RealIntervalField_cache = {}
+cdef dict RealIntervalField_cache = {}
 
 cpdef RealIntervalField_class RealIntervalField(prec=53, sci_not=False):
     r"""
@@ -4199,10 +4199,10 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
         if isinstance(exponent, (int, long, Integer)):
             q, r = divmod (exponent, 2)
             if r == 0: # x^(2q) = (x^q)^2
-               xq = sage.rings.ring_element.RingElement.__pow__(self, q)
+               xq = RingElement.__pow__(self, q)
                return xq.abs().square()
             else:
-               return sage.rings.ring_element.RingElement.__pow__(self, exponent)
+               return RingElement.__pow__(self, exponent)
         return (self.log() * exponent).exp()
 
 

@@ -100,6 +100,7 @@ cdef class Ring(ParentWithGens):
         running ._test_additive_associativity() . . . pass
         running ._test_an_element() . . . pass
         running ._test_associativity() . . . pass
+        running ._test_cardinality() . . . pass
         running ._test_category() . . . pass
         running ._test_characteristic() . . . pass
         running ._test_distributivity() . . . pass
@@ -137,7 +138,7 @@ cdef class Ring(ParentWithGens):
         sage: QQ['x','y'].category()
         Join of Category of unique factorization domains and Category of commutative algebras over quotient fields
         sage: PolynomialRing(MatrixSpace(QQ,2),'x').category()
-        Category of algebras over algebras over quotient fields
+        Category of algebras over (algebras over quotient fields and infinite sets)
         sage: PolynomialRing(SteenrodAlgebra(2),'x').category()
         Category of algebras over graded hopf algebras with basis over Finite Field of size 2
 

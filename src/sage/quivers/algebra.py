@@ -18,6 +18,7 @@ Path Algebras
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
+import six
 from sage.misc.cachefunc import cached_method
 from sage.combinat.free_module import CombinatorialFreeModule, CombinatorialFreeModuleElement
 
@@ -274,7 +275,7 @@ class PathAlgebra(CombinatorialFreeModule):
 
         # If it's a tuple or a list try and create a QuiverPath from it and
         # then return the associated basis element
-        if isinstance(x, (tuple, list, basestring)):
+        if isinstance(x, (tuple, list, six.string_types)):
             return self.monomial(self._semigroup(x))
 
         # Otherwise let CombinatorialFreeModule try

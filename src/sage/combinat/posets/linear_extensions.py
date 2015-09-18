@@ -36,7 +36,7 @@ from sage.combinat.posets.hasse_diagram import HasseDiagram
 from sage.combinat.posets.posets import Poset
 from sage.combinat.posets.elements import PosetElement
 from sage.combinat.permutation import Permutation
-from sage.misc.classcall_metaclass import ClasscallMetaclass
+from sage.misc.inherit_comparison import InheritComparisonClasscallMetaclass
 from sage.graphs.dot2tex_utils import have_dot2tex
 from sage.structure.list_clone import ClonableArray
 
@@ -87,8 +87,7 @@ class LinearExtensionOfPoset(ClonableArray):
         sage: Q.cover_relations()
         [[1, 2], [1, 4], [3, 4]]
     """
-
-    __metaclass__ = ClasscallMetaclass
+    __metaclass__ = InheritComparisonClasscallMetaclass
 
     @staticmethod
     def __classcall_private__(cls, linear_extension, poset):
@@ -534,7 +533,7 @@ class LinearExtensionsOfPoset(UniqueRepresentation, Parent):
         The edges of the graph are by default colored using blue for
         edge 1, red for edge 2, green for edge 3, and yellow for edge 4::
 
-            sage: view(G) #optional - dot2tex graphviz
+            sage: view(G) # optional - dot2tex graphviz, not tested (opens external window)
 
         Alternatively, one may get the graph of the action of the ``tau`` operator::
 
@@ -548,7 +547,7 @@ class LinearExtensionsOfPoset(UniqueRepresentation, Parent):
             ([1, 4, 2, 3], [1, 2, 4, 3], 2), ([1, 4, 2, 3], [1, 4, 2, 3], 1), ([1, 4, 2, 3], [1, 4, 2, 3], 3),
             ([2, 1, 3, 4], [1, 2, 3, 4], 1), ([2, 1, 3, 4], [2, 1, 3, 4], 2), ([2, 1, 3, 4], [2, 1, 4, 3], 3),
             ([2, 1, 4, 3], [1, 2, 4, 3], 1), ([2, 1, 4, 3], [2, 1, 3, 4], 3), ([2, 1, 4, 3], [2, 1, 4, 3], 2)]
-            sage: view(G) #optional - dot2tex graphviz
+            sage: view(G) # optional - dot2tex graphviz, not tested (opens external window)
 
         .. seealso:: :meth:`markov_chain_transition_matrix`, :meth:`promotion`, :meth:`tau`
 

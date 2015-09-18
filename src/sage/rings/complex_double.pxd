@@ -1,14 +1,10 @@
-include 'sage/gsl/gsl_complex.pxi'
+from sage.libs.gsl.types cimport gsl_complex
 
 cimport sage.structure.element
 cimport sage.rings.ring
-
-import sage.structure.element
 cimport sage.structure.element
 from sage.structure.element cimport RingElement, ModuleElement
-
-cdef extern from "pari/pari.h":
-    ctypedef long* GEN
+from sage.libs.pari.types cimport GEN
 
 
 cdef class ComplexDoubleField_class(sage.rings.ring.Field):

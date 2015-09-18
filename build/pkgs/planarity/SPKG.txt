@@ -21,12 +21,22 @@ Nathann Cohen  (nathann.cohen@gmail.com)
 
 == Upstream Contact ==
 
-John Boyer <John.Boyer.PhD@gmail.com>
+* https://code.google.com/p/planarity/
+
+* John Boyer <John.Boyer.PhD@gmail.com>
 
 == Dependencies ==
 
 None
 
-== Patches ==
+== Special Update/Build Instructions ==
 
-None
+The tarball was created from upstream's SVN repository by checking out
+the version tag 2.2.0, see
+http://trac.sagemath.org/ticket/18187#comment:48
+
+Two changes were made to the upstream code:
+- the non-free Nauty code in c/nauty was removed. Note that this
+  requires adding a patch without_nauty.patch to remove planarity's
+  bindings to Nauty.
+- an autotools-based build system was added.

@@ -33,6 +33,7 @@ from math import isnan
 import sage.misc.misc
 from sage.misc.html import html
 from sage.misc.temporary_file import tmp_filename
+from sage.misc.fast_methods import WithEqualityById
 from sage.structure.sage_object import SageObject
 from sage.misc.decorators import suboptions
 from colors import rgbcolor
@@ -84,7 +85,7 @@ def is_Graphics(x):
     """
     return isinstance(x, Graphics)
 
-class Graphics(SageObject):
+class Graphics(WithEqualityById, SageObject):
     """
     The Graphics object is an empty list of graphics objects. It is
     useful to use this object when initializing a for loop where
@@ -133,6 +134,11 @@ class Graphics(SageObject):
 
         sage: isinstance(g2, Graphics)
         True
+
+    TESTS::
+
+        sage: hash(Graphics()) # random
+        42
 
     .. automethod:: _rich_repr_
     """
@@ -2170,7 +2176,7 @@ class Graphics(SageObject):
         10^{15}` to avoid floating point issues in matplotlib.
 
         EXAMPLES::
-        
+
             sage: l = line([(0,0), (1,1)], aspect_ratio=1.0)
             sage: l._limit_output_aspect_ratio(1, 2, 1e19, 3)
             {'xmax': -4999.50000000000,
@@ -2190,7 +2196,7 @@ class Graphics(SageObject):
         if aspect_ratio != 'automatic':
             width = xmax - xmin
             height = ymax - ymin
-            output_aspect = width/height/aspect_ratio
+            output_aspect = abs(width/height/aspect_ratio)
             if output_aspect > 1e15:
                 height = 1e15 * width / aspect_ratio
                 ycenter = (ymax - ymin) / 2
@@ -2221,7 +2227,7 @@ class Graphics(SageObject):
             sage: subplot = Figure().add_subplot(111)
             sage: p._objects[0]._render_on_subplot(subplot)
             sage: p._matplotlib_tick_formatter(subplot, **d)
-            (<matplotlib.axes.AxesSubplot object at ...>,
+            (<matplotlib.axes._subplots.AxesSubplot object at ...>,
             <matplotlib.ticker.MaxNLocator object at ...>,
             <matplotlib.ticker.MaxNLocator object at ...>,
             <matplotlib.ticker.OldScalarFormatter object at ...>,
@@ -3226,7 +3232,7 @@ class Graphics(SageObject):
         return '\n'.join(g[1] for g in data)
 
 
-class GraphicsArray(SageObject):
+class GraphicsArray(WithEqualityById, SageObject):
     """
     GraphicsArray takes a (`m` x `n`) list of lists of
     graphics objects and plots them all on one canvas.
@@ -3268,6 +3274,9 @@ class GraphicsArray(SageObject):
             Traceback (most recent call last):
             ...
             TypeError: every element of array must be a Graphics object
+
+            sage: hash(graphics_array([])) # random
+            42
         """
         if not isinstance(array, (list, tuple)):
             raise TypeError("array (=%s) must be a list of lists of Graphics objects"%(array))

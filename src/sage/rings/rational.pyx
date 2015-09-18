@@ -46,8 +46,6 @@ TESTS::
 include "sage/ext/interrupt.pxi"  # ctrl-c interrupt block support
 include "sage/ext/stdsage.pxi"
 include "sage/ext/python.pxi"
-include "sage/libs/pari/decl.pxi"
-
 
 import sys
 import operator
@@ -59,10 +57,10 @@ import sage.misc.misc as misc
 import sage.rings.rational_field
 
 cimport integer
-import integer
 from integer cimport Integer
 
 import sage.libs.pari.pari_instance
+from sage.libs.pari.paridecl cimport *
 from sage.libs.pari.gen cimport gen as pari_gen
 from sage.libs.pari.pari_instance cimport PariInstance, INT_to_mpz, INTFRAC_to_mpq
 
@@ -2081,17 +2079,6 @@ cdef class Rational(sage.structure.element.FieldElement):
         mpq_add(x.value, self.value, (<Rational>right).value)
         return x
 
-    cpdef ModuleElement _iadd_(self, ModuleElement right):
-        """
-        Add ``right`` to ``self`` (and store in ``self``).
-
-            sage: p = 2/3
-            sage: p += 1/6; p # indirect doctest
-            5/6
-        """
-        mpq_add(self.value, self.value, (<Rational>right).value)
-        return self
-
     cpdef ModuleElement _sub_(self, ModuleElement right):
         """
         Return ``self`` minus ``right``.
@@ -2106,19 +2093,6 @@ cdef class Rational(sage.structure.element.FieldElement):
         x = <Rational> Rational.__new__(Rational)
         mpq_sub(x.value, self.value, (<Rational>right).value)
         return x
-
-    cpdef ModuleElement _isub_(self, ModuleElement right):
-        """
-        Subtract ``right`` from ``self`` (and store in ``self``).
-
-        EXAMPLES::
-
-            sage: p = (2/3)
-            sage: p -= 1/6; p # indirect doctest
-            1/2
-        """
-        mpq_sub(self.value, self.value, (<Rational>right).value)
-        return self
 
     cpdef ModuleElement _neg_(self):
         """
@@ -2156,26 +2130,6 @@ cdef class Rational(sage.structure.element.FieldElement):
             mpq_mul(x.value, self.value, (<Rational>right).value)
         return x
 
-    cpdef RingElement _imul_(self, RingElement right):
-        """
-        Multiply ``right`` with ``self`` (and store in ``self``).
-
-        EXAMPLES::
-            sage: p = 3/14
-            sage: p *= 2; p # indirect doctest
-            3/7
-        """
-        if mpz_sizeinbase (mpq_numref(self.value), 2)  > 100000 or \
-             mpz_sizeinbase (mpq_denref(self.value), 2) > 100000:
-            # We only use the signal handler (to enable ctrl-c out) in case
-            # self is huge, so the product might actually take a while to compute.
-            sig_on()
-            mpq_mul(self.value, self.value, (<Rational>right).value)
-            sig_off()
-        else:
-            mpq_mul(self.value, self.value, (<Rational>right).value)
-        return self
-
     cpdef RingElement _div_(self, RingElement right):
         """
         Return ``self`` divided by ``right``.
@@ -2187,30 +2141,14 @@ cdef class Rational(sage.structure.element.FieldElement):
             sage: 3/0 # indirect doctest
             Traceback (most recent call last):
             ...
-            ZeroDivisionError: Rational division by zero
+            ZeroDivisionError: rational division by zero
         """
         if mpq_cmp_si((<Rational> right).value, 0, 1) == 0:
-            raise ZeroDivisionError, "Rational division by zero"
+            raise ZeroDivisionError('rational division by zero')
         cdef Rational x
         x = <Rational> Rational.__new__(Rational)
         mpq_div(x.value, self.value, (<Rational>right).value)
         return x
-
-    cpdef RingElement _idiv_(self, RingElement right):
-        """
-        Divide ``self`` by ``right`` (and store in ``self``).
-
-        EXAMPLES::
-
-            sage: p = 2/3
-            sage: p /= 2; p # indirect doctest
-            1/3
-        """
-        if mpq_cmp_si((<Rational> right).value, 0, 1) == 0:
-            raise ZeroDivisionError, "Rational division by zero"
-        mpq_div(self.value, self.value, (<Rational>right).value)
-        return self
-
 
     ################################################################
     # Other arithmetic operations.
@@ -2230,7 +2168,7 @@ cdef class Rational(sage.structure.element.FieldElement):
             -17/4
         """
         if self.is_zero():
-            raise ZeroDivisionError, "rational division by zero"
+            raise ZeroDivisionError('rational division by zero')
         cdef Rational x
         x = <Rational> Rational.__new__(Rational)
         mpq_inv(x.value, self.value)
@@ -2317,6 +2255,13 @@ cdef class Rational(sage.structure.element.FieldElement):
             1/8*8^(4/5)
             sage: 3^(-3/2)
             1/9*sqrt(3)
+
+        TESTS::
+
+            sage: QQ(0)^(-1)
+            Traceback (most recent call last):
+            ...
+            ZeroDivisionError: rational division by zero
         """
         if dummy is not None:
             raise ValueError, "__pow__ dummy variable not used"
@@ -2390,6 +2335,9 @@ cdef class Rational(sage.structure.element.FieldElement):
             return x
 
         if nn < 0:
+            if mpz_sgn(mpq_numref(_self.value)) == 0:
+                raise ZeroDivisionError('rational division by zero')
+
             sig_on()
             # mpz_pow_ui(mpq_denref(x.value), mpq_numref(_self.value), <unsigned long int>(-nn))
             # mpz_pow_ui(mpq_numref(x.value), mpq_denref(_self.value), <unsigned long int>(-nn))

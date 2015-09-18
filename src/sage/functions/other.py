@@ -236,7 +236,7 @@ class Function_erf(BuiltinFunction):
 
         TESTS:
 
-        Check if #8568 is fixed::
+        Check if :trac:`8568` is fixed::
 
             sage: var('c,x')
             (c, x)
@@ -283,6 +283,47 @@ class Function_abs(GinacFunction):
 
             sage: loads(dumps(abs(x)))
             abs(x)
+
+        TESTS:
+
+        Check that :trac:`12588` is fixed::
+
+            sage: abs(pi*I)
+            pi
+            sage: abs(pi*I*catalan)
+            catalan*pi
+            sage: abs(pi*catalan*x)
+            catalan*pi*abs(x)
+            sage: abs(pi*I*catalan*x)
+            catalan*pi*abs(x)
+            sage: abs(1.0j*pi)
+            1.00000000000000*pi
+            sage: abs(I*x)
+            abs(x)
+            sage: abs(I*pi)
+            pi
+            sage: abs(I*log(2))
+            log(2)
+            sage: abs(I*e^5)
+            e^5
+            sage: abs(log(1/2))
+            -log(1/2)
+            sage: abs(log(3/2))
+            log(3/2)
+            sage: abs(log(1/2)*log(1/3))
+            log(1/2)*log(1/3)
+            sage: abs(log(1/2)*log(1/3)*log(1/4))
+            -log(1/2)*log(1/3)*log(1/4)
+            sage: abs(log(1/2)*log(1/3)*log(1/4)*i)
+            -log(1/2)*log(1/3)*log(1/4)
+            sage: abs(log(x))
+            abs(log(x))
+            sage: abs(zeta(I))
+            abs(zeta(I))
+            sage: abs(e^2*x)
+            abs(x)*e^2
+            sage: abs((pi+e)*x)
+            (pi + e)*abs(x)
         """
         GinacFunction.__init__(self, "abs", latex_name=r"\mathrm{abs}",
                                conversions=dict(sympy='Abs'))
@@ -758,7 +799,7 @@ class Function_gamma(GinacFunction):
             sage: CDF(-1).gamma()
             Infinity
 
-        Check if #8297 is fixed::
+        Check if :trac:`8297` is fixed::
 
             sage: latex(gamma(1/4))
             \Gamma\left(\frac{1}{4}\right)
@@ -2041,7 +2082,7 @@ class Function_real_part(GinacFunction):
             sage: real_part(x)._sympy_()
             re(x)
 
-        Check if #6401 is fixed::
+        Check if :trac:`6401` is fixed::
 
             sage: latex(x.real())
             \Re \left( x \right)
@@ -2111,7 +2152,7 @@ class Function_imag_part(GinacFunction):
             sage: imag_part(x)._sympy_()
             im(x)
 
-        Check if #6401 is fixed::
+        Check if :trac:`6401` is fixed::
 
             sage: latex(x.imag())
             \Im \left( x \right)
@@ -2191,7 +2232,7 @@ class Function_conjugate(GinacFunction):
             sage: x.conjugate().operator() == conjugate
             True
 
-        Check if #8755 is fixed::
+        Check if :trac:`8755` is fixed::
 
             sage: conjugate(sqrt(-3))
             conjugate(sqrt(-3))
@@ -2206,7 +2247,7 @@ class Function_conjugate(GinacFunction):
             sage: conjugate(sqrt(y))
             sqrt(y)
 
-        Check if #10964 is fixed::
+        Check if :trac:`10964` is fixed::
 
             sage: z= I*sqrt(-3); z
             I*sqrt(-3)

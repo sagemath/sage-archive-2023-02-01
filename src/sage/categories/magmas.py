@@ -378,6 +378,22 @@ class Magmas(Category_singleton):
                 """
                 return [Magmas().Commutative()]
 
+        class CartesianProducts(CartesianProductsCategory):
+            def extra_super_categories(self):
+                r"""
+                Implement the fact that a cartesian product of commutative
+                additive magmas is still an commutative additive magmas.
+
+                EXAMPLES::
+
+                    sage: C = Magmas().Commutative().CartesianProducts()
+                    sage: C.extra_super_categories()
+                    [Category of commutative magmas]
+                    sage: C.axioms()
+                    frozenset({'Commutative'})
+                """
+                return [Magmas().Commutative()]
+
     class Unital(CategoryWithAxiom):
 
         def additional_structure(self):
@@ -634,6 +650,24 @@ class Magmas(Category_singleton):
                     True
                 """
                 return [Magmas().Unital()]
+
+        class Realizations(RealizationsCategory):
+
+            class ParentMethods:
+
+                @cached_method
+                def one(self):
+                    r"""
+                    Return the unit element of ``self``.
+
+                        sage: from sage.combinat.root_system.extended_affine_weyl_group import ExtendedAffineWeylGroup
+                        sage: PvW0 = ExtendedAffineWeylGroup(['A',2,1]).PvW0()
+                        sage: PvW0 in Magmas().Unital().Realizations()
+                        True
+                        sage: PvW0.one()
+                        1
+                    """
+                    return(self(self.realization_of().a_realization().one()))
 
     class ParentMethods:
 
@@ -1002,9 +1036,11 @@ class Magmas(Category_singleton):
                 sage: C = Magmas().CartesianProducts().example(); C
                 The cartesian product of (Rational Field, Integer Ring, Integer Ring)
                 sage: C.category()
-                Join of Category of rings ...
+                Category of Cartesian products of commutative rings
                 sage: sorted(C.category().axioms())
-                ['AdditiveAssociative', 'AdditiveCommutative', 'AdditiveInverse', 'AdditiveUnital', 'Associative', 'Distributive', 'Unital']
+                ['AdditiveAssociative', 'AdditiveCommutative', 'AdditiveInverse',
+                 'AdditiveUnital', 'Associative', 'Commutative',
+                 'Distributive', 'Unital']
 
                 sage: TestSuite(C).run()
             """

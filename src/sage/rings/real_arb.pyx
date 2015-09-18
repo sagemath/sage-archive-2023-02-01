@@ -1534,6 +1534,23 @@ cdef class RealBall(RingElement):
         # naive and slow
         return self._real_mpfi_(RealIntervalField(prec(self))).endpoints(rnd)
 
+    def union(self, other):
+        r"""
+        Return a ball containing the convex hull of ``self`` and ``other``.
+
+        EXAMPLES::
+
+            sage: from sage.rings.real_arb import RBF
+            sage: RBF(0).union(1).endpoints()
+            (0.000000000000000, 1.00000000000000)
+        """
+        cdef RealBall my_other = self._parent.coerce(other)
+        cdef RealBall res = self._new()
+        if _do_sig(prec(self)): sig_on()
+        arb_union(res.value, self.value, my_other.value, prec(self))
+        if _do_sig(prec(self)): sig_off()
+        return res
+
     # Precision and accuracy
 
     def round(self):

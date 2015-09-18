@@ -1514,6 +1514,8 @@ class TermWithCoefficientMonoid(GenericTermMonoid):
             sage: import sage.rings.asymptotic.growth_group as agg
             sage: G = agg.GrowthGroup('x^ZZ')
             sage: T = atm.TermWithCoefficientMonoid(G, ZZ)
+            sage: x.parent() == SR
+            True
             sage: t1 = T(x^2, 5); t1  # indirect doctest
             Asymptotic Term with coefficient 5 and growth x^2
 

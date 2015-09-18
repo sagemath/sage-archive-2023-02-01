@@ -22,6 +22,20 @@ from sage_bootstrap.compat import urllib, urlparse
 from sage_bootstrap.env import SAGE_DISTFILES
 
 from fcntl import flock, LOCK_SH, LOCK_EX
+from errno import ENOLCK
+
+
+def try_lock(fd, operation):
+    """
+    Try flock() but ignore ``ENOLCK`` errors, which could happen if the
+    file system does not support locking.
+    """
+    try:
+        flock(fd, operation)
+    except IOError as e:
+        if e.errno != ENOLCK:
+            raise
+
 
 class MirrorList(object):
     URL = 'http://www.sagemath.org/mirror_list'
@@ -37,10 +51,10 @@ class MirrorList(object):
 
         self.mirrors = None
 
-        flock(self.mirrorfd, LOCK_SH)  # shared (read) lock
+        try_lock(self.mirrorfd, LOCK_SH)  # shared (read) lock
         with self.mirrorfile:
             if self._must_refresh():
-                flock(self.mirrorfd, LOCK_EX)  # exclusive (write) lock
+                try_lock(self.mirrorfd, LOCK_EX)  # exclusive (write) lock
                 # Maybe the mirror list file was updated by a different
                 # process while we waited for the lock?  Check again.
                 if self._must_refresh():

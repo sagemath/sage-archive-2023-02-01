@@ -813,7 +813,6 @@ class LatticePolytope_PPL_class(C_Polyhedron):
             vertices = [ V.coordinates(v-v0) for v in self.vertices() ]
         return LatticePolytope_PPL(*vertices)
 
-    @cached_method
     def base_projection(self, fiber):
         """
         The projection that maps the sub-polytope ``fiber`` to a
@@ -834,7 +833,6 @@ class LatticePolytope_PPL_class(C_Polyhedron):
         """
         return self.ambient_space().quotient(fiber.affine_space())
 
-    @cached_method
     def base_projection_matrix(self, fiber):
         """
         The projection that maps the sub-polytope ``fiber`` to a

@@ -1317,7 +1317,7 @@ class GenericGraph(GenericGraph_pyx):
 
             This routine needs the optional package igraph to be installed:
             to do so, it is enough to
-            run ``sage -i igraph`` followed by ``sage -i python_igraph``. For
+            run ``sage -i python_igraph``. For
             more information on the Python version of igraph, see
             http://igraph.org/python/.
 
@@ -1445,8 +1445,7 @@ class GenericGraph(GenericGraph_pyx):
             import igraph
         except ImportError:
             raise ImportError("The package igraph is not available. To " +
-                              "install it, run 'sage -i igraph' followed by " +
-                              "'sage -i python_igraph'.")
+                              "install it, run 'sage -i python_igraph'")
 
         v_to_int = {v:i for i,v in enumerate(self.vertices())}
         edges = [(v_to_int[v], v_to_int[w]) for v,w in self.edge_iterator(labels=False)]
@@ -7810,8 +7809,7 @@ class GenericGraph(GenericGraph_pyx):
                 import igraph
             except ImportError:
                 raise ImportError("The igraph library is not available. " +
-                                 "Please, install it with sage -i igraph " +
-                                 "followed by sage -i python_igraph.")
+                                 "Please, install it with sage -i python_igraph")
             vertices = self.vertices()
             x_int = vertices.index(x)
             y_int = vertices.index(y)
@@ -12540,7 +12538,7 @@ class GenericGraph(GenericGraph_pyx):
 
     def is_subgraph(self, other, induced=True):
         """
-        Tests whether ``self`` is a subgraph of ``other``.
+        Return ``True`` if the graph is a subgraph of ``other``, and ``False`` otherwise.
 
         .. WARNING::
 
@@ -12553,31 +12551,34 @@ class GenericGraph(GenericGraph_pyx):
         INPUT:
 
         - ``induced`` - boolean (default: ``True``) If set to ``True`` tests
-          whether ``self`` is an *induced* subgraph of ``other`` that is if
-          the vertices of ``self`` are also vertices of ``other``, and the
-          edges of  ``self`` are equal to the edges of ``other`` between the
-          vertices contained in ``self`.
-          If set to ``False`` tests whether ``self`` is a subgraph of ``other``
-          that is if all vertices of ``self`` are also in ``other`` and all
-          edges of ``self`` are also in ``other``.
+          whether the graph is an *induced* subgraph of ``other`` that is if
+          the vertices of the graph are also vertices of ``other``, and the
+          edges of the graph are equal to the edges of ``other`` between the
+          vertices contained in the graph.
+
+          If set to ``False`` tests whether the graph is a subgraph of
+          ``other`` that is if all vertices of the graph are also in
+          ``other`` and all edges of the graph are also in ``other``.
 
         OUTPUT:
 
-        boolean -- ``True`` iff ``self`` is a (possibly induced) subgraph of ``other``.
+        boolean -- ``True`` iff the graph is a (possibly induced)
+        subgraph of ``other``.
 
         .. SEEALSO::
 
-            If you are interested in the (possibly induced) subgraphs isomorphic
-            to ``self`` in ``other``, you are looking for the following methods:
+            If you are interested in the (possibly induced) subgraphs
+            isomorphic to the graph in ``other``, you are looking for
+            the following methods:
 
-            - :meth:`~GenericGraph.subgraph_search` -- finds a subgraph
-              isomorphic to `G` inside of a `self`
+            - :meth:`~GenericGraph.subgraph_search` -- Find a subgraph
+              isomorphic to ``other`` inside of the graph.
 
-            - :meth:`~GenericGraph.subgraph_search_count` -- Counts the number
+            - :meth:`~GenericGraph.subgraph_search_count` -- Count the number
               of such copies.
 
-            - :meth:`~GenericGraph.subgraph_search_iterator` -- Iterate over all
-              the copies of `G` contained in `self`.
+            - :meth:`~GenericGraph.subgraph_search_iterator` --
+              Iterate over all the copies of ``other`` contained in the graph.
 
         EXAMPLES::
 
@@ -12586,8 +12587,8 @@ class GenericGraph(GenericGraph_pyx):
             sage: G.is_subgraph(P)
             True
 
-            sage: H=graphs.CycleGraph(5)
-            sage: G=graphs.PathGraph(5)
+            sage: H = graphs.CycleGraph(5)
+            sage: G = graphs.PathGraph(5)
             sage: G.is_subgraph(H)
             False
             sage: G.is_subgraph(H, induced=False)
@@ -12607,6 +12608,7 @@ class GenericGraph(GenericGraph_pyx):
             Traceback (most recent call last):
             ...
             ValueError: The input parameter must be a DiGraph.
+
         """
         from sage.graphs.graph import Graph
         from sage.graphs.digraph import DiGraph
@@ -16330,13 +16332,22 @@ class GenericGraph(GenericGraph_pyx):
             sage: G = graphs.PathGraph(5).copy(immutable=True)
             sage: G.complement()
             complement(Path graph): Graph on 5 vertices
+
+        The name is not updated when there was none in the first place::
+
+            sage: g = Graph(graphs.PetersenGraph().edges()); g
+            Graph on 10 vertices
+            sage: g.complement()
+            Graph on 10 vertices
+
         """
         if self.has_multiple_edges():
             raise TypeError('complement not well defined for (di)graphs with multiple edges')
         self._scream_if_not_simple()
         G = copy(self)
         G.delete_edges(G.edges())
-        G.name('complement(%s)'%self.name())
+        if self.name():
+            G.name("complement({})".format(self.name()))
         for u in self:
             for v in self:
                 if not self.has_edge(u,v):
@@ -17678,8 +17689,7 @@ class GenericGraph(GenericGraph_pyx):
            are in your path. The graphviz suite can be download from
            http://graphviz.org.
 
-         - Download dot2tex-2.8.?.spkg from http://trac.sagemath.org/sage_trac/ticket/7004
-           and install it with ``sage -i dot2tex-2.8.?.spkg``
+         - Install dot2tex with ``sage -i dot2tex``
 
         .. TODO::
 

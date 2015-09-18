@@ -599,11 +599,11 @@ Pythonでは，このインデントが重要な役割を果たしている．
 ::
 
     sage: def legendre(a,p):
-    ...       is_sqr_modp=-1
-    ...       for i in range(p):
-    ...           if a % p == i^2 % p:
-    ...               is_sqr_modp=1
-    ...       return is_sqr_modp
+    ....:     is_sqr_modp=-1
+    ....:     for i in range(p):
+    ....:         if a % p == i^2 % p:
+    ....:             is_sqr_modp=1
+    ....:     return is_sqr_modp
 
     sage: legendre(2,7)
     1

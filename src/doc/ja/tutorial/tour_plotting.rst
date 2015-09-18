@@ -70,7 +70,7 @@ Sageの2次元プロット機能を使うと，円，直線，多辺形の描画
 
     sage: x = var('x')
     sage: parametric_plot((cos(x),sin(x)^3),(x,0,2*pi),rgbcolor=hue(0.6))
-
+    Graphics object consisting of 1 graphics primitive
 
 プロットにおける座標軸の交点は，それがグラフの描画範囲にない限り表示されないことに注意しておいてほしい．
 描画範囲として十分大きな値を指定するために，科学記法(指数記法)を用いる必要があるかもしれない．
@@ -96,8 +96,8 @@ Sageの2次元プロット機能を使うと，円，直線，多辺形の描画
 
 ::
 
-    sage: L = [[-1+cos(pi*i/100)*(1+cos(pi*i/100)),\
-    ...   2*sin(pi*i/100)*(1-cos(pi*i/100))] for i in range(200)]
+    sage: L = [[-1+cos(pi*i/100)*(1+cos(pi*i/100)),
+    ....: 2*sin(pi*i/100)*(1-cos(pi*i/100))] for i in range(200)]
     sage: p = polygon(L, rgbcolor=(1/8,3/4,1/2))
     sage: p
     Graphics object consisting of 1 graphics primitive
@@ -108,8 +108,8 @@ Sageの2次元プロット機能を使うと，円，直線，多辺形の描画
 
 ::
 
-    sage: L = [[6*cos(pi*i/100)+5*cos((6/2)*pi*i/100),\
-    ...   6*sin(pi*i/100)-5*sin((6/2)*pi*i/100)] for i in range(200)]
+    sage: L = [[6*cos(pi*i/100)+5*cos((6/2)*pi*i/100),
+    ....: 6*sin(pi*i/100)-5*sin((6/2)*pi*i/100)] for i in range(200)]
     sage: p = polygon(L, rgbcolor=(1/8,1/4,1/2))
     sage: t = text("hypotrochoid", (5,4), rgbcolor=(1,0,0))
     sage: show(p+t)
@@ -192,7 +192,7 @@ Sageで3次元曲面プロットを行うための第三の方法が ``implicit_
     sage: fy = u
     sage: fz = v^2
     sage: parametric_plot3d([fx, fy, fz], (u, -1, 1), (v, -1, 1),
-    ...   frame=False, color="yellow")
+    ....: frame=False, color="yellow")
     Graphics3d Object
 
 `クロスキャップ(十字帽) <http://en.wikipedia.org/wiki/Cross-cap>`__:
@@ -204,7 +204,7 @@ Sageで3次元曲面プロットを行うための第三の方法が ``implicit_
     sage: fy = (1+cos(v))*sin(u)
     sage: fz = -tanh((2/3)*(u-pi))*sin(v)
     sage: parametric_plot3d([fx, fy, fz], (u, 0, 2*pi), (v, 0, 2*pi),
-    ...   frame=False, color="red")
+    ....: frame=False, color="red")
     Graphics3d Object
 
 ねじれトーラス(twisted torus):
@@ -216,10 +216,10 @@ Sageで3次元曲面プロットを行うための第三の方法が ``implicit_
     sage: fy = (3+sin(v)+cos(u))*sin(2*v)
     sage: fz = sin(u)+2*cos(v)
     sage: parametric_plot3d([fx, fy, fz], (u, 0, 2*pi), (v, 0, 2*pi),
-    ...   frame=False, color="red")
+    ....: frame=False, color="red")
     Graphics3d Object
 
-レムニスケート(連珠形, leminscate):
+レムニスケート(連珠形, lemniscate):
 
 ::
 

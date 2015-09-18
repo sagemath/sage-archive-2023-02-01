@@ -124,10 +124,10 @@ Sageで「関数」と呼ばれるべきものを定義する方法は何通り�
 ::
 
        sage: def h(x):
-       ...       if x<2:
-       ...           return 0
-       ...       else:
-       ...           return x-2
+       ....:     if x < 2:
+       ....:         return 0
+       ....:     else:
+       ....:         return x - 2
 
 
 ここで ``plot(h(x), 0, 4)`` を実行すると，プロットされるのは `y=x-2` で，複数行にわたって定義しておいた ``h`` ではない．
@@ -156,7 +156,7 @@ Sageで「関数」と呼ばれるべきものを定義する方法は何通り�
 ::
 
        sage: plot(h, 0, 4)
-
+       Graphics object consisting of 1 graphics primitive
 
 を実行せよ，ということになる．
 

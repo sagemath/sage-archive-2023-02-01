@@ -1008,7 +1008,8 @@ def T2starGQ(q, dual=False, hyperoval=None, field=None, checkhyperoval=False):
 
     - ``hyperoval`` -- a hyperoval (i.e. a complete 2-arc; a set of points in the plane
       meeting every line in 0 or 2 points) in the plane of points with 0th coordinate
-      0 in `PG(3,q)` over the field ``field``. By default, ``hyperoval`` and
+      0 in `PG(3,q)` over the field ``field``. Each point of ``hyperoval`` must be a length 4
+      vector over ``field`` with 1st non-0 coordinate equal to 1. By default, ``hyperoval`` and
       ``field`` are not specified, and constructed on the fly.
 
     - ``field`` -- an instance of a finite field of order `q`, must be provided
@@ -1018,13 +1019,16 @@ def T2starGQ(q, dual=False, hyperoval=None, field=None, checkhyperoval=False):
       check ``hyperoval`` for correctness.
 
     `T_2^*(q)` is a generalised quadrangle (GQ) of order `(q-1,q+1)`, see 3.1.3 in [PT09]_.
-    Let `q=2^k` and `\Theta=PG(3,q)`. Fix a plane `\Pi \subset \Theta` and
-    a hyperoval `O \subset \Pi`. The points of the GQ are the points of `\Theta`
+    Let `q=2^k` and `\Theta=PG(3,q)`. Fix a plane `\Pi \subset \Theta` and a 
+    `hyperoval <http://en.wikipedia.org/wiki/Oval_(projective_plane)#Even_q>`__
+    `O \subset \Pi`. The points of the GQ are the points of `\Theta`
     outside `\Pi`, and the lines are the lines of `\Theta` outside `\Pi`
     that meet `\Pi` in a point of `O`.
 
 
-    EXAMPLES::
+    EXAMPLES:
+
+    using the built-in construction::
 
         sage: g=graphs.T2starGQ(4); g
         T2*(O,4); GQ(3, 5): Graph on 64 vertices
@@ -1034,6 +1038,29 @@ def T2starGQ(q, dual=False, hyperoval=None, field=None, checkhyperoval=False):
         T2*(O,4)*; GQ(5, 3): Graph on 96 vertices
         sage: g.is_strongly_regular(parameters=True)
         (96, 20, 4, 4)
+
+    supplying your own hyperoval::
+
+        sage: F=GF(4,'b')
+        sage: O=[vector(F,(0,0,0,1)),vector(F,(0,0,1,0))]+map(lambda x: vector(F, (0,1,x^2,x)),F)
+        sage: g=graphs.T2starGQ(4, hyperoval=O, field=F); g
+        T2*(O,4); GQ(3, 5): Graph on 64 vertices
+        sage: g.is_strongly_regular(parameters=True)
+        (64, 18, 2, 6)
+
+    TESTS::
+
+        sage: F=GF(4,'b') # repeating a point...
+        sage: O=[vector(F,(0,1,0,0)),vector(F,(0,0,1,0))]+map(lambda x: vector(F, (0,1,x^2,x)),F)
+        sage: graphs.T2starGQ(4, hyperoval=O, field=F, checkhyperoval=True)
+        Traceback (most recent call last):
+        ...
+        RuntimeError: incorrect hyperoval size
+        sage: O=[vector(F,(0,1,1,0)),vector(F,(0,0,1,0))]+map(lambda x: vector(F, (0,1,x^2,x)),F)
+        sage: graphs.T2starGQ(4, hyperoval=O, field=F, checkhyperoval=True)
+        Traceback (most recent call last):
+        ...
+        RuntimeError: incorrect hyperoval
     """
     from sage.combinat.designs.incidence_structures import IncidenceStructure
     from sage.combinat.designs.block_design import ProjectiveGeometryDesign as PG
@@ -1053,15 +1080,16 @@ def T2starGQ(q, dual=False, hyperoval=None, field=None, checkhyperoval=False):
         O = filter(lambda x: x[1]+x[2]*x[3]==0 or (x[1]==1 and x[2]==0 and x[3]==0), Pi)
         O = set(O)
     else:
+        map(lambda x: x.set_immutable(), hyperoval)
         O = set(hyperoval)
 
     if checkhyperoval:
         if len(O) != q+2:
-            raise RunTimeError("incorrect hyperoval size")
+            raise RuntimeError("incorrect hyperoval size")
         for L in Theta.blocks():
-            if Pi.issubset(L):
+            if set(L).issubset(Pi):
                 if not len(O.intersection(L)) in [0,2]:
-                    raise RunTimeError("incorrect hyperoval")
+                    raise RuntimeError("incorrect hyperoval")
     L = map(lambda z: filter(lambda y: not y in O, z),
             filter(lambda x: len(O.intersection(x)) == 1, Theta.blocks()))
     if dual:

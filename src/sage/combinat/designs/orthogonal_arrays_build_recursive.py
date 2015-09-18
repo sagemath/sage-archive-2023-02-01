@@ -801,7 +801,7 @@ def thwart_lemma_4_1(k,n,m,explain_construction=False):
     q = n
     K = FiniteField(q, 'x')
     relabel = {x:i for i,x in enumerate(K)}
-    PG = DesarguesianProjectivePlaneDesign(q,check=False,labels=False).blocks(copy=False)
+    PG = DesarguesianProjectivePlaneDesign(q,check=False,point_coordinates=False).blocks(copy=False)
 
     if q % 3 == 0:
         t = K.one()

@@ -236,7 +236,7 @@ def ProjectiveGeometryDesign(n, d, F, algorithm=None, check=True):
             gB.append([x-1 for x in b])
         return BlockDesign(v, gB, name="ProjectiveGeometryDesign", check=check)
 
-def DesarguesianProjectivePlaneDesign(n, labels=True, check=True):
+def DesarguesianProjectivePlaneDesign(n, point_coordinates=True, check=True):
     r"""
     Return the Desarguesian projective plane of order ``n`` as a 2-design.
 
@@ -248,7 +248,7 @@ def DesarguesianProjectivePlaneDesign(n, labels=True, check=True):
 
     - ``n`` -- an integer which must be a power of a prime number
 
-    - ``labels`` (boolean) -- whether to labels the points with their
+    - ``point_coordinates`` (boolean) -- whether to label the points with their
       homogeneous coordinates (default) or with integers.
 
     - ``check`` -- (boolean) Whether to check that output is correct before
@@ -322,7 +322,7 @@ def DesarguesianProjectivePlaneDesign(n, labels=True, check=True):
     from bibd import BalancedIncompleteBlockDesign
     B = BalancedIncompleteBlockDesign(n2+n+1, blcks, check=check)
 
-    if labels:
+    if point_coordinates:
         zero = K.zero()
         one  = K.one()
         d = {affine_plane(x,y): (x,y,one)
@@ -589,10 +589,10 @@ def projective_plane_to_OA(pplane, pt=None, check=True):
     EXAMPLES::
 
         sage: from sage.combinat.designs.block_design import projective_plane_to_OA
-        sage: p2 = designs.DesarguesianProjectivePlaneDesign(2,labels=False)
+        sage: p2 = designs.DesarguesianProjectivePlaneDesign(2,point_coordinates=False)
         sage: projective_plane_to_OA(p2)
         [[0, 0, 0], [0, 1, 1], [1, 0, 1], [1, 1, 0]]
-        sage: p3 = designs.DesarguesianProjectivePlaneDesign(3,labels=False)
+        sage: p3 = designs.DesarguesianProjectivePlaneDesign(3,point_coordinates=False)
         sage: projective_plane_to_OA(p3)
         [[0, 0, 0, 0],
          [0, 1, 2, 1],
@@ -604,7 +604,7 @@ def projective_plane_to_OA(pplane, pt=None, check=True):
          [2, 1, 0, 2],
          [2, 2, 2, 0]]
 
-        sage: pp = designs.DesarguesianProjectivePlaneDesign(16,labels=False)
+        sage: pp = designs.DesarguesianProjectivePlaneDesign(16,point_coordinates=False)
         sage: _ = projective_plane_to_OA(pp, pt=0)
         sage: _ = projective_plane_to_OA(pp, pt=3)
         sage: _ = projective_plane_to_OA(pp, pt=7)
@@ -714,7 +714,7 @@ def projective_plane(n, check=True, existence=False):
     if existence:
         return True
     else:
-        return DesarguesianProjectivePlaneDesign(n, labels=False, check=check)
+        return DesarguesianProjectivePlaneDesign(n, point_coordinates=False, check=check)
 
 def AffineGeometryDesign(n, d, F):
     r"""

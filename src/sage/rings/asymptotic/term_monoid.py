@@ -1035,7 +1035,7 @@ class OTerm(GenericTerm):
             have the same parent.
 
             Also, observe that the result of a "dominant" `O`-term
-            absorbing another `O`-term, always is the "dominant"
+            absorbing another `O`-term always is the "dominant"
             `O`-term again.
 
         EXAMPLES::
@@ -1462,7 +1462,7 @@ class TermWithCoefficientMonoid(GenericTermMonoid):
             Another term monoid ``S`` coerces into this exact term
             monoid if both, the base ring as well as the growth
             group underlying ``S`` coerce into the base ring and the
-            growth group underlying this term monoid.
+            growth group underlying this term monoid, respectively.
 
         EXAMPLES::
 
@@ -1760,7 +1760,7 @@ class ExactTerm(TermWithCoefficient):
 
     def _can_absorb_(self, other):
         r"""
-        Check, whether this exact term can absorb ``other``.
+        Check whether this exact term can absorb ``other``.
 
         INPUT:
 
@@ -1807,8 +1807,8 @@ class ExactTerm(TermWithCoefficient):
         .. NOTE::
 
             In the context of exact terms, absorption translates
-            to addition. As the coefficient `0` is not allowed. Instead
-            ``None`` is returned if the terms cancel out.
+            to addition. As the coefficient `0` is not allowed,
+            ``None`` is returned instead if the terms cancel out.
 
         EXAMPLES::
 

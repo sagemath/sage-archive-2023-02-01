@@ -1306,7 +1306,7 @@ class TermWithCoefficient(GenericTerm):
             sage: t1 * t2
             Asymptotic Term with coefficient 6 and growth x^5
 
-            And now, an example for exact terms::
+        And now, an example for exact terms::
 
             sage: t1 = ET(x^2, 2); t2 = ET(x^3, 3)
             sage: t1 * t2

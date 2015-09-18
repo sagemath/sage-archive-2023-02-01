@@ -3133,7 +3133,9 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
 
         #. Return ``other`` < ``self``.
 
-        .. SEEALSO: :meth:`__lt__`.
+        .. SEEALSO::
+
+            :meth:`__lt__`.
 
         EXAMPLE::
 

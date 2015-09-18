@@ -649,7 +649,9 @@ cdef class SageObject:
 
             sage: ZZ._test_pickling()
 
-        SEE ALSO: :func:`dumps` :func:`loads`
+        .. SEEALSO::
+
+            :func:`dumps`, :func:`loads`
 
         TESTS::
 

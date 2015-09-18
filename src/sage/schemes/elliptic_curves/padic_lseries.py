@@ -742,7 +742,7 @@ class pAdicLseries(SageObject):
 
         """
         from sage.functions.all import sqrt
-        # This funciton does not depend on p and could be moved out of this file but it is needed only here
+        # This function does not depend on p and could be moved out of this file but it is needed only here
 
         # Note that the number of real components does not change by twisting.
         if D == 1:

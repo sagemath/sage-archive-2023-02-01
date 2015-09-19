@@ -669,6 +669,37 @@ cdef class Matrix_symbolic_dense(Matrix_generic_dense):
         """
         return self._maxima_(maxima).fullratsimp()._sage_()
 
+    def simplify_full(self):
+        """
+        Simplify a symbolic matrix by calling
+        :meth:`Expression.simplify_full()` componentwise.
+
+        INPUT:
+
+        - ``self`` - The matrix whose entries we should simplify.
+
+        OUTPUT:
+
+        A copy of ``self`` with all of its entries simplified.
+
+        EXAMPLES:
+
+        Symbolic matrices will have their entries simplified::
+
+            sage: a,n,k = SR.var('a,n,k')
+            sage: f1 = sin(x)^2 + cos(x)^2
+            sage: f2 = sin(x/(x^2 + x))
+            sage: f3 = binomial(n,k)*factorial(k)*factorial(n-k)
+            sage: f4 = x*sin(2)/(x^a)
+            sage: A = matrix(SR, [[f1,f2],[f3,f4]])
+            sage: A.simplify_full()
+            [                1    sin(1/(x + 1))]
+            [     factorial(n) x^(-a + 1)*sin(2)]
+
+        """
+        M = self.parent()
+        return M([expr.simplify_full() for expr in self])
+
     def factor(self):
         """
         Operates point-wise on each element.

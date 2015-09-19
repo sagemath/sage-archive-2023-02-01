@@ -1390,10 +1390,19 @@ class TermWithCoefficient(GenericTerm):
 
             sage: ET(x, -2) <= ET(x, 1)
             False
+
+        ::
+
+            sage: ET = atm.ExactTermMonoid(G, CC)
+            sage: ET(x, -1) <= ET(x, I)
+            False
+            sage: ET(x, I) <= ET(x, -1)
+            False
         """
-
-
         if self.growth == other.growth:
+            if any(hasattr(t, 'imag_part') and not t.imag_part().is_zero()
+                   for t in (self, other)):
+                return False
             return abs(self.coefficient) < abs(other.coefficient) or \
                 self.coefficient == other.coefficient
         else:

@@ -29,7 +29,6 @@ cdef class Parent(parent.Parent):
     cdef has_coerce_map_from_c_impl(self, S)
     cpdef _coerce_c(self, x)
     cdef _coerce_c_impl(self, x)
-    cdef _coerce_self_c(self, x)
 
     cdef _an_element_c_impl(self)
     cpdef _an_element_c(self)

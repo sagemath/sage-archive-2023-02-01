@@ -966,6 +966,72 @@ def is_taylor_twograph_srg(int v,int k,int l,int mu):
         return (TaylorTwographSRG, q)
     return
 
+def is_switch_OA_srg(int v,int k,int l,int mu):
+    r"""
+    Test whether some *switch* `OA(k,n)+*` is `(v,k,\lambda,\mu)`-strongly regular.
+
+    The "switch* `OA(k,n)+*` graphs appear on `Andries Brouwer's database
+    <http://www.win.tue.nl/~aeb/graphs/srg/srgtab.html>`__ and are built by
+    adding an isolated vertex to a
+    :meth:`~sage.graphs.graph_generators.GraphGenerators.OrthogonalArrayBlockGraph`,
+    and a :meth:`Seidel switching <Graph.seidel_switching>` a set of disjoint
+    `n`-cocliques.
+
+    INPUT:
+
+    - ``v,k,l,mu`` (integers)
+
+    OUTPUT:
+
+    A tuple ``t`` such that ``t[0](*t[1:])`` builds the requested graph if the
+    parameters match, and ``None`` otherwise.
+
+    EXAMPLES::
+
+        sage: from sage.graphs.strongly_regular_db import is_switch_OA_srg
+        sage: t = is_switch_OA_srg(170, 78, 35, 36); t
+        (<cyfunction is_switch_OA_srg.<locals>.switch_OA_srg ...>, 6, 13)
+        sage: g = t[0](*t[1:]); g
+        Graph on 170 vertices
+        sage: g.is_strongly_regular(parameters=True)
+        (170, 78, 35, 36)
+        sage: t = is_switch_OA_srg(5,5,5,5); t
+
+    TESTS::
+
+        sage: is_switch_OA_srg(290, 136,  63,  64)
+        (<cyfunction is_switch_OA_srg.<locals>.switch_OA_srg at ..., 8, 17)
+        sage: is_switch_OA_srg(626, 300, 143, 144)
+        (<cyfunction is_switch_OA_srg.<locals>.switch_OA_srg at ..., 12, 25)
+        sage: is_switch_OA_srg(842, 406, 195, 196)
+        (<cyfunction is_switch_OA_srg.<locals>.switch_OA_srg at ..., 14, 29)
+
+    """
+    n_2_p_1 = v
+    if not is_square(n_2_p_1-1):
+        return None
+
+    from sage.combinat.designs.orthogonal_arrays import orthogonal_array
+    from math import sqrt
+    cdef int n = int(sqrt(n_2_p_1-1))
+
+    cdef int c = k/n
+    if (k % n                            or
+        l != c*c-1                       or
+        k != 1+(c-1)*(c+1)+(n-c)*(n-c-1) or
+        not orthogonal_array(c+1,n,existence=True)):
+        return None
+
+    def switch_OA_srg(c,n):
+        from itertools import izip
+        OA = map(tuple,orthogonal_array(c+1,n,resolvable=True))
+        g = Graph([OA,lambda x,y: any(xx==yy for xx,yy in izip(x,y))],loops=False)
+        g.add_vertex(0)
+        g.seidel_switching(OA[:c*n])
+        return g
+
+    return (switch_OA_srg,c,n)
+
 cdef eigenvalues(int v,int k,int l,int mu):
     r"""
     Return the eigenvalues of a (v,k,l,mu)-strongly regular graph.
@@ -2232,7 +2298,8 @@ def strongly_regular_graph(int v,int k,int l,int mu=-1,bint existence=False,bint
                       is_unitary_dual_polar,
                       is_RSHCD,
                       is_twograph_descendant_of_srg,
-                      is_taylor_twograph_srg]
+                      is_taylor_twograph_srg,
+                      is_switch_OA_srg]
 
     # Going through all test functions, for the set of parameters and its
     # complement.

@@ -882,11 +882,11 @@ class GenericTermMonoid(sage.structure.parent.Parent,
             ...
             ValueError: Input is ambiguous: cannot convert 10*x^2 to a generic term.
         """
-        if type(data) == self.element_class and data.parent() == self:
+        if isinstance(data, self.element_class) and data.parent() == self:
             return data
         elif isinstance(data, GenericTerm):
             return self.element_class(self, data.growth)
-        elif type(data) == int and data == 0:
+        elif isinstance(data, int) and data == 0:
             raise ValueError('No input specified. Cannot continue.')
         else:
             try:
@@ -1579,11 +1579,11 @@ class TermWithCoefficientMonoid(GenericTermMonoid):
             sage: T_log(log(x))
             Asymptotic Term with coefficient 1 and growth log(x)
         """
-        if type(data) == self.element_class and data.parent() == self:
+        if isinstance(data, self.element_class) and data.parent() == self:
             return data
         elif isinstance(data, TermWithCoefficient):
             return self.element_class(self, data.growth, data.coefficient)
-        elif type(data) == int and data == 0:
+        elif isinstance(data, int) and data == 0:
             raise ValueError('No input specified. Cannot continue.')
 
         try:

@@ -1503,8 +1503,9 @@ class TermWithCoefficientMonoid(GenericTermMonoid):
 
         .. NOTE::
 
-            Another term monoid ``S`` coerces into this exact term
-            monoid if both, the base ring as well as the growth
+            Another term monoid ``S`` coerces into this
+            :class:`TermWithCoefficientMonoid`
+            if both, the base ring as well as the growth
             group underlying ``S`` coerce into the base ring and the
             growth group underlying this term monoid, respectively.
 

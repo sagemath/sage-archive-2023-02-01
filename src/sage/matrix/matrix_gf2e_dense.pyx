@@ -1203,7 +1203,7 @@ cdef class Matrix_gf2e_dense(matrix_dense.Matrix_dense):
         cdef Matrix_gf2e_dense A
 
         if self._nrows != right._nrows:
-            raise TypeError, "Both numbers of rows must match."
+            raise TypeError("Both numbers of rows must match.")
 
         if self._ncols == 0:
             return right.__copy__()
@@ -1272,7 +1272,7 @@ cdef class Matrix_gf2e_dense(matrix_dense.Matrix_dense):
             []
         """
         if self._ncols != other._ncols:
-            raise TypeError, "Both numbers of columns must match."
+            raise TypeError("Both numbers of columns must match.")
 
         if self._nrows == 0:
             return other.__copy__()

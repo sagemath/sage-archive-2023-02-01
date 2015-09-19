@@ -1465,9 +1465,17 @@ class TermWithCoefficientMonoid(GenericTermMonoid):
             Term Monoid x^ZZ with coefficients from Rational Field
             sage: T_QQ.category()
             Join of Category of monoids and Category of posets
+
+        TESTS::
+
+            sage: T = atm.TermWithCoefficientMonoid(G, None)
+            Traceback (most recent call last):
+            ...
+            ValueError: None is not a valid base ring.
         """
-        if base_ring is None:
-            raise ValueError('Base ring is not specified.')
+        from sage.categories.rings import Rings
+        if base_ring not in Rings():
+            raise ValueError('%s is not a valid base ring.' % (base_ring,))
         self._base_ring_ = base_ring
         super(TermWithCoefficientMonoid,
               self).__init__(growth_group=growth_group, category=category)

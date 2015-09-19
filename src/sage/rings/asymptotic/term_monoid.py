@@ -2013,6 +2013,17 @@ class TermMonoidFactory(sage.structure.factory.UniqueFactory):
             Traceback (most recent call last):
             ...
             ValueError: A base ring has to be specified
+
+        TESTS::
+
+            sage: atm.TermMonoid.create_key_and_extra_args('icecream', G)
+            Traceback (most recent call last):
+            ...
+            ValueError: icecream has to be either 'exact' or 'O'
+            sage: atm.TermMonoid.create_key_and_extra_args('O', ZZ)
+            Traceback (most recent call last):
+            ...
+            ValueError: Integer Ring has to be an asymptotic growth group
         """
         if term not in ['O', 'exact']:
             raise ValueError("%s has to be either 'exact' or 'O'" % term)

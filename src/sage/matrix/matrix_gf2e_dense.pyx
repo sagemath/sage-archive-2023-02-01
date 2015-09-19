@@ -1598,7 +1598,7 @@ cdef class Matrix_gf2e_dense(matrix_dense.Matrix_dense):
         mzd_slice_free(v)
 
 def unpickle_matrix_gf2e_dense_v0(Matrix_mod2_dense a, base_ring, nrows, ncols):
-    """
+    r"""
     EXAMPLE::
 
         sage: K.<a> = GF(2^2)

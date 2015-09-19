@@ -82,8 +82,16 @@ import sage
 
 def absorption(left, right):
     r"""
+    Let one of the two passed terms absorb the other.
+
     Helper function used by
     :class:`~sage.rings.asymptotic_ring.AsymptoticExpression`.
+
+    .. NOTE::
+
+        If neither of the terms can absorb the other, an
+        :python:`ArithmeticError<library/exceptions.html#exceptions.ArithmeticError>`
+        is raised.
 
     INPUT:
 
@@ -105,15 +113,29 @@ def absorption(left, right):
         O(x^3)
         sage: atm.absorption(T(x^3), T(x^2))
         O(x^3)
+
+    ::
+
+        sage: T = atm.TermMonoid('exact', G, ZZ)
+        sage: atm.absorption(T(x^2), T(x^3))
+        Traceback (most recent call last):
+        ...
+        ArithmeticError: Absorption between x^2 and x^3 is not possible.
     """
     try:
         return left.absorb(right)
     except ArithmeticError:
-        return right.absorb(left)
+        try:
+            return right.absorb(left)
+        except ArithmeticError:
+            raise ArithmeticError('Absorption between %s and %s is not possible.' % (left, right))
 
 
 def can_absorb(left, right):
     r"""
+    Return whether one of the two input terms is able to absorb the
+    other.
+
     Helper function used by
     :class:`~sage.rings.asymptotic_ring.AsymptoticExpression`.
 
@@ -126,11 +148,6 @@ def can_absorb(left, right):
     OUTPUT:
 
     A boolean.
-
-    .. NOTE::
-
-        This function returns whether one of the two input terms is
-        able to absorb the other.
 
     EXAMPLES::
 

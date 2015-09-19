@@ -2028,9 +2028,17 @@ class MutablePoset(object):
             +-- null
             |   +-- successors:   (2, 1, 7)
             |   +-- no predecessors
+
+        ::
+
+            sage: P = MP()
+            sage: P.add(None)
+            Traceback (most recent call last):
+            ...
+            ValueError: None is not an allowed element.
         """
         if element is None:
-            raise ValueError('None is not allowed as element.')
+            raise ValueError('None is not an allowed element.')
         key = self.get_key(element)
 
         if key in self._shells_:
@@ -2197,9 +2205,17 @@ class MutablePoset(object):
             +-- null
             |   +-- successors:   (1, 2, 7), (2, 1, 7)
             |   +-- no predecessors
+
+        ::
+
+            sage: P = MP()
+            sage: P.remove(None)
+            Traceback (most recent call last):
+            ...
+            ValueError: None is not an allowed key.
         """
         if key is None:
-            raise ValueError('None is not allowed as key.')
+            raise ValueError('None is not an allowed key.')
 
         try:
             shell = self._shells_[key]

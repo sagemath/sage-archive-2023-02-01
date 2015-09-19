@@ -514,6 +514,13 @@ class GenericTerm(sage.structure.element.MonoidElement):
             Traceback (most recent call last):
             ...
             ArithmeticError: Generic Term with growth x^2 cannot absorb Generic Term with growth x
+
+        TESTS::
+
+            sage: t2._absorb_(t1)
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: Not implemented in abstract base classes
         """
         raise NotImplementedError('Not implemented in abstract base classes')
 

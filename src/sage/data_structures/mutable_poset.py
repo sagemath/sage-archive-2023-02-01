@@ -1337,7 +1337,7 @@ class MutablePoset(object):
         The shell `\emptyset` whose element is smaller than any
         other element.
 
-        EXAMPLES:
+        EXAMPLES::
 
             sage: from sage.data_structures.mutable_poset import MutablePoset as MP
             sage: P = MP()
@@ -1355,7 +1355,7 @@ class MutablePoset(object):
         The shell `\infty` whose element is larger than any other
         element.
 
-        EXAMPLES:
+        EXAMPLES::
 
             sage: from sage.data_structures.mutable_poset import MutablePoset as MP
             sage: P = MP()

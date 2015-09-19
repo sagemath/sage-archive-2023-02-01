@@ -108,8 +108,8 @@ Sageで新しい関数を定義するには， ``def`` 命令を使い、変数�
 ::
 
     sage: def is_even(n):
-    ...       return n%2 == 0
-    ...
+    ....:     return n % 2 == 0
+    ....:
     sage: is_even(2)
     True
     sage: is_even(3)
@@ -126,7 +126,7 @@ Sageで新しい関数を定義するには， ``def`` 命令を使い、変数�
 ::
 
     sage: def is_divisible_by(number, divisor=2):
-    ...       return number%divisor == 0
+    ....:     return number % divisor == 0
     sage: is_divisible_by(6,2)
     True
     sage: is_divisible_by(6)
@@ -157,11 +157,11 @@ Pythonの構文ブロックは，他の多くの言語のように中括弧やbe
 ::
 
     sage: def even(n):
-    ...       v = []
-    ...       for i in range(3,n):
-    ...           if i % 2 == 0:
-    ...               v.append(i)
-    ...      return v
+    ....:     v = []
+    ....:     for i in range(3, n):
+    ....:         if i % 2 == 0:
+    ....:             v.append(i)
+    ....:    return v
     Syntax Error:
            return v
 
@@ -170,11 +170,11 @@ Pythonの構文ブロックは，他の多くの言語のように中括弧やbe
 ::
 
     sage: def even(n):
-    ...       v = []
-    ...       for i in range(3,n):
-    ...           if i % 2 == 0:
-    ...               v.append(i)
-    ...       return v
+    ....:     v = []
+    ....:     for i in range(3,n):
+    ....:         if i % 2 == 0:
+    ....:             v.append(i)
+    ....:     return v
     sage: even(10)
     [4, 6, 8]
 
@@ -191,8 +191,8 @@ Pythonの構文ブロックは，他の多くの言語のように中括弧やbe
 
 ::
 
-    sage: 2 + \
-    ...      3
+    sage: (2 +
+    ....:    3)
     5
 
 
@@ -203,7 +203,7 @@ Sageでは，一定範囲の整数の数え上げによって反復を制御す�
 ::
 
     sage: for i in range(3):
-    ...       print i
+    ....:     print i
     0
     1
     2
@@ -215,7 +215,7 @@ Sageでは，一定範囲の整数の数え上げによって反復を制御す�
 ::
 
     sage: for i in range(2,5):
-    ...       print i
+    ....:     print i
     2
     3
     4
@@ -227,7 +227,7 @@ Sageでは，一定範囲の整数の数え上げによって反復を制御す�
 ::
 
     sage: for i in range(1,6,2):
-    ...       print i
+    ....:     print i
     1
     3
     5
@@ -241,7 +241,7 @@ Sageで計算した値を見映えよく表形式に並べて表示したくな�
 ::
 
     sage: for i in range(5):
-    ...       print '%6s %6s %6s'%(i, i^2, i^3)
+    ....:     print '%6s %6s %6s' % (i, i^2, i^3)
          0      0      0
          1      1      1
          2      4      8
@@ -318,11 +318,11 @@ Sageにおける最も基本的なデータ構造はリストで，名前の示�
 ::
 
     sage: class Evens(list):
-    ...       def __init__(self, n):
-    ...           self.n = n
-    ...           list.__init__(self, range(2, n+1, 2))
-    ...       def __repr__(self):
-    ...           return "Even positive numbers up to n."
+    ....:     def __init__(self, n):
+    ....:         self.n = n
+    ....:         list.__init__(self, range(2, n+1, 2))
+    ....:     def __repr__(self):
+    ....:         return "Even positive numbers up to n."
 
 
 オブジェクトの生成時には初期化のために ``__init__`` メソッドが呼ばれ， ``__repr__`` メソッドはオブジェクトを印字する． 

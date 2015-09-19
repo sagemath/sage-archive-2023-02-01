@@ -463,15 +463,15 @@ Pythonには集合(set)型が組込まれている．
 
     sage: X = set([1,19,'a']);   Y = set([1,1,1, 2/3])
     sage: X
-    set(['a', 1, 19])
+    {1, 19, 'a'}
     sage: Y
-    set([1, 2/3])
+    {2/3, 1}
     sage: 'a' in X
     True
     sage: 'a' in Y
     False
     sage: X.intersection(Y)
-    set([1])
+    {1}
 
 さらに，Sageは(Pythonの組み込み集合型を使って実装されたものも含まれる)独自の集合型を備えており，こちらにはSageに固有の付加機能がいくつか加えられている．
 このSage独自の集合型を生成するには， ``Set(...)`` を使う．
@@ -517,7 +517,7 @@ Pythonには集合(set)型が組込まれている．
 
     sage: w = (4*p + 1 for p in Primes() if is_prime(4*p+1))
     sage: w         # 次の行の 0xb0853d6c はランダムに生成された16進数
-    <generator object at 0xb0853d6c>
+    <generator object <genexpr> at ...>
     sage: w.next()
     13
     sage: w.next()
@@ -599,11 +599,11 @@ Pythonでは，このインデントが重要な役割を果たしている．
 ::
 
     sage: def legendre(a,p):
-    ...       is_sqr_modp=-1
-    ...       for i in range(p):
-    ...           if a % p == i^2 % p:
-    ...               is_sqr_modp=1
-    ...       return is_sqr_modp
+    ....:     is_sqr_modp=-1
+    ....:     for i in range(p):
+    ....:         if a % p == i^2 % p:
+    ....:             is_sqr_modp=1
+    ....:     return is_sqr_modp
 
     sage: legendre(2,7)
     1
@@ -635,7 +635,7 @@ Sageに付属している関数 ``kronecker`` は，PARIのCライブラリを�
     sage: 2 < CC(3.1,1)
     True
     sage: 5 < VectorSpace(QQ,3)   # 出力は一定しない。
-    True
+    False
 
 記号を含む不等号の判定には  ``bool`` 関数を用いる:
 
@@ -685,7 +685,7 @@ Sageにおける異種オブジェクト間の比較演算では，まず対象�
 
 ::
 
-    sage: magma('GF(5)!1 eq Rationals()!1')            # オプションでmagmaが必要
+    sage: magma('GF(5)!1 eq Rationals()!1')  # optional - magma オプションでmagmaが必要
     true
 
 

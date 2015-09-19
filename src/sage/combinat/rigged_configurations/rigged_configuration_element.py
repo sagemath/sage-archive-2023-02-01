@@ -1873,6 +1873,19 @@ class KRRiggedConfigurationElement(RiggedConfigurationElement):
             ....:     c = mg.complement_rigging(True)
             ....:     hwc = c.to_tensor_product_of_kirillov_reshetikhin_tableaux()
             ....:     assert hw == hwc
+
+        TESTS:
+
+        We check that :trac:`18898` is fixed::
+
+            sage: RC = RiggedConfigurations(['D',4,1], [[2,1], [2,1], [2,3]])
+            sage: x = RC(partition_list=[[1], [1,1], [1], [1]], rigging_list=[[0], [2,1], [0], [0]])
+            sage: ascii_art(x)
+            0[ ]0  2[ ]2  0[ ]0  0[ ]0
+                   2[ ]1
+            sage: ascii_art(x.complement_rigging())
+            0[ ]0  2[ ]1  0[ ]0  0[ ]0
+                   2[ ]0
         """
         P = self.parent()
         if reverse_factors:
@@ -1885,7 +1898,15 @@ class KRRiggedConfigurationElement(RiggedConfigurationElement):
         for a,p in enumerate(mg):
             nu.append(list(p))
             vac_nums = mg.get_vacancy_numbers(a+1)
-            rig.append( [vac - p.rigging[i] for i,vac in enumerate(vac_nums)] )
+            riggings = [vac - p.rigging[i] for i,vac in enumerate(vac_nums)]
+            block = 0
+            for j,i in enumerate(p):
+                if p[block] != i:
+                    riggings[block:j] = sorted(riggings[block:j], reverse=True)
+                    block = j
+            riggings[block:] = sorted(riggings[block:], reverse=True)
+            rig.append(riggings)
+
         rc = P(partition_list=nu, rigging_list=rig)
         return rc.f_string(reversed(e_str))
 

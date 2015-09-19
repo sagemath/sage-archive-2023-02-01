@@ -84,10 +84,10 @@ Sageの ``sigma(n,k)`` 関数は， ``n`` の商の :math:`k` 乗の和を計算
 
     sage: n = 2005
     sage: for i in range(1000):
-    ...       n = 3*odd_part(n) + 1
-    ...       if odd_part(n)==1:
-    ...           print i
-    ...           break
+    ....:     n = 3 * odd_part(n) + 1
+    ....:     if odd_part(n) == 1:
+    ....:         print i
+    ....:         break
     38
 
 最後に，中国剰余定理を確かめてみよう．

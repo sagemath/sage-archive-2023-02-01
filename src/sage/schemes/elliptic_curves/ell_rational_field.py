@@ -5112,6 +5112,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
              {0: 0, 1: 5, 2: 25})
         """
         from sage.graphs.graph import Graph
+        from sage.rings.real_mpfr import RR
         isocls = self.isogeny_class()
         M = isocls.matrix(fill=True).change_ring(rings.RR)
         # see trac #4889 for nebulous M.list() --> M.entries() change...
@@ -5119,7 +5120,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         M = M.parent()([a.log() if a else 0 for a in M.list()])
         G = Graph(M, format='weighted_adjacency_matrix')
         G.set_vertices(dict([(v,isocls[v]) for v in G.vertices()]))
-        v = G.shortest_path_lengths(0, by_weight=True, weight_sums=True)
+        v = G.shortest_path_lengths(0, by_weight=True)
         # Now exponentiate and round to get degrees of isogenies
         v = dict([(i, j.exp().round() if j else 0) for i,j in v.iteritems()])
         return isocls.curves, v

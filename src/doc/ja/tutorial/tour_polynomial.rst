@@ -296,8 +296,7 @@ gcdやイデアルのグレブナー基底の計算にはSingular [Si]_ を経�
 ::
 
     sage: B.parent()
-    Category of sequences in Multivariate Polynomial Ring in x, y over Rational
-    Field
+    <class 'sage.rings.polynomial.multi_polynomial_sequence.PolynomialSequence_generic'>
     sage: B.universe()
     Multivariate Polynomial Ring in x, y over Rational Field
     sage: B[1] = x

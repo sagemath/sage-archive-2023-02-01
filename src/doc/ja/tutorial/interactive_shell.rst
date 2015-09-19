@@ -277,7 +277,7 @@ GMPの方が速いが，その差はわずかだ(Sage用にビルドされたPAR
     sage: a = int(1938)^int(99484)
     sage: b = 1938^99484
     sage: c = pari(1938)^pari(99484)
-    sage: cputime(t)                       # 値には若干の幅がある．
+    sage: cputime(t)                       # random 値には若干の幅がある．
     0.64
 
 
@@ -424,17 +424,14 @@ IPythonのクイック レファレンスガイドを見たければ， ``%quick
 ::
 
     sage: 3_2
-    ------------------------------------------------------------
-       File "<console>", line 1
-         ZZ(3)_2
-               ^
+    Traceback (most recent call last):
+    ...
     SyntaxError: invalid syntax
 
     sage: EllipticCurve([0,infinity])
-    ------------------------------------------------------------
     Traceback (most recent call last):
     ...
-    TypeError: Unable to coerce Infinity (<class 'sage...Infinity'>) to Rational
+    SignError: cannot multiply infinity by zero
 
 
 何が悪いか調べるには対話型デバッガが役立つこともある．

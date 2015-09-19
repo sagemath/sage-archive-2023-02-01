@@ -470,8 +470,8 @@ class GenericTerm(sage.structure.element.MonoidElement):
         from sage.structure.element import get_coercion_model
 
         return get_coercion_model().bin_op(self, other,
-                                           lambda self, other:
-                                           self._absorb_(other))
+                                           lambda left, right:
+                                           left._absorb_(right))
 
 
     def _absorb_(self, other):

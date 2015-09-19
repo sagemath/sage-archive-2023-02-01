@@ -91,8 +91,10 @@ cdef extern from "graph.h":
 #    KLPol    #
 ###############
 cdef extern from "kl.h":
-    ctypedef struct c_KLPol "kl::KLPol":
-        pass
+    cdef cppclass c_KLPol "kl::KLPol":
+        const unsigned short& operator[](int)
+        unsigned long deg()
+        int isZero()
 
 cdef extern from "polynomials.h":
     c_String klpoly_append "polynomials::append"(c_String str, c_KLPol, char* x)

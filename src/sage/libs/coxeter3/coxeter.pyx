@@ -19,6 +19,7 @@ include "decl.pxd"
 initConstants()
 
 from sage.rings.all import Integer, ZZ
+from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 
 cdef class String:
     def __cinit__(self, s=""):
@@ -284,7 +285,7 @@ cdef class CoxGroup(SageObject):
 
         # Check that the Coxeter matrices match up.
         if self.coxeter_matrix() != coxeter_matrix(self.cartan_type):
-            print "Warning, differing Coxeter matrices"
+            print("Warning, differing Coxeter matrices")
 
     @classmethod
     def _ordering_from_cartan_type(cls, cartan_type):
@@ -537,7 +538,7 @@ cdef class CoxGroup(SageObject):
         """
         Make all of the elements of a finite Coxeter group available.
 
-        Raises an error if W is not finite
+        Raises an error if ``self`` is not finite.
 
         EXAMPLES::
 
@@ -548,10 +549,10 @@ cdef class CoxGroup(SageObject):
             sage: W.full_context()                                                      # optional - coxeter3
             Traceback (most recent call last):
             ...
-            TypeError: Group needs to be finite.
+            TypeError: group needs to be finite
         """
         if not self.is_finite():
-            raise TypeError, "Group needs to be finite."
+            raise TypeError("group needs to be finite")
         cdef c_FiniteCoxGroup* fcoxgroup = <c_FiniteCoxGroup*>(self.x)
         if not fcoxgroup.isFullContext():
             fcoxgroup.fullContext()
@@ -582,7 +583,7 @@ cdef class CoxGroup(SageObject):
 
     def __call__(self, w):
         """
-        Return a reduced expression for `w`.
+        Return a reduced expression for ``w``.
 
         INPUT:
 
@@ -1105,17 +1106,20 @@ cdef class CoxGroupElement:
         else:
             vv = v
 
-        ZZq = ZZ['q']
+        ZZq = PolynomialRing(ZZ, 'q')
         if not self.group.inOrder_word(self.word, vv.word):
-            return ZZq(0)
+            return ZZq.zero()
 
         cdef CoxNbr x = self.group.extendContext(self.word)
         cdef CoxNbr y = self.group.extendContext(vv.word)
         cdef c_KLPol kl_poly = self.group.klPol(x, y)
-
-        cdef String s = String()
-        klpoly_append(s.x, kl_poly, "q")
-        return ZZq(str(s))
+        if kl_poly.isZero():
+            return ZZq.zero()
+        cdef int i
+        cdef list l = []
+        for 0 <= i < kl_poly.deg():
+            l.append(kl_poly[i])
+        return ZZq(l)
 
     def mu_coefficient(self, v):
         r"""

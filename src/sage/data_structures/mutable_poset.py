@@ -93,7 +93,7 @@ smallest first. This does not show (directly) more structural
 information. We can overcome this and display a "wiring layout" by
 typing::
 
-    sage: print Q.repr_full(reverse=True)
+    sage: print(Q.repr_full(reverse=True))
     poset((3, 3), (2, 3), (3, 2), (2, 2), (4, 1), (1, 1))
     +-- oo
     |   +-- no successors
@@ -969,8 +969,8 @@ class MutablePosetShell(object):
 
             sage: for e in P.shells_topological(include_special=True,
             ....:                                 reverse=True):
-            ....:     print e
-            ....:     print list(e.iter_topological(reverse=True, key=repr))
+            ....:     print(e)
+            ....:     print(list(e.iter_topological(reverse=True, key=repr)))
             oo
             [oo]
             (4, 4)
@@ -992,8 +992,8 @@ class MutablePosetShell(object):
 
             sage: for e in P.shells_topological(include_special=True,
             ....:                                 reverse=True):
-            ....:     print e
-            ....:     print list(e.iter_topological(reverse=False, key=repr))
+            ....:     print(e)
+            ....:     print(list(e.iter_topological(reverse=False, key=repr)))
             oo
             [null, (1, 1), (1, 2), (1, 3), (2, 1), (2, 2), (4, 4), oo]
             (4, 4)
@@ -1270,7 +1270,7 @@ class MutablePoset(object):
             sage: P.add(42); P
             poset(42)
             sage: P.clear()
-            sage: print P.repr_full()
+            sage: print(P.repr_full())
             poset()
             +-- null
             |   +-- no predecessors
@@ -1785,7 +1785,7 @@ class MutablePoset(object):
         TESTS::
 
             sage: from sage.data_structures.mutable_poset import MutablePoset as MP
-            sage: print MP().repr()
+            sage: print(MP().repr())
             poset()
         """
         s = 'poset('
@@ -1810,7 +1810,7 @@ class MutablePoset(object):
         TESTS::
 
             sage: from sage.data_structures.mutable_poset import MutablePoset as MP
-            sage: print MP().repr_full(reverse=True)
+            sage: print(MP().repr_full(reverse=True))
             poset()
             +-- oo
             |   +-- no successors
@@ -1896,7 +1896,7 @@ class MutablePoset(object):
             sage: P.add(T((2, 1)))
             sage: P.add(T((4, 4)))
             sage: P.add(T((1, 2)))
-            sage: print P.repr_full(reverse=True)
+            sage: print(P.repr_full(reverse=True))
             poset((4, 4), (1, 3), (1, 2), (2, 1), (1, 1))
             +-- oo
             |   +-- no successors
@@ -1920,7 +1920,7 @@ class MutablePoset(object):
             |   +-- successors:   (1, 1)
             |   +-- no predecessors
             sage: P.add(T((2, 2)))
-            sage: reprP = P.repr_full(reverse=True); print reprP
+            sage: reprP = P.repr_full(reverse=True); print(reprP)
             poset((4, 4), (1, 3), (2, 2), (1, 2), (2, 1), (1, 1))
             +-- oo
             |   +-- no successors
@@ -1993,7 +1993,7 @@ class MutablePoset(object):
             sage: R.add((4, 4, 42))
             sage: R.add((1, 2, 7))
             sage: R.add((2, 2, 7))
-            sage: print R.repr_full(reverse=True)
+            sage: print(R.repr_full(reverse=True))
             poset((1, 1, 42), (2, 1, 7))
             +-- oo
             |   +-- no successors
@@ -2065,7 +2065,7 @@ class MutablePoset(object):
             sage: P.add(T((4, 4)))
             sage: P.add(T((1, 2)))
             sage: P.add(T((2, 2)))
-            sage: print P.repr_full(reverse=True)
+            sage: print(P.repr_full(reverse=True))
             poset((4, 4), (1, 3), (2, 2), (1, 2), (2, 1), (1, 1))
             +-- oo
             |   +-- no successors
@@ -2092,7 +2092,7 @@ class MutablePoset(object):
             |   +-- successors:   (1, 1)
             |   +-- no predecessors
             sage: P.remove(T((1, 2)))
-            sage: print P.repr_full(reverse=True)
+            sage: print(P.repr_full(reverse=True))
             poset((4, 4), (1, 3), (2, 2), (2, 1), (1, 1))
             +-- oo
             |   +-- no successors
@@ -2125,7 +2125,7 @@ class MutablePoset(object):
             sage: Q.add((4, 4, 42))
             sage: Q.add((1, 2, 7))
             sage: Q.add((2, 2, 7))
-            sage: print Q.repr_full(reverse=True)
+            sage: print(Q.repr_full(reverse=True))
             poset((4, 4, 42), (1, 3, 42), (2, 2, 7),
                   (1, 2, 7), (2, 1, 7), (1, 1, 42))
             +-- oo
@@ -2153,7 +2153,7 @@ class MutablePoset(object):
             |   +-- successors:   (1, 1, 42)
             |   +-- no predecessors
             sage: Q.remove((1,1))
-            sage: print Q.repr_full(reverse=True)
+            sage: print(Q.repr_full(reverse=True))
             poset((4, 4, 42), (1, 3, 42), (2, 2, 7), (1, 2, 7), (2, 1, 7))
             +-- oo
             |   +-- no successors
@@ -2752,7 +2752,7 @@ class MutablePoset(object):
             sage: P.add((2, 2, 'f'))
             sage: Q = copy(P)
             sage: Q.merge(T((1, 3)))
-            sage: print Q.repr_full(reverse=True)
+            sage: print(Q.repr_full(reverse=True))
             poset((4, 4, 'd'), (1, 3, 'abe'), (2, 2, 'f'), (2, 1, 'c'))
             +-- oo
             |   +-- no successors
@@ -2775,7 +2775,7 @@ class MutablePoset(object):
             sage: for k in P.keys():
             ....:     Q = copy(P)
             ....:     Q.merge(k)
-            ....:     print 'merging %s: %s' % (k, Q)
+            ....:     print('merging %s: %s' % (k, Q))
             merging (1, 2): poset((1, 2, 'ae'), (1, 3, 'b'),
                                   (2, 1, 'c'), (2, 2, 'f'), (4, 4, 'd'))
             merging (1, 3): poset((1, 3, 'abe'), (2, 1, 'c'),

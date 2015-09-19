@@ -678,10 +678,10 @@ cdef class CoxGroupElement:
             [4, 5, 4]
         """
         self.group = (<CoxGroup>group).x
-        self._parent = group
+        self._parent_group = group
         self.word.reset()
         for i in w:
-            self.word.append_letter(self._parent.in_ordering[i])
+            self.word.append_letter(self._parent_group.in_ordering[i])
 
         if normal_form:
             self.group.normalForm(self.word)
@@ -732,7 +732,7 @@ cdef class CoxGroupElement:
             sage: w = W([1,2,3])                                                                    # optional - coxeter3
             sage: TestSuite(w).run()                                                                # optional - coxeter3
         """
-        return (CoxGroupElement, (self._parent, list(self)))
+        return (CoxGroupElement, (self._parent_group, list(self)))
 
     def __invert__(self):
         """
@@ -747,11 +747,11 @@ cdef class CoxGroupElement:
             sage: ~w                                                                                # optional - coxeter3
             [3, 2, 1]
         """
-        return CoxGroupElement(self._parent, reversed(self))
+        return CoxGroupElement(self._parent_group, reversed(self))
 
     inverse = __invert__
 
-    cpdef CoxGroup parent(self):
+    cpdef CoxGroup parent_group(self):
         """
         Return the parent Coxeter group for this element.
 
@@ -760,11 +760,11 @@ cdef class CoxGroupElement:
             sage: from sage.libs.coxeter3.coxeter import *                                          # optional - coxeter3
             sage: W = CoxGroup(['A',5])                                                             # optional - coxeter3
             sage: w = W([1,2,3])                                                                    # optional - coxeter3
-            sage: w.parent()                                                                        # optional - coxeter3
+            sage: w.parent_group()                                                                        # optional - coxeter3
             Coxeter group of type A and rank 5
 
         """
-        return self._parent
+        return self._parent_group
 
     def __getitem__(self, i):
         """
@@ -798,7 +798,7 @@ cdef class CoxGroupElement:
         if i >= len(self):
             raise IndexError, "The index (%d) is out of range."%i
 
-        return self._parent.out_ordering[self.word.get_index(i)]
+        return self._parent_group.out_ordering[self.word.get_index(i)]
 
     def __repr__(self):
         """
@@ -830,7 +830,7 @@ cdef class CoxGroupElement:
             sage: hash(w) == hash(v)                               # optional - coxeter3
             False
         """
-        return hash((self.__class__.__name__, self.parent(), tuple(self)))
+        return hash((self.__class__.__name__, self.parent_group(), tuple(self)))
 
     def __richcmp__(CoxGroupElement self, other, int op):
         """
@@ -858,8 +858,8 @@ cdef class CoxGroupElement:
         if type(other) != type(self):
             return False
 
-        s_p = self.parent()
-        o_p = other.parent()
+        s_p = self.parent_group()
+        o_p = other.parent_group()
         s_l = list(self)
         o_l = list(other)
 
@@ -917,7 +917,7 @@ cdef class CoxGroupElement:
             sage: w.left_descents()                             # optional - coxeter3
             [1, 2]
         """
-        return LFlags_to_list(self._parent, self.group.ldescent(self.word))
+        return LFlags_to_list(self._parent_group, self.group.ldescent(self.word))
 
     def right_descents(self):
         """
@@ -931,7 +931,7 @@ cdef class CoxGroupElement:
             sage: w.right_descents()                            # optional - coxeter3
             [1, 2]
         """
-        return LFlags_to_list(self._parent, self.group.rdescent(self.word))
+        return LFlags_to_list(self._parent_group, self.group.rdescent(self.word))
 
     def bruhat_le(self, w):
         """
@@ -950,7 +950,7 @@ cdef class CoxGroupElement:
             sage: w.bruhat_le(v)                                 # optional - coxeter3
             False
         """
-        cdef CoxGroupElement ww = CoxGroupElement(self._parent, w)
+        cdef CoxGroupElement ww = CoxGroupElement(self._parent_group, w)
         return self.group.inOrder_word(self.word, ww.word)
 
     def is_two_sided_descent(self, s):
@@ -965,14 +965,14 @@ cdef class CoxGroupElement:
             sage: x.is_two_sided_descent(1)                      # optional - coxeter3
             True
         """
-        cdef Generator ss = self._parent.in_ordering[s]
+        cdef Generator ss = self._parent_group.in_ordering[s]
         return self.group.isDescent(self.word, s)
 
     cdef CoxGroupElement _new(self):
         """
         Return a new copy of this element.
         """
-        cdef CoxGroupElement res = CoxGroupElement(self.parent(), [])
+        cdef CoxGroupElement res = CoxGroupElement(self.parent_group(), [])
         res.word.set(self.word)
         return res
 
@@ -1069,7 +1069,7 @@ cdef class CoxGroupElement:
             sage: W([1,2,1]).poincare_polynomial()                                                   # optional - coxeter3
             t^3 + 2*t^2 + 2*t + 1
         """
-        cdef CoxGroup W = self.parent()
+        cdef CoxGroup W = self.parent_group()
         cdef c_List_CoxWord result = c_List_CoxWord_factory(0)
         cdef CoxGroupElement id = CoxGroupElement(W, [])
         cdef CoxGroupElement ww = CoxGroupElement(W, self)
@@ -1101,7 +1101,7 @@ cdef class CoxGroupElement:
         from sage.all import ZZ
         cdef CoxGroupElement vv
         if not isinstance(v, CoxGroupElement):
-            vv = CoxGroupElement(self._parent, v)
+            vv = CoxGroupElement(self._parent_group, v)
         else:
             vv = v
 
@@ -1135,7 +1135,7 @@ cdef class CoxGroupElement:
             1
         """
         from sage.all import ZZ
-        cdef CoxGroupElement vv = CoxGroupElement(self._parent, v)
+        cdef CoxGroupElement vv = CoxGroupElement(self._parent_group, v)
         cdef CoxNbr x = self.group.extendContext(self.word)
         cdef CoxNbr y = self.group.extendContext(vv.word)
         return ZZ(self.group.mu(x,y))

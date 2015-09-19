@@ -24,9 +24,9 @@ cdef class CoxGroup(SageObject):
 cdef class CoxGroupElement:
     cdef c_CoxWord word
     cdef c_CoxGroup* group
-    cdef CoxGroup _parent
+    cdef CoxGroup _parent_group
     cdef CoxGroupElement _new(self)
-    cpdef CoxGroup parent(self)
+    cpdef CoxGroup parent_group(self)
 
 cdef class CoxGraph:
     cdef c_CoxGraph x

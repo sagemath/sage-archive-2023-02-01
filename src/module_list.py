@@ -365,6 +365,11 @@ ext_modules = [
     Extension('sage.graphs.graph_decompositions.cutwidth',
               sources = ['sage/graphs/graph_decompositions/cutwidth.pyx']),
 
+    OptionalExtension('sage.graphs.graph_decompositions.tdlib',
+              sources = ['sage/graphs/graph_decompositions/tdlib.pyx'],
+              language="c++",
+              package = 'tdlib'),
+
     Extension('sage.graphs.spanning_tree',
               sources = ['sage/graphs/spanning_tree.pyx']),
 

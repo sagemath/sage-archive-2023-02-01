@@ -18,7 +18,8 @@ include "decl.pxd"
 
 initConstants()
 
-from sage.rings.all import Integer, ZZ
+from sage.rings.integer import Integer
+from sage.rings.integer_ring import ZZ
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 
 cdef class String:
@@ -280,8 +281,8 @@ cdef class CoxGroup(SageObject):
         cdef Type t = Type(type)
         cdef c_CoxGroup* c_W = coxeterGroup(t.x, rank)
         self.x = c_W
-        self.out_ordering = dict(zip(range(1, rank+1), ordering))
-        self.in_ordering = dict([(b,a) for a,b in self.out_ordering.items()])
+        self.out_ordering = {i+1: o for i,o in enumerate(ordering)}
+        self.in_ordering = {self.out_ordering[a]: a for a in self.out_ordering}
 
         # Check that the Coxeter matrices match up.
         if self.coxeter_matrix() != coxeter_matrix(self.cartan_type):
@@ -300,7 +301,6 @@ cdef class CoxGroup(SageObject):
             [1, 2, 3, 4, 5]
         """
         from sage.misc.all import srange
-        from sage.rings.all import Integer
         t = cartan_type.type()
         r = cartan_type.rank()
         is_affine = cartan_type.is_affine()
@@ -314,10 +314,10 @@ cdef class CoxGroup(SageObject):
             if is_affine:
                 raise NotImplementedError
             else:
-                return map(Integer, [1, 2])
+                return [Integer(1), Integer(2)]
         elif t in ['E']:
             if is_affine:
-                return srange(1, r) + [Integer(0)]
+                return srange(1, r) + [ZZ.zero()]
             else:
                 return srange(1, r+1)
         else:
@@ -573,7 +573,7 @@ cdef class CoxGroup(SageObject):
             sage: W.long_element()                                                      # optional - coxeter3
             Traceback (most recent call last):
             ...
-            TypeError: Group needs to be finite.
+            TypeError: group needs to be finite
         """
         self.full_context()
         cdef c_FiniteCoxGroup* fcoxgroup = <c_FiniteCoxGroup*>(self.x)
@@ -1085,7 +1085,7 @@ cdef class CoxGroupElement:
 
     def kazhdan_lusztig_polynomial(self, v):
         """
-        Return the Kazhdan-Lusztig polynomial `P_{u,v}` where `u` is this element.
+        Return the Kazhdan-Lusztig polynomial `P_{u,v}` where `u` is ``self``.
 
         Currently this is a bit inefficient as it constructs the
         polynomial from its string representation.
@@ -1117,7 +1117,7 @@ cdef class CoxGroupElement:
             return ZZq.zero()
         cdef int i
         cdef list l = []
-        for 0 <= i < kl_poly.deg():
+        for 0 <= i <= kl_poly.deg():
             l.append(kl_poly[i])
         return ZZq(l)
 

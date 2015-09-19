@@ -16,6 +16,9 @@ from sage.structure.element_wrapper import ElementWrapper
 from sage.categories.all import CoxeterGroups
 from sage.structure.parent import Parent
 
+from sage.rings.integer_ring import ZZ
+from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
+
 class CoxeterGroup(UniqueRepresentation, Parent):
     @staticmethod
     def __classcall__(cls, cartan_type, *args, **options):
@@ -323,8 +326,11 @@ class CoxeterGroup(UniqueRepresentation, Parent):
         p = u.value.kazhdan_lusztig_polynomial(v.value)
         if constant_term_one:
             return p
-        q = p.parent().gen()
-        return q**(v.length()-u.length()) * p(q**(-2))
+        ZZq = PolynomialRing(ZZ, 'q', sparse=True)
+        # This is the same as q**len_diff * p(q**(-2))
+        len_diff = v.length()-u.length()
+        d = {-2*deg+len_diff: coeff for deg,coeff in enumerate(p) if coeff != 0}
+        return ZZq(d)
 
     def parabolic_kazhdan_lusztig_polynomial(self, u, v, J, constant_term_one=True):
         """
@@ -380,19 +386,20 @@ class CoxeterGroup(UniqueRepresentation, Parent):
             sage: type(W.parabolic_kazhdan_lusztig_polynomial([2],[],[1]))                  # optional - coxeter3
             <type 'sage.rings.polynomial.polynomial_integer_dense_flint.Polynomial_integer_dense_flint'>
         """
-        from sage.rings.all import ZZ
         u = self(u)
         v = self(v)
         if any(d in J for d in u.descents()) or any(d in J for d in v.descents()):
             raise ValueError("u and v have to be minimal coset representatives")
-        P = ZZ['q']
-        q = P.gen()
-        subgroup = [ z for z in self.weak_order_ideal(lambda x: set(x.descents()).issubset(set(J))) if (u*z).bruhat_le(v) ]
+        J_set = set(J)
+        WOI = self.weak_order_ideal(lambda x: J_set.issuperset(x.descents()))
         if constant_term_one:
-            return P.sum((-1)**(z.length())*self.kazhdan_lusztig_polynomial(u*z,v)
-                         for z in subgroup)
-        return P.sum((-q)**(z.length())*self.kazhdan_lusztig_polynomial(u*z,v, constant_term_one=False)
-                     for z in subgroup)
+            P = PolynomialRing(ZZ, 'q')
+            return P.sum((-1)**(z.length()) * self.kazhdan_lusztig_polynomial(u*z,v)
+                         for z in WOI if (u*z).bruhat_le(v))
+        P = PolynomialRing(ZZ, 'q', sparse=True)
+        q = P.gen()
+        return P.sum((-1)**(z.length()) * self.kazhdan_lusztig_polynomial(u*z,v, constant_term_one=False).shift(z.length())
+                     for z in WOI if (u*z).bruhat_le(v))
 
 
     class Element(ElementWrapper):
@@ -495,8 +502,7 @@ class CoxeterGroup(UniqueRepresentation, Parent):
                 2
 
             """
-            if i >= len(self):
-                raise IndexError
+            # Allow the error message to be raised by the underlying element
             return self.value[i]
 
         def _mul_(self, y):
@@ -668,7 +674,7 @@ class CoxeterGroup(UniqueRepresentation, Parent):
                 raise ValueError("the number of generators for the polynomial ring must be the same as the rank of the root system")
 
             basis_elements = [alpha[i] for i in W.index_set()]
-            basis_to_order = dict([(s, i) for i, s in enumerate(W.index_set())])
+            basis_to_order = {s: i for i, s in enumerate(W.index_set())}
 
             results = []
             for poly in [f.numerator(), f.denominator()]:
@@ -677,7 +683,7 @@ class CoxeterGroup(UniqueRepresentation, Parent):
 
                 for exponent in exponents:
                     #Construct something in the root lattice from the exponent vector
-                    exponent = sum([e*b for e, b in zip(exponent, basis_elements)])
+                    exponent = sum(e*b for e, b in zip(exponent, basis_elements))
                     exponent = self.action(exponent)
 
                     monomial = 1
@@ -690,3 +696,4 @@ class CoxeterGroup(UniqueRepresentation, Parent):
 
             numerator, denominator = results
             return numerator / denominator
+

@@ -863,7 +863,7 @@ class GenericTermMonoid(sage.structure.parent.Parent,
             ....:                 # a coercion into one of the parents
             ....:                 # has to be found.
             True
-            sage: T_QQ.coerce(term1)  # coercion does not fail
+            sage: T_QQ(term1)  # coercion does not fail
             Generic Term with growth x
 
         The conversion of growth elements also works for the creation

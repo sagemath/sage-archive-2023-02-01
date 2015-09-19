@@ -799,8 +799,8 @@ class MutablePosetShell(object):
             sage: list(P.oo._iter_depth_first_visit_(marked, True))
             [oo, 42, 5, null]
         """
-        if condition is not None and \
-                not self.is_special() and not condition(self):
+        if (condition is not None and
+                not self.is_special() and not condition(self)):
             return
         if self in marked:
             return
@@ -907,7 +907,7 @@ class MutablePosetShell(object):
             [oo, 42, 5, null]
         """
         if (condition is not None and
-            not self.is_special() and not condition(self)):
+                not self.is_special() and not condition(self)):
             return
         if self in marked:
             return
@@ -1492,8 +1492,8 @@ class MutablePoset(object):
         self._null_ = other._null_._copy_all_linked_(memo, self, mapping)
         self._oo_ = memo[id(other._oo_)]
         self._shells_ = dict((f.key, f) for f in
-                              iter(memo[id(e)]
-                                   for e in other._shells_.itervalues()))
+                             iter(memo[id(e)] for e in
+                                  other._shells_.itervalues()))
 
 
     def copy(self, mapping=None):
@@ -1576,7 +1576,7 @@ class MutablePoset(object):
 
 
     def shells_topological(self, include_special=False,
-                             reverse=False, key=None):
+                           reverse=False, key=None):
         r"""
         Return an iterator over all shells in topological order.
 

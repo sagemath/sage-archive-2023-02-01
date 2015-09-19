@@ -14,7 +14,7 @@ Low level part of the interface to Fokko Ducloux's Coxeter 3 library
 #*****************************************************************************
 
 include "sage/ext/interrupt.pxi"
-include "decl.pxi"
+include "decl.pxd"
 
 initConstants()
 
@@ -719,7 +719,7 @@ cdef class CoxGroupElement:
             sage: W = CoxGroup(['A', 4])                                                            # optional - coxeter3
             sage: w = CoxGroupElement(W, [1,2,3,2,3])                                               # optional - coxeter3
             sage: w._coxnumber()                                                                    # optional - coxeter3
-            7L
+            7
         """
         return self.group.extendContext(self.word)
 

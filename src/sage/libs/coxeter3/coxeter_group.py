@@ -87,10 +87,10 @@ class CoxeterGroup(UniqueRepresentation, Parent):
 
             sage: W = CoxeterGroup(['A', 3], implementation='coxeter3')  # optional - coxeter3
             sage: W.index_set()                                          # optional - coxeter3
-            [1, 2, 3]
+            (1, 2, 3)
             sage: C = CoxeterGroup(['A', 3,1], implementation='coxeter3') # optional - coxeter3
             sage: C.index_set()                                           # optional - coxeter3
-            [0, 1, 2, 3]
+            (0, 1, 2, 3)
         """
         return self.cartan_type().index_set()
         #return range(1, self.rank()+1)

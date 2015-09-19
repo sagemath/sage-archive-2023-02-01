@@ -206,6 +206,17 @@ class GenericTerm(sage.structure.element.MonoidElement):
             sage: T = atm.GenericTermMonoid(G)
             sage: T(x^2)
             Generic Term with growth x^2
+
+        ::
+
+            sage: atm.GenericTerm(parent=None, growth=x)
+            Traceback (most recent call last):
+            ...
+            ValueError: The parent must be provided
+            sage: atm.GenericTerm(T, agg.GrowthGroup('y^ZZ').gen())
+            Traceback (most recent call last):
+            ...
+            ValueError: y is not in the parent's specified growth group
         """
         from sage.rings.asymptotic.growth_group import GenericGrowthElement
 

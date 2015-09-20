@@ -1,6 +1,36 @@
 r"""
 Subrings of the Symbolic Ring
 
+Subrings of the symbolic ring can be created via the
+:meth:`~sage.symbolic.ring.SymbolicRing.subring` method of
+``SR``. This will call :class:`SymbolicSubring <SymbolicSubringFactory>`
+of this module.
+
+The following kinds of subrings are supported:
+
+- A symbolic subring of expressions, whose variables are contained in
+  a given set of symbolic variables (see
+  :class:`SymbolicSubringAcceptingVars`). E.g.
+  ::
+
+      sage: SR.subring(accepting_variables=('a', 'b'))
+      Symbolic Subring accepting the variables a, b
+
+- A symbolic subring of expressions, whose variables are disjoint to a
+  given set of symbolic variables (see
+  :class:`SymbolicSubringRejectingVars`). E.g.
+  ::
+
+      sage: SR.subring(rejecting_variables=('r', 's'))
+      Symbolic Subring rejecting the variables r, s
+
+- The subring of symbolic constants (see
+  :class:`SymbolicConstantsSubring`). E.g.
+  ::
+
+      sage: SR.subring(only_constants=True)
+      Symbolic Constants Subring
+
 
 TESTS:
 

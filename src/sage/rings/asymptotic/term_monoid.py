@@ -680,6 +680,96 @@ class GenericTerm(sage.structure.element.MonoidElement):
         return self.growth <= other.growth
 
 
+    def __eq__(self, other):
+        r"""
+        Return if this asymptotic term is equal to ``other``.
+
+        INPUT:
+
+        - ``other`` -- an object.
+
+        OUTPUT:
+
+        A boolean.
+
+        .. NOTE::
+
+            This function uses the coercion model to find a common
+            parent for the two operands.
+
+        EXAMPLES::
+
+            sage: from sage.rings.asymptotic.growth_group import GrowthGroup
+            sage: from sage.rings.asymptotic.term_monoid import (GenericTermMonoid,
+            ....:      ExactTermMonoid, OTermMonoid)
+            sage: GT = GenericTermMonoid(GrowthGroup('x^ZZ'))
+            sage: ET = ExactTermMonoid(GrowthGroup('x^ZZ'), ZZ)
+            sage: OT = OTermMonoid(GrowthGroup('x^ZZ'))
+            sage: g = GT.an_element(); e = ET.an_element(); o = OT.an_element()
+            sage: g, e, o
+            (Generic Term with growth x, x, O(x))
+            sage: e == e^2  # indirect doctest
+            False
+            sage: e == ET(x,1)  # indirect doctest
+            True
+            sage: o == OT(x^2)  # indirect doctest
+            False
+        """
+        from sage.structure.element import have_same_parent
+        if have_same_parent(self, other):
+            return self._eq_(other)
+
+        from sage.structure.element import get_coercion_model
+        import operator
+        try:
+            return get_coercion_model().bin_op(self, other, operator.eq)
+        except TypeError:
+            return False
+
+
+    def _eq_(self, other):
+        r"""
+        Return if this asymptotic term is the same as ``other``.
+
+        INPUT:
+
+        - ``other`` -- an asymptotic term.
+
+        OUTPUT:
+
+        A boolean.
+
+        .. NOTE::
+
+            This method gets called by the coercion framework, so it
+            can be assumed that this asymptotic term is from the
+            same parent as ``other``.
+
+            Only implemented in concrete realizations.
+
+        EXAMPLES::
+
+            sage: from sage.rings.asymptotic.growth_group import GrowthGroup
+            sage: from sage.rings.asymptotic.term_monoid import GenericTermMonoid
+            sage: T = GenericTermMonoid(GrowthGroup('x^ZZ'))
+            sage: t = T.an_element()
+            sage: t == t
+            True
+
+        ::
+
+            sage: from sage.rings.asymptotic.term_monoid import OTermMonoid
+            sage: OT = OTermMonoid(GrowthGroup('x^ZZ'))
+            sage: t = OT.an_element(); t
+            O(x)
+            sage: t == OT(x)  # indirect doctest
+            True
+            sage: t == OT(x^2)  # indirect doctest
+            False
+        """
+        return self.growth == other.growth
+
+
     def _repr_(self):
         r"""
         A representation string for this generic term.
@@ -1456,6 +1546,45 @@ class TermWithCoefficient(GenericTerm):
             return self.coefficient == other.coefficient
         else:
             return super(TermWithCoefficient, self)._le_(other)
+
+
+    def _eq_(self, other):
+        r"""
+        Return if this :class:`TermWithCoefficient` is the same as
+        ``other``.
+
+        INPUT:
+
+        - ``other`` -- an :class:`TermWithCoefficient`.
+
+        OUTPUT:
+
+        A boolean.
+
+        .. NOTE::
+
+            This method gets called by the coercion model, so it can
+            be assumed that this term and ``other`` come from the
+            same parent.
+
+        EXAMPLES::
+
+            sage: from sage.rings.asymptotic.growth_group import GrowthGroup
+            sage: from sage.rings.asymptotic.term_monoid import TermWithCoefficientMonoid
+            sage: T = TermWithCoefficientMonoid(GrowthGroup('x^ZZ'), ZZ)
+            sage: t = T.an_element(); t
+            Asymptotic Term with coefficient 1 and growth x
+            sage: t == T(x, 1)
+            True
+            sage: t == T(x, 2)
+            False
+            sage: t == T(x^2, 1)
+            False
+        """
+        return super(TermWithCoefficient, self)._eq_(other) and \
+            self.coefficient == other.coefficient
+
+
 class TermWithCoefficientMonoid(GenericTermMonoid):
     r"""
     This class implements the base structure for parents of

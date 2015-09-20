@@ -433,6 +433,10 @@ class GenericTerm(sage.structure.element.MonoidElement):
 
         .. NOTE::
 
+            Setting ``check`` to ``False`` is meant to be used in
+            cases where the respective comparison is done externally
+            (in order to avoid duplicate checking).
+
             For a more detailed explanation of the *absorption* of
             asymptotic terms see
             :ref:`the module description <term_absorption>`.

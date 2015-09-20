@@ -400,6 +400,12 @@ class DiGraphGenerators():
             Traceback (most recent call last):
             ...
             ValueError: The number of vertices cannot be strictly negative!
+
+        .. SEEALSO::
+
+            * :meth:`~sage.graphs.digraph_generator.DiGraphGenerators.Complete`
+
+            * :meth:`~sage.graphs.digraph_generator.DiGraphGenerators.RandomSemiComplete`        
         """
         from sage.misc.prandom import random
         g = DiGraph(n)
@@ -539,6 +545,12 @@ class DiGraphGenerators():
             Traceback (most recent call last):
             ...
             ValueError: The number of vertices cannot be strictly negative!
+
+        .. SEEALSO::
+
+            * :meth:`~sage.graphs.digraph_generator.DiGraphGenerators.RandomSemiComplete`
+
+            * :meth:`~sage.graphs.digraph_generator.DiGraphGenerators.RandomTournament`        
         """
         G = DiGraph(n, name="Complete digraph"+(" with loops" if loops else ''), loops=loops)
 
@@ -1268,6 +1280,12 @@ class DiGraphGenerators():
             Traceback (most recent call last):
             ...
             ValueError: The number of vertices cannot be strictly negative!
+
+        .. SEEALSO::
+
+            * :meth:`~sage.graphs.digraph_generator.DiGraphGenerators.Complete`
+
+            * :meth:`~sage.graphs.digraph_generator.DiGraphGenerators.RandomTournament`        
         """
         G = DiGraph(n, name="Random Semi-Complete digraph")
         if n==0:

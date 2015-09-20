@@ -315,12 +315,12 @@ class GenericSymbolicSubring(SymbolicRing):
             sage: S('x')  # indirect doctest
             Traceback (most recent call last):
             ...
-            ValueError: x is not contained in Symbolic Subring accepting the variable a
+            TypeError: x is not contained in Symbolic Subring accepting the variable a
         """
         expression = SR(x)
         if not all(self.is_variable_valid(var)
                    for var in expression.variables()):
-            raise ValueError('%s is not contained in %s' % (x, self))
+            raise TypeError('%s is not contained in %s' % (x, self))
         return expression
 
 

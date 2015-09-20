@@ -148,6 +148,30 @@ This would only work the other way around::
     sage: ot2.absorb(ot1)
     O(x^2)
 
+Comparison
+==========
+
+The comparison of asymptotic terms with `\leq` is implemented as follows:
+
+- When comparing ``t1 <= t2``, the coercion framework first tries to
+  find a common parent for both terms. If this fails, ``False`` is
+  returned.
+
+- In case the coerced terms do not have a coefficient in their
+  common parent (e.g. :class:`OTerm`), the growth of the two terms
+  is compared.
+
+- Otherwise, if the coerced terms have a coefficient (e.g.
+  :class:`ExactTerm`), we compare if ``t1`` has a growth that is
+  strictly weaker than the growth of ``t2``. If so, we return
+  ``True``. If the terms have equal growth, then we return ``True``
+  if and only if the coefficients coincide as well.
+
+  In all other cases, we return ``False``.
+
+Long story short: we consider terms with different coefficients that
+have equal growth to be incomparable.
+
 Various
 =======
 
@@ -620,12 +644,16 @@ class GenericTerm(sage.structure.element.MonoidElement):
             sage: o1 <= t1 and t1 <= o2
             True
 
-        For terms with coefficient (like exact terms), the
-        coefficient is not taken into account::
+        For terms with coefficient (like exact terms), comparison
+        works similar, with the sole exception that terms with
+        equal growth are considered incomparable. Thus, `\leq`
+        only holds if the coefficients are equal as well::
 
             sage: t1 <= t2
             True
-            sage: t1 <= ET_ZZ(x^2, 3)
+            sage: ET_ZZ(x, -5) <= ET_ZZ(x, 42)
+            False
+            sage: ET_ZZ(x, 5) <= ET_ZZ(x, 5)
             True
         """
         from sage.structure.element import have_same_parent

@@ -4422,6 +4422,8 @@ class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
 
         The `n`-th Frobenius operator is also the `n`-th Adams operator
         of the `\Lambda`-ring of symmetric functions over the integers.
+        The Frobenius operator is the Adam's operator for the bialgebra
+        `p_r \circ p_n = p_{rn}` and `\Delta^{\circ}(p_n) = p_n \otimes p_n`.
 
         The `n`-th Frobenius operator can also be described via plethysm:
         Every symmetric function `P` satisfies
@@ -4531,6 +4533,10 @@ class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
                for (lam, coeff) in m(self)}
         result_in_m_basis = m._from_dict(dct)
         return parent(result_in_m_basis)
+
+    def adams_operation(self, *args, **opts):
+        from sage.misc.superseded import deprecation
+        deprecation(19255, "Do not use this method! Please use `frobenius` or `adams_operator` methods following what you expect.")
 
     def verschiebung(self, n):
         r"""

@@ -22,7 +22,7 @@ build by typing ``digraphs.`` in Sage and then hitting tab.
     :meth:`~DiGraphGenerators.ButterflyGraph`      | Returns a n-dimensional butterfly graph.
     :meth:`~DiGraphGenerators.Circuit`             | Returns the circuit on `n` vertices.
     :meth:`~DiGraphGenerators.Circulant`           | Returns a circulant digraph on `n` vertices from a set of integers.
-    :meth:`~DiGraphGenerators.CompleteDiGraph`     | Return a complete digraph on `n` vertices.
+    :meth:`~DiGraphGenerators.Complete`            | Return a complete digraph on `n` vertices.
     :meth:`~DiGraphGenerators.DeBruijn`            | Returns the De Bruijn digraph with parameters `k,n`.
     :meth:`~DiGraphGenerators.GeneralizedDeBruijn` | Returns the generalized de Bruijn digraph of order `n` and degree `d`.
     :meth:`~DiGraphGenerators.ImaseItoh`           | Returns the digraph of Imase and Itoh of order `n` and degree `d`.
@@ -36,7 +36,7 @@ build by typing ``digraphs.`` in Sage and then hitting tab.
     :meth:`~DiGraphGenerators.RandomTournament`    | Returns a random tournament on `n` vertices.
     :meth:`~DiGraphGenerators.TransitiveTournament`| Returns a transitive tournament on `n` vertices.
     :meth:`~DiGraphGenerators.tournaments_nauty`   | Returns all tournaments on `n` vertices using Nauty.
-    :meth:`~DiGraphGenerators.RandomSemiCompleteDiGraph` | Return a random semi-complete digraph of order `n`.
+    :meth:`~DiGraphGenerators.RandomSemiComplete`  | Return a random semi-complete digraph of order `n`.
 
 
 AUTHORS:
@@ -86,10 +86,10 @@ class DiGraphGenerators():
                     - RandomDirectedGNM
                     - RandomDirectedGNR
                     - RandomTournament
-                    - RandomSemiCompleteDiGraph
+                    - RandomSemiComplete
 
                 Families of Graphs:
-                    - CompleteDiGraph
+                    - Complete
                     - DeBruijn
                     - GeneralizedDeBruijn
                     - Kautz
@@ -513,7 +513,7 @@ class DiGraphGenerators():
             yield G
 
 
-    def CompleteDiGraph(self, n, loops=False):
+    def Complete(self, n, loops=False):
         r"""
         Return the complete digraph on `n` vertices.
 
@@ -527,15 +527,15 @@ class DiGraphGenerators():
         EXAMPLES::
 
             sage: n = 10
-            sage: G = digraphs.CompleteDiGraph(n); G
+            sage: G = digraphs.Complete(n); G
             Complete digraph: Digraph on 10 vertices
             sage: G.size() == n*(n-1)
             True
-            sage: G = digraphs.CompleteDiGraph(n, loops=True); G
+            sage: G = digraphs.Complete(n, loops=True); G
             Complete digraph with loops: Looped digraph on 10 vertices
             sage: G.size() == n*n
             True
-            sage: digraphs.CompleteDiGraph(-1)
+            sage: digraphs.Complete(-1)
             Traceback (most recent call last):
             ...
             ValueError: The number of vertices cannot be strictly negative!
@@ -1246,7 +1246,7 @@ class DiGraphGenerators():
         import networkx
         return DiGraph(networkx.gnc_graph(n, seed=seed))
 
-    def RandomSemiCompleteDiGraph(self, n):
+    def RandomSemiComplete(self, n):
         r"""
         Return a random semi-complete digraph on `n` vertices.
 
@@ -1260,11 +1260,11 @@ class DiGraphGenerators():
 
         EXAMPLES::
 
-            sage: SC = digraphs.RandomSemiCompleteDiGraph(10); SC
+            sage: SC = digraphs.RandomSemiComplete(10); SC
             Random Semi-Complete digraph: Digraph on 10 vertices
             sage: SC.size() >= binomial(10, 2)
             True
-            sage: digraphs.RandomSemiCompleteDiGraph(-1)
+            sage: digraphs.RandomSemiComplete(-1)
             Traceback (most recent call last):
             ...
             ValueError: The number of vertices cannot be strictly negative!

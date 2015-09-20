@@ -91,15 +91,20 @@ class Fields(CategoryWithAxiom):
             sage: GR in Fields()
             True
 
-        The following tests against a memory leak fixed in :trac:`13370`::
+        The following tests against a memory leak fixed in :trac:`13370`. In order
+        to prevent non-deterministic deallocation of fields that have been created
+        in other doctests, :trac:`19244` disables garbage collection until we really
+        want it to happen. ::
 
             sage: import gc
             sage: _ = gc.collect()
+            sage: gc.disable()
             sage: n = len([X for X in gc.get_objects() if isinstance(X, sage.rings.finite_rings.integer_mod_ring.IntegerModRing_generic)])
             sage: for i in prime_range(100):
             ....:     R = ZZ.quotient(i)
             ....:     t = R in Fields()
             sage: del R
+            sage: gc.enable()
             sage: _ = gc.collect()
             sage: len([X for X in gc.get_objects() if isinstance(X, sage.rings.finite_rings.integer_mod_ring.IntegerModRing_generic)]) - n
             0

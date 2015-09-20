@@ -720,7 +720,7 @@ class GenericTermMonoid(sage.structure.parent.Parent,
 
     INPUT:
 
-    - ``growth_group`` -- a partially ordered group (e.g. an instance of
+    - ``growth_group`` -- a growth group (i.e. an instance of
       :class:`~sage.rings.asymptotic.growth_group.GenericGrowthGroup`).
 
     - ``category`` -- The category of the parent can be specified

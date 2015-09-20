@@ -127,8 +127,8 @@ term monoids and some terms::
 
       sage: ET(x^2, 5).can_absorb(ET(x^2, -5))
       True
-      sage: repr(ET(x^2, 5).absorb(ET(x^2, -5)))
-      'None'
+      sage: ET(x^2, 5).absorb(ET(x^2, -5)) is None
+      True
 
 - The abstract base terms :class:`GenericTerm` and
   :class:`TermWithCoefficient` can neither absorb any

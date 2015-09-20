@@ -988,17 +988,13 @@ def is_switch_OA_srg(int v, int k, int l, int mu):
 
     EXAMPLES::
 
-        sage: from sage.graphs.strongly_regular_db import is_switch_OA_srg
-        sage: t = is_switch_OA_srg(170, 78, 35, 36); t
-        (<cyfunction is_switch_OA_srg.<locals>.switch_OA_srg ...>, 6, 13)
-        sage: g = t[0](*t[1:]); g
+        sage: graphs.strongly_regular_graph(170, 78, 35, 36) # indirect doctest
         Graph on 170 vertices
-        sage: g.is_strongly_regular(parameters=True)
-        (170, 78, 35, 36)
-        sage: t = is_switch_OA_srg(5,5,5,5); t
 
     TESTS::
 
+        sage: from sage.graphs.strongly_regular_db import is_switch_OA_srg
+        sage: t = is_switch_OA_srg(5,5,5,5); t
         sage: is_switch_OA_srg(290, 136,  63,  64)
         (<cyfunction is_switch_OA_srg.<locals>.switch_OA_srg at ..., 8, 17)
         sage: is_switch_OA_srg(626, 300, 143, 144)

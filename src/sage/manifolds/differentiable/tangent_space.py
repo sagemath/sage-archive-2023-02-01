@@ -259,31 +259,32 @@ class TangentSpace(FiniteRankFreeModule):
         # Initialization of the changes of bases from the existing changes of
         # frames around the point:
         for frame_pair, automorph in point._subset._frame_changes.iteritems():
-            frame1 = frame_pair[0] ; frame2 = frame_pair[1]
-            fr1, fr2 = None, None
-            for frame in self._frame_bases:
-                if frame1 in frame._subframes:
-                    fr1 = frame
-                    break
-            for frame in self._frame_bases:
-                if frame2 in frame._subframes:
-                    fr2 = frame
-                    break
-            if fr1 is not None and fr2 is not None:
-                basis1 = self._frame_bases[fr1]
-                basis2 = self._frame_bases[fr2]
-                auto = self.automorphism()
-                for frame, comp in automorph._components.iteritems():
-                    basis = None
-                    if frame is frame1:
-                        basis = basis1
-                    if frame is frame2:
-                        basis = basis2
-                    if basis is not None:
-                        cauto = auto.add_comp(basis)
-                        for ind, val in comp._comp.iteritems():
-                            cauto._comp[ind] = val(point)
-                self._basis_changes[(basis1, basis2)] = auto
+            if point in automorph.domain():
+                frame1 = frame_pair[0] ; frame2 = frame_pair[1]
+                fr1, fr2 = None, None
+                for frame in self._frame_bases:
+                    if frame1 in frame._subframes:
+                        fr1 = frame
+                        break
+                for frame in self._frame_bases:
+                    if frame2 in frame._subframes:
+                        fr2 = frame
+                        break
+                if fr1 is not None and fr2 is not None:
+                    basis1 = self._frame_bases[fr1]
+                    basis2 = self._frame_bases[fr2]
+                    auto = self.automorphism()
+                    for frame, comp in automorph._components.iteritems():
+                        basis = None
+                        if frame is frame1:
+                            basis = basis1
+                        if frame is frame2:
+                            basis = basis2
+                        if basis is not None:
+                            cauto = auto.add_comp(basis)
+                            for ind, val in comp._comp.iteritems():
+                                cauto._comp[ind] = val(point)
+                    self._basis_changes[(basis1, basis2)] = auto
 
     def _repr_(self):
         r"""

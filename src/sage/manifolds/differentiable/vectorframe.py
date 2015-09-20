@@ -571,29 +571,29 @@ class VectorFrame(FreeModuleBasis):
         Restriction of a frame defined on `\RR^2` to the unit disk::
 
             sage: DiffManifold._clear_cache_() # for doctests only
-            sage: M = DiffManifold(2, 'R^2')
+            sage: M = DiffManifold(2, 'R^2', start_index=1)
             sage: c_cart.<x,y> = M.chart() # Cartesian coordinates on R^2
             sage: a = M.automorphism_field()
             sage: a[:] = [[1-y^2,0], [1+x^2, 2]]
             sage: e = c_cart.frame().new_frame(a, 'e') ; e
-            Vector frame (R^2, (e_0,e_1))
+            Vector frame (R^2, (e_1,e_2))
             sage: U = M.open_subset('U', coord_def={c_cart: x^2+y^2<1})
             sage: e_U = e.restrict(U) ; e_U
-            Vector frame (U, (e_0,e_1))
+            Vector frame (U, (e_1,e_2))
 
         The vectors of the restriction have the same symbols as those of the
         original frame::
 
-            sage: e_U[0].display()
-            e_0 = (-y^2 + 1) d/dx + (x^2 + 1) d/dy
             sage: e_U[1].display()
-            e_1 = 2 d/dy
+            e_1 = (-y^2 + 1) d/dx + (x^2 + 1) d/dy
+            sage: e_U[2].display()
+            e_2 = 2 d/dy
 
         They are actually the restrictions of the original frame vectors::
 
-            sage: e_U[0] is e[0].restrict(U)
-            True
             sage: e_U[1] is e[1].restrict(U)
+            True
+            sage: e_U[2] is e[2].restrict(U)
             True
 
         """
@@ -611,10 +611,9 @@ class VectorFrame(FreeModuleBasis):
                 if dom is not subdomain:
                     dom._top_frames.remove(res)  # since it was added by
                                                  # VectorFrame constructor
-            n = self._fmodule.rank()
             new_vectors = list()
-            for i in range(n):
-                vrest = self._vec[i].restrict(subdomain)
+            for i in self._fmodule.irange():
+                vrest = self[i].restrict(subdomain)
                 for j in self._fmodule.irange():
                     vrest.add_comp(res)[j] = 0
                 vrest.add_comp(res)[i] = 1

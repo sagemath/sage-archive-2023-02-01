@@ -2755,9 +2755,18 @@ class CoordChange(SageObject):
             u = x + y
             v = x - y
 
+        The result is cached::
+
+            sage: X_to_Y.restrict(U) is X_to_Y_U
+            True
+
         """
         if dom2 is None:
             dom2 = dom1
+        ch1 = self._chart1.restrict(dom1)
+        ch2 = self._chart2.restrict(dom2)
+        if (ch1, ch2) in dom1.coord_changes():
+            return dom1.coord_changes()[(ch1,ch2)]
         return self.__class__(self._chart1.restrict(dom1),
                            self._chart2.restrict(dom2), *(self._transf.expr()))
 

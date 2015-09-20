@@ -1200,15 +1200,30 @@ class TopManifold(TopManifoldSubset):
                            field=self._field, start_index=self._sindex,
                            category=self.category(),
                            ambient_manifold=self._manifold)
+        #!# NB: the above could have been
+        # resu = type(self).__base__(...) instead of resu = TopManifold(...)
+        # to allow for open_subset() of derived classes to call first this
+        # version,
+        # but, because of the category framework, it could NOT have been
+        # resu = self.__class__(...)
+        # cf. the discussion in
+        # https://groups.google.com/forum/#!topic/sage-devel/jHlFxhMDf3Y
         resu._supersets.update(self._supersets)
         for sd in self._supersets:
             sd._subsets.add(resu)
         self._top_subsets.add(resu)
+        # Charts on the result from the coordinate definition:
         for chart, restrictions in coord_def.iteritems():
             if chart not in self._atlas:
-                raise ValueError("The " + str(chart) + "does not belong to " +
+                raise ValueError("the " + str(chart) + "does not belong to " +
                     "the atlas of " + str(self))
             chart.restrict(resu, restrictions)
+        # Transition maps on the result inferred from those of self:
+        for chart1 in coord_def:
+            for chart2 in coord_def:
+                if chart2 != chart1:
+                    if (chart1, chart2) in self._coord_changes:
+                        self._coord_changes[(chart1, chart2)].restrict(resu)
         return resu
 
     def chart(self, coordinates='', names=None):

@@ -14,7 +14,7 @@ Low level part of the interface to Fokko Ducloux's Coxeter 3 library
 #*****************************************************************************
 
 include "sage/ext/interrupt.pxi"
-include "decl.pxd"
+from .decl cimport *
 
 initConstants()
 

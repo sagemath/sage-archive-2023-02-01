@@ -458,7 +458,7 @@ class GenericTerm(sage.structure.element.MonoidElement):
             sage: et3 = ET(x^2, 1); et4 = ET(x^2, -2)
 
         `O`-Terms are able to absorb other `O`-terms and exact terms
-        with weaker or equal growth.
+        with weaker or equal growth. ::
 
             sage: ot1.absorb(ot1)
             O(x)

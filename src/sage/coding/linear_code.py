@@ -1030,7 +1030,7 @@ class AbstractLinearCode(module.Module):
 
     def basis(self):
         r"""
-        Returns a basis of `self`.
+        Returns a basis of ``self`` as a matrix of the :meth:`ambient_space`.
 
         EXAMPLES::
 

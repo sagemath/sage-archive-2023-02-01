@@ -25,22 +25,17 @@ def BullGraph():
     Returns a bull graph with 5 nodes.
 
     A bull graph is named for its shape. It's a triangle with horns.
-    This constructor depends on `NetworkX <http://networkx.lanl.gov>`_
-    numeric labeling. For more information, see this
+    For more information, see this
     :wikipedia:`Wikipedia article on the bull graph <Bull_graph>`.
 
     PLOTTING:
 
-    Upon construction, the position dictionary is filled to
-    override the spring-layout algorithm. By convention, the bull graph
-    is drawn as a triangle with the first node (0) on the bottom. The
-    second and third nodes (1 and 2) complete the triangle. Node 3 is
-    the horn connected to 1 and node 4 is the horn connected to node
-    2.
+    Upon construction, the position dictionary is filled to override the
+    spring-layout algorithm. By convention, the bull graph is drawn as a
+    triangle with the first node (0) on the bottom. The second and third nodes
+    (1 and 2) complete the triangle. Node 3 is the horn connected to 1 and node
+    4 is the horn connected to node 2.
 
-    ALGORITHM:
-
-    Uses `NetworkX <http://networkx.lanl.gov>`_.
 
     EXAMPLES:
 
@@ -158,8 +153,6 @@ def CircularLadderGraph(n):
     ends, i.e.: a ladder bent around so that top meets bottom. Thus it
     can be described as two parallel cycle graphs connected at each
     corresponding node pair.
-
-    This constructor depends on NetworkX numeric labels.
 
     PLOTTING: Upon construction, the position dictionary is filled to
     override the spring-layout algorithm. By convention, the circular
@@ -571,8 +564,6 @@ def DiamondGraph():
     A diamond graph is a square with one pair of diagonal nodes
     connected.
 
-    This constructor depends on NetworkX numeric labeling.
-
     PLOTTING: Upon construction, the position dictionary is filled to
     override the spring-layout algorithm. By convention, the diamond
     graph is drawn as a diamond, with the first node on top, second on
@@ -871,8 +862,6 @@ def HouseGraph():
     A house graph is named for its shape. It is a triangle (roof) over a
     square (walls).
 
-    This constructor depends on NetworkX numeric labeling.
-
     PLOTTING: Upon construction, the position dictionary is filled to
     override the spring-layout algorithm. By convention, the house
     graph is drawn with the first node in the lower-left corner of the
@@ -901,8 +890,6 @@ def HouseXGraph():
     upper-right corner is connected to the lower-left. And the
     upper-left corner is connected to the lower-right.
 
-    This constructor depends on NetworkX numeric labeling.
-
     PLOTTING: Upon construction, the position dictionary is filled to
     override the spring-layout algorithm. By convention, the house X
     graph is drawn with the first node in the lower-left corner of the
@@ -930,8 +917,6 @@ def LadderGraph(n):
     A ladder graph is a basic structure that is typically displayed as
     a ladder, i.e.: two parallel path graphs connected at each
     corresponding node pair.
-
-    This constructor depends on NetworkX numeric labels.
 
     PLOTTING: Upon construction, the position dictionary is filled to
     override the spring-layout algorithm. By convention, each ladder
@@ -981,8 +966,6 @@ def LollipopGraph(n1, n2):
 
     A lollipop graph is a path graph (order n2) connected to a complete
     graph (order n1). (A barbell graph minus one of the bells).
-
-    This constructor depends on NetworkX numeric labels.
 
     PLOTTING: Upon construction, the position dictionary is filled to
     override the spring-layout algorithm. By convention, the complete
@@ -1134,8 +1117,6 @@ def StarGraph(n):
 
     A Star graph is a basic structure where one node is connected to
     all other nodes.
-
-    This constructor is dependent on NetworkX numeric labels.
 
     PLOTTING: Upon construction, the position dictionary is filled to
     override the spring-layout algorithm. By convention, each star

@@ -210,7 +210,6 @@ class Polynomial_padic_capped_relative_dense(Polynomial_generic_domain, Polynomi
         """
         if self.degree() == -1 and self._valbase == infinity:
             self._list = []
-            return self._list
         polylist = self._poly.list()
         polylen = len(polylist)
         self._list = [self.base_ring()(polylist[i], absprec = self._relprecs[i]) << self._valbase for i in range(polylen)] \
@@ -393,34 +392,27 @@ class Polynomial_padic_capped_relative_dense(Polynomial_generic_domain, Polynomi
             sage: a[1:2]
             (13^2 + O(13^4))*t
         """
+        d = len(self._relprecs)  # = degree + 1
         if isinstance(n, slice):
-            start, stop = n.start, n.stop
+            start, stop, step = n.start, n.stop, n.step
+            if step is None:
+                step = 1
             if start is None:
                 start = 0
             elif start < 0:
-                start = len(self._relprecs) + start
-                if start < 0:
-                    raise IndexError("list index out of range")
-            if stop > len(self._relprecs) or stop is None:
-                stop = len(self._relprecs)
-            elif stop < 0:
-                stop = len(self._relprecs) + stop
-                if stop < 0:
-                    raise IndexError("list index out of range")
-            if start >= stop:
-                return Polynomial_padic_capped_relative_dense(self.parent(), [])
+                start %= step
+            if stop is None or stop > d:
+                stop = d
+            if step == 1:
+                values = ([self.base_ring().zero()] * start
+                          + [self[i] for i in xrange(start, stop)])
             else:
-                return Polynomial_padic_capped_relative_dense(self.parent(),
-                    (self._poly[start:stop], self._valbase,
-                    [infinity]*start + self._relprecs[start:stop], False,
-                    None if self._valaddeds is None else [infinity]*start
-                    + self._valaddeds[start:stop],
-                    None if self._list is None else [self.base_ring()(0)]
-                    * start + self._list[start:stop]), construct = True)
+                values = {i: self[i] for i in xrange(start, stop, step)}
+            return self.parent()(values)
         else:
-            if n >= len(self._relprecs):
-                return self.base_ring()(0)
-            if not self._list is None:
+            if n < 0 or n >= d:
+                return self.base_ring().zero()
+            if self._list is not None:
                 return self._list[n]
             return self.base_ring()(self.base_ring().prime_pow(self._valbase)
                 * self._poly[n], absprec = self._valbase + self._relprecs[n])

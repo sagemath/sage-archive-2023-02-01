@@ -400,22 +400,24 @@ class Polynomial_generic_sparse(Polynomial):
             sage: f[2:]
             -42.875*x^3 + 73.500*x^2
         """
+        d = self.degree() + 1
         if isinstance(n, slice):
-            start, stop = n.start, n.stop
-            if start < 0:
+            start, stop, step = n.start, n.stop, n.step
+            if step is None:
+                step = 1
+            if start is None:
                 start = 0
-            if stop is None:
-                stop = len(self.__coeffs) + 1
-            v = {}
+            elif start < 0:
+                start %= step
+            if stop is None or stop > d:
+                stop = d
             x = self.__coeffs
-            for k in x.keys():
-                if start <= k and k < stop:
-                    v[k] = x[k]
-            P = self.parent()
-            return P(v)
+            v = {k: x[k] for k in x.keys()
+                 if start <= k and k < stop and (k - start) % step == 0}
+            return self.parent()(v)
         else:
             if n not in self.__coeffs:
-                return self.base_ring()(0)
+                return self.base_ring().zero()
             return self.__coeffs[n]
 
     def _unsafe_mutate(self, n, value):

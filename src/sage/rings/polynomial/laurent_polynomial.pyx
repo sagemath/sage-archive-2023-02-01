@@ -320,10 +320,7 @@ cdef class LaurentPolynomial_univariate(LaurentPolynomial_generic):
 
     def __getitem__(self, i):
         """
-        With a tuple (i,j) as argument,
-        return the Laurent polynomial `\sum_{k=i}^{j-1} c_k t^k`
-        where ``self`` is `\sum_k c_k t^k`,
-        otherwise return the coefficient of `t^i`.
+        Return the `i`-th coefficient or slice of ``self``.
 
         EXAMPLES::
 
@@ -344,11 +341,15 @@ cdef class LaurentPolynomial_univariate(LaurentPolynomial_generic):
             -5*t^-10 + 1/3 + t
             sage: f[0:]
             1/3 + t + t^2 - 10/3*t^3
+            sage: f[:3]
+            -5*t^-10 + 1/3 + t + t^2
+            sage: f[-14:5:2]
+            -5*t^-10 + 1/3 + t^2
         """
         if isinstance(i, slice):
-            start = i.start if i.start is not None else 0
-            stop = i.stop if i.stop is not None else self.__u.degree()
-            f = self.__u[start-self.__n:stop-self.__n]
+            start = i.start - self.__n if i.start is not None else 0
+            stop = i.stop - self.__n if i.stop is not None else self.__u.degree() + 1
+            f = self.__u[start:stop:i.step]
             return LaurentPolynomial_univariate(self._parent, f, self.__n)
         else:
             return self.__u[i-self.__n]

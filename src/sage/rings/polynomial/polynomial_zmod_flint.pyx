@@ -228,8 +228,10 @@ cdef class Polynomial_zmod_flint(Polynomial_template):
         sig_off()
         return 0
 
-    def __getitem__(self, i):
+    cdef get_unsafe(self, Py_ssize_t i):
         """
+        Return the `i`-th coefficient of ``self``.
+
         EXAMPLES::
 
             sage: P.<x> = GF(32003)[]
@@ -247,26 +249,8 @@ cdef class Polynomial_zmod_flint(Polynomial_template):
             sage: f[-5:50] == f
             True
         """
-        cdef type t
-        cdef unsigned long c = 0
-        cdef Polynomial_template r
-        if isinstance(i, slice):
-            start, stop = i.start, i.stop
-            if start < 0:
-                start = 0
-            if stop > celement_len(&self.x, (<Polynomial_template>self)._cparent) or stop is None:
-                stop = celement_len(&self.x, (<Polynomial_template>self)._cparent)
-            x = (<Polynomial_template>self)._parent.gen()
-            v = [self[t] for t from start <= t < stop]
-
-            t = type(self)
-            r = <Polynomial_template>t.__new__(t)
-            Polynomial_template.__init__(r, (<Polynomial_template>self)._parent, v)
-            return r << start
-        else:
-            if 0 <= i < nmod_poly_length(&self.x):
-                c = nmod_poly_get_coeff_ui(&self.x, i)
-            return self._parent.base_ring()(c)
+        cdef unsigned long c = nmod_poly_get_coeff_ui(&self.x, i)
+        return self._parent.base_ring()(c)
 
     def __call__(self, *x, **kwds):
         """

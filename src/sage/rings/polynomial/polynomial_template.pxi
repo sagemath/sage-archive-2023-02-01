@@ -75,7 +75,7 @@ cdef class Polynomial_template(Polynomial):
     .. note::
 
         Implementations using this template MUST implement coercion from base
-        ring elements and ``__getitem__``. See
+        ring elements and :meth:`get_unsafe`. See
         :class:`~sage.rings.polynomial.polynomial_gf2x.Polynomial_GF2X` for an
         example.
     """

@@ -376,10 +376,9 @@ cdef class Polynomial_rational_flint(Polynomial):
         """
         return smallInteger(fmpq_poly_degree(self.__poly))
 
-    def __getitem__(self, n):
+    cdef get_unsafe(self, Py_ssize_t n):
         """
-        Returns coefficient of the monomial of degree `n` if `n` is an integer,
-        returns the monomials of self of degree in slice `n` if `n` is a slice.
+        Return the `n`-th coefficient of ``self``.
 
         INPUT:
 
@@ -396,18 +395,8 @@ cdef class Polynomial_rational_flint(Polynomial):
             1/2*t^2 + t
         """
         cdef Rational z = Rational.__new__(Rational)
-        cdef Polynomial_rational_flint res = self._new()
-        cdef bint do_sig = _do_sig(self.__poly)
-        if isinstance(n, slice):
-            start, stop, step = n.indices(self.degree() + 1)
-            if do_sig: sig_str("FLINT exception")
-            fmpq_poly_get_slice(res.__poly, self.__poly, start, stop)
-            if do_sig: sig_off()
-            return res
-        else:
-            if 0 <= n and n < fmpq_poly_length(self.__poly):
-                fmpq_poly_get_coeff_mpq(z.value, self.__poly, n)
-            return z
+        fmpq_poly_get_coeff_mpq(z.value, self.__poly, n)
+        return z
 
     cpdef _unsafe_mutate(self, unsigned long n, value):
         """

@@ -1060,10 +1060,6 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
                 unexpectedly, the `n`-th Frobenius operator of the ring of
                 symmetric functions.
 
-                :meth:`adams_operation` serves as alias for :meth:`frobenius`,
-                since the Frobenius operators are the Adams operations of
-                the `\Lambda`-ring of quasi-symmetric functions.
-
                 .. SEEALSO::
 
                     :meth:`Symmetric functions plethsym
@@ -1127,8 +1123,6 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
                        for (I, coeff) in M(self)}
                 result_in_M_basis = M._from_dict(dct)
                 return parent(result_in_M_basis)
-
-            adams_operation = frobenius
 
             def star_involution(self):
                 r"""

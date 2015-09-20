@@ -786,6 +786,12 @@ cdef class SymbolicRing(CommutativeRing):
 
         return _the_element.subs(d, **kwds)
 
+    def subring(self, *args, **kwds):
+        if self is not SR:
+            raise NotImplementedError('Cannot create subring of %s.' % (self,))
+        from subring import SymbolicSubring
+        return SymbolicSubring(*args, **kwds)
+
 SR = SymbolicRing()
 
 cdef unsigned sage_domain_to_ginac(object domain) except +:

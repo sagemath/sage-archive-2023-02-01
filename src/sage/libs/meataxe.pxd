@@ -63,13 +63,13 @@ cdef extern from "meataxe.h":
 
     ## Rows
     void FfMulRow(PTR row, FEL mark)
-    # void FfAddMulRow(PTR dest, PTR src, FEL f)
+    void FfAddMulRow(PTR dest, PTR src, FEL f)
     PTR FfAddRow(PTR dest, PTR src)
     FEL FfExtract(PTR row, int col)
     void FfInsert(PTR row, int col, FEL mark)
     int FfFindPivot(PTR row, FEL *mark)
     # FEL FfScalarProduct(PTR a, PTR b)
-    # void FfSwapRows(PTR dest, PTR src)
+    void FfSwapRows(PTR dest, PTR src)
     # void FfPermRow(PTR row, long *perm, PTR result)
     # int FfCmpRows(PTR p1, PTR p2)
 

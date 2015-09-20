@@ -1288,8 +1288,6 @@ class DiGraphGenerators():
             * :meth:`~sage.graphs.digraph_generator.DiGraphGenerators.RandomTournament`        
         """
         G = DiGraph(n, name="Random Semi-Complete digraph")
-        if n==0:
-            return G
 
         # For each pair u,v we choose a randon number ``coin`` in [1,3].
         # We select edge `(u,v)` if `coin==1` or `coin==2`.

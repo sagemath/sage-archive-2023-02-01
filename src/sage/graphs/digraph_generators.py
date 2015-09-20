@@ -1239,6 +1239,51 @@ class DiGraphGenerators():
         import networkx
         return DiGraph(networkx.gnc_graph(n, seed=seed))
 
+    def RandomSemiCompleteDiGraph(n):
+        r"""
+        Return a random semi-complete digraph of order `n`.
+
+        A directed graph `G=(V,E)` is ``semi-complete`` if for any pair of
+        vertices `u` and `v`, *at least* one edge of ``uv`` and ``vu`` is in
+        ``E``.
+
+        INPUT:
+
+        - ``n`` (integer) -- the number of nodes
+
+        EXAMPLES:
+
+            sage: SC = digraphs.RandomSemiCompleteDiGraph(10); SC
+            Random Random Semi-Complete digraph: Digraph on 10 vertices
+            sage: SC.size() >= binomial(10, 2)
+            True
+            sage: digraphs.RandomSemiCompleteDiGraph(-1)
+            Traceback (most recent call last):
+            ...
+            ValueError: The number of vertices cannot be strictly negative!
+        """
+        G = DiGraph(n, name="Random Semi-Complete digraph")
+        if n==0:
+            return G
+
+        # For each pair u,v we choose a randon number ``coin`` in [1,3].
+        # We select edge `(u,v)` if `coin==1` or `coin==2`.
+        # We select edge `(v,u)` if `coin==2` or `coin==3`.
+        import itertools
+        from sage.misc.prandom import randint
+        for u,v in itertools.combinations(range(n), 2):
+            coin = randint(1,3)
+            if coin<=2:
+                G.add_edge(u,v)
+            if coin>=2:
+                G.add_edge(v,u)
+
+        if n:
+            from sage.graphs.graph_plot import _circle_embedding
+            _circle_embedding(G, range(n))
+
+        return G
+
 ################################################################################
 #   DiGraph Iterators
 ################################################################################

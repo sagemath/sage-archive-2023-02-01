@@ -4469,10 +4469,6 @@ class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
         where `p_n` is the `n`-th powersum symmetric function, and `\circ`
         denotes (outer) plethysm.
 
-        :meth:`adams_operation` serves as alias for :meth:`frobenius`, since the
-        Frobenius operators are the Adams operations of the `\Lambda`-ring
-        of symmetric functions.
-
         INPUT:
 
         - ``n`` -- a positive integer
@@ -4576,7 +4572,9 @@ class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
         result_in_m_basis = m._from_dict(dct)
         return parent(result_in_m_basis)
 
-    adams_operation = frobenius
+    def adams_operation(self, *args, **opts):
+        from sage.misc.superseded import deprecation
+        deprecation(19255, "Do not use this method! Please use `frobenius` or `adams_operator` methods following what you expect.")
 
     def verschiebung(self, n):
         r"""

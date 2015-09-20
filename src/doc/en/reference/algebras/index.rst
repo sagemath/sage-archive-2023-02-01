@@ -25,6 +25,8 @@ Algebras
    sage/algebras/free_algebra_quotient
    sage/algebras/free_algebra_quotient_element
 
+   sage/algebras/free_zinbiel_algebra
+
    sage/algebras/group_algebra
 
    sage/algebras/iwahori_hecke_algebra

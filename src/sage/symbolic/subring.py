@@ -96,18 +96,12 @@ class SymbolicSubringFactory(UniqueFactory):
 
         sage: from sage.symbolic.subring import SymbolicSubring
         sage: V = var('a, b, c, r, s, t, x, y, z')
-        sage: def var_in_subring(s, S):
-        ....:     try:
-        ....:         S(s)
-        ....:         return True
-        ....:     except ValueError:
-        ....:         return False
 
     ::
 
         sage: A = SymbolicSubring(accepting_variables=(a, b, c)); A
         Symbolic Subring accepting the variables a, b, c
-        sage: tuple((v, var_in_subring(v, A)) for v in V)
+        sage: tuple((v, v in A) for v in V)
         ((a, True), (b, True), (c, True),
          (r, False), (s, False), (t, False),
          (x, False), (y, False), (z, False))
@@ -116,7 +110,7 @@ class SymbolicSubringFactory(UniqueFactory):
 
         sage: R = SymbolicSubring(rejecting_variables=(r, s, t)); R
         Symbolic Subring rejecting the variables r, s, t
-        sage: tuple((v, var_in_subring(v, R)) for v in V)
+        sage: tuple((v, v in R) for v in V)
         ((a, True), (b, True), (c, True),
          (r, False), (s, False), (t, False),
          (x, True), (y, True), (z, True))
@@ -125,7 +119,7 @@ class SymbolicSubringFactory(UniqueFactory):
 
         sage: C = SymbolicSubring(only_constants=True); C
         Symbolic Constants Subring
-        sage: tuple((v, var_in_subring(v, C)) for v in V)
+        sage: tuple((v, v in C) for v in V)
         ((a, False), (b, False), (c, False),
          (r, False), (s, False), (t, False),
          (x, False), (y, False), (z, False))

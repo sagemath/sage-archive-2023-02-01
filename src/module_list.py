@@ -900,8 +900,8 @@ ext_modules = [
               extra_compile_args = m4ri_extra_compile_args,
               depends = [SAGE_INC + "/png.h", SAGE_INC + "/m4ri/m4ri.h"]),
 
-    Extension('sage.matrix.matrix_mod2e_dense',
-              sources = ['sage/matrix/matrix_mod2e_dense.pyx'],
+    Extension('sage.matrix.matrix_gf2e_dense',
+              sources = ['sage/matrix/matrix_gf2e_dense.pyx'],
               libraries = ['m4rie', 'm4ri', 'm'],
               depends = [SAGE_INC + "/m4rie/m4rie.h"],
               extra_compile_args = m4ri_extra_compile_args),

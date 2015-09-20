@@ -22,6 +22,7 @@ build by typing ``digraphs.`` in Sage and then hitting tab.
     :meth:`~DiGraphGenerators.ButterflyGraph`      | Returns a n-dimensional butterfly graph.
     :meth:`~DiGraphGenerators.Circuit`             | Returns the circuit on `n` vertices.
     :meth:`~DiGraphGenerators.Circulant`           | Returns a circulant digraph on `n` vertices from a set of integers.
+    :meth:`~DiGraphGenerators.CompleteDiGraph`     | Return a complete digraph on `n` vertices.
     :meth:`~DiGraphGenerators.DeBruijn`            | Returns the De Bruijn digraph with parameters `k,n`.
     :meth:`~DiGraphGenerators.GeneralizedDeBruijn` | Returns the generalized de Bruijn digraph of order `n` and degree `d`.
     :meth:`~DiGraphGenerators.ImaseItoh`           | Returns the digraph of Imase and Itoh of order `n` and degree `d`.
@@ -35,6 +36,8 @@ build by typing ``digraphs.`` in Sage and then hitting tab.
     :meth:`~DiGraphGenerators.RandomTournament`    | Returns a random tournament on `n` vertices.
     :meth:`~DiGraphGenerators.TransitiveTournament`| Returns a transitive tournament on `n` vertices.
     :meth:`~DiGraphGenerators.tournaments_nauty`   | Returns all tournaments on `n` vertices using Nauty.
+    :meth:`~DiGraphGenerators.RandomSemiCompleteDiGraph` | Return a random semi-complete digraph of order `n`.
+
 
 AUTHORS:
 
@@ -82,8 +85,11 @@ class DiGraphGenerators():
                     - RandomDirectedGNP
                     - RandomDirectedGNM
                     - RandomDirectedGNR
+                    - RandomTournament
+                    - RandomSemiCompleteDiGraph
 
                 Families of Graphs:
+                    - CompleteDiGraph
                     - DeBruijn
                     - GeneralizedDeBruijn
                     - Kautz
@@ -509,7 +515,7 @@ class DiGraphGenerators():
 
     def CompleteDiGraph(self, n, loops=False):
         r"""
-        Return the complete digraph on `n` vertices
+        Return the complete digraph on `n` vertices.
 
         INPUT:
 
@@ -1241,7 +1247,7 @@ class DiGraphGenerators():
 
     def RandomSemiCompleteDiGraph(n):
         r"""
-        Return a random semi-complete digraph of order `n`.
+        Return a random semi-complete digraph on `n` vertices.
 
         A directed graph `G=(V,E)` is ``semi-complete`` if for any pair of
         vertices `u` and `v`, *at least* one edge of ``uv`` and ``vu`` is in

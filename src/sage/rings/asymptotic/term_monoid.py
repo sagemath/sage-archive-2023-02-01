@@ -1412,6 +1412,50 @@ class TermWithCoefficient(GenericTerm):
                              self.coefficient * other.coefficient)
 
 
+    def _le_(self, other):
+        r"""
+        Return whether this asymptotic term with coefficient grows
+        at most (less than or equal) like ``other``.
+
+        INPUT:
+
+        - ``other`` -- an asymptotic term with coefficient.
+
+        OUTPUT:
+
+        A boolean.
+
+        .. NOTE::
+
+            This method is called by the coercion framework, thus,
+            it can be assumed that this element and ``other`` are
+            from the same parent.
+
+        EXAMPLES::
+
+            sage: from sage.rings.asymptotic.growth_group import GrowthGroup
+            sage: from sage.rings.asymptotic.term_monoid import TermMonoid
+            sage: G = GrowthGroup('x^ZZ'); x = G.gen()
+            sage: ET = TermMonoid('exact', G, QQ)
+            sage: t1 = ET(x, 5); t2 = ET(x^2, 3); t3 = ET(x^2, 42)
+            sage: t1 <= t2
+            True
+            sage: t2 <= t1
+            False
+            sage: t2 <= t3
+            False
+            sage: t3 <= t2
+            False
+
+        TESTS::
+
+            sage: ET(x, -2) <= ET(x, 1)
+            False
+        """
+        if self.growth == other.growth:
+            return self.coefficient == other.coefficient
+        else:
+            return super(TermWithCoefficient, self)._le_(other)
 class TermWithCoefficientMonoid(GenericTermMonoid):
     r"""
     This class implements the base structure for parents of

@@ -598,10 +598,7 @@ ext_modules = [
               libraries = ['flint']),
 
     Extension('sage.libs.ppl',
-              sources = ['sage/libs/ppl.pyx', 'sage/libs/ppl_shim.cc'],
-              libraries = ['ppl', 'gmpxx', 'gmp', 'm'],
-              language="c++",
-              depends = [SAGE_INC + "/ppl.hh"]),
+              sources = ['sage/libs/ppl.pyx', 'sage/libs/ppl_shim.cc']),
 
     Extension('sage.libs.ratpoints',
               sources = ["sage/libs/ratpoints.pyx"],
@@ -999,9 +996,7 @@ ext_modules = [
     Extension('sage.modular.arithgroup.farey_symbol',
               sources = ['sage/modular/arithgroup/farey_symbol.pyx',
                          'sage/modular/arithgroup/farey.cpp',
-                         'sage/modular/arithgroup/sl2z.cpp'],
-              libraries = ['gmpxx', 'gmp'],
-              language = 'c++'),
+                         'sage/modular/arithgroup/sl2z.cpp']),
 
     Extension('sage.modular.arithgroup.arithgroup_element',
               sources = ['sage/modular/arithgroup/arithgroup_element.pyx']),

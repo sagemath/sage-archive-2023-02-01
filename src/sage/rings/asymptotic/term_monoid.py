@@ -195,6 +195,9 @@ def absorption(left, right):
         :python:`ArithmeticError<library/exceptions.html#exceptions.ArithmeticError>`
         is raised.
 
+        See :ref:`the module description <term_absorption>` for a
+        detailed explanation of absorption.
+
     INPUT:
 
     - ``left`` -- an asymptotic term.
@@ -250,6 +253,11 @@ def can_absorb(left, right):
     OUTPUT:
 
     A boolean.
+
+    .. NOTE::
+
+        See :ref:`the module description <term_absorption>` for a
+        detailed explanation of absorption.
 
     EXAMPLES::
 
@@ -426,9 +434,8 @@ class GenericTerm(sage.structure.element.MonoidElement):
         .. NOTE::
 
             For a more detailed explanation of the *absorption* of
-            asymptotic terms see the introduction of :mod:`this module
-            <sage.rings.asymptotic.term_monoid>`, or the examples
-            below.
+            asymptotic terms see
+            :ref:`the module description <term_absorption>`.
 
         EXAMPLES:
 
@@ -446,10 +453,8 @@ class GenericTerm(sage.structure.element.MonoidElement):
             sage: et1 = ET(x, 100); et2 = ET(x^2, 2)
             sage: et3 = ET(x^2, 1); et4 = ET(x^2, -2)
 
-        Because of the definition of `O`-terms (see
-        :wikipedia:`Big_O_notation`), they are able to absorb all
-        other asymptotic terms with weaker or equal growth. The
-        result of the absorption is the original `O`-term::
+        `O`-Terms are able to absorb other `O`-terms and exact terms
+        with weaker or equal growth.
 
             sage: ot1.absorb(ot1)
             O(x)
@@ -457,22 +462,6 @@ class GenericTerm(sage.structure.element.MonoidElement):
             O(x)
             sage: ot1.absorb(et1) is ot1
             True
-
-        The first example above corresponds to `O(x) + O(x) = O(x)`, and
-        the second to `O(x) + 100x = O(x)`.
-        If ``absorb`` is called on a term that cannot be absorbed, an
-        :python:`ArithmeticError<library/exceptions.html#exceptions.ArithmeticError>`
-        is raised::
-
-            sage: ot1.absorb(ot2)
-            Traceback (most recent call last):
-            ...
-            ArithmeticError: O(x) cannot absorb O(x^2)
-
-        This would only work the other way around::
-
-            sage: ot2.absorb(ot1)
-            O(x^2)
 
         :class:`ExactTerm` is able to absorb another
         :class:`ExactTerm` if the terms have the same growth. In this
@@ -1089,6 +1078,9 @@ class OTerm(GenericTerm):
             An :class:`OTerm` can absorb any other asymptotic term
             with weaker or equal growth.
 
+            See :ref:`the module description <term_absorption>` for a
+            detailed explanation of absorption.
+
         EXAMPLES::
 
             sage: import sage.rings.asymptotic.growth_group as agg
@@ -1124,6 +1116,9 @@ class OTerm(GenericTerm):
             Also, observe that the result of a "dominant" `O`-term
             absorbing another `O`-term always is the "dominant"
             `O`-term again.
+
+            See :ref:`the module description <term_absorption>` for a
+            detailed explanation on absorption.
 
         EXAMPLES::
 
@@ -1824,6 +1819,9 @@ class ExactTerm(TermWithCoefficient):
             addition. This means that an exact term can absorb
             only other exact terms with the same growth.
 
+            See :ref:`the module description <term_absorption>` for a
+            detailed explanation of absorption.
+
         EXAMPLES::
 
             sage: import sage.rings.asymptotic.growth_group as agg
@@ -1857,6 +1855,9 @@ class ExactTerm(TermWithCoefficient):
             In the context of exact terms, absorption translates
             to addition. As the coefficient `0` is not allowed,
             ``None`` is returned instead if the terms cancel out.
+
+            See :ref:`the module description <term_absorption>` for a
+            detailed explanation on absorption.
 
         EXAMPLES::
 

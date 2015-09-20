@@ -20,10 +20,7 @@ from sage.libs.meataxe cimport *
 cdef class Matrix_gfpn_dense(Matrix_dense):
     cdef Matrix_t *Data
     cdef FieldConverter_class _converter
-    #cpdef Matrix_gfpn_dense normalized(Matrix_gfpn_dense self)
-    #cpdef Matrix_gfpn_dense semi_echelon(Matrix_gfpn_dense self)
-    #cpdef int nullity(Matrix_gfpn_dense self)
-    #cpdef tuple lead(self)
+    cdef Matrix_gfpn_dense _new(self, Py_ssize_t nrows, Py_ssize_t ncols)
     cdef set_unsafe_int(self, Py_ssize_t i, Py_ssize_t j, int value)
     cdef inline int get_unsafe_int(self, Py_ssize_t i, Py_ssize_t j)
     cdef Matrix _matrix_times_matrix_(self, Matrix right)

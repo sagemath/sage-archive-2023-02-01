@@ -904,11 +904,21 @@ class GenericTermMonoid(sage.structure.parent.Parent,
             sage: T_QQ = atm.GenericTermMonoid(growth_group=G_QQ)
             sage: term1 = T_ZZ(G_ZZ.gen())
             sage: term2 = T_QQ(G_QQ.gen()^2)
-            sage: term1 <= term2  # in order for two terms to be compared,
-            ....:                 # a coercion into one of the parents
-            ....:                 # has to be found.
+
+        In order for two terms to be compared, a coercion into
+        a common parent has to be found::
+
+            sage: term1.parent()
+            Generic Term Monoid x^ZZ
+            sage: term2.parent()
+            Generic Term Monoid x^QQ
+            sage: term1 <= term2
             True
-            sage: T_QQ(term1)  # coercion does not fail
+
+        In this case, this works because ``T_ZZ``, the parent of
+        ``term1``, coerces into ``T_QQ``::
+
+            sage: T_QQ.coerce(term1)
             Generic Term with growth x
 
         The conversion of growth elements also works for the creation

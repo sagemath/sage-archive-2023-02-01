@@ -582,6 +582,11 @@ class GenericTerm(sage.structure.element.MonoidElement):
 
         A boolean.
 
+        .. NOTE::
+
+            This method **only** compares the growth of the input
+            terms!
+
         EXAMPLES:
 
         First, we define some asymptotic terms (and their parents)::
@@ -623,12 +628,12 @@ class GenericTerm(sage.structure.element.MonoidElement):
             True
 
         For terms with coefficient (like exact terms), the
-        coefficient is compared as well if the growth is equal::
+        coefficient is not taken into account::
 
             sage: t1 <= t2
             True
             sage: t1 <= ET_ZZ(x^2, 3)
-            False
+            True
         """
         from sage.structure.element import have_same_parent
 
@@ -662,6 +667,9 @@ class GenericTerm(sage.structure.element.MonoidElement):
             This method is called by the coercion framework, thus,
             it can be assumed that this element, as well as ``other``
             are from the same parent.
+
+            Also, this method **only** compares the growth of the
+            input terms!
 
         EXAMPLES::
 
@@ -1393,64 +1401,6 @@ class TermWithCoefficient(GenericTerm):
         """
         return self.parent()(self.growth * other.growth,
                              self.coefficient * other.coefficient)
-
-
-    def _le_(self, other):
-        r"""
-        Return whether this asymptotic term with coefficient grows
-        at most (less than or equal) like ``other``.
-
-        INPUT:
-
-        - ``other`` -- an asymptotic term with coefficient.
-
-        OUTPUT:
-
-        A boolean.
-
-        .. NOTE::
-
-            This method is called by the coercion framework, thus,
-            it can be assumed that this element and ``other`` are
-            from the same parent.
-
-        EXAMPLES::
-
-            sage: import sage.rings.asymptotic.term_monoid as atm
-            sage: import sage.rings.asymptotic.growth_group as agg
-            sage: G = agg.GrowthGroup('x^ZZ'); x = G.gen()
-            sage: ET = atm.ExactTermMonoid(G, QQ)
-            sage: t1 = ET(x, 5); t2 = ET(x^2, 3); t3 = ET(x^2, 42)
-            sage: t1 <= t2
-            True
-            sage: t2 <= t1
-            False
-            sage: t2 <= t3
-            True
-            sage: t3 <= t2
-            False
-
-        TESTS::
-
-            sage: ET(x, -2) <= ET(x, 1)
-            False
-
-        ::
-
-            sage: ET = atm.ExactTermMonoid(G, CC)
-            sage: ET(x, -1) <= ET(x, I)
-            False
-            sage: ET(x, I) <= ET(x, -1)
-            False
-        """
-        if self.growth == other.growth:
-            if any(hasattr(t, 'imag_part') and not t.imag_part().is_zero()
-                   for t in (self, other)):
-                return False
-            return abs(self.coefficient) < abs(other.coefficient) or \
-                self.coefficient == other.coefficient
-        else:
-            return super(TermWithCoefficient, self)._le_(other)
 
 
 class TermWithCoefficientMonoid(GenericTermMonoid):

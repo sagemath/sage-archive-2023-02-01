@@ -1,6 +1,53 @@
 r"""
 Subrings of the Symbolic Ring
 
+
+TESTS:
+
+In the following we have a couple of tests to see whether the coercion
+framework works properly::
+
+    sage: from sage.symbolic.subring import SymbolicSubring
+    sage: V = var('a, r, x')
+    sage: A = SymbolicSubring(accepting_variables=(a,)); A
+    Symbolic Subring accepting the variable a
+    sage: R = SymbolicSubring(rejecting_variables=(r,)); R
+    Symbolic Subring rejecting the variable r
+    sage: C = SymbolicSubring(only_constants=True); C
+    Symbolic Constants Subring
+
+::
+
+    sage: sage.categories.pushout.pushout(A, R)
+    Symbolic Subring rejecting the variable r
+    sage: sage.categories.pushout.pushout(R, C)
+    Symbolic Subring rejecting the variable r
+    sage: sage.categories.pushout.pushout(C, A)
+    Symbolic Subring accepting the variable a
+    sage: sage.categories.pushout.pushout(A, SR)
+    Symbolic Ring
+    sage: sage.categories.pushout.pushout(R, SR)
+    Symbolic Ring
+    sage: sage.categories.pushout.pushout(C, SR)
+    Symbolic Ring
+
+::
+
+    sage: cm = sage.structure.element.get_coercion_model()
+    sage: cm.common_parent(A, R)
+    Symbolic Subring rejecting the variable r
+    sage: cm.common_parent(R, C)
+    Symbolic Subring rejecting the variable r
+    sage: cm.common_parent(C, A)
+    Symbolic Subring accepting the variable a
+    sage: cm.common_parent(A, SR)
+    Symbolic Ring
+    sage: cm.common_parent(R, SR)
+    Symbolic Ring
+    sage: cm.common_parent(C, SR)
+    Symbolic Ring
+
+
 AUTHORS:
 
 - Daniel Krenn (2015)

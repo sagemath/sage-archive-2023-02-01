@@ -131,6 +131,15 @@ cdef class SymbolicRing(CommutativeRing):
             6
             sage: SR(5)-True
             4
+
+        TESTS::
+
+            sage: SR.has_coerce_map_from(SR.subring(accepting_variables=('a',)))
+            True
+            sage: SR.has_coerce_map_from(SR.subring(rejecting_variables=('r',)))
+            True
+            sage: SR.has_coerce_map_from(SR.subring(only_constants=True))
+            True
         """
         if isinstance(R, type):
             if R in [int, float, long, complex, bool]:
@@ -167,6 +176,8 @@ cdef class SymbolicRing(CommutativeRing):
 
             from sage.interfaces.maxima import Maxima
 
+            from subring import GenericSymbolicSubring
+
             if ComplexField(mpfr_prec_min()).has_coerce_map_from(R):
                 # Anything with a coercion into any precision of CC
 
@@ -185,6 +196,8 @@ cdef class SymbolicRing(CommutativeRing):
                 return True
             elif isinstance(R, (Maxima, PariInstance)):
                 return False
+            elif isinstance(R, GenericSymbolicSubring):
+                return True
 
     def _element_constructor_(self, x):
         """

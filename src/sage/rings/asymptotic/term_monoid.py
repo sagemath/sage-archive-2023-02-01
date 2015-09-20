@@ -384,68 +384,10 @@ class GenericTerm(sage.structure.element.MonoidElement):
 
         .. NOTE::
 
-            This method calls :meth:`_can_absorb_`, which is has to be
-            implemented/overridden in a derived class.
+            A :class:`GenericTerm` cannot absorb any other term.
 
-        EXAMPLES:
-
-        We want to show step by step which terms can be absorbed
-        by which other terms. We start by defining the necessary
-        term monoids and some terms::
-
-            sage: import sage.rings.asymptotic.term_monoid as atm
-            sage: import sage.rings.asymptotic.growth_group as agg
-            sage: G = agg.GrowthGroup('x^ZZ'); x = G.gen()
-            sage: OT = atm.OTermMonoid(growth_group=G)
-            sage: ET = atm.ExactTermMonoid(growth_group=G, base_ring=QQ)
-            sage: ot1 = OT(x); ot2 = OT(x^2)
-            sage: et1 = ET(x^2, 2)
-
-        :class:`OTerm` is able to absorb other :class:`OTerm`,
-        as well as :class:`ExactTerm`, as long as the growth of
-        the other term is less than or equal to the growth of this
-        element::
-
-            sage: ot1, ot2
-            (O(x), O(x^2))
-            sage: ot1.can_absorb(ot2), ot2.can_absorb(ot1)
-            (False, True)
-            sage: et1
-            2*x^2
-            sage: ot1.can_absorb(et1)
-            False
-            sage: ot2.can_absorb(et1)
-            True
-
-        :class:`ExactTerm` can only absorb another
-        :class:`ExactTerm` if the growth coincides with the
-        growth of this element::
-
-            sage: et1.can_absorb(ET(x^2, 5))
-            True
-            sage: any(et1.can_absorb(t) for t in [ot1, ot2])
-            False
-        """
-        return self._can_absorb_(other)
-
-
-    def _can_absorb_(self, other):
-        r"""
-        Check whether this generic term can absorb ``other``.
-
-        INPUT:
-
-        - ``other`` -- an asymptotic term.
-
-        OUTPUT:
-
-        A boolean.
-
-        .. NOTE::
-
-            Generic terms are not able to absorb any other term.
-            Therefore, this method just returns ``False``.
-            Override this in derived class.
+            See :ref:`the module description <term_absorption>` for a
+            detailed explanation of absorption.
 
         EXAMPLES::
 
@@ -1122,7 +1064,7 @@ class OTerm(GenericTerm):
         return 'O(%s)' % self.growth
 
 
-    def _can_absorb_(self, other):
+    def can_absorb(self, other):
         r"""
         Check whether this `O`-term can absorb ``other``.
 
@@ -1145,9 +1087,9 @@ class OTerm(GenericTerm):
             sage: import sage.rings.asymptotic.term_monoid as atm
             sage: OT = atm.TermMonoid('O', agg.GrowthGroup('x^ZZ'))
             sage: t1 = OT(x^21); t2 = OT(x^42)
-            sage: t1.can_absorb(t2)  # indirect doctest
+            sage: t1.can_absorb(t2)
             False
-            sage: t2.can_absorb(t1)  # indirect doctest
+            sage: t2.can_absorb(t1)
             True
         """
         return other <= self
@@ -1915,7 +1857,7 @@ class ExactTerm(TermWithCoefficient):
                 return '%s*%s' % (self.coefficient, self.growth)
 
 
-    def _can_absorb_(self, other):
+    def can_absorb(self, other):
         r"""
         Check whether this exact term can absorb ``other``.
 
@@ -1939,11 +1881,11 @@ class ExactTerm(TermWithCoefficient):
             sage: import sage.rings.asymptotic.term_monoid as atm
             sage: ET = atm.TermMonoid('exact', agg.GrowthGroup('x^ZZ'), ZZ)
             sage: t1 = ET(x^21, 1); t2 = ET(x^21, 2); t3 = ET(x^42, 1)
-            sage: t1.can_absorb(t2)  # indirect doctest
+            sage: t1.can_absorb(t2)
             True
-            sage: t2.can_absorb(t1)  # indirect doctest
+            sage: t2.can_absorb(t1)
             True
-            sage: t1.can_absorb(t3) or t3.can_absorb(t1) # indirect doctest
+            sage: t1.can_absorb(t3) or t3.can_absorb(t1)
             False
         """
         return isinstance(other, ExactTerm) and self.growth == other.growth

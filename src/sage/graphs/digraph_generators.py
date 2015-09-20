@@ -524,14 +524,15 @@ class DiGraphGenerators():
         - ``loops`` (boolean) -- whether to add loops or not, i.e., edges from
           `u` to itself.
 
-        EXAMPLES:
+        EXAMPLES::
 
-            sage: G = digraphs.CompleteDiGraph(10); G
+            sage: n = 10
+            sage: G = digraphs.CompleteDiGraph(n); G
             Complete digraph: Digraph on 10 vertices
             sage: G.size() == n*(n-1)
             True
-            sage: G = digraphs.CompleteDiGraph(10, loops=True); G
-            Complete digraph: Digraph on 10 vertices
+            sage: G = digraphs.CompleteDiGraph(n, loops=True); G
+            Complete digraph with loops: Looped digraph on 10 vertices
             sage: G.size() == n*n
             True
             sage: digraphs.CompleteDiGraph(-1)
@@ -1245,7 +1246,7 @@ class DiGraphGenerators():
         import networkx
         return DiGraph(networkx.gnc_graph(n, seed=seed))
 
-    def RandomSemiCompleteDiGraph(n):
+    def RandomSemiCompleteDiGraph(self, n):
         r"""
         Return a random semi-complete digraph on `n` vertices.
 
@@ -1257,10 +1258,10 @@ class DiGraphGenerators():
 
         - ``n`` (integer) -- the number of nodes
 
-        EXAMPLES:
+        EXAMPLES::
 
             sage: SC = digraphs.RandomSemiCompleteDiGraph(10); SC
-            Random Random Semi-Complete digraph: Digraph on 10 vertices
+            Random Semi-Complete digraph: Digraph on 10 vertices
             sage: SC.size() >= binomial(10, 2)
             True
             sage: digraphs.RandomSemiCompleteDiGraph(-1)

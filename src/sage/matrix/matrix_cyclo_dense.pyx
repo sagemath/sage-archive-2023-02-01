@@ -50,7 +50,6 @@ from constructor import matrix
 from matrix_space import MatrixSpace
 from matrix cimport Matrix
 import matrix_dense
-import sage.matrix.constructor
 from matrix_integer_dense import _lift_crt
 from sage.structure.element cimport Matrix as baseMatrix
 from misc import matrix_integer_dense_rational_reconstruction

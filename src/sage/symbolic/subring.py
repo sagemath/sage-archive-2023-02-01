@@ -85,7 +85,7 @@ class SymbolicSubringFactory(UniqueFactory):
 
     - ``rejecting_variables`` (default: ``None``) -- a tuple or other
       iterable of variables. If specified, then a symbolic subring of
-      expressions in variables not distinct of these variables is
+      expressions in variables distinct to these variables is
       created.
 
     - ``only_constants`` (default: ``False``) -- a boolean. If set,

@@ -4420,18 +4420,11 @@ class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
         which connects the ring of symmetric functions with the
         representation theory of the symmetric group.
 
-        The `n`-th Frobenius operator is also the `n`-th Adams operator
-        of the `\Lambda`-ring of symmetric functions over the integers.
-
         The `n`-th Frobenius operator can also be described via plethysm:
         Every symmetric function `P` satisfies
         `\mathbf{f}_n(P) = p_n \circ P = P \circ p_n`,
         where `p_n` is the `n`-th powersum symmetric function, and `\circ`
         denotes (outer) plethysm.
-
-        :meth:`adams_operation` serves as alias for :meth:`frobenius`, since the
-        Frobenius operators are the Adams operations of the `\Lambda`-ring
-        of symmetric functions.
 
         INPUT:
 
@@ -4535,8 +4528,6 @@ class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
                for (lam, coeff) in m(self)}
         result_in_m_basis = m._from_dict(dct)
         return parent(result_in_m_basis)
-
-    adams_operation = frobenius
 
     def verschiebung(self, n):
         r"""

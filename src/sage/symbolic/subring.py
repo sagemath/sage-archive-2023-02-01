@@ -21,7 +21,6 @@ Classes and Methods
 #*****************************************************************************
 
 from ring import SymbolicRing, SR
-from expression import Expression
 
 
 from sage.structure.factory import UniqueFactory

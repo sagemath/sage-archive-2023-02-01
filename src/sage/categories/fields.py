@@ -103,8 +103,15 @@ class Fields(CategoryWithAxiom):
             sage: for i in prime_range(100):
             ....:     R = ZZ.quotient(i)
             ....:     t = R in Fields()
+
+        First, we show that there are now more quotient rings in cache than before::
+
             sage: len([X for X in gc.get_objects() if isinstance(X, sage.rings.finite_rings.integer_mod_ring.IntegerModRing_generic)]) > n
             True
+
+        When we delete the last quotient ring created in the loop and then do a garbage
+        collection, all newly created rings vanish::
+
             sage: del R
             sage: _ = gc.collect()
             sage: len([X for X in gc.get_objects() if isinstance(X, sage.rings.finite_rings.integer_mod_ring.IntegerModRing_generic)]) - n

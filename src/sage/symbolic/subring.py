@@ -797,9 +797,16 @@ class SymbolicSubringRejectingVars(GenericSymbolicSubring):
             False
             sage: R.has_coerce_map_from(RS)  # indirect doctest
             True
+            sage: A = SymbolicSubring(accepting_variables=('a',))
+            sage: R.has_coerce_map_from(A)
+            True
+            sage: A.has_coerce_map_from(R)
+            False
         """
         if isinstance(P, SymbolicSubringRejectingVars):
             return self._vars_ <= P._vars_
+        elif isinstance(P, SymbolicSubringAcceptingVars):
+            return not (self._vars_ & P._vars_)
         return super(SymbolicSubringRejectingVars, self)._coerce_map_from_(P)
 
 

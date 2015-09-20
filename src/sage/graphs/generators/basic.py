@@ -832,6 +832,15 @@ def GridGraph(dim_list):
         sage: g.name()
         'Grid Graph for [2, 4, 3]'
 
+    The graph is correct::
+
+        sage: dim = [randint(1,4) for i in range(4)]
+        sage: g = graphs.GridGraph(dim)
+        sage: import networkx
+        sage: h = Graph( networkx.grid_graph(list(dim)) )
+        sage: g.is_isomorphic(h)
+        True
+
     All dimensions must be positive integers::
 
         sage: g = graphs.GridGraph([2,-1,3])
@@ -839,13 +848,21 @@ def GridGraph(dim_list):
         ...
         ValueError: All dimensions must be positive integers !
     """
-    import networkx
     dim = [int(a) for a in dim_list]
     if any(a <= 0 for a in dim):
         raise ValueError("All dimensions must be positive integers !")
-    # We give a copy of dim to networkx because it modifies the list
-    G = networkx.grid_graph(list(dim))
-    return graph.Graph(G, name="Grid Graph for " + str(dim))
+
+    import itertools
+    n_dim = len(dim)
+    g = Graph(name="Grid Graph for {}".format(dim))
+    for u in itertools.product(*[range(d) for d in dim]):
+        for i in range(n_dim):
+            if u[i]+1<dim[i]:
+                v = list(u)
+                v[i] = u[i]+1
+                g.add_edge(u, tuple(v))
+    return g
+
 
 def HouseGraph():
     """

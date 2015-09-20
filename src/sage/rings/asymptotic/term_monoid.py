@@ -23,27 +23,6 @@ implements the following types of terms:
 - :class:`ExactTerm` -- this class represents a growth element
   multiplied with some non-zero coefficient from a base ring.
 
-A characteristic property of asymptotic terms is that some terms are
-able to "absorb" other terms (see
-:meth:`~sage.rings.asymptotic.term_monoid.GenericTerm.absorb`). For
-instance, `O(x^2)` is able to absorb `O(x)` (with result
-`O(x^2)`), and `3x^5` is able to absorb `-2x^5` (with result
-`x^5`). Essentially, absorption can be interpreted as the
-addition of "compatible" terms (partial addition).
-
-.. TODO::
-
-    - Implementation of more term types (e.g. `L` terms,
-      `\Omega` terms, `o` terms, `\Theta` terms).
-
-AUTHORS:
-
-- Benjamin Hackl (2015-01): initial version
-- Benjamin Hackl, Daniel Krenn (2015-05): conception of the asymptotic ring
-- Benjamin Hackl (2015-06): refactoring caused by refactoring growth groups
-- Daniel Krenn (2015-07): extensive review and patches
-- Benjamin Hackl (2015-07): cross-review; short notation
-
 .. WARNING::
 
     As this code is experimental, a warning is thrown when a term
@@ -64,6 +43,129 @@ AUTHORS:
         experimental. It, its functionality or its interface might change
         without a formal deprecation.
         See http://trac.sagemath.org/17601 for details.
+
+.. _term_absorption:
+
+Absorption of Asymptotic Terms
+==============================
+
+A characteristic property of asymptotic terms is that some terms are
+able to "absorb" other terms. This is realized with the method
+:meth:`~sage.rings.asymptotic.term_monoid.GenericTerm.absorb`.
+
+For instance, `O(x^2)` is able to absorb `O(x)` (with result
+`O(x^2)`). This is because the functions bounded by linear growth
+are bounded by quadratic growth as well. Another example would be
+that `3x^5` is able to absorb `-2x^5` (with result `x^5`), which
+simply corresponds to addition.
+
+Essentially, absorption can be interpreted
+as the addition of "compatible" terms (partial addition).
+
+We want to show step by step which terms can be absorbed
+by which other terms. We start by defining the necessary
+term monoids and some terms::
+
+    sage: import sage.rings.asymptotic.term_monoid as atm
+    sage: import sage.rings.asymptotic.growth_group as agg
+    sage: G = agg.GrowthGroup('x^ZZ'); x = G.gen()
+    sage: OT = atm.OTermMonoid(growth_group=G)
+    sage: ET = atm.ExactTermMonoid(growth_group=G, base_ring=QQ)
+    sage: ot1 = OT(x); ot2 = OT(x^2)
+    sage: et1 = ET(x^2, 2)
+
+- Because of the definition of `O`-terms (see
+  :wikipedia:`Big_O_notation`), :class:`OTerm` are able to absorb all
+  other asymptotic terms with weaker or equal growth. In our
+  implementation, this means that :class:`OTerm` is able to absorb
+  other :class:`OTerm`, as well as :class:`ExactTerm`, as long as the
+  growth of the other term is less than or equal to the growth of this
+  element::
+
+      sage: ot1, ot2
+      (O(x), O(x^2))
+      sage: ot1.can_absorb(ot2), ot2.can_absorb(ot1)
+      (False, True)
+      sage: et1
+      2*x^2
+      sage: ot1.can_absorb(et1)
+      False
+      sage: ot2.can_absorb(et1)
+      True
+
+  The result of this absorption always is the dominant
+  (absorbing) :class:`OTerm`::
+
+      sage: ot1.absorb(ot1)
+      O(x)
+      sage: ot2.absorb(ot1)
+      O(x^2)
+      sage: ot2.absorb(et1)
+      O(x^2)
+
+  These examples correspond to `O(x) + O(x) = O(x)`,
+  `O(x^2) + O(x) = O(x^2)`, and `O(x^2) + 2x^2 = O(x^2)`.
+
+- :class:`ExactTerm` can only absorb another
+  :class:`ExactTerm` if the growth coincides with the
+  growth of this element::
+
+      sage: et1.can_absorb(ET(x^2, 5))
+      True
+      sage: any(et1.can_absorb(t) for t in [ot1, ot2])
+      False
+
+  As mentioned above, absorption directly corresponds
+  to addition in this case::
+
+      sage: et1.absorb(ET(x^2, 5))
+      7*x^2
+
+  When adding two exact terms, they might cancel out.
+  For technical reasons, `None`` is returned in this
+  case::
+
+      sage: ET(x^2, 5).can_absorb(ET(x^2, -5))
+      True
+      sage: repr(ET(x^2, 5).absorb(ET(x^2, -5)))
+      'None'
+
+- The abstract base terms :class:`GenericTerm` and
+  :class:`TermWithCoefficient` can neither absorb any
+  other term, nor be absorbed by any other term.
+
+If ``absorb`` is called on a term that cannot be absorbed, an
+:python:`ArithmeticError<library/exceptions.html#exceptions.ArithmeticError>`
+is raised::
+
+    sage: ot1.absorb(ot2)
+    Traceback (most recent call last):
+    ...
+    ArithmeticError: O(x) cannot absorb O(x^2)
+
+This would only work the other way around::
+
+    sage: ot2.absorb(ot1)
+    O(x^2)
+
+Various
+=======
+
+.. TODO::
+
+    - Implementation of more term types (e.g. `L` terms,
+      `\Omega` terms, `o` terms, `\Theta` terms).
+
+AUTHORS:
+
+- Benjamin Hackl (2015-01): initial version
+- Benjamin Hackl, Daniel Krenn (2015-05): conception of the asymptotic ring
+- Benjamin Hackl (2015-06): refactoring caused by refactoring growth groups
+- Daniel Krenn (2015-07): extensive review and patches
+- Benjamin Hackl (2015-07): cross-review; short notation
+
+Classes and Methods
+===================
 """
 
 # *****************************************************************************

@@ -403,9 +403,10 @@ class DiGraphGenerators():
 
         .. SEEALSO::
 
-            * :meth:`~sage.graphs.digraph_generator.DiGraphGenerators.Complete`
+            - :meth:`~sage.graphs.digraph_generators.DiGraphGenerators.Complete`
 
-            * :meth:`~sage.graphs.digraph_generator.DiGraphGenerators.RandomSemiComplete`        
+            - :meth:`~sage.graphs.digraph_generators.DiGraphGenerators.RandomSemiComplete`
+
         """
         from sage.misc.prandom import random
         g = DiGraph(n)
@@ -548,9 +549,9 @@ class DiGraphGenerators():
 
         .. SEEALSO::
 
-            * :meth:`~sage.graphs.digraph_generator.DiGraphGenerators.RandomSemiComplete`
+            - :meth:`~sage.graphs.digraph_generators.DiGraphGenerators.RandomSemiComplete`
 
-            * :meth:`~sage.graphs.digraph_generator.DiGraphGenerators.RandomTournament`        
+            - :meth:`~sage.graphs.digraph_generators.DiGraphGenerators.RandomTournament`
         """
         G = DiGraph(n, name="Complete digraph"+(" with loops" if loops else ''), loops=loops)
 
@@ -1262,9 +1263,17 @@ class DiGraphGenerators():
         r"""
         Return a random semi-complete digraph on `n` vertices.
 
-        A directed graph `G=(V,E)` is ``semi-complete`` if for any pair of
-        vertices `u` and `v`, *at least* one edge of ``uv`` and ``vu`` is in
-        ``E``.
+        A directed graph `G=(V,E)` is *semi-complete* if for any pair of
+        vertices `u` and `v`, there is *at least* one arc between them.
+
+        To generate randomly a semi-complete digraph, we have to ensure, for any
+        pair of distinct vertices `u` and `v`, that with probability `1/3` we
+        have only arc `uv`, with probability `1/3` we have only arc `vu`, and
+        with probability `1/3` we have both arc `uv` and arc `vu`. We do so by
+        selecting a random integer `coin` in `[1,3]`. The case *only `uv`*
+        corresponds to `coin==1`, the case *only `vu`* to `coin==3`, and the
+        case *both* to `coin==2`.
+
 
         INPUT:
 
@@ -1283,9 +1292,9 @@ class DiGraphGenerators():
 
         .. SEEALSO::
 
-            * :meth:`~sage.graphs.digraph_generator.DiGraphGenerators.Complete`
+            - :meth:`~sage.graphs.digraph_generators.DiGraphGenerators.Complete`
 
-            * :meth:`~sage.graphs.digraph_generator.DiGraphGenerators.RandomTournament`        
+            - :meth:`~sage.graphs.digraph_generators.DiGraphGenerators.RandomTournament`
         """
         G = DiGraph(n, name="Random Semi-Complete digraph")
 

@@ -846,6 +846,8 @@ def GridGraph(dim_list):
     import itertools
     n_dim = len(dim)
     g = Graph(name="Grid Graph for {}".format(dim))
+    # The graph contains at least vertex (0, 0, ..., 0)
+    g.add_vertex(tuple([0]*n_dim))
     for u in itertools.product(*[range(d) for d in dim]):
         for i in range(n_dim):
             if u[i]+1<dim[i]:

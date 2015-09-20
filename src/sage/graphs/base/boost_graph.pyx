@@ -708,7 +708,7 @@ cpdef shortest_paths(g, start, weight_function=None, algorithm=None):
         sage: g = graphs.GridGraph([2,2])
         sage: shortest_paths(g,(0,0),weight_function=lambda e:2)
         [{(0, 0): 0, (0, 1): 2, (1, 0): 2, (1, 1): 4},
-         {(0, 0): None, (0, 1): (0, 0), (1, 0): (0, 0), (1, 1): (0, 1)}]
+         {(0, 0): None, (0, 1): (0, 0), (1, 0): (0, 0), (1, 1): (1, 0)}]
 
     Directed graphs::
 

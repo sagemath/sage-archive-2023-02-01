@@ -317,9 +317,13 @@ class GenericSymbolicSubring(SymbolicRing):
             True
             sage: C.has_coerce_map_from(QQbar)  # indirect doctest
             True
-            sage: C.has_coerce_map_from(SR)  # indirect doctest  # not tested see #19231
+            sage: C.has_coerce_map_from(SR)  # indirect doctest
             False
         """
+        if P == SR:
+            # Workaround; can be deleted once #19231 is fixed
+            return False
+
         from sage.rings.real_mpfr import mpfr_prec_min
         from sage.rings.all import (ComplexField,
                                     RLF, CLF, AA, QQbar, InfinityRing)

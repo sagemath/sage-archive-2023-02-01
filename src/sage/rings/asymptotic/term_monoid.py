@@ -122,13 +122,13 @@ term monoids and some terms::
       7*x^2
 
   When adding two exact terms, they might cancel out.
-  For technical reasons, `None`` is returned in this
+  For technical reasons, ``None`` is returned in this
   case::
 
       sage: ET(x^2, 5).can_absorb(ET(x^2, -5))
       True
-      sage: repr(ET(x^2, 5).absorb(ET(x^2, -5)))
-      'None'
+      sage: ET(x^2, 5).absorb(ET(x^2, -5)) is None
+      True
 
 - The abstract base terms :class:`GenericTerm` and
   :class:`TermWithCoefficient` can neither absorb any
@@ -219,7 +219,7 @@ def absorption(left, right):
         :python:`ArithmeticError<library/exceptions.html#exceptions.ArithmeticError>`
         is raised.
 
-        See :ref:`the module description <term_absorption>` for a
+        See the :ref:`module description <term_absorption>` for a
         detailed explanation of absorption.
 
     INPUT:
@@ -280,7 +280,7 @@ def can_absorb(left, right):
 
     .. NOTE::
 
-        See :ref:`the module description <term_absorption>` for a
+        See the :ref:`module description <term_absorption>` for a
         detailed explanation of absorption.
 
     EXAMPLES::
@@ -418,7 +418,7 @@ class GenericTerm(sage.structure.element.MonoidElement):
 
             A :class:`GenericTerm` cannot absorb any other term.
 
-            See :ref:`the module description <term_absorption>` for a
+            See the :ref:`module description <term_absorption>` for a
             detailed explanation of absorption.
 
         EXAMPLES::
@@ -463,7 +463,7 @@ class GenericTerm(sage.structure.element.MonoidElement):
 
             For a more detailed explanation of the *absorption* of
             asymptotic terms see
-            :ref:`the module description <term_absorption>`.
+            the :ref:`module description <term_absorption>`.
 
         EXAMPLES:
 
@@ -482,7 +482,7 @@ class GenericTerm(sage.structure.element.MonoidElement):
             sage: et3 = ET(x^2, 1); et4 = ET(x^2, -2)
 
         `O`-Terms are able to absorb other `O`-terms and exact terms
-        with weaker or equal growth.
+        with weaker or equal growth. ::
 
             sage: ot1.absorb(ot1)
             O(x)
@@ -1210,7 +1210,7 @@ class OTerm(GenericTerm):
             An :class:`OTerm` can absorb any other asymptotic term
             with weaker or equal growth.
 
-            See :ref:`the module description <term_absorption>` for a
+            See the :ref:`module description <term_absorption>` for a
             detailed explanation of absorption.
 
         EXAMPLES::
@@ -1249,7 +1249,7 @@ class OTerm(GenericTerm):
             absorbing another `O`-term always is the "dominant"
             `O`-term again.
 
-            See :ref:`the module description <term_absorption>` for a
+            See the :ref:`module description <term_absorption>` for a
             detailed explanation on absorption.
 
         EXAMPLES::
@@ -2034,7 +2034,7 @@ class ExactTerm(TermWithCoefficient):
             addition. This means that an exact term can absorb
             only other exact terms with the same growth.
 
-            See :ref:`the module description <term_absorption>` for a
+            See the :ref:`module description <term_absorption>` for a
             detailed explanation of absorption.
 
         EXAMPLES::
@@ -2071,7 +2071,7 @@ class ExactTerm(TermWithCoefficient):
             to addition. As the coefficient `0` is not allowed,
             ``None`` is returned instead if the terms cancel out.
 
-            See :ref:`the module description <term_absorption>` for a
+            See the :ref:`module description <term_absorption>` for a
             detailed explanation on absorption.
 
         EXAMPLES::

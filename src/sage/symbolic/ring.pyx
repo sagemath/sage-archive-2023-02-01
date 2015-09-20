@@ -800,6 +800,94 @@ cdef class SymbolicRing(CommutativeRing):
         return _the_element.subs(d, **kwds)
 
     def subring(self, *args, **kwds):
+        r"""
+        Create a subring of this symbolic ring.
+
+        INPUT:
+
+        Choose one of the following keywords to create a subring.
+
+        - ``accepting_variables`` (default: ``None``) -- a tuple or other
+          iterable of variables. If specified, then a symbolic subring of
+          expressions in only these variables is created.
+
+        - ``rejecting_variables`` (default: ``None``) -- a tuple or other
+          iterable of variables. If specified, then a symbolic subring of
+          expressions in variables distinct to these variables is
+          created.
+
+        - ``only_constants`` (default: ``False``) -- a boolean. If set,
+          then a symbolic subring of constant expressions (i.e.,
+          expressions without a variable) is created.
+
+        OUTPUT:
+
+        A ring.
+
+        EXAMPLES:
+
+        Let us create a couple of symbolic variables first::
+
+            sage: V = var('a, b, r, s, x, y')
+
+        Now we create a symbolic subring only accepting expressions in
+        the variables `a` and `b`::
+
+            sage: A = SR.subring(accepting_variables=(a, b)); A
+            Symbolic Subring accepting the variables a, b
+
+        An element is
+        ::
+
+            sage: A.an_element()
+            a
+
+        From our variables in `V` the following are valid in `A`::
+
+            sage: tuple(v for v in V if v in A)
+            (a, b)
+
+        Next, we create a symbolic subring rejecting expressions with
+        given variables::
+
+            sage: R = SR.subring(rejecting_variables=(r, s)); R
+            Symbolic Subring rejecting the variables r, s
+
+        An element is
+        ::
+
+            sage: R.an_element()
+            some_variable
+
+        From our variables in `V` the following are valid in `R`::
+
+            sage: tuple(v for v in V if v in R)
+            (a, b, x, y)
+
+        We have a third kind of subring, namely the subring of
+        symbolic constants::
+
+            sage: C = SR.subring(only_constants=True); C
+            Symbolic Constants Subring
+
+        Note that this subring can be considered as a special accepting
+        subring; one without any variables.
+
+        An element is
+        ::
+
+            sage: C.an_element()
+            I*pi*e
+
+        None of our variables in `V` is valid in `C`::
+
+            sage: tuple(v for v in V if v in C)
+            ()
+
+        .. SEEALSO::
+
+            :doc:`subring`
+        """
         if self is not SR:
             raise NotImplementedError('Cannot create subring of %s.' % (self,))
         from subring import SymbolicSubring

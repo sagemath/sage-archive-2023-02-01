@@ -77,13 +77,16 @@ class SymbolicSubringFactory(UniqueFactory):
 
     INPUT:
 
+    Choose one of the following keywords to create a subring.
+
     - ``accepting_variables`` (default: ``None``) -- a tuple or other
-      iterable of variables. If specified, then a symbolic subring of expressions
-      in only these variables is created.
+      iterable of variables. If specified, then a symbolic subring of
+      expressions in only these variables is created.
 
     - ``rejecting_variables`` (default: ``None``) -- a tuple or other
-      iterable of variables. If specified, then a symbolic subring of expressions
-      in variables not distinct of these variables is created.
+      iterable of variables. If specified, then a symbolic subring of
+      expressions in variables not distinct of these variables is
+      created.
 
     - ``only_constants`` (default: ``False``) -- a boolean. If set,
       then a symbolic subring of constant expressions (i.e.,

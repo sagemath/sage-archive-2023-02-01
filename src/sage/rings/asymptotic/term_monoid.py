@@ -1314,13 +1314,13 @@ class TermWithCoefficient(GenericTerm):
             sage: CT_ZZ(x^42, 42)
             Asymptotic Term with coefficient 42 and growth x^42
         """
-        if coefficient not in parent.base_ring:
+        if coefficient not in parent.base_ring():
             raise ValueError('%s is not in %s' % (coefficient,
-                                                  parent.base_ring))
+                                                  parent.base_ring()))
         elif coefficient == 0:
             raise ValueError('0 is not a valid coefficient')
 
-        self.coefficient = parent.base_ring(coefficient)
+        self.coefficient = parent.base_ring()(coefficient)
         super(TermWithCoefficient, self).__init__(parent=parent, growth=growth)
 
 
@@ -1524,7 +1524,6 @@ class TermWithCoefficientMonoid(GenericTermMonoid):
         super(TermWithCoefficientMonoid,
               self).__init__(growth_group=growth_group, category=category)
 
-    @property
     def base_ring(self):
         r"""
         The base ring of this term monoid, i.e. the ring where
@@ -1535,7 +1534,7 @@ class TermWithCoefficientMonoid(GenericTermMonoid):
             sage: import sage.rings.asymptotic.growth_group as agg
             sage: import sage.rings.asymptotic.term_monoid as atm
             sage: G = agg.GrowthGroup('x^ZZ')
-            sage: atm.ExactTermMonoid(G, ZZ).base_ring  # indirect doctest
+            sage: atm.ExactTermMonoid(G, ZZ).base_ring()
             Integer Ring
         """
         return self._base_ring_
@@ -1578,7 +1577,7 @@ class TermWithCoefficientMonoid(GenericTermMonoid):
         """
         if isinstance(S, TermWithCoefficientMonoid):
             return (super(TermWithCoefficientMonoid, self)._coerce_map_from_(S) and
-                    self.base_ring.has_coerce_map_from(S.base_ring))
+                    self.base_ring().has_coerce_map_from(S.base_ring()))
 
 
     def _element_constructor_(self, data, coefficient=None):
@@ -1682,9 +1681,9 @@ class TermWithCoefficientMonoid(GenericTermMonoid):
             if coefficient is None:
                 raise ValueError('Coefficient is not specified. '
                                  'Cannot continue.')
-            elif coefficient not in self.base_ring:
+            elif coefficient not in self.base_ring():
                 raise ValueError('%s is not in %s'
-                                 % (coefficient, self.base_ring))
+                                 % (coefficient, self.base_ring()))
             elif coefficient == 0:
                 raise ValueError('0 is not a valid coefficient.')
             raise ValueError('Input is ambiguous: cannot convert %s with '
@@ -1714,7 +1713,7 @@ class TermWithCoefficientMonoid(GenericTermMonoid):
             'Term Monoid x^ZZ with coefficients from Integer Ring'
         """
         return 'Term Monoid %s with coefficients from ' \
-               '%s' % (self.growth_group._repr_short_(), self.base_ring)
+               '%s' % (self.growth_group._repr_short_(), self.base_ring())
 
 
     def _an_element_(self):
@@ -1740,7 +1739,7 @@ class TermWithCoefficientMonoid(GenericTermMonoid):
             x
         """
         return self(self.growth_group.an_element(),
-                    self.base_ring.an_element())
+                    self.base_ring().an_element())
 
 
 class ExactTerm(TermWithCoefficient):
@@ -1756,7 +1755,7 @@ class ExactTerm(TermWithCoefficient):
     - ``growth`` -- an asymptotic growth element from
       ``parent.growth_group``.
 
-    - ``coefficient`` -- an element from ``parent.base_ring``.
+    - ``coefficient`` -- an element from ``parent.base_ring()``.
 
     EXAMPLES::
 
@@ -2003,7 +2002,7 @@ class ExactTermMonoid(TermWithCoefficientMonoid):
             'Exact Term Monoid x^ZZ with coefficients from Rational Field'
         """
         return 'Exact Term Monoid %s with coefficients from %s' % \
-               (self.growth_group._repr_short_(), self.base_ring)
+               (self.growth_group._repr_short_(), self.base_ring())
 
 
 class TermMonoidFactory(sage.structure.factory.UniqueFactory):

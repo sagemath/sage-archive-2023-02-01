@@ -506,6 +506,46 @@ class DiGraphGenerators():
 
             yield G
 
+
+    def CompleteDiGraph(self, n, loops=False):
+        r"""
+        Return the complete digraph on `n` vertices
+
+        INPUT:
+
+        - ``n`` (integer) -- number of vertices.
+
+        - ``loops`` (boolean) -- whether to add loops or not, i.e., edges from
+          `u` to itself.
+
+        EXAMPLES:
+
+            sage: G = digraphs.CompleteDiGraph(10); G
+            Complete digraph: Digraph on 10 vertices
+            sage: G.size() == n*(n-1)
+            True
+            sage: G = digraphs.CompleteDiGraph(10, loops=True); G
+            Complete digraph: Digraph on 10 vertices
+            sage: G.size() == n*n
+            True
+            sage: digraphs.CompleteDiGraph(-1)
+            Traceback (most recent call last):
+            ...
+            ValueError: The number of vertices cannot be strictly negative!
+        """
+        G = DiGraph(n, name="Complete digraph"+(" with loops" if loops else ''), loops=loops)
+
+        if loops:
+            G.add_edges((u,u) for u in range(n))
+
+        G.add_edges((u,v) for u in range(n) for v in range(n) if u!=v)
+
+        if n:
+            from sage.graphs.graph_plot import _circle_embedding
+            _circle_embedding(G, range(n))
+
+        return G
+
     def Circuit(self,n):
         r"""
         Returns the circuit on `n` vertices

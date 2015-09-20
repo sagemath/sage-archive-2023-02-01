@@ -823,6 +823,12 @@ def GridGraph(dim_list):
         sage: g.name()
         'Grid Graph for [2, 4, 3]'
 
+    One dimensional grids (i.e., path) have simple vertex labels::
+
+        sage: g = graphs.GridGraph([5])
+        sage: g.vertices()
+        [0, 1, 2, 3, 4]
+
     The graph is correct::
 
         sage: dim = [randint(1,4) for i in range(4)]
@@ -831,6 +837,27 @@ def GridGraph(dim_list):
         sage: h = Graph( networkx.grid_graph(list(dim)) )
         sage: g.is_isomorphic(h)
         True
+
+    Trivial cases::
+
+        sage: g = graphs.GridGraph([]); g; g.vertices()
+        Grid Graph for []: Graph on 0 vertices
+        []
+        sage: g = graphs.GridGraph([1]); g; g.vertices()
+        Grid Graph for [1]: Graph on 1 vertex
+        [0]
+        sage: g = graphs.GridGraph([2]); g; g.vertices()
+        Grid Graph for [2]: Graph on 2 vertices
+        [0, 1]
+        sage: g = graphs.GridGraph([1,1]); g; g.vertices()
+        Grid Graph for [1, 1]: Graph on 1 vertex
+        [(0, 0)]
+        sage: g = graphs.GridGraph([1, 1, 1]); g; g.vertices()
+        Grid Graph for [1, 1, 1]: Graph on 1 vertex
+        [(0, 0, 0)]
+        sage: g = graphs.GridGraph([1,1,2]); g; g.vertices()
+        Grid Graph for [1, 1, 2]: Graph on 2 vertices
+        [(0, 0, 0), (0, 0, 1)]
 
     All dimensions must be positive integers::
 
@@ -843,17 +870,27 @@ def GridGraph(dim_list):
     if any(a <= 0 for a in dim):
         raise ValueError("All dimensions must be positive integers !")
 
-    import itertools
+    g = Graph()
     n_dim = len(dim)
-    g = Graph(name="Grid Graph for {}".format(dim))
-    # The graph contains at least vertex (0, 0, ..., 0)
-    g.add_vertex(tuple([0]*n_dim))
-    for u in itertools.product(*[range(d) for d in dim]):
-        for i in range(n_dim):
-            if u[i]+1<dim[i]:
-                v = list(u)
-                v[i] = u[i]+1
-                g.add_edge(u, tuple(v))
+    if n_dim==1:
+        # Vertices are labeled from 0 to dim[0]-1
+        g = PathGraph(dim[0])
+    elif n_dim==2:
+        # We use the Grid2dGraph generator to also get the positions
+        g = Grid2dGraph(*dim)
+    elif n_dim>2:
+        # Vertices are tuples of dimension n_dim, and the graph contains at
+        # least vertex (0, 0, ..., 0)
+        g.add_vertex(tuple([0]*n_dim))
+        import itertools
+        for u in itertools.product(*[range(d) for d in dim]):
+            for i in range(n_dim):
+                if u[i]+1<dim[i]:
+                    v = list(u)
+                    v[i] = u[i]+1
+                    g.add_edge(u, tuple(v))
+
+    g.name("Grid Graph for {}".format(dim))
     return g
 
 

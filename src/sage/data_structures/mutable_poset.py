@@ -2289,6 +2289,12 @@ class MutablePoset(object):
 
         A poset.
 
+        .. NOTE::
+
+            If this poset uses a ``key``-function, then all
+            comparisons are performed on the keys of the elements (and
+            not on the elements themselves).
+
         EXAMPLES::
 
             sage: from sage.data_structures.mutable_poset import MutablePoset as MP
@@ -2324,6 +2330,12 @@ class MutablePoset(object):
         OUTPUT:
 
         Nothing.
+
+        .. NOTE::
+
+            If this poset uses a ``key``-function, then all
+            comparisons are performed on the keys of the elements (and
+            not on the elements themselves).
 
         .. TODO::
 
@@ -2378,6 +2390,12 @@ class MutablePoset(object):
 
         A poset.
 
+        .. NOTE::
+
+            If this poset uses a ``key``-function, then all
+            comparisons are performed on the keys of the elements (and
+            not on the elements themselves).
+
         EXAMPLES::
 
             sage: from sage.data_structures.mutable_poset import MutablePoset as MP
@@ -2418,6 +2436,12 @@ class MutablePoset(object):
 
         Nothing.
 
+        .. NOTE::
+
+            If this poset uses a ``key``-function, then all
+            comparisons are performed on the keys of the elements (and
+            not on the elements themselves).
+
         EXAMPLES::
 
             sage: from sage.data_structures.mutable_poset import MutablePoset as MP
@@ -2451,6 +2475,12 @@ class MutablePoset(object):
         OUTPUT:
 
         A poset.
+
+        .. NOTE::
+
+            If this poset uses a ``key``-function, then all
+            comparisons are performed on the keys of the elements (and
+            not on the elements themselves).
 
         EXAMPLES::
 
@@ -2488,6 +2518,12 @@ class MutablePoset(object):
 
         Nothing.
 
+        .. NOTE::
+
+            If this poset uses a ``key``-function, then all
+            comparisons are performed on the keys of the elements (and
+            not on the elements themselves).
+
         EXAMPLES::
 
             sage: from sage.data_structures.mutable_poset import MutablePoset as MP
@@ -2522,6 +2558,12 @@ class MutablePoset(object):
 
         A poset.
 
+        .. NOTE::
+
+            If this poset uses a ``key``-function, then all
+            comparisons are performed on the keys of the elements (and
+            not on the elements themselves).
+
         EXAMPLES::
 
             sage: from sage.data_structures.mutable_poset import MutablePoset as MP
@@ -2551,6 +2593,12 @@ class MutablePoset(object):
         OUTPUT:
 
         Nothing.
+
+        .. NOTE::
+
+            If this poset uses a ``key``-function, then all
+            comparisons are performed on the keys of the elements (and
+            not on the elements themselves).
 
         EXAMPLES::
 
@@ -2582,6 +2630,12 @@ class MutablePoset(object):
         OUTPUT:
 
         Nothing.
+
+        .. NOTE::
+
+            If this poset uses a ``key``-function, then all
+            comparisons are performed on the keys of the elements (and
+            not on the elements themselves).
 
         EXAMPLES::
 
@@ -2619,6 +2673,12 @@ class MutablePoset(object):
         OUTPUT:
 
         Nothing.
+
+        .. NOTE::
+
+            If this poset uses a ``key``-function, then all
+            comparisons are performed on the keys of the elements (and
+            not on the elements themselves).
 
         EXAMPLES::
 
@@ -2660,6 +2720,12 @@ class MutablePoset(object):
         OUTPUT:
 
         Nothing.
+
+        .. NOTE::
+
+            If this poset uses a ``key``-function, then all
+            comparisons are performed on the keys of the elements (and
+            not on the elements themselves).
 
         EXAMPLES::
 

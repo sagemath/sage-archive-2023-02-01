@@ -1527,15 +1527,13 @@ class MutablePoset(object):
             ()
             sage: tuple(P.shells(include_special=True))
             (null, oo)
-            sage: tuple(P.shells(include_special=True, reverse=True))
-            (oo, null)
         """
         if include_special:
-            yield self.null if not reverse else self.oo
+            yield self.null
         for e in self._shells_.itervalues():
             yield e
         if include_special:
-            yield self.oo if not reverse else self.null
+            yield self.oo
 
 
     def shells_topological(self, include_special=False,

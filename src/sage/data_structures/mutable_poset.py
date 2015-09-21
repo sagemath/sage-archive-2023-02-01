@@ -446,15 +446,13 @@ class MutablePosetShell(object):
         return hash(self.key)
 
 
-    def le(left, right, reverse=False):
+    def le(self, other, reverse=False):
         r"""
-        Return if ``left`` is less than or equal to ``right``.
+        Return whether this shell is less than or equal to ``other``.
 
         INPUT:
 
-        - ``left`` -- a shell.
-
-        - ``right`` -- a shell.
+        - ``other`` -- a shell.
 
         - ``reverse`` -- (default: ``False``) if set, then return
           ``right <= left`` instead.
@@ -521,45 +519,43 @@ class MutablePosetShell(object):
             True
         """
         if reverse:
-            left, right = (right, left)
+            return other.le(self, reverse=False)
 
-        if left.element is None:
-            if not left.predecessors():
+        if self.element is None:
+            if not self.predecessors():
                 # null on the left
                 return True
             else:
                 # oo on the left
-                if right.element is None:
+                if other.element is None:
                     # null or oo on the right
-                    return not right.successors()
+                    return not other.successors()
                 else:
                     # not null, not oo on the right
                     return False
-        if right.element is None:
-            if not right.successors():
+        if other.element is None:
+            if not other.successors():
                 # oo on the right
                 return True
             else:
                 # null on the right
-                if left.element is None:
+                if self.element is None:
                     # null or oo on the left
-                    return not left.predecessors()
+                    return not self.predecessors()
                 else:
                     # not null, not oo on the right
                     return False
-        return left.key <= right.key
+        return self.key <= other.key
 
 
     __le__ = le
 
 
-    def eq(left, right):
+    def eq(self, other):
         r"""
-        Return if ``left`` is equal to ``right``.
+        Return whether this shell is equal to ``other``.
 
         INPUT:
-
-        - ``left`` -- a shell.
 
         - ``right`` -- a shell.
 
@@ -595,9 +591,9 @@ class MutablePosetShell(object):
             sage: oo == z
             False
         """
-        if left.element is None and right.element is None:
-            return left.is_null() == right.is_null()
-        return left.key == right.key
+        if self.element is None and other.element is None:
+            return self.is_null() == other.is_null()
+        return self.key == other.key
 
 
     __eq__ = eq
@@ -2280,15 +2276,13 @@ class MutablePoset(object):
         return shell.element
 
 
-    def union(left, *right):
+    def union(self, *other):
         r"""
         Return the union of the given posets as a new poset
 
         INPUT:
 
-        - ``left`` -- a poset.
-
-        - ``right`` -- a poset or an iterable. In the latter case the
+        - ``other`` -- a poset or an iterable. In the latter case the
           iterated objects are seen as elements of a poset.
 
         OUTPUT:
@@ -2312,9 +2306,9 @@ class MutablePoset(object):
             sage: P.union(P, Q, Q, P)
             poset(3, 4, 7, 8, 42)
        """
-        new = left.copy()
-        for r in right:
-            new.update(r)
+        new = self.copy()
+        for o in other:
+            new.update(o)
         return new
 
 
@@ -2370,16 +2364,14 @@ class MutablePoset(object):
     """
 
 
-    def difference(left, *right):
+    def difference(self, *other):
         r"""
         Return a new poset where all elements of this poset, which are
         contained in one of the other given posets, are removed.
 
         INPUT:
 
-        - ``left`` -- a poset.
-
-        - ``right`` -- a poset or an iterable. In the latter case the
+        - ``other`` -- a poset or an iterable. In the latter case the
           iterated objects are seen as elements of a poset.
 
         OUTPUT:
@@ -2407,9 +2399,9 @@ class MutablePoset(object):
             sage: P.difference(Q, P)
             poset()
         """
-        new = left.copy()
-        for r in right:
-            new.difference_update(r)
+        new = self.copy()
+        for o in other:
+            new.difference_update(o)
         return new
 
 
@@ -2447,15 +2439,13 @@ class MutablePoset(object):
             self.discard(key)
 
 
-    def intersection(left, *right):
+    def intersection(self, *other):
         r"""
         Return the intersection of the given posets as a new poset
 
         INPUT:
 
-        - ``left`` -- a poset.
-
-        - ``right`` -- a poset or an iterable. In the latter case the
+        - ``other`` -- a poset or an iterable. In the latter case the
           iterated objects are seen as elements of a poset.
 
         OUTPUT:
@@ -2479,9 +2469,9 @@ class MutablePoset(object):
             sage: P.intersection(P, Q, Q, P)
             poset(42)
         """
-        new = left.copy()
-        for r in right:
-            new.intersection_update(r)
+        new = self.copy()
+        for o in other:
+            new.intersection_update(o)
         return new
 
 
@@ -2520,15 +2510,13 @@ class MutablePoset(object):
                 self.discard(key)
 
 
-    def symmetric_difference(left, right):
+    def symmetric_difference(self, other):
         r"""
         Return the symmetric difference of two posets as a new poset.
 
         INPUT:
 
-        - ``left`` -- a poset.
-
-        - ``right`` -- a poset.
+        - ``other`` -- a poset.
 
         OUTPUT:
 
@@ -2546,8 +2534,8 @@ class MutablePoset(object):
             sage: P.symmetric_difference(Q)
             poset(3, 4, 7, 8)
         """
-        new = left.copy()
-        new.symmetric_difference_update(right)
+        new = self.copy()
+        new.symmetric_difference_update(other)
         return new
 
 

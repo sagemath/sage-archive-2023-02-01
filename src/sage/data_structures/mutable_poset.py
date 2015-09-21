@@ -1461,7 +1461,7 @@ class MutablePoset(object):
         - ``other`` -- the mutable poset from which the shells
           should be copied to this poset.
 
-        - ``mapping`` -- a function that is applied to every element.
+        - ``mapping`` -- a function that is applied to each element.
 
         OUTPUT:
 
@@ -2933,7 +2933,7 @@ class MutablePoset(object):
 
     def map(self, function, topological=False, reverse=False):
         r"""
-        Applies the given ``function`` to each element of this poset.
+        Apply the given ``function`` to each element of this poset.
 
         INPUT:
 

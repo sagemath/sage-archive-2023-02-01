@@ -187,8 +187,10 @@ else
     else
         # $CXX points to some version of GCC, find out which version.
         GCCVERSION=`$CXX -dumpversion`
-        case $GCCVERSION in
-            [0-3].*|4.[0-3]|4.[0-3].*)
+        # Add the .0 because Debian/Ubuntu gives version numbers like
+        # 4.6 instead of 4.6.4 (Trac #18885)
+        case "$GCCVERSION.0" in
+            [0-3].*|4.[0-3].*)
                 # Install our own GCC if the system-provided one is older than gcc-4.4.
                 # * gcc-4.2.4 compiles a slow IML:
                 # https://groups.google.com/forum/?fromgroups#!topic/sage-devel/Ux3t0dW2FSI
@@ -314,9 +316,7 @@ newest_version() {
         echo -n $PKG-
         cat "$SAGE_ROOT/build/pkgs/$PKG/package-version.txt"
     else
-        echo >&2 "Cannot determine latest version of $PKG."
         echo "$PKG"
-        return 1
     fi
 }
 
@@ -338,6 +338,7 @@ newest_version() {
 filtered_packages_list() {
     # for each package in pkgs/
     for DIR in $SAGE_ROOT/build/pkgs/*; do
+        test -d "$DIR" || continue
 
         PKG_TYPE_FILE="$DIR/type"
         if [ -f "$PKG_TYPE_FILE" ]; then
@@ -349,8 +350,12 @@ filtered_packages_list() {
         fi
 
         # Check consistency of 'DIR/type' file
-        if [ "$PKG_TYPE" != "base" ] && [ "$PKG_TYPE" != "standard" ] && [ "$PKG_TYPE" != "optional" ] && [ "$PKG_TYPE" != "experimental" ]; then
-            echo >&2 "The content of \"$PKG_TYPE_FILE\" must be 'base', 'standard', 'optional' or 'experimental'"
+        if [ "$PKG_TYPE" != "base" ] && \
+           [ "$PKG_TYPE" != "standard" ] && \
+           [ "$PKG_TYPE" != "optional" ] && \
+           [ "$PKG_TYPE" != "experimental" ] && \
+           [ "$PKG_TYPE" != "pip" ]; then
+            echo >&2 "The content of \"$PKG_TYPE_FILE\" must be 'base', 'standard', 'optional', 'experimental' or 'pip'"
             return 1
         fi
 
@@ -370,10 +375,10 @@ filtered_packages_list none || exit $?
 echo >&7 "# All Sage packages"
 
 filtered_packages_list all | while read PKG_NAME PKG_VERSION PKG_VAR; do
-    echo >&7 "$PKG_VAR = $PKG_VERSION"
-]
-    AC_MSG_RESULT([    $PKG_VAR=$PKG_VERSION])
-[
+    if test "$PKG_NAME" != "$PKG_VERSION"; then
+        echo >&7 "$PKG_VAR = $PKG_VERSION"
+        ]AC_MSG_RESULT([    $PKG_VAR=$PKG_VERSION])[
+    fi
 done
 
 cat >&7 <<EOF
@@ -472,23 +477,42 @@ EOF
 # Add a Makefile target corresponding to a given package
 filtered_packages_list all | while read PKG_NAME PKG_VERSION PKG_VAR; do
     DEP_FILE="$SAGE_ROOT/build/pkgs/$PKG_NAME/dependencies"
-    TYPE_FILE="$SAGE_ROOT/build/pkgs/$PKG_NAME/type"
+    TYPE=`cat "$SAGE_ROOT/build/pkgs/$PKG_NAME/type"`
     if [ -f "$DEP_FILE" ]; then
         DEPS=" $(head -n 1 $DEP_FILE)"
-    elif [ x`cat "$TYPE_FILE"` = xoptional ]; then
+    elif [ "$TYPE" = optional ]; then
         DEPS=' | $(STANDARD_PACKAGES)' # default for optional packages
+    elif [ "$TYPE" = pip ]; then
+        DEPS=' | $(INST)/$(PIP)'
     else
         DEPS=""
     fi
-    echo >&7 "\$(INST)/$PKG_VERSION:$DEPS"
-    echo >&7 "	+sage-logger '\$(SAGE_SPKG) \$($PKG_VAR)' '\$(SAGE_LOGS)/\$($PKG_VAR).log'"
-    echo >&7
 
-    # Add a target with just the bare package name such that
-    # "make ccache" for example builds the ccache package with
-    # dependency checking.
-    echo >&7 "$PKG_NAME: \$(INST)/\$($PKG_VAR)"
-    echo >&7
+    if [ "$TYPE" = pip ]; then
+        # Special rules using PIP
+        echo >&7 "$PKG_NAME:$DEPS"
+        echo >&7 "	sage-logger 'sage --pip install $PKG_NAME' \$(SAGE_LOGS)/$PKG_NAME.log"
+        echo >&7
+
+        # Add a target to remove the "installed" file for "sage -f"
+        echo >&7 "$PKG_NAME-clean:"
+        echo >&7 "	-sage --pip uninstall -y $PKG_NAME"
+        echo >&7
+    else
+        # Normal Sage packages
+        echo >&7 "\$(INST)/$PKG_VERSION:$DEPS"
+        echo >&7 "	+sage-logger '\$(SAGE_SPKG) \$($PKG_VAR)' '\$(SAGE_LOGS)/\$($PKG_VAR).log'"
+        echo >&7
+
+        # Add a target with just the bare package name for "sage -i"
+        echo >&7 "$PKG_NAME: \$(INST)/\$($PKG_VAR)"
+        echo >&7
+
+        # Add a target to remove the "installed" file for "sage -f"
+        echo >&7 "$PKG_NAME-clean:"
+        echo >&7 "	rm -f \$(INST)/\$($PKG_VAR)"
+        echo >&7
+    fi
 done
 
 # Close the Makefile

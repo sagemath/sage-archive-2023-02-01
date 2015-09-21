@@ -2010,6 +2010,8 @@ class MutablePoset(object):
         smaller = self.null.covers(new, reverse=False)
         larger = self.oo.covers(new, reverse=True)
 
+        # In the following we first search towards oo (reverse=False) and
+        # then towards null (reverse=True; everything is "inverted").
         for reverse in (False, True):
             sm = smaller if not reverse else larger
             la = larger if not reverse else smaller

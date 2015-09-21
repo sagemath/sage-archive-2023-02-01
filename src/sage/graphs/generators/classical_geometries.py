@@ -739,7 +739,7 @@ def UnitaryDualPolarGraph(m, q):
 
     EXAMPLES:
 
-    The point graph of a generalized quadrangle of order (8,4)::
+    The point graph of a generalized quadrangle (see [GQwiki]_, [PT09]_) of order (8,4)::
 
         sage: G = graphs.UnitaryDualPolarGraph(5,2); G   # long time
         Unitary Dual Polar Graph DU(5, 2); GQ(8, 4): Graph on 297 vertices
@@ -940,14 +940,8 @@ def AhrensSzekeresGQ(q, dual=False):
     r"""
     Return the collinearity graph of GQ AS(q) or its dual
 
-    INPUT:
-
-    - ``q`` -- a power of an odd prime number
-
-    - ``dual`` -- if ``False`` (default), return the graph of `GQ(q-1,q+1)`.
-      Otherwise return the graph of `GQ(q+1,q-1)`.
-
-    `AS(q)` is a generalised quadrangle (GQ) of order `(q-1,q+1)`, see 3.1.5 in [PT09]_.
+    `AS(q)` is a generalised quadrangle (GQ, see [GQwiki]_) of order `(q-1,q+1)`,
+    see 3.1.5 in [PT09]_.
     Let `q` be an odd prime power. Then the points are elements of `F_q^3`,
     and lines are of the form
 
@@ -956,6 +950,13 @@ def AhrensSzekeresGQ(q, dual=False):
     * `(c \sigma^2 - b \sigma + a, -2 c \sigma + b, \sigma), \sigma\in F_q`
 
     where `a`, `b`, `c` are arbitrary elements of `F_q`.
+
+    INPUT:
+
+    - ``q`` -- a power of an odd prime number
+
+    - ``dual`` -- if ``False`` (default), return the graph of `GQ(q-1,q+1)`.
+      Otherwise return the graph of `GQ(q+1,q-1)`.
 
     EXAMPLES::
 
@@ -969,6 +970,9 @@ def AhrensSzekeresGQ(q, dual=False):
         (175, 30, 5, 5)
 
     REFERENCE:
+
+    .. [GQwiki] `Generalized quadrangle
+      <http://en.wikipedia.org/wiki/Generalized_quadrangle>`__
 
     .. [PT09] S. Payne, J. A. Thas.
       Finite generalized quadrangles.
@@ -995,9 +999,17 @@ def AhrensSzekeresGQ(q, dual=False):
         G.name('AS('+str(q)+'); GQ'+str((q-1,q+1)))
     return G
 
-def T2starGQ(q, dual=False, hyperoval=None, field=None, checkhyperoval=False):
+def T2starGQ(q, dual=False, hyperoval=None, field=None, check_hyperoval=True):
     r"""
     Return the collinearity graph of GQ T_2*(q) or its dual
+
+    `T_2^*(q)` is a generalised quadrangle (GQ, see [GQwiki]_)
+    of order `(q-1,q+1)`, see 3.1.3 in [PT09]_.
+    Let `q=2^k` and `\Theta=PG(3,q)`. Fix a plane `\Pi \subset \Theta` and a
+    `hyperoval <http://en.wikipedia.org/wiki/Oval_(projective_plane)#Even_q>`__
+    `O \subset \Pi`. The points of the GQ are the points of `\Theta`
+    outside `\Pi`, and the lines are the lines of `\Theta` outside `\Pi`
+    that meet `\Pi` in a point of `O`.
 
     INPUT:
 
@@ -1015,15 +1027,8 @@ def T2starGQ(q, dual=False, hyperoval=None, field=None, checkhyperoval=False):
     - ``field`` -- an instance of a finite field of order `q`, must be provided
       if ``hyperoval`` is provided.
 
-    - ``checkhyperoval`` -- (default: ``False``) if ``True``,
+    - ``check_hyperoval`` -- (default: ``True``) if ``True``,
       check ``hyperoval`` for correctness.
-
-    `T_2^*(q)` is a generalised quadrangle (GQ) of order `(q-1,q+1)`, see 3.1.3 in [PT09]_.
-    Let `q=2^k` and `\Theta=PG(3,q)`. Fix a plane `\Pi \subset \Theta` and a 
-    `hyperoval <http://en.wikipedia.org/wiki/Oval_(projective_plane)#Even_q>`__
-    `O \subset \Pi`. The points of the GQ are the points of `\Theta`
-    outside `\Pi`, and the lines are the lines of `\Theta` outside `\Pi`
-    that meet `\Pi` in a point of `O`.
 
 
     EXAMPLES:
@@ -1052,12 +1057,12 @@ def T2starGQ(q, dual=False, hyperoval=None, field=None, checkhyperoval=False):
 
         sage: F=GF(4,'b') # repeating a point...
         sage: O=[vector(F,(0,1,0,0)),vector(F,(0,0,1,0))]+map(lambda x: vector(F, (0,1,x^2,x)),F)
-        sage: graphs.T2starGQ(4, hyperoval=O, field=F, checkhyperoval=True)
+        sage: graphs.T2starGQ(4, hyperoval=O, field=F)
         Traceback (most recent call last):
         ...
         RuntimeError: incorrect hyperoval size
         sage: O=[vector(F,(0,1,1,0)),vector(F,(0,0,1,0))]+map(lambda x: vector(F, (0,1,x^2,x)),F)
-        sage: graphs.T2starGQ(4, hyperoval=O, field=F, checkhyperoval=True)
+        sage: graphs.T2starGQ(4, hyperoval=O, field=F)
         Traceback (most recent call last):
         ...
         RuntimeError: incorrect hyperoval
@@ -1074,7 +1079,7 @@ def T2starGQ(q, dual=False, hyperoval=None, field=None, checkhyperoval=False):
     else:
         F = field
 
-    Theta = PG(3,1,F,coordinates=1)
+    Theta = PG(3, 1, F, point_coordinates=1)
     Pi = set(filter(lambda x: x[0]==F.zero(), Theta.ground_set()))
     if hyperoval is None:
         O = filter(lambda x: x[1]+x[2]*x[3]==0 or (x[1]==1 and x[2]==0 and x[3]==0), Pi)
@@ -1083,7 +1088,7 @@ def T2starGQ(q, dual=False, hyperoval=None, field=None, checkhyperoval=False):
         map(lambda x: x.set_immutable(), hyperoval)
         O = set(hyperoval)
 
-    if checkhyperoval:
+    if check_hyperoval and (not hyperoval is None):
         if len(O) != q+2:
             raise RuntimeError("incorrect hyperoval size")
         for L in Theta.blocks():

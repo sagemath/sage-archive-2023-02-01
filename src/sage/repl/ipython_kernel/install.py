@@ -241,7 +241,7 @@ class SageKernelSpec(object):
 
             sage: from sage.repl.ipython_kernel.install import SageKernelSpec
             sage: spec = SageKernelSpec()
-            sage: spec.update()
+            sage: spec.update()  # not tested
         """
         instance = cls()
         instance.use_local_mathjax()

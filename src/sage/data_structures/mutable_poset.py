@@ -772,8 +772,8 @@ class MutablePosetShell(object):
         - ``marked`` -- a set in which marked shells are stored.
 
         - ``reverse`` -- (default: ``False``) if set, reverses the
-          order, i.e., ``False`` searches towards ``null`` and
-          ``True`` searches towards ``oo``.
+          order, i.e., ``False`` searches towards ``'oo'`` and
+          ``True`` searches towards ``'null'``.
 
         - ``key`` -- (default: ``None``) a function used for sorting
           the direct successors of a shell (used in case of a
@@ -822,8 +822,8 @@ class MutablePosetShell(object):
         INPUT:
 
         - ``reverse`` -- (default: ``False``) if set, reverses the
-          order, i.e., ``False`` searches towards ``null`` and
-          ``True`` searches towards ``oo``.
+          order, i.e., ``False`` searches towards ``'oo'`` and
+          ``True`` searches towards ``'null'``.
 
         - ``key`` -- (default: ``None``) a function used for sorting
           the direct successors of a shell (used in case of a
@@ -879,8 +879,8 @@ class MutablePosetShell(object):
         - ``marked`` -- a set in which marked shells are stored.
 
         - ``reverse`` -- (default: ``False``) if set, reverses the
-          order, i.e., ``False`` searches towards ``null`` and
-          ``True`` searches towards ``oo``.
+          order, i.e., ``False`` searches towards ``'oo'`` and
+          ``True`` searches towards ``'null'``.
 
         - ``key`` -- (default: ``None``) a function used for sorting
           the direct successors of a shell (used in case of a
@@ -929,8 +929,8 @@ class MutablePosetShell(object):
         INPUT:
 
         - ``reverse`` -- (default: ``False``) if set, reverses the
-          order, i.e., ``False`` searches towards ``null`` and
-          ``True`` searches towards ``oo``.
+          order, i.e., ``False`` searches towards ``'oo'`` and
+          ``True`` searches towards ``'null'``.
 
         - ``key`` -- (default: ``None``) a function used for sorting
           the direct successors of a shell (used in case of a

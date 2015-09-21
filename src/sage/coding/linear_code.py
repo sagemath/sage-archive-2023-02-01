@@ -1811,7 +1811,7 @@ class AbstractLinearCode(module.Module):
             sage: G = Matrix(GF(2), [[1,1,1,0,0,0,0],[1,0,0,1,1,0,0],[0,1,0,1,0,1,0],[1,1,0,1,0,0,1]])
             sage: C = LinearCode(G)
             sage: C.encoder()
-            Generator matrix-based encoder for the Linear code of length 7, dimension 4 over Finite Field of size 2
+            Generator matrix-based encoder for Linear code of length 7, dimension 4 over Finite Field of size 2
 
         We check that the returned encoder is cached::
 
@@ -3266,8 +3266,7 @@ class AbstractLinearCode(module.Module):
 
         INPUT:
 
-        - ``c`` -- a vector of the same length as ``self`` over the
-          base field of ``self``
+        - ``c`` -- a codeword of ``self``
 
         - ``encoder_name`` -- (default: ``None``) name of the decoder which will be used
           to decode ``word``. The default decoder of ``self`` will be used if
@@ -3695,7 +3694,7 @@ class LinearCodeGeneratorMatrixEncoder(Encoder):
             sage: C = LinearCode(G)
             sage: E = codes.encoders.LinearCodeGeneratorMatrixEncoder(C)
             sage: E
-            Generator matrix-based encoder for the Linear code of length 7, dimension 4 over Finite Field of size 2
+            Generator matrix-based encoder for Linear code of length 7, dimension 4 over Finite Field of size 2
         """
         super(LinearCodeGeneratorMatrixEncoder, self).__init__(code)
 
@@ -3709,9 +3708,9 @@ class LinearCodeGeneratorMatrixEncoder(Encoder):
             sage: C = LinearCode(G)
             sage: E = codes.encoders.LinearCodeGeneratorMatrixEncoder(C)
             sage: E
-            Generator matrix-based encoder for the Linear code of length 7, dimension 4 over Finite Field of size 2
+            Generator matrix-based encoder for Linear code of length 7, dimension 4 over Finite Field of size 2
         """
-        return "Generator matrix-based encoder for the %s" % self.code()
+        return "Generator matrix-based encoder for %s" % self.code()
 
     def _latex_(self):
         r"""
@@ -3723,9 +3722,9 @@ class LinearCodeGeneratorMatrixEncoder(Encoder):
             sage: C = LinearCode(G)
             sage: E = codes.encoders.LinearCodeGeneratorMatrixEncoder(C)
             sage: latex(E)
-            \textnormal{Generator matrix-based encoder for the }[7, 4]\textnormal{ Linear code over }\Bold{F}_{2}
+            \textnormal{Generator matrix-based encoder for }[7, 4]\textnormal{ Linear code over }\Bold{F}_{2}
         """
-        return "\\textnormal{Generator matrix-based encoder for the }%s" % self.code()._latex_()
+        return "\\textnormal{Generator matrix-based encoder for }%s" % self.code()._latex_()
 
     @cached_method
     def generator_matrix(self):

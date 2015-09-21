@@ -97,6 +97,12 @@ class Encoder(SageObject):
         and `k` is :meth:`sage.coding.linear_code.AbstractLinearCode.dimension`.
         If this is not the case, this method should be overwritten by the subclass.
 
+        .. NOTE::
+
+            :meth:`encode` is a partial function over ``self``'s :meth:`message_space`.
+            One should use the exception :class:`EncodingError` to catch attempts
+            to encode words that are outside of the message space.
+
         INPUT:
 
         - ``word`` -- a vector of the message space of the ``self``.
@@ -191,13 +197,16 @@ class Encoder(SageObject):
             sage: C = LinearCode(G)
             sage: E = C.encoder()
             sage: E._unencoder_matrix()
+            (
             [0 0 1 1]
             [0 1 0 1]
             [1 1 1 0]
-            [0 1 1 1]
+            [0 1 1 1], (0, 1, 2, 3)
+            )
         """
-        Gt = self.generator_matrix().matrix_from_columns(self.code().information_set())
-        return Gt.inverse()
+        info_set = self.code().information_set()
+        Gt = self.generator_matrix().matrix_from_columns(info_set)
+        return (Gt.inverse(), info_set)
 
     def unencode_nocheck(self, c):
         r"""
@@ -243,8 +252,7 @@ class Encoder(SageObject):
             sage: c == c1
             False
         """
-        U = self._unencoder_matrix()
-        info_set = self.code().information_set()
+        U, info_set = self._unencoder_matrix()
         cc = vector( c[i] for i in info_set )
         return cc * U
 

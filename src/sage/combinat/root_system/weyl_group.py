@@ -752,7 +752,7 @@ class WeylGroupElement(MatrixGroupElement_gap):
 
     def _latex_(self):
         """
-        Return the latex representation of self.
+        Return the latex representation of ``self``.
 
         EXAMPLES::
 

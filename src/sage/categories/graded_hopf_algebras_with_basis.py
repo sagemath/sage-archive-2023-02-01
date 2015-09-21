@@ -66,6 +66,33 @@ class GradedHopfAlgebrasWithBasis(GradedModulesCategory):
 
             class ParentMethods:
 
+                def counit_on_basis(self, i):
+                    r"""
+                    The default counit of a graded connected Hopf algebra.
+
+
+                    MATH::
+
+                        c(i) := \begin{dcases*}
+                            1 & if `i` is the unique element of degree `0`,
+                            0 & otherwise.
+                        \end{dcases*}
+
+                    EXAMPLES::
+
+                        sage: from sage.categories.examples.graded_connected_hopf_algebras_with_basis import GradedConnectedHopfAlgebraOfInteger
+                        sage: H = GradedConnectedHopfAlgebraOfInteger(QQ)
+                        sage: H.monomial(4).counit() # indirect doctest
+                        0
+                        sage: H.monomial(0).counit() # indirect doctest
+                        1
+
+                    """
+                    if i == self.one_basis():
+                        return self.base_ring().one()
+                    return self.base_ring().zero()
+
+                @cached_method
                 def antipode_on_basis(self, indice):
                     """
                     MATH::
@@ -76,9 +103,16 @@ class GradedHopfAlgebrasWithBasis(GradedModulesCategory):
 
                     TESTS::
 
-                        sage: F = FQSym(QQ).F()
-                        sage: F.antipode_on_basis(Permutation([1]))
-                        -F[1]
+                        sage: from sage.categories.examples.graded_connected_hopf_algebras_with_basis import GradedConnectedHopfAlgebraOfInteger
+                        sage: H = GradedConnectedHopfAlgebraOfInteger(QQ)
+                        sage: H.monomial(0).antipode() #indirect doctest
+                        P0
+                        sage: H.monomial(1).antipode() #indirect doctest
+                        -P1
+                        sage: H.monomial(2).antipode() #indirect doctest
+                        P2
+                        sage: H.monomial(3).antipode() #indirect doctest
+                        -P3
 
                     """
                     if self.monomial(indice) == self.one():
@@ -90,16 +124,18 @@ class GradedHopfAlgebrasWithBasis(GradedModulesCategory):
                             codomain=self)
                         return -x__S_Id(
                             self.monomial(indice).coproduct()
-                            - tensor([self(indice), self.one()])
+                            - tensor([self.monomial(indice), self.one()])
                         )
 
                 def antipode(self, elem):
                     r"""
                     TESTS::
 
-                        sage: F = FQSym(QQ).F()
-                        sage: F.antipode(F[3,1,2])
-                        -F[1, 3, 2] + F[2, 1, 3] + F[2, 3, 1] - 2*F[3, 1, 2]
+                        sage: from sage.categories.examples.graded_connected_hopf_algebras_with_basis import GradedConnectedHopfAlgebraOfInteger
+                        sage: H = GradedConnectedHopfAlgebraOfInteger(QQ)
+                        sage: H.antipode(H.monomial(140))
+                        P140
+
                     """
                     import itertools
                     return self.linear_combination(itertools.imap(
@@ -114,8 +150,15 @@ class GradedHopfAlgebrasWithBasis(GradedModulesCategory):
                     r"""
                     TESTS::
 
-                        sage: F = FQSym(QQ).F()
-                        sage: F[1].antipode()
-                        -F[1]
+                        sage: from sage.categories.examples.graded_connected_hopf_algebras_with_basis import GradedConnectedHopfAlgebraOfInteger
+                        sage: H = GradedConnectedHopfAlgebraOfInteger(QQ)
+                        sage: H.monomial(0).antipode()
+                        P0
+                        sage: H.monomial(1).antipode()
+                        -P1
+                        sage: H.monomial(2).antipode()
+                        P2
+                        sage: H.monomial(3).antipode()
+                        -P3
                     """
                     return self.parent().antipode(self)

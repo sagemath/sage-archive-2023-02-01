@@ -1333,9 +1333,10 @@ def SRG_276_140_58_84():
     Return a `(276, 140, 58, 84)`-strongly regular graph.
 
     The graph is built from from
-    :meth:`~sage.graphs.graph_generators.GraphGenerators.McLaughlinGraph`, to
-    which is added an isolated vertex. We then perform a
-    :meth:`~Graph.seidel_switching` on a set of 28 disjoint 5-cliques.
+    :meth:`~sage.graphs.graph_generators.GraphGenerators.McLaughlinGraph`, with
+    an added isolated vertex. We then perform a
+    :meth:`~Graph.seidel_switching` on a set of 28 disjoint 5-cliques, which
+    exist by cf. [HT96]_.
 
     EXAMPLE::
 
@@ -1343,6 +1344,12 @@ def SRG_276_140_58_84():
         sage: g=SRG_276_140_58_84()                  # long time # optional - gap_packages
         sage: g.is_strongly_regular(parameters=True) # long time # optional - gap_packages
         (276, 140, 58, 84)
+
+    REFERENCE:
+
+    .. [HT96] W. H. Haemers and V. D. Tonchev,
+      Spreads in strongly regular graphs,
+      Designs, Codes and Cryptography 8 (1996) 145-157.
     """
     g = McLaughlinGraph()
     C = [[ 0,  72,  87, 131, 136], [ 1,  35,  61, 102, 168], [ 2,  32,  97, 125, 197], [ 3,  22,  96, 103, 202],

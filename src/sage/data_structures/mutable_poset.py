@@ -605,7 +605,10 @@ class MutablePosetShell(object):
 
     def _copy_all_linked_(self, memo, poset, mapping):
         r"""
-        Helper function for :meth:`MutablePoset.copy`.
+        Return a copy of all shells linked to this shell
+        (including a copy of this shell).
+
+        This is a helper function for :meth:`MutablePoset.copy`.
 
         INPUT:
 
@@ -651,7 +654,9 @@ class MutablePosetShell(object):
 
     def _search_covers_(self, covers, shell, reverse=False):
         r"""
-        Helper function for :meth:`covers`.
+        Search for cover shells of this shell.
+
+        This is a helper function for :meth:`covers`.
 
         INPUT:
 
@@ -755,7 +760,9 @@ class MutablePosetShell(object):
                                  reverse=False, key=None,
                                  condition=None):
         r"""
-        Helper function for :meth:`iter_depth_first`.
+        Return an iterator over all shells in depth first order.
+
+        This is a helper function for :meth:`iter_depth_first`.
 
         INPUT:
 
@@ -862,7 +869,9 @@ class MutablePosetShell(object):
                                  reverse=False, key=None,
                                  condition=None):
         r"""
-        Helper function for :meth:`iter_topological`.
+        Return an iterator over all shells in topological order.
+
+        This is a helper function for :meth:`iter_topological`.
 
         INPUT:
 
@@ -1444,7 +1453,7 @@ class MutablePoset(object):
 
     def _copy_shells_(self, other, mapping):
         r"""
-        Helper function for copying shells.
+        Copy shells from another poset.
 
         INPUT:
 

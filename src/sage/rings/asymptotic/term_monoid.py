@@ -162,7 +162,7 @@ The comparison of asymptotic terms with `\leq` is implemented as follows:
   is compared.
 
 - Otherwise, if the coerced terms have a coefficient (e.g.
-  :class:`ExactTerm`), we compare if ``t1`` has a growth that is
+  :class:`ExactTerm`), we compare whether ``t1`` has a growth that is
   strictly weaker than the growth of ``t2``. If so, we return
   ``True``. If the terms have equal growth, then we return ``True``
   if and only if the coefficients coincide as well.
@@ -645,7 +645,7 @@ class GenericTerm(sage.structure.element.MonoidElement):
             True
 
         For terms with coefficient (like exact terms), comparison
-        works similar, with the sole exception that terms with
+        works similarly, with the sole exception that terms with
         equal growth are considered incomparable. Thus, `\leq`
         only holds if the coefficients are equal as well::
 
@@ -710,7 +710,7 @@ class GenericTerm(sage.structure.element.MonoidElement):
 
     def __eq__(self, other):
         r"""
-        Return if this asymptotic term is equal to ``other``.
+        Return whether this asymptotic term is equal to ``other``.
 
         INPUT:
 
@@ -757,7 +757,7 @@ class GenericTerm(sage.structure.element.MonoidElement):
 
     def _eq_(self, other):
         r"""
-        Return if this asymptotic term is the same as ``other``.
+        Return whether this asymptotic term is the same as ``other``.
 
         INPUT:
 
@@ -958,7 +958,7 @@ class GenericTermMonoid(sage.structure.parent.Parent,
 
     def _coerce_map_from_(self, S):
         r"""
-        Return if ``S`` coerces into this term monoid.
+        Return whether ``S`` coerces into this term monoid.
 
         INPUT:
 
@@ -1097,7 +1097,7 @@ class GenericTermMonoid(sage.structure.parent.Parent,
 
     def le(self, left, right):
         r"""
-        Return if the term ``left`` is at most (less than or equal
+        Return whether the term ``left`` is at most (less than or equal
         to) the term ``right``.
 
         INPUT:
@@ -1309,7 +1309,7 @@ class OTermMonoid(GenericTermMonoid):
 
     def _coerce_map_from_(self, S):
         r"""
-        Return if ``S`` coerces into this term monoid.
+        Return whether ``S`` coerces into this term monoid.
 
         INPUT:
 
@@ -1564,6 +1564,8 @@ class TermWithCoefficient(GenericTerm):
             False
             sage: t3 <= t2
             False
+            sage: t2 <= t2
+            True
 
         TESTS::
 
@@ -1578,7 +1580,7 @@ class TermWithCoefficient(GenericTerm):
 
     def _eq_(self, other):
         r"""
-        Return if this :class:`TermWithCoefficient` is the same as
+        Return whether this :class:`TermWithCoefficient` is the same as
         ``other``.
 
         INPUT:
@@ -1702,7 +1704,7 @@ class TermWithCoefficientMonoid(GenericTermMonoid):
 
     def _coerce_map_from_(self, S):
         r"""
-        Return if ``S`` coerces into this term monoid.
+        Return whether ``S`` coerces into this term monoid.
 
         INPUT:
 

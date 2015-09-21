@@ -1089,39 +1089,6 @@ class MutablePosetShell(object):
 # *****************************************************************************
 
 
-def sorted_set_by_tuple(S, T):
-    r"""
-    Return an iterator over ``T`` for all elements of ``T`` that are
-    contained in ``S``.
-
-    INPUT:
-
-    - ``S`` -- a set (or something which supports a containment
-      test).
-
-    - ``T`` -- a tuple (or other iterable).
-
-    OUTPUT:
-
-    An iterator.
-
-    .. NOTE::
-
-        The iterator returned by this function preserves the order
-        of the elements in ``T``.
-
-    EXAMPLES::
-
-        sage: from sage.data_structures.mutable_poset import sorted_set_by_tuple
-        sage: tuple(sorted_set_by_tuple({3, 4, 6}, (5, 4, 1, 2, 3, 6)))
-        (4, 3, 6)
-    """
-    return iter(ell for ell in T if ell in S)
-
-
-# *****************************************************************************
-
-
 def is_MutablePoset(P):
     r"""
     Tests if ``P`` inherits from :class:`MutablePoset`.
@@ -1533,7 +1500,7 @@ class MutablePoset(object):
     __copy__ = copy
 
 
-    def shells(self, include_special=False, reverse=False):
+    def shells(self, include_special=False):
         r"""
         Return an iterator over all shells.
 
@@ -1542,9 +1509,6 @@ class MutablePoset(object):
         - ``include_special`` -- (default: ``False``) if set, then
           including shells containing a smallest element (`\emptyset`)
           and a largest element (`\infty`).
-
-        - ``reverse`` -- (default: ``False``) if set, the order is
-          reversed. This only affects the shells `\emptyset` and `\infty`.
 
         OUTPUT:
 
@@ -1849,8 +1813,7 @@ class MutablePoset(object):
                 if shell.successors(rev):
                     s = '|   +-- ' + what + ':   '
                     s += ', '.join(repr(e) for e in
-                                   sorted_set_by_tuple(shell.successors(rev),
-                                                       sortedshells))
+                                   sortedshells if e in shell.successors(rev))
                 else:
                     s = '|   +-- no ' + what
                 strings.append(s)

@@ -833,6 +833,46 @@ class SymmetricFunctionsBases(Category_realization_of_parent):
             #This code relied heavily on the construction of bases of
             #``SymmetricFunctions`` and on their reduction.
 
+        def skew_schur(self, x):
+            """
+            Return the skew Schur function indexed by ``x`` in ``self``.
+
+            INPUT:
+
+            - ``x`` -- a skew partition
+
+            EXAMPLES::
+
+                sage: sp = SkewPartition([[5,3,3,1], [3,2,1]])
+                sage: s = SymmetricFunctions(QQ).s()
+                sage: s.skew_schur(sp)
+                s[2, 2, 1, 1] + s[2, 2, 2] + s[3, 1, 1, 1] + 3*s[3, 2, 1]
+                 + s[3, 3] + 2*s[4, 1, 1] + 2*s[4, 2] + s[5, 1]
+
+                sage: e = SymmetricFunctions(QQ).e()
+                sage: ess = e.skew_schur(sp); ess
+                e[2, 1, 1, 1, 1] - e[2, 2, 1, 1] - e[3, 1, 1, 1] + e[3, 2, 1]
+                sage: ess == e(s.skew_schur(sp))
+                True
+
+            TESTS::
+
+                sage: s.skew_schur([[2,1], [1]])
+                s[1, 1] + s[2]
+
+                sage: s.skew_schur([[2,1], [3]])
+                Traceback (most recent call last):
+                ...
+                ValueError: not a valid skew partition
+            """
+            from sage.combinat.skew_partition import SkewPartitions
+            if x not in SkewPartitions():
+                raise ValueError("not a valid skew partition")
+            import sage.libs.lrcalc.lrcalc as lrcalc
+            s = self.realization_of().schur()
+            skewschur = lrcalc.skew(x[0], x[1])
+            return self(s._from_dict(skewschur))
+
         def Eulerian(self, n, j, k=None):
             """
             Return the Eulerian symmetric function `Q_{n,j}` (with `n`
@@ -986,13 +1026,13 @@ class SymmetricFunctionsBases(Category_realization_of_parent):
                  - h[4, 2] - h[5, 1] + h[6]
 
             Gessel-Reutenauer functions indexed by partitions::
-            
+
                 sage: h.gessel_reutenauer([2, 1])
                 h[1, 1, 1] - h[2, 1]
                 sage: h.gessel_reutenauer([2, 2])
                 h[1, 1, 1, 1] - 3*h[2, 1, 1] + 2*h[2, 2] + h[3, 1] - h[4]
 
-            The Gessel-Reutenauer functions are Schur-postive::
+            The Gessel-Reutenauer functions are Schur-positive::
 
                 sage: s = Sym.s()
                 sage: s.gessel_reutenauer([2, 1])

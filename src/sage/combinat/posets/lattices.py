@@ -33,6 +33,7 @@ List of (semi)lattice methods
     :meth:`~FiniteLatticePoset.is_modular` | Return ``True`` if the lattice is lower modular.
     :meth:`~FiniteLatticePoset.is_modular_element` | Return ``True`` if given element is modular in the lattice.
     :meth:`~FiniteLatticePoset.is_upper_semimodular` | Return ``True`` if the lattice is upper semimodular.
+    :meth:`~FiniteLatticePoset.is_planar` | Return ``True`` if the lattice is *upward* planar, and ``False`` otherwise.
     :meth:`~FiniteLatticePoset.is_supersolvable` | Return ``True`` if the lattice is supersolvable.
     :meth:`~FiniteJoinSemilattice.join` | Return the join of given elements in the join semi-lattice.
     :meth:`~FiniteJoinSemilattice.join_matrix` | Return the matrix of joins of all elements of the join semi-lattice.
@@ -737,6 +738,79 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
             if len(lcovers)<=1:
                 return False
         return True
+
+    def is_planar(self):
+        r"""
+        Return ``True`` if the lattice is *upward* planar, and ``False``
+        otherwise.
+
+        A lattice is upward planar if its Hasse diagram has a planar drawing in
+        the `\mathbb{R}^2` plane, in such a way that `x` is strictly below `y`
+        (on the vertical axis) whenever `x<y` in the lattice.
+
+        Note that the scientific litterature on posets often omits "upward" and
+        shortens it to "planar lattice" (e.g. [GW14]_), which can cause
+        confusion with the notion of graph planarity in graph theory.
+
+        .. NOTE::
+
+            Not all lattices which are planar -- in the sense of graph planarity
+            -- admit such a planar drawing (see example below).
+
+        ALGORITHM:
+
+        Using the result from [Platt76]_, this method returns its result by
+        testing that the hasse diagram of the lattice is planar (in the sense of
+        graph theory) when an edge is added between the top and bottom elements.
+
+        EXAMPLES:
+
+        The Boolean lattice of `2^3` elements is not upward planar, even if
+        it's covering relations graph is planar::
+
+            sage: B3 = Posets.BooleanLattice(3)
+            sage: B3.is_planar()
+            False
+            sage: G = B3.cover_relations_graph()
+            sage: G.is_planar()
+            True
+
+        Ordinal product of planar lattices is obviously planar. Same does
+        not apply to cartesian products::
+
+            sage: P = Posets.PentagonPoset()
+            sage: Pc = P.product(P)
+            sage: Po = P.ordinal_product(P)
+            sage: Pc.is_planar()
+            False
+            sage: Po.is_planar()
+            True
+
+        TESTS::
+
+            sage: Posets.ChainPoset(0).is_planar()
+            True
+            sage: Posets.ChainPoset(1).is_planar()
+            True
+
+        REFERENCES:
+
+        .. [GW14] G. Gratzer and F. Wehrung,
+           Lattice Theory: Special Topics and Applications Vol. 1,
+           Springer, 2014.
+
+        .. [Platt76] C. R. Platt,
+           Planar lattices and planar graphs,
+           Journal of Combinatorial Theory Series B,
+           Vol 21, no. 1 (1976): 30-39.
+
+        """
+        # The 8-element Boolean lattice is the smallest non-planar lattice.
+        if self.cardinality() < 8:
+            return True
+        g = self._hasse_diagram.copy(immutable=False)
+        g.add_edge(0, self.cardinality()-1)
+        return g.is_planar()
 
     def is_modular(self, L=None):
         r"""

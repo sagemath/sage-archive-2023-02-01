@@ -186,7 +186,9 @@ AUTHORS:
 #*****************************************************************************
 
 from sage.rings.all import Integer
-from sage.combinat.all import Partition, Permutation, SkewTableau
+from sage.combinat.partition import _Partitions
+from sage.combinat.permutation import Permutation
+from sage.combinat.skew_tableau import SkewTableau
 
 cdef vector* iterable_to_vector(it):
     """
@@ -296,7 +298,7 @@ cdef sf_hashtab_to_dict(hashtab *ht):
     hash_first(ht, itr)
     while hash_good(itr):
         p = vector_to_list(<vector*> hash_key(itr))
-        result[Partition(p)] = Integer(hash_intvalue(itr))
+        result[_Partitions(p)] = Integer(hash_intvalue(itr))
         hash_next(itr)
     return result
 
@@ -338,8 +340,8 @@ cdef vp_hashtab_to_dict(hashtab *ht):
     hash_first(ht, itr)
     while hash_good(itr):
         vp = <vecpair*> hash_key(itr)
-        p1 = Partition(vector_to_list(vp_first(vp)))
-        p2 = Partition(vector_to_list(vp_second(vp)))
+        p1 = _Partitions(vector_to_list(vp_first(vp)))
+        p2 = _Partitions(vector_to_list(vp_second(vp)))
         result[(p1, p2)] = Integer(hash_intvalue(itr))
         hash_next(itr)
     return result
@@ -418,7 +420,7 @@ def lrcoef(outer, inner1, inner2):
         0
 
     """
-    return lrcoef_unsafe(Partition(outer), Partition(inner1), Partition(inner2))
+    return lrcoef_unsafe(_Partitions(outer), _Partitions(inner1), _Partitions(inner2))
 
 def mult(part1, part2, maxrows=None, level=None):
     r"""
@@ -637,5 +639,6 @@ def lrskew(outer, inner, weight=None, maxrows=0):
         #yield skewtab_to_SkewTableau(st)
     st_free(st)
     if weight is not None:
-        result = [r for r in result if r.weight() == Partition(weight) ]
+        result = [r for r in result if r.weight() == _Partitions(weight) ]
     return result # todo: remove
+

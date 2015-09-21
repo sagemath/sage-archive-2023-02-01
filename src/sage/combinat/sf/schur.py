@@ -18,6 +18,7 @@ Schur symmetric functions
 #*****************************************************************************
 import classical
 import sage.libs.symmetrica.all as symmetrica
+import sage.libs.lrcalc.lrcalc as lrcalc
 from sage.rings.all import ZZ, QQ, Integer
 
 class SymmetricFunctionAlgebra_schur(classical.SymmetricFunctionAlgebra_classical):
@@ -111,7 +112,6 @@ class SymmetricFunctionAlgebra_schur(classical.SymmetricFunctionAlgebra_classica
             sage: 0*s([2,1])
             0
         """
-        import sage.libs.lrcalc.lrcalc as lrcalc
         return lrcalc.mult(left,right)
 
     def coproduct_on_basis(self, mu):
@@ -138,9 +138,28 @@ class SymmetricFunctionAlgebra_schur(classical.SymmetricFunctionAlgebra_classica
             sage: s.coproduct_on_basis([2])
             s[] # s[2] + s[1] # s[1] + s[2] # s[]
         """
-        import sage.libs.lrcalc.lrcalc as lrcalc
         T = self.tensor_square()
         return T._from_dict( lrcalc.coprod(mu, all=1) )
+
+    def _element_constructor_(self, x):
+        """
+        Construct an element of ``self`` from ``x``.
+
+        TESTS::
+
+            sage: s = SymmetricFunctions(QQ).s()
+            sage: s([[2,1],[1]])
+            s[1, 1] + s[2]
+            sage: s([[],[]])
+            s[]
+        """
+        ###################
+        # Skew Partitions #
+        ###################
+        try:
+            return self.skew_schur(x)
+        except ValueError:
+            return super(SymmetricFunctionAlgebra_schur, self)._element_constructor_(x)
 
     class Element(classical.SymmetricFunctionAlgebra_classical.Element):
         def __pow__(self, n):

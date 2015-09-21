@@ -1213,7 +1213,7 @@ class BalancedIncompleteBlockDesign(PairwiseBalancedDesign):
                                         points,
                                         blocks,
                                         K=[k] if k is not None else None,
-                                        lambd=1,
+                                        lambd=lambd,
                                         check=check,
                                         copy=copy,
                                         **kwds)

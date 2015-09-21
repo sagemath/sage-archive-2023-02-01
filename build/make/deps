@@ -4,7 +4,7 @@
 ###############################################################################
 
 # Do not put an explicit path for sage-spkg here, it will be found in $PATH.
-SAGE_SPKG = sage-spkg -f
+SAGE_SPKG = sage-spkg
 STARTED = $(SAGE_LOCAL)/etc/sage-started.txt
 
 # Tell make not to look for files with these names:
@@ -192,7 +192,7 @@ $(SAGE_EXTCODE)/%: $(SAGE_SRC)/ext/%
 DOC_DEPENDENCIES = sagelib $(INST)/$(SPHINX) $(INST)/$(SAGENB) \
 	| $(SAGERUNTIME) $(INST)/$(MAXIMA) $(INST)/$(NETWORKX) \
 	$(INST)/$(SCIPY) $(INST)/$(MATPLOTLIB) $(INST)/$(PILLOW) \
-	$(INST)/$(MATHJAX)
+	$(INST)/$(MATHJAX) $(INST)/$(IPYKERNEL) $(INST)/$(JUPYTER_CLIENT)
 
 doc: doc-html
 

@@ -395,21 +395,21 @@ def BIBD_from_TD(v,k,existence=False):
         sage: from sage.combinat.designs.bibd import BIBD_from_TD
         sage: BIBD_from_TD(25,5,existence=True)
         True
-        sage: _ = designs.BlockDesign(25,BIBD_from_TD(25,5))
+        sage: _ = BlockDesign(25,BIBD_from_TD(25,5))
 
     Second construction::
 
         sage: from sage.combinat.designs.bibd import BIBD_from_TD
         sage: BIBD_from_TD(21,5,existence=True)
         True
-        sage: _ = designs.BlockDesign(21,BIBD_from_TD(21,5))
+        sage: _ = BlockDesign(21,BIBD_from_TD(21,5))
 
     Third construction::
 
         sage: from sage.combinat.designs.bibd import BIBD_from_TD
         sage: BIBD_from_TD(85,5,existence=True)
         True
-        sage: _ = designs.BlockDesign(85,BIBD_from_TD(85,5))
+        sage: _ = BlockDesign(85,BIBD_from_TD(85,5))
 
     No idea::
 
@@ -1213,7 +1213,7 @@ class BalancedIncompleteBlockDesign(PairwiseBalancedDesign):
                                         points,
                                         blocks,
                                         K=[k] if k is not None else None,
-                                        lambd=1,
+                                        lambd=lambd,
                                         check=check,
                                         copy=copy,
                                         **kwds)

@@ -120,7 +120,7 @@ Test if :trac:`9947` is fixed::
     sage: a.real_part()
     4*sqrt(3)/(sqrt(3) + 5)
     sage: a.imag_part()
-    sqrt(abs(4*(sqrt(3) + 5)*(sqrt(3) - 5) + 48))/(sqrt(3) + 5)
+    2*sqrt(10)/(sqrt(3) + 5)
 """
 
 ###############################################################################
@@ -1911,6 +1911,14 @@ cdef class Expression(CommutativeRingElement):
         EXAMPLES::
 
             sage: SR(5).is_integer()
+            True
+
+        TESTS:
+
+        Check that integer variables are recognized (:trac:`18921`)::
+
+            sage: _ = var('n', domain='integer')
+            sage: n.is_integer()
             True
         """
         return self._gobj.info(info_integer)

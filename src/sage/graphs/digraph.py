@@ -31,7 +31,7 @@ graphs. Here is what they can do
     :meth:`~DiGraph.incoming_edges` | Returns a list of edges arriving at vertices.
     :meth:`~DiGraph.incoming_edge_iterator` | Return an iterator over all arriving edges from vertices
     :meth:`~DiGraph.sources` | Returns the list of all sources (vertices without incoming edges) of this digraph.
-    :meth:`~DiGraph.sinks` | Returns the list of all sinks (vertices without outoing edges) of this digraph.
+    :meth:`~DiGraph.sinks` | Returns the list of all sinks (vertices without outgoing edges) of this digraph.
     :meth:`~DiGraph.to_undirected` | Returns an undirected version of the graph.
     :meth:`~DiGraph.to_directed` | Since the graph is already directed, simply returns a copy of itself.
     :meth:`~DiGraph.is_directed` | Since digraph is directed, returns True.
@@ -2979,7 +2979,7 @@ class DiGraph(GenericGraph):
         available (see :meth:`.layout_graphviz`), and using a spring
         layout with fixed vertical placement of the vertices otherwise
         (see :meth:`.layout_acyclic_dummy` and
-        :meth:`~GenericGraph.ranked_layout`).
+        :meth:`~sage.graphs.generic_graph.GenericGraph.layout_ranked`).
 
         Non acyclic graphs are partially supported by ``graphviz``, which then
         chooses some edges to point down.
@@ -2988,8 +2988,9 @@ class DiGraph(GenericGraph):
 
         - ``rankdir`` -- 'up', 'down', 'left', or 'right' (default: 'up'):
           which direction the edges should point toward
-        - ``**options`` -- passed down to :meth:`layout_ranked` or
-          :meth:`layout_graphviz`
+        - ``**options`` -- passed down to
+          :meth:`~sage.graphs.generic_graph.GenericGraph.layout_ranked` or
+          :meth:`~sage.graphs.generic_graph.GenericGraph.layout_graphviz`
 
         EXAMPLES::
 
@@ -3014,6 +3015,7 @@ class DiGraph(GenericGraph):
             sage: pos = H.layout_acyclic(rankdir='left')
             sage: pos[1][0] < pos[0][0] - .5
             True
+
         """
         if have_dot2tex():
             return self.layout_graphviz(rankdir=rankdir, **options)
@@ -3026,16 +3028,17 @@ class DiGraph(GenericGraph):
 
         To this end, the heights of the vertices are set according to
         the level set decomposition of the graph (see
-        :meth:`.level_sets`). This is achieved by a spring layout with
+        :meth:`level_sets`). This is achieved by a spring layout with
         fixed vertical placement of the vertices otherwise (see
-        :meth:`.layout_acyclic_dummy` and
-        :meth:`~GenericGraph.ranked_layout`).
+        :meth:`layout_acyclic_dummy` and
+        :meth:`~sage.graphs.generic_graph.GenericGraph.layout_ranked`).
 
         INPUT:
 
         - ``rankdir`` -- 'up', 'down', 'left', or 'right' (default: 'up'):
           which direction the edges should point toward
-        - ``**options`` -- passed down to :meth:`layout_ranked`
+        - ``**options`` -- passed down to
+          :meth:`~sage.graphs.generic_graph.GenericGraph.layout_ranked`
 
         EXAMPLES::
 
@@ -3057,6 +3060,7 @@ class DiGraph(GenericGraph):
             Traceback (most recent call last):
             ...
             ValueError: `self` should be an acyclic graph
+
         """
         if heights is None:
             if not self.is_directed_acyclic():
@@ -3132,57 +3136,6 @@ class DiGraph(GenericGraph):
                         new_level.append(y)
             level = new_level
         return Levels
-
-    def strongly_connected_components(self):
-        """
-        Returns the list of strongly connected components.
-
-        EXAMPLES::
-
-            sage: D = DiGraph( { 0 : [1, 3], 1 : [2], 2 : [3], 4 : [5, 6], 5 : [6] } )
-            sage: D.connected_components()
-            [[0, 1, 2, 3], [4, 5, 6]]
-            sage: D = DiGraph( { 0 : [1, 3], 1 : [2], 2 : [3], 4 : [5, 6], 5 : [6] } )
-            sage: D.strongly_connected_components()
-            [[0], [1], [2], [3], [4], [5], [6]]
-            sage: D.add_edge([2,0])
-            sage: D.strongly_connected_components()
-            [[0, 1, 2], [3], [4], [5], [6]]
-
-        TESTS:
-
-        Checking against NetworkX, and another of Sage's implementations::
-
-            sage: from sage.graphs.base.static_sparse_graph import strongly_connected_components
-            sage: import networkx
-            sage: for i in range(100):                                     # long
-            ...        g = digraphs.RandomDirectedGNP(100,.05)             # long
-            ...        h = g.networkx_graph()                              # long
-            ...        scc1 = g.strongly_connected_components()            # long
-            ...        scc2 = networkx.strongly_connected_components(h)    # long
-            ...        scc3 = strongly_connected_components(g)             # long
-            ...        s1 = Set(map(Set,scc1))                             # long
-            ...        s2 = Set(map(Set,scc2))                             # long
-            ...        s3 = Set(map(Set,scc3))                             # long
-            ...        if s1 != s2:                                        # long
-            ...            print "Ooch !"                                  # long
-            ...        if s1 != s3:                                        # long
-            ...            print "Oooooch !"                               # long
-
-        """
-
-        try:
-            vertices = set(self.vertices())
-            scc = []
-            while vertices:
-                tmp = self.strongly_connected_component_containing_vertex(next(vertices.__iter__()))
-                vertices.difference_update(set(tmp))
-                scc.append(tmp)
-            return scc
-
-        except AttributeError:
-            import networkx
-            return networkx.strongly_connected_components(self.networkx_graph(copy=False))
 
     def strongly_connected_component_containing_vertex(self, v):
         """
@@ -3269,7 +3222,7 @@ class DiGraph(GenericGraph):
             sage: scc_digraph.vertices()
             [{0}, {3}, {1, 2}]
             sage: scc_digraph.edges()
-            [({0}, {3}, None), ({0}, {1, 2}, None), ({1, 2}, {3}, None)]
+            [({0}, {1, 2}, None), ({0}, {3}, None), ({1, 2}, {3}, None)]
 
         By default, the labels are discarded, and the result has no
         loops nor multiple edges. If ``keep_labels`` is ``True``, then
@@ -3284,10 +3237,12 @@ class DiGraph(GenericGraph):
             sage: scc_digraph.vertices()
             [{0}, {3}, {1, 2}]
             sage: scc_digraph.edges()
-            [({0}, {3}, '0-3'), ({0}, {1, 2}, '0-12'),
-             ({1, 2}, {3}, '1-3'), ({1, 2}, {3}, '2-3'),
-             ({1, 2}, {1, 2}, '1-2'), ({1, 2}, {1, 2}, '2-1')]
-
+            [({0}, {1, 2}, '0-12'),
+             ({0}, {3}, '0-3'),
+             ({1, 2}, {1, 2}, '1-2'),
+             ({1, 2}, {1, 2}, '2-1'),
+             ({1, 2}, {3}, '1-3'),
+             ({1, 2}, {3}, '2-3')]
         """
 
         from sage.sets.set import Set
@@ -3639,3 +3594,6 @@ import types
 
 import sage.graphs.comparability
 DiGraph.is_transitive = types.MethodType(sage.graphs.comparability.is_transitive, None, DiGraph)
+
+from sage.graphs.base.static_sparse_graph import tarjan_strongly_connected_components
+DiGraph.strongly_connected_components = types.MethodType(tarjan_strongly_connected_components, None, DiGraph)

@@ -1159,6 +1159,18 @@ cdef class FiniteField(Field):
 
             sage: k.extension(x^5 + x^2 + x - 1)
             Univariate Quotient Polynomial Ring in x over Finite Field in z4 of size 3^4 with modulus x^5 + x^2 + x + 2
+
+        TESTS:
+
+        We check that trac #18915 is fixed::
+
+            sage: F = GF(2)
+            sage: F.extension(int(3), 'a')
+            Finite Field in a of size 2^3
+
+            sage: F = GF(2 ** 4, 'a')
+            sage: F.extension(int(3), 'aa')
+            Finite Field in aa of size 2^12
         """
         from constructor import GF
         from sage.rings.polynomial.polynomial_element import is_Polynomial
@@ -1166,7 +1178,7 @@ cdef class FiniteField(Field):
         if name is None and names is not None:
             name = names
         if self.degree() == 1:
-            if isinstance(modulus, Integer):
+            if isinstance(modulus, (int, Integer)):
                 E = GF(self.characteristic()**modulus, name=name, **kwds)
             elif isinstance(modulus, (list, tuple)):
                 E = GF(self.characteristic()**(len(modulus) - 1), name=name, modulus=modulus, **kwds)
@@ -1175,7 +1187,7 @@ cdef class FiniteField(Field):
                     E = GF(self.characteristic()**(modulus.degree()), name=name, modulus=modulus, **kwds)
                 else:
                     E = Field.extension(self, modulus, name=name, embedding=embedding)
-        elif isinstance(modulus, Integer):
+        elif isinstance(modulus, (int, Integer)):
             E = GF(self.order()**modulus, name=name, **kwds)
         else:
             E = Field.extension(self, modulus, name=name, embedding=embedding)

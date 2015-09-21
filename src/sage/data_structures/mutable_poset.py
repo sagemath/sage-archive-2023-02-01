@@ -480,23 +480,23 @@ class MutablePosetShell(object):
             sage: e = MutablePosetShell(P, (1, 2))
             sage: z = P.null
             sage: oo = P.oo
-            sage: z <= e
+            sage: z <= e  # indirect doctest
             True
-            sage: e <= oo
+            sage: e <= oo  # indirect doctest
             True
-            sage: z <= oo
+            sage: z <= oo  # indirect doctest
             True
-            sage: oo <= z
+            sage: oo <= z  # indirect doctest
             False
-            sage: oo <= e
+            sage: oo <= e  # indirect doctest
             False
-            sage: e <= z
+            sage: e <= z  # indirect doctest
             False
-            sage: z <= z
+            sage: z <= z  # indirect doctest
             True
-            sage: oo <= oo
+            sage: oo <= oo  # indirect doctest
             True
-            sage: e <= e
+            sage: e <= e  # indirect doctest
             True
 
         ::

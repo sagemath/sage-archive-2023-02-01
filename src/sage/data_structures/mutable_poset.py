@@ -338,15 +338,10 @@ class MutablePosetShell(object):
         return self.element is None
 
 
-    def is_null(self, reverse=False):
+    def is_null(self):
         r"""
         Return if this shell contains the null-element, i.e., the element
         smaller than any possible other element.
-
-        INPUT:
-
-        - ``reverse`` -- (default: ``False``) if set, then returns
-          if the element is the largest possible.
 
         OUTPUT:
 
@@ -361,18 +356,13 @@ class MutablePosetShell(object):
             sage: P.oo.is_null()
             False
         """
-        return self.element is None and not self.predecessors(reverse)
+        return self.element is None and not self.predecessors()
 
 
-    def is_oo(self, reverse=False):
+    def is_oo(self):
         r"""
         Return if this shell contains the infinity-element, i.e., the element
         larger than any possible other element.
-
-        INPUT:
-
-        - ``reverse`` -- (default: ``False``) if set, then returns
-          if the element is the smallest possible.
 
         OUTPUT:
 
@@ -387,7 +377,7 @@ class MutablePosetShell(object):
             sage: P.oo.is_oo()
             True
         """
-        return self.element is None and not self.successors(reverse)
+        return self.element is None and not self.successors()
 
 
     def __repr__(self):

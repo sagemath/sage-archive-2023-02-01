@@ -45,6 +45,30 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 
+# Just to be sure, we also create other folders, although
+# they are standard SageMath folders
+
+mkdir -p $MTXBIN
+
+if [ $? -ne 0 ]; then
+    echo >&2 "Error creating directory for meataxe binaries."
+    exit 1
+fi
+
+mkdir -p "$SAGE_LOCAL/include"
+
+if [ $? -ne 0 ]; then
+    echo >&2 "Error creating SageMath's include directory."
+    exit 1
+fi
+
+mkdir -p "$SAGE_LOCAL/lib"
+
+if [ $? -ne 0 ]; then
+    echo >&2 "Error creating SageMath's lib folder."
+    exit 1
+fi
+
 ## Install! Aparently MeatAxe would rebuild everything when
 ## testing, and "make check" also installs. So, if a test
 ## is requested then we do it in one go.

@@ -15979,7 +15979,7 @@ class GenericGraph(GenericGraph_pyx):
     def depth_first_search(self, start, ignore_direction=False,
                            distance=None, neighbors=None):
         """
-        Returns an iterator over the vertices in a depth-first ordering.
+        Return an iterator over the vertices in a depth-first ordering.
 
         INPUT:
 
@@ -15991,9 +15991,7 @@ class GenericGraph(GenericGraph_pyx):
           directed graphs. If True, searches across edges in either
           direction.
 
-        - ``distance`` - the maximum distance from the ``start`` nodes
-          to traverse.  The ``start`` nodes are distance zero from
-          themselves.
+        - ``distance`` - Deprecated. Broken, do not use.
 
         - ``neighbors`` - a function giving the neighbors of a vertex.
           The function should take a vertex and return a list of
@@ -16028,15 +16026,6 @@ class GenericGraph(GenericGraph_pyx):
             sage: list(D.depth_first_search(0, ignore_direction=True))
             [0, 7, 6, 3, 5, 2, 1, 4]
 
-        You can specify a maximum distance in which to search.  A
-        distance of zero returns the ``start`` vertices::
-
-            sage: D = DiGraph( { 0: [1,2,3], 1: [4,5], 2: [5], 3: [6], 5: [7], 6: [7], 7: [0]})
-            sage: list(D.depth_first_search(0,distance=0))
-            [0]
-            sage: list(D.depth_first_search(0,distance=1))
-            [0, 3, 2, 1]
-
         Multiple starting vertices can be specified in a list::
 
             sage: D = DiGraph( { 0: [1,2,3], 1: [4,5], 2: [5], 3: [6], 5: [7], 6: [7], 7: [0]})
@@ -16044,24 +16033,22 @@ class GenericGraph(GenericGraph_pyx):
             [0, 3, 6, 7, 2, 5, 1, 4]
             sage: list(D.depth_first_search([0,6]))
             [0, 3, 6, 7, 2, 5, 1, 4]
-            sage: list(D.depth_first_search([0,6],distance=0))
-            [0, 6]
-            sage: list(D.depth_first_search([0,6],distance=1))
-            [0, 3, 2, 1, 6, 7]
-            sage: list(D.depth_first_search(6,ignore_direction=True,distance=2))
-            [6, 7, 5, 0, 3]
 
         More generally, you can specify a ``neighbors`` function.  For
         example, you can traverse the graph backwards by setting
         ``neighbors`` to be the :meth:`.neighbors_in` function of the graph::
 
-            sage: D = DiGraph( { 0: [1,2,3], 1: [4,5], 2: [5], 3: [6], 5: [7], 6: [7], 7: [0]})
-            sage: list(D.depth_first_search(5,neighbors=D.neighbors_in, distance=2))
-            [5, 2, 0, 1]
-            sage: list(D.depth_first_search(5,neighbors=D.neighbors_out, distance=2))
-            [5, 7, 0]
-            sage: list(D.depth_first_search(5,neighbors=D.neighbors, distance=2))
-            [5, 7, 6, 0, 2, 1, 4]
+            sage: D = digraphs.Path(10)
+            sage: D.add_path([22,23,24,5])
+            sage: D.add_path([5,33,34,35])
+            sage: list(D.depth_first_search(5, neighbors=D.neighbors_in))
+            [5, 4, 3, 2, 1, 0, 24, 23, 22]
+            sage: list(D.breadth_first_search(5, neighbors=D.neighbors_in))
+            [5, 24, 4, 23, 3, 22, 2, 1, 0]
+            sage: list(D.depth_first_search(5, neighbors=D.neighbors_out))
+            [5, 6, 7, 8, 9, 33, 34, 35]
+            sage: list(D.breadth_first_search(5, neighbors=D.neighbors_out))
+            [5, 33, 6, 34, 7, 35, 8, 9]
 
         TESTS::
 
@@ -16072,6 +16059,10 @@ class GenericGraph(GenericGraph_pyx):
             [0, 2, 1]
 
         """
+        from sage.misc.superseded import deprecation
+        if distance is not None:
+            deprecation(19227, "Parameter 'distance' is broken. Do not use.")
+
         # Preferably use the Cython implementation
         if neighbors is None and not isinstance(start,list) and  distance is None and hasattr(self._backend,"depth_first_search"):
             for v in self._backend.depth_first_search(start, ignore_direction = ignore_direction):

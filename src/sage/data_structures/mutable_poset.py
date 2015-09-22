@@ -155,8 +155,10 @@ Classes and their Methods
 #                http://www.gnu.org/licenses/
 #*****************************************************************************
 
+from sage.structure.sage_object import SageObject
 
-class MutablePosetShell(object):
+
+class MutablePosetShell(SageObject):
     r"""
     A shell for an element of a :class:`mutable poset <MutablePoset>`.
 
@@ -198,6 +200,7 @@ class MutablePosetShell(object):
         self._element_ = element
         self._predecessors_ = set()
         self._successors_ = set()
+        super(MutablePosetShell, self).__init__()
 
 
     @property
@@ -1100,7 +1103,7 @@ def is_MutablePoset(P):
     return isinstance(P, MutablePoset)
 
 
-class MutablePoset(object):
+class MutablePoset(SageObject):
     r"""
     A data structure that models a mutable poset (partially ordered
     set).
@@ -1227,6 +1230,7 @@ class MutablePoset(object):
                     raise TypeError('%s is not iterable; do not know what to '
                                     'do with it.' % (data,))
                 self.union_update(it)
+        super(MutablePoset, self).__init__()
 
 
     def clear(self):

@@ -165,7 +165,7 @@ def are_hyperplanes_in_projective_geometry_parameters(v, k, lmbda, return_parame
 
     return (True, (q,d)) if return_parameters else True
 
-def ProjectiveGeometryDesign(n, d, F, algorithm=None, point_coordinates=False, check=True):
+def ProjectiveGeometryDesign(n, d, F, algorithm=None, point_coordinates=True, check=True):
     """
     Return a projective geometry design.
 
@@ -188,9 +188,9 @@ def ProjectiveGeometryDesign(n, d, F, algorithm=None, point_coordinates=False, c
       GAP's "design" package must be available in this case, and that it can be
       installed with the ``gap_packages`` spkg.
 
-    - ``point_coordinates`` -- ``False`` by default. In this case and also if
-      ``algorithm="gap"``, the ground set is indexed by integers,
-      Otherwise it is indexed by coordinates in `F^{n+1}`.
+    - ``point_coordinates`` -- ``True`` by default. Ignored and assumed to be ``False`` if
+      ``algorithm="gap"``. If ``True``, the ground set is indexed by coordinates in `F^{n+1}`.
+      Otherwise the ground set is indexed by integers,
 
     EXAMPLES:
 
@@ -209,9 +209,15 @@ def ProjectiveGeometryDesign(n, d, F, algorithm=None, point_coordinates=False, c
 
     Use coordinates::
 
-        sage: PG = designs.ProjectiveGeometryDesign(2,1,GF(3),point_coordinates=1)
+        sage: PG = designs.ProjectiveGeometryDesign(2,1,GF(3))
         sage: PG.blocks()[0]
         [(1, 0, 0), (1, 0, 1), (1, 0, 2), (0, 0, 1)]
+
+    Use indexing by integers::
+
+        sage: PG = designs.ProjectiveGeometryDesign(2,1,GF(3),point_coordinates=0)
+        sage: PG.blocks()[0]
+        [0, 1, 2, 12]
 
     Check that the constructor using gap also works::
 

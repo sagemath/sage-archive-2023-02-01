@@ -320,81 +320,82 @@ def ncube_isometry_group_modpi(n, orientation_preserving=True):
 
     OUTPUT:
 
-        set of cosets, each coset being a sorted tuple
+        list of cosets, each coset being a sorted list
 
     EXAMPLES::
 
         sage: from sage.combinat.tiling import ncube_isometry_group_modpi
         sage: sorted(ncube_isometry_group_modpi(2))
-        [(
+        [[
         [-1  0]  [1 0]
         [ 0 -1], [0 1]
-        ), (
+        ], [
         [ 0 -1]  [ 0  1]
         [ 1  0], [-1  0]
-        )]
+        ]]
         sage: sorted(ncube_isometry_group_modpi(2, False))
-        [(
+        [[
         [-1  0]  [-1  0]  [ 1  0]  [1 0]
         [ 0 -1], [ 0  1], [ 0 -1], [0 1]
-        ),
-         (
+        ], [
         [ 0 -1]  [ 0 -1]  [ 0  1]  [0 1]
         [-1  0], [ 1  0], [-1  0], [1 0]
-        )]
+        ]]
 
     ::
 
         sage: sorted(ncube_isometry_group_modpi(3))
-        [(
+        [[
         [-1  0  0]  [-1  0  0]  [ 1  0  0]  [1 0 0]
         [ 0 -1  0]  [ 0  1  0]  [ 0 -1  0]  [0 1 0]
         [ 0  0  1], [ 0  0 -1], [ 0  0 -1], [0 0 1]
-        ),
-         (
+        ], [
         [-1  0  0]  [-1  0  0]  [ 1  0  0]  [ 1  0  0]
         [ 0  0 -1]  [ 0  0  1]  [ 0  0 -1]  [ 0  0  1]
         [ 0 -1  0], [ 0  1  0], [ 0  1  0], [ 0 -1  0]
-        ),
-         (
+        ], [
         [ 0 -1  0]  [ 0 -1  0]  [ 0  1  0]  [ 0  1  0]
         [-1  0  0]  [ 1  0  0]  [-1  0  0]  [ 1  0  0]
         [ 0  0 -1], [ 0  0  1], [ 0  0  1], [ 0  0 -1]
-        ),
-         (
+        ], [
         [ 0 -1  0]  [ 0 -1  0]  [ 0  1  0]  [0 1 0]
         [ 0  0 -1]  [ 0  0  1]  [ 0  0 -1]  [0 0 1]
         [ 1  0  0], [-1  0  0], [-1  0  0], [1 0 0]
-        ),
-         (
+        ], [
         [ 0  0 -1]  [ 0  0 -1]  [ 0  0  1]  [0 0 1]
         [-1  0  0]  [ 1  0  0]  [-1  0  0]  [1 0 0]
         [ 0  1  0], [ 0 -1  0], [ 0 -1  0], [0 1 0]
-        ),
-         (
+        ], [
         [ 0  0 -1]  [ 0  0 -1]  [ 0  0  1]  [ 0  0  1]
         [ 0 -1  0]  [ 0  1  0]  [ 0 -1  0]  [ 0  1  0]
         [-1  0  0], [ 1  0  0], [ 1  0  0], [-1  0  0]
-        )]
+        ]]
 
-    ::
+    TESTS::
 
         sage: G = ncube_isometry_group_modpi(3, False)
         sage: len(G)
         6
         sage: map(len, G)
         [8, 8, 8, 8, 8, 8]
+        sage: type(G[0][0])
+        <class 'sage.groups.matrix_gps.group_element.FinitelyGeneratedMatrixGroup_gap_with_category.element_class'>
+
     """
     from sage.groups.matrix_gps.finitely_generated import MatrixGroup
     G_gens = ncube_isometry_group(n, orientation_preserving)
     G = MatrixGroup(G_gens)
-    assert G.cardinality() == len(G_gens)
     H = [h for h in G if all(i==j for (i,j) in h.matrix().nonzero_positions())]
-    assert MatrixGroup(H).cardinality() == len(H)
-    left_cosets = set(tuple(sorted(h*g for h in H)) for g in G)
-    right_cosets = set(tuple(sorted(g*h for h in H)) for g in G)
-    assert left_cosets == right_cosets, "H must be a normal subgroup of G"
-    return left_cosets
+    G_set = set(G)
+    cosets = []
+    while G_set:
+        g = G_set.pop()
+        left_coset = sorted(h*g for h in H)
+        right_coset = sorted(g*h for h in H)
+        assert left_coset == right_coset, "H must be a normal subgroup of G"
+        G_set.difference_update(left_coset)
+        cosets.append(left_coset)
+    return cosets
 
 ##############################
 # Class Polyomino
@@ -1449,7 +1450,7 @@ class TilingSolver(SageObject):
         of a 5x8x2 box. Since a 5x8x2 box has four orientation preserving
         isometries, each solution up to rotation is counted four times by
         this dancing links solver::
-        
+
             sage: from sage.games.quantumino import QuantuminoSolver
             sage: from sage.combinat.matrices.dancing_links import dlx_solver
             sage: q = QuantuminoSolver(0)

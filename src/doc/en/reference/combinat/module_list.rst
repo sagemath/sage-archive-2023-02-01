@@ -161,6 +161,7 @@ Comprehensive Module list
     sage/combinat/permutation_nk
     sage/combinat/posets/__init__
     sage/combinat/posets/all
+    sage/combinat/posets/cartesian_product
     sage/combinat/posets/elements
     sage/combinat/posets/hasse_diagram
     sage/combinat/posets/incidence_algebras

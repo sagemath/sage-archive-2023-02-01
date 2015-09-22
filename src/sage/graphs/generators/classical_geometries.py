@@ -938,16 +938,15 @@ def TaylorTwographSRG(q):
 
 def AhrensSzekeresGQ(q, dual=False):
     r"""
-    Return the collinearity graph of GQ AS(q) or its dual
+    Return the collinearity graph of the generalized quadrangle `AS(q)`, or of its dual
 
-    `AS(q)` is a generalised quadrangle (GQ, see [GQwiki]_) of order `(q-1,q+1)`,
-    see 3.1.5 in [PT09]_.
-    Let `q` be an odd prime power. Then the points are elements of `F_q^3`,
-    and lines are of the form
+    Let `q` be an odd prime power.  `AS(q)` is a generalized quadrangle [GQwiki]_ of
+    order `(q-1,q+1)`, see 3.1.5 in [PT09]_. Its points are elements
+    of `F_q^3`, and lines are sets of size `q` of the form
 
-    * `(\sigma, a, b), \sigma\in F_q`
-    * `(a, \sigma, b), \sigma\in F_q`
-    * `(c \sigma^2 - b \sigma + a, -2 c \sigma + b, \sigma), \sigma\in F_q`
+    * `\{ (\sigma, a, b) \mid \sigma\in F_q \}`
+    * `\{ (a, \sigma, b) \mid \sigma\in F_q \}`
+    * `\{ (c \sigma^2 - b \sigma + a, -2 c \sigma + b, \sigma) \mid \sigma\in F_q \}`,
 
     where `a`, `b`, `c` are arbitrary elements of `F_q`.
 
@@ -955,8 +954,8 @@ def AhrensSzekeresGQ(q, dual=False):
 
     - ``q`` -- a power of an odd prime number
 
-    - ``dual`` -- if ``False`` (default), return the graph of `GQ(q-1,q+1)`.
-      Otherwise return the graph of `GQ(q+1,q-1)`.
+    - ``dual`` -- if ``False`` (default), return the collinearity graph of `GQ(q-1,q+1)`.
+      Otherwise return the collinearity graph of `GQ(q+1,q-1)`.
 
     EXAMPLES::
 
@@ -1001,13 +1000,12 @@ def AhrensSzekeresGQ(q, dual=False):
 
 def T2starGQ(q, dual=False, hyperoval=None, field=None, check_hyperoval=True):
     r"""
-    Return the collinearity graph of GQ T_2*(q) or its dual
+    Return the collinearity graph of the generalized quadrangle `T_2*(q)`, or of its dual
 
-    `T_2^*(q)` is a generalised quadrangle (GQ, see [GQwiki]_)
-    of order `(q-1,q+1)`, see 3.1.3 in [PT09]_.
-    Let `q=2^k` and `\Theta=PG(3,q)`. Fix a plane `\Pi \subset \Theta` and a
+    Let `q=2^k` and `\Theta=PG(3,q)`.  `T_2^*(q)` is a generalised quadrangle [GQwiki]_
+    of order `(q-1,q+1)`, see 3.1.3 in [PT09]_. Fix a plane `\Pi \subset \Theta` and a
     `hyperoval <http://en.wikipedia.org/wiki/Oval_(projective_plane)#Even_q>`__
-    `O \subset \Pi`. The points of the GQ are the points of `\Theta`
+    `O \subset \Pi`. The points of `T_2^*(q):=T_2^*(O)` are the points of `\Theta`
     outside `\Pi`, and the lines are the lines of `\Theta` outside `\Pi`
     that meet `\Pi` in a point of `O`.
 

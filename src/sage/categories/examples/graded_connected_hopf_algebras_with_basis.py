@@ -15,18 +15,30 @@ from sage.misc.cachefunc import cached_method
 from sage.sets.non_negative_integers import NonNegativeIntegers
 
 
-class GradedConnectedHopfAlgebraOfInteger(CombinatorialFreeModule):
+class GradedConnectedCombinatorialHopfAlgebraWithPrimitiveGenerator(CombinatorialFreeModule):
     r"""
-    This class illustrates an implementation of a graded hopf algebra
-    with basis: the polynomial Hopf algebra of one variable.
+    This class illustrates an implementation of a graded Hopf algebra
+    with basis that has one primitive generator of degree 1 and basis
+    elements indexed by non-negative integers.
+
+    This Hopf algebra example differs from what topologists refer to as
+    a graded Hopf algebra because the twist operation in the tensor rule
+    satisfies
+
+    .. MATH::
+
+        (\mu \otimes \mu) \circ (id \otimes \tau \otimes id) \circ
+        (\Delta \otimes \Delta) = \Delta \circ \mu
+
+    where `\tau(x\otimes y) = y\otimes x`.
 
     """
     def __init__(self, base_ring):
         """
         EXAMPLES::
 
-            sage: from sage.categories.examples.graded_connected_hopf_algebras_with_basis import GradedConnectedHopfAlgebraOfInteger
-            sage: H = GradedConnectedHopfAlgebraOfInteger(QQ)
+            sage: from sage.categories.examples.graded_connected_hopf_algebras_with_basis import Example
+            sage: H = Example(QQ)
             sage: TestSuite(H).run()
 
         """
@@ -37,12 +49,16 @@ class GradedConnectedHopfAlgebraOfInteger(CombinatorialFreeModule):
     @cached_method
     def one_basis(self):
         """
-        Returns 0, which index the unit of the hopf algebra.
+        Returns 0, which index the unit of the Hopf algebra.
 
-        EXAMPLES::r
+        OUTPUT:
 
-            sage: from sage.categories.examples.graded_connected_hopf_algebras_with_basis import GradedConnectedHopfAlgebraOfInteger
-            sage: H = GradedConnectedHopfAlgebraOfInteger(QQ)
+        - the non-negative integer 0
+
+        EXAMPLES::
+
+            sage: from sage.categories.examples.graded_connected_hopf_algebras_with_basis import Example
+            sage: H = Example(QQ)
             sage: H.one_basis()
             0
             sage: H.one()
@@ -51,53 +67,73 @@ class GradedConnectedHopfAlgebraOfInteger(CombinatorialFreeModule):
         """
         return self.basis().keys()(0)
 
-    def degree_on_basis(self, t):
+    def degree_on_basis(self, i):
         """
-        The degree of an integer is the integer
+        The degree of a non-negative integer is itself
+
+        INPUT:
+
+        - ``i`` -- a non-negative integer
+
+        OUTPUT:
+
+        - a non-negative integer
 
         TESTS::
 
-            sage: from sage.categories.examples.graded_connected_hopf_algebras_with_basis import GradedConnectedHopfAlgebraOfInteger
-            sage: H = GradedConnectedHopfAlgebraOfInteger(QQ)
+            sage: from sage.categories.examples.graded_connected_hopf_algebras_with_basis import Example
+            sage: H = Example(QQ)
             sage: H.degree_on_basis(45)
             45
 
         """
-        return t
+        return i
 
     def _repr_(self):
         """
-        Print representation
+        Representation of the graded connected Hopf algebra
 
         EXAMPLES::
 
-            sage: from sage.categories.examples.graded_connected_hopf_algebras_with_basis import GradedConnectedHopfAlgebraOfInteger
-            sage: GradedConnectedHopfAlgebraOfInteger(QQ)
-            An example of a graded connected hopf algebra with basis over Rational Field
+            sage: from sage.categories.examples.graded_connected_hopf_algebras_with_basis import Example
+            sage: Example(QQ)
+            An example of a graded connected Hopf algebra with basis over Rational Field
 
         """
-        return "An example of a graded connected hopf algebra with basis over %s" % self.base_ring()
+        return "An example of a graded connected Hopf algebra with basis over %s" % self.base_ring()
 
-    def _repr_term(self, t):
+    def _repr_term(self, i):
         """
-        Print representation for the basis element represented by the
-        integer ``t``.
+        Representation for the basis element indexed by the integer ``i``.
 
         EXAMPLES::
 
-            sage: from sage.categories.examples.graded_connected_hopf_algebras_with_basis import GradedConnectedHopfAlgebraOfInteger
-            sage: H = GradedConnectedHopfAlgebraOfInteger(QQ)
+            sage: from sage.categories.examples.graded_connected_hopf_algebras_with_basis import Example
+            sage: H = Example(QQ)
             sage: H._repr_term(45)
             'P45'
         """
-        return 'P' + repr(t)
+        return 'P' + repr(i)
 
     def product_on_basis(self, i, j):
         """
+        The product of two basis elements.
+
+        The product of elements of degree ``i`` and ``j`` is an element
+        of degree ``i+j``.
+
+        INPUT:
+
+        - ``i``, ``j`` -- non-negative integers
+
+        OUPUT:
+
+        - a basis element indexed by ``i+j``
+
         TESTS::
 
-            sage: from sage.categories.examples.graded_connected_hopf_algebras_with_basis import GradedConnectedHopfAlgebraOfInteger
-            sage: H = GradedConnectedHopfAlgebraOfInteger(QQ)
+            sage: from sage.categories.examples.graded_connected_hopf_algebras_with_basis import Example
+            sage: H = Example(QQ)
             sage: H.monomial(4) * H.monomial(5)
             P9
 
@@ -106,10 +142,24 @@ class GradedConnectedHopfAlgebraOfInteger(CombinatorialFreeModule):
 
     def coproduct_on_basis(self, i):
         """
+        The coproduct of a basis element.
+
+        .. MATH::
+
+            \Delta(P_i) = \sum_{j=0}^i P_{i-j} \otimes P_j
+
+        INPUT:
+
+        - ``i`` -- a non-negative integer
+
+        OUTPUT:
+
+        - an element of the tensor square of ``self``
+
         TESTS::
 
-            sage: from sage.categories.examples.graded_connected_hopf_algebras_with_basis import GradedConnectedHopfAlgebraOfInteger
-            sage: H = GradedConnectedHopfAlgebraOfInteger(QQ)
+            sage: from sage.categories.examples.graded_connected_hopf_algebras_with_basis import Example
+            sage: H = Example(QQ)
             sage: H.monomial(3).coproduct()
             P0 # P3 + 3*P1 # P2 + 3*P2 # P1 + P3 # P0
 
@@ -119,4 +169,4 @@ class GradedConnectedHopfAlgebraOfInteger(CombinatorialFreeModule):
             for j in range(i+1)
         )
 
-Example = GradedConnectedHopfAlgebraOfInteger
+Example = GradedConnectedCombinatorialHopfAlgebraWithPrimitiveGenerator

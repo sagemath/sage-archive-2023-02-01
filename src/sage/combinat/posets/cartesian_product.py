@@ -136,18 +136,18 @@ class CartesianProductPosets(CartesianProduct):
 
         EXAMPLES::
 
-            sage: QQ.CartesianProduct = sage.combinat.posets.cartesian_product.CartesianProductPosets  # needed until #19269 is fixed
+            sage: P = Posets.ChainPoset(10)
             sage: def le_sum(left, right):
             ....:     return (sum(left) < sum(right) or
             ....:             sum(left) == sum(right) and left[0] <= right[0])
-            sage: C = cartesian_product((QQ, QQ), order=le_sum)
-            sage: C.le(C((1/3, 2)), C((2, 1/3)))
+            sage: C = cartesian_product((P, P), order=le_sum)
+            sage: C.le(C((1, 6)), C((6, 1)))
             True
-            sage: C.le(C((2, 1/3)), C((1/3, 2)))
+            sage: C.le(C((6, 1)), C((1, 6)))
             False
-            sage: C.le(C((1/3, 2)), C((2, 2)))
+            sage: C.le(C((1, 6)), C((6, 6)))
             True
-            sage: C.le(C((2, 2)), C((1/3, 2)))
+            sage: C.le(C((6, 6)), C((1, 6)))
             False
         """
         return self._le_(left, right)

@@ -15,6 +15,8 @@ cdef class PariInstance_auto(ParentWithBase):
 cdef class PariInstance(PariInstance_auto):
     cdef long _real_precision
     cdef gen PARI_ZERO, PARI_ONE, PARI_TWO
+    cpdef gen zero(self)
+    cpdef gen one(self)
     cdef inline gen new_gen(self, GEN x)
     cdef inline gen new_gen_noclear(self, GEN x)
     cdef gen new_gen_from_mpz_t(self, mpz_t value)

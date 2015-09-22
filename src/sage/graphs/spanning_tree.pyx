@@ -87,10 +87,22 @@ cpdef kruskal(G, wfunction=None, bint check=False):
 
     - ``G`` -- an undirected graph.
 
-    - ``wfunction`` -- A weight function: a function that takes an edge and
-      returns a numeric weight. If ``wfunction=None`` (default), the algorithm
-      uses the edge weight, if available, otherwise it assigns weight 1 to each
-      edge (in the latter case, the output can be any spanning tree).
+    - ``weight_function`` (function) - a function that inputs an edge ``e``
+      and outputs its weight. An edge has the form ``(u,v,l)``, where ``u``
+      and ``v`` are vertices, ``l`` is a label (that can be of any kind).
+      The ``weight_function`` can be used to transform the label into a
+      weight. In particular:
+
+      - if ``weight_function`` is not ``None``, the weight of an edge ``e``
+        is ``weight_function(e)``;
+
+      - if ``weight_function`` is ``None`` (default) and ``g`` is weighted
+        (that is, ``g.weighted()==True``), the weight of an edge
+        ``e=(u,v,l)`` is ``l``, independently on which kind of object ``l``
+        is: the ordering of labels relies on Python's operator ``<``;
+
+      - if ``weight_function`` is ``None`` and ``g`` is not weighted, we set
+        all weights to 1 (hence, the output can be any spanning tree).
 
     - ``check`` -- Whether to first perform sanity checks on the input
       graph ``G``. Default: ``check=False``. If we toggle ``check=True``, the
@@ -281,7 +293,6 @@ cpdef kruskal(G, wfunction=None, bint check=False):
         g = G.to_simple(to_undirected=False, keep_label='min')
     else:
         g = G
-
 
     # G is assumed to be connected, undirected, and with at least a vertex
     # We sort edges, as specified.

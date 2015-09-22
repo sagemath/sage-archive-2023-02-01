@@ -395,7 +395,7 @@ class LatticePolytope_PPL_class(C_Polyhedron):
             ....:      (-1,2,-1), (-1,2,-2), (-1,1,-2), (-1,-1,2), (-1,-3,2)]
             sage: P = LatticePolytope_PPL(*v)
             sage: pts1 = P.integral_points()                     # Sage's own code
-            sage: pts2 = LatticePolytope(v).points_pc()          # PALP
+            sage: pts2 = LatticePolytope(v).points()          # PALP
             sage: for p in pts1: p.set_immutable()
             sage: set(pts1) == set(pts2)
             True
@@ -1203,8 +1203,9 @@ class LatticePolytope_PPL_class(C_Polyhedron):
           ``self`` (up to a lattice linear transformation) is
           returned. That is, the domain of the ``output='hom'`` map is
           returned. If the affine span of ``self`` is less or equal
-          2-dimnsional, the output is one of the following three
-          possibilities::
+          2-dimensional, the output is one of the following three
+          possibilities:
+
           :func:`~sage.geometry.polyhedron.ppl_lattice_polygon.polar_P2_polytope`,
           :func:`~sage.geometry.polyhedron.ppl_lattice_polygon.polar_P1xP1_polytope`,
           or

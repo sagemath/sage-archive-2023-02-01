@@ -519,7 +519,7 @@ class Tachyon(SageObject):
         and we are simply shown the plot.
         
         ::
-            
+
             sage: h = Tachyon(xres=512,yres=512, camera_center=(4,-4,3),viewdir=(-4,4,-3), raydepth=4)
             sage: h.light((4.4,-4.4,4.4), 0.2, (1,1,1))
             sage: def f(x,y): return float(sin(x*y))
@@ -533,7 +533,7 @@ class Tachyon(SageObject):
         displays our graph.
         
         ::
-            
+
             sage: s = Tachyon(xres=512,yres=512, camera_center=(4,-4,3),viewdir=(-4,4,-3), raydepth=4)
             sage: s.light((4.4,-4.4,4.4), 0.2, (1,1,1))
             sage: def f(x,y): return float(sin(x*y))
@@ -552,7 +552,7 @@ class Tachyon(SageObject):
         the plot.
         
         ::
-            
+
             sage: set_verbose(0)
             sage: d = Tachyon(xres=512,yres=512, camera_center=(4,-4,3),viewdir=(-4,4,-3), raydepth=4)
             sage: d.light((4.4,-4.4,4.4), 0.2, (1,1,1))

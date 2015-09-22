@@ -13,13 +13,9 @@ build: all-build
 
 # Defer unknown targets to build/make/Makefile
 %::
-	$(MAKE) configure logs
-	+cd build/make && ./pipestatus \
-		"./install '$@' 2>&1" \
-		"tee -a ../../logs/install.log"
-
-logs:
-	mkdir -p $@
+	$(MAKE) configure
+	+build/bin/sage-logger \
+		"cd build/make && ./install '$@'" logs/install.log
 
 # Preemptively download all standard upstream source tarballs.
 download:

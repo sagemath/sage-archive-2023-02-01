@@ -34,6 +34,9 @@ class CartesianProductPosets(CartesianProduct):
     - ``order`` -- a string or function specifying an order less or equal.
       It can be one of the following:
 
+      - ``'native'`` -- elements are ordered by their native ordering,
+        i.e., the order the wrapped elements (tuples) provide.
+
       - ``'lex'`` -- elements are ordered lexicographically.
 
       - ``'product'`` -- an element is less or equal to another
@@ -250,6 +253,50 @@ class CartesianProductPosets(CartesianProduct):
             S.le(l, r)
             for l, r, S in
             zip(left.value, right.value, self.cartesian_factors()))
+
+
+    def le_native(self, left, right):
+        r"""
+        Test whether ``left`` is smaller or equal to ``right`` in the order
+        provided by the elements themselves.
+
+        INPUT:
+
+        - ``left`` -- an element.
+
+        - ``right`` -- an element.
+
+        OUTPUT:
+
+        A boolean.
+
+        EXAMPLES::
+
+            sage: P = Poset((srange(2), lambda left, right: left <= right))
+            sage: Q = cartesian_product((P, P), order='native')
+            sage: T = [Q((0, 0)), Q((1, 1)), Q((0, 1)), Q((1, 0))]
+            sage: for a in T:
+            ....:     for b in T:
+            ....:         assert(Q.le(a, b) == (a <= b))
+            ....:         print '%s <= %s = %s' % (a, b, a <= b)
+            (0, 0) <= (0, 0) = True
+            (0, 0) <= (1, 1) = True
+            (0, 0) <= (0, 1) = True
+            (0, 0) <= (1, 0) = True
+            (1, 1) <= (0, 0) = False
+            (1, 1) <= (1, 1) = True
+            (1, 1) <= (0, 1) = False
+            (1, 1) <= (1, 0) = False
+            (0, 1) <= (0, 0) = False
+            (0, 1) <= (1, 1) = True
+            (0, 1) <= (0, 1) = True
+            (0, 1) <= (1, 0) = True
+            (1, 0) <= (0, 0) = False
+            (1, 0) <= (1, 1) = True
+            (1, 0) <= (0, 1) = False
+            (1, 0) <= (1, 0) = True
+        """
+        return left.value <= right.value
 
 
     class Element(CartesianProduct.Element):

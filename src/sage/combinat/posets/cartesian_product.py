@@ -75,7 +75,7 @@ class CartesianProductPosets(CartesianProduct):
         :class:`CartesianProduct`
     """
 
-    def __init__(self, sets, category, order, **kwargs):
+    def __init__(self, sets, category, order=None, **kwargs):
         r"""
         See :class:`CartesianProductPosets` for details.
 
@@ -87,7 +87,9 @@ class CartesianProductPosets(CartesianProduct):
             ...
             ValueError: No order 'notexisting' known.
         """
-        if isinstance(order, str):
+        if order is None:
+            self._le_ = self.le_product
+        elif isinstance(order, str):
             try:
                 self._le_ = getattr(self, 'le_' + order)
             except AttributeError:

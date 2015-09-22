@@ -97,10 +97,10 @@ class CartesianProductPosets(CartesianProduct):
         else:
             self._le_ = order
 
+        from sage.categories.posets import Posets
+        category = category & Posets()
         super(CartesianProductPosets, self).__init__(
             sets, category, **kwargs)
-        from sage.categories.posets import Posets
-        self._refine_category_(Posets())
 
 
     def le(self, left, right):

@@ -1678,7 +1678,7 @@ class FinitePosets(CategoryWithAxiom):
                     next = self.order_ideal_toggles(next, vs)
                     yield element_constructor(next)
 
-        def order_ideals_lattice(self, as_ideals=True, facade=True):
+        def order_ideals_lattice(self, as_ideals=True, facade=None):
             r"""
             Return the lattice of order ideals of a poset ``self``,
             ordered by inclusion.
@@ -1700,6 +1700,9 @@ class FinitePosets(CategoryWithAxiom):
             - ``as_ideals`` -- Boolean, if ``True`` (default) returns
               a poset on the set of order ideals, otherwise on the set
               of antichains
+            - ``facade`` -- Boolean or ``None`` (default). Whether to
+              return a facade lattice or not. By default return facade
+              lattice if the poset is a facade poset.
 
             EXAMPLES::
 
@@ -1734,6 +1737,8 @@ class FinitePosets(CategoryWithAxiom):
                 False
             """
             from sage.combinat.posets.lattices import LatticePoset
+            if facade is None:
+                facade = self._is_facade
             if as_ideals:
                 from sage.misc.misc import attrcall
                 from sage.sets.set import Set

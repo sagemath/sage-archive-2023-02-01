@@ -1018,7 +1018,7 @@ def random_matrix(ring, nrows, ncols=None, algorithm='randomize', *args, **kwds)
          eigenvectors, if computed by hand, will have only integer
          entries.
 
-    -  ``*args, **kwds`` - arguments and keywords to describe additional 
+    -  ``*args, **kwds`` - arguments and keywords to describe additional
        properties. See more detailed documentation below.
 
     .. warning::
@@ -1175,9 +1175,14 @@ def random_matrix(ring, nrows, ncols=None, algorithm='randomize', *args, **kwds)
 
     The default implementation of :meth:`~sage.matrix.matrix2.randomize` relies
     on the ``random_element()`` method for the base ring.  The ``density`` and
-    ``sparse`` keywords behave as described above. ::
+    ``sparse`` keywords behave as described above. Since we have a different
+    randomisation when using the optional meataxe package, we have to make sure
+    that we use the default implementation in this test::
 
         sage: K.<a>=FiniteField(3^2)
+        sage: from sage.matrix.matrix_generic_dense import Matrix_generic_dense
+        sage: MS = MatrixSpace(K, 2, 5)
+        sage: MS._MatrixSpace__matrix_class = Matrix_generic_dense
         sage: random_matrix(K, 2, 5)
         [      1       a       1 2*a + 1       2]
         [    2*a   a + 2       0       2       1]

@@ -1436,7 +1436,7 @@ cdef class Matrix_gfpn_dense(Matrix_dense):
         self.cache("left_kernel_matrix", OUT)
         return OUT
 
-    def _echelon_in_place_classical(self, reduced=True):
+    def _echelon_in_place_classical(self, reduced=True, **kwds):
         """
         Change this matrix into echelon form, using classical Gaussian elimination.
 

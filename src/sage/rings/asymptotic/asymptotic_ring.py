@@ -1017,6 +1017,9 @@ class AsymptoticRing(sage.rings.ring.Ring,
             sage: AR_QQ.has_coerce_map_from(ZZ)
             True
         """
+        from sage.data_structures.mutable_poset import MutablePoset
+        if R == MutablePoset:
+            return
         if self.coefficient_ring.has_coerce_map_from(R):
             return True
         elif isinstance(R, AsymptoticRing):

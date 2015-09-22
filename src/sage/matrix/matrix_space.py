@@ -986,7 +986,7 @@ class MatrixSpace(UniqueRepresentation, parent_gens.ParentWithGens):
             sage: type(matrix(GF(2), 2, range(4)))
             <type 'sage.matrix.matrix_mod2_dense.Matrix_mod2_dense'>
             sage: type(matrix(GF(64,'z'), 2, range(4)))
-            <type 'sage.matrix.matrix_mod2e_dense.Matrix_mod2e_dense'>
+            <type 'sage.matrix.matrix_gf2e_dense.Matrix_gf2e_dense'>
             sage: type(matrix(GF(125,'z'), 2, range(4)))
             <type 'sage.matrix.matrix_gfpn_dense.Matrix_gfpn_dense'>
         """

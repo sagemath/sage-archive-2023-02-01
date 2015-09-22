@@ -779,7 +779,7 @@ cdef class Matrix(matrix1.Matrix):
             36.0000000000000
 
         The permanent above is directed to the Sloane's sequence :oeis:`A079908`
-        ("The Dancing School Problems") for which the third term is 36: 
+        ("The Dancing School Problems") for which the third term is 36:
 
         ::
 
@@ -3352,8 +3352,6 @@ cdef class Matrix(matrix1.Matrix):
             verbose ...
             verbose 1 (<module>) computing right kernel matrix over an arbitrary field for 3x4 matrix
             ...
-            verbose 1 (<module>) done computing right kernel matrix over an arbitrary field for 3x4 matrix
-            ...
             Vector space of degree 4 and dimension 2 over Finite Field in a of size 5^2
             Basis matrix:
             [      1       0 3*a + 4 2*a + 2]
@@ -3800,13 +3798,25 @@ cdef class Matrix(matrix1.Matrix):
             [      0       1     2*a 3*a + 3]
             sage: A*K.basis_matrix().transpose() == zero_matrix(F, 3, 2)
             True
-            sage: B = copy(A)
+
+        In the following test, we have to force usage of
+        :class:`~sage.matrix.matrix_generic_dense.Matrix_generic_dense`,
+        since the option ``basis = 'pivot'`` would simply yield the same
+        result as the previous test, if the optional meataxe package is
+        installed. ::
+
+            sage: from sage.matrix.matrix_generic_dense import Matrix_generic_dense
+            sage: B = Matrix_generic_dense(A.parent(), A.list(), False, False)
             sage: P = B.right_kernel(basis = 'pivot'); P
             Vector space of degree 4 and dimension 2 over Finite Field in a of size 5^2
             User basis matrix:
             [      4       4       1       0]
             [  a + 2 3*a + 3       0       1]
-            sage: B*P.basis_matrix().transpose() == zero_matrix(F, 3, 2)
+
+        If the optional meataxe package is installed, we again have to make sure
+        to work with a copy of B that has the same type as ``P.basis_matrix()``::
+
+            sage: B.parent()(B.list())*P.basis_matrix().transpose() == zero_matrix(F, 3, 2)
             True
             sage: K == P
             True
@@ -8374,7 +8384,7 @@ cdef class Matrix(matrix1.Matrix):
 
             sage: filename = tmp_filename(ext='.png')
             sage: img.save(filename)
-            sage: open(filename).read().startswith('\x89PNG') 
+            sage: open(filename).read().startswith('\x89PNG')
             True
         """
         cdef int x, y, _x, _y, v, bi, bisq

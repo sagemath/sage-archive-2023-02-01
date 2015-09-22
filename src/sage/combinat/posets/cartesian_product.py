@@ -114,7 +114,7 @@ class CartesianProductPosets(CartesianProduct):
 
     def le(self, left, right):
         r"""
-        Tests if ``left`` is less than or equal to ``right``.
+        Test whether ``left`` is less than or equal to ``right``.
 
         INPUT:
 
@@ -152,7 +152,7 @@ class CartesianProductPosets(CartesianProduct):
 
     def le_lex(self, left, right):
         r"""
-        Tests if ``left`` is lexicographically smaller or equal
+        Test whether ``left`` is lexicographically smaller or equal
         to ``right``.
 
         INPUT:
@@ -204,7 +204,7 @@ class CartesianProductPosets(CartesianProduct):
 
     def le_product(self, left, right):
         r"""
-        Tests if ``left`` is component-wise smaller or equal
+        Test whether ``left`` is component-wise smaller or equal
         to ``right``.
 
         INPUT:

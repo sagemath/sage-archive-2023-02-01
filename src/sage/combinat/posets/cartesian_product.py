@@ -40,7 +40,8 @@ class CartesianProductPosets(CartesianProduct):
         element, if less or equal is true for all its components
         (cartesian projections).
 
-      - a function ``order_le(left, right)``, which performs the comparison.
+      - A function which performs the comparison `\leq`. It takes two
+        input arguments and outputs a boolean.
 
     Other keyword arguments (``kwargs``) are passed to the constructor
     of :class:`CartesianProduct`.

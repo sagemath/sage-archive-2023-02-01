@@ -16,9 +16,9 @@
 cdef extern from "meataxe.h":
     # general ctype emulations
     # ctypedef int size_t   # size_t should be a standard type!
-    ctypedef unsigned long Ulong
-    ctypedef unsigned short Ushort
-    ctypedef unsigned char Uchar
+    # ctypedef unsigned long Ulong
+    # ctypedef unsigned short Ushort
+    # ctypedef unsigned char Uchar
     ctypedef unsigned char FEL
     ctypedef FEL *PTR
 
@@ -46,8 +46,8 @@ cdef extern from "meataxe.h":
     ## global parameters
     size_t FfRowSize(int noc)
     size_t FfTrueRowSize(int noc) # Difference to FfRowSize: Doesn't count padding bytes
-    int FfSetField(int field)
-    int FfSetNoc(int ncols)
+    int FfSetField(int field) except -1
+    int FfSetNoc(int ncols) except -1
 
     ## Finite Fields
     # FEL FfAdd(FEL a,FEL b)
@@ -68,13 +68,13 @@ cdef extern from "meataxe.h":
     FEL FfExtract(PTR row, int col)
     void FfInsert(PTR row, int col, FEL mark)
     int FfFindPivot(PTR row, FEL *mark)
-    # FEL FfScalarProduct(PTR a, PTR b)
+    FEL FfScalarProduct(PTR a, PTR b)
     void FfSwapRows(PTR dest, PTR src)
-    # void FfPermRow(PTR row, long *perm, PTR result)
-    # int FfCmpRows(PTR p1, PTR p2)
+    void FfPermRow(PTR row, long *perm, PTR result)
+    int FfCmpRows(PTR p1, PTR p2)
 
     ## multiple rows
-    PTR FfAlloc(int nor)
+    PTR FfAlloc(int nor) except NULL
     void FfExtractColumn(PTR mat,int nor,int col,PTR result)
     int FfStepPtr(PTR *x)  # Advance to next row
     PTR FfGetPtr(PTR base, int row)  # Advance to "row" rows after base
@@ -94,35 +94,50 @@ cdef extern from "meataxe.h":
         int RowSize                     # Size (in bytes) of one row
         int *PivotTable                 # Pivot table (if matrix is in echelon form
     ## Basic memory operations
-    Matrix_t *MatAlloc(int field, int nor, int noc)
+    Matrix_t *MatAlloc(int field, int nor, int noc) except NULL
     int MatFree(Matrix_t *mat)
     PTR MatGetPtr(Matrix_t *mat, int row)
-    int MatCompare(Matrix_t *a, Matrix_t *b)
-    # int MatCopyRegion(Matrix_t *dest, int destrow, int destcol, Matrix_t *src, int row1, int col1, int nrows, int ncols)
-    Matrix_t *MatCut(Matrix_t *src, int row1, int col1, int nrows, int ncols)
-    # Matrix_t *MatCutRows(Matrix_t *src, int row1, int nrows)
-    Matrix_t *MatDup(Matrix_t *src)
-    Matrix_t *MatId(int fl, int nor)
-    Matrix_t *MatLoad(char *fn)
-    int MatSave(Matrix_t *mat, char *fn)
+    int MatCompare(Matrix_t *a, Matrix_t *b) except? -1
+    int MatCopyRegion(Matrix_t *dest, int destrow, int destcol, Matrix_t *src, int row1, int col1, int nrows, int ncols) except -1
+    Matrix_t *MatCut(Matrix_t *src, int row1, int col1, int nrows, int ncols) except NULL
+    Matrix_t *MatCutRows(Matrix_t *src, int row1, int nrows) except NULL
+    Matrix_t *MatDup(Matrix_t *src) except NULL
+    Matrix_t *MatId(int fl, int nor) except NULL
+    Matrix_t *MatLoad(char *fn) except NULL
+    int MatSave(Matrix_t *mat, char *fn) except -1
 
 
     ## Basic Arithmetic  ## general rule: dest is changed, src/mat are unchanged!
-    Matrix_t *MatTransposed(Matrix_t *src)
-    Matrix_t *MatAdd(Matrix_t *dest, Matrix_t *src)
-    Matrix_t *MatAddMul(Matrix_t *dest, Matrix_t *src, FEL coeff)
-    Matrix_t *MatMul(Matrix_t *dest, Matrix_t *src)
-    Matrix_t *MatMulScalar(Matrix_t *dest, FEL coeff)
-    Matrix_t *MatPower(Matrix_t *mat, long n)
+    Matrix_t *MatTransposed(Matrix_t *src) except NULL
+    Matrix_t *MatAdd(Matrix_t *dest, Matrix_t *src) except NULL
+    Matrix_t *MatAddMul(Matrix_t *dest, Matrix_t *src, FEL coeff) except NULL
+    Matrix_t *MatMul(Matrix_t *dest, Matrix_t *src) except NULL
+    Matrix_t *MatMulScalar(Matrix_t *dest, FEL coeff) except NULL
+    Matrix_t *MatPower(Matrix_t *mat, long n) except NULL
     FEL MatTrace(Matrix_t *mat)
-    Matrix_t *MatMulStrassen(Matrix_t *dest, Matrix_t *A, Matrix_t *B)
+    Matrix_t *MatMulStrassen(Matrix_t *dest, Matrix_t *A, Matrix_t *B) except NULL
     void StrassenSetCutoff(size_t size)
 
-    ## "Higher" Arithmetic ## all arguments are unchanged
-    # int MatClean(Matrix_t *mat, Matrix_t *sub)
-    int MatEchelonize(Matrix_t *mat)
-    int MatOrder(Matrix_t *mat)
+    ## "Higher" Arithmetic
+    int MatClean(Matrix_t *mat, Matrix_t *sub) except -1
+    int MatEchelonize(Matrix_t *mat) except -1
+    int MatOrder(Matrix_t *mat) except? -1
     long MatNullity(Matrix_t *mat)
-    Matrix_t *MatInverse(Matrix_t *src)
-    Matrix_t *MatNullSpace(Matrix_t *mat)
-# thats's all of meataxe.h !
+    Matrix_t *MatInverse(Matrix_t *src) except NULL
+    Matrix_t *MatNullSpace(Matrix_t *mat) except NULL
+
+    ## Error handling
+    cdef extern int MTX_ERR_NOMEM, MTX_ERR_GAME_OVER, MTX_ERR_DIV0, MTX_ERR_FILEFMT, MTX_ERR_BADARG
+    cdef extern int MTX_ERR_RANGE, MTX_ERR_NOTECH, MTX_ERR_NOTSQUARE, MTX_ERR_INCOMPAT
+    cdef extern int MTX_ERR_BADUSAGE, MTX_ERR_OPTION, MTX_ERR_NARGS, MTX_ERR_NOTMATRIX, MTX_ERR_NOTPERM
+    ctypedef struct MtxFileInfo_t:
+        char *Name
+        char *BaseName
+
+    ctypedef struct MtxErrorRecord_t:
+        MtxFileInfo_t *FileInfo
+        int LineNo
+        char *Text
+
+    ctypedef void MtxErrorHandler_t(MtxErrorRecord_t*)
+    MtxErrorHandler_t *MtxSetErrorHandler(MtxErrorHandler_t *h)

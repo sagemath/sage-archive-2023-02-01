@@ -28,7 +28,7 @@ The following kinds of subrings are supported:
   :class:`SymbolicConstantsSubring`). E.g.
   ::
 
-      sage: SR.subring(only_constants=True)
+      sage: SR.subring(no_variables=True)
       Symbolic Constants Subring
 
 
@@ -43,7 +43,7 @@ framework works properly::
     Symbolic Subring accepting the variable a
     sage: R = SymbolicSubring(rejecting_variables=(r,)); R
     Symbolic Subring rejecting the variable r
-    sage: C = SymbolicSubring(only_constants=True); C
+    sage: C = SymbolicSubring(no_variables=True); C
     Symbolic Constants Subring
 
 ::
@@ -118,7 +118,7 @@ class SymbolicSubringFactory(UniqueFactory):
       expressions in variables distinct to these variables is
       created.
 
-    - ``only_constants`` (default: ``False``) -- a boolean. If set,
+    - ``no_variables`` (default: ``False``) -- a boolean. If set,
       then a symbolic subring of constant expressions (i.e.,
       expressions without a variable) is created.
 
@@ -147,7 +147,7 @@ class SymbolicSubringFactory(UniqueFactory):
 
     ::
 
-        sage: C = SymbolicSubring(only_constants=True); C
+        sage: C = SymbolicSubring(no_variables=True); C
         Symbolic Constants Subring
         sage: tuple((v, v in C) for v in V)
         ((a, False), (b, False), (c, False),
@@ -166,7 +166,7 @@ class SymbolicSubringFactory(UniqueFactory):
     """
     def create_key_and_extra_args(
             self, accepting_variables=None, rejecting_variables=None,
-            only_constants=False, **kwds):
+            no_variables=False, **kwds):
         r"""
         Given the arguments and keyword, create a key that uniquely
         determines this object.
@@ -186,26 +186,26 @@ class SymbolicSubringFactory(UniqueFactory):
             ...
             ValueError: Cannot create a symbolic subring since input is ambiguous.
             sage: SymbolicSubring.create_key_and_extra_args(
-            ....:     accepting_variables=('a',), only_constants=True)
+            ....:     accepting_variables=('a',), no_variables=True)
             Traceback (most recent call last):
             ...
             ValueError: Cannot create a symbolic subring since input is ambiguous.
             sage: SymbolicSubring.create_key_and_extra_args(
-            ....:     rejecting_variables=('r',), only_constants=True)
+            ....:     rejecting_variables=('r',), no_variables=True)
             Traceback (most recent call last):
             ...
             ValueError: Cannot create a symbolic subring since input is ambiguous.
         """
         if accepting_variables is None and \
            rejecting_variables is None and \
-           only_constants == False:
+           no_variables == False:
             raise ValueError('Cannot create a symbolic subring '
                              'since nothing specified.')
         if accepting_variables is not None and \
            rejecting_variables is not None or \
            rejecting_variables is not None and \
-           only_constants == True or \
-           only_constants == True and \
+           no_variables == True or \
+           no_variables == True and \
            accepting_variables is not None:
             raise ValueError('Cannot create a symbolic subring '
                              'since input is ambiguous.')
@@ -219,7 +219,7 @@ class SymbolicSubringFactory(UniqueFactory):
         elif rejecting_variables is not None:
             vars = tuple(rejecting_variables)
             cls = SymbolicSubringRejectingVars
-        elif only_constants:
+        elif no_variables:
             vars = tuple()
             cls = SymbolicConstantsSubring
 
@@ -265,7 +265,7 @@ class GenericSymbolicSubring(SymbolicRing):
             Symbolic Subring accepting the variable a
             sage: SymbolicSubring(rejecting_variables=('r',))  # indirect doctest
             Symbolic Subring rejecting the variable r
-            sage: SymbolicSubring(only_constants=True)  # indirect doctest
+            sage: SymbolicSubring(no_variables=True)  # indirect doctest
             Symbolic Constants Subring
             sage: SymbolicSubring(rejecting_variables=tuple())  # indirect doctest
             Symbolic Ring
@@ -374,7 +374,7 @@ class GenericSymbolicSubring(SymbolicRing):
 
         ::
             sage: from sage.symbolic.subring import SymbolicSubring
-            sage: C = SymbolicSubring(only_constants=True)
+            sage: C = SymbolicSubring(no_variables=True)
             sage: C.has_coerce_map_from(ZZ)  # indirect doctest
             True
             sage: C.has_coerce_map_from(QQ)  # indirect doctest
@@ -458,7 +458,7 @@ class GenericSymbolicSubringFunctor(ConstructionFunctor):
     EXAMPLES::
 
         sage: from sage.symbolic.subring import SymbolicSubring
-        sage: SymbolicSubring(only_constants=True).construction()[0]  # indirect doctest
+        sage: SymbolicSubring(no_variables=True).construction()[0]  # indirect doctest
         Subring<accepting no variable>
 
     .. SEEALSO::
@@ -525,7 +525,7 @@ class GenericSymbolicSubringFunctor(ConstructionFunctor):
             Symbolic Subring accepting the variable a
             sage: SymbolicSubring(rejecting_variables=('r',))  # indirect doctest
             Symbolic Subring rejecting the variable r
-            sage: SymbolicSubring(only_constants=True)  # indirect doctest
+            sage: SymbolicSubring(no_variables=True)  # indirect doctest
             Symbolic Constants Subring
         """
         return 'Subring<%s%s%s>' % (
@@ -997,7 +997,7 @@ class SymbolicConstantsSubring(SymbolicSubringAcceptingVars):
         TESTS::
 
             sage: from sage.symbolic.subring import SymbolicSubring
-            sage: SymbolicSubring(only_constants=True)  # indirect doctest
+            sage: SymbolicSubring(no_variables=True)  # indirect doctest
             Symbolic Constants Subring
         """
         return 'Symbolic Constants Subring'
@@ -1018,7 +1018,7 @@ class SymbolicConstantsSubring(SymbolicSubringAcceptingVars):
         EXAMPLES::
 
             sage: from sage.symbolic.subring import SymbolicSubring
-            sage: S = SymbolicSubring(only_constants=True)
+            sage: S = SymbolicSubring(no_variables=True)
             sage: S.is_variable_valid('a')
             False
             sage: S.is_variable_valid('r')
@@ -1040,7 +1040,7 @@ class SymbolicConstantsSubring(SymbolicSubringAcceptingVars):
         TESTS::
 
             sage: from sage.symbolic.subring import SymbolicSubring
-            sage: SymbolicSubring(only_constants=True).an_element()
+            sage: SymbolicSubring(no_variables=True).an_element()
             I*pi*e
         """
         return SR('I') * SR('pi') * SR('e')

@@ -138,7 +138,7 @@ cdef class SymbolicRing(CommutativeRing):
             True
             sage: SR.has_coerce_map_from(SR.subring(rejecting_variables=('r',)))
             True
-            sage: SR.has_coerce_map_from(SR.subring(only_constants=True))
+            sage: SR.has_coerce_map_from(SR.subring(no_variables=True))
             True
         """
         if isinstance(R, type):
@@ -816,7 +816,7 @@ cdef class SymbolicRing(CommutativeRing):
           expressions in variables distinct to these variables is
           created.
 
-        - ``only_constants`` (default: ``False``) -- a boolean. If set,
+        - ``no_variables`` (default: ``False``) -- a boolean. If set,
           then a symbolic subring of constant expressions (i.e.,
           expressions without a variable) is created.
 
@@ -867,7 +867,7 @@ cdef class SymbolicRing(CommutativeRing):
         We have a third kind of subring, namely the subring of
         symbolic constants::
 
-            sage: C = SR.subring(only_constants=True); C
+            sage: C = SR.subring(no_variables=True); C
             Symbolic Constants Subring
 
         Note that this subring can be considered as a special accepting

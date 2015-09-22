@@ -254,8 +254,10 @@ cdef skewtab_to_SkewTableau(skewtab *st):
     """
     inner = vector_to_list(st.inner)
     outer = vector_to_list(st.outer)
-    return SkewTableau(expr=[[ inner[y] for y in range(len(outer))],
-                             [[ st.matrix[x + y * st.cols]+1 for x in range(inner[y], outer[y]) ] for y in range(len(outer)-1,-1,-1) ]])
+    return SkewTableau(expr=[[inner[y] for y in range(len(outer))],
+                             [[st.matrix[x + y * st.cols] + 1
+                                for x in range(inner[y], outer[y])]
+                              for y in range(len(outer) - 1, -1, -1)]])
 
 def test_skewtab_to_SkewTableau(outer, inner):
     """
@@ -346,7 +348,6 @@ cdef vp_hashtab_to_dict(hashtab *ht):
         hash_next(itr)
     return result
 
-
 def lrcoef_unsafe(outer, inner1, inner2):
     r"""
     Compute a single Littlewood-Richardson coefficient.
@@ -422,7 +423,7 @@ def lrcoef(outer, inner1, inner2):
     """
     return lrcoef_unsafe(_Partitions(outer), _Partitions(inner1), _Partitions(inner2))
 
-def mult(part1, part2, maxrows=None, level=None):
+def mult(part1, part2, maxrows=None, level=None, quantum=None):
     r"""
     Compute a product of two Schur functions.
 
@@ -435,16 +436,20 @@ def mult(part1, part2, maxrows=None, level=None):
 
     - ``part2`` -- a partition.
 
-    - ``maxrows`` -- an integer or None.
+    - ``maxrows`` -- an integer or ``None``.
 
-    - ``level`` -- an integer or None.
+    - ``level`` -- an integer or ``None``.
+
+    - ``quantum`` -- an element of a ring or ``None``.
 
     If ``maxrows`` is specified, then only partitions with at most
-    this number of rows is included in the result.
+    this number of rows are included in the result.
 
     If both ``maxrows`` and ``level`` are specified, then the function
     calculates the fusion product for `sl(\mathrm{maxrows})` of the
     given level.
+
+    If ``quantum`` is set, then ``maxrows`` and ``level`` should be set.
 
     EXAMPLES::
 
@@ -466,19 +471,52 @@ def mult(part1, part2, maxrows=None, level=None):
         ...
         ValueError: maxrows needs to be specified if you specify the level
 
+     And the quantum product::
+
+        sage: q = polygen(QQ, 'q')
+        sage: mult([1],[2,1], 2, 2, quantum=q)
+        {[2, 2]: 1, []: q}
+        sage: mult([2,1],[2,1], 2, 2, quantum=q)
+        {[2]: q, [1,1]: q}
+
+        sage: mult([2,1],[2,1], quantum=q)
+        {[2]: q, [1,1]: q}
+        Traceback (most recent call last):
+        ...
+        ValueError: missing parameters maxrows or level
     """
     if maxrows is None and not(level is None):
-        raise ValueError, 'maxrows needs to be specified if you specify the level'
+        raise ValueError('maxrows needs to be specified if you specify'
+                         ' the level')
+    if not(quantum is None) and (level is None or maxrows is None):
+        raise ValueError('missing parameters maxrows or level')
+
     cdef vector* v1 = iterable_to_vector(part1)
     cdef vector* v2 = iterable_to_vector(part2)
     if maxrows is None:
         maxrows = 0
     cdef hashtab* ht = mult_c(v1, v2, int(maxrows))
-    if not(level is None):
-        fusion_reduce_c(ht, int(maxrows), int(level), int(0))
-    result = sf_hashtab_to_dict(ht)
-    v_free(v1); v_free(v2); hash_free(ht)
-    return result
+    cdef hashtab* tab
+    cdef list qlist
+    if quantum is None:
+        if not(level is None):
+            fusion_reduce_c(ht, int(maxrows), int(level), int(0))
+        result = sf_hashtab_to_dict(ht)
+        v_free(v1)
+        v_free(v2)
+        hash_free(ht)
+        return result
+    else:
+        qlist = quantum_reduce_c(ht, int(maxrows), int(level))
+        result = []
+        for i in range(len(qlist)):
+            tab = qlist[i]
+            result += sf_hashtab_to_dict(tab)
+            hash_free(tab)
+        v_free(v1)
+        v_free(v2)
+        hash_free(ht)
+        return result
 
 def skew(outer, inner, maxrows=0):
     """
@@ -494,7 +532,7 @@ def skew(outer, inner, maxrows=0):
 
     - ``inner`` -- a partition.
 
-    - ``maxrows`` -- an integer or None.
+    - ``maxrows`` -- an integer or ``None``.
 
     If ``maxrows`` is specified, then only partitions with at most
     this number of rows are included in the result.

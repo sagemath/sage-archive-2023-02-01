@@ -47,6 +47,7 @@ cdef extern from "lrcalc/symfcn.h":
     hashtab* skew_c "skew"(vector *outer, vector *inner, int maxrows)
     hashtab* coprod_c "coprod"(vector *part, int all)
     void fusion_reduce_c "fusion_reduce"(hashtab* ht, int rows, int cols, int opt_zero)
+    list quantum_reduce_c "quantum_reduce"(hashtab* ht, int rows, int col)
 
     ctypedef struct skewtab:
         vector *outer

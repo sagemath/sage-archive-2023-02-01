@@ -65,6 +65,7 @@ cdef extern from "meataxe.h":
     void FfMulRow(PTR row, FEL mark)
     void FfAddMulRow(PTR dest, PTR src, FEL f)
     PTR FfAddRow(PTR dest, PTR src)
+    PTR FfSubRow(PTR dest, PTR src)
     FEL FfExtract(PTR row, int col)
     void FfInsert(PTR row, int col, FEL mark)
     int FfFindPivot(PTR row, FEL *mark)

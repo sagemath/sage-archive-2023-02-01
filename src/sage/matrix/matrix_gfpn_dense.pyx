@@ -1523,6 +1523,18 @@ cdef class Matrix_gfpn_dense(Matrix_dense):
             [      0       0       0       0       0       0       0       0       0       0]
             [      0       0       0       0       0       0       0       0       0       0]
 
+        The following was a problem in a preliminary version of the code::
+
+            sage: K.<a> = GF(25)
+            sage: M = MatrixSpace(K, 2, 4)([4, 4, 1, 0, 0, 2*a+1, a+2, 1])
+            sage: M
+            [      4       4       1       0]
+            [      0 2*a + 1   a + 2       1]
+            sage: M.echelonize()
+            sage: M
+            [      1       0 3*a + 4 2*a + 2]
+            [      0       1     2*a 3*a + 3]
+
         """
         if self._nrows == 0 or self._ncols == 0:
             self.cache('in_echelon_form',True)
@@ -1546,7 +1558,6 @@ cdef class Matrix_gfpn_dense(Matrix_dense):
             pivs.sort()
             if pivs != [(self.Data.PivotTable[i],i) for i in range(r)] or self.Data.Nor < self._nrows:
                 # We copy the row one by one, sorting their pivot positions
-                # and scaling the pivot to one.
                 old = self.Data.Data
                 self.Data.Data = FfAlloc(self._nrows)
                 for i, (pos,j) in enumerate(pivs):
@@ -1554,22 +1565,25 @@ cdef class Matrix_gfpn_dense(Matrix_dense):
                     dest = self.Data.Data+FfCurrentRowSize*i
                     memcpy(dest, old+FfCurrentRowSize*j, FfCurrentRowSize)
                     self.Data.PivotTable[i] = pos
-                    piv = FfExtract(dest, pos)
-                    assert piv!=FF_ZERO
-                    if piv != FF_ONE:
-                        FfMulRow(dest, mtx_tmultinv[piv])
                 free(old)
                 self.Data.Nor = self._nrows
-                # Finally, we annulate everything above the pivots
-                # (currently, we only know that the matrix is zero
-                # below the pivots).
-                for i from 1 <= i < r:
-                    src = MatGetPtr(self.Data, i)
-                    for j from 0 <= j < i:
-                        dest = MatGetPtr(self.Data, j)
-                        piv = FfExtract(dest, self.Data.PivotTable[i])
-                        if piv != FF_ZERO:
-                            FfAddMulRow(dest, src, mtx_taddinv[piv])
+            # Now, the pivot columns are strictly increasing.
+            # We now normalize each row, and annulate everything
+            # above the pivot (currently, we only know that the matrix
+            # is zero below the pivots).
+            for i from 0 <= i < r:
+                src = MatGetPtr(self.Data, i)
+                piv = FfExtract(src, self.Data.PivotTable[i])
+                assert piv!=FF_ZERO
+                if piv != FF_ONE:
+                    FfMulRow(src, mtx_tmultinv[piv])
+                for j from 0 <= j < i:
+                    dest = MatGetPtr(self.Data, j)
+                    piv = FfExtract(dest, self.Data.PivotTable[i])
+                    if piv != FF_ONE:
+                        FfAddMulRow(dest, src, mtx_taddinv[piv])
+                    else:
+                        FfSubRow(dest, src)
         elif self.Data.Nor < self._nrows:
             # Some rows may have vanished. In SageMath, we
             # want that the number of rows does not change,

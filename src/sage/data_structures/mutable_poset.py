@@ -155,8 +155,10 @@ Classes and their Methods
 #                http://www.gnu.org/licenses/
 #*****************************************************************************
 
+from sage.structure.sage_object import SageObject
 
-class MutablePosetShell(object):
+
+class MutablePosetShell(SageObject):
     r"""
     A shell for an element of a :class:`mutable poset <MutablePoset>`.
 
@@ -1100,7 +1102,7 @@ def is_MutablePoset(P):
     return isinstance(P, MutablePoset)
 
 
-class MutablePoset(object):
+class MutablePoset(SageObject):
     r"""
     A data structure that models a mutable poset (partially ordered
     set).

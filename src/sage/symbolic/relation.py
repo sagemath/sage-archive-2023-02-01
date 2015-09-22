@@ -155,8 +155,8 @@ into the Hessian matrix ``H`` for ``f``::
 
     sage: f(x,y) = x^2*y+y^2+y
     sage: solutions = solve(list(f.diff()),[x,y],solution_dict=True)
-    sage: solutions
-    [{y: 0, x: -I}, {y: 0, x: I}, {y: -1/2, x: 0}]
+    sage: solutions == [{x: -I, y: 0}, {x: I, y: 0}, {x: 0, y: -1/2}]
+    True
     sage: H = f.diff(2) # Hessian matrix
     sage: H.subs(solutions[2])
     [(x, y) |--> -1  (x, y) |--> 0]

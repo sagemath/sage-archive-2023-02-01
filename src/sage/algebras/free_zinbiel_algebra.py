@@ -76,7 +76,7 @@ class FreeZinbielAlgebra(CombinatorialFreeModule):
     .. MATH::
 
         (x_0 x_1 \cdots x_p) \circ (x_{p+1} x_{p+2} \cdots x_{p+q})
-        = \sum_{\simga \in S_{p,q}} x_0 (x_{\sigma(1)} x_{\sigma(2)}
+        = \sum_{\sigma \in S_{p,q}} x_0 (x_{\sigma(1)} x_{\sigma(2)}
         \cdots x_{\sigma(p+q)},
 
     where `S_{p,q}` is the set of `(p,q)`-shuffles.
@@ -135,6 +135,7 @@ class FreeZinbielAlgebra(CombinatorialFreeModule):
     REFERENCES:
 
     - :wikipedia:`Zinbiel_algebra`
+
     .. [Loday95] Jean-Louis Loday.
        *Cup-product for Leibniz cohomology and dual Leibniz algebras*.
        Math. Scand., pp. 189--196 (1995).

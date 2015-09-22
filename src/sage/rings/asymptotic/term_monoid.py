@@ -2075,7 +2075,7 @@ class TermWithCoefficientMonoid(GenericTermMonoid):
         """
         return iter(self(g, c) for g, c in product_diagonal(
             self.growth_group.some_elements(),
-            iter(c for c in self.base_ring.some_elements() if c != 0)))
+            iter(c for c in self.base_ring().some_elements() if c != 0)))
 
 
 class ExactTerm(TermWithCoefficient):

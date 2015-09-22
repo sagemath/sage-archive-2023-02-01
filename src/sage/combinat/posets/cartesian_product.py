@@ -52,8 +52,8 @@ class CartesianProductPosets(CartesianProduct):
         sage: Cl = cartesian_product((P, P), order='lex')
         sage: Cl((1, 1)) <= Cl((2, 0))
         True
-        sage: Cc = cartesian_product((P, P), order='product')
-        sage: Cc((1, 1)) <= Cc((2, 0))
+        sage: Cp = cartesian_product((P, P), order='product')
+        sage: Cp((1, 1)) <= Cp((2, 0))
         False
         sage: def le_sum(left, right):
         ....:     return (sum(left) < sum(right) or
@@ -64,12 +64,14 @@ class CartesianProductPosets(CartesianProduct):
 
     TESTS::
 
-        sage: Cc.category()
+        sage: Cl.category()
         Join of Category of finite posets and
         Category of Cartesian products of finite enumerated sets
-        sage: Cs.category()
+        sage: TestSuite(Cl).run()
+        sage: Cp.category()
         Join of Category of finite posets and
         Category of Cartesian products of finite enumerated sets
+        sage: TestSuite(Cp).run()
 
     .. SEEALSO:
 

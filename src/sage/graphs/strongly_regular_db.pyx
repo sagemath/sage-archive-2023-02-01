@@ -918,20 +918,20 @@ def is_GQqmqp(int v,int k,int l,int mu):
     # v=(s+1)(st+1), k=s(t+1)
     S=l+1
     T=mu-1
+    q = (S+T)//2
+    p, w = is_prime_power(q, get_data=True)
     if (v == (S+1)*(S*T+1)      and
         k == S*(T+1)            and
-        (S+T) % 2 == 0):
-        q = (S+T)/2
-        p, k = is_prime_power(q, get_data=True)
+        q == p**w               and
+        (S+T)/2 == q):
         if p % 2 == 0:
             from sage.graphs.generators.classical_geometries import T2starGQ as F
         else:
             from sage.graphs.generators.classical_geometries import AhrensSzekeresGQ as F
-        if k != 0:
-            if (S,T) == (q-1, q+1):
-                return (F, q, False)
-            elif (S,T) == (q+1, q-1):
-                return (F, q, True)
+        if (S,T) == (q-1, q+1):
+            return (F, q, False)
+        elif (S,T) == (q+1, q-1):
+            return (F, q, True)
 
 @cached_function
 def is_twograph_descendant_of_srg(int v, int k0, int l, int mu):

@@ -124,7 +124,7 @@ class CartesianProductPosets(CartesianProduct):
 
         EXAMPLES::
 
-            sage: QQ.CartesianProduct = sage.combinat.posets.cartesian_product.CartesianProductPosets
+            sage: QQ.CartesianProduct = sage.combinat.posets.cartesian_product.CartesianProductPosets  # needed until #19269 is fixed
             sage: def le_sum(left, right):
             ....:     return (sum(left) < sum(right) or
             ....:             sum(left) == sum(right) and left[0] <= right[0])
@@ -267,7 +267,7 @@ class CartesianProductPosets(CartesianProduct):
 
             TESTS::
 
-                sage: QQ.CartesianProduct = sage.combinat.posets.cartesian_product.CartesianProductPosets
+                sage: QQ.CartesianProduct = sage.combinat.posets.cartesian_product.CartesianProductPosets  # needed until #19269 is fixed
                 sage: def le_sum(left, right):
                 ....:     return (sum(left) < sum(right) or
                 ....:             sum(left) == sum(right) and left[0] <= right[0])
@@ -302,7 +302,7 @@ class CartesianProductPosets(CartesianProduct):
 
             TESTS::
 
-                sage: QQ.CartesianProduct = sage.combinat.posets.cartesian_product.CartesianProductPosets
+                sage: QQ.CartesianProduct = sage.combinat.posets.cartesian_product.CartesianProductPosets  # needed until #19269 is fixed
                 sage: def le_sum(left, right):
                 ....:     return (sum(left) < sum(right) or
                 ....:             sum(left) == sum(right) and left[0] <= right[0])
@@ -346,7 +346,7 @@ class CartesianProductPosets(CartesianProduct):
 
             TESTS::
 
-                sage: QQ.CartesianProduct = sage.combinat.posets.cartesian_product.CartesianProductPosets
+                sage: QQ.CartesianProduct = sage.combinat.posets.cartesian_product.CartesianProductPosets  # needed until #19269 is fixed
                 sage: def le_sum(left, right):
                 ....:     return (sum(left) < sum(right) or
                 ....:             sum(left) == sum(right) and left[0] <= right[0])
@@ -381,7 +381,7 @@ class CartesianProductPosets(CartesianProduct):
 
             TESTS::
 
-                sage: QQ.CartesianProduct = sage.combinat.posets.cartesian_product.CartesianProductPosets
+                sage: QQ.CartesianProduct = sage.combinat.posets.cartesian_product.CartesianProductPosets  # needed until #19269 is fixed
                 sage: def le_sum(left, right):
                 ....:     return (sum(left) < sum(right) or
                 ....:             sum(left) == sum(right) and left[0] <= right[0])
@@ -416,7 +416,7 @@ class CartesianProductPosets(CartesianProduct):
 
             TESTS::
 
-                sage: QQ.CartesianProduct = sage.combinat.posets.cartesian_product.CartesianProductPosets
+                sage: QQ.CartesianProduct = sage.combinat.posets.cartesian_product.CartesianProductPosets  # needed until #19269 is fixed
                 sage: def le_sum(left, right):
                 ....:     return (sum(left) < sum(right) or
                 ....:             sum(left) == sum(right) and left[0] <= right[0])

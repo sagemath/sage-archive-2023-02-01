@@ -29,13 +29,16 @@ heavily modified:
     :meth:`ComplexNumber.multiplicative_order()` methods.
 """
 
-#################################################################################
+#*****************************************************************************
 #       Copyright (C) 2006 William Stein <wstein@gmail.com>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
-#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+
 
 import math
 import operator
@@ -732,7 +735,7 @@ cdef class ComplexIntervalFieldElement(sage.structure.element.FieldElement):
             1.117926996689626? - 1.408500714575360?*I
         """
         if isinstance(right, (int, long, integer.Integer)):
-            return sage.rings.ring_element.RingElement.__pow__(self, right)
+            return RingElement.__pow__(self, right)
         return (self.log() * self.parent()(right)).exp()
 
     def _magma_init_(self, magma):

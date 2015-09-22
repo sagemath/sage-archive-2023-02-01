@@ -2138,7 +2138,7 @@ def is_CommutativeRingElement(x):
 
     TESTS::
 
-        sage: from sage.rings.commutative_ring_element import is_CommutativeRingElement
+        sage: from sage.structure.element import is_CommutativeRingElement
         sage: is_CommutativeRingElement(oo)
         False
 

@@ -926,6 +926,89 @@ cdef class CPLEXBackend(GenericBackend):
         return value + self.obj_constant_term
 
 
+    cpdef best_known_objective_bound(self):
+        r"""
+        Return the value of the currently best known bound.
+
+        This method returns the current best upper (resp. lower) bound on the
+        optimal value of the objective function in a maximization
+        (resp. minimization) problem. It is equal to the output of
+        :meth:`~MixedIntegerLinearProgram.get_objective_value` if the MILP found
+        an optimal solution, but it can differ if it was interrupted manually or
+        after a time limit (cf :meth:`MixedIntegerLinearProgram.solver_parameter`).
+
+        .. NOTE::
+
+           Has no meaning unless ``solve`` has been called before.
+
+           When using the ``CPX_PARAM_POPULATELIM`` parameter to get a pool of
+           solutions, the value can exceed the optimal solution value if
+           ``CPLEX`` has already solved the model to optimality but continues to
+           search for additional solutions.
+
+        EXAMPLE::
+
+            sage: p = MixedIntegerLinearProgram(solver="CPLEX")        # optional - CPLEX
+            sage: b = p.new_variable(binary=True)                      # optional - CPLEX
+            sage: for u,v in graphs.CycleGraph(5).edges(labels=False): # optional - CPLEX
+            ....:     p.add_constraint(b[u]+b[v]<=1)                   # optional - CPLEX
+            sage: p.set_objective(p.sum(b[x] for x in range(5)))       # optional - CPLEX
+            sage: p.solve()                                            # optional - CPLEX
+            2.0
+            sage: pb = p.get_backend()                                 # optional - CPLEX
+            sage: pb.get_objective_value()                             # optional - CPLEX
+            2.0
+            sage: pb.best_known_objective_bound()                      # optional - CPLEX
+            2.0
+        """
+        cdef int status
+        cdef double value
+        status = CPXgetbestobjval (self.env, self.lp, &value)
+        check(status)
+
+        return value + self.obj_constant_term
+
+    cpdef get_relative_objective_gap(self):
+        r"""
+        Return the relative objective gap of the best known solution.
+
+        For a minimization problem, this value is computed by
+        `(\texttt{bestinteger} - \texttt{bestobjective}) / (1e-10 +
+        |\texttt{bestobjective}|)`, where ``bestinteger`` is the value returned
+        by :meth:`~MixedIntegerLinearProgram.get_objective_value` and
+        ``bestobjective`` is the value returned by
+        :meth:`MixedIntegerLinearProgram.best_known_objective_bound`. For a
+        maximization problem, the value is computed by `(\texttt{bestobjective}
+        - \texttt{bestinteger}) / (1e-10 + |\texttt{bestobjective}|)`.
+
+        .. NOTE::
+
+           Has no meaning unless ``solve`` has been called before.
+
+        EXAMPLE::
+
+            sage: p = MixedIntegerLinearProgram(solver="CPLEX")        # optional - CPLEX
+            sage: b = p.new_variable(binary=True)                      # optional - CPLEX
+            sage: for u,v in graphs.CycleGraph(5).edges(labels=False): # optional - CPLEX
+            ....:     p.add_constraint(b[u]+b[v]<=1)                   # optional - CPLEX
+            sage: p.set_objective(p.sum(b[x] for x in range(5)))       # optional - CPLEX
+            sage: p.solve()                                            # optional - CPLEX
+            2.0
+            sage: pb = p.get_backend()                                 # optional - CPLEX
+            sage: pb.get_objective_value()                             # optional - CPLEX
+            2.0
+            sage: pb.get_best_objective_value()                        # optional - CPLEX
+            2.0
+            sage: pb.get_relative_objective_gap()                      # optional - CPLEX
+            0.0
+        """
+        cdef int status
+        cdef double value
+        status = CPXgetmiprelgap (self.env, self.lp, &value)
+        check(status)
+
+        return value
+
     cpdef get_variable_value(self, int variable):
         r"""
         Returns the value of a variable given by the solver.
@@ -1432,6 +1515,13 @@ cdef class CPLEXBackend(GenericBackend):
             Reduced MIP has 5 rows, 5 columns, and 10 nonzeros.
             ...
             Elapsed time = ... sec. (... ticks, tree = ... MB, solutions = ...)
+
+        Bad name::
+
+            sage: p.solver_parameter("Heyyyyyyyyyyy Joeeeeeeeee !!",-4) # optional - CPLEX
+            Traceback (most recent call last):
+            ...
+            ValueError: This parameter is not available.
         """
         cdef int intv
         cdef double doublev
@@ -1465,28 +1555,29 @@ cdef class CPLEXBackend(GenericBackend):
 
         # Type of the parameter. Can be INT (1), Double(2) or String(3)
         cdef int paramtype
-        CPXgetparamtype(self.env, paramid, &paramtype)
+        check(CPXgetparamtype(self.env, paramid, &paramtype))
 
         if value is None:
             if paramtype == 1:
-                CPXgetintparam(self.env, paramid, &intv)
+                check(CPXgetintparam(self.env, paramid, &intv))
                 return intv
             elif paramtype == 2:
-                CPXgetdblparam(self.env, paramid, &doublev)
+                check(CPXgetdblparam(self.env, paramid, &doublev))
                 return doublev
             else:
                 strv = <char *>sage_malloc(500*sizeof(char))
-                CPXgetstrparam(self.env, paramid, strv)
+                status = CPXgetstrparam(self.env, paramid, strv)
                 s = str(strv)
                 sage_free(strv)
+                check(status)
                 return s
         else:
             if paramtype == 1:
-                CPXsetintparam(self.env, paramid, value)
+                check(CPXsetintparam(self.env, paramid, value))
             elif paramtype == 2:
-                CPXsetdblparam(self.env, paramid, value)
+                check(CPXsetdblparam(self.env, paramid, value))
             else:
-                CPXsetstrparam(self.env, paramid, value)
+                check(CPXsetstrparam(self.env, paramid, value))
 
     def __dealloc__(self):
         r"""

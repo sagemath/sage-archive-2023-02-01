@@ -3773,11 +3773,11 @@ def McLaughlinGraph():
 
     blocks = [Set(_) for _ in WittDesign(23).blocks()]
 
-    B = [b for b in blocks if 0 in b]
+    B = [b for b in blocks if 0     in b]
     C = [b for b in blocks if 0 not in b]
     g = Graph()
     for b in B:
-        for x in range(23):
+        for x in range(1,23):
             if not x in b:
                 g.add_edge(b, x)
 
@@ -3798,7 +3798,8 @@ def McLaughlinGraph():
             if len(b & c) == 3:
                 g.add_edge(b, c)
 
-    g.relabel()
+    # Here we relabel the elements of g in an architecture-independent way
+    g.relabel({v:i for i,v in enumerate(range(1,23)+sorted(blocks,key=sorted))})
     g.name("McLaughlin")
     return g
 

@@ -36,7 +36,7 @@ class CartesianProductPosets(CartesianProduct):
 
       - ``'lex'`` -- elements are ordered lexicographically.
 
-      - ``'components'`` -- an element is less or equal to another
+      - ``'product'`` -- an element is less or equal to another
         element, if less or equal is true for all its components
         (cartesian projections).
 
@@ -51,7 +51,7 @@ class CartesianProductPosets(CartesianProduct):
         sage: Cl = cartesian_product((P, P), order='lex')
         sage: Cl((1, 1)) <= Cl((2, 0))
         True
-        sage: Cc = cartesian_product((P, P), order='components')
+        sage: Cc = cartesian_product((P, P), order='product')
         sage: Cc((1, 1)) <= Cc((2, 0))
         False
         sage: def le_sum(left, right):
@@ -191,7 +191,7 @@ class CartesianProductPosets(CartesianProduct):
         return True  # equal
 
 
-    def le_components(self, left, right):
+    def le_product(self, left, right):
         r"""
         Tests if ``left`` is component-wise smaller or equal
         to ``right``.
@@ -212,7 +212,7 @@ class CartesianProductPosets(CartesianProduct):
         EXAMPLES::
 
             sage: P = Poset((srange(2), lambda left, right: left <= right))
-            sage: Q = cartesian_product((P, P), order='components')
+            sage: Q = cartesian_product((P, P), order='product')
             sage: T = [Q((0, 0)), Q((1, 1)), Q((0, 1)), Q((1, 0))]
             sage: for a in T:
             ....:     for b in T:

@@ -1535,7 +1535,7 @@ class SymmetricFunctionAlgebra_generic(CombinatorialFreeModule):
         r"""
         Return the symmetric function obtained from ``x`` by scaling
         each basis element corresponding to the partition `\lambda` by
-        ``function``(`\lambda`).
+        the value of ``function`` on `\lambda`.
 
         INPUT:
 
@@ -1569,7 +1569,7 @@ class SymmetricFunctionAlgebra_generic(CombinatorialFreeModule):
 
         INPUT:
 
-        - ``x` -- a symmetric function
+        - ``x`` -- a symmetric function
         - ``expr`` -- an expression used in the plethysm
         - ``deg_one`` -- a list (or iterable) specifying the degree one
           variables (that is, the terms to be treated as degree-one

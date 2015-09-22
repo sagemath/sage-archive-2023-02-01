@@ -22,7 +22,7 @@ REFERENCES:
 
 .. [Haz2004] Michiel Hazewinkel, *Explicit polynomial generators for the
    ring of quasisymmetric functions over the integers*.
-   :arXiv:`math/0410366v1`
+   :arxiv:`math/0410366v1`
 
 .. [Rad1979] David E. Radford, *A natural ring basis for the shuffle algebra
    and an application to group schemes*, J. Algebra **58** (1979), 432-454.
@@ -41,6 +41,12 @@ REFERENCES:
    quasisymmetric functions, and Young composition tableaux*,
    May 23, 2013, Springer.
    http://www.math.ubc.ca/%7Esteph/papers/QuasiSchurBook.pdf
+
+.. [BBSSZ2012] Chris Berg, Nantel Bergeron, Franco Saliola,
+   Luis Serrano, Mike Zabrocki,
+   *A lift of the Schur and Hall-Littlewood bases to
+   non-commutative symmetric functions*,
+   :arxiv:`1208.5191v3`.
 
 AUTHOR:
 
@@ -2728,14 +2734,6 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
 
             This basis first appears in [BBSSZ2012]_.
 
-            REFERENCES:
-
-            .. [BBSSZ2012] Chris Berg, Nantel Bergeron, Franco Saliola,
-               Luis Serrano, Mike Zabrocki,
-               *A lift of the Schur and Hall-Littlewood bases to
-               non-commutative symmetric functions*,
-               :arXiv:`1208.5191v3`.
-
             EXAMPLES::
 
                 sage: QSym = QuasiSymmetricFunctions(QQ)
@@ -2771,13 +2769,13 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
 
             EXAMPLES::
 
-            sage: dI = QuasiSymmetricFunctions(QQ).dI()
-            sage: dI._to_Monomial_on_basis(Composition([1,3]))
-            M[1, 1, 1, 1] + M[1, 1, 2] + M[1, 2, 1] + M[1, 3]
-            sage: dI._to_Monomial_on_basis(Composition([]))
-            M[]
-            sage: dI._to_Monomial_on_basis(Composition([2,1,2]))
-            4*M[1, 1, 1, 1, 1] + 3*M[1, 1, 1, 2] + 2*M[1, 1, 2, 1] + M[1, 1, 3] + M[1, 2, 1, 1] + M[1, 2, 2] + M[2, 1, 1, 1] + M[2, 1, 2]
+                sage: dI = QuasiSymmetricFunctions(QQ).dI()
+                sage: dI._to_Monomial_on_basis(Composition([1,3]))
+                M[1, 1, 1, 1] + M[1, 1, 2] + M[1, 2, 1] + M[1, 3]
+                sage: dI._to_Monomial_on_basis(Composition([]))
+                M[]
+                sage: dI._to_Monomial_on_basis(Composition([2,1,2]))
+                4*M[1, 1, 1, 1, 1] + 3*M[1, 1, 1, 2] + 2*M[1, 1, 2, 1] + M[1, 1, 3] + M[1, 2, 1, 1] + M[1, 2, 2] + M[2, 1, 1, 1] + M[2, 1, 2]
             """
             M = self.realization_of().Monomial()
             if not J._list:

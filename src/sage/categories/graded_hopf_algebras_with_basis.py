@@ -101,7 +101,7 @@ class GradedHopfAlgebrasWithBasis(GradedModulesCategory):
 
                 @cached_method
                 def antipode_on_basis(self, index):
-                    """
+                    r"""
                     The antipode on the basis element indexed by ``index``.
 
                     INPUT:
@@ -110,7 +110,7 @@ class GradedHopfAlgebrasWithBasis(GradedModulesCategory):
 
                     .. MATH::
 
-                        S(x) := -\sum_{x^L!=x} S(x^L) \cdot x^R
+                        S(x) := -\sum_{x^L\neq x} S(x^L) \times x^R
 
                     in general or `x` if `|x| = 0`.
 

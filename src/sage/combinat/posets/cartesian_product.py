@@ -83,10 +83,13 @@ class CartesianProductPosets(CartesianProduct):
         TESTS::
 
             sage: P = Poset((srange(3), lambda left, right: left <= right))
-            sage: Cl = cartesian_product((P, P), order='notexisting')
+            sage: C = cartesian_product((P, P), order='notexisting')
             Traceback (most recent call last):
             ...
             ValueError: No order 'notexisting' known.
+            sage: C = cartesian_product((P, P), category=(Groups(),))
+            sage: C.category()
+            Join of Category of groups and Category of posets
         """
         if order is None:
             self._le_ = self.le_product
@@ -98,8 +101,11 @@ class CartesianProductPosets(CartesianProduct):
         else:
             self._le_ = order
 
+        from sage.categories.category import Category
         from sage.categories.posets import Posets
-        category = category & Posets()
+        if not isinstance(category, tuple):
+            category = (category,)
+        category = Category.join(category + (Posets(),))
         super(CartesianProductPosets, self).__init__(
             sets, category, **kwargs)
 

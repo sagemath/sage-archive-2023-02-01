@@ -676,7 +676,7 @@ class MutablePosetShell(SageObject):
         Note that ``False`` is returned if we do not have
         ``self <= shell``.
 
-       TESTS::
+        TESTS::
 
             sage: from sage.data_structures.mutable_poset import MutablePoset as MP
             sage: class T(tuple):
@@ -979,7 +979,7 @@ class MutablePosetShell(SageObject):
         ::
 
             sage: for e in P.shells_topological(include_special=True,
-            ....:                                 reverse=True):
+            ....:                               reverse=True):
             ....:     print e
             ....:     print list(e.iter_topological(reverse=True, key=repr))
             oo
@@ -1002,7 +1002,7 @@ class MutablePosetShell(SageObject):
         ::
 
             sage: for e in P.shells_topological(include_special=True,
-            ....:                                 reverse=True):
+            ....:                               reverse=True):
             ....:     print e
             ....:     print list(e.iter_topological(reverse=False, key=repr))
             oo
@@ -1548,7 +1548,7 @@ class MutablePoset(SageObject):
         - ``include_special`` -- (default: ``False``) if set, then
           including shells containing a smallest element (`\emptyset`)
           and a largest element (`\infty`).
- 
+
         - ``reverse`` -- (default: ``False``) -- if set, reverses the
           order, i.e., ``False`` gives smallest elements first,
           ``True`` gives largest first.

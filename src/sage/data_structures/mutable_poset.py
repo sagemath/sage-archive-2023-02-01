@@ -2008,20 +2008,16 @@ class MutablePoset(SageObject):
             return
 
         new = MutablePosetShell(self, element)
-        smaller = self.null.covers(new, reverse=False)
-        larger = self.oo.covers(new, reverse=True)
+        new._predecessors_ = self.null.covers(new, reverse=False)
+        new._successors_ = self.oo.covers(new, reverse=True)
 
-        # In the following we first search towards oo (reverse=False) and
-        # then towards null (reverse=True; everything is "inverted").
-        for reverse in (False, True):
-            sm = smaller if not reverse else larger
-            la = larger if not reverse else smaller
-            for shell in sm:
-                for e in shell.successors(reverse).intersection(la):
-                    e.predecessors(reverse).remove(shell)
-                    shell.successors(reverse).remove(e)
-                new.predecessors(reverse).add(shell)
-                shell.successors(reverse).add(new)
+        for s in new.predecessors():
+            for l in s.successors().intersection(new.successors()):
+                l.predecessors().remove(s)
+                s.successors().remove(l)
+            s.successors().add(new)
+        for l in new.successors():
+            l.predecessors().add(new)
 
         self._shells_[key] = new
 

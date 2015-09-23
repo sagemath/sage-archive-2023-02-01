@@ -266,7 +266,7 @@ class MutablePosetShell(SageObject):
 
         INPUT:
 
-        - ``reverse`` -- (default: ``False``) if set, then returns
+        - ``reverse`` -- (default: ``False``) if set, then return
           successors instead.
 
         OUTPUT:
@@ -293,7 +293,7 @@ class MutablePosetShell(SageObject):
 
         INPUT:
 
-        - ``reverse`` -- (default: ``False``) if set, then returns
+        - ``reverse`` -- (default: ``False``) if set, then return
           predecessors instead.
 
         OUTPUT:
@@ -813,7 +813,7 @@ class MutablePosetShell(SageObject):
 
     def iter_depth_first(self, reverse=False, key=None, condition=None):
         r"""
-        Iterates over all shells in depth first order.
+        Iterate over all shells in depth first order.
 
         INPUT:
 
@@ -922,7 +922,7 @@ class MutablePosetShell(SageObject):
 
     def iter_topological(self, reverse=False, key=None, condition=None):
         r"""
-        Iterates over all shells in topological order.
+        Iterate over all shells in topological order.
 
         INPUT:
 
@@ -1090,7 +1090,7 @@ class MutablePosetShell(SageObject):
 
 def is_MutablePoset(P):
     r"""
-    Tests if ``P`` inherits from :class:`MutablePoset`.
+    Test whether ``P`` inherits from :class:`MutablePoset`.
 
     TESTS::
 
@@ -1463,7 +1463,7 @@ class MutablePoset(SageObject):
 
     def copy(self, mapping=None):
         r"""
-        Creates a shallow copy.
+        Create a shallow copy.
 
         INPUT:
 
@@ -1822,7 +1822,7 @@ class MutablePoset(SageObject):
 
     def contains(self, key):
         r"""
-        Tests if ``key`` is encapsulated by one of the poset's elements.
+        Test whether ``key`` is encapsulated by one of the poset's elements.
 
         INPUT:
 

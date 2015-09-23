@@ -954,8 +954,8 @@ def AhrensSzekeresGQGraph(q, dual=False):
 
     - ``q`` -- a power of an odd prime number
 
-    - ``dual`` -- if ``False`` (default), return the collinearity graph of `GQ(q-1,q+1)`.
-      Otherwise return the collinearity graph of `GQ(q+1,q-1)`.
+    - ``dual`` -- if ``False`` (default), return the collinearity graph of `AS(q)`.
+      Otherwise return the collinearity graph of the dual `AS(q)`.
 
     EXAMPLES::
 
@@ -1000,7 +1000,7 @@ def AhrensSzekeresGQGraph(q, dual=False):
 
 def T2starGQGraph(q, dual=False, hyperoval=None, field=None, check_hyperoval=True):
     r"""
-    Return the collinearity graph of the generalized quadrangle `T_2*(q)`, or of its dual
+    Return the collinearity graph of the generalized quadrangle `T_2^*(q)`, or of its dual
 
     Let `q=2^k` and `\Theta=PG(3,q)`.  `T_2^*(q)` is a generalised quadrangle [GQwiki]_
     of order `(q-1,q+1)`, see 3.1.3 in [PT09]_. Fix a plane `\Pi \subset \Theta` and a
@@ -1013,14 +1013,16 @@ def T2starGQGraph(q, dual=False, hyperoval=None, field=None, check_hyperoval=Tru
 
     - ``q`` -- a power of two
 
-    - ``dual`` -- if ``False`` (default), return the graph of `GQ(q-1,q+1)`.
-      Otherwise return the graph of `GQ(q+1,q-1)`.
+    - ``dual`` -- if ``False`` (default), return the graph of `T_2^*(O)`.
+      Otherwise return the graph of the dual `T_2^*(O)`.
 
     - ``hyperoval`` -- a hyperoval (i.e. a complete 2-arc; a set of points in the plane
       meeting every line in 0 or 2 points) in the plane of points with 0th coordinate
       0 in `PG(3,q)` over the field ``field``. Each point of ``hyperoval`` must be a length 4
       vector over ``field`` with 1st non-0 coordinate equal to 1. By default, ``hyperoval`` and
-      ``field`` are not specified, and constructed on the fly.
+      ``field`` are not specified, and constructed on the fly. In particular, ``hyperoval``
+      we build is the classical one, i.e. a conic with the point of intersection of its
+      tangent lines.
 
     - ``field`` -- an instance of a finite field of order `q`, must be provided
       if ``hyperoval`` is provided.
@@ -1085,14 +1087,13 @@ def T2starGQGraph(q, dual=False, hyperoval=None, field=None, check_hyperoval=Tru
     else:
         map(lambda x: x.set_immutable(), hyperoval)
         O = set(hyperoval)
-
-    if check_hyperoval and (not hyperoval is None):
-        if len(O) != q+2:
-            raise RuntimeError("incorrect hyperoval size")
-        for L in Theta.blocks():
-            if set(L).issubset(Pi):
-                if not len(O.intersection(L)) in [0,2]:
-                    raise RuntimeError("incorrect hyperoval")
+        if check_hyperoval:
+            if len(O) != q+2:
+                raise RuntimeError("incorrect hyperoval size")
+            for L in Theta.blocks():
+                if set(L).issubset(Pi):
+                    if not len(O.intersection(L)) in [0,2]:
+                        raise RuntimeError("incorrect hyperoval")
     L = map(lambda z: filter(lambda y: not y in O, z),
             filter(lambda x: len(O.intersection(x)) == 1, Theta.blocks()))
     if dual:

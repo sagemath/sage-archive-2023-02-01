@@ -62,11 +62,12 @@ from code_bounds import (codesize_upper_bound,
                          elias_bound_asymp,
                          mrrw1_bound_asymp)
 
-from linear_code import (LinearCode, LinearCodeFromVectorSpace,
-                         best_known_linear_code,
-                         best_known_linear_code_www,
-                         bounds_minimum_distance,
-                         self_orthogonal_binary_codes)
+lazy_import("sage.coding.linear_code", ["LinearCode",\
+            "LinearCodeFromVectorSpace",\
+            "best_known_linear_code",\
+            "best_known_linear_code_www",\
+            "bounds_minimum_distance",
+            "self_orthogonal_binary_codes"])
 
 from sd_codes import self_dual_codes_binary
 

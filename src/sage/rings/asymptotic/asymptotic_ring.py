@@ -402,7 +402,7 @@ class AsymptoticExpression(sage.rings.ring_element.RingElement):
             sage: G = agg.GrowthGroup('x^ZZ')
             sage: OT = atm.TermMonoid('O', G); ET = atm.TermMonoid('exact', G, ZZ)
             sage: R = AsymptoticRing(G, ZZ)
-            sage: lst = [ET(x,1), ET(x^2, 2), OT(x^3), ET(x^4, 4)]
+            sage: lst = [ET(x, 1), ET(x^2, 2), OT(x^3), ET(x^4, 4)]
             sage: expr = R(lst, simplify=False); expr  # indirect doctest
             4*x^4 + O(x^3) + 2*x^2 + x
             sage: expr._simplify_(); expr

@@ -358,6 +358,9 @@ ext_modules = [
               sources = ['sage/graphs/planarity.pyx'],
               libraries=['planarity']),
 
+    Extension('sage.graphs.strongly_regular_db',
+              sources = ['sage/graphs/strongly_regular_db.pyx']),
+
     Extension('sage.graphs.graph_decompositions.rankwidth',
               sources = ['sage/graphs/graph_decompositions/rankwidth.pyx'],
               libraries=['rw']),

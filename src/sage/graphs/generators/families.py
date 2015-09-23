@@ -1515,7 +1515,8 @@ def PaleyGraph(q):
     """
     from sage.rings.finite_rings.integer_mod import mod
     from sage.rings.finite_rings.constructor import FiniteField
-    assert q.is_prime_power(), "Parameter q must be a prime power"
+    from sage.rings.arith import is_prime_power
+    assert is_prime_power(q), "Parameter q must be a prime power"
     assert mod(q,4)==1, "Parameter q must be congruent to 1 mod 4"
     g = Graph([FiniteField(q,'a'), lambda i,j: (i-j).is_square()],
     loops=False, name = "Paley graph with parameter %d"%q)

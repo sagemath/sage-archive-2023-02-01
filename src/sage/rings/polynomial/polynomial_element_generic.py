@@ -46,6 +46,11 @@ class Polynomial_generic_sparse(Polynomial):
     """
     A generic sparse polynomial.
 
+    The ``Polynomial_generic_sparse`` class defines functionality for sparse
+    polynomials over any base ring. A sparse polynomial is represented using a
+    dictionary which maps each exponent to the corresponding coefficient. The
+    coefficients must never be zero.
+
     EXAMPLES::
 
         sage: R.<x> = PolynomialRing(PolynomialRing(QQ, 'y'), sparse=True)
@@ -158,7 +163,9 @@ class Polynomial_generic_sparse(Polynomial):
             sage: f.exponents()
             [0, 1997, 10000]
         """
-        return [c[0] for c in sorted(self.__coeffs.iteritems())]
+        keys = self.__coeffs.keys()
+        keys.sort()
+        return keys
 
     def valuation(self):
         """
@@ -529,6 +536,75 @@ class Polynomial_generic_sparse(Polynomial):
         output = self.parent()(output, check=False)
         output.__normalize()
         return output
+
+    def _cmp_(self, other):
+        """
+        Compare this polynomial with other.
+
+        Polynomials are first compared by degree, then in dictionary order
+        starting with the coefficient of largest degree.
+
+        EXAMPLES::
+
+            sage: R.<x> = PolynomialRing(ZZ, sparse=True)
+            sage: 3*x^100 - 12 > 12*x + 5
+            True
+            sage: 3*x^100 - 12 > 3*x^100 - x^50 + 5
+            True
+            sage: 3*x^100 - 12 < 3*x^100 - x^50 + 5
+            False
+            sage: x^100 + x^10 - 1 < x^100 + x^10
+            True
+            sage: x^100 < x^100 - x^10
+            False
+
+        TESTS::
+
+            sage: R.<x> = PolynomialRing(QQ, sparse=True)
+            sage: 2*x^2^500 > x^2^500
+            True
+
+            sage: Rd = PolynomialRing(ZZ, 'x', sparse=False)
+            sage: Rs = PolynomialRing(ZZ, 'x', sparse=True)
+            sage: for _ in range(100):
+            ....:     pd = Rd.random_element()
+            ....:     qd = Rd.random_element()
+            ....:     assert cmp(pd,qd) == cmp(Rs(pd), Rs(qd))
+        """
+        d1 = self.__coeffs
+        keys1 = d1.keys()
+        keys1.sort(reverse=True)
+
+        d2 = other.__coeffs
+        keys2 = d2.keys()
+        keys2.sort(reverse=True)
+
+        zero = self.base_ring().zero()
+
+        if not keys1 and not keys2: return 0
+        if not keys1: return -1
+        if not keys2: return 1
+
+        c = cmp(keys1[0], keys2[0])
+        if c: return c
+        c = cmp(d1[keys1[0]],d2[keys2[0]])
+        if c: return c
+
+        for k1, k2 in zip(keys1[1:], keys2[1:]):
+            c = cmp(k1, k2)
+            if c > 0:
+                return cmp(d1[k1], zero)
+            elif c < 0:
+                return cmp(zero, d2[k2])
+            c = cmp (d1[k1], d2[k2])
+            if c: return c
+
+        n1 = len(keys1)
+        n2 = len(keys2)
+        c = cmp(n1, n2)
+        if c > 0: return cmp(d1[keys1[n2]], zero)
+        elif c < 0: return cmp(zero, d2[keys2[n1]])
+        return 0
 
     def shift(self, n):
         r"""

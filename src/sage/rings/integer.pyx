@@ -151,7 +151,7 @@ from libc.stdint cimport uint64_t
 cimport sage.structure.element
 from sage.structure.element cimport Element, EuclideanDomainElement, parent_c
 include "sage/ext/python_debug.pxi"
-include "sage/libs/pari/decl.pxi"
+from sage.libs.pari.paridecl cimport *
 from sage.rings.rational cimport Rational
 from sage.libs.gmp.rational_reconstruction cimport mpq_rational_reconstruction
 from sage.libs.gmp.pylong cimport *

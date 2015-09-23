@@ -377,8 +377,13 @@ if [ -d "$SAGE_LOCAL/lib/python" ]; then
         PYTHONPATH="$SAGE_PATH:$PYTHONPATH"
     fi
     PYTHONHOME="$SAGE_LOCAL"
+    # Set PYTHONNOUSERSITE to avoid picking up non-Sage versions of
+    # Matplotlib, numpy, etc. See http://trac.sagemath.org/ticket/14243
+    # and http://trac.sagemath.org/ticket/18955.
+    PYTHONNOUSERSITE=yes
     export PYTHONPATH
     export PYTHONHOME
+    export PYTHONNOUSERSITE
 fi
 
 if [ -z "${SAGE_ORIG_LD_LIBRARY_PATH_SET}" ]; then

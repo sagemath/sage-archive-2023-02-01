@@ -4411,6 +4411,50 @@ def TietzeGraph():
 
     return g
 
+def TruncatedIcosidodecahedralGraph():
+    r"""
+    Return the truncated icosidodecahedron.
+
+    The truncated icosidodecahedron is an Archimedean solid with 30 square
+    faces, 20 regular hexagonal faces, 12 regular decagonal faces, 120 vertices
+    and 180 edges. For more information, see the
+    :wikipedia:`Truncated_icosidodecahedron`.
+
+    EXAMPLE::
+
+        sage: g = graphs.TruncatedIcosidodecahedralGraph(); g
+        Truncated Icosidodecahedron: Graph on 120 vertices
+        sage: g.order(), g.size()
+        (120, 180)
+    """
+    from sage.geometry.polyhedron.library import polytopes
+    G = polytopes.icosidodecahedron(exact=False).edge_truncation().graph()
+    G.name("Truncated Icosidodecahedron")
+    return G
+
+def TruncatedTetrahedralGraph():
+    r"""
+    Return the truncated tetrahedron.
+
+    The truncated tetrahedron is an Archimedean solid with 12 vertices and 18
+    edges. For more information, see the :wikipedia:`Truncated_tetrahedron`.
+
+    EXAMPLE::
+
+        sage: g = graphs.TruncatedTetrahedralGraph(); g
+        Truncated Tetrahedron: Graph on 12 vertices
+        sage: g.order(), g.size()
+        (12, 18)
+        sage: g.is_isomorphic(polytopes.simplex(3).edge_truncation().graph())
+        True
+    """
+    g = Graph(':K`ESwC_EOyDl\\MCi', loops=False, multiedges=False)
+    _circle_embedding(g, range(6), radius=1)
+    _circle_embedding(g, range(6,9), radius=.6, shift=.25)
+    _circle_embedding(g, range(9,12), radius=.2, shift=.25)
+    g.name("Truncated Tetrahedron")
+    return g
+
 def Tutte12Cage():
     r"""
     Returns Tutte's 12-Cage.

@@ -1143,6 +1143,25 @@ class CartanType_abstract(object):
         import type_relabel
         return type_relabel.CartanType(self, relabelling)
 
+    def subtype(self, index_set):
+        """
+        Return a subtype of ``self`` given by ``index_set``.
+
+        A subtype can be considered the Dynkin diagram induced from
+        the Dynkin diagram of ``self`` by ``index_set``.
+
+        EXAMPLES::
+
+            sage: ct = CartanType(['A',6,2])
+            sage: ct.dynkin_diagram()
+            O=<=O---O=<=O
+            0   1   2   3
+            BC3~
+            sage: ct.subtype([1,2,3])
+            ['C', 3]
+        """
+        return self.cartan_matrix().subtype(index_set).cartan_type()
+
     def marked_nodes(self, marked_nodes):
         """
         Return a Cartan type with the nodes ``marked_nodes`` marked.

@@ -170,8 +170,9 @@ from sage.rings.real_mpfr import RR
 from sage.functions.other import floor
 from sage.data_structures.bitset import Bitset
 from sage.ext.memory cimport check_allocarray, check_calloc
+from sage.ext.memory_allocator cimport MemoryAllocator
 from sage.graphs.base.static_sparse_graph cimport short_digraph
-from sage.graphs.base.static_sparse_graph cimport init_short_digraph 
+from sage.graphs.base.static_sparse_graph cimport init_short_digraph
 from sage.graphs.base.static_sparse_graph cimport free_short_digraph
 from libc.stdint cimport uint16_t, uint32_t, uint64_t
 include "sage/ext/interrupt.pxi"
@@ -400,18 +401,14 @@ cdef inline distances_and_far_apart_pairs(gg,
                          "pairs on something"
                          "like that!".format(<unsigned short> -1))
 
+    # The list of waiting vertices
+    cdef MemoryAllocator mem = MemoryAllocator()
+    cdef uint32_t *       waiting_list = <uint32_t *>        mem.allocarray(n, sizeof(uint32_t))
+    cdef unsigned short ** c_far_apart = <unsigned short **> mem.allocarray(n, sizeof(unsigned short*))
+
     # The vertices which have already been visited
     cdef bitset_t seen
     bitset_init(seen, n)
-
-    # The list of waiting vertices
-    cdef uint32_t * waiting_list = <uint32_t *>check_allocarray(n, sizeof(uint32_t))
-    cdef unsigned short ** c_far_apart = <unsigned short **> check_allocarray(n, sizeof(unsigned short*))
-    if waiting_list == NULL or c_far_apart == NULL:
-        bitset_free(seen)
-        sage_free(waiting_list)
-        sage_free(c_far_apart)
-        raise MemoryError
 
     # the beginning and the end of the list stored in waiting_list
     cdef uint32_t waiting_beginning, waiting_end
@@ -484,14 +481,10 @@ cdef inline distances_and_far_apart_pairs(gg,
         c_distances += n
 
     bitset_free(seen)
-    sage_free(waiting_list)
     free_short_digraph(sd)
-    sage_free(c_far_apart)
-    
-    
 
-cdef inline pair** sort_pairs(uint32_t N, 
-                              uint16_t D, 
+cdef inline pair** sort_pairs(uint32_t N,
+                              uint16_t D,
                               unsigned short ** values,
                               unsigned short ** to_include,
                               uint32_t * nb_p,

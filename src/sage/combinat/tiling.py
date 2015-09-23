@@ -1076,17 +1076,6 @@ class TilingSolver(SageObject):
         If these conditions are not verified, then the problem is not suitable
         in the sense that there are no solution.
 
-        .. NOTE::
-
-            The DLX solver throws a Segmentation Fault when the
-            number of rows is zero::
-
-                sage: from sage.combinat.matrices.dancing_links import dlx_solver
-                sage: rows = []
-                sage: x = dlx_solver(rows)
-                sage: x.search()        # not tested
-                BOOM !!!
-
         EXAMPLES::
 
             sage: from sage.combinat.tiling import TilingSolver, Polyomino
@@ -1320,7 +1309,7 @@ class TilingSolver(SageObject):
             sage: T = TilingSolver([p,q,r], box=(1,1,6))
             sage: x = T.dlx_solver()
             sage: x
-            <sage.combinat.matrices.dancing_links.dancing_linksWrapper object at ...>
+            Dancing links solver for 9 columns and 15 rows
         """
         from sage.combinat.matrices.dancing_links import dlx_solver
         rows = self.rows()

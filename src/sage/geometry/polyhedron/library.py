@@ -605,6 +605,51 @@ class Polytopes():
               [-1,  1,  0], [-1, 0,-1], [-1,-1, 0] ]
         return Polyhedron(vertices=v, base_ring=ZZ)
 
+    def icosidodecahedron(self, exact=True):
+        """
+        Return the Icosidodecahedron
+
+        The Icosidodecahedron is a polyhedron with twenty triangular faces and
+        twelve pentagonal faces. For more information see the
+        :wikipedia:`Icosidodecahedron`.
+
+        INPUT:
+
+        - ``exact`` -- (boolean, default ``True``) If ``False`` use an
+          approximate ring for the coordinates.
+
+        EXAMPLES::
+
+            sage: gr = polytopes.icosidodecahedron()
+            sage: gr.f_vector()
+            (1, 30, 60, 32, 1)
+
+        TESTS::
+
+            sage: polytopes.icosidodecahedron(exact=False)
+            A 3-dimensional polyhedron in RDF^3 defined as the convex hull of 30 vertices
+        """
+        from sage.rings.number_field.number_field import QuadraticField
+        from itertools import product
+
+        K = QuadraticField(5, 'sqrt5')
+        one = K.one()
+        phi = (one+K.gen())/2
+
+        gens = [((-1)**a*one/2, (-1)**b*phi/2, (-1)**c*(one+phi)/2)
+                  for a,b,c in product([0,1],repeat=3)]
+        gens.extend([(0,0,phi), (0,0,-phi)])
+
+        verts = []
+        for p in AlternatingGroup(3):
+            verts.extend(p(x) for x in gens)
+
+        if exact:
+            return Polyhedron(vertices=verts,base_ring=K)
+        else:
+            verts = [(RR(x),RR(y),RR(z)) for x,y,z in verts]
+            return Polyhedron(vertices=verts)
+
     def buckyball(self, exact=True, base_ring=None):
         """
         Return the bucky ball.

@@ -47,7 +47,6 @@ from sage.categories.regular_crystals import RegularCrystals
 from sage.categories.highest_weight_crystals import HighestWeightCrystals
 from sage.categories.infinite_enumerated_sets import InfiniteEnumeratedSets
 from sage.combinat.root_system.root_system import RootSystem
-from sage.rings.infinity import Infinity
 
 class GeneralizedYoungWall(CombinatorialElement):
     r"""
@@ -624,13 +623,14 @@ class GeneralizedYoungWall(CombinatorialElement):
             raise TypeError("Must be an element in the weight lattice realization")
         ac = self.parent().weight_lattice_realization().simple_coroots()
         n = self.cartan_type().classical().rank()
+        index_set = self.index_set()
         for k in range(1,self.cols+1):
-            for j in self.index_set():
+            for j in index_set:
                 if self.a(j,k) - self.a( (j-1) % (n+1) ,k) <= 0:
                     continue
                 else:
                     p_not_found = True
-                    for p in self.index_set():
+                    for p in index_set:
                         if (j+k) % (n+1)  == (p+1) % (n+1) and self.a(j,k) - self.a( (j-1) % (n+1) ,k) <= La.scalar(ac[p]):
                             p_not_found = False
                             continue
@@ -987,6 +987,6 @@ class CrystalOfGeneralizedYoungWalls(InfinityCrystalOfGeneralizedYoungWalls):
             sage: next(x)
             [0]
         """
-        for c in self.subcrystal(direction='lower'):
-            if c.in_highest_weight_crystal(self.hw) :
+        for c in super(CrystalOfGeneralizedYoungWalls, self).__iter__():
+            if c.in_highest_weight_crystal(self.hw):
                 yield c

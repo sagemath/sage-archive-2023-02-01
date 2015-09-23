@@ -155,6 +155,8 @@ __append_to_doc(
      "SzekeresSnarkGraph",
      "ThomsenGraph",
      "TietzeGraph",
+     "TruncatedIcosidodecahedralGraph",
+     "TruncatedTetrahedralGraph",
      "Tutte12Cage",
      "TutteCoxeterGraph",
      "TutteGraph",
@@ -220,6 +222,7 @@ __append_to_doc(
      "RingedTree",
      "SierpinskiGasketGraph",
      "SymplecticGraph",
+     "strongly_regular_graph",
      "trees",
      "triangulations",
      "WheelGraph"])
@@ -366,6 +369,7 @@ Functions and methods
 
 # import from Sage library
 import graph
+import sage.graphs.strongly_regular_db
 
 class GraphGenerators():
     r"""
@@ -1915,6 +1919,8 @@ class GraphGenerators():
     ThomsenGraph             = staticmethod(sage.graphs.generators.smallgraphs.ThomsenGraph)
     TietzeGraph              = staticmethod(sage.graphs.generators.smallgraphs.TietzeGraph)
     Tutte12Cage              = staticmethod(sage.graphs.generators.smallgraphs.Tutte12Cage)
+    TruncatedIcosidodecahedralGraph = staticmethod(sage.graphs.generators.smallgraphs.TruncatedIcosidodecahedralGraph)
+    TruncatedTetrahedralGraph= staticmethod(sage.graphs.generators.smallgraphs.TruncatedTetrahedralGraph)
     TutteCoxeterGraph        = staticmethod(sage.graphs.generators.smallgraphs.TutteCoxeterGraph)
     TutteGraph               = staticmethod(sage.graphs.generators.smallgraphs.TutteGraph)
     WagnerGraph              = staticmethod(sage.graphs.generators.smallgraphs.WagnerGraph)
@@ -1966,6 +1972,7 @@ class GraphGenerators():
     RingedTree             = staticmethod(sage.graphs.generators.families.RingedTree)
     SierpinskiGasketGraph  = staticmethod(sage.graphs.generators.families.SierpinskiGasketGraph)
     SymplecticGraph        = staticmethod(sage.graphs.generators.families.SymplecticGraph)
+    strongly_regular_graph = staticmethod(sage.graphs.strongly_regular_db.strongly_regular_graph)
     trees                  = staticmethod(sage.graphs.generators.families.trees)
     WheelGraph             = staticmethod(sage.graphs.generators.families.WheelGraph)
 

@@ -177,6 +177,7 @@ cdef extern from "glpk.h":
      int GLP_ETMLIM
      int GLP_EOPFS
      int GLP_EODFS
+     int GLP_EMIPGAP
 
      int GLP_UNDEF
      int GLP_OPT

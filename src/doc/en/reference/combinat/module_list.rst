@@ -61,6 +61,7 @@ Comprehensive Module list
     sage/combinat/crystals/fast_crystals
     sage/combinat/crystals/generalized_young_walls
     sage/combinat/crystals/highest_weight_crystals
+    sage/combinat/crystals/induced_structure
     sage/combinat/crystals/infinity_crystals
     sage/combinat/crystals/polyhedral_realization
     sage/combinat/crystals/kirillov_reshetikhin

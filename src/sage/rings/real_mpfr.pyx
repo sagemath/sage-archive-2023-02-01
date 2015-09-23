@@ -124,7 +124,6 @@ import re
 include 'sage/ext/interrupt.pxi'
 include "sage/ext/stdsage.pxi"
 include "sage/ext/random.pxi"
-include 'sage/libs/pari/decl.pxi'
 include 'sage/libs/pari/pari_err.pxi'
 
 from sage.libs.gmp.mpz cimport *
@@ -140,6 +139,7 @@ import sage.misc.weak_dict
 import operator
 
 import sage.libs.pari.pari_instance
+from sage.libs.pari.paridecl cimport *
 from sage.libs.pari.gen cimport gen
 from sage.libs.pari.pari_instance cimport PariInstance
 

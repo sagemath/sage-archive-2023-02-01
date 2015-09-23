@@ -888,6 +888,27 @@ cdef class GLPKBackend(GenericBackend):
             sage: lp.get_values(x) == test # yes, we want an exact comparison here
             True
 
+        Solving a LP within the acceptable gap. No exception is raised, even if
+        the result is not optimal. To do this, we try to compute the maximum
+        number of disjoint balls (of diameter 1) in a hypercube::
+
+            sage: g = graphs.CubeGraph(9)
+            sage: p = MixedIntegerLinearProgram(solver="GLPK")
+            sage: p.solver_parameter("mip_gap_tolerance",100)
+            sage: b = p.new_variable(binary=True)
+            sage: p.set_objective(p.sum(b[v] for v in g))
+            sage: for v in g:
+            ....:     p.add_constraint(b[v]+p.sum(b[u] for u in g.neighbors(v)) <= 1)
+            sage: p.add_constraint(b[v] == 1) # Force an easy non-0 solution
+            sage: p.solve() # rel tol 100
+            1
+
+        Same, now with a time limit::
+
+            sage: p.solver_parameter("mip_gap_tolerance",1)
+            sage: p.solver_parameter("timelimit",0.01)
+            sage: p.solve() # rel tol 1
+            1
         """
 
         cdef int status
@@ -907,18 +928,20 @@ cdef class GLPKBackend(GenericBackend):
         if (self.simplex_or_intopt != glp_simplex_only
             and self.simplex_or_intopt != glp_exact_simplex_only):
           sig_str('GLPK : Signal sent, try preprocessing option')
-          status = glp_intopt(self.lp, self.iocp)
+          intopt_status = glp_intopt(self.lp, self.iocp)
           sig_off()
-          # this is necessary to catch errors when certain options are enabled, e.g. tm_lim
-          if status == GLP_ETMLIM: raise MIPSolverException("GLPK : The time limit was reached")
-          elif status == GLP_EITLIM: raise MIPSolverException("GLPK : The iteration limit was reached")
+
+          if intopt_status == GLP_EITLIM:
+              raise MIPSolverException("GLPK : The iteration limit was reached")
 
           status = glp_mip_status(self.lp)
           if status == GLP_OPT:
               pass
           elif status == GLP_UNDEF:
               raise MIPSolverException("GLPK : Solution is undefined")
-          elif status == GLP_FEAS:
+          elif (status == GLP_FEAS          and
+                intopt_status != GLP_ETMLIM and # no exception when time limit reached
+                intopt_status != GLP_EMIPGAP):  # no exception when sol within gap
               raise MIPSolverException("GLPK : Feasible solution found, while optimality has not been proven")
           elif status == GLP_INFEAS:
               raise MIPSolverException("GLPK : Solution is infeasible")

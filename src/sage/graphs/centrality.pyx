@@ -319,5 +319,4 @@ cdef dict centrality_betweenness_C(G, numerical_type _, normalize=True):
         else:
             betweenness_list = [2*x/((n-1)*(n-2)) for x in betweenness_list]
 
-
     return {vv:betweenness_list[i] for i,vv in enumerate(G.vertices())}

@@ -78,26 +78,15 @@ SAGE_SRC="$SAGE_ROOT/src"
 SAGE_LOCAL="$SAGE_ROOT/local"
 SAGE_SHARE="$SAGE_LOCAL/share"
 SAGE_EXTCODE="$SAGE_SHARE/sage/ext"
-SAGE_LOGS="$SAGE_ROOT/logs/pkgs"
 SAGE_SPKG_INST="$SAGE_LOCAL/var/lib/sage/installed"
 
 export PATH="$SAGE_ROOT/build/bin:$SAGE_SRC/bin:$SAGE_LOCAL/bin:$PATH"
 
 ###############################################################################
-# Create basic directories needed for Sage
-###############################################################################
-
-mkdir -p "$SAGE_LOGS"
-mkdir -p "$SAGE_LOCAL/bin"
-mkdir -p "$SAGE_LOCAL/etc"
-mkdir -p "$SAGE_LOCAL/lib"
-mkdir -p "$SAGE_SPKG_INST"
-mkdir -p "$SAGE_SHARE"
-
-###############################################################################
 # Determine whether to use MPIR (default standard pkg) or GMP (optional pkg).
 ###############################################################################
 
+mkdir -p "$SAGE_SHARE"
 if [ -z "$SAGE_MP_LIBRARY" ]; then
     # Automatic detection of installed MP library.
     if [ ! -f "$SAGE_SHARE/mp_config" ]; then
@@ -307,13 +296,13 @@ echo >&7
 
 AC_MSG_CHECKING([package versions])
 AC_MSG_RESULT([])
-[
+
 # Usage: newest_version $pkg
 # Print version number of latest standard package $pkg
 newest_version() {
     PKG=$1
-    if [ -f "$SAGE_ROOT/build/pkgs/$PKG/package-version.txt" ]; then
-        echo -n $PKG-
+    if test -f "$SAGE_ROOT/build/pkgs/$PKG/package-version.txt" ; then
+        AS_ECHO_N(["$PKG-"])
         cat "$SAGE_ROOT/build/pkgs/$PKG/package-version.txt"
     else
         echo "$PKG"
@@ -335,6 +324,7 @@ newest_version() {
 # PKG_NAME PKG_VERSION PKG_VAR
 #
 
+[
 filtered_packages_list() {
     # for each package in pkgs/
     for DIR in $SAGE_ROOT/build/pkgs/*; do
@@ -396,21 +386,23 @@ if [ "$SAGE_PYTHON3" = yes ]; then
 else
     echo >&7 'PYTHON = $(PYTHON2)'
 fi
+]
 
 # Sage MP library
 echo >&7 "SAGE_MP_LIBRARY = \$($SAGE_MP_LIBRARY)"
 
 # $(TOOLCHAIN) variable containing prerequisites for the build
-echo >&7 -n 'TOOLCHAIN ='
-if [ "$SAGE_INSTALL_CCACHE" = yes ]; then
-    echo >&7 -n ' $(INST)/$(CCACHE)'
+AS_ECHO_N(>&7 ['TOOLCHAIN ='])
+if test "$SAGE_INSTALL_CCACHE" = yes ; then
+    AS_ECHO_N(>&7 [' $(INST)/$(CCACHE)'])
 fi
-if [ "$need_to_install_gcc" = yes ]; then
-    echo >&7 -n ' $(INST)/$(GCC)'
+if test "$need_to_install_gcc" = yes ; then
+    AS_ECHO_N(>&7 [' $(INST)/$(GCC)'])
 fi
 echo >&7
 echo >&7
 
+[
 echo >&7 '# All standard packages'
 echo >&7 'STANDARD_PACKAGES = \'
 filtered_packages_list standard | while read PKG_NAME PKG_VERSION PKG_VAR; do
@@ -1090,6 +1082,22 @@ fi
 dnl AC_CONFIG_HEADERS([config.h])
 AC_CONFIG_FILES([build/make/Makefile-auto])
 AC_CONFIG_MACRO_DIR([m4])
+
+dnl Create basic directories needed for Sage
+AC_CONFIG_COMMANDS(mkdirs,
+    [
+        SAGE_LOGS=${ac_abs_top_builddir}/logs/pkgs
+        SAGE_LOCAL=${ac_abs_top_builddir}/local
+        SAGE_SHARE=${ac_abs_top_builddir}/local/share
+        SAGE_INST=${ac_abs_top_builddir}/local/var/lib/sage/installed
+        for d in "$SAGE_LOGS" "$SAGE_LOCAL" \
+            "$SAGE_LOCAL/bin" "$SAGE_LOCAL/etc" \
+            "$SAGE_LOCAL/include" "$SAGE_LOCAL/lib" \
+            "$SAGE_SHARE" "$SAGE_INST"; do
+                AC_MSG_NOTICE([creating directory $d])
+                mkdir -p "$d" || AC_MSG_ERROR(could not create $d)
+        done
+    ])
 
 AC_OUTPUT()
 

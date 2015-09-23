@@ -14560,9 +14560,9 @@ class GenericGraph(GenericGraph_pyx):
             sage: D.shortest_path(4, 9, algorithm='BFS')
             [4, 3, 2, 1, 8, 9]
             sage: D.shortest_path(4, 9, algorithm='Dijkstra_NetworkX')
-            [4, 3, 2, 1, 8, 9]
+            [4, 17, 16, 12, 13, 9]
             sage: D.shortest_path(4, 9, algorithm='Dijkstra_Bid_NetworkX')
-            [4, 3, 2, 1, 8, 9]
+            [4, 17, 16, 12, 13, 9]
             sage: D.shortest_path(4, 9, algorithm='Dijkstra_Bid')
             [4, 3, 19, 0, 10, 9]
             sage: D.shortest_path(5, 5)

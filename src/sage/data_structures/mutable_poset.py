@@ -316,7 +316,7 @@ class MutablePosetShell(SageObject):
 
     def is_special(self):
         r"""
-        Return if this shell contains either the null-element, i.e., the
+        Return whether this shell contains either the null-element, i.e., the
         element smaller than any possible other element or the
         infinity-element, i.e., the element larger than any possible
         other element.
@@ -343,7 +343,7 @@ class MutablePosetShell(SageObject):
 
     def is_null(self):
         r"""
-        Return if this shell contains the null-element, i.e., the element
+        Return whether this shell contains the null-element, i.e., the element
         smaller than any possible other element.
 
         OUTPUT:
@@ -364,7 +364,7 @@ class MutablePosetShell(SageObject):
 
     def is_oo(self):
         r"""
-        Return if this shell contains the infinity-element, i.e., the element
+        Return whether this shell contains the infinity-element, i.e., the element
         larger than any possible other element.
 
         OUTPUT:
@@ -570,7 +570,7 @@ class MutablePosetShell(SageObject):
 
             This method compares the keys of the elements contained
             in the shells, if the elements are not both ``None``.
-            Otherwise, this method checks if both shells describe the
+            Otherwise, this method checks whether both shells describe the
             same special element.
 
         TESTS::
@@ -1042,7 +1042,7 @@ class MutablePosetShell(SageObject):
 
         - ``check`` -- (default: ``True``) if set, then the
           ``can_merge``-function of :class:`MutablePoset` determines
-          if the merge is possible.
+          whether the merge is possible.
 
         - ``delete`` -- (default: ``True``) if set, then `element`
           is removed from the poset after the merge.
@@ -1137,7 +1137,7 @@ class MutablePoset(SageObject):
       key of the returning element differs from the key of the first
       input parameter.
 
-    - ``can_merge`` -- a function which checks if its second argument
+    - ``can_merge`` -- a function which checks whether its second argument
       can be merged to its first.
 
       This hook is called by :meth:`merge`. Moreover it is used during
@@ -2623,7 +2623,7 @@ class MutablePoset(SageObject):
 
     def is_disjoint(self, other):
         r"""
-        Return if another poset is disjoint to this poset.
+        Return whether another poset is disjoint to this poset.
 
         INPUT:
 
@@ -2665,7 +2665,7 @@ class MutablePoset(SageObject):
 
     def is_subset(self, other):
         r"""
-        Return if another poset contains this poset, i.e., if this poset
+        Return whether another poset contains this poset, i.e., whether this poset
         is a subset of the other poset.
 
         INPUT:
@@ -2712,7 +2712,7 @@ class MutablePoset(SageObject):
 
     def is_superset(self, other):
         r"""
-        Return if this poset contains another poset, i.e., if this poset
+        Return whether this poset contains another poset, i.e., whether this poset
         is a superset of the other poset.
 
         INPUT:
@@ -2780,7 +2780,7 @@ class MutablePoset(SageObject):
         Nothing.
 
         This method tests all (not necessarily direct) successors and
-        predecessors of the given element if they can be merged with
+        predecessors of the given element whether they can be merged with
         the element itself. This is done by the ``can_merge``-function
         of :class:`MutablePoset`. If this merge is possible, then it
         is performed by calling :class:`MutablePoset`'s

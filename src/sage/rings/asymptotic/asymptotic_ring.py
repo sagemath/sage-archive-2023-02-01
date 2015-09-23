@@ -49,7 +49,7 @@ variable `z` this means, `g_1 \leq g_2` if
 
 .. MATH::
 
-    \lim_{z\to\infty} \frac{g_2}{g_1} \leq 1.
+    \lim_{z\to\infty} \frac{g_1}{g_2} \leq 1.
 
 .. WARNING::
 
@@ -92,9 +92,9 @@ A typical element of this ring is
     -z^(3/2) + O(z^(1/2))
 
 This element consists of two summands: the exact term with coefficient
-`-1` and growth `x^{3/2}` and the `O`-term `O(x^{1/2})`. Note that the
-growth of `x^{3/2}` is larger than the growth of `x^{1/2}` as
-`x\to\infty`, thus this expression cannot be simplified (which would
+`-1` and growth `z^{3/2}` and the `O`-term `O(z^{1/2})`. Note that the
+growth of `z^{3/2}` is larger than the growth of `z^{1/2}` as
+`z\to\infty`, thus this expression cannot be simplified (which would
 be done automatically, see below).
 
 Next, we construct a more sophisticated asymptotic ring in the

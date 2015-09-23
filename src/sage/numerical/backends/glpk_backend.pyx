@@ -757,9 +757,10 @@ cdef class GLPKBackend(GenericBackend):
         """
         Solve the problem.
 
-        Sage uses GLPK's implementation of the branch-and-cut algorithm (``glp_intopt``) to
-        solve the mixed-integer linear program.  This algorithm can be requested
-        explicitly by setting the solver parameter "simplex_or_intopt" to "intopt_only".
+        Sage uses GLPK's implementation of the branch-and-cut algorithm
+        (``glp_intopt``) to solve the mixed-integer linear program.
+        This algorithm can be requested explicitly by setting the solver
+        parameter "simplex_or_intopt" to "intopt_only".
         (If all variables are continuous, the algorithm reduces to solving the
         linear program by the simplex method.)
 
@@ -801,7 +802,7 @@ cdef class GLPKBackend(GenericBackend):
         .. WARNING::
 
             Sage uses GLPK's ``glp_intopt`` to find solutions.
-            This routine sometimes FAILS CATASTROPHICALLY
+            Thisroutine sometimes FAILS CATASTROPHICALLY
             when given a system it cannot solve. (Ticket #12309.)
             Here, "catastrophic" can mean either "infinite loop" or
             segmentation fault. Upstream considers this behavior
@@ -848,8 +849,9 @@ cdef class GLPKBackend(GenericBackend):
             sage: lp.get_values([x, y])
             [1.5, 0.5]
 
-        If one solves a linear program and wishes to access dual information (`get_col_dual` etc.)
-        or tableau data (`get_row_stat` etc.), one needs to switch to "simplex_only" before solving.
+        If one solves a linear program and wishes to access dual information
+        (`get_col_dual` etc.) or tableau data (`get_row_stat` etc.),
+        one needs to switch to "simplex_only" before solving.
 
         GLPK also has an exact rational simplex solver.  The only
         access to data is via double-precision floats, however. It
@@ -904,7 +906,8 @@ cdef class GLPKBackend(GenericBackend):
             sage: lp.get_values(x) == test # yes, we want an exact comparison here
             True
 
-        Below we test that GLPK backend can detect unboundedness in "simplex_only" mode (:trac:`18838`).
+        Below we test that GLPK backend can detect unboundedness in
+        "simplex_only" mode (:trac:`18838`).
 
         EXAMPLES::
 

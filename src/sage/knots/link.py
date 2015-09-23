@@ -73,7 +73,7 @@ class Link(object):
         Link with 2 components represented by 5 crossings
 
       Note that the strands of the braid that have no crossings at all
-      are ignored.
+      are removed.
 
     - Oriented Gauss Code:
 
@@ -111,7 +111,7 @@ class Link(object):
 
     EXAMPLES:
 
-    One of the representations of the Trefoil knot::
+    One of the representations of the trefoil knot::
 
         sage: L = Link([[1, 5, 2, 4], [5, 3, 6, 2], [3, 1, 4, 6]])
         sage: L
@@ -126,7 +126,7 @@ class Link(object):
     We can construct links from from the braid group::
 
         sage: B = BraidGroup(8)
-        sage: L = Link(B([-1, -1, -1, -2,1, -2, 3, -2]))
+        sage: L = Link(B([-1, -1, -1, -2, 1, -2, 3, -2]))
         sage: L
         Link with 2 components represented by 8 crossings
         sage: L = Link(B([1, 2, 1]))
@@ -158,7 +158,7 @@ class Link(object):
         """
         if isinstance(data, list):
             if not data:
-                raise ValueError("does not accept empty list as arguement")
+                raise ValueError("does not accept empty list as argument")
 
             if len(data) != 2 or not all(isinstance(i, list) for i in data[0]):
                 for i in data:
@@ -288,7 +288,7 @@ class Link(object):
             B = BraidGroup(n1 + n2)
             return B(t1 + t2)
 
-        # look for possible vogel moves, perform them and call recursively to the modified link
+        # look for possible Vogel moves, perform them and call recursively to the modified link
         pd_code = self.pd_code()
         newedge = max(flatten(pd_code)) + 1
         for region in self.regions():
@@ -554,7 +554,7 @@ class Link(object):
 
         We construct the crossing by starting with the entering component
         of the undercrossing, move in the clockwise direction and then
-        generate the list. Suppose if the crossing is given by `[a, b, c, d]`,
+        generate the list. If the crossing is given by `[a, b, c, d]`,
         then we interpret this information as:
 
         1. `a` is the entering component of the undercrossing;
@@ -569,7 +569,7 @@ class Link(object):
             sage: L.pd_code()
             [[6, 1, 7, 2], [2, 5, 3, 6], [8, 4, 1, 3], [4, 8, 5, 7]]
             sage: B = BraidGroup(2)
-            sage: b=B([1, 1, 1, 1, 1])
+            sage: b = B([1, 1, 1, 1, 1])
             sage: L = Link(b)
             sage: L.pd_code()
             [[2, 1, 3, 4], [4, 3, 5, 6], [6, 5, 7, 8], [8, 7, 9, 10], [10, 9, 1, 2]]
@@ -590,7 +590,7 @@ class Link(object):
                 d = flatten(oriented_gauss_code[0])
                 for i, j in enumerate(d):
                     d_dic[j] = [i + 1, i + 2]
-                # here we collect the final component in each gauss code
+                # here we collect the final component in each Gauss code
                 last_component = [i[-1] for i in oriented_gauss_code[0]]
                 first_component = [i[0] for i in oriented_gauss_code[0]]
                 # here we correct the last_component

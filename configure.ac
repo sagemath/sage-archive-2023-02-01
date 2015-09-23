@@ -296,13 +296,13 @@ echo >&7
 
 AC_MSG_CHECKING([package versions])
 AC_MSG_RESULT([])
-[
+
 # Usage: newest_version $pkg
 # Print version number of latest standard package $pkg
 newest_version() {
     PKG=$1
-    if [ -f "$SAGE_ROOT/build/pkgs/$PKG/package-version.txt" ]; then
-        echo -n $PKG-
+    if test -f "$SAGE_ROOT/build/pkgs/$PKG/package-version.txt" ; then
+        AS_ECHO_N(["$PKG-"])
         cat "$SAGE_ROOT/build/pkgs/$PKG/package-version.txt"
     else
         echo "$PKG"
@@ -324,6 +324,7 @@ newest_version() {
 # PKG_NAME PKG_VERSION PKG_VAR
 #
 
+[
 filtered_packages_list() {
     # for each package in pkgs/
     for DIR in $SAGE_ROOT/build/pkgs/*; do
@@ -385,21 +386,23 @@ if [ "$SAGE_PYTHON3" = yes ]; then
 else
     echo >&7 'PYTHON = $(PYTHON2)'
 fi
+]
 
 # Sage MP library
 echo >&7 "SAGE_MP_LIBRARY = \$($SAGE_MP_LIBRARY)"
 
 # $(TOOLCHAIN) variable containing prerequisites for the build
-echo >&7 -n 'TOOLCHAIN ='
-if [ "$SAGE_INSTALL_CCACHE" = yes ]; then
-    echo >&7 -n ' $(INST)/$(CCACHE)'
+AS_ECHO_N(>&7 ['TOOLCHAIN ='])
+if test "$SAGE_INSTALL_CCACHE" = yes ; then
+    AS_ECHO_N(>&7 [' $(INST)/$(CCACHE)'])
 fi
-if [ "$need_to_install_gcc" = yes ]; then
-    echo >&7 -n ' $(INST)/$(GCC)'
+if test "$need_to_install_gcc" = yes ; then
+    AS_ECHO_N(>&7 [' $(INST)/$(GCC)'])
 fi
 echo >&7
 echo >&7
 
+[
 echo >&7 '# All standard packages'
 echo >&7 'STANDARD_PACKAGES = \'
 filtered_packages_list standard | while read PKG_NAME PKG_VERSION PKG_VAR; do

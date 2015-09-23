@@ -1042,9 +1042,8 @@ class AsymptoticRing(sage.rings.ring.Ring,
 
         EXAMPLES::
 
-            sage: import sage.rings.asymptotic.growth_group as agg
-            sage: MG = agg.GrowthGroup('x^ZZ')
-            sage: AR = AsymptoticRing(growth_group=MG, coefficient_ring=ZZ)
+            sage: AR = AsymptoticRing(growth_group='x^ZZ',
+            ....:                     coefficient_ring=ZZ)
             sage: repr(AR)  # indirect doctest
             'Asymptotic Ring <x^ZZ> over Integer Ring'
         """

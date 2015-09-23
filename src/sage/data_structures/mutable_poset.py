@@ -795,7 +795,7 @@ class MutablePosetShell(SageObject):
             sage: P.add(42)
             sage: P.add(5)
             sage: marked = set()
-            sage: list(P.oo._iter_depth_first_visit_(marked, True))
+            sage: list(P.oo._iter_depth_first_visit_(marked, reverse=True))
             [oo, 42, 5, null]
         """
         if (condition is not None and
@@ -904,7 +904,7 @@ class MutablePosetShell(SageObject):
             sage: P.add(42)
             sage: P.add(5)
             sage: marked = set()
-            sage: list(P.null._iter_topological_visit_(marked, True))
+            sage: list(P.null._iter_topological_visit_(marked, reverse=True))
             [oo, 42, 5, null]
         """
         if (condition is not None and

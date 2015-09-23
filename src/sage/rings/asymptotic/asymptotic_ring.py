@@ -596,7 +596,7 @@ class AsymptoticExpression(sage.rings.ring_element.RingElement):
             from sage.rings.integer_ring import ZZ
             if power not in ZZ:
                 raise NotImplementedError('Taking the sum %s to the '
-                                          'non-integer power %s not '
+                                          'non-integer power %s is not '
                                           'implemented.' % (self, power))
             return super(AsymptoticExpression, self).__pow__(power)
 

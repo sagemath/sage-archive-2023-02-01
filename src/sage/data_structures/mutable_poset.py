@@ -3,8 +3,8 @@ Mutable Poset
 
 This module provides a class representing a finite partially ordered
 set (poset) for the purpose of being used as a data structure. Thus
-the here introduced posets are mutable, i.e., elements can be added and
-removed from a poset at any time.
+the posets introduced in this module are mutable, i.e., elements can
+be added and removed from a poset at any time.
 
 To get in touch with Sage's "usual" posets, start with the page
 :mod:`Posets <sage.combinat.posets.__init__>` in the reference manual.
@@ -48,9 +48,8 @@ Let us look at the poset again::
     poset(3, 7, 13, 42)
 
 We see that they elements are sorted using `\leq` which exists on the
-integers `\ZZ`. Since this is even a total order, we could have used
-the more efficient :class:`MutableToset`. (Note that also other data
-structures are suitable for totally ordered sets.)
+integers `\ZZ`. Since this is even a total order, we could have used a
+more efficient data structure.
 
 
 A less boring Example
@@ -75,7 +74,8 @@ entries of `a` are at most `b`. For example, we have
     sage: a <= b, a <= c, b <= c
     (True, True, False)
 
-The last comparison gives ``False``, since the first entries give `2 \leq 1`.
+The last comparison gives ``False``, since the comparison of the
+first component yield `2 \leq 1`.
 
 Now, let us add such elements to a poset::
 
@@ -137,6 +137,7 @@ us; they are just there and sometimes useful.
 AUTHORS:
 
 - Daniel Krenn (2015-01-21): initial version
+- Daniel Krenn (2015-08-28): mapping methods, bug fixes, cleanup
 
 ACKNOWLEDGEMENT:
 
@@ -154,13 +155,10 @@ Classes and their Methods
 #                http://www.gnu.org/licenses/
 #*****************************************************************************
 
-import sage
+from sage.structure.sage_object import SageObject
 
 
-# *****************************************************************************
-
-
-class MutablePosetShell(sage.structure.sage_object.SageObject):
+class MutablePosetShell(SageObject):
     r"""
     A shell for an element of a :class:`mutable poset <MutablePoset>`.
 
@@ -342,15 +340,10 @@ class MutablePosetShell(sage.structure.sage_object.SageObject):
         return self.element is None
 
 
-    def is_null(self, reverse=False):
+    def is_null(self):
         r"""
         Return if this shell contains the null-element, i.e., the element
         smaller than any possible other element.
-
-        INPUT:
-
-        - ``reverse`` -- (default: ``False``) if set, then returns
-          if the element is the largest possible.
 
         OUTPUT:
 
@@ -365,18 +358,13 @@ class MutablePosetShell(sage.structure.sage_object.SageObject):
             sage: P.oo.is_null()
             False
         """
-        return self.element is None and not self.predecessors(reverse)
+        return self.element is None and not self.predecessors()
 
 
-    def is_oo(self, reverse=False):
+    def is_oo(self):
         r"""
         Return if this shell contains the infinity-element, i.e., the element
         larger than any possible other element.
-
-        INPUT:
-
-        - ``reverse`` -- (default: ``False``) if set, then returns
-          if the element is the smallest possible.
 
         OUTPUT:
 
@@ -391,7 +379,7 @@ class MutablePosetShell(sage.structure.sage_object.SageObject):
             sage: P.oo.is_oo()
             True
         """
-        return self.element is None and not self.successors(reverse)
+        return self.element is None and not self.successors()
 
 
     def __repr__(self):
@@ -406,11 +394,13 @@ class MutablePosetShell(sage.structure.sage_object.SageObject):
 
         A string.
 
-        This methods usually returns the representation string of its
-        :meth:`element`. The only exception is if this element is
-        ``None``. In this case either ``'null'`` or ``'oo'`` is
-        returned depending in the nonexistence of predecessors and
-        sucessors respectively.
+        .. NOTE::
+
+            If the :meth:`element` of this shell is not ``None``,
+            this method returns the respective representation string.
+            Otherwise, ``'null'`` or ``'oo'`` are returned,
+            depending on the non-existence of predecessors or
+            successors, respectively.
 
         TESTS::
 
@@ -458,15 +448,13 @@ class MutablePosetShell(sage.structure.sage_object.SageObject):
         return hash(self.key)
 
 
-    def le(left, right, reverse=False):
+    def le(self, other, reverse=False):
         r"""
-        Return if ``left`` is less or equal to ``right``.
+        Return whether this shell is less than or equal to ``other``.
 
         INPUT:
 
-        - ``left`` -- a shell.
-
-        - ``right`` -- a shell.
+        - ``other`` -- a shell.
 
         - ``reverse`` -- (default: ``False``) if set, then return
           ``right <= left`` instead.
@@ -475,12 +463,14 @@ class MutablePosetShell(sage.structure.sage_object.SageObject):
 
         ``True`` or ``False``.
 
-        This methods usually returns if the keys of the given elements
-        (in the shells) are less or equal. The only exception is if
-        the element is ``None``. In this case the shell contains special
-        elements: If it has no predecessors, then it is interpreted as
-        an element smaller than any other, if it has no successors,
-        then as larger than any other.
+        .. NOTE::
+
+            The comparison of the shells is based on the comparison
+            of the keys of the elements contained in the shells,
+            except for the shells containing ``None``. These special
+            shells are interpreted as smaller or larger than all
+            other elements, depending on whether they have no
+            predecessors or no successors, respectively.
 
         TESTS::
 
@@ -490,23 +480,23 @@ class MutablePosetShell(sage.structure.sage_object.SageObject):
             sage: e = MutablePosetShell(P, (1, 2))
             sage: z = P.null
             sage: oo = P.oo
-            sage: z <= e
+            sage: z <= e  # indirect doctest
             True
-            sage: e <= oo
+            sage: e <= oo  # indirect doctest
             True
-            sage: z <= oo
+            sage: z <= oo  # indirect doctest
             True
-            sage: oo <= z
+            sage: oo <= z  # indirect doctest
             False
-            sage: oo <= e
+            sage: oo <= e  # indirect doctest
             False
-            sage: e <= z
+            sage: e <= z  # indirect doctest
             False
-            sage: z <= z
+            sage: z <= z  # indirect doctest
             True
-            sage: oo <= oo
+            sage: oo <= oo  # indirect doctest
             True
-            sage: e <= e
+            sage: e <= e  # indirect doctest
             True
 
         ::
@@ -531,45 +521,43 @@ class MutablePosetShell(sage.structure.sage_object.SageObject):
             True
         """
         if reverse:
-            left, right = (right, left)
+            return other.le(self, reverse=False)
 
-        if left.element is None:
-            if not left.predecessors():
+        if self.element is None:
+            if not self.predecessors():
                 # null on the left
                 return True
             else:
                 # oo on the left
-                if right.element is None:
+                if other.element is None:
                     # null or oo on the right
-                    return not right.successors()
+                    return not other.successors()
                 else:
                     # not null, not oo on the right
                     return False
-        if right.element is None:
-            if not right.successors():
+        if other.element is None:
+            if not other.successors():
                 # oo on the right
                 return True
             else:
                 # null on the right
-                if left.element is None:
+                if self.element is None:
                     # null or oo on the left
-                    return not left.predecessors()
+                    return not self.predecessors()
                 else:
                     # not null, not oo on the right
                     return False
-        return left.key <= right.key
+        return self.key <= other.key
 
 
     __le__ = le
 
 
-    def eq(left, right):
+    def eq(self, other):
         r"""
-        Return if ``left`` is equal to ``right``.
+        Return whether this shell is equal to ``other``.
 
         INPUT:
-
-        - ``left`` -- a shell.
 
         - ``right`` -- a shell.
 
@@ -577,7 +565,12 @@ class MutablePosetShell(sage.structure.sage_object.SageObject):
 
         ``True`` or ``False``.
 
-        This method compares the keys of the elements contained in the shells.
+        .. NOTE::
+
+            This method compares the keys of the elements contained
+            in the shells, if the elements are not both ``None``.
+            Otherwise, this method checks if both shells describe the
+            same special element.
 
         TESTS::
 
@@ -600,17 +593,20 @@ class MutablePosetShell(sage.structure.sage_object.SageObject):
             sage: oo == z
             False
         """
-        if left.element is None and right.element is None:
-            return left.is_null() == right.is_null()
-        return left.key == right.key
+        if self.element is None and other.element is None:
+            return self.is_null() == other.is_null()
+        return self.key == other.key
 
 
     __eq__ = eq
 
 
-    def _copy_all_linked_(self, memo, poset):
+    def _copy_all_linked_(self, memo, poset, mapping):
         r"""
-        Helper function for :meth:`MutablePoset.copy`.
+        Return a copy of all shells linked to this shell
+        (including a copy of this shell).
+
+        This is a helper function for :meth:`MutablePoset.copy`.
 
         INPUT:
 
@@ -618,6 +614,8 @@ class MutablePosetShell(sage.structure.sage_object.SageObject):
           calling shell to a copy of it.
 
         - ``poset`` -- the poset to which the newly created shells belongs.
+
+        - ``mapping`` -- a function which is applied on each of the elements.
 
         OUTPUT:
 
@@ -629,7 +627,7 @@ class MutablePosetShell(sage.structure.sage_object.SageObject):
             sage: P = MP()
             sage: Q = MP()
             sage: memo = {}
-            sage: z = P.null._copy_all_linked_(memo, Q)
+            sage: z = P.null._copy_all_linked_(memo, Q, lambda e: e)
             sage: z.poset is Q
             True
             sage: oo = z.successors().pop()
@@ -641,19 +639,22 @@ class MutablePosetShell(sage.structure.sage_object.SageObject):
         except KeyError:
             pass
 
-        new = self.__class__(poset, self.element)
+        new = self.__class__(poset, mapping(self.element)
+                             if self.element is not None else None)
         memo[id(self)] = new
 
         for reverse in (False, True):
             for e in self.successors(reverse):
-                new.successors(reverse).add(e._copy_all_linked_(memo, poset))
+                new.successors(reverse).add(e._copy_all_linked_(memo, poset, mapping))
 
         return new
 
 
     def _search_covers_(self, covers, shell, reverse=False):
         r"""
-        Helper function for :meth:`covers`.
+        Search for cover shells of this shell.
+
+        This is a helper function for :meth:`covers`.
 
         INPUT:
 
@@ -703,7 +704,7 @@ class MutablePosetShell(sage.structure.sage_object.SageObject):
     def covers(self, shell, reverse=False):
         r"""
         Return the covers of the given shell (considering only
-        shells which originate from itself).
+        shells which originate from this shell).
 
         INPUT:
 
@@ -757,15 +758,17 @@ class MutablePosetShell(sage.structure.sage_object.SageObject):
                                  reverse=False, key=None,
                                  condition=None):
         r"""
-        Helper function for :meth:`iter_depth_first`.
+        Return an iterator over all shells in depth first order.
+
+        This is a helper function for :meth:`iter_depth_first`.
 
         INPUT:
 
         - ``marked`` -- a set in which marked shells are stored.
 
         - ``reverse`` -- (default: ``False``) if set, reverses the
-          order, i.e., ``False`` gives smallest shells first,
-          ``True`` gives largest first.
+          order, i.e., ``False`` searches towards ``'oo'`` and
+          ``True`` searches towards ``'null'``.
 
         - ``key`` -- (default: ``None``) a function used for sorting
           the direct successors of a shell (used in case of a
@@ -791,8 +794,8 @@ class MutablePosetShell(sage.structure.sage_object.SageObject):
             sage: list(P.oo._iter_depth_first_visit_(marked, True))
             [oo, 42, 5, null]
         """
-        if condition is not None and \
-                not self.is_special() and not condition(self):
+        if (condition is not None and
+                not self.is_special() and not condition(self)):
             return
         if self in marked:
             return
@@ -814,8 +817,8 @@ class MutablePosetShell(sage.structure.sage_object.SageObject):
         INPUT:
 
         - ``reverse`` -- (default: ``False``) if set, reverses the
-          order, i.e., ``False`` gives smallest shells first,
-          ``True`` gives largest first.
+          order, i.e., ``False`` searches towards ``'oo'`` and
+          ``True`` searches towards ``'null'``.
 
         - ``key`` -- (default: ``None``) a function used for sorting
           the direct successors of a shell (used in case of a
@@ -864,15 +867,17 @@ class MutablePosetShell(sage.structure.sage_object.SageObject):
                                  reverse=False, key=None,
                                  condition=None):
         r"""
-        Helper function for :meth:`iter_topological`.
+        Return an iterator over all shells in topological order.
+
+        This is a helper function for :meth:`iter_topological`.
 
         INPUT:
 
         - ``marked`` -- a set in which marked shells are stored.
 
         - ``reverse`` -- (default: ``False``) if set, reverses the
-          order, i.e., ``False`` gives smallest shells first,
-          ``True`` gives largest first.
+          order, i.e., ``False`` searches towards ``'oo'`` and
+          ``True`` searches towards ``'null'``.
 
         - ``key`` -- (default: ``None``) a function used for sorting
           the direct successors of a shell (used in case of a
@@ -899,7 +904,7 @@ class MutablePosetShell(sage.structure.sage_object.SageObject):
             [oo, 42, 5, null]
         """
         if (condition is not None and
-            not self.is_special() and not condition(self)):
+                not self.is_special() and not condition(self)):
             return
         if self in marked:
             return
@@ -921,8 +926,8 @@ class MutablePosetShell(sage.structure.sage_object.SageObject):
         INPUT:
 
         - ``reverse`` -- (default: ``False``) if set, reverses the
-          order, i.e., ``False`` gives smallest shells first,
-          ``True`` gives largest first.
+          order, i.e., ``False`` searches towards ``'oo'`` and
+          ``True`` searches towards ``'null'``.
 
         - ``key`` -- (default: ``None``) a function used for sorting
           the direct successors of a shell (used in case of a
@@ -1027,18 +1032,19 @@ class MutablePosetShell(sage.structure.sage_object.SageObject):
 
     def merge(self, element, check=True, delete=True):
         r"""
-        Merge the given element with itself.
+        Merge the given element with the element contained in this
+        shell.
 
         INPUT:
 
         - ``element`` -- an element (of the poset).
 
         - ``check`` -- (default: ``True``) if set, then the
-          ``can_merge``-function of :class:`MutablePoset` is asked
-          before the merge if the merge is possible.
+          ``can_merge``-function of :class:`MutablePoset` determines
+          if the merge is possible.
 
-        - ``delete`` -- (default: ``True``) if set, then given element
-          is removed out of the poset after the merge.
+        - ``delete`` -- (default: ``True``) if set, then the passed
+          element is removed from the poset after the merge.
 
         OUTPUT:
 
@@ -1081,35 +1087,6 @@ class MutablePosetShell(sage.structure.sage_object.SageObject):
 # *****************************************************************************
 
 
-def sorted_set_by_tuple(S, T):
-    r"""
-    Return an iterator over ``S`` respecting the order given by ``T``.
-
-    INPUT:
-
-    - ``S`` -- a set (or something which supports containment test).
-
-    - ``T`` -- a tuple (or other iterable).
-
-    OUTPUT:
-
-    An iterator.
-
-    In the iterator all elements of ``T``, which are also in ``S``
-    appear. The order given by ``T`` is kept.
-
-    EXAMPLES::
-
-        sage: from sage.data_structures.mutable_poset import sorted_set_by_tuple
-        sage: tuple(sorted_set_by_tuple({3, 4, 6}, (5, 4, 1, 2, 3, 6)))
-        (4, 3, 6)
-    """
-    return iter(ell for ell in T if ell in S)
-
-
-# *****************************************************************************
-
-
 def is_MutablePoset(P):
     r"""
     Tests if ``P`` inherits from :class:`MutablePoset`.
@@ -1125,9 +1102,10 @@ def is_MutablePoset(P):
     return isinstance(P, MutablePoset)
 
 
-class MutablePoset(sage.structure.sage_object.SageObject):
+class MutablePoset(SageObject):
     r"""
-    A mutable poset (partially ordered set) as data structure.
+    A data structure that models a mutable poset (partially ordered
+    set).
 
     INPUT:
 
@@ -1231,7 +1209,7 @@ class MutablePoset(sage.structure.sage_object.SageObject):
         if is_MutablePoset(data):
             if key is not None:
                 raise TypeError('Cannot use key when data is a poset.')
-            self._copy_shells_(data)
+            self._copy_shells_(data, lambda e: e)
 
         else:
             self.clear()
@@ -1320,9 +1298,10 @@ class MutablePoset(sage.structure.sage_object.SageObject):
     @property
     def null(self):
         r"""
-        The shell `\emptyset` whose element is smaller than any other element.
+        The shell `\emptyset` whose element is smaller than any
+        other element.
 
-        EXAMPLES:
+        EXAMPLES::
 
             sage: from sage.data_structures.mutable_poset import MutablePoset as MP
             sage: P = MP()
@@ -1337,9 +1316,10 @@ class MutablePoset(sage.structure.sage_object.SageObject):
     @property
     def oo(self):
         r"""
-        The shell `\infty` whose element is larger than any other element.
+        The shell `\infty` whose element is larger than any other
+        element.
 
-        EXAMPLES:
+        EXAMPLES::
 
             sage: from sage.data_structures.mutable_poset import MutablePoset as MP
             sage: P = MP()
@@ -1365,7 +1345,8 @@ class MutablePoset(sage.structure.sage_object.SageObject):
 
         .. NOTE::
 
-            Each element is contained/encapusalted in a shell inside the poset.
+            Each element is contained/encapsulated in a shell inside
+            the poset.
 
         EXAMPLES::
 
@@ -1435,14 +1416,16 @@ class MutablePoset(sage.structure.sage_object.SageObject):
         return self._key_(element)
 
 
-    def _copy_shells_(self, other):
+    def _copy_shells_(self, other, mapping):
         r"""
-        Helper function for copying shells.
+        Copy shells from another poset.
 
         INPUT:
 
         - ``other`` -- the mutable poset from which the shells
-          should be copied this poset.
+          should be copied to this poset.
+
+        - ``mapping`` -- a function that is applied to each element.
 
         OUTPUT:
 
@@ -1461,7 +1444,7 @@ class MutablePoset(sage.structure.sage_object.SageObject):
             sage: P.add(T((4, 4)))
             sage: P.add(T((1, 2)))
             sage: Q = MP()
-            sage: Q._copy_shells_(P)
+            sage: Q._copy_shells_(P, lambda e: e)
             sage: P.repr_full() == Q.repr_full()
             True
         """
@@ -1470,20 +1453,20 @@ class MutablePoset(sage.structure.sage_object.SageObject):
         self._merge_ = copy(other._merge_)
         self._can_merge_ = copy(other._can_merge_)
         memo = {}
-        self._null_ = other._null_._copy_all_linked_(memo, self)
+        self._null_ = other._null_._copy_all_linked_(memo, self, mapping)
         self._oo_ = memo[id(other._oo_)]
         self._shells_ = dict((f.key, f) for f in
-                              iter(memo[id(e)]
-                                   for e in other._shells_.itervalues()))
+                             iter(memo[id(e)] for e in
+                                  other._shells_.itervalues()))
 
 
-    def copy(self):
+    def copy(self, mapping=None):
         r"""
         Creates a shallow copy.
 
         INPUT:
 
-        Nothing.
+        - ``mapping`` -- a function which is applied on each of the elements.
 
         OUTPUT:
 
@@ -1505,15 +1488,17 @@ class MutablePoset(sage.structure.sage_object.SageObject):
             sage: P.repr_full() == Q.repr_full()
             True
         """
+        if mapping is None:
+            mapping = lambda element: element
         new = self.__class__()
-        new._copy_shells_(self)
+        new._copy_shells_(self, mapping)
         return new
 
 
     __copy__ = copy
 
 
-    def shells(self, include_special=False, reverse=False):
+    def shells(self, include_special=False):
         r"""
         Return an iterator over all shells.
 
@@ -1523,16 +1508,14 @@ class MutablePoset(sage.structure.sage_object.SageObject):
           including shells containing a smallest element (`\emptyset`)
           and a largest element (`\infty`).
 
-        - ``reverse`` -- (default: ``False``) if set, the order is
-          reversed. This only affects the shells `\emptyset` and `\infty`.
-
         OUTPUT:
 
         An iterator.
 
         .. NOTE::
 
-            Each element is contained/encapusalted in a shell inside the poset.
+            Each element is contained/encapsulated in a shell inside
+            the poset.
 
         EXAMPLES::
 
@@ -1542,19 +1525,17 @@ class MutablePoset(sage.structure.sage_object.SageObject):
             ()
             sage: tuple(P.shells(include_special=True))
             (null, oo)
-            sage: tuple(P.shells(include_special=True, reverse=True))
-            (oo, null)
         """
         if include_special:
-            yield self.null if not reverse else self.oo
+            yield self.null
         for e in self._shells_.itervalues():
             yield e
         if include_special:
-            yield self.oo if not reverse else self.null
+            yield self.oo
 
 
     def shells_topological(self, include_special=False,
-                             reverse=False, key=None):
+                           reverse=False, key=None):
         r"""
         Return an iterator over all shells in topological order.
 
@@ -1570,8 +1551,8 @@ class MutablePoset(sage.structure.sage_object.SageObject):
 
         - ``key`` -- (default: ``None``) a function used for sorting
           the direct successors of a shell (used in case of a
-          tie). If this is ``None``, no sorting according to the reprsentation
-          string occurs.
+          tie). If this is ``None``, no sorting according to the
+          representation string occurs.
 
         OUTPUT:
 
@@ -1579,7 +1560,8 @@ class MutablePoset(sage.structure.sage_object.SageObject):
 
         .. NOTE::
 
-            Each element is contained/encapusalted in a shell inside the poset.
+            Each element is contained/encapsulated in a shell inside
+            the poset.
 
         EXAMPLES::
 
@@ -1827,8 +1809,7 @@ class MutablePoset(sage.structure.sage_object.SageObject):
                 if shell.successors(rev):
                     s = '|   +-- ' + what + ':   '
                     s += ', '.join(repr(e) for e in
-                                   sorted_set_by_tuple(shell.successors(rev),
-                                                       sortedshells))
+                                   sortedshells if e in shell.successors(rev))
                 else:
                     s = '|   +-- no ' + what
                 strings.append(s)
@@ -2005,9 +1986,17 @@ class MutablePoset(sage.structure.sage_object.SageObject):
             +-- null
             |   +-- successors:   (2, 1, 7)
             |   +-- no predecessors
+
+        ::
+
+            sage: P = MP()
+            sage: P.add(None)
+            Traceback (most recent call last):
+            ...
+            ValueError: None is not an allowed element.
         """
         if element is None:
-            raise ValueError('None is not allowed as element.')
+            raise ValueError('None is not an allowed element.')
         key = self.get_key(element)
 
         if key in self._shells_:
@@ -2019,6 +2008,8 @@ class MutablePoset(sage.structure.sage_object.SageObject):
         smaller = self.null.covers(new, reverse=False)
         larger = self.oo.covers(new, reverse=True)
 
+        # In the following we first search towards oo (reverse=False) and
+        # then towards null (reverse=True; everything is "inverted").
         for reverse in (False, True):
             sm = smaller if not reverse else larger
             la = larger if not reverse else smaller
@@ -2174,9 +2165,17 @@ class MutablePoset(sage.structure.sage_object.SageObject):
             +-- null
             |   +-- successors:   (1, 2, 7), (2, 1, 7)
             |   +-- no predecessors
+
+        ::
+
+            sage: P = MP()
+            sage: P.remove(None)
+            Traceback (most recent call last):
+            ...
+            ValueError: None is not an allowed key.
         """
         if key is None:
-            raise ValueError('None is not allowed as key.')
+            raise ValueError('None is not an allowed key.')
 
         try:
             shell = self._shells_[key]
@@ -2279,20 +2278,24 @@ class MutablePoset(sage.structure.sage_object.SageObject):
         return shell.element
 
 
-    def union(left, *right):
+    def union(self, *other):
         r"""
         Return the union of the given posets as a new poset
 
         INPUT:
 
-        - ``left`` -- a poset.
-
-        - ``right`` -- a poset or an iterable. In the latter case the
+        - ``other`` -- a poset or an iterable. In the latter case the
           iterated objects are seen as elements of a poset.
 
         OUTPUT:
 
         A poset.
+
+        .. NOTE::
+
+            If this poset uses a ``key``-function, then all
+            comparisons are performed on the keys of the elements (and
+            not on the elements themselves).
 
         EXAMPLES::
 
@@ -2311,15 +2314,15 @@ class MutablePoset(sage.structure.sage_object.SageObject):
             sage: P.union(P, Q, Q, P)
             poset(3, 4, 7, 8, 42)
        """
-        new = left.copy()
-        for r in right:
-            new.update(r)
+        new = self.copy()
+        for o in other:
+            new.update(o)
         return new
 
 
     def union_update(self, other):
         r"""
-        Update the poset with the union of itself and another poset.
+        Update this poset with the union of itself and another poset.
 
         INPUT:
 
@@ -2329,6 +2332,12 @@ class MutablePoset(sage.structure.sage_object.SageObject):
         OUTPUT:
 
         Nothing.
+
+        .. NOTE::
+
+            If this poset uses a ``key``-function, then all
+            comparisons are performed on the keys of the elements (and
+            not on the elements themselves).
 
         .. TODO::
 
@@ -2369,21 +2378,25 @@ class MutablePoset(sage.structure.sage_object.SageObject):
     """
 
 
-    def difference(left, *right):
+    def difference(self, *other):
         r"""
         Return a new poset where all elements of this poset, which are
         contained in one of the other given posets, are removed.
 
         INPUT:
 
-        - ``left`` -- a poset.
-
-        - ``right`` -- a poset or an iterable. In the latter case the
+        - ``other`` -- a poset or an iterable. In the latter case the
           iterated objects are seen as elements of a poset.
 
         OUTPUT:
 
         A poset.
+
+        .. NOTE::
+
+            If this poset uses a ``key``-function, then all
+            comparisons are performed on the keys of the elements (and
+            not on the elements themselves).
 
         EXAMPLES::
 
@@ -2406,9 +2419,9 @@ class MutablePoset(sage.structure.sage_object.SageObject):
             sage: P.difference(Q, P)
             poset()
         """
-        new = left.copy()
-        for r in right:
-            new.difference_update(r)
+        new = self.copy()
+        for o in other:
+            new.difference_update(o)
         return new
 
 
@@ -2424,6 +2437,12 @@ class MutablePoset(sage.structure.sage_object.SageObject):
         OUTPUT:
 
         Nothing.
+
+        .. NOTE::
+
+            If this poset uses a ``key``-function, then all
+            comparisons are performed on the keys of the elements (and
+            not on the elements themselves).
 
         EXAMPLES::
 
@@ -2446,20 +2465,24 @@ class MutablePoset(sage.structure.sage_object.SageObject):
             self.discard(key)
 
 
-    def intersection(left, *right):
+    def intersection(self, *other):
         r"""
         Return the intersection of the given posets as a new poset
 
         INPUT:
 
-        - ``left`` -- a poset.
-
-        - ``right`` -- a poset or an iterable. In the latter case the
+        - ``other`` -- a poset or an iterable. In the latter case the
           iterated objects are seen as elements of a poset.
 
         OUTPUT:
 
         A poset.
+
+        .. NOTE::
+
+            If this poset uses a ``key``-function, then all
+            comparisons are performed on the keys of the elements (and
+            not on the elements themselves).
 
         EXAMPLES::
 
@@ -2478,15 +2501,15 @@ class MutablePoset(sage.structure.sage_object.SageObject):
             sage: P.intersection(P, Q, Q, P)
             poset(42)
         """
-        new = left.copy()
-        for r in right:
-            new.intersection_update(r)
+        new = self.copy()
+        for o in other:
+            new.intersection_update(o)
         return new
 
 
     def intersection_update(self, other):
         r"""
-        Update the poset with the intersection of itself and another poset.
+        Update this poset with the intersection of itself and another poset.
 
         INPUT:
 
@@ -2496,6 +2519,12 @@ class MutablePoset(sage.structure.sage_object.SageObject):
         OUTPUT:
 
         Nothing.
+
+        .. NOTE::
+
+            If this poset uses a ``key``-function, then all
+            comparisons are performed on the keys of the elements (and
+            not on the elements themselves).
 
         EXAMPLES::
 
@@ -2519,19 +2548,23 @@ class MutablePoset(sage.structure.sage_object.SageObject):
                 self.discard(key)
 
 
-    def symmetric_difference(left, right):
+    def symmetric_difference(self, other):
         r"""
         Return the symmetric difference of two posets as a new poset.
 
         INPUT:
 
-        - ``left`` -- a poset.
-
-        - ``right`` -- a poset.
+        - ``other`` -- a poset.
 
         OUTPUT:
 
         A poset.
+
+        .. NOTE::
+
+            If this poset uses a ``key``-function, then all
+            comparisons are performed on the keys of the elements (and
+            not on the elements themselves).
 
         EXAMPLES::
 
@@ -2545,14 +2578,14 @@ class MutablePoset(sage.structure.sage_object.SageObject):
             sage: P.symmetric_difference(Q)
             poset(3, 4, 7, 8)
         """
-        new = left.copy()
-        new.symmetric_difference_update(right)
+        new = self.copy()
+        new.symmetric_difference_update(other)
         return new
 
 
     def symmetric_difference_update(self, other):
         r"""
-        Update the poset with the symmetric difference of itself and
+        Update this poset with the symmetric difference of itself and
         another poset.
 
         INPUT:
@@ -2562,6 +2595,12 @@ class MutablePoset(sage.structure.sage_object.SageObject):
         OUTPUT:
 
         Nothing.
+
+        .. NOTE::
+
+            If this poset uses a ``key``-function, then all
+            comparisons are performed on the keys of the elements (and
+            not on the elements themselves).
 
         EXAMPLES::
 
@@ -2593,6 +2632,12 @@ class MutablePoset(sage.structure.sage_object.SageObject):
         OUTPUT:
 
         Nothing.
+
+        .. NOTE::
+
+            If this poset uses a ``key``-function, then all
+            comparisons are performed on the keys of the elements (and
+            not on the elements themselves).
 
         EXAMPLES::
 
@@ -2630,6 +2675,12 @@ class MutablePoset(sage.structure.sage_object.SageObject):
         OUTPUT:
 
         Nothing.
+
+        .. NOTE::
+
+            If this poset uses a ``key``-function, then all
+            comparisons are performed on the keys of the elements (and
+            not on the elements themselves).
 
         EXAMPLES::
 
@@ -2671,6 +2722,12 @@ class MutablePoset(sage.structure.sage_object.SageObject):
         OUTPUT:
 
         Nothing.
+
+        .. NOTE::
+
+            If this poset uses a ``key``-function, then all
+            comparisons are performed on the keys of the elements (and
+            not on the elements themselves).
 
         EXAMPLES::
 
@@ -2792,6 +2849,18 @@ class MutablePoset(sage.structure.sage_object.SageObject):
 
             sage: copy(P).merge(reverse=False) == copy(P).merge(reverse=True)
             True
+
+        ::
+
+            sage: P = MP(srange(4),
+            ....:        merge=lambda l, r: l, can_merge=lambda l, r: l >= r); P
+            poset(0, 1, 2, 3)
+            sage: Q = P.copy()
+            sage: Q.merge(reverse=True); Q
+            poset(3)
+            sage: R = P.mapped(lambda x: x+1)
+            sage: R.merge(reverse=True); R
+            poset(4)
         """
         if key is None:
             for shell in tuple(self.shells_topological(reverse=reverse)):
@@ -2805,7 +2874,11 @@ class MutablePoset(sage.structure.sage_object.SageObject):
         for rev in (reverse, not reverse):
             to_merge = shell.iter_depth_first(
                 reverse=rev, condition=can_merge)
-            next(to_merge)
+            try:
+                next(to_merge)
+            except StopIteration:
+                raise RuntimeError('Stopping merge before started; the '
+                                   'can_merge-function is not reflexive.')
             for m in tuple(to_merge):
                 if m.is_special():
                     continue
@@ -2876,32 +2949,86 @@ class MutablePoset(sage.structure.sage_object.SageObject):
                     if not shell.is_special())
 
 
-# *****************************************************************************
+    def map(self, function, topological=False, reverse=False):
+        r"""
+        Apply the given ``function`` to each element of this poset.
+
+        INPUT:
+
+        - ``function`` -- a function mapping an existing element to
+          a new element.
+
+        - ``topological`` -- (default: ``False``) if set, then the
+          mapping is done in topological order, otherwise unordered.
+
+        - ``reverse`` -- is passed on to topological ordering.
+
+        OUTPUT:
+
+        Nothing.
+
+        .. NOTE::
+
+            Since this method works inplace, it is not allowed that
+            ``function`` alters the key of an element.
+
+        EXAMPLES::
+
+            sage: from sage.data_structures.mutable_poset import MutablePoset as MP
+            sage: class T(tuple):
+            ....:     def __le__(left, right):
+            ....:         return all(l <= r for l, r in zip(left, right))
+            sage: P = MP()
+            sage: P.add(T((1, 3)))
+            sage: P.add(T((2, 1)))
+            sage: P.add(T((4, 4)))
+            sage: P.add(T((1, 2)))
+            sage: P.add(T((2, 2)))
+            sage: P.map(lambda e: str(e))
+            sage: P
+            poset('(1, 2)', '(1, 3)', '(2, 1)', '(2, 2)', '(4, 4)')
+        """
+        shells = self.shells_topological(reverse=reverse) \
+            if topological else self.shells()
+        for shell in shells:
+            shell._element_ = function(shell._element_)
 
 
-class MutableTosetShell(MutablePosetShell):
-    r"""
-    A shell containing an element of a mutable toset (totally ordered set).
+    def mapped(self, function):
+        r"""
+        Return a poset where on each element the given ``function``
+        was applied.
 
-    .. TODO::
+        INPUT:
 
-        Implement this class.
-    """
-    pass
+        - ``function`` -- a function mapping an existing element to
+          a new element.
 
+        - ``topological`` -- (default: ``False``) if set, then the
+          mapping is done in topological order, otherwise unordered.
 
-# *****************************************************************************
+        - ``reverse`` -- is passed on to topological ordering.
 
+        OUTPUT:
 
-class MutableToset(MutablePoset):
-    r"""
-    A mutable toset (totally ordered set) as data structure.
+        A :class:`MutablePoset`.
 
-    .. TODO::
+        EXAMPLES::
 
-        Implement this class.
-    """
-    pass
+            sage: from sage.data_structures.mutable_poset import MutablePoset as MP
+            sage: class T(tuple):
+            ....:     def __le__(left, right):
+            ....:         return all(l <= r for l, r in zip(left, right))
+            sage: P = MP()
+            sage: P.add(T((1, 3)))
+            sage: P.add(T((2, 1)))
+            sage: P.add(T((4, 4)))
+            sage: P.add(T((1, 2)))
+            sage: P.add(T((2, 2)))
+            sage: P.mapped(lambda e: str(e))
+            poset('(1, 2)', '(1, 3)', '(2, 1)', '(2, 2)', '(4, 4)')
+        """
+        return self.copy(mapping=function)
 
 
 # *****************************************************************************

@@ -79,7 +79,8 @@ from sage.combinat.designs.block_design import (BlockDesign,
                                                 WittDesign,
                                                 HadamardDesign,
                                                 Hadamard3Design,
-                                                HughesPlane)
+                                                HughesPlane,
+                                                CremonaRichmondConfiguration)
 
 from database import HigmanSimsDesign
 

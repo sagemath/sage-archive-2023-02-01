@@ -1405,7 +1405,6 @@ class MutablePoset(SageObject):
         TESTS::
 
             sage: from sage.data_structures.mutable_poset import MutablePoset as MP
-            sage: from sage.data_structures.mutable_poset import MutablePosetShell
             sage: P = MP()
             sage: P.get_key(None) is None
             True

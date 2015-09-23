@@ -579,6 +579,7 @@ class MutablePosetShell(SageObject):
             sage: P = MP()
             sage: from sage.data_structures.mutable_poset import MutablePosetShell
             sage: e = MutablePosetShell(P, (1, 2))
+            sage: f = MutablePosetShell(P, (2, 1))
             sage: z = P.null
             sage: oo = P.oo
             sage: z == z
@@ -587,6 +588,8 @@ class MutablePosetShell(SageObject):
             True
             sage: e == e
             True
+            sage: e == f
+            False
             sage: z == e
             False
             sage: e == oo

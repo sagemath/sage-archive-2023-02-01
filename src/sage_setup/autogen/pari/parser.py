@@ -47,7 +47,7 @@ def pari_share():
     return os.path.join(SAGE_LOCAL, "share", "pari")
 
 paren_re = re.compile(r"[(](.*)[)]")
-argname_re = re.compile(r"[ {]*([A-Za-z0-9_]+)")
+argname_re = re.compile(r"[ {]*([A-Za-z_][A-Za-z0-9_]*)")
 
 def read_pari_desc():
     """

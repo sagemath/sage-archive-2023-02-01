@@ -15,7 +15,7 @@ An asymptotic expression is a sum; its summands are the following:
 
 - `O`-terms `O(g)` (see :wikipedia:`Big O notation <Big_O_notation>`;
   also called *Bachmann--Landau notation*) for some :mod:`growth group
-  element <sage.groups.asymptotic_growth_group>` `g` (:ref:`see below
+  element <sage.rings.asymptotic.growth_group>` `g` (:ref:`see below
   <asymptotic_ring_growth>`).
 
 Examples of such elements can found :ref:`below <asymptotic_ring_intro>`.
@@ -207,7 +207,7 @@ class AsymptoticExpression(sage.rings.ring_element.RingElement):
     EXAMPLES:
 
     There are several ways to create asymptotic expressions; usually
-    this is done by using the corresponding rings/parents::
+    this is done by using the corresponding :class:`asymptotic rings <AsymptoticRing>`::
 
         sage: R_x.<x> = AsymptoticRing(growth_group='x^QQ', coefficient_ring=QQ); R_x
         Asymptotic Ring <x^QQ> over Rational Field
@@ -993,7 +993,7 @@ class AsymptoticRing(sage.rings.ring.Ring,
             There are two possible cases: either ``R`` coerces in the
             :meth:`coefficient_ring` of this asymptotic ring, or ``R``
             itself is an asymptotic ring, where both the
-            meth:`growth_group` and the :meth:`coefficient_ring` coerce into
+            :meth:`growth_group` and the :meth:`coefficient_ring` coerce into
             the :meth:`growth_group` and the :meth:`coefficient_ring` of this
             asymptotic ring, respectively.
 
@@ -1070,9 +1070,10 @@ class AsymptoticRing(sage.rings.ring.Ring,
         .. NOTE::
 
             Generators do not necessarily exist. This depends on the
-            underlying growth group. For example, monomial growth
-            groups have a generator, and exponential growth groups
-            don't.
+            underlying growth group. For example,
+            :class:`monomial growth groups <sage.rings.asymptotic.growth_group.MonomialGrowthGroup>`
+            have a generator, and exponential growth groups
+            do not.
 
         EXAMPLES::
 

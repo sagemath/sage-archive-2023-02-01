@@ -53,7 +53,7 @@ class CartesianProduct(UniqueRepresentation, Parent):
 
     .. automethod:: _cartesian_product_of_elements
     """
-    def __init__(self, sets, category, flatten=False, **kwargs):
+    def __init__(self, sets, category, flatten=False):
         r"""
         INPUT:
 
@@ -77,11 +77,8 @@ class CartesianProduct(UniqueRepresentation, Parent):
             sage: cartesian_product([ZZ, ZZ], blub=None)
             Traceback (most recent call last):
             ...
-            TypeError: unknown parameters: blub
+            TypeError: __init__() got an unexpected keyword argument 'blub'
         """
-        if kwargs:
-            raise TypeError('unknown parameters: %s' %
-                            ', '.join(str(k) for k in kwargs.iterkeys()))
         self._sets = tuple(sets)
         Parent.__init__(self, category=category)
 

@@ -6731,6 +6731,9 @@ cdef class Matroid(SageObject):
             True
             sage: sum(map(len,P))==len(M.groundset())
             True
+            sage: from sage.matroids.advanced import *
+            sage: BasisMatroid().partition()
+            [set()]
 
         ALGORITHM:
 

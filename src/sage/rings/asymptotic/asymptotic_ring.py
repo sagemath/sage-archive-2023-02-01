@@ -591,6 +591,17 @@ class AsymptoticExpression(sage.rings.ring_element.RingElement):
             ValueError: Growth Group y^ZZ disallows taking y to the power of 1/7.
             sage: (x^(1/2) + O(x^0))^15
             x^(15/2) + O(x^7)
+            sage: (y^2+O(y))^(1/2)
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: Taking the sum y^2 + O(y) to the
+            non-integer power 1/2 is not implemented.
+            sage: (y^2+O(y))^(-2)
+            Traceback (most recent call last):
+            ...
+            TypeError: unsupported operand parent(s) for '/':
+            'Asymptotic Ring <y^ZZ> over Integer Ring' and 'Asymptotic
+            Ring <y^ZZ> over Integer Ring'
         """
         if len(self.summands) > 1:
             from sage.rings.integer_ring import ZZ
@@ -635,6 +646,8 @@ class AsymptoticExpression(sage.rings.ring_element.RingElement):
             sage: AR.<x> = AsymptoticRing(growth_group='x^ZZ', coefficient_ring=ZZ)
             sage: O(x)
             O(x)
+            sage: type(O(x))
+            <class 'sage.rings.asymptotic.asymptotic_ring.AsymptoticRing_with_category.element_class'>
             sage: expr = 42 * x^42 + x^10 + O(x^2); expr
             42*x^42 + x^10 + O(x^2)
             sage: expr.O()

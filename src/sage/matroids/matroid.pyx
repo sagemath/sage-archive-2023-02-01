@@ -6733,7 +6733,7 @@ cdef class Matroid(SageObject):
             True
             sage: from sage.matroids.advanced import *
             sage: BasisMatroid().partition()
-            [set()]
+            []
 
         ALGORITHM:
 
@@ -6745,7 +6745,7 @@ cdef class Matroid(SageObject):
         if self.loops():
             raise ValueError("Cannot partition matroids with loops.")
         if self.size()==0:
-            return [set()]
+            return []
         # doubling search for minimum independent sets that partitions the groundset
         n = self.size()
         r = self.rank()

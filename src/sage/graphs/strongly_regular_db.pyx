@@ -876,23 +876,23 @@ def is_GQqmqp(int v,int k,int l,int mu):
 
         sage: from sage.graphs.strongly_regular_db import is_GQqmqp
         sage: t = is_GQqmqp(27,10,1,5); t
-        (<function AhrensSzekeresGQ at ...>, 3, False)
+        (<function AhrensSzekeresGQGraph at ...>, 3, False)
         sage: g = t[0](*t[1:]); g
         AS(3); GQ(2, 4): Graph on 27 vertices
         sage: t = is_GQqmqp(45,12,3,3); t
-        (<function AhrensSzekeresGQ at ...>, 3, True)
+        (<function AhrensSzekeresGQGraph at ...>, 3, True)
         sage: g = t[0](*t[1:]); g
         AS(3)*; GQ(4, 2): Graph on 45 vertices
         sage: g.is_strongly_regular(parameters=True)
         (45, 12, 3, 3)
         sage: t = is_GQqmqp(16,6,2,2); t
-        (<function T2starGQ at ...>, 2, True)
+        (<function T2starGQGraph at ...>, 2, True)
         sage: g = t[0](*t[1:]); g
         T2*(O,2)*; GQ(3, 1): Graph on 16 vertices
         sage: g.is_strongly_regular(parameters=True)
         (16, 6, 2, 2)
         sage: t = is_GQqmqp(64,18,2,6); t
-        (<function T2starGQ at ...>, 4, False)
+        (<function T2starGQGraph at ...>, 4, False)
         sage: g = t[0](*t[1:]); g
         T2*(O,4); GQ(3, 5): Graph on 64 vertices
         sage: g.is_strongly_regular(parameters=True)
@@ -902,16 +902,16 @@ def is_GQqmqp(int v,int k,int l,int mu):
 
         sage: (S,T)=(127,129)
         sage: t = is_GQqmqp((S+1)*(S*T+1), S*(T+1), S-1, T+1); t
-        (<function T2starGQ at ...>, 128, False)
+        (<function T2starGQGraph at ...>, 128, False)
         sage: (S,T)=(129,127)
         sage: t = is_GQqmqp((S+1)*(S*T+1), S*(T+1), S-1, T+1); t
-        (<function T2starGQ at ...>, 128, True)
+        (<function T2starGQGraph at ...>, 128, True)
         sage: (S,T)=(124,126)
         sage: t = is_GQqmqp((S+1)*(S*T+1), S*(T+1), S-1, T+1); t
-        (<function AhrensSzekeresGQ at ...>, 125, False)
+        (<function AhrensSzekeresGQGraph at ...>, 125, False)
         sage: (S,T)=(126,124)
         sage: t = is_GQqmqp((S+1)*(S*T+1), S*(T+1), S-1, T+1); t
-        (<function AhrensSzekeresGQ at ...>, 125, True)
+        (<function AhrensSzekeresGQGraph at ...>, 125, True)
         sage: t = is_GQqmqp(5,5,5,5); t
     """
     # do we have GQ(s,t)? we must have mu=t+1, s=l+1,
@@ -925,9 +925,11 @@ def is_GQqmqp(int v,int k,int l,int mu):
         q == p**w               and
         (S+T)/2 == q):
         if p % 2 == 0:
-            from sage.graphs.generators.classical_geometries import T2starGQ as F
+            from sage.graphs.generators.classical_geometries\
+                    import T2starGQGraph as F
         else:
-            from sage.graphs.generators.classical_geometries import AhrensSzekeresGQ as F
+            from sage.graphs.generators.classical_geometries\
+                    import AhrensSzekeresGQGraph as F
         if (S,T) == (q-1, q+1):
             return (F, q, False)
         elif (S,T) == (q+1, q-1):

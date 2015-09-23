@@ -617,6 +617,7 @@ class DiffScalarField(ScalarField):
         """
         ScalarField.__init__(self, domain, coord_expression=coord_expression,
                              chart=chart, name=name, latex_name=latex_name)
+        self._tensor_type = (0,0)
 
     ####### Required methods for an algebra element (beside arithmetic) #######
 
@@ -664,6 +665,25 @@ class DiffScalarField(ScalarField):
         # Then clears the dictionary of Lie derivatives
         self._lie_derivatives.clear()
 
+    def tensor_type(self):
+        r"""
+        Return the tensor type of the scalar field, when the latter is
+        considered as a tensor field on the manifold. This is always (0,0).
+
+        OUTPUT:
+
+        - always (0,0)
+
+        EXAMPLE::
+
+            sage: M = DiffManifold(2, 'M')
+            sage: c_xy.<x,y> = M.chart()
+            sage: f = M.scalar_field(x+2*y)
+            sage: f.tensor_type()
+            (0, 0)
+
+        """
+        return self._tensor_type
 
     def differential(self):
         r"""
@@ -872,4 +892,3 @@ class DiffScalarField(ScalarField):
 
         """
         return metric.hodge_star(self)
-

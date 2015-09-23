@@ -13,8 +13,6 @@ REFERENCES:
 
 - J.M. Lee : *Introduction to Topological Manifolds*, 2nd ed., Springer (New
   York) (2011)
-- J.M. Lee : *Introduction to Smooth Manifolds*, 2nd ed., Springer (New York)
-  (2013)
 - S. Kobayashi & K. Nomizu : *Foundations of Differential Geometry*, vol. 1,
   Interscience Publishers (New York) (1963)
 
@@ -39,26 +37,23 @@ class TopManifoldHomset(Homset, UniqueRepresentation):
 
     Given two topological manifolds `M` and `N` over a topological field `K`,
     the class :class:`TopManifoldHomset` implements the set
-    `\mathrm{Hom}(U,V)` of morphisms (i.e. continuous maps) `U\rightarrow V`,
-    where `U` is an open subset of `M` and `V` an open subset of `N`.
-    Note that, as open subsets of topological manifolds, `U` and `V` are
-    topological manifolds by themselves.
+    `\mathrm{Hom}(M,N)` of morphisms (i.e. continuous maps) `M\rightarrow N`.
 
     This is a Sage *parent* class, whose *element* class is
     :class:`~sage.manifolds.continuous_map.ContinuousMap`.
 
     INPUT:
 
-    - ``domain`` -- open subset `U\subset M` (domain of the morphisms),
-      as an instance of
+    - ``domain`` -- topological manifold `M` (domain of the morphisms belonging
+      to the homset), as an instance of
       :class:`~sage.manifolds.manifold.TopManifold`
-    - ``codomain`` -- open subset `V\subset N` (codomain of the morphisms),
-      as an instance of
+    - ``codomain`` -- topological manifold `N` (codomain of the morphisms
+      belonging to the homset), as an instance of
       :class:`~sage.manifolds.manifold.TopManifold`
     - ``name`` -- (default: ``None``) string; name given to the homset; if
-      none is provided, Hom(U,V) will be used
+      ``None``, Hom(M,N) will be used
     - ``latex_name`` -- (default: ``None``) string; LaTeX symbol to denote the
-      homset; if none is provided, `\mathrm{Hom}(U,V)` will be used
+      homset; if ``None``, `\mathrm{Hom}(M,N)` will be used
 
     EXAMPLES:
 
@@ -209,28 +204,27 @@ class TopManifoldHomset(Homset, UniqueRepresentation):
     def _element_constructor_(self, coord_functions, name=None, latex_name=None,
                               is_isomorphism=False, is_identity=False):
         r"""
-        Construct an element of ``self``, i.e. a continuous map
-        U --> V, where U is the domain of ``self`` and V its codomain.
+        Construct an element of the homset, i.e. a continuous map
+        M --> N, where M is the domain of the homset and N its codomain.
 
         INPUT:
 
         - ``coord_functions`` -- a dictionary of the coordinate expressions
           (as lists (or tuples) of the coordinates of the image expressed in
           terms of the coordinates of the considered point) with the pairs of
-          charts (chart1, chart2) as keys (chart1 being a chart on `U` and
-          chart2 a chart on `V`). If the dimension of the arrival manifold
+          charts (chart1, chart2) as keys (chart1 being a chart on `M` and
+          chart2 a chart on `N`). If the dimension of the arrival manifold
           is 1, a single coordinate expression can be passed instead of a tuple
           with a single element
         - ``name`` -- (default: ``None``) name given to the continuous map
         - ``latex_name`` -- (default: ``None``) LaTeX symbol to denote the
-          continuous map; if none is provided, the LaTeX symbol is set to
-          ``name``
+          continuous map; if ``None``, the LaTeX symbol is set to ``name``
         - ``is_isomorphism`` -- (default: ``False``) determines whether the
           constructed object is a isomorphism (i.e. a homeomorphism); if set to
           ``True``, then the manifolds `M` and `N` must have the same dimension.
         - ``is_identity`` -- (default: ``False``) determines whether the
           constructed object is the identity map; if set to ``True``,
-          then `V` must be `U` and the entry ``coord_functions`` is not used.
+          then `N` must be `M` and the entry ``coord_functions`` is not used.
 
         .. NOTE::
 
@@ -251,13 +245,15 @@ class TopManifoldHomset(Homset, UniqueRepresentation):
             sage: N = TopManifold(3, 'N')
             sage: Y.<u,v,w> = N.chart()
             sage: H = Hom(M, N)
-            sage: f = H._element_constructor_({(X, Y): [x+y, x-y, x*y]}, name='f') ; f
+            sage: f = H._element_constructor_({(X, Y): [x+y, x-y, x*y]},
+            ....:                             name='f'); f
             Continuous map f from the 2-dimensional topological manifold M to
              the 3-dimensional topological manifold N
             sage: f.display()
             f: M --> N
                (x, y) |--> (u, v, w) = (x + y, x - y, x*y)
-            sage: id = Hom(M, M)._element_constructor_({}, is_identity=True) ; id
+            sage: id = Hom(M, M)._element_constructor_({}, is_identity=True)
+            sage: id
             Identity map Id_M of the 2-dimensional topological manifold M
             sage: id.display()
             Id_M: M --> M
@@ -362,18 +358,18 @@ class TopManifoldHomset(Homset, UniqueRepresentation):
 
     def one(self):
         r"""
-        Return the identity element of ``self`` considered as a monoid (case of
-        an endomorphism set).
+        Return the identity element of the homset considered as a monoid (case
+        of a set of endomorphisms).
 
-        This applies only when the codomain of ``self`` is equal to its domain,
-        i.e. when ``self`` is of the type `\mathrm{Hom}(U,U)` where `U` is
-        an open subset of some manifold. `\mathrm{Hom}(U,U)` equiped with the
-        law of morphisms composition is then a monoid, whose identity element
-        is nothing but the identity map of `U`.
+        This applies only when the codomain of the homset is equal to its
+        domain, i.e. when the homset is of the type `\mathrm{Hom}(M,M)`.
+        Indeed, `\mathrm{Hom}(M,M)` equiped with the law of morphisms
+        composition is a monoid, whose identity element is nothing but the
+        identity map of `M`.
 
         OUTPUT:
 
-        - the identity map of `U`, as an instance of
+        - the identity map of `M`, as an instance of
           :class:`~sage.manifolds.continuous_map.ContinuousMap`
 
         EXAMPLE:
@@ -400,7 +396,7 @@ class TopManifoldHomset(Homset, UniqueRepresentation):
             sage: H.one() is H.one()
             True
 
-        If ``self`` is not a set of endomorphisms, the identity element is
+        If the homset is not a set of endomorphisms, the identity element is
         meaningless::
 
             sage: N = TopManifold(3, 'N')

@@ -2,10 +2,10 @@ r"""
 Scalar field algebra
 
 The class :class:`ScalarFieldAlgebra` implements the commutative algebra
-`C^0(U)` of scalar fields on some open subset `U` of a
-topological manifold `M` over a topological field `K`. By *scalar field*, it
-is meant a continuous function `U\rightarrow K`.
-`C^0(U)` is an algebra over `K`, whose ring product is the pointwise
+`C^0(M)` of scalar fields on a topological manifold `M` over a topological
+field `K`. By *scalar field*, it
+is meant a continuous function `M\rightarrow K`. The set
+`C^0(M)` is an algebra over `K`, whose ring product is the pointwise
 multiplication of `K`-valued functions, which is clearly commutative.
 
 AUTHORS:
@@ -14,11 +14,10 @@ AUTHORS:
 
 REFERENCES:
 
+- J.M. Lee : *Introduction to Topological Manifolds*, 2nd ed., Springer (New
+  York) (2011)
 - S. Kobayashi & K. Nomizu : *Foundations of Differential Geometry*, vol. 1,
   Interscience Publishers (New York) (1963)
-- J.M. Lee : *Introduction to Smooth Manifolds*, 2nd ed., Springer (New York)
-  (2013)
-- B O'Neill : *Semi-Riemannian Geometry*, Academic Press (San Diego) (1983)
 
 """
 
@@ -40,19 +39,17 @@ from sage.manifolds.scalarfield import ScalarField
 
 class ScalarFieldAlgebra(UniqueRepresentation, Parent):
     r"""
-    Commutative algebra of scalar fields on some open subset of a
-    topological manifold.
+    Commutative algebra of scalar fields on a topological manifold.
 
-    If `M` is a topological manifold over a topological field `K` and `U`
-    an open subset of `M`, the commutative algebra of scalar fields on `U`
-    is the set `C^0(U)` of all continuous maps `U\rightarrow K`.
-    `C^0(U)` is an algebra over `K`, whose ring product is the pointwise
-    multiplication of `K`-valued functions, which is clearly commutative.
+    If `M` is a topological manifold over a topological field `K`, the
+    commutative algebra of scalar fields on `M` is the set `C^0(M)` of all
+    continuous maps `M\rightarrow K`. The set `C^0(M)` is an algebra over `K`,
+    whose ring product is the pointwise multiplication of `K`-valued functions,
+    which is clearly commutative.
 
     If `K = \RR` or `K = \CC`, the field `K` over which the
-    albegra `C^0(U)` is constructed,
-    is represented by Sage's Symbolic Ring SR, since there is no exact
-    representation of `\RR` nor `\CC` in Sage.
+    albegra `C^0(M)` is constructed is represented by Sage's Symbolic Ring
+    ``SR``, since there is no exact representation of `\RR` nor `\CC` in Sage.
 
     The class :class:`ScalarFieldAlgebra` inherits from
     :class:`~sage.structure.parent.Parent`, with the category set to
@@ -62,13 +59,14 @@ class ScalarFieldAlgebra(UniqueRepresentation, Parent):
 
     INPUT:
 
-    - ``domain`` -- the manifold open subset `U` on which the scalar fields are
+    - ``domain`` -- the topological manifold `M` on which the scalar fields are
       defined (must be an instance of class
       :class:`~sage.manifolds.manifold.TopManifold`)
 
     EXAMPLES:
 
-    Algebras of scalar fields on the sphere `S^2` and on some subdomain of it::
+    Algebras of scalar fields on the sphere `S^2` and on some open subsets of
+    it::
 
         sage: M = TopManifold(2, 'M') # the 2-dimensional sphere S^2
         sage: U = M.open_subset('U') # complement of the North pole
@@ -76,15 +74,16 @@ class ScalarFieldAlgebra(UniqueRepresentation, Parent):
         sage: V = M.open_subset('V') # complement of the South pole
         sage: c_uv.<u,v> = V.chart() # stereographic coordinates from the South pole
         sage: M.declare_union(U,V)   # S^2 is the union of U and V
-        sage: xy_to_uv = c_xy.transition_map(c_uv, (x/(x^2+y^2), y/(x^2+y^2)), \
-                                             intersection_name='W', restrictions1= x^2+y^2!=0, \
-                                             restrictions2= u^2+v^2!=0)
+        sage: xy_to_uv = c_xy.transition_map(c_uv, (x/(x^2+y^2), y/(x^2+y^2)),
+        ....:                 intersection_name='W', restrictions1= x^2+y^2!=0,
+        ....:                 restrictions2= u^2+v^2!=0)
         sage: uv_to_xy = xy_to_uv.inverse()
         sage: CM = M.scalar_field_algebra() ; CM
         Algebra of scalar fields on the 2-dimensional topological manifold M
         sage: W = U.intersection(V)  # S^2 minus the two poles
         sage: CW = W.scalar_field_algebra() ; CW
-        Algebra of scalar fields on the Open subset W of the 2-dimensional topological manifold M
+        Algebra of scalar fields on the Open subset W of the 2-dimensional
+         topological manifold M
 
     `C^0(M)` and `C^0(W)` belong to the category of commutative
     algebras over `\RR` (represented here by Sage's Symbolic Ring)::
@@ -110,7 +109,8 @@ class ScalarFieldAlgebra(UniqueRepresentation, Parent):
     Those of `C^0(W)` are scalar fields on `W`::
 
         sage: CW.an_element()
-        Scalar field on the Open subset W of the 2-dimensional topological manifold M
+        Scalar field on the Open subset W of the 2-dimensional topological
+         manifold M
         sage: CW.an_element().display()  # this sample element is a constant field
         W --> R
         (x, y) |--> 2
@@ -128,7 +128,8 @@ class ScalarFieldAlgebra(UniqueRepresentation, Parent):
     ::
 
         sage: CW.zero()
-        Scalar field zero on the Open subset W of the 2-dimensional topological manifold M
+        Scalar field zero on the Open subset W of the 2-dimensional
+         topological manifold M
         sage: CW.zero().display()
         zero: W --> R
            (x, y) |--> 0
@@ -146,15 +147,16 @@ class ScalarFieldAlgebra(UniqueRepresentation, Parent):
     ::
 
         sage: CW.one()
-        Scalar field 1 on the Open subset W of the 2-dimensional topological manifold M
+        Scalar field 1 on the Open subset W of the 2-dimensional topological
+         manifold M
         sage: CW.one().display()
         1: W --> R
         (x, y) |--> 1
         (u, v) |--> 1
 
     A generic element can be constructed as for any parent in Sage, namely
-    by means of the ``__call__`` operator on the parent (here with the dictionary
-    of the coordinate expressions defining the scalar field)::
+    by means of the ``__call__`` operator on the parent (here with the
+    dictionary of the coordinate expressions defining the scalar field)::
 
         sage: f = CM({c_xy: atan(x^2+y^2), c_uv: pi/2 - atan(u^2+v^2)}); f
         Scalar field on the 2-dimensional topological manifold M
@@ -182,7 +184,8 @@ class ScalarFieldAlgebra(UniqueRepresentation, Parent):
     the domain (this allows one to set the name of the scalar field at the
     construction)::
 
-        sage: f1 = M.scalar_field({c_xy: atan(x^2+y^2), c_uv: pi/2 - atan(u^2+v^2)}, name='f')
+        sage: f1 = M.scalar_field({c_xy: atan(x^2+y^2), c_uv: pi/2 - atan(u^2+v^2)},
+        ....:                     name='f')
         sage: f1.parent()
         Algebra of scalar fields on the 2-dimensional topological manifold M
         sage: f1 == f
@@ -205,7 +208,8 @@ class ScalarFieldAlgebra(UniqueRepresentation, Parent):
     on `M`::
 
         sage: fW = CW(f) ; fW
-        Scalar field on the Open subset W of the 2-dimensional topological manifold M
+        Scalar field on the Open subset W of the 2-dimensional topological
+         manifold M
         sage: fW.display()
         W --> R
         (x, y) |--> arctan(x^2 + y^2)
@@ -222,7 +226,8 @@ class ScalarFieldAlgebra(UniqueRepresentation, Parent):
 
         sage: s = fW + f
         sage: s.parent()
-        Algebra of scalar fields on the Open subset W of the 2-dimensional topological manifold M
+        Algebra of scalar fields on the Open subset W of the 2-dimensional
+         topological manifold M
         sage: s.display()
         W --> R
         (x, y) |--> 2*arctan(x^2 + y^2)
@@ -289,7 +294,8 @@ class ScalarFieldAlgebra(UniqueRepresentation, Parent):
         sage: f/fW == CW.one()
         True
         sage: s = f*fW ; s
-        Scalar field on the Open subset W of the 2-dimensional topological manifold M
+        Scalar field on the Open subset W of the 2-dimensional topological
+         manifold M
         sage: s.display()
         W --> R
         (x, y) |--> arctan(x^2 + y^2)^2
@@ -342,7 +348,8 @@ class ScalarFieldAlgebra(UniqueRepresentation, Parent):
             sage: X.<x,y> = M.chart()
             sage: from sage.manifolds.scalarfield_algebra import ScalarFieldAlgebra
             sage: CM = ScalarFieldAlgebra(M); CM
-            Algebra of scalar fields on the 2-dimensional topological manifold M
+            Algebra of scalar fields on the 2-dimensional topological
+             manifold M
             sage: TestSuite(CM).run()
 
         """
@@ -404,12 +411,14 @@ class ScalarFieldAlgebra(UniqueRepresentation, Parent):
             sage: f.display()
             M --> R
             (x, y) |--> y^2 + x
-            sage: f = CM._element_constructor_(coord_expression={X: x+y^2}, name='f'); f
+            sage: f = CM._element_constructor_(coord_expression={X: x+y^2},
+            ....:                              name='f'); f
             Scalar field f on the 2-dimensional topological manifold M
             sage: f.display()
             f: M --> R
                (x, y) |--> y^2 + x
-            sage: f1 = CM._element_constructor_(coord_expression=x+y^2, chart=X, name='f'); f1
+            sage: f1 = CM._element_constructor_(coord_expression=x+y^2,
+            ....:                               chart=X, name='f'); f1
             Scalar field f on the 2-dimensional topological manifold M
             sage: f1 == f
             True
@@ -420,7 +429,8 @@ class ScalarFieldAlgebra(UniqueRepresentation, Parent):
             sage: U = M.open_subset('U', coord_def={X: x>0})
             sage: CU = U.scalar_field_algebra()
             sage: fU = CU._element_constructor_(f); fU
-            Scalar field on the Open subset U of the 2-dimensional topological manifold M
+            Scalar field on the Open subset U of the 2-dimensional topological
+             manifold M
             sage: fU.display()
             U --> R
             (x, y) |--> y^2 + x
@@ -438,8 +448,9 @@ class ScalarFieldAlgebra(UniqueRepresentation, Parent):
                                           coord_expression=sexpress, name=name,
                                           latex_name=latex_name)
             else:
-                raise TypeError("Cannot coerce the " + str(coord_expression) +
-                                "to a scalar field on the " + str(self._domain))
+                raise TypeError("cannot convert the " +
+                                "{} to a scalar ".format(coord_expression) +
+                                "field on the {}".format(self._domain))
         else:
             # generic constructor:
             resu = self.element_class(self._domain,

@@ -458,7 +458,7 @@ class TopManifold(TopManifoldSubset):
             ambient_manifold = self
         elif not isinstance(ambient_manifold, TopManifold):
             raise TypeError("the argument 'ambient_manifold' must be " +
-                            " a topological manifold")
+                            "a topological manifold")
         # Initialization as a subset of the ambient manifold (possibly itself):
         TopManifoldSubset.__init__(self, ambient_manifold, name,
                                    latex_name=latex_name, category=category)
@@ -987,14 +987,14 @@ class TopManifold(TopManifoldSubset):
         """
         from chart import Chart
         if not isinstance(chart, Chart):
-            raise TypeError(str(chart) + " is not a chart.")
+            raise TypeError("{} is not a chart".format(chart))
         if chart._domain is not self:
             if self.is_manifestly_coordinate_domain():
-                raise TypeError("The chart domain must coincide with the " +
-                                str(self) + ".")
+                raise TypeError("the chart domain must coincide with " +
+                                "the {}".format(self))
             if chart not in self._atlas:
-                raise ValueError("The chart must be defined on the " +
-                                 str(self))
+                raise ValueError("the chart must be defined on the " +
+                                 "{}".format(self))
         self._def_chart = chart
 
     def coord_change(self, chart1, chart2):
@@ -1031,9 +1031,9 @@ class TopManifold(TopManifoldSubset):
 
         """
         if (chart1, chart2) not in self._coord_changes:
-            raise TypeError("The change of coordinates from " + str(chart1) +
-                            " to " + str(chart2) + " has not been " +
-                            "defined on the " + str(self))
+            raise TypeError("the change of coordinates from " +
+                            "{} to {}".format(chart1, chart2) + " has not " +
+                            "been defined on the {}".format(self))
         return self._coord_changes[(chart1, chart2)]
 
 
@@ -1129,8 +1129,8 @@ class TopManifold(TopManifoldSubset):
           subset; if none is provided, it is set to ``name``
         - ``coord_def`` -- (default: {}) definition of the subset in
           terms of coordinates; ``coord_def`` must a be dictionary with keys
-          charts on ``self`` and values the symbolic expressions formed by the
-          coordinates to define the subset.
+          charts on the manifold and values the symbolic expressions formed by
+          the coordinates to define the subset.
 
         OUTPUT:
 
@@ -1138,16 +1138,16 @@ class TopManifold(TopManifoldSubset):
 
         EXAMPLES:
 
-        Creating an open subset of a manifold::
+        Creating an open subset of a 2-dimensional manifold::
 
             sage: TopManifold._clear_cache_() # for doctests only
             sage: M = TopManifold(2, 'M')
             sage: A = M.open_subset('A'); A
             Open subset A of the 2-dimensional topological manifold M
 
-        As an open subset of a topological manifold, A is itself a topological
-        manifold, on the same topological field and of the same dimension a
-        M::
+        As an open subset of a topological manifold, ``A`` is itself a
+        topological manifold, on the same topological field and of the same
+        dimension as ``M``::
 
             sage: isinstance(A, TopManifold)
             True
@@ -1156,7 +1156,7 @@ class TopManifold(TopManifoldSubset):
             sage: dim(A) == dim(M)
             True
 
-        Creating an open subset of A::
+        Creating an open subset of ``A``::
 
             sage: B = A.open_subset('B'); B
             Open subset B of the 2-dimensional topological manifold M
@@ -1179,9 +1179,9 @@ class TopManifold(TopManifoldSubset):
             sage: U = M.open_subset('U', coord_def={c_cart: x^2+y^2<1}); U
             Open subset U of the 2-dimensional topological manifold R^2
 
-        Since the argument ``coord_def`` has been set, U is automatically
+        Since the argument ``coord_def`` has been set, ``U`` is automatically
         provided with a chart, which is the restriction of the Cartesian one
-        to U::
+        to ``U``::
 
             sage: U.atlas()
             [Chart (U, (x, y))]
@@ -1215,8 +1215,8 @@ class TopManifold(TopManifoldSubset):
         # Charts on the result from the coordinate definition:
         for chart, restrictions in coord_def.iteritems():
             if chart not in self._atlas:
-                raise ValueError("the " + str(chart) + "does not belong to " +
-                    "the atlas of " + str(self))
+                raise ValueError("the {} does not belong to ".format(chart) +
+                                 "the atlas of {}".format(self))
             chart.restrict(resu, restrictions)
         # Transition maps on the result inferred from those of self:
         for chart1 in coord_def:
@@ -1467,7 +1467,7 @@ class TopManifold(TopManifoldSubset):
             # check validity of entry
             for chart in coord_expression:
                 if not chart._domain.is_subset(self):
-                    raise ValueError("the {} is not defined ".formart(chart) +
+                    raise ValueError("the {} is not defined ".format(chart) +
                                      "on some subset of the " + str(self))
         return self.scalar_field_algebra().element_class(self,
                                             coord_expression=coord_expression,
@@ -1535,6 +1535,11 @@ class TopManifold(TopManifoldSubset):
         r"""
         Return the zero scalar field defined on the manifold.
 
+        OUTPUT:
+
+        - instance of :class:`~sage.manifolds.scalarfield.ScalarField`
+          representing the constant scalar field with value 0.
+
         EXAMPLE::
 
             sage: TopManifold._clear_cache_() # for doctests only
@@ -1555,7 +1560,14 @@ class TopManifold(TopManifoldSubset):
 
     def one_scalar_field(self):
         r"""
-        Return the constant scalar field one defined on the manifold.
+        Return the constant scalar field with value the unit element of the
+        manifold's base field.
+
+        OUTPUT:
+
+        - instance of :class:`~sage.manifolds.scalarfield.ScalarField`
+          representing the constant scalar field with value the unit element
+          of the manifold's base field.
 
         EXAMPLE::
 
@@ -1619,8 +1631,8 @@ class TopManifold(TopManifoldSubset):
 
         INPUT:
 
-        - ``codomain`` -- the map codomain (the arrival manifold or some
-          subset of it)
+        - ``codomain`` -- the map's codomain (must be an instance
+          of :class:`TopManifold`)
         - ``coord_functions`` -- (default: ``None``) if not ``None``, must be
           either
 
@@ -1633,15 +1645,15 @@ class TopManifold(TopManifoldSubset):
           - (ii) a single coordinate expression in a given pair of charts, the
             latter being provided by the arguments ``chart1`` and ``chart2``
 
-          In both cases, if the dimension of the arrival manifold is 1,
-          a single coordinate expression can be passed instead of a tuple with
-          a single element
+          In both cases, if the dimension of the codomain is 1, a single
+          coordinate expression can be passed instead of a tuple with a single
+          element
         - ``chart1`` -- (default: ``None``; used only in case (ii) above) chart
           on the current manifold defining the start coordinates involved in
           ``coord_functions`` for case (ii); if none is provided, the
           coordinates are assumed to refer to the manifold's default chart
         - ``chart2`` -- (default: ``None``; used only in case (ii) above) chart
-          on ``codomain`` defining the arrival coordinates involved in
+          on ``codomain`` defining the target coordinates involved in
           ``coord_functions`` for case (ii); if none is provided, the
           coordinates are assumed to refer to the default chart of ``codomain``
         - ``name`` -- (default: ``None``) name given to the continuous
@@ -1724,8 +1736,8 @@ class TopManifold(TopManifoldSubset):
 
         INPUT:
 
-        - ``codomain`` -- codomain of the homeomorphism (the arrival manifold
-          or some subset of it)
+        - ``codomain`` -- codomain of the homeomorphism (must be an instance
+          of :class:`TopManifold`)
         - ``coord_functions`` -- (default: ``None``) if not ``None``, must be
           either
 
@@ -1738,15 +1750,15 @@ class TopManifold(TopManifoldSubset):
           - (ii) a single coordinate expression in a given pair of charts, the
             latter being provided by the arguments ``chart1`` and ``chart2``
 
-          In both cases, if the dimension of the arrival manifold is 1,
-          a single coordinate expression can be passed instead of a tuple with
+          In both cases, if the dimension of the codomain is 1, a single
+          coordinate expression can be passed instead of a tuple with
           a single element
         - ``chart1`` -- (default: ``None``; used only in case (ii) above) chart
           on the current manifold defining the start coordinates involved in
           ``coord_functions`` for case (ii); if none is provided, the
           coordinates are assumed to refer to the manifold's default chart
         - ``chart2`` -- (default: ``None``; used only in case (ii) above) chart
-          on ``codomain`` defining the arrival coordinates involved in
+          on ``codomain`` defining the target coordinates involved in
           ``coord_functions`` for case (ii); if none is provided, the
           coordinates are assumed to refer to the default chart of ``codomain``
         - ``name`` -- (default: ``None``) name given to the homeomorphism

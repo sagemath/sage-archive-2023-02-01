@@ -84,11 +84,11 @@ class TopManifoldPoint(Element):
     - ``coords`` -- (default: ``None``) the point coordinates (as a tuple or a
       list) in the chart ``chart``
     - ``chart`` -- (default: ``None``) chart in which the coordinates are given;
-      if none is provided, the coordinates are assumed
-      to refer to the subset's default chart
+      if  ``None``, the coordinates are assumed to refer to the subset's
+      default chart
     - ``name`` -- (default: ``None``) name given to the point
-    - ``latex_name`` -- (default: ``None``) LaTeX symbol to denote the point; if
-      none is provided, the LaTeX symbol is set to ``name``
+    - ``latex_name`` -- (default: ``None``) LaTeX symbol to denote the point;
+      if ``None``, the LaTeX symbol is set to ``name``
     - ``check_coords`` -- (default: ``True``) determines whether ``coords`` are
       valid coordinates for the chart ``chart``; for symbolic coordinates, it
       is recommended to set ``check_coords`` to ``False``.
@@ -173,18 +173,18 @@ class TopManifoldPoint(Element):
                                # charts, with the charts as keys
         if coords is not None:
             if len(coords) != self._manifold._dim:
-                raise ValueError("The number of coordinates must be equal" +
-                                 " to the manifold dimension.")
+                raise ValueError("the number of coordinates must be equal " +
+                                 "to the manifold's dimension")
             if chart is None:
                 chart = self._subset._def_chart
             elif self._subset._is_open:
                 if chart not in self._subset._atlas:
-                    raise ValueError("The " + str(chart) +
-                           " has not been defined on the " + str(self._subset))
+                    raise ValueError("the {}".format(chart) + " has not " +
+                                 "been defined on the {}".format(self._subset))
             if check_coords:
                 if not chart.valid_coordinates(*coords):
-                    raise ValueError("The coordinates " + str(coords) +
-                                     " are not valid on the " + str(chart))
+                    raise ValueError("the coordinates {}".format(coords) +
+                                     " are not valid on the {}".format(chart))
             for schart in chart._supercharts:
                 self._coordinates[schart] = tuple(coords)
             for schart in chart._subcharts:
@@ -249,10 +249,10 @@ class TopManifoldPoint(Element):
 
     def containing_set(self):
         r"""
-        Return a manifold subset that contains ``self``.
+        Return a manifold subset that contains the point.
 
         A priori, this method returns the manifold subset (possibly the
-        manifold itself) in which the point ``self`` has been defined.
+        manifold itself) in which the point has been defined.
 
         OUTPUT:
 
@@ -305,9 +305,9 @@ class TopManifoldPoint(Element):
         - ``chart`` -- (default: ``None``) chart in which the coordinates are
           given; if none is provided, the coordinates are assumed to refer to
           the subset's default chart
-        - ``old_chart`` -- (default: ``None``) chart from which the coordinates in
-          ``chart`` are to be computed. If ``None``, a chart in which the point's
-          coordinates are already known will be picked, priveleging the
+        - ``old_chart`` -- (default: ``None``) chart from which the coordinates
+          in ``chart`` are to be computed. If ``None``, a chart in which the
+          point's coordinates are already known will be picked, priveleging the
           subset's default chart.
 
         EXAMPLES:
@@ -332,7 +332,8 @@ class TopManifoldPoint(Element):
         Computing the Cartesian coordinates from the spherical ones::
 
             sage: c_cart.<x,y,z> = M.chart()  # Cartesian coordinates
-            sage: c_spher.transition_map(c_cart, [r*sin(th)*cos(ph), r*sin(th)*sin(ph), r*cos(th)])
+            sage: c_spher.transition_map(c_cart, [r*sin(th)*cos(ph),
+            ....:                                 r*sin(th)*sin(ph), r*cos(th)])
             Change of coordinates from Chart (M, (r, th, ph)) to Chart (M, (x, y, z))
             sage: p.coord(c_cart)  # the computation is performed by means of the above change of coordinates
             (-1, 0, 0)
@@ -373,7 +374,8 @@ class TopManifoldPoint(Element):
             (a^3 - 3*a^2*b + 3*a*b^2 - b^3, a^3 + 3*a^2*b + 3*a*b^2 + b^3)
             sage: p._coordinates  # random (dictionary output)
             {Chart (M, (u, v)): (a - b, a + b),
-             Chart (M, (w, z)): (a^3 - 3*a^2*b + 3*a*b^2 - b^3, a^3 + 3*a^2*b + 3*a*b^2 + b^3)}
+             Chart (M, (w, z)): (a^3 - 3*a^2*b + 3*a*b^2 - b^3,
+                                 a^3 + 3*a^2*b + 3*a*b^2 + b^3)}
 
         """
         if chart is None:
@@ -384,8 +386,8 @@ class TopManifoldPoint(Element):
             dom = chart._domain
             def_chart = dom._def_chart
             if self not in dom:
-                raise ValueError("The point does not belong to the domain " +
-                                 "of " + str(chart))
+                raise ValueError("the point does not belong to the domain " +
+                                 "of {}".format(chart))
         if chart not in self._coordinates:
             # Check whether chart corresponds to a superchart of a chart
             # in which the coordinates are known:
@@ -432,9 +434,9 @@ class TopManifoldPoint(Element):
                         if old_chart is not None:
                             break
             if old_chart is None:
-                raise ValueError("The coordinates of " + str(self) + \
-                    " in the " + str(chart) + " cannot be computed" + \
-                    " by means of known changes of charts.")
+                raise ValueError("the coordinates of {}".format(self) +
+                          " in the {}".format(chart) + " cannot be computed " +
+                          "by means of known changes of charts.")
             else:
                 chcoord = dom._coord_changes[(s_old_chart, s_chart)]
                 self._coordinates[chart] = \
@@ -541,14 +543,14 @@ class TopManifoldPoint(Element):
 
         """
         if len(coords) != self._manifold._dim:
-            raise ValueError("The number of coordinates must be equal " +
-                             "to the manifold dimension.")
+            raise ValueError("the number of coordinates must be equal to " +
+                             "the manifold's dimension.")
         if chart is None:
             chart = self._subset._def_chart
         else:
             if chart not in self._subset._atlas:
-                raise ValueError("The " + str(chart) +
-                    " has not been defined on the " + str(self._subset))
+                raise ValueError("the {}".format(chart) + " has not been " +
+                                 "defined on the {}".format(self._subset))
         self._coordinates[chart] = coords
 
     def __eq__(self, other):
@@ -631,8 +633,8 @@ class TopManifoldPoint(Element):
         if common_chart is None:
             return False
             #!# Another option would be:
-            # raise ValueError("No common chart has been found to compare " +
-            #                 str(self) + " and " + str(other))
+            # raise ValueError("no common chart has been found to compare " +
+            #                  "{} and {}".format(self, other))
         return self._coordinates[common_chart] == \
                                               other._coordinates[common_chart]
 

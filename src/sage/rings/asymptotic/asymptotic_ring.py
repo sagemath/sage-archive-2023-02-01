@@ -18,7 +18,7 @@ An asymptotic expression is a sum; its summands are the following:
   element <sage.rings.asymptotic.growth_group>` `g` (:ref:`see below
   <asymptotic_ring_growth>`).
 
-Examples of such elements can found :ref:`below <asymptotic_ring_intro>`.
+Examples of such elements can be found :ref:`below <asymptotic_ring_intro>`.
 
 .. _asymptotic_ring_growth:
 
@@ -27,7 +27,7 @@ Growth Elements
 
 The elements of a :mod:`growth group
 <sage.rings.asymptotic.growth_group>` are equipped with a partial
-ordering and usually contains a variable. Examples are (among many
+order and usually contain a variable. Examples are (among many
 other possibilities)
 
 - elements of the form `z^q` for some integer or rational `q` (growth
@@ -43,7 +43,7 @@ other possibilities)
   a^y \cdot y^q` (this corresponds to an element of the growth group
   ``x^QQ * \log(x)^ZZ * QQ^y * y^QQ``).
 
-The ordering in all these examples is the growth as `x`, `y`, or `z`
+The order in all these examples is the growth as `x`, `y`, or `z`
 (independently) tend to `\infty`. For elements only using the
 variable `z` this means, `g_1 \leq g_2` if
 
@@ -108,11 +108,11 @@ Again, we can look at a typical element::
 
     sage: B.an_element()  # not tested
 
-Arithemtical Operations
+Arithmetical Operations
 -----------------------
 
 With the asymptotic rings constructed above (or more precisely with
-their elements) we can do a lot of different arithmetical
+their elements) we can do a lot of arithmetical
 calculations.
 
 We start our calculations in the ring
@@ -349,7 +349,7 @@ class AsymptoticExpression(sage.rings.ring_element.RingElement):
 
     def __nonzero__(self):
         r"""
-        Return if this asymptotic expression is not identically zero.
+        Return whether this asymptotic expression is not identically zero.
 
         INPUT:
 
@@ -510,7 +510,7 @@ class AsymptoticExpression(sage.rings.ring_element.RingElement):
 
     def _mul_term_(self, term):
         r"""
-        Helper method: multiply this asymptotic expression with the
+        Helper method: multiply this asymptotic expression by the
         asymptotic term ``term``.
 
         INPUT:
@@ -537,7 +537,7 @@ class AsymptoticExpression(sage.rings.ring_element.RingElement):
 
     def _mul_(self, other):
         r"""
-        Multiply ``other`` to this asymptotic expression.
+        Multiply ``other`` by this asymptotic expression.
 
         INPUT:
 
@@ -557,7 +557,7 @@ class AsymptoticExpression(sage.rings.ring_element.RingElement):
 
         .. TODO::
 
-            The current implementation is the school book
+            The current implementation is the standard long
             multiplication. More efficient variants like Karatsuba
             multiplication, or methods that exploit the structure
             of the underlying poset shall be implemented at a later
@@ -978,7 +978,7 @@ class AsymptoticRing(sage.rings.ring.Ring,
 
     def _coerce_map_from_(self, R):
         r"""
-        Return if ``R`` coerces into this asymptotic ring.
+        Return whether ``R`` coerces into this asymptotic ring.
 
         INPUT:
 

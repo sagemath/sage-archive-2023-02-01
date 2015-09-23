@@ -1048,7 +1048,7 @@ class MutablePosetShell(SageObject):
           ``can_merge``-function of :class:`MutablePoset` determines
           whether the merge is possible.
 
-        - ``delete`` -- (default: ``True``) if set, then `element`
+        - ``delete`` -- (default: ``True``) if set, then ``element``
           is removed from the poset after the merge.
 
         OUTPUT:

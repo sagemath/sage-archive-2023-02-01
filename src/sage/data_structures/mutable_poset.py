@@ -63,8 +63,9 @@ Let us continue with a less boring example. We define the class
     ....:     def __le__(left, right):
     ....:         return all(l <= r for l, r in zip(left, right))
 
-It is equipped with a `\leq`-operation which makes `a \leq b` if all
-entries of `a` are at most `b`. For example, we have
+It is equipped with a `\leq`-operation such that `a \leq b` if all
+entries of `a` are at most the corresponding entry of `b`. For
+example, we have
 
 ::
 
@@ -75,7 +76,7 @@ entries of `a` are at most `b`. For example, we have
     (True, True, False)
 
 The last comparison gives ``False``, since the comparison of the
-first component yield `2 \leq 1`.
+first component checks whether `2 \leq 1`.
 
 Now, let us add such elements to a poset::
 
@@ -90,7 +91,7 @@ Now, let us add such elements to a poset::
     poset((1, 1), (2, 2), (2, 3), (3, 2), (3, 3), (4, 1))
 
 In the representation above, the elements are sorted topologically,
-smallest first. This does not show (directly) more structural
+smallest first. This does not (directly) show more structural
 information. We can overcome this and display a "wiring layout" by
 typing::
 
@@ -778,7 +779,7 @@ class MutablePosetShell(SageObject):
           shell to ``True`` (include in iteration) or ``False`` (do
           not include). ``None`` is equivalent to a function returning
           always ``True``. Note that the iteration does not go beyond a
-          not shell included shell.
+          not included shell.
 
         OUTPUT:
 
@@ -828,7 +829,7 @@ class MutablePosetShell(SageObject):
           shell to ``True`` (include in iteration) or ``False`` (do
           not include). ``None`` is equivalent to a function returning
           always ``True``. Note that the iteration does not go beyond a
-          not shell included shell.
+          not included shell.
 
         OUTPUT:
 
@@ -887,7 +888,7 @@ class MutablePosetShell(SageObject):
           shell to ``True`` (include in iteration) or ``False`` (do
           not include). ``None`` is equivalent to a function returning
           always ``True``. Note that the iteration does not go beyond a
-          not shell included shell.
+          not included shell.
 
         OUTPUT:
 
@@ -937,7 +938,7 @@ class MutablePosetShell(SageObject):
           shell to ``True`` (include in iteration) or ``False`` (do
           not include). ``None`` is equivalent to a function returning
           always ``True``. Note that the iteration does not go beyond a
-          not shell included shell.
+          not included shell.
 
         OUTPUT:
 
@@ -1043,8 +1044,8 @@ class MutablePosetShell(SageObject):
           ``can_merge``-function of :class:`MutablePoset` determines
           if the merge is possible.
 
-        - ``delete`` -- (default: ``True``) if set, then the passed
-          element is removed from the poset after the merge.
+        - ``delete`` -- (default: ``True``) if set, then `element`
+          is removed from the poset after the merge.
 
         OUTPUT:
 
@@ -1125,14 +1126,14 @@ class MutablePoset(SageObject):
     - ``merge`` -- a function which merges its second argument (an
       element) to its first (again an element) and returns the result
       (as an element). If the return value is ``None``, the element is
-      removed out of the poset.
+      removed from the poset.
 
       This hook is called by :meth:`merge`. Moreover it is used during
       :meth:`add` when an element (more precisely its key) is already
       in this poset.
 
       ``merge`` is ``None`` (default) is equivalent to ``merge``
-      returns its first argument. Note that it is not allowed that the
+      returning its first argument. Note that it is not allowed that the
       key of the returning element differs from the key of the first
       input parameter.
 
@@ -1144,7 +1145,7 @@ class MutablePoset(SageObject):
       in this poset.
 
       ``can_merge`` is ``None`` (default) is equivalent to ``can_merge``
-      returns ``True`` in all cases.
+      returning ``True`` in all cases.
 
     OUTPUT:
 
@@ -1857,7 +1858,7 @@ class MutablePoset(SageObject):
         INPUT:
 
         - ``element`` -- an object (hashable and supporting comparison
-          with the operator ``<=``.
+          with the operator ``<=``).
 
         OUTPUT:
 

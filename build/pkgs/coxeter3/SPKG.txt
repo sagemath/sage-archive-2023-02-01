@@ -16,17 +16,18 @@ Features:
 
 http://math.univ-lyon1.fr/~ducloux/coxeter/coxeter3/english/coxeter3_e.html
 
+This is a patched version done by Mike Hansen 2009-2013 and some fixes
+by Nicolas M. Thiéry and Jean-Pierre Flori.
+
 == License ==
 
 GPL
 
-== SPKG Maintainers ==
-
-* Mike Hansen
-
 == Upstream Contact ==
 
-None; alas, Fokko Ducloux passed away in 2006.
+github: https://github.com/tscrim/coxeter
+
+Alas, Fokko Ducloux passed away in 2006.
 
 http://math.univ-lyon1.fr/~ducloux/du_Cloux.html
 
@@ -36,18 +37,13 @@ None
 
 == Special Update/Build Instructions ==
 
-Upstream is unlikely to change, unless someone takes over the
-development of Coxeter3. In any cases, the application of the
-following patches is automatically handled by spkg-install:
+The application of the following patches is automatically handled
+by spkg-install:
 
-- directories.h.patch: update coxeter3 directory information to fetch
+- directories.h: update coxeter3 directory information to fetch
   its data and messages from the Sage installation tree
 - makefile.patch: handle compilation flags for Darwin and Cygwin
+- warning.patch: remove deprecation warnings
 - sage.cpp: add a function for Bruhat invervals which is simpler to
   code in C++ than Cython
 
-== Changelog ==
-
-=== coxeter3-1.1 (Mike Hansen 2009-2013 + some fixes by Nicolas M. Thiéry and Jean-Pierre Flori) ===
-
- * Initial release. See Sage trac #12912

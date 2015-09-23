@@ -24,9 +24,9 @@
 */
 
 namespace directories {
-  char* const COXMATRIX_DIR = "SAGE_LOCAL/coxeter/coxeter_matrices";
-  char* const HEADER_DIR = "SAGE_LOCAL/coxeter/headers";
-  char* const MESSAGE_DIR = "SAGE_LOCAL/coxeter/messages";
+  const char* const COXMATRIX_DIR = "SAGE_LOCAL/coxeter/coxeter_matrices";
+  const char* const HEADER_DIR = "SAGE_LOCAL/coxeter/headers";
+  const char* const MESSAGE_DIR = "SAGE_LOCAL/coxeter/messages";
 };
 
 #endif

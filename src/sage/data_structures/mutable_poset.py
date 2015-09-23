@@ -49,7 +49,13 @@ Let us look at the poset again::
 
 We see that they elements are sorted using `\leq` which exists on the
 integers `\ZZ`. Since this is even a total order, we could have used a
-more efficient data structure.
+more efficient data structure. Alternativly, we can write
+::
+
+    sage: MP([42, 7, 13, 3])
+    poset(3, 7, 13, 42)
+
+to add several elements at once on construction.
 
 
 A less boring Example
@@ -80,14 +86,8 @@ first component checks whether `2 \leq 1`.
 
 Now, let us add such elements to a poset::
 
-    sage: Q = MP()
-    sage: Q.add(T((1, 1)))
-    sage: Q.add(T((3, 3)))
-    sage: Q.add(T((4, 1)))
-    sage: Q.add(T((3, 2)))
-    sage: Q.add(T((2, 3)))
-    sage: Q.add(T((2, 2)))
-    sage: Q
+    sage: Q = MP([T((1, 1)), T((3, 3)), T((4, 1)),
+    ....:         T((3, 2)), T((2, 3)), T((2, 2))]); Q
     poset((1, 1), (2, 2), (2, 3), (3, 2), (3, 3), (4, 1))
 
 In the representation above, the elements are sorted topologically,
@@ -683,13 +683,8 @@ class MutablePosetShell(SageObject):
             sage: class T(tuple):
             ....:     def __le__(left, right):
             ....:         return all(l <= r for l, r in zip(left, right))
-            sage: P = MP()
-            sage: P.add(T((1, 1, 1)))
-            sage: P.add(T((1, 3, 1)))
-            sage: P.add(T((2, 1, 2)))
-            sage: P.add(T((4, 4, 2)))
-            sage: P.add(T((1, 2, 2)))
-            sage: P.add(T((2, 2, 2)))
+            sage: P = MP([T((1, 1, 1)), T((1, 3, 1)), T((2, 1, 2)),
+            ....:         T((4, 4, 2)), T((1, 2, 2)), T((2, 2, 2))])
             sage: e = P.shell(T((2, 2, 2))); e
             (2, 2, 2)
             sage: covers = set()
@@ -738,13 +733,8 @@ class MutablePosetShell(SageObject):
             sage: class T(tuple):
             ....:     def __le__(left, right):
             ....:         return all(l <= r for l, r in zip(left, right))
-            sage: P = MP()
-            sage: P.add(T((1, 1)))
-            sage: P.add(T((1, 3)))
-            sage: P.add(T((2, 1)))
-            sage: P.add(T((4, 4)))
-            sage: P.add(T((1, 2)))
-            sage: P.add(T((2, 2)))
+            sage: P = MP([T((1, 1)), T((1, 3)), T((2, 1)),
+            ....:         T((4, 4)), T((1, 2)), T((2, 2))])
             sage: e = P.shell(T((2, 2))); e
             (2, 2)
             sage: sorted(P.null.covers(e),
@@ -849,13 +839,8 @@ class MutablePosetShell(SageObject):
             sage: class T(tuple):
             ....:     def __le__(left, right):
             ....:         return all(l <= r for l, r in zip(left, right))
-            sage: P = MP()
-            sage: P.add(T((1, 1)))
-            sage: P.add(T((1, 3)))
-            sage: P.add(T((2, 1)))
-            sage: P.add(T((4, 4)))
-            sage: P.add(T((1, 2)))
-            sage: P.add(T((2, 2)))
+            sage: P = MP([T((1, 1)), T((1, 3)), T((2, 1)),
+            ....:         T((4, 4)), T((1, 2)), T((2, 2))])
             sage: list(P.null.iter_depth_first(reverse=False, key=repr))
             [null, (1, 1), (1, 2), (1, 3), (4, 4), oo, (2, 2), (2, 1)]
             sage: list(P.oo.iter_depth_first(reverse=True, key=repr))
@@ -969,13 +954,8 @@ class MutablePosetShell(SageObject):
             sage: class T(tuple):
             ....:     def __le__(left, right):
             ....:         return all(l <= r for l, r in zip(left, right))
-            sage: P = MP()
-            sage: P.add(T((1, 1)))
-            sage: P.add(T((1, 3)))
-            sage: P.add(T((2, 1)))
-            sage: P.add(T((4, 4)))
-            sage: P.add(T((1, 2)))
-            sage: P.add(T((2, 2)))
+            sage: P = MP([T((1, 1)), T((1, 3)), T((2, 1)),
+            ....:         T((4, 4)), T((1, 2)), T((2, 2))])
 
         ::
 
@@ -1062,11 +1042,8 @@ class MutablePosetShell(SageObject):
             ....:     return (left[0], ''.join(sorted(left[1] + right[1])))
             sage: def can_add(left, right):
             ....:     return left[0] <= right[0]
-            sage: P = MP(key=lambda c: c[0], merge=add, can_merge=can_add)
-            sage: P.add((1, 'a'))
-            sage: P.add((3, 'b'))
-            sage: P.add((2, 'c'))
-            sage: P.add((4, 'd'))
+            sage: P = MP([(1, 'a'), (3, 'b'), (2, 'c'), (4, 'd')],
+            ....:        key=lambda c: c[0], merge=add, can_merge=can_add)
             sage: P
             poset((1, 'a'), (2, 'c'), (3, 'b'), (4, 'd'))
             sage: P.shell(2).merge((3, 'b'))
@@ -1443,11 +1420,8 @@ class MutablePoset(SageObject):
             ....:     def __le__(left, right):
             ....:         return all(l <= r for l, r in zip(left, right))
             sage: P = MP()
-            sage: P.add(T((1, 1)))
-            sage: P.add(T((1, 3)))
-            sage: P.add(T((2, 1)))
-            sage: P.add(T((4, 4)))
-            sage: P.add(T((1, 2)))
+            sage: P = MP([T((1, 1)), T((1, 3)), T((2, 1)),
+            ....:         T((4, 4)), T((1, 2))])
             sage: Q = MP()
             sage: Q._copy_shells_(P, lambda e: e)
             sage: P.repr_full() == Q.repr_full()
@@ -1483,12 +1457,8 @@ class MutablePoset(SageObject):
             sage: class T(tuple):
             ....:     def __le__(left, right):
             ....:         return all(l <= r for l, r in zip(left, right))
-            sage: P = MP()
-            sage: P.add(T((1, 1)))
-            sage: P.add(T((1, 3)))
-            sage: P.add(T((2, 1)))
-            sage: P.add(T((4, 4)))
-            sage: P.add(T((1, 2)))
+            sage: P = MP([T((1, 1)), T((1, 3)), T((2, 1)),
+            ....:         T((4, 4)), T((1, 2))])
             sage: Q = copy(P)  # indirect doctest
             sage: P.repr_full() == Q.repr_full()
             True
@@ -1574,13 +1544,8 @@ class MutablePoset(SageObject):
             sage: class T(tuple):
             ....:     def __le__(left, right):
             ....:         return all(l <= r for l, r in zip(left, right))
-            sage: P = MP()
-            sage: P.add(T((1, 1)))
-            sage: P.add(T((1, 3)))
-            sage: P.add(T((2, 1)))
-            sage: P.add(T((4, 4)))
-            sage: P.add(T((1, 2)))
-            sage: P.add(T((2, 2)))
+            sage: P = MP([T((1, 1)), T((1, 3)), T((2, 1)),
+            ....:         T((4, 4)), T((1, 2)), T((2, 2))])
             sage: list(P.shells_topological())
             [(1, 1), (1, 2), (1, 3), (2, 1), (2, 2), (4, 4)]
             sage: list(P.shells_topological(reverse=True))
@@ -1613,10 +1578,7 @@ class MutablePoset(SageObject):
         EXAMPLES::
 
             sage: from sage.data_structures.mutable_poset import MutablePoset as MP
-            sage: P = MP()
-            sage: P.add(3)
-            sage: P.add(42)
-            sage: P.add(7)
+            sage: P = MP([3, 42, 7])
             sage: [(v, type(v)) for v in sorted(P.elements())]
             [(3, <type 'sage.rings.integer.Integer'>),
              (7, <type 'sage.rings.integer.Integer'>),
@@ -1657,13 +1619,8 @@ class MutablePoset(SageObject):
             sage: class T(tuple):
             ....:     def __le__(left, right):
             ....:         return all(l <= r for l, r in zip(left, right))
-            sage: P = MP()
-            sage: P.add(T((1, 1)))
-            sage: P.add(T((1, 3)))
-            sage: P.add(T((2, 1)))
-            sage: P.add(T((4, 4)))
-            sage: P.add(T((1, 2)))
-            sage: P.add(T((2, 2)))
+            sage: P = MP([T((1, 1)), T((1, 3)), T((2, 1)),
+            ....:         T((4, 4)), T((1, 2)), T((2, 2))])
             sage: [(v, type(v)) for v in P.elements_topological()]
             [((1, 1), <class '__main__.T'>),
              ((1, 2), <class '__main__.T'>),
@@ -1691,10 +1648,7 @@ class MutablePoset(SageObject):
         EXAMPLES::
 
             sage: from sage.data_structures.mutable_poset import MutablePoset as MP
-            sage: P = MP(key=lambda c: -c)
-            sage: P.add(3)
-            sage: P.add(42)
-            sage: P.add(7)
+            sage: P = MP([3, 42, 7], key=lambda c: -c)
             sage: [(v, type(v)) for v in sorted(P.keys())]
             [(-42, <type 'sage.rings.integer.Integer'>),
              (-7, <type 'sage.rings.integer.Integer'>),
@@ -1731,13 +1685,8 @@ class MutablePoset(SageObject):
         EXAMPLES::
 
             sage: from sage.data_structures.mutable_poset import MutablePoset as MP
-            sage: P = MP(key=lambda c: c[0])
-            sage: P.add((1, 1))
-            sage: P.add((1, 3))
-            sage: P.add((2, 1))
-            sage: P.add((4, 4))
-            sage: P.add((1, 2))
-            sage: P.add((2, 2))
+            sage: P = MP([(1, 1), (1, 3), (2, 1), (4, 4), (1, 2), (2, 2)],
+            ....:        key=lambda c: c[0])
             sage: [(v, type(v)) for v in P.keys_topological()]
             [(1, <type 'sage.rings.integer.Integer'>),
              (2, <type 'sage.rings.integer.Integer'>),
@@ -1874,12 +1823,8 @@ class MutablePoset(SageObject):
             sage: class T(tuple):
             ....:     def __le__(left, right):
             ....:         return all(l <= r for l, r in zip(left, right))
-            sage: P = MP()
-            sage: P.add(T((1, 1)))
-            sage: P.add(T((1, 3)))
-            sage: P.add(T((2, 1)))
-            sage: P.add(T((4, 4)))
-            sage: P.add(T((1, 2)))
+            sage: P = MP([T((1, 1)), T((1, 3)), T((2, 1)),
+            ....:         T((4, 4)), T((1, 2))])
             sage: print P.repr_full(reverse=True)
             poset((4, 4), (1, 3), (1, 2), (2, 1), (1, 1))
             +-- oo
@@ -1970,13 +1915,9 @@ class MutablePoset(SageObject):
 
         TESTS::
 
-            sage: R = MP(key=lambda k: T(k[2:3]))
-            sage: R.add((1, 1, 42))
-            sage: R.add((1, 3, 42))
-            sage: R.add((2, 1, 7))
-            sage: R.add((4, 4, 42))
-            sage: R.add((1, 2, 7))
-            sage: R.add((2, 2, 7))
+            sage: R = MP([(1, 1, 42), (1, 3, 42), (2, 1, 7),
+            ....:         (4, 4, 42), (1, 2, 7), (2, 2, 7)],
+            ....:        key=lambda k: T(k[2:3]))
             sage: print R.repr_full(reverse=True)
             poset((1, 1, 42), (2, 1, 7))
             +-- oo
@@ -2052,13 +1993,8 @@ class MutablePoset(SageObject):
             sage: class T(tuple):
             ....:     def __le__(left, right):
             ....:         return all(l <= r for l, r in zip(left, right))
-            sage: P = MP()
-            sage: P.add(T((1, 1)))
-            sage: P.add(T((1, 3)))
-            sage: P.add(T((2, 1)))
-            sage: P.add(T((4, 4)))
-            sage: P.add(T((1, 2)))
-            sage: P.add(T((2, 2)))
+            sage: P = MP([T((1, 1)), T((1, 3)), T((2, 1)),
+            ....:         T((4, 4)), T((1, 2)), T((2, 2))])
             sage: print P.repr_full(reverse=True)
             poset((4, 4), (1, 3), (2, 2), (1, 2), (2, 1), (1, 1))
             +-- oo
@@ -2112,13 +2048,9 @@ class MutablePoset(SageObject):
 
         TESTS::
 
-            sage: Q = MP(key=lambda k: T(k[0:2]))
-            sage: Q.add((1, 1, 42))
-            sage: Q.add((1, 3, 42))
-            sage: Q.add((2, 1, 7))
-            sage: Q.add((4, 4, 42))
-            sage: Q.add((1, 2, 7))
-            sage: Q.add((2, 2, 7))
+            sage: Q = MP([(1, 1, 42), (1, 3, 42), (2, 1, 7),
+            ....:         (4, 4, 42), (1, 2, 7), (2, 2, 7)],
+            ....:        key=lambda k: T(k[0:2]))
             sage: print Q.repr_full(reverse=True)
             poset((4, 4, 42), (1, 3, 42), (2, 2, 7),
                   (1, 2, 7), (2, 1, 7), (1, 1, 42))
@@ -2224,13 +2156,8 @@ class MutablePoset(SageObject):
             sage: class T(tuple):
             ....:     def __le__(left, right):
             ....:         return all(l <= r for l, r in zip(left, right))
-            sage: P = MP()
-            sage: P.add(T((1, 1)))
-            sage: P.add(T((1, 3)))
-            sage: P.add(T((2, 1)))
-            sage: P.add(T((4, 4)))
-            sage: P.add(T((1, 2)))
-            sage: P.add(T((2, 2)))
+            sage: P = MP([T((1, 1)), T((1, 3)), T((2, 1)),
+            ....:         T((4, 4)), T((1, 2)), T((2, 2))])
             sage: P.discard(T((1, 2)))
             sage: P.remove(T((1, 2)))
             Traceback (most recent call last):
@@ -2305,11 +2232,9 @@ class MutablePoset(SageObject):
         EXAMPLES::
 
             sage: from sage.data_structures.mutable_poset import MutablePoset as MP
-            sage: P = MP()
-            sage: P.add(3); P.add(42); P.add(7); P
+            sage: P = MP([3, 42, 7]); P
             poset(3, 7, 42)
-            sage: Q = MP()
-            sage: Q.add(4); Q.add(8); Q.add(42); Q
+            sage: Q = MP([4, 8, 42]); Q
             poset(4, 8, 42)
             sage: P.union(Q)
             poset(3, 4, 7, 8, 42)
@@ -2353,11 +2278,9 @@ class MutablePoset(SageObject):
         EXAMPLES::
 
             sage: from sage.data_structures.mutable_poset import MutablePoset as MP
-            sage: P = MP()
-            sage: P.add(3); P.add(42); P.add(7); P
+            sage: P = MP([3, 42, 7]); P
             poset(3, 7, 42)
-            sage: Q = MP()
-            sage: Q.add(4); Q.add(8); Q.add(42); Q
+            sage: Q = MP([4, 8, 42]); Q
             poset(4, 8, 42)
             sage: P.union_update(Q)
             sage: P
@@ -2406,11 +2329,9 @@ class MutablePoset(SageObject):
         EXAMPLES::
 
             sage: from sage.data_structures.mutable_poset import MutablePoset as MP
-            sage: P = MP()
-            sage: P.add(3); P.add(42); P.add(7); P
+            sage: P = MP([3, 42, 7]); P
             poset(3, 7, 42)
-            sage: Q = MP()
-            sage: Q.add(4); Q.add(8); Q.add(42); Q
+            sage: Q = MP([4, 8, 42]); Q
             poset(4, 8, 42)
             sage: P.difference(Q)
             poset(3, 7)
@@ -2452,11 +2373,9 @@ class MutablePoset(SageObject):
         EXAMPLES::
 
             sage: from sage.data_structures.mutable_poset import MutablePoset as MP
-            sage: P = MP()
-            sage: P.add(3); P.add(42); P.add(7); P
+            sage: P = MP([3, 42, 7]); P
             poset(3, 7, 42)
-            sage: Q = MP()
-            sage: Q.add(4); Q.add(8); Q.add(42); Q
+            sage: Q = MP([4, 8, 42]); Q
             poset(4, 8, 42)
             sage: P.difference_update(Q)
             sage: P
@@ -2492,11 +2411,9 @@ class MutablePoset(SageObject):
         EXAMPLES::
 
             sage: from sage.data_structures.mutable_poset import MutablePoset as MP
-            sage: P = MP()
-            sage: P.add(3); P.add(42); P.add(7); P
+            sage: P = MP([3, 42, 7]); P
             poset(3, 7, 42)
-            sage: Q = MP()
-            sage: Q.add(4); Q.add(8); Q.add(42); Q
+            sage: Q = MP([4, 8, 42]); Q
             poset(4, 8, 42)
             sage: P.intersection(Q)
             poset(42)
@@ -2534,11 +2451,9 @@ class MutablePoset(SageObject):
         EXAMPLES::
 
             sage: from sage.data_structures.mutable_poset import MutablePoset as MP
-            sage: P = MP()
-            sage: P.add(3); P.add(42); P.add(7); P
+            sage: P = MP([3, 42, 7]); P
             poset(3, 7, 42)
-            sage: Q = MP()
-            sage: Q.add(4); Q.add(8); Q.add(42); Q
+            sage: Q = MP([4, 8, 42]); Q
             poset(4, 8, 42)
             sage: P.intersection_update(Q)
             sage: P
@@ -2574,11 +2489,9 @@ class MutablePoset(SageObject):
         EXAMPLES::
 
             sage: from sage.data_structures.mutable_poset import MutablePoset as MP
-            sage: P = MP()
-            sage: P.add(3); P.add(42); P.add(7); P
+            sage: P = MP([3, 42, 7]); P
             poset(3, 7, 42)
-            sage: Q = MP()
-            sage: Q.add(4); Q.add(8); Q.add(42); Q
+            sage: Q = MP([4, 8, 42]); Q
             poset(4, 8, 42)
             sage: P.symmetric_difference(Q)
             poset(3, 4, 7, 8)
@@ -2610,11 +2523,9 @@ class MutablePoset(SageObject):
         EXAMPLES::
 
             sage: from sage.data_structures.mutable_poset import MutablePoset as MP
-            sage: P = MP()
-            sage: P.add(3); P.add(42); P.add(7); P
+            sage: P = MP([3, 42, 7]); P
             poset(3, 7, 42)
-            sage: Q = MP()
-            sage: Q.add(4); Q.add(8); Q.add(42); Q
+            sage: Q = MP([4, 8, 42]); Q
             poset(4, 8, 42)
             sage: P.symmetric_difference_update(Q)
             sage: P
@@ -2647,11 +2558,9 @@ class MutablePoset(SageObject):
         EXAMPLES::
 
             sage: from sage.data_structures.mutable_poset import MutablePoset as MP
-            sage: P = MP()
-            sage: P.add(3); P.add(42); P.add(7); P
+            sage: P = MP([3, 42, 7]); P
             poset(3, 7, 42)
-            sage: Q = MP()
-            sage: Q.add(4); Q.add(8); Q.add(42); Q
+            sage: Q = MP([4, 8, 42]); Q
             poset(4, 8, 42)
             sage: P.is_disjoint(Q)
             False
@@ -2690,11 +2599,9 @@ class MutablePoset(SageObject):
         EXAMPLES::
 
             sage: from sage.data_structures.mutable_poset import MutablePoset as MP
-            sage: P = MP()
-            sage: P.add(3); P.add(42); P.add(7); P
+            sage: P = MP([3, 42, 7]); P
             poset(3, 7, 42)
-            sage: Q = MP()
-            sage: Q.add(4); Q.add(8); Q.add(42); Q
+            sage: Q = MP([4, 8, 42]); Q
             poset(4, 8, 42)
             sage: P.is_subset(Q)
             False
@@ -2737,11 +2644,9 @@ class MutablePoset(SageObject):
         EXAMPLES::
 
             sage: from sage.data_structures.mutable_poset import MutablePoset as MP
-            sage: P = MP()
-            sage: P.add(3); P.add(42); P.add(7); P
+            sage: P = MP([3, 42, 7]); P
             poset(3, 7, 42)
-            sage: Q = MP()
-            sage: Q.add(4); Q.add(8); Q.add(42); Q
+            sage: Q = MP([4, 8, 42]); Q
             poset(4, 8, 42)
             sage: P.is_superset(Q)
             False
@@ -2803,13 +2708,9 @@ class MutablePoset(SageObject):
             ....:             ''.join(sorted(left[2] + right[2])))
             sage: def can_add(left, right):
             ....:     return key(left) >= key(right)
-            sage: P = MP(key=key, merge=add, can_merge=can_add)
-            sage: P.add((1, 1, 'a'))
-            sage: P.add((1, 3, 'b'))
-            sage: P.add((2, 1, 'c'))
-            sage: P.add((4, 4, 'd'))
-            sage: P.add((1, 2, 'e'))
-            sage: P.add((2, 2, 'f'))
+            sage: P = MP([(1, 1, 'a'), (1, 3, 'b'), (2, 1, 'c'),
+            ....:         (4, 4, 'd'), (1, 2, 'e'), (2, 2, 'f')],
+            ....:        key=key, merge=add, can_merge=can_add)
             sage: Q = copy(P)
             sage: Q.merge(T((1, 3)))
             sage: print Q.repr_full(reverse=True)
@@ -2908,12 +2809,8 @@ class MutablePoset(SageObject):
             sage: class T(tuple):
             ....:     def __le__(left, right):
             ....:         return all(l <= r for l, r in zip(left, right))
-            sage: P = MP()
-            sage: P.add(T((1, 1)))
-            sage: P.add(T((1, 3)))
-            sage: P.add(T((2, 1)))
-            sage: P.add(T((1, 2)))
-            sage: P.add(T((2, 2)))
+            sage: P = MP([T((1, 1)), T((1, 3)), T((2, 1)),
+            ....:         T((1, 2)), T((2, 2))])
             sage: list(P.maximal_elements())
             [(1, 3), (2, 2)]
         """
@@ -2940,12 +2837,8 @@ class MutablePoset(SageObject):
             sage: class T(tuple):
             ....:     def __le__(left, right):
             ....:         return all(l <= r for l, r in zip(left, right))
-            sage: P = MP()
-            sage: P.add(T((1, 3)))
-            sage: P.add(T((2, 1)))
-            sage: P.add(T((4, 4)))
-            sage: P.add(T((1, 2)))
-            sage: P.add(T((2, 2)))
+            sage: P = MP([T((1, 3)), T((2, 1)),
+            ....:         T((4, 4)), T((1, 2)), T((2, 2))])
             sage: list(P.minimal_elements())
             [(1, 2), (2, 1)]
         """
@@ -2983,12 +2876,8 @@ class MutablePoset(SageObject):
             sage: class T(tuple):
             ....:     def __le__(left, right):
             ....:         return all(l <= r for l, r in zip(left, right))
-            sage: P = MP()
-            sage: P.add(T((1, 3)))
-            sage: P.add(T((2, 1)))
-            sage: P.add(T((4, 4)))
-            sage: P.add(T((1, 2)))
-            sage: P.add(T((2, 2)))
+            sage: P = MP([T((1, 3)), T((2, 1)),
+            ....:         T((4, 4)), T((1, 2)), T((2, 2))])
             sage: P.map(lambda e: str(e))
             sage: P
             poset('(1, 2)', '(1, 3)', '(2, 1)', '(2, 2)', '(4, 4)')
@@ -3024,12 +2913,8 @@ class MutablePoset(SageObject):
             sage: class T(tuple):
             ....:     def __le__(left, right):
             ....:         return all(l <= r for l, r in zip(left, right))
-            sage: P = MP()
-            sage: P.add(T((1, 3)))
-            sage: P.add(T((2, 1)))
-            sage: P.add(T((4, 4)))
-            sage: P.add(T((1, 2)))
-            sage: P.add(T((2, 2)))
+            sage: P = MP([T((1, 3)), T((2, 1)),
+            ....:         T((4, 4)), T((1, 2)), T((2, 2))])
             sage: P.mapped(lambda e: str(e))
             poset('(1, 2)', '(1, 3)', '(2, 1)', '(2, 2)', '(4, 4)')
         """

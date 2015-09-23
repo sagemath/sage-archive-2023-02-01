@@ -560,7 +560,7 @@ class MutablePosetShell(SageObject):
 
         INPUT:
 
-        - ``right`` -- a shell.
+        - ``other`` -- a shell.
 
         OUTPUT:
 
@@ -881,7 +881,7 @@ class MutablePosetShell(SageObject):
           ``True`` searches towards ``'null'``.
 
         - ``key`` -- (default: ``None``) a function used for sorting
-          the direct successors of a shell (used in case of a
+          the direct predecessors of a shell (used in case of a
           tie). If this is ``None``, no sorting occurs.
 
         - ``condition`` -- (default: ``None``) a function mapping a
@@ -931,7 +931,7 @@ class MutablePosetShell(SageObject):
           ``True`` searches towards ``'null'``.
 
         - ``key`` -- (default: ``None``) a function used for sorting
-          the direct successors of a shell (used in case of a
+          the direct predeccessors of a shell (used in case of a
           tie). If this is ``None``, no sorting occurs.
 
         - ``condition`` -- (default: ``None``) a function mapping a

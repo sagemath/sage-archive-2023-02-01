@@ -102,11 +102,11 @@ variables `x` and `y` by
 
 ::
 
-    sage: B.<x, y> = AsymptoticRing(growth_group='x^QQ * \log(x)^ZZ * QQ^y * y^QQ', coefficient_ring=QQ); B  # not tested
+    sage: B.<x, y> = AsymptoticRing(growth_group='x^QQ * \log(x)^ZZ * QQ^y * y^QQ', coefficient_ring=QQ); B  # not implemented
 
 Again, we can look at a typical element::
 
-    sage: B.an_element()  # not tested
+    sage: B.an_element()  # not implemented
 
 Arithmetical Operations
 -----------------------

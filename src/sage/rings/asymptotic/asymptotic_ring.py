@@ -174,6 +174,9 @@ AUTHORS:
 - Benjamin Hackl (2015-06): initial version
 - Benjamin Hackl (2015-07): improvement user interface (short notation)
 - Daniel Krenn (2015-08): various improvents, review; documentation
+
+Classes and Methods
+===================
 """
 
 # *****************************************************************************

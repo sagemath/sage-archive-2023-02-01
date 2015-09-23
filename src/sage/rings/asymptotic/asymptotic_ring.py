@@ -607,7 +607,7 @@ class AsymptoticExpression(sage.rings.ring_element.RingElement):
                              (P.growth_group, self, power))
 
         from sage.rings.asymptotic.term_monoid import TermWithCoefficient
-        expr = self.summands.elements().next()
+        expr = next(self.summands.elements())
         if isinstance(expr, TermWithCoefficient):
             new_growth = expr.growth**power
             new_coeff = expr.coefficient**power

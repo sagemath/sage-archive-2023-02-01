@@ -524,15 +524,30 @@ class OctaveElement(ExpectElement):
             [3.00000000000000 4.50000000000000]
         """
         from sage.matrix.all import MatrixSpace
-        s = str(self).strip()
-        v = s.split('\n ')
-        nrows = len(v)
-        if nrows == 0:
-            return MatrixSpace(R,0,0)(0)
-        ncols = len(v[0].split())
-        M = MatrixSpace(R, nrows, ncols)
-        v = sum([[x for x in w.split()] for w in v], [])
-        return M(v)
+        s = str(self).strip('\n ')
+        w = [u.strip().split(' ') for u in s.split('\n')]
+        nrows = len(w)
+        ncols = len(w[0])
+        return MatrixSpace(R, nrows, ncols)(w)
+
+    def _vector_(self, R):
+        r"""
+        Return Sage vector from this octave element.
+
+        EXAMPLES::
+
+            sage: A = octave('[1,2,3,4]')       # optional - octave
+            sage: vector(ZZ, A)                 # optional - octave
+            [1 2 3 4]
+            sage: A = octave('[1,2.3,4.5]')     # optional - octave
+            sage: vector(RR, A)                 # optional - octave
+            [1.00000000000000 2.30000000000000 4.50000000000000]
+        """
+        from sage.modules.free_module import FreeModule
+        s = str(self).strip('\n ')
+        w = s.strip().split(' ')
+        nrows = len(w)
+        return FreeModule(R, nrows)(w)
 
 
 # An instance

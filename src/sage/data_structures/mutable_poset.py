@@ -1556,9 +1556,9 @@ class MutablePoset(SageObject):
           ``True`` gives largest first.
 
         - ``key`` -- (default: ``None``) a function used for sorting
-          the direct successors of a shell (used in case of a
-          tie). If this is ``None``, no sorting according to the
-          representation string occurs.
+          the direct successors of a shell (used in case of a tie). If
+          this is ``None``, then the successors are sorted according
+          to their representation strings.
 
         OUTPUT:
 

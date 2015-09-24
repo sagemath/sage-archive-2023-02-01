@@ -1716,7 +1716,7 @@ class MutablePoset(SageObject):
         EXAMPLES::
 
             sage: from sage.data_structures.mutable_poset import MutablePoset as MP
-            sage: P = MP([(1, 1), (1, 3), (2, 1), (4, 4), (1, 2), (2, 2)],
+            sage: P = MP([(1, 1), (2, 1), (4, 4)],
             ....:        key=lambda c: c[0])
             sage: [(v, type(v)) for v in P.keys_topological()]
             [(1, <type 'sage.rings.integer.Integer'>),

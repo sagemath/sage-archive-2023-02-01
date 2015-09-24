@@ -5,29 +5,22 @@ from sage.structure.sage_object import SageObject
 from sage.structure.parent import Parent
 from sage.rings.integer_ring import ZZ
 
-####
-# Helper functions.
-####
-# These may have to go in a more standard place or just outside this file
-
-####
+################################################################################
 # Elements of a cluster algebra
-####
+################################################################################
 
 class ClusterAlgebraElement(ElementWrapper):
 
-    # this is to store extra information like g-vector: what I am thinking is to
-    # store the g_vector whenever possible and pass it along when doing sums of
-    # elements with the same degree or multiplications of any two elements.
-    # This can potentially slow things down and make life harder. We need to
-    # redefine _add_ _mul_ and _lmul_ _rmul_ accordingly if we decide that there
-    # is no other way to compute g-vectors
-    def __init__(self, parent, value, g_vector=None):
+    def __init__(self, parent, value):
         ElementWrapper.__init__(self, parent=parent, value=value)
-        self._g_vector = g_vector
+    
+        # setup methods defined only in special cases
+        if parent._deg_matrix:
+            self.g_vector = MethodType(g_vector, self, self.__class__)
+            self.is_homogeneous = MethodType(is_homogeneous, self, self.__class__)
+            self.homogeneous_components = MethodType(homogeneous_components, self, self.__class__)
 
-    # This function needs to be removed once AdditiveMagmas.Subobjects
-    # implements _add_
+    # This function needs to be removed once AdditiveMagmas.Subobjects implements _add_
     def _add_(self, other):
         return self.parent().retract(self.lift() + other.lift())
 
@@ -50,20 +43,41 @@ class ClusterAlgebraElement(ElementWrapper):
         v2 = vector(initial.exponents()[0][:n])
         return tuple(v1-v2)
 
-    def g_vector(self):
-        # at the moment it is not immediately clear to me how to compute this
-        # assuming this is a generic element of the cluster algebra it is not
-        # going to be homogeneous, expecially if we are not using principal
-        # coefficients. I am not sure it can be done if the bottom part of the
-        # exchange matrix is not invertible.
-        raise NotImplementederror("This should be computed by substitution")
-
     def _repr_(self):
         # use this to factor d-vector in the representation
         return repr(self.lift_to_field())
+
+
 ####
+# Methods not always defined
+####
+
+def g_vector(self):
+    components = self.homogeneous_components()
+    if len(components) == 1:
+        return components.keys()[0]
+    else:
+        raise ValueError("This element is not homogeneous.")
+
+def is_homogeneous(self):
+    return len(self.homogeneous_components()) == 1
+
+def homogeneous_components(self):
+    components = dict()
+    x = self.lift()
+    monomials = x.monomials()
+    for m in monomials:
+        gvect = tuple(self.parent()._deg_matrix*vector(m.exponents()[0]))
+        if gvect in components:
+            components[gvect] += self.parent().retract(x.monomial_coefficient(m)*m)
+        else:
+            components[gvect] = self.parent().retract(x.monomial_coefficient(m)*m)
+    return components
+
+
+################################################################################
 # Seeds
-####
+################################################################################
 
 class ClusterAlgebraSeed(SageObject):
 
@@ -238,10 +252,9 @@ class ClusterAlgebraSeed(SageObject):
             cluster = map( tuple, self.g_matrix().columns() )
         return element in cluster
 
-
-####
+################################################################################
 # Cluster algebras
-####
+################################################################################
 
 class ClusterAlgebra(Parent):
     # it would be nice to have inject_variables() to allow the user to
@@ -261,19 +274,11 @@ class ClusterAlgebra(Parent):
         # TODO: right now  we use ClusterQuiver to parse input data. It looks
         # like a good idea but we should make sure it is.
         Q = ClusterQuiver(data)
-        B0 = Q.b_matrix()
-        n = B0.ncols()
-        # We use a different m than ClusterSeed and ClusterQuiver: their m is our m-n.
-        # Should we merge this behaviour? what is the notation in CA I-IV? 
-        # They use the m-n convention, the m convention comes out of Fock-Goncharov or Gekhtman-Shapiro-Vainshtein
-        m = B0.nrows()
+        n = Q.n()
+        B0 = Q.b_matrix()[:n,:]
+        M0 = Q.b_matrix()[n:,:]
+        m = M0.nrows() + n
         I = identity_matrix(n)
-
-        # add methods that are defined only for special cases
-        if n == 2:
-            self.greedy_element = MethodType(greedy_element, self, self.__class__)
-            self.greedy_coeff = MethodType(greedy_coeff, self, self.__class__)
-            self.theta_basis_element = MethodType(theta_basis_element, self, self.__class__)
 
         # TODO: is ZZ the correct ambient here?
         # ambient space for F-polynomials
@@ -308,16 +313,34 @@ class ClusterAlgebra(Parent):
 
         # these are used for computing cluster variables using separation of
         # additions
-        self._y = dict([ (self._U.gen(j), prod([self._ambient.gen(i)**B0[i,j] for i in xrange(n,m)])) for j in xrange(n)])
-        self._yhat = dict([ (self._U.gen(j), prod([self._ambient.gen(i)**B0[i,j] for i in xrange(m)])) for j in xrange(n)])
+        self._y = dict([ (self._U.gen(j), prod([self._ambient.gen(i+n)**M0[i,j] for i in xrange(m-n)])) for j in xrange(n)])
+        self._yhat = dict([ (self._U.gen(j), prod([self._ambient.gen(i)**B0[i,j] for i in xrange(n)])*self._y[self._U.gen(j)]) for j in xrange(n)])
+
+        # recover g-vector from monomials
+        # TODO: there should be a method to compute partial inverses
+        # right now we are failing
+        #M_p = matrix([ (row if all(x>=0 for x in row) else vector(ZZ, n)) for row in M0.rows() ])
+        #if M0.rank() == n:
+        #    self._deg_matrix = block_matrix([[I,-B0*(M0.transpose()*M0).inverse()*M0.transpose()]])
+        if M0 == I:
+            self._deg_matrix = block_matrix([[I,-B0]])
+        else:
+            self._deg_matrix = None
 
         self._B0 = copy(B0)
+        self._M0 = copy(M0)
         self._n = n
         self._m = m
         self.reset_current_seed()
 
         # internal data for exploring the exchange graph
         self.reset_exploring_iterator()
+
+        # add methods that are defined only for special cases
+        if n == 2:
+            self.greedy_element = MethodType(greedy_element, self, self.__class__)
+            self.greedy_coeff = MethodType(greedy_coeff, self, self.__class__)
+            self.theta_basis_element = MethodType(theta_basis_element, self, self.__class__)
 
     # enable standard cohercions: everything that is in the base can be coherced
     def _coerce_map_from_(self, other):
@@ -372,12 +395,12 @@ class ClusterAlgebra(Parent):
         """
         n = self.rk
         I = identity_matrix(n)
-        return ClusterAlgebraSeed(self._B0[:n,:n], I, I, self)
+        return ClusterAlgebraSeed(self._B0, I, I, self)
 
     @property
     def initial_b_matrix(self):
         n = self.rk
-        return copy(self._B0[:n,:n])
+        return copy(self._B0)
 
     def g_vectors_so_far(self):
         r"""
@@ -525,12 +548,10 @@ class ClusterAlgebra(Parent):
     def lower_bound(self):
         pass
 
-
-
-
 ####
-# Methods that are only defined for special cases
+# Methods only defined for special cases
 ####
+
 # Greedy elements exist only in rank 2
 # Does not yet take into account coefficients, this can probably be done by
 # using the greedy coefficients to write down the F-polynomials
@@ -593,29 +614,4 @@ def greedy_coeff(self,d_vector,p,q):
 #I think Greg already has some code to do this
 def theta_basis_element(self, g_vector):
     pass
-
-####
-# Scratchpad
-####
-
-# Shall we use properties with setters and getters? This is the example
-# maybe it is not a great idea but it saves on parenthesis and makes quantities immutable at the same time
-# I am not sure I can give an opinion yet, maybe after I see it in action
-#class C(object):
-#def __init__(self):
-#    self._x = None
-
-#@property
-#def x(self):
-#    """I'm the 'x' property."""
-#    return self._x
-
-#@x.setter
-#def x(self, value):
-#    self._x = value
-
-#@x.deleter
-#def x(self):
-#    del self._x
-
 

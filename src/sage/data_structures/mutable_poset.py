@@ -498,10 +498,7 @@ class MutablePosetShell(SageObject):
 
             The comparison of the shells is based on the comparison
             of the keys of the elements contained in the shells,
-            except for the shells containing ``None``. These special
-            shells are interpreted as smaller or larger than all
-            other elements, depending on whether they have no
-            predecessors or no successors, respectively.
+            except for special shells (see :class:`MutablePosetShell`).
 
         TESTS::
 

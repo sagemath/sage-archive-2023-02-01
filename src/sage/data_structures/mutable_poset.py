@@ -625,8 +625,8 @@ class MutablePosetShell(SageObject):
 
     def _copy_all_linked_(self, memo, poset, mapping):
         r"""
-        Return a copy of all shells linked to this shell
-        (including a copy of this shell).
+        Return a copy of this shell. All shells linked to this shell
+        are copied as well.
 
         This is a helper function for :meth:`MutablePoset.copy`.
 

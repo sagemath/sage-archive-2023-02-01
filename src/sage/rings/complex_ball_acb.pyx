@@ -1134,10 +1134,14 @@ cdef class ComplexBall(RingElement):
             sage: from sage.rings.complex_ball_acb import CBF
             sage: CBF(exp(I*pi/3)).accuracy()
             51
-            sage: CBF(I/2).accuracy()
-            9223372036854775807
-            sage: CBF('nan', 'inf').accuracy()
-            -9223372036854775807
+            sage: CBF(I/2).accuracy() == CBF.base().maximal_accuracy()
+            True
+            sage: CBF('nan', 'inf').accuracy() == -CBF.base().maximal_accuracy()
+            True
+
+        .. seealso::
+
+            :meth:`~sage.rings.real_arb.RealBallField.maximal_accuracy`
         """
         return acb_rel_accuracy_bits(self.value)
 

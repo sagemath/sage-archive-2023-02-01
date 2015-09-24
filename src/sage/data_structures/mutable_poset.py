@@ -588,9 +588,8 @@ class MutablePosetShell(SageObject):
         .. NOTE::
 
             This method compares the keys of the elements contained
-            in the shells, if the elements are not both ``None``.
-            Otherwise, this method checks whether both shells describe the
-            same special element.
+            in the (non-special) shells. In particlar,
+            elements/shells with the same key are considered as equal.
 
         TESTS::
 

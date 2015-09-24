@@ -243,7 +243,9 @@ class MutablePosetShell(SageObject):
         r"""
         The key of the element contained in this shell.
 
-        The element is converted by the poset to the key.
+        The key of an element is determined by the mutable poset (the
+        parent) via the ``key``-function (see construction of a
+        :class:`MutablePoset`).
 
         TESTS::
 

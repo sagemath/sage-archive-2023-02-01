@@ -1288,6 +1288,10 @@ class MutablePoset(SageObject):
 
         An integer.
 
+        .. NOTE::
+
+            The special elements ``'null'`` and ``'oo'`` are not counted.
+
         TESTS::
 
             sage: from sage.data_structures.mutable_poset import MutablePoset as MP

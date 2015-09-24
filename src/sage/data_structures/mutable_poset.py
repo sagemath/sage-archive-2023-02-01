@@ -413,7 +413,7 @@ class MutablePosetShell(SageObject):
         return self.element is None and not self.successors()
 
 
-    def __repr__(self):
+    def _repr_(self):
         r"""
         Return the representation of this shell.
 
@@ -1799,7 +1799,7 @@ class MutablePoset(SageObject):
         return '\n'.join(strings)
 
 
-    __repr__ = repr
+    _repr_ = repr
 
 
     def contains(self, key):

@@ -1741,7 +1741,12 @@ class MutablePoset(SageObject):
 
         INPUT:
 
-        Nothing.
+        - ``include_special`` -- (default: ``False``) a boolean
+          indicating whether to include the special elements
+          ``'null'`` and ``'oo'`` or not.
+
+        - ``reverse`` -- (default: ``False``) a boolean. If set, then
+          largest elements are displayed first.
 
         OUTPUT:
 
@@ -1766,7 +1771,8 @@ class MutablePoset(SageObject):
 
         INPUT:
 
-        Nothing.
+        - ``reverse`` -- (default: ``False``) a boolean. If set, then
+          largest elements are displayed first.
 
         OUTPUT:
 

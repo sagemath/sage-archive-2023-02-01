@@ -259,8 +259,24 @@ class MutablePosetShell(SageObject):
             sage: f = MutablePosetShell(Q, (1, 2))
             sage: f.key
             1
+
+        Test the caching of the key::
+
+            sage: def k(k):
+            ....:     print 'key %s' % (k,)
+            ....:     return k
+            sage: R = MP(key=k)
+            sage: h = MutablePosetShell(R, (1, 2))
+            sage: h.key; h.key
+            key (1, 2)
+            (1, 2)
+            (1, 2)
         """
-        return self.poset.get_key(self._element_)
+        # workaround for #19281
+        # (Use @property @cached_method once #19281 is fixed.)
+        if not hasattr(self, '_cached_key_'):
+            self._cached_key_ = self.poset.get_key(self._element_)
+        return self._cached_key_
 
 
     def predecessors(self, reverse=False):

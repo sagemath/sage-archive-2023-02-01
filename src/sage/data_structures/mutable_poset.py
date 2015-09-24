@@ -445,12 +445,12 @@ class MutablePosetShell(SageObject):
             sage: repr(P.oo)  # indirect doctest
             'oo'
         """
-        if self.element is None:
-            if not self.predecessors():
-                return 'null'
-            if not self.successors():
-                return 'oo'
-        return repr(self.element)
+        if self.is_null():
+            return 'null'
+        elif self.is_oo():
+            return 'oo'
+        else:
+            return repr(self.element)
 
 
     def __hash__(self):

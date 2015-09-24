@@ -635,7 +635,10 @@ class MutablePosetShell(SageObject):
         - ``memo`` -- a dictionary which assigns to the id of the
           calling shell to a copy of it.
 
-        - ``poset`` -- the poset to which the newly created shells belongs.
+        - ``poset`` -- the poset to which the newly created shells
+          belongs. Note that the elements are not inserted into
+          ``poset``; this is done in the calling method
+          :meth:`_copy_shells_`.
 
         - ``mapping`` -- a function which is applied on each of the elements.
 

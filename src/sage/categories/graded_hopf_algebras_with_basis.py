@@ -41,11 +41,12 @@ class GradedHopfAlgebrasWithBasis(GradedModulesCategory):
         TESTS::
 
             sage: GradedHopfAlgebrasWithBasis(QQ).example()
-            An example of a graded connected hopf algebra with basis over Rational Field
+            An example of a graded connected Hopf algebra with basis over Rational Field
 
         """
-        from sage.categories.examples.graded_connected_hopf_algebras_with_basis import GradedConnectedHopfAlgebraOfInteger
-        return GradedConnectedHopfAlgebraOfInteger(self.base())
+        from sage.categories.examples.graded_connected_hopf_algebras_with_basis import \
+            GradedConnectedCombinatorialHopfAlgebraWithPrimitiveGenerator
+        return GradedConnectedCombinatorialHopfAlgebraWithPrimitiveGenerator(self.base())
 
     class ParentMethods:
         pass
@@ -82,11 +83,12 @@ class GradedHopfAlgebrasWithBasis(GradedModulesCategory):
                 TESTS::
 
                     sage: GradedHopfAlgebrasWithBasis(QQ).Connected().example()
-                    An example of a graded connected hopf algebra with basis over Rational Field
+                    An example of a graded connected Hopf algebra with basis over Rational Field
 
                 """
-                from sage.categories.examples.graded_connected_hopf_algebras_with_basis import GradedConnectedHopfAlgebraOfInteger
-                return GradedConnectedHopfAlgebraOfInteger(self.base())
+                from sage.categories.examples.graded_connected_hopf_algebras_with_basis import \
+                    GradedConnectedCombinatorialHopfAlgebraWithPrimitiveGenerator
+                return GradedConnectedCombinatorialHopfAlgebraWithPrimitiveGenerator(self.base())
 
             class ParentMethods:
 
@@ -94,13 +96,20 @@ class GradedHopfAlgebrasWithBasis(GradedModulesCategory):
                     r"""
                     The default counit of a graded connected Hopf algebra.
 
+                    INPUT:
 
-                    MATH::
+                    - ``i`` -- an element of the index set
 
-                        c(i) := \begin{dcases*}
-                            1 & if `i` is the unique element of degree `0`,
-                            0 & otherwise.
-                        \end{dcases*}
+                    OUTPUT:
+
+                    - an element of the base ring
+
+                    .. MATH::
+
+                        c(i) := \begin{cases}
+                        1 & \hbox{if $i$ is the unique element of degree $0$}\\
+                        0 & \hbox{otherwise}.
+                        \end{cases}
 
                     EXAMPLES::
 
@@ -116,13 +125,19 @@ class GradedHopfAlgebrasWithBasis(GradedModulesCategory):
                     return self.base_ring().zero()
 
                 @cached_method
-                def antipode_on_basis(self, indice):
-                    """
-                    MATH::
+                def antipode_on_basis(self, index):
+                    r"""
+                    The antipode on the basis element indexed by ``index``.
 
-                        S(x) := -\sum_{x^L \neq x} S(x^L) \times x^R
+                    INPUT:
 
-                    in general or `x` if `\mid x \mid = 0`.
+                    - ``index`` -- an element of the index set
+
+                    .. MATH::
+
+                        S(x) := -\sum_{x^L\neq x} S(x^L) \times x^R
+
+                    in general or `x` if `|x| = 0`.
 
                     TESTS::
 
@@ -137,7 +152,7 @@ class GradedHopfAlgebrasWithBasis(GradedModulesCategory):
                         -P3
 
                     """
-                    if self.monomial(indice) == self.one():
+                    if self.monomial(index) == self.one():
                         return self.one()
                     else:
                         S = self.antipode_on_basis
@@ -145,8 +160,8 @@ class GradedHopfAlgebrasWithBasis(GradedModulesCategory):
                             lambda (a, b): S(a) * self.monomial(b),
                             codomain=self)
                         return -x__S_Id(
-                            self.monomial(indice).coproduct()
-                            - tensor([self.monomial(indice), self.one()])
+                            self.monomial(index).coproduct()
+                            - tensor([self.monomial(index), self.one()])
                         )
 
                 def antipode(self, elem):
@@ -174,11 +189,10 @@ class GradedHopfAlgebrasWithBasis(GradedModulesCategory):
                         sage: H = GradedHopfAlgebrasWithBasis(QQ).Connected().example()
                         sage: H.monomial(0).antipode()
                         P0
-                        sage: H.monomial(1).antipode()
-                        -P1
                         sage: H.monomial(2).antipode()
                         P2
-                        sage: H.monomial(3).antipode()
-                        -P3
+                        sage: (2*H.monomial(1) + 3*H.monomial(4)).antipode()
+                        -2*P1 + 3*P4
+
                     """
                     return self.parent().antipode(self)

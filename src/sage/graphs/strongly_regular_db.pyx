@@ -995,8 +995,12 @@ def is_switch_OA_srg(int v, int k, int l, int mu):
 
         sage: from sage.graphs.strongly_regular_db import is_switch_OA_srg
         sage: t = is_switch_OA_srg(5,5,5,5); t
-        sage: is_switch_OA_srg(290, 136,  63,  64)
-        (<cyfunction is_switch_OA_srg.<locals>.switch_OA_srg at ..., 8, 17)
+        sage: t = is_switch_OA_srg(170, 78, 35, 36);
+        sage: t[0](*t[1:]).is_strongly_regular(parameters=True)
+        (170, 78, 35, 36)
+        sage: t = is_switch_OA_srg(290, 136,  63,  64);
+        sage: t[0](*t[1:]).is_strongly_regular(parameters=True)
+        (290, 136, 63, 64)
         sage: is_switch_OA_srg(626, 300, 143, 144)
         (<cyfunction is_switch_OA_srg.<locals>.switch_OA_srg at ..., 12, 25)
         sage: is_switch_OA_srg(842, 406, 195, 196)

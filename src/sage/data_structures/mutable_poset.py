@@ -174,6 +174,17 @@ class MutablePosetShell(SageObject):
 
     A shell for the given element.
 
+    .. NOTE::
+
+        If the :meth:`element` of a shell is ``None``, then this
+        element is considered as "special" (see :meth:`is_special`).
+        There are two special elements, namely
+
+        - a ``'null'`` (an element smaller than each other element;
+          it has no predecessors) and
+        - a ``'oo'`` (an element larger than each other element;
+          it has no successors).
+
     EXAMPLES::
 
         sage: from sage.data_structures.mutable_poset import MutablePoset as MP

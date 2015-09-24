@@ -1025,8 +1025,6 @@ class MutablePosetShell(SageObject):
 
         ::
 
-            sage: def C(shell):
-            ....:     return shell.element[0] == 1
             sage: list(P.null.iter_topological(
             ....:     reverse=True, condition=lambda s: s.element[0] == 1))
             [(1, 3), (1, 2), (1, 1), null]

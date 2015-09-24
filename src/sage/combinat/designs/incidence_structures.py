@@ -1640,6 +1640,95 @@ class IncidenceStructure(object):
                 ll = b
             return (True, (tt,v,k,ll)) if return_parameters else True
 
+    def is_generalized_quadrangle(self, verbose=False):
+        r"""
+        Test if the incidence structure is a generalized quadrangle.
+
+        An incidence structure is a generalized quadrangle iif:
+
+        - it is `s+1`-:meth:`uniform <is_uniform>` for some positive integer `s`.
+
+        - it is `t+1`-:meth:`regular <is_regular>` for some positive integer `t`.
+
+        - two blocks intersect on at most one point.
+
+        - For every point `p` not in a block `B`, there is a unique block `B'`
+          intersecting both `\{p\}` and `B`
+
+        For more information, see the :wikipedia:`Generalized_quadrangle`.
+
+        INPUT:
+
+        - ``verbose`` (boolean) -- whether to print an explanation when the
+          instance is not a generalized quadrangle.
+
+        EXAMPLE::
+
+            sage: h = designs.CremonaRichmondConfiguration()
+            sage: h.is_generalized_quadrangle()
+            True
+
+        TESTS::
+
+            sage: H = IncidenceStructure([[1,2],[3,4,5]])
+            sage: H.is_generalized_quadrangle(verbose=True)
+            The incidence structure is not (s+1)-uniform for some s>0.
+            False
+
+            sage: H = IncidenceStructure([[1,2,3],[3,4,5]])
+            sage: H.is_generalized_quadrangle(verbose=True)
+            The incidence structure is not (t+1)-regular for some t>0.
+            False
+
+            sage: H = IncidenceStructure((2*graphs.CompleteGraph(3)).edges(labels=False))
+            sage: H.is_generalized_quadrangle(verbose=True)
+            Some point is at distance >3 from some block.
+            False
+
+            sage: G = graphs.CycleGraph(5)
+            sage: B = list(G.subgraph_search_iterator(graphs.PathGraph(3)))
+            sage: H = IncidenceStructure(B)
+            sage: H.is_generalized_quadrangle(verbose=True)
+            Two blocks intersect on >1 points.
+            False
+
+            sage: hypergraphs.CompleteUniform(4,2).is_generalized_quadrangle(verbose=1)
+            Some point has two projections on some line.
+            False
+        """
+        s = self.is_uniform()-1
+        if not s or s <= 0:
+            if verbose:
+                print "The incidence structure is not (s+1)-uniform for some s>0."
+            return False
+
+        t = self.is_regular()-1
+        if not t or t <= 0:
+            if verbose:
+                print "The incidence structure is not (t+1)-regular for some t>0."
+            return False
+
+        # The distance between a point and a line in the incidence graph is odd
+        # and must be <= 3. Thus, the diameter is at most 4
+        g = self.incidence_graph()
+        if g.diameter() > 4:
+            if verbose:
+                print "Some point is at distance >3 from some block."
+            return False
+
+        # There is a unique projection of a point on a line. Thus, the girth of
+        # g is at least 7
+        girth = g.girth()
+        if girth == 4:
+            if verbose:
+                print "Two blocks intersect on >1 points."
+            return False
+        elif girth == 6:
+            if verbose:
+                print "Some point has two projections on some line."
+            return False
+        return True
+
     def dual(self, algorithm=None):
         """
         Return the dual of the incidence structure.

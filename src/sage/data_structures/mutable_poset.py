@@ -488,7 +488,7 @@ class MutablePosetShell(SageObject):
         - ``other`` -- a shell.
 
         - ``reverse`` -- (default: ``False``) if set, then return
-          ``right <= left`` instead.
+          whether this shell is greater than or equal to ``other``.
 
         OUTPUT:
 

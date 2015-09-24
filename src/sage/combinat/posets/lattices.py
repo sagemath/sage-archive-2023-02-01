@@ -988,9 +988,21 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
 
         INPUT:
 
-        - ``certificate`` -- (boolean; default: ``False``) -- whether to return
-          a yes/no -answer or a certificate, i.e. a list of elements to remove.
-          If the lattice is not dismantlable, then the certificate is ``None``.
+        - ``certificate`` (boolean) -- Whether to return a certificate.
+
+            * If ``certificate = False`` (default), returns ``True`` or
+              ``False`` accordingly.
+
+            * If ``certificate = True``, returns:
+
+                * ``(True, elms)`` when the lattice is dismantlable, where
+                  ``elms`` is elements listed in a possible removing order.
+
+                * ``(False, crown)`` when the lattice is not dismantlable,
+                  where ``crown`` is a subposet of `2k` elements
+                  `a_1, \ldots, a_k, b_1, \ldots, b_k` with covering
+                  relations `a_i \lessdot b_i` and `a_i \lessdot b_{i+1}`
+                  for `i \in [1, \ldots, k-1]`, and `a_k \lessdot b_1`.
 
         EXAMPLES::
 
@@ -998,11 +1010,13 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
             sage: DL12.is_dismantlable()
             True
             sage: DL12.is_dismantlable(certificate=True)
-            [4, 2, 1, 3, 6, 12]
+            (True, [4, 2, 1, 3, 6, 12])
 
-            sage: B3=Posets.BooleanLattice(3)
+            sage: B3 = Posets.BooleanLattice(3)
             sage: B3.is_dismantlable()
             False
+            sage: B3.is_dismantlable(certificate=True)
+            (False, Finite poset containing 6 elements)
 
         Every planar lattice is dismantlable. Converse is not true::
 
@@ -1012,7 +1026,7 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
             ....:                         [7, 8]]) )
             sage: L.is_dismantlable()
             True
-            sage: L.is_planar() # Not tested. Wait for ticket #19191.
+            sage: L.is_planar()
             False
 
         TESTS::
@@ -1021,12 +1035,21 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
             True
             sage: Posets.ChainPoset(1).is_dismantlable()
             True
+
+            sage: L = LatticePoset(DiGraph('L@_?W?E?@CCO?A?@??_?O?Jw????C?'))
+            sage: L.is_dismantlable()
+            False
+            sage: c = L.is_dismantlable(certificate=True)[1]
+            sage: (3 in c, 12 in c, 9 in c)
+            (True, False, True)
         """
+        from sage.graphs.digraph import DiGraph
         from copy import copy
+
         H = copy(self._hasse_diagram)
         cert = []
-        # Smallest lattice that is not dismantlable is
-        # The Boolean lattice with 2^3=8 elements. Hence the limit 7.
+        # Smallest lattice that is not dismantlable is the
+        # Boolean lattice with 2^3=8 elements. Hence the limit 7.
         limit = 0 if certificate else 7
 
         while H.order() > limit:
@@ -1039,17 +1062,25 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
                         lower = H.neighbors_in(e)[0]
                         upper = H.neighbors_out(e)[0]
                         H.delete_vertex(e)
-                        if not H.is_connected():
+                        if not upper in H.depth_first_search(lower):
                             H.add_edge(lower, upper)
                     else: # Remove the top or bottom element
                         H.delete_vertex(e)
                     break
             else:
-                return None if certificate else False
-        if certificate:
-            return [self[e] for e in cert]
-        else:
+                if not certificate:
+                    return False
+                k = 3
+                while True:
+                    crown = DiGraph( {i: [k+i, k+(i+1)%k] for i in range(k)} )
+                    sg = H.transitive_closure().subgraph_search(crown, True)
+                    if sg:
+                        elms = [self[e] for e in sg]
+                        return (False, self.subposet(elms))
+                    k += 1
+        if not certificate:
             return True
+        return (True, [self[e] for e in cert])
 
 ############################################################################
 

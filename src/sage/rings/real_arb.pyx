@@ -143,7 +143,7 @@ cimport sage.structure.element
 
 from sage.libs.arb.arb cimport *
 from sage.libs.arb.arf cimport arf_t, arf_init, arf_get_mpfr, arf_set_mpfr, arf_clear, arf_set_mag, arf_set
-from sage.libs.arb.arf cimport arf_equal, arf_is_nan, arf_is_neg_inf, arf_is_pos_inf, arf_get_mag
+from sage.libs.arb.arf cimport arf_equal, arf_is_nan, arf_is_neg_inf, arf_is_pos_inf, arf_get_mag, ARF_PREC_EXACT
 from sage.libs.arb.mag cimport mag_t, mag_init, mag_clear, mag_add, mag_set_d, MAG_BITS, mag_is_inf, mag_is_finite, mag_zero
 from sage.libs.flint.flint cimport flint_free
 from sage.libs.flint.fmpz cimport fmpz_t, fmpz_init, fmpz_get_mpz, fmpz_set_mpz, fmpz_clear
@@ -782,6 +782,27 @@ class RealBallField(UniqueRepresentation, Parent):
             fmpz_clear(tmpz)
         return res
 
+    def maximal_accuracy(self):
+        r"""
+        Return the relative accuracy of exact elements measured in bits.
+
+        OUTPUT:
+
+        An integer.
+
+        EXAMPLES::
+
+            sage: from sage.rings.real_arb import RBF
+            sage: RBF.maximal_accuracy()
+            9223372036854775807 # 64-bit
+            2147483647          # 32-bit
+
+        .. seealso::
+
+            :meth:`RealBall.accuracy`
+        """
+        return ARF_PREC_EXACT
+
 
 cdef inline bint _do_sig(long prec):
     """
@@ -1301,18 +1322,23 @@ cdef class RealBall(RingElement):
         Return the effective relative accuracy of this ball measured in bits.
 
         The accuracy is defined as the difference between the position of the
-        top bit in the midpoint and the top bit in the radius and , minus one.
-        The result is clamped between plus/minus ``ARF_PREC_EXACT``.
+        top bit in the midpoint and the top bit in the radius, minus one.
+        The result is clamped between plus/minus
+        :meth:`~RealBallField.maximal_accuracy`.
 
         EXAMPLES::
 
             sage: from sage.rings.real_arb import RBF
             sage: RBF(pi).accuracy()
             51
-            sage: RBF(1).accuracy()
-            9223372036854775807
-            sage: RBF(NaN).accuracy()
-            -9223372036854775807
+            sage: RBF(1).accuracy() == RBF.maximal_accuracy()
+            True
+            sage: RBF(NaN).accuracy() == -RBF.maximal_accuracy()
+            True
+
+        .. seealso::
+
+           :meth:`~RealBallField.maximal_accuracy`
         """
         return arb_rel_accuracy_bits(self.value)
 

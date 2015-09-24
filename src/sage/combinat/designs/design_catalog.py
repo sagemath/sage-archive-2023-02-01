@@ -45,6 +45,7 @@ This module gathers the following designs :
     :meth:`~sage.combinat.designs.resolvable_bibd.resolvable_balanced_incomplete_block_design`
     :meth:`~sage.combinat.designs.resolvable_bibd.kirkman_triple_system`
     :meth:`~sage.combinat.designs.block_design.AffineGeometryDesign`
+    :meth:`~sage.combinat.designs.block_design.CremonaRichmondConfiguration`
     :meth:`~sage.combinat.designs.block_design.WittDesign`
     :meth:`~sage.combinat.designs.block_design.HadamardDesign`
     :meth:`~sage.combinat.designs.block_design.Hadamard3Design`

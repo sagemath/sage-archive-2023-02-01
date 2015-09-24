@@ -770,7 +770,7 @@ def CremonaRichmondConfiguration():
     is a generalized quadrangle of parameters `(2,2)`.
 
     For more information, see the
-    :wikipedia:`Cremona–Richmond_configuration`.
+    :wikipedia:`Cremona-Richmond_configuration`.
 
     EXAMPLE::
 

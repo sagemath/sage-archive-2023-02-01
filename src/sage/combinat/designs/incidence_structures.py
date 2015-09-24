@@ -1640,20 +1640,22 @@ class IncidenceStructure(object):
                 ll = b
             return (True, (tt,v,k,ll)) if return_parameters else True
 
-    def is_generalized_quadrangle(self, verbose=False):
+    def is_generalized_quadrangle(self, verbose=False, parameters=False):
         r"""
         Test if the incidence structure is a generalized quadrangle.
 
         An incidence structure is a generalized quadrangle iif:
 
-        - it is `s+1`-:meth:`uniform <is_uniform>` for some positive integer `s`.
-
-        - it is `t+1`-:meth:`regular <is_regular>` for some positive integer `t`.
-
         - two blocks intersect on at most one point.
 
         - For every point `p` not in a block `B`, there is a unique block `B'`
           intersecting both `\{p\}` and `B`
+
+        It is a *regular* generalized quadrangle if furthermore:
+
+        - it is `s+1`-:meth:`uniform <is_uniform>` for some positive integer `s`.
+
+        - it is `t+1`-:meth:`regular <is_regular>` for some positive integer `t`.
 
         For more information, see the :wikipedia:`Generalized_quadrangle`.
 
@@ -1662,23 +1664,23 @@ class IncidenceStructure(object):
         - ``verbose`` (boolean) -- whether to print an explanation when the
           instance is not a generalized quadrangle.
 
+        - ``parameters`` (boolean; ``False``) -- if set to ``True``, the
+          function returns a pair ``(s,t)`` instead of ``True`` answers. In this
+          case, `s` and `t` are the integers defined above if they exist (each
+          can be set to ``False`` otherwise).
+
         EXAMPLE::
 
             sage: h = designs.CremonaRichmondConfiguration()
             sage: h.is_generalized_quadrangle()
             True
 
+        This is actually a *regular* generalized quadrangle::
+
+            sage: h.is_generalized_quadrangle(parameters=True)
+            (2, 2)
+
         TESTS::
-
-            sage: H = IncidenceStructure([[1,2],[3,4,5]])
-            sage: H.is_generalized_quadrangle(verbose=True)
-            The incidence structure is not (s+1)-uniform for some s>0.
-            False
-
-            sage: H = IncidenceStructure([[1,2,3],[3,4,5]])
-            sage: H.is_generalized_quadrangle(verbose=True)
-            The incidence structure is not (t+1)-regular for some t>0.
-            False
 
             sage: H = IncidenceStructure((2*graphs.CompleteGraph(3)).edges(labels=False))
             sage: H.is_generalized_quadrangle(verbose=True)
@@ -1696,18 +1698,6 @@ class IncidenceStructure(object):
             Some point has two projections on some line.
             False
         """
-        s = self.is_uniform()-1
-        if not s or s <= 0:
-            if verbose:
-                print "The incidence structure is not (s+1)-uniform for some s>0."
-            return False
-
-        t = self.is_regular()-1
-        if not t or t <= 0:
-            if verbose:
-                print "The incidence structure is not (t+1)-regular for some t>0."
-            return False
-
         # The distance between a point and a line in the incidence graph is odd
         # and must be <= 3. Thus, the diameter is at most 4
         g = self.incidence_graph()
@@ -1727,7 +1717,17 @@ class IncidenceStructure(object):
             if verbose:
                 print "Some point has two projections on some line."
             return False
-        return True
+
+        if parameters:
+            s = self.is_uniform()
+            t = self.is_regular()
+            s = s-1 if (s is not False and s>=2) else False
+            t = t-1 if (t is not False and t>=2) else False
+            return (s,t)
+        else:
+            return True
+
+
 
     def dual(self, algorithm=None):
         """

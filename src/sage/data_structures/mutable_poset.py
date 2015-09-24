@@ -1053,6 +1053,15 @@ class MutablePosetShell(SageObject):
 
         Nothing.
 
+        .. NOTE::
+
+            This method uses the parameters ``merge`` and
+            ``can_merge`` of the :class:`MutablePoset` which contains
+            this shell.
+
+            If the ``merge`` function returns ``None``, then this shell
+            is removed from the poset.
+
         EXAMPLES::
 
             sage: from sage.data_structures.mutable_poset import MutablePoset as MP

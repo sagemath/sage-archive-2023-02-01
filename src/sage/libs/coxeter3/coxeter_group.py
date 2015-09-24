@@ -312,7 +312,7 @@ class CoxeterGroup(UniqueRepresentation, Parent):
 
         TESTS:
 
-         We check that Coxeter3 and Sage's implementation give the same results::
+        We check that Coxeter3 and Sage's implementation give the same results::
 
             sage: C = CoxeterGroup(['B', 3], implementation='coxeter3')                           # optional - coxeter3
             sage: W = WeylGroup("B3",prefix="s")

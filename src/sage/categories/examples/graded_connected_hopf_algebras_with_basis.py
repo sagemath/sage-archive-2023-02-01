@@ -25,8 +25,7 @@ class GradedConnectedHopfAlgebraOfInteger(CombinatorialFreeModule):
         """
         EXAMPLES::
 
-            sage: from sage.categories.examples.graded_connected_hopf_algebras_with_basis import GradedConnectedHopfAlgebraOfInteger
-            sage: H = GradedConnectedHopfAlgebraOfInteger(QQ)
+            sage: H = GradedHopfAlgebrasWithBasis(QQ).Connected().example()
             sage: TestSuite(H).run()
 
         """
@@ -41,8 +40,7 @@ class GradedConnectedHopfAlgebraOfInteger(CombinatorialFreeModule):
 
         EXAMPLES::r
 
-            sage: from sage.categories.examples.graded_connected_hopf_algebras_with_basis import GradedConnectedHopfAlgebraOfInteger
-            sage: H = GradedConnectedHopfAlgebraOfInteger(QQ)
+            sage: H = GradedHopfAlgebrasWithBasis(QQ).Connected().example()
             sage: H.one_basis()
             0
             sage: H.one()
@@ -57,8 +55,7 @@ class GradedConnectedHopfAlgebraOfInteger(CombinatorialFreeModule):
 
         TESTS::
 
-            sage: from sage.categories.examples.graded_connected_hopf_algebras_with_basis import GradedConnectedHopfAlgebraOfInteger
-            sage: H = GradedConnectedHopfAlgebraOfInteger(QQ)
+            sage: H = GradedHopfAlgebrasWithBasis(QQ).Connected().example()
             sage: H.degree_on_basis(45)
             45
 
@@ -71,8 +68,7 @@ class GradedConnectedHopfAlgebraOfInteger(CombinatorialFreeModule):
 
         EXAMPLES::
 
-            sage: from sage.categories.examples.graded_connected_hopf_algebras_with_basis import GradedConnectedHopfAlgebraOfInteger
-            sage: GradedConnectedHopfAlgebraOfInteger(QQ)
+            sage: GradedHopfAlgebrasWithBasis(QQ).Connected().example()
             An example of a graded connected hopf algebra with basis over Rational Field
 
         """
@@ -85,8 +81,7 @@ class GradedConnectedHopfAlgebraOfInteger(CombinatorialFreeModule):
 
         EXAMPLES::
 
-            sage: from sage.categories.examples.graded_connected_hopf_algebras_with_basis import GradedConnectedHopfAlgebraOfInteger
-            sage: H = GradedConnectedHopfAlgebraOfInteger(QQ)
+            sage: H = GradedHopfAlgebrasWithBasis(QQ).Connected().example()
             sage: H._repr_term(45)
             'P45'
         """
@@ -96,8 +91,7 @@ class GradedConnectedHopfAlgebraOfInteger(CombinatorialFreeModule):
         """
         TESTS::
 
-            sage: from sage.categories.examples.graded_connected_hopf_algebras_with_basis import GradedConnectedHopfAlgebraOfInteger
-            sage: H = GradedConnectedHopfAlgebraOfInteger(QQ)
+            sage: H = GradedHopfAlgebrasWithBasis(QQ).Connected().example()
             sage: H.monomial(4) * H.monomial(5)
             P9
 
@@ -108,8 +102,7 @@ class GradedConnectedHopfAlgebraOfInteger(CombinatorialFreeModule):
         """
         TESTS::
 
-            sage: from sage.categories.examples.graded_connected_hopf_algebras_with_basis import GradedConnectedHopfAlgebraOfInteger
-            sage: H = GradedConnectedHopfAlgebraOfInteger(QQ)
+            sage: H = GradedHopfAlgebrasWithBasis(QQ).Connected().example()
             sage: H.monomial(3).coproduct()
             P0 # P3 + 3*P1 # P2 + 3*P2 # P1 + P3 # P0
 

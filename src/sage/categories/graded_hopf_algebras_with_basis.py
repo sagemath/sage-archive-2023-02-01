@@ -36,6 +36,17 @@ class GradedHopfAlgebrasWithBasis(GradedModulesCategory):
         sage: TestSuite(C).run()
     """
 
+    def example(self):
+        """
+        TESTS::
+
+            sage: GradedHopfAlgebrasWithBasis(QQ).example()
+            An example of a graded connected hopf algebra with basis over Rational Field
+
+        """
+        from sage.categories.examples.graded_connected_hopf_algebras_with_basis import GradedConnectedHopfAlgebraOfInteger
+        return GradedConnectedHopfAlgebraOfInteger(self.base())
+
     class ParentMethods:
         pass
 
@@ -56,6 +67,7 @@ class GradedHopfAlgebrasWithBasis(GradedModulesCategory):
             TESTS::
 
                 sage: TestSuite(GradedHopfAlgebrasWithBasis(QQ).WithRealizations()).run()
+
             """
             from sage.categories.graded_hopf_algebras import GradedHopfAlgebras
             R = self.base_category().base_ring()
@@ -63,6 +75,18 @@ class GradedHopfAlgebrasWithBasis(GradedModulesCategory):
 
 
     class Connected(CategoryWithAxiom_over_base_ring):
+
+
+            def example(self):
+                """
+                TESTS::
+
+                    sage: GradedHopfAlgebrasWithBasis(QQ).Connected().example()
+                    An example of a graded connected hopf algebra with basis over Rational Field
+
+                """
+                from sage.categories.examples.graded_connected_hopf_algebras_with_basis import GradedConnectedHopfAlgebraOfInteger
+                return GradedConnectedHopfAlgebraOfInteger(self.base())
 
             class ParentMethods:
 
@@ -80,8 +104,7 @@ class GradedHopfAlgebrasWithBasis(GradedModulesCategory):
 
                     EXAMPLES::
 
-                        sage: from sage.categories.examples.graded_connected_hopf_algebras_with_basis import GradedConnectedHopfAlgebraOfInteger
-                        sage: H = GradedConnectedHopfAlgebraOfInteger(QQ)
+                        sage: H = GradedHopfAlgebrasWithBasis(QQ).Connected().example()
                         sage: H.monomial(4).counit() # indirect doctest
                         0
                         sage: H.monomial(0).counit() # indirect doctest
@@ -103,8 +126,7 @@ class GradedHopfAlgebrasWithBasis(GradedModulesCategory):
 
                     TESTS::
 
-                        sage: from sage.categories.examples.graded_connected_hopf_algebras_with_basis import GradedConnectedHopfAlgebraOfInteger
-                        sage: H = GradedConnectedHopfAlgebraOfInteger(QQ)
+                        sage: H = GradedHopfAlgebrasWithBasis(QQ).Connected().example()
                         sage: H.monomial(0).antipode() #indirect doctest
                         P0
                         sage: H.monomial(1).antipode() #indirect doctest
@@ -131,8 +153,7 @@ class GradedHopfAlgebrasWithBasis(GradedModulesCategory):
                     r"""
                     TESTS::
 
-                        sage: from sage.categories.examples.graded_connected_hopf_algebras_with_basis import GradedConnectedHopfAlgebraOfInteger
-                        sage: H = GradedConnectedHopfAlgebraOfInteger(QQ)
+                        sage: H = GradedHopfAlgebrasWithBasis(QQ).Connected().example()
                         sage: H.antipode(H.monomial(140))
                         P140
 
@@ -150,8 +171,7 @@ class GradedHopfAlgebrasWithBasis(GradedModulesCategory):
                     r"""
                     TESTS::
 
-                        sage: from sage.categories.examples.graded_connected_hopf_algebras_with_basis import GradedConnectedHopfAlgebraOfInteger
-                        sage: H = GradedConnectedHopfAlgebraOfInteger(QQ)
+                        sage: H = GradedHopfAlgebrasWithBasis(QQ).Connected().example()
                         sage: H.monomial(0).antipode()
                         P0
                         sage: H.monomial(1).antipode()

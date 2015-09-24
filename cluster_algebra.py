@@ -58,6 +58,9 @@ class ClusterAlgebraElement(ElementWrapper):
         # exchange matrix is not invertible.
         raise NotImplementederror("This should be computed by substitution")
 
+    def _repr_(self):
+        # use this to factor d-vector in the representation
+        return repr(self.lift_to_field())
 ####
 # Seeds
 ####
@@ -228,7 +231,7 @@ class ClusterAlgebraSeed(SageObject):
     # though one may write weird things like "sink" in A.current_seed and get
     # True as an answer.
     def __contains__(self, element):
-        if isinstance(element, ClusterAlgebraElement ):
+        if isinstance(element, ClusterAlgebraElement):
             cluster = [ self.cluster_variable(i) for i in xrange(self.parent().rk) ]
         else:
             element = tuple(element)
@@ -371,6 +374,10 @@ class ClusterAlgebra(Parent):
         I = identity_matrix(n)
         return ClusterAlgebraSeed(self._B0[:n,:n], I, I, self)
 
+    @property
+    def initial_b_matrix(self):
+        n = self.rk
+        return copy(self._B0[:n,:n])
 
     def g_vectors_so_far(self):
         r"""
@@ -409,6 +416,10 @@ class ClusterAlgebra(Parent):
         g-vector ``g_vector`` from the initial seed.
 
         ``depth``: maximum distance from ``self.current_seed`` to reach.
+
+        WARNING: if this method is interrupted then ``self._sd_iter`` is left in
+        an unusable state. To use again this method it is then necessary to
+        reset ``self._sd_iter`` via self.reset_exploring_iterato()
         """
         g_vector = tuple(g_vector)
         mutation_counter = 0

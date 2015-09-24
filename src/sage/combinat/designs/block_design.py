@@ -777,6 +777,34 @@ def AffineGeometryDesign(n, d, F):
        gB.append([x-1 for x in b])
     return BlockDesign(v, gB, name="AffineGeometryDesign")
 
+def CremonaRichmondConfiguration():
+    r"""
+    Return the Cremona-Richmond configuration
+
+    The Cremona-Richmond configuration is a set system whose incidence graph
+    is equal to the
+    :meth:`~sage.graphs.graph_generators.GraphGenerators.TutteCoxeterGraph`. It
+    is a generalized quadrangle of parameters `(2,2)`.
+
+    For more information, see the
+    :wikipedia:`Cremona-Richmond_configuration`.
+
+    EXAMPLE::
+
+        sage: H = designs.CremonaRichmondConfiguration(); H
+        Incidence structure with 15 points and 15 blocks
+        sage: g = graphs.TutteCoxeterGraph()
+        sage: H.incidence_graph().is_isomorphic(g)
+        True
+    """
+    from sage.graphs.generators.smallgraphs import TutteCoxeterGraph
+    from sage.combinat.designs.incidence_structures import IncidenceStructure
+    g = TutteCoxeterGraph()
+    H = IncidenceStructure([g.neighbors(v)
+                            for v in g.bipartite_sets()[0]])
+    H.relabel()
+    return H
+
 def WittDesign(n):
     """
     INPUT:

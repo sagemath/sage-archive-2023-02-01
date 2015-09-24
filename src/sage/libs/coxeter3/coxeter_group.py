@@ -397,7 +397,6 @@ class CoxeterGroup(UniqueRepresentation, Parent):
             return P.sum((-1)**(z.length()) * self.kazhdan_lusztig_polynomial(u*z,v)
                          for z in WOI if (u*z).bruhat_le(v))
         P = PolynomialRing(ZZ, 'q', sparse=True)
-        q = P.gen()
         return P.sum((-1)**(z.length()) * self.kazhdan_lusztig_polynomial(u*z,v, constant_term_one=False).shift(z.length())
                      for z in WOI if (u*z).bruhat_le(v))
 

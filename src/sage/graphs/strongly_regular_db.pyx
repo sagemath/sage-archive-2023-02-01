@@ -46,7 +46,7 @@ from sage.graphs.generators.smallgraphs import HigmanSimsGraph
 from sage.graphs.generators.smallgraphs import LocalMcLaughlinGraph
 from sage.graphs.generators.smallgraphs import SuzukiGraph
 from sage.graphs.graph import Graph
-from libc.math cimport sqrt
+from libc.math cimport sqrt, floor
 from sage.matrix.constructor import Matrix
 from sage.rings.finite_rings.constructor import FiniteField as GF
 from sage.coding.linear_code import LinearCode
@@ -1043,7 +1043,7 @@ def is_taylor_twograph_srg(int v,int k,int l,int mu):
         return (TaylorTwographSRG, q)
     return
 
-def is_switch_OA_srg(int v,int k,int l,int mu):
+def is_switch_OA_srg(int v, int k, int l, int mu):
     r"""
     Test whether some *switch* `OA(k,n)+*` is `(v,k,\lambda,\mu)`-strongly regular.
 
@@ -1065,38 +1065,38 @@ def is_switch_OA_srg(int v,int k,int l,int mu):
 
     EXAMPLES::
 
-        sage: from sage.graphs.strongly_regular_db import is_switch_OA_srg
-        sage: t = is_switch_OA_srg(170, 78, 35, 36); t
-        (<cyfunction is_switch_OA_srg.<locals>.switch_OA_srg ...>, 6, 13)
-        sage: g = t[0](*t[1:]); g
+        sage: graphs.strongly_regular_graph(170, 78, 35, 36) # indirect doctest
         Graph on 170 vertices
-        sage: g.is_strongly_regular(parameters=True)
-        (170, 78, 35, 36)
-        sage: t = is_switch_OA_srg(5,5,5,5); t
 
     TESTS::
 
-        sage: is_switch_OA_srg(290, 136,  63,  64)
-        (<cyfunction is_switch_OA_srg.<locals>.switch_OA_srg at ..., 8, 17)
+        sage: from sage.graphs.strongly_regular_db import is_switch_OA_srg
+        sage: t = is_switch_OA_srg(5,5,5,5); t
+        sage: t = is_switch_OA_srg(170, 78, 35, 36);
+        sage: t[0](*t[1:]).is_strongly_regular(parameters=True)
+        (170, 78, 35, 36)
+        sage: t = is_switch_OA_srg(290, 136,  63,  64);
+        sage: t[0](*t[1:]).is_strongly_regular(parameters=True)
+        (290, 136, 63, 64)
         sage: is_switch_OA_srg(626, 300, 143, 144)
         (<cyfunction is_switch_OA_srg.<locals>.switch_OA_srg at ..., 12, 25)
         sage: is_switch_OA_srg(842, 406, 195, 196)
         (<cyfunction is_switch_OA_srg.<locals>.switch_OA_srg at ..., 14, 29)
 
     """
-    n_2_p_1 = v
-    if not is_square(n_2_p_1-1):
-        return None
-
     from sage.combinat.designs.orthogonal_arrays import orthogonal_array
-    from math import sqrt
-    cdef int n = int(sqrt(n_2_p_1-1))
+
+    cdef int n_2_p_1 = v
+    cdef int n = <int> floor(sqrt(n_2_p_1-1))
+
+    if n*n != n_2_p_1-1: # is it a square?
+        return None
 
     cdef int c = k/n
     if (k % n                            or
         l != c*c-1                       or
         k != 1+(c-1)*(c+1)+(n-c)*(n-c-1) or
-        not orthogonal_array(c+1,n,existence=True)):
+        not orthogonal_array(c+1,n,existence=True,resolvable=True)):
         return None
 
     def switch_OA_srg(c,n):

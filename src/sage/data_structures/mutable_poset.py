@@ -563,18 +563,10 @@ class MutablePosetShell(SageObject):
                 else:
                     # not null, not oo on the right
                     return False
-        if other.element is None:
-            if not other.successors():
-                # oo on the right
-                return True
-            else:
-                # null on the right
-                if self.element is None:
-                    # null or oo on the left
-                    return not self.predecessors()
-                else:
-                    # not null, not oo on the right
-                    return False
+        elif other.element is None:
+            # null/oo on the right
+            return not other.successors()
+
         return self.key <= other.key
 
 

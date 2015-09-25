@@ -93,6 +93,7 @@ cdef class PolynomialRealDense(Polynomial):
             TypeError: Unable to convert x (='a') to real number.
 
         Check that :trac:`17190` is fixed::
+
             sage: RR['x']({})
             0
         """

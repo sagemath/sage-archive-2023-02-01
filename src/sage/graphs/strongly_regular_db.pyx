@@ -1361,6 +1361,35 @@ def SRG_176_105_68_54():
     H = IncidenceStructure([x for x in W if 22 not in x])
     return H.intersection_graph(3)
 
+def SRG_243_110_37_60():
+    r"""
+    Return a `(243, 110, 37, 60)`-strongly regular graph.
+
+    To build this graph, we consider the orthogonal complement of the
+    :func:`~sage.coding.code_constructions.TernaryGolayCode`, which has 243
+    points. On those points we define a graph, in which two points are adjacent
+    when their hamming distance is equal to 9. This construction appears in
+    [GS75]_.
+
+    EXAMPLE::
+
+        sage: from sage.graphs.strongly_regular_db import SRG_243_110_37_60
+        sage: G = SRG_243_110_37_60()
+        sage: G.is_strongly_regular(parameters=True)
+        (243, 110, 37, 60)
+
+    REFERENCE:
+
+    .. [GS75] J.M. Goethals, and J. J. Seidel,
+       The regular two-graph on 276 vertices,
+       Discrete Mathematics 12, no. 2 (1975): 143-158.
+       http://dx.doi.org/10.1016/0012-365X(75)90029-1
+    """
+    from sage.coding.code_constructions import TernaryGolayCode
+    M = TernaryGolayCode().generator_matrix()
+    V = list(M.right_kernel())
+    return Graph([range(len(V)), lambda x,y:(V[x]-V[y]).hamming_weight() == 9 ])
+
 def SRG_253_140_87_65():
     r"""
     Return a `(253, 140, 87, 65)`-strongly regular graph.
@@ -1441,6 +1470,43 @@ def SRG_220_84_38_28():
     G = IncidenceStructure(BIBD_45_9_8()).intersection_graph(3)
     G.relabel()
     return G
+
+def SRG_276_140_58_84():
+    r"""
+    Return a `(276, 140, 58, 84)`-strongly regular graph.
+
+    The graph is built from from
+    :meth:`~sage.graphs.graph_generators.GraphGenerators.McLaughlinGraph`, with
+    an added isolated vertex. We then perform a
+    :meth:`~Graph.seidel_switching` on a set of 28 disjoint 5-cliques, which
+    exist by cf. [HT96]_.
+
+    EXAMPLE::
+
+        sage: from sage.graphs.strongly_regular_db import SRG_276_140_58_84
+        sage: g=SRG_276_140_58_84()                  # long time # optional - gap_packages
+        sage: g.is_strongly_regular(parameters=True) # long time # optional - gap_packages
+        (276, 140, 58, 84)
+
+    REFERENCE:
+
+    .. [HT96] W. H. Haemers and V. D. Tonchev,
+      Spreads in strongly regular graphs,
+      Designs, Codes and Cryptography 8 (1996) 145-157.
+    """
+    g = McLaughlinGraph()
+    C = [[ 0,  72,  87, 131, 136], [ 1,  35,  61, 102, 168], [ 2,  32,  97, 125, 197], [ 3,  22,  96, 103, 202],
+         [ 4,  46,  74, 158, 229], [ 5,  83,  93, 242, 261], [ 6,  26,  81, 147, 176], [ 7,  42,  63, 119, 263],
+         [ 8,  49,  64, 165, 227], [ 9,  70,  85, 208, 273], [10,  73,  92, 230, 268], [11,  54,  95, 184, 269],
+         [12,  55,  62, 185, 205], [13,  51,  65, 162, 254], [14,  78,  88, 231, 274], [15,  40,  59, 117, 252],
+         [16,  24,  71, 137, 171], [17,  39,  43, 132, 163], [18,  57,  79, 175, 271], [19,  68,  80, 217, 244],
+         [20,  75,  98, 239, 267], [21,  33,  56, 113, 240], [23, 127, 152, 164, 172], [25, 101, 128, 183, 264],
+         [27, 129, 154, 160, 201], [28, 126, 144, 161, 228], [29, 100, 133, 204, 266], [30, 108, 146, 200, 219]]
+    g.add_vertex(-1)
+    g.seidel_switching(sum(C,[]))
+    g.relabel()
+    g.name('')
+    return g
 
 def SRG_280_135_70_60():
     r"""
@@ -2325,12 +2391,14 @@ def strongly_regular_graph(int v,int k,int l,int mu=-1,bint existence=False,bint
         (196,  91,  42, 42): [SRG_196_91_42_42],
         (220,  84,  38, 28): [SRG_220_84_38_28],
         (231,  30,   9,  3): [CameronGraph],
+        (243, 110,  37, 60): [SRG_243_110_37_60],
         (243, 220, 199,200): [SRG_243_220_199_200],
         (253, 140,  87, 65): [SRG_253_140_87_65],
         (256, 170, 114,110): [SRG_256_170_114_110],
         (256, 187, 138,132): [SRG_256_187_138_132],
         (256, 153,  92, 90): [SRG_256_153_92_90],
         (275, 112,  30, 56): [McLaughlinGraph],
+        (276, 140,  58, 84): [SRG_276_140_58_84],
         (280, 135,  70, 60): [SRG_280_135_70_60],
         (416, 100,  36, 20): [SRG_416_100_36_20],
         (512, 219, 106, 84): [SRG_512_219_106_84],
@@ -2357,7 +2425,7 @@ def strongly_regular_graph(int v,int k,int l,int mu=-1,bint existence=False,bint
     test_functions = [is_paley, is_johnson,
                       is_orthogonal_array_block_graph,
                       is_steiner, is_affine_polar,
-                      is_orthogonal_polar, 
+                      is_orthogonal_polar,
                       is_NOodd, is_NOperp_F5, is_NO_F2, is_NO_F3, is_NU,
                       is_unitary_polar, is_unitary_dual_polar, is_GQqmqp,
                       is_RSHCD,

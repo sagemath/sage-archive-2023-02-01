@@ -962,14 +962,14 @@ class ModularFormsSpace(hecke.HeckeModule_generic):
             return f.parent()(e) == f
         raise NotImplementedError
 
-    def has_coerce_map_from_impl(self, from_par):
+    def _coerce_map_from_(self, from_par):
         """
         Code to make ModularFormsSpace work well with coercion framework.
 
         EXAMPLES::
 
             sage: M = ModularForms(22,2)
-            sage: M.has_coerce_map_from_impl(M.cuspidal_subspace())
+            sage: M.has_coerce_map_from(M.cuspidal_subspace())
             True
             sage: M.has_coerce_map_from(ModularForms(22,4))
             False

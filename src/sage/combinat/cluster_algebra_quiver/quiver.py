@@ -180,7 +180,7 @@ class ClusterQuiver(SageObject):
             sage: Q = ClusterQuiver(['A',4])
             sage: TestSuite(Q).run()
         """
-        from cluster_seed import ClusterSeed
+        from sage.combinat.cluster_algebra_quiver.cluster_seed import ClusterSeed
         from sage.matrix.matrix import Matrix
 
         # constructs a quiver from a mutation type
@@ -254,6 +254,7 @@ class ClusterQuiver(SageObject):
             self._n = data._n
             self._m = data._m
             self._digraph = copy( data._digraph )
+            self._vertex_dictionary = {}
             self._mutation_type = data._mutation_type
             self._description = data._description
 
@@ -268,6 +269,7 @@ class ClusterQuiver(SageObject):
             self._n = n = self._M.ncols()
             self._m = m = self._M.nrows() - self._n
             self._digraph = _matrix_to_digraph( self._M )
+            self._vertex_dictionary = {}
             self._mutation_type = None
             if n+m == 0:
                 self._description = 'Quiver without vertices'
@@ -326,6 +328,7 @@ class ClusterQuiver(SageObject):
             if not _principal_part(M).is_skew_symmetrizable( positive=True ):
                 raise ValueError("The input digraph must be skew-symmetrizable")
             self._digraph = dg
+            self._vertex_dictionary = {}
             self._M = M
             if n+m == 0:
                 self._description = 'Quiver without vertices'
@@ -383,17 +386,25 @@ class ClusterQuiver(SageObject):
             name += ' with %s frozen vertices'%self._m
         return name
 
-    def plot(self, circular=True, center=(0,0), directed=True, mark=None, save_pos=False):
+    def plot(self, circular=True, center=(0, 0), directed=True, mark=None,
+             save_pos=False, greens=[]):
         """
-        Returns the plot of the underlying digraph of ``self``.
+        Return the plot of the underlying digraph of ``self``.
 
         INPUT:
 
-        - ``circular`` -- (default:True) if True, the circular plot is chosen, otherwise >>spring<< is used.
-        - ``center`` -- (default:(0,0)) sets the center of the circular plot, otherwise it is ignored.
-        - ``directed`` -- (default: True) if True, the directed version is shown, otherwise the undirected.
-        - ``mark`` -- (default: None) if set to i, the vertex i is highlighted.
-        - ``save_pos`` -- (default:False) if True, the positions of the vertices are saved.
+        - ``circular`` -- (default: ``True``) if ``True``, the circular plot
+          is chosen, otherwise >>spring<< is used.
+        - ``center`` -- (default:(0,0)) sets the center of the circular plot,
+          otherwise it is ignored.
+        - ``directed`` -- (default: ``True``) if ``True``, the directed
+          version is shown, otherwise the undirected.
+        - ``mark`` -- (default: ``None``) if set to i, the vertex i is
+          highlighted.
+        - ``save_pos`` -- (default: ``False``) if ``True``, the positions
+          of the vertices are saved.
+        - ``greens`` -- (default: []) if set to a list, will display the green
+          vertices as green
 
         EXAMPLES::
 
@@ -403,10 +414,10 @@ class ClusterQuiver(SageObject):
         """
         from sage.plot.colors import rainbow
         from sage.graphs.graph_generators import GraphGenerators
-        from sage.all import e,pi,I
+        from sage.all import e, pi, I
         graphs = GraphGenerators()
         # returns positions for graph vertices on two concentric cycles with radius 1 and 2
-        def _graphs_concentric_circles(n,m):
+        def _graphs_concentric_circles(n, m):
             g1 = graphs.CycleGraph(n).get_pos()
             g2 = graphs.CycleGraph(m).get_pos()
             for i in g2:
@@ -419,6 +430,7 @@ class ClusterQuiver(SageObject):
         n, m = self._n, self._m
         colors = rainbow(11)
         color_dict = { colors[0]:[], colors[1]:[], colors[6]:[], colors[5]:[] }
+        
         if directed:
             dg = DiGraph( self._digraph )
         else:
@@ -448,7 +460,23 @@ class ClusterQuiver(SageObject):
             else:
                 raise ValueError("The given mark is not a vertex of self.")
         else:
-            partition = (range(n),range(n,n+m),[])
+            nr = range(n)
+            mr = range(n,n+m)
+            for i in greens:
+                if i < n:
+                    nr.remove(i)
+                else:
+                    mr.remove(i)
+            partition = (nr,mr,greens)
+            
+        # fix labels
+        for i in xrange(2):
+            for p in list(enumerate(partition[i])):
+                key = p[0]
+                part = p[1]
+                if part in self._vertex_dictionary:
+                    partition[0][key]= self._vertex_dictionary[part]
+        
         vertex_color_dict = {}
         vertex_color_dict[ colors[0] ] = partition[0]
         vertex_color_dict[ colors[6] ] = partition[1]
@@ -459,6 +487,7 @@ class ClusterQuiver(SageObject):
             'edge_colors': color_dict,
             'vertex_colors': vertex_color_dict,
             'edge_labels' : True,
+            'vertex_labels': True,
         }
         if circular:
             pp = _graphs_concentric_circles( n, m )
@@ -467,17 +496,23 @@ class ClusterQuiver(SageObject):
             options[ 'pos' ] = pp
         return dg.plot( **options )
 
-    def show(self, fig_size=1, circular=False, directed=True, mark=None, save_pos=False):
+    def show(self, fig_size=1, circular=False, directed=True, mark=None, save_pos=False, greens=[]):
         """
-        Shows the plot of the underlying digraph of ``self``.
+        Show the plot of the underlying digraph of ``self``.
 
         INPUT:
 
-        - ``fig_size`` -- (default: 1) factor by which the size of the plot is multiplied.
-        - ``circular`` -- (default: False) if True, the circular plot is chosen, otherwise >>spring<< is used.
-        - ``directed`` -- (default: True) if True, the directed version is shown, otherwise the undirected.
+        - ``fig_size`` -- (default: 1) factor by which the size of the plot
+          is multiplied.
+        - ``circular`` -- (default: False) if True, the circular plot is
+          chosen, otherwise >>spring<< is used.
+        - ``directed`` -- (default: True) if True, the directed version is
+          shown, otherwise the undirected.
         - ``mark`` -- (default: None) if set to i, the vertex i is highlighted.
-        - ``save_pos`` -- (default:False) if True, the positions of the vertices are saved.
+        - ``save_pos`` -- (default:False) if True, the positions of the
+          vertices are saved.
+        - ``greens`` -- (default:[]) if set to a list, will display the green
+          vertices as green
 
         TESTS::
 
@@ -485,7 +520,7 @@ class ClusterQuiver(SageObject):
             sage: Q.show() # long time
         """
         n, m = self._n, self._m
-        plot = self.plot( circular=circular, directed=directed, mark=mark, save_pos=save_pos )
+        plot = self.plot( circular=circular, directed=directed, mark=mark, save_pos=save_pos, greens=greens)
         if circular:
             plot.show( figsize=[fig_size*3*(n+m)/4+1,fig_size*3*(n+m)/4+1] )
         else:
@@ -587,8 +622,7 @@ class ClusterQuiver(SageObject):
 
             sage: S=ClusterSeed(['A',3])
             sage: T1=S.principal_extension()
-            sage: T2=T1.principal_extension(ignore_coefficients=True)
-            sage: Q=T2.quiver()
+            sage: Q=T1.quiver()
             sage: Q.qmu_save(os.path.join(SAGE_TMP, 'sage.qmu'))
         """
         M = self.b_matrix()
@@ -1055,13 +1089,88 @@ class ClusterQuiver(SageObject):
         else:
             return Q
 
+
+    def first_sink(self):
+        r"""
+        Return the first vertex of ``self`` that is a sink
+
+        EXAMPLES::
+
+            sage: Q = ClusterQuiver(['A',5]);
+            sage: Q.mutate([1,2,4,3,2]);
+            sage: Q.first_sink()
+            0
+        """
+        sinks = self.digraph().sinks()
+
+        if len(sinks) > 0:
+            return sinks[0]
+        return None
+
+
+    def sinks(self):
+        r"""
+        Return all vertices of ``self`` that are sinks
+
+        EXAMPLES::
+
+            sage: Q = ClusterQuiver(['A',5]);
+            sage: Q.mutate([1,2,4,3,2]);
+            sage: Q.sinks()
+            [0, 2]
+
+            sage: Q = ClusterQuiver(['A',5])
+            sage: Q.mutate([2,1,3,4,2])
+            sage: Q.sinks()
+            [3]
+        """
+        return self.digraph().sinks()
+
+    def first_source(self):
+        r"""
+        Return the first vertex of ``self`` that is a source
+
+        EXAMPLES::
+
+            sage: Q = ClusterQuiver(['A',5])
+            sage: Q.mutate([2,1,3,4,2])
+            sage: Q.first_source()
+            1
+        """
+        sources = self.digraph().sources()
+
+        if len(sources) > 0:
+            return sources[0]
+        return None
+
+    def sources(self):
+        r"""
+        Returns all vertices of ``self`` that are sources
+
+        EXAMPLES::
+
+            sage: Q = ClusterQuiver(['A',5]);
+            sage: Q.mutate([1,2,4,3,2]);
+            sage: Q.sources()
+            []
+
+            sage: Q = ClusterQuiver(['A',5])
+            sage: Q.mutate([2,1,3,4,2])
+            sage: Q.sources()
+            [1]
+        """
+        return self.digraph().sources()
+
     def mutate(self, data, inplace=True):
         """
         Mutates ``self`` at a sequence of vertices.
 
         INPUT:
 
-        - ``sequence`` -- a vertex of ``self`` or an iterator of vertices of ``self``.
+        - ``sequence`` -- a vertex of ``self``, an iterator of vertices of ``self``,
+          a function which takes in the ClusterQuiver and returns a vertex or an iterator of vertices,
+          or a string of the parameter wanting to be called on ClusterQuiver that will return a vertex or 
+          an iterator of vertices.
         - ``inplace`` -- (default: True) if False, the result is returned, otherwise ``self`` is modified.
 
         EXAMPLES::
@@ -1102,6 +1211,21 @@ class ClusterQuiver(SageObject):
             sage: T = Q.mutate(0,inplace=False)
             sage: Q == T
             True
+            
+            sage: Q = ClusterQuiver(['A',3]); Q.b_matrix()
+            [ 0  1  0]
+            [-1  0 -1]
+            [ 0  1  0]
+            sage: Q.mutate('first_sink'); Q.b_matrix()
+            [ 0 -1  0]
+            [ 1  0  1]
+            [ 0 -1  0]
+            sage: Q.mutate('first_source'); Q.b_matrix()
+            [ 0  1  0]
+            [-1  0 -1]
+            [ 0  1  0]
+
+
 
         TESTS::
 
@@ -1115,10 +1239,24 @@ class ClusterQuiver(SageObject):
             ...
             ValueError: The second parameter must be boolean.  To mutate at a sequence of length 2, input it as a list.
         """
+
         n = self._n
         m = self._m
         dg = self._digraph
         V = range(n)
+
+        # If we get a string, execute as a function
+        if isinstance(data, str):
+            data = getattr(self, data)()
+
+        # If we get a function, execute it
+        if hasattr(data, '__call__'):
+            # function should return either integer or sequence
+            data = data(self)
+
+        if data is None:
+            raise ValueError('Not mutating: No vertices given.')
+
 
         if data in V:
             seq = [data]
@@ -1585,3 +1723,57 @@ class ClusterQuiver(SageObject):
             return is_finite, path
         else:
             return is_finite
+
+    def number_of_edges(self):
+        r"""
+        Return the total number of edges on the quiver
+
+        Note: This only works with non-valued quivers. If used on a
+        non-valued quiver then the positive value is taken to be the number of edges added
+
+        OUTPUT:
+        
+        Returns an integer of the number of edges
+
+        EXAMPLES::
+        
+            sage: S = ClusterQuiver(['A',4]); S.number_of_edges()
+            3
+            
+            sage: S = ClusterQuiver(['B',4]); S.number_of_edges()
+            3
+
+        """
+
+        digraph_edges = self.digraph().edges()
+
+        total_edges = 0
+        for edge in digraph_edges:
+            total_edges += edge[2][0]
+
+        return total_edges
+
+    def relabel(self, relabelling, inplace=True):
+        r"""
+        Returns the quiver after doing a relabelling
+        
+        Will relabel the vertices of the quiver
+        
+        INPUT:
+        
+        - ``relabelling`` -- Dictionary of labels to move around
+        - ``inplace`` -- (default:True) if True, will return a duplicate of the quiver
+        
+        EXAMPLES::
+        
+            sage: S = ClusterQuiver(['A',4]).relabel({1:'5',2:'go'})
+        
+        """
+        if inplace:
+            quiver = self
+        else:
+            quiver = ClusterQuiver(self)
+        quiver._digraph.relabel(relabelling)
+        quiver._vertex_dictionary = relabelling
+        return quiver
+        

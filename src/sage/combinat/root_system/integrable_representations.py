@@ -5,7 +5,7 @@ Integrable Representations of Affine Lie Algebras
 #*****************************************************************************
 #  Copyright (C) 2014, 2105 Daniel Bump <bump at match.stanford.edu>
 #                           Travis Scrimshaw <tscrim at ucdavis.edu>
-#                           Twisted Affine case: Valentin Buciumas <buciumas at stanford.edu>
+#                           Valentin Buciumas <buciumas at stanford.edu>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
@@ -152,8 +152,11 @@ class IntegrableRepresentation(CategoryObject, UniqueRepresentation):
         2*Lambda[1] - delta: 1 4 15 44 122 304 721 1612 3469 7176 14414 28124
         2*Lambda[2] - 2*delta: 2 7 26 72 194 467 1084 2367 5010 10191 20198 38907
         
-    Two examples for twisted affine types::
+    Examples for twisted affine types::
     
+        sage: Lambda = RootSystem(["A",2,2]).weight_lattice(extended=True).fundamental_weights()
+        sage: IntegrableRepresentation(Lambda[0]).strings()
+        {Lambda[0]: [1, 1, 2, 3, 5, 7, 11, 15, 22, 30, 42, 56]}
         sage: Lambda = RootSystem(['G',2,1]).dual.weight_lattice(extended=true).fundamental_weights()
         sage: V = IntegrableRepresentation(Lambda[0]+Lambda[1]+Lambda[2])
         sage: V.print_strings() # long time
@@ -495,8 +498,7 @@ class IntegrableRepresentation(CategoryObject, UniqueRepresentation):
         """
         mu = self._P(mu)
         zero = ZZ.zero()
-        n0 = mu.monomial_coefficients().get('delta', zero)
-        mu0 = mu - n0 * self._P.simple_root(self._cartan_type.special_node())
+        n0 = mu.monomial_coefficients().get('delta', zero)        mu0 = mu - n0 * self._P.simple_root(self._cartan_type.special_node())
         ret = [n0] # This should be in ZZ because it is in the weight lattice
         mc_mu0 = mu0.monomial_coefficients()
         for ii, i in enumerate(self._index_set_classical):
@@ -618,7 +620,7 @@ class IntegrableRepresentation(CategoryObject, UniqueRepresentation):
         Return the set of real positive roots `\alpha \in \Delta^+` in
         ``self`` such that `\nu - \alpha \in Q^+`.
         
-        See [Kac] Proposition 6.3 for the way to compute the set of real roots for twisted affine case.
+        See [Kac]_ Proposition 6.3 for the way to compute the set of real roots for twisted affine case.
         
         INPUT:
 
@@ -641,9 +643,6 @@ class IntegrableRepresentation(CategoryObject, UniqueRepresentation):
         for al in self._classical_positive_roots:
             if all(x >= 0 for x in self._from_weight_helper(nu-al)):
                 ret.append(al)
-        """
-        changed the way you compute the set of real roots for twisted affine case, see [Kac] page 83
-        """
         from sage.combinat.root_system.cartan_type import CartanType
         if self._cartan_type == CartanType(['B',self._classical_rank,1]).dual() or self._cartan_type == CartanType(['C',self._classical_rank,1]).dual() or self._cartan_type == CartanType(['F',4,1]).dual(): #case A^2_{2l-1} or case D^2_{l+1} or case E^2_6:
             for al in self._classical_roots:
@@ -670,7 +669,7 @@ class IntegrableRepresentation(CategoryObject, UniqueRepresentation):
                         if sum([val*alpha[i] for i,val in enumerate(n)]) not in ret:
                             ret.append(sum([val*alpha[i] for i,val in enumerate(n)]))
     
-        elif self._cartan_type == CartanType(['D',4,3]) or self._cartan_type == CartanType(['G',2,1]).dual(): # case D^3_4 in the Kac/Stembridge notation
+        elif self._cartan_type == CartanType(['D',4,3]) or self._cartan_type == CartanType(['G',2,1]).dual(): # case D^3_4 in the Kac notation
             for al in self._classical_roots:
                 if self._inner_qq(al,al) == 2: #if al is a short root:
                     for ir in self._freudenthal_roots_imaginary(nu-al):
@@ -723,8 +722,8 @@ class IntegrableRepresentation(CategoryObject, UniqueRepresentation):
         Compute the weight multiplicity using the Freudenthal
         multiplicity formula in ``self``.
         The multiplicities of the imaginary roots for the twisted 
-        affine case are different than those for the untwisted case,
-        see [Carter]_ Corollary 18.10 for general type and Corollary 
+        affine case are different than those for the untwisted case.
+        See [Carter]_ Corollary 18.10 for general type and Corollary
         18.15 for `A^2_{2l}`
         
         EXAMPLES::
@@ -756,7 +755,6 @@ class IntegrableRepresentation(CategoryObject, UniqueRepresentation):
             for k in dict: # k is a positive number, dict[k] is k*delta
                 num += (self._classical_rank-k%2) * self._freudenthal_accum(mu, dict[k])
 
-
         elif self._cartan_type == CartanType(['BC',self._classical_rank,2]):
             for al in self._freudenthal_roots_imaginary(self._Lam - mu):
                 num += self._classical_rank * self._freudenthal_accum(mu, al)
@@ -785,7 +783,6 @@ class IntegrableRepresentation(CategoryObject, UniqueRepresentation):
         else:
             for al in self._freudenthal_roots_imaginary(self._Lam - mu):
                 num += self._classical_rank * self._freudenthal_accum(mu, al)
-
 
         try:
             return ZZ(num / den)

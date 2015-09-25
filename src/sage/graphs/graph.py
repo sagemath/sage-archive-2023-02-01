@@ -1868,6 +1868,19 @@ class Graph(GenericGraph):
             - :meth:`~sage.graphs.graph.Graph.random_spanning_tree`
               -- returns a random spanning tree.
 
+        TESTS:
+
+        Works with looped graphs::
+
+            sage: g = Graph({i:[i,(i+1)%6] for i in range(6)})
+            sage: g.spanning_trees()
+            [Graph on 6 vertices,
+             Graph on 6 vertices,
+             Graph on 6 vertices,
+             Graph on 6 vertices,
+             Graph on 6 vertices,
+             Graph on 6 vertices]
+
         REFERENCES:
 
         .. [RT75] Read, R. C. and Tarjan, R. E.
@@ -1886,7 +1899,7 @@ class Graph(GenericGraph):
                 return [forest.copy()]
             else:
                 # Pick an edge e from G-forest
-                for e in G.edges():
+                for e in G.edge_iterator(labels=False):
                     if not forest.has_edge(e):
                         break
 
@@ -1919,7 +1932,7 @@ class Graph(GenericGraph):
             forest = Graph([])
             forest.add_vertices(self.vertices())
             forest.add_edges(self.bridges())
-            return _recursive_spanning_trees(self, forest)
+            return _recursive_spanning_trees(Graph(self,immutable=False,loops=False), forest)
         else:
             return []
 

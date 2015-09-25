@@ -94,9 +94,8 @@ a robust manner::
     sage: a = octave.eval(t + ';')    # optional - octave, < 1/100th of a second
     sage: a = octave(t)               # optional - octave
 
-Note that actually reading a back out takes forever. This *must*
-be fixed ASAP - see
-http://trac.sagemath.org/sage_trac/ticket/940/.
+Note that actually reading ``a`` back out takes forever. This *must*
+be fixed as soon as possible, see :trac:`940`.
 
 Tutorial
 --------
@@ -286,7 +285,7 @@ class Octave(Expect):
         # to signals.
         if not self._expect is None:
             if verbose:
-                print "Exiting spawned %s process."%self
+                print "Exiting spawned %s process." % self
         return
 
     def _start(self):
@@ -308,9 +307,38 @@ class Octave(Expect):
         # set random seed
         self.set_seed(self._seed)
 
+    def _equality_symbol(self):
+        """
+        EXAMPLES::
+
+            sage: octave('0 == 1')
+             0
+            sage: octave('1 == 1')
+             1
+        """
+        return '=='
+
+    def _true_symbol(self):
+        """
+        EXAMPLES::
+
+            sage: octave('1 == 1')
+             1
+        """
+        return '1'
+
+    def _false_symbol(self):
+        """
+        EXAMPLES::
+
+            sage: octave('0 == 1')
+             0
+        """
+        return '0'
+
     def set(self, var, value):
         """
-        Set the variable var to the given value.
+        Set the variable ``var`` to the given ``value``.
 
         EXAMPLES::
 
@@ -325,7 +353,7 @@ class Octave(Expect):
 
     def get(self, var):
         """
-        Get the value of the variable var.
+        Get the value of the variable ``var``.
 
         EXAMPLES::
 
@@ -387,18 +415,16 @@ class Octave(Expect):
         return octave_version()
 
     def solve_linear_system(self, A, b):
-        """
+        r"""
         Use octave to compute a solution x to A\*x = b, as a list.
 
         INPUT:
 
+        - ``A`` -- mxn matrix A with entries in `\QQ` or `\RR`
 
-        -  ``A`` - mxn matrix A with entries in QQ or RR
+        - ``b`` -- m-vector b entries in `\QQ` or `\RR` (resp)
 
-        -  ``b`` - m-vector b entries in QQ or RR (resp)
-
-
-        OUTPUT: An list x (if it exists) which solves M\*x = b
+        OUTPUT: A list x (if it exists) which solves M\*x = b
 
         EXAMPLES::
 

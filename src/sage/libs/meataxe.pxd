@@ -56,8 +56,8 @@ cdef extern from "meataxe.h":
     # FEL FfMul(FEL a, FEL b)
     # FEL FfDiv(FEL a, FEL b)
     # FEL FfInv(FEL a)
-    # FEL FfEmbed(FEL a, int subfield)
-    # FEL FfRestrict(FEL a, int subfield)
+    # FEL FfEmbed(FEL a, int subfield) except 255
+    # FEL FfRestrict(FEL a, int subfield) except 255
     FEL FfFromInt(int l)
     int FfToInt(FEL f)
 
@@ -97,8 +97,8 @@ cdef extern from "meataxe.h":
     ## Basic memory operations
     Matrix_t *MatAlloc(int field, int nor, int noc) except NULL
     int MatFree(Matrix_t *mat)
-    PTR MatGetPtr(Matrix_t *mat, int row)
-    int MatCompare(Matrix_t *a, Matrix_t *b) except? -1
+    PTR MatGetPtr(Matrix_t *mat, int row) except NULL
+    int MatCompare(Matrix_t *a, Matrix_t *b) except -2
     int MatCopyRegion(Matrix_t *dest, int destrow, int destcol, Matrix_t *src, int row1, int col1, int nrows, int ncols) except -1
     Matrix_t *MatCut(Matrix_t *src, int row1, int col1, int nrows, int ncols) except NULL
     Matrix_t *MatCutRows(Matrix_t *src, int row1, int nrows) except NULL
@@ -115,11 +115,15 @@ cdef extern from "meataxe.h":
     Matrix_t *MatMul(Matrix_t *dest, Matrix_t *src) except NULL
     Matrix_t *MatMulScalar(Matrix_t *dest, FEL coeff) except NULL
     Matrix_t *MatPower(Matrix_t *mat, long n) except NULL
-    FEL MatTrace(Matrix_t *mat)
+    int StablePower(Matrix_t *mat, int *pwr, Matrix_t **ker) except -1
+    FEL MatTrace(Matrix_t *mat) except 255
     Matrix_t *MatMulStrassen(Matrix_t *dest, Matrix_t *A, Matrix_t *B) except NULL
     void StrassenSetCutoff(size_t size)
 
     ## "Higher" Arithmetic
+    Matrix_t *MatTensor(Matrix_t *m1, Matrix_t *m2) except NULL
+    Matrix_t *TensorMap(Matrix_t *vec, Matrix_t *a, Matrix_t *b) except NULL
+    
     int MatClean(Matrix_t *mat, Matrix_t *sub) except -1
     int MatEchelonize(Matrix_t *mat) except -1
     int MatOrder(Matrix_t *mat) except? -1

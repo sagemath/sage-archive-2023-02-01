@@ -1,3 +1,4 @@
+Include a test for the bug reported in http://trac.sagemath.org/ticket/19280 .
 diff -ruN mpir-2.7.0/tests/mpz/Makefile.am mpir-2.7.0-patched/tests/mpz/Makefile.am
 --- mpir-2.7.0/tests/mpz/Makefile.am	2015-06-09 19:18:27.000000000 +0200
 +++ mpir-2.7.0-patched/tests/mpz/Makefile.am	2015-09-24 18:39:33.093974089 +0200

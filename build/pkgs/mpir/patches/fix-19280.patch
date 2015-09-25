@@ -1,3 +1,5 @@
+Apply the fix proposed in http://trac.sagemath.org/ticket/18546#comment:23
+to the bug reported in http://trac.sagemath.org/ticket/19280 .
 diff -ru mpir-2.7.0/mpn/x86/applenopic/core2/gmp-mparam.h mpir-2.7.0-new/mpn/x86/applenopic/core2/gmp-mparam.h
 --- mpir-2.7.0/mpn/x86/applenopic/core2/gmp-mparam.h	2015-05-30 05:15:49.000000000 +0200
 +++ mpir-2.7.0-new/mpn/x86/applenopic/core2/gmp-mparam.h	2015-09-24 19:31:45.060547384 +0200

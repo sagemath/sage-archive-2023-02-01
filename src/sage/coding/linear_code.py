@@ -92,10 +92,10 @@ EXAMPLES::
     sage: G = MS([[1,1,1,0,0,0,0], [1,0,0,1,1,0,0], [0,1,0,1,0,1,0], [1,1,0,1,0,0,1]])
     sage: C = LinearCode(G)
     sage: C.basis()
-    [1 1 1 0 0 0 0]
-    [1 0 0 1 1 0 0]
-    [0 1 0 1 0 1 0]
-    [1 1 0 1 0 0 1]
+    [(1, 1, 1, 0, 0, 0, 0),
+     (1, 0, 0, 1, 1, 0, 0),
+     (0, 1, 0, 1, 0, 1, 0),
+     (1, 1, 0, 1, 0, 0, 1)]
     sage: c = C.basis()[1]
     sage: c in C
     True
@@ -1030,18 +1030,15 @@ class AbstractLinearCode(module.Module):
 
     def basis(self):
         r"""
-        Returns a basis of ``self`` as a matrix of the :meth:`ambient_space`.
+        Returns a basis of `self`.
 
         EXAMPLES::
 
             sage: C = codes.HammingCode(3, GF(2))
             sage: C.basis()
-            [1 0 0 0 0 1 1]
-            [0 1 0 0 1 0 1]
-            [0 0 1 0 1 1 0]
-            [0 0 0 1 1 1 1]
+            [(1, 0, 0, 0, 0, 1, 1), (0, 1, 0, 0, 1, 0, 1), (0, 0, 1, 0, 1, 1, 0), (0, 0, 0, 1, 1, 1, 1)]
         """
-        return self.generator_matrix()
+        return self.gens()
 
     # S. Pancratz, 19 Jan 2010:  In the doctests below, I removed the example
     # ``C.binomial_moment(3)``, which was also marked as ``#long``.  This way,
@@ -3320,9 +3317,9 @@ class LinearCode(AbstractLinearCode):
             ....:             [a, a + 1, 1, a + 1, 1, 0, 0]])
             sage: C = LinearCode(G)
             sage: C.basis()
-            [    1     0     0 a + 1     0     1     0]
-            [    0     1     0     0 a + 1     0     1]
-            [    0     0     1     a a + 1     a a + 1]
+            [(1, 0, 0, a + 1, 0, 1, 0),
+             (0, 1, 0, 0, a + 1, 0, 1),
+             (0, 0, 1, a, a + 1, a, a + 1)]
             sage: C.minimum_distance()
             3
 

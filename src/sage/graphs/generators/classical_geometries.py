@@ -936,7 +936,7 @@ def TaylorTwographSRG(q):
     G.name("Taylor two-graph SRG")
     return G
 
-def AhrensSzekeresGQGraph(q, dual=False):
+def AhrensSzekeresGeneralizedQuadrangleGraph(q, dual=False):
     r"""
     Return the collinearity graph of the generalized quadrangle `AS(q)`, or of its dual
 
@@ -959,11 +959,11 @@ def AhrensSzekeresGQGraph(q, dual=False):
 
     EXAMPLES::
 
-        sage: g=graphs.AhrensSzekeresGQGraph(5); g
+        sage: g=graphs.AhrensSzekeresGeneralizedQuadrangleGraph(5); g
         AS(5); GQ(4, 6): Graph on 125 vertices
         sage: g.is_strongly_regular(parameters=True)
         (125, 28, 3, 7)
-        sage: g=graphs.AhrensSzekeresGQGraph(5,dual=True); g
+        sage: g=graphs.AhrensSzekeresGeneralizedQuadrangleGraph(5,dual=True); g
         AS(5)*; GQ(6, 4): Graph on 175 vertices
         sage: g.is_strongly_regular(parameters=True)
         (175, 30, 5, 5)
@@ -998,11 +998,11 @@ def AhrensSzekeresGQGraph(q, dual=False):
         G.name('AS('+str(q)+'); GQ'+str((q-1,q+1)))
     return G
 
-def T2starGQGraph(q, dual=False, hyperoval=None, field=None, check_hyperoval=True):
+def T2starGeneralizedQuadrangleGraph(q, dual=False, hyperoval=None, field=None, check_hyperoval=True):
     r"""
     Return the collinearity graph of the generalized quadrangle `T_2^*(q)`, or of its dual
 
-    Let `q=2^k` and `\Theta=PG(3,q)`.  `T_2^*(q)` is a generalised quadrangle [GQwiki]_
+    Let `q=2^k` and `\Theta=PG(3,q)`.  `T_2^*(q)` is a generalized quadrangle [GQwiki]_
     of order `(q-1,q+1)`, see 3.1.3 in [PT09]_. Fix a plane `\Pi \subset \Theta` and a
     `hyperoval <http://en.wikipedia.org/wiki/Oval_(projective_plane)#Even_q>`__
     `O \subset \Pi`. The points of `T_2^*(q):=T_2^*(O)` are the points of `\Theta`
@@ -1035,11 +1035,11 @@ def T2starGQGraph(q, dual=False, hyperoval=None, field=None, check_hyperoval=Tru
 
     using the built-in construction::
 
-        sage: g=graphs.T2starGQGraph(4); g
+        sage: g=graphs.T2starGeneralizedQuadrangleGraph(4); g
         T2*(O,4); GQ(3, 5): Graph on 64 vertices
         sage: g.is_strongly_regular(parameters=True)
         (64, 18, 2, 6)
-        sage: g=graphs.T2starGQGraph(4,dual=True); g
+        sage: g=graphs.T2starGeneralizedQuadrangleGraph(4,dual=True); g
         T2*(O,4)*; GQ(5, 3): Graph on 96 vertices
         sage: g.is_strongly_regular(parameters=True)
         (96, 20, 4, 4)
@@ -1048,7 +1048,7 @@ def T2starGQGraph(q, dual=False, hyperoval=None, field=None, check_hyperoval=Tru
 
         sage: F=GF(4,'b')
         sage: O=[vector(F,(0,0,0,1)),vector(F,(0,0,1,0))]+map(lambda x: vector(F, (0,1,x^2,x)),F)
-        sage: g=graphs.T2starGQGraph(4, hyperoval=O, field=F); g
+        sage: g=graphs.T2starGeneralizedQuadrangleGraph(4, hyperoval=O, field=F); g
         T2*(O,4); GQ(3, 5): Graph on 64 vertices
         sage: g.is_strongly_regular(parameters=True)
         (64, 18, 2, 6)
@@ -1057,12 +1057,12 @@ def T2starGQGraph(q, dual=False, hyperoval=None, field=None, check_hyperoval=Tru
 
         sage: F=GF(4,'b') # repeating a point...
         sage: O=[vector(F,(0,1,0,0)),vector(F,(0,0,1,0))]+map(lambda x: vector(F, (0,1,x^2,x)),F)
-        sage: graphs.T2starGQGraph(4, hyperoval=O, field=F)
+        sage: graphs.T2starGeneralizedQuadrangleGraph(4, hyperoval=O, field=F)
         Traceback (most recent call last):
         ...
         RuntimeError: incorrect hyperoval size
         sage: O=[vector(F,(0,1,1,0)),vector(F,(0,0,1,0))]+map(lambda x: vector(F, (0,1,x^2,x)),F)
-        sage: graphs.T2starGQGraph(4, hyperoval=O, field=F)
+        sage: graphs.T2starGeneralizedQuadrangleGraph(4, hyperoval=O, field=F)
         Traceback (most recent call last):
         ...
         RuntimeError: incorrect hyperoval

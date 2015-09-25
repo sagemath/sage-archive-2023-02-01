@@ -1,4 +1,4 @@
-$(INST)/$(IGRAPH) $(INST)/$(PYTHON)
+| $(SAGERUNTIME)
 
 ----------
 All lines of this file are ignored except the first.

@@ -8,7 +8,6 @@ Hopf algebras
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
 #******************************************************************************
-
 from sage.misc.lazy_import import LazyImport
 from category import Category
 from category_types import Category_over_base_ring
@@ -46,7 +45,7 @@ class HopfAlgebras(Category_over_base_ring):
 
     def dual(self):
         """
-        Returns the dual category
+        Return the dual category
 
         EXAMPLES:
 
@@ -61,9 +60,10 @@ class HopfAlgebras(Category_over_base_ring):
     WithBasis = LazyImport('sage.categories.hopf_algebras_with_basis',  'HopfAlgebrasWithBasis')
 
     class ElementMethods:
+
         def antipode(self):
             """
-            Returns the antipode of self.
+            Return the antipode of self
 
             EXAMPLES::
 

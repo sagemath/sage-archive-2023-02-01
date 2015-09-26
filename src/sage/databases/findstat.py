@@ -236,19 +236,20 @@ FINDSTAT_MAX_DEPTH = 5
 FINDSTAT_MAX_SUBMISSION_VALUES = 1200
 
 # the fields of the FindStat database we expect
-FINDSTAT_STATISTIC_IDENTIFIER      = 'StatisticIdentifier'
-FINDSTAT_STATISTIC_COLLECTION      = 'StatisticCollection'
-FINDSTAT_STATISTIC_DATA            = 'StatisticData'
-FINDSTAT_STATISTIC_DESCRIPTION     = 'StatisticDescription'
-FINDSTAT_STATISTIC_REFERENCES      = 'StatisticReferences'
-FINDSTAT_STATISTIC_CODE            = 'StatisticCode'
-FINDSTAT_STATISTIC_ORIGINAL_AUTHOR = 'StatisticOriginalAuthor' # unused, designates a dictionary with Name, Email, Time
-FINDSTAT_STATISTIC_UPDATE_AUTHOR   = 'StatisticUpdateAuthor'   # unused, designates a dictionary with Name, Email, Time
+FINDSTAT_STATISTIC_IDENTIFIER                   = 'StatisticIdentifier'
+FINDSTAT_STATISTIC_COLLECTION                   = 'StatisticCollection'
+FINDSTAT_STATISTIC_DATA                         = 'StatisticData'
+FINDSTAT_STATISTIC_DESCRIPTION                  = 'StatisticDescription'
+FINDSTAT_STATISTIC_REFERENCES                   = 'StatisticReferences'
+FINDSTAT_STATISTIC_CODE                         = 'StatisticCode'
+FINDSTAT_STATISTIC_GENERATING_FUNCTION          = 'StatisticGeneratingFunction'
+FINDSTAT_STATISTIC_ORIGINAL_AUTHOR              = 'StatisticOriginalAuthor' # unused, designates a dictionary with Name, Time
+FINDSTAT_STATISTIC_UPDATE_AUTHOR                = 'StatisticUpdateAuthor'   # unused, designates a dictionary with Name, Time
 
-FINDSTAT_POST_AUTHOR               = 'StatisticAuthor' # designates the name of the author
-FINDSTAT_POST_EMAIL                = 'StatisticEmail'
-FINDSTAT_POST_SAGE_CELL            = 'SageCellField'   # currently only used as post key
-FINDSTAT_POST_EDIT                 = 'EDIT'            # only used as post key
+FINDSTAT_POST_AUTHOR                            = 'StatisticAuthor' # designates the name of the author
+FINDSTAT_POST_EMAIL                             = 'StatisticEmail'
+FINDSTAT_POST_SAGE_CELL                         = 'SageCellField'   # currently only used as post key
+FINDSTAT_POST_EDIT                              = 'EDIT'            # only used as post key
 
 FINDSTAT_COLLECTION_IDENTIFIER                = 'CollectionIdentifier'
 FINDSTAT_COLLECTION_NAME                      = 'CollectionName'
@@ -863,6 +864,7 @@ class FindStatStatistic(SageObject):
         self._references = self._raw[FINDSTAT_STATISTIC_REFERENCES].encode("utf-8")
         self._collection = FindStatCollection(self._raw[FINDSTAT_STATISTIC_COLLECTION])
         self._code = self._raw[FINDSTAT_STATISTIC_CODE]
+        self._generating_function = self._raw[FINDSTAT_STATISTIC_GENERATING_FUNCTION]
 
         from_str = self._collection.from_string()
         # we want to keep FindStat's ordering here!
@@ -1171,6 +1173,72 @@ class FindStatStatistic(SageObject):
         else:
             return ""
 
+    def generating_functions(self, as_type="polynomial"):
+        r"""
+        Return the generating functions of ``self`` in a dictionary.
+
+        The keys of this dictionary are the levels for which the
+        generating function of ``self`` can be computed from the data
+        of this statistic, and each value represents a generating
+        function for one level, as a polynomial, as a dictionary, or as
+        an OEIS search string.
+
+        INPUT:
+
+        - a string -- (default:"polynomial") can be
+          "polynomial" and "dictionary".
+
+        OUTPUT:
+
+        - if ``as_type`` is ``"polynomial"``, the generating function is
+          returned as a polynomial.
+
+        - if ``as_type`` is ``"dictionary"``, the generating function is
+         returned as a dictionary representing the monomials of the
+         generating function.
+
+        EXAMPLES::
+
+            sage: tba
+            sage: tba
+        """
+        from ast import literal_eval
+        gen_dicts = { literal_eval(key) : { literal_eval(inner_key) : inner_value for inner_key,inner_value in value.iteritems() } for key,value in self._generating_function.iteritems() }
+        if as_type == "dictionary":
+            return gen_dicts
+        elif as_type == "polynomial":
+            from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
+            from sage.rings.integer_ring import ZZ
+            P = PolynomialRing(ZZ,"q")
+            q = P.gen()
+            return { level : sum( coefficient * q**exponent for exponent,coefficient in gen_dict.iteritems() ) for level,gen_dict in gen_dicts.iteritems() }
+        else:
+            raise ValueError("The argument 'as-type' (='%s') must be 'dictionary' or 'polynomial'"%as_type)
+
+    def search_oeis_for_generating_function(self):
+        r"""
+        Returns the OEIS search for the generating function of ``self``.
+
+        EXAMPLES::
+
+            sage: tba
+            sage: tba
+        """
+        from sage.databases.oeis import oeis
+        gen_funcs = self.generating_functions(as_type="dictionary")
+        OEIS_string = ""
+        for key in sorted(gen_funcs.keys()):
+            gen_func = gen_funcs[key]
+            print gen_func
+            OEIS_func_string    = ",".join( str(gen_func[deg]) if deg in gen_func else "0" for deg in range(max(gen_func)+1) )
+            while OEIS_func_string.startswith("0,"):
+                OEIS_func_string = OEIS_func_string[2:]
+            while OEIS_func_string.endswith(",0"):
+                OEIS_func_string = OEIS_func_string[:2]
+            if OEIS_func_string.count(",") > 2:
+                OEIS_string     += OEIS_func_string + "   "
+        return oeis( OEIS_string )
+
     def description(self):
         r"""
         Return the description of the statistic.
@@ -1460,7 +1528,6 @@ class FindStatStatistic(SageObject):
 
     # editing and submitting is really the same thing
     edit = submit
-
 
 # helper for generation of CartanTypes
 def _finite_irreducible_cartan_types_by_rank(n):
@@ -2103,7 +2170,6 @@ class FindStatCollections(Parent, UniqueRepresentation):
 
     Element = FindStatCollection
 
-
 class FindStatMap(Element):
     r"""
     A FindStat map.
@@ -2469,6 +2535,5 @@ class FindStatMaps(Parent, UniqueRepresentation):
             yield FindStatMap(m)
 
     Element = FindStatMap
-
 
 findstat = FindStat()

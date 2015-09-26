@@ -1644,7 +1644,8 @@ class IncidenceStructure(object):
         r"""
         Test if the incidence structure is a generalized quadrangle.
 
-        An incidence structure is a generalized quadrangle iif:
+        An incidence structure is a generalized quadrangle iff (see [BH12]_,
+        section 9.6):
 
         - two blocks intersect on at most one point.
 
@@ -1658,6 +1659,13 @@ class IncidenceStructure(object):
         - it is `t+1`-:meth:`regular <is_regular>` for some positive integer `t`.
 
         For more information, see the :wikipedia:`Generalized_quadrangle`.
+
+        .. NOTE::
+
+            Observe that some references (e.g. [PT09]_ or Wikipedia) only allow
+            *regular* generalized quadrangles. To use such a definition, see the
+            ``parameters`` optional argument described below, or the methods
+            :meth:`is_regular` and :meth:`is_uniform`.
 
         INPUT:
 
@@ -1697,6 +1705,13 @@ class IncidenceStructure(object):
             sage: hypergraphs.CompleteUniform(4,2).is_generalized_quadrangle(verbose=1)
             Some point has two projections on some line.
             False
+
+        REFERENCE:
+
+        .. [PT09] S. Payne, J. Thas,
+           Finite generalized quadrangles,
+           European Mathematical Society, 2009.
+           http://cage.ugent.be/~bamberg/FGQ.pdf
         """
         # The distance between a point and a line in the incidence graph is odd
         # and must be <= 3. Thus, the diameter is at most 4
@@ -1726,8 +1741,6 @@ class IncidenceStructure(object):
             return (s,t)
         else:
             return True
-
-
 
     def dual(self, algorithm=None):
         """

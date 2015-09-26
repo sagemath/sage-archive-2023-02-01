@@ -317,7 +317,8 @@ class DeprecatedFunctionAlias(object):
             sage: class cls(object):
             ....:    def new_meth(self): return 42
             ....:    old_meth = deprecated_function_alias(13109, new_meth)
-            ....:
+            sage: cls.old_meth.__name__
+            'old_meth'
             sage: cls().old_meth.__name__
             'old_meth'
 
@@ -346,10 +347,7 @@ class DeprecatedFunctionAlias(object):
             is_python_class = '__module__' in gc_ref or '__package__' in gc_ref
             is_cython_class = '__new__' in gc_ref
             return is_python_class or is_cython_class
-        if self.unbound is None:
-            search_for = self
-        else:
-            search_for = self.unbound
+        search_for = self.unbound or self
         for ref in gc.get_referrers(search_for):
             if is_class(ref) and ref is not self.__dict__:
                 ref_copy = copy.copy(ref)
@@ -369,8 +367,6 @@ class DeprecatedFunctionAlias(object):
             doctest:...: DeprecationWarning: blo is deprecated. Please use bla instead.
             See http://trac.sagemath.org/13109 for details.
             42
-
-        
         """
         if self.instance is None and self.__module__ != self.func.__module__:
             other = self.func.__module__ + "." + self.func.__name__

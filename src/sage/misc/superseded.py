@@ -347,9 +347,9 @@ class DeprecatedFunctionAlias(object):
             is_cython_class = '__new__' in gc_ref
             return is_python_class or is_cython_class
         if self.unbound is None:
-            search_for=self
+            search_for = self
         else:
-            search_for=self.unbound
+            search_for = self.unbound
         for ref in gc.get_referrers(search_for):
             if is_class(ref) and ref is not self.__dict__:
                 ref_copy = copy.copy(ref)

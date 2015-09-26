@@ -251,23 +251,23 @@ FINDSTAT_POST_EMAIL                             = 'StatisticEmail'
 FINDSTAT_POST_SAGE_CELL                         = 'SageCellField'   # currently only used as post key
 FINDSTAT_POST_EDIT                              = 'EDIT'            # only used as post key
 
-FINDSTAT_COLLECTION_IDENTIFIER                = 'CollectionIdentifier'
-FINDSTAT_COLLECTION_NAME                      = 'CollectionName'
-FINDSTAT_COLLECTION_NAME_PLURAL               = 'CollectionNamePlural'
-FINDSTAT_COLLECTION_NAME_WIKI                 = 'CollectionNameWiki'
-FINDSTAT_COLLECTION_PARENT_LEVELS_PRECOMPUTED = 'CollectionLevelsPrecomputed'
+FINDSTAT_COLLECTION_IDENTIFIER                  = 'CollectionIdentifier'
+FINDSTAT_COLLECTION_NAME                        = 'CollectionName'
+FINDSTAT_COLLECTION_NAME_PLURAL                 = 'CollectionNamePlural'
+FINDSTAT_COLLECTION_NAME_WIKI                   = 'CollectionNameWiki'
+FINDSTAT_COLLECTION_PARENT_LEVELS_PRECOMPUTED   = 'CollectionLevelsPrecomputed'
 
-FINDSTAT_MAP_IDENTIFIER  = 'MapIdentifier' # should be identical to FINDSTAT_MAP_IDENTIFIER
-FINDSTAT_MAP_NAME        = 'MapName'
-FINDSTAT_MAP_DESCRIPTION = 'MapDescription'
-FINDSTAT_MAP_DOMAIN      = 'MapDomain'
-FINDSTAT_MAP_CODOMAIN    = 'MapCodomain'
-FINDSTAT_MAP_CODE        = 'MapCode'
-FINDSTAT_MAP_CODE_NAME   = 'MapSageName'
+FINDSTAT_MAP_IDENTIFIER                         = 'MapIdentifier' # should be identical to FINDSTAT_MAP_IDENTIFIER
+FINDSTAT_MAP_NAME                               = 'MapName'
+FINDSTAT_MAP_DESCRIPTION                        = 'MapDescription'
+FINDSTAT_MAP_DOMAIN                             = 'MapDomain'
+FINDSTAT_MAP_CODOMAIN                           = 'MapCodomain'
+FINDSTAT_MAP_CODE                               = 'MapCode'
+FINDSTAT_MAP_CODE_NAME                          = 'MapSageName'
 
-FINDSTAT_QUERY_MATCHES       = 'QueryMatches'
-FINDSTAT_QUERY_MATCHING_DATA = 'QueryMatchingData'
-FINDSTAT_QUERY_MAPS          = 'QueryMaps'
+FINDSTAT_QUERY_MATCHES                          = 'QueryMatches'
+FINDSTAT_QUERY_MATCHING_DATA                    = 'QueryMatchingData'
+FINDSTAT_QUERY_MAPS                             = 'QueryMaps'
 
 # the entries of this list are required as post arguments for submitting or editing a statistic
 FINDSTAT_EDIT_FIELDS = set([FINDSTAT_STATISTIC_IDENTIFIER,
@@ -860,11 +860,11 @@ class FindStatStatistic(SageObject):
             else:
                 raise
 
-        self._description = self._raw[FINDSTAT_STATISTIC_DESCRIPTION].encode("utf-8")
-        self._references = self._raw[FINDSTAT_STATISTIC_REFERENCES].encode("utf-8")
-        self._collection = FindStatCollection(self._raw[FINDSTAT_STATISTIC_COLLECTION])
-        self._code = self._raw[FINDSTAT_STATISTIC_CODE]
-        self._generating_function = self._raw[FINDSTAT_STATISTIC_GENERATING_FUNCTION]
+        self._description           = self._raw[FINDSTAT_STATISTIC_DESCRIPTION].encode("utf-8")
+        self._references            = self._raw[FINDSTAT_STATISTIC_REFERENCES].encode("utf-8")
+        self._collection            = FindStatCollection(self._raw[FINDSTAT_STATISTIC_COLLECTION])
+        self._code                  = self._raw[FINDSTAT_STATISTIC_CODE]
+        self._generating_function   = self._raw[FINDSTAT_STATISTIC_GENERATING_FUNCTION]
 
         from_str = self._collection.from_string()
         # we want to keep FindStat's ordering here!

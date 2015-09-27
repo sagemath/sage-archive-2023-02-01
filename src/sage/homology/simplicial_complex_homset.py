@@ -67,7 +67,9 @@ def is_SimplicialComplexHomset(x):
         sage: T = SimplicialComplex(is_mutable=False)
         sage: H = Hom(S, T)
         sage: H
-        Set of Morphisms from Simplicial complex with vertex set () and facets {()} to Simplicial complex with vertex set () and facets {()} in Category of simplicial complexes
+        Set of Morphisms from Simplicial complex with vertex set () and facets {()}
+         to Simplicial complex with vertex set () and facets {()}
+         in Category of finite simplicial complexes
         sage: from sage.homology.simplicial_complex_homset import is_SimplicialComplexHomset
         sage: is_SimplicialComplexHomset(H)
         True

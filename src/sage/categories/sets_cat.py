@@ -651,6 +651,30 @@ class Sets(Category_singleton):
             return IsomorphicObjectsCategory.category_of(self)
 
         @cached_method
+        def Topological(self):
+            """
+            Return the subcategory of the topological objects of ``self``.
+
+            TESTS::
+
+                sage: TestSuite(Sets().Topological()).run()
+            """
+            from sage.categories.topological_spaces import TopologicalSpacesCategory
+            return TopologicalSpacesCategory.category_of(self)
+
+        @cached_method
+        def Metric(self):
+            """
+            Return the subcategory of the metric objects of ``self``.
+
+            TESTS::
+
+                sage: TestSuite(Sets().Metric()).run()
+            """
+            from sage.categories.metric_spaces import MetricSpacesCategory
+            return MetricSpacesCategory.category_of(self)
+
+        @cached_method
         def Algebras(self, base_ring):
             """
             Return the category of objects constructed as algebras of
@@ -1655,6 +1679,9 @@ Please use, e.g., S.algebra(QQ, category=Semigroups())""".format(self))
 
     Facade = LazyImport('sage.categories.facade_sets', 'FacadeSets')
     Finite = LazyImport('sage.categories.finite_sets', 'FiniteSets', at_startup=True)
+    Topological = LazyImport('sage.categories.topological_spaces',
+                             'TopologicalSpaces', 'Topological')
+    Metric = LazyImport('sage.categories.metric_spaces', 'MetricSpaces', 'Mertic')
 
     class Infinite(CategoryWithAxiom):
 

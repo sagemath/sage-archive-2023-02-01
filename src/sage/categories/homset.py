@@ -283,17 +283,13 @@ def Hom(X, Y, category=None, check=True):
 
         sage: S = SimplicialComplex([[1,2], [1,4]]); S.rename("S")
         sage: Hom(S, S, SimplicialComplexes())
-        Set of Morphisms from S to S in Category of simplicial complexes
+        Set of Morphisms from S to S in Category of finite simplicial complexes
 
-        sage: H = Hom(Set(), S, Sets())
-        Traceback (most recent call last):
-        ...
-        ValueError: S is not in Category of sets
+        sage: Hom(Set(), S, Sets())
+        Set of Morphisms from {} to S in Category of sets
 
-        sage: H = Hom(S, Set(), Sets())
-        Traceback (most recent call last):
-        ...
-        ValueError: S is not in Category of sets
+        sage: Hom(S, Set(), Sets())
+        Set of Morphisms from S to {} in Category of sets
 
         sage: H = Hom(S, S, ChainComplexes(QQ))
         Traceback (most recent call last):

@@ -1214,7 +1214,7 @@ class FindStatStatistic(SageObject):
         else:
             raise ValueError("The argument 'as-type' (='%s') must be 'dictionary' or 'polynomial'"%as_type)
 
-    def search_oeis(self, search_length=64, verbose=True):
+    def search_oeis(self, search_size=32, verbose=True):
         r"""
         Returns the OEIS search for the generating function of ``self``.
 
@@ -1226,7 +1226,8 @@ class FindStatStatistic(SageObject):
         from sage.databases.oeis import oeis
         gen_funcs = self.generating_functions(as_type="dictionary")
         OEIS_string = ""
-        for key in sorted(gen_funcs.keys()):
+        keys = sorted(gen_funcs.keys())
+        for key in keys:
             gen_func = gen_funcs[key]
             OEIS_func_string    = ",".join( str(gen_func[deg]) if deg in gen_func else "0" for deg in range(max(gen_func)+1) )
             while OEIS_func_string.startswith("0,"):
@@ -1238,10 +1239,13 @@ class FindStatStatistic(SageObject):
         OEIS_string = OEIS_string.strip()
         if OEIS_string:
             # we need strip the result. -- stumpc5, 2015-09-27
+            # this is not done very clever so far...
+            if OEIS_string.count(",") + OEIS_string.count("  ") >= search_size:
+                OEIS_string = ",".join(OEIS_string.split(',')[:search_size - OEIS_string.count("  ")])
             if verbose:
-                print 'Searching the OEIS for "%s"'%OEIS_string[:search_length]
+                print 'Searching the OEIS for "%s"'%OEIS_string
                 print
-            return oeis( OEIS_string[:search_length] )
+            return oeis( OEIS_string )
         else:
             if verbose:
                 print "Too little information to search the OEIS for this statistic."

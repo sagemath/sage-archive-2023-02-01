@@ -1214,7 +1214,7 @@ class FindStatStatistic(SageObject):
         else:
             raise ValueError("The argument 'as-type' (='%s') must be 'dictionary' or 'polynomial'"%as_type)
 
-    def search_oeis_for_generating_function(self):
+    def search_oeis_for_generating_function(self, verbose=True):
         r"""
         Returns the OEIS search for the generating function of ``self``.
 
@@ -1233,9 +1233,21 @@ class FindStatStatistic(SageObject):
                 OEIS_func_string = OEIS_func_string[2:]
             while OEIS_func_string.endswith(",0"):
                 OEIS_func_string = OEIS_func_string[:2]
-            if OEIS_func_string.count(",") > 2:
-                OEIS_string     += OEIS_func_string + "   "
-        return oeis( OEIS_string )
+            #if OEIS_func_string.count(",") > 2:
+            OEIS_string     += OEIS_func_string + "  "
+        OEIS_string = OEIS_string.strip()
+        while OEIS_string.endswith(" "):
+            OEI
+        if OEIS_string:
+            if verbose:
+                print 'Searching the OEIS for the string\n    "%s"'%OEIS_string
+                print
+            return oeis( OEIS_string )
+        else:
+            if verbose:
+                print "Too little information to search the OEIS for this statistic."
+                print
+            return
 
     def description(self):
         r"""

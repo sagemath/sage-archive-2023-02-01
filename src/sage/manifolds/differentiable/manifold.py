@@ -382,7 +382,8 @@ from sage.categories.homset import Hom
 from sage.rings.infinity import infinity, minus_infinity
 from sage.misc.latex import latex
 from sage.manifolds.manifold import TopManifold
-from sage.manifolds.differentiable.scalarfield_algebra import DiffScalarFieldAlgebra
+from sage.manifolds.differentiable.scalarfield_algebra import \
+                                                         DiffScalarFieldAlgebra
 
 class DiffManifold(TopManifold):
     r"""
@@ -423,7 +424,7 @@ class DiffManifold(TopManifold):
     - ``start_index`` -- (default: 0) integer; lower value of the range of
       indices used for "indexed objects" on the manifold, e.g. coordinates
       in a chart
-    - ``category`` -- (default: ``None``) to specify the categeory; the
+    - ``category`` -- (default: ``None``) to specify the category; the
       default being ``Sets()`` (``DiffManifolds()`` after :trac:`18175` is
       implemented)
     - ``ambient_manifold`` -- (default: ``None``) ``None`` or a differentiable
@@ -559,7 +560,7 @@ class DiffManifold(TopManifold):
             ambient_manifold = self
         elif not isinstance(ambient_manifold, DiffManifold):
             raise TypeError("the argument 'ambient_manifold' must be " +
-                            " a differentiable manifold")
+                            "a differentiable manifold")
         TopManifold.__init__(self, n, name, latex_name=latex_name, field=field,
                              start_index=start_index, category=category,
                              ambient_manifold=ambient_manifold)
@@ -635,8 +636,9 @@ class DiffManifold(TopManifold):
         r"""
         Return the manifold's degree of differentiability.
 
-        The degree of differentiablity is the integer `k` (possibly `k=\infty`)
-        such that the manifold is a `C^k`-manifold over its base field.
+        The degree of differentiability is the integer `k` (possibly
+        `k=\infty`) such that the manifold is a `C^k`-manifold over its base
+        field.
 
         EXAMPLES::
 
@@ -752,8 +754,8 @@ class DiffManifold(TopManifold):
         # Charts on the result from the coordinate definition:
         for chart, restrictions in coord_def.iteritems():
             if chart not in self._atlas:
-                raise ValueError("the " + str(chart) + "does not belong to " +
-                                 "the atlas of " + str(self))
+                raise ValueError("the {} does not belong to ".format(chart) +
+                                 "the atlas of {}".format(self))
             chart.restrict(resu, restrictions)
         # Transition maps on the result inferred from those of self:
         for chart1 in coord_def:
@@ -813,7 +815,7 @@ class DiffManifold(TopManifold):
           below)
         - ``names`` -- (default: ``None``) unused argument, except if
           ``coordinates`` is not provided; it must then be a tuple containing
-          the coordinate symbols (this is guaranted if the shortcut operator
+          the coordinate symbols (this is guaranteed if the shortcut operator
           ``<,>`` is used).
 
         OUTPUT:
@@ -1119,6 +1121,7 @@ class DiffManifold(TopManifold):
 
             sage: DiffManifold._clear_cache_() #  for doctests only
             sage: M = DiffManifold(2, 'M')  # the open unit disk
+            sage: forget()  # for doctests only
             sage: c_xy.<x,y> = M.chart('x:(-1,1) y:(-1,1)')  # Cartesian coord on M
             sage: c_xy.add_restrictions(x^2+y^2<1)
             sage: N = DiffManifold(2, 'N')  # R^2
@@ -1217,7 +1220,7 @@ class DiffManifold(TopManifold):
 
     def vector_field_module(self, dest_map=None, force_free=False):
         r"""
-        Returns the set of vector fields defined on the manifold, possibly
+        Return the set of vector fields defined on the manifold, possibly
         with values in another differentiable manifold, as a module over the
         algebra of scalar fields defined on the manifold.
 
@@ -2205,13 +2208,14 @@ class DiffManifold(TopManifold):
         """
         from sage.manifolds.differentiable.vectorframe import VectorFrame
         if not isinstance(frame, VectorFrame):
-            raise TypeError(str(frame) + " is not a vector frame.")
+            raise TypeError("{} is not a vector frame".format(frame))
         if frame._domain is not self:
             if self.is_manifestly_parallelizable():
-                raise TypeError("the frame domain must coincide with the " +
-                                str(self))
+                raise ValueError("the frame domain must coincide with " +
+                                "the {}".format(self))
             if not frame._domain.is_subset(self):
-                raise TypeError("the frame must be defined on " + str(self))
+                raise ValueError("the frame must be defined on " +
+                                 "the {}".format(self))
         self._def_frame = frame
         frame._fmodule.set_default_basis(frame)
 
@@ -2273,14 +2277,15 @@ class DiffManifold(TopManifold):
             sage: XM.change_of_basis(c_xy.frame(), c_uv.frame())
             Field of tangent-space automorphisms on the 2-dimensional
              differentiable manifold M
-            sage: M.change_of_frame(c_xy.frame(), c_uv.frame()) is XM.change_of_basis(c_xy.frame(), c_uv.frame())
+            sage: M.change_of_frame(c_xy.frame(), c_uv.frame()) is \
+            ....:  XM.change_of_basis(c_xy.frame(), c_uv.frame())
             True
 
         """
         if (frame1, frame2) not in self._frame_changes:
-            raise TypeError("The change of frame from '" + repr(frame1) +
-                            "' to '" + repr(frame2) + "' has not been " +
-                            "defined on the " + repr(self))
+            raise ValueError("the change of frame from {} ".format(frame1) +
+                            "to ".format(frame2) + " has not been " +
+                            "defined on the {}".format(self))
         return self._frame_changes[(frame1, frame2)]
 
 
@@ -2331,11 +2336,11 @@ class DiffManifold(TopManifold):
                                                          AutomorphismFieldParal
         fmodule = frame1._fmodule
         if frame2._fmodule != fmodule:
-            raise ValueError("The two frames are not defined on the same " +
-                             "vector field module.")
+            raise ValueError("the two frames are not defined on the same " +
+                             "vector field module")
         if not isinstance(change_of_frame, AutomorphismFieldParal):
-            raise TypeError("The argument change_of_frame must be some " +
-                            "instance of AutomorphismFieldParal.")
+            raise TypeError("the argument change_of_frame must be some " +
+                            "instance of AutomorphismFieldParal")
         fmodule.set_change_of_basis(frame1, frame2, change_of_frame,
                                     compute_inverse=compute_inverse)
         for sdom in self._supersets:
@@ -2661,7 +2666,7 @@ class DiffManifold(TopManifold):
           case (ii) above; if ``None`` the default chart of the manifold is
           assumed.
         - ``name`` -- (default: ``None``) string; symbol given to the curve
-        - ``latex_name`` -- (default: ``None``) string; LaTeX symbol to denote the
+        - ``latex_name`` -- (default: ``None``) string; LaTeX symbol to denote
           the curve; if none is provided, ``name`` will be used
 
         OUTPUT:
@@ -2704,8 +2709,8 @@ class DiffManifold(TopManifold):
         if not isinstance(param, (tuple, list)):
             param = (param, minus_infinity, infinity)
         elif len(param) != 3:
-            raise TypeError("the argument 'param' must be of the type " +
-                            "(t, t_min, t_max)")
+            raise ValueError("the argument 'param' must be of the form " +
+                             "(t, t_min, t_max)")
         t = param[0]
         t_min = param[1]
         t_max = param[2]
@@ -2717,8 +2722,8 @@ class DiffManifold(TopManifold):
             if chart is None:
                 chart = self._def_chart
             elif chart not in self._atlas:
-                raise ValueError("the {} has not been".format(chart) +
-                                     " defined on the {}".format(self))
+                raise ValueError("the {} has not been ".format(chart) +
+                                 "defined on the {}".format(self))
             if isinstance(coord_expression, (tuple, list)):
                 coord_expression = {chart: coord_expression}
             else:
@@ -2737,8 +2742,8 @@ class DiffManifold(TopManifold):
         INPUT:
 
         - ``name`` -- name given to the affine connection
-        - ``latex_name`` -- (default: ``None``) LaTeX symbol to denote the affine
-          connection
+        - ``latex_name`` -- (default: ``None``) LaTeX symbol to denote the
+          affine connection
 
         OUTPUT:
 
@@ -2761,7 +2766,8 @@ class DiffManifold(TopManifold):
         for more examples.
 
         """
-        from sage.manifolds.differentiable.affine_connection import AffineConnection
+        from sage.manifolds.differentiable.affine_connection import \
+                                                               AffineConnection
         return AffineConnection(self, name, latex_name)
 
     def metric(self, name, signature=None, latex_name=None, dest_map=None):
@@ -2833,8 +2839,8 @@ class DiffManifold(TopManifold):
         - ``signature`` -- (default: 'positive') sign of the metric
           signature:
 
-          * if set to 'positive', the signature is n-2, where n is the manifold's
-            dimension, i.e. `(-,+,\cdots,+)`
+          * if set to 'positive', the signature is n-2, where n is the
+            manifold's dimension, i.e. `(-,+,\cdots,+)`
           * if set to 'negative', the signature is -n+2, i.e. `(+,-,\cdots,-)`
 
         - ``latex_name`` -- (default: ``None``) LaTeX symbol to denote the

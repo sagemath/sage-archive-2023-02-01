@@ -274,7 +274,7 @@ class VectorFrame(FreeModuleBasis):
         self._manifold = self._domain._manifold
         if symbol is None:
             if from_frame is None:
-                raise TypeError("Some frame symbol must be provided.")
+                raise TypeError("some frame symbol must be provided")
             symbol = 'X'  # provisory symbol
         FreeModuleBasis.__init__(self, vector_field_module,
                                  symbol, latex_symbol=latex_symbol)
@@ -285,9 +285,9 @@ class VectorFrame(FreeModuleBasis):
                           self._latex_name + r"\right)"
         else:
             if not from_frame._domain.is_subset(self._dest_map._codomain):
-                raise ValueError("The domain of the frame 'from_frame' is " +
+                raise ValueError("the domain of the frame 'from_frame' is " +
                                  "not included in the codomain of the " +
-                                 "destination map.")
+                                 "destination map")
             n = self._fmodule.rank()
             for i in range(n):
                 self._vec[i]._name = from_frame._vec[i]._name
@@ -319,8 +319,8 @@ class VectorFrame(FreeModuleBasis):
         for sd in self._domain._supersets:
             for other in sd._frames:
                 if repr(self) == repr(other):
-                    raise ValueError("the " + str(self) + " already exists " +
-                                     "on the " + str(sd))
+                    raise ValueError("the {} already exists ".format(self) +
+                                     "on the {}".format(sd))
             sd._frames.append(self)
             sd._top_frames.append(self)
             if sd._def_frame is None:
@@ -601,8 +601,8 @@ class VectorFrame(FreeModuleBasis):
             return self
         if subdomain not in self._restrictions:
             if not subdomain.is_subset(self._domain):
-                raise ValueError("The provided domain is not a subdomain of " +
-                                 "the current frame's domain.")
+                raise ValueError("the provided domain is not a subdomain of " +
+                                 "the current frame's domain")
             sdest_map = self._dest_map.restrict(subdomain)
             res = VectorFrame(subdomain.vector_field_module(sdest_map,
                                                             force_free=True),
@@ -762,8 +762,8 @@ class VectorFrame(FreeModuleBasis):
                     rmapping = rest
                     break
             else:
-                raise ValueError("the codomain of {} is not ".format(mapping)
-                             + "included in the domain of {}".format(self))
+                raise ValueError("the codomain of {} is not ".format(mapping) +
+                                 " included in the domain of {}".format(self))
         vmodule = rmapping.domain().vector_field_module(dest_map=rmapping)
         return vmodule.basis(from_frame=self)
 
@@ -1104,7 +1104,7 @@ class CoordFrame(VectorFrame):
 
     def structure_coef(self):
         r"""
-        Returns the structure coefficients associated to the coordinate frame.
+        Return the structure coefficients associated to the coordinate frame.
 
         `n` being the manifold's dimension, the structure coefficients of the
         frame `(e_i)` are the `n^3` scalar fields `C^k_{\ \, ij}`
@@ -1246,8 +1246,8 @@ class CoFrame(FreeModuleCoBasis):
         for sd in self._domain._supersets:
             for other in sd._coframes:
                 if repr(self) == repr(other):
-                    raise ValueError("The " + str(self) + " already exist on" +
-                                     " the " + str(sd))
+                    raise ValueError("the {} already exist on".format(self) +
+                                     " the {}".format(sd))
             sd._coframes.append(self)
 
 
@@ -1396,7 +1396,7 @@ class CoordCoFrame(CoFrame):
         """
         from sage.misc.latex import latex
         if not isinstance(coord_frame, CoordFrame):
-            raise TypeError("The first argument must be a coordinate frame.")
+            raise TypeError("the first argument must be a coordinate frame")
         CoFrame.__init__(self, coord_frame, 'X') # 'X' = provisory symbol
         self._chart = coord_frame._chart
         n = self._manifold._dim

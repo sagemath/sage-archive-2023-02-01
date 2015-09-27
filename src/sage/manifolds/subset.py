@@ -811,7 +811,7 @@ class TopManifoldSubset(UniqueRepresentation, Parent):
 
         EXAMPLES:
 
-        Subsubsets on a 2-dimensional manifold::
+        Subsets on a 2-dimensional manifold::
 
             sage: M = TopManifold(2, 'M')
             sage: a = M.subset('A')

@@ -48,7 +48,7 @@ class ScalarFieldAlgebra(UniqueRepresentation, Parent):
     which is clearly commutative.
 
     If `K = \RR` or `K = \CC`, the field `K` over which the
-    albegra `C^0(M)` is constructed is represented by Sage's Symbolic Ring
+    algebra `C^0(M)` is constructed is represented by Sage's Symbolic Ring
     ``SR``, since there is no exact representation of `\RR` nor `\CC` in Sage.
 
     The class :class:`ScalarFieldAlgebra` inherits from

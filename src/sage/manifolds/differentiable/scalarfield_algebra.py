@@ -2,11 +2,11 @@ r"""
 Algebra of differentiable scalar fields
 
 The class :class:`DiffScalarFieldAlgebra` implements the commutative algebra
-`C^k(U)` of differentiable scalar fields on some open subset `U` of a
-differentiable manifold `M` of class `C^k` over a topological field `K` (in
+`C^k(M)` of differentiable scalar fields on a differentiable manifold `M` of
+class `C^k` over a topological field `K` (in
 most applications, `K = \RR` or `K = \CC`). By *differentiable scalar field*,
-it is meant a function `U\rightarrow K` that is `k`-times continuously
-differentiable. `C^k(U)` is an algebra over `K`, whose ring product is the
+it is meant a function `M\rightarrow K` that is `k`-times continuously
+differentiable. `C^k(M)` is an algebra over `K`, whose ring product is the
 pointwise multiplication of `K`-valued functions, which is clearly commutative.
 
 AUTHORS:
@@ -44,18 +44,19 @@ class DiffScalarFieldAlgebra(ScalarFieldAlgebra):
     a differentiable manifold.
 
     If `M` is a differentiable manifold of class `C^k` over a topological
-    field `K` and `U` is an open subset of `M`, the *commutative algebra of
-    scalar fields on* `U` is the set `C^k(U)` of all `k`-times continuously
-    differentiable maps `U\rightarrow K`. The set `C^k(U)` is an algebra over
-    `K`, whose ring product is the pointwise multiplication of `K`-valued
-    functions, which is clearly commutative.
+    field `K`, the *commutative algebra of scalar fields on* `M` is the set
+    `C^k(M)` of all `k`-times continuously differentiable maps `M\rightarrow K`.
+    The set `C^k(M)` is an algebra over `K`, whose ring product is the
+    pointwise multiplication of `K`-valued functions, which is clearly
+    commutative.
 
     If `K = \RR` or `K = \CC`, the field `K` over which the
-    albegra `C^k(U)` is constructed,
-    is represented by Sage's Symbolic Ring SR, since there is no exact
-    representation of `\RR` nor `\CC` in Sage.
+    algebra `C^k(M)` is constructed is represented by Sage's Symbolic Ring
+    ``SR``, since there is no exact representation of `\RR` nor `\CC` in Sage.
 
-    The class :class:`DiffScalarFieldAlgebra` inherits from
+    Via its base class
+    :class:`~sage.manifolds.scalarfield_algebra.ScalarFieldAlgebra`,
+    the class :class:`DiffScalarFieldAlgebra` inherits from
     :class:`~sage.structure.parent.Parent`, with the category set to
     :class:`~sage.categories.commutative_algebras.CommutativeAlgebras`.
     The corresponding *element* class is
@@ -63,13 +64,14 @@ class DiffScalarFieldAlgebra(ScalarFieldAlgebra):
 
     INPUT:
 
-    - ``domain`` -- the manifold open subset `U` on which the scalar fields are
-      defined (must be an instance of class
+    - ``domain`` -- the differentiable manifold `M` on which the scalar fields
+      are defined (must be an instance of class
       :class:`~sage.manifolds.differentiable.manifold.DiffManifold`)
 
     EXAMPLES:
 
-    Algebras of scalar fields on the sphere `S^2` and on some subdomain of it::
+    Algebras of scalar fields on the sphere `S^2` and on some open subset of
+    it::
 
         sage: M = DiffManifold(2, 'M') # the 2-dimensional sphere S^2
         sage: U = M.open_subset('U') # complement of the North pole
@@ -77,9 +79,9 @@ class DiffScalarFieldAlgebra(ScalarFieldAlgebra):
         sage: V = M.open_subset('V') # complement of the South pole
         sage: c_uv.<u,v> = V.chart() # stereographic coordinates from the South pole
         sage: M.declare_union(U,V)   # S^2 is the union of U and V
-        sage: xy_to_uv = c_xy.transition_map(c_uv, (x/(x^2+y^2), y/(x^2+y^2)), \
-                                             intersection_name='W', restrictions1= x^2+y^2!=0, \
-                                             restrictions2= u^2+v^2!=0)
+        sage: xy_to_uv = c_xy.transition_map(c_uv, (x/(x^2+y^2), y/(x^2+y^2)),
+        ....:                 intersection_name='W', restrictions1= x^2+y^2!=0,
+        ....:                 restrictions2= u^2+v^2!=0)
         sage: uv_to_xy = xy_to_uv.inverse()
         sage: CM = M.scalar_field_algebra() ; CM
         Algebra of differentiable scalar fields on the 2-dimensional
@@ -189,7 +191,8 @@ class DiffScalarFieldAlgebra(ScalarFieldAlgebra):
     the domain (this allows one to set the name of the scalar field at the
     construction)::
 
-        sage: f1 = M.scalar_field({c_xy: atan(x^2+y^2), c_uv: pi/2 - atan(u^2+v^2)}, name='f')
+        sage: f1 = M.scalar_field({c_xy: atan(x^2+y^2), c_uv: pi/2 - atan(u^2+v^2)},
+        ....:                     name='f')
         sage: f1.parent()
         Algebra of differentiable scalar fields on the 2-dimensional
          differentiable manifold M
@@ -408,7 +411,8 @@ class DiffScalarFieldAlgebra(ScalarFieldAlgebra):
             'Algebra of differentiable scalar fields on the 2-dimensional differentiable manifold M'
 
         """
-        return "Algebra of differentiable scalar fields on the {}".format(self._domain)
+        return "Algebra of differentiable scalar fields on " + \
+               "the {}".format(self._domain)
 
     def _latex_(self):
         r"""

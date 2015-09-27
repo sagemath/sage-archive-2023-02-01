@@ -307,7 +307,7 @@ class TangentSpace(FiniteRankFreeModule):
 
     def _an_element_(self):
         r"""
-        Construct some (unamed) vector in the tangent space
+        Construct some (unnamed) vector in the tangent space
 
         EXAMPLE::
 

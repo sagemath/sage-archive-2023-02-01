@@ -328,7 +328,8 @@ class DiffFormModule(UniqueRepresentation, Parent):
             sage: c_xy.<x,y> = U.chart(); c_uv.<u,v> = V.chart()
             sage: M.declare_union(U,V)
             sage: A = M.diff_form_module(2)
-            sage: a = A._element_constructor_(comp=[[0, x*y], [-x*y, 0]], name='a'); a
+            sage: a = A._element_constructor_(comp=[[0, x*y], [-x*y, 0]],
+            ....:                             name='a'); a
             2-form a on the 2-dimensional differentiable manifold M
             sage: a.display(c_xy.frame())
             a = x*y dx/\dy
@@ -353,8 +354,8 @@ class DiffFormModule(UniqueRepresentation, Parent):
                self._ambient_domain.is_subset(comp._ambient_domain):
                 return comp.restrict(self._domain)
             else:
-                raise TypeError("cannot coerce the {}".format(comp) +
-                                " to an element of {}".format(self))
+                raise TypeError("cannot convert the {} ".format(comp) +
+                                "to an element of {}".format(self))
         if isinstance(comp, TensorField):
             # coercion of a tensor of type (0,1) to a linear form
             tensor = comp # for readability
@@ -366,8 +367,8 @@ class DiffFormModule(UniqueRepresentation, Parent):
                     resu._restrictions[dom] = dom.diff_form_module(1)(rst)
                 return resu
             else:
-                raise TypeError("cannot coerce the {}".format(tensor) +
-                                " to an element of {}".format(self))
+                raise TypeError("cannot convert the {} ".format(tensor) +
+                                "to an element of {}".format(self))
         # standard construction
         resu = self.element_class(self._vmodule, self._degree, name=name,
                                   latex_name=latex_name)
@@ -377,7 +378,7 @@ class DiffFormModule(UniqueRepresentation, Parent):
 
     def _an_element_(self):
         r"""
-        Construct some (unamed) differential form.
+        Construct some (unnamed) differential form.
 
         TESTS::
 
@@ -796,7 +797,8 @@ class DiffFormFreeModule(ExtPowerFreeModule):
             sage: M = DiffManifold(2, 'M')
             sage: X.<x,y> = M.chart()  # makes M parallelizable
             sage: A = M.diff_form_module(2)
-            sage: a = A._element_constructor_(comp=[[0, x], [-x, 0]], name='a'); a
+            sage: a = A._element_constructor_(comp=[[0, x], [-x, 0]],
+            ....:                             name='a'); a
             2-form a on the 2-dimensional differentiable manifold M
             sage: a.display()
             a = x dx/\dy
@@ -813,7 +815,7 @@ class DiffFormFreeModule(ExtPowerFreeModule):
                self._ambient_domain.is_subset(comp._ambient_domain):
                 return comp.restrict(self._domain)
             else:
-                raise TypeError("Cannot coerce the {} ".format(comp) +
+                raise TypeError("cannot convert the {} ".format(comp) +
                                 "to a differential form in {}".format(self))
         if isinstance(comp, TensorFieldParal):
             # coercion of a tensor of type (0,1) to a linear form
@@ -826,8 +828,8 @@ class DiffFormFreeModule(ExtPowerFreeModule):
                     resu._components[frame] = comp.copy()
                 return resu
             else:
-                raise TypeError("cannot coerce the {}".format(tensor) +
-                                " to an element of {}".format(self))
+                raise TypeError("cannot convert the {} ".format(tensor) +
+                                "to an element of {}".format(self))
         resu = self.element_class(self._fmodule, self._degree, name=name,
                                   latex_name=latex_name)
         if comp != []:

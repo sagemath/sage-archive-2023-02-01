@@ -1,5 +1,5 @@
 r"""
-Sets of morphisms between topologial manifolds
+Sets of morphisms between topological manifolds
 
 The class :class:`TopManifoldHomset` implements sets of morphisms between
 two topological manifolds over the same topological field `K`, a morphism
@@ -363,7 +363,7 @@ class TopManifoldHomset(Homset, UniqueRepresentation):
 
         This applies only when the codomain of the homset is equal to its
         domain, i.e. when the homset is of the type `\mathrm{Hom}(M,M)`.
-        Indeed, `\mathrm{Hom}(M,M)` equiped with the law of morphisms
+        Indeed, `\mathrm{Hom}(M,M)` equipped with the law of morphisms
         composition is a monoid, whose identity element is nothing but the
         identity map of `M`.
 

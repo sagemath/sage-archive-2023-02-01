@@ -51,7 +51,7 @@ class OpenInterval(DiffManifold):
       ``names`` is ``None``, the symbol 't' is used
     - ``names`` -- (default: ``None``) used only when ``coordinate`` is
       ``None``: it must be a single-element tuple containing the canonical
-      coordinate symbol (this is guaranted if the shortcut operator ``<>`` is
+      coordinate symbol (this is guaranteed if the shortcut operator ``<>`` is
       used, see examples below)
     - ``start_index`` -- (default: 0) unique value of the index for vectors and
       forms on the interval manifold.
@@ -448,7 +448,7 @@ class OpenInterval(DiffManifold):
             sage: I._element_constructor_(8)
             Traceback (most recent call last):
             ...
-            ValueError: The coordinates (8,) are not valid on the Chart
+            ValueError: the coordinates (8,) are not valid on the Chart
              ((-1, 4), (t,))
 
         """
@@ -689,7 +689,7 @@ class RealLine(OpenInterval):
       ``names`` is ``None``, the symbol 't' is used
     - ``names`` -- (default: ``None``) used only when ``coordinate`` is
       ``None``: it must be a single-element tuple containing the canonical
-      coordinate symbol (this is guaranted if the shortcut operator ``<>`` is
+      coordinate symbol (this is guaranteed if the shortcut operator ``<>`` is
       used, see examples below)
     - ``start_index`` -- (default: 0) unique value of the index for vectors and
       forms on the real line manifold.

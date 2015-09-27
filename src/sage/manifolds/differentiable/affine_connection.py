@@ -627,7 +627,7 @@ class AffineConnection(SageObject):
           class :class:`~sage.tensor.modules.comp.Components`; if such
           connection coefficients did not exist previously, they are created.
           See method :meth:`coef` for the storage convention of the connection
-          coefficents.
+          coefficients.
 
         EXAMPLES:
 
@@ -715,7 +715,7 @@ class AffineConnection(SageObject):
         .. WARNING::
 
             If the connection has already coefficients in other frames, it
-            is the user's responsability to make sure that the coefficients
+            is the user's responsibility to make sure that the coefficients
             to be added are consistent with them.
 
         OUTPUT:
@@ -724,7 +724,7 @@ class AffineConnection(SageObject):
           class :class:`~sage.tensor.modules.comp.Components`; if such
           connection coefficients did not exist previously, they are created.
           See method :meth:`coef` for the storage convention of the connection
-          coefficents.
+          coefficients.
 
 
         EXAMPLES:
@@ -2178,7 +2178,8 @@ class AffineConnection(SageObject):
 
         .. MATH::
 
-            \Omega^i_{\ \, j} = \mathrm{d} \omega^i_{\ \, j} + \omega^i_{\ \, k} \wedge \omega^k_{\ \, j}
+            \Omega^i_{\ \, j} = \mathrm{d} \omega^i_{\ \, j}
+                                + \omega^i_{\ \, k} \wedge \omega^k_{\ \, j}
 
         where the `\omega^i_{\ \, j}`'s are the connection 1-forms (cf.
         :meth:`connection_form`). Let us check it on the frame e::

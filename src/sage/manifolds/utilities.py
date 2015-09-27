@@ -242,7 +242,7 @@ def simplify_abs_trig(expr):
 
 def simplify_chain_real(expr):
     r"""
-    Apply a chain of simplications to a symbolic expression, assuming the
+    Apply a chain of simplifications to a symbolic expression, assuming the
     real domain.
 
     This is the simplification chain used in calculus involving coordinate
@@ -344,7 +344,7 @@ def simplify_chain_real(expr):
 
 def simplify_chain_generic(expr):
     r"""
-    Apply a chain of simplications to a symbolic expression
+    Apply a chain of simplifications to a symbolic expression.
 
     This is the simplification chain used in calculus involving coordinate
     functions on manifolds over fields different from `\RR`, as implemented in
@@ -451,7 +451,7 @@ class ExpressionNice(Expression):
         y {\left(z - \frac{\partial\,h}{\partial z}\right)}^{2}
          + x \frac{\partial^2\,f}{\partial x\partial y}
 
-    An example when function variables are themselve functions::
+    An example when function variables are themselves functions::
 
         sage: f = function('f', x, y)
         sage: g = function('g', x, f)  # the second variable is the function f
@@ -489,7 +489,7 @@ class ExpressionNice(Expression):
         \left(\frac{\partial\,f}{\partial y}\right)^{2}
 
     The explicit mention of function arguments can be omitted for the sake of
-    brievety::
+    brevity::
 
         sage: fun = fun*f
         sage: ExpressionNice(fun)
@@ -574,10 +574,13 @@ class ExpressionNice(Expression):
             variables = m[4]
 
             # dictionary to group multiple occurences of differentiation: d/dxdx -> d/dx^2 etc.
-            occ = dict((i, str(variables[i]) + "^" + str(diffargs.count(i)) if(diffargs.count(i)>1) else str(variables[i])) for i in diffargs)
+            occ = dict((i, str(variables[i]) + "^" + str(diffargs.count(i))
+                       if (diffargs.count(i)>1) else str(variables[i]))
+                       for i in diffargs)
 
             # re.sub for removing the brackets of possible composite variables
-            res = "d" + str(numargs) + "(" + str(funcname) + ")/d" + "d".join([re.sub("\(.*?\)","", i) for i in occ.values()])
+            res = "d" + str(numargs) + "(" + str(funcname) + ")/d" + "d".join(
+                               [re.sub("\(.*?\)","", i) for i in occ.values()])
 
             # str representation of the operator
             s = self._parent._repr_element_(m[0])
@@ -669,9 +672,13 @@ class ExpressionNice(Expression):
             variables = m[4]
 
             # dictionary to group multiple occurences of differentiation: d/dxdx -> d/dx^2 etc.
-            occ = dict((i, str(variables[i]) + "^" + str(diffargs.count(i)) if(diffargs.count(i)>1) else str(variables[i])) for i in diffargs)
+            occ = dict((i, str(variables[i]) + "^" + str(diffargs.count(i))
+                       if (diffargs.count(i)>1) else str(variables[i]))
+                       for i in diffargs)
 
-            res = "\\frac{\partial" + numargs + "\," + funcname + "}{\partial " + "\partial ".join([re.sub("\(.*?\)", "", i) for i in occ.values()]) + "}"
+            res = "\\frac{\partial" + numargs + "\," + funcname + \
+                  "}{\partial " + "\partial ".join(
+                        [re.sub("\(.*?\)", "", i) for i in occ.values()]) + "}"
 
             # representation of the operator
             s = self._parent._latex_element_(m[0])
@@ -700,7 +707,7 @@ class ExpressionNice(Expression):
 
 def _list_derivatives(ex, list_d, exponent=0):
     r"""
-    Function to find the occurences of FDerivativeOperator in a symbolic
+    Function to find the occurrences of FDerivativeOperator in a symbolic
     expression; inspired by http://ask.sagemath.org/question/10256/how-can-extract-different-terms-from-a-symbolic-expression/?answer=26136#post-id-26136
 
     INPUT:
@@ -755,7 +762,8 @@ def _list_derivatives(ex, list_d, exponent=0):
             if function == latex_function:
                 latex_function = latex_variable_name(str(op.function()))
 
-            list_d.append((ex, function, latex_function, parameter_set, operands, exponent))
+            list_d.append((ex, function, latex_function, parameter_set,
+                           operands, exponent))
 
         for operand in operands:
             _list_derivatives(operand, list_d, exponent)
@@ -763,7 +771,7 @@ def _list_derivatives(ex, list_d, exponent=0):
 
 def _list_functions(ex, list_f):
     r"""
-    Function to find the occurences of symbolic functions in a symbolic
+    Function to find the occurrences of symbolic functions in a symbolic
     expression.
 
     INPUT:

@@ -106,8 +106,8 @@ class VectorFieldModule(UniqueRepresentation, Parent):
         sage: c_uv.<u,v> = V.chart() # stereographic coordinates from the South pole
         sage: M.declare_union(U,V)   # S^2 is the union of U and V
         sage: xy_to_uv = c_xy.transition_map(c_uv, (x/(x^2+y^2), y/(x^2+y^2)),
-        ....:                                intersection_name='W', restrictions1= x^2+y^2!=0,
-        ....:                                restrictions2= u^2+v^2!=0)
+        ....:                 intersection_name='W', restrictions1= x^2+y^2!=0,
+        ....:                 restrictions2= u^2+v^2!=0)
         sage: uv_to_xy = xy_to_uv.inverse()
         sage: XM = M.vector_field_module() ; XM
         Module X(M) of vector fields on the 2-dimensional differentiable
@@ -184,8 +184,8 @@ class VectorFieldModule(UniqueRepresentation, Parent):
             sage: c_uv.<u,v> = V.chart() # stereographic coordinates from the South pole
             sage: M.declare_union(U,V)   # S^2 is the union of U and V
             sage: xy_to_uv = c_xy.transition_map(c_uv, (x/(x^2+y^2), y/(x^2+y^2)),
-            ....:                                intersection_name='W', restrictions1= x^2+y^2!=0,
-            ....:                                restrictions2= u^2+v^2!=0)
+            ....:                intersection_name='W', restrictions1= x^2+y^2!=0,
+            ....:                restrictions2= u^2+v^2!=0)
             sage: from sage.manifolds.differentiable.vectorfield_module import VectorFieldModule
             sage: XM = VectorFieldModule(M, dest_map=M.identity_map()); XM
             Module X(M) of vector fields on the 2-dimensional differentiable
@@ -266,8 +266,8 @@ class VectorFieldModule(UniqueRepresentation, Parent):
                        self._ambient_domain.is_subset(comp._ambient_domain):
                 return comp.restrict(self._domain)
             else:
-                raise TypeError("Cannot coerce the " + str(comp) +
-                                "to a vector field in " + str(self))
+                raise ValueError("cannot convert the {} ".format(comp) +
+                                 "to a vector field in {}".format(self))
         resu = self.element_class(self, name=name, latex_name=latex_name)
         if comp != []:
             resu.set_comp(frame)[:] = comp
@@ -275,7 +275,7 @@ class VectorFieldModule(UniqueRepresentation, Parent):
 
     def _an_element_(self):
         r"""
-        Construct some (unamed) element of the module
+        Construct some (unnamed) element of the module.
 
         TEST::
 
@@ -292,7 +292,7 @@ class VectorFieldModule(UniqueRepresentation, Parent):
 
     def _coerce_map_from_(self, other):
         r"""
-        Determine whether coercion to self exists from other parent
+        Determine whether coercion to self exists from other parent.
 
         TEST::
 
@@ -948,7 +948,7 @@ class VectorFieldFreeModule(FiniteRankFreeModule):
         sage: M.declare_union(U,V)   # S^1 is the union of U and V
         sage: c_u.<u> = V.chart('u:(0,2*pi)') # the angle t-pi
         sage: t_to_u = c_t.transition_map(c_u, (t-pi,), intersection_name='W',
-        ....:                             restrictions1 = t!=pi, restrictions2 = u!=pi)
+        ....:                     restrictions1 = t!=pi, restrictions2 = u!=pi)
         sage: u_to_t = t_to_u.inverse()
         sage: W = U.intersection(V)
 
@@ -956,7 +956,7 @@ class VectorFieldFreeModule(FiniteRankFreeModule):
     a coordinate frame. It is however parallelizable and we introduce a global
     vector frame as follows. We notice that on their common subdomain, `W`,
     the coordinate vectors `\partial/\partial t` and `\partial/\partial u`
-    coincide, as we can check explicitely::
+    coincide, as we can check explicitly::
 
         sage: c_t.frame()[0].display(c_u.frame().restrict(W))
         d/dt = d/du
@@ -1037,7 +1037,8 @@ class VectorFieldFreeModule(FiniteRankFreeModule):
             sage: DiffManifold._clear_cache_() # for doctests only
             sage: M = DiffManifold(2, 'M')
             sage: X.<x,y> = M.chart()  # makes M parallelizable
-            sage: from sage.manifolds.differentiable.vectorfield_module import VectorFieldFreeModule
+            sage: from sage.manifolds.differentiable.vectorfield_module \
+            ....:                                  import VectorFieldFreeModule
             sage: XM = VectorFieldFreeModule(M, dest_map=M.identity_map()); XM
             Free module X(M) of vector fields on the 2-dimensional
              differentiable manifold M
@@ -1108,8 +1109,8 @@ class VectorFieldFreeModule(FiniteRankFreeModule):
                        self._ambient_domain.is_subset(comp._ambient_domain):
                 return comp.restrict(self._domain)
             else:
-                raise TypeError("Cannot coerce the " + str(comp) +
-                                "to a vector field in " + str(self))
+                raise ValueError("cannot convert the {}".format(comp) +
+                                 "to a vector field in {}".format(self))
         resu = self.element_class(self, name=name, latex_name=latex_name)
         if comp != []:
             resu.set_comp(basis)[:] = comp
@@ -1520,14 +1521,14 @@ class VectorFieldFreeModule(FiniteRankFreeModule):
         #
         # 0/ Compatibility checks:
         if comp._ring is not self._ring:
-             raise TypeError("the components are not defined on the same" +
-                            " ring as the module")
+             raise ValueError("the components are not defined on the same " +
+                              "ring as the module")
         if comp._frame not in self._known_bases:
-            raise TypeError("the components are not defined on a basis of" +
-                            " the module")
+            raise ValueError("the components are not defined on a basis of " +
+                             "the module")
         if comp._nid != tensor_type[0] + tensor_type[1]:
-            raise TypeError("number of component indices not compatible with "+
-                            " the tensor type")
+            raise ValueError("number of component indices not compatible " +
+                             "with the tensor type")
         #
         # 1/ Construction of the tensor:
         if tensor_type == (1,0):
@@ -1571,8 +1572,8 @@ class VectorFieldFreeModule(FiniteRankFreeModule):
         OUTPUT:
 
         - instance of
-          :class:`~sage.manifolds.differentiable.tensorfield_paral.TensorFieldParal` of
-          tensor type (0,2) and symmetric
+          :class:`~sage.manifolds.differentiable.tensorfield_paral.TensorFieldParal`
+          of tensor type (0,2) and symmetric
 
         EXAMPLE::
 

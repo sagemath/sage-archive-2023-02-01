@@ -342,8 +342,8 @@ class DiffForm(TensorField):
             sage: c_uv.<u,v> = V.chart() # stereographic coordinates from the South pole
             sage: M.declare_union(U,V)   # S^2 is the union of U and V
             sage: xy_to_uv = c_xy.transition_map(c_uv, (x/(x^2+y^2), y/(x^2+y^2)),
-            ....:                                intersection_name='W', restrictions1= x^2+y^2!=0,
-            ....:                                restrictions2= u^2+v^2!=0)
+            ....:                intersection_name='W', restrictions1= x^2+y^2!=0,
+            ....:                restrictions2= u^2+v^2!=0)
             sage: uv_to_xy = xy_to_uv.inverse()
             sage: e_xy = c_xy.frame(); e_uv = c_uv.frame()
 
@@ -417,8 +417,8 @@ class DiffForm(TensorField):
             sage: M.declare_union(U,V)   # S^2 is the union of U and V
             sage: c_xy.<x,y> = U.chart() ; c_uv.<u,v> = V.chart() # stereographic coord. (North and South)
             sage: xy_to_uv = c_xy.transition_map(c_uv, (x/(x^2+y^2), y/(x^2+y^2)),
-            ....:                 intersection_name='W', restrictions1= x^2+y^2!=0,
-            ....:                 restrictions2= u^2+v^2!=0)
+            ....:                intersection_name='W', restrictions1= x^2+y^2!=0,
+            ....:                restrictions2= u^2+v^2!=0)
             sage: uv_to_xy = xy_to_uv.inverse()
             sage: W = U.intersection(V) # The complement of the two poles
             sage: e_xy = c_xy.frame() ; e_uv = c_uv.frame()
@@ -440,12 +440,12 @@ class DiffForm(TensorField):
         from sage.tensor.modules.format_utilities import is_atomic
         if self._domain.is_subset(other._domain):
             if not self._ambient_domain.is_subset(other._ambient_domain):
-                raise TypeError("Incompatible ambient domains for exterior " +
-                                "product.")
+                raise ValueError("incompatible ambient domains for exterior " +
+                                 "product")
         elif other._domain.is_subset(self._domain):
             if not other._ambient_domain.is_subset(self._ambient_domain):
-                raise TypeError("Incompatible ambient domains for exterior " +
-                                "product.")
+                raise ValueError("incompatible ambient domains for exterior " +
+                                 "product")
         dom_resu = self._domain.intersection(other._domain)
         ambient_dom_resu = self._ambient_domain.intersection(
                                                          other._ambient_domain)
@@ -547,8 +547,8 @@ class DiffForm(TensorField):
             sage: M.declare_union(U,V)   # S^2 is the union of U and V
             sage: c_xy.<x,y> = U.chart() ; c_uv.<u,v> = V.chart() # stereographic coord. (North and South)
             sage: xy_to_uv = c_xy.transition_map(c_uv, (x/(x^2+y^2), y/(x^2+y^2)),
-            ....:                 intersection_name='W', restrictions1= x^2+y^2!=0,
-            ....:                 restrictions2= u^2+v^2!=0)
+            ....:                intersection_name='W', restrictions1= x^2+y^2!=0,
+            ....:                restrictions2= u^2+v^2!=0)
             sage: uv_to_xy = xy_to_uv.inverse()
             sage: W = U.intersection(V) # The complement of the two poles
             sage: eU = c_xy.frame() ; eV = c_uv.frame()
@@ -830,7 +830,8 @@ class DiffFormParal(FreeModuleAltForm, TensorFieldParal):
     Let us check Cartan formula, which expresses the Lie derivative in terms
     of exterior derivatives::
 
-        sage: ab.lie_der(v) == v.contract(ab.exterior_der()) + (v.contract(ab)).exterior_der()
+        sage: ab.lie_der(v) == v.contract(ab.exterior_der()) + \
+        ....:                  (v.contract(ab)).exterior_der()
         True
 
     A 1-form on a `\RR^3`::
@@ -1117,7 +1118,7 @@ class DiffFormParal(FreeModuleAltForm, TensorFieldParal):
                     coord_frames.append(frame)
             if coord_frames == []:
                 # A coordinate frame is searched, at the price of a change of
-                # frame, priveleging the frame of the domain's default chart
+                # frame, privileging the frame of the domain's default chart
                 dom = self._domain
                 def_coordf = dom._def_chart._frame
                 for frame in self._components:
@@ -1196,12 +1197,12 @@ class DiffFormParal(FreeModuleAltForm, TensorFieldParal):
         from sage.tensor.modules.free_module_alt_form import FreeModuleAltForm
         if self._domain.is_subset(other._domain):
             if not self._ambient_domain.is_subset(other._ambient_domain):
-                raise TypeError("Incompatible ambient domains for exterior " +
-                                "product.")
+                raise ValueError("incompatible ambient domains for exterior " +
+                                 "product")
         elif other._domain.is_subset(self._domain):
             if not other._ambient_domain.is_subset(self._ambient_domain):
-                raise TypeError("Incompatible ambient domains for exterior " +
-                                "product.")
+                raise ValueError("incompatible ambient domains for exterior " +
+                                 "product")
         dom_resu = self._domain.intersection(other._domain)
         self_r = self.restrict(dom_resu)
         other_r = other.restrict(dom_resu)
@@ -1274,4 +1275,3 @@ class DiffFormParal(FreeModuleAltForm, TensorFieldParal):
 
         """
         return metric.hodge_star(self)
-

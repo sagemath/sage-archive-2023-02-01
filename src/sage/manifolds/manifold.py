@@ -159,6 +159,27 @@ Similarly::
     sage: stereoN(S)
     (0, 0)
 
+A continuous map `S^2\rightarrow \RR` (scalar field)::
+
+    sage: f = M.scalar_field({stereoN: atan(x^2+y^2), stereoS: pi/2-atan(u^2+v^2)},
+    ....:                    name='f')
+    sage: f
+    Scalar field f on the 2-dimensional topological manifold S^2
+    sage: f.display()
+    f: S^2 --> R
+    on U: (x, y) |--> arctan(x^2 + y^2)
+    on V: (u, v) |--> 1/2*pi - arctan(u^2 + v^2)
+    sage: f(p)
+    arctan(5)
+    sage: f(N)
+    1/2*pi
+    sage: f(S)
+    0
+    sage: f.parent()
+    Algebra of scalar fields on the 2-dimensional topological manifold S^2
+    sage: f.parent().category()
+    Category of commutative algebras over Symbolic Ring
+
 
 .. RUBRIC:: Example 2: the Riemann sphere as a topological manifold of
   dimension 1 over `\CC`
@@ -313,7 +334,7 @@ class TopManifold(TopManifoldSubset):
     - ``start_index`` -- (default: 0) integer; lower value of the range of
       indices used for "indexed objects" on the manifold, e.g. coordinates
       in a chart
-    - ``category`` -- (default: ``None``) to specify the categeory; the
+    - ``category`` -- (default: ``None``) to specify the category; the
       default being ``Sets()`` (``Manifolds()`` after :trac:`18175` is
       implemented)
     - ``ambient_manifold`` -- (default: ``None``) if not ``None``, the created
@@ -900,12 +921,12 @@ class TopManifold(TopManifoldSubset):
 
     def top_charts(self):
         r"""
-        Return the list of charts defined on subsets of the current set
+        Return the list of charts defined on subsets of the current manifold
         that are not subcharts of charts on larger subsets.
 
         OUTPUT:
 
-        - list of charts defined on open subsets of ``self`` but not on
+        - list of charts defined on open subsets of the manifold but not on
           larger subsets
 
         EXAMPLES:
@@ -1090,7 +1111,7 @@ class TopManifold(TopManifoldSubset):
 
     def is_manifestly_coordinate_domain(self):
         r"""
-        Returns ``True`` if the manifold is known to be the domain of some
+        Return ``True`` if the manifold is known to be the domain of some
         coordinate chart and ``False`` otherwise.
 
         If ``False`` is returned, either the manifold cannot be the domain of
@@ -1273,7 +1294,7 @@ class TopManifold(TopManifoldSubset):
           below)
         - ``names`` -- (default: ``None``) unused argument, except if
           ``coordinates`` is not provided; it must then be a tuple containing
-          the coordinate symbols (this is guaranted if the shortcut operator
+          the coordinate symbols (this is guaranteed if the shortcut operator
           ``<,>`` is used).
 
         OUTPUT:
@@ -1775,7 +1796,8 @@ class TopManifold(TopManifoldSubset):
 
         Homeomorphism between the open unit disk in `\RR^2` and `\RR^2`::
 
-            sage: TopManifold._clear_cache_() #  for doctests only
+            sage: TopManifold._clear_cache_()  # for doctests only
+            sage: forget()  # for doctests only
             sage: M = TopManifold(2, 'M')  # the open unit disk
             sage: c_xy.<x,y> = M.chart('x:(-1,1) y:(-1,1)')  # Cartesian coord on M
             sage: c_xy.add_restrictions(x^2+y^2<1)
@@ -1871,4 +1893,3 @@ class TopManifold(TopManifoldSubset):
 
         """
         return self._identity_map
-

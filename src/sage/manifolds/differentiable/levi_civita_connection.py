@@ -114,7 +114,7 @@ class LeviCivitaConnection(AffineConnection):
     - ``name`` -- name given to the connection
     - ``latex_name`` -- (default: ``None``) LaTeX symbol to denote the
       connection
-    - ``init_coef`` -- (default: ``True``) determines whether the Chrsitoffel
+    - ``init_coef`` -- (default: ``True``) determines whether the Christoffel
       symbols are initialized (in the top charts on the domain, i.e.
       disregarding the subcharts)
 
@@ -229,14 +229,8 @@ class LeviCivitaConnection(AffineConnection):
         if init_coef:
             # Initialization of the Christoffel symbols in the top charts on
             # the domain (i.e. disregarding the subcharts)
-            for chart in self._domain._atlas:
-                for other in self._domain._atlas:
-                    if chart in other._subcharts and chart is not other:
-                        break
-                else:
-                    # the chart is not any subchart and therefore the
-                    # Christoffel symbols relative to it are computed:
-                    self.coef(chart._frame)
+            for chart in self._domain.top_charts():
+                self.coef(chart._frame)
 
     def _repr_(self):
         r"""
@@ -335,8 +329,8 @@ class LeviCivitaConnection(AffineConnection):
             return self
         if subdomain not in self._restrictions:
             if not subdomain.is_subset(self._domain):
-                raise ValueError("The provided domain is not a subdomain of " +
-                                 "the current connection's domain.")
+                raise ValueError("the provided domain is not a subdomain of " +
+                                 "the current connection's domain")
             resu = LeviCivitaConnection(self._metric.restrict(subdomain),
                                         name=self._name,
                                         latex_name=self._latex_name,
@@ -505,7 +499,8 @@ class LeviCivitaConnection(AffineConnection):
                         # parallel computation
 
                         nproc = TensorParallelCompute()._nproc
-                        lol = lambda lst, sz: [lst[i:i+sz] for i in range(0, len(lst), sz)]
+                        lol = lambda lst, sz: [lst[i:i+sz] for i in
+                                                        range(0, len(lst), sz)]
 
                         ind_list = []
                         for ind in gam.non_redundant_index_generator():
@@ -543,7 +538,7 @@ class LeviCivitaConnection(AffineConnection):
                         # sequential
                         for ind in gam.non_redundant_index_generator():
                             i, j, k = ind
-                            # The computation is performed at the FunctionChart level:
+                            # The computation is performed at the CoordFunction level:
                             rsum = 0
                             for s in manif.irange():
                                 rsum += ginv[i,s, chart] * (
@@ -771,4 +766,3 @@ class LeviCivitaConnection(AffineConnection):
                 rst._latex_name = resu._latex_name
             self._ricci = resu
         return self._ricci
-

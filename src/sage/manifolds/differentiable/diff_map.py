@@ -1,14 +1,13 @@
 r"""
 Differentiable maps between differentiable manifolds
 
-The class :class:`DiffMap` implements differentiable maps from an open
-subset `U` of a differentiable manifold `M` to some differentiable
-manifold `N` over the same topological field `K` as `M` (in most
-applications, `K = \RR` or `K = \CC`):
+The class :class:`DiffMap` implements differentiable maps from a differentiable
+manifold `M` to a differentiable manifold `N` over the same topological field
+`K` as `M` (in most applications, `K = \RR` or `K = \CC`):
 
 .. MATH::
 
-    \Phi: U\subset M \longrightarrow N
+    \Phi: M \longrightarrow N
 
 
 AUTHORS:
@@ -17,10 +16,10 @@ AUTHORS:
 
 REFERENCES:
 
-.. [1] Chap. 1 of S. Kobayashi & K. Nomizu : *Foundations of Differential Geometry*,
-   vol. 1, Interscience Publishers (New York) (1963)
-.. [2] Chaps. 2 and 3 of J.M. Lee : *Introduction to Smooth Manifolds*, 2nd ed.,
-   Springer (New York) (2013)
+.. [1] Chap. 1 of S. Kobayashi & K. Nomizu : *Foundations of Differential
+   Geometry*, vol. 1, Interscience Publishers (New York) (1963)
+.. [2] Chaps. 2 and 3 of J.M. Lee : *Introduction to Smooth Manifolds*,
+   2nd ed., Springer (New York) (2013)
 
 """
 
@@ -44,16 +43,15 @@ class DiffMap(ContinuousMap):
 
     .. MATH::
 
-        \Phi: U\subset M \longrightarrow V\subset N
+        \Phi: M \longrightarrow  N
 
     where `M` and `N` are differentiable manifolds over the same topological
-    field `K` (in most applications, `K = \RR` or `K = \CC`), `U` is an open
-    subset of `M` and `V` is an open subset of `N`.
+    field `K` (in most applications, `K = \RR` or `K = \CC`).
 
     Differentiable maps are the *morphisms* of the *category* of
-    differentiable manifolds. The set of all differentiable maps from
-    `U` to `V` is therefore the homset between `U` and `V` and is denoted
-    by `\mathrm{Hom}(U,V)`.
+    differentiable manifolds. The set of all differentiable maps from `M` to
+    `N` is therefore the homset between `M` and `N`, which is denoted by
+    `\mathrm{Hom}(M,N)`.
 
     The class :class:`DiffMap` is a Sage *element* class, whose *parent*
     class is
@@ -64,13 +62,13 @@ class DiffMap(ContinuousMap):
 
     INPUT:
 
-    - ``parent`` -- homset `\mathrm{Hom}(U,V)` to which the differentiable
+    - ``parent`` -- homset `\mathrm{Hom}(M,N)` to which the differentiable
       map belongs
     - ``coord_functions`` -- (default: ``None``) if not ``None``, must be
       a dictionary of the coordinate expressions (as lists (or tuples) of the
       coordinates of the image expressed in terms of the coordinates of
       the considered point) with the pairs of charts (chart1, chart2)
-      as keys (chart1 being a chart on `U` and chart2 a chart on `V`).
+      as keys (chart1 being a chart on `M` and chart2 a chart on `N`).
       If the dimension of codomain is 1, a single coordinate
       expression can be passed instead of a tuple with a single element
     - ``name`` -- (default: ``None``) name given to the differentiable map
@@ -82,7 +80,7 @@ class DiffMap(ContinuousMap):
       ``True``, then the manifolds `M` and `N` must have the same dimension.
     - ``is_identity`` -- (default: ``False``) determines whether the
       constructed object is the identity map; if set to ``True``,
-      then `V` must be `U` and the entry ``coord_functions`` is not used.
+      then `N` must be `M` and the entry ``coord_functions`` is not used.
 
     .. NOTE::
 
@@ -103,8 +101,8 @@ class DiffMap(ContinuousMap):
         sage: c_uv.<u,v> = V.chart() # stereographic coordinates from the South pole
         sage: M.declare_union(U,V)   # S^2 is the union of U and V
         sage: xy_to_uv = c_xy.transition_map(c_uv, (x/(x^2+y^2), y/(x^2+y^2)),
-        ....:                                intersection_name='W', restrictions1= x^2+y^2!=0,
-        ....:                                restrictions2= u^2+v^2!=0)
+        ....:                 intersection_name='W', restrictions1= x^2+y^2!=0,
+        ....:                 restrictions2= u^2+v^2!=0)
         sage: uv_to_xy = xy_to_uv.inverse()
         sage: N = DiffManifold(3, 'R^3', r'\RR^3')  # R^3
         sage: c_cart.<X,Y,Z> = N.chart()  # Cartesian coordinates on R^3
@@ -113,8 +111,8 @@ class DiffMap(ContinuousMap):
         ....:  (c_uv, c_cart): [2*u/(1+u^2+v^2), 2*v/(1+u^2+v^2), (1-u^2-v^2)/(1+u^2+v^2)]},
         ....: name='Phi', latex_name=r'\Phi')
         sage: Phi
-        Differentiable map Phi from the 2-dimensional differentiable manifold S^2 to
-         the 3-dimensional differentiable manifold R^3
+        Differentiable map Phi from the 2-dimensional differentiable manifold
+         S^2 to the 3-dimensional differentiable manifold R^3
         sage: Phi.parent()
         Set of Morphisms from 2-dimensional differentiable manifold S^2 to
          3-dimensional differentiable manifold R^3 in Category of sets
@@ -124,8 +122,10 @@ class DiffMap(ContinuousMap):
         <class 'sage.manifolds.differentiable.diff_map.DiffManifoldHomset_with_category.element_class'>
         sage: Phi.display()
         Phi: S^2 --> R^3
-        on U: (x, y) |--> (X, Y, Z) = (2*x/(x^2 + y^2 + 1), 2*y/(x^2 + y^2 + 1), (x^2 + y^2 - 1)/(x^2 + y^2 + 1))
-        on V: (u, v) |--> (X, Y, Z) = (2*u/(u^2 + v^2 + 1), 2*v/(u^2 + v^2 + 1), -(u^2 + v^2 - 1)/(u^2 + v^2 + 1))
+        on U: (x, y) |--> (X, Y, Z) = (2*x/(x^2 + y^2 + 1), 2*y/(x^2 + y^2 + 1),
+         (x^2 + y^2 - 1)/(x^2 + y^2 + 1))
+        on V: (u, v) |--> (X, Y, Z) = (2*u/(u^2 + v^2 + 1), 2*v/(u^2 + v^2 + 1),
+         -(u^2 + v^2 - 1)/(u^2 + v^2 + 1))
 
     It is possible to create the map via the method
     :meth:`~sage.manifolds.differentiable.manifold.DiffManifold.diff_map`
@@ -134,14 +134,17 @@ class DiffMap(ContinuousMap):
     arguments ``chart1`` and ``chart2`` have to be provided if the charts
     differ from the default ones on the domain and/or the codomain::
 
-        sage: Phi1 = M.diff_map(N, [2*x/(1+x^2+y^2), 2*y/(1+x^2+y^2), (x^2+y^2-1)/(1+x^2+y^2)],
-        ....:                   chart1=c_xy, chart2=c_cart, name='Phi', latex_name=r'\Phi')
+        sage: Phi1 = M.diff_map(N, [2*x/(1+x^2+y^2), 2*y/(1+x^2+y^2),
+        ....:                       (x^2+y^2-1)/(1+x^2+y^2)],
+        ....:                   chart1=c_xy, chart2=c_cart, name='Phi',
+        ....:                   latex_name=r'\Phi')
 
     Since ``c_xy`` and ``c_cart`` are the default charts on respectively ``M``
     and ``N``, they can be omitted, so that the above declaration is equivalent
     to::
 
-        sage: Phi1 = M.diff_map(N, [2*x/(1+x^2+y^2), 2*y/(1+x^2+y^2), (x^2+y^2-1)/(1+x^2+y^2)],
+        sage: Phi1 = M.diff_map(N, [2*x/(1+x^2+y^2), 2*y/(1+x^2+y^2),
+        ....:                       (x^2+y^2-1)/(1+x^2+y^2)],
         ....:                   name='Phi', latex_name=r'\Phi')
 
     With such a declaration, the differentiable map is only partially defined
@@ -197,8 +200,8 @@ class DiffMap(ContinuousMap):
           From: Tangent space at Point S on the 2-dimensional differentiable manifold S^2
           To:   Tangent space at Point Phi(S) on the 3-dimensional differentiable manifold R^3
 
-    The matrix of the linear map `\mathrm{d}\Phi_N` with respect to the default bases
-    of `T_N S^2` and `T_{\Phi(N)} \RR^3`::
+    The matrix of the linear map `\mathrm{d}\Phi_N` with respect to the default
+    bases of `T_N S^2` and `T_{\Phi(N)} \RR^3`::
 
         sage: Phi.differential(np).matrix()
         [2 0]
@@ -375,8 +378,8 @@ class DiffMap(ContinuousMap):
         True
 
     """
-    def __init__(self, parent, coord_functions=None, name=None, latex_name=None,
-                 is_isomorphism=False, is_identity=False):
+    def __init__(self, parent, coord_functions=None, name=None,
+                 latex_name=None, is_isomorphism=False, is_identity=False):
         r"""
         Construct a differentiable map.
 
@@ -520,7 +523,7 @@ class DiffMap(ContinuousMap):
         - instance of class
           :class:`~sage.manifolds.differentiable.tensorfield.TensorField`
           representing a fully covariant tensor field on the mapping's domain
-          that is the pullback of `T` given by ``self``.
+          that is the pullback of `T` given by the differentiable map.
 
         EXAMPLES:
 
@@ -592,7 +595,7 @@ class DiffMap(ContinuousMap):
             ring1 = fmodule1._ring
             si1 = fmodule1._sindex
             of1 = fmodule1._output_formatter
-            si2 = dom2._manifold._sindex
+            si2 = dom2._sindex
             resu = fmodule1.tensor((0,ncov), name=resu_name,
                                    latex_name=resu_latex_name, sym=tensor._sym,
                                    antisym=tensor._antisym)
@@ -713,11 +716,10 @@ class DiffMap(ContinuousMap):
 
         .. MATH::
 
-            \Phi: U\subset M \longrightarrow N
+            \Phi: M \longrightarrow N
 
-        where `M` and `N` are differentiable manifolds and `U` is an open
-        subset of `M`, the *differential* of `\Phi` at a point `p\in U` is the
-        tangent space linear map:
+        where `M` and `N` are differentiable manifolds, the *differential* of
+        `\Phi` at a point `p\in M` is the tangent space linear map:
 
         .. MATH::
 
@@ -735,7 +737,7 @@ class DiffMap(ContinuousMap):
 
         INPUT:
 
-        - ``point`` -- point `p` in the domain `U` of the differentiable map
+        - ``point`` -- point `p` in the domain `M` of the differentiable map
           `\Phi`
 
         OUTPUT:
@@ -817,8 +819,8 @@ class DiffMap(ContinuousMap):
         chart1 = chartp[0]
         chart2 = chartp[1]
         coord_point = point.coord(chart1)
-        n1 = self._domain._manifold.dim()
-        n2 = self._codomain._manifold.dim()
+        n1 = self._domain.dim()
+        n2 = self._codomain.dim()
         matrix = [[diff_funct[i][j](*coord_point) for j in range(n1)]
                                                             for i in range(n2)]
         bases = (chart1.frame().at(point), chart2.frame().at(image_point))
@@ -843,12 +845,11 @@ class DiffMap(ContinuousMap):
 
         .. MATH::
 
-            \Phi: U\subset M \longrightarrow  N
+            \Phi: M \longrightarrow  N
 
 
-        where `M` and `N` are differentiable manifolds and `U` is an open
-        subset of `M`, the *differential* of `\Phi` at a point `p\in U` is the
-        tangent space linear map:
+        where `M` and `N` are differentiable manifolds, the *differential* of
+        `\Phi` at a point `p\in M` is the tangent space linear map:
 
         .. MATH::
 
@@ -870,8 +871,8 @@ class DiffMap(ContinuousMap):
 
             y^i = Y^i(x^1,\ldots,x^n)  \quad 1\leq i \leq m
 
-        where $(x^1,\ldots,x^n)$ are coordinates of a chart on `U` and
-        $(y^1,\ldots,y^m)$ are coordinates of a chart on `\Phi(U)`, the
+        where $(x^1,\ldots,x^n)$ are coordinates of a chart on `M` and
+        $(y^1,\ldots,y^m)$ are coordinates of a chart on `\Phi(M)`, the
         expression of the differential of `\Phi` w.r.t to these coordinates is
 
         .. MATH::
@@ -885,18 +886,18 @@ class DiffMap(ContinuousMap):
 
         .. MATH::
 
-            \mathrm{d}\Phi_p\left(  \left. \frac{\partial}{\partial x^j} \right| _p
-                    \right) = \left. J_{ij} \right|_p \;
+            \mathrm{d}\Phi_p\left(  \left. \frac{\partial}{\partial x^j}
+               \right| _p \right) = \left. J_{ij} \right|_p \;
              \left. \frac{\partial}{\partial y^i} \right| _{\Phi(p)}
 
         INPUT:
 
-        - ``chart1`` -- (default: ``None``) chart on the domain `U` of `\Phi`
-          (coordinates denoted by `(x^j)` above); if none is provided, the
-          domain's default chart is assumed
+        - ``chart1`` -- (default: ``None``) chart on the domain `M` of `\Phi`
+          (coordinates denoted by `(x^j)` above); if ``None``, the domain's
+          default chart is assumed
         - ``chart2`` -- (default: ``None``) chart on the codomain of `\Phi`
-          (coordinates denoted by `(y^i)` above); if none is provided, the
-          codomain's default chart is assumed
+          (coordinates denoted by `(y^i)` above); if ``None``, the codomain's
+          default chart is assumed
 
         OUTPUT:
 
@@ -952,7 +953,7 @@ class DiffMap(ContinuousMap):
         if (chart1, chart2) not in self._diff:
             # Some computation must be performed
             manif1 = dom1._manifold
-            n2 = dom2._manifold.dim()
+            n2 = dom2.dim()
             funct = self.coord_functions(chart1, chart2)
             self._diff[(chart1, chart2)] = [[funct[i].diff(j) for j in
                                            manif1.irange()] for i in range(n2)]
@@ -1018,7 +1019,7 @@ class DiffMap(ContinuousMap):
         """
         from sage.matrix.constructor import matrix
         diff_funct = self.differential_functions(chart1, chart2)
-        n1 = self._domain._manifold.dim()
-        n2 = self._codomain._manifold.dim()
+        n1 = self._domain.dim()
+        n2 = self._codomain.dim()
         return matrix( [[diff_funct[i][j].expr() for j in range(n1)]
                                                           for i in range(n2)] )

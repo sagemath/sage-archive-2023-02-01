@@ -1201,7 +1201,7 @@ class ScalarField(CommutativeAlgebraElement):
         .. WARNING::
 
             If the scalar field has already expressions in other charts, it
-            is the user's responsability to make sure that the expression
+            is the user's responsibility to make sure that the expression
             to be added is consistent with them.
 
         EXAMPLES:
@@ -1623,7 +1623,7 @@ class ScalarField(CommutativeAlgebraElement):
         INPUT:
 
         - ``p`` -- point in the scalar field's domain (type:
-          :class:`~sage.manifolds.point.ManifoldPoint`)
+          :class:`~sage.manifolds.point.TopManifoldPoint`)
         - ``chart`` -- (default: ``None``) chart in which the coordinates of p
           are to be considered; if none is provided, a chart in which both p's
           coordinates and the expression of the scalar field are known is

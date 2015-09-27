@@ -44,10 +44,9 @@ class ContinuousMap(Morphism):
     where `M` and `N` are topological manifolds over the same topological
     field `K`.
 
-    Continuous maps are the *morphisms* of the *category* of
-    topological manifolds. The set of all continuous maps from
-    `M` to `N` is therefore the homset between `M` and `N` and is denoted
-    by `\mathrm{Hom}(M,N)`.
+    Continuous maps are the *morphisms* of the *category* of topological
+    manifolds. The set of all continuous maps from `M` to `N` is therefore the
+    homset between `M` and `N`, which is denoted by `\mathrm{Hom}(M,N)`.
 
     The class :class:`ContinuousMap` is a Sage *element* class, whose *parent*
     class is :class:`~sage.manifolds.manifold_homset.TopManifoldHomset`.
@@ -879,7 +878,6 @@ class ContinuousMap(Morphism):
         r"""
         Delete the derived quantities
 
-
         TEST::
 
             sage: M = TopManifold(2, 'M')
@@ -1464,7 +1462,7 @@ class ContinuousMap(Morphism):
         .. WARNING::
 
             If the map has already expressions in other charts, it
-            is the user's responsability to make sure that the expression
+            is the user's responsibility to make sure that the expression
             to be added is consistent with them.
 
         EXAMPLES:

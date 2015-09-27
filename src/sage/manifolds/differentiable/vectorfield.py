@@ -340,7 +340,7 @@ class VectorField(TensorField):
             # as a tensor field of type (1,0):
             return scalar(self)
         if scalar._tensor_type != (0,0):
-            raise TypeError("The argument must be a scalar field")
+            raise TypeError("the argument must be a scalar field")
         #!# Could it be simply
         # return scalar.differential()(self)
         # ?
@@ -614,13 +614,15 @@ class VectorField(TensorField):
         if chart is None:
             chart = self._domain.default_chart()
         elif not isinstance(chart, RealChart):
-            raise TypeError("{} is not a chart on a real manifold".format(chart))
+            raise TypeError("{} is not a chart on a real ".format(chart) +
+                            "manifold")
         if chart_domain is None:
             chart_domain = self._domain.default_chart()
         elif not isinstance(chart_domain, RealChart):
-            raise TypeError("{} is not a chart on a real manifold".format(chart_domain))
+            raise TypeError("{} is not a chart on a ".format(chart_domain) +
+                            "real manifold")
         elif not chart_domain.domain().is_subset(self._domain):
-            raise ValueError("The domain of {} is not ".format(chart_domain) +
+            raise ValueError("the domain of {} is not ".format(chart_domain) +
                              "included in the domain of {}".format(self))
         if fixed_coords is None:
             coords = chart_domain._xx
@@ -690,7 +692,7 @@ class VectorField(TensorField):
         xx = [0] * nc
         if fixed_coords is not None:
             if len(fixed_coords) != nc - ncp:
-                raise ValueError("Bad number of fixed coordinates.")
+                raise ValueError("bad number of fixed coordinates")
             for fc, val in fixed_coords.iteritems():
                 xx[chart_domain[:].index(fc)] = val
         index_p = [chart_domain[:].index(cd) for cd in coords]
@@ -1067,7 +1069,7 @@ class VectorFieldParal(FiniteRankFreeModuleElement, TensorFieldParal,
             # as a tensor field of type (1,0):
             return scalar(self)
         if scalar._tensor_type != (0,0):
-            raise TypeError("The argument must be a scalar field")
+            raise TypeError("the argument must be a scalar field")
         #!# Could it be simply
         # return scalar.differential()(self)
         # ?
@@ -1104,7 +1106,7 @@ class VectorFieldParal(FiniteRankFreeModuleElement, TensorFieldParal,
                 except ValueError:
                     pass
         if not common_charts:
-            raise ValueError("No common chart found.")
+            raise ValueError("no common chart found")
         # The computation:
         manif = scalar._manifold
         for chart in common_charts:

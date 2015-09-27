@@ -136,9 +136,9 @@ class TensorField(ModuleElement):
         sage: V = M.open_subset('V') # complement of the South pole
         sage: c_uv.<u,v> = V.chart() # stereographic coordinates from the South pole
         sage: M.declare_union(U,V)   # S^2 is the union of U and V
-        sage: xy_to_uv = c_xy.transition_map(c_uv, (x/(x^2+y^2), y/(x^2+y^2)), \
-                                             intersection_name='W', restrictions1= x^2+y^2!=0, \
-                                             restrictions2= u^2+v^2!=0)
+        sage: xy_to_uv = c_xy.transition_map(c_uv, (x/(x^2+y^2), y/(x^2+y^2)),
+        ....:                 intersection_name='W', restrictions1= x^2+y^2!=0,
+        ....:                 restrictions2= u^2+v^2!=0)
         sage: uv_to_xy = xy_to_uv.inverse()
         sage: W = U.intersection(V)
         sage: t = M.tensor_field(0,2, name='t') ; t
@@ -338,8 +338,8 @@ class TensorField(ModuleElement):
                 if len(isym) > 1:
                     for i in isym:
                         if i<0 or i>self._tensor_rank-1:
-                            raise IndexError("Invalid position: " + str(i) +
-                                 " not in [0," + str(self._tensor_rank-1) + "]")
+                            raise IndexError("invalid position: {}".format(i) +
+                                 " not in [0,{}]".format(self._tensor_rank-1))
                     self._sym.append(tuple(isym))
         self._antisym = []
         if antisym is not None and antisym != []:
@@ -350,8 +350,8 @@ class TensorField(ModuleElement):
                 if len(isym) > 1:
                     for i in isym:
                         if i<0 or i>self._tensor_rank-1:
-                            raise IndexError("Invalid position: " + str(i) +
-                                " not in [0," + str(self._tensor_rank-1) + "]")
+                            raise IndexError("invalid position: {}".format(i) +
+                                " not in [0,{}]".format(self._tensor_rank-1))
                     self._antisym.append(tuple(isym))
         # Final consistency check:
         index_list = []
@@ -361,8 +361,8 @@ class TensorField(ModuleElement):
             index_list += isym
         if len(index_list) != len(set(index_list)):
             # There is a repeated index position:
-            raise IndexError("Incompatible lists of symmetries: the same " +
-                             "position appears more than once.")
+            raise IndexError("incompatible lists of symmetries: the same " +
+                             "position appears more than once")
         # Initialization of derived quantities:
         self._init_derived()
 
@@ -408,7 +408,7 @@ class TensorField(ModuleElement):
             resu = resu or rst.__nonzero__()
         return resu
 
-    ####### End of required methods for ModuleElement (beside arithmetic) #######
+    ##### End of required methods for ModuleElement (beside arithmetic) #####
 
     def _repr_(self):
         r"""
@@ -544,8 +544,8 @@ class TensorField(ModuleElement):
         if self._domain == self._ambient_domain:
             description += "on the {}".format(self._domain)
         else:
-            description += "along the {}".format(self._domain) + \
-                           " with values on the {}".format(self._ambient_domain)
+            description += "along the {} ".format(self._domain) + \
+                           "with values on the {}".format(self._ambient_domain)
         return description
 
     def _init_derived(self):
@@ -606,7 +606,6 @@ class TensorField(ModuleElement):
         """
         return self._domain
 
-
     def base_module(self):
         r"""
         Return the vector field module on which the current tensor field acts
@@ -640,7 +639,6 @@ class TensorField(ModuleElement):
 
         """
         return self._vmodule
-
 
     def tensor_type(self):
         r"""
@@ -771,26 +769,26 @@ class TensorField(ModuleElement):
 
         """
         if not isinstance(rst, TensorField):
-            raise TypeError("The argument must be a tensor field.")
+            raise TypeError("the argument must be a tensor field")
         if not rst._domain.is_subset(self._domain):
-            raise ValueError("The domain of the declared restriction is not " +
-                             "a subset of the field's domain.")
+            raise ValueError("the domain of the declared restriction is not " +
+                             "a subset of the field's domain")
         if not rst._ambient_domain.is_subset(self._ambient_domain):
-            raise ValueError("The ambient domain of the declared " +
+            raise ValueError("the ambient domain of the declared " +
                              "restriction is not a subset of the " +
-                             "field's ambient domain.")
+                             "field's ambient domain")
         if rst._tensor_type != self._tensor_type:
-            raise ValueError("The declared restriction has not the same " +
-                             "tensor type as the current tensor field.")
+            raise ValueError("the declared restriction has not the same " +
+                             "tensor type as the current tensor field")
         if rst._tensor_type != self._tensor_type:
-            raise ValueError("The declared restriction has not the same " +
-                             "tensor type as the current tensor field.")
+            raise ValueError("the declared restriction has not the same " +
+                             "tensor type as the current tensor field")
         if rst._sym != self._sym:
-            raise ValueError("The declared restriction has not the same " +
-                             "symmetries as the current tensor field.")
+            raise ValueError("the declared restriction has not the same " +
+                             "symmetries as the current tensor field")
         if rst._antisym != self._antisym:
-            raise ValueError("The declared restriction has not the same " +
-                             "antisymmetries as the current tensor field.")
+            raise ValueError("the declared restriction has not the same " +
+                             "antisymmetries as the current tensor field")
         self._restrictions[rst._domain] = rst.copy()
         self._restrictions[rst._domain].set_name(name=self._name,
                                                  latex_name=self._latex_name)
@@ -885,13 +883,14 @@ class TensorField(ModuleElement):
             return self
         if subdomain not in self._restrictions:
             if not subdomain.is_subset(self._domain):
-                raise ValueError("The provided domain is not a subset of " +
-                                 "the field's domain.")
+                raise ValueError("the provided domain is not a subset of " +
+                                 "the field's domain")
             if dest_map is None:
                 dest_map = self._vmodule._dest_map.restrict(subdomain)
             elif not dest_map._codomain.is_subset(self._ambient_domain):
-                raise ValueError("Argument dest_map not compatible with " +
-                                 "self._ambient_domain")
+                raise ValueError("the argument 'dest_map' is not compatible " +
+                                 "with the ambient domain of " +
+                                 "the {}".format(self))
             # First one tries to get the restriction from a tighter domain:
             for dom, rst in self._restrictions.iteritems():
                 if subdomain.is_subset(dom):
@@ -900,12 +899,13 @@ class TensorField(ModuleElement):
             # If this fails, the restriction is created from scratch:
             else:
                 smodule = subdomain.vector_field_module(dest_map=dest_map)
-                self._restrictions[subdomain] = smodule.tensor(self._tensor_type,
-                                                    name=self._name,
-                                                    latex_name=self._latex_name,
-                                                    sym=self._sym,
-                                                    antisym=self._antisym,
-                                                    specific_type=self.__class__)
+                self._restrictions[subdomain] = smodule.tensor(
+                                                  self._tensor_type,
+                                                  name=self._name,
+                                                  latex_name=self._latex_name,
+                                                  sym=self._sym,
+                                                  antisym=self._antisym,
+                                                  specific_type=self.__class__)
         return self._restrictions[subdomain]
 
     def set_comp(self, basis=None):
@@ -1058,7 +1058,9 @@ class TensorField(ModuleElement):
             sage: U = M.open_subset('U') ; V = M.open_subset('V')
             sage: M.declare_union(U,V)   # S^2 is the union of U and V
             sage: c_xy.<x,y> = U.chart() ; c_uv.<u,v> = V.chart() # stereographic coordinates
-            sage: transf = c_xy.transition_map(c_uv, (x/(x^2+y^2), y/(x^2+y^2)), intersection_name='W', restrictions1= x^2+y^2!=0, restrictions2= u^2+v^2!=0)
+            sage: transf = c_xy.transition_map(c_uv, (x/(x^2+y^2), y/(x^2+y^2)),
+            ....:             intersection_name='W', restrictions1= x^2+y^2!=0,
+            ....:             restrictions2= u^2+v^2!=0)
             sage: inv = transf.inverse()
             sage: W = U.intersection(V) # The complement of the two poles
             sage: eU = c_xy.frame() ; eV = c_uv.frame()
@@ -1094,8 +1096,8 @@ class TensorField(ModuleElement):
         """
         dom = frame._domain
         if not dom.is_subset(self._domain):
-            raise ValueError("The vector frame is not defined on a subset" +
-                             " of the tensor field domain.")
+            raise ValueError("the vector frame is not defined on a subset " +
+                             "of the tensor field domain")
         if chart is None:
             chart = dom._def_chart
         sframe = frame.restrict(subdomain)
@@ -1493,7 +1495,8 @@ class TensorField(ModuleElement):
             sage: t[e_xy,:] = [[x+y, 0], [2, 1-y]]
             sage: t.add_comp_by_continuation(e_uv, U.intersection(V), c_uv)
             sage: s = t.copy(); s
-            Tensor field of type (1,1) on the 2-dimensional differentiable manifold M
+            Tensor field of type (1,1) on the 2-dimensional differentiable
+             manifold M
             sage: s.display(e_xy)
             (x + y) d/dx*dx + 2 d/dy*dx + (-y + 1) d/dy*dy
             sage: s == t
@@ -1529,8 +1532,8 @@ class TensorField(ModuleElement):
             sage: c_uv.<u,v> = V.chart() # stereographic coordinates from the South pole
             sage: M.declare_union(U,V)   # S^2 is the union of U and V
             sage: xy_to_uv = c_xy.transition_map(c_uv, (x/(x^2+y^2), y/(x^2+y^2)),
-            ....:                                intersection_name='W', restrictions1= x^2+y^2!=0,
-            ....:                                restrictions2= u^2+v^2!=0)
+            ....:                intersection_name='W', restrictions1= x^2+y^2!=0,
+            ....:                restrictions2= u^2+v^2!=0)
             sage: uv_to_xy = xy_to_uv.inverse()
             sage: e_xy = c_xy.frame(); e_uv = c_uv.frame()
             sage: t = M.tensor_field(1, 1, name='t')
@@ -1579,8 +1582,8 @@ class TensorField(ModuleElement):
             sage: c_uv.<u,v> = V.chart() # stereographic coordinates from the South pole
             sage: M.declare_union(U,V)   # S^2 is the union of U and V
             sage: xy_to_uv = c_xy.transition_map(c_uv, (x/(x^2+y^2), y/(x^2+y^2)),
-            ....:                                intersection_name='W', restrictions1= x^2+y^2!=0,
-            ....:                                restrictions2= u^2+v^2!=0)
+            ....:                intersection_name='W', restrictions1= x^2+y^2!=0,
+            ....:                restrictions2= u^2+v^2!=0)
             sage: uv_to_xy = xy_to_uv.inverse()
             sage: e_xy = c_xy.frame(); e_uv = c_uv.frame()
             sage: t = M.tensor_field(1, 1, name='t')
@@ -1642,8 +1645,8 @@ class TensorField(ModuleElement):
             sage: c_uv.<u,v> = V.chart() # stereographic coordinates from the South pole
             sage: M.declare_union(U,V)   # S^2 is the union of U and V
             sage: xy_to_uv = c_xy.transition_map(c_uv, (x/(x^2+y^2), y/(x^2+y^2)),
-            ....:                                intersection_name='W', restrictions1= x^2+y^2!=0,
-            ....:                                restrictions2= u^2+v^2!=0)
+            ....:                intersection_name='W', restrictions1= x^2+y^2!=0,
+            ....:                restrictions2= u^2+v^2!=0)
             sage: uv_to_xy = xy_to_uv.inverse()
             sage: e_xy = c_xy.frame(); e_uv = c_uv.frame()
             sage: t = M.tensor_field(1, 1, name='t')
@@ -1673,15 +1676,16 @@ class TensorField(ModuleElement):
             sage: c_uv.<u,v> = V.chart() # stereographic coordinates from the South pole
             sage: M.declare_union(U,V)   # S^2 is the union of U and V
             sage: xy_to_uv = c_xy.transition_map(c_uv, (x/(x^2+y^2), y/(x^2+y^2)),
-            ....:                                intersection_name='W', restrictions1= x^2+y^2!=0,
-            ....:                                restrictions2= u^2+v^2!=0)
+            ....:                intersection_name='W', restrictions1= x^2+y^2!=0,
+            ....:                restrictions2= u^2+v^2!=0)
             sage: uv_to_xy = xy_to_uv.inverse()
             sage: e_xy = c_xy.frame(); e_uv = c_uv.frame()
             sage: t = M.tensor_field(1, 1, name='t')
             sage: t[e_xy,:] = [[x+y, 0], [2, 1-y]]
             sage: t.add_comp_by_continuation(e_uv, U.intersection(V), c_uv)
             sage: s = t.__pos__(); s
-            Tensor field +t of type (1,1) on the 2-dimensional differentiable manifold M
+            Tensor field +t of type (1,1) on the 2-dimensional differentiable
+             manifold M
             sage: s.display(e_xy)
             +t = (x + y) d/dx*dx + 2 d/dy*dx + (-y + 1) d/dy*dy
 
@@ -1712,8 +1716,8 @@ class TensorField(ModuleElement):
             sage: c_uv.<u,v> = V.chart() # stereographic coordinates from the South pole
             sage: M.declare_union(U,V)   # S^2 is the union of U and V
             sage: xy_to_uv = c_xy.transition_map(c_uv, (x/(x^2+y^2), y/(x^2+y^2)),
-            ....:                                intersection_name='W', restrictions1= x^2+y^2!=0,
-            ....:                                restrictions2= u^2+v^2!=0)
+            ....:                intersection_name='W', restrictions1= x^2+y^2!=0,
+            ....:                restrictions2= u^2+v^2!=0)
             sage: uv_to_xy = xy_to_uv.inverse()
             sage: e_xy = c_xy.frame(); e_uv = c_uv.frame()
             sage: t = M.tensor_field(1, 1, name='t')
@@ -1728,7 +1732,8 @@ class TensorField(ModuleElement):
              + (u^2*v - 2*u*v^2 - v^3)/(u^4 + 2*u^2*v^2 + v^4) d/dv*du
              + (u^2*v + 2*u*v^2 - v^3)/(u^4 + 2*u^2*v^2 + v^4) d/dv*dv
             sage: s = t.__neg__(); s
-            Tensor field -t of type (1,1) on the 2-dimensional differentiable manifold M
+            Tensor field -t of type (1,1) on the 2-dimensional differentiable
+             manifold M
             sage: s.display(e_xy)
             -t = -x d/dx*dx + x d/dx*dy - y d/dy*dx + y d/dy*dy
             sage: s.display(e_uv)
@@ -1772,8 +1777,8 @@ class TensorField(ModuleElement):
             sage: c_uv.<u,v> = V.chart() # stereographic coordinates from the South pole
             sage: M.declare_union(U,V)   # S^2 is the union of U and V
             sage: xy_to_uv = c_xy.transition_map(c_uv, (x/(x^2+y^2), y/(x^2+y^2)),
-            ....:                                intersection_name='W', restrictions1= x^2+y^2!=0,
-            ....:                                restrictions2= u^2+v^2!=0)
+            ....:                intersection_name='W', restrictions1= x^2+y^2!=0,
+            ....:                restrictions2= u^2+v^2!=0)
             sage: uv_to_xy = xy_to_uv.inverse()
             sage: e_xy = c_xy.frame(); e_uv = c_uv.frame()
             sage: a = M.tensor_field(1, 1, name='a')
@@ -1783,7 +1788,8 @@ class TensorField(ModuleElement):
             sage: b[e_xy,:] = [[2, y], [x, -x]]
             sage: b.add_comp_by_continuation(e_uv, U.intersection(V), c_uv)
             sage: s = a._add_(b); s
-            Tensor field a+b of type (1,1) on the 2-dimensional differentiable manifold M
+            Tensor field a+b of type (1,1) on the 2-dimensional differentiable
+             manifold M
             sage: a.display(e_xy)
             a = x d/dx*dx + d/dx*dy + y d/dy*dx
             sage: b.display(e_xy)
@@ -1793,7 +1799,8 @@ class TensorField(ModuleElement):
             sage: s == a + b  # indirect doctest
             True
             sage: z = a.parent().zero(); z
-            Tensor field zero of type (1,1) on the 2-dimensional differentiable manifold M
+            Tensor field zero of type (1,1) on the 2-dimensional differentiable
+             manifold M
             sage: a._add_(z) == a
             True
             sage: z._add_(a) == a
@@ -1839,8 +1846,8 @@ class TensorField(ModuleElement):
             sage: c_uv.<u,v> = V.chart() # stereographic coordinates from the South pole
             sage: M.declare_union(U,V)   # S^2 is the union of U and V
             sage: xy_to_uv = c_xy.transition_map(c_uv, (x/(x^2+y^2), y/(x^2+y^2)),
-            ....:                                intersection_name='W', restrictions1= x^2+y^2!=0,
-            ....:                                restrictions2= u^2+v^2!=0)
+            ....:                intersection_name='W', restrictions1= x^2+y^2!=0,
+            ....:                restrictions2= u^2+v^2!=0)
             sage: uv_to_xy = xy_to_uv.inverse()
             sage: e_xy = c_xy.frame(); e_uv = c_uv.frame()
             sage: a = M.tensor_field(1, 1, name='a')
@@ -1850,7 +1857,8 @@ class TensorField(ModuleElement):
             sage: b[e_xy,:] = [[2, y], [x, -x]]
             sage: b.add_comp_by_continuation(e_uv, U.intersection(V), c_uv)
             sage: s = a._sub_(b); s
-            Tensor field a-b of type (1,1) on the 2-dimensional differentiable manifold M
+            Tensor field a-b of type (1,1) on the 2-dimensional differentiable
+             manifold M
             sage: a.display(e_xy)
             a = x d/dx*dx + d/dx*dy + y d/dy*dx
             sage: b.display(e_xy)
@@ -1908,8 +1916,8 @@ class TensorField(ModuleElement):
             sage: c_uv.<u,v> = V.chart() # stereographic coordinates from the South pole
             sage: M.declare_union(U,V)   # S^2 is the union of U and V
             sage: xy_to_uv = c_xy.transition_map(c_uv, (x/(x^2+y^2), y/(x^2+y^2)),
-            ....:                                intersection_name='W', restrictions1= x^2+y^2!=0,
-            ....:                                restrictions2= u^2+v^2!=0)
+            ....:                intersection_name='W', restrictions1= x^2+y^2!=0,
+            ....:                restrictions2= u^2+v^2!=0)
             sage: uv_to_xy = xy_to_uv.inverse()
             sage: e_xy = c_xy.frame(); e_uv = c_uv.frame()
             sage: a = M.tensor_field(1, 1, name='a')
@@ -1922,7 +1930,8 @@ class TensorField(ModuleElement):
             on U: (x, y) |--> 1/(x^2 + y^2 + 1)
             on V: (u, v) |--> (u^2 + v^2)/(u^2 + v^2 + 1)
             sage: s = a._rmul_(f); s
-            Tensor field of type (1,1) on the 2-dimensional differentiable manifold M
+            Tensor field of type (1,1) on the 2-dimensional differentiable
+             manifold M
             sage: a.display(e_xy)
             a = x d/dx*dx + d/dx*dy + y d/dy*dx
             sage: s.display(e_xy)
@@ -1981,8 +1990,8 @@ class TensorField(ModuleElement):
             sage: c_uv.<u,v> = V.chart() # stereographic coordinates from the South pole
             sage: M.declare_union(U,V)   # S^2 is the union of U and V
             sage: xy_to_uv = c_xy.transition_map(c_uv, (x/(x^2+y^2), y/(x^2+y^2)),
-            ....:                                intersection_name='W', restrictions1= x^2+y^2!=0,
-            ....:                                restrictions2= u^2+v^2!=0)
+            ....:                intersection_name='W', restrictions1= x^2+y^2!=0,
+            ....:                restrictions2= u^2+v^2!=0)
             sage: uv_to_xy = xy_to_uv.inverse()
             sage: e_xy = c_xy.frame(); e_uv = c_uv.frame()
             sage: a = M.tensor_field(1, 1, name='a')
@@ -2107,21 +2116,23 @@ class TensorField(ModuleElement):
             sage: c_uv.<u,v> = V.chart() # stereographic coordinates from the South pole
             sage: M.declare_union(U,V)   # S^2 is the union of U and V
             sage: xy_to_uv = c_xy.transition_map(c_uv, (x/(x^2+y^2), y/(x^2+y^2)),
-            ....:                                intersection_name='W', restrictions1= x^2+y^2!=0,
-            ....:                                restrictions2= u^2+v^2!=0)
+            ....:                intersection_name='W', restrictions1= x^2+y^2!=0,
+            ....:                restrictions2= u^2+v^2!=0)
             sage: uv_to_xy = xy_to_uv.inverse()
             sage: e_xy = c_xy.frame(); e_uv = c_uv.frame()
             sage: a = M.tensor_field(1, 1, name='a')
             sage: a[e_xy,:] = [[x, 1], [y, 0]]
             sage: a.add_comp_by_continuation(e_uv, U.intersection(V), c_uv)
-            sage: f = M.scalar_field({c_xy: (x^2 + y^2 + 2)/(x^2 + y^2 + 1)}, name='f')
+            sage: f = M.scalar_field({c_xy: (x^2 + y^2 + 2)/(x^2 + y^2 + 1)},
+            ....:                    name='f')
             sage: f.add_expr_by_continuation(c_uv, U.intersection(V))
             sage: f.display()
             f: M --> R
             on U: (x, y) |--> (x^2 + y^2 + 2)/(x^2 + y^2 + 1)
             on V: (u, v) |--> (2*u^2 + 2*v^2 + 1)/(u^2 + v^2 + 1)
             sage: s = a.__div__(f); s
-            Tensor field of type (1,1) on the 2-dimensional differentiable manifold M
+            Tensor field of type (1,1) on the 2-dimensional differentiable
+             manifold M
             sage: s.display(e_xy)
             (x^3 + x*y^2 + x)/(x^2 + y^2 + 2) d/dx*dx
              + (x^2 + y^2 + 1)/(x^2 + y^2 + 2) d/dx*dy
@@ -2132,11 +2143,15 @@ class TensorField(ModuleElement):
         Division by a number::
 
             sage: s = a.__div__(2); s
-            Tensor field of type (1,1) on the 2-dimensional differentiable manifold M
+            Tensor field of type (1,1) on the 2-dimensional differentiable
+             manifold M
             sage: s.display(e_xy)
             1/2*x d/dx*dx + 1/2 d/dx*dy + 1/2*y d/dy*dx
             sage: s.display(e_uv)
-            1/2*(2*u^3*v - 2*u*v^3 + u^3 - u*v^2)/(u^4 + 2*u^2*v^2 + v^4) d/du*du - 1/2*(u^4 - 2*u^2*v^2 + v^4 - 2*u^2*v)/(u^4 + 2*u^2*v^2 + v^4) d/du*dv + 1/2*(4*u^2*v^2 + u^2*v - v^3)/(u^4 + 2*u^2*v^2 + v^4) d/dv*du - (u^3*v - u*v^3 - u*v^2)/(u^4 + 2*u^2*v^2 + v^4) d/dv*dv
+            1/2*(2*u^3*v - 2*u*v^3 + u^3 - u*v^2)/(u^4 + 2*u^2*v^2 + v^4) d/du*du
+             - 1/2*(u^4 - 2*u^2*v^2 + v^4 - 2*u^2*v)/(u^4 + 2*u^2*v^2 + v^4) d/du*dv
+             + 1/2*(4*u^2*v^2 + u^2*v - v^3)/(u^4 + 2*u^2*v^2 + v^4) d/dv*du
+             - (u^3*v - u*v^3 - u*v^2)/(u^4 + 2*u^2*v^2 + v^4) d/dv*dv
             sage: s == a/2
             True
             sage: 2*s == a
@@ -2202,7 +2217,10 @@ class TensorField(ModuleElement):
             sage: s.display()
             t(a,w): M --> R
             on U: (x, y) |--> x*y^4 + x*y^3 + x^2*y - x*y^2 - x^2
-            on V: (u, v) |--> -(u^8 - u^6*v + (u^2 + u)*v^6 - (u^2 + u)*v^5 + (3*u^4 + 2*u^3 - u)*v^4 - (2*u^4 + u^3)*v^3 + (3*u^6 + u^5)*v^2)/(u^10 + 5*u^8*v^2 + 10*u^6*v^4 + 10*u^4*v^6 + 5*u^2*v^8 + v^10)
+            on V: (u, v) |--> -(u^8 - u^6*v + (u^2 + u)*v^6 - (u^2 + u)*v^5
+             + (3*u^4 + 2*u^3 - u)*v^4 - (2*u^4 + u^3)*v^3
+             + (3*u^6 + u^5)*v^2)/(u^10 + 5*u^8*v^2 + 10*u^6*v^4 + 10*u^4*v^6
+             + 5*u^2*v^8 + v^10)
             sage: s.restrict(U) == t.restrict(U)(a.restrict(U), w.restrict(U))
             True
             sage: s.restrict(V) == t.restrict(V)(a.restrict(V), w.restrict(V))
@@ -2230,7 +2248,7 @@ class TensorField(ModuleElement):
             # endomorphisms:
             vector = args[0]
             if vector._tensor_type != (1,0):
-                raise TypeError("The argument must be a vector field.")
+                raise TypeError("the argument must be a vector field.")
             dom_resu = self._domain.intersection(vector._domain)
             if dom_resu.is_manifestly_parallelizable():
                 # call of the TensorFieldParal version:
@@ -2256,8 +2274,8 @@ class TensorField(ModuleElement):
             return resu
         # Generic case
         if p != self._tensor_rank:
-            raise TypeError(str(self._tensor_rank) +
-                            " arguments must be provided.")
+            raise TypeError("{} arguments must be ".format(self._tensor_rank) +
+                            "provided")
         # Domain of the result
         dom_resu = self._domain
         ambient_dom = self._ambient_domain
@@ -2438,11 +2456,11 @@ class TensorField(ModuleElement):
         k_con = self._tensor_type[0]
         l_cov = self._tensor_type[1]
         if pos1 < k_con and pos2 < k_con:
-            raise IndexError("Contraction on two contravariant indices is " +
-                             "not allowed.")
+            raise IndexError("contraction on two contravariant indices is " +
+                             "not allowed")
         if pos1 >= k_con and pos2 >= k_con:
-            raise IndexError("Contraction on two covariant indices is " +
-                             "not allowed.")
+            raise IndexError("contraction on two covariant indices is " +
+                             "not allowed")
         resu_rst = []
         for rst in self._restrictions.itervalues():
             resu_rst.append(rst.trace(pos1, pos2))
@@ -2648,7 +2666,7 @@ class TensorField(ModuleElement):
                 it = i
                 break
         else:
-            raise TypeError("A tensor field must be provided in the " +
+            raise TypeError("a tensor field must be provided in the " +
                             "argument list.")
         if it == 0:
             pos1 = (self._tensor_rank - 1,)
@@ -2660,13 +2678,13 @@ class TensorField(ModuleElement):
             pos2 = args[it+1:]
         ncontr = len(pos1) # number of contractions
         if len(pos2) != ncontr:
-            raise TypeError("Different number of indices for the contraction.")
+            raise IndexError("different number of indices for the contraction")
         if self._domain.is_subset(other._domain):
             if not self._ambient_domain.is_subset(other._ambient_domain):
-                raise TypeError("Incompatible ambient domains for contraction.")
+                raise ValueError("incompatible ambient domains for contraction")
         elif other._domain.is_subset(self._domain):
             if not other._ambient_domain.is_subset(self._ambient_domain):
-                raise TypeError("Incompatible ambient domains for contraction.")
+                raise ValueError("incompatible ambient domains for contraction")
         dom_resu = self._domain.intersection(other._domain)
         ambient_dom_resu = self._ambient_domain.intersection(
                                                          other._ambient_domain)
@@ -2870,8 +2888,8 @@ class TensorField(ModuleElement):
             sage: c_uv.<u,v> = V.chart() # stereographic coordinates from the South pole
             sage: M.declare_union(U,V)   # S^2 is the union of U and V
             sage: xy_to_uv = c_xy.transition_map(c_uv, (x/(x^2+y^2), y/(x^2+y^2)),
-            ....:                                intersection_name='W', restrictions1= x^2+y^2!=0,
-            ....:                                restrictions2= u^2+v^2!=0)
+            ....:                intersection_name='W', restrictions1= x^2+y^2!=0,
+            ....:                restrictions2= u^2+v^2!=0)
             sage: uv_to_xy = xy_to_uv.inverse()
             sage: e_xy = c_xy.frame(); e_uv = c_uv.frame()
             sage: t = M.tensor_field(1,1, name='t')
@@ -2907,7 +2925,8 @@ class TensorField(ModuleElement):
             sage: a.lie_der(w).display(e_xy)
             (-2*x*y + y^2) d/dx + (x^2 + y^2 - 2*x) d/dy
             sage: a.lie_der(w).display(e_uv)
-            (4*u^4*v - u^2*v^2 + 4*(u^2 - u)*v^3 + v^4)/(u^4 + 2*u^2*v^2 + v^4) d/du - (2*u^5 - (2*u - 1)*v^4 - u^4 - 4*u^2*v^2 + 2*u*v^3)/(u^4 + 2*u^2*v^2 + v^4) d/dv
+            (4*u^4*v - u^2*v^2 + 4*(u^2 - u)*v^3 + v^4)/(u^4 + 2*u^2*v^2 + v^4) d/du
+             - (2*u^5 - (2*u - 1)*v^4 - u^4 - 4*u^2*v^2 + 2*u*v^3)/(u^4 + 2*u^2*v^2 + v^4) d/dv
 
         The Lie derivative is antisymmetric::
 
@@ -2916,13 +2935,14 @@ class TensorField(ModuleElement):
 
         and it coincides with the commutator of the two vector fields::
 
-            sage: f = M.scalar_field({c_xy: 1/(1+x^2+y^2), c_uv: (u^2+v^2)/(1+u^2+v^2)})
+            sage: f = M.scalar_field({c_xy: 1/(1+x^2+y^2),
+            ....:                     c_uv: (u^2+v^2)/(1+u^2+v^2)})
             sage: a.lie_der(w)(f) == w(a(f)) - a(w(f))
             True
 
         """
         if vector._tensor_type != (1,0):
-            raise TypeError("The argument must be a vector field.")
+            raise TypeError("the argument must be a vector field.")
         if id(vector) not in self._lie_derivatives:
             # the computation must be performed:
             resu_rst = []
@@ -3009,8 +3029,8 @@ class TensorField(ModuleElement):
 
         """
         if point not in self._domain:
-            raise TypeError("The " + str(point) + " is not a point in the "
-                            "domain of " + str(self) + ".")
+            raise ValueError("the {} is not a point in the ".format(point) +
+                             "domain of {}".format(self))
         for dom, rst in self._restrictions.iteritems():
             if point in dom:
                 return rst.at(point)
@@ -3029,7 +3049,7 @@ class TensorField(ModuleElement):
 
             (T^\sharp)^{a_1\ldots a_{k+1}}_{\qquad\ \ b_1 \ldots b_{l-1}}
             = g^{a_{k+1} i} \,
-            T^{a_1\ldots a_k}_{\qquad\   b_1 \ldots b_{p-k} \, i \, b_{p-k+1} \ldots b_{l-1}},
+            T^{a_1\ldots a_k}_{\qquad\   b_1 \ldots b_{p-k} \, i \, b_{p-k+1}\ldots b_{l-1}},
 
         `g^{ab}` being the components of the inverse metric.
 

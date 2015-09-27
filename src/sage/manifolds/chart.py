@@ -75,7 +75,7 @@ class Chart(UniqueRepresentation, SageObject):
       used via Sage preparser (see examples below)
     - ``names`` -- (default: ``None``) unused argument, except if
       ``coordinates`` is not provided; it must then be a tuple containing
-      the coordinate symbols (this is guaranted if the shortcut operator
+      the coordinate symbols (this is guaranteed if the shortcut operator
       ``<,>`` is used).
 
     EXAMPLES:
@@ -1087,7 +1087,7 @@ class RealChart(Chart):
       shortcut operator ``<,>`` is used via Sage preparser (see examples below)
     - ``names`` -- (default: ``None``) unused argument, except if
       ``coordinates`` is not provided; it must then be a tuple containing
-      the coordinate symbols (this is guaranted if the shortcut operator
+      the coordinate symbols (this is guaranteed if the shortcut operator
       ``<,>`` is used).
 
     EXAMPLES:
@@ -2158,8 +2158,8 @@ class RealChart(Chart):
                     if coord not in ambient_coords:
                         fixed_coords[coord] = 0
         else:
-            transf = None # to be the MultiFunctionChart relating self to
-                          # the ambient chart
+            transf = None # to be the MultiCoordFunction object relating self
+                          # to the ambient chart
             if mapping is None:
                 if not self._domain.is_subset(chart._domain):
                     raise ValueError("the domain of {} is not ".format(self) +
@@ -2559,8 +2559,8 @@ class CoordChange(SageObject):
         n2 = self._n2
         if n1 != n2:
             raise ValueError("the change of coordinates is not invertible " +
-                            "(different number of coordinates in the two " +
-                            "charts)")
+                             "(different number of coordinates in the two " +
+                             "charts)")
         # New symbolic variables (different from x2 to allow for a
         #  correct solution even when chart2 = chart1):
         if self._chart1.domain().base_field() == 'real':
@@ -2630,7 +2630,7 @@ class CoordChange(SageObject):
         r"""
         Sets the inverse of the coordinate transformation.
 
-        This is usefull when the automatic computation via :meth:`inverse()`
+        This is useful when the automatic computation via :meth:`inverse()`
         fails.
 
         INPUT:
@@ -2639,7 +2639,7 @@ class CoordChange(SageObject):
           list of the expressions of the "old" coordinates in terms of the
           "new" ones
         - ``kwds`` -- keyword arguments: only ``check=True`` (default) or
-          ``check=False`` are meaningfull; it determines whether the provided
+          ``check=False`` are meaningful; it determines whether the provided
           transformations are checked to be indeed the inverse coordinate
           transformations.
 
@@ -2825,4 +2825,3 @@ class CoordChange(SageObject):
         return FormattedExpansion(rtxt, rlatex)
 
     disp = display
-

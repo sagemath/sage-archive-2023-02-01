@@ -260,7 +260,7 @@ class AutomorphismFieldGroup(UniqueRepresentation, Parent):
 
     def one(self):
         r"""
-        Return the group identity element of ``self``.
+        Return the group identity element.
 
         The group identity element is the field of tangent-space identity maps.
 

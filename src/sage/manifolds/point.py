@@ -307,7 +307,7 @@ class TopManifoldPoint(Element):
           the subset's default chart
         - ``old_chart`` -- (default: ``None``) chart from which the coordinates
           in ``chart`` are to be computed. If ``None``, a chart in which the
-          point's coordinates are already known will be picked, priveleging the
+          point's coordinates are already known will be picked, privileging the
           subset's default chart.
 
         EXAMPLES:
@@ -506,7 +506,7 @@ class TopManifoldPoint(Element):
         .. WARNING::
 
            If the point has already coordinates in other charts, it
-           is the user's responsability to make sure that the coordinates
+           is the user's responsibility to make sure that the coordinates
            to be added are consistent with them.
 
         EXAMPLES:

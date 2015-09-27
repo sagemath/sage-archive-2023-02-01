@@ -39,19 +39,19 @@ class PseudoRiemannianMetric(TensorField):
     differentiable manifold.
 
     An instance of this class is a field of nondegenerate symmetric bilinear
-    forms (metric field) along an open subset `U` of some manifold `S` with
-    values on an open subset `V` of a manifold `M`, via a
-    differentiable mapping `\Phi: U \rightarrow V`.
-    The standard case of a metric field *on* a manifold corresponds to `S=M`,
-    `U=V` and `\Phi = \mathrm{Id}_U`. Other common cases are `\Phi` being an
-    immersion and `\Phi` being a curve in `V` (`U` is then an open interval
+    forms (metric field) along a differentiable manifold `U` with
+    values on a differentiable manifold `M` over `\RR`, via a differentiable
+    mapping `\Phi: U \rightarrow M`.
+    The standard case of a metric field *on* a manifold corresponds to `U=M`
+    and `\Phi = \mathrm{Id}_M`. Other common cases are `\Phi` being an
+    immersion and `\Phi` being a curve in `M` (`U` is then an open interval
     of `\RR`).
 
-    If `V` is parallelizable, the class :class:`PseudoRiemannianMetricParal`
+    If `M` is parallelizable, the class :class:`PseudoRiemannianMetricParal`
     should be used instead.
 
-    A *metric* `g` is a field on `U`, so that at each
-    point `p\in U`, `g(p)` is a bilinear map of the type:
+    A *metric* `g` is a field on `U`, such that at each point `p\in U`, `g(p)`
+    is a bilinear map of the type:
 
     .. MATH::
 
@@ -66,7 +66,7 @@ class PseudoRiemannianMetric(TensorField):
     INPUT:
 
     - ``vector_field_module`` -- module `\mathcal{X}(U,\Phi)` of vector
-      fields along `U` with values on `\Phi(U)\subset V \subset M`
+      fields along `U` with values on `\Phi(U)\subset M`
     - ``name`` -- name given to the metric
     - ``signature`` -- (default: ``None``) signature `S` of the metric as a
       single integer: `S = n_+ - n_-`, where `n_+` (resp. `n_-`) is the number
@@ -124,7 +124,7 @@ class PseudoRiemannianMetric(TensorField):
 
     The components of g on domain V expressed in terms of (u,v) coordinates are
     similar to those on domain U expressed in (x,y) coordinates, as we can
-    check explicitely by asking for the component transformation on the
+    check explicitly by asking for the component transformation on the
     common subdomain W::
 
         sage: g.display(eVW, c_uvW)
@@ -628,14 +628,14 @@ class PseudoRiemannianMetric(TensorField):
 
         """
         if not isinstance(symbiform, TensorField):
-            raise TypeError("The argument must be a tensor field.")
+            raise TypeError("the argument must be a tensor field")
         if symbiform._tensor_type != (0,2):
-            raise TypeError("The argument must be of tensor type (0,2).")
+            raise TypeError("the argument must be of tensor type (0,2)")
         if symbiform._sym != [(0,1)]:
-            raise TypeError("The argument must be symmetric.")
+            raise TypeError("the argument must be symmetric")
         if not symbiform._domain.is_subset(self._domain):
-            raise TypeError("The symmetric bilinear form is not defined " +
-                            "on the metric domain.")
+            raise TypeError("the symmetric bilinear form is not defined " +
+                            "on the metric domain")
         self._del_derived()
         self._restrictions.clear()
         if isinstance(symbiform, TensorFieldParal):
@@ -779,7 +779,7 @@ class PseudoRiemannianMetric(TensorField):
         INPUT:
 
         - ``chart`` -- (default: ``None``) chart with respect to which the
-          Christoffel symbolds are required; if none is provided, the
+          Christoffel symbols are required; if none is provided, the
           default chart of the metric's domain is assumed.
 
         OUTPUT:
@@ -853,7 +853,7 @@ class PseudoRiemannianMetric(TensorField):
         INPUT:
 
         - ``chart`` -- (default: ``None``) chart with respect to which the
-          Christoffel symbolds are defined; if none is provided, the
+          Christoffel symbols are defined; if none is provided, the
           default chart of the metric's domain is assumed.
         - ``symbol`` -- (default: ``None``) string specifying the
           symbol of the connection coefficients; if ``None``, 'Gam' is used
@@ -1140,11 +1140,12 @@ class PseudoRiemannianMetric(TensorField):
 
         INPUT:
 
-        - ``name`` -- (default: ``None``) name given to the Weyl conformal tensor;
-          if none, it is set to "C(g)", where "g" is the metric's name
+        - ``name`` -- (default: ``None``) name given to the Weyl conformal
+          tensor; if ``None``, it is set to "C(g)", where "g" is the metric's
+          name
         - ``latex_name`` -- (default: ``None``) LaTeX symbol to denote the
-          Weyl conformal tensor; if none, it is set to "\\mathrm{C}(g)", where
-          "g" is the metric's name
+          Weyl conformal tensor; if ``None``, it is set to "\\mathrm{C}(g)",
+          where "g" is the metric's name
 
         OUTPUT:
 
@@ -1175,8 +1176,8 @@ class PseudoRiemannianMetric(TensorField):
         if self._weyl is None:
             n = self._ambient_domain.dimension()
             if n < 3:
-                raise ValueError("The Weyl tensor is not defined for a " +
-                                 "manifold of dimension n <= 2.")
+                raise ValueError("the Weyl tensor is not defined for a " +
+                                 "manifold of dimension n <= 2")
             delta = self._domain.tangent_identity_field(dest_map=
                                                        self._vmodule._dest_map)
             riem = self.riemann()
@@ -1200,7 +1201,7 @@ class PseudoRiemannianMetric(TensorField):
         INPUT:
 
         - ``frame`` -- (default: ``None``) vector frame with
-          respect to which the components `g_{ij}` of ``self`` are defined;
+          respect to which the components `g_{ij}` of the metric are defined;
           if ``None``, the default frame of the metric's domain is used. If a
           chart is provided instead of a frame, the associated coordinate
           frame is used
@@ -1680,15 +1681,14 @@ class PseudoRiemannianMetricParal(PseudoRiemannianMetric, TensorFieldParal):
     Pseudo-Riemannian metric with values on a parallelizable manifold.
 
     An instance of this class is a field of nondegenerate symmetric bilinear
-    forms (metric field) along an open subset `U` of some manifold `S` with
-    values in a parallelizable open subset `V` of a manifold `M`, via a
-    differentiable mapping `\Phi: U \rightarrow V`.
-    The standard case of a metric field *on* a manifold corresponds to `S=M`,
-    `U=V` and `\Phi = \mathrm{Id}_U`. Other common cases are `\Phi` being an
-    immersion and `\Phi` being a curve in `V` (`U` is then an open interval
-    of `\RR`).
+    forms (metric field) along a differentiable manifold `U` with values in a
+    parallelizable manifold `M` over `\RR`, via a differentiable mapping
+    `\Phi: U \rightarrow M`. The standard case of a metric field *on* a
+    manifold corresponds to `U=M` and `\Phi = \mathrm{Id}_M`. Other common
+    cases are `\Phi` being an immersion and `\Phi` being a curve in `M` (`U` is
+    then an open interval of `\RR`).
 
-    A *metric* `g` is a field on `U`, so that at each
+    A *metric* `g` is a field on `U`, such that at each
     point `p\in U`, `g(p)` is a bilinear map of the type:
 
     .. MATH::
@@ -1704,7 +1704,7 @@ class PseudoRiemannianMetricParal(PseudoRiemannianMetric, TensorFieldParal):
     INPUT:
 
     - ``vector_field_module`` -- free module `\mathcal{X}(U,\Phi)` of vector
-      fields along `U` with values on `\Phi(U)\subset V \subset M`
+      fields along `U` with values on `\Phi(U)\subset M`
     - ``name`` -- name given to the metric
     - ``signature`` -- (default: ``None``) signature `S` of the metric as a
       single integer: `S = n_+ - n_-`, where `n_+` (resp. `n_-`) is the number
@@ -1815,14 +1815,14 @@ class PseudoRiemannianMetricParal(PseudoRiemannianMetric, TensorFieldParal):
             signature = ndim
         else:
             if not isinstance(signature, (int, Integer)):
-                raise TypeError("The metric signature must be an integer.")
+                raise TypeError("the metric signature must be an integer")
             if (signature < - ndim) or (signature > ndim):
-                raise ValueError("Metric signature out of range.")
+                raise ValueError("metric signature out of range")
             if (signature+ndim)%2 == 1:
                 if ndim%2 == 0:
-                    raise ValueError("The metric signature must be even.")
+                    raise ValueError("the metric signature must be even")
                 else:
-                    raise ValueError("The metric signature must be odd.")
+                    raise ValueError("the metric signature must be odd")
         self._signature = signature
         # the pair (n_+, n_-):
         self._signature_pm = ((ndim+signature)/2, (ndim-signature)/2)

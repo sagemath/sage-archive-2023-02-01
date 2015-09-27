@@ -1180,8 +1180,7 @@ class FindStatStatistic(SageObject):
         The keys of this dictionary are the levels for which the
         generating function of ``self`` can be computed from the data
         of this statistic, and each value represents a generating
-        function for one level, as a polynomial, as a dictionary, or as
-        an OEIS search string.
+        function for one level, as a polynomial or as a dictionary.
 
         INPUT:
 
@@ -1908,6 +1907,22 @@ class FindStatCollection(Element):
             u'Binary tree'
         """
         return self._name
+
+    def name_plural(self):
+        r"""
+        Return the plural name of the FindStat collection.
+
+        OUTPUT:
+
+        The name of the FindStat collection, in plural.
+
+        EXAMPLES::
+
+            sage: from sage.databases.findstat import FindStatCollection
+            sage: FindStatCollection("Binary trees").name_plural()              # optional -- internet
+            u'Binary trees'
+        """
+        return self._name_plural
 
 class FindStatCollections(Parent, UniqueRepresentation):
     r"""

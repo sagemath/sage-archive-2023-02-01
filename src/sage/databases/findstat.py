@@ -1229,7 +1229,6 @@ class FindStatStatistic(SageObject):
         OEIS_string = ""
         for key in sorted(gen_funcs.keys()):
             gen_func = gen_funcs[key]
-            print gen_func
             OEIS_func_string    = ",".join( str(gen_func[deg]) if deg in gen_func else "0" for deg in range(max(gen_func)+1) )
             while OEIS_func_string.startswith("0,"):
                 OEIS_func_string = OEIS_func_string[2:]

@@ -238,7 +238,7 @@ from sage.misc.randstate import current_randstate
 from sage.misc.decorators import rename_keyword
 from sage.misc.cachefunc import cached_method
 from sage.misc.superseded import deprecated_function_alias
-
+from encoder import Encoder
 ZZ = IntegerRing()
 VectorSpace = fm.VectorSpace
 
@@ -3672,8 +3672,6 @@ class LinearCode(AbstractLinearCode):
 
 
 ####################### encoders ###############################
-from encoder import Encoder
-
 class LinearCodeGeneratorMatrixEncoder(Encoder):
     r"""
     Encoder based on generator_matrix for Linear codes.
@@ -3743,3 +3741,4 @@ class LinearCodeGeneratorMatrixEncoder(Encoder):
             [1 1 0 1 0 0 1]
         """
         return self.code().generator_matrix()
+AbstractLinearCode._registered_encoders["GeneratorMatrix"] = LinearCodeGeneratorMatrixEncoder

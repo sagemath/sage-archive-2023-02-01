@@ -1,7 +1,6 @@
 from sage.misc.lazy_import import lazy_import
 
-from code_constructions import (permutation_action,
-                   walsh_matrix,cyclotomic_cosets)
+from code_constructions import (permutation_action, walsh_matrix,cyclotomic_cosets)
 
 from sage.misc.superseded import deprecated_callable_import
 deprecated_callable_import(15445,
@@ -70,7 +69,6 @@ lazy_import("sage.coding.linear_code", ["LinearCode",\
             "self_orthogonal_binary_codes"])
 
 from sd_codes import self_dual_codes_binary
-
 lazy_import("sage.coding.delsarte_bounds",
     ["Krawtchouk", "delsarte_bound_hamming_space", "delsarte_bound_additive_hamming_space"])
 

@@ -2249,6 +2249,10 @@ class MutablePoset(SageObject):
 
         An object.
 
+        .. NOTE::
+
+            The special elements ``'null'`` and ``'oo'`` cannot be popped.
+
         EXAMPLES::
 
             sage: from sage.data_structures.mutable_poset import MutablePoset as MP

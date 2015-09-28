@@ -15943,7 +15943,7 @@ class GenericGraph(GenericGraph_pyx):
         """
         from sage.rings.semirings.non_negative_integer_semiring import NN
         if (distance is not None and distance not in NN):
-            raise ValueError("distance must be non-negative integer, not {0}".format(distance))
+            raise ValueError("distance must be a non-negative integer, not {0}".format(distance))
 
         # Preferably use the Cython implementation
         if neighbors is None and not isinstance(start, list) and distance is None and hasattr(self._backend,"breadth_first_search") and not report_distance:

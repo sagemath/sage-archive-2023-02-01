@@ -791,10 +791,7 @@ class MutablePosetShell(SageObject):
         covers = set().union(*(e.covers(shell, reverse)
                                for e in self.successors(reverse)
                                if e.le(shell, reverse)))
-        if covers:
-            return covers
-        else:
-            return set([self])
+        return covers or set([self])
 
 
     def _iter_depth_first_visit_(self, marked,

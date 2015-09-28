@@ -62,26 +62,26 @@ class CartesianProductFactory(sage.structure.factory.UniqueFactory):
         Growth Group x^ZZ
         sage: B = GrowthGroup('log(x)^ZZ'); B
         Growth Group log(x)^ZZ
-        sage: C = cartesian_product([A, B]); C
+        sage: C = cartesian_product([A, B]); C  # indirect doctest
         Growth Group x^ZZ * log(x)^ZZ
         sage: C._le_ == C.le_lex
         True
         sage: D = GrowthGroup('y^ZZ'); D
         Growth Group y^ZZ
-        sage: E = cartesian_product([A, D]); E
+        sage: E = cartesian_product([A, D]); E  # indirect doctest
         Growth Group x^ZZ * y^ZZ
         sage: E._le_ == E.le_product
         True
-        sage: F = cartesian_product([C, D]); F
+        sage: F = cartesian_product([C, D]); F  # indirect doctest
         Growth Group x^ZZ * log(x)^ZZ * y^ZZ
         sage: F._le_ == F.le_product
         True
-        sage: cartesian_product([A, E]); G
+        sage: cartesian_product([A, E]); G  # indirect doctest
         Traceback (most recent call last):
         ...
         ValueError: Growth groups (Growth Group x^ZZ, Growth Group x^ZZ * y^ZZ)
         do not have pairwise disjoint variables.
-        sage: cartesian_product([A, B, D])
+        sage: cartesian_product([A, B, D])  # indirect doctest
         Growth Group x^ZZ * log(x)^ZZ * y^ZZ
 
     TESTS::
@@ -177,7 +177,7 @@ class GenericProduct(CartesianProductPosets, GenericGrowthGroup):
         sage: import sage.rings.asymptotic.growth_group as agg
         sage: P = agg.MonomialGrowthGroup(QQ, 'x')
         sage: L = agg.MonomialGrowthGroup(ZZ, 'log(x)')
-        sage: C = cartesian_product([P, L], order='lex'); C
+        sage: C = cartesian_product([P, L], order='lex'); C  # indirect doctest
         Growth Group x^QQ * log(x)^ZZ
         sage: C.an_element()
         x^(1/2) * log(x)
@@ -186,7 +186,7 @@ class GenericProduct(CartesianProductPosets, GenericGrowthGroup):
 
         sage: Px = agg.MonomialGrowthGroup(QQ, 'x')
         sage: Lx = agg.MonomialGrowthGroup(ZZ, 'log(x)')
-        sage: Cx = cartesian_product([Px, Lx], order='lex')
+        sage: Cx = cartesian_product([Px, Lx], order='lex')  # indirect doctest
         sage: Py = agg.MonomialGrowthGroup(QQ, 'y')
         sage: C = cartesian_product([Cx, Py], order='product'); C  # indirect doctest
         Growth Group x^QQ * log(x)^ZZ * y^QQ

@@ -747,6 +747,8 @@ class MutablePosetShell(SageObject):
 
         - ``shell`` -- the shell for which to find the covering shells.
           There is no restrition of ``shell`` being contained in the poset.
+          If ``shell`` is contained in the poset, then use the more efficient
+          methods :meth:`predecessors` and :meth:`successors`.
 
         - ``reverse`` -- (default: ``False``) if not set, then find
           the lower covers, otherwise find the upper covers.
@@ -778,13 +780,30 @@ class MutablePosetShell(SageObject):
             sage: sorted(P.null.covers(e),
             ....:        key=lambda c: repr(c.element))
             [(1, 2), (2, 1)]
+            sage: set(_) == e.predecessors()
+            True
             sage: sorted(P.oo.covers(e, reverse=True),
+            ....:        key=lambda c: repr(c.element))
+            [(4, 4)]
+            sage: set(_) == e.successors()
+            True
+
+        ::
+
+            sage: Q = MP([T((3, 2))])
+            sage: f = next(Q.shells())
+            sage: sorted(P.null.covers(f),
+            ....:        key=lambda c: repr(c.element))
+            [(2, 2)]
+            sage: sorted(P.oo.covers(f, reverse=True),
             ....:        key=lambda c: repr(c.element))
             [(4, 4)]
 
         .. SEEALSO::
 
-            :class:`MutablePoset`
+            :meth:`predecessors`,
+            :meth:`successors`,
+            :class:`MutablePoset`.
         """
         if self == shell:
             return set()

@@ -1716,8 +1716,13 @@ class MonomialGrowthGroup(GenericGrowthGroup):
             x^(-2)
             sage: P('x^-2')
             x^(-2)
+
+        ::
+
+            sage: P('1')
+            1
         """
-        if data == 1:
+        if data == 1 or data == '1':
             return self.base().zero()
         var = repr(self._var_)
         if str(data) == var:
@@ -1728,15 +1733,8 @@ class MonomialGrowthGroup(GenericGrowthGroup):
         except AttributeError:
             if var not in str(data):
                 return  # this has to end here
-
-            elif str(data) == '1/' + var:
-                return self.base()(-1)
-            elif str(data).startswith(var + '^'):
-                return self.base()(str(data).replace(var + '^', '')
-                                   .replace('(', '').replace(')', ''))
-            else:
-                return  # end of parsing
-
+            from sage.symbolic.ring import SR
+            return self._convert_(SR(data))
 
         from sage.symbolic.ring import SR
         from sage.rings.polynomial.polynomial_ring import PolynomialRing_general

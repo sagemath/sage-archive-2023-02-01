@@ -16291,8 +16291,7 @@ class GenericGraph(GenericGraph_pyx):
             vert1 = v
 
     def complement(self):
-        """
-        Returns the complement of the (di)graph.
+        """Returns the complement of the (di)graph.
 
         The complement of a graph has the same vertices, but exactly those
         edges that are not in the original graph. This is not well defined
@@ -16320,7 +16319,10 @@ class GenericGraph(GenericGraph_pyx):
             sage: G.complement()
             Traceback (most recent call last):
             ...
-            TypeError: complement not well defined for (di)graphs with multiple edges
+            ValueError: This method is not known to work on graphs with
+            multiedges. Perhaps this method can be updated to handle them, but
+            in the meantime if you want to use it please disallow multiedges
+            using allow_multiple_edges().
 
         TESTS:
 

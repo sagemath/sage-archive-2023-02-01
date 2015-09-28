@@ -1452,17 +1452,11 @@ class Sets(Category_singleton):
                 Category of sets
                 sage: cartesian_product([ZZ, ZZ]).category()
                 Join of
-                Category of rings and
-                Category of Cartesian products of distributive magmas and additive magmas and
-                Category of Cartesian products of monoids and
-                Category of Cartesian products of commutative additive groups and
+                Category of Cartesian products of commutative rings and
                 Category of Cartesian products of enumerated sets
                 sage: cartesian_product([ZZ, ZZ], extra_category=Posets()).category()
                 Join of
-                Category of rings and
-                Category of Cartesian products of distributive magmas and additive magmas and
-                Category of Cartesian products of monoids and
-                Category of Cartesian products of commutative additive groups and
+                Category of Cartesian products of commutative rings and
                 Category of posets and
                 Category of Cartesian products of enumerated sets
             """

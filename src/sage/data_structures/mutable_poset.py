@@ -2794,6 +2794,12 @@ class MutablePoset(SageObject):
         ``merge``-function and the corresponding successor/predecessor
         is removed from the poset.
 
+        .. NOTE::
+
+            ``can_merge` is applied in the sense of the condition of
+            depth first iteration, i.e., once ``can_merge`` fails,
+            the successors/predecessors are no longer tested.
+
         EXAMPLES::
 
             sage: from sage.data_structures.mutable_poset import MutablePoset as MP

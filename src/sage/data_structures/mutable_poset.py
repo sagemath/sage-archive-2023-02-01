@@ -2865,6 +2865,16 @@ class MutablePoset(SageObject):
             sage: R = P.mapped(lambda x: x+1)
             sage: R.merge(reverse=True); R
             poset(4)
+
+        ::
+
+            sage: P = MP(srange(4),
+            ....:        merge=lambda l, r: r, can_merge=lambda l, r: l < r)
+            sage: P.merge()
+            Traceback (most recent call last):
+            ...
+            RuntimeError: Stopping merge before started;
+            the can_merge-function is not reflexive.
         """
         if key is None:
             for shell in tuple(self.shells_topological(reverse=reverse)):

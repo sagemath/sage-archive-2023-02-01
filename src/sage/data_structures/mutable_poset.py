@@ -2269,10 +2269,6 @@ class MutablePoset(SageObject):
             ...
             KeyError: 'pop from an empty poset'
         """
-        try:
-            del kwargs['include_special']
-        except KeyError:
-            pass
         kwargs['include_special'] = False
 
         try:

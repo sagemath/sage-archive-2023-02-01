@@ -375,7 +375,7 @@ class GenericProduct(CartesianProductPosets, GenericGrowthGroup):
 
     def gens_monomial(self):
         r"""
-        Return a tuple containing generators of this growth group.
+        Return a tuple containing monomial generators of this growth group.
 
         INPUT:
 

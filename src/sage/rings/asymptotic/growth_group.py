@@ -205,7 +205,7 @@ class Variable(sage.structure.unique_representation.CachedRepresentation,
 
     - ``var`` -- an object whose representation string is used as the
       variable. It has to be a valid Python identifier. ``var`` can
-      also be a tuple (or other iterable of such objects).
+      also be a tuple (or other iterable) of such objects.
 
     - ``repr`` -- (default: ``None``) if specified, then this string
       will be displayed instead of ``var``. Use this to get
@@ -290,7 +290,7 @@ class Variable(sage.structure.unique_representation.CachedRepresentation,
 
     def __hash__(self):
         r"""
-        Return the hash if this variable.
+        Return the hash of this variable.
 
         TESTS::
 

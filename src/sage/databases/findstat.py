@@ -192,7 +192,6 @@ import inspect
 import json
 import cgi
 
-
 # Combinatoral collections
 from sage.combinat.alternating_sign_matrix import AlternatingSignMatrix, AlternatingSignMatrices
 from sage.combinat.binary_tree import BinaryTree, BinaryTrees
@@ -1180,7 +1179,8 @@ class FindStatStatistic(SageObject):
         The keys of this dictionary are the levels for which the
         generating function of ``self`` can be computed from the data
         of this statistic, and each value represents a generating
-        function for one level, as a polynomial or as a dictionary.
+        function for one level, as a polynomial, as a dictionary, or as
+        a list of coefficients.
 
         INPUT:
 
@@ -1196,6 +1196,9 @@ class FindStatStatistic(SageObject):
          returned as a dictionary representing the monomials of the
          generating function.
 
+        - if ``as_type`` is ``"list"``, the generating function is
+          returned as a list of coefficients of the generating function.
+
         EXAMPLES::
 
             sage: tba
@@ -1205,6 +1208,8 @@ class FindStatStatistic(SageObject):
         gen_dicts = { literal_eval(key) : { literal_eval(inner_key) : inner_value for inner_key,inner_value in value.iteritems() } for key,value in self._generating_function.iteritems() }
         if as_type == "dictionary":
             return gen_dicts
+        elif as_type == "list":
+            return { key : [ gen_dicts[key][deg] if deg in gen_dicts[key] else 0 for deg in range(max(gen_dicts[key])+1) ] }
         elif as_type == "polynomial":
             from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
             from sage.rings.integer_ring import ZZ
@@ -1224,27 +1229,29 @@ class FindStatStatistic(SageObject):
             sage: tba
         """
         from sage.databases.oeis import oeis
-        gen_funcs = self.generating_functions(as_type="dictionary")
+        seq = self._oeis_search_sequence(self)
+
+        gen_funcs = self.generating_functions(as_type="list")
+
         OEIS_string = ""
         keys = sorted(gen_funcs.keys())
         for key in keys:
             gen_func = gen_funcs[key]
-            OEIS_func_string    = ",".join( str(gen_func[deg]) if deg in gen_func else "0" for deg in range(max(gen_func)+1) )
-            while OEIS_func_string.startswith("0,"):
-                OEIS_func_string = OEIS_func_string[2:]
-            while OEIS_func_string.endswith(",0"):
-                OEIS_func_string = OEIS_func_string[:2]
-            #if OEIS_func_string.count(",") > 2:
-            OEIS_string     += OEIS_func_string + "  "
+            while gen_func[0] == 0:
+                gen_func.pop(0)
+            # we strip the result according to the search size. -- stumpc5, 2015-09-27
+            gen_func = gen_func[:search_size]
+            if search_size > 0:
+                search_size -= len(gen_func)
+            OEIS_func_string     = ",".join( str(coefficient) for coefficient in gen_func )
+            OEIS_string         += OEIS_func_string + "  "
         OEIS_string = OEIS_string.strip()
         if OEIS_string:
-            # we need strip the result. -- stumpc5, 2015-09-27
-            # this is not done very clever so far...
-            if OEIS_string.count(",") + OEIS_string.count("  ") >= search_size:
-                OEIS_string = ",".join(OEIS_string.split(',')[:search_size - OEIS_string.count("  ")])
             if verbose:
                 print 'Searching the OEIS for "%s"'%OEIS_string
                 print
+            print OEIS_string
+            return
             return oeis( OEIS_string )
         else:
             if verbose:

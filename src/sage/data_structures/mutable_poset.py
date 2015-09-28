@@ -2287,6 +2287,8 @@ class MutablePoset(SageObject):
 
         - ``other`` -- a poset or an iterable. In the latter case the
           iterated objects are seen as elements of a poset.
+          It is possible to specify more than one ``other`` as
+          variadic arguments (arbitrary argument lists).
 
         OUTPUT:
 
@@ -2327,6 +2329,8 @@ class MutablePoset(SageObject):
 
         - ``other`` -- a poset or an iterable. In the latter case the
           iterated objects are seen as elements of a poset.
+          It is possible to specify more than one ``other`` as
+          variadic arguments (arbitrary argument lists).
 
         OUTPUT:
 

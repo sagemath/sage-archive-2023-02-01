@@ -2991,10 +2991,11 @@ class MutablePoset(SageObject):
             ....:     def __le__(left, right):
             ....:         return all(l <= r for l, r in zip(left, right))
             sage: P = MP([T((1, 3)), T((2, 1)),
-            ....:         T((4, 4)), T((1, 2)), T((2, 2))])
-            sage: P.map(lambda e: str(e))
+            ....:         T((4, 4)), T((1, 2)), T((2, 2))],
+            ....:        key=lambda e: e[:2])
+            sage: P.map(lambda e: e + (sum(e),))
             sage: P
-            poset('(1, 2)', '(1, 3)', '(2, 1)', '(2, 2)', '(4, 4)')
+            poset((1, 2, 3), (1, 3, 4), (2, 1, 3), (2, 2, 4), (4, 4, 8))
         """
         shells = self.shells_topological(reverse=reverse) \
             if topological else self.shells()

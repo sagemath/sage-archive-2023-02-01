@@ -239,6 +239,7 @@ FINDSTAT_STATISTIC_IDENTIFIER                   = 'StatisticIdentifier'
 FINDSTAT_STATISTIC_COLLECTION                   = 'StatisticCollection'
 FINDSTAT_STATISTIC_DATA                         = 'StatisticData'
 FINDSTAT_STATISTIC_DESCRIPTION                  = 'StatisticDescription'
+FINDSTAT_STATISTIC_NAME                         = 'StatisticTitle'
 FINDSTAT_STATISTIC_REFERENCES                   = 'StatisticReferences'
 FINDSTAT_STATISTIC_CODE                         = 'StatisticCode'
 FINDSTAT_STATISTIC_GENERATING_FUNCTION          = 'StatisticGeneratingFunction'
@@ -860,6 +861,7 @@ class FindStatStatistic(SageObject):
                 raise
 
         self._description           = self._raw[FINDSTAT_STATISTIC_DESCRIPTION].encode("utf-8")
+        self._name                  = self._raw[FINDSTAT_STATISTIC_NAME].encode("utf-8")
         self._references            = self._raw[FINDSTAT_STATISTIC_REFERENCES].encode("utf-8")
         self._collection            = FindStatCollection(self._raw[FINDSTAT_STATISTIC_COLLECTION])
         self._code                  = self._raw[FINDSTAT_STATISTIC_CODE]
@@ -1332,7 +1334,7 @@ class FindStatStatistic(SageObject):
             sage: findstat(1).name()                                            # optional -- internet,random
             u'The number of ways to write a permutation as a minimal length product of simple transpositions.'
         """
-        return self._description.partition(FINDSTAT_SEPARATOR_NAME)[0]
+        return self._name.partition(FINDSTAT_SEPARATOR_NAME)[0]
 
     def references(self):
         r"""

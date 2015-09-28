@@ -2296,9 +2296,11 @@ class MutablePoset(SageObject):
 
         .. NOTE::
 
-            If this poset uses a ``key``-function, then all
-            comparisons are performed on the keys of the elements (and
-            not on the elements themselves).
+            The key of an element is used for comparison. Thus elements with
+            the same key are considered as equal.
+
+            Due to keys and a ``merge`` function (see :class:`MutablePoset`)
+            this operation might not be commutative.
 
         EXAMPLES::
 
@@ -2338,9 +2340,11 @@ class MutablePoset(SageObject):
 
         .. NOTE::
 
-            If this poset uses a ``key``-function, then all
-            comparisons are performed on the keys of the elements (and
-            not on the elements themselves).
+            The key of an element is used for comparison. Thus elements with
+            the same key are considered as equal.
+
+            Due to keys and a ``merge`` function (see :class:`MutablePoset`)
+            this operation might not be commutative.
 
         .. TODO::
 

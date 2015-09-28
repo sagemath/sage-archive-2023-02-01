@@ -95,6 +95,9 @@ The above is ``True`` since the order of the factors does not play a role here; 
     False
 
 (Note that it is mathematically nonsense to make ``log(x)`` larger than ``x``.)
+
+Classes and Methods
+===================
 """
 
 #*****************************************************************************

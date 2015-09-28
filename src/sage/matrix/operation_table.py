@@ -388,12 +388,6 @@ class OperationTable(SageObject):
             except Exception:
                 raise TypeError('unable to coerce %s into %s' % (e, S))
         self._elts = elems
-        try:
-            self._index_elts = {e: i for i,e in enumerate(self._elts)}
-        except TypeError:
-            # the elements might not be hashable. But if they are it is much
-            # faster to lookup in a hash table rather than in a list!
-            pass
         self._n = len(self._elts)
         self._name_dict = {}
 
@@ -425,10 +419,14 @@ class OperationTable(SageObject):
         # If not, we'll discover that next in actual use.
 
         self._table = []
-        if hasattr(self, '_index_elts'):
-            get_row = lambda x: self._index_elts[x]
-        else:
-            get_row = lambda x: self._elts.index(x)
+
+        # the elements might not be hashable. But if they are it is much
+        # faster to lookup in a hash table rather than in a list!
+        try:
+            get_row = {e: i for i,e in enumerate(self._elts)}.__getitem__
+        except TypeError:
+            get_row = self._elts.index
+
         for g in self._elts:
             row = []
             for h in self._elts:

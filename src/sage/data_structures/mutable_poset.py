@@ -3022,6 +3022,12 @@ class MutablePoset(SageObject):
 
         A :class:`MutablePoset`.
 
+        .. NOTE::
+
+            ``function`` is not allowed to change the order of the keys,
+            but changing the keys themselves is allowed (in contrast
+            to :meth:`map`).
+
         EXAMPLES::
 
             sage: from sage.data_structures.mutable_poset import MutablePoset as MP

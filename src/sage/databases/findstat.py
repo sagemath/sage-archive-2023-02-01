@@ -1185,7 +1185,7 @@ class FindStatStatistic(SageObject):
         INPUT:
 
         - a string -- (default:"polynomial") can be
-          "polynomial" and "dictionary".
+          "polynomial", "dictionary", or "list".
 
         OUTPUT:
 
@@ -1209,7 +1209,7 @@ class FindStatStatistic(SageObject):
         if as_type == "dictionary":
             return gen_dicts
         elif as_type == "list":
-            return { key : [ gen_dicts[key][deg] if deg in gen_dicts[key] else 0 for deg in range(max(gen_dicts[key])+1) ] }
+            return { key : [ gen_dicts[key][deg] if deg in gen_dicts[key] else 0 for deg in range(max(gen_dicts[key])+1) ] for key in sorted(gen_dicts.keys())}
         elif as_type == "polynomial":
             from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
             from sage.rings.integer_ring import ZZ
@@ -1223,13 +1223,20 @@ class FindStatStatistic(SageObject):
         r"""
         Returns the OEIS search for the generating function of ``self``.
 
+        INPUT:
+
+        - ``search_size`` (default:32) the number of integers in the
+          sequence. If too big, the OEIS result is corrupted.
+
+        - ``verbose`` (default:True) if true, some information about
+          the search are printed.
+
         EXAMPLES::
 
             sage: tba
             sage: tba
         """
         from sage.databases.oeis import oeis
-        seq = self._oeis_search_sequence(self)
 
         gen_funcs = self.generating_functions(as_type="list")
 
@@ -1250,8 +1257,6 @@ class FindStatStatistic(SageObject):
             if verbose:
                 print 'Searching the OEIS for "%s"'%OEIS_string
                 print
-            print OEIS_string
-            return
             return oeis( OEIS_string )
         else:
             if verbose:

@@ -1133,6 +1133,7 @@ class MutablePosetShell(SageObject):
         Merge the given element with the element contained in this
         shell.
 
+
         INPUT:
 
         - ``element`` -- an element (of the poset).
@@ -1150,9 +1151,12 @@ class MutablePosetShell(SageObject):
 
         .. NOTE::
 
-            This method uses the parameters ``merge`` and
-            ``can_merge`` of the :class:`MutablePoset` which contains
-            this shell.
+            This operation depends on the parameters ``merge`` and
+            ``can_merge`` of the :class:`MutablePoset` this shell is
+            contained in. These parameters are defined when the poset
+            is constructed.
+
+        .. NOTE::
 
             If the ``merge`` function returns ``None``, then this shell
             is removed from the poset.

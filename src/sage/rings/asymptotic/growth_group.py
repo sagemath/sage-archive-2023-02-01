@@ -280,9 +280,6 @@ class Variable(sage.structure.unique_representation.CachedRepresentation,
                 for v in var), tuple())
             var_repr = ', '.join(var)
         else:
-            for v in var:
-                if not isidentifier(v):
-                    raise ValueError("'%s' is not a valid name for a variable." % (v,))
             var_bases = var
             var_repr = str(repr).strip()
 

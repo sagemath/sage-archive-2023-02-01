@@ -843,6 +843,12 @@ class MutablePosetShell(SageObject):
 
         An iterator.
 
+        .. NOTE::
+
+            The depth first search starts at this (``self``) shell. Thus
+            only this shell and shells greater than (in case of
+            ``reverse=False``) this shell are visited.
+
         .. SEEALSO::
 
             :meth:`iter_depth_first`,
@@ -898,6 +904,12 @@ class MutablePosetShell(SageObject):
         OUTPUT:
 
         An iterator.
+
+        .. NOTE::
+
+            The depth first search starts at this (``self``) shell. Thus
+            only this shell and shells greater than (in case of
+            ``reverse=False``) this shell are visited.
 
         ALGORITHM:
 
@@ -958,6 +970,13 @@ class MutablePosetShell(SageObject):
 
         An iterator.
 
+        .. NOTE::
+
+            The topological search will only find shells smaller than
+            (in case of ``reverse=False``)
+            or equal to this (``self``) shell. This is in contrast to
+            :meth:`iter_depth_first`.
+
         .. SEEALSO::
 
             :meth:`iter_depth_first`,
@@ -1013,6 +1032,13 @@ class MutablePosetShell(SageObject):
         OUTPUT:
 
         An iterator.
+
+        .. NOTE::
+
+            The topological search will only find shells smaller than
+            (in case of ``reverse=False``)
+            or equal to this (``self``) shell. This is in contrast to
+            :meth:`iter_depth_first`.
 
         ALGORITHM:
 

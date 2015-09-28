@@ -2398,6 +2398,8 @@ class MutablePoset(SageObject):
 
         - ``other`` -- a poset or an iterable. In the latter case the
           iterated objects are seen as elements of a poset.
+          It is possible to specify more than one ``other`` as
+          variadic arguments (arbitrary argument lists).
 
         OUTPUT:
 
@@ -2405,9 +2407,11 @@ class MutablePoset(SageObject):
 
         .. NOTE::
 
-            If this poset uses a ``key``-function, then all
-            comparisons are performed on the keys of the elements (and
-            not on the elements themselves).
+            The key of an element is used for comparison. Thus elements with
+            the same key are considered as equal.
+
+            Due to keys and a ``merge`` function (see :class:`MutablePoset`)
+            this operation might not be commutative.
 
         EXAMPLES::
 
@@ -2429,12 +2433,11 @@ class MutablePoset(SageObject):
             poset()
         """
         new = self.copy()
-        for o in other:
-            new.difference_update(o)
+        new.difference_update(*other)
         return new
 
 
-    def difference_update(self, other):
+    def difference_update(self, *other):
         r"""
         Remove all elements of another poset from this poset.
 
@@ -2442,6 +2445,8 @@ class MutablePoset(SageObject):
 
         - ``other`` -- a poset or an iterable. In the latter case the
           iterated objects are seen as elements of a poset.
+          It is possible to specify more than one ``other`` as
+          variadic arguments (arbitrary argument lists).
 
         OUTPUT:
 
@@ -2449,9 +2454,11 @@ class MutablePoset(SageObject):
 
         .. NOTE::
 
-            If this poset uses a ``key``-function, then all
-            comparisons are performed on the keys of the elements (and
-            not on the elements themselves).
+            The key of an element is used for comparison. Thus elements with
+            the same key are considered as equal.
+
+            Due to keys and a ``merge`` function (see :class:`MutablePoset`)
+            this operation might not be commutative.
 
         EXAMPLES::
 
@@ -2464,12 +2471,13 @@ class MutablePoset(SageObject):
             sage: P
             poset(3, 7)
         """
-        try:
-            it = other.keys()
-        except AttributeError:
-            it = iter(other)
-        for key in it:
-            self.discard(key)
+        for o in other:
+            try:
+                it = o.keys()
+            except AttributeError:
+                it = iter(o)
+            for key in it:
+                self.discard(key)
 
 
     def intersection(self, *other):

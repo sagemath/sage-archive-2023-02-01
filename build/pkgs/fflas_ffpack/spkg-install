@@ -88,7 +88,7 @@ echo "*************************************************"
 
 ./configure --prefix="$SAGE_LOCAL" --libdir="$SAGE_LOCAL/lib" \
     --with-default="$SAGE_LOCAL" \
-    --with-blas="$LINBOX_BLAS" \
+    --with-blas-libs="$LINBOX_BLAS" \
     --enable-optimization --disable-static
 
 if [ $? -ne 0 ]; then

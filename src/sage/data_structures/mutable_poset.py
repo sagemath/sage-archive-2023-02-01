@@ -3272,7 +3272,7 @@ class MutablePoset(SageObject):
             for m in tuple(to_merge):
                 if m.is_special():
                     continue
-                shell.merge(m.element, delete=True)
+                shell.merge(m.element, check=False, delete=True)
 
 
     def maximal_elements(self):

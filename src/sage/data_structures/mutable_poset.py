@@ -189,6 +189,10 @@ class MutablePosetShell(SageObject):
         sage: s = P.shell(66)
         sage: type(s)
         <class 'sage.data_structures.mutable_poset.MutablePosetShell'>
+
+    .. SEEALSO::
+
+        :class:`MutablePoset`
     """
     def __init__(self, poset, element):
         r"""
@@ -214,6 +218,10 @@ class MutablePosetShell(SageObject):
         r"""
         The poset to which this shell belongs.
 
+        .. SEEALSO::
+
+            :class:`MutablePoset`
+
         TESTS::
 
             sage: from sage.data_structures.mutable_poset import MutablePoset as MP
@@ -230,6 +238,11 @@ class MutablePosetShell(SageObject):
     def element(self):
         r"""
         The element contained in this shell.
+
+        .. SEEALSO::
+
+            :meth:`key`,
+            :class:`MutablePoset`.
 
         TESTS::
 
@@ -251,6 +264,11 @@ class MutablePosetShell(SageObject):
         The key of an element is determined by the mutable poset (the
         parent) via the ``key``-function (see construction of a
         :class:`MutablePoset`).
+
+        .. SEEALSO::
+
+            :meth:`element`,
+            :class:`MutablePoset`.
 
         TESTS::
 
@@ -297,6 +315,11 @@ class MutablePosetShell(SageObject):
 
         A set.
 
+        .. SEEALSO::
+
+            :meth:`successors`,
+            :class:`MutablePoset`.
+
         TESTS::
 
             sage: from sage.data_structures.mutable_poset import MutablePoset as MP
@@ -323,6 +346,11 @@ class MutablePosetShell(SageObject):
         OUTPUT:
 
         A set.
+
+        .. SEEALSO::
+
+            :meth:`predecessors`,
+            :class:`MutablePoset`.
 
         TESTS::
 
@@ -353,6 +381,12 @@ class MutablePosetShell(SageObject):
 
         ``True`` or ``False``.
 
+        .. SEEALSO::
+
+            :meth:`is_null`,
+            :meth:`is_oo`,
+            :class:`MutablePoset`.
+
         TESTS::
 
             sage: from sage.data_structures.mutable_poset import MutablePoset as MP
@@ -374,6 +408,13 @@ class MutablePosetShell(SageObject):
 
         ``True`` or ``False``.
 
+        .. SEEALSO::
+
+            :meth:`is_special`,
+            :meth:`is_oo`,
+            :meth:`MutablePoset.null`,
+            :class:`MutablePoset`.
+
         TESTS::
 
             sage: from sage.data_structures.mutable_poset import MutablePoset as MP
@@ -394,6 +435,13 @@ class MutablePosetShell(SageObject):
         OUTPUT:
 
         ``True`` or ``False``.
+
+        .. SEEALSO::
+
+            :meth:`is_null`,
+            :meth:`is_special`,
+            :meth:`MutablePoset.oo`,
+            :class:`MutablePoset`.
 
         TESTS::
 
@@ -494,6 +542,11 @@ class MutablePosetShell(SageObject):
             of the keys of the elements contained in the shells,
             except for special shells (see :class:`MutablePosetShell`).
 
+        .. SEEALSO::
+
+            :meth:`eq`,
+            :class:`MutablePoset`.
+
         TESTS::
 
             sage: from sage.data_structures.mutable_poset import MutablePoset as MP
@@ -585,6 +638,11 @@ class MutablePosetShell(SageObject):
             in the (non-special) shells. In particlar,
             elements/shells with the same key are considered as equal.
 
+        .. SEEALSO::
+
+            :meth:`le`,
+            :class:`MutablePoset`.
+
         TESTS::
 
             sage: from sage.data_structures.mutable_poset import MutablePoset as MP
@@ -640,6 +698,11 @@ class MutablePosetShell(SageObject):
 
         A new shell.
 
+        .. SEEALSO::
+
+            :meth:`MutablePoset.copy`,
+            :class:`MutablePoset`.
+
         TESTS::
 
             sage: from sage.data_structures.mutable_poset import MutablePoset as MP
@@ -690,6 +753,11 @@ class MutablePosetShell(SageObject):
 
         Note that ``False`` is returned if we do not have
         ``self <= shell``.
+
+        .. SEEALSO::
+
+            :meth:`covers`,
+            :class:`MutablePoset`.
 
         TESTS::
 
@@ -757,6 +825,10 @@ class MutablePosetShell(SageObject):
             sage: sorted(P.oo.covers(e, reverse=True),
             ....:        key=lambda c: repr(c.element))
             [(4, 4)]
+
+        .. SEEALSO::
+
+            :class:`MutablePoset`
         """
         covers = set()
         self._search_covers_(covers, shell, reverse)
@@ -792,6 +864,12 @@ class MutablePosetShell(SageObject):
         OUTPUT:
 
         An iterator.
+
+        .. SEEALSO::
+
+            :meth:`iter_depth_first`,
+            :meth:`iter_topological`,
+            :class:`MutablePoset`.
 
         TESTS::
 
@@ -862,6 +940,11 @@ class MutablePosetShell(SageObject):
             sage: list(P.null.iter_depth_first(
             ....:     condition=lambda s: s.element[0] == 1))
             [null, (1, 1), (1, 2), (1, 3)]
+
+        .. SEEALSO::
+
+            :meth:`iter_topological`,
+            :class:`MutablePoset`.
         """
         marked = set()
         return self._iter_depth_first_visit_(marked, reverse, key, condition)
@@ -896,6 +979,12 @@ class MutablePosetShell(SageObject):
         OUTPUT:
 
         An iterator.
+
+        .. SEEALSO::
+
+            :meth:`iter_depth_first`,
+            :meth:`iter_topological`,
+            :class:`MutablePoset`.
 
         TESTS::
 
@@ -1022,6 +1111,14 @@ class MutablePosetShell(SageObject):
             sage: list(P.null.iter_topological(
             ....:     reverse=True, condition=lambda s: s.element[0] == 1))
             [(1, 3), (1, 2), (1, 1), null]
+
+        .. SEEALSO::
+
+            :meth:`iter_depth_first`,
+            :meth:`MutablePoset.shells_topological`,
+            :meth:`MutablePoset.elements_topological`,
+            :meth:`MutablePoset.keys_topological`,
+            :class:`MutablePoset`.
         """
         marked = set()
         return self._iter_topological_visit_(marked, reverse, key, condition)
@@ -1070,6 +1167,11 @@ class MutablePosetShell(SageObject):
             sage: P.shell(2).merge((3, 'b'))
             sage: P
             poset((1, 'a'), (2, 'bc'), (4, 'd'))
+
+        .. SEEALSO::
+
+            :meth:`MutablePoset.merge`,
+            :class:`MutablePoset`.
         """
         poset = self.poset
         if poset._merge_ is None:
@@ -1093,6 +1195,10 @@ class MutablePosetShell(SageObject):
 def is_MutablePoset(P):
     r"""
     Test whether ``P`` inherits from :class:`MutablePoset`.
+
+    .. SEEALSO::
+
+        :class:`MutablePoset`
 
     TESTS::
 
@@ -1179,6 +1285,10 @@ class MutablePoset(SageObject):
 
         sage: C = MP([5, 3, 11]); C
         poset(3, 5, 11)
+
+    .. SEEALSO::
+
+        :class:`MutablePosetShell`.
     """
     def __init__(self, data=None, key=None, merge=None, can_merge=None):
         r"""
@@ -1246,6 +1356,12 @@ class MutablePoset(SageObject):
         OUTPUT:
 
         Nothing.
+
+        .. SEEALSO::
+
+            :meth:`discard`,
+            :meth:`pop`,
+            :meth:`remove`.
 
         TESTS::
 
@@ -1317,6 +1433,12 @@ class MutablePoset(SageObject):
             null
             sage: z.is_null()
             True
+
+        .. SEEALSO::
+
+            :meth:`oo`,
+            :meth:`MutablePosetShell.is_null`,
+            :meth:`MutablePosetShell.is_special`.
         """
         return self._null_
 
@@ -1335,6 +1457,12 @@ class MutablePoset(SageObject):
             oo
             sage: oo.is_oo()
             True
+
+        .. SEEALSO::
+
+            :meth:`null`,
+            :meth:`MutablePosetShell.is_oo`,
+            :meth:`MutablePosetShell.is_special`.
         """
         return self._oo_
 
@@ -1365,6 +1493,11 @@ class MutablePoset(SageObject):
             42
             sage: type(e)
             <class 'sage.data_structures.mutable_poset.MutablePosetShell'>
+
+        .. SEEALSO::
+
+            :meth:`element`,
+            :meth:`get_key`.
         """
         return self._shells_[key]
 
@@ -1390,6 +1523,11 @@ class MutablePoset(SageObject):
             42
             sage: type(e)
             <type 'sage.rings.integer.Integer'>
+
+        .. SEEALSO::
+
+            :meth:`shell`,
+            :meth:`get_key`.
         """
         return self.shell(key).element
 
@@ -1405,6 +1543,11 @@ class MutablePoset(SageObject):
         OUTPUT:
 
         An object (the key of ``element``).
+
+        .. SEEALSO::
+
+            :meth:`element`,
+            :meth:`shell`.
 
         TESTS::
 
@@ -1437,6 +1580,10 @@ class MutablePoset(SageObject):
         OUTPUT:
 
         Nothing.
+
+        .. SEEALSO::
+
+            :meth:`copy`
 
         TESTS::
 
@@ -1475,6 +1622,11 @@ class MutablePoset(SageObject):
         OUTPUT:
 
         A poset with the same content as ``self``.
+
+        .. SEEALSO::
+
+            :meth:`map`,
+            :meth:`mapped`.
 
         TESTS::
 
@@ -1525,6 +1677,16 @@ class MutablePoset(SageObject):
             ()
             sage: tuple(P.shells(include_special=True))
             (null, oo)
+
+        .. SEEALSO::
+
+            :meth:`shells_topological`,
+            :meth:`elements`,
+            :meth:`elements_topological`,
+            :meth:`keys`,
+            :meth:`keys_topological`,
+            :meth:`MutablePosetShell.iter_depth_first`,
+            :meth:`MutablePosetShell.iter_topological`.
         """
         if include_special:
             yield self.null
@@ -1580,6 +1742,16 @@ class MutablePoset(SageObject):
             sage: list(P.shells_topological(
             ....:     include_special=True, reverse=True))
             [oo, (4, 4), (1, 3), (2, 2), (1, 2), (2, 1), (1, 1), null]
+
+        .. SEEALSO::
+
+            :meth:`shells`,
+            :meth:`elements`,
+            :meth:`elements_topological`,
+            :meth:`keys`,
+            :meth:`keys_topological`,
+            :meth:`MutablePosetShell.iter_depth_first`,
+            :meth:`MutablePosetShell.iter_topological`.
         """
         if key is None:
             key = repr
@@ -1618,6 +1790,16 @@ class MutablePoset(SageObject):
             [3, 7, 42]
 
         returns all elements as well.
+
+        .. SEEALSO::
+
+            :meth:`shells`,
+            :meth:`shells_topological`,
+            :meth:`elements_topological`,
+            :meth:`keys`,
+            :meth:`keys_topological`,
+            :meth:`MutablePosetShell.iter_depth_first`,
+            :meth:`MutablePosetShell.iter_topological`.
         """
         for shell in self.shells(**kwargs):
             yield shell.element
@@ -1653,6 +1835,16 @@ class MutablePoset(SageObject):
              ((2, 1), <class '__main__.T'>),
              ((2, 2), <class '__main__.T'>),
              ((4, 4), <class '__main__.T'>)]
+
+        .. SEEALSO::
+
+            :meth:`shells`,
+            :meth:`shells_topological`,
+            :meth:`elements`,
+            :meth:`keys`,
+            :meth:`keys_topological`,
+            :meth:`MutablePosetShell.iter_depth_first`,
+            :meth:`MutablePosetShell.iter_topological`.
         """
         for shell in self.shells_topological(**kwargs):
             yield shell.element
@@ -1689,6 +1881,16 @@ class MutablePoset(SageObject):
             [(3, <class 'sage.data_structures.mutable_poset.MutablePosetShell'>),
              (7, <class 'sage.data_structures.mutable_poset.MutablePosetShell'>),
              (42, <class 'sage.data_structures.mutable_poset.MutablePosetShell'>)]
+
+        .. SEEALSO::
+
+            :meth:`shells`,
+            :meth:`shells_topological`,
+            :meth:`elements`,
+            :meth:`elements_topological`,
+            :meth:`keys_topological`,
+            :meth:`MutablePosetShell.iter_depth_first`,
+            :meth:`MutablePosetShell.iter_topological`.
         """
         for shell in self.shells(**kwargs):
             yield shell.key
@@ -1724,6 +1926,16 @@ class MutablePoset(SageObject):
             [((1, 1), <class 'sage.data_structures.mutable_poset.MutablePosetShell'>),
              ((2, 1), <class 'sage.data_structures.mutable_poset.MutablePosetShell'>),
              ((4, 4), <class 'sage.data_structures.mutable_poset.MutablePosetShell'>)]
+
+        .. SEEALSO::
+
+            :meth:`shells`,
+            :meth:`shells_topological`,
+            :meth:`elements`,
+            :meth:`elements_topological`,
+            :meth:`keys`,
+            :meth:`MutablePosetShell.iter_depth_first`,
+            :meth:`MutablePosetShell.iter_topological`.
         """
         for shell in self.shells_topological(**kwargs):
             yield shell.key
@@ -1745,6 +1957,10 @@ class MutablePoset(SageObject):
         OUTPUT:
 
         A string.
+
+        .. SEEALSO::
+
+            :meth:`repr_full`
 
         TESTS::
 
@@ -1771,6 +1987,10 @@ class MutablePoset(SageObject):
         OUTPUT:
 
         A string.
+
+        .. SEEALSO::
+
+            :meth:`repr`
 
         TESTS::
 
@@ -1815,6 +2035,12 @@ class MutablePoset(SageObject):
         OUTPUT:
 
         ``True`` or ``False``.
+
+        .. SEEALSO::
+
+            :meth:`shells`,
+            :meth:`elements`,
+            :meth:`keys`.
 
         TESTS::
 
@@ -1943,6 +2169,12 @@ class MutablePoset(SageObject):
             sage: B.add((7, -42))
             sage: B
             poset()
+
+        .. SEEALSO::
+
+            :meth:`discard`,
+            :meth:`pop`,
+            :meth:`remove`.
 
         TESTS::
 
@@ -2090,6 +2322,8 @@ class MutablePoset(SageObject):
 
         .. SEEALSO::
 
+            :meth:`add`,
+            :meth:`clear`,
             :meth:`discard`,
             :meth:`pop`.
 
@@ -2225,6 +2459,8 @@ class MutablePoset(SageObject):
 
         .. SEEALSO::
 
+            :meth:`add`,
+            :meth:`clear`,
             :meth:`remove`,
             :meth:`pop`.
         """
@@ -2262,6 +2498,13 @@ class MutablePoset(SageObject):
             Traceback (most recent call last):
             ...
             KeyError: 'pop from an empty poset'
+
+        .. SEEALSO::
+
+            :meth:`add`,
+            :meth:`clear`,
+            :meth:`discard`,
+            :meth:`remove`.
         """
         kwargs['include_special'] = False
 
@@ -2312,6 +2555,16 @@ class MutablePoset(SageObject):
             sage: P.union(Q)
             poset(3, 4, 7, 8, 42)
 
+        .. SEEALSO::
+
+            :meth:`union_update`,
+            :meth:`difference`, :meth:`difference_update`,
+            :meth:`intersection`, :meth:`intersection_update`,
+            :meth:`symmetric_difference`, :meth:`symmetric_difference_update`,
+            :meth:`is_disjoint`,
+            :meth:`is_subset`,
+            :meth:`is_superset`.
+
         TESTS::
 
             sage: P.union(P, Q, Q, P)
@@ -2361,6 +2614,16 @@ class MutablePoset(SageObject):
             sage: P.union_update(Q)
             sage: P
             poset(3, 4, 7, 8, 42)
+
+        .. SEEALSO::
+
+            :meth:`union`,
+            :meth:`difference`, :meth:`difference_update`,
+            :meth:`intersection`, :meth:`intersection_update`,
+            :meth:`symmetric_difference`, :meth:`symmetric_difference_update`,
+            :meth:`is_disjoint`,
+            :meth:`is_subset`,
+            :meth:`is_superset`.
 
         TESTS::
 
@@ -2417,6 +2680,16 @@ class MutablePoset(SageObject):
             sage: P.difference(Q)
             poset(3, 7)
 
+        .. SEEALSO::
+
+            :meth:`union`, :meth:`union_update`,
+            :meth:`difference_update`,
+            :meth:`intersection`, :meth:`intersection_update`,
+            :meth:`symmetric_difference`, :meth:`symmetric_difference_update`,
+            :meth:`is_disjoint`,
+            :meth:`is_subset`,
+            :meth:`is_superset`.
+
         TESTS::
 
             sage: P.difference(Q, Q)
@@ -2464,6 +2737,16 @@ class MutablePoset(SageObject):
             sage: P.difference_update(Q)
             sage: P
             poset(3, 7)
+
+        .. SEEALSO::
+
+            :meth:`union`, :meth:`union_update`,
+            :meth:`difference`,
+            :meth:`intersection`, :meth:`intersection_update`,
+            :meth:`symmetric_difference`, :meth:`symmetric_difference_update`,
+            :meth:`is_disjoint`,
+            :meth:`is_subset`,
+            :meth:`is_superset`.
         """
         for o in other:
             try:
@@ -2506,6 +2789,16 @@ class MutablePoset(SageObject):
             poset(4, 8, 42)
             sage: P.intersection(Q)
             poset(42)
+
+        .. SEEALSO::
+
+            :meth:`union`, :meth:`union_update`,
+            :meth:`difference`, :meth:`difference_update`,
+            :meth:`intersection_update`,
+            :meth:`symmetric_difference`, :meth:`symmetric_difference_update`,
+            :meth:`is_disjoint`,
+            :meth:`is_subset`,
+            :meth:`is_superset`.
 
         TESTS::
 
@@ -2550,6 +2843,16 @@ class MutablePoset(SageObject):
             sage: P.intersection_update(Q)
             sage: P
             poset(42)
+
+        .. SEEALSO::
+
+            :meth:`union`, :meth:`union_update`,
+            :meth:`difference`, :meth:`difference_update`,
+            :meth:`intersection`,
+            :meth:`symmetric_difference`, :meth:`symmetric_difference_update`,
+            :meth:`is_disjoint`,
+            :meth:`is_subset`,
+            :meth:`is_superset`.
         """
         keys = tuple(self.keys())
         for key in keys:
@@ -2584,6 +2887,16 @@ class MutablePoset(SageObject):
             poset(4, 8, 42)
             sage: P.symmetric_difference(Q)
             poset(3, 4, 7, 8)
+
+        .. SEEALSO::
+
+            :meth:`union`, :meth:`union_update`,
+            :meth:`difference`, :meth:`difference_update`,
+            :meth:`intersection`, :meth:`intersection_update`,
+            :meth:`symmetric_difference_update`,
+            :meth:`is_disjoint`,
+            :meth:`is_subset`,
+            :meth:`is_superset`.
         """
         new = self.copy()
         new.symmetric_difference_update(other)
@@ -2619,6 +2932,16 @@ class MutablePoset(SageObject):
             sage: P.symmetric_difference_update(Q)
             sage: P
             poset(3, 4, 7, 8)
+
+        .. SEEALSO::
+
+            :meth:`union`, :meth:`union_update`,
+            :meth:`difference`, :meth:`difference_update`,
+            :meth:`intersection`, :meth:`intersection_update`,
+            :meth:`symmetric_difference`,
+            :meth:`is_disjoint`,
+            :meth:`is_subset`,
+            :meth:`is_superset`.
         """
         T = other.difference(self)
         self.difference_update(other)
@@ -2655,6 +2978,15 @@ class MutablePoset(SageObject):
             False
             sage: P.is_disjoint(Q.difference(P))
             True
+
+        .. SEEALSO::
+
+            :meth:`is_subset`,
+            :meth:`is_superset`,
+            :meth:`union`, :meth:`union_update`,
+            :meth:`difference`, :meth:`difference_update`,
+            :meth:`intersection`, :meth:`intersection_update`,
+            :meth:`symmetric_difference`, :meth:`symmetric_difference_update`.
         """
         return all(key not in other for key in self.keys())
 
@@ -2700,6 +3032,15 @@ class MutablePoset(SageObject):
             True
             sage: P.is_subset(P.union(Q))
             True
+
+        .. SEEALSO::
+
+            :meth:`is_disjoint`,
+            :meth:`is_superset`,
+            :meth:`union`, :meth:`union_update`,
+            :meth:`difference`, :meth:`difference_update`,
+            :meth:`intersection`, :meth:`intersection_update`,
+            :meth:`symmetric_difference`, :meth:`symmetric_difference_update`.
         """
         return all(key in other for key in self.keys())
 
@@ -2745,6 +3086,15 @@ class MutablePoset(SageObject):
             True
             sage: P.union(Q).is_superset(P)
             True
+
+        .. SEEALSO::
+
+            :meth:`is_disjoint`,
+            :meth:`is_subset`,
+            :meth:`union`, :meth:`union_update`,
+            :meth:`difference`, :meth:`difference_update`,
+            :meth:`intersection`, :meth:`intersection_update`,
+            :meth:`symmetric_difference`, :meth:`symmetric_difference_update`.
         """
         try:
             it = other.keys()
@@ -2849,6 +3199,10 @@ class MutablePoset(SageObject):
             sage: Q.merge(); Q
             poset((4, 4, 'abcdef'))
 
+        .. SEEALSO::
+
+            :meth:`MutablePosetShell.merge`
+
         TESTS::
 
             sage: copy(P).merge(reverse=False) == copy(P).merge(reverse=True)
@@ -2921,6 +3275,10 @@ class MutablePoset(SageObject):
             ....:         T((1, 2)), T((2, 2))])
             sage: list(P.maximal_elements())
             [(1, 3), (2, 2)]
+
+        .. SEEALSO::
+
+            :meth:`minimal_elements`
         """
         return iter(shell.element
                     for shell in self.oo.predecessors()
@@ -2949,6 +3307,10 @@ class MutablePoset(SageObject):
             ....:         T((4, 4)), T((1, 2)), T((2, 2))])
             sage: list(P.minimal_elements())
             [(1, 2), (2, 1)]
+
+        .. SEEALSO::
+
+            :meth:`maximal_elements`
         """
         return iter(shell.element
                     for shell in self.null.successors()
@@ -2990,6 +3352,11 @@ class MutablePoset(SageObject):
             sage: P.map(lambda e: e + (sum(e),))
             sage: P
             poset((1, 2, 3), (1, 3, 4), (2, 1, 3), (2, 2, 4), (4, 4, 8))
+
+        .. SEEALSO::
+
+            :meth:`copy`,
+            :meth:`mapped`.
         """
         shells = self.shells_topological(reverse=reverse) \
             if topological else self.shells()
@@ -3032,6 +3399,11 @@ class MutablePoset(SageObject):
             ....:         T((4, 4)), T((1, 2)), T((2, 2))])
             sage: P.mapped(lambda e: str(e))
             poset('(1, 2)', '(1, 3)', '(2, 1)', '(2, 2)', '(4, 4)')
+
+        .. SEEALSO::
+
+            :meth:`copy`,
+            :meth:`map`.
         """
         return self.copy(mapping=function)
 

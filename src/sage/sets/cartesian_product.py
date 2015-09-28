@@ -276,3 +276,18 @@ class CartesianProduct(UniqueRepresentation, Parent):
                 1
             """
             return iter(self.value)
+
+        def cartesian_factors(self):
+            r"""
+            Return the tuple of elements that compose this element.
+
+            EXAMPLES::
+
+                sage: A = cartesian_product([ZZ, RR])
+                sage: A((1, 1.23)).cartesian_factors()
+                sage: A((1, 1.23)).cartesian_factors()
+                (1, 1.23000000000000)
+                sage: type(_)
+                <type 'tuple'>
+            """
+            return self.value

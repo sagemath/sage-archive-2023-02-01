@@ -1262,7 +1262,8 @@ class MutablePoset(SageObject):
       ``merge`` is ``None`` (default) is equivalent to ``merge``
       returning its first argument. Note that it is not allowed that the
       key of the returning element differs from the key of the first
-      input parameter.
+      input parameter. This means ``merge`` must not change the
+      position of the element in the poset.
 
     - ``can_merge`` -- a function which checks whether its second argument
       can be merged to its first.

@@ -2252,7 +2252,7 @@ class MutablePoset(SageObject):
         EXAMPLES::
 
             sage: from sage.data_structures.mutable_poset import MutablePoset as MP
-            sage: P = MP(key=lambda c: -c)
+            sage: P = MP()
             sage: P.add(3)
             sage: P
             poset(3)

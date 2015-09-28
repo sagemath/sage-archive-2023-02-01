@@ -285,7 +285,6 @@ class CartesianProduct(UniqueRepresentation, Parent):
 
                 sage: A = cartesian_product([ZZ, RR])
                 sage: A((1, 1.23)).cartesian_factors()
-                sage: A((1, 1.23)).cartesian_factors()
                 (1, 1.23000000000000)
                 sage: type(_)
                 <type 'tuple'>

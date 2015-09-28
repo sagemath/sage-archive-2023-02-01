@@ -199,5 +199,36 @@ class AsymptoticExpansionGenerators(object):
         return result
 
 
+    @staticmethod
+    def binomial_kn_over_n(var, k, precision=None, skip_constant_factor=False):
+        r"""
+        EXAMPLES::
+
+            sage: asymptotic_expansions.binomial_kn_over_n('n', k=2, precision=5)
+            sage: _.parent()
+        """
+        log_Stirling = AsymptoticExpansionGenerators.log_Stirling(
+            var, precision=precision, skip_constant_summand=True)
+        n = log_Stirling.parent().gen()
+
+        result = log_Stirling.subs(n=k*n) - \
+                 log_Stirling.subs(n=(k-1)*n) - log_Stirling
+        print result
+
+        from sage.symbolic.ring import SR
+        P = log_Stirling.parent().change_parameter(
+            growth_group='(e^(n*log(n)))^QQ * (e^n)^QQ * n^QQ * log(n)^QQ',
+            coefficient_ring=SR)
+        from sage.functions.log import exp
+        result = exp(P(result))
+        return result
+
+        if not skip_constant_factor:
+            from sage.symbolic.ring import SR
+            result *= (2*SR('pi')).sqrt()
+
+        return result
+
+
 # Easy access to the asymptotic expansions generators from the command line:
 asymptotic_expansions = AsymptoticExpansionGenerators()

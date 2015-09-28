@@ -1250,6 +1250,12 @@ class MutablePoset(SageObject):
       (default), this is the identity, i.e., keys are equal to their
       elements.
 
+      Two elements with the same keys are considered as equal; so only
+      one of these two elements can be in the poset.
+
+      This ``key`` is not used for sorting (in contrast to
+      sorting-functions, e.g. ``sorted``).
+
     - ``merge`` -- a function which merges its second argument (an
       element) to its first (again an element) and returns the result
       (as an element). If the return value is ``None``, the element is

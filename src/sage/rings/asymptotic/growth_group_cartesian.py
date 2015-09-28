@@ -45,7 +45,7 @@ import sage
 
 class CartesianProductFactory(sage.structure.factory.UniqueFactory):
     r"""
-    Creates various types of cartesian products depending on its input.
+    Create various types of cartesian products depending on its input.
 
     INPUT:
 

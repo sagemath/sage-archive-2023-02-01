@@ -300,7 +300,7 @@ class Variable(sage.structure.unique_representation.CachedRepresentation,
 
     def __eq__(self, other):
         r"""
-        Compares if this variable equals ``other``.
+        Compare whether this variable equals ``other``.
 
         INPUT:
 
@@ -355,7 +355,7 @@ class Variable(sage.structure.unique_representation.CachedRepresentation,
 
     def is_monomial(self):
         r"""
-        Returns if this is a monomial variable.
+        Return whether this is a monomial variable.
 
         OUTPUT:
 
@@ -375,7 +375,7 @@ class Variable(sage.structure.unique_representation.CachedRepresentation,
     @staticmethod
     def extract_variable_names(s):
         r"""
-        Finds the name of the variable for the given string.
+        Determine the name of the variable for the given string.
 
         INPUT:
 

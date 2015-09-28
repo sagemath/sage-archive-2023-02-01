@@ -266,6 +266,13 @@ class Variable(sage.structure.unique_representation.CachedRepresentation,
             blub
             sage: Variable('blub') is Variable('blub')
             True
+
+        ::
+
+            sage: Variable('(:-)')
+            Traceback (most recent call last):
+            ...
+            TypeError: Malformed expression: (: !!! -)
         """
         from sage.symbolic.ring import isidentifier
 
@@ -405,21 +412,19 @@ class Variable(sage.structure.unique_representation.CachedRepresentation,
         ::
 
             sage: Variable.extract_variable_names('log(77w)')
-            Traceback (most recent call last):
-            ....
-            ValueError: '77w' is not a valid name for a variable.
+            ('w',)
             sage: Variable.extract_variable_names('log(x')
             Traceback (most recent call last):
             ....
-            ValueError: Unbalanced parentheses in 'log(x'.
+            TypeError: Bad function call: log(x !!!
             sage: Variable.extract_variable_names('x)')
             Traceback (most recent call last):
             ....
-            ValueError: Unbalanced parentheses in 'x)'.
+            TypeError: Malformed expression: x) !!!
             sage: Variable.extract_variable_names('log)x(')
             Traceback (most recent call last):
             ....
-            ValueError: Unbalanced parentheses in 'log)x('.
+            TypeError: Malformed expression: log) !!! x(
             sage: Variable.extract_variable_names('log(x)+y')
             ('x', 'y')
 
@@ -434,7 +439,9 @@ class Variable(sage.structure.unique_representation.CachedRepresentation,
             sage: Variable.extract_variable_names('+a')
             ('a',)
             sage: Variable.extract_variable_names('a+')
-            ('a',)
+            Traceback (most recent call last):
+            ...
+            TypeError: Malformed expression: a+ !!!
             sage: Variable.extract_variable_names('b!')
             ('b',)
             sage: Variable.extract_variable_names('-a')
@@ -445,59 +452,16 @@ class Variable(sage.structure.unique_representation.CachedRepresentation,
             ('q',)
             sage: Variable.extract_variable_names('77')
             ()
+
+        ::
+
+            sage: Variable.extract_variable_names('a + (b + c) + d')
+            ('a', 'b', 'c', 'd')
         """
-        from sage.symbolic.ring import isidentifier
-        import re
-        numbers = re.compile(r"\d+$")
-        vars = []
-
-        def find_next_outer_parentheses(s):
-            op = s.find('(')
-            level = 1
-            for i, c in enumerate(s[op+1:]):
-                if c == ')':
-                    level -= 1
-                if c == '(':
-                    level += 1
-                if level == 0:
-                    return op, op+i+1
-            return op, -1
-
-        def strip(s):
-            s = s.strip()
-            if not s:
-                return
-
-            # parentheses (...)
-            # functions f(...)
-            op, cl = find_next_outer_parentheses(s)
-            if (op == -1) != (cl == -1) or op > cl:
-                raise ValueError("Unbalanced parentheses in '%s'." % (s,))
-            if cl != -1:
-                strip(s[op+1:cl])
-                strip(s[cl+1:])
-                return
-
-            # unary +a, a+, ...
-            # binary a+b, a*b, ...
-            for operator in ('**', '+', '-', '*', '/', '^', '!'):
-                a, o, b = s.partition(operator)
-                if o:
-                    strip(a)
-                    strip(b)
-                    return
-
-            # a number
-            if numbers.match(s) is not None:
-                return
-
-            # else: a variable
-            if not isidentifier(s):
-                raise ValueError("'%s' is not a valid name for a variable." % (s,))
-            vars.append(s)
-
-        strip(s)
-        return tuple(vars)
+        from sage.symbolic.ring import SR
+        if s == '':
+            return ()
+        return tuple(str(s) for s in SR(s).variables())
 
 
 class GenericGrowthElement(sage.structure.element.MultiplicativeGroupElement):

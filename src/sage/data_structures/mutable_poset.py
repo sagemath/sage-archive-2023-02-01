@@ -2302,6 +2302,12 @@ class MutablePoset(SageObject):
             Due to keys and a ``merge`` function (see :class:`MutablePoset`)
             this operation might not be commutative.
 
+        .. TODO::
+
+            Use the already existing information in the other poset to speed
+            up this function. (At the moment each element of the other poset
+            is inserted one by one and without using this information.)
+
         EXAMPLES::
 
             sage: from sage.data_structures.mutable_poset import MutablePoset as MP

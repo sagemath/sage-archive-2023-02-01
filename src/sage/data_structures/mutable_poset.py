@@ -2024,6 +2024,17 @@ class MutablePoset(SageObject):
         If the element is not a member and ``raise_key_error`` is set
         (default), raise a ``KeyError``.
 
+        .. NOTE::
+
+            As with Python's ``set``, the methods :meth:`remove`
+            and meth:`discard` only differ in their behavior when an
+            element is not contained in the poset: :meth:`remove`
+            raises a ``KeyError`` whereas :meth:`discard` does not
+            raise any exception.
+
+            This default behavior can be overridden with the
+            ``raise_key_error`` parameter.
+
         EXAMPLES::
 
             sage: from sage.data_structures.mutable_poset import MutablePoset as MP
@@ -2082,6 +2093,11 @@ class MutablePoset(SageObject):
             +-- null
             |   +-- successors:   (1, 1)
             |   +-- no predecessors
+
+        .. SEEALSO::
+
+            :meth:`discard`,
+            :meth:`pop`.
 
         TESTS::
 
@@ -2187,6 +2203,17 @@ class MutablePoset(SageObject):
         If the element is not a member and ``raise_key_error`` is set
         (not default), raise a ``KeyError``.
 
+        .. NOTE::
+
+            As with Python's ``set``, the methods :meth:`remove`
+            and meth:`discard` only differ in their behavior when an
+            element is not contained in the poset: :meth:`remove`
+            raises a ``KeyError`` whereas :meth:`discard` does not
+            raise any exception.
+
+            This default behavior can be overridden with the
+            ``raise_key_error`` parameter.
+
         EXAMPLES::
 
             sage: from sage.data_structures.mutable_poset import MutablePoset as MP
@@ -2201,6 +2228,11 @@ class MutablePoset(SageObject):
             ...
             KeyError: 'Key (1, 2) is not contained in this poset.'
             sage: P.discard(T((1, 2)))
+
+        .. SEEALSO::
+
+            :meth:`remove`,
+            :meth:`pop`.
         """
         return self.remove(key, raise_key_error)
 

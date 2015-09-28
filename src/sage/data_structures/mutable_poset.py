@@ -2692,9 +2692,6 @@ class MutablePoset(SageObject):
             The key of an element is used for comparison. Thus elements with
             the same key are considered as equal.
 
-            Due to keys and a ``merge`` function (see :class:`MutablePoset`)
-            this operation might not be commutative.
-
         EXAMPLES::
 
             sage: from sage.data_structures.mutable_poset import MutablePoset as MP
@@ -2748,9 +2745,6 @@ class MutablePoset(SageObject):
 
             The key of an element is used for comparison. Thus elements with
             the same key are considered as equal.
-
-            Due to keys and a ``merge`` function (see :class:`MutablePoset`)
-            this operation might not be commutative.
 
         EXAMPLES::
 

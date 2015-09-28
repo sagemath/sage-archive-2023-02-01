@@ -44,16 +44,17 @@ examples.
 
 **Asymptotic Expansions**
 
-.. csv-table::
-    :class: contentstable
-    :widths: 30, 70
-    :delim: |
+.. list-table::
+   :class: contentstable
+   :widths: 4 12
+   :header-rows: 0
 
     :meth:`~TransducerGenerators.Identity` | Returns a transducer realizing the i
 
 AUTHORS:
 
 - Daniel Krenn (2015-09-03): initial version and Stirling
+
 
 ACKNOWLEDGEMENT:
 
@@ -117,13 +118,12 @@ class AsymptoticExpansionGenerators(object):
             Asymptotic Ring <(e^(n*log(n)))^QQ * (e^n)^QQ * n^QQ * log(n)^QQ>
             over Rational Field
         """
-        from sage.functions.log import exp
-
         log_Stirling = AsymptoticExpansionGenerators.log_Stirling(
             var, precision=precision, skip_constant_summand=True)
 
         P = log_Stirling.parent().change_parameter(
             growth_group='(e^(n*log(n)))^QQ * (e^n)^QQ * n^QQ * log(n)^QQ')
+        from sage.functions.log import exp
         result = exp(P(log_Stirling))
 
         if not skip_constant_factor:

@@ -2324,12 +2324,11 @@ class MutablePoset(SageObject):
             poset(3, 4, 7, 8, 42)
        """
         new = self.copy()
-        for o in other:
-            new.update(o)
+        new.update(*other)
         return new
 
 
-    def union_update(self, other):
+    def union_update(self, *other):
         r"""
         Update this poset with the union of itself and another poset.
 
@@ -2375,12 +2374,13 @@ class MutablePoset(SageObject):
             sage: Q
             poset(3, 4, 7, 8, 42)
         """
-        try:
-            it = other.elements()
-        except AttributeError:
-            it = iter(other)
-        for element in it:
-            self.add(element)
+        for o in other:
+            try:
+                it = o.elements()
+            except AttributeError:
+                it = iter(o)
+            for element in it:
+                self.add(element)
 
 
     update = union_update  # as in a Python set

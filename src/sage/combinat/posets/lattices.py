@@ -8,15 +8,46 @@ This module implements finite (semi)lattices. It defines:
     :widths: 30, 70
     :delim: |
 
-    :class:`FiniteJoinSemilattice` | A class for finite join semilattices.
-    :class:`FiniteMeetSemilattice` | A class for finite meet semilattices.
-    :class:`FiniteLatticePoset` | A class for finite lattices.
-    :meth:`JoinSemilattice` | Construct a join semi-lattice.
     :meth:`LatticePoset` | Construct a lattice.
     :meth:`MeetSemilattice` | Construct a meet semi-lattice.
+    :meth:`JoinSemilattice` | Construct a join semi-lattice.
+    :class:`FiniteLatticePoset` | A class for finite lattices.
+    :class:`FiniteMeetSemilattice` | A class for finite meet semilattices.
+    :class:`FiniteJoinSemilattice` | A class for finite join semilattices.
 
 List of (semi)lattice methods
 -----------------------------
+
+**Meet and join**
+
+.. csv-table::
+    :class: contentstable
+    :widths: 30, 70
+    :delim: |
+
+    :meth:`~FiniteMeetSemilattice.meet` | Return the meet of given elements in the meet semi-lattice.
+    :meth:`~FiniteJoinSemilattice.join` | Return the join of given elements in the join semi-lattice.
+    :meth:`~FiniteMeetSemilattice.meet_matrix` | Return the matrix of meets of all elements of the meet semi-lattice.
+    :meth:`~FiniteJoinSemilattice.join_matrix` | Return the matrix of joins of all elements of the join semi-lattice.
+
+**Properties of the lattice**
+
+.. csv-table::
+    :class: contentstable
+    :widths: 30, 70
+    :delim: |
+
+    :meth:`~FiniteLatticePoset.is_distributive` | Return ``True`` if the lattice is distributive.
+    :meth:`~FiniteLatticePoset.is_modular` | Return ``True`` if the lattice is modular.
+    :meth:`~FiniteLatticePoset.is_lower_semimodular` | Return ``True`` if the lattice is lower semimodular.
+    :meth:`~FiniteLatticePoset.is_upper_semimodular` | Return ``True`` if the lattice is upper semimodular.
+    :meth:`~FiniteLatticePoset.is_atomic` | Return ``True`` if every element of the lattice can be written as a join of atoms.
+    :meth:`~FiniteLatticePoset.is_complemented` | Return ``True`` if every element of the lattice has at least one complement.
+    :meth:`~FiniteLatticePoset.is_supersolvable` | Return ``True`` if the lattice is supersolvable.
+    :meth:`~FiniteLatticePoset.is_planar` | Return ``True`` if the lattice has an upward planar drawing.
+    :meth:`~FiniteLatticePoset.is_vertically_decomposable` | Return ``True`` if the lattice is vertically decomposable.
+
+**Elements and sublattices**
 
 .. csv-table::
     :class: contentstable
@@ -24,21 +55,10 @@ List of (semi)lattice methods
     :delim: |
 
     :meth:`~FiniteLatticePoset.complements` | Return the list of complements of an element, or the dictionary of complements for all elements.
-    :meth:`~FiniteLatticePoset.maximal_sublattices` | Return maximal sublattices of the lattice.
-    :meth:`~FiniteLatticePoset.frattini_sublattice` | Return the intersection of maximal sublattices.
-    :meth:`~FiniteLatticePoset.is_atomic` | Return ``True`` if the lattice is atomic.
-    :meth:`~FiniteLatticePoset.is_complemented` | Return ``True`` if the lattice is complemented.
-    :meth:`~FiniteLatticePoset.is_distributive` | Return ``True`` if the lattice is distributive.
-    :meth:`~FiniteLatticePoset.is_lower_semimodular` | Return ``True`` if the lattice is lower semimodular.
-    :meth:`~FiniteLatticePoset.is_modular` | Return ``True`` if the lattice is lower modular.
     :meth:`~FiniteLatticePoset.is_modular_element` | Return ``True`` if given element is modular in the lattice.
-    :meth:`~FiniteLatticePoset.is_upper_semimodular` | Return ``True`` if the lattice is upper semimodular.
-    :meth:`~FiniteLatticePoset.is_planar` | Return ``True`` if the lattice is *upward* planar, and ``False`` otherwise.
-    :meth:`~FiniteLatticePoset.is_supersolvable` | Return ``True`` if the lattice is supersolvable.
-    :meth:`~FiniteJoinSemilattice.join` | Return the join of given elements in the join semi-lattice.
-    :meth:`~FiniteJoinSemilattice.join_matrix` | Return the matrix of joins of all elements of the join semi-lattice.
-    :meth:`~FiniteMeetSemilattice.meet` | Return the meet of given elements in the meet semi-lattice.
-    :meth:`~FiniteMeetSemilattice.meet_matrix` | Return the matrix of meets of all elements of the meet semi-lattice.
+    :meth:`~FiniteLatticePoset.maximal_sublattices` | Return maximal sublattices of the lattice.
+    :meth:`~FiniteLatticePoset.frattini_sublattice` | Return the intersection of maximal sublattices of the lattice.
+    :meth:`~FiniteLatticePoset.vertical_decomposition` | Return the vertical decomposition of the lattice.
 """
 #*****************************************************************************
 #       Copyright (C) 2008 Peter Jipsen <jipsen@chapman.edu>,
@@ -1054,6 +1074,102 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
                 next_.append(H.neighbor_in_iterator(cur))
         return True
 
+    def vertical_decomposition(self, elements_only=False):
+        r"""
+        Return sublattices from the vertical decomposition of the lattice.
+
+        Informally this returns the lattice splitted to parts from
+        every single-element "cutting point".
+
+        Formally, let `d_1, \ldots, d_n` be elements comparable to
+        every element of the lattice, excluding the top and bottom
+        elements. Let `b` be a bottom element and `t` be the top
+        element. This function returns either a list `d_1, \ldots,
+        d_n`, or the list of intervals `[b, d_1], [d_1, d_2], \ldots,
+        [d_{n-1}, d_n], [d_n, t]` as lattices.
+
+        INPUT:
+
+        - ``elements_only`` - if ``True``, return the list on decomposing
+          elements as defined above; if ``False`` (the default),
+          return the list of sublattices so that the lattice is a
+          vertical composition of them.
+
+        .. SEEALSO::
+
+            :meth:`is_vertically_decomposable`
+
+        EXAMPLES:
+
+        Number 6 is divided by 1, 2, and 3, and it divides 12, 18 and 36::
+
+            sage: L = LatticePoset( ([1, 2, 3, 6, 12, 18, 36],
+            ....:     attrcall("divides")) )
+            sage: parts = L.vertical_decomposition()
+            sage: [lat.list() for lat in parts]
+            [[1, 2, 3, 6], [6, 12, 18, 36]]
+            sage: L.vertical_decomposition(elements_only=True)
+            [6]
+
+        TESTS::
+
+            sage: [Posets.ChainPoset(i).vertical_decomposition(elements_only=True)
+            ....:     for i in range(5)]
+            [[], [], [], [1], [1, 2]]
+        """
+        if self.cardinality() <= 2:
+            if not elements_only:
+                return [self]
+            else:
+                return []
+        if elements_only:
+            return [self[e] for e in
+                    self._hasse_diagram.vertical_decomposition(return_list=True)]
+        elms = ( [0] +
+                 self._hasse_diagram.vertical_decomposition(return_list=True) +
+                 [self.cardinality()-1] )
+        n = len(elms)
+        result = []
+        for i in range(n-1):
+            result.append(LatticePoset(
+                self.subposet([self[e] for e in range(elms[i], elms[i+1]+1)])))
+        return result
+
+    def is_vertically_decomposable(self):
+        r"""
+        Return ``True`` if the lattice is vertically decomposable, and
+        ``False`` otherwise.
+
+        Informally a lattice is vertically decomposable if it can be seen as
+        two lattices "glued" by unifying the top element of first lattice to
+        the bottom element of second one.
+
+        Formally defined, a lattice is vertically decomposable if it has
+        an element that is comparable to all elements and is not the bottom
+        neither the top element.
+
+        .. SEEALSO::
+
+            :meth:`vertical_decomposition`
+
+        EXAMPLES::
+
+            sage: L = LatticePoset( ([1, 2, 3, 6, 12, 18, 36],
+            ....:     attrcall("divides")) )
+            sage: L.is_vertically_decomposable()
+            True
+            sage: Posets.TamariLattice(4).is_vertically_decomposable()
+            False
+
+        TESTS::
+
+            sage: [Posets.ChainPoset(i).is_vertically_decomposable() for i in
+            ....:     range(5)]
+            [False, False, False, True, True]
+        """
+        # TODO: Make better example when compose_vertically() is done.
+        return self._hasse_diagram.vertical_decomposition()
+
     def sublattice(self, elms):
         r"""
         Return the smallest sublattice containing elements on the given list.
@@ -1071,12 +1187,6 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
             sage: L = Posets.BooleanLattice(3)
             sage: L.sublattice([3,5,6,7])
             Finite lattice containing 8 elements
-
-        .. NOTE::
-
-            This is very unoptimal algorithm. Better one is described on
-            "Computing the sublattice of a lattice generated by a set of
-            elements" by K. Bertet and M. Morvan. Feel free to implement it.
         """
         gens_remaining = set(elms)
         current_set = set()

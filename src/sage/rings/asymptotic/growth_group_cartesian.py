@@ -55,6 +55,26 @@ class CartesianProductFactory(sage.structure.factory.UniqueFactory):
       is taken for comparing two cartesian product elements. If ``order`` is
       ``None`` this is determined automatically.
 
+    .. NOTE::
+
+        The cartesian product of growth groups is again a growth
+        group. In particular, the resulting structure is partially
+        ordered.
+
+        The order on the product is determined as follows:
+
+        - Cartesian factors with respect to the same variable are
+          ordered lexicographically. This causes
+          ``GrowthGroup('x^ZZ * log(x)^ZZ')`` and
+          ``GrowthGroup('log(x)^ZZ * x^ZZ')`` to produce two
+          different growth groups.
+
+        - Factors over different variables are equipped with the
+          product order (i.e. the comparison is component-wise).
+
+        Also, note that the sets of variables of the cartesian
+        factors have to be either equal or disjoint.
+
     EXAMPLES::
 
         sage: from sage.rings.asymptotic.growth_group import GrowthGroup
@@ -455,9 +475,26 @@ class GenericProduct(CartesianProductPosets, GenericGrowthGroup):
 
 
 class UnivariateProduct(GenericProduct):
+    r"""
+    A cartesian product of growth groups with the same variables.
+
+    .. NOTE::
+
+        A univariate product of growth groups is ordered
+        lexicographically. This is motivated by the assumption
+        that univariate growth groups can be ordered in a chain
+        with respect to the growth they model (e.g.
+        ``x^ZZ * log(x)^ZZ``: polynomial growth dominates
+        logarithmic growth).
+
+    .. SEEALSO::
+
+        :class:`MultivariateProduct`,
+        :class:`GenericProduct`.
+    """
     def __init__(self, sets, category, **kwargs):
         r"""
-        A cartesian product of growth groups with the same variables.
+        See :class:`UnivariateProduct` for details.
 
         TEST::
 
@@ -473,9 +510,24 @@ class UnivariateProduct(GenericProduct):
 
 
 class MultivariateProduct(GenericProduct):
+    r"""
+    A cartesian product of growth groups with pairwise disjoint
+    (or equal) variable sets.
+
+    .. NOTE::
+
+        A multivariate product of growth groups is ordered by
+        means of the product order, i.e. component-wise. This is
+        motivated by the assumption that different variables are
+        considered to be independent (e.g. ``x^ZZ * y^ZZ``).
+
+    .. SEEALSO::
+
+        :class:`UnivariateProduct`,
+        :class:`GenericProduct`.
+    """
     def __init__(self, sets, category, **kwargs):
         r"""
-        A cartesian product of growth groups with the pairwise different variables.
 
         TEST::
 

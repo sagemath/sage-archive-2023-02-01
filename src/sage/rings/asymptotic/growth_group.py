@@ -47,21 +47,22 @@ AUTHORS:
         Growth Group x^ZZ
 
 
-.. NOTE::
+Creation of Growth Groups
+=========================
 
-    By using the following short notation for growth groups, their
-    creation is very simple: *Monomial growth groups* (i.e. the
-    group for powers of a fixed symbol;
-    :class:`~sage.rings.asymptotic.growth_group.MonomialGrowthGroup`)
-    are denoted as ``variable^base``, e.g. ``x^ZZ`` and ``y^QQ`` for
-    the group of integer powers of `x`, and the group of rational
-    powers of `y`, respectively.
+By using the following short notation for growth groups, their
+creation is very simple: *Monomial growth groups* (i.e. the
+group for powers of a fixed symbol;
+:class:`~sage.rings.asymptotic.growth_group.MonomialGrowthGroup`)
+are denoted as ``variable^base``, e.g. ``x^ZZ`` and ``y^QQ`` for
+the group of integer powers of `x`, and the group of rational
+powers of `y`, respectively.
 
-    This also enables us to construct *logarithmic growth groups*,
-    e.g. ``log(x)^ZZ``.
+This also enables us to construct *logarithmic growth groups*,
+e.g. ``log(x)^ZZ``.
 
-    This notation will also be extended to *Exponential growth
-    groups*.
+This notation will also be extended to *Exponential growth
+groups*.
 
 EXAMPLES::
 
@@ -94,7 +95,11 @@ The above is ``True`` since the order of the factors does not play a role here; 
     sage: agg.GrowthGroup('x^ZZ * log(x)^ZZ') is agg.GrowthGroup('log(x)^ZZ * x^ZZ')
     False
 
-(Note that it is mathematically nonsense to make ``log(x)`` larger than ``x``.)
+In this case the components are ordered lexicographically, which
+means that in the second growth group, ``log(x)`` is assumed to
+grow faster than ``x`` (which is nonsense, mathematically). See
+:class:`sage.rings.asymptotic.growth_group_cartesian.CartesianProductFactory`
+for more details.
 
 Classes and Methods
 ===================

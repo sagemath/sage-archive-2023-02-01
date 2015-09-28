@@ -2776,7 +2776,10 @@ class MutablePoset(SageObject):
           element in this poset.
 
         - ``reverse`` -- (default: ``False``) specifies which
-          direction to go first. When ``key=None``, then this also
+          direction to go first:
+          ``False`` searches towards ``'oo'`` and
+          ``True`` searches towards ``'null'``.
+          When ``key=None``, then this also
           specifies which elements are merged first.
 
         OUTPUT:

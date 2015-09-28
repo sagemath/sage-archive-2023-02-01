@@ -1217,7 +1217,7 @@ class GenericGrowthGroup(
             while ``log(x)^ZZ`` or ``icecream(x)^ZZ`` do not have
             monomial generators.
 
-            This method is only implemented for concrete growth
+            This method must be implemented for concrete growth
             group implementations.
 
         TESTS::

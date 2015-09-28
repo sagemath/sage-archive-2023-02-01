@@ -10,10 +10,6 @@ was doing at the moment it crashed.
 
 GPL v3+
 
-== SPKG Maintainers ==
-
-* Volker Braun
-
 == Upstream Contact ==
 
 http://www.gnu.org/software/gdb/

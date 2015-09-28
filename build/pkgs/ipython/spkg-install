@@ -46,10 +46,3 @@ if python -c 'import sys; sys.exit(sys.version_info.major != 3)'; then
     rm -f ipython
     ln -s ipython3 ipython
 fi
-
-# let ipython use mathjax
-cd "$SAGE_LOCAL/lib/python/site-packages/IPython/html/static"
-rm -rf mathjax
-ln -s ../../../../../../share/mathjax/ mathjax
-
-

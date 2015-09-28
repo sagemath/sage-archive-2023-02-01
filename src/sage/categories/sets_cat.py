@@ -299,7 +299,7 @@ class Sets(Category_singleton):
                 sage: Semigroups().CartesianProducts()
                 Category of Cartesian products of semigroups
                 sage: EuclideanDomains().CartesianProducts()
-                Join of Category of rings and Category of Cartesian products of ...
+                Category of Cartesian products of commutative rings
             """
             return CartesianProductsCategory.category_of(self)
 

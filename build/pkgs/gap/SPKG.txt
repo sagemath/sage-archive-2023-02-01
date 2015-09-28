@@ -16,15 +16,6 @@ extend it for your special use.
 This is a stripped-down version of GAP.  The databases, which are
 architecture-independent, are in a separate package.
 
-== SPKG Maintainers ==
-
- * William Stein
- * Robert Miller
- * David Joyner
- * Dmitrii Pasechnik
- * Martin Albrecht
- * Volker Braun
-
 == Upstream Contact ==
 
 David Joyner, wdjoyner@gmail.com (on the GAP team, but

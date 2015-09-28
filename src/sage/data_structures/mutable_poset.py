@@ -690,7 +690,7 @@ class MutablePosetShell(SageObject):
         - ``poset`` -- the poset to which the newly created shells
           belongs. Note that the elements are not inserted into
           ``poset``; this is done in the calling method
-          :meth:`_copy_shells_`.
+          :meth:`MutablePoset._copy_shells_`.
 
         - ``mapping`` -- a function which is applied on each of the elements.
 
@@ -2278,7 +2278,7 @@ class MutablePoset(SageObject):
         .. NOTE::
 
             As with Python's ``set``, the methods :meth:`remove`
-            and meth:`discard` only differ in their behavior when an
+            and :meth:`discard` only differ in their behavior when an
             element is not contained in the poset: :meth:`remove`
             raises a ``KeyError`` whereas :meth:`discard` does not
             raise any exception.
@@ -2459,7 +2459,7 @@ class MutablePoset(SageObject):
         .. NOTE::
 
             As with Python's ``set``, the methods :meth:`remove`
-            and meth:`discard` only differ in their behavior when an
+            and :meth:`discard` only differ in their behavior when an
             element is not contained in the poset: :meth:`remove`
             raises a ``KeyError`` whereas :meth:`discard` does not
             raise any exception.
@@ -3165,7 +3165,7 @@ class MutablePoset(SageObject):
 
         .. NOTE::
 
-            ``can_merge` is applied in the sense of the condition of
+            ``can_merge`` is applied in the sense of the condition of
             depth first iteration, i.e., once ``can_merge`` fails,
             the successors/predecessors are no longer tested.
 

@@ -221,8 +221,6 @@ class Variable(sage.structure.unique_representation.CachedRepresentation,
         ('x', ('x',))
         sage: v = Variable('x '); repr(v), v.variable_names()
         ('x', ('x',))
-        sage: v = Variable('x '); repr(v), v.variable_names()
-        ('x', ('x',))
         sage: v = Variable(''); repr(v), v.variable_names()
         ('', ())
 

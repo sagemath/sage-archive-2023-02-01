@@ -1418,7 +1418,8 @@ class PolynomialSequence_gf2(PolynomialSequence_generic):
         if S != []:
             if algorithm == "exhaustive_search":
                 if not is_package_installed('fes'):
-                    raise ValueError('algorithm=exhaustive_search requires the optional library FES. Run "install_package(\'fes\')" to install it.')
+                    from sage.misc.package import PackageNotFoundError
+                    raise PackageNotFoundError("fes")
                 from sage.libs.fes import exhaustive_search
                 solutions = exhaustive_search(S, max_sols=n, verbose=verbose, **kwds)
 

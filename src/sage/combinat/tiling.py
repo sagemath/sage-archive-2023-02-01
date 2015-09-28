@@ -499,7 +499,7 @@ class Polyomino(SageObject):
     def canonical_orthogonals(self, orientation_preserving=True):
         r"""
         Iterator over the image of self under orthogonal transformations
-        where the coordinates are all positive and minimal.
+        where the coordinates are all nonnegative and minimal.
 
         .. NOTE::
 
@@ -539,7 +539,7 @@ class Polyomino(SageObject):
 
     def canonical(self):
         r"""
-        Returns the translated copy of self having minimal and positive
+        Returns the translated copy of self having minimal and nonnegative
         coordinates
 
         EXAMPLES::

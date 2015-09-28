@@ -757,6 +757,28 @@ cdef class GLPKBackend(GenericBackend):
         """
         Solve the problem.
 
+        Sage uses GLPK's implementation of the branch-and-cut algorithm
+        (``glp_intopt``) to solve the mixed-integer linear program.
+        This algorithm can be requested explicitly by setting the solver
+        parameter "simplex_or_intopt" to "intopt_only".
+        (If all variables are continuous, the algorithm reduces to solving the
+        linear program by the simplex method.)
+
+        EXAMPLE::
+
+            sage: lp = MixedIntegerLinearProgram(solver = 'GLPK', maximization = False)
+            sage: x, y = lp[0], lp[1]
+            sage: lp.add_constraint(-2*x + y <= 1)
+            sage: lp.add_constraint(x - y <= 1)
+            sage: lp.add_constraint(x + y >= 2)
+            sage: lp.set_objective(x + y)
+            sage: lp.set_integer(x)
+            sage: lp.set_integer(y)
+            sage: lp.solve()
+            2.0
+            sage: lp.get_values([x, y])
+            [1.0, 1.0]
+
         .. NOTE::
 
             This method raises ``MIPSolverException`` exceptions when
@@ -785,7 +807,7 @@ cdef class GLPKBackend(GenericBackend):
             Here, "catastrophic" can mean either "infinite loop" or
             segmentation fault. Upstream considers this behavior
             "essentially innate" to their design, and suggests
-            preprocessing it with ``glpk_simplex`` first.
+            preprocessing it with ``glp_simplex`` first.
             Thus, if you suspect that your system is infeasible,
             set the ``preprocessing`` option first.
 
@@ -806,10 +828,10 @@ cdef class GLPKBackend(GenericBackend):
             sage: lp.solve()
             Traceback (most recent call last):
             ...
-            MIPSolverException: 'GLPK : Simplex cannot find a feasible solution'
+            MIPSolverException: 'GLPK : Problem has no feasible solution'
 
-        The user can ask sage to solve via ``simplex`` or ``intopt``.
-        The default solver is ``intopt``, so we get integer solutions.
+        If we switch to "simplex_only", the integrality constraints are ignored,
+        and we get an optimal solution to the continuous relaxation.
 
         EXAMPLE::
 
@@ -821,20 +843,15 @@ cdef class GLPKBackend(GenericBackend):
             sage: lp.set_objective(x + y)
             sage: lp.set_integer(x)
             sage: lp.set_integer(y)
-            sage: lp.solve()
-            2.0
-            sage: lp.get_values([x, y])
-            [1.0, 1.0]
-
-        If we switch to ``simplex``, we get continuous solutions.
-
-        EXAMPLE::
-
             sage: lp.solver_parameter("simplex_or_intopt", "simplex_only") # use simplex only
             sage: lp.solve()
             2.0
             sage: lp.get_values([x, y])
             [1.5, 0.5]
+
+        If one solves a linear program and wishes to access dual information
+        (`get_col_dual` etc.) or tableau data (`get_row_stat` etc.),
+        one needs to switch to "simplex_only" before solving.
 
         GLPK also has an exact rational simplex solver.  The only
         access to data is via double-precision floats, however. It
@@ -847,8 +864,7 @@ cdef class GLPKBackend(GenericBackend):
             sage: lp.solve()
             glp_exact: 3 rows, 2 columns, 6 non-zeros
             GNU MP bignum library is being used
-            *     5:   objval =                      2   (0)
-            *     5:   objval =                      2   (0)
+            ...
             OPTIMAL SOLUTION FOUND
             2.0
             sage: lp.get_values([x, y])
@@ -884,12 +900,43 @@ cdef class GLPKBackend(GenericBackend):
             sage: lp.solve() == test # yes, we want an exact comparison here
             glp_exact: 1 rows, 1 columns, 1 non-zeros
             GNU MP bignum library is being used
-            *     0:   objval =                      0   (0)
-            *     1:   objval =   9.00719925474095e+15   (0)
+            ...
             OPTIMAL SOLUTION FOUND
             True
             sage: lp.get_values(x) == test # yes, we want an exact comparison here
             True
+
+        Below we test that GLPK backend can detect unboundedness in
+        "simplex_only" mode (:trac:`18838`).
+
+        EXAMPLES::
+
+            sage: lp = MixedIntegerLinearProgram(maximization=True, solver = "GLPK")
+            sage: lp.set_objective(lp[0])
+            sage: lp.solver_parameter("simplex_or_intopt", "simplex_only")
+            sage: lp.solve()
+            Traceback (most recent call last):
+            ...
+            MIPSolverException: 'GLPK : Problem has unbounded solution'
+            sage: lp.set_objective(lp[1])
+            sage: lp.solver_parameter("primal_v_dual", "GLP_DUAL")
+            sage: lp.solve()
+            Traceback (most recent call last):
+            ...
+            MIPSolverException: 'GLPK : Problem has unbounded solution'
+            sage: lp.solver_parameter("simplex_or_intopt", "simplex_then_intopt")
+            sage: lp.solve()
+            Traceback (most recent call last):
+            ...
+            MIPSolverException: 'GLPK : The LP (relaxation) problem has no dual feasible solution'
+            sage: lp.solver_parameter("simplex_or_intopt", "intopt_only")
+            sage: lp.solve()
+            Traceback (most recent call last):
+            ...
+            MIPSolverException: 'GLPK : The LP (relaxation) problem has no dual feasible solution'
+            sage: lp.set_max(lp[1],5)
+            sage: lp.solve()
+            5.0
 
         Solving a LP within the acceptable gap. No exception is raised, even if
         the result is not optimal. To do this, we try to compute the maximum
@@ -914,45 +961,37 @@ cdef class GLPKBackend(GenericBackend):
             1
         """
 
-        cdef int status
+        cdef int solve_status
+        cdef int solution_status
+        global solve_status_msg
+        global solution_status_msg
+
         if (self.simplex_or_intopt == glp_simplex_only
             or self.simplex_or_intopt == glp_simplex_then_intopt
             or self.simplex_or_intopt == glp_exact_simplex_only):
             if self.simplex_or_intopt == glp_exact_simplex_only:
-                status = glp_exact(self.lp, self.smcp)
+                solve_status = glp_exact(self.lp, self.smcp)
             else:
-                status = glp_simplex(self.lp, self.smcp)
-            status = glp_get_prim_stat(self.lp)
-            if status == GLP_OPT or status == GLP_FEAS:
-                pass
-            elif status == GLP_UNDEF or status == GLP_NOFEAS:
-                raise MIPSolverException("GLPK : Simplex cannot find a feasible solution")
+                solve_status = glp_simplex(self.lp, self.smcp)
+            solution_status = glp_get_status(self.lp)
+ 
+        if ((self.simplex_or_intopt == glp_intopt_only)
+            or (self.simplex_or_intopt == glp_simplex_then_intopt) and (solution_status != GLP_UNDEF) and (solution_status != GLP_NOFEAS)):
+            sig_str('GLPK : Signal sent, try preprocessing option')
+            solve_status = glp_intopt(self.lp, self.iocp)
+            sig_off()
+            solution_status = glp_mip_status(self.lp)
 
-        if (self.simplex_or_intopt != glp_simplex_only
-            and self.simplex_or_intopt != glp_exact_simplex_only):
-          sig_str('GLPK : Signal sent, try preprocessing option')
-          intopt_status = glp_intopt(self.lp, self.iocp)
-          sig_off()
-
-          if intopt_status == GLP_EITLIM:
-              raise MIPSolverException("GLPK : The iteration limit was reached")
-
-          status = glp_mip_status(self.lp)
-          if status == GLP_OPT:
-              pass
-          elif status == GLP_UNDEF:
-              raise MIPSolverException("GLPK : Solution is undefined")
-          elif (status == GLP_FEAS          and
-                intopt_status != GLP_ETMLIM and # no exception when time limit reached
-                intopt_status != GLP_EMIPGAP):  # no exception when sol within gap
-              raise MIPSolverException("GLPK : Feasible solution found, while optimality has not been proven")
-          elif status == GLP_INFEAS:
-              raise MIPSolverException("GLPK : Solution is infeasible")
-          elif status == GLP_UNBND:
-              raise MIPSolverException("GLPK : Problem has unbounded solution")
-          elif status == GLP_NOFEAS:
-              raise MIPSolverException("GLPK : There is no feasible integer solution to this Linear Program")
-
+        if solution_status == GLP_OPT:
+            pass
+        elif (solution_status == GLP_FEAS) and (solve_status == GLP_ETMLIM or solve_status == GLP_EITLIM \
+                                            or solve_status == GLP_EMIPGAP or solve_status == GLP_EOBJLL or solve_status == GLP_EOBJUL):
+            # no exception when time limit or iteration limit or  mip gap tolerances or objective limits reached.
+            pass
+        elif solution_status == GLP_UNDEF:
+            raise MIPSolverException("GLPK : "+solve_status_msg.get(solve_status, "unknown error during call to GLPK : "+str(solve_status)))
+        else:
+            raise MIPSolverException("GLPK : "+solution_status_msg.get(solution_status, "unknown error during call to GLPK : "+str(solution_status)))
         return 0
 
     cpdef get_objective_value(self):
@@ -1684,7 +1723,7 @@ cdef class GLPKBackend(GenericBackend):
             sage: p.solver_parameter("timelimit_intopt")
             60000
 
-        If you don't care for an integer answer, you can ask for an lp
+        If you don't care for an integer answer, you can ask for an LP
         relaxation instead.  The default solver performs integer optimization,
         but you can switch to the standard simplex algorithm through the
         ``glp_simplex_or_intopt`` parameter.
@@ -1709,7 +1748,7 @@ cdef class GLPKBackend(GenericBackend):
             sage: lp.get_values([x,y])
             [1.5, 0.5]
 
-        You can get glpk to spout all sorts of information at you.
+        You can get GLPK to spout all sorts of information at you.
         The default is to turn this off, but sometimes (debugging) it's very useful::
 
             sage: lp.solver_parameter(backend.glp_simplex_or_intopt, backend.glp_simplex_then_intopt)
@@ -2613,4 +2652,30 @@ solver_parameter_values = {
   'GLP_FEAS' : GLP_FEAS,
   'GLP_NOFEAS' : GLP_NOFEAS
 
+}
+
+cdef dict solve_status_msg = {
+    GLP_EBADB: "The initial basis specified in the problem object is invalid",
+    GLP_ESING: "The basis matrix corresponding to the initial basis is singular within the working precision",
+    GLP_ECOND: "The basis matrix corresponding to the initial basis is ill-conditioned, i.e. its condition number is too large",
+    GLP_EBOUND: "Some variables (auxiliary or structural) have incorrect bounds",
+    GLP_EFAIL: "Solver failure",
+    GLP_EOBJLL: "The objective lower limit has been reached",
+    GLP_EOBJUL: "The objective upper limit has been reached",
+    GLP_EITLIM: "The iteration limit has been exceeded",
+    GLP_ETMLIM: "The time limit has been exceeded",
+    GLP_ENOPFS: "The LP (relaxation) problem has no primal feasible solution",
+    GLP_ENODFS: "The LP (relaxation) problem has no dual feasible solution",
+    GLP_EROOT:  "Optimal basis for initial LP relaxation is not provided",
+    GLP_ESTOP:  "The search was prematurely terminated by application",
+    GLP_EMIPGAP: "The relative mip gap tolerance has been reached",
+}
+
+cdef dict solution_status_msg = {
+    GLP_UNDEF: "Solution is undefined",
+    GLP_FEAS: "Feasible solution found, while optimality has not been proven",
+    GLP_INFEAS: "Solution is infeasible",
+    GLP_NOFEAS: "Problem has no feasible solution",
+    GLP_OPT: "Solution is optimal",
+    GLP_UNBND: "Problem has unbounded solution",
 }

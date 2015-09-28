@@ -21,8 +21,10 @@ Poset-related classes:
 
 If you are looking for Poset-related :ref:`categories
 <sage.categories.category>`, see
-:class:`~sage.categories.posets.Posets` and
-:class:`~sage.categories.lattice_posets.LatticePosets`.
+:class:`~sage.categories.posets.Posets`,
+:class:`~sage.categories.finite_posets.FinitePosets`,
+:class:`~sage.categories.lattice_posets.LatticePosets` and
+:class:`~sage.categories.finite_lattice_posets.FiniteLatticePosets`.
 
   """
 

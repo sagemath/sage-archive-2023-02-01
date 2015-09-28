@@ -1935,7 +1935,7 @@ class HyperplaneArrangements(Parent, UniqueRepresentation):
     Hyperplane arrangements.
 
     For more information on hyperplane arrangements, see
-    :mod:`sage.geometry.hyperplane_arrangements.arrangement`.
+    :mod:`sage.geometry.hyperplane_arrangement.arrangement`.
 
     INPUT:
 

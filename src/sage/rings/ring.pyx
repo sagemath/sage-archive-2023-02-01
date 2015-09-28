@@ -138,7 +138,7 @@ cdef class Ring(ParentWithGens):
         sage: QQ['x','y'].category()
         Join of Category of unique factorization domains and Category of commutative algebras over quotient fields
         sage: PolynomialRing(MatrixSpace(QQ,2),'x').category()
-        Category of algebras over algebras over quotient fields
+        Category of algebras over (algebras over quotient fields and infinite sets)
         sage: PolynomialRing(SteenrodAlgebra(2),'x').category()
         Category of algebras over graded hopf algebras with basis over Finite Field of size 2
 
@@ -2253,11 +2253,11 @@ cdef class Field(PrincipalIdealDomain):
         ALGORITHM:
 
         This uses the extended Euclidean algorithm; see for example
-        [Cohen]_, Algorithm 3.2.2.
+        [Cohen1996]_, Algorithm 3.2.2.
 
         REFERENCES:
 
-        .. [Cohen] H. Cohen, A Course in Computational Algebraic
+        .. [Cohen1996] H. Cohen, A Course in Computational Algebraic
            Number Theory.  Graduate Texts in Mathematics 138.
            Springer-Verlag, 1996.
 

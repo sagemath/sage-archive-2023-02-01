@@ -12,7 +12,7 @@ AUTHORS:
 
 - Thierry Monteil (2012-02-10 -- 2013-06-21): initial version.
 
-- Vincent Delecroix (2014): modifies continued fractions because of trac:`14567`
+- Vincent Delecroix (2014): modifies continued fractions because of :trac:`14567`
 
 EXAMPLES::
 

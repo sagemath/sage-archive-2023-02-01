@@ -1091,6 +1091,42 @@ class IncidenceStructure(object):
         gB = [[x+1 for x in b] for b in self._blocks]
         return "BlockDesign("+str(v)+","+str(gB)+")"
 
+    def intersection_graph(self,sizes=None):
+        r"""
+        Return the intersection graph of the incidence structure.
+
+        The vertices of this graph are the :meth:`blocks` of the incidence
+        structure. Two of them are adjacent if the size of their intersection
+        belongs to the set ``sizes``.
+
+        INPUT:
+
+        - ``sizes`` -- a list/set of integers. For convenience, setting
+          ``sizes`` to ``5`` has the same effect as ``sizes=[5]``. When set to
+          ``None`` (default), behaves as ``sizes=PositiveIntegers()``.
+
+        EXAMPLE:
+
+        The intersection graph of a
+        :func:`~sage.combinat.designs.bibd.balanced_incomplete_block_design` is
+        a :meth:`strongly regular graph <Graph.is_strongly_regular>` (when it is
+        not trivial)::
+
+            sage: BIBD =  designs.balanced_incomplete_block_design(19,3)
+            sage: G = BIBD.intersection_graph(1)
+            sage: G.is_strongly_regular(parameters=True)
+            (57, 24, 11, 9)
+        """
+        from sage.sets.positive_integers import PositiveIntegers
+        from sage.graphs.graph import Graph
+        from sage.sets.set import Set
+        if sizes is None:
+            sizes = PositiveIntegers()
+        elif sizes in PositiveIntegers():
+            sizes = (sizes,)
+        V = map(Set,self)
+        return Graph([V,lambda x,y: len(x&y) in sizes],loops=False)
+
     def incidence_matrix(self):
         r"""
         Return the incidence matrix `A` of the design. A is a `(v \times b)`
@@ -1125,10 +1161,30 @@ class IncidenceStructure(object):
                 A[i, j] = 1
         return A
 
-    def incidence_graph(self):
-        """
-        Return the incidence graph of the design, where the incidence
-        matrix of the design is the adjacency matrix of the graph.
+    def incidence_graph(self,labels=False):
+        r"""
+        Return the incidence graph of the incidence structure
+
+        A point and a block are adjacent in this graph whenever they are
+        incident.
+
+        INPUT:
+
+        - ``labels`` (boolean) -- whether to return a graph whose vertices are
+          integers, or labelled elements.
+
+            - ``labels is False`` (default) -- in this case the first vertices
+              of the graphs are the elements of :meth:`ground_set`, and appear
+              in the same order. Similarly, the following vertices represent the
+              elements of :meth:`blocks`, and appear in the same order.
+
+            - ``labels is True``, the points keep their original labels, and the
+              blocks are :func:`Set <Set>` objects.
+
+              Note that the labelled incidence graph can be incorrect when
+              blocks are repeated, and on some (rare) occasions when the
+              elements of :meth:`ground_set` mix :func:`Set` and non-:func:`Set
+              <Set>` objects.
 
         EXAMPLE::
 
@@ -1139,13 +1195,28 @@ class IncidenceStructure(object):
             sage: Graph(block_matrix([[A*0,A],[A.transpose(),A*0]])) == BD.incidence_graph()
             True
 
-        REFERENCE:
+        TESTS:
 
-        - Sage Reference Manual on Graphs
+        With ``labels = True``::
+
+            sage: BD.incidence_graph(labels=True).has_edge(0,Set([0,1,2]))
+            True
         """
-        from sage.graphs.bipartite_graph import BipartiteGraph
-        A = self.incidence_matrix()
-        return BipartiteGraph(A)
+        if labels:
+            from sage.graphs.graph import Graph
+            from sage.sets.set import Set
+            G = Graph()
+            G.add_vertices(self.ground_set())
+            for b in self.blocks():
+                b = Set(b)
+                G.add_vertex(b)
+                G.add_edges((b,x) for x in b)
+            return G
+
+        else:
+            from sage.graphs.bipartite_graph import BipartiteGraph
+            A = self.incidence_matrix()
+            return BipartiteGraph(A)
 
     def complement(self,uniform=False):
         r"""

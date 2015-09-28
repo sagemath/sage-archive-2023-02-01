@@ -833,6 +833,46 @@ class SymmetricFunctionsBases(Category_realization_of_parent):
             #This code relied heavily on the construction of bases of
             #``SymmetricFunctions`` and on their reduction.
 
+        def skew_schur(self, x):
+            """
+            Return the skew Schur function indexed by ``x`` in ``self``.
+
+            INPUT:
+
+            - ``x`` -- a skew partition
+
+            EXAMPLES::
+
+                sage: sp = SkewPartition([[5,3,3,1], [3,2,1]])
+                sage: s = SymmetricFunctions(QQ).s()
+                sage: s.skew_schur(sp)
+                s[2, 2, 1, 1] + s[2, 2, 2] + s[3, 1, 1, 1] + 3*s[3, 2, 1]
+                 + s[3, 3] + 2*s[4, 1, 1] + 2*s[4, 2] + s[5, 1]
+
+                sage: e = SymmetricFunctions(QQ).e()
+                sage: ess = e.skew_schur(sp); ess
+                e[2, 1, 1, 1, 1] - e[2, 2, 1, 1] - e[3, 1, 1, 1] + e[3, 2, 1]
+                sage: ess == e(s.skew_schur(sp))
+                True
+
+            TESTS::
+
+                sage: s.skew_schur([[2,1], [1]])
+                s[1, 1] + s[2]
+
+                sage: s.skew_schur([[2,1], [3]])
+                Traceback (most recent call last):
+                ...
+                ValueError: not a valid skew partition
+            """
+            from sage.combinat.skew_partition import SkewPartitions
+            if x not in SkewPartitions():
+                raise ValueError("not a valid skew partition")
+            import sage.libs.lrcalc.lrcalc as lrcalc
+            s = self.realization_of().schur()
+            skewschur = lrcalc.skew(x[0], x[1])
+            return self(s._from_dict(skewschur))
+
         def Eulerian(self, n, j, k=None):
             """
             Return the Eulerian symmetric function `Q_{n,j}` (with `n`
@@ -1495,7 +1535,7 @@ class SymmetricFunctionAlgebra_generic(CombinatorialFreeModule):
         r"""
         Return the symmetric function obtained from ``x`` by scaling
         each basis element corresponding to the partition `\lambda` by
-        ``function``(`\lambda`).
+        the value of ``function`` on `\lambda`.
 
         INPUT:
 
@@ -1529,7 +1569,7 @@ class SymmetricFunctionAlgebra_generic(CombinatorialFreeModule):
 
         INPUT:
 
-        - ``x` -- a symmetric function
+        - ``x`` -- a symmetric function
         - ``expr`` -- an expression used in the plethysm
         - ``deg_one`` -- a list (or iterable) specifying the degree one
           variables (that is, the terms to be treated as degree-one
@@ -4429,10 +4469,6 @@ class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
         where `p_n` is the `n`-th powersum symmetric function, and `\circ`
         denotes (outer) plethysm.
 
-        :meth:`adams_operation` serves as alias for :meth:`frobenius`, since the
-        Frobenius operators are the Adams operations of the `\Lambda`-ring
-        of symmetric functions.
-
         INPUT:
 
         - ``n`` -- a positive integer
@@ -4536,7 +4572,9 @@ class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
         result_in_m_basis = m._from_dict(dct)
         return parent(result_in_m_basis)
 
-    adams_operation = frobenius
+    def adams_operation(self, *args, **opts):
+        from sage.misc.superseded import deprecation
+        deprecation(19255, "Do not use this method! Please use `frobenius` or `adams_operator` methods following what you expect.")
 
     def verschiebung(self, n):
         r"""

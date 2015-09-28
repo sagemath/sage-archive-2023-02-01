@@ -1570,7 +1570,7 @@ class MonomialGrowthGroup(GenericGrowthGroup):
             sage: agg.MonomialGrowthGroup('x', ZZ)
             Traceback (most recent call last):
             ...
-            ValueError: 'Integer Ring' is not a valid name for a variable.
+            TypeError: x is not a valid base
             sage: agg.MonomialGrowthGroup('x', 'y')
             Traceback (most recent call last):
             ...

@@ -16338,17 +16338,14 @@ class GenericGraph(GenericGraph_pyx):
             Graph on 10 vertices
 
         """
-        if self.has_multiple_edges():
-            raise TypeError('complement not well defined for (di)graphs with multiple edges')
         self._scream_if_not_simple()
-        G = copy(self)
-        G.delete_edges(G.edges())
+
+        G = self.copy(data_structure='dense')
+        G._backend.c_graph()[0].complement()
+
         if self.name():
             G.name("complement({})".format(self.name()))
-        for u in self:
-            for v in self:
-                if not self.has_edge(u,v):
-                    G.add_edge(u,v)
+
         if getattr(self, '_immutable', False):
             return G.copy(immutable=True)
         return G

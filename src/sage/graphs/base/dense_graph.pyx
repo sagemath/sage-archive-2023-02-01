@@ -421,6 +421,43 @@ cdef class DenseGraph(CGraph):
         self.check_vertex(v)
         self.del_arc_unsafe(u,v)
 
+    def complement(self):
+        r"""
+        Replaces the graph with its complement
+
+        .. NOTE::
+
+            Assumes that the graph has no loop.
+
+        EXAMPLE::
+
+            sage: from sage.graphs.base.dense_graph import DenseGraph
+            sage: G = DenseGraph(5)
+            sage: G.add_arc(0,1)
+            sage: G.has_arc(0,1)
+            True
+            sage: G.complement()
+            sage: G.has_arc(0,1)
+            False
+        """
+        cdef int num_arcs_old = self.num_arcs
+
+        # The following cast assumes that mp_limb_t is an unsigned long.
+        # (this assumption is already made in bitset.pxi)
+        cdef unsigned long * active_vertices_bitset
+        active_vertices_bitset = <unsigned long *> self.active_vertices.bits
+
+        cdef int i,j
+        for i in range(self.active_vertices.size):
+            if bitset_in(self.active_vertices,i):
+                self.add_arc_unsafe(i,i)
+                for j in range(self.num_longs): # the actual job
+                    self.edges[i*self.num_longs+j] ^= active_vertices_bitset[j]
+                self.in_degrees[i]  = self.num_verts-self.in_degrees[i]
+                self.out_degrees[i] = self.num_verts-self.out_degrees[i]
+
+        self.num_arcs = self.num_verts*(self.num_verts-1) - num_arcs_old
+
     ###################################
     # Neighbor functions
     ###################################

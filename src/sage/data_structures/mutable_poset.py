@@ -3173,6 +3173,13 @@ class MutablePoset(SageObject):
             depth first iteration, i.e., once ``can_merge`` fails,
             the successors/predecessors are no longer tested.
 
+        .. NOTE::
+
+            The motivation for such a merge behavior comes from
+            asymptotic expansions: `O(n^3)` is merges with, for
+            example, `3n^2` or `O(n)` to `O(n^3)` (as `n` tends to
+            `\infty`; see :wikipedia:`Big_O_notation`)
+
         EXAMPLES::
 
             sage: from sage.data_structures.mutable_poset import MutablePoset as MP

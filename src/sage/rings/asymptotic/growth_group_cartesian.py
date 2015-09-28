@@ -70,11 +70,11 @@ class CartesianProductFactory(sage.structure.factory.UniqueFactory):
         Growth Group y^ZZ
         sage: E = cartesian_product([A, D]); E
         Growth Group x^ZZ * y^ZZ
-        sage: E._le_ == E.le_components
+        sage: E._le_ == E.le_product
         True
         sage: F = cartesian_product([C, D]); F
         Growth Group x^ZZ * log(x)^ZZ * y^ZZ
-        sage: F._le_ == F.le_components
+        sage: F._le_ == F.le_product
         True
         sage: cartesian_product([A, E]); G
         Traceback (most recent call last):
@@ -166,7 +166,7 @@ class CartesianProductFactory(sage.structure.factory.UniqueFactory):
 CartesianProductGrowthGroups = CartesianProductFactory('CartesianProductGrowthGroups')
 
 
-from sage.sets.cartesian_product import CartesianProductPosets
+from sage.combinat.posets.cartesian_product import CartesianProductPosets
 from sage.rings.asymptotic.growth_group import GenericGrowthGroup
 class GenericProduct(CartesianProductPosets, GenericGrowthGroup):
     r"""
@@ -188,7 +188,7 @@ class GenericProduct(CartesianProductPosets, GenericGrowthGroup):
         sage: Lx = agg.MonomialGrowthGroup(ZZ, 'log(x)')
         sage: Cx = cartesian_product([Px, Lx], order='lex')
         sage: Py = agg.MonomialGrowthGroup(QQ, 'y')
-        sage: C = cartesian_product([Cx, Py], order='components'); C
+        sage: C = cartesian_product([Cx, Py], order='product'); C  # indirect doctest
         Growth Group x^QQ * log(x)^ZZ * y^QQ
         sage: C.an_element()
         x^(1/2) * log(x) * y^(1/2)
@@ -196,7 +196,7 @@ class GenericProduct(CartesianProductPosets, GenericGrowthGroup):
     .. SEEALSO::
 
         :class:`~sage.sets.cartesian_product.CartesianProduct`,
-        :class:`~sage.sets.cartesian_product.CartesianProductPosets`.
+        :class:`~sage.combinat.posets.cartesian_product.CartesianProductPosets`.
     """
 
     def _element_constructor_(self, data):
@@ -484,7 +484,7 @@ class MultivariateProduct(GenericProduct):
             <class 'sage.rings.asymptotic.growth_group_cartesian.MultivariateProduct_with_category'>
         """
         super(MultivariateProduct, self).__init__(
-            sets, category, order='components', **kwargs)
+            sets, category, order='product', **kwargs)
 
 
     CartesianProduct = CartesianProductGrowthGroups

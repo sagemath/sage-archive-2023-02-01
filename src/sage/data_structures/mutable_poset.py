@@ -785,29 +785,36 @@ class MutablePosetShell(SageObject):
 
     def covers(self, shell, reverse=False):
         r"""
-        Return the covers of the given shell (considering only
-        shells which originate from this shell).
+        Return the lower or upper covers of the specified ``shell``;
+        the search is started at this (``self``) shell.
+
+        A lower cover of `x` is an element `y` of the poset
+        such that `y < x` and there is no element `z` of the poset
+        so that `x < z < y`. Likewise,
+        an upper cover of `x` is an element `y` such that `x < y` and
+        there is no element `z` so that `x < z < y`.
 
         INPUT:
 
         - ``shell`` -- the shell for which to find the covering shells.
+          There is no restrition of ``shell`` being contained in the poset.
 
         - ``reverse`` -- (default: ``False``) if not set, then find
           the lower covers, otherwise find the upper covers.
 
         OUTPUT:
 
-        A set of the covers.
+        A set of :class:`shells <MutablePosetShell>`.
 
-        Suppose ``reverse`` is ``False``. This method returns all the
-        lower covers of the given ``shell``, i.e., shells in the
-        poset, which are at most the given shell and maximal with
-        this property. Only shells which are (not necessarily
-        direct) successors of the calling shell are considered.
+        .. NOTE::
 
-        If ``reverse`` is ``True``, then the reverse direction is
-        taken, i.e., in the text above replace lower covers by upper
-        covers, maximal by minimal, and successors by predecessors.
+            Suppose ``reverse`` is ``False``. This method starts at
+            the calling shell (``self``) and searches towards ``'oo'``.
+            Thus, only shells which are (not necessarily
+            direct) successors of this shell are considered.
+
+            If ``reverse`` is ``True``, then the reverse direction is
+            taken.
 
         EXAMPLES::
 

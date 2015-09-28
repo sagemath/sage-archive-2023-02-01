@@ -86,8 +86,6 @@ class HyperbolicArc(BezierPath):
             self._hyperbolic_arc(zm, z3)
             return
         else:
-            p = (abs(z0)*abs(z0)-abs(z3)*abs(z3))/(z0-z3).real()/2
-            r = abs(z0-p)
             zm = ((z0+z3)/2-p)/abs((z0+z3)/2-p)*r+p
             t = (8*zm-4*(z0+z3)).imag()/3/(z3-z0).real()
             z1 = z0 + t*CC(z0.imag(), (p-z0.real()))

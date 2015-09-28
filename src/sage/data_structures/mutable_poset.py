@@ -1133,14 +1133,14 @@ class MutablePosetShell(SageObject):
         Merge the given element with the element contained in this
         shell.
 
-
         INPUT:
 
         - ``element`` -- an element (of the poset).
 
         - ``check`` -- (default: ``True``) if set, then the
           ``can_merge``-function of :class:`MutablePoset` determines
-          whether the merge is possible.
+          whether the merge is possible. ``can_merge`` is ``None`` means
+          that this check is always passed.
 
         - ``delete`` -- (default: ``True``) if set, then ``element``
           is removed from the poset after the merge.
@@ -1180,14 +1180,25 @@ class MutablePosetShell(SageObject):
 
             :meth:`MutablePoset.merge`,
             :class:`MutablePoset`.
+
+        TESTS::
+
+            sage: MP([2], merge=operator.add,
+            ....:    can_merge=lambda _, __: False).shell(2).merge(1)
+            Traceback (most recent call last):
+            ...
+            RuntimeError: Cannot merge 2 with 1.
         """
         poset = self.poset
         if poset._merge_ is None:
+            # poset._merge_ is None means no merge (poset._merge_ simply
+            # returns its first input argument).
             return
         self_element = self.element
-        if check and poset._can_merge_ is not None and \
-                not poset._can_merge_(self_element, element):
-            return
+        if check:
+            if not poset._can_merge_(self_element, element):
+                raise RuntimeError('Cannot merge %s with %s.' %
+                                   (self_element, element))
         new = poset._merge_(self_element, element)
         if new is None:
             poset.discard(poset.get_key(self.element))
@@ -1341,7 +1352,10 @@ class MutablePoset(SageObject):
                 self._key_ = key
 
             self._merge_ = merge
-            self._can_merge_ = can_merge
+            if can_merge is None:
+                self._can_merge_ = lambda _, __: True
+            else:
+                self._can_merge_ = can_merge
 
             if data is not None:
                 try:

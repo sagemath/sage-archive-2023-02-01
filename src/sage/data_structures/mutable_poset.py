@@ -732,57 +732,6 @@ class MutablePosetShell(SageObject):
         return new
 
 
-    def _search_covers_(self, covers, shell, reverse=False):
-        r"""
-        Search for cover shells of this shell.
-
-        This is a helper function for :meth:`covers`.
-
-        INPUT:
-
-        - ``covers`` -- a set which finally contains all covers.
-
-        - ``shell`` -- the shell for which to find the covering shells.
-
-        - ``reverse`` -- (default: ``False``) if not set, then find
-          the lower covers, otherwise find the upper covers.
-
-        OUTPUT:
-
-        ``True`` or ``False``.
-
-        Note that ``False`` is returned if we do not have
-        ``self <= shell``.
-
-        .. SEEALSO::
-
-            :meth:`covers`,
-            :class:`MutablePoset`.
-
-        TESTS::
-
-            sage: from sage.data_structures.mutable_poset import MutablePoset as MP
-            sage: class T(tuple):
-            ....:     def __le__(left, right):
-            ....:         return all(l <= r for l, r in zip(left, right))
-            sage: P = MP([T((1, 1, 1)), T((1, 3, 1)), T((2, 1, 2)),
-            ....:         T((4, 4, 2)), T((1, 2, 2)), T((2, 2, 2))])
-            sage: e = P.shell(T((2, 2, 2))); e
-            (2, 2, 2)
-            sage: covers = set()
-            sage: P.null._search_covers_(covers, e)
-            True
-            sage: sorted(covers, key=lambda c: repr(c.element))
-            [(1, 2, 2), (2, 1, 2)]
-        """
-        if not self.le(shell, reverse) or self == shell:
-            return False
-        if not any([e._search_covers_(covers, shell, reverse)
-                    for e in self.successors(reverse)]):
-            covers.add(self)
-        return True
-
-
     def covers(self, shell, reverse=False):
         r"""
         Return the lower or upper covers of the specified ``shell``;
@@ -837,9 +786,15 @@ class MutablePosetShell(SageObject):
 
             :class:`MutablePoset`
         """
-        covers = set()
-        self._search_covers_(covers, shell, reverse)
-        return covers
+        if self == shell:
+            return set()
+        covers = set().union(*(e.covers(shell, reverse)
+                               for e in self.successors(reverse)
+                               if e.le(shell, reverse)))
+        if covers:
+            return covers
+        else:
+            return set([self])
 
 
     def _iter_depth_first_visit_(self, marked,

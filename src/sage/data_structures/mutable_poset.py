@@ -10,12 +10,6 @@ To get in touch with Sage's "usual" posets, start with the page
 :mod:`Posets <sage.combinat.posets.__init__>` in the reference manual.
 
 
-.. _mutable_poset_intro:
-
-Introduction
-============
-
-
 .. _mutable_poset_examples:
 
 Examples

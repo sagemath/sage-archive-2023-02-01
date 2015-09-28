@@ -176,7 +176,7 @@ class MutablePosetShell(SageObject):
 
         - a ``'null'`` (an element smaller than each other element;
           it has no predecessors) and
-        - a ``'oo'`` (an element larger than each other element;
+        - an ``'oo'`` (an element larger than each other element;
           it has no successors).
 
     EXAMPLES::
@@ -635,7 +635,7 @@ class MutablePosetShell(SageObject):
         .. NOTE::
 
             This method compares the keys of the elements contained
-            in the (non-special) shells. In particlar,
+            in the (non-special) shells. In particular,
             elements/shells with the same key are considered as equal.
 
         .. SEEALSO::
@@ -3172,9 +3172,9 @@ class MutablePoset(SageObject):
         .. NOTE::
 
             The motivation for such a merge behavior comes from
-            asymptotic expansions: `O(n^3)` is merges with, for
+            asymptotic expansions: `O(n^3)` merges with, for
             example, `3n^2` or `O(n)` to `O(n^3)` (as `n` tends to
-            `\infty`; see :wikipedia:`Big_O_notation`)
+            `\infty`; see :wikipedia:`Big_O_notation`).
 
         EXAMPLES::
 

@@ -193,7 +193,7 @@ class GenericProduct(CartesianProductPosets, GenericGrowthGroup):
         sage: C.an_element()
         x^(1/2) * log(x) * y^(1/2)
 
-    .. SEEALSO:
+    .. SEEALSO::
 
         :class:`~sage.sets.cartesian_product.CartesianProduct`,
         :class:`~sage.sets.cartesian_product.CartesianProductPosets`.
@@ -362,7 +362,7 @@ class GenericProduct(CartesianProductPosets, GenericGrowthGroup):
 
     def _coerce_map_from_(self, S):
         r"""
-        Return ``True if there is a coercion from ``S``
+        Return ``True`` if there is a coercion from ``S``.
 
         EXAMPLES::
 
@@ -385,7 +385,7 @@ class GenericProduct(CartesianProductPosets, GenericGrowthGroup):
 
         A tuple containing elements of this growth group.
 
-        .. NOTE:
+        .. NOTE::
 
             This method calls the ``gens_monomial()`` method on the
             individual factors of this cartesian product and

@@ -12,13 +12,12 @@ from sage.misc.abstract_method import abstract_method
 from sage.misc.cachefunc import cached_method
 from sage.misc.lazy_attribute import lazy_attribute
 from sage.misc.lazy_import import LazyImport
-from sage.categories.category import Category
-from sage.categories.category_singleton import Category_singleton
-from sage.categories.category_with_axiom import CategoryWithAxiom
+from sage.categories.category_types import Category_over_base_ring
+from sage.categories.category_with_axiom import CategoryWithAxiom_over_base_ring
 from sage.categories.sets_cat import Sets
 from sage.categories.fields import Fields
 
-class Manifolds(Category_singleton):
+class Manifolds(Category_over_base_ring):
     r"""
     The category of manifolds over any field.
 
@@ -29,8 +28,8 @@ class Manifolds(Category_singleton):
     EXAMPLES::
 
         sage: from sage.categories.manifolds import Manifolds
-        sage: C = Manifolds(); C
-        Category of manifolds
+        sage: C = Manifolds(RR); C
+        Category of manifolds over Real Field with 53 bits of precision
         sage: C.super_categories()
         [Category of topological spaces]
 
@@ -38,13 +37,27 @@ class Manifolds(Category_singleton):
 
         sage: TestSuite(C).run()
     """
+    def __init__(self, base, name=None):
+        r"""
+        Initialize ``self``.
+
+        EXAMPLES::
+
+            sage: from sage.categories.manifolds import Manifolds
+            sage: C = Manifolds(RR)
+            sage: TestSuite(C).run()
+        """
+        if base not in Fields().Topological():
+            raise ValueError("base must be a topological field")
+        Category_over_base_ring.__init__(self, base, name)
+
     @cached_method
     def super_categories(self):
         """
         EXAMPLES::
 
             sage: from sage.categories.manifolds import Manifolds
-            sage: Manifolds().super_categories()
+            sage: Manifolds(RR).super_categories()
             [Category of topological spaces]
         """
         return [Sets().Topological()]
@@ -62,7 +75,7 @@ class Manifolds(Category_singleton):
         EXAMPLES::
 
             sage: from sage.categories.manifolds import Manifolds
-            sage: Manifolds().additional_structure()
+            sage: Manifolds(RR).additional_structure()
         """
         return None
 
@@ -75,7 +88,7 @@ class Manifolds(Category_singleton):
             EXAMPLES::
 
                 sage: from sage.categories.manifolds import Manifolds
-                sage: M = Manifolds().example()
+                sage: M = Manifolds(RR).example()
                 sage: M.dimension()
                 3
             """
@@ -89,13 +102,14 @@ class Manifolds(Category_singleton):
             EXAMPLES::
 
                 sage: from sage.categories.manifolds import Manifolds
-                sage: Manifolds().Connected()
+                sage: Manifolds(RR).Connected()
                 Category of connected manifolds
+                 over Real Field with 53 bits of precision
 
             TESTS::
 
-                sage: TestSuite(Manifolds().Connected()).run()
-                sage: Manifolds().Connected.__module__
+                sage: TestSuite(Manifolds(RR).Connected()).run()
+                sage: Manifolds(RR).Connected.__module__
                 'sage.categories.manifolds'
             """
             return self._with_axiom('Connected')
@@ -109,15 +123,16 @@ class Manifolds(Category_singleton):
             EXAMPLES::
 
                 sage: from sage.categories.manifolds import Manifolds
-                sage: C = Manifolds().Connected().FiniteDimensional(); C
+                sage: C = Manifolds(RR).Connected().FiniteDimensional(); C
                 Category of finite dimensional connected manifolds
+                 over Real Field with 53 bits of precision
 
             TESTS::
 
                 sage: from sage.categories.manifolds import Manifolds
-                sage: C = Manifolds().Connected().FiniteDimensional()
+                sage: C = Manifolds(RR).Connected().FiniteDimensional()
                 sage: TestSuite(C).run()
-                sage: Manifolds().Connected().FiniteDimensional.__module__
+                sage: Manifolds(RR).Connected().FiniteDimensional.__module__
                 'sage.categories.manifolds'
             """
             return self._with_axiom('FiniteDimensional')
@@ -130,13 +145,14 @@ class Manifolds(Category_singleton):
             EXAMPLES::
 
                 sage: from sage.categories.manifolds import Manifolds
-                sage: Manifolds().Real()
+                sage: Manifolds(RR).Real()
                 Category of real manifolds
+                 over Real Field with 53 bits of precision
 
             TESTS::
 
-                sage: TestSuite(Manifolds().Real()).run()
-                sage: Manifolds().Real.__module__
+                sage: TestSuite(Manifolds(RR).Real()).run()
+                sage: Manifolds(RR).Real.__module__
                 'sage.categories.manifolds'
             """
             return self._with_axiom('Real')
@@ -149,28 +165,29 @@ class Manifolds(Category_singleton):
             EXAMPLES::
 
                 sage: from sage.categories.manifolds import Manifolds
-                sage: Manifolds().Complex()
+                sage: Manifolds(RR).Complex()
                 Category of complex manifolds
+                 over Real Field with 53 bits of precision
 
             TESTS::
 
-                sage: TestSuite(Manifolds().Complex()).run()
-                sage: Manifolds().Complex.__module__
+                sage: TestSuite(Manifolds(RR).Complex()).run()
+                sage: Manifolds(RR).Complex.__module__
                 'sage.categories.manifolds'
             """
             return self._with_axiom('Complex')
 
-    class FiniteDimensional(CategoryWithAxiom):
+    class FiniteDimensional(CategoryWithAxiom_over_base_ring):
         """
         Category of finite dimensional manifolds.
         """
 
-    class Connected(CategoryWithAxiom):
+    class Connected(CategoryWithAxiom_over_base_ring):
         """
         The category of connected manifolds.
         """
 
-    class Real(CategoryWithAxiom):
+    class Real(CategoryWithAxiom_over_base_ring):
         """
         The category of manifolds over `\RR`.
         """
@@ -184,7 +201,7 @@ class Manifolds(Category_singleton):
                 EXAMPLES::
 
                     sage: from sage.categories.manifolds import Manifolds
-                    sage: Manifolds().Real().Complex()
+                    sage: Manifolds(RR).Real().Complex()
                     Traceback (most recent call last):
                     ...
                     TypeError: a real manifold is not a complex manifold
@@ -200,13 +217,14 @@ class Manifolds(Category_singleton):
                 EXAMPLES::
 
                     sage: from sage.categories.manifolds import Manifolds
-                    sage: Manifolds().Real().Differentiable()
+                    sage: Manifolds(RR).Real().Differentiable()
                     Category of differentiable real manifolds
+                     over Real Field with 53 bits of precision
 
                 TESTS::
 
-                    sage: TestSuite(Manifolds().Real().Differentiable()).run()
-                    sage: Manifolds().Real().Differentiable.__module__
+                    sage: TestSuite(Manifolds(RR).Real().Differentiable()).run()
+                    sage: Manifolds(RR).Real().Differentiable.__module__
                     'sage.categories.manifolds'
                 """
                 return self._with_axiom('Differentiable')
@@ -219,13 +237,14 @@ class Manifolds(Category_singleton):
                 EXAMPLES::
 
                     sage: from sage.categories.manifolds import Manifolds
-                    sage: Manifolds().Real().Smooth()
+                    sage: Manifolds(RR).Real().Smooth()
                     Category of smooth real manifolds
+                     over Real Field with 53 bits of precision
 
                 TESTS::
 
-                    sage: TestSuite(Manifolds().Real().Smooth()).run()
-                    sage: Manifolds().Real().Smooth.__module__
+                    sage: TestSuite(Manifolds(RR).Real().Smooth()).run()
+                    sage: Manifolds(RR).Real().Smooth.__module__
                     'sage.categories.manifolds'
                 """
                 return self._with_axiom('Smooth')
@@ -238,13 +257,14 @@ class Manifolds(Category_singleton):
                 EXAMPLES::
 
                     sage: from sage.categories.manifolds import Manifolds
-                    sage: Manifolds().Real().Analytic()
+                    sage: Manifolds(RR).Real().Analytic()
                     Category of analytic real manifolds
+                     over Real Field with 53 bits of precision
 
                 TESTS::
 
-                    sage: TestSuite(Manifolds().Real().Analytic()).run()
-                    sage: Manifolds().Real().Analytic.__module__
+                    sage: TestSuite(Manifolds(RR).Real().Analytic()).run()
+                    sage: Manifolds(RR).Real().Analytic.__module__
                     'sage.categories.manifolds'
                 """
                 return self._with_axiom('Analytic')
@@ -258,18 +278,19 @@ class Manifolds(Category_singleton):
                 EXAMPLES::
 
                     sage: from sage.categories.manifolds import Manifolds
-                    sage: Manifolds().Real().AlmostComplex()
+                    sage: Manifolds(RR).Real().AlmostComplex()
                     Category of almost complex real manifolds
+                     over Real Field with 53 bits of precision
 
                 TESTS::
 
-                    sage: TestSuite(Manifolds().Real().AlmostComplex()).run()
-                    sage: Manifolds().Real().AlmostComplex.__module__
+                    sage: TestSuite(Manifolds(RR).Real().AlmostComplex()).run()
+                    sage: Manifolds(RR).Real().AlmostComplex.__module__
                     'sage.categories.manifolds'
                 """
                 return self._with_axiom('AlmostComplex')
 
-        class Differentiable(CategoryWithAxiom):
+        class Differentiable(CategoryWithAxiom_over_base_ring):
             """
             The category of differentiable manifolds over `\RR`.
 
@@ -277,7 +298,7 @@ class Manifolds(Category_singleton):
             underlying vector space is `\RR^d` and differentiable atlas.
             """
 
-        class Smooth(CategoryWithAxiom):
+        class Smooth(CategoryWithAxiom_over_base_ring):
             """
             The category of smooth manifolds over `\RR`.
 
@@ -293,12 +314,13 @@ class Manifolds(Category_singleton):
                 EXAMPLES::
 
                     sage: from sage.categories.manifolds import Manifolds
-                    sage: Manifolds().Real().Smooth().super_categories() # indirect doctest
-                    [Category of differentiable real manifolds]
+                    sage: Manifolds(RR).Real().Smooth().super_categories() # indirect doctest
+                    [Category of differentiable real manifolds
+                     over Real Field with 53 bits of precision]
                 """
-                return [Manifolds().Real().Differentiable()]
+                return [Manifolds(self.base()).Real().Differentiable()]
 
-        class Analytic(CategoryWithAxiom):
+        class Analytic(CategoryWithAxiom_over_base_ring):
             r"""
             The category of complex manifolds.
 
@@ -314,12 +336,13 @@ class Manifolds(Category_singleton):
                 EXAMPLES::
 
                     sage: from sage.categories.manifolds import Manifolds
-                    sage: Manifolds().Real().Analytic().super_categories() # indirect doctest
-                    [Category of smooth real manifolds]
+                    sage: Manifolds(RR).Real().Analytic().super_categories() # indirect doctest
+                    [Category of smooth real manifolds
+                     over Real Field with 53 bits of precision]
                 """
-                return [Manifolds().Real().Smooth()]
+                return [Manifolds(self.base()).Real().Smooth()]
 
-        class AlmostComplex(CategoryWithAxiom):
+        class AlmostComplex(CategoryWithAxiom_over_base_ring):
             r"""
             The category of almost complex manifolds.
 
@@ -338,12 +361,13 @@ class Manifolds(Category_singleton):
                 EXAMPLES::
 
                     sage: from sage.categories.manifolds import Manifolds
-                    sage: Manifolds().Real().Analytic().super_categories() # indirect doctest
-                    [Category of smooth real manifolds]
+                    sage: Manifolds(RR).Real().Analytic().super_categories() # indirect doctest
+                    [Category of smooth real manifolds
+                     over Real Field with 53 bits of precision]
                 """
-                return [Manifolds().Real().Smooth()]
+                return [Manifolds(self.base()).Real().Smooth()]
 
-    class Complex(CategoryWithAxiom):
+    class Complex(CategoryWithAxiom_over_base_ring):
         r"""
         The category of complex manifolds.
 
@@ -360,7 +384,7 @@ class Manifolds(Category_singleton):
                 EXAMPLES::
 
                     sage: from sage.categories.manifolds import Manifolds
-                    sage: Manifolds().Complex().Real()
+                    sage: Manifolds(RR).Complex().Real()
                     Traceback (most recent call last):
                     ...
                     TypeError: a complex manifold is not a real manifold

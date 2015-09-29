@@ -1680,8 +1680,9 @@ Please use, e.g., S.algebra(QQ, category=Semigroups())""".format(self))
     Facade = LazyImport('sage.categories.facade_sets', 'FacadeSets')
     Finite = LazyImport('sage.categories.finite_sets', 'FiniteSets', at_startup=True)
     Topological = LazyImport('sage.categories.topological_spaces',
-                             'TopologicalSpaces', 'Topological')
-    Metric = LazyImport('sage.categories.metric_spaces', 'MetricSpaces', 'Mertic')
+                             'TopologicalSpaces', 'Topological', at_startup=True)
+    Metric = LazyImport('sage.categories.metric_spaces', 'MetricSpaces',
+                        'Mertic', at_startup=True)
 
     class Infinite(CategoryWithAxiom):
 

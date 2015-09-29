@@ -9,7 +9,9 @@ Topological Spaces
 #******************************************************************************
 
 from sage.misc.abstract_method import abstract_method
+from sage.misc.cachefunc import cached_method
 from sage.categories.category import Category
+from sage.categories.category_with_axiom import CategoryWithAxiom
 from sage.categories.covariant_functorial_construction import RegressiveCovariantConstructionCategory
 from sage.categories.with_realizations import WithRealizationsCategory
 
@@ -183,4 +185,28 @@ class MetricSpaces(MetricSpacesCategory):
                 """
                 R = self.a_realization()
                 return R.dist(R(a), R(b))
+
+    class SubcategoryMethods:
+        @cached_method
+        def Complete(self):
+            """
+            Return the full subcategory of the complete objects of ``self``.
+
+            EXAMPLES::
+
+                sage: Sets().Metric().Complete()
+                Category of complete metric spaces
+
+            TESTS::
+
+                sage: TestSuite(Sets().Metric().Complete()).run()
+                sage: Sets().Metric().Complete.__module__
+                'sage.categories.metric_spaces'
+            """
+            return self._with_axiom('Complete')
+
+    class Complete(CategoryWithAxiom):
+        """
+        The category of complete metric spaces.
+        """
 

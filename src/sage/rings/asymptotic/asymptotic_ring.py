@@ -907,11 +907,6 @@ class AsymptoticExpression(RingElement):
                                           'implemented.' % (self, power))
             return super(AsymptoticExpression, self).__pow__(power)
 
-        if len(self.summands) > 1:
-            raise NotImplementedError('Taking the sum %s to the '
-                                      'non-integer power %s not '
-                                      'implemented.' % (self, power))
-
         P = self.parent()
         if power not in P.growth_group.base():
             raise ValueError('%s disallows taking %s '

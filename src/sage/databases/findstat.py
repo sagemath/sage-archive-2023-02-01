@@ -1171,6 +1171,100 @@ class FindStatStatistic(SageObject):
         else:
             return ""
 
+    def generating_functions(self, as_type="polynomial"):
+        r"""
+        Return the generating functions of ``self`` in a dictionary.
+
+        The keys of this dictionary are the levels for which the
+        generating function of ``self`` can be computed from the data
+        of this statistic, and each value represents a generating
+        function for one level, as a polynomial, as a dictionary, or as
+        a list of coefficients.
+
+        INPUT:
+
+        - a string -- (default:"polynomial") can be
+          "polynomial", "dictionary", or "list".
+
+        OUTPUT:
+
+        - if ``as_type`` is ``"polynomial"``, the generating function is
+          returned as a polynomial.
+
+        - if ``as_type`` is ``"dictionary"``, the generating function is
+         returned as a dictionary representing the monomials of the
+         generating function.
+
+        - if ``as_type`` is ``"list"``, the generating function is
+          returned as a list of coefficients of the generating function.
+
+        EXAMPLES::
+
+            sage: tba
+            sage: tba
+        """
+        from ast import literal_eval
+        gen_dicts = { literal_eval(key) : { literal_eval(inner_key) : inner_value for inner_key,inner_value in value.iteritems() } for key,value in self._generating_function.iteritems() }
+        if as_type == "dictionary":
+            return gen_dicts
+        elif as_type == "list":
+            return { key : [ gen_dicts[key][deg] if deg in gen_dicts[key] else 0 for deg in range(max(gen_dicts[key])+1) ] for key in sorted(gen_dicts.keys())}
+        elif as_type == "polynomial":
+            from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
+            from sage.rings.integer_ring import ZZ
+            P = PolynomialRing(ZZ,"q")
+            q = P.gen()
+            return { level : sum( coefficient * q**exponent for exponent,coefficient in gen_dict.iteritems() ) for level,gen_dict in gen_dicts.iteritems() }
+        else:
+            raise ValueError("The argument 'as-type' (='%s') must be 'dictionary' or 'polynomial'"%as_type)
+
+    def search_oeis(self, search_size=32, verbose=True):
+        r"""
+        Returns the OEIS search for the generating function of ``self``.
+
+        INPUT:
+
+        - ``search_size`` (default:32) the number of integers in the
+          sequence. If too big, the OEIS result is corrupted.
+
+        - ``verbose`` (default:True) if true, some information about
+          the search are printed.
+
+        EXAMPLES::
+
+            sage: tba
+            sage: tba
+        """
+        from sage.databases.oeis import oeis
+
+        gen_funcs = self.generating_functions(as_type="list")
+
+        OEIS_string = ""
+        keys = sorted(gen_funcs.keys())
+        counter = 0
+        for key in keys:
+            gen_func = gen_funcs[key]
+            while gen_func[0] == 0:
+                gen_func.pop(0)
+            # we strip the result according to the search size. -- stumpc5, 2015-09-27
+            gen_func = gen_func[:search_size]
+            counter += len(gen_func)
+            if search_size > 0:
+                search_size -= len(gen_func)
+            OEIS_func_string     = ",".join( str(coefficient) for coefficient in gen_func )
+            OEIS_string         += OEIS_func_string + "  "
+        OEIS_string = OEIS_string.strip()
+        if counter >= 4:
+            if verbose:
+                print 'Searching the OEIS for "%s"'%OEIS_string
+                print
+            return oeis( OEIS_string )
+        else:
+            if verbose:
+                print "Too little information to search the OEIS for this statistic (only %s values given)."%counter
+                print
+            return
+
     def description(self):
         r"""
         Return the description of the statistic.
@@ -1724,100 +1818,6 @@ class FindStatCollection(Element):
             g = self._sageconstructor_overridden
 
         return [(x, statistic(x)) for (x,_) in zip(g, xrange(max_values))]
-
-    def generating_functions(self, as_type="polynomial"):
-        r"""
-        Return the generating functions of ``self`` in a dictionary.
-
-        The keys of this dictionary are the levels for which the
-        generating function of ``self`` can be computed from the data
-        of this statistic, and each value represents a generating
-        function for one level, as a polynomial, as a dictionary, or as
-        a list of coefficients.
-
-        INPUT:
-
-        - a string -- (default:"polynomial") can be
-          "polynomial", "dictionary", or "list".
-
-        OUTPUT:
-
-        - if ``as_type`` is ``"polynomial"``, the generating function is
-          returned as a polynomial.
-
-        - if ``as_type`` is ``"dictionary"``, the generating function is
-         returned as a dictionary representing the monomials of the
-         generating function.
-
-        - if ``as_type`` is ``"list"``, the generating function is
-          returned as a list of coefficients of the generating function.
-
-        EXAMPLES::
-
-            sage: tba
-            sage: tba
-        """
-        from ast import literal_eval
-        gen_dicts = { literal_eval(key) : { literal_eval(inner_key) : inner_value for inner_key,inner_value in value.iteritems() } for key,value in self._generating_function.iteritems() }
-        if as_type == "dictionary":
-            return gen_dicts
-        elif as_type == "list":
-            return { key : [ gen_dicts[key][deg] if deg in gen_dicts[key] else 0 for deg in range(max(gen_dicts[key])+1) ] for key in sorted(gen_dicts.keys())}
-        elif as_type == "polynomial":
-            from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
-            from sage.rings.integer_ring import ZZ
-            P = PolynomialRing(ZZ,"q")
-            q = P.gen()
-            return { level : sum( coefficient * q**exponent for exponent,coefficient in gen_dict.iteritems() ) for level,gen_dict in gen_dicts.iteritems() }
-        else:
-            raise ValueError("The argument 'as-type' (='%s') must be 'dictionary' or 'polynomial'"%as_type)
-
-    def search_oeis(self, search_size=32, verbose=True):
-        r"""
-        Returns the OEIS search for the generating function of ``self``.
-
-        INPUT:
-
-        - ``search_size`` (default:32) the number of integers in the
-          sequence. If too big, the OEIS result is corrupted.
-
-        - ``verbose`` (default:True) if true, some information about
-          the search are printed.
-
-        EXAMPLES::
-
-            sage: tba
-            sage: tba
-        """
-        from sage.databases.oeis import oeis
-
-        gen_funcs = self.generating_functions(as_type="list")
-
-        OEIS_string = ""
-        keys = sorted(gen_funcs.keys())
-        counter = 0
-        for key in keys:
-            gen_func = gen_funcs[key]
-            while gen_func[0] == 0:
-                gen_func.pop(0)
-            # we strip the result according to the search size. -- stumpc5, 2015-09-27
-            gen_func = gen_func[:search_size]
-            counter += len(gen_func)
-            if search_size > 0:
-                search_size -= len(gen_func)
-            OEIS_func_string     = ",".join( str(coefficient) for coefficient in gen_func )
-            OEIS_string         += OEIS_func_string + "  "
-        OEIS_string = OEIS_string.strip()
-        if counter >= 4:
-            if verbose:
-                print 'Searching the OEIS for "%s"'%OEIS_string
-                print
-            return oeis( OEIS_string )
-        else:
-            if verbose:
-                print "Too little information to search the OEIS for this statistic (only %s values given)."%counter
-                print
-            return
 
     def id(self):
         r"""

@@ -15,10 +15,10 @@ An asymptotic expression is a sum; its summands are the following:
 
 - `O`-terms `O(g)` (see :wikipedia:`Big O notation <Big_O_notation>`;
   also called *Bachmann--Landau notation*) for some :mod:`growth group
-  element <sage.groups.asymptotic_growth_group>` `g` (:ref:`see below
+  element <sage.rings.asymptotic.growth_group>` `g` (:ref:`see below
   <asymptotic_ring_growth>`).
 
-Examples of such elements can found :ref:`below <asymptotic_ring_intro>`.
+Examples of such elements can be found :ref:`below <asymptotic_ring_intro>`.
 
 .. _asymptotic_ring_growth:
 
@@ -27,29 +27,29 @@ Growth Elements
 
 The elements of a :mod:`growth group
 <sage.rings.asymptotic.growth_group>` are equipped with a partial
-ordering and usually contains a variable. Examples are (among many
+order and usually contain a variable. Examples are (among many
 other possibilities)
 
 - elements of the form `z^q` for some integer or rational `q` (growth
   groups ``z^ZZ`` or ``z^QQ``),
 
-- elements of the form `log(z)^q` for some integer or rational `q` (growth
+- elements of the form `\log(z)^q` for some integer or rational `q` (growth
   groups ``log(z)^ZZ`` or ``log(z)^QQ``),
 
 - elements of the form `a^z` for some
   rational `a` (growth group ``QQ^z``), or
 
-- more sophisticated constructions like products `x^r log(x)^s \cdot
+- more sophisticated constructions like products `x^r \log(x)^s \cdot
   a^y \cdot y^q` (this corresponds to an element of the growth group
   ``x^QQ * \log(x)^ZZ * QQ^y * y^QQ``).
 
-The ordering in all these examples is the growth as `x`, `y`, or `z`
+The order in all these examples is the growth as `x`, `y`, or `z`
 (independently) tend to `\infty`. For elements only using the
 variable `z` this means, `g_1 \leq g_2` if
 
 .. MATH::
 
-    \lim_{z\to\infty} \frac{g_2}{g_1} \leq 1.
+    \lim_{z\to\infty} \frac{g_1}{g_2} \leq 1.
 
 .. WARNING::
 
@@ -96,9 +96,9 @@ A typical element of this ring is
     -z^(3/2) + O(z^(1/2))
 
 This element consists of two summands: the exact term with coefficient
-`-1` and growth `x^{3/2}` and the `O`-term `O(x^{1/2})`. Note that the
-growth of `x^{3/2}` is larger than the growth of `x^{1/2}` as
-`x\to\infty`, thus this expression cannot be simplified (which would
+`-1` and growth `z^{3/2}` and the `O`-term `O(z^{1/2})`. Note that the
+growth of `z^{3/2}` is larger than the growth of `z^{1/2}` as
+`z\to\infty`, thus this expression cannot be simplified (which would
 be done automatically, see below).
 
 Next, we construct a more sophisticated asymptotic ring in the
@@ -106,17 +106,17 @@ variables `x` and `y` by
 
 ::
 
-    sage: B.<x, y> = AsymptoticRing(growth_group='x^QQ * \log(x)^ZZ * QQ^y * y^QQ', coefficient_ring=QQ); B  # not tested
+    sage: B.<x, y> = AsymptoticRing(growth_group='x^QQ * \log(x)^ZZ * QQ^y * y^QQ', coefficient_ring=QQ); B  # not implemented
 
 Again, we can look at a typical element::
 
-    sage: B.an_element()  # not tested
+    sage: B.an_element()  # not implemented
 
-Arithemtical Operations
+Arithmetical Operations
 -----------------------
 
 With the asymptotic rings constructed above (or more precisely with
-their elements) we can do a lot of different arithmetical
+their elements) we can do a lot of arithmetical
 calculations.
 
 We start our calculations in the ring
@@ -178,6 +178,9 @@ AUTHORS:
 - Benjamin Hackl (2015-06): initial version
 - Benjamin Hackl (2015-07): improvement user interface (short notation)
 - Daniel Krenn (2015-08): various improvents, review; documentation
+
+Classes and Methods
+===================
 """
 
 # *****************************************************************************
@@ -190,9 +193,13 @@ AUTHORS:
 # http://www.gnu.org/licenses/
 # *****************************************************************************
 
-import sage
+from sage.structure.element import RingElement
+from sage.rings.ring import Ring
+from sage.structure.unique_representation import UniqueRepresentation
+from sage.misc.superseded import experimental
 
-class AsymptoticExpression(sage.rings.ring_element.RingElement):
+
+class AsymptoticExpression(RingElement):
     r"""
     Class for asymptotic expressions, i.e., the elements of an
     :class:`AsymptoticRing`.
@@ -211,7 +218,7 @@ class AsymptoticExpression(sage.rings.ring_element.RingElement):
     EXAMPLES:
 
     There are several ways to create asymptotic expressions; usually
-    this is done by using the corresponding rings/parents::
+    this is done by using the corresponding :class:`asymptotic rings <AsymptoticRing>`::
 
         sage: R_x.<x> = AsymptoticRing(growth_group='x^QQ', coefficient_ring=QQ); R_x
         Asymptotic Ring <x^QQ> over Rational Field
@@ -322,6 +329,55 @@ class AsymptoticExpression(sage.rings.ring_element.RingElement):
             sage: ex2 = x + O(R_x(1))
             sage: ex1 * ex2
             5*x^6 + O(x^5)
+
+        ::
+
+            sage: from sage.rings.asymptotic.growth_group import GrowthGroup
+            sage: from sage.rings.asymptotic.term_monoid import TermMonoid
+            sage: G = GrowthGroup('x^ZZ'); x = G.gen()
+            sage: OT = TermMonoid('O', G); ET = TermMonoid('exact', G, ZZ)
+            sage: R = AsymptoticRing(G, ZZ)
+            sage: lst = [ET(x, 1), ET(x^2, 2), OT(x^3), ET(x^4, 4)]
+            sage: expr = R(lst, simplify=False); expr  # indirect doctest
+            4*x^4 + O(x^3) + 2*x^2 + x
+            sage: print expr.summands.repr_full()
+            poset(x, 2*x^2, O(x^3), 4*x^4)
+            +-- null
+            |   +-- no predecessors
+            |   +-- successors:   x
+            +-- x
+            |   +-- predecessors:   null
+            |   +-- successors:   2*x^2
+            +-- 2*x^2
+            |   +-- predecessors:   x
+            |   +-- successors:   O(x^3)
+            +-- O(x^3)
+            |   +-- predecessors:   2*x^2
+            |   +-- successors:   4*x^4
+            +-- 4*x^4
+            |   +-- predecessors:   O(x^3)
+            |   +-- successors:   oo
+            +-- oo
+            |   +-- predecessors:   4*x^4
+            |   +-- no successors
+            sage: expr._simplify_(); expr
+            4*x^4 + O(x^3)
+            sage: print expr.summands.repr_full()
+            poset(O(x^3), 4*x^4)
+            +-- null
+            |   +-- no predecessors
+            |   +-- successors:   O(x^3)
+            +-- O(x^3)
+            |   +-- predecessors:   null
+            |   +-- successors:   4*x^4
+            +-- 4*x^4
+            |   +-- predecessors:   O(x^3)
+            |   +-- successors:   oo
+            +-- oo
+            |   +-- predecessors:   4*x^4
+            |   +-- no successors
+            sage: R(lst, simplify=True) # indirect doctest
+            4*x^4 + O(x^3)
         """
         super(AsymptoticExpression, self).__init__(parent=parent)
 
@@ -353,7 +409,7 @@ class AsymptoticExpression(sage.rings.ring_element.RingElement):
 
     def __nonzero__(self):
         r"""
-        Return if this asymptotic expression is not identically zero.
+        Return whether this asymptotic expression is not identically zero.
 
         INPUT:
 
@@ -406,7 +462,7 @@ class AsymptoticExpression(sage.rings.ring_element.RingElement):
             sage: G = agg.GrowthGroup('x^ZZ')
             sage: OT = atm.TermMonoid('O', G); ET = atm.TermMonoid('exact', G, ZZ)
             sage: R = AsymptoticRing(G, ZZ)
-            sage: lst = [ET(x,1), ET(x^2, 2), OT(x^3), ET(x^4, 4)]
+            sage: lst = [ET(x, 1), ET(x^2, 2), OT(x^3), ET(x^4, 4)]
             sage: expr = R(lst, simplify=False); expr  # indirect doctest
             4*x^4 + O(x^3) + 2*x^2 + x
             sage: expr._simplify_(); expr
@@ -514,7 +570,7 @@ class AsymptoticExpression(sage.rings.ring_element.RingElement):
 
     def _mul_term_(self, term):
         r"""
-        Helper method: multiply this asymptotic expression with the
+        Helper method: multiply this asymptotic expression by the
         asymptotic term ``term``.
 
         INPUT:
@@ -541,7 +597,7 @@ class AsymptoticExpression(sage.rings.ring_element.RingElement):
 
     def _mul_(self, other):
         r"""
-        Multiply ``other`` to this asymptotic expression.
+        Multiply ``other`` by this asymptotic expression.
 
         INPUT:
 
@@ -561,7 +617,7 @@ class AsymptoticExpression(sage.rings.ring_element.RingElement):
 
         .. TODO::
 
-            The current implementation is the school book
+            The current implementation is the standard long
             multiplication. More efficient variants like Karatsuba
             multiplication, or methods that exploit the structure
             of the underlying poset shall be implemented at a later
@@ -595,12 +651,23 @@ class AsymptoticExpression(sage.rings.ring_element.RingElement):
             ValueError: Growth Group y^ZZ disallows taking y to the power of 1/7.
             sage: (x^(1/2) + O(x^0))^15
             x^(15/2) + O(x^7)
+            sage: (y^2+O(y))^(1/2)
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: Taking the sum y^2 + O(y) to the
+            non-integer power 1/2 is not implemented.
+            sage: (y^2+O(y))^(-2)
+            Traceback (most recent call last):
+            ...
+            TypeError: unsupported operand parent(s) for '/':
+            'Asymptotic Ring <y^ZZ> over Integer Ring' and 'Asymptotic
+            Ring <y^ZZ> over Integer Ring'
         """
         if len(self.summands) > 1:
             from sage.rings.integer_ring import ZZ
             if power not in ZZ:
                 raise NotImplementedError('Taking the sum %s to the '
-                                          'non-integer power %s not '
+                                          'non-integer power %s is not '
                                           'implemented.' % (self, power))
             return super(AsymptoticExpression, self).__pow__(power)
 
@@ -611,7 +678,7 @@ class AsymptoticExpression(sage.rings.ring_element.RingElement):
                              (P.growth_group, self, power))
 
         from sage.rings.asymptotic.term_monoid import TermWithCoefficient
-        expr = self.summands.elements().next()
+        expr = next(self.summands.elements())
         if isinstance(expr, TermWithCoefficient):
             new_growth = expr.growth**power
             new_coeff = expr.coefficient**power
@@ -639,6 +706,8 @@ class AsymptoticExpression(sage.rings.ring_element.RingElement):
             sage: AR.<x> = AsymptoticRing(growth_group='x^ZZ', coefficient_ring=ZZ)
             sage: O(x)
             O(x)
+            sage: type(O(x))
+            <class 'sage.rings.asymptotic.asymptotic_ring.AsymptoticRing_with_category.element_class'>
             sage: expr = 42 * x^42 + x^10 + O(x^2); expr
             42*x^42 + x^10 + O(x^2)
             sage: expr.O()
@@ -662,9 +731,7 @@ class AsymptoticExpression(sage.rings.ring_element.RingElement):
                    for element in self.summands.maximal_elements())
 
 
-
-class AsymptoticRing(sage.rings.ring.Ring,
-                     sage.structure.unique_representation.UniqueRepresentation):
+class AsymptoticRing(Ring, UniqueRepresentation):
     r"""
     A ring consisting of :class:`asymptotic expressions <AsymptoticExpression>`.
 
@@ -738,13 +805,6 @@ class AsymptoticRing(sage.rings.ring.Ring,
 
         sage: R1_x.has_coerce_map_from(QQ)
         True
-
-    TESTS::
-
-        sage: R3_x = AsymptoticRing(growth_group='x^QQ', coefficient_ring=QQ); R3_x
-        Asymptotic Ring <x^QQ> over Rational Field
-        sage: R1_x is R2_x is R3_x
-        True
     """
     # enable the category framework for elements
     Element = AsymptoticExpression
@@ -793,7 +853,7 @@ class AsymptoticRing(sage.rings.ring.Ring,
                                                         category)
 
 
-    @sage.misc.superseded.experimental(trac_number=17601)
+    @experimental(trac_number=17601)
     def __init__(self, growth_group, coefficient_ring, category=None):
         r"""
         See :class:`AsymptoticRing` for more information.
@@ -813,6 +873,28 @@ class AsymptoticRing(sage.rings.ring.Ring,
             Traceback (most recent call last):
             ...
             TypeError: __classcall__() takes at least 3 arguments (2 given)
+
+        ::
+
+            sage: AsymptoticRing(growth_group=None, coefficient_ring=ZZ)
+            Traceback (most recent call last):
+            ...
+            ValueError: Growth group not specified. Cannot continue.
+            sage: AsymptoticRing(growth_group='x^ZZ', coefficient_ring=None)
+            Traceback (most recent call last):
+            ...
+            ValueError: Coefficient ring not specified. Cannot continue.
+            sage: AsymptoticRing(growth_group='x^ZZ', coefficient_ring='icecream')
+            Traceback (most recent call last):
+            ...
+            ValueError: icecream is not a ring. Cannot continue.
+
+        ::
+
+            sage: AsymptoticRing('x^ZZ', QQ, category=Posets())
+            Traceback (most recent call last):
+            ...
+            ValueError: (Category of posets,) is not a subcategory of Category of rings
         """
         from sage.categories.rings import Rings
 
@@ -917,6 +999,12 @@ class AsymptoticRing(sage.rings.ring.Ring,
 
         An element of this asymptotic ring.
 
+        .. NOTE::
+
+            Either ``data`` or ``summands`` has to be given. If
+            ``summands`` is specified, then no positional argument
+            may be passed (except for ``int(0)``).
+
         TESTS::
 
             sage: AR = AsymptoticRing(growth_group='x^ZZ', coefficient_ring=ZZ)
@@ -932,10 +1020,17 @@ class AsymptoticRing(sage.rings.ring.Ring,
             Traceback (most recent call last):
             ...
             TypeError: Cannot convert y to an asymptotic expression.
+
+        ::
+
+            sage: AR(1234, summands=6789)
+            Traceback (most recent call last):
+            ...
+            ValueError: Input is ambiguous: 1234 as well as summands=6789 are specified.
         """
         if summands is not None:
             if type(data) != int or data != 0:
-                raise ValueError('Input is ambigous: '
+                raise ValueError('Input is ambiguous: '
                                  '%s as well as summands=%s '
                                  'are specified.' % (data, summands))
             return self.element_class(self, summands, simplify=simplify)
@@ -982,7 +1077,7 @@ class AsymptoticRing(sage.rings.ring.Ring,
 
     def _coerce_map_from_(self, R):
         r"""
-        Return if ``R`` coerces into this asymptotic ring.
+        Return whether ``R`` coerces into this asymptotic ring.
 
         INPUT:
 
@@ -997,7 +1092,7 @@ class AsymptoticRing(sage.rings.ring.Ring,
             There are two possible cases: either ``R`` coerces in the
             :meth:`coefficient_ring` of this asymptotic ring, or ``R``
             itself is an asymptotic ring, where both the
-            meth:`growth_group` and the :meth:`coefficient_ring` coerce into
+            :meth:`growth_group` and the :meth:`coefficient_ring` coerce into
             the :meth:`growth_group` and the :meth:`coefficient_ring` of this
             asymptotic ring, respectively.
 
@@ -1021,6 +1116,9 @@ class AsymptoticRing(sage.rings.ring.Ring,
             sage: AR_QQ.has_coerce_map_from(ZZ)
             True
         """
+        from sage.data_structures.mutable_poset import MutablePoset
+        if R == MutablePoset:
+            return
         if self.coefficient_ring.has_coerce_map_from(R):
             return True
         if self.growth_group.has_coerce_map_from(R):
@@ -1045,9 +1143,8 @@ class AsymptoticRing(sage.rings.ring.Ring,
 
         EXAMPLES::
 
-            sage: import sage.rings.asymptotic.growth_group as agg
-            sage: MG = agg.GrowthGroup('x^ZZ')
-            sage: AR = AsymptoticRing(growth_group=MG, coefficient_ring=ZZ)
+            sage: AR = AsymptoticRing(growth_group='x^ZZ',
+            ....:                     coefficient_ring=ZZ)
             sage: repr(AR)  # indirect doctest
             'Asymptotic Ring <x^ZZ> over Integer Ring'
         """
@@ -1073,9 +1170,10 @@ class AsymptoticRing(sage.rings.ring.Ring,
         .. NOTE::
 
             Generators do not necessarily exist. This depends on the
-            underlying growth group. For example, monomial growth
-            groups have a generator, and exponential growth groups
-            don't.
+            underlying growth group. For example,
+            :class:`monomial growth groups <sage.rings.asymptotic.growth_group.MonomialGrowthGroup>`
+            have a generator, and exponential growth groups
+            do not.
 
         EXAMPLES::
 

@@ -747,16 +747,14 @@ class MutablePosetShell(SageObject):
         return new
 
 
-    def covers(self, shell, reverse=False):
+    def lower_covers(self, shell, reverse=False):
         r"""
-        Return the lower or upper covers of the specified ``shell``;
+        Return the lower covers of the specified ``shell``;
         the search is started at this (``self``) shell.
 
         A lower cover of `x` is an element `y` of the poset
         such that `y < x` and there is no element `z` of the poset
-        so that `x < z < y`. Likewise,
-        an upper cover of `x` is an element `y` such that `x < y` and
-        there is no element `z` so that `x < z < y`.
+        so that `y < z < x`.
 
         INPUT:
 
@@ -765,8 +763,9 @@ class MutablePosetShell(SageObject):
           If ``shell`` is contained in the poset, then use the more efficient
           methods :meth:`predecessors` and :meth:`successors`.
 
-        - ``reverse`` -- (default: ``False``) if not set, then find
-          the lower covers, otherwise find the upper covers.
+        - ``reverse`` -- (default: ``False``) if set, then find
+          the upper covers (see also :meth:`upper_covers`)
+          instead of the lower covers.
 
         OUTPUT:
 
@@ -792,12 +791,12 @@ class MutablePosetShell(SageObject):
             ....:         T((4, 4)), T((1, 2)), T((2, 2))])
             sage: e = P.shell(T((2, 2))); e
             (2, 2)
-            sage: sorted(P.null.covers(e),
+            sage: sorted(P.null.lower_covers(e),
             ....:        key=lambda c: repr(c.element))
             [(1, 2), (2, 1)]
             sage: set(_) == e.predecessors()
             True
-            sage: sorted(P.oo.covers(e, reverse=True),
+            sage: sorted(P.oo.upper_covers(e),
             ....:        key=lambda c: repr(c.element))
             [(4, 4)]
             sage: set(_) == e.successors()
@@ -807,10 +806,91 @@ class MutablePosetShell(SageObject):
 
             sage: Q = MP([T((3, 2))])
             sage: f = next(Q.shells())
-            sage: sorted(P.null.covers(f),
+            sage: sorted(P.null.lower_covers(f),
             ....:        key=lambda c: repr(c.element))
             [(2, 2)]
-            sage: sorted(P.oo.covers(f, reverse=True),
+            sage: sorted(P.oo.upper_covers(f),
+            ....:        key=lambda c: repr(c.element))
+            [(4, 4)]
+
+        .. SEEALSO::
+
+            :meth:`upper_covers`,
+            :meth:`predecessors`,
+            :meth:`successors`,
+            :class:`MutablePoset`.
+        """
+        if self == shell:
+            return set()
+        covers = set().union(*(e.lower_covers(shell, reverse)
+                               for e in self.successors(reverse)
+                               if e.le(shell, reverse)))
+        return covers or set([self])
+
+
+    def upper_covers(self, shell, reverse=False):
+        r"""
+        Return the upper covers of the specified ``shell``;
+        the search is started at this (``self``) shell.
+
+        An upper cover of `x` is an element `y` of the poset
+        such that `x < y` and there is no element `z` of the poset
+        so that `x < z < y`.
+
+        INPUT:
+
+        - ``shell`` -- the shell for which to find the covering shells.
+          There is no restrition of ``shell`` being contained in the poset.
+          If ``shell`` is contained in the poset, then use the more efficient
+          methods :meth:`predecessors` and :meth:`successors`.
+
+        - ``reverse`` -- (default: ``False``) if set, then find
+          the lower covers (see also :meth:`lower_covers`)
+          instead of the upper covers.
+
+        OUTPUT:
+
+        A set of :class:`shells <MutablePosetShell>`.
+
+        .. NOTE::
+
+            Suppose ``reverse`` is ``False``. This method starts at
+            the calling shell (``self``) and searches towards ``'null'``.
+            Thus, only shells which are (not necessarily
+            direct) predecessors of this shell are considered.
+
+            If ``reverse`` is ``True``, then the reverse direction is
+            taken.
+
+        EXAMPLES::
+
+            sage: from sage.data_structures.mutable_poset import MutablePoset as MP
+            sage: class T(tuple):
+            ....:     def __le__(left, right):
+            ....:         return all(l <= r for l, r in zip(left, right))
+            sage: P = MP([T((1, 1)), T((1, 3)), T((2, 1)),
+            ....:         T((4, 4)), T((1, 2)), T((2, 2))])
+            sage: e = P.shell(T((2, 2))); e
+            (2, 2)
+            sage: sorted(P.null.lower_covers(e),
+            ....:        key=lambda c: repr(c.element))
+            [(1, 2), (2, 1)]
+            sage: set(_) == e.predecessors()
+            True
+            sage: sorted(P.oo.upper_covers(e),
+            ....:        key=lambda c: repr(c.element))
+            [(4, 4)]
+            sage: set(_) == e.successors()
+            True
+
+        ::
+
+            sage: Q = MP([T((3, 2))])
+            sage: f = next(Q.shells())
+            sage: sorted(P.null.lower_covers(f),
+            ....:        key=lambda c: repr(c.element))
+            [(2, 2)]
+            sage: sorted(P.oo.upper_covers(f),
             ....:        key=lambda c: repr(c.element))
             [(4, 4)]
 
@@ -820,12 +900,7 @@ class MutablePosetShell(SageObject):
             :meth:`successors`,
             :class:`MutablePoset`.
         """
-        if self == shell:
-            return set()
-        covers = set().union(*(e.covers(shell, reverse)
-                               for e in self.successors(reverse)
-                               if e.le(shell, reverse)))
-        return covers or set([self])
+        return self.lower_covers(shell, not reverse)
 
 
     def _iter_depth_first_visit_(self, marked,
@@ -2258,8 +2333,8 @@ class MutablePoset(SageObject):
             return
 
         new = MutablePosetShell(self, element)
-        new._predecessors_ = self.null.covers(new, reverse=False)
-        new._successors_ = self.oo.covers(new, reverse=True)
+        new._predecessors_ = self.null.lower_covers(new)
+        new._successors_ = self.oo.upper_covers(new)
 
         for s in new.predecessors():
             for l in s.successors().intersection(new.successors()):

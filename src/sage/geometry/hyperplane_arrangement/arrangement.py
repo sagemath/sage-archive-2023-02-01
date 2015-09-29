@@ -1934,11 +1934,11 @@ class HyperplaneArrangementElement(Element):
     @cached_method
     def matroid(self):
         r"""
-        Return the matroid assoicated to ``self``.
+        Return the matroid associated to ``self``.
 
         Let `A` denote a central hyperplane arrangement and `n_H` the
         normal vector of some hyperplane `H \in A`. We define a matroid
-        `M_A` as the linear matoid spanned by `\{ n_H | H \in A \}`.
+        `M_A` as the linear matroid spanned by `\{ n_H | H \in A \}`.
         The matroid `M_A` is such that the lattice of flats of `M` is
         isomorphic to the intersection lattice of `A`
         (Proposition 3.6 in [RS]_).

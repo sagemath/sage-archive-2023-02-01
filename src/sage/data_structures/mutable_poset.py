@@ -208,6 +208,7 @@ class MutablePosetShell(SageObject):
         """
         self._poset_ = poset
         self._element_ = element
+        self._key_ = self.poset.get_key(element)
         self._predecessors_ = set()
         self._successors_ = set()
         super(MutablePosetShell, self).__init__()
@@ -290,16 +291,12 @@ class MutablePosetShell(SageObject):
             ....:     return k
             sage: R = MP(key=k)
             sage: h = MutablePosetShell(R, (1, 2))
-            sage: h.key; h.key
             key (1, 2)
+            sage: h.key; h.key
             (1, 2)
             (1, 2)
         """
-        # workaround for #19281
-        # (Use @property @cached_method once #19281 is fixed.)
-        if not hasattr(self, '_cached_key_'):
-            self._cached_key_ = self.poset.get_key(self._element_)
-        return self._cached_key_
+        return self._key_
 
 
     def predecessors(self, reverse=False):

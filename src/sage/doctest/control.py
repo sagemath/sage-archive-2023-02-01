@@ -182,6 +182,59 @@ def skipfile(filename):
     return False
 
 
+class Logger(object):
+    """
+    File-like object which implements writing to multiple files at
+    once.
+
+    EXAMPLES::
+
+        sage: from sage.doctest.control import Logger
+        sage: t = open(tmp_filename(), "w+")
+        sage: L = Logger(sys.stdout, t)
+        sage: L.write("hello world\n")
+        hello world
+        sage: t.seek(0)
+        sage: t.read()
+        'hello world\n'
+    """
+    def __init__(self, *files):
+        """
+        Initialize the logger for writing to all files in ``files``.
+
+        TESTS::
+
+            sage: from sage.doctest.control import Logger
+            sage: Logger().write("hello world\n")  # no-op
+        """
+        self.files = list(files)
+
+    def write(self, x):
+        """
+        Write ``x`` to all files.
+
+        TESTS::
+
+            sage: from sage.doctest.control import Logger
+            sage: Logger(sys.stdout).write("hello world\n")
+            hello world
+        """
+        for f in self.files:
+            f.write(x)
+
+    def flush(self):
+        """
+        Flush all files.
+
+        TESTS::
+
+            sage: from sage.doctest.control import Logger
+            sage: Logger(sys.stdout).flush()
+        """
+        for f in self.files:
+            f.flush()
+
+
 class DocTestController(SageObject):
     """
     This class controls doctesting of files.
@@ -228,9 +281,13 @@ class DocTestController(SageObject):
             options.global_iterations = int(os.environ.get('SAGE_TEST_GLOBAL_ITER', 1))
         if options.file_iterations == 0:
             options.file_iterations = int(os.environ.get('SAGE_TEST_ITER', 1))
-        if options.debug and options.nthreads > 1:
-            print("Debugging requires single-threaded operation, setting number of threads to 1.")
-            options.nthreads = 1
+        if options.debug:
+            if options.nthreads > 1:
+                print("Debugging requires single-threaded operation, setting number of threads to 1.")
+            if options.logfile:
+                print("Debugging is not compatible with logging, disabling logfile.")
+            options.serial = True
+            options.logfile = None
         if options.serial:
             options.nthreads = 1
         if options.verbose:
@@ -269,10 +326,27 @@ class DocTestController(SageObject):
             try:
                 self.logfile = open(options.logfile, 'a')
             except IOError:
-                print "Unable to open logfile at %s\nProceeding without logging."%(options.logfile)
+                print("Unable to open logfile {!r}\nProceeding without logging.".format(options.logfile))
                 self.logfile = None
         else:
             self.logfile = None
+
+        # In serial mode, we run just one process. Then the doctests
+        # will interfere with the output logging (both use stdout).
+        # To solve this, we create real_stdout which will always
+        # write to the actual standard output, regardless of
+        # redirections.
+        if options.serial:
+            real_stdout = os.fdopen(os.dup(sys.stdout.fileno()), "a")
+        else:
+            # Parallel mode: no special tricks needed
+            real_stdout = sys.stdout
+
+        if self.logfile is None:
+            self.logger = real_stdout
+        else:
+            self.logger = Logger(real_stdout, self.logfile)
+
         self.stats = {}
         self.load_stats(options.stats_path)
         self._init_warn_long()
@@ -418,11 +492,10 @@ class DocTestController(SageObject):
         with atomic_write(filename) as stats_file:
             json.dump(self.stats, stats_file)
 
-
     def log(self, s, end="\n"):
         """
-        Logs the string ``s + end`` (where ``end`` is a newline by default)
-        to the logfile and prints it to the standard output.
+        Log the string ``s + end`` (where ``end`` is a newline by default)
+        to the logfile and print it to the standard output.
 
         EXAMPLES::
 
@@ -431,6 +504,21 @@ class DocTestController(SageObject):
             sage: DC = DocTestController(DD, [])
             sage: DC.log("hello world")
             hello world
+            sage: DC.logfile.close()
+            sage: print open(DD.logfile).read()
+            hello world
+
+        In serial mode, check that logging works even if ``stdout`` is
+        redirected::
+
+            sage: DD = DocTestDefaults(logfile=tmp_filename(), serial=True)
+            sage: DC = DocTestController(DD, [])
+            sage: from sage.doctest.forker import SageSpoofInOut
+            sage: S = SageSpoofInOut(open(os.devnull, "w"))
+            sage: S.start_spoofing()
+            sage: DC.log("hello world")
+            hello world
+            sage: S.stop_spoofing()
             sage: DC.logfile.close()
             sage: print open(DD.logfile).read()
             hello world
@@ -449,12 +537,8 @@ class DocTestController(SageObject):
             hello world
 
         """
-        s += end
-        if self.logfile is not None:
-            self.logfile.write(s)
-            self.logfile.flush()
-        sys.stdout.write(s)
-        sys.stdout.flush()
+        self.logger.write(s + end)
+        self.logger.flush()
 
     def test_safe_directory(self, dir=None):
         """
@@ -951,11 +1035,9 @@ class DocTestController(SageObject):
                 flags %= toolname + ".%p" # replace %s with toolname
         cmd += flags + sage_cmd
 
-        self.log(cmd)
         sys.stdout.flush()
         sys.stderr.flush()
-        if self.logfile is not None:
-            self.logfile.flush()
+        self.log(cmd)
 
         if testing:
             return

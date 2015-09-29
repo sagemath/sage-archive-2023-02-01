@@ -925,8 +925,7 @@ class AsymptoticExpression(RingElement):
                 new_growth = expr.growth**power
                 return P(expr.parent()(new_growth))
             else:
-                raise NotImplementedError('Negative powers are not implemented'
-                                          ' for the term %s.' % (self, ))
+                return (~self)**(-power)
 
 
 

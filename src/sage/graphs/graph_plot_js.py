@@ -50,9 +50,8 @@ definition can be found in the documentation of
     Since the d3js package is not standard yet, the javascript is fetched from
     d3js.org website by the browser. If you want to avoid that (e.g.  to
     protect your privacy or by lack of internet connection), you can install
-    the d3js package for offline use with the Sage command
-    ``install_package('d3js')`` or by running ``sage -i d3js`` from the command
-    line.
+    the d3js package for offline use by running ``sage -i d3js`` from
+    the command line.
 
 .. TODO::
 
@@ -122,9 +121,8 @@ def gen_html_code(G,
     - ``edge_partition`` -- same as ``vertex_partition``, with edges
       instead. Set to ``[]`` by default.
 
-    - ``force_spring_layout`` -- whether to take sage's position into account if
-      there is one (see :meth:`~sage.graphs.generic_graph.GenericGraph.` and
-      :meth:`~sage.graphs.generic_graph.GenericGraph.`), or to compute a spring
+    - ``force_spring_layout`` -- whether to take previously computed position
+      of nodes into account if there is one, or to compute a spring
       layout. Set to ``False`` by default.
 
     - ``vertex_size`` -- The size of a vertex' circle. Set to `7` by default.
@@ -152,9 +150,8 @@ def gen_html_code(G,
         Since the d3js package is not standard yet, the javascript is fetched
         from d3js.org website by the browser. If you want to avoid that (e.g.
         to protect your privacy or by lack of internet connection), you can
-        install the d3js package for offline use with the Sage command
-        ``install_package('d3js')`` or by running ``sage -i d3js`` from the
-        command line.
+        install the d3js package for offline use by running
+        ``sage -i d3js`` from the command line.
 
     EXAMPLES::
 

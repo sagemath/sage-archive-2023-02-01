@@ -798,7 +798,7 @@ def rpow(self, base):
 
 class GenericGrowthElement(sage.structure.element.MultiplicativeGroupElement):
     r"""
-    An abstract implementation of a generic growth element.
+    A basic implementation of a generic growth element.
 
     Growth elements form a group by multiplication, and (some of) the
     elements can be compared to each other, i.e., all elements form a
@@ -840,12 +840,6 @@ class GenericGrowthElement(sage.structure.element.MultiplicativeGroupElement):
 
         ::
 
-            sage: G = agg.GenericGrowthGroup(ZZ)
-            sage: G(raw_element=42).category()
-            Category of elements of Growth Group Generic(ZZ)
-
-        ::
-
             sage: agg.GenericGrowthElement(None, 0)
             Traceback (most recent call last):
             ...
@@ -860,7 +854,7 @@ class GenericGrowthElement(sage.structure.element.MultiplicativeGroupElement):
 
     def _repr_(self):
         r"""
-        A representation string for this abstract generic element.
+        A representation string for this generic element.
 
         INPUT:
 
@@ -918,7 +912,7 @@ class GenericGrowthElement(sage.structure.element.MultiplicativeGroupElement):
 
         OUTPUT:
 
-        A class:`GenericGrowthElement` representing the product with
+        A :class:`GenericGrowthElement` representing the product with
         ``other``.
 
         .. NOTE::
@@ -1259,7 +1253,7 @@ class GenericGrowthGroup(
         sage.structure.unique_representation.UniqueRepresentation,
         sage.structure.parent.Parent):
     r"""
-    An abstract implementation for growth groups.
+    A basic implementation for growth groups.
 
     INPUT:
 
@@ -1273,7 +1267,7 @@ class GenericGrowthGroup(
 
     .. NOTE::
 
-        This class should be derived to get concrete implementations.
+        This class should be derived for concrete implementations.
 
     EXAMPLES::
 
@@ -1630,7 +1624,7 @@ class GenericGrowthGroup(
 
     def _element_constructor_(self, data, raw_element=None):
         r"""
-        Converts a given object to this growth group.
+        Convert a given object to this growth group.
 
         INPUT:
 
@@ -1647,6 +1641,10 @@ class GenericGrowthGroup(
 
         .. NOTE::
 
+            Either ``data`` or ``raw_element`` has to be given. If
+            ``raw_element`` is specified, then no positional argument
+            may be passed.
+
             This method calls :meth:`_convert_`, which does the actual
             conversion from ``data``.
 
@@ -1654,22 +1652,22 @@ class GenericGrowthGroup(
 
             sage: import sage.rings.asymptotic.growth_group as agg
             sage: G_ZZ = agg.GenericGrowthGroup(ZZ)
-            sage: z = G_ZZ(raw_element=42); z
+            sage: z = G_ZZ(raw_element=42); z  # indirect doctest
             GenericGrowthElement(42)
-            sage: z is G_ZZ(z)
+            sage: z is G_ZZ(z)  # indirect doctest
             True
 
         ::
 
             sage: G_QQ = agg.GenericGrowthGroup(QQ)
-            sage: q = G_QQ(raw_element=42)
+            sage: q = G_QQ(raw_element=42)  # indirect doctest
             sage: q is z
             False
-            sage: G_ZZ(q)
+            sage: G_ZZ(q)  # indirect doctest
             GenericGrowthElement(42)
-            sage: G_QQ(z)
+            sage: G_QQ(z)  # indirect doctest
             GenericGrowthElement(42)
-            sage: q is G_ZZ(q)
+            sage: q is G_ZZ(q)  # indirect doctest
             False
 
         ::
@@ -1678,51 +1676,52 @@ class GenericGrowthGroup(
             Traceback (most recent call last):
             ...
             ValueError: No input specified. Cannot continue.
-            sage: G_ZZ('blub')
+            sage: G_ZZ('blub')  # indirect doctest
             Traceback (most recent call last):
             ...
             ValueError: blub is not in Growth Group Generic(ZZ).
-            sage: G_ZZ('x', raw_element=42)
+            sage: G_ZZ('x', raw_element=42)  # indirect doctest
             Traceback (most recent call last):
             ...
-            ValueError: Input is ambigous: x as well as raw_element=42 are specified
+            ValueError: Input is ambigous: x as well as raw_element=42 are specified.
 
         ::
 
-            sage: x = agg.MonomialGrowthGroup(ZZ, 'x')(raw_element=1)
+            sage: G_x = agg.MonomialGrowthGroup(ZZ, 'x')
+            sage: x = G_x(raw_element=1)  # indirect doctest
             sage: G_y = agg.MonomialGrowthGroup(ZZ, 'y')
-            sage: G_y(x)
+            sage: G_y(x)  # indirect doctest
             Traceback (most recent call last):
             ...
             ValueError: x is not in Growth Group y^ZZ.
         """
         if raw_element is None:
-            if type(data) == self.element_class and data.parent() == self:
-                return data
-            elif isinstance(data, self.element_class):
+            if isinstance(data, self.element_class):
+                if data.parent() == self:
+                    return data
                 try:
                     if self._var_ != data.parent()._var_:
                         raise ValueError('%s is not in %s.' % (data, self))
                 except AttributeError:
                     pass
                 raw_element = data._raw_element_
-            elif type(data) == int and data == 0:
+            elif isinstance(data, int) and data == 0:
                 raise ValueError('No input specified. Cannot continue.')
             else:
                 raw_element = self._convert_(data)
             if raw_element is None:
                 raise ValueError('%s is not in %s.' % (data, self))
-        elif type(data) != int or data != 0:
+        elif not isinstance(data, int) or data != 0:
             raise ValueError('Input is ambigous: '
                              '%s as well as raw_element=%s '
-                             'are specified' % (data, raw_element))
+                             'are specified.' % (data, raw_element))
 
         return self.element_class(self, raw_element)
 
 
     def _convert_(self, data):
         r"""
-        Converts ``data`` to something the constructor of the
+        Convert ``data`` to something the constructor of the
         element class accepts (``raw_element``).
 
         INPUT:
@@ -1866,7 +1865,8 @@ class GenericGrowthGroup(
 
     def gens_monomial(self):
         r"""
-        Return a generator of this growth group, in case one exists.
+        Return a monomial generator of this growth group, in case
+        one exists.
 
         INPUT:
 
@@ -1876,14 +1876,19 @@ class GenericGrowthGroup(
 
         An empty tuple.
 
+        .. NOTE::
+
+            A generator is called monomial generator if the variable
+            of the underlying growth group is a valid identifier. For
+            example, ``x^ZZ`` has ``x`` as a monomial generator,
+            while ``log(x)^ZZ`` or ``icecream(x)^ZZ`` do not have
+            monomial generators.
+
         TESTS::
 
             sage: import sage.rings.asymptotic.growth_group as agg
             sage: agg.GenericGrowthGroup(ZZ).gens_monomial()
             ()
-
-        TESTS::
-
             sage: import sage.rings.asymptotic.growth_group as agg
             sage: agg.GrowthGroup('ZZ^x').gens_monomial()
             ()
@@ -1893,7 +1898,7 @@ class GenericGrowthGroup(
 
     def gens(self):
         r"""
-        Return a tuple of all generators (as a group) of this growth
+        Return a tuple of all generators of this monomial growth
         group.
 
         INPUT:
@@ -1902,7 +1907,8 @@ class GenericGrowthGroup(
 
         OUTPUT:
 
-        A tuple whose entries are growth elements.
+        A tuple whose entries are instances of
+        :class:`MonomialGrowthElement`.
 
         EXAMPLES::
 
@@ -2163,7 +2169,7 @@ class MonomialGrowthElement(GenericGrowthElement):
 
     INPUT:
 
-    - ``parent`` -- a :class:`GenericGrowthGroup`.
+    - ``parent`` -- a :class:`MonomialGrowthGroup`.
 
     - ``raw_element`` -- an element from the base ring of the parent.
 
@@ -2195,7 +2201,7 @@ class MonomialGrowthElement(GenericGrowthElement):
         r"""
         The exponent of this growth element.
 
-        EXAMPLES:
+        EXAMPLES::
 
             sage: import sage.rings.asymptotic.growth_group as agg
             sage: P = agg.MonomialGrowthGroup(ZZ, 'x')
@@ -2526,7 +2532,7 @@ class MonomialGrowthGroup(GenericGrowthGroup):
 
     def _convert_(self, data):
         r"""
-        Converts ``data`` to something the constructor of the
+        Convert ``data`` to something the constructor of the
         element class accepts (``raw_element``).
 
         INPUT:
@@ -2658,7 +2664,8 @@ class MonomialGrowthGroup(GenericGrowthGroup):
 
     def gens_monomial(self):
         r"""
-        Return a tuple containing generators of this growth group.
+        Return a tuple containing monomial generators of this growth
+        group.
 
         INPUT:
 
@@ -2670,9 +2677,11 @@ class MonomialGrowthGroup(GenericGrowthGroup):
 
         .. NOTE::
 
-            If a :class:`MonomialGrowthGroup` models a logarithmic
-            growth group (by having a variable name of the form
-            ``log(...)``), an empty tuple is returned.
+            A generator is called monomial generator if the variable
+            of the underlying growth group is a valid identifier. For
+            example, ``x^ZZ`` has ``x`` as a monomial generator,
+            while ``log(x)^ZZ`` or ``icecream(x)^ZZ`` do not have
+            monomial generators.
 
         TESTS::
 
@@ -3196,7 +3205,7 @@ class ExponentialGrowthGroup(GenericGrowthGroup):
 
     def gens(self):
         r"""
-        Return a tuple of all generators (as a group) of this growth
+        Return a tuple of all generators of this exponential growth
         group.
 
         INPUT:
@@ -3205,7 +3214,7 @@ class ExponentialGrowthGroup(GenericGrowthGroup):
 
         OUTPUT:
 
-        A tuple whose entries are growth elements.
+        An empty tuple.
 
         EXAMPLES::
 

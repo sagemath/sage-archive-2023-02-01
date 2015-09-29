@@ -491,10 +491,10 @@ class Permutation(CombinatorialElement):
 
         EXAMPLES::
 
-        sage: P = Permutation([2,1]); P
-        [2, 1]
-        sage: P.parent()
-        Standard permutations
+            sage: P = Permutation([2,1]); P
+            [2, 1]
+            sage: P.parent()
+            Standard permutations
         """
         if isinstance(l, Permutation):
             return l

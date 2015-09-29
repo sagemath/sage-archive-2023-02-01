@@ -771,8 +771,7 @@ class RiggedConfigurations(UniqueRepresentation, Parent):
 
     def _calc_vacancy_number(self, partitions, a, i, **options):
         r"""
-        Calculate the vacancy number of the `i`-th row of the `a`-th rigged
-        partition.
+        Calculate the vacancy number `p_i^{(a)}` in ``self``.
 
         This assumes that `\gamma_a = 1` for all `a` and `(\alpha_a \mid
         \alpha_b ) = A_{ab}`.
@@ -783,41 +782,36 @@ class RiggedConfigurations(UniqueRepresentation, Parent):
 
         - ``a`` -- the rigged partition index
 
-        - ``i`` -- the row index of the `a`-th rigged partition
+        - ``i`` -- the row length
 
         TESTS::
 
             sage: RC = RiggedConfigurations(['A', 4, 1], [[2, 1]])
             sage: elt = RC(partition_list=[[1], [1], [], []])
-            sage: RC._calc_vacancy_number(elt.nu(), 1, 0)
+            sage: RC._calc_vacancy_number(elt.nu(), 1, 1)
             0
         """
-        if i is None:
-            row_len = float("inf")
-        else:
-            row_len = partitions[a][i]
-
         vac_num = 0
         if "B" in options:
             for tableau in options["B"]:
                 if len(tableau) == self._rc_index[a]:
-                    vac_num += min(row_len, len(tableau[0]))
+                    vac_num += min(i, len(tableau[0]))
         elif "L" in options:
             L = options["L"]
             if a in L:
                 for kvp in L[a].items():
-                    vac_num += min(kvp[0], row_len) * kvp[1]
+                    vac_num += min(kvp[0], i) * kvp[1]
         elif "dims" in options:
             for dim in options["dims"]:
                 if dim[0] == self._rc_index[a]:
-                    vac_num += min(dim[1], row_len)
+                    vac_num += min(dim[1], i)
         else:
             for dim in self.dims:
                 if dim[0] == self._rc_index[a]:
-                    vac_num += min(dim[1], row_len)
+                    vac_num += min(dim[1], i)
 
         for b, value in enumerate(self._cartan_matrix.row(a)):
-            vac_num -= value * partitions[b].get_num_cells_to_column(row_len)
+            vac_num -= value * partitions[b].get_num_cells_to_column(i)
 
         return vac_num
 
@@ -1141,8 +1135,7 @@ class RCNonSimplyLaced(RiggedConfigurations):
 
     def _calc_vacancy_number(self, partitions, a, i, **options):
         r"""
-        Calculate the vacancy number of the `i`-th row of the `a`-th rigged
-        partition.
+        Calculate the vacancy number `p_i^{(a)}` in ``self``.
 
         INPUT:
 
@@ -1150,42 +1143,37 @@ class RCNonSimplyLaced(RiggedConfigurations):
 
         - ``a`` -- the rigged partition index
 
-        - ``i`` -- the row index of the `a`-th rigged partition
+        - ``i`` -- the row length
 
         TESTS::
 
             sage: RC = RiggedConfigurations(['C', 4, 1], [[2, 1]])
             sage: elt = RC(partition_list=[[1], [2], [2], [1]])
-            sage: RC._calc_vacancy_number(elt.nu(), 1, 0)
+            sage: RC._calc_vacancy_number(elt.nu(), 1, 2)
             0
         """
-        if i is None:
-            row_len = float("inf")
-        else:
-            row_len = partitions[a][i]
-
         vac_num = 0
         if "B" in options:
             for tableau in options["B"]:
                 if len(tableau) == self._rc_index[a]:
-                    vac_num += min(row_len, len(tableau[0]))
+                    vac_num += min(i, len(tableau[0]))
         elif "L" in options:
             L = options["L"]
             if a in L:
                 for kvp in L[a].items():
-                    vac_num += min(kvp[0], row_len) * kvp[1]
+                    vac_num += min(kvp[0], i) * kvp[1]
         elif "dims" in options:
             for dim in options["dims"]:
                 if dim[0] == self._rc_index[a]:
-                    vac_num += min(dim[1], row_len)
+                    vac_num += min(dim[1], i)
         else:
             for dim in self.dims:
                 if dim[0] == self._rc_index[a]:
-                    vac_num += min(dim[1], row_len)
+                    vac_num += min(dim[1], i)
 
         gamma = self._folded_ct.scaling_factors()
         for b, value in enumerate(self._cartan_matrix.row(a)):
-            vac_num -= value * partitions[b].get_num_cells_to_column(gamma[a+1]*row_len, gamma[b+1]) // gamma[b+1]
+            vac_num -= value * partitions[b].get_num_cells_to_column(gamma[a+1]*i, gamma[b+1]) // gamma[b+1]
 
         return vac_num
 
@@ -1494,8 +1482,7 @@ class RCTypeA2Even(RCNonSimplyLaced):
 
     def _calc_vacancy_number(self, partitions, a, i, **options):
         r"""
-        Calculate the vacancy number of the `i`-th row of the `a`-th rigged
-        partition.
+        Calculate the vacancy number `p_i^{(a)}` in ``self``.
 
         This is a special implementation for type `A_{2n}^{(2)}`.
 
@@ -1505,42 +1492,37 @@ class RCTypeA2Even(RCNonSimplyLaced):
 
         - ``a`` -- the rigged partition index
 
-        - ``i`` -- the row index of the `a`-th rigged partition
+        - ``i`` -- the row length
 
         TESTS::
 
             sage: RC = RiggedConfigurations(['A', 4, 2], [[2, 1]])
             sage: elt = RC(partition_list=[[1], [2]])
-            sage: RC._calc_vacancy_number(elt.nu(), 1, 0)
+            sage: RC._calc_vacancy_number(elt.nu(), 1, 2)
             0
         """
-        if i is None:
-            row_len = float("inf")
-        else:
-            row_len = partitions[a][i]
-
         vac_num = 0
         if "B" in options:
             for tableau in options["B"]:
                 if len(tableau) == self._rc_index[a]:
-                    vac_num += min(row_len, len(tableau[0]))
+                    vac_num += min(i, len(tableau[0]))
         elif "L" in options:
             L = options["L"]
             if a in L:
                 for kvp in L[a].items():
-                    vac_num += min(kvp[0], row_len) * kvp[1]
+                    vac_num += min(kvp[0], i) * kvp[1]
         elif "dims" in options:
             for dim in options["dims"]:
                 if dim[0] == self._rc_index[a]:
-                    vac_num += min(dim[1], row_len)
+                    vac_num += min(dim[1], i)
         else:
             for dim in self.dims:
                 if dim[0] == self._rc_index[a]:
-                    vac_num += min(dim[1], row_len)
+                    vac_num += min(dim[1], i)
 
         gamma = self._folded_ct.scaling_factors()
         for b, value in enumerate(self._cartan_matrix.row(a)):
-            vac_num -= value * partitions[b].get_num_cells_to_column(row_len) // gamma[b+1]
+            vac_num -= value * partitions[b].get_num_cells_to_column(i) // gamma[b+1]
 
         return vac_num
 
@@ -1651,8 +1633,8 @@ class RCTypeA2Dual(RCTypeA2Even):
     """
     def _calc_vacancy_number(self, partitions, a, i, **options):
         r"""
-        Calculate the vacancy number. A special case is needed for the `n`-th
-        partition for type `A_{2n}^{(2)\dagger}`.
+        Calculate the vacancy number `p_i^{(a)}` in ``self``. A special case
+        is needed for the `n`-th partition for type `A_{2n}^{(2)\dagger}`.
 
         INPUT:
 
@@ -1660,43 +1642,39 @@ class RCTypeA2Dual(RCTypeA2Even):
 
         - ``a`` -- the rigged partition index
 
-        - ``i`` -- the row index of the `a`-th rigged partition
+        - ``i`` -- the row lenth
 
         TESTS::
 
             sage: RC = RiggedConfigurations(CartanType(['A', 6, 2]).dual(), [[2,1]])
             sage: elt = RC(partition_list=[[1], [2], [2]])
-            sage: RC._calc_vacancy_number(elt.nu(), 0, 0)
+            sage: RC._calc_vacancy_number(elt.nu(), 0, 1)
             -1
         """
         if a != self._cartan_type.classical().rank()-1:
             return RCTypeA2Even._calc_vacancy_number(self, partitions, a, i, **options)
-        if i is None:
-            row_len = float("inf")
-        else:
-            row_len = partitions[a][i]
 
         vac_num = 0
         if "B" in options:
             for tableau in options["B"]:
                 if len(tableau) == self._rc_index[a]:
-                    vac_num += min(row_len, len(tableau[0]))
+                    vac_num += min(i, len(tableau[0]))
         elif "L" in options:
             L = options["L"]
             if a in L:
                 for kvp in L[a].items():
-                    vac_num += min(kvp[0], row_len) * kvp[1]
+                    vac_num += min(kvp[0], i) * kvp[1]
         elif "dims" in options:
             for dim in options["dims"]:
                 if dim[0] == self._rc_index[a]:
-                    vac_num += min(dim[1], row_len)
+                    vac_num += min(dim[1], i)
         else:
             for dim in self.dims:
                 if dim[0] == self._rc_index[a]:
-                    vac_num += min(dim[1], row_len)
+                    vac_num += min(dim[1], i)
 
         for b, value in enumerate(self._cartan_matrix.row(a)):
-            vac_num -= value * partitions[b].get_num_cells_to_column(row_len) / 2
+            vac_num -= value * partitions[b].get_num_cells_to_column(i) / 2
 
         return vac_num
 

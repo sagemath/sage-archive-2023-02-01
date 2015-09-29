@@ -1485,8 +1485,12 @@ class CartanType_crystallographic(CartanType_abstract):
             1   2   2   2   2
         """
 
+    # The default value of label should really be lambda i:i, but sphinx does
+    # not like it currently (see #14553); since this is an abstract method
+    # the value won't actually be used, so we put a fake instead.
     @abstract_method(optional=True)
-    def _latex_dynkin_diagram(self, label=lambda i: i, node=None, node_dist=2):
+    def _latex_dynkin_diagram(self, label='lambda i: i',
+                              node=None, node_dist=2):
         r"""
         Return a latex representation of the Dynkin diagram.
 

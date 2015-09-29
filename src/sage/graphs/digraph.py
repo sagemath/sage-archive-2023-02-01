@@ -206,6 +206,8 @@ class DiGraph(GenericGraph):
 
        #.  A NetworkX digraph
 
+       #.  An igraph Graph (see http://igraph.org/python/)
+
     -  ``pos`` - a positioning dictionary: for example, the
        spring layout from NetworkX for the 5-cycle is::
 
@@ -252,12 +254,7 @@ class DiGraph(GenericGraph):
                ``convert_empty_dict_labels_to_None`` to ``False`` (it is
                ``True`` by default).
 
-    -  ``boundary`` - a list of boundary vertices, if
-       empty, digraph is considered as a 'graph without boundary'
-
-    -  ``implementation`` - what to use as a backend for
-       the graph. Currently, the options are either 'networkx' or
-       'c_graph'
+       -  ``igraph`` - data must be an igraph directed Graph.
 
     - ``sparse`` (boolean) -- ``sparse=True`` is an alias for
       ``data_structure="sparse"``, and ``sparse=False`` is an alias for
@@ -277,16 +274,12 @@ class DiGraph(GenericGraph):
          than the sparse backend and smaller in memory, and it is immutable, so
          that the resulting graphs can be used as dictionary keys).
 
-       *Only available when* ``implementation == 'c_graph'``
-
     - ``immutable`` (boolean) -- whether to create a immutable digraph. Note
       that ``immutable=True`` is actually a shortcut for
-      ``data_structure='static_sparse'``. Set to ``False`` by default, only
-      available when ``implementation='c_graph'``
+      ``data_structure='static_sparse'``.
 
-    -  ``vertex_labels`` - only for implementation == 'c_graph'.
-       Whether to allow any object as a vertex (slower), or
-       only the integers 0, ..., n-1, where n is the number of vertices.
+    - ``vertex_labels`` - Whether to allow any object as a vertex (slower), or
+      only the integers 0, ..., n-1, where n is the number of vertices.
 
     -  ``convert_empty_dict_labels_to_None`` - this arguments sets
        the default edge labels used by NetworkX (empty dictionaries)
@@ -373,14 +366,6 @@ class DiGraph(GenericGraph):
             sage: DiGraph(M)
             Digraph on 6 vertices
 
-    #. A c_graph implemented DiGraph can be constructed from a
-       networkx implemented DiGraph::
-
-            sage: D = DiGraph({0:[1],1:[2],2:[0]}, implementation="networkx")
-            sage: E = DiGraph(D,implementation="c_graph")
-            sage: D == E
-            True
-
     #. A dig6 string: Sage automatically recognizes whether a string is
        in dig6 format, which is a directed version of graph6::
 
@@ -414,16 +399,30 @@ class DiGraph(GenericGraph):
             sage: DiGraph(g)
             Digraph on 5 vertices
 
-       Note that in all cases, we copy the NetworkX structure.
+    #. An igraph directed Graph (see also
+       :meth:`~sage.graphs.generic_graph.GenericGraph.igraph_graph`)::
 
-       ::
+           sage: import igraph                                  # optional - python_igraph
+           sage: g = igraph.Graph([(0,1),(0,2)], directed=True) # optional - python_igraph
+           sage: DiGraph(g)                                     # optional - python_igraph
+           Digraph on 3 vertices
 
-            sage: import networkx
-            sage: g = networkx.DiGraph({0:[1,2,3], 2:[4]})
-            sage: G = DiGraph(g, implementation='networkx')
-            sage: H = DiGraph(g, implementation='networkx')
-            sage: G._backend._nxg is H._backend._nxg
-            False
+       If ``vertex_labels`` is ``True``, the names of the vertices are given by
+       the vertex attribute ``'name'``, if available::
+
+           sage: g = igraph.Graph([(0,1),(0,2)], directed=True, vertex_attrs={'name':['a','b','c']})  # optional - python_igraph
+           sage: DiGraph(g).vertices()                                                                # optional - python_igraph
+           ['a', 'b', 'c']
+           sage: g = igraph.Graph([(0,1),(0,2)], directed=True, vertex_attrs={'label':['a','b','c']}) # optional - python_igraph
+           sage: DiGraph(g).vertices()                                                                # optional - python_igraph
+           [0, 1, 2]
+
+       If the igraph Graph has edge attributes, they are used as edge labels::
+
+           sage: g = igraph.Graph([(0,1),(0,2)], directed=True, edge_attrs={'name':['a','b'], 'weight':[1,3]}) # optional - python_igraph
+           sage: DiGraph(g).edges()                                                                            # optional - python_igraph
+           [(0, 1, {'name': 'a', 'weight': 1}), (0, 2, {'name': 'b', 'weight': 3})]
+
 
     TESTS::
 
@@ -434,18 +433,12 @@ class DiGraph(GenericGraph):
         sage: DiGraph({0:Set([1,2,3]), 2:Set([4])}).edges()
         [(0, 1, None), (0, 2, None), (0, 3, None), (2, 4, None)]
 
-    Get rid of mutable default argument for `boundary` (:trac:`14794`)::
-
-        sage: D = DiGraph(boundary=None)
-        sage: D._boundary
-        []
-
     Demonstrate that digraphs using the static backend are equal to mutable
     graphs but can be used as dictionary keys::
 
         sage: import networkx
         sage: g = networkx.DiGraph({0:[1,2,3], 2:[4]})
-        sage: G = DiGraph(g, implementation='networkx')
+        sage: G = DiGraph(g)
         sage: G_imm = DiGraph(G, data_structure="static_sparse")
         sage: H_imm = DiGraph(G, data_structure="static_sparse")
         sage: H_imm is G_imm
@@ -469,12 +462,11 @@ class DiGraph(GenericGraph):
         True
         sage: type(J_imm._backend) == type(G_imm._backend)
         True
-
     """
     _directed = True
 
     def __init__(self, data=None, pos=None, loops=None, format=None,
-                 boundary=None, weighted=None, implementation='c_graph',
+                 weighted=None, implementation='c_graph',
                  data_structure="sparse", vertex_labels=True, name=None,
                  multiedges=None, convert_empty_dict_labels_to_None=None,
                  sparse=True, immutable=False):
@@ -561,12 +553,20 @@ class DiGraph(GenericGraph):
             sage: copy(g) is g    # copy is mutable again
             False
 
-        TESTS::
+        Unknown input format::
 
             sage: DiGraph(4,format="HeyHeyHey")
             Traceback (most recent call last):
             ...
             ValueError: Unknown input format 'HeyHeyHey'
+
+        Sage DiGraph from igraph undirected graph::
+
+            sage: import igraph           # optional - python_igraph
+            sage: DiGraph(igraph.Graph()) # optional - python_igraph
+            Traceback (most recent call last):
+            ...
+            ValueError: A *directed* igraph graph was expected. To build an undirected graph, call the Graph constructor.
         """
         msg = ''
         GenericGraph.__init__(self)
@@ -580,33 +580,31 @@ class DiGraph(GenericGraph):
 
         # Choice of the backend
 
-        if implementation == 'networkx':
-            import networkx
-            from sage.graphs.base.graph_backends import NetworkXGraphBackend
-            self._backend = NetworkXGraphBackend(networkx.MultiDiGraph())
-        elif implementation == 'c_graph':
-            if multiedges or weighted:
-                if data_structure == "dense":
-                    raise RuntimeError("Multiedge and weighted c_graphs must be sparse.")
+        if implementation != 'c_graph':
+            from sage.misc.superseded import deprecation
+            deprecation(18375,"The 'implementation' keyword is deprecated, "
+                        "and the graphs has been stored as a 'c_graph'")
 
-            if immutable:
-                data_structure = 'static_sparse'
+        if multiedges or weighted:
+            if data_structure == "dense":
+                raise RuntimeError("Multiedge and weighted c_graphs must be sparse.")
 
-            # If the data structure is static_sparse, we first build a graph
-            # using the sparse data structure, then reencode the resulting graph
-            # as a static sparse graph.
-            from sage.graphs.base.sparse_graph import SparseGraphBackend
-            from sage.graphs.base.dense_graph import DenseGraphBackend
-            if data_structure in ["sparse", "static_sparse"]:
-                CGB = SparseGraphBackend
-            elif data_structure == "dense":
-                 CGB = DenseGraphBackend
-            else:
-                raise ValueError("data_structure must be equal to 'sparse', "
-                                 "'static_sparse' or 'dense'")
-            self._backend = CGB(0, directed=True)
+        if immutable:
+            data_structure = 'static_sparse'
+
+        # If the data structure is static_sparse, we first build a graph
+        # using the sparse data structure, then reencode the resulting graph
+        # as a static sparse graph.
+        from sage.graphs.base.sparse_graph import SparseGraphBackend
+        from sage.graphs.base.dense_graph import DenseGraphBackend
+        if data_structure in ["sparse", "static_sparse"]:
+            CGB = SparseGraphBackend
+        elif data_structure == "dense":
+             CGB = DenseGraphBackend
         else:
-            raise NotImplementedError("Supported implementations: networkx, c_graph.")
+            raise ValueError("data_structure must be equal to 'sparse', "
+                             "'static_sparse' or 'dense'")
+        self._backend = CGB(0, directed=True)
 
         if format is None and isinstance(data, str):
             format = 'dig6'
@@ -642,6 +640,17 @@ class DiGraph(GenericGraph):
                 format = 'NX'
             elif isinstance(data, (networkx.DiGraph, networkx.MultiDiGraph)):
                 format = 'NX'
+        if (format is None          and
+            hasattr(data, 'vcount') and
+            hasattr(data, 'get_edgelist')):
+            try:
+                import igraph
+            except ImportError:
+                raise ImportError("The data seems to be a igraph object, but "+
+                                  "igraph is not installed in Sage. To install "+
+                                  "it, run 'sage -i python_igraph'")
+            if format is None and isinstance(data, igraph.Graph):
+                format = 'igraph'
         if format is None and isinstance(data, (int, Integer)):
             format = 'int'
         if format is None and data is None:
@@ -879,6 +888,19 @@ class DiGraph(GenericGraph):
             self.allow_loops(loops,check=False)
             self.add_vertices(data.nodes())
             self.add_edges((u,v,r(l)) for u,v,l in data.edges_iter(data=True))
+        elif format == 'igraph':
+            if not data.is_directed():
+                raise ValueError("A *directed* igraph graph was expected. To "+
+                                 "build an undirected graph, call the Graph "
+                                 "constructor.")
+
+            self.add_vertices(range(data.vcount()))
+            self.add_edges([(e.source, e.target, e.attributes()) for e in data.es()])
+
+            if vertex_labels and 'name' in data.vertex_attributes():
+                vs = data.vs()
+                self.relabel({v:vs[v]['name'] for v in self})
+
         elif format == 'int':
             if weighted   is None: weighted   = False
             self.allow_loops(True if loops else False,check=False)
@@ -892,6 +914,7 @@ class DiGraph(GenericGraph):
             self.allow_loops(False if loops is False else True)
             self.add_edges(data)
             if multiedges is not True and self.has_multiple_edges():
+                from sage.misc.superseded import deprecation
                 deprecation(15706, "You created a graph with multiple edges "
                             "from a list. Please set 'multiedges' to 'True' "
                             "when you do so, as in the future the default "
@@ -900,6 +923,7 @@ class DiGraph(GenericGraph):
                 self.allow_multiple_edges(False)
 
             if loops is not True and self.has_loops():
+                from sage.misc.superseded import deprecation
                 deprecation(15706, "You created a graph with loops from a list. "+
                             "Please set 'loops' to 'True' when you do so, as in "+
                             "the future the default behaviour will be to ignore "+
@@ -913,7 +937,7 @@ class DiGraph(GenericGraph):
         self._weighted = weighted
 
         self._pos = pos
-        self._boundary = boundary if boundary is not None else []
+
         if format != 'DiGraph' or name is not None:
             self.name(name)
 
@@ -1067,10 +1091,6 @@ class DiGraph(GenericGraph):
 
         INPUT:
 
-         - ``implementation`` - string (default: 'networkx') the
-           implementation goes here.  Current options are only
-           'networkx' or 'c_graph'.
-
          - ``data_structure`` -- one of ``"sparse"``, ``"static_sparse"``, or
            ``"dense"``. See the documentation of :class:`Graph` or
            :class:`DiGraph`.
@@ -1113,7 +1133,6 @@ class DiGraph(GenericGraph):
         from sage.graphs.all import Graph
         G = Graph(name           = self.name(),
                   pos            = self._pos,
-                  boundary       = self._boundary,
                   multiedges     = self.allows_multiple_edges(),
                   loops          = self.allows_loops(),
                   implementation = implementation,
@@ -1323,8 +1342,8 @@ class DiGraph(GenericGraph):
             3
             3
             2
-            3
             2
+            3
             2
             2
             3
@@ -1333,11 +1352,11 @@ class DiGraph(GenericGraph):
             ((0, 1), 3)
             ((1, 2), 3)
             ((0, 0), 2)
-            ((0, 2), 3)
-            ((1, 3), 2)
-            ((1, 0), 2)
             ((0, 3), 2)
             ((1, 1), 3)
+            ((1, 3), 2)
+            ((1, 0), 2)
+            ((0, 2), 3)
         """
         if vertices is None:
             vertices = self.vertex_iterator()
@@ -1403,8 +1422,8 @@ class DiGraph(GenericGraph):
             3
             3
             2
-            3
             2
+            3
             2
             2
             3
@@ -1413,11 +1432,11 @@ class DiGraph(GenericGraph):
             ((0, 1), 3)
             ((1, 2), 3)
             ((0, 0), 2)
-            ((0, 2), 3)
-            ((1, 3), 2)
-            ((1, 0), 2)
             ((0, 3), 2)
             ((1, 1), 3)
+            ((1, 3), 2)
+            ((1, 0), 2)
+            ((0, 2), 3)
         """
         if vertices is None:
             vertices = self.vertex_iterator()
@@ -3114,57 +3133,6 @@ class DiGraph(GenericGraph):
             level = new_level
         return Levels
 
-    def strongly_connected_components(self):
-        """
-        Returns the list of strongly connected components.
-
-        EXAMPLES::
-
-            sage: D = DiGraph( { 0 : [1, 3], 1 : [2], 2 : [3], 4 : [5, 6], 5 : [6] } )
-            sage: D.connected_components()
-            [[0, 1, 2, 3], [4, 5, 6]]
-            sage: D = DiGraph( { 0 : [1, 3], 1 : [2], 2 : [3], 4 : [5, 6], 5 : [6] } )
-            sage: D.strongly_connected_components()
-            [[0], [1], [2], [3], [4], [5], [6]]
-            sage: D.add_edge([2,0])
-            sage: D.strongly_connected_components()
-            [[0, 1, 2], [3], [4], [5], [6]]
-
-        TESTS:
-
-        Checking against NetworkX, and another of Sage's implementations::
-
-            sage: from sage.graphs.base.static_sparse_graph import strongly_connected_components
-            sage: import networkx
-            sage: for i in range(100):                                     # long
-            ...        g = digraphs.RandomDirectedGNP(100,.05)             # long
-            ...        h = g.networkx_graph()                              # long
-            ...        scc1 = g.strongly_connected_components()            # long
-            ...        scc2 = networkx.strongly_connected_components(h)    # long
-            ...        scc3 = strongly_connected_components(g)             # long
-            ...        s1 = Set(map(Set,scc1))                             # long
-            ...        s2 = Set(map(Set,scc2))                             # long
-            ...        s3 = Set(map(Set,scc3))                             # long
-            ...        if s1 != s2:                                        # long
-            ...            print "Ooch !"                                  # long
-            ...        if s1 != s3:                                        # long
-            ...            print "Oooooch !"                               # long
-
-        """
-
-        try:
-            vertices = set(self.vertices())
-            scc = []
-            while vertices:
-                tmp = self.strongly_connected_component_containing_vertex(next(vertices.__iter__()))
-                vertices.difference_update(set(tmp))
-                scc.append(tmp)
-            return scc
-
-        except AttributeError:
-            import networkx
-            return networkx.strongly_connected_components(self.networkx_graph(copy=False))
-
     def strongly_connected_component_containing_vertex(self, v):
         """
         Returns the strongly connected component containing a given vertex
@@ -3208,7 +3176,7 @@ class DiGraph(GenericGraph):
             [Subgraph of (Petersen graph): Digraph on 10 vertices]
 
         """
-        return map(self.subgraph, self.strongly_connected_components())
+        return [self.subgraph(_) for _ in self.strongly_connected_components()]
 
     def strongly_connected_components_digraph(self, keep_labels = False):
         r"""
@@ -3250,7 +3218,7 @@ class DiGraph(GenericGraph):
             sage: scc_digraph.vertices()
             [{0}, {3}, {1, 2}]
             sage: scc_digraph.edges()
-            [({0}, {3}, None), ({0}, {1, 2}, None), ({1, 2}, {3}, None)]
+            [({0}, {1, 2}, None), ({0}, {3}, None), ({1, 2}, {3}, None)]
 
         By default, the labels are discarded, and the result has no
         loops nor multiple edges. If ``keep_labels`` is ``True``, then
@@ -3265,16 +3233,18 @@ class DiGraph(GenericGraph):
             sage: scc_digraph.vertices()
             [{0}, {3}, {1, 2}]
             sage: scc_digraph.edges()
-            [({0}, {3}, '0-3'), ({0}, {1, 2}, '0-12'),
-             ({1, 2}, {3}, '1-3'), ({1, 2}, {3}, '2-3'),
-             ({1, 2}, {1, 2}, '1-2'), ({1, 2}, {1, 2}, '2-1')]
-
+            [({0}, {1, 2}, '0-12'),
+             ({0}, {3}, '0-3'),
+             ({1, 2}, {1, 2}, '1-2'),
+             ({1, 2}, {1, 2}, '2-1'),
+             ({1, 2}, {3}, '1-3'),
+             ({1, 2}, {3}, '2-3')]
         """
 
         from sage.sets.set import Set
 
         scc = self.strongly_connected_components()
-        scc_set = map(Set,scc)
+        scc_set = [Set(_) for _ in scc]
 
         d = {}
         for i,c in enumerate(scc):
@@ -3620,3 +3590,6 @@ import types
 
 import sage.graphs.comparability
 DiGraph.is_transitive = types.MethodType(sage.graphs.comparability.is_transitive, None, DiGraph)
+
+from sage.graphs.base.static_sparse_graph import tarjan_strongly_connected_components
+DiGraph.strongly_connected_components = types.MethodType(tarjan_strongly_connected_components, None, DiGraph)

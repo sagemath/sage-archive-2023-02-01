@@ -39,6 +39,7 @@ This module gathers the following designs :
 
     :meth:`~sage.combinat.designs.block_design.ProjectiveGeometryDesign`
     :meth:`~sage.combinat.designs.block_design.DesarguesianProjectivePlaneDesign`
+    :meth:`~sage.combinat.designs.block_design.HughesPlane`
     :meth:`~sage.combinat.designs.bibd.balanced_incomplete_block_design`
     :meth:`~sage.combinat.designs.resolvable_bibd.resolvable_balanced_incomplete_block_design`
     :meth:`~sage.combinat.designs.resolvable_bibd.kirkman_triple_system`
@@ -76,7 +77,8 @@ from sage.combinat.designs.block_design import (BlockDesign,
                                                 AffineGeometryDesign,
                                                 WittDesign,
                                                 HadamardDesign,
-                                                Hadamard3Design)
+                                                Hadamard3Design,
+                                                HughesPlane)
 
 from sage.combinat.designs.steiner_quadruple_systems import steiner_quadruple_system
 
@@ -90,14 +92,20 @@ from sage.combinat.designs.orthogonal_arrays import transversal_design, incomple
 from sage.combinat.designs.difference_family import difference_family
 from difference_matrices import difference_matrix
 
-from sage.combinat.designs.incidence_structures import IncidenceStructure
+from sage.misc.superseded import deprecated_function_alias, deprecated_callable_import
+deprecated_callable_import(19096,
+                           'sage.combinat.designs.incidence_structures',
+                           globals(),
+                           locals(),
+                           ["IncidenceStructure"],
+                           ("This alias will soon be removed. You can call the same object by removing 'designs.' in your command"))
+
 Hypergraph = BlockDesign = IncidenceStructure    # just an alias
 from sage.combinat.designs.bibd import balanced_incomplete_block_design, steiner_triple_system
 from sage.combinat.designs.resolvable_bibd import resolvable_balanced_incomplete_block_design, kirkman_triple_system
 from sage.combinat.designs.group_divisible_designs import group_divisible_design
 
 # deprecated in june 2014 (#16446)
-from sage.misc.superseded import deprecated_function_alias, deprecated_callable_import
 BalancedIncompleteBlockDesign = deprecated_function_alias(16446,
         balanced_incomplete_block_design)
 

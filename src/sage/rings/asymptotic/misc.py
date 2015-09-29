@@ -1,5 +1,5 @@
 r"""
-Asymptotic Ring --- Miscellaneous
+Asymptotic Expansions --- Miscellaneous
 
 AUTHORS:
 

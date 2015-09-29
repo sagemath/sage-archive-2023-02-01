@@ -1,5 +1,11 @@
+# The actual algorithm is implemented in the C++ file partitions_c.cc
+# which requires the gmp and mpfr libraries.
+#
+# distutils: sources = sage/combinat/partitions_c.cc
+# distutils: libraries = gmp mpfr
+# distutils: language = c++
 """
-Number of partitions of integer
+Number of partitions of an integer
 
 AUTHOR:
 
@@ -7,6 +13,18 @@ AUTHOR:
 - Jonathan Bober (2007-07-28): wrote the program ``partitions_c.cc``
   that does all the actual heavy lifting.
 """
+
+#*****************************************************************************
+#       Copyright (C) 2007 William Stein <wstein@gmail.com>
+#       Copyright (C) 2007 Jonathan Bober <jwbober@gmail.com>
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
+#                  http://www.gnu.org/licenses/
+#*****************************************************************************
+
 
 import sys
 
@@ -130,7 +148,7 @@ def ZS1_iterator(int n):
 
         sage: from sage.combinat.partitions import ZS1_iterator
         sage: it = ZS1_iterator(4)
-        sage: it.next()
+        sage: next(it)
         [4]
         sage: type(_)
         <type 'list'>
@@ -141,11 +159,6 @@ def ZS1_iterator(int n):
     if n == 0:
         yield []
         return
-    #cdef int *x = <int*>malloc(sizeof(int) *n)
-    #x[0] = n
-    #cdef int i
-    #for i in range(1, n):
-    #    x[i] = 1
     x = [1]*n
     x[0] = n
 
@@ -195,7 +208,7 @@ def ZS1_iterator_nk(int n, int k):
 
         sage: from sage.combinat.partitions import ZS1_iterator_nk
         sage: it = ZS1_iterator_nk(4, 3)
-        sage: it.next()
+        sage: next(it)
         [4]
         sage: type(_)
         <type 'list'>
@@ -209,11 +222,6 @@ def ZS1_iterator_nk(int n, int k):
         if k == 1:
             yield [n]
         return
-    #cdef int *x = <int*>malloc(sizeof(int) *n)
-    #x[0] = n
-    #cdef int i
-    #for i in range(1, n):
-    #    x[i] = 1
     x = [1]*k
     x[0] = n
 

@@ -4873,8 +4873,8 @@ class FiniteWord_class(Word_class):
 
     def _s(self, i):
         r"""
-        Implements Lascoux and Schutzenberger's `s_i` operator, swapping the
-        number of `i` and `i+1`s in a word.
+        Implement Lascoux and Schutzenberger `s_i` operator, swapping the
+        number of `i` and `i+1` in a word.
 
         EXAMPLES::
 

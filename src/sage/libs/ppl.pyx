@@ -1,3 +1,5 @@
+# distutils: language = c++
+# distutils: libraries = ppl m
 r"""
 Cython wrapper for the Parma Polyhedra Library (PPL)
 
@@ -149,6 +151,7 @@ AUTHORS:
 
 from sage.structure.sage_object cimport SageObject
 from sage.libs.gmp.mpz cimport *
+from sage.libs.gmpxx cimport mpz_class
 from sage.rings.integer cimport Integer
 from sage.rings.rational cimport Rational
 
@@ -163,14 +166,6 @@ from libcpp cimport bool as cppbool
 # These can only be triggered by methods in the Polyhedron class
 # they need to be wrapped in sig_on() / sig_off()
 ####################################################
-cdef extern from "gmpxx.h":
-    cdef cppclass mpz_class:
-        mpz_class()
-        mpz_class(int i)
-        mpz_class(mpz_t z)
-        mpz_class(mpz_class)
-        mpz_t get_mpz_t()
-
 
 ####################################################
 # PPL can use floating-point arithmetic to compute integers

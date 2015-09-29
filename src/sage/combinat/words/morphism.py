@@ -746,10 +746,10 @@ class WordMorphism(SageObject):
 
     def _latex_(self):
         r"""
-        Returns the latex representation of the morphism.
+        Return the latex representation of the morphism.
 
-        Use :method:`latex_layout` to change latex layout (oneliner vs
-        array). The default is an latex array.
+        Use :meth:`latex_layout` to change latex layout (oneliner vs
+        array). The default is a latex array.
 
         EXAMPLES::
 

@@ -121,6 +121,7 @@ additional functionality (e.g. linear extensions).
     - :meth:`max_weight_independent() <sage.matroids.matroid.Matroid.max_weight_independent>`
     - :meth:`max_weight_coindependent() <sage.matroids.matroid.Matroid.max_weight_coindependent>`
     - :meth:`intersection() <sage.matroids.matroid.Matroid.intersection>`
+    - :meth:`intersection_unweighted() <sage.matroids.matroid.Matroid.intersection_unweighted>`
 
 - Invariants
     - :meth:`tutte_polynomial() <sage.matroids.matroid.Matroid.tutte_polynomial>`
@@ -288,6 +289,7 @@ REFERENCES
 ..  [Cunningham86] W. H. Cunningham, Improved Bounds for Matroid Partition and Intersection Algorithms. SIAM Journal on Computing 1986 15:4, 948-957
 ..  [CMO11] C. Chun, D. Mayhew, J. Oxley, A chain theorem for internally 4-connected binary matroids. J. Combin. Theory Ser. B 101 (2011), 141-189.
 ..  [CMO12] C. Chun, D. Mayhew, J. Oxley,  Towards a splitter theorem for internally 4-connected binary matroids. J. Combin. Theory Ser. B 102 (2012), 688-700.
+..  [Cunningham] W. H. Cunningham. Improved bounds for matroid partition and intersection algorithms. SIAM J. Comput. 15, 4 (November 1986), 948-957.
 ..  [GG12] Jim Geelen and Bert Gerards, Characterizing graphic matroids by a system of linear equations, submitted, 2012. Preprint: http://www.gerardsbase.nl/papers/geelen_gerards=testing-graphicness%5B2013%5D.pdf
 ..  [GR01] C.Godsil and G.Royle, Algebraic Graph Theory. Graduate Texts in Mathematics, Springer, 2001.
 ..  [Hlineny] Petr Hlineny, "Equivalence-free exhaustive generation of matroid representations", Discrete Applied Mathematics 154 (2006), pp. 1210-1222.
@@ -6501,6 +6503,214 @@ cdef class Matroid(SageObject):
                 u = predecessor[u]
                 path.add(u)
             return True, frozenset(path)
+
+    cpdef intersection_unweighted(self, other):
+        r"""
+        Return a maximum-cardinality common independent set.
+
+        A *common independent set* of matroids `M` and `N` with the same
+        groundset `E` is a subset of `E` that is independent both in `M` and
+        `N`. 
+
+        INPUT:
+
+        - ``other`` -- a second matroid with the same groundset as this
+          matroid.
+
+        OUTPUT:
+
+        A subset of the groundset.
+
+        EXAMPLES::
+
+            sage: M = matroids.named_matroids.T12()
+            sage: N = matroids.named_matroids.ExtendedTernaryGolayCode()
+            sage: len(M.intersection_unweighted(N))
+            6
+            sage: M = matroids.named_matroids.Fano()
+            sage: N = matroids.Uniform(4, 7)
+            sage: M.intersection_unweighted(N)
+            Traceback (most recent call last):
+            ...
+            ValueError: matroid intersection requires equal groundsets.
+        """
+        if not isinstance(other, Matroid):
+            raise TypeError("can only intersect two matroids.")
+        if not self.groundset() == other.groundset():
+            raise ValueError("matroid intersection requires equal groundsets.")
+        return self._intersection_unweighted(other)
+
+    cpdef _intersection_unweighted(self, other):
+        r"""
+        Return a maximum common independent.
+
+        INPUT:
+
+        - ``other`` -- a second matroid with the same groundset as this
+          matroid.
+
+        OUTPUT:
+
+        A subset of the groundset.
+
+        .. NOTE::
+
+            This does not test if the input is well-formed.
+
+        ALGORITHM:
+
+        A blocking flow based algorithm which performs well if the size of
+        the intersection is large [Cunningham]_.
+
+        EXAMPLES::
+
+            sage: M = matroids.named_matroids.T12()
+            sage: N = matroids.named_matroids.ExtendedTernaryGolayCode()
+            sage: len(M._intersection_unweighted(N))
+            6
+        """
+        Y = set()
+        U = self._intersection_augmentation_unweighted(other, Y)
+        while U[0]:
+            Y = U[1]
+            U = self._intersection_augmentation_unweighted(other, Y)
+        return Y
+
+    cpdef _intersection_augmentation_unweighted(self, other, Y):
+        r"""
+        Return a common independent set larger than `Y` or report failure. 
+
+        INPUT:
+
+        - ``other`` -- a matroid with the same ground set as ``self``.
+        - ``Y`` -- an common independent set of ``self`` and ``other`` of size `k`.
+
+        OUTPUT:
+
+        A pair ``True, U`` such that the ``U`` is a common independent set with
+        at least `k + 1` elements; or a pair ``False, X``, if there is no common
+        independent set of size `k + 1`.
+
+        .. NOTE::
+
+            This is an unchecked method. In particular, if the given ``Y`` is
+            not a common independent set, the behavior is unpredictable. 
+
+        EXAMPLES::
+
+            sage: M = matroids.named_matroids.T12()
+            sage: N = matroids.named_matroids.ExtendedTernaryGolayCode()
+            sage: Y = M.intersection(N)
+            sage: M._intersection_augmentation_unweighted(N, Y)[0]
+            False
+            sage: Y = M._intersection_augmentation_unweighted(N,set())
+            sage: Y[0]
+            True
+            sage: len(Y[1])>0
+            True
+        """
+        E = self.groundset()
+        X = E - Y
+        X1 = E - self._closure(Y)
+        X2 = E - other._closure(Y)
+        # partition the vertices into layers according to distance
+        # the modification of the code in _intersection_augmentation
+        w = {x: -1 for x in X1}
+        out_neighbors = {x: set() for x in X2}
+        d = {}
+        dist=0
+        todo = set(X1)
+        next_layer = set()
+        layers = {}
+
+        X3 = X2.intersection(w)
+        while todo:
+            layers[dist] = set(todo)
+            if X3:
+                break
+            while todo: # todo is subset of X
+                u = todo.pop()
+                m = w[u]
+                if u not in out_neighbors:
+                    out_neighbors[u] = other._circuit(Y.union([u])) - set([u])  # if u in X2 then out_neighbors[u] was set to empty
+                for y in out_neighbors[u]:
+                    m2 = m + 1
+                    if not y in w or w[y] > m2:
+                        w[y] = m2
+                        next_layer.add(y)
+            todo = next_layer
+            next_layer = set()
+            dist += 1
+            X3 = X2.intersection(w)
+            layers[dist] = set(todo)
+            if X3:
+                break
+            if not todo:
+                break
+            while todo: # todo is subset of Y
+                u = todo.pop()
+                m = w[u]
+                if u not in out_neighbors:
+                    out_neighbors[u] = X - self._closure(Y - set([u]))
+                for x in out_neighbors[u]:
+                    m2 = m - 1
+                    if not x in w or w[x] > m2:
+                        w[x] = m2
+                        next_layer.add(x)
+            todo = next_layer
+            next_layer = set()
+            dist += 1
+            X3 = X2.intersection(w)
+
+        for x, y in layers.iteritems():
+            for z in y:
+                d[z] = x
+        if not X3:                 # if no path from X1 to X2, then no augmenting set exists
+            return False, frozenset(w)
+        else:
+            visited = set()
+            # find augmenting paths successively without explicitly construct the graph
+            while (layers[0] & X1)-visited:
+                stack = [set(((layers[0]&X1)-visited)).pop()]
+                predecessor = {}
+                # use DFS
+                while stack:
+                    u = stack.pop()
+                    visited.add(u)
+                    # reached the final layer
+                    if d[u]==len(layers)-1:
+                        # check if this is in X2, if so augment the path
+                        if (u in X2):
+                            path = set([u])             # reconstruct path
+                            while u in predecessor:
+                                u = predecessor[u]
+                                path.add(u)
+                            # augment the path and update all sets
+                            Y = Y.symmetric_difference(path)
+                            X = E - Y
+                            X1 = E - self._closure(Y)
+                            X2 = E - other._closure(Y)
+                            break
+                        else:
+                            continue
+                    # there are more layers
+                    for v in layers[d[u]+1] - visited:
+                        # check if edge (u,v) exists in the auxiliary digraph
+                        exist = False
+                        if ((u in Y) and
+                            (v in E-Y) and
+                            (not self.is_independent(Y|set([v]))) and
+                            (self.is_independent((Y|set([v])) - set([u])))):
+                            exist = True
+                        if ((u in E-Y) and
+                            (v in Y) and
+                            (not other.is_independent(Y|set([u]))) and
+                            (other.is_independent((Y|set([u])) - set([v])))):
+                            exist = True
+                        if exist:
+                            stack.append(v)
+                            predecessor[v] = u
+            return True, Y
 
     cpdef partition(self):
         r"""

@@ -38,6 +38,7 @@ common_gap_functions = [
   'Apply',
   'AsGroup',
   'Assert',
+  'AtlasGroup',
   'AutomorphismGroup',
   'BaseOfGroup',
   'Basis',

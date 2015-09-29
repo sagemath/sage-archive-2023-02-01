@@ -150,8 +150,9 @@ class Core(CombinatorialElement):
 
     def _latex_(self):
         """
-        Outputs the LaTeX representation of this core as a partition. See the
-        ``_latex_()`` method of :class:`Partition`.
+        Output the LaTeX representation of this core as a partition.
+
+        See the ``_latex_`` method of :class:`Partition`.
 
         EXAMPLES::
 

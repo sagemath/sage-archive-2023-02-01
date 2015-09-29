@@ -1102,7 +1102,8 @@ class AsymptoticRing(Ring, UniqueRepresentation):
 
 
     @experimental(trac_number=17601)
-    def __init__(self, growth_group, coefficient_ring, category=None):
+    def __init__(self, growth_group, coefficient_ring, category=None,
+                 default_prec=None):
         r"""
         See :class:`AsymptoticRing` for more information.
 

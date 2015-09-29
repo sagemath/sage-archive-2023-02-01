@@ -776,6 +776,12 @@ class AsymptoticExpression(RingElement):
             returned by this method might not fulfill
             ``el * el._invert_() == 1``.
 
+        .. TODO::
+
+            As soon as `L`-terms are implemented, this
+            implementation has to be adapted as well in order to
+            yield correct results.
+
         EXAMPLES::
 
             sage: R.<x> = AsymptoticRing('x^ZZ', QQ, default_prec=4)

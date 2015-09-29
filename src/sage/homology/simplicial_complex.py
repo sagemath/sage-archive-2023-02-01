@@ -165,11 +165,12 @@ from sage.sets.set import Set
 from sage.rings.integer_ring import ZZ
 from sage.structure.parent_gens import normalize_names
 from sage.misc.latex import latex
+from sage.misc.misc import union
 from sage.matrix.constructor import matrix
 from sage.homology.chain_complex import ChainComplex
 from sage.graphs.graph import Graph
 from functools import reduce
-from sage.categories.simplicial_complexes import SimplicialComplexes
+lazy_import('sage.categories.simplicial_complexes', 'SimplicialComplexes')
 
 def lattice_paths(t1, t2, length=None):
     """
@@ -834,7 +835,6 @@ class SimplicialComplex(CategoryObject, GenericCellComplex):
             from_characteristic_function is not None):
             raise ValueError("maximal_faces and from_characteristic_function cannot be both defined")
         CategoryObject.__init__(self, category=SimplicialComplexes().Finite())
-        from sage.misc.misc import union
 
         C = None
         vertex_set = []
@@ -2081,8 +2081,6 @@ class SimplicialComplex(CategoryObject, GenericCellComplex):
             self._facets = Facets
 
             # Update the vertex set
-            from sage.misc.misc import union
-
             if self._sorted:
                 self._vertex_set = Simplex(sorted(reduce(union, [self._vertex_set, new_face])))
             else:

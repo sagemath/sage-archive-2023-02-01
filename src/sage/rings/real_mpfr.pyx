@@ -451,7 +451,7 @@ cdef class RealField_class(sage.rings.ring.Field):
         self.rnd = n
         self.rnd_str = rnd
         from sage.categories.fields import Fields
-        ParentWithGens.__init__(self, self, tuple([]), False, category = Fields())
+        ParentWithGens.__init__(self, self, tuple([]), False, category=Fields().Metric().Complete())
 
         # hack, we cannot call the constructor here
         rn = RealNumber.__new__(RealNumber)
@@ -800,6 +800,19 @@ cdef class RealField_class(sage.rings.ring.Field):
             Complex Field with 100 bits of precision
         """
         return self.complex_field()
+
+    def dist(self, a, b):
+        """
+        Return the distance between ``a`` and ``b``.
+
+        EXAMPLES::
+
+            sage: RR.dist(3, 2)
+            1.00000000000000
+            sage: RR.dist(-1, pi)
+            4.14159265358979
+        """
+        return self(a - b).abs()
 
     def ngens(self):
         """

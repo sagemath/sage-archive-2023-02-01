@@ -215,7 +215,7 @@ class RationalField(Singleton, number_field_base.NumberField):
             ('x',)
         """
         from sage.categories.basic import QuotientFields
-        ParentWithGens.__init__(self, self, category = QuotientFields())
+        ParentWithGens.__init__(self, self, category=QuotientFields().Metric())
         self._assign_names(('x',),normalize=False) # ???
         self._populate_coercion_lists_(element_constructor=rational.Rational, init_no_parent=True)
 
@@ -933,6 +933,19 @@ class RationalField(Singleton, number_field_base.NumberField):
         """
         from sage.rings.all import QQbar
         return QQbar
+
+    def dist(self, a, b):
+        """
+        Return the distance between ``a`` and ``b``.
+
+        EXAMPLES::
+
+            sage: QQ.dist(3, 2)
+            1
+            sage: QQ.dist(-1, 1/2)
+            3/2
+        """
+        return self(a - b).abs()
 
     def order(self):
         r"""

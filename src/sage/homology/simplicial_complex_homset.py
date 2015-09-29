@@ -6,9 +6,7 @@ AUTHORS:
 - Travis Scrimshaw (2012-08-18): Made all simplicial complexes immutable to
   work with the homset cache.
 
-EXAMPLES:
-
-::
+EXAMPLES::
 
     sage: S = simplicial_complexes.Sphere(1)
     sage: T = simplicial_complexes.Sphere(2)
@@ -16,7 +14,9 @@ EXAMPLES:
     sage: f = {0:0,1:1,2:3}
     sage: x = H(f)
     sage: x
-    Simplicial complex morphism {0: 0, 1: 1, 2: 3} from Simplicial complex with vertex set (0, 1, 2) and facets {(1, 2), (0, 2), (0, 1)} to Simplicial complex with vertex set (0, 1, 2, 3) and facets {(0, 2, 3), (0, 1, 2), (1, 2, 3), (0, 1, 3)}
+    Simplicial complex morphism {0: 0, 1: 1, 2: 3}
+     from Simplicial complex with vertex set (0, 1, 2) and facets {(1, 2), (0, 2), (0, 1)}
+     to Simplicial complex with vertex set (0, 1, 2, 3) and facets {(0, 2, 3), (0, 1, 2), (1, 2, 3), (0, 1, 3)}
     sage: x.is_injective()
     True
     sage: x.is_surjective()
@@ -33,7 +33,7 @@ TESTS::
     sage: S = simplicial_complexes.Sphere(1)
     sage: T = simplicial_complexes.Sphere(2)
     sage: H = Hom(S,T)
-    sage: loads(dumps(H))==H
+    sage: loads(dumps(H)) == H
     True
 
 """
@@ -82,7 +82,7 @@ class SimplicialComplexHomset(sage.categories.homset.Homset):
         INPUT:
 
         - ``f`` -- a dictionary with keys exactly the vertices of the domain
-           and values vertices of the codomain
+          and values vertices of the codomain
 
         EXAMPLES::
 
@@ -92,13 +92,15 @@ class SimplicialComplexHomset(sage.categories.homset.Homset):
             sage: H = Hom(S,T)
             sage: x = H(f)
             sage: x
-            Simplicial complex morphism {0: 0, 1: 1, 2: 2, 3: 2, 4: 2} from Simplicial complex with vertex set (0, 1, 2, 3, 4) and 5 facets to Simplicial complex with vertex set (0, 1, 2, 3) and facets {(0, 2, 3), (0, 1, 2), (1, 2, 3), (0, 1, 3)}
+            Simplicial complex morphism {0: 0, 1: 1, 2: 2, 3: 2, 4: 2}
+             from Simplicial complex with vertex set (0, 1, 2, 3, 4) and 5 facets
+             to Simplicial complex with vertex set (0, 1, 2, 3) and facets {(0, 2, 3), (0, 1, 2), (1, 2, 3), (0, 1, 3)}
         """
         return simplicial_complex_morphism.SimplicialComplexMorphism(f,self.domain(),self.codomain())
 
     def diagonal_morphism(self,rename_vertices=True):
         r"""
-        Returns the diagonal morphism in `Hom(S, S \times S)`.
+        Return the diagonal morphism in `Hom(S, S \times S)`.
 
         EXAMPLES::
 
@@ -106,36 +108,32 @@ class SimplicialComplexHomset(sage.categories.homset.Homset):
             sage: H = Hom(S,S.product(S, is_mutable=False))
             sage: d = H.diagonal_morphism()
             sage: d
-            Simplicial complex morphism {0: 'L0R0', 1: 'L1R1', 2: 'L2R2', 3: 'L3R3'} from
-            Simplicial complex with vertex set (0, 1, 2, 3) and facets {(0, 2, 3), (0, 1, 2), (1, 2, 3), (0, 1, 3)}
-            to Simplicial complex with 16 vertices and 96 facets
+            Simplicial complex morphism {0: 'L0R0', 1: 'L1R1', 2: 'L2R2', 3: 'L3R3'}
+             from Simplicial complex with vertex set (0, 1, 2, 3) and facets {(0, 2, 3), (0, 1, 2), (1, 2, 3), (0, 1, 3)}
+             to Simplicial complex with 16 vertices and 96 facets
 
             sage: T = SimplicialComplex([[0], [1]], is_mutable=False)
             sage: U = T.product(T,rename_vertices = False, is_mutable=False)
             sage: G = Hom(T,U)
             sage: e = G.diagonal_morphism(rename_vertices = False)
             sage: e
-            Simplicial complex morphism {0: (0, 0), 1: (1, 1)} from
-            Simplicial complex with vertex set (0, 1) and facets {(0,), (1,)}
-            to Simplicial complex with 4 vertices and facets {((1, 1),), ((1, 0),), ((0, 0),), ((0, 1),)}
+            Simplicial complex morphism {0: (0, 0), 1: (1, 1)}
+             from Simplicial complex with vertex set (0, 1) and facets {(0,), (1,)}
+             to Simplicial complex with 4 vertices and facets {((1, 1),), ((1, 0),), ((0, 0),), ((0, 1),)}
         """
-
-        if self._codomain == self._domain.product(self._domain,rename_vertices=rename_vertices):
-            X = self._domain.product(self._domain,rename_vertices=rename_vertices)
-            f = dict()
-            if rename_vertices:
-                for i in self._domain.vertices().set():
-                    f[i] = "L"+str(i)+"R"+str(i)
-            else:
-                for i in self._domain.vertices().set():
-                    f[i] = (i,i)
-            return simplicial_complex_morphism.SimplicialComplexMorphism(f, self._domain,X)
+        X = self._domain.product(self._domain,rename_vertices=rename_vertices)
+        if self._codomain != X:
+            raise TypeError("diagonal morphism is only defined for Hom(X,XxX)")
+        f = {}
+        if rename_vertices:
+            f = {i: "L{0}R{0}".format(i) for i in self._domain.vertices().set()}
         else:
-            raise TypeError("Diagonal morphism is only defined for Hom(X,XxX).")
+            f = {i: (i,i) for i in self._domain.vertices().set()}
+        return simplicial_complex_morphism.SimplicialComplexMorphism(f, self._domain, X)
 
     def identity(self):
         """
-        Returns the identity morphism of `Hom(S,S)`.
+        Return the identity morphism of `Hom(S,S)`.
 
         EXAMPLES::
 
@@ -148,21 +146,18 @@ class SimplicialComplexHomset(sage.categories.homset.Homset):
             sage: T = SimplicialComplex([[0,1]], is_mutable=False)
             sage: G = Hom(T,T)
             sage: G.identity()
-            Simplicial complex morphism {0: 0, 1: 1} from
-            Simplicial complex with vertex set (0, 1) and facets {(0, 1)} to
-            Simplicial complex with vertex set (0, 1) and facets {(0, 1)}
+            Simplicial complex morphism {0: 0, 1: 1}
+             from Simplicial complex with vertex set (0, 1) and facets {(0, 1)}
+             to Simplicial complex with vertex set (0, 1) and facets {(0, 1)}
         """
-        if self.is_endomorphism_set():
-            f = dict()
-            for i in self._domain.vertices().set():
-                f[i]=i
-            return simplicial_complex_morphism.SimplicialComplexMorphism(f,self._domain,self._codomain)
-        else:
-            raise TypeError("Identity map is only defined for endomorphism sets.")
+        if not self.is_endomorphism_set():
+            raise TypeError("identity map is only defined for endomorphism sets")
+        f = {i:i for i in self._domain.vertices().set()}
+        return simplicial_complex_morphism.SimplicialComplexMorphism(f, self._domain, self._codomain)
 
     def an_element(self):
         """
-        Returns a (non-random) element of ``self``.
+        Return a (non-random) element of ``self``.
 
         EXAMPLES::
 
@@ -177,11 +172,10 @@ class SimplicialComplexHomset(sage.categories.homset.Homset):
         try:
             i = next(self._codomain.vertices().set().__iter__())
         except StopIteration:
-            if len(X_vertices) == 0:
-                return dict()
+            if not X_vertices:
+                return {}
             else:
-                raise TypeError("There are no morphisms from a non-empty simplicial complex to an empty simplicial comples.")
-        f = dict()
-        for x in X_vertices:
-            f[x]=i
-        return simplicial_complex_morphism.SimplicialComplexMorphism(f,self._domain,self._codomain)
+                raise TypeError("there are no morphisms from a non-empty simplicial complex to an empty simplicial complex")
+        f = {x:i for x in X_vertices}
+        return simplicial_complex_morphism.SimplicialComplexMorphism(f, self._domain, self._codomain)
+

@@ -303,7 +303,7 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
             True
         """
         ParentWithGens.__init__(self, self, ('x',), normalize=False,
-                                category=(EuclideanDomains(), InfiniteEnumeratedSets()))
+                                category=(EuclideanDomains(), InfiniteEnumeratedSets().Metric()))
         self._populate_coercion_lists_(element_constructor=integer.Integer,
                                        init_no_parent=True,
                                        convert_method_name='_integer_')
@@ -1245,9 +1245,22 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
         elif n == 2:
             return sage.rings.integer.Integer(-1)
         elif n < 1:
-            raise ValueError, "n must be positive in zeta()"
+            raise ValueError("n must be positive in zeta()")
         else:
-            raise ValueError, "no nth root of unity in integer ring"
+            raise ValueError("no nth root of unity in integer ring")
+
+    def dist(self, a, b):
+        """
+        Return the distance between ``a`` and ``b``.
+
+        EXAMPLES::
+
+            sage: ZZ.dist(3, 2)
+            1
+            sage: ZZ.dist(-1, 1)
+            2
+        """
+        return self(a - b).abs()
 
     def parameter(self):
         r"""

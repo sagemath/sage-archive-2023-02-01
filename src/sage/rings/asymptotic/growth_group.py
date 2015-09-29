@@ -427,6 +427,8 @@ class Variable(sage.structure.unique_representation.CachedRepresentation,
             TypeError: Malformed expression: log) !!! x(
             sage: Variable.extract_variable_names('log(x)+y')
             ('x', 'y')
+            sage: Variable.extract_variable_names('icecream(summer)')
+            ('summer',)
 
         ::
 

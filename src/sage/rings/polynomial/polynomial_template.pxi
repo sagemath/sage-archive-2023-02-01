@@ -718,7 +718,7 @@ cdef class Polynomial_template(Polynomial):
         """
         return element_shift(self, -n)
 
-    def is_zero(self):
+    cpdef bint is_zero(self):
         """
         EXAMPLE::
 
@@ -728,7 +728,7 @@ cdef class Polynomial_template(Polynomial):
         """
         return celement_is_zero(&self.x, (<Polynomial_template>self)._cparent)
 
-    def is_one(self):
+    cpdef bint is_one(self):
         """
         EXAMPLE::
 
@@ -763,7 +763,16 @@ cdef class Polynomial_template(Polynomial):
             x^9 + x^8 + x^7 + x^6 + x^5 + x^4 + x^3 + x^2 + x + 1
             sage: f.truncate(6)
             x^5 + x^4 + x^3 + x^2 + x + 1
+
+        If the precision is higher than the degree of the polynomial then
+        the polynomial itself is returned::
+
+           sage: f.truncate(10) is f
+           True
         """
+        if n >= celement_len(&self.x, (<Polynomial_template>self)._cparent):
+            return self
+
         cdef type T = type(self)
         cdef Polynomial_template r = <Polynomial_template>T.__new__(T)
         celement_construct(&r.x, (<Polynomial_template>self)._cparent)

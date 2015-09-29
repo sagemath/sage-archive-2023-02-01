@@ -380,7 +380,7 @@ class MPolynomialIdeal_magma_repr:
             45
 
          We may also pass a degree bound to Magma::
-        
+
             sage: R.<a,b,c,d,e,f,g,h,i,j> = PolynomialRing(GF(127),10)
             sage: I = sage.rings.ideal.Cyclic(R,6)
             sage: gb = I.groebner_basis('magma:GroebnerBasis', deg_bound=4) # indirect doctest; optional - magma
@@ -530,13 +530,13 @@ class MPolynomialIdeal_singular_base_repr:
 
         if algorithm == "std":
             if self.base_ring() == ZZ:
-                stopgap("Singular's std() and related computations in polynomial rings over ZZ contains bugs and may be mathematically unreliable.", 17676) 
+                stopgap("Singular's std() and related computations in polynomial rings over ZZ contains bugs and may be mathematically unreliable.", 17676)
             S = std_libsingular(self)
         elif algorithm == "slimgb":
             S = slimgb_libsingular(self)
         elif algorithm == "groebner":
             if self.base_ring() == ZZ:
-                stopgap("Singular's groebner() and related computations in polynomial rings over ZZ contains bugs and may be mathematically unreliable.", 17676) 
+                stopgap("Singular's groebner() and related computations in polynomial rings over ZZ contains bugs and may be mathematically unreliable.", 17676)
             S = groebner(self)
         else:
             try:
@@ -1090,6 +1090,8 @@ class MPolynomialIdeal_singular_repr(
             sage: I.dimension()
             1
 
+        If the ideal is the total ring, the dimension is `-1` by convention.
+
         For polynomials over a finite field of order too large for Singular,
         this falls back on a toy implementation of Buchberger to compute
         the Groebner basis, then uses the algorithm described in Chapter 9,
@@ -1101,7 +1103,7 @@ class MPolynomialIdeal_singular_repr(
             sage: I = R.ideal([x*y,x*y+1])
             sage: I.dimension()
             verbose 0 (...: multi_polynomial_ideal.py, dimension) Warning: falling back to very slow toy implementation.
-            0
+            -1
             sage: I=ideal([x*(x*y+1),y*(x*y+1)])
             sage: I.dimension()
             verbose 0 (...: multi_polynomial_ideal.py, dimension) Warning: falling back to very slow toy implementation.
@@ -1124,6 +1126,7 @@ class MPolynomialIdeal_singular_repr(
 
             Requires computation of a Groebner basis, which can be a
             very expensive operation.
+
         """
         try:
             return self.__dimension
@@ -1146,6 +1149,8 @@ class MPolynomialIdeal_singular_repr(
                         # and Algorithms".
                         from sage.sets.set import Set
                         gb = toy_buchberger.buchberger_improved(self)
+                        if self.ring().one() in gb:
+                            return Integer(-1)
                         ring_vars = self.ring().gens()
                         n = len(ring_vars)
                         lms = [each.lm() for each in gb]
@@ -1176,7 +1181,7 @@ class MPolynomialIdeal_singular_repr(
                                 i += 1
                             if J_intersects_all:
                                 min_dimension = len(J)
-                        return n - min_dimension
+                        return Integer(n - min_dimension)
                     else:
                         raise TypeError("Local/unknown orderings not supported by 'toy_buchberger' implementation.")
         return self.__dimension
@@ -3177,7 +3182,7 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
         R = self.ring()
         S = other.ring()
         if R is not S: # rings are unique
-            if isinstance(R, type(S)) and (R.base_ring() == S.base_ring()) and (R.ngens() == S.ngens()):
+            if type(R) is type(S) and (R.base_ring() == S.base_ring()) and (R.ngens() == S.ngens()):
                 other = other.change_ring(R)
             else:
                 return cmp((type(R), R.base_ring(), R.ngens()), (type(S), S.base_ring(), S.ngens()))
@@ -3410,6 +3415,9 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
         'ginv:TQ', 'ginv:TQBlockHigh', 'ginv:TQBlockLow' and 'ginv:TQDegree'
             One of GINV's implementations (if available)
 
+        'giac:gbasis'
+            Giac's ``gbasis`` command (if available)
+
         If only a system is given - e.g. 'magma' - the default algorithm is
         chosen for that system.
 
@@ -3464,6 +3472,28 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
             sage: I = sage.rings.ideal.Katsura(P,3) # regenerate to prevent caching
             sage: I.groebner_basis('libsingular:slimgb')
             [a - 60*c^3 + 158/7*c^2 + 8/7*c - 1, b + 30*c^3 - 79/7*c^2 + 3/7*c, c^4 - 10/21*c^3 + 1/84*c^2 + 1/84*c]
+
+        Giac only supports the degree reverse lexicographical ordering::
+
+            sage: I = sage.rings.ideal.Katsura(P,3) # regenerate to prevent caching
+            sage: J = I.change_ring(P.change_ring(order='degrevlex'))
+            sage: gb = J.groebner_basis('giac') # optional - giacpy, random
+            sage: gb  # optional - giacpy
+            [c^3 - 79/210*c^2 + 1/30*b + 1/70*c, b^2 - 3/5*c^2 - 1/5*b + 1/5*c, b*c + 6/5*c^2 - 1/10*b - 2/5*c, a + 2*b + 2*c - 1]
+
+            sage: ideal(J.transformed_basis()).change_ring(P).interreduced_basis()  # optional - giacpy
+            [a - 60*c^3 + 158/7*c^2 + 8/7*c - 1, b + 30*c^3 - 79/7*c^2 + 3/7*c, c^4 - 10/21*c^3 + 1/84*c^2 + 1/84*c]
+
+        Giac's gbasis over `\QQ` can benefit from a probabilistic lifting and
+        multi threaded operations::
+
+            sage: A9=PolynomialRing(QQ,9,'x') # optional - giacpy
+            sage: I9=sage.rings.ideal.Katsura(A9) # optional - giacpy
+            sage: I9.groebner_basis("giac",proba_epsilon=1e-7) # optional - giacpy, long time (3s)
+            Running a probabilistic check for the reconstructed Groebner basis...
+            Polynomial Sequence with 143 Polynomials in 9 Variables
+
+        The list of available Giac options is provided at :func:`sage.libs.giac.groebner_basis`.
 
         Note that ``toy:buchberger`` does not return the reduced Groebner
         basis, ::
@@ -3616,7 +3646,7 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
         ALGORITHM:
 
         Uses Singular, Magma (if available), Macaulay2 (if available),
-        or a toy implementation.
+        Giac (if available), or a toy implementation.
         """
         from sage.rings.finite_rings.integer_mod_ring import is_IntegerModRing
         from sage.rings.polynomial.multi_polynomial_sequence import PolynomialSequence
@@ -3631,6 +3661,8 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
             algorithm = "macaulay2:gb"
         elif algorithm.lower() == "toy":
             algorithm = "toy:buchberger2"
+        elif algorithm.lower() == "giac":
+            algorithm = "giac:gbasis"
 
         if not algorithm:
             try:
@@ -3681,6 +3713,10 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
                 gb = self._groebner_basis_ginv(algorithm=alg,*args, **kwds)
             else:
                 raise NameError("Algorithm '%s' unknown."%algorithm)
+        elif algorithm == 'giac:gbasis':
+            from sage.libs.giac import groebner_basis as groebner_basis_libgiac
+            gb = groebner_basis_libgiac(self, prot=prot, *args, **kwds)
+
         else:
             raise NameError("Algorithm '%s' unknown."%algorithm)
 

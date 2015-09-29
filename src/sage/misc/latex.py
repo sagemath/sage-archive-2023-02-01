@@ -1081,10 +1081,8 @@ class Latex(LatexCall):
             sage: latex.eval("\\ZZ[x]", locals(), filename="/path/to/test") # not tested
             ''
             sage: latex.eval("\ThisIsAnInvalidCommand", {}) # optional -- ImageMagick
-            An error
-            ...
-            No pages of output.
-            <BLANKLINE>
+            An error occurred...
+            No pages of output...
         """
         MACROS = latex_extra_preamble()
 
@@ -2539,7 +2537,7 @@ def latex_variable_name(x, is_fname=False):
         'x_{\\ast}'
 
     TESTS::
-    
+
         sage: latex_variable_name('_C')  # :trac:`16007`
         'C'
         sage: latex_variable_name('_K1')

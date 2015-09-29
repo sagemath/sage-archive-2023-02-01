@@ -199,6 +199,8 @@ class Hrep2Vrep(PivotedInequalities):
             []
         """
         super(Hrep2Vrep, self).__init__(base_ring, dim)
+        inequalities = [list(x) for x in inequalities]
+        equations = [list(x) for x in equations]
         A = self._init_Vrep(inequalities, equations)
         DD = Algorithm(A).run()
         self._extract_Vrep(DD)
@@ -291,7 +293,7 @@ class Hrep2Vrep(PivotedInequalities):
             sage: H.vertices
             [(-1/2)]
         """
-        R = map(self._unpivot_ray, DD.R)
+        R = [self._unpivot_ray(_) for _ in DD.R]
 
         line1, L0 = self._split_linear_subspace()
         if line1:
@@ -305,7 +307,7 @@ class Hrep2Vrep(PivotedInequalities):
             zero = self.base_ring.zero()
             R1 = [r / r[0] for r in R if r[0] > zero]
             DD0 = DD.first_coordinate_plane()
-            R0 = map(self._unpivot_ray, DD0.R)
+            R0 = [self._unpivot_ray(_) for _ in DD0.R]
 
         vertices = []
         one = self.base_ring.one()
@@ -437,7 +439,8 @@ class Vrep2Hrep(PivotedInequalities):
             []
         """
         super(Vrep2Hrep, self).__init__(base_ring, dim)
-        assert len(vertices) > 0
+        if rays or lines:
+            assert len(vertices) > 0
         A = self._init_Vrep(vertices, rays, lines)
         DD = Algorithm(A).run()
         self._extract_Hrep(DD)
@@ -496,7 +499,7 @@ class Vrep2Hrep(PivotedInequalities):
         def is_trivial(ray):
             # trivial Hrep output 1 >= 0
             return ray[0] > zero and all(r == zero for r in ray[1:])
-        ieqs = map(self._unpivot_ray, DD.R)
+        ieqs = [self._unpivot_ray(_) for _ in DD.R]
         self.inequalities = [r for r in ieqs if not is_trivial(r)]
         self.equations = self._linear_subspace.matrix().rows()
 

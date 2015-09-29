@@ -1,6 +1,7 @@
 """
 Coercion via Construction Functors
 """
+import six
 from sage.misc.lazy_import import lazy_import
 from functor import Functor, IdentityFunctor_generic
 
@@ -313,7 +314,7 @@ class ConstructionFunctor(Functor):
             Traceback (most recent call last):
             ...
             CoercionException: No common base ("join") found for
-            FractionField(Integer Ring) and CartesianProductFunctor(Integer Ring).
+            FractionField(Integer Ring) and The cartesian_product functorial construction(Integer Ring).
         """
         self._raise_common_base_exception_(
             other_functor, self_bases, other_bases)
@@ -342,7 +343,7 @@ class ConstructionFunctor(Functor):
             Traceback (most recent call last):
             ...
             CoercionException: No common base ("join") found for
-            FractionField(Integer Ring) and CartesianProductFunctor(Rational Field).
+            FractionField(Integer Ring) and The cartesian_product functorial construction(Rational Field).
         """
         if not isinstance(self_bases, (tuple, list)):
             self_bases = (self_bases,)
@@ -643,15 +644,17 @@ class MultivariateConstructionFunctor(ConstructionFunctor):
 
         sage: from sage.categories.pushout import pushout
         sage: from sage.sets.cartesian_product import CartesianProduct
-        sage: A = cartesian_product((QQ['z'],))
-        sage: B = cartesian_product((ZZ['t']['z'],))
+        sage: A = cartesian_product((QQ['z'], QQ))
+        sage: B = cartesian_product((ZZ['t']['z'], QQ))
         sage: pushout(A, B)
-        The cartesian product of (Univariate Polynomial Ring in z over Univariate Polynomial Ring in t over Rational Field,)
+        The cartesian product of (Univariate Polynomial Ring in z over
+        Univariate Polynomial Ring in t over Rational Field,
+        Rational Field)
         sage: A.construction()
         (The cartesian_product functorial construction,
-         (Univariate Polynomial Ring in z over Rational Field,))
+         (Univariate Polynomial Ring in z over Rational Field, Rational Field))
         sage: pushout(A, B)
-        The cartesian product of (Univariate Polynomial Ring in z over Univariate Polynomial Ring in t over Rational Field,)
+        The cartesian product of (Univariate Polynomial Ring in z over Univariate Polynomial Ring in t over Rational Field, Rational Field)
     """
     def common_base(self, other_functor, self_bases, other_bases):
         r"""
@@ -686,14 +689,14 @@ class MultivariateConstructionFunctor(ConstructionFunctor):
             Traceback (most recent call last):
             ...
             CoercionException: No common base ("join") found for
-            CartesianProductFunctor(Integer Ring) and FractionField(Integer Ring):
+            The cartesian_product functorial construction(Integer Ring) and FractionField(Integer Ring):
             (Multivariate) functors are inkompatibel.
             sage: pushout(cartesian_product([ZZ]), cartesian_product([ZZ, QQ]))  # indirect doctest
             Traceback (most recent call last):
             ...
             CoercionException: No common base ("join") found for
-            CartesianProductFunctor(Integer Ring) and
-            CartesianProductFunctor(Integer Ring, Rational Field):
+            The cartesian_product functorial construction(Integer Ring) and
+            The cartesian_product functorial construction(Integer Ring, Rational Field):
             Functors need the same number of arguments.
         """
         if self != other_functor:
@@ -1576,10 +1579,10 @@ class LaurentPolynomialFunctor(ConstructionFunctor):
 
         """
         Functor.__init__(self, Rings(), Rings())
-        if not isinstance(var, (basestring,tuple,list)):
+        if not isinstance(var, (six.string_types,tuple,list)):
             raise TypeError("variable name or list of variable names expected")
         self.var = var
-        self.multi_variate = multi_variate or not isinstance(var, basestring)
+        self.multi_variate = multi_variate or not isinstance(var, six.string_types)
 
     def _apply_functor(self, R):
         """
@@ -2514,7 +2517,7 @@ class QuotientFunctor(ConstructionFunctor):
         self.I = I
         if names is None:
             self.names = None
-        elif isinstance(names, basestring):
+        elif isinstance(names, six.string_types):
             self.names = (names,)
         else:
             self.names = tuple(names)
@@ -2611,7 +2614,7 @@ class QuotientFunctor(ConstructionFunctor):
             Finite Field of size 5
 
         """
-        if not isinstance(self, type(other)):
+        if type(self) is not type(other):
             return None
         if self.names != other.names:
             return None
@@ -2777,6 +2780,15 @@ class AlgebraicExtensionFunctor(ConstructionFunctor):
             Univariate Quotient Polynomial Ring in a over Univariate Polynomial Ring in t over Integer Ring with modulus a^3 + a^2 + 1
             sage: F(RR)       # indirect doctest
             Univariate Quotient Polynomial Ring in a over Real Field with 53 bits of precision with modulus a^3 + a^2 + 1.00000000000000
+
+        Check that :trac:`13538` is fixed::
+
+            sage: K = Qp(3,3)
+            sage: R.<a> = K[]
+            sage: AEF = sage.categories.pushout.AlgebraicExtensionFunctor([a^2-3], ['a'], [None])
+            sage: AEF(K)
+            Eisenstein Extension of 3-adic Field with capped relative precision 3 in a defined by (1 + O(3^3))*a^2 + (O(3^4))*a + (2*3 + 2*3^2 + 2*3^3 + O(3^4))
+
         """
         from sage.all import QQ, ZZ, CyclotomicField
         if self.cyclotomic:
@@ -2785,8 +2797,8 @@ class AlgebraicExtensionFunctor(ConstructionFunctor):
             if R==ZZ:
                 return CyclotomicField(self.cyclotomic).maximal_order()
         if len(self.polys) == 1:
-            return R.extension(self.polys[0], self.names[0], embedding=self.embeddings[0], **self.kwds)
-        return R.extension(self.polys, self.names, embedding=self.embeddings)
+            return R.extension(self.polys[0], names=self.names[0], embedding=self.embeddings[0], **self.kwds)
+        return R.extension(self.polys, names=self.names, embedding=self.embeddings)
 
     def __cmp__(self, other):
         """
@@ -3171,6 +3183,7 @@ class BlackBoxConstructionFunctor(ConstructionFunctor):
     def __init__(self, box):
         """
         TESTS::
+
             sage: from sage.categories.pushout import BlackBoxConstructionFunctor
             sage: FG = BlackBoxConstructionFunctor(gap)
             sage: FM = BlackBoxConstructionFunctor(maxima)
@@ -3202,6 +3215,7 @@ class BlackBoxConstructionFunctor(ConstructionFunctor):
     def __cmp__(self, other):
         """
         TESTS::
+
             sage: from sage.categories.pushout import BlackBoxConstructionFunctor
             sage: FG = BlackBoxConstructionFunctor(gap)
             sage: FM = BlackBoxConstructionFunctor(maxima)
@@ -3567,7 +3581,7 @@ def pushout(R, S):
     AUTHORS:
 
     - Robert Bradshaw
-    - Peter Bruin(Peter Bruin -..- --
+    - Peter Bruin
     - Simon King
     - Daniel Krenn
     - David Roe
@@ -3642,7 +3656,7 @@ def pushout(R, S):
             Ss.pop()
         Z = Rs.pop()
 
-    if Z is None:
+    if Z is None and R_tower[-1][0] is not None:
         Z = R_tower[-1][0].common_base(S_tower[-1][0], R_tower[-1][1], S_tower[-1][1])
         R_tower = expand_tower(R_tower[:len(Rs)])
         S_tower = expand_tower(S_tower[:len(Ss)])

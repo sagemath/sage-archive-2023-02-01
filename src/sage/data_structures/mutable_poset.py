@@ -663,6 +663,16 @@ class MutablePosetShell(SageObject):
             False
             sage: oo == z
             False
+
+        Comparing elements in different mutable posets is possible; their
+        shells are equal if their elements are::
+
+            sage: S = MP([42]); s = S.shell(42)
+            sage: T = MP([42]); t = T.shell(42)
+            sage: s == t
+            True
+            sage: S.oo == T.oo
+            True
         """
         if self.element is None and other.element is None:
             return self.is_null() == other.is_null()

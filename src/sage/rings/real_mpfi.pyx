@@ -3445,11 +3445,10 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
         """
         return mpfi_nan_p(self.value)
 
-    def __richcmp__(left, right, int op):
+    cpdef _richcmp_(left, Element right, int op):
         """
-        Rich comparison between ``left`` and ``right``.
-
-        For more information, see :mod:`sage.rings.real_mpfi`.
+        Implements comparisons between intervals. (See the file header
+        comment for more information on interval comparison.)
 
         EXAMPLES::
 
@@ -3469,13 +3468,6 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
             False
             sage: RIF(0, 2) > RIF(2, 3)
             False
-        """
-        return (<Element>left)._richcmp(right, op)
-
-    cpdef _richcmp_(left, Element right, int op):
-        """
-        Implements comparisons between intervals. (See the file header
-        comment for more information on interval comparison.)
 
         EXAMPLES::
 
@@ -3666,7 +3658,7 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
         """
         return not (mpfr_zero_p(&self.value.left) and mpfr_zero_p(&self.value.right))
 
-    def __cmp__(left, right):
+    cpdef int _cmp_(left, Element right) except -2:
         """
         Compare two intervals lexicographically.
 
@@ -3693,12 +3685,6 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
             0
             sage: cmp(RIF(0, 1), RIF(0, 1/2))
             1
-        """
-        return (<Element>left)._cmp(right)
-
-    cpdef int _cmp_(left, Element right) except -2:
-        """
-        Implements the lexicographic total order on intervals.
         """
         cdef RealIntervalFieldElement lt, rt
 

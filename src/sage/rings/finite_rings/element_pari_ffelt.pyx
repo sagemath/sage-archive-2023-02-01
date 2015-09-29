@@ -388,6 +388,42 @@ cdef class FiniteFieldElement_pari_ffelt(FinitePolyExtElement):
         """
         Comparison of finite field elements.
 
+        .. NOTE::
+
+            Finite fields are unordered.  However, for the purpose of
+            this function, we adopt the lexicographic ordering on the
+            representing polynomials.
+
+        EXAMPLES::
+
+            sage: k.<a> = GF(2^20, impl='pari_ffelt')
+            sage: e = k.random_element()
+            sage: f = loads(dumps(e))
+            sage: e is f
+            False
+            sage: e == f
+            True
+            sage: e != (e + 1)
+            True
+
+        ::
+
+            sage: K.<a> = GF(2^100, impl='pari_ffelt')
+            sage: a < a^2
+            True
+            sage: a > a^2
+            False
+            sage: a+1 > a^2
+            False
+            sage: a+1 < a^2
+            True
+            sage: a+1 < a
+            False
+            sage: a+1 == a
+            False
+            sage: a == a
+            True
+
         TESTS::
 
             sage: k.<a> = FiniteField(3^3, impl='pari_ffelt')
@@ -407,48 +443,6 @@ cdef class FiniteFieldElement_pari_ffelt(FinitePolyExtElement):
         r = cmp_universal(self.val, (<FiniteFieldElement_pari_ffelt>other).val)
         pari_catch_sig_off()
         return r
-
-    def __richcmp__(FiniteFieldElement_pari_ffelt left, object right, int op):
-        """
-        Rich comparison of finite field elements.
-
-        EXAMPLE::
-
-            sage: k.<a> = GF(2^20, impl='pari_ffelt')
-            sage: e = k.random_element()
-            sage: f = loads(dumps(e))
-            sage: e is f
-            False
-            sage: e == f
-            True
-            sage: e != (e + 1)
-            True
-
-        .. NOTE::
-
-            Finite fields are unordered.  However, for the purpose of
-            this function, we adopt the lexicographic ordering on the
-            representing polynomials.
-
-        EXAMPLE::
-
-            sage: K.<a> = GF(2^100, impl='pari_ffelt')
-            sage: a < a^2
-            True
-            sage: a > a^2
-            False
-            sage: a+1 > a^2
-            False
-            sage: a+1 < a^2
-            True
-            sage: a+1 < a
-            False
-            sage: a+1 == a
-            False
-            sage: a == a
-            True
-        """
-        return (<Element>left)._richcmp(right, op)
 
     cpdef ModuleElement _add_(FiniteFieldElement_pari_ffelt self, ModuleElement right):
         """

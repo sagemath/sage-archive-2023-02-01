@@ -242,7 +242,6 @@ FINDSTAT_STATISTIC_DESCRIPTION                  = 'StatisticDescription'
 FINDSTAT_STATISTIC_NAME                         = 'StatisticTitle'
 FINDSTAT_STATISTIC_REFERENCES                   = 'StatisticReferences'
 FINDSTAT_STATISTIC_CODE                         = 'StatisticCode'
-FINDSTAT_STATISTIC_GENERATING_FUNCTION          = 'StatisticGeneratingFunction'
 FINDSTAT_STATISTIC_ORIGINAL_AUTHOR              = 'StatisticOriginalAuthor' # unused, designates a dictionary with Name, Time
 FINDSTAT_STATISTIC_UPDATE_AUTHOR                = 'StatisticUpdateAuthor'   # unused, designates a dictionary with Name, Time
 
@@ -865,7 +864,6 @@ class FindStatStatistic(SageObject):
         self._references            = self._raw[FINDSTAT_STATISTIC_REFERENCES].encode("utf-8")
         self._collection            = FindStatCollection(self._raw[FINDSTAT_STATISTIC_COLLECTION])
         self._code                  = self._raw[FINDSTAT_STATISTIC_CODE]
-        self._generating_function   = self._raw[FINDSTAT_STATISTIC_GENERATING_FUNCTION]
 
         from_str = self._collection.from_string()
         # we want to keep FindStat's ordering here!

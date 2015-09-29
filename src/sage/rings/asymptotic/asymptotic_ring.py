@@ -1014,10 +1014,17 @@ class AsymptoticRing(Ring, UniqueRepresentation):
             Traceback (most recent call last):
             ...
             TypeError: Cannot convert y to an asymptotic expression.
+
+        ::
+
+            sage: AR(1234, summands=6789)
+            Traceback (most recent call last):
+            ...
+            ValueError: Input is ambiguous: 1234 as well as summands=6789 are specified.
         """
         if summands is not None:
             if type(data) != int or data != 0:
-                raise ValueError('Input is ambigous: '
+                raise ValueError('Input is ambiguous: '
                                  '%s as well as summands=%s '
                                  'are specified.' % (data, summands))
             return self.element_class(self, summands, simplify=simplify)

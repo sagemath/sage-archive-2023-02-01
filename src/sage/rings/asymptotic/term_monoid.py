@@ -350,7 +350,7 @@ class GenericTerm(sage.structure.element.MonoidElement):
             sage: atm.GenericTerm(T, agg.GrowthGroup('y^ZZ').gen())
             Traceback (most recent call last):
             ...
-            ValueError: y is not in the parent's specified growth group
+            ValueError: y is not in Growth Group x^ZZ
         """
         from sage.rings.asymptotic.growth_group import GenericGrowthElement
 
@@ -359,7 +359,7 @@ class GenericTerm(sage.structure.element.MonoidElement):
         try:
             self.growth = parent.growth_group(growth)
         except ValueError, TypeError:
-            raise ValueError("%s is not in %s" % (growth, self.growth_group))
+            raise ValueError("%s is not in %s" % (growth, parent.growth_group))
 
         super(GenericTerm, self).__init__(parent=parent)
 

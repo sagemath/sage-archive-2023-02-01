@@ -906,7 +906,8 @@ class AsymptoticRing(Ring, UniqueRepresentation):
             raise ValueError('%s is not a ring. Cannot continue.' % (coefficient_ring,))
 
         if category is None:
-            category = Rings() & sage.categories.posets.Posets()
+            from sage.categories.posets import Posets
+            category = Rings() & Posets()
         else:
             if not isinstance(category, tuple):
                 category = (category,)
@@ -1368,9 +1369,11 @@ class AsymptoticRingFunctor(ConstructionFunctor):
             AsymptoticRing<x^ZZ>
         """
         self.growth_group = growth_group
+
+        from sage.categories.rings import Rings
+        from sage.categories.posets import Posets
         super(ConstructionFunctor, self).__init__(
-            sage.categories.rings.Rings(),
-            sage.categories.rings.Rings() & sage.categories.posets.Posets())
+            Rings(), Rings() & Posets())
 
 
     def _repr_(self):
@@ -1439,7 +1442,8 @@ class AsymptoticRingFunctor(ConstructionFunctor):
             return self
 
         if isinstance(other, AsymptoticRingFunctor):
-            cm = sage.structure.element.get_coercion_model()
+            from sage.structure.element import get_coercion_model
+            cm = get_coercion_model()
             try:
                 G = cm.common_parent(self.growth_group, other.growth_group)
             except TypeError:

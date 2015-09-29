@@ -1795,25 +1795,27 @@ class FindStatCollection(Element):
 
         OEIS_string = ""
         keys = sorted(gen_funcs.keys())
+        counter = 0
         for key in keys:
             gen_func = gen_funcs[key]
             while gen_func[0] == 0:
                 gen_func.pop(0)
             # we strip the result according to the search size. -- stumpc5, 2015-09-27
             gen_func = gen_func[:search_size]
+            counter += len(gen_func)
             if search_size > 0:
                 search_size -= len(gen_func)
             OEIS_func_string     = ",".join( str(coefficient) for coefficient in gen_func )
             OEIS_string         += OEIS_func_string + "  "
         OEIS_string = OEIS_string.strip()
-        if OEIS_string:
+        if counter >= 4:
             if verbose:
                 print 'Searching the OEIS for "%s"'%OEIS_string
                 print
             return oeis( OEIS_string )
         else:
             if verbose:
-                print "Too little information to search the OEIS for this statistic."
+                print "Too little information to search the OEIS for this statistic (only %s values given)."%counter
                 print
             return
 

@@ -61,11 +61,11 @@ powers of `y`, respectively.
 This also enables us to construct *logarithmic growth groups*,
 e.g. ``log(x)^ZZ``.
 
-    Exponential growth groups, i.e. growth groups representing
-    elements of the form `\operatorname{base}^\operatorname{variable}`
-    are denoted as ``base^variable``. For example, ``QQ^x`` denotes
-    the multiplicative group of exponential expressions `q^x`, where
-    `q \in \mathbb{Q}^{\times}`.
+Exponential growth groups, i.e. growth groups representing
+elements of the form `\operatorname{base}^{\operatorname{variable}}`
+are denoted as ``base^variable``. For example, ``QQ^x`` denotes
+the multiplicative group of exponential expressions `q^x`, where
+`q \in \mathbb{Q}^{\times}`.
 
 EXAMPLES::
 

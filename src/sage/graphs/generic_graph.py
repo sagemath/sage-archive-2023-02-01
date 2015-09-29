@@ -14007,7 +14007,7 @@ class GenericGraph(GenericGraph_pyx):
         in the graph [OLJ14]_. In formulas,
 
         .. MATH::
-        
+
             c(v)=\frac{r(v)-1}{\sum_{w \in R(v)} d(v,w)}\frac{r(v)-1}{n-1}
 
         where `R(v)` is the set of vertices reachable from `v`, and
@@ -14104,10 +14104,10 @@ class GenericGraph(GenericGraph_pyx):
             sage: D.show(figsize=[2,2])
             sage: D.centrality_closeness()
             {0: 1.0, 1: 1.0, 2: 0.75, 3: 0.75}
-        
+
         In a (strongly) connected (di)graph, the closeness centrality of `v`
         is inverse of the average distance between `v` and all other vertices::
-        
+
             sage: g = graphs.PathGraph(5)
             sage: g.centrality_closeness(0)
             0.4
@@ -14120,9 +14120,9 @@ class GenericGraph(GenericGraph_pyx):
             sage: dist = d.shortest_path_lengths(0).values()
             sage: float(len(dist)-1) / sum(dist)
             0.4
-            
+
         If a vertex has (out)degree 0, its closeness centrality is not defined::
-        
+
             sage: g = Graph(5)
             sage: g.centrality_closeness()
             {}
@@ -18612,76 +18612,79 @@ class GenericGraph(GenericGraph_pyx):
             sage: print G.graphviz_string(labels="latex",edge_labels=True)
             digraph {
               node [shape="plaintext"];
-              node_7  [label=" ", texlbl="$\frac{2}{3}$"];
-              node_5  [label=" ", texlbl="$\frac{1}{3}$"];
-              node_6  [label=" ", texlbl="$\frac{1}{2}$"];
-              node_9  [label=" ", texlbl="$1$"];
-              node_4  [label=" ", texlbl="$\frac{1}{4}$"];
-              node_8  [label=" ", texlbl="$\frac{4}{5}$"];
-              node_0  [label=" ", texlbl="$-4$"];
-              node_10  [label=" ", texlbl="$2$"];
-              node_1  [label=" ", texlbl="$-2$"];
+              node_10  [label=" ", texlbl="$1$"];
+              node_11  [label=" ", texlbl="$2$"];
               node_3  [label=" ", texlbl="$-\frac{1}{2}$"];
+              node_6  [label=" ", texlbl="$\frac{1}{2}$"];
+              node_7  [label=" ", texlbl="$\frac{1}{2}$"];
+              node_5  [label=" ", texlbl="$\frac{1}{3}$"];
+              node_8  [label=" ", texlbl="$\frac{2}{3}$"];
+              node_4  [label=" ", texlbl="$\frac{1}{4}$"];
+              node_1  [label=" ", texlbl="$-2$"];
+              node_9  [label=" ", texlbl="$\frac{4}{5}$"];
+              node_0  [label=" ", texlbl="$-4$"];
               node_2  [label=" ", texlbl="$-1$"];
             <BLANKLINE>
-              node_6 -> node_1 [label=" ", texlbl="$x \ {\mapsto}\ -\frac{1}{x}$"];
-              node_6 -> node_7 [label=" ", texlbl="$x \ {\mapsto}\ \frac{1}{x + 1}$"];
-              node_9 -> node_2 [label=" ", texlbl="$x \ {\mapsto}\ -\frac{1}{x}$"];
-              node_9 -> node_6 [label=" ", texlbl="$x \ {\mapsto}\ \frac{1}{x + 1}$"];
+              node_10 -> node_2 [label=" ", texlbl="$x \ {\mapsto}\ -\frac{1}{x}$"];
+              node_10 -> node_6 [label=" ", texlbl="$x \ {\mapsto}\ \frac{1}{x + 1}$"];
+              node_11 -> node_3 [label=" ", texlbl="$x \ {\mapsto}\ -\frac{1}{x}$"];
+              node_11 -> node_5 [label=" ", texlbl="$x \ {\mapsto}\ \frac{1}{x + 1}$"];
+              node_7 -> node_1 [label=" ", texlbl="$x \ {\mapsto}\ -\frac{1}{x}$"];
+              node_7 -> node_8 [label=" ", texlbl="$x \ {\mapsto}\ \frac{1}{x + 1}$"];
               node_4 -> node_0 [label=" ", texlbl="$x \ {\mapsto}\ -\frac{1}{x}$"];
-              node_4 -> node_8 [label=" ", texlbl="$x \ {\mapsto}\ \frac{1}{x + 1}$"];
-              node_10 -> node_3 [label=" ", texlbl="$x \ {\mapsto}\ -\frac{1}{x}$"];
-              node_10 -> node_5 [label=" ", texlbl="$x \ {\mapsto}\ \frac{1}{x + 1}$"];
+              node_4 -> node_9 [label=" ", texlbl="$x \ {\mapsto}\ \frac{1}{x + 1}$"];
             }
 
             sage: print G.graphviz_string(labels="latex",color_by_label=True)
             digraph {
               node [shape="plaintext"];
-              node_7  [label=" ", texlbl="$\frac{2}{3}$"];
-              node_5  [label=" ", texlbl="$\frac{1}{3}$"];
-              node_6  [label=" ", texlbl="$\frac{1}{2}$"];
-              node_9  [label=" ", texlbl="$1$"];
-              node_4  [label=" ", texlbl="$\frac{1}{4}$"];
-              node_8  [label=" ", texlbl="$\frac{4}{5}$"];
-              node_0  [label=" ", texlbl="$-4$"];
-              node_10  [label=" ", texlbl="$2$"];
-              node_1  [label=" ", texlbl="$-2$"];
+              node_10  [label=" ", texlbl="$1$"];
+              node_11  [label=" ", texlbl="$2$"];
               node_3  [label=" ", texlbl="$-\frac{1}{2}$"];
+              node_6  [label=" ", texlbl="$\frac{1}{2}$"];
+              node_7  [label=" ", texlbl="$\frac{1}{2}$"];
+              node_5  [label=" ", texlbl="$\frac{1}{3}$"];
+              node_8  [label=" ", texlbl="$\frac{2}{3}$"];
+              node_4  [label=" ", texlbl="$\frac{1}{4}$"];
+              node_1  [label=" ", texlbl="$-2$"];
+              node_9  [label=" ", texlbl="$\frac{4}{5}$"];
+              node_0  [label=" ", texlbl="$-4$"];
               node_2  [label=" ", texlbl="$-1$"];
             <BLANKLINE>
-              node_6 -> node_1 [color = "#ff0000"];
-              node_6 -> node_7 [color = "#00ffff"];
-              node_9 -> node_2 [color = "#ff0000"];
-              node_9 -> node_6 [color = "#00ffff"];
+              node_10 -> node_2 [color = "#ff0000"];
+              node_10 -> node_6 [color = "#00ffff"];
+              node_11 -> node_3 [color = "#ff0000"];
+              node_11 -> node_5 [color = "#00ffff"];
+              node_7 -> node_1 [color = "#ff0000"];
+              node_7 -> node_8 [color = "#00ffff"];
               node_4 -> node_0 [color = "#ff0000"];
-              node_4 -> node_8 [color = "#00ffff"];
-              node_10 -> node_3 [color = "#ff0000"];
-              node_10 -> node_5 [color = "#00ffff"];
+              node_4 -> node_9 [color = "#00ffff"];
             }
 
             sage: print G.graphviz_string(labels="latex",color_by_label={ f: "red", g: "blue" })
             digraph {
               node [shape="plaintext"];
-              node_7  [label=" ", texlbl="$\frac{2}{3}$"];
-              node_5  [label=" ", texlbl="$\frac{1}{3}$"];
-              node_6  [label=" ", texlbl="$\frac{1}{2}$"];
-              node_9  [label=" ", texlbl="$1$"];
-              node_4  [label=" ", texlbl="$\frac{1}{4}$"];
-              node_8  [label=" ", texlbl="$\frac{4}{5}$"];
-              node_0  [label=" ", texlbl="$-4$"];
-              node_10  [label=" ", texlbl="$2$"];
-              node_1  [label=" ", texlbl="$-2$"];
+              node_10  [label=" ", texlbl="$1$"];
+              node_11  [label=" ", texlbl="$2$"];
               node_3  [label=" ", texlbl="$-\frac{1}{2}$"];
+              node_6  [label=" ", texlbl="$\frac{1}{2}$"];
+              node_7  [label=" ", texlbl="$\frac{1}{2}$"];
+              node_5  [label=" ", texlbl="$\frac{1}{3}$"];
+              node_8  [label=" ", texlbl="$\frac{2}{3}$"];
+              node_4  [label=" ", texlbl="$\frac{1}{4}$"];
+              node_1  [label=" ", texlbl="$-2$"];
+              node_9  [label=" ", texlbl="$\frac{4}{5}$"];
+              node_0  [label=" ", texlbl="$-4$"];
               node_2  [label=" ", texlbl="$-1$"];
             <BLANKLINE>
-              node_6 -> node_1 [color = "red"];
-              node_6 -> node_7 [color = "blue"];
-              node_9 -> node_2 [color = "red"];
-              node_9 -> node_6 [color = "blue"];
+              node_10 -> node_2 [color = "red"];
+              node_10 -> node_6 [color = "blue"];
+              node_11 -> node_3 [color = "red"];
+              node_11 -> node_5 [color = "blue"];
+              node_7 -> node_1 [color = "red"];
+              node_7 -> node_8 [color = "blue"];
               node_4 -> node_0 [color = "red"];
-              node_4 -> node_8 [color = "blue"];
-              node_10 -> node_3 [color = "red"];
-              node_10 -> node_5 [color = "blue"];
+              node_4 -> node_9 [color = "blue"];
             }
 
         By default ``graphviz`` renders digraphs using a hierarchical
@@ -18734,60 +18737,62 @@ class GenericGraph(GenericGraph_pyx):
             ...       return { "backward": u == 1 }
             sage: print G.graphviz_string(edge_options = edge_options)
             digraph {
-              node_7  [label="2/3"];
-              node_5  [label="1/3"];
-              node_6  [label="1/2"];
-              node_9  [label="1"];
-              node_4  [label="1/4"];
-              node_8  [label="4/5"];
-              node_0  [label="-4"];
-              node_10  [label="2"];
-              node_1  [label="-2"];
+              node_10  [label="1"];
+              node_11  [label="2"];
               node_3  [label="-1/2"];
+              node_6  [label="1/2"];
+              node_7  [label="1/2"];
+              node_5  [label="1/3"];
+              node_8  [label="2/3"];
+              node_4  [label="1/4"];
+              node_1  [label="-2"];
+              node_9  [label="4/5"];
+              node_0  [label="-4"];
               node_2  [label="-1"];
             <BLANKLINE>
-              node_6 -> node_1;
-              node_6 -> node_7;
-              node_2 -> node_9 [dir=back];
-              node_6 -> node_9 [dir=back];
+              node_2 -> node_10 [dir=back];
+              node_6 -> node_10 [dir=back];
+              node_11 -> node_3;
+              node_11 -> node_5;
+              node_7 -> node_1;
+              node_7 -> node_8;
               node_4 -> node_0;
-              node_4 -> node_8;
-              node_10 -> node_3;
-              node_10 -> node_5;
+              node_4 -> node_9;
             }
 
         We now test all options::
 
             sage: def edge_options((u,v,label)):
-            ...       options = { "color": { f: "red", g: "blue" }[label] }
-            ...       if (u,v) == (1/2, -2): options["label"]       = "coucou"; options["label_style"] = "string"
-            ...       if (u,v) == (1/2,2/3): options["dot"]         = "x=1,y=2"
-            ...       if (u,v) == (1,   -1): options["label_style"] = "latex"
-            ...       if (u,v) == (1,  1/2): options["edge_string"] = "<-"
-            ...       if (u,v) == (1/2,  1): options["backward"]    = True
-            ...       return options
+            ....:     options = { "color": { f: "red", g: "blue" }[label] }
+            ....:     if (u,v) == (1/2, -2): options["label"]       = "coucou"; options["label_style"] = "string"
+            ....:     if (u,v) == (1/2,2/3): options["dot"]         = "x=1,y=2"
+            ....:     if (u,v) == (1,   -1): options["label_style"] = "latex"
+            ....:     if (u,v) == (1,  1/2): options["edge_string"] = "<-"
+            ....:     if (u,v) == (1/2,  1): options["backward"]    = True
+            ....:     return options
             sage: print G.graphviz_string(edge_options = edge_options)
             digraph {
-              node_7  [label="2/3"];
-              node_5  [label="1/3"];
-              node_6  [label="1/2"];
-              node_9  [label="1"];
-              node_4  [label="1/4"];
-              node_8  [label="4/5"];
-              node_0  [label="-4"];
-              node_10  [label="2"];
-              node_1  [label="-2"];
+              node_10  [label="1"];
+              node_11  [label="2"];
               node_3  [label="-1/2"];
+              node_6  [label="1/2"];
+              node_7  [label="1/2"];
+              node_5  [label="1/3"];
+              node_8  [label="2/3"];
+              node_4  [label="1/4"];
+              node_1  [label="-2"];
+              node_9  [label="4/5"];
+              node_0  [label="-4"];
               node_2  [label="-1"];
             <BLANKLINE>
-              node_6 -> node_1 [label="coucou", color = "red"];
-              node_6 -> node_7 [x=1,y=2, color = "blue"];
-              node_9 -> node_2 [label=" ", texlbl="$x \ {\mapsto}\ -\frac{1}{x}$", color = "red"];
-              node_9 <- node_6 [color = "blue"];
+              node_10 -> node_2 [label=" ", texlbl="$x \ {\mapsto}\ -\frac{1}{x}$", color = "red"];
+              node_10 <- node_6 [color = "blue"];
+              node_11 -> node_3 [color = "red"];
+              node_11 -> node_5 [color = "blue"];
+              node_7 -> node_1 [label="coucou", color = "red"];
+              node_7 -> node_8 [x=1,y=2, color = "blue"];
               node_4 -> node_0 [color = "red"];
-              node_4 -> node_8 [color = "blue"];
-              node_10 -> node_3 [color = "red"];
-              node_10 -> node_5 [color = "blue"];
+              node_4 -> node_9 [color = "blue"];
             }
 
         TESTS:

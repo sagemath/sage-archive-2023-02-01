@@ -1441,10 +1441,8 @@ cdef class Expression(CommutativeRingElement):
 
             sage: hash(SR(3/1))
             3
-            sage: hash(SR(19/23))
-            4
-            sage: hash(19/23)
-            4
+            sage: hash(SR(19/23)) == hash(19/23)  # known bug #19310
+            True
 
         The hash for symbolic expressions are unfortunately random. Here we
         only test that the hash() function returns without error, and that

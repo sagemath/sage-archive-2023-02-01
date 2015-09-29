@@ -1334,7 +1334,7 @@ class FindStatStatistic(SageObject):
             sage: findstat(1).name()                                            # optional -- internet,random
             u'The number of ways to write a permutation as a minimal length product of simple transpositions.'
         """
-        return self._name.partition(FINDSTAT_SEPARATOR_NAME)[0]
+        return self._name
 
     def references(self):
         r"""

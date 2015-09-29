@@ -239,6 +239,7 @@ FINDSTAT_MAX_SUBMISSION_VALUES = 1200
 FINDSTAT_STATISTIC_IDENTIFIER      = 'StatisticIdentifier'
 FINDSTAT_STATISTIC_COLLECTION      = 'StatisticCollection'
 FINDSTAT_STATISTIC_DATA            = 'StatisticData'
+FINDSTAT_STATISTIC_GENERATING_FUNCTION          = 'StatisticGeneratingFunction'
 FINDSTAT_STATISTIC_DESCRIPTION     = 'StatisticDescription'
 FINDSTAT_STATISTIC_REFERENCES      = 'StatisticReferences'
 FINDSTAT_STATISTIC_CODE            = 'StatisticCode'
@@ -861,6 +862,8 @@ class FindStatStatistic(SageObject):
 
         self._description = self._raw[FINDSTAT_STATISTIC_DESCRIPTION].encode("utf-8")
         self._references = self._raw[FINDSTAT_STATISTIC_REFERENCES].encode("utf-8")
+        self._generating_function   = self._raw[FINDSTAT_STATISTIC_GENERATING_FUNCTION]
+
         self._collection = FindStatCollection(self._raw[FINDSTAT_STATISTIC_COLLECTION])
         self._code = self._raw[FINDSTAT_STATISTIC_CODE]
 

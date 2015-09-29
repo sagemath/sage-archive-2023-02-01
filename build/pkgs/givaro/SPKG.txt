@@ -29,11 +29,6 @@ SPKG Repository: https://bitbucket.org/malb/givaro-spkg
  * GNU patch
  * GMP/MPIR
 
-== Maintainers  ==
-
-  * Clement Pernet
-  * Martin Albrecht <martinralbrecht@googlemail.com>
-
 == Changelog ==
 
 === givaro-3.7.1 (Jean-Pierre Flori, 9 August 2012) ===

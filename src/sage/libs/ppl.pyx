@@ -1,3 +1,5 @@
+# distutils: language = c++
+# distutils: libraries = ppl m
 r"""
 Cython wrapper for the Parma Polyhedra Library (PPL)
 
@@ -149,6 +151,7 @@ AUTHORS:
 
 from sage.structure.sage_object cimport SageObject
 from sage.libs.gmp.mpz cimport *
+from sage.libs.gmpxx cimport mpz_class
 from sage.rings.integer cimport Integer
 from sage.rings.rational cimport Rational
 
@@ -163,14 +166,6 @@ from libcpp cimport bool as cppbool
 # These can only be triggered by methods in the Polyhedron class
 # they need to be wrapped in sig_on() / sig_off()
 ####################################################
-cdef extern from "gmpxx.h":
-    cdef cppclass mpz_class:
-        mpz_class()
-        mpz_class(int i)
-        mpz_class(mpz_t z)
-        mpz_class(mpz_class)
-        mpz_t get_mpz_t()
-
 
 ####################################################
 # PPL can use floating-point arithmetic to compute integers
@@ -3009,6 +3004,38 @@ cdef class Polyhedron(_mutable_or_immutable):
         sig_off()
         return result
 
+
+    def __hash__(self):
+        r"""
+        Hash value for polyhedra.
+
+        TESTS::
+
+            sage: from sage.libs.ppl import Constraint_System, Variable, C_Polyhedron
+            sage: x = Variable(0)
+            sage: p = C_Polyhedron( 5*x >= 3 )
+            sage: p.set_immutable()
+            sage: hash(p)
+            1
+
+            sage: y = Variable(1)
+            sage: cs = Constraint_System()
+            sage: cs.insert( x >= 0 )
+            sage: cs.insert( y >= 0 )
+            sage: p = C_Polyhedron(cs)
+            sage: p.set_immutable()
+            sage: hash(p)
+            2
+
+            sage: hash(C_Polyhedron(x >= 0))
+            Traceback (most recent call last):
+            ...
+            TypeError: mutable polyhedra are unhashable
+        """
+        if self.is_mutable():
+            raise TypeError("mutable polyhedra are unhashable")
+        # TODO: the hash code from PPL looks like being the dimension!
+        return self.thisptr[0].hash_code()
 
     def __richcmp__(Polyhedron lhs, Polyhedron rhs, op):
         r"""

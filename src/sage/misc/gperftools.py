@@ -366,8 +366,10 @@ def crun(s, evaluator):
     from sage.repl.preparse import preparse
     py_s = preparse(s)
     prof.start()
-    evaluator(py_s)
-    prof.stop()
+    try:
+        evaluator(py_s)
+    finally:
+        prof.stop()
     prof.top()
 
 

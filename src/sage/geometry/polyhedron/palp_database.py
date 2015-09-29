@@ -402,7 +402,7 @@ class Reflexive4dHodge(PALPreader):
     Read the PALP database for Hodge numbers of 4d polytopes.
 
     The database is very large and not installed by default. You can
-    install it with the command ``install_package('polytopes_db_4d')``.
+    install it with the shell command ``sage -i polytopes_db_4d``.
 
     INPUT:
 

@@ -687,9 +687,6 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         self.set_unsafe(1, 0, data[2])
         self.set_unsafe(1, 1, data[3])
 
-    def __richcmp__(Matrix self, right, int op):  # needed since we override __hash__
-        return self._richcmp(right, op)
-
     ########################################################################
     # LEVEL 1 helpers:
     #   These function support the implementation of the level 1 functionality.
@@ -3238,7 +3235,7 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
 
         TEST:
 
-        Check that trac:`9345` is fixed::
+        Check that :trac:`9345` is fixed::
 
             sage: A = random_matrix(ZZ, 3, 3)
             sage: A.rational_reconstruction(0)

@@ -9,10 +9,6 @@ controlling them; and responding to expected patterns in their output.
 
 Python Software Foundation License
 
-== SPKG Maintainers ==
-
- * William Stein
-
 == Upstream Contact ==
 
 

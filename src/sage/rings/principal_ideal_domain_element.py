@@ -17,6 +17,9 @@ Base class for principal ideal domain elements
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
+from sage.misc.superseded import deprecation
+deprecation(19167, "the module sage.rings.principal_ideal_domain_element is deprecated, import from sage.structure.element instead")
+
 from sage.structure.element import PrincipalIdealDomainElement
 
 def is_PrincipalIdealDomainElement(x):
@@ -25,6 +28,9 @@ def is_PrincipalIdealDomainElement(x):
 
     EXAMPLES::
 
+        sage: import sage.rings.principal_ideal_domain_element
+        doctest:...: DeprecationWarning: the module sage.rings.principal_ideal_domain_element is deprecated, import from sage.structure.element instead
+        See http://trac.sagemath.org/19167 for details.
         sage: sage.rings.principal_ideal_domain_element.is_PrincipalIdealDomainElement(ZZ(2))
         True
     """

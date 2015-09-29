@@ -993,6 +993,12 @@ class AsymptoticRing(Ring, UniqueRepresentation):
 
         An element of this asymptotic ring.
 
+        .. NOTE::
+
+            Either ``data`` or ``summands`` has to be given. If
+            ``summands`` is specified, then no positional argument
+            may be passed (except for `int(0)`).
+
         TESTS::
 
             sage: AR = AsymptoticRing(growth_group='x^ZZ', coefficient_ring=ZZ)

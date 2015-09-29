@@ -2708,10 +2708,9 @@ class MutablePoset(SageObject):
         .. NOTE::
 
             The key of an element is used for comparison. Thus elements with
-            the same key are considered as equal.
-
-            Due to keys and a ``merge`` function (see :class:`MutablePoset`)
-            this operation might not be commutative.
+            the same key are considered as equal;
+            ``A.union_update(B)`` and ``B.union_update(A)`` might
+            result in different posets.
 
         .. TODO::
 
@@ -2934,7 +2933,9 @@ class MutablePoset(SageObject):
         .. NOTE::
 
             The key of an element is used for comparison. Thus elements with
-            the same key are considered as equal.
+            the same key are considered as equal;
+            ``A.union_update(B)`` and ``B.union_update(A)`` might
+            result in different posets.
 
         EXAMPLES::
 
@@ -2977,9 +2978,8 @@ class MutablePoset(SageObject):
 
         .. NOTE::
 
-            If this poset uses a ``key``-function, then all
-            comparisons are performed on the keys of the elements (and
-            not on the elements themselves).
+            The key of an element is used for comparison. Thus elements with
+            the same key are considered as equal.
 
         EXAMPLES::
 
@@ -3021,9 +3021,10 @@ class MutablePoset(SageObject):
 
         .. NOTE::
 
-            If this poset uses a ``key``-function, then all
-            comparisons are performed on the keys of the elements (and
-            not on the elements themselves).
+            The key of an element is used for comparison. Thus elements with
+            the same key are considered as equal;
+            ``A.union_update(B)`` and ``B.union_update(A)`` might
+            result in different posets.
 
         EXAMPLES::
 

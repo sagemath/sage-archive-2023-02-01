@@ -99,8 +99,8 @@ class CartesianProductFactory(sage.structure.factory.UniqueFactory):
         sage: cartesian_product([A, E]); G  # indirect doctest
         Traceback (most recent call last):
         ...
-        ValueError: Growth groups (Growth Group x^ZZ, Growth Group x^ZZ * y^ZZ)
-        do not have pairwise disjoint variables.
+        ValueError: The growth groups (Growth Group x^ZZ, Growth Group x^ZZ * y^ZZ)
+        need to have pairwise disjoint or equal variables.
         sage: cartesian_product([A, B, D])  # indirect doctest
         Growth Group x^ZZ * log(x)^ZZ * y^ZZ
 
@@ -164,8 +164,8 @@ class CartesianProductFactory(sage.structure.factory.UniqueFactory):
         # check if variables are pairwise disjoint
         for u, w in product(iter(v for v, _ in vgs), repeat=2):
             if u != w and set(u).intersection(set(w)):
-                raise ValueError('Growth groups %s do not have pairwise disjoint '
-                                 'variables.' % (growth_groups,))
+                raise ValueError('The growth groups %s need to have pairwise '
+                                 'disjoint or equal variables.' % (growth_groups,))
 
         # build cartesian products
         u_groups = list()

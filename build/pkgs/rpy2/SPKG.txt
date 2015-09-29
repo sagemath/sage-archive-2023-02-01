@@ -11,8 +11,6 @@ Website: http://rpy.sourceforge.net/rpy2.html
  * GPL 2+
  * Note that we have deleted references to Mozilla PL as an option, which we are allowed to do by the full rpy2 license in order to remain GPL-compatible
 
-== SPKG Maintainers ==
-
 == Upstream Contact ==
  * http://rpy.sourceforge.net/maillist.html
 

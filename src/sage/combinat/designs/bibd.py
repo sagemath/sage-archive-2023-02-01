@@ -222,6 +222,11 @@ def balanced_incomplete_block_design(v, k, existence=False, use_LJCR=False):
         if existence:
             return True
         return BlockDesign(v,BIBD_constructions[(v,k,1)](), copy=False)
+    if BIBD_from_arc_in_desarguesian_projective_plane(v,k,existence=True):
+        if existence:
+            return True
+        B = BIBD_from_arc_in_desarguesian_projective_plane(v,k)
+        return BalancedIncompleteBlockDesign(v, B, copy=False)
     if BIBD_from_TD(v,k,existence=True):
         if existence:
             return True
@@ -1102,6 +1107,114 @@ def BIBD_5q_5_for_q_prime_power(q):
 
     return B
 
+def BIBD_from_arc_in_desarguesian_projective_plane(n,k,existence=False):
+    r"""
+    Returns a `(n,k,1)`-BIBD from a maximal arc in a projective plane.
+
+    This function implements a construction from Denniston [Denniston69]_, who
+    describes a maximal :meth:`arc
+    <sage.combinat.designs.bibd.BalancedIncompleteBlockDesign.arc>` in a
+    :func:`Desarguesian Projective Plane
+    <sage.combinat.designs.block_design.DesarguesianProjectivePlaneDesign>` of
+    order `2^k`. From two powers of two `n,q` with `n<q`, it produces a
+    `((n-1)(q+1)+1,n,1)`-BIBD.
+
+    INPUT:
+
+    - ``n,k`` (integers) -- must be powers of two (among other restrictions).
+
+    - ``existence`` (boolean) -- whether to return the BIBD obtained through
+      this construction (default), or to merely indicate with a boolean return
+      value whether this method *can* build the requested BIBD.
+
+    EXAMPLES:
+
+    A `(232,8,1)`-BIBD::
+
+        sage: from sage.combinat.designs.bibd import BIBD_from_arc_in_desarguesian_projective_plane
+        sage: from sage.combinat.designs.bibd import BalancedIncompleteBlockDesign
+        sage: D = BIBD_from_arc_in_desarguesian_projective_plane(232,8)
+        sage: BalancedIncompleteBlockDesign(232,D)
+        (232,8,1)-Balanced Incomplete Block Design
+
+    A `(120,8,1)`-BIBD::
+
+        sage: D = BIBD_from_arc_in_desarguesian_projective_plane(120,8)
+        sage: BalancedIncompleteBlockDesign(120,D)
+        (120,8,1)-Balanced Incomplete Block Design
+
+    Other parameters::
+
+        sage: all(BIBD_from_arc_in_desarguesian_projective_plane(n,k,existence=True)
+        ....:     for n,k in
+        ....:       [(120, 8), (232, 8), (456, 8), (904, 8), (496, 16),
+        ....:        (976, 16), (1936, 16), (2016, 32), (4000, 32), (8128, 64)])
+        True
+
+    Of course, not all can be built this way::
+
+        sage: BIBD_from_arc_in_desarguesian_projective_plane(7,3,existence=True)
+        False
+        sage: BIBD_from_arc_in_desarguesian_projective_plane(7,3)
+        Traceback (most recent call last):
+        ...
+        ValueError: This function cannot produce a (7,3,1)-BIBD
+
+    REFERENCE:
+
+    .. [Denniston69] R. H. F. Denniston,
+       Some maximal arcs in finite projective planes.
+       Journal of Combinatorial Theory 6, no. 3 (1969): 317-319.
+       http://dx.doi.org/10.1016/S0021-9800(69)80095-5
+
+    """
+    q = (n-1)//(k-1)-1
+    if (k % 2                 or
+        q % 2                 or
+        q <= k                or
+        n != (k-1)*(q+1)+1    or
+        not is_prime_power(k) or
+        not is_prime_power(q)):
+        if existence:
+            return False
+        raise ValueError("This function cannot produce a ({},{},1)-BIBD".format(n,k))
+
+    if existence:
+        return True
+
+    n = k
+
+    # From now on, the code assumes the notations of [Denniston69] for n,q, so
+    # that the BIBD returned by the method will have the requested parameters.
+
+    from sage.rings.finite_rings.constructor import FiniteField as GF
+    from sage.libs.gap.libgap import libgap
+    from sage.matrix.constructor import Matrix
+
+    K   = GF(q,'a')
+    one = K.one()
+
+    # An irreducible quadratic form over K[X,Y]
+    GO = libgap.GeneralOrthogonalGroup(-1,2,q)
+    M  = libgap.InvariantQuadraticForm(GO)['matrix']
+    M  = Matrix(M)
+    M  = M.change_ring(K)
+    Q  = lambda xx,yy : M[0,0]*xx**2+(M[0,1]+M[1,0])*xx*yy+M[1,1]*yy**2
+
+    # Here, the additive subgroup H (of order n) of K mentioned in
+    # [Denniston69] is the set of all elements of K of degree < log_n
+    # (seeing elements of K as polynomials in 'a')
+
+    K_iter = list(K) # faster iterations
+    log_n = is_prime_power(n,get_data=True)[1]
+    C = [(x,y,one)
+         for x in K_iter
+         for y in K_iter
+         if Q(x,y).polynomial().degree() < log_n]
+
+    from sage.combinat.designs.block_design import DesarguesianProjectivePlaneDesign
+    return DesarguesianProjectivePlaneDesign(q).trace(C)._blocks
+
 class PairwiseBalancedDesign(GroupDivisibleDesign):
     r"""
     Pairwise Balanced Design (PBD)
@@ -1213,7 +1326,7 @@ class BalancedIncompleteBlockDesign(PairwiseBalancedDesign):
                                         points,
                                         blocks,
                                         K=[k] if k is not None else None,
-                                        lambd=1,
+                                        lambd=lambd,
                                         check=check,
                                         copy=copy,
                                         **kwds)

@@ -33,6 +33,7 @@ List of (semi)lattice methods
     :meth:`~FiniteLatticePoset.is_modular` | Return ``True`` if the lattice is lower modular.
     :meth:`~FiniteLatticePoset.is_modular_element` | Return ``True`` if given element is modular in the lattice.
     :meth:`~FiniteLatticePoset.is_upper_semimodular` | Return ``True`` if the lattice is upper semimodular.
+    :meth:`~FiniteLatticePoset.is_planar` | Return ``True`` if the lattice is *upward* planar, and ``False`` otherwise.
     :meth:`~FiniteLatticePoset.is_supersolvable` | Return ``True`` if the lattice is supersolvable.
     :meth:`~FiniteJoinSemilattice.join` | Return the join of given elements in the join semi-lattice.
     :meth:`~FiniteJoinSemilattice.join_matrix` | Return the matrix of joins of all elements of the join semi-lattice.
@@ -528,6 +529,105 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
         """
         return self._hasse_diagram.is_complemented_lattice()
 
+    def breadth(self, certificate=False):
+        r"""
+        Return the breadth of the lattice.
+
+        The breadth of a lattice is the largest integer `n` such that
+        any join of elements `x_1, x_2, \ldots, x_{n+1}` is join of a
+        proper subset of `x_i`.
+
+        INPUT:
+
+        - ``certificate`` -- (boolean; default: ``False``) -- whether to
+          return an integer (the breadth) or a certificate, i.e. a biggest
+          set whose join differs from the join of any subset.
+
+        EXAMPLES::
+
+            sage: D10 = Posets.DiamondPoset(10)
+            sage: D10.breadth()
+            2
+
+            sage: B3 = Posets.BooleanLattice(3)
+            sage: B3.breadth()
+            3
+            sage: B3.breadth(certificate=True)
+            [1, 2, 4]
+
+        Smallest example of a lattice with breadth 4::
+
+            sage: L = LatticePoset(DiGraph('O]???w?K_@S?E_??Q?@_?D??I??W?B??@??C??O?@???'))
+            sage: L.breadth()
+            4
+
+        ALGORITHM:
+
+        For a lattice to have breadth at least `n`, it must have an
+        `n`-element antichain `A` with join `j`. Element `j` must
+        cover at least `n` elements. There must also be `n-2` levels
+        of elements between `A` and `j`.  So we start by searching
+        elements that could be our `j` and then just check possible
+        antichains `A`.
+
+        TESTS::
+
+            sage: Posets.ChainPoset(0).breadth()
+            0
+            sage: Posets.ChainPoset(1).breadth()
+            1
+        """
+        # A place for optimization: Adding a doubly irreducible element to
+        # a lattice does not change the breadth, except from 1 to 2.
+        # Hence we could start by removing double irreducibles.
+
+        from sage.combinat.subsets_pairwise import PairwiseCompatibleSubsets
+
+        # First check if breadth is zero (empty lattice) or one (a chain).
+        n = self.cardinality()
+        if n == 0:
+            return [] if certificate else 0
+        if self.is_chain():
+            return [self.bottom()] if certificate else 1
+        # Breadth is at least two.
+
+        # Work directly with the Hasse diagram
+        H = self._hasse_diagram
+
+        # Helper function: Join of elements in the list L.
+        jn = H._join
+        def join(L):
+            j = 0
+            for i in L:
+                j = jn[i, j]
+            return j
+
+        indegs = [H.in_degree(i) for i in range(n)]
+        max_breadth = max(indegs)
+
+        for B in range(max_breadth, 1, -1):
+            for j in H:
+                if indegs[j] < B: continue
+
+                # Get elements more than B levels below it.
+                too_close = set(H.breadth_first_search(j,
+                                                      neighbors=H.neighbors_in,
+                                                      distance=B-2))
+                elems = [e for e in H.order_ideal([j]) if e not in too_close]
+
+                achains = PairwiseCompatibleSubsets(elems,
+                                          lambda x,y: H.are_incomparable(x,y))
+                achains_n = achains.elements_of_depth_iterator(B)
+
+                for A in achains_n:
+                    if join(A) == j:
+                        if all(join(A[:i]+A[i+1:]) != j for i in range(B)):
+                            if certificate:
+                                return [self._vertex_to_element(e) for e in A]
+                            else:
+                                return B
+        assert False, "BUG: breadth() in lattices.py have an error."
+
     def complements(self, element=None):
         r"""
         Return the list of complements of an element in the lattice,
@@ -638,6 +738,79 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
             if len(lcovers)<=1:
                 return False
         return True
+
+    def is_planar(self):
+        r"""
+        Return ``True`` if the lattice is *upward* planar, and ``False``
+        otherwise.
+
+        A lattice is upward planar if its Hasse diagram has a planar drawing in
+        the `\mathbb{R}^2` plane, in such a way that `x` is strictly below `y`
+        (on the vertical axis) whenever `x<y` in the lattice.
+
+        Note that the scientific litterature on posets often omits "upward" and
+        shortens it to "planar lattice" (e.g. [GW14]_), which can cause
+        confusion with the notion of graph planarity in graph theory.
+
+        .. NOTE::
+
+            Not all lattices which are planar -- in the sense of graph planarity
+            -- admit such a planar drawing (see example below).
+
+        ALGORITHM:
+
+        Using the result from [Platt76]_, this method returns its result by
+        testing that the hasse diagram of the lattice is planar (in the sense of
+        graph theory) when an edge is added between the top and bottom elements.
+
+        EXAMPLES:
+
+        The Boolean lattice of `2^3` elements is not upward planar, even if
+        it's covering relations graph is planar::
+
+            sage: B3 = Posets.BooleanLattice(3)
+            sage: B3.is_planar()
+            False
+            sage: G = B3.cover_relations_graph()
+            sage: G.is_planar()
+            True
+
+        Ordinal product of planar lattices is obviously planar. Same does
+        not apply to cartesian products::
+
+            sage: P = Posets.PentagonPoset()
+            sage: Pc = P.product(P)
+            sage: Po = P.ordinal_product(P)
+            sage: Pc.is_planar()
+            False
+            sage: Po.is_planar()
+            True
+
+        TESTS::
+
+            sage: Posets.ChainPoset(0).is_planar()
+            True
+            sage: Posets.ChainPoset(1).is_planar()
+            True
+
+        REFERENCES:
+
+        .. [GW14] G. Gratzer and F. Wehrung,
+           Lattice Theory: Special Topics and Applications Vol. 1,
+           Springer, 2014.
+
+        .. [Platt76] C. R. Platt,
+           Planar lattices and planar graphs,
+           Journal of Combinatorial Theory Series B,
+           Vol 21, no. 1 (1976): 30-39.
+
+        """
+        # The 8-element Boolean lattice is the smallest non-planar lattice.
+        if self.cardinality() < 8:
+            return True
+        g = self._hasse_diagram.copy(immutable=False)
+        g.add_edge(0, self.cardinality()-1)
+        return g.is_planar()
 
     def is_modular(self, L=None):
         r"""

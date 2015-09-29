@@ -28,10 +28,6 @@ Website: http://invisible-island.net/ncurses
 
  * MIT-style
 
-== SPKG Maintainers ==
-
- * Volker Braun
-
 == Upstream Contact ==
 
  * bug-ncurses@gnu.org

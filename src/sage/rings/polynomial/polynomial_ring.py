@@ -154,12 +154,13 @@ These may change over time::
     <class 'sage.rings.polynomial.polynomial_ring.PolynomialRing_field_with_category'>
 """
 
-
-#################################################################################
+#*****************************************************************************
 #       Copyright (C) 2006 William Stein <wstein@gmail.com>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
-#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
@@ -170,7 +171,7 @@ import sage.categories.basic as categories
 import sage.rings.commutative_ring as commutative_ring
 import sage.rings.commutative_algebra as commutative_algebra
 import sage.rings.ring as ring
-import sage.rings.ring_element as ring_element
+from sage.structure.element import is_RingElement
 import sage.rings.integral_domain as integral_domain
 import sage.rings.principal_ideal_domain as principal_ideal_domain
 import sage.rings.polynomial.polynomial_element_generic as polynomial_element_generic
@@ -2516,7 +2517,7 @@ def polygen(ring_or_element, name="x"):
        get a tuple of indeterminates, exactly as if you called
        polygens.
     """
-    if ring_element.is_RingElement(ring_or_element):
+    if is_RingElement(ring_or_element):
         base_ring = ring_or_element.parent()
     elif ring.is_Ring(ring_or_element):
         base_ring = ring_or_element

@@ -237,20 +237,20 @@ class MapRelativeVectorSpaceToRelativeNumberField(NumberFieldIsomorphism):
 
         sage: L.<b> = NumberField(x^4 + 3*x^2 + 1)
         sage: K = L.relativize(L.subfields(2)[0][1], 'a'); K
-        Number Field in a0 with defining polynomial x^2 - b0*x + 1 over its base field
+        Number Field in a with defining polynomial x^2 - b0*x + 1 over its base field
         sage: V, fr, to = K.relative_vector_space()
         sage: V
         Vector space of dimension 2 over Number Field in b0 with defining polynomial x^2 + 1
         sage: fr
         Isomorphism map:
           From: Vector space of dimension 2 over Number Field in b0 with defining polynomial x^2 + 1
-          To:   Number Field in a0 with defining polynomial x^2 - b0*x + 1 over its base field
+          To:   Number Field in a with defining polynomial x^2 - b0*x + 1 over its base field
         sage: type(fr)
         <class 'sage.rings.number_field.maps.MapRelativeVectorSpaceToRelativeNumberField'>
 
         sage: a0 = K.gen(); b0 = K.base_field().gen()
         sage: fr(to(a0 + 2*b0)), fr(V([0, 1])), fr(V([b0, 2*b0]))
-        (a0 + 2*b0, a0, 2*b0*a0 + b0)
+        (a + 2*b0, a, 2*b0*a + b0)
         sage: (fr * to)(K.gen()) == K.gen()
         True
         sage: (to * fr)(V([1, 2])) == V([1, 2])
@@ -278,7 +278,7 @@ class MapRelativeVectorSpaceToRelativeNumberField(NumberFieldIsomorphism):
             sage: a0 = K.gen(); b0 = K.base_field().gen()
             sage: V, fr, to = K.relative_vector_space()
             sage: fr(to(a0 + 2*b0)), fr(V([0, 1])), fr(V([b0, 2*b0])) # indirect doctest
-            (a0 + 2*b0, a0, 2*b0*a0 + b0)
+            (a + 2*b0, a, 2*b0*a + b0)
         """
         K = self.codomain()
         B = K.base_field().absolute_field('a')
@@ -310,7 +310,7 @@ class MapRelativeNumberFieldToRelativeVectorSpace(NumberFieldIsomorphism):
             sage: V, fr, to = K.relative_vector_space()
             sage: to
             Isomorphism map:
-              From: Number Field in a0 with defining polynomial x^2 - b0*x + 1 over its base field
+              From: Number Field in a with defining polynomial x^2 - b0*x + 1 over its base field
               To:   Vector space of dimension 2 over Number Field in b0 with defining polynomial x^2 + 1
         """
         NumberFieldIsomorphism.__init__(self, Hom(K, V))
@@ -430,19 +430,19 @@ class MapRelativeToAbsoluteNumberField(NumberFieldIsomorphism):
 
         sage: K.<a> = NumberField(x^6 + 4*x^2 + 200)
         sage: L = K.relativize(K.subfields(3)[0][1], 'b'); L
-        Number Field in b0 with defining polynomial x^2 + a0 over its base field
+        Number Field in b with defining polynomial x^2 + a0 over its base field
         sage: fr, to = L.structure()
         sage: fr
         Relative number field morphism:
-          From: Number Field in b0 with defining polynomial x^2 + a0 over its base field
+          From: Number Field in b with defining polynomial x^2 + a0 over its base field
           To:   Number Field in a with defining polynomial x^6 + 4*x^2 + 200
-          Defn: b0 |--> a
+          Defn: b |--> a
                 a0 |--> -a^2
         sage: to
         Ring morphism:
           From: Number Field in a with defining polynomial x^6 + 4*x^2 + 200
-          To:   Number Field in b0 with defining polynomial x^2 + a0 over its base field
-          Defn: a |--> b0
+          To:   Number Field in b with defining polynomial x^2 + a0 over its base field
+          Defn: a |--> b
         sage: type(fr), type(to)
         (<class 'sage.rings.number_field.morphism.RelativeNumberFieldHomomorphism_from_abs'>,
          <class 'sage.rings.number_field.morphism.NumberFieldHomomorphism_im_gens'>)
@@ -453,16 +453,16 @@ class MapRelativeToAbsoluteNumberField(NumberFieldIsomorphism):
         sage: fr
         Isomorphism map:
           From: Number Field in c with defining polynomial x^6 + 4*x^2 + 200
-          To:   Number Field in b0 with defining polynomial x^2 + a0 over its base field
+          To:   Number Field in b with defining polynomial x^2 + a0 over its base field
         sage: to
         Isomorphism map:
-          From: Number Field in b0 with defining polynomial x^2 + a0 over its base field
+          From: Number Field in b with defining polynomial x^2 + a0 over its base field
           To:   Number Field in c with defining polynomial x^6 + 4*x^2 + 200
         sage: type(fr), type(to)
         (<class 'sage.rings.number_field.maps.MapAbsoluteToRelativeNumberField'>,
          <class 'sage.rings.number_field.maps.MapRelativeToAbsoluteNumberField'>)
         sage: fr(M.gen()), to(fr(M.gen())) == M.gen()
-        (b0, True)
+        (b, True)
         sage: to(L.gen()), fr(to(L.gen())) == L.gen()
         (c, True)
         sage: (to * fr)(M.gen()) == M.gen(), (fr * to)(L.gen()) == L.gen()
@@ -578,7 +578,7 @@ class MapRelativeNumberFieldToVectorSpace(NumberFieldIsomorphism):
 
         sage: K.<a> = NumberField(x^8 + 100*x^6 + x^2 + 5)
         sage: L = K.relativize(K.subfields(4)[0][1], 'b'); L
-        Number Field in b0 with defining polynomial x^2 + a0 over its base field
+        Number Field in b with defining polynomial x^2 + a0 over its base field
         sage: L_to_K, K_to_L = L.structure()
 
         sage: V, fr, to = L.absolute_vector_space()
@@ -587,10 +587,10 @@ class MapRelativeNumberFieldToVectorSpace(NumberFieldIsomorphism):
         sage: fr
         Isomorphism map:
           From: Vector space of dimension 8 over Rational Field
-          To:   Number Field in b0 with defining polynomial x^2 + a0 over its base field
+          To:   Number Field in b with defining polynomial x^2 + a0 over its base field
         sage: to
         Isomorphism map:
-          From: Number Field in b0 with defining polynomial x^2 + a0 over its base field
+          From: Number Field in b with defining polynomial x^2 + a0 over its base field
           To:   Vector space of dimension 8 over Rational Field
         sage: type(fr), type(to)
         (<class 'sage.rings.number_field.maps.MapVectorSpaceToRelativeNumberField'>,
@@ -598,7 +598,7 @@ class MapRelativeNumberFieldToVectorSpace(NumberFieldIsomorphism):
 
         sage: v = V([1, 1, 1, 1, 0, 1, 1, 1])
         sage: fr(v), to(fr(v)) == v
-        ((-a0^3 + a0^2 - a0 + 1)*b0 - a0^3 - a0 + 1, True)
+        ((-a0^3 + a0^2 - a0 + 1)*b - a0^3 - a0 + 1, True)
         sage: to(L.gen()), fr(to(L.gen())) == L.gen()
         ((0, 1, 0, 0, 0, 0, 0, 0), True)
     """

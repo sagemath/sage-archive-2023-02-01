@@ -412,6 +412,7 @@ class SymmetricFunctionAlgebra_witt(multiplicative.SymmetricFunctionAlgebra_mult
         Compute the transition matrices between ``self`` and another
         multiplicative homogeneous basis in the homogeneous components of
         degree `n`.
+
         The results are not returned, but rather stored in the caches.
 
         This assumes that the transition matrices in all degrees smaller
@@ -441,7 +442,7 @@ class SymmetricFunctionAlgebra_witt(multiplicative.SymmetricFunctionAlgebra_mult
         Examples for usage of this function are the ``_precompute_h``,
         ``_precompute_e`` and ``_precompute_p`` methods of this class.
 
-        EXAMPLES::
+        EXAMPLES:
 
         The examples below demonstrate how the caches are built
         step by step using the ``_precompute_cache`` method. In order

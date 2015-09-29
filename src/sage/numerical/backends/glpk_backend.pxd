@@ -115,6 +115,7 @@ cdef extern from "glpk.h":
      void glp_create_index(c_glp_prob *lp)
 
      int glp_get_prim_stat(c_glp_prob *lp)
+     int glp_get_status(c_glp_prob *lp)
      int glp_mip_status(c_glp_prob *lp)
      int glp_set_mat_row(c_glp_prob *lp, int, int, int *, double * )
      int glp_set_mat_col(c_glp_prob *lp, int, int, int *, double * )
@@ -182,8 +183,10 @@ cdef extern from "glpk.h":
      int GLP_EOBJUL
      int GLP_EITLIM
      int GLP_ETMLIM
-     int GLP_EOPFS
-     int GLP_EODFS
+     int GLP_ENOPFS
+     int GLP_ENODFS
+     int GLP_EROOT
+     int GLP_ESTOP
      int GLP_EMIPGAP
 
      int GLP_UNDEF

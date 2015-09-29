@@ -21,29 +21,46 @@ log = logging.getLogger()
 from sage_bootstrap.compat import urllib, urlparse
 from sage_bootstrap.env import SAGE_DISTFILES
 
+from fcntl import flock, LOCK_SH, LOCK_EX
+from errno import ENOLCK
+
+
+def try_lock(fd, operation):
+    """
+    Try flock() but ignore ``ENOLCK`` errors, which could happen if the
+    file system does not support locking.
+    """
+    try:
+        flock(fd, operation)
+    except IOError as e:
+        if e.errno != ENOLCK:
+            raise
+
 
 class MirrorList(object):
-    
     URL = 'http://www.sagemath.org/mirror_list'
-
     MAXAGE = 24*60*60   # seconds
 
     def __init__(self):
         self.filename = os.path.join(SAGE_DISTFILES, 'mirror_list')
-        if self.must_refresh():
-            log.info('Downloading the Sage mirror list')
-            try:
-                with contextlib.closing(urllib.urlopen(self.URL)) as f:
-                    mirror_list = f.read().decode("ascii")
-            except IOError:
-                log.critical('Downloading the mirror list failed')
+        self.mirrors = None
+
+        try:
+            self.mirrorfile = open(self.filename, 'r+t')
+        except IOError:
+            self.mirrorfile = open(self.filename, 'w+t')
+
+        with self.mirrorfile:
+            self.mirrorfd = self.mirrorfile.fileno()
+            try_lock(self.mirrorfd, LOCK_SH)  # shared (read) lock
+            if self._must_refresh():
+                try_lock(self.mirrorfd, LOCK_EX)  # exclusive (write) lock
+                # Maybe the mirror list file was updated by a different
+                # process while we waited for the lock?  Check again.
+                if self._must_refresh():
+                    self._refresh()
+            if self.mirrors is None:
                 self.mirrors = self._load()
-            else:
-                self.mirrors = self._load(mirror_list)
-                self._rank_mirrors()
-                self._save()
-        else:
-            self.mirrors = self._load()
 
     def _load(self, mirror_list=None):
         """
@@ -52,8 +69,8 @@ class MirrorList(object):
         """
         if mirror_list is None:
             try:
-                with open(self.filename, 'rt') as f:
-                    mirror_list = f.read()
+                self.mirrorfile.seek(0)
+                mirror_list = self.mirrorfile.read()
             except IOError:
                 log.critical('Failed to load the cached mirror list')
                 return []
@@ -64,8 +81,10 @@ class MirrorList(object):
         """
         Save the mirror list for (short-term) future  use.
         """
-        with open(self.filename, 'wt') as f:
-            f.write(repr(self.mirrors))
+        self.mirrorfile.seek(0)
+        self.mirrorfile.write(repr(self.mirrors))
+        self.mirrorfile.truncate()
+        self.mirrorfile.flush()
 
     def _port_of_mirror(self, mirror):
         if mirror.startswith('http://'):
@@ -79,7 +98,7 @@ class MirrorList(object):
         """
         Sort the mirrors by speed, fastest being first
 
-        This method is used by the YUM fastestmirror plugin 
+        This method is used by the YUM fastestmirror plugin
         """
         timed_mirrors = []
         import time, socket
@@ -113,29 +132,40 @@ class MirrorList(object):
             self.mirrors = [m[1] for m in timed_mirrors]
         log.info('Fastest mirror: ' + self.fastest)
 
-    @property
-    def fastest(self):
-        return next(iter(self))
-
-    def age(self):
+    def _age(self):
         """
         Return the age of the cached mirror list in seconds
         """
         import time
-        mtime = os.path.getmtime(self.filename)
+        mtime = os.fstat(self.mirrorfd).st_mtime
         now = time.mktime(time.localtime())
         return now - mtime
 
-    def must_refresh(self):
+    def _must_refresh(self):
         """
         Return whether we must download the mirror list.
 
         If and only if this method returns ``False`` is it admissible
         to use the cached mirror list.
         """
-        if not os.path.exists(self.filename):
+        if os.fstat(self.mirrorfd).st_size == 0:
             return True
-        return self.age() > self.MAXAGE
+        return self._age() > self.MAXAGE
+
+    def _refresh(self):
+        """
+        Download and rank the mirror list.
+        """
+        log.info('Downloading the Sage mirror list')
+        try:
+            with contextlib.closing(urllib.urlopen(self.URL)) as f:
+                mirror_list = f.read().decode("ascii")
+        except IOError:
+            log.critical('Downloading the mirror list failed')
+        else:
+            self.mirrors = self._load(mirror_list)
+            self._rank_mirrors()
+            self._save()
 
     def __iter__(self):
         """
@@ -154,5 +184,7 @@ class MirrorList(object):
             yield mirror
         # If all else fails: Try the packages we host ourselves
         yield 'http://sagepad.org/'
-        
 
+    @property
+    def fastest(self):
+        return next(iter(self))

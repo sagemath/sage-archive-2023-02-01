@@ -9,10 +9,6 @@ to terminals in a way independent of the terminal type.
 
 GPL version 2
 
-== SPKG Maintainers ==
-
-None
-
 == Upstream Contact ==
 
 Please report any bugs in this library to bug-gnu-emacs@prep.ai.mit.edu

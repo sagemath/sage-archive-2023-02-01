@@ -10,10 +10,6 @@ http://www.liafa.jussieu.fr/~fm/ (in french)
 
 GPL
 
-== SPKG Maintainers ==
-
-Nathann Cohen  (nathann.cohen@gmail.com)
-
 == Upstream Contact ==
 
 Fabien de Montgolfier

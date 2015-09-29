@@ -299,7 +299,7 @@ class Sets(Category_singleton):
                 sage: Semigroups().CartesianProducts()
                 Category of Cartesian products of semigroups
                 sage: EuclideanDomains().CartesianProducts()
-                Join of Category of rings and Category of Cartesian products of ...
+                Category of Cartesian products of commutative rings
             """
             return CartesianProductsCategory.category_of(self)
 
@@ -1409,13 +1409,14 @@ class Sets(Category_singleton):
             - ``parents`` -- a list (or other iterable) of parents.
 
             - ``category`` -- (default: ``None``) the category the
-              cartesian product belongs to. If ``None``, then
+              cartesian product belongs to. If ``None`` is passed,
+              then
               :meth:`~sage.categories.covariant_functorial_construction.CovariantFactorialConstruction.category_from_parents`
-              is used the determine category.
+              is used to determine the category.
 
-            - ``extra_category`` -- (default: ``None``) this category is
-              added to the cartesian product additionally to the
-              categories obtained from the parents.
+            - ``extra_category`` -- (default: ``None``) a category
+              that is added to the cartesian product in addition
+              to the categories obtained from the parents.
 
             - other keyword arguments will passed on to the class used
               for this cartesian product (see also
@@ -1451,17 +1452,11 @@ class Sets(Category_singleton):
                 Category of sets
                 sage: cartesian_product([ZZ, ZZ]).category()
                 Join of
-                Category of rings and
-                Category of Cartesian products of distributive magmas and additive magmas and
-                Category of Cartesian products of monoids and
-                Category of Cartesian products of commutative additive groups and
+                Category of Cartesian products of commutative rings and
                 Category of Cartesian products of enumerated sets
                 sage: cartesian_product([ZZ, ZZ], extra_category=Posets()).category()
                 Join of
-                Category of rings and
-                Category of Cartesian products of distributive magmas and additive magmas and
-                Category of Cartesian products of monoids and
-                Category of Cartesian products of commutative additive groups and
+                Category of Cartesian products of commutative rings and
                 Category of posets and
                 Category of Cartesian products of enumerated sets
             """

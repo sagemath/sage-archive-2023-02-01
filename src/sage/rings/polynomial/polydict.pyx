@@ -28,19 +28,15 @@ AUTHORS:
 """
 
 #*****************************************************************************
-#       Copyright (C) 2005 William Stein (wstein@ucsd.edu)
+#       Copyright (C) 2005 William Stein <wstein@gmail.com>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
-#
-#    This code is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-#    General Public License for more details.
-#
-#  The full text of the GPL is available at:
-#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+
 
 include "sage/ext/stdsage.pxi"
 from libc.string cimport memcpy
@@ -52,7 +48,6 @@ from sage.structure.element import generic_power
 from sage.misc.misc import cputime
 from sage.misc.latex import latex
 
-import sage.rings.ring_element as ring_element
 
 cdef class PolyDict:
     def __init__(PolyDict self, pdict, zero=0, remove_zero=False, force_int_exponents=True, force_etuples=True):

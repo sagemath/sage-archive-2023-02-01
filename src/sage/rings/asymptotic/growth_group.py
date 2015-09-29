@@ -2018,7 +2018,7 @@ class ExponentialGrowthElement(GenericGrowthElement):
         r"""
         The base of this exponential growth element.
 
-        EXAMPLES:
+        EXAMPLES::
 
             sage: import sage.rings.asymptotic.growth_group as agg
             sage: P = agg.GrowthGroup('ZZ^x')

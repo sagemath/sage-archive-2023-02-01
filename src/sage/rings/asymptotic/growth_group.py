@@ -98,7 +98,7 @@ The above is ``True`` since the order of the factors does not play a role here; 
 In this case the components are ordered lexicographically, which
 means that in the second growth group, ``log(x)`` is assumed to
 grow faster than ``x`` (which is nonsense, mathematically). See
-:class:`sage.rings.asymptotic.growth_group_cartesian.CartesianProductFactory`
+:class:`CartesianProduct <sage.rings.asymptotic.growth_group_cartesian.CartesianProductFactory>`
 for more details.
 
 Classes and Methods

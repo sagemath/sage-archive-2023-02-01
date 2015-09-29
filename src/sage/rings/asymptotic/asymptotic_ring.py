@@ -867,6 +867,28 @@ class AsymptoticRing(Ring, UniqueRepresentation):
             Traceback (most recent call last):
             ...
             TypeError: __classcall__() takes at least 3 arguments (2 given)
+
+        ::
+
+            sage: AsymptoticRing(growth_group=None, coefficient_ring=ZZ)
+            Traceback (most recent call last):
+            ...
+            ValueError: Growth group not specified. Cannot continue.
+            sage: AsymptoticRing(growth_group='x^ZZ', coefficient_ring=None)
+            Traceback (most recent call last):
+            ...
+            ValueError: Coefficient ring not specified. Cannot continue.
+            sage: AsymptoticRing(growth_group='x^ZZ', coefficient_ring='icecream')
+            Traceback (most recent call last):
+            ...
+            ValueError: icecream is not a ring. Cannot continue.
+
+        ::
+
+            sage: AsymptoticRing('x^ZZ', QQ, category=Posets())
+            Traceback (most recent call last):
+            ...
+            ValueError: (Category of posets,) is not a subcategory of Category of rings
         """
         from sage.categories.rings import Rings
 

@@ -192,6 +192,7 @@ import inspect
 import json
 import cgi
 
+
 # Combinatoral collections
 from sage.combinat.alternating_sign_matrix import AlternatingSignMatrix, AlternatingSignMatrices
 from sage.combinat.binary_tree import BinaryTree, BinaryTrees
@@ -235,39 +236,37 @@ FINDSTAT_MAX_DEPTH = 5
 FINDSTAT_MAX_SUBMISSION_VALUES = 1200
 
 # the fields of the FindStat database we expect
-FINDSTAT_STATISTIC_IDENTIFIER                   = 'StatisticIdentifier'
-FINDSTAT_STATISTIC_COLLECTION                   = 'StatisticCollection'
-FINDSTAT_STATISTIC_DATA                         = 'StatisticData'
-FINDSTAT_STATISTIC_DESCRIPTION                  = 'StatisticDescription'
-FINDSTAT_STATISTIC_NAME                         = 'StatisticTitle'
-FINDSTAT_STATISTIC_REFERENCES                   = 'StatisticReferences'
-FINDSTAT_STATISTIC_CODE                         = 'StatisticCode'
-FINDSTAT_STATISTIC_GENERATING_FUNCTION          = 'StatisticGeneratingFunction'
-FINDSTAT_STATISTIC_ORIGINAL_AUTHOR              = 'StatisticOriginalAuthor' # unused, designates a dictionary with Name, Time
-FINDSTAT_STATISTIC_UPDATE_AUTHOR                = 'StatisticUpdateAuthor'   # unused, designates a dictionary with Name, Time
+FINDSTAT_STATISTIC_IDENTIFIER      = 'StatisticIdentifier'
+FINDSTAT_STATISTIC_COLLECTION      = 'StatisticCollection'
+FINDSTAT_STATISTIC_DATA            = 'StatisticData'
+FINDSTAT_STATISTIC_DESCRIPTION     = 'StatisticDescription'
+FINDSTAT_STATISTIC_REFERENCES      = 'StatisticReferences'
+FINDSTAT_STATISTIC_CODE            = 'StatisticCode'
+FINDSTAT_STATISTIC_ORIGINAL_AUTHOR = 'StatisticOriginalAuthor' # unused, designates a dictionary with Name, Email, Time
+FINDSTAT_STATISTIC_UPDATE_AUTHOR   = 'StatisticUpdateAuthor'   # unused, designates a dictionary with Name, Email, Time
 
-FINDSTAT_POST_AUTHOR                            = 'StatisticAuthor' # designates the name of the author
-FINDSTAT_POST_EMAIL                             = 'StatisticEmail'
-FINDSTAT_POST_SAGE_CELL                         = 'SageCellField'   # currently only used as post key
-FINDSTAT_POST_EDIT                              = 'EDIT'            # only used as post key
+FINDSTAT_POST_AUTHOR               = 'StatisticAuthor' # designates the name of the author
+FINDSTAT_POST_EMAIL                = 'StatisticEmail'
+FINDSTAT_POST_SAGE_CELL            = 'SageCellField'   # currently only used as post key
+FINDSTAT_POST_EDIT                 = 'EDIT'            # only used as post key
 
-FINDSTAT_COLLECTION_IDENTIFIER                  = 'CollectionIdentifier'
-FINDSTAT_COLLECTION_NAME                        = 'CollectionName'
-FINDSTAT_COLLECTION_NAME_PLURAL                 = 'CollectionNamePlural'
-FINDSTAT_COLLECTION_NAME_WIKI                   = 'CollectionNameWiki'
-FINDSTAT_COLLECTION_PARENT_LEVELS_PRECOMPUTED   = 'CollectionLevelsPrecomputed'
+FINDSTAT_COLLECTION_IDENTIFIER                = 'CollectionIdentifier'
+FINDSTAT_COLLECTION_NAME                      = 'CollectionName'
+FINDSTAT_COLLECTION_NAME_PLURAL               = 'CollectionNamePlural'
+FINDSTAT_COLLECTION_NAME_WIKI                 = 'CollectionNameWiki'
+FINDSTAT_COLLECTION_PARENT_LEVELS_PRECOMPUTED = 'CollectionLevelsPrecomputed'
 
-FINDSTAT_MAP_IDENTIFIER                         = 'MapIdentifier' # should be identical to FINDSTAT_MAP_IDENTIFIER
-FINDSTAT_MAP_NAME                               = 'MapName'
-FINDSTAT_MAP_DESCRIPTION                        = 'MapDescription'
-FINDSTAT_MAP_DOMAIN                             = 'MapDomain'
-FINDSTAT_MAP_CODOMAIN                           = 'MapCodomain'
-FINDSTAT_MAP_CODE                               = 'MapCode'
-FINDSTAT_MAP_CODE_NAME                          = 'MapSageName'
+FINDSTAT_MAP_IDENTIFIER  = 'MapIdentifier' # should be identical to FINDSTAT_MAP_IDENTIFIER
+FINDSTAT_MAP_NAME        = 'MapName'
+FINDSTAT_MAP_DESCRIPTION = 'MapDescription'
+FINDSTAT_MAP_DOMAIN      = 'MapDomain'
+FINDSTAT_MAP_CODOMAIN    = 'MapCodomain'
+FINDSTAT_MAP_CODE        = 'MapCode'
+FINDSTAT_MAP_CODE_NAME   = 'MapSageName'
 
-FINDSTAT_QUERY_MATCHES                          = 'QueryMatches'
-FINDSTAT_QUERY_MATCHING_DATA                    = 'QueryMatchingData'
-FINDSTAT_QUERY_MAPS                             = 'QueryMaps'
+FINDSTAT_QUERY_MATCHES       = 'QueryMatches'
+FINDSTAT_QUERY_MATCHING_DATA = 'QueryMatchingData'
+FINDSTAT_QUERY_MAPS          = 'QueryMaps'
 
 # the entries of this list are required as post arguments for submitting or editing a statistic
 FINDSTAT_EDIT_FIELDS = set([FINDSTAT_STATISTIC_IDENTIFIER,
@@ -860,12 +859,10 @@ class FindStatStatistic(SageObject):
             else:
                 raise
 
-        self._description           = self._raw[FINDSTAT_STATISTIC_DESCRIPTION].encode("utf-8")
-        self._name                  = self._raw[FINDSTAT_STATISTIC_NAME].encode("utf-8")
-        self._references            = self._raw[FINDSTAT_STATISTIC_REFERENCES].encode("utf-8")
-        self._collection            = FindStatCollection(self._raw[FINDSTAT_STATISTIC_COLLECTION])
-        self._code                  = self._raw[FINDSTAT_STATISTIC_CODE]
-        self._generating_function   = self._raw[FINDSTAT_STATISTIC_GENERATING_FUNCTION]
+        self._description = self._raw[FINDSTAT_STATISTIC_DESCRIPTION].encode("utf-8")
+        self._references = self._raw[FINDSTAT_STATISTIC_REFERENCES].encode("utf-8")
+        self._collection = FindStatCollection(self._raw[FINDSTAT_STATISTIC_COLLECTION])
+        self._code = self._raw[FINDSTAT_STATISTIC_CODE]
 
         from_str = self._collection.from_string()
         # we want to keep FindStat's ordering here!
@@ -1174,98 +1171,6 @@ class FindStatStatistic(SageObject):
         else:
             return ""
 
-    def generating_functions(self, as_type="polynomial"):
-        r"""
-        Return the generating functions of ``self`` in a dictionary.
-
-        The keys of this dictionary are the levels for which the
-        generating function of ``self`` can be computed from the data
-        of this statistic, and each value represents a generating
-        function for one level, as a polynomial, as a dictionary, or as
-        a list of coefficients.
-
-        INPUT:
-
-        - a string -- (default:"polynomial") can be
-          "polynomial", "dictionary", or "list".
-
-        OUTPUT:
-
-        - if ``as_type`` is ``"polynomial"``, the generating function is
-          returned as a polynomial.
-
-        - if ``as_type`` is ``"dictionary"``, the generating function is
-         returned as a dictionary representing the monomials of the
-         generating function.
-
-        - if ``as_type`` is ``"list"``, the generating function is
-          returned as a list of coefficients of the generating function.
-
-        EXAMPLES::
-
-            sage: tba
-            sage: tba
-        """
-        from ast import literal_eval
-        gen_dicts = { literal_eval(key) : { literal_eval(inner_key) : inner_value for inner_key,inner_value in value.iteritems() } for key,value in self._generating_function.iteritems() }
-        if as_type == "dictionary":
-            return gen_dicts
-        elif as_type == "list":
-            return { key : [ gen_dicts[key][deg] if deg in gen_dicts[key] else 0 for deg in range(max(gen_dicts[key])+1) ] for key in sorted(gen_dicts.keys())}
-        elif as_type == "polynomial":
-            from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
-            from sage.rings.integer_ring import ZZ
-            P = PolynomialRing(ZZ,"q")
-            q = P.gen()
-            return { level : sum( coefficient * q**exponent for exponent,coefficient in gen_dict.iteritems() ) for level,gen_dict in gen_dicts.iteritems() }
-        else:
-            raise ValueError("The argument 'as-type' (='%s') must be 'dictionary' or 'polynomial'"%as_type)
-
-    def search_oeis(self, search_size=32, verbose=True):
-        r"""
-        Returns the OEIS search for the generating function of ``self``.
-
-        INPUT:
-
-        - ``search_size`` (default:32) the number of integers in the
-          sequence. If too big, the OEIS result is corrupted.
-
-        - ``verbose`` (default:True) if true, some information about
-          the search are printed.
-
-        EXAMPLES::
-
-            sage: tba
-            sage: tba
-        """
-        from sage.databases.oeis import oeis
-
-        gen_funcs = self.generating_functions(as_type="list")
-
-        OEIS_string = ""
-        keys = sorted(gen_funcs.keys())
-        for key in keys:
-            gen_func = gen_funcs[key]
-            while gen_func[0] == 0:
-                gen_func.pop(0)
-            # we strip the result according to the search size. -- stumpc5, 2015-09-27
-            gen_func = gen_func[:search_size]
-            if search_size > 0:
-                search_size -= len(gen_func)
-            OEIS_func_string     = ",".join( str(coefficient) for coefficient in gen_func )
-            OEIS_string         += OEIS_func_string + "  "
-        OEIS_string = OEIS_string.strip()
-        if OEIS_string:
-            if verbose:
-                print 'Searching the OEIS for "%s"'%OEIS_string
-                print
-            return oeis( OEIS_string )
-        else:
-            if verbose:
-                print "Too little information to search the OEIS for this statistic."
-                print
-            return
-
     def description(self):
         r"""
         Return the description of the statistic.
@@ -1334,7 +1239,7 @@ class FindStatStatistic(SageObject):
             sage: findstat(1).name()                                            # optional -- internet,random
             u'The number of ways to write a permutation as a minimal length product of simple transpositions.'
         """
-        return self._name
+        return self._description.partition(FINDSTAT_SEPARATOR_NAME)[0]
 
     def references(self):
         r"""
@@ -1555,6 +1460,7 @@ class FindStatStatistic(SageObject):
 
     # editing and submitting is really the same thing
     edit = submit
+
 
 # helper for generation of CartanTypes
 def _finite_irreducible_cartan_types_by_rank(n):
@@ -1819,6 +1725,98 @@ class FindStatCollection(Element):
 
         return [(x, statistic(x)) for (x,_) in zip(g, xrange(max_values))]
 
+    def generating_functions(self, as_type="polynomial"):
+        r"""
+        Return the generating functions of ``self`` in a dictionary.
+
+        The keys of this dictionary are the levels for which the
+        generating function of ``self`` can be computed from the data
+        of this statistic, and each value represents a generating
+        function for one level, as a polynomial, as a dictionary, or as
+        a list of coefficients.
+
+        INPUT:
+
+        - a string -- (default:"polynomial") can be
+          "polynomial", "dictionary", or "list".
+
+        OUTPUT:
+
+        - if ``as_type`` is ``"polynomial"``, the generating function is
+          returned as a polynomial.
+
+        - if ``as_type`` is ``"dictionary"``, the generating function is
+         returned as a dictionary representing the monomials of the
+         generating function.
+
+        - if ``as_type`` is ``"list"``, the generating function is
+          returned as a list of coefficients of the generating function.
+
+        EXAMPLES::
+
+            sage: tba
+            sage: tba
+        """
+        from ast import literal_eval
+        gen_dicts = { literal_eval(key) : { literal_eval(inner_key) : inner_value for inner_key,inner_value in value.iteritems() } for key,value in self._generating_function.iteritems() }
+        if as_type == "dictionary":
+            return gen_dicts
+        elif as_type == "list":
+            return { key : [ gen_dicts[key][deg] if deg in gen_dicts[key] else 0 for deg in range(max(gen_dicts[key])+1) ] for key in sorted(gen_dicts.keys())}
+        elif as_type == "polynomial":
+            from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
+            from sage.rings.integer_ring import ZZ
+            P = PolynomialRing(ZZ,"q")
+            q = P.gen()
+            return { level : sum( coefficient * q**exponent for exponent,coefficient in gen_dict.iteritems() ) for level,gen_dict in gen_dicts.iteritems() }
+        else:
+            raise ValueError("The argument 'as-type' (='%s') must be 'dictionary' or 'polynomial'"%as_type)
+
+    def search_oeis(self, search_size=32, verbose=True):
+        r"""
+        Returns the OEIS search for the generating function of ``self``.
+
+        INPUT:
+
+        - ``search_size`` (default:32) the number of integers in the
+          sequence. If too big, the OEIS result is corrupted.
+
+        - ``verbose`` (default:True) if true, some information about
+          the search are printed.
+
+        EXAMPLES::
+
+            sage: tba
+            sage: tba
+        """
+        from sage.databases.oeis import oeis
+
+        gen_funcs = self.generating_functions(as_type="list")
+
+        OEIS_string = ""
+        keys = sorted(gen_funcs.keys())
+        for key in keys:
+            gen_func = gen_funcs[key]
+            while gen_func[0] == 0:
+                gen_func.pop(0)
+            # we strip the result according to the search size. -- stumpc5, 2015-09-27
+            gen_func = gen_func[:search_size]
+            if search_size > 0:
+                search_size -= len(gen_func)
+            OEIS_func_string     = ",".join( str(coefficient) for coefficient in gen_func )
+            OEIS_string         += OEIS_func_string + "  "
+        OEIS_string = OEIS_string.strip()
+        if OEIS_string:
+            if verbose:
+                print 'Searching the OEIS for "%s"'%OEIS_string
+                print
+            return oeis( OEIS_string )
+        else:
+            if verbose:
+                print "Too little information to search the OEIS for this statistic."
+                print
+            return
+
     def id(self):
         r"""
         Return the FindStat identifier of the collection.
@@ -1936,22 +1934,6 @@ class FindStatCollection(Element):
             u'Binary tree'
         """
         return self._name
-
-    def name_plural(self):
-        r"""
-        Return the plural name of the FindStat collection.
-
-        OUTPUT:
-
-        The name of the FindStat collection, in plural.
-
-        EXAMPLES::
-
-            sage: from sage.databases.findstat import FindStatCollection
-            sage: FindStatCollection("Binary trees").name_plural()              # optional -- internet
-            u'Binary trees'
-        """
-        return self._name_plural
 
 class FindStatCollections(Parent, UniqueRepresentation):
     r"""
@@ -2212,6 +2194,7 @@ class FindStatCollections(Parent, UniqueRepresentation):
             yield FindStatCollection(c)
 
     Element = FindStatCollection
+
 
 class FindStatMap(Element):
     r"""
@@ -2578,5 +2561,6 @@ class FindStatMaps(Parent, UniqueRepresentation):
             yield FindStatMap(m)
 
     Element = FindStatMap
+
 
 findstat = FindStat()

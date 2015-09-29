@@ -325,6 +325,53 @@ class AsymptoticExpression(RingElement):
             sage: ex2 = x + O(R_x(1))
             sage: ex1 * ex2
             5*x^6 + O(x^5)
+
+        ::
+
+            sage: from sage.rings.asymptotic.growth_group import GrowthGroup
+            sage: from sage.rings.asymptotic.term_monoid import TermMonoid
+            sage: G = GrowthGroup('x^ZZ'); x = G.gen()
+            sage: OT = TermMonoid('O', G); ET = TermMonoid('exact', G, ZZ)
+            sage: R = AsymptoticRing(G, ZZ)
+            sage: lst = [ET(x, 1), ET(x^2, 2), OT(x^3), ET(x^4, 4)]
+            sage: expr = R(lst, simplify=False); expr  # indirect doctest
+            4*x^4 + O(x^3) + 2*x^2 + x
+            sage: print expr.summands.repr_full()
+            poset(x, 2*x^2, O(x^3), 4*x^4)
+            +-- null
+            |   +-- no predecessors
+            |   +-- successors:   x
+            +-- x
+            |   +-- predecessors:   null
+            |   +-- successors:   2*x^2
+            +-- 2*x^2
+            |   +-- predecessors:   x
+            |   +-- successors:   O(x^3)
+            +-- O(x^3)
+            |   +-- predecessors:   2*x^2
+            |   +-- successors:   4*x^4
+            +-- 4*x^4
+            |   +-- predecessors:   O(x^3)
+            |   +-- successors:   oo
+            +-- oo
+            |   +-- predecessors:   4*x^4
+            |   +-- no successors
+            sage: expr._simplify_(); expr
+            4*x^4 + O(x^3)
+            sage: print expr.summands.repr_full()
+            poset(O(x^3), 4*x^4)
+            +-- null
+            |   +-- no predecessors
+            |   +-- successors:   O(x^3)
+            +-- O(x^3)
+            |   +-- predecessors:   null
+            |   +-- successors:   4*x^4
+            +-- 4*x^4
+            |   +-- predecessors:   O(x^3)
+            |   +-- successors:   oo
+            +-- oo
+            |   +-- predecessors:   4*x^4
+            |   +-- no successors
         """
         super(AsymptoticExpression, self).__init__(parent=parent)
 

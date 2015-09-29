@@ -1709,8 +1709,9 @@ class Function_beta(GinacFunction):
 
         Note that the order of arguments does not matter::
 
-            sage: beta(1/2,3*x)
-            beta(1/2, 3*x)
+            sage: beta(1/2, 3*x)
+            beta(3*x, 1/2)  # 32-bit
+            beta(1/2, 3*x)  # 64-bit
 
         The result is symbolic if exact input is given::
 

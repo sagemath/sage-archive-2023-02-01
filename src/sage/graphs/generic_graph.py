@@ -18609,7 +18609,7 @@ class GenericGraph(GenericGraph_pyx):
             sage: G = DiGraph()
             sage: G.add_edges([(i,f(i),f) for i in (1,2,1/2,1/4)])
             sage: G.add_edges([(i,g(i),g) for i in (1,2,1/2,1/4)])
-            sage: print G.graphviz_string(labels="latex",edge_labels=True)
+            sage: print G.graphviz_string(labels="latex",edge_labels=True)  # random
             digraph {
               node [shape="plaintext"];
               node_10  [label=" ", texlbl="$1$"];
@@ -18635,7 +18635,7 @@ class GenericGraph(GenericGraph_pyx):
               node_4 -> node_9 [label=" ", texlbl="$x \ {\mapsto}\ \frac{1}{x + 1}$"];
             }
 
-            sage: print G.graphviz_string(labels="latex",color_by_label=True)
+            sage: print G.graphviz_string(labels="latex",color_by_label=True)  # random
             digraph {
               node [shape="plaintext"];
               node_10  [label=" ", texlbl="$1$"];
@@ -18661,7 +18661,7 @@ class GenericGraph(GenericGraph_pyx):
               node_4 -> node_9 [color = "#00ffff"];
             }
 
-            sage: print G.graphviz_string(labels="latex",color_by_label={ f: "red", g: "blue" })
+            sage: print G.graphviz_string(labels="latex",color_by_label={ f: "red", g: "blue" })  # random
             digraph {
               node [shape="plaintext"];
               node_10  [label=" ", texlbl="$1$"];
@@ -18734,8 +18734,8 @@ class GenericGraph(GenericGraph_pyx):
         going backward (e.g. going up instead of down)::
 
             sage: def edge_options((u,v,label)):
-            ...       return { "backward": u == 1 }
-            sage: print G.graphviz_string(edge_options = edge_options)
+            ....:     return { "backward": u == 1 }
+            sage: print G.graphviz_string(edge_options = edge_options)  # random
             digraph {
               node_10  [label="1"];
               node_11  [label="2"];
@@ -18770,7 +18770,7 @@ class GenericGraph(GenericGraph_pyx):
             ....:     if (u,v) == (1,  1/2): options["edge_string"] = "<-"
             ....:     if (u,v) == (1/2,  1): options["backward"]    = True
             ....:     return options
-            sage: print G.graphviz_string(edge_options = edge_options)
+            sage: print G.graphviz_string(edge_options = edge_options)  # random
             digraph {
               node_10  [label="1"];
               node_11  [label="2"];

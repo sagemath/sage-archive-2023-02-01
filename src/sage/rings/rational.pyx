@@ -2022,7 +2022,8 @@ cdef class Rational(sage.structure.element.FieldElement):
             sage: QQ(42).__hash__()
             42
             sage: QQ(1/42).__hash__()
-            -7658195599476688946
+            1488680910            # 32-bit
+            -7658195599476688946  # 64-bit
             sage: n = ZZ.random_element(10^100)
             sage: hash(n) == hash(QQ(n)) or n
             True

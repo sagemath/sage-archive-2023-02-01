@@ -111,7 +111,7 @@ growth groups::
     sage: G.an_element()
     (1/2)^x * x * log(x)^(1/2) * y^(1/2)
     sage: x, y = var('x y')
-    sage: sage: G(2^x * log(x) * y^(1/2)) * G(x^(-5) * 5^x * y^(1/3))
+    sage: G(2^x * log(x) * y^(1/2)) * G(x^(-5) * 5^x * y^(1/3))
     10^x * x^(-5) * log(x) * y^(5/6)
 
 Classes and Methods
@@ -979,7 +979,7 @@ class GenericGrowthGroup(
             sage: agg.MonomialGrowthGroup('x', ZZ)
             Traceback (most recent call last):
             ...
-            ValueError: 'Integer Ring' is not a valid name for a variable.
+            TypeError: x is not a valid base
             sage: agg.MonomialGrowthGroup('x', 'y')
             Traceback (most recent call last):
             ...
@@ -990,7 +990,7 @@ class GenericGrowthGroup(
             sage: agg.ExponentialGrowthGroup('x', ZZ)
             Traceback (most recent call last):
             ...
-            ValueError: 'Integer Ring' is not a valid name for a variable.
+            TypeError: x is not a valid base
             sage: agg.ExponentialGrowthGroup('x', 'y')
             Traceback (most recent call last):
             ...

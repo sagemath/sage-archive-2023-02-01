@@ -724,7 +724,7 @@ class MutablePosetShell(SageObject):
             True
 
         Note that :meth:`_copy_all_linked_` does not change the mutable
-        poset `Q` (this is done in the calling method
+        poset ``Q`` (this is done in the calling method
         :meth:`MutablePoset._copy_shells_`). Thus we have
         ::
 

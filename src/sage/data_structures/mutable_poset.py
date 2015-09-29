@@ -759,7 +759,7 @@ class MutablePosetShell(SageObject):
         INPUT:
 
         - ``shell`` -- the shell for which to find the covering shells.
-          There is no restrition of ``shell`` being contained in the poset.
+          There is no restriction of ``shell`` being contained in the poset.
           If ``shell`` is contained in the poset, then use the more efficient
           methods :meth:`predecessors` and :meth:`successors`.
 
@@ -840,7 +840,7 @@ class MutablePosetShell(SageObject):
         INPUT:
 
         - ``shell`` -- the shell for which to find the covering shells.
-          There is no restrition of ``shell`` being contained in the poset.
+          There is no restriction of ``shell`` being contained in the poset.
           If ``shell`` is contained in the poset, then use the more efficient
           methods :meth:`predecessors` and :meth:`successors`.
 

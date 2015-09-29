@@ -535,12 +535,7 @@ ext_modules = [
               extra_compile_args = ["-std=c99", "-D_XPG6"]),
 
     Extension('sage.libs.fplll.fplll',
-              sources = ['sage/libs/fplll/fplll.pyx'],
-              libraries = ['gmp', 'mpfr', 'fplll'],
-              language="c++",
-              include_dirs = [SAGE_INC + '/fplll'],
-              extra_compile_args=["-DFPLLL_V3_COMPAT"],
-              depends = [SAGE_INC + "/fplll/fplll.h"]),
+              sources = ['sage/libs/fplll/fplll.pyx']),
 
     Extension('sage.libs.gmp.pylong',
               sources = ['sage/libs/gmp/pylong.pyx']),
@@ -603,10 +598,7 @@ ext_modules = [
               libraries = ['flint']),
 
     Extension('sage.libs.ppl',
-              sources = ['sage/libs/ppl.pyx', 'sage/libs/ppl_shim.cc'],
-              libraries = ['ppl', 'gmpxx', 'gmp', 'm'],
-              language="c++",
-              depends = [SAGE_INC + "/ppl.hh"]),
+              sources = ['sage/libs/ppl.pyx', 'sage/libs/ppl_shim.cc']),
 
     Extension('sage.libs.ratpoints',
               sources = ["sage/libs/ratpoints.pyx"],
@@ -905,8 +897,8 @@ ext_modules = [
               extra_compile_args = m4ri_extra_compile_args,
               depends = [SAGE_INC + "/png.h", SAGE_INC + "/m4ri/m4ri.h"]),
 
-    Extension('sage.matrix.matrix_mod2e_dense',
-              sources = ['sage/matrix/matrix_mod2e_dense.pyx'],
+    Extension('sage.matrix.matrix_gf2e_dense',
+              sources = ['sage/matrix/matrix_gf2e_dense.pyx'],
               libraries = ['m4rie', 'm4ri', 'm'],
               depends = [SAGE_INC + "/m4rie/m4rie.h"],
               extra_compile_args = m4ri_extra_compile_args),
@@ -1004,9 +996,7 @@ ext_modules = [
     Extension('sage.modular.arithgroup.farey_symbol',
               sources = ['sage/modular/arithgroup/farey_symbol.pyx',
                          'sage/modular/arithgroup/farey.cpp',
-                         'sage/modular/arithgroup/sl2z.cpp'],
-              libraries = ['gmpxx', 'gmp'],
-              language = 'c++'),
+                         'sage/modular/arithgroup/sl2z.cpp']),
 
     Extension('sage.modular.arithgroup.arithgroup_element',
               sources = ['sage/modular/arithgroup/arithgroup_element.pyx']),

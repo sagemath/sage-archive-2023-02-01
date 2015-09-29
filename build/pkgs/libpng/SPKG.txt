@@ -15,10 +15,6 @@ Website: http://www.libpng.org/pub/png/libpng.html
 
 The libpng license - see http://www.libpng.org/pub/png/src/libpng-LICENSE.txt
 
-== SPKG Maintainers ==
-
- * William Stein
-
 == Upstream Contact ==
 
 The png mailing lists - see http://www.libpng.org/pub/png/pngmisc.html#lists

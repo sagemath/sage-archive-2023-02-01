@@ -74,17 +74,21 @@ AUTHORS:
 - William Stein
 """
 
-###########################################################################
+#*****************************************************************************
 #       Copyright (C) 2005, 2007 William Stein <wstein@gmail.com>
-#  Distributed under the terms of the GNU General Public License (GPL)
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
-###########################################################################
+#*****************************************************************************
 
-import sage.rings.commutative_ring_element as commutative_ring_element
+from sage.structure.element import CommutativeRingElement
 import sage.rings.number_field.number_field_rel as number_field_rel
 import sage.rings.polynomial.polynomial_singular_interface as polynomial_singular_interface
 
-class PolynomialQuotientRingElement(polynomial_singular_interface.Polynomial_singular_repr,commutative_ring_element.CommutativeRingElement):
+class PolynomialQuotientRingElement(polynomial_singular_interface.Polynomial_singular_repr, CommutativeRingElement):
     """
     Element of a quotient of a polynomial ring.
 
@@ -118,7 +122,7 @@ class PolynomialQuotientRingElement(polynomial_singular_interface.Polynomial_sin
         from sage.rings.polynomial.polynomial_quotient_ring import PolynomialQuotientRing_generic
         from sage.rings.polynomial.polynomial_element import Polynomial
 
-        commutative_ring_element.CommutativeRingElement.__init__(self, parent)
+        CommutativeRingElement.__init__(self, parent)
         if check:
             if not isinstance(parent, PolynomialQuotientRing_generic):
                 raise TypeError("parent must be a polynomial quotient ring")

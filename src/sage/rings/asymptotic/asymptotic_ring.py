@@ -189,9 +189,13 @@ Classes and Methods
 # http://www.gnu.org/licenses/
 # *****************************************************************************
 
-import sage
+from sage.structure.element import RingElement
+from sage.rings.ring import Ring
+from sage.structure.unique_representation import UniqueRepresentation
+from sage.misc.superseded import experimental
 
-class AsymptoticExpression(sage.rings.ring_element.RingElement):
+
+class AsymptoticExpression(RingElement):
     r"""
     Class for asymptotic expressions, i.e., the elements of an
     :class:`AsymptoticRing`.
@@ -674,9 +678,7 @@ class AsymptoticExpression(sage.rings.ring_element.RingElement):
                    for element in self.summands.maximal_elements())
 
 
-
-class AsymptoticRing(sage.rings.ring.Ring,
-                     sage.structure.unique_representation.UniqueRepresentation):
+class AsymptoticRing(Ring, UniqueRepresentation):
     r"""
     A ring consisting of :class:`asymptotic expressions <AsymptoticExpression>`.
 
@@ -805,7 +807,7 @@ class AsymptoticRing(sage.rings.ring.Ring,
                                                         category)
 
 
-    @sage.misc.superseded.experimental(trac_number=17601)
+    @experimental(trac_number=17601)
     def __init__(self, growth_group, coefficient_ring, category=None):
         r"""
         See :class:`AsymptoticRing` for more information.

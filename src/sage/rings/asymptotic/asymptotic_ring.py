@@ -799,13 +799,6 @@ class AsymptoticRing(Ring, UniqueRepresentation):
 
         sage: R1_x.has_coerce_map_from(QQ)
         True
-
-    TESTS::
-
-        sage: R3_x = AsymptoticRing(growth_group='x^QQ', coefficient_ring=QQ); R3_x
-        Asymptotic Ring <x^QQ> over Rational Field
-        sage: R1_x is R2_x is R3_x
-        True
     """
     # enable the category framework for elements
     Element = AsymptoticExpression

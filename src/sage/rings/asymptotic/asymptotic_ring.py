@@ -890,7 +890,8 @@ class AsymptoticExpression(RingElement):
             ...
             NotImplementedError: Taking the sum y^2 + O(y) to the
             non-integer power 1/2 is not implemented.
-            sage: (y^2+O(y))^(-2)
+            sage: (y^2 + O(y))^(-2)
+            y^(-4) + O(y^(-5))
 
         ::
 

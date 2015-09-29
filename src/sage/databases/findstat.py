@@ -1174,7 +1174,7 @@ class FindStatStatistic(SageObject):
         else:
             return ""
 
-    def generating_functions(self, as_type="polynomial"):
+    def generating_functions(self, style="polynomial"):
         r"""
         Return the generating functions of ``self`` in a dictionary.
 
@@ -1191,35 +1191,70 @@ class FindStatStatistic(SageObject):
 
         OUTPUT:
 
-        - if ``as_type`` is ``"polynomial"``, the generating function is
+        - if ``style`` is ``"polynomial"``, the generating function is
           returned as a polynomial.
 
-        - if ``as_type`` is ``"dictionary"``, the generating function is
+        - if ``style`` is ``"dictionary"``, the generating function is
          returned as a dictionary representing the monomials of the
          generating function.
 
-        - if ``as_type`` is ``"list"``, the generating function is
+        - if ``style`` is ``"list"``, the generating function is
           returned as a list of coefficients of the generating function.
 
         EXAMPLES::
 
-            sage: tba
-            sage: tba
+            sage: st = findstat(18)                                             # optional -- internet
+
+            sage: st.generating_functions()                                     # optional -- internet,random
+            {2: q + 1,
+             3: q^3 + 2*q^2 + 2*q + 1,
+             4: q^6 + 3*q^5 + 5*q^4 + 6*q^3 + 5*q^2 + 3*q + 1,
+             5: q^10 + 4*q^9 + 9*q^8 + 15*q^7 + 20*q^6 + 22*q^5 + 20*q^4 + 15*q^3 + 9*q^2 + 4*q + 1,
+             6: q^15 + 5*q^14 + 14*q^13 + 29*q^12 + 49*q^11 + 71*q^10 + 90*q^9 + 101*q^8 + 101*q^7 + 90*q^6 + 71*q^5 + 49*q^4 + 29*q^3 + 14*q^2 + 5*q + 1}
+
+            sage: st.generating_function(style="dictionary")                    # optional -- internet,random
+            {2: {0: 1, 1: 1},
+             3: {0: 1, 1: 2, 2: 2, 3: 1},
+             4: {0: 1, 1: 3, 2: 5, 3: 6, 4: 5, 5: 3, 6: 1},
+             5: {0: 1, 1: 4, 2: 9, 3: 15, 4: 20, 5: 22, 6: 20, 7: 15, 8: 9, 9: 4, 10: 1},
+             6: {0: 1,
+              1: 5,
+              2: 14,
+              3: 29,
+              4: 49,
+              5: 71,
+              6: 90,
+              7: 101,
+              8: 101,
+              9: 90,
+              10: 71,
+              11: 49,
+              12: 29,
+              13: 14,
+              14: 5,
+              15: 1}}
+
+            sage: st.generating_functions(style="list")                         # optional -- internet,random
+            {2: [1, 1],
+             3: [1, 2, 2, 1],
+             4: [1, 3, 5, 6, 5, 3, 1],
+             5: [1, 4, 9, 15, 20, 22, 20, 15, 9, 4, 1],
+             6: [1, 5, 14, 29, 49, 71, 90, 101, 101, 90, 71, 49, 29, 14, 5, 1]}
         """
         from ast import literal_eval
         gen_dicts = { literal_eval(key) : { literal_eval(inner_key) : inner_value for inner_key,inner_value in value.iteritems() } for key,value in self._generating_function.iteritems() }
-        if as_type == "dictionary":
+        if style == "dictionary":
             return gen_dicts
-        elif as_type == "list":
+        elif style == "list":
             return { key : [ gen_dicts[key][deg] if deg in gen_dicts[key] else 0 for deg in range(max(gen_dicts[key])+1) ] for key in sorted(gen_dicts.keys())}
-        elif as_type == "polynomial":
+        elif style == "polynomial":
             from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
             from sage.rings.integer_ring import ZZ
             P = PolynomialRing(ZZ,"q")
             q = P.gen()
             return { level : sum( coefficient * q**exponent for exponent,coefficient in gen_dict.iteritems() ) for level,gen_dict in gen_dicts.iteritems() }
         else:
-            raise ValueError("The argument 'as-type' (='%s') must be 'dictionary' or 'polynomial'"%as_type)
+            raise ValueError("The argument 'style' (='%s') must be 'dictionary', 'polynomial', or 'list'"%style)
 
     def oeis_search(self, search_size=32, verbose=True):
         r"""
@@ -1234,13 +1269,24 @@ class FindStatStatistic(SageObject):
           the search are printed.
 
         EXAMPLES::
+            sage: st = findstat(18)                                             # optional -- internet
 
-            sage: tba
-            sage: tba
+            sage: st.oeis_search()                                              # optional -- internet,random
+            Searching the OEIS for "1,1  1,2,2,1  1,3,5,6,5,3,1  1,4,9,15,20,22,20,15,9,4,1  1,5,14,29,49,71,90,101"
+
+            0: A008302: Triangle of Mahonian numbers T(n,k): coefficients in expansion of Product_{i=0..n-1} (1 + x + ... + x^i), where k ranges from 0 to A000217(n-1).
+
+            sage: st.oeis_search(search_size=13)                                # optional -- internet,random
+            Searching the OEIS for "1,1  1,2,2,1  1,3,5,6,5,3,1"
+
+            0: A008302: Triangle of Mahonian numbers T(n,k): coefficients in expansion of Product_{i=0..n-1} (1 + x + ... + x^i), where k ranges from 0 to A000217(n-1).
+            1: A115570: Array read by rows: row n (n>= 1) gives the Betti numbers for the n-th element of the Weyl group of type A3 (in Goresky's standard ordering).
+            2: A187447: Array for all multiset choices (multiset repetition class representatives in Abramowitz-Stegun order).
+
         """
         from sage.databases.oeis import oeis
 
-        gen_funcs = self.generating_functions(as_type="list")
+        gen_funcs = self.generating_functions(style="list")
 
         OEIS_string = ""
         keys = sorted(gen_funcs.keys())

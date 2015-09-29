@@ -192,7 +192,6 @@ import inspect
 import json
 import cgi
 
-
 # Combinatoral collections
 from sage.combinat.alternating_sign_matrix import AlternatingSignMatrix, AlternatingSignMatrices
 from sage.combinat.binary_tree import BinaryTree, BinaryTrees
@@ -236,37 +235,39 @@ FINDSTAT_MAX_DEPTH = 5
 FINDSTAT_MAX_SUBMISSION_VALUES = 1200
 
 # the fields of the FindStat database we expect
-FINDSTAT_STATISTIC_IDENTIFIER      = 'StatisticIdentifier'
-FINDSTAT_STATISTIC_COLLECTION      = 'StatisticCollection'
-FINDSTAT_STATISTIC_DATA            = 'StatisticData'
-FINDSTAT_STATISTIC_DESCRIPTION     = 'StatisticDescription'
-FINDSTAT_STATISTIC_REFERENCES      = 'StatisticReferences'
-FINDSTAT_STATISTIC_CODE            = 'StatisticCode'
-FINDSTAT_STATISTIC_ORIGINAL_AUTHOR = 'StatisticOriginalAuthor' # unused, designates a dictionary with Name, Email, Time
-FINDSTAT_STATISTIC_UPDATE_AUTHOR   = 'StatisticUpdateAuthor'   # unused, designates a dictionary with Name, Email, Time
+FINDSTAT_STATISTIC_IDENTIFIER                   = 'StatisticIdentifier'
+FINDSTAT_STATISTIC_COLLECTION                   = 'StatisticCollection'
+FINDSTAT_STATISTIC_DATA                         = 'StatisticData'
+FINDSTAT_STATISTIC_DESCRIPTION                  = 'StatisticDescription'
+FINDSTAT_STATISTIC_NAME                         = 'StatisticTitle'
+FINDSTAT_STATISTIC_REFERENCES                   = 'StatisticReferences'
+FINDSTAT_STATISTIC_CODE                         = 'StatisticCode'
+FINDSTAT_STATISTIC_GENERATING_FUNCTION          = 'StatisticGeneratingFunction'
+FINDSTAT_STATISTIC_ORIGINAL_AUTHOR              = 'StatisticOriginalAuthor' # unused, designates a dictionary with Name, Time
+FINDSTAT_STATISTIC_UPDATE_AUTHOR                = 'StatisticUpdateAuthor'   # unused, designates a dictionary with Name, Time
 
-FINDSTAT_POST_AUTHOR               = 'StatisticAuthor' # designates the name of the author
-FINDSTAT_POST_EMAIL                = 'StatisticEmail'
-FINDSTAT_POST_SAGE_CELL            = 'SageCellField'   # currently only used as post key
-FINDSTAT_POST_EDIT                 = 'EDIT'            # only used as post key
+FINDSTAT_POST_AUTHOR                            = 'StatisticAuthor' # designates the name of the author
+FINDSTAT_POST_EMAIL                             = 'StatisticEmail'
+FINDSTAT_POST_SAGE_CELL                         = 'SageCellField'   # currently only used as post key
+FINDSTAT_POST_EDIT                              = 'EDIT'            # only used as post key
 
-FINDSTAT_COLLECTION_IDENTIFIER                = 'CollectionIdentifier'
-FINDSTAT_COLLECTION_NAME                      = 'CollectionName'
-FINDSTAT_COLLECTION_NAME_PLURAL               = 'CollectionNamePlural'
-FINDSTAT_COLLECTION_NAME_WIKI                 = 'CollectionNameWiki'
-FINDSTAT_COLLECTION_PARENT_LEVELS_PRECOMPUTED = 'CollectionLevelsPrecomputed'
+FINDSTAT_COLLECTION_IDENTIFIER                  = 'CollectionIdentifier'
+FINDSTAT_COLLECTION_NAME                        = 'CollectionName'
+FINDSTAT_COLLECTION_NAME_PLURAL                 = 'CollectionNamePlural'
+FINDSTAT_COLLECTION_NAME_WIKI                   = 'CollectionNameWiki'
+FINDSTAT_COLLECTION_PARENT_LEVELS_PRECOMPUTED   = 'CollectionLevelsPrecomputed'
 
-FINDSTAT_MAP_IDENTIFIER  = 'MapIdentifier' # should be identical to FINDSTAT_MAP_IDENTIFIER
-FINDSTAT_MAP_NAME        = 'MapName'
-FINDSTAT_MAP_DESCRIPTION = 'MapDescription'
-FINDSTAT_MAP_DOMAIN      = 'MapDomain'
-FINDSTAT_MAP_CODOMAIN    = 'MapCodomain'
-FINDSTAT_MAP_CODE        = 'MapCode'
-FINDSTAT_MAP_CODE_NAME   = 'MapSageName'
+FINDSTAT_MAP_IDENTIFIER                         = 'MapIdentifier' # should be identical to FINDSTAT_MAP_IDENTIFIER
+FINDSTAT_MAP_NAME                               = 'MapName'
+FINDSTAT_MAP_DESCRIPTION                        = 'MapDescription'
+FINDSTAT_MAP_DOMAIN                             = 'MapDomain'
+FINDSTAT_MAP_CODOMAIN                           = 'MapCodomain'
+FINDSTAT_MAP_CODE                               = 'MapCode'
+FINDSTAT_MAP_CODE_NAME                          = 'MapSageName'
 
-FINDSTAT_QUERY_MATCHES       = 'QueryMatches'
-FINDSTAT_QUERY_MATCHING_DATA = 'QueryMatchingData'
-FINDSTAT_QUERY_MAPS          = 'QueryMaps'
+FINDSTAT_QUERY_MATCHES                          = 'QueryMatches'
+FINDSTAT_QUERY_MATCHING_DATA                    = 'QueryMatchingData'
+FINDSTAT_QUERY_MAPS                             = 'QueryMaps'
 
 # the entries of this list are required as post arguments for submitting or editing a statistic
 FINDSTAT_EDIT_FIELDS = set([FINDSTAT_STATISTIC_IDENTIFIER,
@@ -859,10 +860,12 @@ class FindStatStatistic(SageObject):
             else:
                 raise
 
-        self._description = self._raw[FINDSTAT_STATISTIC_DESCRIPTION].encode("utf-8")
-        self._references = self._raw[FINDSTAT_STATISTIC_REFERENCES].encode("utf-8")
-        self._collection = FindStatCollection(self._raw[FINDSTAT_STATISTIC_COLLECTION])
-        self._code = self._raw[FINDSTAT_STATISTIC_CODE]
+        self._description           = self._raw[FINDSTAT_STATISTIC_DESCRIPTION].encode("utf-8")
+        self._name                  = self._raw[FINDSTAT_STATISTIC_NAME].encode("utf-8")
+        self._references            = self._raw[FINDSTAT_STATISTIC_REFERENCES].encode("utf-8")
+        self._collection            = FindStatCollection(self._raw[FINDSTAT_STATISTIC_COLLECTION])
+        self._code                  = self._raw[FINDSTAT_STATISTIC_CODE]
+        self._generating_function   = self._raw[FINDSTAT_STATISTIC_GENERATING_FUNCTION]
 
         from_str = self._collection.from_string()
         # we want to keep FindStat's ordering here!
@@ -1239,7 +1242,7 @@ class FindStatStatistic(SageObject):
             sage: findstat(1).name()                                            # optional -- internet,random
             u'The number of ways to write a permutation as a minimal length product of simple transpositions.'
         """
-        return self._description.partition(FINDSTAT_SEPARATOR_NAME)[0]
+        return self._name
 
     def references(self):
         r"""
@@ -1460,7 +1463,6 @@ class FindStatStatistic(SageObject):
 
     # editing and submitting is really the same thing
     edit = submit
-
 
 # helper for generation of CartanTypes
 def _finite_irreducible_cartan_types_by_rank(n):
@@ -1843,6 +1845,22 @@ class FindStatCollection(Element):
         """
         return self._name
 
+    def name_plural(self):
+        r"""
+        Return the plural name of the FindStat collection.
+
+        OUTPUT:
+
+        The name of the FindStat collection, in plural.
+
+        EXAMPLES::
+
+            sage: from sage.databases.findstat import FindStatCollection
+            sage: FindStatCollection("Binary trees").name_plural()              # optional -- internet
+            u'Binary trees'
+        """
+        return self._name_plural
+
 class FindStatCollections(Parent, UniqueRepresentation):
     r"""
     The class of FindStat collections.
@@ -2102,7 +2120,6 @@ class FindStatCollections(Parent, UniqueRepresentation):
             yield FindStatCollection(c)
 
     Element = FindStatCollection
-
 
 class FindStatMap(Element):
     r"""
@@ -2469,6 +2486,5 @@ class FindStatMaps(Parent, UniqueRepresentation):
             yield FindStatMap(m)
 
     Element = FindStatMap
-
 
 findstat = FindStat()

@@ -2934,7 +2934,7 @@ class MutablePoset(SageObject):
 
             The key of an element is used for comparison. Thus elements with
             the same key are considered as equal;
-            ``A.union_update(B)`` and ``B.union_update(A)`` might
+            ``A.intersection_update(B)`` and ``B.intersection_update(A)`` might
             result in different posets.
 
         EXAMPLES::
@@ -3023,7 +3023,8 @@ class MutablePoset(SageObject):
 
             The key of an element is used for comparison. Thus elements with
             the same key are considered as equal;
-            ``A.union_update(B)`` and ``B.union_update(A)`` might
+            ``A.symmetric_difference_update(B)`` and
+            ``B.symmetric_difference_update(A)`` might
             result in different posets.
 
         EXAMPLES::

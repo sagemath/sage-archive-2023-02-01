@@ -372,6 +372,8 @@ class AsymptoticExpression(RingElement):
             +-- oo
             |   +-- predecessors:   4*x^4
             |   +-- no successors
+            sage: R(lst, simplify=True) # indirect doctest
+            4*x^4 + O(x^3)
         """
         super(AsymptoticExpression, self).__init__(parent=parent)
 

@@ -471,7 +471,7 @@ def is_NO_F2(int v,int k,int l,int mu):
 
     For more information, see
     :func:`sage.graphs.generators.classical_geometries.NonisotropicOrthogonalPolarGraph`
-    and  
+    and
 
     INPUT:
 
@@ -522,7 +522,7 @@ def is_NO_F3(int v,int k,int l,int mu):
 
     For more information, see
     :func:`sage.graphs.generators.classical_geometries.NonisotropicOrthogonalPolarGraph`
-    and  
+    and
 
     INPUT:
 
@@ -636,6 +636,166 @@ def is_NU(int v,int k,int l,int mu):
             mu == q**(n-3)*(q + 1)*(q**(n-2) - e)):
             from sage.graphs.generators.classical_geometries import NonisotropicUnitaryPolarGraph
             return (NonisotropicUnitaryPolarGraph, n, q)
+
+@cached_function
+def is_polhill(int v,int k,int l,int mu):
+    r"""
+    Test whether some graph from [Polhill09]_ is `(1024,k,\lambda,\mu)`-strongly regular.
+
+    .. NOTE::
+
+        This function does not actually explore *all* strongly regular graphs
+        produced in [Polhill09]_, but only those on 1024 vertices.
+
+    INPUT:
+
+    - ``v,k,l,mu`` (integers)
+
+    OUTPUT:
+
+    A tuple ``t`` such that ``t[0](*t[1:])`` builds the requested graph if the
+    parameters match, and ``None`` otherwise.
+
+    EXAMPLES::
+
+        sage: from sage.graphs.strongly_regular_db import is_polhill
+        sage: t = is_polhill(1024, 231,  38,  56); t
+        [<cyfunction is_polhill.<locals>.<lambda> at ...>]
+        sage: g = t[0](*t[1:]); g                    # not tested (too long)
+        [<cyfunction is_polhill.<locals>.<lambda> at ...>]
+        sage: g.is_strongly_regular(parameters=True) # not tested (too long)
+        (28, 15, 6, 10)
+        sage: t = is_polhill(1024, 264,  56,  72); t
+        [<cyfunction is_polhill.<locals>.<lambda> at ...>]
+        sage: t = is_polhill(1024, 297,  76,  90); t
+        [<cyfunction is_polhill.<locals>.<lambda> at ...>]
+        sage: t = is_polhill(1024, 330,  98, 110); t
+        [<cyfunction is_polhill.<locals>.<lambda> at ...>]
+        sage: t = is_polhill(1024, 462, 206, 210); t
+        [<cyfunction is_polhill.<locals>.<lambda> at ...>]
+
+    REFERENCE:
+
+    .. [Polhill09] J. Polhill,
+       Negative Latin square type partial difference sets and
+       amorphic association schemes with Galois rings,
+       Journal of Combinatorial Designs 17, no. 3 (2009): 266-282.
+       http://onlinelibrary.wiley.com/doi/10.1002/jcd.20206/abstract
+    """
+    if (v,k,l,mu) not in [(1024, 231,  38,  56),
+                          (1024, 264,  56,  72),
+                          (1024, 297,  76,  90),
+                          (1024, 330,  98, 110),
+                          (1024, 462, 206, 210)]:
+        return
+
+    from itertools import product
+    from sage.categories.cartesian_product import cartesian_product
+    from sage.rings.finite_rings.integer_mod_ring import IntegerModRing
+    from copy import copy
+
+    def additive_cayley(vertices):
+        g = Graph()
+        g.add_vertices(vertices[0].parent())
+        edges = [(x,x+vv)
+                 for vv in set(vertices)
+                 for x in g]
+        g.add_edges(edges)
+        g.relabel()
+        return g
+
+    # D is a Partial Difference Set of (Z4)^2, see section 2.
+    G = cartesian_product([IntegerModRing(4),IntegerModRing(4)])
+    D = [
+        [(2,0),(0,1),(0,3),(1,1),(3,3)],
+        [(1,0),(3,0),(0,2),(1,3),(3,1)],
+        [(1,2),(3,2),(2,1),(2,3),(2,2)]
+        ]
+    D = [map(G,x) for x in D]
+
+    # The K_i are hyperplanes partitionning the nonzero elements of
+    # GF(2^s)^2. See section 6.
+    s = 3
+    G1 = GF(2**s,'x')
+    Gp = cartesian_product([G1,G1])
+    K = [Gp((x,1)) for x in G1]+[Gp((1,0))]
+    K = [[x for x in Gp if x[0]*uu+x[1]*vv == 0] for (uu,vv) in K]
+
+    # We now define the P_{i,j}. see section 6.
+
+    P = {}
+    P[0,1] = range((-1) + 1                  , 2**(s-2)+1)
+    P[1,1] = range((-1) + 2**(s-2)+2         , 2**(s-1)+1)
+    P[2,1] = range((-1) + 2**(s-1)+2         , 2**(s-1)+2**(s-2)+1)
+    P[3,1] = range((-1) + 2**(s-1)+2**(s-2)+2, 2**(s)+1)
+
+    P[0,2] = range((-1) + 2**(s-2)+2         , 2**(s-1)+2)
+    P[1,2] = range((-1) + 2**(s-1)+3         , 2**(s-1)+2**(s-2)+2)
+    P[2,2] = range((-1) + 2**(s-1)+2**(s-2)+3, 2**(s)+1) + [0]
+    P[3,2] = range((-1) + 2                  , 2**(s-2)+1)
+
+    P[0,3] = range((-1) + 2**(s-1)+3         , 2**(s-1)+2**(s-2)+3)
+    P[1,3] = range((-1) + 2**(s-1)+2**(s-2)+4, 2**(s)+1) + [0,1]
+    P[2,3] = range((-1) + 3                  , 2**(s-2)+2)
+    P[3,3] = range((-1) + 2**(s-2)+3         , 2**(s-1)+2)
+
+    P[0,4] = range((-1) + 2**(s-1)+2**(s-2)+4, 2**(s)+1)
+    P[1,4] = range((-1) + 3                  , 2**(s-2)+1) + [2**(s-1)+1,2**(s-1)+2**(s-2)+2]
+    P[2,4] = range((-1) + 2**(s-2)+3         , 2**(s-1)+1) + [2**(s-1)+2**(s-2)+1,1]
+    P[3,4] = range((-1) + 2**(s-1)+3         , 2**(s-1)+2**(s-2)+1) + [2**(s-2)+1,0]
+
+    R = {x:copy(P[x]) for x in P}
+
+    for x in P:
+        P[x] = [K[i] for i in P[x]]
+        P[x] = set(sum(P[x],[])).difference([Gp((0,0))])
+
+    P[1,4].add(Gp((0,0)))
+    P[2,4].add(Gp((0,0)))
+    P[3,4].add(Gp((0,0)))
+
+    # We now define the R_{i,j}. see *end* of section 6.
+
+    R[0,3] = range((-1) + 2**(s-1)+3         , 2**(s-1)+2**(s-2)+2)
+    R[1,3] = range((-1) + 2**(s-1)+2**(s-2)+4, 2**(s)+1) + [0,1,2**(s-1)+2**(s-2)+2]
+    R[0,4] = range((-1) + 2**(s-1)+2**(s-2)+4, 2**(s)+1) + [2**(s-1)+2**(s-2)+2]
+    R[1,4] = range((-1) + 3                  , 2**(s-2)+1) + [2**(s-1)+1]
+
+    for x in R:
+        R[x] = [K[i] for i in R[x]]
+        R[x] = set(sum(R[x],[])).difference([Gp((0,0))])
+
+    R[1,3].add(Gp((0,0)))
+    R[2,4].add(Gp((0,0)))
+    R[3,4].add(Gp((0,0)))
+
+    # Dabcd = Da, Db, Dc, Dd (cf. p273)
+    # D1234 = D1, D2, D3, D4 (cf. p276)
+    Dabcd = []
+    D1234 = []
+
+    Gprod = cartesian_product([G,Gp])
+    for DD,PQ in [(Dabcd,P), (D1234,R)]:
+        for i in range(1,5):
+            Dtmp = [product([G.zero()],PQ[0,i]),
+                    product(D[0],PQ[1,i]),
+                    product(D[1],PQ[2,i]),
+                    product(D[2],PQ[3,i])]
+            Dtmp = map(set,Dtmp)
+            Dtmp = map(Gprod,sum(map(list,Dtmp),[]))
+            DD.append(Dtmp)
+
+    # Now that we have the data, we can return the graphs.
+    if k == 231:
+        return [lambda :additive_cayley(Dabcd[0])]
+    if k == 264:
+        return [lambda :additive_cayley(D1234[2])]
+    if k == 297:
+        return [lambda :additive_cayley(D1234[0]+D1234[1]+D1234[2]).complement()]
+    if k == 330:
+        return [lambda :additive_cayley(Dabcd[0]+Dabcd[1]+Dabcd[2]).complement()]
+    if k == 462:
+        return [lambda :additive_cayley(Dabcd[0]+Dabcd[1])]
 
 def is_RSHCD(int v,int k,int l,int mu):
     r"""
@@ -2300,7 +2460,8 @@ def strongly_regular_graph(int v,int k,int l,int mu=-1,bint existence=False,bint
                       is_unitary_dual_polar,
                       is_RSHCD,
                       is_twograph_descendant_of_srg,
-                      is_taylor_twograph_srg]
+                      is_taylor_twograph_srg,
+                      is_polhill]
 
     # Going through all test functions, for the set of parameters and its
     # complement.

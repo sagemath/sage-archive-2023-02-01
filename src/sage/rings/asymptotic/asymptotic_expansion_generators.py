@@ -49,7 +49,12 @@ examples.
    :widths: 4 12
    :header-rows: 0
 
-    :meth:`~TransducerGenerators.Identity` | Returns a transducer realizing the i
+   * - :meth:`~AsymptoticExpansionGenerators.Stirling`
+     - Stirling's approximation formula for factorials
+
+   * - :meth:`~AsymptoticExpansionGenerators.log_Stirling`
+     - the logarithm of Stirling's approximation formula for factorials
+
 
 AUTHORS:
 
@@ -89,6 +94,7 @@ class AsymptoticExpansionGenerators(object):
     The asymptotic expansions currently in this class include:
 
     - :meth:`~Stirling`
+    - :meth:`~log_Stirling`
     """
 
     @staticmethod

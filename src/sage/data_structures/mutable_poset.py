@@ -710,7 +710,7 @@ class MutablePosetShell(SageObject):
             sage: z.poset is Q
             True
             sage: oo = z.successors().pop()
-            sage: oo == P.oo
+            sage: oo.is_oo()
             True
         """
         try:

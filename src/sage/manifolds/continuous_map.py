@@ -400,7 +400,7 @@ class ContinuousMap(Morphism):
                     if chart_pair[1] not in self._codomain.atlas():
                         raise ValueError("{} is not a chart ".format(
                                                               chart_pair[1]) +
-                                   " defined on the {}".format(self._codomain))
+                                    "defined on the {}".format(self._codomain))
                     if n2 == 1:
                         # a single expression entry is allowed (instead of a
                         # tuple)

@@ -367,9 +367,15 @@ class DiffForm(TensorField):
             sage: da.display(e_uv)
             da = -2*(u + v)/(u^6 + 3*u^4*v^2 + 3*u^2*v^4 + v^6) du/\dv
 
-        The outcome is cached, i.e. is not recomputed unless ``a`` is changed::
+        The result is cached, i.e. is not recomputed unless ``a`` is changed::
 
             sage: a.exterior_der() is da
+            True
+
+        Instead of invoking the method ``exterior_der()``, one may use the
+        global function :func:`~sage.manifolds.utilities.xder`::
+
+            sage: xder(a) is a.exterior_der()
             True
 
         Let us check Cartan's identity::
@@ -377,7 +383,7 @@ class DiffForm(TensorField):
             sage: v = M.vector_field(name='v')
             sage: v[e_xy, :] = -y, x
             sage: v.add_comp_by_continuation(e_uv, U.intersection(V), c_uv)
-            sage: a.lie_der(v) == da.contract(0,v) + a(v).exterior_der()
+            sage: a.lie_der(v) == v.contract(xder(a)) + xder(a(v))
             True
 
         """
@@ -1081,9 +1087,15 @@ class DiffFormParal(FreeModuleAltForm, TensorFieldParal):
             sage: latex(da)
             \mathrm{d}A
 
-        The outcome is cached, i.e. is not recomputed unless ``a`` is changed::
+        The result is cached, i.e. is not recomputed unless ``a`` is changed::
 
             sage: a.exterior_der() is da
+            True
+
+        Instead of invoking the method ``exterior_der()``, one may use the
+        global function :func:`~sage.manifolds.utilities.xder`::
+
+            sage: xder(a) is a.exterior_der()
             True
 
         The exterior derivative is nilpotent::
@@ -1093,6 +1105,13 @@ class DiffFormParal(FreeModuleAltForm, TensorFieldParal):
             sage: dda.display()
             ddA = 0
             sage: dda == 0
+            True
+
+        Let us check Cartan's identity::
+
+            sage: v = M.vector_field(name='v')
+            sage: v[:] = -y, x, t, z
+            sage: a.lie_der(v) == v.contract(xder(a)) + xder(a(v))
             True
 
         """

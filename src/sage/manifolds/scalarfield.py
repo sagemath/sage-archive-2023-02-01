@@ -1089,6 +1089,27 @@ class ScalarField(CommutativeAlgebraElement):
             self._del_derived()
         return self._express[chart]
 
+    def function_chart(self, chart=None, from_chart=None):
+        r"""
+        Deprecated.
+
+        Use :meth:`coord_function` instead.
+
+        EXAMPLE::
+
+            sage: M = TopManifold(2, 'M')
+            sage: c_xy.<x,y> = M.chart()
+            sage: f = M.scalar_field(x*y^2)
+            sage: fc = f.function_chart()
+            doctest:...: DeprecationWarning: Use coord_function() instead.
+            See http://trac.sagemath.org/18640 for details.
+            sage: fc
+            x*y^2
+
+        """
+        from sage.misc.superseded import deprecation
+        deprecation(18640, 'Use coord_function() instead.')
+        return self.coord_function(chart=chart, from_chart=from_chart)
 
     def expr(self, chart=None, from_chart=None):
         r"""

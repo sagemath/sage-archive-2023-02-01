@@ -31,6 +31,7 @@ REFERENCES:
 #******************************************************************************
 
 from sage.manifolds.differentiable.affine_connection import AffineConnection
+from sage.parallel.all import parallel
 from sage.tensor.modules.parallel_utilities import TensorParallelCompute
 
 class LeviCivitaConnection(AffineConnection):

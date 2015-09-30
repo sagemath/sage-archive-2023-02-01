@@ -361,6 +361,112 @@ class VectorFieldModule(UniqueRepresentation, Parent):
         else:
            return self._latex_name
 
+    def domain(self):
+        r"""
+        Return the domain of the vector fields in this module.
+
+        If the module is `\mathcal{X}(U,\Phi)`, returns the domain `U` of
+        `\Phi`.
+
+        OUTPUT:
+
+        - instance of
+          :class:`~sage.manifolds.differentiable.manifold.DiffManifold`
+          representing the domain of the vector fields that belong to this
+          module
+
+        EXAMPLES::
+
+            sage: M = DiffManifold(5, 'M')
+            sage: XM = M.vector_field_module()
+            sage: XM.domain()
+            5-dimensional differentiable manifold M
+            sage: U = DiffManifold(2, 'U')
+            sage: Phi = U.diff_map(M, name='Phi')
+            sage: XU = U.vector_field_module(dest_map=Phi)
+            sage: XU.domain()
+            2-dimensional differentiable manifold U
+
+        """
+        return self._domain
+
+    def ambient_domain(self):
+        r"""
+        Return the manifold in which the vector fields of this module take
+        their values.
+
+        If the module is `\mathcal{X}(U,\Phi)`, returns the codomain `M` of
+        `\Phi`.
+
+        OUTPUT:
+
+        - instance of
+          :class:`~sage.manifolds.differentiable.manifold.DiffManifold`
+          representing the manifold in which the vector fields of this
+          module take their values
+
+        EXAMPLES::
+
+            sage: M = DiffManifold(5, 'M')
+            sage: XM = M.vector_field_module()
+            sage: XM.ambient_domain()
+            5-dimensional differentiable manifold M
+            sage: U = DiffManifold(2, 'U')
+            sage: Phi = U.diff_map(M, name='Phi')
+            sage: XU = U.vector_field_module(dest_map=Phi)
+            sage: XU.ambient_domain()
+            5-dimensional differentiable manifold M
+
+        """
+        return self._ambient_domain
+
+    def destination_map(self):
+        r"""
+        Return the differential map associated to this module.
+
+        The differential map associated to this module is the map
+
+        .. MATH::
+
+            \Phi:\  U \longrightarrow M
+
+        such that this module is the set `\mathcal{X}(U,\Phi)` of all vector
+        fields of the type
+
+        .. MATH::
+
+            v:\ U  \longrightarrow TM
+
+        (where `TM` is the tangent bundle of `M`) such that
+
+        .. MATH::
+
+            \forall p \in U,\ v(p) \in T_{\Phi(p)}M,
+
+        where `T_{\Phi(p)}M` is the tangent space to `M` at the point `\Phi(p)`.
+
+        OUTPUT:
+
+        - instance of
+          :class:`~sage.manifolds.differentiable.diff_map.DiffMap`
+          representing the differential map `\Phi`
+
+        EXAMPLES::
+
+            sage: M = DiffManifold(5, 'M')
+            sage: XM = M.vector_field_module()
+            sage: XM.destination_map()
+            Identity map Id_M of the 5-dimensional differentiable manifold M
+            sage: U = DiffManifold(2, 'U')
+            sage: Phi = U.diff_map(M, name='Phi')
+            sage: XU = U.vector_field_module(dest_map=Phi)
+            sage: XU.destination_map()
+            Differentiable map Phi from the 2-dimensional differentiable
+             manifold U to the 5-dimensional differentiable manifold M
+
+        """
+        return self._dest_map
+
     def tensor_module(self, k, l):
         r"""
         Return the module of type-`(k,l)` tensors on the vector field module.
@@ -1173,6 +1279,118 @@ class VectorFieldFreeModule(FiniteRankFreeModule):
             description += "along the {}".format(self._domain) + \
                            " mapped into the {}".format(self._ambient_domain)
         return description
+
+    def domain(self):
+        r"""
+        Return the domain of the vector fields in this module.
+
+        If the module is `\mathcal{X}(U,\Phi)`, returns the domain `U` of
+        `\Phi`.
+
+        OUTPUT:
+
+        - instance of
+          :class:`~sage.manifolds.differentiable.manifold.DiffManifold`
+          representing the domain of the vector fields that belong to this
+          module
+
+        EXAMPLES::
+
+            sage: M = DiffManifold(3, 'M')
+            sage: X.<x,y,z> = M.chart()  # makes M parallelizable
+            sage: XM = M.vector_field_module()
+            sage: XM.domain()
+            3-dimensional differentiable manifold M
+            sage: U = DiffManifold(2, 'U')
+            sage: Y.<u,v> = U.chart()
+            sage: Phi = U.diff_map(M, {(Y,X): [u+v, u-v, u*v]}, name='Phi')
+            sage: XU = U.vector_field_module(dest_map=Phi)
+            sage: XU.domain()
+            2-dimensional differentiable manifold U
+
+        """
+        return self._domain
+
+    def ambient_domain(self):
+        r"""
+        Return the manifold in which the vector fields of this module take
+        their values.
+
+        If the module is `\mathcal{X}(U,\Phi)`, returns the codomain `M` of
+        `\Phi`.
+
+        OUTPUT:
+
+        - instance of
+          :class:`~sage.manifolds.differentiable.manifold.DiffManifold`
+          representing the manifold in which the vector fields of this
+          module take their values
+
+        EXAMPLES::
+
+            sage: M = DiffManifold(3, 'M')
+            sage: X.<x,y,z> = M.chart()  # makes M parallelizable
+            sage: XM = M.vector_field_module()
+            sage: XM.ambient_domain()
+            3-dimensional differentiable manifold M
+            sage: U = DiffManifold(2, 'U')
+            sage: Y.<u,v> = U.chart()
+            sage: Phi = U.diff_map(M, {(Y,X): [u+v, u-v, u*v]}, name='Phi')
+            sage: XU = U.vector_field_module(dest_map=Phi)
+            sage: XU.ambient_domain()
+            3-dimensional differentiable manifold M
+
+        """
+        return self._ambient_domain
+
+    def destination_map(self):
+        r"""
+        Return the differential map associated to this module.
+
+        The differential map associated to this module is the map
+
+        .. MATH::
+
+            \Phi:\  U \longrightarrow M
+
+        such that this module is the set `\mathcal{X}(U,\Phi)` of all vector
+        fields of the type
+
+        .. MATH::
+
+            v:\ U  \longrightarrow TM
+
+        (where `TM` is the tangent bundle of `M`) such that
+
+        .. MATH::
+
+            \forall p \in U,\ v(p) \in T_{\Phi(p)}M,
+
+        where `T_{\Phi(p)}M` is the tangent space to `M` at the point `\Phi(p)`.
+
+        OUTPUT:
+
+        - instance of
+          :class:`~sage.manifolds.differentiable.diff_map.DiffMap`
+          representing the differential map `\Phi`
+
+        EXAMPLES::
+
+            sage: M = DiffManifold(3, 'M')
+            sage: X.<x,y,z> = M.chart()  # makes M parallelizable
+            sage: XM = M.vector_field_module()
+            sage: XM.destination_map()
+            Identity map Id_M of the 3-dimensional differentiable manifold M
+            sage: U = DiffManifold(2, 'U')
+            sage: Y.<u,v> = U.chart()
+            sage: Phi = U.diff_map(M, {(Y,X): [u+v, u-v, u*v]}, name='Phi')
+            sage: XU = U.vector_field_module(dest_map=Phi)
+            sage: XU.destination_map()
+            Differentiable map Phi from the 2-dimensional differentiable
+             manifold U to the 3-dimensional differentiable manifold M
+
+        """
+        return self._dest_map
 
     def tensor_module(self, k, l):
         r"""

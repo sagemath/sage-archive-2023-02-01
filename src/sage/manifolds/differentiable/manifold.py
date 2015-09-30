@@ -1070,6 +1070,31 @@ class DiffManifold(TopManifold):
             coord_functions = {(chart1, chart2): coord_functions}
         return homset(coord_functions, name=name, latex_name=latex_name)
 
+    def diff_mapping(self, codomain, coord_functions=None, chart1=None,
+                     chart2=None, name=None, latex_name=None):
+        r"""
+        Deprecated.
+
+        Use :meth:`diff_map` instead.
+
+        EXAMPLE::
+
+            sage: M = DiffManifold(2, 'M'); X.<x,y> = M.chart()
+            sage: N = DiffManifold(2, 'M'); Y.<u,v> = N.chart()
+            sage: Phi = M.diff_mapping(N, {(X,Y): [x+y, x-y]}, name='Phi')
+            doctest:...: DeprecationWarning: Use diff_map() instead.
+            See http://trac.sagemath.org/18783 for details.
+            sage: Phi
+            Differentiable map Phi from the 2-dimensional differentiable
+             manifold M to itself
+
+        """
+        from sage.misc.superseded import deprecation
+        deprecation(18783, 'Use diff_map() instead.')
+        return self.diff_map(codomain, coord_functions=coord_functions,
+                             chart1=chart1, chart2=chart2, name=name,
+                             latex_name=latex_name)
+
     def diffeomorphism(self, codomain, coord_functions=None, chart1=None,
                        chart2=None, name=None, latex_name=None):
         r"""
@@ -2877,7 +2902,7 @@ class DiffManifold(TopManifold):
 
         """
         vmodule = self.vector_field_module(dest_map)
-        dim = vmodule._ambient_domain.dimension()
+        dim = vmodule.ambient_domain().dimension()
         if signature=='positive':
             signat = dim - 2
         else:

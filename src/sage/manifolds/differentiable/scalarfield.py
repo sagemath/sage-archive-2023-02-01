@@ -733,6 +733,11 @@ class DiffScalarField(ScalarField):
             Free module /\^1(M) of 1-forms on the 3-dimensional differentiable
              manifold M
 
+        The result is cached, i.e. is not recomputed unless ``f`` is changed::
+
+            sage: f.differential() is df
+            True
+
         Since the exterior derivative of a scalar field (considered a 0-form)
         is nothing but its differential, ``exterior_der()`` is an alias of
         ``differential()``::
@@ -743,6 +748,13 @@ class DiffScalarField(ScalarField):
             df = -z^3*sin(x) dx + z^2*e^y dy + (3*z^2*cos(x) + 2*z*e^y) dz
             sage: latex(df)
             \mathrm{d}f
+
+        One may also use the global function
+        :func:`~sage.manifolds.utilities.xder` instead of the method
+        ``exterior_der()``::
+
+            sage: xder(f) is f.exterior_der()
+            True
 
         Differential computed on a chart that is not the default one::
 

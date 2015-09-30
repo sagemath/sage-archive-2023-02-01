@@ -1187,13 +1187,16 @@ class AsymptoticExpression(CommutativeAlgebraElement):
             Asymptotic Ring <y^QQ> over Rational Field
             sage: (x^(1/2) + O(x^0))^15
             x^(15/2) + O(x^7)
-            sage: (y^2+O(y))^(1/2)
-            Traceback (most recent call last):
-            ...
-            NotImplementedError: Taking the sum y^2 + O(y) to the
-            non-integer power 1/2 is not implemented.
+            sage: (y^2 + O(y))^(1/2)  # not tested
+            y + O(1)
             sage: (y^2 + O(y))^(-2)
             y^(-4) + O(y^(-5))
+
+        ::
+
+            sage: B.<z> = AsymptoticRing(growth_group='z^QQ * log(z)^QQ', coefficient_ring=QQ)
+            sage: (z^2 + O(z))^(1/2)
+            z + O(1)
 
         ::
 

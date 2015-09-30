@@ -186,9 +186,9 @@ class CartesianProductFactory(sage.structure.factory.UniqueFactory):
 CartesianProductGrowthGroups = CartesianProductFactory('CartesianProductGrowthGroups')
 
 
-from sage.combinat.posets.cartesian_product import CartesianProductPosets
+from sage.combinat.posets.cartesian_product import CartesianProductPoset
 from sage.rings.asymptotic.growth_group import GenericGrowthGroup
-class GenericProduct(CartesianProductPosets, GenericGrowthGroup):
+class GenericProduct(CartesianProductPoset, GenericGrowthGroup):
     r"""
     A cartesian product of growth groups.
 
@@ -216,7 +216,7 @@ class GenericProduct(CartesianProductPosets, GenericGrowthGroup):
     .. SEEALSO::
 
         :class:`~sage.sets.cartesian_product.CartesianProduct`,
-        :class:`~sage.combinat.posets.cartesian_product.CartesianProductPosets`.
+        :class:`~sage.combinat.posets.cartesian_product.CartesianProductPoset`.
     """
 
     @staticmethod
@@ -499,7 +499,7 @@ class GenericProduct(CartesianProductPosets, GenericGrowthGroup):
         return tuple(v for v, _ in groupby(vars))
 
 
-    class Element(CartesianProductPosets.Element):
+    class Element(CartesianProductPoset.Element):
         def _repr_(self):
             r"""
             A representation string for this cartesian product element.

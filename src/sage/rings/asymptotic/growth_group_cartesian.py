@@ -266,7 +266,7 @@ class GenericProduct(CartesianProductPosets, GenericGrowthGroup):
         sage: Lx = GrowthGroup('log(x)^ZZ')
         sage: Cx = cartesian_product([Px, Lx], order='lex')  # indirect doctest
         sage: Py = GrowthGroup('y^QQ')
-        sage: C = cartesian_product([Cx, Py], order='components'); C  # indirect doctest
+        sage: C = cartesian_product([Cx, Py], order='product'); C  # indirect doctest
         Growth Group x^QQ * log(x)^ZZ * y^QQ
         sage: C.an_element()
         x^(1/2)*log(x)*y^(1/2)

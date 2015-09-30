@@ -302,11 +302,11 @@ class Variable(sage.structure.unique_representation.CachedRepresentation,
             sage: Variable('(:-)')
             Traceback (most recent call last):
             ...
-            TypeError: Malformed expression: (: !!! -)
+            TypeError: Malformed expression: : !!! -
             sage: Variable('(:-)', repr='icecream')
             Traceback (most recent call last):
             ...
-            ValueError: '(:-)' is not a valid name for a variable.
+            ValueError: ':-' is not a valid name for a variable.
         """
         from sage.symbolic.ring import isidentifier
 

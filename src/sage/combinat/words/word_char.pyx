@@ -550,7 +550,6 @@ cdef class WordDatatype_char(WordDatatype):
 
         return w._new_c(data, new_length, None)
 
-    @cython.boundscheck(False)
     def has_prefix(self, other):
         r"""
         Test whether ``other`` is a prefix of ``self``.
@@ -573,6 +572,22 @@ cdef class WordDatatype_char(WordDatatype):
             True
             sage: w.has_prefix(w[1:])
             False
+
+        TESTS:
+
+        :trac:`19322`::
+
+            sage: W = Words([0,1,2])
+            sage: w = W([0,1,0,2])
+            sage: w.has_prefix(words.FibonacciWord())
+            False
+
+            sage: w.has_prefix([0,1,0,2,0])
+            False
+            sage: w.has_prefix([0,1,0,2])
+            True
+            sage: w.has_prefix([0,1,0])
+            True
         """
         cdef size_t i
         cdef WordDatatype_char w
@@ -582,15 +597,16 @@ cdef class WordDatatype_char(WordDatatype):
             w = <WordDatatype_char> other
             if w._length > self._length:
                 return False
-            return memcmp(self._data, w._data, w._length) == 0
+            return memcmp(self._data, w._data, w._length * sizeof(unsigned char)) == 0
 
         elif PySequence_Check(other):
             # python level
-            if len(other) > self._length:
+            from sage.combinat.words.infinite_word import InfiniteWord_class
+            if isinstance(other, InfiniteWord_class) or len(other) > len(self):
                 return False
 
             for i in range(len(other)):
-                if other[i] != self._data[i]:
+                if other[i] != self[i]:
                     return False
             return True
 
@@ -638,3 +654,132 @@ cdef class WordDatatype_char(WordDatatype):
             return memcmp(self._data, 
                           self._data + l, 
                           l * sizeof(unsigned char)) == 0
+
+    def longest_common_prefix(self, other):
+        r"""
+        Return the longest common prefix of this word and ``other``.
+
+        EXAMPLES::
+
+            sage: W = Words([0,1,2])
+            sage: W([0,1,0,2]).longest_common_prefix([0,1])
+            word: 01
+            sage: u = W([0,1,0,0,1])
+            sage: v = W([0,1,0,2])
+            sage: u.longest_common_prefix(v)
+            word: 010
+            sage: v.longest_common_prefix(u)
+            word: 010
+
+        Using infinite words is also possible (and the return type is also a
+        of the same type as ``self``)::
+
+            sage: W([0,1,0,0]).longest_common_prefix(words.FibonacciWord())
+            word: 0100
+            sage: type(_)
+            <class 'sage.combinat.words.word.FiniteWord_char'>
+
+        An example of an intensive usage::
+
+            sage: W = Words([0,1])
+            sage: w = words.FibonacciWord()
+            sage: w = W(list(w[:5000]))
+            sage: L = [[len(w[n:].longest_common_prefix(w[n+fibonacci(i):]))
+            ....:      for i in range(5,15)] for n in range(1,1000)]
+            sage: for n,l in enumerate(L):
+            ....:     if l.count(0) > 4: print n+1,l
+            375 [0, 13, 0, 34, 0, 89, 0, 233, 0, 233]
+            376 [0, 12, 0, 33, 0, 88, 0, 232, 0, 232]
+            608 [8, 0, 21, 0, 55, 0, 144, 0, 377, 0]
+            609 [7, 0, 20, 0, 54, 0, 143, 0, 376, 0]
+            985 [0, 13, 0, 34, 0, 89, 0, 233, 0, 610]
+            986 [0, 12, 0, 33, 0, 88, 0, 232, 0, 609]
+        """
+        cdef WordDatatype_char w
+        cdef size_t i
+        cdef size_t m
+
+        if isinstance(other, WordDatatype_char):
+            # C level
+            # (this can be much faster if we allow to compare larger memory
+            # zones)
+            w = other
+            m = self._length if self._length <= w._length else w._length
+            for i in range(m):
+                if self._data[i] != w._data[i]:
+                    break
+            else:
+                if self._length <= w._length:
+                    return self
+                else:
+                    return other
+
+            return self._new_c(self._data, i, self)
+
+        elif PySequence_Check(other):
+            # Python level
+            # we avoid to call len(other) since it might be an infinite word
+            from itertools import islice
+            for i,a in enumerate(islice(other, self._length)):
+                if self._data[i] != a:
+                    break
+            else:
+                i += 1
+
+            return self._new_c(self._data, i, self)
+
+        raise TypeError("not able to initialize a word from {}".format(other))
+
+    def longest_common_suffix(self, other):
+        r"""
+        Return the longest common suffix between this word and ``other``.
+
+        EXAMPLES::
+
+            sage: W = Words([0,1,2])
+            sage: W([0,1,0,2]).longest_common_suffix([2,0,2])
+            word: 02
+            sage: u = W([0,1,0,0,1])
+            sage: v = W([1,2,0,0,1])
+            sage: u.longest_common_suffix(v)
+            word: 001
+            sage: v.longest_common_suffix(u)
+            word: 001
+        """
+        cdef WordDatatype_char w
+        cdef size_t i
+        cdef size_t m
+
+        if isinstance(other, WordDatatype_char):
+            # C level
+            # (this can be much faster if we could compare larger memory
+            # zones)
+            w = other
+            m = self._length if self._length <= w._length else w._length
+            for i in range(m):
+                if self._data[self._length-i-1] != w._data[w._length-i-1]:
+                    break
+            else:
+                if self._length <= w._length:
+                    return self
+                else:
+                    return other
+
+            return self._new_c(self._data+self._length-i, i, self)
+
+        elif PySequence_Check(other):
+            # Python level
+            m = self._length if self._length <= len(other) else len(other)
+            for i in range(m):
+                if self._data[self._length-i-1] != other[len(other)-i-1]:
+                    break
+            else:
+                if self._length == m:
+                    return self
+                else:
+                    i += 1
+
+            return self._new_c(self._data+self._length-i, i, self)
+
+        raise TypeError("not able to initialize a word from {}".format(other))
+

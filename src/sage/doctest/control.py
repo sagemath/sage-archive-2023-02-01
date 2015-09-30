@@ -183,7 +183,7 @@ def skipfile(filename):
 
 
 class Logger(object):
-    """
+    r"""
     File-like object which implements writing to multiple files at
     once.
 
@@ -210,7 +210,7 @@ class Logger(object):
         self.files = list(files)
 
     def write(self, x):
-        """
+        r"""
         Write ``x`` to all files.
 
         TESTS::

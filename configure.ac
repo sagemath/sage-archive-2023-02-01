@@ -491,7 +491,7 @@ else
     # Add the .0 because Debian/Ubuntu gives version numbers like
     # 4.6 instead of 4.6.4 (Trac #18885)
     case "$GXX_VERSION.0" in
-        [0-3].*|4.[0-3].*)
+        [[0-3]].*|4.[[0-3]].*)
             # Install our own GCC if the system-provided one is older than gcc-4.4.
             # * gcc-4.2.4 compiles a slow IML:
             # https://groups.google.com/forum/?fromgroups#!topic/sage-devel/Ux3t0dW2FSI

@@ -745,6 +745,14 @@ def product_cantor_pairing(A, B):
         (0, 3)
         (1, 2)
         (1, 3)
+
+    ::
+
+        sage: from itertools import count
+        sage: list(product_cantor_pairing([], count()))
+        []
+        sage: list(product_cantor_pairing(count(), []))
+        []
     """
     # when writing this code I thought the solution would be shorter...
 
@@ -765,7 +773,11 @@ def product_cantor_pairing(A, B):
     from itertools import count
     A = iter_as_list(A)
     B = iter_as_list(B)
-    for s in count():
+    try:
+        yield A[0], B[0]
+    except StopIteration:
+        return
+    for s in count(1):
         for i in range(s+1):
             stopped = False
             try:

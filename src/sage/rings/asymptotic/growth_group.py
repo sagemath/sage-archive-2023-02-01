@@ -175,10 +175,10 @@ growth groups::
 
     sage: G = agg.GrowthGroup('QQ^x * x^ZZ * log(x)^QQ * y^QQ')
     sage: G.an_element()
-    (1/2)^x * x * log(x)^(1/2) * y^(1/2)
+    (1/2)^x*x*log(x)^(1/2)*y^(1/2)
     sage: x, y = var('x y')
     sage: G(2^x * log(x) * y^(1/2)) * G(x^(-5) * 5^x * y^(1/3))
-    10^x * x^(-5) * log(x) * y^(5/6)
+    10^x*x^(-5)*log(x)*y^(5/6)
 
 AUTHORS:
 

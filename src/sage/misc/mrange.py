@@ -762,12 +762,9 @@ def product_cantor_pairing(A, B):
             self.newdata = True
         def __getitem__(self, i):
             self.newdata = False
-            try:
-                while len(self) <= i:
-                    self.append(next(self.it))
-                    self.newdata = True
-            except StopIteration:
-                raise
+            while len(self) <= i:
+                self.append(next(self.it))
+                self.newdata = True
             return list.__getitem__(self, i)
 
     from itertools import count

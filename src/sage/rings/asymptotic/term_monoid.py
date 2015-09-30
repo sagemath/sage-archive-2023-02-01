@@ -90,11 +90,11 @@ We want to show step by step which terms can be absorbed
 by which other terms. We start by defining the necessary
 term monoids and some terms::
 
-    sage: import sage.rings.asymptotic.term_monoid as atm
-    sage: import sage.rings.asymptotic.growth_group as agg
-    sage: G = agg.GrowthGroup('x^ZZ'); x = G.gen()
-    sage: OT = atm.OTermMonoid(growth_group=G, coefficient_ring=QQ)
-    sage: ET = atm.ExactTermMonoid(growth_group=G, coefficient_ring=QQ)
+    sage: from sage.rings.asymptotic.term_monoid import OTermMonoid, ExactTermMonoid
+    sage: from sage.rings.asymptotic.growth_group import GrowthGroup
+    sage: G = GrowthGroup('x^ZZ'); x = G.gen()
+    sage: OT = OTermMonoid(growth_group=G, coefficient_ring=QQ)
+    sage: ET = ExactTermMonoid(growth_group=G, coefficient_ring=QQ)
     sage: ot1 = OT(x); ot2 = OT(x^2)
     sage: et1 = ET(x^2, 2)
 
@@ -268,8 +268,8 @@ def absorption(left, right):
 
     ::
 
-        sage: T = atm.TermMonoid('exact', G, ZZ)
-        sage: atm.absorption(T(x^2), T(x^3))
+        sage: T = TermMonoid('exact', GrowthGroup('x^ZZ'), ZZ)
+        sage: absorption(T(x^2), T(x^3))
         Traceback (most recent call last):
         ...
         ArithmeticError: Absorption between x^2 and x^3 is not possible.
@@ -365,11 +365,12 @@ class GenericTerm(sage.structure.element.MonoidElement):
 
         ::
 
-            sage: atm.GenericTerm(parent=None, growth=x)
+            sage: from sage.rings.asymptotic.term_monoid import GenericTerm
+            sage: GenericTerm(parent=None, growth=x)
             Traceback (most recent call last):
             ...
             ValueError: The parent must be provided
-            sage: atm.GenericTerm(T, agg.GrowthGroup('y^ZZ').gen())
+            sage: GenericTerm(T, GrowthGroup('y^ZZ').gen())
             Traceback (most recent call last):
             ...
             ValueError: y is not in Growth Group x^ZZ
@@ -3379,12 +3380,12 @@ class TermMonoidFactory(sage.structure.factory.UniqueFactory):
 
         TESTS::
 
-            sage: atm.TermMonoid.create_key_and_extra_args('icecream', G)
+            sage: TermMonoid.create_key_and_extra_args('icecream', G)
             Traceback (most recent call last):
             ...
             ValueError: Term specification 'icecream' has to be either
             'exact' or 'O' or an instance of an existing term.
-            sage: atm.TermMonoid.create_key_and_extra_args('O', ZZ)
+            sage: TermMonoid.create_key_and_extra_args('O', ZZ)
             Traceback (most recent call last):
             ...
             ValueError: Integer Ring has to be an asymptotic growth group

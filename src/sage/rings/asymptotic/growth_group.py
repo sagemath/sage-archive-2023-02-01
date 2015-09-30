@@ -2532,8 +2532,8 @@ class MonomialGrowthGroup(GenericGrowthGroup):
 
     TESTS::
 
-        sage: L1 = agg.MonomialGrowthGroup(QQ, log(x))
-        sage: L2 = agg.MonomialGrowthGroup(QQ, 'log(x)')
+        sage: L1 = MonomialGrowthGroup(QQ, log(x))
+        sage: L2 = MonomialGrowthGroup(QQ, 'log(x)')
         sage: L1 is L2
         True
     """

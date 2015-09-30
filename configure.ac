@@ -355,9 +355,9 @@ AC_DEFUN([SAGE_SHOULD_INSTALL_GCC], [
     if test x$SAGE_INSTALL_GCC = xexists; then
         true  # Do nothing if already installed
     elif test x$SAGE_INSTALL_GCC = xno; then
-        AC_MSG_WARN($1)
+        AC_MSG_WARN([$1])
     else
-        AC_MSG_NOTICE([Installing GCC because] $1)
+        AC_MSG_NOTICE([Installing GCC because $1])
         need_to_install_gcc=yes
     fi
 ])
@@ -370,9 +370,9 @@ AC_DEFUN([SAGE_MUST_INSTALL_GCC], [
     if test x$SAGE_INSTALL_GCC = xexists; then
         true  # Do nothing if already installed
     elif test x$SAGE_INSTALL_GCC = xno; then
-        AC_MSG_ERROR([SAGE_INSTALL_GCC is set to 'no', but] $1)
+        AC_MSG_ERROR([SAGE_INSTALL_GCC is set to 'no', but $1])
     else
-        AC_MSG_NOTICE([Installing GCC because] $1)
+        AC_MSG_NOTICE([Installing GCC because $1])
         need_to_install_gcc=yes
     fi
 ])

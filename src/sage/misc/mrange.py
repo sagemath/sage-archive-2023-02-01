@@ -754,11 +754,9 @@ def product_cantor_pairing(A, B):
         sage: list(product_cantor_pairing(count(), []))
         []
     """
-    # when writing this code I thought the solution would be shorter...
-
-
     from itertools import count
     from sage.rings.infinity import infinity
+
     A = iter(A)
     B = iter(B)
     max_A = infinity
@@ -770,14 +768,14 @@ def product_cantor_pairing(A, B):
             try:
                 cache_A.append(next(A))
             except StopIteration:
-                max_A = s-1
+                max_A = s - 1
         if s <= max_B:
             try:
                 cache_B.append(next(B))
             except StopIteration:
-                max_B = s-1
+                max_B = s - 1
         if s > max_A + max_B or max_A < 0 or max_B < 0:
             return
 
-        for i in range(max(0, s-max_B), min(s, max_A)+1):
+        for i in range(max(0, s-max_B), min(s, max_A) + 1):
             yield cache_A[i], cache_B[s-i]

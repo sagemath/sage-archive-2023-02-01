@@ -108,9 +108,6 @@ class SatLP(SatSolver):
 
         - If this instance is UNSAT: ``False``
 
-        - If the solver was interrupted before deciding satisfiability
-          ``None``.
-
         EXAMPLE::
 
             sage: def is_bipartite_SAT(G):
@@ -133,8 +130,6 @@ class SatLP(SatSolver):
             self._LP.solve()
         except MIPSolverException:
             return False
-        except KeyboardInterrupt:
-            return None
 
         b = self._LP.get_values(self._vars)
         n = max(b)

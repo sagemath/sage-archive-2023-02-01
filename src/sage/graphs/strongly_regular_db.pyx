@@ -647,6 +647,10 @@ def is_polhill(int v,int k,int l,int mu):
         This function does not actually explore *all* strongly regular graphs
         produced in [Polhill09]_, but only those on 1024 vertices.
 
+        John Polhill offered his help if we attempt to write a code to guess,
+        given `(v,k,\lambda,\mu)`, which of his construction must be applied to
+        find the graph.
+
     INPUT:
 
     - ``v,k,l,mu`` (integers)

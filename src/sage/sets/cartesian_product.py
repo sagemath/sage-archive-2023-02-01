@@ -4,8 +4,6 @@ Cartesian products
 AUTHORS:
 
 - Nicolas Thiery (2010-03): initial version
-- Daniel Krenn (2015-06): cartesian products for posets with different orders
-
 """
 #*****************************************************************************
 #       Copyright (C) 2008 Nicolas Thiery <nthiery at users.sf.net>,

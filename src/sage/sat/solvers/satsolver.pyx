@@ -327,7 +327,7 @@ def SAT(solver=None):
         try:
             from sage.sat.solvers.cryptominisat.cryptominisat import CryptoMiniSat
         except ImportError:
-            raise PackageNotFoundError("To enable this feature, run 'sage -i cryptominisat'.")
+            raise PackageNotFoundError("cryptominisat")
         return CryptoMiniSat()
     elif (solver == "LP" or solver is None):
         from sat_lp import SatLP

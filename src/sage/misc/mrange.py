@@ -610,7 +610,7 @@ def cartesian_product_iterator(X):
     return xmrange_iter(X, tuple)
 
 
-def product_diagonal(A, B):
+def product_cantor_pairing(A, B):
     r"""
     Return an iterator over the product of `A` and `B` which iterates
     along the diagonal.
@@ -625,21 +625,21 @@ def product_diagonal(A, B):
 
     EXAMPLES::
 
-        sage: from sage.rings.asymptotic.misc import product_diagonal
-        sage: tuple(product_diagonal(srange(2), srange(2)))
+        sage: from sage.rings.asymptotic.misc import product_cantor_pairing
+        sage: tuple(product_cantor_pairing(srange(2), srange(2)))
         ((0, 0), (0, 1), (1, 0), (1, 1))
-        sage: tuple(product_diagonal(srange(4), srange(2)))
+        sage: tuple(product_cantor_pairing(srange(4), srange(2)))
         ((0, 0), (0, 1), (1, 0), (1, 1), (2, 0), (2, 1), (3, 0), (3, 1))
-        sage: tuple(product_diagonal(srange(2), srange(3)))
+        sage: tuple(product_cantor_pairing(srange(2), srange(3)))
         ((0, 0), (0, 1), (1, 0), (0, 2), (1, 1), (1, 2))
-        sage: tuple(''.join(p) for p in product_diagonal('abc', 'xyz'))
+        sage: tuple(''.join(p) for p in product_cantor_pairing('abc', 'xyz'))
         ('ax', 'ay', 'bx', 'az', 'by', 'cx', 'bz', 'cy', 'cz')
 
     TESTS:
 
     Check that all pairs are returned::
 
-        sage: all(len(tuple(product_diagonal(srange(m), srange(n)))) == m*n
+        sage: all(len(tuple(product_cantor_pairing(srange(m), srange(n)))) == m*n
         ....:     for m in srange(5) for n in srange(5))
         True
 
@@ -649,7 +649,7 @@ def product_diagonal(A, B):
         ....:     for i in srange(n):
         ....:         print '%s loads item number %s' % (s, i)
         ....:         yield i
-        sage: for p in product_diagonal(it('A', 2), it('B', 2)):
+        sage: for p in product_cantor_pairing(it('A', 2), it('B', 2)):
         ....:     print p
         A loads item number 0
         B loads item number 0
@@ -659,7 +659,7 @@ def product_diagonal(A, B):
         A loads item number 1
         (1, 0)
         (1, 1)
-        sage: for p in product_diagonal(it('A', 3), it('B', 2)):
+        sage: for p in product_cantor_pairing(it('A', 3), it('B', 2)):
         ....:     print p
         A loads item number 0
         B loads item number 0
@@ -672,7 +672,7 @@ def product_diagonal(A, B):
         A loads item number 2
         (2, 0)
         (2, 1)
-        sage: for p in product_diagonal(it('A', 2), it('B', 4)):
+        sage: for p in product_cantor_pairing(it('A', 2), it('B', 4)):
         ....:     print p
         A loads item number 0
         B loads item number 0

@@ -2033,6 +2033,45 @@ def SRG_81_50_31_30():
     M = Matrix(GF(3),[list(l) for l in x])
     return strongly_regular_from_two_weight_code(LinearCode(M))
 
+def SRG_1288_792_476_504():
+    r"""
+    Return a `(1288, 792, 476, 504)`-strongly regular graph.
+
+    This graph is built on the words of weight 12 in the
+    :func:`~sage.coding.code_constructions.BinaryGolayCode`. Two of them are
+    then made adjacent if their symmetric difference has weight 12 (cf
+    [BvE92]_).
+
+    .. SEEALSO::
+
+        :func:`strongly_regular_from_two_weight_code` -- build a strongly regular graph from
+        a two-weight code.
+
+    EXAMPLE::
+
+        sage: from sage.graphs.strongly_regular_db import SRG_1288_792_476_504
+        sage: G = SRG_1288_792_476_504()             # long time
+        sage: G.is_strongly_regular(parameters=True) # long time
+        (1288, 792, 476, 504)
+
+    REFERENCE:
+
+    .. [BvE92] A. Brouwer and C. Van Eijl,
+      On the p-Rank of the Adjacency Matrices of Strongly Regular Graphs
+      Journal of Algebraic Combinatorics (1992), vol.1, n.4, pp329-346,
+      http://dx.doi.org/10.1023/A%3A1022438616684
+    """
+    from sage.coding.code_constructions import BinaryGolayCode
+    C = BinaryGolayCode()
+    C = [[i for i,v in enumerate(c) if v]
+         for c in C]
+    C = [s for s in C if len(s) == 12]
+    G = Graph([map(frozenset,C),
+               lambda x,y:len(x.symmetric_difference(y))==12])
+    G.relabel()
+    return G
+
+
 cdef bint seems_feasible(int v, int k, int l, int mu):
     r"""
     Tests is the set of parameters seems feasible
@@ -2182,17 +2221,6 @@ def strongly_regular_graph(int v,int k,int l,int mu=-1,bint existence=False,bint
         (324,95,22,30)-strongly regular graph is known to exist.
         Comments:
 
-    A realizable set of parameters that Sage cannot realize (help us!)::
-
-        sage: graphs.strongly_regular_graph(1288, 495, 206, existence=True)
-        True
-        sage: graphs.strongly_regular_graph(1288, 495, 206)
-        Traceback (most recent call last):
-        ...
-        RuntimeError: Andries Brouwer's database claims that such a (1288,495,206,180)-strongly
-        regular graph exists, but Sage does not know how to build it.
-        ...
-
     A large unknown set of parameters (not in Andries Brouwer's database)::
 
         sage: graphs.strongly_regular_graph(1394,175,0,25,existence=True)
@@ -2281,6 +2309,7 @@ def strongly_regular_graph(int v,int k,int l,int mu=-1,bint existence=False,bint
         (729, 476, 313,306): [SRG_729_476_313_306],
         (729, 532, 391,380): [SRG_729_532_391_380],
         (1024,825, 668,650): [SRG_1024_825_668_650],
+        (1288,792, 476,504): [SRG_1288_792_476_504],
         (1782,416, 100, 96): [SuzukiGraph],
     }
 

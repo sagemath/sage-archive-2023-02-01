@@ -36,7 +36,7 @@ We now show how to solve a simple SAT problem. ::
 
 In Sage's notation::
 
-    sage: solver = SAT() # random
+    sage: solver = SAT()
     sage: solver.add_clause( ( 1,  2,  3) )
     sage: solver.add_clause( ( 1,  2, -3) )
     sage: solver()       # random

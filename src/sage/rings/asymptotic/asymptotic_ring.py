@@ -1112,12 +1112,12 @@ class AsymptoticRing(sage.rings.ring.Ring,
              O(z^(-1/2)),
              -8*z^(3/2) + O(z^(1/2)))
         """
-        from sage.rings.asymptotic.term_monoid import product_diagonal
+        from sage.misc.mrange import product_cantor_pairing
         from sage.rings.asymptotic.term_monoid import TermMonoid
         E = TermMonoid('exact', self.growth_group, self.coefficient_ring)
         O = TermMonoid('O', self.growth_group, self.coefficient_ring)
         return iter(-self(e)**3 + self(o)
-                    for e, o in product_diagonal(
+                    for e, o in product_cantor_pairing(
                             E.some_elements(), O.some_elements()))
 
 

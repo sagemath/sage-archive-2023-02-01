@@ -2345,13 +2345,13 @@ class AsymptoticRing(Algebra, UniqueRepresentation):
              O(z^(-1/2)),
              8*z^(3/2) + O(z^(1/2)))
         """
-        from misc import product_diagonal
+        from sage.misc.mrange import product_cantor_pairing
         from term_monoid import TermMonoid
         E = TermMonoid('exact', asymptotic_ring=self)
         O = TermMonoid('O', asymptotic_ring=self)
         return iter(self(e, simplify=False, convert=False)**3 +
                     self(o, simplify=False, convert=False)
-                    for e, o in product_diagonal(
+                    for e, o in product_cantor_pairing(
                             E.some_elements(), O.some_elements()))
 
 

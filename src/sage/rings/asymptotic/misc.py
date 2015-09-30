@@ -3,8 +3,7 @@ Asymptotic Expansions --- Miscellaneous
 
 AUTHORS:
 
-- Daniel Krenn (2015-08-25): move functions from other files to this file
-- Daniel Krenn (2015-08-31): various improvements, review; documentation
+- Daniel Krenn (2015)
 
 ACKNOWLEDGEMENT:
 

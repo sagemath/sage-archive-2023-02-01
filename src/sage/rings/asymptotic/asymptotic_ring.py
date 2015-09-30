@@ -369,9 +369,8 @@ Various
 
 AUTHORS:
 
-- Benjamin Hackl (2015-06-00): initial version
-- Benjamin Hackl (2015-07-00): improvement user interface (short notation)
-- Daniel Krenn (2015-08-31): various improvements, review; documentation
+- Benjamin Hackl (2015)
+- Daniel Krenn (2015)
 
 ACKNOWLEDGEMENT:
 

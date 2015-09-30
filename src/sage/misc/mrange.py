@@ -636,6 +636,13 @@ def product_cantor_pairing(A, B):
         sage: tuple(''.join(p) for p in product_cantor_pairing('abc', 'xyz'))
         ('ax', 'ay', 'bx', 'az', 'by', 'cx', 'bz', 'cy', 'cz')
 
+    Infinite iterators are a valid as an input as well::
+
+        sage: from itertools import islice
+        sage: list(islice(product_cantor_pairing(ZZ, QQ), 14))
+        [(0, 0), (0, 1), (1, 0), (0, -1), (1, 1), (-1, 0), (0, 1/2),
+         (1, -1), (-1, 1), (2, 0), (0, -1/2), (1, 1/2), (-1, -1), (2, 1)]
+
     TESTS:
 
     Check that all pairs are returned::

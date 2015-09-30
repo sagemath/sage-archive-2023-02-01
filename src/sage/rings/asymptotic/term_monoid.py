@@ -31,25 +31,6 @@ instance, `O(x^2)` is able to absorb `O(x)` (with result
 `x^5`). Essentially, absorption can be interpreted as the
 addition of "compatible" terms (partial addition).
 
-.. TODO::
-
-    - Implementation of more term types (e.g. `L` terms,
-      `\Omega` terms, `o` terms, `\Theta` terms).
-
-AUTHORS:
-
-- Benjamin Hackl (2015-01-01): initial version
-- Benjamin Hackl, Daniel Krenn (2015-05-15): conception of the asymptotic ring
-- Benjamin Hackl (2015-06-00): refactoring caused by refactoring growth groups
-- Daniel Krenn (2015-07-00): extensive review and patches
-- Benjamin Hackl (2015-07-00): cross-review; short notation
-- Daniel Krenn (2015-08-31): various improvements, review; documentation
-
-ACKNOWLEDGEMENT:
-
-- Benjamin Hackl, Clemens Heuberger and Daniel Krenn are supported by the
-  Austrian Science Fund (FWF): P 24644-N26.
-
 .. WARNING::
 
     As this code is experimental, a warning is thrown when a term
@@ -194,6 +175,7 @@ The comparison of asymptotic terms with `\leq` is implemented as follows:
 Long story short: we consider terms with different coefficients that
 have equal growth to be incomparable.
 
+
 Various
 =======
 
@@ -209,6 +191,13 @@ AUTHORS:
 - Benjamin Hackl (2015-06): refactoring caused by refactoring growth groups
 - Daniel Krenn (2015-07): extensive review and patches
 - Benjamin Hackl (2015-07): cross-review; short notation
+ACKNOWLEDGEMENT:
+
+- Benjamin Hackl, Clemens Heuberger and Daniel Krenn are supported by the
+  Austrian Science Fund (FWF): P 24644-N26.
+
+- Benjamin Hackl is supported by the Google Summer of Code 2015.
+
 
 Classes and Methods
 ===================

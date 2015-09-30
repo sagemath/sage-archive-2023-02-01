@@ -14,6 +14,7 @@ AUTHORS:
 
 - Martin Albrecht (2012): first version
 """
+from sage.misc.package import PackageNotFoundError
 
 cdef class SatSolver:
     def __cinit__(self, *args, **kwds):
@@ -314,13 +315,19 @@ def SAT(solver=None):
         #vars:       0, #lits:       0, #clauses:       0, #learnt:       0, #assigns:       0
 
     """
-    from sage.misc.package import is_package_installed
+    if solver is None:
+        try:
+            from sage.sat.solvers.cryptominisat.cryptominisat import CryptoMiniSat
+            cryptominisat_available = True
+        except ImportError:
+            cryptominisat_available = False
+
     if (solver == 'cryptominisat' or
-        (solver is None and is_package_installed('cryptominisat'))):
+        (solver is None and cryptominisat_available)):
         try:
             from sage.sat.solvers.cryptominisat.cryptominisat import CryptoMiniSat
         except ImportError:
-            raise ImportError("To enable this feature, run 'sage -i cryptominisat'.")
+            raise PackageNotFoundError("To enable this feature, run 'sage -i cryptominisat'.")
         return CryptoMiniSat()
     elif (solver == "LP" or solver is None):
         from sat_lp import SatLP

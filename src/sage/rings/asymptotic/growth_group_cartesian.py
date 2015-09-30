@@ -231,7 +231,7 @@ class GenericProduct(CartesianProductPoset, GenericGrowthGroup):
             sage: GrowthGroup('x^ZZ * y^ZZ')  # indirect doctest
             Growth Group x^ZZ * y^ZZ
         """
-        return CartesianProductPosets.__classcall__(cls, *args, **kwds)
+        return CartesianProductPoset.__classcall__(cls, *args, **kwds)
 
 
     def __init__(self, sets, category, **kwds):
@@ -245,7 +245,7 @@ class GenericProduct(CartesianProductPoset, GenericGrowthGroup):
             Growth Group x^ZZ * y^ZZ
         """
         order = kwds.pop('order')
-        CartesianProductPosets.__init__(self, sets, category, order, **kwds)
+        CartesianProductPoset.__init__(self, sets, category, order, **kwds)
 
         vars = sum(iter(factor.variable_names()
                         for factor in self.cartesian_factors()),
@@ -271,7 +271,7 @@ class GenericProduct(CartesianProductPoset, GenericGrowthGroup):
             sage: hash(GrowthGroup('x^ZZ * y^ZZ'))  # indirect doctest, random
             -1
         """
-        return CartesianProductPosets.__hash__(self)
+        return CartesianProductPoset.__hash__(self)
 
 
     def _element_constructor_(self, data):

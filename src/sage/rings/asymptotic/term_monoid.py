@@ -91,8 +91,8 @@ term monoids and some terms::
     sage: import sage.rings.asymptotic.term_monoid as atm
     sage: import sage.rings.asymptotic.growth_group as agg
     sage: G = agg.GrowthGroup('x^ZZ'); x = G.gen()
-    sage: OT = atm.OTermMonoid(growth_group=G)
-    sage: ET = atm.ExactTermMonoid(growth_group=G, base_ring=QQ)
+    sage: OT = atm.OTermMonoid(growth_group=G, coefficient_ring=QQ)
+    sage: ET = atm.ExactTermMonoid(growth_group=G, coefficient_ring=QQ)
     sage: ot1 = OT(x); ot2 = OT(x^2)
     sage: et1 = ET(x^2, 2)
 
@@ -372,7 +372,7 @@ class GenericTerm(sage.structure.element.MonoidElement):
             sage: atm.GenericTerm(T, agg.GrowthGroup('y^ZZ').gen())
             Traceback (most recent call last):
             ...
-            ValueError: y is not in the parent's specified growth group
+            ValueError: y is not in Growth Group x^ZZ
         """
         if parent is None:
             raise ValueError('The parent must be provided')
@@ -572,7 +572,7 @@ class GenericTerm(sage.structure.element.MonoidElement):
             Traceback (most recent call last):
             ...
             ZeroDivisionError: Cannot take Generic Term with growth z to exponent -2.
-            > *previous* ZeroDivisionError: Rational division by zero
+            > *previous* ZeroDivisionError: rational division by zero
         """
         zero = self.parent().coefficient_ring.zero()
         try:
@@ -658,7 +658,7 @@ class GenericTerm(sage.structure.element.MonoidElement):
             sage: import sage.rings.asymptotic.growth_group as agg
             sage: import sage.rings.asymptotic.term_monoid as atm
             sage: G = agg.GenericGrowthGroup(ZZ)
-            sage: T = atm.GenericTermMonoid(G)
+            sage: T = atm.GenericTermMonoid(G, ZZ)
             sage: g1 = G(raw_element=21); g2 = G(raw_element=42)
             sage: t1 = T(g1); t2 = T(g2)
             sage: t1.can_absorb(t2)  # indirect doctest
@@ -1508,9 +1508,9 @@ class GenericTermMonoid(sage.structure.unique_representation.UniqueRepresentatio
         a common parent has to be found::
 
             sage: term1.parent()
-            Generic Term Monoid x^ZZ
+            Generic Term Monoid x^ZZ with (implicit) coefficients in Rational Field
             sage: term2.parent()
-            Generic Term Monoid x^QQ
+            Generic Term Monoid x^QQ with (implicit) coefficients in Rational Field
             sage: term1 <= term2
             True
 
@@ -3376,7 +3376,8 @@ class TermMonoidFactory(sage.structure.factory.UniqueFactory):
             sage: atm.TermMonoid.create_key_and_extra_args('icecream', G)
             Traceback (most recent call last):
             ...
-            ValueError: icecream has to be either 'exact' or 'O'
+            ValueError: Term specification 'icecream' has to be either
+            'exact' or 'O' or an instance of an existing term.
             sage: atm.TermMonoid.create_key_and_extra_args('O', ZZ)
             Traceback (most recent call last):
             ...

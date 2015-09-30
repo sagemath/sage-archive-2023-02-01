@@ -495,7 +495,7 @@ class AsymptoticExpression(CommutativeAlgebraElement):
             sage: from sage.rings.asymptotic.growth_group import GrowthGroup
             sage: from sage.rings.asymptotic.term_monoid import TermMonoid
             sage: G = GrowthGroup('x^ZZ'); x = G.gen()
-            sage: OT = TermMonoid('O', G); ET = TermMonoid('exact', G, ZZ)
+            sage: OT = TermMonoid('O', G, ZZ); ET = TermMonoid('exact', G, ZZ)
             sage: R = AsymptoticRing(G, ZZ)
             sage: lst = [ET(x, 1), ET(x^2, 2), OT(x^3), ET(x^4, 4)]
             sage: expr = R(lst, simplify=False); expr  # indirect doctest
@@ -1754,13 +1754,6 @@ class AsymptoticRing(Algebra, UniqueRepresentation):
             Traceback (most recent call last):
             ...
             ValueError: icecream is not a ring. Cannot continue.
-
-        ::
-
-            sage: AsymptoticRing('x^ZZ', QQ, category=Posets())
-            Traceback (most recent call last):
-            ...
-            ValueError: (Category of posets,) is not a subcategory of Category of rings
         """
         from sage.categories.sets_cat import Sets
         from sage.categories.rings import Rings

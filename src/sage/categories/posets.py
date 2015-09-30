@@ -683,6 +683,10 @@ class Posets(Category):
             """
             return all(not self.lt(x,y) for x in o for y in o)
 
+        CartesianProductPosets = LazyImport(
+            'sage.combinat.posets.cartesian_product', 'CartesianProductPosets')
+        CartesianProduct = CartesianProductPosets
+
     class ElementMethods:
         pass
         # TODO: implement x<y, x<=y, x>y, x>=y appropriately once #10130 is resolved

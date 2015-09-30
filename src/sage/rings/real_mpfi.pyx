@@ -3907,6 +3907,16 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
             sage: min(RIF(-1, 1), RIF(-100, 100)).endpoints()
             (-1.00000000000000, 1.00000000000000)
 
+        Note that calls involving NaNs try to return a number when possible.
+        This is consistent with IEEE-754-2008 but may be surprising. ::
+
+            sage: RIF('nan').min(2, 1)
+            1
+            sage: RIF(-1/3).min(RIF('nan'))
+            -0.3333333333333334?
+            sage: RIF('nan').min(RIF('nan'))
+            [.. NaN ..]
+
         .. SEEALSO::
 
             :meth:`~sage.rings.real_mpfi.RealIntervalFieldElement.max`
@@ -3932,7 +3942,11 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
             else:
                 other = self._parent(_other)
 
-            if mpfr_cmp(&result.value.right, &other.value.left) <= 0:
+            if result.is_NaN():
+                result = other
+            elif other.is_NaN():
+                pass
+            elif mpfr_cmp(&result.value.right, &other.value.left) <= 0:
                 pass
             elif mpfr_cmp(&other.value.right, &result.value.left) <= 0:
                 result = other
@@ -3997,6 +4011,16 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
             sage: max(RIF(-1, 1), RIF(-100, 100)).endpoints()
             (-1.00000000000000, 1.00000000000000)
 
+        Note that calls involving NaNs try to return a number when possible.
+        This is consistent with IEEE-754-2008 but may be surprising. ::
+
+            sage: RIF('nan').max(1, 2)
+            2
+            sage: RIF(-1/3).max(RIF('nan'))
+            -0.3333333333333334?
+            sage: RIF('nan').max(RIF('nan'))
+            [.. NaN ..]
+
         .. SEEALSO::
 
             :meth:`~sage.rings.real_mpfi.RealIntervalFieldElement.min`
@@ -4022,7 +4046,11 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
             else:
                 other = self._parent(_other)
 
-            if mpfr_cmp(&result.value.right, &other.value.left) <= 0:
+            if result.is_NaN():
+                result = other
+            elif other.is_NaN():
+                pass
+            elif mpfr_cmp(&result.value.right, &other.value.left) <= 0:
                 result = other
             elif mpfr_cmp(&other.value.right, &result.value.left) <= 0:
                 pass
@@ -4199,10 +4227,10 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
         if isinstance(exponent, (int, long, Integer)):
             q, r = divmod (exponent, 2)
             if r == 0: # x^(2q) = (x^q)^2
-               xq = sage.rings.ring_element.RingElement.__pow__(self, q)
+               xq = RingElement.__pow__(self, q)
                return xq.abs().square()
             else:
-               return sage.rings.ring_element.RingElement.__pow__(self, exponent)
+               return RingElement.__pow__(self, exponent)
         return (self.log() * exponent).exp()
 
 

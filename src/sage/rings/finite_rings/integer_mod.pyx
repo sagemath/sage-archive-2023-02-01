@@ -88,7 +88,6 @@ import sage.rings.rational as rational
 from sage.libs.pari.all import pari, PariError
 import sage.rings.integer_ring as integer_ring
 
-import sage.rings.commutative_ring_element as commutative_ring_element
 import sage.interfaces.all
 
 import sage.rings.integer

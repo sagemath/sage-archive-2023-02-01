@@ -103,7 +103,7 @@ import sage
 
 class CartesianProductFactory(sage.structure.factory.UniqueFactory):
     r"""
-    Creates various types of cartesian products depending on its input.
+    Create various types of cartesian products depending on its input.
 
     INPUT:
 
@@ -113,6 +113,26 @@ class CartesianProductFactory(sage.structure.factory.UniqueFactory):
       is taken for comparing two cartesian product elements. If ``order`` is
       ``None`` this is determined automatically.
 
+    .. NOTE::
+
+        The cartesian product of growth groups is again a growth
+        group. In particular, the resulting structure is partially
+        ordered.
+
+        The order on the product is determined as follows:
+
+        - Cartesian factors with respect to the same variable are
+          ordered lexicographically. This causes
+          ``GrowthGroup('x^ZZ * log(x)^ZZ')`` and
+          ``GrowthGroup('log(x)^ZZ * x^ZZ')`` to produce two
+          different growth groups.
+
+        - Factors over different variables are equipped with the
+          product order (i.e. the comparison is component-wise).
+
+        Also, note that the sets of variables of the cartesian
+        factors have to be either equal or disjoint.
+
     EXAMPLES::
 
         sage: from sage.rings.asymptotic.growth_group import GrowthGroup
@@ -120,26 +140,26 @@ class CartesianProductFactory(sage.structure.factory.UniqueFactory):
         Growth Group x^ZZ
         sage: B = GrowthGroup('log(x)^ZZ'); B
         Growth Group log(x)^ZZ
-        sage: C = cartesian_product([A, B]); C
+        sage: C = cartesian_product([A, B]); C  # indirect doctest
         Growth Group x^ZZ * log(x)^ZZ
         sage: C._le_ == C.le_lex
         True
         sage: D = GrowthGroup('y^ZZ'); D
         Growth Group y^ZZ
-        sage: E = cartesian_product([A, D]); E
+        sage: E = cartesian_product([A, D]); E  # indirect doctest
         Growth Group x^ZZ * y^ZZ
-        sage: E._le_ == E.le_components
+        sage: E._le_ == E.le_product
         True
-        sage: F = cartesian_product([C, D]); F
+        sage: F = cartesian_product([C, D]); F  # indirect doctest
         Growth Group x^ZZ * log(x)^ZZ * y^ZZ
-        sage: F._le_ == F.le_components
+        sage: F._le_ == F.le_product
         True
-        sage: cartesian_product([A, E]); G
+        sage: cartesian_product([A, E]); G  # indirect doctest
         Traceback (most recent call last):
         ...
-        ValueError: Growth groups (Growth Group x^ZZ, Growth Group x^ZZ * y^ZZ)
-        do not have pairwise disjoint variables.
-        sage: cartesian_product([A, B, D])
+        ValueError: The growth groups (Growth Group x^ZZ, Growth Group x^ZZ * y^ZZ)
+        need to have pairwise disjoint or equal variables.
+        sage: cartesian_product([A, B, D])  # indirect doctest
         Growth Group x^ZZ * log(x)^ZZ * y^ZZ
 
     TESTS::
@@ -202,8 +222,8 @@ class CartesianProductFactory(sage.structure.factory.UniqueFactory):
         # check if variables are pairwise disjoint
         for u, w in product(iter(v for v, _ in vgs), repeat=2):
             if u != w and not set(u).isdisjoint(set(w)):
-                raise ValueError('Growth groups %s do not have pairwise disjoint '
-                                 'variables.' % (growth_groups,))
+                raise ValueError('The growth groups %s need to have pairwise '
+                                 'disjoint or equal variables.' % (growth_groups,))
 
         # build cartesian products
         u_groups = list()
@@ -224,7 +244,7 @@ class CartesianProductFactory(sage.structure.factory.UniqueFactory):
 CartesianProductGrowthGroups = CartesianProductFactory('CartesianProductGrowthGroups')
 
 
-from sage.sets.cartesian_product import CartesianProductPosets
+from sage.combinat.posets.cartesian_product import CartesianProductPosets
 from growth_group import GenericGrowthGroup
 class GenericProduct(CartesianProductPosets, GenericGrowthGroup):
     r"""
@@ -235,7 +255,7 @@ class GenericProduct(CartesianProductPosets, GenericGrowthGroup):
         sage: from sage.rings.asymptotic.growth_group import GrowthGroup
         sage: P = GrowthGroup('x^QQ')
         sage: L = GrowthGroup('log(x)^ZZ')
-        sage: C = cartesian_product([P, L], order='lex'); C
+        sage: C = cartesian_product([P, L], order='lex'); C  # indirect doctest
         Growth Group x^QQ * log(x)^ZZ
         sage: C.an_element()
         x^(1/2)*log(x)
@@ -244,17 +264,17 @@ class GenericProduct(CartesianProductPosets, GenericGrowthGroup):
 
         sage: Px = GrowthGroup('x^QQ')
         sage: Lx = GrowthGroup('log(x)^ZZ')
-        sage: Cx = cartesian_product([Px, Lx], order='lex')
+        sage: Cx = cartesian_product([Px, Lx], order='lex')  # indirect doctest
         sage: Py = GrowthGroup('y^QQ')
-        sage: C = cartesian_product([Cx, Py], order='components'); C
+        sage: C = cartesian_product([Cx, Py], order='components'); C  # indirect doctest
         Growth Group x^QQ * log(x)^ZZ * y^QQ
         sage: C.an_element()
         x^(1/2)*log(x)*y^(1/2)
 
-    .. SEEALSO:
+    .. SEEALSO::
 
         :class:`~sage.sets.cartesian_product.CartesianProduct`,
-        :class:`~sage.sets.cartesian_product.CartesianProductPosets`.
+        :class:`~sage.combinat.posets.cartesian_product.CartesianProductPosets`.
     """
 
     __classcall__ = CartesianProductPosets.__classcall__
@@ -762,7 +782,7 @@ class GenericProduct(CartesianProductPosets, GenericGrowthGroup):
 
     def gens_monomial(self):
         r"""
-        Return a tuple containing generators of this growth group.
+        Return a tuple containing monomial generators of this growth group.
 
         INPUT:
 
@@ -772,7 +792,7 @@ class GenericProduct(CartesianProductPosets, GenericGrowthGroup):
 
         A tuple containing elements of this growth group.
 
-        .. NOTE:
+        .. NOTE::
 
             This method calls the ``gens_monomial()`` method on the
             individual factors of this cartesian product and
@@ -1095,9 +1115,27 @@ class GenericProduct(CartesianProductPosets, GenericGrowthGroup):
 
 
 class UnivariateProduct(GenericProduct):
+    r"""
+    A cartesian product of growth groups with the same variables.
+
+    .. NOTE::
+
+        A univariate product of growth groups is ordered
+        lexicographically. This is motivated by the assumption
+        that univariate growth groups can be ordered in a chain
+        with respect to the growth they model (e.g.
+        ``x^ZZ * log(x)^ZZ``: polynomial growth dominates
+        logarithmic growth).
+
+    .. SEEALSO::
+
+        :class:`MultivariateProduct`,
+        :class:`GenericProduct`.
+    """
+
     def __init__(self, sets, category, **kwargs):
         r"""
-        A cartesian product of growth groups with the same variables.
+        See :class:`UnivariateProduct` for details.
 
         TEST::
 
@@ -1113,9 +1151,24 @@ class UnivariateProduct(GenericProduct):
 
 
 class MultivariateProduct(GenericProduct):
+    r"""
+    A cartesian product of growth groups with pairwise disjoint
+    (or equal) variable sets.
+
+    .. NOTE::
+
+        A multivariate product of growth groups is ordered by
+        means of the product order, i.e. component-wise. This is
+        motivated by the assumption that different variables are
+        considered to be independent (e.g. ``x^ZZ * y^ZZ``).
+
+    .. SEEALSO::
+
+        :class:`UnivariateProduct`,
+        :class:`GenericProduct`.
+    """
     def __init__(self, sets, category, **kwargs):
         r"""
-        A cartesian product of growth groups with the pairwise different variables.
 
         TEST::
 
@@ -1124,7 +1177,7 @@ class MultivariateProduct(GenericProduct):
             <class 'sage.rings.asymptotic.growth_group_cartesian.MultivariateProduct_with_category'>
         """
         super(MultivariateProduct, self).__init__(
-            sets, category, order='components', **kwargs)
+            sets, category, order='product', **kwargs)
 
 
     CartesianProduct = CartesianProductGrowthGroups

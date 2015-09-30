@@ -8,10 +8,6 @@
 
     -- `man git`
 
-== SPKG Maintainers ==
-
- * Keshav Kini
-
 == Upstream Contact ==
 
  * Maintainer: Junio C. Hamano

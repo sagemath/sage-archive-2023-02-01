@@ -18,10 +18,6 @@ is run.
 
  * GPL V3
 
-== SPKG Maintainers ==
-
- * William Stein
-
 == Upstream Contact ==
 
  * http://www.gnu.org/software/gsl/

@@ -163,7 +163,8 @@ __append_to_doc(
      "WagnerGraph",
      "WatkinsSnarkGraph",
      "WellsGraph",
-     "WienerArayaGraph"])
+     "WienerArayaGraph",
+     "SuzukiGraph"])
 
 __doc__ += """
 **Platonic solids** (ordered ascending by number of vertices)
@@ -186,8 +187,7 @@ or a list of graphs or ...)
 """
 
 __append_to_doc(
-    ["AffineOrthogonalPolarGraph",
-     "BalancedTree",
+    ["BalancedTree",
      "BarbellGraph",
      "BubbleSortGraph",
      "chang_graphs",
@@ -214,23 +214,36 @@ __append_to_doc(
      "NKStarGraph",
      "NStarGraph",
      "OddGraph",
-     "OrthogonalPolarGraph",
      "PaleyGraph",
      "petersen_family",
      "planar_graphs",
      "quadrangulations",
      "RingedTree",
      "SierpinskiGasketGraph",
-     "SymplecticDualPolarGraph",
-     "SymplecticGraph",
      "strongly_regular_graph",
-     "TaylorTwographDescendantSRG",
-     "TaylorTwographSRG",
      "trees",
      "triangulations",
-     "UnitaryDualPolarGraph",
-     "UnitaryPolarGraph",
      "WheelGraph"])
+
+
+__doc__ += """
+**Graphs from classical geometries over finite fields**
+
+A number of classes of graphs related to geometries over finite fields and
+quadrics and Hermitean varieties there.
+"""
+
+__append_to_doc(
+    ["AffineOrthogonalPolarGraph",
+     "NonisotropicOrthogonalPolarGraph",
+     "NonisotropicUnitaryPolarGraph",
+     "OrthogonalPolarGraph",
+     "SymplecticDualPolarGraph",
+     "SymplecticPolarGraph",
+     "TaylorTwographDescendantSRG",
+     "TaylorTwographSRG",
+     "UnitaryDualPolarGraph",
+     "UnitaryPolarGraph"])
 
 __doc__ += """
 **Chessboard Graphs**
@@ -1931,6 +1944,7 @@ class GraphGenerators():
     WagnerGraph              = staticmethod(sage.graphs.generators.smallgraphs.WagnerGraph)
     WatkinsSnarkGraph        = staticmethod(sage.graphs.generators.smallgraphs.WatkinsSnarkGraph)
     WienerArayaGraph         = staticmethod(sage.graphs.generators.smallgraphs.WienerArayaGraph)
+    SuzukiGraph              = staticmethod(sage.graphs.generators.smallgraphs.SuzukiGraph)
 
 ###########################################################################
 # Platonic Solids
@@ -1946,7 +1960,6 @@ class GraphGenerators():
 # Families
 ###########################################################################
     import sage.graphs.generators.families
-    AffineOrthogonalPolarGraph = staticmethod(sage.graphs.generators.families.AffineOrthogonalPolarGraph)
     BalancedTree           = staticmethod(sage.graphs.generators.families.BalancedTree)
     BarbellGraph           = staticmethod(sage.graphs.generators.families.BarbellGraph)
     BubbleSortGraph        = staticmethod(sage.graphs.generators.families.BubbleSortGraph)
@@ -1971,21 +1984,30 @@ class GraphGenerators():
     NKStarGraph            = staticmethod(sage.graphs.generators.families.NKStarGraph)
     NStarGraph             = staticmethod(sage.graphs.generators.families.NStarGraph)
     OddGraph               = staticmethod(sage.graphs.generators.families.OddGraph)
-    OrthogonalPolarGraph   = staticmethod(sage.graphs.generators.families.OrthogonalPolarGraph)
     PaleyGraph             = staticmethod(sage.graphs.generators.families.PaleyGraph)
     petersen_family        = staticmethod(sage.graphs.generators.families.petersen_family)
     RingedTree             = staticmethod(sage.graphs.generators.families.RingedTree)
     SierpinskiGasketGraph  = staticmethod(sage.graphs.generators.families.SierpinskiGasketGraph)
-    SymplecticDualPolarGraph = staticmethod(sage.graphs.generators.families.SymplecticDualPolarGraph)
-    SymplecticGraph        = staticmethod(sage.graphs.generators.families.SymplecticGraph)
     strongly_regular_graph = staticmethod(sage.graphs.strongly_regular_db.strongly_regular_graph)
-    TaylorTwographDescendantSRG = \
-             staticmethod(sage.graphs.generators.families.TaylorTwographDescendantSRG)
-    TaylorTwographSRG      = staticmethod(sage.graphs.generators.families.TaylorTwographSRG)
     trees                  = staticmethod(sage.graphs.generators.families.trees)
-    UnitaryDualPolarGraph  = staticmethod(sage.graphs.generators.families.UnitaryDualPolarGraph)
-    UnitaryPolarGraph      = staticmethod(sage.graphs.generators.families.UnitaryPolarGraph)
     WheelGraph             = staticmethod(sage.graphs.generators.families.WheelGraph)
+
+###########################################################################
+# Graphs from classical geometries over `F_q`
+###########################################################################
+    import sage.graphs.generators.classical_geometries
+    AffineOrthogonalPolarGraph = staticmethod(sage.graphs.generators.classical_geometries.AffineOrthogonalPolarGraph)
+    NonisotropicOrthogonalPolarGraph = staticmethod(sage.graphs.generators.classical_geometries.NonisotropicOrthogonalPolarGraph)
+    NonisotropicUnitaryPolarGraph = staticmethod(sage.graphs.generators.classical_geometries.NonisotropicUnitaryPolarGraph)
+    OrthogonalPolarGraph   = staticmethod(sage.graphs.generators.classical_geometries.OrthogonalPolarGraph)
+    SymplecticDualPolarGraph = staticmethod(sage.graphs.generators.classical_geometries.SymplecticDualPolarGraph)
+    SymplecticGraph   = staticmethod(sage.graphs.generators.classical_geometries.SymplecticGraph)
+    SymplecticPolarGraph   = staticmethod(sage.graphs.generators.classical_geometries.SymplecticPolarGraph)
+    TaylorTwographDescendantSRG = \
+             staticmethod(sage.graphs.generators.classical_geometries.TaylorTwographDescendantSRG)
+    TaylorTwographSRG      = staticmethod(sage.graphs.generators.classical_geometries.TaylorTwographSRG)
+    UnitaryDualPolarGraph  = staticmethod(sage.graphs.generators.classical_geometries.UnitaryDualPolarGraph)
+    UnitaryPolarGraph      = staticmethod(sage.graphs.generators.classical_geometries.UnitaryPolarGraph)
 
 ###########################################################################
 # Chessboard Graphs

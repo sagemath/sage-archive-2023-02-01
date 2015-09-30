@@ -1203,10 +1203,13 @@ v            EXAMPLES::
                 sage: sum((x^w.length()) for w in W) - expand(prod(sum(x^i for i in range(j+1)) for j in range(4))) # This is scandalously slow!!!
                 0
 
-            SEE ALSO: :meth:`.reduced_word`
+            .. SEEALSO::
 
-            TODO: Should use reduced_word_iterator (or reverse_iterator)
+                :meth:`.reduced_word`
 
+            .. TODO::
+
+                Should use reduced_word_iterator (or reverse_iterator)
             """
             return len(self.reduced_word())
 
@@ -1217,7 +1220,9 @@ v            EXAMPLES::
             The absolute length is the length of the shortest expression
             of the element as a product of reflections.
 
-            .. SEEALSO:: :meth:`absolute_le`.
+            .. SEEALSO::
+
+                :meth:`absolute_le`.
 
             EXAMPLES::
 

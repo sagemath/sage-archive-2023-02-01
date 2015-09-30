@@ -446,7 +446,8 @@ following libraries are currently supported:
   `COIN-OR <http://www.coin-or.org/>`_
 
   Provided under the open source license CPL, but incompatible with
-  GPL. CBC can be installed through the command ``install_package("cbc")``.
+  GPL. CBC can be installed using the shell command
+  ``sage -i cbc sagelib``.
 
 * `CPLEX
   <http://www-01.ibm.com/software/integration/optimization/cplex/>`_:
@@ -535,6 +536,6 @@ create symbolic links to these files in the appropriate directories:
 ** be precisely as indicated. If the names differ, Sage will not notice that**
 **the files are present**
 
-Once this is done, Sage is to be asked to notice the changes by calling::
+Once this is done, Sage is to be asked to notice the changes by running::
 
-    sage -b
+    make

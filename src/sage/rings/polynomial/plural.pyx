@@ -114,7 +114,7 @@ from sage.libs.singular.function cimport RingWrap
 from sage.libs.singular.polynomial cimport (singular_polynomial_call, singular_polynomial_cmp, singular_polynomial_add, singular_polynomial_sub, singular_polynomial_neg, singular_polynomial_pow, singular_polynomial_mul, singular_polynomial_rmul, singular_polynomial_deg, singular_polynomial_str_with_changed_varnames, singular_polynomial_latex, singular_polynomial_str, singular_polynomial_div_coeff)
 
 import sage.libs.singular.ring
-from sage.libs.singular.ring cimport singular_ring_new, singular_ring_delete, wrap_ring
+from sage.libs.singular.ring cimport singular_ring_new, singular_ring_delete, wrap_ring, singular_ring_reference
 
 from sage.libs.singular.singular cimport si2sa, sa2si, overflow_check
 
@@ -327,7 +327,7 @@ cdef class NCPolynomialRing_plural(Ring):
         cdef RingWrap rw = ncalgebra(self._c, self._d, ring = P)
 
         #       rw._output()
-        self._ring = rw._ring
+        self._ring = singular_ring_reference(rw._ring)
         self._ring.ShortOut = 0
 
         self.__ngens = n

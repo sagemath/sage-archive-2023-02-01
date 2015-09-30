@@ -608,6 +608,31 @@ def Cell120():
 
     return g
 
+def SuzukiGraph():
+    r"""
+    Return the Suzuki Graph
+
+    The Suzuki graph has 1782 vertices, and is strongly regular with parameters
+    `(1782,416,100,96)`.
+
+    .. NOTE::
+
+        It takes approximately 50 seconds to build this graph. Do not be too
+        impatient.
+
+    EXAMPLE::
+
+        sage: g = graphs.SuzukiGraph(); g            # optional database_gap internet # not tested
+        Suzuki graph: Graph on 1782 vertices
+        sage: g.is_strongly_regular(parameters=True) # optional database_gap internet # not tested
+        (1782, 416, 100, 96)
+    """
+    from sage.groups.perm_gps.permgroup_named import SuzukiSporadicGroup
+    g = Graph()
+    g.add_edges(SuzukiSporadicGroup().orbit((1,2),"OnSets"))
+    g.relabel()
+    g.name("Suzuki graph")
+    return g
 
 def HallJankoGraph(from_string=True):
     r"""
@@ -1535,7 +1560,7 @@ def GossetGraph():
     Return the Gosset graph.
 
     The Gosset graph is the skeleton of the
-    :meth:`~sage.geometry.polyhedron.library.polytopes.gosset_3_21` polytope. It
+    :meth:`~sage.geometry.polyhedron.library.Polytopes.Gosset_3_21` polytope. It
     has with 56 vertices and degree 27. For more information, see the
     :wikipedia:`Gosset_graph`.
 
@@ -3748,11 +3773,11 @@ def McLaughlinGraph():
 
     blocks = [Set(_) for _ in WittDesign(23).blocks()]
 
-    B = [b for b in blocks if 0 in b]
+    B = [b for b in blocks if 0     in b]
     C = [b for b in blocks if 0 not in b]
     g = Graph()
     for b in B:
-        for x in range(23):
+        for x in range(1,23):
             if not x in b:
                 g.add_edge(b, x)
 
@@ -3773,7 +3798,8 @@ def McLaughlinGraph():
             if len(b & c) == 3:
                 g.add_edge(b, c)
 
-    g.relabel()
+    # Here we relabel the elements of g in an architecture-independent way
+    g.relabel({v:i for i,v in enumerate(range(1,23)+sorted(blocks,key=sorted))})
     g.name("McLaughlin")
     return g
 

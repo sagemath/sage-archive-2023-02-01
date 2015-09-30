@@ -1195,8 +1195,8 @@ class FindStatStatistic(SageObject):
           returned as a polynomial.
 
         - if ``style`` is ``"dictionary"``, the generating function is
-         returned as a dictionary representing the monomials of the
-         generating function.
+          returned as a dictionary representing the monomials of the
+          generating function.
 
         - if ``style`` is ``"list"``, the generating function is
           returned as a list of coefficients of the generating function.
@@ -1212,7 +1212,7 @@ class FindStatStatistic(SageObject):
              5: q^10 + 4*q^9 + 9*q^8 + 15*q^7 + 20*q^6 + 22*q^5 + 20*q^4 + 15*q^3 + 9*q^2 + 4*q + 1,
              6: q^15 + 5*q^14 + 14*q^13 + 29*q^12 + 49*q^11 + 71*q^10 + 90*q^9 + 101*q^8 + 101*q^7 + 90*q^6 + 71*q^5 + 49*q^4 + 29*q^3 + 14*q^2 + 5*q + 1}
 
-            sage: st.generating_function(style="dictionary")                    # optional -- internet,random
+            sage: st.generating_functions(style="dictionary")                   # optional -- internet,random
             {2: {0: 1, 1: 1},
              3: {0: 1, 1: 2, 2: 2, 3: 1},
              4: {0: 1, 1: 3, 2: 5, 3: 6, 4: 5, 5: 3, 6: 1},

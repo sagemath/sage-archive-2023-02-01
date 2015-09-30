@@ -191,6 +191,7 @@ AUTHORS:
 - Benjamin Hackl (2015-06): refactoring caused by refactoring growth groups
 - Daniel Krenn (2015-07): extensive review and patches
 - Benjamin Hackl (2015-07): cross-review; short notation
+
 ACKNOWLEDGEMENT:
 
 - Benjamin Hackl, Clemens Heuberger and Daniel Krenn are supported by the

@@ -2592,9 +2592,10 @@ class AsymptoticRingFunctor(ConstructionFunctor):
             sage: AsymptoticRingFunctor(GrowthGroup('x^ZZ'))
             AsymptoticRing<x^ZZ>
         """
+        self.growth_group = growth_group
+
         from sage.categories.rings import Rings
         from sage.categories.posets import Posets
-        self.growth_group = growth_group
         super(ConstructionFunctor, self).__init__(
             Rings(), Rings() & Posets())
 

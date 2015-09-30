@@ -358,7 +358,8 @@ class CartesianProductPoset(CartesianProduct):
 
             TESTS::
 
-                sage: QQ.CartesianProduct = sage.combinat.posets.cartesian_product.CartesianProductPoset  # needed until #19269 is fixed
+                sage: from sage.combinat.posets.cartesian_product import CartesianProductPoset
+                sage: QQ.CartesianProduct = CartesianProductPoset  # needed until #19269 is fixed
                 sage: def le_sum(left, right):
                 ....:     return (sum(left) < sum(right) or
                 ....:             sum(left) == sum(right) and left[0] <= right[0])
@@ -366,6 +367,25 @@ class CartesianProductPoset(CartesianProduct):
                 sage: C((1/3, 2)) <= C((2, 1/3))
                 True
                 sage: C((1/3, 2)) <= C((2, 2))
+                True
+
+            The following example tests that the coercion gets involved in
+            comparisons; it can be simplified once #18182 is in merged.
+            ::
+
+                sage: class MyCP(CartesianProductPoset):
+                ....:     def _coerce_map_from_(self, S):
+                ....:         if isinstance(S, self.__class__):
+                ....:             S_factors = S.cartesian_factors()
+                ....:             R_factors = self.cartesian_factors()
+                ....:             if len(S_factors) == len(R_factors):
+                ....:                 if all(r.has_coerce_map_from(s)
+                ....:                        for r,s in zip(R_factors, S_factors)):
+                ....:                     return True
+                sage: QQ.CartesianProduct = MyCP
+                sage: A = cartesian_product((QQ, ZZ), order=le_sum)
+                sage: B = cartesian_product((QQ, QQ), order=le_sum)
+                sage: A((1/2, 4)) <= B((1/2, 5))
                 True
             """
             from sage.structure.element import have_same_parent

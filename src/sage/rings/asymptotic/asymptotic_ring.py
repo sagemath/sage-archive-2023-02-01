@@ -1763,6 +1763,8 @@ class AsymptoticRing(Algebra, UniqueRepresentation):
             ValueError: (Category of posets,) is not a subcategory of Category of rings
         """
         from sage.categories.sets_cat import Sets
+        from sage.categories.rings import Rings
+
         Sets_parent_class = Sets().parent_class
         while issubclass(cls, Sets_parent_class):
             cls = cls.__base__
@@ -1776,7 +1778,7 @@ class AsymptoticRing(Algebra, UniqueRepresentation):
 
         if coefficient_ring is None:
             raise ValueError('Coefficient ring not specified. Cannot continue.')
-        if coefficient_ring not in sage.categories.rings.Rings():
+        if coefficient_ring not in Rings():
             raise ValueError('%s is not a ring. Cannot continue.' % (coefficient_ring,))
 
         strgens = tuple(str(g) for g in growth_group.gens_monomial())
@@ -2108,7 +2110,12 @@ class AsymptoticRing(Algebra, UniqueRepresentation):
             return self._create_exact_summand_(data)
 
         from misc import combine_exceptions
-        if P is sage.symbolic.ring.SR:
+        from sage.symbolic.ring import SR
+        from sage.rings.polynomial.polynomial_ring import is_PolynomialRing
+        from sage.rings.polynomial.multi_polynomial_ring_generic import is_MPolynomialRing
+        from sage.rings.power_series_ring import is_PowerSeriesRing
+
+        if P is SR:
             from sage.symbolic.operators import add_vararg
             if data.operator() == add_vararg:
                 summands = []
@@ -2122,7 +2129,7 @@ class AsymptoticRing(Algebra, UniqueRepresentation):
                                        (data, self)), e)
                 return sum(summands)
 
-        elif sage.rings.polynomial.polynomial_ring.is_PolynomialRing(P):
+        elif is_PolynomialRing(P):
             p = P.gen()
             try:
                 return sum(self.create_summand('exact', growth=p**i,
@@ -2132,7 +2139,7 @@ class AsymptoticRing(Algebra, UniqueRepresentation):
                 raise combine_exceptions(
                     ValueError('Polynomial %s is not in %s' % (data, self)), e)
 
-        elif sage.rings.polynomial.multi_polynomial_ring_generic.is_MPolynomialRing(P):
+        elif is_MPolynomialRing(P):
             try:
                 return sum(self.create_summand('exact', growth=g, coefficient=c)
                            for c, g in iter(data))
@@ -2140,7 +2147,7 @@ class AsymptoticRing(Algebra, UniqueRepresentation):
                 raise combine_exceptions(
                     ValueError('Polynomial %s is not in %s' % (data, self)), e)
 
-        elif sage.rings.power_series_ring.is_PowerSeriesRing(P):
+        elif is_PowerSeriesRing(P):
             raise NotImplementedError(
                 'Cannot convert %s from the %s to an asymptotic expression '
                 'in %s, since growths at other points than +oo are not yet '
@@ -2589,10 +2596,11 @@ class AsymptoticRingFunctor(ConstructionFunctor):
             sage: AsymptoticRingFunctor(GrowthGroup('x^ZZ'))
             AsymptoticRing<x^ZZ>
         """
+        from sage.categories.rings import Rings
+        from sage.categories.posets import Posets
         self.growth_group = growth_group
         super(ConstructionFunctor, self).__init__(
-            sage.categories.rings.Rings(),
-            sage.categories.rings.Rings() & sage.categories.posets.Posets())
+            Rings(), Rings() & Posets())
 
 
     def _repr_(self):
@@ -2661,7 +2669,8 @@ class AsymptoticRingFunctor(ConstructionFunctor):
             return self
 
         if isinstance(other, AsymptoticRingFunctor):
-            cm = sage.structure.element.get_coercion_model()
+            from sage.structure.element import get_coercion_model
+            cm = get_coercion_model()
             try:
                 G = cm.common_parent(self.growth_group, other.growth_group)
             except TypeError:

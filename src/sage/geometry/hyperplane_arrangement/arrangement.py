@@ -2008,7 +2008,7 @@ class HyperplaneArrangementElement(Element):
                     continue
                 d = list(d)
                 dep = V.linear_dependence([norms[j] for j in d])
-                w = copy(W.zero())
+                w = W.zero().list()
                 for j,k in enumerate(d):
                     w[k] = dep[0][j]
                 sol.append(w)
@@ -2021,8 +2021,8 @@ class HyperplaneArrangementElement(Element):
         """
         Return if ``self`` is formal.
 
-        A hyperplane arrangement is *formal* if it is 3-generated as
-        defined in :meth:`minimal_generated_number`.
+        A hyperplane arrangement is *formal* if it is 3-generated [Vuz93]_,
+        where `k`-generated is defined in :meth:`minimal_generated_number`.
 
         EXAMPLES::
 

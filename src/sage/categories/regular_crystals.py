@@ -560,7 +560,7 @@ class RegularCrystals(Category_singleton):
                 sage: K = crystals.KirillovReshetikhin(['A',2,1],2,1)
                 sage: t = K(rows=[[3],[2]])
                 sage: t.demazure_operator_simple(0)
-                B[[[1, 2]]] + B[[[2, 3]]]
+                B[[[2, 3]]] + B[[[1, 2]]]
 
             TESTS::
 

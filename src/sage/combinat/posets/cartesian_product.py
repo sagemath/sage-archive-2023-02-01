@@ -18,7 +18,7 @@ AUTHORS:
 from sage.sets.cartesian_product import CartesianProduct
 
 
-class CartesianProductPosets(CartesianProduct):
+class CartesianProductPoset(CartesianProduct):
     r"""
     A class implementing cartesian products of posets (and elements
     thereof). Compared to :class:`CartesianProduct` you are able to
@@ -83,7 +83,7 @@ class CartesianProductPosets(CartesianProduct):
 
     def __init__(self, sets, category, order=None, **kwargs):
         r"""
-        See :class:`CartesianProductPosets` for details.
+        See :class:`CartesianProductPoset` for details.
 
         TESTS::
 
@@ -111,7 +111,7 @@ class CartesianProductPosets(CartesianProduct):
         if not isinstance(category, tuple):
             category = (category,)
         category = Category.join(category + (Posets(),))
-        super(CartesianProductPosets, self).__init__(
+        super(CartesianProductPoset, self).__init__(
             sets, category, **kwargs)
 
 
@@ -132,7 +132,7 @@ class CartesianProductPosets(CartesianProduct):
         .. NOTE::
 
             This method uses the order defined on creation of this
-            cartesian product. See :class:`CartesianProductPosets`.
+            cartesian product. See :class:`CartesianProductPoset`.
 
         EXAMPLES::
 
@@ -315,7 +315,7 @@ class CartesianProductPosets(CartesianProduct):
 
             .. NOTE::
 
-                This method calls :meth:`CartesianProductPosets.le`. Override
+                This method calls :meth:`CartesianProductPoset.le`. Override
                 it in inherited class to change this.
 
                 It can be assumed that this element and ``other`` have
@@ -323,7 +323,7 @@ class CartesianProductPosets(CartesianProduct):
 
             TESTS::
 
-                sage: QQ.CartesianProduct = sage.combinat.posets.cartesian_product.CartesianProductPosets  # needed until #19269 is fixed
+                sage: QQ.CartesianProduct = sage.combinat.posets.cartesian_product.CartesianProductPoset  # needed until #19269 is fixed
                 sage: def le_sum(left, right):
                 ....:     return (sum(left) < sum(right) or
                 ....:             sum(left) == sum(right) and left[0] <= right[0])
@@ -358,7 +358,7 @@ class CartesianProductPosets(CartesianProduct):
 
             TESTS::
 
-                sage: QQ.CartesianProduct = sage.combinat.posets.cartesian_product.CartesianProductPosets  # needed until #19269 is fixed
+                sage: QQ.CartesianProduct = sage.combinat.posets.cartesian_product.CartesianProductPoset  # needed until #19269 is fixed
                 sage: def le_sum(left, right):
                 ....:     return (sum(left) < sum(right) or
                 ....:             sum(left) == sum(right) and left[0] <= right[0])
@@ -402,7 +402,7 @@ class CartesianProductPosets(CartesianProduct):
 
             TESTS::
 
-                sage: QQ.CartesianProduct = sage.combinat.posets.cartesian_product.CartesianProductPosets  # needed until #19269 is fixed
+                sage: QQ.CartesianProduct = sage.combinat.posets.cartesian_product.CartesianProductPoset  # needed until #19269 is fixed
                 sage: def le_sum(left, right):
                 ....:     return (sum(left) < sum(right) or
                 ....:             sum(left) == sum(right) and left[0] <= right[0])
@@ -437,7 +437,7 @@ class CartesianProductPosets(CartesianProduct):
 
             TESTS::
 
-                sage: QQ.CartesianProduct = sage.combinat.posets.cartesian_product.CartesianProductPosets  # needed until #19269 is fixed
+                sage: QQ.CartesianProduct = sage.combinat.posets.cartesian_product.CartesianProductPoset  # needed until #19269 is fixed
                 sage: def le_sum(left, right):
                 ....:     return (sum(left) < sum(right) or
                 ....:             sum(left) == sum(right) and left[0] <= right[0])
@@ -472,7 +472,7 @@ class CartesianProductPosets(CartesianProduct):
 
             TESTS::
 
-                sage: QQ.CartesianProduct = sage.combinat.posets.cartesian_product.CartesianProductPosets  # needed until #19269 is fixed
+                sage: QQ.CartesianProduct = sage.combinat.posets.cartesian_product.CartesianProductPoset  # needed until #19269 is fixed
                 sage: def le_sum(left, right):
                 ....:     return (sum(left) < sum(right) or
                 ....:             sum(left) == sum(right) and left[0] <= right[0])

@@ -7,6 +7,8 @@ for use in doc-strings.
 {INDEX_OF_FUNCTIONS}
 
 """
+from sage.misc.sageinspect import _extract_embedded_position
+
 def gen_rest_table_index(list_of_entries, names=None, sort=True, only_local_functions=True):
     r"""
     Return a ReST table describing a list of functions.
@@ -170,9 +172,15 @@ def gen_rest_table_index(list_of_entries, names=None, sort=True, only_local_func
         else:
             continue
 
+        # Extract lines injected by cython
+        doc = e.__doc__
+        doc_tmp = _extract_embedded_position(doc)
+        if doc_tmp:
+            doc = doc_tmp[0]
+
         # Descriptions of the method/function
-        if e.__doc__:
-            desc = e.__doc__.split('\n\n')[0]                       # first paragraph
+        if doc:
+            desc = doc.split('\n\n')[0]                             # first paragraph
             desc = " ".join([x.strip() for x in desc.splitlines()]) # concatenate lines
             desc = desc.strip()                                     # remove leading spaces
         else:

@@ -327,6 +327,7 @@ const numeric& numeric::operator=(const numeric& x) {
                         break;
         }
         t = x.t;
+        hash = x.hash;
         switch (x.t) {
                 case MPZ:
                         mpz_init(v._bigint);
@@ -384,6 +385,44 @@ int numeric::compare_same_type(const numeric& right) const {
 
 }
 
+/* By convention hashes of PyObjects must be identical
+   with their Python hashes, this applies to our MPZ
+   and MPQ objects too. */
+static long _mpz_pythonhash(mpz_t the_int)
+{
+    mp_limb_t h1=0, h0;
+    size_t n = mpz_size(the_int);
+    for (unsigned i=0; i<n; ++i) {
+        h0 = h1;
+        h1 += mpz_getlimbn(the_int, i);
+        if (h1 < h0)
+            ++h1;
+        }
+    long h = h1;
+    if (mpz_sgn(the_int) < 0)
+        h = -h;
+    if (h == -1)
+        return -2;
+    return h;
+}
+
+static long _mpq_pythonhash(mpq_t the_rat)
+{
+    mpq_t rat;
+    mpq_init(rat);
+    mpq_set(rat, the_rat);
+    mpq_canonicalize(rat);
+    long n = _mpz_pythonhash(mpq_numref(rat));
+    long d = _mpz_pythonhash(mpq_denref(rat));
+    if (d != 1L) {
+        n = n^d;
+        if (n == -1L)
+            n = -2L;
+        }
+    mpq_clear(rat);
+    return n;
+}
+
 ///////////////////////////////////////////////////////////////////////////////
 // class numeric
 ///////////////////////////////////////////////////////////////////////////////
@@ -405,6 +444,7 @@ numeric::numeric() : basic(&numeric::tinfo_static) {
         t = MPZ;
         mpz_init(v._bigint);
         mpz_set_ui(v._bigint, 0);
+        hash = _mpz_pythonhash(v._bigint);
         setflag(status_flags::evaluated | status_flags::expanded);
 }
 
@@ -416,6 +456,7 @@ numeric::numeric() : basic(&numeric::tinfo_static) {
 
 numeric::numeric(const numeric& other) : basic(&numeric::tinfo_static) {
         t = other.t;
+        hash = other.hash;
         switch (t) {
                 case PYOBJECT:
                         v = other.v;
@@ -442,6 +483,7 @@ numeric::numeric(PyObject* o, bool force_py) : basic(&numeric::tinfo_static) {
                         t = MPZ;
                         mpz_init(v._bigint);
                         mpz_set_si(v._bigint, PyInt_AS_LONG(o));
+                        hash = _mpz_pythonhash(v._bigint);
                         setflag(status_flags::evaluated | status_flags::expanded);
                         Py_DECREF(o);
                         return;
@@ -450,6 +492,7 @@ numeric::numeric(PyObject* o, bool force_py) : basic(&numeric::tinfo_static) {
                         if (py_funcs.py_is_Integer(o)) {
                                 t = MPZ;
                                 mpz_init_set(v._bigint, py_funcs.py_mpz_from_integer(o));
+                                hash = _mpz_pythonhash(v._bigint);
                                 setflag(status_flags::evaluated | status_flags::expanded);
                                 Py_DECREF(o);
                                 return;
@@ -458,6 +501,7 @@ numeric::numeric(PyObject* o, bool force_py) : basic(&numeric::tinfo_static) {
                                 t = MPQ;
                                 mpq_init(v._bigrat);
                                 mpq_set(v._bigrat, py_funcs.py_mpq_from_rational(o));
+                                hash = _mpq_pythonhash(v._bigrat);
                                 setflag(status_flags::evaluated | status_flags::expanded);
                                 Py_DECREF(o);
                                 return;
@@ -466,6 +510,9 @@ numeric::numeric(PyObject* o, bool force_py) : basic(&numeric::tinfo_static) {
         }
 
         t = PYOBJECT;
+        hash = PyObject_Hash(o);
+        if (hash == -1 && PyErr_Occurred())
+            throw (std::runtime_error("numeric::numeric() python function (__hash__) raised exception"));
         v._pyobject = o; // STEAL a reference
         setflag(status_flags::evaluated | status_flags::expanded);
 
@@ -475,6 +522,7 @@ numeric::numeric(int i) : basic(&numeric::tinfo_static) {
         t = MPZ;
         mpz_init(v._bigint);
         mpz_set_si(v._bigint, i);
+        hash = _mpz_pythonhash(v._bigint);
         setflag(status_flags::evaluated | status_flags::expanded);
 }
 
@@ -482,6 +530,7 @@ numeric::numeric(unsigned int i) : basic(&numeric::tinfo_static) {
         t = MPZ;
         mpz_init(v._bigint);
         mpz_set_ui(v._bigint, i);
+        hash = _mpz_pythonhash(v._bigint);
         setflag(status_flags::evaluated | status_flags::expanded);
 }
 
@@ -489,6 +538,7 @@ numeric::numeric(long i) : basic(&numeric::tinfo_static) {
         t = MPZ;
         mpz_init(v._bigint);
         mpz_set_si(v._bigint, i);
+        hash = _mpz_pythonhash(v._bigint);
         setflag(status_flags::evaluated | status_flags::expanded);
 }
 
@@ -496,6 +546,7 @@ numeric::numeric(unsigned long i) : basic(&numeric::tinfo_static) {
         t = MPZ;
         mpz_init(v._bigint);
         mpz_set_ui(v._bigint, i);
+        hash = _mpz_pythonhash(v._bigint);
         setflag(status_flags::evaluated | status_flags::expanded);
 }
 
@@ -503,6 +554,7 @@ numeric::numeric(mpz_t bigint) : basic(&numeric::tinfo_static) {
         t = MPZ;
         mpz_init_set(v._bigint, bigint);
         mpz_clear(bigint);
+        hash = _mpz_pythonhash(v._bigint);
         setflag(status_flags::evaluated | status_flags::expanded);
 }
 
@@ -510,6 +562,7 @@ numeric::numeric(mpq_t bigrat) : basic(&numeric::tinfo_static) {
         t = MPQ;
         mpq_init(v._bigrat);
         mpq_set(v._bigrat, bigrat);
+        hash = _mpq_pythonhash(v._bigrat);
         mpq_clear(bigrat);
         setflag(status_flags::evaluated | status_flags::expanded);
 }
@@ -524,6 +577,7 @@ numeric::numeric(long num, long den) : basic(&numeric::tinfo_static) {
                 t = MPZ;
                 mpz_init(v._bigint);
                 mpz_set_si(v._bigint, num/den);                
+                hash = _mpz_pythonhash(v._bigint);
         }
         else
         {
@@ -531,6 +585,7 @@ numeric::numeric(long num, long den) : basic(&numeric::tinfo_static) {
                 mpq_init(v._bigrat);
                 mpq_set_si(v._bigrat, num, den);
                 mpq_canonicalize(v._bigrat);
+                hash = _mpq_pythonhash(v._bigrat);
         }
         setflag(status_flags::evaluated | status_flags::expanded);
 }
@@ -578,10 +633,12 @@ inherited(n, sym_lst) {
                 case MPZ:
                         mpz_init(v._bigint);
                         mpz_set_str(v._bigint, str.c_str(), 10);
+                        hash = _mpz_pythonhash(v._bigint);
                         return;
                 case MPQ:
                         mpq_init(v._bigrat);
                         mpq_set_str(v._bigrat, str.c_str(), 10);
+                        hash = _mpq_pythonhash(v._bigrat);
                         return;
                 case PYOBJECT:
                         // read pickled python object to a string
@@ -590,6 +647,9 @@ inherited(n, sym_lst) {
                         arg = Py_BuildValue("s#", str.c_str(), str.size());
                         // unpickle
                         v._pyobject = py_funcs.py_loads(arg);
+                        hash = PyObject_Hash(v._pyobject);
+                        if (hash == -1 && PyErr_Occurred())
+                            throw (std::runtime_error("numeric::numeric() python function (__hash__) raised exception"));
                         Py_DECREF(arg);
                         if (PyErr_Occurred()) {
                                 throw (std::runtime_error("archive error: caught exception in py_loads"));
@@ -853,31 +913,13 @@ bool numeric::is_equal_same_type(const basic &other) const {
 }
 
 unsigned numeric::calchash() const {
-        long res;
         switch (t) {
                 case DOUBLE:
                         return (unsigned int) v._double;
                 case MPZ:
-                        return (unsigned int) mpz_get_ui(v._bigint);
                 case MPQ:
-                        mpz_t sum;
-                        mpq_t rat;
-                        mpq_init(rat);
-                        mpq_set(rat, v._bigrat);
-                        mpq_canonicalize(rat);
-                        mpz_init_set(sum, mpq_denref(rat));
-                        mpz_mul_ui(sum, sum, 429496751L);
-                        mpz_add(sum, sum, mpq_numref(rat));
-                        res = mpz_get_ui(sum);
-                        mpz_clear(sum);
-                        mpq_clear(rat);
-                        return (unsigned int) res;
                 case PYOBJECT:
-                        res = PyObject_Hash(v._pyobject);
-                        if (res == -1 && PyErr_Occurred()) {
-                                throw (std::runtime_error("numeric::hash() python function (__hash__) raised exception"));
-                        }
-                        return (unsigned int) res;
+                        return (unsigned int) hash;
                 default:
                         stub("invalid type: ::hash() type not handled");
         }

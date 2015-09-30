@@ -269,9 +269,9 @@ protected:
 	// member variables
 
 protected:
-	Type t;
-	Value v;
-
+    Type t;
+    Value v;
+    long hash;
 };
 
 

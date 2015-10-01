@@ -362,8 +362,8 @@ fact that the third output is different than the first::
     AA(2)
 
 Just for fun, let's try ``sage_input`` on a very complicated expression. The
-output of this example changed with the rewritting of polynomial multiplication
-algorithms in #10255::
+output of this example changed with the rewriting of polynomial multiplication
+algorithms in :trac:`10255`::
 
     sage: rt2 = sqrt(AA(2))
     sage: rt3 = sqrt(QQbar(3))

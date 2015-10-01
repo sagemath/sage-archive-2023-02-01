@@ -283,7 +283,7 @@ sequence_number = {}
 def cython(filename, verbose=False, compile_message=False,
            use_cache=False, create_local_c_file=False, annotate=True, sage_namespace=True,
            create_local_so_file=False):
-    """
+    r"""
     Compile a Cython file. This converts a Cython file to a C (or C++ file),
     and then compiles that. The .c file and the .so file are
     created in a temporary directory.
@@ -341,6 +341,11 @@ def cython(filename, verbose=False, compile_message=False,
         sage: x
         x^2
 
+    Check that compiling c++ code works::
+
+        sage: cython("#clang C++\n"+
+        ....:        "from libcpp.vector cimport vector\n"
+        ....:        "cdef vector[int] * v = new vector[int](4)\n")
     """
     if not filename.endswith('pyx'):
         print("Warning: file (={}) should have extension .pyx".format(filename), file=sys.stderr)

@@ -4553,13 +4553,13 @@ class AlgebraicNumber(AlgebraicNumber_base):
         EXAMPLES::
 
             sage: a = QQbar.zeta(5)
-            sage: a.complex_number(CIF)
+            sage: a.complex_number(CC)
             0.309016994374947 + 0.951056516295154*I
-            sage: (a + a.conjugate()).complex_number(CIF)
+            sage: (a + a.conjugate()).complex_number(CC)
             0.618033988749895 - 5.42101086242752e-20*I
         """
         v = self.interval(ComplexIntervalField(field.prec()))
-        return v.center()
+        return field(v)
 
     def complex_exact(self, field):
         r"""
@@ -5204,21 +5204,7 @@ class AlgebraicReal(AlgebraicNumber_base):
             1.41421356237309
         """
         v = self.interval(RealIntervalField(field.prec()))
-
-        mode = field.rounding_mode()
-        if mode == 'RNDN':
-            return v.center()
-        if mode == 'RNDD':
-            return v.lower()
-        if mode == 'RNDU':
-            return v.upper()
-        if mode == 'RNDZ':
-            if v > 0:
-                return field(v.lower())
-            elif v < 0:
-                return field(v.upper())
-            else:
-                return field(0)
+        return field(v)
 
     _mpfr_ = real_number
 

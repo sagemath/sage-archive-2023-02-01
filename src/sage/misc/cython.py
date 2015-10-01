@@ -454,7 +454,6 @@ setup(ext_modules = ext_modules,
       include_dirs = %s)
     """%(extra_args, name, name, extension, additional_source_files, libs, language, includes)
     open('%s/setup.py'%build_dir,'w').write(setup)
-
     cython_include = ' '.join(["-I '%s'"%x for x in includes if len(x.strip()) > 0 ])
 
     options = ['-p']
@@ -463,7 +462,12 @@ setup(ext_modules = ext_modules,
     if sage_namespace:
         options.append('--pre-import sage.all')
 
-    cmd = "cd '%s' && cython %s %s '%s.pyx' 1>log 2>err " % (build_dir, ' '.join(options), cython_include, name)
+    cmd = "cd '{DIR}' && cython {OPT} {INC} {LANG} '{NAME}.pyx' 1>log 2>err ".format(
+        DIR=build_dir,
+        OPT=' '.join(options),
+        INC=cython_include,
+        LANG='--cplus' if language=='c++' else '',
+        NAME=name)
 
     if create_local_c_file:
         target_c = '%s/_%s.c'%(os.path.abspath(os.curdir), base)
@@ -480,9 +484,6 @@ setup(ext_modules = ext_modules,
         log = open('%s/log'%build_dir).read()
         err = subtract_from_line_numbers(open('%s/err'%build_dir).read(), offset)
         raise RuntimeError("Error converting {} to C:\n{}\n{}".format(filename, log, err))
-
-    if language=='c++':
-        os.system("cd '%s' && mv '%s.c' '%s.cpp'"%(build_dir,name,name))
 
     cmd = 'cd %s && python setup.py build 1>log 2>err'%build_dir
     if verbose:

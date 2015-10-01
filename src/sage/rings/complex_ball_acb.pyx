@@ -347,6 +347,18 @@ class ComplexBallField(UniqueRepresentation, Field):
         from sage.categories.pushout import AlgebraicClosureFunctor
         return (AlgebraicClosureFunctor(), self._base)
 
+    def complex_field(self):
+        """
+        Return the complex ball field with the same precision, i.e. ``self``
+
+        EXAMPLES::
+
+            sage: from sage.rings.complex_ball_acb import CBF
+            sage: CBF.complex_field() is CBF
+            True
+        """
+        return ComplexBallField(self._prec)
+
     def ngens(self):
         r"""
         Return 1 as the only generator is the imaginary unit.

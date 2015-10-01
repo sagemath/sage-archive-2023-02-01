@@ -44,9 +44,9 @@ class Chart(UniqueRepresentation, SageObject):
     Chart on a topological manifold.
 
     Given a topological manifold `M` of dimension `n` over a topological field
-    `K`, a *chart* is a pair `(U,\varphi)`, where `U` is an open subset of `M`
-    and `\varphi: U \rightarrow V \subset K^n` is a homeomorphism from `U` to
-    an open subset `V` of `K^n`.
+    `K`, a *chart* on `M` is a pair `(U,\varphi)`, where `U` is an open subset
+    of `M` and `\varphi: U \rightarrow V \subset K^n` is a homeomorphism from
+    `U` to an open subset `V` of `K^n`.
 
     The components `(x^1,\ldots,x^n)` of `\varphi`, defined by
     `\varphi(p) = (x^1(p),\ldots,x^n(p))\in K^n` for any point `p\in U`,
@@ -54,7 +54,8 @@ class Chart(UniqueRepresentation, SageObject):
 
     INPUT:
 
-    - ``domain`` -- open subset `U` on which the chart is defined
+    - ``domain`` -- open subset `U` on which the chart is defined (must be
+      an instance of :class:`~sage.manifolds.manifold.TopManifold`)
     - ``coordinates`` -- (default: '' (empty string)) single string defining
       the coordinate symbols, with ' ' (whitespace) as a separator; each item
       has at most two fields, separated by ':':
@@ -71,7 +72,7 @@ class Chart(UniqueRepresentation, SageObject):
       used via Sage preparser (see examples below)
     - ``names`` -- (default: ``None``) unused argument, except if
       ``coordinates`` is not provided; it must then be a tuple containing
-      the coordinate symbols (this is guaranted if the shortcut operator
+      the coordinate symbols (this is guaranteed if the shortcut operator
       ``<,>`` is used).
 
     EXAMPLES:
@@ -529,21 +530,22 @@ class Chart(UniqueRepresentation, SageObject):
 
     def restrict(self, subset, restrictions=None):
         r"""
-        Return the restriction of ``self`` to some subset.
+        Return the restriction of the chart to some open subset of its domain.
 
-        If ``self`` is the chart `(U,\varphi)`, a restriction (or subchart)
+        If the current chart is `(U,\varphi)`, a *restriction* (or *subchart*)
         is a chart `(V,\psi)` such that `V\subset U` and `\psi = \varphi |_V`.
 
         If such subchart has not been defined yet, it is constructed here.
 
         The coordinates of the subchart bare the same names as the coordinates
-        of the mother chart.
+        of the current chart.
 
         INPUT:
 
-        - ``subset`` -- open subset `V` of the chart domain `U`
-        - ``restrictions`` -- (default: ``None``) list of coordinate restrictions
-          defining the subset `V`.
+        - ``subset`` -- open subset `V` of the chart domain `U` (must be an
+          instance of :class:`~sage.manifolds.manifold.TopManifold`)
+        - ``restrictions`` -- (default: ``None``) list of coordinate
+          restrictions defining the subset `V`.
           A restriction can be any symbolic equality or
           inequality involving the coordinates, such as x>y or x^2+y^2 != 0.
           The items of the list ``restrictions`` are combined with the ``and``
@@ -577,8 +579,8 @@ class Chart(UniqueRepresentation, SageObject):
             return self
         if subset not in self._dom_restrict:
             if not subset.is_subset(self._domain):
-                raise ValueError("The specified subset is not a subset " +
-                                 "of the domain of definition of the chart.")
+                raise ValueError("the specified subset is not a subset " +
+                                 "of the domain of definition of the chart")
             coordinates = ""
             for coord in self._xx:
                 coordinates += repr(coord) + ' '
@@ -799,8 +801,8 @@ class RealChart(Chart):
     r"""
     Chart on a topological manifold over `\RR`.
 
-    Given a topological manifold `M` of dimension `n` over `\RR`, a *chart* is
-    a pair `(U,\varphi)`, where `U` is an open subset of `M` and
+    Given a topological manifold `M` of dimension `n` over `\RR`, a *chart*
+    on `M` is a pair `(U,\varphi)`, where `U` is an open subset of `M` and
     `\varphi: U \rightarrow V \subset \RR^n` is a homeomorphism from `U` to
     an open subset `V` of `\RR^n`.
 
@@ -837,7 +839,7 @@ class RealChart(Chart):
       shortcut operator ``<,>`` is used via Sage preparser (see examples below)
     - ``names`` -- (default: ``None``) unused argument, except if
       ``coordinates`` is not provided; it must then be a tuple containing
-      the coordinate symbols (this is guaranted if the shortcut operator
+      the coordinate symbols (this is guaranteed if the shortcut operator
       ``<,>`` is used).
 
     EXAMPLES:
@@ -1195,8 +1197,8 @@ class RealChart(Chart):
         INPUT:
 
         - ``xx`` -- (default: ``None``) symbolic expression corresponding to a
-          coordinate of ``self``; if ``None``, the ranges of all coordinates
-          are displayed.
+          coordinate of the current chart; if ``None``, the ranges of all
+          coordinates are displayed.
 
         EXAMPLES:
 
@@ -1379,24 +1381,24 @@ class RealChart(Chart):
         self._bounds = tuple(bounds)
         self._restrictions = new_restrictions
 
-
     def restrict(self, subset, restrictions=None):
         r"""
-        Return the restriction of ``self`` to some subset.
+        Return the restriction of the chart to some open subset of its domain.
 
-        If ``self`` is the chart `(U,\varphi)`, a restriction (or subchart)
+        If the current chart is `(U,\varphi)`, a *restriction* (or *subchart*)
         is a chart `(V,\psi)` such that `V\subset U` and `\psi = \varphi |_V`.
 
         If such subchart has not been defined yet, it is constructed here.
 
         The coordinates of the subchart bare the same names as the coordinates
-        of the mother chart.
+        of the current chart.
 
         INPUT:
 
-        - ``subset`` -- open subset `V` of the chart domain `U`
-        - ``restrictions`` -- (default: ``None``) list of coordinate restrictions
-          defining the subset `V`.
+        - ``subset`` -- open subset `V` of the chart domain `U` (must be an
+          instance of :class:`~sage.manifolds.manifold.TopManifold`)
+        - ``restrictions`` -- (default: ``None``) list of coordinate
+          restrictions defining the subset `V`.
           A restriction can be any symbolic equality or
           inequality involving the coordinates, such as x>y or x^2+y^2 != 0.
           The items of the list ``restrictions`` are combined with the ``and``
@@ -1412,7 +1414,7 @@ class RealChart(Chart):
 
         OUTPUT:
 
-        - chart `(V,\psi)`, as an instance of :class:`Chart`.
+        - chart `(V,\psi)`, as an instance of :class:`RealChart`.
 
         EXAMPLES:
 
@@ -1445,8 +1447,8 @@ class RealChart(Chart):
             return self
         if subset not in self._dom_restrict:
             if not subset.is_subset(self._domain):
-                raise ValueError("The specified subset is not a subset " +
-                                 "of the domain of definition of the chart.")
+                raise ValueError("the specified subset is not a subset " +
+                                 "of the domain of definition of the chart")
             coordinates = ""
             for coord in self._xx:
                 coordinates += repr(coord) + ' '
@@ -1725,7 +1727,7 @@ class CoordChange(SageObject):
         OUTPUT:
 
         - an instance of :class:`CoordChange` representing the inverse of
-          ``self``.
+          the current coordinate transformation.
 
         EXAMPLES:
 
@@ -1760,9 +1762,9 @@ class CoordChange(SageObject):
         n1 = self._n1
         n2 = self._n2
         if n1 != n2:
-            raise TypeError("the change of coordinates is not invertible " +
-                            "(different number of coordinates in the two " +
-                            "charts)")
+            raise ValueError("the change of coordinates is not invertible " +
+                             "(different number of coordinates in the two " +
+                             "charts)")
         # New symbolic variables (different from x2 to allow for a
         #  correct solution even when chart2 = chart1):
         if self._chart1.domain().base_field() == 'real':
@@ -1819,7 +1821,7 @@ class CoordChange(SageObject):
         r"""
         Sets the inverse of the coordinate transformation.
 
-        This is usefull when the automatic computation via :meth:`inverse()`
+        This is useful when the automatic computation via :meth:`inverse()`
         fails.
 
         INPUT:
@@ -1828,7 +1830,7 @@ class CoordChange(SageObject):
           list of the expressions of the "old" coordinates in terms of the
           "new" ones
         - ``kwds`` -- keyword arguments: only ``check=True`` (default) or
-          ``check=False`` are meaningfull; it determines whether the provided
+          ``check=False`` are meaningful; it determines whether the provided
           transformations are checked to be indeed the inverse coordinate
           transformations.
 
@@ -1917,7 +1919,7 @@ class CoordChange(SageObject):
                              "{} is different from {}".format(other._chart2,
                                                               other._chart1))
         #*# when MultiCoordFunction will be implemented (trac #18640):
-        # transf = self(*(other._transf.expr()))
+        # transf = self._transf(*(other._transf.expr()))
         #*# for now:
         transf = self(*(other._transf))
         return self.__class__(other._chart1, self._chart2, *transf)
@@ -1950,9 +1952,18 @@ class CoordChange(SageObject):
             u = x + y
             v = x - y
 
+        The result is cached::
+
+            sage: X_to_Y.restrict(U) is X_to_Y_U
+            True
+
         """
         if dom2 is None:
             dom2 = dom1
+        ch1 = self._chart1.restrict(dom1)
+        ch2 = self._chart2.restrict(dom2)
+        if (ch1, ch2) in dom1.coord_changes():
+            return dom1.coord_changes()[(ch1,ch2)]
         #*# when MultiCoordFunction will be implemented (trac #18640):
         # return self.__class__(self._chart1.restrict(dom1),
         #                   self._chart2.restrict(dom2), *(self._transf.expr()))
@@ -2015,4 +2026,3 @@ class CoordChange(SageObject):
         return FormattedExpansion(rtxt, rlatex)
 
     disp = display
-

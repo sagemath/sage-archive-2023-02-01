@@ -310,7 +310,7 @@ class TopManifold(TopManifoldSubset):
     - ``start_index`` -- (default: 0) integer; lower value of the range of
       indices used for "indexed objects" on the manifold, e.g. coordinates
       in a chart
-    - ``category`` -- (default: ``None``) to specify the categeory; the
+    - ``category`` -- (default: ``None``) to specify the category; the
       default being ``Sets()`` (``Manifolds()`` after :trac:`18175` is
       implemented)
     - ``ambient_manifold`` -- (default: ``None``) if not ``None``, the created
@@ -455,7 +455,7 @@ class TopManifold(TopManifoldSubset):
             ambient_manifold = self
         elif not isinstance(ambient_manifold, TopManifold):
             raise TypeError("the argument 'ambient_manifold' must be " +
-                            " a topological manifold")
+                            "a topological manifold")
         # Initialization as a subset of the ambient manifold (possibly itself):
         TopManifoldSubset.__init__(self, ambient_manifold, name,
                                    latex_name=latex_name, category=category)
@@ -889,12 +889,12 @@ class TopManifold(TopManifoldSubset):
 
     def top_charts(self):
         r"""
-        Return the list of charts defined on subsets of the current set
+        Return the list of charts defined on subsets of the current manifold
         that are not subcharts of charts on larger subsets.
 
         OUTPUT:
 
-        - list of charts defined on open subsets of ``self`` but not on
+        - list of charts defined on open subsets of the manifold but not on
           larger subsets
 
         EXAMPLES:
@@ -976,14 +976,14 @@ class TopManifold(TopManifoldSubset):
         """
         from chart import Chart
         if not isinstance(chart, Chart):
-            raise TypeError(str(chart) + " is not a chart.")
+            raise TypeError("{} is not a chart".format(chart))
         if chart._domain is not self:
             if self.is_manifestly_coordinate_domain():
-                raise TypeError("The chart domain must coincide with the " +
-                                str(self) + ".")
+                raise TypeError("the chart domain must coincide with " +
+                                "the {}".format(self))
             if chart not in self._atlas:
-                raise ValueError("The chart must be defined on the " +
-                                 str(self))
+                raise ValueError("the chart must be defined on the " +
+                                 "{}".format(self))
         self._def_chart = chart
 
     def coord_change(self, chart1, chart2):
@@ -1020,11 +1020,10 @@ class TopManifold(TopManifoldSubset):
 
         """
         if (chart1, chart2) not in self._coord_changes:
-            raise TypeError("The change of coordinates from " + str(chart1) +
-                            " to " + str(chart2) + " has not been " +
-                            "defined on the " + str(self))
+            raise TypeError("the change of coordinates from " +
+                            "{} to {}".format(chart1, chart2) + " has not " +
+                            "been defined on the {}".format(self))
         return self._coord_changes[(chart1, chart2)]
-
 
     def coord_changes(self):
         r"""
@@ -1076,10 +1075,9 @@ class TopManifold(TopManifoldSubset):
         """
         return self._coord_changes
 
-
     def is_manifestly_coordinate_domain(self):
         r"""
-        Returns ``True`` if the manifold is known to be the domain of some
+        Return ``True`` if the manifold is known to be the domain of some
         coordinate chart and ``False`` otherwise.
 
         If ``False`` is returned, either the manifold cannot be the domain of
@@ -1118,8 +1116,8 @@ class TopManifold(TopManifoldSubset):
           subset; if none is provided, it is set to ``name``
         - ``coord_def`` -- (default: {}) definition of the subset in
           terms of coordinates; ``coord_def`` must a be dictionary with keys
-          charts on ``self`` and values the symbolic expressions formed by the
-          coordinates to define the subset.
+          charts on the manifold and values the symbolic expressions formed by
+          the coordinates to define the subset.
 
         OUTPUT:
 
@@ -1127,16 +1125,16 @@ class TopManifold(TopManifoldSubset):
 
         EXAMPLES:
 
-        Creating an open subset of a manifold::
+        Creating an open subset of a 2-dimensional manifold::
 
             sage: TopManifold._clear_cache_() # for doctests only
             sage: M = TopManifold(2, 'M')
             sage: A = M.open_subset('A'); A
             Open subset A of the 2-dimensional topological manifold M
 
-        As an open subset of a topological manifold, A is itself a topological
-        manifold, on the same topological field and of the same dimension a
-        M::
+        As an open subset of a topological manifold, ``A`` is itself a
+        topological manifold, on the same topological field and of the same
+        dimension as ``M``::
 
             sage: isinstance(A, TopManifold)
             True
@@ -1145,7 +1143,7 @@ class TopManifold(TopManifoldSubset):
             sage: dim(A) == dim(M)
             True
 
-        Creating an open subset of A::
+        Creating an open subset of ``A``::
 
             sage: B = A.open_subset('B'); B
             Open subset B of the 2-dimensional topological manifold M
@@ -1168,9 +1166,9 @@ class TopManifold(TopManifoldSubset):
             sage: U = M.open_subset('U', coord_def={c_cart: x^2+y^2<1}); U
             Open subset U of the 2-dimensional topological manifold R^2
 
-        Since the argument ``coord_def`` has been set, U is automatically
+        Since the argument ``coord_def`` has been set, ``U`` is automatically
         provided with a chart, which is the restriction of the Cartesian one
-        to U::
+        to ``U``::
 
             sage: U.atlas()
             [Chart (U, (x, y))]
@@ -1189,15 +1187,30 @@ class TopManifold(TopManifoldSubset):
                            field=self._field, start_index=self._sindex,
                            category=self.category(),
                            ambient_manifold=self._manifold)
+        #!# NB: the above could have been
+        # resu = type(self).__base__(...) instead of resu = TopManifold(...)
+        # to allow for open_subset() of derived classes to call first this
+        # version,
+        # but, because of the category framework, it could NOT have been
+        # resu = self.__class__(...)
+        # cf. the discussion in
+        # https://groups.google.com/forum/#!topic/sage-devel/jHlFxhMDf3Y
         resu._supersets.update(self._supersets)
         for sd in self._supersets:
             sd._subsets.add(resu)
         self._top_subsets.add(resu)
+        # Charts on the result from the coordinate definition:
         for chart, restrictions in coord_def.iteritems():
             if chart not in self._atlas:
-                raise ValueError("The " + str(chart) + "does not belong to " +
-                    "the atlas of " + str(self))
+                raise ValueError("the {} does not belong to ".format(chart) +
+                                 "the atlas of {}".format(self))
             chart.restrict(resu, restrictions)
+        # Transition maps on the result inferred from those of self:
+        for chart1 in coord_def:
+            for chart2 in coord_def:
+                if chart2 != chart1:
+                    if (chart1, chart2) in self._coord_changes:
+                        self._coord_changes[(chart1, chart2)].restrict(resu)
         return resu
 
     def chart(self, coordinates='', names=None):
@@ -1247,7 +1260,7 @@ class TopManifold(TopManifoldSubset):
           below)
         - ``names`` -- (default: ``None``) unused argument, except if
           ``coordinates`` is not provided; it must then be a tuple containing
-          the coordinate symbols (this is guaranted if the shortcut operator
+          the coordinate symbols (this is guaranteed if the shortcut operator
           ``<,>`` is used).
 
         OUTPUT:

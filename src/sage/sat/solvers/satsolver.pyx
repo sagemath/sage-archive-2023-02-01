@@ -318,18 +318,17 @@ def SAT(solver=None):
     if solver is None:
         try:
             from sage.sat.solvers.cryptominisat.cryptominisat import CryptoMiniSat
-            cryptominisat_available = True
+            solver = "cryptominisat"
         except ImportError:
-            cryptominisat_available = False
+            solver = "LP"
 
-    if (solver == 'cryptominisat' or
-        (solver is None and cryptominisat_available)):
+    if solver == 'cryptominisat':
         try:
             from sage.sat.solvers.cryptominisat.cryptominisat import CryptoMiniSat
         except ImportError:
             raise PackageNotFoundError("cryptominisat")
         return CryptoMiniSat()
-    elif (solver == "LP" or solver is None):
+    elif solver == "LP":
         from sat_lp import SatLP
         return SatLP()
     else:

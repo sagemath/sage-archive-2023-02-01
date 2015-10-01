@@ -2,7 +2,7 @@ r"""
 Solve SAT problems Integer Linear Programming
 
 The class defined here is a :class:`~sage.sat.solvers.satsolver.SatSolver` that
-solves its instance using :class:`MixedIntegerLinearProgram`. Its performances
+solves its instance using :class:`MixedIntegerLinearProgram`. Its performance
 can be expected to be slower than when using
 :class:`~sage.sat.solvers.cryptominisat.cryptominisat.CryptoMiniSat`.
 """
@@ -119,7 +119,7 @@ class SatLP(SatSolver):
             ....:     return S
             sage: S = is_bipartite_SAT(graphs.CycleGraph(6))
             sage: S() # random
-            [None, 1.0, 0.0, 1.0, 0.0, 1.0, 0.0]
+            [None, True, False, True, False, True, False]
             sage: True in S()
             True
             sage: S = is_bipartite_SAT(graphs.CycleGraph(7))
@@ -133,7 +133,7 @@ class SatLP(SatSolver):
 
         b = self._LP.get_values(self._vars)
         n = max(b)
-        return [None]+[b.get(i,False) for i in range(1,n+1)]
+        return [None]+[bool(b.get(i,0)) for i in range(1,n+1)]
 
     def __repr__(self):
         """

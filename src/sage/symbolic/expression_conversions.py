@@ -852,8 +852,8 @@ class AlgebraicConverter(Converter):
             sage: a = AlgebraicConverter(QQbar)
             sage: a.composition(exp(I*pi/3), exp)
             0.500000000000000? + 0.866025403784439?*I
-            sage: a.composition(sin(pi/5), sin)
-            0.5877852522924731? + 0.?e-18*I
+            sage: a.composition(sin(pi/7), sin)
+            0.4338837391175581? + 0.?e-18*I
 
         TESTS::
 

@@ -1628,7 +1628,7 @@ class TableauTuples(UniqueRepresentation, Parent):
         sage: TestSuite( TableauTuples(level=6, size=1) ).run()
         sage: TestSuite( TableauTuples(level=6, size=10) ).run()
 
-    Check that trac:`14145` has been fixed::
+    Check that :trac:`14145` has been fixed::
 
         sage: 1 in TableauTuples()
         False
@@ -2508,7 +2508,7 @@ class StandardTableauTuples_all(StandardTableauTuples):
         :class:`StandardTableauTuples` as their parent, any tuples of level 1
         will actually be a :class:`StandardTableauTuples` and NOT
         :class:`StandardTableaux`. As such they will have a restricted set
-        of methods compared with usual :class:`StandardTableaux'. As they
+        of methods compared with usual :class:`StandardTableaux`. As they
         were constructed via this iterator this is presumably what is required
         so it should not cause any problems, especially as they are printed
         with brackets around them to alert the user that something is

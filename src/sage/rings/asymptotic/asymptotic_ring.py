@@ -150,9 +150,13 @@ and more advanced
     sage: (z + 2*z^2 + 3*z^3 + 4*z^4) * (O(z) + z^2)
     4*z^6 + O(z^5)
 
-.. TODO::
+The division of asymptotic expressions is implemented as well::
 
-   inversions
+    sage: A.<z> = AsymptoticRing('z^QQ', QQ, default_prec=10)
+    sage: 1/(z - 1)
+    1/z + z^(-2) + z^(-3) + z^(-4) + ... + z^(-10) + O(z^(-11))
+    sage: (1 + 4*z)/(z + z^2 + z^3)
+    4*z^(-2) - 3*z^(-3) - z^(-4) + 4*z^(-5) - 3*z^(-6) - ... - z^(-16) + O(z^(-17))
 
 .. TODO::
 
@@ -428,6 +432,110 @@ class AsymptoticExpression(RingElement):
         return bool(self._summands_)
 
 
+    def __eq__(self, other):
+        r"""
+        Return if this asymptotic expression is equal to ``other``.
+
+        INPUT:
+
+        - ``other`` -- an object.
+
+        OUTPUT:
+
+        A boolean.
+
+        .. NOTE::
+
+            This function uses the coercion model to find a common
+            parent for the two operands.
+
+        EXAMPLES::
+
+            sage: R.<x> = AsymptoticRing('x^ZZ', QQ)
+            sage: (1 + 2*x + 3*x^2) == (3*x^2 + 2*x + 1)  # indirect doctest
+            True
+            sage: O(x) == O(x)
+            False
+        """
+        return not bool(self - other)
+
+
+    def has_same_summands(self, other):
+        r"""
+        Return if this asymptotic expression and ``other`` have the
+        same summands.
+
+        INPUT:
+
+        - ``other`` -- an asymptotic expression.
+
+        OUTPUT:
+
+        A boolean.
+
+        .. NOTE::
+
+            While for example ``O(x) == O(x)`` yields ``False``,
+            these expressions *do* have the same summands and this method
+            returns ``True``.
+
+            Moreover, this method uses the coercion model in order to
+            find a common parent for this asymptotic expression and
+            ``other``.
+
+        EXAMPLES::
+
+            sage: R_ZZ.<x_ZZ> = AsymptoticRing('x^ZZ', ZZ)
+            sage: R_QQ.<x_QQ> = AsymptoticRing('x^ZZ', QQ)
+            sage: sum(x_ZZ^k for k in range(5)) == sum(x_QQ^k for k in range(5))  # indirect doctest
+            True
+            sage: O(x_ZZ) == O(x_QQ)
+            False
+        """
+        from sage.structure.element import have_same_parent
+        if have_same_parent(self, other):
+            return self._has_same_summands_(other)
+
+        from sage.structure.element import get_coercion_model
+        return get_coercion_model().bin_op(self, other,
+                                           lambda self, other:
+                                           self._has_same_summands_(other))
+
+
+    def _has_same_summands_(self, other):
+        r"""
+        Return, if this :class:`AsymptoticExpression` has the same
+        summands as ``other``.
+
+        INPUT:
+
+        - ``other`` -- an :class:`AsymptoticExpression`.
+
+        OUTPUT:
+
+        A boolean.
+
+        .. NOTE::
+
+            This method compares two :class:`AsymptoticExpression`
+            with the same parent.
+
+        EXAMPLES::
+
+            sage: R.<x> = AsymptoticRing('x^ZZ', QQ)
+            sage: O(x).has_same_summands(O(x))
+            True
+            sage: (1 + x + 2*x^2).has_same_summands(2*x^2 + O(x))  # indirect doctest
+            False
+        """
+        if len(self.summands) != len(other.summands):
+            return False
+        from itertools import izip
+        return all(s == o for s, o in
+                   izip(self.summands.elements_topological(),
+                        other.summands.elements_topological()))
+
+
     def _simplify_(self):
         r"""
         Simplify this asymptotic expression.
@@ -623,6 +731,142 @@ class AsymptoticExpression(RingElement):
                                  term_other in other.summands.elements()))
 
 
+    def _div_(self, other):
+        r"""
+        Divide this element through ``other``.
+
+        INPUT:
+
+        - ``other`` -- an asymptotic expression.
+
+        OUTPUT:
+
+        An asymptotic expression.
+
+        EXAMPLES::
+
+            sage: R.<x> = AsymptoticRing('x^ZZ', QQ, default_prec=5)
+            sage: 1/x^42
+            x^(-42)
+            sage: (1 + 4*x) / (x + 2*x^2)
+            2*1/x - 1/2*x^(-2) + 1/4*x^(-3) - 1/8*x^(-4) + 1/16*x^(-5) + O(x^(-6))
+            sage: x / O(x)
+            Traceback (most recent call last):
+            ...
+            ZeroDivisionError: Cannot invert O(x).
+        """
+        return self * ~other
+
+
+    def __invert__(self):
+        r"""
+        Return the multiplicative inverse of this element.
+
+        INPUT:
+
+        Nothing.
+
+        OUTPUT:
+
+        An asymptotic expression.
+
+        .. WARNING::
+
+            Due to truncation of infinite expansions, the element
+            returned by this method might not fulfill
+            ``el * el._invert_() == 1``.
+
+        .. TODO::
+
+            As soon as `L`-terms are implemented, this
+            implementation has to be adapted as well in order to
+            yield correct results.
+
+        EXAMPLES::
+
+            sage: R.<x> = AsymptoticRing('x^ZZ', QQ, default_prec=4)
+            sage: ~x
+            1/x
+            sage: ~(x^42)
+            x^(-42)
+            sage: ex = ~(1 + x); ex
+            1/x - x^(-2) + x^(-3) - x^(-4) + O(x^(-5))
+            sage: ex * (1 + x)
+            1 + O(x^(-4))
+            sage: ~(1 + O(1/x))
+            1 + O(1/x)
+        """
+        if len(self.summands) == 0:
+            raise ZeroDivisionError('Division by zero in %s.' % (self,))
+
+        elif len(self.summands) == 1:
+            return self.parent()(~next(self.summands.elements()))
+
+        max_elem = tuple(self.summands.maximal_elements())
+        if len(max_elem) != 1:
+            raise ValueError('Expression %s cannot be inverted, since there '
+                             'are several maximal elements: %s.' % (self, max_elem))
+
+        max_elem = max_elem[0]
+        imax_elem = ~max_elem
+        one = self.parent().one()
+        geom = one - self._mul_term_(imax_elem)
+
+        expanding = True
+        result = one
+        while expanding:
+            new_result = (geom * result + one).truncate()
+            if new_result.has_same_summands(result):
+                expanding = False
+            result = new_result
+        return result._mul_term_(imax_elem)
+
+
+    def truncate(self, prec=None):
+        r"""
+        Truncate this asymptotic expression.
+
+        INPUT:
+
+        - ``prec`` -- a positive integer or ``None``. Number of
+          summands that are kept. If ``None`` (default value) is
+          given, then ``default_prec`` from the parent is used.
+
+        OUTPUT:
+
+        An asymptotic expression.
+
+        .. NOTE::
+
+            For example, truncating an asymptotic expression with
+            ``prec=20`` does not yield an expression with exactly 20
+            summands! Rather than that, it keeps the 20 summands
+            with the largest growth, and adds an appropriate
+            `O`-Term.
+
+        EXAMPLES::
+
+            sage: R.<x> = AsymptoticRing('x^ZZ', QQ)
+            sage: ex = sum(x^k for k in range(5)); ex
+            x^4 + x^3 + x^2 + x + 1
+            sage: ex.truncate(prec=2)
+            x^4 + x^3 + O(x^2)
+            sage: ex.truncate(prec=0)
+            O(x^4)
+            sage: ex.truncate()
+            x^4 + x^3 + x^2 + x + 1
+        """
+        if prec is None:
+            prec = self.parent().default_prec
+
+        if len(self.summands) <= prec:
+            return self
+        else:
+            g = self.summands.elements_topological(reverse=True)
+            main_part = self.parent()([g.next() for _ in range(prec)])
+            return main_part + (self - main_part).O()
+
+
     def __pow__(self, power):
         r"""
         Takes this element to the given ``power``.
@@ -652,12 +896,15 @@ class AsymptoticExpression(RingElement):
             ...
             NotImplementedError: Taking the sum y^2 + O(y) to the
             non-integer power 1/2 is not implemented.
-            sage: (y^2+O(y))^(-2)
+            sage: (y^2 + O(y))^(-2)
+            y^(-4) + O(y^(-5))
+
+        ::
+
+            sage: O(x)^(-1)
             Traceback (most recent call last):
             ...
-            TypeError: unsupported operand parent(s) for '/':
-            'Asymptotic Ring <y^ZZ> over Integer Ring' and 'Asymptotic
-            Ring <y^ZZ> over Integer Ring'
+            ZeroDivisionError: Cannot invert O(x).
         """
         if len(self.summands) > 1:
             from sage.rings.integer_ring import ZZ
@@ -680,8 +927,11 @@ class AsymptoticExpression(RingElement):
             new_coeff = expr.coefficient**power
             return P(expr.parent()(new_growth, new_coeff))
         else:
-            new_growth = expr.growth**power
-            return P(expr.parent()(new_growth))
+            if power >= 0:
+                new_growth = expr.growth**power
+                return P(expr.parent()(new_growth))
+            else:
+                return (~self)**(-power)
 
 
 
@@ -740,6 +990,9 @@ class AsymptoticRing(Ring, UniqueRepresentation):
 
     - ``coefficient_ring`` -- the ring which contains the
       coefficients of the expressions.
+
+    - ``default_prec`` -- a positive integer. This is the number of
+      summands that are kept before truncating an infinite series.
 
     - ``category`` -- the category of the parent can be specified
       in order to broaden the base structure. It has to be a
@@ -808,7 +1061,7 @@ class AsymptoticRing(Ring, UniqueRepresentation):
 
     @staticmethod
     def __classcall__(cls, growth_group, coefficient_ring, names=None,
-                      category=None):
+                      category=None, default_prec=None):
         r"""
         Normalizes the input in order to ensure a unique
         representation of the parent.
@@ -844,13 +1097,19 @@ class AsymptoticRing(Ring, UniqueRepresentation):
         if names is not None and not growth_group.gens_monomial():
             raise ValueError("%s does not have a generator." % (growth_group,))
 
-        return super(AsymptoticRing, cls).__classcall__(cls, growth_group,
-                                                        coefficient_ring,
-                                                        category)
+        if default_prec is None:
+            from sage.misc.defaults import series_precision
+            default_prec = series_precision()
+
+        return super(AsymptoticRing,
+                     cls).__classcall__(cls, growth_group, coefficient_ring,
+                                        category=category,
+                                        default_prec=default_prec)
 
 
     @experimental(trac_number=17601)
-    def __init__(self, growth_group, coefficient_ring, category=None):
+    def __init__(self, growth_group, coefficient_ring, category=None,
+                 default_prec=None):
         r"""
         See :class:`AsymptoticRing` for more information.
 
@@ -912,6 +1171,7 @@ class AsymptoticRing(Ring, UniqueRepresentation):
 
         self._coefficient_ring_ = coefficient_ring
         self._growth_group_ = growth_group
+        self._default_prec_ = default_prec
         super(AsymptoticRing, self).__init__(base=coefficient_ring,
                                              category=category)
 
@@ -946,6 +1206,27 @@ class AsymptoticRing(Ring, UniqueRepresentation):
             Integer Ring
         """
         return self._coefficient_ring_
+
+
+    @property
+    def default_prec(self):
+        r"""
+        The default precision of this asymptotic ring.
+
+        This is the parameter used to determine how many summands
+        are kept before truncating an infinite series (which occur
+        when inverting asymptotic expressions).
+
+        EXAMPLES::
+
+            sage: AR = AsymptoticRing(growth_group='x^ZZ', coefficient_ring=ZZ)
+            sage: AR.default_prec
+            20
+            sage: AR = AsymptoticRing('x^ZZ', ZZ, default_prec=123)
+            sage: AR.default_prec
+            123
+        """
+        return self._default_prec_
 
 
     @staticmethod

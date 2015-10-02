@@ -616,12 +616,12 @@ def cantor_product(*args):
 
     INPUT:
 
-    - a certain number of iteratable
+    - a certain number of iterables
 
     EXAMPLES::
 
         sage: from sage.misc.mrange import cantor_product
-        sage: list(cantor_product([0,1], [0,1], [0,1]))
+        sage: list(cantor_product([0, 1], [0, 1], [0, 1]))
         [[0, 0, 0],
          [1, 0, 0],
          [0, 1, 0],

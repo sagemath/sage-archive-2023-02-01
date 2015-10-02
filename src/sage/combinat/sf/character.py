@@ -1,5 +1,10 @@
 """
 character bases of the symmetric functions
+
+REFERENCES:
+
+.. [OZ2015] R. Orellana, M. Zabrocki, *Symmetric group characters
+      as symmetric functions*, :arxiv:`1000.0000v1`.
 """
 #*****************************************************************************
 #       Copyright (C) 2015 Mike Zabrocki <zabrocki@mathstat.yorku.ca
@@ -108,16 +113,14 @@ class character_basis(generic_character):
 
     This is a basis of the symmetric functions that has the
     property that ``self(la).character_to_frobenius_image(n)``
-    is equal to ``other([n-sum(la)]+la)``
+    is equal to ``other([n-sum(la)]+la)``.
+
     It should also have the property that the (outer) structure
     constants are the analogue of the stable kronecker
     coefficients on the ``other`` basis (where ``other`` is either the
     Schur or homogeneous bases).
 
-    REFERENCES:
-
-    .. [OZ2015] R. Orellana, M. Zabrocki, *Symmetric group characters
-       as symmetric functions*, :arxiv:`1000.0000v1`.
+    These bases are introduced in [OZ2015]_.
 
     EXAMPLES::
 
@@ -236,7 +239,38 @@ class character_basis(generic_character):
 
 class irreducible_character_basis(generic_character):
     r"""
-    The irreducible symmetric group character basis of the symmetric functions
+    The irreducible symmetric group character basis of the symmetric functions.
+
+    This is a basis of the symmetric functions that has the
+    property that ``self(la).character_to_frobenius_image(n)``
+    is equal to ``s([n-sum(la)]+la)``.
+
+    It should also have the property that the (outer) structure
+    constants are the analogue of the stable kronecker
+    coefficients on the Schur basis (where ``other`` is either the
+    Schur or homogeneous bases).
+
+    This basis is introduced in [OZ2015]_.
+
+    EXAMPLES::
+
+        sage: Sym = SymmetricFunctions(QQ)
+        sage: s = Sym.s()
+        sage: h = Sym.h()
+        sage: ht = SymmetricFunctions(QQ).ht()
+        sage: st = SymmetricFunctions(QQ).st()
+        sage: st(ht[2,1])
+        st[] + 2*st[1] + st[1, 1] + 2*st[2] + st[2, 1] + st[3]
+        sage: ht(st[2,1])
+        ht[1] - ht[1, 1] + ht[2, 1] - ht[3]
+        sage: s(st[2,1])
+        3*s[1] - 2*s[1, 1] - 2*s[2] + s[2, 1]
+        sage: st(s[2,1])
+        st[] + 3*st[1] + 2*st[1, 1] + 2*st[2] + st[2, 1]
+        sage: st[2]*st[1]
+        st[1] + st[1, 1] + st[2] + st[2, 1] + st[3]
+        sage: s[4,2].kronecker_product(s[5,1])
+        s[3, 2, 1] + s[3, 3] + s[4, 1, 1] + s[4, 2] + s[5, 1]
     """
     def __init__(self, Sym, pfix):
         r"""

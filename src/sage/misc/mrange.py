@@ -677,7 +677,7 @@ def cantor_product(*args):
         for i,a in enumerate(iterators):
             if lengths[i] is None:
                 try:
-                    data[i].append(a.next())
+                    data[i].append(next(a))
                 except StopIteration:
                     assert len(data[i]) == n
                     if n == 0:

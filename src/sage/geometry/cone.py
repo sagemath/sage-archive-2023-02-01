@@ -4348,6 +4348,100 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
         """
         return self.linear_subspace().dimension()
 
+    def discrete_complementarity_set(self):
+        r"""
+        Compute a discrete complementarity set of this cone.
+
+        A discrete complementarity set of a cone is the set of all
+        orthogonal pairs `(x,s)` where `x` is in some fixed generating
+        set of the cone, and `s` is in some fixed generating set of its
+        dual. The generators chosen for this cone and its dual are
+        simply their :meth:`~IntegralRayCollection.rays`.
+
+        OUTPUT:
+
+        A list of pairs `(x,s)` such that,
+
+          * `x` and `s` are orthogonal vectors.
+          * `x` is one of this cone's :meth:`~IntegralRayCollection.rays`.
+          * `s` is one of the :meth:`~IntegralRayCollection.rays` of this
+            cone's :meth:`dual`.
+
+        REFERENCES:
+
+        .. [Orlitzky] M. Orlitzky. The Lyapunov rank of an improper cone.
+           http://www.optimization-online.org/DB_HTML/2015/10/5135.html
+
+        EXAMPLES:
+
+        The discrete complementarity set of the nonnegative orthant
+        consists of pairs of standard basis vectors::
+
+            sage: K = Cone([(1,0),(0,1)])
+            sage: K.discrete_complementarity_set()
+            [((1, 0), (0, 1)), ((0, 1), (1, 0))]
+
+        If the cone consists of a single ray, the second components of
+        the discrete complementarity set should generate the orthogonal
+        complement of that ray::
+
+            sage: K = Cone([(1,0)])
+            sage: K.discrete_complementarity_set()
+            [((1, 0), (0, 1)), ((1, 0), (0, -1))]
+            sage: K = Cone([(1,0,0)])
+            sage: K.discrete_complementarity_set()
+            [((1, 0, 0), (0, 1, 0)),
+              ((1, 0, 0), (0, -1, 0)),
+              ((1, 0, 0), (0, 0, 1)),
+              ((1, 0, 0), (0, 0, -1))]
+
+        When the cone is the entire space, its dual is the trivial cone,
+        so the discrete complementarity set is empty::
+
+            sage: K = Cone([(1,0),(-1,0),(0,1),(0,-1)])
+            sage: K.discrete_complementarity_set()
+            []
+
+        Likewise when this cone is trivial (its dual is the entire space)::
+
+            sage: L = ToricLattice(0)
+            sage: K = Cone([], ToricLattice(0))
+            sage: K.discrete_complementarity_set()
+            []
+
+        TESTS:
+
+        The complementarity set of the dual can be obtained by switching
+        components in the complementarity set of the original cone::
+
+            sage: set_random_seed()
+            sage: K = random_cone(max_ambient_dim=6)
+            sage: dcs_dual = K.dual().discrete_complementarity_set()
+            sage: expected = [ (x,s) for (s,x) in dcs_dual ]
+            sage: actual = K.discrete_complementarity_set()
+            sage: sorted(actual) == sorted(expected)
+            True
+
+        The pairs in the discrete complementarity set are in fact
+        complementary::
+
+            sage: set_random_seed()
+            sage: K = random_cone(max_ambient_dim=6)
+            sage: dcs = K.discrete_complementarity_set()
+            sage: sum([ x.inner_product(s).abs() for (x,s) in dcs ])
+            0
+
+        """
+        V = self.lattice().vector_space()
+
+        # Convert rays to vectors so that we can compute inner products.
+        G1 = [ V(x) for x in self.rays() ]
+
+        # We also convert the generators of the dual cone so that we
+        # return pairs of vectors and not (vector, ray) pairs.
+        G2 = [ V(s) for s in self.dual().rays() ]
+
+        return [ (x,s) for x in G1 for s in G2 if x.inner_product(s) == 0 ]
 
 
 def random_cone(lattice=None, min_ambient_dim=0, max_ambient_dim=None,

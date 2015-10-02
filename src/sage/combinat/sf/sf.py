@@ -975,9 +975,8 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
             ....:   for rho in Partitions(5)]))
             [4, 2, 0, 1, -1, 0, -1]
         """
-        from character import character_basis
-        return character_basis(self, self.s(), \
-          "irreducible symmetric group character",'st')
+        from character import irreducible_character_basis
+        return irreducible_character_basis(self, 'st')
     st = irreducible_symmetric_group_character
 
     def induced_trivial_character(self):

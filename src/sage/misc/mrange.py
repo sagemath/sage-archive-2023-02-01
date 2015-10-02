@@ -611,8 +611,7 @@ def cartesian_product_iterator(X):
 
 def cantor_product(*args):
     r"""
-    Return an iterator over the product of `A` and `B` which iterates
-    along the diagonals a la
+    Return an iterator over the product of the inputs along the diagonals a la
     :wikipedia:`Cantor pairing <Pairing_function#Cantor_pairing_function>`.
 
     INPUT:
@@ -631,15 +630,27 @@ def cantor_product(*args):
          [1, 0, 1],
          [0, 1, 1],
          [1, 1, 1]]
-        sage: list(cantor_product([0,1], [0,1,2,3])
+        sage: list(cantor_product([0,1], [0,1,2,3]))
         [[0, 0], [1, 0], [0, 1], [1, 1], [0, 2], [1, 2], [0, 3], [1, 3]]
 
     Infinite iterators are valid input as well::
     
        sage: from itertools import islice
-       sage: list(islice(product_cantor_pairing(ZZ, QQ), 14))
-       [[0, 0], [0, 1], [1, 0], [0, -1], [1, 1], [-1, 0], [0, 1/2],
-         [1, -1], [-1, 1], [2, 0], [0, -1/2], [1, 1/2], [-1, -1], [2, 1]]
+       sage: list(islice(cantor_product(ZZ, QQ), 14))
+        [[0, 0],
+         [1, 0],
+         [0, 1],
+         [-1, 0],
+         [1, 1],
+         [0, -1],
+         [2, 0],
+         [-1, 1],
+         [1, -1],
+         [0, 1/2],
+         [-2, 0],
+         [2, 1],
+         [-1, -1],
+         [1, 1/2]]
 
     TESTS::
 
@@ -647,7 +658,10 @@ def cantor_product(*args):
         sage: sum(1 for _ in C) == 2*4*3
         True
 
+        sage: from itertools import count
         sage: list(cantor_product([], count()))
+        []
+        sage: list(cantor_product(count(), [], count()))
         []
     """
     from itertools import count

@@ -630,7 +630,7 @@ def cantor_product(*args):
          [1, 0, 1],
          [0, 1, 1],
          [1, 1, 1]]
-        sage: list(cantor_product([0,1], [0,1,2,3]))
+        sage: list(cantor_product([0, 1], [0, 1, 2, 3]))
         [[0, 0], [1, 0], [0, 1], [1, 1], [0, 2], [1, 2], [0, 3], [1, 3]]
 
     Infinite iterators are valid input as well::
@@ -654,7 +654,7 @@ def cantor_product(*args):
 
     TESTS::
 
-        sage: C = cantor_product([0,1], [0,1,2,3], [0,1,2])
+        sage: C = cantor_product([0, 1], [0, 1, 2, 3], [0, 1, 2])
         sage: sum(1 for _ in C) == 2*4*3
         True
 
@@ -674,7 +674,7 @@ def cantor_product(*args):
 
     for n in count(0):
         # try to add one more term to each bin
-        for i,a in enumerate(iterators):
+        for i, a in enumerate(iterators):
             if lengths[i] is None:
                 try:
                     data[i].append(next(a))

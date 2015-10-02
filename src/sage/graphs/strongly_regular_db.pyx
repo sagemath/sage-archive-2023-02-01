@@ -666,9 +666,9 @@ def is_polhill(int v,int k,int l,int mu):
         sage: t = is_polhill(1024, 231,  38,  56); t
         [<cyfunction is_polhill.<locals>.<lambda> at ...>]
         sage: g = t[0](*t[1:]); g                    # not tested (too long)
-        [<cyfunction is_polhill.<locals>.<lambda> at ...>]
+        Graph on 1024 vertices
         sage: g.is_strongly_regular(parameters=True) # not tested (too long)
-        (28, 15, 6, 10)
+        (1024, 231, 38, 56)
         sage: t = is_polhill(1024, 264,  56,  72); t
         [<cyfunction is_polhill.<locals>.<lambda> at ...>]
         sage: t = is_polhill(1024, 297,  76,  90); t

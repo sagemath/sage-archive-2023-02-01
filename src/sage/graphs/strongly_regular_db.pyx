@@ -1871,6 +1871,44 @@ def SRG_512_219_106_84():
     M = Matrix(GF(2),[list(l) for l in x])
     return strongly_regular_from_two_weight_code(LinearCode(M))
 
+def SRG_512_315_202_180():
+    r"""
+    Return a `(512, 315, 202, 180)`-strongly regular graph.
+
+    This graph is built from a projective binary code with weights `32, 40`,
+    found by Axel Kohnert [Kohnert07]_ and shared by Alfred Wassermann.
+
+    .. SEEALSO::
+
+        :func:`strongly_regular_from_two_weight_code` -- build a strongly
+        regular graph from a two-weight code.
+
+    EXAMPLE::
+
+        sage: from sage.graphs.strongly_regular_db import SRG_512_315_202_180
+        sage: G = SRG_512_315_202_180()              # long time
+        sage: G.is_strongly_regular(parameters=True) # long time
+        (512, 315, 202, 180)
+
+    REFERENCE:
+
+    .. [Kohnert07] A. Kohnert,
+       Constructing two-weight codes with prescribed groups of automorphisms,
+       Discrete applied mathematics 155, no. 11 (2007): 1451-1457.
+       http://linearcodes.uni-bayreuth.de/twoweight/
+    """
+    x=("0100011110111000001011010110110111100010001000001000001001010110101101",
+       "1000111101110000000110101111101111000100010000010000000010101111001011",
+       "0001111011100000011101011101011110011000100000100000000101011100010111",
+       "0011110101000000111010111010111100110001000011000000001010111000101101",
+       "0111101000000001110101110111111001100010000100000000010101110011001011",
+       "1111010000000011101011101101110011010100001000000000101011100100010111",
+       "1110100010000111000111011011100110111000010000000001000111001010101101",
+       "1101000110001110001110110101001101110000100010000010001110010101001011",
+       "1010001110011100001101101010011011110001000100000100001100101010010111")
+    M = Matrix(GF(2),[list(l) for l in x])
+    return strongly_regular_from_two_weight_code(LinearCode(M))
+
 def SRG_256_153_92_90():
     r"""
     Return a `(256, 153, 92, 90)`-strongly regular graph.
@@ -2272,6 +2310,7 @@ def strongly_regular_graph(int v,int k,int l,int mu=-1,bint existence=False,bint
         (416, 100,  36, 20): [SRG_416_100_36_20],
         (512, 219, 106, 84): [SRG_512_219_106_84],
         (512,  73,  12, 10): [SRG_512_73_12_10],
+        (512, 315, 202,180): [SRG_512_315_202_180],
         (560, 208,  72, 80): [SRG_560_208_72_80],
         (625, 416, 279,272): [SRG_625_416_279_272],
         (625, 364, 213,210): [SRG_625_364_213_210],

@@ -608,3 +608,72 @@ def cartesian_product_iterator(X):
         [()]
     """
     return xmrange_iter(X, tuple)
+
+def cantor_product(*args):
+    r"""
+    Return an iterator over the product of `A` and `B` which iterates
+    along the diagonals a la
+    :wikipedia:`Cantor pairing <Pairing_function#Cantor_pairing_function>`.
+
+    INPUT:
+
+    - a certain number of iteratable
+
+    EXAMPLES::
+
+        sage: from sage.misc.mrange import cantor_product
+        sage: list(cantor_product([0,1], [0,1], [0,1]))
+        [[0, 0, 0],
+         [1, 0, 0],
+         [0, 1, 0],
+         [0, 0, 1],
+         [1, 1, 0],
+         [1, 0, 1],
+         [0, 1, 1],
+         [1, 1, 1]]
+        sage: list(cantor_product([0,1], [0,1,2,3])
+        [[0, 0], [1, 0], [0, 1], [1, 1], [0, 2], [1, 2], [0, 3], [1, 3]]
+
+    Infinite iterators are valid input as well::
+    
+       sage: from itertools import islice
+       sage: list(islice(product_cantor_pairing(ZZ, QQ), 14))
+       [[0, 0], [0, 1], [1, 0], [0, -1], [1, 1], [-1, 0], [0, 1/2],
+         [1, -1], [-1, 1], [2, 0], [0, -1/2], [1, 1/2], [-1, -1], [2, 1]]
+
+    TESTS::
+
+        sage: C = cantor_product([0,1], [0,1,2,3], [0,1,2])
+        sage: sum(1 for _ in C) == 2*4*3
+        True
+
+        sage: list(cantor_product([], count()))
+        []
+    """
+    from itertools import count
+    from sage.combinat.integer_list import IntegerListsLex
+
+    m = len(args)                         # numer of factors
+    lengths = [None] * m                  # None or length of factors
+    data = [[] for _ in range(m)]         # the initial slice of each factor
+    iterators = [iter(a) for a in args]   # the iterators
+
+    for n in count(0):
+        # try to add one more term to each bin
+        for i,a in enumerate(iterators):
+            if lengths[i] is None:
+                try:
+                    data[i].append(a.next())
+                except StopIteration:
+                    assert len(data[i]) == n
+                    if n == 0:
+                        return
+                    lengths[i] = n
+
+        # iterate through what we have
+        ceiling = [n if lengths[i] is None else lengths[i]-1 for i in range(m)]
+        for v in IntegerListsLex(n, length=m, ceiling=ceiling):
+            yield [data[i][v[i]] for i in range(m)]
+
+        if all(l is not None for l in lengths) and sum(l-1 for l in lengths) == n:
+            return

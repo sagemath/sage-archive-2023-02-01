@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 """
+Automatic Semigroups
+
 Semigroups defined by generators living in an ambient semigroup and represented by an automaton.
 
 AUTHORS:

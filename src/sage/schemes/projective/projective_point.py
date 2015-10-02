@@ -1428,7 +1428,7 @@ class SchemeMorphism_point_projective_field(SchemeMorphism_point_projective_ring
         See :class:`SchemeMorphism_point_projective_ring` for details.
 
         This function still normalized points so that the rightmost non-zero coordinate is 1. The is to maintain current functionality with current
-        implementations of curves in projectives space (plane, connic, elliptic, etc). The class:`SchemeMorphism_point_projective_ring` is for general use.
+        implementations of curves in projectives space (plane, conic, elliptic, etc). The :class:`SchemeMorphism_point_projective_ring` is for general use.
 
         EXAMPLES::
 

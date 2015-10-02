@@ -18,6 +18,9 @@ AUTHORS:
 
 
 import signal
+from libc.signal cimport (SIGHUP, SIGINT, SIGABRT, SIGILL, SIGSEGV,
+        SIGFPE, SIGBUS, SIGQUIT)
+from libc.stdlib cimport abort
 
 cdef extern from 'interrupt/tests_helper.c':
     void ms_sleep(long ms) nogil
@@ -28,7 +31,6 @@ cdef extern from *:
     ctypedef int volatile_int "volatile int"
 
 
-include 'sage/ext/signals.pxi'
 include 'sage/ext/interrupt.pxi'
 include 'sage/ext/stdsage.pxi'
 from cpython cimport PyErr_SetString

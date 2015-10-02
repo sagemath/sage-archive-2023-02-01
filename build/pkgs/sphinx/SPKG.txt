@@ -13,10 +13,6 @@ useful to many other projects.
 
 Modified BSD; see e.g. its egg-info file for other options
 
-== SPKG Maintainers ==
-
-Mike Hansen <mhansen@gmail.com>
-
 == Upstream Contact ==
 
 Author: Georg Brandl <georg at python org>

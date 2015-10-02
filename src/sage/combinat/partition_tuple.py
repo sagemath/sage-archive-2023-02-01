@@ -538,8 +538,10 @@ class PartitionTuple(CombinatorialElement):
 
         EXAMPLES::
 
-            sage: PartitionTuple(([2,1],[3,2],[1,1,1]))._repr_diagram()
-            '   **   ***   *\n   *    **    *\n              *'
+            sage: print PartitionTuple(([2,1],[3,2],[1,1,1]))._repr_diagram()
+               **   ***   *
+               *    **    *
+                          *
         """
         return self.diagram()
 
@@ -1485,7 +1487,7 @@ class PartitionTuples(UniqueRepresentation, Parent):
         sage: ( [] ) in PartitionTuples()
         True
 
-    Check that trac:`14145` has been fixed::
+    Check that :trac:`14145` has been fixed::
 
         sage: 1 in PartitionTuples()
         False
@@ -1681,9 +1683,9 @@ class PartitionTuples(UniqueRepresentation, Parent):
         Return a generic element.
 
         EXAMPLES::
+
             sage: PartitionTuples().an_element()  # indirect doctest
             ([1, 1, 1, 1], [2, 1, 1], [3, 1], [4])
-
         """
         return PartitionTuple( ([1,1,1,1],[2,1,1],[3,1],[4]) )
 
@@ -1756,9 +1758,9 @@ class PartitionTuples_all(PartitionTuples):
         Return a generic element.
 
         EXAMPLES::
+
             sage: PartitionTuples().an_element()   # indirect doctest
             ([1, 1, 1, 1], [2, 1, 1], [3, 1], [4])
-
         """
         return self.element_class(self,([1,1,1,1],[2,1,1],[3,1],[4]))
 
@@ -1826,28 +1828,28 @@ class PartitionTuples_level(PartitionTuples):
 
         EXAMPLES::
 
-        sage: parts=PartitionTuples(3)
-        sage: [parts[k] for k in range(20)]
-        [([], [], []),
-         ([1], [], []),
-         ([], [1], []),
-         ([], [], [1]),
-         ([2], [], []),
-         ([1, 1], [], []),
-         ([1], [1], []),
-         ([1], [], [1]),
-         ([], [2], []),
-         ([], [1, 1], []),
-         ([], [1], [1]),
-         ([], [], [2]),
-         ([], [], [1, 1]),
-         ([3], [], []),
-         ([2, 1], [], []),
-         ([1, 1, 1], [], []),
-         ([2], [1], []),
-         ([1, 1], [1], []),
-         ([2], [], [1]),
-         ([1, 1], [], [1])]
+            sage: parts=PartitionTuples(3)
+            sage: [parts[k] for k in range(20)]
+            [([], [], []),
+             ([1], [], []),
+             ([], [1], []),
+             ([], [], [1]),
+             ([2], [], []),
+             ([1, 1], [], []),
+             ([1], [1], []),
+             ([1], [], [1]),
+             ([], [2], []),
+             ([], [1, 1], []),
+             ([], [1], [1]),
+             ([], [], [2]),
+             ([], [], [1, 1]),
+             ([3], [], []),
+             ([2, 1], [], []),
+             ([1, 1, 1], [], []),
+             ([2], [1], []),
+             ([1, 1], [1], []),
+             ([2], [], [1]),
+             ([1, 1], [], [1])]
         """
         for size in NN:
             for mu in PartitionTuples_level_size(self.level(),size):
@@ -1858,9 +1860,9 @@ class PartitionTuples_level(PartitionTuples):
         Return a generic element.
 
         EXAMPLES::
+
             sage: PartitionTuples(level=4).an_element()  # indirect doctest
             ([], [1], [2], [3])
-
         """
         return self.element_class(self, tuple([l] for l in range(self.level()) ))
 
@@ -1874,6 +1876,7 @@ class PartitionTuples_size(PartitionTuples):
         Initializes this class.
 
         EXAMPLES::
+
             sage: PartitionTuples(size=4)
             Partition tuples of size 4
             sage: PartitionTuples(size=6)
@@ -1957,9 +1960,9 @@ class PartitionTuples_size(PartitionTuples):
         Return a generic element.
 
         EXAMPLES::
+
             sage: PartitionTuples(size=4).an_element()  # indirect doctest
             ([1], [1], [1], [1])
-
         """
         return self.element_class(self, tuple([1] for l in range(self.size()) ))
 
@@ -2105,7 +2108,7 @@ class PartitionTuples_level_size(PartitionTuples):
         """
         In order to maintain backwards compatibility and be able to unpickle a
         old pickle from PartitionTuples_nk we have to override the default
-        __setstate__.
+        ``__setstate__``.
 
         TESTS::
 

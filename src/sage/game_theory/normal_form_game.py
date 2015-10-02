@@ -204,16 +204,16 @@ time spent in prison)::
 When obtaining Nash equilibrium there are 3 algorithms currently available:
 
 * ``'lrs'``: Reverse search vertex enumeration for 2 player games. This
-  algorithm uses the optional 'lrslib' package. To install it type ``sage -i
-  lrslib`` at the command line. For more information see [A2000]_.
+  algorithm uses the optional 'lrslib' package. To install it, type
+  ``sage -i lrslib`` in the shell. For more information, see [A2000]_.
 
 * ``'LCP'``: Linear complementarity program algorithm for 2 player games.
   This algorithm uses the open source game theory package:
   `Gambit <http://gambit.sourceforge.net/>`_ [MMAT2014]_. At present this is
   the only gambit algorithm available in sage but further development will
   hope to implement more algorithms
-  (in particular for games with more than 2 players). To install it
-  type ``sage -i gambit`` at the command line.
+  (in particular for games with more than 2 players). To install it,
+  type ``sage -i gambit`` in the shell.
 
 * ``'enumeration'``: Support enumeration for 2 player games. This
   algorithm is hard coded in Sage and checks through all potential

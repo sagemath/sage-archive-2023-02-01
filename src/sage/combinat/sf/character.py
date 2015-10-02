@@ -19,6 +19,9 @@ from sage.combinat.sf.sfa import SymmetricFunctionAlgebra_generic as SFA_generic
 from sage.misc.cachefunc import cached_method
 from sage.categories.homset import Hom
 from sage.combinat.partition import Partition
+from sage.rings.arith import divisors, moebius
+from sage.functions.other import binomial
+from sage.rings.integer import Integer
 
 class generic_character(SFA_generic):
     def _my_key(self, la):

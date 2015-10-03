@@ -333,7 +333,7 @@ def hadamard_matrix(n,existence=False, check=True):
         False
         sage: matrix.hadamard(12,existence=True)
         True
-        sage: matrix.hadamard(20,existence=True)
+        sage: matrix.hadamard(92,existence=True)
         Unknown
         sage: matrix.hadamard(10)
         Traceback (most recent call last):
@@ -366,7 +366,7 @@ def hadamard_matrix(n,existence=False, check=True):
         chad2 = matrix([list(had.rows()[i]) + list(mhad.rows()[i])
                        for i in range(R)])
         M = chad1.stack(chad2)
-    elif is_prime(n//2 - 1) and (n//2 - 1) % 4 == 3:
+    elif is_prime(n - 1) and (n - 1) % 4 == 3:
         if existence:
             return True
         M = hadamard_matrix_paleyI(n)

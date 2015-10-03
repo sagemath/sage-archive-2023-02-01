@@ -122,6 +122,10 @@ class SuperModulesWithBasis(SuperModulesCategory):
                 Traceback (most recent call last):
                 ...
                 ValueError: element is not homogeneous
+
+                sage: E.<x,y> = ExteriorAlgebra(QQ)
+                sage: (x*y).is_even_odd()
+                0
             """
             if not self.support():
                 raise ValueError("the zero element does not have a well-defined degree")

@@ -613,12 +613,11 @@ def cartesian_product_iterator(X):
 def product_cantor_pairing(A, B):
     r"""
     Return an iterator over the product of `A` and `B` which iterates
-    along the diagonals a la
-    :wikipedia:`Cantor pairing <Pairing_function#Cantor_pairing_function>`.
+    along the diagonal.
 
     INPUT:
 
-    - ``A`` and ``B`` -- iterables.
+    - ``A`` and ``B`` -- iterables (over a finite number of elements)
 
     OUTPUT:
 

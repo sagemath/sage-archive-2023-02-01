@@ -21,7 +21,7 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from sage.rings.all import PolynomialRing
+from sage.rings.all import PolynomialRing, NumberField
 
 from sage.schemes.plane_conics.con_field import ProjectiveConic_field
 
@@ -47,10 +47,8 @@ class ProjectiveConic_rational_function_field(ProjectiveConic_field):
         ProjectiveConic_field.__init__(self, A, f)
         
     def has_rational_point(self, point = False, algorithm = 'default', read_cache = True):
-        from sage.libs.pari.pari_instance import PariInstance
         from constructor import Conic
         
-        pari = PariInstance()
         if read_cache:
             if self._rational_point is not None:
                 if point:
@@ -87,25 +85,40 @@ class ProjectiveConic_rational_function_field(ProjectiveConic_field):
             supp = []
             roots = [[], [], []]
             for i in (0,1,2):
-                supp.append(coeff[i].factor())
+                supp.append(list(coeff[i].factor()))
                 for p in supp[i]:
                     if p[1] != 1 or p[0].leading_coefficient() != 1:
                         raise ValueError("Expected monic factor of degree 1.")
-                    u = pari('u')
-                    f = pari(coeff[2] * u**2 + coeff[0]).Mod(p[0])
-                    factor = f.factor()
-                    roots[i].append(PolynomialRing(self.base_ring().base().quotient(p[0]), 'u')(factor[0][0]))
-            
+                    N = NumberField(p[0], 'tbar')
+                    R = PolynomialRing(N, 'u')
+                    u, = R.gens()
+                    if i == 0:
+                        f = N(coeff[1]) * u**2 + N(coeff[2])
+                    elif i == 1:
+                        f = N(coeff[2]) * u**2 + N(coeff[0])
+                    else:
+                        f = N(coeff[0]) * u**2 + N(coeff[1])
+                    if f.is_irreducible():
+                        return False
+                    roots[i].append(f.roots()[0][0])
+            import pdb;pdb.set_trace()
             if case == 0:
                 leading_conic = Conic(self.base_ring().base_ring(), [coeff[0].leading_coefficient(), coeff[1].leading_coefficient(), coeff[2].leading_coefficient()])
-                pt = leading_conic.has_rational_point(True)
-                if pt:
-                    self._find_point(coeff, roots, pt[1])
+                has_point = leading_conic.has_rational_point(True)
+                if has_point[0]:
+                    if point:
+                        pt = self._find_point(coeff, roots, supp, has_point[1])
+                        pt = self.point([pt[0] * multipliers[0], pt[1] * multipliers[1], pt[2] * multipliers[2]])
+                        return (True, pt)
+                    else:
+                        return True
                 else:
                     return False
             
             if point:
-                return (True, self._find_point())
+                pt = self._find_point(coeff, roots, supp)
+                pt = self.point([pt[0] * multipliers[0], pt[1] * multipliers[1], pt[2] * multipliers[2]])
+                return (True, pt)
             else:
                 return True
         
@@ -140,21 +153,82 @@ class ProjectiveConic_rational_function_field(ProjectiveConic_field):
                 x = x.numerator()
             
             decom = x.squarefree_decomposition()
-            x1 = 1; x2 = 1
+            x = decom.unit(); x2 = 1
             for factor in decom:
-                if factor[1] % 2 == 0:
-                    x2 = x2 * factor[0] ** (factor[1] / 2)
-                else:
-                    x1 = x1 * factor[0] ** factor[1]
-            if (len(decom) != 0):
-                x = x1
-                for j, y in enumerate(multipliers):
-                    if j != i:
-                        multipliers[j] = y * x2
+                if factor[1] > 1:
+                    x2 = x2 * factor[0] ** (factor[1] - 1)
+                x = x * factor[0]
+            for j, y in enumerate(multipliers):
+                if j != i:
+                    multipliers[j] = y * x2
             coeff[i] = self.base_ring().base().coerce(x);
         
         return (coeff, multipliers)
         
-    def _find_point(self, coefficients, certificate, solution):
-        #
-        return
+    def _find_point(self, coefficients, roots, supports, solution = 0):
+        from sage.matrix.constructor import matrix
+        Ft = self.base_ring().base()
+        deg = [coefficients[0].degree(), coefficients[1].degree(), coefficients[2].degree()]
+        if deg[0] % 2 == deg[1] % 2 and deg[1] % 2 == deg[2] % 2:
+            case = 0
+            for (n, support) in enumerate(supports):
+                for (i, factor) in enumerate(support):
+                    if factor[1] == 1:
+                        case = 1
+                        support.pop(i)
+                        roots[n].pop(i)
+                        break
+                if case == 1:
+                    break
+        else:
+            case = 1
+        A = ((deg[1] + deg[2]) / 2).round('up') - case
+        B = ((deg[2] + deg[0]) / 2).round('up') - case
+        C = ((deg[0] + deg[1]) / 2).round('up') - case
+        var_names = [Ft.gens()[0]] + ['X%d' % i for i in range(A+1)] + ['Y%d' % i for i in range(B+1)] + ['Z%d' % i for i in range(C+1)] + ['W']
+        R = PolynomialRing(self.base_ring().base_ring(), A+B+C+5, var_names)
+        var_names = R.gens()
+        XX = var_names[1:A+2]
+        YY = var_names[A+2:A+B+3]
+        ZZ = var_names[A+B+3:A+B+C+4]
+        t = var_names[0]
+        X = sum([XX[n]*t**n for n in range(A+1)])
+        Y = sum([YY[n]*t**n for n in range(B+1)])
+        Z = sum([ZZ[n]*t**n for n in range(C+1)])
+        E = [] # list that will contain linear polynomials (set E from the article)
+        
+        if case == 0:
+            W = var_names[A+B+C+4]
+            (x,y,z) = solution
+            E += [XX[A] - x*W, YY[B] - y*W, ZZ[C] - z*W]
+        for (i, p) in enumerate(supports[0]):
+            alpha = roots[0][i].lift().parent().hom([t])(roots[0][i].lift())
+            r = (Y - alpha*Z).quo_rem(p[0])[1]
+            for i in range(r.degree(t) + 1):
+                E.append(r.coefficient({t:i}))
+        for (i, p) in enumerate(supports[1]):
+            alpha = roots[1][i].lift().parent().hom([t])(roots[1][i].lift())
+            r = (Z - alpha*X).quo_rem(p[0])[1]
+            for i in range(r.degree(t) + 1):
+                E.append(r.coefficient({t:i}))
+        for (i, p) in enumerate(supports[2]):
+            alpha = roots[2][i].lift().parent().hom([t])(roots[2][i].lift())
+            r = (X - alpha*Y).quo_rem(p[0])[1]
+            for i in range(r.degree(t) + 1):
+                E.append(r.coefficient({t:i}))
+        E2 = []
+        for f in E:
+            column = []
+            for i in range(1,A+B+C+5):
+                column.append(f.coefficient(var_names[i]))
+            E2.append(column)
+        M = matrix(Ft.base(), E2)
+        solution_space = M.right_kernel()
+        for v in solution_space.basis():
+            if v[:A+B+C+3] != 0:
+                X = X.subs({XX[i]:v[i] for i in range(A+1)})
+                Y = Y.subs({YY[i]:v[A+1+i] for i in range(B+1)})
+                Z = Z.subs({ZZ[i]:v[A+B+2+i] for i in range(C+1)})
+                return [X,Y,Z]
+        
+        raise RuntimeError("No solution has been found though a solution exists.")

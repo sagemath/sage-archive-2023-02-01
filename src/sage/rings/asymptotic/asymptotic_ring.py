@@ -1477,15 +1477,15 @@ class AsymptoticRing(Ring, UniqueRepresentation):
             sage: A = AsymptoticRing(growth_group='z^QQ', coefficient_ring=ZZ)
             sage: tuple(islice(A.some_elements(), 10))
             (-z^(3/2) + O(z^(1/2)),
+             O(z^(1/2)),
              -z^(3/2) + O(z^(-1/2)),
              z^(3/2) + O(z^(1/2)),
-             O(z^2),
-             z^(3/2) + O(z^(-1/2)),
-             O(z^(1/2)),
-             -z^(3/2) + O(z^(-2)),
-             O(z^2),
              O(z^(-1/2)),
-             -8*z^(3/2) + O(z^(1/2)))
+             O(z^2),
+             -z^6 + O(z^(1/2)),
+             z^(3/2) + O(z^(-1/2)),
+             O(z^2),
+             -z^(3/2) + O(z^(-2)))
         """
         from sage.misc.mrange import cantor_product
         from sage.rings.asymptotic.term_monoid import TermMonoid

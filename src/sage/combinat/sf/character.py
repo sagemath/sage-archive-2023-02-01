@@ -1,5 +1,10 @@
 """
-character bases of the symmetric functions
+Characters of the symmetric group as bases of the symmetric functions
+
+Just as the Schur functions are the irreducible characters of `Gl_n`
+and form a basis of the symmetric functions, the irreducible
+symmetric group character basis are the irreducible characters of
+of `S_n` when the group is realized as the permutation matrices.
 
 REFERENCES:
 

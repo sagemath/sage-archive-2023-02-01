@@ -198,14 +198,6 @@ def mrange_iter(iter_list, typ=list):
         sage: mrange_iter([])
         [[]]
 
-    .. SEEALSO::
-
-        :class:`xmrange_iter`,
-        :func:`mrange`,
-        :class:`xmrange`,
-        :func:`cartesian_product_iterator`,
-        :func:`product_cantor_pairing`.
-
     AUTHORS:
 
     - Joel B. Mohler
@@ -309,14 +301,6 @@ class xmrange_iter:
         ('apple', 'horse')
         (389, 'orange')
         (389, 'horse')
-
-    .. SEEALSO::
-
-        :func:`mrange_iter`,
-        :func:`mrange`,
-        :class:`xmrange`,
-        :func:`cartesian_product_iterator`,
-        :func:`product_cantor_pairing`.
 
     AUTHORS:
 
@@ -473,13 +457,6 @@ def mrange(sizes, typ=list):
         sage: mrange([])
         [[]]
 
-    .. SEEALSO::
-
-        :func:`mrange_iter`,
-        :class:`xmrange_iter`,
-        :class:`xmrange`,
-        :func:`cartesian_product_iterator`,
-        :func:`product_cantor_pairing`.
 
     AUTHORS:
 
@@ -582,14 +559,6 @@ class xmrange:
         (389, 'orange')
         (389, 'horse')
 
-    .. SEEALSO::
-
-        :func:`mrange_iter`,
-        :class:`xmrange_iter`,
-        :func:`mrange`,
-        :func:`cartesian_product_iterator`,
-        :func:`product_cantor_pairing`.
-
     AUTHORS:
 
     - Jon Hanke
@@ -637,14 +606,6 @@ def cartesian_product_iterator(X):
         [(1, 'a'), (1, 'b'), (2, 'a'), (2, 'b')]
         sage: list(cartesian_product_iterator([]))
         [()]
-
-    .. SEEALSO::
-
-        :func:`mrange_iter`,
-        :class:`xmrange_iter`,
-        :func:`mrange`,
-        :class:`xmrange`,
-        :func:`product_cantor_pairing`.
     """
     return xmrange_iter(X, tuple)
 
@@ -681,14 +642,6 @@ def product_cantor_pairing(A, B):
         sage: list(islice(product_cantor_pairing(ZZ, QQ), 14))
         [(0, 0), (0, 1), (1, 0), (0, -1), (1, 1), (-1, 0), (0, 1/2),
          (1, -1), (-1, 1), (2, 0), (0, -1/2), (1, 1/2), (-1, -1), (2, 1)]
-
-    .. SEEALSO::
-
-        :func:`mrange_iter`,
-        :class:`xmrange_iter`,
-        :func:`mrange`,
-        :class:`xmrange`,
-        :func:`cartesian_product_iterator`.
 
     TESTS:
 

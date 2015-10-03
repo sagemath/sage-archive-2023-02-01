@@ -50,11 +50,11 @@ from sage.rings.integer_ring import ZZ
 from sage.rings.integer import Integer
 from sage.matrix.constructor import matrix, block_matrix, block_diagonal_matrix, diagonal_matrix
 from urllib import urlopen
-from sage.misc.functional import is_even
 from sage.rings.arith import is_prime, is_square, is_prime_power, divisors
 from math import sqrt
 from sage.matrix.constructor import identity_matrix as I
 from sage.matrix.constructor import ones_matrix     as J
+from sage.misc.unknown import Unknown
 
 def H1(i, j, p):
     """
@@ -193,10 +193,98 @@ def hadamard_matrix_paleyII(n):
     # normalising H so that first row and column have only +1 entries.
     return normalise_hadamard(H)
 
-def hadamard_matrix(n):
+def is_hadamard_matrix(M, normalized=False, verbose=False):
+    r"""
+    Test if `M` is a hadamard matrix.
+
+    INPUT:
+
+    - ``M`` -- a matrix
+
+    - ``normalized`` (boolean) -- whether to test if ``M`` is a normalized
+      Hadamard matrix, i.e. has its first row/column filles with +1.
+
+    - ``verbose`` (boolean) -- whether to be verbose when the matrix is not
+      Hadamard.
+
+    EXAMPLE::
+
+        sage: from sage.combinat.matrices.hadamard_matrix import is_hadamard_matrix
+        sage: is_hadamard_matrix(matrix.hadamard(12))
+        True
+        sage: h = matrix.hadamard(12)
+        sage: h[0,0] = 2
+        sage: is_hadamard_matrix(h,verbose=True)
+        The matrix does not only contain +1 and -1 entries, e.g. 2
+        False
+        sage: h = matrix.hadamard(12)
+        sage: for i in range(12):
+        ....:     h[i,2] = -h[i,2]
+        sage: is_hadamard_matrix(h,verbose=True,normalized=True)
+        The matrix is not normalized
+        False
+
+
     """
+    n = M.ncols()
+    if n != M.nrows():
+        if verbose:
+            print "The matrix is not square ({}x{})".format(M.nrows(),n)
+        return False
+
+    if n == 0:
+        return True
+
+    for r in M:
+        for v in r:
+            if v*v != 1:
+                if verbose:
+                    print "The matrix does not only contain +1 and -1 entries, e.g. "+str(v)
+                return False
+
+    prod = (M*M.transpose()).dict()
+    if (len(prod) != n or
+        set(prod.itervalues()) != {n} or
+        any( (i,i) not in prod for i in range(n) )):
+        if verbose:
+            print "The product M*M.transpose() is not equal to nI"
+        return False
+
+    if normalized:
+        if (set(M.row(0)   ) != {1} or
+            set(M.column(0)) != {1}):
+            if verbose:
+                print "The matrix is not normalized"
+            return False
+
+    return True
+
+from sage.matrix.constructor import matrix_method
+@matrix_method
+def hadamard_matrix(n,existence=False, check=True):
+    r"""
     Tries to construct a Hadamard matrix using a combination of Paley
     and Sylvester constructions.
+
+    INPUT:
+
+    - ``n`` (integer) -- dimension of the matrix
+
+    - ``existence`` (boolean) -- whether to build the matrix or merely query if
+      a construction is available in Sage. When set to ``True``, the function
+      returns:
+
+        - ``True`` -- meaning that Sage knows how to build the matrix
+
+        - ``Unknown`` -- meaning that Sage does not know how to build the
+          matrix, but that the design may exist (see :mod:`sage.misc.unknown`).
+
+        - ``False`` -- meaning that the matrix does not exist.
+
+    - ``check`` (boolean) -- whether to check that output is correct before
+      returning it. As this is expected to be useless (but we are cautious
+      guys), you may want to disable it whenever you want speed. Set to ``True``
+      by default.
 
     EXAMPLES::
 
@@ -238,29 +326,59 @@ def hadamard_matrix(n):
         [ 1 -1  1 -1  1 -1| 1  1 -1 -1 -1  1]
         [ 1 -1 -1  1 -1  1| 1  1  1 -1 -1 -1]
         [ 1  1 -1 -1  1 -1| 1 -1  1  1 -1 -1]
+
+    TESTS::
+
+        sage: matrix.hadamard(10,existence=True)
+        False
+        sage: matrix.hadamard(12,existence=True)
+        True
+        sage: matrix.hadamard(20,existence=True)
+        Unknown
+        sage: matrix.hadamard(10)
+        Traceback (most recent call last):
+        ...
+        ValueError: The Hadamard matrix of order 10 does not exist
     """
     if not(n % 4 == 0) and (n > 2):
+        if existence:
+            return False
         raise ValueError("The Hadamard matrix of order %s does not exist" % n)
     if n == 2:
-        return matrix([[1, 1], [1, -1]])
-    if is_even(n):
-        N = Integer(n / 2)
+        if existence:
+            return True
+        M = matrix([[1, 1], [1, -1]])
     elif n == 1:
-        return matrix([1])
-    if is_prime(N - 1) and (N - 1) % 4 == 1:
-        return hadamard_matrix_paleyII(n)
+        if existence:
+            return True
+        M = matrix([1])
+    elif is_prime(n//2 - 1) and (n//2 - 1) % 4 == 1:
+        if existence:
+            return True
+        M = hadamard_matrix_paleyII(n)
     elif n == 4 or n % 8 == 0:
-        had = hadamard_matrix(Integer(n / 2))
+        if existence:
+            return hadamard_matrix(n//2,existence=True)
+        had = hadamard_matrix(n//2,check=False)
         chad1 = matrix([list(r) + list(r) for r in had.rows()])
         mhad = (-1) * had
         R = len(had.rows())
         chad2 = matrix([list(had.rows()[i]) + list(mhad.rows()[i])
                        for i in range(R)])
-        return chad1.stack(chad2)
-    elif is_prime(N - 1) and (N - 1) % 4 == 3:
-        return hadamard_matrix_paleyI(n)
+        M = chad1.stack(chad2)
+    elif is_prime(n//2 - 1) and (n//2 - 1) % 4 == 3:
+        if existence:
+            return True
+        M = hadamard_matrix_paleyI(n)
     else:
+        if existence:
+            return Unknown
         raise ValueError("The Hadamard matrix of order %s is not yet implemented." % n)
+
+    if check:
+        assert is_hadamard_matrix(M, normalized=True)
+
+    return M
 
 def hadamard_matrix_www(url_file, comments=False):
     """

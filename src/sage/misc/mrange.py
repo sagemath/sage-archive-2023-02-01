@@ -711,9 +711,9 @@ def product_cantor_pairing(A, B):
         A loads item number 0
         B loads item number 0
         (0, 0)
-        A loads item number 1
         B loads item number 1
         (0, 1)
+        A loads item number 1
         (1, 0)
         (1, 1)
         sage: for p in product_cantor_pairing(it('A', 3), it('B', 2)):
@@ -721,12 +721,12 @@ def product_cantor_pairing(A, B):
         A loads item number 0
         B loads item number 0
         (0, 0)
-        A loads item number 1
         B loads item number 1
         (0, 1)
+        A loads item number 1
         (1, 0)
-        A loads item number 2
         (1, 1)
+        A loads item number 2
         (2, 0)
         (2, 1)
         sage: for p in product_cantor_pairing(it('A', 2), it('B', 4)):
@@ -734,9 +734,9 @@ def product_cantor_pairing(A, B):
         A loads item number 0
         B loads item number 0
         (0, 0)
-        A loads item number 1
         B loads item number 1
         (0, 1)
+        A loads item number 1
         (1, 0)
         B loads item number 2
         (0, 2)
@@ -745,37 +745,39 @@ def product_cantor_pairing(A, B):
         (0, 3)
         (1, 2)
         (1, 3)
-
-    ::
-
-        sage: from itertools import count
-        sage: list(product_cantor_pairing([], count()))
-        []
-        sage: list(product_cantor_pairing(count(), []))
-        []
     """
+    # when writing this code I thought the solution would be shorter...
+
+    class iter_as_list(list):
+        def __init__(self, iterable):
+            self.it = iter(iterable)
+            self.newdata = True
+        def __getitem__(self, i):
+            self.newdata = False
+            try:
+                while len(self) <= i:
+                    self.append(next(self.it))
+                    self.newdata = True
+            except StopIteration:
+                raise
+            return list.__getitem__(self, i)
+
     from itertools import count
-    from sage.rings.infinity import infinity
-
-    A = iter(A)
-    B = iter(B)
-    max_A = infinity
-    max_B = infinity
-    cache_A = []
-    cache_B = []
+    A = iter_as_list(A)
+    B = iter_as_list(B)
     for s in count():
-        if s <= max_A:
+        for i in range(s+1):
+            stopped = False
             try:
-                cache_A.append(next(A))
+                a = A[i]
             except StopIteration:
-                max_A = s - 1
-        if s <= max_B:
+                stopped = True
             try:
-                cache_B.append(next(B))
+                b = B[s-i]
             except StopIteration:
-                max_B = s - 1
-        if s > max_A + max_B or max_A < 0 or max_B < 0:
+                stopped = True
+            if stopped:
+                continue
+            yield a, b
+        if not A.newdata and not B.newdata and s >= len(A) + len(B):
             return
-
-        for i in range(max(0, s-max_B), min(s, max_A) + 1):
-            yield cache_A[i], cache_B[s-i]

@@ -625,7 +625,7 @@ def product_cantor_pairing(A, B):
 
     EXAMPLES::
 
-        sage: from sage.misc.mrange import product_cantor_pairing
+        sage: from sage.rings.asymptotic.misc import product_cantor_pairing
         sage: tuple(product_cantor_pairing(srange(2), srange(2)))
         ((0, 0), (0, 1), (1, 0), (1, 1))
         sage: tuple(product_cantor_pairing(srange(4), srange(2)))

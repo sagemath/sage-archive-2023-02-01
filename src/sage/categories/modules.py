@@ -405,7 +405,10 @@ class Modules(Category_module):
 
             .. TODO::
 
-                Same as :meth:`Graded`.
+                - Explain why this does not commute with :meth:`WithBasis`
+                - Improve the support for covariant functorial
+                  constructions categories over a base ring so as to
+                  get rid of the ``base_ring`` argument.
 
             TESTS::
 
@@ -476,7 +479,11 @@ class Modules(Category_module):
 
                 sage: A = HopfAlgebrasWithBasis(QQ).example()
                 sage: A.tensor_square()
-                An example of Hopf algebra with basis: the group algebra of the Dihedral group of order 6 as a permutation group over Rational Field # An example of Hopf algebra with basis: the group algebra of the Dihedral group of order 6 as a permutation group over Rational Field
+                An example of Hopf algebra with basis:
+                 the group algebra of the Dihedral group of order 6
+                 as a permutation group over Rational Field # An example
+                 of Hopf algebra with basis: the group algebra of the Dihedral
+                 group of order 6 as a permutation group over Rational Field
             """
             return tensor([self, self])
 

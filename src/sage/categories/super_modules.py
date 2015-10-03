@@ -16,6 +16,8 @@ from sage.categories.category_with_axiom import CategoryWithAxiom_over_base_ring
 from sage.categories.covariant_functorial_construction import CovariantConstructionCategory
 from sage.categories.modules import Modules
 
+# Note, a commutative algebra is not a commutative super algebra,
+#   therefore the following whitelist.
 axiom_whitelist = frozenset(["Facade", "Finite", "Infinite",
                              "FiniteDimensional", "Connected", "WithBasis",
                              # "Commutative",
@@ -88,6 +90,15 @@ class SuperModules(SuperModulesCategory):
     """
     The category of super modules.
 
+    An `R`-*super module* (where `R` is a ring) is an `R`-module `M` equipped
+    with a decomposition `M = M_0 \oplus M_1` into two `R`-submodules
+    `M_0` and `M_1` (called the *even part* and the *odd part* of `M`,
+    respectively).
+
+    Thus, an `R`-super module automatically becomes a `\ZZ / 2 \ZZ`-graded
+    `R`-module, with `M_0` being the degree-`0` component and `M_1` being the
+    degree-`1` component.
+
     EXAMPLES::
 
         sage: Modules(ZZ).Super()
@@ -134,7 +145,7 @@ class SuperModules(SuperModulesCategory):
             []
 
         This makes sure that ``Modules(QQ).Super()`` returns an
-        instance of :class:`GradedModules` and not a join category of
+        instance of :class:`SuperModules` and not a join category of
         an instance of this class and of ``VectorSpaces(QQ)``::
 
             sage: type(Modules(QQ).Super())
@@ -144,7 +155,7 @@ class SuperModules(SuperModulesCategory):
 
             Get rid of this workaround once there is a more systematic
             approach for the alias ``Modules(QQ)`` -> ``VectorSpaces(QQ)``.
-            Probably the later should be a category with axiom, and
+            Probably the latter should be a category with axiom, and
             covariant constructions should play well with axioms.
         """
         from sage.categories.modules import Modules
@@ -163,6 +174,14 @@ class SuperModules(SuperModulesCategory):
             """
             Return ``0`` if ``self`` is an even element or ``1``
             if an odd element.
+
+            .. NOTE::
+
+                The default implementation assumes that the even/odd is
+                determined by the parity of :meth:`degree`.
+
+                Overwrite this method if the even/odd behavior is desired
+                to be independent.
 
             EXAMPLES::
 

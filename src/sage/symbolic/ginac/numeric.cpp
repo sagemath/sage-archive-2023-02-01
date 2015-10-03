@@ -1142,6 +1142,7 @@ const numeric numeric::power(const numeric &exponent) const {
                                         mpq_init(bigrat);
                                         mpq_set_z(bigrat, bigint);
                                         mpq_inv(bigrat, bigrat);
+                                        mpz_clear(bigint);
                                         return bigrat;
                                 }
                         case MPQ:

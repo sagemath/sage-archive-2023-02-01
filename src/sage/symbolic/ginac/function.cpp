@@ -65,8 +65,9 @@ function_options::function_options(std::string const & n, std::string const & tn
 
 function_options::function_options(std::string const & n, unsigned np)
 {
+        static std::string empty;
 	initialize();
-	set_name(n, std::string());
+        set_name(n, empty);
 	nparams = np;
 }
 
@@ -77,7 +78,8 @@ function_options::~function_options()
 
 void function_options::initialize()
 {
-	set_name("unnamed_function", "\\mbox{unnamed}");
+        static std::string s1("unnamed_function"), s2("\\mbox{unnamed}");
+	set_name(s1, s2);
 	nparams = 0;
 	eval_f = real_part_f = imag_part_f = conjugate_f = derivative_f
 		= power_f = series_f = nullptr;
@@ -103,11 +105,14 @@ void function_options::initialize()
 function_options & function_options::set_name(std::string const & n,
                                               std::string const & tn)
 {
-	name = n;
-	if (tn==std::string())
-		TeX_name = "{\\rm "+name+"}";
+        name.assign(n);
+	if (tn.empty()) {
+		TeX_name.assign("{\\rm ");
+                TeX_name += n;
+                TeX_name.append("}");
+        }
 	else
-		TeX_name = tn;
+	        TeX_name.assign(tn);
 	return *this;
 }
 

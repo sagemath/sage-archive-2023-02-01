@@ -326,8 +326,8 @@ unsigned symbol::calchash() const
  *  prefix and a number. */
 std::string & symbol::autoname_prefix()
 {
-	static std::string *s = new std::string("symbol");
-	return *s;
+	static std::string s("symbol");
+	return s;
 }
 
 /** Return default TeX name for symbol. This recognizes some greek letters. */

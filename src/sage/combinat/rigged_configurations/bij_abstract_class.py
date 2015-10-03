@@ -527,8 +527,8 @@ class RCToKRTBijectionAbstract:
             sage: bijection._find_singular_string(bijection.cur_partitions[2], 0)
             0
         """
-        for i in reversed(range(0, len(partition))):
-            if partition[i] >= last_size and \
-              partition.vacancy_numbers[i] == partition.rigging[i]:
+        for i, val in enumerate(partition):
+            if (val >= last_size
+                    and partition.vacancy_numbers[i] == partition.rigging[i]):
                 return i
 

@@ -364,9 +364,9 @@ class RiggedPartition(CombinatorialObject):
 
         INPUT:
 
-        - ``row`` -- The row to remove the cell from
+        - ``row`` -- the row to remove the cell from
 
-        - ``num_cells`` -- (Default: 1) The number of cells to remove
+        - ``num_cells`` -- (default: 1) the number of cells to remove
 
         OUTPUT:
 

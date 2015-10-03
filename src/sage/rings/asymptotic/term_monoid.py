@@ -2077,8 +2077,8 @@ class TermWithCoefficientMonoid(GenericTermMonoid):
              z^2, -2*z^(1/2), 2*z^(-1/2), -z^2, z^(-2))
 
         """
-        from sage.misc.mrange import product_cantor_pairing
-        return iter(self(g, c) for g, c in product_cantor_pairing(
+        from sage.misc.mrange import cantor_product
+        return iter(self(g, c) for g, c in cantor_product(
             self.growth_group.some_elements(),
             iter(c for c in self.base_ring().some_elements() if c != 0)))
 

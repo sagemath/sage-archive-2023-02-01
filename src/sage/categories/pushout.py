@@ -680,7 +680,7 @@ class MultivariateConstructionFunctor(ConstructionFunctor):
         .. NOTE::
 
             Overload this function in derived class, see
-            e.e. :class:`MultivariateConstructionFunctor`.
+            e.g. :class:`MultivariateConstructionFunctor`.
 
         TESTS::
 
@@ -690,7 +690,7 @@ class MultivariateConstructionFunctor(ConstructionFunctor):
             ...
             CoercionException: No common base ("join") found for
             The cartesian_product functorial construction(Integer Ring) and FractionField(Integer Ring):
-            (Multivariate) functors are inkompatibel.
+            (Multivariate) functors are incompatible.
             sage: pushout(cartesian_product([ZZ]), cartesian_product([ZZ, QQ]))  # indirect doctest
             Traceback (most recent call last):
             ...
@@ -702,7 +702,7 @@ class MultivariateConstructionFunctor(ConstructionFunctor):
         if self != other_functor:
             self._raise_common_base_exception_(
                 other_functor, self_bases, other_bases,
-                '(Multivariate) functors are inkompatibel')
+                '(Multivariate) functors are incompatible')
         if len(self_bases) != len(other_bases):
             self._raise_common_base_exception_(
                 other_functor, self_bases, other_bases,

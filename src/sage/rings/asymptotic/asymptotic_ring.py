@@ -1417,7 +1417,7 @@ class AsymptoticRingFunctor(ConstructionFunctor):
 
     def merge(self, other):
         r"""
-        Merge this functor with ``other`` of possible.
+        Merge this functor with ``other`` if possible.
 
         INPUT:
 

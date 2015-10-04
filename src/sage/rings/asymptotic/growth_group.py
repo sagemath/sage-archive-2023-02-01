@@ -2782,7 +2782,7 @@ class ExponentialGrowthGroup(GenericGrowthGroup):
 class ExponentialGrowthGroupFunctor(AbstractGrowthGroupFunctor):
     r"""
     A :class:`construction functor <sage.categories.pushout.ConstructionFunctor>`
-    :class:`exponential growth groups <ExponentialGrowthGroup>`.
+    for :class:`exponential growth groups <ExponentialGrowthGroup>`.
 
     INPUT:
 

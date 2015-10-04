@@ -257,7 +257,7 @@ class CartesianProduct(UniqueRepresentation, Parent):
             S_factors = S.cartesian_factors()
             R_factors = self.cartesian_factors()
             if len(S_factors) == len(R_factors):
-                if all(r.has_coerce_map_from(s) for r,s in zip(R_factors, S_factors)):
+                if all(r.has_coerce_map_from(s) for r, s in zip(R_factors, S_factors)):
                     return True
 
     an_element = Sets.CartesianProducts.ParentMethods.an_element

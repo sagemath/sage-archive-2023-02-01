@@ -643,7 +643,6 @@ class MultivariateConstructionFunctor(ConstructionFunctor):
     TESTS::
 
         sage: from sage.categories.pushout import pushout
-        sage: from sage.sets.cartesian_product import CartesianProduct
         sage: A = cartesian_product((QQ['z'], QQ))
         sage: B = cartesian_product((ZZ['t']['z'], QQ))
         sage: pushout(A, B)
@@ -3514,7 +3513,6 @@ def pushout(R, S):
          (Univariate Polynomial Ring in x over Integer Ring,
           Univariate Polynomial Ring in y over Rational Field,
           Univariate Polynomial Ring in z over Univariate Polynomial Ring in t over Rational Field)
-
 
     ::
 

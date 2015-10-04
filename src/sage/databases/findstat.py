@@ -868,9 +868,6 @@ class FindStatStatistic(SageObject):
         self._code                  = self._raw[FINDSTAT_STATISTIC_CODE]
         self._generating_function   = self._raw[FINDSTAT_STATISTIC_GENERATING_FUNCTION]
 
-        self._collection = FindStatCollection(self._raw[FINDSTAT_STATISTIC_COLLECTION])
-        self._code = self._raw[FINDSTAT_STATISTIC_CODE]
-
         from_str = self._collection.from_string()
         # we want to keep FindStat's ordering here!
         if from_str is None:
@@ -1388,7 +1385,7 @@ class FindStatStatistic(SageObject):
             sage: findstat(1).name()                                            # optional -- internet,random
             u'The number of ways to write a permutation as a minimal length product of simple transpositions.'
         """
-        return self._description.partition(FINDSTAT_SEPARATOR_NAME)[0]
+        return self._name
 
     def references(self):
         r"""
@@ -1609,7 +1606,6 @@ class FindStatStatistic(SageObject):
 
     # editing and submitting is really the same thing
     edit = submit
-
 
 # helper for generation of CartanTypes
 def _finite_irreducible_cartan_types_by_rank(n):
@@ -1992,6 +1988,22 @@ class FindStatCollection(Element):
         """
         return self._name
 
+    def name_plural(self):
+        r"""
+        Return the plural name of the FindStat collection.
+
+        OUTPUT:
+
+        The name of the FindStat collection, in plural.
+
+        EXAMPLES::
+
+            sage: from sage.databases.findstat import FindStatCollection
+            sage: FindStatCollection("Binary trees").name_plural()              # optional -- internet
+            u'Binary trees'
+        """
+        return self._name_plural
+
 class FindStatCollections(Parent, UniqueRepresentation):
     r"""
     The class of FindStat collections.
@@ -2251,7 +2263,6 @@ class FindStatCollections(Parent, UniqueRepresentation):
             yield FindStatCollection(c)
 
     Element = FindStatCollection
-
 
 class FindStatMap(Element):
     r"""
@@ -2618,6 +2629,5 @@ class FindStatMaps(Parent, UniqueRepresentation):
             yield FindStatMap(m)
 
     Element = FindStatMap
-
 
 findstat = FindStat()

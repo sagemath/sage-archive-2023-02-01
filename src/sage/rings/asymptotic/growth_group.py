@@ -1459,7 +1459,7 @@ class GenericGrowthGroup(
 
         ::
 
-            sage: agg.GrowthGroup('x^QQ').has_coerce_map_from(agg.GrowthGroup('QQ^x'))
+            sage: agg.GrowthGroup('x^QQ').has_coerce_map_from(agg.GrowthGroup('QQ^x')) # indirect doctest
             False
         """
         if isinstance(S, type(self)) and self._var_ == S._var_:

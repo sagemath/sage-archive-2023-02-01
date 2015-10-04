@@ -609,9 +609,9 @@ class GenericProduct(CartesianProductPosets, GenericGrowthGroup):
             sage: from sage.rings.asymptotic.growth_group import GrowthGroup
             sage: A = GrowthGroup('QQ^x * x^QQ')
             sage: B = GrowthGroup('QQ^x * x^ZZ')
-            sage: A.has_coerce_map_from(B)
+            sage: A.has_coerce_map_from(B) # indirect doctest
             True
-            sage: B.has_coerce_map_from(A)
+            sage: B.has_coerce_map_from(A) # indirect doctest
             False
         """
         if CartesianProductPosets.has_coerce_map_from(self, S):

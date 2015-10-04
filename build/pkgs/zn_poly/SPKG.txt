@@ -12,10 +12,6 @@ Website: http://cims.nyu.edu/~harvey/zn_poly/
 GPL V2 or V3.  Some of the code has been copied from other projects - see
 the file src/COPYING for details.
 
-== SPKG Maintainers ==
-
- * David Harvey
-
 == Upstream Contact ==
 
  * David Harvey

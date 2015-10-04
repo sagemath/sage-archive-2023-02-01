@@ -23,6 +23,7 @@ from permgroup_named import DihedralGroup as Dihedral
 from permgroup_named import DiCyclicGroup as DiCyclic
 from permgroup_named import MathieuGroup as Mathieu
 from permgroup_named import JankoGroup as Janko
+from permgroup_named import SuzukiSporadicGroup as SuzukiSporadic
 from permgroup_named import SuzukiGroup as Suzuki
 from permgroup_named import (PGL, PSL, PSp,PSU,PGU,)
 from permgroup_named import TransitiveGroup as Transitive

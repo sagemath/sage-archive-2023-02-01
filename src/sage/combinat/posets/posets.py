@@ -59,10 +59,10 @@ List of Poset methods
     :delim: |
 
     :meth:`~FinitePoset.cardinality` | Return the number of elements in the poset.
-    :meth:`~FinitePoset.height` | Return the height (number of elements in the longest chain) of the poset.
-    :meth:`~FinitePoset.width` | Return the width of the poset (the size of its longest antichain).
-    :meth:`~FinitePoset.dimension` | Return the dimension of the poset.
+    :meth:`~FinitePoset.height` | Return the number of elements in a longest chain of the poset.
+    :meth:`~FinitePoset.width` | Return the number of elements in a longest antichain of the poset.
     :meth:`~FinitePoset.relations_number` | Return the number of relations in the poset.
+    :meth:`~FinitePoset.dimension` | Return the dimension of the poset.
     :meth:`~FinitePoset.has_bottom` | Return ``True`` if the poset has a unique minimal element.
     :meth:`~FinitePoset.has_top` | Return ``True`` if the poset has a unique maximal element.
     :meth:`~FinitePoset.is_bounded` | Return ``True`` if the poset contains a unique maximal element and a unique minimal element, and False otherwise.
@@ -70,6 +70,7 @@ List of Poset methods
     :meth:`~FinitePoset.is_connected` | Return ``True`` if the poset is connected, and ``False`` otherwise.
     :meth:`~FinitePoset.is_graded` | Return whether this poset is graded.
     :meth:`~FinitePoset.is_ranked` | Return whether this poset is ranked.
+    :meth:`~FinitePoset.is_ranked` | Return ``True`` if the poset is rank symmetric.
     :meth:`~FinitePoset.is_incomparable_chain_free` | Return whether the poset is `(m+n)`-free.
     :meth:`~FinitePoset.is_slender` | Return whether the poset ``self`` is slender or not.
     :meth:`~FinitePoset.is_join_semilattice` | Return ``True`` is the poset has a join operation, and False otherwise.
@@ -1915,7 +1916,7 @@ class FinitePoset(UniqueRepresentation, Parent):
         Return the number of relations in the poset.
 
         A relation is a pair of elements `x` and `y` such that `x\leq y`
-        in ``self``.
+        in the poset.
 
         Relations are also often called intervals. The number of
         intervals is the dimension of the incidence algebra.
@@ -1926,13 +1927,18 @@ class FinitePoset(UniqueRepresentation, Parent):
 
         EXAMPLES::
 
+            sage: P = Posets.PentagonPoset()
+            sage: P.relations_number()
+            13
+
             sage: from sage.combinat.tamari_lattices import TamariLattice
             sage: TamariLattice(4).relations_number()
             68
 
-            sage: P = posets.BooleanLattice(3)
-            sage: P.relations_number()
-            27
+        TESTS::
+
+            sage: Poset().relations_number()
+            0
         """
         return sum(1 for x in self.relations_iterator())
 
@@ -2310,7 +2316,7 @@ class FinitePoset(UniqueRepresentation, Parent):
 
     def height(self):
         """
-        Return the height (number of elements in the longest chain) of the poset.
+        Return the height (number of elements in a longest chain) of the poset.
 
         EXAMPLES::
 
@@ -2319,7 +2325,10 @@ class FinitePoset(UniqueRepresentation, Parent):
             3
             sage: Posets.PentagonPoset().height()
             4
-            sage: Poset({}).height()
+
+        TESTS::
+
+            sage: Poset().height()
             0
         """
         return self.rank()+1
@@ -2548,8 +2557,11 @@ class FinitePoset(UniqueRepresentation, Parent):
         r"""
         Return the dimension of the Poset.
 
-        The (Dushnik-Miller) dimension of a Poset defined on a set `X` of points
-        is the smallest integer `n` such that there exists `P_1,...,P_n` linear
+        The (Dushnik-Miller) dimension of a poset is the minimal
+        number of total orders so that the poset can be defined as
+        "intersection" of all of them. Mathematically said, dimension
+        of a poset defined on a set `X` of points is the smallest
+        integer `n` such that there exists `P_1,...,P_n` linear
         extensions of `P` satisfying the following property:
 
         .. MATH::
@@ -2566,11 +2578,11 @@ class FinitePoset(UniqueRepresentation, Parent):
 
         .. NOTE::
 
-            The speed of this function greatly improves when more efficient MILP
-            solvers (e.g. Gurobi, CPLEX) are installed. See
+            The speed of this function greatly improves when more efficient
+            MILP solvers (e.g. Gurobi, CPLEX) are installed. See
             :class:`MixedIntegerLinearProgram` for more information.
 
-        **Algorithm:**
+        ALGORITHM:
 
         As explained [FT00]_, the dimension of a poset is equal to the (weak)
         chromatic number of a hypergraph. More precisely:
@@ -2593,19 +2605,17 @@ class FinitePoset(UniqueRepresentation, Parent):
 
         EXAMPLES:
 
-        According to Wikipedia, the poset (of height 2) of a graph is `\leq 2`
-        if and only if the graph is a path::
+        We create a poset, compute a set of linear extensions and check
+        that we get back the poset from them::
 
-            sage: G = graphs.PathGraph(6)
-            sage: P = Poset(DiGraph({(u,v):[u,v] for u,v,_ in G.edges()}))
+            sage: P = Poset([[1,4], [3], [4,5,3], [6], [], [6], []])
             sage: P.dimension()
-            2
-
-        The actual linear extensions can be obtained with ``certificate=True``::
-
-            sage: P.dimension(certificates=True) # not tested -- architecture-dependent
-            [[(0, 1), 0, (1, 2), 1, (2, 3), 2, (3, 4), 3, (4, 5), 4, 5],
-            [(4, 5), 5, (3, 4), 4, (2, 3), 3, (1, 2), 2, (0, 1), 1, 0]]
+            3
+            sage: L = P.dimension(certificate=True)
+            sage: L # random -- architecture-dependent
+            [[0, 2, 4, 5, 1, 3, 6], [2, 5, 0, 1, 3, 4, 6], [0, 1, 2, 3, 5, 6, 4]]
+            sage: Poset( (L[0], lambda x, y: all(l.index(x) < l.index(y) for l in L)) ) == P
+            True
 
         According to Schnyder's theorem, the poset (of height 2) of a graph has
         dimension `\leq 3` if and only if the graph is planar::
@@ -2626,7 +2636,7 @@ class FinitePoset(UniqueRepresentation, Parent):
 
             sage: Poset().dimension()
             0
-            sage: Poset().dimension(certificate=1)
+            sage: Poset().dimension(certificate=True)
             []
 
         References:
@@ -2985,7 +2995,7 @@ class FinitePoset(UniqueRepresentation, Parent):
 
     def cardinality(self):
         """
-        Returns the number of elements in the poset.
+        Return the number of elements in the poset.
 
         EXAMPLES::
 
@@ -3388,16 +3398,16 @@ class FinitePoset(UniqueRepresentation, Parent):
         It is computed through a matching in a bipartite graph. See
         :wikipedia:`Dilworth's_theorem` for more information.
 
-        .. SEEALSO::
+        EXAMPLES::
 
-            :meth:`dilworth_decomposition` -- return a partition of the poset
-            into the smallest number of chains.
-
-        EXAMPLE::
-
-            sage: p = posets.BooleanLattice(4)
-            sage: p.width()
+            sage: P = posets.BooleanLattice(4)
+            sage: P.width()
             6
+
+        TESTS::
+
+            sage: Poset().width()
+            0
         """
         # See the doc of dilworth_decomposition for an explanation of what is
         # going on.
@@ -3436,7 +3446,7 @@ class FinitePoset(UniqueRepresentation, Parent):
         According to Dilworth's theorem, the number of chains is equal to
             `\alpha` (the posets' width).
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: p = posets.BooleanLattice(4)
             sage: p.width()
@@ -3540,23 +3550,28 @@ class FinitePoset(UniqueRepresentation, Parent):
 
     def connected_components(self):
         """
-        Return the connected components of ``self`` as subposets.
+        Return the connected components of the poset as subposets.
 
         EXAMPLES::
 
             sage: P = Poset({1:[2,3], 3:[4,5]})
             sage: CC = P.connected_components()
-            sage: CC is P
+            sage: CC[0] is P
             True
 
             sage: P = Poset({1:[2,3], 3:[4,5], 6:[7,8]})
             sage: sorted(P.connected_components(), key=len)
             [Finite poset containing 3 elements,
              Finite poset containing 5 elements]
+
+        TESTS::
+
+            sage: Poset().connected_components() # Test empty poset
+            []
         """
         comps = self._hasse_diagram.connected_components()
         if len(comps) == 1:
-            return self
+            return [self]
         return [self.subposet(self._vertex_to_element(x) for x in cc)
                 for cc in comps]
 
@@ -3861,10 +3876,10 @@ class FinitePoset(UniqueRepresentation, Parent):
 
         INPUT:
 
-        - ``relabeling`` -- a function or dictionnary
+        - ``relabeling`` -- a function or dictionary
 
-          This function should map each (non-wrapped) element of
-          ``self`` to some distinct object.
+        This function should map each (non-wrapped) element of
+        ``self`` to some distinct object.
 
         EXAMPLES::
 
@@ -4284,8 +4299,9 @@ class FinitePoset(UniqueRepresentation, Parent):
         if direction == 'antichain':
             return [self._vertex_to_element(i) for i,x in enumerate(state)
                         if x == 0 and all(state[j] == 1 for j in hd.upper_covers_iterator(i))]
-        else:  # direction is assumed to be 'down'
-            return [self._vertex_to_element(i) for i,x in enumerate(state) if x == 0]
+        if direction != 'down':
+            raise ValueError("direction must be 'up', 'down' or 'antichain'")
+        return [self._vertex_to_element(i) for i,x in enumerate(state) if x == 0]
 
     def order_filter(self,elements):
         """
@@ -5227,6 +5243,41 @@ class FinitePoset(UniqueRepresentation, Parent):
         """
         return self.linear_extension().evacuation().to_poset()
 
+    def is_rank_symmetric(self):
+        """
+        Return ``True`` if the poset is rank symmetric, and ``False`` otherwise.
+
+        The poset is expected to be graded and connected.
+
+        A poset of rank `h` (maximal chains have `h+1` elements) is rank
+        symmetric if the number of elements are equal in ranks `i` and
+        `h-i` for every `i` in `0, 1, \ldots, h`.
+
+        EXAMPLES::
+
+            sage: P = Poset({1:[2], 2:[3,4], 3:[5], 4:[5]})
+            sage: P.is_rank_symmetric()
+            False
+            sage: P = Poset({1:[3,4,5], 2:[3,4,5], 3:[6], 4:[7], 5:[7]})
+            sage: P.is_rank_symmetric()
+            True
+
+        TESTS::
+
+            sage: Poset().is_rank_symmetric()  # Test empty poset
+            True
+        """
+        if not self.is_connected():
+            raise TypeError('the poset is not connected')
+        if not self.is_graded():
+            raise TypeError('the poset is not graded')
+        levels = self._hasse_diagram.level_sets()
+        h = len(levels)
+        for i in range(h/2):
+            if len(levels[i]) != len(levels[h-1-i]):
+                return False
+        return True
+
     def is_slender(self):
         r"""
         Return ``True`` if the poset is slender, and ``False`` otherwise.
@@ -5672,6 +5723,7 @@ class FinitePosets_n(UniqueRepresentation, Parent):
            transitively-reduced, acyclic digraphs.
 
         EXAMPLES::
+
             sage: P = Posets(2)
             sage: list(P)
             [Finite poset containing 2 elements, Finite poset containing 2 elements]

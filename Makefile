@@ -13,13 +13,28 @@ build: all-build
 
 # Defer unknown targets to build/make/Makefile
 %::
-	$(MAKE) configure logs
-	+cd build/make && ./pipestatus \
-		"./install '$@' 2>&1" \
-		"tee -a ../../logs/install.log"
+	$(MAKE) build/make/Makefile
+	+build/bin/sage-logger \
+		"cd build/make && ./install '$@'" logs/install.log
 
-logs:
-	mkdir -p $@
+# If configure was run before, rerun it with the old arguments.
+# Otherwise, run configure with argument $PREREQ_OPTIONS.
+build/make/Makefile: configure
+	rm -f config.log
+	mkdir -p logs/pkgs
+	ln -s logs/pkgs/config.log config.log
+	@if [ -x config.status ]; then \
+		./config.status --recheck && ./config.status; \
+	else \
+		./configure $$PREREQ_OPTIONS; \
+	fi || ( \
+		if [ "x$$SAGE_PORT" = x ]; then \
+			echo "If you would like to try to build Sage anyway (to help porting),"; \
+			echo "export the variable 'SAGE_PORT' to something non-empty."; \
+			exit 1; \
+		else \
+			echo "Since 'SAGE_PORT' is set, we will try to build anyway."; \
+		fi; )
 
 # Preemptively download all standard upstream source tarballs.
 download:
@@ -62,7 +77,7 @@ bootstrap-clean:
 maintainer-clean: distclean bootstrap-clean
 	rm -rf upstream
 
-micro_release: bdist-clean lib-clean
+micro_release: bdist-clean sagelib-clean
 	@echo "Stripping binaries ..."
 	LC_ALL=C find local/lib local/bin -type f -exec strip '{}' ';' 2>&1 | grep -v "File format not recognized" |  grep -v "File truncated" || true
 

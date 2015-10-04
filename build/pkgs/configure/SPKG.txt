@@ -10,11 +10,6 @@ autotools version installed.
 
 GPLv3+
 
-== SPKG Maintainers ==
-
-* Jeroen Demeyer
-* Volker Braun
-
 == Upstream Contact ==
 
 

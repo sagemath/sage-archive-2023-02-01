@@ -23,7 +23,7 @@ AUTHORS:
 #*****************************************************************************
 
 from sage.misc.misc import repr_lincomb
-from sage.rings.ring_element import RingElement
+from sage.structure.element import RingElement
 from sage.rings.integer import Integer
 from sage.algebras.algebra_element import AlgebraElement
 from sage.modules.free_module_element import FreeModuleElement

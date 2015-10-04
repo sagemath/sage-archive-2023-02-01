@@ -120,7 +120,7 @@ Test if :trac:`9947` is fixed::
     sage: a.real_part()
     4*sqrt(3)/(sqrt(3) + 5)
     sage: a.imag_part()
-    sqrt(abs(4*(sqrt(3) + 5)*(sqrt(3) - 5) + 48))/(sqrt(3) + 5)
+    2*sqrt(10)/(sqrt(3) + 5)
 """
 
 ###############################################################################
@@ -1912,6 +1912,14 @@ cdef class Expression(CommutativeRingElement):
 
             sage: SR(5).is_integer()
             True
+
+        TESTS:
+
+        Check that integer variables are recognized (:trac:`18921`)::
+
+            sage: _ = var('n', domain='integer')
+            sage: n.is_integer()
+            True
         """
         return self._gobj.info(info_integer)
 
@@ -2396,6 +2404,12 @@ cdef class Expression(CommutativeRingElement):
             sage: assert(sqrt(2) < SR(oo))
             sage: assert(SR(-oo) < sqrt(2))
             sage: assert(sqrt(2) > SR(-oo))
+
+        Check that :trac:`18360` is fixed::
+
+            sage: f(x) = matrix()
+            sage: bool(f(x) - f(x) == 0)
+            True
         """
         if self.is_relational():
             # constants are wrappers around Sage objects, compare directly
@@ -3042,6 +3056,14 @@ cdef class Expression(CommutativeRingElement):
             sage: ex.substitute(a=z, b=z)
             (r1*x2 - r2 - x1)/x3
 
+        TESTS:
+
+        Check that :trac:`18360` is fixed::
+
+            sage: f(x) = matrix()
+            sage: f(x)*1
+            []
+        
         Check that floating point numbers +/- 1.0 are treated
         differently from integers +/- 1 (:trac:`12257`)::
 
@@ -4127,6 +4149,11 @@ cdef class Expression(CommutativeRingElement):
             sage: ((-(-a*x*p)^3*(b*y*p)^3)^(c/2)).expand()
             (a^3*b^3*x^3*y^3)^(1/2*c)*p^(3*c)
             sage: x,y,p,q = var('x,y,p,q', domain='complex')
+
+        Check that :trac:`18568` is fixed::
+
+            sage: ((x+sqrt(2)*x)^2).expand()
+            2*sqrt(2)*x^2 + 3*x^2
         """
         if side is not None:
             if not is_a_relational(self._gobj):
@@ -6762,7 +6789,7 @@ cdef class Expression(CommutativeRingElement):
 
         .. SEEALSO::
 
-            - :func:`sage.misc.functional.norm`
+            :func:`sage.misc.functional.norm`
 
         EXAMPLES::
 
@@ -8149,7 +8176,7 @@ cdef class Expression(CommutativeRingElement):
         """
         Return this expression normalized as a fraction
 
-        .. SEEALSO:
+        .. SEEALSO::
 
             :meth:`numerator`, :meth:`denominator`,
             :meth:`numerator_denominator`, :meth:`combine`
@@ -10559,8 +10586,10 @@ cdef class Expression(CommutativeRingElement):
             ...
             AttributeError: Please use a tuple or list for several variables.
 
-        .. SEEALSO: http://docs.sympy.org/latest/modules/solvers/diophantine.html
-            """
+        .. SEEALSO::
+
+            http://docs.sympy.org/latest/modules/solvers/diophantine.html
+        """
         from sympy.solvers.diophantine import diophantine
         from sympy import sympify
 

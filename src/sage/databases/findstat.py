@@ -861,17 +861,12 @@ class FindStatStatistic(SageObject):
             else:
                 raise
 
-<<<<<<< HEAD
-        self._description = self._raw[FINDSTAT_STATISTIC_DESCRIPTION].encode("utf-8")
-        self._references = self._raw[FINDSTAT_STATISTIC_REFERENCES].encode("utf-8")
-        self._generating_function   = self._raw[FINDSTAT_STATISTIC_GENERATING_FUNCTION]
-=======
         self._description           = self._raw[FINDSTAT_STATISTIC_DESCRIPTION].encode("utf-8")
         self._name                  = self._raw[FINDSTAT_STATISTIC_NAME].encode("utf-8")
         self._references            = self._raw[FINDSTAT_STATISTIC_REFERENCES].encode("utf-8")
         self._collection            = FindStatCollection(self._raw[FINDSTAT_STATISTIC_COLLECTION])
         self._code                  = self._raw[FINDSTAT_STATISTIC_CODE]
->>>>>>> t/19307/improve_statistic_name_and_add_collection_name_plural_to_findstat_interface
+        self._generating_function   = self._raw[FINDSTAT_STATISTIC_GENERATING_FUNCTION]
 
         self._collection = FindStatCollection(self._raw[FINDSTAT_STATISTIC_COLLECTION])
         self._code = self._raw[FINDSTAT_STATISTIC_CODE]

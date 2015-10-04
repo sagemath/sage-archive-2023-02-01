@@ -700,7 +700,7 @@ def GoethalsSeidelGraph(k,r):
     :func:`~sage.combinat.matrices.hadamard_matrix.hadamard_matrix>` of order
     `r+1`. The result is a
     :func:`sage.graphs.strongly_regular_db.strongly_regular_graph` on `v(r+1)`
-    vertices with degree `k=(n-r-1)/2`.
+    vertices with degree `k=(n+r-1)/2`.
 
     It appears under this name in Andries Brouwer's `database of strongly
     regular graphs <http://www.win.tue.nl/~aeb/graphs/srg/srgtab.html>`__.
@@ -744,7 +744,7 @@ def GoethalsSeidelGraph(k,r):
     P = block_matrix(P)
 
     # The final graph
-    PP = - P*P.transpose()
+    PP = P*P.transpose()
     for i in range(n):
         PP[i,i] = 0
 

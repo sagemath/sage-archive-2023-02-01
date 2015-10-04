@@ -359,37 +359,42 @@ def is_goethals_seidel(int v,int k,int l,int mu):
     EXAMPLES::
 
         sage: from sage.graphs.strongly_regular_db import is_goethals_seidel
-        sage: t = is_goethals_seidel(28, 12, 6, 4); t
-        [<function GoethalsSeidelGraph at ...>, 3, 3]
+        sage: t = is_goethals_seidel(28, 15, 6, 10); t
+        [<function GoethalsSeidelGraph at 0x7feac4de47d0>, 3, 3]
         sage: g = t[0](*t[1:]); g
         Graph on 28 vertices
         sage: g.is_strongly_regular(parameters=True)
-        (28, 12, 6, 4)
+        (28, 15, 6, 10)
 
-        sage: t = is_goethals_seidel(496, 240, 120, 112); t
-        [<function GoethalsSeidelGraph at ...>, 3, 15]
+        sage: t = is_goethals_seidel(256, 135, 70, 72); t
+        [<function GoethalsSeidelGraph at 0x7feac4de47d0>, 2, 15]
         sage: g = t[0](*t[1:]); g
-        Graph on 496 vertices
+        Graph on 256 vertices
         sage: g.is_strongly_regular(parameters=True)
-        (496, 240, 120, 112)
+        (256, 135, 70, 72)
 
         sage: t = is_goethals_seidel(5,5,5,5); t
 
     TESTS::
 
-        sage: for p in [(28, 12, 6, 4), (120, 56, 28, 24), (496, 240, 120, 112),
-        ....:           (540, 264, 138, 120), (780, 380, 190, 180), (976, 480, 248, 224),
-        ....:           (1216, 600, 312, 280), (1456, 720, 376, 336)]:
+        sage: for p in [(16, 9, 4, 6), (28, 15, 6, 10), (64, 35, 18, 20), (120, 63, 30, 36),
+        ....:           (144, 77, 40, 42), (256, 135, 70, 72), (400, 209, 108, 110),
+        ....:           (496, 255, 126, 136), (540, 275, 130, 150), (576, 299, 154, 156),
+        ....:           (780, 399, 198, 210), (784, 405, 208, 210), (976, 495, 238, 264)]:
         ....:     print is_goethals_seidel(*p)
+        [<function GoethalsSeidelGraph at ...>, 2, 3]
         [<function GoethalsSeidelGraph at ...>, 3, 3]
+        [<function GoethalsSeidelGraph at ...>, 2, 7]
         [<function GoethalsSeidelGraph at ...>, 3, 7]
+        [<function GoethalsSeidelGraph at ...>, 2, 11]
+        [<function GoethalsSeidelGraph at ...>, 2, 15]
+        [<function GoethalsSeidelGraph at ...>, 2, 19]
         [<function GoethalsSeidelGraph at ...>, 3, 15]
         [<function GoethalsSeidelGraph at ...>, 5, 11]
+        [<function GoethalsSeidelGraph at ...>, 2, 23]
         [<function GoethalsSeidelGraph at ...>, 3, 19]
+        [<function GoethalsSeidelGraph at ...>, 2, 27]
         [<function GoethalsSeidelGraph at ...>, 5, 15]
-        [<function GoethalsSeidelGraph at ...>, 6, 15]
-        [<function GoethalsSeidelGraph at ...>, 7, 15]
-
     """
     from sage.combinat.designs.bibd import balanced_incomplete_block_design
     from sage.combinat.matrices.hadamard_matrix import hadamard_matrix
@@ -397,15 +402,15 @@ def is_goethals_seidel(int v,int k,int l,int mu):
     # here we guess the parameters v_bibd,k_bibd and r_bibd of the block design
     #
     # - the number of vertices v is equal to v_bibd*(r_bibd+1)
-    # - the degree k of the graph is equal to k=(v-r_bibd-1)/2
+    # - the degree k of the graph is equal to k=(v+r_bibd-1)/2
 
-    r_bibd = v-2*k-1
+    r_bibd = k - (v-1-k)
     v_bibd = v//(r_bibd+1)
     k_bibd = (v_bibd-1)/r_bibd + 1 if r_bibd>0 else -1
 
     if (v   == v_bibd*(r_bibd+1)                  and
-        2*k == v-r_bibd-1                         and
-        4*l == 10*k+v_bibd+k_bibd+2*r_bibd-4*v and
+        2*k == v+r_bibd-1                         and
+        4*l == -2*v + 6*k -v_bibd -k_bibd         and
         hadamard_matrix(r_bibd+1, existence=True) and
         balanced_incomplete_block_design(v_bibd, k_bibd, existence = True)):
         from sage.graphs.generators.families import GoethalsSeidelGraph

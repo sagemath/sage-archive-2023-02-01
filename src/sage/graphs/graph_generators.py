@@ -202,6 +202,7 @@ __append_to_doc(
      "fusenes",
      "FuzzyBallGraph",
      "GeneralizedPetersenGraph",
+     "GoethalsSeidelGraph",
      "HanoiTowerGraph",
      "HararyGraph",
      "HyperStarGraph",
@@ -1972,6 +1973,7 @@ class GraphGenerators():
     FriendshipGraph        = staticmethod(sage.graphs.generators.families.FriendshipGraph)
     FuzzyBallGraph         = staticmethod(sage.graphs.generators.families.FuzzyBallGraph)
     GeneralizedPetersenGraph = staticmethod(sage.graphs.generators.families.GeneralizedPetersenGraph)
+    GoethalsSeidelGraph    = staticmethod(sage.graphs.generators.families.GoethalsSeidelGraph)
     HanoiTowerGraph        = staticmethod(sage.graphs.generators.families.HanoiTowerGraph)
     HararyGraph            = staticmethod(sage.graphs.generators.families.HararyGraph)
     HyperStarGraph         = staticmethod(sage.graphs.generators.families.HyperStarGraph)

@@ -1862,7 +1862,7 @@ class KRRiggedConfigurationElement(RiggedConfigurationElement):
         for nu in parts[:r-1]:
             nu._list.append(1)
         for a, nu in enumerate(parts[:r-1]):
-            vac_num = RC._calc_vacancy_number(parts, a, -1)
+            vac_num = RC._calc_vacancy_number(parts, a, 1)
             i = nu._list.index(1)
             nu.vacancy_numbers.insert(i, vac_num)
             nu.rigging.insert(i, vac_num)

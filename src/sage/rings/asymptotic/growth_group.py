@@ -436,7 +436,7 @@ class Variable(sage.structure.unique_representation.CachedRepresentation,
 
     def __ne__(self, other):
         r"""
-        Compares if this variable does not equal ``other``.
+        Return whether this variable does not equal ``other``.
 
         INPUT:
 
@@ -1769,7 +1769,7 @@ class AbstractGrowthGroupFunctor(ConstructionFunctor):
 
     def __eq__(self, other):
         r"""
-        Return if this functor is equal to ``other``.
+        Return whether this functor is equal to ``other``.
 
         INPUT:
 
@@ -1794,7 +1794,7 @@ class AbstractGrowthGroupFunctor(ConstructionFunctor):
 
     def __ne__(self, other):
         r"""
-        Return if this functor is not equal to ``other``.
+        Return whether this functor is not equal to ``other``.
 
         INPUT:
 

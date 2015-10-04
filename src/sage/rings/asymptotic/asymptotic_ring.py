@@ -1454,7 +1454,7 @@ class AsymptoticRingFunctor(ConstructionFunctor):
 
     def __eq__(self, other):
         r"""
-        Return if this functor is equal to ``other``.
+        Return whether this functor is equal to ``other``.
 
         INPUT:
 
@@ -1481,7 +1481,7 @@ class AsymptoticRingFunctor(ConstructionFunctor):
 
     def __ne__(self, other):
         r"""
-        Return if this functor is not equal to ``other``.
+        Return whether this functor is not equal to ``other``.
 
         INPUT:
 

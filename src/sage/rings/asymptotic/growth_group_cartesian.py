@@ -306,7 +306,7 @@ class CartesianProductFactory(sage.structure.factory.UniqueFactory):
         vgs = tuple((v, tuple(gs)) for v, gs in
                     groupby(sorted(vg, key=lambda k: k[0]), key=lambda k: k[0]))
 
-        # check if variables are pairwise disjoint
+        # check whether variables are pairwise disjoint
         for u, w in product(iter(v for v, _ in vgs), repeat=2):
             if u != w and not set(u).isdisjoint(set(w)):
                 raise ValueError('The growth groups %s need to have pairwise '
@@ -534,7 +534,7 @@ class GenericProduct(CartesianProductPosets, GenericGrowthGroup):
     def _convert_factors_(self, factors):
         r"""
         Helper method. Try to convert some ``factors`` to an
-        element of one of the cartesian factors and returns the product of
+        element of one of the cartesian factors and return the product of
         all these factors.
 
         INPUT:
@@ -569,7 +569,7 @@ class GenericProduct(CartesianProductPosets, GenericGrowthGroup):
 
     def cartesian_injection(self, factor, element):
         r"""
-        Injects the given element into this cartesian product at the given factor.
+        Inject the given element into this cartesian product at the given factor.
 
         INPUT:
 

@@ -13,7 +13,10 @@ finite number of indeterminates.
    sage/monoids/free_abelian_monoid
    sage/monoids/free_abelian_monoid_element
    sage/monoids/indexed_free_monoid
-   sage/monoids/string_monoid_element
    sage/monoids/string_monoid
+   sage/monoids/string_monoid_element
+   sage/monoids/string_ops
+   sage/monoids/hecke_monoid
+   sage/monoids/automatic_semigroup
 
 .. include:: ../footer.txt

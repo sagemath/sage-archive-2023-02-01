@@ -27,13 +27,13 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-include "sage/ext/gmp.pxi"
 include "sage/ext/interrupt.pxi"
 include "sage/ext/stdsage.pxi"
 
 import sys
 
 cimport sage.rings.padics.local_generic_element
+from sage.libs.gmp.mpz cimport mpz_set_si
 from sage.rings.padics.local_generic_element cimport LocalGenericElement
 from sage.rings.padics.precision_error import PrecisionError
 from sage.rings.rational cimport Rational
@@ -56,7 +56,7 @@ cdef class pAdicGenericElement(LocalGenericElement):
         """
         return (<Element>left)._richcmp(right, op)
 
-    cdef int _cmp_c_impl(left, Element right) except -2:
+    cpdef int _cmp_(left, Element right) except -2:
         """
         First compare valuations, then compare normalized
         residue of unit part.

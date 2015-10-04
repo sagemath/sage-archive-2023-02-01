@@ -202,7 +202,7 @@ class Disk(GraphicPrimitive):
             sage: D = disk((2,3), 1, (pi/4,pi/3), hue=.8, alpha=.3, fill=True)
             sage: d = D[0]
             sage: d.plot3d(z=2).texture.opacity
-            0.300000000000000
+            0.3
 
         ::
 

@@ -35,6 +35,7 @@ AUTHORS:
 
 include "sage/ext/interrupt.pxi"
 
+from sage.libs.gmp.mpz cimport *
 from sage.matrix.matrix_integer_dense cimport Matrix_integer_dense
 from sage.rings.integer_ring import ZZ
 from sage.matrix.constructor import matrix
@@ -509,7 +510,7 @@ cdef class FP_LLL:
         _check_delta(delta)
         _check_precision(precision)
 
-        cdef BKZParam o = BKZParam()
+        cdef BKZParam o
 
         o.b = self._lattice
         o.delta = delta

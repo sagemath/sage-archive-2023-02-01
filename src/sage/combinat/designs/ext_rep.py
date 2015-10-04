@@ -45,7 +45,7 @@ import re
 import os.path
 import gzip
 import bz2
-from sage.misc.misc import tmp_filename
+from sage.misc.all import tmp_filename
 import urllib2
 import sys
 

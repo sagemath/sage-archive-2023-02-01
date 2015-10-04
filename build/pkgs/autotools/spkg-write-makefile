@@ -29,6 +29,12 @@ if ! env "AUTOMAKE_VERSION=1.9.6" aclocal --version | grep >/dev/null '1[.]9[.]6
     echo >&2 "with the autotools spkg installed."
     exit 3
 fi
+if ! env "LIBTOOL_VERSION=1.5.26" libtool --version | grep >/dev/null '1[.]5[.]26'; then
+    echo >&2 "The environment variable LIBTOOL_VERSION does not seem to work."
+    echo >&2 "Make sure you are running $0 within a Sage shell"
+    echo >&2 "with the autotools spkg installed."
+    exit 3
+fi
 
 export PATH="$SAGE_ROOT/build/pkgs/autotools:$PATH"
 
@@ -67,7 +73,7 @@ echo
 echo '$(SAGE_LOCAL)/bin/m4: $(SRC)/m4-1.4.17 $(SAGE_LOCAL)/bin/makeinfo'
 echo -e '\tcd $< && ./configure --prefix="$(SAGE_LOCAL)" && $(MAKE) && $(MAKE) install'
 echo
-echo '$(SAGE_LOCAL)/bin/help2man: $(SRC)/help2man-1.43.3 $(SAGE_LOCAL)/bin/makeinfo'
+echo '$(SAGE_LOCAL)/bin/help2man: $(SRC)/help2man-1.46.4 $(SAGE_LOCAL)/bin/makeinfo'
 echo -e '\tcd $< && ./configure --prefix="$(SAGE_LOCAL)" && $(MAKE) && $(MAKE) install'
 echo
 echo '########################################################################'
@@ -107,13 +113,25 @@ write_make_rules() {
         if [ -f configure.ac ]; then
             # Minimum required version of Automake
             if [ ! -f configure ]; then
+                # libtool-2.4.3 requires some gnulib files
+                if [ -d gnulib ]; then
+                    cp -a ../gnulib/build-aux .
+                fi
                 # Run aclocal, such that AM_INIT_AUTOMAKE is available.
-                aclocal
+                if [ -d m4 ]; then
+                    aclocal -I m4
+                else
+                    aclocal
+                fi
                 # Require at least version 1.9.6, a reasonable default.
                 am_ver=`( echo 1.9.6; autoconf --trace='AM_INIT_AUTOMAKE:$1' configure.ac ) | latest_version`
                 # Run the *correct* version of aclocal, such that we do
                 # not introduce unneeded AC_PREREQ() definitions.
-                env "AUTOMAKE_VERSION=$am_ver" aclocal
+                if [ -d m4 ]; then
+                    env "AUTOMAKE_VERSION=$am_ver" aclocal -I m4
+                else
+                    env "AUTOMAKE_VERSION=$am_ver" aclocal
+                fi
             fi
 
             # Minimum required version of Autoconf: always consider
@@ -122,6 +140,10 @@ write_make_rules() {
                 # Require at least version 2.59, a reasonable default.
                 ac_ver=`( echo 2.59; autoconf --trace='AC_PREREQ:$1' configure.ac ) | latest_version`
             fi
+
+            # Minimum required version of libtool.
+            # Empty by default.
+            lt_ver=`( autoconf --trace='LT_PREREQ:$1' configure.ac ) | latest_version`
         fi
         if [ -n "$ac_ver" ]; then
             deps="$deps \$(SAGE_LOCAL)/autoconf-$ac_ver"
@@ -129,10 +151,15 @@ write_make_rules() {
         if [ -n "$am_ver" ]; then
             deps="$deps \$(SAGE_LOCAL)/automake-$am_ver"
         fi
+        if [ -n "$lt_ver" ]; then
+            deps="$deps \$(SAGE_LOCAL)/libtool-$lt_ver"
+        fi
 
         # Figure out how to bootstrap
         if [ -f configure ]; then
             bootstrap=
+        elif [ -d gnulib ]; then
+            bootstrap="bash bootstrap --skip-git --skip-po --gnulib-srcdir=../../src/gnulib && "
         elif [ -f bootstrap.sh ]; then
             bootstrap="bash -c 'set -e; source bootstrap.sh' && "
         elif [ -f bootstrap ]; then
@@ -140,11 +167,11 @@ write_make_rules() {
         else
             bootstrap="autoreconf -i -I m4 && "
         fi
+
         if [ -f autoheader.sh ]; then
             # Work around Autoconf bootstrap bug
             bootstrap="${bootstrap}touch autoupdate.sh && "
         fi
-
 
         # Write make rules
         echo "# Extract sources from git repository serially"
@@ -155,6 +182,7 @@ write_make_rules() {
 
         echo "\$(SAGE_LOCAL)/$p-$v: $p-$v/.tarball-version $deps"
         echo -e "\texport MAKE='\$(MAKE) -j1' ; \\\\"
+        [ -z "$lt_ver" ] || echo -e "\texport LIBTOOL_VERSION=$lt_ver ; \\\\"
         [ -z "$ac_ver" ] || echo -e "\texport AUTOCONF_VERSION=$ac_ver ; \\\\"
         [ -z "$am_ver" ] || echo -e "\texport AUTOMAKE_VERSION=$am_ver ; \\\\"
 sed 's/^/\t/;' <<EOF

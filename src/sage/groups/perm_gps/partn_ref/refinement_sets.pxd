@@ -14,8 +14,6 @@ AUTHORS:
 #                         http://www.gnu.org/licenses/
 #*****************************************************************************
 
-include 'sage/ext/cdefs.pxi'
-include 'sage/ext/stdsage.pxi'
 include 'data_structures_pxd.pxi' # includes bitsets
 
 from automorphism_group_canonical_label cimport \

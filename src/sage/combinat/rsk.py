@@ -334,7 +334,7 @@ def RSK_inverse(p, q, output='array', insertion='RSK'):
     Return the generalized permutation corresponding to the pair of tableaux
     `(p,q)` under the inverse of the Robinson-Schensted-Knuth algorithm.
 
-    For more information on the bijeciton, see :func:`RSK`.
+    For more information on the bijection, see :func:`RSK`.
 
     INPUT:
 
@@ -466,7 +466,7 @@ def RSK_inverse(p, q, output='array', insertion='RSK'):
 
     from bisect import bisect_left
     # Make a copy of p since this is destructive to it
-    p_copy = [row[:] for row in p]
+    p_copy = [list(row) for row in p]
 
     if q.is_standard():
         rev_word = [] # This will be our word in reverse

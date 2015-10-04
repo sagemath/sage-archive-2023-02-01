@@ -10,23 +10,16 @@ AUTHORS:
     - William Stein
 """
 
-########################################################################
+#*****************************************************************************
 #       Copyright (C) 2009 William Stein <wstein@gmail.com>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
-#
-#    This code is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-#    General Public License for more details.
-#
-#  The full text of the GPL is available at:
-#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
-########################################################################
+#*****************************************************************************
 
-
-include "sage/ext/stdsage.pxi"
 
 from sage.rings.integer_ring import ZZ
 from sage.rings.rational_field import QQ
@@ -215,7 +208,7 @@ def rational_quaternions_from_integral_matrix_and_denom(A, Matrix_integer_dense 
         rng = range(H.nrows())
 
     for i in rng:
-        x = <QuaternionAlgebraElement_rational_field> PY_NEW(QuaternionAlgebraElement_rational_field)
+        x = <QuaternionAlgebraElement_rational_field> QuaternionAlgebraElement_rational_field.__new__(QuaternionAlgebraElement_rational_field)
         x._parent = A
         mpz_set(x.a, a.value)
         mpz_set(x.b, b.value)

@@ -9,9 +9,6 @@
 ###############################################################################
 
 
-include "sage/ext/stdsage.pxi"
-include "sage/ext/interrupt.pxi"  # ctrl-c interrupt block support
-
 cdef extern from "gap/system.h":
     ctypedef char libGAP_Char
     ctypedef int libGAP_Int

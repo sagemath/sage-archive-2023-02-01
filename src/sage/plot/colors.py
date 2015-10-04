@@ -20,7 +20,7 @@ comprises the "official" W3C CSS3_ / SVG_ colors.
 For a list of color maps in Sage, evaluate::
 
     sage: sorted(colormaps)
-    ['Accent', 'Accent_r', 'Blues', 'Blues_r', 'BrBG', 'BrBG_r', ...]
+    [u'Accent', u'Accent_r', u'Blues', u'Blues_r', u'BrBG', u'BrBG_r', ...]
 
 These are imported from matplotlib's cm_ module.
 
@@ -28,21 +28,18 @@ These are imported from matplotlib's cm_ module.
 """
 
 #*****************************************************************************
-#  Distributed under the terms of the GNU General Public License (GPL)
-#
-#    This code is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-#    General Public License for more details.
-#
-#  The full text of the GPL is available at:
-#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
+import six
 import math
 import collections
 from colorsys import hsv_to_rgb, hls_to_rgb, rgb_to_hsv, rgb_to_hls
+
 
 # matplotlib color maps, loaded on-demand
 cm = None
@@ -339,7 +336,7 @@ def rgbcolor(c, space='rgb'):
     if isinstance(c, Color):
         return c.rgb()
 
-    if isinstance(c, basestring):
+    if isinstance(c, six.string_types):
         if len(c) > 0 and c[0] == '#':
             # Assume an HTML-like color, e.g., #00ffff or #ab0.
             return html_to_float(c)
@@ -352,7 +349,7 @@ def rgbcolor(c, space='rgb'):
     elif isinstance(c, (list, tuple)):
         if len(c) != 3:
             raise ValueError("color list or tuple '%s' must have 3 entries, one for each RGB, HSV, HLS, or HSL channel" % (c, ))
-        c = map(mod_one, list(c))
+        c = [mod_one(_) for _ in list(c)]
         if space == 'rgb':
             return tuple(c)
         elif space == 'hsv':
@@ -656,7 +653,7 @@ class Color(object):
         if isinstance(color, Color):
             color = color._rgb
         if isinstance(color, (list, tuple)) and len(color) == 3:
-            color = map(float, color)
+            color = [float(_) for _ in color]
             return Color(rgbcolor([(1 - fraction) * a + fraction * b
                                    for a, b in zip(self._rgb, color)]))
         raise TypeError("%s must be a Color or float-convertible 3-tuple/list" % (color, ))
@@ -844,29 +841,21 @@ class Color(object):
         """
         return self.__div__(right)
 
-    def __hex__(self):
+    def __int__(self):
         """
-        Return a hexadecimal string representation of this color.
-        This is just the color's HTML hex representation without the
-        leading '#'.
+        Return the integer representation of this colour.
 
         OUTPUT:
 
-        - a string of length 6
+        - an integer with encoding `256^2 r + 256 g + b`
 
         EXAMPLES::
 
             sage: from sage.plot.colors import whitesmoke
-            sage: hex(whitesmoke)
-            'f5f5f5'
-            sage: whitesmoke.html_color() == '#' + hex(whitesmoke)
-            True
-            sage: hex(Color(0.5, 1.0, 1.0, space='hsv'))
-            '00ffff'
-            sage: set([len(hex(Color(t, 1-t, t * t))) for t in srange(0, 1, 0.1)])
-            {6}
+            sage: int(whitesmoke)
+            16119285
         """
-        return self.html_color()[1:]
+        return float_to_integer(*self._rgb)
 
     def __iter__(self):
         """
@@ -1230,17 +1219,18 @@ def hue(h, s=1, v=1):
 
 def float_to_html(r, g, b):
     """
-    Converts a Red-Green-Blue (RGB) color tuple to a HTML hex color.
+    Convert a Red-Green-Blue (RGB) color tuple to a HTML hex color.
+
     Each input value should be in the interval [0.0, 1.0]; otherwise,
     the values are first reduced modulo one (see :func:`mod_one`).
 
     INPUT:
 
-    - ``r`` - a number; the RGB color's "red" intensity
+    - ``r`` -- a real number; the RGB color's "red" intensity
 
-    - ``g`` - a number; the RGB color's "green" intensity
+    - ``g`` -- a real number; the RGB color's "green" intensity
 
-    - ``b`` - a number; the RGB color's "blue" intensity
+    - ``b`` -- a real number; the RGB color's "blue" intensity
 
     OUTPUT:
 
@@ -1260,21 +1250,45 @@ def float_to_html(r, g, b):
         ...
         TypeError: float_to_html() takes exactly 3 arguments (1 given)
     """
-    # TODO: figure out why this is necessary
-    from sage.rings.integer import Integer
-    from math import floor
+    return "#%06x" % float_to_integer(r, g, b)
 
+
+def float_to_integer(r, g, b):
+    """
+    Convert a Red-Green-Blue (RGB) color tuple to an integer.
+
+    Each input value should be in the interval [0.0, 1.0]; otherwise,
+    the values are first reduced modulo one (see :func:`mod_one`).
+
+    INPUT:
+
+    - ``r`` -- a real number; the RGB color's "red" intensity
+
+    - ``g`` -- a real number; the RGB color's "green" intensity
+
+    - ``b`` -- a real number; the RGB color's "blue" intensity
+
+    OUTPUT:
+
+    - an integer with encoding `256^2 r + 256 g + b`
+
+    EXAMPLES::
+
+        sage: from sage.plot.colors import float_to_integer
+        sage: float_to_integer(1.,1.,0.)
+        16776960
+        sage: float_to_integer(.03,.06,.02)
+        462597
+        sage: float_to_integer(*Color('brown').rgb())
+        10824234
+        sage: float_to_integer((0.2, 0.6, 0.8))
+        Traceback (most recent call last):
+        ...
+        TypeError: float_to_integer() takes exactly 3 arguments (1 given)
+    """
     r, g, b = map(mod_one, (r, g, b))
-    rr = Integer(int(floor(r * 255))).str(base = 16)
-    gg = Integer(int(floor(g * 255))).str(base = 16)
-    bb = Integer(int(floor(b * 255))).str(base = 16)
-
-    rr = '0' * (2 - len(rr)) + rr
-    gg = '0' * (2 - len(gg)) + gg
-    bb = '0' * (2 - len(bb)) + bb
-
-    return '#' + rr + gg + bb
-
+    return int(r * 255) << 16 | int(g * 255) << 8 | int(b * 255)
+    
 
 def rainbow(n, format='hex'):
     """
@@ -1335,7 +1349,7 @@ def get_cmap(cmap):
     and color names.  For a list of map names, evaluate::
 
         sage: sorted(colormaps)
-        ['Accent', 'Accent_r', 'Blues', 'Blues_r', ...]
+        [u'Accent', u'Accent_r', u'Blues', u'Blues_r', ...]
 
     See :func:`rgbcolor` for valid list/tuple element formats.
 
@@ -1380,13 +1394,13 @@ def get_cmap(cmap):
     if isinstance(cmap, Colormap):
         return cmap
 
-    elif isinstance(cmap, basestring):
+    elif isinstance(cmap, six.string_types):
         if not cmap in cm.datad.keys():
             raise RuntimeError("Color map %s not known (type import matplotlib.cm; matplotlib.cm.datad.keys() for valid names)" % cmap)
         return cm.__dict__[cmap]
 
     elif isinstance(cmap, (list, tuple)):
-        cmap = map(rgbcolor, cmap)
+        cmap = [rgbcolor(_) for _ in cmap]
         return ListedColormap(cmap)
 
 
@@ -1396,7 +1410,7 @@ class Colormaps(collections.MutableMapping):
     For a list of map names, evaluate::
 
         sage: sorted(colormaps)
-        ['Accent', 'Accent_r', 'Blues', 'Blues_r', ...]
+        [u'Accent', u'Accent_r', u'Blues', u'Blues_r', ...]
     """
     def __init__(self):
         """
@@ -1643,7 +1657,7 @@ class Colormaps(collections.MutableMapping):
             sage: maps = Colormaps()
             sage: count = len(maps)
             sage: maps.popitem()
-            ('Spectral', <matplotlib.colors.LinearSegmentedColormap object at ...>)
+            (u'Spectral', <matplotlib.colors.LinearSegmentedColormap object at ...>)
             sage: count - 1 == len(maps)
             True
         """

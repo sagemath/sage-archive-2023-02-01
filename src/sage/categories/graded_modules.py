@@ -33,83 +33,19 @@ class GradedModulesCategory(RegressiveCovariantConstructionCategory, Category_ov
             Rational Field
             sage: GradedHopfAlgebrasWithBasis(QQ).base_ring()
             Rational Field
-        """
-        super(GradedModulesCategory, self).__init__(base_category, base_category.base_ring())
 
-    _functor_category = "Graded"
+        TESTS::
 
-    @lazy_class_attribute
-    def _base_category_class(cls):
-        """
-        Recover the class of the base category.
-
-        OUTPUT:
-
-        A *tuple* whose first entry is the base category class.
-
-        .. WARNING::
-
-            This is only used for graded categories that are not
-            implemented as nested classes, and won't work otherwise.
-
-        .. SEEALSO:: :meth:`__classcall__`
-
-        EXAMPLES::
-
-            sage: GradedModules._base_category_class
-            (<class 'sage.categories.modules.Modules'>,)
-            sage: GradedAlgebrasWithBasis._base_category_class
-            (<class 'sage.categories.algebras_with_basis.AlgebrasWithBasis'>,)
-
-        The reason for wrapping the base category class in a tuple is
-        that, often, the base category class implements a
-        :meth:`__classget__` method which would get in the way upon
-        attribute access::
-
-                sage: F = GradedAlgebrasWithBasis
-                sage: F._foo = F._base_category_class[0]
-                sage: F._foo
-                Traceback (most recent call last):
-                ...
-                AssertionError: base category class for <...AlgebrasWithBasis'> mismatch;
-                expected <...Algebras'>, got <...GradedAlgebrasWithBasis'>
-        """
-        module_name = cls.__module__.replace("graded_","")
-        import sys
-        name   = cls.__name__.replace("Graded","")
-        __import__(module_name)
-        module = sys.modules[module_name]
-        return (module.__dict__[name],)
-
-    @staticmethod
-    def __classcall__(cls, category, *args):
-        """
-        Magic support for putting Graded categories in their own file.
-
-        EXAMPLES::
-
-            sage: GradedModules(ZZ)   # indirect doctest
+            sage: GradedModules(ZZ)
             Category of graded modules over Integer Ring
             sage: Modules(ZZ).Graded()
             Category of graded modules over Integer Ring
             sage: GradedModules(ZZ) is Modules(ZZ).Graded()
             True
-
-        .. TODO::
-
-            Generalize this support for all other functorial
-            constructions if at some point we have a category ``Blah`` for
-            which we want to implement the construction ``Blah.Foo`` in a
-            separate file like we do for e.g. :class:`GradedModules`,
-            :class:`GradedAlgebras`, ...
-
-        .. SEEALSO:: :meth:`_base_category_class`
         """
-        base_category_class = cls._base_category_class[0]
-        if isinstance(category, base_category_class):
-            return super(GradedModulesCategory, cls).__classcall__(cls, category, *args)
-        else:
-            return base_category_class(category, *args).Graded()
+        super(GradedModulesCategory, self).__init__(base_category, base_category.base_ring())
+
+    _functor_category = "Graded"
 
     def _repr_object_names(self):
         """

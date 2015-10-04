@@ -1,4 +1,6 @@
 r"""
+Fast decomposition of small integers into sums of squares
+
 Implement fast version of decomposition of (small) integers into sum of squares
 by direct method not relying on factorisation.
 
@@ -16,7 +18,7 @@ AUTHORS:
 #*****************************************************************************
 
 from libc.math cimport sqrt
-from libc.stdint cimport uint_fast32_t, uint32_t
+
 
 include "sage/ext/interrupt.pxi"
 

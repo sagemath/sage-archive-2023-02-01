@@ -114,7 +114,7 @@ class AffineCrystalFromClassical(UniqueRepresentation, Parent):
         self._cartan_type = cartan_type
         Parent.__init__(self, category = category)
         self.classical_crystal = classical_crystal;
-        self.module_generators = map( self.retract, self.classical_crystal.module_generators )
+        self.module_generators = [self.retract(_) for _ in self.classical_crystal.module_generators]
         self.element_class._latex_ = lambda x: x.lift()._latex_()
 
     def _repr_(self):
@@ -164,7 +164,7 @@ class AffineCrystalFromClassical(UniqueRepresentation, Parent):
             sage: A.list()
             [[[1]], [[2]], [[3]]]
         """
-        return map( self.retract, self.classical_crystal.list() )
+        return [self.retract(_) for _ in self.classical_crystal.list()]
 
     def lift(self, affine_elt):
         """
@@ -212,7 +212,7 @@ class AffineCrystalFromClassical(UniqueRepresentation, Parent):
         r"""
         Coerces ``value`` into ``self``.
 
-        EXAMPLES:
+        EXAMPLES::
 
             sage: n=2
             sage: C=crystals.Tableaux(['A',n],shape=[1])
@@ -236,7 +236,7 @@ class AffineCrystalFromClassical(UniqueRepresentation, Parent):
         r"""
         Checks whether ``x`` is an element of ``self``.
 
-        EXAMPLES:
+        EXAMPLES::
 
             sage: n=2
             sage: C=crystals.Tableaux(['A',n],shape=[1])

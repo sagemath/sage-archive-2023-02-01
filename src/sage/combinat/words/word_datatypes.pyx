@@ -224,7 +224,7 @@ cdef class WordDatatype_list(WordDatatype):
 
     def __getitem__(self, key):
         r"""
-        Implements :method:``__getitem__`` for words stored as lists.
+        Implements :meth:`__getitem__` for words stored as lists.
 
         INPUT:
 
@@ -435,7 +435,7 @@ cdef class WordDatatype_str(WordDatatype):
 
         .. note::
 
-           This just wraps Python's builtin :method:`__contains__` for :class:`str`.
+           This just wraps Python's builtin :meth:`__contains__` for :class:`str`.
 
         INPUT:
 
@@ -569,7 +569,7 @@ cdef class WordDatatype_str(WordDatatype):
 
     def __getitem__(self, key):
         r"""
-        Implements the :method:`__getitem__`.
+        Implements the :meth:`__getitem__`.
 
         TESTS::
 

@@ -405,15 +405,15 @@ class AffinePermutationTypeA(AffinePermutation):
             sage: p=A([3, -1, 0, 6, 5, 4, 10, 9])
             sage: p
             Type A affine permutation with window [3, -1, 0, 6, 5, 4, 10, 9]
-            sage: q=A([1,2,3])
+            sage: q=A([1,2,3])  # indirect doctest
             Traceback (most recent call last):
             ...
             ValueError: Length of list must be k+1=8.
-            sage: q=A([1,2,3,4,5,6,7,0])
+            sage: q=A([1,2,3,4,5,6,7,0])  # indirect doctest
             Traceback (most recent call last):
             ...
             ValueError: Window does not sum to 36.
-            sage: q=A([1,1,3,4,5,6,7,9])
+            sage: q=A([1,1,3,4,5,6,7,9])  # indirect doctest
             Traceback (most recent call last):
             ...
             ValueError: Entries must have distinct residues.
@@ -1992,8 +1992,8 @@ class AffinePermutationGroupGeneric(UniqueRepresentation, Parent):
 
         TESTS::
 
-            sage: A=AffinePermutationGroup(['A',7,1])
-            sage: A._test_coxeter_relations(3)
+            sage: A = AffinePermutationGroup(['A',7,1])
+            sage: A._test_enumeration(3)
         """
         n1=len(list(self.elements_of_length(n)))
         W=self.weyl_group()
@@ -2082,7 +2082,7 @@ class AffinePermutationGroupGeneric(UniqueRepresentation, Parent):
         r"""
         EXAMPLES::
 
-            sage: AffinePermutationGroup(['A',7,1]).index_set()
+            sage: AffinePermutationGroup(['A',7,1]).reflection_index_set()
             (0, 1, 2, 3, 4, 5, 6, 7)
         """
         return self.cartan_type().index_set()

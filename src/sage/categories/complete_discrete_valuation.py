@@ -1,9 +1,5 @@
 r"""
-This module implements the two following categories :
-
- -  Complete Discrete Valuation Rings (CDVR)
-
- -  Complete Discrete Valuation Fields (CDVF)
+Complete Discrete Valuation Rings (CDVR) and Fields (CDVF)
 """
 #**************************************************************************
 #  Copyright (C) 2013 Xavier Caruso <xavier.caruso@normalesup.org>
@@ -50,7 +46,7 @@ class CompleteDiscreteValuationRings(Category_singleton):
             """
             Return the absolute precision of this element.
 
-            EXAMPLES:
+            EXAMPLES::
 
                 sage: R = Zp(7)
                 sage: x = R(7); x
@@ -64,7 +60,7 @@ class CompleteDiscreteValuationRings(Category_singleton):
             """
             Return the relative precision of this element.
 
-            EXAMPLES:
+            EXAMPLES::
 
                 sage: R = Zp(7)
                 sage: x = R(7); x
@@ -105,7 +101,7 @@ class CompleteDiscreteValuationFields(Category_singleton):
             """
             Return the absolute precision of this element.
 
-            EXAMPLES:
+            EXAMPLES::
 
                 sage: K = Qp(7)
                 sage: x = K(7); x
@@ -119,7 +115,7 @@ class CompleteDiscreteValuationFields(Category_singleton):
             """
             Return the relative precision of this element.
 
-            EXAMPLES:
+            EXAMPLES::
 
                 sage: K = Qp(7)
                 sage: x = K(7); x

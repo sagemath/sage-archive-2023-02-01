@@ -58,6 +58,7 @@ class PrimeNumbers(UniqueRepresentation, Parent):
 
         sage: TestSuite(P).run(verbose=True)
         running ._test_an_element() . . . pass
+        running ._test_cardinality() . . . pass
         running ._test_category() . . . pass
         running ._test_elements() . . .
           Running the test suite of self.an_element()
@@ -285,7 +286,7 @@ class PrimeNumbers_Abstract(UniqueRepresentation, Parent):
             EXAMPLES::
 
                 sage: P = Sets().example("inherits")
-                sage: P.an_element().next()
+                sage: next(P.an_element())
                 53
             """
             return self.parent().next(self)
@@ -340,6 +341,7 @@ class PrimeNumbers_Inherits(PrimeNumbers_Abstract):
 
         sage: TestSuite(P).run(verbose=True)
         running ._test_an_element() . . . pass
+        running ._test_cardinality() . . . pass
         running ._test_category() . . . pass
         running ._test_elements() . . .
           Running the test suite of self.an_element()
@@ -613,15 +615,16 @@ class PrimeNumbers_Facade(PrimeNumbers_Abstract):
 
     whereas::
 
-        sage: pw.next()
+        sage: next(pw)
         53
-        sage: pi.next()
+        sage: next(pi)
         53
 
     TESTS::
 
         sage: TestSuite(P).run(verbose = True)
         running ._test_an_element() . . . pass
+        running ._test_cardinality() . . . pass
         running ._test_category() . . . pass
         running ._test_elements() . . .
           Running the test suite of self.an_element()

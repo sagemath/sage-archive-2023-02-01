@@ -43,7 +43,7 @@ def Spec(R, S=None):
         Spectrum of Multivariate Polynomial Ring in x0, x1, x2 over Rational Field
         sage: X = Spec(PolynomialRing(GF(49,'a'), 3, 'x')); X
         Spectrum of Multivariate Polynomial Ring in x0, x1, x2 over Finite Field in a of size 7^2
-        sage: TestSuite(X).run(skip=["_test_an_element", "_test_elements", "_test_some_elements"])
+        sage: TestSuite(X).run()
 
     Applying ``Spec`` twice to the same ring gives identical output
     (see :trac:`17008`)::

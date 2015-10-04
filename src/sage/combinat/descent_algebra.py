@@ -30,7 +30,7 @@ from sage.combinat.subset import SubsetsSorted
 from sage.combinat.symmetric_group_algebra import SymmetricGroupAlgebra
 from sage.combinat.ncsf_qsym.ncsf import NonCommutativeSymmetricFunctions
 
-class DescentAlgebra(Parent, UniqueRepresentation):
+class DescentAlgebra(UniqueRepresentation, Parent):
     r"""
     Solomon's descent algebra.
 
@@ -99,11 +99,16 @@ class DescentAlgebra(Parent, UniqueRepresentation):
         sage: I(elt)
         7/6*I[1, 1, 1, 1] + 2*I[1, 1, 2] + 3*I[1, 2, 1] + 4*I[1, 3]
 
-    There is the following syntatic sugar for calling elements of a basis, note
-    that for the empty set one must use ``D[[]]`` due to python's syntax::
+
+    As syntactic sugar, one can use the notation ``D[i,...,l]`` to
+    construct elements of the basis; note that for the empty set one
+    must use ``D[[]]`` due to Python's syntax::
 
         sage: D[[]] + D[2] + 2*D[1,2]
         D{} + 2*D{1, 2} + D{2}
+
+    The same syntax works for the other bases::
+
         sage: I[1,2,1] + 3*I[4] + 2*I[3,1]
         I[1, 2, 1] + 2*I[3, 1] + 3*I[4]
 
@@ -448,7 +453,7 @@ class DescentAlgebra(Parent, UniqueRepresentation):
             IM = IntegerMatrices(list(p), list(q))
             P = Compositions(self.realization_of()._n)
             to_composition = lambda m: P( [x for x in m.list() if x != 0] )
-            return self.sum_of_monomials(map(to_composition, IM))
+            return self.sum_of_monomials([to_composition(_) for _ in IM])
 
         @cached_method
         def one_basis(self):

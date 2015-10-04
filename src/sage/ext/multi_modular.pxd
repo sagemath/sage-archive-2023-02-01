@@ -1,7 +1,7 @@
-include "sage/ext/cdefs.pxi"
+# distutils: extra_compile_args = -std=c99
 
 from sage.ext.mod_int cimport *
-from sage.rings.integer import Integer
+from sage.libs.gmp.types cimport mpz_t
 from sage.rings.integer cimport Integer
 
 cdef class MultiModularBasis_base:

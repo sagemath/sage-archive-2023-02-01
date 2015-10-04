@@ -10,10 +10,6 @@ Website: http://www.scons.org/
 
 X/MIT
 
-== SPKG Maintainers ==
- * Michael Abshoff
- * Joel B. Mohler
-
 == Upstream Contact ==
  * SCons mailing lists - see http://www.scons.org/lists.php
 

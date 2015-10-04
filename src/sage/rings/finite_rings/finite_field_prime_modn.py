@@ -92,52 +92,6 @@ class FiniteField_prime_modn(FiniteField_generic, integer_mod_ring.IntegerModRin
         """
         return self._factory_data[0].reduce_data(self)
 
-    def __cmp__(self, other):
-        r"""
-        Compare ``self`` with ``other``.
-
-        Two finite prime fields are considered equal if and only if
-        their characteristics and moduli are equal.
-
-        EXAMPLES::
-
-            sage: K = FiniteField(3)
-            sage: copy(K) == K
-            True
-            sage: x = polygen(GF(5))
-            sage: GF(5) == GF(7)
-            False
-            sage: GF(5, modulus=x-2) == GF(5)
-            False
-        """
-        if self is other:
-            return 0
-        if not isinstance(other, FiniteField_prime_modn):
-            return cmp(type(self), type(other))
-        c = cmp(self.__char, other.__char)
-        if c: return c
-        # Shortcut: if neither field has a _modulus attribute, they
-        # are equal
-        if not hasattr(self, "_modulus") and not hasattr(other, "_modulus"):
-            return 0
-        return cmp(self.modulus(), other.modulus())
-
-    def __richcmp__(left, right, op):
-        r"""
-        Compare ``self`` with ``right``.
-
-        EXAMPLES::
-
-            sage: k = GF(2)
-            sage: j = GF(3)
-            sage: k == j
-            False
-
-            sage: GF(2) == copy(GF(2))
-            True
-        """
-        return left._richcmp_helper(right, op)
-
     def _coerce_map_from_(self, S):
         """
         This is called implicitly by arithmetic methods.
@@ -300,7 +254,7 @@ class FiniteField_prime_modn(FiniteField_generic, integer_mod_ring.IntegerModRin
         try:
             self.__gen = -(self._modulus[0])
         except AttributeError:
-            self.__gen = self.one_element()
+            self.__gen = self.one()
         return self.__gen
 
     def __iter__(self):
@@ -317,11 +271,11 @@ class FiniteField_prime_modn(FiniteField_generic, integer_mod_ring.IntegerModRin
 
             sage: K = GF(next_prime(2^256))
             sage: all = iter(K)
-            sage: all.next()
+            sage: next(all)
             0
-            sage: all.next()
+            sage: next(all)
             1
-            sage: all.next()
+            sage: next(all)
             2
         """
         yield self(0)

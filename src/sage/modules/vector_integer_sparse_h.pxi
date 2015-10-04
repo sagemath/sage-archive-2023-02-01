@@ -1,10 +1,10 @@
 #############################################################
 #
-#    Sparse Vector over mpq_t (the GMP rationals)
+#    Sparse Vector over mpz_t (the GMP integers)
 #
 #############################################################
 
-include "sage/ext/cdefs.pxi"
+from sage.libs.gmp.types cimport mpz_t
 
 cdef struct mpz_vector:
     mpz_t *entries      # array of nonzero entries

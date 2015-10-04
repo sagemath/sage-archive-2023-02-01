@@ -11,10 +11,10 @@ from util cimport *
 from sage.structure.sage_object cimport SageObject
 from sage.structure.element cimport Element, ModuleElement, RingElement
 
-cdef libGAP_Obj make_gap_list(sage_list)
-cdef libGAP_Obj make_gap_record(sage_dict)
-cdef libGAP_Obj make_gap_integer(sage_dict)
-cdef libGAP_Obj make_gap_string(sage_string)
+cdef libGAP_Obj make_gap_list(sage_list) except NULL
+cdef libGAP_Obj make_gap_record(sage_dict) except NULL
+cdef libGAP_Obj make_gap_integer(sage_dict) except NULL
+cdef libGAP_Obj make_gap_string(sage_string) except NULL
 
 cdef GapElement make_any_gap_element(parent, libGAP_Obj obj)
 cdef GapElement make_GapElement(parent, libGAP_Obj obj)

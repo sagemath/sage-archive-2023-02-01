@@ -24,15 +24,10 @@ from sage.modular.modsym.p1list import lift_to_sl2z
 from congroup_generic import CongruenceSubgroup
 from sage.modular.cusps import Cusp
 from sage.misc.cachefunc import cached_method
-
-# Just for now until we make an SL_2 group type.
 from sage.rings.integer_ring import ZZ
 from sage.rings.finite_rings.integer_mod_ring import Zmod
-from sage.matrix.matrix_space import MatrixSpace
 from sage.groups.matrix_gps.finitely_generated import MatrixGroup
 from sage.matrix.constructor import matrix
-
-Mat2Z = MatrixSpace(ZZ,2)
 
 
 _gammaH_cache = {}
@@ -473,9 +468,9 @@ class GammaH_class(CongruenceSubgroup):
             return self.farey_symbol().generators()
         elif algorithm=="todd-coxeter":
             from sage.modular.modsym.ghlist import GHlist
-            from congroup_pyx import generators_helper
+            from congroup import generators_helper
             level = self.level()
-            gen_list = generators_helper(GHlist(self), level, Mat2Z)
+            gen_list = generators_helper(GHlist(self), level)
             return [self(g, check=False) for g in gen_list]
         else:
             raise ValueError("Unknown algorithm '%s' (should be either 'farey' or 'todd-coxeter')" % algorithm)

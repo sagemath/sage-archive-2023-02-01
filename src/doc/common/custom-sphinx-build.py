@@ -4,7 +4,7 @@ This is Sage's version of the sphinx-build script
 Enhancements are:
 
 * import the Sage library to access the docstrings, otherwise doc
-  buliding doesn't work.
+  building doesn't work.
 
 * redirect stdout to our own logger, and remove some unwanted chatter.
 """
@@ -191,7 +191,7 @@ class SageSphinxLogger(object):
             self._write(str)
         except OSError:
             raise
-        except StandardError:
+        except Exception:
             import traceback
             traceback.print_exc(file=self._stream)
 

@@ -61,7 +61,7 @@ class AmbientHeckeModule(module.HeckeModule_free_module):
     is the base class for ambient spaces of modular forms and modular symbols,
     and for Brandt modules.
     """
-    def __init__(self, base_ring, rank, level, weight):
+    def __init__(self, base_ring, rank, level, weight, category=None):
         r"""
         Create an ambient Hecke module.
 
@@ -76,7 +76,8 @@ class AmbientHeckeModule(module.HeckeModule_free_module):
         if rank < 0:
             raise ValueError("rank (=%s) must be nonnegative"%rank)
         self.__rank = rank
-        module.HeckeModule_free_module.__init__(self, base_ring, level, weight)
+        module.HeckeModule_free_module.__init__(self, base_ring, level,
+                                                weight, category=category)
 
     def rank(self):
         """
@@ -165,11 +166,9 @@ class AmbientHeckeModule(module.HeckeModule_free_module):
             sage: sage.modular.hecke.ambient_module.AmbientHeckeModule(QQ, 3, 2, 4)._hecke_image_of_ith_basis_element(4, 2)
             Traceback (most recent call last):
             ...
-            NotImplementedError
-
+            NotImplementedError: Derived class <class 'sage.modular.hecke.ambient_module.AmbientHeckeModule_with_category'> should implement __cmp__
         """
         return self.hecke_operator(n)(self.gen(i))
-
 
     def _set_dual_free_module(self, V):
         r"""

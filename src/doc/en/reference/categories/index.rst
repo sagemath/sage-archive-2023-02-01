@@ -63,6 +63,10 @@ Individual Categories
    sage/categories/enumerated_sets
    sage/categories/euclidean_domains
    sage/categories/fields
+   sage/categories/filtered_algebras
+   sage/categories/filtered_algebras_with_basis
+   sage/categories/filtered_modules
+   sage/categories/filtered_modules_with_basis
    sage/categories/finite_coxeter_groups
    sage/categories/finite_crystals
    sage/categories/finite_dimensional_algebras_with_basis

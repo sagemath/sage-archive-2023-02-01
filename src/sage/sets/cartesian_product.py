@@ -229,7 +229,7 @@ class CartesianProduct(UniqueRepresentation, Parent):
         OUTPUT:
 
         A pair whose first entry is a cartesian product functor and
-        its second a list of the cartesian factors.
+        its second entry is a list of the cartesian factors.
 
         EXAMPLES::
 

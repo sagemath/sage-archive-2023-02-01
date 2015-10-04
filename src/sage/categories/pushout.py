@@ -3387,10 +3387,10 @@ def pushout(R, S):
         Ambient free module of rank 2 over the principal ideal domain Univariate Polynomial Ring in x over Real Field with 53 bits of precision
 
     Some more tests related to univariate/multivariate
-    constructions. We construct a parent for a generalization to
-    polynomials, where we not only specify a coefficient ring `C` but
-    also an additive monoid `E` for its exponents. Its elements are
-    then
+    constructions. We consider a generalization of polynomial rings,
+    where in addition to the coefficient ring `C` we also specify
+    an additive monoid `E` for the exponents of the indeterminate.
+    In particular, the elements of such a parent are given by
 
     .. MATH::
 

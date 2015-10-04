@@ -178,14 +178,16 @@ class AssociatedGradedAlgebra(CombinatorialFreeModule):
         base_ring = A.base_ring()
         base_one = base_ring.one()
 
-        if category is None:
-            category = A.category().Graded()
-        opts = copy(A.print_options())
-        if not opts['prefix'] and not opts['bracket']:
-            opts['bracket'] = '('
-        opts['prefix'] = opts['prefix'] + 'bar'
+        category = A.category().Graded().or_subcategory(category)
+        try:
+            opts = copy(A.print_options())
+            if not opts['prefix'] and not opts['bracket']:
+                opts['bracket'] = '('
+            opts['prefix'] = opts['prefix'] + 'bar'
+        except AttributeError:
+            opts = {'prefix': 'Abar'}
 
-        CombinatorialFreeModule.__init__(self, base_ring, A.indices(),
+        CombinatorialFreeModule.__init__(self, base_ring, A.basis().keys(),
                                          category=category, **opts)
 
         # Setup the conversion back

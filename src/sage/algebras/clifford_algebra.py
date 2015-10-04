@@ -426,12 +426,9 @@ class CliffordAlgebra(CombinatorialFreeModule):
     (where `\ZZ_2 = \ZZ / 2 \ZZ`); this grading is determined by
     placing all elements of `V` in degree `1`. It is also an
     `\NN`-filtered algebra, with the filtration too being defined
-    by placing all elements of `V` in degree `1`. Due to current
-    limitations of the category framework, Sage can consider
-    either the grading or the filtration but not both at the same
-    time (though one can introduce two equal Clifford algebras,
-    one filtered and the other graded); the ``graded`` parameter
-    determines which of them is to be used.
+    by placing all elements of `V` in degree `1`. The :meth:`degree` gives
+    the `\NN`-*filtration* degree, and to get the super degree use instead
+    :meth:`~sage.categories.super_modules.SuperModules.ElementMethods.is_even_odd`.
 
     The Clifford algebra also can be considered as a covariant functor
     from the category of vector spaces equipped with quadratic forms
@@ -466,8 +463,6 @@ class CliffordAlgebra(CombinatorialFreeModule):
 
     - ``Q`` -- a quadratic form
     - ``names`` -- (default: ``'e'``) the generator names
-    - ``graded`` -- (default: ``True``) if ``True``, then use the `\ZZ / 2\ZZ`
-      grading, otherwise use the `\ZZ` filtration
 
     EXAMPLES:
 
@@ -528,6 +523,9 @@ class CliffordAlgebra(CombinatorialFreeModule):
 
             sage: Q = QuadraticForm(ZZ, 3, [1,2,3,4,5,6])
             sage: Cl = CliffordAlgebra(Q)
+            sage: Cl.category()
+            Category of finite dimensional super algebras with basis
+             over (euclidean domains and infinite enumerated sets)
             sage: TestSuite(Cl).run()
 
         TESTS:
@@ -1125,7 +1123,8 @@ class CliffordAlgebra(CombinatorialFreeModule):
         f = lambda x: Cl.prod(Cl._from_dict( {(j,): m[j,i] for j in range(n)},
                                              remove_zeros=True )
                               for i in x)
-        return self.module_morphism(on_basis=f, codomain=Cl)
+        return self.module_morphism(on_basis=f, codomain=Cl,
+                                    category=AlgebrasWithBasis(self.base_ring()).Super())
 
     # This is a general method for finite dimensional algebras with bases
     #   and should be moved to the corresponding category once there is
@@ -1348,7 +1347,7 @@ class ExteriorAlgebra(CliffordAlgebra):
     `Q(v) = 0` for all vectors `v \in V`. See :class:`CliffordAlgebra`
     for the notion of a Clifford algebra.
 
-    The exterior algebra of an `R`-module `V` is a super connected
+    The exterior algebra of an `R`-module `V` is a connected `\ZZ`-graded
     Hopf superalgebra. It is commutative in the super sense (i.e., the
     odd elements anticommute and square to `0`).
 
@@ -1422,6 +1421,9 @@ class ExteriorAlgebra(CliffordAlgebra):
         EXAMPLES::
 
             sage: E.<x,y,z> = ExteriorAlgebra(QQ)
+            sage: E.category()
+            Category of finite dimensional super hopf algebras with basis
+             over Rational Field
             sage: TestSuite(E).run()
         """
         cat = HopfAlgebrasWithBasis(R).Super()
@@ -1569,7 +1571,7 @@ class ExteriorAlgebra(CliffordAlgebra):
         f = lambda x: E.prod(E._from_dict( {(j,): phi[j,i] for j in range(n)},
                                            remove_zeros=True )
                              for i in x)
-        return self.module_morphism(on_basis=f, codomain=E)
+        return self.module_morphism(on_basis=f, codomain=E, category=AlgebrasWithBasis(R).Super())
 
     def volume_form(self):
         """

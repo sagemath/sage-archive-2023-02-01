@@ -589,6 +589,7 @@ class DifferentialWeylAlgebra(Algebra, UniqueRepresentation):
             raise ValueError("variable names cannot differ by a leading 'd'")
         # TODO: Make this into a filtered algebra under the natural grading of
         #   x_i and dx_i have degree 1
+        # Filtered is not included because it is a supercategory of super
         if R.is_field():
             cat = AlgebrasWithBasis(R).NoZeroDivisors().Super()
         else:

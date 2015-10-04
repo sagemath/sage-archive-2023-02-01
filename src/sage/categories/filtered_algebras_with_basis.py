@@ -461,14 +461,14 @@ class FilteredAlgebrasWithBasis(FilteredModulesCategory):
                 sage: Q = QuadraticForm(ZZ, 2, [1,2,3])
                 sage: B = CliffordAlgebra(Q, names=['u','v']); B
                 The Clifford algebra of the Quadratic form in 2
-                 variables over Integer Ring with coefficients: 
+                 variables over Integer Ring with coefficients:
                 [ 1 2 ]
                 [ * 3 ]
                 sage: m = Matrix(ZZ, [[1, 2], [1, -1]])
                 sage: f = B.lift_module_morphism(m, names=['x','y'])
                 sage: A = f.domain(); A
                 The Clifford algebra of the Quadratic form in 2
-                 variables over Integer Ring with coefficients: 
+                 variables over Integer Ring with coefficients:
                 [ 6 0 ]
                 [ * 3 ]
                 sage: x, y = A.gens()
@@ -521,7 +521,7 @@ class FilteredAlgebrasWithBasis(FilteredModulesCategory):
                 lifted_img_of_m = f(from_gr(grA.monomial(m)))
                 return other.projection(i)(lifted_img_of_m)
             return grA.module_morphism(on_basis=on_basis,
-                                       codomain=grB, category=cat)    
+                                       codomain=grB, category=cat)
             # If we could assume that the projection of the basis
             # element of ``self`` indexed by an index ``m`` is the
             # basis element of ``grA`` indexed by ``m``, then this

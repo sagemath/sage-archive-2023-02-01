@@ -48,3 +48,20 @@ class SuperAlgebras(SuperModulesCategory):
         """
         return [self.base_category().Graded()]
 
+    class ParentMethods:
+        def graded_algebra(self):
+            r"""
+            Return the associated graded algebra to ``self``.
+
+            .. WARNING::
+
+                Because a super module `M` is naturally `\ZZ / 2 \ZZ`-graded, and
+                graded modules have a natural filtration induced by the grading, if
+                `M` has a different filtration, then the associated graded module
+                `\operatorname{gr} M \neq M`. This is most apparent with super
+                algebras, such as the :class:`differential Weyl algebra
+                <sage.algebras.weyl_algebra.DifferentialWeylAlgebra>`, and the
+                multiplication may not coincide.
+            """
+            raise NotImplementedError
+

@@ -126,8 +126,8 @@ class ModulesWithBasis(CategoryWithAxiom_over_base_ring):
     .. NOTE::
 
         This category currently requires an implementation of an
-        element method ``support``. Once :trac:`18066`, an implementation
-        of an ``items`` method will be required.
+        element method ``support``. Once :trac:`18066` is merged, an
+        implementation of an ``items`` method will be required.
 
     TESTS::
 

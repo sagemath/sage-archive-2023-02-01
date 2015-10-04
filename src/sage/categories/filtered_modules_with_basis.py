@@ -562,7 +562,7 @@ class FilteredModulesWithBasis(FilteredModulesCategory):
                 lifted_img_of_m = f(from_gr(grA.monomial(m)))
                 return other.projection(i)(lifted_img_of_m)
             return grA.module_morphism(on_basis=on_basis,
-                                       codomain=grB, category=cat)    
+                                       codomain=grB, category=cat)
             # If we could assume that the projection of the basis
             # element of ``self`` indexed by an index ``m`` is the
             # basis element of ``grA`` indexed by ``m``, then this

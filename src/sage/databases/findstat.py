@@ -1204,8 +1204,8 @@ class FindStatStatistic(SageObject):
           returned as a polynomial.
 
         - if ``style`` is ``"dictionary"``, the generating function is
-         returned as a dictionary representing the monomials of the
-         generating function.
+          returned as a dictionary representing the monomials of the
+          generating function.
 
         - if ``style`` is ``"list"``, the generating function is
           returned as a list of coefficients of the generating function.
@@ -1221,7 +1221,7 @@ class FindStatStatistic(SageObject):
              5: q^10 + 4*q^9 + 9*q^8 + 15*q^7 + 20*q^6 + 22*q^5 + 20*q^4 + 15*q^3 + 9*q^2 + 4*q + 1,
              6: q^15 + 5*q^14 + 14*q^13 + 29*q^12 + 49*q^11 + 71*q^10 + 90*q^9 + 101*q^8 + 101*q^7 + 90*q^6 + 71*q^5 + 49*q^4 + 29*q^3 + 14*q^2 + 5*q + 1}
 
-            sage: st.generating_function(style="dictionary")                    # optional -- internet,random
+            sage: st.generating_functions(style="dictionary")                   # optional -- internet,random
             {2: {0: 1, 1: 1},
              3: {0: 1, 1: 2, 2: 2, 3: 1},
              4: {0: 1, 1: 3, 2: 5, 3: 6, 4: 5, 5: 3, 6: 1},
@@ -1267,7 +1267,7 @@ class FindStatStatistic(SageObject):
 
     def oeis_search(self, search_size=32, verbose=True):
         r"""
-        Returns the OEIS search for the generating function of ``self``.
+        Search the OEIS for the generating function of the statistic.
 
         INPUT:
 
@@ -1277,7 +1277,12 @@ class FindStatStatistic(SageObject):
         - ``verbose`` (default:True) if true, some information about
           the search are printed.
 
+        OUTPUT:
+
+        - a tuple of OEIS sequences, see :meth:`OEIS.find_by_description` for more information.
+
         EXAMPLES::
+
             sage: st = findstat(18)                                             # optional -- internet
 
             sage: st.oeis_search()                                              # optional -- internet,random
@@ -1291,7 +1296,6 @@ class FindStatStatistic(SageObject):
             0: A008302: Triangle of Mahonian numbers T(n,k): coefficients in expansion of Product_{i=0..n-1} (1 + x + ... + x^i), where k ranges from 0 to A000217(n-1).
             1: A115570: Array read by rows: row n (n>= 1) gives the Betti numbers for the n-th element of the Weyl group of type A3 (in Goresky's standard ordering).
             2: A187447: Array for all multiset choices (multiset repetition class representatives in Abramowitz-Stegun order).
-
         """
         from sage.databases.oeis import oeis
 
@@ -1315,12 +1319,10 @@ class FindStatStatistic(SageObject):
         if counter >= 4:
             if verbose:
                 print 'Searching the OEIS for "%s"'%OEIS_string
-                print
             return oeis( OEIS_string )
         else:
             if verbose:
                 print "Too little information to search the OEIS for this statistic (only %s values given)."%counter
-                print
             return
 
     def description(self):

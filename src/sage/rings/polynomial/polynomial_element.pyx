@@ -4007,13 +4007,14 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
         INPUT:
 
-        - ``other`` -- A nonzero polynomial, otherwise an exception ValueError is raised
+        - ``other`` -- a nonzero polynomial
 
         OUTPUT:
 
-        If ``other`` is nonzero, this algorithm finds Q and R such that
-        l^(m-n+1) self = Q * other + R where m = deg(self), n = deg(other),
-        l is the leading coefficient of other, and such that deg(R) < deg(other).
+        `Q` and `R` such that `l^{m-n+1} \mathrm{self} = Q \cdot\mathrm{other} + R`
+        where `m` is the degree of this polynomial, `n` is the degree of
+        ``other``, `l` is the leading coefficient of ``other``. The result is
+        such that `\deg(R) < \deg(\mathrm{other})`.
 
         ALGORITHM:
 

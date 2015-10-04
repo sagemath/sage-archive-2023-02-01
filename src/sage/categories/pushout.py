@@ -3538,8 +3538,10 @@ def pushout(R, S):
         ....:                     other.cartesian_factors() +
         ....:                     tuple(f for f in self.cartesian_factors()
         ....:                           if f.variable_name() not in o_vars)))
-        ....:         C = other.construction()[0]
-        ....:         if isinstance(C, PolynomialFunctor):
+        ....:         C = other.construction()
+        ....:         if C is None:
+        ....:             return
+        ....:         elif isinstance(C[0], PolynomialFunctor):
         ....:             return pushout(self, CartesianProductPolys((other,)))
 
     ::

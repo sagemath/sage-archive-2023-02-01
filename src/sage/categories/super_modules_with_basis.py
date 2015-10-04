@@ -14,6 +14,10 @@ class SuperModulesWithBasis(SuperModulesCategory):
     """
     The category of super modules with a distinguished basis.
 
+    An `R`-*super module with a distinguished basis* is an
+    `R`-super module equipped with an `R`-module basis whose elements are
+    homogeneous.
+
     EXAMPLES::
 
         sage: C = GradedModulesWithBasis(ZZ); C
@@ -31,12 +35,20 @@ class SuperModulesWithBasis(SuperModulesCategory):
     class ParentMethods:
         def _even_odd_on_basis(self, m):
             """
-            Return if ``m`` is an index of an even or odd basis element.
+            Return the parity of the basis element indexed by ``m``.
 
             OUTPUT:
 
             ``0`` if ``m`` is for an even element or ``1`` if ``m``
             is for an odd element.
+
+            .. NOTE::
+
+                The default implementation assumes that the even/odd is
+                determined by the parity of :meth:`degree`.
+
+                Overwrite this method if the even/odd behavior is desired
+                to be independent.
 
             EXAMPLES::
 
@@ -53,7 +65,7 @@ class SuperModulesWithBasis(SuperModulesCategory):
         def is_super_homogeneous(self):
             r"""
             Return whether this element is homogeneous, in the sense
-            of a super module.
+            of a super module (i.e., is even or odd).
 
             EXAMPLES::
 
@@ -70,8 +82,8 @@ class SuperModulesWithBasis(SuperModulesCategory):
                 False
 
             The exterior algebra has a `\ZZ` grading, which induces the
-            `\ZZ / 2\ZZ` grading, however the definition of homogeneous
-            elements differ because of the different gradings::
+            `\ZZ / 2\ZZ` grading. However the definition of homogeneous
+            elements differs because of the different gradings::
 
                 sage: E.<x,y> = ExteriorAlgebra(QQ)
                 sage: a = x*y + 4
@@ -110,6 +122,10 @@ class SuperModulesWithBasis(SuperModulesCategory):
                 Traceback (most recent call last):
                 ...
                 ValueError: element is not homogeneous
+
+                sage: E.<x,y> = ExteriorAlgebra(QQ)
+                sage: (x*y).is_even_odd()
+                0
             """
             if not self.support():
                 raise ValueError("the zero element does not have a well-defined degree")

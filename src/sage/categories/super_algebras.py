@@ -17,6 +17,18 @@ class SuperAlgebras(SuperModulesCategory):
     """
     The category of super algebras.
 
+    An `R`-*super algebra* is an `R`-super module `A` endowed with an
+    `R`-algebra structure satisfying
+
+    .. MATH::
+
+        A_0 A_0 \subseteq A_0, \qquad
+        A_0 A_1 \subseteq A_1, \qquad
+        A_1 A_0 \subseteq A_1, \qquad
+        A_1 A_1 \subseteq A_0
+
+    and `1 \in A_0`.
+
     EXAMPLES::
 
         sage: Algebras(ZZ).Super()

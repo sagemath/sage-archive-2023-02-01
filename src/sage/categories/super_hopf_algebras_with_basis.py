@@ -12,7 +12,7 @@ from sage.categories.super_modules import SuperModulesCategory
 
 class SuperHopfAlgebrasWithBasis(SuperModulesCategory):
     """
-    The category of super algebras with a distinguished basis
+    The category of super Hopf algebras with a distinguished basis.
 
     EXAMPLES::
 

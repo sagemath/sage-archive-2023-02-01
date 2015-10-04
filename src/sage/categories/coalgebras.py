@@ -191,6 +191,17 @@ class Coalgebras(Category_over_base_ring):
                 sage: Coalgebras(ZZ).Super().super_categories()
                 [Category of super modules over Integer Ring,
                  Category of coalgebras over Integer Ring]
+
+            Compare this with the situation for bialgebras::
+
+                sage: Bialgebras(ZZ).Super().extra_super_categories()
+                []
+                sage: Bialgebras(ZZ).Super().super_categories()
+                [Category of super algebras over Integer Ring,
+                 Category of super coalgebras over Integer Ring]
+
+            The category of bialgebras does not occur in these results,
+            since super bialgebras are not bialgebras.
             """
             return [self.base_category().Graded()]
 

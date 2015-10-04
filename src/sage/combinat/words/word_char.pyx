@@ -25,6 +25,8 @@ from cpython.number cimport PyIndex_Check, PyNumber_Check
 from cpython.sequence cimport PySequence_Check
 from cpython.slice cimport PySlice_Check, PySlice_GetIndicesEx
 
+import itertools
+
 # the maximum value of a size_t
 cdef size_t SIZE_T_MAX = -(<size_t> 1)
 
@@ -694,6 +696,15 @@ cdef class WordDatatype_char(WordDatatype):
             609 [7, 0, 20, 0, 54, 0, 143, 0, 376, 0]
             985 [0, 13, 0, 34, 0, 89, 0, 233, 0, 610]
             986 [0, 12, 0, 33, 0, 88, 0, 232, 0, 609]
+
+        TESTS::
+
+            sage: W = Words([0,1,2])
+            sage: w = W([0,2,1,0,0,1])
+            sage: w.longest_common_prefix(0)
+            Traceback (most recent call last):
+            ...
+            TypeError: unsupported input 0
         """
         cdef WordDatatype_char w
         cdef size_t i
@@ -704,7 +715,7 @@ cdef class WordDatatype_char(WordDatatype):
             # (this can be much faster if we allow to compare larger memory
             # zones)
             w = other
-            m = self._length if self._length <= w._length else w._length
+            m = min(self._length, w._length)
             for i in range(m):
                 if self._data[i] != w._data[i]:
                     break
@@ -719,8 +730,7 @@ cdef class WordDatatype_char(WordDatatype):
         elif PySequence_Check(other):
             # Python level
             # we avoid to call len(other) since it might be an infinite word
-            from itertools import islice
-            for i,a in enumerate(islice(other, self._length)):
+            for i,a in enumerate(itertools.islice(other, self._length)):
                 if self._data[i] != a:
                     break
             else:
@@ -728,7 +738,7 @@ cdef class WordDatatype_char(WordDatatype):
 
             return self._new_c(self._data, i, self)
 
-        raise TypeError("not able to initialize a word from {}".format(other))
+        raise TypeError("unsupported input {}".format(other))
 
     def longest_common_suffix(self, other):
         r"""
@@ -745,17 +755,27 @@ cdef class WordDatatype_char(WordDatatype):
             word: 001
             sage: v.longest_common_suffix(u)
             word: 001
+
+        TESTS::
+
+            sage: W = Words([0,1,2])
+            sage: w = W([0,2,1,0,0,1])
+            sage: w.longest_common_suffix(0)
+            Traceback (most recent call last):
+            ...
+            TypeError: unsupported input 0
         """
         cdef WordDatatype_char w
         cdef size_t i
         cdef size_t m
+        cdef size_t lo
 
         if isinstance(other, WordDatatype_char):
             # C level
             # (this can be much faster if we could compare larger memory
             # zones)
             w = other
-            m = self._length if self._length <= w._length else w._length
+            m = min(self._length, w._length)
             for i in range(m):
                 if self._data[self._length-i-1] != w._data[w._length-i-1]:
                     break
@@ -769,9 +789,10 @@ cdef class WordDatatype_char(WordDatatype):
 
         elif PySequence_Check(other):
             # Python level
-            m = self._length if self._length <= len(other) else len(other)
+            lo = len(other)
+            m = min(self._length, lo)
             for i in range(m):
-                if self._data[self._length-i-1] != other[len(other)-i-1]:
+                if self._data[self._length-i-1] != other[lo-i-1]:
                     break
             else:
                 if self._length == m:
@@ -781,5 +802,5 @@ cdef class WordDatatype_char(WordDatatype):
 
             return self._new_c(self._data+self._length-i, i, self)
 
-        raise TypeError("not able to initialize a word from {}".format(other))
+        raise TypeError("unsupported input {}".format(other))
 

@@ -3513,6 +3513,10 @@ def pushout(R, S):
          (Univariate Polynomial Ring in x over Integer Ring,
           Univariate Polynomial Ring in y over Rational Field,
           Univariate Polynomial Ring in z over Univariate Polynomial Ring in t over Rational Field)
+        sage: pushout(ZZ, cartesian_product([ZZ, QQ]))
+        Traceback (most recent call last):
+        ...
+        CoercionException: 'NoneType' object is not iterable
 
     ::
 
@@ -3577,6 +3581,15 @@ def pushout(R, S):
             Multivariate Polynomial Ring in a, b over Integer Ring,
           Univariate Polynomial Ring in y over
             Multivariate Polynomial Ring in b, c over Rational Field)
+
+    ::
+
+        sage: pushout(CartesianProductPolys((ZZ['x'],)), ZZ)
+        Traceback (most recent call last):
+        ...
+        CoercionException: No common base ("join") found for
+        The cartesian_product functorial construction(...) and None(Integer Ring):
+        (Multivariate) functors are incompatible.
 
     AUTHORS:
 

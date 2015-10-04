@@ -1697,7 +1697,7 @@ class AbstractGrowthGroupFunctor(ConstructionFunctor):
         :mod:`sage.rings.asymptotic.asymptotic_ring`,
         :class:`ExponentialGrowthGroupFunctor`,
         :class:`MonomialGrowthGroupFunctor`,
-        :class:`sage.rings.asymptotic.asymptotic_ring.AsyptoticRingFunctor`,
+        :class:`sage.rings.asymptotic.asymptotic_ring.AsymptoticRingFunctor`,
         :class:`sage.categories.pushout.ConstructionFunctor`.
     """
 
@@ -2316,7 +2316,7 @@ class MonomialGrowthGroupFunctor(AbstractGrowthGroupFunctor):
         :mod:`sage.rings.asymptotic.asymptotic_ring`,
         :class:`AbstractGrowthGroupFunctor`,
         :class:`ExponentialGrowthGroupFunctor`,
-        :class:`sage.rings.asymptotic.asymptotic_ring.AsyptoticRingFunctor`,
+        :class:`sage.rings.asymptotic.asymptotic_ring.AsymptoticRingFunctor`,
         :class:`sage.categories.pushout.ConstructionFunctor`.
 
     TESTS::
@@ -2800,7 +2800,7 @@ class ExponentialGrowthGroupFunctor(AbstractGrowthGroupFunctor):
         :mod:`sage.rings.asymptotic.asymptotic_ring`,
         :class:`AbstractGrowthGroupFunctor`,
         :class:`MonomialGrowthGroupFunctor`,
-        :class:`sage.rings.asymptotic.asymptotic_ring.AsyptoticRingFunctor`,
+        :class:`sage.rings.asymptotic.asymptotic_ring.AsymptoticRingFunctor`,
         :class:`sage.categories.pushout.ConstructionFunctor`.
 
     TESTS::

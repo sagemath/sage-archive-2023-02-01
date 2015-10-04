@@ -1327,7 +1327,7 @@ class AsymptoticRingFunctor(ConstructionFunctor):
 
     - ``growth_group`` -- a partially ordered group (see
       :class:`AsymptoticRing` or
-      mod:`~sage.rings.asymptotic.growth_group` for details).
+      :mod:`~sage.rings.asymptotic.growth_group` for details).
 
     EXAMPLES::
 
@@ -1398,7 +1398,7 @@ class AsymptoticRingFunctor(ConstructionFunctor):
 
         INPUT:
 
-        - ``base`` - anything :class:`MonomialGrowthGroup` accepts.
+        - ``base`` - anything :class:`~sage.rings.asymptotic.growth_group.MonomialGrowthGroup` accepts.
 
         OUTPUT:
 

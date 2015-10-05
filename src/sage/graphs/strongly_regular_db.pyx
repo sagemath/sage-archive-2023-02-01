@@ -1403,7 +1403,7 @@ def SRG_280_117_44_52():
         The vertices of the graph `G` are all partitions of a set of 9 elements
         into `\{\{a,b,c\},\{d,e,f\},\{g,h,i}\}`. The cross-intersection of two
         such partitions `P=\{P_1,P_2,P_3\}` and `P'=\{P'_1,P'_2,P'_3\}` being
-        defined as `\{P_i\cap P_j: 1\leq i,j\leq 3\}`, two vertices of `G` are
+        defined as `\{P_i\cap P'_j: 1\leq i,j\leq 3\}`, two vertices of `G` are
         set to be adjacent if the cross-intersection of their respective
         partitions does not contain exactly 7 nonempty sets.
 

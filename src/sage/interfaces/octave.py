@@ -94,9 +94,8 @@ a robust manner::
     sage: a = octave.eval(t + ';')    # optional - octave, < 1/100th of a second
     sage: a = octave(t)               # optional - octave
 
-Note that actually reading a back out takes forever. This *must*
-be fixed ASAP - see
-http://trac.sagemath.org/sage_trac/ticket/940/.
+Note that actually reading ``a`` back out takes forever. This *must*
+be fixed as soon as possible, see :trac:`940`.
 
 Tutorial
 --------
@@ -286,7 +285,7 @@ class Octave(Expect):
         # to signals.
         if not self._expect is None:
             if verbose:
-                print "Exiting spawned %s process."%self
+                print "Exiting spawned %s process." % self
         return
 
     def _start(self):
@@ -308,9 +307,38 @@ class Octave(Expect):
         # set random seed
         self.set_seed(self._seed)
 
+    def _equality_symbol(self):
+        """
+        EXAMPLES::
+
+            sage: octave('0 == 1')  # optional - octave
+             0
+            sage: octave('1 == 1')  # optional - octave
+             1
+        """
+        return '=='
+
+    def _true_symbol(self):
+        """
+        EXAMPLES::
+
+            sage: octave('1 == 1')  # optional - octave
+             1
+        """
+        return '1'
+
+    def _false_symbol(self):
+        """
+        EXAMPLES::
+
+            sage: octave('0 == 1')  # optional - octave
+             0
+        """
+        return '0'
+
     def set(self, var, value):
         """
-        Set the variable var to the given value.
+        Set the variable ``var`` to the given ``value``.
 
         EXAMPLES::
 
@@ -325,7 +353,7 @@ class Octave(Expect):
 
     def get(self, var):
         """
-        Get the value of the variable var.
+        Get the value of the variable ``var``.
 
         EXAMPLES::
 
@@ -387,18 +415,16 @@ class Octave(Expect):
         return octave_version()
 
     def solve_linear_system(self, A, b):
-        """
+        r"""
         Use octave to compute a solution x to A\*x = b, as a list.
 
         INPUT:
 
+        - ``A`` -- mxn matrix A with entries in `\QQ` or `\RR`
 
-        -  ``A`` - mxn matrix A with entries in QQ or RR
+        - ``b`` -- m-vector b entries in `\QQ` or `\RR` (resp)
 
-        -  ``b`` - m-vector b entries in QQ or RR (resp)
-
-
-        OUTPUT: An list x (if it exists) which solves M\*x = b
+        OUTPUT: A list x (if it exists) which solves M\*x = b
 
         EXAMPLES::
 
@@ -524,15 +550,119 @@ class OctaveElement(ExpectElement):
             [3.00000000000000 4.50000000000000]
         """
         from sage.matrix.all import MatrixSpace
-        s = str(self).strip()
-        v = s.split('\n ')
-        nrows = len(v)
-        if nrows == 0:
-            return MatrixSpace(R,0,0)(0)
-        ncols = len(v[0].split())
-        M = MatrixSpace(R, nrows, ncols)
-        v = sum([[x for x in w.split()] for w in v], [])
-        return M(v)
+        oc = self.parent()
+        if not oc('ismatrix(%s)' % self):
+            raise TypeError('not an octave matrix')
+        s = str(self).strip('\n ')
+        w = [u.strip().split(' ') for u in s.split('\n')]
+        nrows = len(w)
+        ncols = len(w[0])
+        return MatrixSpace(R, nrows, ncols)(w)
+
+    def _vector_(self, R):
+        r"""
+        Return Sage vector from this octave element.
+
+        EXAMPLES::
+
+            sage: A = octave('[1,2,3,4]')       # optional - octave
+            sage: vector(ZZ, A)                 # optional - octave
+            [1 2 3 4]
+            sage: A = octave('[1,2.3,4.5]')     # optional - octave
+            sage: vector(RR, A)                 # optional - octave
+            [1.00000000000000 2.30000000000000 4.50000000000000]
+        """
+        from sage.modules.free_module import FreeModule
+        oc = self.parent()
+        if not oc('isvector(%s)' % self):
+            raise TypeError('not an octave vector')
+        s = str(self).strip('\n ')
+        w = s.strip().split(' ')
+        nrows = len(w)
+        return FreeModule(R, nrows)(w)
+
+    def _scalar_(self, find_parent=False):
+        """
+        Return Sage scalar from this octave element.
+
+        INPUT:
+
+        - find_parent -- boolean (default ``False``). If ``True`` also return
+          the ring to which the scalar belongs.
+
+        EXAMPLES::
+
+            sage: A = octave('2833')      # optional - octave
+            sage: As = A.sage(); As                # optional - octave
+            2833
+            sage: As.parent()    # optional - octave
+            Integer Ring
+            sage: B = sqrt(A)             # optional - octave
+            sage: Bs = B.sage(); Bs                # optional - octave
+            53.2259
+            sage: Bs.parent()    # optional - octave
+            Real Field with 53 bits of precision
+            sage: C = sqrt(-A)            # optional - octave
+            sage: Cs = C.sage(); Cs                # optional - octave
+            53.2259*I
+            sage: Cs.parent()    # optional - octave
+            Complex Field with 53 bits of precision
+        """
+        from sage.rings.complex_double import CDF
+        from sage.rings.integer_ring import ZZ
+        from sage.rings.real_double import RDF
+        oc = self.parent()
+        if oc('isinteger(%s)' % self):
+            if not find_parent:
+                return ZZ(str(self))
+            else:
+                return ZZ(str(self)), ZZ
+        elif oc('isreal(%s)' % self):
+            if not find_parent:
+                return RDF(str(self))
+            else:
+                return RDF(str(self)), RDF
+        elif oc('iscomplex(%s)' % self):
+            real, imag = str(self).strip('() ').split(',')
+            if not find_parent:
+                return CDF(RDF(real), RDF(imag))
+            else:
+                return CDF(RDF(real), RDF(imag)), CDF
+
+    def _sage_(self):
+        """
+        Try to parse the octave object and return a sage object.
+
+        EXAMPLES::
+
+            sage: A = octave('2833')      # optional - octave
+            sage: A.sage()                # optional - octave
+            2833
+            sage: B = sqrt(A)             # optional - octave
+            sage: B.sage()                # optional - octave
+            53.2259
+            sage: C = sqrt(-A)             # optional - octave
+            sage: C.sage()                # optional - octave
+            53.2259*I
+            sage: A = octave('[1,2,3,4]')    # optional - octave
+            sage: A.sage()                   # optional - octave
+            [1 2 3 4]
+            sage: A = octave('[1,2.3,4.5]')   # optional - octave
+            sage: A.sage()                    # optional - octave
+            [1.00000000000000 2.30000000000000 4.50000000000000]
+            sage: A = octave('[1,2.3+I,4.5]')   # optional - octave
+            sage: A.sage()                    # optional - octave
+            [1.00000000000000 2.30000000000000+1.0*I 4.50000000000000]
+        """
+        oc = self.parent()
+        if oc('isscalar(%s)' % self):
+            return self._scalar_()
+        elif oc('isvector(%s)' % self):
+            return self._vector_()
+        elif oc('ismatrix(%s)' % self):
+            return self._matrix_()
+        else:
+            raise NotImplementedError('octave type is not recognized')
 
 
 # An instance

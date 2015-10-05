@@ -89,21 +89,21 @@ echo "*************************************************"
 ./configure --prefix="$SAGE_LOCAL" --libdir="$SAGE_LOCAL/lib" \
     --with-default="$SAGE_LOCAL" \
     --with-blas-libs="$LINBOX_BLAS" \
-    --enable-optimization --disable-static
+    --enable-optimization --disable-static --enable-precompilation
 
 if [ $? -ne 0 ]; then
-    echo "Error configuring linbox"
+    echo "Error configuring fflas-ffpack"
     exit 1
 fi
 
 $MAKE
 if [ $? -ne 0 ]; then
-    echo "Error building linbox"
+    echo "Error building fflas-ffpack"
 fi
 
 $MAKE install
 if [ $? -ne 0 ]; then
-    echo "Error installing linbox"
+    echo "Error installing fflas-ffpack"
     exit 1
 fi
 

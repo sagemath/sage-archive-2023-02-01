@@ -714,7 +714,8 @@ def GoethalsSeidelGraph(k,r):
         sage: graphs.GoethalsSeidelGraph(3,3)
         Graph on 28 vertices
         sage: graphs.GoethalsSeidelGraph(3,3).is_strongly_regular(parameters=True)
-        (28, 12, 6, 4)
+        (28, 15, 6, 10)
+
     """
     from sage.combinat.designs.bibd import balanced_incomplete_block_design
     from sage.combinat.matrices.hadamard_matrix import hadamard_matrix

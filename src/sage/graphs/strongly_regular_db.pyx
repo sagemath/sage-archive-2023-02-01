@@ -360,14 +360,14 @@ def is_goethals_seidel(int v,int k,int l,int mu):
 
         sage: from sage.graphs.strongly_regular_db import is_goethals_seidel
         sage: t = is_goethals_seidel(28, 15, 6, 10); t
-        [<function GoethalsSeidelGraph at 0x7feac4de47d0>, 3, 3]
+        [<function GoethalsSeidelGraph at ...>, 3, 3]
         sage: g = t[0](*t[1:]); g
         Graph on 28 vertices
         sage: g.is_strongly_regular(parameters=True)
         (28, 15, 6, 10)
 
         sage: t = is_goethals_seidel(256, 135, 70, 72); t
-        [<function GoethalsSeidelGraph at 0x7feac4de47d0>, 2, 15]
+        [<function GoethalsSeidelGraph at ...>, 2, 15]
         sage: g = t[0](*t[1:]); g
         Graph on 256 vertices
         sage: g.is_strongly_regular(parameters=True)

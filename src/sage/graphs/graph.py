@@ -2736,6 +2736,15 @@ class Graph(GenericGraph):
             ....:    g.delete_edges(list(combinations(bag,2)))
             sage: g.size()
             0
+
+        :trac:`19358`::
+
+            sage: g = Graph()
+            sage: for i in range(3):
+            ....:     for j in range(2):
+            ....:         g.add_path([i,(i,j),(i+1)%3])
+            sage: g.treewidth()
+            2
         """
         from sage.misc.cachefunc import cached_function
         from sage.sets.set import Set
@@ -2781,9 +2790,8 @@ class Graph(GenericGraph):
             if len(cc)+len(cut) <= k+1:
                 return [(cut,cut.union(cc))] if certificate else True
 
-            # The list of potential vertices that could be added to the current cut
-            extensions = {v for u in cut for v in g.neighbors(u) if v in cc}
-            for v in extensions:
+            # We explore all possible extensions of the cut
+            for v in cc:
 
                 # New cuts and connected components, with v respectively added and
                 # removed

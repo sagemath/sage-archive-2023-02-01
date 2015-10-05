@@ -4362,7 +4362,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
 
         A list of pairs `(x,s)` such that,
 
-          * `x` and `s` are orthogonal vectors.
+          * `x` and `s` are orthogonal.
           * `x` is one of this cone's :meth:`~IntegralRayCollection.rays`.
           * `s` is one of the :meth:`~IntegralRayCollection.rays` of this
             cone's :meth:`dual`.
@@ -4375,11 +4375,11 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
         EXAMPLES:
 
         The discrete complementarity set of the nonnegative orthant
-        consists of pairs of standard basis vectors::
+        consists of pairs of standard basis elements::
 
             sage: K = Cone([(1,0),(0,1)])
             sage: K.discrete_complementarity_set()
-            [((1, 0), (0, 1)), ((0, 1), (1, 0))]
+            [(N(1, 0), M(0, 1)), (N(0, 1), M(1, 0))]
 
         If the cone consists of a single ray, the second components of
         the discrete complementarity set should generate the orthogonal
@@ -4387,13 +4387,13 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
 
             sage: K = Cone([(1,0)])
             sage: K.discrete_complementarity_set()
-            [((1, 0), (0, 1)), ((1, 0), (0, -1))]
+            [(N(1, 0), M(0, 1)), (N(1, 0), M(0, -1))]
             sage: K = Cone([(1,0,0)])
             sage: K.discrete_complementarity_set()
-            [((1, 0, 0), (0, 1, 0)),
-              ((1, 0, 0), (0, -1, 0)),
-              ((1, 0, 0), (0, 0, 1)),
-              ((1, 0, 0), (0, 0, -1))]
+            [(N(1, 0, 0), M(0, 1, 0)),
+             (N(1, 0, 0), M(0, -1, 0)),
+             (N(1, 0, 0), M(0, 0, 1)),
+             (N(1, 0, 0), M(0, 0, -1))]
 
         When the cone is the entire space, its dual is the trivial cone,
         so the discrete complementarity set is empty::
@@ -4430,18 +4430,10 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
             sage: dcs = K.discrete_complementarity_set()
             sage: sum([ x.inner_product(s).abs() for (x,s) in dcs ])
             0
-
         """
-        V = self.lattice().vector_space()
-
-        # Convert rays to vectors so that we can compute inner products.
-        G1 = [ V(x) for x in self.rays() ]
-
-        # We also convert the generators of the dual cone so that we
-        # return pairs of vectors and not (vector, ray) pairs.
-        G2 = [ V(s) for s in self.dual().rays() ]
-
-        return [ (x,s) for x in G1 for s in G2 if x.inner_product(s) == 0 ]
+        return [ (x,s) for x in self
+                       for s in self.dual()
+                       if x.inner_product(s) == 0 ]
 
 
 def random_cone(lattice=None, min_ambient_dim=0, max_ambient_dim=None,

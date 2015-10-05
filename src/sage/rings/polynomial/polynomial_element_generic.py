@@ -71,6 +71,7 @@ class Polynomial_generic_sparse(Polynomial):
         s + Tbar
         sage: (s + T)**2
         s^2 + 2*Tbar*s + 4
+
     """
     def __init__(self, parent, x=None, check=True, is_gen=False, construct=False):
         """

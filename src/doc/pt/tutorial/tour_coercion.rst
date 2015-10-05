@@ -57,10 +57,12 @@ fornecendo implementações diferentes da mesma estrutura matemática
     sage: P.<a> = PolynomialRing(ZZ)
     sage: Q.<b> = PolynomialRing(ZZ, sparse=True)
     sage: R.<c> = PolynomialRing(ZZ, implementation='NTL')
-    sage: type(a); type(b); type(c)
-    <type 'sage.rings.polynomial.polynomial_integer_dense_flint.Polynomial_integer_dense_flint'>
-    <class 'sage.rings.polynomial.polynomial_element_generic.Polynomial_generic_sparse'>
-    <type 'sage.rings.polynomial.polynomial_integer_dense_ntl.Polynomial_integer_dense_ntl'>
+    sage: type(a) == type(b)
+    False
+    sage: type(a) == type(c)
+    False
+    sage: type(b) == type(c)
+    False
 
 Isso apresenta dois problemas: Por um lado, se tivéssemos elementos
 que são duas instancias da mesma classe, então poderia-se esperar que

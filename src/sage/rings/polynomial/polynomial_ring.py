@@ -126,31 +126,6 @@ Check that :trac:`5562` has been fixed::
     sage: v1 * v2
     2.0*u
 
-These may change over time::
-
-    sage: x = var('x')
-    sage: type(ZZ['x'].0)
-    <type 'sage.rings.polynomial.polynomial_integer_dense_flint.Polynomial_integer_dense_flint'>
-    sage: type(QQ['x'].0)
-    <type 'sage.rings.polynomial.polynomial_rational_flint.Polynomial_rational_flint'>
-    sage: type(RR['x'].0)
-    <type 'sage.rings.polynomial.polynomial_real_mpfr_dense.PolynomialRealDense'>
-    sage: type(Integers(4)['x'].0)
-    <type 'sage.rings.polynomial.polynomial_zmod_flint.Polynomial_zmod_flint'>
-    sage: type(Integers(5*2^100)['x'].0)
-    <type 'sage.rings.polynomial.polynomial_modn_dense_ntl.Polynomial_dense_modn_ntl_ZZ'>
-    sage: type(CC['x'].0)
-    <class 'sage.rings.polynomial.polynomial_element_generic.PolynomialRing_field_with_category.element_class'>
-    sage: type(CC['t']['x'].0)
-    <type 'sage.rings.polynomial.polynomial_element.Polynomial_generic_dense'>
-    sage: type(NumberField(x^2+1,'I')['x'].0)
-    <class 'sage.rings.polynomial.polynomial_number_field.Polynomial_absolute_number_field_dense'>
-    sage: type(NumberField(x^2+1,'I')['x'])
-    <class 'sage.rings.polynomial.polynomial_ring.PolynomialRing_field_with_category'>
-    sage: type(NumberField([x^2-2,x^2-3],'a')['x'].0)
-    <class 'sage.rings.polynomial.polynomial_number_field.Polynomial_relative_number_field_dense'>
-    sage: type(NumberField([x^2-2,x^2-3],'a')['x'])
-    <class 'sage.rings.polynomial.polynomial_ring.PolynomialRing_field_with_category'>
 """
 
 #*****************************************************************************

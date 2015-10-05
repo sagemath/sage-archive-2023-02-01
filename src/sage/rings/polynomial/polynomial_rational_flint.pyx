@@ -75,6 +75,13 @@ cdef class Polynomial_rational_flint(Polynomial):
     polynomial and a positive denominator which is coprime to the content of
     the numerator.
 
+    TESTS::
+
+        sage: f = QQ['x'].random_element()
+        sage: from sage.rings.polynomial.polynomial_rational_flint import Polynomial_rational_flint
+        sage: isinstance(f, Polynomial_rational_flint)
+        True
+
     .. automethod:: _add_
     .. automethod:: _sub_
     .. automethod:: _lmul_

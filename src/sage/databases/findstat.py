@@ -256,7 +256,7 @@ FINDSTAT_COLLECTION_IDENTIFIER                  = 'CollectionIdentifier'
 FINDSTAT_COLLECTION_NAME                        = 'CollectionName'
 FINDSTAT_COLLECTION_NAME_PLURAL                 = 'CollectionNamePlural'
 FINDSTAT_COLLECTION_NAME_WIKI                   = 'CollectionNameWiki'
-FINDSTAT_COLLECTION_PARENT_LEVELS_PRECOMPUTED   = 'CollectionLevelsPrecomputed'
+FINDSTAT_COLLECTION_LEVELS                      = 'CollectionLevelsSizes'
 
 FINDSTAT_MAP_IDENTIFIER                         = 'MapIdentifier' # should be identical to FINDSTAT_MAP_IDENTIFIER
 FINDSTAT_MAP_NAME                               = 'MapName'
@@ -1175,6 +1175,26 @@ class FindStatStatistic(SageObject):
         else:
             return ""
 
+    def _generating_functions(self):
+        c = self.collection()
+        res = dict()
+        for (elements, values) in self._data:
+            l = c._get_level(elements[0])
+            if l in c._levels and all(l == c._get_level(e) for e in elements[1:]):
+                res[l] = res.get(l, dict())
+                for v in values:
+                    res[l][v] = res[l].get(v, 0) + 1
+
+        for (l, p) in res.iteritems():
+            ns = sum(p.values())
+            nc = c._levels[l]
+            if ns < nc:
+                res[l] = None
+            elif ns > nc:
+                raise ValueError("FindStat delivers more statistic values than the level has elements. This should not happen.  Please send and email to the developers.")
+
+        return res
+
     def generating_functions(self, style="polynomial"):
         r"""
         Return the generating functions of ``self`` in a dictionary.
@@ -1733,7 +1753,7 @@ class FindStatCollection(Element):
         """
         self._id = id
         (self._name, self._name_plural, self._url_name,
-         self._sageclass, self._sageconstructor, self._range,
+         self._sageclass, self._sageconstructor, self._levels, self._get_level,
          self._in_range, self._to_str, self._from_str) = c
         self._sageconstructor_overridden = sageconstructor_overridden
 
@@ -1831,7 +1851,7 @@ class FindStatCollection(Element):
             Cc0023: Parking functions 10000 True
 
         """
-        return self._in_range(element, self._range)
+        return self._in_range(element, self._levels.keys())
 
     def first_terms(self, statistic, max_values=FINDSTAT_MAX_SUBMISSION_VALUES):
         r"""
@@ -1864,7 +1884,7 @@ class FindStatCollection(Element):
              ([[2, 0], [1]], 1)]
         """
         if self._sageconstructor_overridden is None:
-            g = (x for n in self._range for x in self._sageconstructor(n))
+            g = (x for n in self._levels.keys() for x in self._sageconstructor(n))
         else:
             g = self._sageconstructor_overridden
 
@@ -2044,7 +2064,8 @@ class FindStatCollections(Parent, UniqueRepresentation):
     # * url's as needed by FindStat                              (FINDSTAT_COLLECTION_NAME_WIKI)
     # * sage element constructor
     # * sage constructor                                         (would be parent_initializer)
-    # * list of arguments for constructor                        (FINDSTAT_COLLECTION_PARENT_LEVELS_PRECOMPUTED)
+    # * a dictionary from levels to sizes                        (FINDSTAT_COLLECTION_LEVELS)
+    #   the levels are used as arguments for the sage constructor
     # * a function to check whether an object is produced by applying the constructor to some element in the list
     # * the (FindStat) string representations of the sage object (would be element_repr)
     # * sage constructors of the FindStat string representation  (would be element_constructor)
@@ -2064,75 +2085,92 @@ class FindStatCollections(Parent, UniqueRepresentation):
     # upon the first call to this class
     _findstat_collections = {
         17: [None, None, None, AlternatingSignMatrix, AlternatingSignMatrices, None,
+             lambda x: x.to_matrix().nrows(),
              lambda x, l: x.to_matrix().nrows() in l,
              lambda x: str(map(list, list(x._matrix))),
              lambda x: AlternatingSignMatrix(literal_eval(x))],
         10: [None, None, None, BinaryTree,            BinaryTrees,             None,
+             lambda x: x.node_number(),
              lambda x, l: x.node_number() in l,
              str,
              lambda x: BinaryTree(str(x))],
         13: [None, None, None, Core,                  lambda x: Cores(x[1], x[0]),
              None,
+             lambda x: (x.length(), x.k()),
              lambda x, l: (x.length(), x.k()) in l,
              lambda X: "( "+X._repr_()+", "+str(X.k())+" )",
              lambda x: (lambda pi, k: Core(pi, k))(*literal_eval(x))],
         5:  [None, None, None, DyckWord,              DyckWords,               None,
+             lambda x: (x.length()/2),
              lambda x, l: (x.length()/2) in l,
              lambda x: str(list(DyckWord(x))),
              lambda x: DyckWord(literal_eval(x))],
         22: [None, None, None, CartanType_abstract,   _finite_irreducible_cartan_types_by_rank,
              None,
+             lambda x: x.rank(),
              lambda x, l: x.rank() in l,
              str,
              lambda x: CartanType(*literal_eval(str(x)))],
         18: [None, None, None, GelfandTsetlinPattern, lambda x: GelfandTsetlinPatterns(*x),
+             None,
              None,
              lambda x, l: any(len(x) == s and max([0] + [max(row) for row in x]) <= m for s, m in l),
              str,
              lambda x: GelfandTsetlinPattern(literal_eval(x))],
         20: [None, None, None, Graph,                 graphs,
              None,
+             lambda x: x.num_verts(),
              lambda x, l: x.num_verts() in l,
              lambda X: str((sorted(X.canonical_label().edges(False)), X.num_verts())),
              lambda x: (lambda E, V: Graph([range(V), lambda i,j: (i,j) in E or (j,i) in E], immutable=True))(*literal_eval(x))],
         6:  [None, None, None, Composition,           Compositions,            None,
+             lambda x: x.size(),
              lambda x, l: x.size() in l,
              str,
              lambda x: Composition(literal_eval(x))],
         2:  [None, None, None, Partition,             Partitions,              None,
+             lambda x: x.size(),
              lambda x, l: x.size() in l,
              str,
              lambda x: Partition(literal_eval(x))],
         21: [None, None, None, OrderedTree,           OrderedTrees,            None,
+             lambda x: x.node_number(),
              lambda x, l: x.node_number() in l,
              str,
              lambda x: OrderedTree(literal_eval(x))],
         23: [None, None, None, ParkingFunction_class, ParkingFunctions,        None,
+             lambda x: len(x),
              lambda x, l: len(x) in l,
              str,
              lambda x: ParkingFunction(literal_eval(x))],
         12: [None, None, None, PerfectMatching,       PerfectMatchings,        None,
+             lambda x: x.size(),
              lambda x, l: x.size() in l,
              str,
              lambda x: PerfectMatching(literal_eval(x))],
         1:  [None, None, None, Permutation,           Permutations,            None,
+             lambda x: x.size(),
              lambda x, l: x.size() in l,
              str,
              lambda x: Permutation(literal_eval(x))],
         14: [None, None, None, FinitePoset,           posets,                  None,
+             lambda x: x.cardinality(),
              lambda x, l: x.cardinality() in l,
              lambda X: str((sorted(X._hasse_diagram.canonical_label().cover_relations()), len(X._hasse_diagram.vertices()))),
              lambda x: (lambda R, E: Poset((range(E), R)))(*literal_eval(x))],
         19: [None, None, None, SemistandardTableau,   lambda x: SemistandardTableaux(x, max_entry=4),
              None,
+             lambda x: x.size(),
              lambda x, l: x.size() in l,
              str,
              lambda x: SemistandardTableau(literal_eval(x))],
         9:  [None, None, None, SetPartition,          SetPartitions,           None,
+             lambda x: x.size(),
              lambda x, l: x.size() in l,
              str,
              lambda x: SetPartition(literal_eval(x.replace('{','[').replace('}',']')))],
         7:  [None, None, None, StandardTableau,       StandardTableaux,        None,
+             lambda x: x.size(),
              lambda x, l: x.size() in l,
              str,
              lambda x: StandardTableau(literal_eval(x))]}
@@ -2152,7 +2190,8 @@ class FindStatCollections(Parent, UniqueRepresentation):
             c[0] = j[FINDSTAT_COLLECTION_NAME]
             c[1] = j[FINDSTAT_COLLECTION_NAME_PLURAL]
             c[2] = j[FINDSTAT_COLLECTION_NAME_WIKI]
-            c[5] = literal_eval(j[FINDSTAT_COLLECTION_PARENT_LEVELS_PRECOMPUTED])
+            c[5] =  {literal_eval(key):value for key,value in
+                     j[FINDSTAT_COLLECTION_LEVELS].iteritems()}
 
         Parent.__init__(self, category=Sets())
 

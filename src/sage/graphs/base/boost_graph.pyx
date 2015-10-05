@@ -166,6 +166,13 @@ cpdef edge_connectivity(g):
         sage: edge_connectivity(g)
         [4, [(0, 1), (0, 2), (0, 3), (0, 4)]]
 
+    Vertex-labeled graphs::
+
+        sage: from sage.graphs.base.boost_graph import edge_connectivity
+        sage: g = graphs.GridGraph([2,2])
+        sage: edge_connectivity(g)
+        [2, [((0, 0), (0, 1)), ((0, 0), (1, 0))]]
+
     """
     from sage.graphs.graph import Graph
     from sage.graphs.digraph import DiGraph
@@ -173,11 +180,12 @@ cpdef edge_connectivity(g):
     # These variables are automatically deleted when the function terminates.
     cdef BoostVecGraph g_boost_und
     cdef BoostVecDiGraph g_boost_dir
+    cdef dict int_to_vertex = {i:v for i,v in enumerate(g.vertices())}
 
     if isinstance(g, Graph):
         boost_graph_from_sage_graph(&g_boost_und, g)
         sig_check()
-        return boost_edge_connectivity(&g_boost_und)
+        ec, edges = boost_edge_connectivity(&g_boost_und)
 
     elif isinstance(g, DiGraph):
         from sage.misc.stopgap import stopgap
@@ -186,10 +194,12 @@ cpdef edge_connectivity(g):
 
         boost_graph_from_sage_graph(&g_boost_dir, g)
         sig_check()
-        return boost_edge_connectivity(&g_boost_dir)
+        ec, edges = boost_edge_connectivity(&g_boost_dir)
 
     else:
         raise ValueError("The input must be a Sage graph.")
+
+    return [ec, [(int_to_vertex[u], int_to_vertex[v]) for (u,v) in edges]]
 
 cdef boost_clustering_coeff(BoostGenGraph *g, vertices):
     r"""

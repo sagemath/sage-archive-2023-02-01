@@ -202,7 +202,7 @@ def is_hadamard_matrix(M, normalized=False, verbose=False):
     - ``M`` -- a matrix
 
     - ``normalized`` (boolean) -- whether to test if ``M`` is a normalized
-      Hadamard matrix, i.e. has its first row/column filles with +1.
+      Hadamard matrix, i.e. has its first row/column filled with +1.
 
     - ``verbose`` (boolean) -- whether to be verbose when the matrix is not
       Hadamard.

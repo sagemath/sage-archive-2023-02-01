@@ -167,10 +167,12 @@ class SageDownloadFileApplication(object):
     def run(self):
         progress = True
         url = None
+        print_fastest_mirror = None
         destination = None
         for arg in sys.argv[1:]:
             if arg.startswith('--print-fastest-mirror'):
-                url = "fastest mirror"
+                url = ""
+                print_fastest_mirror = True
                 continue
             if arg.startswith('--quiet'):
                 progress = False
@@ -189,7 +191,8 @@ class SageDownloadFileApplication(object):
         try:
             if url.startswith('http://') or url.startswith('https://') or url.startswith('ftp://'):
                 Download(url, destination, progress=progress, ignore_errors=True).run()
-            elif url == "fastest mirror":
+            elif print_fastest_mirror:
+                url = "fastest mirror"  # For error message
                 print(MirrorList().fastest)
             else:
                 # url is a tarball name
@@ -197,7 +200,7 @@ class SageDownloadFileApplication(object):
                 tarball.download()
                 if destination is not None:
                     tarball.save_as(destination)
-        except:
+        except BaseException:
             try:
                 stars = '*' * 72 + '\n'
                 sys.stderr.write(stars)

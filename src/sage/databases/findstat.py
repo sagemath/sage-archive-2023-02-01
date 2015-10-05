@@ -491,13 +491,15 @@ class FindStat(SageObject):
                 # either a pair (list of objects, list of integers)
                 # or a list of such or (object, integer) pairs
 
+                # correctness of data is checked in FindStatStatistic._find_by_values
+
                 # values must always be lists because otherwise we
                 # get a trailing comma when printing
                 if (len(query) == 2 and
                     isinstance(query[1], (list, tuple)) and
                     len(query[1]) != 0 and
                     isinstance(query[1][0], (int, Integer))):
-                    # just a pair
+                    # just a single pair
                     data = [(query[0], list(query[1]))]
                     collection = FindStatCollection(data[0][0][0])
                     return FindStatStatistic(id=0, data=data,
@@ -913,13 +915,18 @@ class FindStatStatistic(SageObject):
         self._query = "data"
 
         # FindStat allows to search for at most FINDSTAT_MAX_VALUES
-        # values.  For the user's convenience, from data, we take the
+        # values.  For the user's convenience, from _data, we take the
         # first min(max_values, FINDSTAT_MAX_VALUES) such that all
         # elements are in the precomputed range
+        # the internal _data is not modified
         data = []
         total = min(max_values, FINDSTAT_MAX_VALUES)
+        all_elements = []
         for (elements, values) in self._data:
-            if len(elements) != len(values):
+            all_elements += elements
+            if len(set(elements)) != len(elements):
+                raise ValueError("FindStat expects that every object appears only once!")
+            elif len(elements) != len(values):
                 raise ValueError("FindStat expects the same number of objects as values!")
             try:
                 values = [int(v) for v in values]
@@ -930,6 +937,9 @@ class FindStatStatistic(SageObject):
                 if all(self._collection.in_range(e) for e in elements):
                     data += [(elements, values)]
                     total -= len(elements)
+
+        if len(set(all_elements)) != len(all_elements):
+            raise ValueError("FindStat expects that every object appears only once!")
 
         # this might go wrong:
         try:
@@ -1185,7 +1195,6 @@ class FindStatStatistic(SageObject):
             return ""
 
     def _compute_generating_functions(self):
-        print "hi"
         c = self.collection()
         res = dict()
         for (elements, values) in self._data:

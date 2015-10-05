@@ -207,10 +207,10 @@ from sage.geometry.toric_lattice import ToricLattice, is_ToricLattice, \
     is_ToricLatticeQuotient
 from sage.geometry.toric_plotter import ToricPlotter, label_list
 from sage.graphs.digraph import DiGraph
-from sage.matrix.all import matrix
+from sage.matrix.all import matrix, MatrixSpace
 from sage.misc.all import cached_method, flatten, latex
 from sage.misc.superseded import deprecation
-from sage.modules.all import span, vector
+from sage.modules.all import span, vector, VectorSpace
 from sage.rings.all import QQ, RR, ZZ, gcd
 from sage.structure.all import SageObject, parent
 from sage.libs.ppl import C_Polyhedron, Generator_System, Constraint_System, \
@@ -4441,6 +4441,149 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
         return tuple( (x,s) for x in self
                             for s in self.dual()
                             if x.inner_product(s) == 0 )
+
+    def LL(self):
+        r"""
+        Compute a basis of Lyapunov-like transformations on this cone.
+
+        A linear transformation `L` is said to be Lyapunov-like on this
+        cone if `L(x)` and `s` are orthogonal for every pair `(x,s)` in
+        its :meth:`discrete_complementarity_set`. The set of all such
+        transformations forms a vector space, namely the Lie algebra of
+        the automorphism group of this cone.
+
+        OUTPUT:
+
+        A list of matrices forming a basis for the space of all
+        Lyapunov-like transformations on this cone.
+
+        REFERENCES:
+
+        M. Orlitzky. The Lyapunov rank of an improper cone.
+        http://www.optimization-online.org/DB_HTML/2015/10/5135.html
+
+        .. [Rudolf] G. Rudolf, N. Noyan, D. Papp, and F. Alizadeh.
+           Bilinear optimality constraints for the cone of positive
+           polynomials. Mathematical Programming, Series B, 129 (2011) 5-31.
+
+        EXAMPLES:
+
+        The trivial cone has no Lyapunov-like transformations::
+
+            sage: L = ToricLattice(0)
+            sage: K = Cone([], lattice=L)
+            sage: K.LL()
+            []
+
+        The Lyapunov-like transformations on the nonnegative orthant are
+        diagonal matrices::
+
+            sage: K = Cone([(1,)])
+            sage: K.LL()
+            [[1]]
+
+            sage: K = Cone([(1,0),(0,1)])
+            sage: K.LL()
+            [
+            [1 0]  [0 0]
+            [0 0], [0 1]
+            ]
+
+            sage: K = Cone([(1,0,0),(0,1,0),(0,0,1)])
+            sage: K.LL()
+            [
+            [1 0 0]  [0 0 0]  [0 0 0]
+            [0 0 0]  [0 1 0]  [0 0 0]
+            [0 0 0], [0 0 0], [0 0 1]
+            ]
+
+        Only the identity matrix is Lyapunov-like on the pyramids
+        defined by the one- and infinity-norms [Rudolf]_::
+
+            sage: l31 = Cone([(1,0,1), (0,-1,1), (-1,0,1), (0,1,1)])
+            sage: l31.LL()
+            [
+            [1 0 0]
+            [0 1 0]
+            [0 0 1]
+            ]
+
+            sage: l3infty = Cone([(0,1,1), (1,0,1), (0,-1,1), (-1,0,1)])
+            sage: l3infty.LL()
+            [
+            [1 0 0]
+            [0 1 0]
+            [0 0 1]
+            ]
+
+        Every transformation is Lyapunov-like on the ambient space::
+
+            sage: K = Cone([(1,0), (-1,0), (0,1), (0,-1)])
+            sage: K.is_full_space()
+            True
+            sage: M = MatrixSpace(K.lattice().base_field(), K.lattice_dim())
+            sage: M.basis() == K.LL()
+            True
+
+        TESTS:
+
+        The vectors `L(x)` and `s` are orthogonal for every pair `(x,s)`
+        in the :meth:`discrete_complementarity_set` of the cone::
+
+            sage: set_random_seed()
+            sage: K = random_cone(max_ambient_dim=8)
+            sage: dcs = K.discrete_complementarity_set()
+            sage: ips = [ (L*x).inner_product(s) for (x,s) in dcs
+            ....:                                for L in K.LL() ]
+            sage: sum(map(abs, ips))
+            0
+
+        The Lyapunov-like transformations on a cone and its dual are
+        transposes of one another. However, there's no reason to expect
+        that one basis will consist of transposes of the other::
+
+            sage: set_random_seed()
+            sage: K = random_cone(max_ambient_dim=8)
+            sage: LL2 = [ L.transpose() for L in K.dual().LL() ]
+            sage: V = VectorSpace(K.lattice().base_field(), K.lattice_dim()^2)
+            sage: LL1_vecs = [ V(m.list()) for m in K.LL() ]
+            sage: LL2_vecs = [ V(m.list()) for m in LL2    ]
+            sage: V.span(LL1_vecs) == V.span(LL2_vecs)
+            True
+
+        The space of all Lyapunov-like transformations is a Lie algebra
+        and should therefore be closed under the lie bracket::
+
+            sage: set_random_seed()
+            sage: K = random_cone(max_ambient_dim=4)
+            sage: W = VectorSpace(K.lattice().base_field(), K.lattice_dim()**2)
+            sage: LL_W = W.span([ W(m.list()) for m in K.LL() ])
+            sage: brackets = [ W((L1*L2 - L2*L1).list()) for L1 in K.LL()
+            ....:                                        for L2 in K.LL() ]
+            sage: all([ b in LL_W for b in brackets ])
+            True
+        """
+        # Matrices are not vectors in Sage, so we have to convert them
+        # to vectors explicitly before we can find a basis. We need these
+        # two values to construct the appropriate "long vector" space.
+        F = self.lattice().base_field()
+        n = self.lattice_dim()
+
+        # These tensor products contain a basis for the orthogonal
+        # complement of the Lyapunov-like transformations on this cone.
+        tensor_products = [ s.tensor_product(x)
+                            for (x,s) in self.discrete_complementarity_set() ]
+
+        # Convert those tensor products to long vectors.
+        W = VectorSpace(F, n**2)
+        perp_vectors = [ W(tp.list()) for tp in tensor_products ]
+
+        # Now find the Lyapunov-like transformations (as long vectors).
+        LL_vectors = W.span(perp_vectors).complement()
+
+        # And finally convert the long vectors back to matrices.
+        M = MatrixSpace(F, n, n)
+        return [ M(v.list()) for v in LL_vectors.basis() ]
 
 
 def random_cone(lattice=None, min_ambient_dim=0, max_ambient_dim=None,

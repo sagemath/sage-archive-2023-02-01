@@ -331,6 +331,10 @@ class DocTestController(SageObject):
         else:
             self.logfile = None
 
+        # Flush any diagnostic messages we just printed
+        sys.stdout.flush()
+        sys.stderr.flush()
+
         # In serial mode, we run just one process. Then the doctests
         # will interfere with the output logging (both use stdout).
         # To solve this, we create real_stdout which will always

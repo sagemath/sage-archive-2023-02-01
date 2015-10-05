@@ -459,8 +459,7 @@ cdef class Matrix_gfpn_dense(Matrix_dense):
             except (OSError,IOError):
                 return
             self.Data = MatLoad(FILE)
-            if FfSetField(self.Data.Field):
-                raise ValueError("Invalid data in file {}".format(FILE))
+            FfSetField(self.Data.Field)
             B = GF(self.Data.Field, 'z')
             parent = MatrixSpace(B, self.Data.Nor, self.Data.Noc)
             self._is_immutable = False
@@ -574,8 +573,6 @@ cdef class Matrix_gfpn_dense(Matrix_dense):
         retval._cache = dict(self._cache.iteritems()) if self._cache is not None else {}
         if self.Data:
             retval.Data = MatDup(self.Data)
-            if not retval.Data:
-                raise MemoryError, "Error copying a %s instance"%repr(type(self))
         else:
             retval.Data = NULL
         return retval
@@ -1046,10 +1043,8 @@ cdef class Matrix_gfpn_dense(Matrix_dense):
             raise NotImplementedError, "The matrices must not be empty"
         cdef Matrix_gfpn_dense Left = Self.__copy__()
         Left._cache = {}
-        if MatAdd(Left.Data, Right.Data) != NULL:
-            return Left
-        else:
-            raise ArithmeticError("Matrix sizes or fields not compatible")
+        MatAdd(Left.Data, Right.Data)
+        return Left
 
     cpdef ModuleElement _sub_(self, ModuleElement right):
         """
@@ -1073,10 +1068,8 @@ cdef class Matrix_gfpn_dense(Matrix_dense):
         cdef Matrix_gfpn_dense Left = Self.__copy__()
         Left._is_immutable = False
         Left._cache = {}
-        if MatAddMul(Left.Data, Right.Data, mtx_taddinv[1]) != NULL:
-            return Left
-        else:
-            raise ArithmeticError, "Matrix sizes or fields not compatible"
+        MatAddMul(Left.Data, Right.Data, mtx_taddinv[1])
+        return Left
 
     def __neg__(self):
         """
@@ -1120,9 +1113,8 @@ cdef class Matrix_gfpn_dense(Matrix_dense):
         FfSetField(self.Data.Field)
         cdef Matrix_gfpn_dense OUT = self.__copy__()
         OUT._cache = {}
-        if MatMulScalar(OUT.Data, FfFromInt(self._converter.field_to_int(left))) != NULL:
-            return OUT
-        raise ArithmeticError("Matrix sizes or fields not compatible")
+        MatMulScalar(OUT.Data, FfFromInt(self._converter.field_to_int(left)))
+        return OUT
 
     cpdef ModuleElement _lmul_(self, RingElement right):
         """
@@ -1144,9 +1136,8 @@ cdef class Matrix_gfpn_dense(Matrix_dense):
         FfSetField(self.Data.Field)
         cdef Matrix_gfpn_dense OUT = self.__copy__()
         OUT._cache = {}
-        if MatMulScalar(OUT.Data, FfFromInt(self._converter.field_to_int(right))) != NULL:
-            return OUT
-        raise ArithmeticError("Matrix sizes or fields not compatible")
+        MatMulScalar(OUT.Data, FfFromInt(self._converter.field_to_int(right)))
+        return OUT
 
     cdef int _strassen_default_cutoff(self, sage.matrix.matrix0.Matrix right) except -2:
         # Surprisingly, Winograd-Strassen can compete with school book
@@ -1178,12 +1169,7 @@ cdef class Matrix_gfpn_dense(Matrix_dense):
         cdef Matrix_gfpn_dense OUT = self._new(self._nrows, right._ncols)
         sig_on()
         OUT.Data = MatDup(self.Data)
-        if OUT.Data == NULL:
-            sig_off()
-            raise MemoryError
-        if not MatMul(OUT.Data,right.Data):
-            sig_off()
-            raise ArithmeticError("Matrix sizes or fields not compatible")
+        MatMul(OUT.Data,right.Data)
         sig_off()
         OUT._is_immutable = False
         OUT._cache = {}
@@ -1222,8 +1208,7 @@ cdef class Matrix_gfpn_dense(Matrix_dense):
         cutoff = cutoff//sizeof(long)
         StrassenSetCutoff(cutoff)
         sig_on()
-        if MatMulStrassen(OUT.Data, self.Data, right.Data) == NULL:
-            raise ArithmeticError("Error multiplying matrices by Strassen-Winograd algorithm")
+        MatMulStrassen(OUT.Data, self.Data, right.Data)
         sig_off()
         return OUT
 
@@ -1239,9 +1224,8 @@ cdef class Matrix_gfpn_dense(Matrix_dense):
             r = FfFromInt(n)
         left = self.__copy__()
         left._cache = {}
-        if MatMulScalar(left.Data, r) != NULL:
-            return left
-        raise ArithmeticError("Matrix sizes or fields not compatible")
+        MatMulScalar(left.Data, r)
+        return left
 
     def __div__(Matrix_gfpn_dense self, p):
         """
@@ -1318,7 +1302,10 @@ cdef class Matrix_gfpn_dense(Matrix_dense):
         sig_on()
         try:
             OUT.Data = MatInverse(self.Data)
-        except:
+        except ZeroDivisionError:
+            # Attempting to invert singular matrices happens
+            # in the tests, and we make the special case here
+            # so that the sig_on/off count is fine.
             sig_off()
             raise
         sig_off()
@@ -1424,8 +1411,6 @@ cdef class Matrix_gfpn_dense(Matrix_dense):
             raise ValueError("The matrix must not be empty")
         OUT = type(self).__new__(type(self))
         OUT.Data = MatNullSpace(self.Data)
-        if OUT.Data == NULL:
-            raise ArithmeticError("Error computing left kernel matrix")
         OUT._nrows = OUT.Data.Nor
         OUT._ncols = OUT.Data.Noc
         OUT._is_immutable = False
@@ -1541,8 +1526,7 @@ cdef class Matrix_gfpn_dense(Matrix_dense):
             self.cache('rank', 0)
             self.cache('pivots', ())
             return self
-        if MatEchelonize(self.Data) == -1:
-            raise ArithmeticError("Error echelonizing this matrix")
+        MatEchelonize(self.Data)
         self._cache = {}
         # Now, self.Data is in semi-echelon form.
         r = self.Data.Nor

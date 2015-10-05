@@ -1247,7 +1247,11 @@ class FindStatStatistic(SageObject):
         if style == "dictionary":
             return gen_dicts
         elif style == "list":
-            return { key : [ gen_dicts[key][deg] if deg in gen_dicts[key] else 0 for deg in range(max(gen_dicts[key])+1) ] for key in sorted(gen_dicts.keys())}
+            for key in gen_dicts.keys():
+                a = min( gen_dicts[key] )
+                for b in gen_dicts[key].keys():
+                    gen_dicts[key][b - a] = gen_dicts[key].pop(b)
+            return { key : [ gen_dicts[key][deg] if deg in gen_dicts[key] else 0 for deg in range(max(gen_dicts[key])+1) ] for key in gen_dicts }
         elif style == "polynomial":
             from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
             from sage.rings.integer_ring import ZZ

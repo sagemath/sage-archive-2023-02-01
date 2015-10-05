@@ -1279,7 +1279,7 @@ class FindStatStatistic(SageObject):
             for key in gfs.keys():
                 a = min( gfs[key] )
                 for b in gfs[key].keys():
-                    gfs[key] = { b - a : value for b,value in gfs[key].iteritems()= }
+                    gfs[key] = { b - a : value for b,value in gfs[key].iteritems() }
             return { key : [ gfs[key][deg] if deg in gfs[key] else 0
                              for deg in range(max(gfs[key])+1)]
                      for key in sorted(gfs.keys()) if gfs[key]}

@@ -1276,13 +1276,9 @@ class FindStatStatistic(SageObject):
         if style == "dictionary":
             return gfs
         elif style == "list":
-            for key in gfs.keys():
-                a = min( gfs[key] )
-                for b in gfs[key].keys():
-                    gfs[key] = { b - a : value for b,value in gfs[key].iteritems() }
             return { key : [ gfs[key][deg] if deg in gfs[key] else 0
-                             for deg in range(max(gfs[key])+1)]
-                     for key in sorted(gfs.keys()) if gfs[key]}
+                             for deg in range(min(gfs[key]),max(gfs[key])+1) ]
+                     for key in gfs }
         elif style == "polynomial":
             from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
             from sage.rings.integer_ring import ZZ

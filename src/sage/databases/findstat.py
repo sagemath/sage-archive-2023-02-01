@@ -866,7 +866,13 @@ class FindStatStatistic(SageObject):
         self._references            = self._raw[FINDSTAT_STATISTIC_REFERENCES].encode("utf-8")
         self._collection            = FindStatCollection(self._raw[FINDSTAT_STATISTIC_COLLECTION])
         self._code                  = self._raw[FINDSTAT_STATISTIC_CODE]
-        self._generating_function   = self._raw[FINDSTAT_STATISTIC_GENERATING_FUNCTION]
+
+        from ast import literal_eval
+        gf                          = self._raw[FINDSTAT_STATISTIC_GENERATING_FUNCTION]
+        self._generating_function_dict  = { literal_eval(key):
+                                            { literal_eval(inner_key): inner_value
+                                              for inner_key, inner_value in value.iteritems() }
+                                            for key, value in gf.iteritems() }
 
         from_str = self._collection.from_string()
         # we want to keep FindStat's ordering here!
@@ -954,9 +960,12 @@ class FindStatStatistic(SageObject):
                                        [FindStatMap(mp[FINDSTAT_MAP_IDENTIFIER]) for mp in match[FINDSTAT_QUERY_MAPS]],
                                        len(match[FINDSTAT_QUERY_MATCHING_DATA]))
                                       for match in result[FINDSTAT_QUERY_MATCHES])
-            return self
+
         except Exception as e:
             raise IOError("FindStat did not answer with a json response: %s" %e)
+
+        self._generating_function_dict = self._compute_generating_functions()
+        return self
 
     def _raise_error_modifying_statistic_with_perfect_match(self):
         r"""
@@ -1175,7 +1184,8 @@ class FindStatStatistic(SageObject):
         else:
             return ""
 
-    def _generating_functions(self):
+    def _compute_generating_functions(self):
+        print "hi"
         c = self.collection()
         res = dict()
         for (elements, values) in self._data:
@@ -1262,18 +1272,21 @@ class FindStatStatistic(SageObject):
              5: [1, 4, 9, 15, 20, 22, 20, 15, 9, 4, 1],
              6: [1, 5, 14, 29, 49, 71, 90, 101, 101, 90, 71, 49, 29, 14, 5, 1]}
         """
-        from ast import literal_eval
-        gen_dicts = { literal_eval(key) : { literal_eval(inner_key) : inner_value for inner_key,inner_value in value.iteritems() } for key,value in self._generating_function.iteritems() }
+        gfs = self._generating_function_dict
         if style == "dictionary":
-            return gen_dicts
+            return gfs
         elif style == "list":
-            return { key : [ gen_dicts[key][deg] if deg in gen_dicts[key] else 0 for deg in range(max(gen_dicts[key])+1) ] for key in sorted(gen_dicts.keys())}
+            return { key : [ gfs[key][deg] if deg in gfs[key] else 0
+                             for deg in range(max(gfs[key])+1)]
+                     for key in sorted(gfs.keys()) if gfs[key]}
         elif style == "polynomial":
             from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
             from sage.rings.integer_ring import ZZ
             P = PolynomialRing(ZZ,"q")
             q = P.gen()
-            return { level : sum( coefficient * q**exponent for exponent,coefficient in gen_dict.iteritems() ) for level,gen_dict in gen_dicts.iteritems() }
+            return { level : sum( coefficient * q**exponent
+                                  for exponent,coefficient in gen_dict.iteritems() )
+                     for level, gen_dict in gfs.iteritems() if gfs[level]}
         else:
             raise ValueError("The argument 'style' (='%s') must be 'dictionary', 'polynomial', or 'list'"%style)
 

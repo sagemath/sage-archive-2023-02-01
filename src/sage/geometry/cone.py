@@ -4362,6 +4362,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
 
         A list of pairs `(x,s)` such that,
 
+          * `x` and `s` are nonzero.
           * `x` and `s` are orthogonal.
           * `x` is one of this cone's :meth:`~IntegralRayCollection.rays`.
           * `s` is one of the :meth:`~IntegralRayCollection.rays` of this
@@ -4374,16 +4375,16 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
 
         EXAMPLES:
 
-        The discrete complementarity set of the nonnegative orthant
-        consists of pairs of standard basis elements::
+        Pairs of standard basis elements form a discrete complementarity
+        set for the nonnegative orthant::
 
             sage: K = Cone([(1,0),(0,1)])
             sage: K.discrete_complementarity_set()
             [(N(1, 0), M(0, 1)), (N(0, 1), M(1, 0))]
 
-        If the cone consists of a single ray, the second components of
-        the discrete complementarity set should generate the orthogonal
-        complement of that ray::
+        If a cone consists of a single ray, then the second components
+        of a discrete complementarity set for that cone should generate
+        the orthogonal complement of the ray::
 
             sage: K = Cone([(1,0)])
             sage: K.discrete_complementarity_set()
@@ -4395,14 +4396,16 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
              (N(1, 0, 0), M(0, 0, 1)),
              (N(1, 0, 0), M(0, 0, -1))]
 
-        When the cone is the entire space, its dual is the trivial cone,
-        so the discrete complementarity set is empty::
+        When a cone is the entire space, its dual is the trivial cone,
+        so the only discrete complementarity set for it is empty::
 
             sage: K = Cone([(1,0),(-1,0),(0,1),(0,-1)])
+            sage: K.is_full_space()
+            True
             sage: K.discrete_complementarity_set()
             []
 
-        Likewise when this cone is trivial (its dual is the entire space)::
+        Likewise for trivial cones, whose duals are the entire space::
 
             sage: L = ToricLattice(0)
             sage: K = Cone([], ToricLattice(0))
@@ -4411,8 +4414,9 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
 
         TESTS:
 
-        The complementarity set of the dual can be obtained by switching
-        components in the complementarity set of the original cone::
+        A discrete complementarity set for the dual can be obtained by
+        switching components in a discrete complementarity set of the
+        original cone::
 
             sage: set_random_seed()
             sage: K = random_cone(max_ambient_dim=6)
@@ -4422,7 +4426,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
             sage: sorted(actual) == sorted(expected)
             True
 
-        The pairs in the discrete complementarity set are in fact
+        The pairs in a discrete complementarity set are in fact
         complementary::
 
             sage: set_random_seed()

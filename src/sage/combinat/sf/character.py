@@ -9,7 +9,7 @@ of `S_n` when the group is realized as the permutation matrices.
 REFERENCES:
 
 .. [OZ2015] R. Orellana, M. Zabrocki, *Symmetric group characters
-      as symmetric functions*, :arxiv:`1000.0000v1`.
+      as symmetric functions*, :arxiv:`arXiv:1510.00438`.
 """
 #*****************************************************************************
 #       Copyright (C) 2015 Mike Zabrocki <zabrocki@mathstat.yorku.ca

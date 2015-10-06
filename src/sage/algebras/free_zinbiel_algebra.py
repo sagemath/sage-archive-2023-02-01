@@ -13,16 +13,12 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from sage.monoids.free_monoid import FreeMonoid
-from sage.monoids.free_monoid_element import FreeMonoidElement
-
 from sage.misc.cachefunc import cached_method
 from sage.categories.magmatic_algebras import MagmaticAlgebras
 from sage.categories.rings import Rings
-from sage.combinat.free_module import CombinatorialFreeModule, CombinatorialFreeModuleElement
+from sage.combinat.free_module import CombinatorialFreeModule
 from sage.combinat.words.words import Words
 from sage.combinat.words.alphabet import Alphabet
-from sage.structure.element import generic_power
 from sage.sets.family import Family
 
 class FreeZinbielAlgebra(CombinatorialFreeModule):
@@ -130,7 +126,7 @@ class FreeZinbielAlgebra(CombinatorialFreeModule):
         sage: ((x*x)*x)*x
         6*Z[xxxx]
         sage: (((x*x)*x)*x)*x
-        24*Z[xxxx]
+        24*Z[xxxxx]
 
     REFERENCES:
 
@@ -249,8 +245,6 @@ class FreeZinbielAlgebra(CombinatorialFreeModule):
             sage: Z.<x,y,z> = algebras.FreeZinbiel(QQ)
             sage: (x*y)*z  # indirect doctest
             Z[xyz] + Z[xzy]
-            sage: x^4
-            3*Z[xxxx]
         """
         if not x:
             return self.monomial(y)

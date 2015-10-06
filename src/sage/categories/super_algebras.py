@@ -42,7 +42,7 @@ class SuperAlgebras(SuperModulesCategory):
         """
         EXAMPLES::
 
-            sage: Algebras(ZZ).Super().super_categories()
+            sage: Algebras(ZZ).Super().super_categories() # indirect doctest
             [Category of graded algebras over Integer Ring,
              Category of super modules over Integer Ring]
         """

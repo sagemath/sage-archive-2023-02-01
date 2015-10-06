@@ -923,15 +923,14 @@ class FindStatStatistic(SageObject):
         total = min(max_values, FINDSTAT_MAX_VALUES)
         all_elements = []
         for (elements, values) in self._data:
-            all_elements += elements
-            if len(set(elements)) != len(elements):
-                raise ValueError("FindStat expects that every object appears only once!")
-            elif len(elements) != len(values):
+            if len(elements) != len(values):
                 raise ValueError("FindStat expects the same number of objects as values!")
+
+            all_elements += elements
             try:
                 values = [int(v) for v in values]
             except ValueError:
-                raise ValueError("FindStat expects integer values as statistics!")
+                raise ValueError("FindStat expects statistics to have integer values!")
 
             if total >= len(elements):
                 if all(self._collection.in_range(e) for e in elements):

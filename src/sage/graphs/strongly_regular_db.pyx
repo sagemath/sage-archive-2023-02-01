@@ -1545,14 +1545,21 @@ def strongly_regular_from_two_intersection_set(M):
 
     INPUT:
 
-    - `M` -- a `k \times |S|` matrix defined on `F_q` representing the points of
-      the 2-intersection set.
+    - `M` -- a `|S| \times k` matrix with entries in `F_q` representing the points of
+      the 2-intersection set. We assume that the first non-zero entry of each row is
+      equal to `1`, that is, they give points in homogeneous coordinates.
 
-      **EXPLAIN HOMOGENEOUS COORDINATES AND HOW THEY ARE EXPECTED BY THIS FUNCTION**
+    The implementation does not check that `S` is actually a 2-intersection set.
 
     EXAMPLE::
 
-    ** Find examples**
+        sage: from sage.graphs.strongly_regular_db import strongly_regular_from_two_intersection_set
+        sage: S=Matrix([(0,0,1),(0,1,0)] + map(lambda x: (1,x^2,x), GF(4,'b')))
+        sage: g=strongly_regular_from_two_intersection_set(S)
+        sage: g.is_strongly_regular(parameters=True)
+        (64, 18, 2, 6)
+
+    REFERENCES:
 
     .. [CDB13] I. Cardinali and B. De Bruyn,
       Spin-embeddings, two-intersection sets and two-weight codes,
@@ -1564,25 +1571,15 @@ def strongly_regular_from_two_intersection_set(M):
     k = M.ncols()
     g = Graph()
 
-    M = [list(p)+[0] for p in M]
-
-    # Vertices of the graph
-    V = [x for x in product(K,repeat=k+1)
-         if x[-1]]
+    M = [list(p) for p in M]
 
     # For every point in F_q^{k+1} not on the hyperplane of M
-    for u in V:
-        uh = tuple([uu/u[-1] for uu in u])
-
+    for u in [tuple(x) for x in product(K,repeat=k)]:
         # For every v point of M
         for v in M:
-
             # u is adjacent with all vertices on a uv line.
-            for qq in K:
-                v_last = u[-1]+qq*(v[-1]-u[-1])
-                if v_last:
-                    g.add_edge(uh,tuple([(uu+qq*(vv-uu))/v_last
-                                         for uu,vv in izip(u,v)]))
+            g.add_edges([[u,tuple([u[i]+qq*v[i] for i in range(k)])] \
+                                            for qq in K if not qq==K.zero()])
     g.relabel()
     return g
 

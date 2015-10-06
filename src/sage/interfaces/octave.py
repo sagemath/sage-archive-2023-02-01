@@ -576,7 +576,7 @@ class OctaveElement(ExpectElement):
 
     def __nonzero__(self):
         r"""
-        Test whether this element is zero.
+        Test whether this element is nonzero.
 
         EXAMPLES::
 

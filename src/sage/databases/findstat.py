@@ -257,7 +257,7 @@ FINDSTAT_COLLECTION_NAME_PLURAL                 = 'CollectionNamePlural'
 FINDSTAT_COLLECTION_NAME_WIKI                   = 'CollectionNameWiki'
 FINDSTAT_COLLECTION_LEVELS                      = 'CollectionLevelsSizes'
 
-FINDSTAT_MAP_IDENTIFIER                         = 'MapIdentifier' # should be identical to FINDSTAT_MAP_IDENTIFIER
+FINDSTAT_MAP_IDENTIFIER                         = 'MapIdentifier'
 FINDSTAT_MAP_NAME                               = 'MapName'
 FINDSTAT_MAP_DESCRIPTION                        = 'MapDescription'
 FINDSTAT_MAP_DOMAIN                             = 'MapDomain'
@@ -1192,24 +1192,34 @@ class FindStatStatistic(SageObject):
             return ""
 
     def _compute_generating_functions(self):
+        r""" Return the generating functions of ``self`` in a dictionary,
+        computed from ``self._data``.
+
+        TESTS:
+
+            sage: s = findstat((DyckWords(4), range(14))); s                    # optional -- internet, indirect doctest
+            a new statistic on Cc0005: Dyck paths
+            sage: s.generating_functions()                                      # optional -- internet, indirect doctest
+            {4: q^13 + q^12 + q^11 + q^10 + q^9 + q^8 + q^7 + q^6 + q^5 + q^4 + q^3 + q^2 + q + 1}
+        """
         c = self.collection()
-        res = dict()
+        gfs = dict()
         for (elements, values) in self._data:
             l = c._get_level(elements[0])
             if l in c._levels and all(l == c._get_level(e) for e in elements[1:]):
-                res[l] = res.get(l, dict())
+                gfs[l] = gfs.get(l, dict())
                 for v in values:
-                    res[l][v] = res[l].get(v, 0) + 1
+                    gfs[l][v] = gfs[l].get(v, 0) + 1
 
-        for (l, p) in res.iteritems():
+        for (l, p) in gfs.items():
             ns = sum(p.values())
             nc = c._levels[l]
             if ns < nc:
-                res[l] = None
+                del gfs[l]
             elif ns > nc:
-                raise ValueError("FindStat delivers more statistic values than the level has elements. This should not happen.  Please send and email to the developers.")
+                raise ValueError("FindStat delivers more statistic values than the level has elements.  This should not happen.  Please send an email to the developers.")
 
-        return res
+        return gfs
 
     def generating_functions(self, style="polynomial"):
         r"""
@@ -1292,7 +1302,7 @@ class FindStatStatistic(SageObject):
             q = P.gen()
             return { level : sum( coefficient * q**exponent
                                   for exponent,coefficient in gen_dict.iteritems() )
-                     for level, gen_dict in gfs.iteritems() if gfs[level]}
+                     for level, gen_dict in gfs.iteritems()}
         else:
             raise ValueError("The argument 'style' (='%s') must be 'dictionary', 'polynomial', or 'list'"%style)
 
@@ -1310,7 +1320,9 @@ class FindStatStatistic(SageObject):
 
         OUTPUT:
 
-        - a tuple of OEIS sequences, see :meth:`OEIS.find_by_description` for more information.
+        - a tuple of OEIS sequences, see
+          :meth:`sage.databases.oeis.OEIS.find_by_description` for more
+          information.
 
         EXAMPLES::
 
@@ -1389,7 +1401,7 @@ class FindStatStatistic(SageObject):
           intermediate combinatorial maps.
 
         This information is used when submitting the statistic with
-        :meth:`FindStatStatistic.submit`.
+        :meth:`submit`.
 
         EXAMPLES::
 
@@ -1467,7 +1479,7 @@ class FindStatStatistic(SageObject):
           intermediate combinatorial maps.
 
         This information is used when submitting the statistic with
-        :meth:`FindStatStatistic.submit`.
+        :meth:`submit`.
 
         EXAMPLES::
 
@@ -1530,7 +1542,7 @@ class FindStatStatistic(SageObject):
           intermediate combinatorial maps.
 
         This information is used when submitting the statistic with
-        :meth:`FindStatStatistic.submit`.
+        :meth:`submit`.
 
         EXAMPLES::
 

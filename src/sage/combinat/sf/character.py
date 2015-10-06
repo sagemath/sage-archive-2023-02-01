@@ -80,11 +80,11 @@ class generic_character(SFA_generic):
 
         We use triangularity to determine the expansion
         by subtracting off the leading term.  The target basis
-        is specified by the method ``self.target_basis()``.
+        is specified by the method ``self._other``.
 
         INPUT:
 
-        - ``sexpr`` -- an element of ``self.target_basis()`` basis
+        - ``sexpr`` -- an element of ``self._other`` basis
 
         EXAMPLES::
 
@@ -179,6 +179,7 @@ class character_basis(generic_character):
             Symmetric Functions over Rational Field in the induced trivial character basis
             sage: st = SymmetricFunctions(QQ).st(); st
             Symmetric Functions over Rational Field in the irreducible symmetric group character basis
+            sage: TestSuite(ht).run()
         """
         SFA_generic.__init__(self, Sym, basis_name=bname, prefix=pfix)
         self._other = other_basis
@@ -191,27 +192,10 @@ class character_basis(generic_character):
         self.register_coercion(
           SetMorphism(Hom(self._other, self, categ), self._other_to_self))
 
-    def target_basis(self):
-        r"""
-        Return the basis that was passed as the ``other_basis``
-        in the intialization.
-
-        EXAMPLES::
-
-            sage: Sym = SymmetricFunctions(QQ)
-            sage: ht = SymmetricFunctions(QQ).ht()
-            sage: st = SymmetricFunctions(QQ).st()
-            sage: ht.target_basis()
-            Symmetric Functions over Rational Field in the homogeneous basis
-            sage: st.target_basis()
-            Symmetric Functions over Rational Field in the Schur basis
-        """
-        return self._other
-
     @cached_method
     def _self_to_other_on_basis(self, lam):
         r"""
-        Convert a character-basis element to the ``self.target_basis()`` basis
+        Convert a character-basis element to the ``self._other`` basis
 
         This is a recursive procedure that is calculated
         by the assumption that the leading term of ``self(lam)``
@@ -223,7 +207,7 @@ class character_basis(generic_character):
 
         OUTPUT:
 
-        - an expression in the ``self.target_basis()`` basis
+        - an expression in the ``self._other`` basis
 
         EXAMPLES::
 
@@ -276,6 +260,7 @@ class irreducible_character_basis(generic_character):
         st[1] + st[1, 1] + st[2] + st[2, 1] + st[3]
         sage: s[4,2].kronecker_product(s[5,1])
         s[3, 2, 1] + s[3, 3] + s[4, 1, 1] + s[4, 2] + s[5, 1]
+        sage: TestSuite(st).run()
     """
     def __init__(self, Sym, pfix):
         r"""
@@ -292,12 +277,15 @@ class irreducible_character_basis(generic_character):
 
             sage: Sym = SymmetricFunctions(QQ)
             sage: ht = SymmetricFunctions(QQ).ht(); ht
-            Symmetric Functions over Rational Field in the induced trivial character basis
+            Symmetric Functions over Rational Field in the induced trivial
+             character basis
             sage: st = SymmetricFunctions(QQ).st(); st
-            Symmetric Functions over Rational Field in the irreducible symmetric group character basis
+            Symmetric Functions over Rational Field in the irreducible
+             symmetric group character basis
         """
         SFA_generic.__init__(self, Sym, \
-          basis_name="irreducible symmetric group character", prefix=pfix)
+          basis_name="irreducible symmetric group character", \
+          prefix=pfix)
         self._other = Sym.Schur()
         self._p = Sym.powersum()
         from sage.categories.graded_hopf_algebras_with_basis \

@@ -1,3 +1,5 @@
+# distutils: extra_compile_args = GIVARO_CFLAGS
+
 from sage.structure.element cimport Element, RingElement, ModuleElement
 from sage.rings.finite_rings.element_base cimport FinitePolyExtElement
 

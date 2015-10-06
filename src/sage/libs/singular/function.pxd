@@ -1,3 +1,4 @@
+# distutils: extra_compile_args = GIVARO_CFLAGS
 """
 Direct Access to Singular's Functions via libSingular.
 

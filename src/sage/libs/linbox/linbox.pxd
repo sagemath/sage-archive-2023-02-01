@@ -1,3 +1,5 @@
+# distutils: extra_compile_args = FFLASFFPACK_CFLAGS
+
 from sage.libs.gmp.types cimport mpz_t
 
 include 'sage/modules/vector_modn_sparse_h.pxi'

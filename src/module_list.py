@@ -2,6 +2,7 @@ import os
 from glob import glob
 from distutils.extension import Extension
 from sage.env import SAGE_LOCAL
+import pkgconfig
 
 SAGE_INC = os.path.join(SAGE_LOCAL, 'include')
 
@@ -29,7 +30,6 @@ else:
     BLAS='gslcblas'
     BLAS2='gslcblas'
 
-
 #########################################################
 ### Commonly used definitions and aliases
 #########################################################
@@ -37,6 +37,8 @@ else:
 singular_incs = [SAGE_INC + '/singular', SAGE_INC + '/factory']
 
 aliases = dict(
+        FFLASFFPACK_CFLAGS =['-std=c++11','-mavx','-fabi-version=6'],
+        GIVARO_CFLAGS =['-std=c++11'],
         GSL_LIBRARIES=['gsl', BLAS, BLAS2],
         INTERRUPT_DEPENDS=glob("sage/ext/interrupt/*.h"),
         )
@@ -55,18 +57,6 @@ for line in open(SAGE_INC + "/m4ri/m4ri_config.h"):
     break
 
 singular_libs = ['singular', 'flint', 'ntl', 'gmpxx', 'gmp', 'readline', 'm']
-
-#########################################################
-### Givaro flags
-#########################################################
-
-givaro_extra_compile_args =['-std=c++11']
-
-#########################################################
-### fflas-ffpack flags
-#########################################################
-
-fflas_ffpack_extra_compile_args =['-mavx','-fabi-version=6']
 
 #########################################################
 ### PolyBoRi settings
@@ -566,7 +556,6 @@ ext_modules = [
               libraries = ['linboxsage', 'ntl', 'iml', 'linbox',
                            'givaro', 'mpfr', 'gmp', 'gmpxx', BLAS, BLAS2],
               language = 'c++',
-              extra_compile_args = givaro_extra_compile_args,
               depends = [os.path.join(SAGE_INC, 'givaro', 'givconfig.h')]),
 
     Extension('sage.libs.lcalc.lcalc_Lfunction',
@@ -634,15 +623,13 @@ ext_modules = [
               sources = ['sage/libs/singular/singular.pyx'],
               libraries = singular_libs,
               language="c++",
-              include_dirs = singular_incs,
-              extra_compile_args = givaro_extra_compile_args),
+              include_dirs = singular_incs),
 
     Extension('sage.libs.singular.polynomial',
               sources = ['sage/libs/singular/polynomial.pyx'],
               libraries = singular_libs,
               language="c++",
-              include_dirs = singular_incs,
-              extra_compile_args = givaro_extra_compile_args),
+              include_dirs = singular_incs),
 
     Extension('sage.libs.singular.ring',
               sources = ['sage/libs/singular/ring.pyx'],
@@ -660,8 +647,7 @@ ext_modules = [
               sources = ['sage/libs/singular/function.pyx'],
               libraries = singular_libs,
               language="c++",
-              include_dirs = singular_incs,
-              extra_compile_args = givaro_extra_compile_args),
+              include_dirs = singular_incs),
 
     Extension('sage.libs.singular.option',
               sources = ['sage/libs/singular/option.pyx'],
@@ -928,14 +914,13 @@ ext_modules = [
     Extension('sage.matrix.matrix_modn_dense_float',
               sources = ['sage/matrix/matrix_modn_dense_float.pyx'],
               language="c++",
-              libraries = ['ntl', 'linbox', 'givaro', 'mpfr', 'gmpxx', 'gmp', BLAS, BLAS2],
-              extra_compile_args = ['-DDISABLE_COMMENTATOR'] + givaro_extra_compile_args + fflas_ffpack_extra_compile_args),
+              libraries = ['ntl', 'linbox', 'givaro', 'mpfr', 'gmpxx', 'gmp', BLAS, BLAS2]),
 
     Extension('sage.matrix.matrix_modn_dense_double',
               sources = ['sage/matrix/matrix_modn_dense_double.pyx'],
               language="c++",
               libraries = ['ntl', 'linbox', 'givaro', 'mpfr', 'gmpxx', 'gmp', BLAS, BLAS2],
-              extra_compile_args = ["-D_XPG6", "-DDISABLE_COMMENTATOR"] + m4ri_extra_compile_args + givaro_extra_compile_args + fflas_ffpack_extra_compile_args),
+              extra_compile_args = ["-D_XPG6"]),
 
     Extension('sage.matrix.matrix_modn_sparse',
               sources = ['sage/matrix/matrix_modn_sparse.pyx']),
@@ -1358,8 +1343,7 @@ ext_modules = [
     Extension('sage.rings.finite_rings.element_givaro',
               sources = ["sage/rings/finite_rings/element_givaro.pyx"],
               libraries = ['givaro', 'ntl', 'gmpxx', 'gmp', 'm'],
-              language='c++',
-              extra_compile_args = givaro_extra_compile_args),
+              language='c++'),
 
     Extension('sage.rings.finite_rings.element_ntl_gf2e',
               sources = ['sage/rings/finite_rings/element_ntl_gf2e.pyx'],
@@ -1379,8 +1363,7 @@ ext_modules = [
               sources = ["sage/rings/finite_rings/hom_finite_field_givaro.pyx"],
               # this order is needed to compile under windows.
               libraries = ['givaro', 'ntl', 'gmpxx', 'gmp', 'm'],
-              language='c++',
-              extra_compile_args = givaro_extra_compile_args),
+              language='c++'),
 
     ################################
     ##
@@ -1501,8 +1484,7 @@ ext_modules = [
 
     Extension('sage.rings.polynomial.multi_polynomial',
               sources = ['sage/rings/polynomial/multi_polynomial.pyx'],
-              language="c++",
-              extra_compile_args = givaro_extra_compile_args),
+              language="c++"),
 
     Extension('sage.rings.polynomial.multi_polynomial_ideal_libsingular',
               sources = ['sage/rings/polynomial/multi_polynomial_ideal_libsingular.pyx'],
@@ -1515,15 +1497,13 @@ ext_modules = [
               libraries = ['m', 'readline', 'singular', 'givaro', 'gmpxx', 'gmp'],
               language="c++",
               include_dirs = singular_incs,
-              depends = [SAGE_INC + "/libsingular.h"],
-              extra_compile_args = givaro_extra_compile_args),
+              depends = [SAGE_INC + "/libsingular.h"]),
 
     Extension('sage.rings.polynomial.multi_polynomial_libsingular',
               sources = ['sage/rings/polynomial/multi_polynomial_libsingular.pyx'],
               libraries = singular_libs,
               language="c++",
-              include_dirs = singular_incs,
-              extra_compile_args = givaro_extra_compile_args),
+              include_dirs = singular_incs),
 
     Extension('sage.rings.polynomial.multi_polynomial_ring_generic',
               sources = ['sage/rings/polynomial/multi_polynomial_ring_generic.pyx']),

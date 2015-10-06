@@ -1021,6 +1021,22 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
         return self.elementary().dual_basis()
     f = forgotten
 
+    def symplectic(self):
+        """
+        The symplectic basis of the symmetric functions.
+        """
+        import symplectic
+        return symplectic.SymmetricFunctionAlgebra_symplectic(self)
+    sp = symplectic
+
+    def orthogonal(self):
+        """
+        The orthogonal basis of the symmetric functions.
+        """
+        import orthogonal
+        return orthogonal.SymmetricFunctionAlgebra_orthogonal(self)
+    o = orthogonal
+
     def macdonald(self, q='q', t='t'):
         r"""
         Returns the entry point for the various Macdonald bases.

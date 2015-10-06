@@ -161,7 +161,8 @@ class SymmetricFunctionAlgebra_orthogonal(sfa.SymmetricFunctionAlgebra_generic):
             sage: o = SymmetricFunctions(QQ).o()
             sage: TestSuite(o).run()
         """
-        sfa.SymmetricFunctionAlgebra_generic.__init__(self, Sym, "orthogonal", 'o')
+        sfa.SymmetricFunctionAlgebra_generic.__init__(self, Sym, "orthogonal",
+                                                      'o', graded=False)
 
         # Setup the coercions
         s = Sym.schur()

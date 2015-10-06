@@ -163,7 +163,8 @@ class SymmetricFunctionAlgebra_symplectic(sfa.SymmetricFunctionAlgebra_generic):
             sage: sp = SymmetricFunctions(QQ).sp()
             sage: TestSuite(sp).run()
         """
-        sfa.SymmetricFunctionAlgebra_generic.__init__(self, Sym, "symplectic", 'sp')
+        sfa.SymmetricFunctionAlgebra_generic.__init__(self, Sym, "symplectic",
+                                                      'sp', graded=False)
 
         # Setup the coercions
         s = Sym.schur()

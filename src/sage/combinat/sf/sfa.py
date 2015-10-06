@@ -335,7 +335,7 @@ class SymmetricFunctionsBases(Category_realization_of_parent):
     r"""
     The category of bases of the ring of symmetric functions.
     """
-    def __init__(self, base):
+    def __init__(self, base, graded=True):
         r"""
         Initialize the bases of the ring of symmetric functions.
 
@@ -343,6 +343,8 @@ class SymmetricFunctionsBases(Category_realization_of_parent):
 
         - ``self`` -- a category of bases for the symmetric functions
         - ``base`` -- ring of symmetric functions
+        - ``graded`` -- (default: ``True``) if ``True``, then the basis is
+          considered to be graded, otherwise it is considered to be filtered
 
         TESTS::
 
@@ -353,6 +355,7 @@ class SymmetricFunctionsBases(Category_realization_of_parent):
             sage: Sym.schur() in bases
             True
         """
+        self._graded = graded
         Category_realization_of_parent.__init__(self, base)
 
     def _repr_(self):
@@ -390,9 +393,13 @@ class SymmetricFunctionsBases(Category_realization_of_parent):
             [Category of commutative graded hopf algebras with basis over Rational Field,
              Category of realizations of Symmetric Functions over Rational Field]
         """
-        from sage.categories.all import CommutativeRings, GradedHopfAlgebrasWithBasis
-        return [GradedHopfAlgebrasWithBasis(self.base().base_ring()).Commutative(),
-                Realizations(self.base())]
+        from sage.categories.hopf_algebras_with_basis import HopfAlgebrasWithBasis
+        cat = HopfAlgebrasWithBasis(self.base().base_ring()).Commutative()
+        if self._graded:
+            cat = cat.Graded()
+        else:
+            cat = cat.Filtered()
+        return [cat, Realizations(self.base())]
 
     class ParentMethods:
 
@@ -1457,7 +1464,7 @@ class SymmetricFunctionAlgebra_generic(CombinatorialFreeModule):
         sage: s(m([2,1]))
         -2*s[1, 1, 1] + s[2, 1]
     """
-    def __init__(self, Sym, basis_name = None, prefix = None):
+    def __init__(self, Sym, basis_name=None, prefix=None, graded=True):
         r"""
         Initializes the symmetric function algebra.
 
@@ -1466,6 +1473,8 @@ class SymmetricFunctionAlgebra_generic(CombinatorialFreeModule):
         - ``Sym`` -- the ring of symmetric functions
         - ``basis_name`` -- name of basis (default: ``None``)
         - ``prefix`` -- prefix used to display basis
+        - ``graded`` -- (default: ``True``) if ``True``, then the basis is
+          considered to be graded, otherwise the basis is filtered
 
         TESTS::
 
@@ -1490,8 +1499,8 @@ class SymmetricFunctionAlgebra_generic(CombinatorialFreeModule):
             self._prefix = prefix
         self._sym = Sym
         CombinatorialFreeModule.__init__(self, Sym.base_ring(), _Partitions,
-                                         category = SymmetricFunctionsBases(Sym),
-                                         bracket = "", prefix = prefix)
+                                         category=SymmetricFunctionsBases(Sym, graded),
+                                         bracket="", prefix=prefix)
 
     _print_style = 'lex'
 

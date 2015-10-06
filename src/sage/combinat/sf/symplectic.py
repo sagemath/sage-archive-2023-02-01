@@ -59,6 +59,10 @@ class SymmetricFunctionAlgebra_symplectic(sfa.SymmetricFunctionAlgebra_generic):
        *Symmetric functions and representations of quantum affine algebras*.
        :arXiv:`math/0011161v1`
 
+    .. [ShimozonoZabrocki2006] Mark Shimozono and Mike Zabrocki.
+       *Deformed universal characters for classical and affine algebras*.
+       Journal of Algebra, **299** (2006). :arxiv:`math/0404288`.
+
     EXAMPLES:
 
     Here are the first few symplectic symmetric functions, in various bases::

@@ -56,6 +56,7 @@ class SymmetricFunctionAlgebra_orthogonal(sfa.SymmetricFunctionAlgebra_generic):
     REFERENCES:
 
     - [ChariKleber2000]_
+    - [ShimozonoZabrocki2006]_
 
     EXAMPLES:
 

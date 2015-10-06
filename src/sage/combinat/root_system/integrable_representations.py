@@ -193,6 +193,9 @@ class IntegrableRepresentation(UniqueRepresentation, CategoryObject):
         self._P = Lam.parent()
         self._Q = self._P.root_system.root_lattice()
 
+        # Store some extra simple computations that appear in tight loops
+        self._Lam_rho = self._Lam + self._P.rho()
+
         self._cartan_matrix = self._P.root_system.cartan_matrix()
         self._cartan_type = self._P.root_system.cartan_type()
 
@@ -212,10 +215,13 @@ class IntegrableRepresentation(UniqueRepresentation, CategoryObject):
         self._a = self._cartan_type.a() # This is not cached
         self._ac = self._cartan_type.dual().a() # This is not cached
         self._eps = {i: self._a[i] / self._ac[i] for i in self._index_set}
-        self._coxeter_number = sum(self._a)
-        self._dual_coxeter_number = sum(self._ac)
         E = Matrix.diagonal([self._eps[i] for i in self._index_set_classical])
         self._ip = (self._cartan_type.classical().cartan_matrix()*E).inverse()
+
+        # Extra data for the twisted cases
+        if not self._cartan_type.is_untwisted_affine():
+            self._classical_short_roots = frozenset(al for al in self._classical_roots
+                                                    if self._inner_qq(al,al) == 2)
 
     def highest_weight(self):
         """
@@ -269,6 +275,7 @@ class IntegrableRepresentation(UniqueRepresentation, CategoryObject):
         """
         return ZZ(self._inner_pq(self._Lam, self._Q.null_root()))
 
+    @cached_method
     def coxeter_number(self):
         """
         Return the Coxeter number of the Cartan type of ``self``.
@@ -283,8 +290,9 @@ class IntegrableRepresentation(UniqueRepresentation, CategoryObject):
             sage: V.coxeter_number()
             12
         """
-        return self._coxeter_number
+        return sum(self._a)
 
+    @cached_method
     def dual_coxeter_number(self):
         r"""
         Return the dual Coxeter number of the Cartan type of ``self``.
@@ -299,7 +307,7 @@ class IntegrableRepresentation(UniqueRepresentation, CategoryObject):
             sage: V.dual_coxeter_number()
             9
         """
-        return self._dual_coxeter_number
+        return sum(self._ac)
 
     def _repr_(self):
         """
@@ -643,69 +651,65 @@ class IntegrableRepresentation(UniqueRepresentation, CategoryObject):
              alpha[1] + alpha[2] + alpha[3]]
         """
         for al in self._classical_positive_roots:
-            if all(x >= 0 for x in self._from_weight_helper(nu-al)):
+            if min(self._from_weight_helper(nu-al)) >= 0:
                 yield al
 
         if self._cartan_type.is_untwisted_affine():
             # untwisted case
             for al in self._classical_roots:
                 for ir in self._freudenthal_roots_imaginary(nu-al):
-                    yield al+ir
-            return
+                    yield al + ir
 
-        from sage.combinat.root_system.cartan_type import CartanType
-        if self._cartan_type in [CartanType(['B',self._classical_rank,1]).dual(),
-                                 CartanType(['C',self._classical_rank,1]).dual(),
-                                 CartanType(['F',4,1]).dual()]:
-            #case A^2_{2l-1} or case D^2_{l+1} or case E^2_6:
-            for al in self._classical_roots:
-                if self._inner_qq(al,al) == 2: #if al is a short root:
-                    for ir in self._freudenthal_roots_imaginary(nu-al):
-                        yield al+ir
-                else:
-                    fri = list(self._freudenthal_roots_imaginary(nu-al))
-                    friset = set(fri)
-                    for ir in fri:
-                        if 2*ir in friset:
-                            yield al+2*ir
-
-        elif self._cartan_type == CartanType(['BC',self._classical_rank,2]):
+        elif self._cartan_type.type() == 'BC':
             #case A^2_{2l}
             # We have to keep track of the roots we have visted for this case
             ret = set(self._classical_positive_roots)
             for al in self._classical_roots:
-                if self._inner_qq(al,al) == 2: #if al is a short root:
+                if al in self._classical_short_roots:
                     for ir in self._freudenthal_roots_imaginary(nu-al):
-                        ret.add(al+ir)
-                        yield al+ir
+                        ret.add(al + ir)
+                        yield al + ir
                 else:
                     fri = list(self._freudenthal_roots_imaginary(nu-al))
                     friset = set(fri)
                     for ir in fri:
                         if 2*ir in friset:
-                            ret.add(al+2*ir)
-                            yield al+2*ir
+                            ret.add(al + 2*ir)
+                            yield al + 2*ir
                     alpha = self._Q.simple_roots()
                     fri = list(self._freudenthal_roots_imaginary(2*nu-al))
                     for ir in fri[::2]:
-                        n = [x//2 for x in self._from_weight_helper(al+ir)]
-                        if sum(val*alpha[i] for i,val in enumerate(n)) not in ret:
-                            rt = sum(val*alpha[i] for i,val in enumerate(n))
+                        rt = sum( val // 2 * alpha[i] for i,val in
+                                  enumerate(self._from_weight_helper(al+ir)) )
+                        if rt not in ret:
                             ret.add(rt)
                             yield rt
     
-        elif self._cartan_type in [CartanType(['D',4,3]), CartanType(['G',2,1]).dual()]:
+        elif self._cartan_type.dual().type() == 'G':
             # case D^3_4 in the Kac notation
             for al in self._classical_roots:
-                if self._inner_qq(al,al) == 2: #if al is a short root:
+                if al in self._classical_short_roots:
                     for ir in self._freudenthal_roots_imaginary(nu-al):
-                        yield al+ir
+                        yield al + ir
                 else:
                     fri = list(self._freudenthal_roots_imaginary(nu-al))
                     friset = set(fri)
                     for ir in fri:
                         if 3*ir in friset:
-                            yield al+3*ir
+                            yield al + 3*ir
+
+        elif self._cartan_type.dual().type() in ['B','C','F']:
+            #case A^2_{2l-1} or case D^2_{l+1} or case E^2_6:
+            for al in self._classical_roots:
+                if al in self._classical_short_roots:
+                    for ir in self._freudenthal_roots_imaginary(nu-al):
+                        yield al + ir
+                else:
+                    fri = list(self._freudenthal_roots_imaginary(nu-al))
+                    friset = set(fri)
+                    for ir in fri:
+                        if 2*ir in friset:
+                            yield al + 2*ir
 
     def _freudenthal_accum(self, nu, al):
         """
@@ -726,20 +730,20 @@ class IntegrableRepresentation(UniqueRepresentation, CategoryObject):
         n_shift = self._from_weight_helper(al)
         ip_shift = self._inner_qq(al, al)
 
-        while all(val >= 0 for val in n):
+        while min(n) >= 0:
             # Change in data by adding ``al`` to our current weight
             ip += ip_shift
             for i,val in enumerate(n_shift):
                 n[i] -= val
             # Compute the multiplicity
-            mk = self.m(tuple(n))
-            ret += 2*mk*ip
+            ret += 2 * self.m(tuple(n)) * ip
         return ret
 
     def _m_freudenthal(self, n):
-        """
+        r"""
         Compute the weight multiplicity using the Freudenthal
         multiplicity formula in ``self``.
+
         The multiplicities of the imaginary roots for the twisted 
         affine case are different than those for the untwisted case.
         See [Carter]_ Corollary 18.10 for general type and Corollary
@@ -760,49 +764,48 @@ class IntegrableRepresentation(UniqueRepresentation, CategoryObject):
         I = self._index_set
         al = self._Q._from_dict({I[i]: val for i,val in enumerate(n) if val},
                                 remove_zeros=False)
-        den = 2*self._inner_pq(self._Lam+self._P.rho(), al) - self._inner_qq(al, al)
-        num = 0
-        
-        for al in self._freudenthal_roots_real(self._Lam - mu):
-            num += self._freudenthal_accum(mu, al)
-
-        from sage.combinat.root_system.cartan_type import CartanType
+        cr = self._classical_rank
+        num = sum(self._freudenthal_accum(mu, alr)
+                  for alr in self._freudenthal_roots_real(self._Lam - mu))
 
         if self._cartan_type.is_untwisted_affine():
-            for al in self._freudenthal_roots_imaginary(self._Lam - mu):
-                num += self._classical_rank * self._freudenthal_accum(mu, al)
+            num += sum(cr * self._freudenthal_accum(mu, alr)
+                       for alr in self._freudenthal_roots_imaginary(self._Lam - mu))
 
-        elif self._cartan_type == CartanType(['B',self._classical_rank,1]).dual():
-            d = {key+1: rt for key, rt in
-                    enumerate(self._freudenthal_roots_imaginary(self._Lam - mu))}
-            for k in d: # k is a positive number, d[k] is k*delta
-                num += (self._classical_rank-k%2) * self._freudenthal_accum(mu, dict[k])
+        elif self._cartan_type.dual().type() == 'B': # A_{2n-1}^{(2)}
+            val = 1
+            for rt in self._freudenthal_roots_imaginary(self._Lam - mu):
+                # k-th element (starting from 1) is k*delta
+                num += (cr - val) * self._freudenthal_accum(mu, rt)
+                val = 1 - val
 
-        elif self._cartan_type == CartanType(['BC',self._classical_rank,2]):
-            for al in self._freudenthal_roots_imaginary(self._Lam - mu):
-                num += self._classical_rank * self._freudenthal_accum(mu, al)
+        elif self._cartan_type.type() == 'BC': # A_{2n}^{(2)}
+            num += sum(cr * self._freudenthal_accum(mu, alr)
+                       for alr in self._freudenthal_roots_imaginary(self._Lam - mu))
+
+        elif self._cartan_type.dual() == 'C': # D_{n+1}^{(2)}
+            val = 1
+            for rt in self._freudenthal_roots_imaginary(self._Lam - mu):
+                # k-th element (starting from 1) is k*delta
+                num += (cr - (cr - 1)*val) * self._freudenthal_accum(mu, rt)
+                val = 1 - val
+
+        elif self._cartan_type.dual().type() == 'F': # E_6^{(2)}
+            val = 1
+            for rt in self._freudenthal_roots_imaginary(self._Lam - mu):
+                # k-th element (starting from 1) is k*delta
+                num += (4 - 2*val) * self._freudenthal_accum(mu, rt)
+                val = 1 - val
         
-        elif self._cartan_type == CartanType(['C',self._classical_rank,1]).dual():
-            d = {key+1: rt for key, rt in
-                 enumerate(self._freudenthal_roots_imaginary(self._Lam - mu))}
-            for k in d: # k is a positive number, d[k] is k*delta
-                num += (self._classical_rank-(self._classical_rank -1)*(k%2)) * self._freudenthal_accum(mu, d[k])
-
-        elif self._cartan_type == CartanType(['F',4,1]).dual():
-            d = {key+1: rt for key, rt in
-                 enumerate(self._freudenthal_roots_imaginary(self._Lam - mu))}
-            for k in d: # k is a positive number, d[k] is k*delta
-                num += (4 - 2*(k%2)) * self._freudenthal_accum(mu, d[k])
-        
-        elif self._cartan_type in [CartanType(['D',4,3]), CartanType(['G',2,1]).dual()]:
-            d = {key+1: rt for key, rt in
-                 enumerate(self._freudenthal_roots_imaginary(self._Lam - mu))}
-            for k in d: # k is a positive number, d[k] is k*delta
-                if k%3 == 0:
-                    num += 2 * self._freudenthal_accum(mu, d[k])
+        elif self._cartan_type.dual().type() == 'G': # D_4^{(3)} (or dual of G_2^{(1)})
+            for k,rt in enumerate(self._freudenthal_roots_imaginary(self._Lam - mu)):
+                # k-th element (starting from 1) is k*delta
+                if (k+1) % 3 == 0:
+                    num += 2 * self._freudenthal_accum(mu, rt)
                 else:
-                    num += self._freudenthal_accum(mu, d[k])
+                    num += self._freudenthal_accum(mu, rt)
 
+        den = 2*self._inner_pq(self._Lam_rho, al) - self._inner_qq(al, al)
         try:
             return ZZ(num / den)
         except TypeError:
@@ -999,9 +1002,9 @@ class IntegrableRepresentation(UniqueRepresentation, CategoryObject):
         else:
             n = self.from_weight(mu)
         k = self.level()
-        hd = self._dual_coxeter_number
+        hd = self.dual_coxeter_number()
         rho = self._P.rho()
-        m_Lambda = self._inner_pp(self._Lam+rho, self._Lam+rho) / (2*(k+hd)) \
+        m_Lambda = self._inner_pp(self._Lam_rho, self._Lam_rho) / (2*(k+hd)) \
                    - self._inner_pp(rho, rho) / (2*hd)
         if n is None:
             return m_Lambda

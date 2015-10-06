@@ -16,6 +16,7 @@ Let ``<tab>`` indicate pressing the tab key.  So begin by typing
 - :class:`algebras.FiniteDimensional
   <sage.algebras.finite_dimensional_algebras.finite_dimensional_algebra.FiniteDimensionalAlgebra>`
 - :class:`algebras.Free <sage.algebras.free_algebra.FreeAlgebraFactory>`
+- :class:`algebras.FreeZinbiel <sage.algebras.free_zinbiel_algebra.FreeZinbielAlgebra>`
 - :class:`algebras.PreLieAlgebra <sage.combinat.free_prelie_algebra.FreePreLieAlgebra>`
 - :func:`algebras.GradedCommutative
   <sage.algebras.commutative_dga.GradedCommutativeAlgebra>`
@@ -48,6 +49,7 @@ from sage.algebras.weyl_algebra import DifferentialWeylAlgebra as DifferentialWe
 
 from sage.misc.lazy_import import lazy_import
 lazy_import('sage.algebras.nil_coxeter_algebra', 'NilCoxeterAlgebra', 'NilCoxeter')
+lazy_import('sage.algebras.free_zinbiel_algebra', 'FreeZinbielAlgebra', 'FreeZinbiel')
 lazy_import('sage.algebras.hall_algebra', 'HallAlgebra', 'Hall')
 lazy_import('sage.algebras.jordan_algebra', 'JordanAlgebra', 'Jordan')
 lazy_import('sage.algebras.shuffle_algebra', 'ShuffleAlgebra', 'Shuffle')

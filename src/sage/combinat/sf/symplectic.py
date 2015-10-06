@@ -20,7 +20,8 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 import sfa
-import sage.combinat.partition as partition
+import sage.libs.lrcalc.lrcalc as lrcalc
+from sage.combinat.partition import Partitions
 from sage.misc.cachefunc import cached_method
 from sage.rings.all import ZZ, QQ, Integer
 from sage.matrix.all import matrix
@@ -166,12 +167,18 @@ class SymmetricFunctionAlgebra_symplectic(sfa.SymmetricFunctionAlgebra_generic):
         sfa.SymmetricFunctionAlgebra_generic.__init__(self, Sym, "symplectic",
                                                       'sp', graded=False)
 
+        # We make a strong reference since we use it for our computations
+        #   and so we can define the coercion below (only codomains have
+        #   strong references)
+        self._s = Sym.schur()
+
         # Setup the coercions
-        s = Sym.schur()
-        M = s.module_morphism(self._s_to_sp_on_basis, codomain=self,
-                              triangular='upper', unitriangular=True)
+        M = self._s.module_morphism(self._s_to_sp_on_basis, codomain=self,
+                                    triangular='upper', unitriangular=True)
         M.register_as_coercion()
-        (~M).register_as_coercion()
+        Mi = self.module_morphism(self._sp_to_s_on_basis, codomain=self._s,
+                                  triangular='upper', unitriangular=True)
+        Mi.register_as_coercion()
 
     def _multiply(self, r, l):
         r"""
@@ -184,8 +191,7 @@ class SymmetricFunctionAlgebra_symplectic(sfa.SymmetricFunctionAlgebra_generic):
             sage: sp([2]) * sp([1,1]) # indirect doctest
             sp[1, 1] + sp[2] + sp[2, 1, 1] + sp[3, 1]
         """
-        s = self.realization_of().schur()
-        return self(s(r) * s(l))
+        return self(self._s(r) * self._s(l))
 
     def counit(self, x):
         r"""
@@ -199,8 +205,34 @@ class SymmetricFunctionAlgebra_symplectic(sfa.SymmetricFunctionAlgebra_generic):
             sage: sp.counit(sp.an_element())
             2
         """
-        s = self.realization_of().schur()
-        return s.counit(s(x))
+        return self._s.counit(self._s(x))
+
+    @cached_method
+    def _sp_to_s_on_basis(self, lam):
+        r"""
+        Return the symplectic symmetric function ``sp[lam]`` expanded in
+        the Schur basis, where ``lam`` is a partition.
+
+        TESTS:
+
+        Check that this is the inverse::
+
+            sage: sp = SymmetricFunctions(QQ).sp()
+            sage: s = SymmetricFunctions(QQ).s()
+            sage: all(sp(s(sp[la])) == sp[la] for i in range(5) for la in Partitions(i))
+            True
+            sage: all(s(sp(s[la])) == s[la] for i in range(5) for la in Partitions(i))
+            True
+        """
+        R = self.base_ring()
+        n = sum(lam)
+        return self._s._from_dict({ mu: R.sum( (-1)**j * lrcalc.lrcoef_unsafe(lam, mu, nu)
+                                               for nu in Partitions(2*j)
+                                                   if all(nu.leg_length(i,i) == nu.arm_length(i,i)+1
+                                                          for i in range(nu.frobenius_rank()))
+                                             )
+                                    for j in range(n//2+1) # // 2 for horizontal dominoes
+                                    for mu in Partitions(n-2*j) })
 
     @cached_method
     def _s_to_sp_on_basis(self, lam):
@@ -228,13 +260,10 @@ class SymmetricFunctionAlgebra_symplectic(sfa.SymmetricFunctionAlgebra_generic):
             sage: s(sp._s_to_sp_on_basis(Partition([3,1]))) == s[3,1]
             True
         """
-        import sage.libs.lrcalc.lrcalc as lrcalc
-        from sage.combinat.partition import Partitions
         R = self.base_ring()
-        # TODO: This is a brute force check and could likely be simplified
-        return self._from_dict({ mu: R.sum( lrcalc.lrcoef_unsafe(lam, mu, nu)
-                                            for j in range(sum(lam)-sum(mu)+1)
-                                            for nu in Partitions(j)
-                                                if all(x % 2 == 0 for x in nu.conjugate()) )
-                                 for i in range(sum(lam)+1) for mu in Partitions(i) })
+        n = sum(lam)
+        return self._from_dict({ mu: R.sum( lrcalc.lrcoef_unsafe(lam, mu, sum([[x,x] for x in nu], []))
+                                            for nu in Partitions(j) )
+                                 for j in range(n//2+1) # // 2 for vertical dominoes
+                                 for mu in Partitions(n-2*j) })
 

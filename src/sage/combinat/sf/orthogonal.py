@@ -20,7 +20,8 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 import sfa
-import sage.combinat.partition as partition
+import sage.libs.lrcalc.lrcalc as lrcalc
+from sage.combinat.partition import Partitions
 from sage.misc.cachefunc import cached_method
 from sage.rings.all import ZZ, QQ, Integer
 from sage.matrix.all import matrix
@@ -164,12 +165,18 @@ class SymmetricFunctionAlgebra_orthogonal(sfa.SymmetricFunctionAlgebra_generic):
         sfa.SymmetricFunctionAlgebra_generic.__init__(self, Sym, "orthogonal",
                                                       'o', graded=False)
 
+        # We make a strong reference since we use it for our computations
+        #   and so we can define the coercion below (only codomains have
+        #   strong references)
+        self._s = Sym.schur()
+
         # Setup the coercions
-        s = Sym.schur()
-        M = s.module_morphism(self._s_to_o_on_basis, codomain=self,
-                              triangular='upper', unitriangular=True)
+        M = self._s.module_morphism(self._s_to_o_on_basis, codomain=self,
+                                    triangular='upper', unitriangular=True)
         M.register_as_coercion()
-        (~M).register_as_coercion()
+        Mi = self.module_morphism(self._o_to_s_on_basis, codomain=self._s,
+                                  triangular='upper', unitriangular=True)
+        Mi.register_as_coercion()
 
     def _multiply(self, r, l):
         r"""
@@ -182,8 +189,7 @@ class SymmetricFunctionAlgebra_orthogonal(sfa.SymmetricFunctionAlgebra_generic):
             sage: o([2]) * o([1,1]) # indirect doctest
             o[1, 1] + o[2] + o[2, 1, 1] + o[3, 1]
         """
-        s = self.realization_of().schur()
-        return self(s(r) * s(l))
+        return self(self._s(r) * self._s(l))
 
     def counit(self, x):
         r"""
@@ -197,8 +203,34 @@ class SymmetricFunctionAlgebra_orthogonal(sfa.SymmetricFunctionAlgebra_generic):
             sage: o.counit(o.an_element())
             -1
         """
-        s = self.realization_of().schur()
-        return s.counit(s(x))
+        return self._s.counit(self._s(x))
+
+    @cached_method
+    def _o_to_s_on_basis(self, lam):
+        r"""
+        Return the orthogonal symmetric function ``o[lam]`` expanded in
+        the Schur basis, where ``lam`` is a partition.
+
+        TESTS:
+
+        Check that this is the inverse::
+
+            sage: o = SymmetricFunctions(QQ).o()
+            sage: s = SymmetricFunctions(QQ).s()
+            sage: all(o(s(o[la])) == o[la] for i in range(5) for la in Partitions(i))
+            True
+            sage: all(s(o(s[la])) == s[la] for i in range(5) for la in Partitions(i))
+            True
+        """
+        R = self.base_ring()
+        n = sum(lam)
+        return self._s._from_dict({ mu: R.sum( (-1)**j * lrcalc.lrcoef_unsafe(lam, mu, nu)
+                                               for nu in Partitions(2*j)
+                                                   if all(nu.arm_length(i,i) == nu.leg_length(i,i)+1
+                                                          for i in range(nu.frobenius_rank()))
+                                             )
+                                    for j in range(n//2+1) # // 2 for horizontal dominoes
+                                    for mu in Partitions(n-2*j) })
 
     @cached_method
     def _s_to_o_on_basis(self, lam):
@@ -222,17 +254,15 @@ class SymmetricFunctionAlgebra_orthogonal(sfa.SymmetricFunctionAlgebra_generic):
             sage: o._s_to_o_on_basis(Partition([]))
             o[]
             sage: o._s_to_o_on_basis(Partition([4,2,1]))
-            o[1] + 2*o[2, 1] + o[2, 2, 1] + o[3] + o[3, 1, 1] + o[3, 2] + o[4, 1] + o[4, 2, 1]
+            o[1] + 2*o[2, 1] + o[2, 2, 1] + o[3]
+             + o[3, 1, 1] + o[3, 2] + o[4, 1] + o[4, 2, 1]
             sage: s(o._s_to_o_on_basis(Partition([3,1]))) == s[3,1]
             True
         """
-        import sage.libs.lrcalc.lrcalc as lrcalc
-        from sage.combinat.partition import Partitions
         R = self.base_ring()
-        # TODO: This is a brute force check and could likely be simplified
-        return self._from_dict({ mu: R.sum( lrcalc.lrcoef_unsafe(lam, mu, nu)
-                                            for j in range(sum(lam)-sum(mu)+1)
-                                            for nu in Partitions(j)
-                                                if all(x % 2 == 0 for x in nu) )
-                                 for i in range(sum(lam)+1) for mu in Partitions(i) })
+        n = sum(lam)
+        return self._from_dict({ mu: R.sum( lrcalc.lrcoef_unsafe(lam, mu, [2*x for x in nu])
+                                            for nu in Partitions(j) )
+                                 for j in range(n//2+1) # // 2 for horizontal dominoes
+                                 for mu in Partitions(n-2*j) })
 

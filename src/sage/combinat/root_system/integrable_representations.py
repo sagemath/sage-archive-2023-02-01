@@ -5,6 +5,7 @@ Integrable Representations of Affine Lie Algebras
 #*****************************************************************************
 #  Copyright (C) 2014, 2105 Daniel Bump <bump at match.stanford.edu>
 #                           Travis Scrimshaw <tscrim at ucdavis.edu>
+#                           Valentin Buciumas <buciumas at stanford.edu>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
@@ -42,6 +43,9 @@ class IntegrableRepresentation(UniqueRepresentation, CategoryObject):
     .. [KacPeterson] Kac and Peterson. *Infinite-dimensional Lie algebras,
        theta functions and modular forms*. Adv. in Math. 53 (1984),
        no. 2, 125-264.
+       
+    .. [Carter] Carter, *Lie algebras of finite and affine type*. Cambridge 
+       University Press, 2005
 
     If `\Lambda` is a dominant integral weight for an affine root system,
     there exists a unique integrable representation `V=V_\Lambda` of highest
@@ -147,6 +151,31 @@ class IntegrableRepresentation(UniqueRepresentation, CategoryObject):
         Lambda[0] + Lambda[2] - delta: 1 5 18 55 149 372 872 1941 4141 8523 17005 33019
         2*Lambda[1] - delta: 1 4 15 44 122 304 721 1612 3469 7176 14414 28124
         2*Lambda[2] - 2*delta: 2 7 26 72 194 467 1084 2367 5010 10191 20198 38907
+        
+    Examples for twisted affine types::
+    
+        sage: Lambda = RootSystem(["A",2,2]).weight_lattice(extended=True).fundamental_weights()
+        sage: IntegrableRepresentation(Lambda[0]).strings()
+        {Lambda[0]: [1, 1, 2, 3, 5, 7, 11, 15, 22, 30, 42, 56]}
+        sage: Lambda = RootSystem(['G',2,1]).dual.weight_lattice(extended=true).fundamental_weights()
+        sage: V = IntegrableRepresentation(Lambda[0]+Lambda[1]+Lambda[2])
+        sage: V.print_strings() # long time
+        6*Lambdacheck[0]: 4 28 100 320 944 2460 6064 14300 31968 69020 144676 293916
+        4*Lambdacheck[0] + Lambdacheck[2]: 4 22 84 276 800 2124 5288 12470 28116 61056 128304 261972
+        3*Lambdacheck[0] + Lambdacheck[1]: 2 16 58 192 588 1568 3952 9520 21644 47456 100906 207536
+        Lambdacheck[0] + Lambdacheck[1] + Lambdacheck[2]: 1 6 26 94 294 832 2184 5388 12634 28390 61488 128976
+        2*Lambdacheck[1] - deltacheck: 2 8 32 120 354 980 2576 6244 14498 32480 69776 145528
+        2*Lambdacheck[0] + 2*Lambdacheck[2]: 2 12 48 164 492 1344 3428 8256 18960 41844 89208 184512
+        3*Lambdacheck[2] - deltacheck: 4 16 60 208 592 1584 4032 9552 21728 47776 101068 207888
+        sage: Lambda = RootSystem(['A',6,2]).weight_lattice(extended=true).fundamental_weights()
+        sage: V = IntegrableRepresentation(Lambda[0]+2*Lambda[1])
+        sage: V.print_strings() # long time
+        5*Lambda[0]: 3 42 378 2508 13707 64650 272211 1045470 3721815 12425064 39254163 118191378
+        3*Lambda[0] + Lambda[2]: 1 23 234 1690 9689 47313 204247 800029 2893198 9786257 31262198 95035357
+        Lambda[0] + 2*Lambda[1]: 1 14 154 1160 6920 34756 153523 612354 2248318 7702198 24875351 76341630
+        Lambda[0] + Lambda[1] + Lambda[3] - 2*delta: 6 87 751 4779 25060 113971 464842 1736620 6034717 19723537 61152367 181068152
+        Lambda[0] + 2*Lambda[2] - 2*delta: 3 54 499 3349 18166 84836 353092 1341250 4725259 15625727 48938396 146190544
+        Lambda[0] + 2*Lambda[3] - 4*delta: 15 195 1539 9186 45804 200073 789201 2866560 9723582 31120281 94724550 275919741
     """
     def __init__(self, Lam):
         """
@@ -160,16 +189,13 @@ class IntegrableRepresentation(UniqueRepresentation, CategoryObject):
         """
         CategoryObject.__init__(self, base=ZZ, category=Modules(ZZ))
 
-        if not Lam.parent().cartan_type().is_affine() or not Lam.parent()._extended:
-            raise ValueError("the parent of %s must be an extended affine root lattice"%Lam)
         self._Lam = Lam
         self._P = Lam.parent()
         self._Q = self._P.root_system.root_lattice()
 
         self._cartan_matrix = self._P.root_system.cartan_matrix()
         self._cartan_type = self._P.root_system.cartan_type()
-        if not self._cartan_type.is_untwisted_affine():
-            raise NotImplementedError("integrable representations are only implemented for untwisted affine types")
+
         self._classical_rank = self._cartan_type.classical().rank()
         self._index_set = self._P.index_set()
         self._index_set_classical = self._cartan_type.classical().index_set()
@@ -594,7 +620,9 @@ class IntegrableRepresentation(UniqueRepresentation, CategoryObject):
         r"""
         Return the set of real positive roots `\alpha \in \Delta^+` in
         ``self`` such that `\nu - \alpha \in Q^+`.
-
+        
+        See [Kac]_ Proposition 6.3 for the way to compute the set of real roots for twisted affine case.
+        
         INPUT:
 
         - ``nu`` -- an element in `Q`
@@ -616,9 +644,49 @@ class IntegrableRepresentation(UniqueRepresentation, CategoryObject):
         for al in self._classical_positive_roots:
             if all(x >= 0 for x in self._from_weight_helper(nu-al)):
                 ret.append(al)
-        for al in self._classical_roots:
-            for ir in self._freudenthal_roots_imaginary(nu-al):
-                ret.append(al+ir)
+        from sage.combinat.root_system.cartan_type import CartanType
+        if self._cartan_type == CartanType(['B',self._classical_rank,1]).dual() or self._cartan_type == CartanType(['C',self._classical_rank,1]).dual() or self._cartan_type == CartanType(['F',4,1]).dual(): #case A^2_{2l-1} or case D^2_{l+1} or case E^2_6:
+            for al in self._classical_roots:
+                if self._inner_qq(al,al) == 2: #if al is a short root:
+                    for ir in self._freudenthal_roots_imaginary(nu-al):
+                        ret.append(al+ir)
+                else:
+                    for ir in self._freudenthal_roots_imaginary(nu-al):
+                        if 2*ir in self._freudenthal_roots_imaginary(nu-al):
+                            ret.append(al+2*ir)
+
+        elif self._cartan_type == CartanType(['BC',self._classical_rank,2]): #case A^2_{2l}
+            for al in self._classical_roots:
+                if self._inner_qq(al,al) == 2: #if al is a short root:
+                    for ir in self._freudenthal_roots_imaginary(nu-al):
+                        ret.append(al+ir)
+                else:
+                    for ir in self._freudenthal_roots_imaginary(nu-al):
+                        if 2*ir in self._freudenthal_roots_imaginary(nu-al):
+                            ret.append(al+2*ir)
+                    for ir in self._freudenthal_roots_imaginary(2*nu-al)[::2]:
+                        n = [x//2 for x in self._from_weight_helper(al+ir)]
+                        alpha = self._Q.simple_roots()
+                        if sum([val*alpha[i] for i,val in enumerate(n)]) not in ret:
+                            ret.append(sum([val*alpha[i] for i,val in enumerate(n)]))
+    
+        elif self._cartan_type == CartanType(['D',4,3]) or self._cartan_type == CartanType(['G',2,1]).dual(): # case D^3_4 in the Kac notation
+            for al in self._classical_roots:
+                if self._inner_qq(al,al) == 2: #if al is a short root:
+                    for ir in self._freudenthal_roots_imaginary(nu-al):
+                        ret.append(al+ir)
+                else:
+                    for ir in self._freudenthal_roots_imaginary(nu-al):
+                        if 3*ir in self._freudenthal_roots_imaginary(nu-al):
+                            ret.append(al+3*ir)
+
+
+        else: # untwisted case
+            for al in self._classical_roots:
+                for ir in self._freudenthal_roots_imaginary(nu-al):
+                    ret.append(al+ir)
+
+
         return ret
 
     def _freudenthal_accum(self, nu, al):
@@ -654,7 +722,11 @@ class IntegrableRepresentation(UniqueRepresentation, CategoryObject):
         """
         Compute the weight multiplicity using the Freudenthal
         multiplicity formula in ``self``.
-
+        The multiplicities of the imaginary roots for the twisted 
+        affine case are different than those for the untwisted case.
+        See [Carter]_ Corollary 18.10 for general type and Corollary
+        18.15 for `A^2_{2l}`
+        
         EXAMPLES::
 
             sage: Lambda = RootSystem(['B',3,1]).weight_lattice(extended=true).fundamental_weights()
@@ -672,10 +744,47 @@ class IntegrableRepresentation(UniqueRepresentation, CategoryObject):
                                 remove_zeros=False)
         den = 2*self._inner_pq(self._Lam+self._P.rho(), al) - self._inner_qq(al, al)
         num = 0
+        
         for al in self._freudenthal_roots_real(self._Lam - mu):
             num += self._freudenthal_accum(mu, al)
-        for al in self._freudenthal_roots_imaginary(self._Lam - mu):
-            num += self._classical_rank * self._freudenthal_accum(mu, al)
+
+        from sage.combinat.root_system.cartan_type import CartanType
+
+        if self._cartan_type == CartanType(['B',self._classical_rank,1]).dual():
+            list = self._freudenthal_roots_imaginary(self._Lam - mu)
+            dict = {key:list[key-1] for key in range(1,len(list)+1)}
+            for k in dict: # k is a positive number, dict[k] is k*delta
+                num += (self._classical_rank-k%2) * self._freudenthal_accum(mu, dict[k])
+
+        elif self._cartan_type == CartanType(['BC',self._classical_rank,2]):
+            for al in self._freudenthal_roots_imaginary(self._Lam - mu):
+                num += self._classical_rank * self._freudenthal_accum(mu, al)
+        
+        elif self._cartan_type == CartanType(['C',self._classical_rank,1]).dual():
+            list = self._freudenthal_roots_imaginary(self._Lam - mu)
+            dict = {key:list[key-1] for key in range(1,len(list)+1)}
+            for k in dict: # k is a positive number, dict[k] is k*delta
+                num += (self._classical_rank-(self._classical_rank -1)*(k%2)) * self._freudenthal_accum(mu, dict[k])
+
+        elif self._cartan_type == CartanType(['F',4,1]).dual():
+            list = self._freudenthal_roots_imaginary(self._Lam - mu)
+            dict = {key:list[key-1] for key in range(1,len(list)+1)}
+            for k in dict: # k is a positive number, dict[k] is k*delta
+                num += (4 - 2*(k%2)) * self._freudenthal_accum(mu, dict[k])
+        
+        elif self._cartan_type == CartanType(['D',4,3]) or self._cartan_type == CartanType(['G',2,1]).dual():
+            list = self._freudenthal_roots_imaginary(self._Lam - mu)
+            dict = {key:list[key-1] for key in range(1,len(list)+1)}
+            for k in dict: # k is a positive number, dict[k] is k*delta
+                if k%3 == 0:
+                    num += 2 * self._freudenthal_accum(mu, dict[k])
+                else:
+                    num += self._freudenthal_accum(mu, dict[k])
+
+        else:
+            for al in self._freudenthal_roots_imaginary(self._Lam - mu):
+                num += self._classical_rank * self._freudenthal_accum(mu, al)
+
         try:
             return ZZ(num / den)
         except TypeError:

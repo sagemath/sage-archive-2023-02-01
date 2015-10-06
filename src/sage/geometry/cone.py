@@ -4348,6 +4348,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
         """
         return self.linear_subspace().dimension()
 
+    @cached_method
     def discrete_complementarity_set(self):
         r"""
         Compute a discrete complementarity set of this cone.
@@ -4360,7 +4361,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
 
         OUTPUT:
 
-        A list of pairs `(x,s)` such that,
+        A tuple of pairs `(x,s)` such that,
 
           * `x` and `s` are nonzero.
           * `x` and `s` are orthogonal.
@@ -4380,7 +4381,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
 
             sage: K = Cone([(1,0),(0,1)])
             sage: K.discrete_complementarity_set()
-            [(N(1, 0), M(0, 1)), (N(0, 1), M(1, 0))]
+            ((N(1, 0), M(0, 1)), (N(0, 1), M(1, 0)))
 
         If a cone consists of a single ray, then the second components
         of a discrete complementarity set for that cone should generate
@@ -4388,13 +4389,13 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
 
             sage: K = Cone([(1,0)])
             sage: K.discrete_complementarity_set()
-            [(N(1, 0), M(0, 1)), (N(1, 0), M(0, -1))]
+            ((N(1, 0), M(0, 1)), (N(1, 0), M(0, -1)))
             sage: K = Cone([(1,0,0)])
             sage: K.discrete_complementarity_set()
-            [(N(1, 0, 0), M(0, 1, 0)),
+            ((N(1, 0, 0), M(0, 1, 0)),
              (N(1, 0, 0), M(0, -1, 0)),
              (N(1, 0, 0), M(0, 0, 1)),
-             (N(1, 0, 0), M(0, 0, -1))]
+             (N(1, 0, 0), M(0, 0, -1)))
 
         When a cone is the entire space, its dual is the trivial cone,
         so the only discrete complementarity set for it is empty::
@@ -4403,14 +4404,14 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
             sage: K.is_full_space()
             True
             sage: K.discrete_complementarity_set()
-            []
+            ()
 
         Likewise for trivial cones, whose duals are the entire space::
 
             sage: L = ToricLattice(0)
             sage: K = Cone([], ToricLattice(0))
             sage: K.discrete_complementarity_set()
-            []
+            ()
 
         TESTS:
 
@@ -4421,7 +4422,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
             sage: set_random_seed()
             sage: K = random_cone(max_ambient_dim=6)
             sage: dcs_dual = K.dual().discrete_complementarity_set()
-            sage: expected = [ (x,s) for (s,x) in dcs_dual ]
+            sage: expected = tuple( (x,s) for (s,x) in dcs_dual )
             sage: actual = K.discrete_complementarity_set()
             sage: sorted(actual) == sorted(expected)
             True
@@ -4435,9 +4436,11 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
             sage: sum([ x.inner_product(s).abs() for (x,s) in dcs ])
             0
         """
-        return [ (x,s) for x in self
-                       for s in self.dual()
-                       if x.inner_product(s) == 0 ]
+        # Return an immutable tuple instead of a mutable list because
+        # the result will be cached.
+        return tuple( (x,s) for x in self
+                            for s in self.dual()
+                            if x.inner_product(s) == 0 )
 
 
 def random_cone(lattice=None, min_ambient_dim=0, max_ambient_dim=None,

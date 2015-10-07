@@ -1,5 +1,3 @@
-# distutils: extra_compile_args = FFLASFFPACK_CFLAGS
-
 ctypedef double celement
 
 include "matrix_modn_dense_template_header.pxi"

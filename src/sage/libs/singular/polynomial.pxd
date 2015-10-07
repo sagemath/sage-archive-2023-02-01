@@ -1,5 +1,3 @@
-# distutils: extra_compile_args = GIVARO_CFLAGS
-
 """
 Wrapper for Singular's Polynomial Arithmetic
 

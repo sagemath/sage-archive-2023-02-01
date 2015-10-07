@@ -1,4 +1,3 @@
-# distutils: extra_compile_args = GIVARO_CFLAGS
 from sage.structure.element cimport CommutativeRingElement
 
 cdef class MPolynomial(CommutativeRingElement):

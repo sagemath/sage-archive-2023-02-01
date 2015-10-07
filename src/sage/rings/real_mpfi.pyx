@@ -2305,7 +2305,15 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
 
     def endpoints(self, rnd=None):
         """
-        Return the lower and upper endpoints of ``self``.
+        Return the lower and upper endpoints of this interval.
+
+        OUTPUT: a 2-tuple of real numbers
+        (lower endpoint, upper endpoint)
+
+        .. SEEALSO::
+
+            :meth:`edges` which returns the endpoints as exact
+            intervals instead of real numbers.
 
         EXAMPLES::
 
@@ -2323,6 +2331,38 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
             Real Field with 53 bits of precision and rounding RNDD
         """
         return self.lower(rnd), self.upper(rnd)
+
+    def edges(self):
+        """
+        Return the lower and upper endpoints of this interval as
+        intervals.
+
+        OUTPUT: a 2-tuple of real intervals
+        (lower endpoint, upper endpoint)
+        each containing just one point.
+
+        .. SEEALSO::
+
+            :meth:`endpoints` which returns the endpoints as real
+            numbers instead of intervals.
+
+        EXAMPLES::
+
+            sage: RIF(1,2).edges()
+            (1, 2)
+            sage: RIF(pi).edges()
+            (3.1415926535897932?, 3.1415926535897936?)
+        """
+        cdef RealIntervalFieldElement left = self._new()
+        cdef RealIntervalFieldElement right = self._new()
+        cdef mpfr_t x
+        mpfr_init2(x, self.prec())
+        mpfi_get_left(x, self.value)
+        mpfi_set_fr(left.value, x)
+        mpfi_get_right(x, self.value)
+        mpfi_set_fr(right.value, x)
+        mpfr_clear(x)
+        return (left, right)
 
     def absolute_diameter(self):
         """

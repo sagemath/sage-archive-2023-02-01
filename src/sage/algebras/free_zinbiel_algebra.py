@@ -89,7 +89,7 @@ class FreeZinbielAlgebra(CombinatorialFreeModule):
 
     .. WARNING::
 
-        Currently the basis is indexed all words over the variables,
+        Currently the basis is indexed by all words over the variables,
         incuding the empty word. This is a slight abuse as it is suppose
         to be the indexed by all non-empty words.
 

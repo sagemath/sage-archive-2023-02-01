@@ -129,6 +129,12 @@ for patch in ../patches/*.patch; do
     fi
 done
 
+if [ "$UNAME" = "Darwin" ]; then
+    # Fixing install_name(s)
+    sed -i -e 's:\"-install_name :\"-install_name ${libdir}/R/lib/:' configure
+    sed -i -e "/SHLIB_EXT/s/\.so/.dylib/" configure
+fi
+
 # Don't override R_HOME_DIR in local/bin/R while building R.
 # See patches/R.sh.patch
 export SAGE_BUILDING_R=yes

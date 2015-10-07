@@ -2381,7 +2381,7 @@ class Polyhedron_base(Element):
         return P.element_class(P, None, [new_ieqs, new_eqns])
 
     def __sub__(self, other):
-        """
+        r"""
         Implement minus binary operation
 
         Polyhedra are not a ring with respect to dilatation and

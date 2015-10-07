@@ -9,8 +9,9 @@ of `S_n` when the group is realized as the permutation matrices.
 REFERENCES:
 
 .. [OZ2015] R. Orellana, M. Zabrocki, *Symmetric group characters
-      as symmetric functions*, :arxiv:`1510.00438`.
+   as symmetric functions*, :arxiv:`1510.00438`.
 """
+
 #*****************************************************************************
 #       Copyright (C) 2015 Mike Zabrocki <zabrocki@mathstat.yorku.ca
 #
@@ -25,9 +26,12 @@ REFERENCES:
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+
 from sage.combinat.sf.sfa import SymmetricFunctionAlgebra_generic as SFA_generic
 from sage.misc.cachefunc import cached_method
 from sage.categories.homset import Hom
+from sage.categories.hopf_algebras_with_basis import HopfAlgebrasWithBasis
+from sage.categories.morphism import SetMorphism
 from sage.combinat.partition import Partition
 from sage.rings.arith import divisors, moebius
 from sage.functions.other import binomial
@@ -36,12 +40,12 @@ from sage.rings.integer import Integer
 class generic_character(SFA_generic):
     def _my_key(self, la):
         r"""
-        A rank function for partitions
+        A rank function for partitions.
 
         The leading term of a homogeneous expression will
         be the partition with the largest key value.
 
-        This key value is `|\lambda|^2+\lambda_0` and
+        This key value is `|\lambda|^2 + \lambda_0` and
         using the ``max`` function on a list of Partitions.
 
         Of course it is possible that this rank function
@@ -70,13 +74,13 @@ class generic_character(SFA_generic):
             17
         """
         if la:
-            return la.size()**2+la[0]
+            return la.size()**2 + la[0]
         else:
             return 0
 
     def _other_to_self(self, sexpr):
         r"""
-        Convert an expression the target basis to the character-basis
+        Convert an expression the target basis to the character-basis.
 
         We use triangularity to determine the expansion
         by subtracting off the leading term.  The target basis
@@ -98,30 +102,55 @@ class generic_character(SFA_generic):
             sage: st._other_to_self(s[1] + s([]))
             2*st[] + st[1]
         """
-        if sexpr==0:
+        if sexpr == 0:
             return self(0)
-        if sexpr.support()==[[]]:
+        if sexpr.support() == [[]]:
             return self([])
         out = self.zero()
         while sexpr:
-            mup = max(sexpr.support(),key=self._my_key)
-            out += sexpr.coefficient(mup)*self(mup)
-            sexpr -= sexpr.coefficient(mup)*self._self_to_other_on_basis(mup)
+            mup = max(sexpr.support(), key=self._my_key)
+            out += sexpr.coefficient(mup) * self(mup)
+            sexpr -= sexpr.coefficient(mup) * self._self_to_other_on_basis(mup)
         return out
 
-    class Element(SFA_generic.Element):
-        pass
+    def counit(self, x):
+        r"""
+        Return the counit of ``x`` in ``self``.
+
+        EXAMPLES::
+
+            sage: ht = SymmetricFunctions(QQ).ht()
+            sage: ht.an_element()
+            2*ht[] + 2*ht[1] + 3*ht[2]
+            sage: ht.counit(ht.an_element())
+            2
+        """
+        return self._other.counit(self._other(x))
+
+    def antipode(self, x):
+        r"""
+        Return the antipode of ``x`` in ``self``.
+
+        EXAMPLES::
+
+            sage: ht = SymmetricFunctions(QQ).ht()
+            sage: ht.an_element()
+            2*ht[] + 2*ht[1] + 3*ht[2]
+            sage: ht.antipode(ht.an_element())
+            2*ht[] + ht[1] + 3*ht[1, 1] - 3*ht[2]
+        """
+        return self( self._other.antipode(self._other(x)) )
 
 class character_basis(generic_character):
     r"""
-    General code for a character basis (irreducible and induced trivial)
+    General code for a character basis (irreducible and induced trivial).
 
     This is a basis of the symmetric functions that has the
     property that ``self(la).character_to_frobenius_image(n)``
     is equal to ``other([n-sum(la)]+la)``.
 
     It should also have the property that the (outer) structure
-    constants are the analogue of the stable kronecker
+    constants are the analogue of the stable Kronecker
     coefficients on the ``other`` basis (where ``other`` is either the
     Schur or homogeneous bases).
 
@@ -161,9 +190,9 @@ class character_basis(generic_character):
     """
     def __init__(self, Sym, other_basis, bname, pfix):
         r"""
-        Initialize the basis and register coercions
+        Initialize the basis and register coercions.
 
-        The coercions are set up between the ``other_basis``
+        The coercions are set up between the ``other_basis``.
 
         INPUT:
 
@@ -181,25 +210,24 @@ class character_basis(generic_character):
             Symmetric Functions over Rational Field in the irreducible symmetric group character basis
             sage: TestSuite(ht).run()
         """
-        SFA_generic.__init__(self, Sym, basis_name=bname, prefix=pfix)
+        SFA_generic.__init__(self, Sym, basis_name=bname, prefix=pfix, graded=False)
         self._other = other_basis
-        from sage.categories.graded_hopf_algebras_with_basis \
-          import GradedHopfAlgebrasWithBasis
-        categ = GradedHopfAlgebrasWithBasis(self.base_ring())
+        categ = HopfAlgebrasWithBasis(self.base_ring()).Graded()
         self.module_morphism(self._self_to_other_on_basis,
-          codomain=self._other, category=categ).register_as_coercion()
-        from sage.categories.morphism import SetMorphism
-        self.register_coercion(
-          SetMorphism(Hom(self._other, self, categ), self._other_to_self))
+                             codomain=self._other,
+                             category=categ).register_as_coercion()
+        self.register_coercion(SetMorphism(Hom(self._other, self, categ),
+                                           self._other_to_self))
 
     @cached_method
     def _self_to_other_on_basis(self, lam):
         r"""
-        Convert a character-basis element to the ``self._other`` basis
+        Convert a character-basis element to the ``self._other`` basis.
 
         This is a recursive procedure that is calculated
         by the assumption that the leading term of ``self(lam)``
-        is ``other(lam)`` and ``evalsf(self(lam),n) == other([n-sum(lam)]+lam)``
+        is ``other(lam)`` and
+        ``evalsf(self(lam),n) == other([n-sum(lam)]+lam)``.
 
         INPUT:
 
@@ -218,17 +246,32 @@ class character_basis(generic_character):
             sage: st = SymmetricFunctions(QQ).st()
             sage: st._self_to_other_on_basis(Partition([2,1]))
             3*s[1] - 2*s[1, 1] - 2*s[2] + s[2, 1]
+
+        TESTS::
+
+            sage: h = SymmetricFunctions(QQ).h()
+            sage: ht = SymmetricFunctions(QQ).ht()
+            sage: st = SymmetricFunctions(QQ).st()
+            sage: all(ht(h(ht[la])) == ht[la] for i in range(5) for la in Partitions(i))
+            True
+            sage: all(h(ht(h[la])) == h[la] for i in range(5) for la in Partitions(i))
+            True
+            sage: all(st(h(st[la])) == st[la] for i in range(5) for la in Partitions(i))
+            True
+            sage: all(h(st(h[la])) == h[la] for i in range(5) for la in Partitions(i))
+            True
         """
-        if lam==[]:
+        if not lam:
             return self._other([])
-        n = sum(lam)+lam[0]
+        n = sum(lam) + lam[0]
         sim = self._other(self._other(lam).character_to_frobenius_image(n))
-        return self._other(lam)-sum(c*self._self_to_other_on_basis( \
-          Partition(mu[1:])) for (mu,c) in sim if mu[1:]!=lam)
+        return self._other(lam) - sum(c*self._self_to_other_on_basis(Partition(mu[1:]))
+                                      for (mu,c) in sim if mu[1:] != lam)
 
 class irreducible_character_basis(generic_character):
     r"""
-    The irreducible symmetric group character basis of the symmetric functions.
+    The irreducible symmetric group character basis of
+    the symmetric functions.
 
     This is a basis of the symmetric functions that has the
     property that ``self(la).character_to_frobenius_image(n)``
@@ -264,7 +307,7 @@ class irreducible_character_basis(generic_character):
     """
     def __init__(self, Sym, pfix):
         r"""
-        Initialize the basis and register coercions
+        Initialize the basis and register coercions.
 
         The coercions are set up between the ``other_basis``
 
@@ -283,19 +326,19 @@ class irreducible_character_basis(generic_character):
             Symmetric Functions over Rational Field in the irreducible
              symmetric group character basis
         """
-        SFA_generic.__init__(self, Sym, \
-          basis_name="irreducible symmetric group character", \
-          prefix=pfix)
+        SFA_generic.__init__(self, Sym,
+                             basis_name="irreducible symmetric group character",
+                             prefix=pfix, graded=False)
         self._other = Sym.Schur()
         self._p = Sym.powersum()
-        from sage.categories.graded_hopf_algebras_with_basis \
-          import GradedHopfAlgebrasWithBasis
-        categ = GradedHopfAlgebrasWithBasis(self.base_ring())
+
+        categ = HopfAlgebrasWithBasis(self.base_ring()).Graded()
         self.module_morphism(self._self_to_power_on_basis,
-          codomain=Sym.powersum(), category=categ).register_as_coercion()
+                             codomain=Sym.powersum(),
+                             category=categ).register_as_coercion()
         from sage.categories.morphism import SetMorphism
-        self.register_coercion(
-          SetMorphism(Hom(self._other, self, categ), self._other_to_self))
+        self.register_coercion(SetMorphism(Hom(self._other, self, categ),
+                                           self._other_to_self))
 
     def _b_power_k(self, k):
         r"""
@@ -305,7 +348,7 @@ class irreducible_character_basis(generic_character):
 
         .. MATH::
 
-            \frac{1}{k} \sum_{d|k} \mu(d/k) p_d
+            \frac{1}{k} \sum_{d|k} \mu(d/k) p_d.
 
         INPUT:
 
@@ -326,11 +369,11 @@ class irreducible_character_basis(generic_character):
             1/6*p[1] - 1/6*p[2] - 1/6*p[3] + 1/6*p[6]
 
         """
-        if k==1:
+        if k == 1:
             return self._p([1])
-        if k>0:
-            return 1/k*self._p.sum(moebius(k/d)*self._p([d]) for d in \
-              divisors(k))
+        if k > 0:
+            return ~k * self._p.sum(moebius(k/d)*self._p([d])
+                                    for d in divisors(k))
 
     def _b_power_k_r(self, k, r):
         r"""
@@ -341,7 +384,7 @@ class irreducible_character_basis(generic_character):
         .. MATH::
 
             \sum_{j=0}^r (-1)^{r-j}k^j\binom{r,j} \left(
-            \frac{1}{k} \sum_{d|k} \mu(d/k) p_d \right)_k
+            \frac{1}{k} \sum_{d|k} \mu(d/k) p_d \right)_k.
 
         INPUT:
 
@@ -363,8 +406,9 @@ class irreducible_character_basis(generic_character):
 
         """
         p = self._p
-        return p.sum((-1)**(r-j)*k**j*binomial(r,j)*p.prod( \
-          self._b_power_k(k)-i*p.one() for i in range(j)) for j in range(r+1))
+        return p.sum( (-1)**(r-j) * k**j * binomial(r,j)
+                      * p.prod(self._b_power_k(k) - i*p.one() for i in range(j))
+                      for j in range(r+1) )
 
     def _b_power_gamma(self, gamma):
         r"""
@@ -375,7 +419,7 @@ class irreducible_character_basis(generic_character):
 
         .. MATH::
 
-            {\mathbf p}_{\ga} = \sum_{k \geq 1} {\mathbf p}_{k^{m_k}}
+            {\mathbf p}_{\ga} = \sum_{k \geq 1} {\mathbf p}_{k^{m_k}},
 
         where
 
@@ -403,8 +447,8 @@ class irreducible_character_basis(generic_character):
             p[] + 5*p[1] + p[1, 1] - 5*p[3] - 2*p[3, 1] + p[3, 3]
 
         """
-        return self._p.prod( self._b_power_k_r(Integer(k),Integer(r)) \
-          for (k,r) in gamma.to_exp_dict().iteritems())
+        return self._p.prod( self._b_power_k_r(Integer(k),Integer(r))
+                             for (k,r) in gamma.to_exp_dict().iteritems() )
 
     def _self_to_power_on_basis(self, lam):
         r"""
@@ -416,13 +460,13 @@ class irreducible_character_basis(generic_character):
         .. MATH::
 
             \sum_{\gamma} \chi^{\lambda}(\gamma)
-            \frac{{\mathbf p}_\gamma}{z_\gamma}
+            \frac{{\mathbf p}_\gamma}{z_\gamma},
 
         where `\chi^{\lambda}(\gamma)` is the irreducible character
         indexed by the partition `\lambda` and evaluated at an element
         of cycle structure `\gamma` and `{\mathbf p}_\gamma` is the
         power sum expression calculated in the method
-        ``_b_power_gamma``.
+        :meth:`_b_power_gamma`.
 
         INPUT:
 
@@ -441,8 +485,9 @@ class irreducible_character_basis(generic_character):
             p[] - p[1] + 1/2*p[1, 1] - 1/2*p[2]
 
         """
-        return self._p.sum(c*self._b_power_gamma(ga) for (ga, c) in \
-          self._p(self._other(lam)))
+        return self._p.sum( c*self._b_power_gamma(ga)
+                            for (ga, c) in self._p(self._other(lam)) )
+
     @cached_method
     def _self_to_other_on_basis(self, lam):
         r"""
@@ -466,6 +511,6 @@ class irreducible_character_basis(generic_character):
             s[] - s[1] + s[1, 1]
             sage: st._self_to_other_on_basis(Partition([2,1]))
             3*s[1] - 2*s[1, 1] - 2*s[2] + s[2, 1]
-
         """
         return self._other(self._self_to_power_on_basis(lam))
+

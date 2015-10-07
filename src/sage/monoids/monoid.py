@@ -28,7 +28,7 @@ def is_Monoid(x):
     return isinstance(x, Monoid_class)
 
 class Monoid_class(Parent):
-    def __init__(self,names):
+    def __init__(self, names):
         r"""
         EXAMPLES::
 

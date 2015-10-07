@@ -10,11 +10,6 @@ http://math.rutgers.edu/~asbuch/lrcalc/
 
 GNU General Public License V2+
 
-== SPKG Maintainers ==
-
- * Mike Hansen
- * Nicolas M. Thiéry
-
 == Upstream Contact ==
 
 Anders S. Buch (asbuch@math.rutgers.edu)

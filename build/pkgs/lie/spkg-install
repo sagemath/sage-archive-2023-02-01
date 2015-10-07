@@ -17,10 +17,14 @@ if [ $UNAME = "SunOS" ]; then
         die "Error patching LiE."
 fi
 
-# building
-make CC="$CC" || die "Error building LiE. Did you install bison?"
+# Building LiE in parallel is broken
+export MAKE="$MAKE -j1"
 
-# relocating
+# building
+$MAKE CC="$CC" || die "Error building LiE. Did you install bison?"
+
+# "install" the LiE package by moving over the complete build
+# directory to $SAGE_LOCAL/lib/lie
 cd ..
 sed -e "s'$PWD/LiE'$SAGE_LOCAL/lib/LiE'" LiE/lie > LiE/lie~
 mv LiE/lie~ LiE/lie

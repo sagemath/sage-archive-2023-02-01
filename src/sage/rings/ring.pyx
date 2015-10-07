@@ -2253,11 +2253,11 @@ cdef class Field(PrincipalIdealDomain):
         ALGORITHM:
 
         This uses the extended Euclidean algorithm; see for example
-        [Cohen]_, Algorithm 3.2.2.
+        [Cohen1996]_, Algorithm 3.2.2.
 
         REFERENCES:
 
-        .. [Cohen] H. Cohen, A Course in Computational Algebraic
+        .. [Cohen1996] H. Cohen, A Course in Computational Algebraic
            Number Theory.  Graduate Texts in Mathematics 138.
            Springer-Verlag, 1996.
 

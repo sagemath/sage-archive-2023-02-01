@@ -1,8 +1,10 @@
 r"""
 Common Automata and Transducers (Finite State Machines Generators)
 
-Automata and Transducers in Sage can be built through the ``automata``
-and ``transducers`` objects, respectively. It contains generators for
+Automata and Transducers in Sage can be built through the
+:class:`automata <AutomatonGenerators>`
+and :class:`transducers <TransducerGenerators>` objects, respectively.
+It contains generators for
 common finite state machines. For example,
 
 ::
@@ -13,8 +15,8 @@ generates an identity transducer on the alphabet `\{0, 1, 2\}`.
 
 To construct automata and transducers manually, you can use the
 classes :class:`Automaton` and :class:`Transducer`, respectively. See
-:mod:`~sage.combinat.finite_state_machine` for more details and a lot
-of examples.
+:doc:`finite_state_machine` for more details and a lot
+of :ref:`examples <finite_state_machine_examples>`.
 
 **Automata**
 
@@ -26,7 +28,7 @@ of examples.
     :meth:`~AutomatonGenerators.AnyLetter` | Return an automaton recognizing any letter.
     :meth:`~AutomatonGenerators.AnyWord` | Return an automaton recognizing any word.
     :meth:`~AutomatonGenerators.EmptyWord` | Return an automaton recognizing the empty word.
-    :meth:`~AutomatonGenerators.word` | Return an automaton recognizing the given word.
+    :meth:`~AutomatonGenerators.Word` | Return an automaton recognizing the given word.
     :meth:`~AutomatonGenerators.ContainsWord` | Return an automaton recognizing words containing the given word.
 
 **Transducers**
@@ -63,6 +65,7 @@ AUTHORS:
   any
 - Clemens Heuberger (2014-08-10): transducer Recursion
 - Clemens Heuberger (2015-07-31): automaton word
+- Daniel Krenn (2015-09-14): cleanup :trac:`18227`
 
 ACKNOWLEDGEMENT:
 
@@ -75,7 +78,7 @@ Functions and methods
 """
 #*****************************************************************************
 #       Copyright (C) 2014--2015 Clemens Heuberger <clemens.heuberger@aau.at>
-#                     2014 Daniel Krenn <dev@danielkrenn.at>
+#                     2014--2015 Daniel Krenn <dev@danielkrenn.at>
 #                     2014 Sara Kropf <sara.kropf@aau.at>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
@@ -86,16 +89,15 @@ Functions and methods
 
 import collections
 import operator
-from sage.symbolic.operators import add_vararg, mul_vararg
 
 from sage.combinat.finite_state_machine import Automaton, Transducer
 from sage.rings.integer_ring import ZZ
 from sage.rings.rational_field import QQ
-from functools import reduce
+
 
 class AutomatonGenerators(object):
     r"""
-    A class consisting of constructors for several common automata.
+    A collection of constructors for several common automata.
 
     A list of all automata in this database is available via tab
     completion. Type "``automata.``" and then hit tab to see which
@@ -106,7 +108,7 @@ class AutomatonGenerators(object):
     - :meth:`~AnyLetter`
     - :meth:`~AnyWord`
     - :meth:`~EmptyWord`
-    - :meth:`~word`
+    - :meth:`~Word`
     - :meth:`~ContainsWord`
     """
 
@@ -135,7 +137,9 @@ class AutomatonGenerators(object):
             sage: A([0, 0])
             False
 
-        .. SEEALSO:: :meth:`AnyWord`
+        .. SEEALSO::
+
+            :meth:`AnyWord`
         """
         z = ZZ(0)
         o = ZZ(1)
@@ -177,7 +181,10 @@ class AutomatonGenerators(object):
            sage: B == A
            True
 
-        .. SEEALSO:: :meth:`AnyLetter`, :meth:`word`
+        .. SEEALSO::
+
+            :meth:`AnyLetter`,
+            :meth:`Word`.
         """
         z = ZZ(0)
         return Automaton([(z, z, _) for _ in input_alphabet],
@@ -206,7 +213,10 @@ class AutomatonGenerators(object):
             sage: A([0])
             False
 
-        .. SEEALSO:: :meth:`AnyLetter`, :meth:`AnyWord`
+        .. SEEALSO::
+
+            :meth:`AnyLetter`,
+            :meth:`AnyWord`.
         """
         z = ZZ(0)
         return Automaton(initial_states=[z],
@@ -214,7 +224,7 @@ class AutomatonGenerators(object):
                          input_alphabet=input_alphabet)
 
 
-    def word(self, word, input_alphabet=None):
+    def Word(self, word, input_alphabet=None):
         r"""
         Return an automaton recognizing the given word.
 
@@ -231,12 +241,12 @@ class AutomatonGenerators(object):
 
         EXAMPLES::
 
-            sage: A = automata.word([0])
+            sage: A = automata.Word([0])
             sage: A.transitions()
             [Transition from 0 to 1: 0|-]
             sage: [A(w) for w in ([], [0], [1])]
             [False, True, False]
-            sage: A = automata.word([0, 1, 0])
+            sage: A = automata.Word([0, 1, 0])
             sage: A.transitions()
             [Transition from 0 to 1: 0|-,
             Transition from 1 to 2: 1|-,
@@ -249,12 +259,14 @@ class AutomatonGenerators(object):
 
             sage: A.input_alphabet
             [0, 1]
-            sage: A = automata.word([0, 1, 0], input_alphabet=[0, 1, 2])
+            sage: A = automata.Word([0, 1, 0], input_alphabet=[0, 1, 2])
             sage: A.input_alphabet
             [0, 1, 2]
 
-        .. SEEALSO:: :meth:`AnyWord`,
-           :meth:`ContainsWord`
+        .. SEEALSO::
+
+            :meth:`AnyWord`,
+            :meth:`ContainsWord`.
 
         TESTS::
 
@@ -270,6 +282,7 @@ class AutomatonGenerators(object):
                          initial_states=[ZZ(0)],
                          final_states=[ZZ(length)],
                          input_alphabet=input_alphabet)
+
 
     def ContainsWord(self, word, input_alphabet):
         r"""
@@ -298,18 +311,20 @@ class AutomatonGenerators(object):
             False
 
         This is equivalent to taking the concatenation of :meth:`AnyWord`,
-        :meth:`word` and :meth:`AnyWord` and minimizing the result. This
+        :meth:`Word` and :meth:`AnyWord` and minimizing the result. This
         method immediately gives a minimized version::
 
             sage: B = (automata.AnyWord([0, 1]) *
-            ....:     automata.word([0, 1, 0, 1, 1], [0, 1]) *
+            ....:     automata.Word([0, 1, 0, 1, 1], [0, 1]) *
             ....:     automata.AnyWord([0, 1])).minimization()
             sage: B.is_equivalent(A)
             True
 
-        .. SEEALSO::  :meth:`~TransducerGenerators.CountSubblockOccurrences`,
-           :meth:`AnyWord`,
-           :meth:`word`
+        .. SEEALSO::
+
+            :meth:`~TransducerGenerators.CountSubblockOccurrences`,
+            :meth:`AnyWord`,
+            :meth:`Word`.
         """
         word = tuple(word)
 
@@ -335,7 +350,7 @@ class AutomatonGenerators(object):
 
 class TransducerGenerators(object):
     r"""
-    A class consisting of constructors for several common transducers.
+    A collection of constructors for several common transducers.
 
     A list of all transducers in this database is available via tab
     completion. Type "``transducers.``" and then hit tab to see which
@@ -353,7 +368,6 @@ class TransducerGenerators(object):
     - :meth:`~CountSubblockOccurrences`
     - :meth:`~Wait`
     - :meth:`~GrayCode`
-
     """
 
     def Identity(self, input_alphabet):
@@ -393,6 +407,7 @@ class TransducerGenerators(object):
             output_alphabet=input_alphabet,
             initial_states=[0],
             final_states=[0])
+
 
     def CountSubblockOccurrences(self, block, input_alphabet):
         """
@@ -484,7 +499,9 @@ class TransducerGenerators(object):
                 sage: T(input) == output
                 True
 
-        .. SEEALSO:: :meth:`~AutomatonGenerators.ContainsWord`
+        .. SEEALSO::
+
+            :meth:`~AutomatonGenerators.ContainsWord`
         """
         block_as_tuple = tuple(block)
 
@@ -511,6 +528,7 @@ class TransducerGenerators(object):
         for s in T.iter_states():
             s.is_final = True
         return T
+
 
     def Wait(self, input_alphabet, threshold=1):
         r"""
@@ -554,6 +572,7 @@ class TransducerGenerators(object):
             s.is_final = True
 
         return T
+
 
     def map(self, f, input_alphabet):
         r"""
@@ -788,7 +807,6 @@ class TransducerGenerators(object):
                              input_alphabet, number_of_operands)
 
 
-
     def add(self, input_alphabet, number_of_operands=2):
         """
         Returns a transducer which realizes addition on pairs over the
@@ -882,6 +900,7 @@ class TransducerGenerators(object):
             [0, -1, 1, 0]
         """
         return self.operator(operator.sub, input_alphabet)
+
 
     def weight(self, input_alphabet, zero=0):
         r"""
@@ -1020,7 +1039,7 @@ class TransducerGenerators(object):
 
         In the example :ref:`Gray Code <finite_state_machine_gray_code_example>`
         in the documentation of the
-        :mod:`~sage.combinat.finite_state_machine` module, the Gray code
+        :doc:`finite_state_machine` module, the Gray code
         transducer is derived from the algorithm converting the binary
         expansion to the Gray code. The result is the same as the one
         given here.
@@ -1288,6 +1307,7 @@ class TransducerGenerators(object):
             raise ValueError("%d is less than %d."
                              % (base_power_K, base))
 
+        from sage.symbolic.operators import add_vararg
         if right_side.operator() == add_vararg:
             function_calls = [o for o in right_side.operands()
                               if o.operator() == function]
@@ -1979,11 +1999,10 @@ class TransducerGenerators(object):
                     "Too many initial conditions, only give one of %s." %
                     cycle[1:])
             required_initial_values.update(intersection)
-            output_sum = reduce(operator.add,
-                                [edge[2]
-                                 for edge in recursion_digraph.\
-                                     outgoing_edge_iterator(cycle[1:])],
-                                [])
+            output_sum = sum([edge[2]
+                              for edge in recursion_digraph.\
+                                  outgoing_edge_iterator(cycle[1:])],
+                             [])
             if not is_zero(output_sum):
                 raise ValueError(
                     "Conflicting recursion for %s." %

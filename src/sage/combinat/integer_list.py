@@ -971,7 +971,9 @@ If you know what you are doing, you can set check=False to skip this warning."""
         the existence of an upper bound on the length. It may fail
         to do so even when the set is actually finite.
 
-        OUTPUT: ``None`` if this method finds a proof that there
+        OUTPUT:
+
+        ``None`` if this method finds a proof that there
         exists an upper bound on the length. Otherwise a
         ``ValueError`` is raised.
 
@@ -1003,7 +1005,7 @@ If you know what you are doing, you can set check=False to skip this warning."""
             [3, 0, 0, 0, 0, 0, 0, 0, 1]
             [3, 0, 0, 0, 0, 0, 0, 0, 0, 1]
 
-        Unless ``check=False`, :meth:`_check_finiteness` is called as
+        Unless ``check=False``, :meth:`_check_finiteness` is called as
         soon as an iteration is attempted::
 
             sage: iter(L)

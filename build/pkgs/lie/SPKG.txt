@@ -36,10 +36,6 @@ and about currently valid definitions and values.
 
 GNU Lesser General Public License (LGPL), version unspecified
 
-== SPKG Maintainer ==
-
- * Travis Scrimshaw
-
 == Upstream Contact ==
 
  * Marc van Leeuwen, http://www-math.univ-poitiers.fr/~maavl/

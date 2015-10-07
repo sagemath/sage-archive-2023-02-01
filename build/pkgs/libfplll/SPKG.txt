@@ -10,9 +10,6 @@ Website: http://perso.ens-lyon.fr/damien.stehle/fplll.html
 == License ==
  * LGPL V2.1+
 
-== SPKG Maintainers ==
- * Martin Albrecht
-
 == Upstream Contact ==
  * Damien Stehlé (damien.stehle@ens-lyon.fr)
 

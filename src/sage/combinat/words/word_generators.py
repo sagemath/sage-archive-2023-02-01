@@ -1455,10 +1455,16 @@ class WordGenerator(object):
         Returns the word `q_n` defined by the recurrence below.
 
         The sequence `(q_n)_{n\in\NN}` is defined by `q_0=\varepsilon`,
-        `q_1=3` and `q_n = \begin{cases}
-            q_{n-1}q_{n-2}       & \mbox{if $n\equiv 2 \mod 3$,} \\
-            q_{n-1}\bar{q_{n-2}} & \mbox{if $n\equiv 0,1 \mod 3$.}
-        \end{cases}` where the operator `\bar{\,}` exchanges the `1` and `3`.
+        `q_1=3` and
+
+        .. MATH::
+
+            q_n = \begin{cases}
+            q_{n-1}q_{n-2}       & \text{if} n\equiv 2 \mod 3, \\
+            q_{n-1}\bar{q_{n-2}} & \text{if} n\equiv 0,1 \mod 3.
+            \end{cases}
+
+        where the operator `\bar{\,}` exchanges the `1` and `3`.
 
         INPUT:
 

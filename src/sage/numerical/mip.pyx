@@ -2515,7 +2515,7 @@ class MIPSolverException(RuntimeError):
             sage: p.solve()
             Traceback (most recent call last):
             ...
-            MIPSolverException: 'GLPK : There is no feasible integer solution to this Linear Program'
+            MIPSolverException: 'GLPK : Problem has no feasible solution'
 
         No integer solution::
 
@@ -2531,7 +2531,7 @@ class MIPSolverException(RuntimeError):
             sage: p.solve()
             Traceback (most recent call last):
             ...
-            MIPSolverException: 'GLPK : There is no feasible integer solution to this Linear Program'
+            MIPSolverException: 'GLPK : Problem has no feasible solution'
         """
         self.value = value
 

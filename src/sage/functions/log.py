@@ -723,12 +723,12 @@ class Function_lambert_w(BuiltinFunction):
             NotImplementedError: Non-principal branch lambert_w[1](x) is not implemented in Maxima
         """
         if n == 0:
-            if isinstance(z,str):
-                maxima_z=z
-            elif hasattr(z,'_maxima_init_'):
-                maxima_z=z._maxima_init_()
+            if isinstance(z, str):
+                maxima_z = z
+            elif hasattr(z, '_maxima_init_'):
+                maxima_z = z._maxima_init_()
             else:
-                maxima_z=str(z)
+                maxima_z = str(z)
             return "lambert_w(%s)" % maxima_z
         else:
             raise NotImplementedError("Non-principal branch lambert_w[%s](%s) is not implemented in Maxima" % (n, z))
@@ -759,15 +759,17 @@ class Function_lambert_w(BuiltinFunction):
         EXAMPLES::
 
             sage: latex(lambert_w(1))
-            \operatorname{W_0}(1)
+            \operatorname{W}({1})
             sage: latex(lambert_w(0,x))
-            \operatorname{W_0}(x)
+            \operatorname{W}({x})
             sage: latex(lambert_w(1,x))
-            \operatorname{W_{1}}(x)
+            \operatorname{W_{1}}({x})
+            sage: latex(lambert_w(1,x+exp(x)))
+            \operatorname{W_{1}}({x + e^x})
         """
         if n == 0:
-            return r"\operatorname{W_0}(%s)" % z
+            return r"\operatorname{W}({%s})" % z
         else:
-            return r"\operatorname{W_{%s}}(%s)" % (n, z)
+            return r"\operatorname{W_{%s}}({%s})" % (n, z)
 
 lambert_w = Function_lambert_w()

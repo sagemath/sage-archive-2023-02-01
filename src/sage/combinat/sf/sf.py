@@ -936,6 +936,104 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
     # Currently needed by sfa.SymmetricFunctionsBases.corresponding_basis_over
     Witt = witt
 
+    def irreducible_symmetric_group_character(self):
+        r"""
+        The irreducible `S_n` character basis of the Symmetric Functions.
+
+        This basis has the property that if the element indexed by the
+        partition `\lambda` is evaluated at the roots of a permutation of
+        cycle structure `\rho` then the value is the irreducible character
+        `\chi^{(|\rho|-|\lambda|,\lambda)}(\rho)`.
+
+        In terms of methods that are implemented in Sage, if ``n`` is
+        a sufficiently large integer, then
+        ``st(lam).character_to_frobenius_image(n)`` is equal the Schur function
+        indexed by ``[n-sum(lam)]+lam``.
+
+        This basis is introduced in [OZ2015]_.
+
+        .. SEEALSO::
+
+            :meth:`~sage.combinat.sf.sfa.SymmetricFunctionAlgebra_generic_Element.character_to_frobenius_image`,
+            :meth:`~sage.combinat.sf.sfa.SymmetricFunctionAlgebra_generic_Element.eval_at_permutation_roots`
+
+        EXAMPLES::
+
+            sage: SymmetricFunctions(QQ).irreducible_symmetric_group_character()
+            Symmetric Functions over Rational Field in the irreducible symmetric group character basis
+            sage: st = SymmetricFunctions(QQ).st()
+            sage: s = SymmetricFunctions(QQ).s()
+            sage: s(st([3,2]).character_to_frobenius_image(9))
+            s[4, 3, 2]
+            sage: s(st([3,2]).character_to_frobenius_image(7))
+            0
+            sage: s(st([3,2]).character_to_frobenius_image(6))
+            -s[2, 2, 2]
+            sage: list(SymmetricGroup(5).character_table()[-2])
+            [4, 2, 0, 1, -1, 0, -1]
+            sage: list(reversed([st([1]).eval_at_permutation_roots(rho) \
+            ....:   for rho in Partitions(5)]))
+            [4, 2, 0, 1, -1, 0, -1]
+        """
+        from character import irreducible_character_basis
+        return irreducible_character_basis(self, 'st')
+    st = irreducible_symmetric_group_character
+
+    def induced_trivial_character(self):
+        r"""
+        The induced trivial character basis of the Symmetric Functions.
+
+        The trivial character of
+
+        .. MATH::
+
+            S_{n-|\lambda|} \times S_{\lambda_1} \times S_{\lambda_2} \times
+            \cdots \times S_{\lambda_\ell(\lambda)}
+
+        induced to the group `S_{n}` is a symmetric function in the
+        eigenvalues of a permutation matrix.  This basis is that character.
+
+        It has the property that if the element indexed by the
+        partition `\lambda` is evaluated at the roots of a permutation of
+        cycle structure `\rho` then the value is the coefficient
+        `\left< h_{(n-|\lambda|,\lambda)}, p_\rho \right>`.
+
+        In terms of methods that are implemented in Sage, if ``n`` is
+        a sufficiently large integer, then
+        ``ht(lam).character_to_frobenius_image(n)`` is equal the complete
+        function indexed by ``[n-sum(lam)]+lam``.
+
+        This basis is introduced in [OZ2015]_.
+
+        .. SEEALSO::
+
+            :meth:`~sage.combinat.sf.sfa.SymmetricFunctionAlgebra_generic_Element.character_to_frobenius_image`,
+            :meth:`~sage.combinat.sf.sfa.SymmetricFunctionAlgebra_generic_Element.eval_at_permutation_roots`
+
+        EXAMPLES::
+
+            sage: SymmetricFunctions(QQ).induced_trivial_character()
+            Symmetric Functions over Rational Field in the induced trivial character basis
+            sage: ht = SymmetricFunctions(QQ).ht()
+            sage: h = SymmetricFunctions(QQ).h()
+            sage: h(ht([3,2]).character_to_frobenius_image(9))
+            h[4, 3, 2]
+            sage: h(ht([3,2]).character_to_frobenius_image(7))
+            h[3, 2, 2]
+            sage: h(ht([3,2]).character_to_frobenius_image(5))
+            h[3, 2]
+            sage: h(ht([3,2]).character_to_frobenius_image(4))
+            0
+            sage: p = SymmetricFunctions(QQ).p()
+            sage: [h([4,1]).scalar(p(rho)) for rho in Partitions(5)]
+            [0, 1, 0, 2, 1, 3, 5]
+            sage: [ht([1]).eval_at_permutation_roots(rho) for rho in Partitions(5)]
+            [0, 1, 0, 2, 1, 3, 5]
+        """
+        from character import character_basis
+        return character_basis(self, self.h(), "induced trivial character", 'ht')
+    ht = induced_trivial_character
+
     def forgotten(self):
         r"""
         The forgotten basis of the Symmetric Functions (or the basis dual to

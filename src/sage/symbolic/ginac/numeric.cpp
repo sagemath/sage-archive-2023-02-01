@@ -2250,6 +2250,7 @@ void coerce(numeric& new_left, numeric& new_right, const numeric& left, const nu
                                         o = py_funcs.py_integer_from_mpz(bigint);
                                         new_left = numeric(o, true);
                                         new_right = right;
+                                        mpz_clear(bigint);
                                         return;
                                 default:
                                         std::cerr << "type = " << right.t << "\n";

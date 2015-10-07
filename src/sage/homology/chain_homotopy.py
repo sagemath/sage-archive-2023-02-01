@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 r"""
-Chain homotopies and chain contractions.
+Chain homotopies and chain contractions
 
 Chain homotopies are standard constructions in homological algebra:
 given chain complexes `C` and `D` and chain maps `f, g: C \to D`, say
@@ -25,7 +25,7 @@ C` ("inclusion") such that
 - `\pi \iota = 1_D`,
 - `\pi H = 0`,
 - `H \iota = 0`,
-- `H \circ H = 0`.
+- `H H = 0`.
 
 Such a chain homotopy provides a strong relation between the chain
 complexes `C` and `D`; for example, their homology groups are
@@ -84,7 +84,8 @@ class ChainHomotopy(SageObject):
     gives the linear transformation `C_i \to D_{i+1}`.
 
     If `f` is specified but not `g`, then `g` can be recovered from
-    the defining formula.
+    the defining formula. That is, if `g` is not specified, then it
+    is defined to be `f - \partial_D H - H \partial_C`.
 
     Note that the degree of the differential on the chain complex `C`
     must agree with that for `D`, and those degrees determine the
@@ -209,7 +210,7 @@ class ChainHomotopy(SageObject):
     def is_algebraic_gradient_vector_field(self):
         r"""
         An algebraic gradient vector field is a linear map
-        `H: C \to C` such that `H \circ H = 0`.
+        `H: C \to C` such that `H H = 0`.
 
         (Some authors also require that `H \partial H = H`, whereas
         some make this part of the definition of "homology gradient
@@ -253,7 +254,7 @@ class ChainHomotopy(SageObject):
     def is_homology_gradient_vector_field(self):
         r"""
         A homology gradient vector field is an algebraic gradient vector
-        field `H: C \to C` (i.e., a chain homotopy satisfying `H \circ
+        field `H: C \to C` (i.e., a chain homotopy satisfying `H
         H = 0`) such that `\partial H \partial = \partial` and `H
         \partial H = H`. See Molina-Abril and Réal [M-AR]_ and Réal
         and Molina-Abril [RM-A]_ for this and related terminology.
@@ -349,7 +350,7 @@ class ChainHomotopy(SageObject):
         return self._codomain
 
     def dual(self):
-        """
+        r"""
         Dual chain homotopy to this one.
 
         That is, if this one is a chain homotopy between chain maps
@@ -418,7 +419,7 @@ class ChainHomotopy(SageObject):
 class ChainContraction(ChainHomotopy):
     r"""
     An algebraic gradient vector field `H: C \to C` (that is a chain
-    homotopy satisfying `H \circ H = 0`) for which there are chain
+    homotopy satisfying `H H = 0`) for which there are chain
     maps `\pi: C \to D` ("projection") and `\iota: D \to C`
     ("inclusion") such that
 
@@ -590,7 +591,8 @@ class ChainContraction(ChainHomotopy):
     def dual(self):
         """
         The chain contraction dual to this one.
-        Useful when switching from homology to cohomology.
+
+        This is useful when switching from homology to cohomology.
 
         EXAMPLES::
 

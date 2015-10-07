@@ -1119,6 +1119,32 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
         return self.elementary().dual_basis()
     f = forgotten
 
+    def symplectic(self):
+        """
+        The symplectic basis of the symmetric functions.
+
+        EXAMPLES::
+
+            sage: SymmetricFunctions(QQ).symplectic()
+            Symmetric Functions over Rational Field in the symplectic basis
+        """
+        import symplectic
+        return symplectic.SymmetricFunctionAlgebra_symplectic(self)
+    sp = symplectic
+
+    def orthogonal(self):
+        """
+        The orthogonal basis of the symmetric functions.
+
+        EXAMPLES::
+
+            sage: SymmetricFunctions(QQ).orthogonal()
+            Symmetric Functions over Rational Field in the orthogonal basis
+        """
+        import orthogonal
+        return orthogonal.SymmetricFunctionAlgebra_orthogonal(self)
+    o = orthogonal
+
     def macdonald(self, q='q', t='t'):
         r"""
         Returns the entry point for the various Macdonald bases.

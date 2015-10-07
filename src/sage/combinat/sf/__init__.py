@@ -14,6 +14,8 @@ Symmetric Functions
 - :ref:`sage.combinat.sf.homogeneous`
 - :ref:`sage.combinat.sf.powersum`
 - :ref:`sage.combinat.sf.character`
+- :ref:`sage.combinat.sf.orthogonal`
+- :ref:`sage.combinat.sf.symplectic`
 - :ref:`sage.combinat.sf.dual`
 - :ref:`sage.combinat.sf.orthotriang`
 - :ref:`sage.combinat.sf.kfpoly`

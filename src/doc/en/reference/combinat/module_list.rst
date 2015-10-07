@@ -269,9 +269,11 @@ Comprehensive Module list
     sage/combinat/sf/multiplicative
     sage/combinat/sf/new_kschur
     sage/combinat/sf/ns_macdonald
+    sage/combinat/sf/orthogonal
     sage/combinat/sf/orthotriang
     sage/combinat/sf/powersum
     sage/combinat/sf/schur
+    sage/combinat/sf/symplectic
     sage/combinat/sf/sf
     sage/combinat/sf/sfa
     sage/combinat/sf/witt

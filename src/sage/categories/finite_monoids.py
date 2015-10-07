@@ -51,14 +51,24 @@ class FiniteMonoids(CategoryWithAxiom):
                 sage: M = Monoids().Finite().example()
                 sage: M.rhodes_radical_congruence()
                 [(0, 6), (2, 8), (4, 10)]
+                sage: from sage.monoids.hecke_monoid import HeckeMonoid
+                sage: H3 = HeckeMonoid(SymmetricGroup(3))
+                sage: H3.repr_element_method(style="reduced")
+                sage: H3.rhodes_radical_congruence()
+                [([1, 2], [2, 1]), ([1, 2], [1, 2, 1]), ([2, 1], [1, 2, 1])]
 
-            TODO: For sure there are better algorithms...
+            Thanks to Maschke theorem, every group is semisimple hence the
+            Rhodes radical of a group must be trivial::
+
+                sage: SymmetricGroup(3).rhodes_radical_congruence()
+                []
+                sage: DihedralGroup(10).rhodes_radical_congruence()
+                []
 
             REFERENCES:
 
             ..  [Rho69] Characters and complexity of finite semigroups
-                J. Combinatorial Theory, vol 6, John Rhodes, 1969
-
+            J. Combinatorial Theory, vol 6, John Rhodes, 1969
             """
             from sage.rings.rational_field import QQ
             if base_ring == None:
@@ -76,9 +86,6 @@ class FiniteMonoids(CategoryWithAxiom):
                     except:
                         pass
             return res
-
-            # return [[m, n] for m in self for n in self
-            #         if kSrad.retract(kS(m)) == kSrad.retract(kS(n))]
 
 
     class ElementMethods:

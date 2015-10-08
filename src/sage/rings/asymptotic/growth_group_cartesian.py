@@ -364,9 +364,9 @@ class CartesianProductFactory(sage.structure.factory.UniqueFactory):
 CartesianProductGrowthGroups = CartesianProductFactory('CartesianProductGrowthGroups')
 
 
-from sage.combinat.posets.cartesian_product import CartesianProductPosets
+from sage.combinat.posets.cartesian_product import CartesianProductPoset
 from sage.rings.asymptotic.growth_group import GenericGrowthGroup
-class GenericProduct(CartesianProductPosets, GenericGrowthGroup):
+class GenericProduct(CartesianProductPoset, GenericGrowthGroup):
     r"""
     A cartesian product of growth groups.
 
@@ -394,10 +394,10 @@ class GenericProduct(CartesianProductPosets, GenericGrowthGroup):
     .. SEEALSO::
 
         :class:`~sage.sets.cartesian_product.CartesianProduct`,
-        :class:`~sage.combinat.posets.cartesian_product.CartesianProductPosets`.
+        :class:`~sage.combinat.posets.cartesian_product.CartesianProductPoset`.
     """
 
-    __classcall__ = CartesianProductPosets.__classcall__
+    __classcall__ = CartesianProductPoset.__classcall__
 
 
     def __init__(self, sets, category, **kwds):
@@ -411,7 +411,7 @@ class GenericProduct(CartesianProductPosets, GenericGrowthGroup):
             Growth Group x^ZZ * y^ZZ
         """
         order = kwds.pop('order')
-        CartesianProductPosets.__init__(self, sets, category, order, **kwds)
+        CartesianProductPoset.__init__(self, sets, category, order, **kwds)
 
         vars = sum(iter(factor.variable_names()
                         for factor in self.cartesian_factors()),
@@ -423,7 +423,7 @@ class GenericProduct(CartesianProductPosets, GenericGrowthGroup):
         GenericGrowthGroup.__init__(self, sets[0], Vars, self.category(), **kwds)
 
 
-    __hash__ = CartesianProductPosets.__hash__
+    __hash__ = CartesianProductPoset.__hash__
 
 
     def _element_constructor_(self, data):
@@ -647,7 +647,7 @@ class GenericProduct(CartesianProductPosets, GenericGrowthGroup):
             sage: B.has_coerce_map_from(A) # indirect doctest
             False
         """
-        if CartesianProductPosets.has_coerce_map_from(self, S):
+        if CartesianProductPoset.has_coerce_map_from(self, S):
             return True
 
         elif isinstance(S, GenericProduct):
@@ -880,7 +880,7 @@ class GenericProduct(CartesianProductPosets, GenericGrowthGroup):
         return tuple(v for v, _ in groupby(vars))
 
 
-    class Element(CartesianProductPosets.Element):
+    class Element(CartesianProductPoset.Element):
 
         def _repr_(self):
             r"""

@@ -283,6 +283,35 @@ def merge_overlapping(A, B, key=None):
     r"""
     Merge the two overlapping tuples/lists.
 
+    INPUT:
+
+    - ``A`` -- a list or tuple (type has to coincide with type of ``B``).
+
+    - ``B`` -- a list or tuple (type has to coincide with type of ``A``).
+
+    - ``key`` -- (default: ``None``) a function. If ``None``, then the
+      identity is used.  This ``key``-function applied on an element
+      of the list/tuple is used for comparison. Thus elements with the
+      same key are considered as equal.
+
+    OUTPUT:
+
+    A pair of lists or tuples (depending on the type of ``A`` and ``B``).
+
+    .. NOTE::
+
+        Suppose we can decompose the list `A=ac` and `B=cb` with
+        lists `a`, `b`, `c`, where `c` is nonempty. Then
+        :func:`merge_overlapping` returns the pair `(acb, acb)`.
+
+        Suppose a ``key``-function is specified and `A=ac_A` and
+        `B=c_Bb`, where the list of keys of the elements of `c_A`
+        equals the list of keys of the elements of `c_B`. Then
+        :func:`merge_overlapping` returns the pair `(ac_Ab, ac_Bb)`.
+
+        After unsuccessfully merging `A=ac` and `B=cb`,
+        a merge of `A=ca` and `B=bc` is tried.
+
     TESTS::
 
         sage: from sage.rings.asymptotic.misc import merge_overlapping

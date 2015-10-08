@@ -1025,6 +1025,8 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
         """
         The symplectic basis of the symmetric functions.
 
+        .. SEEALSO:: :class:`~sage.combinat.sf.symplectic.SymmetricFunctionAlgebra_symplectic`
+
         EXAMPLES::
 
             sage: SymmetricFunctions(QQ).symplectic()
@@ -1037,6 +1039,8 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
     def orthogonal(self):
         """
         The orthogonal basis of the symmetric functions.
+
+        .. SEEALSO:: :class:`~sage.combinat.sf.orthogonal.SymmetricFunctionAlgebra_orthogonal`
 
         EXAMPLES::
 

@@ -59,6 +59,10 @@ class SymmetricFunctionAlgebra_symplectic(sfa.SymmetricFunctionAlgebra_generic):
        *Symmetric functions and representations of quantum affine algebras*.
        :arXiv:`math/0011161v1`
 
+    .. [KoikeTerada1987] K. Koike, I. Terada, *Young-diagrammatic methods for
+       the representation theory of the classical groups of type Bn, Cn, Dn*.
+       J. Algebra 107 (1987), no. 2, 466–511.
+
     .. [ShimozonoZabrocki2006] Mark Shimozono and Mike Zabrocki.
        *Deformed universal characters for classical and affine algebras*.
        Journal of Algebra, **299** (2006). :arxiv:`math/0404288`.

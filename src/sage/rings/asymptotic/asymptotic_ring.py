@@ -2675,7 +2675,7 @@ class AsymptoticRingFunctor(ConstructionFunctor):
 
         INPUT:
 
-        - ``base`` - anything :class:`MonomialGrowthGroup` accepts.
+        - ``base`` - anything :class:`~sage.rings.asymptotic.growth_group.MonomialGrowthGroup` accepts.
 
         OUTPUT:
 
@@ -2694,7 +2694,7 @@ class AsymptoticRingFunctor(ConstructionFunctor):
 
     def merge(self, other):
         r"""
-        Merge this functor with ``other`` of possible.
+        Merge this functor with ``other`` if possible.
 
         INPUT:
 
@@ -2731,7 +2731,7 @@ class AsymptoticRingFunctor(ConstructionFunctor):
 
     def __eq__(self, other):
         r"""
-        Return if this functor is equal to ``other``.
+        Return whether this functor is equal to ``other``.
 
         INPUT:
 
@@ -2758,7 +2758,7 @@ class AsymptoticRingFunctor(ConstructionFunctor):
 
     def __ne__(self, other):
         r"""
-        Return if this functor is not equal to ``other``.
+        Return whether this functor is not equal to ``other``.
 
         INPUT:
 

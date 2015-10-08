@@ -287,7 +287,7 @@ class Arc(GraphicPrimitive):
         EXAMPLES::
 
             sage: from sage.plot.arc import Arc
-            sage: op = {'alpha':0,'thickness':1,'rgbcolor':'blue','zorder':0,
+            sage: op = {'alpha':1,'thickness':1,'rgbcolor':'blue','zorder':0,
             ....:     'linestyle':'--'}
             sage: Arc(2,3,2.2,2.2,0,2,3,op).bezier_path()
             Graphics object consisting of 1 graphics primitive

@@ -217,7 +217,7 @@ class CartesianProductFactory(sage.structure.factory.UniqueFactory):
         vgs = tuple((v, tuple(gs)) for v, gs in
                     groupby(sorted(vg, key=lambda k: k[0]), key=lambda k: k[0]))
 
-        # check if variables are pairwise disjoint
+        # check whether variables are pairwise disjoint
         for u, w in product(iter(v for v, _ in vgs), repeat=2):
             if u != w and not set(u).isdisjoint(set(w)):
                 raise ValueError('The growth groups %s need to have pairwise '
@@ -518,7 +518,7 @@ class GenericProduct(CartesianProductPosets, GenericGrowthGroup):
     def _convert_factors_(self, factors):
         r"""
         Helper method. Try to convert some ``factors`` to an
-        element of one of the cartesian factors and returns the product of
+        element of one of the cartesian factors and return the product of
         all these factors.
 
         INPUT:
@@ -547,13 +547,13 @@ class GenericProduct(CartesianProductPosets, GenericGrowthGroup):
                     pass
             raise ValueError('%s is not in any of the factors of %s' % (data, self))
 
-        return prod(list(self.cartesian_injection(*get_factor(f))
-                         for f in factors))
+        return prod(self.cartesian_injection(*get_factor(f))
+                    for f in factors)
 
 
     def cartesian_injection(self, factor, element):
         r"""
-        Injects the given element into this cartesian product at the given factor.
+        Inject the given element into this cartesian product at the given factor.
 
         INPUT:
 
@@ -593,9 +593,9 @@ class GenericProduct(CartesianProductPosets, GenericGrowthGroup):
             sage: from sage.rings.asymptotic.growth_group import GrowthGroup
             sage: A = GrowthGroup('QQ^x * x^QQ')
             sage: B = GrowthGroup('QQ^x * x^ZZ')
-            sage: A.has_coerce_map_from(B)
+            sage: A.has_coerce_map_from(B) # indirect doctest
             True
-            sage: B.has_coerce_map_from(A)
+            sage: B.has_coerce_map_from(A) # indirect doctest
             False
         """
         if CartesianProductPosets.has_coerce_map_from(self, S):

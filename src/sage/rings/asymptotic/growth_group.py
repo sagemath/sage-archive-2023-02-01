@@ -380,7 +380,7 @@ class Variable(sage.structure.unique_representation.CachedRepresentation,
 
     def __ne__(self, other):
         r"""
-        Compares if this variable does not equal ``other``.
+        Return whether this variable does not equal ``other``.
 
         INPUT:
 
@@ -1782,7 +1782,7 @@ class GenericGrowthGroup(
 
         ::
 
-            sage: agg.GrowthGroup('x^QQ').has_coerce_map_from(agg.GrowthGroup('QQ^x'))
+            sage: agg.GrowthGroup('x^QQ').has_coerce_map_from(agg.GrowthGroup('QQ^x')) # indirect doctest
             False
         """
         if isinstance(S, type(self)) and self._var_ == S._var_:
@@ -1802,16 +1802,28 @@ class GenericGrowthGroup(
             sage: cm = sage.structure.element.get_coercion_model()
             sage: A = GrowthGroup('QQ^x')
             sage: B = GrowthGroup('y^ZZ')
+
+        When using growth groups with disjoint variable lists, then a
+        pushout can be constructed::
+
             sage: A._pushout_(B)
             Growth Group QQ^x * y^ZZ
             sage: cm.common_parent(A, B)
             Growth Group QQ^x * y^ZZ
+
+        Single factored growth groups of the same variable cannot be
+        combined automatically, since there is no order relation (meaning
+        which one is larger than the other) between the two factors::
+
             sage: C = GrowthGroup('x^QQ')
             sage: cm.common_parent(A, C)
             Traceback (most recent call last):
             ...
             TypeError: no common canonical parent for objects with parents:
             'Growth Group QQ^x' and 'Growth Group x^QQ'
+
+        ::
+
             sage: cm.common_parent(GrowthGroup('x^ZZ'), GrowthGroup('y^ZZ'))
             Growth Group x^ZZ * y^ZZ
 
@@ -1822,12 +1834,9 @@ class GenericGrowthGroup(
             Growth Group x^ZZ * y^ZZ
             sage: sage.structure.element.coercion_traceback()  # not tested
         """
-        if isinstance(other, GenericGrowthGroup):
-            pass
-        if (other.construction() is not None and
-              isinstance(other.construction()[0], AbstractGrowthGroupFunctor)):
-            pass
-        else:
+        if not isinstance(other, GenericGrowthGroup) and \
+           not (other.construction() is not None and
+                isinstance(other.construction()[0], AbstractGrowthGroupFunctor)):
             return
 
         if set(self.variable_names()).isdisjoint(set(other.variable_names())):
@@ -2087,7 +2096,7 @@ class AbstractGrowthGroupFunctor(ConstructionFunctor):
 
     def __eq__(self, other):
         r"""
-        Return if this functor is equal to ``other``.
+        Return whether this functor is equal to ``other``.
 
         INPUT:
 
@@ -2112,7 +2121,7 @@ class AbstractGrowthGroupFunctor(ConstructionFunctor):
 
     def __ne__(self, other):
         r"""
-        Return if this functor is not equal to ``other``.
+        Return whether this functor is not equal to ``other``.
 
         INPUT:
 
@@ -3226,7 +3235,7 @@ class ExponentialGrowthGroup(GenericGrowthGroup):
 class ExponentialGrowthGroupFunctor(AbstractGrowthGroupFunctor):
     r"""
     A :class:`construction functor <sage.categories.pushout.ConstructionFunctor>`
-    :class:`exponential growth groups <ExponentialGrowthGroup>`.
+    for :class:`exponential growth groups <ExponentialGrowthGroup>`.
 
     INPUT:
 

@@ -177,14 +177,14 @@ def merge_overlapping(A, B, key=None):
         Akeys = tuple(key(a) for a in A)
         Bkeys = tuple(key(b) for b in B)
 
-    def find_overlapping_index(A, B, Akeys, Bkeys):
+    def find_overlapping_index(A, B):
         if len(B) > len(A) - 2:
             raise StopIteration
         matches = iter(i for i in xrange(1, len(A) - len(B))
-                       if Akeys[i:i+len(B)] == Bkeys)
+                       if A[i:i+len(B)] == B)
         return next(matches)
 
-    def find_mergedoverlapping_index(A, B, Akeys, Bkeys):
+    def find_mergedoverlapping_index(A, B):
         """
         Return in index i where to merge two overlapping tuples/lists ``A`` and ``B``.
 
@@ -193,26 +193,26 @@ def merge_overlapping(A, B, key=None):
         Adapted from http://stackoverflow.com/a/30056066/1052778.
         """
         matches = iter(i for i in xrange(min(len(A), len(B)), 0, -1)
-                       if Akeys[-i:] == Bkeys[:i])
+                       if A[-i:] == B[:i])
         return next(matches, 0)
 
-    i = find_mergedoverlapping_index(A, B, Akeys, Bkeys)
+    i = find_mergedoverlapping_index(Akeys, Bkeys)
     if i > 0:
         return A + B[i:], A[:-i] + B
 
-    i = find_mergedoverlapping_index(B, A, Bkeys, Akeys)
+    i = find_mergedoverlapping_index(Bkeys, Akeys)
     if i > 0:
         return B[:-i] + A, B + A[i:]
 
     try:
-        i = find_overlapping_index(A, B, Akeys, Bkeys)
+        i = find_overlapping_index(Akeys, Bkeys)
     except StopIteration:
         pass
     else:
         return A, A[:i] + B + A[i+len(B):]
 
     try:
-        i = find_overlapping_index(B, A, Bkeys, Akeys)
+        i = find_overlapping_index(Bkeys, Akeys)
     except StopIteration:
         pass
     else:

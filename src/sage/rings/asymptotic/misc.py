@@ -204,6 +204,16 @@ def combine_exceptions(e, *f):
     r"""
     Helper function which combines the messages of the given exceptions.
 
+    INPUT:
+
+    - ``e`` -- an exception.
+
+    - ``*f`` -- exceptions.
+
+    OUTPUT:
+
+    An exception.
+
     EXAMPLES::
 
         sage: from sage.rings.asymptotic.misc import combine_exceptions

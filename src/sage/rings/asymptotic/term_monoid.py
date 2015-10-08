@@ -1818,10 +1818,7 @@ class TermWithCoefficientMonoid(GenericTermMonoid):
         try:
             if coefficient is not None:
                 data = self.growth_group(data)
-                try:
-                    return self.element_class(self, data, coefficient)
-                except:
-                    raise
+                return self.element_class(self, data, coefficient)
             else:
                 P = data.parent()
                 from sage.symbolic.ring import SR

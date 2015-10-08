@@ -582,11 +582,11 @@ class Modules(Category_module):
         """
         The category of modules constructed as cartesian products of modules
 
-        This construction gives the direct product of modules. See
-        discussion on:
+        This construction gives the direct product of modules. The
+        implementation is based on the following resources:
 
-         - http://groups.google.fr/group/sage-devel/browse_thread/thread/35a72b1d0a2fc77a/348f42ae77a66d16#348f42ae77a66d16
-         - http://en.wikipedia.org/wiki/Direct_product
+        - http://groups.google.fr/group/sage-devel/browse_thread/thread/35a72b1d0a2fc77a/348f42ae77a66d16#348f42ae77a66d16
+        - http://en.wikipedia.org/wiki/Direct_product
         """
         def extra_super_categories(self):
             """
@@ -606,7 +606,7 @@ class Modules(Category_module):
         class ParentMethods:
             def base_ring(self):
                 """
-                Return the base ring this cartesian product.
+                Return the base ring of this cartesian product.
 
                 EXAMPLES::
 

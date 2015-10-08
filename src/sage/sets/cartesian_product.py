@@ -4,8 +4,6 @@ Cartesian products
 AUTHORS:
 
 - Nicolas Thiery (2010-03): initial version
-- Daniel Krenn (2015-06): cartesian products for posets with different orders
-
 """
 #*****************************************************************************
 #       Copyright (C) 2008 Nicolas Thiery <nthiery at users.sf.net>,
@@ -236,7 +234,7 @@ class CartesianProduct(UniqueRepresentation, Parent):
         OUTPUT:
 
         A pair whose first entry is a cartesian product functor and
-        its second a list of the cartesian factors.
+        its second entry is a list of the cartesian factors.
 
         EXAMPLES::
 
@@ -264,7 +262,7 @@ class CartesianProduct(UniqueRepresentation, Parent):
             S_factors = S.cartesian_factors()
             R_factors = self.cartesian_factors()
             if len(S_factors) == len(R_factors):
-                if all(r.has_coerce_map_from(s) for r,s in zip(R_factors, S_factors)):
+                if all(r.has_coerce_map_from(s) for r, s in zip(R_factors, S_factors)):
                     return True
 
     an_element = Sets.CartesianProducts.ParentMethods.an_element

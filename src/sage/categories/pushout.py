@@ -300,7 +300,9 @@ class ConstructionFunctor(Functor):
 
         OUTPUT:
 
-        Raise a :class:`~sage.structure.coerce_exceptions.CoercionException`.
+        Nothing, since a
+        :class:`~sage.structure.coerce_exceptions.CoercionException`
+        is raised.
 
         .. NOTE::
 
@@ -643,7 +645,6 @@ class MultivariateConstructionFunctor(ConstructionFunctor):
     TESTS::
 
         sage: from sage.categories.pushout import pushout
-        sage: from sage.sets.cartesian_product import CartesianProduct
         sage: A = cartesian_product((QQ['z'], QQ))
         sage: B = cartesian_product((ZZ['t']['z'], QQ))
         sage: pushout(A, B)
@@ -680,7 +681,7 @@ class MultivariateConstructionFunctor(ConstructionFunctor):
         .. NOTE::
 
             Overload this function in derived class, see
-            e.e. :class:`MultivariateConstructionFunctor`.
+            e.g. :class:`MultivariateConstructionFunctor`.
 
         TESTS::
 
@@ -690,7 +691,7 @@ class MultivariateConstructionFunctor(ConstructionFunctor):
             ...
             CoercionException: No common base ("join") found for
             The cartesian_product functorial construction(Integer Ring) and FractionField(Integer Ring):
-            (Multivariate) functors are inkompatibel.
+            (Multivariate) functors are incompatible.
             sage: pushout(cartesian_product([ZZ]), cartesian_product([ZZ, QQ]))  # indirect doctest
             Traceback (most recent call last):
             ...
@@ -702,7 +703,7 @@ class MultivariateConstructionFunctor(ConstructionFunctor):
         if self != other_functor:
             self._raise_common_base_exception_(
                 other_functor, self_bases, other_bases,
-                '(Multivariate) functors are inkompatibel')
+                '(Multivariate) functors are incompatible')
         if len(self_bases) != len(other_bases):
             self._raise_common_base_exception_(
                 other_functor, self_bases, other_bases,
@@ -3387,10 +3388,10 @@ def pushout(R, S):
         Ambient free module of rank 2 over the principal ideal domain Univariate Polynomial Ring in x over Real Field with 53 bits of precision
 
     Some more tests related to univariate/multivariate
-    constructions. We construct a parent for a generalization to
-    polynomials, where we not only specify a coefficient ring `C` but
-    also an additive monoid `E` for its exponents. Its elements are
-    then
+    constructions. We consider a generalization of polynomial rings,
+    where in addition to the coefficient ring `C` we also specify
+    an additive monoid `E` for the exponents of the indeterminate.
+    In particular, the elements of such a parent are given by
 
     .. MATH::
 
@@ -3514,51 +3515,56 @@ def pushout(R, S):
          (Univariate Polynomial Ring in x over Integer Ring,
           Univariate Polynomial Ring in y over Rational Field,
           Univariate Polynomial Ring in z over Univariate Polynomial Ring in t over Rational Field)
-
+        sage: pushout(ZZ, cartesian_product([ZZ, QQ]))
+        Traceback (most recent call last):
+        ...
+        CoercionException: 'NoneType' object is not iterable
 
     ::
 
         sage: from sage.categories.pushout import PolynomialFunctor
         sage: from sage.sets.cartesian_product import CartesianProduct
-        sage: class CartesianProductPolys(CartesianProduct):
+        sage: class CartesianProductPoly(CartesianProduct):
         ....:     def __init__(self, polynomial_rings):
         ....:         sort = sorted(polynomial_rings, key=lambda P: P.variable_name())
-        ....:         super(CartesianProductPolys, self).__init__(sort, Sets().CartesianProducts())
+        ....:         super(CartesianProductPoly, self).__init__(sort, Sets().CartesianProducts())
         ....:     def vars(self):
         ....:         return tuple(P.variable_name() for P in self.cartesian_factors())
         ....:     def _pushout_(self, other):
-        ....:         if isinstance(other, CartesianProductPolys):
+        ....:         if isinstance(other, CartesianProductPoly):
         ....:             s_vars = self.vars()
         ....:             o_vars = other.vars()
         ....:             if s_vars == o_vars:
         ....:                 return
-        ....:             return pushout(CartesianProductPolys(
+        ....:             return pushout(CartesianProductPoly(
         ....:                     self.cartesian_factors() +
         ....:                     tuple(f for f in other.cartesian_factors()
         ....:                           if f.variable_name() not in s_vars)),
-        ....:                 CartesianProductPolys(
+        ....:                 CartesianProductPoly(
         ....:                     other.cartesian_factors() +
         ....:                     tuple(f for f in self.cartesian_factors()
         ....:                           if f.variable_name() not in o_vars)))
-        ....:         C = other.construction()[0]
-        ....:         if isinstance(C, PolynomialFunctor):
-        ....:             return pushout(self, CartesianProductPolys((other,)))
+        ....:         C = other.construction()
+        ....:         if C is None:
+        ....:             return
+        ....:         elif isinstance(C[0], PolynomialFunctor):
+        ....:             return pushout(self, CartesianProductPoly((other,)))
 
     ::
 
-        sage: pushout(CartesianProductPolys((ZZ['x'],)),
-        ....:         CartesianProductPolys((ZZ['y'],)))
+        sage: pushout(CartesianProductPoly((ZZ['x'],)),
+        ....:         CartesianProductPoly((ZZ['y'],)))
         The cartesian product of
          (Univariate Polynomial Ring in x over Integer Ring,
           Univariate Polynomial Ring in y over Integer Ring)
-        sage: pushout(CartesianProductPolys((ZZ['x'], ZZ['y'])),
-        ....:         CartesianProductPolys((ZZ['x'], ZZ['z'])))
+        sage: pushout(CartesianProductPoly((ZZ['x'], ZZ['y'])),
+        ....:         CartesianProductPoly((ZZ['x'], ZZ['z'])))
         The cartesian product of
          (Univariate Polynomial Ring in x over Integer Ring,
           Univariate Polynomial Ring in y over Integer Ring,
           Univariate Polynomial Ring in z over Integer Ring)
-        sage: pushout(CartesianProductPolys((QQ['a,b']['x'], QQ['y'])),
-        ....:         CartesianProductPolys((ZZ['b,c']['x'], SR['z'])))
+        sage: pushout(CartesianProductPoly((QQ['a,b']['x'], QQ['y'])),
+        ....:         CartesianProductPoly((ZZ['b,c']['x'], SR['z'])))
         The cartesian product of
          (Univariate Polynomial Ring in x over
             Multivariate Polynomial Ring in a, b, c over Rational Field,
@@ -3567,16 +3573,25 @@ def pushout(R, S):
 
     ::
 
-        sage: pushout(CartesianProductPolys((ZZ['x'],)), ZZ['y'])
+        sage: pushout(CartesianProductPoly((ZZ['x'],)), ZZ['y'])
         The cartesian product of
          (Univariate Polynomial Ring in x over Integer Ring,
           Univariate Polynomial Ring in y over Integer Ring)
-        sage: pushout(QQ['b,c']['y'], CartesianProductPolys((ZZ['a,b']['x'],)))
+        sage: pushout(QQ['b,c']['y'], CartesianProductPoly((ZZ['a,b']['x'],)))
         The cartesian product of
          (Univariate Polynomial Ring in x over
             Multivariate Polynomial Ring in a, b over Integer Ring,
           Univariate Polynomial Ring in y over
             Multivariate Polynomial Ring in b, c over Rational Field)
+
+    ::
+
+        sage: pushout(CartesianProductPoly((ZZ['x'],)), ZZ)
+        Traceback (most recent call last):
+        ...
+        CoercionException: No common base ("join") found for
+        The cartesian_product functorial construction(...) and None(Integer Ring):
+        (Multivariate) functors are incompatible.
 
     AUTHORS:
 

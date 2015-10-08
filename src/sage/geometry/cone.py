@@ -4442,7 +4442,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
                             for s in self.dual()
                             if x.inner_product(s) == 0 )
 
-    def LL(self):
+    def lyapunov_like_basis(self):
         r"""
         Compute a basis of Lyapunov-like transformations on this cone.
 
@@ -4472,25 +4472,25 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
 
             sage: L = ToricLattice(0)
             sage: K = Cone([], lattice=L)
-            sage: K.LL()
+            sage: K.lyapunov_like_basis()
             []
 
         The Lyapunov-like transformations on the nonnegative orthant are
         diagonal matrices::
 
             sage: K = Cone([(1,)])
-            sage: K.LL()
+            sage: K.lyapunov_like_basis()
             [[1]]
 
             sage: K = Cone([(1,0),(0,1)])
-            sage: K.LL()
+            sage: K.lyapunov_like_basis()
             [
             [1 0]  [0 0]
             [0 0], [0 1]
             ]
 
             sage: K = Cone([(1,0,0),(0,1,0),(0,0,1)])
-            sage: K.LL()
+            sage: K.lyapunov_like_basis()
             [
             [1 0 0]  [0 0 0]  [0 0 0]
             [0 0 0]  [0 1 0]  [0 0 0]
@@ -4501,7 +4501,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
         defined by the one- and infinity-norms [Rudolf]_::
 
             sage: l31 = Cone([(1,0,1), (0,-1,1), (-1,0,1), (0,1,1)])
-            sage: l31.LL()
+            sage: l31.lyapunov_like_basis()
             [
             [1 0 0]
             [0 1 0]
@@ -4509,7 +4509,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
             ]
 
             sage: l3infty = Cone([(0,1,1), (1,0,1), (0,-1,1), (-1,0,1)])
-            sage: l3infty.LL()
+            sage: l3infty.lyapunov_like_basis()
             [
             [1 0 0]
             [0 1 0]
@@ -4522,7 +4522,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
             sage: K.is_full_space()
             True
             sage: M = MatrixSpace(K.lattice().base_field(), K.lattice_dim())
-            sage: M.basis() == K.LL()
+            sage: M.basis() == K.lyapunov_like_basis()
             True
 
         TESTS:
@@ -4533,8 +4533,9 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
             sage: set_random_seed()
             sage: K = random_cone(max_ambient_dim=8)
             sage: dcs = K.discrete_complementarity_set()
+            sage: LL = K.lyapunov_like_basis()
             sage: ips = [ (L*x).inner_product(s) for (x,s) in dcs
-            ....:                                for L in K.LL() ]
+            ....:                                for L     in LL ]
             sage: sum(map(abs, ips))
             0
 
@@ -4544,10 +4545,11 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
 
             sage: set_random_seed()
             sage: K = random_cone(max_ambient_dim=8)
-            sage: LL2 = [ L.transpose() for L in K.dual().LL() ]
+            sage: LL1 = K.lyapunov_like_basis()
+            sage: LL2 = [L.transpose() for L in K.dual().lyapunov_like_basis()]
             sage: V = VectorSpace(K.lattice().base_field(), K.lattice_dim()^2)
-            sage: LL1_vecs = [ V(m.list()) for m in K.LL() ]
-            sage: LL2_vecs = [ V(m.list()) for m in LL2    ]
+            sage: LL1_vecs = [ V(m.list()) for m in LL1 ]
+            sage: LL2_vecs = [ V(m.list()) for m in LL2 ]
             sage: V.span(LL1_vecs) == V.span(LL2_vecs)
             True
 
@@ -4556,10 +4558,11 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
 
             sage: set_random_seed()
             sage: K = random_cone(max_ambient_dim=4)
+            sage: LL = K.lyapunov_like_basis()
             sage: W = VectorSpace(K.lattice().base_field(), K.lattice_dim()**2)
-            sage: LL_W = W.span([ W(m.list()) for m in K.LL() ])
-            sage: brackets = [ W((L1*L2 - L2*L1).list()) for L1 in K.LL()
-            ....:                                        for L2 in K.LL() ]
+            sage: LL_W = W.span([ W(m.list()) for m in LL ])
+            sage: brackets = [ W((L1*L2 - L2*L1).list()) for L1 in LL
+            ....:                                        for L2 in LL ]
             sage: all([ b in LL_W for b in brackets ])
             True
         """

@@ -596,8 +596,8 @@ class GenericProduct(CartesianProductPosets, GenericGrowthGroup):
                     pass
             raise ValueError('%s is not in any of the factors of %s' % (data, self))
 
-        return prod(list(self.cartesian_injection(*get_factor(f))
-                         for f in factors))
+        return prod(self.cartesian_injection(*get_factor(f))
+                    for f in factors)
 
 
     def cartesian_injection(self, factor, element):

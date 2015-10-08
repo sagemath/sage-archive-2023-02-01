@@ -1844,8 +1844,7 @@ class AsymptoticRing(Algebra, UniqueRepresentation):
         if category is None:
             from sage.categories.commutative_algebras import CommutativeAlgebras
             from sage.categories.rings import Rings
-            from sage.categories.posets import Posets
-            category = CommutativeAlgebras(Rings()) & Posets()
+            category = CommutativeAlgebras(Rings())
 
         if default_prec is None:
             from sage.misc.defaults import series_precision
@@ -2650,9 +2649,8 @@ class AsymptoticRingFunctor(ConstructionFunctor):
         self.growth_group = growth_group
 
         from sage.categories.rings import Rings
-        from sage.categories.posets import Posets
         super(ConstructionFunctor, self).__init__(
-            Rings(), Rings() & Posets())
+            Rings(), Rings())
 
 
     def _repr_(self):

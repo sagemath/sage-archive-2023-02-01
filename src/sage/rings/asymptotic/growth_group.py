@@ -8,35 +8,10 @@ seen as functions, and the behavior as their argument (or arguments)
 gets large (tend to `\infty`) is compared.
 
 Growth groups are used for the calculations done in the
-:doc:`asymptotic ring <asymptotic_ring>`.
+:doc:`asymptotic ring <asymptotic_ring>`. There, take a look at the
+:ref:`informal definition <asymptotic_ring_definition>`, where
+examples of growth groups and elements are given as well.
 
-A Formal Definition
-===================
-
-The elements of a :doc:`growth group <growth_group>` are equipped with a partial
-ordering and usually contain a variable. Examples are (among many
-other possibilities)
-
-- elements of the form `z^q` for some integer or rational `q` (growth
-  groups ``z^ZZ`` or ``z^QQ``),
-
-- elements of the form `\log(z)^q` for some integer or rational `q` (growth
-  groups ``log(z)^ZZ`` or ``log(z)^QQ``),
-
-- elements of the form `a^z` for some
-  rational `a` (growth group ``QQ^z``), or
-
-- more sophisticated constructions like products `x^r \log(x)^s \cdot
-  a^y \cdot y^q` (this corresponds to an element of the growth group
-  ``x^QQ * log(x)^ZZ * QQ^y * y^QQ``).
-
-The ordering in all these examples is the growth as `x`, `y`, or `z`
-(independently) tend to `\infty`. For elements only using the
-variable `z` this means, `g_1 \leq g_2` if
-
-.. MATH::
-
-    \lim_{z\to\infty} \frac{g_2}{g_1} \leq 1.
 
 .. WARNING::
 
@@ -60,8 +35,57 @@ variable `z` this means, `g_1 \leq g_2` if
         See http://trac.sagemath.org/17601 for details.
         Growth Group x^ZZ * log(x)^ZZ
 
-Overview
-========
+.. _growth_group_description:
+
+Description of Growth Groups
+============================
+
+Many growth groups can be described by a string, which can also be used to
+create them. For example, the string ``'x^QQ * log(x)^ZZ * QQ^y * y^QQ'``
+represents a growth group with the following properties:
+
+- It is a growth group in the two variables `x` and `y`.
+
+- Its elements are of the form
+
+  .. MATH::
+
+      x^r \cdot \log(x)^s \cdot a^y \cdot y^q
+
+  for `r\in\QQ`, `s\in\ZZ`, `a\in\QQ` and `q\in\QQ`.
+
+- The order is with respect to `x\to\infty` and `y\to\infty` independently
+  of each other.
+
+- To compare such elements, they are split into parts belonging to
+  only one variable. In the example above,
+
+  .. MATH::
+
+      x^{r_1} \cdot \log(x)^{s_1} \leq x^{r_2} \cdot \log(x)^{s_2}
+
+  if `(r_1, s_1) \leq (r_2, s_2)` lexicographically. This reflects the fact
+  that elements `x^r` are larger than elements `\log(x)^s` as `x\to\infty`.
+  The factors belonging to the variable `y` are compared analogously.
+
+  The results of these comparisons are then put together using the
+  :wikipedia:`product order <Product_order>`, i.e., `\leq` if each component
+  satisfies `\leq`.
+
+
+Each description string consists of ordered factors---yes, this means
+``*`` is noncommutative---of strings describing "elementary" growth
+groups (see the examples below). As stated in the example above, these
+factors are split by their variable; factors with the same variable are
+grouped. Reading such factors from left to right determines the order:
+Comparing elements of two factors (growth groups) `L` and `R`, then all
+elements of `L` are considered to be larger than each element of `R`.
+
+
+.. _growth_group_creating:
+
+Creating a Growth Group
+=======================
 
 For many purposes the factory ``GrowthGroup`` (see
 :class:`GrowthGroupFactory`) is the most convenient way to generate a

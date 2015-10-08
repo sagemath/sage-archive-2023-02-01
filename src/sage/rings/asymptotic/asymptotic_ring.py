@@ -5,6 +5,8 @@ This module provides a ring (called :class:`AsymptoticRing`) for
 computations with :wikipedia:`asymptotic expansions <Asymptotic_expansion>`.
 
 
+.. _asymptotic_ring_definition:
+
 (Informal) Definition
 =====================
 
@@ -39,33 +41,39 @@ Further examples of such elements can be found :ref:`here <asymptotic_ring_intro
 
 .. _asymptotic_ring_growth:
 
-Growth Elements
----------------
+Growth Groups and Elements
+--------------------------
 
-The elements of a :doc:`growth group <growth_group>` are equipped with a partial
-ordering and usually contain a variable. Examples are (among many
-other possibilities)
+The elements of a :doc:`growth group <growth_group>` are equipped with
+a partial order and usually contain a variable. Examples---the order
+is described below these examples---are
 
-- elements of the form `z^q` for some integer or rational `q` (growth
-  groups ``z^ZZ`` or ``z^QQ``),
+- elements of the form `z^q` for some integer or rational `q`
+  (growth groups ``z^ZZ`` or ``z^QQ``),
 
-- elements of the form `\log(z)^q` for some integer or rational `q` (growth
-  groups ``log(z)^ZZ`` or ``log(z)^QQ``),
+- elements of the form `\log(z)^q` for some integer or rational `q`
+  (growth groups ``log(z)^ZZ`` or ``log(z)^QQ``),
 
 - elements of the form `a^z` for some
   rational `a` (growth group ``QQ^z``), or
 
-- more sophisticated constructions like products `x^r \log(x)^s \cdot
-  a^y \cdot y^q` (this corresponds to an element of the growth group
+- more sophisticated constructions like products
+  `x^r \cdot \log(x)^s \cdot a^y \cdot y^q`
+  (this corresponds to an element of the growth group
   ``x^QQ * log(x)^ZZ * QQ^y * y^QQ``).
 
-The order in all these examples is the growth as `x`, `y`, or `z`
-(independently) tend to `\infty`. For elements only using the
-variable `z` this means, `g_1 \leq g_2` if
+The order in all these examples induced by the magnitude of the
+elements as `x`, `y`, or `z` (independently) tend to `\infty`. For
+elements only using the variable `z` this means, `g_1 \leq g_2` if
 
 .. MATH::
 
     \lim_{z\to\infty} \frac{g_1}{g_2} \leq 1.
+
+To find out more about growth groups, on how they are created and
+about the above used descriptions strings see the top of the
+module :doc:`growth group <growth_group>`.
+
 
 .. WARNING::
 

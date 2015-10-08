@@ -1509,12 +1509,9 @@ class GenericGrowthGroup(
             Growth Group x^ZZ * y^ZZ
             sage: sage.structure.element.coercion_traceback()  # not tested
         """
-        if isinstance(other, GenericGrowthGroup):
-            pass
-        if (other.construction() is not None and
-              isinstance(other.construction()[0], AbstractGrowthGroupFunctor)):
-            pass
-        else:
+        if not isinstance(other, GenericGrowthGroup) and \
+           not (other.construction() is not None and
+                isinstance(other.construction()[0], AbstractGrowthGroupFunctor)):
             return
 
         if set(self.variable_names()).isdisjoint(set(other.variable_names())):

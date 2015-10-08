@@ -101,11 +101,14 @@ class generic_character(SFA_generic):
             sage: s = Sym.s()
             sage: st._other_to_self(s[1] + s([]))
             2*st[] + st[1]
+            sage: 7 * st[[]] * st[[]]
+            7*st[]
         """
         if sexpr == 0:
             return self(0)
         if sexpr.support() == [[]]:
-            return self([])
+            return self._from_dict({self.one_basis(): sexpr.coefficient([])},
+                                   remove_zeros=False)
         out = self.zero()
         while sexpr:
             mup = max(sexpr.support(), key=self._my_key)

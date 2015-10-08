@@ -300,7 +300,9 @@ class ConstructionFunctor(Functor):
 
         OUTPUT:
 
-        Raise a :class:`~sage.structure.coerce_exceptions.CoercionException`.
+        Nothing, since a
+        :class:`~sage.structure.coerce_exceptions.CoercionException`
+        is raised.
 
         .. NOTE::
 

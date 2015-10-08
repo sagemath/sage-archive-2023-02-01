@@ -1,5 +1,5 @@
 r"""
-Growth Groups as Cartesian Products
+Cartesian Products of Growth Groups
 
 See :doc:`growth_group` for a description.
 

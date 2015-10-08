@@ -8,8 +8,6 @@ AUTHORS:
 - William Stein (2006-07-19)
 
 - Jon Hanke
-
-- Daniel Krenn
 """
 
 #*****************************************************************************
@@ -200,14 +198,6 @@ def mrange_iter(iter_list, typ=list):
         sage: mrange_iter([])
         [[]]
 
-    .. SEEALSO::
-
-        :class:`xmrange_iter`,
-        :func:`mrange`,
-        :class:`xmrange`,
-        :func:`cartesian_product_iterator`,
-        :func:`product_cantor_pairing`.
-
     AUTHORS:
 
     - Joel B. Mohler
@@ -311,14 +301,6 @@ class xmrange_iter:
         ('apple', 'horse')
         (389, 'orange')
         (389, 'horse')
-
-    .. SEEALSO::
-
-        :func:`mrange_iter`,
-        :func:`mrange`,
-        :class:`xmrange`,
-        :func:`cartesian_product_iterator`,
-        :func:`product_cantor_pairing`.
 
     AUTHORS:
 
@@ -475,13 +457,6 @@ def mrange(sizes, typ=list):
         sage: mrange([])
         [[]]
 
-    .. SEEALSO::
-
-        :func:`mrange_iter`,
-        :class:`xmrange_iter`,
-        :class:`xmrange`,
-        :func:`cartesian_product_iterator`,
-        :func:`product_cantor_pairing`.
 
     AUTHORS:
 
@@ -584,14 +559,6 @@ class xmrange:
         (389, 'orange')
         (389, 'horse')
 
-    .. SEEALSO::
-
-        :func:`mrange_iter`,
-        :class:`xmrange_iter`,
-        :func:`mrange`,
-        :func:`cartesian_product_iterator`,
-        :func:`product_cantor_pairing`.
-
     AUTHORS:
 
     - Jon Hanke
@@ -639,145 +606,112 @@ def cartesian_product_iterator(X):
         [(1, 'a'), (1, 'b'), (2, 'a'), (2, 'b')]
         sage: list(cartesian_product_iterator([]))
         [()]
-
-    .. SEEALSO::
-
-        :func:`mrange_iter`,
-        :class:`xmrange_iter`,
-        :func:`mrange`,
-        :class:`xmrange`,
-        :func:`product_cantor_pairing`.
     """
     return xmrange_iter(X, tuple)
 
-
-def product_cantor_pairing(A, B):
+def cantor_product(*args, **kwds):
     r"""
-    Return an iterator over the product of `A` and `B` which iterates
-    along the diagonals a la
+    Return an iterator over the product of the inputs along the diagonals a la
     :wikipedia:`Cantor pairing <Pairing_function#Cantor_pairing_function>`.
 
     INPUT:
 
-    - ``A`` and ``B`` -- iterables.
+    - a certain number of iterables
 
-    OUTPUT:
-
-    An iterator over `(a,b)` for `a \in A` and `b \in B`.
+    - ``repeat`` -- an optional integer. If it is provided, the input is
+      repeated ``repeat`` times.
 
     EXAMPLES::
 
-        sage: from sage.misc.mrange import product_cantor_pairing
-        sage: tuple(product_cantor_pairing(srange(2), srange(2)))
-        ((0, 0), (0, 1), (1, 0), (1, 1))
-        sage: tuple(product_cantor_pairing(srange(4), srange(2)))
-        ((0, 0), (0, 1), (1, 0), (1, 1), (2, 0), (2, 1), (3, 0), (3, 1))
-        sage: tuple(product_cantor_pairing(srange(2), srange(3)))
-        ((0, 0), (0, 1), (1, 0), (0, 2), (1, 1), (1, 2))
-        sage: tuple(''.join(p) for p in product_cantor_pairing('abc', 'xyz'))
-        ('ax', 'ay', 'bx', 'az', 'by', 'cx', 'bz', 'cy', 'cz')
+        sage: from sage.misc.mrange import cantor_product
+        sage: list(cantor_product([0, 1], repeat=3))
+        [(0, 0, 0),
+         (1, 0, 0),
+         (0, 1, 0),
+         (0, 0, 1),
+         (1, 1, 0),
+         (1, 0, 1),
+         (0, 1, 1),
+         (1, 1, 1)]
+        sage: list(cantor_product([0, 1], [0, 1, 2, 3]))
+        [(0, 0), (1, 0), (0, 1), (1, 1), (0, 2), (1, 2), (0, 3), (1, 3)]
 
-    Infinite iterators are a valid as an input as well::
+    Infinite iterators are valid input as well::
+    
+       sage: from itertools import islice
+       sage: list(islice(cantor_product(ZZ, QQ), 14))
+        [(0, 0),
+         (1, 0),
+         (0, 1),
+         (-1, 0),
+         (1, 1),
+         (0, -1),
+         (2, 0),
+         (-1, 1),
+         (1, -1),
+         (0, 1/2),
+         (-2, 0),
+         (2, 1),
+         (-1, -1),
+         (1, 1/2)]
 
-        sage: from itertools import islice
-        sage: list(islice(product_cantor_pairing(ZZ, QQ), 14))
-        [(0, 0), (0, 1), (1, 0), (0, -1), (1, 1), (-1, 0), (0, 1/2),
-         (1, -1), (-1, 1), (2, 0), (0, -1/2), (1, 1/2), (-1, -1), (2, 1)]
+    TESTS::
 
-    .. SEEALSO::
-
-        :func:`mrange_iter`,
-        :class:`xmrange_iter`,
-        :func:`mrange`,
-        :class:`xmrange`,
-        :func:`cartesian_product_iterator`.
-
-    TESTS:
-
-    Check that all pairs are returned::
-
-        sage: all(len(tuple(product_cantor_pairing(srange(m), srange(n)))) == m*n
-        ....:     for m in srange(5) for n in srange(5))
+        sage: C = cantor_product([0, 1], [0, 1, 2, 3], [0, 1, 2])
+        sage: sum(1 for _ in C) == 2*4*3
         True
 
-    Check that everthing is loaded in the correct order::
+        sage: from itertools import count
+        sage: list(cantor_product([], count()))
+        []
+        sage: list(cantor_product(count(), [], count()))
+        []
 
-        sage: def it(s, n):
-        ....:     for i in srange(n):
-        ....:         print '%s loads item number %s' % (s, i)
-        ....:         yield i
-        sage: for p in product_cantor_pairing(it('A', 2), it('B', 2)):
-        ....:     print p
-        A loads item number 0
-        B loads item number 0
-        (0, 0)
-        B loads item number 1
-        (0, 1)
-        A loads item number 1
-        (1, 0)
-        (1, 1)
-        sage: for p in product_cantor_pairing(it('A', 3), it('B', 2)):
-        ....:     print p
-        A loads item number 0
-        B loads item number 0
-        (0, 0)
-        B loads item number 1
-        (0, 1)
-        A loads item number 1
-        (1, 0)
-        (1, 1)
-        A loads item number 2
-        (2, 0)
-        (2, 1)
-        sage: for p in product_cantor_pairing(it('A', 2), it('B', 4)):
-        ....:     print p
-        A loads item number 0
-        B loads item number 0
-        (0, 0)
-        B loads item number 1
-        (0, 1)
-        A loads item number 1
-        (1, 0)
-        B loads item number 2
-        (0, 2)
-        (1, 1)
-        B loads item number 3
-        (0, 3)
-        (1, 2)
-        (1, 3)
+        sage: list(cantor_product(count(), repeat=0))
+        [()]
+
+        sage: next(cantor_product(count(), repeat=-1))
+        Traceback (most recent call last):
+        ...
+        ValueError: repeat argument cannot be negative
+        sage: next(cantor_product(count(), toto='hey'))
+        Traceback (most recent call last):
+        ...
+        TypeError: 'toto' is an invalid keyword argument for this function
     """
-    # when writing this code I thought the solution would be shorter...
-
-    class iter_as_list(list):
-        def __init__(self, iterable):
-            self.it = iter(iterable)
-            self.newdata = True
-        def __getitem__(self, i):
-            self.newdata = False
-            try:
-                while len(self) <= i:
-                    self.append(next(self.it))
-                    self.newdata = True
-            except StopIteration:
-                raise
-            return list.__getitem__(self, i)
-
     from itertools import count
-    A = iter_as_list(A)
-    B = iter_as_list(B)
-    for s in count():
-        for i in range(s+1):
-            stopped = False
-            try:
-                a = A[i]
-            except StopIteration:
-                stopped = True
-            try:
-                b = B[s-i]
-            except StopIteration:
-                stopped = True
-            if stopped:
-                continue
-            yield a, b
-        if not A.newdata and not B.newdata and s >= len(A) + len(B):
+    from sage.combinat.integer_list import IntegerListsLex
+
+    m = len(args)                         # numer of factors
+    lengths = [None] * m                  # None or length of factors
+    data = [[] for _ in range(m)]         # the initial slice of each factor
+    iterators = [iter(a) for a in args]   # the iterators
+    repeat = int(kwds.pop('repeat', 1))
+    if repeat == 0:
+        yield ()
+        return
+    elif repeat < 0:
+        raise ValueError("repeat argument cannot be negative")
+    if kwds:
+        raise TypeError("'{}' is an invalid keyword argument for this function".format(next(kwds.iterkeys())))
+    mm = m * repeat
+
+    for n in count(0):
+        # try to add one more term to each bin
+        for i, a in enumerate(iterators):
+            if lengths[i] is None:
+                try:
+                    data[i].append(next(a))
+                except StopIteration:
+                    assert len(data[i]) == n
+                    if n == 0:
+                        return
+                    lengths[i] = n
+
+        # iterate through what we have
+        ceiling = [n if lengths[i] is None else lengths[i]-1 for i in range(m)] * repeat
+        for v in IntegerListsLex(n, length=mm, ceiling=ceiling):
+            yield tuple(data[i%m][v[i]] for i in range(mm))
+
+        if all(l is not None for l in lengths) and repeat*sum(l-1 for l in lengths) == n:
             return

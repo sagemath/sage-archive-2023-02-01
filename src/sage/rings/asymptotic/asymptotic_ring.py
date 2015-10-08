@@ -2389,23 +2389,23 @@ class AsymptoticRing(Algebra, UniqueRepresentation):
             sage: A = AsymptoticRing(growth_group='z^QQ', coefficient_ring=ZZ)
             sage: tuple(islice(A.some_elements(), 10))
             (z^(3/2) + O(z^(1/2)),
+             O(z^(1/2)),
              z^(3/2) + O(z^(-1/2)),
              -z^(3/2) + O(z^(1/2)),
-             O(z^2),
-             -z^(3/2) + O(z^(-1/2)),
-             O(z^(1/2)),
-             z^(3/2) + O(z^(-2)),
-             O(z^2),
              O(z^(-1/2)),
-             8*z^(3/2) + O(z^(1/2)))
+             O(z^2),
+             z^6 + O(z^(1/2)),
+             -z^(3/2) + O(z^(-1/2)),
+             O(z^2),
+             z^(3/2) + O(z^(-2)))
         """
-        from sage.misc.mrange import product_cantor_pairing
+        from sage.misc.mrange import cantor_product
         from term_monoid import TermMonoid
         E = TermMonoid('exact', asymptotic_ring=self)
         O = TermMonoid('O', asymptotic_ring=self)
         return iter(self(e, simplify=False, convert=False)**3 +
                     self(o, simplify=False, convert=False)
-                    for e, o in product_cantor_pairing(
+                    for e, o in cantor_product(
                             E.some_elements(), O.some_elements()))
 
 

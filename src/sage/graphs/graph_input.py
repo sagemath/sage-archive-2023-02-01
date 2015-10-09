@@ -243,6 +243,63 @@ def from_adjacency_matrix(G, M, loops=False, multiedges=False, weighted=False):
     G.add_edges(e)
     G._weighted = weighted
 
+def from_incidence_matrix(G, M, loops=False, multiedges=False, weighted=False):
+    r"""
+    Fill ``G`` with the data of an incidence matrix.
+
+    INPUT:
+
+    - ``G`` -- a graph
+
+    - ``M`` -- an incidence matrix
+
+    - ``loops``, ``multiedges``, ``weighted`` (booleans) -- whether to consider
+      the graph as having loops, multiple edges, or weights. Set to ``False`` by default.
+
+    EXAMPLE::
+
+        sage: from sage.graphs.graph_input import from_incidence_matrix
+        sage: g = Graph()
+        sage: from_incidence_matrix(g, graphs.PetersenGraph().incidence_matrix())
+        sage: g.is_isomorphic(graphs.PetersenGraph())
+        True
+    """
+    from sage.matrix.matrix import is_Matrix
+    assert is_Matrix(M)
+
+    oriented = any(M[pos] < 0 for pos in M.nonzero_positions(copy=False))
+
+    positions = []
+    for i in range(M.ncols()):
+        NZ = M.nonzero_positions_in_column(i)
+        if len(NZ) == 1:
+            if oriented:
+                raise ValueError("Column {} of the (oriented) incidence "
+                                 "matrix contains only one nonzero value".format(i))
+            elif M[NZ[0],i] != 2:
+                raise ValueError("Each column of a non-oriented incidence "
+                                 "matrix must sum to 2, but column {} does not".format(i))
+            if loops is None:
+                loops = True
+            positions.append((NZ[0],NZ[0]))
+        elif len(NZ) != 2 or \
+             (oriented and not ((M[NZ[0],i] == +1 and M[NZ[1],i] == -1) or \
+                                (M[NZ[0],i] == -1 and M[NZ[1],i] == +1))) or \
+             (not oriented and (M[NZ[0],i] != 1 or M[NZ[1],i] != 1)):
+            msg  = "There must be one or two nonzero entries per column in an incidence matrix. "
+            msg += "Got entries {} in column {}".format([M[j,i] for j in NZ], i)
+            raise ValueError(msg)
+        else:
+            positions.append(tuple(NZ))
+
+    if weighted   is None: G._weighted  = False
+    if multiedges is None:
+        total = len(positions)
+        multiedges = (len(set(positions)) < total  )
+    G.allow_loops(False if loops is None else loops, check=False)
+    G.allow_multiple_edges(multiedges, check=False)
+    G.add_vertices(range(M.nrows()))
+    G.add_edges(positions)
 
 from sage.misc.rest_index_of_methods import gen_rest_table_index
 import sys

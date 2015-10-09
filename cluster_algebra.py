@@ -269,7 +269,7 @@ class ClusterAlgebra(Parent):
 
     Element = ClusterAlgebraElement
 
-    def __init__(self, data, scalars=ZZ):
+    def __init__(self, data, scalars=ZZ, coefficients_prefix='x', cluster_variables_prefix='x', coefficients_names=None, cluster_variables_names=None):
         # Temporary variables
         # TODO: right now  we use ClusterQuiver to parse input data. It looks
         # like a good idea but we should make sure it is.
@@ -300,30 +300,52 @@ class ClusterAlgebra(Parent):
         if m>n: 
             # do we want change this to its fraction field (so that we can
             # invert coefficients)? 
-            base = LaurentPolynomialRing(scalars, ['x%s'%i for i in xrange(n,m)])
+            # I really think we do. S.
+            # we may want to allow coeff_vars to be a single name and produce the list on the fly
+            if coefficients_names:
+                if len(coefficients_names) == m-n:
+                    variables = coefficients_names
+                else:
+                    raise ValueError("coefficients_names should be a list of %d valid variable names"%(m-n))
+            else: 
+                if coefficients_prefix == cluster_variables_prefix:
+                    offset = n
+                else:
+                    offset = 0
+                variables = [coefficients_prefix+'%s'%i for i in xrange(offset,m-n+offset)]
+            base = LaurentPolynomialRing(scalars, variables)
         else:
             base = scalars
         # TODO: understand why using CommutativeAlgebras() instead of Rings() makes A(1) complain of missing _lmul_
         Parent.__init__(self, base=base, category=Rings(scalars).Subobjects())
         # *** here we might want to replace scalars with base and m with n
-        self._ambient = LaurentPolynomialRing(scalars, 'x', m)
+        if cluster_variables_names:
+            if len(cluster_variables_names) == n:
+                variables = cluster_variables_names
+            else:
+                    raise ValueError("cluster_variables_names should be a list of %d valid variable names"%n)
+        else:
+            variables = [cluster_variables_prefix+'%s'%i for i in xrange(n)]
+        self._ambient = LaurentPolynomialRing(base, variables)
         self._ambient_field = self._ambient.fraction_field()
         # TODO: understand if we need this
         #self._populate_coercion_lists_()
 
         # these are used for computing cluster variables using separation of
         # additions
-        self._y = dict([ (self._U.gen(j), prod([self._ambient.gen(i+n)**M0[i,j] for i in xrange(m-n)])) for j in xrange(n)])
+        self._y = dict([ (self._U.gen(j), prod([self._base.gen(i)**M0[i,j] for i in xrange(m-n)])) for j in xrange(n)])
         self._yhat = dict([ (self._U.gen(j), prod([self._ambient.gen(i)**B0[i,j] for i in xrange(n)])*self._y[self._U.gen(j)]) for j in xrange(n)])
 
         # recover g-vector from monomials
         # TODO: there should be a method to compute partial inverses
         # right now we are failing
-        #M_p = matrix([ (row if all(x>=0 for x in row) else vector(ZZ, n)) for row in M0.rows() ])
-        #if M0.rank() == n:
-        #    self._deg_matrix = block_matrix([[I,-B0*(M0.transpose()*M0).inverse()*M0.transpose()]])
-        if M0 == I:
-            self._deg_matrix = block_matrix([[I,-B0]])
+        if M0.rank() == n:
+            #M0p = matrix(map(lambda row: map(lambda x: max(x, 0),row), M0.rows()))
+            #M0m = M0 - M0p
+            #self._deg_matrix = block_matrix([[I,-B0*(M0p.transpose()*M0p).inverse()*M0p.transpose()]])
+            self._deg_matrix = block_matrix([[I,-B0*(M0.transpose()*M0).inverse()*M0.transpose()]])
+        #if M0 == I:
+        #    self._deg_matrix = block_matrix([[I,-B0]])
         else:
             self._deg_matrix = None
 

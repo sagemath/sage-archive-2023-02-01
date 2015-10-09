@@ -301,6 +301,78 @@ def from_incidence_matrix(G, M, loops=False, multiedges=False, weighted=False):
     G.add_vertices(range(M.nrows()))
     G.add_edges(positions)
 
+def from_dict_of_dicts(G, M, loops=False, multiedges=False, weighted=False, convert_empty_dict_labels_to_None=False):
+    r"""
+    Fill ``G`` with the data of a dictionary of dictionaries.
+
+    INPUT:
+
+    - ``G`` -- a graph
+
+    - ``M`` -- a dictionary of dictionaries.
+
+    - ``loops``, ``multiedges``, ``weighted`` (booleans) -- whether to consider
+      the graph as having loops, multiple edges, or weights. Set to ``False`` by default.
+
+    - ``convert_empty_dict_labels_to_None`` (boolean) -- whether to adjust for
+      empty dicts instead of None in NetworkX default edge labels.
+
+    EXAMPLE::
+
+        sage: from sage.graphs.graph_input import from_dict_of_dicts
+        sage: g = Graph()
+        sage: from_dict_of_dicts(g, graphs.PetersenGraph().to_dictionary())
+        sage: g.is_isomorphic(graphs.PetersenGraph())
+        True
+    """
+    if not all(isinstance(M[u], dict) for u in M):
+        raise ValueError("Input dict must be a consistent format.")
+
+    if not loops and any(u in neighb for u,neighb in M.iteritems()):
+        if loops is False:
+            u = next(u for u,neighb in M.iteritems() if u in neighb)
+            raise ValueError("The graph was built with loops=False but input M has a loop at {}.".format(u))
+        loops = True
+    if loops is None:
+        loops = False
+
+    if weighted is None: G._weighted = False
+    for u in M:
+        for v in M[u]:
+            if hash(u) > hash(v):
+                if v in M and u in M[v]:
+                    if M[u][v] != M[v][u]:
+                        raise ValueError("Dict does not agree on edge (%s,%s)"%(u,v))
+                    continue
+            if multiedges is not False and not isinstance(M[u][v], list):
+                if multiedges is None: multiedges = False
+                if multiedges:
+                    raise ValueError("Dict of dicts for multigraph must be in the format {v : {u : list}}")
+    if multiedges is None and len(M) > 0:
+        multiedges = True
+    G.allow_loops(loops, check=False)
+    G.allow_multiple_edges(multiedges, check=False)
+    verts = set().union(M.keys(), *M.values())
+    G.add_vertices(verts)
+    if convert_empty_dict_labels_to_None:
+        for u in M:
+            for v in M[u]:
+                if hash(u) <= hash(v) or v not in M or u not in M[v]:
+                    if multiedges:
+                        for l in M[u][v]:
+                            G._backend.add_edge(u,v,l,False)
+                    else:
+                        G._backend.add_edge(u,v,M[u][v] if M[u][v] != {} else None,False)
+    else:
+        for u in M:
+            for v in M[u]:
+                if hash(u) <= hash(v) or v not in M or u not in M[v]:
+                    if multiedges:
+                        for l in M[u][v]:
+                            G._backend.add_edge(u,v,l,False)
+                    else:
+                        G._backend.add_edge(u,v,M[u][v],False)
+
 from sage.misc.rest_index_of_methods import gen_rest_table_index
 import sys
 __doc__ = __doc__.format(INDEX_OF_FUNCTIONS=gen_rest_table_index(sys.modules[__name__]))

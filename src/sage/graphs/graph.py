@@ -1344,57 +1344,10 @@ class Graph(GenericGraph):
             self.add_edges(e for e in combinations(verts,2) if f(*e))
             self.add_edges((v,v) for v in verts if f(v,v))
         elif format == 'dict_of_dicts':
-            # adjust for empty dicts instead of None in NetworkX default edge labels
-            if convert_empty_dict_labels_to_None is None:
-                convert_empty_dict_labels_to_None = (format == 'NX')
+            from graph_input import from_dict_of_dicts
+            from_dict_of_dicts(self, data, loops=loops, multiedges=multiedges, weighted=weighted,
+                               convert_empty_dict_labels_to_None = False if convert_empty_dict_labels_to_None is None else convert_empty_dict_labels_to_None)
 
-            if not all(isinstance(data[u], dict) for u in data):
-                raise ValueError("Input dict must be a consistent format.")
-
-            if not loops and any(u in neighb for u,neighb in data.iteritems()):
-                if loops is False:
-                    u = next(u for u,neighb in data.iteritems() if u in neighb)
-                    raise ValueError("The graph was built with loops=False but input data has a loop at {}.".format(u))
-                loops = True
-            if loops is None:
-                loops = False
-
-            if weighted is None: weighted = False
-            for u in data:
-                for v in data[u]:
-                    if hash(u) > hash(v):
-                        if v in data and u in data[v]:
-                            if data[u][v] != data[v][u]:
-                                raise ValueError("Dict does not agree on edge (%s,%s)"%(u,v))
-                            continue
-                    if multiedges is not False and not isinstance(data[u][v], list):
-                        if multiedges is None: multiedges = False
-                        if multiedges:
-                            raise ValueError("Dict of dicts for multigraph must be in the format {v : {u : list}}")
-            if multiedges is None and len(data) > 0:
-                multiedges = True
-            self.allow_loops(loops, check=False)
-            self.allow_multiple_edges(multiedges, check=False)
-            verts = set().union(data.keys(), *data.values())
-            self.add_vertices(verts)
-            if convert_empty_dict_labels_to_None:
-                for u in data:
-                    for v in data[u]:
-                        if hash(u) <= hash(v) or v not in data or u not in data[v]:
-                            if multiedges:
-                                for l in data[u][v]:
-                                    self._backend.add_edge(u,v,l,False)
-                            else:
-                                self._backend.add_edge(u,v,data[u][v] if data[u][v] != {} else None,False)
-            else:
-                for u in data:
-                    for v in data[u]:
-                        if hash(u) <= hash(v) or v not in data or u not in data[v]:
-                            if multiedges:
-                                for l in data[u][v]:
-                                    self._backend.add_edge(u,v,l,False)
-                            else:
-                                self._backend.add_edge(u,v,data[u][v],False)
         elif format == 'dict_of_lists':
             if not all(isinstance(data[u], list) for u in data):
                 raise ValueError("Input dict must be a consistent format.")

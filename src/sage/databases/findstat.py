@@ -230,6 +230,8 @@ FINDSTAT_URL_DOWNLOADS_MAPS         = FINDSTAT_URL_DOWNLOADS + "maps.json"
 ######################################################################
 # the number of values FindStat allows to search for at most
 FINDSTAT_MAX_VALUES = 200
+# the number of values FindStat needs at least to search for
+FINDSTAT_MIN_VALUES = 3
 # the number of maps that FindStat should compose at most to find a match
 FINDSTAT_MAX_DEPTH = 5
 # the number of values FindStat allows to submit at most
@@ -971,17 +973,16 @@ class FindStatStatistic(SageObject):
         data = []
         total = min(max_values, FINDSTAT_MAX_VALUES)
         in_range = self._collection.in_range
+        in_range_counter = 0
         for (elements, elements_str, values) in self._data:
             if total >= len(elements):
                 if all(in_range(e) for e in elements):
-                    data += [(elements, elements_str, values)]
-                    total -= len(elements)
+                    data                += [(elements, elements_str, values)]
+                    in_range_counter    += len(elements)
+                    total               -= len(elements)
 
-        # this might go wrong:
-        try:
-            assert data != []
-        except:
-            raise ValueError("after discarding elements not in the range, and keeping less than %s values, nothing remained to send to FindStat." %FINDSTAT_MAX_VALUES)
+        if in_range_counter < FINDSTAT_MIN_VALUES:
+            raise ValueError("After discarding elements not in the range, too little (=%s) values remained to send to FindStat." %in_range_counter)
 
         url = FINDSTAT_URL_RESULT + self._collection._url_name + "/"
 

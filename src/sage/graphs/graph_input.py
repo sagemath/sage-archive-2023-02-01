@@ -5,7 +5,7 @@ This module gathers functions needed to build a graph from any other data.
 
 .. NOTE::
 
-    This is a **internal** module of Sage. All features implemented here are
+    This is an **internal** module of Sage. All features implemented here are
     made available to end-users through the constructors of :class:`Graph` and
     :class:`DiGraph`.
 

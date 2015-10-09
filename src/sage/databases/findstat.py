@@ -419,8 +419,7 @@ class FindStat(SageObject):
         sage: findstat((S6, [1 for a in S6]))                                   # optional -- internet
         Traceback (most recent call last):
         ...
-        ValueError: after discarding elements not in the range, and keeping less than 200 values, nothing remained to send to FindStat.
-
+        ValueError: After discarding elements not in the range, too little (=0) values remained to send to FindStat.
     """
     def __init__(self):
         r"""
@@ -465,10 +464,11 @@ class FindStat(SageObject):
             ValueError: The given arguments, Permutations and 1, cannot be used for a FindStat search.
 
             sage: S = Permutation
-            sage: findstat([(S([1,3,2]), 1)])                                   # optional -- internet
+
+            sage: findstat([[S([1,2,3]),S([1,3,2])],[1,1]]) # optional -- internet
             Traceback (most recent call last):
             ...
-            ValueError: ???
+            ValueError: After discarding elements not in the range, too little (=2) values remained to send to FindStat.
 
             sage: findstat(([S([1,3,2]), S([1,2,3]), S([1,3,2])], [1,1,1]))     # optional -- internet
             Traceback (most recent call last):
@@ -963,7 +963,6 @@ class FindStatStatistic(SageObject):
             0: (St000012: The area of a Dyck path., [], 14)
 
             sage: findstat([[Permutation([1,2,3]),Permutation([1,3,2])],[1,1]])                     # optional -- internet, indirect doctest
-            ---------------------------------------------------------------------------
             Traceback (most recent call last):
             ...
             ValueError: After discarding elements not in the range, too little (=2) values remained to send to FindStat.

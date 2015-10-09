@@ -4468,7 +4468,25 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
 
         EXAMPLES:
 
-        The trivial cone has no Lyapunov-like transformations::
+        Every transformation is Lyapunov-like on the trivial cone::
+
+            sage: K = Cone([(0,0)])
+            sage: M = MatrixSpace(K.lattice().base_field(), K.lattice_dim())
+            sage: M.basis() == K.lyapunov_like_basis()
+            True
+
+        And by duality, every transformation is Lyapunov-like on the
+        ambient space::
+
+            sage: K = Cone([(1,0), (-1,0), (0,1), (0,-1)])
+            sage: K.is_full_space()
+            True
+            sage: M = MatrixSpace(K.lattice().base_field(), K.lattice_dim())
+            sage: M.basis() == K.lyapunov_like_basis()
+            True
+
+        However, in a trivial space, there are no non-trivial linear maps,
+        so there can be no Lyapunov-like basis::
 
             sage: L = ToricLattice(0)
             sage: K = Cone([], lattice=L)
@@ -4515,15 +4533,6 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
             [0 1 0]
             [0 0 1]
             ]
-
-        Every transformation is Lyapunov-like on the ambient space::
-
-            sage: K = Cone([(1,0), (-1,0), (0,1), (0,-1)])
-            sage: K.is_full_space()
-            True
-            sage: M = MatrixSpace(K.lattice().base_field(), K.lattice_dim())
-            sage: M.basis() == K.lyapunov_like_basis()
-            True
 
         TESTS:
 

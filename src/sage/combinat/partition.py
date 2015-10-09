@@ -6703,8 +6703,20 @@ class RegularPartitions(Partitions):
             sage: P = Partitions(regular=2)
             sage: TestSuite(P).run()
         """
-        self.ell = ell
+        self._ell = ell
         Partitions.__init__(self, is_infinte)
+
+    def ell(self):
+        r"""
+        Return the value `\ell`.
+
+        EXAMPLES::
+
+            sage: P = Partitions(regular=2)
+            sage: P.ell()
+            2
+        """
+        return self._ell
 
     def __contains__(self, x):
         """
@@ -6731,8 +6743,8 @@ class RegularPartitions(Partitions):
         if not Partitions.__contains__(self, x):
             return False
         if isinstance(x, Partition):
-            return max(x.to_exp(1)) < self.ell
-        return all(x.count(i) < self.ell for i in set(x) if i > 0)
+            return max(x.to_exp(1)) < self._ell
+        return all(x.count(i) < self._ell for i in set(x) if i > 0)
 
     def _fast_iterator(self, n, max_part):
         """
@@ -6754,7 +6766,7 @@ class RegularPartitions(Partitions):
 
         if n < max_part:
             max_part = n
-        bdry = self.ell - 1
+        bdry = self._ell - 1
 
         for i in reversed(range(1, max_part+1)):
             for p in self._fast_iterator(n-i, i):
@@ -6792,7 +6804,7 @@ class RegularPartitions_all(RegularPartitions):
             sage: RegularPartitions_all(3)
             3-Regular Partitions
         """
-        return "{}-Regular Partitions".format(self.ell)
+        return "{}-Regular Partitions".format(self._ell)
 
     def __iter__(self):
         """
@@ -6833,8 +6845,20 @@ class RegularPartitions_truncated(RegularPartitions):
             sage: P = Partitions(regular=4, max_length=3)
             sage: TestSuite(P).run()
         """
-        self.max_len = max_len
-        RegularPartitions.__init__(self, ell)
+        self._max_len = max_len
+        RegularPartitions.__init__(self, ell, True)
+
+    def max_length(self):
+        """
+        Return the maximum length of the partitions of ``self``.
+
+        EXAMPLES::
+
+            sage: P = Partitions(regular=4, max_length=3)
+            sage: P.max_length()
+            3
+        """
+        return self._max_len
 
     def __contains__(self, x):
         """
@@ -6848,7 +6872,7 @@ class RegularPartitions_truncated(RegularPartitions):
             sage: [4, 2, 1, 1] in P
             False
         """
-        return len(x) <= self.max_len and RegularPartitions.__contains__(self, x)
+        return len(x) <= self._max_len and RegularPartitions.__contains__(self, x)
 
     def _repr_(self):
         """
@@ -6858,7 +6882,7 @@ class RegularPartitions_truncated(RegularPartitions):
             sage: RegularPartitions_truncated(4, 3)
             4-Regular Partitions with max length 3
         """
-        return "{}-Regular Partitions with max length {}".format(self.ell, self.max_len)
+        return "{}-Regular Partitions with max length {}".format(self._ell, self._max_len)
 
     def __iter__(self):
         """
@@ -6891,19 +6915,19 @@ class RegularPartitions_truncated(RegularPartitions):
             sage: list(P._fast_iterator(5, 6))
             [[5], [4, 1], [3, 2]]
         """
-        if n == 0 or depth >= self.max_len:
+        if n == 0 or depth >= self._max_len:
             yield []
             return
 
         # Special case
-        if depth + 1 == self.max_len:
+        if depth + 1 == self._max_len:
             if max_part >= n:
                 yield [n]
             return
 
         if n < max_part:
             max_part = n
-        bdry = self.ell - 1
+        bdry = self._ell - 1
 
         for i in reversed(range(1, max_part+1)):
             for p in self._fast_iterator(n-i, i, depth+1):
@@ -6957,7 +6981,7 @@ class RegularPartitions_bounded(RegularPartitions):
             sage: RegularPartitions_bounded(4, 3)
             4-Regular 3-Bounded  Partitions
         """
-        return "{}-Regular {}-Bounded Partitions".format(self.ell, self.k)
+        return "{}-Regular {}-Bounded Partitions".format(self._ell, self.k)
 
     def __iter__(self):
         """
@@ -6970,7 +6994,7 @@ class RegularPartitions_bounded(RegularPartitions):
             [[3, 2, 1], [3, 2], [3, 1], [3], [2, 1], [2], [1], []]
         """
         k = self.k
-        for n in reversed(range(k*(k+1)/2 * self.ell)):
+        for n in reversed(range(k*(k+1)/2 * self._ell)):
             for p in self._fast_iterator(n, k):
                 yield self.element_class(self, p)
 
@@ -7007,7 +7031,7 @@ class RegularPartitions_n(RegularPartitions, Partitions_n):
             sage: RegularPartitions_n(3, 5)
             5-Regular Partitions of the integer 3
         """
-        return "{}-Regular Partitions of the integer {}".format(self.ell, self.n)
+        return "{}-Regular Partitions of the integer {}".format(self._ell, self.n)
 
     def __contains__(self, x):
         """
@@ -7049,7 +7073,7 @@ class RegularPartitions_n(RegularPartitions, Partitions_n):
             sage: P.cardinality() == Partitions(5).cardinality()
             True
         """
-        if self.ell > self.n:
+        if self._ell > self.n:
             return Partitions_n.cardinality(self)
         return ZZ.sum(1 for x in self)
 

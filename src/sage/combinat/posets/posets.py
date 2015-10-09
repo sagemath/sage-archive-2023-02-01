@@ -66,12 +66,12 @@ List of Poset methods
     :meth:`~FinitePoset.has_bottom` | Return ``True`` if the poset has a unique minimal element.
     :meth:`~FinitePoset.has_top` | Return ``True`` if the poset has a unique maximal element.
     :meth:`~FinitePoset.is_bounded` | Return ``True`` if the poset has both unique minimal and unique maximal element.
-    :meth:`~FinitePoset.is_chain` | Return ``True`` if the poset is totally ordered.
+    :meth:`~FinitePoset.is_total_order` | Return ``True`` if the poset is totally ordered.
     :meth:`~FinitePoset.is_connected` | Return ``True`` if the poset is connected.
     :meth:`~FinitePoset.is_graded` | Return ``True`` if all maximal chains of the poset has same length.
     :meth:`~FinitePoset.is_ranked` | Return ``True`` if the poset has a rank function.
     :meth:`~FinitePoset.is_rank_symmetric` | Return ``True`` if the poset is rank symmetric.
-    :meth:`~FinitePoset.is_incomparable_chain_free` | Return ``True`` if the poset is `(m+n)`-free.
+    :meth:`~FinitePoset.is_incomparable_chain_free` | Return ``True`` if the poset is (m+n)-free.
     :meth:`~FinitePoset.is_slender` | Return ``True`` if the poset is slender.
     :meth:`~FinitePoset.is_join_semilattice` | Return ``True`` is the poset has a join operation.
     :meth:`~FinitePoset.is_meet_semilattice` | Return ``True`` if the poset has a meet operation.
@@ -1957,12 +1957,14 @@ class FinitePoset(UniqueRepresentation, Parent):
         - ''interval order'' is `(2+2)`-free
         - ''semiorder'' (or ''unit interval order'') is `(1+3)`-free and
           `(2+2)`-free
-        - ''weak order'' is `1+2`-free.
+        - ''weak order'' is `(1+2)`-free.
 
         INPUT:
 
-        - ``m``, ``n`` - positive integers, OR
-        - ``m`` - list of pairs of positive integers (``n`` must be ``None``)
+        - ``m``, ``n`` - positive integers
+
+        It is also possible to give a list of integer pairs as argument.
+        See below for an example.
 
         EXAMPLES::
 
@@ -1986,10 +1988,8 @@ class FinitePoset(UniqueRepresentation, Parent):
         We show how to get an incomparable chain pair::
 
             sage: P = Posets.PentagonPoset()
-            sage: c1 = Posets.ChainPoset(1)
-            sage: c2 = Posets.ChainPoset(2)
-            sage: c1_2 = c1.disjoint_union(c2)
-            sage: incomps = P.isomorphic_subposets(c1_2)[0]
+            sage: chains_1_2 = Poset({0:[], 1:[2]})
+            sage: incomps = P.isomorphic_subposets(chains_1_2)[0]
             sage: sorted(incomps.list()), incomps.cover_relations()
             ([1, 2, 3], [[2, 3]])
 
@@ -2413,31 +2413,33 @@ class FinitePoset(UniqueRepresentation, Parent):
         """
         return self._hasse_diagram.is_bounded()
 
-    def is_chain(self):
+    from sage.misc.superseded import deprecated_function_alias
+    def is_total_order(self):
         """
-        Return ``True`` if the poset is totally ordered, and ``False``
-        otherwise.
+        Return ``True`` if the poset is totally ordered ("chain"), and
+        ``False`` otherwise.
 
         EXAMPLES::
 
             sage: I = Poset({0:[1], 1:[2], 2:[3], 3:[4]})
-            sage: I.is_chain()
+            sage: I.is_total_order()
             True
 
             sage: II = Poset({0:[1], 2:[3]})
-            sage: II.is_chain()
+            sage: II.is_total_order()
             False
 
             sage: V = Poset({0:[1, 2]})
-            sage: V.is_chain()
+            sage: V.is_total_order()
             False
 
         TESTS::
 
-            sage: [len([P for P in Posets(n) if P.is_chain()]) for n in range(5)]
+            sage: [len([P for P in Posets(n) if P.is_total_order()]) for n in range(5)]
             [1, 1, 1, 1, 1]
         """
         return self._hasse_diagram.is_chain()
+    is_chain = deprecated_function_alias(19141, is_total_order)
 
     def is_chain_of_poset(self, o, ordered=False):
         """
@@ -2516,7 +2518,9 @@ class FinitePoset(UniqueRepresentation, Parent):
         """
         Return ``True`` if the poset is connected, and ``False`` otherwise.
 
-        A poset is not connected if it can be divided to parts
+        A poset is connected if it's Hasse diagram is connected.
+
+        If a poset is not connected, then it can be divided to parts
         `S_1` and `S_2` so that every element of `S_1` is incomparable to
         every element of `S_2`.
 
@@ -2870,11 +2874,11 @@ class FinitePoset(UniqueRepresentation, Parent):
         r"""
         Return ``True`` if the poset is ranked, and ``False`` otherwise.
 
-        Informally a ranked poset can be "levelized": every element is
-        on a "level", and no cover relation jumps over a level.
+        A poset is ranked if there is a function `r` from  poset elements
+        to integers so that `r(x)=r(y)+1` when `x` covers `y`.
 
-        Formally defined, a ranked poset can have function `r` from
-        poset elements to integers so that `r(x)=r(y)+1` if `x` covers `y`.
+        Informally said a ranked poset can be "levelized": every element is
+        on a "level", and every cover relation goes only one level up.
 
         EXAMPLES::
 
@@ -2899,18 +2903,14 @@ class FinitePoset(UniqueRepresentation, Parent):
         r"""
         Return ``True`` if the poset is graded, and ``False`` otherwise.
 
-        Informally a graded poset can be "levelized" with every maximal chain
-        going throught all levels: every element is on a "level", no cover
-        relation jumps over a level, and no chain ends in the middle of
-        levels.
+        A poset is graded if all its maximal chains have the same length.
 
-        Formally defined a poset is graded if all its maximal chains have
-        the same length. There are various competing definitions for graded
+        There are various competing definitions for graded
         posets (see :wikipedia:`Graded_poset`). This definition is from
         section 3.1 of Richard Stanley's *Enumerative Combinatorics,
         Vol. 1* [EnumComb1]_.
 
-        Note that every graded poset is ranked. The converse is true
+        Every graded poset is ranked. The converse is true
         for bounded posets, including lattices.
 
         EXAMPLES::

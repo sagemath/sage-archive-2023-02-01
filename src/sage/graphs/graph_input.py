@@ -36,7 +36,6 @@ def from_graph6(G, g6_string):
         sage: from_graph6(g, 'IheA@GUAo')
         sage: g.is_isomorphic(graphs.PetersenGraph())
         True
-
     """
     from generic_graph_pyx import length_and_string_from_graph6, binary_string_from_graph6
 
@@ -112,6 +111,46 @@ def from_sparse6(G, g6_string):
                     edges.append((x[i],v))
     G.add_vertices(range(n))
     G.add_edges(edges)
+
+def from_dig6(G, dig6_string):
+    r"""
+    Fill ``G`` with the data of a dig6 string.
+
+    INPUT:
+
+    - ``G`` -- a graph
+
+    - ``dig6_string`` -- a dig6 string
+
+    EXAMPLE::
+
+        sage: from sage.graphs.graph_input import from_dig6
+        sage: g = DiGraph()
+        sage: from_dig6(g, digraphs.Circuit(10).dig6_string())
+        sage: g.is_isomorphic(digraphs.Circuit(10))
+        True
+    """
+    from generic_graph_pyx import length_and_string_from_graph6, binary_string_from_dig6
+    if not isinstance(dig6_string, str):
+        raise ValueError('If input format is dig6, then dig6_string must be a string.')
+    n = dig6_string.find('\n')
+    if n == -1:
+        n = len(dig6_string)
+    ss = dig6_string[:n]
+    n, s = length_and_string_from_graph6(ss)
+    m = binary_string_from_dig6(s, n)
+    expected = n**2
+    if len(m) > expected:
+        raise RuntimeError("The string (%s) seems corrupt: for n = %d, the string is too long."%(ss,n))
+    elif len(m) < expected:
+        raise RuntimeError("The string (%s) seems corrupt: for n = %d, the string is too short."%(ss,n))
+    G.add_vertices(range(n))
+    k = 0
+    for i in xrange(n):
+        for j in xrange(n):
+            if m[k] == '1':
+                G._backend.add_edge(i, j, None, True)
+            k += 1
 
 def from_seidel_adjacency_matrix(G, M):
     r"""

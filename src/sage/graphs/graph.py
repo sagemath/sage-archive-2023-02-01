@@ -3204,13 +3204,12 @@ class Graph(GenericGraph):
     @doc_index("Connectivity, orientations, trees")
     def strong_orientation(self):
         r"""
-        Returns a strongly connected orientation of the current graph. See
-        also the :wikipedia:`Strongly_connected_component`.
+        Returns a strongly connected orientation of the current graph.
 
-        An orientation of an undirected graph is a digraph obtained by
-        giving an unique direction to each of its edges. An orientation
-        is said to be strong if there is a directed path between each
-        pair of vertices.
+        An orientation of an undirected graph is a digraph obtained by giving an
+        unique direction to each of its edges. An orientation is said to be
+        strong if there is a directed path between each pair of vertices.  See
+        also the :wikipedia:`Strongly_connected_component`.
 
         If the graph is 2-edge-connected, a strongly connected orientation
         can be found in linear time. If the given graph is not 2-connected,

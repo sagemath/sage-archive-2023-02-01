@@ -66,7 +66,7 @@ List of Poset methods
     :meth:`~FinitePoset.has_bottom` | Return ``True`` if the poset has a unique minimal element.
     :meth:`~FinitePoset.has_top` | Return ``True`` if the poset has a unique maximal element.
     :meth:`~FinitePoset.is_bounded` | Return ``True`` if the poset has both unique minimal and unique maximal element.
-    :meth:`~FinitePoset.is_total_order` | Return ``True`` if the poset is totally ordered.
+    :meth:`~FinitePoset.is_chain` | Return ``True`` if the poset is totally ordered.
     :meth:`~FinitePoset.is_connected` | Return ``True`` if the poset is connected.
     :meth:`~FinitePoset.is_graded` | Return ``True`` if all maximal chains of the poset has same length.
     :meth:`~FinitePoset.is_ranked` | Return ``True`` if the poset has a rank function.
@@ -2413,8 +2413,7 @@ class FinitePoset(UniqueRepresentation, Parent):
         """
         return self._hasse_diagram.is_bounded()
 
-    from sage.misc.superseded import deprecated_function_alias
-    def is_total_order(self):
+    def is_chain(self):
         """
         Return ``True`` if the poset is totally ordered ("chain"), and
         ``False`` otherwise.
@@ -2422,24 +2421,23 @@ class FinitePoset(UniqueRepresentation, Parent):
         EXAMPLES::
 
             sage: I = Poset({0:[1], 1:[2], 2:[3], 3:[4]})
-            sage: I.is_total_order()
+            sage: I.is_chain()
             True
 
             sage: II = Poset({0:[1], 2:[3]})
-            sage: II.is_total_order()
+            sage: II.is_chain()
             False
 
             sage: V = Poset({0:[1, 2]})
-            sage: V.is_total_order()
+            sage: V.is_chain()
             False
 
         TESTS::
 
-            sage: [len([P for P in Posets(n) if P.is_total_order()]) for n in range(5)]
+            sage: [len([P for P in Posets(n) if P.is_chain()]) for n in range(5)]
             [1, 1, 1, 1, 1]
         """
         return self._hasse_diagram.is_chain()
-    is_chain = deprecated_function_alias(19141, is_total_order)
 
     def is_chain_of_poset(self, o, ordered=False):
         """

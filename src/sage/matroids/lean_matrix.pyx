@@ -1039,7 +1039,7 @@ cdef class BinaryMatrix(LeanMatrix):
         bitset_free(self._temp)
 
     def __repr__(self):
-        """
+        r"""
         Print representation string
 
         EXAMPLES::
@@ -1666,7 +1666,7 @@ cdef class TernaryMatrix(LeanMatrix):
         bitset_free(self._u)
 
     def __repr__(self):
-        """
+        r"""
         Print representation string
 
         EXAMPLES::
@@ -2241,7 +2241,7 @@ cdef class QuaternaryMatrix(LeanMatrix):
         bitset_free(self._u)
 
     def __repr__(self):
-        """
+        r"""
         Print representation string
 
         EXAMPLES::

@@ -444,9 +444,11 @@ class FindStat(SageObject):
         Return an instance of a :class:`FindStatStatistic`.
 
         This should be the only way to access
-        :class:`FindStatStatistic`.  We do the preprocessing of the
-        data here, and call the appropriate method of
-        :class:`FindStatStatistic` to launch the query.
+        :class:`FindStatStatistic`.  We do the preprocessing and
+        (some) checking of the data here.  Then we call the
+        appropriate method of :class:`FindStatStatistic` to launch
+        the query.  Thus, in principle :class:`FindStatStatistic`
+        could be called if no checking is desired.
 
         TESTS::
 
@@ -459,6 +461,22 @@ class FindStat(SageObject):
             Traceback (most recent call last):
             ...
             ValueError: The given arguments, Permutations and 1, cannot be used for a FindStat search.
+
+            sage: S = Permutation
+            sage: findstat([(S([1,3,2]), 1)])                                   # optional -- internet
+            Traceback (most recent call last):
+            ...
+            ValueError: ???
+
+            sage: findstat(([S([1,3,2]), S([1,2,3]), S([1,3,2])], [1,1,1]))     # optional -- internet
+            Traceback (most recent call last):
+            ...
+            ValueError: FindStat expects that every object occurs at most once.
+
+            sage: findstat([(S([1,2]), 1), ([S([1,3,2]), S([1,2])], [2,3])])    # optional -- internet
+            Traceback (most recent call last):
+            ...
+            ValueError: FindStat expects that every object occurs at most once.
         """
         try:
             depth = int(depth)
@@ -478,9 +496,16 @@ class FindStat(SageObject):
 
             elif isinstance(query, dict):
                 # we expect a dictionary from objects to integers
-                data = [([key], [value]) for (key, value) in query.iteritems()]
-                first_terms = [(key, value) for (key, value) in query.iteritems()]
-                collection = FindStatCollection(data[0][0][0])
+                l = query.iteritems()
+                (key, value) = l.next()
+                collection = FindStatCollection(key)
+                to_str = collection.to_string()
+
+                data = ([([key], [to_str(key)], [Integer(value)])] +
+                        [([key], [to_str(key)], [Integer(value)]) for (key, value) in l])
+
+                first_terms = [(key[0], value[0]) for (key, key_str, value) in data]
+
                 return FindStatStatistic(id=0, data=data,
                                          first_terms=first_terms,
                                          collection=collection,
@@ -490,30 +515,51 @@ class FindStat(SageObject):
                 # either a pair (list of objects, list of integers)
                 # or a list of such or (object, integer) pairs
 
-                # correctness of data is checked in FindStatStatistic._find_by_values
-
-                # values must always be lists because otherwise we
-                # get a trailing comma when printing
+                # values must always be converted to lists because
+                # otherwise we get a trailing comma when printing
                 if (len(query) == 2 and
                     isinstance(query[1], (list, tuple)) and
                     len(query[1]) != 0 and
                     isinstance(query[1][0], (int, Integer))):
-                    # just a single pair
-                    data = [(query[0], list(query[1]))]
-                    collection = FindStatCollection(data[0][0][0])
+                    # just a single pair, i.e., a pure distribution query
+                    collection = FindStatCollection(query[0][0])
+                    to_str = collection.to_string()
+                    data = [(query[0], map(to_str, query[0]), map(Integer, query[1]))]
+                    if len(data[0][0]) != len(data[0][2]):
+                        raise ValueError("FindStat expects the same number of objects as values.")
+                    if len(set(data[0][1])) != len(data[0][2]):
+                        raise ValueError("FindStat expects that every object occurs at most once.")
+
                     return FindStatStatistic(id=0, data=data,
                                              collection=collection,
                                              depth=depth)._find_by_values(max_values=max_values)
                 else:
                     is_statistic = True
-                    data = []
-                    for (key, value) in query:
+                    (key, value) = query[0]
+                    if isinstance(value, (list, tuple)):
+                        collection = FindStatCollection(key[0])
+                        to_str = collection.to_string()
+                        data = [(key, map(to_str, key), map(Integer, value))]
+                        if len(data[0][0]) != len(data[0][2]):
+                            raise ValueError("FindStat expects the same number of objects as values.")
+                    else:
+                        collection = FindStatCollection(key)
+                        to_str = collection.to_string()
+                        data = [([key], [to_str(key)], [Integer(value)])]
+
+                    for (key, value) in query[1:]:
                         if isinstance(value, (list, tuple)):
-                            data += [(key, list(value))]
+                            data += [(key, map(to_str, key), map(Integer, value))]
+                            if len(data[-1][0]) != len(data[-1][2]):
+                                raise ValueError("FindStat expects the same number of objects as values.")
                             is_statistic = False
                         else:
-                            data += [([key], [value])]
-                    collection = FindStatCollection(data[0][0][0])
+                            data += [([key], [to_str(key)], [Integer(value)])]
+
+                    all_elements = [e for (elements, elements_str, values) in data for e in elements_str]
+                    if len(set(all_elements)) != len(all_elements):
+                           raise ValueError("FindStat expects that every object occurs at most once.")
+
                     if is_statistic:
                         return FindStatStatistic(id=0, data=data,
                                                  collection=collection,
@@ -531,8 +577,9 @@ class FindStat(SageObject):
             if callable(function):
                 if not isinstance(query, FindStatCollection):
                     collection = FindStatCollection(query)
+                to_str = collection.to_string()
                 first_terms = collection.first_terms(function, max_values=max_values)
-                data = [([key], [value]) for (key, value) in first_terms]
+                data = [([key], [to_str(key)], [Integer(value)]) for (key, value) in first_terms]
                 try:
                     code = inspect.getsource(function)
                 except IOError:
@@ -659,7 +706,8 @@ class FindStatStatistic(SageObject):
           pairs, see :meth:`first_terms`.
 
         - ``data`` -- (optional) a list of pairs of the form (list of
-          objects, list of values), see :meth:`data`.
+          objects represented as strings, list of values), see
+          :meth:`data`.
 
         - ``function`` -- (optional) a function taking a sage object
           as input and returning the value of the statistic on this
@@ -894,19 +942,22 @@ class FindStatStatistic(SageObject):
 
         The query ``self``.
 
-        Expects that ``_data`` is a list of pairs of the form (list
-        of objects, list of values), each containing as many values
-        as objects, and that ``_collection`` is appropriately set.
+        Expects that ``_data`` is a list of triples of the form (list
+        of objects, list of objects represented as strings, list of
+        values), each containing as many values as objects, and that
+        ``_collection`` is appropriately set.
 
         TESTS::
 
             sage: from sage.databases.findstat import FindStatCollection
             sage: from sage.databases.findstat import FindStatStatistic
+            sage: collection = FindStatCollection("Dyck paths")                                     # optional -- internet
+            sage: to_str = collection.to_string()                                                   # optional -- internet
             sage: query = {dw:dw.area() for dw in DyckWords(4)}
-            sage: data = [([key], [value]) for (key, value) in query.iteritems()]
+            sage: data = [([key], [to_str(key)], [value]) for (key, value) in query.iteritems()]    # optional -- internet
             sage: first_terms = [(key, value) for (key, value) in query.iteritems()]
-            sage: collection = FindStatCollection(data[0][0][0])                                                                     # optional -- internet
-            sage: FindStatStatistic(id=0,data=data, first_terms = first_terms, collection = collection, depth=0)._find_by_values()   # optional -- internet
+
+            sage: FindStatStatistic(id=0,data=data, first_terms = first_terms, collection = collection, depth=0)._find_by_values() # optional -- internet
             0: (St000012: The area of a Dyck path., [], 14)
 
         """
@@ -919,24 +970,12 @@ class FindStatStatistic(SageObject):
         # the internal _data is not modified
         data = []
         total = min(max_values, FINDSTAT_MAX_VALUES)
-        all_elements = []
-        for (elements, values) in self._data:
-            if len(elements) != len(values):
-                raise ValueError("FindStat expects the same number of objects as values!")
-
-            all_elements += elements
-            try:
-                values = [int(v) for v in values]
-            except ValueError:
-                raise ValueError("FindStat expects statistics to have integer values!")
-
+        in_range = self._collection.in_range
+        for (elements, elements_str, values) in self._data:
             if total >= len(elements):
-                if all(self._collection.in_range(e) for e in elements):
-                    data += [(elements, values)]
+                if all(in_range(e) for e in elements):
+                    data += [(elements, elements_str, values)]
                     total -= len(elements)
-
-        if len(set(all_elements)) != len(all_elements):
-            raise ValueError("FindStat expects that every object appears only once!")
 
         # this might go wrong:
         try:
@@ -946,8 +985,7 @@ class FindStatStatistic(SageObject):
 
         url = FINDSTAT_URL_RESULT + self._collection._url_name + "/"
 
-        to_str = self._collection.to_string()
-        stat = [(map(to_str, keys), str(values)[1:-1]) for (keys, values) in data]
+        stat = [(elements_str, str(values)[1:-1]) for (elements, elements_str, values) in data]
 
         stat_str = join([join(keys, "\n") + "\n====> " + values for (keys, values) in stat], "\n")
         _ = verbose("Sending the following data to FindStat\r\n %s" %stat_str, caller_name='FindStat')
@@ -1075,6 +1113,30 @@ class FindStatStatistic(SageObject):
 
             sage: S4 = Permutations(4); findstat((S4, [pi.length() for pi in S4])).data() # optional -- internet
             [(Standard permutations of 4,
+              ['[1, 2, 3, 4]',
+               '[1, 2, 4, 3]',
+               '[1, 3, 2, 4]',
+               '[1, 3, 4, 2]',
+               '[1, 4, 2, 3]',
+               '[1, 4, 3, 2]',
+               '[2, 1, 3, 4]',
+               '[2, 1, 4, 3]',
+               '[2, 3, 1, 4]',
+               '[2, 3, 4, 1]',
+               '[2, 4, 1, 3]',
+               '[2, 4, 3, 1]',
+               '[3, 1, 2, 4]',
+               '[3, 1, 4, 2]',
+               '[3, 2, 1, 4]',
+               '[3, 2, 4, 1]',
+               '[3, 4, 1, 2]',
+               '[3, 4, 2, 1]',
+               '[4, 1, 2, 3]',
+               '[4, 1, 3, 2]',
+               '[4, 2, 1, 3]',
+               '[4, 2, 3, 1]',
+               '[4, 3, 1, 2]',
+               '[4, 3, 2, 1]'],
               [0, 1, 1, 2, 2, 3, 1, 2, 2, 3, 3, 4, 2, 3, 3, 4, 4, 5, 3, 4, 4, 5, 5, 6])]
         """
         return self._data
@@ -1161,7 +1223,7 @@ class FindStatStatistic(SageObject):
 
             sage: isinstance(r.first_terms(), list)                             # optional -- internet
             True
-            sage: all(isinstance(e, tuple) and len(e)==2 and isinstance(e[1], (ZZ, int)) for e in r.first_terms())      # optional -- internet
+            sage: all(isinstance(e, tuple) and len(e)==2 and isinstance(e[1], (ZZ, Integer, int)) for e in r.first_terms())      # optional -- internet
             True
         """
         return self._first_terms
@@ -1204,7 +1266,7 @@ class FindStatStatistic(SageObject):
         """
         c = self.collection()
         gfs = dict()
-        for (elements, values) in self._data:
+        for (elements, elements_str, values) in self._data:
             l = c._get_level(elements[0])
             if l in c._levels and all(l == c._get_level(e) for e in elements[1:]):
                 gfs[l] = gfs.get(l, dict())

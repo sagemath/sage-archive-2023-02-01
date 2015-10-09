@@ -962,6 +962,11 @@ class FindStatStatistic(SageObject):
             sage: FindStatStatistic(id=0,data=data, first_terms = first_terms, collection = collection, depth=0)._find_by_values() # optional -- internet
             0: (St000012: The area of a Dyck path., [], 14)
 
+            sage: findstat([[Permutation([1,2,3]),Permutation([1,3,2])],[1,1]])                     # optional -- internet, indirect doctest
+            ---------------------------------------------------------------------------
+            Traceback (most recent call last):
+            ...
+            ValueError: After discarding elements not in the range, too little (=2) values remained to send to FindStat.
         """
         self._query = "data"
 

@@ -719,6 +719,11 @@ class DiffMap(ContinuousMap):
             sage: J = Phi.differential_functions(X, Y) ; J
             [[1, -2], [y, x], [2*x, -3*y^2]]
 
+        The result is cached::
+
+            sage: Phi.differential_functions(X, Y) is J
+            True
+
         The elements of ``J`` are functions of the coordinates of chart ``X``::
 
             sage: J[2][0]
@@ -749,12 +754,8 @@ class DiffMap(ContinuousMap):
         if chart2 is None:
             chart2 = dom2._def_chart
         if (chart1, chart2) not in self._diff:
-            # Some computation must be performed
-            manif1 = dom1._manifold
-            n2 = dom2.dim()
             funct = self.coord_functions(chart1, chart2)
-            self._diff[(chart1, chart2)] = [[funct[i].diff(j) for j in
-                                           manif1.irange()] for i in range(n2)]
+            self._diff[(chart1, chart2)] = funct.jacobian()
         return self._diff[(chart1, chart2)]
 
     def jacobian_matrix(self, chart1=None, chart2=None):
@@ -1093,10 +1094,13 @@ class DiffMap(ContinuousMap):
                                                  CompFullySym, CompFullyAntiSym
         from sage.manifolds.differentiable.tensorfield_paral import \
                                                                TensorFieldParal
+        vmodule = tensor.base_module()
+        dest_map = vmodule.destination_map()
         dom1 = tensor.domain()
-        if not dom1.is_subset(self._domain):
-            raise ValueError("the {} is not defined in {}".format(tensor,
-                                                                  self._domain))
+        ambient_dom1 = dest_map.codomain()
+        if not ambient_dom1.is_subset(self._domain):
+            raise ValueError("the {} does not take its values on the " +
+                             "domain of the {}".format(tensor, self))
         (ncon, ncov) = tensor.tensor_type()
         if ncov != 0:
             raise ValueError("the pushforward cannot be taken on a tensor " +
@@ -1104,12 +1108,12 @@ class DiffMap(ContinuousMap):
         if ncon == 0:
             raise ValueError("the pushforward cannot be taken on a scalar " +
                              "field")
+        if dest_map != dom1.identity_map():
+            raise NotImplementedError("the case of a non-trivial destination" +
+                                      " map is not implemented yet")
         if not isinstance(tensor, TensorFieldParal):
             raise NotImplementedError("the case of a non-parallelizable " +
                                       "domain is not implemented yet")
-        if tensor.parent().destination_map() is not dom1.identity_map():
-            raise ValueError("{} is not a tensor field with ".format(tensor) +
-                             "values in {}".format(dom1))
         # A pair of charts (chart1, chart2) where the computation
         # is feasable is searched, privileging the default chart of the
         # map's domain for chart1
@@ -1136,18 +1140,30 @@ class DiffMap(ContinuousMap):
                     chart2 = chart2n
                     break
         if chart1 is None:
-            raise ValueError("no common chart could be find to compute " +
-                             "the pushforward of the tensor field")
+            # Computations of components are attempted
+            chart1 = dom1.default_chart()
+            tensor.comp(chart1.frame())
+            for chart2n in self._codomain.atlas():
+                try:
+                    self.coord_functions(chart1, chart2n)
+                    chart2 = chart2n
+                    break
+                except ValueError:
+                    pass
+            else:
+                raise ValueError("no pair of charts could be found to " +
+                                 "compute the pushforward of " +
+                                 "the {} by the {}".format(tensor, self))
         # Vector field module for the result:
         fmodule2 = dom1.vector_field_module(dest_map=self)
         #
-        frame2 = fmodule2.basis(from_frame=chart2._frame)
+        frame2 = fmodule2.basis(from_frame=chart2.frame())
         si1 = dom1.start_index()
         si2 = fmodule2._sindex
         ring2 = fmodule2._ring
         of2 = fmodule2._output_formatter
         # Computation at the component level:
-        tcomp = tensor._components[chart1._frame]
+        tcomp = tensor._components[chart1.frame()]
         # Construction of the pushforward components (ptcomp):
         if isinstance(tcomp, CompFullySym):
             ptcomp = CompFullySym(ring2, frame2, ncon, start_index=si2,
@@ -1163,7 +1179,7 @@ class DiffMap(ContinuousMap):
             ptcomp = Components(ring2, frame2, ncon, start_index=si2,
                                 output_formatter=of2)
         # Computation of the pushforward components:
-        jacob = self.jacobian_matrix(chart1=chart1, chart2=chart2)
+        jacob = self.differential_functions(chart1=chart1, chart2=chart2)
         si2 = chart2.domain().start_index()
         for ind_new in ptcomp.non_redundant_index_generator():
             res = 0

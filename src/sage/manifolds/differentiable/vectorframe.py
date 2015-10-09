@@ -240,6 +240,8 @@ class VectorFrame(FreeModuleBasis):
          differentiable manifold M
         sage: f.domain()
         1-dimensional differentiable manifold U
+        sage: f.ambient_domain()
+        3-dimensional differentiable manifold M
 
     The value of the vector frame at a given point is a basis of the
     corresponding tangent space::
@@ -249,6 +251,33 @@ class VectorFrame(FreeModuleBasis):
         sage: f.at(p)
         Basis (f_0,f_1,f_2) on the Tangent space at Point Phi(p) on the
          3-dimensional differentiable manifold M
+
+    Vector frames are bases of free modules formed by vector fields::
+
+        sage: e.module()
+        Free module X(M) of vector fields on the 3-dimensional differentiable
+         manifold M
+        sage: e.module().base_ring()
+        Algebra of differentiable scalar fields on the 3-dimensional
+         differentiable manifold M
+        sage: e.module() is M.vector_field_module()
+        True
+        sage: e in M.vector_field_module().bases()
+        True
+
+    ::
+
+        sage: f.module()
+        Free module X(U,Phi) of vector fields along the 1-dimensional
+         differentiable manifold U mapped into the 3-dimensional differentiable
+         manifold M
+        sage: f.module().base_ring()
+        Algebra of differentiable scalar fields on the 1-dimensional
+         differentiable manifold U
+        sage: f.module() is U.vector_field_module(dest_map=Phi)
+        True
+        sage: f in U.vector_field_module(dest_map=Phi).bases()
+        True
 
     """
     def __init__(self, vector_field_module, symbol, latex_symbol=None,
@@ -438,6 +467,12 @@ class VectorFrame(FreeModuleBasis):
         r"""
         Return the domain on which the current vector frame is defined.
 
+        OUTPUT:
+
+        - instance of
+          :class:`~sage.manifolds.differentiable.manifold.DiffManifold`
+          representing the domain of the vector frame
+
         EXAMPLES::
 
             sage: DiffManifold._clear_cache_() # for doctests only
@@ -452,6 +487,94 @@ class VectorFrame(FreeModuleBasis):
 
         """
         return self._domain
+
+    def ambient_domain(self):
+        r"""
+        Return the differentiable manifold in which the current vector frame
+        takes its values.
+
+        The ambient domain is the codomain `M` of the differentiable map
+        `\Phi: U\rightarrow M` associated with the frame.
+
+        OUTPUT:
+
+        - instance of
+          :class:`~sage.manifolds.differentiable.manifold.DiffManifold`
+          representing `M`
+
+        EXAMPLES::
+
+            sage: DiffManifold._clear_cache_() # for doctests only
+            sage: M = DiffManifold(2, 'M')
+            sage: e = M.vector_frame('e')
+            sage: e.ambient_domain()
+            2-dimensional differentiable manifold M
+
+        In the present case, since `\Phi` is the identity map::
+
+            sage: e.ambient_domain() == e.domain()
+            True
+
+        An example with a non trivial map `\Phi`::
+
+            sage: U = DiffManifold(1, 'U')
+            sage: T.<t> = U.chart()
+            sage: X.<x,y> = M.chart()
+            sage: Phi = U.diff_map(M, {(T,X): [cos(t), t]}, name='Phi',
+            ....:                  latex_name=r'\Phi') ; Phi
+            Differentiable map Phi from the 1-dimensional differentiable
+             manifold U to the 2-dimensional differentiable manifold M
+            sage: f = U.vector_frame('f', dest_map=Phi); f
+            Vector frame (U, (f_0,f_1)) with values on the 2-dimensional
+             differentiable manifold M
+            sage: f.ambient_domain()
+            2-dimensional differentiable manifold M
+            sage: f.domain()
+            1-dimensional differentiable manifold U
+
+        """
+        return self._ambient_domain
+
+    def destination_map(self):
+        r"""
+        Return the differential map associated to this vector frame.
+
+        Let `e` denote the vector frame; the differential map associated to
+        it is the map `\Phi: U\rightarrow M` such that for each `p\in U`,
+        `e(p)` is a vector basis of the tangent space `T_{\Phi(p)}M`.
+
+        OUTPUT:
+
+        - instance of
+          :class:`~sage.manifolds.differentiable.diff_map.DiffMap`
+          representing the differential map `\Phi`
+
+        EXAMPLES::
+
+            sage: DiffManifold._clear_cache_() # for doctests only
+            sage: M = DiffManifold(2, 'M')
+            sage: e = M.vector_frame('e')
+            sage: e.destination_map()
+            Identity map Id_M of the 2-dimensional differentiable manifold M
+
+        An example with a non trivial map `\Phi`::
+
+            sage: U = DiffManifold(1, 'U')
+            sage: T.<t> = U.chart()
+            sage: X.<x,y> = M.chart()
+            sage: Phi = U.diff_map(M, {(T,X): [cos(t), t]}, name='Phi',
+            ....:                  latex_name=r'\Phi') ; Phi
+            Differentiable map Phi from the 1-dimensional differentiable
+             manifold U to the 2-dimensional differentiable manifold M
+            sage: f = U.vector_frame('f', dest_map=Phi); f
+            Vector frame (U, (f_0,f_1)) with values on the 2-dimensional
+             differentiable manifold M
+            sage: f.destination_map()
+            Differentiable map Phi from the 1-dimensional differentiable
+             manifold U to the 2-dimensional differentiable manifold M
+
+        """
+        return self._dest_map
 
     def coframe(self):
         r"""

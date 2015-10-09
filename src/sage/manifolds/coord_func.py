@@ -1658,7 +1658,6 @@ class MultiCoordFunction(SageObject):
             [[True, True], [True, True], [True, True]]
 
         """
-        from sage.matrix.constructor import matrix
         if self._jacob is None:
             xx = self._chart[:]  # coordinates x^j
             self._jacob = [[ self._functions[i].diff(xx[j])

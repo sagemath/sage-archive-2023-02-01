@@ -650,18 +650,20 @@ class VectorField(TensorField):
                                   numerical_approx(ranges[coord][1]))
             else:
                 bounds = chart_domain._bounds[chart_domain[:].index(coord)]
-                if bounds[0][0] == -Infinity:
+                xmin0 = bounds[0][0]
+                xmax0 = bounds[1][0]
+                if xmin0 == -Infinity:
                     xmin = numerical_approx(-max_range)
                 elif bounds[0][1]:
-                    xmin = numerical_approx(bounds[0][0])
+                    xmin = numerical_approx(xmin0)
                 else:
-                    xmin = numerical_approx(bounds[0][0] + 1.e-3)
-                if bounds[1][0] == Infinity:
+                    xmin = numerical_approx(xmin0 + 1.e-3)
+                if xmax0 == Infinity:
                     xmax = numerical_approx(max_range)
                 elif bounds[1][1]:
-                    xmax = numerical_approx(bounds[1][0])
+                    xmax = numerical_approx(xmax0)
                 else:
-                    xmax = numerical_approx(bounds[1][0] - 1.e-3)
+                    xmax = numerical_approx(xmax0 - 1.e-3)
                 ranges0[coord] = (xmin, xmax)
         ranges = ranges0
         if nb_values is None:
@@ -687,6 +689,11 @@ class VectorField(TensorField):
         # 2/ Plots
         #    -----
         dom = chart_domain.domain()
+        vector = self.restrict(dom)
+        if vector.parent().destination_map() is dom.identity_map():
+            if mapping is not None:
+                vector = mapping.pushforward(vector)
+                mapping = None
         nc = len(chart_domain[:])
         ncp = len(coords)
         xx = [0] * nc
@@ -708,11 +715,12 @@ class VectorField(TensorField):
             if chart_domain.valid_coordinates(*xx, tolerance=1e-13,
                                               parameters=parameters):
                 point = dom(xx, chart=chart_domain)
-                resu += self.at(point).plot(chart=chart,
-                                 ambient_coords=ambient_coords, mapping=mapping,
-                                 scale=scale, color=color, print_label=False,
-                                 parameters=parameters,
-                                 **extra_options)
+                resu += vector.at(point).plot(chart=chart,
+                                              ambient_coords=ambient_coords,
+                                              mapping=mapping, scale=scale,
+                                              color=color, print_label=False,
+                                              parameters=parameters,
+                                              **extra_options)
             # Next index:
             ret = 1
             for pos in range(ncp-1,-1,-1):

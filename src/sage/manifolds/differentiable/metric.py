@@ -1478,7 +1478,8 @@ class PseudoRiemannianMetric(TensorField):
             si = manif.start_index()
             ind = tuple(range(si, si+ndim))
             for frame in dom._top_frames:
-                eps.add_comp(frame)[[ind]] = self.sqrt_abs_det(frame)
+                if frame.destination_map() is frame.domain().identity_map():
+                    eps.add_comp(frame)[[ind]] = self.sqrt_abs_det(frame)
             self._vol_forms.append(eps)  # Levi-Civita tensor constructed
             # Tensors related to the Levi-Civita one by index rising:
             for k in range(1, ndim+1):

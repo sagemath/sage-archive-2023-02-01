@@ -1267,26 +1267,8 @@ class Graph(GenericGraph):
             if weighted   is None: weighted   = False
             self.allow_loops(loops if loops else False, check=False)
             self.allow_multiple_edges(multiedges if multiedges else False, check=False)
-            if not isinstance(data, str):
-                raise ValueError('If input format is graph6, then data must be a string.')
-            n = data.find('\n')
-            if n == -1:
-                n = len(data)
-            ss = data[:n]
-            n, s = generic_graph_pyx.length_and_string_from_graph6(ss)
-            m = generic_graph_pyx.binary_string_from_graph6(s, n)
-            expected = n*(n-1)/2 + (6 - n*(n-1)/2)%6
-            if len(m) > expected:
-                raise RuntimeError("The string (%s) seems corrupt: for n = %d, the string is too long."%(ss,n))
-            elif len(m) < expected:
-                raise RuntimeError("The string (%s) seems corrupt: for n = %d, the string is too short."%(ss,n))
-            self.add_vertices(range(n))
-            k = 0
-            for i in xrange(n):
-                for j in xrange(i):
-                    if m[k] == '1':
-                        self._backend.add_edge(i, j, None, False)
-                    k += 1
+            from graph_input import from_graph6
+            from_graph6(self, data)
 
         elif format == 'sparse6':
             if weighted   is None: weighted   = False

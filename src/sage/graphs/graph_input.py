@@ -160,6 +160,84 @@ def from_seidel_adjacency_matrix(G, g6_string):
                 e.append((i,j))
     G.add_edges(e)
 
+def from_adjacency_matrix(G, M, loops=False, multiedges=False, weighted=False):
+    r"""
+    Fill ``G`` with the data of an adjacency matrix.
+
+    INPUT:
+
+    - ``G`` -- a graph
+
+    - ``M`` -- an adjacency matrix
+
+    - ``loops``, ``multiedges``, ``weighted`` (booleans) -- whether to consider
+      the graph as having loops, multiple edges, or weights. Set to ``False`` by default.
+
+    EXAMPLE::
+
+        sage: from sage.graphs.graph_input import from_adjacency_matrix
+        sage: g = Graph()
+        sage: from_adjacency_matrix(g, graphs.PetersenGraph().adjacency_matrix())
+        sage: g.is_isomorphic(graphs.PetersenGraph())
+        True
+    """
+    assert is_Matrix(M)
+    # note: the adjacency matrix might be weighted and hence not
+    # necessarily consists of integers
+    if not weighted and M.base_ring() != ZZ:
+        try:
+            M = M.change_ring(ZZ)
+        except TypeError:
+            if weighted is False:
+                raise ValueError("Non-weighted graph's"+
+                " adjacency matrix must have only nonnegative"+
+                " integer entries")
+            weighted = True
+
+    if M.is_sparse():
+        entries = set(M[i,j] for i,j in M.nonzero_positions())
+    else:
+        entries = set(M.list())
+
+    if not weighted and any(e < 0 for e in entries):
+        if weighted is False:
+            raise ValueError("Non-weighted digraph's"+
+            " adjacency matrix must have only nonnegative"+
+            " integer entries")
+        weighted = True
+        if multiedges is None: multiedges = False
+    if weighted is None:
+        weighted = False
+
+    if multiedges is None:
+        multiedges = ((not weighted) and any(e != 0 and e != 1 for e in entries))
+
+    if not loops and any(M[i,i] for i in xrange(M.nrows())):
+        if loops is False:
+            raise ValueError("Non-looped digraph's adjacency"+
+            " matrix must have zeroes on the diagonal.")
+        loops = True
+    if loops is None:
+        loops = False
+    G.allow_loops(loops, check=False)
+    G.allow_multiple_edges(multiedges, check=False)
+    G.add_vertices(range(M.nrows()))
+    e = []
+    if weighted:
+        for i,j in M.nonzero_positions():
+            if i <= j:
+                e.append((i,j,M[i][j]))
+    elif multiedges:
+        for i,j in M.nonzero_positions():
+            if i <= j:
+                e += [(i,j)]*int(M[i][j])
+    else:
+        for i,j in M.nonzero_positions():
+            if i <= j:
+                e.append((i,j))
+    G.add_edges(e)
+    G._weighted = weighted
+
 
 from sage.misc.rest_index_of_methods import gen_rest_table_index
 import sys

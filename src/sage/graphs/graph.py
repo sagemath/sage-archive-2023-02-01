@@ -1278,61 +1278,9 @@ class Graph(GenericGraph):
             from_sparse6(self, data)
 
         elif format == 'adjacency_matrix':
-            assert is_Matrix(data)
-            # note: the adjacency matrix might be weighted and hence not
-            # necessarily consists of integers
-            if not weighted and data.base_ring() != ZZ:
-                try:
-                    data = data.change_ring(ZZ)
-                except TypeError:
-                    if weighted is False:
-                        raise ValueError("Non-weighted graph's"+
-                        " adjacency matrix must have only nonnegative"+
-                        " integer entries")
-                    weighted = True
+            from graph_input import from_adjacency_matrix
+            from_adjacency_matrix(self, data, loops=loops, multiedges=multiedges, weighted=weighted)
 
-            if data.is_sparse():
-                entries = set(data[i,j] for i,j in data.nonzero_positions())
-            else:
-                entries = set(data.list())
-
-            if not weighted and any(e < 0 for e in entries):
-                if weighted is False:
-                    raise ValueError("Non-weighted digraph's"+
-                    " adjacency matrix must have only nonnegative"+
-                    " integer entries")
-                weighted = True
-                if multiedges is None: multiedges = False
-            if weighted is None:
-                weighted = False
-
-            if multiedges is None:
-                multiedges = ((not weighted) and any(e != 0 and e != 1 for e in entries))
-
-            if not loops and any(data[i,i] for i in xrange(data.nrows())):
-                if loops is False:
-                    raise ValueError("Non-looped digraph's adjacency"+
-                    " matrix must have zeroes on the diagonal.")
-                loops = True
-            if loops is None:
-                loops = False
-            self.allow_loops(loops, check=False)
-            self.allow_multiple_edges(multiedges, check=False)
-            self.add_vertices(range(data.nrows()))
-            e = []
-            if weighted:
-                for i,j in data.nonzero_positions():
-                    if i <= j:
-                        e.append((i,j,data[i][j]))
-            elif multiedges:
-                for i,j in data.nonzero_positions():
-                    if i <= j:
-                        e += [(i,j)]*int(data[i][j])
-            else:
-                for i,j in data.nonzero_positions():
-                    if i <= j:
-                        e.append((i,j))
-            self.add_edges(e)
         elif format == 'incidence_matrix':
             assert is_Matrix(data)
 
@@ -1579,7 +1527,7 @@ class Graph(GenericGraph):
             raise ValueError("Unknown input format '{}'".format(format))
 
         if weighted   is None: weighted   = False
-        self._weighted = weighted
+        self._weighted = getattr(self,'_weighted',weighted)
 
         self._pos = pos
 

@@ -242,7 +242,7 @@ FINDSTAT_STATISTIC_IDENTIFIER                   = 'StatisticIdentifier'
 FINDSTAT_STATISTIC_COLLECTION                   = 'StatisticCollection'
 FINDSTAT_STATISTIC_DATA                         = 'StatisticData'
 FINDSTAT_STATISTIC_GENERATING_FUNCTION          = 'StatisticGeneratingFunction'
-+FINDSTAT_STATISTIC_NAME                        = 'StatisticTitle'
+FINDSTAT_STATISTIC_NAME                        = 'StatisticTitle'
 FINDSTAT_STATISTIC_DESCRIPTION                  = 'StatisticDescription'
 FINDSTAT_STATISTIC_REFERENCES                   = 'StatisticReferences'
 FINDSTAT_STATISTIC_CODE                         = 'StatisticCode'
@@ -1470,14 +1470,14 @@ class FindStatStatistic(SageObject):
 
             sage: s = findstat([(d, randint(1,1000)) for d in DyckWords(4)]); s # optional -- internet
             a new statistic on Cc0005: Dyck paths
-            sage: s.set_description("Random values on Dyck paths.\r\nNot for submssion.") # optional -- internet
+            sage: s.set_description("Random values on Dyck paths.\r\nNot for submission.") # optional -- internet
             sage: s                                                             # optional -- internet
             a new statistic on Cc0005: Dyck paths
             sage: s.name()                                                      # optional -- internet
             'Random values on Dyck paths.'
             sage: print s.description()                                         # optional -- internet
             Random values on Dyck paths.
-            Not for submssion.
+            Not for submission.
         """
         self._raise_error_modifying_statistic_with_perfect_match()
 
@@ -1499,7 +1499,11 @@ class FindStatStatistic(SageObject):
             sage: findstat(1).name()                                            # optional -- internet,random
             u'The number of ways to write a permutation as a minimal length product of simple transpositions.'
         """
-        return self._name
+        # this needs to be decided how to do properly
+        if hasattr(self,"_name"):
+            return self._name
+        else:
+            return self._description.partition(FINDSTAT_SEPARATOR_NAME)[0]
 
     def references(self):
         r"""
@@ -2086,37 +2090,34 @@ class FindStatCollection(Element):
         """
         return "%s: %s" %(self.id_str(), self._name_plural)
 
-    def name(self):
+    def name(self, style="singular"):
         r"""
         Return the name of the FindStat collection.
 
+        INPUT:
+
+        - a string -- (default:"singular") can be
+          "singular", or "plural".
+
         OUTPUT:
 
-        The name of the FindStat collection, in singular.
+        The name of the FindStat collection, in singular or in plural.
 
         EXAMPLES::
 
             sage: from sage.databases.findstat import FindStatCollection
             sage: FindStatCollection("Binary trees").name()                     # optional -- internet
             u'Binary tree'
-        """
-        return self._name
 
-    def name_plural(self):
-        r"""
-        Return the plural name of the FindStat collection.
-
-        OUTPUT:
-
-        The name of the FindStat collection, in plural.
-
-        EXAMPLES::
-
-            sage: from sage.databases.findstat import FindStatCollection
-            sage: FindStatCollection("Binary trees").name_plural()              # optional -- internet
+            sage: FindStatCollection("Binary trees").name(style="plural")       # optional -- internet
             u'Binary trees'
         """
-        return self._name_plural
+        if style == "singular":
+            return self._name
+        elif style == "plural":
+            return self._name_plural
+        else:
+            raise ValueError("Argument 'style' (=%s) must be 'singular' or 'plural'."%style)
 
 class FindStatCollections(Parent, UniqueRepresentation):
     r"""

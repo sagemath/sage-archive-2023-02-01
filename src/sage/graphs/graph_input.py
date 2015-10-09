@@ -113,7 +113,7 @@ def from_sparse6(G, g6_string):
     G.add_vertices(range(n))
     G.add_edges(edges)
 
-def from_seidel_adjacency_matrix(G, g6_string):
+def from_seidel_adjacency_matrix(G, M):
     r"""
     Fill ``G`` with the data of a Seidel adjacency matrix.
 
@@ -127,36 +127,39 @@ def from_seidel_adjacency_matrix(G, g6_string):
 
         sage: from sage.graphs.graph_input import from_seidel_adjacency_matrix
         sage: g = Graph()
-        sage: from_seidel_adjacency_matrix(g, ':I`ES@obGkqegW~')
+        sage: from_seidel_adjacency_matrix(g, graphs.PetersenGraph().seidel_adjacency_matrix())
         sage: g.is_isomorphic(graphs.PetersenGraph())
         True
     """
-    assert is_Matrix(data)
-    if data.base_ring() != ZZ:
+    from sage.matrix.matrix import is_Matrix
+    from sage.rings.integer_ring import ZZ
+    assert is_Matrix(M)
+
+    if M.base_ring() != ZZ:
         try:
-            data = data.change_ring(ZZ)
+            M = M.change_ring(ZZ)
         except TypeError:
             raise ValueError("Graph's Seidel adjacency matrix must"+
                              " have only 0,1,-1 integer entries")
 
-    if data.is_sparse():
-        entries = set(data[i,j] for i,j in data.nonzero_positions())
+    if M.is_sparse():
+        entries = set(M[i,j] for i,j in M.nonzero_positions())
     else:
-        entries = set(data.list())
+        entries = set(M.list())
 
     if any(e <  -1 or e > 1 for e in entries):
         raise ValueError("Graph's Seidel adjacency matrix must"+
                          " have only 0,1,-1 integer entries")
-    if any(i==j for i,j in data.nonzero_positions()):
+    if any(i==j for i,j in M.nonzero_positions()):
         raise ValueError("Graph's Seidel adjacency matrix must"+
                          " have 0s on the main diagonal")
-    if not data.is_symmetric():
+    if not M.is_symmetric():
         raise ValueError("Graph's Seidel adjacency matrix must"+
                          " be symmetric")
-    G.add_vertices(range(data.nrows()))
+    G.add_vertices(range(M.nrows()))
     e = []
-    for i,j in data.nonzero_positions():
-       if i <= j and data[i,j] < 0:
+    for i,j in M.nonzero_positions():
+       if i <= j and M[i,j] < 0:
                 e.append((i,j))
     G.add_edges(e)
 
@@ -181,6 +184,8 @@ def from_adjacency_matrix(G, M, loops=False, multiedges=False, weighted=False):
         sage: g.is_isomorphic(graphs.PetersenGraph())
         True
     """
+    from sage.matrix.matrix import is_Matrix
+    from sage.rings.integer_ring import ZZ
     assert is_Matrix(M)
     # note: the adjacency matrix might be weighted and hence not
     # necessarily consists of integers

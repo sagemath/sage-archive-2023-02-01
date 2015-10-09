@@ -1321,8 +1321,8 @@ class Graph(GenericGraph):
             multiedges = False
             weighted = False
             loops = False
-            G.allow_loops(False)
-            G.allow_multiple_edges(False)
+            self.allow_loops(False)
+            self.allow_multiple_edges(False)
             from graph_input import from_seidel_adjacency_matrix
             from_seidel_adjacency_matrix(self, data)
         elif format == 'Graph':

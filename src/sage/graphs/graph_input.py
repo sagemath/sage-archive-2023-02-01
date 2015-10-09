@@ -113,6 +113,54 @@ def from_sparse6(G, g6_string):
     G.add_vertices(range(n))
     G.add_edges(edges)
 
+def from_seidel_adjacency_matrix(G, g6_string):
+    r"""
+    Fill ``G`` with the data of a Seidel adjacency matrix.
+
+    INPUT:
+
+    - ``G`` -- a graph
+
+    - ``M`` -- a Seidel adjacency matrix
+
+    EXAMPLE::
+
+        sage: from sage.graphs.graph_input import from_seidel_adjacency_matrix
+        sage: g = Graph()
+        sage: from_seidel_adjacency_matrix(g, ':I`ES@obGkqegW~')
+        sage: g.is_isomorphic(graphs.PetersenGraph())
+        True
+    """
+    assert is_Matrix(data)
+    if data.base_ring() != ZZ:
+        try:
+            data = data.change_ring(ZZ)
+        except TypeError:
+            raise ValueError("Graph's Seidel adjacency matrix must"+
+                             " have only 0,1,-1 integer entries")
+
+    if data.is_sparse():
+        entries = set(data[i,j] for i,j in data.nonzero_positions())
+    else:
+        entries = set(data.list())
+
+    if any(e <  -1 or e > 1 for e in entries):
+        raise ValueError("Graph's Seidel adjacency matrix must"+
+                         " have only 0,1,-1 integer entries")
+    if any(i==j for i,j in data.nonzero_positions()):
+        raise ValueError("Graph's Seidel adjacency matrix must"+
+                         " have 0s on the main diagonal")
+    if not data.is_symmetric():
+        raise ValueError("Graph's Seidel adjacency matrix must"+
+                         " be symmetric")
+    G.add_vertices(range(data.nrows()))
+    e = []
+    for i,j in data.nonzero_positions():
+       if i <= j and data[i,j] < 0:
+                e.append((i,j))
+    G.add_edges(e)
+
+
 from sage.misc.rest_index_of_methods import gen_rest_table_index
 import sys
 __doc__ = __doc__.format(INDEX_OF_FUNCTIONS=gen_rest_table_index(sys.modules[__name__]))

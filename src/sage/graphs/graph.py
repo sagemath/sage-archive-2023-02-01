@@ -1370,39 +1370,13 @@ class Graph(GenericGraph):
             self.add_vertices(range(data.nrows()))
             self.add_edges(positions)
         elif format == 'seidel_adjacency_matrix':
-            assert is_Matrix(data)
-            if data.base_ring() != ZZ:
-                try:
-                    data = data.change_ring(ZZ)
-                except TypeError:
-                    raise ValueError("Graph's Seidel adjacency matrix must"+
-                                     " have only 0,1,-1 integer entries")
-
-            if data.is_sparse():
-                entries = set(data[i,j] for i,j in data.nonzero_positions())
-            else:
-                entries = set(data.list())
-
-            if any(e <  -1 or e > 1 for e in entries):
-                raise ValueError("Graph's Seidel adjacency matrix must"+
-                                 " have only 0,1,-1 integer entries")
-            if any(i==j for i,j in data.nonzero_positions()):
-                raise ValueError("Graph's Seidel adjacency matrix must"+
-                                 " have 0s on the main diagonal")
-            if not data.is_symmetric():
-                raise ValueError("Graph's Seidel adjacency matrix must"+
-                                 " be symmetric")
             multiedges = False
             weighted = False
             loops = False
-            self.allow_loops(False)
-            self.allow_multiple_edges(False)
-            self.add_vertices(range(data.nrows()))
-            e = []
-            for i,j in data.nonzero_positions():
-               if i <= j and data[i,j] < 0:
-                        e.append((i,j))
-            self.add_edges(e)
+            G.allow_loops(False)
+            G.allow_multiple_edges(False)
+            from graph_input import from_seidel_adjacency_matrix
+            from_seidel_adjacency_matrix(self, data)
         elif format == 'Graph':
             if loops is None:      loops      = data.allows_loops()
             if multiedges is None: multiedges = data.allows_multiple_edges()

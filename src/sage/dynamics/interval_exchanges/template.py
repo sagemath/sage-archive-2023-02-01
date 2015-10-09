@@ -1981,7 +1981,7 @@ class RauzyDiagram(SageObject):
     r"""
     Template for Rauzy diagrams.
 
-    .. warning:
+    .. warning::
 
         Internal class! Do not use directly!
 
@@ -2600,27 +2600,30 @@ class RauzyDiagram(SageObject):
                  top_bottom_inversion=False,
                  symmetric=False):
         r"""
-        self._succ contains successors
-        self._pred contains predecessors
+        - ``self._succ`` contains successors
 
-        self._element_class is the class of elements of self
-        self._element is an instance of this class (hence contains the alphabet,
-        the representation mode, ...). It is used to store data about property
-        of permutations and also as a fast iterator.
+        - ``self._pred`` contains predecessors
 
-         INPUT:
+        - ``self._element_class`` is the class of elements of ``self``
 
-         - ``right_induction`` - boolean or 'top' or 'bottom': consider the
-         right induction
+        - ``self._element`` is an instance of this class (hence
+          contains the alphabet, the representation mode, ...). It is
+          used to store data about property of permutations and also as
+          a fast iterator.
 
-         - ``left_induction`` - boolean or 'top' or 'bottom': consider the
-         left induction
+        INPUT:
 
-         - ``left_right_inversion`` - consider the left right inversion
+        - ``right_induction`` - boolean or 'top' or 'bottom': consider the
+          right induction
 
-         - ``top_bottom_inversion`` - consider the top bottom inversion
+        - ``left_induction`` - boolean or 'top' or 'bottom': consider the
+          left induction
 
-         - ``symmetric`` - consider the symmetric
+        - ``left_right_inversion`` - consider the left right inversion
+
+        - ``top_bottom_inversion`` - consider the top bottom inversion
+
+        - ``symmetric`` - consider the symmetric
 
         TESTS::
 

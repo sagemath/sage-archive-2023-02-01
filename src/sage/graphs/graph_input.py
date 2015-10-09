@@ -55,6 +55,58 @@ def from_graph6(G, g6_string):
                 G._backend.add_edge(i, j, None, False)
             k += 1
 
+def from_sparse6(G, g6_string):
+    r"""
+    Fill ``G`` with the data of a sparse6 string.
+
+    INPUT:
+
+    - ``G`` -- a graph
+
+    - ``g6_string`` -- a sparse6 string
+
+    EXAMPLE::
+
+        sage: from sage.graphs.graph_input import from_sparse6
+        sage: g = Graph()
+        sage: from_sparse6(g, ':I`ES@obGkqegW~')
+        sage: g.is_isomorphic(graphs.PetersenGraph())
+        True
+    """
+    from generic_graph_pyx import length_and_string_from_graph6, int_to_binary_string
+    from math import ceil, floor
+    from sage.misc.functional import log
+    n = g6_string.find('\n')
+    if n == -1:
+        n = len(g6_string)
+    s = g6_string[:n]
+    n, s = length_and_string_from_graph6(s[1:])
+    if n == 0:
+        edges = []
+    else:
+        k = int(ceil(log(n,2)))
+        ords = [ord(i) for i in s]
+        if any(o > 126 or o < 63 for o in ords):
+            raise RuntimeError("The string seems corrupt: valid characters are \n" + ''.join([chr(i) for i in xrange(63,127)]))
+        bits = ''.join([int_to_binary_string(o-63).zfill(6) for o in ords])
+        b = []
+        x = []
+        for i in xrange(int(floor(len(bits)/(k+1)))):
+            b.append(int(bits[(k+1)*i:(k+1)*i+1],2))
+            x.append(int(bits[(k+1)*i+1:(k+1)*i+k+1],2))
+        v = 0
+        edges = []
+        for i in xrange(len(b)):
+            if b[i] == 1:
+                v += 1
+            if x[i] > v:
+                v = x[i]
+            else:
+                if v < n:
+                    edges.append((x[i],v))
+    G.add_vertices(range(n))
+    G.add_edges(edges)
+
 from sage.misc.rest_index_of_methods import gen_rest_table_index
 import sys
 __doc__ = __doc__.format(INDEX_OF_FUNCTIONS=gen_rest_table_index(sys.modules[__name__]))

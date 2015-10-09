@@ -1274,38 +1274,9 @@ class Graph(GenericGraph):
             if weighted   is None: weighted   = False
             self.allow_loops(False if loops is False else True, check=False)
             self.allow_multiple_edges(False if multiedges is False else True, check=False)
-            from math import ceil, floor
-            from sage.misc.functional import log
-            n = data.find('\n')
-            if n == -1:
-                n = len(data)
-            s = data[:n]
-            n, s = generic_graph_pyx.length_and_string_from_graph6(s[1:])
-            if n == 0:
-                edges = []
-            else:
-                k = int(ceil(log(n,2)))
-                ords = [ord(i) for i in s]
-                if any(o > 126 or o < 63 for o in ords):
-                    raise RuntimeError("The string seems corrupt: valid characters are \n" + ''.join([chr(i) for i in xrange(63,127)]))
-                bits = ''.join([generic_graph_pyx.int_to_binary_string(o-63).zfill(6) for o in ords])
-                b = []
-                x = []
-                for i in xrange(int(floor(len(bits)/(k+1)))):
-                    b.append(int(bits[(k+1)*i:(k+1)*i+1],2))
-                    x.append(int(bits[(k+1)*i+1:(k+1)*i+k+1],2))
-                v = 0
-                edges = []
-                for i in xrange(len(b)):
-                    if b[i] == 1:
-                        v += 1
-                    if x[i] > v:
-                        v = x[i]
-                    else:
-                        if v < n:
-                            edges.append((x[i],v))
-            self.add_vertices(range(n))
-            self.add_edges(edges)
+            from graph_input import from_sparse6
+            from_sparse6(self, data)
+
         elif format == 'adjacency_matrix':
             assert is_Matrix(data)
             # note: the adjacency matrix might be weighted and hence not

@@ -1349,38 +1349,9 @@ class Graph(GenericGraph):
                                convert_empty_dict_labels_to_None = False if convert_empty_dict_labels_to_None is None else convert_empty_dict_labels_to_None)
 
         elif format == 'dict_of_lists':
-            if not all(isinstance(data[u], list) for u in data):
-                raise ValueError("Input dict must be a consistent format.")
+            from graph_input import from_dict_of_lists
+            from_dict_of_lists(self, data, loops=loops, multiedges=multiedges, weighted=weighted)
 
-            verts = set().union(data.keys(),*data.values())
-            if loops is None or loops is False:
-                for u in data:
-                    if u in data[u]:
-                        if loops is None:
-                            loops = True
-                        elif loops is False:
-                            u = next(u for u,neighb in data.iteritems() if u in neighb)
-                            raise ValueError("The graph was built with loops=False but input data has a loop at {}.".format(u))
-                        break
-                if loops is None:
-                    loops = False
-            if weighted is None: weighted = False
-            for u in data:
-                if len(set(data[u])) != len(data[u]):
-                    if multiedges is False:
-                        v = next((v for v in data[u] if data[u].count(v) > 1))
-                        raise ValueError("Non-multigraph got several edges (%s,%s)"%(u,v))
-                    if multiedges is None:
-                        multiedges = True
-            if multiedges is None: multiedges = False
-            self.allow_loops(loops, check=False)
-            self.allow_multiple_edges(multiedges, check=False)
-            self.add_vertices(verts)
-            for u in data:
-                for v in data[u]:
-                    if (multiedges or hash(u) <= hash(v) or
-                        v not in data or u not in data[v]):
-                        self._backend.add_edge(u,v,None,False)
         elif format == 'int':
             self.allow_loops(loops if loops else False, check=False)
             self.allow_multiple_edges(multiedges if multiedges else False, check=False)

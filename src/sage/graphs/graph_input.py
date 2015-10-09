@@ -321,7 +321,7 @@ def from_dict_of_dicts(G, M, loops=False, multiedges=False, weighted=False, conv
 
         sage: from sage.graphs.graph_input import from_dict_of_dicts
         sage: g = Graph()
-        sage: from_dict_of_dicts(g, graphs.PetersenGraph().to_dictionary())
+        sage: from_dict_of_dicts(g, graphs.PetersenGraph().to_dictionary(edge_labels=True))
         sage: g.is_isomorphic(graphs.PetersenGraph())
         True
     """
@@ -372,6 +372,60 @@ def from_dict_of_dicts(G, M, loops=False, multiedges=False, weighted=False, conv
                             G._backend.add_edge(u,v,l,False)
                     else:
                         G._backend.add_edge(u,v,M[u][v],False)
+
+def from_dict_of_lists(G, D, loops=False, multiedges=False, weighted=False):
+    r"""
+    Fill ``G`` with the data of a dictionary of lists.
+
+    INPUT:
+
+    - ``G`` -- a graph
+
+    - ``D`` -- a dictionary of lists.
+
+    - ``loops``, ``multiedges``, ``weighted`` (booleans) -- whether to consider
+      the graph as having loops, multiple edges, or weights. Set to ``False`` by default.
+
+    EXAMPLE::
+
+        sage: from sage.graphs.graph_input import from_dict_of_lists
+        sage: g = Graph()
+        sage: from_dict_of_lists(g, graphs.PetersenGraph().to_dictionary())
+        sage: g.is_isomorphic(graphs.PetersenGraph())
+        True
+    """
+    if not all(isinstance(D[u], list) for u in D):
+        raise ValueError("Input dict must be a consistent format.")
+
+    verts = set().union(D.keys(),*D.values())
+    if loops is None or loops is False:
+        for u in D:
+            if u in D[u]:
+                if loops is None:
+                    loops = True
+                elif loops is False:
+                    u = next(u for u,neighb in D.iteritems() if u in neighb)
+                    raise ValueError("The graph was built with loops=False but input D has a loop at {}.".format(u))
+                break
+        if loops is None:
+            loops = False
+    if weighted is None: G._weighted = False
+    for u in D:
+        if len(set(D[u])) != len(D[u]):
+            if multiedges is False:
+                v = next((v for v in D[u] if D[u].count(v) > 1))
+                raise ValueError("Non-multigraph got several edges (%s,%s)"%(u,v))
+            if multiedges is None:
+                multiedges = True
+    if multiedges is None: multiedges = False
+    G.allow_loops(loops, check=False)
+    G.allow_multiple_edges(multiedges, check=False)
+    G.add_vertices(verts)
+    for u in D:
+        for v in D[u]:
+            if (multiedges or hash(u) <= hash(v) or
+                v not in D or u not in D[v]):
+                G._backend.add_edge(u,v,None,False)
 
 from sage.misc.rest_index_of_methods import gen_rest_table_index
 import sys

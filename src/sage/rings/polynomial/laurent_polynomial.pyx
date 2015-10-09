@@ -1332,8 +1332,11 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial_generic):
             sage: R.<x1,x2> = LaurentPolynomialRing(QQ)
             sage: loads(dumps(x1)) == x1 # indirect doctest
             True
+            sage: z = x1/x2
+            sage: loads(dumps(z)) == z
+            True
         """
-        return self._parent, (self._poly,)
+        return self._parent, (self._poly, self._mon)
 
     cdef _new_c(self):
         """
@@ -1374,7 +1377,7 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial_generic):
                 else:
                     e = e.emin(k)
             if len(e.nonzero_positions()) > 0:
-                self._poly = self._poly / self._poly.parent()({e: 1})
+                self._poly = self._poly // self._poly.parent()({e: 1})
                 self._mon = self._mon.eadd(e)
         else:
             e = None
@@ -1382,7 +1385,7 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial_generic):
                 if e is None or k[i] < e:
                     e = k[i]
             if e > 0:
-                self._poly = self._poly / self._poly.parent().gen(i)
+                self._poly = self._poly // self._poly.parent().gen(i)
                 self._mon = self._mon.eadd_p(e, i)
 
     def _dict(self):
@@ -2047,8 +2050,15 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial_generic):
             x^2 - x*y^-1 + y^-2
             sage: h * (f // h) == f
             True
+
+        TESTS (:trac:`19357`)::
+
+            sage: x // y
+            x*y^-1
         """
         cdef LaurentPolynomial_mpair ans = self._new_c()
+        self._normalize()
+        right._normalize()
         ans._mon = self._mon.esub((<LaurentPolynomial_mpair>right)._mon)
         ans._poly = self._poly.__floordiv__((<LaurentPolynomial_mpair>right)._poly)
         return ans

@@ -396,7 +396,6 @@ class DifferentialForm(AlgebraElement):
         if degree == 0 and fun is not None:
             self.__setitem__([], fun)
 
-
     def __getitem__(self, subscript):
         r"""
         Return a given component of the differential form.
@@ -404,8 +403,7 @@ class DifferentialForm(AlgebraElement):
         INPUT:
 
         - ``subscript``: subscript of the component.  Must be an integer
-        or a list of integers.
-
+          or a list of integers.
 
         EXAMPLES::
 
@@ -426,7 +424,6 @@ class DifferentialForm(AlgebraElement):
             sage: df[2]
             0
         """
-
         if isinstance(subscript, (Integer, int)):
             subscript = (subscript, )
         else:
@@ -446,7 +443,6 @@ class DifferentialForm(AlgebraElement):
             return sign*self._components[subscript]
         else:
             return 0
-
 
     def __setitem__(self, subscript, fun):
         r"""

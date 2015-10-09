@@ -419,7 +419,7 @@ class FindStat(SageObject):
         sage: findstat((S6, [1 for a in S6]))                                   # optional -- internet
         Traceback (most recent call last):
         ...
-        ValueError: after discarding elements not in the range, and keeping less than 200 values, nothing remained to send to FindStat.
+        ValueError: After discarding elements not in the range, too few (=0) values remained to send to FindStat.
 
     """
     def __init__(self):
@@ -457,7 +457,7 @@ class FindStat(SageObject):
             sage: findstat("Permutations", lambda x: 1, depth=100)
             Traceback (most recent call last):
             ...
-            ValueError: The depth must be a non-negative integer less than or equal to 5.
+            ValueError: The depth of a FindStat query must be a non-negative integer less than or equal to 5.
 
             sage: findstat("Permutations", 1)
             Traceback (most recent call last):
@@ -465,10 +465,10 @@ class FindStat(SageObject):
             ValueError: The given arguments, Permutations and 1, cannot be used for a FindStat search.
 
             sage: S = Permutation
-            sage: findstat([(S([1,3,2]), 1)])                                   # optional -- internet
+            sage: findstat([[S([1,2,3]),S([1,3,2])],[1,1]])                     # optional -- internet
             Traceback (most recent call last):
             ...
-            ValueError: ???
+            ValueError: After discarding elements not in the range, too few (=2) values remained to send to FindStat.
 
             sage: findstat(([S([1,3,2]), S([1,2,3]), S([1,3,2])], [1,1,1]))     # optional -- internet
             Traceback (most recent call last):
@@ -484,14 +484,14 @@ class FindStat(SageObject):
             depth = int(depth)
             assert 0 <= depth <= FINDSTAT_MAX_DEPTH
         except:
-            raise ValueError("The depth must be a non-negative integer less than or equal to %i." %FINDSTAT_MAX_DEPTH)
+            raise ValueError("The depth of a FindStat query must be a non-negative integer less than or equal to %i." %FINDSTAT_MAX_DEPTH)
 
         if function is None:
             if isinstance(query, str):
                 if re.match('^St[0-9]{6}$', query):
                     return self._statistic_find_by_id_cached(Integer(query[2:].lstrip("0")))
                 else:
-                    raise ValueError("The value %s is not a valid statistic identifier." %query)
+                    raise ValueError("The value %s is not a valid FindStat statistic identifier." %query)
 
             elif isinstance(query, (int, Integer)):
                 return self._statistic_find_by_id_cached(query)
@@ -683,7 +683,7 @@ class FindStat(SageObject):
                 self._statistic_cache[id] = FindStatStatistic(id)._find_by_id()
             return self._statistic_cache[id]
         else:
-            raise ValueError("The statistic identifier must be at least 1.")
+            raise ValueError("A FindStat statistic identifier must be at least 1.")
 
 ######################################################################
 
@@ -794,7 +794,7 @@ class FindStatStatistic(SageObject):
                 return self._result.__repr__()
 
         else:
-            raise ValueError("self._query should be either 'ID' or 'data', but is %s." %self._query)
+            raise ValueError("FindStatStatistic._query should be either 'ID' or 'data', but is %s.  This should not happen.  Please send an email to the developers." %self._query)
 
     def __eq__(self, other):
         """Return ``True`` if ``self`` is equal to ``other`` and ``False``
@@ -961,12 +961,6 @@ class FindStatStatistic(SageObject):
 
             sage: FindStatStatistic(id=0,data=data, first_terms = first_terms, collection = collection, depth=0)._find_by_values() # optional -- internet
             0: (St000012: The area of a Dyck path., [], 14)
-
-            sage: findstat([[Permutation([1,2,3]),Permutation([1,3,2])],[1,1]])                     # optional -- internet, indirect doctest
-            ---------------------------------------------------------------------------
-            Traceback (most recent call last):
-            ...
-            ValueError: After discarding elements not in the range, too little (=2) values remained to send to FindStat.
         """
         self._query = "data"
 
@@ -987,7 +981,7 @@ class FindStatStatistic(SageObject):
                     total               -= len(elements)
 
         if in_range_counter < FINDSTAT_MIN_VALUES:
-            raise ValueError("After discarding elements not in the range, too little (=%s) values remained to send to FindStat." %in_range_counter)
+            raise ValueError("After discarding elements not in the range, too few (=%s) values remained to send to FindStat." %in_range_counter)
 
         url = FINDSTAT_URL_RESULT + self._collection._url_name + "/"
 
@@ -1066,13 +1060,13 @@ class FindStatStatistic(SageObject):
 
         """
         if self._query == "ID":
-            raise TypeError("Use 'first_terms' to access the values of the statistic.")
+            raise TypeError("Use 'first_terms' to access the values of a FindStatStatistic.")
 
         elif self._query == "data":
             return self._result[key]
 
         else:
-            raise ValueError("self._query should be either 'ID' or 'data', but is %s." %self._query)
+            raise ValueError("FindStatStatistic._query should be either 'ID' or 'data', but is %s.  This should not happen.  Please send an email to the developers." %self._query)
 
     def id(self):
         r"""
@@ -1372,7 +1366,7 @@ class FindStatStatistic(SageObject):
                                   for exponent,coefficient in gen_dict.iteritems() )
                      for level, gen_dict in gfs.iteritems()}
         else:
-            raise ValueError("The argument 'style' (='%s') must be 'dictionary', 'polynomial', or 'list'"%style)
+            raise ValueError("The argument 'style' (='%s') must be 'dictionary', 'polynomial', or 'list'."%style)
 
     def oeis_search(self, search_size=32, verbose=True):
         r"""
@@ -1641,7 +1635,7 @@ class FindStatStatistic(SageObject):
         if self._query == "ID":
             webbrowser.open(FINDSTAT_URL_BROWSE + self.id_str())
         else:
-            raise NotImplementedError("Would be nice to show the result of the query in the webbrowser.")
+            raise NotImplementedError("It would be nice to show the result of a FindStat query in the webbrowser, but we do not know how to do this yet.")
 
     ######################################################################
     # submit current (possibly incompletely defined) statistic

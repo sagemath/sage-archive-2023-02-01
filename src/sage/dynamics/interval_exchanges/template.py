@@ -251,7 +251,7 @@ class Permutation(SageObject):
     r"""
     Template for all permutations.
 
-    .. warning::
+    .. WARNING::
 
         Internal class! Do not use directly!
 
@@ -790,7 +790,7 @@ class PermutationIET(Permutation):
     """
     Template for permutation from Interval Exchange Transformation.
 
-    .. warning::
+    .. WARNING::
 
         Internal class! Do not use directly!
 
@@ -1582,7 +1582,7 @@ class PermutationLI(Permutation):
     r"""
     Template for quadratic permutation.
 
-    .. warning::
+    .. WARNING::
 
         Internal class! Do not use directly!
 
@@ -1857,7 +1857,7 @@ class FlippedPermutation(Permutation):
     r"""
     Template for flipped generalized permutations.
 
-    .. warning::
+    .. WARNING::
 
         Internal class! Do not use directly!
 
@@ -1916,7 +1916,7 @@ class FlippedPermutationIET(FlippedPermutation, PermutationIET):
     r"""
     Template for flipped Abelian permutations.
 
-    .. warning::
+    .. WARNING::
 
         Internal class! Do not use directly!
 
@@ -1945,7 +1945,7 @@ class FlippedPermutationLI(FlippedPermutation, PermutationLI):
     r"""
     Template for flipped quadratic permutations.
 
-    .. warning::
+    .. WARNING::
 
         Internal class! Do not use directly!
 
@@ -1981,7 +1981,7 @@ class RauzyDiagram(SageObject):
     r"""
     Template for Rauzy diagrams.
 
-    .. warning::
+    .. WARNING::
 
         Internal class! Do not use directly!
 
@@ -3532,7 +3532,7 @@ class FlippedRauzyDiagram(RauzyDiagram):
     r"""
     Template for flipped Rauzy diagrams.
 
-    .. warning:
+    .. WARNING::
 
         Internal class! Do not use directly!
 

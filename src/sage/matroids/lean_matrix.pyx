@@ -741,7 +741,7 @@ cdef class GenericMatrix(LeanMatrix):
 
     def __repr__(self):
         """
-        Print representation.
+        Return representation.
 
         EXAMPLES::
 
@@ -1040,7 +1040,7 @@ cdef class BinaryMatrix(LeanMatrix):
 
     def __repr__(self):
         r"""
-        Print representation string
+        Return representation string
 
         EXAMPLES::
 
@@ -1667,7 +1667,7 @@ cdef class TernaryMatrix(LeanMatrix):
 
     def __repr__(self):
         r"""
-        Print representation string
+        Return representation string
 
         EXAMPLES::
 
@@ -2242,7 +2242,7 @@ cdef class QuaternaryMatrix(LeanMatrix):
 
     def __repr__(self):
         r"""
-        Print representation string
+        Return representation string
 
         EXAMPLES::
 
@@ -2829,7 +2829,7 @@ cdef class IntegerMatrix(LeanMatrix):
 
     def __repr__(self):
         """
-        Print representation.
+        Return representation.
 
         EXAMPLES::
 

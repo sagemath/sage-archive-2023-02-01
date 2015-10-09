@@ -44,7 +44,7 @@ def sort_subscript(subscript):
     INPUT:
 
     - ``subscript`` -- a subscript, i.e. a range of not necessarily
-        distinct integers
+      distinct integers
 
 
     OUTPUT:
@@ -402,7 +402,7 @@ class DifferentialForm(AlgebraElement):
 
         INPUT:
 
-        - ``subscript``: subscript of the component.  Must be an integer
+        - ``subscript`` -- subscript of the component.  Must be an integer
           or a list of integers.
 
         EXAMPLES::
@@ -450,7 +450,8 @@ class DifferentialForm(AlgebraElement):
 
         INPUT:
 
-        - ``subscript``: subscript of the component.  Must be an integer or a list of integers.
+        - ``subscript`` -- subscript of the component.  Must be an integer
+          or a list of integers.
 
         EXAMPLES::
 

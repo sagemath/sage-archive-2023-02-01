@@ -541,11 +541,32 @@ class AlternatingSignMatrix(Element):
         """
         return self.to_fully_packed_loop().link_pattern()
 
+    def to_link_pattern_dyck_word(self):
+        """
+        Return the Dyck word in bijection with the link pattern of self.
+
+        EXAMPLES::
+
+            sage: A = AlternatingSignMatrices(3)
+            sage: asm = A([[0,1,0],[1,0,0],[0,0,1]])
+            sage: asm.to_link_pattern_dyck_word()
+            [1, 0, 1, 0, 1, 0]
+            sage: asm = A([[0,1,0],[1,-1,1],[0,1,0]])
+            sage: asm.to_link_pattern_dyck_word()
+            [1, 0, 1, 1, 0, 0]
+        """
+        from sage.combinat.perfect_matching import PerfectMatching        
+        from sage.combinat.dyck_word import DyckWords        
+        p = PerfectMatching(self.link_pattern()).to_non_crossing_set_partition()
+        asm = self.to_matrix()
+        n = asm.nrows()
+        d = DyckWords(n)
+        return d.from_noncrossing_partition(p)
 
     @combinatorial_map(name='gyration')
     def gyration(self):
         r"""
-        Return the alternating sign matrix obtained by applying the gyration
+        Return the alternating sign matrix obtained by applying gyration
         to the height function in bijection with ``self``.
 
         Gyration acts on height functions as follows. Go through the entries of
@@ -577,7 +598,6 @@ class AlternatingSignMatrix(Element):
             [0 1 0]
             [0 0 1]
             [1 0 0]
-
             sage: A = AlternatingSignMatrices(3)
             sage: A([[1, 0, 0],[0, 1, 0],[0, 0, 1]]).gyration().gyration()
             [ 0  1  0]
@@ -910,6 +930,8 @@ class AlternatingSignMatrix(Element):
             for j in range(len(mt[i])):
                 ssyt[i][j] = mt[j][-(i+1)]
         return SemistandardTableau(ssyt)
+
+
 
     def left_key(self):
         r"""

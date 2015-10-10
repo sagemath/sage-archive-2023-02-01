@@ -1142,7 +1142,7 @@ class DeltaComplex(GenericCellComplex):
                 old_idx += 1
             # reindex all simplices to be processed and add them to data
             for s in process_now:
-                data[n].append([renaming[i] for i in s])
+                data[n].append(tuple([renaming[i] for i in s]))
             # set up for next loop, one dimension down
             renaming = {}
             process_now = process_later

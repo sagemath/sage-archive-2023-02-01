@@ -408,7 +408,7 @@ class RCToKRTBijectionAbstract:
                         y = self.rigged_con.parent()(*[x._clone() for x in self.cur_partitions], use_vacancy_numbers=True)
                         self._graph.append([self._graph[-1][1], (y, len(self._graph)), 'ls'])
 
-                while self.cur_dims[0][0] > 0:
+                while self.cur_dims[0][0]: # > 0:
                     if verbose:
                         print("====================")
                         print(repr(self.rigged_con.parent()(*self.cur_partitions, use_vacancy_numbers=True)))
@@ -416,8 +416,9 @@ class RCToKRTBijectionAbstract:
                         print(ret_crystal_path)
                         print("--------------------\n")
 
-                    self.cur_dims[0][0] -= 1 # This takes care of the indexing
-                    b = self.next_state(self.cur_dims[0][0])
+                    ht = self.cur_dims[0][0]
+                    self.cur_dims[0][0] = self._next_index(ht)
+                    b = self.next_state(ht)
 
                     # Make sure we have a crystal letter
                     ret_crystal_path[-1].append(letters(b)) # Append the rank
@@ -435,15 +436,6 @@ class RCToKRTBijectionAbstract:
             self._graph = DiGraph(self._graph, format="list_of_edges")
             if have_dot2tex():
                 self._graph.set_latex_options(format="dot2tex", edge_labels=True)
-
-        # Basic check to make sure we end with the empty configuration
-        #tot_len = sum([len(rp) for rp in self.cur_partitions])
-        #if tot_len != 0:
-        #    print "Invalid bijection end for:"
-        #    print self.rigged_con
-        #    print "-----------------------"
-        #    print self.cur_partitions
-        #    raise ValueError("Invalid bijection end")
         return self.KRT(pathlist=ret_crystal_path)
 
     @abstract_method
@@ -456,7 +448,7 @@ class RCToKRTBijectionAbstract:
             sage: RC = RiggedConfigurations(['A', 4, 1], [[2, 1]])
             sage: from sage.combinat.rigged_configurations.bij_type_A import RCToKRTBijectionTypeA
             sage: bijection = RCToKRTBijectionTypeA(RC(partition_list=[[1],[1],[1],[1]]))
-            sage: bijection.next_state(0)
+            sage: bijection.next_state(1)
             5
             sage: bijection.cur_partitions
             [(/)
@@ -483,7 +475,7 @@ class RCToKRTBijectionAbstract:
         """
 
         # Nothing to do if there the rigged partition is empty
-        if len(self.cur_partitions[a]) == 0:
+        if not self.cur_partitions[a]:
             return
 
         partition = self.cur_partitions[a]
@@ -527,8 +519,14 @@ class RCToKRTBijectionAbstract:
             sage: bijection._find_singular_string(bijection.cur_partitions[2], 0)
             0
         """
-        for i, val in enumerate(partition):
-            if (val >= last_size
+        for i in reversed(range(len(partition))):
+            if (partition[i] >= last_size
                     and partition.vacancy_numbers[i] == partition.rigging[i]):
                 return i
+
+    def _next_index(self, r):
+        """
+        Return the next index after ``r`` when performing the bijection.
+        """
+        return r - 1
 

@@ -12,7 +12,7 @@ AUTHORS:
 """
 
 #*****************************************************************************
-#       Copyright (C) 2011-2014 Travis Scrimshaw <tscrim@ucdavis.edu>
+#       Copyright (C) 2011-2015 Travis Scrimshaw <tscrim@ucdavis.edu>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #

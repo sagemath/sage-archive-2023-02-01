@@ -811,8 +811,8 @@ class PerfectMatching(ElementWrapper):
     def to_non_crossing_set_partition(self):
         r"""
         Returns the noncrossing set partition (on half as many elements) 
-        corresponding to the perfect matching, if the perfect matching is 
-        noncrossing. Otherwise, gives an error.
+        corresponding to the perfect matching if the perfect matching is 
+        noncrossing, and otherwise gives an error.
 
         OUTPUT:
 

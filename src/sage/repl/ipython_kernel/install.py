@@ -252,9 +252,9 @@ class SageKernelSpec(object):
         
 def have_prerequisites(debug=True):
     """
-    Check that we have all prerequisites to run the IPython notebook.
+    Check that we have all prerequisites to run the Jupyter notebook.
 
-    In particular, the IPython notebook requires OpenSSL whether or
+    In particular, the Jupyter notebook requires OpenSSL whether or
     not you are using https. See :trac:`17318`.
 
     INPUT:
@@ -276,10 +276,7 @@ def have_prerequisites(debug=True):
         from notebook.notebookapp import NotebookApp
         return True
     except ImportError:
-        import traceback
-        traceback.print_exc()
+        if debug:
+            import traceback
+            traceback.print_exc()
         return False
-
-
-
-

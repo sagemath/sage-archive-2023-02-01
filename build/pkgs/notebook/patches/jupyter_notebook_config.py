@@ -4,7 +4,4 @@
 # needs to have the mathjax_url set to wherever your distribution
 # installs mathjax.
 
-import os
-c = get_config()
-
-c.NotebookApp.mathjax_url = '/nbextensions/mathjax/MathJax.js'
+c.NotebookApp.mathjax_url = '../nbextensions/mathjax/MathJax.js'

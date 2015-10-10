@@ -4593,7 +4593,7 @@ cdef class FreeModuleElement_generic_sparse(FreeModuleElement):
         cdef dict e
         try:
             e = (<FreeModuleElement_generic_sparse?>right)._entries
-        except:
+        except TypeError:
             e = right.dict()
         z = left.base_ring().zero()
         if left.base_ring() is not right.base_ring():

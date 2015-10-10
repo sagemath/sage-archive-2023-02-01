@@ -254,7 +254,7 @@ class ClusterQuiver(SageObject):
             self._n = data._n
             self._m = data._m
             self._digraph = copy( data._digraph )
-            self._vertex_dictionary = {}
+            self._vertex_dictionary = data._vertex_dictionary
             self._mutation_type = data._mutation_type
             self._description = data._description
 
@@ -287,6 +287,7 @@ class ClusterQuiver(SageObject):
             m = self._m = frozen
             n = self._n = data.order() - m
             dg = copy( data )
+            dg_labelling = False
             edges = data.edges(labels=False)
             if any( (a,a) in edges for a in data.vertices() ):
                 raise ValueError("The input DiGraph contains a loop")
@@ -331,13 +332,12 @@ class ClusterQuiver(SageObject):
             
             self._digraph = dg
             self._vertex_dictionary = {}
-            if dg_labelling is not None:
+            if dg_labelling is not False:
                 # If we have a list, then convert it to a dict
                 if isinstance(dg_labelling, list):
                     self.relabel(dict(zip(xrange(len(dg_labelling)), dg_labelling)))
                 elif isinstance(dg_labelling, dict):
                     self.relabel(dg_labelling)
-                
                 
             self._M = M
             if n+m == 0:
@@ -519,7 +519,6 @@ class ClusterQuiver(SageObject):
                     vkey = v
                 options['pos'][vkey] = (pp[v][0]+center[0],pp[v][1]+center[1])
                 
-            
         return dg.plot( **options )
 
     def show(self, fig_size=1, circular=False, directed=True, mark=None, save_pos=False, greens=[]):

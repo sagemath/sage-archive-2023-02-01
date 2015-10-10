@@ -266,7 +266,7 @@ class ClusterSeed(SageObject):
                 print "The input \'frozen\' is ignored"
 
             quiver = ClusterQuiver( data )
-
+            
             self._M = copy(quiver._M)    # B-tilde exchange matrix
             self._n = quiver._n
             self._m = quiver._m

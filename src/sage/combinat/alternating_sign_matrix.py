@@ -554,6 +554,10 @@ class AlternatingSignMatrix(Element):
             sage: asm = A([[0,1,0],[1,-1,1],[0,1,0]])
             sage: asm.to_link_pattern_dyck_word()
             [1, 0, 1, 1, 0, 0]
+            sage: A = AlternatingSignMatrices(4)
+            sage: asm = A([[0,0,1,0],[1,0,0,0],[0,1,-1,1],[0,0,1,0]])
+            sage: asm.to_link_pattern_dyck_word()
+            [1, 1, 1, 0, 1, 0, 0, 0]
         """
         from sage.combinat.perfect_matching import PerfectMatching        
         from sage.combinat.dyck_word import DyckWords        

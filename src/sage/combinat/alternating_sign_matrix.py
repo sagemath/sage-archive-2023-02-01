@@ -541,32 +541,6 @@ class AlternatingSignMatrix(Element):
         """
         return self.to_fully_packed_loop().link_pattern()
 
-    def to_link_pattern_dyck_word(self):
-        """
-        Return the Dyck word in bijection with the link pattern of self.
-
-        EXAMPLES::
-
-            sage: A = AlternatingSignMatrices(3)
-            sage: asm = A([[0,1,0],[1,0,0],[0,0,1]])
-            sage: asm.to_link_pattern_dyck_word()
-            [1, 0, 1, 0, 1, 0]
-            sage: asm = A([[0,1,0],[1,-1,1],[0,1,0]])
-            sage: asm.to_link_pattern_dyck_word()
-            [1, 0, 1, 1, 0, 0]
-            sage: A = AlternatingSignMatrices(4)
-            sage: asm = A([[0,0,1,0],[1,0,0,0],[0,1,-1,1],[0,0,1,0]])
-            sage: asm.to_link_pattern_dyck_word()
-            [1, 1, 1, 0, 1, 0, 0, 0]
-        """
-        from sage.combinat.perfect_matching import PerfectMatching        
-        from sage.combinat.dyck_word import DyckWords        
-        p = PerfectMatching(self.link_pattern()).to_non_crossing_set_partition()
-        asm = self.to_matrix()
-        n = asm.nrows()
-        d = DyckWords(n)
-        return d.from_noncrossing_partition(p)
-
     @combinatorial_map(name='gyration')
     def gyration(self):
         r"""
@@ -833,25 +807,62 @@ class AlternatingSignMatrix(Element):
         return(output)
 
     @combinatorial_map(name='to Dyck word')
-    def to_dyck_word(self):
+    def to_dyck_word(self, method):
         r"""
-        Return the Dyck word determined by the last diagonal of
-        the monotone triangle corresponding to ``self``.
+        Return a Dyck word determined by one of the following methods: 
+        'last diagonal', which uses the last diagonal of the monotone triangle 
+        corresponding to ``self``, or 'link pattern', which finds the Dyck word 
+        in bijection with the link pattern of the fully packed loop.
+
+        Note that these two methods in general yield different Dyck words for a
+        given alternating sign matrix.
+
+        INPUT:
+
+        - ``method``  - 
+
+          - ``'last diagonal'`` 
+          - ``'link pattern'`` 
 
         EXAMPLES::
 
             sage: A = AlternatingSignMatrices(3)
-            sage: A([[0,1,0],[1,0,0],[0,0,1]]).to_dyck_word()
+            sage: A([[0,1,0],[1,0,0],[0,0,1]]).to_dyck_word(method = 'last diagonal')
             [1, 1, 0, 0, 1, 0]
-            sage: d = A([[0,1,0],[1,-1,1],[0,1,0]]).to_dyck_word(); d
+            sage: d = A([[0,1,0],[1,-1,1],[0,1,0]]).to_dyck_word(method = 'last diagonal'); d
             [1, 1, 0, 1, 0, 0]
             sage: parent(d)
             Complete Dyck words
+            sage: A = AlternatingSignMatrices(3)
+            sage: asm = A([[0,1,0],[1,0,0],[0,0,1]])
+            sage: asm.to_dyck_word(method = 'link pattern')
+            [1, 0, 1, 0, 1, 0]
+            sage: asm = A([[0,1,0],[1,-1,1],[0,1,0]])
+            sage: asm.to_dyck_word(method = 'link pattern')
+            [1, 0, 1, 1, 0, 0]
+            sage: A = AlternatingSignMatrices(4)
+            sage: asm = A([[0,0,1,0],[1,0,0,0],[0,1,-1,1],[0,0,1,0]])
+            sage: asm.to_dyck_word(method = 'link pattern')
+            [1, 1, 1, 0, 1, 0, 0, 0]
+            sage: asm.to_dyck_word()
+            Traceback (most recent call last):
+            ...
+            TypeError: to_dyck_word() takes exactly 2 arguments (1 given)
         """
-        MT = self.to_monotone_triangle()
-        nplus = self._matrix.nrows() + 1
-        parkfn = [nplus - row[0] for row in list(MT) if len(row) > 0]
-        return NonDecreasingParkingFunction(parkfn).to_dyck_word().reverse()
+        if method == 'last diagonal':
+            MT = self.to_monotone_triangle()
+            nplus = self._matrix.nrows() + 1
+            parkfn = [nplus - row[0] for row in list(MT) if len(row) > 0]
+            return NonDecreasingParkingFunction(parkfn).to_dyck_word().reverse()
+        
+        elif method == 'link pattern':
+            from sage.combinat.perfect_matching import PerfectMatching        
+            from sage.combinat.dyck_word import DyckWords        
+            p = PerfectMatching(self.link_pattern()).to_non_crossing_set_partition()
+            asm = self.to_matrix()
+            n = asm.nrows()
+            d = DyckWords(n)
+            return d.from_noncrossing_partition(p)
 
     def number_negative_ones(self):
         """

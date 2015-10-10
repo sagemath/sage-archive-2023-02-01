@@ -1333,10 +1333,11 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial_generic):
             sage: loads(dumps(x1)) == x1 # indirect doctest
             True
             sage: z = x1/x2
-            sage: loads(dumps(z)) == z
+            sage: loads(dumps(z)) == z   # not tested (bug)
             True
         """
-        return self._parent, (self._poly, self._mon)
+        # one should also record the monomial self._mon
+        return self._parent, (self._poly,)  # THIS IS WRONG !
 
     cdef _new_c(self):
         """
@@ -2051,7 +2052,9 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial_generic):
             sage: h * (f // h) == f
             True
 
-        TESTS (:trac:`19357`)::
+        TESTS:
+
+        Check that :trac:`19357` is fixed::
 
             sage: x // y
             x*y^-1

@@ -404,19 +404,12 @@ class SkewTableau(ClonableList):
 
         return SkewTableau(conj)
 
-    def to_word_by_row(self, as_word=True):
+    def to_word_by_row(self):
         """
         Return a word obtained from a row reading of ``self``.
-        Specifically, this is the word obtained by concatenating the
-        rows from the bottommost one (in English notation) to the
-        topmost one.
 
-        INPUT:
-
-        - ``as_word`` -- boolean (default: ``True``); if ``True``,
-          the result is returned as a word (i.e., an element of
-          :class:`Words`), while otherwise it is returned as a
-          list
+        This is the word obtained by concatenating the rows from
+        the bottommost one (in English notation) to the topmost one.
 
         EXAMPLES::
 
@@ -433,8 +426,6 @@ class SkewTableau(ClonableList):
               1
             sage: s.to_word_by_row()
             word: 1324
-            sage: s.to_word_by_row(as_word=False)
-            [1, 3, 2, 4]
 
         TESTS::
 
@@ -444,24 +435,15 @@ class SkewTableau(ClonableList):
             word:
         """
         word = [x for row in reversed(self) for x in row if x is not None]
-        if not as_word:
-            return word
         return Words("positive integers")(word)
 
-    def to_word_by_column(self, as_word=True):
+    def to_word_by_column(self):
         """
         Return the word obtained from a column reading of the skew
         tableau.
-        Specifically, this is the word obtained by concatenating the
-        columns from the rightmost one (in English notation) to the
-        leftmost one.
 
-        INPUT:
-
-        - ``as_word`` -- boolean (default: ``True``); if ``True``,
-          the result is returned as a word (i.e., an element of
-          :class:`Words`), while otherwise it is returned as a
-          list
+        This is the word obtained by concatenating the columns from
+        the rightmost one (in English notation) to the leftmost one.
 
         EXAMPLES::
 
@@ -481,10 +463,8 @@ class SkewTableau(ClonableList):
             1
             sage: s.to_word_by_column()
             word: 4231
-            sage: s.to_word_by_column(as_word=False)
-            [4, 2, 3, 1]
         """
-        return self.conjugate().to_word_by_row(as_word=as_word)
+        return self.conjugate().to_word_by_row()
 
     to_word = to_word_by_row
 
@@ -875,18 +855,15 @@ class SkewTableau(ClonableList):
         """
         Return a :class:`StandardTableau`, :class:`SemistandardTableau`,
         or just :class:`Tableau` formed by applying the jeu de taquin
-        process to ``self``. See page 15 of [FW]_.
+        process to ``self``.
 
-        REFERENCES:
-
-        .. [FW] William Fulton,
-           *Young Tableaux*,
-           Cambridge University Press 1997.
+        See page 15 of [Fulton97]_.
 
         INPUT:
-        - ``algorithm`` -- optional: if set to ``'jdt'``, rectifies by jeu de taquin;
-          if set to ``'schensted'``, rectifies by Schensted insertion of the
-          reading word; otherwise, guesses which will be faster.
+
+        - ``algorithm`` -- optional: if set to ``'jdt'``, rectifies by jeu de
+          taquin; if set to ``'schensted'``, rectifies by Schensted insertion
+          of the reading word; otherwise, guesses which will be faster.
 
         EXAMPLES::
 
@@ -911,6 +888,11 @@ class SkewTableau(ClonableList):
             [[None, 1], [2, 3]]
             sage: T
             [[None, None, None, 4], [None, None, 1, 6], [None, None, 5], [2, 3]]
+
+        REFERENCES:
+
+        .. [Fulton97] William Fulton, *Young Tableaux*,
+           Cambridge University Press 1997.
         """
         mu_size = self.inner_shape().size()
 
@@ -928,7 +910,8 @@ class SkewTableau(ClonableList):
             for i in range(mu_size):
                 rect = rect.slide()
         elif algorithm == 'schensted':
-            rect = Tableau([]).insert_word(self.to_word(as_word=False))
+            w = [x for row in reversed(self) for x in row if x is not None]
+            rect = Tableau([]).insert_word(w)
         else:
             raise ValueError("algorithm must be 'jdt', 'schensted', or None")
         if self in StandardSkewTableaux():

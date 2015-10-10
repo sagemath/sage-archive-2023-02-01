@@ -226,7 +226,7 @@ class SkewTableau(ClonableList):
             sage: print SkewTableau([[None,2,3],[None,4],[5]])._repr_list()
             [[None, 2, 3], [None, 4], [5]]
         """
-        return repr([list(row) for row in self])
+        return repr(self.to_list())
 
     # See #18024. CombinatorialObject provided __str__, though ClonableList
     # doesn't. Emulate the old functionality. Possibly remove when
@@ -776,26 +776,33 @@ class SkewTableau(ClonableList):
                 max_entry = 0
         return [self.restriction_outer_shape(x) for x in range(max_entry+1)]
 
-    def slide(self, corner=None):
+    def slide(self, corner=None, return_vacated=False):
         """
         Apply a jeu-de-taquin slide to ``self`` on the specified corner and
         returns the new tableau.  If no corner is given an arbitrary corner
         is chosen.
 
+        The optional parameter ``return_vacated=True`` causes
+        the output to be the pair ``(t, (i, j))`` where ``t`` is the new
+        tableau and ``(i, j)`` are the coordinates of the vacated square.
+
         See [FW]_ p12-13.
 
         EXAMPLES::
 
-            sage: st = SkewTableau([[None, None, None, None,2],[None, None, None, None,6], [None, 2, 4, 4], [2, 3, 6], [5,5]])
-            sage: st.slide((2,0))
+            sage: st = SkewTableau([[None, None, None, None, 2], [None, None, None, None, 6], [None, 2, 4, 4], [2, 3, 6], [5, 5]])
+            sage: st.slide((2, 0))
             [[None, None, None, None, 2], [None, None, None, None, 6], [2, 2, 4, 4], [3, 5, 6], [5]]
+            sage: st2 = SkewTableau([[None, None, 3], [None, 2, 4], [1, 5]])
+            sage: st2.slide((1, 0), True)
+            ([[None, None, 3], [1, 2, 4], [5]], (2, 1))
 
         TESTS::
 
             sage: st
             [[None, None, None, None, 2], [None, None, None, None, 6], [None, 2, 4, 4], [2, 3, 6], [5, 5]]
         """
-        new_st = [list(x) for x in self]
+        new_st = self.to_list()
         inner_corners = self.inner_shape().corners()
         outer_corners = self.outer_shape().corners()
         if corner is not None:
@@ -852,6 +859,8 @@ class SkewTableau(ClonableList):
         if len(new_st[spotl]) == 0:
             new_st.pop()
 
+        if return_vacated:
+            return (SkewTableau(new_st), (spotl, spotc))
         return SkewTableau(new_st)
 
     def rectify(self):
@@ -886,6 +895,61 @@ class SkewTableau(ClonableList):
             inner_corners = rect.inner_shape().corners()
 
         return rect.to_tableau()
+
+    def to_list(self):
+        r"""
+        Return a (mutable) list representation of ``self``.
+
+        EXAMPLES::
+
+            sage: stlist = [[None, None, 3], [None, 1, 3], [2, 2]]
+            sage: st = SkewTableau(stlist)
+            sage: st.to_list()
+            [[None, None, 3], [None, 1, 3], [2, 2]]
+            sage: st.to_list() == stlist
+            True
+
+        """
+        return [list(row) for row in self]
+
+    def shuffle(self, t2):
+        r"""
+        Shuffle ``self`` with ``t2`` using jeu de taquin.
+
+        Both tableaux must be standard, and the shape of ``t2`` must extend
+        the shape of ``self``, that is, ``self.outer_shape() == t2.inner_shape()``.
+        Then this function computes the pair of tableaux ``(t2_new, self_new)``
+        obtained by using jeu de taquin slides to move the boxes of ``t2`` behind
+        the boxes of ``self``.
+
+        See the parent method :meth:`~sage.combinat.skew_tableau.SkewTableaux.shuffle` for full documentation.
+
+        INPUT:
+
+        - ``t2`` -- a standard SkewTableau with ``self.outer_shape() == t2.inner_shape()``
+
+        OUTPUT:
+
+        - ``t2_new, self_new`` -- a pair of standard SkewTableaux with
+          ``t2_new.outer_shape() == self_new.inner_shape()``
+
+        EXAMPLES::
+
+            sage: t1 = SkewTableau([[None, 1, 2], [3, 4]])
+            sage: t2 = SkewTableau([[None, None, None, 3], [None, None, 4], [1, 2, 5]])
+            sage: (t2_new, t1_new) = t1.shuffle(t2)
+            sage: t1_new
+            [[None, None, None, 2], [None, None, 1], [None, 3, 4]]
+            sage: t2_new
+            [[None, 2, 3], [1, 4], [5]]
+            sage: t1_new.outer_shape() == t2.outer_shape()
+            True
+            sage: t2_new.inner_shape() == t1.inner_shape()
+            True
+
+        """
+        return self.parent().shuffle(self, t2)
+
 
     def standardization(self, check=True):
         r"""
@@ -1067,7 +1131,7 @@ class SkewTableau(ClonableList):
 
         # result_tab is going to be the result tableau (as a list of lists);
         # we will build it up step by step, starting with a deep copy of self.
-        result_tab = [list(row) for row in self]
+        result_tab = self.to_list()
         for i in rows:
             if i >= l:
                 continue
@@ -1521,6 +1585,130 @@ class SkewTableaux(UniqueRepresentation, Parent):
                     st[i][j] = word[w_count]
                     w_count += 1
         return self.element_class(self, st)
+
+    def shuffle(self, t1, t2):
+        r"""
+        Shuffle the standard tableaux ``t1`` and ``t2``.
+
+        The shape of ``t2`` must extend the shape of ``t1``, that is, 
+        ``t1.outer_shape() == t2.inner_shape()``. Then this function computes
+        the pair of tableaux ``(t2_new, t1_new)`` obtained by using jeu de
+        taquin slides to move the boxes of ``t2`` behind the boxes of ``t1``.
+
+        The entries of ``t2_new`` are obtained by performing successive inwards
+        jeu de taquin slides on ``t2`` in the order indicated by the entries of
+        ``t1``, from largest to smallest. The entries of ``t1`` then slide
+        outwards one by one and land in the squares vacated successively by
+        ``t2``, forming ``t1_new``.
+
+        .. NOTE::
+
+            Equivalently, the entries of ``t1_new`` are obtained by performing 
+            outer jeu de taquin slides on ``t1`` in the order indicated by the
+            entries of ``t2``, from smallest to largest. In this case the entries
+            of ``t2`` slide backwards and fill the squares successively vacated by
+            ``t1`` and so form ``t2_new``. (This is not how the algorithm is implemented.)
+
+        INPUT:
+
+        - ``t1, t2`` -- a pair of standard SkewTableaux with
+          ``t1.outer_shape() == t2.inner_shape()``
+
+        OUTPUT:
+
+        - ``t2_new, t1_new`` -- a pair of standard SkewTableaux with
+          ``t2_new.outer_shape() == t1_new.inner_shape()``
+
+        EXAMPLES::
+
+            sage: STs = SkewTableaux()
+            sage: t1 = SkewTableau([[None, 1, 2], [3, 4]])
+            sage: t2 = SkewTableau([[None, None, None, 3], [None, None, 4], [1, 2, 5]])
+            sage: (t2_new, t1_new) = STs.shuffle(t1, t2)
+            sage: t1_new
+            [[None, None, None, 2], [None, None, 1], [None, 3, 4]]
+            sage: t2_new
+            [[None, 2, 3], [1, 4], [5]]
+            sage: t1_new.outer_shape() == t2.outer_shape()
+            True
+            sage: t2_new.inner_shape() == t1.inner_shape()
+            True
+
+        Shuffling is an involution::
+
+            sage: STs = SkewTableaux()
+            sage: t1 = SkewTableau([[None, 1, 2], [3, 4]])
+            sage: t2 = SkewTableau([[None, None, None, 3], [None, None, 4], [1, 2, 5]])
+            sage: (t1, t2) == STs.shuffle(*STs.shuffle(t1, t2))
+            True
+
+        Both tableaux must be standard::
+
+            sage: STs = SkewTableaux()
+            sage: t1 = SkewTableau([[None, 1, 2], [2, 4]])
+            sage: t2 = SkewTableau([[None, None, None, 3], [None, None, 4], [1, 2, 5]])
+            sage: STs.shuffle(t1, t2)
+            Traceback (most recent call last):
+            ...
+            ValueError: the tableaux must be standard
+            sage: t1 = SkewTableau([[None, 1, 2], [3, 4]])
+            sage: t2 = SkewTableau([[None, None, None, 3], [None, None, 4], [1, 2, 6]])
+            sage: STs.shuffle(t1, t2)
+            Traceback (most recent call last):
+            ...
+            ValueError: the tableaux must be standard
+
+        The shapes (not just the nonempty cells) must be adjacent::
+
+            sage: STs = SkewTableaux()
+            sage: t1 = SkewTableau([[None, None, None], [1]])
+            sage: t2 = SkewTableau([[None], [None], [1]])
+            sage: STs.shuffle(t1, t2)
+            Traceback (most recent call last):
+            ...
+            ValueError: the shapes must be adjacent
+
+        TESTS:
+
+        A corner case, where one tableau has no cells::
+
+            sage: STs = SkewTableaux()
+            sage: t1 = SkewTableau([[None]])
+            sage: t2 = SkewTableau([[None, 1, 2], [3, 4]])
+            sage: (t2_new, t1_new) = STs.shuffle(t1, t2)
+            sage: t1_new
+            [[None, None, None], [None, None]]
+            sage: t2_new == t2
+            True
+            sage: STs.shuffle(t2_new, t1_new) == (t1, t2)
+            True
+
+        """
+        if t1.outer_shape() != t2.inner_shape():
+            raise ValueError("the shapes must be adjacent")
+        if not (t1.is_standard() and t2.is_standard()):
+            raise ValueError("the tableaux must be standard")
+
+        # start with t2_new = t2, which we will slide backwards
+        t2_new = t2
+
+        # make a blank copy of t2 (to fill in iteratively), which will become t1_new
+        t1_new = [[None]*len(x) for x in list(t2)]
+
+        # perform reverse slides according to the entries of t1,
+        # from largest to smallest
+        m = t1.size()
+        for i in range(m, 0, -1):
+            # the square of t1 containing i
+            corner = t1.cells_containing(i)[0]
+
+            # slide t2_new backwards, record i in the vacated square
+            (t2_new, (x, y)) = t2_new.slide(corner, True)
+            t1_new[x][y] = i
+
+        t1_new = SkewTableau(t1_new)
+        return t2_new, t1_new
+
 
 class StandardSkewTableaux(SkewTableaux):
     """

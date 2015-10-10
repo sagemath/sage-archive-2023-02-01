@@ -4,7 +4,6 @@ Cartesian products
 AUTHORS:
 
 - Nicolas Thiery (2010-03): initial version
-
 """
 #*****************************************************************************
 #       Copyright (C) 2008 Nicolas Thiery <nthiery at users.sf.net>,
@@ -62,6 +61,8 @@ class CartesianProduct(UniqueRepresentation, Parent):
 
         ``flatten`` is current ignored, and reserved for future use.
 
+        No other keyword arguments (``kwargs``) are accepted.
+
         TESTS::
 
             sage: from sage.sets.cartesian_product import CartesianProduct
@@ -71,6 +72,10 @@ class CartesianProduct(UniqueRepresentation, Parent):
             sage: C.an_element()
             (1/2, 1, 1)
             sage: TestSuite(C).run()
+            sage: cartesian_product([ZZ, ZZ], blub=None)
+            Traceback (most recent call last):
+            ...
+            TypeError: __init__() got an unexpected keyword argument 'blub'
         """
         self._sets = tuple(sets)
         Parent.__init__(self, category=category)

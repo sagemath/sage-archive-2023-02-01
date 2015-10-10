@@ -612,6 +612,59 @@ class Posets(object):
                 return [v for v in s.bruhat_succ() if
                     s.length() + (s.inverse().left_action_product(v)).length() == v.length()]
         return Poset(dict([[s,weak_covers(s)] for s in Permutations(n)]),element_labels)
+        
+    @staticmethod
+    def TetrahedralPoset(n, *colors):
+        r"""
+       Returns the tetrahedral poset based on the input colors. See [Striker2011]_
+
+        INPUT:
+
+        - ``n`` - Defines the number (n-1) of layers in the poset.
+
+        - ``colors`` - The colors that define the covering relations of the poset. Colors used are 'green', 'red', 'yellow', 'orange', 'silver', and 'blue'.
+
+        EXAMPLES::
+
+            sage: Posets.TetrahedralPoset(4,'green','red','yellow','silver','blue','orange')
+            Finite poset containing 10 elements
+            
+        REFERENCES:
+
+        .. [Striker2011] J. Striker. *A unifying poset perpective on alternating sign matrices, plane partitions, Catalan objects, tournaments, and tableaux*,  
+           Advances in Applied Mathematics 46 (2011), no. 4, 583-609. :arXiv:`1408.5391`
+        """
+        n=n-1
+        try:
+            n = Integer(n)
+        except TypeError:
+            raise TypeError("n must be an integer.")
+        if n < 2:
+            raise ValueError("n must be greater than 2.")
+        elem=[(i,j,k) for i in range (n) for j in range (n-i) for k in range (n-i-j)]
+        rels = []
+        edge_colors = {}
+        for c in colors:
+            edge_colors[c]=[]
+            for (i,j,k) in elem:
+                if(i+j+k < n-1):
+                    if(c=='green'):
+                        rels.append([(i,j,k),(i+1,j,k)])
+                    if(c=='red'):
+                        rels.append([(i,j,k),(i,j,k+1)])
+                    if(c=='yellow'):
+                        rels.append([(i,j,k),(i,j+1,k)])
+                if(j<n-1 and k>0):
+                    if(c=='orange'):
+                        rels.append([(i,j,k),(i,j+1,k-1)])
+                if(i<n-1 and j>0):
+                    if(c=='silver'):
+                        rels.append([(i,j,k),(i+1,j-1,k)])
+                if(i<n-1 and k>0):
+                    if(c=='blue'):
+                        rels.append([(i,j,k),(i+1,j,k-1)])
+        p = Poset([elem,rels])
+        return p
 
     # shard intersection order
     import sage.combinat.shard_order

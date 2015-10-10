@@ -4591,9 +4591,9 @@ cdef class FreeModuleElement_generic_sparse(FreeModuleElement):
             14
         """
         cdef dict e
-        if right.is_sparse_c():
-            e = (<FreeModuleElement_generic_sparse>right)._entries
-        else:
+        try:
+            e = (<FreeModuleElement_generic_sparse?>right)._entries
+        except:
             e = right.dict()
         z = left.base_ring().zero()
         if left.base_ring() is not right.base_ring():

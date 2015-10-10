@@ -552,10 +552,10 @@ class Cube(SageObject):
         r"""
         Subdivide this cube into pairs of cubes.
 
-        This provides a cubical approximation for the diagonal map `K
-        \to K \times K`.
+        This provides a cubical approximation for the diagonal map
+        `K \to K \times K`.
 
-        INPUTS:
+        INPUT:
 
         - ``dim`` -- integer between 0 and one more than the
           dimension of this cube

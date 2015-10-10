@@ -7,13 +7,12 @@ for computing cup products and cohomology operations.
 
 REFERENCES:
 
-.. [G-DR03] R. González-Díaz and P. Réal, "Computation of cohomology
-            operations on finite simplicial complexes" in Homology,
-            Homotopy and Applications 5 (2003), 83-93.
+.. [G-DR03] R. González-Díaz and P. Réal, *Computation of cohomology
+   operations on finite simplicial complexes* in Homology,
+   Homotopy and Applications 5 (2003), 83-93.
 
-.. [G-DR99] R. González-Díaz and P. Réal, "A combinatorial method for
-            computing Steenrod squares" in J. Pure Appl. Algebra 139
-            (1999), 89-108.
+.. [G-DR99] R. González-Díaz and P. Réal, *A combinatorial method for
+   computing Steenrod squares* in J. Pure Appl. Algebra 139 (1999), 89-108.
 
 AUTHORS:
 
@@ -35,7 +34,8 @@ from simplicial_complex import SimplicialComplex
 from cubical_complex import CubicalComplex
 
 class HomologyVectorSpaceWithBasis(CombinatorialFreeModule):
-    """Homology (or cohomology) vector space.
+    """
+    Homology (or cohomology) vector space.
 
     This is intended to provide enough structure to allow the
     computation of cup products and cohomology operations. The former
@@ -44,12 +44,20 @@ class HomologyVectorSpaceWithBasis(CombinatorialFreeModule):
     It also requires field coefficients (hence the "VectorSpace" in
     the name of the class).
 
-    .. note::
+    .. NOTE::
 
         This is not intended to be used directly by the user, but instead
         via the methods
         :meth:`cell_complex.CellComplex.homology_with_basis` and
         :meth:`cell_complex.CellComplex.cohomology_with_basis`.
+
+    INPUT:
+
+    - ``deg`` -- the degree of this homology group
+    - ``contraction`` -- the chain contraction associated to this
+      homology computation
+    - ``cell_complex`` -- the cell complex whose homology we are
+      computing
 
     EXAMPLES:
 
@@ -129,13 +137,7 @@ class HomologyVectorSpaceWithBasis(CombinatorialFreeModule):
     """
     def __init__(self, deg, contraction, cell_complex):
         """
-        INPUTS:
-
-        - ``deg`` -- the degree of this homology group
-        - ``contraction`` -- the chain contraction associated to this
-          homology computation
-        - ``cell_complex`` -- the cell complex whose homology we are
-          computing
+        Initialize ``self``.
 
         EXAMPLES::
 
@@ -161,7 +163,7 @@ class HomologyVectorSpaceWithBasis(CombinatorialFreeModule):
         CombinatorialFreeModule.__init__(self, M.base_ring(), range(rank))
 
     def degree(self):
-        """
+        r"""
         The degree of this homology group: if this is `H_n(K)` for some
         complex `K`, return `n`.
 
@@ -204,7 +206,8 @@ class HomologyVectorSpaceWithBasis(CombinatorialFreeModule):
                 From: Chain complex with at most 3 nonzero terms over Rational Field
                 To: Chain complex with at most 3 nonzero terms over Rational Field
 
-        From the chain contraction, one can also recover the maps `\pi` and `\iota`::
+        From the chain contraction, one can also recover the maps `\pi`
+        and `\iota`::
 
             sage: phi = H1.contraction()
             sage: phi.pi()
@@ -241,8 +244,8 @@ class HomologyVectorSpaceWithBasis(CombinatorialFreeModule):
 
     def _repr_term(self, i):
         """
-        Return 'h_{d,i}' for the ith generator in degree d for homology,
-        'h^{d,i}' for cohomology.
+        Return ``'h_{d,i}'`` for the ``i``-th generator in degree ``d``
+        for homology, ``'h^{d,i}'`` for cohomology.
 
         EXAMPLES::
 
@@ -298,9 +301,9 @@ class HomologyVectorSpaceWithBasis(CombinatorialFreeModule):
             r"""
             The cup product of this element with ``other``.
 
-            INPUTS:
+            INPUT:
 
-            - ``other`` -- a cohomology class from the same cell complex.
+            - ``other`` -- a cohomology class from the same cell complex
 
             Algorithm: see González-Díaz and Réal [G-DR03]_, p. 88.
             Given two cohomology classes, lift them to cocycle
@@ -370,11 +373,11 @@ class HomologyVectorSpaceWithBasis(CombinatorialFreeModule):
                 sage: K.cohomology_ring(QQ).is_unitary() # long time
                 True
             """
-            complex = self.parent().complex()
-            if not isinstance(complex, (SimplicialComplex, CubicalComplex)):
+            scomplex = self.parent().complex()
+            if not isinstance(scomplex, (SimplicialComplex, CubicalComplex)):
                 raise NotImplementedError('cup products are only implemented for simplicial and cubiical complexes')
             base_ring = self.base_ring()
-            if not (complex == other.parent().complex()
+            if not (scomplex == other.parent().complex()
                     and self.parent()._cohomology
                     and other.parent()._cohomology):
                 raise ValueError('these are not cohomology classes from the same complex')
@@ -382,21 +385,21 @@ class HomologyVectorSpaceWithBasis(CombinatorialFreeModule):
             deg_right = other.parent().degree()
             deg_tot = deg_left + deg_right
             result = []
-            for gamma in complex.homology_with_basis(deg_tot, base_ring).basis():
+            for gamma in scomplex.homology_with_basis(deg_tot, base_ring).basis():
                 gamma_coeff = base_ring.zero()
                 for cell, coeff in gamma.to_cycle():
                     for (c, left_cell, right_cell) in cell.alexander_whitney(deg_left):
-                        left = complex.n_chains(deg_left, base_ring)(left_cell)
-                        right = complex.n_chains(deg_right, base_ring)(right_cell)
+                        left = scomplex.n_chains(deg_left, base_ring)(left_cell)
+                        right = scomplex.n_chains(deg_right, base_ring)(right_cell)
                         gamma_coeff += c * coeff * self.to_cycle().eval(left) * other.to_cycle().eval(right)
                 result.append((gamma.leading_support(), gamma_coeff))
-            return complex.cohomology_with_basis(deg_tot, base_ring).sum_of_terms(result)
+            return scomplex.cohomology_with_basis(deg_tot, base_ring).sum_of_terms(result)
 
         __mul__ = cup_product
 
         def __pow__(self, n):
             r"""
-            This element raised to the nth power
+            This element raised to the ``n``-th power
 
             INPUT:
 
@@ -437,8 +440,8 @@ class HomologyVectorSpaceWithBasis(CombinatorialFreeModule):
             if n < 0:
                 raise ValueError('the power must be non-negative')
             if n == 0:
-                complex = self.parent().complex()
-                zeroth_cohomology = complex.cohomology_with_basis(0, self.base_ring())
+                scomplex = self.parent().complex()
+                zeroth_cohomology = scomplex.cohomology_with_basis(0, self.base_ring())
                 return sum(zeroth_cohomology.gens())
             if n == 1:
                 return self
@@ -446,13 +449,13 @@ class HomologyVectorSpaceWithBasis(CombinatorialFreeModule):
 
         def Sq(self, i):
             r"""
-            Return the result of applying Sq^i to this element.
+            Return the result of applying `Sq^i` to this element.
 
             INPUT:
 
             - ``i`` -- nonnegative integer
 
-            .. warning::
+            .. WARNING::
 
                This is only implemented for simplicial complexes, not
                cubical complexes.
@@ -504,8 +507,8 @@ class HomologyVectorSpaceWithBasis(CombinatorialFreeModule):
                 ...
                 ValueError: Steenrod squares are only defined in characteristic 2                
             """
-            complex = self.parent().complex()
-            if not isinstance(complex, SimplicialComplex):
+            scomplex = self.parent().complex()
+            if not isinstance(scomplex, SimplicialComplex):
                 raise NotImplementedError('Steenrod squares are only implemented for simplicial complexes')
             base_ring = self.base_ring()
             if base_ring.characteristic() != 2:
@@ -517,7 +520,7 @@ class HomologyVectorSpaceWithBasis(CombinatorialFreeModule):
             if i == 0:
                 # Sq^0 is the identity.
                 return self
-            target = complex.cohomology_with_basis(m, base_ring)
+            target = scomplex.cohomology_with_basis(m, base_ring)
             if target.dimension() == 0:
                 return target.zero()
             if i > j:
@@ -542,7 +545,7 @@ class HomologyVectorSpaceWithBasis(CombinatorialFreeModule):
             # 3.2.
             result = []
             cycle = self.to_cycle()
-            for gamma in complex.homology_with_basis(m, base_ring).basis():
+            for gamma in scomplex.homology_with_basis(m, base_ring).basis():
                 gamma_coeff = base_ring.zero()
                 for cell, coeff in gamma.to_cycle():
                     for indices in sums:
@@ -579,21 +582,22 @@ class HomologyVectorSpaceWithBasis(CombinatorialFreeModule):
                             for k in range(right_endpoint, -1, -1):
                                 right = right.face(k)
 
-                        left = complex.n_chains(j, base_ring)(left)
-                        right = complex.n_chains(j, base_ring)(right)
+                        left = scomplex.n_chains(j, base_ring)(left)
+                        right = scomplex.n_chains(j, base_ring)(right)
                         gamma_coeff += coeff * cycle.eval(left) * cycle.eval(right)
                 result.append((gamma.leading_support(), gamma_coeff))
-            return complex.cohomology_with_basis(m, base_ring).sum_of_terms(result)
+            return scomplex.cohomology_with_basis(m, base_ring).sum_of_terms(result)
 
 
 def sum_indices(k, i_k_plus_one, S_k_plus_one):
-    """This is a recursive function for computing the indices for the
+    r"""
+    This is a recursive function for computing the indices for the
     nested sums in González-Díaz and Réal [G-DR99]_, Corollary 3.2.
 
     In the paper, given indices `i_n`, `i_{n-1}`, ..., `i_{k+1}`,
     given `k`, and given `S(k+1)`, the number `S(k)` is defined to be
 
-    .. math::
+    .. MATH::
 
         S(k) = -S(k+1) + floor(k/2) + floor((k+1)/2) + i_{k+1},
 
@@ -605,7 +609,7 @@ def sum_indices(k, i_k_plus_one, S_k_plus_one):
     indices `[i_k, i_{k-1}, ..., i_1, i_0]` given by the above
     formula.
 
-    INPUTS:
+    INPUT:
 
     - ``k`` -- non-negative integer
     - ``i_k_plus_one`` -- the positive integer `i_{k+1}`
@@ -618,7 +622,6 @@ def sum_indices(k, i_k_plus_one, S_k_plus_one):
         [[1, 0], [2, 1]]
         sage: sum_indices(0, 4, 2)
         [[2]]
-
     """
     S_k = -S_k_plus_one + k//2 + (k+1)//2 + i_k_plus_one
     if k == 0:

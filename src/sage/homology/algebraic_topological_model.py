@@ -37,20 +37,20 @@ from sage.rings.rational_field import QQ
 def algebraic_topological_model(K, base_ring=None):
     r"""
     Algebraic topological model for cell complex ``K``
-    with coefficients in the field ``base_ring``
+    with coefficients in the field ``base_ring``.
 
     INPUT:
 
     - ``K`` -- either a simplicial complex or a cubical complex
-    - ``base_ring`` -- coefficient ring (optional, default ``QQ``).
-      Must be a field.
+    - ``base_ring`` -- coefficient ring (optional, default ``QQ``);
+      must be a field
 
     OUTPUT: a pair ``(phi, M)`` consisting of
 
     - the chain contraction ``phi`` associated to `C`, `M`, `\pi: C
       \to M`, and `\iota: M \to C` satisfying `\iota \pi = 1_M` and
-      `\pi \iota`.
-    - the chain complex `M`
+      `\pi \iota`; and
+    - the chain complex `M`.
 
     This construction appears in a paper by Pilarczyk and Réal [PR]_.
     Given a cell complex `K` and a field `F`, there is a chain complex
@@ -59,8 +59,8 @@ def algebraic_topological_model(K, base_ring=None):
     differential, along with chain maps `\pi: C \to M` and `\iota: M
     \to C` such that
 
-    - `\pi \circ \iota = 1_M`.
-    - There is a chain homotopy `\phi` between `1_C` and `\iota \circ \pi`.
+    - `\pi \circ \iota = 1_M`, and
+    - there is a chain homotopy `\phi` between `1_C` and `\iota \circ \pi`.
 
     In particular, `\pi` and `\iota` induce isomorphisms on homology,
     and since `M` has trivial differential, it is its own
@@ -168,7 +168,7 @@ def algebraic_topological_model(K, base_ring=None):
     if base_ring is None:
         base_ring = QQ
     if not base_ring.is_field():
-        raise ValueError('the coefficient ring must be a field.')
+        raise ValueError('the coefficient ring must be a field')
 
     # The following are all dictionaries indexed by dimension.
     # For each n, gens[n] is an ordered list of the n-cells generating the complex M.
@@ -343,7 +343,7 @@ def algebraic_topological_model(K, base_ring=None):
 def algebraic_topological_model_delta_complex(K, base_ring=None):
     r"""
     Algebraic topological model for cell complex ``K``
-    with coefficients in the field ``base_ring``
+    with coefficients in the field ``base_ring``.
 
     This has the same basic functionality as
     :func:`algebraic_topological_model`, but it also works for
@@ -354,15 +354,15 @@ def algebraic_topological_model_delta_complex(K, base_ring=None):
 
     - ``K`` -- a simplicial complex, a cubical complex, or a
       Delta complex
-    - ``base_ring`` -- coefficient ring (optional, default ``QQ``)
-      Must be a field.
+    - ``base_ring`` -- coefficient ring (optional, default ``QQ``);
+      must be a field
 
     OUTPUT: a pair ``(phi, M)`` consisting of
 
     - the chain contraction ``phi`` associated to `C`, `M`, `\pi: C
       \to M`, and `\iota: M \to C` satisfying `\iota \pi = 1_M` and
-      `\pi \iota`.
-    - the chain complex `M`
+      `\pi \iota`; and
+    - the chain complex `M`.
 
     See :func:`algebraic_topological_model` for the main
     documentation. The difference in implementation between the two:
@@ -456,8 +456,8 @@ def algebraic_topological_model_delta_complex(K, base_ring=None):
 
     if base_ring is None:
         base_ring = QQ
-    if not base_ring.is_field():
-        raise ValueError('the coefficient ring must be a field.')
+    elif not base_ring.is_field():
+        raise ValueError('the coefficient ring must be a field')
 
     # The following are all dictionaries indexed by dimension.
     # For each n, gens[n] is an ordered list of the n-cells generating the complex M.
@@ -480,19 +480,24 @@ def algebraic_topological_model_delta_complex(K, base_ring=None):
         # n_cells: the standard basis for the vector space C.free_module(dim).
         n_cells = C.free_module(dim).gens()
         diff = C.differential(dim)
+        # diff is sparse and low density. Dense matrices are faster
+        # over finite fields, but for low density matrices, sparse
+        # matrices are faster over the rationals.
+        if base_ring != QQ:
+            diff = diff.dense_matrix()
+
         rank = len(n_cells)
         old_rank = len(old_cells)
 
         # Create some matrix spaces to try to speed up matrix creation.
         MS_pi_t = MatrixSpace(base_ring, old_rank, len(gens[dim-1]))
-        # MS_phi_t = MatrixSpace(base_ring, old_rank, rank)
 
         pi_old = MS_pi_t.matrix(pi_cols).transpose()
         iota_cols_old = iota_cols
         iota_cols = {}
         pi_cols_old = pi_cols
         pi_cols = []
-        phi_old = matrix(base_ring, rank, old_rank)
+        phi_old = MatrixSpace(base_ring, rank, old_rank, sparse=(base_ring==QQ)).zero()
         phi_old_cols = phi_old.columns()
         phi_old = conditionally_sparse(phi_old)
         to_be_deleted = []
@@ -596,3 +601,4 @@ def algebraic_topological_model_delta_complex(K, base_ring=None):
     iota = ChainComplexMorphism(iota_data, M, C)
     phi = ChainContraction(phi_data, pi, iota)
     return phi, M
+

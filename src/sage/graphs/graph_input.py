@@ -452,6 +452,11 @@ x
                 if v_to_id[u] <= v_to_id[v] or v not in M or u not in M[v] or u == v:
                     for l in M[u][v]:
                         G._backend.add_edge(u,v,relabel(l),False)
+    elif multiedges:
+        for u in M:
+            for v in M[u]:
+                for l in M[u][v]:
+                    G._backend.add_edge(u,v,relabel(l),is_directed)
     else:
         for u in M:
             for v in M[u]:

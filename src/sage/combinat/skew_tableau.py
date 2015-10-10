@@ -404,12 +404,19 @@ class SkewTableau(ClonableList):
 
         return SkewTableau(conj)
 
-    def to_word_by_row(self):
+    def to_word_by_row(self, as_word=True):
         """
         Return a word obtained from a row reading of ``self``.
         Specifically, this is the word obtained by concatenating the
         rows from the bottommost one (in English notation) to the
         topmost one.
+
+        INPUT:
+
+        - ``as_word`` -- boolean (default: ``True``); if ``True``,
+          the result is returned as a word (i.e., an element of
+          :class:`Words`), while otherwise it is returned as a
+          list
 
         EXAMPLES::
 
@@ -426,6 +433,8 @@ class SkewTableau(ClonableList):
               1
             sage: s.to_word_by_row()
             word: 1324
+            sage: s.to_word_by_row(as_word=False)
+            [1, 3, 2, 4]
 
         TESTS::
 
@@ -434,19 +443,25 @@ class SkewTableau(ClonableList):
             sage: SkewTableau([]).to_word_by_row()
             word:
         """
-        word = []
-        for row in self:
-            word = list(row) + word
+        word = [x for row in reversed(self) for x in row if x is not None]
+        if not as_word:
+            return word
+        return Words("positive integers")(word)
 
-        return Words("positive integers")([i for i in word if i is not None])
-
-    def to_word_by_column(self):
+    def to_word_by_column(self, as_word=True):
         """
         Return the word obtained from a column reading of the skew
         tableau.
         Specifically, this is the word obtained by concatenating the
         columns from the rightmost one (in English notation) to the
         leftmost one.
+
+        INPUT:
+
+        - ``as_word`` -- boolean (default: ``True``); if ``True``,
+          the result is returned as a word (i.e., an element of
+          :class:`Words`), while otherwise it is returned as a
+          list
 
         EXAMPLES::
 
@@ -466,8 +481,10 @@ class SkewTableau(ClonableList):
             1
             sage: s.to_word_by_column()
             word: 4231
+            sage: s.to_word_by_column(as_word=False)
+            [4, 2, 3, 1]
         """
-        return self.conjugate().to_word_by_row()
+        return self.conjugate().to_word_by_row(as_word=as_word)
 
     to_word = to_word_by_row
 
@@ -778,9 +795,9 @@ class SkewTableau(ClonableList):
 
     def slide(self, corner=None):
         """
-        Apply a jeu-de-taquin slide to ``self`` on the specified corner and
-        returns the new tableau.  If no corner is given an arbitrary corner
-        is chosen.
+        Apply a jeu-de-taquin slide to ``self`` on the specified inner corner and
+        return the resulting tableau.  If no corner is given, an arbitrary inner
+        corner is chosen.
 
         See [FW]_ p12-13.
 
@@ -854,9 +871,10 @@ class SkewTableau(ClonableList):
 
         return SkewTableau(new_st)
 
-    def rectify(self):
+    def rectify(self, algorithm=None):
         """
-        Return a :class:`Tableau` formed by applying the jeu de taquin
+        Return a :class:`StandardTableau`, :class:`SemistandardTableau`,
+        or just :class:`Tableau` formed by applying the jeu de taquin
         process to ``self``. See page 15 of [FW]_.
 
         REFERENCES:
@@ -865,27 +883,59 @@ class SkewTableau(ClonableList):
            *Young Tableaux*,
            Cambridge University Press 1997.
 
+        INPUT:
+        - ``algorithm`` -- optional: if set to ``'jdt'``, rectifies by jeu de taquin;
+          if set to ``'schensted'``, rectifies by Schensted insertion of the
+          reading word; otherwise, guesses which will be faster.
+
         EXAMPLES::
 
-            sage: s = SkewTableau([[None,1],[2,3]])
-            sage: s.rectify()
+            sage: S = SkewTableau([[None,1],[2,3]])
+            sage: S.rectify()
             [[1, 3], [2]]
-            sage: SkewTableau([[None, None, None, 4],[None,None,1,6],[None,None,5],[2,3]]).rectify()
+            sage: T = SkewTableau([[None, None, None, 4],[None,None,1,6],[None,None,5],[2,3]])
+            sage: T.rectify()
             [[1, 3, 4, 6], [2, 5]]
+            sage: T.rectify(algorithm='jdt')
+            [[1, 3, 4, 6], [2, 5]]
+            sage: T.rectify(algorithm='schensted')
+            [[1, 3, 4, 6], [2, 5]]
+            sage: T.rectify(algorithm='spaghetti')
+            Traceback (most recent call last):
+            ...
+            ValueError: algorithm must be 'jdt', 'schensted', or None
 
         TESTS::
 
-            sage: s
+            sage: S
             [[None, 1], [2, 3]]
+            sage: T
+            [[None, None, None, 4], [None, None, 1, 6], [None, None, 5], [2, 3]]
         """
-        rect = copy.deepcopy(self)
-        inner_corners = rect.inner_shape().corners()
+        mu_size = self.inner_shape().size()
 
-        while len(inner_corners) > 0:
-            rect = rect.slide()
-            inner_corners = rect.inner_shape().corners()
+        # Roughly, use jdt with a small inner shape, Schensted with a large one
+        if algorithm is None:
+            la = self.outer_shape()
+            la_size = la.size()
+            if mu_size ** 2 < len(la) * (la_size - mu_size):
+                algorithm = 'jdt'
+            else:
+                algorithm = 'schensted'
 
-        return rect.to_tableau()
+        if algorithm == 'jdt':
+            rect = self
+            for i in range(mu_size):
+                rect = rect.slide()
+        elif algorithm == 'schensted':
+            rect = Tableau([]).insert_word(self.to_word(as_word=False))
+        else:
+            raise ValueError("algorithm must be 'jdt', 'schensted', or None")
+        if self in StandardSkewTableaux():
+            return StandardTableau(rect[:])
+        if self in SemistandardSkewTableaux():
+            return SemistandardTableau(rect[:])
+        return Tableau(rect)
 
     def standardization(self, check=True):
         r"""
@@ -1773,9 +1823,10 @@ class StandardSkewTableaux_shape(StandardSkewTableaux):
 
     def __iter__(self):
         """
-        An iterator for all the standard skew tableaux with shape of the
-        skew partition ``skp``. The standard skew tableaux are ordered
-        lexicographically by the word obtained from their row reading.
+        An iterator for all the standard skew tableaux whose shape is
+        the skew partition ``skp``. The standard skew tableaux are
+        ordered lexicographically by the word obtained from their row
+        reading.
 
         EXAMPLES::
 

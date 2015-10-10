@@ -20,7 +20,6 @@ AUTHORS:
 - John H. Palmieri (2015-09)
 """
 
-
 ########################################################################
 #       Copyright (C) 2015 John H. Palmieri <palmieri@math.washington.edu>
 #
@@ -32,6 +31,8 @@ AUTHORS:
 ########################################################################
 
 from sage.combinat.free_module import CombinatorialFreeModule, CombinatorialFreeModuleElement
+from simplicial_complex import SimplicialComplex
+from cubical_complex import CubicalComplex
 
 class HomologyVectorSpaceWithBasis(CombinatorialFreeModule):
     """Homology (or cohomology) vector space.
@@ -347,8 +348,31 @@ class HomologyVectorSpaceWithBasis(CombinatorialFreeModule):
                 -h^{2,0}
                 sage: x.cup_product(x)
                 0
+
+            But not with `\Delta`-complexes::
+
+                sage: X = delta_complexes.SurfaceOfGenus(2)
+                sage: a,b,c,d = X.cohomology_with_basis(1, QQ).gens()
+                sage: a.cup_product(b)
+                Traceback (most recent call last):
+                ...
+                NotImplementedError: cup products are only implemented for simplicial and cubiical complexes
+
+            A non-connected example::
+
+                sage: K = cubical_complexes.Torus().disjoint_union(cubical_complexes.Torus())
+                sage: a,b,c,d = K.cohomology_with_basis(1, QQ).gens()
+                sage: x,y = K.cohomology_with_basis(0, QQ).gens()
+                sage: a.cup_product(x) == a
+                True
+                sage: a.cup_product(y)
+                0
+                sage: K.cohomology_ring(QQ).is_unitary() # long time
+                True
             """
             complex = self.parent().complex()
+            if not isinstance(complex, (SimplicialComplex, CubicalComplex)):
+                raise NotImplementedError('cup products are only implemented for simplicial and cubiical complexes')
             base_ring = self.base_ring()
             if not (complex == other.parent().complex()
                     and self.parent()._cohomology
@@ -367,6 +391,58 @@ class HomologyVectorSpaceWithBasis(CombinatorialFreeModule):
                         gamma_coeff += c * coeff * self.to_cycle().eval(left) * other.to_cycle().eval(right)
                 result.append((gamma.leading_support(), gamma_coeff))
             return complex.cohomology_with_basis(deg_tot, base_ring).sum_of_terms(result)
+
+        __mul__ = cup_product
+
+        def __pow__(self, n):
+            r"""
+            This element raised to the nth power
+
+            INPUT:
+
+            - ``n`` -- a non-negative integer
+
+            If ``n`` is positive, this takes the iterated cup product
+            of the element with itself. If ``n`` is zero, this returns
+            the unit element of the cohomology ring (even if the
+            complex is not connected).
+
+            EXAMPLES::
+
+                sage: RP2 = simplicial_complexes.RealProjectivePlane()
+                sage: a = RP2.cohomology_with_basis(1, GF(2)).gens()[0]
+                sage: a**0
+                h^{0,0}
+                sage: a**1
+                h^{1,0}
+                sage: a**2
+                h^{2,0}
+                sage: a**3
+                0
+
+                sage: a**(-2)
+                Traceback (most recent call last):
+                ...
+                ValueError: the power must be non-negative
+
+            A non-connected example::
+
+                sage: K = cubical_complexes.Torus().disjoint_union(cubical_complexes.Sphere(2))
+                sage: a,b = K.cohomology_with_basis(2, QQ).gens()
+                sage: a**0
+                h^{0,0} + h^{0,1}
+            """
+            if not self.parent()._cohomology:
+                raise ValueError('this is not a cohomology class')
+            if n < 0:
+                raise ValueError('the power must be non-negative')
+            if n == 0:
+                complex = self.parent().complex()
+                zeroth_cohomology = complex.cohomology_with_basis(0, self.base_ring())
+                return sum(zeroth_cohomology.gens())
+            if n == 1:
+                return self
+            return self.cup_product(self**(n-1))
 
         def Sq(self, i):
             r"""
@@ -428,7 +504,6 @@ class HomologyVectorSpaceWithBasis(CombinatorialFreeModule):
                 ...
                 ValueError: Steenrod squares are only defined in characteristic 2                
             """
-            from simplicial_complex import SimplicialComplex
             complex = self.parent().complex()
             if not isinstance(complex, SimplicialComplex):
                 raise NotImplementedError('Steenrod squares are only implemented for simplicial complexes')

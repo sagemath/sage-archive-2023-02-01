@@ -2082,10 +2082,10 @@ cdef class Parent(category_object.CategoryObject):
             [      0       1]
             [-272118       0]
 
-            sage: a.matrix() * b
+            sage: a.matrix() * b.matrix()
             [-272118       0]
             [      0    -462]
-            sage: a * b.matrix()
+            sage: a.matrix() * b.matrix()
             [-272118       0]
             [      0    -462]
         """

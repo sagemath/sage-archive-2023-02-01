@@ -521,6 +521,26 @@ class AlternatingSignMatrix(Element):
         from sage.combinat.fully_packed_loop import FullyPackedLoop
         return FullyPackedLoop(self)
 
+    def link_pattern(self):
+        """
+        Return the link pattern corresponding to the fully packed loop 
+        corresponding to self.
+
+        EXAMPLES:
+
+        We can extract the underlying link pattern (a non-crossing
+        partition) from a fully packed loop::
+
+            sage: A = AlternatingSignMatrix([[0, 1, 0], [1, -1, 1], [0, 1, 0]])
+            sage: A.link_pattern()
+            [(1, 2), (3, 6), (4, 5)]
+
+            sage: B = AlternatingSignMatrix([[1, 0, 0], [0, 1, 0], [0, 0, 1]])
+            sage: B.link_pattern()
+            [(1, 6), (2, 5), (3, 4)]
+        """
+        return self.to_fully_packed_loop().link_pattern()
+
 
     @combinatorial_map(name='gyration')
     def gyration(self):

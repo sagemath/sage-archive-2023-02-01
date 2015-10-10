@@ -780,7 +780,7 @@ class SkewTableau(ClonableList):
         return the resulting tableau.  If no corner is given, an arbitrary inner
         corner is chosen.
 
-        See [FW]_ p12-13.
+        See [Fulton97]_ p12-13.
 
         EXAMPLES::
 

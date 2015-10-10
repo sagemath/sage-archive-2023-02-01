@@ -333,11 +333,7 @@ class ClusterQuiver(SageObject):
             self._digraph = dg
             self._vertex_dictionary = {}
             if dg_labelling is not False:
-                # If we have a list, then convert it to a dict
-                if isinstance(dg_labelling, list):
-                    self.relabel(dict(zip(xrange(len(dg_labelling)), dg_labelling)))
-                elif isinstance(dg_labelling, dict):
-                    self.relabel(dg_labelling)
+                self.relabel(dg_labelling)
                 
             self._M = M
             if n+m == 0:
@@ -518,7 +514,6 @@ class ClusterQuiver(SageObject):
                 else:
                     vkey = v
                 options['pos'][vkey] = (pp[v][0]+center[0],pp[v][1]+center[1])
-                
         return dg.plot( **options )
 
     def show(self, fig_size=1, circular=False, directed=True, mark=None, save_pos=False, greens=[]):
@@ -1798,10 +1793,36 @@ class ClusterQuiver(SageObject):
             quiver = self
         else:
             quiver = ClusterQuiver(self)
-        quiver._digraph.relabel(relabelling)
+        
+        # Instantiation variables
+        old_vertices = quiver.digraph().vertices()
+        digraph_labels = {}
+        dict_labels = {}
+        
+        # Organize labels noting that for:
+        #    _digraph: { old_vertex: new_vertex}
+        #    _vertex_dictionary: {num: new_vertex}
         if isinstance(relabelling, list):
-            relabelling = dict(zip(len(relabelling), relabelling))
-
-        quiver._vertex_dictionary = relabelling
+            digraph_labels = dict(zip(old_vertices, relabelling))
+            dict_labels = dict(zip(xrange(len(relabelling)), relabelling))
+        elif isinstance(relabelling, dict):
+            # need to make sure we map correctly
+            for key in relabelling:
+                val = relabelling[key]
+                
+                if key in old_vertices:
+                    # If the key is in the old vertices, use that mapping
+                    digraph_labels[key] = val
+                    # And place it in the right order for our dictionary
+                    loc = [i for i,x in enumerate(old_vertices) if x == key][0]
+                    dict_labels[loc] = val
+                elif isinstance(key, int) and len(old_vertices) > key:
+                    # If the key is an integer, grab that particular vertex
+                    digraph_labels[old_vertices[key]] = val
+                    # And copy it over to our dictionary
+                    dict_labels[key] = val
+        
+        quiver._digraph.relabel(digraph_labels)
+        quiver._vertex_dictionary = dict_labels
         return quiver
         

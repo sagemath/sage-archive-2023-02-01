@@ -40,7 +40,8 @@ import itertools
 
 from sage.structure.list_clone import ClonableList
 from sage.combinat.partition import Partition
-from sage.combinat.tableau import Tableau, TableauOptions
+from sage.combinat.tableau import (Tableau, TableauOptions,
+                                   StandardTableau, SemistandardTableau)
 from sage.combinat.skew_partition import SkewPartition, SkewPartitions
 from sage.combinat.integer_vector import IntegerVectors
 from sage.combinat.words.words import Words

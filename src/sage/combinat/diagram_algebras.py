@@ -31,7 +31,7 @@ from sage.combinat.combinat import (bell_number, catalan_number)
 from sage.structure.global_options import GlobalOptions
 from sage.combinat.set_partition import SetPartitions, SetPartition
 from sage.combinat.partition import Partitions
-from sage.combinat.symmetric_group_algebra import SymmetricGroupAlgebra
+from sage.combinat.symmetric_group_algebra import (SymmetricGroupAlgebra, SymmetricGroupAlgebra_n)
 from sage.combinat.permutation import Permutations
 from sage.combinat.combinat import (bell_number, catalan_number)
 from sage.sets.set import Set
@@ -1200,18 +1200,6 @@ class DiagramAlgebra(CombinatorialFreeModule):
          P{{-2, 2}, {-1}, {1}},
          P{{-2, 2}, {-1, 1}}]
 
-    Due to the nature of diagrams, there is also a built-in coercion to turn
-    SymmetricGroupAlgebra elements into DiagramAlgebra elements. However,
-    this coercion can cause errors if the SymmetricGroupAlgebra element
-    is not actually valid in the algebra. For instance, not all
-    SymmetricGroupAlgebra elements are valid in the Temperely--Lieb algebra,
-    but the planar ones are.
-
-    ::
-
-        sage: S = SymmetricGroupAlgebra(R, 2)
-        sage: S([2,1])*D([[1,-1],[2,-2]])
-        P{{-2, 1}, {-1, 2}}
     """
     def __init__(self, k, q, base_ring, prefix, diagrams, category=None):
         r"""
@@ -1233,17 +1221,13 @@ class DiagramAlgebra(CombinatorialFreeModule):
             sage: D = da.DiagramAlgebra(2, x, R, 'P', da.PartitionDiagrams(2))
             sage: TestSuite(D).run()
         """
-        SymmetricGroupAlgebra(base_ring,k) # Necessary for some odd reason
         self._prefix = prefix
         self._q = base_ring(q)
         self._k = k
         self._base_diagrams = diagrams
         category = Algebras(base_ring).FiniteDimensional().WithBasis().or_subcategory(category)
-        KSS = SymmetricGroupAlgebra(base_ring, k)
         CombinatorialFreeModule.__init__(self, base_ring, diagrams,
                     category=category, prefix=prefix, bracket=False)
-
-        KSS.module_morphism(lambda i : self(self._perm_to_Blst(i)), codomain=self).register_as_coercion()
 
     def _element_constructor_(self, set_partition):
         r"""
@@ -1263,10 +1247,14 @@ class DiagramAlgebra(CombinatorialFreeModule):
             True
             sage: D([{1,2},{-1,-2}]) == b_elt
             True
+            sage: S = SymmetricGroupAlgebra(SR,2)
+            sage: D(S([2,1]))
+            P{{-2, 1}, {-1, 2}}
         """
         if self.basis().keys().is_parent_of(set_partition):
             return self.basis()[set_partition]
-
+        if isinstance(set_partition, SymmetricGroupAlgebra_n.Element):
+            return self._element_constructor(self._perm_to_Blst(set_partition.support_of_term()))
         sp = self._base_diagrams(set_partition) # attempt conversion
         if sp in self.basis().keys():
             return self.basis()[sp]
@@ -1296,6 +1284,9 @@ class DiagramAlgebra(CombinatorialFreeModule):
         ## turns w into an expression suitable for the element constructor.
         u = sorted(w)
         return [[u[i],-w[i]] for i in range(len(w))]
+
+    def _convert_perm_to_element_of_self(self, x):
+        return self(self._perm_to_Blst(x))
 
     def order(self):
         r"""
@@ -1650,6 +1641,16 @@ class PartitionAlgebra(DiagramAlgebra):
         sage: a*a
         17*P{{-1}, {1}}
 
+    Symmetric group algebra elements can also be coerced into the partition algebra.
+
+    TESTS:
+
+        sage: A = PartitionAlgebra(2, x, SR)
+        sage: S = SymmetricGroupAlgebra(SR, 2)
+        sage: S([2,1])*A([[1,-1],[2,-2]])
+        P{{-2, 1}, {-1, 2}}
+    
+
     REFERENCES:
 
     .. [HR2005] Tom Halverson and Arun Ram, *Partition algebras*. European
@@ -1688,7 +1689,10 @@ class PartitionAlgebra(DiagramAlgebra):
         self._k = k
         self._prefix = prefix
         self._q = base_ring(q)
+        KSS = SymmetricGroupAlgebra(base_ring, k)
         DiagramAlgebra.__init__(self, k, q, base_ring, prefix, PartitionDiagrams(k))
+        KSS.module_morphism(lambda i : self(self._perm_to_Blst(i)), codomain=self).register_as_coercion()
+
 
     def _repr_(self):
         """
@@ -1835,6 +1839,16 @@ class BrauerAlgebra(SubPartitionAlgebra):
         x*B{{-2, -1}, {1, 2}}
         sage: b[2]^5
         x^4*B{{-2, -1}, {1, 2}}
+
+    Note, also that since the symmetric group algebra is contained in the Brauer algebra,
+    there is also a coercion between the two. ::
+
+        sage: R.<x> = ZZ[]
+        sage: B = BrauerAlgebra(2,x,R)
+        sage: S = SymmetricGroupAlgebra(R,2)
+        sage: S([2,1])*B([[1,-1],[2,-2]])
+        B{{-2, 1}, {-1, 2}}
+        
     """
     global_options = BrauerDiagramOptions
 
@@ -1866,7 +1880,9 @@ class BrauerAlgebra(SubPartitionAlgebra):
             sage: BA = BrauerAlgebra(2, q, R)
             sage: TestSuite(BA).run()
         """
+        KSS = SymmetricGroupAlgebra(base_ring, k)
         SubPartitionAlgebra.__init__(self, k, q, base_ring, prefix, BrauerDiagrams(k))
+        KSS.module_morphism(lambda i : self(self._perm_to_Blst(i)), codomain=self).register_as_coercion()
 
     def _repr_(self):
         """
@@ -1900,6 +1916,8 @@ class BrauerAlgebra(SubPartitionAlgebra):
             sage: BA([{1,2},{-1,-2}]) == b_elt
             True
         """
+        if isinstance(set_partition, SymmetricGroupAlgebra_n.Element):
+            return DiagramAlgebra._element_constructor_(self, set_partition)
         set_partition = to_Brauer_partition(set_partition, k = self.order())
         return DiagramAlgebra._element_constructor_(self, set_partition)
 
@@ -2013,6 +2031,8 @@ class TemperleyLiebAlgebra(SubPartitionAlgebra):
             sage: TL([{1,2},{-1,-2}]) == b_elt
             True
         """
+        if isinstance(set_partition, SymmetricGroupAlgebra_n.Element):
+            return SubPartitionAlgebra._element_constructor_(self, set_partition)
         set_partition = to_Brauer_partition(set_partition, k = self.order())
         return SubPartitionAlgebra._element_constructor_(self, set_partition)
 

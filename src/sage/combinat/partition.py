@@ -6687,12 +6687,20 @@ class RegularPartitions(Partitions):
     r"""
     Base class for `\ell`-regular partitions.
 
-    A partition is `\ell`-regular if `m_i < \ell` for all `i`.
+    Let `\ell` be a positive integer. A partition `\lambda` is
+    `\ell`-*regular* if `m_i < \ell` for all `i`, where `m_i` is the
+    multiplicity of `i` in `\lambda`.
+
+    .. NOTE::
+
+        This is conjugate to the notion of `\ell`-*restricted* partitions,
+        where the difference between any two parts is at most `\ell`.
 
     INPUT:
 
-    - ``ell`` -- the value `\ell`
-    - ``is_infinite`` -- if the subset of `\ell`-regular partitions is infinite
+    - ``ell`` -- the integer `\ell`
+    - ``is_infinite`` -- boolean; if the subset of `\ell`-regular
+      partitions is infinite
     """
     def __init__(self, ell, is_infinte=False):
         """
@@ -6779,7 +6787,7 @@ class RegularPartitions_all(RegularPartitions):
 
     INPUT:
 
-    - ``ell`` -- the value `\ell`
+    - ``ell`` -- the integer `\ell`
 
     .. SEEALSO::
 
@@ -6829,8 +6837,8 @@ class RegularPartitions_truncated(RegularPartitions):
 
     INPUT:
 
-    - ``ell`` -- the value `\ell`
-    - ``max_len`` -- the maximum length
+    - ``ell`` -- the integer `\ell`
+    - ``max_len`` -- integer; the maximum length
 
     .. SEEALSO::
 
@@ -6940,8 +6948,8 @@ class RegularPartitions_bounded(RegularPartitions):
 
     INPUT:
 
-    - ``ell`` -- the value `\ell`
-    - ``k`` -- the value `k`
+    - ``ell`` -- the integer `\ell`
+    - ``k`` -- integer; the value `k`
 
     .. SEEALSO::
 
@@ -7005,7 +7013,7 @@ class RegularPartitions_n(RegularPartitions, Partitions_n):
     INPUT:
 
     - ``n`` -- the integer `n` to partition
-    - ``ell`` -- the value `\ell`
+    - ``ell`` -- the integer `\ell`
 
     .. SEEALSO::
 

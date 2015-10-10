@@ -87,7 +87,7 @@ class ColoredPermutation(MultiplicativeGroupElement):
         p = self._perm._left_to_right_multiply_on_right(other._perm)
         return self.__class__(self.parent(), colors, p)
 
-    def __invert__(self):
+    def inverse(self):
         """
         Return the inverse of ``self``.
 
@@ -104,6 +104,8 @@ class ColoredPermutation(MultiplicativeGroupElement):
         return self.__class__(self.parent(),
                               tuple([-self._colors[i - 1] for i in ip]),  # -1 for indexing
                               ip)
+
+    __invert__ = inverse
 
     def __eq__(self, other):
         """
@@ -264,6 +266,23 @@ class ColoredPermutations(Parent, UniqueRepresentation):
         sage: s2*t*s2
         [[0, 1, 0], [1, 2, 3]]
 
+    We can also create a colored permutation by passing
+    either a list of tuples consisting of ``(color, element)``::
+
+        sage: x = C([(2,1), (3,3), (3,2)]); x
+        [[2, 3, 3], [1, 3, 2]]
+
+    or a list of colors and a permutation::
+
+        sage: C([[3,3,1], [1,3,2]])
+        [[3, 3, 1], [1, 3, 2]]
+
+    There is also the natural lift from permutations::
+
+        sage: P = Permutations(3)
+        sage: C(P.an_element())
+        [[0, 0, 0], [3, 1, 2]]
+
     REFERENCES:
 
     - :wikipedia:`Generalized_symmetric_group`
@@ -364,8 +383,8 @@ class ColoredPermutations(Parent, UniqueRepresentation):
 
         INPUT:
 
-        either a list of pairs (color, element)
-        or a pair of lists (colors, elements)
+        Either a list of pairs (color, element)
+        or a pair of lists (colors, elements).
 
         TESTS::
 
@@ -388,7 +407,41 @@ class ColoredPermutations(Parent, UniqueRepresentation):
 
             if len(x) != 2:
                 raise ValueError("input must be a pair of a list of colors and a permutation")
-            return self.element_class(self, map(self._C, x[0]), self._P(x[1]))
+            return self.element_class(self, [self._C(v) for v in x[0]], self._P(x[1]))
+
+    def _coerce_map_from_(self, C):
+        """
+        Return a coerce map from ``C`` if it exists and ``None`` otherwise.
+
+        EXAMPLES::
+
+            sage: C = ColoredPermutations(2, 3)
+            sage: S = SignedPermutations(3)
+            sage: C.has_coerce_map_from(S)
+            True
+
+            sage: C = ColoredPermutations(4, 3)
+            sage: C.has_coerce_map_from(S)
+            False
+            sage: S = SignedPermutations(4)
+            sage: C.has_coerce_map_from(S)
+            False
+
+            sage: P = Permutations(3)
+            sage: C.has_coerce_map_from(P)
+            True
+            sage: P = Permutations(4)
+            sage: C.has_coerce_map_from(P)
+            False
+        """
+        if isinstance(C, Permutations) and C.n == self._n:
+            return lambda P, x: P.element_class(P, [P._C.zero()]*P._n, x)
+        if self._m == 2 and isinstance(C, SignedPermutations) and C._n == self._n:
+            return lambda P, x: P.element_class(P,
+                                                [P._C.zero() if v == 1 else P._C.one()
+                                                 for v in x._colors],
+                                                x._perm)
+        return super(ColoredPermutations, self)._coerce_map_from_(C)
 
     def __iter__(self):
         """
@@ -482,17 +535,20 @@ class ColoredPermutations(Parent, UniqueRepresentation):
         return [self._m * i for i in range(1, self._n + 1)]
 
     def codegrees(self):
-        """
+        r"""
         Return the codegrees of ``self``.
 
         Let `G` be a complex reflection group. The codegrees
         `d_1^* \leq d_2^* \leq \cdots \leq d_{\ell}^*` of `G` can be
         defined by:
 
+        .. MATH::
+
             \prod_{i=1}^{\ell} (q - d_i^* - 1)
             = \sum_{g \in G} \det(g) q^{\dim(V^g)},
 
-        where `V` is the natural complex vector space that `G` acts on.
+        where `V` is the natural complex vector space that `G` acts on
+        and `\ell` is the :meth:`rank`.
 
         If `m = 1`, then we are in the special case of the symmetric group
         and the codegrees are `(n-2, n-3, \ldots 1, 0)`. Otherwise the degrees
@@ -523,7 +579,7 @@ class ColoredPermutations(Parent, UniqueRepresentation):
             return list(reversed(range(self._n - 1)))
         return [self._m * i for i in reversed(range(self._n))]
 
-    def number_reflection_hyperplanes(self):
+    def number_of_reflection_hyperplanes(self):
         """
         Return the number of reflection hyperplanes of ``self``.
 
@@ -533,13 +589,13 @@ class ColoredPermutations(Parent, UniqueRepresentation):
         EXAMPLES::
 
             sage: C = ColoredPermutations(1, 2)
-            sage: C.number_reflection_hyperplanes()
+            sage: C.number_of_reflection_hyperplanes()
             1
             sage: C = ColoredPermutations(1, 3)
-            sage: C.number_reflection_hyperplanes()
+            sage: C.number_of_reflection_hyperplanes()
             3
             sage: C = ColoredPermutations(4, 12)
-            sage: C.number_reflection_hyperplanes()
+            sage: C.number_of_reflection_hyperplanes()
             276
         """
         return sum(self.codegrees()) + self.rank()
@@ -548,15 +604,16 @@ class ColoredPermutations(Parent, UniqueRepresentation):
         r"""
         The fixed point polynomial of ``self``.
 
-        The fixed point polynomial `f_G` of a complex reflection group `G` is
-        counting the dimensions of fixed points subspaces:
+        The fixed point polynomial `f_G` of a complex reflection group `G`
+        is counting the dimensions of fixed points subspaces:
 
         .. MATH::
 
             f_G(q) = \sum_{w \in W} q^{\dim V^w}.
 
         Furthermore, let `d_1, d_2, \ldots, d_{\ell}` be the degrees of `G`,
-        then the fixed point polynomial is given by
+        where `\ell` is the :meth:`rank`. Then the fixed point polynomial
+        is given by
 
         .. MATH::
 
@@ -772,6 +829,27 @@ class SignedPermutations(ColoredPermutations):
         sage: S.long_element().reduced_word()
         [4, 3, 4, 2, 3, 4, 1, 2, 3, 4]
 
+    We can also go between the 2-colored permutation group::
+
+        sage: C = ColoredPermutations(2, 3)
+        sage: S = SignedPermutations(3)
+        sage: S.an_element()
+        [-3, 1, 2]
+        sage: C(S.an_element())
+        [[1, 0, 0], [3, 1, 2]]
+        sage: S(C(S.an_element())) == S.an_element()
+        True
+        sage: S(C.an_element())
+        [1, 2, 3]
+
+    There is also the natural lift from permutations::
+
+        sage: P = Permutations(3)
+        sage: x = S(P.an_element()); x
+        [3, 1, 2]
+        sage: x.parent()
+        Signed permutations of 3
+
     REFERENCES:
 
     - :wikipedia:`Hyperoctahedral_group`
@@ -892,7 +970,7 @@ class SignedPermutations(ColoredPermutations):
                 raise ValueError("input must be a pair of a list of signs and a permutation")
             if any(s != 1 and s != -1 for s in x[0]):
                 raise ValueError("the sign must be +1 or -1")
-            return self.element_class(self, map(ZZ, x[0]), self._P(x[1]))
+            return self.element_class(self, [ZZ(v) for v in x[0]], self._P(x[1]))
 
     def __iter__(self):
         """
@@ -910,6 +988,37 @@ class SignedPermutations(ColoredPermutations):
         for p in self._P:
             for c in C:
                 yield self.element_class(self, c, p)
+
+    def _coerce_map_from_(self, C):
+        """
+        Return a coerce map from ``C`` if it exists and ``None`` otherwise.
+
+        EXAMPLES::
+
+            sage: C = ColoredPermutations(2, 3)
+            sage: S = SignedPermutations(3)
+            sage: S.has_coerce_map_from(C)
+            True
+
+            sage: C = ColoredPermutations(4, 3)
+            sage: S.has_coerce_map_from(C)
+            False
+
+            sage: P = Permutations(3)
+            sage: C.has_coerce_map_from(P)
+            True
+            sage: P = Permutations(4)
+            sage: C.has_coerce_map_from(P)
+            False
+        """
+        if isinstance(C, Permutations) and C.n == self._n:
+            return lambda P, x: P.element_class(P, [1]*P._n, x)
+        if isinstance(C, ColoredPermutations) and C._n == self._n and C._m == 2:
+            return lambda P, x: P.element_class(P,
+                                                [1 if v == 0 else -1
+                                                 for v in x._colors],
+                                                x._perm)
+        return super(SignedPermutations, self)._coerce_map_from_(C)
 
     @cached_method
     def index_set(self):

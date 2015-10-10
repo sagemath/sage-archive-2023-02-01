@@ -293,6 +293,7 @@ class ClusterQuiver(SageObject):
             if any( (b,a) in edges for (a,b) in edges ):
                 raise ValueError("The input DiGraph contains two-cycles")
             if not set(dg.vertices()) == set(range(n+m)):
+                dg_labelling = dg.vertices()
                 dg.relabel()
             if dg.has_multiple_edges():
                 multi_edges = {}
@@ -327,8 +328,17 @@ class ClusterQuiver(SageObject):
             M = _edge_list_to_matrix( dg.edge_iterator(), n, m )
             if not _principal_part(M).is_skew_symmetrizable( positive=True ):
                 raise ValueError("The input digraph must be skew-symmetrizable")
+            
             self._digraph = dg
             self._vertex_dictionary = {}
+            if dg_labelling is not None:
+                # If we have a list, then convert it to a dict
+                if isinstance(dg_labelling, list):
+                    self.relabel(dict(zip(xrange(len(dg_labelling)), dg_labelling)))
+                elif isinstance(dg_labelling, dict):
+                    self.relabel(dg_labelling)
+                
+                
             self._M = M
             if n+m == 0:
                 self._description = 'Quiver without vertices'
@@ -431,12 +441,16 @@ class ClusterQuiver(SageObject):
         colors = rainbow(11)
         color_dict = { colors[0]:[], colors[1]:[], colors[6]:[], colors[5]:[] }
         
+        # Set up our graph. If it's directed we have a digraph, else just a normal graph
         if directed:
             dg = DiGraph( self._digraph )
         else:
             dg = Graph( self._digraph )
+            
+        # For each edge in our graph we assign a color
         for edge in dg.edges():
             v1,v2,(a,b) = edge
+                
             if v1 < n and v2 < n:
                 if (a,b) == (1,-1):
                     color_dict[ colors[0] ].append((v1,v2))
@@ -452,6 +466,8 @@ class ClusterQuiver(SageObject):
                     dg.set_edge_label( v1,v2,'' )
                 else:
                     dg.set_edge_label( v1,v2,a )
+        
+        # If a mark is given, then we set that mark appart from the rest
         if mark is not None:
             if mark < n:
                 partition = (range(mark)+range(mark+1,n),range(n,n+m),[mark])
@@ -460,8 +476,11 @@ class ClusterQuiver(SageObject):
             else:
                 raise ValueError("The given mark is not a vertex of self.")
         else:
+            # The ranges: nr is regular vertex, mr is frozen
             nr = range(n)
             mr = range(n,n+m)
+            
+            # Parititon out the green vertices
             for i in greens:
                 if i < n:
                     nr.remove(i)
@@ -469,13 +488,13 @@ class ClusterQuiver(SageObject):
                     mr.remove(i)
             partition = (nr,mr,greens)
             
-        # fix labels
+        # Update the vertex dictionary
         for i in xrange(2):
             for p in list(enumerate(partition[i])):
                 key = p[0]
                 part = p[1]
                 if part in self._vertex_dictionary:
-                    partition[0][key]= self._vertex_dictionary[part]
+                    partition[i][key]= self._vertex_dictionary[part]
         
         vertex_color_dict = {}
         vertex_color_dict[ colors[0] ] = partition[0]
@@ -491,9 +510,16 @@ class ClusterQuiver(SageObject):
         }
         if circular:
             pp = _graphs_concentric_circles( n, m )
+            options['pos'] = {}
             for v in pp:
-                pp[v] = (pp[v][0]+center[0],pp[v][1]+center[1])
-            options[ 'pos' ] = pp
+                # If we're using vertex dictionary set that as key
+                if v in self._vertex_dictionary:
+                    vkey = self._vertex_dictionary[v]
+                else:
+                    vkey = v
+                options['pos'][vkey] = (pp[v][0]+center[0],pp[v][1]+center[1])
+                
+            
         return dg.plot( **options )
 
     def show(self, fig_size=1, circular=False, directed=True, mark=None, save_pos=False, greens=[]):
@@ -1774,6 +1800,9 @@ class ClusterQuiver(SageObject):
         else:
             quiver = ClusterQuiver(self)
         quiver._digraph.relabel(relabelling)
+        if isinstance(relabelling, list):
+            relabelling = dict(zip(len(relabelling), relabelling))
+
         quiver._vertex_dictionary = relabelling
         return quiver
         

@@ -568,6 +568,19 @@ class KirillovReshetikhinTableaux(CrystalOfWords):
             return TensorProductOfKirillovReshetikhinTableaux(ct, dims)
         return super(KirillovReshetikhinTableaux, self).tensor(*crystals, **options)
 
+    @lazy_attribute
+    def _tableau_height(self):
+        """
+        The height of the tableaux in ``self``.
+
+        EXAMPLES::
+
+            sage: K = crystals.KirillovReshetikhin(['A', 3, 1], 3, 2, model='KR')
+            sage: K._tableau_height
+            3
+        """
+        return self._r
+
 class KRTableauxRectangle(KirillovReshetikhinTableaux):
     r"""
     Kirillov-Reshetkhin tableaux `B^{r,s}` whose module generator is a single
@@ -1201,7 +1214,7 @@ class KirillovReshetikhinTableauxElement(TensorProductOfRegularCrystalsElement):
             [[2, 1], [4, 3]]
         """
         ret_list = []
-        h = self.parent()._r
+        h = self.parent()._tableau_height
         s = self.parent()._s
         if rows:
             for i in reversed(range(h)):
@@ -1816,6 +1829,20 @@ class KRTableauxTypeFromRC(KirillovReshetikhinTableaux):
         RC = RiggedConfigurations(self._cartan_type, [[self._r, self._s]])
         return tuple(mg.to_tensor_product_of_kirillov_reshetikhin_tableaux()[0]
                      for mg in RC.module_generators)
+
+    @lazy_attribute
+    def _tableau_height(self):
+        """
+        The height of the tableaux in ``self``.
+
+        EXAMPLES::
+
+            sage: ct = CartanType(['E',6,1])
+            sage: [crystals.KirillovReshetikhin(ct, r, 1, model='KR')._tableau_height
+            ....:  for r in ct.classical().index_set()]
+            [1, 3, 2, 3, 4, 2]
+        """
+        return len(self.module_generators[0]) // self._s
 
     Element = KRTableauxTypeFromRCElement
 

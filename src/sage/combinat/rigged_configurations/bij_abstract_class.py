@@ -122,6 +122,7 @@ class KRTToRCBijectionAbstract:
               import TensorProductOfKirillovReshetikhinTableauxElement
 
         for cur_crystal in reversed(self.tp_krt):
+            target = cur_crystal.parent()._r
             # Iterate through the columns
             for col_number, cur_column in enumerate(reversed(cur_crystal.to_array(False))):
                 self.cur_path.insert(0, []) # Prepend an empty list
@@ -129,7 +130,7 @@ class KRTToRCBijectionAbstract:
                 self.cur_dims.insert(0, [0, 1])
 
                 for letter in reversed(cur_column):
-                    self.cur_dims[0][0] += 1
+                    self.cur_dims[0][0] = self._next_index(self.cur_dims[0][0], target)
                     val = letter.value # Convert from a CrystalOfLetter to an Integer
 
                     if verbose:
@@ -273,6 +274,21 @@ class KRTToRCBijectionAbstract:
 
                     rigged_partition.rigging.pop(index)
                     rigged_partition.rigging.insert(pos, val)
+
+    def _next_index(self, r, target):
+        """
+        Return the next index after ``r`` when performing a step
+        in the bijection going towards ``target``.
+
+        TESTS::
+
+            sage: KRT = crystals.TensorProductOfKirillovReshetikhinTableaux(['A', 4, 1], [[2,1]])
+            sage: from sage.combinat.rigged_configurations.bij_abstract_class import KRTToRCBijectionAbstract
+            sage: bijection = KRTToRCBijectionAbstract(KRT(pathlist=[[5,2]]))
+            sage: bijection._next_index(1, 2)
+            2
+        """
+        return r + 1
 
 class RCToKRTBijectionAbstract:
     """
@@ -526,7 +542,16 @@ class RCToKRTBijectionAbstract:
 
     def _next_index(self, r):
         """
-        Return the next index after ``r`` when performing the bijection.
+        Return the next index after ``r`` when performing a step
+        in the bijection.
+
+        TESTS::
+
+            sage: RC = RiggedConfigurations(['A', 4, 1], [[2, 1]])
+            sage: from sage.combinat.rigged_configurations.bij_abstract_class import RCToKRTBijectionAbstract
+            sage: bijection = RCToKRTBijectionAbstract(RC(partition_list=[[1],[1],[1],[1]]))
+            sage: bijection._next_index(2)
+            1
         """
         return r - 1
 

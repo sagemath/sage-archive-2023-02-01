@@ -1236,9 +1236,9 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: P = Poset((divisors(15), attrcall("divides")), facade = False)
             sage: H = P.hasse_diagram()
             sage: H.vertices()
-            [1, 5, 3, 15]
+            [1, 3, 5, 15]
             sage: H.edges()
-            [(1, 3, None), (1, 5, None), (5, 15, None), (3, 15, None)]
+            [(1, 3, None), (1, 5, None), (3, 15, None), (5, 15, None)]
             sage: H.set_latex_options(format="dot2tex")   # optional - dot2tex
             sage: view(H, tight_page=True)  # optional - dot2tex, not tested (opens external window)
         """

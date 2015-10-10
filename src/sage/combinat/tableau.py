@@ -971,18 +971,11 @@ class Tableau(ClonableList):
         """
         print self._repr_diagram()
 
-    def to_word_by_row(self, as_word=True):
+    def to_word_by_row(self):
         """
         Return the word obtained from a row reading of the tableau ``self``
         (starting with the lowermost row, reading every row from left
         to right).
-
-        INPUT:
-
-        - ``as_word`` -- boolean (default: ``True``); if ``True``,
-          the result is returned as a word (i.e., an element of
-          :class:`Words`), while otherwise it is returned as a
-          list
 
         EXAMPLES::
 
@@ -990,29 +983,18 @@ class Tableau(ClonableList):
             word: 3412
             sage: Tableau([[1, 4, 6], [2, 5], [3]]).to_word_by_row()
             word: 325146
-            sage: Tableau([[1, 4, 6], [2, 5], [3]]).to_word_by_row(as_word=False)
-            [3, 2, 5, 1, 4, 6]
         """
+        from sage.combinat.words.word import Word
         w = []
         for row in reversed(self):
             w += row
-        if not as_word:
-            return w
-        from sage.combinat.words.word import Word
         return Word(w)
 
-    def to_word_by_column(self, as_word=True):
+    def to_word_by_column(self):
         """
         Return the word obtained from a column reading of the tableau ``self``
         (starting with the leftmost column, reading every column from bottom
         to top).
-
-        INPUT:
-
-        - ``as_word`` -- boolean (default: ``True``); if ``True``,
-          the result is returned as a word (i.e., an element of
-          :class:`Words`), while otherwise it is returned as a
-          list
 
         EXAMPLES::
 
@@ -1020,18 +1002,14 @@ class Tableau(ClonableList):
             word: 3142
             sage: Tableau([[1, 4, 6], [2, 5], [3]]).to_word_by_column()
             word: 321546
-            sage: Tableau([[1, 4, 6], [2, 5], [3]]).to_word_by_column(as_word=False)
-            [3, 2, 1, 5, 4, 6]
         """
+        from sage.combinat.words.word import Word
         w = []
         for row in self.conjugate():
             w += row[::-1]
-        if not as_word:
-            return w
-        from sage.combinat.words.word import Word
         return Word(w)
 
-    def to_word(self, as_word=True):
+    def to_word(self):
         """
         An alias for :meth:`to_word_by_row`.
 
@@ -1041,10 +1019,8 @@ class Tableau(ClonableList):
             word: 3412
             sage: Tableau([[1, 4, 6], [2, 5], [3]]).to_word()
             word: 325146
-            sage: Tableau([[1, 4, 6], [2, 5], [3]]).to_word(as_word=False)
-            [3, 2, 5, 1, 4, 6]
         """
-        return self.to_word_by_row(as_word=as_word)
+        return self.to_word_by_row()
 
     def attacking_pairs(self):
         """

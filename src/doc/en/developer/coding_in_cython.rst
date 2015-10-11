@@ -8,7 +8,7 @@ This chapter discusses Cython, which is a compiled language based on
 Python.  The major advantage it has over Python is that code can be
 much faster (sometimes orders of magnitude) and can directly call
 C and C++ code.  As Cython is essentially a superset of the Python
-language, one often doesn’t make a distinction between Cython and 
+language, one often doesn’t make a distinction between Cython and
 Python code in Sage (e.g. one talks of the “Sage Python Library”
 and “Python Coding Conventions”).
 
@@ -222,8 +222,9 @@ Sage provides two related mechanisms to deal with interrupts:
 The functions ``sig_check()``, ``sig_on()`` and ``sig_off()`` can be
 put in all kinds of Cython functions: ``def``, ``cdef`` or ``cpdef``.
 You cannot put them in pure Python code (files with extension ``.py``).
-These functions are specific to Sage. To use them, you need to include
-their declarations with::
+These functions are specific to Sage. To use them, you **must** include
+the following in your ``.pyx`` file (it is not sufficient to do this
+in a ``.pxd`` file)::
 
     include "sage/ext/interrupt.pxi"
 
@@ -612,7 +613,7 @@ blocks. If ``sig_on()`` needs to raise an exception, the GIL is
 temporarily acquired internally.
 
 If you use C libraries without the GIL and you want to raise an exception
-after :ref:`sig_error() <sig-error>`, remember to acquire the GIL
+before calling :ref:`sig_error() <sig-error>`, remember to acquire the GIL
 while raising the exception. Within Cython, you can use a
 `with gil context <http://docs.cython.org/src/userguide/external_C_code.html#acquiring-the-gil>`_.
 

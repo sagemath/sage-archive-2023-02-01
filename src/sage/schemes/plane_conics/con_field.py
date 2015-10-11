@@ -808,7 +808,7 @@ class ProjectiveConic_field(ProjectiveCurve_generic):
             sage: R.<x,y,z> = QQ[]
             sage: C = Curve(7*x^2 + 2*y*z + z^2)
             sage: (p, i) = C.parametrization(morphism = False); (p, i)
-            ([-2*x*y, 7*x^2 + y^2, -2*y^2], [-1/2*x, -1/2*z])
+            ([-2*x*y, x^2 + 7*y^2, -2*x^2], [-1/2*x, 1/7*y + 1/14*z])
             sage: C.defining_polynomial()(p)
             0
             sage: i[0](p) / i[1](p)
@@ -1159,5 +1159,4 @@ class ProjectiveConic_field(ProjectiveCurve_generic):
 
         """
         return self.defining_polynomial().parent().variable_names()
-
 

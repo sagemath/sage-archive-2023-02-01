@@ -103,7 +103,7 @@ def NonDecreasingParkingFunctions(n=None):
         sage: NonDecreasingParkingFunctions("foo")
         Traceback (most recent call last):
         ...
-        TypeError: unable to convert x (=foo) to an integer
+        TypeError: unable to convert 'foo' to an integer
     """
     if n is None:
         return NonDecreasingParkingFunctions_all()
@@ -187,7 +187,7 @@ class NonDecreasingParkingFunctions_all(InfiniteAbstractCombinatorialClass):
             ...    == NonDecreasingParkingFunctions(4))
             True
             sage: it = iter(NonDecreasingParkingFunctions()) # indirect doctest
-            sage: [it.next() for i in range(8)]
+            sage: [next(it) for i in range(8)]
             [[], [1], [1, 1], [1, 2], [1, 1, 1], [1, 1, 2], [1, 1, 3], [1, 2, 2]]
          """
         return NonDecreasingParkingFunctions_n(n)

@@ -388,9 +388,9 @@ class NumericalEigenforms(SageObject):
             [28.0, 28.0, -7.92820323028, 5.92820323028]
             sage: m = n.modular_symbols()
             sage: x = polygen(QQ, 'x')
-            sage: m.T(2).charpoly(x).factor()
+            sage: m.T(2).charpoly('x').factor()
             (x - 9)^2 * (x^2 - 2*x - 2)
-            sage: m.T(3).charpoly(x).factor()
+            sage: m.T(3).charpoly('x').factor()
             (x - 28)^2 * (x^2 + 2*x - 47)
         """
         p = Integer(p)

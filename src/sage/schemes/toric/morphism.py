@@ -584,7 +584,7 @@ class SchemeMorphism_orbit_closure_toric_variety(SchemeMorphism, Morphism):
                 cone of Rational polyhedral fan in 2-d lattice N.
 
     TESTS::
-    
+
         sage: V.embedding_morphism()._reverse_ray_map()
         {N(-1): 3, N(1): 2}
         sage: V.embedding_morphism()._defining_cone
@@ -876,7 +876,7 @@ class SchemeMorphism_fan_toric_variety(SchemeMorphism, Morphism):
             raise ValueError('The fan morphism codomain must be the fan of the codomain.')
         self._fan_morphism = fan_morphism
 
-    def __cmp__(self, right):
+    def _cmp_(self, right):
         r"""
         Compare ``self`` and ``right``.
 
@@ -910,6 +910,8 @@ class SchemeMorphism_fan_toric_variety(SchemeMorphism, Morphism):
                 [right.domain(), right.codomain(), right.fan_morphism()])
         else:
             return cmp(type(self), type(right))
+
+    __cmp__ = _cmp_
 
     def _composition_(self, right, homset):
         """
@@ -1581,7 +1583,7 @@ class SchemeMorphism_fan_toric_variety_dominant(SchemeMorphism_fan_toric_variety
         irreducible components do not have to be of the same dimension.
         
         .. seealso::
-        
+
             :meth:`~SchemeMorphism_fan_toric_variety_dominant.fiber_component`.
 
         EXAMPLES::

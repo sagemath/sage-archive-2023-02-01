@@ -149,7 +149,7 @@ def hilbert_class_polynomial(D, algorithm=None):
         tau = (b+Dsqrt)/(a<<1)
         pol *=  (t - elliptic_j(tau))
 
-    coeffs = [cof.real().round() for cof in pol.coeffs()]
+    coeffs = [cof.real().round() for cof in pol.coefficients(sparse=False)]
     return IntegerRing()['x'](coeffs)
 
 
@@ -411,7 +411,6 @@ def discriminants_with_bounded_class_number(hmax, B=None, proof=None):
     """
     # imports that are needed only for this function
     from sage.structure.proof.proof import get_flag
-    from sage.libs.pari.all import pari
     import math
     from sage.misc.functional import round
 
@@ -450,21 +449,10 @@ def discriminants_with_bounded_class_number(hmax, B=None, proof=None):
         if f <= 1: return 0  # don't do log(log(1)) = log(0)
         return f/(1.79*log(log(f)) + 3.0/log(log(f)))
 
-    # We define a little function to compute the class number of
-    # discriminant d quickly, using pari, with proof inherited from
-    # the containing scope.  Fast classno functionality should
-    # probably be moved elsewhere in Sage, but I'm not sure where.
-    # The same line also occurs in the number fields code, but to use
-    # it requires making a number field, which is very slow, and this
-    # function must be fast, since it is the main bottleneck.
-    def classno(d):
-        """Return the class number of the order of discriminant d."""
-        # There is currently no qfbclassno method in gen.pyx, hence the string.
-        return Integer(pari('qfbclassno(%s,%s)'%(d, 1 if proof else 0)))
-
     for D in range(-B, -2):
+        D = Integer(D)
         if is_fundamental_discriminant(D):
-            h_D = classno(D)
+            h_D = D.class_number(proof)
             # For each fundamental discrimant D, loop through the f's such
             # that h(D*f^2) could possibly be <= hmax.  As explained to me by Cremona,
             # we have h(D*f^2) >= (1/c)*h(D)*phi_D(f) >= (1/c)*h(D)*euler_phi(f), where
@@ -494,7 +482,7 @@ def discriminants_with_bounded_class_number(hmax, B=None, proof=None):
             #
             # TODO: Maybe we could do better using a bound for for phi_D(f).
             #
-            f = 1
+            f = Integer(1)
             chmax=hmax
             if D==-3:
                 chmax*=3
@@ -505,13 +493,13 @@ def discriminants_with_bounded_class_number(hmax, B=None, proof=None):
                 if f == 1:
                     h = h_D
                 else:
-                    h = classno(D*f*f)
+                    h = (D*f*f).class_number(proof)
                 # If the class number of this order is within the range, then
                 # use it.  (NOTE: In some cases there is a simple relation between
                 # the class number for D and D*f^2, and this could be used to
                 # optimize this inner loop a little.)
                 if h <= hmax:
-                    z = (Integer(D), Integer(f))
+                    z = (D, f)
                     if h in T:
                         T[h].append(z)
                     else:
@@ -592,6 +580,3 @@ def is_cm_j_invariant(j):
         if pol(j)==0:
             return True, (d,f)
     return False, None
-
-
-

@@ -905,7 +905,7 @@ def atomic_basis(n, basis, **kwds):
         elif basis.find('revz') >= 0:
             return (s+t,s)
 
-    from sage.misc.misc import prod
+    from sage.misc.all import prod
     from sage.rings.infinity import Infinity
     profile = kwds.get("profile", None)
     trunc = kwds.get("truncation_type", None)
@@ -1044,7 +1044,7 @@ def atomic_basis_odd(n, basis, p, **kwds):
             return ((),)
         else:
             return (((), ()),)
-    from sage.misc.misc import prod
+    from sage.misc.all import prod
     from sage.rings.all import Integer
     from sage.rings.infinity import Infinity
     from sage.combinat.integer_vector_weighted import WeightedIntegerVectors

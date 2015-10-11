@@ -22,13 +22,9 @@ from congroup_generic import CongruenceSubgroup
 from sage.modular.cusps import Cusp
 from sage.misc.cachefunc import cached_method
 from sage.rings.all import (IntegerModRing, kronecker_symbol, ZZ)
-from sage.misc.misc import prod
+from sage.misc.all import prod
 import sage.modular.modsym.p1list
 import sage.rings.arith as arith
-
-# Just for now until we make an SL_2 group type.
-from sage.matrix.matrix_space import MatrixSpace
-Mat2Z = MatrixSpace(ZZ,2)
 
 
 def is_Gamma0(x):
@@ -228,7 +224,7 @@ class Gamma0_class(GammaH_class):
         Return the subgroups of SL2Z of the form Gamma0(M) that contain this subgroup,
         i.e. those for M a divisor of N.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: Gamma0(24).divisor_subgroups()
             [Modular Group SL(2,Z),
@@ -376,11 +372,11 @@ class Gamma0_class(GammaH_class):
 
         elif algorithm=="todd-coxeter":
             from sage.modular.modsym.p1list import P1List
-            from congroup_pyx import generators_helper
+            from congroup import generators_helper
             level = self.level()
             if level == 1: # P1List isn't very happy working mod 1
                 return [ self([0,-1,1,0]), self([1,1,0,1]) ]
-            gen_list = generators_helper(P1List(level), level, Mat2Z)
+            gen_list = generators_helper(P1List(level), level)
             return [self(g, check=False) for g in gen_list]
 
         else:
@@ -546,19 +542,19 @@ class Gamma0_class(GammaH_class):
 
     def index(self):
         r"""
-        Return the index of self in the full modular group. This is given by
+        Return the index of self in the full modular group.
+
+        This is given by
 
         .. math::
 
             N \prod_{\substack{p \mid N \\ \text{$p$ prime}}}\left(1 + \frac{1}{p}\right).
 
-        EXAMPLE::
+        EXAMPLES::
+
             sage: [Gamma0(n).index() for n in [1..19]]
             [1, 3, 4, 6, 6, 12, 8, 12, 12, 18, 12, 24, 14, 24, 24, 24, 18, 36, 20]
             sage: Gamma0(32041).index()
             32220
         """
         return prod([p**e + p**(e-1) for (p,e) in self.level().factor()])
-
-
-

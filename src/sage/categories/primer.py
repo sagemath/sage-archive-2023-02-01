@@ -1,6 +1,9 @@
 r"""
 Elements, parents, and categories in Sage: a (draft of) primer
 
+.. contents::
+    :depth: 2
+
 Abstract
 ========
 
@@ -201,6 +204,8 @@ Here is an overview of all categories in Sage::
 Wrap-up: generic algorithms in Sage are organized in a hierarchy of
 bookshelves modelled upon the usual hierarchy of categories provided
 by abstract algebra.
+
+.. _category-primer-parents-elements-categories:
 
 Elements, Parents, Categories
 -----------------------------
@@ -409,7 +414,7 @@ Applying an operation is generally done by *calling a method*::
     sage: pQ.factor()
     (6) * (x + 1)^2
 
-    sage: pZ = ZZ[x] ( p )
+    sage: pZ = ZZ['x'] ( p )
     sage: type(pZ)
     <type 'sage.rings.polynomial.polynomial_integer_dense_flint.Polynomial_integer_dense_flint'>
     sage: pZ.factor()
@@ -789,6 +794,7 @@ element of the parent?)::
     sage: TestSuite(S).run(verbose = True)
     running ._test_an_element() . . . pass
     running ._test_associativity() . . . pass
+    running ._test_cardinality() . . . pass
     running ._test_category() . . . pass
     running ._test_elements() . . .
       Running the test suite of self.an_element()
@@ -957,7 +963,8 @@ implemented can be found by introspection with::
 
     sage: FiniteSemigroups().required_methods()
     {'element': {'optional': ['_mul_'], 'required': []},
-     'parent': {'optional': [], 'required': ['__contains__']}}
+     'parent': {'optional': ['semigroup_generators'],
+      'required': ['__contains__']}}
 
 ``product`` does not appear in the list because a default implementation
 is provided in term of the method ``_mul_`` on elements. Of course, at
@@ -1034,6 +1041,8 @@ Along the way, we illustrate that a large hierarchy of categories is
 desirable to model complicated mathematics, and that scaling to
 support such a large hierarchy is the driving motivation for the
 design of the category infrastructure.
+
+.. _category-primer-functorial-constructions:
 
 Functorial constructions
 ------------------------
@@ -1125,7 +1134,8 @@ code, the product method is put in the nested class
 Let us now look at the categories of ``C``::
 
     sage: C.categories()
-    [Category of Cartesian products of algebras with basis over Rational Field, ...
+    [Category of finite dimensional Cartesian products of algebras with basis over Rational Field, ...
+     Category of Cartesian products of algebras over Rational Field, ...
      Category of Cartesian products of semigroups, Category of semigroups, ...
      Category of Cartesian products of magmas, ..., Category of magmas, ...
      Category of Cartesian products of additive magmas, ..., Category of additive magmas,

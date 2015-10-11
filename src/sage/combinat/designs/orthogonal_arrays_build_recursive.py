@@ -1,11 +1,11 @@
 r"""
 Orthogonal arrays (build recursive constructions)
 
-This module implements several constructions of :mod:`Orthogonal Arrays
-<sage.combinat.designs.orthogonal_arrays>`. As their input can be complex, they
-all have a counterpart in the
-:mod:`~sage.combinat.designs.orthogonal_arrays_find_recursive` module that
-automatically computes it.
+This module implements several constructions of
+:mod:`Orthogonal Arrays<sage.combinat.designs.orthogonal_arrays>`.
+As their input can be complex, they all have a counterpart in the
+:mod:`~sage.combinat.designs.orthogonal_arrays_find_recursive` module
+that automatically computes it.
 
 All these constructions are automatically queried when the
 :func:`~sage.combinat.designs.orthogonal_arrays.orthogonal_array` function is
@@ -16,7 +16,6 @@ called.
     :widths: 30, 70
     :delim: |
 
-    :func:`simple_wilson_construction` | Return an `OA(k,rm + \sum u_i)` from Wilson construction.
     :func:`~sage.combinat.designs.orthogonal_arrays_build_recursive.construction_3_3` | Return an `OA(k,nm+i)`.
     :func:`~sage.combinat.designs.orthogonal_arrays_build_recursive.construction_3_4` | Return a `OA(k,nm+rs)`.
     :func:`~sage.combinat.designs.orthogonal_arrays_build_recursive.construction_3_5` | Return an `OA(k,nm+r+s+t)`.
@@ -33,68 +32,6 @@ Functions
 """
 
 from orthogonal_arrays import orthogonal_array, wilson_construction, is_orthogonal_array
-
-def simple_wilson_construction(k,r,m,u,explain_construction=False):
-    r"""
-    Return an `OA(k,rm + \sum u_i)` from Wilson construction.
-
-    INPUT:
-
-    - ``k,r,m`` -- integers
-
-    - ``u`` -- list of positive integers
-
-    - ``explain_construction`` (boolean) -- return a string describing
-      the construction.
-
-    .. TODO::
-
-        As soon as wilson construction accepts an empty master design we should
-        remove this intermediate functions.
-
-    .. SEEALSO::
-
-        :func:`~sage.combinat.designs.orthogonal_arrays.wilson_construction`
-
-    EXAMPLES::
-
-        sage: from sage.combinat.designs.orthogonal_arrays_build_recursive import simple_wilson_construction
-        sage: from sage.combinat.designs.designs_pyx import is_orthogonal_array
-
-        sage: OA = simple_wilson_construction(6,7,12,())
-        sage: is_orthogonal_array(OA,6,84)
-        True
-
-        sage: OA = simple_wilson_construction(4,5,7,(3,))
-        sage: is_orthogonal_array(OA,4,38)
-        True
-
-        sage: OA = simple_wilson_construction(5,7,7,(4,5))
-        sage: is_orthogonal_array(OA,5,58)
-        True
-
-        sage: print designs.orthogonal_arrays.explain_construction(9,115)
-        Wilson's construction n=13.8+11 with master design OA(9+1,13)
-    """
-    from sage.combinat.designs.orthogonal_arrays import OA_relabel
-    n = r*m + sum(u)
-    n_trunc = len(u)
-
-    if explain_construction:
-        from string import join
-        if u:
-            return (("Wilson's construction n={}.{}+{} with master design OA({}+{},{})")
-                    .format(r,m,join(map(str,u),"+"),k,len(u),r))
-        else:
-            return ("Product of orthogonal arrays n={}.{}").format(r,m)
-
-    OA = orthogonal_array(k+n_trunc,r,check=False)
-    matrix = [range(r)]*k
-    for uu in u:
-        matrix.append(range(uu)+[None]*(r-uu))
-    OA = OA_relabel(OA,k+n_trunc,r,matrix=matrix)
-
-    return wilson_construction(OA,k,r,m,n_trunc,u,False)
 
 def construction_3_3(k,n,m,i,explain_construction=False):
     r"""
@@ -151,7 +88,7 @@ def construction_3_3(k,n,m,i,explain_construction=False):
     # Truncated version
     OA = [B[:k]+[0 if x == 0 else None for x in B[k:]] for B in OA]
 
-    OA = wilson_construction(OA,k,n,m,i,[1]*i,check=False)[:-i]
+    OA = wilson_construction(OA,k,n,m,[1]*i,check=False)[:-i]
     matrix = [range(m)+range(n*m,n*m+i)]*k
     OA.extend(OA_relabel(orthogonal_array(k,m+i),k,m+i,matrix=matrix))
     assert is_orthogonal_array(OA,k,n*m+i)
@@ -235,7 +172,7 @@ def construction_3_4(k,n,m,r,s,explain_construction=False):
         matrix[-1][x] = i
 
     OA = OA_relabel(master_design,k+r+1,n, matrix=matrix)
-    OA = wilson_construction(OA,k,n,m,r+1,[1]*r+[s],check=False)
+    OA = wilson_construction(OA,k,n,m,[1]*r+[s],check=False)
     return OA
 
 def construction_3_5(k,n,m,r,s,t,explain_construction=False):
@@ -330,7 +267,7 @@ def construction_3_5(k,n,m,r,s,t,explain_construction=False):
         r3[x] = i
 
     OA = OA_relabel(master_design, k+3,q, matrix=[range(q)]*k+[r1,r2,r3])
-    OA = wilson_construction(OA,k,q,m,3,[r,s,t], check=False)
+    OA = wilson_construction(OA,k,q,m,[r,s,t], check=False)
     return OA
 
 def construction_3_6(k,n,m,i,explain_construction=False):
@@ -384,7 +321,7 @@ def construction_3_6(k,n,m,i,explain_construction=False):
     OA = OA_and_oval(n)
     OA = [B[:k+i] for B in OA]
     OA = [B[:k] + [x if x==0 else None for x in B[k:]] for B in OA]
-    OA = wilson_construction(OA,k,n,m,i,[1]*i)
+    OA = wilson_construction(OA,k,n,m,[1]*i)
     assert is_orthogonal_array(OA,k,n*m+i)
     return OA
 
@@ -763,8 +700,7 @@ def thwart_lemma_3_5(k,n,m,a,b,c,d=0,complement=False,explain_construction=False
     # Adding the first two trivial columns
     OA.insert(0,[j for i in range(n) for j in range(n)])
     OA.insert(0,[i for i in range(n) for j in range(n)])
-    OA=zip(*OA)
-    OA.sort()
+    OA=sorted(zip(*OA))
 
     # Moves the first three columns to the end
     OA = [list(B[3:]+B[:3]) for B in OA]
@@ -784,7 +720,7 @@ def thwart_lemma_3_5(k,n,m,a,b,c,d=0,complement=False,explain_construction=False
     if complement:
         last_sets = [set(range(n)).difference(s) for s in last_sets]
 
-    sizes = map(len,last_sets)
+    sizes = [len(_) for _ in last_sets]
     last_sets_dict = [{v:i for i,v in enumerate(s)} for s in last_sets]
 
     # Truncating the OA
@@ -799,7 +735,7 @@ def thwart_lemma_3_5(k,n,m,a,b,c,d=0,complement=False,explain_construction=False
                 R[-4] = None
         sizes.insert(0,d)
 
-    return wilson_construction(OA,k,n,m,len(sizes),sizes, check=False)
+    return wilson_construction(OA,k,n,m,sizes, check=False)
 
 def thwart_lemma_4_1(k,n,m,explain_construction=False):
     r"""
@@ -865,7 +801,7 @@ def thwart_lemma_4_1(k,n,m,explain_construction=False):
     q = n
     K = FiniteField(q, 'x')
     relabel = {x:i for i,x in enumerate(K)}
-    PG = DesarguesianProjectivePlaneDesign(q,check=False).blocks(copy=False)
+    PG = DesarguesianProjectivePlaneDesign(q,check=False,point_coordinates=False).blocks(copy=False)
 
     if q % 3 == 0:
         t = K.one()
@@ -881,7 +817,7 @@ def thwart_lemma_4_1(k,n,m,explain_construction=False):
     # - (1+t,t,1+t), (1,1,1), (1+t,t,t), (1,1,2), (0,0,1), (1,0,1), (0,1,1+t),
     #   (0,1,1), (1,0,-t)
     points = [(1+t,t,1+t), (1,1,1), (1+t,t,t), (1,1,2), (0,0,1), (1,0,1), (0,1,1+t), (0,1,1), (1,0,-t)]
-    points = [map(K,t) for t in points] # triples of K^3
+    points = [[K(_) for _ in t] for t in points] # triples of K^3
     AG_2_3 = []
     for x,y,z in points:
         if z!=0:
@@ -927,7 +863,7 @@ def thwart_lemma_4_1(k,n,m,explain_construction=False):
             if B[k+i] >= n-2:
                 B[k+i] = None
 
-    return wilson_construction(OA,k,n,m,4,[n-2,]*4,check=False)
+    return wilson_construction(OA,k,n,m,[n-2,]*4,check=False)
 
 def three_factor_product(k,n1,n2,n3,check=False,explain_construction=False):
     r"""
@@ -1124,7 +1060,7 @@ def three_factor_product(k,n1,n2,n3,check=False,explain_construction=False):
                 for i,x2 in enumerate(B2):
                     count[i][x2] += 1
 
-            new_parallel_classes.extend(map(list,izip(*copies_of_OA1)))
+            new_parallel_classes.extend([list(_) for _ in izip(*copies_of_OA1)])
 
         # New g1-parallel classes, each one built from the product of a parallel
         # class with a OA1
@@ -1152,8 +1088,7 @@ def three_factor_product(k,n1,n2,n3,check=False,explain_construction=False):
     #
     # OA1 and resolvable OA2 and OA3
     OA1 = orthogonal_array(k,n1)
-    OA3 = orthogonal_array(k+1,n3)
-    OA3.sort()
+    OA3 = sorted(orthogonal_array(k+1,n3))
     OA3 = [B[1:] for B in OA3]
     OA2 = orthogonal_array(k+1,n2)
     OA2.sort()
@@ -1209,6 +1144,7 @@ def _reorder_matrix(matrix):
 
     The input must be a `N \times k` matrix with entries in `\{0,\ldots,N-1\}`
     such that:
+
     - the symbols on each row are distinct (and hence can be identified with
       subsets of `\{0,\ldots,N-1\}`),
     - each symbol appear exactly `k` times.

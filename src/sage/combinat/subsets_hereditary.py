@@ -95,7 +95,7 @@ def subsets_with_hereditary_property(f,X,max_obstruction_size=None,ncpus=1):
         sage: print list(subsets_with_hereditary_property(lambda x:True,range(2)))
         [[], [0], [1], [0, 1]]
     """
-    from sage.misc.bitset import Bitset
+    from sage.data_structures.bitset import Bitset
     from sage.parallel.decorate import parallel
     # About the implementation:
     #

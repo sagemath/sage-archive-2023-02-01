@@ -51,7 +51,7 @@ class Arc(GraphicPrimitive):
         """
         Initializes base class ``Arc``.
 
-        EXAMPLES:
+        EXAMPLES::
 
             sage: A = arc((2,3),1,1,pi/4,(0,pi))
             sage: A[0].x == 2

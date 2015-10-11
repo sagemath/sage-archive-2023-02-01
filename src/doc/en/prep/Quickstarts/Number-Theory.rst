@@ -44,7 +44,7 @@ we loop over a Sage object.
 ::
 
     sage: for a in Integers(11):
-    ...       print a, a^10
+    ....:     print a, a^10
     0 0
     1 1
     2 1
@@ -179,8 +179,8 @@ you see here?
 
     sage: @interact
     sage: def power_table_plot(p=(7,prime_range(50))):
-    ...       P=matrix_plot(matrix(p-1,[mod(a,p)^b for a in range(1,p) for b in srange(p)]),cmap='jet')
-    ...       show(P)
+    ....:     P=matrix_plot(matrix(p-1,[mod(a,p)^b for a in range(1,p) for b in srange(p)]),cmap='jet')
+    ....:     show(P)
 
 This is a graphic giving the various powers of integers modulo :math:`p`
 as colors, not numbers.  The columns are the powers, so the first column

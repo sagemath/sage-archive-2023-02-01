@@ -15,7 +15,7 @@ $(SAGE_LOCAL)/bin/makeinfo: $(SRC)/texinfo-4.13
 $(SAGE_LOCAL)/bin/m4: $(SRC)/m4-1.4.17 $(SAGE_LOCAL)/bin/makeinfo
 	cd $< && ./configure --prefix="$(SAGE_LOCAL)" && $(MAKE) && $(MAKE) install
 
-$(SAGE_LOCAL)/bin/help2man: $(SRC)/help2man-1.43.3 $(SAGE_LOCAL)/bin/makeinfo
+$(SAGE_LOCAL)/bin/help2man: $(SRC)/help2man-1.46.4 $(SAGE_LOCAL)/bin/makeinfo
 	cd $< && ./configure --prefix="$(SAGE_LOCAL)" && $(MAKE) && $(MAKE) install
 
 ########################################################################
@@ -857,7 +857,22 @@ $(SAGE_LOCAL)/libtool-2.4.2: libtool-2.4.2/.tarball-version $(SAGE_LOCAL)/bin/m4
 	# Remove all files except for the .* files
 	[ "$$SAGE_KEEP_BUILT_SPKGS" = yes ] || rm -rf libtool-2.4.2/*
 
-libtool-all: $(SAGE_LOCAL)/libtool-1.5.20 $(SAGE_LOCAL)/libtool-1.5.22 $(SAGE_LOCAL)/libtool-1.5.24 $(SAGE_LOCAL)/libtool-1.5.26 $(SAGE_LOCAL)/libtool-2.2.4 $(SAGE_LOCAL)/libtool-2.2.6 $(SAGE_LOCAL)/libtool-2.2.6b $(SAGE_LOCAL)/libtool-2.2.8 $(SAGE_LOCAL)/libtool-2.2.10 $(SAGE_LOCAL)/libtool-2.4 $(SAGE_LOCAL)/libtool-2.4.2
+# Extract sources from git repository serially
+libtool-2.4.3/.tarball-version: libtool-2.4.2/.tarball-version
+	( cd $(SRC)/libtool && git archive --format=tar --prefix=libtool-2.4.3/ v2.4.3 ) | tar xf -
+	echo 2.4.3 >libtool-2.4.3/.tarball-version
+
+$(SAGE_LOCAL)/libtool-2.4.3: libtool-2.4.3/.tarball-version $(SAGE_LOCAL)/bin/m4 $(SAGE_LOCAL)/bin/makeinfo $(SAGE_LOCAL)/bin/help2man $(SAGE_LOCAL)/autoconf-2.62 $(SAGE_LOCAL)/automake-1.11.1
+	export MAKE='$(MAKE) -j1' ; \
+	export AUTOCONF_VERSION=2.62 ; \
+	export AUTOMAKE_VERSION=1.11.1 ; \
+	cd libtool-2.4.3 && bash bootstrap --skip-git --skip-po --gnulib-srcdir=../../src/gnulib && \
+	    ./configure --prefix="$(SAGE_LOCAL)/libtool-2.4.3" && \
+	    $$MAKE && $$MAKE install
+	# Remove all files except for the .* files
+	[ "$$SAGE_KEEP_BUILT_SPKGS" = yes ] || rm -rf libtool-2.4.3/*
+
+libtool-all: $(SAGE_LOCAL)/libtool-1.5.20 $(SAGE_LOCAL)/libtool-1.5.22 $(SAGE_LOCAL)/libtool-1.5.24 $(SAGE_LOCAL)/libtool-1.5.26 $(SAGE_LOCAL)/libtool-2.2.4 $(SAGE_LOCAL)/libtool-2.2.6 $(SAGE_LOCAL)/libtool-2.2.6b $(SAGE_LOCAL)/libtool-2.2.8 $(SAGE_LOCAL)/libtool-2.2.10 $(SAGE_LOCAL)/libtool-2.4 $(SAGE_LOCAL)/libtool-2.4.2 $(SAGE_LOCAL)/libtool-2.4.3
 
 ########################################################################
 

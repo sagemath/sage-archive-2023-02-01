@@ -355,7 +355,7 @@ class VectorSpaceHomspace(sage.modules.free_module_homspace.FreeModuleHomspace):
             sage: V = GF(3)^0
             sage: W = GF(3)^1
             sage: H = V.Hom(W)
-            sage: H.zero_element().is_zero()
+            sage: H.zero().is_zero()
             True
 
         Previously the above code resulted in a TypeError because the

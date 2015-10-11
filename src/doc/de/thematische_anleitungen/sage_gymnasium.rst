@@ -386,15 +386,21 @@ wir dies mit der ``simplify_full()`` Funktion::
     sage: (sin(x)^2 + cos(x)^2).simplify_full()
     1
 
-Dabei werden auch Additionstheoreme für trigonometrische Funktionen und manche
-Logarithmengesetze eingesetzt::
+Dabei werden auch Additionstheoreme für trigonometrische Funktionen eingesetzt::
 
     sage: var('x, y, z')
     (x, y, z)
-    sage: (sin(x + y)/(log(x) + log(y))).simplify_full()
-    (cos(y)*sin(x) + cos(x)*sin(y))/log(x*y)
+    sage: sin(x + y).simplify_full()
+    cos(y)*sin(x) + cos(x)*sin(y)
     sage: (sin(x)^2 + cos(x)^2).simplify_full()
     1
+
+Mit der verwandten Funktion ``simplify_real()`` werden auch Additionstheoreme
+bei Logarithmen angewandt, die nur mit reellen Werten erlaubt sind::
+
+    sage: x, y = var('x, y')
+    sage: (log(x) + log(y)).simplify_real()
+    log(x*y)
 
 Faktorisieren und ausmultiplizieren
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -586,7 +592,7 @@ einer rationalen Funktion zu finden. Diese Zerlegung kann auch mit Sage gemacht 
 
 betrachten, kann diese als Summe von zwei Brüchen geschrieben werden:
 
-.. math:: f(x) = \frac{1}{x^2 - 1} = \frac{\frac{1}{2}}{x^2-1} - \frac{\frac{1}{2}}{x^2+1}
+.. math:: f(x) = \frac{1}{x^2 - 1} = \frac{\frac{1}{2}}{x-1} - \frac{\frac{1}{2}}{x+1}
 
 Diese Zerlegung findet ``partial_fraction()`` in Sage für uns::
 
@@ -702,9 +708,9 @@ So können wir zum Beispiel Sage die Zerlegung
 .. math:: \log(10^5) = 5\log(2) + 5\log(5)
 
 machen lassen.  In diesem Fall benutzen wir nicht ``simplify_full()``, sondern
-die ähnliche Funktion ``simplify_exp``::
+die ähnliche Funktion ``canonicalize_radical``::
 
-    sage: log(10^5).simplify_exp()
+    sage: log(10^5).canonicalize_radical()
     5*log(5) + 5*log(2)
 
 Diese Gesetze können auch umgekehrt verwendet werden, wie in diesem Beispiel::

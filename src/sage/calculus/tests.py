@@ -45,7 +45,7 @@ Some basic things::
 
 A polynomial over a symbolic base ring::
 
-    sage: R = SR[x]
+    sage: R = SR['x']
     sage: f = R([1/sqrt(2), 1/(4*sqrt(2))])
     sage: f
     1/8*sqrt(2)*x + 1/2*sqrt(2)
@@ -139,7 +139,7 @@ Todo - Mathematica can do this and gets `\pi^2/15`.
 
 ::
 
-    sage: integrate(log(1+sqrt(1+4*x)/2)/x, x, 0, 1)  # not tested
+    sage: integrate(log(1+sqrt(1+4*x)/2)/x, x, 0, 1)
     Traceback (most recent call last):
     ...
     ValueError: Integral is divergent.

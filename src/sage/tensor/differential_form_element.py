@@ -24,7 +24,7 @@ AUTHORS:
 
 
 from sage.symbolic.ring import SR
-from sage.rings.ring_element import RingElement
+from sage.structure.element import RingElement
 from sage.algebras.algebra_element import AlgebraElement
 from sage.rings.integer import Integer
 from sage.combinat.permutation import Permutation
@@ -552,7 +552,7 @@ class DifferentialForm(AlgebraElement):
             sage: f.diff() == g
             True
         """
-        if isinstance(other, type(self)):
+        if type(other) is type(self):
             if self._degree != other._degree:
                 return False
             else:

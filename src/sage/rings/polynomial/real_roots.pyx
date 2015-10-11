@@ -155,7 +155,6 @@ cimport numpy
 from math import fabs
 
 include "sage/ext/cdefs.pxi"
-include "sage/ext/gmp.pxi"
 
 from sage.libs.mpfr cimport *
 
@@ -1573,7 +1572,7 @@ cdef class interval_bernstein_polynomial_float(interval_bernstein_polynomial):
             sage: bp2
             <IBP: (-0.369375, -0.45125, -0.3275, 0.14500000000000002, 0.99) + [-0.1 .. 0.01] over [1/2 .. 1]>
             sage: bp1, bp2, ok = bp.de_casteljau(ctx, 2/3)
-            sage: bp1
+            sage: bp1 # rel tol 2e-16
             <IBP: (0.5, 0.30000000000000004, -0.2555555555555555, -0.5444444444444444, -0.32172839506172846) + [-0.1 .. 0.01] over [0 .. 2/3]>
             sage: bp2  # rel tol 3e-15
             <IBP: (-0.32172839506172846, -0.21037037037037046, 0.028888888888888797, 0.4266666666666666, 0.99) + [-0.1 .. 0.01] over [2/3 .. 1]>
@@ -2157,7 +2156,7 @@ def maximum_root_first_lambda(p):
         sage: maximum_root_first_lambda((x-1)*(x-2)*(x-3))
         6.00000000000001
         sage: maximum_root_first_lambda((x+1)*(x+2)*(x+3))
-        0
+        0.000000000000000
         sage: maximum_root_first_lambda(x^2 - 1)
         1.00000000000000
     """
@@ -2181,6 +2180,13 @@ def cl_maximum_root_first_lambda(cl):
         sage: from sage.rings.polynomial.real_roots import *
         sage: cl_maximum_root_first_lambda([RIF(-1), RIF(0), RIF(1)])
         1.00000000000000
+
+    TESTS::
+
+        sage: bnd = cl_maximum_root_first_lambda(map(RIF, [0, 0, 0, 14, 1]))
+        sage: bnd, bnd.parent()
+        (0.000000000000000,
+        Real Field with 53 bits of precision and rounding RNDU)
     """
     n = len(cl) - 1
     assert(cl[n] > 0)
@@ -2211,7 +2217,8 @@ def cl_maximum_root_first_lambda(cl):
             pending_pos_exp = j
             posCounter = posCounter+1
 
-    if len(neg) == 0: return 0
+    if len(neg) == 0:
+        return RIF._upper_field().zero()
 
     max_ub_log = RIF('-infinity')
     for j in xrange(len(neg)):
@@ -2312,9 +2319,9 @@ def root_bounds(p):
         sage: root_bounds((x-1)*(x-2)*(x-3))
         (0.545454545454545, 6.00000000000001)
         sage: root_bounds(x^2)
-        (0, 0)
+        (0.000000000000000, 0.000000000000000)
         sage: root_bounds(x*(x+1))
-        (-1.00000000000000, 0)
+        (-1.00000000000000, 0.000000000000000)
         sage: root_bounds((x+2)*(x-3))
         (-2.44948974278317, 3.46410161513776)
         sage: root_bounds(x^995 * (x^2 - 9999) - 1)
@@ -2337,7 +2344,10 @@ def root_bounds(p):
         zero_roots = zero_roots + 1
         n = n-1
 
-    if n == 0: return (0, 0)
+    if n == 0:
+        # not RIF.zero().endpoints() because of MPFI's convention that the
+        # upper bound is -0.
+        return RIF._lower_field().zero(), RIF._upper_field().zero()
 
     ub = cl_maximum_root(cl)
 

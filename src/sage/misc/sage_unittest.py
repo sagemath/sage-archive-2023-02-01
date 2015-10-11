@@ -44,6 +44,7 @@ class TestSuite(object):
         sage: TestSuite(S).run(verbose = True)
         running ._test_an_element() . . . pass
         running ._test_associativity() . . . pass
+        running ._test_cardinality() . . . pass
         running ._test_category() . . . pass
         running ._test_elements() . . .
           Running the test suite of self.an_element()
@@ -572,7 +573,9 @@ class PythonObjectWithTests(object):
             sage: from sage.misc.sage_unittest import PythonObjectWithTests
             sage: PythonObjectWithTests(int(1))._test_pickling()
 
-        SEE ALSO: :func:`dumps` :func:`loads`
+        .. SEEALSO::
+
+            :func:`dumps`, :func:`loads`
         """
         tester = instance_tester(self, **options)
         from sage.misc.all import loads, dumps

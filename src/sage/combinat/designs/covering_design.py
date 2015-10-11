@@ -222,14 +222,17 @@ class CoveringDesign(SageObject):
             Lower bound: 7
             Method: Projective Plane
         """
-        repr =  '(%d,%d,%d)-covering design of size %d\n'%(self.__v,self.__k,self.__t,self.__size)
-        repr +=  'Lower bound: %d\n'%(self.__low_bd)
+        repr = '(%d,%d,%d)-covering design of size %d\n' % (self.__v,
+                                                            self.__k,
+                                                            self.__t,
+                                                            self.__size)
+        repr += 'Lower bound: %d\n' % (self.__low_bd)
         if self.__creator != '':
-            repr += 'Created by: %s\n'%(self.__creator)
+            repr += 'Created by: %s\n' % (self.__creator)
         if self.__method != '':
-            repr += 'Method: %s\n'%(self.__method)
+            repr += 'Method: %s\n' % (self.__method)
         if self.__timestamp != '':
-            repr += 'Submitted on: %s\n'%(self.__timestamp)
+            repr += 'Submitted on: %s\n' % (self.__timestamp)
 
         return repr
 

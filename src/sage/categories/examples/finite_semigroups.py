@@ -10,7 +10,7 @@ Examples of finite semigroups
 
 from sage.misc.cachefunc import cached_method
 from sage.sets.family import Family
-from sage.categories.all import FiniteSemigroups
+from sage.categories.semigroups import Semigroups
 from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.element_wrapper import ElementWrapper
@@ -80,6 +80,7 @@ class LeftRegularBand(UniqueRepresentation, Parent):
         sage: TestSuite(S).run(verbose = True)
         running ._test_an_element() . . . pass
         running ._test_associativity() . . . pass
+        running ._test_cardinality() . . . pass
         running ._test_category() . . . pass
         running ._test_elements() . . .
           Running the test suite of self.an_element()
@@ -114,7 +115,7 @@ class LeftRegularBand(UniqueRepresentation, Parent):
             sage: TestSuite(S).run()
         """
         self.alphabet = alphabet
-        Parent.__init__(self, category = FiniteSemigroups())
+        Parent.__init__(self, category = Semigroups().Finite().FinitelyGenerated())
 
     def _repr_(self):
         r"""

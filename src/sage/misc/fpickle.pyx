@@ -9,7 +9,9 @@ import types, copy_reg, cPickle
 def code_ctor(*args):
     """
     EXAMPLES:
-    This indirectly tests this function.
+
+    This indirectly tests this function. ::
+
         sage: def foo(a,b,c=10): return a+b+c
         sage: sage.misc.fpickle.reduce_code(foo.__code__)
         (<built-in function code_ctor>, ...)
@@ -20,7 +22,8 @@ def code_ctor(*args):
 
 def reduce_code(co):
     """
-    EXAMPLES:
+    EXAMPLES::
+
         sage: def foo(N): return N+1
         sage: sage.misc.fpickle.reduce_code(foo.__code__)
         (<built-in function code_ctor>, ...)
@@ -45,11 +48,15 @@ def pickle_function(func):
     work on functions that includes nested functions.
 
     INPUT:
+
         func -- a Python function
+
     OUTPUT:
+
         a string
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: def f(N): return N+1
         ...
         sage: g = pickle_function(f)
@@ -62,7 +69,9 @@ def pickle_function(func):
 def unpickle_function(pickled):
     """
     Unpickle a pickled function.
+
     EXAMPLES:
+
         sage: def f(N,M): return N*M
         ...
         sage: unpickle_function(pickle_function(f))(3,5)

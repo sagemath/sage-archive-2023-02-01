@@ -1,12 +1,15 @@
-include 'decl.pxi'
-
-cimport sage.structure.element
+from .types cimport *
+from sage.structure.element cimport RingElement
 cimport cython
 
-@cython.final
-cdef class gen(sage.structure.element.RingElement):
+
+cdef class gen_auto(RingElement):
     cdef GEN g
     cdef pari_sp b
     cdef dict refers_to
 
-cdef gen objtogen(object s)
+@cython.final
+cdef class gen(gen_auto):
+    pass
+
+cpdef gen objtogen(s)

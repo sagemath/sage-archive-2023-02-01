@@ -15,7 +15,7 @@ from sage.misc.cachefunc import cached_method
 from sage.misc.lazy_import import LazyImport
 from sage.categories.category_with_axiom import CategoryWithAxiom
 from sage.categories.rngs import Rngs
-from category import HomCategory
+from sage.structure.element import Element
 from functools import reduce
 
 class Rings(CategoryWithAxiom):
@@ -154,7 +154,7 @@ class Rings(CategoryWithAxiom):
                 sage: R.quo(x^2+1).is_zero()
                 False
             """
-            return self.one_element() == self.zero_element()
+            return self.one() == self.zero()
 
         def bracket(self, x, y):
             """
@@ -186,7 +186,7 @@ class Rings(CategoryWithAxiom):
             r"""
             Returns the homset from ``self`` to ``Y`` in the category ``category``
 
-            INPUT::
+            INPUT:
 
             - ``Y`` -- a ring
             - ``category`` -- a subcategory of :class:`Rings`() or None
@@ -471,7 +471,7 @@ class Rings(CategoryWithAxiom):
                         try:
                             if self.has_coerce_map_from(first):
                                 gens = first.gens() # we have a ring as argument
-                            elif hasattr(first,'parent'):
+                            elif isinstance(first, Element):
                                 gens = [first]
                             else:
                                 raise ArithmeticError("There is no coercion from %s to %s"%(first,self))
@@ -611,7 +611,7 @@ class Rings(CategoryWithAxiom):
 
             NOTE:
 
-            This is a synonyme for :meth:`quotient`.
+            This is a synonym for :meth:`quotient`.
 
             EXAMPLE::
 
@@ -894,19 +894,13 @@ class Rings(CategoryWithAxiom):
                 sage: MS.zero().is_unit()
                 False
                 sage: MS([1,2,3,4]).is_unit()
-                Traceback (most recent call last):
-                ...
-                NotImplementedError
-
+                False
             """
-            if self == 1 or self == -1:
+            if self.is_one() or (-self).is_one():
                 return True
-            if self == 0: # now 0 != 1
+            if self.is_zero(): # now 0 != 1
                 return False
             raise NotImplementedError
-
-    class HomCategory(HomCategory):
-        pass
 
 def _gen_names(elts):
     r"""
@@ -927,7 +921,7 @@ def _gen_names(elts):
     from sage.structure.parent_gens import _certify_names
     from sage.combinat.words.words import Words
     it = iter(Words("abcdefghijklmnopqrstuvwxyz", infinite=False))
-    it.next() # skip empty word
+    next(it) # skip empty word
     for x in elts:
         name = str(x)
         m = re.match('^sqrt\((\d+)\)$', name)
@@ -936,5 +930,5 @@ def _gen_names(elts):
         try:
             _certify_names([name])
         except ValueError:
-            name = it.next().string_rep()
+            name = next(it).string_rep()
         yield name

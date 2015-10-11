@@ -1,5 +1,5 @@
 """
-Finite Extension Fields implemented via PARI.
+Finite Extension Fields implemented via PARI POLMODs (deprecated)
 
 AUTHORS:
 
@@ -43,9 +43,8 @@ class FiniteField_ext_pari(FiniteField_generic):
 
     - ``q`` -- integer, size of the finite field, not prime
 
-    - ``name`` -- variable used for printing element of the finite
-      field.  Also, two finite fields are considered equal if they
-      have the same variable name, and not otherwise.
+    - ``name`` -- variable name used for printing elements of the
+      finite field
 
     - ``modulus`` -- an irreducible polynomial to construct this field.
 
@@ -58,6 +57,8 @@ class FiniteField_ext_pari(FiniteField_generic):
         sage: P.<x> = PolynomialRing(GF(3))
         sage: from sage.rings.finite_rings.finite_field_ext_pari import FiniteField_ext_pari
         sage: k = FiniteField_ext_pari(9, 'a', modulus=(x^2 + 2*x + 2))
+        doctest:...: DeprecationWarning: The "pari_mod" finite field implementation is deprecated
+        See http://trac.sagemath.org/17297 for details.
         sage: k
         Finite Field in a of size 3^2
         sage: k.is_field()
@@ -136,6 +137,8 @@ class FiniteField_ext_pari(FiniteField_generic):
         sage: loads(K.dumps()) == K
         True
         sage: K = FiniteField(7^10, 'b', impl='pari_mod')
+        doctest:...: DeprecationWarning: The "pari_mod" finite field implementation is deprecated
+        See http://trac.sagemath.org/17297 for details.
         sage: loads(K.dumps()) == K
         True
         sage: K = FiniteField(7^10, 'a', impl='pari_mod')
@@ -169,33 +172,31 @@ class FiniteField_ext_pari(FiniteField_generic):
             sage: k = FiniteField(9, 'a', impl='pari_mod'); k
             Finite Field in a of size 3^2
         """
+        from sage.misc.superseded import deprecation
+        deprecation(17297, 'The "pari_mod" finite field implementation is deprecated')
+
         if element_ext_pari.dynamic_FiniteField_ext_pariElement is None: element_ext_pari._late_import()
         from constructor import FiniteField as GF
         q = integer.Integer(q)
         if q < 2:
             raise ArithmeticError("q must be a prime power")
-        from sage.structure.proof.all import arithmetic
-        proof = arithmetic()
-        if proof:
-            F = q.factor()
-        else:
-            from sage.rings.arith import is_pseudoprime_small_power
-            F = is_pseudoprime_small_power(q, get_data=True)
-        if len(F) != 1:
-            raise ArithmeticError("q must be a prime power")
 
-        if F[0][1] > 1:
-            base_ring = GF(F[0][0])
+        # note: the following call takes care of the fact that
+        # proof.arithmetic() is True or False.
+        p, n = q.is_prime_power(get_data=True)
+        if n > 1:
+            base_ring = GF(p)
+        elif n == 0:
+            raise ArithmeticError("q must be a prime power")
         else:
             raise ValueError("The size of the finite field must not be prime.")
-            #base_ring = self
 
         FiniteField_generic.__init__(self, base_ring, name, normalize=True)
 
         self._kwargs = {}
-        self.__char = F[0][0]
+        self.__char = p
         self.__pari_one = pari.pari(1).Mod(self.__char)
-        self.__degree = integer.Integer(F[0][1])
+        self.__degree = n
         self.__order = q
         self.__is_field = True
 
@@ -232,12 +233,12 @@ class FiniteField_ext_pari(FiniteField_generic):
         elif isinstance(modulus, (list, tuple)):
             modulus = GF(self.__char)['x'](modulus)
         elif sage.rings.polynomial.polynomial_element.is_Polynomial(modulus):
-            if modulus.parent() is not base_ring:
+            if modulus.base_ring() is not base_ring:
                 modulus = modulus.change_ring(base_ring)
         else:
             raise ValueError("Modulus parameter not understood")
 
-        self.__modulus = modulus
+        self._modulus = modulus
         f = pari.pari(str(modulus))
         self.__pari_modulus = f.subst(modulus.parent().variable_name(), 'a') * self.__pari_one
         self.__gen = element_ext_pari.FiniteField_ext_pariElement(self, pari.pari('a'))
@@ -257,36 +258,6 @@ class FiniteField_ext_pari(FiniteField_generic):
             True
         """
         return self._factory_data[0].reduce_data(self)
-
-    def __cmp__(self, other):
-        """
-        Compare ``self`` to ``other``.
-
-        EXAMPLES::
-
-            sage: k = GF(7^20, 'a', impl='pari_mod')
-            sage: k == loads(dumps(k))
-            True
-        """
-        if not isinstance(other, FiniteField_ext_pari):
-            return cmp(type(self), type(other))
-        return cmp((self.__order, self.variable_name(), self.__modulus), (other.__order, other.variable_name(), other.__modulus))
-
-    def __richcmp__(left, right, op):
-        r"""
-        Compare ``left`` with ``right``.
-
-        EXAMPLE::
-
-            sage: k.<a> = GF(2^17, impl='pari_mod')
-            sage: j.<b> = GF(2^18, impl='pari_mod')
-            sage: k == j
-            False
-
-            sage: GF(2^17, 'a', impl='pari_mod') == copy(GF(2^17, 'a', impl='pari_mod'))
-            True
-        """
-        return left._richcmp_helper(right, op)
 
     def _pari_one(self):
         r"""
@@ -332,25 +303,24 @@ class FiniteField_ext_pari(FiniteField_generic):
 
     def gen(self, n=0):
         """
-        Return a generator of the finite field.
-
-        This generator is a root of the defining polynomial of the finite
-        field, and might differ between different runs or different
-        architectures.
-
-        .. WARNING::
-
-            This generator is not guaranteed to be a generator
-            for the multiplicative group.  To obtain the latter, use
-            :meth:`~sage.rings.finite_rings.finite_field_base.FiniteFields.multiplicative_generator()`.
+        Return a generator of ``self`` over its prime field, which is a
+        root of ``self.modulus()``.
 
         INPUT:
 
-        - ``n`` -- ignored
+        - ``n`` -- must be 0
 
         OUTPUT:
 
-        Field generator of finite field
+        An element `a` of ``self`` such that ``self.modulus()(a) == 0``.
+
+        .. WARNING::
+
+            This generator is not guaranteed to be a generator for the
+            multiplicative group.  To obtain the latter, use
+            :meth:`~sage.rings.finite_rings.finite_field_base.FiniteFields.multiplicative_generator()`
+            or use the ``modulus="primitive"`` option when constructing
+            the field.
 
         EXAMPLES::
 
@@ -364,6 +334,8 @@ class FiniteField_ext_pari(FiniteField_generic):
             alpha^3 + 1
 
         """
+        if n:
+            raise IndexError("only one generator")
         return self.__gen
 
     def characteristic(self):
@@ -378,22 +350,6 @@ class FiniteField_ext_pari(FiniteField_generic):
             3
         """
         return self.__char
-
-    def modulus(self):
-        r"""
-        Return the minimal polynomial of the generator of ``self`` in
-        ``self.polynomial_ring('x')``.
-
-        EXAMPLES::
-
-            sage: F.<a> = GF(7^20, 'a', impl='pari_mod')
-            sage: f = F.modulus(); f
-            x^20 + x^12 + 6*x^11 + 2*x^10 + 5*x^9 + 2*x^8 + 3*x^7 + x^6 + 3*x^5 + 3*x^3 + x + 3
-
-            sage: f(a)
-            0
-        """
-        return self.__modulus
 
     def degree(self):
         """
@@ -433,7 +389,7 @@ class FiniteField_ext_pari(FiniteField_generic):
         the polynomial at the field's generator::
 
             sage: R.<x> = QQ[]
-            sage: k, a = FiniteField(5^2, 'a', impl='pari_mod').objgen()
+            sage: k.<a> = FiniteField(5^2, impl='pari_mod')
             sage: k(R(2/3))
             4
             sage: k(x^2)
@@ -446,7 +402,7 @@ class FiniteField_ext_pari(FiniteField_generic):
             sage: k(x^25)
             a
 
-            sage: Q, q = FiniteField(5^7, 'q', impl='pari_mod').objgen()
+            sage: Q.<q> = FiniteField(5^7, impl='pari_mod')
             sage: L = GF(5)
             sage: LL.<xx> = L[]
             sage: Q(xx^2 + 2*xx + 4)
@@ -586,47 +542,3 @@ class FiniteField_ext_pari(FiniteField_generic):
             1024
         """
         return self.__order
-
-    def polynomial(self, name=None):
-        """
-        Return the irreducible characteristic polynomial of the
-        generator of this finite field, i.e., the polynomial `f(x)` so
-        elements of the finite field as elements modulo `f`.
-
-        EXAMPLES::
-
-            sage: k = FiniteField(9, 'a', impl='pari_mod')
-            sage: k.polynomial('x')
-            x^2 + 2*x + 2
-        """
-        if name is None:
-            name = self.variable_name()
-        try:
-            return self.__polynomial[name]
-        except (AttributeError, KeyError):
-            from constructor import FiniteField as GF
-            R = GF(self.characteristic())[name]
-            f = R(self._pari_modulus())
-            try:
-                self.__polynomial[name] = f
-            except (KeyError, AttributeError):
-                self.__polynomial = {}
-                self.__polynomial[name] = f
-            return f
-
-    def __hash__(self):
-        """
-        Return the hash of this field.
-
-        EXAMPLES::
-
-            sage: {GF(9, 'a', impl='pari_mod'): 1} # indirect doctest
-            {Finite Field in a of size 3^2: 1}
-            sage: {GF(9, 'b', impl='pari_mod'): 1} # indirect doctest
-            {Finite Field in b of size 3^2: 1}
-        """
-        try:
-            return self.__hash
-        except AttributeError:
-            self.__hash = hash((self.__order, self.variable_name(), self.__modulus))
-            return self.__hash

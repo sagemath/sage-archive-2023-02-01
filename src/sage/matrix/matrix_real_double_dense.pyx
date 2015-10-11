@@ -58,7 +58,7 @@ cdef class Matrix_real_double_dense(matrix_double_dense.Matrix_double_dense):
         sage: m**2
         [ 7.0 10.0]
         [15.0 22.0]
-        sage: n = m^(-1); n
+        sage: n = m^(-1); n     # rel tol 1e-15
         [-1.9999999999999996  0.9999999999999998]
         [ 1.4999999999999998 -0.4999999999999999]
 
@@ -94,7 +94,6 @@ cdef class Matrix_real_double_dense(matrix_double_dense.Matrix_double_dense):
     #   * __init__
     #   * set_unsafe
     #   * get_unsafe
-    #   * __richcmp__    -- always the same
     #   * __hash__       -- always simple
     ########################################################################
     def __cinit__(self, parent, entries, copy, coerce):

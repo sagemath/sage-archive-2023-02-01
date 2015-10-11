@@ -33,7 +33,6 @@ Functions
 
 from sage.interfaces.all import gap
 from sage.misc.randstate import current_randstate
-from sage.misc.preparser import *
 from sage.matrix.matrix_space import MatrixSpace
 from sage.rings.finite_rings.constructor import FiniteField as GF
 from sage.interfaces.gap import gfq_gap_to_sage
@@ -46,7 +45,7 @@ def BinaryReedMullerCode(r,k):
     order r is a code with length `2^k` and minimum distance `2^k-r`
     (see for example, section 1.10 in [HP]_). By definition, the
     `r^{th}` order binary Reed-Muller code of length `n=2^m`, for
-    `0 \leq r \leq m`, is the set of all vectors `(f(p)\ |\ p \\in GF(2)^m)`,
+    `0 \leq r \leq m`, is the set of all vectors `(f(p)\ |\ p \in GF(2)^m)`,
     where `f` is a multivariate polynomial of degree at most `r`
     in `m` variables.
 
@@ -64,7 +63,7 @@ def BinaryReedMullerCode(r,k):
         Linear code of length 16, dimension 11 over Finite Field of size 2
         sage: C.minimum_distance()              # optional - gap_packages (Guava package)
         4
-        sage: C.gen_mat()                       # optional - gap_packages (Guava package)
+        sage: C.generator_matrix()                       # optional - gap_packages (Guava package)
         [1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1]
         [0 0 0 0 0 0 0 0 1 1 1 1 1 1 1 1]
         [0 0 0 0 1 1 1 1 0 0 0 0 1 1 1 1]

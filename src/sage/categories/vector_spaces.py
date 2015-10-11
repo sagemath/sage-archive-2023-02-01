@@ -126,6 +126,24 @@ class VectorSpaces(Category_module):
         R = self.base_field()
         return [Modules(R, dispatch = False)]
 
+    def additional_structure(self):
+        r"""
+        Return  ``None``.
+
+        Indeed, the category of vector spaces defines no additional
+        structure: a bimodule morphism between two vector spaces is a
+        vector space morphism.
+
+        .. SEEALSO:: :meth:`Category.additional_structure`
+
+        .. TODO:: Should this category be a :class:`CategoryWithAxiom`?
+
+        EXAMPLES::
+
+            sage: VectorSpaces(QQ).additional_structure()
+        """
+        return None
+
     class ParentMethods:
         pass
 

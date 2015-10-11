@@ -1,6 +1,5 @@
 """
 Local Normal Form
-
 """
 
 #*****************************************************************************
@@ -25,10 +24,6 @@ from sage.rings.rational_field import QQ
 from sage.rings.arith import GCD, valuation, is_prime
 
 
-#from sage.misc.functional import ideal          ## TODO: This can probably be removed!
-
-
-
 def find_entry_with_minimal_scale_at_prime(self, p):
     """
     Finds the entry of the quadratic form with minimal scale at the
@@ -40,9 +35,11 @@ def find_entry_with_minimal_scale_at_prime(self, p):
     Hessian) associated to the form.
 
     INPUT:
+
         `p` -- a prime number > 0
 
     OUTPUT:
+
         a pair of integers >= 0
 
     EXAMPLES::
@@ -93,9 +90,11 @@ def local_normal_form(self, p):
     the 2x2 blocks in each Jordan component.)
 
     INPUT:
+
         `p` -- a positive prime number.
 
     OUTPUT:
+
         a quadratic form over ZZ
 
     WARNING:  Currently this only works for quadratic forms defined over ZZ.
@@ -412,10 +411,12 @@ def jordan_blocks_in_unimodular_list_by_scale_power(self, p):
     correctly for p=2 when the form has an integer Gram matrix.
 
     INPUT:
+
         self -- a quadratic form over ZZ, which has integer Gram matrix if p == 2
         `p` -- a prime number > 0
 
     OUTPUT:
+
         a list of p-unimodular quadratic forms
 
     EXAMPLES::

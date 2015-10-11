@@ -1247,9 +1247,16 @@ class DiagramAlgebra(CombinatorialFreeModule):
             True
             sage: D([{1,2},{-1,-2}]) == b_elt
             True
-            sage: S = SymmetricGroupAlgebra(SR,2)
+            sage: S = SymmetricGroupAlgebra(R,2)
             sage: D(S([2,1]))
             P{{-2, 1}, {-1, 2}}
+            sage: D2 = da.DiagramAlgebra(2, x, R, 'P', da.PlanarDiagrams(2))
+            sage: D2(S([1,2]))
+            P{{-2, 2}, {-1, 1}}
+            sage: D2(S([2,1]))
+            Traceback (most recent call last):
+            ...
+            ValueError: invalid input of [[1, -2], [2, -1]]
         """
         if self.basis().keys().is_parent_of(set_partition):
             return self.basis()[set_partition]
@@ -2030,6 +2037,13 @@ class TemperleyLiebAlgebra(SubPartitionAlgebra):
             True
             sage: TL([{1,2},{-1,-2}]) == b_elt
             True
+            sage: S = SymmetricGroupAlgebra(R, 2)
+            sage: TL(S([1,2]))
+            T{{-2, 2}, {-1, 1}}
+            sage: TL(S([2,1]))
+            Traceback (most recent call last):
+            ...
+            ValueError: invalid input of [set([1, -2]), set([2, -1])]
         """
         if isinstance(set_partition, SymmetricGroupAlgebra_n.Element):
             return SubPartitionAlgebra._element_constructor_(self, set_partition)

@@ -134,6 +134,25 @@ class FiniteDimensionalAlgebraElement(AlgebraElement):
         """
         return self._matrix
 
+    def monomial_coefficients(self, copy=True):
+        """
+        Return a dictionary whose keys are indices of basis in
+        the support of ``self`` and whose values are the corresponding
+        coefficients.
+
+        INPUT:
+
+        - ``copy`` -- ignored
+
+        EXAMPLES::
+
+            sage: B = FiniteDimensionalAlgebra(QQ, [Matrix([[1,0], [0,1]]), Matrix([[0,1], [-1,0]])])
+            sage: elt = B(Matrix([[1,1], [-1,1]]))
+            sage: elt.monomial_coefficients()
+            {0: 1, 1: 1}
+        """
+        return self._vector.dict(copy)
+
     def left_matrix(self):
         """
         Return the matrix for multiplication by ``self`` from the left.

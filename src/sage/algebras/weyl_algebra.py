@@ -402,6 +402,32 @@ class DifferentialWeylAlgebraElement(AlgebraElement):
         M = self.__monomials
         return self.__class__(self.parent(), {t: M[t]*other for t in M})
 
+    def monomial_coefficients(self, copy=True):
+        """
+        Return a dictionary which has the basis keys in the support
+        of ``self`` and their corresponding coefficients as values.
+
+        INPUT:
+
+        - ``copy`` -- (default: ``True``) if ``self`` is internally
+          represented by a dictionary ``d``, then make a copy of ``d``;
+          if ``False``, then this can cause undesired behavior by
+          mutating ``d``
+
+        EXAMPLES::
+
+            sage: W.<x,y,z> = DifferentialWeylAlgebra(QQ)
+            sage: dx,dy,dz = W.differentials()
+            sage: elt = (dy - (3*x - z)*dx)
+            sage: sorted(elt.monomial_coefficients().items())
+            [(((0, 0, 0), (0, 1, 0)), 1),
+             (((0, 0, 1), (1, 0, 0)), 1),
+             (((1, 0, 0), (1, 0, 0)), -3)]
+        """
+        if copy:
+            return dict(self.__monomials)
+        return self.__monomials
+
     def __iter__(self):
         """
         Return an iterator of ``self``.

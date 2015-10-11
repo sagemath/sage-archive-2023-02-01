@@ -2077,15 +2077,15 @@ cdef class FreeModuleElement(Vector):   # abstract base class
 
     def dict(self, copy=True):
         """
-        Return dictionary of nonzero entries of self.
+        Return dictionary of nonzero entries of ``self``.
 
         INPUT:
 
-            - ``copy`` -- bool (default: True)
+        - ``copy`` -- bool (default: ``True``)
 
         OUTPUT:
 
-            - Python dictionary
+        - Python dictionary
 
         EXAMPLES::
 
@@ -2109,6 +2109,8 @@ cdef class FreeModuleElement(Vector):   # abstract base class
             if c:
                 e[i] = c
         return e
+
+    monomial_coefficients = dict
 
     #############################
     # Plotting
@@ -4821,15 +4823,15 @@ cdef class FreeModuleElement_generic_sparse(FreeModuleElement):
 
     def dict(self, copy=True):
         """
-        Return dictionary of nonzero entries of self.
+        Return dictionary of nonzero entries of ``self``.
 
         INPUT:
 
-            - ``copy`` -- bool (default: True)
+        - ``copy`` -- bool (default: ``True``)
 
         OUTPUT:
 
-            - Python dictionary
+        - Python dictionary
 
         EXAMPLES::
 
@@ -4842,9 +4844,11 @@ cdef class FreeModuleElement_generic_sparse(FreeModuleElement):
         else:
             return self._entries
 
+    monomial_coefficients = dict
+
     def list(self, copy=True):
         """
-        Return list of elements of self.
+        Return list of elements of ``self``.
 
         INPUT:
 

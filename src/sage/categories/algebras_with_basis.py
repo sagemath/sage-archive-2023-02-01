@@ -198,7 +198,7 @@ class AlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
 
         def __invert__(self):
             """
-            Returns the inverse of self if self is a multiple of one,
+            Return the inverse of ``self`` if ``self`` is a multiple of one,
             and one is in the basis of this algebra. Otherwise throws
             an error.
 
@@ -222,10 +222,10 @@ class AlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
                 ValueError: cannot invert self (= B[word: a])
             """
             # FIXME: make this generic
-            mcs = self._monomial_coefficients
+            mcs = self.monomial_coefficients(copy=False)
             one = self.parent().one_basis()
             if len(mcs) == 1 and one in mcs:
-                return self.parent()( ~mcs[ one ] )
+                return self.parent().term(one, ~mcs[one])
             else:
                 raise ValueError("cannot invert self (= %s)"%self)
 

@@ -577,7 +577,28 @@ cdef class Matrix_gfpn_dense(Matrix_dense):
             retval.Data = NULL
         return retval
 
-    ## Pickling and string representation is taken care of by implementing get_unsafe
+    def __reduce__(self):
+        """
+        TESTS::
+
+            sage: M = MatrixSpace(GF(9,'x'),10,10).random_element()
+            sage: M == loads(dumps(M))   # indirect doctest
+            True
+            sage: M is loads(dumps(M))
+            False
+        """
+        cdef char* d
+        cdef int i,NR
+        cdef PTR p
+        if self.Data:
+            FfSetField(self.Data.Field)
+            FfSetNoc(self.Data.Noc)
+            return mtx_unpickle, (self._parent, self.Data.Nor, self.Data.Noc,
+                        PyString_FromStringAndSize(<char*>self.Data.Data,self.Data.RowSize * self.Data.Nor),
+                        not self._is_immutable) # for backward compatibility with the group cohomology package
+        else:
+            return mtx_unpickle, (0, 0, 0, '', not self._is_immutable)
+
     cdef get_unsafe(self, Py_ssize_t i, Py_ssize_t j):
         """
         Get an element without checking.
@@ -1579,3 +1600,31 @@ cdef class Matrix_gfpn_dense(Matrix_dense):
         self.cache('pivots', tuple(self.Data.PivotTable[i] for i in range(r)))
         self.cache('in_echelon_form',True)
 
+def mtx_unpickle(f, int nr, int nc, str Data, bint m):
+    """
+    Helper function for unpickling.
+
+    TESTS::
+
+        sage: M = MatrixSpace(GF(9,'x'),10,10).random_element()
+        sage: M == loads(dumps(M))   # indirect doctest
+        True
+        sage: M is loads(dumps(M))
+        False
+    """
+    cdef Matrix_gfpn_dense OUT
+    OUT = Matrix_gfpn_dense.__new__(Matrix_gfpn_dense)
+    if isinstance(f, (int, long)):
+        # This is for old pickles created with the group cohomology spkg
+        Matrix_dense.__init__(OUT, MatrixSpace(GF(f, 'z'), nr, nc))
+    else:
+        Matrix_dense.__init__(OUT, f)
+        f = OUT._base_ring.order()
+    OUT.Data = MatAlloc(f, nr, nc)
+    OUT._is_immutable = not m
+    OUT._converter = FieldConverter(OUT._base_ring)
+    cdef char *x
+    if Data:
+        x = PyString_AsString(Data)
+        memcpy(OUT.Data.Data, x, OUT.Data.RowSize*OUT.Data.Nor)
+    return OUT

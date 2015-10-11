@@ -26,6 +26,7 @@ Let ``<tab>`` indicate pressing the tab key.  So begin by typing
   <sage.algebras.iwahori_hecke_algebra.IwahoriHeckeAlgebra>`
 - :class:`algebras.Jordan
   <sage.algebras.jordan_algebra.JordanAlgebra>`
+- :class:`algebras.Lie <sage.algebras.lie_algebras.lie_algebra.LieAlgebra>`
 - :class:`algebras.NilCoxeter
   <sage.algebras.nil_coxeter_algebra.NilCoxeterAlgebra>`
 - :func:`algebras.Quaternion
@@ -45,6 +46,7 @@ from sage.algebras.group_algebra import GroupAlgebra as Group
 from sage.algebras.clifford_algebra import CliffordAlgebra as Clifford
 from sage.algebras.clifford_algebra import ExteriorAlgebra as Exterior
 from sage.algebras.weyl_algebra import DifferentialWeylAlgebra as DifferentialWeyl
+from sage.algebras.lie_algebras.lie_algebra import LieAlgebra as Lie
 
 from sage.misc.lazy_import import lazy_import
 lazy_import('sage.algebras.nil_coxeter_algebra', 'NilCoxeterAlgebra', 'NilCoxeter')

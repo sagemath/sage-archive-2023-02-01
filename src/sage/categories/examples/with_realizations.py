@@ -253,7 +253,7 @@ class SubsetAlgebra(UniqueRepresentation, Parent):
 
     def indices_key(self, x):
         r"""
-        A comparison function on sets which gives a linear extension
+        A key function on a set which gives a linear extension
         of the inclusion order.
 
         INPUT:

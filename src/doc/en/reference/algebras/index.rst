@@ -32,6 +32,9 @@ Algebras
    sage/algebras/affine_nil_temperley_lieb
 
    sage/algebras/hall_algebra
+
+   lie_algebras
+
    sage/algebras/jordan_algebra
 
    sage/algebras/quatalg/quaternion_algebra
@@ -47,3 +50,4 @@ Algebras
    sage/algebras/weyl_algebra
 
 .. include:: ../footer.txt
+

@@ -69,6 +69,7 @@ Individual Categories
    sage/categories/finite_dimensional_bialgebras_with_basis
    sage/categories/finite_dimensional_coalgebras_with_basis
    sage/categories/finite_dimensional_hopf_algebras_with_basis
+   sage/categories/finite_dimensional_lie_algebras_with_basis.py
    sage/categories/finite_dimensional_modules_with_basis
    sage/categories/finite_dimensional_semisimple_algebras_with_basis
    sage/categories/finite_enumerated_sets
@@ -105,6 +106,8 @@ Individual Categories
    sage/categories/integral_domains
    sage/categories/lattice_posets
    sage/categories/left_modules
+   sage/categories/lie_algebras.py
+   sage/categories/lie_algebras_with_basis.py
    sage/categories/magmas
    sage/categories/magmas_and_additive_magmas
    sage/categories/magmatic_algebras
@@ -187,6 +190,7 @@ Examples of parents using categories
    sage/categories/examples/finite_coxeter_groups
    sage/categories/examples/finite_dimensional_algebras_with_basis
    sage/categories/examples/finite_enumerated_sets
+   sage/categories/examples/finite_dimensional_lie_algebras_with_basis.py
    sage/categories/examples/finite_monoids
    sage/categories/examples/finite_semigroups
    sage/categories/examples/finite_weyl_groups
@@ -194,6 +198,8 @@ Examples of parents using categories
    sage/categories/examples/graded_modules_with_basis
    sage/categories/examples/hopf_algebras_with_basis
    sage/categories/examples/infinite_enumerated_sets
+   sage/categories/examples/lie_algebras.py
+   sage/categories/examples/lie_algebras_with_basis.py
    sage/categories/examples/monoids
    sage/categories/examples/posets
    sage/categories/examples/semigroups_cython

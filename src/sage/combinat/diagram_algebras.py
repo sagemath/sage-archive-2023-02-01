@@ -1650,7 +1650,7 @@ class PartitionAlgebra(DiagramAlgebra):
 
     Symmetric group algebra elements can also be coerced into the partition algebra.
 
-    TESTS:
+    TESTS::
 
         sage: A = PartitionAlgebra(2, x, SR)
         sage: S = SymmetricGroupAlgebra(SR, 2)

@@ -37,3 +37,25 @@ class SuperAlgebrasWithBasis(SuperModulesCategory):
         """
         return [self.base_category().Graded()]
 
+    class ParentMethods:
+        def graded_algebra(self):
+            r"""
+            Return the associated graded module to ``self``.
+
+            See :class:`~sage.algebras.associated_graded.AssociatedGradedAlgebra`
+            for the definition and the properties of this.
+
+            .. SEEALSO::
+
+                :meth:`~sage.categories.filtered_modules_with_basis.ParentMethods.graded_algebra`
+
+            EXAMPLES::
+
+                sage: W.<x,y> = algebras.DifferentialWeyl(QQ)
+                sage: W.graded_algebra()
+                Graded Algebra of Differential Weyl algebra of
+                 polynomials in x, y over Rational Field
+            """
+            from sage.algebras.associated_graded import AssociatedGradedAlgebra
+            return AssociatedGradedAlgebra(self)
+

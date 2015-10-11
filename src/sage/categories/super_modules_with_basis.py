@@ -23,8 +23,8 @@ class SuperModulesWithBasis(SuperModulesCategory):
         sage: C = GradedModulesWithBasis(ZZ); C
         Category of graded modules with basis over Integer Ring
         sage: sorted(C.super_categories(), key=str)
-        [Category of graded modules over Integer Ring,
-         Category of modules with basis over Integer Ring]
+        [Category of filtered modules with basis over Integer Ring,
+         Category of graded modules over Integer Ring]
         sage: C is ModulesWithBasis(ZZ).Graded()
         True
 

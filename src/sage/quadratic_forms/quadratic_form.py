@@ -214,6 +214,7 @@ class QuadraticForm(SageObject):
     ## Routines to compute p-adic field invariants
     from sage.quadratic_forms.quadratic_form__local_field_invariants import \
             rational_diagonal_form, \
+            _rational_diagonal_form_and_transformation, \
             signature_vector, \
             signature, \
             hasse_invariant, \
@@ -370,7 +371,6 @@ class QuadraticForm(SageObject):
 
     ## Routines to test the local and global equivalence/isometry of two quadratic forms.
     from sage.quadratic_forms.quadratic_form__equivalence_testing import \
-            is_globally_equivalent__souvigner, \
             is_globally_equivalent_to, \
             is_locally_equivalent_to, \
             has_equivalent_Jordan_decomposition_at_prime, \
@@ -651,6 +651,20 @@ class QuadraticForm(SageObject):
 ######################################
 # TO DO:    def __cmp__(self, other):
 ######################################
+
+    def __hash__(self):
+        r"""
+        TESTS::
+
+            sage: Q1 = QuadraticForm(QQ, 2, [1,1,1])
+            sage: Q2 = QuadraticForm(QQ, 2, [1,1,1])
+            sage: Q3 = QuadraticForm(QuadraticField(2), 2, [1,1,1])
+            sage: hash(Q1) == hash(Q2)
+            True
+            sage: hash(Q1) == hash(Q3)
+            False
+        """
+        return hash(self.__base_ring) ^ hash(tuple(self.__coeffs))
 
     def __eq__(self, right):
         """

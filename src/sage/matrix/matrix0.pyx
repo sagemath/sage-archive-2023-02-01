@@ -4056,6 +4056,8 @@ cdef class Matrix(sage.structure.element.Matrix):
         """
         return self.is_square() and self.determinant().is_unit()
 
+    is_unit = is_invertible
+
     def is_singular(self):
         r"""
         Returns ``True`` if ``self`` is singular.

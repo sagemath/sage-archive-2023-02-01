@@ -80,8 +80,6 @@ SAGE_SHARE="$SAGE_LOCAL/share"
 SAGE_EXTCODE="$SAGE_SHARE/sage/ext"
 SAGE_SPKG_INST="$SAGE_LOCAL/var/lib/sage/installed"
 
-export PATH="$SAGE_LOCAL/bin:$PATH"
-
 ###############################################################################
 # Determine whether to use MPIR (default standard pkg) or GMP (optional pkg).
 ###############################################################################

@@ -398,7 +398,7 @@ class IncidenceStructure(object):
             True
             sage: ["Am", "I", "finally", "done ?"] in IS
             False
-            sage: IS = designs.ProjectiveGeometryDesign(3, 1, GF(2))
+            sage: IS = designs.ProjectiveGeometryDesign(3, 1, GF(2), point_coordinates=False)
             sage: [3,8,7] in IS
             True
             sage: [3,8,9] in IS

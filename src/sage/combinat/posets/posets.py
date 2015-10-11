@@ -4440,6 +4440,50 @@ class FinitePoset(UniqueRepresentation, Parent):
         G.rename('Incomparability graph on %s vertices' % self.cardinality())
         return G
 
+    def linear_extensions_graph(self):
+        r"""
+        Return the linear extensions graph of the poset.
+
+        Vertices of the graph are linear extensions of the poset.
+        Two vertices are connected by an edge if the linear extensions
+        differ by only one adjacent transposition.
+
+        EXAMPLES::
+
+            sage: P = Poset({1:[3,4],2:[4]})
+            sage: G = P.linear_extensions_graph(); G
+            Graph on 5 vertices
+            sage: G.degree_sequence()
+            [3, 2, 2, 2, 1]
+
+            sage: chevron = Poset({1:[2,6], 2:[3], 4:[3,5], 6:[5]})
+            sage: G = chevron.linear_extensions_graph(); G
+            Graph on 22 vertices
+            sage: G.size()
+            36
+
+        TESTS::
+
+            sage: Poset().linear_extensions_graph()
+            Graph on 1 vertex
+
+            sage: A4 = Posets.AntichainPoset(4)
+            sage: G = A4.linear_extensions_graph()
+            sage: G.is_regular()
+            True
+        """
+        from sage.graphs.graph import Graph
+        # Direct implementation, no optimizations
+        L = self.linear_extensions()
+        G = Graph()
+        G.add_vertices(L)
+        for i in range(len(L)):
+            for j in range(i):
+                tmp = map(lambda x,y: x != y, L[i], L[j])
+                if tmp.count(True) == 2 and tmp[tmp.index(True)+1]:
+                    G.add_edge(L[i], L[j])
+        return G
+
     def maximal_antichains(self):
         """
         Return the maximal antichains of the poset.

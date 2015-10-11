@@ -619,7 +619,7 @@ class Graph(GenericGraph):
          format='incidence_matrix')``.
 
       #. ``Graph([V, f])`` -- return a graph with a vertex set ``V`` and an edge
-         `u,f` whenever ``f(u,v)`` is ``True``. Example: ``Graph([ [1..10],
+         `u,v` whenever ``f(u,v)`` is ``True``. Example: ``Graph([ [1..10],
          lambda x,y: abs(x-y).is_square()])``
 
       #. ``Graph(':I`ES@obGkqegW~')`` -- return a graph from a graph6 or sparse6
@@ -630,7 +630,7 @@ class Graph(GenericGraph):
          a graph with a given seidel adjacency matrix (see documentation of
          :meth:`seidel_adjacency_matrix`).
 
-      #. ``Graph(another_graph)`` -- return a graph from a Sage graph,
+      #. ``Graph(another_graph)`` -- return a graph from a Sage (di)graph,
          `pygraphviz <https://pygraphviz.github.io/>`__ graph, `NetworkX
          <https://networkx.github.io/>`__ graph, or `igraph
          <http://igraph.org/python/>`__ graph.
@@ -688,7 +688,7 @@ class Graph(GenericGraph):
       ``data_structure='static_sparse'``. Set to ``False`` by default.
 
     - ``vertex_labels`` - Whether to allow any object as a vertex (slower), or
-      only the integers 0, ..., n-1, where n is the number of vertices.
+      only the integers `0,...,n-1`, where `n` is the number of vertices.
 
     -  ``convert_empty_dict_labels_to_None`` - this arguments sets
        the default edge labels used by NetworkX (empty dictionaries)

@@ -123,10 +123,8 @@ class DiGraph(GenericGraph):
     Directed graph.
 
     A digraph or directed graph is a set of vertices connected by oriented
-    edges. See also the `Wikipedia article on digraphs
-    <http://en.wikipedia.org/wiki/Digraph_%28mathematics%29>`_.For a collection
-    of pre-defined digraphs, see the :mod:`~sage.graphs.digraph_generators`
-    module.
+    edges. See also the :wikipedia:`Directed_graph`. For a collection of
+    pre-defined digraphs, see the :mod:`~sage.graphs.digraph_generators` module.
 
     A :class:`DiGraph` object has many methods whose list can be obtained by
     typing ``g.<tab>`` (i.e. hit the 'tab' key) or by reading the documentation
@@ -158,7 +156,7 @@ class DiGraph(GenericGraph):
          To bypass auto-detection, prefer the more explicit ``DiGraph(D,
          format='dict_of_lists')``.
 
-      #. ``DiGraph({1: {2: 'a', 3:'b'} ,3:{2:'c'}})`` -- return a graph by
+      #. ``DiGraph({1: {2: 'a', 3:'b'} ,3:{2:'c'}})`` -- return a digraph by
          associating a list of out-neighbors to each vertex and providing its
          edge label.
 
@@ -184,14 +182,14 @@ class DiGraph(GenericGraph):
          To bypass auto-detection, prefer the more explicit ``DiGraph(M,
          format='incidence_matrix')``.
 
-      #. ``DiGraph([V, f])`` -- return a graph with a vertex set ``V`` and an
-         edge `u,f` whenever ``f(u,v)`` is ``True``. Example: ``DiGraph([
+      #. ``DiGraph([V, f])`` -- return a digraph with a vertex set ``V`` and an
+         edge `u,v` whenever ``f(u,v)`` is ``True``. Example: ``DiGraph([
          [1..10], lambda x,y: abs(x-y).is_square()])``
 
-      #. ``DiGraph('FOC@?OC@_?')`` -- return a graph from a dig6 string (see
-         documentation of :meth:`dif6_string`).
+      #. ``DiGraph('FOC@?OC@_?')`` -- return a digraph from a dig6 string (see
+         documentation of :meth:`dig6_string`).
 
-      #. ``DiGraph(another_digraph)`` -- return a graph from a Sage graph,
+      #. ``DiGraph(another_digraph)`` -- return a digraph from a Sage (di)graph,
          `pygraphviz <https://pygraphviz.github.io/>`__ digraph, `NetworkX
          <https://networkx.github.io/>`__ digraph, or `igraph
          <http://igraph.org/python/>`__ digraph.
@@ -248,7 +246,7 @@ class DiGraph(GenericGraph):
       ``data_structure='static_sparse'``.
 
     - ``vertex_labels`` - Whether to allow any object as a vertex (slower), or
-      only the integers 0, ..., n-1, where n is the number of vertices.
+      only the integers `0,...,n-1`, where `n` is the number of vertices.
 
     -  ``convert_empty_dict_labels_to_None`` - this arguments sets
        the default edge labels used by NetworkX (empty dictionaries)

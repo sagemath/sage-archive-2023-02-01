@@ -51,10 +51,9 @@ from complex_number cimport ComplexNumber
 import complex_interval_field
 from complex_field import ComplexField
 import sage.misc.misc
-import integer
+cimport integer
 import infinity
-import real_mpfi
-import real_mpfr
+cimport real_mpfi
 cimport real_mpfr
 
 
@@ -925,6 +924,23 @@ cdef class ComplexIntervalFieldElement(sage.structure.element.FieldElement):
         mpfi_clear(t0)
         mpfi_clear(t1)
 
+        return x
+
+    def _complex_mpfr_field_(self, field):
+        """
+        Convert to a complex field.
+
+        EXAMPLES::
+
+            sage: re = RIF("1.2")
+            sage: im = RIF(2, 3)
+            sage: a = ComplexIntervalField(30)(re, im)
+            sage: CC(a)
+            1.20000000018626 + 2.50000000000000*I
+        """
+        cdef ComplexNumber x = field(0)
+        mpfi_mid(x.__re, self.__re)
+        mpfi_mid(x.__im, self.__im)
         return x
 
     def __int__(self):

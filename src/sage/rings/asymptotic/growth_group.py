@@ -1511,9 +1511,9 @@ class GenericGrowthGroup(
         However, combining is possible if the factors with the same variable
         overlap::
 
-            sage: cm.common_parent(GrowthGroup('x^ZZ*log(x)^ZZ'), GrowthGroup('exp(x)^ZZ*x^ZZ'))
+            sage: cm.common_parent(GrowthGroup('x^ZZ * log(x)^ZZ'), GrowthGroup('exp(x)^ZZ * x^ZZ'))
             Growth Group exp(x)^ZZ * x^ZZ * log(x)^ZZ
-            sage: cm.common_parent(GrowthGroup('x^ZZ*log(x)^ZZ'), GrowthGroup('y^ZZ*x^ZZ'))
+            sage: cm.common_parent(GrowthGroup('x^ZZ * log(x)^ZZ'), GrowthGroup('y^ZZ * x^ZZ'))
             Growth Group x^ZZ * log(x)^ZZ * y^ZZ
 
         ::

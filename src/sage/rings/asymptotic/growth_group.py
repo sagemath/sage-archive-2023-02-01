@@ -21,7 +21,8 @@ examples of growth groups and elements are given as well.
 
     TESTS::
 
-        sage: from sage.rings.asymptotic.growth_group import GenericGrowthGroup, GrowthGroup
+        sage: from sage.rings.asymptotic.growth_group import \
+        ....:     GenericGrowthGroup, GrowthGroup
         sage: GenericGrowthGroup(ZZ)
         doctest:...: FutureWarning: This class/method/function is marked as
         experimental. It, its functionality or its interface might change
@@ -90,6 +91,7 @@ Creating a Growth Group
 For many purposes the factory ``GrowthGroup`` (see
 :class:`GrowthGroupFactory`) is the most convenient way to generate a
 growth group.
+::
 
     sage: from sage.rings.asymptotic.growth_group import GrowthGroup
 
@@ -97,11 +99,28 @@ Here are some examples::
 
     sage: GrowthGroup('z^ZZ')
     Growth Group z^ZZ
-    sage: GrowthGroup('z^QQ')
+    sage: M = GrowthGroup('z^QQ'); M
     Growth Group z^QQ
 
 Each of these two generated groups is a :class:`MonomialGrowthGroup`,
 whose elements are powers of a fixed symbol (above ``'z'``).
+For the order of the elements it is assumed that `z\to\infty`.
+
+.. NOTE::
+
+    Growth groups where the variable tend to some value distinct from
+    `\infty` are not yet implemented.
+
+To create elements of `M`, a generator can be used::
+
+    sage: z = M.gen()
+    sage: z^(3/5)
+    z^(3/5)
+
+Strings can also be parsed::
+
+    sage: M('z^7')
+    z^7
 
 Similarly, we can construct logarithmic factors by::
 
@@ -158,8 +177,8 @@ Some Examples
 EXAMPLES::
 
     sage: from sage.rings.asymptotic.growth_group import GrowthGroup
-    sage: G_x = GrowthGroup('x^ZZ'); repr(G_x)
-    'Growth Group x^ZZ'
+    sage: G_x = GrowthGroup('x^ZZ'); G_x
+    Growth Group x^ZZ
     sage: G_xy = GrowthGroup('x^ZZ * y^ZZ'); G_xy
     Growth Group x^ZZ * y^ZZ
     sage: G_xy.an_element()
@@ -192,7 +211,8 @@ In this case the components are ordered lexicographically, which
 means that in the second growth group, ``log(x)`` is assumed to
 grow faster than ``x`` (which is nonsense, mathematically). See
 :class:`CartesianProduct <sage.rings.asymptotic.growth_group_cartesian.CartesianProductFactory>`
-for more details.
+for more details or see :ref:`above <growth_group_description>`
+for a more extensive description.
 
 Short notation also allows the construction of more complicated 
 growth groups::

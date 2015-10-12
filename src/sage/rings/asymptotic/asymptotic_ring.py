@@ -35,7 +35,9 @@ this module these summands are the following:
   also called *Bachmann--Landau notation*) for growth group
   element `g` (:ref:`again see below <asymptotic_ring_growth>`).
 
-See :wikipedia:`Asymptotic_expansion` for more details.
+See
+:wikipedia:`the Wikipedia article on asymptotic expansions <Asymptotic_expansion>`
+for more details.
 Further examples of such elements can be found :ref:`here <asymptotic_ring_intro>`.
 
 
@@ -49,7 +51,8 @@ a partial order and usually contain a variable. Examples---the order
 is described below these examples---are
 
 - elements of the form `z^q` for some integer or rational `q`
-  (growth groups ``z^ZZ`` or ``z^QQ``),
+  (growth groups with :ref:`description strings <growth_group_description>`
+  ``z^ZZ`` or ``z^QQ``),
 
 - elements of the form `\log(z)^q` for some integer or rational `q`
   (growth groups ``log(z)^ZZ`` or ``log(z)^QQ``),
@@ -70,9 +73,20 @@ elements only using the variable `z` this means, `g_1 \leq g_2` if
 
     \lim_{z\to\infty} \frac{g_1}{g_2} \leq 1.
 
-To find out more about growth groups, on how they are created and
-about the above used descriptions strings see the top of the
-module :doc:`growth group <growth_group>`.
+.. NOTE::
+
+    Asymptotic rings where the variable tend to some value distinct from
+    `\infty` are not yet implemented.
+
+To find out more about
+
+- growth groups,
+
+- on how they are created and
+
+- about the above used *descriptions strings*
+
+see the top of the module :doc:`growth group <growth_group>`.
 
 
 .. WARNING::
@@ -104,27 +118,45 @@ module :doc:`growth group <growth_group>`.
 Introductory Examples
 =====================
 
+We start this series of examples by defining two asymptotic rings.
+
+
+Two Rings
+---------
+
+A Univariate Asymptotic Ring
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
 First, we construct the following (very simple) asymptotic ring in the variable `z`::
 
     sage: A.<z> = AsymptoticRing(growth_group='z^QQ', coefficient_ring=ZZ); A
     Asymptotic Ring <z^QQ> over Integer Ring
 
 A typical element of this ring is
-
 ::
 
     sage: A.an_element()
     z^(3/2) + O(z^(1/2))
 
 This element consists of two summands: the exact term with coefficient
-`-1` and growth `z^{3/2}` and the `O`-term `O(z^{1/2})`. Note that the
+`1` and growth `z^{3/2}` and the `O`-term `O(z^{1/2})`. Note that the
 growth of `z^{3/2}` is larger than the growth of `z^{1/2}` as
 `z\to\infty`, thus this expansion cannot be simplified (which would
 be done automatically, see below).
 
+Elements can be constructed via the generator `z` and the function
+:func:`~sage.rings.big_oh.O`, for example
+
+::
+
+    sage: 4*z^2 + O(z)
+    4*z^2 + O(z)
+
+A Multivariate Asymptotic Ring
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
 Next, we construct a more sophisticated asymptotic ring in the
 variables `x` and `y` by
-
 ::
 
     sage: B.<x, y> = AsymptoticRing(growth_group='x^QQ * log(x)^ZZ * QQ^y * y^QQ', coefficient_ring=QQ); B
@@ -135,20 +167,24 @@ Again, we can look at a typical (nontrivial) element::
     sage: B.an_element()
     1/8*x^(3/2)*log(x)^3*(1/8)^y*y^(3/2) + O(x^(1/2)*log(x)*(1/2)^y*y^(1/2))
 
+Again, elements can be created using the generators `x` and `y`, as well as
+the function :func:`~sage.rings.big_oh.O`::
+
+    sage: log(x)*y/42 + O(1/2^y)
+    1/42*log(x)*y + O((1/2)^y)
 
 Arithmetical Operations
 -----------------------
 
-With the asymptotic rings constructed above (or more precisely with
-their elements) we can do a lot of arithmetical
-calculations.
+In this section we explain how to perform various arithmetical
+calculations with the elements of the asymptotic rings constructed
+above.
 
 
 The Ring Operations Plus and Times
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 We start our calculations in the ring
-
 ::
 
     sage: A
@@ -169,14 +205,12 @@ the exponents to be out of `\QQ`---can also be computed::
 
 The central concepts of computations with asymptotic expansions is
 that the `O`-notation can be used. For example, we have
-
 ::
 
     sage: z^3 + z^2 + z + O(z^2)
     z^3 + O(z^2)
 
-where the result is simplified automatically. More advanced
-
+where the result is simplified automatically. A more sophisticated example is
 ::
 
     sage: (z+2*z^2+3*z^3+4*z^4) * (O(z)+z^2)
@@ -186,26 +220,33 @@ where the result is simplified automatically. More advanced
 Division
 ^^^^^^^^
 
-The asymptotic expansions support division. For example, we get can
-expand `1/(1-z)` to a geometric series::
+The asymptotic expansions support division. For example, we can
+expand `1/(z-1)` to a geometric series::
 
     sage: 1 / (z-1)
     z^(-1) + z^(-2) + z^(-3) + z^(-4) + ... + z^(-20) + O(z^(-21))
 
-Since there is a default precision (parameter ``default_prec``)
-defined, only the first `20` summands are calculated. However, if we
-only want the first `5` exact terms, we cut of the rest by using
+A default precision (parameter ``default_prec`` of
+:class:`AsymptoticRing`) is predefined. Thus, only the first `20`
+summands are calculated. However, if we only want the first `5` exact
+terms, we cut of the rest by using
 ::
 
     sage: (1 / (z-1)).truncate(5)
     z^(-1) + z^(-2) + z^(-3) + z^(-4) + z^(-5) + O(z^(-6))
 
+or
+::
+
+    sage: 1 / (z-1) + O(z^(-6))
+    z^(-1) + z^(-2) + z^(-3) + z^(-4) + z^(-5) + O(z^(-6))
+
 Of course, we can work with more complicated expansions as well::
 
-    sage: (4*z+1) / (z^3+z^2+z+O(A(1)))
+    sage: (4*z+1) / (z^3+z^2+z+O(z^0))
     4*z^(-2) - 3*z^(-3) - z^(-4) + O(z^(-5))
 
-Note that not all elements are invertible, for instance,
+Not all elements are invertible, for instance,
 
 ::
 
@@ -277,14 +318,6 @@ By using asymptotic expansions, we obtain the more precise result
     Asymptotic Ring <n^ZZ> over Symbolic Ring
     sage: (1 + 1/n)^n
     e - 1/2*e*n^(-1) + 11/24*e*n^(-2) - 7/16*e*n^(-3) + 2447/5760*e*n^(-4) + O(n^(-5))
-
-
-Example n+1
------------
-
-.. TODO::
-
-    write more examples
 
 
 Selected Technical Details
@@ -426,7 +459,7 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
 
     EXAMPLES:
 
-    There are several ways to create asymptotic expressions; usually
+    There are several ways to create asymptotic expansions; usually
     this is done by using the corresponding :class:`asymptotic rings <AsymptoticRing>`::
 
         sage: R_x.<x> = AsymptoticRing(growth_group='x^QQ', coefficient_ring=QQ); R_x
@@ -639,7 +672,7 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
 
     def __nonzero__(self):
         r"""
-        Return whether this asymptotic expression is not identically zero.
+        Return whether this asymptotic expansion is not identically zero.
 
         INPUT:
 

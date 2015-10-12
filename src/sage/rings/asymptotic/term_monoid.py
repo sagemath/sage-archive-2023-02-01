@@ -228,7 +228,7 @@ def absorption(left, right):
     Let one of the two passed terms absorb the other.
 
     Helper function used by
-    :class:`~sage.rings.asymptotic.asymptotic_ring.AsymptoticExpression`.
+    :class:`~sage.rings.asymptotic.asymptotic_ring.AsymptoticExpansion`.
 
     .. NOTE::
 
@@ -282,7 +282,7 @@ def can_absorb(left, right):
     other.
 
     Helper function used by
-    :class:`~sage.rings.asymptotic.asymptotic_ring.AsymptoticExpression`.
+    :class:`~sage.rings.asymptotic.asymptotic_ring.AsymptoticExpansion`.
 
     INPUT:
 

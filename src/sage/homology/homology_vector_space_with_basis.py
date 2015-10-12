@@ -31,10 +31,9 @@ AUTHORS:
 
 from sage.combinat.free_module import CombinatorialFreeModule, CombinatorialFreeModuleElement
 from simplicial_complex import SimplicialComplex
-from cubical_complex import CubicalComplex
 
 class HomologyVectorSpaceWithBasis(CombinatorialFreeModule):
-    """
+    r"""
     Homology (or cohomology) vector space.
 
     This is intended to provide enough structure to allow the
@@ -105,7 +104,7 @@ class HomologyVectorSpaceWithBasis(CombinatorialFreeModule):
         sage: x.cup_product(x)
         0
 
-    This works with both simplicial complexes and cubical complexes::
+    This works with simplicial, cubical, and Delta complexes::
 
         sage: Klein_c = cubical_complexes.KleinBottle()
         sage: H1 = Klein_c.cohomology_with_basis(1, GF(2))
@@ -117,14 +116,23 @@ class HomologyVectorSpaceWithBasis(CombinatorialFreeModule):
         sage: y.cup_product(y)
         h^{2,0}
 
+        sage: Klein_d = delta_complexes.KleinBottle()
+        sage: H1 = Klein_d.cohomology_with_basis(1, GF(2))
+        sage: u,v = H1.basis()
+        sage: u.cup_product(u)
+        h^{2,0}
+        sage: u.cup_product(v)
+        0
+        sage: v.cup_product(v)
+        h^{2,0}
+
+    The basis elements in the simplicial complex case have been chosen
+    differently; apply the change of basis `x \mapsto a+b`, `y \mapsto
+    b` to see the same product structure. ::
+
         sage: Klein_s = simplicial_complexes.KleinBottle()
         sage: H1 = Klein_s.cohomology_with_basis(1, GF(2))
         sage: a,b = H1.basis()
-
-    The basis elements have been chosen differently; apply the change
-    of basis `x \mapsto a+b`, `y \mapsto b` to see the same product
-    structure. ::
-
         sage: a.cup_product(a)
         0
         sage: a.cup_product(b)
@@ -352,14 +360,18 @@ class HomologyVectorSpaceWithBasis(CombinatorialFreeModule):
                 sage: x.cup_product(x)
                 0
 
-            But not with `\Delta`-complexes::
+            and `\Delta`-complexes::
 
-                sage: X = delta_complexes.SurfaceOfGenus(2)
-                sage: a,b,c,d = X.cohomology_with_basis(1, QQ).gens()
+                sage: T_d = delta_complexes.Torus()
+                sage: a,b = T_d.cohomology_with_basis(1, QQ).gens()
                 sage: a.cup_product(b)
-                Traceback (most recent call last):
-                ...
-                NotImplementedError: cup products are only implemented for simplicial and cubiical complexes
+                h^{2,0}
+                sage: b.cup_product(a)
+                -h^{2,0}
+                sage: RP2 = delta_complexes.RealProjectivePlane()
+                sage: w = RP2.cohomology_with_basis(1, GF(2)).gens()[0]
+                sage: w.cup_product(w)
+                h^{2,0}
 
             A non-connected example::
 
@@ -374,8 +386,6 @@ class HomologyVectorSpaceWithBasis(CombinatorialFreeModule):
                 True
             """
             scomplex = self.parent().complex()
-            if not isinstance(scomplex, (SimplicialComplex, CubicalComplex)):
-                raise NotImplementedError('cup products are only implemented for simplicial and cubiical complexes')
             base_ring = self.base_ring()
             if not (scomplex == other.parent().complex()
                     and self.parent()._cohomology
@@ -388,10 +398,33 @@ class HomologyVectorSpaceWithBasis(CombinatorialFreeModule):
             for gamma in scomplex.homology_with_basis(deg_tot, base_ring).basis():
                 gamma_coeff = base_ring.zero()
                 for cell, coeff in gamma.to_cycle():
-                    for (c, left_cell, right_cell) in cell.alexander_whitney(deg_left):
+                    if hasattr(cell, 'alexander_whitney'):
+                        # Simplicial and cubical case: each cell has a
+                        # method 'alexander_whitney' which computes
+                        # the appropriate faces.
+                        for (c, left_cell, right_cell) in cell.alexander_whitney(deg_left):
+                            left = scomplex.n_chains(deg_left, base_ring)(left_cell)
+                            right = scomplex.n_chains(deg_right, base_ring)(right_cell)
+                            gamma_coeff += c * coeff * self.to_cycle().eval(left) * other.to_cycle().eval(right)
+                    else:
+                        # Delta complex case: each "cell" in n_chains
+                        # is just a pair (integer, tuple), where the
+                        # integer is its index in the list, and the
+                        # jth entry of the tuple is the index of its
+                        # jth face in the list of (n-1)-chains. Use
+                        # this data to compute the appropriate faces
+                        # by hand.
+                        left_cell = cell
+                        for i in range(deg_tot, deg_left, -1):
+                            idx = left_cell[1][i]
+                            left_cell = (idx, scomplex.n_cells(i-1)[idx])
+                        right_cell = cell
+                        for i in range(deg_tot, deg_right, -1):
+                            idx = right_cell[1][0]
+                            right_cell = (idx, scomplex.n_cells(i-1)[idx])
                         left = scomplex.n_chains(deg_left, base_ring)(left_cell)
-                        right = scomplex.n_chains(deg_right, base_ring)(right_cell)
-                        gamma_coeff += c * coeff * self.to_cycle().eval(left) * other.to_cycle().eval(right)
+                        right = scomplex.n_chains(deg_left, base_ring)(right_cell)
+                        gamma_coeff += coeff * self.to_cycle().eval(left) * other.to_cycle().eval(right)
                 result.append((gamma.leading_support(), gamma_coeff))
             return scomplex.cohomology_with_basis(deg_tot, base_ring).sum_of_terms(result)
 
@@ -505,7 +538,7 @@ class HomologyVectorSpaceWithBasis(CombinatorialFreeModule):
                 sage: x.Sq(1)
                 Traceback (most recent call last):
                 ...
-                ValueError: Steenrod squares are only defined in characteristic 2                
+                ValueError: Steenrod squares are only defined in characteristic 2
             """
             scomplex = self.parent().complex()
             if not isinstance(scomplex, SimplicialComplex):

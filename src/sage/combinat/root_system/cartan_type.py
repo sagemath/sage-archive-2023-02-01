@@ -1175,7 +1175,7 @@ class CartanType_abstract(object):
             0   1   2   3
             BC3~
             sage: ct.subtype([1,2,3])
-            ['C', 3]
+            ['C', 3] relabelled by {1: 0, 2: 1, 3: 2}
         """
         return self.cartan_matrix().subtype(index_set).cartan_type()
 

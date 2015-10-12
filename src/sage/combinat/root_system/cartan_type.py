@@ -452,7 +452,6 @@ from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.global_options import GlobalOptions
 from sage.sets.family import Family
 from sage.misc.decorators import rename_keyword
-from sage.misc.misc import union
 from __builtin__ import sorted
 
 # TODO:

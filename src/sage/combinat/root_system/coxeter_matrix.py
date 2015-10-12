@@ -18,22 +18,16 @@ Coxeter matrices
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from sage.misc.abstract_method import abstract_method
 from sage.misc.cachefunc import cached_method
 from sage.matrix.constructor import matrix
-from sage.matrix.matrix import is_Matrix
 from sage.matrix.matrix_space import MatrixSpace
 from sage.misc.classcall_metaclass import ClasscallMetaclass, typecall
-from sage.matrix.matrix_integer_dense import Matrix_integer_dense
 from sage.matrix.matrix_generic_dense import Matrix_generic_dense
 from sage.graphs.graph import Graph
-from sage.graphs.generators.basic import CycleGraph
 from sage.rings.all import ZZ, QQ, RR
 from sage.rings.infinity import infinity
 from sage.combinat.root_system.cartan_type import CartanType
 from sage.combinat.root_system.coxeter_type import CoxeterType
-from sage.combinat.root_system.root_system import RootSystem
-from sage.sets.family import Family
 
 class CoxeterMatrix(CoxeterType):
     r"""
@@ -1184,8 +1178,6 @@ def coxeter_matrix_as_function(t):
     """
     t = CartanType(t)
     m = t.coxeter_matrix()
-    index_set = t.index_set()
-    reverse = dict((index_set[i], i) for i in range(len(index_set)))
     return lambda i, j: m[i, j]
 
 def coxeter_matrix(t):

@@ -176,7 +176,7 @@ class BaxterPermutations_size(BaxterPermutations):
             ....:     for a in BaxterPermutations(n))
             True
 
-        ALGORITHM::
+        ALGORITHM:
 
         The algorithm using generating trees described in [BBF08]_ is used.
         The idea is that all Baxter permutations of size `n + 1` can be
@@ -184,7 +184,7 @@ class BaxterPermutations_size(BaxterPermutations):
         to right maximum or just after a right to left maximum of a Baxter
         permutation of size `n`.
 
-        REFERENCES::
+        REFERENCES:
 
         .. [BBF08] N. Bonichon, M. Bousquet-Melou, E. Fusy.
            Baxter permutations and plane bipolar orientations.

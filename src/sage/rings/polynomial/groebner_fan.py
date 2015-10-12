@@ -851,7 +851,7 @@ class GroebnerFan(SageObject):
             sage: gf.__eq__(gf2)
             True
         """
-        return isinstance(self, type(right)) and self.ideal() == right.ideal()
+        return type(self) is type(right) and self.ideal() == right.ideal()
 
     def ideal(self):
         """

@@ -80,23 +80,20 @@ REFERENCES:
 .. [Z11] Zeilberger, Doron. "The C-finite ansatz." The Ramanujan Journal
    (2011): 1-10.
 """
+
 #*****************************************************************************
-#       Copyright (C) 2014 Ralf Stephan <gtrwst9@gmail.com>,
+#       Copyright (C) 2014 Ralf Stephan <gtrwst9@gmail.com>
 #
-#  Distributed under the terms of the GNU General Public License (GPL) v2.0
-#
-#    This code is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-#    General Public License for more details.
-#
-#  The full text of the GPL is available at:
-#
-#                  http://www.gnu.org/licenses/gpl-2.0.html
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
+#                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
+
 from sage.categories.fields import Fields
-from sage.misc.classcall_metaclass import ClasscallMetaclass
+from sage.misc.inherit_comparison import InheritComparisonClasscallMetaclass
 from sage.rings.commutative_ring import CommutativeRing
 from sage.rings.integer import Integer
 from sage.rings.integer_ring import ZZ
@@ -251,8 +248,7 @@ class CFiniteSequence(FieldElement):
         NotImplementedError: Multidimensional o.g.f. not implemented.
     """
 
-
-    __metaclass__ = ClasscallMetaclass # Needed for __classcall_private__
+    __metaclass__ = InheritComparisonClasscallMetaclass
 
     @staticmethod
     def __classcall_private__(cls, ogf):

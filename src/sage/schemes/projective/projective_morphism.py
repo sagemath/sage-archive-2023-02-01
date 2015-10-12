@@ -195,9 +195,9 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
                 try:
                     x = self.domain()(x)
                 except (TypeError, NotImplementedError):
-                    raise TypeError, "%s fails to convert into the map's domain %s, but a `pushforward` method is not properly implemented"%(x, self.domain())
+                    raise TypeError("%s fails to convert into the map's domain %s, but a `pushforward` method is not properly implemented"%(x, self.domain()))
             elif self.domain()!=x.codomain():
-                raise TypeError, "%s fails to convert into the map's domain %s, but a `pushforward` method is not properly implemented"%(x, self.domain())
+                raise TypeError("%s fails to convert into the map's domain %s, but a `pushforward` method is not properly implemented"%(x, self.domain()))
 
         # Passes the array of args to _fast_eval
         P = self._fast_eval(x._coords)
@@ -2299,12 +2299,7 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
 
         REFERENCES:
 
-        .. [Bruin-Molnar] N. Bruin and A. Molnar, Minimal models for rational
-           functions in a dynamical setting
-           LMS Journal of Computation and Mathematics, Volume 15 (2012), pp 400-417.
-
-        .. [Molnar] A. Molnar, Fractional Linear Minimal Models of Rational Functions,
-           M.Sc. Thesis.
+        [Bruin-Molnar]_, [Molnar]_
 
         INPUT:
 
@@ -4238,7 +4233,7 @@ class SchemeMorphism_polynomial_projective_space_finite_field(SchemeMorphism_pol
         return_functions=kwds.get('return_functions',False)
 
         if self.domain().dimension_relative()!=1:
-            raise NotImplementedError, "Must be dimension 1"
+            raise NotImplementedError("Must be dimension 1")
         else:
             f=self.dehomogenize(1)
             z=f[0].parent().gen()

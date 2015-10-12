@@ -2128,7 +2128,7 @@ class RauzyDiagram(SageObject):
                 False
             """
             return (
-                isinstance(self, type(other)) and
+                type(self) is type(other) and
                 self._parent == other._parent and
                 self._start == other._start and
                 self._edge_types == other._edge_types)
@@ -2151,7 +2151,7 @@ class RauzyDiagram(SageObject):
                 True
             """
             return (
-                not isinstance(self, type(other)) or
+                type(self) is not type(other) or
                 self._parent != other._parent or
                 self._start != other._start or
                 self._edge_types != other._edge_types)
@@ -2728,7 +2728,7 @@ class RauzyDiagram(SageObject):
             True
         """
         return (
-            isinstance(self, type(other)) and
+            type(self) is type(other) and
             self._edge_types == other._edge_types and
             self._succ.keys()[0] in other._succ)
 
@@ -2752,7 +2752,7 @@ class RauzyDiagram(SageObject):
             False
         """
         return (
-            not isinstance(self, type(other)) or
+            type(self) is not type(other) or
             self._edge_types != other._edge_types or
             self._succ.keys()[0] not in other._succ)
 

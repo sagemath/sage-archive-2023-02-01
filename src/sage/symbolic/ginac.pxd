@@ -1,5 +1,17 @@
 # distutils: language = c++
 # distutils: libraries = pynac gmp
+"""
+Declarations for pynac, a Python frontend for ginac
+
+Check that we can externally cimport this (:trac:`18825`)::
+
+    sage: cython(  # long time
+    ....: '''
+    ....: #clang c++
+    ....: #clib pynac
+    ....: cimport sage.symbolic.ginac
+    ....: ''')
+"""
 
 #*****************************************************************************
 #       Copyright (C) 2008 William Stein <wstein@gmail.com>
@@ -18,7 +30,7 @@
 
 from cpython cimport PyObject
 
-cdef extern from "ginac_wrap.h":
+cdef extern from "sage/symbolic/ginac_wrap.h":
     void ginac_pyinit_Integer(object)
     void ginac_pyinit_Float(object)
     void ginac_pyinit_I(object)
@@ -164,6 +176,7 @@ cdef extern from "ginac_wrap.h":
     unsigned domain_real "GiNaC::domain::real"
     unsigned domain_positive "GiNaC::domain::positive"
     unsigned domain_infinity "GiNaC::domain::infinity"
+    unsigned domain_integer "GiNaC::domain::integer"
 
     # info flags
     unsigned info_real          "GiNaC::info_flags::real"

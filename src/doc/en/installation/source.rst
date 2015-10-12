@@ -4,6 +4,8 @@
     **This page was last updated in MONTH YEAR (Sage X.Y).**
     ***************************************************************************
 
+.. _sec-installation-from-sources:
+
 Install from Source Code
 ========================
 
@@ -29,6 +31,9 @@ or `check it out with git <https://github.com/sagemath/sage>`_ (see also.
 If you changed your mind, you can also download a
 `binary distribution <http://www.sagemath.org/download.html>`_
 for some operating systems.
+
+.. contents:: Table of contents
+   :depth: 2
 
 Supported platforms
 -------------------
@@ -91,6 +96,7 @@ computer:
 - **perl**: version 5.8.0 or later.
 - **ar** and **ranlib**: can be obtained as part of GNU binutils.
 - **tar**: GNU tar version 1.17 or later, or BSD tar.
+- **python**: Python >= 2.6.
 
 Fortran and compiler suites
 ###########################
@@ -137,7 +143,12 @@ System-specific requirements
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 On Mac OS X, there are various developer tools needed which may require
-some registration on Apple's developer site; see :ref:`section_macprereqs`.
+some registration on Apple's developer site; see
+:ref:`section_macprereqs`.
+
+On Redhat-derived systems not all perl components are installed by
+default and you might have to install the **perl-ExtUtils-MakeMaker**
+package.
 
 On recent Debian or Ubuntu systems, the **dpkg-dev** package is needed for
 `multiarch <http://wiki.debian.org/Multiarch>`_ support.
@@ -177,13 +188,21 @@ distribution, but on a `Debian <http://www.debian.org/>`_ based system (e.g.
 you would use
 `apt-get <http://en.wikipedia.org/wiki/Advanced_Packaging_Tool>`_::
 
-     sudo apt-get install binutils gcc make m4 perl tar
+     # debian
+     sudo apt-get install binutils gcc make m4 perl tar git
 
+     # redhat
+     sudo yum install binutils gcc make m4 perl tar git perl-ExtUtils-MakeMaker
+     
 to install all general requirements, or, if you don't want Sage to build its
 own GCC::
 
-     sudo apt-get install binutils gcc g++ gfortran make m4 perl tar
+     # debian
+     sudo apt-get install binutils gcc g++ gfortran make m4 perl tar git
 
+     # redhat
+     sudo yum install binutils gcc gcc-c++ gcc-gfortran make m4 perl tar git perl-ExtUtils-MakeMaker
+     
 (This was tested on Ubuntu 12.04.2.)
 On other Linux systems, you might use
 `rpm <http://en.wikipedia.org/wiki/RPM_Package_Manager>`_,
@@ -330,7 +349,7 @@ or similar commands. In addition to the base texlive install you will
 probably need a number of optional texlive packages, for example
 country-specific babel packages for the localized Sage
 documentation. The required texlive packages are listed in
-`SAGE_ROOT/src/ext/texlive/package-list.txt`.
+``SAGE_ROOT/src/ext/texlive/package-list.txt``.
 
 If you don't have either ImageMagick or ffmpeg, you won't be able to
 view animations.
@@ -397,8 +416,8 @@ or similar commands.
 If you installed Sage first, all is not lost. You just need to rebuild
 Sage's Python and any part of Sage relying on it::
 
-    sage -f python  # rebuild Python
-    make            # rebuild components of Sage depending on Python
+    sage -f python2  # rebuild Python
+    make             # rebuild components of Sage depending on Python
 
 after installing the Tcl/Tk development libraries as above.
 
@@ -700,7 +719,7 @@ Starting from a fresh Sage tarball::
 And if you've already built Sage::
 
     ./sage -i openssl
-    ./sage -f python
+    ./sage -f python2
     make ssl
 
 The third line will rebuild all parts of Sage that depend on Python;
@@ -876,7 +895,7 @@ Here are some of the more commonly used variables affecting the build process:
   maximum of 8 and a minimum of 2).
 
 - :envvar:`SAGE_CHECK` - if set to ``yes``, then during the build process,
-  and when running ``sage -i <package-name>`` or ``sage -f <package-name>``,
+  or when installing packages manually,
   run the test suite for each package which has one.
   See also :envvar:`SAGE_CHECK_PACKAGES`.
 
@@ -1395,14 +1414,6 @@ System-wide install
    or ``make ptestlong`` which tests files in parallel using multiple
    processes.
    You can also omit ``long`` to skip tests which take a long time.
-
-Sagetex
-~~~~~~~
-
-To make SageTeX available to your users, see the instructions for
-:ref:`installation in a multiuser environment <sagetex_installation_multiuser>`
-.
-
 
 Some common problems
 --------------------

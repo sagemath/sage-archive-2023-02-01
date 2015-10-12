@@ -8,10 +8,6 @@
 
 GPLv2 or above
 
-== SPKG Maintener ==
-
-  * Han Frederic
-
 == Upstream Contact ==
    
   * Han Frederic: frederic.han@imj-prg.fr

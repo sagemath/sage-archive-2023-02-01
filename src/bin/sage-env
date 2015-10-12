@@ -154,7 +154,7 @@ fi
 # "version number" of sage-env.  If a different version of sage-env was
 # sourced earlier (when upgrading), we still source the new version.
 # The sage-env version should be increased whenever a newer sage-env is
-# required for upgrading.  Note that build/deps might also need
+# required for upgrading.  Note that build/make/deps might also need
 # to be changed: the packages which need the new sage-env must depend on
 # SAGE_ROOT_REPO (the root repo contains sage-env).
 #
@@ -258,7 +258,7 @@ if [ -z "${SAGE_ORIG_PATH_SET}" ]; then
     SAGE_ORIG_PATH=$PATH && export SAGE_ORIG_PATH 
     SAGE_ORIG_PATH_SET=True && export SAGE_ORIG_PATH_SET 
 fi 
-export PATH="$SAGE_SRC/bin:$SAGE_LOCAL/bin:$PATH"
+export PATH="$SAGE_ROOT/build/bin:$SAGE_SRC/bin:$SAGE_LOCAL/bin:$PATH"
 
 # We offer a toolchain option, so if $SAGE_LOCAL/toolchain/toolchain-env exists source it.
 # Since the user might do something crazy we do not do any checks, but hope for the best.
@@ -377,8 +377,13 @@ if [ -d "$SAGE_LOCAL/lib/python" ]; then
         PYTHONPATH="$SAGE_PATH:$PYTHONPATH"
     fi
     PYTHONHOME="$SAGE_LOCAL"
+    # Set PYTHONNOUSERSITE to avoid picking up non-Sage versions of
+    # Matplotlib, numpy, etc. See http://trac.sagemath.org/ticket/14243
+    # and http://trac.sagemath.org/ticket/18955.
+    PYTHONNOUSERSITE=yes
     export PYTHONPATH
     export PYTHONHOME
+    export PYTHONNOUSERSITE
 fi
 
 if [ -z "${SAGE_ORIG_LD_LIBRARY_PATH_SET}" ]; then
@@ -428,30 +433,33 @@ unset R_HOME
 unset R_PROFILE
 # Do not use the global Makevars.site and ~/.R/Makevars when installing R packages
 # Provide empty files to appease some R packages' installation scripts.
-R_MAKEVARS_SITE="$SAGE_LOCAL/lib/R/share/Makevars.site" && export R_MAKEVARS_SITE
-if ! [ -f "$R_MAKEVARS_SITE" ] ; then
-    if ! [ -a "$R_MAKEVARS_SITE" ] ; then
-	echo "## Empty site-wide Makevars file for Sage's R" > "$R_MAKEVARS_SITE"
-    else
-	>&2 echo "Warning: $R_MAKEVARS_SITE exists and is not a file : trouble ahead..."
+if [ -d "$SAGE_LOCAL/lib/R/share" ] ; then
+   R_MAKEVARS_SITE="$SAGE_LOCAL/lib/R/share/Makevars.site" && export R_MAKEVARS_SITE
+   if ! [ -f "$R_MAKEVARS_SITE" ] ; then
+       if ! [ -a "$R_MAKEVARS_SITE" ] ; then
+	   echo "## Empty site-wide Makevars file for Sage's R" > "$R_MAKEVARS_SITE"
+       else
+	   >&2 echo "Warning: $R_MAKEVARS_SITE exists and is not a file : trouble ahead..."
+       fi
+   fi
+fi
+if [ -d "$DOT_SAGE" ] ; then
+    if ! [ -d "$DOT_SAGE/R" ] ; then
+	if ! [ -a  "$DOT_SAGE/R" ] ; then
+	    mkdir -p "$DOT_SAGE/R"
+	else
+	    >&2 echo "Warning: $DOT_SAGE/R exists and is not a directory : trouble ahead..."
+	fi
+    fi
+    R_MAKEVARS_USER="$DOT_SAGE/R/Makevars.user" && export R_MAKEVARS_USER
+    if ! [ -f "$R_MAKEVARS_USER" ] ; then
+	if ! [ -a "$R_MAKEVARS_USER" ] ; then
+	    echo "## Empty user-specific Makevars file for Sage's R" > "$R_MAKEVARS_USER"
+	else
+	    >&2 echo "Warning: $R_MAKEVARS_USER exists and is not a file : trouble ahead..."
+	fi
     fi
 fi
-if ! [ -d "$DOT_SAGE/R" ] ; then
-    if ! [ -a  "$DOT_SAGE/R" ] ; then
-	mkdir -p "$DOT_SAGE/R"
-    else
-	>&2 echo "Warning: $DOT_SAGE/R exists and is not a directory : trouble ahead..."
-    fi
-fi
-R_MAKEVARS_USER="$DOT_SAGE/R/Makevars.user" && export R_MAKEVARS_USER
-if ! [ -f "$R_MAKEVARS_USER" ] ; then
-    if ! [ -a "$R_MAKEVARS_USER" ] ; then
-	echo "## Empty user-specific Makevars file for Sage's R" > "$R_MAKEVARS_USER"
-    else
-	>&2 echo "Warning: $R_MAKEVARS_USER exists and is not a file : trouble ahead..."
-    fi
-fi
-
 MAXIMA_PREFIX="$SAGE_ROOT/local" && export MAXIMA_PREFIX
 
 ############ architecture flags

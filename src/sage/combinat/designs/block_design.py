@@ -78,7 +78,7 @@ def tdesign_params(t, v, k, L):
 
     EXAMPLES::
 
-        sage: BD = designs.BlockDesign(7,[[0,1,2],[0,3,4],[0,5,6],[1,3,5],[1,4,6],[2,3,6],[2,4,5]])
+        sage: BD = BlockDesign(7,[[0,1,2],[0,3,4],[0,5,6],[1,3,5],[1,4,6],[2,3,6],[2,4,5]])
         sage: from sage.combinat.designs.block_design import tdesign_params
         sage: tdesign_params(2,7,3,1)
         (2, 7, 7, 3, 3, 1)
@@ -236,7 +236,7 @@ def ProjectiveGeometryDesign(n, d, F, algorithm=None, check=True):
             gB.append([x-1 for x in b])
         return BlockDesign(v, gB, name="ProjectiveGeometryDesign", check=check)
 
-def DesarguesianProjectivePlaneDesign(n, check=True):
+def DesarguesianProjectivePlaneDesign(n, point_coordinates=True, check=True):
     r"""
     Return the Desarguesian projective plane of order ``n`` as a 2-design.
 
@@ -247,6 +247,9 @@ def DesarguesianProjectivePlaneDesign(n, check=True):
     INPUT:
 
     - ``n`` -- an integer which must be a power of a prime number
+
+    - ``point_coordinates`` (boolean) -- whether to label the points with their
+      homogeneous coordinates (default) or with integers.
 
     - ``check`` -- (boolean) Whether to check that output is correct before
       returning it. As this is expected to be useless (but we are cautious
@@ -271,8 +274,9 @@ def DesarguesianProjectivePlaneDesign(n, check=True):
         Traceback (most recent call last):
         ...
         ValueError: the order of a finite field must be a prime power
+
     """
-    K = FiniteField(n, 'x')
+    K = FiniteField(n, 'a')
     n2 = n**2
     relabel = {x:i for i,x in enumerate(K)}
     Kiter = relabel  # it is much faster to iterate throug a dict than through
@@ -316,7 +320,20 @@ def DesarguesianProjectivePlaneDesign(n, check=True):
         if not is_projective_plane(blcks):
             raise RuntimeError('There is a problem in the function DesarguesianProjectivePlane')
     from bibd import BalancedIncompleteBlockDesign
-    return BalancedIncompleteBlockDesign(n2+n+1, blcks, check=check)
+    B = BalancedIncompleteBlockDesign(n2+n+1, blcks, check=check)
+
+    if point_coordinates:
+        zero = K.zero()
+        one  = K.one()
+        d = {affine_plane(x,y): (x,y,one)
+             for x in Kiter
+             for y in Kiter}
+        d.update({line_infinity(x): (x,one,zero)
+                  for x in Kiter})
+        d[n2+n]=(one,zero,zero)
+        B.relabel(d)
+
+    return B
 
 def q3_minus_one_matrix(K):
     r"""
@@ -572,10 +589,10 @@ def projective_plane_to_OA(pplane, pt=None, check=True):
     EXAMPLES::
 
         sage: from sage.combinat.designs.block_design import projective_plane_to_OA
-        sage: p2 = designs.DesarguesianProjectivePlaneDesign(2)
+        sage: p2 = designs.DesarguesianProjectivePlaneDesign(2,point_coordinates=False)
         sage: projective_plane_to_OA(p2)
         [[0, 0, 0], [0, 1, 1], [1, 0, 1], [1, 1, 0]]
-        sage: p3 = designs.DesarguesianProjectivePlaneDesign(3)
+        sage: p3 = designs.DesarguesianProjectivePlaneDesign(3,point_coordinates=False)
         sage: projective_plane_to_OA(p3)
         [[0, 0, 0, 0],
          [0, 1, 2, 1],
@@ -587,7 +604,7 @@ def projective_plane_to_OA(pplane, pt=None, check=True):
          [2, 1, 0, 2],
          [2, 2, 2, 0]]
 
-        sage: pp = designs.DesarguesianProjectivePlaneDesign(16)
+        sage: pp = designs.DesarguesianProjectivePlaneDesign(16,point_coordinates=False)
         sage: _ = projective_plane_to_OA(pp, pt=0)
         sage: _ = projective_plane_to_OA(pp, pt=3)
         sage: _ = projective_plane_to_OA(pp, pt=7)
@@ -697,7 +714,7 @@ def projective_plane(n, check=True, existence=False):
     if existence:
         return True
     else:
-        return DesarguesianProjectivePlaneDesign(n, check=check)
+        return DesarguesianProjectivePlaneDesign(n, point_coordinates=False, check=check)
 
 def AffineGeometryDesign(n, d, F):
     r"""
@@ -760,6 +777,34 @@ def AffineGeometryDesign(n, d, F):
        gB.append([x-1 for x in b])
     return BlockDesign(v, gB, name="AffineGeometryDesign")
 
+def CremonaRichmondConfiguration():
+    r"""
+    Return the Cremona-Richmond configuration
+
+    The Cremona-Richmond configuration is a set system whose incidence graph
+    is equal to the
+    :meth:`~sage.graphs.graph_generators.GraphGenerators.TutteCoxeterGraph`. It
+    is a generalized quadrangle of parameters `(2,2)`.
+
+    For more information, see the
+    :wikipedia:`Cremona-Richmond_configuration`.
+
+    EXAMPLE::
+
+        sage: H = designs.CremonaRichmondConfiguration(); H
+        Incidence structure with 15 points and 15 blocks
+        sage: g = graphs.TutteCoxeterGraph()
+        sage: H.incidence_graph().is_isomorphic(g)
+        True
+    """
+    from sage.graphs.generators.smallgraphs import TutteCoxeterGraph
+    from sage.combinat.designs.incidence_structures import IncidenceStructure
+    g = TutteCoxeterGraph()
+    H = IncidenceStructure([g.neighbors(v)
+                            for v in g.bipartite_sets()[0]])
+    H.relabel()
+    return H
+
 def WittDesign(n):
     """
     INPUT:
@@ -784,7 +829,7 @@ def WittDesign(n):
         sage: BD                             # optional - gap_packages (design package)
         Incidence structure with 9 points and 12 blocks
         sage: print BD                       # optional - gap_packages (design package)
-        WittDesign<points=[0, 1, 2, 3, 4, 5, 6, 7, 8], blocks=[[0, 1, 7], [0, 2, 5], [0, 3, 4], [0, 6, 8], [1, 2, 6], [1, 3, 5], [1, 4, 8], [2, 3, 8], [2, 4, 7], [3, 6, 7], [4, 5, 6], [5, 7, 8]]>
+        Incidence structure with 9 points and 12 blocks
     """
     from sage.interfaces.gap import gap, GapElement
     gap.load_package("design")
@@ -807,7 +852,7 @@ def HadamardDesign(n):
         sage: designs.HadamardDesign(7)
         Incidence structure with 7 points and 7 blocks
         sage: print designs.HadamardDesign(7)
-        HadamardDesign<points=[0, 1, 2, 3, 4, 5, 6], blocks=[[0, 1, 2], [0, 3, 4], [0, 5, 6], [1, 3, 5], [1, 4, 6], [2, 3, 6], [2, 4, 5]]>
+        Incidence structure with 7 points and 7 blocks
 
     For example, the Hadamard 2-design with `n = 11` is a design whose parameters are 2-(11, 5, 2).
     We verify that `NJ = 5J` for this design. ::

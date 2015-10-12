@@ -134,7 +134,7 @@ class DifferentialForms(Algebra):
             True
         """
 
-        if isinstance(other, type(self)):
+        if type(other) is type(self):
             return self._patch == other._patch
         else:
             return False

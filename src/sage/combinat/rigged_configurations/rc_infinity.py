@@ -26,6 +26,7 @@ from sage.misc.lazy_attribute import lazy_attribute
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.parent import Parent
 from sage.categories.highest_weight_crystals import HighestWeightCrystals
+from sage.categories.homset import Hom
 from sage.combinat.root_system.cartan_type import CartanType
 from sage.combinat.rigged_configurations.rigged_configuration_element import (
      RiggedConfigurationElement, RCNonSimplyLacedElement)
@@ -33,7 +34,7 @@ from sage.combinat.rigged_configurations.rigged_configurations import RiggedConf
 from sage.combinat.rigged_configurations.rigged_partition import RiggedPartition
 
 # Note on implementation, this class is used for simply-laced types only
-class InfinityCrystalOfRiggedConfigurations(Parent, UniqueRepresentation):
+class InfinityCrystalOfRiggedConfigurations(UniqueRepresentation, Parent):
     r"""
     Rigged configuration model for `\mathcal{B}(\infty)`.
 
@@ -195,10 +196,29 @@ class InfinityCrystalOfRiggedConfigurations(Parent, UniqueRepresentation):
             lst = [p._clone() for p in lst] # Make a deep copy
         return self.element_class(self, lst, **options)
 
+    def _coerce_map_from_(self, P):
+        """
+        Return ``True`` or the coerce map from ``P`` if a map exists.
+
+        EXAMPLES::
+
+            sage: T = crystals.infinity.Tableaux(['A',3])
+            sage: RC = crystals.infinity.RiggedConfigurations(['A',3])
+            sage: RC._coerce_map_from_(T)
+            Crystal Isomorphism morphism:
+              From: The infinity crystal of tableaux of type ['A', 3]
+              To:   The infinity crystal of rigged configurations of type ['A', 3]
+        """
+        if self.cartan_type().is_finite():
+            from sage.combinat.crystals.infinity_crystals import InfinityCrystalOfTableaux
+            if isinstance(P, InfinityCrystalOfTableaux):
+                from sage.combinat.rigged_configurations.bij_infinity import FromTableauIsomorphism
+                return FromTableauIsomorphism(Hom(P, self))
+        return super(InfinityCrystalOfRiggedConfigurations, self)._coerce_map_from_(P)
+
     def _calc_vacancy_number(self, partitions, a, i, **options):
         r"""
-        Calculate the vacancy number of the `i`-th row of the `a`-th rigged
-        partition.
+        Calculate the vacancy number `p_i^{(a)}(\nu)` in ``self``.
 
         This assumes that `\gamma_a = 1` for all `a` and `(\alpha_a \mid
         \alpha_b ) = A_{ab}`.
@@ -209,24 +229,19 @@ class InfinityCrystalOfRiggedConfigurations(Parent, UniqueRepresentation):
 
         - ``a`` -- the rigged partition index
 
-        - ``i`` -- the row index of the `a`-th rigged partition
+        - ``i`` -- the row length
 
         TESTS::
 
             sage: RC = crystals.infinity.RiggedConfigurations(['A', 4])
             sage: elt = RC(partition_list=[[1], [1], [], []])
-            sage: RC._calc_vacancy_number(elt.nu(), 0, 0)
+            sage: RC._calc_vacancy_number(elt.nu(), 0, 1)
             -1
         """
         vac_num = 0
 
-        if i is None:
-            row_len = float("inf")
-        else:
-            row_len = partitions[a][i]
-
         for b, value in enumerate(self._cartan_matrix.row(a)):
-            vac_num -= value * partitions[b].get_num_cells_to_column(row_len)
+            vac_num -= value * partitions[b].get_num_cells_to_column(i)
 
         return vac_num
 
@@ -292,10 +307,9 @@ class InfinityCrystalOfNonSimplyLacedRC(InfinityCrystalOfRiggedConfigurations):
         self._folded_ct = vct
         InfinityCrystalOfRiggedConfigurations.__init__(self, vct._cartan_type)
 
-    def _calc_vacancy_number(self, partitions, a, i, **options):
+    def _calc_vacancy_number(self, partitions, a, i):
         r"""
-        Calculate the vacancy number of the `i`-th row of the `a`-th rigged
-        partition.
+        Calculate the vacancy number `p_i^{(a)}(\nu)` in ``self``.
 
         INPUT:
 
@@ -303,31 +317,26 @@ class InfinityCrystalOfNonSimplyLacedRC(InfinityCrystalOfRiggedConfigurations):
 
         - ``a`` -- the rigged partition index
 
-        - ``i`` -- the row index of the `a`-th rigged partition
+        - ``i`` -- the row length
 
         TESTS::
 
             sage: La = RootSystem(['C',2]).weight_lattice().fundamental_weights()
             sage: RC = crystals.RiggedConfigurations(La[1])
             sage: elt = RC(partition_list=[[1], [1]])
-            sage: RC._calc_vacancy_number(elt.nu(), 0, 0)
+            sage: RC._calc_vacancy_number(elt.nu(), 0, 1)
             0
-            sage: RC._calc_vacancy_number(elt.nu(), 1, 0)
+            sage: RC._calc_vacancy_number(elt.nu(), 1, 1)
             -1
         """
         I = self.index_set()
         ia = I[a]
         vac_num = 0
 
-        if i is None:
-            row_len = float("inf")
-        else:
-            row_len = partitions[a][i]
-
         gamma = self._folded_ct.scaling_factors()
         for b, value in enumerate(self._cartan_matrix.row(a)):
             ib = I[b]
-            q = partitions[b].get_num_cells_to_column(gamma[ia]*row_len, gamma[ib])
+            q = partitions[b].get_num_cells_to_column(gamma[ia]*i, gamma[ib])
             vac_num -= value * q / gamma[ib]
 
         return vac_num

@@ -106,6 +106,42 @@ class SageSpawn(spawn):
         """
         Py_INCREF(self)
 
+    def expect_peek(self, *args, **kwds):
+        r"""
+        Like :meth:`expect` but restore the read buffer such that it
+        looks like nothing was actually read. The next reading will
+        continue at the current position.
+
+        EXAMPLES::
+
+            sage: from sage.interfaces.sagespawn import SageSpawn
+            sage: E = SageSpawn("sh", ["-c", "echo hello world"])
+            sage: _ = E.expect_peek("w")
+            sage: E.read()
+            'hello world\r\n'
+        """
+        ret = self.expect(*args, **kwds)
+        self.buffer = self.before + self.after + self.buffer
+        return ret
+
+    def expect_upto(self, *args, **kwds):
+        r"""
+        Like :meth:`expect` but restore the read buffer starting from
+        the matched string. The next reading will continue starting
+        with the matched string.
+
+        EXAMPLES::
+
+            sage: from sage.interfaces.sagespawn import SageSpawn
+            sage: E = SageSpawn("sh", ["-c", "echo hello world"])
+            sage: _ = E.expect_upto("w")
+            sage: E.read()
+            'world\r\n'
+        """
+        ret = self.expect(*args, **kwds)
+        self.buffer = self.after + self.buffer
+        return ret
+
     def close(self):
         """
         Quit the child process: send the quit string, close the

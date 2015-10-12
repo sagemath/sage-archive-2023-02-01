@@ -634,12 +634,11 @@ def UnitaryPolarGraph(m, q, algorithm="gap"):
     elif algorithm == None: # slow on large examples
         from sage.schemes.projective.projective_space import ProjectiveSpace
         from sage.modules.free_module_element import free_module_element as vector
-        from __builtin__ import sum as psum
         Fq = FiniteField(q**2, 'a')
         PG = map(vector, ProjectiveSpace(m - 1, Fq))
         map(lambda x: x.set_immutable(), PG)
         def P(x,y):
-            return psum(map(lambda j: x[j]*y[m-1-j]**q, xrange(m)))==0  
+            return sum(map(lambda j: x[j]*y[m-1-j]**q, xrange(m)))==0
 
         V = filter(lambda x: P(x,x), PG)
         G = Graph([V,lambda x,y:  # bottleneck is here, of course:

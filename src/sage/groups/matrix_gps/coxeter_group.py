@@ -23,6 +23,7 @@ from sage.structure.unique_representation import UniqueRepresentation
 from sage.categories.coxeter_groups import CoxeterGroups
 
 from sage.combinat.root_system.cartan_type import CartanType, CartanType_abstract
+from sage.combinat.root_system.coxeter_matrix import CoxeterMatrix
 from sage.groups.matrix_gps.finitely_generated import FinitelyGeneratedMatrixGroup_generic
 from sage.groups.matrix_gps.group_element import MatrixGroupElement_generic
 from sage.graphs.graph import Graph
@@ -31,7 +32,7 @@ from sage.matrix.matrix_space import MatrixSpace
 from sage.rings.all import ZZ
 from sage.rings.infinity import infinity
 from sage.rings.universal_cyclotomic_field import UniversalCyclotomicField
-
+from sage.misc.superseded import deprecated_function_alias
 
 class CoxeterMatrixGroup(FinitelyGeneratedMatrixGroup_generic, UniqueRepresentation):
     r"""
@@ -151,7 +152,7 @@ class CoxeterMatrixGroup(FinitelyGeneratedMatrixGroup_generic, UniqueRepresentat
         [ 3  1  2 15]
         [ 2  2  1  7]
         [ 3 15  7  1]
-        sage: G2 = W.coxeter_graph()
+        sage: G2 = W.coxeter_diagram()
         sage: CoxeterGroup(G2) is W
         True
 
@@ -202,67 +203,13 @@ class CoxeterMatrixGroup(FinitelyGeneratedMatrixGroup_generic, UniqueRepresentat
             sage: W4 = CoxeterGroup(G2)
             sage: W1 is W4
             True
-
-        Check with `\infty` because of the hack of using `-1` to represent
-        `\infty` in the Coxeter matrix::
-
-            sage: G = Graph([(0, 1, 3), (1, 2, oo)])
-            sage: W1 = CoxeterGroup(matrix([[1, 3, 2], [3,1,-1], [2,-1,1]]))
-            sage: W2 = CoxeterGroup(G)
-            sage: W1 is W2
-            True
-            sage: CoxeterGroup(W1.coxeter_graph()) is W1
-            True
         """
-        if isinstance(data, CartanType_abstract):
-            if index_set is None:
-                index_set = data.index_set()
-            data = data.coxeter_matrix()
-        elif isinstance(data, Graph):
-            G = data
-            n = G.num_verts()
-
-            # Setup the basis matrix as all 2 except 1 on the diagonal
-            data = matrix(ZZ, [[2]*n]*n)
-            for i in range(n):
-                data[i, i] = ZZ.one()
-
-            verts = G.vertices()
-            for e in G.edges():
-                m = e[2]
-                if m is None:
-                    m = 3
-                elif m == infinity or m == -1:  # FIXME: Hack because there is no ZZ\cup\{\infty\}
-                    m = -1
-                elif m <= 1:
-                    raise ValueError("invalid Coxeter graph label")
-                i = verts.index(e[0])
-                j = verts.index(e[1])
-                data[j, i] = data[i, j] = m
-
-            if index_set is None:
-                index_set = G.vertices()
-        else:
-            try:
-                data = matrix(data)
-            except (ValueError, TypeError):
-                data = CartanType(data).coxeter_matrix()
-            if not data.is_symmetric():
-                raise ValueError("the Coxeter matrix is not symmetric")
-            if any(d != 1 for d in data.diagonal()):
-                raise ValueError("the Coxeter matrix diagonal is not all 1")
-            if any(val <= 1 and val != -1 for i, row in enumerate(data.rows())
-                   for val in row[i+1:]):
-                raise ValueError("invalid Coxeter label")
-
-            if index_set is None:
-                index_set = range(data.nrows())
+        data = CoxeterMatrix(data, index_set=index_set)
 
         if base_ring is None:
             base_ring = UniversalCyclotomicField()
-        data.set_immutable()
         return super(CoxeterMatrixGroup, cls).__classcall__(cls,
-                     data, base_ring, tuple(index_set))
+                                     data, base_ring, data.index_set())
 
     def __init__(self, coxeter_matrix, base_ring, index_set):
         """
@@ -301,8 +248,7 @@ class CoxeterMatrixGroup(FinitelyGeneratedMatrixGroup_generic, UniqueRepresentat
             True
         """
         self._matrix = coxeter_matrix
-        self._index_set = index_set
-        n = ZZ(coxeter_matrix.nrows())
+        n = coxeter_matrix.rank()
         # Compute the matrix with entries `2 \cos( \pi / m_{ij} )`.
         MS = MatrixSpace(base_ring, n, sparse=True)
         MC = MS._get_matrix_class()
@@ -313,31 +259,19 @@ class CoxeterMatrixGroup(FinitelyGeneratedMatrixGroup_generic, UniqueRepresentat
             from sage.functions.trig import cos
             from sage.symbolic.constants import pi
             val = lambda x: base_ring(2*cos(pi / x)) if x != -1 else base_ring(2)
-        gens = [MS.one() + MC(MS, entries={(i, j): val(coxeter_matrix[i, j])
+        gens = [MS.one() + MC(MS, entries={(i, j): val(coxeter_matrix[index_set[i], index_set[j]])
                                            for j in range(n)},
                               coerce=True, copy=True)
                 for i in range(n)]
-        # Compute the matrix with entries `- \cos( \pi / m_{ij} )`.
-        # This describes the bilinear form corresponding to this
-        # Coxeter system, and might lead us out of our base ring.
-        base_field = base_ring.fraction_field()
-        MS2 = MatrixSpace(base_field, n, sparse=True)
-        MC2 = MS2._get_matrix_class()
-        self._bilinear = MC2(MS2, entries={(i, j): val(coxeter_matrix[i, j]) / base_field(-2)
-                                           for i in range(n) for j in range(n)
-                                           if coxeter_matrix[i, j] != 2},
-                             coerce=True, copy=True)
-        self._bilinear.set_immutable()
         category = CoxeterGroups()
         # Now we shall see if the group is finite, and, if so, refine
         # the category to ``category.Finite()``. Otherwise the group is
         # infinite and we refine the category to ``category.Infinite()``.
-        is_finite = self._finite_recognition()
-        if is_finite:
+        if self._matrix.is_finite():
             category = category.Finite()
         else:
             category = category.Infinite()
-        FinitelyGeneratedMatrixGroup_generic.__init__(self, n, base_ring,
+        FinitelyGeneratedMatrixGroup_generic.__init__(self, ZZ(n), base_ring,
                                                       gens, category=category)
 
     def _finite_recognition(self):
@@ -512,7 +446,7 @@ class CoxeterMatrixGroup(FinitelyGeneratedMatrixGroup_generic, UniqueRepresentat
 
             sage: W = CoxeterGroup([[1,3],[3,1]])
             sage: W.index_set()
-            (0, 1)
+            (1, 2)
             sage: W = CoxeterGroup([[1,3],[3,1]], index_set=['x', 'y'])
             sage: W.index_set()
             ('x', 'y')
@@ -520,7 +454,7 @@ class CoxeterMatrixGroup(FinitelyGeneratedMatrixGroup_generic, UniqueRepresentat
             sage: W.index_set()
             (1, 2, 3)
         """
-        return self._index_set
+        return self._matrix.index_set()
 
     def coxeter_matrix(self):
         """
@@ -540,37 +474,29 @@ class CoxeterMatrixGroup(FinitelyGeneratedMatrixGroup_generic, UniqueRepresentat
         """
         return self._matrix
 
-    def coxeter_graph(self):
+    def coxeter_diagram(self):
         """
-        Return the Coxeter graph of ``self``.
+        Return the Coxeter diagram of ``self``.
 
         EXAMPLES::
 
             sage: W = CoxeterGroup(['H',3], implementation="reflection")
-            sage: G = W.coxeter_graph(); G
+            sage: G = W.coxeter_diagram(); G
             Graph on 3 vertices
             sage: G.edges()
-            [(1, 2, None), (2, 3, 5)]
+            [(1, 2, 3), (2, 3, 5)]
             sage: CoxeterGroup(G) is W
             True
             sage: G = Graph([(0, 1, 3), (1, 2, oo)])
             sage: W = CoxeterGroup(G)
-            sage: W.coxeter_graph() == G
+            sage: W.coxeter_diagram() == G
             True
-            sage: CoxeterGroup(W.coxeter_graph()) is W
+            sage: CoxeterGroup(W.coxeter_diagram()) is W
             True
         """
-        G = Graph()
-        G.add_vertices(self.index_set())
-        for i, row in enumerate(self._matrix.rows()):
-            for j, val in enumerate(row[i+1:]):
-                if val == 3:
-                    G.add_edge(self._index_set[i], self._index_set[i+1+j])
-                elif val > 3:
-                    G.add_edge(self._index_set[i], self._index_set[i+1+j], val)
-                elif val == -1:  # FIXME: Hack because there is no ZZ\cup\{\infty\}
-                    G.add_edge(self._index_set[i], self._index_set[i+1+j], infinity)
-        return G
+        return self._matrix.coxeter_graph()
+
+    coxeter_graph = deprecated_function_alias(17798, coxeter_diagram)
 
     def bilinear_form(self):
         r"""
@@ -596,7 +522,7 @@ class CoxeterMatrixGroup(FinitelyGeneratedMatrixGroup_generic, UniqueRepresentat
             [   0 -1/2    1    0]
             [   0 -1/2    0    1]
         """
-        return self._bilinear
+        return self._matrix.bilinear_form()
 
     def is_finite(self):
         """
@@ -689,9 +615,9 @@ class CoxeterMatrixGroup(FinitelyGeneratedMatrixGroup_generic, UniqueRepresentat
             [ 0  1  0]
             [ 0  1 -1]
         """
-        if not i in self._index_set:
+        if not i in self.index_set():
             raise ValueError("%s is not in the index set %s" % (i, self.index_set()))
-        return self.gen(self._index_set.index(i))
+        return self.gen(self.index_set().index(i))
 
     class Element(MatrixGroupElement_generic):
         """
@@ -723,7 +649,7 @@ class CoxeterMatrixGroup(FinitelyGeneratedMatrixGroup_generic, UniqueRepresentat
                 sage: map(lambda i: elt.has_right_descent(i), [1, 2, 3])
                 [True, False, True]
             """
-            i = self.parent()._index_set.index(i)
+            i = self.parent().index_set().index(i)
             col = self.matrix().column(i)
             return all(x <= 0 for x in col)
 
@@ -743,3 +669,4 @@ class CoxeterMatrixGroup(FinitelyGeneratedMatrixGroup_generic, UniqueRepresentat
                 [ 0  1 -1]
             """
             return self.matrix()
+

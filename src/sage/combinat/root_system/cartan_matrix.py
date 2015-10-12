@@ -239,6 +239,9 @@ class CartanMatrix(Matrix_integer_sparse, CartanType_abstract):
             cartan_type = None
             subdivisions = None
         elif isinstance(data, CartanMatrix):
+            if index_set is not None:
+                d = {a: index_set[i] for i,a in enumerate(data.index_set())}
+                return data.relabel(d)
             return data
         else:
             dynkin_diagram = None
@@ -258,7 +261,7 @@ class CartanMatrix(Matrix_integer_sparse, CartanType_abstract):
             if dynkin_diagram is not None:
                 n = dynkin_diagram.rank()
                 index_set = dynkin_diagram.index_set()
-                reverse = dict((index_set[i], i) for i in range(len(index_set)))
+                reverse = {a: i for i,a in enumerate(index_set)}
                 data = {(i, i): 2 for i in range(n)}
                 for (i,j,l) in dynkin_diagram.edge_iterator():
                     data[(reverse[j], reverse[i])] = -l
@@ -272,6 +275,8 @@ class CartanMatrix(Matrix_integer_sparse, CartanType_abstract):
 
             if index_set is None:
                 index_set = tuple(range(n))
+            else:
+                index_set = tuple(index_set)
 
         if len(index_set) != n and len(set(index_set)) != n:
             raise ValueError("the given index set is not valid")
@@ -480,14 +485,17 @@ class CartanMatrix(Matrix_integer_sparse, CartanType_abstract):
         EXAMPLES::
 
             sage: C = CartanMatrix(['F',4])
-            sage: C.subtype([1,2,3])
+            sage: S = C.subtype([1,2,3])
+            sage: S
             [ 2 -1  0]
             [-1  2 -1]
             [ 0 -2  2]
+            sage: S.index_set()
+            (1, 2, 3)
         """
         ind = self.index_set()
         I = [ind.index(i) for i in index_set]
-        return CartanMatrix(self.matrix_from_rows_and_columns(I, I))
+        return CartanMatrix(self.matrix_from_rows_and_columns(I, I), index_set)
 
     def rank(self):
         r"""

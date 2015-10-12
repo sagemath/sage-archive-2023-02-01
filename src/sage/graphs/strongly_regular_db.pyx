@@ -1665,6 +1665,102 @@ def SRG_560_208_72_80():
     h.relabel()
     return h
 
+def strongly_regular_from_two_intersection_set(M):
+    r"""
+    Return a strongly regular graph from a 2-intersection set.
+
+    A set of points in the projective geometry `PG(k,q)` is said to be a
+    2-intersection set if it intersects every hyperplane in either `h_1` or
+    `h_2` points, where `h_1,h_2\in \\NN`.
+
+    From a 2-intersection set `S` can be defined a strongly-regular graph in the
+    following way:
+
+    - Place the points of `S` on a hyperplane `H` in `PG(k+1,q)`
+
+    - Define the graph `G` on all points of `PG(k+1,q)\backslash H`
+
+    - Make two points of `V(G)=PG(k+1,q)\backslash H` adjacent if the line going
+      through them intersects `S`
+
+    For more information, see e.g. [CDB13]_ where this explanation has been
+    taken from.
+
+    INPUT:
+
+    - `M` -- a `|S| \times k` matrix with entries in `F_q` representing the points of
+      the 2-intersection set. We assume that the first non-zero entry of each row is
+      equal to `1`, that is, they give points in homogeneous coordinates.
+
+    The implementation does not check that `S` is actually a 2-intersection set.
+
+    EXAMPLE::
+
+        sage: from sage.graphs.strongly_regular_db import strongly_regular_from_two_intersection_set
+        sage: S=Matrix([(0,0,1),(0,1,0)] + map(lambda x: (1,x^2,x), GF(4,'b')))
+        sage: g=strongly_regular_from_two_intersection_set(S)
+        sage: g.is_strongly_regular(parameters=True)
+        (64, 18, 2, 6)
+
+    REFERENCES:
+
+    .. [CDB13] I. Cardinali and B. De Bruyn,
+      Spin-embeddings, two-intersection sets and two-weight codes,
+      Ars Comb. 109 (2013): 309-319.
+      https://biblio.ugent.be/publication/4241842/file/4241845.pdf
+    """
+    from itertools import product, izip
+    K = M.base_ring()
+    k = M.ncols()
+    g = Graph()
+
+    M = [list(p) for p in M]
+
+    # For every point in F_q^{k+1} not on the hyperplane of M
+    for u in [tuple(x) for x in product(K,repeat=k)]:
+        # For every v point of M
+        for v in M:
+            # u is adjacent with all vertices on a uv line.
+            g.add_edges([[u,tuple([u[i]+qq*v[i] for i in range(k)])] \
+                                            for qq in K if not qq==K.zero()])
+    g.relabel()
+    return g
+
+
+def SRG_729_336_153_156():
+    r"""
+    Return a `(729, 336, 153, 156)`-strongly regular graph.
+
+    This graph is built from a 2-intersection code shared by L. Disset in his
+    thesis [Disset00]_ and available at
+    http://www.mat.uc.cl/~ldissett/newgraphs/.
+
+    EXAMPLE::
+
+        sage: from sage.graphs.strongly_regular_db import SRG_729_336_153_156
+        sage: G = SRG_729_336_153_156()               # long time
+        sage: G.is_strongly_regular(parameters=True)  # long time
+        (729, 336, 153, 156)
+
+    REFERENCES:
+
+    .. [Disset00] L. Dissett,
+       Combinatorial and computational aspects of finite geometries,
+       2000,
+       https://tspace.library.utoronto.ca/bitstream/1807/14575/1/NQ49844.pdf
+    """
+    L = [
+        "101212212122202012010102120101112012121001201012120220122112001121201201201201010020012201001201201201202120121122012021201221021110200212121011211002012220000122201201",
+        "011100122001200111220011220020011222001200022000220012220122011220011101122012012001222010122200012011120112220112000120120012002012201122001220012122000201212001211211",
+        "000011111000011111112000001112000000111122222000001111112222000001111122222000111222222001111122222000001111112222000001112222000111122222000001111222000011122000011122",
+        "000000000111111111111000000000111111111111111222222222222222000000000000000111111111111222222222222000000000000000111111111111222222222222000000000000111111111222222222",
+        "000000000000000000000111111111111111111111111111111111111111000000000000000000000000000000000000000111111111111111111111111111111111111111222222222222222222222222222222",
+        "000000000000000000000000000000000000000000000000000000000000111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+    ]
+
+    L = Matrix(GF(3),map(list,L)).transpose()
+    return strongly_regular_from_two_intersection_set(L)
+
 def SRG_729_532_391_380():
     r"""
     Return a `(729, 532, 391, 380)`-strongly regular graph.
@@ -2406,6 +2502,7 @@ def strongly_regular_graph(int v,int k,int l,int mu=-1,bint existence=False,bint
         (560, 208,  72, 80): [SRG_560_208_72_80],
         (625, 416, 279,272): [SRG_625_416_279_272],
         (625, 364, 213,210): [SRG_625_364_213_210],
+        (729, 336, 153,156): [SRG_729_336_153_156],
         (729, 616, 523,506): [SRG_729_616_523_506],
         (729, 420, 243,240): [SRG_729_420_243_240],
         (729, 560, 433,420): [SRG_729_560_433_420],

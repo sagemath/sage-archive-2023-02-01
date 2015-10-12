@@ -1017,7 +1017,7 @@ class ModulesWithBasis(CategoryWithAxiom_over_base_ring):
 #             return self._lmul_(-self.parent().base_ring().one(), self)
 
         @abstract_method
-        def monomial_coefficients(copy=True):
+        def monomial_coefficients(self, copy=True):
             """
             Return a dictionary whose keys are indices of basis in
             the support of ``self`` and whose values are the corresponding
@@ -1040,6 +1040,18 @@ class ModulesWithBasis(CategoryWithAxiom_over_base_ring):
                 1
                 sage: d['c']
                 3
+
+            TESTS:
+
+            We check that we make a copy of the coefficient dictonary::
+
+                sage: F = CombinatorialFreeModule(ZZ, ['a','b','c'])
+                sage: B = F.basis()
+                sage: f = B['a'] + 3*B['c']
+                sage: d = f.monomial_coefficients()
+                sage: d['a'] = 5
+                sage: f
+                B['a'] + 3*B['c']
             """
 
         def __getitem__(self, m):

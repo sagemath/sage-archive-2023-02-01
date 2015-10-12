@@ -44,6 +44,11 @@ class Elements(Category):
         True
     """
     def __init__(self, object):
+        """
+        EXAMPLES::
+
+            sage: TestSuite(Elements(ZZ)).run()
+        """
         Category.__init__(self)
         self.__object = object
 
@@ -54,8 +59,8 @@ class Elements(Category):
 
         EXAMPLES::
 
-            sage: Elements(ZZ)
-            Category of elements of Integer Ring
+            sage: Elements.an_instance()
+            Category of elements of Rational Field
         """
         from sage.rings.rational_field import QQ
         return cls(QQ)
@@ -83,19 +88,38 @@ class Elements(Category):
             sage: Elements(ZZ).super_categories()
             [Category of objects]
 
-        TODO:
+        .. TODO::
 
-        check that this is what we want.
+            Check that this is what we want.
         """
         return [Objects()]
 
     def object(self):
+        """
+        EXAMPLES::
+
+            sage: Elements(ZZ).object()
+            Integer Ring
+        """
         return self.__object
 
     def __reduce__(self):
+        """
+        EXAMPLES::
+
+            sage: C = Elements(ZZ)
+            sage: loads(dumps(C)) == C
+            True
+        """
         return Elements, (self.__object, )
 
     def _repr_object_names(self):
+        """
+        EXAMPLES::
+
+            sage: Elements(ZZ)._repr_object_names()
+            'elements of Integer Ring'
+        """
         return "elements of %s"%self.object()
 
     def _latex_(self):
@@ -224,6 +248,12 @@ class Category_over_base(CategoryWithParameters):
         """
         Return the base over which elements of this category are
         defined.
+
+        EXAMPLES::
+
+            sage: C = Algebras(QQ)
+            sage: C.base()
+            Rational Field
         """
         return self.__base
 
@@ -282,6 +312,14 @@ class Category_over_base(CategoryWithParameters):
 #############################################################
 class AbelianCategory(Category):
     def is_abelian(self):
+        """
+        Return ``True`` as ``self`` is an abelian category.
+
+        EXAMPLES::
+
+            sage: CommutativeAdditiveGroups().is_abelian()
+            True
+        """
         return True
 
 class Category_over_base_ring(Category_over_base):
@@ -394,7 +432,7 @@ class Category_over_base_ring(Category_over_base):
             sage: issubclass(Algebras(GF(2)).parent_class, VectorSpaces(GF(3)).parent_class)
             True
 
-        Check that :trac:`???` is fixed: this `_subcategory_hook_`
+        Check that :trac:`16618` is fixed: this `_subcategory_hook_`
         method is only valid for :class:Category_over_base_ring`, not
         :class:Category_over_base`::
 
@@ -471,6 +509,14 @@ class Category_over_base_ring(Category_over_base):
 #############################################################
 class Category_in_ambient(Category):
     def __init__(self, ambient, name=None):
+        """
+        Initialize ``self``.
+
+        EXAMPLES::
+
+            sage: C = Ideals(IntegerRing())
+            sage: TestSuite(C).run()
+        """
         self.__ambient = ambient
         Category.__init__(self, name)
 
@@ -478,10 +524,22 @@ class Category_in_ambient(Category):
         """
         Return the ambient object in which objects of this category are
         embedded.
+
+        EXAMPLES::
+
+            sage: C = Ideals(IntegerRing())
+            sage: C.ambient()
+            Integer Ring
         """
         return self.__ambient
 
     def _repr_(self):
+        """
+        EXAMPLES::
+
+            sage: Ideals(IntegerRing())
+            Category of ring ideals in Integer Ring
+        """
         return Category._repr_(self) + " in %s"%self.__ambient
 
 #    def construction(self):
@@ -495,7 +553,7 @@ class Category_ideal(Category_in_ambient):
     @classmethod
     def an_instance(cls):
         """
-        Returns an instance of this class
+        Return an instance of this class.
 
         EXAMPLES::
 
@@ -506,6 +564,15 @@ class Category_ideal(Category_in_ambient):
         return cls(QQ['x'])
 
     def ring(self):
+        """
+        Return the ambient ring used to describe objects ``self``.
+
+        EXAMPLES::
+
+            sage: C = Ideals(IntegerRing())
+            sage: C.ring()
+            Integer Ring
+        """
         return self.ambient()
 
     def __contains__(self, x):
@@ -524,6 +591,18 @@ class Category_ideal(Category_in_ambient):
         return False
 
     def __call__(self, v):
+        """
+        EXAMPLES::
+
+            sage: R.<x,y> = ZZ[]
+            sage: Ig = [x, y]
+            sage: I = R.ideal(Ig)
+            sage: C = Ideals(R)
+            sage: C(Ig)
+            Ideal (x, y) of Multivariate Polynomial Ring in x, y over Integer Ring
+            sage: I == C(I)
+            True
+        """
         if v in self:
             return v
         return self.ring().ideal(v)

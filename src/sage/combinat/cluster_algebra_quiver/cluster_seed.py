@@ -3986,10 +3986,8 @@ class ClusterSeed(SageObject):
                 if all(B[i2][k] >= 0 for i2 in range(n, 2 * n)):
                     j = i.mutate(k, inplace=False)
                     Varj = tuple(sorted(j.cluster()))
-                    if Varj in known_clusters:
-                        covers.append((Vari, Varj))
-                    else:
-                        covers.append((Vari, Varj))
+                    covers.append((Vari, Varj))
+                    if not(Varj in known_clusters):
                         known_clusters += [Varj]
                         stack.append(j)
 

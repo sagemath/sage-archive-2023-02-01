@@ -349,7 +349,7 @@ class AffineCrystalFromClassicalElement(ElementWrapper):
             [[3]]
             sage: b.e(1)
         """
-        if i == 0:
+        if i == self.parent()._cartan_type.special_node():
             return self.e0()
         else:
             x = self.lift().e(i)
@@ -374,7 +374,7 @@ class AffineCrystalFromClassicalElement(ElementWrapper):
             [[1]]
             sage: b.f(2)
         """
-        if i == 0:
+        if i == self.parent()._cartan_type.special_node():
             return self.f0()
         else:
             x = self.lift().f(i)
@@ -417,7 +417,7 @@ class AffineCrystalFromClassicalElement(ElementWrapper):
             sage: [x.epsilon(1) for x in A.list()]
             [0, 1, 0]
         """
-        if i == 0:
+        if i == self.parent()._cartan_type.special_node():
             return self.epsilon0()
         else:
             return self.lift().epsilon(i)
@@ -455,7 +455,7 @@ class AffineCrystalFromClassicalElement(ElementWrapper):
             sage: [x.phi(1) for x in A.list()]
             [1, 0, 0]
         """
-        if i == 0:
+        if i == self.parent()._cartan_type.special_node():
             return self.phi0()
         else:
             return self.lift().phi(i)

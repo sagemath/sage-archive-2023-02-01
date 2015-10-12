@@ -721,6 +721,13 @@ class Function_lambert_w(BuiltinFunction):
             lambert_w(_SAGE_VAR_x)
             sage: lambert_w(1, x)._maxima_()
             generalized_lambert_w(1,_SAGE_VAR_x)
+
+        TESTS::
+
+            sage: lambert_w(x)._maxima_()._sage_()
+            lambert_w(x)
+            sage: lambert_w(2, x)._maxima_()._sage_()
+            lambert_w(2, x)
         """
         if isinstance(z, str):
             maxima_z = z

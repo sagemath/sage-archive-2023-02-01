@@ -423,7 +423,7 @@ class HomologyVectorSpaceWithBasis(CombinatorialFreeModule):
                             idx = right_cell[1][0]
                             right_cell = (idx, scomplex.n_cells(i-1)[idx])
                         left = scomplex.n_chains(deg_left, base_ring)(left_cell)
-                        right = scomplex.n_chains(deg_left, base_ring)(right_cell)
+                        right = scomplex.n_chains(deg_right, base_ring)(right_cell)
                         gamma_coeff += coeff * self.to_cycle().eval(left) * other.to_cycle().eval(right)
                 result.append((gamma.leading_support(), gamma_coeff))
             return scomplex.cohomology_with_basis(deg_tot, base_ring).sum_of_terms(result)

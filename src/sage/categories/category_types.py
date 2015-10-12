@@ -261,103 +261,6 @@ class Category_over_base(CategoryWithParameters):
         """
         return "\\mathbf{%s}_{%s}"%(self._label, latex(self.__base))
 
-    def _subcategory_hook_(self, C):
-        """
-        A quick test whether a category ``C`` may be a subcategory of
-        this category.
-
-        INPUT:
-
-        - ``C`` -- a category (type not tested)
-
-        OUTPUT:
-
-        A boolean if it is certain that ``C`` is (or is not) a
-        subcategory of self. :obj:`~sage.misc.unknown.Unknown`
-        otherwise.
-
-        EXAMPLES:
-
-        The answer is ``False`` if the subcategory class of ``C`` is
-        not a subclass of the subcategory class of ``self``::
-
-            sage: Algebras(QQ)._subcategory_hook_(VectorSpaces(QQ))
-            False
-            sage: VectorSpaces(QQ)._subcategory_hook_(Algebras(ZZ))
-            False
-
-        .. WARNING::
-
-            This test currently includes some false negatives::
-
-                sage: VectorSpaces(Fields())._subcategory_hook_(Algebras(Fields().Finite()))
-                False
-                sage: Modules(Rings())._subcategory_hook_(Modules(GroupAlgebras(Rings())))
-                False
-
-        The answer is unknown if ``C`` is not a category over base::
-
-            sage: VectorSpaces(QQ)._subcategory_hook_(VectorSpaces(QQ) & Rings())
-            Unknown
-
-        Otherwise, the answer is ``True`` in the three following
-        cases, and ``False`` otherwise.
-
-        Case 1: the two bases are categories, and the base of ``C`` is
-        a subcategory of the base of ``self``::
-
-            sage: VectorSpaces(Fields())._subcategory_hook_(Algebras(Fields()))
-            True
-            sage: VectorSpaces(Fields())._subcategory_hook_(Algebras(Fields().Finite())) # todo: not implemented
-            True
-            sage: VectorSpaces(Fields().Finite())._subcategory_hook_(Algebras(Fields()))
-            False
-
-        Case 2: the base of ``self`` is a category, and the base of
-        ``C`` is a parent in this category::
-
-            sage: VectorSpaces(Fields())._subcategory_hook_(Algebras(QQ))                # todo: not implemented
-            True
-            sage: VectorSpaces(Fields().Finite())._subcategory_hook_(Algebras(QQ))
-            False
-
-        Case 3: the two bases are parents and coincide::
-
-            sage: VectorSpaces(QQ)._subcategory_hook_(Algebras(QQ))
-            True
-            sage: VectorSpaces(CC)._subcategory_hook_(Algebras(QQ))       # base ring in different categoriess
-            False
-            sage: VectorSpaces(GF(2))._subcategory_hook_(Algebras(GF(3))) # base ring in the same category
-            Unknown
-
-        In this last example, it would be better to return ``False`` ;
-        however this is only guaranteed correct if e.g. ``self`` and
-        ``C`` are both categories over a base ring. Here is an example
-        where this is not the case::
-
-            sage: Sym = SymmetricFunctions(QQ)
-            sage: from sage.combinat.sf.sfa import SymmetricFunctionsBases
-            sage: SymmetricFunctionsBases(Sym).is_subcategory(Modules(QQ))
-            True
-            sage: Modules(QQ)._subcategory_hook_(SymmetricFunctionsBases(Sym))
-            Unknown
-
-        Maybe such situations should be forbidden.
-
-        """
-        if not issubclass(C.parent_class, self.parent_class):
-            return False
-        if not isinstance(C, Category_over_base):
-            return Unknown
-        if C.base() is self.__base:
-            return True
-        if isinstance(self.__base, Category):
-            if isinstance(C.base(), Category):
-                return C.base().is_subcategory(self.__base)
-            # else C.base() is a parent
-            return C.base() in self.__base
-        return Unknown
-
 #    def construction(self):
 #        return (self.__class__, self.__base)
 
@@ -410,6 +313,118 @@ class Category_over_base_ring(Category_over_base):
             Finite Field of size 2
         """
         return self.base()
+
+    def _subcategory_hook_(self, C):
+        """
+        A quick test whether a category ``C`` may be a subcategory of
+        this category.
+
+        INPUT:
+
+        - ``C`` -- a category (type not tested)
+
+        OUTPUT:
+
+        A boolean if it is certain that ``C`` is (or is not) a
+        subcategory of self. :obj:`~sage.misc.unknown.Unknown`
+        otherwise.
+
+        EXAMPLES:
+
+        The answer is ``False`` if the subcategory class of ``C`` is
+        not a subclass of the subcategory class of ``self``::
+
+            sage: Algebras(QQ)._subcategory_hook_(VectorSpaces(QQ))
+            False
+            sage: VectorSpaces(QQ)._subcategory_hook_(Algebras(ZZ))
+            False
+
+        .. WARNING::
+
+            This test currently includes some false negatives::
+
+                sage: VectorSpaces(Fields())._subcategory_hook_(Algebras(Fields().Finite()))
+                False
+                sage: Modules(Rings())._subcategory_hook_(Modules(GroupAlgebras(Rings())))
+                False
+
+        The answer is ``Unknown`` if ``C`` is not a category over base ring::
+
+            sage: VectorSpaces(QQ)._subcategory_hook_(VectorSpaces(QQ) & Rings())
+            Unknown
+            sage: Sym = SymmetricFunctions(QQ)
+            sage: from sage.combinat.sf.sfa import SymmetricFunctionsBases
+            sage: Modules(QQ)._subcategory_hook_(SymmetricFunctionsBases(Sym))
+            Unknown
+            sage: SymmetricFunctionsBases(Sym).is_subcategory(Modules(QQ))
+            True
+
+        Case 1: the two bases are categories; then the base of ``C``
+        shall be a subcategory of the base of ``self``::
+
+            sage: VectorSpaces(Fields())._subcategory_hook_(Algebras(Fields()))
+            True
+            sage: VectorSpaces(Fields())._subcategory_hook_(Algebras(Fields().Finite())) # todo: not implemented
+            True
+            sage: VectorSpaces(Fields().Finite())._subcategory_hook_(Algebras(Fields()))
+            False
+
+        Case 2: the base of ``self`` is a category; then the base of
+        ``C`` shall be a parent in this category::
+
+            sage: VectorSpaces(Fields())._subcategory_hook_(Algebras(QQ))                # todo: not implemented
+            True
+            sage: VectorSpaces(Fields().Finite())._subcategory_hook_(Algebras(QQ))
+            False
+
+        Case 3: the two bases are parents; then they should coincide::
+
+            sage: VectorSpaces(QQ)._subcategory_hook_(Algebras(QQ))
+            True
+            sage: VectorSpaces(CC)._subcategory_hook_(Algebras(QQ))       # base ring in different categories
+            False
+            sage: VectorSpaces(GF(2))._subcategory_hook_(Algebras(GF(3))) # base ring in the same category
+            False
+
+        Note; we need both previous tests since the distinction is
+        made respectively using the parent class or the base ring::
+
+            sage: issubclass(Algebras(QQ).parent_class, VectorSpaces(CC).parent_class)
+            False
+            sage: issubclass(Algebras(GF(2)).parent_class, VectorSpaces(GF(3)).parent_class)
+            True
+
+        Check that :trac:`???` is fixed: this `_subcategory_hook_`
+        method is only valid for :class:Category_over_base_ring`, not
+        :class:Category_over_base`::
+
+            sage: from sage.categories.category_types import Category_over_base
+            sage: D = Modules(Rings())
+            sage: class Cs(Category_over_base):
+            ....:    def super_categories(self):
+            ....:        return [D]
+            sage: C = Cs(SymmetricGroup(3))
+            sage: C.is_subcategory(D)
+            True
+            sage: D._subcategory_hook_(C)
+            Unknown
+            sage: import __main__
+            sage: __main__.Cs = Cs # Fake Cs being defined in a python module
+            sage: TestSuite(C).run()
+        """
+        if not issubclass(C.parent_class, self.parent_class):
+            return False
+        if not isinstance(C, Category_over_base_ring):
+            return Unknown
+        base_ring = self.base_ring()
+        if C.base_ring() is base_ring:
+            return True
+        if isinstance(base_ring, Category):
+            if isinstance(C.base(), Category):
+                return C.base().is_subcategory(base_ring)
+            # otherwise, C.base() is a parent
+            return C.base() in base_ring
+        return False
 
     def __contains__(self, x):
         """

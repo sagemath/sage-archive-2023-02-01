@@ -209,11 +209,11 @@ class IntegerLists(Parent):
         return self._element_iter(self.backend._iter(), self._element_constructor)
 
     @staticmethod
-    def _element_iter(iter, constructor):
+    def _element_iter(itr, constructor):
         """
-        Given an iterator ``iter`` and an element constructor
+        Given an iterator ``itr`` and an element constructor
         ``constructor``, iterate over ``constructor(v)`` where `v`
-        are the values of ``iter``.
+        are the values of ``itr``.
 
         EXAMPLES::
 
@@ -221,7 +221,7 @@ class IntegerLists(Parent):
             sage: list(C._element_iter(C._iter(), tuple))
             [(2, 0, 0), (1, 1, 0), (1, 0, 1), (0, 2, 0), (0, 1, 1), (0, 0, 2)]
         """
-        for v in iter:
+        for v in itr:
             yield constructor(v)
 
     def __getattr__(self, name):
@@ -230,6 +230,12 @@ class IntegerLists(Parent):
 
         Ideally, this would be done using multiple inheritance, but
         Python doesn't support that for built-in types.
+
+        EXAMPLES::
+
+            sage: C = IntegerListsLex(2, length=3)
+            sage: C.min_length
+            3
 
         TESTS:
 
@@ -280,3 +286,4 @@ class IntegerLists(Parent):
             [1, 2, 3]
         """
         return self.element_class(self, l, check=False)
+

@@ -38,7 +38,8 @@ from sage.combinat.integer_lists.base import Infinity
 
 class IntegerListsLex(IntegerLists):
     r"""
-    Lists of nonnegative integers with constraints, in inverse lexicographic order.
+    Lists of nonnegative integers with constraints, in inverse
+    lexicographic order.
 
     An *integer list* is a list `l` of nonnegative integers, its *parts*. The
     slope (at position `i`) is the difference ``l[i+1]-l[i]`` between two
@@ -286,7 +287,7 @@ class IntegerListsLex(IntegerLists):
         sage: IntegerListsLex().first()
         Traceback (most recent call last):
         ...
-        ValueError: Could not prove that the specified constraints yield a finite set
+        ValueError: could not prove that the specified constraints yield a finite set
 
     Here is a variant which could be enumerated in lexicographic order
     but not in inverse lexicographic order::
@@ -305,7 +306,7 @@ class IntegerListsLex(IntegerLists):
         sage: IntegerListsLex(3).first()
         Traceback (most recent call last):
         ...
-        ValueError: Could not prove that the specified constraints yield a finite set
+        ValueError: could not prove that the specified constraints yield a finite set
 
     If one wants to proceed anyway, one can sign a waiver by setting
     ``check=False`` (again, be warned that some valid lists may never appear)::
@@ -823,6 +824,10 @@ class IntegerListsLex(IntegerLists):
 
 
 cdef class IntegerListsBackend_invlex(IntegerListsBackend):
+    """
+    Cython back-end of an set of lists of integers with specified
+    constraints enumerated in inverse lexicographic order.
+    """
     def __init__(self, *args, check=True, **kwds):
         """
         Initialize ``self``.
@@ -899,7 +904,7 @@ If you know what you are doing, you can set check=False to skip this warning."""
             sage: L._check_finiteness()
             Traceback (most recent call last):
             ...
-            ValueError: Could not prove that the specified constraints yield a finite set
+            ValueError: could not prove that the specified constraints yield a finite set
 
         Indeed::
 
@@ -922,7 +927,7 @@ If you know what you are doing, you can set check=False to skip this warning."""
             sage: iter(L)
             Traceback (most recent call last):
             ...
-            ValueError: Could not prove that the specified constraints yield a finite set
+            ValueError: could not prove that the specified constraints yield a finite set
 
         Some other infinite examples::
 
@@ -930,25 +935,25 @@ If you know what you are doing, you can set check=False to skip this warning."""
             sage: L.list()
             Traceback (most recent call last):
             ...
-            ValueError: Could not prove that the specified constraints yield a finite set
+            ValueError: could not prove that the specified constraints yield a finite set
 
             sage: L = IntegerListsLex(ceiling=[0], min_slope=1, max_slope=1)
             sage: L.list()
             Traceback (most recent call last):
             ...
-            ValueError: Could not prove that the specified constraints yield a finite set
+            ValueError: could not prove that the specified constraints yield a finite set
 
             sage: IntegerListsLex(ceiling=[0], min_slope=1, max_slope=1).list()
             Traceback (most recent call last):
             ...
-            ValueError: Could not prove that the specified constraints yield a finite set
+            ValueError: could not prove that the specified constraints yield a finite set
 
         The following example is actually finite, but not detected as such::
 
             sage: IntegerListsLex(7, floor=[4], max_part=4, min_slope=-1).list()
             Traceback (most recent call last):
             ...
-            ValueError: Could not prove that the specified constraints yield a finite set
+            ValueError: could not prove that the specified constraints yield a finite set
 
         This is sad because the following equivalent example works just fine::
 
@@ -968,12 +973,12 @@ If you know what you are doing, you can set check=False to skip this warning."""
             sage: IntegerListsLex(ceiling=lambda i: max(3-i,0))._check_finiteness()
             Traceback (most recent call last):
             ...
-            ValueError: Could not prove that the specified constraints yield a finite set
+            ValueError: could not prove that the specified constraints yield a finite set
 
             sage: IntegerListsLex(7, ceiling=lambda i:0).list()
             Traceback (most recent call last):
             ...
-            ValueError: Could not prove that the specified constraints yield a finite set
+            ValueError: could not prove that the specified constraints yield a finite set
 
         The next example shows a case that is finite because we remove
         trailing zeroes::
@@ -984,7 +989,7 @@ If you know what you are doing, you can set check=False to skip this warning."""
             sage: L.list()
             Traceback (most recent call last):
             ...
-            ValueError: Could not prove that the specified constraints yield a finite set
+            ValueError: could not prove that the specified constraints yield a finite set
 
         In the next examples, there is either no solution, or the region
         is bounded::
@@ -1058,10 +1063,11 @@ If you know what you are doing, you can set check=False to skip this warning."""
             return
 
         # Variant on ceiling.limit() ==0 where we actually discover that the ceiling limit is 0
-        if self.max_slope == 0 and \
-           (self.max_sum < Infinity or
-            (self.ceiling.limit_start() < Infinity and
-             any(self.ceiling(i) == 0 for i in range(self.ceiling.limit_start()+1)))):
+        if ( self.max_slope == 0 and
+             (self.max_sum < Infinity or
+              (self.ceiling.limit_start() < Infinity and
+               any(self.ceiling(i) == 0 for i in range(self.ceiling.limit_start()+1)))
+             ) ):
             return
 
         limit_start = max(self.ceiling.limit_start(), self.floor.limit_start())
@@ -1070,7 +1076,7 @@ If you know what you are doing, you can set check=False to skip this warning."""
                 if self.ceiling(i) < self.floor(i):
                     return
 
-        raise ValueError("Could not prove that the specified constraints yield a finite set")
+        raise ValueError("could not prove that the specified constraints yield a finite set")
 
     def _iter(self):
         """
@@ -1095,7 +1101,7 @@ DECREASE  = 2
 POP       = 1
 STOP      = 0
 
-class IntegerListsLexIter:
+class IntegerListsLexIter(object):
     r"""
     Iterator class for IntegerListsLex.
 
@@ -1368,13 +1374,15 @@ class IntegerListsLexIter:
 
     def _internal_list_valid(self):
         """
-        Return whether the current list in the iteration variable ``self._current_list`` is a valid list.
+        Return whether the current list in the iteration variable
+        ``self._current_list`` is a valid list.
 
-        This method checks whether the sum of the parts in ``self._current_list``
-        is in the right range, whether its length is in the
-        required range, and whether there are trailing zeroes.  It does not check all of the
-        necessary conditions to verify that an arbitrary list satisfies the
-        constraints from the corresponding ``IntegerListsLex`` object, and should
+        This method checks whether the sum of the parts in
+        ``self._current_list`` is in the right range, whether its
+        length is in the required range, and whether there are trailing
+        zeroes.  It does not check all of the necessary conditions to
+        verify that an arbitrary list satisfies the constraints from
+        the corresponding ``IntegerListsLex`` object, and should
         not be used except internally in the iterator class.
 
         EXAMPLES::
@@ -1397,14 +1405,14 @@ class IntegerListsLexIter:
         mu = self._current_list
         nu = self._current_sum
         l = self._j + 1
-        good_sum = (nu >= p.min_sum and nu <= p.max_sum)
-        good_length = (l >= p.min_length and l <= p.max_length)
-        no_trailing_zeros = (l <= max(p.min_length,0) or mu[-1] != 0)
-        return good_sum and good_length and no_trailing_zeros
+        return (nu >= p.min_sum and nu <= p.max_sum # Good sum
+                 and l >= p.min_length and l <= p.max_length # Good length
+                 and (l <= max(p.min_length,0) or mu[-1] != 0)) # No trailing zeros
 
     def _m_interval(self, i, max_sum, prev=None):
         r"""
-        Return coarse lower and upper bounds for the part ``m`` at position ``i``.
+        Return coarse lower and upper bounds for the part ``m``
+        at position ``i``.
 
         INPUT:
 
@@ -1424,8 +1432,8 @@ class IntegerListsLexIter:
 
         Additionally, this raises an error if it can be detected
         that some part is neither directly nor indirectly bounded
-        above, which implies that the constraints possibly do not allow for
-        an inverse lexicographic iterator.
+        above, which implies that the constraints possibly do not
+        allow for an inverse lexicographic iterator.
 
         OUTPUT:
 
@@ -1492,11 +1500,13 @@ class IntegerListsLexIter:
 
     def _lookahead(self):
         r"""
-        Return whether the current list can possibly be a prefix of a valid list.
+        Return whether the current list can possibly be a prefix
+        of a valid list.
 
-        OUTPUT: ``False`` if it is guaranteed that the current
-        list cannot be a prefix of a valid list and ``True``
-        otherwise.
+        OUTPUT:
+
+        ``False`` if it is guaranteed that the current list
+        cannot be a prefix of a valid list and ``True`` otherwise.
 
         EXAMPLES::
 
@@ -1546,9 +1556,9 @@ class IntegerListsLexIter:
 
         ALGORITHM:
 
-        Let ``j=self._j`` be the position of the last part `m` of
+        Let ``j = self._j`` be the position of the last part `m` of
         ``self._current_list``. The current algorithm computes,
-        for `k=j,j+1,\ldots`, a lower bound `l_k` and an upper
+        for `k = j, j+1, \ldots`, a lower bound `l_k` and an upper
         bound `u_k` for `v_0+\dots+v_k`, and stops if none of the
         invervals `[l_k, u_k]` intersect ``[min_sum, max_sum]``.
 
@@ -1648,8 +1658,8 @@ class IntegerListsLexIter:
                 # There cannot exist a valid list `v_j,\dots,v_l` with l>=k
                 return False
 
-            if (p.max_slope <= 0 and up <= 0) or \
-               (p.ceiling.limit() == 0 and k > p.ceiling.limit_start()):
+            if ( (p.max_slope <= 0 and up <= 0)
+                 or (p.ceiling.limit() == 0 and k > p.ceiling.limit_start()) ):
                 # This implies v_l=0 for l>=k: that is we would be generating
                 # a list with trailing zeroes
                 return False
@@ -1661,3 +1671,4 @@ class IntegerListsLexIter:
             k += 1
 
         return False
+

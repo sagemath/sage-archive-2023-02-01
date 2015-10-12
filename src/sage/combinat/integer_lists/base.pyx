@@ -194,7 +194,8 @@ cdef class IntegerListsBackend(object):
 
     def _contains(self, comp):
         """
-        Return ``True`` if ``comp`` meets the constraints imposed by the arguments.
+        Return ``True`` if ``comp`` meets the constraints imposed
+        by the arguments.
 
         EXAMPLES::
 

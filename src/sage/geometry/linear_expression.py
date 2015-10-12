@@ -161,6 +161,31 @@ class LinearExpression(ModuleElement):
         """
         return [self._const] + list(self._coeffs)
 
+    dense_coefficient_list = coefficients
+
+    def monomial_coefficients(self, copy=True):
+        """
+        Return a dictionary whose keys are indices of basis in
+        the support of ``self`` and whose values are the corresponding
+        coefficients.
+
+        INPUT:
+
+        - ``copy`` -- ignored
+
+        EXAMPLES::
+
+            sage: from sage.geometry.linear_expression import LinearExpressionModule
+            sage: L.<x,y,z> = LinearExpressionModule(QQ)
+            sage: linear = L([1, 2, 3], 4)
+            sage: linear.monomial_coefficients()
+            {0: 1, 1: 2, 2: 3, 'b': 4}
+        """
+        zero = self.parent().base_ring().zero()
+        d = {i: v for i,v in enumerate(self._coeffs) if v != zero}
+        d['b'] = self._const
+        return d
+
     def _repr_vector(self, variable='x'):
         """
         Return a string representation.
@@ -458,9 +483,31 @@ class LinearExpressionModule(Parent, UniqueRepresentation):
             sage: TestSuite(L).run()
         """
         from sage.categories.modules import Modules
-        super(LinearExpressionModule, self).__init__(base_ring, category=Modules(base_ring))
+        super(LinearExpressionModule, self).__init__(base_ring, category=Modules(base_ring).WithBasis().FiniteDimensional())
         self._names = names
-        
+
+    @cached_method
+    def basis(self):
+        """
+        Return a basis of ``self``.
+
+        EXAMPLES::
+
+            sage: from sage.geometry.linear_expression import LinearExpressionModule
+            sage: L = LinearExpressionModule(QQ, ('x', 'y', 'z'))
+            sage: list(L.basis())
+            [x + 0*y + 0*z + 0,
+             0*x + y + 0*z + 0,
+             0*x + 0*y + z + 0,
+             0*x + 0*y + 0*z + 1]
+        """
+        from sage.sets.family import Family
+        gens = self.gens()
+        d = {i: g for i,g in enumerate(gens)}
+        d['b'] = self.element_class(self, self.ambient_module().zero(),
+                                    self.base_ring().one())
+        return Family(range(len(gens)) + ['b'], lambda i: d[i])
+
     @cached_method
     def ngens(self):
         """
@@ -576,7 +623,7 @@ class LinearExpressionModule(Parent, UniqueRepresentation):
             else:
                 # Construct from list/tuple/iterable::
                 try:
-                    arg0 = arg0.coefficients()
+                    arg0 = arg0.dense_coefficient_list()
                 except AttributeError:
                     arg0 = list(arg0)
                 const = arg0[0]

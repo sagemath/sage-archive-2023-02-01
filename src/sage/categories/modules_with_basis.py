@@ -1190,7 +1190,8 @@ class ModulesWithBasis(CategoryWithAxiom_over_base_ring):
         def support(self):
             """
             Return a list of the combinatorial objects indexing the basis
-            elements of self which non-zero coefficients.
+            elements of ``self`` which non-zero coefficients (in an
+            arbitrary order).
 
             EXAMPLES::
 
@@ -1213,6 +1214,9 @@ class ModulesWithBasis(CategoryWithAxiom_over_base_ring):
 
         def monomials(self):
             """
+            Return a list of the monomials of ``self`` (in an arbitrary
+            order).
+
             EXAMPLES::
 
                 sage: F = CombinatorialFreeModule(QQ, ['a','b','c'])
@@ -1230,7 +1234,7 @@ class ModulesWithBasis(CategoryWithAxiom_over_base_ring):
 
         def terms(self):
             """
-            Return a list of the terms of ``self``.
+            Return a list of the terms of ``self`` (in an arbitrary order).
 
             .. SEEALSO:: :meth:`monomials`
 
@@ -1248,10 +1252,19 @@ class ModulesWithBasis(CategoryWithAxiom_over_base_ring):
                     for key, value in self.monomial_coefficients(copy=False).iteritems()
                     if value != zero]
 
-        def coefficients(self):
+        def coefficients(self, sort=True):
             """
-            Return a list of the coefficients appearing on the basis
-            elements in ``self``.
+            Return a list of the (non-zero) coefficients appearing on
+            the basis elements in ``self`` (in an arbitrary order).
+
+            INPUT:
+
+            - ``sort`` -- (default: ``True``) to sort the coefficients
+              based upon the default ordering of the indexing set
+
+            .. SEEALSO::
+
+                :meth:`~sage.categories.finite_dimensional_modules_with_basis.FiniteDimensionalModulesWithBasis.ElementMethods.dense_coefficient_list`
 
             EXAMPLES::
 
@@ -1269,9 +1282,13 @@ class ModulesWithBasis(CategoryWithAxiom_over_base_ring):
                 [1, 1, 1, 1]
             """
             zero = self.parent().base_ring().zero()
-            return [value for key, value in
-                    self.monomial_coefficients(copy=False).iteritems()
-                    if value != zero]
+            mc = self.monomial_coefficients(copy=False)
+            if not sort:
+                return [value for key, value in mc.iteritems() if value != zero]
+
+            v = sorted([(key, value) for key, value in mc.iteritems()
+                        if value != zero])
+            return [value for key, value in v]
 
         def support_of_term(self):
             """

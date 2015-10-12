@@ -1418,7 +1418,7 @@ class HyperplaneArrangementElement(Element):
             sage: h._make_region([x, 1-x, y, 1-y])
             A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 4 vertices
         """
-        ieqs = [h.coefficients() for h in hyperplanes]
+        ieqs = [h.dense_coefficient_list() for h in hyperplanes]
         from sage.geometry.polyhedron.constructor import Polyhedron
         return Polyhedron(ieqs=ieqs, ambient_dim=self.dimension(), 
                           base_ring=self.parent().base_ring())
@@ -1468,7 +1468,7 @@ class HyperplaneArrangementElement(Element):
         universe = Polyhedron(eqns=[[0] + [0] * dim], base_ring=R)
         regions = [universe]
         for hyperplane in self:
-            ieq = vector(R, hyperplane.coefficients())
+            ieq = vector(R, hyperplane.dense_coefficient_list())
             pos_half = Polyhedron(ieqs=[ ieq], base_ring=R)
             neg_half = Polyhedron(ieqs=[-ieq], base_ring=R)
             subdivided = []

@@ -205,7 +205,6 @@ Classes and Methods
 
 import sage
 
-
 def absorption(left, right):
     r"""
     Let one of the two passed terms absorb the other.
@@ -1194,6 +1193,31 @@ class GenericTermMonoid(sage.structure.parent.Parent,
         return self(self.growth_group.an_element())
 
 
+    def some_elements(self):
+        r"""
+        Return some elements of this term monoid.
+
+        See :class:`TestSuite` for a typical use case.
+
+        INPUT:
+
+        Nothing.
+
+        OUTPUT:
+
+        An iterator.
+
+        EXAMPLES::
+
+            sage: import sage.rings.asymptotic.growth_group as agg
+            sage: import sage.rings.asymptotic.term_monoid as atm
+            sage: G = agg.GrowthGroup('x^ZZ')
+            sage: tuple(atm.OTermMonoid(G).some_elements())
+            (O(1), O(x), O(1/x), O(x^2), O(x^(-2)), O(x^3), ...)
+        """
+        return iter(self(g) for g in self.growth_group.some_elements())
+
+
     def le(self, left, right):
         r"""
         Return whether the term ``left`` is at most (less than or equal
@@ -2020,9 +2044,42 @@ class TermWithCoefficientMonoid(GenericTermMonoid):
             Asymptotic Term with coefficient 1 and growth x
             sage: atm.ExactTermMonoid(G, ZZ).an_element()  # indirect doctest
             x
+            sage: atm.ExactTermMonoid(G, QQ).an_element()  # indirect doctest
+            1/2*x
         """
         return self(self.growth_group.an_element(),
                     self.base_ring().an_element())
+
+
+    def some_elements(self):
+        r"""
+        Return some elements of this term with coefficient monoid.
+
+        See :class:`TestSuite` for a typical use case.
+
+        INPUT:
+
+        Nothing.
+
+        OUTPUT:
+
+        An iterator.
+
+        EXAMPLES::
+
+            sage: from itertools import islice
+            sage: import sage.rings.asymptotic.growth_group as agg
+            sage: import sage.rings.asymptotic.term_monoid as atm
+            sage: G = agg.GrowthGroup('z^QQ')
+            sage: T = atm.ExactTermMonoid(G, ZZ)
+            sage: tuple(islice(T.some_elements(), 10))
+            (z^(1/2), z^(-1/2), -z^(1/2), z^2, -z^(-1/2), 2*z^(1/2),
+             z^(-2), -z^2, 2*z^(-1/2), -2*z^(1/2))
+        """
+        from sage.misc.mrange import cantor_product
+        return iter(self(g, c) for g, c in cantor_product(
+            self.growth_group.some_elements(),
+            iter(c for c in self.base_ring().some_elements() if c != 0)))
 
 
 class ExactTerm(TermWithCoefficient):

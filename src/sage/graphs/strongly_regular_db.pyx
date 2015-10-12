@@ -1361,6 +1361,59 @@ def SRG_176_105_68_54():
     H = IncidenceStructure([x for x in W if 22 not in x])
     return H.intersection_graph(3)
 
+def SRG_210_99_48_45():
+    r"""
+    Return a strongly regular graph with parameters `(210, 99, 48, 45)`
+
+    This graph is from Example 4.2 in [KPRWZ10]_. One considers the action of
+    the symmetric group `S_7` on the 210 digraphs isomorphic to the
+    disjoint union of `K_1` and the circulant 6-vertex digraph
+    ``digraphs.Circulant(6,[1,4])``. It has 16 orbitals; the package [COCO]_
+    found a megring of them, explicitly described in [KPRWZ10]_, resulting in
+    this graph.
+
+    EXAMPLE::
+
+        sage: from sage.graphs.strongly_regular_db import SRG_210_99_48_45
+        sage: g=SRG_210_99_48_45()
+        sage: g.is_strongly_regular(parameters=True)
+        (210, 99, 48, 45)
+
+    REFERENCES:
+
+    .. [KPRWZ10] M. H. Klin, C. Pech, S. Reichard, A. Woldar, M. Zvi-Av,
+       Examples of computer experimentation in algebraic combinatorics,
+       ARS MATHEMATICA CONTEMPORANEA 3 (2010) 237–258
+       http://amc-journal.eu/index.php/amc/article/viewFile/119/118
+
+    .. [COCO] I. A. Faradjev and M. H. Klin,
+       Computer package for computations with coherent configurations,
+       Proc. ISSAC-91, ACM Press, Bonn, 1991, pages 219–223;
+       code, by I.A.Faradjev (with contributions by A.E.Brouwer, D.V.Pasechnik)
+       https://github.com/dimpase/coco
+
+    """
+    from sage.libs.gap.libgap import libgap
+    from sage.combinat.permutation import Permutation
+    def ekg(g0): # return arcs of the Cayley digraph of <g> on {g,g^4}
+        g = Permutation(g0)
+        return libgap.Set(map(lambda x: (x,g(x)), range(1,8))\
+                        + map(lambda x: (x,g(g(g(g(x))))), range(1,8)))
+
+    kd=map(ekg,
+        [(7, 1, 2, 3, 4, 5), (7, 1, 3, 4, 5, 6),
+        (7, 3, 4, 5, 6, 2), (7, 1, 4, 3, 5, 6),
+        (7, 3, 1, 4, 5, 6), (7, 2, 4, 3, 5, 6),
+        (7, 3, 2, 4, 5, 1), (7, 2, 4, 3, 5, 1)])
+    s=libgap.SymmetricGroup(7)
+    O=s.Orbit(kd[0],libgap.OnSetsTuples)
+    sa=s.Action(O,libgap.OnSetsTuples)
+    G=Graph()
+    for g in kd[1:]:
+        G.add_edges(libgap.Orbit(sa,[libgap.Position(O,kd[0]),\
+                                     libgap.Position(O,g)],libgap.OnSets))
+    return G
+
 def SRG_243_110_37_60():
     r"""
     Return a `(243, 110, 37, 60)`-strongly regular graph.
@@ -2485,6 +2538,7 @@ def strongly_regular_graph(int v,int k,int l,int mu=-1,bint existence=False,bint
         (176,  49,  12, 14): [SRG_176_49_12_14],
         (176, 105,  68, 54): [SRG_176_105_68_54],
         (196,  91,  42, 42): [SRG_196_91_42_42],
+        (210,  99,  48, 45): [SRG_210_99_48_45],
         (220,  84,  38, 28): [SRG_220_84_38_28],
         (231,  30,   9,  3): [CameronGraph],
         (243, 110,  37, 60): [SRG_243_110_37_60],

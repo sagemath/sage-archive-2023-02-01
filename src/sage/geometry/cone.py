@@ -4597,6 +4597,427 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
         M = MatrixSpace(F, n, n)
         return [ M(v.list()) for v in LL_vectors.basis() ]
 
+    def _restrict_to_space(self, W):
+        r"""
+        Restrict this cone (up to linear isomorphism) to a vector subspace.
+
+        This operation not only restricts the cone to a subspace of its
+        ambient space, but also represents the rays of the cone in a new
+        (smaller) lattice corresponding to the subspace. The resulting
+        cone will be linearly isomorphic (but not equal) to the
+        desired restriction, since it has likely undergone a change of
+        basis.
+
+        To explain the difficulty, consider the cone ``K =
+        Cone([(1,1,1)])`` having a single ray. The span of ``K`` is a
+        one-dimensional subspace containing ``K``, yet we have no way to
+        perform operations like :meth:`dual` in the subspace. To represent
+        ``K`` in the space ``K.span()``, we must perform a change of basis
+        and write its sole ray as ``(1,0,0)``. Now the restricted
+        ``Cone([(1,)])`` is linearly isomorphic (but of course not equal) to
+        ``K`` interpreted as living in ``K.span()``.
+
+        INPUT:
+
+        - ``W`` -- The subspace into which this cone will be restricted.
+
+        OUTPUT:
+
+        A new cone in a sublattice corresponding to ``W``.
+
+        REFERENCES:
+
+        M. Orlitzky. The Lyapunov rank of an improper cone.
+        http://www.optimization-online.org/DB_HTML/2015/10/5135.html
+
+        EXAMPLES:
+
+        Restricting a solid cone to its own span returns a cone linearly
+        isomorphic to the original::
+
+            sage: K = Cone([(1,2,3),(-1,1,0),(9,0,-2)])
+            sage: K.is_solid()
+            True
+            sage: K._restrict_to_space(K.span()).rays()
+            N(-1,  1,  0),
+            N( 1,  0,  0),
+            N( 9, -6, -1)
+            in 3-d lattice N
+
+        A single ray restricted to its own span has the same
+        representation regardless of the ambient space::
+
+            sage: K = Cone([(1,0)])
+            sage: K_S = K._restrict_to_space(K.span()).rays()
+            sage: K_S
+            N(1)
+            in 1-d lattice N
+            sage: K = Cone([(1,1,1)])
+            sage: K_S = K._restrict_to_space(K.span()).rays()
+            sage: K_S
+            N(1)
+            in 1-d lattice N
+
+        Restricting to a trivial space gives the trivial cone::
+
+            sage: K = Cone([(8,3,-1,0),(9,2,2,0),(-4,6,7,0)])
+            sage: trivial_space = K.lattice().vector_space().span([])
+            sage: K._restrict_to_space(trivial_space)
+            0-d cone in 0-d lattice N
+
+        TESTS:
+
+        Restricting a cone to its own span results in a solid cone::
+
+            sage: set_random_seed()
+            sage: K = random_cone(max_ambient_dim = 8)
+            sage: K_S = K._restrict_to_space(K.span())
+            sage: K_S.is_solid()
+            True
+
+        Restricting a cone to its span should not affect the number of
+        rays in the cone::
+
+            sage: set_random_seed()
+            sage: K = random_cone(max_ambient_dim = 8)
+            sage: K_S = K._restrict_to_space(K.span())
+            sage: K.nrays() == K_S.nrays()
+            True
+
+        Restricting a cone to its span should not affect its dimension::
+
+            sage: set_random_seed()
+            sage: K = random_cone(max_ambient_dim = 8)
+            sage: K_S = K._restrict_to_space(K.span())
+            sage: K.dim() == K_S.dim()
+            True
+
+        Restricting a cone to its span should not affects its lineality::
+
+            sage: set_random_seed()
+            sage: K = random_cone(max_ambient_dim = 8)
+            sage: K_S = K._restrict_to_space(K.span())
+            sage: K.lineality() == K_S.lineality()
+            True
+
+        Restricting a cone to its span should not affect the number of
+        facets it has::
+
+            sage: set_random_seed()
+            sage: K = random_cone(max_ambient_dim = 8)
+            sage: K_S = K._restrict_to_space(K.span())
+            sage: len(K.facets()) == len(K_S.facets())
+            True
+
+        Restricting a solid cone to its span is a linear isomorphism
+        and should not affect the dimension of its ambient space::
+
+            sage: set_random_seed()
+            sage: K = random_cone(max_ambient_dim = 8, solid = True)
+            sage: K_S = K._restrict_to_space(K.span())
+            sage: K.lattice_dim() == K_S.lattice_dim()
+            True
+
+        Restricting a solid cone to its span is a linear isomorphism
+        that establishes a one-to-one correspondence of discrete
+        complementarity sets::
+
+            sage: set_random_seed()
+            sage: K = random_cone(max_ambient_dim = 8, solid = True)
+            sage: K_S = K._restrict_to_space(K.span())
+            sage: dcs1 = K.discrete_complementarity_set()
+            sage: dcs2 = K_S.discrete_complementarity_set()
+            sage: len(dcs1) == len(dcs2)
+            True
+
+        Restricting a solid cone to its span is a linear isomorphism
+        under which Lyapunov rank (the length of a Lyapunov-like basis)
+        is invariant::
+
+            sage: set_random_seed()
+            sage: K = random_cone(max_ambient_dim = 8, solid = True)
+            sage: K_S = K._restrict_to_space(K.span())
+            sage: LL1 = K.lyapunov_like_basis()
+            sage: LL2 = K_S.lyapunov_like_basis()
+            sage: len(LL1) == len(LL2)
+            True
+
+        If we restrict a cone to a subspace of its span, the resulting
+        cone should have the same dimension as the subspace::
+
+            sage: set_random_seed()
+            sage: K = random_cone(max_ambient_dim = 8)
+            sage: W_basis = random_sublist(K.rays(), 0.5)
+            sage: W = K.lattice().vector_space().span(W_basis)
+            sage: K_W = K._restrict_to_space(W)
+            sage: K_W.lattice_dim() == W.dimension()
+            True
+
+        Through a series of restrictions, any closed convex cone can be
+        reduced to a cartesian product with a proper factor [Orlitzky]_::
+
+            sage: set_random_seed()
+            sage: K = random_cone(max_ambient_dim = 8)
+            sage: K_S = K._restrict_to_space(K.span())
+            sage: P = K_S.dual().span()
+            sage: K_SP = K_S._restrict_to_space(P)
+            sage: K_SP.is_proper()
+            True
+        """
+        # We want to intersect this cone with ``W``. We can do that via
+        # cone intersection, so we first turn the space ``W`` into a cone.
+        W_rays = W.basis() + [ -b for b in W.basis() ]
+        W_cone = Cone(W_rays, lattice=self.lattice())
+        K = self.intersection(W_cone)
+
+        # Now every generator of ``K`` should belong to ``W``.
+        K_W_rays = [ W.coordinate_vector(r) for r in K.rays() ]
+
+        L = ToricLattice(W.dimension())
+        return Cone(K_W_rays, lattice=L)
+
+    def lyapunov_rank(self):
+        r"""
+        Compute the Lyapunov rank of this cone.
+
+        The Lyapunov rank of a cone is the dimension of the space of its
+        Lyapunov-like transformations---that is, the length of a
+        :meth:`lyapunov_like_basis`. Equivalently, the Lyapunov rank is
+        the dimension of the Lie algebra of the automorphism group of
+        the cone.
+
+        OUTPUT:
+
+        A nonnegative integer representing the Lyapunov rank of this cone.
+
+        If the ambient space is trivial, the Lyapunov rank will be zero.
+        Otherwise, if the dimension of the ambient vector space is `n`,
+        then the resulting Lyapunov rank will be between `1` and `n`
+        inclusive. A Lyapunov rank of `n-1` is not possible [Orlitzky]_.
+
+        ALGORITHM:
+
+        Algorithm 3 [Orlitzky]_ is used. Every closed convex cone is
+        isomorphic to a cartesian product of a proper cone, a subspace,
+        and a trivial cone. The Lyapunov ranks of the subspace and
+        trivial cone are easy to compute. Essentially, we "peel off"
+        those easy parts of the cone and compute their Lyapunov ranks
+        separately. We then compute the rank of the proper cone by
+        counting a :meth:`lyapunov_like_basis` for it. Summing the
+        individual ranks gives the Lyapunov rank of the original cone.
+
+        REFERENCES:
+
+        .. [Gowda-Tao] M.S. Gowda and J. Tao. On the bilinearity rank of
+           a proper cone and Lyapunov-like transformations. Mathematical
+           Programming, 147 (2014) 155-170.
+
+        M. Orlitzky. The Lyapunov rank of an improper cone.
+        http://www.optimization-online.org/DB_HTML/2015/10/5135.html
+
+        G. Rudolf, N. Noyan, D. Papp, and F. Alizadeh, Bilinear
+        optimality constraints for the cone of positive polynomials,
+        Mathematical Programming, Series B, 129 (2011) 5-31.
+
+        EXAMPLES:
+
+        The Lyapunov rank of the nonnegative orthant is the same as the
+        dimension of the ambient space [Rudolf]_::
+
+            sage: positives = Cone([(1,)])
+            sage: positives.lyapunov_rank()
+            1
+            sage: quadrant = Cone([(1,0), (0,1)])
+            sage: quadrant.lyapunov_rank()
+            2
+            sage: octant = Cone([(1,0,0), (0,1,0), (0,0,1)])
+            sage: octant.lyapunov_rank()
+            3
+
+        A vector space of dimension `n` has Lyapunov rank `n^{2}`
+        [Orlitzky]_::
+
+            sage: Q5 = VectorSpace(QQ, 5)
+            sage: gs = Q5.basis() + [ -r for r in Q5.basis() ]
+            sage: K = Cone(gs)
+            sage: K.lyapunov_rank()
+            25
+
+        A pyramid in three dimensions has Lyapunov rank one [Rudolf]_::
+
+            sage: l31 = Cone([(1,0,1), (0,-1,1), (-1,0,1), (0,1,1)])
+            sage: l31.lyapunov_rank()
+            1
+            sage: l3infty = Cone([(0,1,1), (1,0,1), (0,-1,1), (-1,0,1)])
+            sage: l3infty.lyapunov_rank()
+            1
+
+        A ray in `n` dimensions has Lyapunov rank `n^{2} - n + 1`
+        [Orlitzky]_::
+
+            sage: K = Cone([(1,0,0,0,0)])
+            sage: K.lyapunov_rank()
+            21
+            sage: K.lattice_dim()**2 - K.lattice_dim() + 1
+            21
+
+        A subspace of dimension `m` in an `n`-dimensional ambient space
+        has Lyapunov rank `n^{2} - m(n - m)` [Orlitzky]_::
+
+            sage: e1 = vector(QQ, [1,0,0,0,0])
+            sage: e2 = vector(QQ, [0,1,0,0,0])
+            sage: z = (0,0,0,0,0)
+            sage: K = Cone([e1, -e1, e2, -e2, z, z, z])
+            sage: K.lyapunov_rank()
+            19
+            sage: K.lattice_dim()**2 - K.dim()*K.codim()
+            19
+
+        Lyapunov rank is additive on a product of proper cones [Rudolf]_::
+
+            sage: l31 = Cone([(1,0,1), (0,-1,1), (-1,0,1), (0,1,1)])
+            sage: octant = Cone([(1,0,0), (0,1,0), (0,0,1)])
+            sage: K = l31.cartesian_product(octant)
+            sage: K.lyapunov_rank()
+            4
+            sage: l31.lyapunov_rank() + octant.lyapunov_rank()
+            4
+
+        Two linearly-isomorphic cones have the same Lyapunov rank
+        [Rudolf]_. A cone linearly-isomorphic to the nonnegative octant
+        will have Lyapunov rank ``3``::
+
+            sage: K = Cone([(1,2,3), (-1,1,0), (1,0,6)])
+            sage: K.lyapunov_rank()
+            3
+
+        Lyapunov rank is invariant under :meth:`dual` [Rudolf]_::
+
+            sage: K = Cone([(2,2,4), (-1,9,0), (2,0,6)])
+            sage: K.lyapunov_rank() == K.dual().lyapunov_rank()
+            True
+
+        TESTS:
+
+        Lyapunov rank should be additive on a product of proper cones
+        [Rudolf]_::
+
+            sage: set_random_seed()
+            sage: K1 = random_cone(max_ambient_dim = 6,
+            ....:                  strictly_convex = True,
+            ....:                  solid = True)
+            sage: K2 = random_cone(max_ambient_dim = 6,
+            ....:                  strictly_convex = True,
+            ....:                  solid = True)
+            sage: K = K1.cartesian_product(K2)
+            sage: K.lyapunov_rank() == K1.lyapunov_rank() + K2.lyapunov_rank()
+            True
+
+        Lyapunov rank should be invariant under a linear isomorphism
+        [Orlitzky]_::
+
+            sage: set_random_seed()
+            sage: K1 = random_cone(max_ambient_dim = 8)
+            sage: n = K1.lattice_dim()
+            sage: A = random_matrix(QQ, n, algorithm='unimodular')
+            sage: K2 = Cone( [ A*r for r in K1.rays() ], lattice=K1.lattice())
+            sage: K1.lyapunov_rank() == K2.lyapunov_rank()
+            True
+
+        Lyapunov rank should be invariant under :meth:`dual` [Rudolf]_::
+
+            sage: set_random_seed()
+            sage: K = random_cone(max_ambient_dim = 8)
+            sage: K.lyapunov_rank() == K.dual().lyapunov_rank()
+            True
+
+        The Lyapunov rank of a proper polyhedral cone in a non-trivial
+        `n`-dimensional space can be any number between `1` and `n`
+        inclusive, excluding `n-1` [Gowda-Tao]_::
+
+            sage: set_random_seed()
+            sage: K = random_cone(max_ambient_dim = 8,
+            ....:                 min_rays = 1,
+            ....:                 strictly_convex = True,
+            ....:                 solid = True)
+            sage: b = K.lyapunov_rank()
+            sage: n = K.lattice_dim()
+            sage: 1 <= b <= n
+            True
+            sage: b == n-1
+            False
+
+        No polyhedral closed convex cone in `n` dimensions has Lyapunov
+        rank `n-1` [Orlitzky]_::
+
+            sage: set_random_seed()
+            sage: K = random_cone(max_ambient_dim = 8)
+            sage: K.lyapunov_rank() == K.lattice_dim() - 1
+            False
+
+        The calculation of the Lyapunov rank of an improper cone can
+        be reduced to that of a proper cone [Orlitzky]_::
+
+            sage: set_random_seed()
+            sage: K = random_cone(max_ambient_dim = 8)
+            sage: K_S = K._restrict_to_space(K.span())
+            sage: P = K_S.dual().span()
+            sage: K_SP = K_S.dual()._restrict_to_space(P).dual()
+            sage: l = K.lineality()
+            sage: c = K.codim()
+            sage: actual = K.lyapunov_rank()
+            sage: expected = K_SP.lyapunov_rank() + K.dim()*(l + c) + c**2
+            sage: actual == expected
+            True
+
+        The Lyapunov rank of a cone is the length of a
+        :meth:`lyapunov_like_basis` for it::
+
+            sage: set_random_seed()
+            sage: K = random_cone(max_ambient_dim = 8)
+            sage: K.lyapunov_rank() == len(K.lyapunov_like_basis())
+            True
+
+        A "perfect" cone has Lyapunov rank `n` or more in `n`
+        dimensions. We can make any cone perfect by adding a slack
+        variable [Orlitzky]_::
+
+            sage: set_random_seed()
+            sage: K = random_cone(max_ambient_dim = 8)
+            sage: L = ToricLattice(K.lattice_dim() + 1)
+            sage: K = Cone([ r.list() + [0] for r in K.rays() ], lattice=L)
+            sage: K.lyapunov_rank() >= K.lattice_dim()
+            True
+        """
+        # A running tally of the Lyapunov rank that we will update.
+        beta = 0
+
+        K = self
+        m = K.dim()
+        n = K.lattice_dim()
+        l = K.lineality()
+
+        if m < n:
+            # K is not solid, restrict it to its span.
+            K = self._restrict_to_space(K.span())
+
+            # Add the Lyapunov rank of the trivial cone that we just
+            # peeled off (Lemma 1 in [Orlitzky]_).
+            beta += (n - m)*n
+
+        if l > 0:
+            # K is not pointed; restrict it to the span of its
+            # dual (Proposition 2 in [Orlitzky]_).
+            K = K._restrict_to_space(K.dual().span())
+
+            # Add the Lyapunov rank of the subspace we just peeled off
+            # (Lemma 2 in [Orlitzky]_).
+            beta += l * m
+
+        # K is now proper. Compute its Lyapunov rank "the hard way,"
+        # by counting a Lyapunov-like basis for it.
+        return beta + len(K.lyapunov_like_basis())
+
 
 def random_cone(lattice=None, min_ambient_dim=0, max_ambient_dim=None,
                 min_rays=0, max_rays=None, strictly_convex=None, solid=None):

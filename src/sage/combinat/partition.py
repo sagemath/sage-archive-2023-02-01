@@ -7548,7 +7548,7 @@ def number_of_partitions(n, algorithm='default'):
         [[5], [4, 1], [3, 2], [3, 1, 1], [2, 2, 1], [2, 1, 1, 1], [1, 1, 1, 1, 1]]
         sage: len(v)
         7
-       sage: number_of_partitions(5, algorithm='bober')
+        sage: number_of_partitions(5, algorithm='bober')
         7
 
     The input must be a nonnegative integer or a ``ValueError`` is raised.

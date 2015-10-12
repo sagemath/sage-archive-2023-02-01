@@ -100,6 +100,9 @@ class IntegerLists(Parent):
             self.rename(kwds.pop("name"))
 
         if "global_options" in kwds:
+            from sage.misc.superseded import deprecation
+            deprecation(15525, 'the global_options argument is deprecated since, in general,'
+                               ' pickling is broken; create your own class instead')
             self.global_options = kwds.pop("global_options")
 
         if "element_class" in kwds:

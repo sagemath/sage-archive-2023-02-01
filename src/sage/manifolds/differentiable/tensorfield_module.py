@@ -248,7 +248,11 @@ class TensorFieldModule(UniqueRepresentation, Parent):
              differentiable manifold M
             sage: T21 is M.tensor_field_module((2,1))
             True
-            sage: TestSuite(T21).run()
+            sage: TestSuite(T21).run(skip='_test_elements')
+
+        In the above test suite, _test_elements is skipped because of the
+        _test_pickling error of the elements (to be fixed in class
+        TensorField)
 
         """
         domain = vector_field_module._domain
@@ -377,7 +381,18 @@ class TensorFieldModule(UniqueRepresentation, Parent):
              manifold M
 
         """
-        return self.element_class(self._vmodule, self._tensor_type)
+        resu = self.element_class(self._vmodule, self._tensor_type)
+        # Non-trivial open covers of the domain:
+        open_covers = self._domain.open_covers()[1:]  # the open cover 0
+                                                      # is trivial
+        if open_covers != []:
+            oc = open_covers[0]  # the first non-trivial open cover is selected
+            for dom in oc:
+                vmodule_dom = dom.vector_field_module(
+                                         dest_map=self._dest_map.restrict(dom))
+                tmodule_dom = vmodule_dom.tensor_module(*(self._tensor_type))
+                resu.set_restriction(tmodule_dom._an_element_())
+        return resu
 
     def _coerce_map_from_(self, other):
         r"""

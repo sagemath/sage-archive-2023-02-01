@@ -31,7 +31,7 @@ from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.manifolds.continuous_map import ContinuousMap
 
-class TopManifoldHomset(Homset, UniqueRepresentation):
+class TopManifoldHomset(UniqueRepresentation, Homset):
     r"""
     Set of continuous maps between two topological manifolds.
 

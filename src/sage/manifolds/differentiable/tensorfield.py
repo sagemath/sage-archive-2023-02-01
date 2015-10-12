@@ -1595,11 +1595,13 @@ class TensorField(ModuleElement):
             True
             sage: a = M.tensor_field(1, 1, name='a')
             sage: a.set_restriction(t.restrict(U))
+            sage: t.__eq__(a)  # False since a has not been defined on V
+            False
             sage: a.set_restriction(t.restrict(V))
-            sage: t.__eq__(a)
+            sage: t.__eq__(a)  # True now
             True
             sage: a[e_xy, 0, 0] = -1
-            sage: t.__eq__(a)
+            sage: t.__eq__(a)  # False since a has been reset on U (domain of e_xy)
             False
             sage: t.parent().zero().__eq__(0)
             True
@@ -1617,11 +1619,24 @@ class TensorField(ModuleElement):
                 return False
             if other._tensor_type != self._tensor_type:
                 return False
-            resu = True
-            for dom, rst in self._restrictions.iteritems():
-                if dom in other._restrictions:
-                    resu = resu and bool(rst == other._restrictions[dom])
-            return resu
+            # Non-trivial open covers of the domain:
+            open_covers = self._domain.open_covers()[1:]  # the open cover 0
+                                                          # is trivial
+            for oc in open_covers:
+                resu = True
+                for dom in oc:
+                    try:
+                        resu = resu and \
+                                bool(self.restrict(dom) == other.restrict(dom))
+                    except ValueError:
+                        break
+                else:
+                    # If this point is reached, no exception has occured; hence
+                    # the result is valid and can be returned:
+                    return resu
+            # If this point is reached, the comparison has not been possible
+            # on any open cover; we therefore return False:
+            return False
 
     def __ne__(self, other):
         r"""
@@ -1636,7 +1651,7 @@ class TensorField(ModuleElement):
         - ``True`` if ``self`` is different from ``other`` and ``False``
           otherwise
 
-        TEST::
+        TESTS::
 
             sage: M = DiffManifold(2, 'M') # the 2-dimensional sphere S^2
             sage: U = M.open_subset('U') # complement of the North pole
@@ -1651,10 +1666,13 @@ class TensorField(ModuleElement):
             sage: e_xy = c_xy.frame(); e_uv = c_uv.frame()
             sage: t = M.tensor_field(1, 1, name='t')
             sage: t[e_xy,:] = [[x+y, 0], [2, 1-y]]
+            sage: t.add_comp_by_continuation(e_uv, U.intersection(V), c_uv)
             sage: t.__ne__(t)
             False
             sage: t.__ne__(t.copy())
             False
+            sage: t.__ne__(0)
+            True
 
         """
         return not self.__eq__(other)

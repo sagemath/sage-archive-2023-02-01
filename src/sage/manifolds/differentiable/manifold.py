@@ -740,7 +740,7 @@ class DiffManifold(TopManifold):
                             start_index=self._sindex, category=self.category(),
                             ambient_manifold=self._manifold)
         #!# NB: the above could have been
-        # resu = type(self).__base__(...) instead of resu = TopManifold(...)
+        # resu = type(self).__base__(...) instead of resu = DiffManifold(...)
         # to allow for open_subset() of derived classes to call first this
         # version,
         # but, because of the category framework, it could NOT have been
@@ -1192,55 +1192,6 @@ class DiffManifold(TopManifold):
             coord_functions = {(chart1, chart2): coord_functions}
         return homset(coord_functions, name=name, latex_name=latex_name,
                       is_isomorphism=True)
-
-    def identity_map(self):
-        r"""
-        Identity map of the manifold.
-
-        The identity map of a differentiable manifold `M` is the trivial
-        diffeomorphism
-
-        .. MATH::
-
-            \begin{array}{cccc}
-            \mathrm{Id}_M: & M & \longrightarrow & M \\
-                & p & \longmapsto & p
-            \end{array}
-
-        See :class:`~sage.manifolds.differentiable.diff_map.DiffMap` for a
-        complete documentation.
-
-        OUTPUT:
-
-        - the identity map, as an instance of
-          :class:`~sage.manifolds.differentiable.diff_map.DiffMap`
-
-        EXAMPLE:
-
-        Identity map of a complex manifold::
-
-            sage: M = DiffManifold(2, 'M', field='complex')
-            sage: X.<x,y> = M.chart()
-            sage: id = M.identity_map(); id
-            Identity map Id_M of the 2-dimensional complex manifold M
-            sage: id.parent()
-            Set of Morphisms from 2-dimensional complex manifold M to
-             2-dimensional complex manifold M in Category of sets
-            sage: id.display()
-            Id_M: M --> M
-               (x, y) |--> (x, y)
-
-        The identity map acting on a point::
-
-            sage: p = M((1+I, 3-I), name='p'); p
-            Point p on the 2-dimensional complex manifold M
-            sage: id(p)
-            Point p on the 2-dimensional complex manifold M
-            sage: id(p) == p
-            True
-
-        """
-        return self._identity_map
 
 
     def vector_field_module(self, dest_map=None, force_free=False):

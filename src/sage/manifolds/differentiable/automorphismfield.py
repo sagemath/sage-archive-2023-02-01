@@ -256,6 +256,24 @@ class AutomorphismField(TensorField):
         # then deletes the inverse automorphism:
         self._inverse = None
 
+    def _new_instance(self):
+        r"""
+        Create an instance of the same class as ``self`` on the same
+        vector field module.
+
+        TEST::
+
+            sage: M = DiffManifold(5, 'M')
+            sage: a = M.automorphism_field(name='a')
+            sage: a._new_instance()
+            Field of tangent-space automorphisms on the 5-dimensional
+             differentiable manifold M
+            sage: a._new_instance().parent() is a.parent()
+            True
+
+        """
+        return self.__class__(self._vmodule)
+
     def __call__(self, *arg):
         r"""
         Redefinition of
@@ -911,6 +929,8 @@ class AutomorphismFieldParal(FreeModuleAutomorphism, TensorFieldParal):
         # Delete the derived quantities pertaining to the mother classes:
         FreeModuleAutomorphism._del_derived(self)
         TensorFieldParal._del_derived(self, del_restrictions=del_restrictions)
+
+     # Method _new_instance() is defined in mother class FreeModuleAutomorphism
 
     def __call__(self, *arg):
         r"""

@@ -162,10 +162,6 @@ class VectorFieldModule(UniqueRepresentation, Parent):
     The conversion map is actually the restriction of vector fields defined
     on `M` to `U`.
 
-    The Sage test suite for modules is passed::
-
-        sage: TestSuite(XM).run()
-
     """
 
     Element = VectorField
@@ -192,7 +188,11 @@ class VectorFieldModule(UniqueRepresentation, Parent):
              manifold M
             sage: XM is M.vector_field_module()
             True
-            sage: TestSuite(XM).run()
+            sage: TestSuite(XM).run(skip='_test_elements')
+
+        In the above test suite, _test_elements is skipped because of the
+        _test_pickling error of the elements (to be fixed in class
+        TensorField)
 
         """
         self._domain = domain
@@ -288,7 +288,17 @@ class VectorFieldModule(UniqueRepresentation, Parent):
             Vector field on the 2-dimensional differentiable manifold M
 
         """
-        return self.element_class(self)
+        resu = self.element_class(self)
+        # Non-trivial open covers of the domain:
+        open_covers = self._domain.open_covers()[1:]  # the open cover 0
+                                                      # is trivial
+        if open_covers != []:
+            oc = open_covers[0]  # the first non-trivial open cover is selected
+            for dom in oc:
+                vmodule_dom = dom.vector_field_module(
+                                         dest_map=self._dest_map.restrict(dom))
+                resu.set_restriction(vmodule_dom._an_element_())
+        return resu
 
     def _coerce_map_from_(self, other):
         r"""

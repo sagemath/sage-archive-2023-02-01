@@ -1878,9 +1878,8 @@ class GenericGrowthGroup(
             sage: cm.common_parent(A, B)
             Growth Group QQ^x * y^ZZ
 
-        Single factored growth groups of the same variable cannot be
-        combined automatically, since there is no order relation (meaning
-        which one is larger than the other) between the two factors::
+        In general, growth groups of the same variable cannot be
+        combined automatically, since there is no order relation between the two factors::
 
             sage: C = GrowthGroup('x^QQ')
             sage: cm.common_parent(A, C)
@@ -1888,6 +1887,14 @@ class GenericGrowthGroup(
             ...
             TypeError: no common canonical parent for objects with parents:
             'Growth Group QQ^x' and 'Growth Group x^QQ'
+
+        However, combining is possible if the factors with the same variable
+        overlap::
+
+            sage: cm.common_parent(GrowthGroup('x^ZZ * log(x)^ZZ'), GrowthGroup('exp(x)^ZZ * x^ZZ'))
+            Growth Group exp(x)^ZZ * x^ZZ * log(x)^ZZ
+            sage: cm.common_parent(GrowthGroup('x^ZZ * log(x)^ZZ'), GrowthGroup('y^ZZ * x^ZZ'))
+            Growth Group x^ZZ * log(x)^ZZ * y^ZZ
 
         ::
 

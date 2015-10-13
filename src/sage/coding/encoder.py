@@ -176,7 +176,21 @@ class Encoder(SageObject):
             Traceback (most recent call last):
             ...
             EncodingError: Given word is not in the code
+
+        If ones tries to unencode "a" codeword of a code of dimension 0, it
+        returns an error::
+
+            sage: G = Matrix(GF(17), [])
+            sage: C = LinearCode(G)
+            sage: E = codes.encoders.LinearCodeGeneratorMatrixEncoder(C)
+            sage: c = C.random_element()
+            sage: E.unencode(c)
+            Traceback (most recent call last):
+            ...
+            EncodingError: Impossible to unencode a word of a code of dimension 0
         """
+        if self.code().ambient_space().dimension() == 0:
+            raise EncodingError("Impossible to unencode a word of a code of dimension 0")
         if nocheck == False and c not in self.code():
             raise EncodingError("Given word is not in the code")
         return self.unencode_nocheck(c)

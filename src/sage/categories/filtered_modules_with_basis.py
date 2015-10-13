@@ -106,7 +106,6 @@ class FilteredModulesWithBasis(FilteredModulesCategory):
         sage: TestSuite(C).run()
     """
     class ParentMethods:
-
         # TODO: which syntax do we prefer?
         # A.basis(degree = 3)
         # A.basis().subset(degree=3)
@@ -180,44 +179,6 @@ class FilteredModulesWithBasis(FilteredModulesCategory):
                 Lazy family (Term map from Subsets of {0, 1} to
                  The exterior algebra of rank 2 over Rational Field(i))_{i in
                  Subsets of {0, 1}}
-            """
-            from sage.sets.family import Family
-            if d is None:
-                return Family(self._indices, self.monomial)
-            else:
-                return Family(self._indices.subset(size=d), self.monomial)
-
-        # TODO: which syntax do we prefer?
-        # A.basis(degree = 3)
-        # A.basis().subset(degree=3)
-
-        # This is related to the following design question:
-        # If F = (f_i)_{i\in I} is a family, should ``F.subset(degree = 3)``
-        # be the elements of F of degree 3 or those whose index is of degree 3?
-
-        def basis(self, d=None):
-            """
-            Return the basis for (an homogeneous component of) ``self``.
-
-            INPUT:
-
-            - `d` -- non negative integer or ``None``, optional (default: ``None``)
-
-            If `d` is None, returns a basis of the module.
-            Otherwise, returns the basis of the homogeneous component of degree `d`.
-
-            EXAMPLES::
-
-                sage: A = GradedModulesWithBasis(ZZ).example()
-                sage: A.basis(4)
-                Lazy family (Term map from Partitions to An example of a graded module with basis: the free module on partitions over Integer Ring(i))_{i in Partitions of the integer 4}
-
-            Without arguments, the full basis is returned::
-
-                sage: A.basis()
-                Lazy family (Term map from Partitions to An example of a graded module with basis: the free module on partitions over Integer Ring(i))_{i in Partitions}
-                sage: A.basis()
-                Lazy family (Term map from Partitions to An example of a graded module with basis: the free module on partitions over Integer Ring(i))_{i in Partitions}
             """
             if d is None:
                 from sage.sets.family import Family

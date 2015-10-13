@@ -1141,7 +1141,17 @@ cdef class RealIntervalFieldElement(RingElement):
             sage: R('1.2456').str(style='brackets')
             '[1.0 .. 1.3]'
 
-        EXAMPLES:
+        ::
+
+            sage: RIF = RealIntervalField(53)
+            sage: RIF(RR.pi())
+            3.1415926535897932?
+            sage: RIF(RDF.pi())
+            3.1415926535897932?
+            sage: RIF(math.pi)
+            3.1415926535897932?
+            sage: RIF.pi()
+            3.141592653589794?
 
         Rounding::
 
@@ -1172,8 +1182,12 @@ cdef class RealIntervalFieldElement(RingElement):
             mpfi_set_q(self.value, (<Rational>x).value)
         elif isinstance(x, Integer):
             mpfi_set_z(self.value, (<Integer>x).value)
+        elif isinstance(x, RealDoubleElement):
+            mpfi_set_d(self.value, (<RealDoubleElement>x)._value)
         elif isinstance(x, int):
             mpfi_set_si(self.value, <long>x)
+        elif isinstance(x, float):
+            mpfi_set_d(self.value, <double>x)
         elif hasattr(x, '_real_mpfi_'):
             d = x._real_mpfi_(self._parent)
             mpfi_set(self.value, d.value)

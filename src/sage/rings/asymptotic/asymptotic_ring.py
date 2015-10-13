@@ -1417,6 +1417,12 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
         the asymptotic expansion for `\log(1+t)` as `t` tends to `0`
         is used.
 
+        .. TODO::
+
+            As soon as `L`-terms are implemented, this
+            implementation has to be adapted as well in order to
+            yield correct results.
+
         EXAMPLES::
 
             sage: R.<x> = AsymptoticRing('x^ZZ * log(x)^ZZ', QQ)
@@ -1644,6 +1650,12 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
         the exact exponential function. Otherwise, if this term
         is within `O(1)`, try to expand the series and truncate
         according to the given precision.
+
+        .. TODO::
+
+            As soon as `L`-terms are implemented, this
+            implementation has to be adapted as well in order to
+            yield correct results.
 
         EXAMPLES::
 

@@ -901,7 +901,7 @@ class VectorFieldModule(UniqueRepresentation, Parent):
           :class:`~sage.manifolds.differentiable.metric.PseudoRiemannianMetric`
           representing the defined pseudo-Riemannian metric.
 
-        EXAMPLES:
+        EXAMPLES::
 
             sage: M = DiffManifold(2, 'M')
             sage: XM = M.vector_field_module()

@@ -14,8 +14,8 @@ REFERENCES:
 
 - S. Kobayashi & K. Nomizu : *Foundations of Differential Geometry*, vol. 1,
   Interscience Publishers (New York) (1963)
-- J.M. Lee : *Introduction to Smooth Manifolds*, 2nd ed., Springer (New York)
-  (2013)
+- J.M. Lee : *Riemannian Manifolds*, Springer (New York) (1997);
+  :doi:`10.1007/b98852`
 - B O'Neill : *Semi-Riemannian Geometry*, Academic Press (San Diego) (1983)
 
 """
@@ -723,7 +723,7 @@ class LeviCivitaConnection(AffineConnection):
 
             sage: M = DiffManifold(4, 'M')
             sage: c_BL.<t,r,th,ph> = M.chart(r't r:(0,+oo) th:(0,pi):\theta ph:(0,2*pi):\phi') # Schwarzschild-Droste coordinates
-            sage: g = M.lorentz_metric('g')
+            sage: g = M.lorentzian_metric('g')
             sage: m = var('m')  # mass in Schwarzschild metric
             sage: g[0,0], g[1,1] = -(1-2*m/r), 1/(1-2*m/r)
             sage: g[2,2], g[3,3] = r^2, (r*sin(th))^2

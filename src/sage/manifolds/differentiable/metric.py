@@ -14,8 +14,8 @@ REFERENCES:
 
 - S. Kobayashi & K. Nomizu : *Foundations of Differential Geometry*, vol. 1,
   Interscience Publishers (New York) (1963)
-- J.M. Lee : *Introduction to Smooth Manifolds*, 2nd ed., Springer (New York)
-  (2013)
+- J.M. Lee : *Riemannian Manifolds*, Springer (New York) (1997);
+  :doi:`10.1007/b98852`
 - B O'Neill : *Semi-Riemannian Geometry*, Academic Press (San Diego) (1983)
 
 """
@@ -1565,7 +1565,7 @@ class PseudoRiemannianMetric(TensorField):
 
             sage: M = DiffManifold(4, 'M')
             sage: X.<t,x,y,z> = M.chart()
-            sage: g = M.lorentz_metric('g')
+            sage: g = M.lorentzian_metric('g')
             sage: g[0,0], g[1,1], g[2,2], g[3,3] = -1, 1, 1, 1
             sage: g.display()  # Minkowski metric
             g = -dt*dt + dx*dx + dy*dy + dz*dz
@@ -1913,7 +1913,7 @@ class PseudoRiemannianMetricParal(PseudoRiemannianMetric, TensorFieldParal):
 
             sage: M = DiffManifold(2, 'M')
             sage: X.<x,y> = M.chart()
-            sage: g = M.lorentz_metric('g')
+            sage: g = M.lorentzian_metric('g')
             sage: g[0,0], g[1,1] = -1, 1
             sage: U = M.open_subset('U', coord_def={X: y>0})
             sage: gU = g.restrict(U); gU

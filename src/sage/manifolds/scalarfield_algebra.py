@@ -86,7 +86,8 @@ class ScalarFieldAlgebra(UniqueRepresentation, Parent):
          topological manifold M
 
     `C^0(M)` and `C^0(W)` belong to the category of commutative
-    algebras over `\RR` (represented here by Sage's Symbolic Ring)::
+    algebras over `\RR` (represented here by Sage's
+    :class:`~sage.symbolic.ring.SymbolicRing`)::
 
         sage: CM.category()
         Category of commutative algebras over Symbolic Ring
@@ -233,9 +234,14 @@ class ScalarFieldAlgebra(UniqueRepresentation, Parent):
         (x, y) |--> 2*arctan(x^2 + y^2)
         (u, v) |--> pi - 2*arctan(u^2 + v^2)
 
-    Other coercions are those from the Symbolic Ring, leading to constant
-    scalar fields (if the symbolic expression does not involve any chart
-    coordinate)::
+    Another coercion is that from the Symbolic Ring, the parent of all
+    symbolic expressions (cf. :class:`~sage.symbolic.ring.SymbolicRing`).
+    Since the Symbolic Ring is the base ring for the algebra ``CM``, the
+    coercion of a symbolic expression ``s`` is performed by the operation
+    ``s*CM.one()``, which invokes the reflected multiplication operator
+    :meth:`sage.manifolds.scalarfield.ScalarField._rmul_`. If the symbolic
+    expression does not involve any chart coordinate, the outcome is a
+    constant scalar field::
 
         sage: h = CM(pi*sqrt(2)) ; h
         Scalar field on the 2-dimensional topological manifold M
@@ -243,11 +249,34 @@ class ScalarFieldAlgebra(UniqueRepresentation, Parent):
         M --> R
         on U: (x, y) |--> sqrt(2)*pi
         on V: (u, v) |--> sqrt(2)*pi
+        sage: a = var('a')
+        sage: h = CM(a); h.display()
+        M --> R
+        on U: (x, y) |--> a
+        on V: (u, v) |--> a
 
-    TESTS OF THE ALGEBRA LAWS:
+    If the symbolic expression involves some coordinate of one of the
+    manifold's charts, the outcome is initialized only on the chart domain::
+
+        sage: h = CM(a+x); h.display()
+        M --> R
+        on U: (x, y) |--> a + x
+        sage: h = CM(a+u); h.display()
+        M --> R
+        on V: (u, v) |--> a + u
+
+    If the symbolic expression involves coordinates of different charts,
+    the scalar field is created as a Python object, but is not initialized,
+    in order to avoid any ambiguity::
+
+        sage: h = CM(x+u); h.display()
+        M --> R
+
+    .. RUBRIC:: TESTS OF THE ALGEBRA LAWS:
 
     Ring laws::
 
+        sage: h = CM(pi*sqrt(2))
         sage: s = f + h ; s
         Scalar field on the 2-dimensional topological manifold M
         sage: s.display()

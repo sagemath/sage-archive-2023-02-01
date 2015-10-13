@@ -13,8 +13,8 @@ REFERENCES:
 
 - S. Kobayashi & K. Nomizu : *Foundations of Differential Geometry*, vol. 1,
   Interscience Publishers (New York) (1963)
-- J.M. Lee : *Introduction to Smooth Manifolds*, 2nd ed., Springer (New York)
-  (2013)
+- J.M. Lee : *Riemannian Manifolds*, Springer (New York) (1997);
+  :doi:`10.1007/b98852`
 - B O'Neill : *Semi-Riemannian Geometry*, Academic Press (San Diego) (1983)
 
 """

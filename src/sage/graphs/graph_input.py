@@ -398,7 +398,7 @@ def from_dict_of_dicts(G, M, loops=False, multiedges=False, weighted=False, conv
     INPUT:
 
     - ``G`` -- a graph
-x
+
     - ``M`` -- a dictionary of dictionaries.
 
     - ``loops``, ``multiedges``, ``weighted`` (booleans) -- whether to consider

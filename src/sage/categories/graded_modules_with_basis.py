@@ -10,6 +10,7 @@ Graded modules with basis
 #******************************************************************************
 
 from sage.categories.graded_modules import GradedModulesCategory
+from sage.categories.category_with_axiom import CategoryWithAxiom_over_base_ring
 
 class GradedModulesWithBasis(GradedModulesCategory):
     """
@@ -41,7 +42,7 @@ class GradedModulesWithBasis(GradedModulesCategory):
 
         def basis(self, d=None):
             """
-            Returns the basis for (an homogeneous component of) this graded module
+            Return the basis for (an homogeneous component of) ``self``.
 
             INPUT:
 
@@ -63,14 +64,45 @@ class GradedModulesWithBasis(GradedModulesCategory):
                 sage: A.basis()
                 Lazy family (Term map from Partitions to An example of a graded module with basis: the free module on partitions over Integer Ring(i))_{i in Partitions}
             """
-            from sage.sets.family import Family
             if d is None:
+                from sage.sets.family import Family
                 return Family(self._indices, self.monomial)
             else:
-                return Family(self._indices.subset(size=d), self.monomial)
+                return self.graded_component_basis(d)
+
+        def graded_component_basis(self, d):
+            """
+            Return a basis for the ``d``-th graded component of ``self``.
+
+            EXAMPLES::
+
+                sage: A = GradedModulesWithBasis(ZZ).example()
+                sage: A.graded_component_basis(4)
+                Lazy family (Term map from Partitions to An example of a graded module with basis: the free module on partitions over Integer Ring(i))_{i in Partitions of the integer 4}
+            """
+            from sage.sets.family import Family
+            return Family(self._indices.subset(size=d), self.monomial)
+
+        def graded_component(self, d):
+            """
+            Return the ``d``-th graded component of ``self``.
+
+            EXAMPLES::
+
+                sage: A = GradedModulesWithBasis(ZZ).example()
+                sage: A.graded_component(4)
+                Degree 4 component of An example of a graded module with
+                 basis: the free module on partitions over Integer Ring
+            """
+            from sage.categories.modules_with_basis import ModulesWithBasis
+            category = ModulesWithBasis(self.category().base_ring())
+            M = self.submodule(self.graded_component_basis(d),
+                               category=category,
+                               already_echelonized=True)
+            M.rename("Degree {} component of {}".format(d, self))
+            return M
 
     class ElementMethods:
-
         def is_homogeneous(self):
             """
             Return whether this element is homogeneous.
@@ -191,3 +223,27 @@ class GradedModulesWithBasis(GradedModulesCategory):
             degree_on_basis = self.parent().degree_on_basis
             return self.parent().sum_of_terms((i, c) for (i, c) in self
                                               if degree_on_basis(i) < n)
+
+    class FiniteDimensional(CategoryWithAxiom_over_base_ring):
+        class ParentMethods:
+            def graded_component_basis(self, d):
+                """
+                Return a basis for the ``d``-th graded component of ``self``.
+
+                EXAMPLES::
+
+                    sage: cat = GradedModulesWithBasis(ZZ).FiniteDimensional()
+                    sage: C = CombinatorialFreeModule(ZZ, ['a', 'b'], category=cat)
+                    sage: C.degree_on_basis = lambda x: 1 if x == 'a' else 2
+                    sage: C.graded_component_basis(1)
+                    Finite family {'a': B['a']}
+                    sage: C.graded_component_basis(2)
+                    Finite family {'b': B['b']}
+                """
+                from sage.sets.family import Family
+                try:
+                    S = self._indices.subset(size=d)
+                except (AttributeError, ValueError, TypeError):
+                    S = [i for i in self._indices if self.degree_on_basis(i) == d]
+                return Family(S, self.monomial)
+

@@ -1350,7 +1350,7 @@ class GenericGrowthGroup(
         Normalizes the input in order to ensure a unique
         representation.
 
-        For more information see :class:`MonomialGrowthGroup`.
+        For more information see :class:`GenericGrowthGroup`.
 
         TESTS::
 

@@ -72,8 +72,11 @@ TESTS::
     sage: cm.common_parent(A, D)
     Growth Group QQ^x * x^QQ
     sage: E = GrowthGroup('ZZ^x * x^QQ')
+    sage: cm.record_exceptions()
     sage: cm.common_parent(A, E)
     Growth Group QQ^x * x^QQ
+    sage: for t in cm.exception_stack():
+    ....:     print t
 
 ::
 

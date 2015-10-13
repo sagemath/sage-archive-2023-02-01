@@ -201,6 +201,7 @@ class TopManifoldSubset(UniqueRepresentation, Parent):
                                  # (key: subset name)
         self._unions = {} # dict. of unions with other subsets (key: subset
                           # name)
+        self._open_covers = [] # list of open covers of self
         self._is_open = False  # a priori (may be redifined by subclasses)
 
     #### Methods required for any Parent in the category of sets:
@@ -373,6 +374,54 @@ class TopManifoldSubset(UniqueRepresentation, Parent):
 
         """
         return self._manifold
+
+    def open_covers(self):
+        r"""
+        Return the list of open covers of the current subset.
+
+        If the current subset, `A` say, is a subset of the manifold `M`, an
+        *open cover* of `A` is list (indexed set) `(U_i)_{i\in I}` of
+        open subsets of `M` such that
+
+        .. MATH::
+
+            A \subset \bigcup_{i \in I} U_i
+
+        If `A` is open, we ask that the above inclusion is actually an
+        identity:
+
+        .. MATH::
+
+            A = \bigcup_{i \in I} U_i
+
+        EXAMPLES::
+
+            sage: TopManifold._clear_cache_()  # for doctests only
+            sage: M = TopManifold(2, 'M')
+            sage: M.open_covers()
+            [[2-dimensional topological manifold M]]
+            sage: U = M.open_subset('U')
+            sage: U.open_covers()
+            [[Open subset U of the 2-dimensional topological manifold M]]
+            sage: A = U.open_subset('A')
+            sage: B = U.open_subset('B')
+            sage: U.declare_union(A,B)
+            sage: U.open_covers()
+            [[Open subset U of the 2-dimensional topological manifold M],
+             [Open subset A of the 2-dimensional topological manifold M,
+              Open subset B of the 2-dimensional topological manifold M]]
+            sage: V = M.open_subset('V')
+            sage: M.declare_union(U,V)
+            sage: M.open_covers()
+            [[2-dimensional topological manifold M],
+             [Open subset U of the 2-dimensional topological manifold M,
+              Open subset V of the 2-dimensional topological manifold M],
+             [Open subset A of the 2-dimensional topological manifold M,
+              Open subset B of the 2-dimensional topological manifold M,
+              Open subset V of the 2-dimensional topological manifold M]]
+
+        """
+        return self._open_covers
 
     def subsets(self):
         r"""
@@ -768,6 +817,14 @@ class TopManifoldSubset(UniqueRepresentation, Parent):
                 res._coord_changes.update(other._coord_changes)
             self._unions[other._name] = res
             other._unions[self._name] = res
+            # Open covers of the union:
+            for oc1 in self._open_covers:
+                for oc2 in other._open_covers:
+                    oc = oc1[:]
+                    for s in oc2:
+                        if s not in oc:
+                            oc.append(s)
+                res._open_covers.append(oc)
             return res
 
     def declare_union(self, dom1, dom2):
@@ -796,6 +853,11 @@ class TopManifoldSubset(UniqueRepresentation, Parent):
             2-dimensional topological manifold M
 
         """
+        if dom1 == dom2:
+            if dom1 != self:
+                raise ValueError("the union of two identical sets must be " +
+                                 "this set")
+            return
         if not dom1.is_subset(self):
             raise TypeError("the {} is not a subset of ".format(dom1) +
                             "the {}".format(self))
@@ -804,6 +866,13 @@ class TopManifoldSubset(UniqueRepresentation, Parent):
                             "the {}".format(self))
         dom1._unions[dom2._name] = self
         dom2._unions[dom1._name] = self
+        for oc1 in dom1._open_covers:
+            for oc2 in dom2._open_covers:
+                oc = oc1[:]
+                for s in oc2:
+                    if s not in oc:
+                        oc.append(s)
+            self._open_covers.append(oc)
 
     def is_subset(self, other):
         r"""

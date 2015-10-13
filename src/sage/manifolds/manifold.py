@@ -460,6 +460,7 @@ class TopManifold(TopManifoldSubset):
         TopManifoldSubset.__init__(self, ambient_manifold, name,
                                    latex_name=latex_name, category=category)
         self._is_open = True
+        self._open_covers = [[self]]  # list of open covers of self
         self._atlas = []  # list of charts defined on subsets of self
         self._top_charts = []  # list of charts defined on subsets of self
                         # that are not subcharts of charts on larger subsets
@@ -800,7 +801,6 @@ class TopManifold(TopManifoldSubset):
         while i < imax:
             yield i
             i += 1
-
 
     def index_generator(self, nb_indices):
         r"""

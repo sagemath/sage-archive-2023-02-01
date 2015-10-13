@@ -254,14 +254,14 @@ cdef class SymbolicRing(CommutativeRing):
         Polynomial ring element factorizations::
 
             sage: R.<x> = QQ[]
-            sage: SR(factor(x^2 - 1))
-            (x + 1)*(x - 1)
+            sage: SR(factor(5*x^2 - 5))
+            5*(x + 1)*(x - 1)
             sage: R.<x,y> = QQ[]
             sage: SR(factor(x^2 - y^2))
             (x + y)*(x - y)
             sage: R.<x,y,z> = QQ[]
             sage: SR(factor(x^2*y^3 + x^2*y^2*z - x*y^3 - x*y^2*z - 2*x*y*z - 2*x*z^2 + 2*y*z + 2*z^2))
-            -(x*y^2 - 2*z)*(x - 1)*(y + z)
+            (x*y^2 - 2*z)*(x - 1)*(y + z)
 
         """
         cdef GEx exp
@@ -299,7 +299,7 @@ cdef class SymbolicRing(CommutativeRing):
             GEx_construct_pyobject(exp, x)
         elif isinstance(x, Factorization):
             from sage.misc.all import prod
-            return prod([SR(p)**e for p,e in x], SR.one())
+            return prod([SR(p)**e for p,e in x], SR.one()) * x.unit()
         else:
             raise TypeError
 

@@ -12,5 +12,5 @@ The ``codes.encoders`` object may be used to access the encoders that Sage can b
         sage: from sage.coding.encoders_catalog import *
 """
 
-from sage.misc.lazy_import import lazy_import
-lazy_import('sage.coding.linear_code', 'LinearCodeGeneratorMatrixEncoder')
+from sage.misc.lazy_import import lazy_import as _lazy_import
+_lazy_import('sage.coding.linear_code', 'LinearCodeGeneratorMatrixEncoder')

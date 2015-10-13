@@ -46,7 +46,7 @@ class Encoder(SageObject):
       by memory reference: if you build the same encoder twice, they will be different. If you
       need something more clever, override ``__eq__`` and ``__ne__`` in your subclass.
 
-    - As :class:`Encoder` is not designed to be instanciated, it does not have any representation
+    - As :class:`Encoder` is not designed to be instantiated, it does not have any representation
       methods. You should implement ``_repr_`` and ``_latex_`` methods in the sublclass.
 
     REFERENCES:
@@ -99,7 +99,7 @@ class Encoder(SageObject):
 
         .. NOTE::
 
-            :meth:`encode` is a partial function over ``self``'s :meth:`message_space`.
+            :meth:`encode` might be a partial function over ``self``'s :meth:`message_space`.
             One should use the exception :class:`EncodingError` to catch attempts
             to encode words that are outside of the message space.
 

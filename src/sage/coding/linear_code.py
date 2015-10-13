@@ -740,7 +740,7 @@ class AbstractLinearCode(module.Module):
     .. WARNING::
 
         The default encoder should always have `F^{k}` as message space, with `k` the dimension
-        of the code and `F` its base ring.
+        of the code and `F` is the base ring of the code.
 
         A lot of methods of the abstract class rely on the knowledge of a generator matrix.
         It is thus strongly recommended to set an encoder with a generator matrix implemented
@@ -3741,4 +3741,4 @@ class LinearCodeGeneratorMatrixEncoder(Encoder):
             [1 1 0 1 0 0 1]
         """
         return self.code().generator_matrix()
-AbstractLinearCode._registered_encoders["GeneratorMatrix"] = LinearCodeGeneratorMatrixEncoder
+LinearCode._registered_encoders["GeneratorMatrix"] = LinearCodeGeneratorMatrixEncoder

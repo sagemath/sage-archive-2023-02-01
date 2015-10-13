@@ -187,10 +187,7 @@ class Encoder(SageObject):
             sage: E.unencode(c)
             ()
         """
-        C = self.code()
-        if C.ambient_space().dimension() == 0:
-            return vector(C.base_ring(), 0)
-        if nocheck == False and c not in C:
+        if nocheck == False and c not in self.code():
             raise EncodingError("Given word is not in the code")
         return self.unencode_nocheck(c)
 
@@ -266,7 +263,7 @@ class Encoder(SageObject):
             False
         """
         U, info_set = self._unencoder_matrix()
-        cc = vector( c[i] for i in info_set )
+        cc = vector(self.code().base_ring(), [c[i] for i in info_set])
         return cc * U
 
     def code(self):

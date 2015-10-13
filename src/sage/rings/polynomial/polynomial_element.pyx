@@ -41,7 +41,6 @@ TESTS::
 
 
 cdef is_FractionField, is_RealField, is_ComplexField
-cdef coerce_binop, generic_power, parent
 cdef ZZ, QQ, RR, CC, RDF, CDF
 
 import operator, copy, re
@@ -73,8 +72,10 @@ from sage.rings.real_double import is_RealDoubleField, RDF
 from sage.rings.complex_double import is_ComplexDoubleField, CDF
 from sage.rings.real_mpfi import is_RealIntervalField
 
-from sage.structure.element import RingElement, generic_power, parent
-from sage.structure.element cimport Element, RingElement, ModuleElement, MonoidElement
+from sage.structure.element import generic_power
+from sage.structure.element cimport parent_c as parent
+from sage.structure.element cimport (Element, RingElement,
+        ModuleElement, MonoidElement, coercion_model)
 
 from sage.rings.rational_field import QQ, is_RationalField
 from sage.rings.integer_ring import ZZ, is_IntegerRing
@@ -3235,7 +3236,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
         # calling the coercion model bin_op is much more accurate than using the
         # true division (which is bypassed by polynomials). But it does not work
         # in all cases!!
-        cm = sage.structure.element.get_coercion_model()
+        cm = coercion_model
         try:
             S = cm.bin_op(R.one(), ZZ.one(), operator.div).parent()
             Q = S.base_ring()
@@ -4510,7 +4511,6 @@ cdef class Polynomial(CommutativeAlgebraElement):
         # sylvester_matrix() in multi_polynomial.pyx.
 
         if self.parent() != right.parent():
-            coercion_model = sage.structure.element.get_coercion_model()
             a, b = coercion_model.canonical_coercion(self,right)
             variable = a.parent()(self.variables()[0])
             #We add the variable to cover the case that right is a multivariate

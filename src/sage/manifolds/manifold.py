@@ -298,7 +298,6 @@ from sage.categories.sets_cat import Sets
 #*# After #18175, this should become
 # from sage.categories.manifolds import Manifolds
 from sage.categories.homset import Hom
-from sage.misc.latex import latex
 from sage.manifolds.subset import TopManifoldSubset
 from sage.manifolds.scalarfield_algebra import ScalarFieldAlgebra
 
@@ -484,7 +483,7 @@ class TopManifold(TopManifoldSubset):
         TopManifoldSubset.__init__(self, ambient_manifold, name,
                                    latex_name=latex_name, category=category)
         self._is_open = True
-        self._open_covers = [[self]]
+        self._open_covers = [[self]]  # list of open covers of self
         self._atlas = []  # list of charts defined on subsets of self
         self._top_charts = []  # list of charts defined on subsets of self
                         # that are not subcharts of charts on larger subsets
@@ -834,7 +833,6 @@ class TopManifold(TopManifoldSubset):
             yield i
             i += 1
 
-
     def index_generator(self, nb_indices):
         r"""
         Generator of index series.
@@ -1058,7 +1056,6 @@ class TopManifold(TopManifoldSubset):
                             "been defined on the {}".format(self))
         return self._coord_changes[(chart1, chart2)]
 
-
     def coord_changes(self):
         r"""
         Return the changes of coordinates (transition maps) defined on
@@ -1108,7 +1105,6 @@ class TopManifold(TopManifoldSubset):
 
         """
         return self._coord_changes
-
 
     def is_manifestly_coordinate_domain(self):
         r"""

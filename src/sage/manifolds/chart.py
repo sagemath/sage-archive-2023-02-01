@@ -2681,7 +2681,7 @@ class CoordChange(SageObject):
         else:
             check = True
         self._inverse = self.__class__(self._chart2, self._chart1,
-                                    *transformations)
+                                       *transformations)
         if check:
             print "Check of the inverse coordinate transformation:"
             x1 = self._chart1._xx

@@ -476,6 +476,52 @@ cdef class ComplexIntervalFieldElement(sage.structure.element.FieldElement):
         mpfi_union(x.__im, self.__im, other_intv.__im)
         return x
 
+    def magnitude(self):
+        """
+        The largest absolute value of the elements of the interval.
+
+        OUTPUT: a real number with rounding mode ``RNDU``
+
+        EXAMPLES::
+
+            sage: CIF(RIF(-1,1), RIF(-1,1)).magnitude()
+            1.41421356237310
+            sage: CIF(RIF(1,2), RIF(3,4)).magnitude()
+            4.47213595499958
+            sage: parent(CIF(1).magnitude())
+            Real Field with 53 bits of precision and rounding RNDU
+        """
+        cdef real_mpfi.RealIntervalField_class RIF = self._parent._real_field()
+        cdef real_mpfr.RealNumber x = RIF.__upper_field._new()
+        cdef real_mpfr.RealNumber y = RIF.__upper_field._new()
+        mpfi_mag(x.value, self.__re)
+        mpfi_mag(y.value, self.__im)
+        mpfr_hypot(x.value, x.value, y.value, MPFR_RNDA)
+        return x
+
+    def mignitude(self):
+        """
+        The smallest absolute value of the elements of the interval.
+
+        OUTPUT: a real number with rounding mode ``RNDD``
+
+        EXAMPLES::
+
+            sage: CIF(RIF(-1,1), RIF(-1,1)).mignitude()
+            0.000000000000000
+            sage: CIF(RIF(1,2), RIF(3,4)).mignitude()
+            3.16227766016837
+            sage: parent(CIF(1).mignitude())
+            Real Field with 53 bits of precision and rounding RNDD
+        """
+        cdef real_mpfi.RealIntervalField_class RIF = self._parent._real_field()
+        cdef real_mpfr.RealNumber x = RIF.__lower_field._new()
+        cdef real_mpfr.RealNumber y = RIF.__lower_field._new()
+        mpfi_mig(x.value, self.__re)
+        mpfi_mig(y.value, self.__im)
+        mpfr_hypot(x.value, x.value, y.value, MPFR_RNDZ)
+        return x
+
     def center(self):
         """
         Returns the closest floating-point approximation to the center

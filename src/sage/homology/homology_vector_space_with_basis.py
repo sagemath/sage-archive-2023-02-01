@@ -384,7 +384,6 @@ class HomologyVectorSpaceWithBasis(CombinatorialFreeModule):
             """
             if not self.is_homogeneous():
                 raise ValueError("only defined for homogeneous elements")
-            deg = self.degree()
             return sum(c * self.parent()._to_cycle_on_basis(i) for i,c in self)
 
 class CohomologyRing(HomologyVectorSpaceWithBasis):
@@ -545,7 +544,7 @@ class CohomologyRing(HomologyVectorSpaceWithBasis):
                     gamma_coeff += coeff * left_cycle.eval(left) * right_cycle.eval(right)
             if gamma_coeff != base_ring.zero():
                 result[(deg_tot, gamma_index)] = gamma_coeff
-        return self._from_dict(result)
+        return self._from_dict(result, remove_zeros=False)
 
     class Element(HomologyVectorSpaceWithBasis.Element):
         def cup_product(self, other):
@@ -670,73 +669,88 @@ class CohomologyRing(HomologyVectorSpaceWithBasis):
             if i == 0:
                 # Sq^0 is the identity.
                 return self
-            j = self.degree()
-            m = j + i
-            if not P._graded_indices.get(m, []) or i > j:
-                return P.zero()
-            if i == j:
-                return self.cup_product(self)
-            n = j - i
-            # Now assemble the indices over which the sums take place.
-            # S(n) is defined to be floor((m+1)/2) + floor(n/2).
-            S_n = (m+1)//2 + n//2
-            if n == 0:
-                sums = [[S_n]]
-            else:
-                sums = [[i_n] + l for i_n in range(S_n, m+1)
-                        for l in sum_indices(n-1, i_n, S_n)]
-            # At this point, 'sums' is a list of lists of the form
-            # [i_n, i_{n-1}, ..., i_0]. (It is reversed from the
-            # obvious order because this is closer to the order in
-            # which the face maps will be applied.)  Now we sum over
-            # these, according to the formula in [G-DR99], Corollary 3.2.
-            result = {}
-            cycle = self.to_cycle()
-            n_chains = scomplex.n_chains(j, base_ring)
-            H = scomplex.homology_with_basis(base_ring)
-            for gamma_index in H._graded_indices.get(m, []):
-                gamma_coeff = base_ring.zero()
-                for cell, coeff in H._to_cycle_on_basis((m, gamma_index)):
-                    for indices in sums:
-                        indices = list(indices)
-                        left = cell
-                        right = cell
-                        # Since we are working with a simplicial complex, 'cell' is a simplex.
-                        if not m % 2:
-                            left_endpoint = m
-                            while indices:
-                                right_endpoint = indices[0] - 1
-                                for k in range(left_endpoint, indices.pop(0), -1):
-                                    left = left.face(k)
-                                try:
-                                    left_endpoint = indices[0] - 1
-                                    for k in range(right_endpoint, indices.pop(0), -1):
-                                        right = right.face(k)
-                                except IndexError:
-                                    pass
-                            for k in range(right_endpoint, -1, -1):
-                                right = right.face(k)
-                        else:
-                            right_endpoint = m
-                            while indices:
-                                left_endpoint = indices[0] - 1
-                                try:
-                                    for k in range(right_endpoint, indices.pop(0), -1):
-                                        right = right.face(k)
-                                    right_endpoint = indices[0] - 1
-                                except IndexError:
-                                    pass
-                                for k in range(left_endpoint, indices.pop(0), -1):
-                                    left = left.face(k)
-                            for k in range(right_endpoint, -1, -1):
-                                right = right.face(k)
 
-                        left = n_chains(left)
-                        right = n_chains(right)
-                        gamma_coeff += coeff * cycle.eval(left) * cycle.eval(right)
-                if gamma_coeff != base_ring.zero():
-                    result[(m, gamma_index)] = gamma_coeff
-            return P.sum_of_terms(result)
+            # Construct each graded component of ``self``
+            ret = P.zero()
+            H = scomplex.homology_with_basis(base_ring)
+            deg_comp = {}
+            for index,coeff in self:
+                d = deg_comp.get(index[0], {})
+                d[index] = coeff
+                deg_comp[index[0]] = d
+
+            # Do the square on each graded componenet of ``self``.
+            for j in deg_comp:
+                # Make it into an actual element
+                m = j + i
+                if not P._graded_indices.get(m, []) or i > j:
+                    continue
+                elt = P._from_dict(deg_comp[j], remove_zeros=False)
+                if i == j:
+                    ret += elt.cup_product(elt)
+                    continue
+
+                n = j - i
+                # Now assemble the indices over which the sums take place.
+                # S(n) is defined to be floor((m+1)/2) + floor(n/2).
+                S_n = (m+1) // 2 + n // 2
+                if n == 0:
+                    sums = [[S_n]]
+                else:
+                    sums = [[i_n] + l for i_n in range(S_n, m+1)
+                            for l in sum_indices(n-1, i_n, S_n)]
+                # At this point, 'sums' is a list of lists of the form
+                # [i_n, i_{n-1}, ..., i_0]. (It is reversed from the
+                # obvious order because this is closer to the order in
+                # which the face maps will be applied.)  Now we sum over
+                # these, according to the formula in [G-DR99], Corollary 3.2.
+                result = {}
+                cycle = elt.to_cycle()
+                n_chains = scomplex.n_chains(j, base_ring)
+                for gamma_index in H._graded_indices.get(m, []):
+                    gamma_coeff = base_ring.zero()
+                    for cell, coeff in H._to_cycle_on_basis((m, gamma_index)):
+                        for indices in sums:
+                            indices = list(indices)
+                            left = cell
+                            right = cell
+                            # Since we are working with a simplicial complex, 'cell' is a simplex.
+                            if not m % 2:
+                                left_endpoint = m
+                                while indices:
+                                    right_endpoint = indices[0] - 1
+                                    for k in range(left_endpoint, indices.pop(0), -1):
+                                        left = left.face(k)
+                                    try:
+                                        left_endpoint = indices[0] - 1
+                                        for k in range(right_endpoint, indices.pop(0), -1):
+                                            right = right.face(k)
+                                    except IndexError:
+                                        pass
+                                for k in range(right_endpoint, -1, -1):
+                                    right = right.face(k)
+                            else:
+                                right_endpoint = m
+                                while indices:
+                                    left_endpoint = indices[0] - 1
+                                    try:
+                                        for k in range(right_endpoint, indices.pop(0), -1):
+                                            right = right.face(k)
+                                        right_endpoint = indices[0] - 1
+                                    except IndexError:
+                                        pass
+                                    for k in range(left_endpoint, indices.pop(0), -1):
+                                        left = left.face(k)
+                                for k in range(right_endpoint, -1, -1):
+                                    right = right.face(k)
+
+                            left = n_chains(left)
+                            right = n_chains(right)
+                            gamma_coeff += coeff * cycle.eval(left) * cycle.eval(right)
+                    if gamma_coeff != base_ring.zero():
+                        result[(m, gamma_index)] = gamma_coeff
+                ret += P._from_dict(result, remove_zeros=False)
+            return ret
 
 def sum_indices(k, i_k_plus_one, S_k_plus_one):
     r"""

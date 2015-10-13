@@ -435,6 +435,7 @@ x
                     raise ValueError("Dict of dicts for multigraph must be in the format {v : {u : list}}")
     if multiedges is None and len(M) > 0:
         multiedges = True
+
     G.allow_loops(loops, check=False)
     G.allow_multiple_edges(multiedges, check=False)
     verts = set().union(M.keys(), *M.values())

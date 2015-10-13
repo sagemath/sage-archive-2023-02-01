@@ -1912,7 +1912,8 @@ class GenericGrowthGroup(
             sage: GrowthGroup('x^QQ').has_coerce_map_from(GrowthGroup('QQ^x'))  # indirect doctest
             False
         """
-        if isinstance(S, type(self)) and self._var_ == S._var_:
+        from misc import underlying_class
+        if isinstance(S, underlying_class(self)) and self._var_ == S._var_:
             if self.base().has_coerce_map_from(S.base()):
                 return True
 

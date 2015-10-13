@@ -2446,21 +2446,27 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
         """
         The largest absolute value of the elements of the interval.
 
+        OUTPUT: a real number with rounding mode ``RNDU``
+
         EXAMPLES::
 
             sage: RIF(-2, 1).magnitude()
             2.00000000000000
             sage: RIF(-1, 2).magnitude()
             2.00000000000000
+            sage: parent(RIF(1).magnitude())
+            Real Field with 53 bits of precision and rounding RNDU
         """
         cdef RealNumber x
-        x = (<RealIntervalField_class>self._parent).__middle_field._new()
+        x = (<RealIntervalField_class>self._parent).__upper_field._new()
         mpfi_mag(x.value, self.value)
         return x
 
     def mignitude(self):
         """
         The smallest absolute value of the elements of the interval.
+
+        OUTPUT: a real number with rounding mode ``RNDD``
 
         EXAMPLES::
 
@@ -2470,9 +2476,11 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
             1.00000000000000
             sage: RIF(3, 4).mignitude()
             3.00000000000000
+            sage: parent(RIF(1).mignitude())
+            Real Field with 53 bits of precision and rounding RNDD
         """
         cdef RealNumber x
-        x = (<RealIntervalField_class>self._parent).__middle_field._new()
+        x = (<RealIntervalField_class>self._parent).__lower_field._new()
         mpfi_mig(x.value, self.value)
         return x
 

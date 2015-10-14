@@ -641,8 +641,11 @@ cdef class LaurentSeries(AlgebraElement):
         """
         if prec == infinity or prec >= self.prec():
             return self
+        P = self._parent
+        if not self:
+            return LaurentSeries(P, P.power_series_ring()(0, prec=0), prec)
         u = self.__u.add_bigoh(prec - self.__n)
-        return LaurentSeries(self._parent, u, self.__n)
+        return LaurentSeries(P, u, self.__n)
 
     def degree(self):
         """

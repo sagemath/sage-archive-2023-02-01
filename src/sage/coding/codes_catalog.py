@@ -22,7 +22,7 @@ from code_constructions import (BCHCode, BinaryGolayCode, CyclicCodeFromGenerati
                                 CyclicCode, CyclicCodeFromCheckPolynomial, DuadicCodeEvenPair,
                                 DuadicCodeOddPair, ExtendedBinaryGolayCode,
                                 ExtendedQuadraticResidueCode, ExtendedTernaryGolayCode,
-                                HammingCode, LinearCodeFromCheckMatrix,
+                                HammingCode, LinearCode, LinearCodeFromCheckMatrix,
                                 QuadraticResidueCode, QuadraticResidueCodeEvenPair,
                                 QuadraticResidueCodeOddPair, RandomLinearCode,
                                 ReedSolomonCode, TernaryGolayCode,
@@ -30,6 +30,7 @@ from code_constructions import (BCHCode, BinaryGolayCode, CyclicCodeFromGenerati
 
 from guava import BinaryReedMullerCode, QuasiQuadraticResidueCode, RandomLinearCodeGuava
 
-from sage.misc.rest_index_of_methods import gen_rest_table_index
-import sys
-__doc__ = __doc__.format(INDEX_OF_FUNCTIONS=gen_rest_table_index(sys.modules[__name__], only_local_functions=False))
+import encoders_catalog as encoders
+from sage.misc.rest_index_of_methods import gen_rest_table_index as _gen_rest_table_index
+import sys as _sys
+__doc__ = __doc__.format(INDEX_OF_FUNCTIONS=_gen_rest_table_index(_sys.modules[__name__], only_local_functions=False))

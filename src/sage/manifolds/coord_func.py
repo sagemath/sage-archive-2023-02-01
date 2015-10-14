@@ -502,7 +502,7 @@ class CoordFunction(SageObject):
 
     def __call__(self, *coords, **options):
         r"""
-        Computes the value of the function at specified coordinates.
+        Compute the value of the function at specified coordinates.
 
         INPUT:
 
@@ -1658,7 +1658,6 @@ class MultiCoordFunction(SageObject):
             [[True, True], [True, True], [True, True]]
 
         """
-        from sage.matrix.constructor import matrix
         if self._jacob is None:
             xx = self._chart[:]  # coordinates x^j
             self._jacob = [[ self._functions[i].diff(xx[j])
@@ -1760,4 +1759,3 @@ class MultiCoordFunction(SageObject):
             self.jacobian() # forces the computation of self._jacob
             self._jacob_det = simple_determinant(self._jacob)
         return self._jacob_det
-

@@ -11,7 +11,7 @@ More documentation (in particular example worksheets) can be found
 `here <http://sagemanifolds.obspm.fr/documentation.html>`_.
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 3
 
    manifold
 
@@ -20,5 +20,3 @@ More documentation (in particular example worksheets) can be found
    sage/manifolds/utilities
 
 .. include:: ../footer.txt
-
-

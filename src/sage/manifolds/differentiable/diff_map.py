@@ -1,14 +1,13 @@
 r"""
 Differentiable maps between differentiable manifolds
 
-The class :class:`DiffMap` implements differentiable maps from an open
-subset `U` of a differentiable manifold `M` to some differentiable
-manifold `N` over the same topological field `K` as `M` (in most
-applications, `K = \RR` or `K = \CC`):
+The class :class:`DiffMap` implements differentiable maps from a differentiable
+manifold `M` to a differentiable manifold `N` over the same topological field
+`K` as `M` (in most applications, `K = \RR` or `K = \CC`):
 
 .. MATH::
 
-    \Phi: U\subset M \longrightarrow N
+    \Phi: M \longrightarrow N
 
 
 AUTHORS:
@@ -17,10 +16,10 @@ AUTHORS:
 
 REFERENCES:
 
-.. [1] Chap. 1 of S. Kobayashi & K. Nomizu : *Foundations of Differential Geometry*,
-   vol. 1, Interscience Publishers (New York) (1963)
-.. [2] Chaps. 2 and 3 of J.M. Lee : *Introduction to Smooth Manifolds*, 2nd ed.,
-   Springer (New York) (2013)
+.. [1] Chap. 1 of S. Kobayashi & K. Nomizu : *Foundations of Differential
+   Geometry*, vol. 1, Interscience Publishers (New York) (1963)
+.. [2] Chaps. 2 and 3 of J.M. Lee : *Introduction to Smooth Manifolds*,
+   2nd ed., Springer (New York) (2013)
 
 """
 
@@ -44,16 +43,15 @@ class DiffMap(ContinuousMap):
 
     .. MATH::
 
-        \Phi: U\subset M \longrightarrow V\subset N
+        \Phi: M \longrightarrow  N
 
     where `M` and `N` are differentiable manifolds over the same topological
-    field `K` (in most applications, `K = \RR` or `K = \CC`), `U` is an open
-    subset of `M` and `V` is an open subset of `N`.
+    field `K` (in most applications, `K = \RR` or `K = \CC`).
 
     Differentiable maps are the *morphisms* of the *category* of
-    differentiable manifolds. The set of all differentiable maps from
-    `U` to `V` is therefore the homset between `U` and `V` and is denoted
-    by `\mathrm{Hom}(U,V)`.
+    differentiable manifolds. The set of all differentiable maps from `M` to
+    `N` is therefore the homset between `M` and `N`, which is denoted by
+    `\mathrm{Hom}(M,N)`.
 
     The class :class:`DiffMap` is a Sage *element* class, whose *parent*
     class is
@@ -64,13 +62,13 @@ class DiffMap(ContinuousMap):
 
     INPUT:
 
-    - ``parent`` -- homset `\mathrm{Hom}(U,V)` to which the differentiable
+    - ``parent`` -- homset `\mathrm{Hom}(M,N)` to which the differentiable
       map belongs
     - ``coord_functions`` -- (default: ``None``) if not ``None``, must be
       a dictionary of the coordinate expressions (as lists (or tuples) of the
       coordinates of the image expressed in terms of the coordinates of
       the considered point) with the pairs of charts (chart1, chart2)
-      as keys (chart1 being a chart on `U` and chart2 a chart on `V`).
+      as keys (chart1 being a chart on `M` and chart2 a chart on `N`).
       If the dimension of codomain is 1, a single coordinate
       expression can be passed instead of a tuple with a single element
     - ``name`` -- (default: ``None``) name given to the differentiable map
@@ -82,7 +80,7 @@ class DiffMap(ContinuousMap):
       ``True``, then the manifolds `M` and `N` must have the same dimension.
     - ``is_identity`` -- (default: ``False``) determines whether the
       constructed object is the identity map; if set to ``True``,
-      then `V` must be `U` and the entry ``coord_functions`` is not used.
+      then `N` must be `M` and the entry ``coord_functions`` is not used.
 
     .. NOTE::
 
@@ -102,19 +100,19 @@ class DiffMap(ContinuousMap):
         sage: V = M.open_subset('V') # complement of the South pole
         sage: c_uv.<u,v> = V.chart() # stereographic coordinates from the South pole
         sage: M.declare_union(U,V)   # S^2 is the union of U and V
-        sage: xy_to_uv = c_xy.transition_map(c_uv, (x/(x^2+y^2), y/(x^2+y^2)), \
-                                             intersection_name='W', restrictions1= x^2+y^2!=0, \
-                                             restrictions2= u^2+v^2!=0)
+        sage: xy_to_uv = c_xy.transition_map(c_uv, (x/(x^2+y^2), y/(x^2+y^2)),
+        ....:                 intersection_name='W', restrictions1= x^2+y^2!=0,
+        ....:                 restrictions2= u^2+v^2!=0)
         sage: uv_to_xy = xy_to_uv.inverse()
         sage: N = DiffManifold(3, 'R^3', r'\RR^3')  # R^3
         sage: c_cart.<X,Y,Z> = N.chart()  # Cartesian coordinates on R^3
-        sage: Phi = M.diff_map(N, \
-        ....: {(c_xy, c_cart): [2*x/(1+x^2+y^2), 2*y/(1+x^2+y^2), (x^2+y^2-1)/(1+x^2+y^2)],  \
-        ....:  (c_uv, c_cart): [2*u/(1+u^2+v^2), 2*v/(1+u^2+v^2), (1-u^2-v^2)/(1+u^2+v^2)]}, \
+        sage: Phi = M.diff_map(N,
+        ....: {(c_xy, c_cart): [2*x/(1+x^2+y^2), 2*y/(1+x^2+y^2), (x^2+y^2-1)/(1+x^2+y^2)],
+        ....:  (c_uv, c_cart): [2*u/(1+u^2+v^2), 2*v/(1+u^2+v^2), (1-u^2-v^2)/(1+u^2+v^2)]},
         ....: name='Phi', latex_name=r'\Phi')
         sage: Phi
-        Differentiable map Phi from the 2-dimensional differentiable manifold S^2 to
-         the 3-dimensional differentiable manifold R^3
+        Differentiable map Phi from the 2-dimensional differentiable manifold
+         S^2 to the 3-dimensional differentiable manifold R^3
         sage: Phi.parent()
         Set of Morphisms from 2-dimensional differentiable manifold S^2 to
          3-dimensional differentiable manifold R^3 in Category of sets
@@ -124,8 +122,10 @@ class DiffMap(ContinuousMap):
         <class 'sage.manifolds.differentiable.diff_map.DiffManifoldHomset_with_category.element_class'>
         sage: Phi.display()
         Phi: S^2 --> R^3
-        on U: (x, y) |--> (X, Y, Z) = (2*x/(x^2 + y^2 + 1), 2*y/(x^2 + y^2 + 1), (x^2 + y^2 - 1)/(x^2 + y^2 + 1))
-        on V: (u, v) |--> (X, Y, Z) = (2*u/(u^2 + v^2 + 1), 2*v/(u^2 + v^2 + 1), -(u^2 + v^2 - 1)/(u^2 + v^2 + 1))
+        on U: (x, y) |--> (X, Y, Z) = (2*x/(x^2 + y^2 + 1), 2*y/(x^2 + y^2 + 1),
+         (x^2 + y^2 - 1)/(x^2 + y^2 + 1))
+        on V: (u, v) |--> (X, Y, Z) = (2*u/(u^2 + v^2 + 1), 2*v/(u^2 + v^2 + 1),
+         -(u^2 + v^2 - 1)/(u^2 + v^2 + 1))
 
     It is possible to create the map via the method
     :meth:`~sage.manifolds.differentiable.manifold.DiffManifold.diff_map`
@@ -134,13 +134,17 @@ class DiffMap(ContinuousMap):
     arguments ``chart1`` and ``chart2`` have to be provided if the charts
     differ from the default ones on the domain and/or the codomain::
 
-        sage: Phi1 = M.diff_map(N, [2*x/(1+x^2+y^2), 2*y/(1+x^2+y^2), (x^2+y^2-1)/(1+x^2+y^2)],
-        ....:                   chart1=c_xy, chart2=c_cart, name='Phi', latex_name=r'\Phi')
+        sage: Phi1 = M.diff_map(N, [2*x/(1+x^2+y^2), 2*y/(1+x^2+y^2),
+        ....:                       (x^2+y^2-1)/(1+x^2+y^2)],
+        ....:                   chart1=c_xy, chart2=c_cart, name='Phi',
+        ....:                   latex_name=r'\Phi')
 
-    Since c_xy and c_cart are the default charts on respectively M and N, they
-    can be omitted, so that the above declaration is equivalent to::
+    Since ``c_xy`` and ``c_cart`` are the default charts on respectively ``M``
+    and ``N``, they can be omitted, so that the above declaration is equivalent
+    to::
 
-        sage: Phi1 = M.diff_map(N, [2*x/(1+x^2+y^2), 2*y/(1+x^2+y^2), (x^2+y^2-1)/(1+x^2+y^2)],
+        sage: Phi1 = M.diff_map(N, [2*x/(1+x^2+y^2), 2*y/(1+x^2+y^2),
+        ....:                       (x^2+y^2-1)/(1+x^2+y^2)],
         ....:                   name='Phi', latex_name=r'\Phi')
 
     With such a declaration, the differentiable map is only partially defined
@@ -163,7 +167,7 @@ class DiffMap(ContinuousMap):
         on V: (u, v) |--> (X, Y, Z) = (2*u/(u^2 + v^2 + 1), 2*v/(u^2 + v^2 + 1),
          -(u^2 + v^2 - 1)/(u^2 + v^2 + 1))
 
-    At this stage, Phi1 and Phi are fully equivalent::
+    At this stage, ``Phi1`` and ``Phi`` are fully equivalent::
 
         sage: Phi1 == Phi
         True
@@ -175,12 +179,12 @@ class DiffMap(ContinuousMap):
 
     The map acts on points::
 
-        sage: np = M.point((0,0), chart=c_uv)  # the North pole
+        sage: np = M.point((0,0), chart=c_uv, name='N')  # the North pole
         sage: Phi(np)
-        Point on the 3-dimensional differentiable manifold R^3
+        Point Phi(N) on the 3-dimensional differentiable manifold R^3
         sage: Phi(np).coord() # Cartesian coordinates
         (0, 0, 1)
-        sage: sp = M.point((0,0), chart=c_xy)  # the South pole
+        sage: sp = M.point((0,0), chart=c_xy, name='S')  # the South pole
         sage: Phi(sp).coord() # Cartesian coordinates
         (0, 0, -1)
 
@@ -192,7 +196,7 @@ class DiffMap(ContinuousMap):
         sage: P = DiffManifold(2, 'R^2', r'\RR^2') # R^2 (equatorial plane)
         sage: cP.<xP, yP> = P.chart()
         sage: Psi = N.diff_map(P, (X/(1-Z), Y/(1-Z)), name='Psi',
-        ....:                      latex_name=r'\Psi')
+        ....:                  latex_name=r'\Psi')
         sage: Psi
         Differentiable map Psi from the 3-dimensional differentiable manifold
          R^3 to the 2-dimensional differentiable manifold R^2
@@ -227,7 +231,7 @@ class DiffMap(ContinuousMap):
 
         sage: N = DiffManifold(1, 'N')
         sage: c_N = N.chart('X')
-        sage: Phi = M.diff_map(N, {(c_xy, c_N): x^2+y^2, \
+        sage: Phi = M.diff_map(N, {(c_xy, c_N): x^2+y^2,
         ....: (c_uv, c_N): 1/(u^2+v^2)})  # not ...[1/(u^2+v^2)] or (1/(u^2+v^2),)
 
     An example of differentiable map `\RR \rightarrow \RR^2`::
@@ -345,8 +349,8 @@ class DiffMap(ContinuousMap):
         True
 
     """
-    def __init__(self, parent, coord_functions=None, name=None, latex_name=None,
-                 is_isomorphism=False, is_identity=False):
+    def __init__(self, parent, coord_functions=None, name=None,
+                 latex_name=None, is_isomorphism=False, is_identity=False):
         r"""
         Construct a differentiable map.
 

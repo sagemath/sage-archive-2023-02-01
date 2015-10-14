@@ -1,3 +1,4 @@
 from manifold import TopManifold
 from differentiable.manifold import DiffManifold
-from utilities import nice_derivatives, omit_function_args
+from utilities import nice_derivatives, omit_function_args, set_axes_labels
+from utilities import Manifold  # deprecated

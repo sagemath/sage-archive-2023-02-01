@@ -3,13 +3,13 @@ Differentiable scalar fields
 
 Given a differentiable manifold `M` of class `C^k` over a topological field `K`
 (in most applications, `K = \RR` or `K = \CC`), a *differentiable scalar field*
-on `M` is a map of class `C^k`
+on `M` is a map
 
 .. MATH::
 
-    f: U\subset M \longrightarrow K
+    f: M \longrightarrow K
 
-where `U` is an open subset of `M`.
+of class `C^k`.
 
 Differentiable scalar fields are implemented by the class
 :class:`DiffScalarField`.
@@ -45,12 +45,12 @@ class DiffScalarField(ScalarField):
     Differentiable scalar field on a differentiable manifold.
 
     Given a differentiable manifold `M` of class `C^k` over a topological field
-    `K` (in most applications, `K = \RR` or `K = \CC`), and an open subset `U`
-    of `M`, a *differentiable scalar field* defined on `U` a map
+    `K` (in most applications, `K = \RR` or `K = \CC`), a *differentiable
+    scalar field* defined on `M` is a map
 
     .. MATH::
 
-        f: U\subset M \longrightarrow K
+        f: M \longrightarrow K
 
     that is `k`-times continuously differentiable.
 
@@ -58,12 +58,12 @@ class DiffScalarField(ScalarField):
     *parent* class is
     :class:`~sage.manifolds.differentiable.scalarfield_algebra.DiffScalarFieldAlgebra`.
     It inherits from the class :class:`~sage.manifolds.scalarfield.ScalarField`
-    devoted to generic continuous scalar fields on a topological manifold.
+    devoted to generic continuous scalar fields on topological manifolds.
 
     INPUT:
 
-    - ``domain`` -- the manifold open subset `U` on which the scalar field is
-      defined (must be an instance of class
+    - ``domain`` -- the differentiable manifold `M` on which the scalar field
+      is defined (must be an instance of class
       :class:`~sage.manifolds.differentiable.manifold.DiffManifold`)
     - ``coord_expression`` -- (default: ``None``) coordinate expression(s) of
       the scalar field; this can be either
@@ -118,18 +118,21 @@ class DiffScalarField(ScalarField):
     can be passed instead of the dictionary over the charts::
 
         sage: g = U.scalar_field(x*y, chart=c_xy, name='g') ; g
-        Scalar field g on the Open subset U of the 2-dimensional differentiable manifold M
+        Scalar field g on the Open subset U of the 2-dimensional differentiable
+         manifold M
 
     The above is indeed equivalent to::
 
         sage: g = U.scalar_field({c_xy: x*y}, name='g') ; g
-        Scalar field g on the Open subset U of the 2-dimensional differentiable manifold M
+        Scalar field g on the Open subset U of the 2-dimensional differentiable
+         manifold M
 
     Since ``c_xy`` is the default chart of ``U``, the argument ``chart`` can
     be skipped::
 
         sage: g = U.scalar_field(x*y, name='g') ; g
-        Scalar field g on the Open subset U of the 2-dimensional differentiable manifold M
+        Scalar field g on the Open subset U of the 2-dimensional differentiable
+         manifold M
 
     The scalar field `g` is defined on `U` and has an expression in terms of
     the coordinates `(u,v)` on `W=U\cap V`::
@@ -183,7 +186,8 @@ class DiffScalarField(ScalarField):
     coordinates::
 
         sage: h = U.scalar_field(function('H', x, y), name='h') ; h
-        Scalar field h on the Open subset U of the 2-dimensional differentiable manifold M
+        Scalar field h on the Open subset U of the 2-dimensional differentiable
+         manifold M
         sage: h.display()
         h: U --> R
            (x, y) |--> H(x, y)
@@ -427,13 +431,15 @@ class DiffScalarField(ScalarField):
         sage: g.domain()
         Open subset U of the 2-dimensional differentiable manifold M
         sage: s = f + g ; s
-        Scalar field on the Open subset U of the 2-dimensional differentiable manifold M
+        Scalar field on the Open subset U of the 2-dimensional differentiable
+         manifold M
         sage: s.domain()
         Open subset U of the 2-dimensional differentiable manifold M
         sage: s.display()
         U --> R
         (x, y) |--> (x*y^3 + (x^3 + x)*y + 1)/(x^2 + y^2 + 1)
-        on W: (u, v) |--> (u^6 + 3*u^4*v^2 + 3*u^2*v^4 + v^6 + u*v^3 + (u^3 + u)*v)/(u^6 + v^6 + (3*u^2 + 1)*v^4 + u^4 + (3*u^4 + 2*u^2)*v^2)
+        on W: (u, v) |--> (u^6 + 3*u^4*v^2 + 3*u^2*v^4 + v^6 + u*v^3
+         + (u^3 + u)*v)/(u^6 + v^6 + (3*u^2 + 1)*v^4 + u^4 + (3*u^4 + 2*u^2)*v^2)
 
     The operation actually performed is `f|_U + g`::
 
@@ -443,7 +449,7 @@ class DiffScalarField(ScalarField):
     In Sage framework, the addition of `f` and `g` is permitted because
     there is a *coercion* of the parent of `f`, namely `C^k(M)`, to
     the parent of `g`, namely `C^k(U)` (see
-    :class:`~sage.manifolds.scalarfield_algebra.ScalarFieldAlgebra`)::
+    :class:`~sage.manifolds.differentiable.scalarfield_algebra.DiffScalarFieldAlgebra`)::
 
         sage: CM = M.scalar_field_algebra()
         sage: CU = U.scalar_field_algebra()
@@ -509,7 +515,8 @@ class DiffScalarField(ScalarField):
         on U: (x, y) |--> 1/(x^4 + y^4 + 2*(x^2 + 1)*y^2 + 2*x^2 + 1)
         on V: (u, v) |--> (u^4 + 2*u^2*v^2 + v^4)/(u^4 + v^4 + 2*(u^2 + 1)*v^2 + 2*u^2 + 1)
         sage: s = g*h ; s
-        Scalar field g*h on the Open subset U of the 2-dimensional differentiable manifold M
+        Scalar field g*h on the Open subset U of the 2-dimensional
+         differentiable manifold M
         sage: s.display()
         g*h: U --> R
            (x, y) |--> x*y*H(x, y)
@@ -524,7 +531,8 @@ class DiffScalarField(ScalarField):
         (2-dimensional differentiable manifold M,
          Open subset U of the 2-dimensional differentiable manifold M)
         sage: s = f*g ; s
-        Scalar field on the Open subset U of the 2-dimensional differentiable manifold M
+        Scalar field on the Open subset U of the 2-dimensional differentiable
+         manifold M
         sage: s.display()
         U --> R
         (x, y) |--> x*y/(x^2 + y^2 + 1)
@@ -541,13 +549,15 @@ class DiffScalarField(ScalarField):
         on U: (x, y) |--> 1/(a*x^2 + a*y^2 + a)
         on V: (u, v) |--> (u^2 + v^2)/(a*u^2 + a*v^2 + a)
         sage: s = g/h ; s
-        Scalar field g/h on the Open subset U of the 2-dimensional differentiable manifold M
+        Scalar field g/h on the Open subset U of the 2-dimensional
+         differentiable manifold M
         sage: s.display()
         g/h: U --> R
            (x, y) |--> x*y/H(x, y)
         on W: (u, v) |--> u*v/((u^4 + 2*u^2*v^2 + v^4)*H(u/(u^2 + v^2), v/(u^2 + v^2)))
         sage: s = f/g ; s
-        Scalar field on the Open subset U of the 2-dimensional differentiable manifold M
+        Scalar field on the Open subset U of the 2-dimensional differentiable
+         manifold M
         sage: s.display()
         U --> R
         (x, y) |--> 1/(x*y^3 + (x^3 + x)*y)
@@ -559,7 +569,8 @@ class DiffScalarField(ScalarField):
     arithmetics with symbolic expressions involving the chart coordinates::
 
         sage: s = g + x^2 - y ; s
-        Scalar field on the Open subset U of the 2-dimensional differentiable manifold M
+        Scalar field on the Open subset U of the 2-dimensional differentiable
+         manifold M
         sage: s.display()
         U --> R
         (x, y) |--> x^2 + (x - 1)*y
@@ -568,7 +579,8 @@ class DiffScalarField(ScalarField):
     ::
 
         sage: s = g*x ; s
-        Scalar field on the Open subset U of the 2-dimensional differentiable manifold M
+        Scalar field on the Open subset U of the 2-dimensional differentiable
+         manifold M
         sage: s.display()
         U --> R
         (x, y) |--> x^2*y
@@ -577,13 +589,15 @@ class DiffScalarField(ScalarField):
     ::
 
         sage: s = g/x ; s
-        Scalar field on the Open subset U of the 2-dimensional differentiable manifold M
+        Scalar field on the Open subset U of the 2-dimensional differentiable
+         manifold M
         sage: s.display()
         U --> R
         (x, y) |--> y
         on W: (u, v) |--> v/(u^2 + v^2)
         sage: s = x/g ; s
-        Scalar field on the Open subset U of the 2-dimensional differentiable manifold M
+        Scalar field on the Open subset U of the 2-dimensional differentiable
+         manifold M
         sage: s.display()
         U --> R
         (x, y) |--> 1/y
@@ -633,7 +647,7 @@ class DiffScalarField(ScalarField):
 
         """
         ScalarField._init_derived(self) # derived quantities of the mother class
-        self._differential = None  # differential 1-form of the scalar field
+        # More to come in ticket #18843
 
     def _del_derived(self):
         r"""
@@ -646,13 +660,17 @@ class DiffScalarField(ScalarField):
             sage: f = M.scalar_field({X: x+y})
             sage: U = M.open_subset('U', coord_def={X: x>0})
             sage: f.restrict(U)
-            Scalar field on the Open subset U of the 2-dimensional differentiable manifold M
+            Scalar field on the Open subset U of the 2-dimensional
+             differentiable manifold M
             sage: f._restrictions
-            {Open subset U of the 2-dimensional differentiable manifold M: Scalar field on the Open subset U of the 2-dimensional differentiable manifold M}
+            {Open subset U of the 2-dimensional differentiable manifold M:
+             Scalar field on the Open subset U of the 2-dimensional
+             differentiable manifold M}
             sage: f._del_derived()
             sage: f._restrictions  # restrictions are derived quantities
             {}
 
         """
         ScalarField._del_derived(self) # derived quantities of the mother class
-        self._differential = None  # reset of the differential
+        # More to come in ticket #18843
+

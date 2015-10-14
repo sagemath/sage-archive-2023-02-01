@@ -85,9 +85,9 @@ and `V`::
     sage: M.declare_union(U,V)
 
 and we provide the transition map between the charts ``stereoN`` = `(U, (x, y))`
-and ``stereoS`` = `(V, (u, v))`, denoting by W the intersection of U and V
-(W is the subset of U defined by `x^2+y^2\not=0`, as well as the subset of V
-defined by`u^2+v^2\not=0`)::
+and ``stereoS`` = `(V, (u, v))`, denoting by `W` the intersection of `U` and
+`V` (`W` is the subset of `U` defined by `x^2+y^2\not=0`, as well as the subset
+of `V` defined by `u^2+v^2\not=0`)::
 
     sage: stereoN_to_S = stereoN.transition_map(stereoS,
     ....:                [x/(x^2+y^2), y/(x^2+y^2)], intersection_name='W',
@@ -122,7 +122,6 @@ At this stage, we have four open subsets on `S^2`::
 
     sage: N in W or S in W
     False
-
 
 The North pole lies in `V` and the South pole in `U`::
 
@@ -184,6 +183,7 @@ A differentiable scalar field on the sphere::
      manifold S^2
     sage: f.parent().category()
     Category of commutative algebras over Symbolic Ring
+
 
 .. RUBRIC:: Example 2: the Riemann sphere as a differentiable manifold of
   dimension 1 over `\CC`
@@ -289,6 +289,8 @@ REFERENCES:
 .. [5] W. Bertram : *Differential Geometry, Lie Groups and Symmetric Spaces
    over General Base Fields and Rings*, Memoirs of the American Mathematical
    Society, vol. 192 (2008); :doi:`10.1090/memo/0900`; :arxiv:`math/0502168`
+.. [6] M. Berger & B. Gostiaux : *Differential Geometry: Manifolds, Curves and
+   Surfaces*, Springer (New York) (1988); :doi:`10.1007/978-1-4612-1033-7`
 
 """
 
@@ -307,10 +309,11 @@ from sage.categories.sets_cat import Sets
 #*# After #18175:
 # from sage.categories.manifolds import Manifolds
 from sage.categories.homset import Hom
-from sage.rings.infinity import infinity
+from sage.rings.infinity import infinity, minus_infinity
 from sage.misc.latex import latex
 from sage.manifolds.manifold import TopManifold
-from sage.manifolds.differentiable.scalarfield_algebra import DiffScalarFieldAlgebra
+from sage.manifolds.differentiable.scalarfield_algebra import \
+                                                         DiffScalarFieldAlgebra
 
 class DiffManifold(TopManifold):
     r"""
@@ -351,7 +354,7 @@ class DiffManifold(TopManifold):
     - ``start_index`` -- (default: 0) integer; lower value of the range of
       indices used for "indexed objects" on the manifold, e.g. coordinates
       in a chart
-    - ``category`` -- (default: ``None``) to specify the categeory; the
+    - ``category`` -- (default: ``None``) to specify the category; the
       default being ``Sets()`` (``DiffManifolds()`` after :trac:`18175` is
       implemented)
     - ``ambient_manifold`` -- (default: ``None``) ``None`` or a differentiable
@@ -487,7 +490,7 @@ class DiffManifold(TopManifold):
             ambient_manifold = self
         elif not isinstance(ambient_manifold, DiffManifold):
             raise TypeError("the argument 'ambient_manifold' must be " +
-                            " a differentiable manifold")
+                            "a differentiable manifold")
         TopManifold.__init__(self, n, name, latex_name=latex_name, field=field,
                              start_index=start_index, category=category,
                              ambient_manifold=ambient_manifold)
@@ -547,8 +550,9 @@ class DiffManifold(TopManifold):
         r"""
         Return the manifold's degree of differentiability.
 
-        The degree of differentiablity is the integer `k` (possibly `k=\infty`)
-        such that the manifold is a `C^k`-manifold over its base field.
+        The degree of differentiability is the integer `k` (possibly
+        `k=\infty`) such that the manifold is a `C^k`-manifold over its base
+        field.
 
         EXAMPLES::
 
@@ -649,16 +653,31 @@ class DiffManifold(TopManifold):
                             field=self._field, diff_degree=self._diff_degree,
                             start_index=self._sindex, category=self.category(),
                             ambient_manifold=self._manifold)
+        #!# NB: the above could have been
+        # resu = type(self).__base__(...) instead of resu = DiffManifold(...)
+        # to allow for open_subset() of derived classes to call first this
+        # version,
+        # but, because of the category framework, it could NOT have been
+        # resu = self.__class__(...)
+        # cf. the discussion in
+        # https://groups.google.com/forum/#!topic/sage-devel/jHlFxhMDf3Y
         resu._supersets.update(self._supersets)
         for sd in self._supersets:
             sd._subsets.add(resu)
         self._top_subsets.add(resu)
+        # Charts on the result from the coordinate definition:
         for chart, restrictions in coord_def.iteritems():
             if chart not in self._atlas:
-                raise ValueError("the " + str(chart) + "does not belong to " +
-                                 "the atlas of " + str(self))
+                raise ValueError("the {} does not belong to ".format(chart) +
+                                 "the atlas of {}".format(self))
             chart.restrict(resu, restrictions)
-        #!# update tensor spaces
+        # Transition maps on the result inferred from those of self:
+        for chart1 in coord_def:
+            for chart2 in coord_def:
+                if chart2 != chart1:
+                    if (chart1, chart2) in self._coord_changes:
+                        self._coord_changes[(chart1, chart2)].restrict(resu)
+        #!# update vector frames and change of frames
         return resu
 
     def chart(self, coordinates='', names=None):
@@ -710,7 +729,7 @@ class DiffManifold(TopManifold):
           below)
         - ``names`` -- (default: ``None``) unused argument, except if
           ``coordinates`` is not provided; it must then be a tuple containing
-          the coordinate symbols (this is guaranted if the shortcut operator
+          the coordinate symbols (this is guaranteed if the shortcut operator
           ``<,>`` is used).
 
         OUTPUT:
@@ -965,6 +984,31 @@ class DiffManifold(TopManifold):
             coord_functions = {(chart1, chart2): coord_functions}
         return homset(coord_functions, name=name, latex_name=latex_name)
 
+    def diff_mapping(self, codomain, coord_functions=None, chart1=None,
+                     chart2=None, name=None, latex_name=None):
+        r"""
+        Deprecated.
+
+        Use :meth:`diff_map` instead.
+
+        EXAMPLE::
+
+            sage: M = DiffManifold(2, 'M'); X.<x,y> = M.chart()
+            sage: N = DiffManifold(2, 'M'); Y.<u,v> = N.chart()
+            sage: Phi = M.diff_mapping(N, {(X,Y): [x+y, x-y]}, name='Phi')
+            doctest:...: DeprecationWarning: Use diff_map() instead.
+            See http://trac.sagemath.org/18783 for details.
+            sage: Phi
+            Differentiable map Phi from the 2-dimensional differentiable
+             manifold M to itself
+
+        """
+        from sage.misc.superseded import deprecation
+        deprecation(18783, 'Use diff_map() instead.')
+        return self.diff_map(codomain, coord_functions=coord_functions,
+                             chart1=chart1, chart2=chart2, name=name,
+                             latex_name=latex_name)
+
     def diffeomorphism(self, codomain, coord_functions=None, chart1=None,
                        chart2=None, name=None, latex_name=None):
         r"""
@@ -1016,6 +1060,7 @@ class DiffManifold(TopManifold):
 
             sage: DiffManifold._clear_cache_() #  for doctests only
             sage: M = DiffManifold(2, 'M')  # the open unit disk
+            sage: forget()  # for doctests only
             sage: c_xy.<x,y> = M.chart('x:(-1,1) y:(-1,1)')  # Cartesian coord on M
             sage: c_xy.add_restrictions(x^2+y^2<1)
             sage: N = DiffManifold(2, 'N')  # R^2
@@ -1061,53 +1106,3 @@ class DiffManifold(TopManifold):
             coord_functions = {(chart1, chart2): coord_functions}
         return homset(coord_functions, name=name, latex_name=latex_name,
                       is_isomorphism=True)
-
-    def identity_map(self):
-        r"""
-        Identity map of the manifold.
-
-        The identity map of a differentiable manifold `M` is the trivial
-        diffeomorphism
-
-        .. MATH::
-
-            \begin{array}{cccc}
-            \mathrm{Id}_M: & M & \longrightarrow & M \\
-                & p & \longmapsto & p
-            \end{array}
-
-        See :class:`~sage.manifolds.differentiable.diff_map.DiffMap` for a
-        complete documentation.
-
-        OUTPUT:
-
-        - the identity map, as an instance of
-          :class:`~sage.manifolds.differentiable.diff_map.DiffMap`
-
-        EXAMPLE:
-
-        Identity map of a complex manifold::
-
-            sage: M = DiffManifold(2, 'M', field='complex')
-            sage: X.<x,y> = M.chart()
-            sage: id = M.identity_map(); id
-            Identity map Id_M of the 2-dimensional complex manifold M
-            sage: id.parent()
-            Set of Morphisms from 2-dimensional complex manifold M to
-             2-dimensional complex manifold M in Category of sets
-            sage: id.display()
-            Id_M: M --> M
-               (x, y) |--> (x, y)
-
-        The identity map acting on a point::
-
-            sage: p = M((1+I, 3-I), name='p'); p
-            Point p on the 2-dimensional complex manifold M
-            sage: id(p)
-            Point p on the 2-dimensional complex manifold M
-            sage: id(p) == p
-            True
-
-        """
-        return self._identity_map
-

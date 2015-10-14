@@ -69,7 +69,7 @@ class DiffChart(Chart):
       used via Sage preparser (see examples below)
     - ``names`` -- (default: ``None``) unused argument, except if
       ``coordinates`` is not provided; it must then be a tuple containing
-      the coordinate symbols (this is guaranted if the shortcut operator
+      the coordinate symbols (this is guaranteed if the shortcut operator
       ``<,>`` is used).
 
     EXAMPLES:
@@ -421,7 +421,7 @@ class RealDiffChart(DiffChart, RealChart):
       shortcut operator ``<,>`` is used via Sage preparser (see examples below)
     - ``names`` -- (default: ``None``) unused argument, except if
       ``coordinates`` is not provided; it must then be a tuple containing
-      the coordinate symbols (this is guaranted if the shortcut operator
+      the coordinate symbols (this is guaranteed if the shortcut operator
       ``<,>`` is used).
 
     EXAMPLES:
@@ -626,7 +626,7 @@ class RealDiffChart(DiffChart, RealChart):
 
         """
         RealChart.__init__(self, domain, coordinates=coordinates, names=names)
-        #!# vector frame shall be initialized here
+        #!# vector frame shall be initialized here in ticket #18843
 
 #*****************************************************************************
 

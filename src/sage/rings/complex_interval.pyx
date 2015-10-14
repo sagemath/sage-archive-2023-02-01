@@ -41,7 +41,8 @@ heavily modified:
 
 
 include "sage/ext/interrupt.pxi"
-from cpython.number cimport PyNumber_Index
+from sage.libs.gmp.mpz cimport mpz_sgn, mpz_cmpabs_ui
+from sage.libs.flint.fmpz cimport *
 
 from sage.structure.element cimport FieldElement, RingElement, Element, ModuleElement
 from complex_number cimport ComplexNumber
@@ -52,7 +53,7 @@ from sage.rings.integer cimport Integer
 import infinity
 cimport real_mpfi
 cimport real_mpfr
-from sage.libs.pari.all import pari_gen
+from sage.libs.pari.gen cimport gen as pari_gen
 
 
 cdef double LOG_TEN_TWO_PLUS_EPSILON = 3.321928094887363 # a small overestimate of log(10,2)
@@ -761,8 +762,9 @@ cdef class ComplexIntervalFieldElement(sage.structure.element.FieldElement):
 
         TESTS::
 
-            sage: [CIF(2) ^ RDF(i) for i in range(-2,3)]
-            [0.2500000000?, 0.5000000000?, 1, 2, 4]
+            sage: CIF = ComplexIntervalField(7)
+            sage: [CIF(2) ^ RDF(i) for i in range(-5,6)]
+            [0.03125?, 0.06250?, 0.1250?, 0.2500?, 0.5000?, 1, 2, 4, 8, 16, 32]
             sage: pow(CIF(1), CIF(1), CIF(1))
             Traceback (most recent call last):
             ...
@@ -771,51 +773,66 @@ cdef class ComplexIntervalFieldElement(sage.structure.element.FieldElement):
         if modulus is not None:
             raise TypeError("pow() 3rd argument not allowed unless all arguments are integers")
 
-        cdef ComplexIntervalFieldElement z, z2
+        cdef ComplexIntervalFieldElement z, z2, t = None
         z = <ComplexIntervalFieldElement?>self
 
-        # This conversion code is the same as generic_power_c() in
-        # sage/structure/element.pyx
-        try:
-            e = PyNumber_Index(right)
-        except TypeError:
+        # Convert right to an integer
+        if not isinstance(right, Integer):
             try:
-                e = int(Integer(right))
+                right = Integer(right)
             except TypeError:
                 # Exponent is really not an integer
                 return (z.log() * z._parent(right)).exp()
 
-        if e <= 1:
-            if e == 0:
-                return z._parent.one()
-            if e < 0:
-                e = -e
-                z = ~z
-            if e == 1:
-                return z
+        cdef int s = mpz_sgn((<Integer>right).value)
+        if s == 0:
+            return z._parent.one()
+        elif s < 0:
+            z = ~z
+        if not mpz_cmpabs_ui((<Integer>right).value, 1):
+            return z
 
+        # Convert exponent to fmpz_t
+        cdef fmpz_t e
+        fmpz_init(e)
+        fmpz_set_mpz(e, (<Integer>right).value)
+        fmpz_abs(e, e)
+
+        # Now we know that e >= 2.
         # Use binary powering with special formula for squares.
 
         # Handle first bit more efficiently:
-        if e & 1:
+        if fmpz_tstbit(e, 0):
             res = z
         else:
             res = z._parent.one()
-        e >>= 1
+        fmpz_tdiv_q_2exp(e, e, 1)  # e >>= 1
 
-        while e:
+        # Allocate a temporary ComplexIntervalFieldElement
+        z2 = z._new()
+
+        while True:
             # Compute z2 = z^2 using the formula
             # (a + bi)^2 = (a^2 - b^2) + 2abi
-            z2 = z._new()
             mpfi_sqr(z2.__re, z.__re)  # a^2
             mpfi_sqr(z2.__im, z.__im)  # b^2
             mpfi_sub(z2.__re, z2.__re, z2.__im)  # a^2 - b^2
             mpfi_mul(z2.__im, z.__re, z.__im)  # ab
             mpfi_mul_2ui(z2.__im, z2.__im, 1)  # 2ab
             z = z2
-            if e & 1:
+            if fmpz_tstbit(e, 0):
                 res *= z
-            e >>= 1
+            fmpz_tdiv_q_2exp(e, e, 1)  # e >>= 1
+            if fmpz_is_zero(e):
+                break
+
+            # Swap temporary elements z2 and t (allocate t first if needed)
+            if t is not None:
+                z2 = t
+            else:
+                z2 = z2._new()
+            t = z
+        fmpz_clear(e)
         return res
 
     def _magma_init_(self, magma):

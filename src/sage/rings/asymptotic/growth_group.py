@@ -2388,6 +2388,12 @@ class MonomialGrowthElement(GenericGrowthElement):
             x^(-2)
             sage: e2 == ~e1
             True
+            sage: Q = GrowthGroup('x^NN'); Q
+            Growth Group x^((Non negative integer semiring))
+            sage: e3 = ~Q('x'); e3
+            x^(-1)
+            sage: e3.parent()
+            Growth Group x^ZZ
         """
         return self.parent()._create_element_via_parent_(-self.exponent)
 
@@ -2416,6 +2422,10 @@ class MonomialGrowthElement(GenericGrowthElement):
             sage: a^(1/2)
             x^(7/2)
             sage: (a^(1/2)).parent()
+            Growth Group x^QQ
+            sage: a^(1/7)
+            x
+            sage: (a^(1/7)).parent()
             Growth Group x^QQ
             sage: P = GrowthGroup('x^QQ')
             sage: b = P.gen()^(7/2); b

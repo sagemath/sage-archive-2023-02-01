@@ -299,7 +299,7 @@ cdef class SymbolicRing(CommutativeRing):
             GEx_construct_pyobject(exp, x)
         elif isinstance(x, Factorization):
             from sage.misc.all import prod
-            return prod([SR(p)**e for p,e in x], SR(x.unit())
+            return prod([SR(p)**e for p,e in x], SR(x.unit()))
         else:
             raise TypeError
 

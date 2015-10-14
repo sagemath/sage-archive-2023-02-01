@@ -287,7 +287,7 @@ protected:
 protected:
 	tinfo_t tinfo_key;                  ///< type info
 	mutable unsigned flags;             ///< of type status_flags
-	mutable unsigned hashvalue;         ///< hash value
+	mutable unsigned hashvalue=0;         ///< hash value
 };
 
 

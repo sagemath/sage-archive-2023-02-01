@@ -272,6 +272,7 @@ protected:
     Type t;
     Value v;
     long hash;
+    bool is_hashable = true;
 };
 
 

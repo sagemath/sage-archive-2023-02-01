@@ -280,14 +280,21 @@ PyObject* TWO = PyInt_FromLong(2); // todo: never freed
 
 std::ostream& operator<<(std::ostream& os, const numeric& s) {
         PyObject* o;
-        char *p;
         switch (s.t) {
                 case MPZ:
-                        p = mpz_get_str(nullptr, 10, s.v._bigint);
-                        return os << p;
+                {
+                        std::vector<char> cp(2 + mpz_sizeinbase(s.v._bigint, 10));
+                        mpz_get_str(&cp[0], 10, s.v._bigint);
+                        return os << &cp[0];
+                }
                 case MPQ:
-                        p = mpq_get_str(nullptr, 10, s.v._bigrat);
-                        return os << p;
+                {
+                        size_t size = mpz_sizeinbase(mpq_numref(s.v._bigrat), 10)
+                             + mpz_sizeinbase(mpq_denref(s.v._bigrat), 10) + 5;
+                        std::vector<char> cp(size);
+                        mpq_get_str(&cp[0], 10, s.v._bigrat);
+                        return os << &cp[0];
+                }
                 case DOUBLE:
                         return os << s.v._double;
                 case PYOBJECT:
@@ -511,8 +518,11 @@ numeric::numeric(PyObject* o, bool force_py) : basic(&numeric::tinfo_static) {
 
         t = PYOBJECT;
         hash = PyObject_Hash(o);
-        if (hash == -1 && PyErr_Occurred())
-            throw (std::runtime_error("numeric::numeric() python function (__hash__) raised exception"));
+        if (hash == -1 && PyErr_Occurred()) {
+            // error is thrown on first hash request
+            PyErr_Clear();
+            is_hashable = false;
+            }
         v._pyobject = o; // STEAL a reference
         setflag(status_flags::evaluated | status_flags::expanded);
 
@@ -647,13 +657,15 @@ inherited(n, sym_lst) {
                         arg = Py_BuildValue("s#", str.c_str(), str.size());
                         // unpickle
                         v._pyobject = py_funcs.py_loads(arg);
-                        hash = PyObject_Hash(v._pyobject);
-                        if (hash == -1 && PyErr_Occurred())
-                            throw (std::runtime_error("numeric::numeric() python function (__hash__) raised exception"));
                         Py_DECREF(arg);
                         if (PyErr_Occurred()) {
                                 throw (std::runtime_error("archive error: caught exception in py_loads"));
                         }
+                        hash = PyObject_Hash(v._pyobject);
+                        if (hash == -1 && PyErr_Occurred()) {
+                            PyErr_Clear();
+                            is_hashable = false;
+                            }
                         Py_INCREF(v._pyobject);
                         return;
                 default:
@@ -669,25 +681,23 @@ void numeric::archive(archive_node &n) const {
 
         // create a string representation of this object
         std::string *tstr;
-        char *cp;
-        size_t size;
         switch (t) {
                 case MPZ:
-                        cp = new char(2+mpz_sizeinbase(v._bigint, 10));
-                        mpz_get_str(cp, 10, v._bigint);
-                        tstr = new std::string(cp);
-                        delete cp;
+                {
+                        std::vector<char> cp(2 + mpz_sizeinbase(v._bigint, 10));
+                        mpz_get_str(&cp[0], 10, v._bigint);
+                        tstr = new std::string(&cp[0]);
                         break;
-
+                }
                 case MPQ:
-                        size = mpz_sizeinbase(mpq_numref(v._bigrat), 10)
-                             + mpz_sizeinbase(mpq_denref(v._bigrat), 10) + 3;
-                        cp = new char(size);
-                        mpq_get_str(cp, 10, v._bigrat);
-                        tstr = new std::string(cp);
-                        delete cp;
+                {
+                        size_t size = mpz_sizeinbase(mpq_numref(v._bigrat), 10)
+                             + mpz_sizeinbase(mpq_denref(v._bigrat), 10) + 5;
+                        std::vector<char> cp(size);
+                        mpq_get_str(&cp[0], 10, v._bigrat);
+                        tstr = new std::string(&cp[0]);
                         break;
-                        
+                }
                 case PYOBJECT:
                         tstr = py_funcs.py_dumps(v._pyobject);
                         if (PyErr_Occurred()) {
@@ -919,7 +929,9 @@ unsigned numeric::calchash() const {
                 case MPZ:
                 case MPQ:
                 case PYOBJECT:
-                        return (unsigned int) hash;
+                        if (is_hashable)
+                            return (unsigned int) hash;
+                        throw (std::runtime_error("Python object not hashable"));
                 default:
                         stub("invalid type: ::hash() type not handled");
         }
@@ -2272,6 +2284,7 @@ void coerce(numeric& new_left, numeric& new_right, const numeric& left, const nu
                                         mpq_init(bigrat);
                                         mpq_set(bigrat, left.v._bigrat);
                                         o = py_funcs.py_rational_from_mpq(bigrat);
+                                        mpq_clear(bigrat);
                                         new_left = numeric(o, true);
                                         new_right = right;
                                         return;

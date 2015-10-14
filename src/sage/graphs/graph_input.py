@@ -208,7 +208,7 @@ def from_adjacency_matrix(G, M, loops=False, multiedges=False, weighted=False):
 
     INPUT:
 
-    - ``G`` -- a graph
+    - ``G`` -- a :class:`Graph` or :class:`DiGraph`.
 
     - ``M`` -- an adjacency matrix
 
@@ -267,18 +267,19 @@ def from_adjacency_matrix(G, M, loops=False, multiedges=False, weighted=False):
     G.allow_multiple_edges(multiedges, check=False)
     G.add_vertices(range(M.nrows()))
     e = []
-    if weighted:
-        for i,j in M.nonzero_positions():
-            if i <= j:
-                e.append((i,j,M[i][j]))
-    elif multiedges:
-        for i,j in M.nonzero_positions():
-            if i <= j:
-                e += [(i,j)]*int(M[i][j])
+    if G.is_directed():
+        pairs = M.nonzero_positions()
     else:
-        for i,j in M.nonzero_positions():
-            if i <= j:
-                e.append((i,j))
+        pairs = ((i,j) for i,j in M.nonzero_positions() if i<=j)
+    if weighted:
+        for i,j in pairs:
+            e.append((i,j,M[i][j]))
+    elif multiedges:
+        for i,j in pairs:
+            e += [(i,j)]*int(M[i][j])
+    else:
+        for i,j in pairs:
+            e.append((i,j))
     G.add_edges(e)
     G._weighted = weighted
 
@@ -340,6 +341,56 @@ def from_incidence_matrix(G, M, loops=False, multiedges=False, weighted=False):
     G.add_vertices(range(M.nrows()))
     G.add_edges(positions)
 
+def from_oriented_incidence_matrix(G, M, loops=False, multiedges=False, weighted=False):
+    r"""
+    Fill ``G`` with the data of an *oriented* incidence matrix.
+
+    An oriented incidence matrix is the incidence matrix of a directed graph, in
+    which each non-loop edge corresponds to a `+1` and a `-1`, indicating its
+    source and destination.
+
+    INPUT:
+
+    - ``G`` -- a :class:`DiGraph`
+
+    - ``M`` -- an incidence matrix
+
+    - ``loops``, ``multiedges``, ``weighted`` (booleans) -- whether to consider
+      the graph as having loops, multiple edges, or weights. Set to ``False`` by default.
+
+    EXAMPLE::
+
+        sage: from sage.graphs.graph_input import from_oriented_incidence_matrix
+        sage: g = DiGraph()
+        sage: from_oriented_incidence_matrix(g, digraphs.Circuit(10).incidence_matrix())
+        sage: g.is_isomorphic(digraphs.Circuit(10))
+        True
+    """
+    from sage.matrix.matrix import is_Matrix
+    assert is_Matrix(M)
+
+    positions = []
+    for c in M.columns():
+        NZ = c.nonzero_positions()
+        if len(NZ) != 2:
+            raise ValueError("There must be two nonzero entries (-1 & 1) per column.")
+        L = sorted(set(c.list()))
+        if L != [-1,0,1]:
+            msg += "Each column represents an edge: -1 goes to 1."
+            raise ValueError(msg)
+        if c[NZ[0]] == -1:
+            positions.append(tuple(NZ))
+        else:
+            positions.append((NZ[1],NZ[0]))
+    if weighted   is None: weighted  = False
+    if multiedges is None:
+        total = len(positions)
+        multiedges = (  len(set(positions)) < total  )
+    G.allow_loops(True if loops else False,check=False)
+    G.allow_multiple_edges(multiedges,check=False)
+    G.add_vertices(range(M.nrows()))
+    G.add_edges(positions)
+
 def from_dict_of_dicts(G, M, loops=False, multiedges=False, weighted=False, convert_empty_dict_labels_to_None=False):
     r"""
     Fill ``G`` with the data of a dictionary of dictionaries.
@@ -378,39 +429,39 @@ def from_dict_of_dicts(G, M, loops=False, multiedges=False, weighted=False, conv
     if weighted is None: G._weighted = False
     for u in M:
         for v in M[u]:
-            if hash(u) > hash(v):
-                if v in M and u in M[v]:
-                    if M[u][v] != M[v][u]:
-                        raise ValueError("Dict does not agree on edge (%s,%s)"%(u,v))
-                    continue
             if multiedges is not False and not isinstance(M[u][v], list):
                 if multiedges is None: multiedges = False
                 if multiedges:
                     raise ValueError("Dict of dicts for multigraph must be in the format {v : {u : list}}")
     if multiedges is None and len(M) > 0:
         multiedges = True
+
     G.allow_loops(loops, check=False)
     G.allow_multiple_edges(multiedges, check=False)
     verts = set().union(M.keys(), *M.values())
     G.add_vertices(verts)
     if convert_empty_dict_labels_to_None:
+        relabel = lambda x : x if x!={} else None
+    else:
+        relabel = lambda x : x
+
+    is_directed = G.is_directed()
+    if not is_directed and multiedges:
+        v_to_id = {v:i for i,v in enumerate(verts)}
         for u in M:
             for v in M[u]:
-                if hash(u) <= hash(v) or v not in M or u not in M[v]:
-                    if multiedges:
-                        for l in M[u][v]:
-                            G._backend.add_edge(u,v,l,False)
-                    else:
-                        G._backend.add_edge(u,v,M[u][v] if M[u][v] != {} else None,False)
+                if v_to_id[u] <= v_to_id[v] or v not in M or u not in M[v] or u == v:
+                    for l in M[u][v]:
+                        G._backend.add_edge(u,v,relabel(l),False)
+    elif multiedges:
+        for u in M:
+            for v in M[u]:
+                for l in M[u][v]:
+                    G._backend.add_edge(u,v,relabel(l),is_directed)
     else:
         for u in M:
             for v in M[u]:
-                if hash(u) <= hash(v) or v not in M or u not in M[v]:
-                    if multiedges:
-                        for l in M[u][v]:
-                            G._backend.add_edge(u,v,l,False)
-                    else:
-                        G._backend.add_edge(u,v,M[u][v],False)
+                G._backend.add_edge(u,v,relabel(M[u][v]),is_directed)
 
 def from_dict_of_lists(G, D, loops=False, multiedges=False, weighted=False):
     r"""
@@ -418,7 +469,7 @@ def from_dict_of_lists(G, D, loops=False, multiedges=False, weighted=False):
 
     INPUT:
 
-    - ``G`` -- a graph
+    - ``G`` -- a :class:`Graph` or :class:`DiGraph`.
 
     - ``D`` -- a dictionary of lists.
 
@@ -433,9 +484,6 @@ def from_dict_of_lists(G, D, loops=False, multiedges=False, weighted=False):
         sage: g.is_isomorphic(graphs.PetersenGraph())
         True
     """
-    if not all(isinstance(D[u], list) for u in D):
-        raise ValueError("Input dict must be a consistent format.")
-
     verts = set().union(D.keys(),*D.values())
     if loops is None or loops is False:
         for u in D:
@@ -460,11 +508,19 @@ def from_dict_of_lists(G, D, loops=False, multiedges=False, weighted=False):
     G.allow_loops(loops, check=False)
     G.allow_multiple_edges(multiedges, check=False)
     G.add_vertices(verts)
-    for u in D:
-        for v in D[u]:
-            if (multiedges or hash(u) <= hash(v) or
-                v not in D or u not in D[v]):
-                G._backend.add_edge(u,v,None,False)
+
+    is_directed = G.is_directed()
+    if not is_directed and multiedges:
+        v_to_id = {v:i for i,v in enumerate(verts)}
+        for u in D:
+            for v in D[u]:
+                if (v_to_id[u] <= v_to_id[v] or
+                    v not in D or u not in D[v] or u == v):
+                    G._backend.add_edge(u,v,None,False)
+    else:
+        for u in D:
+            for v in D[u]:
+                G._backend.add_edge(u,v,None,is_directed)
 
 from sage.misc.rest_index_of_methods import gen_rest_table_index
 import sys

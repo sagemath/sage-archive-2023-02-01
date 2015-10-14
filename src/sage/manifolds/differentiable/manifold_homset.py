@@ -14,8 +14,8 @@ REFERENCES:
 
 .. [1] J.M. Lee : *Introduction to Smooth Manifolds*, 2nd ed., Springer
    (New York) (2013)
-.. [2] S. Kobayashi & K. Nomizu : *Foundations of Differential Geometry*, vol. 1,
-   Interscience Publishers (New York) (1963)
+.. [2] S. Kobayashi & K. Nomizu : *Foundations of Differential Geometry*,
+   vol. 1, Interscience Publishers (New York) (1963)
 
 """
 #******************************************************************************
@@ -36,26 +36,24 @@ class DiffManifoldHomset(TopManifoldHomset):
 
     Given two differentiable manifolds `M` and `N` over a topological field `K`,
     the class :class:`DiffManifoldHomset` implements the set
-    `\mathrm{Hom}(U,V)` of morphisms (i.e. differentiable maps)
-    `U\rightarrow V`, where `U` is an open subset of `M` and `V` an open
-    subset of `N`. Note that, as open subsets of differentiable manifolds, `U`
-    and `V` are differentiable manifolds by themselves.
+    `\mathrm{Hom}(M,N)` of morphisms (i.e. differentiable maps)
+    `M\rightarrow N`.
 
     This is a Sage *parent* class, whose *element* class is
     :class:`~sage.manifolds.differentiable.diff_map.DiffMap`.
 
     INPUT:
 
-    - ``domain`` -- open subset `U\subset M` (domain of the morphisms),
+    - ``domain`` -- differentiable manifold `M` (domain of the morphisms),
       as an instance of
       :class:`~sage.manifolds.differentiable.manifold.DiffManifold`
-    - ``codomain`` -- open subset `V\subset N` (codomain of the morphisms),
+    - ``codomain`` -- differentiable manifold `N` (codomain of the morphisms),
       as an instance of
       :class:`~sage.manifolds.differentiable.manifold.DiffManifold`
     - ``name`` -- (default: ``None``) string; name given to the homset; if
-      none is provided, Hom(U,V) will be used
+      none is provided, Hom(M,N) will be used
     - ``latex_name`` -- (default: ``None``) string; LaTeX symbol to denote the
-      homset; if none is provided, `\mathrm{Hom}(U,V)` will be used
+      homset; if none is provided, `\mathrm{Hom}(M,N)` will be used
 
     EXAMPLES:
 

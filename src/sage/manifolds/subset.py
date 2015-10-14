@@ -1,8 +1,8 @@
 r"""
 Subsets of topological manifolds
 
-The class :class:`TopManifoldSubset` implements generic subsets of a topological
-manifold. Open subsets are implemented by the class
+The class :class:`TopManifoldSubset` implements generic subsets of a
+topological manifold. Open subsets are implemented by the class
 :class:`~sage.manifolds.manifold.TopManifold` (since an open subset of a
 manifold is a manifold by itself), which inherits from
 :class:`TopManifoldSubset`.
@@ -181,7 +181,7 @@ class TopManifoldSubset(UniqueRepresentation, Parent):
             Parent.__init__(self, category=category, facade=manifold)
             for dom in manifold._subsets:
                 if name == dom._name:
-                    raise ValueError("The name '" + name +
+                    raise ValueError("the name '" + name +
                                      "' is already used for another " +
                                      "subset of the {}".format(manifold))
             manifold._subsets.add(self)
@@ -201,6 +201,7 @@ class TopManifoldSubset(UniqueRepresentation, Parent):
                                  # (key: subset name)
         self._unions = {} # dict. of unions with other subsets (key: subset
                           # name)
+        self._open_covers = [] # list of open covers of self
         self._is_open = False  # a priori (may be redifined by subclasses)
 
     #### Methods required for any Parent in the category of sets:
@@ -260,14 +261,15 @@ class TopManifoldSubset(UniqueRepresentation, Parent):
             Point on the 2-dimensional topological manifold M
             sage: Y(p)
             (0, 1/2)
-            sage: p = A._element_constructor_((0,1/2), chart=Y, check_coords=False); p
+            sage: p = A._element_constructor_((0,1/2), chart=Y,
+            ....:                             check_coords=False); p
             Point on the 2-dimensional topological manifold M
             sage: Y(p)
             (0, 1/2)
             sage: p = A._element_constructor_((3,1/2), chart=Y)
             Traceback (most recent call last):
             ...
-            ValueError: The coordinates (3, 1/2) are not valid on the Chart (M, (u, v))
+            ValueError: the coordinates (3, 1/2) are not valid on the Chart (M, (u, v))
 
         Specifying the name of the point::
 
@@ -300,7 +302,7 @@ class TopManifoldSubset(UniqueRepresentation, Parent):
 
     def _an_element_(self):
         r"""
-        Construct some point in ``self``.
+        Construct some point in the subset.
 
         EXAMPLES::
 
@@ -320,7 +322,7 @@ class TopManifoldSubset(UniqueRepresentation, Parent):
 
     def _repr_(self):
         r"""
-        String representation of ``self``.
+        String representation of the object.
 
         TESTS::
 
@@ -336,7 +338,7 @@ class TopManifoldSubset(UniqueRepresentation, Parent):
 
     def _latex_(self):
         r"""
-        LaTeX representation of ``self``.
+        LaTeX representation of the object.
 
         TESTS::
 
@@ -355,7 +357,7 @@ class TopManifoldSubset(UniqueRepresentation, Parent):
 
     def manifold(self):
         r"""
-        Return the manifold of which ``self`` is a subset.
+        Return the manifold of which the current object is a subset.
 
         EXAMPLES::
 
@@ -373,14 +375,62 @@ class TopManifoldSubset(UniqueRepresentation, Parent):
         """
         return self._manifold
 
+    def open_covers(self):
+        r"""
+        Return the list of open covers of the current subset.
+
+        If the current subset, `A` say, is a subset of the manifold `M`, an
+        *open cover* of `A` is list (indexed set) `(U_i)_{i\in I}` of
+        open subsets of `M` such that
+
+        .. MATH::
+
+            A \subset \bigcup_{i \in I} U_i
+
+        If `A` is open, we ask that the above inclusion is actually an
+        identity:
+
+        .. MATH::
+
+            A = \bigcup_{i \in I} U_i
+
+        EXAMPLES::
+
+            sage: TopManifold._clear_cache_()  # for doctests only
+            sage: M = TopManifold(2, 'M')
+            sage: M.open_covers()
+            [[2-dimensional topological manifold M]]
+            sage: U = M.open_subset('U')
+            sage: U.open_covers()
+            [[Open subset U of the 2-dimensional topological manifold M]]
+            sage: A = U.open_subset('A')
+            sage: B = U.open_subset('B')
+            sage: U.declare_union(A,B)
+            sage: U.open_covers()
+            [[Open subset U of the 2-dimensional topological manifold M],
+             [Open subset A of the 2-dimensional topological manifold M,
+              Open subset B of the 2-dimensional topological manifold M]]
+            sage: V = M.open_subset('V')
+            sage: M.declare_union(U,V)
+            sage: M.open_covers()
+            [[2-dimensional topological manifold M],
+             [Open subset U of the 2-dimensional topological manifold M,
+              Open subset V of the 2-dimensional topological manifold M],
+             [Open subset A of the 2-dimensional topological manifold M,
+              Open subset B of the 2-dimensional topological manifold M,
+              Open subset V of the 2-dimensional topological manifold M]]
+
+        """
+        return self._open_covers
+
     def subsets(self):
         r"""
-        Return the set of subsets that have been defined on ``self``.
+        Return the set of subsets that have been defined on the current subset.
 
         OUTPUT:
 
         - A Python set containing all the subsets that have been defined on
-          ``self``.
+          the current subset.
 
         .. NOTE::
 
@@ -425,7 +475,7 @@ class TopManifoldSubset(UniqueRepresentation, Parent):
         OUTPUT:
 
         - A list containing all the subsets that have been defined on
-          ``self``.
+          the current subset.
 
         .. NOTE::
 
@@ -457,7 +507,7 @@ class TopManifoldSubset(UniqueRepresentation, Parent):
 
     def subset(self, name, latex_name=None, is_open=False):
         r"""
-        Create a subset of ``self``.
+        Create a subset of the current subset.
 
         INPUT:
 
@@ -508,9 +558,10 @@ class TopManifoldSubset(UniqueRepresentation, Parent):
 
     def superset(self, name, latex_name=None, is_open=False):
         r"""
-        Create a superset of ``self``.
+        Create a superset of the current subset.
 
-        A *superset* is a manifold subset in which ``self`` is included.
+        A *superset* is a manifold subset in which the current subset is
+        included.
 
         INPUT:
 
@@ -573,7 +624,7 @@ class TopManifoldSubset(UniqueRepresentation, Parent):
 
     def intersection(self, other, name=None, latex_name=None):
         r"""
-        Return the intersection of ``self`` with another subset.
+        Return the intersection of the current subset with another subset.
 
         INPUT:
 
@@ -588,7 +639,7 @@ class TopManifoldSubset(UniqueRepresentation, Parent):
         OUTPUT:
 
         - instance of :class:`TopManifoldSubset` representing the subset that
-          is the intersection of ``self`` with ``other``
+          is the intersection of the current subset with ``other``
 
         EXAMPLES:
 
@@ -631,8 +682,8 @@ class TopManifoldSubset(UniqueRepresentation, Parent):
 
         """
         if other._manifold != self._manifold:
-            raise TypeError(
-                "The two subsets do not belong to the same manifold.")
+            raise ValueError(
+                          "the two subsets do not belong to the same manifold")
         # Particular cases:
         if self is self._manifold:
             return other
@@ -669,7 +720,7 @@ class TopManifoldSubset(UniqueRepresentation, Parent):
 
     def union(self, other, name=None, latex_name=None):
         r"""
-        Return the union of ``self`` with another subset.
+        Return the union of the current subset with another subset.
 
         INPUT:
 
@@ -684,7 +735,7 @@ class TopManifoldSubset(UniqueRepresentation, Parent):
         OUTPUT:
 
         - instance of :class:`TopManifoldSubset` representing the subset that
-          is the union of ``self`` with ``other``
+          is the union of the current subset with ``other``
 
         EXAMPLES:
 
@@ -727,8 +778,8 @@ class TopManifoldSubset(UniqueRepresentation, Parent):
 
         """
         if other._manifold != self._manifold:
-            raise TypeError(
-                "The two subsets do not belong to the same manifold.")
+            raise ValueError(
+                          "the two subsets do not belong to the same manifold")
         # Particular cases:
         if (self is self._manifold) or (other is self._manifold):
             return self._manifold
@@ -766,18 +817,26 @@ class TopManifoldSubset(UniqueRepresentation, Parent):
                 res._coord_changes.update(other._coord_changes)
             self._unions[other._name] = res
             other._unions[self._name] = res
+            # Open covers of the union:
+            for oc1 in self._open_covers:
+                for oc2 in other._open_covers:
+                    oc = oc1[:]
+                    for s in oc2:
+                        if s not in oc:
+                            oc.append(s)
+                res._open_covers.append(oc)
             return res
 
     def declare_union(self, dom1, dom2):
         r"""
-        Declare that ``self`` is the union of two subsets, i.e.
+        Declare that the current subset is the union of two subsets, i.e.
         that
 
         .. MATH::
 
             U = U_1 \cup U_2
 
-        where `U` is ``self``,  `U_1\subset U` and `U_2\subset U`.
+        where `U` is the current subset,  `U_1\subset U` and `U_2\subset U`.
 
         INPUT:
 
@@ -794,22 +853,34 @@ class TopManifoldSubset(UniqueRepresentation, Parent):
             2-dimensional topological manifold M
 
         """
+        if dom1 == dom2:
+            if dom1 != self:
+                raise ValueError("the union of two identical sets must be " +
+                                 "this set")
+            return
         if not dom1.is_subset(self):
-            raise TypeError("The " + str(dom1) + " is not a subset of " +
-                            "the " + str(self) + ".")
+            raise TypeError("the {} is not a subset of ".format(dom1) +
+                            "the {}".format(self))
         if not dom2.is_subset(self):
-            raise TypeError("The " + str(dom2) + " is not a subset of " +
-                            "the " + str(self) + ".")
+            raise TypeError("the {} is not a subset of ".format(dom2) +
+                            "the {}".format(self))
         dom1._unions[dom2._name] = self
         dom2._unions[dom1._name] = self
+        for oc1 in dom1._open_covers:
+            for oc2 in dom2._open_covers:
+                oc = oc1[:]
+                for s in oc2:
+                    if s not in oc:
+                        oc.append(s)
+            self._open_covers.append(oc)
 
     def is_subset(self, other):
         r"""
-        Return ``True`` iff ``self`` is included in ``other``.
+        Return ``True`` iff the current subset is included in ``other``.
 
         EXAMPLES:
 
-        Subsubsets on a 2-dimensional manifold::
+        Subsets on a 2-dimensional manifold::
 
             sage: M = TopManifold(2, 'M')
             sage: a = M.subset('A')
@@ -831,7 +902,7 @@ class TopManifoldSubset(UniqueRepresentation, Parent):
 
     def __contains__(self, point):
         r"""
-        Check whether a point is contained in ``self``.
+        Check whether a point is contained in the current subset.
 
         TESTS::
 
@@ -863,7 +934,7 @@ class TopManifoldSubset(UniqueRepresentation, Parent):
 
     def point(self, coords=None, chart=None, name=None, latex_name=None):
         r"""
-        Define a point in ``self``.
+        Define a point in the subset.
 
         See :class:`~sage.manifolds.point.TopManifoldPoint` for a
         complete documentation.
@@ -872,12 +943,12 @@ class TopManifoldSubset(UniqueRepresentation, Parent):
 
         - ``coords`` -- the point coordinates (as a tuple or a list) in the
           chart specified by ``chart``
-        - ``chart`` -- (default: ``None``) chart in which the point coordinates are
-          given; if none is provided, the coordinates are assumed to refer to
-          the default chart of ``self``
+        - ``chart`` -- (default: ``None``) chart in which the point coordinates
+          are given; if ``None``, the coordinates are assumed to refer to
+          the default chart of the current subset
         - ``name`` -- (default: ``None``) name given to the point
-        - ``latex_name`` -- (default: ``None``) LaTeX symbol to denote the point;
-          if none is provided, the LaTeX symbol is set to ``name``
+        - ``latex_name`` -- (default: ``None``) LaTeX symbol to denote the
+          point; if ``None``, the LaTeX symbol is set to ``name``
 
         OUTPUT:
 

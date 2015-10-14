@@ -50,61 +50,11 @@ from sage.rings.integer_ring import ZZ
 from sage.rings.integer import Integer
 from sage.matrix.constructor import matrix, block_matrix, block_diagonal_matrix, diagonal_matrix
 from urllib import urlopen
-from sage.misc.functional import is_even
 from sage.rings.arith import is_prime, is_square, is_prime_power, divisors
 from math import sqrt
 from sage.matrix.constructor import identity_matrix as I
 from sage.matrix.constructor import ones_matrix     as J
-
-def H1(i, j, p):
-    """
-    Returns the i,j-th entry of the Paley matrix, type I case.
-    The Paley type I case corresponds to the case `p \cong 3 \mod{4}`
-    for a prime `p`.
-
-    .. TODO::
-
-        This construction holds more generally for prime powers `q`
-        congruent to `3 \mod{4}`. We should implement these but we
-        first need to implement Quadratic character for `GF(q)`.
-
-    EXAMPLES::
-
-        sage: sage.combinat.matrices.hadamard_matrix.H1(1,2,3)
-        1
-    """
-    if i == 0 or j == 0:
-        return 1
-    # what follows will not be executed for (i, j) = (0, 0).
-    if i == j:
-        return -1
-    return -kronecker_symbol(i - j, p)
-
-def H2(i, j, p):
-    """
-    Returns the i,j-th entry of the Paley matrix, type II case.
-
-    The Paley type II case corresponds to the case `p \cong 1 \mod{4}`
-    for a prime `p` (see [Hora]_).
-
-    .. TODO::
-
-        This construction holds more generally for prime powers `q`
-        congruent to `1 \mod{4}`. We should implement these but we
-        first need to implement Quadratic character for `GF(q)`.
-
-    EXAMPLES::
-
-        sage: sage.combinat.matrices.hadamard_matrix.H2(1,2,5)
-        1
-    """
-    if i == 0 and j == 0:
-        return 0
-    if i == 0 or j == 0:
-        return 1
-    if i == j:
-        return 0
-    return kronecker_symbol(i - j, p)
+from sage.misc.unknown import Unknown
 
 def normalise_hadamard(H):
     """
@@ -119,14 +69,12 @@ def normalise_hadamard(H):
         sage: H == hadamard_matrix(4)
         True
     """
-    Hc1 = H.column(0)
-    Hr1 = H.row(0)
     for i in range(H.ncols()):
-        if Hc1[i] < 0:
-            H.rescale_row(i, -1)
-    for i in range(H.nrows()):
-        if Hr1[i] < 0:
+        if H[0,i] < 0:
             H.rescale_col(i, -1)
+    for i in range(H.nrows()):
+        if H[i,0] < 0:
+            H.rescale_row(i, -1)
     return H
 
 def hadamard_matrix_paleyI(n):
@@ -140,18 +88,36 @@ def hadamard_matrix_paleyI(n):
 
     We note that this method returns a normalised Hadamard matrix ::
 
-        sage: sage.combinat.matrices.hadamard_matrix.hadamard_matrix_paleyI(4)
+        sage: sage.combinat.matrices.hadamard_matrix.hadamard_matrix_paleyI(4) # random
         [ 1  1  1  1]
+        [ 1 -1  1 -1]
         [ 1 -1 -1  1]
         [ 1  1 -1 -1]
-        [ 1 -1  1 -1]
+
+    TESTS::
+
+        sage: from sage.combinat.matrices.hadamard_matrix import hadamard_matrix_paleyI
+        sage: from sage.combinat.matrices.hadamard_matrix import is_hadamard_matrix
+        sage: test_cases = [x+1 for x in range(100) if is_prime_power(x) and x%4==3]
+        sage: all(is_hadamard_matrix(hadamard_matrix_paleyI(n),normalized=True,verbose=True)
+        ....:     for n in test_cases)
+        True
     """
     p = n - 1
-    if not(is_prime(p) and (p % 4 == 3)):
+    if not(is_prime_power(p) and (p % 4 == 3)):
         raise ValueError("The order %s is not covered by the Paley type I construction." % n)
-    H = matrix(ZZ, [[H1(i, j, p) for i in range(n)] for j in range(n)])
-    # normalising H so that first row and column have only +1 entries.
-    return normalise_hadamard(H)
+
+    from sage.rings.finite_rings.constructor import FiniteField
+    K = FiniteField(p,'x')
+    K_list = list(K)
+    K_list.insert(0,K.zero())
+    H = matrix(ZZ, [[2*((x-y).is_square()-.5) for x in K_list] for y in K_list])
+    for i in range(n):
+        H[0,i] =  1
+        H[i,i] = -1
+        H[i,0] = -1
+    H = normalise_hadamard(H)
+    return H
 
 def hadamard_matrix_paleyII(n):
     """
@@ -169,34 +135,148 @@ def hadamard_matrix_paleyII(n):
 
     We note that the method returns a normalised Hadamard matrix ::
 
-        sage: sage.combinat.matrices.hadamard_matrix.hadamard_matrix_paleyII(12)
-        [ 1  1  1  1  1  1| 1  1  1  1  1  1]
-        [ 1  1  1 -1 -1  1|-1 -1  1 -1 -1  1]
-        [ 1  1  1  1 -1 -1|-1  1 -1  1 -1 -1]
-        [ 1 -1  1  1  1 -1|-1 -1  1 -1  1 -1]
-        [ 1 -1 -1  1  1  1|-1 -1 -1  1 -1  1]
-        [ 1  1 -1 -1  1  1|-1  1 -1 -1  1 -1]
-        [-----------------+-----------------]
-        [ 1 -1 -1 -1 -1 -1|-1  1  1  1  1  1]
-        [ 1 -1  1 -1 -1  1| 1 -1 -1  1  1 -1]
-        [ 1  1 -1  1 -1 -1| 1 -1 -1 -1  1  1]
-        [ 1 -1  1 -1  1 -1| 1  1 -1 -1 -1  1]
-        [ 1 -1 -1  1 -1  1| 1  1  1 -1 -1 -1]
-        [ 1  1 -1 -1  1 -1| 1 -1  1  1 -1 -1]
+        sage: sage.combinat.matrices.hadamard_matrix.hadamard_matrix_paleyII(12) # random
+        [ 1  1| 1  1| 1  1| 1  1| 1  1| 1  1]
+        [ 1 -1|-1  1|-1  1|-1  1|-1  1|-1  1]
+        [-----+-----+-----+-----+-----+-----]
+        [ 1 -1| 1 -1| 1  1|-1 -1|-1 -1| 1  1]
+        [ 1  1|-1 -1| 1 -1|-1  1|-1  1| 1 -1]
+        [-----+-----+-----+-----+-----+-----]
+        [ 1 -1| 1  1| 1 -1| 1  1|-1 -1|-1 -1]
+        [ 1  1| 1 -1|-1 -1| 1 -1|-1  1|-1  1]
+        [-----+-----+-----+-----+-----+-----]
+        [ 1 -1|-1 -1| 1  1| 1 -1| 1  1|-1 -1]
+        [ 1  1|-1  1| 1 -1|-1 -1| 1 -1|-1  1]
+        [-----+-----+-----+-----+-----+-----]
+        [ 1 -1|-1 -1|-1 -1| 1  1| 1 -1| 1  1]
+        [ 1  1|-1  1|-1  1| 1 -1|-1 -1| 1 -1]
+        [-----+-----+-----+-----+-----+-----]
+        [ 1 -1| 1  1|-1 -1|-1 -1| 1  1| 1 -1]
+        [ 1  1| 1 -1|-1  1|-1  1| 1 -1|-1 -1]
+
+    TESTS::
+
+        sage: from sage.combinat.matrices.hadamard_matrix import hadamard_matrix_paleyII
+        sage: from sage.combinat.matrices.hadamard_matrix import is_hadamard_matrix
+        sage: test_cases = [2*(x+1) for x in range(50) if is_prime_power(x) and x%4==1]
+        sage: all(is_hadamard_matrix(hadamard_matrix_paleyII(n),normalized=True,verbose=True)
+        ....:     for n in test_cases)
+        True
     """
-    N = Integer(n/2)
-    p = N - 1
-    if not(is_prime(p) and (p % 4 == 1)):
+    q = n//2 - 1
+    if not(n%2==0 and is_prime_power(q) and (q % 4 == 1)):
         raise ValueError("The order %s is not covered by the Paley type II construction." % n)
-    S = matrix(ZZ, [[H2(i, j, p) for i in range(N)] for j in range(N)])
-    H = block_matrix([[S + 1, S - 1], [1 - S, S + 1]])
-    # normalising H so that first row and column have only +1 entries.
+
+    from sage.rings.finite_rings.constructor import FiniteField
+    K = FiniteField(q,'x')
+    K_list = list(K)
+    K_list.insert(0,K.zero())
+    H = matrix(ZZ, [[2*((x-y).is_square()-.5) for x in K_list] for y in K_list])
+    for i in range(q+1):
+        H[0,i] = 1
+        H[i,0] = 1
+        H[i,i] = 0
+
+    tr = { 0: matrix(2,2,[ 1,-1,-1,-1]),
+           1: matrix(2,2,[ 1, 1, 1,-1]),
+          -1: matrix(2,2,[-1,-1,-1, 1])}
+
+    H = block_matrix(q+1,q+1,[tr[v] for r in H for v in r])
+
     return normalise_hadamard(H)
 
-def hadamard_matrix(n):
+def is_hadamard_matrix(M, normalized=False, verbose=False):
+    r"""
+    Test if `M` is a hadamard matrix.
+
+    INPUT:
+
+    - ``M`` -- a matrix
+
+    - ``normalized`` (boolean) -- whether to test if ``M`` is a normalized
+      Hadamard matrix, i.e. has its first row/column filles with +1.
+
+    - ``verbose`` (boolean) -- whether to be verbose when the matrix is not
+      Hadamard.
+
+    EXAMPLE::
+
+        sage: from sage.combinat.matrices.hadamard_matrix import is_hadamard_matrix
+        sage: is_hadamard_matrix(matrix.hadamard(12))
+        True
+        sage: h = matrix.hadamard(12)
+        sage: h[0,0] = 2
+        sage: is_hadamard_matrix(h,verbose=True)
+        The matrix does not only contain +1 and -1 entries, e.g. 2
+        False
+        sage: h = matrix.hadamard(12)
+        sage: for i in range(12):
+        ....:     h[i,2] = -h[i,2]
+        sage: is_hadamard_matrix(h,verbose=True,normalized=True)
+        The matrix is not normalized
+        False
+
+
     """
+    n = M.ncols()
+    if n != M.nrows():
+        if verbose:
+            print "The matrix is not square ({}x{})".format(M.nrows(),n)
+        return False
+
+    if n == 0:
+        return True
+
+    for r in M:
+        for v in r:
+            if v*v != 1:
+                if verbose:
+                    print "The matrix does not only contain +1 and -1 entries, e.g. "+str(v)
+                return False
+
+    prod = (M*M.transpose()).dict()
+    if (len(prod) != n or
+        set(prod.itervalues()) != {n} or
+        any( (i,i) not in prod for i in range(n) )):
+        if verbose:
+            print "The product M*M.transpose() is not equal to nI"
+        return False
+
+    if normalized:
+        if (set(M.row(0)   ) != {1} or
+            set(M.column(0)) != {1}):
+            if verbose:
+                print "The matrix is not normalized"
+            return False
+
+    return True
+
+from sage.matrix.constructor import matrix_method
+@matrix_method
+def hadamard_matrix(n,existence=False, check=True):
+    r"""
     Tries to construct a Hadamard matrix using a combination of Paley
     and Sylvester constructions.
+
+    INPUT:
+
+    - ``n`` (integer) -- dimension of the matrix
+
+    - ``existence`` (boolean) -- whether to build the matrix or merely query if
+      a construction is available in Sage. When set to ``True``, the function
+      returns:
+
+        - ``True`` -- meaning that Sage knows how to build the matrix
+
+        - ``Unknown`` -- meaning that Sage does not know how to build the
+          matrix, but that the design may exist (see :mod:`sage.misc.unknown`).
+
+        - ``False`` -- meaning that the matrix does not exist.
+
+    - ``check`` (boolean) -- whether to check that output is correct before
+      returning it. As this is expected to be useless (but we are cautious
+      guys), you may want to disable it whenever you want speed. Set to ``True``
+      by default.
 
     EXAMPLES::
 
@@ -209,7 +289,7 @@ def hadamard_matrix(n):
         sage: hadamard_matrix(2)
         [ 1  1]
         [ 1 -1]
-        sage: hadamard_matrix(8)
+        sage: hadamard_matrix(8) # random
         [ 1  1  1  1  1  1  1  1]
         [ 1 -1  1 -1  1 -1  1 -1]
         [ 1  1 -1 -1  1  1 -1 -1]
@@ -224,43 +304,77 @@ def hadamard_matrix(n):
     We note that the method `hadamard_matrix()` returns a normalised Hadamard matrix
     (the entries in the first row and column are all +1) ::
 
-        sage: hadamard_matrix(12)
-        [ 1  1  1  1  1  1| 1  1  1  1  1  1]
-        [ 1  1  1 -1 -1  1|-1 -1  1 -1 -1  1]
-        [ 1  1  1  1 -1 -1|-1  1 -1  1 -1 -1]
-        [ 1 -1  1  1  1 -1|-1 -1  1 -1  1 -1]
-        [ 1 -1 -1  1  1  1|-1 -1 -1  1 -1  1]
-        [ 1  1 -1 -1  1  1|-1  1 -1 -1  1 -1]
-        [-----------------+-----------------]
-        [ 1 -1 -1 -1 -1 -1|-1  1  1  1  1  1]
-        [ 1 -1  1 -1 -1  1| 1 -1 -1  1  1 -1]
-        [ 1  1 -1  1 -1 -1| 1 -1 -1 -1  1  1]
-        [ 1 -1  1 -1  1 -1| 1  1 -1 -1 -1  1]
-        [ 1 -1 -1  1 -1  1| 1  1  1 -1 -1 -1]
-        [ 1  1 -1 -1  1 -1| 1 -1  1  1 -1 -1]
+        sage: hadamard_matrix(12) # random
+        [ 1  1| 1  1| 1  1| 1  1| 1  1| 1  1]
+        [ 1 -1|-1  1|-1  1|-1  1|-1  1|-1  1]
+        [-----+-----+-----+-----+-----+-----]
+        [ 1 -1| 1 -1| 1  1|-1 -1|-1 -1| 1  1]
+        [ 1  1|-1 -1| 1 -1|-1  1|-1  1| 1 -1]
+        [-----+-----+-----+-----+-----+-----]
+        [ 1 -1| 1  1| 1 -1| 1  1|-1 -1|-1 -1]
+        [ 1  1| 1 -1|-1 -1| 1 -1|-1  1|-1  1]
+        [-----+-----+-----+-----+-----+-----]
+        [ 1 -1|-1 -1| 1  1| 1 -1| 1  1|-1 -1]
+        [ 1  1|-1  1| 1 -1|-1 -1| 1 -1|-1  1]
+        [-----+-----+-----+-----+-----+-----]
+        [ 1 -1|-1 -1|-1 -1| 1  1| 1 -1| 1  1]
+        [ 1  1|-1  1|-1  1| 1 -1|-1 -1| 1 -1]
+        [-----+-----+-----+-----+-----+-----]
+        [ 1 -1| 1  1|-1 -1|-1 -1| 1  1| 1 -1]
+        [ 1  1| 1 -1|-1  1|-1  1| 1 -1|-1 -1]
+
+    TESTS::
+
+        sage: matrix.hadamard(10,existence=True)
+        False
+        sage: matrix.hadamard(12,existence=True)
+        True
+        sage: matrix.hadamard(92,existence=True)
+        Unknown
+        sage: matrix.hadamard(10)
+        Traceback (most recent call last):
+        ...
+        ValueError: The Hadamard matrix of order 10 does not exist
     """
     if not(n % 4 == 0) and (n > 2):
+        if existence:
+            return False
         raise ValueError("The Hadamard matrix of order %s does not exist" % n)
     if n == 2:
-        return matrix([[1, 1], [1, -1]])
-    if is_even(n):
-        N = Integer(n / 2)
+        if existence:
+            return True
+        M = matrix([[1, 1], [1, -1]])
     elif n == 1:
-        return matrix([1])
-    if is_prime(N - 1) and (N - 1) % 4 == 1:
-        return hadamard_matrix_paleyII(n)
+        if existence:
+            return True
+        M = matrix([1])
+    elif is_prime_power(n//2 - 1) and (n//2 - 1) % 4 == 1:
+        if existence:
+            return True
+        M = hadamard_matrix_paleyII(n)
     elif n == 4 or n % 8 == 0:
-        had = hadamard_matrix(Integer(n / 2))
+        if existence:
+            return hadamard_matrix(n//2,existence=True)
+        had = hadamard_matrix(n//2,check=False)
         chad1 = matrix([list(r) + list(r) for r in had.rows()])
         mhad = (-1) * had
         R = len(had.rows())
         chad2 = matrix([list(had.rows()[i]) + list(mhad.rows()[i])
                        for i in range(R)])
-        return chad1.stack(chad2)
-    elif is_prime(N - 1) and (N - 1) % 4 == 3:
-        return hadamard_matrix_paleyI(n)
+        M = chad1.stack(chad2)
+    elif is_prime_power(n - 1) and (n - 1) % 4 == 3:
+        if existence:
+            return True
+        M = hadamard_matrix_paleyI(n)
     else:
+        if existence:
+            return Unknown
         raise ValueError("The Hadamard matrix of order %s is not yet implemented." % n)
+
+    if check:
+        assert is_hadamard_matrix(M, normalized=True)
+
+    return M
 
 def hadamard_matrix_www(url_file, comments=False):
     """

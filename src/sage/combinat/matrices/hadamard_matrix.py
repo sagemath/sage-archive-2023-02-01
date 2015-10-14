@@ -111,7 +111,9 @@ def hadamard_matrix_paleyI(n):
     K = FiniteField(p,'x')
     K_list = list(K)
     K_list.insert(0,K.zero())
-    H = matrix(ZZ, [[2*((x-y).is_square()-.5) for x in K_list] for y in K_list])
+    H = matrix(ZZ, [[(1 if (x-y).is_square() else -1)
+                     for x in K_list]
+                    for y in K_list])
     for i in range(n):
         H[0,i] =  1
         H[i,i] = -1
@@ -171,7 +173,9 @@ def hadamard_matrix_paleyII(n):
     K = FiniteField(q,'x')
     K_list = list(K)
     K_list.insert(0,K.zero())
-    H = matrix(ZZ, [[2*((x-y).is_square()-.5) for x in K_list] for y in K_list])
+    H = matrix(ZZ, [[(1 if (x-y).is_square() else -1)
+                     for x in K_list]
+                    for y in K_list])
     for i in range(q+1):
         H[0,i] = 1
         H[i,0] = 1

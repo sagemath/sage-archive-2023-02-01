@@ -41,26 +41,24 @@ class DiffManifoldHomset(TopManifoldHomset):
 
     Given two differentiable manifolds `M` and `N` over a topological field `K`,
     the class :class:`DiffManifoldHomset` implements the set
-    `\mathrm{Hom}(U,V)` of morphisms (i.e. differentiable maps)
-    `U\rightarrow V`, where `U` is an open subset of `M` and `V` an open
-    subset of `N`. Note that, as open subsets of differentiable manifolds, `U`
-    and `V` are differentiable manifolds by themselves.
+    `\mathrm{Hom}(M,N)` of morphisms (i.e. differentiable maps)
+    `M\rightarrow N`.
 
     This is a Sage *parent* class, whose *element* class is
     :class:`~sage.manifolds.differentiable.diff_map.DiffMap`.
 
     INPUT:
 
-    - ``domain`` -- open subset `U\subset M` (domain of the morphisms),
+    - ``domain`` -- differentiable manifold `M` (domain of the morphisms),
       as an instance of
       :class:`~sage.manifolds.differentiable.manifold.DiffManifold`
-    - ``codomain`` -- open subset `V\subset N` (codomain of the morphisms),
+    - ``codomain`` -- differentiable manifold `N` (codomain of the morphisms),
       as an instance of
       :class:`~sage.manifolds.differentiable.manifold.DiffManifold`
     - ``name`` -- (default: ``None``) string; name given to the homset; if
-      none is provided, Hom(U,V) will be used
+      none is provided, Hom(M,N) will be used
     - ``latex_name`` -- (default: ``None``) string; LaTeX symbol to denote the
-      homset; if none is provided, `\mathrm{Hom}(U,V)` will be used
+      homset; if none is provided, `\mathrm{Hom}(M,N)` will be used
 
     EXAMPLES:
 
@@ -226,9 +224,9 @@ class DiffManifoldCurveSet(DiffManifoldHomset):
       as an instance of
       :class:`~sage.manifolds.differentiable.manifold.DiffManifold`
     - ``name`` -- (default: ``None``) string; name given to the set of
-      curves; if none is provided, Hom(I,U) will be used
+      curves; if none is provided, Hom(I,M) will be used
     - ``latex_name`` -- (default: ``None``) string; LaTeX symbol to denote the
-      set of curves; if none is provided, `\mathrm{Hom}(I,U)` will be used
+      set of curves; if none is provided, `\mathrm{Hom}(I,M)` will be used
 
     EXAMPLES:
 
@@ -329,7 +327,8 @@ class DiffManifoldCurveSet(DiffManifoldHomset):
     elements are (manifold) endomorphisms::
 
         sage: EI = Hom(I, I) ; EI
-        Set of Morphisms from Real interval (0, 1) to Real interval (0, 1) in Category of facade sets
+        Set of Morphisms from Real interval (0, 1) to Real interval (0, 1) in
+         Category of facade sets
         sage: EI.category()
         Category of endsets of sets
         sage: EI is End(I)
@@ -380,7 +379,8 @@ class DiffManifoldCurveSet(DiffManifoldHomset):
              differentiable manifold M in Category of facade sets
             sage: TestSuite(H).run()
             sage: H =  DiffManifoldCurveSet(I, I) ; H
-            Set of Morphisms from Real interval (-1, 2) to Real interval (-1, 2) in Category of facade sets
+            Set of Morphisms from Real interval (-1, 2) to Real interval
+             (-1, 2) in Category of facade sets
             sage: TestSuite(H).run()
 
         """
@@ -412,7 +412,8 @@ class DiffManifoldCurveSet(DiffManifoldHomset):
             sage: R.<t> = RealLine() ; R
             Real number line R
             sage: H = Hom(R, M)
-            sage: c = H._element_constructor_({X: [sin(t), sin(2*t)/2]}, name='c') ; c
+            sage: c = H._element_constructor_({X: [sin(t), sin(2*t)/2]},
+            ....:                             name='c') ; c
             Curve c in the 2-dimensional differentiable manifold M
             sage: c = Hom(R, R)._element_constructor_({}, is_identity=True) ; c
             Identity map Id_R of the Real number line R
@@ -495,4 +496,3 @@ class DiffManifoldCurveSet(DiffManifoldHomset):
         target_coord[0] = x1 + (x2-x1)/(1+t*t)
         coord_expression = {chart2: target_coord}
         return self.element_class(self, coord_expression)
-

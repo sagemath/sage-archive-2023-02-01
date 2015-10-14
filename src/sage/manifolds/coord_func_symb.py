@@ -436,7 +436,7 @@ class CoordFunctionSymb(CoordFunction):
 
     def __call__(self, *coords, **options):
         r"""
-        Computes the value of the function at specified coordinates.
+        Compute the value of the function at specified coordinates.
 
         INPUT:
 

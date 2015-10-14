@@ -13,8 +13,8 @@ REFERENCES:
 
 - S. Kobayashi & K. Nomizu : *Foundations of Differential Geometry*, vol. 1,
   Interscience Publishers (New York) (1963)
-- J.M. Lee : *Introduction to Smooth Manifolds*, 2nd ed., Springer (New York)
-  (2013)
+- J.M. Lee : *Riemannian Manifolds*, Springer (New York) (1997);
+  :doi:`10.1007/b98852`
 - B O'Neill : *Semi-Riemannian Geometry*, Academic Press (San Diego) (1983)
 
 """
@@ -627,7 +627,7 @@ class AffineConnection(SageObject):
           class :class:`~sage.tensor.modules.comp.Components`; if such
           connection coefficients did not exist previously, they are created.
           See method :meth:`coef` for the storage convention of the connection
-          coefficents.
+          coefficients.
 
         EXAMPLES:
 
@@ -715,7 +715,7 @@ class AffineConnection(SageObject):
         .. WARNING::
 
             If the connection has already coefficients in other frames, it
-            is the user's responsability to make sure that the coefficients
+            is the user's responsibility to make sure that the coefficients
             to be added are consistent with them.
 
         OUTPUT:
@@ -724,7 +724,7 @@ class AffineConnection(SageObject):
           class :class:`~sage.tensor.modules.comp.Components`; if such
           connection coefficients did not exist previously, they are created.
           See method :meth:`coef` for the storage convention of the connection
-          coefficents.
+          coefficients.
 
 
         EXAMPLES:
@@ -1098,14 +1098,14 @@ class AffineConnection(SageObject):
 
     def restrict(self, subdomain):
         r"""
-        Return the restriction of ``self`` to some subdomain.
+        Return the restriction of the connection to some subdomain.
 
         If such restriction has not been defined yet, it is constructed here.
 
         INPUT:
 
-        - ``subdomain`` -- open subset `U` of ``self._domain`` (must be an
-          instance of
+        - ``subdomain`` -- open subset `U` of the connection's domain (must be
+          an instance of
           :class:`~sage.manifolds.differentiable.manifold.DiffManifold`)
 
         OUTPUT:
@@ -2148,7 +2148,8 @@ class AffineConnection(SageObject):
 
         .. MATH::
 
-            \Omega^i_{\ \, j} = \mathrm{d} \omega^i_{\ \, j} + \omega^i_{\ \, k} \wedge \omega^k_{\ \, j}
+            \Omega^i_{\ \, j} = \mathrm{d} \omega^i_{\ \, j}
+                                + \omega^i_{\ \, k} \wedge \omega^k_{\ \, j}
 
         where the `\omega^i_{\ \, j}`'s are the connection 1-forms (cf.
         :meth:`connection_form`). Let us check it on the frame e::

@@ -1335,7 +1335,8 @@ class GenericGrowthGroup(
 
     .. SEEALSO::
 
-        :class:`MonomialGrowthGroup`
+        :class:`MonomialGrowthGroup`,
+        :class:`ExponentialGrowthGroup`
     """
     # TODO: implement some sort of 'assume', where basic assumptions
     # for the variables can be stored. --> within the cartesian product

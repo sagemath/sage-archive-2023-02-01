@@ -4597,7 +4597,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
         M = MatrixSpace(F, n, n)
         return [ M(v.list()) for v in LL_vectors.basis() ]
 
-    def _restrict_to_space(self, W):
+    def _restrict_to_subspace(self, W):
         r"""
         Restrict this cone (up to linear isomorphism) to a vector subspace.
 
@@ -4638,7 +4638,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
             sage: K = Cone([(1,2,3),(-1,1,0),(9,0,-2)])
             sage: K.is_solid()
             True
-            sage: K._restrict_to_space(K.span()).rays()
+            sage: K._restrict_to_subspace(K.span()).rays()
             N(-1,  1,  0),
             N( 1,  0,  0),
             N( 9, -6, -1)
@@ -4648,12 +4648,12 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
         representation regardless of the ambient space::
 
             sage: K = Cone([(1,0)])
-            sage: K_S = K._restrict_to_space(K.span()).rays()
+            sage: K_S = K._restrict_to_subspace(K.span()).rays()
             sage: K_S
             N(1)
             in 1-d lattice N
             sage: K = Cone([(1,1,1)])
-            sage: K_S = K._restrict_to_space(K.span()).rays()
+            sage: K_S = K._restrict_to_subspace(K.span()).rays()
             sage: K_S
             N(1)
             in 1-d lattice N
@@ -4662,7 +4662,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
 
             sage: K = Cone([(8,3,-1,0),(9,2,2,0),(-4,6,7,0)])
             sage: trivial_space = K.lattice().vector_space().span([])
-            sage: K._restrict_to_space(trivial_space)
+            sage: K._restrict_to_subspace(trivial_space)
             0-d cone in 0-d lattice N
 
         TESTS:
@@ -4671,7 +4671,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
 
             sage: set_random_seed()
             sage: K = random_cone(max_ambient_dim = 8)
-            sage: K_S = K._restrict_to_space(K.span())
+            sage: K_S = K._restrict_to_subspace(K.span())
             sage: K_S.is_solid()
             True
 
@@ -4680,7 +4680,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
 
             sage: set_random_seed()
             sage: K = random_cone(max_ambient_dim = 8)
-            sage: K_S = K._restrict_to_space(K.span())
+            sage: K_S = K._restrict_to_subspace(K.span())
             sage: K.nrays() == K_S.nrays()
             True
 
@@ -4688,7 +4688,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
 
             sage: set_random_seed()
             sage: K = random_cone(max_ambient_dim = 8)
-            sage: K_S = K._restrict_to_space(K.span())
+            sage: K_S = K._restrict_to_subspace(K.span())
             sage: K.dim() == K_S.dim()
             True
 
@@ -4696,7 +4696,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
 
             sage: set_random_seed()
             sage: K = random_cone(max_ambient_dim = 8)
-            sage: K_S = K._restrict_to_space(K.span())
+            sage: K_S = K._restrict_to_subspace(K.span())
             sage: K.lineality() == K_S.lineality()
             True
 
@@ -4705,7 +4705,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
 
             sage: set_random_seed()
             sage: K = random_cone(max_ambient_dim = 8)
-            sage: K_S = K._restrict_to_space(K.span())
+            sage: K_S = K._restrict_to_subspace(K.span())
             sage: len(K.facets()) == len(K_S.facets())
             True
 
@@ -4714,7 +4714,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
 
             sage: set_random_seed()
             sage: K = random_cone(max_ambient_dim = 8, solid = True)
-            sage: K_S = K._restrict_to_space(K.span())
+            sage: K_S = K._restrict_to_subspace(K.span())
             sage: K.lattice_dim() == K_S.lattice_dim()
             True
 
@@ -4724,7 +4724,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
 
             sage: set_random_seed()
             sage: K = random_cone(max_ambient_dim = 8, solid = True)
-            sage: K_S = K._restrict_to_space(K.span())
+            sage: K_S = K._restrict_to_subspace(K.span())
             sage: dcs1 = K.discrete_complementarity_set()
             sage: dcs2 = K_S.discrete_complementarity_set()
             sage: len(dcs1) == len(dcs2)
@@ -4736,7 +4736,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
 
             sage: set_random_seed()
             sage: K = random_cone(max_ambient_dim = 8, solid = True)
-            sage: K_S = K._restrict_to_space(K.span())
+            sage: K_S = K._restrict_to_subspace(K.span())
             sage: LL1 = K.lyapunov_like_basis()
             sage: LL2 = K_S.lyapunov_like_basis()
             sage: len(LL1) == len(LL2)
@@ -4749,7 +4749,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
             sage: K = random_cone(max_ambient_dim = 8)
             sage: W_basis = random_sublist(K.rays(), 0.5)
             sage: W = K.lattice().vector_space().span(W_basis)
-            sage: K_W = K._restrict_to_space(W)
+            sage: K_W = K._restrict_to_subspace(W)
             sage: K_W.lattice_dim() == W.dimension()
             True
 
@@ -4758,9 +4758,9 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
 
             sage: set_random_seed()
             sage: K = random_cone(max_ambient_dim = 8)
-            sage: K_S = K._restrict_to_space(K.span())
+            sage: K_S = K._restrict_to_subspace(K.span())
             sage: P = K_S.dual().span()
-            sage: K_SP = K_S._restrict_to_space(P)
+            sage: K_SP = K_S._restrict_to_subspace(P)
             sage: K_SP.is_proper()
             True
         """
@@ -4960,9 +4960,9 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
 
             sage: set_random_seed()
             sage: K = random_cone(max_ambient_dim = 8)
-            sage: K_S = K._restrict_to_space(K.span())
+            sage: K_S = K._restrict_to_subspace(K.span())
             sage: P = K_S.dual().span()
-            sage: K_SP = K_S.dual()._restrict_to_space(P).dual()
+            sage: K_SP = K_S.dual()._restrict_to_subspace(P).dual()
             sage: l = K.lineality()
             sage: c = K.codim()
             sage: actual = K.lyapunov_rank()
@@ -4999,7 +4999,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
 
         if m < n:
             # K is not solid, restrict it to its span.
-            K = self._restrict_to_space(K.span())
+            K = self._restrict_to_subspace(K.span())
 
             # Add the Lyapunov rank of the trivial cone that we just
             # peeled off (Lemma 1 in [Orlitzky]_).
@@ -5008,7 +5008,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
         if l > 0:
             # K is not pointed; restrict it to the span of its
             # dual (Proposition 2 in [Orlitzky]_).
-            K = K._restrict_to_space(K.dual().span())
+            K = K._restrict_to_subspace(K.dual().span())
 
             # Add the Lyapunov rank of the subspace we just peeled off
             # (Lemma 2 in [Orlitzky]_).

@@ -284,7 +284,10 @@ class FiniteDimensionalModulesWithBasis(CategoryWithAxiom_over_base_ring):
                 [-2, -1]
             """
             if order is None:
-                order = sorted(self.basis().keys())
+                try:
+                    order = sorted(self.parent().basis().keys())
+                except AttributeError: # Not a family, assume it is list-like
+                    order = range(self.parent().dimension())
             return [self[i] for i in order]
 
     class MorphismMethods:

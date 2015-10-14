@@ -683,17 +683,18 @@ class FreeModule_generic(Module):
             Ambient free module of rank 3 over the integral domain Multivariate Polynomial Ring in x0, x1, x2 over Rational Field
 
             sage: FreeModule(GF(7),3).category()
-            Category of vector spaces with basis over (finite fields
-            and subquotients of monoids and quotients of semigroups)
+            Category of finite dimensional vector spaces with basis over
+             (finite fields and subquotients of monoids and quotients of semigroups)
             sage: V = QQ^4; V.category()
-            Category of vector spaces with basis over quotient fields
+            Category of finite dimensional vector spaces with basis over quotient fields
             sage: V = GF(5)**20; V.category()
-            Category of vector spaces with basis over (finite fields
-            and subquotients of monoids and quotients of semigroups)
+            Category of finite dimensional vector spaces with basis over
+             (finite fields and subquotients of monoids and quotients of semigroups)
             sage: FreeModule(ZZ,3).category()
-            Category of modules with basis over (euclidean domains and infinite enumerated sets)
+            Category of finite dimensional modules with basis over
+             (euclidean domains and infinite enumerated sets)
             sage: (QQ^0).category()
-            Category of vector spaces with basis over quotient fields
+            Category of finite dimensional vector spaces with basis over quotient fields
 
         TESTS::
 
@@ -734,7 +735,7 @@ done from the right side.""")
 
         if category is None:
             from sage.categories.all import FreeModules
-            category = FreeModules(base_ring.category())
+            category = FreeModules(base_ring.category()).FiniteDimensional()
 
         super(FreeModule_generic, self).__init__(base_ring, category=category)
         self.__coordinate_ring = coordinate_ring
@@ -3067,10 +3068,9 @@ class FreeModule_generic_field(FreeModule_generic_pid):
             sage: type(H)
             <class 'sage.modules.free_module_homspace.FreeModuleHomspace_with_category'>
             sage: H
-            Set of Morphisms from Vector space of dimension 2 over
-            Rational Field to Ambient free module of rank 3 over the
-            principal ideal domain Integer Ring in Category of vector
-            spaces with basis over quotient fields
+            Set of Morphisms from Vector space of dimension 2 over Rational Field
+             to Ambient free module of rank 3 over the principal ideal domain Integer Ring
+             in Category of finite dimensional vector spaces with basis over quotient fields
         """
         if Y.base_ring().is_field():
             import vector_space_homspace

@@ -1935,7 +1935,7 @@ class Polyhedron_base(Element):
         """
         Return the average of the vertices.
 
-        See also :meth:`interior_point`.
+        See also :meth:`representative_point`.
 
         OUTPUT:
 

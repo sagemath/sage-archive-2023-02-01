@@ -321,7 +321,7 @@ class DiffManifoldCurve(DiffMap):
             'Curve c in the 2-dimensional differentiable manifold M'
 
         """
-        if self._codomain._manifold._dim == 1:
+        if self._codomain._dim == 1:
             return DiffMap._repr_(self)
         description = "Curve "
         if self._name is not None:
@@ -426,7 +426,7 @@ class DiffManifoldCurve(DiffMap):
             chart_pair = self._coord_expression.keys()[0]  # a chart is picked
                                                            # at random
         coord_functions = self._coord_expression[chart_pair]._functions
-        n = codom._manifold._dim
+        n = codom._dim
         dict_subs = {canon_coord: t}
         coords = [coord_functions[i].expr().substitute(dict_subs)
                   for i in range(n)]
@@ -545,7 +545,7 @@ class DiffManifoldCurve(DiffMap):
         resu = vmodule.element_class(vmodule, name=name, latex_name=latex_name)
         canon_chart = self._domain.canonical_chart()
         codom = self._codomain
-        dim = codom._manifold._dim
+        dim = codom._dim
         codom_top_charts = codom._top_charts
         for chart in codom_top_charts:
             try:

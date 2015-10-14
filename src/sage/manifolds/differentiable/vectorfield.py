@@ -40,8 +40,10 @@ REFERENCES:
 - S. Kobayashi & K. Nomizu : *Foundations of Differential Geometry*, vol. 1,
   Interscience Publishers (New York) (1963)
 - J.M. Lee : *Introduction to Smooth Manifolds*, 2nd ed., Springer (New York)
-  (2013)
+  (2013); :doi:`10.1007/978-1-4419-9982-5`
 - B O'Neill : *Semi-Riemannian Geometry*, Academic Press (San Diego) (1983)
+- M. Berger & B. Gostiaux : *Differential Geometry: Manifolds, Curves and
+  Surfaces*, Springer (New York) (1988); :doi:`10.1007/978-1-4612-1033-7`
 
 """
 
@@ -340,7 +342,7 @@ class VectorField(TensorField):
             # as a tensor field of type (1,0):
             return scalar(self)
         if scalar._tensor_type != (0,0):
-            raise TypeError("The argument must be a scalar field")
+            raise TypeError("the argument must be a scalar field")
         #!# Could it be simply
         # return scalar.differential()(self)
         # ?
@@ -614,13 +616,15 @@ class VectorField(TensorField):
         if chart is None:
             chart = self._domain.default_chart()
         elif not isinstance(chart, RealChart):
-            raise TypeError("{} is not a chart on a real manifold".format(chart))
+            raise TypeError("{} is not a chart on a real ".format(chart) +
+                            "manifold")
         if chart_domain is None:
             chart_domain = self._domain.default_chart()
         elif not isinstance(chart_domain, RealChart):
-            raise TypeError("{} is not a chart on a real manifold".format(chart_domain))
+            raise TypeError("{} is not a chart on a ".format(chart_domain) +
+                            "real manifold")
         elif not chart_domain.domain().is_subset(self._domain):
-            raise ValueError("The domain of {} is not ".format(chart_domain) +
+            raise ValueError("the domain of {} is not ".format(chart_domain) +
                              "included in the domain of {}".format(self))
         if fixed_coords is None:
             coords = chart_domain._xx
@@ -648,18 +652,20 @@ class VectorField(TensorField):
                                   numerical_approx(ranges[coord][1]))
             else:
                 bounds = chart_domain._bounds[chart_domain[:].index(coord)]
-                if bounds[0][0] == -Infinity:
+                xmin0 = bounds[0][0]
+                xmax0 = bounds[1][0]
+                if xmin0 == -Infinity:
                     xmin = numerical_approx(-max_range)
                 elif bounds[0][1]:
-                    xmin = numerical_approx(bounds[0][0])
+                    xmin = numerical_approx(xmin0)
                 else:
-                    xmin = numerical_approx(bounds[0][0] + 1.e-3)
-                if bounds[1][0] == Infinity:
+                    xmin = numerical_approx(xmin0 + 1.e-3)
+                if xmax0 == Infinity:
                     xmax = numerical_approx(max_range)
                 elif bounds[1][1]:
-                    xmax = numerical_approx(bounds[1][0])
+                    xmax = numerical_approx(xmax0)
                 else:
-                    xmax = numerical_approx(bounds[1][0] - 1.e-3)
+                    xmax = numerical_approx(xmax0 - 1.e-3)
                 ranges0[coord] = (xmin, xmax)
         ranges = ranges0
         if nb_values is None:
@@ -685,12 +691,17 @@ class VectorField(TensorField):
         # 2/ Plots
         #    -----
         dom = chart_domain.domain()
+        vector = self.restrict(dom)
+        if vector.parent().destination_map() is dom.identity_map():
+            if mapping is not None:
+                vector = mapping.pushforward(vector)
+                mapping = None
         nc = len(chart_domain[:])
         ncp = len(coords)
         xx = [0] * nc
         if fixed_coords is not None:
             if len(fixed_coords) != nc - ncp:
-                raise ValueError("Bad number of fixed coordinates.")
+                raise ValueError("bad number of fixed coordinates")
             for fc, val in fixed_coords.iteritems():
                 xx[chart_domain[:].index(fc)] = val
         index_p = [chart_domain[:].index(cd) for cd in coords]
@@ -706,11 +717,12 @@ class VectorField(TensorField):
             if chart_domain.valid_coordinates(*xx, tolerance=1e-13,
                                               parameters=parameters):
                 point = dom(xx, chart=chart_domain)
-                resu += self.at(point).plot(chart=chart,
-                                 ambient_coords=ambient_coords, mapping=mapping,
-                                 scale=scale, color=color, print_label=False,
-                                 parameters=parameters,
-                                 **extra_options)
+                resu += vector.at(point).plot(chart=chart,
+                                              ambient_coords=ambient_coords,
+                                              mapping=mapping, scale=scale,
+                                              color=color, print_label=False,
+                                              parameters=parameters,
+                                              **extra_options)
             # Next index:
             ret = 1
             for pos in range(ncp-1,-1,-1):
@@ -1067,7 +1079,7 @@ class VectorFieldParal(FiniteRankFreeModuleElement, TensorFieldParal,
             # as a tensor field of type (1,0):
             return scalar(self)
         if scalar._tensor_type != (0,0):
-            raise TypeError("The argument must be a scalar field")
+            raise TypeError("the argument must be a scalar field")
         #!# Could it be simply
         # return scalar.differential()(self)
         # ?
@@ -1104,7 +1116,7 @@ class VectorFieldParal(FiniteRankFreeModuleElement, TensorFieldParal,
                 except ValueError:
                     pass
         if not common_charts:
-            raise ValueError("No common chart found.")
+            raise ValueError("no common chart found")
         # The computation:
         manif = scalar._manifold
         for chart in common_charts:

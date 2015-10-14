@@ -1020,7 +1020,7 @@ class TensorFieldParal(FreeModuleTensor, TensorField):
         from sage.manifolds.differentiable.vectorframe import CoordFrame
         # Compatibility checks:
         if not isinstance(other, TensorFieldParal):
-            raise TypeError("The argument must be of type TensorFieldParal.")
+            raise TypeError("the argument must be of type TensorFieldParal")
         dom = self._domain
         def_frame = dom._def_frame
         #
@@ -1171,14 +1171,14 @@ class TensorFieldParal(FreeModuleTensor, TensorField):
 
         """
         if vector._tensor_type != (1,0):
-            raise TypeError("The argument must be a vector field.")
+            raise TypeError("the argument must be a vector field")
         if id(vector) not in self._lie_derivatives:
             # A new computation must be performed
             #
             # 1/ Search for a common coordinate frame:
             coord_frame = self._common_coord_frame(vector)
             if coord_frame is None:
-                raise TypeError("No common coordinate frame found.")
+                raise ValueError("no common coordinate frame found")
             chart = coord_frame._chart
             #
             # 2/ Component computation:
@@ -1285,13 +1285,14 @@ class TensorFieldParal(FreeModuleTensor, TensorField):
             return self
         if subdomain not in self._restrictions:
             if not subdomain.is_subset(self._domain):
-                raise ValueError("The provided domain is not a subset of " +
+                raise ValueError("the provided domain is not a subset of " +
                                  "the field's domain.")
             if dest_map is None:
                 dest_map = self._fmodule._dest_map.restrict(subdomain)
             elif not dest_map._codomain.is_subset(self._ambient_domain):
-                raise ValueError("Argument dest_map not compatible with " +
-                                 "self._ambient_domain")
+                raise ValueError("the argument 'dest_map' is not compatible " +
+                                 "with the ambient domain of " +
+                                 "the {}".format(self))
             #!# First one tries to derive the restriction from a tighter domain:
             #for dom, rst in self._restrictions.iteritems():
             #    if subdomain.is_subset(dom):
@@ -1385,7 +1386,7 @@ class TensorFieldParal(FreeModuleTensor, TensorField):
             # type-(1,1) tensor acting as an endomorphism:
             vector = args[0]
             if vector._tensor_type != (1,0):
-                raise TypeError("The argument must be a vector field.")
+                raise TypeError("the argument must be a vector field")
             dom = self._domain.intersection(vector._domain)
             sd = self.restrict(dom)
             vd = vector.restrict(dom)
@@ -1393,8 +1394,8 @@ class TensorFieldParal(FreeModuleTensor, TensorField):
             return endom(vd)
         # Generic case
         if p != self._tensor_rank:
-            raise TypeError(str(self._tensor_rank) +
-                            " arguments must be provided.")
+            raise TypeError("{} arguments must be ".format(self._tensor_rank) +
+                            "provided")
         # Domain of the result
         dom_resu = self._domain
         for arg in args:
@@ -1801,8 +1802,8 @@ class TensorFieldParal(FreeModuleTensor, TensorField):
 
         """
         if point not in self._domain:
-            raise ValueError("the {} is not in the domain of ".format(point)
-                             + "the {}".format(self))
+            raise ValueError("the {} is not in the domain of ".format(point) +
+                             "the {}".format(self))
         dest_map = self._fmodule._dest_map
         if dest_map.is_identity():
             amb_point = point

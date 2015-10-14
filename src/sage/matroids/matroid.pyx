@@ -6732,6 +6732,8 @@ cdef class Matroid(SageObject):
             True
             sage: sum(map(len,P))==len(M.groundset())
             True
+            sage: Matroid(matrix([])).partition()
+            []
 
         ALGORITHM:
 
@@ -6742,7 +6744,8 @@ cdef class Matroid(SageObject):
         from sage.matroids.union_matroid import MatroidSum, PartitionMatroid
         if self.loops():
             raise ValueError("Cannot partition matroids with loops.")
-
+        if self.size()==0:
+            return []
         # doubling search for minimum independent sets that partitions the groundset
         n = self.size()
         r = self.rank()

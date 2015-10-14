@@ -554,11 +554,6 @@ class AlternatingSignMatrix(Element):
         still a height function. Gyration was first defined in [Wieland00]_ as
         an action on fully-packed loops.
 
-        REFERENCES:
-
-        .. [Wieland00] B. Wieland. *A large dihedral symmetry of the set of
-           alternating sign matrices*. Electron. J. Combin. 7 (2000).
-
         EXAMPLES::
 
             sage: A = AlternatingSignMatrices(3)

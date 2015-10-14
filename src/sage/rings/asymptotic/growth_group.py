@@ -2497,7 +2497,7 @@ class MonomialGrowthElement(GenericGrowthElement):
             sage: x._rpow_element_(2)
             Traceback (most recent call last):
             ...
-            ValueError: Variable %s is not a log of something.
+            ValueError: Variable x is not a log of something.
             sage: G = GrowthGroup('log(x)^ZZ')
             sage: lx = G(raw_element=1); lx
             log(x)
@@ -2508,7 +2508,7 @@ class MonomialGrowthElement(GenericGrowthElement):
         """
         var = str(self.parent()._var_)
         if not(var.startswith('log(') and self.exponent.is_one()):
-            raise ValueError('Variable %s is not a log of something.')
+            raise ValueError('Variable %s is not a log of something.' % (var,))
         new_var = var[4:-1]
         if base == 'e':
             from sage.rings.integer_ring import ZZ

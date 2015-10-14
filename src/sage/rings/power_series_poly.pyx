@@ -468,29 +468,13 @@ cdef class PowerSeries_poly(PowerSeries):
             1 + t^3 + O(t^7)
         """
         if isinstance(n, slice):
-            # get values from slice object
-            start = n.start if n.start is not None else 0
-            stop = self.prec() if n.stop is None else n.stop
-            if stop is infinity: stop = self.degree()+1
-            step = 1 if n.step is None else n.step
-
-            # find corresponding polynomial
-            poly = self.__f[start:stop]
-            if step is not None:
-                coeffs = poly.padded_list(stop)
-                for i in range(start, stop):
-                    if (i-start) % step:
-                        coeffs[i] = 0
-                poly = self.__f.parent()(coeffs)
-
-            # return the power series
-            return PowerSeries_poly(self._parent, poly,
+            return PowerSeries_poly(self._parent, self.polynomial()[n],
                                     prec=self._prec, check=False)
         elif n < 0:
-            return self.base_ring()(0)
+            return self.base_ring().zero()
         elif n > self.__f.degree():
             if self._prec > n:
-                return self.base_ring()(0)
+                return self.base_ring().zero()
             else:
                 raise IndexError("coefficient not known")
         return self.__f[n]

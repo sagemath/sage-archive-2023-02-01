@@ -174,7 +174,7 @@ all growth groups have the abstract base class
 Some Examples
 ^^^^^^^^^^^^^
 
-EXAMPLES::
+::
 
     sage: from sage.rings.asymptotic.growth_group import GrowthGroup
     sage: G_x = GrowthGroup('x^ZZ'); G_x
@@ -1629,6 +1629,8 @@ class GenericGrowthGroup(
         OUTPUT:
 
         An element.
+
+        EXAMPLES::
 
             sage: from sage.rings.asymptotic.growth_group import GrowthGroup
             sage: G = GrowthGroup('z^ZZ')
@@ -3471,8 +3473,6 @@ class GrowthGroupFactory(sage.structure.factory.UniqueFactory):
         sage: G, tuple(F._var_ for F in G.cartesian_factors())
         (Growth Group (e^(n*log(n)))^ZZ * (e^n)^ZZ * n^ZZ * log(n)^ZZ,
          (e^(n*log(n)), e^n, n, log(n)))
-
-    TESTS::
 
         sage: TestSuite(GrowthGroup('x^ZZ')).run(verbose=True)  # long time
         running ._test_an_element() . . . pass

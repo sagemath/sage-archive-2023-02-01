@@ -118,9 +118,9 @@ class DiffForm(TensorField):
         sage: U = M.open_subset('U') ; V = M.open_subset('V')
         sage: M.declare_union(U,V)   # M is the union of U and V
         sage: c_xy.<x,y> = U.chart() ; c_uv.<u,v> = V.chart()
-        sage: transf = c_xy.transition_map(c_uv, (x+y, x-y), intersection_name='W',
-        ....:                              restrictions1= x>0, restrictions2= u+v>0)
-        sage: inv = transf.inverse()
+        sage: xy_to_uv = c_xy.transition_map(c_uv, (x+y, x-y), intersection_name='W',
+        ....:                                restrictions1= x>0, restrictions2= u+v>0)
+        sage: uv_to_xy = xy_to_uv.inverse()
         sage: W = U.intersection(V)
         sage: eU = c_xy.frame() ; eV = c_uv.frame()
         sage: a = M.diff_form(2, name='a') ; a
@@ -342,8 +342,8 @@ class DiffForm(TensorField):
             sage: c_uv.<u,v> = V.chart() # stereographic coordinates from the South pole
             sage: M.declare_union(U,V)   # S^2 is the union of U and V
             sage: xy_to_uv = c_xy.transition_map(c_uv, (x/(x^2+y^2), y/(x^2+y^2)),
-            ....:                                intersection_name='W', restrictions1= x^2+y^2!=0,
-            ....:                                restrictions2= u^2+v^2!=0)
+            ....:                intersection_name='W', restrictions1= x^2+y^2!=0,
+            ....:                restrictions2= u^2+v^2!=0)
             sage: uv_to_xy = xy_to_uv.inverse()
             sage: e_xy = c_xy.frame(); e_uv = c_uv.frame()
 
@@ -367,9 +367,15 @@ class DiffForm(TensorField):
             sage: da.display(e_uv)
             da = -2*(u + v)/(u^6 + 3*u^4*v^2 + 3*u^2*v^4 + v^6) du/\dv
 
-        The outcome is cached, i.e. is not recomputed unless ``a`` is changed::
+        The result is cached, i.e. is not recomputed unless ``a`` is changed::
 
             sage: a.exterior_der() is da
+            True
+
+        Instead of invoking the method ``exterior_der()``, one may use the
+        global function :func:`~sage.manifolds.utilities.xder`::
+
+            sage: xder(a) is a.exterior_der()
             True
 
         Let us check Cartan's identity::
@@ -377,7 +383,7 @@ class DiffForm(TensorField):
             sage: v = M.vector_field(name='v')
             sage: v[e_xy, :] = -y, x
             sage: v.add_comp_by_continuation(e_uv, U.intersection(V), c_uv)
-            sage: a.lie_der(v) == da.contract(0,v) + a(v).exterior_der()
+            sage: a.lie_der(v) == v.contract(xder(a)) + xder(a(v))
             True
 
         """
@@ -411,25 +417,25 @@ class DiffForm(TensorField):
 
         Exterior product of two 1-forms on the 2-sphere::
 
-            sage: M = DiffManifold(2, 'M') # the 2-dimensional sphere S^2
-            sage: U = M.open_subset('U') # complement of the North pole
-            sage: c_xy.<x,y> = U.chart() # stereographic coordinates from the North pole
-            sage: V = M.open_subset('V') # complement of the South pole
-            sage: c_uv.<u,v> = V.chart() # stereographic coordinates from the South pole
+
+            sage: M = DiffManifold(2, 'S^2', start_index=1) # the 2-dimensional sphere S^2
+            sage: U = M.open_subset('U') ; V = M.open_subset('V')
             sage: M.declare_union(U,V)   # S^2 is the union of U and V
+            sage: c_xy.<x,y> = U.chart() ; c_uv.<u,v> = V.chart() # stereographic coord. (North and South)
             sage: xy_to_uv = c_xy.transition_map(c_uv, (x/(x^2+y^2), y/(x^2+y^2)),
-            ....:                                intersection_name='W', restrictions1= x^2+y^2!=0,
-            ....:                                restrictions2= u^2+v^2!=0)
+            ....:                intersection_name='W', restrictions1= x^2+y^2!=0,
+            ....:                restrictions2= u^2+v^2!=0)
             sage: uv_to_xy = xy_to_uv.inverse()
-            sage: e_xy = c_xy.frame(); e_uv = c_uv.frame()
+            sage: W = U.intersection(V) # The complement of the two poles
+            sage: e_xy = c_xy.frame() ; e_uv = c_uv.frame()
             sage: a = M.diff_form(1, name='a')
             sage: a[e_xy,:] = y, x
-            sage: a.add_comp_by_continuation(e_uv, U.intersection(V), c_uv)
+            sage: a.add_comp_by_continuation(e_uv, W, c_uv)
             sage: b = M.diff_form(1, name='b')
             sage: b[e_xy,:] = x^2 + y^2, y
-            sage: b.add_comp_by_continuation(e_uv, U.intersection(V), c_uv)
+            sage: b.add_comp_by_continuation(e_uv, W, c_uv)
             sage: c = a.wedge(b); c
-            2-form a/\b on the 2-dimensional differentiable manifold M
+            2-form a/\b on the 2-dimensional differentiable manifold S^2
             sage: c.display(e_xy)
             a/\b = (-x^3 - (x - 1)*y^2) dx/\dy
             sage: c.display(e_uv)
@@ -440,12 +446,12 @@ class DiffForm(TensorField):
         from sage.tensor.modules.format_utilities import is_atomic
         if self._domain.is_subset(other._domain):
             if not self._ambient_domain.is_subset(other._ambient_domain):
-                raise TypeError("Incompatible ambient domains for exterior " +
-                                "product.")
+                raise ValueError("incompatible ambient domains for exterior " +
+                                 "product")
         elif other._domain.is_subset(self._domain):
             if not other._ambient_domain.is_subset(self._ambient_domain):
-                raise TypeError("Incompatible ambient domains for exterior " +
-                                "product.")
+                raise ValueError("incompatible ambient domains for exterior " +
+                                 "product")
         dom_resu = self._domain.intersection(other._domain)
         ambient_dom_resu = self._ambient_domain.intersection(
                                                          other._ambient_domain)
@@ -506,7 +512,6 @@ class DiffForm(TensorField):
 
         """
         return self._tensor_rank
-
 
 #******************************************************************************
 
@@ -730,7 +735,8 @@ class DiffFormParal(FreeModuleAltForm, TensorFieldParal):
     Let us check Cartan formula, which expresses the Lie derivative in terms
     of exterior derivatives::
 
-        sage: ab.lie_der(v) == v.contract(ab.exterior_der()) + (v.contract(ab)).exterior_der()
+        sage: ab.lie_der(v) == v.contract(ab.exterior_der()) + \
+        ....:                  (v.contract(ab)).exterior_der()
         True
 
     A 1-form on a `\RR^3`::
@@ -980,9 +986,15 @@ class DiffFormParal(FreeModuleAltForm, TensorFieldParal):
             sage: latex(da)
             \mathrm{d}A
 
-        The outcome is cached, i.e. is not recomputed unless ``a`` is changed::
+        The result is cached, i.e. is not recomputed unless ``a`` is changed::
 
             sage: a.exterior_der() is da
+            True
+
+        Instead of invoking the method ``exterior_der()``, one may use the
+        global function :func:`~sage.manifolds.utilities.xder`::
+
+            sage: xder(a) is a.exterior_der()
             True
 
         The exterior derivative is nilpotent::
@@ -992,6 +1004,13 @@ class DiffFormParal(FreeModuleAltForm, TensorFieldParal):
             sage: dda.display()
             ddA = 0
             sage: dda == 0
+            True
+
+        Let us check Cartan's identity::
+
+            sage: v = M.vector_field(name='v')
+            sage: v[:] = -y, x, t, z
+            sage: a.lie_der(v) == v.contract(xder(a)) + xder(a(v))
             True
 
         """
@@ -1017,7 +1036,7 @@ class DiffFormParal(FreeModuleAltForm, TensorFieldParal):
                     coord_frames.append(frame)
             if coord_frames == []:
                 # A coordinate frame is searched, at the price of a change of
-                # frame, priveleging the frame of the domain's default chart
+                # frame, privileging the frame of the domain's default chart
                 dom = self._domain
                 def_coordf = dom._def_chart._frame
                 for frame in self._components:
@@ -1096,12 +1115,12 @@ class DiffFormParal(FreeModuleAltForm, TensorFieldParal):
         from sage.tensor.modules.free_module_alt_form import FreeModuleAltForm
         if self._domain.is_subset(other._domain):
             if not self._ambient_domain.is_subset(other._ambient_domain):
-                raise TypeError("Incompatible ambient domains for exterior " +
-                                "product.")
+                raise ValueError("incompatible ambient domains for exterior " +
+                                 "product")
         elif other._domain.is_subset(self._domain):
             if not other._ambient_domain.is_subset(self._ambient_domain):
-                raise TypeError("Incompatible ambient domains for exterior " +
-                                "product.")
+                raise ValueError("incompatible ambient domains for exterior " +
+                                 "product")
         dom_resu = self._domain.intersection(other._domain)
         self_r = self.restrict(dom_resu)
         other_r = other.restrict(dom_resu)

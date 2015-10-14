@@ -70,7 +70,7 @@ class DiffChart(Chart):
       used via Sage preparser (see examples below)
     - ``names`` -- (default: ``None``) unused argument, except if
       ``coordinates`` is not provided; it must then be a tuple containing
-      the coordinate symbols (this is guaranted if the shortcut operator
+      the coordinate symbols (this is guaranteed if the shortcut operator
       ``<,>`` is used).
 
     EXAMPLES:
@@ -595,7 +595,7 @@ class RealDiffChart(DiffChart, RealChart):
       shortcut operator ``<,>`` is used via Sage preparser (see examples below)
     - ``names`` -- (default: ``None``) unused argument, except if
       ``coordinates`` is not provided; it must then be a tuple containing
-      the coordinate symbols (this is guaranted if the shortcut operator
+      the coordinate symbols (this is guaranteed if the shortcut operator
       ``<,>`` is used).
 
     EXAMPLES:
@@ -835,8 +835,8 @@ class RealDiffChart(DiffChart, RealChart):
         INPUT:
 
         - ``subset`` -- open subset `V` of the chart domain `U`
-        - ``restrictions`` -- (default: ``None``) list of coordinate restrictions
-          defining the subset `V`.
+        - ``restrictions`` -- (default: ``None``) list of coordinate
+          restrictions defining the subset `V`.
           A restriction can be any symbolic equality or
           inequality involving the coordinates, such as x>y or x^2+y^2 != 0.
           The items of the list ``restrictions`` are combined with the ``and``
@@ -899,7 +899,7 @@ class RealDiffChart(DiffChart, RealChart):
                     dom._top_frames.remove(resu._frame)
         return self._dom_restrict[subset]
 
-#*****************************************************************************
+#******************************************************************************
 
 class DiffCoordChange(CoordChange):
     r"""

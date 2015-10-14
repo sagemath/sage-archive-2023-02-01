@@ -28,8 +28,6 @@ from sage.tensor.modules.free_module_automorphism import FreeModuleAutomorphism
 from sage.manifolds.differentiable.tensorfield import TensorField
 from sage.manifolds.differentiable.tensorfield_paral import TensorFieldParal
 
-#******************************************************************************
-
 class AutomorphismField(TensorField):
     r"""
     Field of automorphisms of tangent spaces to a generic (i.e. a priori
@@ -258,6 +256,24 @@ class AutomorphismField(TensorField):
         # then deletes the inverse automorphism:
         self._inverse = None
 
+    def _new_instance(self):
+        r"""
+        Create an instance of the same class as ``self`` on the same
+        vector field module.
+
+        TEST::
+
+            sage: M = DiffManifold(5, 'M')
+            sage: a = M.automorphism_field(name='a')
+            sage: a._new_instance()
+            Field of tangent-space automorphisms on the 5-dimensional
+             differentiable manifold M
+            sage: a._new_instance().parent() is a.parent()
+            True
+
+        """
+        return self.__class__(self._vmodule)
+
     def __call__(self, *arg):
         r"""
         Redefinition of
@@ -432,6 +448,22 @@ class AutomorphismField(TensorField):
             [0 1], [0 1]
             )
 
+        The result is cached::
+
+            sage: a.inverse() is ia
+            True
+
+        Instead of ``inverse()``, one can use the power minus one to get the
+        inverse::
+
+            sage: ia is a^(-1)
+            True
+
+        or the operator ``~``::
+
+            sage: ia is ~a
+            True
+
         """
         if self._is_identity:
             return self
@@ -507,7 +539,7 @@ class AutomorphismField(TensorField):
             True
 
         """
-        # No need for consistency check since self and other are guaranted
+        # No need for consistency check since self and other are guaranteed
         # to have the same parent. In particular, they are defined on the same
         # module.
         #
@@ -701,13 +733,14 @@ class AutomorphismField(TensorField):
                 return TensorField.restrict(self, subdomain, dest_map=dest_map)
             # Special case of the identity map:
             if not subdomain.is_subset(self._domain):
-                raise ValueError("The provided domain is not a subset of " +
+                raise ValueError("the provided domain is not a subset of " +
                                  "the field's domain.")
             if dest_map is None:
                 dest_map = self._vmodule._dest_map.restrict(subdomain)
             elif not dest_map._codomain.is_subset(self._ambient_domain):
-                raise ValueError("Argument dest_map not compatible with " +
-                                 "self._ambient_domain")
+                raise ValueError("the argument 'dest_map' is not compatible " +
+                                 "with the ambient domain of " +
+                                 "the {}".format(self))
             smodule = subdomain.vector_field_module(dest_map=dest_map)
             self._restrictions[subdomain] = smodule.identity_map()
         return self._restrictions[subdomain]
@@ -897,6 +930,8 @@ class AutomorphismFieldParal(FreeModuleAutomorphism, TensorFieldParal):
         FreeModuleAutomorphism._del_derived(self)
         TensorFieldParal._del_derived(self, del_restrictions=del_restrictions)
 
+     # Method _new_instance() is defined in mother class FreeModuleAutomorphism
+
     def __call__(self, *arg):
         r"""
         Redefinition of
@@ -973,9 +1008,21 @@ class AutomorphismFieldParal(FreeModuleAutomorphism, TensorFieldParal):
             sage: a[:]
             [ 0  2]
             [-1  0]
-            sage: b == a^(-1)
+
+        The result is cached::
+
+            sage: a.inverse() is b
             True
-            sage: b == ~a
+
+        Instead of ``inverse()``, one can use the power minus one to get the
+        inverse::
+
+            sage: b is a^(-1)
+            True
+
+        or the operator ``~``::
+
+            sage: b is ~a
             True
 
         """
@@ -1094,14 +1141,14 @@ class AutomorphismFieldParal(FreeModuleAutomorphism, TensorFieldParal):
                                                  dest_map=dest_map)
             # Special case of the identity map:
             if not subdomain.is_subset(self._domain):
-                raise ValueError("The provided domain is not a subset of " +
+                raise ValueError("the provided domain is not a subset of " +
                                  "the field's domain.")
             if dest_map is None:
                 dest_map = self._fmodule._dest_map.restrict(subdomain)
             elif not dest_map._codomain.is_subset(self._ambient_domain):
-                raise ValueError("Argument dest_map not compatible with " +
-                                 "self._ambient_domain")
+                raise ValueError("the argument 'dest_map' is not compatible " +
+                                 "with the ambient domain of " +
+                                 "the {}".format(self))
             smodule = subdomain.vector_field_module(dest_map=dest_map)
             self._restrictions[subdomain] = smodule.identity_map()
         return self._restrictions[subdomain]
-

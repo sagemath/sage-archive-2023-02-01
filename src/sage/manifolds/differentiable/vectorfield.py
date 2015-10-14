@@ -40,8 +40,10 @@ REFERENCES:
 - S. Kobayashi & K. Nomizu : *Foundations of Differential Geometry*, vol. 1,
   Interscience Publishers (New York) (1963)
 - J.M. Lee : *Introduction to Smooth Manifolds*, 2nd ed., Springer (New York)
-  (2013)
+  (2013); :doi:`10.1007/978-1-4419-9982-5`
 - B O'Neill : *Semi-Riemannian Geometry*, Academic Press (San Diego) (1983)
+- M. Berger & B. Gostiaux : *Differential Geometry: Manifolds, Curves and
+  Surfaces*, Springer (New York) (1988); :doi:`10.1007/978-1-4612-1033-7`
 
 """
 
@@ -340,7 +342,7 @@ class VectorField(TensorField):
             # as a tensor field of type (1,0):
             return scalar(self)
         if scalar._tensor_type != (0,0):
-            raise TypeError("The argument must be a scalar field")
+            raise TypeError("the argument must be a scalar field")
         #!# Could it be simply
         # return scalar.differential()(self)
         # ?
@@ -686,7 +688,7 @@ class VectorFieldParal(FiniteRankFreeModuleElement, TensorFieldParal,
             # as a tensor field of type (1,0):
             return scalar(self)
         if scalar._tensor_type != (0,0):
-            raise TypeError("The argument must be a scalar field")
+            raise TypeError("the argument must be a scalar field")
         #!# Could it be simply
         # return scalar.differential()(self)
         # ?
@@ -723,7 +725,7 @@ class VectorFieldParal(FiniteRankFreeModuleElement, TensorFieldParal,
                 except ValueError:
                     pass
         if not common_charts:
-            raise ValueError("No common chart found.")
+            raise ValueError("no common chart found")
         # The computation:
         manif = scalar._manifold
         for chart in common_charts:

@@ -240,6 +240,35 @@ class VectorFrame(FreeModuleBasis):
          differentiable manifold M
         sage: f.domain()
         1-dimensional differentiable manifold U
+        sage: f.ambient_domain()
+        3-dimensional differentiable manifold M
+
+    Vector frames are bases of free modules formed by vector fields::
+
+        sage: e.module()
+        Free module X(M) of vector fields on the 3-dimensional differentiable
+         manifold M
+        sage: e.module().base_ring()
+        Algebra of differentiable scalar fields on the 3-dimensional
+         differentiable manifold M
+        sage: e.module() is M.vector_field_module()
+        True
+        sage: e in M.vector_field_module().bases()
+        True
+
+    ::
+
+        sage: f.module()
+        Free module X(U,Phi) of vector fields along the 1-dimensional
+         differentiable manifold U mapped into the 3-dimensional differentiable
+         manifold M
+        sage: f.module().base_ring()
+        Algebra of differentiable scalar fields on the 1-dimensional
+         differentiable manifold U
+        sage: f.module() is U.vector_field_module(dest_map=Phi)
+        True
+        sage: f in U.vector_field_module(dest_map=Phi).bases()
+        True
 
     """
     def __init__(self, vector_field_module, symbol, latex_symbol=None,
@@ -265,7 +294,7 @@ class VectorFrame(FreeModuleBasis):
         self._manifold = self._domain._manifold
         if symbol is None:
             if from_frame is None:
-                raise TypeError("Some frame symbol must be provided.")
+                raise TypeError("some frame symbol must be provided")
             symbol = 'X'  # provisory symbol
         FreeModuleBasis.__init__(self, vector_field_module,
                                  symbol, latex_symbol=latex_symbol)
@@ -276,9 +305,9 @@ class VectorFrame(FreeModuleBasis):
                           self._latex_name + r"\right)"
         else:
             if not from_frame._domain.is_subset(self._dest_map._codomain):
-                raise ValueError("The domain of the frame 'from_frame' is " +
+                raise ValueError("the domain of the frame 'from_frame' is " +
                                  "not included in the codomain of the " +
-                                 "destination map.")
+                                 "destination map")
             n = self._fmodule.rank()
             for i in range(n):
                 self._vec[i]._name = from_frame._vec[i]._name
@@ -310,8 +339,8 @@ class VectorFrame(FreeModuleBasis):
         for sd in self._domain._supersets:
             for other in sd._frames:
                 if repr(self) == repr(other):
-                    raise ValueError("the " + str(self) + " already exists " +
-                                     "on the " + str(sd))
+                    raise ValueError("the {} already exists ".format(self) +
+                                     "on the {}".format(sd))
             sd._frames.append(self)
             sd._top_frames.append(self)
             if sd._def_frame is None:
@@ -429,6 +458,12 @@ class VectorFrame(FreeModuleBasis):
         r"""
         Return the domain on which the current vector frame is defined.
 
+        OUTPUT:
+
+        - instance of
+          :class:`~sage.manifolds.differentiable.manifold.DiffManifold`
+          representing the domain of the vector frame
+
         EXAMPLES::
 
             sage: DiffManifold._clear_cache_() # for doctests only
@@ -443,6 +478,94 @@ class VectorFrame(FreeModuleBasis):
 
         """
         return self._domain
+
+    def ambient_domain(self):
+        r"""
+        Return the differentiable manifold in which the current vector frame
+        takes its values.
+
+        The ambient domain is the codomain `M` of the differentiable map
+        `\Phi: U\rightarrow M` associated with the frame.
+
+        OUTPUT:
+
+        - instance of
+          :class:`~sage.manifolds.differentiable.manifold.DiffManifold`
+          representing `M`
+
+        EXAMPLES::
+
+            sage: DiffManifold._clear_cache_() # for doctests only
+            sage: M = DiffManifold(2, 'M')
+            sage: e = M.vector_frame('e')
+            sage: e.ambient_domain()
+            2-dimensional differentiable manifold M
+
+        In the present case, since `\Phi` is the identity map::
+
+            sage: e.ambient_domain() == e.domain()
+            True
+
+        An example with a non trivial map `\Phi`::
+
+            sage: U = DiffManifold(1, 'U')
+            sage: T.<t> = U.chart()
+            sage: X.<x,y> = M.chart()
+            sage: Phi = U.diff_map(M, {(T,X): [cos(t), t]}, name='Phi',
+            ....:                  latex_name=r'\Phi') ; Phi
+            Differentiable map Phi from the 1-dimensional differentiable
+             manifold U to the 2-dimensional differentiable manifold M
+            sage: f = U.vector_frame('f', dest_map=Phi); f
+            Vector frame (U, (f_0,f_1)) with values on the 2-dimensional
+             differentiable manifold M
+            sage: f.ambient_domain()
+            2-dimensional differentiable manifold M
+            sage: f.domain()
+            1-dimensional differentiable manifold U
+
+        """
+        return self._ambient_domain
+
+    def destination_map(self):
+        r"""
+        Return the differential map associated to this vector frame.
+
+        Let `e` denote the vector frame; the differential map associated to
+        it is the map `\Phi: U\rightarrow M` such that for each `p\in U`,
+        `e(p)` is a vector basis of the tangent space `T_{\Phi(p)}M`.
+
+        OUTPUT:
+
+        - instance of
+          :class:`~sage.manifolds.differentiable.diff_map.DiffMap`
+          representing the differential map `\Phi`
+
+        EXAMPLES::
+
+            sage: DiffManifold._clear_cache_() # for doctests only
+            sage: M = DiffManifold(2, 'M')
+            sage: e = M.vector_frame('e')
+            sage: e.destination_map()
+            Identity map Id_M of the 2-dimensional differentiable manifold M
+
+        An example with a non trivial map `\Phi`::
+
+            sage: U = DiffManifold(1, 'U')
+            sage: T.<t> = U.chart()
+            sage: X.<x,y> = M.chart()
+            sage: Phi = U.diff_map(M, {(T,X): [cos(t), t]}, name='Phi',
+            ....:                  latex_name=r'\Phi') ; Phi
+            Differentiable map Phi from the 1-dimensional differentiable
+             manifold U to the 2-dimensional differentiable manifold M
+            sage: f = U.vector_frame('f', dest_map=Phi); f
+            Vector frame (U, (f_0,f_1)) with values on the 2-dimensional
+             differentiable manifold M
+            sage: f.destination_map()
+            Differentiable map Phi from the 1-dimensional differentiable
+             manifold U to the 2-dimensional differentiable manifold M
+
+        """
+        return self._dest_map
 
     def coframe(self):
         r"""
@@ -562,29 +685,29 @@ class VectorFrame(FreeModuleBasis):
         Restriction of a frame defined on `\RR^2` to the unit disk::
 
             sage: DiffManifold._clear_cache_() # for doctests only
-            sage: M = DiffManifold(2, 'R^2')
+            sage: M = DiffManifold(2, 'R^2', start_index=1)
             sage: c_cart.<x,y> = M.chart() # Cartesian coordinates on R^2
             sage: a = M.automorphism_field()
             sage: a[:] = [[1-y^2,0], [1+x^2, 2]]
             sage: e = c_cart.frame().new_frame(a, 'e') ; e
-            Vector frame (R^2, (e_0,e_1))
+            Vector frame (R^2, (e_1,e_2))
             sage: U = M.open_subset('U', coord_def={c_cart: x^2+y^2<1})
             sage: e_U = e.restrict(U) ; e_U
-            Vector frame (U, (e_0,e_1))
+            Vector frame (U, (e_1,e_2))
 
         The vectors of the restriction have the same symbols as those of the
         original frame::
 
-            sage: e_U[0].display()
-            e_0 = (-y^2 + 1) d/dx + (x^2 + 1) d/dy
             sage: e_U[1].display()
-            e_1 = 2 d/dy
+            e_1 = (-y^2 + 1) d/dx + (x^2 + 1) d/dy
+            sage: e_U[2].display()
+            e_2 = 2 d/dy
 
         They are actually the restrictions of the original frame vectors::
 
-            sage: e_U[0] is e[0].restrict(U)
-            True
             sage: e_U[1] is e[1].restrict(U)
+            True
+            sage: e_U[2] is e[2].restrict(U)
             True
 
         """
@@ -592,8 +715,8 @@ class VectorFrame(FreeModuleBasis):
             return self
         if subdomain not in self._restrictions:
             if not subdomain.is_subset(self._domain):
-                raise ValueError("The provided domain is not a subdomain of " +
-                                 "the current frame's domain.")
+                raise ValueError("the provided domain is not a subdomain of " +
+                                 "the current frame's domain")
             sdest_map = self._dest_map.restrict(subdomain)
             res = VectorFrame(subdomain.vector_field_module(sdest_map,
                                                             force_free=True),
@@ -602,10 +725,9 @@ class VectorFrame(FreeModuleBasis):
                 if dom is not subdomain:
                     dom._top_frames.remove(res)  # since it was added by
                                                  # VectorFrame constructor
-            n = self._fmodule.rank()
             new_vectors = list()
-            for i in range(n):
-                vrest = self._vec[i].restrict(subdomain)
+            for i in self._fmodule.irange():
+                vrest = self[i].restrict(subdomain)
                 for j in self._fmodule.irange():
                     vrest.add_comp(res)[j] = 0
                 vrest.add_comp(res)[i] = 1
@@ -745,11 +867,10 @@ class VectorFrame(FreeModuleBasis):
                     rmapping = rest
                     break
             else:
-                raise ValueError("the codomain of {} is not ".format(mapping)
-                             + "included in the domain of {}".format(self))
+                raise ValueError("the codomain of {} is not ".format(mapping) +
+                                 " included in the domain of {}".format(self))
         vmodule = rmapping.domain().vector_field_module(dest_map=rmapping)
         return vmodule.basis(from_frame=self)
-
 
 #******************************************************************************
 
@@ -889,7 +1010,7 @@ class CoordFrame(VectorFrame):
 
     def structure_coef(self):
         r"""
-        Returns the structure coefficients associated to the coordinate frame.
+        Return the structure coefficients associated to the coordinate frame.
 
         `n` being the manifold's dimension, the structure coefficients of the
         frame `(e_i)` are the `n^3` scalar fields `C^k_{\ \, ij}`
@@ -1031,8 +1152,8 @@ class CoFrame(FreeModuleCoBasis):
         for sd in self._domain._supersets:
             for other in sd._coframes:
                 if repr(self) == repr(other):
-                    raise ValueError("The " + str(self) + " already exist on" +
-                                     " the " + str(sd))
+                    raise ValueError("the {} already exist on".format(self) +
+                                     " the {}".format(sd))
             sd._coframes.append(self)
 
 
@@ -1134,7 +1255,7 @@ class CoordCoFrame(CoFrame):
         """
         from sage.misc.latex import latex
         if not isinstance(coord_frame, CoordFrame):
-            raise TypeError("The first argument must be a coordinate frame.")
+            raise TypeError("the first argument must be a coordinate frame")
         CoFrame.__init__(self, coord_frame, 'X') # 'X' = provisory symbol
         self._chart = coord_frame._chart
         n = self._manifold._dim

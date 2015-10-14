@@ -121,10 +121,14 @@ class AutomorphismFieldGroup(UniqueRepresentation, Parent):
         sage: G.Element
         <class 'sage.manifolds.differentiable.automorphismfield.AutomorphismField'>
         sage: a = G.an_element() ; a
-        Field of tangent-space identity maps on the 2-dimensional
+        Field of tangent-space automorphisms on the 2-dimensional
          differentiable manifold M
         sage: a.parent() is G
         True
+        sage: a.restrict(U).display()
+        2 d/dx*dx + 2 d/dy*dy
+        sage: a.restrict(V).display()
+        2 d/du*du + 2 d/dv*dv
 
     The identity element of the group ``G``::
 
@@ -243,15 +247,27 @@ class AutomorphismFieldGroup(UniqueRepresentation, Parent):
             ....:  restrictions2= u+v>0)
             sage: inv = transf.inverse()
             sage: G = M.automorphism_field_group()
-            sage: G._an_element_()
-            Field of tangent-space identity maps on the 2-dimensional
+            sage: a = G.an_element() ; a
+            Field of tangent-space automorphisms on the 2-dimensional
              differentiable manifold M
-            sage: G.an_element()  # indirect doctest
-            Field of tangent-space identity maps on the 2-dimensional
-             differentiable manifold M
+            sage: a.restrict(U).display()
+            2 d/dx*dx + 2 d/dy*dy
+            sage: a.restrict(V).display()
+            2 d/du*du + 2 d/dv*dv
+            sage: a == G.an_element()  # indirect doctest
+            True
 
         """
-        return self.one() #!# not terrible...
+        resu = self.element_class(self._vmodule)
+        for dom in resu.domain().subsets():
+            if dom.is_manifestly_parallelizable():
+                fmodule = dom.vector_field_module()
+                idm = fmodule.identity_map()
+                rst = fmodule.automorphism()
+                for frame, comp in idm._components.iteritems():
+                    rst._components[frame] = 2*comp
+                resu._restrictions[dom] = rst
+        return resu
 
     #### End of parent methods ####
 
@@ -260,7 +276,7 @@ class AutomorphismFieldGroup(UniqueRepresentation, Parent):
 
     def one(self):
         r"""
-        Return the group identity element of ``self``.
+        Return the group identity element.
 
         The group identity element is the field of tangent-space identity maps.
 

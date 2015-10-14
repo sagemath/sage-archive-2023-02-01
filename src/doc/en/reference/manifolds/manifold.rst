@@ -10,17 +10,8 @@ Topological manifolds
 
    sage/manifolds/subset
 
-   sage/manifolds/chart
+   chart
 
-   sage/manifolds/coord_func
+   scalarfield
 
-   sage/manifolds/coord_func_symb
-
-   sage/manifolds/scalarfield_algebra
-
-   sage/manifolds/scalarfield
-
-   sage/manifolds/manifold_homset
-
-   sage/manifolds/continuous_map
-
+   continuous_map

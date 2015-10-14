@@ -155,7 +155,7 @@ def parent_to_repr_short(P):
 def split_str_by_op(string, op, strip_parentheses=True):
     r"""
     Split the given string into a tuple of substrings arising by
-    splitting by '*' and taking care of parentheses.
+    splitting by ``op`` and taking care of parentheses.
 
     INPUT:
 

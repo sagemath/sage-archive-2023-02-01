@@ -1635,8 +1635,20 @@ class TensorField(ModuleElement):
                     # the result is valid and can be returned:
                     return resu
             # If this point is reached, the comparison has not been possible
-            # on any open cover; we therefore return False:
-            return False
+            # on any open cover; we then compare the restrictions to
+            # subdomains:
+            if self._restrictions == {}:
+                return False  # self is not initialized
+            if len(self._restrictions) != len(other._restrictions):
+                return False  # the restrictions are not on the same subdomains
+            resu = True
+            for dom, rst in self._restrictions.iteritems():
+                if dom in other._restrictions:
+                    resu = resu and bool(rst == other._restrictions[dom])
+                else:
+                    return False  # the restrictions are not on the same
+                                  # subdomains
+            return resu
 
     def __ne__(self, other):
         r"""

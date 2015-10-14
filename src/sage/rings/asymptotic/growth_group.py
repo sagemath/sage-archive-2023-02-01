@@ -572,7 +572,7 @@ class Variable(sage.structure.unique_representation.CachedRepresentation,
 
 def is_lt_one(self):
     r"""
-    Return if this element is less than `1`.
+    Return whether this element is less than `1`.
 
     INPUT:
 
@@ -1016,7 +1016,7 @@ class GenericGrowthElement(sage.structure.element.MultiplicativeGroupElement):
 
     def __eq__(self, other):
         r"""
-        Return if this growth element is equal to ``other``.
+        Return whether this growth element is equal to ``other``.
 
         INPUT:
 
@@ -1076,7 +1076,7 @@ class GenericGrowthElement(sage.structure.element.MultiplicativeGroupElement):
 
     def _eq_(self, other):
         r"""
-        Return if this :class:`GenericGrowthElement` is equal to ``other``.
+        Return whether this :class:`GenericGrowthElement` is equal to ``other``.
 
         INPUT:
 
@@ -1109,7 +1109,7 @@ class GenericGrowthElement(sage.structure.element.MultiplicativeGroupElement):
 
     def __ne__(self, other):
         r"""
-        Return if this growth element is not equal to ``other``.
+        Return whether this growth element is not equal to ``other``.
 
         INPUT:
 
@@ -1143,7 +1143,7 @@ class GenericGrowthElement(sage.structure.element.MultiplicativeGroupElement):
 
     def __le__(self, other):
         r"""
-        Return if this growth element is at most (less than or equal
+        Return whether this growth element is at most (less than or equal
         to) ``other``.
 
         INPUT:
@@ -1186,7 +1186,7 @@ class GenericGrowthElement(sage.structure.element.MultiplicativeGroupElement):
 
     def _le_(self, other):
         r"""
-        Return if this :class:`GenericGrowthElement` is at most (less
+        Return whether this :class:`GenericGrowthElement` is at most (less
         than or equal to) ``other``.
 
         INPUT:
@@ -1321,7 +1321,7 @@ class GenericGrowthGroup(
 
     - ``ignore_variables`` -- (default: ``None``) a tuple (or other
       iterable) of strings. The specified names are not considered as
-      a variable.
+      variables.
 
     .. NOTE::
 
@@ -1650,7 +1650,7 @@ class GenericGrowthGroup(
 
     def le(self, left, right):
         r"""
-        Return if the growth of ``left`` is at most (less than or
+        Return whether the growth of ``left`` is at most (less than or
         equal to) the growth of ``right``.
 
         INPUT:
@@ -1811,7 +1811,7 @@ class GenericGrowthGroup(
 
     def _coerce_map_from_(self, S):
         r"""
-        Return if ``S`` coerces into this growth group.
+        Return whether ``S`` coerces into this growth group.
 
         INPUT:
 
@@ -2523,7 +2523,7 @@ class MonomialGrowthElement(GenericGrowthElement):
 
     def _le_(self, other):
         r"""
-        Return if this :class:`MonomialGrowthElement` is at most
+        Return whether this :class:`MonomialGrowthElement` is at most
         (less than or equal to) ``other``.
 
         INPUT:
@@ -3048,13 +3048,13 @@ class ExponentialGrowthElement(GenericGrowthElement):
 
         INPUT:
 
-        - ``exponent`` -- a number. This can anything that is valid to be
+        - ``exponent`` -- a number. This can be anything that is valid to be
           on the right hand side of ``*`` with an elements of the
           parent's base.
 
         OUTPUT:
 
-        The result of this exponentiation a :class:`ExponentialGrowthElement`.
+        The result of this exponentiation as an :class:`ExponentialGrowthElement`.
 
         EXAMPLES::
 
@@ -3086,7 +3086,7 @@ class ExponentialGrowthElement(GenericGrowthElement):
 
         A tuple of pairs, where the first entry is either a growth
         element or something out of which we can construct a growth element
-        and the second a multiplicative coefficient.
+        and the second is a multiplicative coefficient.
 
         TESTS::
 
@@ -3115,7 +3115,7 @@ class ExponentialGrowthElement(GenericGrowthElement):
 
     def _le_(self, other):
         r"""
-        Return if this :class:`ExponentialGrowthElement` is at most
+        Return whether this :class:`ExponentialGrowthElement` is at most
         (less than or equal to) ``other``.
 
         INPUT:

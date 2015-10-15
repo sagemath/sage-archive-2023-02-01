@@ -264,13 +264,20 @@ def repr_op(left, op, right=None):
         sage: from sage.rings.asymptotic.misc import repr_op
         sage: repr_op('a^b', '^', 'c')
         '(a^b)^c'
+
+    TESTS::
+
+        sage: repr_op('a-b', '^', 'c')
+        '(a-b)^c'
+        sage: repr_op('a+b', '^', 'c')
+        '(a+b)^c'
     """
     left = str(left)
     right = str(right) if right is not None else ''
 
     def add_parentheses(s, op):
         if op == '^':
-            signals = ('^', '*', '+', ' ')
+            signals = ('^', '/', '*', '-', '+', ' ')
         else:
             return s
         if any(sig in s for sig in signals):

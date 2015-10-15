@@ -1,15 +1,15 @@
 # -*- coding: utf-8 -*-
 r"""
-Chain homotopies and chain contractions.
+Chain homotopies and chain contractions
 
 Chain homotopies are standard constructions in homological algebra:
 given chain complexes `C` and `D` and chain maps `f, g: C \to D`, say
 with differential of degree `-1`, a *chain homotopy* `H` between `f` and
 `g` is a collection of maps `H_n: C_n \to D_{n+1}` satisfying
 
-.. math::
+.. MATH::
 
-   \partial_D H + H \partial_C = f - g
+   \partial_D H + H \partial_C = f - g.
 
 The presence of a chain homotopy defines an equivalence relation
 (*chain homotopic*) on chain maps. If `f` and `g` are chain homotopic,
@@ -25,7 +25,7 @@ C` ("inclusion") such that
 - `\pi \iota = 1_D`,
 - `\pi H = 0`,
 - `H \iota = 0`,
-- `H \circ H = 0`.
+- `H H = 0`.
 
 Such a chain homotopy provides a strong relation between the chain
 complexes `C` and `D`; for example, their homology groups are
@@ -33,20 +33,19 @@ isomorphic.
 
 REFERENCES:
 
-.. [M-AR] H. Molina-Abril and P. Réal, "Homology computation using spanning
-          trees" in Progress in Pattern Recognition, Image Analysis,
-          Computer Vision, and Applications, Lecture Notes in Computer
-          Science, volume 5856, pp 272-278, Springer, Berlin (2009).
+.. [M-AR] H. Molina-Abril and P. Réal, *Homology computation using spanning
+   trees* in Progress in Pattern Recognition, Image Analysis,
+   Computer Vision, and Applications, Lecture Notes in Computer
+   Science, volume 5856, pp 272-278, Springer, Berlin (2009).
 
-.. [PR] P. Pilarczyk and P. Réal, "Computation of cubical homology,
-        cohomology, and (co)homological operations via chain contraction",
-        Adv. Comput. Math. 41 (2015), pp 253--275.
+.. [PR] P. Pilarczyk and P. Réal, *Computation of cubical homology,
+   cohomology, and (co)homological operations via chain contraction*,
+   Adv. Comput. Math. 41 (2015), pp 253--275.
 
-.. [RM-A] P. Réal and H. Molina-Abril, "Cell AT-models for digital
-          volumes" in Torsello, Escolano, Brun (eds.), Graph-Based
-          Representations in Pattern Recognition, Lecture Notes in
-          Computer Science, volume 5534, pp. 314-3232, Springer,
-          Berlin (2009).
+.. [RM-A] P. Réal and H. Molina-Abril, *Cell AT-models for digital
+   volumes* in Torsello, Escolano, Brun (eds.), Graph-Based
+   Representations in Pattern Recognition, Lecture Notes in
+   Computer Science, volume 5534, pp. 314-3232, Springer, Berlin (2009).
 """
 
 ########################################################################
@@ -63,28 +62,30 @@ from sage.structure.sage_object import SageObject
 from sage.homology.chain_complex_morphism import ChainComplexMorphism
 
 class ChainHomotopy(SageObject):
-    r"""A chain homotopy.
+    r"""
+    A chain homotopy.
 
     A chain homotopy `H` between chain maps `f, g: C \to D` is a sequence
     of maps `H_n: C_n \to D_{n+1}` (if the chain complexes are graded
     homologically) satisfying
 
-    .. math::
+    .. MATH::
 
-       \partial_D H + H \partial_C = f - g
+       \partial_D H + H \partial_C = f - g.
 
     INPUT:
 
     - ``matrices`` -- dictionary of matrices, keyed by dimension
-    - ``f`` -- chain map `C \to D`.
-    - ``g`` (optional) -- chain map `C \to D`.
+    - ``f`` -- chain map `C \to D`
+    - ``g`` (optional) -- chain map `C \to D`
 
     The dictionary ``matrices`` defines ``H`` by specifying the matrix
     defining it in each degree: the entry `m` corresponding to key `i`
     gives the linear transformation `C_i \to D_{i+1}`.
 
     If `f` is specified but not `g`, then `g` can be recovered from
-    the defining formula.
+    the defining formula. That is, if `g` is not specified, then it
+    is defined to be `f - \partial_D H - H \partial_C`.
 
     Note that the degree of the differential on the chain complex `C`
     must agree with that for `D`, and those degrees determine the
@@ -102,7 +103,8 @@ class ChainHomotopy(SageObject):
         sage: g = Hom(C,D)({0: zero_matrix(ZZ, 1), 1: zero_matrix(ZZ, 1)})
         sage: H = ChainHomotopy({0: zero_matrix(ZZ, 0, 1), 1: identity_matrix(ZZ, 1)}, f, g)
 
-    Note that the maps `f` and `g` are stored in the attributes ``H._f`` and ``H._g``::
+    Note that the maps `f` and `g` are stored in the attributes ``H._f``
+    and ``H._g``::
 
         sage: H._f
         Chain complex morphism
@@ -125,15 +127,10 @@ class ChainHomotopy(SageObject):
         Create a chain homotopy between the given chain maps
         from a dictionary of matrices.
 
-        INPUT:
-
-        - ``matrices`` -- dictionary of matrices, keyed by dimension
-        - ``f`` -- chain map `C \to D`.
-        - ``g`` (optional) -- chain map `C \to D`.
-
         EXAMPLES:
 
-        If ``g`` is not specified, it is set equal to `f - (H \partial + \partial H)`. ::
+        If ``g`` is not specified, it is set equal to
+        `f - (H \partial + \partial H)`. ::
 
             sage: from sage.homology.chain_homotopy import ChainHomotopy
             sage: C = ChainComplex({1: matrix(ZZ, 1, 2, (1,0)), 2: matrix(ZZ, 2, 1, (0, 2))}, degree_of_differential=-1)
@@ -209,7 +206,7 @@ class ChainHomotopy(SageObject):
     def is_algebraic_gradient_vector_field(self):
         r"""
         An algebraic gradient vector field is a linear map
-        `H: C \to C` such that `H \circ H = 0`.
+        `H: C \to C` such that `H H = 0`.
 
         (Some authors also require that `H \partial H = H`, whereas
         some make this part of the definition of "homology gradient
@@ -253,10 +250,12 @@ class ChainHomotopy(SageObject):
     def is_homology_gradient_vector_field(self):
         r"""
         A homology gradient vector field is an algebraic gradient vector
-        field `H: C \to C` (i.e., a chain homotopy satisfying `H \circ
+        field `H: C \to C` (i.e., a chain homotopy satisfying `H
         H = 0`) such that `\partial H \partial = \partial` and `H
-        \partial H = H`. See Molina-Abril and Réal [M-AR]_ and Réal
-        and Molina-Abril [RM-A]_ for this and related terminology.
+        \partial H = H`.
+
+        See Molina-Abril and Réal [M-AR]_ and Réal and Molina-Abril
+        [RM-A]_ for this and related terminology.
 
         See also :meth:`is_algebraic_gradient_vector_field`.
 
@@ -286,7 +285,7 @@ class ChainHomotopy(SageObject):
        
     def in_degree(self, n):
         """
-        The matrix representing this chain homotopy in degree ``n``
+        The matrix representing this chain homotopy in degree ``n``.
 
         INPUT:
 
@@ -302,7 +301,8 @@ class ChainHomotopy(SageObject):
             sage: H.in_degree(1)
             [3 1]
 
-        This returns an appropriately sized zero matrix if the chain homotopy is not defined in degree n::
+        This returns an appropriately sized zero matrix if the chain
+        homotopy is not defined in degree n::
 
             sage: H.in_degree(-3)
             []
@@ -349,7 +349,7 @@ class ChainHomotopy(SageObject):
         return self._codomain
 
     def dual(self):
-        """
+        r"""
         Dual chain homotopy to this one.
 
         That is, if this one is a chain homotopy between chain maps
@@ -417,8 +417,10 @@ class ChainHomotopy(SageObject):
 
 class ChainContraction(ChainHomotopy):
     r"""
+    A chain contraction.
+
     An algebraic gradient vector field `H: C \to C` (that is a chain
-    homotopy satisfying `H \circ H = 0`) for which there are chain
+    homotopy satisfying `H H = 0`) for which there are chain
     maps `\pi: C \to D` ("projection") and `\iota: D \to C`
     ("inclusion") such that
 
@@ -441,8 +443,8 @@ class ChainContraction(ChainHomotopy):
         sage: C = ChainComplex({0: zero_matrix(ZZ, 1), 1: identity_matrix(ZZ, 1)})
         sage: D = ChainComplex({0: matrix(ZZ, 0, 1)})
 
-    The chain complex `C` is chain homotopy equivalent to `D`, which is just a
-    copy of `\ZZ` in degree 0, and we construct a chain contraction::
+    The chain complex `C` is chain homotopy equivalent to `D`, which is just
+    a copy of `\ZZ` in degree 0, and we construct a chain contraction::
 
         sage: pi = Hom(C,D)({0: identity_matrix(ZZ, 1)})
         sage: iota = Hom(D,C)({0: identity_matrix(ZZ, 1)})
@@ -451,12 +453,6 @@ class ChainContraction(ChainHomotopy):
     def __init__(self, matrices, pi, iota):
         r"""
         Create a chain contraction from the given data.
-
-        INPUTS:
-
-        - ``matrices`` -- dictionary of matrices, keyed by dimension
-        - ``pi`` -- a chain map `C \to D`
-        - ``iota`` -- a chain map `D \to C`
 
         EXAMPLES::
 
@@ -590,7 +586,8 @@ class ChainContraction(ChainHomotopy):
     def dual(self):
         """
         The chain contraction dual to this one.
-        Useful when switching from homology to cohomology.
+
+        This is useful when switching from homology to cohomology.
 
         EXAMPLES::
 
@@ -630,3 +627,4 @@ class ChainContraction(ChainHomotopy):
         deg = self.domain().degree_of_differential()
         matrices = {i-deg: matrix_dict[i].transpose() for i in matrix_dict}
         return ChainContraction(matrices, self.iota().dual(), self.pi().dual())
+

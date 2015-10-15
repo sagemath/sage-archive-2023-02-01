@@ -2555,8 +2555,10 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         the naive logarithmic height of `P` and `\hat{h}(P)` is the
         canonical height.
 
-        SEE ALSO: silverman_height_bound for a bound that also works for
-        points over number fields.
+        .. SEEALSO::
+
+            :meth:`silverman_height_bound` for a bound that also works for
+            points over number fields.
 
         EXAMPLES::
 

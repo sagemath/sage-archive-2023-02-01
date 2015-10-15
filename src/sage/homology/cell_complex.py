@@ -413,7 +413,7 @@ class GenericCellComplex(SageObject):
         .. note::
 
             The keyword arguments to this function get passed on to
-            :meth:``chain_complex`` and its homology.
+            :meth:`chain_complex` and its homology.
 
         ALGORITHM:
 
@@ -425,14 +425,14 @@ class GenericCellComplex(SageObject):
         CHomP computes homology, not cohomology, and only works over
         the integers or finite prime fields.  Therefore if any of
         these conditions fails, or if CHomP is not present, or if
-        ``algorithm`` is set to 'no_chomp', go to plan B: if ``self``
+        ``algorithm`` is set to 'no_chomp', go to plan B: if this complex
         has a ``_homology`` method -- each simplicial complex has
         this, for example -- then call that.  Such a method implements
         specialized algorithms for the particular type of cell
         complex.
 
         Otherwise, move on to plan C: compute the chain complex of
-        ``self`` and compute its homology groups.  To do this: over a
+        this complex and compute its homology groups.  To do this: over a
         field, just compute ranks and nullities, thus obtaining
         dimensions of the homology groups as vector spaces.  Over the
         integers, compute Smith normal form of the boundary matrices
@@ -661,13 +661,13 @@ class GenericCellComplex(SageObject):
 
         - ``n`` -- integer
         - ``base_ring`` -- ring (optional, default `\ZZ`)
-        - ``cochains`` -- boolean (optional, default ``False``). If
-          ``True``, return cochains instead.
+        - ``cochains`` -- boolean (optional, default ``False``); if
+          ``True``, return cochains instead
 
         The only difference between chains and cochains is
         notation. In a simplicial complex, for example, a simplex
         ``(0,1,2)`` is written as "(0,1,2)" in the group of chains but
-        as "\\chi_(0,1,2)" in the group of cochains.
+        as "\chi_(0,1,2)" in the group of cochains.
 
         EXAMPLES::
 
@@ -686,10 +686,14 @@ class GenericCellComplex(SageObject):
     @cached_method
     def algebraic_topological_model(self, base_ring=None):
         r"""
-        Algebraic topological model, as defined by Pilarczyk and Réal
-        [PR]_, for this cell complex with coefficients in ``base_ring``.
+        Algebraic topological model for this cell complex with
+        coefficients in ``base_ring``.
 
-        This is only implemented for simplicial and cubical complexes.
+        The term "algebraic topological model" is defined by Pilarczyk
+        and Réal [PR]_.
+
+        This is implemented for simplicial, cubical, and
+        `\Delta`-complexes, not for arbitrary generic cell complexes.
 
         INPUT:
 
@@ -701,232 +705,213 @@ class GenericCellComplex(SageObject):
         `M` with zero differential, with the same homology as `C`,
         along with chain maps `\pi: C \to M` and `\iota: M \to C`
         satisfying `\iota \pi = 1_M` and `\pi \iota` chain homotopic
-        to `1_C`. The chain homotopy `H` must satisfy
+        to `1_C`. The chain homotopy `\phi` must satisfy
 
-        - `H \circ H = 0`,
-        - `\pi H = 0`,
-        - `H \iota = 0`.
+        - `\phi \phi = 0`,
+        - `\pi \phi = 0`,
+        - `\phi \iota = 0`.
 
         Such a chain homotopy is called a *chain contraction*.
 
         OUTPUT: a pair consisting of
 
-        - chain contraction ``H`` associated to `C`, `M`, `\pi`, and
+        - chain contraction ``phi`` associated to `C`, `M`, `\pi`, and
           `\iota`
         - the chain complex `M`
 
-        Note that from the chain contraction ``H``, one can recover the
-        chain maps `\pi` and `\iota` via ``H.pi()`` and
-        ``H.iota()``. Then one can recover `C` and `M` from, for
-        example, ``H.pi().domain()`` and ``H.pi().codomain()``,
+        Note that from the chain contraction ``phi``, one can recover the
+        chain maps `\pi` and `\iota` via ``phi.pi()`` and
+        ``phi.iota()``. Then one can recover `C` and `M` from, for
+        example, ``phi.pi().domain()`` and ``phi.pi().codomain()``,
         respectively.
 
         EXAMPLES::
 
-            sage: from sage.homology.algebraic_topological_model import algebraic_topological_model
             sage: RP2 = simplicial_complexes.RealProjectivePlane()
-            sage: H, M = RP2.algebraic_topological_model(GF(2))
+            sage: phi, M = RP2.algebraic_topological_model(GF(2))
             sage: M.homology()
             {0: Vector space of dimension 1 over Finite Field of size 2,
              1: Vector space of dimension 1 over Finite Field of size 2,
              2: Vector space of dimension 1 over Finite Field of size 2}
             sage: T = simplicial_complexes.Torus()
-            sage: H, M = T.algebraic_topological_model(QQ)
+            sage: phi, M = T.algebraic_topological_model(QQ)
             sage: M.homology()
             {0: Vector space of dimension 1 over Rational Field,
              1: Vector space of dimension 2 over Rational Field,
              2: Vector space of dimension 1 over Rational Field}
         """
-        from algebraic_topological_model import algebraic_topological_model
+        from algebraic_topological_model import algebraic_topological_model, algebraic_topological_model_delta_complex
         from cubical_complex import CubicalComplex
         from simplicial_complex import SimplicialComplex
-        if not isinstance(self, (CubicalComplex, SimplicialComplex)):
-            raise NotImplementedError('only implemented for simplicial and cubical complexes')
-        try:
-            if not self.is_immutable():
-                raise ValueError('the complex must be immutable')
-        except AttributeError:
-            # Cubical complexes don't have an is_immutable method, and
-            # they are always immutable.
-            pass
+        from delta_complex import DeltaComplex
+        if base_ring is None:
+            base_ring = QQ
+        if not isinstance(self, (CubicalComplex, SimplicialComplex, DeltaComplex)):
+            raise NotImplementedError('only implemented for simplicial, cubical, and Delta complexes')
+        if isinstance(self, DeltaComplex):
+            return algebraic_topological_model_delta_complex(self, base_ring)
         return algebraic_topological_model(self, base_ring)
 
-    # This is cached for uniqueness reasons: calling
-    # K.homology_with_basis(...) twice should yield identical spaces,
-    # so that one can compare, say, x.cup_product(one) with x (if
-    # "one" is the identity element in H^0(K)).
-    @cached_method
-    def homology_with_basis(self, dim, base_ring=None, cohomology=False):
+    def homology_with_basis(self, base_ring=None, cohomology=False):
         r"""
-        Return the unreduced homology in dimension ``dim`` with
-        coefficients in ``base_ring`` with a chosen basis. Should be
-        suitable for computing cup products and (in positive
-        characteristic) cohomology operations.
+        Return the unreduced homology of this complex with
+        coefficients in ``base_ring`` with a chosen basis.
 
-        This is only implemented for simplicial and cubical complexes.
+        This is implemented for simplicial, cubical, and
+        `\Delta`-complexes, not for arbitrary generic cell complexes.
 
         INPUTS:
 
-        - ``dim`` -- dimension
         - ``base_ring`` -- coefficient ring (optional, default
-          ``QQ``). Must be a field.
-        - ``cohomology`` -- boolean (optional, default ``False``). If
-          ``True``, return cohomology instead of homology.
+          ``QQ``); must be a field
+        - ``cohomology`` -- boolean (optional, default ``False``); if
+          ``True``, return cohomology instead of homology
 
         Homology basis elements are named 'h_{dim,i}' where i ranges
         between 0 and `r-1`, if `r` is the rank of the homology
         group. Cohomology basis elements are denoted `h^{dim,i}`
         instead.
 
+        .. SEEALSO::
+
+            If ``cohomology`` is ``True``, this returns the cohomology
+            as a graded module. For the ring structure, use
+            :meth:`cohomology_ring`.
+
         EXAMPLES::
 
             sage: K = simplicial_complexes.KleinBottle()
-            sage: K.homology_with_basis(1, QQ)
-            Free module generated by (h_{1,0},) over Rational Field
-            sage: K.homology_with_basis(1, GF(2))
-            Free module generated by (h_{1,0}, h_{1,1}) over Finite Field of size 2
+            sage: H = K.homology_with_basis(QQ); H
+            Homology module of Simplicial complex with vertex set
+             (0, 1, 2, 3, 4, 5, 6, 7) and 16 facets over Rational Field
+            sage: sorted(H.basis(), key=str)
+            [h_{0,0}, h_{1,0}]
+            sage: H = K.homology_with_basis(GF(2)); H
+            Homology module of Simplicial complex with vertex set
+             (0, 1, 2, 3, 4, 5, 6, 7) and 16 facets over Finite Field of size 2
+            sage: sorted(H.basis(), key=str)
+            [h_{0,0}, h_{1,0}, h_{1,1}, h_{2,0}]
+
+        The homology is constructed as a graded object, so for
+        example, you can ask for the basis in a single degree::
+
+            sage: H.basis(1)
+            Finite family {(1, 0): h_{1,0}, (1, 1): h_{1,1}}
+            sage: S3 = delta_complexes.Sphere(3)
+            sage: H = S3.homology_with_basis(QQ, cohomology=True)
+            sage: list(H.basis(3))
+            [h^{3,0}]
         """
         from homology_vector_space_with_basis import HomologyVectorSpaceWithBasis
-        H, M = self.algebraic_topological_model(base_ring)
-        if cohomology:
-            H = H.dual()
-        return HomologyVectorSpaceWithBasis(dim, H, self)
+        if base_ring is None:
+            base_ring = QQ
+        return HomologyVectorSpaceWithBasis(base_ring, self, cohomology)
 
-    def cohomology_with_basis(self, dim, base_ring=None):
+    def cohomology_ring(self, base_ring=None):
         r"""
-        Return the unreduced cohomology in dimension ``dim`` with
-        coefficients in ``base_ring`` with a chosen basis. Should be
-        suitable for computing cup products and (in positive
-        characteristic) cohomology operations.
+        Return the unreduced cohomology with coefficients in
+        ``base_ring`` with a chosen basis.
 
-        This is only implemented for simplicial and cubical complexes.
+        This is implemented for simplicial, cubical, and
+        `\Delta`-complexes, not for arbitrary generic cell complexes.
+        The resulting elements are suitable for computing cup
+        products. For simplicial complexes, they should be suitable
+        for computing cohomology operations; so far, only mod 2
+        cohomology operations have been implemented.
 
         INPUTS:
 
-        - ``dim`` -- dimension
         - ``base_ring`` -- coefficient ring (optional, default
-          ``QQ``). Must be a field.
+          ``QQ``); must be a field
 
-        The basis elements are named 'h^{dim,i}' where i ranges
-        between 0 and `r-1`, if `r` is the rank of the homology group.
+        The basis elements in dimension ``dim`` are named 'h^{dim,i}'
+        where `i` ranges between 0 and `r-1`, if `r` is the rank of
+        the cohomology group.
+
+        .. NOTE::
+
+            For all but the smallest complexes, this is likely to be
+            slower than :meth:`cohomology` (with field coefficients),
+            possibly by several orders of magnitute. This and its
+            companion :meth:`homology_with_basis` carry extra
+            information which allows computation of cup products, for
+            example, but because of speed issues, you may only wish to
+            use these if you need that extra information.
 
         EXAMPLES::
 
             sage: K = simplicial_complexes.KleinBottle()
-            sage: K.cohomology_with_basis(1, QQ)
-            Free module generated by (h^{1,0},) over Rational Field
-            sage: K.cohomology_with_basis(1, GF(2))
-            Free module generated by (h^{1,0}, h^{1,1}) over Finite Field of size 2
+            sage: H = K.cohomology_ring(QQ); H
+            Cohomology ring of Simplicial complex with vertex set
+             (0, 1, 2, 3, 4, 5, 6, 7) and 16 facets over Rational Field
+            sage: sorted(H.basis(), key=str)
+            [h^{0,0}, h^{1,0}]
+            sage: H = K.cohomology_ring(GF(2)); H
+            Cohomology ring of Simplicial complex with vertex set
+             (0, 1, 2, 3, 4, 5, 6, 7) and 16 facets over Finite Field of size 2
+            sage: sorted(H.basis(), key=str)
+            [h^{0,0}, h^{1,0}, h^{1,1}, h^{2,0}]
 
-            sage: H1 = simplicial_complexes.Torus().cohomology_with_basis(1, QQ)
-            sage: x = H1.basis()[0]; x
+            sage: X = delta_complexes.SurfaceOfGenus(2)
+            sage: H = X.cohomology_ring(QQ); H
+            Cohomology ring of Delta complex with 3 vertices and 29 simplices
+             over Rational Field
+            sage: sorted(H.basis(1), key=str)
+            [h^{1,0}, h^{1,1}, h^{1,2}, h^{1,3}]
+
+            sage: H = simplicial_complexes.Torus().cohomology_ring(QQ); H
+            Cohomology ring of Simplicial complex with vertex set
+             (0, 1, 2, 3, 4, 5, 6) and 14 facets over Rational Field
+            sage: x = H.basis()[1,0]; x
             h^{1,0}
-            sage: y = H1.basis()[1]; y
+            sage: y = H.basis()[1,1]; y
             h^{1,1}
-
-            sage: simplicial_complexes.Torus().cohomology_with_basis(2, QQ)
-            Free module generated by (h^{2,0},) over Rational Field
 
         You can compute cup products of cohomology classes::
 
             sage: x.cup_product(y)
             h^{2,0}
+            sage: x * y # alternate notation
+            h^{2,0}
             sage: y.cup_product(x)
             -h^{2,0}
             sage: x.cup_product(x)
             0
-        """
-        return self.homology_with_basis(dim, base_ring, cohomology=True)
 
-    # This is cached for speed reasons: it can be very slow to run
-    # this function.
-    @cached_method
-    def cohomology_ring(self, base_ring=None):
-        """
-        The cohomology ring of this cell complex, with field coefficients.
+        Cohomology operations::
 
-        This is only implemented for simplicial and cubical complexes.
+            sage: RP2 = simplicial_complexes.RealProjectivePlane()
+            sage: K = RP2.suspension()
+            sage: K.set_immutable()
+            sage: y = K.cohomology_ring(GF(2)).basis()[2,0]; y
+            h^{2,0}
+            sage: y.Sq(1)
+            h^{3,0}
 
-        INPUT:
+        To compute the cohomology ring, the complex must be
+        "immutable". This is only relevant for simplicial complexes,
+        and most simplicial complexes are immutable, but certain
+        constructions make them mutable. The suspension is one
+        example, and this is the reason for calling
+        ``K.set_immutable()`` above. Another example::
 
-        - ``base_ring`` -- coefficient ring (optional, default
-          ``QQ``). Must be a field.
-
-        This returns a finite-dimensional algebra: more precisely, an
-        instance of
-        :class:`sage.algebras.finite_dimensional_algebras.finite_dimensional_algebra.FiniteDimensionalAlgebra`. Thus
-        the defining data are the matrices which define right
-        multiplication by each basis element.
-
-        EXAMPLES::
-
-            sage: RP3 = simplicial_complexes.RealProjectiveSpace(3)
-            sage: H = RP3.cohomology_ring(GF(2))
-            sage: H
-            Finite-dimensional algebra of degree 4 over Finite Field of size 2
-            sage: H.basis()
-            [h00, h10, h20, h30]
-
-        The matrices specifying right multiplication by each basis element::
-
-            sage: H.table()
-            [
-            [1 0 0 0]  [0 1 0 0]  [0 0 1 0]  [0 0 0 1]
-            [0 1 0 0]  [0 0 1 0]  [0 0 0 1]  [0 0 0 0]
-            [0 0 1 0]  [0 0 0 1]  [0 0 0 0]  [0 0 0 0]
-            [0 0 0 1], [0 0 0 0], [0 0 0 0], [0 0 0 0]
-            ]
-            sage: H.is_associative()
-            True
-            sage: H.is_commutative()  # True because it's characteristic 2.
-            True
-            sage: T = cubical_complexes.Torus()
-            sage: T.cohomology_ring(QQ).is_commutative()
+            sage: S1 = simplicial_complexes.Sphere(1)
+            sage: T = S1.product(S1)
+            sage: T.is_immutable()
             False
+            sage: T.cohomology_ring()
+            Traceback (most recent call last):
+            ...
+            ValueError: This simplicial complex must be immutable. Call set_immutable().
+            sage: T.set_immutable()
+            sage: T.cohomology_ring()
+            Cohomology ring of Simplicial complex with 9 vertices and
+            18 facets over Rational Field
         """
-        from sage.matrix.constructor import matrix
-        from sage.algebras.finite_dimensional_algebras.finite_dimensional_algebra import FiniteDimensionalAlgebra
+        from homology_vector_space_with_basis import CohomologyRing
         if base_ring is None:
             base_ring = QQ
-        # First construct the basis. This is a dictionary with keys
-        # (d, i): d is the degree of the cohomology class, i ranges
-        # from 0 to r-1, if r is the rank of H^d. List these elements
-        # in order of increasing d and i; then the value for each key
-        # is just its index.
-        basis = {}
-        idx = 0
-        for d in range(self.dimension()+1):
-            for i in range(self.cohomology_with_basis(d, base_ring=base_ring).dimension()):
-                basis[(d,i)] = idx
-                idx += 1
-
-        # Now iterate over each basis element, in order, to construct
-        # the list of matrices representing right multiplication by
-        # each basis element.
-        matrices = []
-        rank = len(basis)
-        for y in sorted(basis):
-            y_matrix_dict = {}
-            y_elt = self.cohomology_with_basis(y[0], base_ring).basis()[y[1]]
-            for x in basis:
-                x_elt = self.cohomology_with_basis(x[0], base_ring).basis()[x[1]]
-                z = x_elt.cup_product(y_elt)
-                d = z.parent().degree()
-                idx = basis[x]
-                try:
-                    start = basis[(d,0)]
-                except KeyError:
-                    # No cohomology in this degree.
-                    pass
-                z_vec = z.to_vector()
-                for j in range(z_vec.degree()):
-                    y_matrix_dict[(idx, start+j)] = z_vec[j]
-            # Use dense matrices because of a bug: try using sparse
-            # matrices and mod 2 coefficients, and run the method
-            # "is_unitary()" on the ring. See trac 19165.
-            matrices.append(matrix(base_ring, rank, rank, y_matrix_dict, sparse=False))
-        names = ['h{}{}'.format(y[0], y[1]) for y in sorted(basis)]
-        return FiniteDimensionalAlgebra(base_ring, table=matrices, names=names)
+        return CohomologyRing(base_ring, self)
 
     ############################################################
     # end of chain complexes, homology
@@ -1074,12 +1059,12 @@ class Chains(CombinatorialFreeModule):
     - ``n_cells`` -- tuple of `n`-cells, which thus forms a basis for
       this module
     - ``base_ring`` -- optional (default `\ZZ`)
-    - ``cochains`` -- boolean (optional, default ``False``). If
-      ``True``, return cochains instead.
+    - ``cochains`` -- boolean (optional, default ``False``); if
+      ``True``, return cochains instead
 
     One difference between chains and cochains is notation. In a
     simplicial complex, for example, a simplex ``(0,1,2)`` is written
-    as "(0,1,2)" in the group of chains but as "\\chi_(0,1,2)" in the
+    as "(0,1,2)" in the group of chains but as "\chi_(0,1,2)" in the
     group of cochains.
 
     Also, since the free modules of chains and cochains are dual,
@@ -1110,7 +1095,15 @@ class Chains(CombinatorialFreeModule):
 
             sage: T = cubical_complexes.Torus()
             sage: T.n_chains(2, QQ)
-            Free module generated by {[1,1] x [0,1] x [1,1] x [0,1], [0,0] x [0,1] x [0,1] x [1,1], [0,0] x [0,1] x [1,1] x [0,1], [0,0] x [0,1] x [0,0] x [0,1], [0,1] x [1,1] x [0,1] x [0,0], [0,1] x [0,0] x [0,0] x [0,1], [1,1] x [0,1] x [0,1] x [0,0], [0,1] x [1,1] x [0,0] x [0,1], [0,0] x [0,1] x [0,1] x [0,0], [0,1] x [0,0] x [0,1] x [0,0], [0,1] x [0,0] x [1,1] x [0,1], [0,1] x [1,1] x [1,1] x [0,1], [0,1] x [0,0] x [0,1] x [1,1], [1,1] x [0,1] x [0,0] x [0,1], [1,1] x [0,1] x [0,1] x [1,1], [0,1] x [1,1] x [0,1] x [1,1]} over Rational Field
+            Free module generated by {[1,1] x [0,1] x [1,1] x [0,1],
+             [0,0] x [0,1] x [0,1] x [1,1], [0,0] x [0,1] x [1,1] x [0,1],
+             [0,0] x [0,1] x [0,0] x [0,1], [0,1] x [1,1] x [0,1] x [0,0],
+             [0,1] x [0,0] x [0,0] x [0,1], [1,1] x [0,1] x [0,1] x [0,0],
+             [0,1] x [1,1] x [0,0] x [0,1], [0,0] x [0,1] x [0,1] x [0,0],
+             [0,1] x [0,0] x [0,1] x [0,0], [0,1] x [0,0] x [1,1] x [0,1],
+             [0,1] x [1,1] x [1,1] x [0,1], [0,1] x [0,0] x [0,1] x [1,1],
+             [1,1] x [0,1] x [0,0] x [0,1], [1,1] x [0,1] x [0,1] x [1,1],
+             [0,1] x [1,1] x [0,1] x [1,1]} over Rational Field
             sage: T.n_chains(2).dimension()
             16
 
@@ -1175,12 +1168,12 @@ class Chains(CombinatorialFreeModule):
                 ...
                 ValueError: the elements are not compatible
             """
-            if self.parent()._cochains:
-                if not (other.parent().indices() == self.parent().indices()
-                        and other.base_ring() == self.base_ring()
-                        and not other.parent()._cochains):
-                    raise ValueError('the elements are not compatible')
-                result = sum(coeff * other.coefficient(cell) for cell, coeff in self)
-                return result
-            else:
+            if not self.parent()._cochains:
                 raise ValueError('this element is not a cochain')
+            if not (other.parent().indices() == self.parent().indices()
+                    and other.base_ring() == self.base_ring()
+                    and not other.parent()._cochains):
+                raise ValueError('the elements are not compatible')
+            result = sum(coeff * other.coefficient(cell) for cell, coeff in self)
+            return result
+

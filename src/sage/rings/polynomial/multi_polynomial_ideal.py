@@ -1272,7 +1272,8 @@ class MPolynomialIdeal_singular_repr(
         try:
             import ginv
         except ImportError:
-            raise ImportError("""GINV is missing, to install use "install_package('ginv')".""")
+            from sage.misc.package import PackageNotFoundError
+            raise PackageNotFoundError("ginv")
 
         st = ginv.SystemType("Polynomial")
 
@@ -3132,7 +3133,9 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
 
         #. Return ``other`` < ``self``.
 
-        .. SEEALSO: :meth:`__lt__`.
+        .. SEEALSO::
+
+            :meth:`__lt__`.
 
         EXAMPLE::
 

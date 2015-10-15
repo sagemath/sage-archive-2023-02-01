@@ -56,10 +56,10 @@ def DynkinDiagram(*args, **kwds):
     in Bourbaki and Wikipedia's Dynkin diagram (:wikipedia:`Dynkin_diagram`).
     That is for `i \neq j`::
 
-       i <--k-- j <==> a_ij = -k
-                  <==> -scalar(coroot[i], root[j]) = k
-                  <==> multiple arrows point from the longer root
-                       to the shorter one
+        i <--k-- j <==> a_ij = -k
+                   <==> -scalar(coroot[i], root[j]) = k
+                   <==> multiple arrows point from the longer root
+                        to the shorter one
 
     For example, in type `C_2`, we have::
 
@@ -668,13 +668,13 @@ class DynkinDiagram_class(DiGraph, CartanType_abstract):
     def __getitem__(self, i):
         r"""
         With a tuple (i,j) as argument, returns the scalar product
-        `\langle
-                \alpha^\vee_i, \alpha_j\rangle`.
+        `\langle \alpha^\vee_i, \alpha_j\rangle`.
 
-        Otherwise, behaves as the usual DiGraph.__getitem__
+        Otherwise, behaves as the usual ``DiGraph.__getitem__``
 
-        EXAMPLES: We use the `C_4` Dynkin diagram as a cartan
-        matrix::
+        EXAMPLES:
+
+        We use the `C_4` Dynkin diagram as a cartan matrix::
 
             sage: g = DynkinDiagram(['C',4])
             sage: matrix([[g[i,j] for j in range(1,5)] for i in range(1,5)])

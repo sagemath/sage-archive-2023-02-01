@@ -149,7 +149,7 @@ def KirillovReshetikhinCrystal(cartan_type, r, s, model='KN'):
     There are a variety of models for Kirillov-Reshetikhin crystals. There is
     one using the classical crystal with :func:`Kashiwara-Nakashima tableaux
     <sage.combinat.crystals.kirillov_reshetikhin.KashiwaraNakashimaTableaux>`.
-    There is one using :class:`rigged configurations <RiggedConfiguraitons>`.
+    There is one using :class:`rigged configurations <RiggedConfigurations>`.
     Another tableaux model comes from the bijection between rigged configurations
     and tensor products of tableaux called :class:`Kirillov-Reshetikhin tableaux
     <sage.combinat.rigged_configurations.kr_tableaux.KirillovReshetikhinTableaux>`

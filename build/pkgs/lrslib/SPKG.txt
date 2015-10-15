@@ -9,12 +9,6 @@ See the homepage (http://cgm.cs.mcgill.ca/~avis/C/lrs.html)  for details.
 == License ==
 lrslib is released under a GPL v2+ license.
 
-== SPKG Maintainers ==
-
- * Marshall Hampton (lrs old-style spkg)
- * Michael Abshoff (lrs old-style spkg)
- * Matthias Koeppe (lrslib new-style spkg)
-
 == Upstream Contact ==
 
 David Avis, avis at cs dot mcgill dot edu.

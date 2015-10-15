@@ -1043,10 +1043,10 @@ cdef class Element(SageObject):
             return rich_to_bool(op, -1)
 
     ####################################################################
-    # For a Cython class, you must define either _cmp_ (if your subclass
-    # is totally ordered), _richcmp_ (if your subclass is partially
-    # ordered), or both (if your class has both a total order and a
-    # partial order, or if implementing both gives better performance).
+    # In a Cython or a Python class, you must define either _cmp_
+    # (if your subclass is totally ordered), _richcmp_ (if your subclass
+    # is partially ordered), or both (if your class has both a total order
+    # and a partial order, or if that gives better performance).
     #
     # Rich comparisons (like a < b) will default to using _richcmp_,
     # three-way comparisons (like cmp(a,b)) will default to using
@@ -2138,7 +2138,7 @@ def is_CommutativeRingElement(x):
 
     TESTS::
 
-        sage: from sage.rings.commutative_ring_element import is_CommutativeRingElement
+        sage: from sage.structure.element import is_CommutativeRingElement
         sage: is_CommutativeRingElement(oo)
         False
 

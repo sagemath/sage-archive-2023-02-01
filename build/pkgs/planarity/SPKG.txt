@@ -15,10 +15,6 @@ subgraph isolation).
 
 New BSD License
 
-== SPKG Maintainers ==
-
-Nathann Cohen  (nathann.cohen@gmail.com)
-
 == Upstream Contact ==
 
 * https://code.google.com/p/planarity/

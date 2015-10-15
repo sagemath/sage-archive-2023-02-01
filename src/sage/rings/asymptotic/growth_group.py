@@ -1412,9 +1412,9 @@ class GenericGrowthGroup(
         TESTS::
 
             sage: from sage.rings.asymptotic.growth_group import GenericGrowthGroup
-            sage: GenericGrowthGroup(ZZ, 'x').category()
+            sage: GenericGrowthGroup(ZZ, 'x').category()  # indirect doctest
             Join of Category of monoids and Category of posets
-            sage: GenericGrowthGroup(ZZ, 'x', category=Groups()).category()
+            sage: GenericGrowthGroup(ZZ, 'x', category=Groups()).category()  # indirect doctest
             Category of groups
         """
         if category is not None:
@@ -2677,10 +2677,9 @@ class MonomialGrowthGroup(GenericGrowthGroup):
         TESTS::
 
             sage: from sage.rings.asymptotic.growth_group import MonomialGrowthGroup
-            sage: MonomialGrowthGroup(ZZ, 'x').category()
-            Join of Category of groups and Category of posets
-            sage: MonomialGrowthGroup(ZZ, 'x', category=Monoids()).category()
+            sage: MonomialGrowthGroup(ZZ, 'x').category()  # indirect doctest
             Join of Category of commutative groups and Category of posets
+            sage: MonomialGrowthGroup(ZZ, 'x', category=Monoids()).category()  # indirect doctest
             Category of monoids
         """
         if category is not None:
@@ -3313,13 +3312,13 @@ class ExponentialGrowthGroup(GenericGrowthGroup):
         TESTS::
 
             sage: from sage.rings.asymptotic.growth_group import ExponentialGrowthGroup
-            sage: ExponentialGrowthGroup(ZZ, 'x').category()
+            sage: ExponentialGrowthGroup(ZZ, 'x').category()  # indirect doctest
             Join of Category of monoids and Category of posets
-            sage: ExponentialGrowthGroup(QQ, 'x').category()
-            sage: ExponentialGrowthGroup(ZZ, 'x', category=Groups()).category()
+            sage: ExponentialGrowthGroup(QQ, 'x').category()  # indirect doctest
             Join of Category of commutative groups and Category of posets
+            sage: ExponentialGrowthGroup(ZZ, 'x', category=Groups()).category()  # indirect doctest
             Category of groups
-            sage: ExponentialGrowthGroup(QQ, 'x', category=Monoids()).category()
+            sage: ExponentialGrowthGroup(QQ, 'x', category=Monoids()).category()  # indirect doctest
             Category of monoids
         """
         if category is not None:

@@ -570,6 +570,8 @@ class Variable(sage.structure.unique_representation.CachedRepresentation,
         return tuple(str(s) for s in SR(s).variables())
 
 
+# The following function is used in the classes GenericGrowthElement and
+# GenericProduct.Element as a method.
 def _is_lt_one_(self):
     r"""
     Return if this element is less than `1`.
@@ -595,6 +597,8 @@ def _is_lt_one_(self):
     return self <= one and self != one
 
 
+# The following function is used in the classes GenericGrowthElement and
+# GenericProduct.Element as a method.
 def _log_(self, base=None):
     r"""
     Return the logarithm of this element.
@@ -696,6 +700,8 @@ def _log_(self, base=None):
     return g
 
 
+# The following function is used in the classes GenericGrowthElement and
+# GenericProduct.Element as a method.
 def _log_factor_(self, base=None):
     r"""
     Return the logarithm of the factorization of this
@@ -766,6 +772,8 @@ def _log_factor_(self, base=None):
     return log_factor
 
 
+# The following function is used in the classes GenericGrowthElement and
+# GenericProduct.Element as a method.
 def _rpow_(self, base):
     r"""
     Calculate the power of ``base`` to this element.

@@ -1793,9 +1793,19 @@ class GenericGrowthGroup(
             Traceback (most recent call last):
             ...
             ValueError: x is not in Growth Group y^ZZ.
+
+        ::
+
+            sage: GrowthGroup('QQ^x')(GrowthGroup('ZZ^x')('2^x'))
+            2^x
         """
+        from misc import underlying_class, combine_exceptions
+
         if raw_element is None:
-            if isinstance(data, self.element_class):
+            if isinstance(data, int) and data == 0:
+                raise ValueError('No input specified. Cannot continue.')
+
+            elif isinstance(data, self.element_class):
                 if data.parent() == self:
                     return data
                 try:
@@ -1804,10 +1814,22 @@ class GenericGrowthGroup(
                 except AttributeError:
                     pass
                 raw_element = data._raw_element_
-            elif isinstance(data, int) and data == 0:
-                raise ValueError('No input specified. Cannot continue.')
+
+            elif isinstance(data, self.Element):
+                if self._var_ == data.parent()._var_:
+                    try:
+                        raw_element = self.base()(data._raw_element_)
+                    except (TypeError, ValueError) as e:
+                        raise combine_exceptions(
+                            ValueError('%s is not in %s.' % (data, self)), e)
+
+            elif isinstance(data, GenericGrowthElement):
+                if data.is_one():
+                    return self.one()
+
             else:
                 raw_element = self._convert_(data)
+
             if raw_element is None:
                 raise ValueError('%s is not in %s.' % (data, self))
         elif not isinstance(data, int) or data != 0:

@@ -153,13 +153,15 @@ def parent_to_repr_short(P):
 def split_str_by_op(string, op, strip_parentheses=True):
     r"""
     Split the given string into a tuple of substrings arising by
-    splitting by '*' and taking care of parentheses.
+    splitting by the given operator ``op`` and taking care of parentheses.
 
     INPUT:
 
     - ``string`` -- a string.
 
-    - ``op`` -- a string.
+    - ``op`` -- a string. This is used by ``str.split``. Thus, if this
+      is ``None``, then any whitespace string is a separator and empty
+      strings are removed from the result.
 
     - ``strip_parentheses`` -- (default: ``True``) a boolean.
 

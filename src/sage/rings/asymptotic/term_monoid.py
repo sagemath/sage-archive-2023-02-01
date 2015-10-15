@@ -2502,12 +2502,13 @@ class TermWithCoefficient(GenericTerm):
             sage: from sage.rings.asymptotic.term_monoid import TermWithCoefficientMonoid
             sage: from sage.rings.asymptotic.growth_group import GrowthGroup
             sage: G = GrowthGroup('z^ZZ')
-            sage: t = TermWithCoefficientMonoid(G, ZZ).an_element(); t
-            Term with coefficient 1 and growth z
+            sage: T = TermWithCoefficientMonoid(G, ZZ)
+            sage: t = T('2*z'); t
+            Term with coefficient 2 and growth z
             sage: t._calculate_pow_(3)
-            Term with coefficient 1 and growth z^3
+            Term with coefficient 8 and growth z^3
             sage: t._calculate_pow_(-2)
-            Term with coefficient 1 and growth z^(-2)
+            Term with coefficient 1/4 and growth z^(-2)
         """
         try:
             c = self.coefficient ** exponent
@@ -2918,12 +2919,13 @@ class ExactTerm(TermWithCoefficient):
             sage: from sage.rings.asymptotic.term_monoid import TermMonoid
             sage: from sage.rings.asymptotic.growth_group import GrowthGroup
             sage: G = GrowthGroup('z^ZZ')
-            sage: t = TermMonoid('exact', G, ZZ).an_element(); t
-            z
+            sage: T = TermMonoid('exact', G, ZZ)
+            sage: t = T('2*z'); t
+            2*z
             sage: t^3  # indirect doctest
-            z^3
+            8*z^3
             sage: t^(1/2)  # indirect doctest
-            z^(1/2)
+            sqrt(2)*z^(1/2)
         """
         return self._calculate_pow_(exponent)
 

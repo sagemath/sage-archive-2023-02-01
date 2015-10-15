@@ -1808,11 +1808,8 @@ class GenericGrowthGroup(
             elif isinstance(data, self.element_class):
                 if data.parent() == self:
                     return data
-                try:
-                    if self._var_ != data.parent()._var_:
-                        raise ValueError('%s is not in %s.' % (data, self))
-                except AttributeError:
-                    pass
+                if self._var_ != data.parent()._var_:
+                    raise ValueError('%s is not in %s.' % (data, self))
                 raw_element = data._raw_element_
 
             elif isinstance(data, self.Element):

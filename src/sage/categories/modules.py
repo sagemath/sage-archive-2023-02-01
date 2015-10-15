@@ -17,7 +17,7 @@ from sage.categories.category_with_axiom import CategoryWithAxiom_over_base_ring
 from sage.categories.homsets import HomsetsCategory
 from category import Category, JoinCategory
 from category_types import Category_module, Category_over_base_ring
-from tensor import TensorProductsCategory
+from sage.categories.tensor import TensorProductsCategory, tensor
 from dual import DualObjectsCategory
 from sage.categories.sets_cat import Sets
 from sage.categories.bimodules import Bimodules
@@ -348,6 +348,43 @@ class Modules(Category_module):
             return self._with_axiom("FiniteDimensional")
 
         @cached_method
+        def Filtered(self, base_ring=None):
+            r"""
+            Return the subcategory of the filtered objects of ``self``.
+
+            INPUT:
+
+            - ``base_ring`` -- this is ignored
+
+            EXAMPLES::
+
+                sage: Modules(ZZ).Filtered()
+                Category of filtered modules over Integer Ring
+
+                sage: Coalgebras(QQ).Filtered()
+                Join of Category of filtered modules over Rational Field
+                 and Category of coalgebras over Rational Field
+
+                sage: AlgebrasWithBasis(QQ).Filtered()
+                Category of filtered algebras with basis over Rational Field
+
+            .. TODO::
+
+                - Explain why this does not commute with :meth:`WithBasis`
+                - Improve the support for covariant functorial
+                  constructions categories over a base ring so as to
+                  get rid of the ``base_ring`` argument.
+
+            TESTS::
+
+                sage: Coalgebras(QQ).Graded.__module__
+                'sage.categories.modules'
+            """
+            assert base_ring is None or base_ring is self.base_ring()
+            from sage.categories.filtered_modules import FilteredModulesCategory
+            return FilteredModulesCategory.category_of(self)
+
+        @cached_method
         def Graded(self, base_ring=None):
             r"""
             Return the subcategory of the graded objects of ``self``.
@@ -382,6 +419,42 @@ class Modules(Category_module):
             assert base_ring is None or base_ring is self.base_ring()
             from sage.categories.graded_modules import GradedModulesCategory
             return GradedModulesCategory.category_of(self)
+
+        @cached_method
+        def Super(self, base_ring=None):
+            r"""
+            Return the super-analogue category of ``self``.
+
+            INPUT:
+
+            - ``base_ring`` -- this is ignored
+
+            EXAMPLES::
+
+                sage: Modules(ZZ).Super()
+                Category of super modules over Integer Ring
+
+                sage: Coalgebras(QQ).Super()
+                Category of super coalgebras over Rational Field
+
+                sage: AlgebrasWithBasis(QQ).Super()
+                Category of super algebras with basis over Rational Field
+
+            .. TODO::
+
+                - Explain why this does not commute with :meth:`WithBasis`
+                - Improve the support for covariant functorial
+                  constructions categories over a base ring so as to
+                  get rid of the ``base_ring`` argument.
+
+            TESTS::
+
+                sage: Coalgebras(QQ).Super.__module__
+                'sage.categories.modules'
+            """
+            assert base_ring is None or base_ring is self.base_ring()
+            from sage.categories.super_modules import SuperModulesCategory
+            return SuperModulesCategory.category_of(self)
 
         @cached_method
         def WithBasis(self):
@@ -429,11 +502,28 @@ class Modules(Category_module):
             else:
                 return []
 
+    Filtered = LazyImport('sage.categories.filtered_modules', 'FilteredModules')
     Graded = LazyImport('sage.categories.graded_modules', 'GradedModules')
+    Super = LazyImport('sage.categories.super_modules', 'SuperModules')
     WithBasis = LazyImport('sage.categories.modules_with_basis', 'ModulesWithBasis')
 
     class ParentMethods:
-        pass
+        @cached_method
+        def tensor_square(self):
+            """
+            Returns the tensor square of ``self``
+
+            EXAMPLES::
+
+                sage: A = HopfAlgebrasWithBasis(QQ).example()
+                sage: A.tensor_square()
+                An example of Hopf algebra with basis:
+                 the group algebra of the Dihedral group of order 6
+                 as a permutation group over Rational Field # An example
+                 of Hopf algebra with basis: the group algebra of the Dihedral
+                 group of order 6 as a permutation group over Rational Field
+            """
+            return tensor([self, self])
 
     class ElementMethods:
 

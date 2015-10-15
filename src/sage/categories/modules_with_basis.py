@@ -125,6 +125,12 @@ class ModulesWithBasis(CategoryWithAxiom_over_base_ring):
 
     .. TODO:: ``End(X)`` is an algebra.
 
+    .. NOTE::
+
+        This category currently requires an implementation of an
+        element method ``support``. Once :trac:`18066` is merged, an
+        implementation of an ``items`` method will be required.
+
     TESTS::
 
         sage: TestSuite(ModulesWithBasis(ZZ)).run()
@@ -183,7 +189,9 @@ class ModulesWithBasis(CategoryWithAxiom_over_base_ring):
         return self.base_ring().is_field()
 
     FiniteDimensional = LazyImport('sage.categories.finite_dimensional_modules_with_basis', 'FiniteDimensionalModulesWithBasis')
+    Filtered = LazyImport('sage.categories.filtered_modules_with_basis', 'FilteredModulesWithBasis')
     Graded = LazyImport('sage.categories.graded_modules_with_basis', 'GradedModulesWithBasis')
+    Super = LazyImport('sage.categories.super_modules_with_basis', 'SuperModulesWithBasis')
 
     class ParentMethods:
         # To implement a module_with_basis you need to implement either

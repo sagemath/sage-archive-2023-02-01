@@ -117,8 +117,10 @@ class AlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
         from sage.categories.examples.algebras_with_basis import Example
         return Example(self.base_ring(), alphabet)
 
+    Filtered = LazyImport('sage.categories.filtered_algebras_with_basis', 'FilteredAlgebrasWithBasis')
     FiniteDimensional = LazyImport('sage.categories.finite_dimensional_algebras_with_basis', 'FiniteDimensionalAlgebrasWithBasis')
     Graded = LazyImport('sage.categories.graded_algebras_with_basis', 'GradedAlgebrasWithBasis')
+    Super = LazyImport('sage.categories.super_algebras_with_basis', 'SuperAlgebrasWithBasis')
 
     class ParentMethods:
 

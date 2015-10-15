@@ -238,11 +238,13 @@ class FormsSpace_abstract(FormsRing_abstract):
             if (self.hecke_n() == infinity and el.hecke_n() == ZZ(3)):
                 el_f = el._reduce_d()._rat
                 (x,y,z,d) = self.pol_ring().gens()
-                num1   = el_f.numerator().subs(   x=(y**2 + 3*x)/ZZ(4), y=(9*x*y - y**3)/ZZ(8), z=(3*z - y)/ZZ(2)).numerator()
-                num2   = el_f.denominator().subs( x=(y**2 + 3*x)/ZZ(4), y=(9*x*y - y**3)/ZZ(8), z=(3*z - y)/ZZ(2)).denominator()
-                denom1 = el_f.denominator().subs( x=(y**2 + 3*x)/ZZ(4), y=(9*x*y - y**3)/ZZ(8), z=(3*z - y)/ZZ(2)).numerator()
-                denom2 = el_f.numerator().subs(   x=(y**2 + 3*x)/ZZ(4), y=(9*x*y - y**3)/ZZ(8), z=(3*z - y)/ZZ(2)).denominator()
-                el = self._rat_field(num1*num2) / self._rat_field(denom1*denom2)
+
+                num_sub = el_f.numerator().subs(   x=(y**2 + 3*x)/ZZ(4), y=(9*x*y - y**3)/ZZ(8), z=(3*z - y)/ZZ(2))
+                denom_sub = el_f.denominator().subs( x=(y**2 + 3*x)/ZZ(4), y=(9*x*y - y**3)/ZZ(8), z=(3*z - y)/ZZ(2))
+                new_num = num_sub.numerator()*denom_sub.denominator()
+                new_denom = denom_sub.numerator()*num_sub.denominator()
+
+                el = self._rat_field(new_num) / self._rat_field(new_denom)
             elif self.group() == el.group():
                 el = el._rat
             else:

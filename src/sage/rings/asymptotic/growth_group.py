@@ -2805,6 +2805,11 @@ class MonomialGrowthGroup(GenericGrowthGroup):
 
             sage: P('1')
             1
+
+        ::
+
+            sage: GrowthGroup('x^QQ')(GrowthGroup('x^ZZ')(1))
+            1
         """
         if data == 1 or data == '1':
             return self.base().zero()
@@ -3403,18 +3408,26 @@ class ExponentialGrowthGroup(GenericGrowthGroup):
             e^x
             sage: P(exp(2*x))
             (e^2)^x
+
+        ::
+
+            sage: GrowthGroup('QQ^x')(GrowthGroup('ZZ^x')(1))
+            1
         """
-        if data == 1 or data == '1':
+        if data == '1' or isinstance(data, int) and data == 1:
             return self.base().one()
         var = repr(self._var_)
         try:
             P = data.parent()
         except AttributeError:
-            if var not in str(data):
+            if data == 1:
+                return self.base().one()
+            s = str(data)
+            if var not in s:
                 return  # this has to end here
 
-            elif str(data).endswith('^' + var):
-                return self.base()(str(data).replace('^' + var, '')
+            elif s.endswith('^' + var):
+                return self.base()(s.replace('^' + var, '')
                                    .replace('(', '').replace(')', ''))
             else:
                 return  # end of parsing
@@ -3438,6 +3451,9 @@ class ExponentialGrowthGroup(GenericGrowthGroup):
                     return base
                 elif exponent.operator() == mul_vararg:
                     return base ** (exponent / SR(var))
+
+        elif data == 1:  # can be expensive, so let's put it at the end
+            return self.base().one()
 
 
     def gens(self):

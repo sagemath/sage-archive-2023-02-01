@@ -478,7 +478,8 @@ cdef class ComplexIntervalFieldElement(sage.structure.element.FieldElement):
 
     def magnitude(self):
         """
-        The largest absolute value of the elements of the interval.
+        The largest absolute value of the elements of the interval, rounded
+        away from zero.
 
         OUTPUT: a real number with rounding mode ``RNDU``
 
@@ -501,7 +502,8 @@ cdef class ComplexIntervalFieldElement(sage.structure.element.FieldElement):
 
     def mignitude(self):
         """
-        The smallest absolute value of the elements of the interval.
+        The smallest absolute value of the elements of the interval, rounded
+        towards zero.
 
         OUTPUT: a real number with rounding mode ``RNDD``
 

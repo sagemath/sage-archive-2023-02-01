@@ -1143,7 +1143,9 @@ class GenericTerm(sage.structure.element.MonoidElement):
             sage: from sage.rings.asymptotic.growth_group import GrowthGroup
             sage: from sage.rings.asymptotic.term_monoid import (GenericTermMonoid, TermMonoid)
             sage: T = GenericTermMonoid(GrowthGroup('x^ZZ * log(x)^ZZ'), QQ)
-            sage: T.an_element().is_constant()
+            sage: t = T.an_element(); t
+            Generic Term with growth x*log(x)
+            sage: t.is_constant()
             False
 
         ::

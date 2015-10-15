@@ -1137,14 +1137,6 @@ class GenericGrowthElement(sage.structure.element.MultiplicativeGroupElement):
 
         A boolean.
 
-        .. NOTE::
-
-            This function uses the coercion model to find a common
-            parent for the two operands.
-
-            The comparison of two elements with the same parent is done in
-            :meth:`_eq_`.
-
         TESTS::
 
             sage: from sage.rings.asymptotic.growth_group import GrowthGroup

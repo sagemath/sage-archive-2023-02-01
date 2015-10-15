@@ -838,8 +838,8 @@ class GenericProduct(CartesianProductPoset, GenericGrowthGroup):
 
     class Element(CartesianProductPoset.Element):
 
-        from growth_group import is_lt_one
-        is_lt_one = is_lt_one
+        from growth_group import _is_lt_one_
+        is_lt_one = _is_lt_one_
 
 
         def _repr_(self):
@@ -950,9 +950,9 @@ class GenericProduct(CartesianProductPoset, GenericGrowthGroup):
                        tuple())
 
 
-        from growth_group import log_factor, log
-        log = log
-        log_factor = log_factor
+        from growth_group import _log_factor_, _log_
+        log = _log_
+        log_factor = _log_factor_
 
 
         def _log_factor_(self, base=None):
@@ -1001,8 +1001,8 @@ class GenericProduct(CartesianProductPoset, GenericGrowthGroup):
                                     (self, self.parent())), e)
 
 
-        from growth_group import rpow
-        rpow = rpow
+        from growth_group import _rpow_
+        rpow = _rpow_
 
 
         def _rpow_element_(self, base):

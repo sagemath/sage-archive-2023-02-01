@@ -570,7 +570,7 @@ class Variable(sage.structure.unique_representation.CachedRepresentation,
         return tuple(str(s) for s in SR(s).variables())
 
 
-def is_lt_one(self):
+def _is_lt_one_(self):
     r"""
     Return if this element is less than `1`.
 
@@ -595,7 +595,7 @@ def is_lt_one(self):
     return self <= one and self != one
 
 
-def log(self, base=None):
+def _log_(self, base=None):
     r"""
     Return the logarithm of this element.
 
@@ -696,7 +696,7 @@ def log(self, base=None):
     return g
 
 
-def log_factor(self, base=None):
+def _log_factor_(self, base=None):
     r"""
     Return the logarithm of the factorization of this
     element.
@@ -766,7 +766,7 @@ def log_factor(self, base=None):
     return log_factor
 
 
-def rpow(self, base):
+def _rpow_(self, base):
     r"""
     Calculate the power of ``base`` to this element.
 
@@ -1215,8 +1215,8 @@ class GenericGrowthElement(sage.structure.element.MultiplicativeGroupElement):
         raise NotImplementedError('Only implemented in concrete realizations.')
 
 
-    log = log
-    log_factor = log_factor
+    log = _log_
+    log_factor = _log_factor_
 
 
     def _log_factor_(self, base=None):
@@ -1249,8 +1249,7 @@ class GenericGrowthElement(sage.structure.element.MultiplicativeGroupElement):
                                   'of %s in abstract base class.' % (self,))
 
 
-
-    rpow = rpow
+    rpow = _rpow_
 
 
     def _rpow_element_(self, base):
@@ -1300,7 +1299,7 @@ class GenericGrowthElement(sage.structure.element.MultiplicativeGroupElement):
         return (self,)
 
 
-    is_lt_one = is_lt_one
+    is_lt_one = _is_lt_one_
 
 
 class GenericGrowthGroup(

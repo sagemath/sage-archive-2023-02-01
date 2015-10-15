@@ -681,6 +681,17 @@ def _log_(self, base=None):
         ...
         ArithmeticError: log(1) is zero, which is not contained in
         Growth Group (e^x)^ZZ * x^ZZ.
+
+    ::
+
+        sage: G = GrowthGroup('QQ^x * x^ZZ * log(x)^ZZ * y^ZZ * log(y)^ZZ')
+        sage: x, y = G.gens_monomial()
+        sage: (x * y).log()  # indirect doctest
+        Traceback (most recent call last):
+        ...
+        ArithmeticError: Calculating log(x*y) results in a sum,
+        which is not contained in
+        Growth Group QQ^x * x^ZZ * log(x)^ZZ * y^ZZ * log(y)^ZZ.
     """
     log_factor = self.log_factor(base=base)
     if not log_factor:

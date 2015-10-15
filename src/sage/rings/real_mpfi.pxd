@@ -31,7 +31,7 @@ cdef class RealIntervalField_class(sage.rings.ring.Field):
     cdef real_mpfr.RealField_class __middle_field
     cdef real_mpfr.RealField_class __upper_field
     cdef inline RealIntervalFieldElement _new(self):
-        """Return a new real number with parent ``self``."""
+        """Return a new real interval with parent ``self``."""
         return RealIntervalFieldElement.__new__(RealIntervalFieldElement, self)
 
 

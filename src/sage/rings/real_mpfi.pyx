@@ -1126,7 +1126,7 @@ cdef class RealIntervalFieldElement(RingElement):
         mpfi_init2(self.value, p.__prec)
         self._parent = p
 
-    def __init__(self, RealIntervalField_class parent, x=0, int base=10):
+    def __init__(self, parent, x=0, int base=10):
         """
         Initialize a real interval element. Should be called by first
         creating a :class:`RealIntervalField`, as illustrated in the
@@ -1210,7 +1210,7 @@ cdef class RealIntervalFieldElement(RingElement):
                 ra = self._parent(a).lower()
                 rb = self._parent(b).upper()
                 mpfi_interv_fr(self.value, ra.value, rb.value)
-        elif isinstance(x, str):
+        elif isinstance(x, basestring):
             s = str(x).replace('..', ',').replace(' ','').replace('+infinity', '@inf@').replace('-infinity','-@inf@')
             if mpfi_set_str(self.value, s, base):
                 raise TypeError("unable to convert {!r} to real interval".format(x))

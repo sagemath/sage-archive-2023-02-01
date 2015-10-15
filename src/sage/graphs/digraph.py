@@ -143,6 +143,12 @@ class DiGraph(GenericGraph):
 
       #. ``DiGraph(5)`` -- return an edgeless digraph on the 5 vertices 0,...,4.
 
+      #. ``DiGraph([list_of_vertices,list_of_edges])`` -- returns a digraph with
+         given vertices/edges.
+
+         To bypass auto-detection, prefer the more explicit
+         ``DiGraph([V,E],format='vertices_and_edges')``.
+
       #. ``DiGraph(list_of_edges)`` -- return a digraph with a given list of
          edges (see documentation of
          :meth:`~sage.graphs.generic_graph.GenericGraph.add_edges`).
@@ -429,6 +435,13 @@ class DiGraph(GenericGraph):
         True
         sage: type(J_imm._backend) == type(G_imm._backend)
         True
+
+    From a a list of vertices and a list of edges::
+
+        sage: G = DiGraph([[1,2,3],[(1,2)]]); G
+        Digraph on 3 vertices
+        sage: G.edges()
+        [(1, 2, None)]
     """
     _directed = True
 
@@ -592,6 +605,15 @@ class DiGraph(GenericGraph):
         if format is None and isinstance(data,list) and \
            len(data)>=2 and callable(data[1]):
             format = 'rule'
+
+        if (format is None           and
+            isinstance(data,list)    and
+            len(data) == 2           and
+            isinstance(data[0],list) and # a list of two lists, the second of
+            isinstance(data[1],list) and # which contains iterables (the edges)
+            (not data[1] or callable(getattr(data[1][0],"__iter__",None)))):
+            format = "vertices_and_edges"
+
         if format is None and isinstance(data,dict):
             keys = data.keys()
             if len(keys) == 0: format = 'dict_of_dicts'
@@ -683,6 +705,13 @@ class DiGraph(GenericGraph):
             self.allow_loops(loops,check=False)
             self.add_vertices(data[0])
             self.add_edges((u,v) for u in data[0] for v in data[0] if f(u,v))
+
+        elif format == "vertices_and_edges":
+            self.allow_multiple_edges(bool(multiedges), check=False)
+            self.allow_loops(bool(loops), check=False)
+            self.add_vertices(data[0])
+            self.add_edges(data[1])
+
         elif format == 'dict_of_dicts':
             from graph_input import from_dict_of_dicts
             from_dict_of_dicts(self, data, loops=loops, multiedges=multiedges, weighted=weighted,

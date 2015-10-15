@@ -99,8 +99,9 @@ from sage.modules.free_module import is_FreeModule
 from sage.structure.element import ModuleElement
 from sage.structure.gens_py import abelian_iterator
 from sage.structure.sequence import Sequence
-from sage.rings.all import gcd, lcm, QQ, ZZ, QQbar, Integer, composite_field
+from sage.rings.all import gcd, lcm, QQ, ZZ, QQbar, Integer
 from sage.misc.all import prod
+from sage.structure.element import get_coercion_model
 
 import abvar as abelian_variety
 
@@ -298,7 +299,7 @@ class FiniteSubgroup(Module):
         B = other.abelian_variety()
         if not A.in_same_ambient_variety(B):
             raise ValueError("self and other must be in the same ambient Jacobian")
-        K = composite_field(self.field_of_definition(), other.field_of_definition())
+        K = get_coercion_model().common_parent(self.field_of_definition(), other.field_of_definition())
         lattice = self.lattice() + other.lattice()
         if A != B:
             lattice += C.lattice()
@@ -384,7 +385,7 @@ class FiniteSubgroup(Module):
             amb = other
             B = other
             M = B.lattice().scale(Integer(1)/self.exponent())
-            K = composite_field(self.field_of_definition(), other.base_field())
+            K = get_coercion_model().common_parent(self.field_of_definition(), other.base_field())
         else:
             amb = A
             if not isinstance(other, FiniteSubgroup):
@@ -393,7 +394,7 @@ class FiniteSubgroup(Module):
             if A.ambient_variety() != B.ambient_variety():
                 raise TypeError("finite subgroups must be in the same ambient product Jacobian")
             M = other.lattice()
-            K = composite_field(self.field_of_definition(), other.field_of_definition())
+            K = get_coercion_model().common_parent(self.field_of_definition(), other.field_of_definition())
 
         L = self.lattice()
         if A != B:

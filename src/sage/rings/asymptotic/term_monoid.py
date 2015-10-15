@@ -1359,7 +1359,7 @@ class GenericTermMonoid(sage.structure.unique_representation.UniqueRepresentatio
 
         ::
 
-            sage: G = GrowthGroup('x^ZZ'); x = G.gen()
+            sage: G = GrowthGroup('x^ZZ')
             sage: T_ZZ = TermWithCoefficientMonoid(G, ZZ); T_ZZ
             Generic Term Monoid x^ZZ with (implicit) coefficients in Integer Ring
             sage: T_QQ = TermWithCoefficientMonoid(G, QQ); T_QQ

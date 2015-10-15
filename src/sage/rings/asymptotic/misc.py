@@ -328,7 +328,7 @@ def underlying_class(P):
         <class 'sage.rings.rational_field.RationalField'>
     """
     cls = type(P)
-    if not P._is_category_initialized():
+    if not hasattr(P, '_is_category_initialized') or not P._is_category_initialized():
         return cls
     from sage.structure.misc import is_extension_type
     if is_extension_type(cls):

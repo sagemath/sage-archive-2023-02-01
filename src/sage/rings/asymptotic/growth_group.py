@@ -349,11 +349,11 @@ class Variable(sage.structure.unique_representation.CachedRepresentation,
             ValueError: ':-' is not a valid name for a variable.
         """
         from sage.symbolic.ring import isidentifier
+        from misc import split_str_by_op
 
         if not isinstance(var, (list, tuple)):
-            from misc import split_str_by_op
-            var = split_str_by_op(str(var), None)  # we strip off parentheses
-        var = tuple(str(v).strip() for v in var)
+            var = (var,)
+        var = tuple(''.join(split_str_by_op(str(v), None)) for v in var)  # we strip off parentheses
 
         if ignore is None:
             ignore = tuple()

@@ -23,41 +23,42 @@ class Plane(UniqueRepresentation, Parent):
     EXAMPLES::
 
         sage: from sage.categories.manifolds import Manifolds
-        sage: M = Manifolds().example(); M
-        An example of a manifold: the 3-dimensional plane
+        sage: M = Manifolds(QQ).example(); M
+        An example of a Rational Field manifold: the 3-dimensional plane
 
         sage: M.category()
-        Category of manifolds
+        Category of manifolds over Rational Field
 
     We conclude by running systematic tests on this manifold::
 
         sage: TestSuite(M).run()
     """
 
-    def __init__(self, n=3):
+    def __init__(self, n=3, base_ring=None):
         r"""
         EXAMPLES::
 
             sage: from sage.categories.manifolds import Manifolds
-            sage: M = Manifolds().example(6); M
-            An example of a manifold: the 6-dimensional plane
+            sage: M = Manifolds(QQ).example(6); M
+            An example of a Rational Field manifold: the 6-dimensional plane
 
         TESTS::
 
             sage: TestSuite(M).run()
         """
         self._n = n
-        Parent.__init__(self, category=Manifolds())
+        Parent.__init__(self, base=base_ring, category=Manifolds(base_ring))
 
     def _repr_(self):
         r"""
         TESTS::
 
             sage: from sage.categories.manifolds import Manifolds
-            sage: Manifolds().example()
-            An example of a manifold: the 3-dimensional plane
+            sage: Manifolds(QQ).example()
+            An example of a Rational Field manifold: the 3-dimensional plane
         """
-        return "An example of a manifold: the {}-dimensional plane".format(self._n)
+        return "An example of a {} manifold: the {}-dimensional plane".format(
+                self.base_ring(), self._n)
 
     def dimension(self):
         """
@@ -66,7 +67,7 @@ class Plane(UniqueRepresentation, Parent):
         EXAMPLES::
 
             sage: from sage.categories.manifolds import Manifolds
-            sage: M = Manifolds().example()
+            sage: M = Manifolds(QQ).example()
             sage: M.dimension()
             3
         """
@@ -80,11 +81,11 @@ class Plane(UniqueRepresentation, Parent):
         EXAMPLES::
 
             sage: from sage.categories.manifolds import Manifolds
-            sage: M = Manifolds().example()
+            sage: M = Manifolds(QQ).example()
             sage: M.an_element()
             (0, 0, 0)
         """
-        zero = QQ.zero()
+        zero = self.base_ring().zero()
         return self(tuple([zero]*self._n))
 
     Element = ElementWrapper

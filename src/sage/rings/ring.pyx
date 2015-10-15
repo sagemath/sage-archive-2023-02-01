@@ -68,7 +68,7 @@ AUTHORS:
 
 from sage.misc.cachefunc import cached_method
 
-from sage.structure.element import get_coercion_model
+from sage.structure.element cimport coercion_model
 from sage.structure.parent_gens cimport ParentWithGens
 from sage.structure.parent cimport Parent
 from sage.structure.category_object import check_default_category
@@ -1308,7 +1308,7 @@ cdef class CommutativeRing(Ring):
         try:
             return self.fraction_field()
         except (NotImplementedError,TypeError):
-            return get_coercion_model().division_parent(self)
+            return coercion_model.division_parent(self)
 
     def __pow__(self, n, _):
         """

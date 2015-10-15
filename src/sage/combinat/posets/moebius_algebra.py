@@ -1,5 +1,6 @@
+# -*- coding: utf-8 -*-
 r"""
-Mobius Algebras
+Möbius Algebras
 """
 #*****************************************************************************
 #       Copyright (C) 2014 Travis Scrimshaw <tscrim at ucdavis.edu>,
@@ -44,21 +45,21 @@ class BasisAbstract(CombinatorialFreeModule, BindableClass):
         EXAMPLES::
 
             sage: L = posets.BooleanLattice(4)
-            sage: E = L.mobius_algebra(QQ).E()
+            sage: E = L.moebius_algebra(QQ).E()
             sage: E[5]
             E[5]
-            sage: C = L.quantum_mobius_algebra().C()
+            sage: C = L.quantum_moebius_algebra().C()
             sage: C[5]
             C[5]
         """
         L = self.realization_of()._lattice
         return self.monomial(L(x))
 
-class MobiusAlgebra(Parent, UniqueRepresentation):
+class MoebiusAlgebra(Parent, UniqueRepresentation):
     r"""
-    The Mobius algebra of a lattice.
+    The möbius algebra of a lattice.
 
-    Let `L` be a lattice. The *Mobius algebra* `M_L` was originally
+    Let `L` be a lattice. The *Möbius algebra* `M_L` was originally
     constructed by Solomon and has a natural basis
     `\{ E_x \mid x \in L \}` with multiplication given by
     `E_x \cdot E_y = E_{x \vee y}`. Moreover this has a basis given by
@@ -70,17 +71,17 @@ class MobiusAlgebra(Parent, UniqueRepresentation):
 
         I_x = \sum_{y \leq x} \mu_L(y, x) E_x,
 
-    where `\mu_L` is the Mobius function of `L`.
+    where `\mu_L` is the Möbius function of `L`.
 
     REFERENCES:
 
     .. [Greene73] Curtis Greene.
-       *On the Mobius algebra of a partially ordered set*.
+       *On the Möbius algebra of a partially ordered set*.
        Advances in Mathematics, **10**, 1973.
        :doi:`10.1016/0001-8708(73)90106-0`.
 
     .. [Etienne98] Gwihen Etienne.
-       *On the Mobius algebra of geometric lattices*.
+       *On the Möbius algebra of geometric lattices*.
        European Journal of Combinatorics, **19**, 1998.
        :doi:`10.1006/eujc.1998.0227`.
     """
@@ -91,7 +92,7 @@ class MobiusAlgebra(Parent, UniqueRepresentation):
         TESTS::
 
             sage: L = posets.BooleanLattice(4)
-            sage: M = L.mobius_algebra(QQ)
+            sage: M = L.moebius_algebra(QQ)
             sage: TestSuite(M).run()
         """
         if not L.is_lattice():
@@ -110,10 +111,10 @@ class MobiusAlgebra(Parent, UniqueRepresentation):
         EXAMPLES::
 
             sage: L = posets.BooleanLattice(4)
-            sage: L.mobius_algebra(QQ)
-            Mobius algebra of Finite lattice containing 16 elements over Rational Field
+            sage: L.moebius_algebra(QQ)
+            Moebius algebra of Finite lattice containing 16 elements over Rational Field
         """
-        return "Mobius algebra of {} over {}".format(self._lattice, self.base_ring())
+        return "Moebius algebra of {} over {}".format(self._lattice, self.base_ring())
 
     def a_realization(self):
         r"""
@@ -122,9 +123,9 @@ class MobiusAlgebra(Parent, UniqueRepresentation):
         EXAMPLES::
 
             sage: L = posets.BooleanLattice(4)
-            sage: M = L.mobius_algebra(QQ)
+            sage: M = L.moebius_algebra(QQ)
             sage: M.a_realization()
-            Mobius algebra of Finite lattice containing 16 elements
+            Moebius algebra of Finite lattice containing 16 elements
              over Rational Field in the natural basis
         """
         return self.E()
@@ -136,7 +137,7 @@ class MobiusAlgebra(Parent, UniqueRepresentation):
         EXAMPLES::
 
             sage: L = posets.BooleanLattice(4)
-            sage: M = L.mobius_algebra(QQ)
+            sage: M = L.moebius_algebra(QQ)
             sage: M.lattice()
             Finite lattice containing 16 elements
             sage: M.lattice() == L
@@ -146,7 +147,7 @@ class MobiusAlgebra(Parent, UniqueRepresentation):
 
     class E(BasisAbstract):
         r"""
-        The natural basis of a Mobius algebra.
+        The natural basis of a Möbius algebra.
 
         Let `E_x` and `E_y` be basis elements of `M_L` for some lattice `L`.
         Multiplication is given by `E_x E_y = E_{x \vee y}`.
@@ -158,14 +159,14 @@ class MobiusAlgebra(Parent, UniqueRepresentation):
             TESTS::
 
                 sage: L = posets.BooleanLattice(4)
-                sage: M = L.mobius_algebra(QQ)
+                sage: M = L.moebius_algebra(QQ)
                 sage: TestSuite(M.E()).run()
             """
             self._basis_name = "natural"
             CombinatorialFreeModule.__init__(self, M.base_ring(),
                                              tuple(M._lattice),
                                              prefix=prefix,
-                                             category=MobiusAlgebraBases(M))
+                                             category=MoebiusAlgebraBases(M))
 
         @cached_method
         def _to_idempotent_basis(self, x):
@@ -174,7 +175,7 @@ class MobiusAlgebra(Parent, UniqueRepresentation):
 
             EXAMPLES::
 
-                sage: M = posets.BooleanLattice(4).mobius_algebra(QQ)
+                sage: M = posets.BooleanLattice(4).moebius_algebra(QQ)
                 sage: E = M.E()
                 sage: all(E(E._to_idempotent_basis(x)) == E.monomial(x)
                 ....:     for x in E.basis().keys())
@@ -191,7 +192,7 @@ class MobiusAlgebra(Parent, UniqueRepresentation):
             EXAMPLES::
 
                 sage: L = posets.BooleanLattice(4)
-                sage: E = L.mobius_algebra(QQ).E()
+                sage: E = L.moebius_algebra(QQ).E()
                 sage: E.product_on_basis(5, 14)
                 E[15]
                 sage: E.product_on_basis(2, 8)
@@ -207,7 +208,7 @@ class MobiusAlgebra(Parent, UniqueRepresentation):
             EXAMPLES::
 
                 sage: L = posets.BooleanLattice(4)
-                sage: E = L.mobius_algebra(QQ).E()
+                sage: E = L.moebius_algebra(QQ).E()
                 sage: E.one()
                 E[0]
             """
@@ -218,7 +219,7 @@ class MobiusAlgebra(Parent, UniqueRepresentation):
 
     class I(BasisAbstract):
         """
-        The (orthogonal) idempotent basis of a Mobius algebra.
+        The (orthogonal) idempotent basis of a Möbius algebra.
 
         Let `I_x` and `I_y` be basis elements of `M_L` for some lattice `L`.
         Multiplication is given by `I_x I_y = \delta_{xy} I_x` where
@@ -231,14 +232,14 @@ class MobiusAlgebra(Parent, UniqueRepresentation):
             TESTS::
 
                 sage: L = posets.BooleanLattice(4)
-                sage: M = L.mobius_algebra(QQ)
+                sage: M = L.moebius_algebra(QQ)
                 sage: TestSuite(M.I()).run()
             """
             self._basis_name = "idempotent"
             CombinatorialFreeModule.__init__(self, M.base_ring(),
                                              tuple(M._lattice),
                                              prefix=prefix,
-                                             category=MobiusAlgebraBases(M))
+                                             category=MoebiusAlgebraBases(M))
 
             ## Change of basis:
             E = M.E()
@@ -260,7 +261,7 @@ class MobiusAlgebra(Parent, UniqueRepresentation):
 
             EXAMPLES::
 
-                sage: M = posets.BooleanLattice(4).mobius_algebra(QQ)
+                sage: M = posets.BooleanLattice(4).moebius_algebra(QQ)
                 sage: I = M.I()
                 sage: all(I(I._to_natural_basis(x)) == I.monomial(x)
                 ....:     for x in I.basis().keys())
@@ -278,7 +279,7 @@ class MobiusAlgebra(Parent, UniqueRepresentation):
             EXAMPLES::
 
                 sage: L = posets.BooleanLattice(4)
-                sage: I = L.mobius_algebra(QQ).I()
+                sage: I = L.moebius_algebra(QQ).I()
                 sage: I.product_on_basis(5, 14)
                 0
                 sage: I.product_on_basis(2, 2)
@@ -296,7 +297,7 @@ class MobiusAlgebra(Parent, UniqueRepresentation):
             EXAMPLES::
 
                 sage: L = posets.BooleanLattice(4)
-                sage: I = L.mobius_algebra(QQ).I()
+                sage: I = L.moebius_algebra(QQ).I()
                 sage: I.one()
                 I[0] + I[1] + I[2] + I[3] + I[4] + I[5] + I[6] + I[7] + I[8]
                  + I[9] + I[10] + I[11] + I[12] + I[13] + I[14] + I[15]
@@ -314,7 +315,7 @@ class MobiusAlgebra(Parent, UniqueRepresentation):
             EXAMPLES::
 
                 sage: L = posets.BooleanLattice(4)
-                sage: I = L.mobius_algebra(QQ).I()
+                sage: I = L.moebius_algebra(QQ).I()
                 sage: I[5]
                 I[5]
             """
@@ -323,11 +324,11 @@ class MobiusAlgebra(Parent, UniqueRepresentation):
 
     idempotent = I
 
-class QuantumMobiusAlgebra(Parent, UniqueRepresentation):
+class QuantumMoebiusAlgebra(Parent, UniqueRepresentation):
     r"""
-    The quantum Mobius algebra of a lattice.
+    The quantum Möbius algebra of a lattice.
 
-    Let `L` be a lattice, and we define the *quantum Mobius algebra* `M_L(q)`
+    Let `L` be a lattice, and we define the *quantum Möbius algebra* `M_L(q)`
     as the algebra with basis `\{ E_x \mid x \in L \}` with
     multiplication given by
 
@@ -336,7 +337,7 @@ class QuantumMobiusAlgebra(Parent, UniqueRepresentation):
         E_x E_y = \sum_{z \geq a \geq x \vee y} \mu_L(a, z)
         q^{\operatorname{crk} a} E_z,
 
-    where `\mu_L` is the Mobius function of `L` and `\operatorname{crk}`
+    where `\mu_L` is the Möbius function of `L` and `\operatorname{crk}`
     is the corank function (i.e., `\operatorname{crk} a =
     \operatorname{rank} L - \operatorname{rank}` a). At `q = 1`, this
     reduces to the multiplication formula originally given by Solomon.
@@ -348,7 +349,7 @@ class QuantumMobiusAlgebra(Parent, UniqueRepresentation):
         TESTS::
 
             sage: L = posets.BooleanLattice(4)
-            sage: M = L.quantum_mobius_algebra()
+            sage: M = L.quantum_moebius_algebra()
             sage: TestSuite(M).run() # long time
         """
         if not L.is_lattice():
@@ -371,11 +372,11 @@ class QuantumMobiusAlgebra(Parent, UniqueRepresentation):
         EXAMPLES::
 
             sage: L = posets.BooleanLattice(4)
-            sage: L.quantum_mobius_algebra()
-            Quantum Mobius algebra of Finite lattice containing 16 elements
+            sage: L.quantum_moebius_algebra()
+            Quantum Moebius algebra of Finite lattice containing 16 elements
              with q=q over Univariate Laurent Polynomial Ring in q over Integer Ring
         """
-        return "Quantum Mobius algebra of {} with q={} over {}".format(
+        return "Quantum Moebius algebra of {} with q={} over {}".format(
                             self._lattice, self._q, self.base_ring())
 
     def a_realization(self):
@@ -385,9 +386,9 @@ class QuantumMobiusAlgebra(Parent, UniqueRepresentation):
         EXAMPLES::
 
             sage: L = posets.BooleanLattice(4)
-            sage: M = L.quantum_mobius_algebra()
+            sage: M = L.quantum_moebius_algebra()
             sage: M.a_realization()
-            Quantum Mobius algebra of Finite lattice containing 16 elements
+            Quantum Moebius algebra of Finite lattice containing 16 elements
              with q=q over Univariate Laurent Polynomial Ring in q
              over Integer Ring in the natural basis
         """
@@ -400,7 +401,7 @@ class QuantumMobiusAlgebra(Parent, UniqueRepresentation):
         EXAMPLES::
 
             sage: L = posets.BooleanLattice(4)
-            sage: M = L.quantum_mobius_algebra()
+            sage: M = L.quantum_moebius_algebra()
             sage: M.lattice()
             Finite lattice containing 16 elements
             sage: M.lattice() == L
@@ -410,7 +411,7 @@ class QuantumMobiusAlgebra(Parent, UniqueRepresentation):
 
     class E(BasisAbstract):
         r"""
-        The natural basis of a Mobius algebra.
+        The natural basis of a quantum Möbius algebra.
 
         Let `E_x` and `E_y` be basis elements of `M_L` for some lattice `L`.
         Multiplication is given by
@@ -420,7 +421,7 @@ class QuantumMobiusAlgebra(Parent, UniqueRepresentation):
             E_x E_y = \sum_{z \geq a \geq x \vee y} \mu_L(a, z)
             q^{\operatorname{crk} a} E_z,
 
-        where `\mu_L` is the Mobius function of `L` and `\operatorname{crk}`
+        where `\mu_L` is the Möbius function of `L` and `\operatorname{crk}`
         is the corank function (i.e., `\operatorname{crk} a =
         \operatorname{rank} L - \operatorname{rank}` a).
         """
@@ -431,14 +432,14 @@ class QuantumMobiusAlgebra(Parent, UniqueRepresentation):
             TESTS::
 
                 sage: L = posets.BooleanLattice(4)
-                sage: M = L.quantum_mobius_algebra()
+                sage: M = L.quantum_moebius_algebra()
                 sage: TestSuite(M.E()).run() # long time
             """
             self._basis_name = "natural"
             CombinatorialFreeModule.__init__(self, M.base_ring(),
                                              tuple(M._lattice),
                                              prefix=prefix,
-                                             category=MobiusAlgebraBases(M))
+                                             category=MoebiusAlgebraBases(M))
 
         def product_on_basis(self, x, y):
             """
@@ -447,7 +448,7 @@ class QuantumMobiusAlgebra(Parent, UniqueRepresentation):
             EXAMPLES::
 
                 sage: L = posets.BooleanLattice(4)
-                sage: E = L.quantum_mobius_algebra().E()
+                sage: E = L.quantum_moebius_algebra().E()
                 sage: E.product_on_basis(5, 14)
                 E[15]
                 sage: E.product_on_basis(2, 8)
@@ -471,7 +472,7 @@ class QuantumMobiusAlgebra(Parent, UniqueRepresentation):
             EXAMPLES::
 
                 sage: L = posets.BooleanLattice(4)
-                sage: E = L.quantum_mobius_algebra().E()
+                sage: E = L.quantum_moebius_algebra().E()
                 sage: all(E.one() * b == b for b in E.basis())
                 True
             """
@@ -487,17 +488,18 @@ class QuantumMobiusAlgebra(Parent, UniqueRepresentation):
 
     class C(BasisAbstract):
         r"""
-        The characteristic basis of a Mobius algebra.
+        The characteristic basis of a quantum Möbius algebra.
 
         The characteristic basis `\{ C_x \mid x \in L \}` of `M_L`
         for some lattice `L` is defined by
 
         .. MATH::
 
-            C_x = \sum_{a \geq x} P(I^x; q) E_a,
+            C_x = \sum_{a \geq x} P(F^x; q) E_a,
 
-        where `I^x = \{ y \in L \mid y \geq x \}` is the order filter and
-        `P(I^x; q)` is the characteristic polynomial of the (sub)poset `I^x`.
+        where `F^x = \{ y \in L \mid y \geq x \}` is the principal order
+        filter of `x` and `P(F^x; q)` is the characteristic polynomial
+        of the (sub)poset `F^x`.
         """
         def __init__(self, M, prefix='C'):
             """
@@ -506,14 +508,14 @@ class QuantumMobiusAlgebra(Parent, UniqueRepresentation):
             TESTS::
 
                 sage: L = posets.BooleanLattice(3)
-                sage: M = L.quantum_mobius_algebra()
+                sage: M = L.quantum_moebius_algebra()
                 sage: TestSuite(M.C()).run() # long time
             """
             self._basis_name = "characteristic"
             CombinatorialFreeModule.__init__(self, M.base_ring(),
                                              tuple(M._lattice),
                                              prefix=prefix,
-                                             category=MobiusAlgebraBases(M))
+                                             category=MoebiusAlgebraBases(M))
 
             ## Change of basis:
             E = M.E()
@@ -531,7 +533,7 @@ class QuantumMobiusAlgebra(Parent, UniqueRepresentation):
 
             EXAMPLES::
 
-                sage: M = posets.BooleanLattice(4).quantum_mobius_algebra()
+                sage: M = posets.BooleanLattice(4).quantum_moebius_algebra()
                 sage: C = M.C()
                 sage: all(C(C._to_natural_basis(x)) == C.monomial(x)
                 ....:     for x in C.basis().keys())
@@ -553,7 +555,7 @@ class QuantumMobiusAlgebra(Parent, UniqueRepresentation):
 
     class KL(BasisAbstract):
         """
-        The Kazhdan-Lusztig basis of a quantum Mobius algebra.
+        The Kazhdan-Lusztig basis of a quantum Möbius algebra.
 
         The Kazhdan-Lusztig basis `\{ B_x \mid x \in L \}` of `M_L`
         for some lattice `L` is defined by
@@ -569,10 +571,11 @@ class QuantumMobiusAlgebra(Parent, UniqueRepresentation):
 
         We construct some examples of Proposition 4.5 of [EPW14]_::
 
-            sage: M = posets.BooleanLattice(4).quantum_mobius_algebra()
+            sage: M = posets.BooleanLattice(4).quantum_moebius_algebra()
             sage: KL = M.KL()
             sage: KL[4] * KL[5]
-            (q^2+q^3)*KL[5] + (q+2*q^2+q^3)*KL[7] + (q+2*q^2+q^3)*KL[13] + (1+3*q+3*q^2+q^3)*KL[15]
+            (q^2+q^3)*KL[5] + (q+2*q^2+q^3)*KL[7] + (q+2*q^2+q^3)*KL[13]
+             + (1+3*q+3*q^2+q^3)*KL[15]
             sage: KL[4] * KL[15]
             (1+3*q+3*q^2+q^3)*KL[15]
             sage: KL[4] * KL[10]
@@ -585,14 +588,14 @@ class QuantumMobiusAlgebra(Parent, UniqueRepresentation):
             TESTS::
 
                 sage: L = posets.BooleanLattice(4)
-                sage: M = L.quantum_mobius_algebra()
+                sage: M = L.quantum_moebius_algebra()
                 sage: TestSuite(M.KL()).run() # long time
             """
             self._basis_name = "Kazhdan-Lusztig"
             CombinatorialFreeModule.__init__(self, M.base_ring(),
                                              tuple(M._lattice),
                                              prefix=prefix,
-                                             category=MobiusAlgebraBases(M))
+                                             category=MoebiusAlgebraBases(M))
 
             ## Change of basis:
             E = M.E()
@@ -610,7 +613,7 @@ class QuantumMobiusAlgebra(Parent, UniqueRepresentation):
 
             EXAMPLES::
 
-                sage: M = posets.BooleanLattice(4).quantum_mobius_algebra()
+                sage: M = posets.BooleanLattice(4).quantum_moebius_algebra()
                 sage: KL = M.KL()
                 sage: all(KL(KL._to_natural_basis(x)) == KL.monomial(x) # long time
                 ....:     for x in KL.basis().keys())
@@ -630,19 +633,19 @@ class QuantumMobiusAlgebra(Parent, UniqueRepresentation):
 
     kazhdan_lusztig = KL
 
-class MobiusAlgebraBases(Category_realization_of_parent):
+class MoebiusAlgebraBases(Category_realization_of_parent):
     r"""
-    The category of bases of a Mobius algebra.
+    The category of bases of a Möbius algebra.
 
     INPUT:
 
-    - ``base`` -- a Mobius algebra
+    - ``base`` -- a Möbius algebra
 
     TESTS::
 
-        sage: from sage.combinat.posets.mobius_algebra import MobiusAlgebraBases
-        sage: M = posets.BooleanLattice(4).mobius_algebra(QQ)
-        sage: bases = MobiusAlgebraBases(M)
+        sage: from sage.combinat.posets.moebius_algebra import MoebiusAlgebraBases
+        sage: M = posets.BooleanLattice(4).moebius_algebra(QQ)
+        sage: bases = MoebiusAlgebraBases(M)
         sage: M.E() in bases
         True
     """
@@ -652,10 +655,10 @@ class MobiusAlgebraBases(Category_realization_of_parent):
 
         EXAMPLES::
 
-            sage: from sage.combinat.posets.mobius_algebra import MobiusAlgebraBases
-            sage: M = posets.BooleanLattice(4).mobius_algebra(QQ)
-            sage: MobiusAlgebraBases(M)
-            Category of bases of Mobius algebra of Finite lattice
+            sage: from sage.combinat.posets.moebius_algebra import MoebiusAlgebraBases
+            sage: M = posets.BooleanLattice(4).moebius_algebra(QQ)
+            sage: MoebiusAlgebraBases(M)
+            Category of bases of Moebius algebra of Finite lattice
              containing 16 elements over Rational Field
         """
         return "Category of bases of {}".format(self.base())
@@ -666,12 +669,12 @@ class MobiusAlgebraBases(Category_realization_of_parent):
 
         EXAMPLES::
 
-            sage: from sage.combinat.posets.mobius_algebra import MobiusAlgebraBases
-            sage: M = posets.BooleanLattice(4).mobius_algebra(QQ)
-            sage: bases = MobiusAlgebraBases(M)
+            sage: from sage.combinat.posets.moebius_algebra import MoebiusAlgebraBases
+            sage: M = posets.BooleanLattice(4).moebius_algebra(QQ)
+            sage: bases = MoebiusAlgebraBases(M)
             sage: bases.super_categories()
             [Category of finite dimensional commutative algebras with basis over Rational Field,
-             Category of realizations of Mobius algebra of Finite lattice
+             Category of realizations of Moebius algebra of Finite lattice
                 containing 16 elements over Rational Field]
         """
         return [self.base()._category, Realizations(self.base())]
@@ -679,16 +682,16 @@ class MobiusAlgebraBases(Category_realization_of_parent):
     class ParentMethods:
         def _repr_(self):
             """
-            Text representation of this basis of a Mobius algebra.
+            Text representation of this basis of a Möbius algebra.
 
             EXAMPLES::
 
-                sage: M = posets.BooleanLattice(4).mobius_algebra(QQ)
+                sage: M = posets.BooleanLattice(4).moebius_algebra(QQ)
                 sage: M.E()
-                Mobius algebra of Finite lattice containing 16 elements
+                Moebius algebra of Finite lattice containing 16 elements
                  over Rational Field in the natural basis
                 sage: M.I()
-                Mobius algebra of Finite lattice containing 16 elements
+                Moebius algebra of Finite lattice containing 16 elements
                  over Rational Field in the idempotent basis
             """
             return "{} in the {} basis".format(self.realization_of(), self._basis_name)
@@ -700,7 +703,7 @@ class MobiusAlgebraBases(Category_realization_of_parent):
             EXAMPLES::
 
                 sage: L = posets.BooleanLattice(4)
-                sage: C = L.quantum_mobius_algebra().C()
+                sage: C = L.quantum_moebius_algebra().C()
                 sage: C.product_on_basis(5, 14)
                 q^3*C[15]
                 sage: C.product_on_basis(2, 8)
@@ -717,7 +720,7 @@ class MobiusAlgebraBases(Category_realization_of_parent):
             EXAMPLES::
 
                 sage: L = posets.BooleanLattice(4)
-                sage: C = L.quantum_mobius_algebra().C()
+                sage: C = L.quantum_moebius_algebra().C()
                 sage: all(C.one() * b == b for b in C.basis())
                 True
             """

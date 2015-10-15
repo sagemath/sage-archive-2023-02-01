@@ -5721,9 +5721,9 @@ class FinitePoset(UniqueRepresentation, Parent):
         We follow the definition given in [EPW14]_. Let `G` denote a
         graded poset with unique minimal and maximal elements and `\chi_G`
         denote the characteristic polynomial of `G`. Let `I_x` and `F^x`
-        denote the order ideal and filter of `x` respectively. Define the
-        *Kazhdan-Lusztig polynomial* of `G` as the unique polynomial
-        `P_G(q)` satisfying the following:
+        denote the principal order ideal and filter of `x` respectively.
+        Define the *Kazhdan-Lusztig polynomial* of `G` as the unique
+        polynomial `P_G(q)` satisfying the following:
 
         1. If `\operatorname{rank} G = 0`, then `P_G(q) = 1`.
         2. If `\operatorname{rank} G > 0`, then `\deg P_G(q) <

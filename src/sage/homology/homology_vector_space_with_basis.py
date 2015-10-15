@@ -34,7 +34,6 @@ from sage.misc.cachefunc import cached_method
 from sage.categories.algebras import Algebras
 from sage.categories.modules import Modules
 from sage.combinat.free_module import CombinatorialFreeModule, CombinatorialFreeModuleElement
-from sage.modules.free_module import FreeModule
 from sage.sets.family import Family
 from simplicial_complex import SimplicialComplex
 
@@ -42,9 +41,9 @@ class HomologyVectorSpaceWithBasis(CombinatorialFreeModule):
     r"""
     Homology (or cohomology) vector space.
 
-    This is intended to provide enough structure to allow the
-    computation of cup products and cohomology operations. The former
-    has been implemented, but not the latter (yet).
+    This provides enough structure to allow the computation of cup
+    products and cohomology operations. See the class
+    :class:`CohomologyRing` (which derives from this) for examples.
 
     It also requires field coefficients (hence the "VectorSpace" in
     the name of the class).
@@ -53,16 +52,17 @@ class HomologyVectorSpaceWithBasis(CombinatorialFreeModule):
 
         This is not intended to be created directly by the user, but
         instead via the methods
-        :meth:`cell_complex.CellComplex.homology_with_basis` and
-        :meth:`cell_complex.CellComplex.cohomology_ring`.
+        :meth:`~sage.homology.cell_complex.GenericCellComplex.homology_with_basis` and
+        :meth:`~sage.homology.cell_complex.GenericCellComplex.cohomology_ring`
+        for the class of :class:`cell
+        complexes<sage.homology.cell_complex.GenericCellComplex>`.
 
     INPUT:
 
-    - ``contraction`` -- the chain contraction associated to this
-      homology computation
+    - ``base_ring`` -- must be a field
     - ``cell_complex`` -- the cell complex whose homology we are
       computing
-    - ``cohomology`` -- (default: ``False``) if ``True``, this reflects
+    - ``cohomology`` -- (default: ``False``) if ``True``, return
       the cohomology as a module
     - ``category`` -- (optional) a subcategory of modules with basis
 
@@ -70,7 +70,8 @@ class HomologyVectorSpaceWithBasis(CombinatorialFreeModule):
 
     Homology classes are denoted by ``h_{d,i}`` where ``d`` is the
     degree of the homology class and ``i`` is their index in the list
-    of basis elements. Cohomology classes are denoted ``h^{1,0}``::
+    of basis elements in that degree. Cohomology classes are denoted
+    ``h^{1,0}``::
 
         sage: RP2 = cubical_complexes.RealProjectivePlane()
         sage: RP2.homology_with_basis(GF(2))
@@ -89,15 +90,10 @@ class HomologyVectorSpaceWithBasis(CombinatorialFreeModule):
         sage: H = simplicial_complexes.Torus().cohomology_ring(QQ)
         sage: H.basis(1)
         Finite family {(1, 0): h^{1,0}, (1, 1): h^{1,1}}
-        sage: H.basis()[1,0]
+        sage: x = H.basis()[1,0]; x
         h^{1,0}
-        sage: H.basis()[1,1]
+        sage: y = H.basis()[1,1]; y
         h^{1,1}
-
-    You can then form linear combinations of these easily enough::
-
-        sage: x = H.basis()[1,0]
-        sage: y = H.basis()[1,1]
         sage: 2*x-3*y
         2*h^{1,0} - 3*h^{1,1}
 
@@ -110,7 +106,7 @@ class HomologyVectorSpaceWithBasis(CombinatorialFreeModule):
         sage: x.cup_product(x)
         0
 
-    This works with simplicial, cubical, and Delta complexes::
+    This works with simplicial, cubical, and `\Delta`-complexes::
 
         sage: Klein_c = cubical_complexes.KleinBottle()
         sage: H = Klein_c.cohomology_ring(GF(2))
@@ -163,15 +159,19 @@ class HomologyVectorSpaceWithBasis(CombinatorialFreeModule):
             sage: TestSuite(H).run()
             sage: H = RP2.cohomology_ring(GF(5))
             sage: TestSuite(H).run()
+            sage: H = simplicial_complexes.ComplexProjectivePlane().cohomology_ring()
+            sage: TestSuite(H).run()
         """
-        H, M = cell_complex.algebraic_topological_model(base_ring)
-        if cohomology:
-            H = H.dual()
-        cat = Modules(base_ring).WithBasis().Graded().or_subcategory(cat)
-        self._contraction = H
+        # phi is the associated chain contraction.
         # M is the homology chain complex.
-        # Do we need this for when we construct the cohomology?
-        M = self._contraction.pi()._codomain
+        phi, M = cell_complex.algebraic_topological_model(base_ring)
+        if cohomology:
+            phi = phi.dual()
+            # We only need the rank of M in each degree, and since
+            # we're working over a field, we don't need to dualize M
+            # if working with cohomology.
+        cat = Modules(base_ring).WithBasis().Graded().or_subcategory(cat)
+        self._contraction = phi
         self._complex = cell_complex
         self._cohomology = cohomology
         self._graded_indices = {deg: range(M.free_module_rank(deg))
@@ -183,7 +183,7 @@ class HomologyVectorSpaceWithBasis(CombinatorialFreeModule):
     def basis(self, d=None):
         """
         Return (the degree ``d`` homogeneous component of) the basis
-        of ``self``.
+        of this graded vector space.
 
         INPUT:
 
@@ -233,9 +233,9 @@ class HomologyVectorSpaceWithBasis(CombinatorialFreeModule):
 
         OUTPUT: `\phi`
 
-        See :class:`chain_homotopy.ChainContraction` for information
+        See :class:`~sage.homology.chain_homotopy.ChainContraction` for information
         about chain contractions, and see
-        :func:`algebraic_topological_model.algebraic_topological_model`
+        :func:`~sage.homology.algebraic_topological_model.algebraic_topological_model`
         for the construction of this particular chain contraction `\phi`.
 
         EXAMPLES::
@@ -293,8 +293,8 @@ class HomologyVectorSpaceWithBasis(CombinatorialFreeModule):
 
     def _repr_term(self, i):
         """
-        Return ``'h_{d,i}'`` for the ``i``-th generator in degree ``d``
-        for homology, ``'h^{d,i}'`` for cohomology.
+        Return ``'h_{i[0],i[1]}'`` for homology, ``'h^{i[0],i[1]}'`` for
+        cohomology, for the basis element indexed by ``i``.
 
         EXAMPLES::
 
@@ -306,6 +306,7 @@ class HomologyVectorSpaceWithBasis(CombinatorialFreeModule):
             sage: co = simplicial_complexes.KleinBottle().cohomology_ring(GF(2))
             sage: co.basis()[1,0] # indirect doctest
             h^{1,0}
+
         """
         sym = '^' if self._cohomology else '_'
         return 'h{}{{{},{}}}'.format(sym, i[0], i[1])
@@ -389,6 +390,42 @@ class HomologyVectorSpaceWithBasis(CombinatorialFreeModule):
 class CohomologyRing(HomologyVectorSpaceWithBasis):
     """
     The cohomology ring.
+
+    .. NOTE::
+
+        This is not intended to be created directly by the user, but
+        instead via the
+        :meth:`cohomology ring<sage.homology.cell_complex.GenericCellComplex.cohomology_ring>`
+        of a :class:`cell
+        complex<sage.homology.cell_complex.GenericCellComplex>`.
+
+    INPUT:
+
+    - ``base_ring`` -- must be a field
+    - ``cell_complex`` -- the cell complex whose homology we are
+      computing
+
+    EXAMPLES::
+
+        sage: CP2 = simplicial_complexes.ComplexProjectivePlane()
+        sage: H = CP2.cohomology_ring(QQ)
+        sage: H.basis(2)
+        Finite family {(2, 0): h^{2,0}}
+        sage: x = H.basis(2)[2,0]
+
+    The product structure is the cup product::
+
+        sage: x.cup_product(x)
+        h^{4,0}
+        sage: x * x
+        h^{4,0}
+
+    There are mod 2 cohomology operations defined, also::
+
+        sage: Hmod2 = CP2.cohomology_ring(GF(2))
+        sage: y = Hmod2.basis(2)[2,0]
+        sage: y.Sq(2)
+        h^{4,0}
     """
     def __init__(self, base_ring, cell_complex):
         """
@@ -418,11 +455,15 @@ class CohomologyRing(HomologyVectorSpaceWithBasis):
     @cached_method
     def one(self):
         """
+        The multiplicative identity element.
+
         EXAMPLES::
 
             sage: H = simplicial_complexes.Torus().cohomology_ring(QQ)
             sage: H.one()
             h^{0,0}
+            sage: all(H.one() * x == x == x * H.one() for x in H.basis())
+            True
         """
         one = self.base_ring().one()
         d = {(0,i): one for i in self._graded_indices[0]}
@@ -432,7 +473,7 @@ class CohomologyRing(HomologyVectorSpaceWithBasis):
     def product_on_basis(self, li, ri):
         r"""
         The cup product of the basis elements indexed by ``li`` and ``ri``
-        in ``self``.
+        in this cohomology ring.
 
         INPUT:
 
@@ -440,14 +481,15 @@ class CohomologyRing(HomologyVectorSpaceWithBasis):
 
         .. SEEALSO::
 
-            :meth:`CohomologyRing.Element.cup_product`
+            :meth:`CohomologyRing.Element.cup_product` -- the
+            documentation for this method describes the algorithm.
 
         EXAMPLES::
 
             sage: RP3 = simplicial_complexes.RealProjectiveSpace(3)
             sage: H = RP3.cohomology_ring(GF(2))
             sage: c = H.basis()[1,0]
-            sage: c.cup_product(c).cup_product(c)
+            sage: c.cup_product(c).cup_product(c) # indirect doctest
             h^{3,0}
 
             sage: T = simplicial_complexes.Torus()
@@ -548,21 +590,27 @@ class CohomologyRing(HomologyVectorSpaceWithBasis):
 
     class Element(HomologyVectorSpaceWithBasis.Element):
         def cup_product(self, other):
-            """
-            Return the cup product of ``self`` and ``other``.
+            r"""
+            Return the cup product of this element and ``other``.
 
             Algorithm: see González-Díaz and Réal [G-DR03]_, p. 88.
             Given two cohomology classes, lift them to cocycle
-            representatives using :meth:`to_cycle`. In the sum of
-            their dimensions, look at all of the homology classes
-            `\gamma`: lift each of those to a cycle representative,
-            apply the Alexander-Whitney diagonal map to each cell in
-            the cycle, evaluate the two cocycles on these factors, and
-            multiply. The result is the value of the cup product
-            cocycle on this homology class. After this has been done
-            for all homology classes, since homology and cohomology
-            are dual, one can tell which cohomology class corresponds
-            to the cup product.
+            representatives via the chain contraction for this
+            complex, using
+            :meth:`~HomologyVectorSpaceWithBasis.Element.to_cycle`. In
+            the sum of their dimensions, look at all of the homology
+            classes `\gamma`: lift each of those to a cycle
+            representative, apply the Alexander-Whitney diagonal map
+            to each cell in the cycle, evaluate the two cocycles on
+            these factors, and multiply. The result is the value of
+            the cup product cocycle on this homology class. After this
+            has been done for all homology classes, since homology and
+            cohomology are dual, one can tell which cohomology class
+            corresponds to the cup product.
+
+            .. SEEALSO::
+
+                :meth:`CohomologyRing.product_on_basis`
 
             EXAMPLES::
 
@@ -593,6 +641,7 @@ class CohomologyRing(HomologyVectorSpaceWithBasis):
                 sage: a,b = K.cohomology_ring(QQ).basis(2)
                 sage: a**0
                 h^{0,0} + h^{0,1}
+
             """
             return self * other
 
@@ -606,8 +655,7 @@ class CohomologyRing(HomologyVectorSpaceWithBasis):
 
             .. WARNING::
 
-               This is only implemented for simplicial complexes, not
-               cubical complexes.
+               This is only implemented for simplicial complexes.
 
             This cohomology operation is only defined in
             characteristic 2.
@@ -633,12 +681,8 @@ class CohomologyRing(HomologyVectorSpaceWithBasis):
                 sage: x = H.basis()[1,0]
                 sage: y = H.basis()[2,0]
                 sage: z = H.basis()[3,0]
-                sage: x.Sq(1)  # long time
-                h^{2,0}
-                sage: y.Sq(1)
-                0
-                sage: y.Sq(2)  # long time
-                h^{4,0}
+                sage: x.Sq(1) == y
+                True
                 sage: z.Sq(1)  # long time
                 h^{4,0}
 

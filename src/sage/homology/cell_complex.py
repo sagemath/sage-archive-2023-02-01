@@ -413,7 +413,7 @@ class GenericCellComplex(SageObject):
         .. note::
 
             The keyword arguments to this function get passed on to
-            :meth:``chain_complex`` and its homology.
+            :meth:`chain_complex` and its homology.
 
         ALGORITHM:
 
@@ -425,14 +425,14 @@ class GenericCellComplex(SageObject):
         CHomP computes homology, not cohomology, and only works over
         the integers or finite prime fields.  Therefore if any of
         these conditions fails, or if CHomP is not present, or if
-        ``algorithm`` is set to 'no_chomp', go to plan B: if ``self``
+        ``algorithm`` is set to 'no_chomp', go to plan B: if this complex
         has a ``_homology`` method -- each simplicial complex has
         this, for example -- then call that.  Such a method implements
         specialized algorithms for the particular type of cell
         complex.
 
         Otherwise, move on to plan C: compute the chain complex of
-        ``self`` and compute its homology groups.  To do this: over a
+        this complex and compute its homology groups.  To do this: over a
         field, just compute ranks and nullities, thus obtaining
         dimensions of the homology groups as vector spaces.  Over the
         integers, compute Smith normal form of the boundary matrices
@@ -689,13 +689,11 @@ class GenericCellComplex(SageObject):
         Algebraic topological model for this cell complex with
         coefficients in ``base_ring``.
 
-        The term algebraic topological model is defined by Pilarczyk
+        The term "algebraic topological model" is defined by Pilarczyk
         and Réal [PR]_.
 
-        .. NOTE::
-
-            This is only implemented for simplicial, cubical, and
-            `\Delta`-complexes.
+        This is implemented for simplicial, cubical, and
+        `\Delta`-complexes, not for arbitrary generic cell complexes.
 
         INPUT:
 
@@ -707,37 +705,36 @@ class GenericCellComplex(SageObject):
         `M` with zero differential, with the same homology as `C`,
         along with chain maps `\pi: C \to M` and `\iota: M \to C`
         satisfying `\iota \pi = 1_M` and `\pi \iota` chain homotopic
-        to `1_C`. The chain homotopy `H` must satisfy
+        to `1_C`. The chain homotopy `\phi` must satisfy
 
-        - `H \circ H = 0`,
-        - `\pi H = 0`,
-        - `H \iota = 0`.
+        - `\phi \phi = 0`,
+        - `\pi \phi = 0`,
+        - `\phi \iota = 0`.
 
         Such a chain homotopy is called a *chain contraction*.
 
         OUTPUT: a pair consisting of
 
-        - chain contraction ``H`` associated to `C`, `M`, `\pi`, and
+        - chain contraction ``phi`` associated to `C`, `M`, `\pi`, and
           `\iota`
         - the chain complex `M`
 
-        Note that from the chain contraction ``H``, one can recover the
-        chain maps `\pi` and `\iota` via ``H.pi()`` and
-        ``H.iota()``. Then one can recover `C` and `M` from, for
-        example, ``H.pi().domain()`` and ``H.pi().codomain()``,
+        Note that from the chain contraction ``phi``, one can recover the
+        chain maps `\pi` and `\iota` via ``phi.pi()`` and
+        ``phi.iota()``. Then one can recover `C` and `M` from, for
+        example, ``phi.pi().domain()`` and ``phi.pi().codomain()``,
         respectively.
 
         EXAMPLES::
 
-            sage: from sage.homology.algebraic_topological_model import algebraic_topological_model
             sage: RP2 = simplicial_complexes.RealProjectivePlane()
-            sage: H, M = RP2.algebraic_topological_model(GF(2))
+            sage: phi, M = RP2.algebraic_topological_model(GF(2))
             sage: M.homology()
             {0: Vector space of dimension 1 over Finite Field of size 2,
              1: Vector space of dimension 1 over Finite Field of size 2,
              2: Vector space of dimension 1 over Finite Field of size 2}
             sage: T = simplicial_complexes.Torus()
-            sage: H, M = T.algebraic_topological_model(QQ)
+            sage: phi, M = T.algebraic_topological_model(QQ)
             sage: M.homology()
             {0: Vector space of dimension 1 over Rational Field,
              1: Vector space of dimension 2 over Rational Field,
@@ -747,26 +744,21 @@ class GenericCellComplex(SageObject):
         from cubical_complex import CubicalComplex
         from simplicial_complex import SimplicialComplex
         from delta_complex import DeltaComplex
+        if base_ring is None:
+            base_ring = QQ
         if not isinstance(self, (CubicalComplex, SimplicialComplex, DeltaComplex)):
             raise NotImplementedError('only implemented for simplicial, cubical, and Delta complexes')
-        try:
-            if not self.is_immutable():
-                raise ValueError('the complex must be immutable')
-        except AttributeError:
-            # Cubical complexes don't have an is_immutable method, and
-            # they are always immutable.
-            pass
         if isinstance(self, DeltaComplex):
             return algebraic_topological_model_delta_complex(self, base_ring)
         return algebraic_topological_model(self, base_ring)
 
     def homology_with_basis(self, base_ring=None, cohomology=False):
         r"""
-        Return the unreduced homology in dimension ``dim`` with
+        Return the unreduced homology of this complex with
         coefficients in ``base_ring`` with a chosen basis.
 
         This is implemented for simplicial, cubical, and
-        `\Delta`-complexes.
+        `\Delta`-complexes, not for arbitrary generic cell complexes.
 
         INPUTS:
 
@@ -799,6 +791,16 @@ class GenericCellComplex(SageObject):
              (0, 1, 2, 3, 4, 5, 6, 7) and 16 facets over Finite Field of size 2
             sage: sorted(H.basis(), key=str)
             [h_{0,0}, h_{1,0}, h_{1,1}, h_{2,0}]
+
+        The homology is constructed as a graded object, so for
+        example, you can ask for the basis in a single degree::
+
+            sage: H.basis(1)
+            Finite family {(1, 0): h_{1,0}, (1, 1): h_{1,1}}
+            sage: S3 = delta_complexes.Sphere(3)
+            sage: H = S3.homology_with_basis(QQ, cohomology=True)
+            sage: list(H.basis(3))
+            [h^{3,0}]
         """
         from homology_vector_space_with_basis import HomologyVectorSpaceWithBasis
         if base_ring is None:
@@ -811,20 +813,30 @@ class GenericCellComplex(SageObject):
         ``base_ring`` with a chosen basis.
 
         This is implemented for simplicial, cubical, and
-        `\Delta`-complexes. The resulting elements are suitable for
-        computing cup products. For simplicial complexes, they should
-        be suitable for computing cohomology operations; at the
-        moment, only mod 2 cohomology operations have been
-        implemented.
+        `\Delta`-complexes, not for arbitrary generic cell complexes.
+        The resulting elements are suitable for computing cup
+        products. For simplicial complexes, they should be suitable
+        for computing cohomology operations; so far, only mod 2
+        cohomology operations have been implemented.
 
         INPUTS:
 
-        - ``dim`` -- dimension
         - ``base_ring`` -- coefficient ring (optional, default
           ``QQ``); must be a field
 
-        The basis elements are named 'h^{dim,i}' where `i` ranges
-        between 0 and `r-1`, if `r` is the rank of the homology group.
+        The basis elements in dimension ``dim`` are named 'h^{dim,i}'
+        where `i` ranges between 0 and `r-1`, if `r` is the rank of
+        the cohomology group.
+
+        .. NOTE::
+
+            For all but the smallest complexes, this is likely to be
+            slower than :meth:`cohomology` (with field coefficients),
+            possibly by several orders of magnitute. This and its
+            companion :meth:`homology_with_basis` carry extra
+            information which allows computation of cup products, for
+            example, but because of speed issues, you may only wish to
+            use these if you need that extra information.
 
         EXAMPLES::
 
@@ -841,9 +853,11 @@ class GenericCellComplex(SageObject):
             [h^{0,0}, h^{1,0}, h^{1,1}, h^{2,0}]
 
             sage: X = delta_complexes.SurfaceOfGenus(2)
-            sage: X.cohomology_ring(QQ)
+            sage: H = X.cohomology_ring(QQ); H
             Cohomology ring of Delta complex with 3 vertices and 29 simplices
              over Rational Field
+            sage: sorted(H.basis(1), key=str)
+            [h^{1,0}, h^{1,1}, h^{1,2}, h^{1,3}]
 
             sage: H = simplicial_complexes.Torus().cohomology_ring(QQ); H
             Cohomology ring of Simplicial complex with vertex set
@@ -857,6 +871,8 @@ class GenericCellComplex(SageObject):
 
             sage: x.cup_product(y)
             h^{2,0}
+            sage: x * y # alternate notation
+            h^{2,0}
             sage: y.cup_product(x)
             -h^{2,0}
             sage: x.cup_product(x)
@@ -867,11 +883,34 @@ class GenericCellComplex(SageObject):
             sage: RP2 = simplicial_complexes.RealProjectivePlane()
             sage: K = RP2.suspension()
             sage: K.set_immutable()
-            sage: y = K.cohomology_ring(GF(2)).basis()[2,0]
+            sage: y = K.cohomology_ring(GF(2)).basis()[2,0]; y
+            h^{2,0}
             sage: y.Sq(1)
             h^{3,0}
+
+        To compute the cohomology ring, the complex must be
+        "immutable". This is only relevant for simplicial complexes,
+        and most simplicial complexes are immutable, but certain
+        constructions make them mutable. The suspension is one
+        example, and this is the reason for calling
+        ``K.set_immutable()`` above. Another example::
+
+            sage: S1 = simplicial_complexes.Sphere(1)
+            sage: T = S1.product(S1)
+            sage: T.is_immutable()
+            False
+            sage: T.cohomology_ring()
+            Traceback (most recent call last):
+            ...
+            ValueError: This simplicial complex must be immutable. Call set_immutable().
+            sage: T.set_immutable()
+            sage: T.cohomology_ring()
+            Cohomology ring of Simplicial complex with 9 vertices and
+            18 facets over Rational Field
         """
         from homology_vector_space_with_basis import CohomologyRing
+        if base_ring is None:
+            base_ring = QQ
         return CohomologyRing(base_ring, self)
 
     ############################################################

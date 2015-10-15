@@ -42,15 +42,12 @@ def algebraic_topological_model(K, base_ring=None):
     INPUT:
 
     - ``K`` -- either a simplicial complex or a cubical complex
-    - ``base_ring`` -- coefficient ring (optional, default ``QQ``);
-      must be a field
+    - ``base_ring`` -- coefficient ring; must be a field
 
     OUTPUT: a pair ``(phi, M)`` consisting of
 
-    - the chain contraction ``phi`` associated to `C`, `M`, `\pi: C
-      \to M`, and `\iota: M \to C` satisfying `\iota \pi = 1_M` and
-      `\pi \iota`; and
-    - the chain complex `M`.
+    - chain contraction ``phi``
+    - chain complex `M`
 
     This construction appears in a paper by Pilarczyk and Réal [PR]_.
     Given a cell complex `K` and a field `F`, there is a chain complex
@@ -59,18 +56,18 @@ def algebraic_topological_model(K, base_ring=None):
     differential, along with chain maps `\pi: C \to M` and `\iota: M
     \to C` such that
 
-    - `\pi \circ \iota = 1_M`, and
-    - there is a chain homotopy `\phi` between `1_C` and `\iota \circ \pi`.
+    - `\pi \iota = 1_M`, and
+    - there is a chain homotopy `\phi` between `1_C` and `\iota \pi`.
 
     In particular, `\pi` and `\iota` induce isomorphisms on homology,
-    and since `M` has trivial differential, it is its own
-    homology. Thus `\iota` lifts homology classes to their cycle
-    representatives.
+    and since `M` has trivial differential, it is its own homology,
+    and thus also the homology of `C`. Thus `\iota` lifts homology
+    classes to their cycle representatives.
 
     The chain homotopy `\phi` satisfies some additional properties,
     making it a *chain contraction*:
 
-    - `\phi \circ \phi = 0`,
+    - `\phi \phi = 0`,
     - `\pi \phi = 0`,
     - `\phi \iota = 0`.
 
@@ -78,21 +75,23 @@ def algebraic_topological_model(K, base_ring=None):
     compute cup products and cohomology operations on the cohomology
     of `K`, as described in [G-DR03]_ and [PR]_.
 
-    Implementation details: the cell complex `K` must have a
-    :meth:`cell_complex.GenericCellComplex.n_cells` method from which
-    we can extract a list of cells in each dimension. Combining the
-    lists in increasing order of dimension then defines a filtration
-    of the complex: a list of cells in which the boundary of each cell
-    consists of cells earlier in the list. This is required by
-    Pilarczyk and Réal's algorithm.  There must also be a
-    :meth:`cell_complex.GenericCellComplex.chain_complex` method, to
-    construct the chain complex `C` associated to this chain complex.
+    Implementation details: the cell complex `K` must have an
+    :meth:`~sage.homology.cell_complex.GenericCellComplex.n_cells`
+    method from which we can extract a list of cells in each
+    dimension. Combining the lists in increasing order of dimension
+    then defines a filtration of the complex: a list of cells in which
+    the boundary of each cell consists of cells earlier in the
+    list. This is required by Pilarczyk and Réal's algorithm.  There
+    must also be a
+    :meth:`~sage.homology.cell_complex.GenericCellComplex.chain_complex`
+    method, to construct the chain complex `C` associated to this
+    chain complex.
 
-    In particular, this should work on simplicial complexes and
-    cubical complexes. It doesn't work for delta complexes, though:
-    the list of their n-cells has the wrong format.
+    In particular, this works for simplicial complexes and cubical
+    complexes. It doesn't work for `\Delta`-complexes, though: the list
+    of their `n`-cells has the wrong format.
 
-    Note that from the chain contraction ``\phi``, one can recover the
+    Note that from the chain contraction ``phi``, one can recover the
     chain maps `\pi` and `\iota` via ``phi.pi()`` and
     ``phi.iota()``. Then one can recover `C` and `M` from, for
     example, ``phi.pi().domain()`` and ``phi.pi().codomain()``,
@@ -142,7 +141,7 @@ def algebraic_topological_model(K, base_ring=None):
         [0]
         [1]
 
-    In cohomology, though, one needs the dual of every degree 0 chain
+    In cohomology, though, one needs the dual of every degree 0 cell
     to detect the degree 0 cohomology generator::
 
         sage: phi.dual().iota().in_degree(0)
@@ -165,8 +164,6 @@ def algebraic_topological_model(K, base_ring=None):
         sage: coC.differential(1) * H.dual().iota().in_degree(1).column(1) == 0
         True
     """
-    if base_ring is None:
-        base_ring = QQ
     if not base_ring.is_field():
         raise ValueError('the coefficient ring must be a field')
 
@@ -353,16 +350,13 @@ def algebraic_topological_model_delta_complex(K, base_ring=None):
     INPUT:
 
     - ``K`` -- a simplicial complex, a cubical complex, or a
-      Delta complex
-    - ``base_ring`` -- coefficient ring (optional, default ``QQ``);
-      must be a field
+      `\Delta`-complex
+    - ``base_ring`` -- coefficient ring; must be a field
 
     OUTPUT: a pair ``(phi, M)`` consisting of
 
-    - the chain contraction ``phi`` associated to `C`, `M`, `\pi: C
-      \to M`, and `\iota: M \to C` satisfying `\iota \pi = 1_M` and
-      `\pi \iota`; and
-    - the chain complex `M`.
+    - chain contraction ``phi``
+    - chain complex `M`
 
     See :func:`algebraic_topological_model` for the main
     documentation. The difference in implementation between the two:
@@ -410,14 +404,14 @@ def algebraic_topological_model_delta_complex(K, base_ring=None):
     In degree 0, the inclusion of the homology `M` into the chain
     complex `C` sends the homology generator to a single vertex::
 
-        sage: K = simplicial_complexes.Simplex(2)
+        sage: K = delta_complexes.Simplex(2)
         sage: phi, M = AT_model(K, QQ)
         sage: phi.iota().in_degree(0)
         [0]
         [0]
         [1]
 
-    In cohomology, though, one needs the dual of every degree 0 chain
+    In cohomology, though, one needs the dual of every degree 0 cell
     to detect the degree 0 cohomology generator::
 
         sage: phi.dual().iota().in_degree(0)
@@ -429,7 +423,7 @@ def algebraic_topological_model_delta_complex(K, base_ring=None):
 
         sage: T = cubical_complexes.Torus()
         sage: C = T.chain_complex()
-        sage: H, M = AT_model(T)
+        sage: H, M = AT_model(T, QQ)
         sage: C.differential(1) * H.iota().in_degree(1).column(0) == 0
         True
         sage: C.differential(1) * H.iota().in_degree(1).column(1) == 0
@@ -444,9 +438,9 @@ def algebraic_topological_model_delta_complex(K, base_ring=None):
         """
         Return a sparse matrix if the characteristic is zero.
 
-        Multiplication of matrices with low density seems to quicker
+        Multiplication of matrices with low density seems to be quicker
         if the matrices are sparse, when over the rationals. Over
-        finite fields, dense matrices, are faster regardless of
+        finite fields, dense matrices are faster regardless of
         density.
         """
         if base_ring == QQ:
@@ -454,9 +448,7 @@ def algebraic_topological_model_delta_complex(K, base_ring=None):
         else:
             return m
 
-    if base_ring is None:
-        base_ring = QQ
-    elif not base_ring.is_field():
+    if not base_ring.is_field():
         raise ValueError('the coefficient ring must be a field')
 
     # The following are all dictionaries indexed by dimension.

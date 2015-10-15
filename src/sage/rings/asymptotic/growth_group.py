@@ -2680,6 +2680,7 @@ class MonomialGrowthGroup(GenericGrowthGroup):
             sage: MonomialGrowthGroup(ZZ, 'x').category()
             Join of Category of groups and Category of posets
             sage: MonomialGrowthGroup(ZZ, 'x', category=Monoids()).category()
+            Join of Category of commutative groups and Category of posets
             Category of monoids
         """
         if category is not None:
@@ -2692,7 +2693,7 @@ class MonomialGrowthGroup(GenericGrowthGroup):
 
         C = base.category()
         if C.is_subcategory(CommutativeAdditiveGroups()):
-            category = Groups()
+            category = Groups().Commutative()
         else:
             category = Monoids()
 
@@ -3315,8 +3316,8 @@ class ExponentialGrowthGroup(GenericGrowthGroup):
             sage: ExponentialGrowthGroup(ZZ, 'x').category()
             Join of Category of monoids and Category of posets
             sage: ExponentialGrowthGroup(QQ, 'x').category()
-            Join of Category of groups and Category of posets
             sage: ExponentialGrowthGroup(ZZ, 'x', category=Groups()).category()
+            Join of Category of commutative groups and Category of posets
             Category of groups
             sage: ExponentialGrowthGroup(QQ, 'x', category=Monoids()).category()
             Category of monoids
@@ -3330,8 +3331,8 @@ class ExponentialGrowthGroup(GenericGrowthGroup):
         from sage.categories.posets import Posets
 
         C = base.category()
-        if C.is_subcategory(Fields()) or C.is_subcategory(Groups()):
-            category = Groups()
+        if C.is_subcategory(Fields()) or C.is_subcategory(Groups().Commutative()):
+            category = Groups().Commutative()
         else:
             category = Monoids()
 

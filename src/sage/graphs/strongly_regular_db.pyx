@@ -1641,7 +1641,7 @@ def SRG_276_140_58_84():
 
 def SRG_280_135_70_60():
     r"""
-    Return a strongly regular graph with parameters (280, 135, 70, 60).
+    Return a strongly regular graph with parameters `(280, 135, 70, 60)`.
 
     This graph is built from the action of `J_2` on a `3.PGL(2,9)` subgroup it
     contains.
@@ -1666,6 +1666,49 @@ def SRG_280_135_70_60():
     g.add_edges(edges)
     g.relabel()
     return g
+
+def SRG_280_117_44_52():
+    r"""
+    Return a strongly regular graph with parameters `(280, 117, 44, 52)`.
+
+    This graph is built according to a very pretty construction of Mathon and
+    Rosa [MR85]_:
+
+        The vertices of the graph `G` are all partitions of a set of 9 elements
+        into `\{\{a,b,c\},\{d,e,f\},\{g,h,i\}\}`. The cross-intersection of two
+        such partitions `P=\{P_1,P_2,P_3\}` and `P'=\{P'_1,P'_2,P'_3\}` being
+        defined as `\{P_i \cap P'_j: 1\leq i,j\leq 3\}`, two vertices of `G` are
+        set to be adjacent if the cross-intersection of their respective
+        partitions does not contain exactly 7 nonempty sets.
+
+    EXAMPLE::
+
+        sage: from sage.graphs.strongly_regular_db import SRG_280_117_44_52
+        sage: g=SRG_280_117_44_52()
+        sage: g.is_strongly_regular(parameters=True)
+        (280, 117, 44, 52)
+
+    REFERENCE:
+
+    .. [MR85] R. Mathon and A. Rosa,
+       A new strongly regular graph,
+       Journal of Combinatorial Theory, Series A 38, no. 1 (1985): 84-86.
+       http://dx.doi.org/10.1016/0097-3165(85)90025-1
+    """
+    from sage.graphs.hypergraph_generators import hypergraphs
+
+    # V is the set of partions {{a,b,c},{d,e,f},{g,h,i}} of {0,...,8}
+    H = hypergraphs.CompleteUniform(9,3)
+    g = H.intersection_graph()
+    V = g.complement().cliques_maximal()
+    V = map(frozenset,V)
+
+    # G is the graph defined on V in which two vertices are adjacent when they
+    # corresponding partitions cross-intersect on 7 nonempty sets
+    G = Graph([V, lambda x,y:
+               sum(any(xxx in yy for xxx in xx) for xx in x for yy in y) != 7],
+              loops=False)
+    return G
 
 def strongly_regular_from_two_weight_code(L):
     r"""
@@ -2665,6 +2708,7 @@ def strongly_regular_graph(int v,int k,int l,int mu=-1,bint existence=False,bint
         (256, 153,  92, 90): [SRG_256_153_92_90],
         (275, 112,  30, 56): [McLaughlinGraph],
         (276, 140,  58, 84): [SRG_276_140_58_84],
+        (280, 117, 44,  52): [SRG_280_117_44_52],
         (280, 135,  70, 60): [SRG_280_135_70_60],
         (416, 100,  36, 20): [SRG_416_100_36_20],
         (512, 219, 106, 84): [SRG_512_219_106_84],

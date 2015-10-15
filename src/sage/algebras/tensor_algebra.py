@@ -213,9 +213,9 @@ class TensorAlgebra(CombinatorialFreeModule):
             sage: TA(['a','b','c'])
             B['a'] # B['b'] # B['c']
             sage: TA(['a','b','c']) + TA(['a'])
-            B['a'] # B['b'] # B['c'] + B['a']
+            B['a'] + B['a'] # B['b'] # B['c']
             sage: TA(['a','b','c']) + TA(['a','b','a'])
-            B['a'] # B['b'] # B['c'] + B['a'] # B['b'] # B['a']
+            B['a'] # B['b'] # B['a'] + B['a'] # B['b'] # B['c']
             sage: TA(['a','b','c']) + TA(['a','b','c'])
             2*B['a'] # B['b'] # B['c']
             sage: TA(C.an_element())
@@ -243,8 +243,8 @@ class TensorAlgebra(CombinatorialFreeModule):
             sage: x = C.an_element(); x
             2*B['a'] + 2*B['b']
             sage: TA._tensor_constructor_([x, x])
-            4*B['a'] # B['a'] + 4*B['b'] # B['b']
-             + 4*B['b'] # B['a'] + 4*B['a'] # B['b']
+            4*B['a'] # B['a'] + 4*B['a'] # B['b']
+             + 4*B['b'] # B['a'] + 4*B['b'] # B['b']
         """
         if not elts:
             return self.zero()
@@ -623,8 +623,8 @@ class TensorAlgebraFunctor(ConstructionFunctor):
             sage: Tphi(sum(G))
             3*B['a'] + 2*B['b'] + B['c']
             sage: Tphi(G['x'] * G['y'])
-            B['b'] # B['b'] + 2*B['a'] # B['b'] + 2*B['a'] # B['a']
-             + B['b'] # B['c'] + B['b'] # B['a'] + 2*B['a'] # B['c']
+            2*B['a'] # B['a'] + 2*B['a'] # B['b'] + 2*B['a'] # B['c']
+             + B['b'] # B['a'] + B['b'] # B['b'] + B['b'] # B['c']
         """
         DB = f.domain()
         D = self(DB)

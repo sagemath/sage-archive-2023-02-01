@@ -772,7 +772,6 @@ def _log_factor_(self, base=None):
     """
     log_factor = self._log_factor_(base=base)
 
-    from growth_group import GenericGrowthGroup
     for g, c in log_factor:
         if hasattr(g, 'parent') and \
            isinstance(g.parent(), GenericGrowthGroup):

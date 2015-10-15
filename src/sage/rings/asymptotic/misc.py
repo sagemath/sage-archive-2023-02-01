@@ -191,6 +191,16 @@ def split_str_by_op(string, op, strip_parentheses=True):
         ('a^b', 'c')
         sage: split_str_by_op('a^(b^c)', '^')
         ('a', 'b^c')
+
+    ::
+
+        sage: split_str_by_op('(a) + (b)', op='+', strip_parentheses=True)
+        ('a', 'b')
+        sage: split_str_by_op('(a) + (b)', op='+', strip_parentheses=False)
+        ('(a)', '(b)')
+        sage: split_str_by_op(' ( t  ) ', op='+', strip_parentheses=False)
+        ('( t  )',)
+
     ::
 
         sage: split_str_by_op(' ( t  ) ', op=None)

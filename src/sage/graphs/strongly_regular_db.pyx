@@ -341,12 +341,89 @@ def is_orthogonal_polar(int v,int k,int l,int mu):
                 return (OrthogonalPolarGraph, 2*m, q, "-")
 
 @cached_function
+def is_goethals_seidel(int v,int k,int l,int mu):
+    r"""
+    Test whether some
+    :func:`~sage.graphs.graph_generators.GraphGenerators.GoethalsSeidelGraph` graph is
+    `(v,k,\lambda,\mu)`-strongly regular.
+
+    INPUT:
+
+    - ``v,k,l,mu`` (integers)
+
+    OUTPUT:
+
+    A tuple ``t`` such that ``t[0](*t[1:])`` builds the requested graph if one
+    exists, and ``None`` otherwise.
+
+    EXAMPLES::
+
+        sage: from sage.graphs.strongly_regular_db import is_goethals_seidel
+        sage: t = is_goethals_seidel(28, 15, 6, 10); t
+        [<function GoethalsSeidelGraph at ...>, 3, 3]
+        sage: g = t[0](*t[1:]); g
+        Graph on 28 vertices
+        sage: g.is_strongly_regular(parameters=True)
+        (28, 15, 6, 10)
+
+        sage: t = is_goethals_seidel(256, 135, 70, 72); t
+        [<function GoethalsSeidelGraph at ...>, 2, 15]
+        sage: g = t[0](*t[1:]); g
+        Graph on 256 vertices
+        sage: g.is_strongly_regular(parameters=True)
+        (256, 135, 70, 72)
+
+        sage: t = is_goethals_seidel(5,5,5,5); t
+
+    TESTS::
+
+        sage: for p in [(16, 9, 4, 6), (28, 15, 6, 10), (64, 35, 18, 20), (120, 63, 30, 36),
+        ....:           (144, 77, 40, 42), (256, 135, 70, 72), (400, 209, 108, 110),
+        ....:           (496, 255, 126, 136), (540, 275, 130, 150), (576, 299, 154, 156),
+        ....:           (780, 399, 198, 210), (784, 405, 208, 210), (976, 495, 238, 264)]:
+        ....:     print is_goethals_seidel(*p)
+        [<function GoethalsSeidelGraph at ...>, 2, 3]
+        [<function GoethalsSeidelGraph at ...>, 3, 3]
+        [<function GoethalsSeidelGraph at ...>, 2, 7]
+        [<function GoethalsSeidelGraph at ...>, 3, 7]
+        [<function GoethalsSeidelGraph at ...>, 2, 11]
+        [<function GoethalsSeidelGraph at ...>, 2, 15]
+        [<function GoethalsSeidelGraph at ...>, 2, 19]
+        [<function GoethalsSeidelGraph at ...>, 3, 15]
+        [<function GoethalsSeidelGraph at ...>, 5, 11]
+        [<function GoethalsSeidelGraph at ...>, 2, 23]
+        [<function GoethalsSeidelGraph at ...>, 3, 19]
+        [<function GoethalsSeidelGraph at ...>, 2, 27]
+        [<function GoethalsSeidelGraph at ...>, 5, 15]
+    """
+    from sage.combinat.designs.bibd import balanced_incomplete_block_design
+    from sage.combinat.matrices.hadamard_matrix import hadamard_matrix
+
+    # here we guess the parameters v_bibd,k_bibd and r_bibd of the block design
+    #
+    # - the number of vertices v is equal to v_bibd*(r_bibd+1)
+    # - the degree k of the graph is equal to k=(v+r_bibd-1)/2
+
+    r_bibd = k - (v-1-k)
+    v_bibd = v//(r_bibd+1)
+    k_bibd = (v_bibd-1)/r_bibd + 1 if r_bibd>0 else -1
+
+    if (v   == v_bibd*(r_bibd+1)                  and
+        2*k == v+r_bibd-1                         and
+        4*l == -2*v + 6*k -v_bibd -k_bibd         and
+        hadamard_matrix(r_bibd+1, existence=True) and
+        balanced_incomplete_block_design(v_bibd, k_bibd, existence = True)):
+        from sage.graphs.generators.families import GoethalsSeidelGraph
+        return [GoethalsSeidelGraph, k_bibd, r_bibd]
+
+@cached_function
 def is_NOodd(int v,int k,int l,int mu):
     r"""
     Test whether some NO^e(2n+1,q) graph is `(v,k,\lambda,\mu)`-strongly regular.
 
-    Here `q>2`, for in the case `q=2` this graph is complete. For more information, see
-    :func:`sage.graphs.generators.classical_geometries.NonisotropicOrthogonalPolarGraph`
+    Here `q>2`, for in the case `q=2` this graph is complete. For more
+    information, see
+    :func:`sage.graphs.graph_generators.GraphGenerators.NonisotropicOrthogonalPolarGraph`
     and Sect. 7.C of [BvL84]_.
 
     INPUT:
@@ -415,7 +492,7 @@ def is_NOperp_F5(int v,int k,int l,int mu):
     Test whether some NO^e,perp(2n+1,5) graph is `(v,k,\lambda,\mu)`-strongly regular.
 
     For more information, see
-    :func:`sage.graphs.generators.classical_geometries.NonisotropicOrthogonalPolarGraph`
+    :func:`sage.graphs.graph_generators.GraphGenerators.NonisotropicOrthogonalPolarGraph`
     and Sect. 7.D of [BvL84]_.
 
     INPUT:
@@ -470,7 +547,7 @@ def is_NO_F2(int v,int k,int l,int mu):
     Test whether some NO^e,perp(2n,2) graph is `(v,k,\lambda,\mu)`-strongly regular.
 
     For more information, see
-    :func:`sage.graphs.generators.classical_geometries.NonisotropicOrthogonalPolarGraph`
+    :func:`sage.graphs.graph_generators.GraphGenerators.NonisotropicOrthogonalPolarGraph`
     and  
 
     INPUT:
@@ -521,7 +598,7 @@ def is_NO_F3(int v,int k,int l,int mu):
     Test whether some NO^e,perp(2n,3) graph is `(v,k,\lambda,\mu)`-strongly regular.
 
     For more information, see
-    :func:`sage.graphs.generators.classical_geometries.NonisotropicOrthogonalPolarGraph`
+    :func:`sage.graphs.graph_generators.GraphGenerators.NonisotropicOrthogonalPolarGraph`
     and  
 
     INPUT:
@@ -576,7 +653,7 @@ def is_NU(int v,int k,int l,int mu):
     Test whether some NU(n,q)-graph, is `(v,k,\lambda,\mu)`-strongly regular.
 
     Note that n>2; for n=2 there is no s.r.g. For more information, see
-    :func:`sage.graphs.generators.classical_geometries.NonisotropicUnitaryPolarGraph`
+    :func:`sage.graphs.graph_generators.GraphGenerators.NonisotropicUnitaryPolarGraph`
     and series C14 in [Hu75]_.
 
     INPUT:
@@ -1011,8 +1088,9 @@ def is_taylor_twograph_srg(int v,int k,int l,int mu):
     OUTPUT:
 
     A tuple ``t`` such that ``t[0](*t[1:])`` builds the requested graph
-    :func:`TaylorTwographSRG <sage.graphs.generators.classical_geometries.TaylorTwographSRG>`
-    if the parameters match, and ``None`` otherwise.
+    :func:`TaylorTwographSRG
+    <sage.graphs.graph_generators.GraphGenerators.TaylorTwographSRG>` if the
+    parameters match, and ``None`` otherwise.
 
     EXAMPLES::
 
@@ -2615,6 +2693,7 @@ def strongly_regular_graph(int v,int k,int l,int mu=-1,bint existence=False,bint
     test_functions = [is_paley, is_johnson,
                       is_orthogonal_array_block_graph,
                       is_steiner, is_affine_polar,
+                      is_goethals_seidel,
                       is_orthogonal_polar,
                       is_NOodd, is_NOperp_F5, is_NO_F2, is_NO_F3, is_NU,
                       is_unitary_polar, is_unitary_dual_polar, is_GQqmqp,

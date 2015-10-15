@@ -586,9 +586,9 @@ def _is_lt_one_(self):
 
         sage: from sage.rings.asymptotic.growth_group import GrowthGroup
         sage: G = GrowthGroup('x^ZZ'); x = G(x)
-        sage: (x^42).is_lt_one()
+        sage: (x^42).is_lt_one()  # indirect doctest
         False
-        sage: (x^(-42)).is_lt_one()
+        sage: (x^(-42)).is_lt_one()  # indirect doctest
         True
     """
     one = self.parent().one()
@@ -615,7 +615,7 @@ def _log_(self, base=None):
         sage: x, = G.gens_monomial()
         sage: log(x)  # indirect doctest
         log(x)
-        sage: log(x^5)
+        sage: log(x^5)  # indirect doctest
         Traceback (most recent call last):
         ...
         ArithmeticError: When calculating log(x^5) a factor 5 != 1 appeared,
@@ -627,12 +627,12 @@ def _log_(self, base=None):
         sage: x, = G.gens_monomial()
         sage: el = x.rpow(2); el
         2^x
-        sage: log(el)
+        sage: log(el)  # indirect doctest
         Traceback (most recent call last):
         ...
         ArithmeticError: When calculating log(2^x) a factor log(2) != 1
         appeared, which is not contained in Growth Group QQ^x * x^ZZ.
-        sage: log(el, base=2)
+        sage: log(el, base=2)  # indirect doctest
         x
 
     ::
@@ -648,7 +648,7 @@ def _log_(self, base=None):
     ::
 
         sage: x = GrowthGroup('x^ZZ').an_element()
-        sage: log(x)
+        sage: log(x)  # indirect doctest
         Traceback (most recent call last):
         ...
         ArithmeticError: Cannot build log(x) since log(x) is not in
@@ -658,9 +658,9 @@ def _log_(self, base=None):
 
         sage: G = GrowthGroup("(e^x)^QQ * x^ZZ")
         sage: x, = G.gens_monomial()
-        sage: log(exp(x))
+        sage: log(exp(x))  # indirect doctest
         x
-        sage: G.one().log()
+        sage: G.one().log()  # indirect doctest
         Traceback (most recent call last):
         ...
         ArithmeticError: log(1) is zero, which is not contained in
@@ -670,9 +670,9 @@ def _log_(self, base=None):
 
         sage: G = GrowthGroup("(e^x)^ZZ * x^ZZ")
         sage: x, = G.gens_monomial()
-        sage: log(exp(x))
+        sage: log(exp(x))  # indirect doctest
         x
-        sage: G.one().log()
+        sage: G.one().log()  # indirect doctest
         Traceback (most recent call last):
         ...
         ArithmeticError: log(1) is zero, which is not contained in
@@ -721,11 +721,11 @@ def _log_factor_(self, base=None):
         sage: from sage.rings.asymptotic.growth_group import GrowthGroup
         sage: G = GrowthGroup('QQ^x * x^ZZ * log(x)^ZZ * y^ZZ * log(y)^ZZ')
         sage: x, y = G.gens_monomial()
-        sage: (x * y).log_factor()
+        sage: (x * y).log_factor()  # indirect doctest
         ((log(x), 1), (log(y), 1))
-        sage: (x^123).log_factor()
+        sage: (x^123).log_factor()  # indirect doctest
         ((log(x), 123),)
-        sage: (G('2^x') * x^2).log_factor(base=2)
+        sage: (G('2^x') * x^2).log_factor(base=2)  # indirect doctest
         ((x, 1), (log(x), 2/log(2)))
 
     ::
@@ -735,7 +735,7 @@ def _log_factor_(self, base=None):
 
     ::
 
-        sage: log(x).log_factor()
+        sage: log(x).log_factor()  # indirect doctest
         Traceback (most recent call last):
         ...
         ArithmeticError: Cannot build log(log(x)) since log(log(x)) is
@@ -750,7 +750,7 @@ def _log_factor_(self, base=None):
 
         sage: G = GrowthGroup("(e^x)^ZZ * x^ZZ * log(x)^ZZ")
         sage: x, = G.gens_monomial()
-        sage: (exp(x) * x).log_factor()
+        sage: (exp(x) * x).log_factor()  # indirect doctest
         ((x, 1), (log(x), 1))
     """
     log_factor = self._log_factor_(base=base)
@@ -783,18 +783,18 @@ def _rpow_(self, base):
         sage: from sage.rings.asymptotic.growth_group import GrowthGroup
         sage: G = GrowthGroup('QQ^x * x^ZZ')
         sage: x = G('x')
-        sage: x.rpow(2)
+        sage: x.rpow(2)  # indirect doctest
         2^x
-        sage: x.rpow(1/2)
+        sage: x.rpow(1/2)  # indirect doctest
         (1/2)^x
 
     ::
 
-        sage: x.rpow(0)
+        sage: x.rpow(0)  # indirect doctest
         Traceback (most recent call last):
         ...
         ValueError: 0 is not an allowed base for calculating the power to x.
-        sage: (x^2).rpow(2)
+        sage: (x^2).rpow(2)  # indirect doctest
         Traceback (most recent call last):
         ...
         ArithmeticError: Cannot construct 2^(x^2) in Growth Group QQ^x * x^ZZ
@@ -805,7 +805,7 @@ def _rpow_(self, base):
 
         sage: G = GrowthGroup('QQ^(x*log(x)) * x^ZZ * log(x)^ZZ')
         sage: x = G('x')
-        sage: (x * log(x)).rpow(2)
+        sage: (x * log(x)).rpow(2)  # indirect doctest
         2^(x*log(x))
     """
     if base == 0:

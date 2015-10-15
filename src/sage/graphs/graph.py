@@ -618,9 +618,10 @@ class Graph(GenericGraph):
          To bypass auto-detection, prefer the more explicit ``Graph(M,
          format='incidence_matrix')``.
 
-      #. ``Graph([V, f])`` -- return a graph with a vertex set ``V`` and an edge
-         `u,v` whenever ``f(u,v)`` is ``True``. Example: ``Graph([ [1..10],
-         lambda x,y: abs(x-y).is_square()])``
+      #. ``Graph([V, f])`` -- return a graph from a vertex set ``V`` and a
+         *symmetric* function ``f``. The graph contains an edge `u,v` whenever
+         ``f(u,v)`` is ``True``.. Example: ``Graph([ [1..10], lambda x,y:
+         abs(x-y).is_square()])``
 
       #. ``Graph(':I`ES@obGkqegW~')`` -- return a graph from a graph6 or sparse6
          string (see documentation of :meth:`graph6_string` or

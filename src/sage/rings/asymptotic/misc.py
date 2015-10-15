@@ -191,6 +191,14 @@ def split_str_by_op(string, op, strip_parentheses=True):
         ('a^b', 'c')
         sage: split_str_by_op('a^(b^c)', '^')
         ('a', 'b^c')
+    ::
+
+        sage: split_str_by_op(' ( t  ) ', op=None)
+        ('t',)
+        sage: split_str_by_op(' ( t  )s', op=None)
+        ('(t)s',)
+        sage: split_str_by_op(' ( t  ) s', op=None)
+        ('t', 's')
     """
     factors = list()
     balanced = True
@@ -206,7 +214,7 @@ def split_str_by_op(string, op, strip_parentheses=True):
             raise ValueError("'%s' is invalid since a '%s' follows a '%s'." %
                              (string, op, op))
         if not balanced:
-            s = factors.pop() + op + s
+            s = factors.pop() + (op if op else '') + s
         balanced = s.count('(') == s.count(')')
         factors.append(s)
 

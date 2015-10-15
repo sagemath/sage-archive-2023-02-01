@@ -1388,11 +1388,6 @@ class GenericGrowthGroup(
             cls, base, var, category)
 
 
-        if category is None:
-            from sage.categories.monoids import Monoids
-            from sage.categories.posets import Posets
-
-
     @staticmethod
     def _determine_category_(category, base):
         r"""

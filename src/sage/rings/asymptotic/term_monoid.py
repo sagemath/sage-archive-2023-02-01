@@ -1645,6 +1645,8 @@ class GenericTermMonoid(sage.structure.unique_representation.UniqueRepresentatio
 
         An element.
 
+        EXAMPLES::
+
             sage: from sage.rings.asymptotic.term_monoid import TermMonoid
             sage: from sage.rings.asymptotic.growth_group import GrowthGroup
             sage: G = GrowthGroup('z^ZZ')

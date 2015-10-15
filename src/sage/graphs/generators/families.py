@@ -1595,6 +1595,98 @@ def PaleyGraph(q):
     loops=False, name = "Paley graph with parameter %d"%q)
     return g
 
+def PasechnikGraph(n):
+    """
+    Pseudo-`OA(2n-1,4n-1)`-graph from a skew Hadamard matrix of order `4n`
+
+    A strongly regular graph with parameters of the orthogonal array graph
+    :func:`OrthogonalArrayBlockGraph
+    <sage.graphs.generateudo_L_2n_4n_m_1ors.GraphGenerators.OrthogonalArrayBlockGraph>`, also
+    known as pseudo Latin squares graph `L_{2n-1}(4n-1)`, constructed from a
+    skew Hadamard matrix of order `4n` following [Pa92]_.
+
+    EXAMPLES::
+
+        sage: from sage.graphs.generators.families import PasechnikGraph
+        sage: PasechnikGraph(4).is_strongly_regular(parameters=True)
+        (225, 98, 43, 42)
+        sage: PasechnikGraph(9).is_strongly_regular(parameters=True) # long time
+        (1225, 578, 273, 272)
+
+    REFERENCES:
+
+    .. [Pa92] D. V. Pasechnik,
+      Skew-symmetric association schemes with two classes and strongly
+      regular graphs of type `L_{2n-1}(4n- 1)`,
+      Acta Applicandaie Math. 29(1992), 129-138
+    """
+    from sage.combinat.matrices.hadamard_matrix import skew_hadamard_matrix
+    from sage.matrix.constructor import identity_matrix, matrix, diagonal_matrix
+    H = skew_hadamard_matrix(4*n)
+    dd = diagonal_matrix(H[0])
+    H = dd*H*dd
+    M = H[1:].T[1:] - identity_matrix(4*n-1)
+    G = Graph(M.tensor_product(M.T), format='seidel_adjacency_matrix')
+    G.relabel()
+    G.name("Pasechnik Graph_" + str((n)))
+    return G
+
+def Pseudo_L_2n_4n_m_1(n):
+    """
+    Pseudo-`OA(2n,4n-1)`-graph from a skew Hadamard matrix of order `4n`
+
+    A strongly regular graph with parameters of the orthogonal array graph
+    :func:`OrthogonalArrayBlockGraph
+    <sage.graphs.generators.GraphGenerators.OrthogonalArrayBlockGraph>`, also
+    known as pseudo Latin squares graph `L_{2n}(4n-1)`, constructed from a
+    skew Hadamard matrix of order `4n` due to Goethals and Seidel, see [BvL84]_.
+
+    EXAMPLES::
+
+        sage: from sage.graphs.generators.families import Pseudo_L_2n_4n_m_1
+        sage: Pseudo_L_2n_4n_m_1(4).is_strongly_regular(parameters=True)
+        (225, 112, 55, 56)
+        sage: Pseudo_L_2n_4n_m_1(9).is_strongly_regular(parameters=True) # long time
+        (1225, 612, 305, 306)
+
+    """
+    from sage.combinat.matrices.hadamard_matrix import skew_hadamard_matrix
+    from sage.matrix.constructor import identity_matrix, matrix, diagonal_matrix
+    idm = identity_matrix(4*n-1)
+    e = matrix([1]*(4*n-1))
+    H = skew_hadamard_matrix(4*n)
+    dd = diagonal_matrix(H[0])
+    H = dd*H*dd
+    M = H[1:].T[1:] - idm
+    s = M.tensor_product(M.T) - idm.tensor_product(e.T*e - idm)
+    G = Graph(s, format='seidel_adjacency_matrix')
+    G.relabel()
+    G.name("skewhad^2_" + str((n)))
+    return G
+
+def switch_skewhad_pow2(n):
+    """
+    a strongly regular graph in Seidel switching class of `Pseudo_L_{2n}(4n-1)`
+
+    A strongly regular graph in the
+    :meth:`Seidel switching <Graph.seidel_switching>` class of
+    func:`Pseudo_L_{2n}(4n-1)
+    <sage.graphs.generators.GraphGenerators.Pseudo_L_2n_4n_m_1>`
+
+    EXAMPLES::
+
+        sage: from sage.graphs.generators.families import switch_skewhad_pow2
+        sage: switch_skewhad_pow2(4).is_strongly_regular(parameters=True)
+        (226, 105, 48, 49)
+
+    """
+    from sage.graphs.generators.families import Pseudo_L_2n_4n_m_1
+    G = Pseudo_L_2n_4n_m_1(n).complement()
+    G.add_vertex((4*n-1)**2)
+    G.seidel_switching(range((4*n-1)*(2*n-1)))
+    G.name("switch skewhad^2+*_" + str((n)))
+    return G
+
 def HanoiTowerGraph(pegs, disks, labels=True, positions=True):
     r"""
     Returns the graph whose vertices are the states of the

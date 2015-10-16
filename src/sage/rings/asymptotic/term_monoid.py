@@ -2552,8 +2552,8 @@ class TermWithCoefficient(GenericTerm):
 
     def _calculate_pow_(self, exponent):
         r"""
-        Helper function for :meth:`__pow__` which calculates the power of this
-        element to the given ``exponent``.
+        Helper function for :meth:`~ExactTerm.__pow__` which calculates
+        the power of this element to the given ``exponent``.
 
         INPUT:
 

@@ -270,61 +270,34 @@ class GenericGrowthElement(sage.structure.element.MultiplicativeGroupElement):
         raise NotImplementedError('Only implemented in concrete realizations.')
 
 
-    def _div_(self, other):
+    def __invert__(self):
         r"""
-        Divide this growth element by another one.
-
-        INPUT:
-
-        - ``other`` -- an instance of :class:`GenericGrowthElement`.
+        Return the inverse of this growth element.
 
         OUTPUT:
 
         An instance of :class:`GenericGrowthElement`.
 
-        .. NOTE::
+        TESTS::
 
-            This method is called by the coercion framework, thus, it can be
-            assumed that this element is of the same type as ``other``.
-            The output will be of the same type as well.
-
-        EXAMPLES::
-
-            sage: import sage.rings.asymptotic.growth_group as agg
-            sage: P = agg.MonomialGrowthGroup(ZZ, 'x')
-            sage: e1 = P(raw_element=2)
-            sage: e2 = e1._div_(P.gen()); e2
-            x
-            sage: e2 == e1 / P.gen()
-            True
-        """
-        return self._mul_(~other)
-
-
-    def __pow__(self, power):
-        r"""
-        Raises this growth element to the given ``power``.
-
-        INPUT:
-
-        - ``power`` -- a number. This can be anything that is a
-          valid right hand side of ``*`` with elements of the
-          parent's base.
-
-        OUTPUT:
-
-        The result of this exponentiation.
-
-        EXAMPLES::
-
-            sage: import sage.rings.asymptotic.growth_group as agg
-            sage: G = agg.GenericGrowthGroup(ZZ)
+            sage: from sage.rings.asymptotic.growth_group import GrowthGroup
+            sage: from sage.rings.asymptotic.growth_group import GenericGrowthGroup
+            sage: G = GenericGrowthGroup(ZZ)
+            sage: ~G.an_element()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: Inversion of GenericGrowthElement(1) not implemented
+            (in this abstract method).
             sage: G.an_element()^7
             Traceback (most recent call last):
             ...
             NotImplementedError: Only implemented in concrete realizations.
+            sage: P = GrowthGroup('x^ZZ')
+            sage: ~P.an_element()
+            1/x
         """
-        raise NotImplementedError('Only implemented in concrete realizations.')
+        raise NotImplementedError('Inversion of %s not implemented '
+                                  '(in this abstract method).' % (self,))
 
 
     def __eq__(self, other):
@@ -671,11 +644,44 @@ class GenericGrowthGroup(
         EXAMPLES::
 
             sage: import sage.rings.asymptotic.growth_group as agg
-            sage: G = agg.GenericGrowthGroup(ZZ);
-            sage: G.an_element()  # indirect doctest
+            sage: agg.GenericGrowthGroup(ZZ).an_element()  # indirect doctest
             GenericGrowthElement(1)
+            sage: agg.MonomialGrowthGroup(ZZ, 'z').an_element()  # indirect doctest
+            z
+            sage: agg.MonomialGrowthGroup(QQ, 'log(z)').an_element()  # indirect doctest
+            log(z)^(1/2)
         """
         return self.element_class(self, self.base().an_element())
+
+
+    def some_elements(self):
+        r"""
+        Return some elements of this growth group.
+
+        See :class:`TestSuite` for a typical use case.
+
+        INPUT:
+
+        Nothing.
+
+        OUTPUT:
+
+        An iterator.
+
+        EXAMPLES::
+
+            sage: import sage.rings.asymptotic.growth_group as agg
+            sage: tuple(agg.MonomialGrowthGroup(ZZ, 'z').some_elements())
+            (1, z, 1/z, z^2, z^(-2), z^3, z^(-3),
+             z^4, z^(-4), z^5, z^(-5), ...)
+            sage: tuple(agg.MonomialGrowthGroup(QQ, 'z').some_elements())
+            (z^(1/2), z^(-1/2), z^2, z^(-2),
+             1, z, 1/z, z^42,
+             z^(2/3), z^(-2/3), z^(3/2), z^(-3/2),
+             z^(4/5), z^(-4/5), z^(5/4), z^(-5/4), ...)
+        """
+        return iter(self.element_class(self, e)
+                    for e in self.base().some_elements())
 
 
     def le(self, left, right):

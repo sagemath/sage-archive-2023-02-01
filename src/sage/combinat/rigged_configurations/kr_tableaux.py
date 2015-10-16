@@ -308,20 +308,16 @@ class KirillovReshetikhinTableaux(CrystalOfWords):
 
         EXAMPLES::
 
-            sage: KR = crystals.KirillovReshetikhin(['A', 3, 1], 2, 1, model='KR')
-            sage: g = KR.__iter__()
-            sage: next(g)
-            [[1], [2]]
-            sage: next(g)
-            [[1], [3]]
-            sage: next(g)
-            [[2], [3]]
+            sage: KR = crystals.KirillovReshetikhin(['A', 5, 2], 2, 1, model='KR')
+            sage: L = [x for x in KR]
+            sage: len(L)
+            15
         """
         index_set = self._cartan_type.classical().index_set()
         from sage.sets.recursively_enumerated_set import RecursivelyEnumeratedSet
         return RecursivelyEnumeratedSet(self.module_generators,
                     lambda x: [x.f(i) for i in index_set],
-                    structure=None).naive_search_iterator()
+                    structure='graded').breadth_first_search_iterator()
 
     def module_generator(self, i=None, **options):
         r"""

@@ -167,11 +167,13 @@ class SageDownloadFileApplication(object):
     def run(self):
         progress = True
         url = None
+        print_fastest_mirror = None
         destination = None
         for arg in sys.argv[1:]:
             if arg.startswith('--print-fastest-mirror'):
-                print(MirrorList().fastest)
-                sys.exit(0)
+                url = ""
+                print_fastest_mirror = True
+                continue
             if arg.startswith('--quiet'):
                 progress = False
                 continue
@@ -184,13 +186,31 @@ class SageDownloadFileApplication(object):
             raise ValueError('too many arguments')
         if url is None:
             print(dedent(self.__doc__.format(SAGE_DISTFILES=SAGE_DISTFILES)))
-            sys.exit(1)
-        if url.startswith('http://') or url.startswith('https://') or url.startswith('ftp://'):
-            Download(url, destination, progress=progress, ignore_errors=True).run()
-        else:
-            # url is a tarball name
-            tarball = Tarball(url)
-            tarball.download()
-            if destination is not None:
-                tarball.save_as(destination)
-    
+            sys.exit(2)
+
+        try:
+            if url.startswith('http://') or url.startswith('https://') or url.startswith('ftp://'):
+                Download(url, destination, progress=progress, ignore_errors=True).run()
+            elif print_fastest_mirror:
+                url = "fastest mirror"  # For error message
+                print(MirrorList().fastest)
+            else:
+                # url is a tarball name
+                tarball = Tarball(url)
+                tarball.download()
+                if destination is not None:
+                    tarball.save_as(destination)
+        except BaseException:
+            try:
+                stars = '*' * 72 + '\n'
+                sys.stderr.write(stars)
+                try:
+                    import traceback
+                    traceback.print_exc(file=sys.stderr)
+                    sys.stderr.write(stars)
+                except:
+                    pass
+                sys.stderr.write("Error downloading %s\n"%(url,))
+                sys.stderr.write(stars)
+            finally:
+                sys.exit(1)

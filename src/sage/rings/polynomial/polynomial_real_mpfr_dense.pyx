@@ -68,7 +68,7 @@ cdef class PolynomialRealDense(Polynomial):
 
         TESTS:
 
-        Check that errors and interrupts are handled properly (see #10100)::
+        Check that errors and interrupts are handled properly (see :trac:`10100`)::
 
             sage: a = var('a')
             sage: PolynomialRealDense(RR['x'], [1,a])
@@ -83,7 +83,7 @@ cdef class PolynomialRealDense(Polynomial):
             sage: sig_on_count()
             0
 
-        Test that we don't clean up uninitialized coefficients (#9826)::
+        Test that we don't clean up uninitialized coefficients (:trac:`9826`)::
 
             sage: k.<a> = GF(7^3)
             sage: P.<x> = PolynomialRing(k)
@@ -91,6 +91,11 @@ cdef class PolynomialRealDense(Polynomial):
             Traceback (most recent call last):
             ...
             TypeError: Unable to convert x (='a') to real number.
+
+        Check that :trac:`17190` is fixed::
+
+            sage: RR['x']({})
+            0
         """
         Polynomial.__init__(self, parent, is_gen=is_gen)
         self._base_ring = parent._base
@@ -108,11 +113,7 @@ cdef class PolynomialRealDense(Polynomial):
         elif isinstance(x, (int, float, Integer, Rational, RealNumber)):
             x = [x]
         elif isinstance(x, dict):
-            degree = max(x.keys())
-            c = [0] * (degree+1)
-            for i, a in x.items():
-                c[i] = a
-            x = c
+            x = self._dict_to_list(x,self._base_ring.zero())
         elif isinstance(x, pari_gen):
             x = [self._base_ring(w) for w in x.list()]
         elif not isinstance(x, list):
@@ -665,9 +666,9 @@ cdef class PolynomialRealDense(Polynomial):
             sage: f = PolynomialRealDense(RR['x'])
             sage: f(12)
             0.000000000000000
-            
+
         TESTS::
-        
+
             sage: R.<x> = RR[]       # :trac:`17311`
             sage: (x^2+1)(x=5)
             26.0000000000000
@@ -676,13 +677,13 @@ cdef class PolynomialRealDense(Polynomial):
             xx = args[0]
         else:
             return Polynomial.__call__(self, *args, **kwds)
-        
+
         if not isinstance(xx, RealNumber):
             if self._base_ring.has_coerce_map_from(parent(xx)):
                 xx = self._base_ring(xx)
             else:
                 return Polynomial.__call__(self, xx)
-            
+
         cdef Py_ssize_t i
         cdef mp_rnd_t rnd = self._base_ring.rnd
         cdef RealNumber x = <RealNumber>xx
@@ -713,7 +714,7 @@ cdef class PolynomialRealDense(Polynomial):
                 mpfr_mul(res.value, res.value, x.value, rnd)
                 mpfr_add(res.value, res.value, self._coeffs[i], rnd)
         return res
-    
+
     def change_ring(self, R):
         """
         EXAMPLES::

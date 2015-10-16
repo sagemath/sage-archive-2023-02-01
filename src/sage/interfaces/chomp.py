@@ -126,10 +126,10 @@ class CHomP:
 
         EXAMPLES::
 
-        sage: from sage.interfaces.chomp import CHomP
-        sage: T = cubical_complexes.Torus()
-        sage: CHomP()('homcubes', T) # indirect doctest, optional - CHomP
-        {0: 0, 1: Z x Z, 2: Z}
+            sage: from sage.interfaces.chomp import CHomP
+            sage: T = cubical_complexes.Torus()
+            sage: CHomP()('homcubes', T) # indirect doctest, optional - CHomP
+            {0: 0, 1: Z x Z, 2: Z}
         """
         from sage.misc.temporary_file import tmp_filename
         from sage.homology.all import CubicalComplex, cubical_complexes

@@ -126,7 +126,8 @@ class IntegerListsLex(Parent):
       (default: `ClonableArray`). This merely sets the attribute
       ``self.Element``. See the examples for details.
 
-    - ``global_options`` -- a :class:`~sage.structure.global_options.GlobalOptions`
+    - ``global_options`` -- (deprecated) a
+      :class:`~sage.structure.global_options.GlobalOptions`
       object that will be assigned to the attribute
       ``_global_options``; for internal use only (subclasses, ...).
 
@@ -524,6 +525,10 @@ class IntegerListsLex(Parent):
     in the class :class:`Partition`::
 
         sage: IntegerListsLex(3, max_slope=0, element_class=Partition, global_options=Partitions.global_options).list()
+        doctest:...: DeprecationWarning: the global_options argument is
+         deprecated since, in general, pickling is broken;
+         create your own class instead
+        See http://trac.sagemath.org/15525 for details.
         [[3], [2, 1], [1, 1, 1]]
 
     Note that the :class:`Partition` further assumes the existence of
@@ -940,6 +945,9 @@ If you know what you are doing, you can set check=False to skip this warning."""
             element_constructor = self._element_constructor_nocheck
             self._element_constructor_is_copy_safe = True
         if global_options is not None:
+            from sage.misc.superseded import deprecation
+            deprecation(15525, 'the global_options argument is deprecated since, in general,'
+                               ' pickling is broken; create your own class instead')
             self.global_options = global_options
 
         Parent.__init__(self, element_constructor=element_constructor,

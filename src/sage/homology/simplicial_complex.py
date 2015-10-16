@@ -775,7 +775,7 @@ class SimplicialComplex(CategoryObject, GenericCellComplex):
 
         sage: l=designs.ProjectiveGeometryDesign(2,1,GF(4,name='a'))
         sage: f = lambda S: not any(len(set(S).intersection(x))>2 for x in l)
-        sage: SimplicialComplex(from_characteristic_function=(f, range(21)))
+        sage: SimplicialComplex(from_characteristic_function=(f, l.ground_set()))
         Simplicial complex with 21 vertices and 168 facets
 
     TESTS:

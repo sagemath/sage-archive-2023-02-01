@@ -578,6 +578,12 @@ class GenericTerm(sage.structure.element.MonoidElement):
             ZeroDivisionError: Cannot take O(z) to exponent -1.
             > *previous* ZeroDivisionError: rational division by zero
         """
+        # This assumes `0 = O(g)` for any `g` in the growth group, which
+        # is valid in the case of a variable going to `\infty`.
+        # Once non-standard asymptoptics are supported, this has to be
+        # rewritten.
+        # See also #19083, comment 64, 27.
+
         zero = self.parent().coefficient_ring.zero()
         try:
             zero ** exponent

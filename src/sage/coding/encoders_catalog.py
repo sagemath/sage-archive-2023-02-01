@@ -14,3 +14,4 @@ The ``codes.encoders`` object may be used to access the encoders that Sage can b
 
 from sage.misc.lazy_import import lazy_import as _lazy_import
 _lazy_import('sage.coding.linear_code', 'LinearCodeGeneratorMatrixEncoder')
+_lazy_import('sage.coding.punctured_code', 'PuncturedCodePuncturedMatrixEncoder')

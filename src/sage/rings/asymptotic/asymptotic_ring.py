@@ -1181,6 +1181,22 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
             Asymptotic Ring <a^ZZ> over Rational Field
             sage: (a / 2).parent()
             Asymptotic Ring <a^ZZ> over Rational Field
+
+        ::
+
+            sage: ~A(0)
+            Traceback (most recent call last):
+            ...
+            ZeroDivisionError: Division by zero in 0.
+
+        ::
+
+            sage: B.<s, t> = AsymptoticRing(growth_group='s^ZZ * t^ZZ', coefficient_ring=QQ)
+            sage: ~(s + t)
+            Traceback (most recent call last):
+            ...
+            ValueError: Expansion s + t cannot be inverted since there are
+            several maximal elements s, t.
         """
         if not self.summands:
             raise ZeroDivisionError('Division by zero in %s.' % (self,))

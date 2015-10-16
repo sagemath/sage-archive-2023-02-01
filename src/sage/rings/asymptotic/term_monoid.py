@@ -2297,10 +2297,17 @@ class OTermMonoid(GenericTermMonoid):
 
             sage: from sage.rings.asymptotic.term_monoid import TermMonoid
             sage: from sage.rings.asymptotic.growth_group import GrowthGroup
-            sage: G_ZZ = GrowthGroup('x^ZZ')
-            sage: T_ZZ = TermMonoid('O', G_ZZ, QQ)
-            sage: T_ZZ(G_ZZ.gen())  # indirect doctest
+            sage: G = GrowthGroup('x^ZZ')
+            sage: T = TermMonoid('O', G, QQ)
+            sage: T(G.gen())  # indirect doctest
             O(x)
+            sage: T(G.gen(), SR.var('y'))  # indirect doctest
+            Traceback (most recent call last):
+            ...
+            ValueError: Cannot create O(x) since given coefficient y
+            is not valid in O-Term Monoid x^ZZ with implicit coefficients in
+            Rational Field.
+            > *previous* TypeError: unable to convert y to a rational
         """
         if coefficient is not None:
             try:

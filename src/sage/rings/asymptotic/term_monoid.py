@@ -1702,10 +1702,41 @@ class GenericTermMonoid(sage.structure.unique_representation.UniqueRepresentatio
 
             sage: from sage.rings.asymptotic.term_monoid import TermMonoid
             sage: from sage.rings.asymptotic.growth_group import GrowthGroup
-            sage: G_ZZ = GrowthGroup('x^ZZ')
-            sage: T_ZZ = TermMonoid('exact', G_ZZ, QQ)
-            sage: T_ZZ._split_growth_and_coefficient_('2*x^3')
+            sage: G = GrowthGroup('x^ZZ')
+            sage: T = TermMonoid('exact', G, QQ)
+            sage: T._split_growth_and_coefficient_('2*x^3')
             (x^3, 2)
+
+        ::
+
+            sage: T._split_growth_and_coefficient_('2.7 * x^3')
+            Traceback (most recent call last):
+            ...
+            ValueError: Factor 2.7 of 2.7 * x^3 is neither a coefficient
+            (in Rational Field) nor growth (in Growth Group x^ZZ).
+
+        ::
+
+            sage: G = GrowthGroup('QQ^x * x^ZZ * log(x)^ZZ')
+            sage: T = TermMonoid('exact', G, QQ)
+            sage: T._split_growth_and_coefficient_('3/4 * 2^x * log(x)')
+            (2^x*log(x), 3/4)
+            sage: T._split_growth_and_coefficient_('3 * x^2 * 4 * log(x) * x')
+            (x^3*log(x), 12)
+            sage: var('x')
+            x
+            sage: T._split_growth_and_coefficient_(log(x)^5 * x^2 * 4)
+            (x^2*log(x)^5, 4)
+
+        ::
+
+            sage: T = TermMonoid('exact', G, SR)
+            sage: T._split_growth_and_coefficient_(log(x)^5 * x^2 * 4)
+            (x^2*log(x)^5, 4)
+            sage: var('y')
+            y
+            sage: T._split_growth_and_coefficient_(2^x * y * 4)
+            (2^x, 4*y)
         """
         factors = self._get_factors_(data)
 

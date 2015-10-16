@@ -641,6 +641,17 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
             ....:     print s.parent()
             O-Term Monoid x^QQ with implicit coefficients in Rational Field
             Exact Term Monoid x^QQ with coefficients in Rational Field
+
+        ::
+
+            sage: AsymptoticExpansion(S, R(1/2).summands)
+            Traceback (most recent call last):
+            ...
+            ValueError: Cannot include 1/2 with parent
+            Exact Term Monoid x^QQ with coefficients in Rational Field in
+            Asymptotic Ring <x^QQ> over Integer Ring
+            > *previous* ValueError: 1/2 is not a coefficient in
+            Exact Term Monoid x^QQ with coefficients in Integer Ring.
         """
         super(AsymptoticExpansion, self).__init__(parent=parent)
 

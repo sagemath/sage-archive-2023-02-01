@@ -1372,7 +1372,7 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
         ::
 
             sage: C.<s, t> = AsymptoticRing(growth_group='s^QQ * t^QQ', coefficient_ring=QQ)
-            sage: (s+t)^s
+            sage: (s + t)^s
             Traceback (most recent call last):
             ...
             ValueError: Cannot take s + t to the exponent s.
@@ -1495,7 +1495,7 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
 
         EXAMPLES::
 
-            sage: R.<x> = AsymptoticRing('x^ZZ * log(x)^ZZ', QQ)
+            sage: R.<x> = AsymptoticRing(growth_group='x^ZZ * log(x)^ZZ', coefficient_ring=QQ)
             sage: log(x)
             log(x)
             sage: log(x^2)
@@ -1512,6 +1512,12 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
             ...
             ArithmeticError: Cannot compute log(0) in
             Asymptotic Ring <x^ZZ * log(x)^ZZ> over Rational Field.
+            sage: C.<s, t> = AsymptoticRing(growth_group='s^ZZ * t^ZZ', coefficient_ring=QQ)
+            sage: log(s + t)
+            Traceback (most recent call last):
+            ...
+            ValueError: log(s + t) cannot be constructed since there are
+            several maximal elements s, t.
         """
         P = self.parent()
 

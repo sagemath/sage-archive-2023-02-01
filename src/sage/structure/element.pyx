@@ -962,6 +962,16 @@ cdef class Element(SageObject):
             raise
 
     def _cache_key(self):
+        """
+        Provide a hashable key for an element if it is not hashable
+        
+        EXAMPLES::
+        
+            sage: a=sage.structure.element.Element(ZZ)
+            sage: a._cache_key()
+            (Integer Ring, 'Generic element of a structure')
+        """
+        
         return(self.parent(),str(self))
 
     cdef _richcmp(self, other, int op):

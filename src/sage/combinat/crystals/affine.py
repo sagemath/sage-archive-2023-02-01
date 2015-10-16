@@ -473,6 +473,38 @@ class AffineCrystalFromClassicalElement(ElementWrapper):
             sage: K = crystals.KirillovReshetikhin(['A',2,1],1,1)
             sage: b = K(rows=[[1]])
             sage: c = K(rows=[[2]])
+            sage: b==c
+            False
+            sage: b==b
+            True
+            sage: b==1
+            False
+        """
+        return parent(self) is parent(other) and self.value == other.value
+
+    def __ne__(self, other):
+        """"
+        EXAMPLES::
+
+            sage: K = crystals.KirillovReshetikhin(['A',2,1],1,1)
+            sage: b = K(rows=[[1]])
+            sage: c = K(rows=[[2]])
+            sage: b!=c
+            True
+            sage: b!=b
+            False
+            sage: b!=1
+            True
+        """
+        return not self == other
+
+    def __lt__(self, other):
+        """"
+        EXAMPLES::
+
+            sage: K = crystals.KirillovReshetikhin(['A',2,1],1,1)
+            sage: b = K(rows=[[1]])
+            sage: c = K(rows=[[2]])
             sage: c<b
             False
             sage: b<b
@@ -480,20 +512,70 @@ class AffineCrystalFromClassicalElement(ElementWrapper):
             sage: b<c
             True
         """
-        return parent(self) is parent(other) and self.value == other.value
-
-    def __ne__(self, other):
-        return not self == other
-    def __lt__(self, other):
         return parent(self) is parent(other) and self.value < other.value
+
     def __gt__(self, other):
+        """"
+        EXAMPLES::
+
+            sage: K = crystals.KirillovReshetikhin(['A',2,1],1,1)
+            sage: b = K(rows=[[1]])
+            sage: c = K(rows=[[2]])
+            sage: b>c
+            False
+            sage: b>b
+            False
+            sage: c>b
+            True
+        """
         return parent(self) is parent(other) and self.value > other.value
+
     def __le__(self, other):
+        """"
+        EXAMPLES::
+
+            sage: K = crystals.KirillovReshetikhin(['A',2,1],1,1)
+            sage: b = K(rows=[[1]])
+            sage: c = K(rows=[[2]])
+            sage: b<=c
+            True
+            sage: b<=b
+            True
+            sage: c<=b
+            False
+        """
         return parent(self) is parent(other) and self.value <= other.value
+ 
     def __ge__(self, other):
+        """"
+        EXAMPLES::
+
+            sage: K = crystals.KirillovReshetikhin(['A',2,1],1,1)
+            sage: b = K(rows=[[1]])
+            sage: c = K(rows=[[2]])
+            sage: c>=b
+            True
+            sage: b>=b
+            True
+            sage: b>=c
+            False
+        """
         return parent(self) is parent(other) and self.value >= other.value
 
     def __cmp__(self, other):
+        """"
+        EXAMPLES::
+
+            sage: K = crystals.KirillovReshetikhin(['A',2,1],1,1)
+            sage: b = K(rows=[[1]])
+            sage: c = K(rows=[[2]])
+            sage: cmp(b,c)
+            -1
+            sage: cmp(b,1)
+            -1
+            sage: cmp(b,b)
+            0
+         """
         if parent(self) is parent(other):
             return cmp(self.value, other.value)
         else:

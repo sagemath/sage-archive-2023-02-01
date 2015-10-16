@@ -288,7 +288,7 @@ class Subcrystal(UniqueRepresentation, Parent):
         """
         def __eq__(self, other):
             """
-            Check less than.
+            Check sorting
 
             EXAMPLES::
 
@@ -309,15 +309,70 @@ class Subcrystal(UniqueRepresentation, Parent):
                 [[-1, -1]](2)]
             """
             return parent(self) is parent(other) and self.value == other.value
+
         def __ne__(self, other):
+            """
+            TESTS::
+
+                sage: A = crystals.KirillovReshetikhin(['C',2,1], 1,2).affinization()
+                sage: S = A.subcrystal(max_depth=2)
+                sage: ([(i,j) for i in range(len(S)) for j in range(len(S)) if S[i]!=S[j]]
+                ....: == [(i,j) for i in range(len(S)) for j in range(len(S)) if 
+                ....: S[i].value!=S[j].value])
+                True
+            """
             return parent(self) is not parent(other) or self.value != other.value
+
         def __lt__(self, other):
+            """
+            TESTS::
+
+                sage: A = crystals.KirillovReshetikhin(['C',2,1], 1,2).affinization()
+                sage: S = A.subcrystal(max_depth=2)
+                sage: ([(i,j) for i in range(len(S)) for j in range(len(S)) if S[i]<S[j]]
+                ....: == [(i,j) for i in range(len(S)) for j in range(len(S)) if 
+                ....: S[i].value<S[j].value])
+                True
+            """
             return parent(self) is parent(other) and self.value < other.value
+ 
         def __le__(self, other):
+            """
+            TESTS::
+
+                sage: A = crystals.KirillovReshetikhin(['C',2,1], 1,2).affinization()
+                sage: S = A.subcrystal(max_depth=2)
+                sage: ([(i,j) for i in range(len(S)) for j in range(len(S)) if S[i]<=S[j]]
+                ....: == [(i,j) for i in range(len(S)) for j in range(len(S)) if 
+                ....: S[i].value<=S[j].value])
+                True
+            """
             return parent(self) is parent(other) and self.value <= other.value
+ 
         def __gt__(self, other):
+            """
+            TESTS::
+
+                sage: A = crystals.KirillovReshetikhin(['C',2,1], 1,2).affinization()
+                sage: S = A.subcrystal(max_depth=2)
+                sage: ([(i,j) for i in range(len(S)) for j in range(len(S)) if S[i]>S[j]]
+                ....: == [(i,j) for i in range(len(S)) for j in range(len(S)) if 
+                ....: S[i].value>S[j].value])
+                True
+            """
             return parent(self) is parent(other) and self.value > other.value
+ 
         def __ge__(self, other):
+            """
+            TESTS::
+
+                sage: A = crystals.KirillovReshetikhin(['C',2,1], 1,2).affinization()
+                sage: S = A.subcrystal(max_depth=2)
+                sage: ([(i,j) for i in range(len(S)) for j in range(len(S)) if S[i]>=S[j]]
+                ....: == [(i,j) for i in range(len(S)) for j in range(len(S)) if 
+                ....: S[i].value>=S[j].value])
+                True
+            """
             return parent(self) is parent(other) and self.value >= other.value
         
         def __cmp__(self, other):

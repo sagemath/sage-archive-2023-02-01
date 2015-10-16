@@ -362,6 +362,14 @@ cdef class FunctionFieldElement_polymod(FunctionFieldElement):
         return not not self._x
 
     def __hash__(self):
+        """
+        TESTS::
+
+            sage: K.<x> = FunctionField(QQ); R.<y> = K[]
+            sage: L.<y> = K.extension(y^2 - x*y + 4*x^3)
+            sage: len({hash(y^i+x^j) for i in [-2..2] for j in [-2..2]}) == 25
+            True
+        """
         return hash(self._x)
 
     cpdef int _cmp_(self, Element other) except -2:
@@ -567,6 +575,16 @@ cdef class FunctionFieldElement_rational(FunctionFieldElement):
         return not not self._x
 
     def __hash__(self):
+        """
+        TESTS:
+
+            It would be nice if the following would produce a list of
+            15 distinct hashes.
+
+            sage: K.<t> = FunctionField(QQ)
+            sage: len({hash(t^i+t^j) for i in [-2..2] for j in [i..2]})
+            10
+        """
         return hash(self._x)
 
     cpdef int _cmp_(self, Element other) except -2:

@@ -556,7 +556,7 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
 
         :doc:`growth_group`,
         :doc:`term_monoid`,
-        :mod:`sage.data_structures.mutable_poset`.
+        :mod:`~sage.data_structures.mutable_poset`.
     """
     def __init__(self, parent, summands, simplify=True, convert=True):
         r"""

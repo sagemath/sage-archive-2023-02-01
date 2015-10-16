@@ -3524,3 +3524,8 @@ class TermMonoidFactory(sage.structure.factory.UniqueFactory):
 
 
 TermMonoid = TermMonoidFactory("TermMonoid")
+r"""
+A factory for asymptotic term monoids.
+This is an instance of :class:`TermMonoidFactory` whose documentation
+provides more details.
+"""

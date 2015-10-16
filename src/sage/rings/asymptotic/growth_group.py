@@ -3721,3 +3721,8 @@ class GrowthGroupFactory(sage.structure.factory.UniqueFactory):
 
 
 GrowthGroup = GrowthGroupFactory("GrowthGroup")
+r"""
+A factory for growth groups.
+This is an instance of :class:`GrowthGroupFactory` whose documentation
+provides more details.
+"""

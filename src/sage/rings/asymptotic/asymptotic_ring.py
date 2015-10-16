@@ -1318,7 +1318,7 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
             Asymptotic Ring <y^QQ> over Rational Field
             sage: (x^(1/2) + O(x^0))^15
             x^(15/2) + O(x^7)
-            sage: (y^2 + O(y))^(1/2)  # not tested
+            sage: (y^2 + O(y))^(1/2)  # not tested, see #19316
             y + O(1)
             sage: (y^2 + O(y))^(-2)
             y^(-4) + O(y^(-5))

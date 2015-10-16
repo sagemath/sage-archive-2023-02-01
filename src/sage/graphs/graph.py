@@ -819,6 +819,21 @@ class Graph(GenericGraph):
            sage: Graph(g).edges()                                                               # optional - python_igraph
            [(0, 1, {'name': 'a', 'weight': 1}), (0, 2, {'name': 'b', 'weight': 3})]
 
+
+    When defining an undirected graph from a function ``f``, it is *very*
+    important that ``f`` be symmetric. If it is not, anything can happen::
+
+        sage: f_sym = lambda x,y : abs(x-y) == 1
+        sage: f_nonsym = lambda x,y : (x-y) == 1
+        sage: G_sym = Graph([[4,6,1,5,3,7,2,0], f_sym])
+        sage: G_sym.is_isomorphic(graphs.PathGraph(8))
+        True
+        sage: G_nonsym = Graph([[4,6,1,5,3,7,2,0], f_nonsym])
+        sage: G_nonsym.size()
+        4
+        sage: G_nonsym.is_isomorphic(G_sym)
+        False
+
     By default, graphs are mutable and can thus not be used as a dictionary
     key::
 

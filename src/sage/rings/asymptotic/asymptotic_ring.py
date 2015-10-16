@@ -1357,6 +1357,27 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
             sage: z^(1+1/z)
             z + log(z) + 1/2*z^(-1)*log(z)^2 + 1/6*z^(-2)*log(z)^3 +
             1/24*z^(-3)*log(z)^4 + O(z^(-4)*log(z)^5)
+
+        ::
+
+            sage: B(0)^(-7)
+            Traceback (most recent call last):
+            ...
+            ZeroDivisionError: Cannot take 0 to the negative exponent -7.
+            sage: B(0)^SR.var('a')
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: Taking 0 to the exponent a not implemented.
+
+        ::
+
+            sage: C.<s, t> = AsymptoticRing(growth_group='s^QQ * t^QQ', coefficient_ring=QQ)
+            sage: (s+t)^s
+            Traceback (most recent call last):
+            ...
+            ValueError: Cannot take s + t to the exponent s.
+            > *previous* ValueError: log(s + t) cannot be constructed since
+            there are several maximal elements s, t.
         """
         if not self.summands:
             if exponent == 0:

@@ -3380,12 +3380,30 @@ class TermMonoidFactory(sage.structure.factory.UniqueFactory):
         sage: from sage.rings.asymptotic.growth_group import GrowthGroup
         sage: from sage.rings.asymptotic.term_monoid import TermMonoid
         sage: G = GrowthGroup('x^ZZ')
-        sage: OT = TermMonoid('O', G, QQ); OT
+        sage: TermMonoid('O', G, QQ)
         O-Term Monoid x^ZZ with implicit coefficients in Rational Field
-        sage: ET = TermMonoid('exact', G, ZZ); ET
+        sage: TermMonoid('exact', G, ZZ)
         Exact Term Monoid x^ZZ with coefficients in Integer Ring
 
+    ::
+
+        sage: R = AsymptoticRing(growth_group=G, coefficient_ring=QQ)
+        sage: TermMonoid('exact', asymptotic_ring=R)
+        Exact Term Monoid x^ZZ with coefficients in Rational Field
+        sage: TermMonoid('O', asymptotic_ring=R)
+        O-Term Monoid x^ZZ with implicit coefficients in Rational Field
+
     TESTS::
+
+        sage: TermMonoid(TermMonoid('O', G, ZZ), asymptotic_ring=R)
+        O-Term Monoid x^ZZ with implicit coefficients in Rational Field
+        sage: TermMonoid(TermMonoid('exact', G, ZZ), asymptotic_ring=R)
+        Exact Term Monoid x^ZZ with coefficients in Rational Field
+        sage: from sage.rings.asymptotic.term_monoid import GenericTermMonoid
+        sage: TermMonoid(GenericTermMonoid(G, ZZ), asymptotic_ring=R)
+        Generic Term Monoid x^ZZ with (implicit) coefficients in Rational Field
+
+    ::
 
         sage: TestSuite(TermMonoid('exact', GrowthGroup('x^ZZ'), QQ)).run(verbose=True)  # long time
         running ._test_an_element() . . . pass

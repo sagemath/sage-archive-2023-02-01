@@ -499,3 +499,30 @@ def merge_overlapping(A, B, key=None):
         return B[:i] + A + B[i+len(A):], B
 
     raise ValueError('Input does not have an overlap.')
+
+
+def log_string(element, base=None):
+    r"""
+    Return a representation of the log of the given element to the
+    given base.
+
+    INPUT:
+
+    - ``element`` -- an object.
+
+    - ``base`` -- an object or ``None``.
+
+    OUTPUT:
+
+    A string.
+
+    EXAMPLES::
+
+        sage: from sage.rings.asymptotic.misc import log_string
+        sage: log_string(3)
+        'log(3)'
+        sage: log_string(3, base=42)
+        'log(3, base=42)'
+    """
+    basestr = ', base=' + str(base) if base else ''
+    return 'log(%s%s)' % (element, basestr)

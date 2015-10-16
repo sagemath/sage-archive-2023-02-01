@@ -446,12 +446,14 @@ cdef ring *singular_ring_reference(ring *existing_ring) except NULL:
 
     INPUT:
 
-    - ``existing_ring`` -- an existing Singular ring.
+    - ``existing_ring`` -- a Singular ring.
 
     OUTPUT:
 
-    The same ring with its refcount increased. After calling this
-    function `n` times, you need to call :func:`singular_ring_delete`
+    The same ring with its refcount increased. If ``existing_ring``
+    has not been refcounted yet, it will be after calling this function.
+    If initially ``existing_ring`` was refcounted once, then after
+    calling this function `n` times, you need to call :func:`singular_ring_delete`
     `n+1` times to actually deallocate the ring.
 
     EXAMPLE::
@@ -487,8 +489,7 @@ cdef ring *singular_ring_reference(ring *existing_ring) except NULL:
     if existing_ring==NULL:
         raise ValueError('singular_ring_reference(ring*) called with NULL pointer.')
     cdef object r = wrap_ring(existing_ring)
-    refcount = ring_refcount_dict.pop(r)
-    ring_refcount_dict[r] = refcount+1
+    ring_refcount_dict[r] = ring_refcount_dict.get(r,0)+1
     return existing_ring
 
 

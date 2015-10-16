@@ -8,11 +8,9 @@ in the IPython notebook's kernel drop-down. This is done by
 
 import os
 import errno
-import copy
 
-from IPython.kernel.kernelspec import (
-    get_kernel_spec, install_kernel_spec, NoSuchKernel)
-from IPython.utils.path import get_ipython_dir
+from jupyter_client.kernelspec import get_kernel_spec, install_kernel_spec
+from IPython.paths import get_ipython_dir
 
 from sage.env import (
     SAGE_ROOT, SAGE_DOC, SAGE_LOCAL, SAGE_EXTCODE,
@@ -113,7 +111,7 @@ class SageKernelSpec(object):
         EXAMPLES::
 
             sage: from sage.repl.ipython_kernel.install import SageKernelSpec
-            sage: from IPython.utils.path import get_ipython_dir
+            sage: from IPython.paths import get_ipython_dir
             sage: spec = SageKernelSpec()
             sage: spec.use_local_mathjax()
             sage: ipython_dir = get_ipython_dir()
@@ -243,7 +241,7 @@ class SageKernelSpec(object):
 
             sage: from sage.repl.ipython_kernel.install import SageKernelSpec
             sage: spec = SageKernelSpec()
-            sage: spec.update()
+            sage: spec.update()  # not tested
         """
         instance = cls()
         instance.use_local_mathjax()
@@ -252,12 +250,17 @@ class SageKernelSpec(object):
         instance._symlink_resources()
 
         
-def have_prerequisites():
+def have_prerequisites(debug=True):
     """
-    Check that we have all prerequisites to run the IPython notebook.
+    Check that we have all prerequisites to run the Jupyter notebook.
 
-    In particular, the IPython notebook requires OpenSSL whether or
-    not you are using https. See trac:`17318`.
+    In particular, the Jupyter notebook requires OpenSSL whether or
+    not you are using https. See :trac:`17318`.
+
+    INPUT:
+
+    ``debug`` -- boolean (default: ``True``). Whether to print debug
+    information in case that prerequisites are missing.
 
     OUTPUT:
 
@@ -266,15 +269,14 @@ def have_prerequisites():
     EXAMPLES::
 
         sage: from sage.repl.ipython_kernel.install import have_prerequisites
-        sage: have_prerequisites() in [True, False]
+        sage: have_prerequisites(debug=False) in [True, False]
         True
     """
     try:
-        from IPython.html.notebookapp import NotebookApp
+        from notebook.notebookapp import NotebookApp
         return True
-    except ImportError as err:
+    except ImportError:
+        if debug:
+            import traceback
+            traceback.print_exc()
         return False
-
-
-
-

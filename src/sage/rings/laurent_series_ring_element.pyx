@@ -61,7 +61,6 @@ import power_series_ring_element
 import power_series_ring
 import sage.rings.polynomial.polynomial_element as polynomial
 import sage.misc.latex
-import sage.rings.ring_element as ring_element
 from sage.rings.integer import Integer
 from sage.rings.polynomial.laurent_polynomial import LaurentPolynomial_univariate
 
@@ -869,9 +868,6 @@ cdef class LaurentSeries(AlgebraElement):
         elif f.prec() is infinity:
             return self.prec()
         return min(self.prec(), f.prec())
-
-    def __richcmp__(left, right, int op):
-        return (<Element>left)._richcmp(right, op)
 
     cpdef int _cmp_(self, Element right_r) except -2:
         r"""

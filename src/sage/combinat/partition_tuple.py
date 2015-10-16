@@ -539,8 +539,10 @@ class PartitionTuple(CombinatorialElement):
 
         EXAMPLES::
 
-            sage: PartitionTuple(([2,1],[3,2],[1,1,1]))._repr_diagram()
-            '   **   ***   *\n   *    **    *\n              *'
+            sage: print PartitionTuple(([2,1],[3,2],[1,1,1]))._repr_diagram()
+               **   ***   *
+               *    **    *
+                          *
         """
         return self.diagram()
 
@@ -1486,7 +1488,7 @@ class PartitionTuples(UniqueRepresentation, Parent):
         sage: ( [] ) in PartitionTuples()
         True
 
-    Check that trac:`14145` has been fixed::
+    Check that :trac:`14145` has been fixed::
 
         sage: 1 in PartitionTuples()
         False
@@ -1827,28 +1829,28 @@ class PartitionTuples_level(PartitionTuples):
 
         EXAMPLES::
 
-        sage: parts=PartitionTuples(3)
-        sage: [parts[k] for k in range(20)]
-        [([], [], []),
-         ([1], [], []),
-         ([], [1], []),
-         ([], [], [1]),
-         ([2], [], []),
-         ([1, 1], [], []),
-         ([1], [1], []),
-         ([1], [], [1]),
-         ([], [2], []),
-         ([], [1, 1], []),
-         ([], [1], [1]),
-         ([], [], [2]),
-         ([], [], [1, 1]),
-         ([3], [], []),
-         ([2, 1], [], []),
-         ([1, 1, 1], [], []),
-         ([2], [1], []),
-         ([1, 1], [1], []),
-         ([2], [], [1]),
-         ([1, 1], [], [1])]
+            sage: parts=PartitionTuples(3)
+            sage: [parts[k] for k in range(20)]
+            [([], [], []),
+             ([1], [], []),
+             ([], [1], []),
+             ([], [], [1]),
+             ([2], [], []),
+             ([1, 1], [], []),
+             ([1], [1], []),
+             ([1], [], [1]),
+             ([], [2], []),
+             ([], [1, 1], []),
+             ([], [1], [1]),
+             ([], [], [2]),
+             ([], [], [1, 1]),
+             ([3], [], []),
+             ([2, 1], [], []),
+             ([1, 1, 1], [], []),
+             ([2], [1], []),
+             ([1, 1], [1], []),
+             ([2], [], [1]),
+             ([1, 1], [], [1])]
         """
         for size in NN:
             for mu in PartitionTuples_level_size(self.level(),size):
@@ -2107,7 +2109,7 @@ class PartitionTuples_level_size(PartitionTuples):
         """
         In order to maintain backwards compatibility and be able to unpickle a
         old pickle from PartitionTuples_nk we have to override the default
-        __setstate__.
+        ``__setstate__``.
 
         TESTS::
 

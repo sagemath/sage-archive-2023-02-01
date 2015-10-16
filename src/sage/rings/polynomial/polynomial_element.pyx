@@ -50,14 +50,12 @@ import sage.rings.rational
 import sage.rings.integer
 import polynomial_ring
 import sage.rings.arith
-#import sage.rings.ring_element
 import sage.rings.integer_ring
 import sage.rings.rational_field
 import sage.rings.finite_rings.integer_mod_ring
 import sage.rings.complex_field
 import sage.rings.fraction_field_element
 import sage.rings.infinity as infinity
-#import sage.misc.misc as misc
 from sage.misc.sage_eval import sage_eval
 from sage.misc.latex import latex
 from sage.structure.factorization import Factorization
@@ -1473,7 +1471,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
           ordinary multiplication, and it's frequently used, so subclasses
           may choose to provide a specialised squaring routine.
 
-        - Perhaps this even belongs at a lower level? ring_element or
+        - Perhaps this even belongs at a lower level? RingElement or
           something?
 
         AUTHORS:
@@ -3128,7 +3126,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
         .. NOTE::
 
-            The integral is always chosen so the constant term is 0.
+            The integral is always chosen so that the constant term is 0.
 
         EXAMPLES::
 
@@ -3198,17 +3196,59 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: f = x*t +5*t^2
             sage: f.integral(x)
             5*x*t^2 + 1/2*x^2*t
+
+        TESTS:
+
+        Check that :trac:`18600` is fixed::
+
+            sage: Sx.<x> = ZZ[]
+            sage: Sxy.<y> = Sx[]
+            sage: Sxyz.<z> = Sxy[]
+            sage: p = 1 + x*y + x*z + y*z^2
+            sage: q = p.integral()
+            sage: q
+            1/3*y*z^3 + 1/2*x*z^2 + (x*y + 1)*z
+            sage: q.parent()
+            Univariate Polynomial Ring in z over Univariate Polynomial Ring in y
+            over Univariate Polynomial Ring in x over Rational Field
+            sage: q.derivative() == p
+            True
+            sage: p.integral(y)
+            1/2*y^2*z^2 + x*y*z + 1/2*x*y^2 + y
+            sage: p.integral(y).derivative(y) == p
+            True
+            sage: p.integral(x).derivative(x) == p
+            True
+
+        Check that it works with non-integral domains (:trac:`18600`)::
+
+            sage: x = polygen(Zmod(4))
+            sage: p = x**4 + 1
+            sage: p.integral()
+            x^5 + x
+            sage: p.integral().derivative() == p
+            True
         """
-        if var is not None and var != self._parent.gen():
+        R = self._parent
+
+        # TODO:
+        # calling the coercion model bin_op is much more accurate than using the
+        # true division (which is bypassed by polynomials). But it does not work
+        # in all cases!!
+        cm = sage.structure.element.get_coercion_model()
+        try:
+            S = cm.bin_op(R.one(), ZZ.one(), operator.div).parent()
+            Q = S.base_ring()
+        except TypeError:
+            Q = (R.base_ring().one()/ZZ.one()).parent()
+            S = R.change_ring(Q)
+        if var is not None and var != R.gen():
             # call integral() recursively on coefficients
-            return self._parent([coeff.integral(var) for coeff in self.list()])
-        cdef Py_ssize_t n, degree = self.degree()
-        R = self.parent()
-        Q = (self.constant_coefficient()/1).parent()
-        coeffs = self.list()
-        v = [0] + [coeffs[n]/(n+1) for n from 0 <= n <= degree]
-        S = R.change_ring(Q)
-        return S(v)
+            return S([coeff.integral(var) for coeff in self])
+        cdef Py_ssize_t n
+        zero = Q.zero()
+        p = [zero] + [cm.bin_op(Q(self[n]), n+1, operator.div) if self[n] else zero for n in range(self.degree()+1)]
+        return S(p)
 
     def dict(self):
         """
@@ -3961,6 +4001,72 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
         raise NotImplementedError("splitting_field() is only implemented over number fields and finite fields")
 
+    def pseudo_quo_rem(self,other):
+        """
+        Compute the pseudo-division of two polynomials.
+
+        INPUT:
+
+        - ``other`` -- a nonzero polynomial
+
+        OUTPUT:
+
+        `Q` and `R` such that `l^{m-n+1} \mathrm{self} = Q \cdot\mathrm{other} + R`
+        where `m` is the degree of this polynomial, `n` is the degree of
+        ``other``, `l` is the leading coefficient of ``other``. The result is
+        such that `\deg(R) < \deg(\mathrm{other})`.
+
+        ALGORITHM:
+
+        Algorithm 3.1.2 in [GTM138]_.
+
+        EXAMPLES::
+
+            sage: R.<x> = PolynomialRing(ZZ, sparse=True)
+            sage: p = x^4 + 6*x^3 + x^2 - x + 2
+            sage: q = 2*x^2 - 3*x - 1
+            sage: (quo,rem)=p.pseudo_quo_rem(q); quo,rem
+            (4*x^2 + 30*x + 51, 175*x + 67)
+            sage: 2^(4-2+1)*p == quo*q + rem
+            True
+
+            sage: S.<T> = R[]
+            sage: p = (-3*x^2 - x)*T^3 - 3*x*T^2 + (x^2 - x)*T + 2*x^2 + 3*x - 2
+            sage: q = (-x^2 - 4*x - 5)*T^2 + (6*x^2 + x + 1)*T + 2*x^2 - x
+            sage: quo,rem=p.pseudo_quo_rem(q); quo,rem
+            ((3*x^4 + 13*x^3 + 19*x^2 + 5*x)*T + 18*x^4 + 12*x^3 + 16*x^2 + 16*x,
+             (-113*x^6 - 106*x^5 - 133*x^4 - 101*x^3 - 42*x^2 - 41*x)*T - 34*x^6 + 13*x^5 + 54*x^4 + 126*x^3 + 134*x^2 - 5*x - 50)
+            sage: (-x^2 - 4*x - 5)^(3-2+1) * p == quo*q + rem
+            True
+
+        REFERENCES:
+
+        .. [GTM138] Henri Cohen. A Course in Computational Number Theory.
+           Graduate Texts in Mathematics, vol. 138. Springer, 1993.
+        """
+        if other.is_zero():
+            raise ZeroDivisionError("Pseudo-division by zero is not possible")
+
+        # if other is a constant, then R = 0 and Q = self * other^(deg(self))
+        if other in self.parent().base_ring():
+            return (self * other**(self.degree()), self.parent().zero())
+
+        R = self
+        B = other
+        Q = self.parent().zero()
+        e = self.degree() - other.degree() + 1
+        d = B.leading_coefficient()
+
+        while not R.degree() < B.degree():
+            c = R.leading_coefficient()
+            diffdeg = R.degree() - B.degree()
+            Q = d*Q + self.parent()(c).shift(diffdeg)
+            R = d*R - c*B.shift(diffdeg)
+            e -= 1
+
+        q = d**e
+        return (q*Q,q*R)
+
     @coerce_binop
     def gcd(self, other):
         """
@@ -3993,23 +4099,23 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: (2*x).gcd(0)
             x
 
-            One can easily add gcd functionality to new rings by providing a
-            method ``_gcd_univariate_polynomial``::
+        One can easily add gcd functionality to new rings by providing a method
+        ``_gcd_univariate_polynomial``::
 
-            sage: R.<x> = QQ[]
-            sage: S.<y> = R[]
-            sage: h1 = y*x
-            sage: h2 = y^2*x^2
-            sage: h1.gcd(h2)
+            sage: O = ZZ[-sqrt(5)]
+            sage: R.<x> = O[]
+            sage: a = O.1
+            sage: p = x + a
+            sage: q = x^2 - 5
+            sage: p.gcd(q)
             Traceback (most recent call last):
             ...
-            NotImplementedError: Univariate Polynomial Ring in x over Rational Field does not provide a gcd implementation for univariate polynomials
-            sage: T.<x,y> = QQ[]
-            sage: R._gcd_univariate_polynomial = lambda f,g: S(T(f).gcd(g))
-            sage: h1.gcd(h2)
-            x*y
-            sage: del R._gcd_univariate_polynomial
-
+            NotImplementedError: Order in Number Field in a with defining polynomial x^2 - 5 does not provide a gcd implementation for univariate polynomials
+            sage: S.<x> = O.number_field()[]
+            sage: O._gcd_univariate_polynomial = lambda f,g : R(S(f).gcd(S(g)))
+            sage: p.gcd(q)
+            x + a
+            sage: del O._gcd_univariate_polynomial
         """
         if hasattr(self.base_ring(), '_gcd_univariate_polynomial'):
             return self.base_ring()._gcd_univariate_polynomial(self, other)
@@ -4587,6 +4693,15 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: f.is_unit()
             False
 
+        TESTS:
+
+        Check that :trac:`18600` is fixed::
+
+            sage: R.<x> = PolynomialRing(ZZ, sparse=True)
+            sage: c = x^2^100 + 1
+            sage: c.is_unit()
+            False
+
         EXERCISE (Atiyah-McDonald, Ch 1): Let `A[x]` be a
         polynomial ring in one variable. Then
         `f=\sum a_i x^i \in A[x]` is a unit if and only if
@@ -4594,8 +4709,13 @@ cdef class Polynomial(CommutativeAlgebraElement):
         nilpotent.
         """
         if self.degree() > 0:
-            for i in range(1,self.degree()+1):
-                if not self[i].is_nilpotent():
+            try:
+                if self._parent.base_ring().is_integral_domain():
+                    return False
+            except NotImplementedError:
+                pass
+            for c in self.coefficients()[1:]:
+                if not c.is_nilpotent():
                     return False
         return self[0].is_unit()
 
@@ -4620,9 +4740,17 @@ cdef class Polynomial(CommutativeAlgebraElement):
         polynomial ring in one variable. Then
         `f=\sum a_i x^i \in A[x]` is nilpotent if and only if
         every `a_i` is nilpotent.
+
+        TESTS:
+
+        Check that :trac:`18600` is fixed::
+
+            sage: R.<x> = PolynomialRing(Zmod(4), sparse=True)
+            sage: (2*x^2^100 + 2).is_nilpotent()
+            True
         """
-        for i in range(self.degree()+1):
-            if not self[i].is_nilpotent():
+        for c in self.coefficients():
+            if not c.is_nilpotent():
                 return False
         return True
 
@@ -4844,17 +4972,25 @@ cdef class Polynomial(CommutativeAlgebraElement):
             Traceback (most recent call last):
             ...
             ValueError: n must be at least 0
+
+        TESTS:
+
+        Check that :trac:`18600` is fixed::
+
+            sage: R.<x> = PolynomialRing(ZZ, sparse=True)
+            sage: (x^2^100 + x^8 - 1).padded_list(10)
+            [-1, 0, 0, 0, 0, 0, 0, 0, 1, 0]
         """
-        v = self.list()
         if n is None:
-            return v
+            return self.list()
         if n < 0:
             raise ValueError("n must be at least 0")
-        if len(v) < n:
+        if self.degree() < n:
+            v = self.list()
             z = self._parent.base_ring().zero()
             return v + [z]*(n - len(v))
         else:
-            return v[:int(n)]
+            return self[:int(n)].padded_list(n)
 
     def coeffs(self):
         r"""
@@ -4948,12 +5084,16 @@ cdef class Polynomial(CommutativeAlgebraElement):
             raise ValueError("given variable is not the generator of parent.")
         raise NotImplementedError
 
-    def newton_slopes(self, p):
+    def newton_slopes(self, p, lengths=False):
         """
         Return the `p`-adic slopes of the Newton polygon of self,
         when this makes sense.
 
-        OUTPUT: list of rational numbers
+        OUTPUT:
+
+        If `lengths` is `False`, a list of rational numbers. If `lengths` is
+        `True`, a list of couples `(s,l)` where `s` is the slope and `l` the
+        length of the corresponding segment in the Newton polygon.
 
         EXAMPLES::
 
@@ -4961,12 +5101,46 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: f = x^3 + 2
             sage: f.newton_slopes(2)
             [1/3, 1/3, 1/3]
+            sage: R.<x> = PolynomialRing(ZZ, sparse=True)
+            sage: p = x^5 + 6*x^2 + 4
+            sage: p.newton_slopes(2)
+            [1/2, 1/2, 1/3, 1/3, 1/3]
+            sage: p.newton_slopes(2, lengths=True)
+            [(1/2, 2), (1/3, 3)]
+            sage: (x^2^100 + 27).newton_slopes(3, lengths=True)
+            [(3/1267650600228229401496703205376, 1267650600228229401496703205376)]
 
-        ALGORITHM: Uses PARI.
+        ALGORITHM: Uses PARI if `lengths` is `False`.
         """
-        f = self._pari_()
-        v = list(f.newtonpoly(p))
-        return [sage.rings.rational.Rational(x) for x in v]
+        if not lengths:
+            f = self._pari_()
+            v = list(f.newtonpoly(p))
+            return [sage.rings.rational.Rational(x) for x in v]
+
+        e = self.exponents()
+        c = self.coefficients()
+        if len(e) == 0: return []
+        if len(e) == 1:
+            if e[0] == 0: return []
+            else:         return [(infinity.infinity, e[0])]
+
+        if e[0] == 0: slopes = []
+        else:         slopes = [(infinity.infinity, e[0])]
+
+        points = [(e[0], c[0].valuation(p)), (e[1], c[1].valuation(p))]
+        slopes.append((-(c[1].valuation(p)-c[0].valuation(p))/(e[1] - e[0]), e[1]-e[0]))
+        for i in range(2, len(e)):
+            v = c[i].valuation(p)
+            s = -(v-points[-1][1])/(e[i]-points[-1][0])
+            while len(slopes) > 0 and s >= slopes[-1][0]:
+                slopes = slopes[:-1]
+                points = points[:-1]
+                s = -(v-points[-1][1])/(e[i]-points[-1][0])
+            slopes.append((s,e[i]-points[-1][0]))
+            points.append((e[i],v))
+
+        return slopes
+
 
     #####################################################################
     # Conversions to other systems
@@ -6775,15 +6949,10 @@ cdef class Polynomial(CommutativeAlgebraElement):
             False
             sage: R(0).is_squarefree()
             False
-
-        This can obviously fail if the ring does not implement ``gcd()``::
-
             sage: S.<y> = QQ[]
             sage: R.<x> = S[]
-            sage: (2*x*y).is_squarefree() # R does not provide a gcd implementation
-            Traceback (most recent call last):
-            ...
-            NotImplementedError: Univariate Polynomial Ring in y over Rational Field does not provide a gcd implementation for univariate polynomials
+            sage: (2*x*y).is_squarefree()
+            True
             sage: (2*x*y^2).is_squarefree()
             False
 
@@ -6962,16 +7131,21 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: f.norm(int(2))
             2.00000000000000
 
+        Check that :trac:`18600` is fixed::
+
+            sage: R.<x> = PolynomialRing(ZZ, sparse=True)
+            sage: (x^2^100 + 1).norm(1)
+            2.00000000000000
+
         AUTHORS:
 
         - Didier Deshommes
-
         - William Stein: fix bugs, add definition, etc.
         """
         if p <= 0 :
             raise ValueError("The degree of the norm must be positive")
 
-        coeffs = self.coefficients(sparse=False)
+        coeffs = self.coefficients()
         if p == infinity.infinity:
             return RR(max([abs(i) for i in coeffs]))
 

@@ -13,9 +13,28 @@ build: all-build
 
 # Defer unknown targets to build/make/Makefile
 %::
-	$(MAKE) configure
+	$(MAKE) build/make/Makefile
 	+build/bin/sage-logger \
 		"cd build/make && ./install '$@'" logs/install.log
+
+# If configure was run before, rerun it with the old arguments.
+# Otherwise, run configure with argument $PREREQ_OPTIONS.
+build/make/Makefile: configure
+	rm -f config.log
+	mkdir -p logs/pkgs
+	ln -s logs/pkgs/config.log config.log
+	@if [ -x config.status ]; then \
+		./config.status --recheck && ./config.status; \
+	else \
+		./configure $$PREREQ_OPTIONS; \
+	fi || ( \
+		if [ "x$$SAGE_PORT" = x ]; then \
+			echo "If you would like to try to build Sage anyway (to help porting),"; \
+			echo "export the variable 'SAGE_PORT' to something non-empty."; \
+			exit 1; \
+		else \
+			echo "Since 'SAGE_PORT' is set, we will try to build anyway."; \
+		fi; )
 
 # Preemptively download all standard upstream source tarballs.
 download:

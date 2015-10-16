@@ -70,6 +70,7 @@ List of Poset methods
     :meth:`~FinitePoset.is_connected` | Return ``True`` if the poset is connected, and ``False`` otherwise.
     :meth:`~FinitePoset.is_graded` | Return whether this poset is graded.
     :meth:`~FinitePoset.is_ranked` | Return whether this poset is ranked.
+    :meth:`~FinitePoset.is_ranked` | Return ``True`` if the poset is rank symmetric.
     :meth:`~FinitePoset.is_incomparable_chain_free` | Return whether the poset is `(m+n)`-free.
     :meth:`~FinitePoset.is_slender` | Return whether the poset ``self`` is slender or not.
     :meth:`~FinitePoset.is_join_semilattice` | Return ``True`` is the poset has a join operation, and False otherwise.
@@ -113,11 +114,11 @@ List of Poset methods
     :widths: 30, 70
     :delim: |
 
-    :meth:`~FinitePoset.is_chain_of_poset` | Return ``True`` if given iterable is a chain of the poset.
-    :meth:`~FinitePoset.chains` | Return all the chains of ``self``.
+    :meth:`~FinitePoset.is_chain_of_poset` | Return ``True`` if the given list is a chain of the poset.
+    :meth:`~FinitePoset.chains` | Return the chains of the poset.
     :meth:`~FinitePoset.antichains` | Return the antichains of the poset.
-    :meth:`~FinitePoset.maximal_chains` | Return all maximal chains of the poset.
-    :meth:`~FinitePoset.maximal_antichains` | Return all maximal antichains of the poset.
+    :meth:`~FinitePoset.maximal_chains` | Return the maximal chains of the poset.
+    :meth:`~FinitePoset.maximal_antichains` | Return the maximal antichains of the poset.
     :meth:`~FinitePoset.antichains_iterator` | Return an iterator over the antichains of the poset.
 
 **Drawing**
@@ -1235,9 +1236,9 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: P = Poset((divisors(15), attrcall("divides")), facade = False)
             sage: H = P.hasse_diagram()
             sage: H.vertices()
-            [1, 5, 3, 15]
+            [1, 3, 5, 15]
             sage: H.edges()
-            [(1, 3, None), (1, 5, None), (5, 15, None), (3, 15, None)]
+            [(1, 3, None), (1, 5, None), (3, 15, None), (5, 15, None)]
             sage: H.set_latex_options(format="dot2tex")   # optional - dot2tex
             sage: view(H, tight_page=True)  # optional - dot2tex, not tested (opens external window)
         """
@@ -2399,77 +2400,61 @@ class FinitePoset(UniqueRepresentation, Parent):
         """
         return self._hasse_diagram.is_chain()
 
-    def is_chain_of_poset(self, o, ordered=False):
+    def is_chain_of_poset(self, elms, ordered=False):
         """
-        Return whether an iterable ``o`` is a chain of ``self``,
-        including a check for ``o`` being ordered from smallest
-        to largest element if the keyword ``ordered`` is set to
-        ``True``.
+        Return ``True`` if `elms` is a chain of the poset, and ``False`` otherwise.
 
         INPUT:
 
-        - ``o`` -- an iterable (e. g., list, set, or tuple)
-          containing some elements of ``self``
+        - ``elms`` -- a list or other iterable containing some elements
+          of the poset
 
-        - ``ordered`` -- a Boolean (default: ``False``) which
-          decides whether the notion of a chain includes being
-          ordered
-
-        OUTPUT:
-
-        If ``ordered`` is set to ``False``, the truth value of
-        the following assertion is returned: The subset of ``self``
-        formed by the elements of ``o`` is a chain in ``self``.
-
-        If ``ordered`` is set to ``True``, the truth value of
-        the following assertion is returned: Every element of the
-        list ``o`` is (strictly!) smaller than its successor in
-        ``self``. (This makes no sense if ``ordered`` is a set.)
+        - ``ordered`` -- a Boolean. If ``True``, then return ``True``
+          only if elements in `elms` are strictly increasing in the
+          poset; this makes no sense if `elms` is a set. If ``False``
+          (the default), then elements can be repeated and be in any
+          order.
 
         EXAMPLES::
 
             sage: P = Poset((divisors(12), attrcall("divides")))
             sage: sorted(P.list())
             [1, 2, 3, 4, 6, 12]
-            sage: P.is_chain_of_poset([2, 4])
+            sage: P.is_chain_of_poset([12, 3])
             True
-            sage: P.is_chain_of_poset([12, 6])
-            True
-            sage: P.is_chain_of_poset([12, 6], ordered=True)
+            sage: P.is_chain_of_poset({3, 4, 12})
             False
-            sage: P.is_chain_of_poset([6, 12], ordered=True)
-            True
-            sage: P.is_chain_of_poset(())
-            True
-            sage: P.is_chain_of_poset((), ordered=True)
-            True
-            sage: P.is_chain_of_poset((3, 4, 12))
+            sage: P.is_chain_of_poset([12, 3], ordered=True)
             False
-            sage: P.is_chain_of_poset((3, 6, 12, 1))
-            True
-            sage: P.is_chain_of_poset((3, 6, 12, 1), ordered=True)
-            False
-            sage: P.is_chain_of_poset((3, 6, 12), ordered=True)
-            True
             sage: P.is_chain_of_poset((1, 1, 3))
             True
             sage: P.is_chain_of_poset((1, 1, 3), ordered=True)
             False
             sage: P.is_chain_of_poset((1, 3), ordered=True)
             True
-            sage: P.is_chain_of_poset((6, 1, 1, 3))
+
+        TESTS::
+
+            sage: P = Posets.BooleanLattice(4)
+            sage: P.is_chain_of_poset([])
             True
-            sage: P.is_chain_of_poset((2, 1, 1, 3))
+            sage: P.is_chain_of_poset((1,3,7,15,14))
             False
+            sage: P.is_chain_of_poset({10})
+            True
+            sage: P.is_chain_of_poset([32])
+            Traceback (most recent call last):
+            ...
+            ValueError: element (=32) not in poset
         """
         if ordered:
-            sorted_o = o
+            sorted_o = elms
             return all(self.lt(a, b) for a, b in zip(sorted_o, sorted_o[1:]))
         else:
             # _element_to_vertex can be assumed to be a linear extension
             # of the poset according to the documentation of class
             # HasseDiagram.
-            sorted_o = sorted(o, key=self._element_to_vertex)
+            sorted_o = sorted(elms, key=self._element_to_vertex)
             return all(self.le(a, b) for a, b in zip(sorted_o, sorted_o[1:]))
 
     def is_connected(self):
@@ -3308,17 +3293,22 @@ class FinitePoset(UniqueRepresentation, Parent):
 
     def antichains(self, element_constructor = __builtin__.list):
         """
-        Returns the antichains of the poset.
+        Return the antichains of the poset.
+
+        An *antichain* of a poset is a set of elements of the
+        poset that are pairwise incomparable.
 
         INPUT:
 
          - ``element_constructor`` -- a function taking an iterable as
-           argument (default: list)
+           argument (default: ``list``)
 
-        OUTPUT: an enumerated set
+        OUTPUT:
 
-        An *antichain* of a poset is a collection of elements of the
-        poset that are pairwise incomparable.
+        The enumerated set (of type
+        :class:`~sage.combinat.subsets_pairwise.PairwiseCompatibleSubsets`)
+        of all antichains of the poset, each of which is given as an
+        ``element_constructor.``
 
         EXAMPLES::
 
@@ -3330,10 +3320,12 @@ class FinitePoset(UniqueRepresentation, Parent):
             8
             sage: A[3]
             [1, 2]
-            sage: list(Posets.AntichainPoset(3).antichains())
-            [[], [2], [2, 1], [2, 1, 0], [2, 0], [1], [1, 0], [0]]
-            sage: list(Posets.ChainPoset(3).antichains())
-            [[], [0], [1], [2]]
+
+        To get the antichains as, say, sets, one may use the
+        ``element_constructor`` option::
+
+            sage: list(Posets.ChainPoset(3).antichains(element_constructor=set))
+            [set(), {0}, {1}, {2}]
 
         To get the antichains of a given size one can currently use::
 
@@ -3343,12 +3335,6 @@ class FinitePoset(UniqueRepresentation, Parent):
         Eventually the following syntax will be accepted::
 
             sage: A.subset(size = 2) # todo: not implemented
-
-        To get the antichains as, say, sets, one may use the
-        ``element_constructor`` option::
-
-            sage: list(Posets.ChainPoset(3).antichains(element_constructor = set))
-            [set(), {0}, {1}, {2}]
 
         .. NOTE::
 
@@ -3365,7 +3351,7 @@ class FinitePoset(UniqueRepresentation, Parent):
             On the other hand, this returns a full featured enumerated
             set, with containment testing, etc.
 
-        .. seealso:: :meth:`maximal_antichains`
+        .. seealso:: :meth:`maximal_antichains`, :meth:`chains`
         """
         vertex_to_element = self._vertex_to_element
 
@@ -3377,12 +3363,14 @@ class FinitePoset(UniqueRepresentation, Parent):
 
     def antichains_iterator(self):
         """
-        Returns an iterator over the antichains of the poset.
+        Return an iterator over the antichains of the poset.
 
         EXAMPLES::
 
-            sage: Posets.PentagonPoset().antichains_iterator()
+            sage: it = Posets.PentagonPoset().antichains_iterator(); it
             <generator object antichains_iterator at ...>
+            sage: it.next(), it.next()
+            ([], [4])
 
         .. SEEALSO:: :meth:`antichains`
         """
@@ -3394,8 +3382,9 @@ class FinitePoset(UniqueRepresentation, Parent):
         r"""
         Return the width of the poset (the size of its longest antichain).
 
-        It is computed through a matching in a bipartite graph. See
-        :wikipedia:`Dilworth's_theorem` for more information.
+        It is computed through a matching in a bipartite graph; see
+        :wikipedia:`Dilworth's_theorem` for more information. The width is
+        also called Dilworth number.
 
         EXAMPLES::
 
@@ -3488,51 +3477,47 @@ class FinitePoset(UniqueRepresentation, Parent):
 
     def chains(self, element_constructor=__builtin__.list, exclude=None):
         """
-        Return all the chains of ``self``.
+        Return the chains of the poset.
+
+        A *chain* of a poset is a set of elements of the poset
+        that are pairwise comparable.
 
         INPUT:
 
         - ``element_constructor`` -- a function taking an iterable as
-           argument (default: ``list``)
+          argument (default: ``list``)
 
         - ``exclude`` -- elements of the poset to be excluded
           (default: ``None``)
 
         OUTPUT:
 
-        The enumerated set of all chains of ``self``, each of which
-        is given as an ``element_constructor``.
-
-        A *chain* of a poset is a set of elements of the poset
-        that are pairwise comparable.
+        The enumerated set (of type
+        :class:`~sage.combinat.subsets_pairwise.PairwiseCompatibleSubsets`)
+        of all chains of the poset, each of which is given as an
+        ``element_constructor``.
 
         EXAMPLES::
 
-            sage: A = Posets.PentagonPoset().chains(); A
+            sage: C = Posets.PentagonPoset().chains(); C
             Set of chains of Finite lattice containing 5 elements
-            sage: list(A)
+            sage: list(C)
             [[], [0], [0, 1], [0, 1, 4], [0, 2], [0, 2, 3], [0, 2, 3, 4], [0, 2, 4], [0, 3], [0, 3, 4], [0, 4], [1], [1, 4], [2], [2, 3], [2, 3, 4], [2, 4], [3], [3, 4], [4]]
 
-        To get the chains of a given size one can currently use::
-
-            sage: list(A.elements_of_depth_iterator(2))
-            [[0, 1], [0, 2], [0, 3], [0, 4], [1, 4], [2, 3], [2, 4], [3, 4]]
-
-        For bounded posets, one can exclude the bounds as follows::
-
-            sage: P = Posets.DiamondPoset(5)
-            sage: list(P.chains(exclude=[0, 4]))
-            [[], [1], [2], [3]]
-
-        Another example of exclusion of vertices::
+        Exclusion of vertices, tuple (instead of list) as constructor::
 
             sage: P = Poset({1: [2, 3], 2: [4], 3: [4, 5]})
             sage: list(P.chains(element_constructor=tuple, exclude=[3]))
             [(), (1,), (1, 2), (1, 2, 4), (1, 4), (1, 5), (2,), (2, 4), (4,), (5,)]
 
+        To get the chains of a given size one can currently use::
+
+            sage: list(C.elements_of_depth_iterator(2))
+            [[0, 1], [0, 2], [0, 3], [0, 4], [1, 4], [2, 3], [2, 4], [3, 4]]
+
         Eventually the following syntax will be accepted::
 
-            sage: A.subset(size = 2) # todo: not implemented
+            sage: C.subset(size = 2) # todo: not implemented
 
         .. SEEALSO:: :meth:`maximal_chains`, :meth:`antichains`
         """
@@ -3549,23 +3534,28 @@ class FinitePoset(UniqueRepresentation, Parent):
 
     def connected_components(self):
         """
-        Return the connected components of ``self`` as subposets.
+        Return the connected components of the poset as subposets.
 
         EXAMPLES::
 
             sage: P = Poset({1:[2,3], 3:[4,5]})
             sage: CC = P.connected_components()
-            sage: CC is P
+            sage: CC[0] is P
             True
 
             sage: P = Poset({1:[2,3], 3:[4,5], 6:[7,8]})
             sage: sorted(P.connected_components(), key=len)
             [Finite poset containing 3 elements,
              Finite poset containing 5 elements]
+
+        TESTS::
+
+            sage: Poset().connected_components() # Test empty poset
+            []
         """
         comps = self._hasse_diagram.connected_components()
         if len(comps) == 1:
-            return self
+            return [self]
         return [self.subposet(self._vertex_to_element(x) for x in cc)
                 for cc in comps]
 
@@ -3870,10 +3860,10 @@ class FinitePoset(UniqueRepresentation, Parent):
 
         INPUT:
 
-        - ``relabeling`` -- a function or dictionnary
+        - ``relabeling`` -- a function or dictionary
 
-          This function should map each (non-wrapped) element of
-          ``self`` to some distinct object.
+        This function should map each (non-wrapped) element of
+        ``self`` to some distinct object.
 
         EXAMPLES::
 
@@ -4450,9 +4440,57 @@ class FinitePoset(UniqueRepresentation, Parent):
         G.rename('Incomparability graph on %s vertices' % self.cardinality())
         return G
 
+    def linear_extensions_graph(self):
+        r"""
+        Return the linear extensions graph of the poset.
+
+        Vertices of the graph are linear extensions of the poset.
+        Two vertices are connected by an edge if the linear extensions
+        differ by only one adjacent transposition.
+
+        EXAMPLES::
+
+            sage: P = Poset({1:[3,4],2:[4]})
+            sage: G = P.linear_extensions_graph(); G
+            Graph on 5 vertices
+            sage: G.degree_sequence()
+            [3, 2, 2, 2, 1]
+
+            sage: chevron = Poset({1:[2,6], 2:[3], 4:[3,5], 6:[5]})
+            sage: G = chevron.linear_extensions_graph(); G
+            Graph on 22 vertices
+            sage: G.size()
+            36
+
+        TESTS::
+
+            sage: Poset().linear_extensions_graph()
+            Graph on 1 vertex
+
+            sage: A4 = Posets.AntichainPoset(4)
+            sage: G = A4.linear_extensions_graph()
+            sage: G.is_regular()
+            True
+        """
+        from sage.graphs.graph import Graph
+        # Direct implementation, no optimizations
+        L = self.linear_extensions()
+        G = Graph()
+        G.add_vertices(L)
+        for i in range(len(L)):
+            for j in range(i):
+                tmp = map(lambda x,y: x != y, L[i], L[j])
+                if tmp.count(True) == 2 and tmp[tmp.index(True)+1]:
+                    G.add_edge(L[i], L[j])
+        return G
+
     def maximal_antichains(self):
         """
-        Return all maximal antichains of the poset.
+        Return the maximal antichains of the poset.
+
+        An antichain `a` of poset `P` is *maximal* if there is
+        no element `e \in P \setminus a` such that `a \cup \{e\}`
+        is an antichain.
 
         EXAMPLES::
 
@@ -4463,7 +4501,7 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: Posets.PentagonPoset().maximal_antichains()
             [[0], [1, 2], [1, 3], [4]]
 
-        .. seealso:: :meth:`maximal_chains`, :meth:`antichains`
+        .. seealso:: :meth:`antichains`, :meth:`maximal_chains`
         """
         # Maximal antichains are maximum cliques on incomparability graph.
         return self.incomparability_graph().cliques_maximal()
@@ -5236,6 +5274,41 @@ class FinitePoset(UniqueRepresentation, Parent):
         - Anne Schilling (2012-02-18)
         """
         return self.linear_extension().evacuation().to_poset()
+
+    def is_rank_symmetric(self):
+        """
+        Return ``True`` if the poset is rank symmetric, and ``False`` otherwise.
+
+        The poset is expected to be graded and connected.
+
+        A poset of rank `h` (maximal chains have `h+1` elements) is rank
+        symmetric if the number of elements are equal in ranks `i` and
+        `h-i` for every `i` in `0, 1, \ldots, h`.
+
+        EXAMPLES::
+
+            sage: P = Poset({1:[2], 2:[3,4], 3:[5], 4:[5]})
+            sage: P.is_rank_symmetric()
+            False
+            sage: P = Poset({1:[3,4,5], 2:[3,4,5], 3:[6], 4:[7], 5:[7]})
+            sage: P.is_rank_symmetric()
+            True
+
+        TESTS::
+
+            sage: Poset().is_rank_symmetric()  # Test empty poset
+            True
+        """
+        if not self.is_connected():
+            raise TypeError('the poset is not connected')
+        if not self.is_graded():
+            raise TypeError('the poset is not graded')
+        levels = self._hasse_diagram.level_sets()
+        h = len(levels)
+        for i in range(h/2):
+            if len(levels[i]) != len(levels[h-1-i]):
+                return False
+        return True
 
     def is_slender(self):
         r"""

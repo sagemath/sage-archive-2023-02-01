@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 r"""
 Hasse diagrams of posets
 
@@ -706,7 +707,7 @@ class HasseDiagram(DiGraph):
 
     def mobius_function(self,i,j): # dumb algorithm
         r"""
-        Returns the value of the M\"obius function of the poset
+        Returns the value of the Möbius function of the poset
         on the elements ``i`` and ``j``.
 
         EXAMPLES::
@@ -740,10 +741,10 @@ class HasseDiagram(DiGraph):
 
     def mobius_function_matrix(self):
         r"""
-        Returns the matrix of the Mobius function of this poset
+        Returns the matrix of the Möbius function of this poset
 
         This returns the sparse matrix over `\ZZ` whose ``(x, y)`` entry
-        is the value of the M\"obius function of ``self`` evaluated on
+        is the value of the Möbius function of ``self`` evaluated on
         ``x`` and ``y``, and redefines :meth:`mobius_function` to use
         it.
 
@@ -784,7 +785,7 @@ class HasseDiagram(DiGraph):
     # Redefine self.mobius_function
     def _mobius_function_from_matrix(self, i,j):
         r"""
-        Returns the value of the M\"obius function of the poset
+        Returns the value of the Möbius function of the poset
         on the elements ``i`` and ``j``.
 
         EXAMPLES::
@@ -1658,3 +1659,4 @@ class HasseDiagram(DiGraph):
 from sage.misc.rest_index_of_methods import gen_rest_table_index
 import sys
 __doc__ = __doc__.format(INDEX_OF_FUNCTIONS=gen_rest_table_index(HasseDiagram))
+

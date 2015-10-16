@@ -169,20 +169,20 @@ cdef class Matrix(matrix0.Matrix):
 
         EXAMPLES::
 
-            sage: M = matrix(ZZ,2,range(4))            # optional - giac
+            sage: M = matrix(ZZ,2,range(4))
             sage: giac(M)                              # optional - giac
             [[0,1],[2,3]]
 
         ::
 
-            sage: M = matrix(QQ,3,[1,2,3,4/3,5/3,6/4,7,8,9])   # optional - giac
+            sage: M = matrix(QQ,3,[1,2,3,4/3,5/3,6/4,7,8,9])
             sage: giac(M)                                      # optional - giac
             [[1,2,3],[4/3,5/3,3/2],[7,8,9]]
 
         ::
 
-            sage: P.<x> = ZZ[]                          # optional - giac
-            sage: M = matrix(P, 2, [-9*x^2-2*x+2, x-1, x^2+8*x, -3*x^2+5]) # optional - giac
+            sage: P.<x> = ZZ[]
+            sage: M = matrix(P, 2, [-9*x^2-2*x+2, x-1, x^2+8*x, -3*x^2+5])
             sage: giac(M)                             # optional - giac
             [[-9*x^2-2*x+2,x-1],[x^2+8*x,-3*x^2+5]]
         """
@@ -363,7 +363,7 @@ cdef class Matrix(matrix0.Matrix):
         EXAMPLES::
 
             sage: m = matrix(ZZ, [[1,2],[3,4]])
-            sage: macaulay2(m)                  #optional (indirect doctest)
+            sage: macaulay2(m)                  #optional - macaulay2 (indirect doctest)
             | 1 2 |
             | 3 4 |
 
@@ -386,11 +386,11 @@ cdef class Matrix(matrix0.Matrix):
 
         EXAMPLES:
 
-            sage: a = matrix([[1,2,3],[4,5,6],[7,8,9]]); a  # optional - scilab
+            sage: a = matrix([[1,2,3],[4,5,6],[7,8,9]]); a
             [1 2 3]
             [4 5 6]
             [7 8 9]
-            sage: a._scilab_init_()         # optional - scilab
+            sage: a._scilab_init_()
             '[1,2,3;4,5,6;7,8,9]'
 
         AUTHORS:
@@ -415,7 +415,7 @@ cdef class Matrix(matrix0.Matrix):
 
         EXAMPLES:
 
-            sage: a = matrix([[1,2,3],[4,5,6],[7,8,9]]); a  # optional - scilab
+            sage: a = matrix([[1,2,3],[4,5,6],[7,8,9]]); a
             [1 2 3]
             [4 5 6]
             [7 8 9]

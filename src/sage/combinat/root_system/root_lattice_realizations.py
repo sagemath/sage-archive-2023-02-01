@@ -1046,7 +1046,7 @@ class RootLatticeRealizations(Category_over_base_ring):
 
             TESTS:
 
-            Check that trac:`17982` is fixed::
+            Check that :trac:`17982` is fixed::
 
                 sage: RootSystem(['A', 2]).ambient_space().root_poset()
                 Finite poset containing 3 elements
@@ -2155,11 +2155,14 @@ class RootLatticeRealizations(Category_over_base_ring):
         @cached_method
         def _plot_projection_barycentric_matrix(self):
             """
-            A rational approximation of the matrix for the barycentric projection
+            A rational approximation of the matrix for the barycentric
+            projection.
 
-            OUTPUT: a matrix with rational coefficients whose column sum is zero
+            OUTPUT:
 
-            .. SEE_ALSO::
+            a matrix with rational coefficients whose column sum is zero
+
+            .. SEEALSO::
 
                 - :func:`sage.combinat.root_system.plot.barycentric_projection_matrix`
                 - :meth:`_plot_projection_barycentric`

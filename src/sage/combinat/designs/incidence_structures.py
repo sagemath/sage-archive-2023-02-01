@@ -398,7 +398,7 @@ class IncidenceStructure(object):
             True
             sage: ["Am", "I", "finally", "done ?"] in IS
             False
-            sage: IS = designs.ProjectiveGeometryDesign(3, 1, GF(2))
+            sage: IS = designs.ProjectiveGeometryDesign(3, 1, GF(2), point_coordinates=False)
             sage: [3,8,7] in IS
             True
             sage: [3,8,9] in IS
@@ -1161,10 +1161,30 @@ class IncidenceStructure(object):
                 A[i, j] = 1
         return A
 
-    def incidence_graph(self):
-        """
-        Return the incidence graph of the design, where the incidence
-        matrix of the design is the adjacency matrix of the graph.
+    def incidence_graph(self,labels=False):
+        r"""
+        Return the incidence graph of the incidence structure
+
+        A point and a block are adjacent in this graph whenever they are
+        incident.
+
+        INPUT:
+
+        - ``labels`` (boolean) -- whether to return a graph whose vertices are
+          integers, or labelled elements.
+
+            - ``labels is False`` (default) -- in this case the first vertices
+              of the graphs are the elements of :meth:`ground_set`, and appear
+              in the same order. Similarly, the following vertices represent the
+              elements of :meth:`blocks`, and appear in the same order.
+
+            - ``labels is True``, the points keep their original labels, and the
+              blocks are :func:`Set <Set>` objects.
+
+              Note that the labelled incidence graph can be incorrect when
+              blocks are repeated, and on some (rare) occasions when the
+              elements of :meth:`ground_set` mix :func:`Set` and non-:func:`Set
+              <Set>` objects.
 
         EXAMPLE::
 
@@ -1175,13 +1195,28 @@ class IncidenceStructure(object):
             sage: Graph(block_matrix([[A*0,A],[A.transpose(),A*0]])) == BD.incidence_graph()
             True
 
-        REFERENCE:
+        TESTS:
 
-        - Sage Reference Manual on Graphs
+        With ``labels = True``::
+
+            sage: BD.incidence_graph(labels=True).has_edge(0,Set([0,1,2]))
+            True
         """
-        from sage.graphs.bipartite_graph import BipartiteGraph
-        A = self.incidence_matrix()
-        return BipartiteGraph(A)
+        if labels:
+            from sage.graphs.graph import Graph
+            from sage.sets.set import Set
+            G = Graph()
+            G.add_vertices(self.ground_set())
+            for b in self.blocks():
+                b = Set(b)
+                G.add_vertex(b)
+                G.add_edges((b,x) for x in b)
+            return G
+
+        else:
+            from sage.graphs.bipartite_graph import BipartiteGraph
+            A = self.incidence_matrix()
+            return BipartiteGraph(A)
 
     def complement(self,uniform=False):
         r"""
@@ -1604,6 +1639,101 @@ class IncidenceStructure(object):
             if tt == 0:
                 ll = b
             return (True, (tt,v,k,ll)) if return_parameters else True
+
+    def is_generalized_quadrangle(self, verbose=False, parameters=False):
+        r"""
+        Test if the incidence structure is a generalized quadrangle.
+
+        An incidence structure is a generalized quadrangle iff (see [BH12]_,
+        section 9.6):
+
+        - two blocks intersect on at most one point.
+
+        - For every point `p` not in a block `B`, there is a unique block `B'`
+          intersecting both `\{p\}` and `B`
+
+        It is a *regular* generalized quadrangle if furthermore:
+
+        - it is `s+1`-:meth:`uniform <is_uniform>` for some positive integer `s`.
+
+        - it is `t+1`-:meth:`regular <is_regular>` for some positive integer `t`.
+
+        For more information, see the :wikipedia:`Generalized_quadrangle`.
+
+        .. NOTE::
+
+            Some references (e.g. [PT09]_ or [GQwiki]_) only allow *regular*
+            generalized quadrangles. To use such a definition, see the
+            ``parameters`` optional argument described below, or the methods
+            :meth:`is_regular` and :meth:`is_uniform`.
+
+        INPUT:
+
+        - ``verbose`` (boolean) -- whether to print an explanation when the
+          instance is not a generalized quadrangle.
+
+        - ``parameters`` (boolean; ``False``) -- if set to ``True``, the
+          function returns a pair ``(s,t)`` instead of ``True`` answers. In this
+          case, `s` and `t` are the integers defined above if they exist (each
+          can be set to ``False`` otherwise).
+
+        EXAMPLE::
+
+            sage: h = designs.CremonaRichmondConfiguration()
+            sage: h.is_generalized_quadrangle()
+            True
+
+        This is actually a *regular* generalized quadrangle::
+
+            sage: h.is_generalized_quadrangle(parameters=True)
+            (2, 2)
+
+        TESTS::
+
+            sage: H = IncidenceStructure((2*graphs.CompleteGraph(3)).edges(labels=False))
+            sage: H.is_generalized_quadrangle(verbose=True)
+            Some point is at distance >3 from some block.
+            False
+
+            sage: G = graphs.CycleGraph(5)
+            sage: B = list(G.subgraph_search_iterator(graphs.PathGraph(3)))
+            sage: H = IncidenceStructure(B)
+            sage: H.is_generalized_quadrangle(verbose=True)
+            Two blocks intersect on >1 points.
+            False
+
+            sage: hypergraphs.CompleteUniform(4,2).is_generalized_quadrangle(verbose=1)
+            Some point has two projections on some line.
+            False
+        """
+        # The distance between a point and a line in the incidence graph is odd
+        # and must be <= 3. Thus, the diameter is at most 4
+        g = self.incidence_graph()
+        if g.diameter() > 4:
+            if verbose:
+                print "Some point is at distance >3 from some block."
+            return False
+
+        # There is a unique projection of a point on a line. Thus, the girth of
+        # g is at least 7
+        girth = g.girth()
+        if girth == 4:
+            if verbose:
+                print "Two blocks intersect on >1 points."
+            return False
+        elif girth == 6:
+            if verbose:
+                print "Some point has two projections on some line."
+            return False
+
+        if parameters:
+            s = self.is_uniform()
+            t = self.is_regular()
+            s = s-1 if (s is not False and s>=2) else False
+            t = t-1 if (t is not False and t>=2) else False
+            return (s,t)
+        else:
+            return True
 
     def dual(self, algorithm=None):
         """

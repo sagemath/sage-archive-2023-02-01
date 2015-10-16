@@ -785,20 +785,33 @@ class Singular(Expect):
 
         return SingularElement(self, type, x, False)
 
-    def has_coerce_map_from_impl(self, S):
+    def _coerce_map_from_(self, S):
+        """
+        Return ``True`` if ``S`` admits a coercion map into the
+        Singular interface.
+
+        EXAMPLES::
+
+            sage: singular._coerce_map_from_(ZZ)
+            True
+            sage: singular.coerce_map_from(ZZ)
+            Call morphism:
+              From: Integer Ring
+              To:   Singular
+            sage: singular.coerce_map_from(float)
+        """
         # we want to implement this without coercing, since singular has state.
         if hasattr(S, 'an_element'):
             if hasattr(S.an_element(), '_singular_'):
                 return True
             try:
                 self._coerce_(S.an_element())
+                return True
             except TypeError:
-                return False
-            return True
+                pass
         elif S is int or S is long:
             return True
-        raise NotImplementedError
-
+        return None
 
     def cputime(self, t=None):
         r"""

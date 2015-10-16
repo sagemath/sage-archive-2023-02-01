@@ -1969,11 +1969,11 @@ class BrauerAlgebra(SubPartitionAlgebra):
 
     def jucys_murphy(self, j):
         r"""
-        Returns a generalized Jucys-Murphy elements for the Brauer algebra. These are outlined in [N]_.
+        Returns a generalized Jucys-Murphy elements for the Brauer algebra. These are outlined in [Naz]_.
 
         REFERENCES:
 
-        .. [N] Maxim Nazarov, Young's Orthogonal Form for Brauer's Centralizer
+        .. [Naz] Maxim Nazarov, Young's Orthogonal Form for Brauer's Centralizer
                Algebra. Journal of Algebra 182 (1996), 664--693.
 
         EXAMPLES:

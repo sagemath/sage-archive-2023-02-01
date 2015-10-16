@@ -1622,21 +1622,6 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
 
         An asymptotic expansion.
 
-        ALGORITHM:
-
-        The strategy for computing the exponential function is
-        as follows:
-
-        - This asymptotic expansion is split into a part that
-          is in `o(1)` and the rest.
-
-        - The part that is in `o(1)` is expanded according to
-          the series expansion of `\exp(t)` for `t \to 0`.
-
-        - The remaining part of the expansion is taken exactly.
-          In particular, this means that the respective growth
-          elements have to be constructed.
-
         EXAMPLES::
 
             sage: A.<x> = AsymptoticRing('x^ZZ', QQ)

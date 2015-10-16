@@ -2575,6 +2575,20 @@ class TermWithCoefficient(GenericTerm):
             Term with coefficient 8 and growth z^3
             sage: t._calculate_pow_(-2)
             Term with coefficient 1/4 and growth z^(-2)
+
+        ::
+
+            sage: T = TermWithCoefficientMonoid(G, CIF)
+            sage: T(G.an_element(), coefficient=CIF(RIF(-1,1), RIF(-1,1)))._calculate_pow_(I)
+            Traceback (most recent call last):
+            ...
+            ArithmeticError: Cannot take Term with coefficient 0.? + 0.?*I and
+            growth z to the exponent I in Generic Term Monoid z^ZZ with
+            (implicit) coefficients in Complex Interval Field with
+            53 bits of precision since its coefficient 0.? + 0.?*I
+            cannot be taken to this exponent.
+            > *previous* ValueError: Can't take the argument of
+            interval strictly containing zero
         """
         try:
             c = self.coefficient ** exponent

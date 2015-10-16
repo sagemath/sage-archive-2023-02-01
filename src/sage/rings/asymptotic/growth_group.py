@@ -1628,7 +1628,8 @@ class GenericGrowthGroup(
 
     def _create_element_via_parent_(self, raw_element):
         r"""
-        Create an element with a possibly other parent.
+        Create an element whose parent is chosen according to the input
+        ``raw_element``.
 
         INPUT:
 

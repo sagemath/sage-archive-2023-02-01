@@ -344,7 +344,8 @@ class GenericProduct(CartesianProductPoset, GenericGrowthGroup):
 
     def _create_element_via_parent_(self, element):
         r"""
-        Create an element with a possibly other parent.
+        Create an element whose parent is chosen according to the input
+        ``element``.
 
         INPUT:
 

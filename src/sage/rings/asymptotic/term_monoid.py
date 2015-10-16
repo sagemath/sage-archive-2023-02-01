@@ -1633,7 +1633,7 @@ class GenericTermMonoid(sage.structure.unique_representation.UniqueRepresentatio
 
     def _create_element_via_parent_(self, growth, coefficient):
         r"""
-        Create an element with a possibly other parent.
+        Create an element whose parent is chosen according to the input.
 
         INPUT:
 

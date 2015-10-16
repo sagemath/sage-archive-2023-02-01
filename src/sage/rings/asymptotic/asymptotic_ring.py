@@ -2050,7 +2050,7 @@ class AsymptoticRing(Algebra, UniqueRepresentation):
 
     def _create_element_via_parent_(self, term, old_parent=None):
         r"""
-        Create an element with a possibly other parent.
+        Create an element whose parent is chosen according to the input.
 
         INPUT:
 

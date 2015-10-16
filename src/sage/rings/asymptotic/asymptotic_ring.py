@@ -1624,18 +1624,18 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
 
         ALGORITHM:
 
-            The strategy for computing the exponential function is
-            as follows:
+        The strategy for computing the exponential function is
+        as follows:
 
-            - This asymptotic expansion is split into a part that
-              is in `o(1)` and the rest.
+        - This asymptotic expansion is split into a part that
+          is in `o(1)` and the rest.
 
-            - The part that is in `o(1)` is expanded according to
-              the series expansion of `\exp(t)` for `t \to 0`.
+        - The part that is in `o(1)` is expanded according to
+          the series expansion of `\exp(t)` for `t \to 0`.
 
-            - The remaining part of the expansion is taken exactly.
-              In particular, this means that the respective growth
-              elements have to be constructed.
+        - The remaining part of the expansion is taken exactly.
+          In particular, this means that the respective growth
+          elements have to be constructed.
 
         EXAMPLES::
 

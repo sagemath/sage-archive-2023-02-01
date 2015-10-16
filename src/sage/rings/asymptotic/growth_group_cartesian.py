@@ -365,6 +365,14 @@ class GenericProduct(CartesianProductPoset, GenericGrowthGroup):
             Growth Group z^ZZ * log(z)^ZZ
             sage: G._create_element_in_extension_((z^(1/2), lz)).parent()
             Growth Group z^QQ * log(z)^ZZ
+
+        ::
+
+            sage: G._create_element_in_extension_((3, 3, 3))
+            Traceback (most recent call last):
+            ...
+            ValueError: Cannot create (3, 3, 3) as a cartesian product like
+            Growth Group z^ZZ * log(z)^ZZ.
         """
         factors = self.cartesian_factors()
         if len(element) != len(factors):

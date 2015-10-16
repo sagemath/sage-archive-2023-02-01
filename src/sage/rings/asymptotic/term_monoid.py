@@ -3354,6 +3354,10 @@ class TermMonoidFactory(sage.structure.factory.UniqueFactory):
 
     - :class:`ExactTermMonoid`.
 
+    .. NOTE::
+
+        An instance of this factory is available as ``TermMonoid``.
+
     INPUT:
 
     - ``term`` -- the kind of term that shall be created. Either a string

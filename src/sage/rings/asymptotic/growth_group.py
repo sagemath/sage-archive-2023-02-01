@@ -2543,7 +2543,8 @@ class MonomialGrowthElement(GenericGrowthElement):
             ValueError: Variable x is not a log of something.
 
         The previous example does not work since the result would not
-        live in a monomial growth group. When using :meth:`rpow`, this
+        live in a monomial growth group. When using
+        :meth:`~GenericGrowthElement.rpow`, this
         case is handeled by the calling method :meth:`_rpow_`.
 
         ::

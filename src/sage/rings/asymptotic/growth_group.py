@@ -1987,8 +1987,7 @@ class GenericGrowthGroup(
 
     def gens(self):
         r"""
-        Return a tuple of all generators of this monomial growth
-        group.
+        Return a tuple of all generators of this growth group.
 
         INPUT:
 
@@ -1996,8 +1995,7 @@ class GenericGrowthGroup(
 
         OUTPUT:
 
-        A tuple whose entries are instances of
-        :class:`MonomialGrowthElement`.
+        A tuple whose entries are growth elements.
 
         EXAMPLES::
 

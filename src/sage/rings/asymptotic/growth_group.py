@@ -2525,7 +2525,7 @@ class MonomialGrowthElement(GenericGrowthElement):
 
         .. NOTE::
 
-            The parent of the result can be different to the parent
+            The parent of the result can be different from the parent
             of this element.
 
         A ``ValueError`` is raised if the calculation is not possible
@@ -3494,7 +3494,7 @@ class GrowthGroupFactory(sage.structure.factory.UniqueFactory):
 
     - keyword arguments are passed on to the growth group
       constructor.
-      If the keyword ``ignore_variables`` is not specified, then the
+      If the keyword ``ignore_variables`` is not specified, then
       ``ignore_variables=('e',)`` (to ignore ``e`` as a variable name)
       is used.
 

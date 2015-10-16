@@ -1029,7 +1029,7 @@ class GenericProduct(CartesianProductPoset, GenericGrowthGroup):
 
             .. NOTE::
 
-                The parent of the result can be different to the parent
+                The parent of the result can be different from the parent
                 of this element.
 
             A ``ValueError`` is raised if the calculation is not possible

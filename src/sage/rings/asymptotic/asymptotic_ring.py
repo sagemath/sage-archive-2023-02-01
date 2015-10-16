@@ -2339,7 +2339,7 @@ class AsymptoticRing(Algebra, UniqueRepresentation):
             return self.element_class(self, summands,
                                       simplify=simplify, convert=convert)
 
-        if not data or data == 0:
+        if not data:
             summands = AsymptoticRing._create_empty_summands_()
             return self.element_class(self, summands,
                                       simplify=simplify, convert=False)

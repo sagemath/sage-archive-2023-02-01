@@ -1261,7 +1261,7 @@ class GenericGrowthElement(sage.structure.element.MultiplicativeGroupElement):
     def _rpow_element_(self, base):
         r"""
         Return an element which is the power of ``base`` to this
-        element; it lives (in contrast to :meth:`rpow`) in its own group.
+        element.
 
         INPUT:
 
@@ -1269,7 +1269,7 @@ class GenericGrowthElement(sage.structure.element.MultiplicativeGroupElement):
 
         OUTPUT:
 
-        A growth element or ``None``.
+        Nothing since a ``ValueError`` is raised in this generic method.
 
         TESTS::
 
@@ -2485,7 +2485,7 @@ class MonomialGrowthElement(GenericGrowthElement):
     def _rpow_element_(self, base):
         r"""
         Return an element which is the power of ``base`` to this
-        element; it lives (in contrast to :meth:`rpow`) in its own group.
+        element.
 
         INPUT:
 
@@ -2493,7 +2493,16 @@ class MonomialGrowthElement(GenericGrowthElement):
 
         OUTPUT:
 
-        A growth element or ``None``.
+        A growth element.
+
+        .. NOTE::
+
+            The parent of the result can be different to the parent
+            of this element.
+
+        A ``ValueError`` is raised if the calculation is not possible
+        within this method. (Then the calling method should take care
+        of the calculation.)
 
         TESTS::
 

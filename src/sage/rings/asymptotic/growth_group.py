@@ -2528,6 +2528,13 @@ class MonomialGrowthElement(GenericGrowthElement):
             Traceback (most recent call last):
             ...
             ValueError: Variable %s is not a log of something.
+
+        The previous example does not work since the result would not
+        live in a monomial growth group. When using :meth:`rpow`, this
+        case is handeled by the calling method :meth:`_rpow_`.
+
+        ::
+
             sage: G = GrowthGroup('log(x)^ZZ')
             sage: lx = G(raw_element=1); lx
             log(x)

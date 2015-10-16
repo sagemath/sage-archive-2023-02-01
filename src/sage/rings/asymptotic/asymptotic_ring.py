@@ -1863,7 +1863,7 @@ class AsymptoticRing(Algebra, UniqueRepresentation):
         ....:         __eq__ = AR_class.Element.has_same_summands
         sage: A = AR(growth_group='z^QQ', coefficient_ring=QQ)
         sage: from itertools import islice
-        sage: TestSuite(A).run(  # not tested  # long time
+        sage: TestSuite(A).run(  # not tested  # long time  # see #19424
         ....:     verbose=True,
         ....:     elements=tuple(islice(A.some_elements(), 10)),
         ....:     skip=('_test_some_elements',  # to many elements

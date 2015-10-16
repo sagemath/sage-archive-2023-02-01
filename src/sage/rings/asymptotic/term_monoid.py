@@ -837,11 +837,6 @@ class GenericTerm(sage.structure.element.MonoidElement):
 
         .. NOTE::
 
-            This method returns a tuple with the summands that come from
-            applying the rule `\log(x\cdot y) = \log(x) + \log(y)`.
-
-        .. NOTE::
-
             This abstract method raises a
             :python:`NotImplementedError<library/exceptions.html#exceptions.NotImplementedError>`.
             See :class:`ExactTerm` and :class:`OTerm` for a concrete

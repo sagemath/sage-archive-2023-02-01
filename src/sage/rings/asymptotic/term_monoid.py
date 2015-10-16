@@ -1457,8 +1457,10 @@ class GenericTermMonoid(sage.structure.unique_representation.UniqueRepresentatio
         .. NOTE::
 
             Another generic term monoid ``S`` coerces into this term
-            monoid if and only if the growth group of ``S`` coerces
-            into the growth group of this term monoid.
+            monoid if and only if both, the growth group of ``S`` coerces
+            into the growth group of this term monoid and the coefficient
+            ring of ``S`` coerces into the coefficient ring of this term
+            monoid.
 
         EXAMPLES::
 

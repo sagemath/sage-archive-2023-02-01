@@ -2535,6 +2535,13 @@ class MonomialGrowthElement(GenericGrowthElement):
             x
             sage: rp.parent()
             Growth Group x^ZZ
+
+        ::
+
+            sage: G = GrowthGroup('log(x)^SR')
+            sage: lx = G('log(x)')
+            sage: lx._rpow_element_(2)
+            x^(log(2))
         """
         var = str(self.parent()._var_)
         if not(var.startswith('log(') and self.exponent.is_one()):

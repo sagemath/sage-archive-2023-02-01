@@ -236,6 +236,7 @@ terms, we cut of the rest by using
     z^(-1) + z^(-2) + z^(-3) + z^(-4) + z^(-5) + O(z^(-6))
 
 or
+
 ::
 
     sage: 1 / (z-1) + O(z^(-6))
@@ -1294,9 +1295,9 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
             sage: _.parent()
             Asymptotic Ring <QQ^x * x^SR * log(x)^QQ> over Symbolic Ring
 
-        ::
+        See :trac:`19110`::
 
-            sage: O(x)^(-1)  # see :trac:`19110`
+            sage: O(x)^(-1)
             Traceback (most recent call last):
             ...
             ZeroDivisionError: Cannot take O(x) to exponent -1.
@@ -2073,6 +2074,8 @@ class AsymptoticRing(Algebra, UniqueRepresentation):
         OUTPUT:
 
         An element.
+
+        EXAMPLES::
 
             sage: A = AsymptoticRing('z^ZZ', ZZ)
             sage: term = next(A.an_element().summands.elements_topological())

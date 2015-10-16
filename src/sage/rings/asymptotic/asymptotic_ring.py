@@ -625,6 +625,22 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
             |   +-- no successors
             sage: R(lst, simplify=True) # indirect doctest
             4*x^4 + O(x^3)
+
+        ::
+
+            sage: R.<x> = AsymptoticRing(growth_group='x^QQ', coefficient_ring=QQ)
+            sage: e = R(x^2 + O(x))
+            sage: from sage.rings.asymptotic.asymptotic_ring import AsymptoticExpansion
+            sage: S = AsymptoticRing(growth_group='x^QQ', coefficient_ring=ZZ)
+            sage: for s in AsymptoticExpansion(S, e.summands).summands.elements_topological():
+            ....:     print s.parent()
+            O-Term Monoid x^QQ with implicit coefficients in Integer Ring
+            Exact Term Monoid x^QQ with coefficients in Integer Ring
+            sage: for s in AsymptoticExpansion(S, e.summands,
+            ....:         convert=False).summands.elements_topological():
+            ....:     print s.parent()
+            O-Term Monoid x^QQ with implicit coefficients in Rational Field
+            Exact Term Monoid x^QQ with coefficients in Rational Field
         """
         super(AsymptoticExpansion, self).__init__(parent=parent)
 

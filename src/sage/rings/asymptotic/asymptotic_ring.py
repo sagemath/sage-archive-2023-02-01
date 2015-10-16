@@ -2345,6 +2345,7 @@ class AsymptoticRing(Algebra, UniqueRepresentation):
                 summands = []
                 for summand in data.operands():
                     # TODO: check if summand is an O-Term here
+                    # (see #19425, #19426)
                     try:
                         summands.append(self._create_exact_summand_(summand))
                     except ValueError as e:

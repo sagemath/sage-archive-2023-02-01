@@ -1038,8 +1038,8 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
             sage: expr._mul_term_(t)
             O(x^3)
         """
-        from term_monoid import OTerm
-        simplify = isinstance(term, OTerm)
+        from term_monoid import ExactTerm
+        simplify = not isinstance(term, ExactTerm)
         return self.parent()(self.summands.mapped(lambda element: term * element),
                              simplify=simplify, convert=False)
 

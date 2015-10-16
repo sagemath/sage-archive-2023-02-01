@@ -140,7 +140,7 @@ cdef class RealDoubleField_class(Field):
             sage: TestSuite(R).run()
         """
         from sage.categories.fields import Fields
-        Field.__init__(self, self, category = Fields())
+        Field.__init__(self, self, category=Fields().Metric().Complete())
         self._populate_coercion_lists_(element_constructor=RealDoubleElement,
                                        init_no_parent=True,
                                        convert_method_name='_real_double_')
@@ -235,6 +235,19 @@ cdef class RealDoubleField_class(Field):
         if isinstance(x, RealDoubleField_class):
             return 0
         return cmp(type(self), type(x))
+
+    def dist(self, a, b):
+        """
+        Return the distance between ``a`` and ``b`` in ``self``.
+
+        EXAMPLES::
+
+            sage: RDF.dist(5, 1/2)
+            4.5
+            sage: RDF.dist(-1, 1/2)
+            1.5
+        """
+        return (self(a) - self(b)).abs()
 
     def construction(self):
         r"""

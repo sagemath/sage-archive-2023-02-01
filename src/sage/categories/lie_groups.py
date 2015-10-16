@@ -10,11 +10,11 @@ Lie Groups
 
 #from sage.misc.abstract_method import abstract_method
 from sage.misc.cachefunc import cached_method
-from sage.categories.category_singleton import Category_singleton
+from sage.categories.category_types import Category_over_base_ring
 from sage.categories.groups import Groups
 from sage.categories.manifolds import Manifolds
 
-class LieGroups(Category_singleton):
+class LieGroups(Category_over_base_ring):
     r"""
     The category of Lie groups.
 
@@ -23,12 +23,12 @@ class LieGroups(Category_singleton):
     EXAMPLES::
 
         sage: from sage.categories.lie_groups import LieGroups
-        sage: C = LieGroups(); C
-        Category of Lie groups
+        sage: C = LieGroups(QQ); C
+        Category of Lie groups over Rational Field
 
     TESTS::
 
-        sage: TestSuite(C).run()
+        sage: TestSuite(C).run(skip="_test_category_over_bases")
     """
     @cached_method
     def super_categories(self):
@@ -36,10 +36,11 @@ class LieGroups(Category_singleton):
         EXAMPLES::
 
             sage: from sage.categories.lie_groups import LieGroups
-            sage: LieGroups().super_categories()
-            [Category of topological groups, Category of smooth real manifolds]
+            sage: LieGroups(QQ).super_categories()
+            [Category of topological groups,
+             Category of smooth manifolds over Rational Field]
         """
-        return [Groups().Topological(), Manifolds().Real().Smooth()]
+        return [Groups().Topological(), Manifolds(self.base()).Smooth()]
 
     def additional_structure(self):
         r"""
@@ -54,7 +55,7 @@ class LieGroups(Category_singleton):
         EXAMPLES::
 
             sage: from sage.categories.lie_groups import LieGroups
-            sage: LieGroups().additional_structure()
+            sage: LieGroups(QQ).additional_structure()
         """
         return None
 
@@ -64,8 +65,8 @@ class LieGroups(Category_singleton):
         EXAMPLES::
 
             sage: from sage.categories.lie_groups import LieGroups
-            sage: LieGroups() # indirect doctest
-            Category of Lie groups
+            sage: LieGroups(QQ) # indirect doctest
+            Category of Lie groups over Rational Field
         """
-        return "Lie groups"
+        return "Lie groups over {}".format(self.base_ring())
 

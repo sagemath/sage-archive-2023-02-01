@@ -198,7 +198,7 @@ class ComplexField_class(ring.Field):
 
             sage: C = ComplexField(200)
             sage: C.category()
-            Category of fields
+            Join of Category of fields and Category of complete metric spaces
             sage: TestSuite(C).run()
         """
         self._prec = int(prec)

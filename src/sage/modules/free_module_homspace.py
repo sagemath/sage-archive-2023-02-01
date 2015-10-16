@@ -28,10 +28,10 @@ compute a basis.
     sage: H = Hom(V3,V2)
     sage: H
     Set of Morphisms from Ambient free module of rank 3 over the
-    principal ideal domain Integer Ring to Ambient free module
-    of rank 2 over the principal ideal domain Integer Ring in
-    Category of modules with basis over (euclidean domains and
-    infinite enumerated sets)
+     principal ideal domain Integer Ring to Ambient free module of rank 2
+     over the principal ideal domain Integer Ring in
+     Category of modules with basis over (euclidean domains
+     and infinite enumerated sets and metric spaces)
     sage: B = H.basis()
     sage: len(B)
     6

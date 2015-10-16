@@ -2295,9 +2295,10 @@ class AsymptoticRing(Algebra, UniqueRepresentation):
             ...
             ValueError: Symbolic expression a + 1 is not in
             Asymptotic Ring <m^ZZ> over Integer Ring.
-            > *previous* ValueError: Cannot convert a to an exact summand
-            in an asymptotic expansion in
-            Asymptotic Ring <m^ZZ> over Integer Ring.
+            > *previous* ValueError: a is not in
+            Exact Term Monoid m^ZZ with coefficients in Integer Ring.
+            >> *previous* ValueError: Factor a of a is neither a coefficient
+            (in Integer Ring) nor growth (in Growth Group m^ZZ).
         """
         from sage.data_structures.mutable_poset import MutablePoset
         if isinstance(data, MutablePoset):
@@ -2332,7 +2333,7 @@ class AsymptoticRing(Algebra, UniqueRepresentation):
         try:
             P = data.parent()
         except AttributeError:
-            return self._create_exact_summand_(data)
+            return self.create_summand('exact', data)
 
         from misc import combine_exceptions
         from sage.symbolic.ring import SR
@@ -2348,7 +2349,7 @@ class AsymptoticRing(Algebra, UniqueRepresentation):
                     # TODO: check if summand is an O-Term here
                     # (see #19425, #19426)
                     try:
-                        summands.append(self._create_exact_summand_(summand))
+                        summands.append(self.create_summand('exact', summand))
                     except ValueError as e:
                         raise combine_exceptions(
                             ValueError('Symbolic expression %s is not in %s.' %
@@ -2396,45 +2397,7 @@ class AsymptoticRing(Algebra, UniqueRepresentation):
                                    (data, self)), e)
             return result
 
-        return self._create_exact_summand_(data)
-
-
-    def _create_exact_summand_(self, data):
-        r"""
-        Create an exact summand.
-
-        This helper method is used in the element constructor.
-
-        INPUT:
-
-        - ``data`` -- an element.
-
-        OUTPUT:
-
-        An asymptotic expansion.
-
-        TESTS::
-
-            sage: A.<a> = AsymptoticRing('a^ZZ', QQ)
-            sage: A._create_exact_summand_(38)
-            38
-        """
-        try:
-            coefficient = self.coefficient_ring(data)
-        except (TypeError, ValueError):
-            pass
-        else:
-            return self.create_summand('exact',
-                                       growth=self.growth_group.one(),
-                                       coefficient=coefficient)
-
-        try:
-            return self.create_summand('exact', data)
-        except (TypeError, ValueError):
-            pass
-
-        raise ValueError('Cannot convert %s to an exact summand in an '
-                         'asymptotic expansion in %s.' % (data, self))
+        return self.create_summand('exact', data)
 
 
     def _coerce_map_from_(self, R):

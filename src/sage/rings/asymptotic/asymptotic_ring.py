@@ -1650,7 +1650,7 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
 
         If the corresponding growth can be constructed, return
         the exact exponential function. Otherwise, if this term
-        is within `O(1)`, try to expand the series and truncate
+        is `o(1)`, try to expand the series and truncate
         according to the given precision.
 
         .. TODO::

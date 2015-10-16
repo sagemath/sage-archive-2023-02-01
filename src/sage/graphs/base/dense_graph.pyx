@@ -102,18 +102,16 @@ from ``CGraph`` (for explanation, refer to the documentation there)::
 
 It also contains the following variables::
 
-        cdef int radix_div_shift
-        cdef int radix_mod_mask
         cdef int num_longs
         cdef unsigned long *edges
 
 The array ``edges`` is a series of bits which are turned on or off, and due to
 this, dense graphs only support graphs without edge labels and with no multiple
-edges. The ints ``radix_div_shift`` and ``radix_mod_mask`` are simply for doing
-efficient division by powers of two, and ``num_longs`` stores the length of the
-``edges`` array. Recall that this length reflects the number of available
-vertices, not the number of "actual" vertices. For more details about this,
-refer to the documentation for ``CGraph``.
+edges. ``num_longs`` stores the length of the ``edges`` array. Recall that this
+length reflects the number of available vertices, not the number of "actual"
+vertices. For more details about this, refer to the documentation for
+``CGraph``.
+
 """
 
 #*******************************************************************************
@@ -124,6 +122,11 @@ refer to the documentation for ``CGraph``.
 #*******************************************************************************
 
 include 'sage/data_structures/bitset.pxi'
+
+from libc.string cimport memcpy
+
+cdef int radix = sizeof(unsigned long) * 8 # number of bits per 'unsigned long'
+cdef int radix_mod_mask = radix - 1        # (assumes that radis is a power of 2)
 
 cdef class DenseGraph(CGraph):
     """
@@ -151,7 +154,6 @@ cdef class DenseGraph(CGraph):
     for use in pickling.
 
     """
-
     def __cinit__(self, int nverts, int extra_vertices = 10, verts = None, arcs = None):
         """
         Allocation and initialization happen in one place.
@@ -167,35 +169,24 @@ cdef class DenseGraph(CGraph):
         """
         if nverts == 0 and extra_vertices == 0:
             raise RuntimeError('Dense graphs must allocate space for vertices!')
-        cdef int radix = sizeof(unsigned long) << 3
-        self.radix_mod_mask = radix - 1
-        cdef int i = 0
-        while ((<unsigned long>1)<<i) & self.radix_mod_mask:
-            i += 1
-        self.radix_div_shift = i
+
         self.num_verts = nverts
+        self.num_arcs  = 0
         cdef int total_verts = nverts + extra_vertices
-        self.num_arcs = 0
 
-        i = total_verts >> self.radix_div_shift
-        if total_verts & self.radix_mod_mask:
-            i += 1
-        self.num_longs = i
+        # self.num_longs = "ceil(total_verts/radix)"
+        self.num_longs = total_verts / radix + (0 != (total_verts & radix_mod_mask))
 
-        self.edges = <unsigned long *> sage_malloc(total_verts * self.num_longs * sizeof(unsigned long))
-        self.in_degrees = <int *> sage_malloc(total_verts * sizeof(int))
-        self.out_degrees = <int *> sage_malloc(total_verts * sizeof(int))
+        self.edges = <unsigned long *> sage_calloc(total_verts * self.num_longs, sizeof(unsigned long))
+        self.in_degrees  = <int *> sage_calloc(total_verts, sizeof(int))
+        self.out_degrees = <int *> sage_calloc(total_verts, sizeof(int))
 
         if not self.edges or not self.in_degrees or not self.out_degrees:
-            if self.edges: sage_free(self.edges)
-            if self.in_degrees: sage_free(self.in_degrees)
-            if self.out_degrees: sage_free(self.out_degrees)
+            sage_free(self.edges)
+            sage_free(self.in_degrees)
+            sage_free(self.out_degrees)
             raise MemoryError
-        for i from 0 <= i < self.num_longs * total_verts:
-            self.edges[i] = 0
-        for i from 0 <= i < total_verts:
-            self.in_degrees[i] = 0
-            self.out_degrees[i] = 0
+
         bitset_init(self.active_vertices, total_verts)
         bitset_set_first_n(self.active_vertices, self.num_verts)
 
@@ -261,6 +252,7 @@ cdef class DenseGraph(CGraph):
         cdef int i, j
         if total_verts == 0:
             raise RuntimeError('Dense graphs must allocate space for vertices!')
+
         cdef bitset_t bits
         cdef int min_verts, min_longs, old_longs = self.num_longs
         if total_verts < self.active_vertices.size:
@@ -276,42 +268,27 @@ cdef class DenseGraph(CGraph):
             min_verts = self.active_vertices.size
             min_longs = self.num_longs
 
-        i = total_verts >> self.radix_div_shift
-        if total_verts & self.radix_mod_mask:
-            i += 1
-        self.num_longs = i
-        if min_longs == -1: min_longs = self.num_longs
+        # self.num_longs = "ceil(total_verts/radix)"
+        self.num_longs = total_verts / radix + (0 != (total_verts & radix_mod_mask))
 
-        cdef unsigned long *new_edges = <unsigned long *> sage_malloc(total_verts * self.num_longs * sizeof(unsigned long))
+        if min_longs == -1:
+            min_longs = self.num_longs
 
+        # Resize of self.edges
+        cdef unsigned long *new_edges = <unsigned long *> sage_calloc(total_verts * self.num_longs, sizeof(unsigned long))
         for i from 0 <= i < min_verts:
-            for j from 0 <= j < min_longs:
-                new_edges[i*self.num_longs + j] = self.edges[i*old_longs + j]
-            for j from min_longs <= j < self.num_longs:
-                new_edges[i*self.num_longs + j] = 0
-        for i from min_verts <= i < total_verts:
-            for j from 0 <= j < self.num_longs:
-                new_edges[i*self.num_longs + j] = 0
+            memcpy(new_edges+i*self.num_longs, self.edges+i*old_longs, min_longs*sizeof(unsigned long))
+
         sage_free(self.edges)
         self.edges = new_edges
 
-        self.in_degrees = <int *> sage_realloc(self.in_degrees, total_verts * sizeof(int))
+        self.in_degrees  = <int *> sage_realloc(self.in_degrees , total_verts * sizeof(int))
         self.out_degrees = <int *> sage_realloc(self.out_degrees, total_verts * sizeof(int))
 
-        cdef int first_limb
-        cdef unsigned long zero_gate
-        if total_verts > self.active_vertices.size:
-            first_limb = (self.active_vertices.size >> self.radix_div_shift)
-            zero_gate = (<unsigned long>1) << (self.active_vertices.size & self.radix_mod_mask)
-            zero_gate -= 1
-            for i from 0 <= i < total_verts:
-                self.edges[first_limb] &= zero_gate
-                for j from first_limb < j < self.num_longs:
-                    self.edges[j] = 0
+        for i in range(self.active_vertices.size, total_verts):
+            self.in_degrees[i]  = 0
+            self.out_degrees[i] = 0
 
-            for i from self.active_vertices.size <= i < total_verts:
-                self.in_degrees[i] = 0
-                self.out_degrees[i] = 0
         bitset_realloc(self.active_vertices, total_verts)
 
     ###################################
@@ -326,8 +303,8 @@ cdef class DenseGraph(CGraph):
             u, v -- non-negative integers
 
         """
-        cdef int place = (u * self.num_longs) + (v >> self.radix_div_shift)
-        cdef unsigned long word = (<unsigned long>1) << (v & self.radix_mod_mask)
+        cdef int place = (u * self.num_longs) + (v / radix)
+        cdef unsigned long word = (<unsigned long>1) << (v & radix_mod_mask)
         if not self.edges[place] & word:
             self.in_degrees[v] += 1
             self.out_degrees[u] += 1
@@ -373,9 +350,9 @@ cdef class DenseGraph(CGraph):
             1 -- True
 
         """
-        cdef int place = (u * self.num_longs) + (v >> self.radix_div_shift)
-        cdef unsigned long word = (<unsigned long>1) << (v & self.radix_mod_mask)
-        return (self.edges[place] & word) >> (v & self.radix_mod_mask)
+        cdef int place = (u * self.num_longs) + (v / radix)
+        cdef unsigned long word = (<unsigned long>1) << (v & radix_mod_mask)
+        return (self.edges[place] & word) >> (v & radix_mod_mask)
 
     cpdef bint has_arc(self, int u, int v) except -1:
         """
@@ -409,8 +386,8 @@ cdef class DenseGraph(CGraph):
             u, v -- non-negative integers, must be in self
 
         """
-        cdef int place = (u * self.num_longs) + (v >> self.radix_div_shift)
-        cdef unsigned long word = (<unsigned long>1) << (v & self.radix_mod_mask)
+        cdef int place = (u * self.num_longs) + (v / radix)
+        cdef unsigned long word = (<unsigned long>1) << (v & radix_mod_mask)
         if self.edges[place] & word:
             self.in_degrees[v] -= 1
             self.out_degrees[u] -= 1
@@ -443,6 +420,43 @@ cdef class DenseGraph(CGraph):
         self.check_vertex(u)
         self.check_vertex(v)
         self.del_arc_unsafe(u,v)
+
+    def complement(self):
+        r"""
+        Replaces the graph with its complement
+
+        .. NOTE::
+
+            Assumes that the graph has no loop.
+
+        EXAMPLE::
+
+            sage: from sage.graphs.base.dense_graph import DenseGraph
+            sage: G = DenseGraph(5)
+            sage: G.add_arc(0,1)
+            sage: G.has_arc(0,1)
+            True
+            sage: G.complement()
+            sage: G.has_arc(0,1)
+            False
+        """
+        cdef int num_arcs_old = self.num_arcs
+
+        # The following cast assumes that mp_limb_t is an unsigned long.
+        # (this assumption is already made in bitset.pxi)
+        cdef unsigned long * active_vertices_bitset
+        active_vertices_bitset = <unsigned long *> self.active_vertices.bits
+
+        cdef int i,j
+        for i in range(self.active_vertices.size):
+            if bitset_in(self.active_vertices,i):
+                self.add_arc_unsafe(i,i)
+                for j in range(self.num_longs): # the actual job
+                    self.edges[i*self.num_longs+j] ^= active_vertices_bitset[j]
+                self.in_degrees[i]  = self.num_verts-self.in_degrees[i]
+                self.out_degrees[i] = self.num_verts-self.out_degrees[i]
+
+        self.num_arcs = self.num_verts*(self.num_verts-1) - num_arcs_old
 
     ###################################
     # Neighbor functions
@@ -527,8 +541,8 @@ cdef class DenseGraph(CGraph):
         there were more
 
         """
-        cdef int place = v >> self.radix_div_shift
-        cdef unsigned long word = (<unsigned long>1) << (v & self.radix_mod_mask)
+        cdef int place = v / radix
+        cdef unsigned long word = (<unsigned long>1) << (v & radix_mod_mask)
         cdef int i, num_nbrs = 0
         for i from 0 <= i < self.active_vertices.size:
             if self.edges[place + i*self.num_longs] & word:

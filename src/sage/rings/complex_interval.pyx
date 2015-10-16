@@ -51,10 +51,9 @@ from complex_number cimport ComplexNumber
 import complex_interval_field
 from complex_field import ComplexField
 import sage.misc.misc
-import integer
+cimport integer
 import infinity
-import real_mpfi
-import real_mpfr
+cimport real_mpfi
 cimport real_mpfr
 
 
@@ -927,6 +926,23 @@ cdef class ComplexIntervalFieldElement(sage.structure.element.FieldElement):
 
         return x
 
+    def _complex_mpfr_field_(self, field):
+        """
+        Convert to a complex field.
+
+        EXAMPLES::
+
+            sage: re = RIF("1.2")
+            sage: im = RIF(2, 3)
+            sage: a = ComplexIntervalField(30)(re, im)
+            sage: CC(a)
+            1.20000000018626 + 2.50000000000000*I
+        """
+        cdef ComplexNumber x = field(0)
+        mpfi_mid(x.__re, self.__re)
+        mpfi_mid(x.__im, self.__im)
+        return x
+
     def __int__(self):
         """
         Convert ``self`` to an ``int``.
@@ -1000,7 +1016,7 @@ cdef class ComplexIntervalFieldElement(sage.structure.element.FieldElement):
         """
         return self.real().__nonzero__() or self.imag().__nonzero__()
 
-    def __richcmp__(left, right, int op):
+    cpdef _richcmp_(left, Element right, int op):
         r"""
         As with the real interval fields this never returns false positives.
         Thus, `a == b` is ``True`` iff both `a` and `b` represent the same
@@ -1037,9 +1053,6 @@ cdef class ComplexIntervalFieldElement(sage.structure.element.FieldElement):
             sage: CDF(1) >= CDF(1) >= CDF.gen() >= CDF.gen() >= 0 >= -CDF.gen() >= CDF(-1)
             True
         """
-        return (<Element>left)._richcmp(right, op)
-
-    cpdef _richcmp_(left, Element right, int op):
         cdef ComplexIntervalFieldElement lt, rt
         lt = left
         rt = right
@@ -1072,7 +1085,7 @@ cdef class ComplexIntervalFieldElement(sage.structure.element.FieldElement):
             elif op == 5: #>=
                 return real_diff > 0 or (real_diff == 0 and imag_diff >= 0)
 
-    def __cmp__(left, right):
+    cpdef int _cmp_(left, sage.structure.element.Element right) except -2:
         """
         Intervals are compared lexicographically on the 4-tuple:
         ``(x.real().lower(), x.real().upper(),
@@ -1093,27 +1106,18 @@ cdef class ComplexIntervalFieldElement(sage.structure.element.FieldElement):
             0
             sage: cmp(b, a)
             1
-        """
-        return (<Element>left)._cmp(right)
-
-
-    cpdef int _cmp_(left, sage.structure.element.Element right) except -2:
-        """
-        Intervals are compared lexicographically on the 4-tuple:
-        ``(x.real().lower(), x.real().upper(),
-        x.imag().lower(), x.imag().upper())``
 
         TESTS::
 
             sage: tests = []
             sage: for rl in (0, 1):
-            ...       for ru in (rl, rl + 1):
-            ...           for il in (0, 1):
-            ...               for iu in (il, il + 1):
-            ...                   tests.append((CIF(RIF(rl, ru), RIF(il, iu)), (rl, ru, il, iu)))
+            ....:     for ru in (rl, rl + 1):
+            ....:         for il in (0, 1):
+            ....:             for iu in (il, il + 1):
+            ....:                 tests.append((CIF(RIF(rl, ru), RIF(il, iu)), (rl, ru, il, iu)))
             sage: for (i1, t1) in tests:
-            ...       for (i2, t2) in tests:
-            ...           assert(cmp(i1, i2) == cmp(t1, t2))
+            ....:     for (i2, t2) in tests:
+            ....:         assert(cmp(i1, i2) == cmp(t1, t2))
         """
         cdef int a, b
         a = mpfi_nan_p(left.__re)

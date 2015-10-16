@@ -1805,6 +1805,125 @@ class KRRiggedConfigurationElement(RiggedConfigurationElement):
 
     delta = left_box
 
+    def left_column_box(self):
+        r"""
+        Return the image of ``self`` under the left column box splitting
+        map `\gamma`.
+
+        Consider the map `\gamma : RC(B^{r,1} \otimes B) \to RC(B^{1,1}
+        \otimes B^{r-1,1} \otimes B)` for `r > 1`, which is a natural strict
+        classical crystal injection. On rigged configurations, the map
+        `\gamma` adds a singular string of length `1` to `\nu^{(a)}`.
+
+        We can extend `\gamma` when the left-most factor is not a single
+        column by precomposing with a :meth:`left_split()`.
+
+        EXAMPLES::
+
+            sage: RC = RiggedConfigurations(['C',3,1], [[3,1], [2,1]])
+            sage: mg = RC.module_generators[-1]
+            sage: ascii_art(mg)
+            0[ ]0  0[ ][ ]0  0[ ]0
+                   0[ ]0     0[ ]0
+            sage: ascii_art(mg.left_column_box())
+            0[ ]0  0[ ][ ]0  0[ ]0
+            0[ ]0  0[ ]0     0[ ]0
+                   0[ ]0
+
+            sage: RC = RiggedConfigurations(['C',3,1], [[2,1], [1,1], [3,1]])
+            sage: mg = RC.module_generators[7]
+            sage: ascii_art(mg)
+            1[ ]0  0[ ][ ]0  0[ ]0
+                   0[ ]0     0[ ]0
+            sage: ascii_art(mg.left_column_box())
+            1[ ]1  0[ ][ ]0  0[ ]0
+            1[ ]0  0[ ]0     0[ ]0
+        """
+        P = self.parent()
+        r = P.dims[0][0]
+        if r == 1:
+            raise ValueError("cannot split a single box")
+        ct = P.cartan_type()
+        if ct.type() == 'D':
+            if P.dims[0][0] >= ct.rank() - 2:
+                raise ValueError("only for non-spinor cases")
+        elif ct.type() == 'B' or ct.dual().type() == 'B':
+            if P.dims[0][0] == ct.rank() - 1:
+                raise ValueError("only for non-spinor cases")
+
+        if P.dims[0][1] > 1:
+            return self.left_split().left_column_box()
+
+        B = [[1,1], [r-1,1]]
+        B.extend(P.dims[1:])
+        from sage.combinat.rigged_configurations.rigged_configurations import RiggedConfigurations
+        RC = RiggedConfigurations(P._cartan_type, B)
+        parts = [x._clone() for x in self] # Make a deep copy
+        for nu in parts[:r-1]:
+            nu._list.append(1)
+        for a, nu in enumerate(parts[:r-1]):
+            vac_num = RC._calc_vacancy_number(parts, a, 1)
+            i = nu._list.index(1)
+            nu.vacancy_numbers.insert(i, vac_num)
+            nu.rigging.insert(i, vac_num)
+        return RC(*parts)
+
+    def right_column_box(self):
+        r"""
+        Return the image of ``self`` under the right column box splitting
+        map `\gamma^*`.
+
+        Consider the map `\gamma^* : RC(B \otimes B^{r,1}) \to RC(B \otimes
+        B^{r-1,1} \otimes B^{1,1})` for `r > 1`, which is a natural strict
+        classical crystal injection. On rigged configurations, the map
+        `\gamma` adds a string of length `1` with rigging 0 to `\nu^{(a)}`
+        for all `a < r` to a classically highest weight element and extended
+        as a classical crystal morphism.
+
+        We can extend `\gamma^*` when the right-most factor is not a single
+        column by precomposing with a :meth:`right_split()`.
+
+        EXAMPLES::
+
+            sage: RC = RiggedConfigurations(['C',3,1], [[2,1], [1,1], [3,1]])
+            sage: mg = RC.module_generators[7]
+            sage: ascii_art(mg)
+            1[ ]0  0[ ][ ]0  0[ ]0
+                   0[ ]0     0[ ]0
+            sage: ascii_art(mg.right_column_box())
+            1[ ]0  0[ ][ ]0  0[ ]0
+            1[ ]0  0[ ]0     0[ ]0
+                   0[ ]0
+        """
+        P = self.parent()
+        r = P.dims[-1][0]
+        if r == 1:
+            raise ValueError("cannot split a single box")
+        ct = P.cartan_type()
+        if ct.type() == 'D':
+            if P.dims[-1][0] >= ct.rank() - 2:
+                raise ValueError("only for non-spinor cases")
+        elif ct.type() == 'B' or ct.dual().type() == 'B':
+            if P.dims[-1][0] == ct.rank() - 1:
+                raise ValueError("only for non-spinor cases")
+
+        if P.dims[-1][1] > 1:
+            return self.right_split().right_column_box()
+
+        rc, e_string = self.to_highest_weight(P.cartan_type().classical().index_set())
+
+        B = P.dims[:-1] + ([r-1,1], [1,1])
+        from sage.combinat.rigged_configurations.rigged_configurations import RiggedConfigurations
+        RC = RiggedConfigurations(P._cartan_type, B)
+        parts = [x._clone() for x in rc] # Make a deep copy
+        for nu in parts[:r-1]:
+            nu._list.append(1)
+        for a, nu in enumerate(parts[:r-1]):
+            vac_num = RC._calc_vacancy_number(parts, a, -1)
+            nu.vacancy_numbers.append(vac_num)
+            nu.rigging.append(0)
+        return RC(*parts).f_string(reversed(e_string))
+
     def complement_rigging(self, reverse_factors=False):
         r"""
         Apply the complement rigging morphism `\theta` to ``self``.

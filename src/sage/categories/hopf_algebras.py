@@ -15,6 +15,7 @@ from category_types import Category_over_base_ring
 from sage.categories.bialgebras import Bialgebras
 from sage.categories.tensor import TensorProductsCategory # tensor
 from sage.categories.realizations import RealizationsCategory
+from sage.categories.super_modules import SuperModulesCategory
 from sage.misc.cachefunc import cached_method
 #from sage.misc.lazy_attribute import lazy_attribute
 
@@ -104,6 +105,8 @@ class HopfAlgebras(Category_over_base_ring):
         """
         pass
 
+    class Super(SuperModulesCategory):
+        pass
 
     class TensorProducts(TensorProductsCategory):
         """

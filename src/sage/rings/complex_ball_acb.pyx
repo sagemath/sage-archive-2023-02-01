@@ -581,7 +581,7 @@ cdef class ComplexBall(Element):
         """
         return acb_is_exact(self.value)
 
-    def __richcmp__(left, right, int op):
+    cpdef _richcmp_(left, Element right, int op):
         """
         Compare ``left`` and ``right``.
 
@@ -605,19 +605,6 @@ cdef class ComplexBall(Element):
             False
             sage: a == b
             False
-        """
-        return (<Element>left)._richcmp(right, op)
-
-    cpdef _richcmp_(left, Element right, int op):
-        """
-        Compare ``left`` and ``right``.
-
-        For more information, see :mod:`sage.rings.complex_ball_acb`.
-
-        EXAMPLES::
-
-            sage: from sage.rings.complex_ball_acb import ComplexBallField
-            sage: CBF = ComplexBallField()
             sage: a = CBF(1, 2)
             sage: b = CBF(1, 2)
             sage: a is b
@@ -627,70 +614,70 @@ cdef class ComplexBall(Element):
 
         TESTS:
 
-            Balls whose intersection consists of one point::
+        Balls whose intersection consists of one point::
 
-                sage: a = CBF(RIF(1, 2), RIF(1, 2))
-                sage: b = CBF(RIF(2, 4), RIF(2, 4))
-                sage: a < b
-                Traceback (most recent call last):
-                ...
-                TypeError: No order is defined for ComplexBalls.
-                sage: a > b
-                Traceback (most recent call last):
-                ...
-                TypeError: No order is defined for ComplexBalls.
-                sage: a <= b
-                Traceback (most recent call last):
-                ...
-                TypeError: No order is defined for ComplexBalls.
-                sage: a >= b
-                Traceback (most recent call last):
-                ...
-                TypeError: No order is defined for ComplexBalls.
-                sage: a == b
-                False
-                sage: a != b
-                False
+            sage: a = CBF(RIF(1, 2), RIF(1, 2))
+            sage: b = CBF(RIF(2, 4), RIF(2, 4))
+            sage: a < b
+            Traceback (most recent call last):
+            ...
+            TypeError: No order is defined for ComplexBalls.
+            sage: a > b
+            Traceback (most recent call last):
+            ...
+            TypeError: No order is defined for ComplexBalls.
+            sage: a <= b
+            Traceback (most recent call last):
+            ...
+            TypeError: No order is defined for ComplexBalls.
+            sage: a >= b
+            Traceback (most recent call last):
+            ...
+            TypeError: No order is defined for ComplexBalls.
+            sage: a == b
+            False
+            sage: a != b
+            False
 
-            Balls with non-trivial intersection::
+        Balls with non-trivial intersection::
 
-                sage: a = CBF(RIF(1, 4), RIF(1, 4))
-                sage: a = CBF(RIF(2, 5), RIF(2, 5))
-                sage: a == b
-                False
-                sage: a != b
-                False
+            sage: a = CBF(RIF(1, 4), RIF(1, 4))
+            sage: a = CBF(RIF(2, 5), RIF(2, 5))
+            sage: a == b
+            False
+            sage: a != b
+            False
 
-            One ball contained in another::
+        One ball contained in another::
 
-                sage: a = CBF(RIF(1, 4), RIF(1, 4))
-                sage: b = CBF(RIF(2, 3), RIF(2, 3))
-                sage: a == b
-                False
-                sage: a != b
-                False
+            sage: a = CBF(RIF(1, 4), RIF(1, 4))
+            sage: b = CBF(RIF(2, 3), RIF(2, 3))
+            sage: a == b
+            False
+            sage: a != b
+            False
 
-            Disjoint balls::
+        Disjoint balls::
 
-                sage: a = CBF(1/3, 1/3)
-                sage: b = CBF(1/5, 1/5)
-                sage: a == b
-                False
-                sage: a != b
-                True
+            sage: a = CBF(1/3, 1/3)
+            sage: b = CBF(1/5, 1/5)
+            sage: a == b
+            False
+            sage: a != b
+            True
 
-            Exact elements::
+        Exact elements::
 
-                sage: a = CBF(2, 2)
-                sage: b = CBF(2, 2)
-                sage: a.is_exact()
-                True
-                sage: b.is_exact()
-                True
-                sage: a == b
-                True
-                sage: a != b
-                False
+            sage: a = CBF(2, 2)
+            sage: b = CBF(2, 2)
+            sage: a.is_exact()
+            True
+            sage: b.is_exact()
+            True
+            sage: a == b
+            True
+            sage: a != b
+            False
         """
         cdef ComplexBall lt, rt
         cdef acb_t difference

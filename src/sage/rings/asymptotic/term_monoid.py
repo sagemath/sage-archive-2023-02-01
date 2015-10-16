@@ -1480,6 +1480,12 @@ class GenericTermMonoid(sage.structure.unique_representation.UniqueRepresentatio
             Generic Term Monoid x^QQ with (implicit) coefficients in Rational Field
             sage: T_QQ.has_coerce_map_from(T_ZZ)  # indirect doctest
             True
+            sage: T_QQ_ZZ = GenericTermMonoid(G_QQ, ZZ); T_QQ_ZZ
+            Generic Term Monoid x^QQ with (implicit) coefficients in Integer Ring
+            sage: T_QQ.has_coerce_map_from(T_QQ_ZZ)
+            True
+            sage: T_QQ_ZZ.has_coerce_map_from(T_QQ)
+            False
 
         ::
 

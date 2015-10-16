@@ -434,6 +434,23 @@ class DifferentialWeylAlgebraElement(AlgebraElement):
         return sorted(self.__monomials.items(),
                       key=lambda x: (-sum(x[0][1]), x[0][1], -sum(x[0][0]), x[0][0]) )
 
+    def support(self):
+        """
+        Return the support of ``self``.
+
+        EXAMPLES::
+
+            sage: W.<x,y,z> = DifferentialWeylAlgebra(QQ)
+            sage: dx,dy,dz = W.differentials()
+            sage: elt = dy - (3*x - z)*dx + 1
+            sage: elt.support()
+            [((0, 0, 0), (0, 1, 0)),
+             ((1, 0, 0), (1, 0, 0)),
+             ((0, 0, 0), (0, 0, 0)),
+             ((0, 0, 1), (1, 0, 0))]
+        """
+        return self.__monomials.keys()
+
     # This is essentially copied from
     #   sage.combinat.free_module.CombinatorialFreeModuleElement
     def __div__(self, x, self_on_left=False):
@@ -527,6 +544,11 @@ class DifferentialWeylAlgebra(Algebra, UniqueRepresentation):
 
         sage: W.<a,b> = DifferentialWeylAlgebra(QQ); W
         Differential Weyl algebra of polynomials in a, b over Rational Field
+
+    .. TODO::
+
+        Implement the :meth:`graded_algebra` as a polynomial ring once
+        they are considered to be graded rings (algebras).
     """
     @staticmethod
     def __classcall__(cls, R, names=None):
@@ -567,7 +589,12 @@ class DifferentialWeylAlgebra(Algebra, UniqueRepresentation):
             raise ValueError("variable names cannot differ by a leading 'd'")
         # TODO: Make this into a filtered algebra under the natural grading of
         #   x_i and dx_i have degree 1
-        Algebra.__init__(self, R, names, category=AlgebrasWithBasis(R).NoZeroDivisors())
+        # Filtered is not included because it is a supercategory of super
+        if R.is_field():
+            cat = AlgebrasWithBasis(R).NoZeroDivisors().Super()
+        else:
+            cat = AlgebrasWithBasis(R).Super()
+        Algebra.__init__(self, R, names, category=cat)
 
     def _repr_(self):
         r"""
@@ -660,6 +687,24 @@ class DifferentialWeylAlgebra(Algebra, UniqueRepresentation):
             return ( R.variable_names() == self.variable_names()
                      and self.base_ring().has_coerce_map_from(R.base_ring()) )
         return super(DifferentialWeylAlgebra, self)._coerce_map_from_(R)
+
+    def degree_on_basis(self, i):
+        """
+        Return the degree of the basis element indexed by ``i``.
+
+        EXAMPLES::
+
+            sage: W.<a,b> = DifferentialWeylAlgebra(QQ)
+            sage: W.degree_on_basis( ((1, 3, 2), (0, 1, 3)) )
+            10
+
+            sage: W.<x,y,z> = DifferentialWeylAlgebra(QQ)
+            sage: dx,dy,dz = W.differentials()
+            sage: elt = y*dy - (3*x - z)*dx
+            sage: elt.degree()
+            2
+        """
+        return sum(i[0]) + sum(i[1])
 
     def polynomial_ring(self):
         """

@@ -4580,8 +4580,21 @@ cdef class FreeModuleElement_generic_sparse(FreeModuleElement):
             sage: w = vector(R, [], sparse=True)
             sage: parent(v._dot_product_coerce_(w))
             Univariate Polynomial Ring in x over Real Double Field
+
+        TESTS:
+
+        Check that :trac:`19377` is fixed::
+
+            sage: w = vector(ZZ, (1,2,3), sparse=False)
+            sage: v = vector(ZZ, (1,2,3), sparse=True)
+            sage: v._dot_product_coerce_(w)
+            14
         """
-        cdef dict e = (<FreeModuleElement_generic_sparse>right)._entries
+        cdef dict e
+        try:
+            e = (<FreeModuleElement_generic_sparse?>right)._entries
+        except TypeError:
+            e = right.dict()
         z = left.base_ring().zero()
         if left.base_ring() is not right.base_ring():
             z *= right.base_ring().zero()

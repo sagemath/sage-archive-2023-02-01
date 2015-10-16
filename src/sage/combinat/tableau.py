@@ -2845,7 +2845,7 @@ class Tableau(ClonableList):
         k = self.size()
         gens = [range(1, k+1)]
         for row in self:
-            for j in range(0, len(row)-1):
+            for j in range(len(row)-1):
                 gens.append( (row[j], row[j+1]) )
         return PermutationGroup( gens )
 

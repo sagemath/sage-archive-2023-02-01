@@ -2,15 +2,13 @@ from sage.libs.mpfi cimport *
 
 cimport sage.rings.ring
 
-cimport sage.structure.element
 from sage.structure.element cimport RingElement
 
-from rational import Rational
 from rational cimport Rational
 
 cimport real_mpfr
 
-cdef class RealIntervalFieldElement(sage.structure.element.RingElement)  # forward decl
+cdef class RealIntervalFieldElement(RingElement)  # forward decl
 
 cdef class RealIntervalField_class(sage.rings.ring.Field):
     cdef int __prec
@@ -35,7 +33,7 @@ cdef class RealIntervalField_class(sage.rings.ring.Field):
     cdef RealIntervalFieldElement _new(self)
 
 
-cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
+cdef class RealIntervalFieldElement(RingElement):
     cdef mpfi_t value
     cdef char init
     cdef RealIntervalFieldElement _new(self)

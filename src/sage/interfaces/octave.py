@@ -94,9 +94,8 @@ a robust manner::
     sage: a = octave.eval(t + ';')    # optional - octave, < 1/100th of a second
     sage: a = octave(t)               # optional - octave
 
-Note that actually reading a back out takes forever. This *must*
-be fixed ASAP - see
-http://trac.sagemath.org/sage_trac/ticket/940/.
+Note that actually reading ``a`` back out takes forever. This *must*
+be fixed as soon as possible, see :trac:`940`.
 
 Tutorial
 --------
@@ -286,7 +285,7 @@ class Octave(Expect):
         # to signals.
         if not self._expect is None:
             if verbose:
-                print "Exiting spawned %s process."%self
+                print "Exiting spawned %s process." % self
         return
 
     def _start(self):
@@ -308,9 +307,38 @@ class Octave(Expect):
         # set random seed
         self.set_seed(self._seed)
 
+    def _equality_symbol(self):
+        """
+        EXAMPLES::
+
+            sage: octave('0 == 1')  # optional - octave
+             0
+            sage: octave('1 == 1')  # optional - octave
+             1
+        """
+        return '=='
+
+    def _true_symbol(self):
+        """
+        EXAMPLES::
+
+            sage: octave('1 == 1')  # optional - octave
+             1
+        """
+        return '1'
+
+    def _false_symbol(self):
+        """
+        EXAMPLES::
+
+            sage: octave('0 == 1')  # optional - octave
+             0
+        """
+        return '0'
+
     def set(self, var, value):
         """
-        Set the variable var to the given value.
+        Set the variable ``var`` to the given ``value``.
 
         EXAMPLES::
 
@@ -325,7 +353,7 @@ class Octave(Expect):
 
     def get(self, var):
         """
-        Get the value of the variable var.
+        Get the value of the variable ``var``.
 
         EXAMPLES::
 
@@ -344,9 +372,9 @@ class Octave(Expect):
         EXAMPLES::
 
             sage: octave.set('x', '2') # optional - octave
-            sage: octave.clear('x') # optional - octave
-            sage: octave.get('x') # optional - octave
-            "error: `x' undefined near line ... column 1"
+            sage: octave.clear('x')    # optional - octave
+            sage: octave.get('x')      # optional - octave
+            "error: 'x' undefined near line ... column 1"
         """
         self.eval('clear %s'%var)
 
@@ -387,18 +415,16 @@ class Octave(Expect):
         return octave_version()
 
     def solve_linear_system(self, A, b):
-        """
+        r"""
         Use octave to compute a solution x to A\*x = b, as a list.
 
         INPUT:
 
+        - ``A`` -- mxn matrix A with entries in `\QQ` or `\RR`
 
-        -  ``A`` - mxn matrix A with entries in QQ or RR
+        - ``b`` -- m-vector b entries in `\QQ` or `\RR` (resp)
 
-        -  ``b`` - m-vector b entries in QQ or RR (resp)
-
-
-        OUTPUT: An list x (if it exists) which solves M\*x = b
+        OUTPUT: A list x (if it exists) which solves M\*x = b
 
         EXAMPLES::
 
@@ -507,33 +533,211 @@ class Octave(Expect):
         return OctaveElement
 
 
+octave_functions = set()
+
+def to_complex(octave_string, R):
+    r"""
+    Helper function to convert octave complex number
+
+    TESTS::
+
+        sage: from sage.interfaces.octave import to_complex
+        sage: to_complex('(0,1)', CDF)
+        1.0*I
+        sage: to_complex('(1.3231,-0.2)', CDF)
+        1.3231 - 0.2*I
+    """
+    real, imag = octave_string.strip('() ').split(',')
+    return R(float(real), float(imag))
+
 class OctaveElement(ExpectElement):
-    def _matrix_(self, R):
+    def _get_sage_ring(self):
+        r"""
+        TESTS::
+
+            sage: octave('1')._get_sage_ring()  # optional - octave
+            Real Double Field
+            sage: octave('I')._get_sage_ring()  # optional - octave
+            Complex Double Field
+            sage: octave('[]')._get_sage_ring() # optional - octave
+            Real Double Field
+        """
+        if self.isinteger():
+            import sage.rings.integer_ring
+            return sage.rings.integer_ring.ZZ
+        elif self.isreal():
+            import sage.rings.real_double
+            return sage.rings.real_double.RDF
+        elif self.iscomplex():
+            import sage.rings.complex_double
+            return sage.rings.complex_double.CDF
+        else:
+            raise TypeError("no Sage ring associated to this element.")
+
+    def __nonzero__(self):
+        r"""
+        Test whether this element is nonzero.
+
+        EXAMPLES::
+
+            sage: bool(octave('0'))                 # optional - octave
+            False
+            sage: bool(octave('[]'))                # optional - octave
+            False
+            sage: bool(octave('[0,0]'))             # optional - octave
+            False
+            sage: bool(octave('[0,0,0;0,0,0]'))     # optional - octave
+            False
+
+            sage: bool(octave('0.1'))               # optional - octave
+            True
+            sage: bool(octave('[0,1,0]'))           # optional - octave
+            True
+            sage: bool(octave('[0,0,-0.1;0,0,0]'))  # optional - octave
+            True
+        """
+        return str(self) != ' [](0x0)' and any(x != '0' for x in str(self).split())
+
+    def _matrix_(self, R=None):
         r"""
         Return Sage matrix from this octave element.
 
         EXAMPLES::
 
+            sage: A = octave('[1,2;3,4.5]')     # optional - octave
+            sage: matrix(A)                     # optional - octave
+            [1.0 2.0]
+            [3.0 4.5]
+            sage: _.base_ring()                 # optional - octave
+            Real Double Field
+
+            sage: A = octave('[I,1;-1,0]')      # optional - octave
+            sage: matrix(A)                     # optional - octave
+            [1.0*I   1.0]
+            [ -1.0   0.0]
+            sage: _.base_ring()                 # optional - octave
+            Complex Double Field
+
             sage: A = octave('[1,2;3,4]')       # optional - octave
             sage: matrix(ZZ, A)                 # optional - octave
             [1 2]
             [3 4]
-            sage: A = octave('[1,2;3,4.5]')     # optional - octave
-            sage: matrix(RR, A)                 # optional - octave
-            [1.00000000000000 2.00000000000000]
-            [3.00000000000000 4.50000000000000]
         """
-        from sage.matrix.all import MatrixSpace
-        s = str(self).strip()
-        v = s.split('\n ')
-        nrows = len(v)
-        if nrows == 0:
-            return MatrixSpace(R,0,0)(0)
-        ncols = len(v[0].split())
-        M = MatrixSpace(R, nrows, ncols)
-        v = sum([[x for x in w.split()] for w in v], [])
-        return M(v)
+        oc = self.parent()
+        if not self.ismatrix():
+            raise TypeError('not an octave matrix')
+        if R is None:
+            R = self._get_sage_ring()
 
+        s = str(self).strip('\n ')
+        w = [u.strip().split(' ') for u in s.split('\n')]
+        nrows = len(w)
+        ncols = len(w[0])
+
+        if self.iscomplex():
+            w = [[to_complex(x,R) for x in row] for row in w]
+
+        from sage.matrix.all import MatrixSpace
+        return MatrixSpace(R, nrows, ncols)(w)
+
+    def _vector_(self, R=None):
+        r"""
+        Return Sage vector from this octave element.
+
+        EXAMPLES::
+
+            sage: A = octave('[1,2,3,4]')       # optional - octave
+            sage: vector(ZZ, A)                 # optional - octave
+            (1, 2, 3, 4)
+            sage: A = octave('[1,2.3,4.5]')     # optional - octave
+            sage: vector(A)                     # optional - octave
+            (1.0, 2.3, 4.5)
+            sage: A = octave('[1,I]')           # optional - octave
+            sage: vector(A)                     # optional - octave
+            (1.0, 1.0*I)
+        """
+        oc = self.parent()
+        if not self.isvector():
+            raise TypeError('not an octave vector')
+        if R is None:
+            R = self._get_sage_ring()
+
+        s = str(self).strip('\n ')
+        w = s.strip().split(' ')
+        nrows = len(w)
+
+        if self.iscomplex():
+            w = [to_complex(x, R) for x in w]
+
+        from sage.modules.free_module import FreeModule
+        return FreeModule(R, nrows)(w)
+
+    def _scalar_(self):
+        """
+        Return Sage scalar from this octave element.
+
+        EXAMPLES::
+
+            sage: A = octave('2833')      # optional - octave
+            sage: As = A.sage(); As       # optional - octave
+            2833.0
+            sage: As.parent()             # optional - octave
+            Real Double Field
+
+            sage: B = sqrt(A)             # optional - octave
+            sage: Bs = B.sage(); Bs       # optional - octave
+            53.2259
+            sage: Bs.parent()             # optional - octave
+            Real Double Field
+
+            sage: C = sqrt(-A)            # optional - octave
+            sage: Cs = C.sage(); Cs       # optional - octave
+            53.2259*I
+            sage: Cs.parent()             # optional - octave
+            Complex Double Field
+        """
+        if not self.isscalar():
+            raise TypeError("not an octave scalar")
+
+        R = self._get_sage_ring()
+        if self.iscomplex():
+            return to_complex(str(self), R)
+        else:
+            return R(str(self))
+
+    def _sage_(self):
+        """
+        Try to parse the octave object and return a sage object.
+
+        EXAMPLES::
+
+            sage: A = octave('2833')           # optional - octave
+            sage: A.sage()                     # optional - octave
+            2833.0
+            sage: B = sqrt(A)                  # optional - octave
+            sage: B.sage()                     # optional - octave
+            53.2259
+            sage: C = sqrt(-A)                 # optional - octave
+            sage: C.sage()                     # optional - octave
+            53.2259*I
+            sage: A = octave('[1,2,3,4]')      # optional - octave
+            sage: A.sage()                     # optional - octave
+            (1.0, 2.0, 3.0, 4.0)
+            sage: A = octave('[1,2.3,4.5]')    # optional - octave
+            sage: A.sage()                     # optional - octave
+            (1.0, 2.3, 4.5)
+            sage: A = octave('[1,2.3+I,4.5]')  # optional - octave
+            sage: A.sage()                     # optional - octave
+            (1.0, 2.3 + 1.0*I, 4.5)
+        """
+        if self.isscalar():
+            return self._scalar_()
+        elif self.isvector():
+            return self._vector_()
+        elif self.ismatrix():
+            return self._matrix_()
+        else:
+            raise NotImplementedError('octave type is not recognized')
 
 # An instance
 octave = Octave()

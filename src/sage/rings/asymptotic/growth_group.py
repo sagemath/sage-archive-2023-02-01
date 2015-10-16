@@ -3480,9 +3480,10 @@ class GrowthGroupFactory(sage.structure.factory.UniqueFactory):
     - ``specification`` -- a string.
 
     - keyword arguments are passed on to the growth group
-      constructor. If not specified, then the argument
+      constructor.
+      If the keyword ``ignore_variables`` is not specified, then the
       ``ignore_variables=('e',)`` (to ignore ``e`` as a variable name)
-      is added.
+      is used.
 
     OUTPUT:
 

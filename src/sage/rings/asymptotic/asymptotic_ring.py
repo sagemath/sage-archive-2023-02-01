@@ -2223,15 +2223,15 @@ class AsymptoticRing(Algebra, UniqueRepresentation):
         TESTS::
 
             sage: AR = AsymptoticRing(growth_group='x^ZZ', coefficient_ring=ZZ)
-            sage: AR(5)
+            sage: AR(5)  # indirect doctest
             5
-            sage: AR(3*x^2)
+            sage: AR(3*x^2)  # indirect doctest
             3*x^2
             sage: x = ZZ['x'].gen(); x.parent()
             Univariate Polynomial Ring in x over Integer Ring
             sage: AR(x)
             x
-            sage: y = ZZ['y'].gen(); AR(y)
+            sage: y = ZZ['y'].gen(); AR(y)  # indirect doctest
             Traceback (most recent call last):
             ...
             ValueError: Polynomial y is not in
@@ -2244,13 +2244,13 @@ class AsymptoticRing(Algebra, UniqueRepresentation):
 
             sage: A = AsymptoticRing(growth_group='p^ZZ', coefficient_ring=QQ)
             sage: P.<p> = QQ[]
-            sage: A(p)
+            sage: A(p)  # indirect doctest
             p
-            sage: A(p^11)
+            sage: A(p^11)  # indirect doctest
             p^11
-            sage: A(2*p^11)
+            sage: A(2*p^11)  # indirect doctest
             2*p^11
-            sage: A(3*p^4 + 7/3*p - 8)
+            sage: A(3*p^4 + 7/3*p - 8)  # indirect doctest
             3*p^4 + 7/3*p - 8
 
         ::
@@ -2258,9 +2258,9 @@ class AsymptoticRing(Algebra, UniqueRepresentation):
             sage: S = AsymptoticRing(growth_group='x^ZZ * y^ZZ', coefficient_ring=QQ)
             sage: var('x, y')
             (x, y)
-            sage: S(x + y)
+            sage: S(x + y)  # indirect doctest
             x + y
-            sage: S(2*x - 4*x*y^6)
+            sage: S(2*x - 4*x*y^6)  # indirect doctest
             -4*x*y^6 + 2*x
 
         ::
@@ -2273,13 +2273,30 @@ class AsymptoticRing(Algebra, UniqueRepresentation):
 
             sage: M = AsymptoticRing('m^ZZ', ZZ)
             sage: N = AsymptoticRing('n^ZZ', QQ)
-            sage: N(M.an_element())
+            sage: N(M.an_element())  # indirect doctest
             Traceback (most recent call last):
             ...
             ValueError: Cannot include m^3 with parent
             Exact Term Monoid m^ZZ with coefficients in Integer Ring
             in Asymptotic Ring <n^ZZ> over Rational Field
             > *previous* ValueError: m^3 is not in Growth Group n^ZZ
+
+        ::
+
+            sage: M([1])  # indirect doctest
+            Traceback (most recent call last):
+            ...
+            TypeError: Not all list entries of [1] are asymptotic terms,
+            so cannot create an asymptotic expansion in
+            Asymptotic Ring <m^ZZ> over Integer Ring.
+            sage: M(SR.var('a') + 1)  # indirect doctest
+            Traceback (most recent call last):
+            ...
+            ValueError: Symbolic expression a + 1 is not in
+            Asymptotic Ring <m^ZZ> over Integer Ring.
+            > *previous* ValueError: Cannot convert a to an exact summand
+            in an asymptotic expansion in
+            Asymptotic Ring <m^ZZ> over Integer Ring.
         """
         from sage.data_structures.mutable_poset import MutablePoset
         if isinstance(data, MutablePoset):

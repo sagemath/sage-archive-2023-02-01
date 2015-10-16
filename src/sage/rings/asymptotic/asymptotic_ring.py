@@ -2153,7 +2153,7 @@ class AsymptoticRing(Algebra, UniqueRepresentation):
                             merge=absorption)
 
 
-    def _create_element_in_extension_(self, term, old_parent=None):
+    def _create_element_in_extension_(self, term, old_term_parent=None):
         r"""
         Create an element in an extension of this asymptotic ring which
         is chosen according to the input.
@@ -2162,7 +2162,7 @@ class AsymptoticRing(Algebra, UniqueRepresentation):
 
         - ``term`` -- the element data.
 
-        - ``old_parent`` -- the parent of ``term`` is compared to this
+        - ``old_term_parent`` -- the parent of ``term`` is compared to this
           parent. If both are the same or ``old_parent`` is ``None`,
           then the result is an expansion in this (``self``) asymptotic ring.
 
@@ -2173,11 +2173,23 @@ class AsymptoticRing(Algebra, UniqueRepresentation):
         EXAMPLES::
 
             sage: A = AsymptoticRing('z^ZZ', ZZ)
-            sage: term = next(A.an_element().summands.elements_topological())
-            sage: A._create_element_in_extension_(term, A)
-            O(z)
+            sage: a = next(A.an_element().summands.elements_topological())
+            sage: B = AsymptoticRing('z^QQ', QQ)
+            sage: b = next(B.an_element().summands.elements_topological())
+            sage: c = A._create_element_in_extension_(a, a.parent())
+            sage: next(c.summands.elements_topological()).parent()
+            O-Term Monoid z^ZZ with implicit coefficients in Integer Ring
+            sage: c = A._create_element_in_extension_(b, a.parent())
+            sage: next(c.summands.elements_topological()).parent()
+            O-Term Monoid z^QQ with implicit coefficients in Rational Field
+
+        TESTS::
+
+            sage: c = A._create_element_in_extension_(b, None)
+            sage: next(c.summands.elements_topological()).parent()
+            O-Term Monoid z^QQ with implicit coefficients in Rational Field
         """
-        if old_parent is None or term.parent() is old_parent:
+        if old_term_parent is None or term.parent() is old_term_parent:
             parent = self
         else:
             # Insert an 'if' here once terms can have different

@@ -1593,7 +1593,8 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
         except (TypeError, ValueError) as e:
             from misc import combine_exceptions
             raise combine_exceptions(
-                ValueError('Cannot construct the power of %s to the exponent %s in %s.' %
+                ValueError('Cannot construct the power of %s to the '
+                           'exponent %s in %s.' %
                            (base, self, self.parent())), e)
 
         # then: expand expr_o
@@ -1788,8 +1789,8 @@ class AsymptoticRing(Algebra, UniqueRepresentation):
 
 
     @staticmethod
-    def __classcall__(cls, growth_group=None, coefficient_ring=None, names=None,
-                      category=None, default_prec=None):
+    def __classcall__(cls, growth_group=None, coefficient_ring=None,
+                      names=None, category=None, default_prec=None):
         r"""
         Normalizes the input in order to ensure a unique
         representation of the parent.

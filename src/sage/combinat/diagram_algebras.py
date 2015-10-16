@@ -1969,7 +1969,8 @@ class BrauerAlgebra(SubPartitionAlgebra):
 
     def jucys_murphy(self, j):
         r"""
-        Returns a generalized Jucys-Murphy elements for the Brauer algebra. These are outlined in [Naz]_.
+        Return a generalized Jucys-Murphy elements for the Brauer algebra.
+        These are outlined in [Naz]_.
 
         REFERENCES:
 

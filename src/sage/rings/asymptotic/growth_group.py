@@ -3008,6 +3008,16 @@ class ExponentialGrowthElement(GenericGrowthElement):
 
             sage: P((-1)^x)  # indirect doctest
             (-1)^x
+
+        ::
+
+            sage: from sage.rings.asymptotic.growth_group import ExponentialGrowthGroup
+            sage: G = ExponentialGrowthGroup(ZZ['x'], 'y'); G
+            Growth Group ZZ[x]^y
+            sage: G('(1-x)^y')
+            (-x + 1)^y
+            sage: G('(1+x)^y')
+            (x + 1)^y
         """
         from sage.rings.integer_ring import ZZ
         from misc import repr_op
@@ -3015,10 +3025,7 @@ class ExponentialGrowthElement(GenericGrowthElement):
         var = repr(self.parent()._var_)
         if self.base.is_one():
             return '1'
-        elif not any(s in str(self.base) for s in '-/^'):
-            return str(self.base) + repr_op('', '^', var)
-        else:
-            return '(' + str(self.base) + ')' + repr_op('', '^', var)
+        return repr_op(str(self.base), '^', var)
 
 
     def _mul_(self, other):

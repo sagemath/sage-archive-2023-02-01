@@ -29,10 +29,10 @@ The summands of the asymptotic expansions are partially ordered. In
 this module these summands are the following:
 
 - Exact terms `c\cdot g` with a coefficient `c` and an element `g` of
-  an growth group (:ref:`see below <asymptotic_ring_growth>`).
+  a growth group (:ref:`see below <asymptotic_ring_growth>`).
 
 - `O`-terms `O(g)` (see :wikipedia:`Big O notation <Big_O_notation>`;
-  also called *Bachmann--Landau notation*) for growth group
+  also called *Bachmann--Landau notation*) for a growth group
   element `g` (:ref:`again see below <asymptotic_ring_growth>`).
 
 See
@@ -65,9 +65,9 @@ is described below these examples---are
   (this corresponds to an element of the growth group
   ``x^QQ * log(x)^ZZ * QQ^y * y^QQ``).
 
-The order in all these examples induced by the magnitude of the
+The order in all these examples is induced by the magnitude of the
 elements as `x`, `y`, or `z` (independently) tend to `\infty`. For
-elements only using the variable `z` this means, `g_1 \leq g_2` if
+elements only using the variable `z` this means that `g_1 \leq g_2` if
 
 .. MATH::
 
@@ -177,7 +177,7 @@ Arithmetical Operations
 -----------------------
 
 In this section we explain how to perform various arithmetical
-calculations with the elements of the asymptotic rings constructed
+operations with the elements of the asymptotic rings constructed
 above.
 
 
@@ -697,7 +697,7 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
 
     def __eq__(self, other):
         r"""
-        Return if this asymptotic expansion is equal to ``other``.
+        Return whether this asymptotic expansion is equal to ``other``.
 
         INPUT:
 
@@ -732,7 +732,7 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
 
     def __ne__(self, other):
         r"""
-        Return if this asymptotic expansion is not equal to ``other``.
+        Return whether this asymptotic expansion is not equal to ``other``.
 
         INPUT:
 
@@ -765,7 +765,7 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
 
     def has_same_summands(self, other):
         r"""
-        Return if this asymptotic expansion and ``other`` have the
+        Return whether this asymptotic expansion and ``other`` have the
         same summands.
 
         INPUT:
@@ -814,7 +814,7 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
 
     def _has_same_summands_(self, other):
         r"""
-        Return, if this :class:`AsymptoticExpansion` has the same
+        Return whether this :class:`AsymptoticExpansion` has the same
         summands as ``other``.
 
         INPUT:
@@ -1440,13 +1440,13 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
             sage: log(R(0))
             Traceback (most recent call last):
             ...
-            ArithmeticError: Cannot build log(0) in
+            ArithmeticError: Cannot compute log(0) in
             Asymptotic Ring <x^ZZ * log(x)^ZZ> over Rational Field.
         """
         P = self.parent()
 
         if not self.summands:
-            raise ArithmeticError('Cannot build log(0) in %s.' % (self.parent(),))
+            raise ArithmeticError('Cannot compute log(0) in %s.' % (self.parent(),))
 
         elif len(self.summands) == 1:
             if self.is_one():
@@ -1493,7 +1493,7 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
 
     def is_little_o_of_one(self):
         r"""
-        Return if this expansion is of order `o(1)`.
+        Return whether this expansion is of order `o(1)`.
 
         INPUT:
 
@@ -1641,7 +1641,7 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
         .. NOTE::
 
             The exponential function of this expansion can only be
-            computed exactly, if the respective growth element can be
+            computed exactly if the respective growth element can be
             constructed in the underlying growth group.
 
         ALGORITHM:
@@ -1743,7 +1743,7 @@ class AsymptoticRing(Algebra, UniqueRepresentation):
         Asymptotic Ring <log(x)^ZZ> over Rational Field
 
     Other growth groups are available. See :doc:`asymptotic_ring` for
-    a lot more examples.
+    more examples.
 
     Below there are some technical details.
 
@@ -1815,8 +1815,8 @@ class AsymptoticRing(Algebra, UniqueRepresentation):
             sage: AR.<lx> = AsymptoticRing(growth_group='log(x)^ZZ', coefficient_ring=ZZ)
             Traceback (most recent call last):
             ...
-            ValueError:  Growth Group log(x)^ZZ does not privide any generators
-            but name 'lx' given.
+            ValueError:  Growth Group log(x)^ZZ does not provide any
+            generators but name 'lx' given.
 
         ::
 
@@ -1886,7 +1886,7 @@ class AsymptoticRing(Algebra, UniqueRepresentation):
         def format_names(N):
             return ('s ' if len(N) != 1 else ' ') + ', '.join("'%s'" % n for n in N)
         if names and not strgens:
-            raise ValueError('%s does not privide any generators but name%s given.' %
+            raise ValueError('%s does not provide any generators but name%s given.' %
                              (growth_group, format_names(names)))
         elif names is not None and len(names) == 1 and len(strgens) == 1:
             pass

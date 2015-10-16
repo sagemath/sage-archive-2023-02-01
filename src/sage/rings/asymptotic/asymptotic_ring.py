@@ -2271,6 +2271,22 @@ class AsymptoticRing(Algebra, UniqueRepresentation):
 
         ::
 
+            sage: P.<a, b, c> = ZZ[]
+            sage: A(a + b)
+            a + b
+            sage: A(a + c)
+            Traceback (most recent call last):
+            ...
+            ValueError: Polynomial a + c is not in
+            Asymptotic Ring <a^ZZ * b^ZZ> over Rational Field
+            > *previous* ValueError: Growth c is not in
+            Exact Term Monoid a^ZZ * b^ZZ with coefficients in Rational Field.
+            >> *previous* ValueError: c is not in Growth Group a^ZZ * b^ZZ.
+            >>... *previous* ValueError: c is not in any of the factors of
+            Growth Group a^ZZ * b^ZZ
+
+        ::
+
             sage: M = AsymptoticRing('m^ZZ', ZZ)
             sage: N = AsymptoticRing('n^ZZ', QQ)
             sage: N(M.an_element())  # indirect doctest

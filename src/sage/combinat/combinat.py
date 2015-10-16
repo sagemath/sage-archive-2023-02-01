@@ -2774,9 +2774,12 @@ def bell_polynomial(n, k):
 
     .. MATH::
 
-       B_{n,k}(x_1, x_2, \ldots, x_{n-k+1}) = \sum_{\sum{j_i}=k, \sum{i j_i}
-       =n} \frac{n!}{j_1!j_2!\cdots} \frac{x_1}{1!}^j_1 \frac{x_2}{2!}^j_2
-       \cdots.
+       B_{n,k}(x_0, x_1, \ldots, x_{n-k}) =
+            \sum_{\sum{j_i}=k, \sum{(i+1) j_i}=n}
+            \frac{n!}{j_0!j_1!\cdots j_{n-k}!}
+            \left(\frac{x_0}{(0+1)!}\right)^{j_0}
+            \left(\frac{x_1}{(1+1)!}\right)^{j_1} \cdots
+            \left(\frac{x_{n-k}}{(n-k+1)!}\right)^{j_{n-k}}.
 
     INPUT:
 
@@ -2786,14 +2789,30 @@ def bell_polynomial(n, k):
 
     OUTPUT:
 
-    - a polynomial in `n-k+1` variables over `\QQ`
+    - a polynomial in `n-k+1` variables over `\ZZ`
 
     EXAMPLES::
 
         sage: bell_polynomial(6,2)
-        10*x_3^2 + 15*x_2*x_4 + 6*x_1*x_5
+        10*x2^2 + 15*x1*x3 + 6*x0*x4
         sage: bell_polynomial(6,3)
-        15*x_2^3 + 60*x_1*x_2*x_3 + 15*x_1^2*x_4
+        15*x1^3 + 60*x0*x1*x2 + 15*x0^2*x3
+
+    TESTS:
+
+    Check that :trac:`18338` is fixed::
+
+        sage: bell_polynomial(0,0).parent()
+        Multivariate Polynomial Ring in x over Integer Ring
+
+        sage: for n in (0..4):
+        ....:     print [bell_polynomial(n,k).coefficients() for k in (0..n)]
+        [[1]]
+        [[], [1]]
+        [[], [1], [1]]
+        [[], [1], [3], [1]]
+        [[], [1], [3, 4], [6], [1]]
+
 
     REFERENCES:
 
@@ -2802,23 +2821,23 @@ def bell_polynomial(n, k):
     AUTHORS:
 
     - Blair Sutton (2009-01-26)
+    - Thierry Monteil (2015-09-29): the result must always be a polynomial.
     """
+    from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
     from sage.combinat.partition import Partitions
     from sage.rings.arith import factorial
-    vars = ZZ[tuple(['x_'+str(i) for i in range(1, n-k+2)])].gens()
-    result = 0
+    R = PolynomialRing(ZZ, 'x', n-k+1)
+    vars = R.gens()
+    result = R.zero()
     for p in Partitions(n, length=k):
-        factorial_product  = 1
+        factorial_product = 1
         power_factorial_product = 1
         for part, count in p.to_exp_dict().iteritems():
             factorial_product *= factorial(count)
             power_factorial_product *= factorial(part)**count
-
-        coefficient = factorial(n) / (factorial_product * power_factorial_product)
+        coefficient = factorial(n) // (factorial_product * power_factorial_product)
         result += coefficient * prod([vars[i - 1] for i in p])
-
     return result
-
 
 def fibonacci_sequence(start, stop=None, algorithm=None):
     r"""

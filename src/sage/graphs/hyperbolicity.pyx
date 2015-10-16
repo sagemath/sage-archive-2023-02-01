@@ -208,7 +208,7 @@ def _my_subgraph(G, vertices, relabel=False, return_map=False):
     etc.).
 
     If ``relabel`` is ``True``, the vertices of the new graph are relabeled
-    with integers in the range '0\cdots |vertices|-1'. The relabeling map is
+    with integers in the range '0\cdots \mid vertices \mid -1'. The relabeling map is
     returned if ``return_map`` is also ``True``.
 
     TESTS:

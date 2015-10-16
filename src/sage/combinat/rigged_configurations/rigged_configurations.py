@@ -480,29 +480,15 @@ class RiggedConfigurations(UniqueRepresentation, Parent):
         EXAMPLES::
 
             sage: RC = RiggedConfigurations(['A', 3, 1], [[2,1], [1,1]])
-            sage: g = RC.__iter__()
-            sage: next(g)
-            <BLANKLINE>
-            (/)
-            <BLANKLINE>
-            (/)
-            <BLANKLINE>
-            (/)
-            <BLANKLINE>
-            sage: next(g) # random
-            <BLANKLINE>
-            0[ ]0
-            <BLANKLINE>
-            0[ ]0
-            <BLANKLINE>
-            (/)
-            <BLANKLINE>
+            sage: L = [x for x in RC]
+            sage: len(L)
+            24
         """
         index_set = self._cartan_type.classical().index_set()
         from sage.sets.recursively_enumerated_set import RecursivelyEnumeratedSet
         return RecursivelyEnumeratedSet(self.module_generators,
                     lambda x: [x.f(i) for i in index_set],
-                    structure=None).naive_search_iterator()
+                    structure='graded').breadth_first_search_iterator()
 
     @lazy_attribute
     def module_generators(self):

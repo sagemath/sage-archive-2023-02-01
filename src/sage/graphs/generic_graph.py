@@ -14566,10 +14566,10 @@ class GenericGraph(GenericGraph_pyx):
             [4, 17, 16, 12, 13, 9]
             sage: D.shortest_path(4, 9, algorithm='BFS')
             [4, 3, 2, 1, 8, 9]
-            sage: D.shortest_path(4, 9, algorithm='Dijkstra_NetworkX')
-            [4, 3, 2, 1, 8, 9]
-            sage: D.shortest_path(4, 9, algorithm='Dijkstra_Bid_NetworkX')
-            [4, 3, 2, 1, 8, 9]
+            sage: D.shortest_path(4, 8, algorithm='Dijkstra_NetworkX')
+            [4, 3, 2, 1, 8]
+            sage: D.shortest_path(4, 8, algorithm='Dijkstra_Bid_NetworkX')
+            [4, 3, 2, 1, 8]
             sage: D.shortest_path(4, 9, algorithm='Dijkstra_Bid')
             [4, 3, 19, 0, 10, 9]
             sage: D.shortest_path(5, 5)
@@ -16291,8 +16291,7 @@ class GenericGraph(GenericGraph_pyx):
             vert1 = v
 
     def complement(self):
-        """
-        Returns the complement of the (di)graph.
+        """Returns the complement of the (di)graph.
 
         The complement of a graph has the same vertices, but exactly those
         edges that are not in the original graph. This is not well defined
@@ -16320,7 +16319,10 @@ class GenericGraph(GenericGraph_pyx):
             sage: G.complement()
             Traceback (most recent call last):
             ...
-            TypeError: complement not well defined for (di)graphs with multiple edges
+            ValueError: This method is not known to work on graphs with
+            multiedges. Perhaps this method can be updated to handle them, but
+            in the meantime if you want to use it please disallow multiedges
+            using allow_multiple_edges().
 
         TESTS:
 
@@ -16338,17 +16340,14 @@ class GenericGraph(GenericGraph_pyx):
             Graph on 10 vertices
 
         """
-        if self.has_multiple_edges():
-            raise TypeError('complement not well defined for (di)graphs with multiple edges')
         self._scream_if_not_simple()
-        G = copy(self)
-        G.delete_edges(G.edges())
+
+        G = self.copy(data_structure='dense')
+        G._backend.c_graph()[0].complement()
+
         if self.name():
             G.name("complement({})".format(self.name()))
-        for u in self:
-            for v in self:
-                if not self.has_edge(u,v):
-                    G.add_edge(u,v)
+
         if getattr(self, '_immutable', False):
             return G.copy(immutable=True)
         return G

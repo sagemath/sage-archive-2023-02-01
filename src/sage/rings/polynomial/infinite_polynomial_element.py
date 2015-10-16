@@ -255,16 +255,15 @@ class InfinitePolynomial_sparse(RingElement):
         """
         return repr(self._p)
 
-    def _hash_(self):
+    def __hash__(self):
         """
         TESTS::
 
             sage: X.<x> = InfinitePolynomialRing(QQ)
             sage: a = x[0] + x[1]
             sage: hash(a) # indirect doctest
-            -6172640511012239345   # 64-bit
-            -957478897             # 32-bit
-
+            971115012877883067 # 64-bit
+            -2103273797        # 32-bit
         """
         return hash(self._p)
 

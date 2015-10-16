@@ -4032,7 +4032,8 @@ class Partition(CombinatorialElement):
             sage: Partition([5,3,1]).remove_horizontal_border_strip(6).list()
             []
 
-        The result is returned as an instance of :class:`IntegerListsLex`::
+        The result is returned as an instance of
+        :class:`Partitions_with_constraints`::
 
             sage: Partition([5,3,1]).remove_horizontal_border_strip(5)
             The subpartitions of [5, 3, 1] obtained by removing an horizontal border strip of length 5
@@ -4048,15 +4049,13 @@ class Partition(CombinatorialElement):
             sage: Partition([]).remove_horizontal_border_strip(6).list()
             []
         """
-        return IntegerListsLex(n          = self.size()-k,
-                               min_length = len(self)-1,
-                               max_length = len(self),
-                               floor      = self[1:]+[0],
-                               ceiling    = self[:],
-                               max_slope  = 0,
-                               element_class = Partition,
-                               global_options = Partitions.global_options,
-                               name = "The subpartitions of %s obtained by removing an horizontal border strip of length %s"%(self,k))
+        return Partitions_with_constraints(n = self.size()-k,
+                                  min_length = len(self)-1,
+                                  max_length = len(self),
+                                  floor      = self[1:]+[0],
+                                  ceiling    = self[:],
+                                  max_slope  = 0,
+                                  name = "The subpartitions of {} obtained by removing an horizontal border strip of length {}".format(self,k))
 
     def k_conjugate(self, k):
         r"""
@@ -4658,8 +4657,8 @@ class Partitions(UniqueRepresentation, Parent):
 
     Valid keywords are: ``starting``, ``ending``, ``min_part``,
     ``max_part``, ``max_length``, ``min_length``, ``length``,
-    ``max_slope``, ``min_slope``, ``inner``, ``outer``, and
-    ``parts_in``. They have the following meanings:
+    ``max_slope``, ``min_slope``, ``inner``, ``outer``, ``parts_in``
+    and ``regular``. They have the following meanings:
 
     - ``starting=p`` specifies that the partitions should all be less
       than or equal to `p` in lex order. This argument cannot be combined
@@ -4692,6 +4691,19 @@ class Partitions(UniqueRepresentation, Parent):
       `S`, which can be any sequence of pairwise distinct positive
       integers. This argument cannot be combined with any other
       (see :trac:`15467`).
+
+    - ``regular=ell`` specifies that the partitions are `\ell`-regular,
+      and can only be combined with the ``max_length`` or ``max_part``, but
+      not both, keywords if `n` is not specified
+
+    The ``max_*`` versions, along with ``inner`` and ``ending``, work
+    analogously.
+
+    Right now, the ``parts_in``, ``starting``, ``ending``, and ``regular``
+    keyword arguments are mutually exclusive, both of each other and of other
+    keyword arguments. If you specify, say, ``parts_in``, all other
+    keyword arguments will be ignored; ``starting``, ``ending``, and
+    ``regular`` work the same way.
 
     EXAMPLES:
 
@@ -4769,6 +4781,16 @@ class Partitions(UniqueRepresentation, Parent):
         sage: Partitions(10, min_part=2, length=3).list()
         [[6, 2, 2], [5, 3, 2], [4, 4, 2], [4, 3, 3]]
 
+    Some examples using the ``regular`` keyword::
+
+        sage: Partitions(regular=4)
+        4-Regular Partitions
+        sage: Partitions(regular=4, max_length=3)
+        4-Regular Partitions with max length 3
+        sage: Partitions(regular=4, max_part=3)
+        4-Regular 3-Bounded Partitions
+        sage: Partitions(3, regular=4)
+        4-Regular Partitions of the integer 3
 
     Here are some further examples using various constraints::
 
@@ -4826,7 +4848,7 @@ class Partitions(UniqueRepresentation, Parent):
 
         sage: TestSuite(Partitions(0)).run()
         sage: TestSuite(Partitions(5)).run()
-        sage: TestSuite(Partitions(5, min_part=2)).run() # Not tested: todo - IntegerListsLex needs to pickle properly
+        sage: TestSuite(Partitions(5, min_part=2)).run()
 
         sage: repr( Partitions(5, min_part=2) )
         'Partitions of the integer 5 satisfying constraints min_part=2'
@@ -4940,12 +4962,21 @@ class Partitions(UniqueRepresentation, Parent):
             raise ValueError("n cannot be infinite")
         if n is None or n is NN or n is NonNegativeIntegers():
             if len(kwargs) > 0:
-                if len(kwargs) == 1 and 'max_part' in kwargs:
-                    return Partitions_all_bounded(kwargs['max_part'])
-                else:
-                    raise ValueError("the size must be specified with any keyword argument")
-            else:
-                return Partitions_all()
+                if len(kwargs) == 1:
+                    if 'max_part' in kwargs:
+                        return Partitions_all_bounded(kwargs['max_part'])
+                    if 'regular' in kwargs:
+                        return RegularPartitions_all(kwargs['regular'])
+                elif len(kwargs) == 2:
+                    if 'regular' in kwargs:
+                        if kwargs['regular'] < 2:
+                            raise ValueError("the regularity must be at least 2")
+                        if 'max_part' in kwargs:
+                            return RegularPartitions_bounded(kwargs['regular'], kwargs['max_part'])
+                        if 'max_length' in kwargs:
+                            return RegularPartitions_truncated(kwargs['regular'], kwargs['max_length'])
+                raise ValueError("the size must be specified with any keyword argument")
+            return Partitions_all()
         elif isinstance(n, (int,Integer)):
             if len(kwargs) == 0:
                 return Partitions_n(n)
@@ -4964,11 +4995,13 @@ class Partitions(UniqueRepresentation, Parent):
                                  "'ending' cannot be combined with anything else.")
 
             if 'parts_in' in kwargs:
-                 return Partitions_parts_in(n, kwargs['parts_in'])
+                return Partitions_parts_in(n, kwargs['parts_in'])
             elif 'starting' in kwargs:
                 return Partitions_starting(n, kwargs['starting'])
             elif 'ending' in kwargs:
                 return Partitions_ending(n, kwargs['ending'])
+            elif 'regular' in kwargs:
+                return RegularPartitions_n(n, kwargs['regular'])
 
             # FIXME: should inherit from IntegerListLex, and implement repr, or _name as a lazy attribute
             kwargs['name'] = "Partitions of the integer %s satisfying constraints %s"%(n, ", ".join( ["%s=%s"%(key, kwargs[key]) for key in sorted(kwargs.keys())] ))
@@ -4995,13 +5028,10 @@ class Partitions(UniqueRepresentation, Parent):
                 kwargs['min_length'] = max(len(inner),
                                            kwargs.get('min_length',0))
                 del kwargs['inner']
+            return Partitions_with_constraints(n, **kwargs)
 
-            kwargs['element_class'] = Partition
-            kwargs['global_options'] = Partitions.global_options
-            return IntegerListsLex(n, **kwargs)
-        else:
-            raise ValueError("n must be an integer or be equal to one of "+
-                             "None, NN, NonNegativeIntegers()")
+        raise ValueError("n must be an integer or be equal to one of "
+                         "None, NN, NonNegativeIntegers()")
 
     def __init__(self, is_infinite=False):
         """
@@ -6614,14 +6644,446 @@ class Partitions_constraints(IntegerListsLex):
             [[2, 1], [1, 1, 1]]
         """
         n = data['n']
-        self.__class__ = IntegerListsLex
+        self.__class__ = Partitions_with_constraints
         constraints = {'max_slope' : 0,
-                       'min_part' : 1,
-                       'element_class' : Partition,
-                       'global_options' : Partitions.global_options}
+                       'min_part' : 1}
         constraints.update(data['constraints'])
         self.__init__(n, **constraints)
 
+class Partitions_with_constraints(IntegerListsLex):
+    """
+    Partitions which satisfy a set of constraints.
+
+    EXAMPLES::
+
+        sage: P = Partitions(6, inner=[1,1], max_slope=-1)
+        sage: list(P)
+        [[5, 1], [4, 2], [3, 2, 1]]
+
+    TESTS::
+
+        sage: P = Partitions(6, min_part=2, max_slope=-1)
+        sage: TestSuite(P).run()
+
+    Test that :trac:`15525` is fixed::
+
+        sage: loads(dumps(P)) == P
+        True
+    """
+#    def __init__(self, n, **kwargs):
+#        """
+#        Initialize ``self``.
+#        """
+#        IntegerListsLex.__init__(self, n, **kwargs)
+
+    Element = Partition
+    global_options = PartitionOptions
+
+######################
+# Regular Partitions #
+######################
+
+class RegularPartitions(Partitions):
+    r"""
+    Base class for `\ell`-regular partitions.
+
+    Let `\ell` be a positive integer. A partition `\lambda` is
+    `\ell`-*regular* if `m_i < \ell` for all `i`, where `m_i` is the
+    multiplicity of `i` in `\lambda`.
+
+    .. NOTE::
+
+        This is conjugate to the notion of `\ell`-*restricted* partitions,
+        where the difference between any two parts is at most `\ell`.
+
+    INPUT:
+
+    - ``ell`` -- the integer `\ell`
+    - ``is_infinite`` -- boolean; if the subset of `\ell`-regular
+      partitions is infinite
+    """
+    def __init__(self, ell, is_infinte=False):
+        """
+        Initialize ``self``.
+
+        EXAMPLES::
+
+            sage: P = Partitions(regular=2)
+            sage: TestSuite(P).run()
+        """
+        self._ell = ell
+        Partitions.__init__(self, is_infinte)
+
+    def ell(self):
+        r"""
+        Return the value `\ell`.
+
+        EXAMPLES::
+
+            sage: P = Partitions(regular=2)
+            sage: P.ell()
+            2
+        """
+        return self._ell
+
+    def __contains__(self, x):
+        """
+        TESTS::
+
+            sage: P = Partitions(regular=3)
+            sage: [5] in P
+            True
+            sage: [] in P
+            True
+            sage: [3, 3, 2, 2] in P
+            True
+            sage: [3, 3, 3, 1] in P
+            False
+            sage: [4, 0, 0, 0, 0, 0] in P
+            True
+            sage: Partition([4,2,2,1]) in P
+            True
+            sage: Partition([4,2,2,2]) in P
+            False
+            sage: Partition([10,1]) in P
+            True
+        """
+        if not Partitions.__contains__(self, x):
+            return False
+        if isinstance(x, Partition):
+            return max(x.to_exp(1)) < self._ell
+        return all(x.count(i) < self._ell for i in set(x) if i > 0)
+
+    def _fast_iterator(self, n, max_part):
+        """
+        A fast (recursive) iterator which returns a list.
+
+        EXAMPLES::
+
+            sage: P = Partitions(regular=3)
+            sage: list(P._fast_iterator(5, 5))
+            [[5], [4, 1], [3, 2], [3, 1, 1], [2, 2, 1]]
+            sage: list(P._fast_iterator(5, 3))
+            [[3, 2], [3, 1, 1], [2, 2, 1]]
+            sage: list(P._fast_iterator(5, 6))
+            [[5], [4, 1], [3, 2], [3, 1, 1], [2, 2, 1]]
+        """
+        if n == 0:
+            yield []
+            return
+
+        if n < max_part:
+            max_part = n
+        bdry = self._ell - 1
+
+        for i in reversed(range(1, max_part+1)):
+            for p in self._fast_iterator(n-i, i):
+                if p.count(i) < bdry:
+                    yield [i] + p
+
+class RegularPartitions_all(RegularPartitions):
+    r"""
+    The class of all `\ell`-regular partitions.
+
+    INPUT:
+
+    - ``ell`` -- the integer `\ell`
+
+    .. SEEALSO::
+
+        :class:`~sage.combinat.partition.RegularPartitions`
+    """
+    def __init__(self, ell):
+        """
+        Initialize ``self``.
+
+        EXAMPLES::
+
+            sage: P = Partitions(regular=4)
+            sage: TestSuite(P).run()
+        """
+        RegularPartitions.__init__(self, ell, True)
+
+    def _repr_(self):
+        """
+        TESTS::
+
+            sage: from sage.combinat.partition import RegularPartitions_all
+            sage: RegularPartitions_all(3)
+            3-Regular Partitions
+        """
+        return "{}-Regular Partitions".format(self._ell)
+
+    def __iter__(self):
+        """
+        Iterate over ``self``.
+
+        EXAMPLES::
+
+            sage: P = Partitions(regular=3)
+            sage: it = P.__iter__()
+            sage: [it.next() for x in range(10)]
+            [[], [1], [2], [1, 1], [3], [2, 1], [4], [3, 1], [2, 2], [2, 1, 1]]
+        """
+        n = 0
+        while True:
+            for p in self._fast_iterator(n, n):
+                yield self.element_class(self, p)
+            n += 1
+
+class RegularPartitions_truncated(RegularPartitions):
+    r"""
+    The class of `\ell`-regular partitions with max length `k`.
+
+    INPUT:
+
+    - ``ell`` -- the integer `\ell`
+    - ``max_len`` -- integer; the maximum length
+
+    .. SEEALSO::
+
+        :class:`~sage.combinat.partition.RegularPartitions`
+    """
+    def __init__(self, ell, max_len):
+        """
+        Initialize ``self``.
+
+        EXAMPLES::
+
+            sage: P = Partitions(regular=4, max_length=3)
+            sage: TestSuite(P).run()
+        """
+        self._max_len = max_len
+        RegularPartitions.__init__(self, ell, True)
+
+    def max_length(self):
+        """
+        Return the maximum length of the partitions of ``self``.
+
+        EXAMPLES::
+
+            sage: P = Partitions(regular=4, max_length=3)
+            sage: P.max_length()
+            3
+        """
+        return self._max_len
+
+    def __contains__(self, x):
+        """
+        TESTS::
+
+            sage: P = Partitions(regular=4, max_length=3)
+            sage: [3, 3, 3] in P
+            True
+            sage: [] in P
+            True
+            sage: [4, 2, 1, 1] in P
+            False
+        """
+        return len(x) <= self._max_len and RegularPartitions.__contains__(self, x)
+
+    def _repr_(self):
+        """
+        TESTS::
+
+            sage: from sage.combinat.partition import RegularPartitions_truncated
+            sage: RegularPartitions_truncated(4, 3)
+            4-Regular Partitions with max length 3
+        """
+        return "{}-Regular Partitions with max length {}".format(self._ell, self._max_len)
+
+    def __iter__(self):
+        """
+        Iterate over ``self``.
+
+        EXAMPLES::
+
+            sage: P = Partitions(regular=3, max_length=2)
+            sage: it = P.__iter__()
+            sage: [it.next() for x in range(10)]
+            [[], [1], [2], [1, 1], [3], [2, 1], [4], [3, 1], [2, 2], [5]]
+        """
+        n = 0
+        while True:
+            for p in self._fast_iterator(n, n):
+                yield self.element_class(self, p)
+            n += 1
+
+    def _fast_iterator(self, n, max_part, depth=0):
+        """
+        A fast (recursive) iterator which returns a list.
+
+        EXAMPLES::
+
+            sage: P = Partitions(regular=2, max_length=2)
+            sage: list(P._fast_iterator(5, 5))
+            [[5], [4, 1], [3, 2]]
+            sage: list(P._fast_iterator(5, 3))
+            [[3, 2]]
+            sage: list(P._fast_iterator(5, 6))
+            [[5], [4, 1], [3, 2]]
+        """
+        if n == 0 or depth >= self._max_len:
+            yield []
+            return
+
+        # Special case
+        if depth + 1 == self._max_len:
+            if max_part >= n:
+                yield [n]
+            return
+
+        if n < max_part:
+            max_part = n
+        bdry = self._ell - 1
+
+        for i in reversed(range(1, max_part+1)):
+            for p in self._fast_iterator(n-i, i, depth+1):
+                if p.count(i) < bdry:
+                    yield [i] + p
+
+class RegularPartitions_bounded(RegularPartitions):
+    r"""
+    The class of `\ell`-regular `k`-bounded partitions.
+
+    INPUT:
+
+    - ``ell`` -- the integer `\ell`
+    - ``k`` -- integer; the value `k`
+
+    .. SEEALSO::
+
+        :class:`~sage.combinat.partition.RegularPartitions`
+    """
+    def __init__(self, ell, k):
+        """
+        Initialize ``self``.
+
+        EXAMPLES::
+
+            sage: P = Partitions(regular=4, max_part=3)
+            sage: TestSuite(P).run()
+        """
+        self.k = k
+        RegularPartitions.__init__(self, ell, False)
+
+    def __contains__(self, x):
+        """
+        TESTS::
+
+            sage: P = Partitions(regular=4, max_part=3)
+            sage: [3, 3, 3] in P
+            True
+            sage: [] in P
+            True
+            sage: [4, 2, 1] in P
+            False
+        """
+        return len(x) == 0 or (x[0] <= self.k and RegularPartitions.__contains__(self, x))
+
+    def _repr_(self):
+        """
+        TESTS::
+
+            sage: from sage.combinat.partition import RegularPartitions_bounded
+            sage: RegularPartitions_bounded(4, 3)
+            4-Regular 3-Bounded  Partitions
+        """
+        return "{}-Regular {}-Bounded Partitions".format(self._ell, self.k)
+
+    def __iter__(self):
+        """
+        Iterate over ``self``.
+
+        EXAMPLES::
+
+            sage: P = Partitions(regular=2, max_part=3)
+            sage: list(P)
+            [[3, 2, 1], [3, 2], [3, 1], [3], [2, 1], [2], [1], []]
+        """
+        k = self.k
+        for n in reversed(range(k*(k+1)/2 * self._ell)):
+            for p in self._fast_iterator(n, k):
+                yield self.element_class(self, p)
+
+class RegularPartitions_n(RegularPartitions, Partitions_n):
+    r"""
+    The class of `\ell`-regular partitions of `n`.
+
+    INPUT:
+
+    - ``n`` -- the integer `n` to partition
+    - ``ell`` -- the integer `\ell`
+
+    .. SEEALSO::
+
+        :class:`~sage.combinat.partition.RegularPartitions`
+    """
+    def __init__(self, n, ell):
+        """
+        Initialize ``self``.
+
+        EXAMPLES::
+
+            sage: P = Partitions(5, regular=3)
+            sage: TestSuite(P).run()
+        """
+        RegularPartitions.__init__(self, ell)
+        Partitions_n.__init__(self, n)
+
+    def _repr_(self):
+        """
+        TESTS::
+
+            sage: from sage.combinat.partition import RegularPartitions_n
+            sage: RegularPartitions_n(3, 5)
+            5-Regular Partitions of the integer 3
+        """
+        return "{}-Regular Partitions of the integer {}".format(self._ell, self.n)
+
+    def __contains__(self, x):
+        """
+        TESTS::
+
+            sage: P = Partitions(5, regular=3)
+            sage: [3, 1, 1] in P
+            True
+            sage: [3, 2, 1] in P
+            False
+        """
+        return RegularPartitions.__contains__(self, x) and sum(x) == self.n
+
+    def __iter__(self):
+        """
+        Iterate over ``self``.
+
+        EXAMPLES::
+
+            sage: P = Partitions(5, regular=3)
+            sage: list(P)
+            [[5], [4, 1], [3, 2], [3, 1, 1], [2, 2, 1]]
+        """
+        for p in self._fast_iterator(self.n, self.n):
+            yield self.element_class(self, p)
+
+    def cardinality(self):
+        """
+        Return the cardinality of ``self``.
+
+        EXAMPLES::
+
+            sage: P = Partitions(5, regular=3)
+            sage: P.cardinality()
+            5
+            sage: P = Partitions(5, regular=6)
+            sage: P.cardinality()
+            7
+            sage: P.cardinality() == Partitions(5).cardinality()
+            True
+        """
+        if self._ell > self.n:
+            return Partitions_n.cardinality(self)
+        return ZZ.sum(1 for x in self)
 
 ######################
 # Ordered Partitions #

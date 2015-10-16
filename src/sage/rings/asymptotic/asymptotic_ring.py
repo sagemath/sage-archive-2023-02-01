@@ -1642,6 +1642,15 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
             sage: A.<x> = AsymptoticRing('x^ZZ', QQ)
             sage: (1/x).rpow('e', precision=5)
             1 + x^(-1) + 1/2*x^(-2) + 1/6*x^(-3) + 1/24*x^(-4) + O(x^(-5))
+
+        TESTS::
+
+            sage: x.rpow(SR.var('y'))
+            Traceback (most recent call last):
+            ...
+            ArithmeticError: Cannot construct y^x in Growth Group x^ZZ
+            > *previous* TypeError: unsupported operand parent(s) for '*':
+            'Growth Group x^ZZ' and 'Growth Group SR^x'
         """
         if isinstance(base, AsymptoticExpansion):
             return base.__pow__(self, precision=precision)

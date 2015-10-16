@@ -595,7 +595,7 @@ class GenericTerm(sage.structure.element.MonoidElement):
         return self._calculate_pow_(exponent)
 
 
-    def _calculate_pow_(self, exponent, coefficient=None):
+    def _calculate_pow_(self, exponent, new_coefficient=None):
         r"""
         Helper function for :meth:`__pow__` which calculates the power of this
         element to the given ``exponent``.
@@ -604,7 +604,7 @@ class GenericTerm(sage.structure.element.MonoidElement):
 
         - ``exponent`` -- an element.
 
-        - ``coefficient`` -- if not ``None`` this is passed on to the
+        - ``new_coefficient`` -- if not ``None`` this is passed on to the
           construction of the element (in particular, not taken to any power).
 
         OUTPUT:
@@ -620,14 +620,14 @@ class GenericTerm(sage.structure.element.MonoidElement):
             Generic Term with growth z
             sage: t._calculate_pow_(3)
             Generic Term with growth z^3
-            sage: t._calculate_pow_(3, coefficient=2)
+            sage: t._calculate_pow_(3, new_coefficient=2)
             Traceback (most recent call last):
             ...
             ValueError: Coefficient 2 is not 1, but Generic Term Monoid z^ZZ with
             (implicit) coefficients in Integer Ring does not support coefficients.
             sage: t._calculate_pow_(-2)
             Generic Term with growth z^(-2)
-            sage: t._calculate_pow_(-2, coefficient=2)
+            sage: t._calculate_pow_(-2, new_coefficient=2)
             Traceback (most recent call last):
             ...
             ValueError: Coefficient 2 is not 1, but Generic Term Monoid z^ZZ with
@@ -640,7 +640,7 @@ class GenericTerm(sage.structure.element.MonoidElement):
             raise combine_exceptions(
                 ValueError('Cannot take %s to the exponent %s.' % (self, exponent)), e)
 
-        return self.parent()._create_element_in_extension_(g, coefficient)
+        return self.parent()._create_element_in_extension_(g, new_coefficient)
 
 
     def can_absorb(self, other):
@@ -2598,7 +2598,7 @@ class TermWithCoefficient(GenericTerm):
                 ArithmeticError('Cannot take %s to the exponent %s in %s since its '
                                 'coefficient %s cannot be taken to this exponent.' %
                                 (self, exponent, self.parent(), self.coefficient)), e)
-        return super(TermWithCoefficient, self)._calculate_pow_(exponent, coefficient=c)
+        return super(TermWithCoefficient, self)._calculate_pow_(exponent, new_coefficient=c)
 
 
     def _log_coefficient_(self, base=None):

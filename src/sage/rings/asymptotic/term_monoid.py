@@ -1305,6 +1305,25 @@ class GenericTermMonoid(sage.structure.unique_representation.UniqueRepresentatio
             sage: from sage.rings.asymptotic.misc import underlying_class
             sage: underlying_class(T)(G, QQ) is T
             True
+
+        ::
+
+            sage: GenericTermMonoid(None, ZZ)  # indirect doctest
+            Traceback (most recent call last):
+            ...
+            ValueError: No growth group specified.
+            sage: GenericTermMonoid(int, ZZ)  # indirect doctest
+            Traceback (most recent call last):
+            ...
+            TypeError: <type 'int'> is not a valid growth group.
+            sage: GenericTermMonoid(G, None)  # indirect doctest
+            Traceback (most recent call last):
+            ...
+            ValueError: No coefficient ring specified.
+            sage: GenericTermMonoid(G, int)  # indirect doctest
+            Traceback (most recent call last):
+            ...
+            TypeError: <type 'int'> is not a valid coefficient ring.
         """
         if growth_group is None:
             raise ValueError('No growth group specified.')

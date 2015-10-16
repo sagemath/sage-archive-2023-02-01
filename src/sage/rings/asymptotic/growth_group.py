@@ -830,15 +830,11 @@ def _rpow_(self, base):
         raise ValueError('%s is not an allowed base for calculating the '
                          'power to %s.' % (base, self))
 
-    element = None
+    var = str(self)
+
     try:
         element = self._rpow_element_(base)
     except ValueError:
-        pass
-
-    var = str(self)
-
-    if element is None:
         if base == 'e':
             from sage.rings.integer_ring import ZZ
             from misc import repr_op
@@ -1281,9 +1277,12 @@ class GenericGrowthElement(sage.structure.element.MultiplicativeGroupElement):
             sage: G = GrowthGroup('QQ^x')
             sage: x = G(raw_element=3)
             sage: x._rpow_element_(2) is None
-            True
+            Traceback (most recent call last):
+            ...
+            ValueError: Cannot compute 2 to the generic element 3^x.
         """
-        pass
+        raise ValueError('Cannot compute %s to the generic element %s.' %
+                         (base, self))
 
 
     def factors(self):

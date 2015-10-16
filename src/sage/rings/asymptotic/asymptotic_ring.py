@@ -1061,7 +1061,7 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
         TESTS::
 
             sage: A.<a> = AsymptoticRing(growth_group='QQ^a * a^QQ * log(a)^QQ', coefficient_ring=ZZ)
-            sage: 2*a
+            sage: 2*a # indirect doctest
             2*a
         """
         if other.is_zero():

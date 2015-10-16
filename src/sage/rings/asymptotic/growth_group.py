@@ -2525,7 +2525,7 @@ class MonomialGrowthElement(GenericGrowthElement):
 
         .. NOTE::
 
-            The parent of the result can be different to the parent
+            The parent of the result can be different from the parent
             of this element.
 
         A ``ValueError`` is raised if the calculation is not possible
@@ -2543,7 +2543,8 @@ class MonomialGrowthElement(GenericGrowthElement):
             ValueError: Variable x is not a log of something.
 
         The previous example does not work since the result would not
-        live in a monomial growth group. When using :meth:`rpow`, this
+        live in a monomial growth group. When using
+        :meth:`~GenericGrowthElement.rpow`, this
         case is handeled by the calling method :meth:`_rpow_`.
 
         ::
@@ -3494,7 +3495,7 @@ class GrowthGroupFactory(sage.structure.factory.UniqueFactory):
 
     - keyword arguments are passed on to the growth group
       constructor.
-      If the keyword ``ignore_variables`` is not specified, then the
+      If the keyword ``ignore_variables`` is not specified, then
       ``ignore_variables=('e',)`` (to ignore ``e`` as a variable name)
       is used.
 

@@ -161,9 +161,10 @@ def split_str_by_op(string, op, strip_parentheses=True):
 
     - ``string`` -- a string.
 
-    - ``op`` -- a string. This is used by ``str.split``. Thus, if this
-      is ``None``, then any whitespace string is a separator and empty
-      strings are removed from the result.
+    - ``op`` -- a string. This is used by
+      :python:`str.split <library/stdtypes.html#str.split>`.
+      Thus, if this is ``None``, then any whitespace string is a
+      separator and empty strings are removed from the result.
 
     - ``strip_parentheses`` -- (default: ``True``) a boolean.
 

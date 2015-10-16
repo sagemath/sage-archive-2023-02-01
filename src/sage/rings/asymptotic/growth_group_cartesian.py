@@ -342,7 +342,7 @@ class GenericProduct(CartesianProductPoset, GenericGrowthGroup):
             izip(*tuple(F.some_elements() for F in self.cartesian_factors())))
 
 
-    def _create_element_via_parent_(self, element):
+    def _create_element_in_extension_(self, element):
         r"""
         Create an element whose parent is chosen according to the input
         ``element``.
@@ -359,9 +359,9 @@ class GenericProduct(CartesianProductPoset, GenericGrowthGroup):
             sage: G = GrowthGroup('z^ZZ * log(z)^ZZ')
             sage: z = G('z')[0]
             sage: lz = G('log(z)')[1]
-            sage: G._create_element_via_parent_((z^3, lz)).parent()
+            sage: G._create_element_in_extension_((z^3, lz)).parent()
             Growth Group z^ZZ * log(z)^ZZ
-            sage: G._create_element_via_parent_((z^(1/2), lz)).parent()
+            sage: G._create_element_in_extension_((z^(1/2), lz)).parent()
             Growth Group z^QQ * log(z)^ZZ
         """
         factors = self.cartesian_factors()
@@ -898,7 +898,7 @@ class GenericProduct(CartesianProductPoset, GenericGrowthGroup):
                 sage: (x^(21/5) * log(x)^7)^(1/42)  # indirect doctest
                 x^(1/10)*log(x)^(1/6)
             """
-            return self.parent()._create_element_via_parent_(
+            return self.parent()._create_element_in_extension_(
                 tuple(x ** exponent for x in self.cartesian_factors()))
 
 
@@ -1113,7 +1113,7 @@ class GenericProduct(CartesianProductPoset, GenericGrowthGroup):
                  sage: (~g).parent()
                  Growth Group QQ^x * x^ZZ
             """
-            return self.parent()._create_element_via_parent_(
+            return self.parent()._create_element_in_extension_(
                 tuple(~x for x in self.cartesian_factors()))
 
 

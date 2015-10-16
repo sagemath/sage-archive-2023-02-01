@@ -1155,7 +1155,7 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
 
         elif len(self.summands) == 1:
             element = next(self.summands.elements())
-            return self.parent()._create_element_via_parent_(
+            return self.parent()._create_element_in_extension_(
                 ~element, element.parent())
 
         max_elem = tuple(self.summands.maximal_elements())
@@ -1169,7 +1169,7 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
         if imax_elem.parent() is max_elem.parent():
             new_self = self
         else:
-            new_self = self.parent()._create_element_via_parent_(
+            new_self = self.parent()._create_element_in_extension_(
                 imax_elem, max_elem.parent()).parent()(self)
 
         one = new_self.parent().one()
@@ -1326,7 +1326,7 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
             if isinstance(exponent, AsymptoticExpansion) and element.is_constant():
                 return exponent.rpow(base=element.coefficient, precision=precision)
             try:
-                return self.parent()._create_element_via_parent_(
+                return self.parent()._create_element_in_extension_(
                     element ** exponent, element.parent())
             except (ArithmeticError, TypeError, ValueError):
                 if not isinstance(exponent, AsymptoticExpansion):
@@ -1446,7 +1446,7 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
             if self.is_one():
                 return P.zero()
             element = next(self.summands.elements())
-            return sum(P._create_element_via_parent_(l, element.parent())
+            return sum(P._create_element_in_extension_(l, element.parent())
                        for l in element.log_term(base=base))
 
         max_elem = tuple(self.summands.maximal_elements())
@@ -1460,7 +1460,7 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
         if imax_elem.parent() is max_elem.parent():
             new_self = self
         else:
-            new_self = P._create_element_via_parent_(
+            new_self = P._create_element_in_extension_(
                 imax_elem, max_elem.parent()).parent()(self)
 
         one = new_self.parent().one()
@@ -1580,7 +1580,7 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
 
         try:
             large_result = P.prod(
-                P._create_element_via_parent_(term.rpow(base),
+                P._create_element_in_extension_(term.rpow(base),
                                               term.parent())
                 for term in large_terms)
         except (TypeError, ValueError) as e:
@@ -2048,7 +2048,7 @@ class AsymptoticRing(Algebra, UniqueRepresentation):
                             merge=absorption)
 
 
-    def _create_element_via_parent_(self, term, old_parent=None):
+    def _create_element_in_extension_(self, term, old_parent=None):
         r"""
         Create an element whose parent is chosen according to the input.
 
@@ -2064,7 +2064,7 @@ class AsymptoticRing(Algebra, UniqueRepresentation):
 
             sage: A = AsymptoticRing('z^ZZ', ZZ)
             sage: term = next(A.an_element().summands.elements_topological())
-            sage: A._create_element_via_parent_(term, A)
+            sage: A._create_element_in_extension_(term, A)
             O(z)
         """
         if old_parent is None or term.parent() is old_parent:

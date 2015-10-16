@@ -634,7 +634,7 @@ class GenericTerm(sage.structure.element.MonoidElement):
             raise combine_exceptions(
                 ValueError('Cannot take %s to the exponent %s.' % (self, exponent)), e)
 
-        return self.parent()._create_element_via_parent_(g, coefficient)
+        return self.parent()._create_element_in_extension_(g, coefficient)
 
 
     def can_absorb(self, other):
@@ -905,7 +905,7 @@ class GenericTerm(sage.structure.element.MonoidElement):
             :meth:`ExactTerm.log_term`,
             :meth:`OTerm.log_term`.
         """
-        return tuple(self.parent()._create_element_via_parent_(g, c)
+        return tuple(self.parent()._create_element_in_extension_(g, c)
                      for g, c in self.growth.log_factor(base=base))
 
 
@@ -1631,7 +1631,7 @@ class GenericTermMonoid(sage.structure.unique_representation.UniqueRepresentatio
         return self.element_class(self, growth)
 
 
-    def _create_element_via_parent_(self, growth, coefficient):
+    def _create_element_in_extension_(self, growth, coefficient):
         r"""
         Create an element whose parent is chosen according to the input.
 
@@ -1647,9 +1647,9 @@ class GenericTermMonoid(sage.structure.unique_representation.UniqueRepresentatio
             sage: from sage.rings.asymptotic.growth_group import GrowthGroup
             sage: G = GrowthGroup('z^ZZ')
             sage: T = TermMonoid('exact', G, ZZ)
-            sage: T._create_element_via_parent_(G.an_element(), 3)
+            sage: T._create_element_in_extension_(G.an_element(), 3)
             3*z
-            sage: T._create_element_via_parent_(G.an_element(), 3/2).parent()
+            sage: T._create_element_in_extension_(G.an_element(), 3/2).parent()
             Exact Term Monoid z^ZZ with coefficients in Rational Field
         """
         if (growth.parent() is self.growth_group) and \
@@ -2547,7 +2547,7 @@ class TermWithCoefficient(GenericTerm):
         if self.coefficient.is_one():
             return tuple()
         from sage.functions.log import log
-        return (self.parent()._create_element_via_parent_(
+        return (self.parent()._create_element_in_extension_(
             self.parent().growth_group.one(), log(self.coefficient, base=base)),)
 
 
@@ -2894,7 +2894,7 @@ class ExactTerm(TermWithCoefficient):
             raise ZeroDivisionError('Cannot invert %s since its coefficient %s '
                                     'cannot be inverted.' % (self, self.coefficient))
         g = ~self.growth
-        return self.parent()._create_element_via_parent_(g, c)
+        return self.parent()._create_element_in_extension_(g, c)
 
 
     def __pow__(self, exponent):
@@ -3181,10 +3181,10 @@ class ExactTerm(TermWithCoefficient):
         if self.is_constant():
             if not hasattr(base, 'parent'):
                 base = P.coefficient_ring(base)
-            return P._create_element_via_parent_(
+            return P._create_element_in_extension_(
                 P.growth_group.one(), base ** self.coefficient)
 
-        elem = P._create_element_via_parent_(
+        elem = P._create_element_in_extension_(
             self.growth.rpow(base), P.coefficient_ring.one())
         return elem ** self.coefficient
 

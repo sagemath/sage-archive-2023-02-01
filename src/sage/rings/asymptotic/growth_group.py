@@ -1630,7 +1630,7 @@ class GenericGrowthGroup(
                     for e in self.base().some_elements())
 
 
-    def _create_element_via_parent_(self, raw_element):
+    def _create_element_in_extension_(self, raw_element):
         r"""
         Create an element whose parent is chosen according to the input
         ``raw_element``.
@@ -1645,9 +1645,9 @@ class GenericGrowthGroup(
 
             sage: from sage.rings.asymptotic.growth_group import GrowthGroup
             sage: G = GrowthGroup('z^ZZ')
-            sage: G._create_element_via_parent_(3).parent()
+            sage: G._create_element_in_extension_(3).parent()
             Growth Group z^ZZ
-            sage: G._create_element_via_parent_(1/2).parent()
+            sage: G._create_element_in_extension_(1/2).parent()
             Growth Group z^QQ
         """
         if raw_element.parent() is self.base():
@@ -2398,7 +2398,7 @@ class MonomialGrowthElement(GenericGrowthElement):
             sage: e2 == ~e1
             True
         """
-        return self.parent()._create_element_via_parent_(-self.exponent)
+        return self.parent()._create_element_in_extension_(-self.exponent)
 
 
     def __pow__(self, exponent):
@@ -2432,7 +2432,7 @@ class MonomialGrowthElement(GenericGrowthElement):
             sage: b^12
             x^42
         """
-        return self.parent()._create_element_via_parent_(self.exponent * exponent)
+        return self.parent()._create_element_in_extension_(self.exponent * exponent)
 
 
     def _log_factor_(self, base=None):
@@ -3069,7 +3069,7 @@ class ExponentialGrowthElement(GenericGrowthElement):
             sage: (~P(raw_element=1)).parent()
             Growth Group QQ^x
         """
-        return self.parent()._create_element_via_parent_(1 / self.base)
+        return self.parent()._create_element_in_extension_(1 / self.base)
 
 
     def __pow__(self, exponent):
@@ -3099,7 +3099,7 @@ class ExponentialGrowthElement(GenericGrowthElement):
             sage: b^12
             117649^x
         """
-        return self.parent()._create_element_via_parent_(self.base ** exponent)
+        return self.parent()._create_element_in_extension_(self.base ** exponent)
 
 
     def _log_factor_(self, base=None):

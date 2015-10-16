@@ -451,6 +451,16 @@ class FindStat(SageObject):
         the query.  Thus, in principle :class:`FindStatStatistic`
         could be called if no checking is desired.
 
+        EXAMPLES::
+
+            sage: from sage.databases.findstat import FindStatCollection
+            sage: findstat(FindStatCollection("Permutations"), lambda pi: pi.length())    # optional -- internet,random
+            0: (St000018: The [[/Permutations/Inversions|number of inversions]] of a permutation., [], 200)
+            1: (St000004: The [[/Permutations/Descents-Major|major index]] of a permutation., [Mp00062: inversion-number to major-index bijection], 200)
+            2: (St000067: The inversion number of the alternating sign matrix., [Mp00063: to alternating sign matrix], 152)
+            3: (St000246: The [[/Permutations/Inversions|number of non-inversions]] of a permutation., [Mp00064: reverse], 200)
+            4: (St000008: The major index of the composition., [Mp00062: inversion-number to major-index bijection, Mp00071: descent composition], 200)
+
         TESTS::
 
             sage: findstat("Permutations", lambda x: 1, depth=100)
@@ -576,7 +586,9 @@ class FindStat(SageObject):
 
         else:
             if callable(function):
-                if not isinstance(query, FindStatCollection):
+                if isinstance(query, FindStatCollection):
+                    collection = query
+                else:
                     collection = FindStatCollection(query)
                 to_str = collection.to_string()
                 first_terms = collection.first_terms(function, max_values=max_values)

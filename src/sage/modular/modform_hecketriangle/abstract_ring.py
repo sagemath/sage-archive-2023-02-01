@@ -747,11 +747,11 @@ class FormsRing_abstract(Parent):
 
             sage: from sage.modular.modform_hecketriangle.graded_ring import ModularFormsRing
             sage: ModularFormsRing().diff_alg()
-            Noncommutative Multivariate Polynomial Ring in X, Y, Z, dX, dY, dZ over Rational Field, nc-relations: {dY*Y: Y*dY + 1, dZ*Z: Z*dZ + 1, dX*X: X*dX + 1}
+            Noncommutative Multivariate Polynomial Ring in X, Y, Z, dX, dY, dZ over Rational Field, nc-relations: {dZ*Z: Z*dZ + 1, dY*Y: Y*dY + 1, dX*X: X*dX + 1}
 
             sage: from sage.modular.modform_hecketriangle.space import CuspForms
             sage: CuspForms(k=12, base_ring=AA).diff_alg()
-            Noncommutative Multivariate Polynomial Ring in X, Y, Z, dX, dY, dZ over Rational Field, nc-relations: {dY*Y: Y*dY + 1, dZ*Z: Z*dZ + 1, dX*X: X*dX + 1}
+            Noncommutative Multivariate Polynomial Ring in X, Y, Z, dX, dY, dZ over Rational Field, nc-relations: {dZ*Z: Z*dZ + 1, dY*Y: Y*dY + 1, dX*X: X*dX + 1}
         """
 
         # We only use two operators for now which do not involve 'd', so for performance

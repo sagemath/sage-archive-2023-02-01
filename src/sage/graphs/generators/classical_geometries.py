@@ -21,6 +21,8 @@ from copy import copy
 from math import sin, cos, pi
 from sage.graphs.graph import Graph
 from sage.graphs import graph
+from sage.rings.arith import is_prime_power
+from sage.rings.finite_rings.constructor import FiniteField
 
 def SymplecticPolarGraph(d, q, algorithm=None):
     r"""
@@ -87,7 +89,6 @@ def SymplecticPolarGraph(d, q, algorithm=None):
         G = _polar_graph(d, q, libgap.SymplecticGroup(d, q))
 
     elif algorithm == None:    # faster for small (q<4) fields
-        from sage.rings.finite_rings.constructor import FiniteField
         from sage.modules.free_module import VectorSpace
         from sage.schemes.projective.projective_space import ProjectiveSpace
         from sage.matrix.constructor import identity_matrix, block_matrix, zero_matrix
@@ -187,7 +188,6 @@ def AffineOrthogonalPolarGraph(d,q,sign="+"):
         s = 0
 
     from sage.interfaces.gap import gap
-    from sage.rings.finite_rings.constructor import FiniteField
     from sage.modules.free_module import VectorSpace
     from sage.matrix.constructor import Matrix
     from sage.libs.gap.libgap import libgap
@@ -287,7 +287,6 @@ def _orthogonal_polar_graph(m, q, sign="+", point_type=[0]):
 
     """
     from sage.schemes.projective.projective_space import ProjectiveSpace
-    from sage.rings.finite_rings.constructor import FiniteField
     from sage.modules.free_module_element import free_module_element as vector
     from sage.matrix.constructor import Matrix
     from sage.libs.gap.libgap import libgap
@@ -491,7 +490,6 @@ def NonisotropicOrthogonalPolarGraph(m, q, sign="+", perp=None):
 
     """
     from sage.graphs.generators.classical_geometries import _orthogonal_polar_graph
-    from sage.rings.arith import is_prime_power
     p, k = is_prime_power(q,get_data=True)
     if k==0:
         raise ValueError('q must be a prime power')
@@ -635,14 +633,12 @@ def UnitaryPolarGraph(m, q, algorithm="gap"):
 
     elif algorithm == None: # slow on large examples
         from sage.schemes.projective.projective_space import ProjectiveSpace
-        from sage.rings.finite_rings.constructor import FiniteField
         from sage.modules.free_module_element import free_module_element as vector
-        from __builtin__ import sum as psum
         Fq = FiniteField(q**2, 'a')
         PG = map(vector, ProjectiveSpace(m - 1, Fq))
         map(lambda x: x.set_immutable(), PG)
         def P(x,y):
-            return psum(map(lambda j: x[j]*y[m-1-j]**q, xrange(m)))==0  
+            return sum(map(lambda j: x[j]*y[m-1-j]**q, xrange(m)))==0
 
         V = filter(lambda x: P(x,x), PG)
         G = Graph([V,lambda x,y:  # bottleneck is here, of course:
@@ -697,7 +693,6 @@ def NonisotropicUnitaryPolarGraph(m, q):
       Disc. Math. 13(1975), pp 357--381.
       http://dx.doi.org/10.1016/0012-365X(75)90057-6
     """
-    from sage.rings.arith import is_prime_power
     p, k = is_prime_power(q,get_data=True)
     if k==0:
        raise ValueError('q must be a prime power')
@@ -743,7 +738,7 @@ def UnitaryDualPolarGraph(m, q):
 
     EXAMPLES:
 
-    The point graph of a generalized quadrangle of order (8,4)::
+    The point graph of a generalized quadrangle (see [GQwiki]_, [PT09]_) of order (8,4)::
 
         sage: G = graphs.UnitaryDualPolarGraph(5,2); G   # long time
         Unitary Dual Polar Graph DU(5, 2); GQ(8, 4): Graph on 297 vertices
@@ -881,12 +876,10 @@ def TaylorTwographDescendantSRG(q, clique_partition=None):
         ...
         ValueError: q must be an odd prime power
     """
-    from sage.rings.arith import is_prime_power
     p, k = is_prime_power(q,get_data=True)
     if k==0 or p==2:
        raise ValueError('q must be an odd prime power')
     from sage.schemes.projective.projective_space import ProjectiveSpace
-    from sage.rings.finite_rings.constructor import FiniteField
     from sage.modules.free_module_element import free_module_element as vector
     from sage.rings.finite_rings.integer_mod import mod
     from __builtin__ import sum
@@ -940,4 +933,172 @@ def TaylorTwographSRG(q):
     G.add_vertex(v0)
     G.seidel_switching(sum(l[:(q**2+1)/2],[]))
     G.name("Taylor two-graph SRG")
+    return G
+
+def AhrensSzekeresGeneralizedQuadrangleGraph(q, dual=False):
+    r"""
+    Return the collinearity graph of the generalized quadrangle `AS(q)`, or of its dual
+
+    Let `q` be an odd prime power.  `AS(q)` is a generalized quadrangle [GQwiki]_ of
+    order `(q-1,q+1)`, see 3.1.5 in [PT09]_. Its points are elements
+    of `F_q^3`, and lines are sets of size `q` of the form
+
+    * `\{ (\sigma, a, b) \mid \sigma\in F_q \}`
+    * `\{ (a, \sigma, b) \mid \sigma\in F_q \}`
+    * `\{ (c \sigma^2 - b \sigma + a, -2 c \sigma + b, \sigma) \mid \sigma\in F_q \}`,
+
+    where `a`, `b`, `c` are arbitrary elements of `F_q`.
+
+    INPUT:
+
+    - ``q`` -- a power of an odd prime number
+
+    - ``dual`` -- if ``False`` (default), return the collinearity graph of `AS(q)`.
+      Otherwise return the collinearity graph of the dual `AS(q)`.
+
+    EXAMPLES::
+
+        sage: g=graphs.AhrensSzekeresGeneralizedQuadrangleGraph(5); g
+        AS(5); GQ(4, 6): Graph on 125 vertices
+        sage: g.is_strongly_regular(parameters=True)
+        (125, 28, 3, 7)
+        sage: g=graphs.AhrensSzekeresGeneralizedQuadrangleGraph(5,dual=True); g
+        AS(5)*; GQ(6, 4): Graph on 175 vertices
+        sage: g.is_strongly_regular(parameters=True)
+        (175, 30, 5, 5)
+
+    REFERENCE:
+
+    .. [GQwiki] `Generalized quadrangle
+      <http://en.wikipedia.org/wiki/Generalized_quadrangle>`__
+
+    .. [PT09] S. Payne, J. A. Thas.
+      Finite generalized quadrangles.
+      European Mathematical Society,
+      2nd edition, 2009.
+    """
+    from sage.combinat.designs.incidence_structures import IncidenceStructure
+    p, k = is_prime_power(q,get_data=True)
+    if k==0 or p==2:
+       raise ValueError('q must be an odd prime power')
+    F = FiniteField(q, 'a')
+    L = []
+    for a in F:
+        for b in F:
+            L.append(tuple(map(lambda s: (s, a, b), F)))
+            L.append(tuple(map(lambda s: (a, s, b), F)))
+            for c in F:
+                L.append(tuple(map(lambda s: (c*s**2 - b*s + a, -2*c*s + b, s), F)))
+    if dual:
+        G = IncidenceStructure(L).intersection_graph()
+        G.name('AS('+str(q)+')*; GQ'+str((q+1,q-1)))
+    else:
+        G = IncidenceStructure(L).dual().intersection_graph()
+        G.name('AS('+str(q)+'); GQ'+str((q-1,q+1)))
+    return G
+
+def T2starGeneralizedQuadrangleGraph(q, dual=False, hyperoval=None, field=None, check_hyperoval=True):
+    r"""
+    Return the collinearity graph of the generalized quadrangle `T_2^*(q)`, or of its dual
+
+    Let `q=2^k` and `\Theta=PG(3,q)`.  `T_2^*(q)` is a generalized quadrangle [GQwiki]_
+    of order `(q-1,q+1)`, see 3.1.3 in [PT09]_. Fix a plane `\Pi \subset \Theta` and a
+    `hyperoval <http://en.wikipedia.org/wiki/Oval_(projective_plane)#Even_q>`__
+    `O \subset \Pi`. The points of `T_2^*(q):=T_2^*(O)` are the points of `\Theta`
+    outside `\Pi`, and the lines are the lines of `\Theta` outside `\Pi`
+    that meet `\Pi` in a point of `O`.
+
+    INPUT:
+
+    - ``q`` -- a power of two
+
+    - ``dual`` -- if ``False`` (default), return the graph of `T_2^*(O)`.
+      Otherwise return the graph of the dual `T_2^*(O)`.
+
+    - ``hyperoval`` -- a hyperoval (i.e. a complete 2-arc; a set of points in the plane
+      meeting every line in 0 or 2 points) in the plane of points with 0th coordinate
+      0 in `PG(3,q)` over the field ``field``. Each point of ``hyperoval`` must be a length 4
+      vector over ``field`` with 1st non-0 coordinate equal to 1. By default, ``hyperoval`` and
+      ``field`` are not specified, and constructed on the fly. In particular, ``hyperoval``
+      we build is the classical one, i.e. a conic with the point of intersection of its
+      tangent lines.
+
+    - ``field`` -- an instance of a finite field of order `q`, must be provided
+      if ``hyperoval`` is provided.
+
+    - ``check_hyperoval`` -- (default: ``True``) if ``True``,
+      check ``hyperoval`` for correctness.
+
+
+    EXAMPLES:
+
+    using the built-in construction::
+
+        sage: g=graphs.T2starGeneralizedQuadrangleGraph(4); g
+        T2*(O,4); GQ(3, 5): Graph on 64 vertices
+        sage: g.is_strongly_regular(parameters=True)
+        (64, 18, 2, 6)
+        sage: g=graphs.T2starGeneralizedQuadrangleGraph(4,dual=True); g
+        T2*(O,4)*; GQ(5, 3): Graph on 96 vertices
+        sage: g.is_strongly_regular(parameters=True)
+        (96, 20, 4, 4)
+
+    supplying your own hyperoval::
+
+        sage: F=GF(4,'b')
+        sage: O=[vector(F,(0,0,0,1)),vector(F,(0,0,1,0))]+map(lambda x: vector(F, (0,1,x^2,x)),F)
+        sage: g=graphs.T2starGeneralizedQuadrangleGraph(4, hyperoval=O, field=F); g
+        T2*(O,4); GQ(3, 5): Graph on 64 vertices
+        sage: g.is_strongly_regular(parameters=True)
+        (64, 18, 2, 6)
+
+    TESTS::
+
+        sage: F=GF(4,'b') # repeating a point...
+        sage: O=[vector(F,(0,1,0,0)),vector(F,(0,0,1,0))]+map(lambda x: vector(F, (0,1,x^2,x)),F)
+        sage: graphs.T2starGeneralizedQuadrangleGraph(4, hyperoval=O, field=F)
+        Traceback (most recent call last):
+        ...
+        RuntimeError: incorrect hyperoval size
+        sage: O=[vector(F,(0,1,1,0)),vector(F,(0,0,1,0))]+map(lambda x: vector(F, (0,1,x^2,x)),F)
+        sage: graphs.T2starGeneralizedQuadrangleGraph(4, hyperoval=O, field=F)
+        Traceback (most recent call last):
+        ...
+        RuntimeError: incorrect hyperoval
+    """
+    from sage.combinat.designs.incidence_structures import IncidenceStructure
+    from sage.combinat.designs.block_design import ProjectiveGeometryDesign as PG
+    from sage.modules.free_module_element import free_module_element as vector
+
+    p, k = is_prime_power(q,get_data=True)
+    if k==0 or p!=2:
+       raise ValueError('q must be a power of 2')
+    if field is None:
+        F = FiniteField(q, 'a')
+    else:
+        F = field
+
+    Theta = PG(3, 1, F, point_coordinates=1)
+    Pi = set(filter(lambda x: x[0]==F.zero(), Theta.ground_set()))
+    if hyperoval is None:
+        O = filter(lambda x: x[1]+x[2]*x[3]==0 or (x[1]==1 and x[2]==0 and x[3]==0), Pi)
+        O = set(O)
+    else:
+        map(lambda x: x.set_immutable(), hyperoval)
+        O = set(hyperoval)
+        if check_hyperoval:
+            if len(O) != q+2:
+                raise RuntimeError("incorrect hyperoval size")
+            for L in Theta.blocks():
+                if set(L).issubset(Pi):
+                    if not len(O.intersection(L)) in [0,2]:
+                        raise RuntimeError("incorrect hyperoval")
+    L = map(lambda z: filter(lambda y: not y in O, z),
+            filter(lambda x: len(O.intersection(x)) == 1, Theta.blocks()))
+    if dual:
+        G = IncidenceStructure(L).intersection_graph()
+        G.name('T2*(O,'+str(q)+')*; GQ'+str((q+1,q-1)))
+    else:
+        G = IncidenceStructure(L).dual().intersection_graph()
+        G.name('T2*(O,'+str(q)+'); GQ'+str((q-1,q+1)))
     return G

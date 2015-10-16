@@ -693,21 +693,23 @@ def _log_(self, base=None):
         which is not contained in
         Growth Group QQ^x * x^ZZ * log(x)^ZZ * y^ZZ * log(y)^ZZ.
     """
+    from misc import log_string
+
     log_factor = self.log_factor(base=base)
     if not log_factor:
-        raise ArithmeticError('log(%s) is zero, '
+        raise ArithmeticError('%s is zero, '
                               'which is not contained in %s.' %
-                              (self, self.parent()))
+                              (log_string(self, base), self.parent()))
 
     if len(log_factor) != 1:
-        raise ArithmeticError('Calculating log(%s) results in a sum, '
+        raise ArithmeticError('Calculating %s results in a sum, '
                               'which is not contained in %s.' %
-                              (self, self.parent()))
+                              (log_string(self, base), self.parent()))
     g, c = log_factor[0]
     if c != 1:
-        raise ArithmeticError('When calculating log(%s) a factor %s != 1 '
+        raise ArithmeticError('When calculating %s a factor %s != 1 '
                               'appeared, which is not contained in %s.' %
-                              (self, c, self.parent()))
+                              (log_string(self, base), c, self.parent()))
     return g
 
 
@@ -776,8 +778,10 @@ def _log_factor_(self, base=None):
         if hasattr(g, 'parent') and \
            isinstance(g.parent(), GenericGrowthGroup):
             continue
-        raise ArithmeticError('Cannot build log(%s) since %s '
-                              'is not in %s.' % (self, g, self.parent()))
+        from misc import log_string
+        raise ArithmeticError('Cannot build %s since %s '
+                              'is not in %s.' % (log_string(self, base),
+                                                 g, self.parent()))
 
     return log_factor
 
@@ -2456,6 +2460,16 @@ class MonomialGrowthElement(GenericGrowthElement):
             ...
             ArithmeticError: Cannot build log(x) since log(x) is not in
             Growth Group x^QQ.
+
+        ::
+
+            sage: G = GrowthGroup('exp(x)^ZZ * x^ZZ')
+            sage: log(G('exp(x)'), base=2)
+            Traceback (most recent call last):
+            ...
+            ArithmeticError: When calculating log(exp(x), base=2) a factor
+            1/log(2) != 1 appeared, which is not contained in
+            Growth Group exp(x)^ZZ * x^ZZ.
         """
         if self.is_one():
             return tuple()
@@ -2471,14 +2485,16 @@ class MonomialGrowthElement(GenericGrowthElement):
                base is not None and b == str(base):
                 return ((e, coefficient),)
 
-        if base is None and var.startswith('exp('):
+        if var.startswith('exp('):
             assert(var[-1] == ')')
-            return ((var[4:-1], coefficient),)
+            v = var[4:-1]
+        else:
+            v = 'log(%s)' % (var,)
 
         if base is not None:
             from sage.functions.log import log
             coefficient = coefficient / log(base)
-        return (('log(%s)' % (self.parent()._var_,), coefficient),)
+        return ((v, coefficient),)
 
 
     def _rpow_element_(self, base):
@@ -3109,7 +3125,7 @@ class ExponentialGrowthElement(GenericGrowthElement):
             sage: G('4^x').log_factor(base=2)  # indirect doctest
             Traceback (most recent call last):
             ...
-            ArithmeticError: Cannot build log(4^x) since x is not in
+            ArithmeticError: Cannot build log(4^x, base=2) since x is not in
             Growth Group QQ^x.
         """
         if self.is_one():

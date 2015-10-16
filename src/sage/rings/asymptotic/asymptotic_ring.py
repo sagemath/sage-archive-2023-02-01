@@ -1194,7 +1194,8 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
         if len(max_elem) != 1:
             raise ValueError('Expansion %s cannot be inverted since there '
                              'are several maximal elements %s.' %
-                             (self, ', '.join(str(e) for e in max_elem)))
+                             (self, ', '.join(str(e) for e in
+                                              sorted(max_elem, key=str))))
         max_elem = max_elem[0]
 
         imax_elem = ~max_elem

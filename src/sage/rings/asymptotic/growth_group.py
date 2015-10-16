@@ -3503,6 +3503,10 @@ class GrowthGroupFactory(sage.structure.factory.UniqueFactory):
 
     An asymptotic growth group.
 
+    .. NOTE::
+
+        An instance of this factory is available as ``GrowthGroup``.
+
     EXAMPLES::
 
         sage: from sage.rings.asymptotic.growth_group import GrowthGroup

@@ -2670,6 +2670,15 @@ class AsymptoticRing(Algebra, UniqueRepresentation):
             ...
             ValueError: Growth 42*x^2 is not in O-Term Monoid x^ZZ with implicit coefficients in Integer Ring.
             > *previous* ValueError: 42*x^2 is not in Growth Group x^ZZ.
+
+        ::
+
+            sage: AR.<z> = AsymptoticRing('z^QQ', QQ)
+            sage: AR.create_summand('exact', growth='z^2')
+            Traceback (most recent call last):
+            ...
+            TypeError: Cannot create exact term: only 'growth' but
+            no 'coefficient' specified.
         """
         from term_monoid import TermMonoid
         TM = TermMonoid(type, asymptotic_ring=self)
@@ -2679,6 +2688,10 @@ class AsymptoticRing(Algebra, UniqueRepresentation):
                 data = kwds.pop('growth')
             except KeyError:
                 raise TypeError("Neither 'data' nor 'growth' are specified.")
+            if type == 'exact' and kwds.get('coefficient') is None:
+                raise TypeError("Cannot create exact term: only 'growth' "
+                                "but no 'coefficient' specified.")
+
 
         if type == 'exact' and kwds.get('coefficient') == 0:
             return self.zero()

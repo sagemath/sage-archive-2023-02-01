@@ -349,7 +349,7 @@ class DiGraph(GenericGraph):
             [   0    1   -1]
             [  -1    0 -1/2]
             [   1  1/2    0]
-            sage: G = DiGraph(M,sparse=True); G
+            sage: G = DiGraph(M,sparse=True,weighted=True); G
             Digraph on 3 vertices
             sage: G.weighted()
             True
@@ -676,104 +676,20 @@ class DiGraph(GenericGraph):
         # At this point, format has been set. We build the graph
 
         if format == 'dig6':
-            if weighted   is None: weighted   = False
-            if not isinstance(data, str):
-                raise ValueError('If input format is dig6, then data must be a string.')
-            n = data.find('\n')
-            if n == -1:
-                n = len(data)
-            ss = data[:n]
-            n, s = generic_graph_pyx.length_and_string_from_graph6(ss)
-            m = generic_graph_pyx.binary_string_from_dig6(s, n)
-            expected = n**2
-            if len(m) > expected:
-                raise RuntimeError("The string (%s) seems corrupt: for n = %d, the string is too long."%(ss,n))
-            elif len(m) < expected:
-                raise RuntimeError("The string (%s) seems corrupt: for n = %d, the string is too short."%(ss,n))
+            if weighted   is None: self._weighted   = False
             self.allow_loops(True if loops else False,check=False)
             self.allow_multiple_edges(True if multiedges else False,check=False)
-            self.add_vertices(range(n))
-            k = 0
-            for i in xrange(n):
-                for j in xrange(n):
-                    if m[k] == '1':
-                        self._backend.add_edge(i, j, None, True)
-                    k += 1
+            from graph_input import from_dig6
+            from_dig6(self, data)
+
         elif format == 'adjacency_matrix':
-            assert is_Matrix(data)
-            # note: the adjacency matrix might be weighted and hence not
-            # necessarily consists of integers
-            if not weighted and data.base_ring() != ZZ:
-                try:
-                    data = data.change_ring(ZZ)
-                except TypeError:
-                    if weighted is False:
-                        raise ValueError("Non-weighted graph's"+
-                        " adjacency matrix must have only nonnegative"+
-                        " integer entries")
-                    weighted = True
+            from graph_input import from_adjacency_matrix
+            from_adjacency_matrix(self, data, loops=loops, multiedges=multiedges, weighted=weighted)
 
-            if data.is_sparse():
-                entries = set(data[i,j] for i,j in data.nonzero_positions())
-            else:
-                entries = set(data.list())
-
-            if not weighted and any(e < 0 for e in entries):
-                if weighted is False:
-                    raise ValueError("Non-weighted digraph's"+
-                    " adjacency matrix must have only nonnegative"+
-                    " integer entries")
-                weighted = True
-                if multiedges is None: multiedges = False
-            if weighted is None:
-                weighted = False
-
-            if multiedges is None:
-                multiedges = ((not weighted) and any(e != 0 and e != 1 for e in entries))
-
-            if not loops and any(data[i,i] for i in xrange(data.nrows())):
-                if loops is False:
-                    raise ValueError("Non-looped digraph's adjacency"+
-                    " matrix must have zeroes on the diagonal.")
-                loops = True
-            self.allow_multiple_edges(multiedges,check=False)
-            self.allow_loops(True if loops else False,check=False)
-            self.add_vertices(range(data.nrows()))
-            e = []
-            if weighted:
-                for i,j in data.nonzero_positions():
-                    e.append((i,j,data[i][j]))
-            elif multiedges:
-                for i,j in data.nonzero_positions():
-                    e += [(i,j)]*int(data[i][j])
-            else:
-                for i,j in data.nonzero_positions():
-                    e.append((i,j))
-            self.add_edges(e)
         elif format == 'incidence_matrix':
-            assert is_Matrix(data)
-            positions = []
-            for c in data.columns():
-                NZ = c.nonzero_positions()
-                if len(NZ) != 2:
-                    msg += "There must be two nonzero entries (-1 & 1) per column."
-                    raise ValueError(msg)
-                L = sorted(set(c.list()))
-                if L != [-1,0,1]:
-                    msg += "Each column represents an edge: -1 goes to 1."
-                    raise ValueError(msg)
-                if c[NZ[0]] == -1:
-                    positions.append(tuple(NZ))
-                else:
-                    positions.append((NZ[1],NZ[0]))
-            if weighted   is None: weighted  = False
-            if multiedges is None:
-                total = len(positions)
-                multiedges = (  len(set(positions)) < total  )
-            self.allow_loops(True if loops else False,check=False)
-            self.allow_multiple_edges(multiedges,check=False)
-            self.add_vertices(range(data.nrows()))
-            self.add_edges(positions)
+            from graph_input import from_oriented_incidence_matrix
+            from_oriented_incidence_matrix(self, data, loops=loops, multiedges=multiedges, weighted=weighted)
+
         elif format == 'DiGraph':
             if loops is None: loops = data.allows_loops()
             elif not loops and data.has_loops():
@@ -801,66 +717,14 @@ class DiGraph(GenericGraph):
             self.add_vertices(data[0])
             self.add_edges((u,v) for u in data[0] for v in data[0] if f(u,v))
         elif format == 'dict_of_dicts':
-            if not all(isinstance(data[u], dict) for u in data):
-                raise ValueError("Input dict must be a consistent format.")
+            from graph_input import from_dict_of_dicts
+            from_dict_of_dicts(self, data, loops=loops, multiedges=multiedges, weighted=weighted,
+                               convert_empty_dict_labels_to_None = False if convert_empty_dict_labels_to_None is None else convert_empty_dict_labels_to_None)
 
-            verts = set(data.keys())
-            if loops is None or loops is False:
-                for u in data:
-                    if u in data[u]:
-                        if loops is None:
-                            loops = True
-                        elif loops is False:
-                            u = next(u for u,neighb in data.iteritems() if u in neighb)
-                            raise ValueError("The digraph was built with loops=False but input data has a loop at {}.".format(u))
-                        break
-                if loops is None: loops = False
-            if weighted is None: weighted = False
-            for u in data:
-                for v in data[u]:
-                    if v not in verts: verts.add(v)
-                    if multiedges is not False and not isinstance(data[u][v], list):
-                        if multiedges is None:
-                            multiedges = False
-                        if multiedges:
-                            raise ValueError("Dict of dicts for multidigraph must be in the format {v : {u : list}}")
-            if multiedges is None and len(data) > 0:
-                multiedges = True
-            self.allow_multiple_edges(multiedges,check=False)
-            self.allow_loops(loops,check=False)
-            self.add_vertices(verts)
-
-            if multiedges:
-                self.add_edges((u,v,l) for u,Nu in data.iteritems() for v,labels in Nu.iteritems() for l in labels)
-            else:
-                self.add_edges((u,v,l) for u,Nu in data.iteritems() for v,l in Nu.iteritems())
         elif format == 'dict_of_lists':
-            # convert to a dict of lists if not already one
-            if not all(isinstance(data[u], list) for u in data):
-                data = {u: list(v) for u,v in data.iteritems()}
+            from graph_input import from_dict_of_lists
+            from_dict_of_lists(self, data, loops=loops, multiedges=multiedges, weighted=weighted)
 
-            if not loops and any(u in neighb for u,neighb in data.iteritems()):
-                if loops is False:
-                    u = next(u for u,neighb in data.iteritems() if u in neighb)
-                    raise ValueError("The digraph was built with loops=False but input data has a loop at {}.".format(u))
-                loops = True
-            if loops is None:
-                loops = False
-
-            if weighted is None: weighted = False
-
-            if not multiedges and any(len(set(neighb)) != len(neighb) for neighb in data.itervalues()):
-                if multiedges is False:
-                    uv = next((u,v) for u,neighb in data.iteritems() for v in neighb if neighb.count(v) > 1)
-                    raise ValueError("Non-multidigraph got several edges (%s,%s)"%(u,v))
-                multiedges = True
-            if multiedges is None:
-                multiedges = False
-            self.allow_multiple_edges(multiedges,check=False)
-            self.allow_loops(loops,check=False)
-            verts = set().union(data.keys(),*data.values())
-            self.add_vertices(verts)
-            self.add_edges((u,v) for u,Nu in data.iteritems() for v in Nu)
         elif format == 'NX':
             # adjust for empty dicts instead of None in NetworkX default edge labels
             if convert_empty_dict_labels_to_None is None:
@@ -943,7 +807,9 @@ class DiGraph(GenericGraph):
 
         if data_structure == "static_sparse":
             from sage.graphs.base.static_sparse_backend import StaticSparseBackend
-            ib = StaticSparseBackend(self, loops = loops, multiedges = multiedges)
+            ib = StaticSparseBackend(self,
+                                     loops = self.allows_loops(),
+                                     multiedges = self.allows_multiple_edges())
             self._backend = ib
             self._immutable = True
 

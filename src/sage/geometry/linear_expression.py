@@ -351,6 +351,18 @@ class LinearExpression(ModuleElement):
             return self
         return P.change_ring(base_ring)(self)
 
+    def __hash__(self):
+        r"""
+        TESTS::
+
+            sage: from sage.geometry.linear_expression import LinearExpressionModule
+            sage: L.<x> = LinearExpressionModule(QQ)
+            sage: hash(L([0,1]))
+            3430019387558 # 64-bit
+            -1659481946   # 32-bit
+        """
+        return hash(self._coeffs) ^ hash(self._const)
+
     def __cmp__(self, other):
         """
         Compare two linear expressions.
@@ -379,10 +391,7 @@ class LinearExpression(ModuleElement):
             False
         """
         assert type(self) is type(other) and self.parent() is other.parent()  # guaranteed by framework
-        c = cmp(self._coeffs, other._coeffs)
-        if c != 0: return c
-        c = cmp(self._const, other._const)
-        return c
+        return cmp(self._coeffs, other._coeffs) or cmp(self._const, other._const)
 
     def evaluate(self, point):
         """

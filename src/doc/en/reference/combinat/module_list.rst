@@ -35,6 +35,7 @@ Comprehensive Module list
     sage/combinat/cluster_algebra_quiver/mutation_type
     sage/combinat/cluster_algebra_quiver/quiver
     sage/combinat/cluster_algebra_quiver/quiver_mutation_type
+    sage/combinat/colored_permutations 
     sage/combinat/combinat
     sage/combinat/combinat_cython
     sage/combinat/combination
@@ -162,6 +163,7 @@ Comprehensive Module list
     sage/combinat/permutation_nk
     sage/combinat/posets/__init__
     sage/combinat/posets/all
+    sage/combinat/posets/cartesian_product
     sage/combinat/posets/elements
     sage/combinat/posets/hasse_diagram
     sage/combinat/posets/incidence_algebras

@@ -34,24 +34,21 @@ class Decoder(SageObject):
 
     - call ``Decoder.__init__`` in the subclass constructor.
       Example: ``super(SubclassName, self).__init__(code, input_space,
-      connected_encoder_name, decoder_type)``.
+      connected_encoder_name)``.
       By doing that, your subclass will have all the parameters described above initialized.
-      You need of course to complete the constructor by adding any additional parameter
-      needed to describe properly the decoder defined in the subclass.
 
-    Then, you need to override one of decoding methods, either :meth:`decode_to_code` or
-    :meth:`decode_to_message`. You also need to override the method :meth:`decoding_radius`.
+    - Then, you need to override one of decoding methods, either :meth:`decode_to_code` or
+      :meth:`decode_to_message`. You also need to override the method :meth:`decoding_radius`.
 
-    Equality methods (``__eq__`` and ``__ne__``) might be useful for decoding in advanced
-    codes constructions (like concatenated codes). It is thus strongly encouraged to override
-    them.
+    - By default, comparison of :class:`Decoder` (using methods ``__eq__`` and ``__ne__`` ) are
+      by memory reference: if you build the same decoder twice, they will be different. If you
+      need something more clever, override ``__eq__`` and ``__ne__`` in your subclass.
 
-    As :class:`Decoder` is not designed to be implemented, it does not have any representation
-    methods. You should implement ``_repr_`` and ``_latex_`` methods in the sublclass.
+    - As :class:`Decoder` is not designed to be instantiated, it does not have any representation
+      methods. You should implement ``_repr_`` and ``_latex_`` methods in the subclass.
     """
 
-    def __init__(self, code, input_space, connected_encoder_name,\
-        decoder_type):
+    def __init__(self, code, input_space, connected_encoder_name):
         r"""
         Initializes mandatory parameters for :class:`Decoder` objects.
 
@@ -68,10 +65,6 @@ class Decoder(SageObject):
         - ``connected_encoder_name`` -- the associated encoder, which will be
           used by ``self`` to recover elements from the message space
 
-        - ``decoder_type`` -- a set of types of ``self``. Describes the
-          behaviour of ``self``.
-
-
         EXAMPLES:
 
         We first create a new :class:`Decoder` subclass::
@@ -80,8 +73,7 @@ class Decoder(SageObject):
             ....:   def __init__(self, code):
             ....:       in_space = code.base_field()
             ....:       connected_enc = "GeneratorMatrix"
-            ....:       decoder_type = {"unique", "always-succeed", "is_example"}
-            ....:       super(DecoderExample, self).__init__(code, in_space, connected_enc, decoder_type)
+            ....:       super(DecoderExample, self).__init__(code, in_space, connected_enc)
 
         We now create a member of our brand new class::
 
@@ -93,17 +85,33 @@ class Decoder(SageObject):
 
             sage: D.input_space()
             Finite Field of size 2
-            sage: D.decoder_type()
-            {'always-succeed', 'is_example', 'unique'}
             sage: D.connected_encoder()
-            Generator matrix-based encoder for the Linear code of length 4, dimension 2 over Finite Field of size 2
+            Generator matrix-based encoder for Linear code of length 4, dimension 2 over Finite Field of size 2
             sage: D.code()
             Linear code of length 4, dimension 2 over Finite Field of size 2
         """
         self._code = code
         self._input_space = input_space
         self._connected_encoder_name = connected_encoder_name
-        self._decoder_type = decoder_type
+
+    def __hash__(self):
+        r"""
+        Returns the hash value of ``self``.
+
+        This is a generic implementation which should be overwritten on decoders
+        with extra arguments.
+
+        EXAMPLES::
+
+            sage: G = Matrix(GF(2), [[1,1,1,0,0,0,0],[1,0,0,1,1,0,0],[0,1,0,1,0,1,0],[1,1,0,1,0,0,1]])
+            sage: C = LinearCode(G)
+            sage: D = C.decoder()
+            sage: hash(D) #random
+            7575380076354998465
+        """
+        C = self.code()
+        Str = str(C)
+        return hash((C, Str)) ^ hash(Str) ^ hash(C)
 
     def decoder_type(self):
         r"""
@@ -129,7 +137,11 @@ class Decoder(SageObject):
 
         INPUT:
 
-        - ``r`` -- a element of the input space of ``self``
+        - ``r`` -- a element of the input space of ``self``.
+
+        OUTPUT:
+
+        - a vector of :meth:`code`.
 
         EXAMPLES::
 
@@ -161,9 +173,9 @@ class Decoder(SageObject):
             sage: C = LinearCode(G)
             sage: D = C.decoder()
             sage: D.connected_encoder()
-            Generator matrix-based encoder for the Linear code of length 7, dimension 4 over Finite Field of size 2
+            Generator matrix-based encoder for Linear code of length 7, dimension 4 over Finite Field of size 2
         """
-        return self.code().encoder(name=self._connected_encoder_name)
+        return self.code().encoder(encoder_name=self._connected_encoder_name)
 
     def decode_to_message(self, r):
         r"""
@@ -171,6 +183,14 @@ class Decoder(SageObject):
 
         This is a default implementation, which assumes that the method
         :meth:`decode_to_code` has been implemented, else it returns an exception.
+
+        INPUT:
+
+        - ``r`` -- a element of the input space of ``self``.
+
+        OUTPUT:
+
+        - a vector of :meth:`message_space`.
 
         EXAMPLES::
 
@@ -187,7 +207,7 @@ class Decoder(SageObject):
 
     def code(self):
         r"""
-        Returns the code in which :meth:`decode_to_code` has its output.
+        Returns the code for this :class:`Decoder`.
 
         EXAMPLES::
 
@@ -201,7 +221,7 @@ class Decoder(SageObject):
 
     def message_space(self):
         r"""
-        Returns the message space of connected encoder of ``self``.
+        Returns the message space of ``self``'s :meth:`connected_encoder`.
 
         EXAMPLES::
 
@@ -235,7 +255,15 @@ class Decoder(SageObject):
         r"""
         Returns the maximal number of errors that ``self`` is able to correct.
 
-        This is an abstract method and should be implemented in subclasses.
+        This is an abstract method and it should be implemented in subclasses.
+
+        EXAMPLES::
+
+            sage: G = Matrix(GF(2), [[1,1,1,0,0,0,0],[1,0,0,1,1,0,0],[0,1,0,1,0,1,0],[1,1,0,1,0,0,1]])
+            sage: C = LinearCode(G)
+            sage: D = codes.decoders.LinearCodeSyndromeDecoder(C)
+            sage: D.decoding_radius()
+            1
         """
         raise NotImplementedError
 

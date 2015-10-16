@@ -128,6 +128,8 @@ underscores).
 # by any element.  Derived class must call __init__
 ##################################################################
 
+from libc.limits cimport LONG_MAX, LONG_MIN
+
 include "sage/ext/python.pxi"
 from sage.ext.stdsage cimport *
 
@@ -1043,10 +1045,10 @@ cdef class Element(SageObject):
             return rich_to_bool(op, -1)
 
     ####################################################################
-    # For a Cython class, you must define either _cmp_ (if your subclass
-    # is totally ordered), _richcmp_ (if your subclass is partially
-    # ordered), or both (if your class has both a total order and a
-    # partial order, or if implementing both gives better performance).
+    # In a Cython or a Python class, you must define either _cmp_
+    # (if your subclass is totally ordered), _richcmp_ (if your subclass
+    # is partially ordered), or both (if your class has both a total order
+    # and a partial order, or if that gives better performance).
     #
     # Rich comparisons (like a < b) will default to using _richcmp_,
     # three-way comparisons (like cmp(a,b)) will default to using
@@ -2138,7 +2140,7 @@ def is_CommutativeRingElement(x):
 
     TESTS::
 
-        sage: from sage.rings.commutative_ring_element import is_CommutativeRingElement
+        sage: from sage.structure.element import is_CommutativeRingElement
         sage: is_CommutativeRingElement(oo)
         False
 
@@ -3279,10 +3281,26 @@ cdef class InfinityElement(RingElement):
         return ZZ(0)
 
 cdef class PlusInfinityElement(InfinityElement):
-    pass
+    def __hash__(self):
+        r"""
+        TESTS::
+
+            sage: hash(+infinity)
+            9223372036854775807 # 64-bit
+            2147483647          # 32-bit
+        """
+        return LONG_MAX
 
 cdef class MinusInfinityElement(InfinityElement):
-    pass
+    def __hash__(self):
+        r"""
+        TESTS::
+
+            sage: hash(-infinity)
+            -9223372036854775808 # 64-bit
+            -2147483648          # 32-bit
+        """
+        return LONG_MIN
 
 
 #################################################################################

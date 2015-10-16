@@ -207,7 +207,7 @@ class BackendDoctest(BackendBase):
             sage: dm.display_immediately(plt)   # indirect doctest
         """
         self.validate(rich_output)
-        types_to_print = [OutputPlainText, OutputAsciiArt, OutputUnicodeArt]
+        types_to_print = [OutputPlainText, OutputAsciiArt, OutputUnicodeArt, OutputHtml]
         if isinstance(rich_output, OutputLatex):
             print(rich_output.mathjax(display=False))
         elif any(isinstance(rich_output, cls) for cls in types_to_print):

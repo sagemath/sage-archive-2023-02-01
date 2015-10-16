@@ -5,11 +5,6 @@
 A database of graphs. Created by Emily Kirkman based on the work of Jason
 Grout. Since April 2012 it also contains the ISGCI graph database.
 
-== SPKG Maintainers ==
-
- * R. Andrew Ohana <andrew.ohana@gmail.com>
- * Nathann Cohen (part-time since march 2012)
-
 == Upstream Contact ==
 
  * For ISGCI:

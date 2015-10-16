@@ -154,7 +154,7 @@ class CNFEncoder(ANF2CNFConverter):
         INPUT:
 
         - ``m`` - something the new variables maps to, usually a monomial
-        - ``decision`` - is this variable a deicison variable?
+        - ``decision`` - is this variable a decision variable?
 
         EXAMPLE::
 

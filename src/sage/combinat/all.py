@@ -36,6 +36,8 @@ from yang_baxter_graph import YangBaxterGraph
 #Permutations
 from permutation import Permutation, Permutations, Arrangements, PermutationOptions, CyclicPermutations, CyclicPermutationsOfPartition
 from affine_permutation import AffinePermutationGroup
+lazy_import('sage.combinat.colored_permutations', ['ColoredPermutations',
+                                                   'SignedPermutations'])
 from derangements import Derangements
 lazy_import('sage.combinat.baxter_permutations', ['BaxterPermutations'])
 
@@ -146,8 +148,8 @@ deprecated_callable_import(6637,
                            'sage.combinat.backtrack',
                            globals(),
                            locals(),
-                           ["SearchForest", 
-                            "TransitiveIdeal", 
+                           ["SearchForest",
+                            "TransitiveIdeal",
                             "TransitiveIdealGraded"],
                            ("This class soon will not be available in that "
                             "way anymore. Use RecursivelyEnumeratedSet "
@@ -190,10 +192,13 @@ from gelfand_tsetlin_patterns import GelfandTsetlinPattern, GelfandTsetlinPatter
 lazy_import('sage.combinat.finite_state_machine',
             ['Automaton', 'Transducer', 'FiniteStateMachine'])
 lazy_import('sage.combinat.finite_state_machine_generators',
-            ['transducers'])
+            ['automata', 'transducers'])
 # Binary Recurrence Sequences
 from binary_recurrence_sequences import BinaryRecurrenceSequence
 
 # Six Vertex Model
 lazy_import('sage.combinat.six_vertex_model', 'SixVertexModel')
+
+# Fully Packed Loop
+lazy_import('sage.combinat.fully_packed_loop', ['FullyPackedLoop', 'FullyPackedLoops'])
 

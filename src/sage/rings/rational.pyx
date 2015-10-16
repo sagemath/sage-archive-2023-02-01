@@ -709,9 +709,9 @@ cdef class Rational(sage.structure.element.FieldElement):
         l = self.continued_fraction_list()
         return ContinuedFraction_periodic(l)
 
-    def __richcmp__(left, right, int op):
+    cpdef int _cmp_(left, sage.structure.element.Element right) except -2:
         """
-        Rich comparison between two rational numbers.
+        Compare two rational numbers.
 
         INPUT:
 
@@ -730,9 +730,6 @@ cdef class Rational(sage.structure.element.FieldElement):
             sage: 4/5 < 0.8
             False
         """
-        return (<sage.structure.element.Element>left)._richcmp(right, op)
-
-    cpdef int _cmp_(left, sage.structure.element.Element right) except -2:
         cdef int i
         i = mpq_cmp((<Rational>left).value, (<Rational>right).value)
         if i < 0: return -1
@@ -2141,10 +2138,10 @@ cdef class Rational(sage.structure.element.FieldElement):
             sage: 3/0 # indirect doctest
             Traceback (most recent call last):
             ...
-            ZeroDivisionError: Rational division by zero
+            ZeroDivisionError: rational division by zero
         """
         if mpq_cmp_si((<Rational> right).value, 0, 1) == 0:
-            raise ZeroDivisionError, "Rational division by zero"
+            raise ZeroDivisionError('rational division by zero')
         cdef Rational x
         x = <Rational> Rational.__new__(Rational)
         mpq_div(x.value, self.value, (<Rational>right).value)
@@ -2168,7 +2165,7 @@ cdef class Rational(sage.structure.element.FieldElement):
             -17/4
         """
         if self.is_zero():
-            raise ZeroDivisionError, "rational division by zero"
+            raise ZeroDivisionError('rational division by zero')
         cdef Rational x
         x = <Rational> Rational.__new__(Rational)
         mpq_inv(x.value, self.value)
@@ -2255,6 +2252,13 @@ cdef class Rational(sage.structure.element.FieldElement):
             1/8*8^(4/5)
             sage: 3^(-3/2)
             1/9*sqrt(3)
+
+        TESTS::
+
+            sage: QQ(0)^(-1)
+            Traceback (most recent call last):
+            ...
+            ZeroDivisionError: rational division by zero
         """
         if dummy is not None:
             raise ValueError, "__pow__ dummy variable not used"
@@ -2328,6 +2332,9 @@ cdef class Rational(sage.structure.element.FieldElement):
             return x
 
         if nn < 0:
+            if mpz_sgn(mpq_numref(_self.value)) == 0:
+                raise ZeroDivisionError('rational division by zero')
+
             sig_on()
             # mpz_pow_ui(mpq_denref(x.value), mpq_numref(_self.value), <unsigned long int>(-nn))
             # mpz_pow_ui(mpq_numref(x.value), mpq_denref(_self.value), <unsigned long int>(-nn))

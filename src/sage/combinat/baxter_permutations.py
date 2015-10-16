@@ -176,7 +176,7 @@ class BaxterPermutations_size(BaxterPermutations):
             ....:     for a in BaxterPermutations(n))
             True
 
-        ALGORITHM::
+        ALGORITHM:
 
         The algorithm using generating trees described in [BBF08]_ is used.
         The idea is that all Baxter permutations of size `n + 1` can be

@@ -46,7 +46,7 @@ import matrix_generic_sparse
 import matrix_modn_sparse
 
 import matrix_mod2_dense
-import matrix_mod2e_dense
+import matrix_gf2e_dense
 
 import matrix_integer_dense
 import matrix_integer_sparse
@@ -118,11 +118,11 @@ class MatrixSpace(UniqueRepresentation, parent_gens.ParentWithGens):
         sage: MatrixSpace(ZZ,10,5)
         Full MatrixSpace of 10 by 5 dense matrices over Integer Ring
         sage: MatrixSpace(ZZ,10,5).category()
-        Category of modules over (euclidean domains and infinite enumerated sets)
+        Category of infinite modules over (euclidean domains and infinite enumerated sets)
         sage: MatrixSpace(ZZ,10,10).category()
-        Category of algebras over (euclidean domains and infinite enumerated sets)
+        Category of infinite algebras over (euclidean domains and infinite enumerated sets)
         sage: MatrixSpace(QQ,10).category()
-        Category of algebras over quotient fields
+        Category of infinite algebras over quotient fields
 
     TESTS::
 
@@ -261,6 +261,15 @@ class MatrixSpace(UniqueRepresentation, parent_gens.ParentWithGens):
             sage: A = MatrixSpace(RDF,1000,1000).random_element()
             sage: B = MatrixSpace(RDF,1000,1000).random_element()
             sage: C = A * B
+
+        We check that :trac:`18186` is fixed::
+
+            sage: MatrixSpace(ZZ,0,3) in FiniteSets()
+            True
+            sage: MatrixSpace(Zmod(4),2) in FiniteSets()
+            True
+            sage: MatrixSpace(ZZ,2) in Sets().Infinite()
+            True
         """
         self._implementation = implementation
 
@@ -298,8 +307,41 @@ class MatrixSpace(UniqueRepresentation, parent_gens.ParentWithGens):
         else:
             category = Modules(base_ring.category())
 
+        if not self.__nrows or not self.__ncols:
+            is_finite = True
+        else:
+            is_finite = None
+            try:
+                is_finite = base_ring.is_finite()
+            except (AttributeError,NotImplementedError):
+                pass
+
+        if is_finite is True:
+            category = category.Finite()
+        elif is_finite is False:
+            category = category.Infinite()
+
         sage.structure.parent.Parent.__init__(self, category=category)
         #sage.structure.category_object.CategoryObject._init_category_(self, category)
+
+    def cardinality(self):
+        r"""
+        Return the number of elements in self.
+
+        EXAMPLES::
+
+            sage: MatrixSpace(GF(3), 2, 3).cardinality()
+            729
+            sage: MatrixSpace(ZZ, 2).cardinality()
+            +Infinity
+            sage: MatrixSpace(ZZ, 0, 3).cardinality()
+            1
+        """
+        if not self.__nrows or not self.__ncols:
+            from sage.rings.integer_ring import ZZ
+            return ZZ.one()
+        else:
+            return self.base_ring().cardinality() ** (self.__nrows * self.__ncols)
 
     def full_category_initialisation(self):
         """
@@ -468,7 +510,7 @@ class MatrixSpace(UniqueRepresentation, parent_gens.ParentWithGens):
             cannot be converted to a matrix in
             Full MatrixSpace of 3 by 5 dense matrices over Integer Ring!
 
-        Check that trac:`15110` is fixed::
+        Check that :trac:`15110` is fixed::
 
             sage: S.<t> = LaurentSeriesRing(ZZ)
             sage: MS = MatrixSpace(S,1,1)
@@ -970,7 +1012,7 @@ class MatrixSpace(UniqueRepresentation, parent_gens.ParentWithGens):
                     return matrix_modn_dense_double.Matrix_modn_dense_double
                 return matrix_generic_dense.Matrix_generic_dense
             elif sage.rings.finite_rings.constructor.is_FiniteField(R) and R.characteristic() == 2 and R.order() <= 65536:
-                return matrix_mod2e_dense.Matrix_mod2e_dense
+                return matrix_gf2e_dense.Matrix_gf2e_dense
             elif sage.rings.polynomial.multi_polynomial_ring_generic.is_MPolynomialRing(R) and R.base_ring() in _Fields:
                 return matrix_mpolynomial_dense.Matrix_mpolynomial_dense
             #elif isinstance(R, sage.rings.padics.padic_ring_capped_relative.pAdicRingCappedRelative):
@@ -1739,3 +1781,5 @@ register_unpickle_override('sage.matrix.matrix_integer_2x2',
     'Matrix_integer_2x2', Matrix_integer_dense)
 register_unpickle_override('sage.matrix.matrix_integer_2x2',
     'MatrixSpace_ZZ_2x2_class', MatrixSpace)
+register_unpickle_override('sage.matrix.matrix_mod2e_dense',
+    'unpickle_matrix_mod2e_dense_v0', matrix_gf2e_dense.unpickle_matrix_gf2e_dense_v0)

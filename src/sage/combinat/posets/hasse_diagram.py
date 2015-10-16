@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 r"""
 Hasse diagrams of posets
 
@@ -706,7 +707,7 @@ class HasseDiagram(DiGraph):
 
     def mobius_function(self,i,j): # dumb algorithm
         r"""
-        Returns the value of the M\"obius function of the poset
+        Returns the value of the Möbius function of the poset
         on the elements ``i`` and ``j``.
 
         EXAMPLES::
@@ -740,10 +741,10 @@ class HasseDiagram(DiGraph):
 
     def mobius_function_matrix(self):
         r"""
-        Returns the matrix of the Mobius function of this poset
+        Returns the matrix of the Möbius function of this poset
 
         This returns the sparse matrix over `\ZZ` whose ``(x, y)`` entry
-        is the value of the M\"obius function of ``self`` evaluated on
+        is the value of the Möbius function of ``self`` evaluated on
         ``x`` and ``y``, and redefines :meth:`mobius_function` to use
         it.
 
@@ -784,7 +785,7 @@ class HasseDiagram(DiGraph):
     # Redefine self.mobius_function
     def _mobius_function_from_matrix(self, i,j):
         r"""
-        Returns the value of the M\"obius function of the poset
+        Returns the value of the Möbius function of the poset
         on the elements ``i`` and ``j``.
 
         EXAMPLES::
@@ -1288,33 +1289,34 @@ class HasseDiagram(DiGraph):
 
     def is_complemented_lattice(self):
         r"""
-        Returns ``True`` if ``self`` is the Hasse diagram of a
+        Return ``True`` if ``self`` is the Hasse diagram of a
         complemented lattice, and ``False`` otherwise.
 
         EXAMPLES::
 
             sage: from sage.combinat.posets.hasse_diagram import HasseDiagram
-            sage: H = HasseDiagram({0:[1,2,3],1:[4],2:[4],3:[4]})
+            sage: H = HasseDiagram({0:[1, 2, 3], 1:[4], 2:[4], 3:[4]})
             sage: H.is_complemented_lattice()
             True
 
-            sage: H = HasseDiagram({0:[1,2],1:[3],2:[3],3:[4]})
+            sage: H = HasseDiagram({0:[1, 2], 1:[3], 2:[3], 3:[4]})
             sage: H.is_complemented_lattice()
             False
         """
+        from itertools import izip
         try:
-            jn = self.join_matrix()
             mt = self.meet_matrix()
+            jn = self.join_matrix()
         except ValueError:
             return False
-        n = self.cardinality()
-        c = [-1 for x in range(n)]
-        for x in range(n):
-            for y in range(x,n):
-                if jn[x][y]==n-1 and mt[x][y]==0:
-                    c[x]=y
-                    c[y]=x
-        return all([c[x]!=-1 for x in range(n)])
+        n = self.cardinality() - 1
+        for row1, row2 in izip(mt, jn):
+            for c1, c2 in izip(row1, row2):
+                if c1 == 0 and c2 == n:
+                    break
+            else:
+                return False
+        return True
 
     def complements(self):
         r"""
@@ -1535,7 +1537,7 @@ class HasseDiagram(DiGraph):
     def maximal_sublattices(self):
         """
         Return maximal sublattices of the lattice.
- 
+
         EXAMPLES::
 
             sage: L = Posets.PentagonPoset()
@@ -1636,6 +1638,25 @@ class HasseDiagram(DiGraph):
 
         return result
 
+    def frattini_sublattice(self):
+        """
+        Return the list of elements of the Frattini sublattice of the lattice.
+
+        EXAMPLES::
+
+            sage: H = Posets.PentagonPoset()._hasse_diagram
+            sage: H.frattini_sublattice()
+            [0, 4]
+        """
+        # Just a direct computation, no optimization at all.
+        n = self.cardinality()
+        if n == 0 or n == 2: return []
+        if n == 1: return [0]
+        max_sublats = self.maximal_sublattices()
+        return [e for e in range(self.cardinality()) if
+                all(e in ms for ms in max_sublats)]
+
 from sage.misc.rest_index_of_methods import gen_rest_table_index
 import sys
 __doc__ = __doc__.format(INDEX_OF_FUNCTIONS=gen_rest_table_index(HasseDiagram))
+

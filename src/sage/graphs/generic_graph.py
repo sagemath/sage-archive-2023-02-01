@@ -114,7 +114,6 @@ can be applied on both. Here is what it can do:
     :meth:`~GenericGraph.eulerian_orientation` | Return a DiGraph which is an Eulerian orientation of the current graph.
     :meth:`~GenericGraph.eulerian_circuit` | Return a list of edges forming an eulerian circuit if one exists.
     :meth:`~GenericGraph.cycle_basis` | Return a list of cycles which form a basis of the cycle space of ``self``.
-    :meth:`~GenericGraph.interior_paths` | Return an exhaustive list of paths (also lists) through only interior vertices from vertex start to vertex end in the (di)graph.
     :meth:`~GenericGraph.all_paths` | Return a list of all paths (also lists) between a pair of vertices in the (di)graph.
     :meth:`~GenericGraph.triangles_count` | Return the number of triangles in the (di)graph.
 
@@ -1317,7 +1316,7 @@ class GenericGraph(GenericGraph_pyx):
 
             This routine needs the optional package igraph to be installed:
             to do so, it is enough to
-            run ``sage -i igraph`` followed by ``sage -i python_igraph``. For
+            run ``sage -i python_igraph``. For
             more information on the Python version of igraph, see
             http://igraph.org/python/.
 
@@ -1445,8 +1444,7 @@ class GenericGraph(GenericGraph_pyx):
             import igraph
         except ImportError:
             raise ImportError("The package igraph is not available. To " +
-                              "install it, run 'sage -i igraph' followed by " +
-                              "'sage -i python_igraph'.")
+                              "install it, run 'sage -i python_igraph'")
 
         v_to_int = {v:i for i,v in enumerate(self.vertices())}
         edges = [(v_to_int[v], v_to_int[w]) for v,w in self.edge_iterator(labels=False)]
@@ -3968,11 +3966,11 @@ class GenericGraph(GenericGraph_pyx):
 
         This wraps the reference implementation provided by John Boyer of the
         linear time planarity algorithm by edge addition due to Boyer
-        Myrvold. (See reference code in :mod:`sage.graphs.planarity`).
+        Myrvold. (See reference code in :mod:`~sage.graphs.planarity`).
 
         .. NOTE::
 
-            the argument on_embedding takes precedence over
+            The argument on_embedding takes precedence over
             ``set_embedding``. This means that only the ``on_embedding``
             combinatorial embedding will be tested for planarity and no
             ``_embedding`` attribute will be set as a result of this function
@@ -4093,6 +4091,11 @@ class GenericGraph(GenericGraph_pyx):
             sage: emb = {0 : [2,3,1], 1: [2,3,0], 2: [1,3,0], 3:[0,1,2]}
             sage: g.is_planar(on_embedding=emb)
             False
+
+        :trac:`19193`::
+
+            sage: Posets.BooleanLattice(3).cover_relations_graph().is_planar()
+            True
         """
         if self.has_multiple_edges() or self.has_loops():
             if set_embedding or (on_embedding is not None) or set_pos:
@@ -4106,6 +4109,8 @@ class GenericGraph(GenericGraph_pyx):
         else:
             from sage.graphs.planarity import is_planar
             G = self.to_undirected()
+            if hasattr(G, '_immutable'):
+                G = copy(G)
             planar = is_planar(G,kuratowski=kuratowski,set_pos=set_pos,set_embedding=set_embedding)
             if kuratowski:
                 bool_result = planar[0]
@@ -7810,8 +7815,7 @@ class GenericGraph(GenericGraph_pyx):
                 import igraph
             except ImportError:
                 raise ImportError("The igraph library is not available. " +
-                                 "Please, install it with sage -i igraph " +
-                                 "followed by sage -i python_igraph.")
+                                 "Please, install it with sage -i python_igraph")
             vertices = self.vertices()
             x_int = vertices.index(x)
             y_int = vertices.index(y)
@@ -12540,7 +12544,7 @@ class GenericGraph(GenericGraph_pyx):
 
     def is_subgraph(self, other, induced=True):
         """
-        Tests whether ``self`` is a subgraph of ``other``.
+        Return ``True`` if the graph is a subgraph of ``other``, and ``False`` otherwise.
 
         .. WARNING::
 
@@ -12553,31 +12557,34 @@ class GenericGraph(GenericGraph_pyx):
         INPUT:
 
         - ``induced`` - boolean (default: ``True``) If set to ``True`` tests
-          whether ``self`` is an *induced* subgraph of ``other`` that is if
-          the vertices of ``self`` are also vertices of ``other``, and the
-          edges of  ``self`` are equal to the edges of ``other`` between the
-          vertices contained in ``self`.
-          If set to ``False`` tests whether ``self`` is a subgraph of ``other``
-          that is if all vertices of ``self`` are also in ``other`` and all
-          edges of ``self`` are also in ``other``.
+          whether the graph is an *induced* subgraph of ``other`` that is if
+          the vertices of the graph are also vertices of ``other``, and the
+          edges of the graph are equal to the edges of ``other`` between the
+          vertices contained in the graph.
+
+          If set to ``False`` tests whether the graph is a subgraph of
+          ``other`` that is if all vertices of the graph are also in
+          ``other`` and all edges of the graph are also in ``other``.
 
         OUTPUT:
 
-        boolean -- ``True`` iff ``self`` is a (possibly induced) subgraph of ``other``.
+        boolean -- ``True`` iff the graph is a (possibly induced)
+        subgraph of ``other``.
 
         .. SEEALSO::
 
-            If you are interested in the (possibly induced) subgraphs isomorphic
-            to ``self`` in ``other``, you are looking for the following methods:
+            If you are interested in the (possibly induced) subgraphs
+            isomorphic to the graph in ``other``, you are looking for
+            the following methods:
 
-            - :meth:`~GenericGraph.subgraph_search` -- finds a subgraph
-              isomorphic to `G` inside of a `self`
+            - :meth:`~GenericGraph.subgraph_search` -- Find a subgraph
+              isomorphic to ``other`` inside of the graph.
 
-            - :meth:`~GenericGraph.subgraph_search_count` -- Counts the number
+            - :meth:`~GenericGraph.subgraph_search_count` -- Count the number
               of such copies.
 
-            - :meth:`~GenericGraph.subgraph_search_iterator` -- Iterate over all
-              the copies of `G` contained in `self`.
+            - :meth:`~GenericGraph.subgraph_search_iterator` --
+              Iterate over all the copies of ``other`` contained in the graph.
 
         EXAMPLES::
 
@@ -12586,8 +12593,8 @@ class GenericGraph(GenericGraph_pyx):
             sage: G.is_subgraph(P)
             True
 
-            sage: H=graphs.CycleGraph(5)
-            sage: G=graphs.PathGraph(5)
+            sage: H = graphs.CycleGraph(5)
+            sage: G = graphs.PathGraph(5)
             sage: G.is_subgraph(H)
             False
             sage: G.is_subgraph(H, induced=False)
@@ -12607,6 +12614,7 @@ class GenericGraph(GenericGraph_pyx):
             Traceback (most recent call last):
             ...
             ValueError: The input parameter must be a DiGraph.
+
         """
         from sage.graphs.graph import Graph
         from sage.graphs.digraph import DiGraph
@@ -14558,10 +14566,10 @@ class GenericGraph(GenericGraph_pyx):
             [4, 17, 16, 12, 13, 9]
             sage: D.shortest_path(4, 9, algorithm='BFS')
             [4, 3, 2, 1, 8, 9]
-            sage: D.shortest_path(4, 9, algorithm='Dijkstra_NetworkX')
-            [4, 3, 2, 1, 8, 9]
-            sage: D.shortest_path(4, 9, algorithm='Dijkstra_Bid_NetworkX')
-            [4, 3, 2, 1, 8, 9]
+            sage: D.shortest_path(4, 8, algorithm='Dijkstra_NetworkX')
+            [4, 3, 2, 1, 8]
+            sage: D.shortest_path(4, 8, algorithm='Dijkstra_Bid_NetworkX')
+            [4, 3, 2, 1, 8]
             sage: D.shortest_path(4, 9, algorithm='Dijkstra_Bid')
             [4, 3, 19, 0, 10, 9]
             sage: D.shortest_path(5, 5)
@@ -15838,7 +15846,7 @@ class GenericGraph(GenericGraph_pyx):
           vertices.  For a graph, ``neighbors`` is by default the
           :meth:`.neighbors` function of the graph.  For a digraph,
           the ``neighbors`` function defaults to the
-          :meth:`successors` function of the graph.
+          :meth:`~DiGraph.neighbor_out_iterator` function of the graph.
 
         - ``report_distance`` -- (default ``False``) If ``True``,
           reports pairs (vertex, distance) where distance is the
@@ -15971,7 +15979,7 @@ class GenericGraph(GenericGraph_pyx):
     def depth_first_search(self, start, ignore_direction=False,
                            distance=None, neighbors=None):
         """
-        Returns an iterator over the vertices in a depth-first ordering.
+        Return an iterator over the vertices in a depth-first ordering.
 
         INPUT:
 
@@ -15983,16 +15991,14 @@ class GenericGraph(GenericGraph_pyx):
           directed graphs. If True, searches across edges in either
           direction.
 
-        - ``distance`` - the maximum distance from the ``start`` nodes
-          to traverse.  The ``start`` nodes are distance zero from
-          themselves.
+        - ``distance`` - Deprecated. Broken, do not use.
 
         - ``neighbors`` - a function giving the neighbors of a vertex.
           The function should take a vertex and return a list of
           vertices.  For a graph, ``neighbors`` is by default the
           :meth:`.neighbors` function of the graph.  For a digraph,
           the ``neighbors`` function defaults to the
-          :meth:`.successors` function of the graph.
+          :meth:`~DiGraph.neighbor_out_iterator` function of the graph.
 
         .. SEEALSO::
 
@@ -16020,15 +16026,6 @@ class GenericGraph(GenericGraph_pyx):
             sage: list(D.depth_first_search(0, ignore_direction=True))
             [0, 7, 6, 3, 5, 2, 1, 4]
 
-        You can specify a maximum distance in which to search.  A
-        distance of zero returns the ``start`` vertices::
-
-            sage: D = DiGraph( { 0: [1,2,3], 1: [4,5], 2: [5], 3: [6], 5: [7], 6: [7], 7: [0]})
-            sage: list(D.depth_first_search(0,distance=0))
-            [0]
-            sage: list(D.depth_first_search(0,distance=1))
-            [0, 3, 2, 1]
-
         Multiple starting vertices can be specified in a list::
 
             sage: D = DiGraph( { 0: [1,2,3], 1: [4,5], 2: [5], 3: [6], 5: [7], 6: [7], 7: [0]})
@@ -16036,24 +16033,22 @@ class GenericGraph(GenericGraph_pyx):
             [0, 3, 6, 7, 2, 5, 1, 4]
             sage: list(D.depth_first_search([0,6]))
             [0, 3, 6, 7, 2, 5, 1, 4]
-            sage: list(D.depth_first_search([0,6],distance=0))
-            [0, 6]
-            sage: list(D.depth_first_search([0,6],distance=1))
-            [0, 3, 2, 1, 6, 7]
-            sage: list(D.depth_first_search(6,ignore_direction=True,distance=2))
-            [6, 7, 5, 0, 3]
 
         More generally, you can specify a ``neighbors`` function.  For
         example, you can traverse the graph backwards by setting
         ``neighbors`` to be the :meth:`.neighbors_in` function of the graph::
 
-            sage: D = DiGraph( { 0: [1,2,3], 1: [4,5], 2: [5], 3: [6], 5: [7], 6: [7], 7: [0]})
-            sage: list(D.depth_first_search(5,neighbors=D.neighbors_in, distance=2))
-            [5, 2, 0, 1]
-            sage: list(D.depth_first_search(5,neighbors=D.neighbors_out, distance=2))
-            [5, 7, 0]
-            sage: list(D.depth_first_search(5,neighbors=D.neighbors, distance=2))
-            [5, 7, 6, 0, 2, 1, 4]
+            sage: D = digraphs.Path(10)
+            sage: D.add_path([22,23,24,5])
+            sage: D.add_path([5,33,34,35])
+            sage: list(D.depth_first_search(5, neighbors=D.neighbors_in))
+            [5, 4, 3, 2, 1, 0, 24, 23, 22]
+            sage: list(D.breadth_first_search(5, neighbors=D.neighbors_in))
+            [5, 24, 4, 23, 3, 22, 2, 1, 0]
+            sage: list(D.depth_first_search(5, neighbors=D.neighbors_out))
+            [5, 6, 7, 8, 9, 33, 34, 35]
+            sage: list(D.breadth_first_search(5, neighbors=D.neighbors_out))
+            [5, 33, 6, 34, 7, 35, 8, 9]
 
         TESTS::
 
@@ -16064,6 +16059,10 @@ class GenericGraph(GenericGraph_pyx):
             [0, 2, 1]
 
         """
+        from sage.misc.superseded import deprecation
+        if distance is not None:
+            deprecation(19227, "Parameter 'distance' is broken. Do not use.")
+
         # Preferably use the Cython implementation
         if neighbors is None and not isinstance(start,list) and  distance is None and hasattr(self._backend,"depth_first_search"):
             for v in self._backend.depth_first_search(start, ignore_direction = ignore_direction):
@@ -16292,8 +16291,7 @@ class GenericGraph(GenericGraph_pyx):
             vert1 = v
 
     def complement(self):
-        """
-        Returns the complement of the (di)graph.
+        """Returns the complement of the (di)graph.
 
         The complement of a graph has the same vertices, but exactly those
         edges that are not in the original graph. This is not well defined
@@ -16321,7 +16319,10 @@ class GenericGraph(GenericGraph_pyx):
             sage: G.complement()
             Traceback (most recent call last):
             ...
-            TypeError: complement not well defined for (di)graphs with multiple edges
+            ValueError: This method is not known to work on graphs with
+            multiedges. Perhaps this method can be updated to handle them, but
+            in the meantime if you want to use it please disallow multiedges
+            using allow_multiple_edges().
 
         TESTS:
 
@@ -16330,17 +16331,23 @@ class GenericGraph(GenericGraph_pyx):
             sage: G = graphs.PathGraph(5).copy(immutable=True)
             sage: G.complement()
             complement(Path graph): Graph on 5 vertices
+
+        The name is not updated when there was none in the first place::
+
+            sage: g = Graph(graphs.PetersenGraph().edges()); g
+            Graph on 10 vertices
+            sage: g.complement()
+            Graph on 10 vertices
+
         """
-        if self.has_multiple_edges():
-            raise TypeError('complement not well defined for (di)graphs with multiple edges')
         self._scream_if_not_simple()
-        G = copy(self)
-        G.delete_edges(G.edges())
-        G.name('complement(%s)'%self.name())
-        for u in self:
-            for v in self:
-                if not self.has_edge(u,v):
-                    G.add_edge(u,v)
+
+        G = self.copy(data_structure='dense')
+        G._backend.c_graph()[0].complement()
+
+        if self.name():
+            G.name("complement({})".format(self.name()))
+
         if getattr(self, '_immutable', False):
             return G.copy(immutable=True)
         return G
@@ -17678,8 +17685,7 @@ class GenericGraph(GenericGraph_pyx):
            are in your path. The graphviz suite can be download from
            http://graphviz.org.
 
-         - Download dot2tex-2.8.?.spkg from http://trac.sagemath.org/sage_trac/ticket/7004
-           and install it with ``sage -i dot2tex-2.8.?.spkg``
+         - Install dot2tex with ``sage -i dot2tex``
 
         .. TODO::
 
@@ -20204,18 +20210,11 @@ class GenericGraph(GenericGraph_pyx):
             sage: g.is_hamiltonian()
             False
 
-        TESTS:
+        TESTS::
 
-        When no solver is installed, a
-        ``OptionalPackageNotFoundError`` exception is raised::
-
-            sage: from sage.misc.exceptions import OptionalPackageNotFoundError
-            sage: try:
-            ...       g = graphs.ChvatalGraph()
-            ...       if not g.is_hamiltonian():
-            ...          print "There is something wrong here !"
-            ... except OptionalPackageNotFoundError:
-            ...       pass
+            sage: g = graphs.ChvatalGraph()
+            sage: g.is_hamiltonian()
+            True
 
         :trac:`16210`::
 
@@ -20428,7 +20427,7 @@ class GenericGraph(GenericGraph_pyx):
             sage: g.is_isomorphic(gg)
             False
 
-        Ensure that trac:`14777` is fixed ::
+        Ensure that :trac:`14777` is fixed ::
 
             sage: g = Graph()
             sage: h = Graph()

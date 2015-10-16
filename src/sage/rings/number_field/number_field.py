@@ -4200,42 +4200,48 @@ class NumberField_generic(number_field_base.NumberField):
 
     def composite_fields(self, other, names=None, both_maps=False, preserve_embedding=True):
         """
-        List of all possible composite number fields formed from self and
-        other, together with (optionally) embeddings into the compositum;
-        see the documentation for both_maps below.
-
-        If preserve_embedding is True and if self and other both have
-        embeddings into the same ambient field, or into fields which are
-        contained in a common field, only the compositum respecting
-        both embeddings is returned.  If one (or both) of self or other
-        does not have an embedding or preserve_embedding is False,
-        all possible composite number fields are returned.
+        Return the possible composite number fields formed from
+        ``self`` and ``other``.
 
         INPUT:
 
-        - ``other`` - a number field
+        - ``other`` -- number field
 
-        - ``names`` - generator name for composite fields
+        - ``names`` -- generator name for composite fields
 
-        - ``both_maps`` - (default: False)  if True, return quadruples
-          (F, self_into_F, other_into_F, k) such that self_into_F is an
-          embedding of self in F, other_into_F is an embedding of in F,
-          and k is an integer such that F.gen() equals
-          other_into_F(other.gen()) + k*self_into_F(self.gen())
-          or has the value Infinity in which case F.gen() equals
-          self_into_F(self.gen()), or is None (which happens when other is a
-          relative number field).
-          If both self and other have embeddings into an ambient field, then
-          F will have an embedding with respect to which both self_into_F
-          and other_into_F will be compatible with the ambient embeddings.
+        - ``both_maps`` -- boolean (default: ``False``)
 
-        - ``preserve_embedding`` - (default: True) if self and other have
-          ambient embeddings, then return only the compatible compositum.
+        - ``preserve_embedding`` -- boolean (default: True)
 
         OUTPUT:
 
-        -  ``list`` - list of the composite fields, possibly with maps.
+        A list of the composite fields, possibly with maps.
 
+        If ``both_maps`` is ``True``, the list consists of quadruples
+        ``(F, self_into_F, other_into_F, k)`` such that
+        ``self_into_F`` is an embedding of ``self`` in ``F``,
+        ``other_into_F`` is an embedding of in ``F``, and ``k`` is one
+        of the following:
+
+        - an integer such that ``F.gen()`` equals
+          ``other_into_F(other.gen()) + k*self_into_F(self.gen())``;
+
+        - ``Infinity``, in which case ``F.gen()`` equals
+          ``self_into_F(self.gen())``;
+
+        - ``None`` (when ``other`` is a relative number field).
+
+        If both ``self`` and ``other`` have embeddings into an ambient
+        field, then each ``F`` will have an embedding with respect to
+        which both ``self_into_F`` and ``other_into_F`` will be
+        compatible with the ambient embeddings.
+
+        If ``preserve_embedding`` is ``True`` and if ``self`` and
+        ``other`` both have embeddings into the same ambient field, or
+        into fields which are contained in a common field, only the
+        compositum respecting both embeddings is returned.  In all
+        other cases, all possible composite number fields are
+        returned.
 
         EXAMPLES::
 
@@ -4257,7 +4263,8 @@ class NumberField_generic(number_field_base.NumberField):
             sage: f(K1.0), g(K2.0)
             (a, -a)
 
-        With preserve_embedding set to False, the embeddings are ignored::
+        With ``preserve_embedding`` set to ``False``, the embeddings
+        are ignored::
 
             sage: K1.composite_fields(K2, preserve_embedding=False)
             [Number Field in a with defining polynomial x^4 - 2,
@@ -4271,7 +4278,8 @@ class NumberField_generic(number_field_base.NumberField):
             sage: f(K1.0), g(K3.0)
             (1/240*a0^5 - 41/120*a0, 1/120*a0^5 + 19/60*a0)
 
-        If no embeddings are specified, the maps into the composite are chosen arbitrarily::
+        If no embeddings are specified, the maps into the compositum
+        are chosen arbitrarily::
 
             sage: Q1.<a> = NumberField(x^4 + 10*x^2 + 1)
             sage: Q2.<b> = NumberField(x^4 + 16*x^2 + 4)
@@ -4284,7 +4292,7 @@ class NumberField_generic(number_field_base.NumberField):
               To:   Number Field in c with defining polynomial x^8 + 64*x^6 + 904*x^4 + 3840*x^2 + 3600
               Defn: a |--> 19/14400*c^7 + 137/1800*c^5 + 2599/3600*c^3 + 8/15*c
 
-        This is just one of four embeddings of Q1 into F::
+        This is just one of four embeddings of ``Q1`` into ``F``::
 
             sage: Hom(Q1, F).order()
             4
@@ -4350,6 +4358,29 @@ class NumberField_generic(number_field_base.NumberField):
               -1)]
             sage: M, f, g, k = C[0]
             sage: M.gen() == g(b) + k*f(a)
+            True
+
+        This also fixes the bugs reported at :trac:`14164` and
+        :trac:`18243`::
+
+            sage: R.<x> = QQ[]
+            sage: f = 6*x^5 + x^4 + x^2 + 5*x + 7
+            sage: r = f.roots(QQbar, multiplicities=False)
+            sage: F1 = NumberField(f.monic(), 'a', embedding=r[0])
+            sage: F2 = NumberField(f.monic(), 'a', embedding=r[1])
+            sage: (F, map1, map2, k) = F1.composite_fields(F2, both_maps=True)[0]
+            sage: F.degree()
+            20
+            sage: F.gen() == map2(F2.gen()) + k*map1(F1.gen())
+            True
+
+            sage: f = x^8 - 3*x^7 + 61/3*x^6 - 9*x^5 + 298*x^4 + 458*x^3 + 1875*x^2 + 4293*x + 3099
+            sage: F1 = NumberField(f, 'z', embedding=-1.18126721294295 + 3.02858651117832j)
+            sage: F2 = NumberField(f, 'z', embedding=-1.18126721294295 - 3.02858651117832j)
+            sage: (F, map1, map2, k) = F1.composite_fields(F2, both_maps=True)[0]
+            sage: F.degree()
+            32
+            sage: F.gen() == map2(F2.gen()) + k*map1(F1.gen())
             True
         """
         if not isinstance(other, NumberField_generic):
@@ -8017,9 +8048,9 @@ class NumberField_absolute(NumberField_generic):
             sage: L0 = K.relativize(rho(K0.gen()), 'b'); L0
             Number Field in b0 with defining polynomial x^2 - b1 + 2 over its base field
             sage: L1 = K.relativize(rho, 'b'); L1
-            Number Field in b0 with defining polynomial x^2 - a0 + 2 over its base field
+            Number Field in b with defining polynomial x^2 - a0 + 2 over its base field
             sage: L2 = K.relativize(tau, 'b'); L2
-            Number Field in b0 with defining polynomial x^2 + a0 over its base field
+            Number Field in b with defining polynomial x^2 + a0 over its base field
             sage: L0.base_field() is K0
             False
             sage: L1.base_field() is K0
@@ -8087,7 +8118,7 @@ class NumberField_absolute(NumberField_generic):
 
             sage: L = NumberField(x^4 + 1, 'a')
             sage: [L.relativize(h, 'c') for (f,h,i) in L.subfields()]
-            [Number Field in c0 with defining polynomial x^4 + 1 over its base field, Number Field in c0 with defining polynomial x^2 - 1/2*a1 over its base field, Number Field in c0 with defining polynomial x^2 - a2*x - 1 over its base field, Number Field in c0 with defining polynomial x^2 - a3*x + 1 over its base field, Number Field in c0 with defining polynomial x - a4 over its base field]
+            [Number Field in c with defining polynomial x^4 + 1 over its base field, Number Field in c with defining polynomial x^2 - 1/2*a1 over its base field, Number Field in c with defining polynomial x^2 - a2*x - 1 over its base field, Number Field in c with defining polynomial x^2 - a3*x + 1 over its base field, Number Field in c with defining polynomial x - a4 over its base field]
 
         We can relativize over a relative field::
 
@@ -8098,23 +8129,23 @@ class NumberField_absolute(NumberField_generic):
             Number Field in z0_0 with defining polynomial x^2 + 64
 
             sage: L_over_F = L.relativize(F_into_L, 'c'); L_over_F
-            Number Field in c0 with defining polynomial x^2 - 1/2*z0_0 over its base field
+            Number Field in c with defining polynomial x^2 - 1/2*z0_0 over its base field
             sage: L_over_F_into_L, _ = L_over_F.structure()
 
             sage: K_over_rel = K.relativize(L_into_K * L_over_F_into_L, 'a'); K_over_rel
-            Number Field in a0 with defining polynomial x^2 - 1/2*c0 over its base field
+            Number Field in a with defining polynomial x^2 - 1/2*c over its base field
             sage: K_over_rel.base_field() is L_over_F
             True
             sage: K_over_rel.structure()
             (Relative number field morphism:
-              From: Number Field in a0 with defining polynomial x^2 - 1/2*c0 over its base field
+              From: Number Field in a with defining polynomial x^2 - 1/2*c over its base field
               To:   Cyclotomic Field of order 16 and degree 8
-              Defn: a0 |--> z
-                    c0 |--> 2*z^2
+              Defn: a |--> z
+                    c |--> 2*z^2
                     z0_0 |--> 8*z^4, Ring morphism:
               From: Cyclotomic Field of order 16 and degree 8
-              To:   Number Field in a0 with defining polynomial x^2 - 1/2*c0 over its base field
-              Defn: z |--> a0)
+              To:   Number Field in a with defining polynomial x^2 - 1/2*c over its base field
+              Defn: z |--> a)
 
         We can relativize over a really large field::
 
@@ -8131,13 +8162,23 @@ class NumberField_absolute(NumberField_generic):
               From: Cyclotomic Field of order 216 and degree 72
               To:   Number Field in t0 with defining polynomial x^9 - t1 over its base field
               Defn: a |--> t0)
+
+        Only one name is required when a morphism is given (fixing :trac:`12005`)::
+
+            sage: R.<x> = PolynomialRing(QQ)
+            sage: K.<i> = NumberField(x^2 + 1)
+            sage: L.<b> = NumberField(x^4 - x^2 + 1)
+            sage: phi = K.hom(b^3, L)
+            sage: M.<r> = L.relativize(phi)
+            sage: M
+            Number Field in r with defining polynomial x^2 - i*x - 1 over its base field
+            sage: M.base_field()
+            Number Field in i with defining polynomial x^2 + 1
         """
         # step 1: construct the abstract field generated by alpha.w
         # step 2: make a relative extension of it.
         # step 3: construct isomorphisms
         from sage.all import vector, matrix
-
-        names = sage.structure.parent_gens.normalize_names(2, names)
 
         from sage.categories.map import is_Map
         if is_Map(alpha):
@@ -8151,10 +8192,12 @@ class NumberField_absolute(NumberField_generic):
                 f = polygen(QQ)
             else:
                 f = L.defining_polynomial() # = alpha.minpoly()
+            names = sage.structure.parent_gens.normalize_names(1, names)
         else:
             # alpha must be an element coercible to self
             alpha = self(alpha)
             f = alpha.minpoly()
+            names = sage.structure.parent_gens.normalize_names(2, names)
             L = NumberField(f, names[1])
 
         # now we do some linear algebra to find the minpoly of self.gen() over L

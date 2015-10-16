@@ -1185,33 +1185,6 @@ class Homset(Set_generic):
         """
         return Hom(self.codomain(), self.domain(), category = self.homset_category())
 
-    ############### For compatibility with old coercion model #######################
-
-    def get_action_c(self, R, op, self_on_left):
-        """
-        .. WARNING::
-
-            For compatibility with old coercion model. DO NOT USE!
-
-        TESTS::
-
-            sage: H = Hom(ZZ^2, ZZ^3)
-            sage: H.get_action_c(ZZ, operator.add, ZZ)
-        """
-        return None
-
-    def coerce_map_from_c(self, R):
-        """
-        .. WARNING::
-
-            For compatibility with old coercion model. DO NOT USE!
-
-        TESTS::
-
-            sage: H = Hom(ZZ^2, ZZ^3)
-            sage: H.coerce_map_from_c(ZZ)
-        """
-        return None
 
 # Really needed???
 class HomsetWithBase(Homset):

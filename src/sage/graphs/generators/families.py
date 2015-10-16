@@ -3,11 +3,6 @@ r"""
 Families of graphs
 
 The methods defined here appear in :mod:`sage.graphs.graph_generators`.
-
-AUTHORS:
-
-- David Coudert (2012) Ringed Trees
-
 """
 
 ###########################################################################
@@ -51,7 +46,7 @@ def JohnsonGraph(n, k):
         sage: g.is_vertex_transitive()
         True
 
-    The complement of the Johnson graph `J(n,2)` is isomorphic to the Knesser
+    The complement of the Johnson graph `J(n,2)` is isomorphic to the Kneser
     Graph `K(n,2)`.  In paritcular the complement of `J(5,2)` is isomorphic to
     the Petersen graph.  ::
 
@@ -192,9 +187,9 @@ def BalancedTree(r, h):
 
     TESTS:
 
-     Normally we would only consider balanced trees whose root node
-     has degree `r \geq 2`, but the construction degenerates
-     gracefully::
+    Normally we would only consider balanced trees whose root node
+    has degree `r \geq 2`, but the construction degenerates
+    gracefully::
 
         sage: graphs.BalancedTree(1, 10)
         Balanced tree: Graph on 2 vertices
@@ -2275,220 +2270,3 @@ def RingedTree(k, vertex_labels = True):
     g.relabel(vertices)
 
     return g
-
-def SymplecticGraph(d,q):
-    r"""
-    Returns the Symplectic graph `Sp(d,q)`
-
-    The Symplectic Graph `Sp(d,q)` is built from a projective space of dimension
-    `d-1` over a field `F_q`, and a symplectic form `f`. Two vertices `u,v` are
-    made adjacent if `f(u,v)=0`.
-
-    See the `page on symplectic graphs on Andries Brouwer's website
-    <http://www.win.tue.nl/~aeb/graphs/Sp.html>`_.
-
-    INPUT:
-
-    - ``d,q`` (integers) -- note that only even values of `d` are accepted by
-      the function.
-
-    EXAMPLES::
-
-        sage: g = graphs.SymplecticGraph(6,2)
-        sage: g.is_strongly_regular(parameters=True)
-        (63, 30, 13, 15)
-        sage: set(g.spectrum()) == {-5, 3, 30}
-        True
-    """
-    from sage.rings.finite_rings.constructor import FiniteField
-    from sage.modules.free_module import VectorSpace
-    from sage.schemes.projective.projective_space import ProjectiveSpace
-    from sage.matrix.constructor import identity_matrix, block_matrix, zero_matrix
-
-    if d < 1 or d%2 != 0:
-        raise ValueError("d must be even and greater than 2")
-
-    F = FiniteField(q,"x")
-    M = block_matrix(F, 2, 2,
-                     [zero_matrix(F,d/2),
-                      identity_matrix(F,d/2),
-                      -identity_matrix(F,d/2),
-                      zero_matrix(F,d/2)])
-
-    V = VectorSpace(F,d)
-    PV = list(ProjectiveSpace(d-1,F))
-    G = Graph([[tuple(_) for _ in PV], lambda x,y:V(x)*(M*V(y)) == 0], loops = False)
-    G.name("Symplectic Graph Sp("+str(d)+","+str(q)+")")
-    G.relabel()
-    return G
-
-def AffineOrthogonalPolarGraph(d,q,sign="+"):
-    r"""
-    Returns the affine polar graph `VO^+(d,q),VO^-(d,q)` or `VO(d,q)`.
-
-    Affine Polar graphs are built from a `d`-dimensional vector space over
-    `F_q`, and a quadratic form which is hyperbolic, elliptic or parabolic
-    according to the value of ``sign``.
-
-    Note that `VO^+(d,q),VO^-(d,q)` are strongly regular graphs, while `VO(d,q)`
-    is not.
-
-    For more information on Affine Polar graphs, see `Affine Polar
-    Graphs page of Andries Brouwer's website
-    <http://www.win.tue.nl/~aeb/graphs/VO.html>`_.
-
-    INPUT:
-
-    - ``d`` (integer) -- ``d`` must be even if ``sign != None``, and odd
-      otherwise.
-
-    - ``q`` (integer) -- a power of a prime number, as `F_q` must exist.
-
-    - ``sign`` -- must be qual to ``"+"``, ``"-"``, or ``None`` to compute
-      (respectively) `VO^+(d,q),VO^-(d,q)` or `VO(d,q)`. By default
-      ``sign="+"``.
-
-    .. NOTE::
-
-        The graph `VO^\epsilon(d,q)` is the graph induced by the
-        non-neighbors of a vertex in an :meth:`Orthogonal Polar Graph
-        <OrthogonalPolarGraph>` `O^\epsilon(d+2,q)`.
-
-    EXAMPLES:
-
-    The :meth:`Brouwer-Haemers graph <BrouwerHaemersGraph>` is isomorphic to
-    `VO^-(4,3)`::
-
-        sage: g = graphs.AffineOrthogonalPolarGraph(4,3,"-")
-        sage: g.is_isomorphic(graphs.BrouwerHaemersGraph())
-        True
-
-    Some examples from `Brouwer's table or strongly regular graphs
-    <http://www.win.tue.nl/~aeb/graphs/srg/srgtab.html>`_::
-
-        sage: g = graphs.AffineOrthogonalPolarGraph(6,2,"-"); g
-        Affine Polar Graph VO^-(6,2): Graph on 64 vertices
-        sage: g.is_strongly_regular(parameters=True)
-        (64, 27, 10, 12)
-        sage: g = graphs.AffineOrthogonalPolarGraph(6,2,"+"); g
-        Affine Polar Graph VO^+(6,2): Graph on 64 vertices
-        sage: g.is_strongly_regular(parameters=True)
-        (64, 35, 18, 20)
-
-    When ``sign is None``::
-
-        sage: g = graphs.AffineOrthogonalPolarGraph(5,2,None); g
-        Affine Polar Graph VO^-(5,2): Graph on 32 vertices
-        sage: g.is_strongly_regular(parameters=True)
-        False
-        sage: g.is_regular()
-        True
-        sage: g.is_vertex_transitive()
-        True
-    """
-    if sign in ["+","-"]:
-        s = 1 if sign == "+" else -1
-        if d%2 == 1:
-            raise ValueError("d must be even when sign!=None")
-    else:
-        if d%2 == 0:
-            raise ValueError("d must be odd when sign==None")
-        s = 0
-
-    from sage.interfaces.gap import gap
-    from sage.rings.finite_rings.constructor import FiniteField
-    from sage.modules.free_module import VectorSpace
-    from sage.matrix.constructor import Matrix
-    from sage.libs.gap.libgap import libgap
-    from itertools import combinations
-
-    M = Matrix(libgap.InvariantQuadraticForm(libgap.GeneralOrthogonalGroup(s,d,q))['matrix'])
-    F = libgap.GF(q).sage()
-    V = list(VectorSpace(F,d))
-
-    G = Graph()
-    G.add_vertices([tuple(_) for _ in V])
-    for x,y in combinations(V,2):
-        if not (x-y)*M*(x-y):
-            G.add_edge(tuple(x),tuple(y))
-
-    G.name("Affine Polar Graph VO^"+str('+' if s == 1 else '-')+"("+str(d)+","+str(q)+")")
-    G.relabel()
-    return G
-
-def OrthogonalPolarGraph(m, q, sign="+"):
-    r"""
-    Returns the Orthogonal Polar Graph `O^{\epsilon}(m,q)`.
-
-    For more information on Orthogonal Polar graphs, see see the `page of
-    Andries Brouwer's website <http://www.win.tue.nl/~aeb/graphs/srghub.html>`_.
-
-    INPUT:
-
-    - ``m,q`` (integers) -- `q` must be a prime power.
-
-    - ``sign`` -- ``"+"`` or ``"-"`` if `m` is even, ``"+"`` (default)
-      otherwise.
-
-    EXAMPLES::
-
-        sage: G = graphs.OrthogonalPolarGraph(6,3,"+"); G
-        Orthogonal Polar Graph O^+(6, 3): Graph on 130 vertices
-        sage: G.is_strongly_regular(parameters=True)
-        (130, 48, 20, 16)
-        sage: G = graphs.OrthogonalPolarGraph(6,3,"-"); G
-        Orthogonal Polar Graph O^-(6, 3): Graph on 112 vertices
-        sage: G.is_strongly_regular(parameters=True)
-        (112, 30, 2, 10)
-        sage: G = graphs.OrthogonalPolarGraph(5,3); G
-        Orthogonal Polar Graph O(5, 3): Graph on 40 vertices
-        sage: G.is_strongly_regular(parameters=True)
-        (40, 12, 2, 4)
-
-    TESTS::
-
-        sage: G = graphs.OrthogonalPolarGraph(4,3,"")
-        Traceback (most recent call last):
-        ...
-        ValueError: sign must be equal to either '-' or '+' when m is even
-        sage: G = graphs.OrthogonalPolarGraph(5,3,"-")
-        Traceback (most recent call last):
-        ...
-        ValueError: sign must be equal to either '' or '+' when m is odd
-    """
-    from sage.schemes.projective.projective_space import ProjectiveSpace
-    from sage.rings.finite_rings.constructor import FiniteField
-    from sage.modules.free_module_element import free_module_element as vector
-    from sage.matrix.constructor import Matrix
-    from sage.libs.gap.libgap import libgap
-    from itertools import combinations
-
-    if m % 2 == 0:
-        if sign != "+" and sign != "-":
-            raise ValueError("sign must be equal to either '-' or '+' when "
-                             "m is even")
-    else:
-        if sign != "" and sign != "+":
-            raise ValueError("sign must be equal to either '' or '+' when "
-                             "m is odd")
-        sign = ""
-
-    e = {'+': 1,
-         '-': -1,
-         '' : 0}[sign]
-
-    M = Matrix(libgap.InvariantQuadraticForm(libgap.GeneralOrthogonalGroup(e,m,q))['matrix'])
-    Fq = libgap.GF(q).sage()
-    PG = ProjectiveSpace(m - 1, Fq)
-    m_over_two = m // 2
-
-    def F(x):
-        return x*M*x
-
-    V = [x for x in PG if F(vector(x)) == 0]
-
-    G = Graph([V,lambda x,y:F(vector(x)-vector(y))==0],loops=False)
-
-    G.relabel()
-    G.name("Orthogonal Polar Graph O" + ("^" + sign if sign else "") + str((m, q)))
-    return G

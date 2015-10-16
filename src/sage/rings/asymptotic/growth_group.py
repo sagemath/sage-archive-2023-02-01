@@ -1643,6 +1643,8 @@ class GenericGrowthGroup(
 
         An element.
 
+        EXAMPLES::
+
             sage: from sage.rings.asymptotic.growth_group import GrowthGroup
             sage: G = GrowthGroup('z^ZZ')
             sage: G._create_element_in_extension_(3).parent()

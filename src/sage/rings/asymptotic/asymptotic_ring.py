@@ -2063,6 +2063,8 @@ class AsymptoticRing(Algebra, UniqueRepresentation):
 
         An element.
 
+        EXAMPLES::
+
             sage: A = AsymptoticRing('z^ZZ', ZZ)
             sage: term = next(A.an_element().summands.elements_topological())
             sage: A._create_element_in_extension_(term, A)

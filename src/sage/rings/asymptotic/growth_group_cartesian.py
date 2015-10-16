@@ -355,6 +355,8 @@ class GenericProduct(CartesianProductPoset, GenericGrowthGroup):
 
         An element.
 
+        EXAMPLES::
+
             sage: from sage.rings.asymptotic.growth_group import GrowthGroup
             sage: G = GrowthGroup('z^ZZ * log(z)^ZZ')
             sage: z = G('z')[0]

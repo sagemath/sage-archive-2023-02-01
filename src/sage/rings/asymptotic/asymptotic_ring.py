@@ -1820,8 +1820,13 @@ class AsymptoticRing(Algebra, UniqueRepresentation):
             ValueError:  Growth Group log(x)^ZZ does not provide any
             generators but name 'lx' given.
 
-        ::
+        The names of the generators have to agree with the names used in
+        the growth group except for univariate rings::
 
+            sage: A.<icecream> = AsymptoticRing(growth_group='x^ZZ', coefficient_ring=ZZ); A
+            Asymptotic Ring <x^ZZ> over Integer Ring
+            sage: icecream
+            x
             sage: A.<x, y> = AsymptoticRing(growth_group='x^ZZ * y^ZZ', coefficient_ring=ZZ); A
             Asymptotic Ring <x^ZZ * y^ZZ> over Integer Ring
             sage: A.<y, x> = AsymptoticRing(growth_group='x^ZZ * y^ZZ', coefficient_ring=ZZ)

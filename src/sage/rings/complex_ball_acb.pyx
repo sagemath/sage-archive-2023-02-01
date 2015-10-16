@@ -1239,7 +1239,7 @@ cdef class ComplexBall(RingElement):
         """
         return acb_is_real(self.value)
 
-    def __richcmp__(left, right, int op):
+    cpdef _richcmp_(left, Element right, int op):
         """
         Compare ``left`` and ``right``.
 
@@ -1263,19 +1263,6 @@ cdef class ComplexBall(RingElement):
             False
             sage: a == b
             False
-        """
-        return (<Element>left)._richcmp(right, op)
-
-    cpdef _richcmp_(left, Element right, int op):
-        """
-        Compare ``left`` and ``right``.
-
-        For more information, see :mod:`sage.rings.complex_ball_acb`.
-
-        EXAMPLES::
-
-            sage: from sage.rings.complex_ball_acb import ComplexBallField
-            sage: CBF = ComplexBallField()
             sage: a = CBF(1, 2)
             sage: b = CBF(1, 2)
             sage: a is b

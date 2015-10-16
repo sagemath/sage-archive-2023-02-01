@@ -134,7 +134,7 @@ class PALPreader(SageObject):
         return Popen(["class.x", "-b2a", "-di", self._data_basename], stdout=PIPE)
 
     def _read_vertices(self, stdout, rows, cols):
-        """
+        r"""
         Read vertex data from the PALP output pipe.
 
         OUTPUT:
@@ -158,7 +158,7 @@ class PALPreader(SageObject):
         return m
 
     def _read_vertices_transposed(self, stdout, rows, cols):
-        """
+        r"""
         Read vertex data from the PALP output pipe.
 
         OUTPUT:
@@ -428,9 +428,9 @@ class Reflexive4dHodge(PALPreader):
 
         TESTS::
 
-        sage: from sage.geometry.polyhedron.palp_database import Reflexive4dHodge
-        sage: Reflexive4dHodge(1,101)  # optional - polytopes_db_4d
-        <class 'sage.geometry.polyhedron.palp_database.Reflexive4dHodge'>
+            sage: from sage.geometry.polyhedron.palp_database import Reflexive4dHodge
+            sage: Reflexive4dHodge(1,101)  # optional - polytopes_db_4d
+            <class 'sage.geometry.polyhedron.palp_database.Reflexive4dHodge'>
         """
         dim = 4
         if data_basename is None:

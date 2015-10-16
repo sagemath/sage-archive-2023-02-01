@@ -1168,11 +1168,11 @@ class HyperbolicGeodesicUHP(HyperbolicGeodesic):
         r"""
         Given three points (the list `p`) in `\mathbb{CP}^{1}` in affine
         coordinates, return the linear fractional transformation taking
-        the elements of `p` to `0`,`1`, and `\infty'.
+        the elements of `p` to `0`, `1`, and `\infty`.
 
         INPUT:
 
-        - a list of three distinct elements of three distinct elements
+        - a list of three distinct elements
           of `\mathbb{CP}^1` in affine coordinates; that is, each element
           must be a complex number, `\infty`, or symbolic.
 

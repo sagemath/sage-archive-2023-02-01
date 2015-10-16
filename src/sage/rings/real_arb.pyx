@@ -1534,33 +1534,6 @@ cdef class RealBall(RingElement):
         """
         return arb_is_exact(self.value)
 
-    def __richcmp__(left, right, int op):
-        """
-        Compare ``left`` and ``right``.
-
-        For more information, see :mod:`sage.rings.real_arb`.
-
-        EXAMPLES::
-
-                sage: from sage.rings.real_arb import RealBallField
-                sage: RBF = RealBallField()
-                sage: a = RBF(1)
-                sage: b = RBF(1)
-                sage: a is b
-                False
-                sage: a == b
-                True
-                sage: a = RBF(1/3)
-                sage: a.is_exact()
-                False
-                sage: b = RBF(1/3)
-                sage: b.is_exact()
-                False
-                sage: a == b
-                False
-        """
-        return (<Element>left)._richcmp(right, op)
-
     cpdef _richcmp_(left, Element right, int op):
         """
         Compare ``left`` and ``right``.
@@ -1569,164 +1542,172 @@ cdef class RealBall(RingElement):
 
         EXAMPLES::
 
-                sage: from sage.rings.real_arb import RealBallField
-                sage: RBF = RealBallField()
-                sage: a = RBF(1)
-                sage: b = RBF(1)
-                sage: a is b
-                False
-                sage: a == b
-                True
+            sage: from sage.rings.real_arb import RealBallField
+            sage: RBF = RealBallField()
+            sage: a = RBF(1)
+            sage: b = RBF(1)
+            sage: a is b
+            False
+            sage: a == b
+            True
+            sage: a = RBF(1/3)
+            sage: a.is_exact()
+            False
+            sage: b = RBF(1/3)
+            sage: b.is_exact()
+            False
+            sage: a == b
+            False
 
         TESTS:
 
-            Balls whose intersection consists of one point::
+        Balls whose intersection consists of one point::
 
-                sage: a = RBF(RIF(1, 2))
-                sage: b = RBF(RIF(2, 4))
-                sage: a < b
-                False
-                sage: a > b
-                False
-                sage: a <= b
-                False
-                sage: a >= b
-                False
-                sage: a == b
-                False
-                sage: a != b
-                False
+            sage: a = RBF(RIF(1, 2))
+            sage: b = RBF(RIF(2, 4))
+            sage: a < b
+            False
+            sage: a > b
+            False
+            sage: a <= b
+            False
+            sage: a >= b
+            False
+            sage: a == b
+            False
+            sage: a != b
+            False
 
-            Balls with non-trivial intersection::
+        Balls with non-trivial intersection::
 
-                sage: a = RBF(RIF(1, 4))
-                sage: a = RBF(RIF(2, 5))
-                sage: a < b
-                False
-                sage: a <= b
-                False
-                sage: a > b
-                False
-                sage: a >= b
-                False
-                sage: a == b
-                False
-                sage: a != b
-                False
+            sage: a = RBF(RIF(1, 4))
+            sage: a = RBF(RIF(2, 5))
+            sage: a < b
+            False
+            sage: a <= b
+            False
+            sage: a > b
+            False
+            sage: a >= b
+            False
+            sage: a == b
+            False
+            sage: a != b
+            False
 
-            One ball contained in another::
+        One ball contained in another::
 
-                sage: a = RBF(RIF(1, 4))
-                sage: b = RBF(RIF(2, 3))
-                sage: a < b
-                False
-                sage: a <= b
-                False
-                sage: a > b
-                False
-                sage: a >= b
-                False
-                sage: a == b
-                False
-                sage: a != b
-                False
+            sage: a = RBF(RIF(1, 4))
+            sage: b = RBF(RIF(2, 3))
+            sage: a < b
+            False
+            sage: a <= b
+            False
+            sage: a > b
+            False
+            sage: a >= b
+            False
+            sage: a == b
+            False
+            sage: a != b
+            False
 
-            Disjoint balls::
+        Disjoint balls::
 
-                sage: a = RBF(1/3)
-                sage: b = RBF(1/2)
-                sage: a < b
-                True
-                sage: a <= b
-                True
-                sage: a > b
-                False
-                sage: a >= b
-                False
-                sage: a == b
-                False
-                sage: a != b
-                True
+            sage: a = RBF(1/3)
+            sage: b = RBF(1/2)
+            sage: a < b
+            True
+            sage: a <= b
+            True
+            sage: a > b
+            False
+            sage: a >= b
+            False
+            sage: a == b
+            False
+            sage: a != b
+            True
 
-            Exact elements::
+        Exact elements::
 
-                sage: a = RBF(2)
-                sage: b = RBF(2)
-                sage: a.is_exact()
-                True
-                sage: b.is_exact()
-                True
-                sage: a < b
-                False
-                sage: a <= b
-                True
-                sage: a > b
-                False
-                sage: a >= b
-                True
-                sage: a == b
-                True
-                sage: a != b
-                False
+            sage: a = RBF(2)
+            sage: b = RBF(2)
+            sage: a.is_exact()
+            True
+            sage: b.is_exact()
+            True
+            sage: a < b
+            False
+            sage: a <= b
+            True
+            sage: a > b
+            False
+            sage: a >= b
+            True
+            sage: a == b
+            True
+            sage: a != b
+            False
 
-            Special values::
+        Special values::
 
-                sage: inf = RBF(+infinity)
-                sage: other_inf = RBF(+infinity, 42.r)
-                sage: neg_inf = RBF(-infinity)
-                sage: extended_line = 1/RBF(0)
-                sage: exact_nan = inf - inf
-                sage: exact_nan.mid(), exact_nan.rad()
-                (NaN, 0.00000000)
-                sage: other_exact_nan = inf - inf
+            sage: inf = RBF(+infinity)
+            sage: other_inf = RBF(+infinity, 42.r)
+            sage: neg_inf = RBF(-infinity)
+            sage: extended_line = 1/RBF(0)
+            sage: exact_nan = inf - inf
+            sage: exact_nan.mid(), exact_nan.rad()
+            (NaN, 0.00000000)
+            sage: other_exact_nan = inf - inf
 
-            ::
+        ::
 
-                sage: exact_nan == exact_nan, exact_nan <= exact_nan, exact_nan >= exact_nan
-                (False, False, False)
-                sage: exact_nan != exact_nan, exact_nan < exact_nan, exact_nan > exact_nan
-                (False, False, False)
-                sage: from operator import eq, ne, le, lt, ge, gt
-                sage: ops = [eq, ne, le, lt, ge, gt]
-                sage: any(op(exact_nan, other_exact_nan) for op in ops)
-                False
-                sage: any(op(exact_nan, b) for op in ops for b in [RBF(1), extended_line, inf, neg_inf])
-                False
+            sage: exact_nan == exact_nan, exact_nan <= exact_nan, exact_nan >= exact_nan
+            (False, False, False)
+            sage: exact_nan != exact_nan, exact_nan < exact_nan, exact_nan > exact_nan
+            (False, False, False)
+            sage: from operator import eq, ne, le, lt, ge, gt
+            sage: ops = [eq, ne, le, lt, ge, gt]
+            sage: any(op(exact_nan, other_exact_nan) for op in ops)
+            False
+            sage: any(op(exact_nan, b) for op in ops for b in [RBF(1), extended_line, inf, neg_inf])
+            False
 
-            ::
+        ::
 
-                sage: neg_inf < a < inf and inf > a > neg_inf
-                True
-                sage: neg_inf <= b <= inf and inf >= b >= neg_inf
-                True
-                sage: neg_inf <= extended_line <= inf and inf >= extended_line >= neg_inf
-                True
-                sage: neg_inf < extended_line or extended_line < inf
-                False
-                sage: inf > extended_line or extended_line > neg_inf
-                False
+            sage: neg_inf < a < inf and inf > a > neg_inf
+            True
+            sage: neg_inf <= b <= inf and inf >= b >= neg_inf
+            True
+            sage: neg_inf <= extended_line <= inf and inf >= extended_line >= neg_inf
+            True
+            sage: neg_inf < extended_line or extended_line < inf
+            False
+            sage: inf > extended_line or extended_line > neg_inf
+            False
 
-            ::
+        ::
 
-                sage: all(b <= b == b >= b and not (b < b or b != b or b > b)
-                ....:     for b in [inf, neg_inf, other_inf])
-                True
-                sage: any(b1 == b2 for b1 in [inf, neg_inf, a, extended_line]
-                ....:              for b2 in [inf, neg_inf, a, extended_line]
-                ....:              if not b1 is b2)
-                False
-                sage: all(b1 != b2 and not b1 == b2
-                ....:     for b1 in [inf, neg_inf, a]
-                ....:     for b2 in [inf, neg_inf, a]
-                ....:     if not b1 is b2)
-                True
-                sage: neg_inf <= -other_inf == neg_inf == -other_inf < other_inf == inf <= other_inf
-                True
-                sage: any(inf < b or b > inf
-                ....:     for b in [inf, other_inf,  a, extended_line])
-                False
-                sage: any(inf <= b or b >= inf for b in [a, extended_line])
-                False
+            sage: all(b <= b == b >= b and not (b < b or b != b or b > b)
+            ....:     for b in [inf, neg_inf, other_inf])
+            True
+            sage: any(b1 == b2 for b1 in [inf, neg_inf, a, extended_line]
+            ....:              for b2 in [inf, neg_inf, a, extended_line]
+            ....:              if not b1 is b2)
+            False
+            sage: all(b1 != b2 and not b1 == b2
+            ....:     for b1 in [inf, neg_inf, a]
+            ....:     for b2 in [inf, neg_inf, a]
+            ....:     if not b1 is b2)
+            True
+            sage: neg_inf <= -other_inf == neg_inf == -other_inf < other_inf == inf <= other_inf
+            True
+            sage: any(inf < b or b > inf
+            ....:     for b in [inf, other_inf,  a, extended_line])
+            False
+            sage: any(inf <= b or b >= inf for b in [a, extended_line])
+            False
         """
         cdef RealBall lt, rt
         cdef arb_t difference

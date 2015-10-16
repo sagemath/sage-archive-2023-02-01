@@ -5575,9 +5575,10 @@ cdef class Matroid(SageObject):
         ``True`` if the matroid is 3-connected, ``False`` otherwise. 
 
         INPUT:
+
         - ``basis`` -- a basis of the matroid.
         - ``fund_cocircuits`` -- a iterable of some fundamental cocircuits with 
-        respect to ``basis``. It must contain all separating fundamental cocircuits. 
+          respect to ``basis``. It must contain all separating fundamental cocircuits. 
 
         OUTPUT:
 
@@ -5598,8 +5599,8 @@ cdef class Matroid(SageObject):
 
         .. NOTE::
 
-        The function does not check its input at all. You may want to make
-        sure the matroid is both simple and cosimple.
+            The function does not check its input at all. You may want to make
+            sure the matroid is both simple and cosimple.
         """
         # Step 1: base case
         if self.rank() <= 2:
@@ -6731,6 +6732,8 @@ cdef class Matroid(SageObject):
             True
             sage: sum(map(len,P))==len(M.groundset())
             True
+            sage: Matroid(matrix([])).partition()
+            []
 
         ALGORITHM:
 
@@ -6741,7 +6744,8 @@ cdef class Matroid(SageObject):
         from sage.matroids.union_matroid import MatroidSum, PartitionMatroid
         if self.loops():
             raise ValueError("Cannot partition matroids with loops.")
-
+        if self.size()==0:
+            return []
         # doubling search for minimum independent sets that partitions the groundset
         n = self.size()
         r = self.rank()

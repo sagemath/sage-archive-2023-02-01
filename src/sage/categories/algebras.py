@@ -109,7 +109,9 @@ class Algebras(CategoryWithAxiom_over_base_ring):
             return self & SemisimpleAlgebras(self.base_ring())
 
     Commutative = LazyImport('sage.categories.commutative_algebras', 'CommutativeAlgebras', at_startup=True)
+    Filtered    = LazyImport('sage.categories.filtered_algebras',    'FilteredAlgebras')
     Graded      = LazyImport('sage.categories.graded_algebras',      'GradedAlgebras')
+    Super       = LazyImport('sage.categories.super_algebras',       'SuperAlgebras')
     WithBasis   = LazyImport('sage.categories.algebras_with_basis',  'AlgebrasWithBasis')
     #if/when Semisimple becomes an axiom
     Semisimple  = LazyImport('sage.categories.semisimple_algebras',  'SemisimpleAlgebras')

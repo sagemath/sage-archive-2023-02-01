@@ -869,9 +869,6 @@ cdef class LaurentSeries(AlgebraElement):
             return self.prec()
         return min(self.prec(), f.prec())
 
-    def __richcmp__(left, right, int op):
-        return (<Element>left)._richcmp(right, op)
-
     cpdef int _cmp_(self, Element right_r) except -2:
         r"""
         Comparison of self and right.

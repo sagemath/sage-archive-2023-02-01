@@ -81,20 +81,18 @@ class CoordinatePatch(Parent):
         INPUT:
 
         - ``coordinates`` -- a set of symbolic variables that serve
-        as coordinates on this space.
+          as coordinates on this space.
 
-        - ``metric`` (default: None) -- a metric tensor on this
-        coordinate patch.  Providing anything other than ``None``
-        is currently not defined.
+        - ``metric`` (default: ``None``) -- a metric tensor on this
+          coordinate patch.  Providing anything other than ``None``
+          is currently not defined.
 
         EXAMPLES::
 
             sage: x, y, z = var('x, y, z')
             sage: S = CoordinatePatch((x, y, z)); S
             Open subset of R^3 with coordinates x, y, z
-
         """
-
         from sage.symbolic.ring import is_SymbolicVariable
 
         if not all(is_SymbolicVariable(c) for c in coordinates):
@@ -106,8 +104,6 @@ class CoordinatePatch(Parent):
 
         if metric is not None:
             raise NotImplementedError("Metric geometry not supported yet.")
-
-
 
     def __eq__(self, other):
         """

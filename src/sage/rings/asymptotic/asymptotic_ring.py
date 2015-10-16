@@ -458,6 +458,10 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
     - ``simplify`` -- a boolean (default: ``True``). It controls
       automatic simplification (absorption) of the asymptotic expansion.
 
+    - ``convert`` -- a boolean (default: ``True``). If set, then the
+      ``summands`` are converted to the asymptotic ring (the parent of this
+      expansion). If not, then the summands are taken as they are.
+
     EXAMPLES:
 
     There are several ways to create asymptotic expansions; usually

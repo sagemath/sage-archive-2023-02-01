@@ -1118,7 +1118,7 @@ class GenericTerm(sage.structure.element.MonoidElement):
 
     def is_constant(self):
         r"""
-        Return if this term is an (exact) constant.
+        Return whether this term is an (exact) constant.
 
         INPUT:
 
@@ -1138,7 +1138,9 @@ class GenericTerm(sage.structure.element.MonoidElement):
             sage: from sage.rings.asymptotic.growth_group import GrowthGroup
             sage: from sage.rings.asymptotic.term_monoid import (GenericTermMonoid, TermMonoid)
             sage: T = GenericTermMonoid(GrowthGroup('x^ZZ * log(x)^ZZ'), QQ)
-            sage: T.an_element().is_constant()
+            sage: t = T.an_element(); t
+            Generic Term with growth x*log(x)
+            sage: t.is_constant()
             False
 
         ::
@@ -1154,7 +1156,7 @@ class GenericTerm(sage.structure.element.MonoidElement):
 
     def is_little_o_of_one(self):
         r"""
-        Return if this generic term is of order `o(1)`.
+        Return whether this generic term is of order `o(1)`.
 
         INPUT:
 
@@ -1173,18 +1175,18 @@ class GenericTerm(sage.structure.element.MonoidElement):
             sage: T.an_element().is_little_o_of_one()
             Traceback (most recent call last):
             ...
-            NotImplementedError: Cannot check if Generic Term with growth x is o(1)
+            NotImplementedError: Cannot check whether Generic Term with growth x is o(1)
             in the abstract base class
             Generic Term Monoid x^ZZ with (implicit) coefficients in Rational Field.
             sage: T = TermWithCoefficientMonoid(GrowthGroup('x^ZZ'), QQ)
             sage: T.an_element().is_little_o_of_one()
             Traceback (most recent call last):
             ...
-            NotImplementedError: Cannot check if Term with coefficient 1/2 and growth x
+            NotImplementedError: Cannot check whether Term with coefficient 1/2 and growth x
             is o(1) in the abstract base class
             Generic Term Monoid x^ZZ with (implicit) coefficients in Rational Field.
         """
-        raise NotImplementedError('Cannot check if %s is o(1) in the '
+        raise NotImplementedError('Cannot check whether %s is o(1) in the '
                                   'abstract base class %s.' % (self, self.parent()))
 
 
@@ -1291,7 +1293,7 @@ class GenericTermMonoid(sage.structure.unique_representation.UniqueRepresentatio
     @staticmethod
     def __classcall__(cls, growth_group, coefficient_ring, category=None):
         r"""
-        Normalizes the input in order to ensure a unique
+        Normalize the input in order to ensure a unique
         representation of the parent.
 
         TESTS::
@@ -1352,7 +1354,7 @@ class GenericTermMonoid(sage.structure.unique_representation.UniqueRepresentatio
 
         ::
 
-            sage: G = GrowthGroup('x^ZZ'); x = G.gen()
+            sage: G = GrowthGroup('x^ZZ')
             sage: T_ZZ = TermWithCoefficientMonoid(G, ZZ); T_ZZ
             Generic Term Monoid x^ZZ with (implicit) coefficients in Integer Ring
             sage: T_QQ = TermWithCoefficientMonoid(G, QQ); T_QQ
@@ -1952,7 +1954,7 @@ class OTerm(GenericTerm):
 
     def can_absorb(self, other):
         r"""
-        Check, whether this `O`-term can absorb ``other``.
+        Check whether this `O`-term can absorb ``other``.
 
         INPUT:
 
@@ -2072,7 +2074,7 @@ class OTerm(GenericTerm):
 
     def is_little_o_of_one(self):
         r"""
-        Return if this O-term is of order `o(1)`.
+        Return whether this O-term is of order `o(1)`.
 
         INPUT:
 
@@ -2244,7 +2246,7 @@ class OTermMonoid(GenericTermMonoid):
                 from misc import combine_exceptions
                 raise combine_exceptions(
                     ValueError('Cannot create O(%s) since given coefficient %s '
-                               'is not a valid in %s.' %
+                               'is not valid in %s.' %
                                (growth, coefficient, self)), e)
         return self.element_class(self, growth)
 
@@ -2496,12 +2498,13 @@ class TermWithCoefficient(GenericTerm):
             sage: from sage.rings.asymptotic.term_monoid import TermWithCoefficientMonoid
             sage: from sage.rings.asymptotic.growth_group import GrowthGroup
             sage: G = GrowthGroup('z^ZZ')
-            sage: t = TermWithCoefficientMonoid(G, ZZ).an_element(); t
-            Term with coefficient 1 and growth z
+            sage: T = TermWithCoefficientMonoid(G, ZZ)
+            sage: t = T('2*z'); t
+            Term with coefficient 2 and growth z
             sage: t._calculate_pow_(3)
-            Term with coefficient 1 and growth z^3
+            Term with coefficient 8 and growth z^3
             sage: t._calculate_pow_(-2)
-            Term with coefficient 1 and growth z^(-2)
+            Term with coefficient 1/4 and growth z^(-2)
         """
         try:
             c = self.coefficient ** exponent
@@ -2912,12 +2915,13 @@ class ExactTerm(TermWithCoefficient):
             sage: from sage.rings.asymptotic.term_monoid import TermMonoid
             sage: from sage.rings.asymptotic.growth_group import GrowthGroup
             sage: G = GrowthGroup('z^ZZ')
-            sage: t = TermMonoid('exact', G, ZZ).an_element(); t
-            z
+            sage: T = TermMonoid('exact', G, ZZ)
+            sage: t = T('2*z'); t
+            2*z
             sage: t^3  # indirect doctest
-            z^3
+            8*z^3
             sage: t^(1/2)  # indirect doctest
-            z^(1/2)
+            sqrt(2)*z^(1/2)
         """
         return self._calculate_pow_(exponent)
 
@@ -3057,7 +3061,7 @@ class ExactTerm(TermWithCoefficient):
 
     def is_constant(self):
         r"""
-        Return if this term is an (exact) constant.
+        Return whether this term is an (exact) constant.
 
         INPUT:
 
@@ -3091,7 +3095,7 @@ class ExactTerm(TermWithCoefficient):
 
     def is_little_o_of_one(self):
         r"""
-        Return if this exact term is of order `o(1)`.
+        Return whether this exact term is of order `o(1)`.
 
         INPUT:
 

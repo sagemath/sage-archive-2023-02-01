@@ -593,7 +593,7 @@ class GenericProduct(CartesianProductPoset, GenericGrowthGroup):
 
     def _coerce_map_from_(self, S):
         r"""
-        Return if ``S`` coerces into this growth group.
+        Return whether ``S`` coerces into this growth group.
 
         INPUT:
 

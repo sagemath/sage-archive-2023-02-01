@@ -174,7 +174,7 @@ all growth groups have the abstract base class
 Some Examples
 ^^^^^^^^^^^^^
 
-EXAMPLES::
+::
 
     sage: from sage.rings.asymptotic.growth_group import GrowthGroup
     sage: G_x = GrowthGroup('x^ZZ'); G_x
@@ -574,7 +574,7 @@ class Variable(sage.structure.unique_representation.CachedRepresentation,
 # GenericProduct.Element as a method.
 def _is_lt_one_(self):
     r"""
-    Return if this element is less than `1`.
+    Return whether this element is less than `1`.
 
     INPUT:
 
@@ -1034,7 +1034,7 @@ class GenericGrowthElement(sage.structure.element.MultiplicativeGroupElement):
 
     def __eq__(self, other):
         r"""
-        Return if this growth element is equal to ``other``.
+        Return whether this growth element is equal to ``other``.
 
         INPUT:
 
@@ -1094,7 +1094,7 @@ class GenericGrowthElement(sage.structure.element.MultiplicativeGroupElement):
 
     def _eq_(self, other):
         r"""
-        Return if this :class:`GenericGrowthElement` is equal to ``other``.
+        Return whether this :class:`GenericGrowthElement` is equal to ``other``.
 
         INPUT:
 
@@ -1127,7 +1127,7 @@ class GenericGrowthElement(sage.structure.element.MultiplicativeGroupElement):
 
     def __ne__(self, other):
         r"""
-        Return if this growth element is not equal to ``other``.
+        Return whether this growth element is not equal to ``other``.
 
         INPUT:
 
@@ -1153,7 +1153,7 @@ class GenericGrowthElement(sage.structure.element.MultiplicativeGroupElement):
 
     def __le__(self, other):
         r"""
-        Return if this growth element is at most (less than or equal
+        Return whether this growth element is at most (less than or equal
         to) ``other``.
 
         INPUT:
@@ -1196,7 +1196,7 @@ class GenericGrowthElement(sage.structure.element.MultiplicativeGroupElement):
 
     def _le_(self, other):
         r"""
-        Return if this :class:`GenericGrowthElement` is at most (less
+        Return whether this :class:`GenericGrowthElement` is at most (less
         than or equal to) ``other``.
 
         INPUT:
@@ -1333,7 +1333,7 @@ class GenericGrowthGroup(
 
     - ``ignore_variables`` -- (default: ``None``) a tuple (or other
       iterable) of strings. The specified names are not considered as
-      a variable.
+      variables.
 
     .. NOTE::
 
@@ -1347,7 +1347,8 @@ class GenericGrowthGroup(
 
     .. SEEALSO::
 
-        :class:`MonomialGrowthGroup`
+        :class:`MonomialGrowthGroup`,
+        :class:`ExponentialGrowthGroup`
     """
     # TODO: implement some sort of 'assume', where basic assumptions
     # for the variables can be stored. --> within the cartesian product
@@ -1663,7 +1664,7 @@ class GenericGrowthGroup(
 
     def le(self, left, right):
         r"""
-        Return if the growth of ``left`` is at most (less than or
+        Return whether the growth of ``left`` is at most (less than or
         equal to) the growth of ``right``.
 
         INPUT:
@@ -1824,7 +1825,7 @@ class GenericGrowthGroup(
 
     def _coerce_map_from_(self, S):
         r"""
-        Return if ``S`` coerces into this growth group.
+        Return whether ``S`` coerces into this growth group.
 
         INPUT:
 
@@ -2399,6 +2400,12 @@ class MonomialGrowthElement(GenericGrowthElement):
             x^(-2)
             sage: e2 == ~e1
             True
+            sage: Q = GrowthGroup('x^NN'); Q
+            Growth Group x^((Non negative integer semiring))
+            sage: e3 = ~Q('x'); e3
+            x^(-1)
+            sage: e3.parent()
+            Growth Group x^ZZ
         """
         return self.parent()._create_element_in_extension_(-self.exponent)
 
@@ -2427,6 +2434,10 @@ class MonomialGrowthElement(GenericGrowthElement):
             sage: a^(1/2)
             x^(7/2)
             sage: (a^(1/2)).parent()
+            Growth Group x^QQ
+            sage: a^(1/7)
+            x
+            sage: (a^(1/7)).parent()
             Growth Group x^QQ
             sage: P = GrowthGroup('x^QQ')
             sage: b = P.gen()^(7/2); b
@@ -2529,7 +2540,7 @@ class MonomialGrowthElement(GenericGrowthElement):
             sage: x._rpow_element_(2)
             Traceback (most recent call last):
             ...
-            ValueError: Variable %s is not a log of something.
+            ValueError: Variable x is not a log of something.
 
         The previous example does not work since the result would not
         live in a monomial growth group. When using :meth:`rpow`, this
@@ -2554,7 +2565,7 @@ class MonomialGrowthElement(GenericGrowthElement):
         """
         var = str(self.parent()._var_)
         if not(var.startswith('log(') and self.exponent.is_one()):
-            raise ValueError('Variable %s is not a log of something.')
+            raise ValueError('Variable %s is not a log of something.' % (var,))
         new_var = var[4:-1]
         if base == 'e':
             from sage.rings.integer_ring import ZZ
@@ -2569,7 +2580,7 @@ class MonomialGrowthElement(GenericGrowthElement):
 
     def _le_(self, other):
         r"""
-        Return if this :class:`MonomialGrowthElement` is at most
+        Return whether this :class:`MonomialGrowthElement` is at most
         (less than or equal to) ``other``.
 
         INPUT:
@@ -3101,13 +3112,13 @@ class ExponentialGrowthElement(GenericGrowthElement):
 
         INPUT:
 
-        - ``exponent`` -- a number. This can anything that is valid to be
+        - ``exponent`` -- a number. This can be anything that is valid to be
           on the right hand side of ``*`` with an elements of the
           parent's base.
 
         OUTPUT:
 
-        The result of this exponentiation a :class:`ExponentialGrowthElement`.
+        The result of this exponentiation as an :class:`ExponentialGrowthElement`.
 
         EXAMPLES::
 
@@ -3139,7 +3150,7 @@ class ExponentialGrowthElement(GenericGrowthElement):
 
         A tuple of pairs, where the first entry is either a growth
         element or something out of which we can construct a growth element
-        and the second a multiplicative coefficient.
+        and the second is a multiplicative coefficient.
 
         TESTS::
 
@@ -3168,7 +3179,7 @@ class ExponentialGrowthElement(GenericGrowthElement):
 
     def _le_(self, other):
         r"""
-        Return if this :class:`ExponentialGrowthElement` is at most
+        Return whether this :class:`ExponentialGrowthElement` is at most
         (less than or equal to) ``other``.
 
         INPUT:
@@ -3527,8 +3538,6 @@ class GrowthGroupFactory(sage.structure.factory.UniqueFactory):
         sage: G, tuple(F._var_ for F in G.cartesian_factors())
         (Growth Group (e^(n*log(n)))^ZZ * (e^n)^ZZ * n^ZZ * log(n)^ZZ,
          (e^(n*log(n)), e^n, n, log(n)))
-
-    TESTS::
 
         sage: TestSuite(GrowthGroup('x^ZZ')).run(verbose=True)  # long time
         running ._test_an_element() . . . pass

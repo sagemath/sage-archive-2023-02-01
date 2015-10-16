@@ -37,11 +37,13 @@ def repr_short_to_parent(s):
 
     INPUT:
 
-    A string.
+    - ``s`` -- a string, short representation of a parent.
 
     OUTPUT:
 
     A parent.
+
+    The possible short representations are shown in the examples below.
 
     EXAMPLES::
 
@@ -87,7 +89,7 @@ def parent_to_repr_short(P):
 
     INPUT:
 
-    A parent.
+    - ``P`` -- a parent.
 
     OUTPUT:
 
@@ -153,7 +155,7 @@ def parent_to_repr_short(P):
 def split_str_by_op(string, op, strip_parentheses=True):
     r"""
     Split the given string into a tuple of substrings arising by
-    splitting by the given operator ``op`` and taking care of parentheses.
+    splitting by ``op`` and taking care of parentheses.
 
     INPUT:
 

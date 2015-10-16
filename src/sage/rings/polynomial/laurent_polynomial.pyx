@@ -844,30 +844,6 @@ cdef class LaurentPolynomial_univariate(LaurentPolynomial_generic):
         rl = LaurentPolynomial_univariate(self._parent, r, 0)
         return (ql, rl)
 
-    def __richcmp__(left, right, int op):
-        """
-        Return the rich comparison of ``left`` and ``right`` defined by ``op``.
-
-        EXAMPLES::
-
-            sage: R.<x> = LaurentPolynomialRing(QQ)
-            sage: f = x^(-1) + 1 + x
-            sage: g = x^(-1) + 2
-            sage: f == g
-            False
-            sage: f != g
-            True
-            sage: f < g
-            True
-            sage: f <= g
-            True
-            sage: f > g
-            False
-            sage: f >= g
-            False
-        """
-        return (<Element>left)._richcmp(right, op)
-
     cpdef int _cmp_(self, Element right_r) except -2:
         r"""
         Comparison of ``self`` and ``right_r``.
@@ -886,9 +862,15 @@ cdef class LaurentPolynomial_univariate(LaurentPolynomial_generic):
             sage: g = x^(-1) + 2
             sage: f == g
             False
+            sage: f != g
+            True
             sage: f < g
             True
+            sage: f <= g
+            True
             sage: f > g
+            False
+            sage: f >= g
             False
 
         ::

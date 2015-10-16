@@ -3764,10 +3764,11 @@ cdef class RealNumber(sage.structure.element.RingElement):
         """
         return mpfr_sgn(self.value) != 0
 
-    def __richcmp__(left, right, int op):
+    cpdef int _cmp_(left, Element right) except -2:
         """
-        Return the Cython rich comparison operator (see the Cython
-        documentation for details).
+        Return ``-1`` if exactly one of the numbers is ``NaN``.  Return ``-1``
+        if ``left`` is less than ``right``, ``0`` if ``left`` and ``right``
+        are equal, and ``1`` if ``left`` is greater than ``right``.
 
         EXAMPLES::
 
@@ -3797,27 +3798,6 @@ cdef class RealNumber(sage.structure.element.RingElement):
             False
             sage: RR('1')>=RR('1')
             True
-        """
-        return (<RingElement>left)._richcmp(right, op)
-
-    cpdef int _cmp_(left, Element right) except -2:
-        """
-        Return ``-1`` if exactly one of the numbers is ``NaN``.  Return ``-1``
-        if ``left`` is less than ``right``, ``0`` if ``left`` and ``right``
-        are equal, and ``1`` if ``left`` is greater than ``right``.
-
-        EXAMPLES::
-
-            sage: RR('1')<=RR('1')
-            True
-            sage: RR('1')<RR('1')
-            False
-            sage: RR('1')>RR('1')
-            False
-            sage: RR('1')>=RR('1')
-            True
-            sage: RR('nan')==R('nan')
-            False
             sage: RR('inf')==RR('inf')
             True
             sage: RR('inf')==RR('-inf')

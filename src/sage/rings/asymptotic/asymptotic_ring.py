@@ -1562,7 +1562,7 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
 
         EXAMPLES::
 
-            sage: A.<x, y> = AsymptoticRing('x^ZZ * y^ZZ', QQ)
+            sage: A.<x> = AsymptoticRing('x^ZZ', QQ)
             sage: (1/x).rpow('e', precision=5)
             1 + x^(-1) + 1/2*x^(-2) + 1/6*x^(-3) + 1/24*x^(-4) + O(x^(-5))
         """

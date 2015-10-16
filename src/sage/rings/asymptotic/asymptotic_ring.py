@@ -1549,14 +1549,15 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
         one = new_self.parent().one()
         geom = one - new_self._mul_term_(imax_elem)
 
+        from sage.rings.integer_ring import ZZ
         expanding = True
         result = -geom
         geom_k = geom
-        k = one
+        k = ZZ(1)
         while expanding:
-            k += one
+            k += ZZ(1)
             geom_k *= geom
-            new_result = (result - geom_k / k).truncate(precision=precision)
+            new_result = (result - geom_k * ~k).truncate(precision=precision)
             if new_result.has_same_summands(result):
                 expanding = False
             result = new_result

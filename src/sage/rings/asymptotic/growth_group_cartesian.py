@@ -886,9 +886,7 @@ class GenericProduct(CartesianProductPoset, GenericGrowthGroup):
 
             INPUT:
 
-            - ``exponent`` -- a number. This can be anything that is a
-              valid right hand side of ``*`` with elements of the
-              parent's base.
+            - ``exponent`` -- a number.
 
             OUTPUT:
 

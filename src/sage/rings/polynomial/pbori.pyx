@@ -5110,10 +5110,11 @@ class BooleanPolynomialIdeal(MPolynomialIdeal):
 
             A Simple example::
 
+                sage: from sage.doctest.fixtures import reproducible_repr
                 sage: R.<x,y,z> = BooleanPolynomialRing()
                 sage: I = ideal( [ x*y*z + x*z + y + 1, x+y+z+1 ] )
-                sage: I.variety()
-                [{z: 0, y: 1, x: 0}, {z: 1, y: 1, x: 1}]
+                sage: print(reproducible_repr(I.variety()))
+                [{x: 0, y: 1, z: 0}, {x: 1, y: 1, z: 1}]
 
         TESTS:
 
@@ -5130,14 +5131,14 @@ class BooleanPolynomialIdeal(MPolynomialIdeal):
                         x1*x2 + x1*x4 + x1*x5 + x1*x6 + x2*x3 + x2*x4 + x2*x5 + x3*x5 + x5*x6 + x5 + x6, \
                         x1*x2 + x1*x6 + x2*x4 + x2*x5 + x2*x6 + x3*x6 + x4*x6 + x5*x6 + x5]
                  sage: I = R.ideal( polys )
-                 sage: I.variety()
-                 [{x6: 0, x5: 0, x4: 0, x3: 0, x2: 0, x1: 0},
-                  {x6: 1, x5: 0, x4: 0, x3: 1, x2: 1, x1: 1}]
+                 sage: print(reproducible_repr(I.variety()))
+                  [{x1: 0, x2: 0, x3: 0, x4: 0, x5: 0, x6: 0}, {x1: 1, x2: 1, x3: 1, x4: 0, x5: 0, x6: 1}]
 
                  sage: R = PolynomialRing(GF(2), 6, ['x%d'%(i+1) for i in range(6)], order='lex')
                  sage: I = R.ideal( polys )
-                 sage: (I + sage.rings.ideal.FieldIdeal(R)).variety()
-                 [{x2: 0, x5: 0, x4: 0, x1: 0, x6: 0, x3: 0}, {x2: 1, x5: 0, x4: 0, x1: 1, x6: 1, x3: 1}]
+                 sage: v = (I + sage.rings.ideal.FieldIdeal(R)).variety()
+                 sage: print(reproducible_repr(v))
+                 [{x1: 0, x2: 0, x3: 0, x4: 0, x5: 0, x6: 0}, {x1: 1, x2: 1, x3: 1, x4: 0, x5: 0, x6: 1}]
 
 
             Check that :trac:`13976` is fixed::
@@ -5148,13 +5149,21 @@ class BooleanPolynomialIdeal(MPolynomialIdeal):
                 sage: sols[0][y]
                 1
 
+            Make sure the result is a key converting dict, as discussed in
+            :trac:`9788` and consistent with
+            :meth:`sage.rings.polynomial.multi_polynomial_ideal.MPolynomialIdeal_singular_repr.variety`::
+
+                sage: sols[0]["y"]
+                1
+
         """
+        from sage.misc.converting_dict import KeyConvertingDict
         R_bool = self.ring()
         R = R_bool.cover_ring()
         I = R.ideal( [ R( f ) for f in self.groebner_basis() ] )
         J = FieldIdeal(R)
         solutions = (I+J).variety(**kwds)
-        return [ { R_bool(var):val for var,val in s.iteritems() } for s in solutions ]
+        return [ KeyConvertingDict(R_bool, s) for s in solutions ]
 
 
     def reduce(self, f):

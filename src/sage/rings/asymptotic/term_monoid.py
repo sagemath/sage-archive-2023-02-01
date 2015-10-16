@@ -2006,6 +2006,11 @@ class OTerm(GenericTerm):
             O(z^3)
             sage: t^(1/2)  # indirect doctest
             O(z^(1/2))
+            sage: t^(-1)  # indirect doctest
+            Traceback (most recent call last):
+            ...
+            ZeroDivisionError: Cannot take O(z) to exponent -1.
+            > *previous* ZeroDivisionError: rational division by zero
         """
         return self._calculate_pow_test_zero_(exponent)
 

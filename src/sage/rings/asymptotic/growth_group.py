@@ -2471,7 +2471,7 @@ class MonomialGrowthElement(GenericGrowthElement):
                base is not None and b == str(base):
                 return ((e, coefficient),)
 
-        if var.startswith('exp('):
+        if base is None and var.startswith('exp('):
             assert(var[-1] == ')')
             return ((var[4:-1], coefficient),)
 

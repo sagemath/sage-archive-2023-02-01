@@ -2662,8 +2662,23 @@ class AsymptoticRing(Algebra, UniqueRepresentation):
             O(x^2)
             sage: R.create_summand('exact', growth=x^456, coefficient=123)
             123*x^456
+            sage: R.create_summand('exact', data=12*x^13)
+            12*x^13
 
         TESTS::
+
+            sage: R.create_summand('exact', data='12*x^13')
+            12*x^13
+            sage: R.create_summand('exact', data='x^13 * 12')
+            12*x^13
+            sage: R.create_summand('exact', data='x^13')
+            x^13
+            sage: R.create_summand('exact', data='12')
+            12
+            sage: R.create_summand('exact', data=12)
+            12
+
+        ::
 
             sage: R.create_summand('O', growth=42*x^2, coefficient=1)
             Traceback (most recent call last):

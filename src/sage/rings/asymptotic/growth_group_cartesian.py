@@ -344,8 +344,8 @@ class GenericProduct(CartesianProductPoset, GenericGrowthGroup):
 
     def _create_element_in_extension_(self, element):
         r"""
-        Create an element whose parent is chosen according to the input
-        ``element``.
+        Create an element in an extension of this cartesian product of
+        growth groups which is chosen according to the input ``element``.
 
         INPUT:
 

@@ -2050,7 +2050,8 @@ class AsymptoticRing(Algebra, UniqueRepresentation):
 
     def _create_element_in_extension_(self, term, old_parent=None):
         r"""
-        Create an element whose parent is chosen according to the input.
+        Create an element in an extension of this asymptotic ring which
+        is chosen according to the input.
 
         INPUT:
 

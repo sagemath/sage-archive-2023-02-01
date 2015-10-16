@@ -1632,8 +1632,8 @@ class GenericGrowthGroup(
 
     def _create_element_in_extension_(self, raw_element):
         r"""
-        Create an element whose parent is chosen according to the input
-        ``raw_element``.
+        Create an element in an extension of this growth group which
+        is chosen according to the input ``raw_element``.
 
         INPUT:
 

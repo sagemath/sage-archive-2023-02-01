@@ -1633,7 +1633,8 @@ class GenericTermMonoid(sage.structure.unique_representation.UniqueRepresentatio
 
     def _create_element_in_extension_(self, growth, coefficient):
         r"""
-        Create an element whose parent is chosen according to the input.
+        Create an element in an extension of this term monoid which
+        is chosen according to the input.
 
         INPUT:
 

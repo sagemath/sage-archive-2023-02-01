@@ -214,11 +214,14 @@ class AsymptoticExpansionGenerators(object):
         """
         log_Stirling = AsymptoticExpansionGenerators.log_Stirling(
             var, precision=precision, skip_constant_summand=True)
+        print log_Stirling
+        print log_Stirling.parent()
         n = log_Stirling.parent().gen()
 
         result = log_Stirling.subs(n=k*n) - \
                  log_Stirling.subs(n=(k-1)*n) - log_Stirling
         print result
+        print result.parent()
 
         from sage.symbolic.ring import SR
         P = log_Stirling.parent().change_parameter(

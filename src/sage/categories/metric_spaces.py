@@ -91,8 +91,8 @@ class MetricSpaces(MetricSpacesCategory):
     .. TODO::
 
         - Implement a general geodesics class.
-        - Implement a category for metric unital additive magmas and
-          move the generic distance `d(a, b) = |a - b|` there.
+        - Implement a category for metric additive groups
+          and move the generic distance `d(a, b) = |a - b|` there.
         - Incorperate the length of a geodesic as part of the default
           distance cycle.
 

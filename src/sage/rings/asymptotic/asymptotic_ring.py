@@ -460,7 +460,9 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
 
     - ``convert`` -- a boolean (default: ``True``). If set, then the
       ``summands`` are converted to the asymptotic ring (the parent of this
-      expansion). If not, then the summands are taken as they are.
+      expansion). If not, then the summands are taken as they are. In
+      that case, the caller must ensure that the parent of the terms is
+      set correctly.
 
     EXAMPLES:
 
@@ -2198,8 +2200,11 @@ class AsymptoticRing(Algebra, UniqueRepresentation):
           element is simplified (terms are absorbed) automatically.
 
         - ``convert`` -- (default: ``True``) passed on to the element
-          constructor. If set, then it is assured that the terms belong
-          to this asymptotic ring (by converting them if needed).
+          constructor.  If set, then the ``summands`` are converted to
+          the asymptotic ring (the parent of this expansion). If not,
+          then the summands are taken as they are. In that case, the
+          caller must ensure that the parent of the terms is set
+          correctly.
 
         OUTPUT:
 

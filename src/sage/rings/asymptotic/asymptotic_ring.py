@@ -1812,29 +1812,47 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
             sage: _.parent()
             Real Interval Field with 53 bits of precision
         """
+        # check if nothing to do
         if not rules and not kwds:
             return self
 
+        # init and process keyword arguments
         gens = self.parent().gens()
-        locals = dict((str(g), g) for g in gens)
+        locals = kwds or dict()
 
+        # update with rules
         if isinstance(rules, dict):
-            locals.update(rules)
+            for k, v in rules.iteritems():
+                if not isinstance(k, str) and k not in gens:
+                    raise TypeError('Cannot substitute %s in %s '
+                                    'since it is neither an '
+                                    'asymptotic expansion '
+                                    'nor a string (but a %s).' %
+                                    (k, self, type(k)))
+                k = str(k)
+                if k in locals and locals[k] != v:
+                    raise ValueError('Cannot substitute in %s: '
+                                     'duplicate key %s.' % (self, k))
+                locals[k] = v
         elif rules is not None:
             raise TypeError('Substitution rules %s have to be a dictionary.' %
                             (rules,))
 
-        if kwds:
-            gens_str = tuple(str(g) for g in gens)
-            for k, v in kwds.iteritems():
-                k = str(k)
-                if k not in gens_str:
-                    raise ValueError('Cannot substitute %s by %s in %s '
-                                     'since it is not a generator of %s.' %
-                                     (k, v, self, self.parent()))
-                locals[k] = v
+        # fill up missing rules
+        for g in gens:
+            locals.setdefault(str(g), g)
 
-        if domain is None:
+        # check if all keys are generators
+        gens_str = tuple(str(g) for g in gens)
+        for k in locals:
+            if str(k) not in gens_str:
+                raise ValueError('Cannot substitute %s in %s '
+                                 'since it is not a generator of %s.' %
+                                 (k, self, self.parent()))
+
+        # determine 0 and 1
+        if domain is None and \
+               ('_zero_' not in locals or '_one_' not in locals):
             P = self.parent()
             for g in gens:
                 G = locals[str(g)].parent()
@@ -1843,19 +1861,22 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
                     break
             else:
                 domain = P
-        locals['_zero_'] = domain.zero()
-        locals['_one_'] = domain.one()
+        locals.setdefault('_zero_', domain.zero())
+        locals.setdefault('_one_', domain.one())
 
+        # do the actual substitution
         try:
             return self._substitute_(locals)
-        except TypeError as e:
+        except (ArithmeticError, TypeError, ValueError) as e:
             from misc import combine_exceptions
             rules = '{' + ', '.join(
                 '%s: %s' % (k, v)
-                for k, v in sorted(locals.iteritems(), key=lambda k: str(k[0]))
-                if k[0] != '_') + '}'
+                for k, v in sorted(locals.iteritems(),
+                                   key=lambda k: str(k[0]))
+                if not k.startswith('_') and
+                not any(k == str(g) and v is g for g in gens)) + '}'
             raise combine_exceptions(
-                TypeError('Cannot apply the substitution rules %s at %s '
+                TypeError('Cannot apply the substitution rules %s on %s '
                           'in %s.' % (rules, self, self.parent())), e)
 
 

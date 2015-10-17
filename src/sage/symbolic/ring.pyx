@@ -251,6 +251,22 @@ cdef class SymbolicRing(CommutativeRing):
             sage: bool(si == CC.0)
             True
 
+        Asymptotic expansions::
+
+            sage: A.<x, y> = AsymptoticRing(growth_group='x^ZZ * y^QQ * log(y)^ZZ', coefficient_ring=ZZ)
+            doctest:...: FutureWarning: This class/method/function is
+            marked as experimental.
+            ...
+            See http://trac.sagemath.org/17601 for details.
+            sage: s = SR(3*x^5 * log(y) + 4*y^(3/7) + O(x*log(y))); s
+            3*x^5*log(y) + 4*y^(3/7) + Order(x*log(y))
+            sage: s.operator(), s.operands()
+            (<function add_vararg at 0x...>,
+             [3*x^5*log(y), 4*y^(3/7), Order(x*log(y))])
+            sage: t = s.operands()[0]; t
+            3*x^5*log(y)
+            sage: t.operator(), t.operands()
+            (<function mul_vararg at 0x...>, [x^5, log(y), 3])
         """
         cdef GEx exp
 
@@ -271,6 +287,7 @@ cdef class SymbolicRing(CommutativeRing):
 
         from sage.rings.infinity import (infinity, minus_infinity,
                                          unsigned_infinity)
+        from sage.rings.asymptotic.asymptotic_ring import AsymptoticExpansion
 
         if isinstance(x, (Integer, RealNumber, float, long, complex)):
             GEx_construct_pyobject(exp, x)
@@ -282,6 +299,8 @@ cdef class SymbolicRing(CommutativeRing):
             return new_Expression_from_GEx(self, g_mInfinity)
         elif x is unsigned_infinity:
             return new_Expression_from_GEx(self, g_UnsignedInfinity)
+        elif isinstance(x, AsymptoticExpansion):
+            return x.symbolic_expression()
         elif isinstance(x, (RingElement, Matrix)):
             GEx_construct_pyobject(exp, x)
         else:

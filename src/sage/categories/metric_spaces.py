@@ -81,6 +81,28 @@ class MetricSpaces(MetricSpacesCategory):
     - `d(a, b) = 0` if and only if `a = b`.
 
     A metric space is a set `S` with a distinguished metric.
+
+    .. RUBRIC:: Implementation
+
+    Objects in this category must implement either a ``dist`` on the parent
+    or the elements or ``metric`` on the parent; otherwise this will cause
+    an infinite recursion.
+
+    .. TODO::
+
+        - Implement a general geodesics class.
+        - Implement a category for metric unital additive magmas and
+          move the generic distance `d(a, b) = |a - b|` there.
+        - Incorperate the length of a geodesic as part of the default
+          distance cycle.
+
+    EXAMPLES::
+
+        sage: from sage.categories.metric_spaces import MetricSpaces
+        sage: C = MetricSpaces()
+        sage: C
+        Category of metric spaces
+        sage: TestSuite(C).run()
     """
     def _repr_object_names(self):
         """
@@ -114,7 +136,7 @@ class MetricSpaces(MetricSpacesCategory):
             for a in S:
                 for b in S:
                     d = dist(a, b)
-                    if a is not b:
+                    if a != b:
                         tester.assertGreater(d, 0)
                     else:
                         tester.assertEqual(d, 0)
@@ -132,9 +154,8 @@ class MetricSpaces(MetricSpacesCategory):
                 sage: m(p1, p2)
                 2.23230104635820
             """
-            return lambda a,b: self.dist(a, b)
+            return lambda a,b: a.dist(b)
 
-        @abstract_method
         def dist(self, a, b):
             """
             Return the distance between ``a`` and ``b`` in ``self``.
@@ -150,9 +171,35 @@ class MetricSpaces(MetricSpacesCategory):
                 sage: PD = HyperbolicPlane().PD()
                 sage: PD.dist(PD.get_point(0), PD.get_point(I/2))
                 arccosh(5/3)
+
+            TESTS::
+
+                sage: RR.dist(-1, pi)
+                4.14159265358979
+                sage: RDF.dist(1, -1/2)
+                1.5
+                sage: CC.dist(3, 2)
+                1.00000000000000
+                sage: CC.dist(-1, I)
+                1.41421356237310
+                sage: CDF.dist(-1, I)
+                1.4142135623730951
             """
+            return (self(a) - self(b)).abs()
 
     class ElementMethods:
+        def abs(self):
+            """
+            Return the absolute value of ``self``.
+
+            EXAMPLES::
+
+                sage: CC(I).abs()
+                1.00000000000000
+            """
+            P = self.parent()
+            return P.metric()(self, P.zero())
+
         def dist(self, b):
             """
             Return the distance between ``self`` and ``other``.

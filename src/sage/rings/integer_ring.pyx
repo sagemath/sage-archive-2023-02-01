@@ -1250,19 +1250,6 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
         else:
             raise ValueError("no nth root of unity in integer ring")
 
-    def dist(self, a, b):
-        """
-        Return the distance between ``a`` and ``b``.
-
-        EXAMPLES::
-
-            sage: ZZ.dist(3, 2)
-            1
-            sage: ZZ.dist(-1, 1)
-            2
-        """
-        return self(a - b).abs()
-
     def parameter(self):
         r"""
         Return an integer of degree 1 for the Euclidean property of `\ZZ`,

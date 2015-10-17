@@ -934,19 +934,6 @@ class RationalField(Singleton, number_field_base.NumberField):
         from sage.rings.all import QQbar
         return QQbar
 
-    def dist(self, a, b):
-        """
-        Return the distance between ``a`` and ``b``.
-
-        EXAMPLES::
-
-            sage: QQ.dist(3, 2)
-            1
-            sage: QQ.dist(-1, 1/2)
-            3/2
-        """
-        return self(a - b).abs()
-
     def order(self):
         r"""
         Return the order of `\QQ` which is `\infty`.

@@ -199,19 +199,6 @@ cdef class ComplexDoubleField_class(sage.rings.ring.Field):
         return 561162115
         #return hash(self.str())
 
-    def dist(self, a, b):
-        """
-        Return the distance between ``a`` and ``b``.
-
-        EXAMPLES::
-
-            sage: CDF.dist(3, 2)
-            1.0
-            sage: CDF.dist(-1, I)
-            1.4142135623730951
-        """
-        return (self(a) - self(b)).abs()
-
     def characteristic(self):
         """
         Return the characteristic of the complex double field, which is 0.

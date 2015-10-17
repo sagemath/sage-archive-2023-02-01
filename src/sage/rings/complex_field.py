@@ -745,16 +745,3 @@ class ComplexField_class(ring.Field):
         from sage.structure.factorization import Factorization
         return Factorization([(R(g).monic(),e) for g,e in zip(*F)], f.leading_coefficient())
 
-    def dist(self, a, b):
-        """
-        Return the distance between ``a`` and ``b``.
-
-        EXAMPLES::
-
-            sage: CC.dist(3, 2)
-            1.00000000000000
-            sage: CC.dist(-1, I)
-            1.41421356237310
-        """
-        return self(a - b).abs()
-

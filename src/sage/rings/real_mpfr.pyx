@@ -801,19 +801,6 @@ cdef class RealField_class(sage.rings.ring.Field):
         """
         return self.complex_field()
 
-    def dist(self, a, b):
-        """
-        Return the distance between ``a`` and ``b``.
-
-        EXAMPLES::
-
-            sage: RR.dist(3, 2)
-            1.00000000000000
-            sage: RR.dist(-1, pi)
-            4.14159265358979
-        """
-        return self(a - b).abs()
-
     def ngens(self):
         """
         Return the number of generators.

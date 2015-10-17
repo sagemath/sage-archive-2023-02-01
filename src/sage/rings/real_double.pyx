@@ -236,19 +236,6 @@ cdef class RealDoubleField_class(Field):
             return 0
         return cmp(type(self), type(x))
 
-    def dist(self, a, b):
-        """
-        Return the distance between ``a`` and ``b`` in ``self``.
-
-        EXAMPLES::
-
-            sage: RDF.dist(5, 1/2)
-            4.5
-            sage: RDF.dist(-1, 1/2)
-            1.5
-        """
-        return (self(a) - self(b)).abs()
-
     def construction(self):
         r"""
         Returns the functorial construction of ``self``, namely, completion of

@@ -1773,6 +1773,31 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
 
     def substitute(self, rules=None, domain=None, **kwds):
         r"""
+        Substitute the given ``rules`` in this asymptotic expansion.
+
+        INPUT:
+
+        - ``rules`` -- a dictionary.
+
+        - ``kwds`` -- keyword arguments will be added to the
+          substitution ``rules``.
+
+        - ``domain`` -- (default: ``None``) a parent. The neutral
+          elements `0` and `1` (rules for the keys ``'_zero_'`` and
+          ``'_one_'``, see note box below) are taken out of this
+          domain. If ``None``, then this is determined automatically.
+
+        OUTPUT:
+
+        An object.
+
+        .. NOTE::
+
+          The neutral element of the asymptotic ring is replaced by
+          the value to the key ``'_zero_'``; the neutral element of
+          the growth group is replaced by the value to the key
+          ``'_one_'``.
+
         EXAMPLES::
 
             sage: A.<x> = AsymptoticRing(growth_group='(e^x)^QQ * x^ZZ * log(x)^ZZ', coefficient_ring=QQ, default_prec=5)
@@ -1811,6 +1836,80 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
             229.534211738584?
             sage: _.parent()
             Real Interval Field with 53 bits of precision
+
+        .. SEEALSO::
+
+            :meth:`sage.symbolic.expression.Expression.subs`
+
+        TESTS::
+
+            sage: x.subs({'y': -1})
+            Traceback (most recent call last):
+            ...
+            ValueError: Cannot substitute y in x since it is not a generator of
+            Asymptotic Ring <(e^x)^QQ * x^ZZ * log(x)^ZZ> over Rational Field.
+            sage: B.<u, v, w> = AsymptoticRing(growth_group='u^QQ * v^QQ * w^QQ', coefficient_ring=QQ)
+            sage: (1/u).subs({'u': 0})
+            Traceback (most recent call last):
+            ...
+            TypeError: Cannot apply the substitution rules {u: 0} on u^(-1) in
+            Asymptotic Ring <u^QQ * v^QQ * w^QQ> over Rational Field.
+            > *previous* ZeroDivisionError: Cannot substitute in u^(-1) in
+            Asymptotic Ring <u^QQ * v^QQ * w^QQ> over Rational Field.
+            >> *previous* ZeroDivisionError: Cannot substitute in u^(-1) in
+            Exact Term Monoid u^QQ * v^QQ * w^QQ with coefficients in Rational Field.
+            >...> *previous* ZeroDivisionError: Cannot substitute in u^(-1) in
+            Growth Group u^QQ * v^QQ * w^QQ.
+            >...> *previous* ZeroDivisionError: Cannot substitute in u^(-1) in
+            Growth Group u^QQ.
+            >...> *previous* ZeroDivisionError: rational division by zero
+            sage: (1/u).subs({'u': 0, 'v': SR.var('v')})
+            Traceback (most recent call last):
+            ...
+            TypeError: Cannot apply the substitution rules {u: 0, v: v} on u^(-1) in
+            Asymptotic Ring <u^QQ * v^QQ * w^QQ> over Rational Field.
+            > *previous* ZeroDivisionError: Cannot substitute in u^(-1) in
+            Asymptotic Ring <u^QQ * v^QQ * w^QQ> over Rational Field.
+            >> *previous* ZeroDivisionError: Cannot substitute in u^(-1) in
+            Exact Term Monoid u^QQ * v^QQ * w^QQ with coefficients in Rational Field.
+            >...> *previous* ZeroDivisionError: Cannot substitute in u^(-1) in
+            Growth Group u^QQ * v^QQ * w^QQ.
+            >...> *previous* ZeroDivisionError: Cannot substitute in u^(-1) in
+            Growth Group u^QQ.
+            >...> *previous* ZeroDivisionError: rational division by zero
+
+        ::
+
+            sage: u.subs({u: 0, 'v': SR.var('v')})
+            0
+            sage: v.subs({u: 0, 'v': SR.var('v')})
+            v
+            sage: _.parent()
+            Symbolic Ring
+
+        ::
+
+            sage: u.subs({SR.var('u'): -1})
+            Traceback (most recent call last):
+            ...
+            TypeError: Cannot substitute u in u since it is neither an
+            asymptotic expansion nor a string
+            (but a <type 'sage.symbolic.expression.Expression'>).
+
+        ::
+
+            sage: u.subs({u: 1, 'u': 1})
+            1
+            sage: u.subs({u: 1}, u=1)
+            1
+            sage: u.subs({u: 1, 'u': 2})
+            Traceback (most recent call last):
+            ...
+            ValueError: Cannot substitute in u: duplicate key u.
+            sage: u.subs({u: 1}, u=3)
+            Traceback (most recent call last):
+            ...
+            ValueError: Cannot substitute in u: duplicate key u.
         """
         # check if nothing to do
         if not rules and not kwds:

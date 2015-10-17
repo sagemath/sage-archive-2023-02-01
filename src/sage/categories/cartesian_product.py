@@ -123,7 +123,7 @@ class CartesianProductFunctor(CovariantFunctorialConstruction, MultivariateConst
         from sage.categories.sets_cat import Sets
         MultivariateConstructionFunctor.__init__(self, Sets(), Sets())
 
-    def __call__(self, args):
+    def __call__(self, args, **kwds):
         r"""
         Functorial construction application.
 
@@ -171,7 +171,7 @@ class CartesianProductFunctor(CovariantFunctorialConstruction, MultivariateConst
             from sage.sets.cartesian_product import CartesianProduct
             return CartesianProduct((), Sets().CartesianProducts())
 
-        return super(CartesianProductFunctor, self).__call__(args)
+        return super(CartesianProductFunctor, self).__call__(args, **kwds)
 
 class CartesianProductsCategory(CovariantConstructionCategory):
     """

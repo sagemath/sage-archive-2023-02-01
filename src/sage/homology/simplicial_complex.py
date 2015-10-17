@@ -872,8 +872,8 @@ class SimplicialComplex(Parent, GenericCellComplex):
             sage: S == loads(dumps(S))
             True
 
-            sage: TestSuite(S).run(skip="_test_category")
-            sage: TestSuite(S3).run(skip="_test_category")
+            sage: TestSuite(S).run()
+            sage: TestSuite(S3).run()
         """
         if (maximal_faces is not None and
             from_characteristic_function is not None):
@@ -1076,6 +1076,57 @@ class SimplicialComplex(Parent, GenericCellComplex):
             <class 'sage.homology.simplicial_complex.Simplex'>
         """
         return self._vertex_set
+
+    def _an_element_(self):
+        """
+        The first facet of this complex.
+
+        EXAMPLES::
+
+            sage: SimplicialComplex()._an_element_()
+            ()
+            sage: simplicial_complexes.Sphere(3)._an_element_()
+            (1, 2, 3, 4)
+        """
+        return self.facets()[0]
+
+    def __contains__(self, x):
+        """
+        True if ``x`` is a simplex which is contained in this complex.
+
+        EXAMPLES::
+
+            sage: K = SimplicialComplex([(0,1,2), (0,2,3)])
+            sage: Simplex((0,2)) in K
+            True
+            sage: Simplex((1,3)) in K
+            False
+            sage: 0 in K  # not a simplex
+            False
+        """
+        if not isinstance(x, Simplex):
+            return False
+        dim = x.dimension()
+        return x in self.n_faces(dim)
+
+    def __call__(self, simplex):
+        """
+        If ``simplex`` is a simplex in this complex, return it.
+        Otherwise, raise a ``ValueError``.
+
+        EXAMPLE::
+
+            sage: K = SimplicialComplex([(0,1,2), (0,2,3)])
+            sage: K(Simplex((1,2)))
+            (1, 2)
+            sage: K(Simplex((0,1,3)))
+            Traceback (most recent call last):
+            ...
+            ValueError: the simplex is not in this complex
+        """
+        if simplex not in self:
+            raise ValueError('the simplex is not in this complex')
+        return simplex
 
     def maximal_faces(self):
         """

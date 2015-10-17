@@ -2681,6 +2681,11 @@ class MonomialGrowthGroup(GenericGrowthGroup):
             Join of Category of commutative groups and Category of posets
             sage: MonomialGrowthGroup(ZZ, 'x', category=Monoids()).category()  # indirect doctest
             Category of monoids
+            sage: W = Words([0, 1])
+            sage: W.category()
+            Category of sets
+            sage: MonomialGrowthGroup(W, 'x').category() # indirect doctest
+            Join of Category of monoids and Category of posets
         """
         if category is not None:
             return category

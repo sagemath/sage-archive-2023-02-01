@@ -1133,8 +1133,7 @@ class GenericProduct(CartesianProductPoset, GenericGrowthGroup):
                 return mul_vararg(
                     *tuple(x._substitute_(rules)
                            for x in self.cartesian_factors()))
-            except (ArithmeticError, NotImplementedError,
-                    TypeError, ValueError) as e:
+            except (ArithmeticError, TypeError, ValueError) as e:
                 from misc import substitute_raise_exception
                 substitute_raise_exception(self, e)
 

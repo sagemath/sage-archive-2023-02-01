@@ -574,8 +574,7 @@ class Variable(sage.structure.unique_representation.CachedRepresentation,
         from sage.misc.sage_eval import sage_eval
         try:
             return sage_eval(self.var_repr, locals=rules)
-        except (ArithmeticError, NotImplementedError,
-                TypeError, ValueError) as e:
+        except (ArithmeticError, TypeError, ValueError) as e:
             from misc import substitute_raise_exception
             substitute_raise_exception(self, e)
 
@@ -1326,10 +1325,6 @@ class GenericGrowthElement(sage.structure.element.MultiplicativeGroupElement):
 
 
     def _substitute_(self, rules):
-        if self.is_one():
-            return rules['_one_']
-        raise NotImplementedError('Cannot substitute in %s in the abstract '
-                                  'base class %s.' % (self, self.parent()))
 
 
 class GenericGrowthGroup(
@@ -2630,8 +2625,7 @@ class MonomialGrowthElement(GenericGrowthElement):
             return rules['_one_']
         try:
             return self.parent()._var_._substitute_(rules) ** self.exponent
-        except (ArithmeticError, NotImplementedError,
-                TypeError, ValueError) as e:
+        except (ArithmeticError, TypeError, ValueError) as e:
             from misc import substitute_raise_exception
             substitute_raise_exception(self, e)
 
@@ -3240,8 +3234,7 @@ class ExponentialGrowthElement(GenericGrowthElement):
             return rules['_one_']
         try:
             return self.base ** self.parent()._var_._substitute_(rules)
-        except (ArithmeticError, NotImplementedError,
-                TypeError, ValueError) as e:
+        except (ArithmeticError, TypeError, ValueError) as e:
             from misc import substitute_raise_exception
             substitute_raise_exception(self, e)
 

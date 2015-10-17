@@ -1969,13 +1969,15 @@ class BrauerAlgebra(SubPartitionAlgebra):
 
     def jucys_murphy(self, j):
         r"""
-        Return a generalized Jucys-Murphy elements for the Brauer algebra.
-        These are outlined in [Naz]_.
+        Return the ``j``-th generalized Jucys-Murphy element of ``self``.
+        These elements are simply the Jucys-Murphy elements of the symmetric
+        group algebra with an extra ``(z-1)/2`` term where ``z`` is the parameter
+        of the Brauer algebra. 
 
         REFERENCES:
 
         .. [Naz] Maxim Nazarov, Young's Orthogonal Form for Brauer's Centralizer
-               Algebra. Journal of Algebra 182 (1996), 664--693.
+           Algebra. Journal of Algebra 182 (1996), 664--693.
 
         EXAMPLES:
 
@@ -1984,10 +1986,15 @@ class BrauerAlgebra(SubPartitionAlgebra):
             sage: B.jucys_murphy(1)
             1/2*z - 1/2
             sage: B.jucys_murphy(3)
-            -B{{-3, -2}, {-1, 1}, {2, 3}} - B{{-3, -1}, {-2, 2}, {1, 3}} + B{{-3, 1}, {-2, 2}, {-1, 3}} + B{{-3, 2}, {-2, 3}, {-1, 1}} + (1/2*z-1/2)*B{{-3, 3}, {-2, 2}, {-1, 1}}
+            -B{{-3, -2}, {-1, 1}, {2, 3}} - B{{-3, -1}, {-2, 2}, {1, 3}}
+            + B{{-3, 1}, {-2, 2}, {-1, 3}} + B{{-3, 2}, {-2, 3}, {-1, 1}}
+            + (1/2*z-1/2)*B{{-3, 3}, {-2, 2}, {-1, 1}}
         """
-        B = self
-        return (B._q-1)/2 + sum(B([[i,-j],[j,-i]]) - B([[i,j],[-i,-j]]) for i in range(1,j))
+        assert j <= self.order(), "Jucys-Murphy index cannot be greater than the order of the algebra."
+        I = self._indices
+        one = self.base_ring().one()
+        return ((self._q-1)/2
+                + sum(one*self([[i,-j],[j,-i]]) - one*self([[i,j],[-i,-j]]) for i in range(1,j)))
 
 class TemperleyLiebAlgebra(SubPartitionAlgebra):
     r"""

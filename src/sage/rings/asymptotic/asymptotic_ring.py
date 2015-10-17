@@ -1855,6 +1855,43 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
 
 
     def _substitute_(self, rules):
+        r"""
+        Substitute the given ``rules`` in this asymptotic expansion.
+
+        INPUT:
+
+        - ``rules`` -- a dictionary.
+          The neutral element of the asymptotic ring is replaced by the value
+          to key ``'_zero_'``.
+
+        OUTPUT:
+
+        An object.
+
+        TESTS::
+
+            sage: A.<z> = AsymptoticRing(growth_group='z^QQ', coefficient_ring=QQ)
+            sage: z._substitute_({'z': SR.var('a')})
+            a
+            sage: _.parent()
+            Symbolic Ring
+            sage: A(0)._substitute_({'_zero_': 'zero'})
+            'zero'
+            sage: (1/z)._substitute_({'z': 4})
+            1/4
+            sage: _.parent()
+            Rational Field
+            sage: (1/z)._substitute_({'z': 0})
+            Traceback (most recent call last):
+            ...
+            ZeroDivisionError: Cannot substitute in z^(-1) in
+            Asymptotic Ring <z^QQ> over Rational Field.
+            > *previous* ZeroDivisionError: Cannot substitute in z^(-1) in
+            Exact Term Monoid z^QQ with coefficients in Rational Field.
+            >> *previous* ZeroDivisionError: Cannot substitute in z^(-1) in
+            Growth Group z^QQ.
+            >>... *previous* ZeroDivisionError: rational division by zero
+        """
         if not self.summands:
             return rules['_zero_']
         from sage.symbolic.operators import add_vararg
@@ -1862,8 +1899,7 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
             return add_vararg(
                 *tuple(s._substitute_(rules)
                        for s in self.summands.elements_topological()))
-        except (ArithmeticError, NotImplementedError,
-                TypeError, ValueError) as e:
+        except (ArithmeticError, TypeError, ValueError) as e:
             from misc import substitute_raise_exception
             substitute_raise_exception(self, e)
 

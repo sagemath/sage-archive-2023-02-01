@@ -2104,6 +2104,39 @@ def SRG_625_416_279_272():
     M = Matrix(GF(5),[list(l) for l in x])
     return strongly_regular_from_two_weight_code(LinearCode(M))
 
+def SRG_625_468_353_342():
+    r"""
+    Return a `(625, 468, 353, 342)`-strongly regular graph.
+
+    This graph is built from a two-weight code presented in [BJ03]_ (cf. Theorem
+    4.1).
+
+    .. SEEALSO::
+
+        :func:`strongly_regular_from_two_weight_code` -- build a strongly regular graph from
+        a two-weight code.
+
+    EXAMPLE::
+
+        sage: from sage.graphs.strongly_regular_db import SRG_625_468_353_342
+        sage: G = SRG_625_468_353_342()              # long time
+        sage: G.is_strongly_regular(parameters=True) # long time
+        (625, 468, 353, 342)
+
+    REFERENCE:
+
+    .. [BJ03] I. Bouyukliev and S. Juriaan,
+      Some new results on optimal codes over `F_5`,
+      Designs, Codes and Cryptography 30, no. 1 (2003): 97-111,
+      http://www.moi.math.bas.bg/moiuser/~iliya/pdf_site/gf5srev.pdf
+    """
+    x = ("111111111111111111111111111111000000000",
+         "111111222222333333444444000000111111000",
+         "223300133440112240112240133440123400110",
+         "402340414201142301132013234230044330401")
+    M = Matrix(GF(5),[list(l) for l in x])
+    return strongly_regular_from_two_weight_code(LinearCode(M))
+
 def SRG_243_220_199_200():
     r"""
     Return a `(243, 220, 199, 200)`-strongly regular graph.
@@ -2743,8 +2776,9 @@ def strongly_regular_graph(int v,int k,int l,int mu=-1,bint existence=False,bint
         (512,  73,  12, 10): [SRG_512_73_12_10],
         (512, 315, 202,180): [SRG_512_315_202_180],
         (560, 208,  72, 80): [SRG_560_208_72_80],
-        (625, 416, 279,272): [SRG_625_416_279_272],
         (625, 364, 213,210): [SRG_625_364_213_210],
+        (625, 416, 279,272): [SRG_625_416_279_272],
+        (625, 468, 353,342): [SRG_625_468_353_342],
         (729, 336, 153,156): [SRG_729_336_153_156],
         (729, 616, 523,506): [SRG_729_616_523_506],
         (729, 420, 243,240): [SRG_729_420_243_240],

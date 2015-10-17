@@ -6,9 +6,6 @@ Buckygen is a program for the efficient generation of all nonisomorphic fulleren
 == License ==
 Buckygen is licensed under the GNU General Public License v3 ( June 2007 )
 
-== SPKG Maintainers ==
-Nico Van Cleemput (nico.vancleemput@gmail.com)
-
 == Upstream Contact ==
 Buckygen was mainly written by Jan Goedgebeur, jan.goedgebeur[at]ugent.be.
 http://caagt.ugent.be/buckygen/

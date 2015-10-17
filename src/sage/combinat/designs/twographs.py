@@ -194,7 +194,7 @@ def taylor_twograph(q):
         sage: T=taylor_twograph(3); T
         Incidence structure with 28 points and 1260 blocks
     """
-    from sage.graphs.generators.families import TaylorTwographSRG
+    from sage.graphs.generators.classical_geometries import TaylorTwographSRG
     return TaylorTwographSRG(q).twograph()
 
 def is_twograph(T):

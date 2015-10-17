@@ -109,9 +109,9 @@ EXAMPLES:
       sage -n -- port=1234      # equivalent
       sage -n port=1234         # ERROR: invalid notebook name
 
-* Run IPython notebook in custom directory:
+* Run Jupyter notebook in custom directory:
 
-      sage --notebook=ipython --notebook-dir=/home/foo/bar
+      sage --notebook=jupyter --notebook-dir=/home/foo/bar
 """
 
 
@@ -119,6 +119,7 @@ notebook_launcher = {
     'default': NotebookSageNB,   # change this to change the default
     'sagenb': NotebookSageNB,
     'ipython': NotebookIPython,
+    'jupyter': NotebookIPython,
 } 
 
 notebook_names = ', '.join(notebook_launcher.keys())

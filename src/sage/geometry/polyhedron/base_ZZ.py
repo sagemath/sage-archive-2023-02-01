@@ -304,9 +304,8 @@ class Polyhedron_ZZ(Polyhedron_base):
                                stderr=(None if verbose else PIPE),
                                cwd=str(SAGE_TMP))
         except OSError:
-            raise ValueError("The package latte_int must be installed "
-                    "(type 'sage -i latte_int' in a console or "
-                    "'install_package('latte_int')' at a Sage prompt)!\n")
+            from sage.misc.package import PackageNotFoundError
+            raise PackageNotFoundError('latte_int')
 
         ans, err = latte_proc.communicate(ine)
         ret_code = latte_proc.poll()

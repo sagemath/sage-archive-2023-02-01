@@ -9,11 +9,6 @@ forms of graphs.
 
 GPL
 
-== SPKG Maintainers ==
-
-Jernej Azarija (jernej.azarija@gmail.com)
-Nathann Cohen  (nathann.cohen@gmail.com)
-
 == Upstream Contact ==
 
 Bliss is currently being maintained by Tommi Junttila and Petteri Kaski.

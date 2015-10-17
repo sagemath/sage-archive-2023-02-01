@@ -16,7 +16,7 @@ addition/absorption of terms).
 Besides an abstract base term :class:`GenericTerm`, this module
 implements the following types of terms:
 
-- :class:`OTerm` -- `O`-terms in infinity, see
+- :class:`OTerm` -- `O`-terms at infinity, see
   :wikipedia:`Big_O_notation`.
 - :class:`TermWithCoefficient` -- abstract base class for
   asymptotic terms with coefficients.
@@ -30,27 +30,6 @@ instance, `O(x^2)` is able to absorb `O(x)` (with result
 `O(x^2)`), and `3\cdot x^5` is able to absorb `-2\cdot x^5` (with result
 `x^5`). Essentially, absorption can be interpreted as the
 addition of "compatible" terms (partial addition).
-
-.. TODO::
-
-    - Implementation of more term types (e.g. `L` terms,
-      `\Omega` terms, `o` terms, `\Theta` terms).
-
-AUTHORS:
-
-- Benjamin Hackl (2015-01-01): initial version
-- Benjamin Hackl, Daniel Krenn (2015-05-15): conception of the asymptotic ring
-- Benjamin Hackl (2015-06-00): refactoring caused by refactoring growth groups
-- Daniel Krenn (2015-07-00): extensive review and patches
-- Benjamin Hackl (2015-07-00): cross-review; short notation
-- Daniel Krenn (2015-08-31): various improvements, review; documentation
-
-ACKNOWLEDGEMENT:
-
-- Benjamin Hackl, Clemens Heuberger and Daniel Krenn are supported by the
-  Austrian Science Fund (FWF): P 24644-N26.
-
-- Benjamin Hackl is supported by the Google Summer of Code 2015.
 
 .. WARNING::
 
@@ -67,7 +46,164 @@ ACKNOWLEDGEMENT:
         experimental. It, its functionality or its interface might change
         without a formal deprecation.
         See http://trac.sagemath.org/17601 for details.
-        sage: T = GenericTermMonoid(G, ZZ)
+
+.. _term_absorption:
+
+Absorption of Asymptotic Terms
+==============================
+
+A characteristic property of asymptotic terms is that some terms are
+able to "absorb" other terms. This is realized with the method
+:meth:`~sage.rings.asymptotic.term_monoid.GenericTerm.absorb`.
+
+For instance, `O(x^2)` is able to absorb `O(x)` (with result
+`O(x^2)`). This is because the functions bounded by linear growth
+are bounded by quadratic growth as well. Another example would be
+that `3x^5` is able to absorb `-2x^5` (with result `x^5`), which
+simply corresponds to addition.
+
+Essentially, absorption can be interpreted
+as the addition of "compatible" terms (partial addition).
+
+We want to show step by step which terms can be absorbed
+by which other terms. We start by defining the necessary
+term monoids and some terms::
+
+    sage: from sage.rings.asymptotic.term_monoid import OTermMonoid, ExactTermMonoid
+    sage: from sage.rings.asymptotic.growth_group import GrowthGroup
+    sage: G = GrowthGroup('x^ZZ'); x = G.gen()
+    sage: OT = OTermMonoid(growth_group=G, coefficient_ring=QQ)
+    sage: ET = ExactTermMonoid(growth_group=G, coefficient_ring=QQ)
+    sage: ot1 = OT(x); ot2 = OT(x^2)
+    sage: et1 = ET(x^2, 2)
+
+- Because of the definition of `O`-terms (see
+  :wikipedia:`Big_O_notation`), :class:`OTerm` are able to absorb all
+  other asymptotic terms with weaker or equal growth. In our
+  implementation, this means that :class:`OTerm` is able to absorb
+  other :class:`OTerm`, as well as :class:`ExactTerm`, as long as the
+  growth of the other term is less than or equal to the growth of this
+  element::
+
+      sage: ot1, ot2
+      (O(x), O(x^2))
+      sage: ot1.can_absorb(ot2), ot2.can_absorb(ot1)
+      (False, True)
+      sage: et1
+      2*x^2
+      sage: ot1.can_absorb(et1)
+      False
+      sage: ot2.can_absorb(et1)
+      True
+
+  The result of this absorption always is the dominant
+  (absorbing) :class:`OTerm`::
+
+      sage: ot1.absorb(ot1)
+      O(x)
+      sage: ot2.absorb(ot1)
+      O(x^2)
+      sage: ot2.absorb(et1)
+      O(x^2)
+
+  These examples correspond to `O(x) + O(x) = O(x)`,
+  `O(x^2) + O(x) = O(x^2)`, and `O(x^2) + 2x^2 = O(x^2)`.
+
+- :class:`ExactTerm` can only absorb another
+  :class:`ExactTerm` if the growth coincides with the
+  growth of this element::
+
+      sage: et1.can_absorb(ET(x^2, 5))
+      True
+      sage: any(et1.can_absorb(t) for t in [ot1, ot2])
+      False
+
+  As mentioned above, absorption directly corresponds
+  to addition in this case::
+
+      sage: et1.absorb(ET(x^2, 5))
+      7*x^2
+
+  When adding two exact terms, they might cancel out.
+  For technical reasons, ``None`` is returned in this
+  case::
+
+      sage: ET(x^2, 5).can_absorb(ET(x^2, -5))
+      True
+      sage: ET(x^2, 5).absorb(ET(x^2, -5)) is None
+      True
+
+- The abstract base terms :class:`GenericTerm` and
+  :class:`TermWithCoefficient` can neither absorb any
+  other term, nor be absorbed by any other term.
+
+If ``absorb`` is called on a term that cannot be absorbed, an
+:python:`ArithmeticError<library/exceptions.html#exceptions.ArithmeticError>`
+is raised::
+
+    sage: ot1.absorb(ot2)
+    Traceback (most recent call last):
+    ...
+    ArithmeticError: O(x) cannot absorb O(x^2)
+
+This would only work the other way around::
+
+    sage: ot2.absorb(ot1)
+    O(x^2)
+
+Comparison
+==========
+
+The comparison of asymptotic terms with `\leq` is implemented as follows:
+
+- When comparing ``t1 <= t2``, the coercion framework first tries to
+  find a common parent for both terms. If this fails, ``False`` is
+  returned.
+
+- In case the coerced terms do not have a coefficient in their
+  common parent (e.g. :class:`OTerm`), the growth of the two terms
+  is compared.
+
+- Otherwise, if the coerced terms have a coefficient (e.g.
+  :class:`ExactTerm`), we compare whether ``t1`` has a growth that is
+  strictly weaker than the growth of ``t2``. If so, we return
+  ``True``. If the terms have equal growth, then we return ``True``
+  if and only if the coefficients coincide as well.
+
+  In all other cases, we return ``False``.
+
+Long story short: we consider terms with different coefficients that
+have equal growth to be incomparable.
+
+
+Various
+=======
+
+.. TODO::
+
+    - Implementation of more term types (e.g. `L` terms,
+      `\Omega` terms, `o` terms, `\Theta` terms).
+
+AUTHORS:
+
+- Benjamin Hackl (2015)
+- Daniel Krenn (2015)
+
+ACKNOWLEDGEMENT:
+
+- Benjamin Hackl, Clemens Heuberger and Daniel Krenn are supported by the
+  Austrian Science Fund (FWF): P 24644-N26.
+
+- Benjamin Hackl is supported by the Google Summer of Code 2015.
+
+
+ACKNOWLEDGEMENT:
+
+- Benjamin Hackl, Clemens Heuberger and Daniel Krenn are supported by the
+  Austrian Science Fund (FWF): P 24644-N26.
+
+- Benjamin Hackl is supported by the Google Summer of Code 2015.
+
 
 Classes and Methods
 ===================
@@ -89,8 +225,19 @@ import sage
 
 def absorption(left, right):
     r"""
-    Helper method used by
+    Let one of the two passed terms absorb the other.
+
+    Helper function used by
     :class:`~sage.rings.asymptotic.asymptotic_ring.AsymptoticExpansion`.
+
+    .. NOTE::
+
+        If neither of the terms can absorb the other, an
+        :python:`ArithmeticError<library/exceptions.html#exceptions.ArithmeticError>`
+        is raised.
+
+        See the :ref:`module description <term_absorption>` for a
+        detailed explanation of absorption.
 
     INPUT:
 
@@ -111,16 +258,30 @@ def absorption(left, right):
         O(x^3)
         sage: absorption(T(x^3), T(x^2))
         O(x^3)
+
+    ::
+
+        sage: T = TermMonoid('exact', GrowthGroup('x^ZZ'), ZZ)
+        sage: absorption(T(x^2), T(x^3))
+        Traceback (most recent call last):
+        ...
+        ArithmeticError: Absorption between x^2 and x^3 is not possible.
     """
     try:
         return left.absorb(right)
     except ArithmeticError:
-        return right.absorb(left)
+        try:
+            return right.absorb(left)
+        except ArithmeticError:
+            raise ArithmeticError('Absorption between %s and %s is not possible.' % (left, right))
 
 
 def can_absorb(left, right):
     r"""
-    Helper method used by
+    Return whether one of the two input terms is able to absorb the
+    other.
+
+    Helper function used by
     :class:`~sage.rings.asymptotic.asymptotic_ring.AsymptoticExpansion`.
 
     INPUT:
@@ -135,8 +296,8 @@ def can_absorb(left, right):
 
     .. NOTE::
 
-        This method returns whether one of the two input terms is
-        able to absorb the other.
+        See the :ref:`module description <term_absorption>` for a
+        detailed explanation of absorption.
 
     EXAMPLES::
 
@@ -194,6 +355,18 @@ class GenericTerm(sage.structure.element.MonoidElement):
             sage: T = GenericTermMonoid(G, ZZ)
             sage: T(x^2)
             Generic Term with growth x^2
+
+        ::
+
+            sage: from sage.rings.asymptotic.term_monoid import GenericTerm
+            sage: GenericTerm(parent=None, growth=x)
+            Traceback (most recent call last):
+            ...
+            ValueError: The parent must be provided
+            sage: GenericTerm(T, GrowthGroup('y^ZZ').gen())
+            Traceback (most recent call last):
+            ...
+            ValueError: y is not in Growth Group x^ZZ
         """
         if parent is None:
             raise ValueError('The parent must be provided')
@@ -405,6 +578,12 @@ class GenericTerm(sage.structure.element.MonoidElement):
             ZeroDivisionError: Cannot take O(z) to exponent -1.
             > *previous* ZeroDivisionError: rational division by zero
         """
+        # This assumes `0 = O(g)` for any `g` in the growth group, which
+        # is valid in the case of a variable going to `\infty`.
+        # Once non-standard asymptoptics are supported, this has to be
+        # rewritten.
+        # See also #19083, comment 64, 27.
+
         zero = self.parent().coefficient_ring.zero()
         try:
             zero ** exponent
@@ -416,7 +595,7 @@ class GenericTerm(sage.structure.element.MonoidElement):
         return self._calculate_pow_(exponent)
 
 
-    def _calculate_pow_(self, exponent, coefficient=None):
+    def _calculate_pow_(self, exponent, new_coefficient=None):
         r"""
         Helper function for :meth:`__pow__` which calculates the power of this
         element to the given ``exponent``.
@@ -425,7 +604,7 @@ class GenericTerm(sage.structure.element.MonoidElement):
 
         - ``exponent`` -- an element.
 
-        - ``coefficient`` -- if not ``None`` this is passed on to the
+        - ``new_coefficient`` -- if not ``None`` this is passed on to the
           construction of the element (in particular, not taken to any power).
 
         OUTPUT:
@@ -441,14 +620,14 @@ class GenericTerm(sage.structure.element.MonoidElement):
             Generic Term with growth z
             sage: t._calculate_pow_(3)
             Generic Term with growth z^3
-            sage: t._calculate_pow_(3, coefficient=2)
+            sage: t._calculate_pow_(3, new_coefficient=2)
             Traceback (most recent call last):
             ...
             ValueError: Coefficient 2 is not 1, but Generic Term Monoid z^ZZ with
             (implicit) coefficients in Integer Ring does not support coefficients.
             sage: t._calculate_pow_(-2)
             Generic Term with growth z^(-2)
-            sage: t._calculate_pow_(-2, coefficient=2)
+            sage: t._calculate_pow_(-2, new_coefficient=2)
             Traceback (most recent call last):
             ...
             ValueError: Coefficient 2 is not 1, but Generic Term Monoid z^ZZ with
@@ -461,67 +640,13 @@ class GenericTerm(sage.structure.element.MonoidElement):
             raise combine_exceptions(
                 ValueError('Cannot take %s to the exponent %s.' % (self, exponent)), e)
 
-        return self.parent()._create_element_via_parent_(g, coefficient)
+        return self.parent()._create_element_in_extension_(g, new_coefficient)
 
 
     def can_absorb(self, other):
         r"""
-        Check, whether this asymptotic term is able to absorb
+        Check whether this asymptotic term is able to absorb
         the asymptotic term ``other``.
-
-        INPUT:
-
-        - ``other`` -- an asymptotic term.
-
-        OUTPUT:
-
-        A boolean.
-
-        EXAMPLES:
-
-        We want to show step by step which terms can be absorbed
-        by which other terms. We start by defining the necessary
-        term monoids and some terms::
-
-            sage: from sage.rings.asymptotic.growth_group import GrowthGroup
-            sage: from sage.rings.asymptotic.term_monoid import TermMonoid
-            sage: G = GrowthGroup('x^ZZ'); x = G.gen()
-            sage: OT = TermMonoid('O', G, coefficient_ring=ZZ)
-            sage: ET = TermMonoid('exact', G, coefficient_ring=QQ)
-            sage: ot1 = OT(x); ot2 = OT(x^2)
-            sage: et1 = ET(x^2, 2)
-
-        :class:`OTerm` is able to absorb other :class:`OTerm`,
-        as well as :class:`ExactTerm`, as long as the growth of
-        the other term is less than or equal to the growth of this
-        element::
-
-            sage: ot1, ot2
-            (O(x), O(x^2))
-            sage: ot1.can_absorb(ot2), ot2.can_absorb(ot1)
-            (False, True)
-            sage: et1
-            2*x^2
-            sage: ot1.can_absorb(et1)
-            False
-            sage: ot2.can_absorb(et1)
-            True
-
-        :class:`ExactTerm` can only absorb another
-        :class:`ExactTerm` if the growth coincides with the
-        growth of this element::
-
-            sage: et1.can_absorb(ET(x^2, 5))
-            True
-            sage: any(et1.can_absorb(t) for t in [ot1, ot2])
-            False
-        """
-        return self._can_absorb_(other)
-
-
-    def _can_absorb_(self, other):
-        r"""
-        Check, whether this generic term can absorb ``other``.
 
         INPUT:
 
@@ -533,9 +658,10 @@ class GenericTerm(sage.structure.element.MonoidElement):
 
         .. NOTE::
 
-            Generic terms are not able to absorb any other term.
-            Therefore, this method just returns ``False``.
-            Override this in derived class.
+            A :class:`GenericTerm` cannot absorb any other term.
+
+            See the :ref:`module description <term_absorption>` for a
+            detailed explanation of absorption.
 
         EXAMPLES::
 
@@ -555,7 +681,7 @@ class GenericTerm(sage.structure.element.MonoidElement):
 
     def absorb(self, other, check=True):
         r"""
-        Absorb the asymptotic term ``other`` and returns the resulting
+        Absorb the asymptotic term ``other`` and return the resulting
         asymptotic term.
 
         INPUT:
@@ -573,10 +699,13 @@ class GenericTerm(sage.structure.element.MonoidElement):
 
         .. NOTE::
 
+            Setting ``check`` to ``False`` is meant to be used in
+            cases where the respective comparison is done externally
+            (in order to avoid duplicate checking).
+
             For a more detailed explanation of the *absorption* of
-            asymptotic terms see the introduction of
-            :doc:`this module <term_monoid>`, or the examples
-            below.
+            asymptotic terms see
+            the :ref:`module description <term_absorption>`.
 
         EXAMPLES:
 
@@ -594,10 +723,8 @@ class GenericTerm(sage.structure.element.MonoidElement):
             sage: et1 = ET(x, 100); et2 = ET(x^2, 2)
             sage: et3 = ET(x^2, 1); et4 = ET(x^2, -2)
 
-        Because of the definition of `O`-terms (see
-        :wikipedia:`Big_O_notation`), they are able to absorb all
-        other asymptotic terms with weaker or equal growth. The
-        result of the absorption is the original `O`-term::
+        `O`-Terms are able to absorb other `O`-terms and exact terms
+        with weaker or equal growth. ::
 
             sage: ot1.absorb(ot1)
             O(x)
@@ -605,22 +732,6 @@ class GenericTerm(sage.structure.element.MonoidElement):
             O(x)
             sage: ot1.absorb(et1) is ot1
             True
-
-        The first example above corresponds to `O(x) + O(x) = O(x)`, and
-        the second to `O(x) + 100x = O(x)`.
-        If absorb is called on a term that cannot be absorbed, an
-        :python:`ArithmeticError<library/exceptions.html#exceptions.ArithmeticError>`
-        is raised::
-
-            sage: ot1.absorb(ot2)
-            Traceback (most recent call last):
-            ...
-            ArithmeticError: O(x) cannot absorb O(x^2)
-
-        This would only work the other way around::
-
-            sage: ot2.absorb(ot1)
-            O(x^2)
 
         :class:`ExactTerm` is able to absorb another
         :class:`ExactTerm` if the terms have the same growth. In this
@@ -662,8 +773,8 @@ class GenericTerm(sage.structure.element.MonoidElement):
         from sage.structure.element import get_coercion_model
 
         return get_coercion_model().bin_op(self, other,
-                                           lambda self, other:
-                                           self._absorb_(other))
+                                           lambda left, right:
+                                           left._absorb_(right))
 
 
     def _absorb_(self, other):
@@ -706,6 +817,13 @@ class GenericTerm(sage.structure.element.MonoidElement):
             Traceback (most recent call last):
             ...
             ArithmeticError: Generic Term with growth x^2 cannot absorb Generic Term with growth x
+
+        TESTS::
+
+            sage: t2._absorb_(t1)
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: Not implemented in abstract base classes
         """
         raise NotImplementedError('Not implemented in abstract base classes')
 
@@ -722,11 +840,6 @@ class GenericTerm(sage.structure.element.MonoidElement):
         OUTPUT:
 
         A tuple of terms.
-
-        .. NOTE::
-
-            This method returns a tuple with the summands that come from
-            applying the rule `\log(x\cdot y) = \log(x) + \log(y)`.
 
         .. NOTE::
 
@@ -793,7 +906,7 @@ class GenericTerm(sage.structure.element.MonoidElement):
             :meth:`ExactTerm.log_term`,
             :meth:`OTerm.log_term`.
         """
-        return tuple(self.parent()._create_element_via_parent_(g, c)
+        return tuple(self.parent()._create_element_in_extension_(g, c)
                      for g, c in self.growth.log_factor(base=base))
 
 
@@ -809,6 +922,11 @@ class GenericTerm(sage.structure.element.MonoidElement):
         OUTPUT:
 
         A boolean.
+
+        .. NOTE::
+
+            This method **only** compares the growth of the input
+            terms!
 
         EXAMPLES:
 
@@ -850,13 +968,17 @@ class GenericTerm(sage.structure.element.MonoidElement):
             sage: o1 <= t1 and t1 <= o2
             True
 
-        For terms with coefficient (like exact terms), the
-        coefficient is compared as well if the growth is equal::
+        For terms with coefficient (like exact terms), comparison
+        works similarly, with the sole exception that terms with
+        equal growth are considered incomparable. Thus, `\leq`
+        only holds if the coefficients are equal as well::
 
             sage: t1 <= t2
             True
-            sage: t1 <= ET_ZZ(x^2, 3)
+            sage: ET_ZZ(x, -5) <= ET_ZZ(x, 42)
             False
+            sage: ET_ZZ(x, 5) <= ET_ZZ(x, 5)
+            True
         """
         from sage.structure.element import have_same_parent
 
@@ -891,6 +1013,9 @@ class GenericTerm(sage.structure.element.MonoidElement):
             it can be assumed that this element, as well as ``other``
             are from the same parent.
 
+            Also, this method **only** compares the growth of the
+            input terms!
+
         EXAMPLES::
 
             sage: from sage.rings.asymptotic.growth_group import GrowthGroup
@@ -909,7 +1034,7 @@ class GenericTerm(sage.structure.element.MonoidElement):
 
     def __eq__(self, other):
         r"""
-        Return if this asymptotic term is equal to ``other``.
+        Return whether this asymptotic term is equal to ``other``.
 
         INPUT:
 
@@ -956,7 +1081,7 @@ class GenericTerm(sage.structure.element.MonoidElement):
 
     def _eq_(self, other):
         r"""
-        Return if this asymptotic term is the same as ``other``.
+        Return whether this asymptotic term is the same as ``other``.
 
         INPUT:
 
@@ -999,7 +1124,7 @@ class GenericTerm(sage.structure.element.MonoidElement):
 
     def is_constant(self):
         r"""
-        Return if this term is an (exact) constant.
+        Return whether this term is an (exact) constant.
 
         INPUT:
 
@@ -1019,7 +1144,9 @@ class GenericTerm(sage.structure.element.MonoidElement):
             sage: from sage.rings.asymptotic.growth_group import GrowthGroup
             sage: from sage.rings.asymptotic.term_monoid import (GenericTermMonoid, TermMonoid)
             sage: T = GenericTermMonoid(GrowthGroup('x^ZZ * log(x)^ZZ'), QQ)
-            sage: T.an_element().is_constant()
+            sage: t = T.an_element(); t
+            Generic Term with growth x*log(x)
+            sage: t.is_constant()
             False
 
         ::
@@ -1035,7 +1162,7 @@ class GenericTerm(sage.structure.element.MonoidElement):
 
     def is_little_o_of_one(self):
         r"""
-        Return if this generic term is of order `o(1)`.
+        Return whether this generic term is of order `o(1)`.
 
         INPUT:
 
@@ -1054,18 +1181,18 @@ class GenericTerm(sage.structure.element.MonoidElement):
             sage: T.an_element().is_little_o_of_one()
             Traceback (most recent call last):
             ...
-            NotImplementedError: Cannot check if Generic Term with growth x is o(1)
+            NotImplementedError: Cannot check whether Generic Term with growth x is o(1)
             in the abstract base class
             Generic Term Monoid x^ZZ with (implicit) coefficients in Rational Field.
             sage: T = TermWithCoefficientMonoid(GrowthGroup('x^ZZ'), QQ)
             sage: T.an_element().is_little_o_of_one()
             Traceback (most recent call last):
             ...
-            NotImplementedError: Cannot check if Term with coefficient 1/2 and growth x
+            NotImplementedError: Cannot check whether Term with coefficient 1/2 and growth x
             is o(1) in the abstract base class
             Generic Term Monoid x^ZZ with (implicit) coefficients in Rational Field.
         """
-        raise NotImplementedError('Cannot check if %s is o(1) in the '
+        raise NotImplementedError('Cannot check whether %s is o(1) in the '
                                   'abstract base class %s.' % (self, self.parent()))
 
 
@@ -1135,7 +1262,7 @@ class GenericTermMonoid(sage.structure.unique_representation.UniqueRepresentatio
 
     INPUT:
 
-    - ``growth_group`` -- a partially ordered group (e.g. an instance of
+    - ``growth_group`` -- a growth group (i.e. an instance of
       :class:`~sage.rings.asymptotic.growth_group.GenericGrowthGroup`).
 
     - ``coefficient_ring`` -- a ring which contains the (maybe implicit)
@@ -1177,7 +1304,7 @@ class GenericTermMonoid(sage.structure.unique_representation.UniqueRepresentatio
     @staticmethod
     def __classcall__(cls, growth_group, coefficient_ring, category=None):
         r"""
-        Normalizes the input in order to ensure a unique
+        Normalize the input in order to ensure a unique
         representation of the parent.
 
         TESTS::
@@ -1189,6 +1316,25 @@ class GenericTermMonoid(sage.structure.unique_representation.UniqueRepresentatio
             sage: from sage.rings.asymptotic.misc import underlying_class
             sage: underlying_class(T)(G, QQ) is T
             True
+
+        ::
+
+            sage: GenericTermMonoid(None, ZZ)  # indirect doctest
+            Traceback (most recent call last):
+            ...
+            ValueError: No growth group specified.
+            sage: GenericTermMonoid(int, ZZ)  # indirect doctest
+            Traceback (most recent call last):
+            ...
+            TypeError: <type 'int'> is not a valid growth group.
+            sage: GenericTermMonoid(G, None)  # indirect doctest
+            Traceback (most recent call last):
+            ...
+            ValueError: No coefficient ring specified.
+            sage: GenericTermMonoid(G, int)  # indirect doctest
+            Traceback (most recent call last):
+            ...
+            TypeError: <type 'int'> is not a valid coefficient ring.
         """
         if growth_group is None:
             raise ValueError('No growth group specified.')
@@ -1238,7 +1384,7 @@ class GenericTermMonoid(sage.structure.unique_representation.UniqueRepresentatio
 
         ::
 
-            sage: G = GrowthGroup('x^ZZ'); x = G.gen()
+            sage: G = GrowthGroup('x^ZZ')
             sage: T_ZZ = TermWithCoefficientMonoid(G, ZZ); T_ZZ
             Generic Term Monoid x^ZZ with (implicit) coefficients in Integer Ring
             sage: T_QQ = TermWithCoefficientMonoid(G, QQ); T_QQ
@@ -1309,7 +1455,7 @@ class GenericTermMonoid(sage.structure.unique_representation.UniqueRepresentatio
 
     def _coerce_map_from_(self, S):
         r"""
-        Return if ``S`` coerces into this term monoid.
+        Return whether ``S`` coerces into this term monoid.
 
         INPUT:
 
@@ -1322,8 +1468,10 @@ class GenericTermMonoid(sage.structure.unique_representation.UniqueRepresentatio
         .. NOTE::
 
             Another generic term monoid ``S`` coerces into this term
-            monoid if and only if the growth group of ``S`` coerces
-            into the growth group of this term monoid.
+            monoid if and only if both, the growth group of ``S`` coerces
+            into the growth group of this term monoid and the coefficient
+            ring of ``S`` coerces into the coefficient ring of this term
+            monoid.
 
         EXAMPLES::
 
@@ -1337,6 +1485,12 @@ class GenericTermMonoid(sage.structure.unique_representation.UniqueRepresentatio
             Generic Term Monoid x^QQ with (implicit) coefficients in Rational Field
             sage: T_QQ.has_coerce_map_from(T_ZZ)  # indirect doctest
             True
+            sage: T_QQ_ZZ = GenericTermMonoid(G_QQ, ZZ); T_QQ_ZZ
+            Generic Term Monoid x^QQ with (implicit) coefficients in Integer Ring
+            sage: T_QQ.has_coerce_map_from(T_QQ_ZZ)
+            True
+            sage: T_QQ_ZZ.has_coerce_map_from(T_QQ)
+            False
 
         ::
 
@@ -1383,11 +1537,19 @@ class GenericTermMonoid(sage.structure.unique_representation.UniqueRepresentatio
             sage: term1 = T_ZZ(G_ZZ.gen())
             sage: term2 = T_QQ(G_QQ.gen()^2)
 
-        In order for two terms to be compared, a coercion into one
-        of the parents has to be found::
+        In order for two terms to be compared, a coercion into
+        a common parent has to be found::
 
+            sage: term1.parent()
+            Generic Term Monoid x^ZZ with (implicit) coefficients in Rational Field
+            sage: term2.parent()
+            Generic Term Monoid x^QQ with (implicit) coefficients in Rational Field
             sage: term1 <= term2
             True
+
+        In this case, this works because ``T_ZZ``, the parent of
+        ``term1``, coerces into ``T_QQ``::
+
             sage: T_QQ.coerce(term1)  # coercion does not fail
             Generic Term with growth x
 
@@ -1447,13 +1609,13 @@ class GenericTermMonoid(sage.structure.unique_representation.UniqueRepresentatio
             Term with coefficient 1 and growth log(x)
 
         """
-        if type(data) == self.element_class and data.parent() == self:
+        if isinstance(data, self.element_class) and data.parent() == self:
             return data
         elif isinstance(data, TermWithCoefficient):
             return self._create_element_(data.growth, data.coefficient)
         elif isinstance(data, GenericTerm):
             return self._create_element_(data.growth, None)
-        elif type(data) == int and data == 0:
+        elif isinstance(data, int) and data == 0:
             raise ValueError('No input specified. Cannot continue '
                              'creating an element of %s.' % (self,))
 
@@ -1504,9 +1666,10 @@ class GenericTermMonoid(sage.structure.unique_representation.UniqueRepresentatio
         return self.element_class(self, growth)
 
 
-    def _create_element_via_parent_(self, growth, coefficient):
+    def _create_element_in_extension_(self, growth, coefficient):
         r"""
-        Create an element with a possibly other parent.
+        Create an element in an extension of this term monoid which
+        is chosen according to the input.
 
         INPUT:
 
@@ -1516,13 +1679,15 @@ class GenericTermMonoid(sage.structure.unique_representation.UniqueRepresentatio
 
         An element.
 
+        EXAMPLES::
+
             sage: from sage.rings.asymptotic.term_monoid import TermMonoid
             sage: from sage.rings.asymptotic.growth_group import GrowthGroup
             sage: G = GrowthGroup('z^ZZ')
             sage: T = TermMonoid('exact', G, ZZ)
-            sage: T._create_element_via_parent_(G.an_element(), 3)
+            sage: T._create_element_in_extension_(G.an_element(), 3)
             3*z
-            sage: T._create_element_via_parent_(G.an_element(), 3/2).parent()
+            sage: T._create_element_in_extension_(G.an_element(), 3/2).parent()
             Exact Term Monoid z^ZZ with coefficients in Rational Field
         """
         if (growth.parent() is self.growth_group) and \
@@ -1554,10 +1719,41 @@ class GenericTermMonoid(sage.structure.unique_representation.UniqueRepresentatio
 
             sage: from sage.rings.asymptotic.term_monoid import TermMonoid
             sage: from sage.rings.asymptotic.growth_group import GrowthGroup
-            sage: G_ZZ = GrowthGroup('x^ZZ')
-            sage: T_ZZ = TermMonoid('exact', G_ZZ, QQ)
-            sage: T_ZZ._split_growth_and_coefficient_('2*x^3')
+            sage: G = GrowthGroup('x^ZZ')
+            sage: T = TermMonoid('exact', G, QQ)
+            sage: T._split_growth_and_coefficient_('2*x^3')
             (x^3, 2)
+
+        ::
+
+            sage: T._split_growth_and_coefficient_('2.7 * x^3')
+            Traceback (most recent call last):
+            ...
+            ValueError: Factor 2.7 of 2.7 * x^3 is neither a coefficient
+            (in Rational Field) nor growth (in Growth Group x^ZZ).
+
+        ::
+
+            sage: G = GrowthGroup('QQ^x * x^ZZ * log(x)^ZZ')
+            sage: T = TermMonoid('exact', G, QQ)
+            sage: T._split_growth_and_coefficient_('3/4 * 2^x * log(x)')
+            (2^x*log(x), 3/4)
+            sage: T._split_growth_and_coefficient_('3 * x^2 * 4 * log(x) * x')
+            (x^3*log(x), 12)
+            sage: var('x')
+            x
+            sage: T._split_growth_and_coefficient_(log(x)^5 * x^2 * 4)
+            (x^2*log(x)^5, 4)
+
+        ::
+
+            sage: T = TermMonoid('exact', G, SR)
+            sage: T._split_growth_and_coefficient_(log(x)^5 * x^2 * 4)
+            (x^2*log(x)^5, 4)
+            sage: var('y')
+            y
+            sage: T._split_growth_and_coefficient_(2^x * y * 4)
+            (2^x, 4*y)
         """
         factors = self._get_factors_(data)
 
@@ -1680,7 +1876,7 @@ class GenericTermMonoid(sage.structure.unique_representation.UniqueRepresentatio
 
     def le(self, left, right):
         r"""
-        Return if the term ``left`` is at most (less than or equal
+        Return whether the term ``left`` is at most (less than or equal
         to) the term ``right``.
 
         INPUT:
@@ -1821,13 +2017,18 @@ class OTerm(GenericTerm):
             O(z^3)
             sage: t^(1/2)  # indirect doctest
             O(z^(1/2))
+            sage: t^(-1)  # indirect doctest
+            Traceback (most recent call last):
+            ...
+            ZeroDivisionError: Cannot take O(z) to exponent -1.
+            > *previous* ZeroDivisionError: rational division by zero
         """
         return self._calculate_pow_test_zero_(exponent)
 
 
-    def _can_absorb_(self, other):
+    def can_absorb(self, other):
         r"""
-        Check, whether this `O`-term can absorb ``other``.
+        Check whether this `O`-term can absorb ``other``.
 
         INPUT:
 
@@ -1842,15 +2043,18 @@ class OTerm(GenericTerm):
             An :class:`OTerm` can absorb any other asymptotic term
             with weaker or equal growth.
 
+            See the :ref:`module description <term_absorption>` for a
+            detailed explanation of absorption.
+
         EXAMPLES::
 
             sage: from sage.rings.asymptotic.growth_group import GrowthGroup
             sage: from sage.rings.asymptotic.term_monoid import TermMonoid
             sage: OT = TermMonoid('O', GrowthGroup('x^ZZ'), QQ)
             sage: t1 = OT(x^21); t2 = OT(x^42)
-            sage: t1.can_absorb(t2)  # indirect doctest
+            sage: t1.can_absorb(t2)
             False
-            sage: t2.can_absorb(t1)  # indirect doctest
+            sage: t2.can_absorb(t1)
             True
         """
         return other <= self
@@ -1875,8 +2079,11 @@ class OTerm(GenericTerm):
             have the same parent.
 
             Also, observe that the result of a "dominant" `O`-term
-            absorbing another `O`-term, always is the "dominant"
+            absorbing another `O`-term always is the "dominant"
             `O`-term again.
+
+            See the :ref:`module description <term_absorption>` for a
+            detailed explanation on absorption.
 
         EXAMPLES::
 
@@ -1941,7 +2148,7 @@ class OTerm(GenericTerm):
 
     def is_little_o_of_one(self):
         r"""
-        Return if this O-term is of order `o(1)`.
+        Return whether this O-term is of order `o(1)`.
 
         INPUT:
 
@@ -2135,10 +2342,17 @@ class OTermMonoid(GenericTermMonoid):
 
             sage: from sage.rings.asymptotic.term_monoid import TermMonoid
             sage: from sage.rings.asymptotic.growth_group import GrowthGroup
-            sage: G_ZZ = GrowthGroup('x^ZZ')
-            sage: T_ZZ = TermMonoid('O', G_ZZ, QQ)
-            sage: T_ZZ(G_ZZ.gen())  # indirect doctest
+            sage: G = GrowthGroup('x^ZZ')
+            sage: T = TermMonoid('O', G, QQ)
+            sage: T(G.gen())  # indirect doctest
             O(x)
+            sage: T(G.gen(), SR.var('y'))  # indirect doctest
+            Traceback (most recent call last):
+            ...
+            ValueError: Cannot create O(x) since given coefficient y
+            is not valid in O-Term Monoid x^ZZ with implicit coefficients in
+            Rational Field.
+            > *previous* TypeError: unable to convert y to a rational
         """
         if coefficient is not None:
             try:
@@ -2147,14 +2361,14 @@ class OTermMonoid(GenericTermMonoid):
                 from misc import combine_exceptions
                 raise combine_exceptions(
                     ValueError('Cannot create O(%s) since given coefficient %s '
-                               'is not a valid in %s.' %
+                               'is not valid in %s.' %
                                (growth, coefficient, self)), e)
         return self.element_class(self, growth)
 
 
     def _coerce_map_from_(self, S):
         r"""
-        Return if ``S`` coerces into this term monoid.
+        Return whether ``S`` coerces into this term monoid.
 
         INPUT:
 
@@ -2187,10 +2401,10 @@ class OTermMonoid(GenericTermMonoid):
             sage: ET = TermMonoid('exact', G_ZZ, ZZ)
 
         Now, the :class:`OTermMonoid` whose growth group is over the
-        interger ring has to coerce into the :class:`OTermMonoid` with
+        integer ring has to coerce into the :class:`OTermMonoid` with
         the growth group over the rational field, and the
-        :class:`ExactTermMonoid` also has to coerce in both the
-        :class:`OTermMonoid`s::
+        :class:`ExactTermMonoid` also has to coerce in each of the
+        given :class:`OTermMonoid`::
 
             sage: OT_QQ.has_coerce_map_from(OT_ZZ)  # indirect doctest
             True
@@ -2362,16 +2576,16 @@ class TermWithCoefficient(GenericTerm):
             sage: CT = TermWithCoefficientMonoid(G, ZZ)
             sage: ET = TermMonoid('exact', G, ZZ)
 
-            This method handles the multiplication of abstract terms
-            with coefficient (i.e. :class:`TermWithCoefficient`) and
-            exact terms (i.e. :class:`ExactTerm`). First, an example
-            for abstract terms::
+        This method handles the multiplication of abstract terms
+        with coefficient (i.e. :class:`TermWithCoefficient`) and
+        exact terms (i.e. :class:`ExactTerm`). First, an example
+        for abstract terms::
 
             sage: t1 = CT(x^2, 2); t2 = CT(x^3, 3)
             sage: t1 * t2
             Term with coefficient 6 and growth x^5
 
-            And now, an example for exact terms::
+        And now, an example for exact terms::
 
             sage: t1 = ET(x^2, 2); t2 = ET(x^3, 3)
             sage: t1 * t2
@@ -2383,8 +2597,8 @@ class TermWithCoefficient(GenericTerm):
 
     def _calculate_pow_(self, exponent):
         r"""
-        Helper function for :meth:`__pow__` which calculates the power of this
-        element to the given ``exponent``.
+        Helper function for :meth:`~ExactTerm.__pow__` which calculates
+        the power of this element to the given ``exponent``.
 
         INPUT:
 
@@ -2399,12 +2613,27 @@ class TermWithCoefficient(GenericTerm):
             sage: from sage.rings.asymptotic.term_monoid import TermWithCoefficientMonoid
             sage: from sage.rings.asymptotic.growth_group import GrowthGroup
             sage: G = GrowthGroup('z^ZZ')
-            sage: t = TermWithCoefficientMonoid(G, ZZ).an_element(); t
-            Term with coefficient 1 and growth z
+            sage: T = TermWithCoefficientMonoid(G, ZZ)
+            sage: t = T('2*z'); t
+            Term with coefficient 2 and growth z
             sage: t._calculate_pow_(3)
-            Term with coefficient 1 and growth z^3
+            Term with coefficient 8 and growth z^3
             sage: t._calculate_pow_(-2)
-            Term with coefficient 1 and growth z^(-2)
+            Term with coefficient 1/4 and growth z^(-2)
+
+        ::
+
+            sage: T = TermWithCoefficientMonoid(G, CIF)
+            sage: T(G.an_element(), coefficient=CIF(RIF(-1,1), RIF(-1,1)))._calculate_pow_(I)
+            Traceback (most recent call last):
+            ...
+            ArithmeticError: Cannot take Term with coefficient 0.? + 0.?*I and
+            growth z to the exponent I in Generic Term Monoid z^ZZ with
+            (implicit) coefficients in Complex Interval Field with
+            53 bits of precision since its coefficient 0.? + 0.?*I
+            cannot be taken to this exponent.
+            > *previous* ValueError: Can't take the argument of
+            interval strictly containing zero
         """
         try:
             c = self.coefficient ** exponent
@@ -2414,7 +2643,7 @@ class TermWithCoefficient(GenericTerm):
                 ArithmeticError('Cannot take %s to the exponent %s in %s since its '
                                 'coefficient %s cannot be taken to this exponent.' %
                                 (self, exponent, self.parent(), self.coefficient)), e)
-        return super(TermWithCoefficient, self)._calculate_pow_(exponent, coefficient=c)
+        return super(TermWithCoefficient, self)._calculate_pow_(exponent, new_coefficient=c)
 
 
     def _log_coefficient_(self, base=None):
@@ -2448,7 +2677,7 @@ class TermWithCoefficient(GenericTerm):
         if self.coefficient.is_one():
             return tuple()
         from sage.functions.log import log
-        return (self.parent()._create_element_via_parent_(
+        return (self.parent()._create_element_in_extension_(
             self.parent().growth_group.one(), log(self.coefficient, base=base)),)
 
 
@@ -2483,27 +2712,26 @@ class TermWithCoefficient(GenericTerm):
             sage: t2 <= t1
             False
             sage: t2 <= t3
-            True
+            False
             sage: t3 <= t2
             False
+            sage: t2 <= t2
+            True
 
         TESTS::
 
             sage: ET(x, -2) <= ET(x, 1)
             False
         """
-
-
         if self.growth == other.growth:
-            return abs(self.coefficient) < abs(other.coefficient) or \
-                self.coefficient == other.coefficient
+            return self.coefficient == other.coefficient
         else:
             return super(TermWithCoefficient, self)._le_(other)
 
 
     def _eq_(self, other):
         r"""
-        Return if this :class:`TermWithCoefficient` is the same as
+        Return whether this :class:`TermWithCoefficient` is the same as
         ``other``.
 
         INPUT:
@@ -2517,8 +2745,8 @@ class TermWithCoefficient(GenericTerm):
         .. NOTE::
 
             This method gets called by the coercion model, so it can
-            be assumed that this :class:`TermWithCoefficient` and
-            ``other`` come from the same parent.
+            be assumed that this term and ``other`` come from the
+            same parent.
 
         EXAMPLES::
 
@@ -2655,12 +2883,11 @@ class TermWithCoefficientMonoid(GenericTermMonoid):
             sage: G = GrowthGroup('z^QQ')
             sage: T = TermMonoid('exact', G, ZZ)
             sage: tuple(islice(T.some_elements(), 10))
-            (z^(1/2), -z^(1/2), z^(-1/2), 2*z^(1/2), -z^(-1/2),
-             z^2, -2*z^(1/2), 2*z^(-1/2), -z^2, z^(-2))
-
+            (z^(1/2), z^(-1/2), -z^(1/2), z^2, -z^(-1/2), 2*z^(1/2),
+             z^(-2), -z^2, 2*z^(-1/2), -2*z^(1/2))
         """
-        from misc import product_diagonal
-        return iter(self(g, c) for g, c in product_diagonal(
+        from sage.misc.mrange import cantor_product
+        return iter(self(g, c) for g, c in cantor_product(
             self.growth_group.some_elements(),
             iter(c for c in self.coefficient_ring.some_elements() if c != 0)))
 
@@ -2797,7 +3024,7 @@ class ExactTerm(TermWithCoefficient):
             raise ZeroDivisionError('Cannot invert %s since its coefficient %s '
                                     'cannot be inverted.' % (self, self.coefficient))
         g = ~self.growth
-        return self.parent()._create_element_via_parent_(g, c)
+        return self.parent()._create_element_in_extension_(g, c)
 
 
     def __pow__(self, exponent):
@@ -2817,19 +3044,20 @@ class ExactTerm(TermWithCoefficient):
             sage: from sage.rings.asymptotic.term_monoid import TermMonoid
             sage: from sage.rings.asymptotic.growth_group import GrowthGroup
             sage: G = GrowthGroup('z^ZZ')
-            sage: t = TermMonoid('exact', G, ZZ).an_element(); t
-            z
+            sage: T = TermMonoid('exact', G, ZZ)
+            sage: t = T('2*z'); t
+            2*z
             sage: t^3  # indirect doctest
-            z^3
+            8*z^3
             sage: t^(1/2)  # indirect doctest
-            z^(1/2)
+            sqrt(2)*z^(1/2)
         """
         return self._calculate_pow_(exponent)
 
 
-    def _can_absorb_(self, other):
+    def can_absorb(self, other):
         r"""
-        Check, whether this exact term can absorb ``other``.
+        Check whether this exact term can absorb ``other``.
 
         INPUT:
 
@@ -2845,17 +3073,20 @@ class ExactTerm(TermWithCoefficient):
             addition. This means that an exact term can absorb
             only other exact terms with the same growth.
 
+            See the :ref:`module description <term_absorption>` for a
+            detailed explanation of absorption.
+
         EXAMPLES::
 
             sage: from sage.rings.asymptotic.growth_group import GrowthGroup
             sage: from sage.rings.asymptotic.term_monoid import TermMonoid
             sage: ET = TermMonoid('exact', GrowthGroup('x^ZZ'), ZZ)
             sage: t1 = ET(x^21, 1); t2 = ET(x^21, 2); t3 = ET(x^42, 1)
-            sage: t1.can_absorb(t2)  # indirect doctest
+            sage: t1.can_absorb(t2)
             True
-            sage: t2.can_absorb(t1)  # indirect doctest
+            sage: t2.can_absorb(t1)
             True
-            sage: t1.can_absorb(t3) or t3.can_absorb(t1) # indirect doctest
+            sage: t1.can_absorb(t3) or t3.can_absorb(t1)
             False
         """
         return isinstance(other, ExactTerm) and self.growth == other.growth
@@ -2876,8 +3107,11 @@ class ExactTerm(TermWithCoefficient):
         .. NOTE::
 
             In the context of exact terms, absorption translates
-            to addition. As the coefficient `0` is not allowed. Instead
-            ``None`` is returned if the terms cancel out.
+            to addition. As the coefficient `0` is not allowed,
+            ``None`` is returned instead if the terms cancel out.
+
+            See the :ref:`module description <term_absorption>` for a
+            detailed explanation on absorption.
 
         EXAMPLES::
 
@@ -2956,7 +3190,7 @@ class ExactTerm(TermWithCoefficient):
 
     def is_constant(self):
         r"""
-        Return if this term is an (exact) constant.
+        Return whether this term is an (exact) constant.
 
         INPUT:
 
@@ -2990,7 +3224,7 @@ class ExactTerm(TermWithCoefficient):
 
     def is_little_o_of_one(self):
         r"""
-        Return if this exact term is of order `o(1)`.
+        Return whether this exact term is of order `o(1)`.
 
         INPUT:
 
@@ -3078,10 +3312,10 @@ class ExactTerm(TermWithCoefficient):
         if self.is_constant():
             if not hasattr(base, 'parent'):
                 base = P.coefficient_ring(base)
-            return P._create_element_via_parent_(
+            return P._create_element_in_extension_(
                 P.growth_group.one(), base ** self.coefficient)
 
-        elem = P._create_element_via_parent_(
+        elem = P._create_element_in_extension_(
             self.growth.rpow(base), P.coefficient_ring.one())
         return elem ** self.coefficient
 
@@ -3135,7 +3369,8 @@ class ExactTermMonoid(TermWithCoefficientMonoid):
           From: Exact Term Monoid x^ZZ with coefficients in Integer Ring
           To:   Exact Term Monoid x^QQ with coefficients in Rational Field
 
-    Exact term monoids can also be created using the term factory::
+    Exact term monoids can also be created using the
+    :class:`term factory <TermMonoidFactory>`::
 
         sage: from sage.rings.asymptotic.term_monoid import TermMonoid
         sage: TermMonoid('exact', G_ZZ, ZZ) is ET_ZZ
@@ -3181,10 +3416,15 @@ class TermMonoidFactory(sage.structure.factory.UniqueFactory):
 
     - :class:`ExactTermMonoid`.
 
+    .. NOTE::
+
+        An instance of this factory is available as ``TermMonoid``.
+
     INPUT:
 
     - ``term`` -- the kind of term that shall be created. Either a string
-      ``'exact'`` or ``'O'``, or an existing instance of a term.
+      ``'exact'`` or ``'O'`` (capital letter ``O``),
+      or an existing instance of a term.
 
     - ``growth_group`` -- a growth group.
 
@@ -3202,12 +3442,30 @@ class TermMonoidFactory(sage.structure.factory.UniqueFactory):
         sage: from sage.rings.asymptotic.growth_group import GrowthGroup
         sage: from sage.rings.asymptotic.term_monoid import TermMonoid
         sage: G = GrowthGroup('x^ZZ')
-        sage: OT = TermMonoid('O', G, QQ); OT
+        sage: TermMonoid('O', G, QQ)
         O-Term Monoid x^ZZ with implicit coefficients in Rational Field
-        sage: ET = TermMonoid('exact', G, ZZ); ET
+        sage: TermMonoid('exact', G, ZZ)
         Exact Term Monoid x^ZZ with coefficients in Integer Ring
 
+    ::
+
+        sage: R = AsymptoticRing(growth_group=G, coefficient_ring=QQ)
+        sage: TermMonoid('exact', asymptotic_ring=R)
+        Exact Term Monoid x^ZZ with coefficients in Rational Field
+        sage: TermMonoid('O', asymptotic_ring=R)
+        O-Term Monoid x^ZZ with implicit coefficients in Rational Field
+
     TESTS::
+
+        sage: TermMonoid(TermMonoid('O', G, ZZ), asymptotic_ring=R)
+        O-Term Monoid x^ZZ with implicit coefficients in Rational Field
+        sage: TermMonoid(TermMonoid('exact', G, ZZ), asymptotic_ring=R)
+        Exact Term Monoid x^ZZ with coefficients in Rational Field
+        sage: from sage.rings.asymptotic.term_monoid import GenericTermMonoid
+        sage: TermMonoid(GenericTermMonoid(G, ZZ), asymptotic_ring=R)
+        Generic Term Monoid x^ZZ with (implicit) coefficients in Rational Field
+
+    ::
 
         sage: TestSuite(TermMonoid('exact', GrowthGroup('x^ZZ'), QQ)).run(verbose=True)  # long time
         running ._test_an_element() . . . pass
@@ -3281,6 +3539,18 @@ class TermMonoidFactory(sage.structure.factory.UniqueFactory):
             ...
             ValueError: A coefficient ring has to be specified
             to create a term monoid of type 'exact'
+
+        TESTS::
+
+            sage: TermMonoid.create_key_and_extra_args('icecream', G)
+            Traceback (most recent call last):
+            ...
+            ValueError: Term specification 'icecream' has to be either
+            'exact' or 'O' or an instance of an existing term.
+            sage: TermMonoid.create_key_and_extra_args('O', ZZ)
+            Traceback (most recent call last):
+            ...
+            ValueError: Integer Ring has to be an asymptotic growth group
         """
         if isinstance(term, GenericTermMonoid):
             from misc import underlying_class
@@ -3334,3 +3604,8 @@ class TermMonoidFactory(sage.structure.factory.UniqueFactory):
 
 
 TermMonoid = TermMonoidFactory("TermMonoid")
+r"""
+A factory for asymptotic term monoids.
+This is an instance of :class:`TermMonoidFactory` whose documentation
+provides more details.
+"""

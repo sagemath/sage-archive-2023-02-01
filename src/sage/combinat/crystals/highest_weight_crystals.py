@@ -63,7 +63,7 @@ def HighestWeightCrystal(dominant_weight, model=None):
         <sage.combinat.crystals.alcove_path.CrystalOfAlcovePaths>`
       * ``'GeneralizedYoungWalls'`` - :class:`generalized Young walls
         <sage.combinat.crystals.generalized_young_walls.CrystalOfGeneralizedYoungWalls>`
-      * ``'RiggedConfigurations'`` - :class:`rigged configuraitons
+      * ``'RiggedConfigurations'`` - :class:`rigged configurations
         <sage.combinat.rigged_configurations.rc_crystal.CrystalOfRiggedConfigurations>`
 
     EXAMPLES::

@@ -17,10 +17,6 @@
 
  * GNU General Public License Version 3 or later (see src/COPYING)
 
-== Maintainers ==
-
- * Martin Albrecht
-
 == Upstream Contact ==
 
  * Authors: Mate Soos

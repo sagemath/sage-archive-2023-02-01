@@ -1251,8 +1251,10 @@ class GenericTerm(sage.structure.element.MonoidElement):
 
 
     def _substitute_(self, rules):
-        raise NotImplementedError('Cannot substitute in %s in the abstract '
-                                  'base class %s.' % (self, self.parent()))
+        from misc import substitute_raise_exception
+        substitute_raise_exception(self, TypeError(
+            'Cannot substitute in the abstract '
+            'base class %s.' % (self.parent(),)))
 
 
 class GenericTermMonoid(sage.structure.unique_representation.UniqueRepresentation,
@@ -2254,8 +2256,7 @@ class OTerm(GenericTerm):
     def _substitute_(self, rules):
         try:
             g = self.growth._substitute_(rules)
-        except (ArithmeticError, NotImplementedError,
-                TypeError, ValueError) as e:
+        except (ArithmeticError, TypeError, ValueError) as e:
             from misc import substitute_raise_exception
             substitute_raise_exception(self, e)
 
@@ -2264,16 +2265,21 @@ class OTerm(GenericTerm):
         except KeyError:
             pass
 
-        from asymptotic_ring import AsymptoticRing
-        if isinstance(g.parent(), AsymptoticRing):
-            return g.O()
+        try:
+            P = g.parent()
+        except AttributeError:
+            pass
+        else:
+            from asymptotic_ring import AsymptoticRing
+            if isinstance(P, AsymptoticRing):
+                return g.O()
 
-        elif isinstance(g.parent(), sage.symbolic.ring.SR):
-            return g.Order()
+            elif P is sage.symbolic.ring.SR:
+                return g.Order()
 
         try:
             return sage.rings.big_oh.O(g)
-        except (TypeError, ValueError) as e:
+        except (ArithmeticError, TypeError, ValueError) as e:
             from misc import substitute_raise_exception
             substitute_raise_exception(self, e)
 
@@ -3316,8 +3322,7 @@ class ExactTerm(TermWithCoefficient):
     def _substitute_(self, rules):
         try:
             g = self.growth._substitute_(rules)
-        except (ArithmeticError, NotImplementedError,
-                TypeError, ValueError) as e:
+        except (ArithmeticError, TypeError, ValueError) as e:
             from misc import substitute_raise_exception
             substitute_raise_exception(self, e)
 
@@ -3325,7 +3330,7 @@ class ExactTerm(TermWithCoefficient):
 
         try:
             return c * g
-        except (TypeError, ValueError) as e:
+        except (ArithmeticError, TypeError, ValueError) as e:
             from misc import substitute_raise_exception
             substitute_raise_exception(self, e)
 

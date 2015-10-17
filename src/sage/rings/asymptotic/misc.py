@@ -340,10 +340,10 @@ def combine_exceptions(e, *f):
     return e
 
 
-def substitute_raise_exception(self, e):
+def substitute_raise_exception(element, e):
     raise combine_exceptions(
-        TypeError('Cannot substitute in %s in %s.' %
-                  (self, self.parent())), e)
+        type(e)('Cannot substitute in %s in %s.' %
+                (element, element.parent())), e)
 
 
 def underlying_class(P):

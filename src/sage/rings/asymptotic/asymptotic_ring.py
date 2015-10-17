@@ -1898,7 +1898,7 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
             Exact Term Monoid z^QQ with coefficients in Rational Field.
             >> *previous* ZeroDivisionError: Cannot substitute in z^(-1) in
             Growth Group z^QQ.
-            >>... *previous* ZeroDivisionError: rational division by zero
+            >...> *previous* ZeroDivisionError: rational division by zero
         """
         if not self.summands:
             return rules['_zero_']
@@ -2420,7 +2420,7 @@ class AsymptoticRing(Algebra, UniqueRepresentation):
             > *previous* ValueError: Growth c is not in
             Exact Term Monoid a^ZZ * b^ZZ with coefficients in Rational Field.
             >> *previous* ValueError: c is not in Growth Group a^ZZ * b^ZZ.
-            >>... *previous* ValueError: c is not in any of the factors of
+            >...> *previous* ValueError: c is not in any of the factors of
             Growth Group a^ZZ * b^ZZ
 
         ::

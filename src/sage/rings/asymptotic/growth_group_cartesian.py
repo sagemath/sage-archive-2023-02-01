@@ -1126,6 +1126,43 @@ class GenericProduct(CartesianProductPoset, GenericGrowthGroup):
 
 
         def _substitute_(self, rules):
+            r"""
+            Substitute the given ``rules`` in this
+            cartesian product growth element.
+
+            INPUT:
+
+            - ``rules`` -- a dictionary.
+              The neutral element of the group is replaced by the value
+              to key ``'_one_'``.
+
+            OUTPUT:
+
+            An object.
+
+            TESTS::
+
+                sage: from sage.rings.asymptotic.growth_group import GrowthGroup
+                sage: G = GrowthGroup('x^QQ * log(x)^QQ')
+                sage: G(x^3 * log(x)^5)._substitute_({'x': SR.var('z')})
+                z^3*log(z)^5
+                sage: _.parent()
+                Symbolic Ring
+                sage: G(x^3 * log(x)^5)._substitute_({'x': 2.2})  # rel tol 1e-6
+                3.24458458945
+                sage: _.parent()
+                Real Field with 53 bits of precision
+                sage: G(1 / x)._substitute_({'x': 0})
+                Traceback (most recent call last):
+                ...
+                ZeroDivisionError: Cannot substitute in x^(-1) in
+                Growth Group x^QQ * log(x)^QQ.
+                > *previous* ZeroDivisionError: Cannot substitute in x^(-1) in
+                Growth Group x^QQ.
+                >> *previous* ZeroDivisionError: rational division by zero
+                sage: G(1)._substitute_({'_one_': 'one'})
+                'one'
+            """
             if self.is_one():
                 return rules['_one_']
             from sage.symbolic.operators import mul_vararg

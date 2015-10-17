@@ -158,7 +158,7 @@ from copy import copy
 from sage.misc.lazy_import import lazy_import
 from sage.homology.cell_complex import GenericCellComplex
 from sage.structure.sage_object import SageObject
-from sage.structure.category_object import CategoryObject
+from sage.structure.parent import Parent
 from sage.rings.integer import Integer
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.sets.set import Set
@@ -735,7 +735,7 @@ class Simplex(SageObject):
         """
         return latex(self.__tuple)
 
-class SimplicialComplex(CategoryObject, GenericCellComplex):
+class SimplicialComplex(Parent, GenericCellComplex):
     r"""
     Define a simplicial complex.
 
@@ -871,13 +871,13 @@ class SimplicialComplex(CategoryObject, GenericCellComplex):
             sage: S == loads(dumps(S))
             True
 
-            sage: TestSuite(S).run()
-            sage: TestSuite(S3).run()
+            sage: TestSuite(S).run(skip="_test_category")
+            sage: TestSuite(S3).run(skip="_test_category")
         """
         if (maximal_faces is not None and
             from_characteristic_function is not None):
             raise ValueError("maximal_faces and from_characteristic_function cannot be both defined")
-        CategoryObject.__init__(self, category=SimplicialComplexes())
+        Parent.__init__(self, category=SimplicialComplexes())
         from sage.misc.misc import union
 
         C = None
@@ -1031,7 +1031,7 @@ class SimplicialComplex(CategoryObject, GenericCellComplex):
             sage: X == SimplicialComplex([[1,3]])
             True
         """
-        if set(self._facets) == set(right._facets):
+        if isinstance(right, SimplicialComplex) and set(self._facets) == set(right._facets):
             return 0
         else:
             return -1
@@ -3332,7 +3332,12 @@ class SimplicialComplex(CategoryObject, GenericCellComplex):
             sage: f = {0:0,1:1,2:3}
             sage: x = H(f)
             sage: x
-            Simplicial complex morphism {0: 0, 1: 1, 2: 3} from Simplicial complex with vertex set (0, 1, 2) and facets {(1, 2), (0, 2), (0, 1)} to Simplicial complex with vertex set (0, 1, 2, 3) and facets {(0, 2, 3), (0, 1, 2), (1, 2, 3), (0, 1, 3)}
+            Simplicial complex morphism:
+              From: Simplicial complex with vertex set (0, 1, 2) and facets {(1, 2), (0, 2), (0, 1)}
+              To: Simplicial complex with vertex set (0, 1, 2, 3) and facets {(0, 2, 3), (0, 1, 2), (1, 2, 3), (0, 1, 3)}
+            Defn: 0 |--> 0
+                  1 |--> 1
+                  2 |--> 3
 
             sage: S._Hom_(T, Objects())
             Traceback (most recent call last):

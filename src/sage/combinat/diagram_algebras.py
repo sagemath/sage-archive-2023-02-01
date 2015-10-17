@@ -1967,6 +1967,35 @@ class BrauerAlgebra(SubPartitionAlgebra):
         set_partition = to_Brauer_partition(set_partition, k = self.order())
         return DiagramAlgebra._element_constructor_(self, set_partition)
 
+    def jucys_murphy(self, j):
+        r"""
+        Return the ``j``-th generalized Jucys-Murphy element of ``self``.
+        These elements are simply the Jucys-Murphy elements of the symmetric
+        group algebra with an extra ``(z-1)/2`` term where ``z`` is the parameter
+        of the Brauer algebra. 
+
+        REFERENCES:
+
+        .. [Naz] Maxim Nazarov, Young's Orthogonal Form for Brauer's Centralizer
+           Algebra. Journal of Algebra 182 (1996), 664--693.
+
+        EXAMPLES:
+
+            sage: z = var('z')
+            sage: B = BrauerAlgebra(3,z)
+            sage: B.jucys_murphy(1)
+            1/2*z - 1/2
+            sage: B.jucys_murphy(3)
+            -B{{-3, -2}, {-1, 1}, {2, 3}} - B{{-3, -1}, {-2, 2}, {1, 3}}
+            + B{{-3, 1}, {-2, 2}, {-1, 3}} + B{{-3, 2}, {-2, 3}, {-1, 1}}
+            + (1/2*z-1/2)*B{{-3, 3}, {-2, 2}, {-1, 1}}
+        """
+        assert j <= self.order(), "Jucys-Murphy index cannot be greater than the order of the algebra."
+        I = self._indices
+        one = self.base_ring().one()
+        return ((self._q-1)/2
+                + sum(one*self([[i,-j],[j,-i]]) - one*self([[i,j],[-i,-j]]) for i in range(1,j)))
+
 class TemperleyLiebAlgebra(SubPartitionAlgebra):
     r"""
     A Temperley--Lieb algebra.

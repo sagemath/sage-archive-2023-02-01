@@ -89,24 +89,6 @@ cdef class PowerSeries_poly(PowerSeries):
         """
         return self.__class__, (self._parent, self.__f, self._prec, self.__is_gen)
 
-    def __richcmp__(left, right, int op):
-       """
-       Used for comparing power series.
-
-       EXAMPLES::
-
-           sage: R.<t> = ZZ[[]]
-           sage: f = 1 + t + t^7 - 5*t^10
-           sage: g = 1 + t + t^7 - 5*t^10 + O(t^15)
-           sage: f == f
-           True
-           sage: f < g
-           False
-           sage: f == g
-           True
-       """
-       return (<Element>left)._richcmp(right, op)
-
     def polynomial(self):
         """
         Return the underlying polynomial of self.

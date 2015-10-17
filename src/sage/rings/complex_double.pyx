@@ -151,7 +151,7 @@ cdef class ComplexDoubleField_class(sage.rings.ring.Field):
             (-1.0, -1.0 + 1.2246...e-16*I, False)
         """
         from sage.categories.fields import Fields
-        ParentWithGens.__init__(self, self, ('I',), normalize=False, category = Fields())
+        ParentWithGens.__init__(self, self, ('I',), normalize=False, category=Fields().Metric().Complete())
         self._populate_coercion_lists_()
 
     def __reduce__(self):
@@ -795,21 +795,6 @@ cdef class ComplexDoubleElement(FieldElement):
         """
         return hash(complex(self))
 
-    def __richcmp__(left, right, int op):
-        """
-        Rich comparison between ``left`` and ``right``.
-
-        EXAMPLES::
-
-            sage: cmp(CDF(1.2), CDF(i))
-            1
-            sage: cmp(CDF(1), CDF(2))
-            -1
-            sage: cmp(CDF(1 + i), CDF(-1 - i))
-            1
-        """
-        return (<Element>left)._richcmp(right, op)
-
     cpdef int _cmp_(left, Element right) except -2:
         """
         We order the complex numbers in dictionary order by real parts then
@@ -819,6 +804,15 @@ cdef class ComplexDoubleElement(FieldElement):
         it agrees with the usual order on the real numbers.
 
         EXAMPLES::
+
+            sage: cmp(CDF(1.2), CDF(i))
+            1
+            sage: cmp(CDF(1), CDF(2))
+            -1
+            sage: cmp(CDF(1 + i), CDF(-1 - i))
+            1
+
+        ::
 
             sage: CDF(2,3) < CDF(3,1)
             True

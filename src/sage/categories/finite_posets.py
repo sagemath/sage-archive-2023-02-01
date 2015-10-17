@@ -1678,7 +1678,7 @@ class FinitePosets(CategoryWithAxiom):
                     next = self.order_ideal_toggles(next, vs)
                     yield element_constructor(next)
 
-        def order_ideals_lattice(self, as_ideals=True, facade=False):
+        def order_ideals_lattice(self, as_ideals=True, facade=None):
             r"""
             Return the lattice of order ideals of a poset ``self``,
             ordered by inclusion.
@@ -1700,10 +1700,13 @@ class FinitePosets(CategoryWithAxiom):
             - ``as_ideals`` -- Boolean, if ``True`` (default) returns
               a poset on the set of order ideals, otherwise on the set
               of antichains
+            - ``facade`` -- Boolean or ``None`` (default). Whether to
+              return a facade lattice or not. By default return facade
+              lattice if the poset is a facade poset.
 
             EXAMPLES::
 
-                sage: P = Posets.PentagonPoset(facade = True)
+                sage: P = Posets.PentagonPoset()
                 sage: P.cover_relations()
                 [[0, 1], [0, 2], [1, 4], [2, 3], [3, 4]]
                 sage: J = P.order_ideals_lattice(); J
@@ -1727,10 +1730,15 @@ class FinitePosets(CategoryWithAxiom):
                 sage: J.cover_relations()
                 [[{}, {0}], [{0}, {0, 2}], [{0}, {0, 1}], [{0, 2}, {0, 1, 2}], [{0, 1}, {0, 1, 2}], [{0, 1, 2}, {0, 1, 2, 3}]]
 
-            .. NOTE:: we use facade posets in the examples above just
-               to ensure a nicer ordering in the output.
+                sage: P = Poset({1:[2]})
+                sage: J_facade = P.order_ideals_lattice()
+                sage: J_nonfacade = P.order_ideals_lattice(facade=False)
+                sage: type(J_facade[0]) == type(J_nonfacade[0])
+                False
             """
             from sage.combinat.posets.lattices import LatticePoset
+            if facade is None:
+                facade = self._is_facade
             if as_ideals:
                 from sage.misc.misc import attrcall
                 from sage.sets.set import Set

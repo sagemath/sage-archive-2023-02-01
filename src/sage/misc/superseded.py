@@ -274,12 +274,13 @@ class DeprecatedFunctionAlias(object):
     - Florent Hivert (2009-11-23), with the help of Mike Hansen.
     - Luca De Feo (2011-07-11), printing the full module path when different from old path
     """
-    def __init__(self, trac_number, func, module):
+    def __init__(self, trac_number, func, module, instance = None, unbound = None):
         r"""
         TESTS::
 
             sage: from sage.misc.superseded import deprecated_function_alias
             sage: g = deprecated_function_alias(13109, number_of_partitions)
+            sage: from sage.misc.superseded import deprecated_function_alias
             sage: g.__doc__
             'Deprecated: Use :func:`number_of_partitions` instead.\nSee :trac:`13109` for details.\n\n'
         """
@@ -290,7 +291,8 @@ class DeprecatedFunctionAlias(object):
             pass # Cython classes don't have __dict__
         self.func = func
         self.trac_number  = trac_number
-        self.instance = None # for use with methods
+        self.instance = instance # for use with methods
+        self.unbound = unbound
         self.__module__ = module
         if isinstance(func, type(deprecation)):
             sphinxrole = "func"
@@ -315,7 +317,8 @@ class DeprecatedFunctionAlias(object):
             sage: class cls(object):
             ....:    def new_meth(self): return 42
             ....:    old_meth = deprecated_function_alias(13109, new_meth)
-            ....:
+            sage: cls.old_meth.__name__
+            'old_meth'
             sage: cls().old_meth.__name__
             'old_meth'
 
@@ -344,11 +347,12 @@ class DeprecatedFunctionAlias(object):
             is_python_class = '__module__' in gc_ref or '__package__' in gc_ref
             is_cython_class = '__new__' in gc_ref
             return is_python_class or is_cython_class
-        for ref in gc.get_referrers(self):
-            if is_class(ref):
+        search_for = self if (self.unbound is None) else self.unbound
+        for ref in gc.get_referrers(search_for):
+            if is_class(ref) and ref is not self.__dict__:
                 ref_copy = copy.copy(ref)
                 for key, val in ref_copy.iteritems():
-                    if val is self:
+                    if val is search_for:
                         return key
         raise AttributeError("The name of this deprecated function can not be determined")
 
@@ -387,9 +391,27 @@ class DeprecatedFunctionAlias(object):
             sage: obj = cls()
             sage: obj.old_meth.instance is obj
             True
+
+        :trac:`19125`::
+
+            sage: from sage.misc.superseded import deprecated_function_alias
+            sage: class A:
+            ....:    def __init__(self, x):
+            ....:        self.x = x
+            ....:    def f(self, y):
+            ....:        return self.x+y
+            ....:    g = deprecated_function_alias(42, f)
+            sage: a1 = A(1)
+            sage: a2 = A(2)
+            sage: a1.g(a2.g(0))
+            doctest:...: DeprecationWarning: g is deprecated. Please use f instead.
+            See http://trac.sagemath.org/42 for details.
+            3
+            sage: a1.f(a2.f(0))
+            3
+
         """
-        self.instance = inst
-        return self
+        return self if (inst is None) else DeprecatedFunctionAlias(self.trac_number, self.func, self.__module__, instance = inst, unbound = self)
 
 
 def deprecated_function_alias(trac_number, func):

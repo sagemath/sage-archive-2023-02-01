@@ -110,7 +110,7 @@ from sage.combinat.permutation import Permutation
 from sage.algebras.steenrod.steenrod_algebra_misc import convert_perm
 from sage.categories.morphism import Morphism
 from sage.categories.homset import Hom
-from sage.categories.category_types import SimplicialComplexes
+from sage.categories.simplicial_complexes import SimplicialComplexes
 
 def is_SimplicialComplexMorphism(x):
     """

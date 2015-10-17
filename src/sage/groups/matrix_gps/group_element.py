@@ -117,12 +117,23 @@ class MatrixGroupElement_base(MultiplicativeGroupElement):
     EXAMPLES::
 
         sage: F = GF(3); MS = MatrixSpace(F,2,2)
-               sage: gens = [MS([[1,0],[0,1]]),MS([[1,1],[0,1]])]
+        sage: gens = [MS([[1,0],[0,1]]),MS([[1,1],[0,1]])]
         sage: G = MatrixGroup(gens)
         sage: g = G.random_element()
         sage: type(g)
         <class 'sage.groups.matrix_gps.group_element.FinitelyGeneratedMatrixGroup_gap_with_category.element_class'>
     """
+    def __hash__(self):
+        r"""
+        TESTS::
+
+            sage: MS = MatrixSpace(GF(3), 2)
+            sage: G = MatrixGroup([MS([1,1,0,1]), MS([1,0,1,1])])
+            sage: g = G.an_element()
+            sage: hash(g)
+            0
+        """
+        return hash(self.matrix())
 
     def _repr_(self):
         """

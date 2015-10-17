@@ -84,8 +84,7 @@ Classes and Methods
 
 class AsymptoticExpansionGenerators(object):
     r"""
-    A class consisting of constructors for several common asymptotic
-    expansions.
+    A collection of constructors for several common asymptotic expansions.
 
     A list of all asymptotic expansions in this database is available via tab
     completion. Type "``asymptotic_expansions.``" and then hit tab to see which
@@ -238,3 +237,9 @@ class AsymptoticExpansionGenerators(object):
 
 # Easy access to the asymptotic expansions generators from the command line:
 asymptotic_expansions = AsymptoticExpansionGenerators()
+r"""
+A collection of several common asymptotic expansions.
+
+This is an instance of :class:`AsymptoticExpansionGenerators` whose documentation
+provides more details.
+"""

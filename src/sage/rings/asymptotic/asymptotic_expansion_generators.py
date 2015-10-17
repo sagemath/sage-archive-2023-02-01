@@ -58,7 +58,7 @@ examples.
 
 AUTHORS:
 
-- Daniel Krenn (2015-09-03): initial version and Stirling
+- Daniel Krenn (2015)
 
 
 ACKNOWLEDGEMENT:

@@ -8,35 +8,10 @@ seen as functions, and the behavior as their argument (or arguments)
 gets large (tend to `\infty`) is compared.
 
 Growth groups are used for the calculations done in the
-:doc:`asymptotic ring <asymptotic_ring>`.
+:doc:`asymptotic ring <asymptotic_ring>`. There, take a look at the
+:ref:`informal definition <asymptotic_ring_definition>`, where
+examples of growth groups and elements are given as well.
 
-A Formal Definition
-===================
-
-The elements of a :doc:`growth group <growth_group>` are equipped with a partial
-ordering and usually contain a variable. Examples are (among many
-other possibilities)
-
-- elements of the form `z^q` for some integer or rational `q` (growth
-  groups ``z^ZZ`` or ``z^QQ``),
-
-- elements of the form `\log(z)^q` for some integer or rational `q` (growth
-  groups ``log(z)^ZZ`` or ``log(z)^QQ``),
-
-- elements of the form `a^z` for some
-  rational `a` (growth group ``QQ^z``), or
-
-- more sophisticated constructions like products `x^r \log(x)^s \cdot
-  a^y \cdot y^q` (this corresponds to an element of the growth group
-  ``x^QQ * log(x)^ZZ * QQ^y * y^QQ``).
-
-The ordering in all these examples is the growth as `x`, `y`, or `z`
-(independently) tend to `\infty`. For elements only using the
-variable `z` this means, `g_1 \leq g_2` if
-
-.. MATH::
-
-    \lim_{z\to\infty} \frac{g_2}{g_1} \leq 1.
 
 .. WARNING::
 
@@ -46,7 +21,8 @@ variable `z` this means, `g_1 \leq g_2` if
 
     TESTS::
 
-        sage: from sage.rings.asymptotic.growth_group import GenericGrowthGroup, GrowthGroup
+        sage: from sage.rings.asymptotic.growth_group import \
+        ....:     GenericGrowthGroup, GrowthGroup
         sage: GenericGrowthGroup(ZZ)
         doctest:...: FutureWarning: This class/method/function is marked as
         experimental. It, its functionality or its interface might change
@@ -60,12 +36,62 @@ variable `z` this means, `g_1 \leq g_2` if
         See http://trac.sagemath.org/17601 for details.
         Growth Group x^ZZ * log(x)^ZZ
 
-Overview
-========
+.. _growth_group_description:
+
+Description of Growth Groups
+============================
+
+Many growth groups can be described by a string, which can also be used to
+create them. For example, the string ``'x^QQ * log(x)^ZZ * QQ^y * y^QQ'``
+represents a growth group with the following properties:
+
+- It is a growth group in the two variables `x` and `y`.
+
+- Its elements are of the form
+
+  .. MATH::
+
+      x^r \cdot \log(x)^s \cdot a^y \cdot y^q
+
+  for `r\in\QQ`, `s\in\ZZ`, `a\in\QQ` and `q\in\QQ`.
+
+- The order is with respect to `x\to\infty` and `y\to\infty` independently
+  of each other.
+
+- To compare such elements, they are split into parts belonging to
+  only one variable. In the example above,
+
+  .. MATH::
+
+      x^{r_1} \cdot \log(x)^{s_1} \leq x^{r_2} \cdot \log(x)^{s_2}
+
+  if `(r_1, s_1) \leq (r_2, s_2)` lexicographically. This reflects the fact
+  that elements `x^r` are larger than elements `\log(x)^s` as `x\to\infty`.
+  The factors belonging to the variable `y` are compared analogously.
+
+  The results of these comparisons are then put together using the
+  :wikipedia:`product order <Product_order>`, i.e., `\leq` if each component
+  satisfies `\leq`.
+
+
+Each description string consists of ordered factors---yes, this means
+``*`` is noncommutative---of strings describing "elementary" growth
+groups (see the examples below). As stated in the example above, these
+factors are split by their variable; factors with the same variable are
+grouped. Reading such factors from left to right determines the order:
+Comparing elements of two factors (growth groups) `L` and `R`, then all
+elements of `L` are considered to be larger than each element of `R`.
+
+
+.. _growth_group_creating:
+
+Creating a Growth Group
+=======================
 
 For many purposes the factory ``GrowthGroup`` (see
 :class:`GrowthGroupFactory`) is the most convenient way to generate a
 growth group.
+::
 
     sage: from sage.rings.asymptotic.growth_group import GrowthGroup
 
@@ -73,11 +99,28 @@ Here are some examples::
 
     sage: GrowthGroup('z^ZZ')
     Growth Group z^ZZ
-    sage: GrowthGroup('z^QQ')
+    sage: M = GrowthGroup('z^QQ'); M
     Growth Group z^QQ
 
 Each of these two generated groups is a :class:`MonomialGrowthGroup`,
 whose elements are powers of a fixed symbol (above ``'z'``).
+For the order of the elements it is assumed that `z\to\infty`.
+
+.. NOTE::
+
+    Growth groups where the variable tend to some value distinct from
+    `\infty` are not yet implemented.
+
+To create elements of `M`, a generator can be used::
+
+    sage: z = M.gen()
+    sage: z^(3/5)
+    z^(3/5)
+
+Strings can also be parsed::
+
+    sage: M('z^7')
+    z^7
 
 Similarly, we can construct logarithmic factors by::
 
@@ -131,11 +174,11 @@ all growth groups have the abstract base class
 Some Examples
 ^^^^^^^^^^^^^
 
-EXAMPLES::
+::
 
     sage: from sage.rings.asymptotic.growth_group import GrowthGroup
-    sage: G_x = GrowthGroup('x^ZZ'); repr(G_x)
-    'Growth Group x^ZZ'
+    sage: G_x = GrowthGroup('x^ZZ'); G_x
+    Growth Group x^ZZ
     sage: G_xy = GrowthGroup('x^ZZ * y^ZZ'); G_xy
     Growth Group x^ZZ * y^ZZ
     sage: G_xy.an_element()
@@ -164,26 +207,27 @@ The above is ``True`` since the order of the factors does not play a role here; 
     sage: GrowthGroup('x^ZZ * log(x)^ZZ') is GrowthGroup('log(x)^ZZ * x^ZZ')
     False
 
-(Note that it is mathematically nonsense to make ``log(x)`` larger than ``x``.)
+In this case the components are ordered lexicographically, which
+means that in the second growth group, ``log(x)`` is assumed to
+grow faster than ``x`` (which is nonsense, mathematically). See
+:class:`CartesianProduct <sage.rings.asymptotic.growth_group_cartesian.CartesianProductFactory>`
+for more details or see :ref:`above <growth_group_description>`
+for a more extensive description.
 
-With the help of the short notation, even complicated growth groups
-can be constructed easily::
+Short notation also allows the construction of more complicated 
+growth groups::
 
     sage: G = GrowthGroup('QQ^x * x^ZZ * log(x)^QQ * y^QQ')
     sage: G.an_element()
     (1/2)^x*x*log(x)^(1/2)*y^(1/2)
-    sage: (x, y) = var('x y')
-    sage: G(2^x*log(x)*y^(1/2)) * G(x^(-5)*5^x*y^(1/3))
+    sage: x, y = var('x y')
+    sage: G(2^x * log(x) * y^(1/2)) * G(x^(-5) * 5^x * y^(1/3))
     10^x*x^(-5)*log(x)*y^(5/6)
 
 AUTHORS:
 
-- Benjamin Hackl (2015-01-01): initial version
-- Daniel Krenn (2015-05-29): initial version and review
-- Daniel Krenn (2015-06-02): cartesian products
-- Benjamin Hackl (2015-07-00): growth group factory
-- Benjamin Hackl (2015-08-00): exponential growth group, initial version
-- Daniel Krenn (2015-08-31): various improvements, review; documentation
+- Benjamin Hackl (2015)
+- Daniel Krenn (2015)
 
 ACKNOWLEDGEMENT:
 
@@ -221,7 +265,7 @@ class Variable(sage.structure.unique_representation.CachedRepresentation,
 
     - ``var`` -- an object whose representation string is used as the
       variable. It has to be a valid Python identifier. ``var`` can
-      also be a tuple (or other iterable of such objects).
+      also be a tuple (or other iterable) of such objects.
 
     - ``repr`` -- (default: ``None``) if specified, then this string
       will be displayed instead of ``var``. Use this to get
@@ -240,8 +284,6 @@ class Variable(sage.structure.unique_representation.CachedRepresentation,
         sage: v = Variable('x_42'); repr(v), v.variable_names()
         ('x_42', ('x_42',))
         sage: v = Variable(' x'); repr(v), v.variable_names()
-        ('x', ('x',))
-        sage: v = Variable('x '); repr(v), v.variable_names()
         ('x', ('x',))
         sage: v = Variable('x '); repr(v), v.variable_names()
         ('x', ('x',))
@@ -294,13 +336,24 @@ class Variable(sage.structure.unique_representation.CachedRepresentation,
             blub
             sage: Variable('blub') is Variable('blub')
             True
+
+        ::
+
+            sage: Variable('(:-)')
+            Traceback (most recent call last):
+            ...
+            TypeError: Malformed expression: : !!! -
+            sage: Variable('(:-)', repr='icecream')
+            Traceback (most recent call last):
+            ...
+            ValueError: ':-' is not a valid name for a variable.
         """
         from sage.symbolic.ring import isidentifier
+        from misc import split_str_by_op
 
         if not isinstance(var, (list, tuple)):
-            from misc import split_str_by_op
-            var = split_str_by_op(str(var), None)  # we strip off parentheses
-        var = tuple(str(v).strip() for v in var)
+            var = (var,)
+        var = tuple(''.join(split_str_by_op(str(v), None)) for v in var)  # we strip off parentheses
 
         if ignore is None:
             ignore = tuple()
@@ -327,7 +380,7 @@ class Variable(sage.structure.unique_representation.CachedRepresentation,
 
     def __hash__(self):
         r"""
-        Return the hash if this variable.
+        Return the hash of this variable.
 
         TESTS::
 
@@ -340,7 +393,7 @@ class Variable(sage.structure.unique_representation.CachedRepresentation,
 
     def __eq__(self, other):
         r"""
-        Compares if this variable equals ``other``.
+        Compare whether this variable equals ``other``.
 
         INPUT:
 
@@ -363,7 +416,7 @@ class Variable(sage.structure.unique_representation.CachedRepresentation,
 
     def __ne__(self, other):
         r"""
-        Compares if this variable does not equal ``other``.
+        Return whether this variable does not equal ``other``.
 
         INPUT:
 
@@ -418,7 +471,7 @@ class Variable(sage.structure.unique_representation.CachedRepresentation,
 
     def is_monomial(self):
         r"""
-        Returns if this is a monomial variable.
+        Return whether this is a monomial variable.
 
         OUTPUT:
 
@@ -438,7 +491,7 @@ class Variable(sage.structure.unique_representation.CachedRepresentation,
     @staticmethod
     def extract_variable_names(s):
         r"""
-        Finds the name of the variable for the given string.
+        Determine the name of the variable for the given string.
 
         INPUT:
 
@@ -463,23 +516,23 @@ class Variable(sage.structure.unique_representation.CachedRepresentation,
         ::
 
             sage: Variable.extract_variable_names('log(77w)')
-            Traceback (most recent call last):
-            ....
-            ValueError: '77w' is not a valid name for a variable.
+            ('w',)
             sage: Variable.extract_variable_names('log(x')
             Traceback (most recent call last):
             ....
-            ValueError: Unbalanced parentheses in 'log(x'.
+            TypeError: Bad function call: log(x !!!
             sage: Variable.extract_variable_names('x)')
             Traceback (most recent call last):
             ....
-            ValueError: Unbalanced parentheses in 'x)'.
+            TypeError: Malformed expression: x) !!!
             sage: Variable.extract_variable_names('log)x(')
             Traceback (most recent call last):
             ....
-            ValueError: Unbalanced parentheses in 'log)x('.
+            TypeError: Malformed expression: log) !!! x(
             sage: Variable.extract_variable_names('log(x)+y')
             ('x', 'y')
+            sage: Variable.extract_variable_names('icecream(summer)')
+            ('summer',)
 
         ::
 
@@ -492,7 +545,9 @@ class Variable(sage.structure.unique_representation.CachedRepresentation,
             sage: Variable.extract_variable_names('+a')
             ('a',)
             sage: Variable.extract_variable_names('a+')
-            ('a',)
+            Traceback (most recent call last):
+            ...
+            TypeError: Malformed expression: a+ !!!
             sage: Variable.extract_variable_names('b!')
             ('b',)
             sage: Variable.extract_variable_names('-a')
@@ -503,60 +558,16 @@ class Variable(sage.structure.unique_representation.CachedRepresentation,
             ('q',)
             sage: Variable.extract_variable_names('77')
             ()
+
+        ::
+
+            sage: Variable.extract_variable_names('a + (b + c) + d')
+            ('a', 'b', 'c', 'd')
         """
-        from sage.symbolic.ring import isidentifier
-        import re
-        numbers = re.compile(r"\d+$")
-        vars = []
-
-        def find_next_outer_parentheses(s):
-            op = s.find('(')
-            level = 1
-            for i, c in enumerate(s[op+1:]):
-                if c == ')':
-                    level -= 1
-                if c == '(':
-                    level += 1
-                if level == 0:
-                    return op, op+i+1
-            return op, -1
-
-        def strip(s):
-            s = s.strip()
-            if not s:
-                return
-
-            # parentheses (...)
-            # functions f(...)
-            op, cl = find_next_outer_parentheses(s)
-            if (op == -1) != (cl == -1) or op > cl:
-                raise ValueError("Unbalanced parentheses in '%s'." % (s,))
-            if cl != -1:
-                strip(s[op+1:cl])
-                strip(s[cl+1:])
-                return
-
-            # unary +a, a+, ...
-            # binary a+b, a*b, ...
-            for operator in ('**', '+', '-', '*', '/', '^', '!'):
-                a, o, b = s.partition(operator)
-                if o:
-                    strip(a)
-                    strip(b)
-                    return
-
-            # a number
-            if numbers.match(s) is not None:
-                return
-
-            # else: a variable
-            if not isidentifier(s):
-                raise ValueError("'%s' is not a valid name for a variable." % (s,))
-            if s not in vars:
-                vars.append(s)
-
-        strip(s)
-        return tuple(vars)
+        from sage.symbolic.ring import SR
+        if s == '':
+            return ()
+        return tuple(str(s) for s in SR(s).variables())
 
 
     def _substitute_(self, rules, domain):
@@ -569,9 +580,11 @@ class Variable(sage.structure.unique_representation.CachedRepresentation,
             substitute_raise_exception(self, e, rules, domain)
 
 
-def is_lt_one(self):
+# The following function is used in the classes GenericGrowthElement and
+# GenericProduct.Element as a method.
+def _is_lt_one_(self):
     r"""
-    Return if this element is less than `1`.
+    Return whether this element is less than `1`.
 
     INPUT:
 
@@ -585,16 +598,18 @@ def is_lt_one(self):
 
         sage: from sage.rings.asymptotic.growth_group import GrowthGroup
         sage: G = GrowthGroup('x^ZZ'); x = G(x)
-        sage: (x^42).is_lt_one()
+        sage: (x^42).is_lt_one()  # indirect doctest
         False
-        sage: (x^(-42)).is_lt_one()
+        sage: (x^(-42)).is_lt_one()  # indirect doctest
         True
     """
     one = self.parent().one()
     return self <= one and self != one
 
 
-def log(self, base=None):
+# The following function is used in the classes GenericGrowthElement and
+# GenericProduct.Element as a method.
+def _log_(self, base=None):
     r"""
     Return the logarithm of this element.
 
@@ -614,7 +629,7 @@ def log(self, base=None):
         sage: x, = G.gens_monomial()
         sage: log(x)  # indirect doctest
         log(x)
-        sage: log(x^5)
+        sage: log(x^5)  # indirect doctest
         Traceback (most recent call last):
         ...
         ArithmeticError: When calculating log(x^5) a factor 5 != 1 appeared,
@@ -626,12 +641,12 @@ def log(self, base=None):
         sage: x, = G.gens_monomial()
         sage: el = x.rpow(2); el
         2^x
-        sage: log(el)
+        sage: log(el)  # indirect doctest
         Traceback (most recent call last):
         ...
         ArithmeticError: When calculating log(2^x) a factor log(2) != 1
         appeared, which is not contained in Growth Group QQ^x * x^ZZ.
-        sage: log(el, base=2)
+        sage: log(el, base=2)  # indirect doctest
         x
 
     ::
@@ -647,7 +662,7 @@ def log(self, base=None):
     ::
 
         sage: x = GrowthGroup('x^ZZ').an_element()
-        sage: log(x)
+        sage: log(x)  # indirect doctest
         Traceback (most recent call last):
         ...
         ArithmeticError: Cannot build log(x) since log(x) is not in
@@ -657,9 +672,9 @@ def log(self, base=None):
 
         sage: G = GrowthGroup("(e^x)^QQ * x^ZZ")
         sage: x, = G.gens_monomial()
-        sage: log(exp(x))
+        sage: log(exp(x))  # indirect doctest
         x
-        sage: G.one().log()
+        sage: G.one().log()  # indirect doctest
         Traceback (most recent call last):
         ...
         ArithmeticError: log(1) is zero, which is not contained in
@@ -669,33 +684,48 @@ def log(self, base=None):
 
         sage: G = GrowthGroup("(e^x)^ZZ * x^ZZ")
         sage: x, = G.gens_monomial()
-        sage: log(exp(x))
+        sage: log(exp(x))  # indirect doctest
         x
-        sage: G.one().log()
+        sage: G.one().log()  # indirect doctest
         Traceback (most recent call last):
         ...
         ArithmeticError: log(1) is zero, which is not contained in
         Growth Group (e^x)^ZZ * x^ZZ.
+
+    ::
+
+        sage: G = GrowthGroup('QQ^x * x^ZZ * log(x)^ZZ * y^ZZ * log(y)^ZZ')
+        sage: x, y = G.gens_monomial()
+        sage: (x * y).log()  # indirect doctest
+        Traceback (most recent call last):
+        ...
+        ArithmeticError: Calculating log(x*y) results in a sum,
+        which is not contained in
+        Growth Group QQ^x * x^ZZ * log(x)^ZZ * y^ZZ * log(y)^ZZ.
     """
+    from misc import log_string
+
     log_factor = self.log_factor(base=base)
     if not log_factor:
-        raise ArithmeticError('log(%s) is zero, '
+        raise ArithmeticError('%s is zero, '
                               'which is not contained in %s.' %
-                              (self, self.parent()))
+                              (log_string(self, base), self.parent()))
 
     if len(log_factor) != 1:
-        raise ArithmeticError('Calculating log(%s) results in a sum, '
+        raise ArithmeticError('Calculating %s results in a sum, '
                               'which is not contained in %s.' %
-                              (self, self.parent()))
+                              (log_string(self, base), self.parent()))
     g, c = log_factor[0]
     if c != 1:
-        raise ArithmeticError('When calculating log(%s) a factor %s != 1 '
+        raise ArithmeticError('When calculating %s a factor %s != 1 '
                               'appeared, which is not contained in %s.' %
-                              (self, c, self.parent()))
+                              (log_string(self, base), c, self.parent()))
     return g
 
 
-def log_factor(self, base=None):
+# The following function is used in the classes GenericGrowthElement and
+# GenericProduct.Element as a method.
+def _log_factor_(self, base=None):
     r"""
     Return the logarithm of the factorization of this
     element.
@@ -720,11 +750,11 @@ def log_factor(self, base=None):
         sage: from sage.rings.asymptotic.growth_group import GrowthGroup
         sage: G = GrowthGroup('QQ^x * x^ZZ * log(x)^ZZ * y^ZZ * log(y)^ZZ')
         sage: x, y = G.gens_monomial()
-        sage: (x * y).log_factor()
+        sage: (x * y).log_factor()  # indirect doctest
         ((log(x), 1), (log(y), 1))
-        sage: (x^123).log_factor()
+        sage: (x^123).log_factor()  # indirect doctest
         ((log(x), 123),)
-        sage: (G('2^x') * x^2).log_factor(base=2)
+        sage: (G('2^x') * x^2).log_factor(base=2)  # indirect doctest
         ((x, 1), (log(x), 2/log(2)))
 
     ::
@@ -734,7 +764,7 @@ def log_factor(self, base=None):
 
     ::
 
-        sage: log(x).log_factor()
+        sage: log(x).log_factor()  # indirect doctest
         Traceback (most recent call last):
         ...
         ArithmeticError: Cannot build log(log(x)) since log(log(x)) is
@@ -749,23 +779,26 @@ def log_factor(self, base=None):
 
         sage: G = GrowthGroup("(e^x)^ZZ * x^ZZ * log(x)^ZZ")
         sage: x, = G.gens_monomial()
-        sage: (exp(x) * x).log_factor()
+        sage: (exp(x) * x).log_factor()  # indirect doctest
         ((x, 1), (log(x), 1))
     """
     log_factor = self._log_factor_(base=base)
 
-    from growth_group import GenericGrowthGroup
     for g, c in log_factor:
         if hasattr(g, 'parent') and \
            isinstance(g.parent(), GenericGrowthGroup):
             continue
-        raise ArithmeticError('Cannot build log(%s) since %s '
-                              'is not in %s.' % (self, g, self.parent()))
+        from misc import log_string
+        raise ArithmeticError('Cannot build %s since %s '
+                              'is not in %s.' % (log_string(self, base),
+                                                 g, self.parent()))
 
     return log_factor
 
 
-def rpow(self, base):
+# The following function is used in the classes GenericGrowthElement and
+# GenericProduct.Element as a method.
+def _rpow_(self, base):
     r"""
     Calculate the power of ``base`` to this element.
 
@@ -782,18 +815,18 @@ def rpow(self, base):
         sage: from sage.rings.asymptotic.growth_group import GrowthGroup
         sage: G = GrowthGroup('QQ^x * x^ZZ')
         sage: x = G('x')
-        sage: x.rpow(2)
+        sage: x.rpow(2)  # indirect doctest
         2^x
-        sage: x.rpow(1/2)
+        sage: x.rpow(1/2)  # indirect doctest
         (1/2)^x
 
     ::
 
-        sage: x.rpow(0)
+        sage: x.rpow(0)  # indirect doctest
         Traceback (most recent call last):
         ...
         ValueError: 0 is not an allowed base for calculating the power to x.
-        sage: (x^2).rpow(2)
+        sage: (x^2).rpow(2)  # indirect doctest
         Traceback (most recent call last):
         ...
         ArithmeticError: Cannot construct 2^(x^2) in Growth Group QQ^x * x^ZZ
@@ -804,22 +837,18 @@ def rpow(self, base):
 
         sage: G = GrowthGroup('QQ^(x*log(x)) * x^ZZ * log(x)^ZZ')
         sage: x = G('x')
-        sage: (x * log(x)).rpow(2)
+        sage: (x * log(x)).rpow(2)  # indirect doctest
         2^(x*log(x))
     """
     if base == 0:
         raise ValueError('%s is not an allowed base for calculating the '
                          'power to %s.' % (base, self))
 
-    element = None
+    var = str(self)
+
     try:
         element = self._rpow_element_(base)
     except ValueError:
-        pass
-
-    var = str(self)
-
-    if element is None:
         if base == 'e':
             from sage.rings.integer_ring import ZZ
             from misc import repr_op
@@ -841,7 +870,7 @@ def rpow(self, base):
 
 class GenericGrowthElement(sage.structure.element.MultiplicativeGroupElement):
     r"""
-    An abstract implementation of a generic growth element.
+    A basic implementation of a generic growth element.
 
     Growth elements form a group by multiplication, and (some of) the
     elements can be compared to each other, i.e., all elements form a
@@ -905,7 +934,7 @@ class GenericGrowthElement(sage.structure.element.MultiplicativeGroupElement):
 
     def _repr_(self):
         r"""
-        A representation string for this abstract generic element.
+        A representation string for this generic element.
 
         INPUT:
 
@@ -963,7 +992,7 @@ class GenericGrowthElement(sage.structure.element.MultiplicativeGroupElement):
 
         OUTPUT:
 
-        A class:`GenericGrowthElement` representing the product with
+        A :class:`GenericGrowthElement` representing the product with
         ``other``.
 
         .. NOTE::
@@ -1015,7 +1044,7 @@ class GenericGrowthElement(sage.structure.element.MultiplicativeGroupElement):
 
     def __eq__(self, other):
         r"""
-        Return if this growth element is equal to ``other``.
+        Return whether this growth element is equal to ``other``.
 
         INPUT:
 
@@ -1075,7 +1104,7 @@ class GenericGrowthElement(sage.structure.element.MultiplicativeGroupElement):
 
     def _eq_(self, other):
         r"""
-        Return if this :class:`GenericGrowthElement` is equal to ``other``.
+        Return whether this :class:`GenericGrowthElement` is equal to ``other``.
 
         INPUT:
 
@@ -1108,7 +1137,7 @@ class GenericGrowthElement(sage.structure.element.MultiplicativeGroupElement):
 
     def __ne__(self, other):
         r"""
-        Return if this growth element is not equal to ``other``.
+        Return whether this growth element is not equal to ``other``.
 
         INPUT:
 
@@ -1117,14 +1146,6 @@ class GenericGrowthElement(sage.structure.element.MultiplicativeGroupElement):
         OUTPUT:
 
         A boolean.
-
-        .. NOTE::
-
-            This function uses the coercion model to find a common
-            parent for the two operands.
-
-            The comparison of two elements with the same parent is done in
-            :meth:`_eq_`.
 
         TESTS::
 
@@ -1142,7 +1163,7 @@ class GenericGrowthElement(sage.structure.element.MultiplicativeGroupElement):
 
     def __le__(self, other):
         r"""
-        Return if this growth element is at most (less than or equal
+        Return whether this growth element is at most (less than or equal
         to) ``other``.
 
         INPUT:
@@ -1185,7 +1206,7 @@ class GenericGrowthElement(sage.structure.element.MultiplicativeGroupElement):
 
     def _le_(self, other):
         r"""
-        Return if this :class:`GenericGrowthElement` is at most (less
+        Return whether this :class:`GenericGrowthElement` is at most (less
         than or equal to) ``other``.
 
         INPUT:
@@ -1214,8 +1235,8 @@ class GenericGrowthElement(sage.structure.element.MultiplicativeGroupElement):
         raise NotImplementedError('Only implemented in concrete realizations.')
 
 
-    log = log
-    log_factor = log_factor
+    log = _log_
+    log_factor = _log_factor_
 
 
     def _log_factor_(self, base=None):
@@ -1248,14 +1269,13 @@ class GenericGrowthElement(sage.structure.element.MultiplicativeGroupElement):
                                   'of %s in abstract base class.' % (self,))
 
 
-
-    rpow = rpow
+    rpow = _rpow_
 
 
     def _rpow_element_(self, base):
         r"""
         Return an element which is the power of ``base`` to this
-        element; it lives (in contrast to :meth:`rpow`) in its own group.
+        element.
 
         INPUT:
 
@@ -1263,7 +1283,7 @@ class GenericGrowthElement(sage.structure.element.MultiplicativeGroupElement):
 
         OUTPUT:
 
-        A growth element or ``None``.
+        Nothing since a ``ValueError`` is raised in this generic method.
 
         TESTS::
 
@@ -1271,9 +1291,12 @@ class GenericGrowthElement(sage.structure.element.MultiplicativeGroupElement):
             sage: G = GrowthGroup('QQ^x')
             sage: x = G(raw_element=3)
             sage: x._rpow_element_(2) is None
-            True
+            Traceback (most recent call last):
+            ...
+            ValueError: Cannot compute 2 to the generic element 3^x.
         """
-        pass
+        raise ValueError('Cannot compute %s to the generic element %s.' %
+                         (base, self))
 
 
     def factors(self):
@@ -1299,7 +1322,7 @@ class GenericGrowthElement(sage.structure.element.MultiplicativeGroupElement):
         return (self,)
 
 
-    is_lt_one = is_lt_one
+    is_lt_one = _is_lt_one_
 
 
     def _substitute_(self, rules, domain):
@@ -1313,7 +1336,7 @@ class GenericGrowthGroup(
         sage.structure.unique_representation.UniqueRepresentation,
         sage.structure.parent.Parent):
     r"""
-    An abstract implementation for growth groups.
+    A basic implementation for growth groups.
 
     INPUT:
 
@@ -1327,11 +1350,11 @@ class GenericGrowthGroup(
 
     - ``ignore_variables`` -- (default: ``None``) a tuple (or other
       iterable) of strings. The specified names are not considered as
-      a variable.
+      variables.
 
     .. NOTE::
 
-        This class should be derived to get concrete implementations.
+        This class should be derived for concrete implementations.
 
     EXAMPLES::
 
@@ -1341,7 +1364,8 @@ class GenericGrowthGroup(
 
     .. SEEALSO::
 
-        :class:`MonomialGrowthGroup`
+        :class:`MonomialGrowthGroup`,
+        :class:`ExponentialGrowthGroup`
     """
     # TODO: implement some sort of 'assume', where basic assumptions
     # for the variables can be stored. --> within the cartesian product
@@ -1624,9 +1648,10 @@ class GenericGrowthGroup(
                     for e in self.base().some_elements())
 
 
-    def _create_element_via_parent_(self, raw_element):
+    def _create_element_in_extension_(self, raw_element):
         r"""
-        Create an element with a possibly other parent.
+        Create an element in an extension of this growth group which
+        is chosen according to the input ``raw_element``.
 
         INPUT:
 
@@ -1636,11 +1661,13 @@ class GenericGrowthGroup(
 
         An element.
 
+        EXAMPLES::
+
             sage: from sage.rings.asymptotic.growth_group import GrowthGroup
             sage: G = GrowthGroup('z^ZZ')
-            sage: G._create_element_via_parent_(3).parent()
+            sage: G._create_element_in_extension_(3).parent()
             Growth Group z^ZZ
-            sage: G._create_element_via_parent_(1/2).parent()
+            sage: G._create_element_in_extension_(1/2).parent()
             Growth Group z^QQ
         """
         if raw_element.parent() is self.base():
@@ -1654,7 +1681,7 @@ class GenericGrowthGroup(
 
     def le(self, left, right):
         r"""
-        Return if the growth of ``left`` is at most (less than or
+        Return whether the growth of ``left`` is at most (less than or
         equal to) the growth of ``right``.
 
         INPUT:
@@ -1689,7 +1716,7 @@ class GenericGrowthGroup(
 
     def _element_constructor_(self, data, raw_element=None):
         r"""
-        Converts a given object to this growth group.
+        Convert a given object to this growth group.
 
         INPUT:
 
@@ -1706,6 +1733,10 @@ class GenericGrowthGroup(
 
         .. NOTE::
 
+            Either ``data`` or ``raw_element`` has to be given. If
+            ``raw_element`` is specified, then no positional argument
+            may be passed.
+
             This method calls :meth:`_convert_`, which does the actual
             conversion from ``data``.
 
@@ -1713,22 +1744,22 @@ class GenericGrowthGroup(
 
             sage: from sage.rings.asymptotic.growth_group import GenericGrowthGroup
             sage: G_ZZ = GenericGrowthGroup(ZZ)
-            sage: z = G_ZZ(raw_element=42); z
+            sage: z = G_ZZ(raw_element=42); z  # indirect doctest
             GenericGrowthElement(42)
-            sage: z is G_ZZ(z)
+            sage: z is G_ZZ(z)  # indirect doctest
             True
 
         ::
 
             sage: G_QQ = GenericGrowthGroup(QQ)
-            sage: q = G_QQ(raw_element=42)
+            sage: q = G_QQ(raw_element=42)  # indirect doctest
             sage: q is z
             False
-            sage: G_ZZ(q)
+            sage: G_ZZ(q)  # indirect doctest
             GenericGrowthElement(42)
-            sage: G_QQ(z)
+            sage: G_QQ(z)  # indirect doctest
             GenericGrowthElement(42)
-            sage: q is G_ZZ(q)
+            sage: q is G_ZZ(q)  # indirect doctest
             False
 
         ::
@@ -1737,52 +1768,52 @@ class GenericGrowthGroup(
             Traceback (most recent call last):
             ...
             ValueError: No input specified. Cannot continue.
-            sage: G_ZZ('blub')
+            sage: G_ZZ('blub')  # indirect doctest
             Traceback (most recent call last):
             ...
             ValueError: blub is not in Growth Group Generic(ZZ).
-            sage: G_ZZ('x', raw_element=42)
+            sage: G_ZZ('x', raw_element=42)  # indirect doctest
             Traceback (most recent call last):
             ...
-            ValueError: Input is ambigous: x as well as raw_element=42 are specified
+            ValueError: Input is ambigous: x as well as raw_element=42 are specified.
 
         ::
 
             sage: from sage.rings.asymptotic.growth_group import GrowthGroup
-            sage: x = GrowthGroup('x^ZZ')(raw_element=1)
+            sage: x = GrowthGroup('x^ZZ')(raw_element=1)  # indirect doctest
             sage: G_y = GrowthGroup('y^ZZ')
-            sage: G_y(x)
+            sage: G_y(x)  # indirect doctest
             Traceback (most recent call last):
             ...
             ValueError: x is not in Growth Group y^ZZ.
         """
         if raw_element is None:
-            if type(data) == self.element_class and data.parent() == self:
-                return data
-            elif isinstance(data, self.element_class):
+            if isinstance(data, self.element_class):
+                if data.parent() == self:
+                    return data
                 try:
                     if self._var_ != data.parent()._var_:
                         raise ValueError('%s is not in %s.' % (data, self))
                 except AttributeError:
                     pass
                 raw_element = data._raw_element_
-            elif type(data) == int and data == 0:
+            elif isinstance(data, int) and data == 0:
                 raise ValueError('No input specified. Cannot continue.')
             else:
                 raw_element = self._convert_(data)
             if raw_element is None:
                 raise ValueError('%s is not in %s.' % (data, self))
-        elif type(data) != int or data != 0:
+        elif not isinstance(data, int) or data != 0:
             raise ValueError('Input is ambigous: '
                              '%s as well as raw_element=%s '
-                             'are specified' % (data, raw_element))
+                             'are specified.' % (data, raw_element))
 
         return self.element_class(self, raw_element)
 
 
     def _convert_(self, data):
         r"""
-        Converts ``data`` to something the constructor of the
+        Convert ``data`` to something the constructor of the
         element class accepts (``raw_element``).
 
         INPUT:
@@ -1811,7 +1842,7 @@ class GenericGrowthGroup(
 
     def _coerce_map_from_(self, S):
         r"""
-        Return if ``S`` coerces into this growth group.
+        Return whether ``S`` coerces into this growth group.
 
         INPUT:
 
@@ -1871,7 +1902,7 @@ class GenericGrowthGroup(
 
         ::
 
-            sage: GrowthGroup('x^QQ').has_coerce_map_from(GrowthGroup('QQ^x'))
+            sage: GrowthGroup('x^QQ').has_coerce_map_from(GrowthGroup('QQ^x'))  # indirect doctest
             False
         """
         if isinstance(S, type(self)) and self._var_ == S._var_:
@@ -1891,16 +1922,35 @@ class GenericGrowthGroup(
             sage: cm = sage.structure.element.get_coercion_model()
             sage: A = GrowthGroup('QQ^x')
             sage: B = GrowthGroup('y^ZZ')
+
+        When using growth groups with disjoint variable lists, then a
+        pushout can be constructed::
+
             sage: A._pushout_(B)
             Growth Group QQ^x * y^ZZ
             sage: cm.common_parent(A, B)
             Growth Group QQ^x * y^ZZ
+
+        In general, growth groups of the same variable cannot be
+        combined automatically, since there is no order relation between the two factors::
+
             sage: C = GrowthGroup('x^QQ')
             sage: cm.common_parent(A, C)
             Traceback (most recent call last):
             ...
             TypeError: no common canonical parent for objects with parents:
             'Growth Group QQ^x' and 'Growth Group x^QQ'
+
+        However, combining is possible if the factors with the same variable
+        overlap::
+
+            sage: cm.common_parent(GrowthGroup('x^ZZ * log(x)^ZZ'), GrowthGroup('exp(x)^ZZ * x^ZZ'))
+            Growth Group exp(x)^ZZ * x^ZZ * log(x)^ZZ
+            sage: cm.common_parent(GrowthGroup('x^ZZ * log(x)^ZZ'), GrowthGroup('y^ZZ * x^ZZ'))
+            Growth Group x^ZZ * log(x)^ZZ * y^ZZ
+
+        ::
+
             sage: cm.common_parent(GrowthGroup('x^ZZ'), GrowthGroup('y^ZZ'))
             Growth Group x^ZZ * y^ZZ
 
@@ -1911,12 +1961,9 @@ class GenericGrowthGroup(
             Growth Group x^ZZ * y^ZZ
             sage: sage.structure.element.coercion_traceback()  # not tested
         """
-        if isinstance(other, GenericGrowthGroup):
-            pass
-        if (other.construction() is not None and
-              isinstance(other.construction()[0], AbstractGrowthGroupFunctor)):
-            pass
-        else:
+        if not isinstance(other, GenericGrowthGroup) and \
+           not (other.construction() is not None and
+                isinstance(other.construction()[0], AbstractGrowthGroupFunctor)):
             return
 
         if set(self.variable_names()).isdisjoint(set(other.variable_names())):
@@ -1926,7 +1973,8 @@ class GenericGrowthGroup(
 
     def gens_monomial(self):
         r"""
-        Return a generator of this growth group, in case one exists.
+        Return a tuple containing monomial generators of this growth
+        group.
 
         INPUT:
 
@@ -1935,6 +1983,14 @@ class GenericGrowthGroup(
         OUTPUT:
 
         An empty tuple.
+
+        .. NOTE::
+
+            A generator is called monomial generator if the variable
+            of the underlying growth group is a valid identifier. For
+            example, ``x^ZZ`` has ``x`` as a monomial generator,
+            while ``log(x)^ZZ`` or ``icecream(x)^ZZ`` do not have
+            monomial generators.
 
         TESTS::
 
@@ -1955,8 +2011,7 @@ class GenericGrowthGroup(
 
     def gens(self):
         r"""
-        Return a tuple of all generators (as a group) of this growth
-        group.
+        Return a tuple of all generators of this growth group.
 
         INPUT:
 
@@ -2168,7 +2223,7 @@ class AbstractGrowthGroupFunctor(ConstructionFunctor):
 
     def __eq__(self, other):
         r"""
-        Return if this functor is equal to ``other``.
+        Return whether this functor is equal to ``other``.
 
         INPUT:
 
@@ -2193,7 +2248,7 @@ class AbstractGrowthGroupFunctor(ConstructionFunctor):
 
     def __ne__(self, other):
         r"""
-        Return if this functor is not equal to ``other``.
+        Return whether this functor is not equal to ``other``.
 
         INPUT:
 
@@ -2222,7 +2277,7 @@ class MonomialGrowthElement(GenericGrowthElement):
 
     INPUT:
 
-    - ``parent`` -- a :class:`GenericGrowthGroup`.
+    - ``parent`` -- a :class:`MonomialGrowthGroup`.
 
     - ``raw_element`` -- an element from the base ring of the parent.
 
@@ -2254,7 +2309,7 @@ class MonomialGrowthElement(GenericGrowthElement):
         r"""
         The exponent of this growth element.
 
-        EXAMPLES:
+        EXAMPLES::
 
             sage: from sage.rings.asymptotic.growth_group import GrowthGroup
             sage: P = GrowthGroup('x^ZZ')
@@ -2362,8 +2417,14 @@ class MonomialGrowthElement(GenericGrowthElement):
             x^(-2)
             sage: e2 == ~e1
             True
+            sage: Q = GrowthGroup('x^NN'); Q
+            Growth Group x^((Non negative integer semiring))
+            sage: e3 = ~Q('x'); e3
+            x^(-1)
+            sage: e3.parent()
+            Growth Group x^ZZ
         """
-        return self.parent()._create_element_via_parent_(-self.exponent)
+        return self.parent()._create_element_in_extension_(-self.exponent)
 
 
     def __pow__(self, exponent):
@@ -2391,13 +2452,17 @@ class MonomialGrowthElement(GenericGrowthElement):
             x^(7/2)
             sage: (a^(1/2)).parent()
             Growth Group x^QQ
+            sage: a^(1/7)
+            x
+            sage: (a^(1/7)).parent()
+            Growth Group x^QQ
             sage: P = GrowthGroup('x^QQ')
             sage: b = P.gen()^(7/2); b
             x^(7/2)
             sage: b^12
             x^42
         """
-        return self.parent()._create_element_via_parent_(self.exponent * exponent)
+        return self.parent()._create_element_in_extension_(self.exponent * exponent)
 
 
     def _log_factor_(self, base=None):
@@ -2425,6 +2490,16 @@ class MonomialGrowthElement(GenericGrowthElement):
             ...
             ArithmeticError: Cannot build log(x) since log(x) is not in
             Growth Group x^QQ.
+
+        ::
+
+            sage: G = GrowthGroup('exp(x)^ZZ * x^ZZ')
+            sage: log(G('exp(x)'), base=2)
+            Traceback (most recent call last):
+            ...
+            ArithmeticError: When calculating log(exp(x), base=2) a factor
+            1/log(2) != 1 appeared, which is not contained in
+            Growth Group exp(x)^ZZ * x^ZZ.
         """
         if self.is_one():
             return tuple()
@@ -2442,18 +2517,20 @@ class MonomialGrowthElement(GenericGrowthElement):
 
         if var.startswith('exp('):
             assert(var[-1] == ')')
-            return ((var[4:-1], coefficient),)
+            v = var[4:-1]
+        else:
+            v = 'log(%s)' % (var,)
 
         if base is not None:
             from sage.functions.log import log
             coefficient = coefficient / log(base)
-        return (('log(%s)' % (self.parent()._var_,), coefficient),)
+        return ((v, coefficient),)
 
 
     def _rpow_element_(self, base):
         r"""
         Return an element which is the power of ``base`` to this
-        element; it lives (in contrast to :meth:`rpow`) in its own group.
+        element.
 
         INPUT:
 
@@ -2461,7 +2538,16 @@ class MonomialGrowthElement(GenericGrowthElement):
 
         OUTPUT:
 
-        A growth element or ``None``.
+        A growth element.
+
+        .. NOTE::
+
+            The parent of the result can be different from the parent
+            of this element.
+
+        A ``ValueError`` is raised if the calculation is not possible
+        within this method. (Then the calling method should take care
+        of the calculation.)
 
         TESTS::
 
@@ -2471,7 +2557,15 @@ class MonomialGrowthElement(GenericGrowthElement):
             sage: x._rpow_element_(2)
             Traceback (most recent call last):
             ...
-            ValueError: Variable %s is not a log of something.
+            ValueError: Variable x is not a log of something.
+
+        The previous example does not work since the result would not
+        live in a monomial growth group. When using
+        :meth:`~GenericGrowthElement.rpow`, this
+        case is handeled by the calling method :meth:`_rpow_`.
+
+        ::
+
             sage: G = GrowthGroup('log(x)^ZZ')
             sage: lx = G(raw_element=1); lx
             log(x)
@@ -2479,10 +2573,17 @@ class MonomialGrowthElement(GenericGrowthElement):
             x
             sage: rp.parent()
             Growth Group x^ZZ
+
+        ::
+
+            sage: G = GrowthGroup('log(x)^SR')
+            sage: lx = G('log(x)')
+            sage: lx._rpow_element_(2)
+            x^(log(2))
         """
         var = str(self.parent()._var_)
         if not(var.startswith('log(') and self.exponent.is_one()):
-            raise ValueError('Variable %s is not a log of something.')
+            raise ValueError('Variable %s is not a log of something.' % (var,))
         new_var = var[4:-1]
         if base == 'e':
             from sage.rings.integer_ring import ZZ
@@ -2497,7 +2598,7 @@ class MonomialGrowthElement(GenericGrowthElement):
 
     def _le_(self, other):
         r"""
-        Return if this :class:`MonomialGrowthElement` is at most
+        Return whether this :class:`MonomialGrowthElement` is at most
         (less than or equal to) ``other``.
 
         INPUT:
@@ -2572,6 +2673,13 @@ class MonomialGrowthGroup(GenericGrowthGroup):
     .. SEEALSO::
 
         :class:`GenericGrowthGroup`
+
+    TESTS::
+
+        sage: L1 = MonomialGrowthGroup(QQ, log(x))
+        sage: L2 = MonomialGrowthGroup(QQ, 'log(x)')
+        sage: L1 is L2
+        True
     """
 
     # enable the category framework for elements
@@ -2612,7 +2720,7 @@ class MonomialGrowthGroup(GenericGrowthGroup):
 
     def _convert_(self, data):
         r"""
-        Converts ``data`` to something the constructor of the
+        Convert ``data`` to something the constructor of the
         element class accepts (``raw_element``).
 
         INPUT:
@@ -2693,8 +2801,13 @@ class MonomialGrowthGroup(GenericGrowthGroup):
             x^(-2)
             sage: P('x^-2')
             x^(-2)
+
+        ::
+
+            sage: P('1')
+            1
         """
-        if data == 1:
+        if data == 1 or data == '1':
             return self.base().zero()
         var = repr(self._var_)
         if str(data) == var:
@@ -2705,15 +2818,8 @@ class MonomialGrowthGroup(GenericGrowthGroup):
         except AttributeError:
             if var not in str(data):
                 return  # this has to end here
-
-            elif str(data) == '1/' + var:
-                return self.base()(-1)
-            elif str(data).startswith(var + '^'):
-                return self.base()(str(data).replace(var + '^', '')
-                                   .replace('(', '').replace(')', ''))
-            else:
-                return  # end of parsing
-
+            from sage.symbolic.ring import SR
+            return self._convert_(SR(data))
 
         from sage.symbolic.ring import SR
         from sage.rings.polynomial.polynomial_ring import PolynomialRing_general
@@ -2736,7 +2842,8 @@ class MonomialGrowthGroup(GenericGrowthGroup):
                 if data.is_monomial() and data.precision_absolute() not in ZZ:
                     if var == str(data.variables()[0]):
                         return data.degree()
-            elif var == str(data.variable()[0]):
+            elif len(P.variable_names()) == 1 and \
+                            var == str(data.variable()[0]):
                 from sage.rings.integer_ring import ZZ
                 if data.is_monomial() and data.precision_absolute() not in ZZ:
                     return data.degree()
@@ -2744,7 +2851,8 @@ class MonomialGrowthGroup(GenericGrowthGroup):
 
     def gens_monomial(self):
         r"""
-        Return a tuple containing generators of this growth group.
+        Return a tuple containing monomial generators of this growth
+        group.
 
         INPUT:
 
@@ -2756,9 +2864,11 @@ class MonomialGrowthGroup(GenericGrowthGroup):
 
         .. NOTE::
 
-            If a :class:`MonomialGrowthGroup` models a logarithmic
-            growth group (by having a variable name of the form
-            ``log(...)``), an empty tuple is returned.
+            A generator is called monomial generator if the variable
+            of the underlying growth group is a valid identifier. For
+            example, ``x^ZZ`` has ``x`` as a monomial generator,
+            while ``log(x)^ZZ`` or ``icecream(x)^ZZ`` do not have
+            monomial generators.
 
         TESTS::
 
@@ -2940,6 +3050,16 @@ class ExponentialGrowthElement(GenericGrowthElement):
 
             sage: P((-1)^x)  # indirect doctest
             (-1)^x
+
+        ::
+
+            sage: from sage.rings.asymptotic.growth_group import ExponentialGrowthGroup
+            sage: G = ExponentialGrowthGroup(ZZ['x'], 'y'); G
+            Growth Group ZZ[x]^y
+            sage: G('(1-x)^y')
+            (-x + 1)^y
+            sage: G('(1+x)^y')
+            (x + 1)^y
         """
         from sage.rings.integer_ring import ZZ
         from misc import repr_op
@@ -2947,10 +3067,7 @@ class ExponentialGrowthElement(GenericGrowthElement):
         var = repr(self.parent()._var_)
         if self.base.is_one():
             return '1'
-        elif not any(s in str(self.base) for s in '-/^'):
-            return str(self.base) + repr_op('', '^', var)
-        else:
-            return '(' + str(self.base) + ')' + repr_op('', '^', var)
+        return repr_op(str(self.base), '^', var)
 
 
     def _mul_(self, other):
@@ -3015,7 +3132,7 @@ class ExponentialGrowthElement(GenericGrowthElement):
             sage: (~P(raw_element=1)).parent()
             Growth Group QQ^x
         """
-        return self.parent()._create_element_via_parent_(1 / self.base)
+        return self.parent()._create_element_in_extension_(1 / self.base)
 
 
     def __pow__(self, exponent):
@@ -3024,13 +3141,13 @@ class ExponentialGrowthElement(GenericGrowthElement):
 
         INPUT:
 
-        - ``exponent`` -- a number. This can anything that is valid to be
+        - ``exponent`` -- a number. This can be anything that is valid to be
           on the right hand side of ``*`` with an elements of the
           parent's base.
 
         OUTPUT:
 
-        The result of this exponentiation a :class:`ExponentialGrowthElement`.
+        The result of this exponentiation as an :class:`ExponentialGrowthElement`.
 
         EXAMPLES::
 
@@ -3045,7 +3162,7 @@ class ExponentialGrowthElement(GenericGrowthElement):
             sage: b^12
             117649^x
         """
-        return self.parent()._create_element_via_parent_(self.base ** exponent)
+        return self.parent()._create_element_in_extension_(self.base ** exponent)
 
 
     def _log_factor_(self, base=None):
@@ -3062,7 +3179,7 @@ class ExponentialGrowthElement(GenericGrowthElement):
 
         A tuple of pairs, where the first entry is either a growth
         element or something out of which we can construct a growth element
-        and the second a multiplicative coefficient.
+        and the second is a multiplicative coefficient.
 
         TESTS::
 
@@ -3071,7 +3188,7 @@ class ExponentialGrowthElement(GenericGrowthElement):
             sage: G('4^x').log_factor(base=2)  # indirect doctest
             Traceback (most recent call last):
             ...
-            ArithmeticError: Cannot build log(4^x) since x is not in
+            ArithmeticError: Cannot build log(4^x, base=2) since x is not in
             Growth Group QQ^x.
         """
         if self.is_one():
@@ -3091,7 +3208,7 @@ class ExponentialGrowthElement(GenericGrowthElement):
 
     def _le_(self, other):
         r"""
-        Return if this :class:`ExponentialGrowthElement` is at most
+        Return whether this :class:`ExponentialGrowthElement` is at most
         (less than or equal to) ``other``.
 
         INPUT:
@@ -3294,7 +3411,7 @@ class ExponentialGrowthGroup(GenericGrowthGroup):
 
     def gens(self):
         r"""
-        Return a tuple of all generators (as a group) of this growth
+        Return a tuple of all generators of this exponential growth
         group.
 
         INPUT:
@@ -3303,7 +3420,7 @@ class ExponentialGrowthGroup(GenericGrowthGroup):
 
         OUTPUT:
 
-        A tuple whose entries are growth elements.
+        An empty tuple.
 
         EXAMPLES::
 
@@ -3337,7 +3454,7 @@ class ExponentialGrowthGroup(GenericGrowthGroup):
 class ExponentialGrowthGroupFunctor(AbstractGrowthGroupFunctor):
     r"""
     A :class:`construction functor <sage.categories.pushout.ConstructionFunctor>`
-    :class:`exponential growth groups <ExponentialGrowthGroup>`.
+    for :class:`exponential growth groups <ExponentialGrowthGroup>`.
 
     INPUT:
 
@@ -3416,13 +3533,18 @@ class GrowthGroupFactory(sage.structure.factory.UniqueFactory):
     - ``specification`` -- a string.
 
     - keyword arguments are passed on to the growth group
-      constructor. If not specified, then the argument
+      constructor.
+      If the keyword ``ignore_variables`` is not specified, then
       ``ignore_variables=('e',)`` (to ignore ``e`` as a variable name)
-      is added.
+      is used.
 
     OUTPUT:
 
     An asymptotic growth group.
+
+    .. NOTE::
+
+        An instance of this factory is available as ``GrowthGroup``.
 
     EXAMPLES::
 
@@ -3460,8 +3582,6 @@ class GrowthGroupFactory(sage.structure.factory.UniqueFactory):
         sage: G, tuple(F._var_ for F in G.cartesian_factors())
         (Growth Group (e^(n*log(n)))^ZZ * (e^n)^ZZ * n^ZZ * log(n)^ZZ,
          (e^(n*log(n)), e^n, n, log(n)))
-
-    TESTS::
 
         sage: TestSuite(GrowthGroup('x^ZZ')).run(verbose=True)  # long time
         running ._test_an_element() . . . pass
@@ -3645,3 +3765,8 @@ class GrowthGroupFactory(sage.structure.factory.UniqueFactory):
 
 
 GrowthGroup = GrowthGroupFactory("GrowthGroup")
+r"""
+A factory for growth groups.
+This is an instance of :class:`GrowthGroupFactory` whose documentation
+provides more details.
+"""

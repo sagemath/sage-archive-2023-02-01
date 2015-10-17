@@ -112,6 +112,7 @@ Comprehensive Module list
     sage/combinat/finite_state_machine_generators
     sage/combinat/free_module
     sage/combinat/free_prelie_algebra
+    sage/combinat/fully_packed_loop
     sage/combinat/gelfand_tsetlin_patterns
     sage/combinat/graph_path
     sage/combinat/gray_codes
@@ -161,6 +162,7 @@ Comprehensive Module list
     sage/combinat/permutation_nk
     sage/combinat/posets/__init__
     sage/combinat/posets/all
+    sage/combinat/posets/cartesian_product
     sage/combinat/posets/elements
     sage/combinat/posets/hasse_diagram
     sage/combinat/posets/incidence_algebras

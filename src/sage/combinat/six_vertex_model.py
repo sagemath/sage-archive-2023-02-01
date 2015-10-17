@@ -36,7 +36,7 @@ class SixVertexConfiguration(ClonableArray):
                 |    |    |
             --> # <- # <- # <--
                 |    ^    ^
-                V    |    |  
+                V    |    |
             --> # -> # <- # <--
                 |    |    ^
                 V    V    |
@@ -663,10 +663,10 @@ class SquareIceModel(SixVertexModel):
 
     The square ice model is a 6 vertex model on an `n \times n` grid with
     the boundary conditions that the top and bottom boundaries are pointing
-    outward and the left and right boundaries are pointing inward. These 
+    outward and the left and right boundaries are pointing inward. These
     boundary conditions are also called domain wall boundary conditions.
 
-    Configurations of the 6 vertex model with domain wall boundary conditions 
+    Configurations of the 6 vertex model with domain wall boundary conditions
     are in bijection with alternating sign matrices.
     """
     def __init__(self, n):
@@ -772,7 +772,8 @@ class SquareIceModel(SixVertexModel):
                 [ 0  1 -1  1]
                 [ 0  0  1  0]
             """
-            from sage.combinat.alternating_sign_matrix import AlternatingSignMatrices
-            ASM = AlternatingSignMatrices(self.parent()._nrows)
-            return ASM(self.to_signed_matrix())
+            from sage.combinat.alternating_sign_matrix import AlternatingSignMatrix #AlternatingSignMatrices
+            #ASM = AlternatingSignMatrices(self.parent()._nrows)
+            #return ASM(self.to_signed_matrix())
+            return AlternatingSignMatrix(self.to_signed_matrix())
 

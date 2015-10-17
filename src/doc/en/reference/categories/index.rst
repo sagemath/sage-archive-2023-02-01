@@ -185,10 +185,12 @@ Examples of parents using categories
    sage/categories/examples/crystals
    sage/categories/examples/facade_sets
    sage/categories/examples/finite_coxeter_groups
+   sage/categories/examples/finite_dimensional_algebras_with_basis
    sage/categories/examples/finite_enumerated_sets
    sage/categories/examples/finite_monoids
    sage/categories/examples/finite_semigroups
    sage/categories/examples/finite_weyl_groups
+   sage/categories/examples/graded_connected_hopf_algebras_with_basis
    sage/categories/examples/graded_modules_with_basis
    sage/categories/examples/hopf_algebras_with_basis
    sage/categories/examples/infinite_enumerated_sets

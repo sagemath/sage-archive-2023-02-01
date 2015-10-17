@@ -3,8 +3,7 @@ Asymptotic Expansions --- Miscellaneous
 
 AUTHORS:
 
-- Daniel Krenn (2015-08-25): move functions from other files to this file
-- Daniel Krenn (2015-08-31): various improvements, review; documentation
+- Daniel Krenn (2015)
 
 ACKNOWLEDGEMENT:
 
@@ -38,11 +37,13 @@ def repr_short_to_parent(s):
 
     INPUT:
 
-    A string.
+    - ``s`` -- a string, short representation of a parent.
 
     OUTPUT:
 
     A parent.
+
+    The possible short representations are shown in the examples below.
 
     EXAMPLES::
 
@@ -88,7 +89,7 @@ def parent_to_repr_short(P):
 
     INPUT:
 
-    A parent.
+    - ``P`` -- a parent.
 
     OUTPUT:
 
@@ -154,13 +155,16 @@ def parent_to_repr_short(P):
 def split_str_by_op(string, op, strip_parentheses=True):
     r"""
     Split the given string into a tuple of substrings arising by
-    splitting by '*' and taking care of parentheses.
+    splitting by ``op`` and taking care of parentheses.
 
     INPUT:
 
     - ``string`` -- a string.
 
-    - ``op`` -- a string.
+    - ``op`` -- a string. This is used by
+      :python:`str.split <library/stdtypes.html#str.split>`.
+      Thus, if this is ``None``, then any whitespace string is a
+      separator and empty strings are removed from the result.
 
     - ``strip_parentheses`` -- (default: ``True``) a boolean.
 
@@ -190,6 +194,24 @@ def split_str_by_op(string, op, strip_parentheses=True):
         ('a^b', 'c')
         sage: split_str_by_op('a^(b^c)', '^')
         ('a', 'b^c')
+
+    ::
+
+        sage: split_str_by_op('(a) + (b)', op='+', strip_parentheses=True)
+        ('a', 'b')
+        sage: split_str_by_op('(a) + (b)', op='+', strip_parentheses=False)
+        ('(a)', '(b)')
+        sage: split_str_by_op(' ( t  ) ', op='+', strip_parentheses=False)
+        ('( t  )',)
+
+    ::
+
+        sage: split_str_by_op(' ( t  ) ', op=None)
+        ('t',)
+        sage: split_str_by_op(' ( t  )s', op=None)
+        ('(t)s',)
+        sage: split_str_by_op(' ( t  ) s', op=None)
+        ('t', 's')
     """
     factors = list()
     balanced = True
@@ -205,7 +227,7 @@ def split_str_by_op(string, op, strip_parentheses=True):
             raise ValueError("'%s' is invalid since a '%s' follows a '%s'." %
                              (string, op, op))
         if not balanced:
-            s = factors.pop() + op + s
+            s = factors.pop() + (op if op else '') + s
         balanced = s.count('(') == s.count(')')
         factors.append(s)
 
@@ -245,13 +267,20 @@ def repr_op(left, op, right=None):
         sage: from sage.rings.asymptotic.misc import repr_op
         sage: repr_op('a^b', '^', 'c')
         '(a^b)^c'
+
+    TESTS::
+
+        sage: repr_op('a-b', '^', 'c')
+        '(a-b)^c'
+        sage: repr_op('a+b', '^', 'c')
+        '(a+b)^c'
     """
     left = str(left)
     right = str(right) if right is not None else ''
 
     def add_parentheses(s, op):
         if op == '^':
-            signals = ('^', '*', '+', ' ')
+            signals = ('^', '/', '*', '-', '+', ' ')
         else:
             return s
         if any(sig in s for sig in signals):
@@ -266,6 +295,16 @@ def repr_op(left, op, right=None):
 def combine_exceptions(e, *f):
     r"""
     Helper function which combines the messages of the given exceptions.
+
+    INPUT:
+
+    - ``e`` -- an exception.
+
+    - ``*f`` -- exceptions.
+
+    OUTPUT:
+
+    An exception.
 
     EXAMPLES::
 
@@ -342,6 +381,35 @@ def merge_overlapping(A, B, key=None):
     r"""
     Merge the two overlapping tuples/lists.
 
+    INPUT:
+
+    - ``A`` -- a list or tuple (type has to coincide with type of ``B``).
+
+    - ``B`` -- a list or tuple (type has to coincide with type of ``A``).
+
+    - ``key`` -- (default: ``None``) a function. If ``None``, then the
+      identity is used.  This ``key``-function applied on an element
+      of the list/tuple is used for comparison. Thus elements with the
+      same key are considered as equal.
+
+    OUTPUT:
+
+    A pair of lists or tuples (depending on the type of ``A`` and ``B``).
+
+    .. NOTE::
+
+        Suppose we can decompose the list `A=ac` and `B=cb` with
+        lists `a`, `b`, `c`, where `c` is nonempty. Then
+        :func:`merge_overlapping` returns the pair `(acb, acb)`.
+
+        Suppose a ``key``-function is specified and `A=ac_A` and
+        `B=c_Bb`, where the list of keys of the elements of `c_A`
+        equals the list of keys of the elements of `c_B`. Then
+        :func:`merge_overlapping` returns the pair `(ac_Ab, ac_Bb)`.
+
+        After unsuccessfully merging `A=ac` and `B=cb`,
+        a merge of `A=ca` and `B=bc` is tried.
+
     TESTS::
 
         sage: from sage.rings.asymptotic.misc import merge_overlapping
@@ -392,13 +460,17 @@ def merge_overlapping(A, B, key=None):
          [(1, 'b'), (2, 'b'), (3, 'b')])
     """
     if key is None:
-        key = lambda k: k
+        Akeys = A
+        Bkeys = B
+    else:
+        Akeys = tuple(key(a) for a in A)
+        Bkeys = tuple(key(b) for b in B)
 
     def find_overlapping_index(A, B):
         if len(B) > len(A) - 2:
             raise StopIteration
         matches = iter(i for i in xrange(1, len(A) - len(B))
-                       if all(key(a) == key(b) for a, b in zip(A[i:i+len(B)], B)))
+                       if A[i:i+len(B)] == B)
         return next(matches)
 
     def find_mergedoverlapping_index(A, B):
@@ -410,26 +482,26 @@ def merge_overlapping(A, B, key=None):
         Adapted from http://stackoverflow.com/a/30056066/1052778.
         """
         matches = iter(i for i in xrange(min(len(A), len(B)), 0, -1)
-                       if all(key(a) == key(b) for a, b in zip(A[-i:], B[:i])))
+                       if A[-i:] == B[:i])
         return next(matches, 0)
 
-    i = find_mergedoverlapping_index(A, B)
+    i = find_mergedoverlapping_index(Akeys, Bkeys)
     if i > 0:
         return A + B[i:], A[:-i] + B
 
-    i = find_mergedoverlapping_index(B, A)
+    i = find_mergedoverlapping_index(Bkeys, Akeys)
     if i > 0:
         return B[:-i] + A, B + A[i:]
 
     try:
-        i = find_overlapping_index(A, B)
+        i = find_overlapping_index(Akeys, Bkeys)
     except StopIteration:
         pass
     else:
         return A, A[:i] + B + A[i+len(B):]
 
     try:
-        i = find_overlapping_index(B, A)
+        i = find_overlapping_index(Bkeys, Akeys)
     except StopIteration:
         pass
     else:
@@ -438,117 +510,28 @@ def merge_overlapping(A, B, key=None):
     raise ValueError('Input does not have an overlap.')
 
 
-def product_diagonal(A, B):
+def log_string(element, base=None):
     r"""
-    Return an iterator over the product of `A` and `B` which iterates
-    along the diagonal.
+    Return a representation of the log of the given element to the
+    given base.
 
     INPUT:
 
-    - ``A`` and ``B`` -- iterables (over a finite number of elements)
+    - ``element`` -- an object.
+
+    - ``base`` -- an object or ``None``.
 
     OUTPUT:
 
-    An iterator over `(a,b)` for `a \in A` and `b \in B`.
+    A string.
 
     EXAMPLES::
 
-        sage: from sage.rings.asymptotic.misc import product_diagonal
-        sage: tuple(product_diagonal(srange(2), srange(2)))
-        ((0, 0), (0, 1), (1, 0), (1, 1))
-        sage: tuple(product_diagonal(srange(4), srange(2)))
-        ((0, 0), (0, 1), (1, 0), (1, 1), (2, 0), (2, 1), (3, 0), (3, 1))
-        sage: tuple(product_diagonal(srange(2), srange(3)))
-        ((0, 0), (0, 1), (1, 0), (0, 2), (1, 1), (1, 2))
-        sage: tuple(''.join(p) for p in product_diagonal('abc', 'xyz'))
-        ('ax', 'ay', 'bx', 'az', 'by', 'cx', 'bz', 'cy', 'cz')
-
-    TESTS:
-
-    Check that all pairs are returned::
-
-        sage: all(len(tuple(product_diagonal(srange(m), srange(n)))) == m*n
-        ....:     for m in srange(5) for n in srange(5))
-        True
-
-    Check that everthing is loaded in the correct order::
-
-        sage: def it(s, n):
-        ....:     for i in srange(n):
-        ....:         print '%s loads item number %s' % (s, i)
-        ....:         yield i
-        sage: for p in product_diagonal(it('A', 2), it('B', 2)):
-        ....:     print p
-        A loads item number 0
-        B loads item number 0
-        (0, 0)
-        B loads item number 1
-        (0, 1)
-        A loads item number 1
-        (1, 0)
-        (1, 1)
-        sage: for p in product_diagonal(it('A', 3), it('B', 2)):
-        ....:     print p
-        A loads item number 0
-        B loads item number 0
-        (0, 0)
-        B loads item number 1
-        (0, 1)
-        A loads item number 1
-        (1, 0)
-        (1, 1)
-        A loads item number 2
-        (2, 0)
-        (2, 1)
-        sage: for p in product_diagonal(it('A', 2), it('B', 4)):
-        ....:     print p
-        A loads item number 0
-        B loads item number 0
-        (0, 0)
-        B loads item number 1
-        (0, 1)
-        A loads item number 1
-        (1, 0)
-        B loads item number 2
-        (0, 2)
-        (1, 1)
-        B loads item number 3
-        (0, 3)
-        (1, 2)
-        (1, 3)
+        sage: from sage.rings.asymptotic.misc import log_string
+        sage: log_string(3)
+        'log(3)'
+        sage: log_string(3, base=42)
+        'log(3, base=42)'
     """
-    # when writing this code I thought the solution would be shorter...
-
-    class iter_as_list(list):
-        def __init__(self, iterable):
-            self.it = iter(iterable)
-            self.newdata = True
-        def __getitem__(self, i):
-            self.newdata = False
-            try:
-                while len(self) <= i:
-                    self.append(next(self.it))
-                    self.newdata = True
-            except StopIteration:
-                raise
-            return list.__getitem__(self, i)
-
-    from itertools import count
-    A = iter_as_list(A)
-    B = iter_as_list(B)
-    for s in count():
-        for i in range(s+1):
-            stopped = False
-            try:
-                a = A[i]
-            except StopIteration:
-                stopped = True
-            try:
-                b = B[s-i]
-            except StopIteration:
-                stopped = True
-            if stopped:
-                continue
-            yield a, b
-        if not A.newdata and not B.newdata and s >= len(A) + len(B):
-            return
+    basestr = ', base=' + str(base) if base else ''
+    return 'log(%s%s)' % (element, basestr)

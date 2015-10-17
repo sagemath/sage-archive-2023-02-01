@@ -12,9 +12,6 @@ http://sympy.org/
 
 New BSD: http://www.opensource.org/licenses/bsd-license.php
 
-== SPKG Maintainers ==
- * Ondrej Certik
-
 == Upstream Contact ==
 
 sympy mailinglist: http://groups.google.com/group/sympy

@@ -19,6 +19,43 @@ have_same_parent = LazyImport('sage.structure.element', 'have_same_parent', depr
 import zlib; comp = zlib
 import bz2; comp_other = bz2
 
+op_LT = Py_LT   # operator <
+op_LE = Py_LE   # operator <=
+op_EQ = Py_EQ   # operator ==
+op_NE = Py_NE   # operator !=
+op_GT = Py_GT   # operator >
+op_GE = Py_GE   # operator >=
+
+def py_rich_to_bool(op, c):
+    r"""
+    Return ``True`` or ``False`` for a rich comparison, given the result of an
+    ordinary comparison.
+
+    Do not use this function from Cython. Instead, call ``rich_to_bool`` or
+    ``rich_to_bool_sgn`` defined in ``sage_object.pxd``.
+
+    INPUT:
+
+    - ``op`` -- a rich comparison operation (e.g. ``op_EQ``)
+
+    - ``c`` -- the result of an ordinary comparison, i.e. an integer.
+
+    EXAMPLES::
+
+        sage: from sage.structure.sage_object import (py_rich_to_bool,
+        ....:    op_EQ, op_NE, op_LT, op_LE, op_GT, op_GE)
+        sage: for op in (op_LT, op_LE, op_EQ, op_NE, op_GT, op_GE):
+        ....:     for c in (-1,0,1):
+        ....:         print py_rich_to_bool(op, c),
+        ....:     print
+        True False False
+        True True False
+        False True False
+        True False True
+        False False True
+        False True True
+    """
+    return rich_to_bool_sgn(op, c)
 
 cdef process(s):
     if s[-5:] != '.sobj':
@@ -494,9 +531,8 @@ cdef class SageObject:
         Let us now write a broken :meth:`.category` method::
 
             sage: class CCls(SageObject):
-            ...       def category(self):
-            ...           return 3
-            ...
+            ....:     def category(self):
+            ....:         return 3
             sage: CC = CCls()
             sage: CC._test_category()
             Traceback (most recent call last):
@@ -576,17 +612,14 @@ cdef class SageObject:
         TESTS::
 
             sage: class Abstract(SageObject):
-            ...       @abstract_method
-            ...       def bla(self):
-            ...           "returns bla"
-            ...
+            ....:     @abstract_method
+            ....:     def bla(self):
+            ....:         "returns bla"
             sage: class Concrete(Abstract):
-            ...       def bla(self):
-            ...           return 1
-            ...
+            ....:     def bla(self):
+            ....:         return 1
             sage: class IncompleteConcrete(Abstract):
-            ...       pass
-            ...
+            ....:     pass
             sage: Concrete()._test_not_implemented_methods()
             sage: IncompleteConcrete()._test_not_implemented_methods()
             Traceback (most recent call last):
@@ -612,7 +645,9 @@ cdef class SageObject:
 
             sage: ZZ._test_pickling()
 
-        SEE ALSO: :func:`dumps` :func:`loads`
+        .. SEEALSO::
+
+            :func:`dumps`, :func:`loads`
 
         TESTS::
 
@@ -1113,6 +1148,24 @@ def register_unpickle_override(module, name, callable, call_name=None):
     you can specify the module name and class name, for the benefit of
     :func:`~sage.misc.explain_pickle.explain_pickle` when called with ``in_current_sage=True``).)
 
+    EXAMPLES:
+
+    Imagine that there used to be an ``old_integer`` module and old
+    pickles essentially trying to do the following::
+
+        sage: unpickle_global('sage.rings.old_integer', 'OldInteger')
+        Traceback (most recent call last):
+        ...
+        ImportError: cannot import OldInteger from sage.rings.old_integer, call register_unpickle_override('sage.rings.old_integer', 'OldInteger', ...) to fix this
+
+    After following the advice from the error message, unpickling
+    works::
+
+        sage: from sage.structure.sage_object import register_unpickle_override
+        sage: register_unpickle_override('sage.rings.old_integer', 'OldInteger', Integer)
+        sage: unpickle_global('sage.rings.old_integer', 'OldInteger')
+        <type 'sage.rings.integer.Integer'>
+
     In many cases, unpickling problems for old pickles can be resolved with a
     simple call to ``register_unpickle_override``, as in the example above and
     in many of the ``sage`` source files.  However, if the underlying data
@@ -1168,14 +1221,13 @@ def register_unpickle_override(module, name, callable, call_name=None):
     defining a new :meth:`__setstate__` method::
 
         sage: class SweeterPickle(CombinatorialObject,Element):
-        ...       def __setstate__(self, state):
-        ...           if isinstance(state, dict):   # a pickle from CombinatorialObject is just its instance dictionary
-        ...               self._set_parent(Tableaux())      # this is a fudge: we need an appropriate parent here
-        ...               self.__dict__ = state
-        ...           else:
-        ...               self._set_parent(state[0])
-        ...               self.__dict__ = state[1]
-        ...
+        ....:     def __setstate__(self, state):
+        ....:         if isinstance(state, dict):       # a pickle from CombinatorialObject is just its instance dictionary
+        ....:             self._set_parent(Tableaux())  # this is a fudge: we need an appropriate parent here
+        ....:             self.__dict__ = state
+        ....:         else:
+        ....:             self._set_parent(state[0])
+        ....:             self.__dict__ = state[1]
         sage: __main__.SweeterPickle = SweeterPickle
         sage: register_unpickle_override('__main__','SourPickle',SweeterPickle)
         sage: loads( gherkin )
@@ -1193,20 +1245,20 @@ def register_unpickle_override(module, name, callable, call_name=None):
     ::
 
         sage: class A(object):
-        ...      def __init__(self,value):
-        ...          self.original_attribute = value
-        ...      def __repr__(self):
-        ...          return 'A(%s)'%self.original_attribute
+        ....:    def __init__(self,value):
+        ....:        self.original_attribute = value
+        ....:    def __repr__(self):
+        ....:        return 'A(%s)'%self.original_attribute
         sage: class B(object):
-        ...      def __init__(self,value):
-        ...          self.new_attribute = value
-        ...      def __setstate__(self,state):
-        ...          try:
-        ...              self.new_attribute = state['new_attribute']
-        ...          except KeyError:      # an old pickle
-        ...              self.new_attribute = state['original_attribute']
-        ...      def __repr__(self):
-        ...          return 'B(%s)'%self.new_attribute
+        ....:    def __init__(self,value):
+        ....:        self.new_attribute = value
+        ....:    def __setstate__(self,state):
+        ....:        try:
+        ....:            self.new_attribute = state['new_attribute']
+        ....:        except KeyError:      # an old pickle
+        ....:            self.new_attribute = state['original_attribute']
+        ....:    def __repr__(self):
+        ....:        return 'B(%s)'%self.new_attribute
         sage: import __main__
         sage: __main__.A=A; __main__.B=B  # a hack to allow us to pickle command line classes
         sage: A(10)
@@ -1297,7 +1349,12 @@ def unpickle_global(module, name):
     mod = sys_modules.get(module)
     if mod is not None:
         return getattr(mod, name)
-    __import__(module)
+    try:
+        __import__(module)
+    except ImportError:
+        raise ImportError("cannot import {1} from {0}, "
+            "call register_unpickle_override({0!r}, {1!r}, ...) to fix this".format(
+            module, name))
     mod = sys_modules[module]
     return getattr(mod, name)
 
@@ -1389,12 +1446,13 @@ def picklejar(obj, dir=None):
         sage: import os
         sage: os.chmod(dir, 0o000)
         sage: try:
-        ...   uid = os.getuid()
-        ... except AttributeError:
-        ...    uid = -1
+        ....:     uid = os.getuid()
+        ....: except AttributeError:
+        ....:     uid = -1
         sage: if uid==0:
-        ...     raise OSError('You must not run the doctests as root, geez!')
-        ... else: sage.structure.sage_object.picklejar(1, dir + '/noaccess')
+        ....:     raise OSError('You must not run the doctests as root, geez!')
+        ....: else:
+        ....:     sage.structure.sage_object.picklejar(1, dir + '/noaccess')
         Traceback (most recent call last):
         ...
         OSError: ...
@@ -1478,7 +1536,7 @@ def unpickle_all(dir = None, debug=False, run_test_suite=False):
 
         sage: from sage.structure.sage_object import register_unpickle_override, unpickle_all, unpickle_global
         sage: class A(CombinatorialObject,sage.structure.element.Element):
-        ...       pass # to break a pickle
+        ....:     pass  # to break a pickle
         sage: tableau_unpickler=unpickle_global('sage.combinat.tableau','Tableau_class')
         sage: register_unpickle_override('sage.combinat.tableau','Tableau_class',A) # breaking the pickle
         sage: unpickle_all()  # todo: not tested

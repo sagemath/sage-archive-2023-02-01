@@ -57,6 +57,14 @@ weighted degree where each variable x_i has weight i.
     p[1, 1, 1] + p[2, 1]
     sage: s[4]
     p[1, 1, 1, 1] + p[2, 1, 1] + p[2, 2]
+
+REFERENCES:
+
+.. [BLL] F. Bergeron, G. Labelle, and P. Leroux.
+   "Combinatorial species and tree-like structures".
+   Encyclopedia of Mathematics and its Applications, vol. 67, Cambridge Univ. Press. 1998.
+.. [BLL-Intro] Francois Bergeron, Gilbert Labelle, and Pierre Leroux.
+   "Introduction to the Theory of Species of Structures", March 14, 2008.
 """
 #*****************************************************************************
 #       Copyright (C) 2008 Mike Hansen <mhansen@gmail.com>,
@@ -593,12 +601,11 @@ class CycleIndexSeries(LazyPowerSeries):
 
         REFERENCES:
 
-        .. [BLL] F. Bergeron, G. Labelle, and P. Leroux.
-           "Combinatorial species and tree-like structures".
-           Encyclopedia of Mathematics and its Applications, vol. 67, Cambridge Univ. Press. 1998.
-        .. [BLL-Intro] Francois Bergeron, Gilbert Labelle, and Pierre Leroux.
-           "Introduction to the Theory of Species of Structures", March 14, 2008.
-           http://bergeron.math.uqam.ca/Site/bergeron_anglais_files/livre_combinatoire.pdf
+        [BLL]_
+
+        [BLL-Intro]_
+
+        http://bergeron.math.uqam.ca/Site/bergeron_anglais_files/livre_combinatoire.pdf
 
         AUTHORS:
 
@@ -1344,8 +1351,6 @@ def LogarithmCycleIndexSeries(R = RationalField()):
         [0, p[1], 0, 0]
 
     REFERENCES:
-
-    .. [BLL] F. Bergeron, G. Labelle, and P. Leroux. "Combinatorial species and tree-like structures". Encyclopedia of Mathematics and its Applications, vol. 67, Cambridge Univ. Press. 1998.
 
     .. [Labelle] G. Labelle. "New combinatorial computational methods arising from pseudo-singletons." DMTCS Proceedings 1, 2008.
     """

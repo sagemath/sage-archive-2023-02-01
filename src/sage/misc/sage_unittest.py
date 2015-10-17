@@ -573,7 +573,9 @@ class PythonObjectWithTests(object):
             sage: from sage.misc.sage_unittest import PythonObjectWithTests
             sage: PythonObjectWithTests(int(1))._test_pickling()
 
-        SEE ALSO: :func:`dumps` :func:`loads`
+        .. SEEALSO::
+
+            :func:`dumps`, :func:`loads`
         """
         tester = instance_tester(self, **options)
         from sage.misc.all import loads, dumps

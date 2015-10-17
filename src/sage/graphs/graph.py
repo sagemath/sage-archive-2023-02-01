@@ -6966,19 +6966,22 @@ class Graph(GenericGraph):
 
     def ihara_zeta_function_inverse(self):
         """
-        Compute the inverse of the Ihara zeta function of the graph
+        Compute the inverse of the Ihara zeta function of the graph.
 
         This is a polynomial in one variable with integer coefficients. The
         Ihara zeta function itself is the inverse of this polynomial.
 
-        See :wikipedia:`Ihara zeta function`
+        See :wikipedia:`Ihara zeta function`.
 
         ALGORITHM:
 
-        This is computed here using the determinant of a square matrix
-        of size twice the number of edges, related to the adjacency
-        matrix of the line graph, see for example Proposition 9
-        in [ScottStorm]_.
+        This is computed here as the (reversed) characteristic
+        polynomial of a square matrix of size twice the number of edges,
+        related to the adjacency matrix of the line graph, see for example
+        Proposition 9 in [ScottStorm]_ and Def. 4.1 in [Terras]_.
+
+        The graph is first replaced by its 2-core, as this does not change
+        the Ihara zeta function.
 
         EXAMPLES::
 
@@ -7013,26 +7016,26 @@ class Graph(GenericGraph):
            of the Ihara zeta function, Involve (http://msp.org/involve/2008/1-2/involve-v1-n2-p08-p.pdf)
         """
         from sage.matrix.constructor import matrix
-        from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 
-        ring = PolynomialRing(ZZ, 't')
-        t = ring.gen()
+        H = self.subgraph(vertices=self.cores(k=2)[1])
+        E = H.edges()
+        m = len(E)
+        # compute (Hashimoto) edge matrix T
+        T = matrix(ZZ, 2 * m, 2 * m, 0)
+        for i in range(m):
+            for j in range(m):
+                if i != j:
+                    if E[i][1] == E[j][0]:  # same orientation
+                        T[2 * i, 2 * j] = 1
+                        T[2 * j + 1, 2 * i + 1] = 1
+                    elif E[i][1] == E[j][1]:  # opposite orientation (towards)
+                        T[2 * i, 2 * j + 1] = 1
+                        T[2 * j, 2 * i + 1] = 1
+                    elif E[i][0] == E[j][0]:  # opposite orientation (away)
+                        T[2 * i + 1, 2 * j] = 1
+                        T[2 * j + 1, 2 * i] = 1
+        return T.charpoly('t').reverse()
 
-        N = self.size()
-
-        labeled_g = DiGraph()
-        labeled_g.add_edges([(u, v, i) for i, (u, v) in
-                             enumerate(self.edges(labels=False))])
-        labeled_g.add_edges([(v, u, i + N) for i, (u, v) in
-                             enumerate(self.edges(labels=False))])
-
-        M = matrix(ring, 2 * N, 2 * N, ring.one())
-        for u, v, i in labeled_g.edges():
-            for vv, ww, j in labeled_g.outgoing_edges(v):
-                M[i, j] += -t
-            M[i, (i + N) % (2 * N)] += t  # fixing the 2-cycles
-
-        return M.determinant()
 
 # Aliases to functions defined in Cython modules
 import types

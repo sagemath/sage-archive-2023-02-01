@@ -22,10 +22,6 @@ Tools and data are designed to be used both
 
 GNU General Public License
 
-== SPKG Maintainers ==
-
-* Martin Albrecht
-
 == Upstream Contact ==
 
 * Andreas Nareike <nareike@informatik.uni-leipzig.de>

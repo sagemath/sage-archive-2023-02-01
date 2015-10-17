@@ -218,8 +218,7 @@ class InfinityCrystalOfRiggedConfigurations(UniqueRepresentation, Parent):
 
     def _calc_vacancy_number(self, partitions, a, i, **options):
         r"""
-        Calculate the vacancy number of the `i`-th row of the `a`-th rigged
-        partition.
+        Calculate the vacancy number `p_i^{(a)}(\nu)` in ``self``.
 
         This assumes that `\gamma_a = 1` for all `a` and `(\alpha_a \mid
         \alpha_b ) = A_{ab}`.
@@ -230,24 +229,19 @@ class InfinityCrystalOfRiggedConfigurations(UniqueRepresentation, Parent):
 
         - ``a`` -- the rigged partition index
 
-        - ``i`` -- the row index of the `a`-th rigged partition
+        - ``i`` -- the row length
 
         TESTS::
 
             sage: RC = crystals.infinity.RiggedConfigurations(['A', 4])
             sage: elt = RC(partition_list=[[1], [1], [], []])
-            sage: RC._calc_vacancy_number(elt.nu(), 0, 0)
+            sage: RC._calc_vacancy_number(elt.nu(), 0, 1)
             -1
         """
         vac_num = 0
 
-        if i is None:
-            row_len = float("inf")
-        else:
-            row_len = partitions[a][i]
-
         for b, value in enumerate(self._cartan_matrix.row(a)):
-            vac_num -= value * partitions[b].get_num_cells_to_column(row_len)
+            vac_num -= value * partitions[b].get_num_cells_to_column(i)
 
         return vac_num
 
@@ -313,10 +307,9 @@ class InfinityCrystalOfNonSimplyLacedRC(InfinityCrystalOfRiggedConfigurations):
         self._folded_ct = vct
         InfinityCrystalOfRiggedConfigurations.__init__(self, vct._cartan_type)
 
-    def _calc_vacancy_number(self, partitions, a, i, **options):
+    def _calc_vacancy_number(self, partitions, a, i):
         r"""
-        Calculate the vacancy number of the `i`-th row of the `a`-th rigged
-        partition.
+        Calculate the vacancy number `p_i^{(a)}(\nu)` in ``self``.
 
         INPUT:
 
@@ -324,31 +317,26 @@ class InfinityCrystalOfNonSimplyLacedRC(InfinityCrystalOfRiggedConfigurations):
 
         - ``a`` -- the rigged partition index
 
-        - ``i`` -- the row index of the `a`-th rigged partition
+        - ``i`` -- the row length
 
         TESTS::
 
             sage: La = RootSystem(['C',2]).weight_lattice().fundamental_weights()
             sage: RC = crystals.RiggedConfigurations(La[1])
             sage: elt = RC(partition_list=[[1], [1]])
-            sage: RC._calc_vacancy_number(elt.nu(), 0, 0)
+            sage: RC._calc_vacancy_number(elt.nu(), 0, 1)
             0
-            sage: RC._calc_vacancy_number(elt.nu(), 1, 0)
+            sage: RC._calc_vacancy_number(elt.nu(), 1, 1)
             -1
         """
         I = self.index_set()
         ia = I[a]
         vac_num = 0
 
-        if i is None:
-            row_len = float("inf")
-        else:
-            row_len = partitions[a][i]
-
         gamma = self._folded_ct.scaling_factors()
         for b, value in enumerate(self._cartan_matrix.row(a)):
             ib = I[b]
-            q = partitions[b].get_num_cells_to_column(gamma[ia]*row_len, gamma[ib])
+            q = partitions[b].get_num_cells_to_column(gamma[ia]*i, gamma[ib])
             vac_num -= value * q / gamma[ib]
 
         return vac_num

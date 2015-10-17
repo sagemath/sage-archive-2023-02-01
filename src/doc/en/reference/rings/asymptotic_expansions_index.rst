@@ -23,7 +23,7 @@ Supplements
 -----------
 
 Behind the scenes of working with asymptotic expressions a couple of
-additional classes and tools turn up. For instance the growth in each
+additional classes and tools turn up. For instance the growth of each
 summand is managed in growth groups, see below.
 
 

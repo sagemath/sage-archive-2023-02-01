@@ -758,10 +758,18 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
 
             sage: x == None
             False
+
+        ::
+
+            sage: x == 'x'
+            False
         """
         if other is None:
             return False
-        return not bool(self - other)
+        try:
+            return not bool(self - other)
+        except (TypeError, ValueError):
+            return False
 
 
     def __ne__(self, other):

@@ -2704,8 +2704,8 @@ class MonomialGrowthElement(GenericGrowthElement):
             z^42
             sage: _.parent()
             Symbolic Ring
-            sage: G(x^42)._substitute_({'x': 2})
-            4398046511104
+            sage: G(x^3)._substitute_({'x': 2})
+            8
             sage: _.parent()
             Integer Ring
             sage: G(1 / x)._substitute_({'x': 0})

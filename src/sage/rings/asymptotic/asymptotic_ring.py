@@ -2148,7 +2148,7 @@ class AsymptoticRing(Algebra, UniqueRepresentation):
         - ``term`` -- the element data.
 
         - ``old_term_parent`` -- the parent of ``term`` is compared to this
-          parent. If both are the same or ``old_parent`` is ``None`,
+          parent. If both are the same or ``old_parent`` is ``None``,
           then the result is an expansion in this (``self``) asymptotic ring.
 
         OUTPUT:

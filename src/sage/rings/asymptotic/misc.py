@@ -340,7 +340,7 @@ def combine_exceptions(e, *f):
     return e
 
 
-def substitute_raise_exception(self, e, rules, domain):
+def substitute_raise_exception(self, e):
     raise combine_exceptions(
         TypeError('Cannot substitute in %s in %s.' %
                   (self, self.parent())), e)

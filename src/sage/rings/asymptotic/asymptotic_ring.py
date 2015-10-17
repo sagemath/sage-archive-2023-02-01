@@ -1835,31 +1835,37 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
                     break
             else:
                 domain = P
+        locals['_zero_'] = domain.zero()
+        locals['_one_'] = domain.one()
 
         try:
-            return self._substitute_(locals, domain)
+            return self._substitute_(locals)
         except TypeError as e:
             from misc import combine_exceptions
+            rules = '{' + ', '.join(
+                '%s: %s' % (k, v)
+                for k, v in sorted(locals.iteritems(), key=lambda k: str(k[0]))
+                if k[0] != '_') + '}'
             raise combine_exceptions(
                 TypeError('Cannot apply the substitution rules %s at %s '
-                          'in %s.' % (locals, self, self.parent())), e)
+                          'in %s.' % (rules, self, self.parent())), e)
 
 
     subs = substitute
 
 
-    def _substitute_(self, rules, domain):
+    def _substitute_(self, rules):
         if not self.summands:
-            return domain.zero()
+            return rules['_zero_']
         from sage.symbolic.operators import add_vararg
         try:
             return add_vararg(
-                *tuple(s._substitute_(rules, domain)
+                *tuple(s._substitute_(rules)
                        for s in self.summands.elements_topological()))
         except (ArithmeticError, NotImplementedError,
                 TypeError, ValueError) as e:
             from misc import substitute_raise_exception
-            substitute_raise_exception(self, e, rules, domain)
+            substitute_raise_exception(self, e)
 
 
 class AsymptoticRing(Algebra, UniqueRepresentation):

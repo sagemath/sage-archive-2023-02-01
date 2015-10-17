@@ -1125,18 +1125,18 @@ class GenericProduct(CartesianProductPoset, GenericGrowthGroup):
                 tuple(~x for x in self.cartesian_factors()))
 
 
-        def _substitute_(self, rules, domain):
+        def _substitute_(self, rules):
             if self.is_one():
-                return domain.one()
+                return rules['_one_']
             from sage.symbolic.operators import mul_vararg
             try:
                 return mul_vararg(
-                    *tuple(x._substitute_(rules, domain)
+                    *tuple(x._substitute_(rules)
                            for x in self.cartesian_factors()))
             except (ArithmeticError, NotImplementedError,
                     TypeError, ValueError) as e:
                 from misc import substitute_raise_exception
-                substitute_raise_exception(self, e, rules, domain)
+                substitute_raise_exception(self, e)
 
 
     CartesianProduct = CartesianProductGrowthGroups

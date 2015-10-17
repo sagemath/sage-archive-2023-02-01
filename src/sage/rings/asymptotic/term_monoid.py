@@ -1250,7 +1250,7 @@ class GenericTerm(sage.structure.element.MonoidElement):
         return 'Generic Term with growth ' + repr(self.growth)
 
 
-    def _substitute_(self, rules, domain):
+    def _substitute_(self, rules):
         raise NotImplementedError('Cannot substitute in %s in the abstract '
                                   'base class %s.' % (self, self.parent()))
 
@@ -2251,13 +2251,13 @@ class OTerm(GenericTerm):
                          (base, self, self.parent()))
 
 
-    def _substitute_(self, rules, domain):
+    def _substitute_(self, rules):
         try:
-            g = self.growth._substitute_(rules, domain)
+            g = self.growth._substitute_(rules)
         except (ArithmeticError, NotImplementedError,
                 TypeError, ValueError) as e:
             from misc import substitute_raise_exception
-            substitute_raise_exception(self, e, rules, domain)
+            substitute_raise_exception(self, e)
 
         try:
             return rules['O'](g)
@@ -2271,18 +2271,11 @@ class OTerm(GenericTerm):
         elif isinstance(g.parent(), sage.symbolic.ring.SR):
             return g.Order()
 
-        elif domain is sage.symbolic.ring.SR:
-            try:
-                return domain(g).Order()
-            except (TypeError, ValueError) as e:
-                from misc import substitute_raise_exception
-                substitute_raise_exception(self, e, rules, domain)
-
         try:
             return sage.rings.big_oh.O(g)
         except (TypeError, ValueError) as e:
             from misc import substitute_raise_exception
-            substitute_raise_exception(self, e, rules, domain)
+            substitute_raise_exception(self, e)
 
 
 class OTermMonoid(GenericTermMonoid):
@@ -3320,13 +3313,13 @@ class ExactTerm(TermWithCoefficient):
         return elem ** self.coefficient
 
 
-    def _substitute_(self, rules, domain):
+    def _substitute_(self, rules):
         try:
-            g = self.growth._substitute_(rules, domain)
+            g = self.growth._substitute_(rules)
         except (ArithmeticError, NotImplementedError,
                 TypeError, ValueError) as e:
             from misc import substitute_raise_exception
-            substitute_raise_exception(self, e, rules, domain)
+            substitute_raise_exception(self, e)
 
         c = self.coefficient
 
@@ -3334,7 +3327,7 @@ class ExactTerm(TermWithCoefficient):
             return c * g
         except (TypeError, ValueError) as e:
             from misc import substitute_raise_exception
-            substitute_raise_exception(self, e, rules, domain)
+            substitute_raise_exception(self, e)
 
 
 class ExactTermMonoid(TermWithCoefficientMonoid):

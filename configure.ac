@@ -80,8 +80,6 @@ SAGE_SHARE="$SAGE_LOCAL/share"
 SAGE_EXTCODE="$SAGE_SHARE/sage/ext"
 SAGE_SPKG_INST="$SAGE_LOCAL/var/lib/sage/installed"
 
-export PATH="$SAGE_ROOT/build/bin:$SAGE_SRC/bin:$SAGE_LOCAL/bin:$PATH"
-
 ###############################################################################
 # Determine whether to use MPIR (default standard pkg) or GMP (optional pkg).
 ###############################################################################
@@ -626,8 +624,6 @@ AC_ARG_ENABLE([compiler-checks], [Check versions and presence of C, C++ and Fort
     ]
     )
 
-# Import environment variables.
-source src/bin/sage-env || AC_MSG_ERROR([failed to source sage-env])
 
 #---------------------------------------------------------
 # Check some programs needed actually exist.

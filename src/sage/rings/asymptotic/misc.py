@@ -340,10 +340,33 @@ def combine_exceptions(e, *f):
     return e
 
 
-def substitute_raise_exception(self, e, rules, domain):
+def substitute_raise_exception(element, e):
+    r"""
+    Raise an error describing what went wrong with the substitution.
+
+    INPUT:
+
+    - ``element`` -- an element.
+
+    - ``e`` -- an exception which is included in the raised error
+      message.
+
+    OUTPUT:
+
+    Raise an exception of the same type as ``e``.
+
+    TESTS::
+
+        sage: from sage.rings.asymptotic.misc import substitute_raise_exception
+        sage: substitute_raise_exception(x, Exception('blub'))
+        Traceback (most recent call last):
+        ...
+        Exception: Cannot substitute in x in Symbolic Ring.
+        > *previous* Exception: blub
+    """
     raise combine_exceptions(
-        TypeError('Cannot substitute in %s in %s.' %
-                  (self, self.parent())), e)
+        type(e)('Cannot substitute in %s in %s.' %
+                (element, element.parent())), e)
 
 
 def underlying_class(P):

@@ -1250,9 +1250,37 @@ class GenericTerm(sage.structure.element.MonoidElement):
         return 'Generic Term with growth ' + repr(self.growth)
 
 
-    def _substitute_(self, rules, domain):
-        raise NotImplementedError('Cannot substitute in %s in the abstract '
-                                  'base class %s.' % (self, self.parent()))
+    def _substitute_(self, rules):
+        r"""
+        Substitute the given ``rules`` in this generic term.
+
+        INPUT:
+
+        - ``rules`` -- a dictionary.
+
+        OUTPUT:
+
+        Nothing since a
+        :python:`TypeError<library/exceptions.html#exceptions.TypeError>`
+        is raised.
+
+        TESTS::
+
+            sage: from sage.rings.asymptotic.growth_group import GrowthGroup
+            sage: from sage.rings.asymptotic.term_monoid import GenericTermMonoid
+            sage: t = GenericTermMonoid(GrowthGroup('x^ZZ'), ZZ).an_element()
+            sage: t._substitute_({})
+            Traceback (most recent call last):
+            ...
+            TypeError: Cannot substitute in Generic Term with growth x in
+            Generic Term Monoid x^ZZ with (implicit) coefficients in Integer Ring.
+            > *previous* TypeError: Cannot substitute in the abstract base class
+            Generic Term Monoid x^ZZ with (implicit) coefficients in Integer Ring.
+        """
+        from misc import substitute_raise_exception
+        substitute_raise_exception(self, TypeError(
+            'Cannot substitute in the abstract '
+            'base class %s.' % (self.parent(),)))
 
 
 class GenericTermMonoid(sage.structure.unique_representation.UniqueRepresentation,
@@ -2251,38 +2279,78 @@ class OTerm(GenericTerm):
                          (base, self, self.parent()))
 
 
-    def _substitute_(self, rules, domain):
+    def _substitute_(self, rules):
+        r"""
+        Substitute the given ``rules`` in this O-Term.
+
+        INPUT:
+
+        - ``rules`` -- a dictionary.
+
+        OUTPUT:
+
+        An object.
+
+        TESTS::
+
+            sage: from sage.rings.asymptotic.growth_group import GrowthGroup
+            sage: from sage.rings.asymptotic.term_monoid import TermMonoid
+            sage: T = TermMonoid('O', GrowthGroup('x^ZZ'), ZZ)
+            sage: t = T.an_element(); t
+            O(x)
+            sage: t._substitute_({'x': SR.var('z')})
+            Order(z)
+            sage: t._substitute_({'x': SR.var('z'), 'O': function('Oh')})
+            Oh(z)
+            sage: e = AsymptoticRing('x^ZZ', ZZ)('2*x'); e
+            2*x
+            sage: t._substitute_({'x': e})
+            O(x)
+            sage: T(1/x)._substitute_({'x': 0})
+            Traceback (most recent call last):
+            ...
+            ZeroDivisionError: Cannot substitute in O(x^(-1)) in
+            O-Term Monoid x^ZZ with implicit coefficients in Integer Ring.
+            > *previous* ZeroDivisionError: Cannot substitute in x^(-1) in
+            Growth Group x^ZZ.
+            >> *previous* ZeroDivisionError: rational division by zero
+            sage: t._substitute_({'x': 3})
+            O(3)
+            sage: t._substitute_({'x': 'null'})
+            Traceback (most recent call last):
+            ...
+            ArithmeticError: Cannot substitute in O(x) in
+            O-Term Monoid x^ZZ with implicit coefficients in Integer Ring.
+            > *previous* ArithmeticError: O(null) not defined
+        """
         try:
-            g = self.growth._substitute_(rules, domain)
-        except (ArithmeticError, NotImplementedError,
-                TypeError, ValueError) as e:
+            g = self.growth._substitute_(rules)
+        except (ArithmeticError, TypeError, ValueError) as e:
             from misc import substitute_raise_exception
-            substitute_raise_exception(self, e, rules, domain)
+            substitute_raise_exception(self, e)
 
         try:
             return rules['O'](g)
         except KeyError:
             pass
 
-        from asymptotic_ring import AsymptoticRing
-        if isinstance(g.parent(), AsymptoticRing):
-            return g.O()
+        try:
+            P = g.parent()
+        except AttributeError:
+            pass
+        else:
+            from asymptotic_ring import AsymptoticRing
+            if isinstance(P, AsymptoticRing):
+                return g.O()
 
-        elif isinstance(g.parent(), sage.symbolic.ring.SR):
-            return g.Order()
-
-        elif domain is sage.symbolic.ring.SR:
-            try:
-                return domain(g).Order()
-            except (TypeError, ValueError) as e:
-                from misc import substitute_raise_exception
-                substitute_raise_exception(self, e, rules, domain)
+            elif P is sage.symbolic.ring.SR:
+                return g.Order()
 
         try:
             return sage.rings.big_oh.O(g)
-        except (TypeError, ValueError) as e:
+        except (ArithmeticError, TypeError, ValueError) as e:
             from misc import substitute_raise_exception
-            substitute_raise_exception(self, e, rules, domain)
+            substitute_raise_exception(self, e)
 
 
 class OTermMonoid(GenericTermMonoid):
@@ -3320,21 +3388,60 @@ class ExactTerm(TermWithCoefficient):
         return elem ** self.coefficient
 
 
-    def _substitute_(self, rules, domain):
+    def _substitute_(self, rules):
+        r"""
+        Substitute the given ``rules`` in this exact term.
+
+        INPUT:
+
+        - ``rules`` -- a dictionary.
+
+        OUTPUT:
+
+        An object.
+
+        TESTS::
+
+            sage: from sage.rings.asymptotic.growth_group import GrowthGroup
+            sage: from sage.rings.asymptotic.term_monoid import TermMonoid
+            sage: E = TermMonoid('exact', GrowthGroup('x^ZZ'), ZZ)
+            sage: e = E.an_element(); e
+            x
+            sage: e._substitute_({'x': SR.var('z')})
+            z
+            sage: E(2/x)._substitute_({'x': 0})
+            Traceback (most recent call last):
+            ...
+            ZeroDivisionError: Cannot substitute in 2*x^(-1) in
+            Exact Term Monoid x^ZZ with coefficients in Integer Ring.
+            > *previous* ZeroDivisionError: Cannot substitute in x^(-1) in
+            Growth Group x^ZZ.
+            >> *previous* ZeroDivisionError: rational division by zero
+            sage: (e*e)._substitute_({'x': 'something'})
+            'somethingsomething'
+            sage: E(1/x)._substitute_({'x': 'something'})
+            ''
+            sage: E(1/x)._substitute_({'x': ZZ})
+            Traceback (most recent call last):
+            ...
+            ValueError: Cannot substitute in x^(-1) in
+            Exact Term Monoid x^ZZ with coefficients in Integer Ring.
+            > *previous* ValueError: Cannot substitute in x^(-1) in Growth Group x^ZZ.
+            >> *previous* ValueError: rank (=-1) must be nonnegative
+        """
         try:
-            g = self.growth._substitute_(rules, domain)
-        except (ArithmeticError, NotImplementedError,
-                TypeError, ValueError) as e:
+            g = self.growth._substitute_(rules)
+        except (ArithmeticError, TypeError, ValueError) as e:
             from misc import substitute_raise_exception
-            substitute_raise_exception(self, e, rules, domain)
+            substitute_raise_exception(self, e)
 
         c = self.coefficient
 
         try:
             return c * g
-        except (TypeError, ValueError) as e:
+        except (ArithmeticError, TypeError, ValueError) as e:
             from misc import substitute_raise_exception
-            substitute_raise_exception(self, e, rules, domain)
+            substitute_raise_exception(self, e)
 
 
 class ExactTermMonoid(TermWithCoefficientMonoid):

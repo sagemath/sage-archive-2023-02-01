@@ -154,7 +154,7 @@ class RationalField(Singleton, number_field_base.NumberField):
             sage: Q.is_field()
             True
             sage: Q.category()
-            Category of quotient fields
+            Join of Category of quotient fields and Category of metric spaces
             sage: Q.zeta()
             -1
 

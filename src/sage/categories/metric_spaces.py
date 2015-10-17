@@ -1,5 +1,5 @@
 r"""
-Topological Spaces
+Metric Spaces
 """
 #*****************************************************************************
 #  Copyright (C) 2015 Travis Scrimshaw <tscrim at ucdavis.edu>
@@ -29,8 +29,8 @@ class MetricSpacesCategory(RegressiveCovariantConstructionCategory):
 
         INPUT:
 
-         - ``cls`` -- the class ``MetricSpaces``
-         - ``category`` -- a category `Cat`
+        - ``cls`` -- the class ``MetricSpaces``
+        - ``category`` -- a category `Cat`
 
         OUTPUT:
 

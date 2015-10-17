@@ -2214,8 +2214,7 @@ class CompletionFunctor(ConstructionFunctor):
             sage: F2
             Completion[+Infinity]
             sage: F2.extras
-            {'rnd': 'RNDN', 'sci_not': False, 'type': 'MPFR'}
-
+            {'rnd': 0, 'sci_not': False, 'type': 'MPFR'}
         """
         Functor.__init__(self, Rings(), Rings())
         self.p = p
@@ -2392,10 +2391,8 @@ class CompletionFunctor(ConstructionFunctor):
                 new_type = self._real_types[min(self._real_types.index(self.type), \
                                                 self._real_types.index(other.type))]
                 new_scinot = max(self.extras.get('sci_not',0), other.extras.get('sci_not',0))
-                from sage.rings.real_mpfr import _rounding_modes
-                new_rnd = _rounding_modes[min(_rounding_modes.index(self.extras.get('rnd', 'RNDN')), \
-                                              _rounding_modes.index(other.extras.get('rnd', 'RNDN')))]
-                return CompletionFunctor(self.p, new_prec, {'type': new_type, 'sci_not':new_scinot, 'rnd':new_rnd})
+                new_rnd = min(self.extras.get('rnd', 0), other.extras.get('rnd', 0))
+                return CompletionFunctor(self.p, new_prec, {'type':new_type, 'sci_not':new_scinot, 'rnd':new_rnd})
             else:
                 new_type = self._dvr_types[min(self._dvr_types.index(self.type), self._dvr_types.index(other.type))]
                 if new_type == 'fixed-mod':

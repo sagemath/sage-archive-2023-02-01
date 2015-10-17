@@ -22,6 +22,7 @@ cdef extern from "mpfr.h":
 
     ctypedef mpfr_rnd_t mp_rnd_t
     ctypedef long mp_prec_t
+    ctypedef long mpfr_prec_t
 
     int MPFR_PREC_MIN, MPFR_PREC_MAX
 
@@ -259,7 +260,6 @@ cdef extern from "mpfr.h":
     void mpfr_set_default_rounding_mode (mp_rnd_t rnd)
     mp_rnd_t mpfr_get_default_rounding_mode ()
     int mpfr_prec_round (mpfr_t x, mp_prec_t prec, mp_rnd_t rnd)
-    int mpfr_round_prec (mpfr_t x, mp_rnd_t rnd, mp_prec_t prec)
     char * mpfr_print_rnd_mode (mp_rnd_t rnd)
 
     # Exception Related Functions

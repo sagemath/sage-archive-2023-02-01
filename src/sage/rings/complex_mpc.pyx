@@ -814,7 +814,7 @@ cdef class MPComplexNumber(sage.structure.element.FieldElement):
                 a, b = split_complex_string(z, base)
                 # set real part
                 if a is None:
-                    mpfr_set_ui(self.value.re, 0, GMP_RNDN)
+                    mpfr_set_ui(self.value.re, 0, MPFR_RNDN)
                 else:
                     mpfr_set_str(self.value.re, a, base, rnd_re(rnd))
                 # set imag part

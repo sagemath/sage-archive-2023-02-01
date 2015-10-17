@@ -179,7 +179,7 @@ const long double ld_pi = 3.141592653589793238462643L;
 const double d_pi = ld_pi;
 
 // Third, the rounding mode for mpfr.
-const mp_rnd_t round_mode = GMP_RNDN;
+const mp_rnd_t round_mode = MPFR_RNDN;
 
 /*****************************************************************************
  *
@@ -368,7 +368,7 @@ int grab_last_digits(char * output, int n, mpfr_t x) {
     char * temp;
     mp_exp_t e;
 
-    temp = mpfr_get_str(NULL, &e, 10, 0, x, GMP_RNDN);
+    temp = mpfr_get_str(NULL, &e, 10, 0, x, MPFR_RNDN);
 
     int retval;
 

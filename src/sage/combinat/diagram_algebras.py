@@ -1970,31 +1970,41 @@ class BrauerAlgebra(SubPartitionAlgebra):
     def jucys_murphy(self, j):
         r"""
         Return the ``j``-th generalized Jucys-Murphy element of ``self``.
-        These elements are simply the Jucys-Murphy elements of the symmetric
-        group algebra with an extra ``(z-1)/2`` term where ``z`` is the parameter
+
+        The `j`-th Jucys-Murphy element of a Brauer algebra is simply
+        the `j`-th Jucys-Murphy element of the symmetric group algebra
+        with an extra `(z-1)/2` term, where ``z`` is the parameter
         of the Brauer algebra. 
 
         REFERENCES:
 
-        .. [Naz] Maxim Nazarov, Young's Orthogonal Form for Brauer's Centralizer
-           Algebra. Journal of Algebra 182 (1996), 664--693.
+        .. [Naz96] Maxim Nazarov, Young's Orthogonal Form for Brauer's
+           Centralizer Algebra. Journal of Algebra 182 (1996), 664--693.
 
-        EXAMPLES:
+        EXAMPLES::
 
             sage: z = var('z')
             sage: B = BrauerAlgebra(3,z)
             sage: B.jucys_murphy(1)
-            1/2*z - 1/2
+            (1/2*z-1/2)*B{{-3, 3}, {-2, 2}, {-1, 1}}
             sage: B.jucys_murphy(3)
             -B{{-3, -2}, {-1, 1}, {2, 3}} - B{{-3, -1}, {-2, 2}, {1, 3}}
-            + B{{-3, 1}, {-2, 2}, {-1, 3}} + B{{-3, 2}, {-2, 3}, {-1, 1}}
-            + (1/2*z-1/2)*B{{-3, 3}, {-2, 2}, {-1, 1}}
+             + B{{-3, 1}, {-2, 2}, {-1, 3}} + B{{-3, 2}, {-2, 3}, {-1, 1}}
+             + (1/2*z-1/2)*B{{-3, 3}, {-2, 2}, {-1, 1}}
         """
-        assert j <= self.order(), "Jucys-Murphy index cannot be greater than the order of the algebra."
-        I = self._indices
-        one = self.base_ring().one()
-        return ((self._q-1)/2
-                + sum(one*self([[i,-j],[j,-i]]) - one*self([[i,j],[-i,-j]]) for i in range(1,j)))
+        if j < 1:
+            raise ValueError("Jucys-Murphy index must be positive")
+        k = self.order()
+        if j > k:
+            raise ValueError("Jucys-Murphy index cannot be greater than the order of the algebra")
+        I = lambda x: self._indices(to_Brauer_partition(x, k=k))
+        R = self.base_ring()
+        one = R.one()
+        d = {self.one_basis(): R( (self._q-1) / 2 )}
+        for i in range(1,j):
+            d[I([[i,-j],[j,-i]])] = one
+            d[I([[i,j],[-i,-j]])] = -one
+        return self._from_dict(d, remove_zeros=True)
 
 class TemperleyLiebAlgebra(SubPartitionAlgebra):
     r"""

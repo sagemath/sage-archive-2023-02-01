@@ -2302,9 +2302,9 @@ class OTerm(GenericTerm):
             Order(z)
             sage: t._substitute_({'x': SR.var('z'), 'O': function('Oh')})
             Oh(z)
-            sage: e = AsymptoticRing('x^ZZ', ZZ)('2*x'); e
+            sage: u = AsymptoticRing('x^ZZ', ZZ)('2*x'); u
             2*x
-            sage: t._substitute_({'x': e})
+            sage: t._substitute_({'x': u})
             O(x)
             sage: T(1/x)._substitute_({'x': 0})
             Traceback (most recent call last):

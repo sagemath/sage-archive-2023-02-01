@@ -1116,6 +1116,11 @@ cdef bint py_is_prime(object n) except +:
         pass
     return False
 
+cdef bint py_is_exact(object x) except +:
+    return isinstance(x, int) or isinstance(x, long) or isinstance(x, Integer) or \
+           (isinstance(x, Element) and
+            ((<Element>x)._parent.is_exact() or (<Element>x)._parent == ring.SR))
+
 cdef object py_numer(object n) except +:
     """
     Return the numerator of the given object. This is called for
@@ -2102,12 +2107,34 @@ def py_eval_neg_infinity_for_doctests():
 cdef Integer z = Integer(0)
 cdef object py_integer_from_long(long x) except +:
     cdef Integer z = PY_NEW(Integer)
-    mpz_init_set_si(z.value, x)
+    mpz_set_si(z.value, x)
     return z
 
 cdef object py_integer_from_python_obj(object x) except +:
     return Integer(x)
 
+
+cdef object py_integer_from_mpz(mpz_t bigint) except +:
+    cdef Integer z = PY_NEW(Integer)
+    mpz_set(z.value, bigint)
+    return z
+
+cdef object py_rational_from_mpq(mpq_t bigrat) except +:
+    cdef Rational rat = Rational.__new__(Rational)
+    mpq_set(rat.value, bigrat)
+    return rat
+
+cdef bint py_is_Integer(object x) except +:
+    return isinstance(x, Integer)
+
+cdef bint py_is_Rational(object x) except +:
+    return isinstance(x, Rational)
+
+cdef mpz_ptr py_mpz_from_integer(object x) except +:
+    return <mpz_ptr>((<Integer>x).value)
+
+cdef mpq_ptr py_mpq_from_rational(object x) except +:
+    return <mpq_ptr>((<Rational>x).value)
 
 ZERO = ring.SR(0)
 ONE = ring.SR(1)
@@ -2216,9 +2243,16 @@ def init_function_table():
     py_funcs.py_is_even = &py_is_even
     py_funcs.py_is_cinteger = &py_is_cinteger
     py_funcs.py_is_prime = &py_is_prime
+    py_funcs.py_is_exact = &py_is_exact
 
+    py_funcs.py_integer_from_mpz = &py_integer_from_mpz
+    py_funcs.py_rational_from_mpq = &py_rational_from_mpq
     py_funcs.py_integer_from_long = &py_integer_from_long
     py_funcs.py_integer_from_python_obj = &py_integer_from_python_obj
+    py_funcs.py_is_Integer = &py_is_Integer
+    py_funcs.py_is_Rational = &py_is_Rational
+    py_funcs.py_mpz_from_integer = &py_mpz_from_integer
+    py_funcs.py_mpq_from_rational = &py_mpq_from_rational
 
     py_funcs.py_float = &py_float
     py_funcs.py_RDF_from_double = &py_RDF_from_double

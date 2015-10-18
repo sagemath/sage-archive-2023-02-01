@@ -70,7 +70,7 @@ List of Poset methods
     :meth:`~FinitePoset.is_connected` | Return ``True`` if the poset is connected, and ``False`` otherwise.
     :meth:`~FinitePoset.is_graded` | Return whether this poset is graded.
     :meth:`~FinitePoset.is_ranked` | Return whether this poset is ranked.
-    :meth:`~FinitePoset.is_ranked` | Return ``True`` if the poset is rank symmetric.
+    :meth:`~FinitePoset.is_rank_symmetric` | Return ``True`` if the poset is rank symmetric.
     :meth:`~FinitePoset.is_incomparable_chain_free` | Return whether the poset is `(m+n)`-free.
     :meth:`~FinitePoset.is_slender` | Return whether the poset ``self`` is slender or not.
     :meth:`~FinitePoset.is_join_semilattice` | Return ``True`` is the poset has a join operation, and False otherwise.

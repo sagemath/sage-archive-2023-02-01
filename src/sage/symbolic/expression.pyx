@@ -1691,6 +1691,7 @@ cdef class Expression(CommutativeRingElement):
         if not self in _assumptions:
             m = self._maxima_init_assume_()
             s = maxima.assume(m)
+            pynac_assume_rel(self._gobj)
             if str(s._sage_()[0]) in ['meaningless','inconsistent','redundant']:
                 raise ValueError("Assumption is %s" % str(s._sage_()[0]))
             _assumptions.append(self)
@@ -1735,6 +1736,7 @@ cdef class Expression(CommutativeRingElement):
         from sage.calculus.calculus import maxima
         if not self.is_relational():
             raise TypeError("self (=%s) must be a relational expression" % self)
+        pynac_forget_rel(self._gobj)
         m = self._maxima_init_assume_()
         maxima.forget(m)
         try:
@@ -1789,6 +1791,12 @@ cdef class Expression(CommutativeRingElement):
                     if isinstance(op, SymbolicFunction):
                         return self.operator().name()
         return self._maxima_init_()
+
+    def decl_assume(self, decl):
+        pynac_assume_gdecl(self._gobj, decl)
+
+    def decl_forget(self, decl):
+        pynac_forget_gdecl(self._gobj, decl)
 
     def has_wild(self):
         """

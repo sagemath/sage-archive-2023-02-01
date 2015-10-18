@@ -531,7 +531,7 @@ class ModularSymbolsAmbient(space.ModularSymbolsSpace, hecke.AmbientHeckeModule)
 
         INPUT:
 
-        ``g`` (list) -- `g=[a,b,c,d]` where `a,b,c,d` are integers
+        `g` (list) -- `g=[a,b,c,d]` where `a,b,c,d` are integers
         defining a `2\times2` integer matrix.
 
         OUTPUT:
@@ -539,10 +539,10 @@ class ModularSymbolsAmbient(space.ModularSymbolsSpace, hecke.AmbientHeckeModule)
         (matrix) The matrix of the action of `g` on this Modular
         Symbol space, with respect to the standard basis.
 
-        .. note::
+        .. NOTE::
 
-           Use _matrix_of_operator_on_modular_symbols for more general
-        operators.
+            Use ``_matrix_of_operator_on_modular_symbols`` for more general
+            operators.
 
         EXAMPLES::
 
@@ -2898,19 +2898,15 @@ class ModularSymbolsAmbient_wt2_g0(ModularSymbolsAmbient_wtk_g0):
     def _hecke_image_of_ith_basis_vector(self, n, i):
         """
         Return `T_n(e_i)`, where `e_i` is the
-        `i`th basis vector of this ambient space.
+        `i` th basis vector of this ambient space.
 
         INPUT:
 
-
-        -  ``n`` - an integer which should be prime.
-
+        - ``n`` -- an integer which should be prime.
 
         OUTPUT:
 
-
-        -  ``modular symbol`` - element of this ambient space
-
+        - ``modular symbol`` -- element of this ambient space
 
         EXAMPLES::
 

@@ -637,3 +637,76 @@ def greedy_coeff(self,d_vector,p,q):
 def theta_basis_element(self, g_vector):
     pass
 
+
+
+################################################################################
+# Elements of a tropical semifield
+################################################################################
+     
+class TropicalSemifieldElement(ElementWrapper):
+     
+    def __init__(self, parent, value):
+        ElementWrapper.__init__(self, parent=parent, value=value)
+     
+    def vector(self):
+        try:
+            return vector(self.lift().exponents()[0])
+        except:
+            return vector(ZZ, self.parent().ngens())
+
+    def _add_(self, other):
+        s = self.vector()
+        o = other.vector()
+        r = map(min,zip(s,o))
+        v = self.parent().gens()
+        return prod([ x**i for (x,i) in zip(v,r) ])
+     
+    def _repr_(self):
+        return repr(self.lift())
+ 
+    def __invert__(self):
+        return self.parent().retract(self.lift().__invert__())
+ 
+################################################################################
+# Tropical Semifield
+################################################################################
+
+class TropicalSemifield(Parent):
+
+    Element = TropicalSemifieldElement
+
+    def __init__(self, n=1, prefix='x', names=None):
+        
+        # setup Parent and ambient
+        if names == None:
+            names = [prefix+'%s'%i for i in xrange(n)]
+        Parent.__init__(self, base=ZZ, category=Rings().Subobjects(), names=names, gens=names)
+        self._ambient = LaurentPolynomialRing(ZZ, names)
+
+    def gens(self):
+        return map(lambda x: self(x), self._ambient.gens())
+
+    def ngens(self):
+        return self._ambient.ngens()
+
+    # enable standard cohercions: everything that is in the base can be coerced
+    def _coerce_map_from_(self, other):
+        return self.base().has_coerce_map_from(other)
+
+    def _repr_(self):
+        return "Tropical Semifield on %s generators"%self.ngens()
+
+    def _an_element_(self):
+        return self(1)
+
+    def lift(self, x):
+        return x.value
+
+    def retract(self, x):
+        return self(x)
+
+    def ambient(self):
+        return self._ambient
+
+
+

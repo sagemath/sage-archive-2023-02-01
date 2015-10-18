@@ -84,7 +84,7 @@ class Function_exp(GinacFunction):
             sage: latex(exp)
             \exp
             sage: latex(exp(sqrt(x))^x)
-            \left(e^{\sqrt{x}}\right)^{x}
+            e^{\sqrt{x}}^{x}
             sage: latex(exp(sqrt(x)^x))
             e^{\left(\sqrt{x}^{x}\right)}
 
@@ -100,7 +100,7 @@ class Function_exp(GinacFunction):
             sage: model_exp = exp(II)**a*(b)
             sage: sol1_l={b: 5.0, a: 1.1}
             sage: model_exp.subs(sol1_l)
-            5.00000000000000*(e^II)^1.10000000000000
+            5.00000000000000*e^II^1.10000000000000
 
         ::
 

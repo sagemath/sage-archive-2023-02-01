@@ -303,8 +303,6 @@ class Constant(object):
             True
             sage: p == s
             False
-            sage: p != s
-            True
         """
         return (self.__class__ == other.__class__ and
                 self._name == other._name)
@@ -417,6 +415,16 @@ class Constant(object):
             c
         """
         return self._name
+
+    def __cmp__(self, other):
+        """
+        EXAMPLES::
+
+            sage: cmp(pi, 0)
+            1
+        """
+        from sage.rings.real_double import RDF
+        return cmp(self._real_double_(RDF), RDF(other))
 
     def _latex_(self):
         r"""

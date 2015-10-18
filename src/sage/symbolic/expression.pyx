@@ -356,12 +356,22 @@ cdef class Expression(CommutativeRingElement):
 
             sage: var('x')
             x
+            sage: b = -17.3
+            sage: a = SR(b)
+            sage: a.pyobject()
+            -17.3000000000000
+            sage: a.pyobject() is b
+            True
+
+        Integers and Rationals are converted internally though, so you
+        won't get back the same object::
+        
             sage: b = -17/3
             sage: a = SR(b)
             sage: a.pyobject()
             -17/3
             sage: a.pyobject() is b
-            True
+            False
 
         TESTS::
 
@@ -1041,10 +1051,10 @@ cdef class Expression(CommutativeRingElement):
             <type 'sage.rings.integer.Integer'>
 
         If the symbolic expression is just a wrapper around an integer,
-        that very same integer is returned::
+        that very same integer is not preserved, but a new one returned::
 
             sage: n = 17; SR(n)._integer_() is n
-            True
+            False
         """
         try:
             n = self.pyobject()
@@ -1117,10 +1127,10 @@ cdef class Expression(CommutativeRingElement):
             -3/8
 
         If the symbolic expression is just a wrapper around a rational,
-        that very same rational is returned::
+        that very same rational is not preserved, but a new one returned::
 
             sage: n = 17/1; SR(n)._rational_() is n
-            True
+            False
         """
         try:
             n = self.pyobject()
@@ -1437,14 +1447,14 @@ cdef class Expression(CommutativeRingElement):
         EXAMPLES::
 
         The hash of an object in Python or its coerced version into
-        the symbolic ring is the same::
+        the symbolic ring is usually the same::
 
-            sage: hash(SR(3/1))
-            3
-            sage: hash(SR(19/23))
-            4
-            sage: hash(19/23)
-            4
+            sage: hash(SR(3.1))
+            2093862195
+            sage: hash(SR(19.23))
+            2836855582
+            sage: hash(19.23)
+            2836855582
 
         The hash for symbolic expressions are unfortunately random. Here we
         only test that the hash() function returns without error, and that
@@ -1473,7 +1483,7 @@ cdef class Expression(CommutativeRingElement):
             sage: hash(t)
             Traceback (most recent call last):
             ...
-            TypeError: mutable matrices are unhashable
+            RuntimeError: Python object not hashable
 
         TESTS:
 
@@ -2343,21 +2353,18 @@ cdef class Expression(CommutativeRingElement):
             sage: assume(x > 0)
             sage: assert(not x == 0)
             sage: assert(x != 0)
-            sage: assert(not x == 1)
 
-        The following must be true, even though we do not
-        know for sure that x is not 1, as symbolic comparisons
-        elsewhere rely on x!=y unless we are sure it is not
-        true; there is no equivalent of Maxima's ``unknown``.
-        Since it is False that x==1, it is True that x != 1.
+        We cannot return undecidable or throw an exception
+        at the moment so ``False`` is returned for unknown
+        outcomes.
 
         ::
 
-            sage: assert(x != 1)
+            sage: assert(not x == 1)
+            sage: assert(not x != 1)
             sage: forget()
             sage: assume(x>y)
             sage: assert(not x==y)
-            sage: assert(x != y)
             sage: assert(x != y) # The same comment as above applies here as well
             sage: forget()
 
@@ -2960,7 +2967,7 @@ cdef class Expression(CommutativeRingElement):
         Products of non integer powers of exp are not simplified::
 
             sage: exp(x)^I*exp(z)^(2.5)
-            (e^x)^I*(e^z)^2.50000000000000
+            e^x^I*e^z^2.50000000000000
 
         ::
 
@@ -3569,7 +3576,7 @@ cdef class Expression(CommutativeRingElement):
             sage: 0^1.0
             0.000000000000000
             sage: exp(x)^1.0
-            (e^x)^1.00000000000000
+            e^x^1.00000000000000
         """
         cdef Expression base, nexp
 
@@ -3878,11 +3885,11 @@ cdef class Expression(CommutativeRingElement):
         by applying series again::
 
             sage: (1/(1-x)).series(x, 3)+(1/(1+x)).series(x,3)
-            (1 + (-1)*x + 1*x^2 + Order(x^3)) + (1 + 1*x + 1*x^2 + Order(x^3))
+            (1 + 1*x + 1*x^2 + Order(x^3)) + (1 + (-1)*x + 1*x^2 + Order(x^3))
             sage: _.series(x,3)
             2 + 2*x^2 + Order(x^3)
             sage: (1/(1-x)).series(x, 3)*(1/(1+x)).series(x,3)
-            (1 + (-1)*x + 1*x^2 + Order(x^3))*(1 + 1*x + 1*x^2 + Order(x^3))
+            (1 + 1*x + 1*x^2 + Order(x^3))*(1 + (-1)*x + 1*x^2 + Order(x^3))
             sage: _.series(x,3)
             1 + 1*x^2 + Order(x^3)
 
@@ -4155,7 +4162,7 @@ cdef class Expression(CommutativeRingElement):
             sage: x,y = var('x,y', domain='real')
             sage: p,q = var('p,q', domain='positive')
             sage: (c/2*(5*(3*a*b*x*y*p*q)^2)^(7/2*c)).expand()
-            1/2*45^(7/2*c)*(a^2*b^2*x^2*y^2)^(7/2*c)*c*p^(7*c)*q^(7*c)
+            1/2*45^(7/2*c)*(a^2*b^2)^(7/2*c)*c*p^(7*c)*q^(7*c)*(x^2)^(7/2*c)*(y^2)^(7/2*c)
             sage: ((-(-a*x*p)^3*(b*y*p)^3)^(c/2)).expand()
             (a^3*b^3*x^3*y^3)^(1/2*c)*p^(3*c)
             sage: x,y,p,q = var('x,y,p,q', domain='complex')
@@ -7160,7 +7167,7 @@ cdef class Expression(CommutativeRingElement):
             sage: x.arcsin()
             arcsin(x)
             sage: SR(0.5).arcsin()
-            0.523598775598299
+            1/6*pi
             sage: SR(0.999).arcsin()
             1.52607123962616
             sage: SR(1/3).arcsin()
@@ -10603,7 +10610,7 @@ cdef class Expression(CommutativeRingElement):
         from sympy.solvers.diophantine import diophantine
         from sympy import sympify
 
-        if solution_dict not in (True,False):
+        if not (solution_dict == True or solution_dict == False):
             raise AttributeError("Please use a tuple or list for several variables.")
         if is_a_relational(self._gobj) and self.operator() is operator.eq:
             ex = self.lhs() - self.rhs()

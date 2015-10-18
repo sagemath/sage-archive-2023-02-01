@@ -217,7 +217,7 @@ cdef class E(Expression):
             sage: t = e^a; t
             e^a
             sage: t^b
-            (e^a)^b
+            e^a^b
             sage: SR(1).exp()
             e
 

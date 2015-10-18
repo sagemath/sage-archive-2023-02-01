@@ -147,9 +147,9 @@ cdef object exvector_to_PyTuple(GExVector seq):
         ....:         print "len(args): %s, types: %s"%(len(args), str(map(type, args)))
         sage: tfunc = TFunc()
         sage: u = SR._force_pyobject((1, x+1, 2))
-        sage: tfunc(u, x, 3.0, 5.0r, 1r)
-        len(args): 5, types: [<type 'tuple'>, <type 'sage.symbolic.expression.Expression'>, <type 'sage.rings.real_mpfr.RealLiteral'>, <type 'float'>, <type 'int'>]
-        tfunc((1, x + 1, 2), x, 3.00000000000000, 5.0, 1)
+        sage: tfunc(u, x, 3.0, 5.0r)
+        len(args): 4, types: [<type 'tuple'>, <type 'sage.symbolic.expression.Expression'>, <type 'sage.rings.real_mpfr.RealLiteral'>, <type 'float'>]
+        tfunc((1, x + 1, 2), x, 3.00000000000000, 5.0)
 
     TESTS:
 
@@ -233,7 +233,7 @@ cdef int py_get_ginac_serial():
     EXAMPLES::
 
         sage: from sage.symbolic.pynac import get_ginac_serial
-        sage: get_ginac_serial() >= 40
+        sage: get_ginac_serial() >= 35
         True
     """
     global GINAC_FN_SERIAL
@@ -245,7 +245,7 @@ def get_ginac_serial():
 
     EXAMPLES::
 
-        sage: sage.symbolic.pynac.get_ginac_serial() >= 40
+        sage: sage.symbolic.pynac.get_ginac_serial() >= 35
         True
     """
     return py_get_ginac_serial()

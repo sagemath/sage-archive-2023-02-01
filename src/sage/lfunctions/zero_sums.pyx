@@ -1552,7 +1552,8 @@ cdef class LFunctionZeroSum_EllipticCurve(LFunctionZeroSum_abstract):
         specified by max_Delta. This computation can be run on curves with
         very large conductor (so long as the conductor is known or quickly
         computable) when Delta is not too large (see below).
-        Uses Bober's rank bounding method as described in [Bob-13].
+
+        Uses Bober's rank bounding method as described in [Bob-13]_.
 
         INPUT:
 

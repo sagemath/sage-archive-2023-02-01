@@ -1,5 +1,6 @@
 # distutils: language = c++
 # distutils: libraries = pynac gmp
+# distutils: extra_compile_args = -std=c++11
 """
 Declarations for pynac, a Python frontend for ginac
 
@@ -9,6 +10,7 @@ Check that we can externally cimport this (:trac:`18825`)::
     ....: '''
     ....: #clang c++
     ....: #clib pynac
+    ....: #cargs --std=c++11
     ....: cimport sage.symbolic.ginac
     ....: ''')
 """

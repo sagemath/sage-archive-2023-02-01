@@ -251,6 +251,18 @@ cdef class SymbolicRing(CommutativeRing):
             sage: bool(si == CC.0)
             True
 
+        Polynomial ring element factorizations::
+
+            sage: R.<x> = QQ[]
+            sage: SR(factor(5*x^2 - 5))
+            5*(x + 1)*(x - 1)
+            sage: R.<x,y> = QQ[]
+            sage: SR(factor(x^2 - y^2))
+            (x + y)*(x - y)
+            sage: R.<x,y,z> = QQ[]
+            sage: SR(factor(x^2*y^3 + x^2*y^2*z - x*y^3 - x*y^2*z - 2*x*y*z - 2*x*z^2 + 2*y*z + 2*z^2))
+            (x*y^2 - 2*z)*(x - 1)*(y + z)
+
         Asymptotic expansions::
 
             sage: A.<x, y> = AsymptoticRing(growth_group='x^ZZ * y^QQ * log(y)^ZZ', coefficient_ring=ZZ)
@@ -288,6 +300,7 @@ cdef class SymbolicRing(CommutativeRing):
         from sage.rings.infinity import (infinity, minus_infinity,
                                          unsigned_infinity)
         from sage.rings.asymptotic.asymptotic_ring import AsymptoticExpansion
+        from sage.structure.factorization import Factorization
 
         if isinstance(x, (Integer, RealNumber, float, long, complex)):
             GEx_construct_pyobject(exp, x)
@@ -303,6 +316,9 @@ cdef class SymbolicRing(CommutativeRing):
             return x.symbolic_expression()
         elif isinstance(x, (RingElement, Matrix)):
             GEx_construct_pyobject(exp, x)
+        elif isinstance(x, Factorization):
+            from sage.misc.all import prod
+            return prod([SR(p)**e for p,e in x], SR(x.unit()))
         else:
             raise TypeError
 

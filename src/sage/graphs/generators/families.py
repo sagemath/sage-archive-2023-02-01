@@ -46,7 +46,7 @@ def JohnsonGraph(n, k):
         sage: g.is_vertex_transitive()
         True
 
-    The complement of the Johnson graph `J(n,2)` is isomorphic to the Knesser
+    The complement of the Johnson graph `J(n,2)` is isomorphic to the Kneser
     Graph `K(n,2)`.  In paritcular the complement of `J(5,2)` is isomorphic to
     the Petersen graph.  ::
 

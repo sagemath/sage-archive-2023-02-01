@@ -315,18 +315,6 @@ cdef class PowerSeries(AlgebraElement):
         S = self._parent.change_ring(R)
         return S(self)
 
-    def __cmp__(left, right):
-        """
-        Called by comparison operations.
-        
-        EXAMPLES::
-        
-            sage: R.<x> = PowerSeriesRing(ZZ)
-            sage: 1+x^2 < 2-x
-            True
-        """
-        return (<Element>left)._cmp(right)
-
     cpdef int _cmp_(self, Element right) except -2:
         r"""
         Comparison of self and ``right``.
@@ -358,9 +346,23 @@ cdef class PowerSeries(AlgebraElement):
             sage: 1 - 2*q + q^2 +O(q^3) == 1 - 2*q^2 + q^2 + O(q^4)
             False
 
+        ::
+
+            sage: R.<t> = ZZ[[]]
+            sage: 1 + t^2 < 2 - t
+            True
+            sage: f = 1 + t + t^7 - 5*t^10
+            sage: g = 1 + t + t^7 - 5*t^10 + O(t^15)
+            sage: f == f
+            True
+            sage: f < g
+            False
+            sage: f == g
+            True
+
         TESTS:
 
-        Ticket :trac:`9457` is fixed::
+        :trac:`9457` is fixed::
 
             sage: A.<t> = PowerSeriesRing(ZZ)
             sage: g = t + t^3 + t^5 + O(t^6); g

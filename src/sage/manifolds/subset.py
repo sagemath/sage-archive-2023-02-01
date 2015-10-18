@@ -173,12 +173,16 @@ class TopManifoldSubset(UniqueRepresentation, Parent):
         if not isinstance(name, str):
             raise TypeError("{} is not a string".format(name))
         if category is None:
+            base = None
             category = Sets()
+        else:
+            base = manifold._field
         # Except for the manifold itself, the subsets are facade sets:
         if self is manifold:
-            Parent.__init__(self, category=category)
+            Parent.__init__(self, base=base, category=category)
         else:
-            Parent.__init__(self, category=category, facade=manifold)
+            Parent.__init__(self, base=base, category=category,
+                            facade=manifold)
             for dom in manifold._subsets:
                 if name == dom._name:
                     raise ValueError("the name '" + name +

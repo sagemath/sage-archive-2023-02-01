@@ -35,6 +35,8 @@ REFERENCES:
 from sage.structure.sage_object import SageObject
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.symbolic.ring import SR
+from sage.rings.all import CC
+from sage.rings.real_mpfr import RR
 from sage.rings.infinity import Infinity
 from sage.misc.latex import latex
 from sage.manifolds.manifold import TopManifold
@@ -1767,9 +1769,9 @@ class CoordChange(SageObject):
                              "charts)")
         # New symbolic variables (different from x2 to allow for a
         #  correct solution even when chart2 = chart1):
-        if self._chart1.domain().base_field() == 'real':
+        if self._chart1.domain().base_field() == RR:
             coord_domain = ['real' for i in range(n2)]
-        elif self._chart1.domain().base_field() == 'complex':
+        elif self._chart1.domain().base_field() == CC:
             coord_domain = ['complex' for i in range(n2)]
         else:
             coord_domain = [None for i in range(n2)]

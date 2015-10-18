@@ -1,1 +1,2 @@
-from manifold import TopManifold
+from sage.misc.lazy_import import lazy_import
+lazy_import('sage.manifolds.manifold', 'TopManifold')

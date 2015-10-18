@@ -31,7 +31,7 @@ Since the base topological field has not been specified in the argument list
 of ``TopManifold``, `\RR` is assumed::
 
     sage: M.base_field()
-    'real'
+    Real Field with 53 bits of precision
     sage: dim(M)
     2
 
@@ -87,7 +87,8 @@ and ``stereoS`` = `(V, (u, v))`, denoting by W the intersection of U and V
 defined by`u^2+v^2\not=0`)::
 
     sage: stereoN_to_S = stereoN.transition_map(stereoS, [x/(x^2+y^2), y/(x^2+y^2)],
-    ....:                intersection_name='W', restrictions1= x^2+y^2!=0, restrictions2= u^2+v^2!=0)
+    ....:                          intersection_name='W', restrictions1= x^2+y^2!=0,
+    ....:                                                 restrictions2= u^2+v^2!=0)
     sage: stereoN_to_S
     Change of coordinates from Chart (W, (x, y)) to Chart (W, (u, v))
     sage: stereoN_to_S.display()
@@ -272,10 +273,9 @@ REFERENCES:
 #*****************************************************************************
 
 from sage.categories.fields import Fields
-#*# Before #18175:
-from sage.categories.sets_cat import Sets
-#*# After #18175, this should become
-# from sage.categories.manifolds import Manifolds
+from sage.categories.manifolds import Manifolds
+from sage.rings.all import CC
+from sage.rings.real_mpfr import RR
 from sage.manifolds.subset import TopManifoldSubset
 
 class TopManifold(TopManifoldSubset):
@@ -299,20 +299,22 @@ class TopManifold(TopManifoldSubset):
     - ``name`` -- string; name (symbol) given to the manifold
     - ``latex_name`` -- (default: ``None``) string; LaTeX symbol to denote the
       manifold; if none is provided, it is set to ``name``
-    - ``field`` -- (default: 'real') field `K` on which the manifold is
+    - ``field`` -- (default: ``'real'``) field `K` on which the manifold is
       defined; allowed values are
 
-        - 'real' for a manifold over `\RR`
-        - 'complex' for a manifold over `\CC`
-        - an object in the category of fields (see
-          :class:`~sage.categories.fields.Fields`) for more general manifolds
+        - ``'real'`` or ``RR`` for a manifold over `\RR`
+        - ``'complex'`` or ``CC`` for a manifold over `\CC`
+        - an object in the category of topological fields (see
+          :class:`~sage.categories.fields.Fields` and
+          :class:`~sage.categories.topological_spaces.TopologicalSpaces`)
+          for other types of manifolds
 
     - ``start_index`` -- (default: 0) integer; lower value of the range of
       indices used for "indexed objects" on the manifold, e.g. coordinates
       in a chart
-    - ``category`` -- (default: ``None``) to specify the category; the
-      default being ``Sets()`` (``Manifolds()`` after :trac:`18175` is
-      implemented)
+    - ``category`` -- (default: ``None``) to specify the category; if ``None``,
+      ``Manifolds(field)`` is assumed (see the category
+      :class:`~sage.categories.manifolds.Manifolds`)
     - ``ambient_manifold`` -- (default: ``None``) if not ``None``, the created
       object is considered as an open subset of the topological manifold
       ``ambient_manifold``
@@ -327,7 +329,7 @@ class TopManifold(TopManifoldSubset):
         sage: latex(M)
         \mathcal{M}
         sage: M.base_field()
-        'real'
+        Real Field with 53 bits of precision
         sage: dim(M)
         4
 
@@ -359,13 +361,22 @@ class TopManifold(TopManifoldSubset):
         2-dimensional topological manifold N over the 5-adic Field with capped
          relative precision 20
 
-    A manifold is a Sage *parent* object, in the category of sets::
+    A manifold is a Sage *parent* object, in the category of topological
+    manifolds over a given topological field (see
+    :class:`~sage.categories.manifolds.Manifolds`)::
 
         sage: isinstance(M, Parent)
         True
         sage: M.category()
-        Category of sets
-        sage: M in Sets()
+        Category of manifolds over Real Field with 53 bits of precision
+        sage: from sage.categories.manifolds import Manifolds
+        sage: M.category() is Manifolds(RR)
+        True
+        sage: M.category() is Manifolds(M.base_field())
+        True
+        sage: M in Manifolds(RR)
+        True
+        sage: N in Manifolds(Qp(5))
         True
 
     The corresponding Sage *elements* are points::
@@ -401,15 +412,15 @@ class TopManifold(TopManifoldSubset):
 
         sage: U = M.open_subset('U'); U
         Open subset U of the 4-dimensional topological manifold M
-        sage: isinstance(U, TopManifold)
+        sage: isinstance(U, sage.manifolds.manifold.TopManifold)
         True
         sage: U.base_field() == M.base_field()
         True
         sage: dim(U) == dim(M)
         True
 
-    The manifold passes all the tests of the test suite relative to the
-    category of Sets::
+    The manifold passes all the tests of the test suite relative to its
+    category::
 
         sage: TestSuite(M).run()
 
@@ -440,17 +451,19 @@ class TopManifold(TopManifoldSubset):
             raise ValueError("the manifold dimension must be strictly " +
                              "positive")
         self._dim = n
-        if field not in ['real', 'complex']:
+        if field == 'real':
+            self._field = RR
+        elif field == 'complex':
+            self._field = CC
+        else:
             if field not in Fields():
                 raise TypeError("the argument 'field' must be a field")
-        self._field = field
+            self._field = field
         if not isinstance(start_index, (int, Integer)):
             raise TypeError("the starting index must be an integer")
         self._sindex = start_index
         if category is None:
-            category = Sets()
-            #*# After #18175, this should become
-            # category = Manifolds()
+            category = Manifolds(self._field)
         if ambient_manifold is None:
             ambient_manifold = self
         elif not isinstance(ambient_manifold, TopManifold):
@@ -499,10 +512,10 @@ class TopManifold(TopManifoldSubset):
 
         """
         if self._manifold is self:
-            if self._field == 'real':
+            if self._field == RR:
                 return "{}-dimensional topological manifold {}".format(
                                                          self._dim, self._name)
-            elif self._field == 'complex':
+            elif self._field == CC:
                 return "Complex {}-dimensional topological manifold {}".format(
                                                          self._dim, self._name)
             return "{}-dimensional topological manifold {} over the {}".format(
@@ -565,7 +578,7 @@ class TopManifold(TopManifoldSubset):
             return self.element_class(self)
         # Attempt to construct a point in the domain of the default chart
         chart = self._def_chart
-        if self._field == 'real':
+        if self._field == RR:
             coords = []
             for coord_range in chart._bounds:
                 xmin = coord_range[0][0]
@@ -585,7 +598,7 @@ class TopManifold(TopManifoldSubset):
             coords = self._dim*[0]
         if not chart.valid_coordinates(*coords):
             # Attempt to construct a point in the domain of other charts
-            if self._field == 'real':
+            if self._field == RR:
                 for ch in self._atlas:
                     if ch is self._def_chart:
                         continue # since this case has already been attempted
@@ -700,17 +713,16 @@ class TopManifold(TopManifoldSubset):
 
         OUTPUT:
 
-        - a field or one of the strings 'real' and 'complex', since there
-          is no exact representation of the fields `\RR` and `\CC` in Sage
+        - a topological field
 
         EXAMPLES::
 
             sage: M = TopManifold(3, 'M')
             sage: M.base_field()
-            'real'
+            Real Field with 53 bits of precision
             sage: M = TopManifold(3, 'M', field='complex')
             sage: M.base_field()
-            'complex'
+            Complex Field with 53 bits of precision
             sage: M = TopManifold(3, 'M', field=QQ)
             sage: M.base_field()
             Rational Field
@@ -764,12 +776,12 @@ class TopManifold(TopManifoldSubset):
 
             sage: M = TopManifold(4, 'M')
             sage: for i in M.irange():
-            ...       print i,
-            ...
+            ....:     print i,
+            ....:
             0 1 2 3
             sage: for i in M.irange(2):
-            ...       print i,
-            ...
+            ....:     print i,
+            ....:
             2 3
             sage: list(M.irange())
             [0, 1, 2, 3]
@@ -778,12 +790,12 @@ class TopManifold(TopManifoldSubset):
 
             sage: M = TopManifold(4, 'M', start_index=1)
             sage: for i in M.irange():
-            ...       print i,
-            ...
+            ....:     print i,
+            ....:
             1 2 3 4
             sage: for i in M.irange(2):
-            ...      print i,
-            ...
+            ....:    print i,
+            ....:
             2 3 4
 
         In general, one has always::
@@ -821,8 +833,8 @@ class TopManifold(TopManifoldSubset):
 
             sage: M = TopManifold(2, 'M', start_index=1)
             sage: for ind in M.index_generator(2):
-            ...       print ind
-            ...
+            ....:     print ind
+            ....:
             (1, 1)
             (1, 2)
             (2, 1)
@@ -831,11 +843,11 @@ class TopManifold(TopManifoldSubset):
         Loops can be nested::
 
             sage: for ind1 in M.index_generator(2):
-            ...       print ind1, " : ",
-            ...       for ind2 in M.index_generator(2):
-            ...           print ind2,
-            ...       print ""
-            ...
+            ....:     print ind1, " : ",
+            ....:     for ind2 in M.index_generator(2):
+            ....:         print ind2,
+            ....:     print ""
+            ....:
             (1, 1)  :  (1, 1) (1, 2) (2, 1) (2, 2)
             (1, 2)  :  (1, 1) (1, 2) (2, 1) (2, 2)
             (2, 1)  :  (1, 1) (1, 2) (2, 1) (2, 2)
@@ -1136,7 +1148,7 @@ class TopManifold(TopManifoldSubset):
         topological manifold, on the same topological field and of the same
         dimension as ``M``::
 
-            sage: isinstance(A, TopManifold)
+            sage: isinstance(A, sage.manifolds.manifold.TopManifold)
             True
             sage: A.base_field() == M.base_field()
             True
@@ -1327,6 +1339,6 @@ class TopManifold(TopManifoldSubset):
 
         """
         from sage.manifolds.chart import Chart, RealChart
-        if self._field == 'real':
+        if self._field == RR:
             return RealChart(self, coordinates=coordinates, names=names)
         return Chart(self, coordinates=coordinates, names=names)

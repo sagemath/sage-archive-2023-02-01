@@ -4,4 +4,5 @@ lazy_import('sage.manifolds.differentiable.manifold', 'DiffManifold')
 lazy_import('sage.manifolds.utilities', 'nice_derivatives')
 lazy_import('sage.manifolds.utilities', 'omit_function_args')
 lazy_import('sage.manifolds.utilities', 'set_axes_labels')
+lazy_import('sage.manifolds.utilities', 'xder')
 lazy_import('sage.manifolds.utilities', 'Manifold')  # deprecated

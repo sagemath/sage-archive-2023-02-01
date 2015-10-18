@@ -2787,7 +2787,7 @@ class ModularSymbolsAmbient_wt2_g0(ModularSymbolsAmbient_wtk_g0):
         r"""
         Return the dimension of the new cuspidal subspace, via the formula.
 
-        EXAMPLES:
+        EXAMPLES::
 
             sage: M = ModularSymbols(100,2)
             sage: M._cuspidal_new_submodule_dimension_formula()

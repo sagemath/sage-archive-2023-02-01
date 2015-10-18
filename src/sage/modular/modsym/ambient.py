@@ -810,7 +810,7 @@ class ModularSymbolsAmbient(space.ModularSymbolsSpace, hecke.AmbientHeckeModule)
         The sum `\sum_{i=0}^{k-2} a_i [ i, \alpha, \beta ]` as an
         element of this modular symbol space.
 
-        EXAMPLES:
+        EXAMPLES::
 
             sage: M = ModularSymbols(11,4)
             sage: R.<X,Y>=QQ[]
@@ -3096,7 +3096,7 @@ class ModularSymbolsAmbient_wtk_g1(ModularSymbolsAmbient):
         r"""
         Return the dimension of the new cuspidal subspace, via the formula.
 
-        EXAMPLES:
+        EXAMPLES::
 
             sage: M = ModularSymbols(Gamma1(22),2)
             sage: M._cuspidal_new_submodule_dimension_formula()
@@ -3803,16 +3803,13 @@ class ModularSymbolsAmbient_wtk_eps(ModularSymbolsAmbient):
 
         INPUT:
 
+        - ``i`` -- nonnegative integer
 
-        -  ``i`` - nonnegative integer
-
-        -  ``v`` - a list of positive integer
-
+        - ``v`` -- a list of positive integer
 
         OUTPUT:
 
-
-        -  ``matrix`` - whose rows are the Hecke images
+        - ``matrix`` -- whose rows are the Hecke images
 
         EXAMPLES::
 
@@ -3825,8 +3822,6 @@ class ModularSymbolsAmbient_wtk_eps(ModularSymbolsAmbient):
             [ 0  0  0  0  0  0  0  1  0  0  0  0  1  0  0]
             [ 0  1  0  2  0 -1  1  1  0  0  0  0  0  0  0]
             [ 0  1  1 -1 -1  0 -1  1  1  0  1  2  0 -2  2]
-
-
         """
         if self.weight() != 2:
             raise NotImplementedError("hecke images only implemented when the weight is 2")

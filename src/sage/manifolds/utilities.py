@@ -964,3 +964,23 @@ def set_axes_labels(graph, xlabel, ylabel, zlabel, **kwds):
     graph += text3d('  ' + ylabel, (xmax1, y1, zmin1), **kwds)
     graph += text3d('  ' + zlabel, (xmin1, ymin1, z1), **kwds)
     return graph
+
+def Manifold(*args, **kwargs):
+    r"""
+    Deprecated function.
+
+    Use :class:`~sage.manifolds.differentiable.manifold.DiffManifold` instead.
+
+    EXAMPLE::
+
+        sage: M = Manifold(3, 'M', start_index=1)
+        doctest:...: DeprecationWarning: Use DiffManifold() instead.
+        See http://trac.sagemath.org/18783 for details.
+        sage: M
+        3-dimensional differentiable manifold M
+
+    """
+    from sage.misc.superseded import deprecation
+    from sage.manifolds.differentiable.manifold import DiffManifold
+    deprecation(18783, 'Use DiffManifold() instead.')
+    return DiffManifold(*args, **kwargs)

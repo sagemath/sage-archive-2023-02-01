@@ -1412,8 +1412,9 @@ class TopManifold(TopManifoldSubset):
         r"""
         Define a scalar field on the manifold.
 
-        See :class:`~sage.manifolds.scalarfield.ScalarField` for a complete
-        documentation.
+        See :class:`~sage.manifolds.scalarfield.ScalarField` (or
+        :class:`~sage.manifolds.differentiable.scalarfield.DiffScalarField`
+        if the manifold is differentiable) for a complete documentation.
 
         INPUT:
 
@@ -1444,7 +1445,10 @@ class TopManifold(TopManifoldSubset):
         OUTPUT:
 
         - instance of :class:`~sage.manifolds.scalarfield.ScalarField`
-          representing the defined scalar field.
+          (or of the subclass
+          :class:`~sage.manifolds.differentiable.scalarfield.DiffScalarField`
+          if the manifold is differentiable) representing the defined scalar
+          field.
 
         EXAMPLES:
 

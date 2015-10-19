@@ -1399,6 +1399,39 @@ class GenericGrowthGroup(
             sage: L2 = MonomialGrowthGroup(QQ, 'log(x)')
             sage: L1 is L2
             True
+
+        Test determining of the category (GenericGrowthGroup)::
+
+            sage: from sage.rings.asymptotic.growth_group import GenericGrowthGroup
+            sage: GenericGrowthGroup(ZZ, 'x').category()  # indirect doctest
+            Category of posets
+            sage: GenericGrowthGroup(ZZ, 'x', category=Groups()).category()  # indirect doctest
+            Category of groups
+
+        Test determining of the category (MonomialGrowthGroup)::
+
+            sage: from sage.rings.asymptotic.growth_group import MonomialGrowthGroup
+            sage: MonomialGrowthGroup(ZZ, 'x').category()  # indirect doctest
+            Join of Category of commutative groups and Category of posets
+            sage: MonomialGrowthGroup(ZZ, 'x', category=Monoids()).category()  # indirect doctest
+            Category of monoids
+            sage: W = Words([0, 1])
+            sage: W.category()
+            Category of sets
+            sage: MonomialGrowthGroup(W, 'x').category() # indirect doctest
+            Category of sets
+
+        Test determining of the category (ExponentialGrowthGroup)::
+
+            sage: from sage.rings.asymptotic.growth_group import ExponentialGrowthGroup
+            sage: ExponentialGrowthGroup(ZZ, 'x').category()  # indirect doctest
+            Join of Category of commutative monoids and Category of posets
+            sage: ExponentialGrowthGroup(QQ, 'x').category()  # indirect doctest
+            Join of Category of commutative groups and Category of posets
+            sage: ExponentialGrowthGroup(ZZ, 'x', category=Groups()).category()  # indirect doctest
+            Category of groups
+            sage: ExponentialGrowthGroup(QQ, 'x', category=Monoids()).category()  # indirect doctest
+            Category of monoids
         """
         if not isinstance(base, sage.structure.parent.Parent):
             raise TypeError('%s is not a valid base.' % (base,))
@@ -1430,44 +1463,6 @@ class GenericGrowthGroup(
 
         return super(GenericGrowthGroup, cls).__classcall__(
             cls, base, var, category)
-
-
-    @staticmethod
-    def _determine_category_(category, base):
-        r"""
-        Return the category of this generic growth group.
-
-        INPUT:
-
-        - ``category`` -- a category or ``None``.
-
-        - ``base`` -- the parent.
-
-        OUTPUT:
-
-        A category.
-
-        .. NOTE::
-
-            If the input category is not ``None``, then this category
-            is returned. Otherwise the join category of monoids and posets
-            is returned.
-
-        TESTS::
-
-            sage: from sage.rings.asymptotic.growth_group import GenericGrowthGroup
-            sage: GenericGrowthGroup(ZZ, 'x').category()  # indirect doctest
-            Category of posets
-            sage: GenericGrowthGroup(ZZ, 'x', category=Groups()).category()  # indirect doctest
-            Category of groups
-        """
-        if category is not None:
-            return category
-
-        from sage.categories.monoids import Monoids
-        from sage.categories.posets import Posets
-
-        return Monoids() & Posets()
 
 
     @sage.misc.superseded.experimental(trac_number=17601)
@@ -2762,57 +2757,6 @@ class MonomialGrowthGroup(GenericGrowthGroup):
         ('AdditiveCommutative', 'Commutative', False)]
 
 
-    @staticmethod
-    def _determine_category_(category, base):
-        r"""
-        Return the category of this monomial growth group.
-
-        INPUT:
-
-        - ``category`` -- a category or ``None``.
-
-        - ``base`` -- the parent.
-
-        OUTPUT:
-
-        A category.
-
-        .. NOTE::
-
-            If the input category is not ``None``, then this category
-            is returned. Otherwise the category is determined from
-            the given base.
-
-        TESTS::
-
-            sage: from sage.rings.asymptotic.growth_group import MonomialGrowthGroup
-            sage: MonomialGrowthGroup(ZZ, 'x').category()  # indirect doctest
-            Join of Category of commutative groups and Category of posets
-            sage: MonomialGrowthGroup(ZZ, 'x', category=Monoids()).category()  # indirect doctest
-            Category of monoids
-            sage: W = Words([0, 1])
-            sage: W.category()
-            Category of sets
-            sage: MonomialGrowthGroup(W, 'x').category() # indirect doctest
-            Category of sets
-        """
-        if category is not None:
-            return category
-
-        from sage.categories.commutative_additive_groups import CommutativeAdditiveGroups
-        from sage.categories.groups import Groups
-        from sage.categories.monoids import Monoids
-        from sage.categories.posets import Posets
-
-        C = base.category()
-        if C.is_subcategory(CommutativeAdditiveGroups()):
-            category = Groups().Commutative()
-        else:
-            category = Monoids()
-
-        return category & Posets()
-
-
     def _repr_short_(self):
         r"""
         A short representation string of this monomial growth group.
@@ -3427,56 +3371,6 @@ class ExponentialGrowthGroup(GenericGrowthGroup):
         ('Unital', 'Unital', False),
         ('Inverse', 'Inverse', False),
         ('Commutative', 'Commutative', False)]
-
-
-    @staticmethod
-    def _determine_category_(category, base):
-        r"""
-        Return the category of this exponential growth group.
-
-        INPUT:
-
-        - ``category`` -- a category or ``None``.
-
-        - ``base`` -- the parent.
-
-        OUTPUT:
-
-        A category.
-
-        .. NOTE::
-
-            If the input category is not ``None``, then this category
-            is returned. Otherwise the category is determined from
-            the given base.
-
-        TESTS::
-
-            sage: from sage.rings.asymptotic.growth_group import ExponentialGrowthGroup
-            sage: ExponentialGrowthGroup(ZZ, 'x').category()  # indirect doctest
-            Join of Category of commutative monoids and Category of posets
-            sage: ExponentialGrowthGroup(QQ, 'x').category()  # indirect doctest
-            Join of Category of commutative groups and Category of posets
-            sage: ExponentialGrowthGroup(ZZ, 'x', category=Groups()).category()  # indirect doctest
-            Category of groups
-            sage: ExponentialGrowthGroup(QQ, 'x', category=Monoids()).category()  # indirect doctest
-            Category of monoids
-        """
-        if category is not None:
-            return category
-
-        from sage.categories.fields import Fields
-        from sage.categories.groups import Groups
-        from sage.categories.monoids import Monoids
-        from sage.categories.posets import Posets
-
-        C = base.category()
-        if C.is_subcategory(Fields()) or C.is_subcategory(Groups().Commutative()):
-            category = Groups().Commutative()
-        else:
-            category = Monoids()
-
-        return category & Posets()
 
 
     def _repr_short_(self):

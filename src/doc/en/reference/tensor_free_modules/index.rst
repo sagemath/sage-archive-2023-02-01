@@ -25,4 +25,6 @@ a self-consistent subset that can be used independently of SageManifolds.
 
    sage/tensor/modules/format_utilities
 
+   sage/tensor/modules/parallel_utilities
+
 .. include:: ../footer.txt

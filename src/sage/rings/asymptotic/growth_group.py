@@ -1357,6 +1357,19 @@ class GenericGrowthGroup(
     Element = GenericGrowthElement
 
 
+    # set everything up to determine category
+    from sage.categories.sets_cat import Sets
+    from sage.categories.posets import Posets
+    from sage.categories.magmas import Magmas
+    from sage.categories.additive_magmas import AdditiveMagmas
+
+    _determine_category_subcategory_mapping_ = [
+        (Sets(), Sets(), True),
+        (Posets(), Posets(), False)]
+
+    _determine_category_axiom_mapping_ = []
+
+
     @staticmethod
     def __classcall__(cls, base, var=None, category=None, ignore_variables=None):
         r"""
@@ -1395,7 +1408,25 @@ class GenericGrowthGroup(
         elif not isinstance(var, Variable):
             var = Variable(var, ignore=ignore_variables)
 
-        category = cls._determine_category_(category, base)
+        from sage.categories.posets import Posets
+        if category is None:
+            # The following block can be removed once #19269 is fixed.
+            from sage.rings.integer_ring import ZZ
+            from sage.rings.rational_field import QQ
+            from sage.rings.polynomial.polynomial_ring import is_PolynomialRing
+            if base is ZZ or base is QQ or \
+                    is_PolynomialRing(base) and \
+                    (base.base_ring() is ZZ or base.base_ring() is QQ):
+                initial_category = Posets()
+            else:
+                initial_category = None
+
+            from misc import transform_category
+            category = transform_category(
+                base.category(),
+                cls._determine_category_subcategory_mapping_,
+                cls._determine_category_axiom_mapping_,
+                initial_category=initial_category)
 
         return super(GenericGrowthGroup, cls).__classcall__(
             cls, base, var, category)
@@ -1426,7 +1457,7 @@ class GenericGrowthGroup(
 
             sage: from sage.rings.asymptotic.growth_group import GenericGrowthGroup
             sage: GenericGrowthGroup(ZZ, 'x').category()  # indirect doctest
-            Join of Category of monoids and Category of posets
+            Category of posets
             sage: GenericGrowthGroup(ZZ, 'x', category=Groups()).category()  # indirect doctest
             Category of groups
         """
@@ -1448,7 +1479,7 @@ class GenericGrowthGroup(
 
             sage: from sage.rings.asymptotic.growth_group import GenericGrowthGroup
             sage: GenericGrowthGroup(ZZ).category()
-            Join of Category of monoids and Category of posets
+            Category of posets
 
         ::
 
@@ -2713,6 +2744,24 @@ class MonomialGrowthGroup(GenericGrowthGroup):
     Element = MonomialGrowthElement
 
 
+    # set everything up to determine category
+    from sage.categories.sets_cat import Sets
+    from sage.categories.posets import Posets
+    from sage.categories.magmas import Magmas
+    from sage.categories.additive_magmas import AdditiveMagmas
+
+    _determine_category_subcategory_mapping_ = [
+        (Sets(), Sets(), True),
+        (Posets(), Posets(), False),
+        (AdditiveMagmas(), Magmas(), False)]
+
+    _determine_category_axiom_mapping_ = [
+        ('AdditiveAssociative', 'Associative', False),
+        ('AdditiveUnital', 'Unital', False),
+        ('AdditiveInverse', 'Inverse', False),
+        ('AdditiveCommutative', 'Commutative', False)]
+
+
     @staticmethod
     def _determine_category_(category, base):
         r"""
@@ -2745,7 +2794,7 @@ class MonomialGrowthGroup(GenericGrowthGroup):
             sage: W.category()
             Category of sets
             sage: MonomialGrowthGroup(W, 'x').category() # indirect doctest
-            Join of Category of monoids and Category of posets
+            Category of sets
         """
         if category is not None:
             return category
@@ -3360,6 +3409,26 @@ class ExponentialGrowthGroup(GenericGrowthGroup):
     Element = ExponentialGrowthElement
 
 
+    # set everything up to determine category
+    from sage.categories.sets_cat import Sets
+    from sage.categories.posets import Posets
+    from sage.categories.magmas import Magmas
+    from sage.categories.groups import Groups
+    from sage.categories.division_rings import DivisionRings
+
+    _determine_category_subcategory_mapping_ = [
+        (Sets(), Sets(), True),
+        (Posets(), Posets(), False),
+        (Magmas(), Magmas(), False),
+        (DivisionRings(), Groups(), False)]
+
+    _determine_category_axiom_mapping_ = [
+        ('Associative', 'Associative', False),
+        ('Unital', 'Unital', False),
+        ('Inverse', 'Inverse', False),
+        ('Commutative', 'Commutative', False)]
+
+
     @staticmethod
     def _determine_category_(category, base):
         r"""
@@ -3385,7 +3454,7 @@ class ExponentialGrowthGroup(GenericGrowthGroup):
 
             sage: from sage.rings.asymptotic.growth_group import ExponentialGrowthGroup
             sage: ExponentialGrowthGroup(ZZ, 'x').category()  # indirect doctest
-            Join of Category of monoids and Category of posets
+            Join of Category of commutative monoids and Category of posets
             sage: ExponentialGrowthGroup(QQ, 'x').category()  # indirect doctest
             Join of Category of commutative groups and Category of posets
             sage: ExponentialGrowthGroup(ZZ, 'x', category=Groups()).category()  # indirect doctest

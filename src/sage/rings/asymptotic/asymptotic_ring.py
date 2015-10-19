@@ -2032,9 +2032,15 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
             substitute_raise_exception(self, e)
 
 
-    def symbolic_expression(self):
+    def symbolic_expression(self, R=None):
         r"""
         Return this asymptotic expansion as a symbolic expression.
+
+        INPUT:
+
+        - ``R`` -- (a subring of) the symbolic ring or ``None``.
+          The output is will be an element of ``R``. If ``None``,
+          then the symbolic ring is used.
 
         OUTPUT:
 
@@ -2058,10 +2064,14 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
             sage: _.parent()
             Symbolic Ring
         """
-        from sage.symbolic.ring import SR
-        return self.substitute(dict((g, SR.var(str(g)))
+        if R is None:
+            from sage.symbolic.ring import SR
+            R = SR
+
+        return self.substitute(dict((g, R.var(str(g)))
                                     for g in self.parent().gens()),
-                               domain=SR)
+                               domain=R)
+
 
 
 class AsymptoticRing(Algebra, UniqueRepresentation):

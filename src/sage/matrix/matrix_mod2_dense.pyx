@@ -105,8 +105,9 @@ include 'sage/ext/stdsage.pxi'
 
 cimport matrix_dense
 from libc.stdio cimport *
-from sage.structure.element cimport Matrix, Vector
-from sage.structure.element cimport ModuleElement, Element
+from sage.structure.element cimport (Matrix, Vector, parent_c,
+                                     ModuleElement, Element)
+from sage.modules.free_module_element cimport FreeModuleElement
 from sage.libs.gmp.random cimport *
 from sage.misc.functional import log
 from sage.misc.randstate cimport randstate, current_randstate
@@ -624,6 +625,15 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
             sage: r1 = A*v1
             sage: r0.column(0) == r1
             True
+
+        TESTS:
+
+        Check that :trac:`19378` is fixed::
+
+            sage: m = matrix(GF(2), 11, 0)
+            sage: v = vector(GF(2), 0)
+            sage: m * v
+            (0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
         """
         cdef mzd_t *tmp
         if not isinstance(v, Vector_mod2_dense):
@@ -633,6 +643,9 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
             raise ArithmeticError("number of columns of matrix must equal degree of vector")
 
         VS = VectorSpace(self._base_ring, self._nrows)
+        # If the vector is 0-dimensional, the result will be the 0-vector
+        if not self.ncols():
+            return VS.zero()
         cdef Vector_mod2_dense c = Vector_mod2_dense.__new__(Vector_mod2_dense)
         c._init(self._nrows, VS)
         c._entries = mzd_init(1, self._nrows)
@@ -1563,11 +1576,36 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
             sage: N = Matrix(GF(2), 0, 1, 0)
             sage: M.augment(N)
             []
+
+        Check that :trac:`19165` is solved::
+
+            sage: m = matrix(GF(2), 2, range(4))
+            sage: m.augment(matrix(GF(2), 2, range(4), sparse=True))
+            [0 1 0 1]
+            [0 1 0 1]
+
+            sage: m.augment(1)
+            Traceback (most recent call last):
+            ...
+            TypeError: right must either be a matrix or a vector. Not
+            <type 'sage.rings.integer.Integer'>
         """
-        if hasattr(right, '_vector_'):
+        cdef Matrix_mod2_dense other
+
+        if isinstance(right, FreeModuleElement):
             right = right.column()
 
-        cdef Matrix_mod2_dense other = right
+        if isinstance(right, Matrix_mod2_dense):
+            other = <Matrix_mod2_dense> right
+        elif isinstance(right, Matrix):
+            from sage.matrix.constructor import matrix
+            other = matrix(self.base_ring(),
+                           right.nrows(),
+                           right.ncols(),
+                           right.list(),
+                           sparse=False)
+        else:
+            raise TypeError("right must either be a matrix or a vector. Not {}".format(type(right)))
 
         if self._nrows != other._nrows:
             raise TypeError("Both numbers of rows must match.")

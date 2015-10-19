@@ -4,7 +4,6 @@ Cartesian products
 AUTHORS:
 
 - Nicolas Thiery (2010-03): initial version
-
 """
 #*****************************************************************************
 #       Copyright (C) 2008 Nicolas Thiery <nthiery at users.sf.net>,
@@ -62,6 +61,8 @@ class CartesianProduct(UniqueRepresentation, Parent):
 
         ``flatten`` is current ignored, and reserved for future use.
 
+        No other keyword arguments (``kwargs``) are accepted.
+
         TESTS::
 
             sage: from sage.sets.cartesian_product import CartesianProduct
@@ -71,6 +72,10 @@ class CartesianProduct(UniqueRepresentation, Parent):
             sage: C.an_element()
             (1/2, 1, 1)
             sage: TestSuite(C).run()
+            sage: cartesian_product([ZZ, ZZ], blub=None)
+            Traceback (most recent call last):
+            ...
+            TypeError: __init__() got an unexpected keyword argument 'blub'
         """
         self._sets = tuple(sets)
         Parent.__init__(self, category=category)
@@ -221,6 +226,45 @@ class CartesianProduct(UniqueRepresentation, Parent):
         assert len(elements) == len(self._sets)
         return self.element_class(self, elements)
 
+    def construction(self):
+        r"""
+        Return the construction functor and its arguments for this
+        cartesian product.
+
+        OUTPUT:
+
+        A pair whose first entry is a cartesian product functor and
+        its second entry is a list of the cartesian factors.
+
+        EXAMPLES::
+
+            sage: cartesian_product([ZZ, QQ]).construction()
+            (The cartesian_product functorial construction,
+             (Integer Ring, Rational Field))
+        """
+        from sage.categories.cartesian_product import cartesian_product
+        return cartesian_product, self.cartesian_factors()
+
+    def _coerce_map_from_(self, S):
+        r"""
+        Return ``True`` if ``S`` coerces into this cartesian product.
+
+        TESTS::
+
+            sage: Z = cartesian_product([ZZ])
+            sage: Q = cartesian_product([QQ])
+            sage: Z.has_coerce_map_from(Q)  # indirect doctest
+            False
+            sage: Q.has_coerce_map_from(Z)  # indirect doctest
+            True
+        """
+        if isinstance(S, CartesianProduct):
+            S_factors = S.cartesian_factors()
+            R_factors = self.cartesian_factors()
+            if len(S_factors) == len(R_factors):
+                if all(r.has_coerce_map_from(s) for r, s in zip(R_factors, S_factors)):
+                    return True
+
     an_element = Sets.CartesianProducts.ParentMethods.an_element
 
     class Element(ElementWrapper):
@@ -276,3 +320,17 @@ class CartesianProduct(UniqueRepresentation, Parent):
                 1
             """
             return iter(self.value)
+
+        def cartesian_factors(self):
+            r"""
+            Return the tuple of elements that compose this element.
+
+            EXAMPLES::
+
+                sage: A = cartesian_product([ZZ, RR])
+                sage: A((1, 1.23)).cartesian_factors()
+                (1, 1.23000000000000)
+                sage: type(_)
+                <type 'tuple'>
+            """
+            return self.value

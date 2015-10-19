@@ -114,7 +114,7 @@ from sage.libs.singular.function cimport RingWrap
 from sage.libs.singular.polynomial cimport (singular_polynomial_call, singular_polynomial_cmp, singular_polynomial_add, singular_polynomial_sub, singular_polynomial_neg, singular_polynomial_pow, singular_polynomial_mul, singular_polynomial_rmul, singular_polynomial_deg, singular_polynomial_str_with_changed_varnames, singular_polynomial_latex, singular_polynomial_str, singular_polynomial_div_coeff)
 
 import sage.libs.singular.ring
-from sage.libs.singular.ring cimport singular_ring_new, singular_ring_delete, wrap_ring
+from sage.libs.singular.ring cimport singular_ring_new, singular_ring_delete, wrap_ring, singular_ring_reference
 
 from sage.libs.singular.singular cimport si2sa, sa2si, overflow_check
 
@@ -161,9 +161,9 @@ class G_AlgFactory(UniqueFactory):
         TEST::
 
             sage: A.<x,y,z> = FreeAlgebra(QQ, 3)
-            sage: A.g_algebra({y*x:x*y-z, z*x:x*z+2*x, z*y:y*z-2*y}) # indirect doctest
-            Noncommutative Multivariate Polynomial Ring in x, y, z over Rational
-            Field, nc-relations: {z*x: x*z + 2*x, z*y: y*z - 2*y, y*x: x*y - z}
+            sage: H=A.g_algebra({y*x:x*y-z, z*x:x*z+2*x, z*y:y*z-2*y})
+            sage: sorted(H.relations().iteritems(),key=str)
+            [(y*x, x*y - z), (z*x, x*z + 2*x), (z*y, y*z - 2*y)]
 
         """
         # key = (base_ring,names, c,d, order, category)
@@ -327,7 +327,7 @@ cdef class NCPolynomialRing_plural(Ring):
         cdef RingWrap rw = ncalgebra(self._c, self._d, ring = P)
 
         #       rw._output()
-        self._ring = rw._ring
+        self._ring = singular_ring_reference(rw._ring)
         self._ring.ShortOut = 0
 
         self.__ngens = n
@@ -1711,10 +1711,13 @@ cdef class NCPolynomial_plural(RingElement):
 
         The Groebner basis shows that the result is correct::
 
-            sage: I.std()
+            sage: I.std() #random
             Left Ideal (z^2 - 1, y*z - y, x*z + x, y^2, 2*x*y - z - 1, x^2) of
             Noncommutative Multivariate Polynomial Ring in x, y, z over Rational
             Field, nc-relations: {z*x: x*z + 2*x, z*y: y*z - 2*y, y*x: x*y - z}
+            sage: sorted(I.std().gens(),key=str)
+            [2*x*y - z - 1, x*z + x, x^2, y*z - y, y^2, z^2 - 1]
+
 
         """
         cdef ideal *_I
@@ -2954,8 +2957,12 @@ def ExteriorAlgebra(base_ring, names,order='degrevlex'):
     EXAMPLES::
 
         sage: from sage.rings.polynomial.plural import ExteriorAlgebra
-        sage: E = ExteriorAlgebra(QQ, ['x', 'y', 'z']) ; E
+        sage: E = ExteriorAlgebra(QQ, ['x', 'y', 'z']) ; E #random
         Quotient of Noncommutative Multivariate Polynomial Ring in x, y, z over Rational Field, nc-relations: {z*x: -x*z, z*y: -y*z, y*x: -x*y} by the ideal (z^2, y^2, x^2)
+        sage: sorted(E.cover().domain().relations().iteritems(),key=str)
+        [(y*x, -x*y), (z*x, -x*z), (z*y, -y*z)]
+        sage: sorted(E.cover().kernel().gens(),key=str)
+        [x^2, y^2, z^2]
         sage: E.inject_variables()
         Defining xbar, ybar, zbar
         sage: x,y,z = (xbar,ybar,zbar)

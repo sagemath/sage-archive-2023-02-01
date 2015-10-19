@@ -223,7 +223,7 @@ class WordDatatype_callable(WordDatatype):
             ...
             ValueError: for infinite words, start and stop values cannot be negative
 
-        Out of range index (#8673)::
+        Out of range index (:trac:`8673`)::
 
             sage: w = Word(lambda n:n^2, length=23)
             sage: w[100]
@@ -370,7 +370,8 @@ class WordDatatype_callable_with_caching(WordDatatype_callable):
             sage: w.length()
             12
 
-        Test getitems with indexes.
+        Test getitems with indexes::
+
             sage: w[0]
             'a'
             sage: w[4]
@@ -382,41 +383,48 @@ class WordDatatype_callable_with_caching(WordDatatype_callable):
             sage: [w[i] for i in range(12)]
             ['a', 'b', 'b', 'a', 'b', 'a', 'a', 'b', 'b', 'a', 'a', 'b']
 
-        Slicing.
+        Slicing::
+
             sage: w[:]
             word: abbabaabbaab
 
-        Prefixes.
+        Prefixes::
+
             sage: w[0:]
             word: abbabaabbaab
 
             sage: w[1:]
             word: bbabaabbaab
 
-        Suffixes.
+        Suffixes::
+
             sage: w[:0]
             word:
 
             sage: w[:5]
             word: abbab
 
-        With positive steps.
+        With positive steps::
+
             sage: w[::2]
             word: abbaba
 
-        With a negative start position.
+        With a negative start position::
+
             sage: w[-2:]
             word: ab
             sage: w[-20:]
             word: abbabaabbaab
 
-        With a negative stop position.
+        With a negative stop position::
+
             sage: w[:-1]
             word: abbabaabbaa
             sage: w[:-10]
             word: ab
 
-        With a negative step.
+        With a negative step::
+
             sage: w[::-2]
             word: babaab
 
@@ -427,9 +435,10 @@ class WordDatatype_callable_with_caching(WordDatatype_callable):
             sage: w[:1:-3]
             word: bbab
 
-        TESTS::
+        TESTS:
 
-        For infinite words
+        For infinite words::
+
             sage: f = lambda n : add(Integer(n).digits(2)) % 2
             sage: tm = Word(f); tm
             word: 0110100110010110100101100110100110010110...
@@ -437,7 +446,8 @@ class WordDatatype_callable_with_caching(WordDatatype_callable):
             sage: tm.length()
             +Infinity
 
-        Test getitems with indexes.
+        Test getitems with indexes::
+
             sage: tm[0]
             0
             sage: tm[4]
@@ -449,29 +459,34 @@ class WordDatatype_callable_with_caching(WordDatatype_callable):
             ...
             IndexError: cannot use a negative index with an infinite word
 
-        Slicing.
+        Slicing::
+
             sage: tm[:]
             word: 0110100110010110100101100110100110010110...
 
-        Prefixes.
+        Prefixes::
+
             sage: tm[:0]
             word:
 
             sage: tm[:5]
             word: 01101
 
-        Suffixes.
+        Suffixes::
+
             sage: tm[0:]
             word: 0110100110010110100101100110100110010110...
 
             sage: tm[1:]
             word: 1101001100101101001011001101001100101100...
 
-        With positive steps.
+        With positive steps::
+
             sage: tm[::2]
             word: 0110100110010110100101100110100110010110...
 
-        With a negative step.
+        With a negative step::
+
             sage: tm[20:1:-3]
             word: 0011101
             sage: tm[10:1:-2]

@@ -44,8 +44,9 @@ from sage.graphs.generators.smallgraphs import HoffmanSingletonGraph
 from sage.graphs.generators.smallgraphs import SchlaefliGraph
 from sage.graphs.generators.smallgraphs import HigmanSimsGraph
 from sage.graphs.generators.smallgraphs import LocalMcLaughlinGraph
+from sage.graphs.generators.smallgraphs import SuzukiGraph
 from sage.graphs.graph import Graph
-from libc.math cimport sqrt
+from libc.math cimport sqrt, floor
 from sage.matrix.constructor import Matrix
 from sage.rings.finite_rings.constructor import FiniteField as GF
 from sage.coding.linear_code import LinearCode
@@ -255,12 +256,12 @@ def is_affine_polar(int v,int k,int l,int mu):
         if (k == (q**(e-1) + 1)*(q**e-1) and
             l == q*(q**(e-2) + 1)*(q**(e-1)-1)+q-2 and
             mu== q**(e-1)*(q**(e-1) + 1)):
-            from sage.graphs.generators.families import AffineOrthogonalPolarGraph
+            from sage.graphs.generators.classical_geometries import AffineOrthogonalPolarGraph
             return (lambda d,q : AffineOrthogonalPolarGraph(d,q,sign='+'),2*e,q)
         if (k == (q**(e-1) - 1)*(q**e+1) and
             l == q*(q**(e-2)- 1)*(q**(e-1)+1)+q-2 and
             mu== q**(e-1)*(q**(e-1) - 1)):
-            from sage.graphs.generators.families import AffineOrthogonalPolarGraph
+            from sage.graphs.generators.classical_geometries import AffineOrthogonalPolarGraph
             return (lambda d,q : AffineOrthogonalPolarGraph(d,q,sign='-'),2*e,q)
 
 @cached_function
@@ -320,7 +321,7 @@ def is_orthogonal_polar(int v,int k,int l,int mu):
                 k == q*(q**(2*m-2)-1)/(q-1)          and
                 l == q**2*(q**(2*m-4)-1)/(q-1) + q-1 and
                 mu== (q**(2*m-2)-1)/(q-1)):
-                from sage.graphs.generators.families import OrthogonalPolarGraph
+                from sage.graphs.generators.classical_geometries import OrthogonalPolarGraph
                 return (OrthogonalPolarGraph, 2*m+1, q, "")
 
             # O^+(2m,q)
@@ -328,7 +329,7 @@ def is_orthogonal_polar(int v,int k,int l,int mu):
                 k == q*(q**(2*m-3)-1)/(q-1) + q**(m-1) and
                 k == q**(2*m-3) + l + 1                  and
                 mu== k/q):
-                from sage.graphs.generators.families import OrthogonalPolarGraph
+                from sage.graphs.generators.classical_geometries import OrthogonalPolarGraph
                 return (OrthogonalPolarGraph, 2*m, q, "+")
 
             # O^+(2m+1,q)
@@ -336,8 +337,305 @@ def is_orthogonal_polar(int v,int k,int l,int mu):
                 k == q*(q**(2*m-3)-1)/(q-1) - q**(m-1) and
                 k == q**(2*m-3) + l + 1                  and
                 mu== k/q):
-                from sage.graphs.generators.families import OrthogonalPolarGraph
+                from sage.graphs.generators.classical_geometries import OrthogonalPolarGraph
                 return (OrthogonalPolarGraph, 2*m, q, "-")
+
+@cached_function
+def is_NOodd(int v,int k,int l,int mu):
+    r"""
+    Test whether some NO^e(2n+1,q) graph is `(v,k,\lambda,\mu)`-strongly regular.
+
+    Here `q>2`, for in the case `q=2` this graph is complete. For more information, see
+    :func:`sage.graphs.generators.classical_geometries.NonisotropicOrthogonalPolarGraph`
+    and Sect. 7.C of [BvL84]_.
+
+    INPUT:
+
+    - ``v,k,l,mu`` (integers)
+
+    OUTPUT:
+
+    A tuple ``t`` such that ``t[0](*t[1:])`` builds the requested graph if one
+    exists, and ``None`` otherwise.
+
+    EXAMPLES::
+
+        sage: from sage.graphs.strongly_regular_db import is_NOodd
+        sage: t = is_NOodd(120, 51, 18, 24); t
+        (<function NonisotropicOrthogonalPolarGraph at ...>, 5, 4, '-')
+        sage: g = t[0](*t[1:]); g
+        NO^-(5, 4): Graph on 120 vertices
+        sage: g.is_strongly_regular(parameters=True)
+        (120, 51, 18, 24)
+
+    TESTS:
+
+    All of ``NO^+(2m+1,q)`` and ``NO^-(2m+1,q)`` appear::
+
+        sage: t = is_NOodd(120, 51, 18, 24); t
+        (<function NonisotropicOrthogonalPolarGraph at ...>, 5, 4, '-')
+        sage: t = is_NOodd(136, 75, 42, 40); t
+        (<function NonisotropicOrthogonalPolarGraph at ...>, 5, 4, '+')
+        sage: t=is_NOodd(378, 260, 178, 180); t
+        (<function NonisotropicOrthogonalPolarGraph at ...>, 7, 3, '+')
+        sage: t=is_NOodd(45, 32, 22, 24); t
+        (<function NonisotropicOrthogonalPolarGraph at ...>, 5, 3, '+')
+        sage: t=is_NOodd(351, 224, 142, 144); t
+        (<function NonisotropicOrthogonalPolarGraph at ...>, 7, 3, '-')
+        sage: t = is_NOodd(325, 144, 68, 60); t
+        (<function NonisotropicOrthogonalPolarGraph at ...>, 5, 5, '+')
+        sage: t = is_NOodd(300, 104, 28, 40); t
+        (<function NonisotropicOrthogonalPolarGraph at ...>, 5, 5, '-')
+        sage: t = is_NOodd(5,5,5,5); t
+    """
+    cdef int n, q
+    r,s = eigenvalues(v,k,l,mu) # -eq^(n-1)-1 and eq^(n-1)(q-2)-1; q=3 is special case
+    if r is None:
+        return
+    r += 1
+    s += 1
+    if abs(r)>abs(s):
+        (r,s) = (s,r) # r=-eq^(n-1) s= eq^(n-1)(q-2)
+    q = 2 - s/r
+    p, t = is_prime_power(q, get_data=True)
+    pp, kk = is_prime_power(abs(r), get_data=True)
+    if p == pp and t != 0:
+        n  = kk/t + 1
+        e = 1 if v  == (q**n)*(q**n+1)/2 else -1
+        if (v  == (q**n)*(q**n+e)/2                 and
+            k  == (q**n-e)*(q**(n-1)+e)             and
+            l  == 2*(q**(2*n-2)-1)+e*q**(n-1)*(q-1) and
+            mu == 2*q**(n-1)*(q**(n-1)+e)):
+            from sage.graphs.generators.classical_geometries import NonisotropicOrthogonalPolarGraph
+            return (NonisotropicOrthogonalPolarGraph, 2*n+1, q, '+' if e==1 else '-')
+
+@cached_function
+def is_NOperp_F5(int v,int k,int l,int mu):
+    r"""
+    Test whether some NO^e,perp(2n+1,5) graph is `(v,k,\lambda,\mu)`-strongly regular.
+
+    For more information, see
+    :func:`sage.graphs.generators.classical_geometries.NonisotropicOrthogonalPolarGraph`
+    and Sect. 7.D of [BvL84]_.
+
+    INPUT:
+
+    - ``v,k,l,mu`` (integers)
+
+    OUTPUT:
+
+    A tuple ``t`` such that ``t[0](*t[1:])`` builds the requested graph if one
+    exists, and ``None`` otherwise.
+
+    EXAMPLES::
+
+        sage: from sage.graphs.strongly_regular_db import is_NOperp_F5
+        sage: t = is_NOperp_F5(10, 3, 0, 1); t
+        (<function NonisotropicOrthogonalPolarGraph at ...>, 3, 5, '-', 1)
+        sage: g = t[0](*t[1:]); g
+        NO^-,perp(3, 5): Graph on 10 vertices
+        sage: g.is_strongly_regular(parameters=True)
+        (10, 3, 0, 1)
+
+    TESTS:
+
+    All of ``NO^+,perp(2m+1,5)`` and ``NO^-,perp(2m+1,5)`` appear::
+
+        sage: t = is_NOperp_F5(325, 60, 15, 10); t
+        (<function NonisotropicOrthogonalPolarGraph at ...>, 5, 5, '+', 1)
+        sage: t = is_NOperp_F5(300, 65, 10, 15); t
+        (<function NonisotropicOrthogonalPolarGraph at ...>, 5, 5, '-', 1)
+        sage: t = is_NOperp_F5(5,5,5,5); t
+    """
+    cdef int n
+    r,s = eigenvalues(v,k,l,mu) # 2*e*5**(n-1), -e*5**(n-1); note exceptional case n=1
+    if r is None:
+        return
+    if abs(r)<abs(s):
+        (r,s) = (s,r)
+    e = 1 if s<0 else -1
+    p, n = is_prime_power(abs(s), get_data=True)
+    if (5 == p and n != 0) or (abs(r)==2 and abs(s)==1):
+        n += 1
+        if (v  == (5**n)*(5**n+e)/2           and
+            k  == (5**n-e)*5**(n-1)/2         and
+            l  == 5**(n-1)*(5**(n-1)+e)/2     and
+            mu == 5**(n-1)*(5**(n-1)-e)/2):
+            from sage.graphs.generators.classical_geometries import NonisotropicOrthogonalPolarGraph
+            return (NonisotropicOrthogonalPolarGraph, 2*n+1, 5, '+' if e==1 else '-', 1)
+
+@cached_function
+def is_NO_F2(int v,int k,int l,int mu):
+    r"""
+    Test whether some NO^e,perp(2n,2) graph is `(v,k,\lambda,\mu)`-strongly regular.
+
+    For more information, see
+    :func:`sage.graphs.generators.classical_geometries.NonisotropicOrthogonalPolarGraph`
+    and  
+
+    INPUT:
+
+    - ``v,k,l,mu`` (integers)
+
+    OUTPUT:
+
+    A tuple ``t`` such that ``t[0](*t[1:])`` builds the requested graph if one
+    exists, and ``None`` otherwise.
+
+    EXAMPLES::
+
+        sage: from sage.graphs.strongly_regular_db import is_NO_F2
+        sage: t = is_NO_F2(10, 3, 0, 1); t
+        (<function NonisotropicOrthogonalPolarGraph at ...>, 4, 2, '-')
+        sage: g = t[0](*t[1:]); g
+        NO^-(4, 2): Graph on 10 vertices
+        sage: g.is_strongly_regular(parameters=True)
+        (10, 3, 0, 1)
+
+    TESTS:
+
+    All of ``NO^+(2m,2)`` and ``NO^-(2m,2)`` appear::
+
+        sage: t = is_NO_F2(36, 15, 6, 6); t
+        (<function NonisotropicOrthogonalPolarGraph at ...>, 6, 2, '-')
+        sage: t = is_NO_F2(28, 15, 6, 10); t
+        (<function NonisotropicOrthogonalPolarGraph at ...>, 6, 2, '+')
+        sage: t = is_NO_F2(5,5,5,5); t
+    """
+    cdef int n, e, p
+    p, n = is_prime_power(k+1, get_data=True) # k+1==2**(2*n-2)
+    if 2 == p and n != 0 and n % 2 == 0:
+        n = (n+2)/2
+        e = (2**(2*n-1)-v)/2**(n-1)
+        if (abs(e) == 1                           and
+            v  == 2**(2*n-1)-e*2**(n-1)           and
+            k  == 2**(2*n-2)-1                    and
+            l  == 2**(2*n-3)-2                    and
+            mu == 2**(2*n-3)+e*2**(n-2)):
+            from sage.graphs.generators.classical_geometries import NonisotropicOrthogonalPolarGraph
+            return (NonisotropicOrthogonalPolarGraph, 2*n, 2, '+' if e==1 else '-')
+
+@cached_function
+def is_NO_F3(int v,int k,int l,int mu):
+    r"""
+    Test whether some NO^e,perp(2n,3) graph is `(v,k,\lambda,\mu)`-strongly regular.
+
+    For more information, see
+    :func:`sage.graphs.generators.classical_geometries.NonisotropicOrthogonalPolarGraph`
+    and  
+
+    INPUT:
+
+    - ``v,k,l,mu`` (integers)
+
+    OUTPUT:
+
+    A tuple ``t`` such that ``t[0](*t[1:])`` builds the requested graph if one
+    exists, and ``None`` otherwise.
+
+    EXAMPLES::
+
+        sage: from sage.graphs.strongly_regular_db import is_NO_F3
+        sage: t = is_NO_F3(15, 6, 1, 3); t
+        (<function NonisotropicOrthogonalPolarGraph at ...>, 4, 3, '-')
+        sage: g = t[0](*t[1:]); g
+        NO^-(4, 3): Graph on 15 vertices
+        sage: g.is_strongly_regular(parameters=True)
+        (15, 6, 1, 3)
+
+    TESTS:
+
+    All of ``NO^+(2m,3)`` and ``NO^-(2m,3)`` appear::
+
+        sage: t = is_NO_F3(126, 45, 12, 18); t
+        (<function NonisotropicOrthogonalPolarGraph at ...>, 6, 3, '-')
+        sage: t = is_NO_F3(117, 36, 15, 9); t
+        (<function NonisotropicOrthogonalPolarGraph at ...>, 6, 3, '+')
+        sage: t = is_NO_F3(5,5,5,5); t
+    """
+    cdef int n, e, p
+    r,s = eigenvalues(v,k,l,mu) # e*3**(n-1), -e*3**(n-2)
+    if r is None:
+        return
+    if abs(r)<abs(s):
+        (r,s) = (s,r)
+    e = 1 if r>0 else -1
+    p, n = is_prime_power(abs(r), get_data=True)
+    if (3 == p and n != 0):
+        n += 1
+        if (v  == 3**(n-1)*(3**n-e)/2           and
+            k  == 3**(n-1)*(3**(n-1)-e)/2           and
+            l  == 3**(n-2)*(3**(n-1)+e)/2           and
+            mu == 3**(n-1)*(3**(n-2)-e)/2):
+            from sage.graphs.generators.classical_geometries import NonisotropicOrthogonalPolarGraph
+            return (NonisotropicOrthogonalPolarGraph, 2*n, 3, '+' if e==1 else '-')
+
+@cached_function
+def is_NU(int v,int k,int l,int mu):
+    r"""
+    Test whether some NU(n,q)-graph, is `(v,k,\lambda,\mu)`-strongly regular.
+
+    Note that n>2; for n=2 there is no s.r.g. For more information, see
+    :func:`sage.graphs.generators.classical_geometries.NonisotropicUnitaryPolarGraph`
+    and series C14 in [Hu75]_.
+
+    INPUT:
+
+    - ``v,k,l,mu`` (integers)
+
+    OUTPUT:
+
+    A tuple ``t`` such that ``t[0](*t[1:])`` builds the requested graph if one
+    exists, and ``None`` otherwise.
+
+    EXAMPLES::
+
+        sage: from sage.graphs.strongly_regular_db import is_NU
+        sage: t = is_NU(40, 27, 18, 18); t
+        (<function NonisotropicUnitaryPolarGraph at ...>, 4, 2)
+        sage: g = t[0](*t[1:]); g
+        NU(4, 2): Graph on 40 vertices
+        sage: g.is_strongly_regular(parameters=True)
+        (40, 27, 18, 18)
+
+    TESTS::
+
+        sage: t = is_NU(176, 135, 102, 108); t
+        (<function NonisotropicUnitaryPolarGraph at ...>, 5, 2)
+        sage: t = is_NU(540, 224, 88, 96); t
+        (<function NonisotropicUnitaryPolarGraph at ...>, 4, 3)
+        sage: t = is_NU(208, 75, 30, 25); t
+        (<function NonisotropicUnitaryPolarGraph at ...>, 3, 4)
+        sage: t = is_NU(5,5,5,5); t
+    """
+    cdef int n, q, e               # special cases: n=3 or q=2
+    r,s = eigenvalues(v,k,l,mu) #r,s = eq^{n-2} - 1, -e(q^2-q-1)q^{n-3} - 1, e=(-1)^n
+    if r is None:
+        return
+    r += 1
+    s += 1
+    if abs(r)>abs(s):
+        (r,s) = (s,r)
+    p, t = is_prime_power(abs(r), get_data=True)
+    if p==2: # it can be that q=2, then we'd have r>s now
+        pp, kk = is_prime_power(abs(s), get_data=True)
+        if pp==2 and kk>0:
+            (r,s) = (s,r)
+            p, t = is_prime_power(abs(r), get_data=True)
+    if r==1:
+        return
+    kr = k/(r-1) # eq^{n-1}+1
+    e = 1 if kr>0 else -1
+    q = (kr-1)/r
+    pp, kk = is_prime_power(q, get_data=True)
+    if p == pp and kk != 0:
+        n  = t/kk + 2
+        if (v  == q**(n-1)*(q**n - e)/(q + 1)               and
+            k  == (q**(n-1) + e)*(q**(n-2) - e)             and
+            l  == q**(2*n-5)*(q+1) - e*q**(n-2)*(q-1) - 2  and
+            mu == q**(n-3)*(q + 1)*(q**(n-2) - e)):
+            from sage.graphs.generators.classical_geometries import NonisotropicUnitaryPolarGraph
+            return (NonisotropicUnitaryPolarGraph, n, q)
 
 def is_RSHCD(int v,int k,int l,int mu):
     r"""
@@ -498,14 +796,14 @@ def is_unitary_polar(int v,int k,int l,int mu):
     if (v == (q**d - 1)*((q**d)*p**t + 1)/(q - 1)               and
         k == q*(q**(d-1) - 1)*((q**d)/(p**t) + 1)/(q - 1)       and
         l == q*q*(q**(d-2)-1)*((q**(d-1))/(p**t) + 1)/(q - 1) + q - 1):
-        from sage.graphs.generators.families import UnitaryPolarGraph
+        from sage.graphs.generators.classical_geometries import UnitaryPolarGraph
         return (UnitaryPolarGraph, 2*d+1, p**t)
 
     # U(2d,q);
     if (v == (q**d - 1)*((q**d)/(p**t) + 1)/(q - 1)             and
         k == q*(q**(d-1) - 1)*((q**(d-1))/(p**t) + 1)/(q - 1)   and
         l == q*q*(q**(d-2)-1)*((q**(d-2))/(p**t) + 1)/(q - 1) + q - 1):
-        from sage.graphs.generators.families import UnitaryPolarGraph
+        from sage.graphs.generators.classical_geometries import UnitaryPolarGraph
         return (UnitaryPolarGraph, 2*d, p**t)
 
 @cached_function
@@ -557,8 +855,85 @@ def is_unitary_dual_polar(int v,int k,int l,int mu):
     if (v == (q**2*p**t + 1)*(q*p**t + 1)  and
         k == q*p**t*(q + 1)                and
         l == k - 1 - q**2*p**t):
-        from sage.graphs.generators.families import UnitaryDualPolarGraph
+        from sage.graphs.generators.classical_geometries import UnitaryDualPolarGraph
         return (UnitaryDualPolarGraph, 5, p**t)
+
+@cached_function
+def is_GQqmqp(int v,int k,int l,int mu):
+    r"""
+    Test whether some `GQ(q-1,q+1)` or `GQ(q+1,q-1)`-graph is `(v,k,\lambda,\mu)`-srg.
+
+    INPUT:
+
+    - ``v,k,l,mu`` (integers)
+
+    OUTPUT:
+
+    A tuple ``t`` such that ``t[0](*t[1:])`` builds the requested graph if one
+    exists, and ``None`` otherwise.
+
+    EXAMPLES::
+
+        sage: from sage.graphs.strongly_regular_db import is_GQqmqp
+        sage: t = is_GQqmqp(27,10,1,5); t
+        (<function AhrensSzekeresGeneralizedQuadrangleGraph at ...>, 3, False)
+        sage: g = t[0](*t[1:]); g
+        AS(3); GQ(2, 4): Graph on 27 vertices
+        sage: t = is_GQqmqp(45,12,3,3); t
+        (<function AhrensSzekeresGeneralizedQuadrangleGraph at ...>, 3, True)
+        sage: g = t[0](*t[1:]); g
+        AS(3)*; GQ(4, 2): Graph on 45 vertices
+        sage: g.is_strongly_regular(parameters=True)
+        (45, 12, 3, 3)
+        sage: t = is_GQqmqp(16,6,2,2); t
+        (<function T2starGeneralizedQuadrangleGraph at ...>, 2, True)
+        sage: g = t[0](*t[1:]); g
+        T2*(O,2)*; GQ(3, 1): Graph on 16 vertices
+        sage: g.is_strongly_regular(parameters=True)
+        (16, 6, 2, 2)
+        sage: t = is_GQqmqp(64,18,2,6); t
+        (<function T2starGeneralizedQuadrangleGraph at ...>, 4, False)
+        sage: g = t[0](*t[1:]); g
+        T2*(O,4); GQ(3, 5): Graph on 64 vertices
+        sage: g.is_strongly_regular(parameters=True)
+        (64, 18, 2, 6)
+
+    TESTS::
+
+        sage: (S,T)=(127,129)
+        sage: t = is_GQqmqp((S+1)*(S*T+1), S*(T+1), S-1, T+1); t
+        (<function T2starGeneralizedQuadrangleGraph at ...>, 128, False)
+        sage: (S,T)=(129,127)
+        sage: t = is_GQqmqp((S+1)*(S*T+1), S*(T+1), S-1, T+1); t
+        (<function T2starGeneralizedQuadrangleGraph at ...>, 128, True)
+        sage: (S,T)=(124,126)
+        sage: t = is_GQqmqp((S+1)*(S*T+1), S*(T+1), S-1, T+1); t
+        (<function AhrensSzekeresGeneralizedQuadrangleGraph at ...>, 125, False)
+        sage: (S,T)=(126,124)
+        sage: t = is_GQqmqp((S+1)*(S*T+1), S*(T+1), S-1, T+1); t
+        (<function AhrensSzekeresGeneralizedQuadrangleGraph at ...>, 125, True)
+        sage: t = is_GQqmqp(5,5,5,5); t
+    """
+    # do we have GQ(s,t)? we must have mu=t+1, s=l+1,
+    # v=(s+1)(st+1), k=s(t+1)
+    S=l+1
+    T=mu-1
+    q = (S+T)//2
+    p, w = is_prime_power(q, get_data=True)
+    if (v == (S+1)*(S*T+1)      and
+        k == S*(T+1)            and
+        q == p**w               and
+        (S+T)/2 == q):
+        if p % 2 == 0:
+            from sage.graphs.generators.classical_geometries\
+                    import T2starGeneralizedQuadrangleGraph as F
+        else:
+            from sage.graphs.generators.classical_geometries\
+                    import AhrensSzekeresGeneralizedQuadrangleGraph as F
+        if (S,T) == (q-1, q+1):
+            return (F, q, False)
+        elif (S,T) == (q+1, q-1):
+            return (F, q, True)
 
 @cached_function
 def is_twograph_descendant_of_srg(int v, int k0, int l, int mu):
@@ -636,7 +1011,7 @@ def is_taylor_twograph_srg(int v,int k,int l,int mu):
     OUTPUT:
 
     A tuple ``t`` such that ``t[0](*t[1:])`` builds the requested graph
-    :func:`TaylorTwographSRG <sage.graphs.generators.families.TaylorTwographSRG>`
+    :func:`TaylorTwographSRG <sage.graphs.generators.classical_geometries.TaylorTwographSRG>`
     if the parameters match, and ``None`` otherwise.
 
     EXAMPLES::
@@ -664,9 +1039,75 @@ def is_taylor_twograph_srg(int v,int k,int l,int mu):
         return
     q = p**(t//3)
     if (k, l, mu) == (q*(q**2+1)/2, (q**2+3)*(q-1)/4, (q**2+1)*(q+1)/4):
-        from sage.graphs.generators.families import TaylorTwographSRG
+        from sage.graphs.generators.classical_geometries import TaylorTwographSRG
         return (TaylorTwographSRG, q)
     return
+
+def is_switch_OA_srg(int v, int k, int l, int mu):
+    r"""
+    Test whether some *switch* `OA(k,n)+*` is `(v,k,\lambda,\mu)`-strongly regular.
+
+    The "switch* `OA(k,n)+*` graphs appear on `Andries Brouwer's database
+    <http://www.win.tue.nl/~aeb/graphs/srg/srgtab.html>`__ and are built by
+    adding an isolated vertex to a
+    :meth:`~sage.graphs.graph_generators.GraphGenerators.OrthogonalArrayBlockGraph`,
+    and a :meth:`Seidel switching <Graph.seidel_switching>` a set of disjoint
+    `n`-cocliques.
+
+    INPUT:
+
+    - ``v,k,l,mu`` (integers)
+
+    OUTPUT:
+
+    A tuple ``t`` such that ``t[0](*t[1:])`` builds the requested graph if the
+    parameters match, and ``None`` otherwise.
+
+    EXAMPLES::
+
+        sage: graphs.strongly_regular_graph(170, 78, 35, 36) # indirect doctest
+        Graph on 170 vertices
+
+    TESTS::
+
+        sage: from sage.graphs.strongly_regular_db import is_switch_OA_srg
+        sage: t = is_switch_OA_srg(5,5,5,5); t
+        sage: t = is_switch_OA_srg(170, 78, 35, 36);
+        sage: t[0](*t[1:]).is_strongly_regular(parameters=True)
+        (170, 78, 35, 36)
+        sage: t = is_switch_OA_srg(290, 136,  63,  64);
+        sage: t[0](*t[1:]).is_strongly_regular(parameters=True)
+        (290, 136, 63, 64)
+        sage: is_switch_OA_srg(626, 300, 143, 144)
+        (<cyfunction is_switch_OA_srg.<locals>.switch_OA_srg at ..., 12, 25)
+        sage: is_switch_OA_srg(842, 406, 195, 196)
+        (<cyfunction is_switch_OA_srg.<locals>.switch_OA_srg at ..., 14, 29)
+
+    """
+    from sage.combinat.designs.orthogonal_arrays import orthogonal_array
+
+    cdef int n_2_p_1 = v
+    cdef int n = <int> floor(sqrt(n_2_p_1-1))
+
+    if n*n != n_2_p_1-1: # is it a square?
+        return None
+
+    cdef int c = k/n
+    if (k % n                            or
+        l != c*c-1                       or
+        k != 1+(c-1)*(c+1)+(n-c)*(n-c-1) or
+        not orthogonal_array(c+1,n,existence=True,resolvable=True)):
+        return None
+
+    def switch_OA_srg(c,n):
+        from itertools import izip
+        OA = map(tuple,orthogonal_array(c+1,n,resolvable=True))
+        g = Graph([OA,lambda x,y: any(xx==yy for xx,yy in izip(x,y))],loops=False)
+        g.add_vertex(0)
+        g.seidel_switching(OA[:c*n])
+        return g
+
+    return (switch_OA_srg,c,n)
 
 cdef eigenvalues(int v,int k,int l,int mu):
     r"""
@@ -764,6 +1205,47 @@ def SRG_100_45_20_20():
              "202","333","410","341","222","433","430","441","242","302","312",
              "322","332","442","143"])
 
+
+def SRG_105_32_4_12():
+    r"""
+    Return a `(105, 32, 4, 12)`-strongly regular graph.
+
+    The vertices are the flags of the projective plane of order 4. Two flags
+    `(a,A)` and `(b,B)` are adjacent if the point `a` is on the line `B` or
+    the point `b` is  on the line `A`, and `a \neq b`, `A \neq B`. See
+    Theorem 2.7 in [GS70]_, and [Co06]_.
+
+    EXAMPLE::
+
+        sage: from sage.graphs.strongly_regular_db import SRG_105_32_4_12
+        sage: G = SRG_105_32_4_12(); G
+        Graph on 105 vertices
+        sage: G.is_strongly_regular(parameters=True)
+        (105, 32, 4, 12)
+
+    REFERENCES:
+
+    .. [GS70] J.-M. Goethals and J. J. Seidel,
+       Strongly regular graphs derived from combinatorial designs,
+       Can. J. Math. 22 (1970) 597-614.
+       http://dx.doi.org/10.4153/CJM-1970-067-9
+
+    .. [Co06] K. Coolsaet,
+       The uniqueness of the strongly regular graph srg(105,32,4,12),
+       Bull. Belg. Math. Soc. 12(2006), 707-718.
+       http://projecteuclid.org/euclid.bbms/1136902608
+    """
+    from sage.combinat.designs.block_design import ProjectiveGeometryDesign
+    P = ProjectiveGeometryDesign(2,1,GF(4,'a'))
+    IG = P.incidence_graph().line_graph()
+    a = IG.automorphism_group()
+    h = a.stabilizer(a.domain()[0])
+    o = filter(lambda x: len(x)==32, h.orbits())[0][0]
+    e = a.orbit((a.domain()[0],o),action="OnSets")
+    G = Graph()
+    G.add_edges(e)
+    return G
+
 def SRG_120_77_52_44():
     r"""
     Return a `(120,77,52,44)`-strongly regular graph.
@@ -786,6 +1268,77 @@ def SRG_120_77_52_44():
     H = IncidenceStructure([x for x in W if 22 not in x and 21 not in x])
     return H.intersection_graph(3)
 
+def SRG_144_39_6_12():
+    r"""
+    Return a `(144,39,6,12)`-strongly regular graph.
+
+    This graph is obtained as an orbit of length 2808 on sets of cardinality 2
+    (among 2 such orbits) of the group `PGL_3(3)` acting on the (right) cosets of
+    a subgroup of order 39.
+
+    EXAMPLE::
+
+        sage: from sage.graphs.strongly_regular_db import SRG_144_39_6_12
+        sage: G = SRG_144_39_6_12()
+        sage: G.is_strongly_regular(parameters=True)
+        (144, 39, 6, 12)
+    """
+
+    from sage.libs.gap.libgap import libgap
+    g=libgap.ProjectiveGeneralLinearGroup(3,3)
+    ns=g.Normalizer(g.SylowSubgroup(13))
+    G=g.Action(g.RightCosets(ns),libgap.OnRight)
+    H=G.Stabilizer(1)
+    for o in filter(lambda x: len(x)==39, H.Orbits()):
+        h = Graph()
+        h.add_edges(G.Orbit([1,o[0]],libgap.OnSets))
+        if h.is_strongly_regular():
+            h.relabel()
+            return h
+
+def SRG_176_49_12_14():
+    r"""
+    Return a `(176,49,12,14)`-strongly regular graph.
+
+    This graph is built from the symmetric Higman-Sims design. In
+    [BrouwerPolarities82]_, it is explained that there exists an involution
+    `\sigma` exchanging the points and blocks of the Higman-Sims design, such
+    that each point is mapped on a block that contains it (i.e. `\sigma` is a
+    'polarity with all universal points'). The graph is then built by making two
+    vertices `u,v` adjacent whenever `v\in \sigma(u)`.
+
+    EXAMPLE::
+
+        sage: from sage.graphs.strongly_regular_db import SRG_176_49_12_14
+        sage: G = SRG_176_49_12_14()                 # optional - gap_packages # long time
+        sage: G.is_strongly_regular(parameters=True) # optional - gap_packages # long time
+        (176, 49, 12, 14)
+
+    REFERENCE:
+
+    .. [BrouwerPolarities82] A. Brouwer,
+       Polarities of G. Higman's symmetric design and a strongly regular graph on 176 vertices,
+       Aequationes mathematicae 25, no. 1 (1982): 77-82.
+    """
+    from sage.combinat.designs.database import HigmanSimsDesign
+    d = HigmanSimsDesign()
+    g = d.incidence_graph(labels=True)
+    ag=g.automorphism_group().conjugacy_classes_representatives()
+
+    # Looking for an involution that maps a point of the design to one of the
+    # blocks that contains it. It is called a polarity with only absolute
+    # points in
+    for aut in ag:
+        try:
+            0 in aut(0)
+        except TypeError:
+            continue
+        if (aut.order() == 2 and
+            all(i in aut(i) for i in d.ground_set())):
+            g = Graph()
+            g.add_edges((u,v) for u in d.ground_set() for v in aut(u))
+            return g
+
 def SRG_176_105_68_54():
     r"""
     Return a `(176, 105, 68, 54)`-strongly regular graph.
@@ -807,6 +1360,88 @@ def SRG_176_105_68_54():
     W = WittDesign(23)
     H = IncidenceStructure([x for x in W if 22 not in x])
     return H.intersection_graph(3)
+
+def SRG_210_99_48_45():
+    r"""
+    Return a strongly regular graph with parameters `(210, 99, 48, 45)`
+
+    This graph is from Example 4.2 in [KPRWZ10]_. One considers the action of
+    the symmetric group `S_7` on the 210 digraphs isomorphic to the
+    disjoint union of `K_1` and the circulant 6-vertex digraph
+    ``digraphs.Circulant(6,[1,4])``. It has 16 orbitals; the package [COCO]_
+    found a megring of them, explicitly described in [KPRWZ10]_, resulting in
+    this graph.
+
+    EXAMPLE::
+
+        sage: from sage.graphs.strongly_regular_db import SRG_210_99_48_45
+        sage: g=SRG_210_99_48_45()
+        sage: g.is_strongly_regular(parameters=True)
+        (210, 99, 48, 45)
+
+    REFERENCES:
+
+    .. [KPRWZ10] M. H. Klin, C. Pech, S. Reichard, A. Woldar, M. Zvi-Av,
+       Examples of computer experimentation in algebraic combinatorics,
+       ARS MATHEMATICA CONTEMPORANEA 3 (2010) 237–258
+       http://amc-journal.eu/index.php/amc/article/viewFile/119/118
+
+    .. [COCO] I. A. Faradjev and M. H. Klin,
+       Computer package for computations with coherent configurations,
+       Proc. ISSAC-91, ACM Press, Bonn, 1991, pages 219–223;
+       code, by I.A.Faradjev (with contributions by A.E.Brouwer, D.V.Pasechnik)
+       https://github.com/dimpase/coco
+
+    """
+    from sage.libs.gap.libgap import libgap
+    from sage.combinat.permutation import Permutation
+    def ekg(g0): # return arcs of the Cayley digraph of <g> on {g,g^4}
+        g = Permutation(g0)
+        return libgap.Set(map(lambda x: (x,g(x)), range(1,8))\
+                        + map(lambda x: (x,g(g(g(g(x))))), range(1,8)))
+
+    kd=map(ekg,
+        [(7, 1, 2, 3, 4, 5), (7, 1, 3, 4, 5, 6),
+        (7, 3, 4, 5, 6, 2), (7, 1, 4, 3, 5, 6),
+        (7, 3, 1, 4, 5, 6), (7, 2, 4, 3, 5, 6),
+        (7, 3, 2, 4, 5, 1), (7, 2, 4, 3, 5, 1)])
+    s=libgap.SymmetricGroup(7)
+    O=s.Orbit(kd[0],libgap.OnSetsTuples)
+    sa=s.Action(O,libgap.OnSetsTuples)
+    G=Graph()
+    for g in kd[1:]:
+        G.add_edges(libgap.Orbit(sa,[libgap.Position(O,kd[0]),\
+                                     libgap.Position(O,g)],libgap.OnSets))
+    return G
+
+def SRG_243_110_37_60():
+    r"""
+    Return a `(243, 110, 37, 60)`-strongly regular graph.
+
+    To build this graph, we consider the orthogonal complement of the
+    :func:`~sage.coding.code_constructions.TernaryGolayCode`, which has 243
+    points. On those points we define a graph, in which two points are adjacent
+    when their hamming distance is equal to 9. This construction appears in
+    [GS75]_.
+
+    EXAMPLE::
+
+        sage: from sage.graphs.strongly_regular_db import SRG_243_110_37_60
+        sage: G = SRG_243_110_37_60()
+        sage: G.is_strongly_regular(parameters=True)
+        (243, 110, 37, 60)
+
+    REFERENCE:
+
+    .. [GS75] J.M. Goethals, and J. J. Seidel,
+       The regular two-graph on 276 vertices,
+       Discrete Mathematics 12, no. 2 (1975): 143-158.
+       http://dx.doi.org/10.1016/0012-365X(75)90029-1
+    """
+    from sage.coding.code_constructions import TernaryGolayCode
+    M = TernaryGolayCode().generator_matrix()
+    V = list(M.right_kernel())
+    return Graph([range(len(V)), lambda x,y:(V[x]-V[y]).hamming_weight() == 9 ])
 
 def SRG_253_140_87_65():
     r"""
@@ -866,6 +1501,65 @@ def SRG_196_91_42_42():
     G.add_edges((-1,x) for x in U)
     G.relabel()
     return G
+
+def SRG_220_84_38_28():
+    r"""
+    Return a `(280, 135, 70, 60)`-strongly regular graph.
+
+    This graph is obtained from the
+    :meth:`~IncidenceStructure.intersection_graph` of a
+    :func:`~sage.combinat.designs.database.BIBD_45_9_8`. This construction
+    appears in VII.11.2 from [DesignHandbook]_
+
+    EXAMPLE::
+
+        sage: from sage.graphs.strongly_regular_db import SRG_220_84_38_28
+        sage: g=SRG_220_84_38_28()
+        sage: g.is_strongly_regular(parameters=True)
+        (220, 84, 38, 28)
+    """
+    from sage.combinat.designs.database import BIBD_45_9_8
+    from sage.combinat.designs.incidence_structures import IncidenceStructure
+    G = IncidenceStructure(BIBD_45_9_8()).intersection_graph(3)
+    G.relabel()
+    return G
+
+def SRG_276_140_58_84():
+    r"""
+    Return a `(276, 140, 58, 84)`-strongly regular graph.
+
+    The graph is built from from
+    :meth:`~sage.graphs.graph_generators.GraphGenerators.McLaughlinGraph`, with
+    an added isolated vertex. We then perform a
+    :meth:`~Graph.seidel_switching` on a set of 28 disjoint 5-cliques, which
+    exist by cf. [HT96]_.
+
+    EXAMPLE::
+
+        sage: from sage.graphs.strongly_regular_db import SRG_276_140_58_84
+        sage: g=SRG_276_140_58_84()                  # long time # optional - gap_packages
+        sage: g.is_strongly_regular(parameters=True) # long time # optional - gap_packages
+        (276, 140, 58, 84)
+
+    REFERENCE:
+
+    .. [HT96] W. H. Haemers and V. D. Tonchev,
+      Spreads in strongly regular graphs,
+      Designs, Codes and Cryptography 8 (1996) 145-157.
+    """
+    g = McLaughlinGraph()
+    C = [[ 0,  72,  87, 131, 136], [ 1,  35,  61, 102, 168], [ 2,  32,  97, 125, 197], [ 3,  22,  96, 103, 202],
+         [ 4,  46,  74, 158, 229], [ 5,  83,  93, 242, 261], [ 6,  26,  81, 147, 176], [ 7,  42,  63, 119, 263],
+         [ 8,  49,  64, 165, 227], [ 9,  70,  85, 208, 273], [10,  73,  92, 230, 268], [11,  54,  95, 184, 269],
+         [12,  55,  62, 185, 205], [13,  51,  65, 162, 254], [14,  78,  88, 231, 274], [15,  40,  59, 117, 252],
+         [16,  24,  71, 137, 171], [17,  39,  43, 132, 163], [18,  57,  79, 175, 271], [19,  68,  80, 217, 244],
+         [20,  75,  98, 239, 267], [21,  33,  56, 113, 240], [23, 127, 152, 164, 172], [25, 101, 128, 183, 264],
+         [27, 129, 154, 160, 201], [28, 126, 144, 161, 228], [29, 100, 133, 204, 266], [30, 108, 146, 200, 219]]
+    g.add_vertex(-1)
+    g.seidel_switching(sum(C,[]))
+    g.relabel()
+    g.name('')
+    return g
 
 def SRG_280_135_70_60():
     r"""
@@ -972,6 +1666,153 @@ def SRG_256_187_138_132():
        "00000001001111001100000011010001011110000111001010010101111110101101")
     M = Matrix(GF(2),[list(l) for l in x])
     return strongly_regular_from_two_weight_code(LinearCode(M))
+
+def SRG_416_100_36_20():
+    r"""
+    Return a `(416,100,36,20)`-strongly regular graph.
+
+    This graph is obtained as an orbit on sets of cardinality 2
+    (among 2 that exists) of the group `G_2(4)`.
+    This graph is isomorphic to the subgraph of the from :meth:`Suzuki Graph
+    <sage.graphs.graph_generators.GraphGenerators.SuzukiGraph>` induced on
+    the neighbors of a vertex.
+
+    EXAMPLE::
+
+        sage: from sage.graphs.strongly_regular_db import SRG_416_100_36_20
+        sage: g = SRG_416_100_36_20()                # optional - gap_packages # long time
+        sage: g.is_strongly_regular(parameters=True) # optional - gap_packages # long time
+        (416, 100, 36, 20)
+    """
+    from sage.libs.gap.libgap import libgap
+    libgap.LoadPackage("AtlasRep")
+    g=libgap.AtlasGroup("G2(4)",libgap.NrMovedPoints,416)
+    h = Graph()
+    h.add_edges(g.Orbit([1,5],libgap.OnSets))
+    h.relabel()
+    return h
+
+def SRG_560_208_72_80():
+    r"""
+    Return a `(560,208,72,80)`-strongly regular graph
+
+    This graph is obtained as the union of 4 orbits of sets of cardinality 2
+    (among the 13 that exists) of the group `Sz(8)`.
+
+    EXAMPLE::
+
+        sage: from sage.graphs.strongly_regular_db import SRG_560_208_72_80
+        sage: g = SRG_560_208_72_80()                # optional - database_gap # not tested (~2s)
+        sage: g.is_strongly_regular(parameters=True) # optional - database_gap # not tested (~2s)
+        (560, 208, 72, 80)
+    """
+    from sage.libs.gap.libgap import libgap
+    libgap.LoadPackage("AtlasRep")
+    g=libgap.AtlasGroup("Sz8",libgap.NrMovedPoints,560)
+
+    h = Graph()
+    h.add_edges(g.Orbit([1,2],libgap.OnSets))
+    h.add_edges(g.Orbit([1,4],libgap.OnSets))
+    h.add_edges(g.Orbit([1,8],libgap.OnSets))
+    h.add_edges(g.Orbit([1,27],libgap.OnSets))
+    h.relabel()
+    return h
+
+def strongly_regular_from_two_intersection_set(M):
+    r"""
+    Return a strongly regular graph from a 2-intersection set.
+
+    A set of points in the projective geometry `PG(k,q)` is said to be a
+    2-intersection set if it intersects every hyperplane in either `h_1` or
+    `h_2` points, where `h_1,h_2\in \\NN`.
+
+    From a 2-intersection set `S` can be defined a strongly-regular graph in the
+    following way:
+
+    - Place the points of `S` on a hyperplane `H` in `PG(k+1,q)`
+
+    - Define the graph `G` on all points of `PG(k+1,q)\backslash H`
+
+    - Make two points of `V(G)=PG(k+1,q)\backslash H` adjacent if the line going
+      through them intersects `S`
+
+    For more information, see e.g. [CDB13]_ where this explanation has been
+    taken from.
+
+    INPUT:
+
+    - `M` -- a `|S| \times k` matrix with entries in `F_q` representing the points of
+      the 2-intersection set. We assume that the first non-zero entry of each row is
+      equal to `1`, that is, they give points in homogeneous coordinates.
+
+    The implementation does not check that `S` is actually a 2-intersection set.
+
+    EXAMPLE::
+
+        sage: from sage.graphs.strongly_regular_db import strongly_regular_from_two_intersection_set
+        sage: S=Matrix([(0,0,1),(0,1,0)] + map(lambda x: (1,x^2,x), GF(4,'b')))
+        sage: g=strongly_regular_from_two_intersection_set(S)
+        sage: g.is_strongly_regular(parameters=True)
+        (64, 18, 2, 6)
+
+    REFERENCES:
+
+    .. [CDB13] I. Cardinali and B. De Bruyn,
+      Spin-embeddings, two-intersection sets and two-weight codes,
+      Ars Comb. 109 (2013): 309-319.
+      https://biblio.ugent.be/publication/4241842/file/4241845.pdf
+    """
+    from itertools import product, izip
+    K = M.base_ring()
+    k = M.ncols()
+    g = Graph()
+
+    M = [list(p) for p in M]
+
+    # For every point in F_q^{k+1} not on the hyperplane of M
+    for u in [tuple(x) for x in product(K,repeat=k)]:
+        # For every v point of M
+        for v in M:
+            # u is adjacent with all vertices on a uv line.
+            g.add_edges([[u,tuple([u[i]+qq*v[i] for i in range(k)])] \
+                                            for qq in K if not qq==K.zero()])
+    g.relabel()
+    return g
+
+
+def SRG_729_336_153_156():
+    r"""
+    Return a `(729, 336, 153, 156)`-strongly regular graph.
+
+    This graph is built from a 2-intersection code shared by L. Disset in his
+    thesis [Disset00]_ and available at
+    http://www.mat.uc.cl/~ldissett/newgraphs/.
+
+    EXAMPLE::
+
+        sage: from sage.graphs.strongly_regular_db import SRG_729_336_153_156
+        sage: G = SRG_729_336_153_156()               # long time
+        sage: G.is_strongly_regular(parameters=True)  # long time
+        (729, 336, 153, 156)
+
+    REFERENCES:
+
+    .. [Disset00] L. Dissett,
+       Combinatorial and computational aspects of finite geometries,
+       2000,
+       https://tspace.library.utoronto.ca/bitstream/1807/14575/1/NQ49844.pdf
+    """
+    L = [
+        "101212212122202012010102120101112012121001201012120220122112001121201201201201010020012201001201201201202120121122012021201221021110200212121011211002012220000122201201",
+        "011100122001200111220011220020011222001200022000220012220122011220011101122012012001222010122200012011120112220112000120120012002012201122001220012122000201212001211211",
+        "000011111000011111112000001112000000111122222000001111112222000001111122222000111222222001111122222000001111112222000001112222000111122222000001111222000011122000011122",
+        "000000000111111111111000000000111111111111111222222222222222000000000000000111111111111222222222222000000000000000111111111111222222222222000000000000111111111222222222",
+        "000000000000000000000111111111111111111111111111111111111111000000000000000000000000000000000000000111111111111111111111111111111111111111222222222222222222222222222222",
+        "000000000000000000000000000000000000000000000000000000000000111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+    ]
+
+    L = Matrix(GF(3),map(list,L)).transpose()
+    return strongly_regular_from_two_intersection_set(L)
 
 def SRG_729_532_391_380():
     r"""
@@ -1679,51 +2520,50 @@ def strongly_regular_graph(int v,int k,int l,int mu=-1,bint existence=False,bint
         ( 27,  16, 10,  8): [SchlaefliGraph],
         ( 36,  14,  4,  6): [Graph,('c~rLDEOcKTPO`U`HOIj@MWFLQFAaRIT`HIWqPsQQJ'+
           'DXGLqYM@gRLAWLdkEW@RQYQIErcgesClhKefC_ygSGkZ`OyHETdK[?lWStCapVgKK')],
-        ( 40,  12,  2,  4): [Graph,('g}iS[A@_S@OA_BWQIGaPCQE@CcQGcQECXAgaOdS@a'+
-          'CWEEAOIBH_HW?scb?f@GMBGGhIPGaQoh?q_bD_pGPq_WI`T_DBU?R_dECsSARGgogBO'+
-          '{_IPBKZ?DI@Wgt_E?MPo{_?')],
-        ( 45,  12,  3,  3): [Graph,('l~}CKMF_C?oB_FPCGaICQOaH@DQAHQ@Ch?aJHAQ@G'+
-          'P_CQAIGcAJGO`IcGOY`@IGaGHGaKSCDI?gGDgGcE_@OQAg@PCSO_hOa`GIDADAD@XCI'+
-          'ASDKB?oKOo@_SHCc?SGcGd@A`B?bOOHGQH?ROQOW`?XOPa@C_hcGo`CGJK')],
         ( 50,   7,  0,  1): [HoffmanSingletonGraph],
         ( 56,  10,  0,  2): [SimsGewirtzGraph],
-        ( 64,  18,  2,  6): [Graph,('~?@?~aK[A@_[?O@_B_?O?K?B_?A??K??YQQPHGcQQ'+
-          'CaPIOHAX?POhAPIC`GcgSAHDE?PCiC@BCcDADIG_QCocS@AST?OOceGG@QGcKcdCbCB'+
-          'gIEHAScIDDOy?DAWaEg@IQO?maHPOhAW_dBCX?s@HOpKD@@GpOpHO?bCbHGOaGgpWQQ'+
-          '?PDDDw@A_CSRIS_P?GeGpg`@?EOcaJGccbDC_dLAc_pHOe@`ocEGgo@sRo?WRAbAcPc'+
-          '?iCiHEKBO_hOiOWpOSGSTBQCUAW_DDIWOqHBO?gghw_?`kOAXH?\\Ds@@@CpIDKOpc@'+
-          'OCoeIS_YOgGATGaqAhKGA?cqDOwQKGc?')],
         ( 77,  16,   0,  4): [M22Graph],
         ( 81,  50,  31, 30): [SRG_81_50_31_30],
         (100,  22,   0,  6): [HigmanSimsGraph],
         (100,  44,  18, 20): [SRG_100_44_18_20],
         (100,  45,  20, 20): [SRG_100_45_20_20],
+        (105,  32,   4, 12): [SRG_105_32_4_12],
         (120,  63,  30, 36): [SRG_120_63_30_36],
         (120,  77,  52, 44): [SRG_120_77_52_44],
         (126,  25,   8,  4): [SRG_126_25_8_4],
         (126,  50,  13, 24): [SRG_126_50_13_24],
+        (144,  39,   6, 12): [SRG_144_39_6_12],
         (162,  56,  10, 24): [LocalMcLaughlinGraph],
         (175,  72,  20, 36): [SRG_175_72_20_36],
+        (176,  49,  12, 14): [SRG_176_49_12_14],
         (176, 105,  68, 54): [SRG_176_105_68_54],
         (196,  91,  42, 42): [SRG_196_91_42_42],
+        (210,  99,  48, 45): [SRG_210_99_48_45],
+        (220,  84,  38, 28): [SRG_220_84_38_28],
         (231,  30,   9,  3): [CameronGraph],
+        (243, 110,  37, 60): [SRG_243_110_37_60],
         (243, 220, 199,200): [SRG_243_220_199_200],
         (253, 140,  87, 65): [SRG_253_140_87_65],
         (256, 170, 114,110): [SRG_256_170_114_110],
         (256, 187, 138,132): [SRG_256_187_138_132],
         (256, 153,  92, 90): [SRG_256_153_92_90],
         (275, 112,  30, 56): [McLaughlinGraph],
+        (276, 140,  58, 84): [SRG_276_140_58_84],
         (280, 135,  70, 60): [SRG_280_135_70_60],
+        (416, 100,  36, 20): [SRG_416_100_36_20],
         (512, 219, 106, 84): [SRG_512_219_106_84],
         (512,  73,  12, 10): [SRG_512_73_12_10],
+        (560, 208,  72, 80): [SRG_560_208_72_80],
         (625, 416, 279,272): [SRG_625_416_279_272],
         (625, 364, 213,210): [SRG_625_364_213_210],
+        (729, 336, 153,156): [SRG_729_336_153_156],
         (729, 616, 523,506): [SRG_729_616_523_506],
         (729, 420, 243,240): [SRG_729_420_243_240],
         (729, 560, 433,420): [SRG_729_560_433_420],
         (729, 476, 313,306): [SRG_729_476_313_306],
         (729, 532, 391,380): [SRG_729_532_391_380],
         (1024,825, 668,650): [SRG_1024_825_668_650],
+        (1782,416, 100, 96): [SuzukiGraph],
     }
 
     if params in constructions:
@@ -1737,11 +2577,12 @@ def strongly_regular_graph(int v,int k,int l,int mu=-1,bint existence=False,bint
                       is_orthogonal_array_block_graph,
                       is_steiner, is_affine_polar,
                       is_orthogonal_polar,
-                      is_unitary_polar,
-                      is_unitary_dual_polar,
+                      is_NOodd, is_NOperp_F5, is_NO_F2, is_NO_F3, is_NU,
+                      is_unitary_polar, is_unitary_dual_polar, is_GQqmqp,
                       is_RSHCD,
                       is_twograph_descendant_of_srg,
-                      is_taylor_twograph_srg]
+                      is_taylor_twograph_srg,
+                      is_switch_OA_srg]
 
     # Going through all test functions, for the set of parameters and its
     # complement.

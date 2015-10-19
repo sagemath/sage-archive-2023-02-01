@@ -8,21 +8,12 @@ Base Classes for Rings, Algebras and Fields
    :maxdepth: 2
 
    sage/rings/ring
-   sage/rings/ring_element
    sage/rings/commutative_ring
-   sage/rings/commutative_ring_element
    sage/rings/commutative_algebra
-   sage/rings/commutative_algebra_element
    sage/rings/dedekind_domain
-   sage/rings/dedekind_domain_element
    sage/rings/euclidean_domain
-   sage/rings/euclidean_domain_element
    sage/rings/integral_domain
-   sage/rings/integral_domain_element
    sage/rings/principal_ideal_domain
-   sage/rings/principal_ideal_domain_element
-   sage/rings/field
-   sage/rings/field_element
 
 Ideals
 ------
@@ -70,5 +61,10 @@ Utilities
    sage/rings/big_oh
    sage/rings/infinity
    sage/rings/misc
+
+.. toctree::
+   :hidden:
+
+   asymptotic_expansions_index
 
 .. include:: ../footer.txt

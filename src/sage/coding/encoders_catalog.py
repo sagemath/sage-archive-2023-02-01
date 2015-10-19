@@ -5,13 +5,12 @@ The ``codes.encoders`` object may be used to access the encoders that Sage can b
 
 **Generic encoders**
 
-- :func:`linear_code.LinearCodeGeneratorMatrixEncoder <sage.coding.linear_code.LinearCodeGeneratorMatrixEncoder>`
-- :func:`linear_code.LinearCodeParityCheckEncoder <sage.coding.linear_code.LinearCodeParityCheckEncoder>`
+:class:`linear_code.LinearCodeGeneratorMatrixEncoder <sage.coding.linear_code.LinearCodeGeneratorMatrixEncoder>`
 
 **Generalized Reed-Solomon code encoders**
 
-- :func:`grs.GRSEvaluationVectorEncoder <sage.coding.grs.GRSEvaluationVectorEncoder>`
-- :func:`grs.GRSEvaluationPolynomialEncoder <sage.coding.grs.GRSEvaluationPolynomialEncoder>`
+- :class:`grs.GRSEvaluationVectorEncoder <sage.coding.grs.GRSEvaluationVectorEncoder>`
+- :class:`grs.GRSEvaluationPolynomialEncoder <sage.coding.grs.GRSEvaluationPolynomialEncoder>`
 
 .. NOTE::
 
@@ -20,5 +19,6 @@ The ``codes.encoders`` object may be used to access the encoders that Sage can b
         sage: from sage.coding.encoders_catalog import *
 """
 
-from linear_code import (LinearCodeGeneratorMatrixEncoder, LinearCodeParityCheckEncoder)
-from grs import (GRSEvaluationVectorEncoder, GRSEvaluationPolynomialEncoder)
+from sage.misc.lazy_import import lazy_import as _lazy_import
+_lazy_import('sage.coding.linear_code', 'LinearCodeGeneratorMatrixEncoder')
+_lazy_import('sage.coding.grs', ['GRSEvaluationVectorEncoder', 'GRSEvaluationPolynomialEncoder'])

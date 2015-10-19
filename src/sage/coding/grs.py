@@ -139,8 +139,7 @@ class GeneralizedReedSolomonCode(AbstractLinearCode):
         F = vector(evaluation_points).base_ring()
         if F.is_finite() == False:
             raise ValueError("Evaluation points must be in a finite field")
-        super(GeneralizedReedSolomonCode, self).__init__(F, len(evaluation_points),\
-                "EvaluationVector", "Syndrome")
+        super(GeneralizedReedSolomonCode, self).__init__(F, len(evaluation_points), "EvaluationVector")
         self._dimension = dimension
         self._evaluation_points = copy(evaluation_points)
 
@@ -349,7 +348,7 @@ class GeneralizedReedSolomonCode(AbstractLinearCode):
 
         EXAMPLES::
 
-            sage: C = GeneralizedReedSolomonCode(GF(59).list()[:40], 12)
+            sage: C = codes.GeneralizedReedSolomonCode(GF(59).list()[:40], 12)
             sage: Cd = C.dual_code()
 
         Dual code of the dual code is the original code::
@@ -392,7 +391,7 @@ class GeneralizedReedSolomonCode(AbstractLinearCode):
 
             sage: F = GF(11)
             sage: n, k = 10, 5
-            sage: C = GeneralizedReedSolomonCode(F.list()[:n], k)
+            sage: C = codes.GeneralizedReedSolomonCode(F.list()[:n], k)
             sage: C.weight_distribution()
             [1, 0, 0, 0, 0, 0, 2100, 6000, 29250, 61500, 62200]
         """
@@ -414,7 +413,7 @@ class GeneralizedReedSolomonCode(AbstractLinearCode):
 
             sage: F = GF(11)
             sage: n, k = 10, 5
-            sage: C = GeneralizedReedSolomonCode(F.list()[:n], k)
+            sage: C = codes.GeneralizedReedSolomonCode(F.list()[:n], k)
             sage: C.weight_enumerator()
             62200*x^10 + 61500*x^9 + 29250*x^8 + 6000*x^7 + 2100*x^6 + 1
         """
@@ -426,7 +425,7 @@ class GeneralizedReedSolomonCode(AbstractLinearCode):
         n = self.length()
         w_en = PolRing(1)
         for i in range(n + 1 - d):
-            w_en += wd[i] * x ** (i + d)
+            w_en += wd[i + d] * x ** (i + d)
         return w_en
 
 
@@ -780,3 +779,8 @@ class GRSEvaluationPolynomialEncoder(Encoder):
             Univariate Polynomial Ring in x over Finite Field of size 11
         """
         return self._R
+
+####################### registration ###############################
+
+GeneralizedReedSolomonCode._registered_encoders["EvaluationVector"] = GRSEvaluationVectorEncoder
+GeneralizedReedSolomonCode._registered_encoders["EvaluationPolynomial"] = GRSEvaluationPolynomialEncoder

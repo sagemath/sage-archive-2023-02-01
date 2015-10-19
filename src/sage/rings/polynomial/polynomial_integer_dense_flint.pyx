@@ -11,7 +11,7 @@ AUTHORS:
 
 TESTS:
 
-We check that the buggy gcd is fixed (see trac:`17816`)::
+We check that the buggy gcd is fixed (see :trac:`17816`)::
 
     sage: R.<q> = ZZ[]
     sage: X = 3*q^12 - 8*q^11 - 24*q^10 - 48*q^9 - 84*q^8 - 92*q^7 - 92*q^6 - 70*q^5 - 50*q^4 - 27*q^3 - 13*q^2 - 4*q - 1

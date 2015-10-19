@@ -8,10 +8,6 @@ Python 2 and 3 compatibility utilities
 
 MIT License
 
-== SPKG Maintainers ==
-
-John H. Palmieri
-
 == Upstream Contact ==
 
 Author: Benjamin Peterson

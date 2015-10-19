@@ -2063,12 +2063,21 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
             Order((1/2)^z*x*sqrt(y)*sqrt(z)*sqrt(log(y)))
             sage: _.parent()
             Symbolic Ring
+
+        ::
+
+            sage: from sage.symbolic.ring import SymbolicRing
+            sage: class MySymbolicRing(SymbolicRing):
+            ....:     pass
+            sage: mySR = MySymbolicRing()
+            sage: a.symbolic_expression(mySR).parent() is mySR
+            True
         """
         if R is None:
             from sage.symbolic.ring import SR
             R = SR
 
-        return self.substitute(dict((g, R.var(str(g)))
+        return self.substitute(dict((g, R(R.var(str(g))))
                                     for g in self.parent().gens()),
                                domain=R)
 

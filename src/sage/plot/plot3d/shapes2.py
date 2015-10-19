@@ -795,20 +795,25 @@ class Line(PrimitiveObject):
     Draw a 3d line joining a sequence of points.
 
     This line has a fixed diameter unaffected by transformations and
-    zooming. It may be smoothed if ``corner_cutoff < 1``.
+    zooming. It may be smoothed if ``corner_cutoff > -1``.
 
     INPUT:
 
-    -  ``points`` -- list of points to pass through
+    - ``points`` -- list of points to pass through
 
-    -  ``thickness`` -- (optional, default 5) diameter of the line
+    - ``thickness`` -- (optional, default 5) diameter of the line
 
-    - ``corner_cutoff`` -- (optional, default 0.5) threshold for
-       smoothing (see :meth:`corners`). This is the minimum cosine
-       between adjacent segments to smooth.
+    - ``corner_cutoff`` -- (optional, default -0.5) threshold for
+      smoothing (see :meth:`corners`).
 
     - ``arrow_head`` -- (optional, default ``False``) if ``True`` make
-       this curve into an arrow
+      this curve into an arrow
+
+    The parameter ``corner_cutoff`` is a bound for the cosine of the
+    angle made by two successive segments. This angle is close to
+    `\pi` if the two successive segments are almost aligned and close
+    to `0` if the path has a strong peak. If the cosine is greater
+    than the bound (which means a sharper peak) then no smoothing is done.
 
     EXAMPLES::
 
@@ -816,19 +821,22 @@ class Line(PrimitiveObject):
         sage: Line([(i*math.sin(i), i*math.cos(i), i/3) for i in range(30)], arrow_head=True)
         Graphics3d Object
 
-    Smooth angles less than 90 degrees::
+    Smooth angles more than 90 degrees::
 
         sage: Line([(0,0,0),(1,0,0),(2,1,0),(0,1,0)], corner_cutoff=0)
         Graphics3d Object
 
     Make sure that the ``corner_cutoff`` keyword works (:trac:`3859`)::
 
-        sage: Line([(0,0,0),(1,0,0),(2,1,0),(0,1,0)], corner_cutoff=1)
-        Graphics3d Object
-        sage: Line([(0,0,0),(1,0,0),(2,1,0),(0,1,0)], corner_cutoff=-1)
+        sage: N = 11
+        sage: c = -0.4
+        sage: sum([Line([(i,1,0), (i,0,0), (i,cos(2*pi*i/N), sin(2*pi*i/N))],
+        ....:     corner_cutoff=c,
+        ....:     color='red' if cos(2*pi*i/N)>=c else 'blue')
+        ....:     for i in range(N+1)])
         Graphics3d Object
     """
-    def __init__(self, points, thickness=5, corner_cutoff=.5,
+    def __init__(self, points, thickness=5, corner_cutoff=-0.5,
                  arrow_head=False, **kwds):
         """
         Create the graphics primitive :class:`Line` in 3-D.
@@ -838,7 +846,7 @@ class Line(PrimitiveObject):
         EXAMPLES::
 
             sage: from sage.plot.plot3d.shapes2 import Line
-            sage: P = Line([(1,2,3),(1,2,2),(-1,2,2),(-1,3,2)],thickness=6,corner_cutoff=.2)
+            sage: P = Line([(1,2,3),(1,2,2),(-1,2,2),(-1,3,2)],thickness=6,corner_cutoff=-.2)
             sage: P.points, P.arrow_head
             ([(1, 2, 3), (1, 2, 2), (-1, 2, 2), (-1, 3, 2)], False)
         """
@@ -962,14 +970,22 @@ class Line(PrimitiveObject):
 
         INPUT:
 
-        - ``corner_cutoff`` -- (optional, default ``None``) Maximum
-          cosine of angle between adjacent line segments before adding
-          a corner. If ``None``, then the default value is used.
+        - ``corner_cutoff`` -- (optional, default ``None``) If the
+          cosine of the angle between adjacent line segments is higher than
+          this bound, then there will be a sharp corner in the path. 
+          Otherwise, the path is smoothed. If ``None``,
+          then the default value -0.5 is used.
 
         - ``max_len`` -- (optional, default ``None``) Maximum number
           of points allowed in a single path. If this is set, this
           creates corners at smooth points in order to break the path
           into smaller pieces.
+
+        The parameter ``corner_cutoff`` is a bound for the cosine of the
+        angle made by two successive segments. This angle is close to
+        `\pi` if the two successive segments are almost aligned and close
+        to `0` if the path has a strong peak. If the cosine is greater
+        than the bound (which means a sharper peak) then there must be a corner.
 
         OUTPUT:
 
@@ -978,38 +994,36 @@ class Line(PrimitiveObject):
 
         EXAMPLES:
 
-        Every point::
+        No corners, always smooth::
 
             sage: from sage.plot.plot3d.shapes2 import Line
             sage: Line([(0,0,0),(1,0,0),(2,1,0),(0,1,0)], corner_cutoff=1).corners()
-            [(0, 0, 0), (1, 0, 0), (2, 1, 0)]
+            [(0, 0, 0)]
 
-        Greater than 90 degrees::
+        Smooth if the angle is greater than 90 degrees::
 
             sage: Line([(0,0,0),(1,0,0),(2,1,0),(0,1,0)], corner_cutoff=0).corners()
             [(0, 0, 0), (2, 1, 0)]
 
-        No corners::
+        Every point (corners everywhere)::
 
             sage: Line([(0,0,0),(1,0,0),(2,1,0),(0,1,0)], corner_cutoff=-1).corners()
-            [(0, 0, 0)]
-
-        An intermediate value::
-
-            sage: Line([(0,0,0),(1,0,0),(2,1,0),(0,1,0)], corner_cutoff=.5).corners()
-            [(0, 0, 0), (2, 1, 0)]
+            [(0, 0, 0), (1, 0, 0), (2, 1, 0)]
         """
         if corner_cutoff is None:
             corner_cutoff = self.corner_cutoff
 
-        if corner_cutoff >= 1:
+        if corner_cutoff <= -1:
+            # corners everywhere
+            return self.points[:-1]
+
+        elif corner_cutoff >= 1:
+            # no corners
             if not(max_len is None):
+                # forced by the maximal number of consecutive smooth points
                 return self.points[:-1][::max_len - 1]
             else:
-                return self.points[:-1]
-
-        elif corner_cutoff <= -1:
-            return [self.points[0]]
+                return [self.points[0]]
 
         else:
             if max_len is None:
@@ -1035,10 +1049,10 @@ class Line(PrimitiveObject):
                     count = 1
                     continue
                 next_dir = [next[i] - cur[i] for i in range(3)]
-                cos_angle = (dot(prev_dir, next_dir) /
+                cos_angle = - (dot(prev_dir, next_dir) /
                              math.sqrt(dot(prev_dir, prev_dir) *
                                        dot(next_dir, next_dir)))
-                if cos_angle <= corner_cutoff or count > max_len - 1:
+                if cos_angle >= corner_cutoff or count > max_len - 1:
                     corners.append(cur)
                     count = 1
                 cur, prev_dir = next, next_dir

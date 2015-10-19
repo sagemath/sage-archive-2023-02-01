@@ -1402,7 +1402,7 @@ cdef class Polynomial_rational_flint(Polynomial):
         cdef Polynomial_rational_flint der
         cdef bint do_sig
 
-        if var is not None and var != self._parent.gen():
+        if var is not None and var is not self._parent.gen():
             raise ValueError, "Cannot differentiate with respect to %s" %var
 
         der = self._new()

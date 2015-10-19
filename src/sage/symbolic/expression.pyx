@@ -2469,6 +2469,8 @@ cdef class Expression(CommutativeRingElement):
 
             # Use interval fields to try and falsify the relation
             if not need_assumptions:
+                if pynac_result == relational_notimplemented and self.operator()==operator.ne:
+                    return not (self.lhs()-self.rhs()).is_trivial_zero()
                 res = self.test_relation()
                 if res is True:
                     return True

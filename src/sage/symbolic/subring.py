@@ -342,12 +342,15 @@ class GenericSymbolicSubring(SymbolicRing):
             sage: S = SymbolicSubring(accepting_variables=('a',))
             sage: S('a')  # indirect doctest
             a
+            sage: _.parent()
+            Symbolic Subring accepting the variable a
             sage: S('x')  # indirect doctest
             Traceback (most recent call last):
             ...
             TypeError: x is not contained in Symbolic Subring accepting the variable a
         """
-        expression = SR(x)
+        expression = super(GenericSymbolicSubring, self)._element_constructor_(x)
+        assert(expression.parent() is self)
         if not all(self.is_variable_valid(var)
                    for var in expression.variables()):
             raise TypeError('%s is not contained in %s' % (x, self))
@@ -707,8 +710,10 @@ class SymbolicSubringAcceptingVars(GenericSymbolicSubring):
             sage: from sage.symbolic.subring import SymbolicSubring
             sage: SymbolicSubring(accepting_variables=('a',)).an_element()
             a
+            sage: _.parent()
+            Symbolic Subring accepting the variable a
         """
-        return sorted(self._vars_, key=str)[0]
+        return self(sorted(self._vars_, key=str)[0])
 
 
 class SymbolicSubringAcceptingVarsFunctor(GenericSymbolicSubringFunctor):
@@ -897,17 +902,25 @@ class SymbolicSubringRejectingVars(GenericSymbolicSubring):
             sage: from sage.symbolic.subring import SymbolicSubring
             sage: SymbolicSubring(rejecting_variables=('r',)).an_element()
             some_variable
+            sage: _.parent()
+            Symbolic Subring rejecting the variable r
             sage: SymbolicSubring(rejecting_variables=('some_variable',)).an_element()
             some_some_variable
+            sage: _.parent()
+            Symbolic Subring rejecting the variable some_variable
             sage: SymbolicSubring(rejecting_variables=('some_some_variable',)).an_element()
             some_variable
+            sage: _.parent()
+            Symbolic Subring rejecting the variable some_some_variable
             sage: SymbolicSubring(rejecting_variables=('some_variable','some_some_variable')).an_element()
             some_some_some_variable
+            sage: _.parent()
+            Symbolic Subring rejecting the variables some_some_variable, some_variable
         """
         v = SR.an_element()
         while not self.is_variable_valid(v):
             v = SR('some_' + str(v))
-        return v
+        return self(v)
 
 
 class SymbolicSubringRejectingVarsFunctor(GenericSymbolicSubringFunctor):
@@ -1042,5 +1055,7 @@ class SymbolicConstantsSubring(SymbolicSubringAcceptingVars):
             sage: from sage.symbolic.subring import SymbolicSubring
             sage: SymbolicSubring(no_variables=True).an_element()
             I*pi*e
+            sage: _.parent()
+            Symbolic Constants Subring
         """
-        return SR('I') * SR('pi') * SR('e')
+        return self(SR('I') * SR('pi') * SR('e'))

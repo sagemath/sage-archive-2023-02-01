@@ -266,7 +266,6 @@ cdef class SymbolicRing(CommutativeRing):
 
         """
         cdef GEx exp
-
         if is_Expression(x):
             if (<Expression>x)._parent is self:
                 return x

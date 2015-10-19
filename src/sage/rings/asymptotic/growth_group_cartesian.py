@@ -332,12 +332,12 @@ class GenericProduct(CartesianProductPoset, GenericGrowthGroup):
              x^(-1/2)*log(x)*(-1/2)^y,
              x^2*log(x)^(-1)*2^y,
              x^(-2)*log(x)^2*(-2)^y,
-             log(x)^(-2)*0^y,
-             x*log(x)^3,
-             x^(-1)*log(x)^(-3)*(-1)^y,
-             x^42*log(x)^4*42^y,
-             x^(2/3)*log(x)^(-4)*(2/3)^y,
-             x^(-2/3)*log(x)^5*(-2/3)^y)
+             log(x)^(-2),
+             x*log(x)^3*(-1)^y,
+             x^(-1)*log(x)^(-3)*42^y,
+             x^42*log(x)^4*(2/3)^y,
+             x^(2/3)*log(x)^(-4)*(-2/3)^y,
+             x^(-2/3)*log(x)^5*(3/2)^y)
         """
         from itertools import izip
         return iter(

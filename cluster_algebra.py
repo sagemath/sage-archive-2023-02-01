@@ -222,7 +222,15 @@ class ClusterAlgebraSeed(SageObject):
         # Bad news: as of 19/10/2015 we got a huge slowdown:
         # right now it takes 150s with / and 100s with //
         # what did we do wrong?
-        return alg._U((pos+neg)/alg.F_polynomial(old_g_vector))
+        ## 
+        # I figured it out: the problem is that casting the result to alg._U is
+        # quite slow: it amounts to run // instead of / :(
+        # do we need to perform this or can we be less precise here and allow
+        # F-polynomials to be rational funtions? 
+        # I am partucularly unhappy about this, for the moment the correct and
+        # slow code is commented
+        #return alg._U((pos+neg)/alg.F_polynomial(old_g_vector))
+        return (pos+neg)/alg.F_polynomial(old_g_vector)
 
     def mutation_sequence(self, sequence, inplace=True, mutating_F=True):
         seq = iter(sequence)

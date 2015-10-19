@@ -299,7 +299,6 @@ cdef class SymbolicRing(CommutativeRing):
 
         from sage.rings.infinity import (infinity, minus_infinity,
                                          unsigned_infinity)
-        from sage.rings.asymptotic.asymptotic_ring import AsymptoticExpansion
         from sage.structure.factorization import Factorization
 
         if isinstance(x, (Integer, RealNumber, float, long, complex)):
@@ -312,8 +311,6 @@ cdef class SymbolicRing(CommutativeRing):
             return new_Expression_from_GEx(self, g_mInfinity)
         elif x is unsigned_infinity:
             return new_Expression_from_GEx(self, g_UnsignedInfinity)
-        elif isinstance(x, AsymptoticExpansion):
-            return x.symbolic_expression()
         elif isinstance(x, (RingElement, Matrix)):
             GEx_construct_pyobject(exp, x)
         elif isinstance(x, Factorization):

@@ -2073,6 +2073,8 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
                                domain=R)
 
 
+    _symbolic_ = symbolic_expression  # will be used by SR._element_constructor_
+
 
 class AsymptoticRing(Algebra, UniqueRepresentation):
     r"""

@@ -37,11 +37,13 @@ def repr_short_to_parent(s):
 
     INPUT:
 
-    A string.
+    - ``s`` -- a string, short representation of a parent.
 
     OUTPUT:
 
     A parent.
+
+    The possible short representations are shown in the examples below.
 
     EXAMPLES::
 
@@ -87,7 +89,7 @@ def parent_to_repr_short(P):
 
     INPUT:
 
-    A parent.
+    - ``P`` -- a parent.
 
     OUTPUT:
 
@@ -153,13 +155,16 @@ def parent_to_repr_short(P):
 def split_str_by_op(string, op, strip_parentheses=True):
     r"""
     Split the given string into a tuple of substrings arising by
-    splitting by '*' and taking care of parentheses.
+    splitting by ``op`` and taking care of parentheses.
 
     INPUT:
 
     - ``string`` -- a string.
 
-    - ``op`` -- a string.
+    - ``op`` -- a string. This is used by
+      :python:`str.split <library/stdtypes.html#str.split>`.
+      Thus, if this is ``None``, then any whitespace string is a
+      separator and empty strings are removed from the result.
 
     - ``strip_parentheses`` -- (default: ``True``) a boolean.
 
@@ -189,6 +194,24 @@ def split_str_by_op(string, op, strip_parentheses=True):
         ('a^b', 'c')
         sage: split_str_by_op('a^(b^c)', '^')
         ('a', 'b^c')
+
+    ::
+
+        sage: split_str_by_op('(a) + (b)', op='+', strip_parentheses=True)
+        ('a', 'b')
+        sage: split_str_by_op('(a) + (b)', op='+', strip_parentheses=False)
+        ('(a)', '(b)')
+        sage: split_str_by_op(' ( t  ) ', op='+', strip_parentheses=False)
+        ('( t  )',)
+
+    ::
+
+        sage: split_str_by_op(' ( t  ) ', op=None)
+        ('t',)
+        sage: split_str_by_op(' ( t  )s', op=None)
+        ('(t)s',)
+        sage: split_str_by_op(' ( t  ) s', op=None)
+        ('t', 's')
     """
     factors = list()
     balanced = True
@@ -204,7 +227,7 @@ def split_str_by_op(string, op, strip_parentheses=True):
             raise ValueError("'%s' is invalid since a '%s' follows a '%s'." %
                              (string, op, op))
         if not balanced:
-            s = factors.pop() + op + s
+            s = factors.pop() + (op if op else '') + s
         balanced = s.count('(') == s.count(')')
         factors.append(s)
 
@@ -244,13 +267,20 @@ def repr_op(left, op, right=None):
         sage: from sage.rings.asymptotic.misc import repr_op
         sage: repr_op('a^b', '^', 'c')
         '(a^b)^c'
+
+    TESTS::
+
+        sage: repr_op('a-b', '^', 'c')
+        '(a-b)^c'
+        sage: repr_op('a+b', '^', 'c')
+        '(a+b)^c'
     """
     left = str(left)
     right = str(right) if right is not None else ''
 
     def add_parentheses(s, op):
         if op == '^':
-            signals = ('^', '*', '+', ' ')
+            signals = ('^', '/', '*', '-', '+', ' ')
         else:
             return s
         if any(sig in s for sig in signals):
@@ -472,3 +502,30 @@ def merge_overlapping(A, B, key=None):
         return B[:i] + A + B[i+len(A):], B
 
     raise ValueError('Input does not have an overlap.')
+
+
+def log_string(element, base=None):
+    r"""
+    Return a representation of the log of the given element to the
+    given base.
+
+    INPUT:
+
+    - ``element`` -- an object.
+
+    - ``base`` -- an object or ``None``.
+
+    OUTPUT:
+
+    A string.
+
+    EXAMPLES::
+
+        sage: from sage.rings.asymptotic.misc import log_string
+        sage: log_string(3)
+        'log(3)'
+        sage: log_string(3, base=42)
+        'log(3, base=42)'
+    """
+    basestr = ', base=' + str(base) if base else ''
+    return 'log(%s%s)' % (element, basestr)

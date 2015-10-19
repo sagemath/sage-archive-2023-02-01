@@ -345,9 +345,10 @@ class GenericProduct(CartesianProductPoset, GenericGrowthGroup):
             izip(*tuple(F.some_elements() for F in self.cartesian_factors())))
 
 
-    def _create_element_via_parent_(self, element):
+    def _create_element_in_extension_(self, element):
         r"""
-        Create an element with a possibly other parent.
+        Create an element in an extension of this cartesian product of
+        growth groups which is chosen according to the input ``element``.
 
         INPUT:
 
@@ -357,14 +358,24 @@ class GenericProduct(CartesianProductPoset, GenericGrowthGroup):
 
         An element.
 
+        EXAMPLES::
+
             sage: from sage.rings.asymptotic.growth_group import GrowthGroup
             sage: G = GrowthGroup('z^ZZ * log(z)^ZZ')
             sage: z = G('z')[0]
             sage: lz = G('log(z)')[1]
-            sage: G._create_element_via_parent_((z^3, lz)).parent()
+            sage: G._create_element_in_extension_((z^3, lz)).parent()
             Growth Group z^ZZ * log(z)^ZZ
-            sage: G._create_element_via_parent_((z^(1/2), lz)).parent()
+            sage: G._create_element_in_extension_((z^(1/2), lz)).parent()
             Growth Group z^QQ * log(z)^ZZ
+
+        ::
+
+            sage: G._create_element_in_extension_((3, 3, 3))
+            Traceback (most recent call last):
+            ...
+            ValueError: Cannot create (3, 3, 3) as a cartesian product like
+            Growth Group z^ZZ * log(z)^ZZ.
         """
         factors = self.cartesian_factors()
         if len(element) != len(factors):
@@ -585,7 +596,7 @@ class GenericProduct(CartesianProductPoset, GenericGrowthGroup):
 
     def _coerce_map_from_(self, S):
         r"""
-        Return if ``S`` coerces into this growth group.
+        Return whether ``S`` coerces into this growth group.
 
         INPUT:
 
@@ -848,8 +859,8 @@ class GenericProduct(CartesianProductPoset, GenericGrowthGroup):
 
     class Element(CartesianProductPoset.Element):
 
-        from growth_group import is_lt_one
-        is_lt_one = is_lt_one
+        from growth_group import _is_lt_one_
+        is_lt_one = _is_lt_one_
 
 
         def _repr_(self):
@@ -885,9 +896,7 @@ class GenericProduct(CartesianProductPoset, GenericGrowthGroup):
 
             INPUT:
 
-            - ``exponent`` -- a number. This can be anything that is a
-              valid right hand side of ``*`` with elements of the
-              parent's base.
+            - ``exponent`` -- a number.
 
             OUTPUT:
 
@@ -907,7 +916,7 @@ class GenericProduct(CartesianProductPoset, GenericGrowthGroup):
                 sage: (x^(21/5) * log(x)^7)^(1/42)  # indirect doctest
                 x^(1/10)*log(x)^(1/6)
             """
-            return self.parent()._create_element_via_parent_(
+            return self.parent()._create_element_in_extension_(
                 tuple(x ** exponent for x in self.cartesian_factors()))
 
 
@@ -960,9 +969,9 @@ class GenericProduct(CartesianProductPoset, GenericGrowthGroup):
                        tuple())
 
 
-        from growth_group import log_factor, log
-        log = log
-        log_factor = log_factor
+        from growth_group import _log_factor_, _log_
+        log = _log_
+        log_factor = _log_factor_
 
 
         def _log_factor_(self, base=None):
@@ -1011,14 +1020,14 @@ class GenericProduct(CartesianProductPoset, GenericGrowthGroup):
                                     (self, self.parent())), e)
 
 
-        from growth_group import rpow
-        rpow = rpow
+        from growth_group import _rpow_
+        rpow = _rpow_
 
 
         def _rpow_element_(self, base):
             r"""
             Return an element which is the power of ``base`` to this
-            element; it lives (in contrast to :meth:`rpow`) in its own group.
+            element.
 
             INPUT:
 
@@ -1026,7 +1035,16 @@ class GenericProduct(CartesianProductPoset, GenericGrowthGroup):
 
             OUTPUT:
 
-            A growth element or ``None``.
+            A growth element.
+
+            .. NOTE::
+
+                The parent of the result can be different from the parent
+                of this element.
+
+            A ``ValueError`` is raised if the calculation is not possible
+            within this method. (Then the calling method should take care
+            of the calculation.)
 
             TESTS::
 
@@ -1040,15 +1058,12 @@ class GenericProduct(CartesianProductPoset, GenericGrowthGroup):
             """
             factors = self.factors()
             if len(factors) != 1:
-                return
+                raise ValueError  # calling method has to deal with it...
             from growth_group import MonomialGrowthGroup
-            for factor in factors:
-                if not isinstance(factor.parent(), MonomialGrowthGroup):
-                    continue
-                try:
-                    return factor._rpow_element_(base)
-                except ValueError:
-                    pass
+            factor = factors[0]
+            if not isinstance(factor.parent(), MonomialGrowthGroup):
+                raise ValueError  # calling method has to deal with it...
+            return factor._rpow_element_(base)
 
 
         def exp(self):
@@ -1116,7 +1131,7 @@ class GenericProduct(CartesianProductPoset, GenericGrowthGroup):
                  sage: (~g).parent()
                  Growth Group QQ^x * x^ZZ
             """
-            return self.parent()._create_element_via_parent_(
+            return self.parent()._create_element_in_extension_(
                 tuple(~x for x in self.cartesian_factors()))
 
 

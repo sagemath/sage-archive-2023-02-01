@@ -218,6 +218,10 @@ class ClusterAlgebraSeed(SageObject):
         # sage: %time void = list(seeds)
         # CPU times: user 26.8 s, sys: 21 ms, total: 26.9 s
         # Wall time: 26.8 s
+        #####
+        # Bad news: as of 19/10/2015 we got a huge slowdown:
+        # right now it takes 150s with / and 100s with //
+        # what did we do wrong?
         return alg._U((pos+neg)/alg.F_polynomial(old_g_vector))
 
     def mutation_sequence(self, sequence, inplace=True, mutating_F=True):

@@ -1838,10 +1838,6 @@ cdef class IntegerMod_gmp(IntegerMod_abstract):
         else:
             return 1
 
-    def __richcmp__(left, right, int op):
-        return (<Element>left)._richcmp(right, op)
-
-
     cpdef bint is_one(IntegerMod_gmp self):
         """
         Returns ``True`` if this is `1`, otherwise
@@ -2251,10 +2247,6 @@ cdef class IntegerMod_int(IntegerMod_abstract):
             return -1
         else:
             return 1
-
-    def __richcmp__(left, right, int op):
-        return (<Element>left)._richcmp(right, op)
-
 
     cpdef bint is_one(IntegerMod_int self):
         """
@@ -3079,10 +3071,6 @@ cdef class IntegerMod_int64(IntegerMod_abstract):
         if self.ivalue == (<IntegerMod_int64>right).ivalue: return 0
         elif self.ivalue < (<IntegerMod_int64>right).ivalue: return -1
         else: return 1
-
-    def __richcmp__(left, right, int op):
-        return (<Element>left)._richcmp(right, op)
-
 
     cpdef bint is_one(IntegerMod_int64 self):
         """

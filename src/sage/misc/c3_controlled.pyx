@@ -326,9 +326,9 @@ For a typical category, few bases, if any, need to be added to force
     sage: x.mro == x.mro_standard
     False
     sage: x.all_bases_len()
-    82
+    90
     sage: x.all_bases_controlled_len()
-    89
+    97
 
 The following can be used to search through the Sage named categories
 for any that requires the addition of some bases::

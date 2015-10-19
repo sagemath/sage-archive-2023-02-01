@@ -1418,7 +1418,7 @@ class GenericGrowthGroup(
             sage: W = Words([0, 1])
             sage: W.category()
             Category of sets
-            sage: MonomialGrowthGroup(W, 'x').category() # indirect doctest
+            sage: MonomialGrowthGroup(W, 'x').category()  # indirect doctest
             Category of sets
 
         Test determining of the category (ExponentialGrowthGroup)::

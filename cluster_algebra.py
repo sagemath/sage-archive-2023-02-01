@@ -230,6 +230,10 @@ class ClusterAlgebraSeed(SageObject):
         # I am partucularly unhappy about this, for the moment the correct and
         # slow code is commented
         #return alg._U((pos+neg)/alg.F_polynomial(old_g_vector))
+        ##
+        # One more comment: apparently even without casting the result is a
+        # polynomial! This is really weird but I am not going to complain. I
+        # suppose we should not do the casting then
         return (pos+neg)/alg.F_polynomial(old_g_vector)
 
     def mutation_sequence(self, sequence, inplace=True, mutating_F=True):

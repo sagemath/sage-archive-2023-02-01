@@ -3505,6 +3505,31 @@ class ExponentialGrowthGroup(GenericGrowthGroup):
             return self.base().one()
 
 
+    def some_elements(self):
+        r"""
+        Return some elements of this exponential growth group.
+
+        See :class:`TestSuite` for a typical use case.
+
+        INPUT:
+
+        Nothing.
+
+        OUTPUT:
+
+        An iterator.
+
+        EXAMPLES::
+
+            sage: from sage.rings.asymptotic.growth_group import GrowthGroup
+            sage: tuple(GrowthGroup('QQ^z').some_elements())
+            ((1/2)^z, (-1/2)^z, 2^z, (-2)^z, 1, (-1)^z,
+             42^z, (2/3)^z, (-2/3)^z, (3/2)^z, (-3/2)^z, ...)
+        """
+        return iter(self.element_class(self, e)
+                    for e in self.base().some_elements() if e != 0)
+
+
     def gens(self):
         r"""
         Return a tuple of all generators of this exponential growth

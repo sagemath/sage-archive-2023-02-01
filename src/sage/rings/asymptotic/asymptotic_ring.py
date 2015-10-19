@@ -2653,12 +2653,12 @@ class AsymptoticRing(Algebra, UniqueRepresentation):
             return self.create_summand('exact', data)
 
         from misc import combine_exceptions
-        from sage.symbolic.ring import SR
+        from sage.symbolic.ring import SymbolicRing
         from sage.rings.polynomial.polynomial_ring import is_PolynomialRing
         from sage.rings.polynomial.multi_polynomial_ring_generic import is_MPolynomialRing
         from sage.rings.power_series_ring import is_PowerSeriesRing
 
-        if P is SR:
+        if isinstance(P, SymbolicRing):
             from sage.symbolic.operators import add_vararg
             if data.operator() == add_vararg:
                 summands = []

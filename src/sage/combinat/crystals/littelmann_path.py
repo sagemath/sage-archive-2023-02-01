@@ -830,14 +830,14 @@ class CrystalOfProjectedLevelZeroLSPaths(CrystalOfLSPaths):
            finite-dimensional `U_q^{'}(\mathfrak{g})`-module.
         #. `\mathcal{B}\otimes \mathcal{B}` is connected.
         #. There exists a `\lambda\in X`, such that
-           `\mathrm{wt}(\mathcal{B}) \subset \lambda + \sum_{i\in I}
-            \ZZ_{\le 0} \alpha_i` and there is a unique element in
+           `\mathrm{wt}(\mathcal{B}) \subset \lambda + \sum_{i\in I} \ZZ_{\le 0} \alpha_i`
+           and there is a unique element in
            `\mathcal{B}` of classical weight `\lambda`.
         #. For all `b \in \mathcal{B}`,
            `\mathrm{level}(\varepsilon (b)) \geq \ell`.
         #. For all `\Lambda` dominant weights of level `\ell`, there exist
            unique elements `b_{\Lambda}, b^{\Lambda} \in \mathcal{B}`, such
-           that `\varepsilon ( b_{\Lambda}) = \Lambda = \varphi( b^{\Lambda})`.
+           that `\varepsilon (b_{\Lambda}) = \Lambda = \varphi(b^{\Lambda})`.
 
         Points (1)-(3) are known to hold. This method checks points (4) and (5).
 

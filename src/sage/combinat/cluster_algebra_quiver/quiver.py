@@ -251,6 +251,7 @@ class ClusterQuiver(SageObject):
                 print 'The input data is a quiver, therefore the additional parameter frozen is ignored.'
 
             self._M = copy(data._M)
+            self._M.set_immutable()
             self._n = data._n
             self._m = data._m
             self._digraph = copy( data._digraph )
@@ -266,6 +267,7 @@ class ClusterQuiver(SageObject):
                 print 'The input data is a matrix, therefore the additional parameter frozen is ignored.'
 
             self._M = copy(data).sparse_matrix()
+            self._M.set_immutable()
             self._n = n = self._M.ncols()
             self._m = m = self._M.nrows() - self._n
             self._digraph = _matrix_to_digraph( self._M )
@@ -330,6 +332,7 @@ class ClusterQuiver(SageObject):
             self._digraph = dg
             self._vertex_dictionary = {}
             self._M = M
+            self._M.set_immutable()
             if n+m == 0:
                 self._description = 'Quiver without vertices'
             elif n+m == 1:
@@ -363,6 +366,18 @@ class ClusterQuiver(SageObject):
             True
         """
         return isinstance(other, ClusterQuiver) and self._M == other._M
+
+    def __hash__(self):
+        """
+        Return a hash of ``self``.
+
+        EXAMPLES::
+
+            sage: Q = ClusterQuiver(['A',5])
+            sage: hash(Q)  # indirect doctest
+            16
+        """
+        return self._M.__hash__()
 
     def _repr_(self):
         """
@@ -701,7 +716,7 @@ class ClusterQuiver(SageObject):
             [ 0  0  0  1]
             [ 0  0 -2  0]
         """
-        return copy( self._M )
+        return copy(self._M)
 
     def digraph(self):
         """
@@ -1277,6 +1292,7 @@ class ClusterQuiver(SageObject):
         M = _edge_list_to_matrix( dg.edge_iterator(), n, m )
         if inplace:
             self._M = M
+            self._M.set_immutable()
             self._digraph = dg
         else:
             Q = ClusterQuiver( M )
@@ -1387,6 +1403,7 @@ class ClusterQuiver(SageObject):
                     dg_new.add_edge( edge[1],edge[0],edge[2] )
             self._digraph = dg_new
             self._M = _edge_list_to_matrix( dg_new.edges(), self._n, self._m )
+            self._M.set_immutable()
             self._mutation_type = None
         elif all( type(edge) in [list,tuple] and len(edge)==2 for edge in data ):
             edges = self._digraph.edges(labels=False)
@@ -1396,6 +1413,7 @@ class ClusterQuiver(SageObject):
                     self._digraph.delete_edge(edge[1],edge[0])
                     self._digraph.add_edge(edge[0],edge[1],label)
             self._M = _edge_list_to_matrix( self._digraph.edges(), self._n, self._m )
+            self._M.set_immutable()
             self._mutation_type = None
         else:
             raise ValueError('The order is no total order on the vertices of the quiver or a list of edges to be oriented.')

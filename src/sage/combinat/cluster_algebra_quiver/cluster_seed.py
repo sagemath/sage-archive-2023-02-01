@@ -213,6 +213,7 @@ class ClusterSeed(SageObject):
 
             # Copy the following attributes from data
             self._M = copy( data._M )
+            self._M.set_immutable()
             self._B = copy( data._B )
             self._n = data._n
             self._m = data._m
@@ -269,6 +270,7 @@ class ClusterSeed(SageObject):
             quiver = ClusterQuiver( data )
 
             self._M = copy(quiver._M)    # B-tilde exchange matrix
+            self._M.set_immutable()
             self._n = quiver._n
             self._m = quiver._m
             self._B = copy(self._M[:self._n,:self._n])  # Square Part of the B_matrix
@@ -397,6 +399,7 @@ class ClusterSeed(SageObject):
                     self._C = copy(self._M[self._m:(self._n+self._m),:self._n])
                     self._BC = copy(self._M)
                     self._M = self._M[:self._m:self._n]
+                    self._M.set_immutable()
                     self._bot_is_c = False
 
     def use_g_vectors(self, use=True, force=False):
@@ -858,6 +861,26 @@ class ClusterSeed(SageObject):
             d_vec = self.d_matrix() == other.d_matrix()
         return g_vec and c_vec and d_vec and clusters and ExMat
 
+    def __hash__(self):
+        """
+        Return a hash of ``self``.
+
+        EXAMPLES::
+
+            sage: Q = ClusterSeed(['A',5])
+            sage: hash(Q)  # indirect doctest
+            16
+        """
+        mat_hash = self._M.__hash__()
+        if self._use_fpolys:
+            return mat_hash ** self.cluster().__hash__()
+        elif self._use_g_vec:
+            return mat_hash ** self.g_matrix().__hash__()
+        elif self._use_c_vec:
+            return mat_hash ** self.c_matrix().__hash__()
+        elif self._use_d_vec:
+            return mat_hash ** self.d_matrix().__hash__()
+
     def _repr_(self):
         r"""
         Returns the description of ``self``.
@@ -1077,7 +1100,7 @@ class ClusterSeed(SageObject):
             [ 0  0  0  1]
             [ 0  0 -2  0]
         """
-        return copy( self._M )
+        return copy(self._M)
 
     def ground_field(self):
         r"""
@@ -2359,6 +2382,7 @@ class ClusterSeed(SageObject):
 
             seed._BC.mutate(k)
             seed._M = copy(seed._BC[:n+m,:n])
+            self._M.set_immutable()
 
             if seed._use_c_vec:
                 seed._C = seed._BC[n+m:2*n+m,:n+m]
@@ -3050,15 +3074,19 @@ class ClusterSeed(SageObject):
             [ 0  1  0]
             [ 0  0  1]
         """
-        n,m = self._n, self._m
+        n, m = self._n, self._m
         if not n == m:
-            raise ValueError("The numbers of cluster variables and of frozen variables do not coincide.")
+            raise ValueError("The numbers of cluster variables "
+                             "and of frozen variables do not coincide.")
+        newM = copy(self._M)
         for i in xrange(m):
             for j in xrange(n):
                 if i == j:
-                    self._M[i+n,j] = 1
+                    newM[i + n, j] = 1
                 else:
-                    self._M[i+n,j] = 0
+                    newM[i + n, j] = 0
+        self._M = newM
+        self._M.set_immutable()
         self._quiver = None
         self._is_principal = None
 

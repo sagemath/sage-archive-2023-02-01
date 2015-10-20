@@ -837,7 +837,15 @@ class SimplicialComplex(Parent, GenericCellComplex):
         True
         sage: SimplicialComplex(S, is_immutable=False).is_mutable()
         True
-        """
+
+    .. WARNING::
+
+        Simplicial complexes are not proper parents as they do
+        not possess element classes. In particular, parents are assumed
+        to be hashable (and hence immutable) by the coercion framework.
+        However this is close enough to being a parent with elements
+        being the faces of ``self`` that we currently allow this abuse.
+    """
 
     def __init__(self,
                  maximal_faces=None,

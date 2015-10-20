@@ -13,7 +13,7 @@ Affine Crystals
 #****************************************************************************
 
 from sage.misc.abstract_method import abstract_method
-from sage.categories.affine_derived_crystals import AffineDerivedSubalgebraCrystals
+from sage.categories.affine_derived_crystals import RegularAffineDerivedSubalgebraCrystals
 from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.element_wrapper import ElementWrapper
@@ -109,7 +109,7 @@ class AffineCrystalFromClassical(UniqueRepresentation, Parent):
             sage: TestSuite(A).run()
         """
         if category is None:
-            category = AffineDerivedSubalgebraCrystals()
+            category = RegularAffineDerivedSubalgebraCrystals()
         self._cartan_type = cartan_type
         Parent.__init__(self, category = category)
         self.classical_crystal = classical_crystal;
@@ -129,6 +129,20 @@ class AffineCrystalFromClassical(UniqueRepresentation, Parent):
         """
         return "An affine crystal for type {}".format(self.cartan_type())
 
+    def cardinality(self):
+        """
+        Return the cardinality of ``self``.
+
+        EXAMPLES::
+
+            sage: C = crystals.Tableaux(['A',3],shape=[1])
+            sage: pr = attrcall("promotion")
+            sage: pr_inverse = attrcall("promotion_inverse")
+            sage: A = crystals.AffineFromClassicalAndPromotion(['A',3,1],C,pr,pr_inverse,1)
+            sage: A.cardinality() == C.cardinality()
+            True
+        """
+        return self.classical_crystal.cardinality()
 
     def __iter__(self):
         r"""

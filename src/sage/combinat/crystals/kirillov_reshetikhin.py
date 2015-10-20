@@ -2085,15 +2085,15 @@ class KR_type_Bn(KirillovReshetikhinGenericCrystal):
             # Check to make sure it can be converted
             if elt.cartan_type() != self.cartan_type() \
               or elt.parent().r() != self._r or elt.parent().s() != self._s:
-                raise ValueError("The Kirillov-Reshetikhin tableau must have the same Cartan type and shape")
+                raise ValueError("the Kirillov-Reshetikhin tableau must have the same Cartan type and shape")
 
             to_hw = elt.to_classical_highest_weight()
-            wt = to_hw[0].classical_weight() / 2
+            wt = to_hw[0].classical_weight()
             f_str = reversed(to_hw[1])
             for x in self.module_generators:
                 if x.classical_weight() == wt:
                     return x.f_string(f_str)
-            raise ValueError("No matching highest weight element found")
+            raise ValueError("no matching highest weight element found")
         return KirillovReshetikhinGenericCrystal._element_constructor_(self, *args, **options)
 
     def classical_decomposition(self):
@@ -2534,7 +2534,7 @@ class KR_type_Dn_twisted(KirillovReshetikhinGenericCrystal):
                 raise ValueError("the Kirillov-Reshetikhin tableau must have the same Cartan type and shape")
 
             to_hw = elt.to_classical_highest_weight()
-            wt = to_hw[0].classical_weight() / 2
+            wt = to_hw[0].classical_weight()
             f_str = reversed(to_hw[1])
             for x in self.module_generators:
                 if x.classical_weight() == wt:

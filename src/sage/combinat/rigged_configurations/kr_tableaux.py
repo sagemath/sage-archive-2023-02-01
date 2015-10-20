@@ -273,7 +273,7 @@ class KirillovReshetikhinTableaux(CrystalOfWords):
         EXAMPLES::
 
             sage: KRT = crystals.KirillovReshetikhin(['A', 4, 1], 2, 2, model='KR')
-            sage: TestSuite(KRT).run()  # long time
+            sage: TestSuite(KRT).run()
             sage: KRT = crystals.KirillovReshetikhin(['D', 4, 1], 2, 2, model='KR')
             sage: TestSuite(KRT).run()  # long time
             sage: KRT = crystals.KirillovReshetikhin(['D', 4, 1], 4, 1, model='KR'); KRT
@@ -453,7 +453,7 @@ class KirillovReshetikhinTableaux(CrystalOfWords):
             # Check to make sure it can be converted
             if lst[0].cartan_type() != self.cartan_type() \
               or lst[0].parent().r() != self._r or lst[0].parent().s() != self._s:
-                raise ValueError("The Kirillov-Reshetikhin crystal must have the same Cartan type and (r,s)")
+                raise ValueError("the Kirillov-Reshetikhin crystal must have the same Cartan type and (r,s)")
             return self.from_kirillov_reshetikhin_crystal(lst[0])
 
         return self.element_class(self, list(lst), **options)
@@ -1011,9 +1011,9 @@ class KRTableauxBn(KRTableauxTypeHorizonal):
         f_str = reversed(to_hw[1])
         wt = to_hw[0].weight()
         for x in self.module_generators:
-            if x.classical_weight() / 2 == wt:
+            if x.classical_weight() == wt:
                 return x.f_string(f_str)
-        raise ValueError("No matching highest weight element found")
+        raise ValueError("no matching highest weight element found")
 
 class KirillovReshetikhinTableauxElement(TensorProductOfRegularCrystalsElement):
     r"""
@@ -1287,8 +1287,7 @@ class KirillovReshetikhinTableauxElement(TensorProductOfRegularCrystalsElement):
             WLR = F.weight_lattice()
         else:
             WLR = F.ambient_space()
-        weight = lambda x: x.weight()
-        return sum((weight(self[j]) for j in range(len(self))), WLR.zero())
+        return sum((self[j].weight() for j in range(len(self))), WLR.zero())
 
     def e(self, i):
         """
@@ -1585,6 +1584,26 @@ class KRTableauxSpinElement(KirillovReshetikhinTableauxElement):
         lf = TP.crystals[0](*(self[:h]))
         rf = TP.crystals[1](*(self[h:]))
         return TP(lf, rf)
+
+    # FIXME: This is a copy of the above classical weight, and cached_method
+    #   overwrites this method if it is called via super.
+    @cached_method
+    def classical_weight(self):
+        r"""
+        Return the classical weight of ``self``.
+
+        EXAMPLES::
+
+            sage: KRT = crystals.KirillovReshetikhin(['D', 4, 1], 4, 1, model='KR')
+            sage: KRT.module_generators[0].classical_weight()
+            (1/2, 1/2, 1/2, 1/2)
+        """
+        F = self.cartan_type().classical().root_system()
+        if F.ambient_space() is None:
+            WLR = F.weight_lattice()
+        else:
+            WLR = F.ambient_space()
+        return sum((self[j].weight() for j in range(len(self))), WLR.zero()) / 2
 
 KRTableauxBn.Element = KRTableauxSpinElement
 KRTableauxSpin.Element = KRTableauxSpinElement

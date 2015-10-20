@@ -951,7 +951,7 @@ class FiniteDimensionalAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
         @cached_method
         def is_commutative(self):
             """
-            Return if ``self`` is a commutative algebra.
+            Return whether ``self`` is a commutative algebra.
 
             EXAMPLES::
 
@@ -963,6 +963,10 @@ class FiniteDimensionalAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
                 True
             """
             B = list(self.basis())
+            try: # See if 1 is a basis element, if so, remove it
+                B.remove(self.one())
+            except ValueError:
+                pass
             return all(b*bp == bp*b for i,b in enumerate(B) for bp in B[i+1:])
 
     class ElementMethods:

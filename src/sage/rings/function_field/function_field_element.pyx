@@ -578,8 +578,8 @@ cdef class FunctionFieldElement_rational(FunctionFieldElement):
         """
         TESTS:
 
-            It would be nice if the following would produce a list of
-            15 distinct hashes::
+        It would be nice if the following would produce a list of
+        15 distinct hashes::
 
             sage: K.<t> = FunctionField(QQ)
             sage: len({hash(t^i+t^j) for i in [-2..2] for j in [i..2]})

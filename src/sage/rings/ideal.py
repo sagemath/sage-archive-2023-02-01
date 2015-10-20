@@ -318,22 +318,6 @@ class Ideal_generic(MonoidElement):
         """
         return "Ideal %s of %s"%(self._repr_short(), self.ring())
 
-    def __hash__(self):
-        r"""
-        Very stupid constant hash function!
-
-        TESTS::
-
-            sage: R = ZZ
-            sage: I = ZZ*2
-            sage: J = ZZ*(-2)
-            sage: hash(I)
-            0
-            sage: hash(J)
-            0
-        """
-        return 0
-
     def __cmp__(self, other):
         """
         Compares the generators of two ideals.

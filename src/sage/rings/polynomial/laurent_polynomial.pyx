@@ -1352,7 +1352,7 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial_generic):
             -2021162459040316190  # 64-bit
             -1148451614           # 32-bit
         """
-        return hash(self._poly)
+        return hash(self._poly) ^ hash(self._mon)
 
     cdef _new_c(self):
         """

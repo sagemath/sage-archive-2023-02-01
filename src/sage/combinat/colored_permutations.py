@@ -42,6 +42,18 @@ class ColoredPermutation(MultiplicativeGroupElement):
         self._perm = perm
         MultiplicativeGroupElement.__init__(self, parent=parent)
 
+    def __hash__(self):
+        r"""
+        TESTS::
+
+            sage: C = ColoredPermutations(4, 3)
+            sage: s1,s2,t = C.gens()
+            sage: hash(s1), hash(s2), hash(t)
+            (2666658751600856334, 3639282354432100950, 3639281107336048003) # 64-bit
+            (-1973744370, 88459862, -1467077245)                            # 32-bit
+        """
+        return hash(self._perm) ^ hash(self._colors)
+
     def _repr_(self):
         """
         Return a string representation of ``self``.

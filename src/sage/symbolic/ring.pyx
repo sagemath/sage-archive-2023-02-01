@@ -586,6 +586,24 @@ cdef class SymbolicRing(CommutativeRing):
             sage: n = var('n', domain='integer')
             sage: solve([n^2 == 3],n)
             []
+
+        TESTS:
+
+        Test that the parent is set correctly (inheritance)::
+
+            sage: from sage.symbolic.ring import SymbolicRing
+            sage: class MySymbolicRing(SymbolicRing):
+            ....:     def _repr_(self):
+            ....:         return 'My Symbolic Ring'
+            sage: MySR = MySymbolicRing()
+            sage: MySR.symbol('x').parent()
+            My Symbolic Ring
+            sage: MySR.var('x').parent()  # indirect doctest
+            My Symbolic Ring
+            sage: MySR.var('blub').parent()  # indirect doctest
+            My Symbolic Ring
+            sage: MySR.an_element().parent()
+            My Symbolic Ring
         """
         cdef GSymbol symb
         cdef Expression e
@@ -597,7 +615,7 @@ cdef class SymbolicRing(CommutativeRing):
         if e is not None:
             if domain is None:
                 if latex_name is None:
-                    return e
+                    return self(e)
 
             # get symbol
             symb = ex_to_symbol(e._gobj)
@@ -609,12 +627,12 @@ cdef class SymbolicRing(CommutativeRing):
             if domain is not None:
                 send_sage_domain_to_maxima(e, domain)
 
-            return e
+            return self(e)
 
         else: # initialize a new symbol
             # Construct expression
             e = <Expression>Expression.__new__(Expression)
-            e._parent = SR
+            e._parent = self
 
             if name is None: # Check if we need a temporary anonymous new symbol
                 symb = ginac_new_symbol()

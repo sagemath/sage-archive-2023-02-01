@@ -975,6 +975,7 @@ class ClusterSeed(SageObject):
         from sage.plot.plot import EMBEDDED_MODE
         from sagenb.notebook.interact import interact, selector
         from sage.misc.all import html,latex
+        from sage.repl.rich_output.pretty_print import pretty_print
 
         if not EMBEDDED_MODE:
             return "The interactive mode only runs in the Sage notebook."
@@ -986,13 +987,19 @@ class ClusterSeed(SageObject):
             ssm = [True]
             ssl = [True]
             @interact
-            def player(k=selector(values=range(self._n),nrows = 1,label='Mutate at: '), show_seq=("Mutation sequence:", True), show_vars=("Cluster variables:", True), show_matrix=("B-Matrix:", True), show_lastmutation=("Show last mutation:", True) ):
-                ft,ss,sv,sm,sl = sft.pop(), sss.pop(), ssv.pop(), ssm.pop(), ssl.pop()
+            def player(k=selector(values=range(self._n), nrows = 1,
+                                  label='Mutate at: '),
+                       show_seq=("Mutation sequence:", True),
+                       show_vars=("Cluster variables:", True),
+                       show_matrix=("B-Matrix:", True),
+                       show_lastmutation=("Show last mutation:", True)):
+                ft, ss, sv, sm, sl = sft.pop(), sss.pop(), ssv.pop(), ssm.pop(), ssl.pop()
                 if ft:
                     self.show(fig_size=fig_size, circular=circular)
                 elif show_seq is not ss or show_vars is not sv or show_matrix is not sm or show_lastmutation is not sl:
                     if seq and show_lastmutation:
-                        self.show(fig_size=fig_size, circular=circular, mark=seq[len(seq)-1])
+                        self.show(fig_size=fig_size, circular=circular,
+                                  mark=seq[len(seq) - 1])
                     else:
                         self.show(fig_size=fig_size, circular=circular )
                 else:
@@ -1001,32 +1008,27 @@ class ClusterSeed(SageObject):
                     if not show_lastmutation:
                         self.show(fig_size=fig_size, circular=circular)
                     else:
-                        self.show(fig_size=fig_size, circular=circular,mark=k)
+                        self.show(fig_size=fig_size, circular=circular, mark=k)
                 sft.append(False)
                 sss.append(show_seq)
                 ssv.append(show_vars)
                 ssm.append(show_matrix)
                 ssl.append(show_lastmutation)
-                if show_seq: html( "Mutation sequence: $" + str( [ seq[i] for i in xrange(len(seq)) ] ).strip('[]') + "$" )
+                if show_seq:
+                    pretty_print(html("Mutation sequence: $" + str( [ seq[i] for i in xrange(len(seq)) ] ).strip('[]') + "$"))
                 if show_vars:
-                    html( "Cluster variables:" )
+                    pretty_print(html("Cluster variables:"))
                     table = "$\\begin{align*}\n"
                     for i in xrange(self._n):
-                        table += "\tv_{%s} &= "%i + latex( self._cluster[i] ) + "\\\\ \\\\\n"
+                        table += "\tv_{%s} &= " % i + latex(self.cluster_variable(i)) + "\\\\ \\\\\n"
                     table += "\\end{align*}$"
-                    html( "$ $" )
-                    html( table )
-                    html( "$ $" )
+                    pretty_print(html("$ $"))
+                    pretty_print(html(table))
+                    pretty_print(html("$ $"))
                 if show_matrix:
-                    html( "B-Matrix:" )
-                    m = self._M
-                    #m = matrix(range(1,self._n+1),sparse=True).stack(m)
-                    m = latex(m)
-                    m = m.split('(')[1].split('\\right')[0]
-                    html( "$ $" )
-                    html( "$\\begin{align*} " + m + "\\end{align*}$" )
-                    #html( "$" + m + "$" )
-                    html( "$ $" )
+                    pretty_print(html("B-Matrix:"))
+                    pretty_print(html(self._M))
+                    pretty_print(html("$ $"))
 
     def save_image(self, filename, circular=False, mark=None, save_pos=False):
         r"""
@@ -1265,7 +1267,7 @@ class ClusterSeed(SageObject):
             else:
                 raise ValueError('Clusters not being tracked')
         elif self._cluster is None:
-            self._cluster = [ self.cluster_variable(k) for k in range(self._n) ]
+            self._cluster = [self.cluster_variable(k) for k in range(self._n)]
         return copy(self._cluster)
 
     def _f_mutate( self, k):
@@ -2438,16 +2440,15 @@ class ClusterSeed(SageObject):
             sage: S.mutation_sequence([0,1,0,1],return_output='var')
             [(x1 + 1)/x0, (x0 + x1 + 1)/(x0*x1), (x0 + 1)/x1, x0]
         """
-
-        seed = ClusterSeed( self )
+        seed = ClusterSeed(self)
 
         new_clust_var = []
         seed_sequence = []
 
         for v in sequence:
-            seed = seed.mutate(v,inplace=False)
-            new_clust_var.append( seed.cluster()[v])
-            seed_sequence.append( seed )
+            seed = seed.mutate(v, inplace=False)
+            new_clust_var.append(seed.cluster()[v])
+            seed_sequence.append(seed)
 
         if show_sequence:
             self.quiver().mutation_sequence2(sequence=sequence, show_sequence=True, fig_size=fig_size )
@@ -2729,7 +2730,8 @@ class ClusterSeed(SageObject):
         seed.track_mutations(self._track_mut)
         if self._use_fpolys:
             self.cluster()
-            seed._cluster = [ self._cluster[k].subs(eval_dict) for k in xrange(self._n) ]
+            seed._cluster = [self._cluster[k].subs(eval_dict)
+                             for k in xrange(self._n)]
         seed._mutation_type = self._mutation_type
         return seed
 
@@ -2963,7 +2965,8 @@ class ClusterSeed(SageObject):
             if not force:  # if already have f_polynomials, using set_cluster might yield data inconsistent with them.
                 print("Warning: using set_cluster at this point could lead to inconsistent seed data.")
             else:
-                self._cluster = [ FractionField(self._R)(x) for x in cluster ][0:self._n]
+                self._cluster = [FractionField(self._R)(x)
+                                 for x in cluster][0:self._n]
                 self._is_principal = None
         else:
              print("Warning: clusters not being tracked so this command is ignored.") 

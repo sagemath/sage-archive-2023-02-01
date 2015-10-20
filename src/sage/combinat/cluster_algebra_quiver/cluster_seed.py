@@ -869,17 +869,17 @@ class ClusterSeed(SageObject):
 
             sage: Q = ClusterSeed(['A',5])
             sage: hash(Q)  # indirect doctest
-            16
+            -5649412990944896369
         """
-        mat_hash = self._M.__hash__()
+        # mat_hash = self._M.__hash__()
         if self._use_fpolys:
-            return mat_hash ** self.cluster().__hash__()
+            return tuple(self.cluster()).__hash__()
         elif self._use_g_vec:
-            return mat_hash ** self.g_matrix().__hash__()
+            return self.g_matrix().__hash__()
         elif self._use_c_vec:
-            return mat_hash ** self.c_matrix().__hash__()
+            return self.c_matrix().__hash__()
         elif self._use_d_vec:
-            return mat_hash ** self.d_matrix().__hash__()
+            return self.d_matrix().__hash__()
 
     def _repr_(self):
         r"""

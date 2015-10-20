@@ -165,11 +165,12 @@ from sage.sets.set import Set
 from sage.rings.integer_ring import ZZ
 from sage.structure.parent_gens import normalize_names
 from sage.misc.latex import latex
+from sage.misc.misc import union
 from sage.matrix.constructor import matrix
 from sage.homology.chain_complex import ChainComplex
 from sage.graphs.graph import Graph
 from functools import reduce
-lazy_import('sage.categories.category_types', 'SimplicialComplexes')
+lazy_import('sage.categories.simplicial_complexes', 'SimplicialComplexes')
 
 def lattice_paths(t1, t2, length=None):
     """
@@ -877,8 +878,7 @@ class SimplicialComplex(CategoryObject, GenericCellComplex):
         if (maximal_faces is not None and
             from_characteristic_function is not None):
             raise ValueError("maximal_faces and from_characteristic_function cannot be both defined")
-        CategoryObject.__init__(self, category=SimplicialComplexes())
-        from sage.misc.misc import union
+        CategoryObject.__init__(self, category=SimplicialComplexes().Finite())
 
         C = None
         vertex_set = []
@@ -2125,8 +2125,6 @@ class SimplicialComplex(CategoryObject, GenericCellComplex):
             self._facets = Facets
 
             # Update the vertex set
-            from sage.misc.misc import union
-
             if self._sorted:
                 self._vertex_set = Simplex(sorted(reduce(union, [self._vertex_set, new_face])))
             else:
@@ -3328,7 +3326,9 @@ class SimplicialComplex(CategoryObject, GenericCellComplex):
             sage: T = simplicial_complexes.Sphere(2)
             sage: H = Hom(S,T)  # indirect doctest
             sage: H
-            Set of Morphisms from Simplicial complex with vertex set (0, 1, 2) and facets {(1, 2), (0, 2), (0, 1)} to Simplicial complex with vertex set (0, 1, 2, 3) and facets {(0, 2, 3), (0, 1, 2), (1, 2, 3), (0, 1, 3)} in Category of simplicial complexes
+            Set of Morphisms from Simplicial complex with vertex set (0, 1, 2) and facets {(1, 2), (0, 2), (0, 1)}
+             to Simplicial complex with vertex set (0, 1, 2, 3) and facets {(0, 2, 3), (0, 1, 2), (1, 2, 3), (0, 1, 3)}
+             in Category of finite simplicial complexes
             sage: f = {0:0,1:1,2:3}
             sage: x = H(f)
             sage: x

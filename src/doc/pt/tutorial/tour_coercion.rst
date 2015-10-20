@@ -121,7 +121,9 @@ categorias matemáticas também são implementadas no Sage:
     sage: Rings()
     Category of rings
     sage: ZZ.category()
-    Join of Category of euclidean domains and Category of infinite enumerated sets
+    Join of Category of euclidean domains
+        and Category of infinite enumerated sets
+        and Category of metric spaces
 
     sage: ZZ.category().is_subcategory(Rings())
     True

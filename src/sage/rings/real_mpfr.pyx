@@ -448,7 +448,7 @@ cdef class RealField_class(sage.rings.ring.Field):
         self.rnd = n
         self.rnd_str = rnd
         from sage.categories.fields import Fields
-        ParentWithGens.__init__(self, self, tuple([]), False, category = Fields())
+        ParentWithGens.__init__(self, self, tuple([]), False, category=Fields().Metric().Complete())
 
         # Initialize zero and one
         cdef RealNumber rn

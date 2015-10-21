@@ -361,14 +361,12 @@ LaTeX表式とLatexエンジンの生成するdvi形式にdvipngが扱えないs
 グラフは ``tikzpicture`` 環境で取り込まれるから，文字列 ``tikzpicture`` を ``mathjax avoid list`` に入れておくとよい．
 そうしてからワークシートで ``view(graphs.CompleteGraph(4))`` を実行するとpdflatexがPDFファイルを生成し，ついで ``convert`` ユーティリティが抽出したPNG画像がワークシートの出力セルに挿入されることになる．
 ノートブック上でグラフをLaTeXにグラフを処理させるために必要なコマンド操作を以下に示す．
-
-
 ::
 
     sage: from sage.graphs.graph_latex import setup_latex_preamble
     sage: setup_latex_preamble()
-    sage: latex.extra_preamble() # システムで運用されているTeXの種類に依存
-    '\\usepackage{foo-bar-unchecked}\\usepackage{tikz}\n\\usepackage{tkz-graph}\n\\usepackage{tkz-berge}\n\\usetikzlibrary{arrows,shapes}'
+    sage: latex.extra_preamble() # random - システムで運用されているTeXに依存
+    '\\usepackage{tikz}\n\\usepackage{tkz-graph}\n\\usepackage{tkz-berge}\n'
     sage: latex.engine('pdflatex')
     sage: latex.add_to_mathjax_avoid_list('tikzpicture')
     sage: latex.mathjax_avoid_list()

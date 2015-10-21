@@ -554,6 +554,14 @@ def transform_category(category,
       - ``from`` and ``to`` are strings describing axioms and
       - ``mandatory`` is a boolean.
 
+    - ``initial_category`` -- (default: ``None``) a category. When
+      transforming the given category, this ``initial_category`` is
+      used as a starting point of the result. This means the resulting
+      category will be a subcategory of ``initial_category``.
+      If ``initial_category`` is ``None``, then the
+      :class:`category of objects <sage.categories.objects.Objects>`
+      is used.
+
     OUTPUT:
 
     A category.

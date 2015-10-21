@@ -2035,6 +2035,82 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
             resu += [(L + 1, L + 2, R)]
         return resu
 
+    def comb(self, side=0):
+        r'''
+        Return the comb of a tree.
+
+        There are two combs in a binary tree : a left comb and a right comb.
+        Consider all the vertices of the leftmost (resp. rightmost) branch of 
+        the root. The left (resp. right) comb is the list of right (resp. left) 
+        subtree of each of these vertices.
+
+        INPUT::
+            - ``side`` -- set to 0 to obtain a left comb, and to 1 to obain
+              a right comb.
+
+        OUTPUT::
+            A list of binary trees.
+
+        EXAMPLES::
+
+            sage: BT = BinaryTree( '.' )
+            sage: [BT.comb(0), BT.comb(1)]
+            [[], []]
+            sage: BT = BinaryTree( '[.,.]' )
+            sage: [BT.comb(0), BT.comb(1)]
+            [[], []]
+            sage: BT = BinaryTree( '[[[.,.], .], [.,.]]' )
+            sage: BT.comb(0)
+            [., .]
+            sage: BT.comb(1)
+            [.]
+            sage: BT = BinaryTree( '[[[[., [., .]], .], [[., .], [[[., .], [., .]], [., .]]]], [., [[[., .], [[[., .], [., .]], .]], .]]]' )
+            sage: BT.comb(0)
+            [[[., .], [[[., .], [., .]], [., .]]], ., [., .]]
+            sage: BT.comb(1)
+            [., [[., .], [[[., .], [., .]], .]]]
+        '''
+        if self.is_empty():
+            return []
+        tree = self[side]
+        res = []
+        while not tree.is_empty():
+            res.append(tree[1-side])
+            tree = tree[side]
+        return res
+
+    def hook_number(self):
+        """
+        Return the number of hooks.
+
+        The hook of a vertex v is the union of {v}, its leftmost and 
+        rightmost branches.
+
+        There is a unique way to partition the vertices in hooks.
+        The number of hooks in such a partition is the hook number of the tree.
+
+        We can obtain this partition recursively by extracting the root's hook 
+        and iterating the processus on each tree of the remaining forest.
+
+        EXAMPLES::
+
+            sage: BT = BinaryTree( '.' )
+            sage: BT.hook_number()
+            0
+            sage: BT = BinaryTree( '[.,.]' )
+            sage: BT.hook_number()
+            1
+            sage: BT = BinaryTree( '[[[.,.], .], [.,.]]' )
+            sage: BT.hook_number()
+            1
+            sage: BT = BinaryTree( '[[[[., [., .]], .], [[., .], [[[., .], [., .]], [., .]]]], [., [[[., .], [[[., .], [., .]], .]], .]]]' )
+            sage: BT.hook_number()
+            6
+        """
+        if self.is_empty():
+            return 0
+        return 1 + sum(t.hook_number() for t in self.comb(0) + self.comb(1))
+
     def q_hook_length_fraction(self, q=None, q_factor=False):
         r"""
         Compute the ``q``-hook length fraction of the binary tree ``self``,

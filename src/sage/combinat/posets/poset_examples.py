@@ -616,7 +616,11 @@ class Posets(object):
     @staticmethod
     def TetrahedralPoset(n, *colors):
         r"""
-       Returns the tetrahedral poset based on the input colors. See [Striker2011]_
+        Return the tetrahedral poset based on the input colors. 
+        
+        This method will return the tetralhedral poset with n-1 layers and covering relations based on the input colors of 'green', 'red', 'orange', 'silver', and 'blue'
+        as defined in [Striker2011]_.  For particular color choices, the order ideals of the resulting tetrahedral poset will be isomorphic to known combinatorial objects,
+        see the second example below.
 
         INPUT:
 
@@ -629,6 +633,13 @@ class Posets(object):
             sage: Posets.TetrahedralPoset(4,'green','red','yellow','silver','blue','orange')
             Finite poset containing 10 elements
             
+            sage: A = AlternatingSignMatrices(3)
+            sage: p = A.lattice()
+            sage: ji = p.join_irreducibles_poset()
+            sage: tet = Posets.TetrahedralPoset(3, 'green','yellow','blue','orange')
+            sage: ji.is_isomorphic(tet)
+            True
+        
         REFERENCES:
 
         .. [Striker2011] J. Striker. *A unifying poset perpective on alternating sign matrices, plane partitions, Catalan objects, tournaments, and tableaux*,  
@@ -641,11 +652,17 @@ class Posets(object):
             raise TypeError("n must be an integer.")
         if n < 2:
             raise ValueError("n must be greater than 2.")
+        for c in colors:
+            if(c not in ('green', 'red', 'yellow', 'orange', 'silver', 'blue')):
+                raise ValueError("Color input must be from the following: 'green', 'red', 'yellow', 'orange', 'silver', and 'blue'.")
         elem=[(i,j,k) for i in range (n) for j in range (n-i) for k in range (n-i-j)]
         rels = []
-        edge_colors = {}
+        labels = {}
+        labelcount = 0;
+        for (i,j,k) in elem:
+            labels[(i,j,k)] = labelcount
+            labelcount += 1
         for c in colors:
-            edge_colors[c]=[]
             for (i,j,k) in elem:
                 if(i+j+k < n-1):
                     if(c=='green'):
@@ -663,8 +680,7 @@ class Posets(object):
                 if(i<n-1 and k>0):
                     if(c=='blue'):
                         rels.append([(i,j,k),(i+1,j,k-1)])
-        p = Poset([elem,rels])
-        return p
+        return Poset([elem,rels], labels)
 
     # shard intersection order
     import sage.combinat.shard_order

@@ -1078,15 +1078,15 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
         r"""
         Return sublattices from the vertical decomposition of the lattice.
 
-        Informally this returns the lattice splitted to parts from
-        every single-element "cutting point".
+        Let `d_1, \ldots, d_n` be elements comparable to every element
+        of the lattice, excluding the top and bottom elements. Let `b`
+        be a bottom element and `t` be the top element. This function
+        returns either a list `d_1, \ldots, d_n`, or the list of
+        intervals `[b, d_1], [d_1, d_2], \ldots, [d_{n-1}, d_n], [d_n,
+        t]` as lattices.
 
-        Formally, let `d_1, \ldots, d_n` be elements comparable to
-        every element of the lattice, excluding the top and bottom
-        elements. Let `b` be a bottom element and `t` be the top
-        element. This function returns either a list `d_1, \ldots,
-        d_n`, or the list of intervals `[b, d_1], [d_1, d_2], \ldots,
-        [d_{n-1}, d_n], [d_n, t]` as lattices.
+        Informally said, this returns the lattice splitted to parts from
+        every single-element "cutting point".
 
         INPUT:
 
@@ -1140,13 +1140,13 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
         Return ``True`` if the lattice is vertically decomposable, and
         ``False`` otherwise.
 
-        Informally a lattice is vertically decomposable if it can be seen as
-        two lattices "glued" by unifying the top element of first lattice to
-        the bottom element of second one.
+        A lattice is vertically decomposable if it has an element that
+        is comparable to all elements and is not the bottom neither
+        the top element.
 
-        Formally defined, a lattice is vertically decomposable if it has
-        an element that is comparable to all elements and is not the bottom
-        neither the top element.
+        Informally said, a lattice is vertically decomposable if it
+        can be seen as two lattices "glued" by unifying the top
+        element of first lattice to the bottom element of second one.
 
         .. SEEALSO::
 

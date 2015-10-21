@@ -2840,10 +2840,10 @@ class Polyhedron_base(Element):
             sage: P.barycentric_subdivision()
             A 2-dimensional polyhedron in QQ^3 defined as the convex hull
             of 6 vertices
-            sage: P = polytopes.regular_polygon(5, base_ring=RDF)
+            sage: P = polytopes.regular_polygon(4, base_ring=QQ)
             sage: P.barycentric_subdivision()
-            A 2-dimensional polyhedron in RDF^2 defined as the convex hull
-            of 10 vertices
+            A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 8
+            vertices
 
         TESTS::
 

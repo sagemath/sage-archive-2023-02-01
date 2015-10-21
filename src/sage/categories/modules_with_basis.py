@@ -622,7 +622,8 @@ class ModulesWithBasis(CategoryWithAxiom_over_base_ring):
             return [self.from_vector(vec) for vec in mat if vec]
 
         def submodule(self, gens,
-                      check=True, already_echelonized=False, category=None):
+                      check=True, already_echelonized=False,
+                      support_order=None, category=None, *args, **opts):
             r"""
             The submodule spanned by a finite set of elements.
 
@@ -631,11 +632,15 @@ class ModulesWithBasis(CategoryWithAxiom_over_base_ring):
             - ``gens`` -- a list or family of elements of ``self``
 
             - ``check`` -- (default: ``True``) whether to verify that the
-               elements of ``gens`` are in ``self``.
+               elements of ``gens`` are in ``self``
 
             - ``already_echelonized`` -- (default: ``False``) whether
                the elements of ``gens`` are already in (not necessarily
-               reduced) echelon form.
+               reduced) echelon form
+
+            - ``support_order`` -- (optional) either an instance of class
+              with an ``index`` method (ex. a list), which returns an index
+              of an element in `\ZZ`, or a comparison function
 
             If ``already_echelonized`` is ``False``, then the
             generators are put in reduced echelon form using
@@ -748,6 +753,15 @@ class ModulesWithBasis(CategoryWithAxiom_over_base_ring):
 
                 sage: center = S3A.center()
 
+            We now construct a (finite-dimensional) submodule of an
+            infinite-dimensional free module. Due to current implementation
+            limitations, we must pass an echelonized basis::
+
+                sage: A = GradedModulesWithBasis(ZZ).example()
+                sage: M = A.submodule(list(A.basis(3)), already_echelonized=True)
+                sage: [A(b) for b in M.basis()]
+                [P[3], P[2, 1], P[1, 1, 1]]
+
             TESTS::
 
                 sage: TestSuite(Y).run()
@@ -755,8 +769,18 @@ class ModulesWithBasis(CategoryWithAxiom_over_base_ring):
             """
             if not already_echelonized:
                 gens = self.echelon_form(gens)
+            if support_order is None:
+                try:
+                    support_order = self.get_order()
+                except NotImplementedError:
+                    support_order = list(reduce( lambda x,y: x.union(y.support()),
+                                                 gens, set() ))
+            elif not hasattr(support_order, 'index') and callable(support_order):
+                support_order = sorted(cmp=support_order)
             from sage.modules.with_basis.subquotient import SubmoduleWithBasis
-            return SubmoduleWithBasis(gens, ambient=self, category=category)
+            return SubmoduleWithBasis(gens, ambient=self,
+                                      support_order=support_order,
+                                      category=category, *args, **opts)
 
         def tensor(*parents):
             """

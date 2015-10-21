@@ -173,6 +173,9 @@ class SubmoduleWithBasis(CombinatorialFreeModule):
       :class:`module with basis <ModulesWithBasis>` `V`, or data that
       can be converted into such a family
 
+    - ``support_order`` -- an ordering of the support of ``basis``
+      expressed in ``ambient``
+
     - ``ambient`` -- the ambient space `V`
 
     - ``category`` -- a category
@@ -190,7 +193,8 @@ class SubmoduleWithBasis(CombinatorialFreeModule):
     """
 
     @staticmethod
-    def __classcall_private__(cls, basis, ambient=None, category=None, *args, **opts):
+    def __classcall_private__(cls, basis, support_order, ambient=None,
+                              category=None, *args, **opts):
         r"""
         Normalize the input.
 
@@ -198,8 +202,8 @@ class SubmoduleWithBasis(CombinatorialFreeModule):
 
             sage: from sage.modules.with_basis.subquotient import SubmoduleWithBasis
             sage: X = CombinatorialFreeModule(QQ, range(3)); x = X.basis()
-            sage: Y1 = SubmoduleWithBasis((x[0]-x[1], x[1]-x[2]), X)
-            sage: Y2 = SubmoduleWithBasis([x[0]-x[1], x[1]-x[2]], X)
+            sage: Y1 = SubmoduleWithBasis((x[0]-x[1], x[1]-x[2]), [0,1,2], X)
+            sage: Y2 = SubmoduleWithBasis([x[0]-x[1], x[1]-x[2]], (0,1,2), X)
             sage: Y1 is Y2
             True
         """
@@ -209,9 +213,9 @@ class SubmoduleWithBasis(CombinatorialFreeModule):
         default_category = ModulesWithBasis(ambient.category().base_ring()).Subobjects()
         category = default_category.or_subcategory(category, join=True)
         return super(SubmoduleWithBasis, cls).__classcall__(
-            cls, basis, ambient, category, *args, **opts)
+            cls, basis, tuple(support_order), ambient, category, *args, **opts)
 
-    def __init__(self, basis, ambient, category):
+    def __init__(self, basis, support_order, ambient, category, *args, **opts):
         r"""
         Initialization.
 
@@ -220,7 +224,7 @@ class SubmoduleWithBasis(CombinatorialFreeModule):
             sage: from sage.modules.with_basis.subquotient import SubmoduleWithBasis
             sage: X = CombinatorialFreeModule(QQ, range(3), prefix="x"); x = X.basis()
             sage: ybas = (x[0]-x[1], x[1]-x[2])
-            sage: Y = SubmoduleWithBasis(ybas, X)
+            sage: Y = SubmoduleWithBasis(ybas, [0, 1, 2], X)
             sage: Y.print_options(prefix='y')
             sage: Y.basis().list()
             [y[0], y[1]]
@@ -231,10 +235,13 @@ class SubmoduleWithBasis(CombinatorialFreeModule):
         import operator
         ring = ambient.base_ring()
         CombinatorialFreeModule.__init__(self, ring, basis.keys(),
-                                         category=category.Subobjects())
+                                         category=category.Subobjects(),
+                                         *args, **opts)
         self._ambient = ambient
         self._basis = basis
+        self._support_order = support_order
         self.lift_on_basis = self._basis.__getitem__
+        self.lift.register_as_coercion()
 
     def ambient(self):
         """
@@ -267,10 +274,12 @@ class SubmoduleWithBasis(CombinatorialFreeModule):
             sage: (y[0] + y[1]).lift()
             x[0] - x[2]
         """
+        support_cmp = lambda x,y: cmp(self._support_order.index(x),
+                                      self._support_order.index(y))
         return self.module_morphism(self.lift_on_basis,
                                     codomain=self.ambient(),
                                     triangular="lower",
-                                    cmp=self.ambient().get_order_cmp(),
+                                    cmp=support_cmp,
                                     inverse_on_support="compute")
 
     @lazy_attribute

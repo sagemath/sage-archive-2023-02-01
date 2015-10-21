@@ -14,19 +14,19 @@ AUTHORS:
 
     TESTS::
 
-        sage: import sage.rings.asymptotic.growth_group as agg
-        sage: G = agg.GenericGrowthGroup(ZZ); G
+        sage: from sage.rings.asymptotic.growth_group import GenericGrowthGroup, GrowthGroup
+        sage: GenericGrowthGroup(ZZ)
         doctest:...: FutureWarning: This class/method/function is marked as
         experimental. It, its functionality or its interface might change
         without a formal deprecation.
         See http://trac.sagemath.org/17601 for details.
         Growth Group Generic(ZZ)
-        sage: G = agg.MonomialGrowthGroup(ZZ, 'x'); G
+        sage: GrowthGroup('x^ZZ * log(x)^ZZ')
         doctest:...: FutureWarning: This class/method/function is marked as
         experimental. It, its functionality or its interface might change
         without a formal deprecation.
         See http://trac.sagemath.org/17601 for details.
-        Growth Group x^ZZ
+        Growth Group x^ZZ * log(x)^ZZ
 """
 
 #*****************************************************************************
@@ -107,7 +107,7 @@ class CartesianProductFactory(sage.structure.factory.UniqueFactory):
     TESTS::
 
         sage: from sage.rings.asymptotic.growth_group_cartesian import CartesianProductFactory
-        sage: CartesianProductFactory('factory')([A, B], category=Sets())
+        sage: CartesianProductFactory('factory')([A, B], category=Groups() & Posets())
         Growth Group x^ZZ * log(x)^ZZ
         sage: CartesianProductFactory('factory')([], category=Sets())
         Traceback (most recent call last):
@@ -218,6 +218,61 @@ class GenericProduct(CartesianProductPoset, GenericGrowthGroup):
         :class:`~sage.sets.cartesian_product.CartesianProduct`,
         :class:`~sage.combinat.posets.cartesian_product.CartesianProductPoset`.
     """
+
+    @staticmethod
+    def __classcall__(cls, *args, **kwds):
+        r"""
+        Normalizes the input in order to ensure a unique
+        representation.
+
+        TESTS::
+
+            sage: from sage.rings.asymptotic.growth_group import GrowthGroup
+            sage: GrowthGroup('x^ZZ * y^ZZ')  # indirect doctest
+            Growth Group x^ZZ * y^ZZ
+        """
+        return CartesianProductPoset.__classcall__(cls, *args, **kwds)
+
+
+    def __init__(self, sets, category, **kwds):
+        r"""
+        See :class:`GenericProduct` for details.
+
+        TESTS::
+
+            sage: from sage.rings.asymptotic.growth_group import GrowthGroup
+            sage: GrowthGroup('x^ZZ * y^ZZ')  # indirect doctest
+            Growth Group x^ZZ * y^ZZ
+        """
+        order = kwds.pop('order')
+        CartesianProductPoset.__init__(self, sets, category, order, **kwds)
+
+        vars = sum(iter(factor.variable_names()
+                        for factor in self.cartesian_factors()),
+                   tuple())
+        from itertools import groupby
+        from growth_group import Variable
+        Vars = Variable(tuple(v for v, _ in groupby(vars)))
+
+        GenericGrowthGroup.__init__(self, sets[0], Vars, self.category(), **kwds)
+
+
+    def __hash__(self):
+        r"""
+        Return a hash value for this cartesian product.
+
+        OUTPUT:
+
+        An integer.
+
+        TESTS::
+
+            sage: from sage.rings.asymptotic.growth_group import GrowthGroup
+            sage: hash(GrowthGroup('x^ZZ * y^ZZ'))  # indirect doctest, random
+            -1
+        """
+        return CartesianProductPoset.__hash__(self)
+
 
     def _element_constructor_(self, data):
         r"""

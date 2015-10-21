@@ -30,7 +30,8 @@ from cpython.sequence cimport *
 
 include 'sage/ext/stdsage.pxi'
 
-from sage.rings.integer  cimport Integer
+from sage.libs.gmp.mpz cimport *
+from sage.rings.integer cimport Integer
 from matrix cimport Matrix
 
 from matrix_modn_sparse cimport Matrix_modn_sparse
@@ -51,7 +52,6 @@ cdef class Matrix_integer_sparse(matrix_sparse.Matrix_sparse):
     #   * __init__
     #   * set_unsafe
     #   * get_unsafe
-    #   * __richcmp__    -- always the same
     #   * __hash__       -- always simple
     ########################################################################
     def __cinit__(self, parent, entries, copy, coerce):
@@ -154,12 +154,8 @@ cdef class Matrix_integer_sparse(matrix_sparse.Matrix_sparse):
         mpz_vector_get_entry(x.value, &self._matrix[i], j)
         return x
 
-    def __richcmp__(Matrix self, right, int op):  # always need for mysterious reasons.
-        return self._richcmp(right, op)
-
     def __hash__(self):
         return self._hash()
-
 
     ########################################################################
     # LEVEL 2 functionality

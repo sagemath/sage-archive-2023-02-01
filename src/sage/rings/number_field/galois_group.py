@@ -111,8 +111,8 @@ class GaloisGroup_v1(SageObject):
             PARI group [6, -1, 2, "S3"] of degree 3
             sage: P = H.permutation_group(); P  # optional - database_gap
             Transitive group number 2 of degree 3
-            sage: list(P)                       # optional
-            [(), (2,3), (1,2), (1,2,3), (1,3,2), (1,3)]
+            sage: list(P)                       # optional - database_gap
+            [(), (1,2), (1,2,3), (2,3), (1,3,2), (1,3)]
         """
         return self.__group
 
@@ -661,9 +661,31 @@ class GaloisGroupElement(PermutationGroupElement):
             sage: G[1].as_hom()
             Ring endomorphism of Number Field in w with defining polynomial x^2 + 7
             Defn: w |--> -w
+
+        TESTS:
+
+        Number fields defined by non-monic and non-integral
+        polynomials are supported (:trac:`252`)::
+
+            sage: R.<x> = QQ[]
+            sage: f = 7/9*x^3 + 7/3*x^2 - 56*x + 123
+            sage: K.<a> = NumberField(f)
+            sage: G = K.galois_group()
+            sage: G[1].as_hom()
+            Ring endomorphism of Number Field in a with defining polynomial 7/9*x^3 + 7/3*x^2 - 56*x + 123
+              Defn: a |--> -7/15*a^2 - 18/5*a + 96/5
+            sage: prod(x - sigma(a) for sigma in G) == f.monic()
+            True
         """
-        L = self.parent().splitting_field()
-        a = L(self.parent()._pari_data.galoispermtopol(pari(self.domain()).Vecsmall()))
+        G = self.parent()
+        L = G.splitting_field()
+        # First compute the image of the standard generator of the
+        # PARI number field.
+        a = G._pari_data.galoispermtopol(pari(self.domain()).Vecsmall())
+        # Now convert this to a conjugate of the standard generator of
+        # the Sage number field.
+        P = L._pari_absolute_structure()[1].lift()
+        a = L(P(a.Mod(L.pari_polynomial('y'))))
         return L.hom(a, L)
 
     def __call__(self, x):

@@ -1,5 +1,5 @@
 r"""
-Ideals of commutative rings.
+Ideals of commutative rings
 
 Sage provides functionality for computing with ideals. One can create
 an ideal in any commutative or non-commutative ring `R` by giving a
@@ -512,7 +512,7 @@ class Ideal_generic(MonoidElement):
         return phi(self)
 
     def _latex_(self):
-        """
+        r"""
         Return a latex representation of ``self``.
 
         EXAMPLES::
@@ -1316,10 +1316,10 @@ class Ideal_pid(Ideal_principal):
 
         EXAMPLES::
 
-        sage: I = 8*ZZ
-        sage: I2 = 3*ZZ
-        sage: I + I2
-        Principal ideal (1) of Integer Ring
+            sage: I = 8*ZZ
+            sage: I2 = 3*ZZ
+            sage: I + I2
+            Principal ideal (1) of Integer Ring
         """
         if not isinstance(other, Ideal_generic):
             other = self.ring().ideal(other)

@@ -20,7 +20,7 @@ from sage.sets.recursively_enumerated_set import RecursivelyEnumeratedSet
 from sage.combinat.root_system.weyl_characters import WeylCharacterRing
 
 # TODO: Make this a proper parent and implement actions
-class IntegrableRepresentation(CategoryObject, UniqueRepresentation):
+class IntegrableRepresentation(UniqueRepresentation, CategoryObject):
     r"""
     An irreducible integrable highest weight representation of
     an affine Lie algebra.
@@ -1037,7 +1037,7 @@ class IntegrableRepresentation(CategoryObject, UniqueRepresentation):
                 mc = P(self.to_weight(x[0])).monomial_coefficients()
                 contr = sum(fw[sequence[j]]*mc.get(j,0)
                             for j in self._index_set if j != i).coerce_to_sl()
-                if ldict.has_key(contr):
+                if contr in ldict:
                     ldict[contr] += x[1]
                 else:
                     ldict[contr] = x[1]

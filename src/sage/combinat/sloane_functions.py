@@ -47,16 +47,14 @@ TESTS::
     sage: a == loads(dumps(a))
     True
 
-    We agree with the online database::
+We agree with the online database::
 
-    sage: for t in sloane.trait_names():    # long time; optional -- internet
+    sage: for t in sloane.trait_names():    # long time; optional -- internet; known bug
     ....:     online_list = list(oeis(t).first_terms())
     ....:     L = max(2, len(online_list) // 2)
     ....:     sage_list = sloane.__getattribute__(t).list(L)
     ....:     if online_list[:L] != sage_list:
     ....:         print t, 'seems wrong'
-
-
 
 .. SEEALSO::
 
@@ -315,16 +313,12 @@ class A000001(SloaneSequence):
         r"""
         Number of groups of order `n`.
 
-        Note: The database_gap-4.4.9 must be installed for
-        `n > 50`.
-
-        run ``sage -i database_gap-4.4.9`` or higher first.
+        Note: The package database_gap must be installed for
+        `n > 50`: run ``sage -i database_gap`` first.
 
         INPUT:
 
-
-        -  ``n`` - positive integer
-
+        -  ``n`` -- positive integer
 
         OUTPUT: integer
 
@@ -336,15 +330,15 @@ class A000001(SloaneSequence):
             Traceback (most recent call last):
             ...
             ValueError: input n (=0) must be a positive integer
-            sage: a(1) #optional database_gap
+            sage: a(1)
             1
-            sage: a(2) #optional database_gap
+            sage: a(2)
             1
-            sage: a(9) #optional database_gap
+            sage: a(9)
             2
-            sage: a.list(16) #optional database_gap
+            sage: a.list(16)
             [1, 1, 1, 2, 1, 2, 1, 5, 2, 2, 1, 5, 1, 2, 1, 14]
-            sage: a(60)     # optional
+            sage: a(60)  # optional - database_gap
             13
 
         AUTHORS:

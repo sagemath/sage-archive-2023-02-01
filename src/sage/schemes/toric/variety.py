@@ -91,7 +91,7 @@ realized as the toric variety associated to the
 :func:`face fan <sage.geometry.fan.FaceFan>` of the "diamond"::
 
     sage: diamond = lattice_polytope.cross_polytope(2)
-    sage: diamond.vertices_pc()
+    sage: diamond.vertices()
     M( 1,  0),
     M( 0,  1),
     M(-1,  0),
@@ -3215,7 +3215,7 @@ class CohomologyRing(QuotientRing_generic, UniqueRepresentation):
         r"""
         Construct a :class:`CohomologyClass`.
 
-        INPUT::
+        INPUT:
 
         - ``x`` -- something that defines a cohomology class. Either a
           cohomology class, a cone of the fan, or something that can

@@ -1,5 +1,5 @@
 """
-Monoid Elements
+Elements of Free Monoids
 
 AUTHORS:
 
@@ -367,7 +367,7 @@ class FreeMonoidElement(MonoidElement):
         gens = self.parent().gens()
         if alph is None:
             alph = gens
-        alph = map(str, alph)
+        alph = [str(_) for _ in alph]
         W = Words(alph)
         return W(sum([ [alph[gens.index(i[0])]] * i[1] for i in list(self) ], []))
 

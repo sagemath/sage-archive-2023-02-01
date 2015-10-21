@@ -346,15 +346,14 @@ TESTS::
 #*****************************************************************************
 #       Copyright (C) 2006 William Stein <wstein@gmail.com>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
-#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-include "sage/ext/cdefs.pxi"
-
 import ideal
-
 import homset
 
 def is_RingHomomorphism(phi):
@@ -1616,12 +1615,12 @@ cdef class RingHomomorphism_cover(RingHomomorphism):
             sage: f(-5)                 # indirect doctest
             1
 
-        TESTS::
+        TESTS:
 
         We verify that calling directly raises the expected error
         (just coercing into the codomain), but calling with __call__
         (the second call below) gives a TypeError since 1/2 can't be
-        coerced into the domain.
+        coerced into the domain. ::
 
             sage: f._call_(1/2)
             Traceback (most recent call last):

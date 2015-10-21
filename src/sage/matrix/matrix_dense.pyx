@@ -14,8 +14,6 @@ from   sage.structure.element    cimport Element
 import sage.matrix.matrix_space
 import sage.structure.sequence
 
-include 'sage/ext/cdefs.pxi'
-
 cdef class Matrix_dense(matrix.Matrix):
     cdef bint is_sparse_c(self):
         return 0
@@ -236,7 +234,7 @@ cdef class Matrix_dense(matrix.Matrix):
         raised.
 
         This routine is meant to be called from the
-        meth:`~sage.matrix.matrix2.Matrix.elementwise_product`
+        :meth:`~sage.matrix.matrix2.Matrix.elementwise_product`
         method, which will ensure that this routine receives
         proper input.  More thorough documentation is provided
         there.

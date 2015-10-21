@@ -31,6 +31,7 @@ AUTHORS:
 import itertools
 import copy
 from sage.misc.classcall_metaclass import ClasscallMetaclass
+from sage.misc.inherit_comparison import InheritComparisonClasscallMetaclass
 from sage.misc.flatten import flatten
 from sage.misc.all import prod
 from sage.structure.unique_representation import UniqueRepresentation
@@ -48,6 +49,7 @@ from sage.combinat.gelfand_tsetlin_patterns import GelfandTsetlinPatternsTopRow
 from sage.combinat.combinatorial_map import combinatorial_map
 from sage.combinat.non_decreasing_parking_function import NonDecreasingParkingFunction
 from sage.combinat.permutation import Permutation
+from sage.combinat.six_vertex_model import SquareIceModel
 
 class AlternatingSignMatrix(Element):
     r"""
@@ -67,7 +69,7 @@ class AlternatingSignMatrix(Element):
        Volume 34, Issue 3, May 1983, Pages 340--359.
        http://www.sciencedirect.com/science/article/pii/0097316583900687
     """
-    __metaclass__ = ClasscallMetaclass
+    __metaclass__ = InheritComparisonClasscallMetaclass
 
     @staticmethod
     def __classcall_private__(cls, asm):
@@ -306,7 +308,7 @@ class AlternatingSignMatrix(Element):
         number of the permutation.
 
         This definition is equivalent to the one given in [MiRoRu]_.
-        
+
         EXAMPLES::
 
             sage: A = AlternatingSignMatrices(3)
@@ -455,6 +457,70 @@ class AlternatingSignMatrix(Element):
         asm = self.to_matrix()
         n = asm.nrows() + 1
         return matrix([[i+j-2*nw_corner_sum(asm,i,j) for i in range(n)] for j in range(n)])
+
+    def to_six_vertex_model(self):
+        r"""
+        Return the six vertex model configuration from ``self``.
+        This method calls :meth:`sage.combinat.six_vertex_model.from_alternating_sign_matrix`.
+
+        EXAMPLES::
+
+            sage: asm = AlternatingSignMatrix([[0,1,0],[1,-1,1],[0,1,0]])
+            sage: asm.to_six_vertex_model()
+                ^    ^    ^
+                |    |    |
+            --> # -> # <- # <--
+                ^    |    ^
+                |    V    |
+            --> # <- # -> # <--
+                |    ^    |
+                V    |    V
+            --> # -> # <- # <--
+                |    |    |
+                V    V    V
+
+        TESTS::
+
+            sage: ASM = AlternatingSignMatrices(5)
+            sage: all((x.to_six_vertex_model()).to_alternating_sign_matrix() == x
+            ....:     for x in ASM)
+            True
+        """
+
+        asm = self.to_matrix()
+        n = asm.nrows()
+        M = SquareIceModel(n)
+        return M.from_alternating_sign_matrix(self)
+
+    def to_fully_packed_loop(self):
+        r"""
+        Return the fully packed loop configuration from ``self``.
+
+        .. SEEALSO::
+
+            :class:FullyPackedLoop
+
+        EXAMPLES::
+
+            sage: asm = AlternatingSignMatrix([[1,0,0],[0,1,0],[0,0,1]])
+            sage: fpl = asm.to_fully_packed_loop()
+            sage: fpl
+                |         |
+                |         |
+                +    + -- +
+                |    |
+                |    |
+             -- +    +    + --
+                     |    |
+                     |    |
+                + -- +    +
+                |         |
+                |         |
+
+        """
+        from sage.combinat.fully_packed_loop import FullyPackedLoop
+        return FullyPackedLoop(self)
+
 
     @combinatorial_map(name='gyration')
     def gyration(self):
@@ -889,7 +955,7 @@ class AlternatingSignMatrix(Element):
         """
         return self.left_key().to_permutation()
 
-class AlternatingSignMatrices(Parent, UniqueRepresentation):
+class AlternatingSignMatrices(UniqueRepresentation, Parent):
     r"""
     Class of all `n \times n` alternating sign matrices.
 
@@ -1474,8 +1540,7 @@ class MonotoneTriangles(GelfandTsetlinPatternsTopRow):
         """
         # get a list of the elements and switch to a tuple
         # representation
-        set_ = list(self)
-        set_ = map(lambda x: tuple(map(tuple, x)), set_)
+        set_ = [tuple(tuple(_) for _ in x) for x in list(self)]
         return (set_, [(a,b) for a in set_ for b in set_ if _is_a_cover(a,b)])
 
     def cover_relations(self):
@@ -1556,6 +1621,7 @@ class ContreTableaux(Parent):
         42
     """
     __metaclass__ = ClasscallMetaclass
+
     @staticmethod
     def __classcall_private__(cls, n, **kwds):
         r"""
@@ -1718,6 +1784,7 @@ class TruncatedStaircases(Parent):
         4
     """
     __metaclass__ = ClasscallMetaclass
+
     @staticmethod
     def __classcall_private__(cls, n, last_column, **kwds):
         r"""
@@ -1782,13 +1849,13 @@ class TruncatedStaircases_nlastcolumn(TruncatedStaircases):
 
     def __iter__(self):
         """
-        EXAMPLES:::
+        EXAMPLES::
 
             sage: list(TruncatedStaircases(4, [2,3]))
             [[[4, 3, 2, 1], [3, 2, 1], [3, 2]], [[4, 3, 2, 1], [4, 2, 1], [3, 2]], [[4, 3, 2, 1], [4, 3, 1], [3, 2]], [[4, 3, 2, 1], [4, 3, 2], [3, 2]]]
         """
         for z in self._iterator_rec(self.n):
-            yield map(lambda x: list(reversed(x)), z)
+            yield [list(reversed(x)) for x in z]
 
     def __eq__(self, other):
         r"""

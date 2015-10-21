@@ -150,8 +150,9 @@ class Core(CombinatorialElement):
 
     def _latex_(self):
         """
-        Outputs the LaTeX representation of this core as a partition. See the
-        ``_latex_()`` method of :class:`Partition`.
+        Output the LaTeX representation of this core as a partition.
+
+        See the ``_latex_`` method of :class:`Partition`.
 
         EXAMPLES::
 
@@ -421,7 +422,7 @@ class Core(CombinatorialElement):
             ...
             ValueError: The two cores do not have the same k
         """
-        if isinstance(self, type(other)):
+        if type(self) is type(other):
             if self.k() != other.k():
                 raise ValueError("The two cores do not have the same k")
         else:
@@ -476,7 +477,7 @@ class Core(CombinatorialElement):
             ...
             ValueError: The two cores do not have the same k
         """
-        if isinstance(self, type(other)):
+        if type(self) is type(other):
             if self.k()!=other.k():
                 raise ValueError("The two cores do not have the same k")
         else:

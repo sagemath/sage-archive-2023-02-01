@@ -12,8 +12,7 @@ is
 
 - :class:`MonomialGrowthGroup` (whose elements are powers of a fixed symbol).
 
-More complex growth groups can be constructed via cartesian products
-(to be implemented).
+More complex growth groups can be constructed via cartesian products.
 
 These growth groups are used behind the scenes when performing
 calculations in an asymptotic ring (to be implemented).
@@ -22,7 +21,8 @@ AUTHORS:
 
 - Benjamin Hackl (2015-01): initial version
 - Daniel Krenn (2015-05-29): initial version and review
-- Benjamin Hackl (2015-07): short representation strings
+- Daniel Krenn (2015-06-02): cartesian products
+- Benjamin Hackl (2015-07): growth group factory
 
 .. WARNING::
 
@@ -45,6 +45,64 @@ AUTHORS:
         without a formal deprecation.
         See http://trac.sagemath.org/17601 for details.
         Growth Group x^ZZ
+
+
+Creation of Growth Groups
+=========================
+
+By using the following short notation for growth groups, their
+creation is very simple: *Monomial growth groups* (i.e. the
+group for powers of a fixed symbol;
+:class:`~sage.rings.asymptotic.growth_group.MonomialGrowthGroup`)
+are denoted as ``variable^base``, e.g. ``x^ZZ`` and ``y^QQ`` for
+the group of integer powers of `x`, and the group of rational
+powers of `y`, respectively.
+
+This also enables us to construct *logarithmic growth groups*,
+e.g. ``log(x)^ZZ``.
+
+This notation will also be extended to *Exponential growth
+groups*.
+
+EXAMPLES::
+
+    sage: import sage.rings.asymptotic.growth_group as agg
+    sage: G_x = agg.GrowthGroup('x^ZZ'); repr(G_x)
+    'Growth Group x^ZZ'
+    sage: G_xy = agg.GrowthGroup('x^ZZ * y^ZZ'); G_xy
+    Growth Group x^ZZ * y^ZZ
+    sage: G_xy.an_element()
+    x * y
+    sage: x = G_xy('x'); y = G_xy('y')
+    sage: elem = x^21 * y^21; elem^2
+    x^42 * y^42
+
+A monomial growth group itself is totally ordered, all elements
+are comparable. However, this does **not** hold for cartesian
+products::
+
+    sage: e1 = x^2 * y; e2 = x * y^2
+    sage: e1 <= e2 or e2 <= e1
+    False
+
+In terms of uniqueness, we have the following behaviour::
+
+    sage: agg.GrowthGroup('x^ZZ * y^ZZ') is agg.GrowthGroup('y^ZZ * x^ZZ')
+    True
+
+The above is ``True`` since the order of the factors does not play a role here; they use different variables. But when using the same variable, it plays a role::
+
+    sage: agg.GrowthGroup('x^ZZ * log(x)^ZZ') is agg.GrowthGroup('log(x)^ZZ * x^ZZ')
+    False
+
+In this case the components are ordered lexicographically, which
+means that in the second growth group, ``log(x)`` is assumed to
+grow faster than ``x`` (which is nonsense, mathematically). See
+:class:`CartesianProduct <sage.rings.asymptotic.growth_group_cartesian.CartesianProductFactory>`
+for more details.
+
+Classes and Methods
+===================
 """
 
 #*****************************************************************************
@@ -59,6 +117,9 @@ AUTHORS:
 #*****************************************************************************
 
 import sage
+from sage.misc.lazy_import import lazy_import
+lazy_import('sage.rings.asymptotic.growth_group_cartesian', 'CartesianProductGrowthGroups')
+
 
 def repr_short_to_parent(s):
     r"""
@@ -138,6 +199,278 @@ def parent_to_repr_short(P):
         if ' ' in rep:
             rep = '(' + rep + ')'
         return rep
+
+
+class Variable(sage.structure.unique_representation.CachedRepresentation,
+               sage.structure.sage_object.SageObject):
+    r"""
+    A class managing the variable of a growth group.
+
+    INPUT:
+
+    - ``var`` -- an object whose representation string is used as the
+      variable. It has to be a valid Python identifier. ``var`` can
+      also be a tuple (or other iterable) of such objects.
+
+    - ``repr`` -- (default: ``None``) if specified, then this string
+      will be displayed instead of ``var``. Use this to get
+      e.g. ``log(x)^ZZ``: ``var`` is then used to specify the variable `x`.
+
+    TESTS::
+
+        sage: from sage.rings.asymptotic.growth_group import Variable
+        sage: v = Variable('x'); repr(v), v.variable_names()
+        ('x', ('x',))
+        sage: v = Variable('x1'); repr(v), v.variable_names()
+        ('x1', ('x1',))
+        sage: v = Variable('x_42'); repr(v), v.variable_names()
+        ('x_42', ('x_42',))
+        sage: v = Variable(' x'); repr(v), v.variable_names()
+        ('x', ('x',))
+        sage: v = Variable('x '); repr(v), v.variable_names()
+        ('x', ('x',))
+        sage: v = Variable(''); repr(v), v.variable_names()
+        ('', ())
+
+    ::
+
+        sage: v = Variable(('x', 'y')); repr(v), v.variable_names()
+        ('x, y', ('x', 'y'))
+        sage: v = Variable(('x', 'log(y)')); repr(v), v.variable_names()
+        ('x, log(y)', ('x', 'y'))
+        sage: v = Variable(('x', 'log(x)')); repr(v), v.variable_names()
+        Traceback (most recent call last):
+        ...
+        ValueError: Variable names ('x', 'x') are not pairwise distinct.
+
+    ::
+
+        sage: v = Variable('log(x)'); repr(v), v.variable_names()
+        ('log(x)', ('x',))
+        sage: v = Variable('log(log(x))'); repr(v), v.variable_names()
+        ('log(log(x))', ('x',))
+
+    ::
+
+        sage: v = Variable('x', repr='log(x)'); repr(v), v.variable_names()
+        ('log(x)', ('x',))
+    """
+    def __init__(self, var, repr=None):
+        r"""
+        See :class:`Variable` for details.
+
+        TESTS::
+
+            sage: from sage.rings.asymptotic.growth_group import Variable
+            sage: Variable('blub')
+            blub
+            sage: Variable('blub') is Variable('blub')
+            True
+
+        ::
+
+            sage: Variable('(:-)')
+            Traceback (most recent call last):
+            ...
+            TypeError: Malformed expression: (: !!! -)
+            sage: Variable('(:-)', repr='icecream')
+            Traceback (most recent call last):
+            ...
+            ValueError: '(:-)' is not a valid name for a variable.
+        """
+        from sage.symbolic.ring import isidentifier
+
+        if not isinstance(var, (list, tuple)):
+            var = (var,)
+        var = tuple(str(v).strip() for v in var)
+
+        if repr is None:
+            var_bases = sum(iter(
+                self.extract_variable_names(v)
+                if not isidentifier(v) else (v,)
+                for v in var), tuple())
+            var_repr = ', '.join(var)
+        else:
+            for v in var:
+                if not isidentifier(v):
+                    raise ValueError("'%s' is not a valid name for a variable." % (v,))
+            var_bases = var
+            var_repr = str(repr).strip()
+
+        if len(var_bases) != len(set(var_bases)):
+            raise ValueError('Variable names %s are not pairwise distinct.' %
+                             (var_bases,))
+        self.var_bases = var_bases
+        self.var_repr = var_repr
+
+
+    def __hash__(self):
+        r"""
+        Return the hash of this variable.
+
+        TESTS::
+
+            sage: from sage.rings.asymptotic.growth_group import Variable
+            sage: hash(Variable('blub'))  # random
+            -123456789
+        """
+        return hash((self.var_repr,) + self.var_bases)
+
+
+    def __eq__(self, other):
+        r"""
+        Compare whether this variable equals ``other``.
+
+        INPUT:
+
+        - ``other`` -- another variable.
+
+        OUTPUT:
+
+        A boolean.
+
+        TESTS::
+
+            sage: from sage.rings.asymptotic.growth_group import Variable
+            sage: Variable('x') == Variable('x')
+            True
+            sage: Variable('x') == Variable('y')
+            False
+        """
+        return self.var_repr == other.var_repr and self.var_bases == other.var_bases
+
+
+    def _repr_(self):
+        r"""
+        Return a representation string of this variable.
+
+        TESTS::
+
+            sage: from sage.rings.asymptotic.growth_group import Variable
+            sage: Variable('blub')  # indirect doctest
+            blub
+        """
+        return self.var_repr
+
+
+    def variable_names(self):
+        r"""
+        Return the names of the variables.
+
+        OUTPUT:
+
+        A tuple of strings.
+
+        EXAMPLES::
+
+            sage: from sage.rings.asymptotic.growth_group import Variable
+            sage: Variable('x').variable_names()
+            ('x',)
+            sage: Variable('log(x)').variable_names()
+            ('x',)
+        """
+        return self.var_bases
+
+
+    def is_monomial(self):
+        r"""
+        Return whether this is a monomial variable.
+
+        OUTPUT:
+
+        A boolean.
+
+        EXAMPLES::
+
+            sage: from sage.rings.asymptotic.growth_group import Variable
+            sage: Variable('x').is_monomial()
+            True
+            sage: Variable('log(x)').is_monomial()
+            False
+        """
+        return len(self.var_bases) == 1 and self.var_bases[0] == self.var_repr
+
+
+    @staticmethod
+    def extract_variable_names(s):
+        r"""
+        Determine the name of the variable for the given string.
+
+        INPUT:
+
+        - ``s`` -- a string.
+
+        OUTPUT:
+
+        A tuple of strings.
+
+        EXAMPLES::
+
+            sage: from sage.rings.asymptotic.growth_group import Variable
+            sage: Variable.extract_variable_names('')
+            ()
+            sage: Variable.extract_variable_names('x')
+            ('x',)
+            sage: Variable.extract_variable_names('exp(x)')
+            ('x',)
+            sage: Variable.extract_variable_names('sin(cos(ln(x)))')
+            ('x',)
+
+        ::
+
+            sage: Variable.extract_variable_names('log(77w)')
+            ('w',)
+            sage: Variable.extract_variable_names('log(x')
+            Traceback (most recent call last):
+            ....
+            TypeError: Bad function call: log(x !!!
+            sage: Variable.extract_variable_names('x)')
+            Traceback (most recent call last):
+            ....
+            TypeError: Malformed expression: x) !!!
+            sage: Variable.extract_variable_names('log)x(')
+            Traceback (most recent call last):
+            ....
+            TypeError: Malformed expression: log) !!! x(
+            sage: Variable.extract_variable_names('log(x)+y')
+            ('x', 'y')
+            sage: Variable.extract_variable_names('icecream(summer)')
+            ('summer',)
+
+        ::
+
+            sage: Variable.extract_variable_names('a + b')
+            ('a', 'b')
+            sage: Variable.extract_variable_names('a+b')
+            ('a', 'b')
+            sage: Variable.extract_variable_names('a +b')
+            ('a', 'b')
+            sage: Variable.extract_variable_names('+a')
+            ('a',)
+            sage: Variable.extract_variable_names('a+')
+            Traceback (most recent call last):
+            ...
+            TypeError: Malformed expression: a+ !!!
+            sage: Variable.extract_variable_names('b!')
+            ('b',)
+            sage: Variable.extract_variable_names('-a')
+            ('a',)
+            sage: Variable.extract_variable_names('a*b')
+            ('a', 'b')
+            sage: Variable.extract_variable_names('2^q')
+            ('q',)
+            sage: Variable.extract_variable_names('77')
+            ()
+
+        ::
+
+            sage: Variable.extract_variable_names('a + (b + c) + d')
+            ('a', 'b', 'c', 'd')
+        """
+        from sage.symbolic.ring import SR
+        if s == '':
+            return ()
+        return tuple(str(s) for s in SR(s).variables())
 
 
 class GenericGrowthElement(sage.structure.element.MultiplicativeGroupElement):
@@ -467,8 +800,8 @@ class GenericGrowthElement(sage.structure.element.MultiplicativeGroupElement):
 
 
 class GenericGrowthGroup(
-        sage.structure.parent.Parent,
-        sage.structure.unique_representation.UniqueRepresentation):
+        sage.structure.unique_representation.UniqueRepresentation,
+        sage.structure.parent.Parent):
     r"""
     A basic implementation for growth groups.
 
@@ -719,29 +1052,6 @@ class GenericGrowthGroup(
         return self(left) <= self(right)
 
 
-    def one(self):
-        r"""
-        Return the neutral element of this growth group.
-
-        INPUT:
-
-        Nothing.
-
-        OUTPUT:
-
-        An element of this group.
-
-        EXAMPLES::
-
-            sage: import sage.rings.asymptotic.growth_group as agg
-            sage: e1 = agg.MonomialGrowthGroup(ZZ, 'x').one(); e1
-            1
-            sage: e1.is_idempotent()
-            True
-        """
-        return self(1)
-
-
     def _element_constructor_(self, data, raw_element=None):
         r"""
         Convert a given object to this growth group.
@@ -903,8 +1213,8 @@ class GenericGrowthGroup(
 
     def gens_monomial(self):
         r"""
-        Return a monomial generator of this growth group, in case
-        one exists.
+        Return a tuple containing monomial generators of this growth
+        group.
 
         INPUT:
 
@@ -922,20 +1232,36 @@ class GenericGrowthGroup(
             while ``log(x)^ZZ`` or ``icecream(x)^ZZ`` do not have
             monomial generators.
 
-            This method is only implemented for concrete growth
+            This method must be implemented for concrete growth
             group implementations.
 
         TESTS::
 
             sage: import sage.rings.asymptotic.growth_group as agg
             sage: agg.GenericGrowthGroup(ZZ).gens_monomial()
-            Traceback (most recent call last):
-            ...
-            NotImplementedError: Only implemented for concrete growth group
-            implementations.
+            ()
         """
-        raise NotImplementedError("Only implemented for concrete growth group"
-                                  " implementations.")
+        return tuple()
+
+
+    def variable_names(self):
+        r"""
+        Return the names of the variables.
+
+        OUTPUT:
+
+        A tuple of strings.
+
+        EXAMPLES::
+
+            sage: import sage.rings.asymptotic.growth_group as agg
+            sage: agg.GenericGrowthGroup(ZZ).variable_names()
+            ()
+        """
+        return tuple()
+
+
+    CartesianProduct = CartesianProductGrowthGroups
 
 
 class MonomialGrowthElement(GenericGrowthElement):
@@ -1018,16 +1344,17 @@ class MonomialGrowthElement(GenericGrowthElement):
         """
         from sage.rings.integer_ring import ZZ
 
+        var = repr(self.parent()._var_)
         if self.exponent == 0:
             return '1'
         elif self.exponent == 1:
-            return self.parent()._var_
+            return var
         elif self.exponent == -1:
-            return '1/' + self.parent()._var_
+            return '1/' + var
         elif self.exponent in ZZ and self.exponent > 0:
-            return self.parent()._var_ + '^' + str(self.exponent)
+            return var + '^' + str(self.exponent)
         else:
-            return self.parent()._var_ + '^(' + str(self.exponent) + ')'
+            return var + '^(' + str(self.exponent) + ')'
 
 
     def _mul_(self, other):
@@ -1230,7 +1557,8 @@ class MonomialGrowthGroup(GenericGrowthGroup):
             sage: L1 is L2
             True
         """
-        var = str(var).strip()
+        if not isinstance(var, Variable):
+            var = Variable(var)
         return super(MonomialGrowthGroup, cls).__classcall__(
             cls, base, var, category)
 
@@ -1258,16 +1586,12 @@ class MonomialGrowthGroup(GenericGrowthGroup):
             Traceback (most recent call last):
             ...
             TypeError: x is not a valid base
+            sage: agg.MonomialGrowthGroup('x', 'y')
+            Traceback (most recent call last):
+            ...
+            TypeError: x is not a valid base
         """
-        if not var:
-            raise ValueError('Empty var is not allowed.')
-        if var[0] in '0123456789=+-*/^%':
-            # This restriction is mainly for optical reasons on the
-            # representation. Feel free to relax this if needed.
-            raise ValueError("The variable name '%s' is inappropriate." %
-                             (var,))
         self._var_ = var
-
         super(MonomialGrowthGroup, self).__init__(category=category, base=base)
 
 
@@ -1396,16 +1720,36 @@ class MonomialGrowthGroup(GenericGrowthGroup):
             Traceback (most recent call last):
             ...
             ValueError: Cannot convert w^7.
+
+        ::
+
+            sage: P('x^7')
+            x^7
+            sage: P('1/x')
+            1/x
+            sage: P('x^(-2)')
+            x^(-2)
+            sage: P('x^-2')
+            x^(-2)
+
+        ::
+
+            sage: P('1')
+            1
         """
-        if data == 1:
+        if data == 1 or data == '1':
             return self.base().zero()
-        if str(data) == self._var_:
+        var = repr(self._var_)
+        if str(data) == var:
             return self.base().one()
 
         try:
             P = data.parent()
         except AttributeError:
-            return  # this has to end here
+            if var not in str(data):
+                return  # this has to end here
+            from sage.symbolic.ring import SR
+            return self._convert_(SR(data))
 
         from sage.symbolic.ring import SR
         from sage.rings.polynomial.polynomial_ring import PolynomialRing_general
@@ -1416,20 +1760,20 @@ class MonomialGrowthGroup(GenericGrowthGroup):
         if P is SR:
             if data.operator() == operator.pow:
                 base, exponent = data.operands()
-                if str(base) == self._var_:
+                if str(base) == var:
                     return exponent
         elif isinstance(P, (PolynomialRing_general, MPolynomialRing_generic)):
             if data.is_monomial() and len(data.variables()) == 1:
-                if self._var_ == str(data.variables()[0]):
+                if var == str(data.variables()[0]):
                     return data.degree()
         elif isinstance(P, PowerSeriesRing_generic):
             if hasattr(data, 'variables') and len(data.variables()) == 1:
                 from sage.rings.integer_ring import ZZ
                 if data.is_monomial() and data.precision_absolute() not in ZZ:
-                    if self._var_ == str(data.variables()[0]):
+                    if var == str(data.variables()[0]):
                         return data.degree()
             elif len(P.variable_names()) == 1 and \
-                            self._var_ == str(data.variable()[0]):
+                            var == str(data.variable()[0]):
                 from sage.rings.integer_ring import ZZ
                 if data.is_monomial() and data.precision_absolute() not in ZZ:
                     return data.degree()
@@ -1500,8 +1844,8 @@ class MonomialGrowthGroup(GenericGrowthGroup):
             sage: agg.MonomialGrowthGroup(QQ, 'log(x)').gens_monomial()
             ()
         """
-        if self._var_.startswith('log(') and self._var_.endswith(')'):
-            return ()
+        if not self._var_.is_monomial():
+            return tuple()
         return (self(raw_element=self.base().one()),)
 
 
@@ -1576,6 +1920,25 @@ class MonomialGrowthGroup(GenericGrowthGroup):
         return len(self.gens())
 
 
+    def variable_names(self):
+        r"""
+        Return the names of the variables.
+
+        OUTPUT:
+
+        A tuple of strings.
+
+        EXAMPLES::
+
+            sage: from sage.rings.asymptotic.growth_group import GrowthGroup
+            sage: GrowthGroup('x^ZZ').variable_names()
+            ('x',)
+            sage: GrowthGroup('log(x)^ZZ').variable_names()
+            ('x',)
+        """
+        return self._var_.variable_names()
+
+
 class GrowthGroupFactory(sage.structure.factory.UniqueFactory):
     r"""
     A factory creating asymptotic growth groups.
@@ -1595,13 +1958,23 @@ class GrowthGroupFactory(sage.structure.factory.UniqueFactory):
         Growth Group x^ZZ
         sage: agg.GrowthGroup('log(x)^QQ')
         Growth Group log(x)^QQ
+
+    This factory can also be used to construct Cartesian products
+    of growth groups::
+
+        sage: agg.GrowthGroup('x^ZZ * y^ZZ')
+        Growth Group x^ZZ * y^ZZ
+        sage: agg.GrowthGroup('x^ZZ * log(x)^ZZ')
+        Growth Group x^ZZ * log(x)^ZZ
+        sage: agg.GrowthGroup('x^ZZ * log(x)^ZZ * y^QQ')
+        Growth Group x^ZZ * log(x)^ZZ * y^QQ
     """
     def create_key_and_extra_args(self, specification, **kwds):
         r"""
         Given the arguments and keyword, create a key that uniquely
         determines this object.
 
-        EXAMPLES::
+        TESTS::
 
             sage: import sage.rings.asymptotic.growth_group as agg
             sage: agg.GrowthGroup.create_key_and_extra_args('x^ZZ')
@@ -1610,10 +1983,47 @@ class GrowthGroupFactory(sage.structure.factory.UniqueFactory):
             Traceback (most recent call last):
             ...
             ValueError: 'asdf' is not a valid string describing a growth group.
+            sage: agg.GrowthGroup.create_key_and_extra_args('log(x)^ZZ * y^QQ')
+            (('log(x)^ZZ', 'y^QQ'), {})
+            sage: agg.GrowthGroup.create_key_and_extra_args('log(x)**ZZ * y**QQ')
+            (('log(x)**ZZ', 'y**QQ'), {})
+            sage: agg.GrowthGroup.create_key_and_extra_args('a^b * * c^d')
+            Traceback (most recent call last):
+            ...
+            ValueError: 'a^b * * c^d' is invalid since a '*' follows a '*'
+            sage: agg.GrowthGroup.create_key_and_extra_args('a^b * (c*d^e)')
+            (('a^b', 'c*d^e'), {})
         """
-        factors = tuple(s.strip() for s in specification.split('*'))
+        factors = list()
+        balanced = True
+        if specification and specification[0] == '*':
+            raise ValueError("'%s' is invalid since it starts with a '*'." %
+                             (specification,))
+        for s in specification.split('*'):
+            if not s:
+                factors[-1] += '*'
+                balanced = False
+                continue
+            if not s.strip():
+                raise ValueError("'%s' is invalid since a '*' follows a '*'" %
+                                 (specification,))
+            if not balanced:
+                s = factors.pop() + '*' + s
+            balanced = s.count('(') == s.count(')')
+            factors.append(s)
+
+        def strip(s):
+            s = s.strip()
+            if not s:
+                return s
+            if s[0] == '(' and s[-1] == ')':
+                s = s[1:-1]
+            return s.strip()
+
+        factors = tuple(strip(f) for f in factors)
+
         for f in factors:
-            if '^' not in f:
+            if '^' not in f and '**' not in f:
                 raise ValueError("'%s' is not a valid string describing "
                                  "a growth group." % (f,))
 
@@ -1627,7 +2037,7 @@ class GrowthGroupFactory(sage.structure.factory.UniqueFactory):
         TESTS::
 
             sage: import sage.rings.asymptotic.growth_group as agg
-            sage: agg.GrowthGroup('as^df')
+            sage: agg.GrowthGroup('as^df')  # indirect doctest
             Traceback (most recent call last):
             ...
             ValueError: 'as^df' is not a valid string describing a growth group.
@@ -1636,10 +2046,6 @@ class GrowthGroupFactory(sage.structure.factory.UniqueFactory):
             ...
             ValueError: Cannot decode x^y^z.
         """
-        if len(factors) > 1:
-            raise NotImplementedError('Cartesian product of growth groups not '
-                                      'yet implemented.')
-        # note: implementation already prepared for cartesian products!
 
         groups = []
         for factor in factors:
@@ -1669,9 +2075,11 @@ class GrowthGroupFactory(sage.structure.factory.UniqueFactory):
             except (TypeError, ValueError):
                 pass
 
-        # todo: groups --> lists with groups over same variable.
-        return groups[0]
+        if len(groups) == 1:
+            return groups[0]
+
+        from sage.categories.cartesian_product import cartesian_product
+        return cartesian_product(groups)
 
 
 GrowthGroup = GrowthGroupFactory("GrowthGroup")
-

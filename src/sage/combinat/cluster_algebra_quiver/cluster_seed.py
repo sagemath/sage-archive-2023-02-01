@@ -869,7 +869,8 @@ class ClusterSeed(SageObject):
 
             sage: Q = ClusterSeed(['A',5])
             sage: hash(Q)  # indirect doctest
-            -5649412990944896369
+            -5649412990944896369  # 64-bit
+            222337679  # 32-bit
         """
         # mat_hash = self._M.__hash__()
         if self._use_fpolys:

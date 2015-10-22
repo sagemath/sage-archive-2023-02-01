@@ -515,7 +515,8 @@ class SimplicialComplexExamples():
             (3,4,6,7,10,12,13,14,15)]   # N
         return SimplicialComplex([ [g(index) for index in tuple]
                 for tuple in start_list
-                for g in PermutationGroup([P,S]) ])
+                for g in PermutationGroup([P,S]) ],
+                is_mutable=False)
 
     def PoincareHomologyThreeSphere(self):
         """
@@ -989,7 +990,7 @@ class SimplicialComplexExamples():
         .. [Ku1995] Kuhnel, "Tight Polyhedral Submanifolds and Tight Triangulations"
            Lecture Notes in Mathematics Volume 1612, 1995
         """
-        return simplicial_complexes.ComplexProjectivePlane().link([9])
+        return simplicial_complexes.ComplexProjectivePlane().link([9], is_mutable=False)
 
     ###############################################################
     # examples from graph theory:

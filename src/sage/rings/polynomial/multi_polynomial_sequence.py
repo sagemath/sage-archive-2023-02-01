@@ -157,6 +157,7 @@ Classes
 from sage.misc.cachefunc import cached_method
 
 from types import GeneratorType
+from sage.misc.converting_dict import KeyConvertingDict
 from sage.misc.package import is_package_installed
 
 from sage.structure.sequence import Sequence, Sequence_generic
@@ -1346,10 +1347,12 @@ class PolynomialSequence_gf2(PolynomialSequence_generic):
 
         Without argument, a single arbitrary solution is returned::
 
+            sage: from sage.doctest.fixtures import reproducible_repr
             sage: R.<x,y,z> = BooleanPolynomialRing()
             sage: S = Sequence([x*y+z, y*z+x, x+y+z+1])
-            sage: sol = S.solve(); sol                       # random
-            [{y: 1, z: 0, x: 0}]
+            sage: sol = S.solve()
+            sage: print(reproducible_repr(sol))
+            [{x: 0, y: 1, z: 0}]
 
         We check that it is actually a solution::
 
@@ -1358,7 +1361,8 @@ class PolynomialSequence_gf2(PolynomialSequence_generic):
 
         We obtain all solutions::
 
-            sage: sols = S.solve(n=Infinity); sols           # random
+            sage: sols = S.solve(n=Infinity)
+            sage: print(reproducible_repr(sols))
             [{x: 0, y: 1, z: 0}, {x: 1, y: 1, z: 1}]
             sage: map( lambda x: S.subs(x), sols)
             [[0, 0, 0], [0, 0, 0]]
@@ -1366,15 +1370,17 @@ class PolynomialSequence_gf2(PolynomialSequence_generic):
         We can force the use of exhaustive search if the optional
         package ``FES`` is present::
 
-            sage: sol = S.solve(algorithm='exhaustive_search'); sol  # random, optional - FES
+            sage: sol = S.solve(algorithm='exhaustive_search')  # optional - FES
+            sage: print(reproducible_repr(sol))  # optional - FES
             [{x: 1, y: 1, z: 1}]
             sage: S.subs( sol[0] )
             [0, 0, 0]
 
         And we may use SAT-solvers if they are available::
 
-            sage: sol = S.solve(algorithm='sat'); sol                     # random, optional - cryptominisat
-            [{y: 1, z: 0, x: 0}]
+            sage: sol = S.solve(algorithm='sat'); sol  # optional - cryptominisat
+            sage: print(reproducible_repr(sol))  # optional - cryptominisat
+            [{x: 0, y: 1, z: 0}]
             sage: S.subs( sol[0] )
             [0, 0, 0]
 
@@ -1451,15 +1457,19 @@ class PolynomialSequence_gf2(PolynomialSequence_generic):
         eliminated_variables = { f.lex_lead() for f in reductors }
         leftover_variables = { x.lm() for x in R_origin.gens() } - solved_variables - eliminated_variables
 
+        key_convert = lambda x: R_origin(x).lm()
         if leftover_variables != set():
             partial_solutions = solutions
             solutions = []
             for sol in partial_solutions:
                 for v in VectorSpace( GF(2), len(leftover_variables) ):
-                    new_solution = sol.copy()
+                    new_solution = KeyConvertingDict(key_convert, sol)
                     for var,val in zip(leftover_variables, v):
                         new_solution[ var ] = val
                     solutions.append( new_solution )
+        else:
+            solutions = [ KeyConvertingDict(key_convert, sol)
+                          for sol in solutions ]
 
         for r in reductors:
             for sol in solutions:

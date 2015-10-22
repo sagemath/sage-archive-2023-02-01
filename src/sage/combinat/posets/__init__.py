@@ -17,6 +17,8 @@ Poset-related classes:
 
 - :ref:`sage.combinat.posets.cartesian_product`
 
+- :ref:`sage.combinat.posets.moebius_algebra`
+
 - :ref:`sage.combinat.tamari_lattices`
 - :ref:`sage.combinat.interval_posets`
 - :ref:`sage.combinat.shard_order`

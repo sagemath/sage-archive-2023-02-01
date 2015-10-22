@@ -349,17 +349,15 @@ class OrderedTree(AbstractClonableTree, ClonableList):
         r"""
         Return a polyominao parallelogram.
 
-        INPUTS::
+        INPUT:
 
-        -- ``bijection`` is the name od the bijection to use. Default : 
-           'Boussicault-Socci'. Possible values : 'Boussicault-Socci',
-           'via dyck and Delest-Viennot'.
+        - ``bijection`` -- (default:'Boussicault-Socci') is the name od the 
+          bijection to use. Possible values : 'Boussicault-Socci',
+          'via dyck and Delest-Viennot'.
 
         EXAMPLES::
 
-            sage: T = OrderedTree(
-            ....:     [[[], [[], [[]]]], [], [[[],[]]], [], []]
-            ....: )
+            sage: T = OrderedTree([[[], [[], [[]]]], [], [[[],[]]], [], []])
             sage: T.to_parallelogram_polyomino( bijection='Boussicault-Socci' )
             [[0, 0, 0, 1, 1, 0, 1, 1, 1, 1, 0, 1, 1, 1], [1, 1, 1, 1, 1, 0, 0, 1, 1, 0, 1, 1, 0, 0]]
             sage: T = OrderedTree( [] )

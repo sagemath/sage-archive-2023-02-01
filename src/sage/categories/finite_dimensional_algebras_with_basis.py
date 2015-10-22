@@ -948,6 +948,27 @@ class FiniteDimensionalAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
                     and all(e*e == e for e in l)
                     and all(e*f == 0 for e in l for f in l if f != e))
 
+        @cached_method
+        def is_commutative(self):
+            """
+            Return whether ``self`` is a commutative algebra.
+
+            EXAMPLES::
+
+                sage: S4 = SymmetricGroupAlgebra(QQ, 4)
+                sage: S4.is_commutative()
+                False
+                sage: S2 = SymmetricGroupAlgebra(QQ, 2)
+                sage: S2.is_commutative()
+                True
+            """
+            B = list(self.basis())
+            try: # See if 1 is a basis element, if so, remove it
+                B.remove(self.one())
+            except ValueError:
+                pass
+            return all(b*bp == bp*b for i,b in enumerate(B) for bp in B[i+1:])
+
     class ElementMethods:
 
         def to_matrix(self, base_ring=None, action=operator.mul, side='left'):

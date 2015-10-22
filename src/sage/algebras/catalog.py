@@ -25,6 +25,7 @@ Let ``<tab>`` indicate pressing the tab key.  So begin by typing
 - :class:`algebras.Incidence <sage.combinat.posets.incidence_algebras.IncidenceAlgebra>`
 - :class:`algebras.IwahoriHecke
   <sage.algebras.iwahori_hecke_algebra.IwahoriHeckeAlgebra>`
+- :class:`algebras.Mobius <sage.combinat.posets.mobius_algebra.MobiusAlgebra>`
 - :class:`algebras.Jordan
   <sage.algebras.jordan_algebra.JordanAlgebra>`
 - :class:`algebras.NilCoxeter
@@ -56,6 +57,7 @@ lazy_import('sage.algebras.shuffle_algebra', 'ShuffleAlgebra', 'Shuffle')
 lazy_import('sage.algebras.schur_algebra', 'SchurAlgebra', 'Schur')
 lazy_import('sage.algebras.commutative_dga', 'GradedCommutativeAlgebra', 'GradedCommutative')
 lazy_import('sage.combinat.posets.incidence_algebras', 'IncidenceAlgebra', 'Incidence')
+lazy_import('sage.combinat.posets.mobius_algebra', 'MobiusAlgebra', 'Mobius')
 lazy_import('sage.combinat.free_prelie_algebra', 'FreePreLieAlgebra', 'FreePreLie')
 del lazy_import # We remove the object from here so it doesn't appear under tab completion
 

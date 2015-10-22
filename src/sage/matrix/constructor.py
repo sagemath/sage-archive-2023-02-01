@@ -4159,6 +4159,3 @@ def ith_to_zero_rotation_matrix(v, i, ring=None):
         entries[(k, k)] = 1
     entries.update({(j,j):aa, (j,i):bb, (i,j):-bb, (i,i):aa})
     return matrix(entries, nrows=dim, ring=ring)
-
-
-

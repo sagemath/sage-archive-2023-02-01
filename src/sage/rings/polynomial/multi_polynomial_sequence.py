@@ -164,6 +164,7 @@ from sage.structure.sequence import Sequence, Sequence_generic
 
 from sage.rings.infinity import Infinity
 from sage.rings.finite_rings.constructor import FiniteField as GF
+from sage.rings.finite_rings.finite_field_base import FiniteField
 from sage.rings.polynomial.multi_polynomial_ring import is_MPolynomialRing
 from sage.rings.quotient_ring import is_QuotientRing
 from sage.rings.quotient_ring_element import QuotientRingElement
@@ -325,19 +326,10 @@ def PolynomialSequence(arg1, arg2=None, immutable=False, cr=False, cr_str=None):
 
     K = ring.base_ring()
 
-    try:
-        c = K.characteristic()
-    except NotImplementedError:
-        # We assume that our ring has characteristic zero if it does not implement a
-        # characteristic(). For example, generic quotient rings do not have a characteristic()
-        # method implemented. It is okay to set c = 0 here because we're only using the
-        # characteristic to pick a more specialized implementation for c = 2.
-        c = 0
-
     # make sure we use the polynomial ring as ring not the monoid
     ring = (ring(1) + ring(1)).parent()
 
-    if c != 2:
+    if not isinstance(K, FiniteField) or K.characteristic() != 2:
         return PolynomialSequence_generic(parts, ring, immutable=immutable, cr=cr, cr_str=cr_str)
     elif K.degree() == 1:
         return PolynomialSequence_gf2(parts, ring, immutable=immutable, cr=cr, cr_str=cr_str)

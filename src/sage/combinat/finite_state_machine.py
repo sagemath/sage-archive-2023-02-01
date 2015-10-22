@@ -49,6 +49,7 @@ Accessing parts of a finite state machine
     :meth:`~FiniteStateMachine.predecessors` | List of predecessors of a state
     :meth:`~FiniteStateMachine.induced_sub_finite_state_machine` | Induced sub-machine
     :meth:`~FiniteStateMachine.accessible_components` | Accessible components
+    :meth:`~FiniteStateMachine.coaccessible_components` | Coaccessible components
     :meth:`~FiniteStateMachine.final_components` | Final components (connected components which cannot be left again)
 
 
@@ -7049,6 +7050,47 @@ class FiniteStateMachine(sage.structure.sage_object.SageObject):
                 pass
         return result
 
+
+    def coaccessible_components(self):
+        r"""
+        Return the sub-machine induced by the coaccessible states of this
+        finite state machine.
+
+        OUTPUT:
+
+        A finite state machine of the same type as this finite state
+        machine.
+
+        EXAMPLES::
+
+            sage: A = automata.ContainsWord([1, 1],
+            ....:     input_alphabet=[0, 1]).complement().minimization().relabeled()
+            sage: A.transitions()
+            [Transition from 0 to 0: 0|-,
+             Transition from 0 to 0: 1|-,
+             Transition from 1 to 1: 0|-,
+             Transition from 1 to 2: 1|-,
+             Transition from 2 to 1: 0|-,
+             Transition from 2 to 0: 1|-]
+            sage: A.initial_states()
+            [1]
+            sage: A.final_states()
+            [1, 2]
+            sage: C = A.coaccessible_components()
+            sage: C.transitions()
+            [Transition from 1 to 1: 0|-,
+             Transition from 1 to 2: 1|-,
+             Transition from 2 to 1: 0|-]
+
+        .. SEEALSO::
+            :meth:`accessible_components`,
+            :meth:`induced_sub_finite_state_machine`
+        """
+        DG = self.digraph().reverse()
+        coaccessible_states = DG.breadth_first_search(
+            [_.label() for _ in self.iter_final_states()])
+        return self.induced_sub_finite_state_machine(
+            [self.state(_) for _ in coaccessible_states])
 
     # *************************************************************************
     # creating new finite state machines

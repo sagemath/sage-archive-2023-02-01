@@ -13,6 +13,7 @@ objects.
 AUTHORS:
 
 - Florent Hivert (2010-2011): initial implementation.
+- Adrien Boussicault (2015): Hook statistics.
 
 REFERENCES:
 
@@ -2035,7 +2036,7 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
             resu += [(L + 1, L + 2, R)]
         return resu
 
-    def comb(self, side=0):
+    def comb(self, side='left'):
         r'''
         Return the comb of a tree.
 
@@ -2044,40 +2045,47 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
         the root. The left (resp. right) comb is the list of right (resp. left) 
         subtree of each of these vertices.
 
-        INPUT::
-            - ``side`` -- set to 0 to obtain a left comb, and to 1 to obain
-              a right comb.
+        INPUT:
 
-        OUTPUT::
-            A list of binary trees.
+        - ``side`` -- (default: 'left') set to 'left' to obtain a left comb, and to 'right' to 
+          obtain a right comb.
+
+        OUTPUT:
+
+        A list of binary trees.
 
         EXAMPLES::
 
             sage: BT = BinaryTree( '.' )
-            sage: [BT.comb(0), BT.comb(1)]
+            sage: [BT.comb('left'), BT.comb('right')]
             [[], []]
             sage: BT = BinaryTree( '[.,.]' )
-            sage: [BT.comb(0), BT.comb(1)]
+            sage: [BT.comb('left'), BT.comb('right')]
             [[], []]
             sage: BT = BinaryTree( '[[[.,.], .], [.,.]]' )
-            sage: BT.comb(0)
+            sage: BT.comb('left')
             [., .]
-            sage: BT.comb(1)
+            sage: BT.comb('right')
             [.]
             sage: BT = BinaryTree( '[[[[., [., .]], .], [[., .], [[[., .], [., .]], [., .]]]], [., [[[., .], [[[., .], [., .]], .]], .]]]' )
-            sage: BT.comb(0)
+            sage: BT.comb('left')
             [[[., .], [[[., .], [., .]], [., .]]], ., [., .]]
-            sage: BT.comb(1)
+            sage: BT.comb('right')
             [., [[., .], [[[., .], [., .]], .]]]
         '''
-        if self.is_empty():
-            return []
-        tree = self[side]
-        res = []
-        while not tree.is_empty():
-            res.append(tree[1-side])
-            tree = tree[side]
-        return res
+        def _comb(side):
+            if self.is_empty():
+                return []
+            tree = self[side]
+            res = []
+            while not tree.is_empty():
+                res.append(tree[1-side])
+                tree = tree[side]
+            return res
+        if side == 'left':
+            return _comb(0)
+        elif side == 'right':
+            return _comb(1)
 
     def hook_number(self):
         """
@@ -2109,7 +2117,7 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
         """
         if self.is_empty():
             return 0
-        return 1 + sum(t.hook_number() for t in self.comb(0) + self.comb(1))
+        return 1 + sum(t.hook_number() for t in self.comb('left') + self.comb('right'))
 
     def q_hook_length_fraction(self, q=None, q_factor=False):
         r"""

@@ -12,7 +12,7 @@ This module implements finite partially ordered sets. It defines:
     :class:`FinitePoset` | A class for finite posets
     :class:`FinitePosets_n` | A class for finite posets up to isomorphism (i.e. unlabeled posets)
     :meth:`Poset` | Construct a finite poset from various forms of input data.
-    :meth:`is_poset` | Tests whether a directed graph is acyclic and transitively reduced.
+    :meth:`is_poset` | Return ``True`` if a directed graph is acyclic and transitively reduced.
 
 List of Poset methods
 ---------------------
@@ -65,16 +65,16 @@ List of Poset methods
     :meth:`~FinitePoset.dimension` | Return the dimension of the poset.
     :meth:`~FinitePoset.has_bottom` | Return ``True`` if the poset has a unique minimal element.
     :meth:`~FinitePoset.has_top` | Return ``True`` if the poset has a unique maximal element.
-    :meth:`~FinitePoset.is_bounded` | Return ``True`` if the poset contains a unique maximal element and a unique minimal element, and False otherwise.
-    :meth:`~FinitePoset.is_chain` | Return ``True`` if the poset is totally ordered, and False otherwise.
-    :meth:`~FinitePoset.is_connected` | Return ``True`` if the poset is connected, and ``False`` otherwise.
-    :meth:`~FinitePoset.is_graded` | Return whether this poset is graded.
-    :meth:`~FinitePoset.is_ranked` | Return whether this poset is ranked.
-    :meth:`~FinitePoset.is_ranked` | Return ``True`` if the poset is rank symmetric.
-    :meth:`~FinitePoset.is_incomparable_chain_free` | Return whether the poset is `(m+n)`-free.
-    :meth:`~FinitePoset.is_slender` | Return whether the poset ``self`` is slender or not.
-    :meth:`~FinitePoset.is_join_semilattice` | Return ``True`` is the poset has a join operation, and False otherwise.
-    :meth:`~FinitePoset.is_meet_semilattice` | Return ``True`` if self has a meet operation, and False otherwise.
+    :meth:`~FinitePoset.is_bounded` | Return ``True`` if the poset has both unique minimal and unique maximal element.
+    :meth:`~FinitePoset.is_chain` | Return ``True`` if the poset is totally ordered.
+    :meth:`~FinitePoset.is_connected` | Return ``True`` if the poset is connected.
+    :meth:`~FinitePoset.is_graded` | Return ``True`` if all maximal chains of the poset has same length.
+    :meth:`~FinitePoset.is_ranked` | Return ``True`` if the poset has a rank function.
+    :meth:`~FinitePoset.is_rank_symmetric` | Return ``True`` if the poset is rank symmetric.
+    :meth:`~FinitePoset.is_incomparable_chain_free` | Return ``True`` if the poset is (m+n)-free.
+    :meth:`~FinitePoset.is_slender` | Return ``True`` if the poset is slender.
+    :meth:`~FinitePoset.is_join_semilattice` | Return ``True`` is the poset has a join operation.
+    :meth:`~FinitePoset.is_meet_semilattice` | Return ``True`` if the poset has a meet operation.
 
 **Minimal and maximal elements**
 
@@ -190,6 +190,7 @@ List of Poset methods
     :meth:`~FinitePoset.is_linear_extension` | Return whether ``l`` is a linear extension of ``self``.
     :meth:`~FinitePoset.isomorphic_subposets_iterator` | Return an iterator over the subposets isomorphic to another poset.
     :meth:`~FinitePoset.isomorphic_subposets` | Return all subposets isomorphic to another poset.
+    :meth:`~FinitePoset.kazhdan_lusztig_polynomial` | Return the Kazhdan-Lusztig polynomial `P_{x,y}(q)` of ``self``.
     :meth:`~FinitePoset.lequal_matrix` | Computes the matrix whose ``(i,j)`` entry is 1 if ``self.linear_extension()[i] < self.linear_extension()[j]`` and 0 otherwise.
     :meth:`~FinitePoset.level_sets` | Return a list l such that l[i+1] is the set of minimal elements of the poset obtained by removing the elements in l[0], l[1], ..., l[i].
     :meth:`~FinitePoset.linear_extension` | Return a linear extension of this poset.
@@ -229,6 +230,7 @@ import copy
 from sage.misc.cachefunc import cached_method
 from sage.misc.lazy_attribute import lazy_attribute
 from sage.misc.misc_c import prod
+from sage.functions.other import floor
 from sage.categories.category import Category
 from sage.categories.sets_cat import Sets
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
@@ -240,6 +242,7 @@ from sage.rings.integer import Integer
 from sage.rings.integer_ring import ZZ
 from sage.rings.rational_field import QQ
 from sage.rings.polynomial.polynomial_ring import polygen
+from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.graphs.digraph import DiGraph
 from sage.graphs.digraph_generators import digraphs
 from sage.combinat.posets.hasse_diagram import HasseDiagram
@@ -1947,52 +1950,59 @@ class FinitePoset(UniqueRepresentation, Parent):
     intervals_number = relations_number
     intervals_iterator = relations_iterator
 
-    def is_incomparable_chain_free(self, m, n = None):
+    def is_incomparable_chain_free(self, m, n=None):
         r"""
-        Return ``True`` if the poset is `(m+n)`-free (that is, there is no pair
-        of incomparable chains of lengths `m` and `n`), and ``False`` if not.
+        Return ``True`` if the poset is `(m+n)`-free, and ``False`` otherwise.
 
-        If ``m`` is a tuple of pairs of chain lengths, returns ``True`` if the poset
-        does not contain a pair of incomparable chains whose lengths comprise
-        one of the chain pairs, and ``False`` if not.
-        A poset is `(m+n)`-free if it contains no induced subposet that is
-        isomorphic to the poset consisting of two disjoint chains of lengths
-        `m` and `n`.  See, for example, Exercise 15 in Chapter 3 of
-        [EnumComb1]_.
+        A poset is `(m+n)`-free if there is no incomparable chains of
+        lengths `m` and `n`. Three cases have special name:
+
+        - ''interval order'' is `(2+2)`-free
+        - ''semiorder'' (or ''unit interval order'') is `(1+3)`-free and
+          `(2+2)`-free
+        - ''weak order'' is `(1+2)`-free.
 
         INPUT:
 
-        - ``m`` - tuple of pairs of nonnegative integers
-        - ``m``, ``n`` - nonnegative integers
+        - ``m``, ``n`` - positive integers
+
+        It is also possible to give a list of integer pairs as argument.
+        See below for an example.
 
         EXAMPLES::
 
-            sage: P = Poset({0:[2], 1:[2], 2:[3], 3:[4], 4:[]})
-            sage: P.is_incomparable_chain_free(1, 1)
-            False
-            sage: P.is_incomparable_chain_free(2, 1)
+            sage: B3 = Posets.BooleanLattice(3)
+            sage: B3.is_incomparable_chain_free(1, 3)
             True
-
-        ::
-
-            sage: P = Poset(((0, 1, 2, 3, 4), ((0, 1), (1, 2), (0, 3), (4, 2))))
-            sage: P.is_incomparable_chain_free(((3, 1), (2, 2)))
-            True
-
-        ::
-
-            sage: P = Poset((("a", "b", "c", "d", "e", "f", "g", "h", "i", "j"), (("d", "a"), ("e", "a"), ("f", "a"), ("g", "a"), ("h", "b"), ("f", "b"), ("h", "c"), ("g", "c"), ("h", "d"), ("i", "d"), ("h", "e"), ("i", "e"), ("j", "f"), ("i", "f"), ("j", "g"), ("i", "g"), ("j", "h"))))
-            sage: P.is_incomparable_chain_free(3, 1)
-            True
-            sage: P.is_incomparable_chain_free(2, 2)
+            sage: B3.is_incomparable_chain_free(2, 2)
             False
 
-        ::
+            sage: IP6 = Posets.IntegerPartitions(6)
+            sage: IP6.is_incomparable_chain_free(1, 3)
+            False
+            sage: IP6.is_incomparable_chain_free(2, 2)
+            True
+
+        A list of pairs as an argument::
+
+            sage: B3.is_incomparable_chain_free([[1, 3], [2, 2]])
+            False
+
+        We show how to get an incomparable chain pair::
+
+            sage: P = Posets.PentagonPoset()
+            sage: chains_1_2 = Poset({0:[], 1:[2]})
+            sage: incomps = P.isomorphic_subposets(chains_1_2)[0]
+            sage: sorted(incomps.list()), incomps.cover_relations()
+            ([1, 2, 3], [[2, 3]])
+
+        TESTS::
+
+            sage: Poset().is_incomparable_chain_free(1,1)  # Test empty poset
+            True
 
             sage: [len([p for p in Posets(n) if p.is_incomparable_chain_free(((3, 1), (2, 2)))]) for n in range(6)] # long time
             [1, 1, 2, 5, 14, 42]
-
-        TESTS::
 
             sage: Q = Poset({0:[2], 1:[2], 2:[3], 3:[4], 4:[]})
             sage: Q.is_incomparable_chain_free(2, 20/10)
@@ -2004,7 +2014,7 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: Q.is_incomparable_chain_free(2, -1)
             Traceback (most recent call last):
             ...
-            ValueError: 2 and -1 must be nonnegative integers.
+            ValueError: 2 and -1 must be positive integers.
             sage: P = Poset(((0, 1, 2, 3, 4), ((0, 1), (1, 2), (0, 3), (4, 2))))
             sage: P.is_incomparable_chain_free((3, 1))
             Traceback (most recent call last):
@@ -2051,8 +2061,8 @@ class FinitePoset(UniqueRepresentation, Parent):
             m, n = Integer(m), Integer(n)
         except TypeError:
             raise TypeError('%s and %s must be integers.' % (m, n))
-        if m < 0 or n < 0:
-            raise ValueError("%s and %s must be nonnegative integers." % (m, n))
+        if m < 1 or n < 1:
+            raise ValueError("%s and %s must be positive integers." % (m, n))
         twochains = digraphs.TransitiveTournament(m) + digraphs.TransitiveTournament(n)
         return self._hasse_diagram.transitive_closure().subgraph_search(twochains, induced = True) is None
 
@@ -2241,7 +2251,7 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: Q.bottom()
             0
 
-        .. SEEALSO:: :meth:`has_bottom`, :meth:`top`.
+        .. SEEALSO:: :meth:`has_bottom`, :meth:`top`
         """
         hasse_bot = self._hasse_diagram.bottom()
         if hasse_bot is None:
@@ -2256,14 +2266,19 @@ class FinitePoset(UniqueRepresentation, Parent):
 
         EXAMPLES::
 
-            sage: P = Poset({0:[3],1:[3],2:[3],3:[4],4:[]})
+            sage: P = Poset({0:[3], 1:[3], 2:[3], 3:[4], 4:[]})
             sage: P.has_bottom()
             False
-            sage: Q = Poset({0:[1],1:[]})
+            sage: Q = Poset({0:[1], 1:[]})
             sage: Q.has_bottom()
             True
 
-        .. SEEALSO:: :meth:`bottom`, :meth:`has_top`.
+        .. SEEALSO:: :meth:`bottom`, :meth:`has_top`, :meth:`is_bounded`
+
+        TESTS::
+
+            sage: Poset().has_top()  # Test empty poset
+            False
         """
         return self._hasse_diagram.has_bottom()
 
@@ -2280,7 +2295,7 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: Q.top()
             1
 
-        .. SEEALSO:: :meth:`has_top`, :meth:`bottom`.
+        .. SEEALSO:: :meth:`has_top`, :meth:`bottom`
 
         TESTS::
 
@@ -2303,14 +2318,19 @@ class FinitePoset(UniqueRepresentation, Parent):
 
         EXAMPLES::
 
-            sage: P = Poset({0:[3],1:[3],2:[3],3:[4,5],4:[],5:[]})
+            sage: P = Poset({0:[3], 1:[3], 2:[3], 3:[4, 5], 4:[], 5:[]})
             sage: P.has_top()
             False
-            sage: Q = Poset({0:[1],1:[]})
+            sage: Q = Poset({0:[3], 1:[3], 2:[3], 3:[4], 4:[]})
             sage: Q.has_top()
             True
 
-        .. SEEALSO:: :meth:`top`, :meth:`has_bottom`.
+        .. SEEALSO:: :meth:`top`, :meth:`has_bottom`, :meth:`is_bounded`
+
+        TESTS::
+
+            sage: Poset().has_top()  # Test empty poset
+            False
         """
         return self._hasse_diagram.has_top()
 
@@ -2368,35 +2388,57 @@ class FinitePoset(UniqueRepresentation, Parent):
 
     def is_bounded(self):
         """
-        Return ``True`` if the poset ``self`` is bounded, and ``False``
-        otherwise.
+        Return ``True`` if the poset is bounded, and ``False`` otherwise.
 
-        We call a poset bounded if it contains a unique maximal element
+        A poset is bounded if it contains both a unique maximal element
         and a unique minimal element.
 
         EXAMPLES::
 
-            sage: P = Poset({0:[3],1:[3],2:[3],3:[4,5],4:[],5:[]})
+            sage: P = Poset({0:[3], 1:[3], 2:[3], 3:[4, 5], 4:[], 5:[]})
             sage: P.is_bounded()
             False
-            sage: Q = Poset({0:[1],1:[]})
+            sage: Q = Posets.DiamondPoset(5)
             sage: Q.is_bounded()
+            True
+
+        .. SEEALSO:: :meth:`has_bottom`, :meth:`has_top`
+
+        TESTS::
+
+            sage: Poset().is_bounded()  # Test empty poset
+            False
+            sage: Poset({1:[]}).is_bounded()  # Here top == bottom
+            True
+            sage: ( len([P for P in Posets(5) if P.is_bounded()]) ==
+            ....: Posets(3).cardinality() )
             True
         """
         return self._hasse_diagram.is_bounded()
 
     def is_chain(self):
         """
-        Returns True if the poset is totally ordered, and False otherwise.
+        Return ``True`` if the poset is totally ordered ("chain"), and
+        ``False`` otherwise.
 
         EXAMPLES::
 
-            sage: L = Poset({0:[1],1:[2],2:[3],3:[4]})
-            sage: L.is_chain()
+            sage: I = Poset({0:[1], 1:[2], 2:[3], 3:[4]})
+            sage: I.is_chain()
             True
-            sage: V = Poset({0:[1,2]})
+
+            sage: II = Poset({0:[1], 2:[3]})
+            sage: II.is_chain()
+            False
+
+            sage: V = Poset({0:[1, 2]})
             sage: V.is_chain()
             False
+
+        TESTS::
+
+            sage: [len([P for P in Posets(n) if P.is_chain()]) for n in range(5)]
+            [1, 1, 1, 1, 1]
         """
         return self._hasse_diagram.is_chain()
 
@@ -2461,18 +2503,28 @@ class FinitePoset(UniqueRepresentation, Parent):
         """
         Return ``True`` if the poset is connected, and ``False`` otherwise.
 
-        Poset is not connected if it can be divided to disjoint parts
+        A poset is connected if it's Hasse diagram is connected.
+
+        If a poset is not connected, then it can be divided to parts
         `S_1` and `S_2` so that every element of `S_1` is incomparable to
         every element of `S_2`.
 
         EXAMPLES::
 
-            sage: P=Poset({1:[2,3], 3:[4,5]})
+            sage: P = Poset({1:[2, 3], 3:[4, 5]})
             sage: P.is_connected()
             True
-            sage: P=Poset({1:[2,3], 3:[4,5], 6:[7,8]})
+
+            sage: P = Poset({1:[2, 3], 3:[4, 5], 6:[7, 8]})
             sage: P.is_connected()
             False
+
+        .. SEEALSO:: :meth:`connected_components`
+
+        TESTS::
+
+            sage: Poset().is_connected()  # Test empty poset
+            True
         """
         return self._hasse_diagram.is_connected()
 
@@ -2805,80 +2857,72 @@ class FinitePoset(UniqueRepresentation, Parent):
 
     def is_ranked(self):
         r"""
-        Returns whether this poset is ranked.
+        Return ``True`` if the poset is ranked, and ``False`` otherwise.
 
-        A poset is *ranked* if it admits a rank function. For more information
-        about the rank function, see :meth:`~sage.combinat.posets.hasse_diagram.HasseDiagram.rank_function`.
+        A poset is ranked if there is a function `r` from  poset elements
+        to integers so that `r(x)=r(y)+1` when `x` covers `y`.
 
-        .. SEEALSO:: :meth:`is_graded`.
+        Informally said a ranked poset can be "levelized": every element is
+        on a "level", and every cover relation goes only one level up.
 
         EXAMPLES::
 
-            sage: P = Poset([[1],[2],[3],[4],[]])
+            sage: P = Poset( ([1, 2, 3, 4], [[1, 2], [2, 4], [3, 4]] ))
             sage: P.is_ranked()
             True
-            sage: Q = Poset([[1,5],[2,6],[3],[4],[],[6,3],[4]])
-            sage: Q.is_ranked()
-            False
-            sage: P = Poset( ([1,2,3,4],[[1,2],[2,4],[3,4]] ))
+
+            sage: P = Poset([[1, 5], [2, 6], [3], [4],[], [6, 3], [4]])
             sage: P.is_ranked()
+            False
+
+        .. SEEALSO:: :meth:`rank_function`, :meth:`rank`, :meth:`is_graded`
+
+        TESTS::
+
+            sage: Poset().is_ranked()  # Test empty poset
             True
         """
         return bool(self.rank_function())
 
     def is_graded(self):
         r"""
-        Returns whether this poset is graded.
+        Return ``True`` if the poset is graded, and ``False`` otherwise.
 
-        A poset is *graded* if all its maximal chains have the same length.
-        There are various competing definitions for graded posets (see
-        :wikipedia:`Graded_poset`). This definition is from section 3.1 of
-        Richard Stanley's *Enumerative Combinatorics, Vol. 1* [EnumComb1]_.
+        A poset is graded if all its maximal chains have the same length.
 
-        Note that every graded poset is ranked, but the converse is not
-        true.
+        There are various competing definitions for graded
+        posets (see :wikipedia:`Graded_poset`). This definition is from
+        section 3.1 of Richard Stanley's *Enumerative Combinatorics,
+        Vol. 1* [EnumComb1]_.
 
-        .. SEEALSO:: :meth:`is_ranked`
+        Every graded poset is ranked. The converse is true
+        for bounded posets, including lattices.
 
         EXAMPLES::
 
-            sage: P = Poset([[1],[2],[3],[4],[]])
-            sage: P.is_graded()
-            True
-            sage: Q = Poset([[1,5],[2,6],[3],[4],[],[6,3],[4]])
-            sage: Q.is_graded()
-            False
-            sage: P = Poset( ([1,2,3,4],[[1,2],[2,4],[3,4]] ))
+            sage: P = Posets.PentagonPoset()  # Not even ranked
             sage: P.is_graded()
             False
-            sage: P = Poset({1: [2, 3], 4: [5]})
-            sage: P.is_graded()
-            True
-            sage: P = Poset({1: [2, 3], 3: [4]})
+
+            sage: P = Poset({1:[2, 3], 3:[4]})  # Ranked, but not graded
             sage: P.is_graded()
             False
-            sage: P = Poset({1: [2, 3], 4: []})
-            sage: P.is_graded()
-            False
-            sage: P = Posets.BooleanLattice(4)
-            sage: P.is_graded()
-            True
-            sage: P = RootSystem(['D',4]).root_poset()
-            sage: P.is_graded()
-            True
-            sage: P = Poset({})
+
+            sage: P = Poset({1:[3, 4], 2:[3, 4], 5:[6]})
             sage: P.is_graded()
             True
 
-        TESTS:
+            sage: P = Poset([[1], [2], [], [4], []])
+            sage: P.is_graded()
+            False
 
-        Here we test that the empty poset is graded::
+        .. SEEALSO:: :meth:`is_ranked`, :meth:`level_sets`
 
-            sage: Poset([[],[]]).is_graded()
+        TESTS::
+
+            sage: Poset().is_graded()  # Test empty poset
             True
         """
-        # The code below is not really optimized, but beats looking at
-        # every maximal chain...
         if len(self) <= 2:
             return True
         # Let's work with the Hasse diagram in order to avoid some
@@ -3147,21 +3191,29 @@ class FinitePoset(UniqueRepresentation, Parent):
 
     def is_meet_semilattice(self):
         r"""
-        Returns True if self has a meet operation, and False otherwise.
+        Return ``True`` if the poset has a meet operation, and
+        ``False`` otherwise.
+
+        A meet is the greatest lower bound for given elements, if it exists.
 
         EXAMPLES::
 
-            sage: P = Poset([[1,3,2],[4],[4,5,6],[6],[7],[7],[7],[]], facade = False)
+            sage: P = Poset({1:[2, 3, 4], 2:[5, 6], 3:[6], 4:[6, 7]})
             sage: P.is_meet_semilattice()
             True
 
-            sage: P = Poset([[1,2],[3],[3],[]])
-            sage: P.is_meet_semilattice()
-            True
-
-            sage: P = Poset({0:[2,3],1:[2,3]})
-            sage: P.is_meet_semilattice()
+            sage: Q = P.dual()
+            sage: Q.is_meet_semilattice()
             False
+
+        .. SEEALSO:: :meth:`is_join_semilattice`, :meth:`~sage.categories.finite_posets.FinitePosets.ParentMethods.is_lattice`
+
+        TESTS::
+
+            sage: Poset().is_meet_semilattice()  # Test empty lattice
+            True
+            sage: len([P for P in Posets(4) if P.is_meet_semilattice()])
+            5
         """
         return self._hasse_diagram.is_meet_semilattice()
 
@@ -3178,22 +3230,32 @@ class FinitePoset(UniqueRepresentation, Parent):
 
     def is_join_semilattice(self):
         """
-        Returns True if the poset has a join operation, and False
+        Return ``True`` if the poset has a join operation, and ``False``
         otherwise.
+
+        A join is the least upper bound for given elements, if it exists.
 
         EXAMPLES::
 
-            sage: P = Poset([[1,3,2],[4],[4,5,6],[6],[7],[7],[7],[]])
+            sage: P = Poset([[1,3,2], [4], [4,5,6], [6], [7], [7], [7], []])
             sage: P.is_join_semilattice()
             True
 
-            sage: P = Poset([[1,2],[3],[3],[]])
-            sage: P.is_join_semilattice()
-            True
+        Elements 3 and 4 have no common upper bound at all; elements
+        1 and 2 have upper bounds 3 and 4, but no least upper bound::
 
-            sage: P = Poset({0:[2,3],1:[2,3]})
+            sage: P = Poset({1:[3, 4], 2:[3, 4]})
             sage: P.is_join_semilattice()
             False
+
+        .. SEEALSO:: :meth:`is_meet_semilattice`, :meth:`~sage.categories.finite_posets.FinitePosets.ParentMethods.is_lattice`
+
+        TESTS::
+
+            sage: Poset().is_join_semilattice()  # Test empty lattice
+            True
+            sage: len([P for P in Posets(4) if P.is_join_semilattice()])
+            5
         """
         return self._hasse_diagram.is_join_semilattice()
 
@@ -5277,7 +5339,8 @@ class FinitePoset(UniqueRepresentation, Parent):
 
     def is_rank_symmetric(self):
         """
-        Return ``True`` if the poset is rank symmetric, and ``False`` otherwise.
+        Return ``True`` if the poset is rank symmetric, and ``False``
+        otherwise.
 
         The poset is expected to be graded and connected.
 
@@ -5287,12 +5350,12 @@ class FinitePoset(UniqueRepresentation, Parent):
 
         EXAMPLES::
 
-            sage: P = Poset({1:[2], 2:[3,4], 3:[5], 4:[5]})
-            sage: P.is_rank_symmetric()
-            False
-            sage: P = Poset({1:[3,4,5], 2:[3,4,5], 3:[6], 4:[7], 5:[7]})
+            sage: P = Poset({1:[3, 4, 5], 2:[3, 4, 5], 3:[6], 4:[7], 5:[7]})
             sage: P.is_rank_symmetric()
             True
+            sage: P = Poset({1:[2], 2:[3, 4], 3:[5], 4:[5]})
+            sage: P.is_rank_symmetric()
+            False
 
         TESTS::
 
@@ -5329,20 +5392,25 @@ class FinitePoset(UniqueRepresentation, Parent):
 
         EXAMPLES::
 
-            sage: P = Poset(([1,2,3,4],[[1,2],[1,3],[2,4],[3,4]]), facade = True)
+            sage: P = Poset(([1, 2, 3, 4], [[1, 2], [1, 3], [2, 4], [3, 4]]))
             sage: P.is_slender()
             True
-            sage: P = Poset(([1,2,3,4,5],[[1,2],[1,3],[1,4],[2,5],[3,5],[4,5]]), facade = True)
+            sage: P = Poset(([1,2,3,4,5],[[1,2],[1,3],[1,4],[2,5],[3,5],[4,5]]))
             sage: P.is_slender()
             False
 
-            sage: W = WeylGroup(['A',2])
+            sage: W = WeylGroup(['A', 2])
             sage: G = W.bruhat_poset()
             sage: G.is_slender()
             True
-            sage: W = WeylGroup(['A',3])
+            sage: W = WeylGroup(['A', 3])
             sage: G = W.bruhat_poset()
             sage: G.is_slender()
+            True
+
+        TESTS::
+
+            sage: Poset().is_slender()  # Test empty poset
             True
         """
         for x in self:
@@ -5684,6 +5752,137 @@ class FinitePoset(UniqueRepresentation, Parent):
         from sage.combinat.posets.incidence_algebras import IncidenceAlgebra
         return IncidenceAlgebra(R, self, prefix)
 
+    @cached_method(key=lambda self,x,y,l: (x,y))
+    def _kl_poly(self, x=None, y=None, canonical_labels=None):
+        r"""
+        Cached Kazhdan-Lusztig polynomial of ``self`` for generic `q`.
+
+        .. SEEALSO::
+
+            :meth:`kazhdan_lusztig_polynomial`
+
+        EXAMPLES::
+
+            sage: L = posets.SymmetricGroupWeakOrderPoset(4)
+            sage: L._kl_poly()
+            1
+            sage: x = '2314'
+            sage: y = '3421'
+            sage: L._kl_poly(x, y)
+            -q + 1
+
+        AUTHORS:
+
+        - Travis Scrimshaw (27-12-2014)
+        """
+        R = PolynomialRing(ZZ, 'q')
+        q = R.gen(0)
+
+        # Handle some special cases
+        if self.cardinality() == 0:
+            return q.parent().zero()
+        if not self.rank():
+            return q.parent().one()
+
+        if canonical_labels is None:
+            canonical_labels = x is None and y is None
+
+        if x is not None or y is not None:
+            if x == y:
+                return q.parent().one()
+            if x is None:
+                x = self.minimal_elements()[0]
+            if y is None:
+                y = self.maximal_elements()[0]
+            if not self.le(x, y):
+                return q.parent().zero()
+            P = self.subposet(self.interval(x, y))
+            return P.kazhdan_lusztig_polynomial(q=q, canonical_labels=canonical_labels)
+
+        min_elt = self.minimal_elements()[0]
+        if canonical_labels:
+            sublat = lambda P: self.subposet(P).canonical_label()
+        else:
+            sublat = lambda P: self.subposet(P)
+        poly = -sum(sublat(self.order_ideal([x])).characteristic_polynomial()
+                    * sublat(self.order_filter([x])).kazhdan_lusztig_polynomial()
+                    for x in self if x != min_elt)
+        tr = floor(self.rank()/2) + 1
+        ret = poly.truncate(tr)
+        return ret(q=q)
+
+    def kazhdan_lusztig_polynomial(self, x=None, y=None, q=None, canonical_labels=None):
+        r"""
+        Return the Kazhdan-Lusztig polynomial `P_{x,y}(q)` of ``self``.
+
+        We follow the definition given in [EPW14]_. Let `G` denote a
+        graded poset with unique minimal and maximal elements and `\chi_G`
+        denote the characteristic polynomial of `G`. Let `I_x` and `F^x`
+        denote the principal order ideal and filter of `x` respectively.
+        Define the *Kazhdan-Lusztig polynomial* of `G` as the unique
+        polynomial `P_G(q)` satisfying the following:
+
+        1. If `\operatorname{rank} G = 0`, then `P_G(q) = 1`.
+        2. If `\operatorname{rank} G > 0`, then `\deg P_G(q) <
+           \frac{1}{2} \operatorname{rank} G`.
+        3. We have
+
+           .. MATH::
+
+                q^{\operatorname{rank} G} P_G(q^{-1})
+                = \sum_{x \in G} \chi_{I_x}(q) P_{F^x}(q).
+
+        We then extend this to `P_{x,y}(q)` by considering the subposet
+        corresponding to the (closed) interval `[x, y]`. We also
+        define `P_{\emptyset}(q) = 0` (so if `x \not\leq y`,
+        then `P_{x,y}(q) = 0`).
+
+        INPUT:
+
+        - ``q`` -- (default: `q \in \ZZ[q]`) the indeterminate `q`
+        - ``x`` -- (default: the minimal element) the element `x`
+        - ``y`` -- (default: the maximal element) the element `y`
+        - ``canonical_labels`` -- (optional) for subposets, use the
+          canonical labeling (this can limit recursive calls for posets
+          with large amounts of symmetry, but producing the labeling
+          takes time); if not specified, this is ``True`` if ``x``
+          and ``y`` are both not specified and ``False`` otherwise
+
+        EXAMPLES::
+
+            sage: L = posets.BooleanLattice(3)
+            sage: L.kazhdan_lusztig_polynomial()
+            1
+
+        ::
+
+            sage: L = posets.SymmetricGroupWeakOrderPoset(4)
+            sage: L.kazhdan_lusztig_polynomial()
+            1
+            sage: x = '2314'
+            sage: y = '3421'
+            sage: L.kazhdan_lusztig_polynomial(x, y)
+            -q + 1
+            sage: L.kazhdan_lusztig_polynomial(x, y, var('t'))
+            -t + 1
+
+        REFERENCES:
+
+        .. [EPW14] Ben Elias, Nicholas Proudfoot, and Max Wakefield.
+           *The Kazhdan-Lusztig polynomial of a matroid*. 2014.
+           :arxiv:`1412.7408`.
+
+        AUTHORS:
+
+        - Travis Scrimshaw (27-12-2014)
+        """
+        if not self.is_ranked():
+            raise ValueError("poset is not ranked")
+        if q is None:
+            q = PolynomialRing(ZZ, 'q').gen(0)
+        poly = self._kl_poly(x, y, canonical_labels)
+        return poly(q=q)
+
 FinitePoset._dual_class = FinitePoset
 
 ##### Posets #####
@@ -5803,13 +6002,13 @@ Posets_all = Posets
 
 def is_poset(dig):
     r"""
-    Tests whether a directed graph is acyclic and transitively
-    reduced.
+    Return ``True`` if a directed graph is acyclic and transitively
+    reduced, and ``False`` otherwise.
 
     EXAMPLES::
 
         sage: from sage.combinat.posets.posets import is_poset
-        sage: dig = DiGraph({0:[2,3], 1:[3,4,5], 2:[5], 3:[5], 4:[5]})
+        sage: dig = DiGraph({0:[2, 3], 1:[3, 4, 5], 2:[5], 3:[5], 4:[5]})
         sage: is_poset(dig)
         False
         sage: is_poset(dig.transitive_reduction())

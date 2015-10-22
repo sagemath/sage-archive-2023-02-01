@@ -109,6 +109,8 @@ from sage.rings.arith import valuation
 
 import gal_reps_number_field
 
+from six import reraise as raise_
+
 class EllipticCurve_number_field(EllipticCurve_field):
     r"""
     Elliptic curve over a number field.
@@ -893,7 +895,7 @@ class EllipticCurve_number_field(EllipticCurve_field):
             (a1, a2, a3, a4, a6) = [ZK(a) for a in self.a_invariants()]
         except TypeError:
             import sys
-            raise TypeError, "_reduce_model() requires an integral model.", sys.exc_info()[2]
+            raise_(TypeError, "_reduce_model() requires an integral model.", sys.exc_info()[2])
 
         # N.B. Must define s, r, t in the right order.
         if ZK.absolute_degree() == 1:

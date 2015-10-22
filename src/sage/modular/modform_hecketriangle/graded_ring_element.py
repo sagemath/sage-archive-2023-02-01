@@ -713,6 +713,12 @@ class FormsRingElement(CommutativeAlgebraElement, UniqueRepresentation):
             2 - 32*q + 736*q^2 - 896*q^3 + 6368*q^4 + O(q^5)
             sage: (MF.E4() + MF.f_i()^2).parent()
             ModularForms(n=+Infinity, k=4, ep=1) over Integer Ring
+
+            sage: el = ModularForms(n=3).Delta() + MF.E4()*MF.E6()
+            sage: el
+            (E4*f_i^4 - 2*E4^2*f_i^2 + E4^3 + 4096*E4^2*f_i)/4096
+            sage: el.parent()
+            ModularFormsRing(n=+Infinity) over Integer Ring
         """
 
         return self.parent()(self._rat+other._rat)
@@ -763,6 +769,12 @@ class FormsRingElement(CommutativeAlgebraElement, UniqueRepresentation):
             64*q - 512*q^2 + 1792*q^3 - 4096*q^4 + O(q^5)
             sage: (MF.E4() - MF.f_i()^2).parent()
             ModularForms(n=+Infinity, k=4, ep=1) over Integer Ring
+
+            sage: el = ModularForms(n=3).Delta() - MF.E4()
+            sage: el
+            (E4*f_i^4 - 2*E4^2*f_i^2 + E4^3 - 4096*E4)/4096
+            sage: el.parent()
+            ModularFormsRing(n=+Infinity) over Integer Ring
         """
 
         #reduce at the end? See example "sage: ((E4+E6)-E6).parent()"
@@ -838,6 +850,12 @@ class FormsRingElement(CommutativeAlgebraElement, UniqueRepresentation):
             q + 8*q^2 + 12*q^3 - 64*q^4 + O(q^5)
             sage: (MF.E4()*MF.f_inf()).parent()
             ModularForms(n=+Infinity, k=8, ep=1) over Integer Ring
+
+            sage: el = ModularForms(n=3).E2()*MF.E6()
+            sage: el
+            1 - 8*q - 272*q^2 - 1760*q^3 - 2560*q^4 + O(q^5)
+            sage: el.parent()
+            QuasiModularForms(n=+Infinity, k=8, ep=1) over Integer Ring
         """
 
         res = self.parent().rat_field()(self._rat*other._rat)
@@ -918,6 +936,12 @@ class FormsRingElement(CommutativeAlgebraElement, UniqueRepresentation):
             1/2 - 4*q - 236*q^2 - 2128*q^3 + 49428*q^4 + O(q^5)
             sage: (MF.f_i()/(MF.E4() + MF.f_i()^2)).parent()
             MeromorphicModularForms(n=+Infinity, k=-2, ep=-1) over Integer Ring
+
+            sage: el = ModularForms(n=3).E2()/MF.E2()
+            sage: el
+            1 + 8*q + 48*q^2 + 480*q^3 + 4448*q^4 + O(q^5)
+            sage: el.parent()
+            QuasiMeromorphicModularForms(n=+Infinity, k=0, ep=1) over Integer Ring
         """
 
         res = self.parent().rat_field()(self._rat/other._rat)

@@ -8402,14 +8402,15 @@ class FiniteStateMachine(sage.structure.sage_object.SageObject):
         return new
 
 
-    def transposition(self):
+    def transposition(self, reverse_output_labels=True):
         """
         Returns a new finite state machine, where all transitions of the
         input finite state machine are reversed.
 
         INPUT:
 
-        Nothing.
+        - ``reverse_output_labels`` -- a boolean (default: ``True``): whether to reverse
+          output labels.
 
         OUTPUT:
 
@@ -8447,6 +8448,8 @@ class FiniteStateMachine(sage.structure.sage_object.SageObject):
             sage: T([1, 0])
             [1, 0]
             sage: T.transposition()([0, 1])
+            [0, 1]
+            sage: T.transposition(reverse_output_labels=False)([0, 1])
             [1, 0]
 
 
@@ -8468,6 +8471,11 @@ class FiniteStateMachine(sage.structure.sage_object.SageObject):
         """
         from copy import deepcopy
 
+        if reverse_output_labels:
+            rewrite_output = lambda word: list(reversed(word))
+        else:
+            rewrite_output = lambda word: word
+
         transposition = self.empty_copy()
 
         for state in self.iter_states():
@@ -8476,7 +8484,8 @@ class FiniteStateMachine(sage.structure.sage_object.SageObject):
         for transition in self.iter_transitions():
             transposition.add_transition(
                 transition.to_state.label(), transition.from_state.label(),
-                list(reversed(transition.word_in)), transition.word_out)
+                list(reversed(transition.word_in)),
+                rewrite_output(transition.word_out))
 
         for initial in self.iter_initial_states():
             state = transposition.state(initial.label())

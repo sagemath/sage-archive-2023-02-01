@@ -88,7 +88,7 @@ Sageでは元が属する構造物のことを「ペアレント構造」(parent
     sage: isinstance(ZZ, Ring)
     True
 
-代数学では，同じ種類の代数構造を共有する物を，いわゆる「圏」(cagegory)と呼ばれるものに集約して扱う．
+代数学では，同じ種類の代数構造を共有する物を，いわゆる「圏」(category)と呼ばれるものに集約して扱う．
 Sageのクラス階層と圏の階層構造にはそれなりに類似が見られないでもない．
 しかし，Pythonクラスについては圏との類似はあまり強調すべきものでもなさそうだ．
 いずれにせよ，数学的な意味における圏はSageでも実装されている:
@@ -99,7 +99,9 @@ Sageのクラス階層と圏の階層構造にはそれなりに類似が見ら�
     sage: Rings()
     Category of rings
     sage: ZZ.category()
-    Join of Category of euclidean domains and Category of infinite enumerated sets
+    Join of Category of euclidean domains
+        and Category of infinite enumerated sets
+        and Category of metric spaces
     sage: ZZ.category().is_subcategory(Rings())
     True
     sage: ZZ in Rings()

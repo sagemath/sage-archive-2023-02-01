@@ -8429,6 +8429,26 @@ class FiniteStateMachine(sage.structure.sage_object.SageObject):
             sage: aut.transposition().initial_states()
             ['1', '2']
 
+        ::
+
+            sage: A = Automaton([(0, 1, [1, 0])],
+            ....:     initial_states=[0],
+            ....:     final_states=[1])
+            sage: A([1, 0])
+            True
+            sage: A.transposition()([0, 1])
+            True
+
+        ::
+
+            sage: T = Transducer([(0, 1, [1, 0], [1, 0])],
+            ....:     initial_states=[0],
+            ....:     final_states=[1])
+            sage: T([1, 0])
+            [1, 0]
+            sage: T.transposition()([0, 1])
+            [1, 0]
+
 
         TESTS:
 
@@ -8456,7 +8476,7 @@ class FiniteStateMachine(sage.structure.sage_object.SageObject):
         for transition in self.iter_transitions():
             transposition.add_transition(
                 transition.to_state.label(), transition.from_state.label(),
-                transition.word_in, transition.word_out)
+                list(reversed(transition.word_in)), transition.word_out)
 
         for initial in self.iter_initial_states():
             state = transposition.state(initial.label())

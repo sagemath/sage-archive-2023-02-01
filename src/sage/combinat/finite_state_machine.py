@@ -6989,7 +6989,7 @@ class FiniteStateMachine(sage.structure.sage_object.SageObject):
 
     def accessible_components(self):
         """
-        Returns a new finite state machine with the accessible states
+        Return a new finite state machine with the accessible states
         of self and all transitions between those states.
 
         INPUT:
@@ -7018,6 +7018,9 @@ class FiniteStateMachine(sage.structure.sage_object.SageObject):
             ....:               initial_states=[0])
             sage: F.accessible_components()
             Automaton with 1 state
+
+        .. SEEALSO::
+            :meth:`coaccessible_components`
 
         TESTS:
 

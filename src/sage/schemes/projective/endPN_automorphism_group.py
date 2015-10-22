@@ -1732,7 +1732,7 @@ def which_group(list_of_elements):
 
     # invalid input
     if n == 0:
-        raise(ValueError, "Group must have at least one element")
+        raise ValueError("Group must have at least one element")
 
     # define ground field and ambient function field
     rational_function = G[-1]

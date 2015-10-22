@@ -10,10 +10,6 @@ see https://projects.coin-or.org/Csdp
 
 Common Public License Version 1.0
 
-== SPKG Maintainers ==
-
-* Dmitrii Pasechnik
-
 == Upstream Contact ==
 
 Dmitrii Pasechnik <dimpase+sage@gmail.com>

@@ -856,6 +856,7 @@ def nrows_from_dict(d):
     Here the answer is 301 not 300, since there is a 0-th row.
 
     ::
+
         sage: sage.matrix.constructor.nrows_from_dict({(300,4):10})
         301
     """
@@ -4158,6 +4159,3 @@ def ith_to_zero_rotation_matrix(v, i, ring=None):
         entries[(k, k)] = 1
     entries.update({(j,j):aa, (j,i):bb, (i,j):-bb, (i,i):aa})
     return matrix(entries, nrows=dim, ring=ring)
-
-
-

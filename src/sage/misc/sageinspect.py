@@ -1439,11 +1439,11 @@ def sage_getargspec(obj):
     argspec = _extract_embedded_signature(docstring, name)[1]
     if argspec is not None:
         return argspec
-    if hasattr(obj, 'func_code'):
+    if hasattr(obj, '__code__'):
         # Note that this may give a wrong result for the constants!
         try:
-            args, varargs, varkw = inspect.getargs(obj.func_code)
-            return inspect.ArgSpec(args, varargs, varkw, obj.func_defaults)
+            args, varargs, varkw = inspect.getargs(obj.__code__)
+            return inspect.ArgSpec(args, varargs, varkw, obj.__defaults__)
         except (TypeError, AttributeError):
             pass
     if isclassinstance(obj):

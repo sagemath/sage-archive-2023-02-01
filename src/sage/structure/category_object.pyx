@@ -235,7 +235,8 @@ cdef class CategoryObject(sage_object.SageObject):
 
             sage: ZZ.categories()
             [Join of Category of euclidean domains
-                 and Category of infinite enumerated sets,
+                 and Category of infinite enumerated sets
+                 and Category of metric spaces,
              Category of euclidean domains,
              Category of principal ideal domains,
              Category of unique factorization domains,

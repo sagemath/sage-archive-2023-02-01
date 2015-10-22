@@ -927,8 +927,7 @@ class WehlerK3Surface_ring(AlgebraicScheme_subscheme_product_projective):
                     power += 1
             if power == 1:
                 bad_primes = bad_primes+GB[i].lt().coefficients()[0].support()
-        bad_primes = list(set(bad_primes))
-        bad_primes.sort()
+        bad_primes = sorted(set(bad_primes))
         #check to return only the truly bad primes
         if check == True:
             for p in bad_primes:
@@ -1066,7 +1065,7 @@ class WehlerK3Surface_ring(AlgebraicScheme_subscheme_product_projective):
                 try:
                     P = self(list(P))
                 except (TypeError, NotImplementedError, AttributeError):
-                    raise TypeError, "%s fails to convert into the map's domain %s, but a `pushforward` method is not properly implemented"%(P, self)
+                    raise TypeError("%s fails to convert into the map's domain %s, but a `pushforward` method is not properly implemented"%(P, self))
         pt = list(P[0]) + [0,0,0]
         if(P[1][0] != 0):
             [a,b,c] = [P[1][0]*self.Gpoly(1,0)(*pt),\
@@ -1310,7 +1309,7 @@ class WehlerK3Surface_ring(AlgebraicScheme_subscheme_product_projective):
                 try:
                     P = self(list(P))
                 except (TypeError, NotImplementedError, AttributeError):
-                    raise TypeError, "%s fails to convert into the map's domain %s, but a `pushforward` method is not properly implemented"%(P, self)
+                    raise TypeError("%s fails to convert into the map's domain %s, but a `pushforward` method is not properly implemented"%(P, self))
         pt = [0,0,0] + list(P[1])
         if(P[0][0] != 0):
             [a,b,c] = [P[0][0]*self.Gpoly(0,0)(*pt),\

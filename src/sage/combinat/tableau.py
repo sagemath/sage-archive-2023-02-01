@@ -2845,7 +2845,7 @@ class Tableau(ClonableList):
         k = self.size()
         gens = [range(1, k+1)]
         for row in self:
-            for j in range(0, len(row)-1):
+            for j in range(len(row)-1):
                 gens.append( (row[j], row[j+1]) )
         return PermutationGroup( gens )
 
@@ -4456,7 +4456,7 @@ class Tableaux(UniqueRepresentation, Parent):
         sage: [] in Tableaux(0)
         True
 
-    Check that trac:`14145` has been fixed::
+    Check that :trac:`14145` has been fixed::
 
         sage: 1 in Tableaux()
         False
@@ -4998,7 +4998,7 @@ class SemistandardTableaux(Tableaux):
 
     def __getitem__(self, r):
         r"""
-        The default implementation of ``__getitem``__ for enumerated sets
+        The default implementation of ``__getitem__`` for enumerated sets
         does not allow slices so we override it.
 
         EXAMPLES::

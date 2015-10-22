@@ -749,7 +749,7 @@ def RandomToleranceGraph(n):
         sage: g.clique_number() == g.chromatic_number()
         True
 
-    TEST:
+    TEST::
 
         sage: g = graphs.RandomToleranceGraph(-2)
         Traceback (most recent call last):
@@ -831,7 +831,8 @@ def RandomTriangulation(n, embed=False, base_ring=QQ):
         from sage.geometry.polyhedron.plot import ProjectionFuncStereographic
         from sage.modules.free_module_element import vector
         proj = ProjectionFuncStereographic([0, 0, 1])
-        ppoints = [proj(vector(x)) for x in points]
-        g.set_pos({i: ppoints[i] for i in range(len(points))})
+        g.set_pos({v: proj(vector(v))
+                   for v in g})
 
+    g.relabel()
     return g

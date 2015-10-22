@@ -76,11 +76,13 @@ class DifferentialForms(Algebra):
     def __init__(self, coordinate_patch = None):
         """
         Construct the algebra of differential forms on a given coordinate patch.
+
         See ``DifferentialForms`` for details.
 
         INPUT:
 
         - ``coordinate_patch`` -- Coordinate patch where the algebra lives.
+
         If no coordinate patch is given, a default coordinate patch with
         coordinates (x, y, z) is used.
 
@@ -91,9 +93,7 @@ class DifferentialForms(Algebra):
             Open subset of R^2 with coordinates p, q
             sage: F = DifferentialForms(U); F
             Algebra of differential forms in the variables p, q
-
         """
-
         from sage.categories.graded_algebras_with_basis \
             import GradedAlgebrasWithBasis
         from sage.structure.parent_gens import ParentWithGens

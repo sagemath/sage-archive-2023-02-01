@@ -383,6 +383,17 @@ class WordMorphism(SageObject):
             codom_alphabet.update(it)
         return Words(sorted(codom_alphabet))
 
+    @cached_method
+    def __hash__(self):
+        r"""
+        TESTS::
+
+            sage: hash(WordMorphism('a->ab,b->ba'))
+            -1651294583         # 32-bit
+            4826519950209531529 # 64-bit
+        """
+        return hash(tuple((k,v) for k,v in self._morph.iteritems())) ^ hash(self._codomain)
+
     def __eq__(self, other):
         r"""
         Returns ``True`` if ``self`` is equal to ``other``.
@@ -735,10 +746,10 @@ class WordMorphism(SageObject):
 
     def _latex_(self):
         r"""
-        Returns the latex representation of the morphism.
+        Return the latex representation of the morphism.
 
-        Use :method:`latex_layout` to change latex layout (oneliner vs
-        array). The default is an latex array.
+        Use :meth:`latex_layout` to change latex layout (oneliner vs
+        array). The default is a latex array.
 
         EXAMPLES::
 

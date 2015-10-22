@@ -45,7 +45,6 @@ from cpython.float cimport *
 include "sage/ext/python_debug.pxi"
 include 'sage/ext/cdefs.pxi'
 include 'sage/ext/stdsage.pxi'
-include 'sage/ext/random.pxi'
 include 'sage/ext/interrupt.pxi'
 from sage.libs.gsl.all cimport *
 cimport libc.math
@@ -66,6 +65,7 @@ from sage.rings.integer_ring import ZZ
 
 from sage.categories.morphism cimport Morphism
 from sage.structure.coerce cimport is_numpy_type
+from sage.misc.randstate cimport randstate, current_randstate
 
 
 def is_RealDoubleField(x):
@@ -140,7 +140,7 @@ cdef class RealDoubleField_class(Field):
             sage: TestSuite(R).run()
         """
         from sage.categories.fields import Fields
-        Field.__init__(self, self, category = Fields())
+        Field.__init__(self, self, category=Fields().Metric().Complete())
         self._populate_coercion_lists_(element_constructor=RealDoubleElement,
                                        init_no_parent=True,
                                        convert_method_name='_real_double_')
@@ -2182,6 +2182,25 @@ cdef class RealDoubleElement(FieldElement):
             0.9092974268256817
         """
         return self._new_c(gsl_sf_sin(self._value))
+
+    def dilog(self):
+        r"""
+        Return the dilogarithm of ``self``.
+
+        This is defined by the
+        series `\sum_n x^n/n^2` for `|x| \le 1`. When the absolute
+        value of ``self`` is greater than 1, the returned value is the
+        real part of (the analytic continuation to `\CC` of) the
+        dilogarithm of ``self``.
+
+        EXAMPLES::
+
+            sage: RDF(1).dilog()  # rel tol 1.0e-13
+            1.6449340668482264
+            sage: RDF(2).dilog()  # rel tol 1.0e-13
+            2.46740110027234
+        """
+        return self._new_c(gsl_sf_dilog(self._value))
 
     def restrict_angle(self):
         r"""

@@ -32,7 +32,7 @@ from sage.rings.ring cimport CommutativeRing
 from sage.categories.morphism cimport Morphism
 from sage.structure.coerce cimport is_numpy_type
 
-from sage.rings.all import RR, CC
+from sage.rings.all import RR, CC, ZZ
 
 pynac_symbol_registry = {}
 
@@ -251,6 +251,18 @@ cdef class SymbolicRing(CommutativeRing):
             sage: bool(si == CC.0)
             True
 
+        Polynomial ring element factorizations::
+
+            sage: R.<x> = QQ[]
+            sage: SR(factor(5*x^2 - 5))
+            5*(x + 1)*(x - 1)
+            sage: R.<x,y> = QQ[]
+            sage: SR(factor(x^2 - y^2))
+            (x + y)*(x - y)
+            sage: R.<x,y,z> = QQ[]
+            sage: SR(factor(x^2*y^3 + x^2*y^2*z - x*y^3 - x*y^2*z - 2*x*y*z - 2*x*z^2 + 2*y*z + 2*z^2))
+            (x*y^2 - 2*z)*(x - 1)*(y + z)
+
         """
         cdef GEx exp
 
@@ -271,6 +283,7 @@ cdef class SymbolicRing(CommutativeRing):
 
         from sage.rings.infinity import (infinity, minus_infinity,
                                          unsigned_infinity)
+        from sage.structure.factorization import Factorization
 
         if isinstance(x, (Integer, RealNumber, float, long, complex)):
             GEx_construct_pyobject(exp, x)
@@ -284,6 +297,9 @@ cdef class SymbolicRing(CommutativeRing):
             return new_Expression_from_GEx(self, g_UnsignedInfinity)
         elif isinstance(x, (RingElement, Matrix)):
             GEx_construct_pyobject(exp, x)
+        elif isinstance(x, Factorization):
+            from sage.misc.all import prod
+            return prod([SR(p)**e for p,e in x], SR(x.unit()))
         else:
             raise TypeError
 
@@ -564,6 +580,12 @@ cdef class SymbolicRing(CommutativeRing):
 
             sage: SR.symbol() # temporary variable
             symbol...
+
+        We propagate the domain to the assumptions database::
+
+            sage: n = var('n', domain='integer')
+            sage: solve([n^2 == 3],n)
+            []
         """
         cdef GSymbol symb
         cdef Expression e
@@ -582,8 +604,10 @@ cdef class SymbolicRing(CommutativeRing):
             if latex_name is not None:
                 symb.set_texname(latex_name)
             if domain is not None:
-                symb.set_domain(sage_domain_to_ginac(domain))
+                symb.set_domain(sage_domain_to_ginac_domain(domain))
             GEx_construct_symbol(&e._gobj, symb)
+            if domain is not None:
+                send_sage_domain_to_maxima(e, domain)
 
             return e
 
@@ -595,18 +619,21 @@ cdef class SymbolicRing(CommutativeRing):
             if name is None: # Check if we need a temporary anonymous new symbol
                 symb = ginac_new_symbol()
                 if domain is not None:
-                    symb.set_domain(sage_domain_to_ginac(domain))
+                    symb.set_domain(sage_domain_to_ginac_domain(domain))
             else:
                 if latex_name is None:
                     latex_name = latex_variable_name(name)
                 if domain is not None:
-                    domain = sage_domain_to_ginac(domain)
+                    ginac_domain = sage_domain_to_ginac_domain(domain)
                 else:
-                    domain = domain_complex
-                symb = ginac_symbol(name, latex_name, domain)
+                    ginac_domain = domain_complex
+                symb = ginac_symbol(name, latex_name, ginac_domain)
                 pynac_symbol_registry[name] = e
 
             GEx_construct_symbol(&e._gobj, symb)
+            if domain is not None:
+                send_sage_domain_to_maxima(e, domain)
+
         return e
 
     cpdef var(self, name, latex_name=None, domain=None):
@@ -788,16 +815,40 @@ cdef class SymbolicRing(CommutativeRing):
 
 SR = SymbolicRing()
 
-cdef unsigned sage_domain_to_ginac(object domain) except +:
-        # convert the domain argument to something easy to parse
-        if domain is RR or domain == 'real':
-            return domain_real
-        elif domain == 'positive':
-            return domain_positive
-        elif domain is CC or domain == 'complex':
-            return domain_complex
-        else:
-            raise ValueError("domain must be one of 'complex', 'real' or 'positive'")
+cdef unsigned sage_domain_to_ginac_domain(object domain) except -1:
+    """
+    TESTS::
+
+        sage: var('x', domain='foo')
+        Traceback (most recent call last):
+        ...
+        ValueError: 'foo': domain must be one of 'complex', 'real', 'positive' or 'integer'
+    """
+    # convert the domain argument to something easy to parse
+    if domain is RR or domain == 'real':
+        return domain_real
+    elif domain == 'positive':
+        return domain_positive
+    elif domain is CC or domain == 'complex':
+        return domain_complex
+    elif domain is ZZ or domain == 'integer':
+        return domain_integer
+    else:
+        raise ValueError(repr(domain)+": domain must be one of 'complex', 'real', 'positive' or 'integer'")
+
+cdef send_sage_domain_to_maxima(Expression v, object domain) except +:
+    from sage.symbolic.assumptions import assume
+    # convert the domain argument to something easy to parse
+    if domain is RR or domain == 'real':
+        assume(v, 'real')
+    elif domain == 'positive':
+        assume(v>0)
+    elif domain is CC or domain == 'complex':
+        assume(v, 'complex')
+    elif domain is ZZ or domain == 'integer':
+        assume(v, 'integer')
+    else:
+        raise ValueError(repr(domain)+": domain must be one of 'complex', 'real', 'positive' or 'integer'")
 
 cdef class NumpyToSRMorphism(Morphism):
     r"""

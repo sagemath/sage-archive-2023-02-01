@@ -52,7 +52,7 @@ AUTHORS:
 
 include "sage/ext/interrupt.pxi"
 include "sage/libs/ntl/decl.pxi"
-include "sage/libs/pari/decl.pxi"
+from sage.libs.pari.paridecl cimport *
 include "sage/libs/pari/pari_err.pxi"
 
 from sage.misc.randstate cimport randstate, current_randstate
@@ -1296,19 +1296,6 @@ cdef class FiniteField_givaroElement(FinitePolyExtElement):
         if r == 0:
             return make_FiniteField_givaroElement(cache, cache.objectptr.one)
         return make_FiniteField_givaroElement(cache, r)
-
-    def __richcmp__(left, right, int op):
-        """
-        EXAMPLES::
-
-            sage: k.<a> = GF(9); k
-            Finite Field in a of size 3^2
-            sage: a == k('a') # indirect doctest
-            True
-            sage: a == a + 1
-            False
-        """
-        return (<Element>left)._richcmp(right, op)
 
     cpdef int _cmp_(left, Element right) except -2:
         """

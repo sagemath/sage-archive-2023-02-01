@@ -628,9 +628,13 @@ cdef class Map(Element):
             sage: R.<x,y> = QQ[]
             sage: f = R.hom([x+y, x-y], R)
             sage: f.category_for()
-            Join of Category of unique factorization domains and Category of commutative algebras over quotient fields
+            Join of Category of unique factorization domains
+             and Category of commutative algebras over (quotient fields and metric spaces)
             sage: f.category()
-            Category of endsets of unital magmas and right modules over quotient fields and left modules over quotient fields
+            Category of endsets of unital magmas
+             and right modules over (quotient fields and metric spaces)
+             and left modules over (quotient fields and metric spaces)
+
 
         FIXME: find a better name for this method
         """

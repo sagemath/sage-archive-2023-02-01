@@ -66,7 +66,7 @@ class KazhdanLusztigPolynomial(UniqueRepresentation, SageObject):
 
         sage: W = CoxeterGroup(['B', 3], implementation='coxeter3') # optional - coxeter3
         sage: W.kazhdan_lusztig_polynomial([2], [3,2,3,1,2])        # optional - coxeter3
-        1 + q
+        q + 1
     """
     def __init__(self, W, q, trace=False):
         """

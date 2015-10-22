@@ -1143,6 +1143,25 @@ class CartanType_abstract(object):
         import type_relabel
         return type_relabel.CartanType(self, relabelling)
 
+    def subtype(self, index_set):
+        """
+        Return a subtype of ``self`` given by ``index_set``.
+
+        A subtype can be considered the Dynkin diagram induced from
+        the Dynkin diagram of ``self`` by ``index_set``.
+
+        EXAMPLES::
+
+            sage: ct = CartanType(['A',6,2])
+            sage: ct.dynkin_diagram()
+            O=<=O---O=<=O
+            0   1   2   3
+            BC3~
+            sage: ct.subtype([1,2,3])
+            ['C', 3]
+        """
+        return self.cartan_matrix().subtype(index_set).cartan_type()
+
     def marked_nodes(self, marked_nodes):
         """
         Return a Cartan type with the nodes ``marked_nodes`` marked.
@@ -1466,8 +1485,12 @@ class CartanType_crystallographic(CartanType_abstract):
             1   2   2   2   2
         """
 
+    # The default value of label should really be lambda i:i, but sphinx does
+    # not like it currently (see #14553); since this is an abstract method
+    # the value won't actually be used, so we put a fake instead.
     @abstract_method(optional=True)
-    def _latex_dynkin_diagram(self, label=lambda i: i, node=None, node_dist=2):
+    def _latex_dynkin_diagram(self, label='lambda i: i',
+                              node=None, node_dist=2):
         r"""
         Return a latex representation of the Dynkin diagram.
 

@@ -223,6 +223,7 @@ class pAdicLseries(SageObject):
         Compare self and other.
 
         TESTS::
+
             sage: lp1 = EllipticCurve('11a1').padic_lseries(5)
             sage: lp2 = EllipticCurve('11a1').padic_lseries(7)
             sage: lp3 = EllipticCurve('11a2').padic_lseries(5)
@@ -232,7 +233,6 @@ class pAdicLseries(SageObject):
             False
             sage: lp1 == lp3
             False
-
         """
         c = cmp(type(self), type(other))
         if c:
@@ -742,7 +742,7 @@ class pAdicLseries(SageObject):
 
         """
         from sage.functions.all import sqrt
-        # This funciton does not depend on p and could be moved out of this file but it is needed only here
+        # This function does not depend on p and could be moved out of this file but it is needed only here
 
         # Note that the number of real components does not change by twisting.
         if D == 1:

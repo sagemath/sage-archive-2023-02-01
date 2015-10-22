@@ -1381,8 +1381,8 @@ Upcoming features
 
 .. _axioms-algorithmic:
 
-Description of the algorithmic
-==============================
+Algorithms
+==========
 
 Computing joins
 ---------------
@@ -1673,8 +1673,11 @@ from sage.categories.category_cy_helper import AxiomContainer, canonicalize_axio
 
 all_axioms = AxiomContainer()
 all_axioms += ("Flying", "Blue",
+               "Compact",
+               "Differentiable", "Smooth", "Analytic", "AlmostComplex",
                "FinitelyGeneratedAsMagma",
                "Facade", "Finite", "Infinite",
+               "Complete",
                "FiniteDimensional", "Connected", "WithBasis",
                "Irreducible",
                "Commutative", "Associative", "Inverse", "Unital", "Division", "NoZeroDivisors",
@@ -2257,6 +2260,8 @@ class CategoryWithAxiom(Category):
                 result = result.replace(" over ", " with basis over ", 1)
             elif axiom == "Connected" and "graded " in result:
                 result = result.replace("graded ", "graded connected ", 1)
+            elif axiom == "Connected" and "filtered " in result:
+                result = result.replace("filtered ", "filtered connected ", 1)
             elif axiom == "Endset" and "homsets" in result:
                 # Without the space at the end to handle Homsets().Endset()
                 result = result.replace("homsets", "endsets", 1)

@@ -37,7 +37,8 @@ from sage.sets.finite_enumerated_set import FiniteEnumeratedSet
 from sage.rings.all import ZZ
 from combinat import CombinatorialElement
 from sage.categories.cartesian_product import cartesian_product
-from integer_list import IntegerListsLex
+
+from integer_lists import IntegerListsLex
 import __builtin__
 from sage.rings.integer import Integer
 from sage.combinat.combinatorial_map import combinatorial_map

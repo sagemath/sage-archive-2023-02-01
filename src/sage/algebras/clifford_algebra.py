@@ -524,8 +524,8 @@ class CliffordAlgebra(CombinatorialFreeModule):
             sage: Q = QuadraticForm(ZZ, 3, [1,2,3,4,5,6])
             sage: Cl = CliffordAlgebra(Q)
             sage: Cl.category()
-            Category of finite dimensional super algebras with basis
-             over (euclidean domains and infinite enumerated sets)
+            Category of finite dimensional super algebras with basis over
+             (euclidean domains and infinite enumerated sets and metric spaces)
             sage: TestSuite(Cl).run()
 
         TESTS:

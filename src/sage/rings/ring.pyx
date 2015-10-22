@@ -68,7 +68,7 @@ AUTHORS:
 
 from sage.misc.cachefunc import cached_method
 
-from sage.structure.element import get_coercion_model
+from sage.structure.element cimport coercion_model
 from sage.structure.parent_gens cimport ParentWithGens
 from sage.structure.parent cimport Parent
 from sage.structure.category_object import check_default_category
@@ -134,11 +134,14 @@ cdef class Ring(ParentWithGens):
     Test agaings another bug fixed in :trac:`9944`::
 
         sage: QQ['x'].category()
-        Join of Category of euclidean domains and Category of commutative algebras over quotient fields
+        Join of Category of euclidean domains
+             and Category of commutative algebras over (quotient fields and metric spaces)
         sage: QQ['x','y'].category()
-        Join of Category of unique factorization domains and Category of commutative algebras over quotient fields
+        Join of Category of unique factorization domains
+             and Category of commutative algebras over (quotient fields and metric spaces)
         sage: PolynomialRing(MatrixSpace(QQ,2),'x').category()
-        Category of algebras over (algebras over quotient fields and infinite sets)
+        Category of algebras over (algebras over
+         (quotient fields and metric spaces) and infinite sets)
         sage: PolynomialRing(SteenrodAlgebra(2),'x').category()
         Category of algebras over graded hopf algebras with basis over Finite Field of size 2
 
@@ -1308,7 +1311,7 @@ cdef class CommutativeRing(Ring):
         try:
             return self.fraction_field()
         except (NotImplementedError,TypeError):
-            return get_coercion_model().division_parent(self)
+            return coercion_model.division_parent(self)
 
     def __pow__(self, n, _):
         """

@@ -123,7 +123,7 @@ Backtracking solvers and generic enumerated sets
 - :ref:`sage.combinat.dlx`
 - :ref:`sage.combinat.matrices.dlxcpp`
 - :ref:`sage.combinat.species`
-- :class:`~sage.combinat.integer_list.IntegerListsLex`
+- :class:`~sage.combinat.integer_lists.IntegerListsLex`
 - :class:`~sage.combinat.integer_vectors_mod_permgroup.IntegerVectorsModPermutationGroup`
 
 Low level enumerated sets

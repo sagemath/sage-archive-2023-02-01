@@ -442,10 +442,8 @@ class HighestWeightCrystals(Category_singleton):
             """
             if category is None:
                 category = self.category()
-            elif not category.is_subcategory(HighestWeightCrystals()):
-                if not category.is_subcategory(Crystals()):
-                    raise TypeError("{} is not a subcategory of Crystals()".format(category))
-                return CrystalHomset(self, Y, category=category, **options)
+            elif not category.is_subcategory(Crystals()):
+                raise TypeError("{} is not a subcategory of Crystals()".format(category))
             if Y not in Crystals():
                 raise TypeError("{} is not a crystal".format(Y))
             return HighestWeightCrystalHomset(self, Y, category=category, **options)

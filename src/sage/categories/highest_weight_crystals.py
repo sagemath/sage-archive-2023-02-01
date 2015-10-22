@@ -432,7 +432,7 @@ class HighestWeightCrystals(Category_singleton):
             TESTS:
 
             Check that we fallback first to trying a crystal homset
-            :trac:``::
+            (:trac:`19458`)::
 
                 sage: Binf = crystals.infinity.Tableaux(['A',2])
                 sage: Bi = crystals.elementary.Elementary(Binf.cartan_type(), 1)

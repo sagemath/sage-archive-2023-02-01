@@ -344,6 +344,120 @@ class OrderedTree(AbstractClonableTree, ClonableList):
         """
         return self._to_binary_tree_rec()
 
+    @combinatorial_map(name="To parallelogram polyomino")
+    def to_parallelogram_polyomino(self, bijection=None):
+        r"""
+        Return a polyominao parallelogram.
+
+        INPUTS::
+
+        -- ``bijection`` is the name od the bijection to use. Default : 
+           'Boussicault-Socci'. Possible values : 'Boussicault-Socci',
+           'via dyck and Delest-Viennot'.
+
+        EXAMPLES::
+
+            sage: T = OrderedTree(
+            ....:     [[[], [[], [[]]]], [], [[[],[]]], [], []]
+            ....: )
+            sage: T.to_parallelogram_polyomino( bijection='Boussicault-Socci' )
+            [[0, 0, 0, 1, 1, 0, 1, 1, 1, 1, 0, 1, 1, 1], [1, 1, 1, 1, 1, 0, 0, 1, 1, 0, 1, 1, 0, 0]]
+            sage: T = OrderedTree( [] )
+            sage: T.to_parallelogram_polyomino()
+            [[1], [1]]
+            sage: T = OrderedTree( [[]] )
+            sage: T.to_parallelogram_polyomino()
+            [[0, 1], [1, 0]]
+            sage: T = OrderedTree( [[],[]] )
+            sage: T.to_parallelogram_polyomino()
+            [[0, 1, 1], [1, 1, 0]]
+            sage: T = OrderedTree( [[[]]] )
+            sage: T.to_parallelogram_polyomino()
+            [[0, 0, 1], [1, 0, 0]]
+        """
+        if (bijection is None) or (bijection=='Boussicault-Socci'):
+            return self.to_parallelogram_polyomino_Boussicault_Socci()
+        if bijection == 'via dyck and Delest-Viennot':
+            NotImplemented
+    
+    def to_parallelogram_polyomino_Boussicault_Socci(self):
+        r"""
+        return the polyomino parallelogram using the Boussicault-Socci 
+        bijection.
+
+        EXAMPLES::
+
+            sage: T = OrderedTree(
+            ....:     [[[], [[], [[]]]], [], [[[],[]]], [], []]
+            ....: )
+            sage: T.to_parallelogram_polyomino_Boussicault_Socci()
+            [[0, 0, 0, 1, 1, 0, 1, 1, 1, 1, 0, 1, 1, 1], [1, 1, 1, 1, 1, 0, 0, 1, 1, 0, 1, 1, 0, 0]]
+            sage: T = OrderedTree( [] )
+            sage: T.to_parallelogram_polyomino_Boussicault_Socci()
+            [[1], [1]]
+            sage: T = OrderedTree( [[]] )
+            sage: T.to_parallelogram_polyomino_Boussicault_Socci()
+            [[0, 1], [1, 0]]
+            sage: T = OrderedTree( [[],[]] )
+            sage: T.to_parallelogram_polyomino_Boussicault_Socci()
+            [[0, 1, 1], [1, 1, 0]]
+            sage: T = OrderedTree( [[[]]] )
+            sage: T.to_parallelogram_polyomino_Boussicault_Socci()
+            [[0, 0, 1], [1, 0, 0]]
+        """
+        from sage.combinat.parallelogram_polyomino import ParallelogramPolyomino
+        if self.node_number() == 1:
+            return ParallelogramPolyomino( [[1], [1]] )
+        upper_nodes = []
+        lower_nodes = []
+        w_coordinate = {}
+        w_coordinate[()] = 0
+        h_coordinate = {}
+        cpt = 0
+        for h in range( 1, self.depth()+1, 2):
+            for node in self.breadth_node_paths_generator(h):
+                h_coordinate[ node ] = cpt
+                lower_nodes.append( node )
+                cpt += 1
+        cpt = 0
+        for h in range( 2, self.depth()+1, 2 ):
+            for node in self.breadth_node_paths_generator(h):
+                w_coordinate[ node ] = cpt
+                upper_nodes.append( node )
+                cpt += 1
+        def W( path ):
+            if path in w_coordinate:
+                return w_coordinate[path]
+            else:
+                return w_coordinate[path[:-1]]
+        def H( path ):
+            if path in h_coordinate:
+                return h_coordinate[path]
+            else:
+                return h_coordinate[path[:-1]]
+        lower_path =[]
+        for i in range( 1, len(lower_nodes) ):
+            lower_path.append(0)
+            lower_path += [
+                1 for j in range( W( lower_nodes[i] ) - W( lower_nodes[i-1] ) )
+            ]
+        lower_path.append(0)
+        lower_path += [
+            1 for i in range( self.node_number()-len(lower_path) ) 
+        ]
+        upper_path =[]
+        for i in range( 1, len(upper_nodes) ):
+            upper_path.append(1)
+            upper_path += [
+                0 for j in range( H( upper_nodes[i] ) - H( upper_nodes[i-1] ) )
+            ]
+        upper_path.append(1)
+        upper_path += [
+            0 for i in range( self.node_number()-len(upper_path) )
+        ]
+        return ParallelogramPolyomino( [lower_path, upper_path] )
+
+
     @combinatorial_map(name="To binary tree, right brother = right child")
     def to_binary_tree_right_branch(self):
         r"""

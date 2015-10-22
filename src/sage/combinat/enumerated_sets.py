@@ -68,6 +68,11 @@ Partitions, tableaux, ...
 
 See: :ref:`sage.combinat.catalog_partitions`
 
+Polyominoes
+-----------
+
+See: :ref:`sage.combinat.parallelogram_polyomino`
+
 Integer matrices, ...
 ---------------------
 

@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 r"""
 Finite simplicial complexes
 
@@ -3534,4 +3535,74 @@ class SimplicialComplex(CategoryObject, GenericCellComplex):
             True
         """
         return not self._is_mutable
+
+
+# Miscellaneous utility functions.
+
+# The following two functions can be used to generate the facets for
+# the corresponding examples in sage.homology.examples. These take a
+# few seconds to run, so the actual examples have the facets
+# hard-coded. Thus the following functions are not currently used in
+# the Sage library.
+
+def facets_for_RP4():
+    """
+    Return the list of facets for a minimal triangulation of 4-dimensional
+    real projective space.
+
+    We use vertices numbered 1 through 16, define two facets, and define
+    a certain subgroup `G` of the symmetric group `S_{16}`. Then the set
+    of all facets is the `G`-orbit of the two given facets.
+
+    See the description in Example 3.12 in Datta [Da2007]_.
+
+    EXAMPLES::
+
+        sage: from sage.homology.simplicial_complex import facets_for_RP4
+        sage: A = facets_for_RP4()   # long time (1 or 2 seconds)
+        sage: SimplicialComplex(A) == simplicial_complexes.RealProjectiveSpace(4) # long time
+        True
+    """
+    # Define the group:
+    from sage.groups.perm_gps.permgroup import PermutationGroup
+    g1 = '(2,7)(4,10)(5,6)(11,12)'
+    g2 = '(1, 2, 3, 4, 5, 10)(6, 8, 9)(11, 12, 13, 14, 15, 16)'
+    G = PermutationGroup([g1, g2])
+    # Define the two simplices:
+    t1 = (1, 2, 4, 5, 11)
+    t2 = (1, 2, 4, 11, 13)
+    # Apply the group elements to the simplices:
+    facets = []
+    for g in G:
+        d = g.dict()
+        for t in [t1, t2]:
+            new = tuple([d[j] for j in t])
+            if new not in facets:
+                facets.append(new)
+    return facets
+
+def facets_for_K3():
+    """
+    Returns the facets for a minimal triangulation of the K3 surface.
+
+    This is a pure simplicial complex of dimension 4 with 16
+    vertices and 288 facets. The facets are obtained by constructing a
+    few facets and a permutation group `G`, and then computing the
+    `G`-orbit of those facets.
+
+    See Casella and Kühnel in [CK2001]_ and Spreer and Kühnel [SK2011]_;
+    the construction here uses the labeling from Spreer and Kühnel.
+
+    EXAMPLES::
+
+        sage: from sage.homology.simplicial_complex import facets_for_K3
+        sage: A = facets_for_K3()   # long time (a few seconds)
+        sage: SimplicialComplex(A) == simplicial_complexes.K3Surface()  # long time
+        True
+    """
+    from sage.groups.perm_gps.permgroup import PermutationGroup
+    G = PermutationGroup([[(1,3,8,4,9,16,15,2,14,12,6,7,13,5,10)],
+                         [(1,11,16),(2,10,14),(3,12,13),(4,9,15),(5,7,8)]])
+    return ([tuple([g(i) for i in (1,2,3,8,12)]) for g in G]
+            +[tuple([g(i) for i in (1,2,5,8,14)]) for g in G])
 

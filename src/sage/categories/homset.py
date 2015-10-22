@@ -855,7 +855,7 @@ class Homset(Set_generic):
             sage: H = Hom(Set([1,2,3]), Set([1,2,3]))
             sage: f = H( lambda x: 4-x )
             sage: f.parent()
-            Set of Morphisms from {1, 2, 3} to {1, 2, 3} in Category of sets
+            Set of Morphisms from {1, 2, 3} to {1, 2, 3} in Category of finite sets
             sage: f(1), f(2), f(3) # todo: not implemented
 
             sage: H = Hom(ZZ, QQ, Sets())

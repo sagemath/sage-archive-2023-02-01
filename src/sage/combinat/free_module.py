@@ -21,7 +21,7 @@ from sage.rings.all import Integer
 import sage.structure.element
 from sage.combinat.family import Family
 from sage.sets.finite_enumerated_set import FiniteEnumeratedSet
-from sage.combinat.cartesian_product import CartesianProduct
+from sage.combinat.cartesian_product import CartesianProduct_iters
 from sage.sets.disjoint_union_enumerated_sets import DisjointUnionEnumeratedSets
 from sage.misc.cachefunc import cached_method
 from sage.misc.all import lazy_attribute
@@ -1288,10 +1288,11 @@ class CombinatorialFreeModule(UniqueRepresentation, Module, IndexedGenerators):
         if element_class is not None:
             self.Element = element_class
 
-        # The following is needed by e.g. root systems that don't call
-        # the classcall and passes lists as basis_keys
-        if isinstance(basis_keys, (list, tuple)):
-            basis_keys = FiniteEnumeratedSet(basis_keys)
+        # The following is to ensure that basis keys is indeed a parent.
+        # tuple/list are converted to FiniteEnumeratedSet and set/frozenset to
+        # Set
+        # (e.g. root systems passes lists)
+        basis_keys = Sets()(basis_keys, enumerated_set=True)
 
         # ignore the optional 'key' since it only affects CachedRepresentation
         kwds.pop('key', None)
@@ -2194,7 +2195,7 @@ class CombinatorialFreeModule_Tensor(CombinatorialFreeModule):
             """
             from sage.categories.tensor import tensor
             self._sets = modules
-            CombinatorialFreeModule.__init__(self, modules[0].base_ring(), CartesianProduct(*[module.basis().keys() for module in modules]).map(tuple), **options)
+            CombinatorialFreeModule.__init__(self, modules[0].base_ring(), CartesianProduct_iters(*[module.basis().keys() for module in modules]).map(tuple), **options)
             # the following is not the best option, but it's better than nothing.
             self._print_options['tensor_symbol'] = options.get('tensor_symbol', tensor.symbol)
 

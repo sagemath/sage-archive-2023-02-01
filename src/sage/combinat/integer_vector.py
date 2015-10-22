@@ -36,7 +36,7 @@ from sage.rings.arith import binomial
 from sage.rings.infinity import PlusInfinity
 import cartesian_product
 import functools
-from sage.combinat.integer_list import IntegerListsLex
+from sage.combinat.integer_lists import IntegerListsLex
 
 
 def is_gale_ryser(r,s):
@@ -923,34 +923,30 @@ class IntegerVectors_nkconstraints(IntegerListsLex):
             sage: type(v)
             <type 'list'>
 
-        TESTS:
+        TESTS::
 
-        All the attributes below are private; don't use them!
-
-        ::
-
-            sage: IV._min_length
+            sage: IV.min_length
             3
-            sage: IV._max_length
+            sage: IV.max_length
             3
-            sage: floor = IV._floor
+            sage: floor = IV.floor
             sage: [floor(i) for i in range(1,10)]
             [0, 0, 0, 0, 0, 0, 0, 0, 0]
-            sage: ceiling = IV._ceiling
+            sage: ceiling = IV.ceiling
             sage: [ceiling(i) for i in range(1,5)]
             [inf, inf, inf, inf]
-            sage: IV._min_slope
+            sage: IV.min_slope
             0
-            sage: IV._max_slope
+            sage: IV.max_slope
             inf
 
             sage: IV = IntegerVectors(3, 10, inner=[4,1,3], min_part=2)
-            sage: floor = IV._floor
+            sage: floor = IV.floor
             sage: floor(0), floor(1), floor(2)
             (4, 2, 3)
 
             sage: IV = IntegerVectors(3, 10, outer=[4,1,3], max_part=3)
-            sage: ceiling = IV._ceiling
+            sage: ceiling = IV.ceiling
             sage: ceiling(0), ceiling(1), ceiling(2)
             (3, 1, 3)
         """
@@ -1072,7 +1068,7 @@ class IntegerVectors_nkconstraints(IntegerListsLex):
             [0, 0, 2]
         """
         from sage.combinat.integer_list_old import next
-        return next(x, self._min_length, self._max_length, self._floor, self._ceiling, self._min_slope, self._max_slope)
+        return next(x, self.min_length, self.max_length, self.floor, self.ceiling, self.min_slope, self.max_slope)
 
 class IntegerVectors_nconstraints(IntegerVectors_nkconstraints):
     def __init__(self, n, constraints):

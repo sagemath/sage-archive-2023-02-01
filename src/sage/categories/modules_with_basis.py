@@ -28,6 +28,7 @@ from sage.categories.dual import DualObjectsCategory
 from sage.categories.category_with_axiom import CategoryWithAxiom_over_base_ring
 from sage.categories.modules import Modules
 from sage.categories.poor_man_map import PoorManMap
+from sage.rings.infinity import Infinity
 from sage.structure.element import Element, parent
 lazy_import('sage.modules.with_basis.morphism',
             ['ModuleMorphismByLinearity',

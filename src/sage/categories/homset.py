@@ -283,17 +283,13 @@ def Hom(X, Y, category=None, check=True):
 
         sage: S = SimplicialComplex([[1,2], [1,4]]); S.rename("S")
         sage: Hom(S, S, SimplicialComplexes())
-        Set of Morphisms from S to S in Category of simplicial complexes
+        Set of Morphisms from S to S in Category of finite simplicial complexes
 
-        sage: H = Hom(Set(), S, Sets())
-        Traceback (most recent call last):
-        ...
-        ValueError: S is not in Category of sets
+        sage: Hom(Set(), S, Sets())
+        Set of Morphisms from {} to S in Category of sets
 
-        sage: H = Hom(S, Set(), Sets())
-        Traceback (most recent call last):
-        ...
-        ValueError: S is not in Category of sets
+        sage: Hom(S, Set(), Sets())
+        Set of Morphisms from S to {} in Category of sets
 
         sage: H = Hom(S, S, ChainComplexes(QQ))
         Traceback (most recent call last):
@@ -651,7 +647,7 @@ class Homset(Set_generic):
             (<function Hom at ...>,
              (Vector space of dimension 2 over Rational Field,
               Vector space of dimension 3 over Rational Field,
-              Category of finite dimensional vector spaces with basis over quotient fields,
+              Category of finite dimensional vector spaces with basis over (quotient fields and metric spaces),
               False))
 
         TESTS::
@@ -1170,16 +1166,16 @@ class Homset(Set_generic):
             Set of Morphisms from Ambient free module of rank 2 over
              the principal ideal domain Integer Ring to Ambient free module
              of rank 3 over the principal ideal domain Integer Ring in
-             Category of finite dimensional modules with basis over
-             (euclidean domains and infinite enumerated sets)
+             Category of finite dimensional modules with basis over (euclidean
+             domains and infinite enumerated sets and metric spaces)
             sage: type(H)
             <class 'sage.modules.free_module_homspace.FreeModuleHomspace_with_category'>
             sage: H.reversed()
             Set of Morphisms from Ambient free module of rank 3 over
              the principal ideal domain Integer Ring to Ambient free module
              of rank 2 over the principal ideal domain Integer Ring in
-             Category of finite dimensional modules with basis over
-             (euclidean domains and infinite enumerated sets)
+             Category of finite dimensional modules with basis over (euclidean
+             domains and infinite enumerated sets and metric spaces)
             sage: type(H.reversed())
             <class 'sage.modules.free_module_homspace.FreeModuleHomspace_with_category'>
         """

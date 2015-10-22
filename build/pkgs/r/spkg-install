@@ -82,14 +82,13 @@ fi
 if [ "$UNAME" = "Darwin" ]; then
     # We don't want to install R as a library framework on OSX
     R_CONFIGURE="--enable-R-framework=no $R_CONFIGURE"
+    # OS X 10.10 and/or Xcode 6.3 and over broke the R installation. See
+    # http://trac.sagemath.org/ticket/18254.
+    if [ $MACOSX_VERSION -ge 14 ]; then
+        echo "OS X 10.$[$MACOSX_VERSION-4] Configuring R without aqua support."
+        R_CONFIGURE="--with-aqua=no $R_CONFIGURE"
+    fi 
 fi
-
-# OS X 10.10 and/or Xcode 6.3 broke the R installation. See
-# http://trac.sagemath.org/ticket/18254.
-if { uname -sr | grep 'Darwin 14\.' ;} &>/dev/null; then
-    echo "OS X 10.10: Configuring R without aqua support."
-    R_CONFIGURE="--with-aqua=no $R_CONFIGURE"
-fi 
 
 if [ "$UNAME" = "CYGWIN" ]; then
     # Cygwin libm does not provide "long double" functions
@@ -125,6 +124,12 @@ for patch in ../patches/*.patch; do
         exit 1
     fi
 done
+
+if [ "$UNAME" = "Darwin" ]; then
+    # Fixing install_name(s)
+    sed -i -e 's:\"-install_name :\"-install_name ${libdir}/R/lib/:' configure
+    sed -i -e "/SHLIB_EXT/s/\.so/.dylib/" configure
+fi
 
 # Don't override R_HOME_DIR in local/bin/R while building R.
 # See patches/R.sh.patch

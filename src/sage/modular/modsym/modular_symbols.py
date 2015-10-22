@@ -117,7 +117,7 @@ class ModularSymbol(SageObject):
         return [self.__alpha, self.__beta][j]
 
     def _latex_(self):
-        """
+        r"""
         Return Latex representation of this modular symbol.
 
         EXAMPLES::

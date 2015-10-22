@@ -193,13 +193,15 @@ class Category_over_base(CategoryWithParameters):
         EXAMPLES::
 
             sage: Modules(ZZ)._make_named_class_key('element_class')
-            Join of Category of euclidean domains and Category of infinite enumerated sets
+            Join of Category of euclidean domains
+             and Category of infinite enumerated sets
+             and Category of metric spaces
             sage: Modules(QQ)._make_named_class_key('parent_class')
-            Category of quotient fields
+            Join of Category of quotient fields and Category of metric spaces
             sage: Schemes(Spec(ZZ))._make_named_class_key('parent_class')
             Category of schemes
             sage: ModularAbelianVarieties(QQ)._make_named_class_key('parent_class')
-            Category of quotient fields
+            Join of Category of quotient fields and Category of metric spaces
             sage: Algebras(Fields())._make_named_class_key('morphism_class')
             Category of fields
         """
@@ -513,34 +515,7 @@ class Category_ideal(Category_in_ambient):
             return v
         return self.ring().ideal(v)
 
-#############################################################
-# TODO: make those two into real categories (with super_category, ...)
-
-# SimplicialComplex
-#############################################################
-class SimplicialComplexes(Category):
-    """
-    The category of simplicial complexes.
-
-    EXAMPLES::
-
-        sage: SimplicialComplexes()
-        Category of simplicial complexes
-
-    TESTS::
-
-        sage: TestSuite(SimplicialComplexes()).run()
-    """
-
-    def super_categories(self):
-        """
-        EXAMPLES::
-
-            sage: SimplicialComplexes().super_categories()
-            [Category of objects]
-        """
-        return [Objects()] # anything better?
-
+# TODO: make this into a better category
 #############################################################
 # ChainComplex
 #############################################################

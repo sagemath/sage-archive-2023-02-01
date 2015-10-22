@@ -27,8 +27,7 @@ class HopfAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
         Category of hopf algebras with basis over Rational Field
         sage: C.super_categories()
         [Category of hopf algebras over Rational Field,
-         Category of algebras with basis over Rational Field,
-         Category of coalgebras with basis over Rational Field]
+         Category of bialgebras with basis over Rational Field]
 
     We now show how to use a simple Hopf algebra, namely the group algebra of the dihedral group
     (see also AlgebrasWithBasis)::

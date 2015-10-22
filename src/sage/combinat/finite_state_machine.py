@@ -11070,13 +11070,7 @@ class Automaton(FiniteStateMachine):
             sage: A = Automaton([(0, 1, 1), (0, 2, [1, 1]), (0, 3, [1, 1, 1]),
             ....:                (1, 0, -1), (2, 0, -2), (3, 0, -3)],
             ....:               initial_states=[0], final_states=[0, 1, 2, 3])
-            sage: B = A.determinisation().relabeled()
-            sage: all(t.to_state.label() == 2 for t in
-            ....:     B.state(2).transitions)
-            True
-            sage: B.state(2).is_final
-            False
-            sage: B.delete_state(2)  # this is a sink
+            sage: B = A.determinisation().relabeled().coaccessible_components()
             sage: sorted(B.transitions())
             [Transition from 0 to 1: 1|-,
              Transition from 1 to 0: -1|-,

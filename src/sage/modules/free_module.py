@@ -686,14 +686,15 @@ class FreeModule_generic(Module):
             Category of vector spaces with basis over (finite fields
             and subquotients of monoids and quotients of semigroups)
             sage: V = QQ^4; V.category()
-            Category of vector spaces with basis over quotient fields
+            Category of vector spaces with basis over (quotient fields and metric spaces)
             sage: V = GF(5)**20; V.category()
             Category of vector spaces with basis over (finite fields
             and subquotients of monoids and quotients of semigroups)
             sage: FreeModule(ZZ,3).category()
-            Category of modules with basis over (euclidean domains and infinite enumerated sets)
+            Category of modules with basis over (euclidean domains
+             and infinite enumerated sets and metric spaces)
             sage: (QQ^0).category()
-            Category of vector spaces with basis over quotient fields
+            Category of vector spaces with basis over (quotient fields and metric spaces)
 
         TESTS::
 
@@ -3067,10 +3068,9 @@ class FreeModule_generic_field(FreeModule_generic_pid):
             sage: type(H)
             <class 'sage.modules.free_module_homspace.FreeModuleHomspace_with_category'>
             sage: H
-            Set of Morphisms from Vector space of dimension 2 over
-            Rational Field to Ambient free module of rank 3 over the
-            principal ideal domain Integer Ring in Category of vector
-            spaces with basis over quotient fields
+            Set of Morphisms from Vector space of dimension 2 over Rational Field
+             to Ambient free module of rank 3 over the principal ideal domain Integer Ring
+             in Category of vector spaces with basis over (quotient fields and metric spaces)
         """
         if Y.base_ring().is_field():
             import vector_space_homspace

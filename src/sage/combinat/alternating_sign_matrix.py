@@ -532,11 +532,30 @@ class AlternatingSignMatrix(Element):
         from sage.combinat.fully_packed_loop import FullyPackedLoop
         return FullyPackedLoop(self)
 
+    def link_pattern(self):
+        """
+        Return the link pattern corresponding to the fully packed loop 
+        corresponding to self.
+
+        EXAMPLES:
+
+        We can extract the underlying link pattern (a non-crossing
+        partition) from a fully packed loop::
+
+            sage: A = AlternatingSignMatrix([[0, 1, 0], [1, -1, 1], [0, 1, 0]])
+            sage: A.link_pattern()
+            [(1, 2), (3, 6), (4, 5)]
+
+            sage: B = AlternatingSignMatrix([[1, 0, 0], [0, 1, 0], [0, 0, 1]])
+            sage: B.link_pattern()
+            [(1, 6), (2, 5), (3, 4)]
+        """
+        return self.to_fully_packed_loop().link_pattern()
 
     @combinatorial_map(name='gyration')
     def gyration(self):
         r"""
-        Return the alternating sign matrix obtained by applying the gyration
+        Return the alternating sign matrix obtained by applying gyration
         to the height function in bijection with ``self``.
 
         Gyration acts on height functions as follows. Go through the entries of
@@ -545,11 +564,6 @@ class AlternatingSignMatrix(Element):
         the squares by 2 wherever possible such that the resulting matrix is
         still a height function. Gyration was first defined in [Wieland00]_ as
         an action on fully-packed loops.
-
-        REFERENCES:
-
-        .. [Wieland00] B. Wieland. *A large dihedral symmetry of the set of
-           alternating sign matrices*. Electron. J. Combin. 7 (2000).
 
         EXAMPLES::
 
@@ -568,7 +582,6 @@ class AlternatingSignMatrix(Element):
             [0 1 0]
             [0 0 1]
             [1 0 0]
-
             sage: A = AlternatingSignMatrices(3)
             sage: A([[1, 0, 0],[0, 1, 0],[0, 0, 1]]).gyration().gyration()
             [ 0  1  0]
@@ -800,25 +813,70 @@ class AlternatingSignMatrix(Element):
         return(output)
 
     @combinatorial_map(name='to Dyck word')
-    def to_dyck_word(self):
+    def to_dyck_word(self, method):
         r"""
-        Return the Dyck word determined by the last diagonal of
-        the monotone triangle corresponding to ``self``.
+        Return a Dyck word determined by the specified method.
+ 
+        The method 'last_diagonal' uses the last diagonal of the monotone 
+        triangle corresponding to ``self``. The method 'link_pattern' returns 
+        the Dyck word in bijection with the link pattern of the fully packed 
+        loop.
+
+        Note that these two methods in general yield different Dyck words for a
+        given alternating sign matrix.
+
+        INPUT:
+
+        - ``method``  - 
+
+          - ``'last_diagonal'`` 
+          - ``'link_pattern'`` 
 
         EXAMPLES::
 
             sage: A = AlternatingSignMatrices(3)
-            sage: A([[0,1,0],[1,0,0],[0,0,1]]).to_dyck_word()
+            sage: A([[0,1,0],[1,0,0],[0,0,1]]).to_dyck_word(method = 'last_diagonal')
             [1, 1, 0, 0, 1, 0]
-            sage: d = A([[0,1,0],[1,-1,1],[0,1,0]]).to_dyck_word(); d
+            sage: d = A([[0,1,0],[1,-1,1],[0,1,0]]).to_dyck_word(method = 'last_diagonal'); d
             [1, 1, 0, 1, 0, 0]
             sage: parent(d)
             Complete Dyck words
+            sage: A = AlternatingSignMatrices(3)
+            sage: asm = A([[0,1,0],[1,0,0],[0,0,1]])
+            sage: asm.to_dyck_word(method = 'link_pattern')
+            [1, 0, 1, 0, 1, 0]
+            sage: asm = A([[0,1,0],[1,-1,1],[0,1,0]])
+            sage: asm.to_dyck_word(method = 'link_pattern')
+            [1, 0, 1, 1, 0, 0]
+            sage: A = AlternatingSignMatrices(4)
+            sage: asm = A([[0,0,1,0],[1,0,0,0],[0,1,-1,1],[0,0,1,0]])
+            sage: asm.to_dyck_word(method = 'link_pattern')
+            [1, 1, 1, 0, 1, 0, 0, 0]
+            sage: asm.to_dyck_word()
+            Traceback (most recent call last):
+            ...
+            TypeError: to_dyck_word() takes exactly 2 arguments (1 given)
+            sage: asm.to_dyck_word(method = 'notamethod')
+            Traceback (most recent call last):
+            ...
+            ValueError: unknown method 'notamethod'
         """
-        MT = self.to_monotone_triangle()
-        nplus = self._matrix.nrows() + 1
-        parkfn = [nplus - row[0] for row in list(MT) if len(row) > 0]
-        return NonDecreasingParkingFunction(parkfn).to_dyck_word().reverse()
+        if method == 'last_diagonal':
+            MT = self.to_monotone_triangle()
+            nplus = self._matrix.nrows() + 1
+            parkfn = [nplus - row[0] for row in list(MT) if len(row) > 0]
+            return NonDecreasingParkingFunction(parkfn).to_dyck_word().reverse()
+        
+        elif method == 'link_pattern':
+            from sage.combinat.perfect_matching import PerfectMatching        
+            from sage.combinat.dyck_word import DyckWords        
+            p = PerfectMatching(self.link_pattern()).to_non_crossing_set_partition()
+            asm = self.to_matrix()
+            n = asm.nrows()
+            d = DyckWords(n)
+            return d.from_noncrossing_partition(p)
+
+        raise ValueError("unknown method '%s'" % method)
 
     def number_negative_ones(self):
         """
@@ -901,6 +959,8 @@ class AlternatingSignMatrix(Element):
             for j in range(len(mt[i])):
                 ssyt[i][j] = mt[j][-(i+1)]
         return SemistandardTableau(ssyt)
+
+
 
     def left_key(self):
         r"""

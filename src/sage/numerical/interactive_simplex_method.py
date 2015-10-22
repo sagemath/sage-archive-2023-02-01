@@ -2904,13 +2904,28 @@ class LPAbstractDictionary(SageObject):
             \end{equation*}
             sage: D.is_optimal()
             True
+            
+        This method detects infeasible problems::
+        
+            sage: A = ([1, 0],)
+            sage: b = (-1,)
+            sage: c = (0, -1)
+            sage: P = InteractiveLPProblemStandardForm(A, b, c)
+            sage: D = P.initial_dictionary()
+            sage: D.run_dual_simplex_method()
+            \begin{equation*}
+            ...
+            \end{equation*}
+            The problem is infeasible.
         """
         output = []
         while not self.is_optimal():
             if self.leaving() is None:
                 self.leave(min(self.possible_leaving()))
             if self.entering() is None:
-                self.enter(min(self.possible_entering()))
+                possible = self.possible_entering()
+                if possible:
+                    self.enter(min(possible))
             output.append(self._html_())
             if self.entering() is None:
                 output.append("The problem is infeasible.")
@@ -2968,13 +2983,28 @@ class LPAbstractDictionary(SageObject):
             \end{equation*}
             sage: D.is_optimal()
             True
+            
+        This method detects unbounded problems::
+        
+            sage: A = ([1, 0],)
+            sage: b = (1,)
+            sage: c = (0, 1)
+            sage: P = InteractiveLPProblemStandardForm(A, b, c)
+            sage: D = P.initial_dictionary()
+            sage: D.run_simplex_method()
+            \begin{equation*}
+            ...
+            \end{equation*}
+            The problem is unbounded in $x_{2}$ direction.
         """
         output = []
         while not self.is_optimal():
             if self.entering() is None:
                 self.enter(min(self.possible_entering()))
             if self.leaving() is None:
-                self.leave(min(self.possible_leaving()))
+                possible = self.possible_leaving()
+                if possible:
+                    self.leave(min(possible))
             output.append(self._html_())
             if self.leaving() is None:
                 output.append("The problem is unbounded in ${}$ direction."

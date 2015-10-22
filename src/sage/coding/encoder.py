@@ -70,7 +70,8 @@ class Encoder(SageObject):
 
         We first create a new :class:`Encoder` subclass::
 
-            sage: class EncoderExample(sage.coding.encoder.Encoder):
+            sage: from sage.coding.encoder import Encoder
+            sage: class EncoderExample(Encoder):
             ....:   def __init__(self, code):
             ....:       super(EncoderExample, self).__init__(code)
 

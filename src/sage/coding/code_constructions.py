@@ -978,15 +978,6 @@ def HammingCode(r,F):
         3
         sage: C = codes.HammingCode(3,GF(4,'a')); C
         Linear code of length 21, dimension 18 over Finite Field in a of size 2^2
-
-    While the ``codes`` object now gathers all code constructors,
-    ``HammingCode`` is still available in the global namespace::
-
-        sage: HammingCode(3,GF(2))
-        doctest:...: DeprecationWarning: This method soon will not be available in that way anymore. To use it, you can now call it by typing codes.HammingCode
-        See http://trac.sagemath.org/15445 for details.
-        Linear code of length 7, dimension 4 over Finite Field of size 2
-
     """
     q = F.order()
     n =  (q**r-1)/(q-1)
@@ -1294,14 +1285,6 @@ def ReedSolomonCode(n,k,F,pts = None):
         Linear code of length 6, dimension 4 over Finite Field in a of size 3^2
         sage: C.minimum_distance()
         3
-
-    While the ``codes`` object now gathers all code constructors,
-    ``ReedSolomonCode`` is still available in the global namespace::
-
-        sage: ReedSolomonCode(6,4,GF(7))
-        doctest:...: DeprecationWarning: This method soon will not be available in that way anymore. To use it, you can now call it by typing codes.ReedSolomonCode
-        See http://trac.sagemath.org/15445 for details.
-        Linear code of length 6, dimension 4 over Finite Field of size 7
 
     REFERENCES:
 

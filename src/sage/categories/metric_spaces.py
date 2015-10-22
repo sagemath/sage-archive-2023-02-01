@@ -8,7 +8,6 @@ Metric Spaces
 #                  http://www.gnu.org/licenses/
 #******************************************************************************
 
-from sage.misc.abstract_method import abstract_method
 from sage.misc.cachefunc import cached_method
 from sage.categories.category import Category
 from sage.categories.category_with_axiom import CategoryWithAxiom
@@ -47,7 +46,7 @@ class MetricSpacesCategory(RegressiveCovariantConstructionCategory):
 
         Consider ``category=Groups()``. Then, a group `G` with a metric
         is simultaneously a topological group by itself, and a
-        topogological space::
+        metric space::
 
             sage: Groups().Metric().super_categories()
             [Category of topological groups, Category of metric spaces]

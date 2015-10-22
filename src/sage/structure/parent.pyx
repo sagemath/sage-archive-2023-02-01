@@ -95,7 +95,7 @@ This came up in some subtle bug once::
 """
 
 from types import MethodType
-from element cimport parent_c
+from .element cimport parent_c, coercion_model
 cimport sage.categories.morphism as morphism
 cimport sage.categories.map as map
 from sage.structure.debug_options import debug
@@ -118,8 +118,7 @@ dummy_attribute_error = AttributeError(dummy_error_message)
 
 
 cdef _record_exception():
-    from element import get_coercion_model
-    get_coercion_model()._record_exception()
+    coercion_model._record_exception()
 
 cdef object _Integer
 cdef bint is_Integer(x):
@@ -1810,7 +1809,6 @@ cdef class Parent(category_object.CategoryObject):
         if embedding is not None:
             self.register_embedding(embedding)
 
-
     def _unset_coercions_used(self):
         r"""
         Pretend that this parent has never been interrogated by the coercion
@@ -1822,8 +1820,7 @@ cdef class Parent(category_object.CategoryObject):
             For internal use only!
         """
         self._coercions_used = False
-        import sage.structure.element
-        sage.structure.element.get_coercion_model().reset_cache()
+        coercion_model.reset_cache()
 
     def _unset_embedding(self):
         r"""

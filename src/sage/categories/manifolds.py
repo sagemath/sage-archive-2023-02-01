@@ -10,8 +10,6 @@ Manifolds
 
 from sage.misc.abstract_method import abstract_method
 from sage.misc.cachefunc import cached_method
-from sage.misc.lazy_attribute import lazy_attribute
-from sage.misc.lazy_import import LazyImport
 from sage.categories.category_types import Category_over_base_ring
 from sage.categories.category_with_axiom import CategoryWithAxiom_over_base_ring
 from sage.categories.sets_cat import Sets
@@ -67,8 +65,8 @@ class Manifolds(Category_over_base_ring):
         Return ``None``.
 
         Indeed, the category of manifolds defines no new
-        structure: a morphism of metric spaces between manifolds
-        is a manifold morphism.
+        structure: a morphism of topological spaces between
+        manifolds is a manifold morphism.
 
         .. SEEALSO:: :meth:`Category.additional_structure`
 

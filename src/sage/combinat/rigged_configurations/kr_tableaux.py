@@ -493,7 +493,7 @@ class KirillovReshetikhinTableaux(CrystalOfWords):
     @cached_method
     def kirillov_reshetikhin_crystal(self):
         """
-        Return the corresponding KR crystal in the 
+        Return the corresponding KR crystal in the
         :func:`Kashiwara-Nakashima model
         <sage.combinat.crystals.kirillov_reshetikhin.KashiwaraNakashimaTableaux>`.
 
@@ -1711,7 +1711,7 @@ class KRTableauxTypeDTri2Element(KirillovReshetikhinTableauxElement):
 
     def epsilon(self, i):
         r"""
-        Compute `\epsilon_i` of ``self``.
+        Compute `\varepsilon_i` of ``self``.
 
         .. TODO::
 
@@ -1734,7 +1734,7 @@ class KRTableauxTypeDTri2Element(KirillovReshetikhinTableauxElement):
 
     def phi(self, i):
         r"""
-        Compute `\phi_i` of ``self``.
+        Compute `\varphi_i` of ``self``.
 
         .. TODO::
 

@@ -2151,7 +2151,7 @@ class InteractiveLPProblemStandardForm(InteractiveLPProblem):
             \end{equation*}
             The initial dictionary is infeasible, solving auxiliary problem.
             ...
-            Entering: $x_{0}$. Leaving: $x_{5}$.
+            Leaving: $x_{5}$. Entering: $x_{0}$.
             ...
             Entering: $x_{1}$. Leaving: $x_{0}$.
             ...
@@ -2293,8 +2293,12 @@ class LPAbstractDictionary(SageObject):
             sage: D._preupdate_output()
             Entering: $x_{1}$. Leaving: $x_{4}$.
         """
-        return HtmlFragment("Entering: ${}$. Leaving: ${}$.".format(
-                            latex(self.entering()), latex(self.leaving())))
+        first = "Entering: ${}$. ".format(latex(self.entering()))
+        second = "Leaving: ${}$. ".format(latex(self.leaving()))
+        if self.is_dual_feasible():
+            # Most likely we are running dual simplex method
+            first, second = second, first
+        return HtmlFragment(first + second)
 
     def _repr_(self):
         r"""
@@ -2856,6 +2860,66 @@ class LPAbstractDictionary(SageObject):
         return [(b / a, x) for b, a, x in zip(self.constant_terms(),
                                               self.entering_coefficients(),
                                               self.basic_variables()) if a > 0]
+
+    def run_dual_simplex_method(self):
+        r"""
+        Apply the dual simplex method and return all steps/intermediate states.
+        
+        If either entering or leaving variables were already set, they will be
+        used.
+
+        OUTPUT:
+
+        - :class:`~sage.misc.html.HtmlFragment` with HTML/`\LaTeX` code of
+          all encountered dictionaries
+
+        EXAMPLES::
+
+            sage: A = ([1, 1], [3, 1], [-1, -1])
+            sage: b = (1000, 1500, -400)
+            sage: c = (10, 5)
+            sage: P = InteractiveLPProblemStandardForm(A, b, c)
+            sage: D = P.initial_dictionary()
+            sage: D.run_dual_simplex_method()
+            Traceback (most recent call last):
+            ...
+            ValueError: leaving variables can be determined for feasible
+            dictionaries with a set entering variable or for dual feasible
+            dictionaries
+            
+        Let's start with a dual feasible dictionary then::
+        
+            sage: D = P.dictionary(2, 3, 5)
+            sage: D.is_dual_feasible()
+            True
+            sage: D.is_optimal()
+            False
+            sage: D.run_dual_simplex_method()
+            \begin{equation*}
+            ...
+            \end{equation*}
+            Leaving: $x_{3}$. Entering: $x_{1}$.
+            \begin{equation*}
+            ...
+            \end{equation*}
+            sage: D.is_optimal()
+            True
+        """
+        output = []
+        while not self.is_optimal():
+            if self.leaving() is None:
+                self.leave(min(self.possible_leaving()))
+            if self.entering() is None:
+                self.enter(min(self.possible_entering()))
+            output.append(self._html_())
+            if self.entering() is None:
+                output.append("The problem is infeasible.")
+                break
+            output.append(self._preupdate_output())
+            self.update()
+        if self.is_optimal():
+            output.append(self._html_())
+        return HtmlFragment("\n".join(output))
 
     def run_simplex_method(self):
         r"""

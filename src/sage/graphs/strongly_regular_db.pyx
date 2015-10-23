@@ -36,15 +36,6 @@ from sage.rings.arith import is_prime_power
 from sage.misc.cachefunc import cached_function
 from sage.combinat.designs.orthogonal_arrays import orthogonal_array
 from sage.combinat.designs.bibd import balanced_incomplete_block_design
-from sage.graphs.generators.smallgraphs import McLaughlinGraph
-from sage.graphs.generators.smallgraphs import CameronGraph
-from sage.graphs.generators.smallgraphs import M22Graph
-from sage.graphs.generators.smallgraphs import SimsGewirtzGraph
-from sage.graphs.generators.smallgraphs import HoffmanSingletonGraph
-from sage.graphs.generators.smallgraphs import SchlaefliGraph
-from sage.graphs.generators.smallgraphs import HigmanSimsGraph
-from sage.graphs.generators.smallgraphs import LocalMcLaughlinGraph
-from sage.graphs.generators.smallgraphs import SuzukiGraph
 from sage.graphs.graph import Graph
 from libc.math cimport sqrt, floor
 from sage.matrix.constructor import Matrix
@@ -54,6 +45,7 @@ from sage.rings.sum_of_squares cimport two_squares_c
 from libc.stdint cimport uint_fast32_t
 
 cdef dict _brouwer_database = None
+cdef dict _small_srg_database = None
 
 @cached_function
 def is_paley(int v,int k,int l,int mu):
@@ -1625,6 +1617,7 @@ def SRG_276_140_58_84():
       Spreads in strongly regular graphs,
       Designs, Codes and Cryptography 8 (1996) 145-157.
     """
+    from sage.graphs.generators.smallgraphs import McLaughlinGraph
     g = McLaughlinGraph()
     C = [[ 0,  72,  87, 131, 136], [ 1,  35,  61, 102, 168], [ 2,  32,  97, 125, 197], [ 3,  22,  96, 103, 202],
          [ 4,  46,  74, 158, 229], [ 5,  83,  93, 242, 261], [ 6,  26,  81, 147, 176], [ 7,  42,  63, 119, 263],
@@ -2495,6 +2488,7 @@ def SRG_175_72_20_36():
         sage: G.is_strongly_regular(parameters=True)
         (175, 72, 20, 36)
     """
+    from sage.graphs.generators.smallgraphs import HoffmanSingletonGraph
     return HoffmanSingletonGraph().line_graph().distance_graph([2])
 
 def SRG_126_50_13_24():
@@ -2736,65 +2730,14 @@ def strongly_regular_graph(int v,int k,int l,int mu=-1,bint existence=False,bint
             raise RuntimeError("Sage built an incorrect {}-SRG.".format((v,k,l,mu)))
         return G
 
-    constructions = {
-        ( 27,  16, 10,  8): [SchlaefliGraph],
-        ( 36,  14,  4,  6): [Graph,('c~rLDEOcKTPO`U`HOIj@MWFLQFAaRIT`HIWqPsQQJ'+
-          'DXGLqYM@gRLAWLdkEW@RQYQIErcgesClhKefC_ygSGkZ`OyHETdK[?lWStCapVgKK')],
-        ( 50,   7,  0,  1): [HoffmanSingletonGraph],
-        ( 56,  10,  0,  2): [SimsGewirtzGraph],
-        ( 77,  16,   0,  4): [M22Graph],
-        ( 81,  50,  31, 30): [SRG_81_50_31_30],
-        (100,  22,   0,  6): [HigmanSimsGraph],
-        (100,  44,  18, 20): [SRG_100_44_18_20],
-        (100,  45,  20, 20): [SRG_100_45_20_20],
-        (105,  32,   4, 12): [SRG_105_32_4_12],
-        (120,  63,  30, 36): [SRG_120_63_30_36],
-        (120,  77,  52, 44): [SRG_120_77_52_44],
-        (126,  25,   8,  4): [SRG_126_25_8_4],
-        (126,  50,  13, 24): [SRG_126_50_13_24],
-        (144,  39,   6, 12): [SRG_144_39_6_12],
-        (162,  56,  10, 24): [LocalMcLaughlinGraph],
-        (175,  72,  20, 36): [SRG_175_72_20_36],
-        (176,  49,  12, 14): [SRG_176_49_12_14],
-        (176, 105,  68, 54): [SRG_176_105_68_54],
-        (196,  91,  42, 42): [SRG_196_91_42_42],
-        (210,  99,  48, 45): [SRG_210_99_48_45],
-        (220,  84,  38, 28): [SRG_220_84_38_28],
-        (231,  30,   9,  3): [CameronGraph],
-        (243, 110,  37, 60): [SRG_243_110_37_60],
-        (243, 220, 199,200): [SRG_243_220_199_200],
-        (253, 140,  87, 65): [SRG_253_140_87_65],
-        (256, 170, 114,110): [SRG_256_170_114_110],
-        (256, 187, 138,132): [SRG_256_187_138_132],
-        (256, 153,  92, 90): [SRG_256_153_92_90],
-        (275, 112,  30, 56): [McLaughlinGraph],
-        (276, 140,  58, 84): [SRG_276_140_58_84],
-        (280, 117, 44,  52): [SRG_280_117_44_52],
-        (280, 135,  70, 60): [SRG_280_135_70_60],
-        (416, 100,  36, 20): [SRG_416_100_36_20],
-        (512, 219, 106, 84): [SRG_512_219_106_84],
-        (512,  73,  12, 10): [SRG_512_73_12_10],
-        (512, 315, 202,180): [SRG_512_315_202_180],
-        (560, 208,  72, 80): [SRG_560_208_72_80],
-        (625, 364, 213,210): [SRG_625_364_213_210],
-        (625, 416, 279,272): [SRG_625_416_279_272],
-        (625, 468, 353,342): [SRG_625_468_353_342],
-        (729, 336, 153,156): [SRG_729_336_153_156],
-        (729, 616, 523,506): [SRG_729_616_523_506],
-        (729, 420, 243,240): [SRG_729_420_243_240],
-        (729, 448, 277,272): [SRG_729_448_277_272],
-        (729, 560, 433,420): [SRG_729_560_433_420],
-        (729, 476, 313,306): [SRG_729_476_313_306],
-        (729, 532, 391,380): [SRG_729_532_391_380],
-        (1024,825, 668,650): [SRG_1024_825_668_650],
-        (1782,416, 100, 96): [SuzukiGraph],
-    }
+    if _small_srg_database is None:
+        _build_small_srg_database()
 
-    if params in constructions:
-        val = constructions[params]
+    if params in _small_srg_database:
+        val = _small_srg_database[params]
         return True if existence else check_srg(val[0](*val[1:]))
-    if params_complement in constructions:
-        val = constructions[params_complement]
+    if params_complement in _small_srg_database:
+        val = _small_srg_database[params_complement]
         return True if existence else check_srg(val[0](*val[1:]).complement())
 
     test_functions = [is_paley, is_johnson,
@@ -2911,6 +2854,83 @@ def apparently_feasible_parameters(int n):
                 if seems_feasible(v,k,l,mu):
                     feasible.add((v,k,l,mu))
     return feasible
+
+def _build_small_srg_database():
+    r"""
+    Build the database of small strongly regular graphs.
+
+    This data is stored in the module-level variable ``_small_srg_database``.
+
+    EXAMPLE:
+
+        sage: from sage.graphs.strongly_regular_db import _build_small_srg_database
+        sage: _build_small_srg_database()
+    """
+
+    from sage.graphs.generators.smallgraphs import McLaughlinGraph
+    from sage.graphs.generators.smallgraphs import CameronGraph
+    from sage.graphs.generators.smallgraphs import M22Graph
+    from sage.graphs.generators.smallgraphs import SimsGewirtzGraph
+    from sage.graphs.generators.smallgraphs import HoffmanSingletonGraph
+    from sage.graphs.generators.smallgraphs import SchlaefliGraph
+    from sage.graphs.generators.smallgraphs import HigmanSimsGraph
+    from sage.graphs.generators.smallgraphs import LocalMcLaughlinGraph
+    from sage.graphs.generators.smallgraphs import SuzukiGraph
+
+    global _small_srg_database
+    _small_srg_database = {
+        ( 27,  16, 10,  8): [SchlaefliGraph],
+        ( 36,  14,  4,  6): [Graph,('c~rLDEOcKTPO`U`HOIj@MWFLQFAaRIT`HIWqPsQQJ'+
+          'DXGLqYM@gRLAWLdkEW@RQYQIErcgesClhKefC_ygSGkZ`OyHETdK[?lWStCapVgKK')],
+        ( 50,   7,  0,  1): [HoffmanSingletonGraph],
+        ( 56,  10,  0,  2): [SimsGewirtzGraph],
+        ( 77,  16,   0,  4): [M22Graph],
+        ( 81,  50,  31, 30): [SRG_81_50_31_30],
+        (100,  22,   0,  6): [HigmanSimsGraph],
+        (100,  44,  18, 20): [SRG_100_44_18_20],
+        (100,  45,  20, 20): [SRG_100_45_20_20],
+        (105,  32,   4, 12): [SRG_105_32_4_12],
+        (120,  63,  30, 36): [SRG_120_63_30_36],
+        (120,  77,  52, 44): [SRG_120_77_52_44],
+        (126,  25,   8,  4): [SRG_126_25_8_4],
+        (126,  50,  13, 24): [SRG_126_50_13_24],
+        (144,  39,   6, 12): [SRG_144_39_6_12],
+        (162,  56,  10, 24): [LocalMcLaughlinGraph],
+        (175,  72,  20, 36): [SRG_175_72_20_36],
+        (176,  49,  12, 14): [SRG_176_49_12_14],
+        (176, 105,  68, 54): [SRG_176_105_68_54],
+        (196,  91,  42, 42): [SRG_196_91_42_42],
+        (210,  99,  48, 45): [SRG_210_99_48_45],
+        (220,  84,  38, 28): [SRG_220_84_38_28],
+        (231,  30,   9,  3): [CameronGraph],
+        (243, 110,  37, 60): [SRG_243_110_37_60],
+        (243, 220, 199,200): [SRG_243_220_199_200],
+        (253, 140,  87, 65): [SRG_253_140_87_65],
+        (256, 170, 114,110): [SRG_256_170_114_110],
+        (256, 187, 138,132): [SRG_256_187_138_132],
+        (256, 153,  92, 90): [SRG_256_153_92_90],
+        (275, 112,  30, 56): [McLaughlinGraph],
+        (276, 140,  58, 84): [SRG_276_140_58_84],
+        (280, 117, 44,  52): [SRG_280_117_44_52],
+        (280, 135,  70, 60): [SRG_280_135_70_60],
+        (416, 100,  36, 20): [SRG_416_100_36_20],
+        (512, 219, 106, 84): [SRG_512_219_106_84],
+        (512,  73,  12, 10): [SRG_512_73_12_10],
+        (512, 315, 202,180): [SRG_512_315_202_180],
+        (560, 208,  72, 80): [SRG_560_208_72_80],
+        (625, 364, 213,210): [SRG_625_364_213_210],
+        (625, 416, 279,272): [SRG_625_416_279_272],
+        (625, 468, 353,342): [SRG_625_468_353_342],
+        (729, 336, 153,156): [SRG_729_336_153_156],
+        (729, 616, 523,506): [SRG_729_616_523_506],
+        (729, 420, 243,240): [SRG_729_420_243_240],
+        (729, 448, 277,272): [SRG_729_448_277_272],
+        (729, 560, 433,420): [SRG_729_560_433_420],
+        (729, 476, 313,306): [SRG_729_476_313_306],
+        (729, 532, 391,380): [SRG_729_532_391_380],
+        (1024,825, 668,650): [SRG_1024_825_668_650],
+        (1782,416, 100, 96): [SuzukiGraph],
+    }
 
 cdef load_brouwer_database():
     r"""

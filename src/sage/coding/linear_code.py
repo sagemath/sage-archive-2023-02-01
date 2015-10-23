@@ -216,6 +216,7 @@ import urllib
 import sage.modules.free_module as fm
 import sage.modules.module as module
 from sage.categories.modules import Modules
+from sage.categories.fields import Fields
 from copy import copy
 from sage.interfaces.all import gap
 from sage.rings.finite_rings.constructor import FiniteField as GF
@@ -1640,12 +1641,33 @@ class AbstractLinearCode(module.Module):
         """
         M = self.generator_matrix().transpose()
         R = self.base_ring()
-        RM = [[row*r for r in R] for row in M]
-        for row in RM:
-            for x in row:
-                x.set_immutable()
-        RM = set(map(frozenset,RM))
-        return len(RM) == M.nrows()
+
+        if R in Fields():
+            def projectivize(row):
+                if not row.is_zero():
+                    for i in range(len(row)):
+                        if row[i]:
+                            break
+                    row = ~(row[i]) * row
+                row.set_immutable()
+                return row
+        else:
+            def projectivize(row):
+                orbit = set()
+                for r in R:
+                    rrow = row*r
+                    rrow.set_immutable()
+                    orbit.add(rrow)
+                return frozenset(orbit)
+
+        rows = set()
+        for row in M.rows():
+            row = projectivize(row)
+            if row in rows:
+                return False
+            rows.add(row)
+
+        return True
 
     def dual_code(self):
         r"""

@@ -120,9 +120,14 @@ class LieAlgebra(Parent, UniqueRepresentation): # IndexedGenerators):
         2*e
         sage: elt = h*e; elt
         e*h + 2*e
-        sage: elt.parent()
+        sage: P = elt.parent(); P
         Noncommutative Multivariate Polynomial Ring in e, f, h over Rational Field,
-         nc-relations: {f*e: e*f - h, h*f: f*h - 2*f, h*e: e*h + 2*e}
+         nc-relations: {...}
+        sage: R = P.relations()
+        sage: for rhs in R: print("{} = {}".format(rhs, R[rhs]))
+        h*f = f*h - 2*f
+        f*e = e*f - h
+        h*e = e*h + 2*e
 
     For convienence, there are two shorthand notations for computing
     Lie backets::

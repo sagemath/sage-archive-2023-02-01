@@ -73,9 +73,11 @@ class FiniteDimensionalLieAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
             ::
 
                 sage: L.<x,y,z> = LieAlgebra(QQ, {('x','y'):{'z':1}, ('y','z'):{'x':1}, ('z','x'):{'y':1}})
-                sage: L._construct_UEA()
+                sage: UEA = L._construct_UEA(); UEA
                 Noncommutative Multivariate Polynomial Ring in x, y, z over Rational Field,
-                 nc-relations: {z*x: x*z + y, z*y: y*z - x, y*x: x*y - z}
+                 nc-relations: {...}
+                sage: sorted(UEA.relations().items(), key=str)
+                [(y*x, x*y - z), (z*x, x*z + y), (z*y, y*z - x)]
             """
             # Create the UEA relations
             # We need to get names for the basis elements, not just the generators

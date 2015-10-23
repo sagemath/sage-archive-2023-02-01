@@ -9767,6 +9767,26 @@ class FiniteStateMachine(sage.structure.sage_object.SageObject):
             ....:     for _ in range(1, 6))
             True
 
+        The adjacency matrix of the following example is a Jordan matrix of size 3 to
+        the eigenvalue 4::
+
+            sage: J3 = Automaton([(0, 1, -1), (1, 2, -1)],
+            ....:     initial_states=[0],
+            ....:     final_states=[0, 1, 2])
+            sage: for i in range(3):
+            ....:     for j in range(4):
+            ....:         new_transition = J3.add_transition(i, i, j)
+            sage: J3.adjacency_matrix(entry=lambda t: 1)
+            [4 1 0]
+            [0 4 1]
+            [0 0 4]
+            sage: N = J3.number_of_words(); N
+            1/2*4^(n - 2)*(n - 1)*n + 4^(n - 1)*n + 4^n
+            sage: all(len(list(J3.language(_)))
+            ....:     - len(list(J3.language(_-1))) == N.subs(n=_)
+            ....:     for _ in range(1, 6))
+            True
+
         TESTS::
 
             sage: A = Automaton([(0, 0, 0), (0, 1, 0)],

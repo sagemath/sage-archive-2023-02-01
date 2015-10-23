@@ -1627,7 +1627,7 @@ class AbstractLinearCode(module.Module):
 
         REFERENCE:
 
-        .. [BS11] E, Byrne and A. Sneyd,
+        .. [BS11] E. Byrne and A. Sneyd,
            On the Parameters of Codes with Two Homogeneous Weights.
            WCC 2011-Workshop on coding and cryptography, pp. 81-90. 2011.
            https://hal.inria.fr/inria-00607341/document

@@ -1625,6 +1625,12 @@ class AbstractLinearCode(module.Module):
             sage: C.dual_code().minimum_distance()
             8
 
+        A non-projective code::
+
+            sage: C = codes.LinearCode(matrix(GF(2),[[1,0,1],[1,1,1]]))
+            sage: C.is_projective()
+            False
+
         REFERENCE:
 
         .. [BS11] E. Byrne and A. Sneyd,
@@ -1638,7 +1644,7 @@ class AbstractLinearCode(module.Module):
         for row in RM:
             for x in row:
                 x.set_immutable()
-        RM = map(frozenset,RM)
+        RM = set(map(frozenset,RM))
         return len(RM) == M.nrows()
 
     def dual_code(self):

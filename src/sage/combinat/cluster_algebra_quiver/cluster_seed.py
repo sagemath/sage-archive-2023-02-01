@@ -2829,7 +2829,8 @@ class ClusterSeed(SageObject):
 
         A = 2 - self.b_matrix().apply_map(abs).transpose()
 
-        rs = CartanMatrix(A).root_space()
+        # We give the indexing set of the Cartan matrix to be [1, 2, ..., n]
+        rs = CartanMatrix(A, index_set=range(1,A.ncols()+1)).root_space()
         almost_positive_coroots = rs.almost_positive_roots()
 
         sign = [-1 if all(x <= 0 for x in self.b_matrix()[i]) else 1

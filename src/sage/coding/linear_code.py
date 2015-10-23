@@ -1608,6 +1608,39 @@ class AbstractLinearCode(module.Module):
         if len(S)>1: return GCD(S0)
         return 1
 
+    def is_projective(self):
+        r"""
+        Test  whether the code is projective.
+
+        A linear code `C` over a a ring `R` is called *projective* when its dual
+        `Cd` has minimum weight `\geq 3`, i.e. when no two coordinate positions
+        of `C` are linearly independent (cf. definition 3 from [BS11] or 9.8.1
+        from [BH12]).
+
+        EXAMPLE::
+
+            sage: C = codes.BinaryGolayCode()
+            sage: C.is_projective()
+            True
+            sage: C.dual_code().minimum_distance()
+            8
+
+        REFERENCE:
+
+        .. [BS11] E, Byrne and A. Sneyd,
+           On the Parameters of Codes with Two Homogeneous Weights.
+           WCC 2011-Workshop on coding and cryptography, pp. 81-90. 2011.
+           https://hal.inria.fr/inria-00607341/document
+        """
+        M = self.generator_matrix().transpose()
+        R = self.base_ring()
+        RM = [[row*r for r in R] for row in M]
+        for row in RM:
+            for x in row:
+                x.set_immutable()
+        RM = map(frozenset,RM)
+        return len(RM) == M.nrows()
+
     def dual_code(self):
         r"""
         This computes the dual code `Cd` of the code `C`,

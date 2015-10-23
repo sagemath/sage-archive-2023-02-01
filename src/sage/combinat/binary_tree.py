@@ -2037,7 +2037,7 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
         return resu
 
     def comb(self, side='left'):
-        r'''
+        r"""
         Return the comb of a tree.
 
         There are two combs in a binary tree : a left comb and a right comb.
@@ -2072,7 +2072,7 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
             [[[., .], [[[., .], [., .]], [., .]]], ., [., .]]
             sage: BT.comb('right')
             [., [[., .], [[[., .], [., .]], .]]]
-        '''
+        """
         def _comb(side):
             if self.is_empty():
                 return []
@@ -2088,7 +2088,7 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
             return _comb(1)
 
     def hook_number(self):
-        """
+        r"""
         Return the number of hooks.
 
         The hook of a vertex v is the union of {v}, its leftmost and 

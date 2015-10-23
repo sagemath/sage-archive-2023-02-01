@@ -26,7 +26,7 @@ EXAMPLES:
     How to define a set using those classes ?
 
     Only two things are necessary to define a set using a
-    :class:`SearchForest` object (the other classes being very similar) :
+    :class:`RecursivelyEnumeratedSet` object (the other classes being very similar) :
 
     .. MATH::
 
@@ -81,23 +81,25 @@ EXAMPLES:
     or even::
 
         sage: def children(x):
-        ...      if len(x) < 2:
-        ...         for letter in ['a', 'b', 'c']:
-        ...            yield x+letter
+        ....:     if len(x) < 2:
+        ....:         for letter in ['a', 'b', 'c']:
+        ....:             yield x+letter
 
-    We can then create the :class:`SearchForest` object with either ::
+    We can then create the :class:`RecursivelyEnumeratedSet` object with either ::
 
-        sage: S = SearchForest( [''],
-        ...       lambda x: [x+letter for letter in ['a', 'b', 'c']]
-        ...                 if len(x) < 2 else [],
-        ...       category=FiniteEnumeratedSets())
+        sage: S = RecursivelyEnumeratedSet( [''],
+        ....:     lambda x: [x+letter for letter in ['a', 'b', 'c']]
+        ....:               if len(x) < 2 else [],
+        ....:     structure='forest', enumeration='depth',
+        ....:     category=FiniteEnumeratedSets())
         sage: S.list()
         ['', 'a', 'aa', 'ab', 'ac', 'b', 'ba', 'bb', 'bc', 'c', 'ca', 'cb', 'cc']
 
     Or::
 
-        sage: S = SearchForest( [''], children,
-        ...       category=FiniteEnumeratedSets())
+        sage: S = RecursivelyEnumeratedSet( [''], children,
+        ....:     structure='forest', enumeration='depth',
+        ....:     category=FiniteEnumeratedSets())
         sage: S.list()
         ['', 'a', 'aa', 'ab', 'ac', 'b', 'ba', 'bb', 'bc', 'c', 'ca', 'cb', 'cc']
 
@@ -117,17 +119,18 @@ EXAMPLES:
     ``s`` not ``None`` when no element is generated at all. Here is the code::
 
         sage: def children((lst, st)):
-        ...       st = set(st) # make a copy
-        ...       if st:
-        ...          el = st.pop()
-        ...          for i in range(0, len(lst)+1):
-        ...              yield (lst[0:i]+[el]+lst[i:], st)
+        ....:     st = set(st) # make a copy
+        ....:     if st:
+        ....:        el = st.pop()
+        ....:        for i in range(0, len(lst)+1):
+        ....:            yield (lst[0:i]+[el]+lst[i:], st)
         sage: list(children(([1,2], {3,7,9})))
-        [([9, 1, 2], set([3, 7])), ([1, 9, 2], set([3, 7])), ([1, 2, 9], set([3, 7]))]
-        sage: S = SearchForest( [([], {1,3,6,8})],
-        ...       children,
-        ...       post_process = lambda (l, s): tuple(l) if not s else None,
-        ...       category=FiniteEnumeratedSets())
+        [([9, 1, 2], {3, 7}), ([1, 9, 2], {3, 7}), ([1, 2, 9], {3, 7})]
+        sage: S = RecursivelyEnumeratedSet( [([], {1,3,6,8})],
+        ....:     children,
+        ....:     post_process = lambda (l, s): tuple(l) if not s else None,
+        ....:     structure='forest', enumeration='depth',
+        ....:     category=FiniteEnumeratedSets())
         sage: S.list()
         [(6, 3, 1, 8), (3, 6, 1, 8), (3, 1, 6, 8), (3, 1, 8, 6), (6, 1, 3, 8), (1, 6, 3, 8), (1, 3, 6, 8), (1, 3, 8, 6), (6, 1, 8, 3), (1, 6, 8, 3), (1, 8, 6, 3), (1, 8, 3, 6), (6, 3, 8, 1), (3, 6, 8, 1), (3, 8, 6, 1), (3, 8, 1, 6), (6, 8, 3, 1), (8, 6, 3, 1), (8, 3, 6, 1), (8, 3, 1, 6), (6, 8, 1, 3), (8, 6, 1, 3), (8, 1, 6, 3), (8, 1, 3, 6)]
         sage: S.cardinality()

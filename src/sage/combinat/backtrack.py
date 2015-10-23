@@ -736,11 +736,12 @@ class SearchForest(Parent):
             ...    lambda (li, sum, _): y**sum, lambda x,y: x + y,  0 )
             y^45 + y^44 + y^43 + 2*y^42 + 2*y^41 + 3*y^40 + 4*y^39 + 5*y^38 + 6*y^37 + 8*y^36 + 9*y^35 + 10*y^34 + 12*y^33 + 13*y^32 + 15*y^31 + 17*y^30 + 18*y^29 + 19*y^28 + 21*y^27 + 21*y^26 + 22*y^25 + 23*y^24 + 23*y^23 + 23*y^22 + 23*y^21 + 22*y^20 + 21*y^19 + 21*y^18 + 19*y^17 + 18*y^16 + 17*y^15 + 15*y^14 + 13*y^13 + 12*y^12 + 10*y^11 + 9*y^10 + 8*y^9 + 6*y^8 + 5*y^7 + 4*y^6 + 3*y^5 + 2*y^4 + 2*y^3 + y^2 + y
         """
-        from sage.combinat.map_reduce import SearchForestMapReduce
-        return SearchForestMapReduce(forest = self,
-                                     map_function = map_function,
-                                     reduce_function = reduce_function,
-                                     reduce_init = reduce_init).run()
+        import sage.combinat.map_reduce
+        return sage.combinat.map_reduce.RESetMapReduce(
+            forest = self,
+            map_function = map_function,
+            reduce_function = reduce_function,
+            reduce_init = reduce_init).run()
 
 
 class PositiveIntegerSemigroup(UniqueRepresentation, SearchForest):

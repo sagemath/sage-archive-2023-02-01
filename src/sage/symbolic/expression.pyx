@@ -5394,10 +5394,9 @@ cdef class Expression(CommutativeRingElement):
             sage: (x^2).power(2, hold=True)
             (x^2)^2
 
-        To then evaluate again, we currently must use Maxima via
-        :meth:`simplify`::
+        To then evaluate again, we use :meth:`unhold`::
 
-            sage: a = (x^2).power(2, hold=True); a.simplify()
+            sage: a = (x^2).power(2, hold=True); a.unhold()
             x^4
 
         """
@@ -5425,10 +5424,9 @@ cdef class Expression(CommutativeRingElement):
             sage: x.add(x, (2+x), x, 2*x, hold=True)
             (x + 2) + 2*x + x + x + x
 
-        To then evaluate again, we currently must use Maxima via
-        :meth:`simplify`::
+        To then evaluate again, we use :meth:`unhold`::
 
-            sage: a = x.add(x, hold=True); a.simplify()
+            sage: a = x.add(x, hold=True); a.unhold()
             2*x
         """
         nargs = [self.coerce_in(x) for x in args]
@@ -5458,10 +5456,9 @@ cdef class Expression(CommutativeRingElement):
             sage: x.mul(x, (2+x), x, 2*x, hold=True)
             (2*x)*(x + 2)*x*x*x
 
-        To then evaluate again, we currently must use Maxima via
-        :meth:`simplify`::
+        To then evaluate again, we use :meth:`unhold`::
 
-            sage: a = x.mul(x, hold=True); a.simplify()
+            sage: a = x.mul(x, hold=True); a.unhold()
             x^2
 
         """
@@ -6619,10 +6616,9 @@ cdef class Expression(CommutativeRingElement):
             sage: SR(-5).abs(hold=True)
             abs(-5)
 
-        To then evaluate again, we currently must use Maxima via
-        :meth:`simplify`::
+        To then evaluate again, we use :meth:`unhold`::
 
-            sage: a = SR(-5).abs(hold=True); a.simplify()
+            sage: a = SR(-5).abs(hold=True); a.unhold()
             5
 
         TESTS:
@@ -6754,10 +6750,9 @@ cdef class Expression(CommutativeRingElement):
             sage: conjugate(I,hold=True)
             conjugate(I)
 
-        To then evaluate again, we currently must use Maxima via
-        :meth:`simplify`::
+        To then evaluate again, we use :meth:`unhold`::
 
-            sage: a = SR(I).conjugate(hold=True); a.simplify()
+            sage: a = SR(I).conjugate(hold=True); a.unhold()
             -I
 
         """
@@ -6842,10 +6837,9 @@ cdef class Expression(CommutativeRingElement):
             sage: real_part(I)
             0
 
-        To then evaluate again, we currently must use Maxima via
-        :meth:`simplify`::
+        To then evaluate again, we use :meth:`unhold`::
 
-            sage: a = SR(2).real_part(hold=True); a.simplify()
+            sage: a = SR(2).real_part(hold=True); a.unhold()
             2
 
         TESTS:
@@ -6905,10 +6899,9 @@ cdef class Expression(CommutativeRingElement):
             sage: imag_part(I)
             1
 
-        To then evaluate again, we currently must use Maxima via
-        :meth:`simplify`::
+        To then evaluate again, we use :meth:`unhold`::
 
-            sage: a = I.imag_part(hold=True); a.simplify()
+            sage: a = I.imag_part(hold=True); a.unhold()
             1
 
         TESTS::
@@ -6951,10 +6944,9 @@ cdef class Expression(CommutativeRingElement):
             sage: SR(4).sqrt(hold=True)
             sqrt(4)
 
-        To then evaluate again, we currently must use Maxima via
-        :meth:`simplify`::
+        To then evaluate again, we use :meth:`unhold`::
 
-            sage: a = SR(4).sqrt(hold=True); a.simplify()
+            sage: a = SR(4).sqrt(hold=True); a.unhold()
             2
 
         To use this parameter in functional notation, you must coerce to
@@ -7000,10 +6992,9 @@ cdef class Expression(CommutativeRingElement):
             sage: sin(0)
             0
 
-        To then evaluate again, we currently must use Maxima via
-        :meth:`simplify`::
+        To then evaluate again, we use :meth:`unhold`::
 
-            sage: a = SR(0).sin(hold=True); a.simplify()
+            sage: a = SR(0).sin(hold=True); a.unhold()
             0
 
         TESTS::
@@ -7063,10 +7054,9 @@ cdef class Expression(CommutativeRingElement):
             sage: cos(pi)
             -1
 
-        To then evaluate again, we currently must use Maxima via
-        :meth:`simplify`::
+        To then evaluate again, we use :meth:`unhold`::
 
-            sage: a = pi.cos(hold=True); a.simplify()
+            sage: a = pi.cos(hold=True); a.unhold()
             -1
 
         TESTS::
@@ -7116,10 +7106,9 @@ cdef class Expression(CommutativeRingElement):
             sage: tan(pi/12)
             -sqrt(3) + 2
 
-        To then evaluate again, we currently must use Maxima via
-        :meth:`simplify`::
+        To then evaluate again, we use :meth:`unhold`::
 
-            sage: a = (pi/12).tan(hold=True); a.simplify()
+            sage: a = (pi/12).tan(hold=True); a.unhold()
             -sqrt(3) + 2
 
         TESTS::
@@ -7172,10 +7161,9 @@ cdef class Expression(CommutativeRingElement):
             sage: arcsin(0)
             0
 
-        To then evaluate again, we currently must use Maxima via
-        :meth:`simplify`::
+        To then evaluate again, we use :meth:`unhold`::
 
-            sage: a = SR(0).arcsin(hold=True); a.simplify()
+            sage: a = SR(0).arcsin(hold=True); a.unhold()
             0
 
         TESTS::
@@ -7223,10 +7211,9 @@ cdef class Expression(CommutativeRingElement):
             sage: arccos(1)
             0
 
-        To then evaluate again, we currently must use Maxima via
-        :meth:`simplify`::
+        To then evaluate again, we use :meth:`unhold`::
 
-            sage: a = SR(1).arccos(hold=True); a.simplify()
+            sage: a = SR(1).arccos(hold=True); a.unhold()
             0
 
         TESTS::
@@ -7275,10 +7262,9 @@ cdef class Expression(CommutativeRingElement):
             sage: arctan(1)
             1/4*pi
 
-        To then evaluate again, we currently must use Maxima via
-        :meth:`simplify`::
+        To then evaluate again, we use :meth:`unhold`::
 
-            sage: a = SR(1).arctan(hold=True); a.simplify()
+            sage: a = SR(1).arctan(hold=True); a.unhold()
             1/4*pi
 
         TESTS::
@@ -7325,10 +7311,9 @@ cdef class Expression(CommutativeRingElement):
             sage: arctan2(1,2)
             arctan(1/2)
 
-        To then evaluate again, we currently must use Maxima via
-        :meth:`simplify`::
+        To then evaluate again, we use :meth:`unhold`::
 
-            sage: a = SR(1/2).arctan2(1/2, hold=True); a.simplify()
+            sage: a = SR(1/2).arctan2(1/2, hold=True); a.unhold()
             1/4*pi
 
         TESTS:
@@ -7437,8 +7422,7 @@ cdef class Expression(CommutativeRingElement):
             sage: sinh(arccosh(x))
             sqrt(x + 1)*sqrt(x - 1)
 
-        To then evaluate again, we currently must use Maxima via
-        :meth:`simplify`::
+        To then evaluate again, we use :meth:`unhold`::
 
             sage: a = arccosh(x).sinh(hold=True); a.simplify()
             sqrt(x + 1)*sqrt(x - 1)
@@ -7494,10 +7478,9 @@ cdef class Expression(CommutativeRingElement):
             sage: cosh(arcsinh(x))
             sqrt(x^2 + 1)
 
-        To then evaluate again, we currently must use Maxima via
-        :meth:`simplify`::
+        To then evaluate again, we use :meth:`unhold`::
 
-            sage: a = arcsinh(x).cosh(hold=True); a.simplify()
+            sage: a = arcsinh(x).cosh(hold=True); a.unhold()
             sqrt(x^2 + 1)
 
         TESTS::
@@ -7549,10 +7532,9 @@ cdef class Expression(CommutativeRingElement):
             sage: tanh(arcsinh(x))
             x/sqrt(x^2 + 1)
 
-        To then evaluate again, we currently must use Maxima via
-        :meth:`simplify`::
+        To then evaluate again, we use :meth:`unhold`::
 
-            sage: a = arcsinh(x).tanh(hold=True); a.simplify()
+            sage: a = arcsinh(x).tanh(hold=True); a.unhold()
             x/sqrt(x^2 + 1)
 
         TESTS::
@@ -7605,10 +7587,9 @@ cdef class Expression(CommutativeRingElement):
             sage: arcsinh(-2)
             -arcsinh(2)
 
-        To then evaluate again, we currently must use Maxima via
-        :meth:`simplify`::
+        To then evaluate again, we use :meth:`unhold`::
 
-            sage: a = SR(-2).arcsinh(hold=True); a.simplify()
+            sage: a = SR(-2).arcsinh(hold=True); a.unhold()
             -arcsinh(2)
 
         TESTS::
@@ -7654,10 +7635,9 @@ cdef class Expression(CommutativeRingElement):
             sage: arccosh(-1)
             I*pi
 
-        To then evaluate again, we currently must use Maxima via
-        :meth:`simplify`::
+        To then evaluate again, we use :meth:`unhold`::
 
-            sage: a = SR(-1).arccosh(hold=True); a.simplify()
+            sage: a = SR(-1).arccosh(hold=True); a.unhold()
             I*pi
 
         TESTS::
@@ -7705,10 +7685,9 @@ cdef class Expression(CommutativeRingElement):
             sage: arctanh(-1/2)
             -arctanh(1/2)
 
-        To then evaluate again, we currently must use Maxima via
-        :meth:`simplify`::
+        To then evaluate again, we use :meth:`unhold`::
 
-            sage: a = SR(-1/2).arctanh(hold=True); a.simplify()
+            sage: a = SR(-1/2).arctanh(hold=True); a.unhold()
             -arctanh(1/2)
 
         TESTS::
@@ -7765,10 +7744,9 @@ cdef class Expression(CommutativeRingElement):
             sage: exp(I*pi)
             -1
 
-        To then evaluate again, we currently must use Maxima via
-        :meth:`simplify`::
+        To then evaluate again, we use :meth:`unhold`::
 
-            sage: a = (pi*I).exp(hold=True); a.simplify()
+            sage: a = (pi*I).exp(hold=True); a.unhold()
             -1
 
         TESTS:
@@ -7822,10 +7800,9 @@ cdef class Expression(CommutativeRingElement):
             sage: I.log(hold=True)
             log(I)
 
-        To then evaluate again, we currently must use Maxima via
-        :meth:`simplify`::
+        To then evaluate again, we use :meth:`unhold`::
 
-            sage: a = I.log(hold=True); a.simplify()
+            sage: a = I.log(hold=True); a.unhold()
             1/2*I*pi
 
         The ``hold`` parameter also works in functional notation::
@@ -7880,10 +7857,9 @@ cdef class Expression(CommutativeRingElement):
             sage: zeta(2)
             1/6*pi^2
 
-        To then evaluate again, we currently must use Maxima via
-        :meth:`simplify`::
+        To then evaluate again, we use :meth:`unhold`::
 
-            sage: a = SR(2).zeta(hold=True); a.simplify()
+            sage: a = SR(2).zeta(hold=True); a.unhold()
             1/6*pi^2
 
         TESTS::
@@ -7930,10 +7906,9 @@ cdef class Expression(CommutativeRingElement):
             sage: factorial(5)
             120
 
-        To then evaluate again, we currently must use Maxima via
-        :meth:`simplify`::
+        To then evaluate again, we use :meth:`unhold`::
 
-            sage: a = SR(5).factorial(hold=True); a.simplify()
+            sage: a = SR(5).factorial(hold=True); a.unhold()
             120
         """
         cdef GEx x
@@ -7970,10 +7945,9 @@ cdef class Expression(CommutativeRingElement):
             sage: SR(5).binomial(3, hold=True)
             binomial(5, 3)
 
-        To then evaluate again, we currently must use Maxima via
-        :meth:`simplify`::
+        To then evaluate again, we use :meth:`unhold`::
 
-            sage: a = SR(5).binomial(3, hold=True); a.simplify()
+            sage: a = SR(5).binomial(3, hold=True); a.unhold()
             10
 
         The ``hold`` parameter is also supported in functional notation::
@@ -8065,10 +8039,9 @@ cdef class Expression(CommutativeRingElement):
             sage: gamma(1/2)
             sqrt(pi)
 
-        To then evaluate again, we currently must use Maxima via
-        :meth:`simplify`::
+        To then evaluate again, we use :meth:`unhold`::
 
-            sage: a = SR(1/2).gamma(hold=True); a.simplify()
+            sage: a = SR(1/2).gamma(hold=True); a.unhold()
             sqrt(pi)
         """
         cdef GEx x
@@ -8624,6 +8597,60 @@ cdef class Expression(CommutativeRingElement):
 
         """
         return self.maxima_methods().rectform()
+
+    def unhold(self, exclude=None):
+        """
+        Evaluates any held operations (with the ``hold`` keyword) in the
+        expression
+
+        INPUT:
+
+        - ``self`` -- an expression with held operations
+        - ``exclude`` -- (default: None) a list of operators to exclude from
+          evaluation. Excluding arithmetic operators does not yet work (see
+          :trac:`14850`).
+
+        OUTPUT:
+
+        A new expression with held operations, except those in ``exclude``,
+        evaluated
+
+        EXAMPLES::
+
+            sage: a = exp(I * pi, hold=True)
+            sage: a
+            e^(I*pi)
+            sage: a.unhold()
+            -1
+            sage: b = x.add(x, hold=True)
+            sage: b
+            x + x
+            sage: b.unhold()
+            2*x
+            sage: (a + b).unhold()
+            2*x - 1
+            sage: c = (x.mul(x, hold=True)).add(x.mul(x, hold=True), hold=True)
+            sage: c
+            x*x + x*x
+            sage: c.unhold()
+            2*x^2
+            sage: sin(tan(0, hold=True), hold=True).unhold()
+            0
+            sage: sin(tan(0, hold=True), hold=True).unhold(exclude=[sin])
+            sin(0)
+            sage: (e^sgn(0, hold=True)).unhold()
+            1
+            sage: (e^sgn(0, hold=True)).unhold(exclude=[exp])
+            e^0
+            sage: log(3).unhold()
+            log(3)
+        """
+        if self.operator():
+            from sage.symbolic.expression_conversions import HoldRemover
+            h = HoldRemover(self, exclude)
+            return h()
+        else:
+            return self
 
     def simplify(self):
         """
@@ -9811,7 +9838,7 @@ cdef class Expression(CommutativeRingElement):
         .. note::
 
            If you already have a factored expression and just want to
-           get at the individual factors, use the `_factor_list` method
+           get at the individual factors, use the ``_factor_list`` method
            instead.
 
         EXAMPLES::

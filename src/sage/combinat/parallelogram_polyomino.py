@@ -405,6 +405,72 @@ class ParallelogramPolyomino(ClonableList):
         if bijection is None or bijection == 'Delest-Viennot':
             return self._to_dyck_delest_viennot()
 
+    @staticmethod
+    def _from_dyck_word_delest_viennot(dyck):
+        r"""
+        Convert dyck word to parallelogram polyomino using the Delest Viennot
+        bijection.
+
+        TODO: verifier:
+        ref. Delest, M.-P. and Viennot, G.
+        "Algebraic Languages and Polyominoes [sic] Enumeration."
+        Theoret. Comput. Sci. 34, 169-206, 1984.
+
+        INPUTS:
+
+        - `dyck` -- a dyck word
+
+        OUTPUT:
+
+        A parallelogram polyomino.
+
+        EXAMPLES::
+
+            sage: dyck = DyckWord( [1, 1, 0, 1, 1, 0, 1, 0, 0, 0] )
+            sage: pp = ParallelogramPolyomino._from_dyck_word_delest_viennot(
+            ....:     dyck
+            ....: )
+            sage: pp
+            [[0, 1, 0, 0, 1, 1], [1, 1, 1, 0, 0, 0]]
+        """
+        l = [1] + list(dyck) + [0]
+        word_up = []
+        word_down = []
+        for i in range(0, len(l), 2):
+            word_up.append(l[i])
+            word_down.append(1 - l[i+1])
+        return ParallelogramPolyomino([word_down, word_up])
+
+    @staticmethod
+    def from_dyck_word(dyck, bijection=None):
+        r"""
+        Convert dyck word to parallelogram polyomino.
+
+        INPUTS:
+
+        - `dyck` -- a dyck word
+        - `bijection` -- (default: 'Delest-Viennot') the bijection to use.
+          Expected values : 'Delest-Viennot'.
+
+        OUTPUT:
+
+        A parallelogram polyomino.
+
+        EXAMPLES::
+
+            sage: dyck = DyckWord( [1, 1, 0, 1, 1, 0, 1, 0, 0, 0] )
+            sage: pp = ParallelogramPolyomino.from_dyck_word( dyck )
+            sage: pp
+            [[0, 1, 0, 0, 1, 1], [1, 1, 1, 0, 0, 0]]
+            sage: pp = ParallelogramPolyomino.from_dyck_word(
+            ....:     dyck, bijection='Delest-Viennot'
+            ....: )
+            sage: pp
+            [[0, 1, 0, 0, 1, 1], [1, 1, 1, 0, 0, 0]]
+        """
+        if bijection is None or bijection == 'Delest-Viennot':
+            return ParallelogramPolyomino._from_dyck_word_delest_viennot(dyck)
+
     def _to_binary_tree_Aval_Boussicault(self, position=[0, 0]):
         r"""
         Convert to a binary tree using the Aval-Boussicault algorithm.
@@ -1589,6 +1655,20 @@ class ParallelogramPolyominoesFactory(SetFactory):
     """
     def __call__(self, size=None, policy=None):
         r"""
+        Return a family of parallelogram polyominoes enumerated with the 
+        parameter constraints.
+
+        EXAMPLES::
+
+            sage: PPS = ParallelogramPolyominoes(size=3)
+            sage: PPS
+            parallelogram polyominoes of size 3
+            sage: sorted( list(PPS) )
+            [[[0, 0, 0, 1], [1, 0, 0, 0]],
+             [[0, 0, 1, 1], [1, 0, 1, 0]],
+             [[0, 0, 1, 1], [1, 1, 0, 0]],
+             [[0, 1, 0, 1], [1, 1, 0, 0]],
+             [[0, 1, 1, 1], [1, 1, 1, 0]]]
         """
         if policy is None:
             policy = self._default_policy
@@ -1602,6 +1682,8 @@ class ParallelogramPolyominoesFactory(SetFactory):
 
     def add_constraints(self, cons, (args, opts)):
         r"""
+        This function permit to add some enumeration constraint to the 
+        factory. The factory make a family using the given constraints.
         """
         return cons + args
 
@@ -1610,7 +1692,14 @@ class ParallelogramPolyominoesFactory(SetFactory):
         return TopMostParentPolicy(self, (), ParallelogramPolyomino)
 
     def _repr_(self):
-        """
+        r"""
+        Return the string representation of the parallelogram polyominoes 
+        factory.
+
+        EXAMPLES::
+
+            sage: ParallelogramPolyominoes
+            Factory for parallelogram polyominoes
         """
         return "Factory for parallelogram polyominoes"
 
@@ -1624,10 +1713,27 @@ class ParallelogramPolyominoes_size(
 ):
     r"""
     The parallelogram polyominoes of size `n`.
+
+    EXAMPLES::
+
+        sage: PPS = ParallelogramPolyominoes(3)
+        sage: PPS
+        parallelogram polyominoes of size 3
+        sage: sorted( list(PPS) )
+        [[[0, 0, 0, 1], [1, 0, 0, 0]],
+         [[0, 0, 1, 1], [1, 0, 1, 0]],
+         [[0, 0, 1, 1], [1, 1, 0, 0]],
+         [[0, 1, 0, 1], [1, 1, 0, 0]],
+         [[0, 1, 1, 1], [1, 1, 1, 0]]]
     """
     def __init__(self, size, policy):
         r"""
         Construct a set of Parallelogram Polyominoes of a given size.
+
+        EXAMPLES::
+
+            sage: ParallelogramPolyominoes(3)
+            parallelogram polyominoes of size 3
         """
         self._size = size
         ParentWithSetFactory.__init__(
@@ -1648,11 +1754,26 @@ class ParallelogramPolyominoes_size(
 
     def an_element(self):
         r"""
+        Return an element of a parallelogram polyomino of a given size.
+
+        EXAMPLES::
+
+            sage: PPS = ParallelogramPolyominoes(3)
+            sage: PPS.an_element() in PPS
+            True
         """
         return next(self.__iter__())
 
     def check_element(self, el, check):
         r"""
+        Check is a given element `el` is in the set of parallelogram
+        polyominoes of a fixed size.
+
+        EXAMPLES::
+
+            sage: PPS = ParallelogramPolyominoes(2)
+            sage: ParallelogramPolyomino([[0, 1, 1], [1, 1, 0]])  in PPS
+            True
         """
         if el.size() != self.size():
             raise ValueError(
@@ -1706,8 +1827,7 @@ class ParallelogramPolyominoes_size(
         """
         from sage.combinat.dyck_word import DyckWords
         for dyck in DyckWords(self.size()):
-            yield bijections_parallelogram_polyominoes.\
-                dyck_to_parallelogram_polyomino(dyck)
+            yield ParallelogramPolyomino.from_dyck_word(dyck)
 
     def get_options(self):
         return self.global_options
@@ -1729,27 +1849,25 @@ class ParallelogramPolyominoes_size(
         return self._size
 
     def set_options(self, *get_value, **set_value):
+        r"""
+        Set new options to the object.
+
+        EXAMPLES::
+
+            sage: PPS = ParallelogramPolyominoes(3)
+            sage: PPS.set_options(
+            ....:     drawing_components=dict(
+            ....:         diagram = True,
+            ....:         bounce_0 = True,
+            ....:         bounce_1 = True,
+            ....:     )
+            ....: )
+            sage: pp = PPS[0]
+            sage: view(pp) # not tested
+        """
         self.global_options(*get_value, **set_value)
 
     global_options = ParallelogramPolyominoesOptions
-
-
-class bijections_parallelogram_polyominoes:
-    @staticmethod
-    def _dyck_to_pp_delest_viennot(dyck):
-        l = [1] + list(dyck) + [0]
-        word_up = []
-        word_down = []
-        for i in range(0, len(l), 2):
-            word_up.append(l[i])
-            word_down.append(1 - l[i+1])
-        return ParallelogramPolyomino([word_down, word_up])
-
-    @staticmethod
-    def dyck_to_parallelogram_polyomino(dyck, bijection=None):
-        if bijection is None or bijection == 'Delest-Viennot':
-            return bijections_parallelogram_polyominoes.\
-                _dyck_to_pp_delest_viennot(dyck)
 
 
 class ParallelogramPolyominoes_all(
@@ -1757,6 +1875,12 @@ class ParallelogramPolyominoes_all(
 ):
     r"""
     This class enumerates all the parallelogram polyominoes.
+
+    EXAMPLES::
+
+        sage: PPS = ParallelogramPolyominoes()
+        sage: PPS
+        parallelogram polyominoes
     """
     def __init__(self, policy):
         r"""
@@ -1780,13 +1904,13 @@ class ParallelogramPolyominoes_all(
         )
         DisjointUnionEnumeratedSets.__init__(
             self, Family(
-                NonNegativeIntegers(), self._parallelogram_polyominoes_size
+                NonNegativeIntegers(),
+                lambda  n: ParallelogramPolyominoes_size(
+                    n, policy=self.facade_policy()
+                )
             ),
             facade=True, keepkey=False, category=self.category()
         )
-
-    def _parallelogram_polyominoes_size(self, n):
-        return ParallelogramPolyominoes_size(n, policy=self.facade_policy())
 
     def _repr_(self):
         r"""
@@ -1832,6 +1956,22 @@ class ParallelogramPolyominoes_all(
         return self.global_options
 
     def set_options(self, *get_value, **set_value):
+        r"""
+        Set new options to the object.
+
+        EXAMPLES::
+
+            sage: PPS = ParallelogramPolyominoes()
+            sage: PPS.set_options(
+            ....:     drawing_components=dict(
+            ....:         diagram = True,
+            ....:         bounce_0 = True,
+            ....:         bounce_1 = True,
+            ....:     )
+            ....: )
+            sage: pp = next(iter(PPS))
+            sage: view(pp) # not tested
+        """
         self.global_options(*get_value, **set_value)
 
     global_options = ParallelogramPolyominoesOptions

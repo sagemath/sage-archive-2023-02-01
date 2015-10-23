@@ -1,5 +1,5 @@
 """
-Coxeter matrices
+Coxeter Matrices
 """
 #*****************************************************************************
 #       Copyright (C) 2007 Mike Hansen <mhansen@gmail.com>,
@@ -46,7 +46,7 @@ class CoxeterMatrix(CoxeterType):
     .. MATH::
 
         b_{ij} = \begin{cases}
-        m_{ij} & m_{ij} < 0 (\text{i.e.,} m_{ij} = \infty),
+        m_{ij} & m_{ij} < 0\ (\text{i.e., } m_{ij} = \infty), \\
         -\cos\left( \frac{\pi}{m_{ij}} \right) & \text{otherwise}.
         \end{cases}
 

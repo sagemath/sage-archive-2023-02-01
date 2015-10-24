@@ -369,7 +369,7 @@ created by ``VectorSpace`` is actually a Cartesian power of the base field::
     Vector space of dimension 3 over Rational Field
     sage: V.category()
     Category of finite dimensional vector spaces with basis
-	 over (quotient fields and metric spaces)
+     over (quotient fields and metric spaces)
     sage: V is QQ^3
     True
     sage: V.basis()

@@ -125,7 +125,7 @@ def category(x):
         sage: V = VectorSpace(QQ,3)
         sage: category(V)
         Category of finite dimensional vector spaces with basis over
-		 (quotient fields and metric spaces)
+         (quotient fields and metric spaces)
     """
     try:
         return x.category()

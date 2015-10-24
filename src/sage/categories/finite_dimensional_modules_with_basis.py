@@ -269,19 +269,22 @@ class FiniteDimensionalModulesWithBasis(CategoryWithAxiom_over_base_ring):
             """
             Return a list of *all* coefficients of ``self``.
 
+            By default, this list is ordered in the same way as the
+            indexing set of the basis of the parent of ``self``.
+
             INPUT:
 
             - ``order`` -- (optional) an ordering of the basis indexing set
 
             EXAMPLES::
 
-                sage: v = vector([0, -1, -2])
+                sage: v = vector([0, -1, -3])
                 sage: v.dense_coefficient_list()
-                [0, -1, -2]
+                [0, -1, -3]
                 sage: v.dense_coefficient_list([2,1,0])
-                [-2, -1, 0]
+                [-3, -1, 0]
                 sage: sorted(v.coefficients())
-                [-2, -1]
+                [-3, -1]
             """
             if order is None:
                 try:

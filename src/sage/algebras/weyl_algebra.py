@@ -433,6 +433,8 @@ class DifferentialWeylAlgebraElement(AlgebraElement):
         """
         Return an iterator of ``self``.
 
+        This is the iterator of ``self.list()``.
+
         EXAMPLES::
 
             sage: W.<x,y,z> = DifferentialWeylAlgebra(QQ)
@@ -447,6 +449,11 @@ class DifferentialWeylAlgebraElement(AlgebraElement):
     def list(self):
         """
         Return ``self`` as a list.
+
+        This list consists of pairs `(m, c)`, where `m` is a pair of
+        tuples indexing a basis element of ``self``, and `c` is the
+        coordinate of ``self`` corresponding to this basis element.
+        (Only nonzero coordinates are shown.)
 
         EXAMPLES::
 
@@ -765,12 +772,19 @@ class DifferentialWeylAlgebra(Algebra, UniqueRepresentation):
             sage: [next(it) for i in range(20)]
             [1, x, y, dx, dy, x^2, x*y, x*dx, x*dy, y^2, y*dx, y*dy,
              dx^2, dx*dy, dy^2, x^3, x^2*y, x^2*dx, x^2*dy, x*y^2]
+            sage: dx, dy = W.differentials()
+            sage: (dx*x).monomials()
+            [1, x*dx]
+            sage: B[(x*y).monomials()[0]]
+            x*y
+            sage: sorted((dx*x).monomial_coefficients().items())
+            [(((0, 0), (0, 0)), 1), (((1, 0), (1, 0)), 1)]
         """
         n = self._n
         from sage.combinat.integer_lists.nn import IntegerListsNN
         from sage.categories.cartesian_product import cartesian_product
-        I = IntegerListsNN(length=n, element_constructor=tuple)
-        J = cartesian_product([I, I])
+        I = IntegerListsNN(length=2*n)
+        J = I.map(lambda u : (tuple(u[:n]), tuple(u[n:])))
         one = self.base_ring().one()
         f = lambda x: self.element_class(self, {(x[0], x[1]): one})
         return Family(J, f, name="basis map")

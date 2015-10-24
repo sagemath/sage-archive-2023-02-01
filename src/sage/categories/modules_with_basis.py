@@ -194,9 +194,13 @@ class ModulesWithBasis(CategoryWithAxiom_over_base_ring):
     Graded = LazyImport('sage.categories.graded_modules_with_basis', 'GradedModulesWithBasis')
     Super = LazyImport('sage.categories.super_modules_with_basis', 'SuperModulesWithBasis')
 
+    # To implement a module_with_basis you need to implement the
+    #   following methods:
+    #   - On the parent class, either basis() or an _indices attribute and
+    #     monomial().
+    #   - On the element class, monomial_coefficients().
+
     class ParentMethods:
-        # To implement a module_with_basis you need to implement either
-        #   basis() or an _indices attribute and monomial().
         @cached_method
         def basis(self):
             """

@@ -209,6 +209,14 @@ class AlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
             inversed this way. It is correct though for graded
             connected algebras with basis.
 
+            .. WARNING::
+
+                This might produce a result which does not belong to
+                the parent of ``self``, yet believes to do so. For
+                instance, inverting 2 times the unity will produce 1/2
+                times the unity, even if 1/2 is not in the base ring.
+                Handle with care.
+
             EXAMPLES::
 
                 sage: C = AlgebrasWithBasis(QQ).example()
@@ -234,7 +242,8 @@ class AlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
 
     class CartesianProducts(CartesianProductsCategory):
         """
-        The category of algebras with basis, constructed as cartesian products of algebras with basis
+        The category of algebras with basis, constructed as cartesian
+        products of algebras with basis.
 
         Note: this construction give the direct products of algebras with basis.
         See comment in :class:`Algebras.CartesianProducts

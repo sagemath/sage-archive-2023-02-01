@@ -3040,13 +3040,21 @@ class KR_type_spin(KirillovReshetikhinCrystalFromPromotion):
             sage: K = crystals.KirillovReshetikhin(['D',4,1],3,2)
             sage: K.classical_decomposition()
             The crystal of tableaux of type ['D', 4] and shape(s) [[1, 1, 1, -1]]
+
+        TESTS:
+
+        Check that this is robust against python ints::
+
+            sage: K = crystals.KirillovReshetikhin(['D',4,1], 4, int(1))
+            sage: K.classical_crystal
+            The crystal of tableaux of type ['D', 4] and shape(s) [[1/2, 1/2, 1/2, 1/2]]
         """
         C = self.cartan_type().classical()
-        s = self.s()
+        s = QQ(self.s())
         if self.r() == C.n:
-            c = [s/2]*C.n
+            c = [s/QQ(2)]*C.n
         else:
-            c = [s/2]*(C.n-1)+[-s/2]
+            c = [s/QQ(2)]*(C.n-1)+[-s/QQ(2)]
         return CrystalOfTableaux(C, shape = c)
 
     def dynkin_diagram_automorphism(self, i):

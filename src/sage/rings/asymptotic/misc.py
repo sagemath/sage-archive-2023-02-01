@@ -387,7 +387,7 @@ def underlying_class(P):
         <class 'sage.rings.rational_field.RationalField'>
     """
     cls = type(P)
-    if not P._is_category_initialized():
+    if not hasattr(P, '_is_category_initialized') or not P._is_category_initialized():
         return cls
     from sage.structure.misc import is_extension_type
     if is_extension_type(cls):
@@ -558,3 +558,136 @@ def log_string(element, base=None):
     """
     basestr = ', base=' + str(base) if base else ''
     return 'log(%s%s)' % (element, basestr)
+
+
+def transform_category(category,
+                       subcategory_mapping, axiom_mapping,
+                       initial_category=None):
+    r"""
+    Transform ``category`` to a new category according to the given
+    mappings.
+
+    INPUT:
+
+    - ``category`` -- a category.
+
+    - ``subcategory_mapping`` -- a list (or other iterable) of triples
+      ``(from, to, mandatory)``, where
+
+      - ``from`` and ``to`` are categories and
+      - ``mandatory`` is a boolean.
+
+    - ``axiom_mapping`` -- a list (or other iterable) of triples
+      ``(from, to, mandatory)``, where
+
+      - ``from`` and ``to`` are strings describing axioms and
+      - ``mandatory`` is a boolean.
+
+    - ``initial_category`` -- (default: ``None``) a category. When
+      transforming the given category, this ``initial_category`` is
+      used as a starting point of the result. This means the resulting
+      category will be a subcategory of ``initial_category``.
+      If ``initial_category`` is ``None``, then the
+      :class:`category of objects <sage.categories.objects.Objects>`
+      is used.
+
+    OUTPUT:
+
+    A category.
+
+    .. NOTE::
+
+        Consider a subcategory mapping ``(from, to, mandatory)``. If
+        ``category`` is a subcategory of ``from``, then the
+        returned category will be a subcategory of ``to``. Otherwise and
+        if ``mandatory`` is set, then an error is raised.
+
+        Consider an axiom mapping ``(from, to, mandatory)``. If
+        ``category`` is has axiom ``from``, then the
+        returned category will have axiom ``to``. Otherwise and
+        if ``mandatory`` is set, then an error is raised.
+
+    EXAMPLES::
+
+        sage: from sage.rings.asymptotic.misc import transform_category
+        sage: from sage.categories.additive_semigroups import AdditiveSemigroups
+        sage: from sage.categories.additive_monoids import AdditiveMonoids
+        sage: from sage.categories.additive_groups import AdditiveGroups
+        sage: S = [
+        ....:     (Sets(), Sets(), True),
+        ....:     (Posets(), Posets(), False),
+        ....:     (AdditiveMagmas(), Magmas(), False)]
+        sage: A = [
+        ....:     ('AdditiveAssociative', 'Associative', False),
+        ....:     ('AdditiveUnital', 'Unital', False),
+        ....:     ('AdditiveInverse', 'Inverse', False),
+        ....:     ('AdditiveCommutative', 'Commutative', False)]
+        sage: transform_category(Objects(), S, A)
+        Traceback (most recent call last):
+        ...
+        ValueError: Category of objects is not
+        a subcategory of Category of sets.
+        sage: transform_category(Sets(), S, A)
+        Category of sets
+        sage: transform_category(Posets(), S, A)
+        Category of posets
+        sage: transform_category(AdditiveSemigroups(), S, A)
+        Category of semigroups
+        sage: transform_category(AdditiveMonoids(), S, A)
+        Category of monoids
+        sage: transform_category(AdditiveGroups(), S, A)
+        Category of groups
+        sage: transform_category(AdditiveGroups().AdditiveCommutative(), S, A)
+        Category of commutative groups
+
+    ::
+
+        sage: transform_category(AdditiveGroups().AdditiveCommutative(), S, A,
+        ....:     initial_category=Posets())
+        Join of Category of commutative groups
+            and Category of posets
+
+    ::
+
+        sage: transform_category(ZZ.category(), S, A)
+        Category of commutative groups
+        sage: transform_category(QQ.category(), S, A)
+        Category of commutative groups
+        sage: transform_category(SR.category(), S, A)
+        Category of commutative groups
+        sage: transform_category(Fields(), S, A)
+        Category of commutative groups
+        sage: transform_category(ZZ['t'].category(), S, A)
+        Category of commutative groups
+
+    ::
+
+        sage: A[-1] = ('Commutative', 'AdditiveCommutative', True)
+        sage: transform_category(Groups(), S, A)
+        Traceback (most recent call last):
+        ...
+        ValueError: Category of groups does not have
+        axiom Commutative.
+    """
+    if initial_category is None:
+        from sage.categories.objects import Objects
+        result = Objects()
+    else:
+        result = initial_category
+
+    for A, B, mandatory in subcategory_mapping:
+        if category.is_subcategory(A):
+            result &= B
+        elif mandatory:
+            raise ValueError('%s is not a subcategory of %s.' %
+                             (category, A))
+
+    axioms = category.axioms()
+    for A, B, mandatory in axiom_mapping:
+        if A in axioms:
+            result = result._with_axiom(B)
+        elif mandatory:
+            raise ValueError('%s does not have axiom %s.' %
+                             (category, A))
+
+    return result

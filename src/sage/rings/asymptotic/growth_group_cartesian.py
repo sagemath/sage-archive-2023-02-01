@@ -72,8 +72,11 @@ TESTS::
     sage: cm.common_parent(A, D)
     Growth Group QQ^x * x^QQ
     sage: E = GrowthGroup('ZZ^x * x^QQ')
+    sage: cm.record_exceptions()  # not tested, see #19411
     sage: cm.common_parent(A, E)
     Growth Group QQ^x * x^QQ
+    sage: for t in cm.exception_stack():  # not tested, see #19411
+    ....:     print t
 
 ::
 
@@ -329,12 +332,12 @@ class GenericProduct(CartesianProductPoset, GenericGrowthGroup):
              x^(-1/2)*log(x)*(-1/2)^y,
              x^2*log(x)^(-1)*2^y,
              x^(-2)*log(x)^2*(-2)^y,
-             log(x)^(-2)*0^y,
-             x*log(x)^3,
-             x^(-1)*log(x)^(-3)*(-1)^y,
-             x^42*log(x)^4*42^y,
-             x^(2/3)*log(x)^(-4)*(2/3)^y,
-             x^(-2/3)*log(x)^5*(-2/3)^y)
+             log(x)^(-2),
+             x*log(x)^3*(-1)^y,
+             x^(-1)*log(x)^(-3)*42^y,
+             x^42*log(x)^4*(2/3)^y,
+             x^(2/3)*log(x)^(-4)*(-2/3)^y,
+             x^(-2/3)*log(x)^5*(3/2)^y)
         """
         from itertools import izip
         return iter(
@@ -682,9 +685,17 @@ class GenericProduct(CartesianProductPoset, GenericGrowthGroup):
             sage: F = GrowthGroup('z^QQ')
             sage: pushout(C, F)
             Growth Group QQ^x * x^QQ * y^ZZ * z^QQ
+
+        ::
+
+            sage: pushout(GrowthGroup('QQ^x * x^ZZ'), GrowthGroup('ZZ^x * x^QQ'))
+            Growth Group QQ^x * x^QQ
+            sage: cm.common_parent(GrowthGroup('QQ^x * x^ZZ'), GrowthGroup('ZZ^x * x^QQ'))
+            Growth Group QQ^x * x^QQ
         """
         from growth_group import GenericGrowthGroup, AbstractGrowthGroupFunctor
         from misc import merge_overlapping
+        from misc import underlying_class
 
         if isinstance(other, GenericProduct):
             Ofactors = other.cartesian_factors()
@@ -696,12 +707,11 @@ class GenericProduct(CartesianProductPoset, GenericGrowthGroup):
         else:
             return
 
-
         def pushout_univariate_factors(self, other, var, Sfactors, Ofactors):
             try:
                 return merge_overlapping(
                     Sfactors, Ofactors,
-                    lambda f: (type(f), f._var_.var_repr))
+                    lambda f: (underlying_class(f), f._var_.var_repr))
             except ValueError:
                 pass
 
@@ -723,7 +733,7 @@ class GenericProduct(CartesianProductPoset, GenericGrowthGroup):
             try:
                 return merge_overlapping(
                     tuple(subfactors(Sfactors)), tuple(subfactors(Ofactors)),
-                    lambda f: (type(f), f._var_.var_repr))
+                    lambda f: (underlying_class(f), f._var_.var_repr))
             except ValueError:
                 pass
 

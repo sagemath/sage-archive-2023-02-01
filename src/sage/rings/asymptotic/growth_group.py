@@ -1431,13 +1431,26 @@ class GenericGrowthGroup(
     Element = GenericGrowthElement
 
 
+    # set everything up to determine category
+    from sage.categories.sets_cat import Sets
+    from sage.categories.posets import Posets
+    from sage.categories.magmas import Magmas
+    from sage.categories.additive_magmas import AdditiveMagmas
+
+    _determine_category_subcategory_mapping_ = [
+        (Sets(), Sets(), True),
+        (Posets(), Posets(), False)]
+
+    _determine_category_axiom_mapping_ = []
+
+
     @staticmethod
     def __classcall__(cls, base, var=None, category=None, ignore_variables=None):
         r"""
         Normalizes the input in order to ensure a unique
         representation.
 
-        For more information see :class:`MonomialGrowthGroup`.
+        For more information see :class:`GenericGrowthGroup`.
 
         TESTS::
 
@@ -1460,6 +1473,39 @@ class GenericGrowthGroup(
             sage: L2 = MonomialGrowthGroup(QQ, 'log(x)')
             sage: L1 is L2
             True
+
+        Test determining of the category (GenericGrowthGroup)::
+
+            sage: from sage.rings.asymptotic.growth_group import GenericGrowthGroup
+            sage: GenericGrowthGroup(ZZ, 'x').category()  # indirect doctest
+            Category of posets
+            sage: GenericGrowthGroup(ZZ, 'x', category=Groups()).category()  # indirect doctest
+            Category of groups
+
+        Test determining of the category (MonomialGrowthGroup)::
+
+            sage: from sage.rings.asymptotic.growth_group import MonomialGrowthGroup
+            sage: MonomialGrowthGroup(ZZ, 'x').category()  # indirect doctest
+            Join of Category of commutative groups and Category of posets
+            sage: MonomialGrowthGroup(ZZ, 'x', category=Monoids()).category()  # indirect doctest
+            Category of monoids
+            sage: W = Words([0, 1])
+            sage: W.category()
+            Category of sets
+            sage: MonomialGrowthGroup(W, 'x').category()  # indirect doctest
+            Category of sets
+
+        Test determining of the category (ExponentialGrowthGroup)::
+
+            sage: from sage.rings.asymptotic.growth_group import ExponentialGrowthGroup
+            sage: ExponentialGrowthGroup(ZZ, 'x').category()  # indirect doctest
+            Join of Category of commutative monoids and Category of posets
+            sage: ExponentialGrowthGroup(QQ, 'x').category()  # indirect doctest
+            Join of Category of commutative groups and Category of posets
+            sage: ExponentialGrowthGroup(ZZ, 'x', category=Groups()).category()  # indirect doctest
+            Category of groups
+            sage: ExponentialGrowthGroup(QQ, 'x', category=Monoids()).category()  # indirect doctest
+            Category of monoids
         """
         if not isinstance(base, sage.structure.parent.Parent):
             raise TypeError('%s is not a valid base.' % (base,))
@@ -1469,10 +1515,25 @@ class GenericGrowthGroup(
         elif not isinstance(var, Variable):
             var = Variable(var, ignore=ignore_variables)
 
+        from sage.categories.posets import Posets
         if category is None:
-            from sage.categories.monoids import Monoids
-            from sage.categories.posets import Posets
-            category = Monoids() & Posets()
+            # The following block can be removed once #19269 is fixed.
+            from sage.rings.integer_ring import ZZ
+            from sage.rings.rational_field import QQ
+            from sage.rings.polynomial.polynomial_ring import is_PolynomialRing
+            if base is ZZ or base is QQ or \
+                    is_PolynomialRing(base) and \
+                    (base.base_ring() is ZZ or base.base_ring() is QQ):
+                initial_category = Posets()
+            else:
+                initial_category = None
+
+            from misc import transform_category
+            category = transform_category(
+                base.category(),
+                cls._determine_category_subcategory_mapping_,
+                cls._determine_category_axiom_mapping_,
+                initial_category=initial_category)
 
         return super(GenericGrowthGroup, cls).__classcall__(
             cls, base, var, category)
@@ -1487,7 +1548,7 @@ class GenericGrowthGroup(
 
             sage: from sage.rings.asymptotic.growth_group import GenericGrowthGroup
             sage: GenericGrowthGroup(ZZ).category()
-            Join of Category of monoids and Category of posets
+            Category of posets
 
         ::
 
@@ -1843,21 +1904,40 @@ class GenericGrowthGroup(
             Traceback (most recent call last):
             ...
             ValueError: x is not in Growth Group y^ZZ.
+
+        ::
+
+            sage: GrowthGroup('QQ^x')(GrowthGroup('ZZ^x')('2^x'))
+            2^x
         """
+        from misc import underlying_class, combine_exceptions
+
         if raw_element is None:
-            if isinstance(data, self.element_class):
+            if isinstance(data, int) and data == 0:
+                raise ValueError('No input specified. Cannot continue.')
+
+            elif isinstance(data, self.element_class):
                 if data.parent() == self:
                     return data
-                try:
-                    if self._var_ != data.parent()._var_:
-                        raise ValueError('%s is not in %s.' % (data, self))
-                except AttributeError:
-                    pass
+                if self._var_ != data.parent()._var_:
+                    raise ValueError('%s is not in %s.' % (data, self))
                 raw_element = data._raw_element_
-            elif isinstance(data, int) and data == 0:
-                raise ValueError('No input specified. Cannot continue.')
+
+            elif isinstance(data, self.Element):
+                if self._var_ == data.parent()._var_:
+                    try:
+                        raw_element = self.base()(data._raw_element_)
+                    except (TypeError, ValueError) as e:
+                        raise combine_exceptions(
+                            ValueError('%s is not in %s.' % (data, self)), e)
+
+            elif isinstance(data, GenericGrowthElement):
+                if data.is_one():
+                    return self.one()
+
             else:
                 raw_element = self._convert_(data)
+
             if raw_element is None:
                 raise ValueError('%s is not in %s.' % (data, self))
         elif not isinstance(data, int) or data != 0:
@@ -1962,7 +2042,8 @@ class GenericGrowthGroup(
             sage: GrowthGroup('x^QQ').has_coerce_map_from(GrowthGroup('QQ^x'))  # indirect doctest
             False
         """
-        if isinstance(S, type(self)) and self._var_ == S._var_:
+        from misc import underlying_class
+        if isinstance(S, underlying_class(self)) and self._var_ == S._var_:
             if self.base().has_coerce_map_from(S.base()):
                 return True
 
@@ -2775,6 +2856,24 @@ class MonomialGrowthGroup(GenericGrowthGroup):
     Element = MonomialGrowthElement
 
 
+    # set everything up to determine category
+    from sage.categories.sets_cat import Sets
+    from sage.categories.posets import Posets
+    from sage.categories.magmas import Magmas
+    from sage.categories.additive_magmas import AdditiveMagmas
+
+    _determine_category_subcategory_mapping_ = [
+        (Sets(), Sets(), True),
+        (Posets(), Posets(), False),
+        (AdditiveMagmas(), Magmas(), False)]
+
+    _determine_category_axiom_mapping_ = [
+        ('AdditiveAssociative', 'Associative', False),
+        ('AdditiveUnital', 'Unital', False),
+        ('AdditiveInverse', 'Inverse', False),
+        ('AdditiveCommutative', 'Commutative', False)]
+
+
     def _repr_short_(self):
         r"""
         A short representation string of this monomial growth group.
@@ -2894,6 +2993,11 @@ class MonomialGrowthGroup(GenericGrowthGroup):
         ::
 
             sage: P('1')
+            1
+
+        ::
+
+            sage: GrowthGroup('x^QQ')(GrowthGroup('x^ZZ')(1))
             1
         """
         if data == 1 or data == '1':
@@ -3404,6 +3508,26 @@ class ExponentialGrowthGroup(GenericGrowthGroup):
     Element = ExponentialGrowthElement
 
 
+    # set everything up to determine category
+    from sage.categories.sets_cat import Sets
+    from sage.categories.posets import Posets
+    from sage.categories.magmas import Magmas
+    from sage.categories.groups import Groups
+    from sage.categories.division_rings import DivisionRings
+
+    _determine_category_subcategory_mapping_ = [
+        (Sets(), Sets(), True),
+        (Posets(), Posets(), False),
+        (Magmas(), Magmas(), False),
+        (DivisionRings(), Groups(), False)]
+
+    _determine_category_axiom_mapping_ = [
+        ('Associative', 'Associative', False),
+        ('Unital', 'Unital', False),
+        ('Inverse', 'Inverse', False),
+        ('Commutative', 'Commutative', False)]
+
+
     def _repr_short_(self):
         r"""
         A short representation string of this exponential growth group.
@@ -3488,18 +3612,26 @@ class ExponentialGrowthGroup(GenericGrowthGroup):
             e^x
             sage: P(exp(2*x))
             (e^2)^x
+
+        ::
+
+            sage: GrowthGroup('QQ^x')(GrowthGroup('ZZ^x')(1))
+            1
         """
-        if data == 1 or data == '1':
+        if data == '1' or isinstance(data, int) and data == 1:
             return self.base().one()
         var = repr(self._var_)
         try:
             P = data.parent()
         except AttributeError:
-            if var not in str(data):
+            if data == 1:
+                return self.base().one()
+            s = str(data)
+            if var not in s:
                 return  # this has to end here
 
-            elif str(data).endswith('^' + var):
-                return self.base()(str(data).replace('^' + var, '')
+            elif s.endswith('^' + var):
+                return self.base()(s.replace('^' + var, '')
                                    .replace('(', '').replace(')', ''))
             else:
                 return  # end of parsing
@@ -3523,6 +3655,34 @@ class ExponentialGrowthGroup(GenericGrowthGroup):
                     return base
                 elif exponent.operator() == mul_vararg:
                     return base ** (exponent / SR(var))
+
+        elif data == 1:  # can be expensive, so let's put it at the end
+            return self.base().one()
+
+
+    def some_elements(self):
+        r"""
+        Return some elements of this exponential growth group.
+
+        See :class:`TestSuite` for a typical use case.
+
+        INPUT:
+
+        Nothing.
+
+        OUTPUT:
+
+        An iterator.
+
+        EXAMPLES::
+
+            sage: from sage.rings.asymptotic.growth_group import GrowthGroup
+            sage: tuple(GrowthGroup('QQ^z').some_elements())
+            ((1/2)^z, (-1/2)^z, 2^z, (-2)^z, 1, (-1)^z,
+             42^z, (2/3)^z, (-2/3)^z, (3/2)^z, (-3/2)^z, ...)
+        """
+        return iter(self.element_class(self, e)
+                    for e in self.base().some_elements() if e != 0)
 
 
     def gens(self):
@@ -3716,6 +3876,7 @@ class GrowthGroupFactory(sage.structure.factory.UniqueFactory):
         running ._test_elements_eq_transitive() . . . pass
         running ._test_elements_neq() . . . pass
         running ._test_eq() . . . pass
+        running ._test_inverse() . . . pass
         running ._test_not_implemented_methods() . . . pass
         running ._test_one() . . . pass
         running ._test_pickling() . . . pass
@@ -3741,6 +3902,7 @@ class GrowthGroupFactory(sage.structure.factory.UniqueFactory):
         running ._test_elements_eq_transitive() . . . pass
         running ._test_elements_neq() . . . pass
         running ._test_eq() . . . pass
+        running ._test_inverse() . . . pass
         running ._test_not_implemented_methods() . . . pass
         running ._test_one() . . . pass
         running ._test_pickling() . . . pass
@@ -3766,6 +3928,7 @@ class GrowthGroupFactory(sage.structure.factory.UniqueFactory):
         running ._test_elements_eq_transitive() . . . pass
         running ._test_elements_neq() . . . pass
         running ._test_eq() . . . pass
+        running ._test_inverse() . . . pass
         running ._test_not_implemented_methods() . . . pass
         running ._test_one() . . . pass
         running ._test_pickling() . . . pass

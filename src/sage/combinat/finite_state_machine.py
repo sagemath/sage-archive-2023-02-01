@@ -49,6 +49,7 @@ Accessing parts of a finite state machine
     :meth:`~FiniteStateMachine.predecessors` | List of predecessors of a state
     :meth:`~FiniteStateMachine.induced_sub_finite_state_machine` | Induced sub-machine
     :meth:`~FiniteStateMachine.accessible_components` | Accessible components
+    :meth:`~FiniteStateMachine.coaccessible_components` | Coaccessible components
     :meth:`~FiniteStateMachine.final_components` | Final components (connected components which cannot be left again)
 
 
@@ -6988,7 +6989,7 @@ class FiniteStateMachine(sage.structure.sage_object.SageObject):
 
     def accessible_components(self):
         """
-        Returns a new finite state machine with the accessible states
+        Return a new finite state machine with the accessible states
         of self and all transitions between those states.
 
         INPUT:
@@ -7017,6 +7018,9 @@ class FiniteStateMachine(sage.structure.sage_object.SageObject):
             ....:               initial_states=[0])
             sage: F.accessible_components()
             Automaton with 1 state
+
+        .. SEEALSO::
+            :meth:`coaccessible_components`
 
         TESTS:
 
@@ -7049,6 +7053,47 @@ class FiniteStateMachine(sage.structure.sage_object.SageObject):
                 pass
         return result
 
+
+    def coaccessible_components(self):
+        r"""
+        Return the sub-machine induced by the coaccessible states of this
+        finite state machine.
+
+        OUTPUT:
+
+        A finite state machine of the same type as this finite state
+        machine.
+
+        EXAMPLES::
+
+            sage: A = automata.ContainsWord([1, 1],
+            ....:     input_alphabet=[0, 1]).complement().minimization().relabeled()
+            sage: A.transitions()
+            [Transition from 0 to 0: 0|-,
+             Transition from 0 to 0: 1|-,
+             Transition from 1 to 1: 0|-,
+             Transition from 1 to 2: 1|-,
+             Transition from 2 to 1: 0|-,
+             Transition from 2 to 0: 1|-]
+            sage: A.initial_states()
+            [1]
+            sage: A.final_states()
+            [1, 2]
+            sage: C = A.coaccessible_components()
+            sage: C.transitions()
+            [Transition from 1 to 1: 0|-,
+             Transition from 1 to 2: 1|-,
+             Transition from 2 to 1: 0|-]
+
+        .. SEEALSO::
+            :meth:`accessible_components`,
+            :meth:`induced_sub_finite_state_machine`
+        """
+        DG = self.digraph().reverse()
+        coaccessible_states = DG.breadth_first_search(
+            [_.label() for _ in self.iter_final_states()])
+        return self.induced_sub_finite_state_machine(
+            [self.state(_) for _ in coaccessible_states])
 
     # *************************************************************************
     # creating new finite state machines
@@ -11054,13 +11099,7 @@ class Automaton(FiniteStateMachine):
             sage: A = Automaton([(0, 1, 1), (0, 2, [1, 1]), (0, 3, [1, 1, 1]),
             ....:                (1, 0, -1), (2, 0, -2), (3, 0, -3)],
             ....:               initial_states=[0], final_states=[0, 1, 2, 3])
-            sage: B = A.determinisation().relabeled()
-            sage: all(t.to_state.label() == 2 for t in
-            ....:     B.state(2).transitions)
-            True
-            sage: B.state(2).is_final
-            False
-            sage: B.delete_state(2)  # this is a sink
+            sage: B = A.determinisation().relabeled().coaccessible_components()
             sage: sorted(B.transitions())
             [Transition from 0 to 1: 1|-,
              Transition from 1 to 0: -1|-,

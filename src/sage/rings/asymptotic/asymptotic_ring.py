@@ -758,10 +758,18 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
 
             sage: x == None
             False
+
+        ::
+
+            sage: x == 'x'
+            False
         """
         if other is None:
             return False
-        return not bool(self - other)
+        try:
+            return not bool(self - other)
+        except (TypeError, ValueError):
+            return False
 
 
     def __ne__(self, other):
@@ -1763,6 +1771,266 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
         return self.rpow('e', precision=precision)
 
 
+    def substitute(self, rules=None, domain=None, **kwds):
+        r"""
+        Substitute the given ``rules`` in this asymptotic expansion.
+
+        INPUT:
+
+        - ``rules`` -- a dictionary.
+
+        - ``kwds`` -- keyword arguments will be added to the
+          substitution ``rules``.
+
+        - ``domain`` -- (default: ``None``) a parent. The neutral
+          elements `0` and `1` (rules for the keys ``'_zero_'`` and
+          ``'_one_'``, see note box below) are taken out of this
+          domain. If ``None``, then this is determined automatically.
+
+        OUTPUT:
+
+        An object.
+
+        .. NOTE::
+
+          The neutral element of the asymptotic ring is replaced by
+          the value to the key ``'_zero_'``; the neutral element of
+          the growth group is replaced by the value to the key
+          ``'_one_'``.
+
+        EXAMPLES::
+
+            sage: A.<x> = AsymptoticRing(growth_group='(e^x)^QQ * x^ZZ * log(x)^ZZ', coefficient_ring=QQ, default_prec=5)
+
+        ::
+
+            sage: (e^x * x^2 + log(x)).subs(x=SR('s'))
+            s^2*e^s + log(s)
+            sage: _.parent()
+            Symbolic Ring
+
+        ::
+
+            sage: (x^3 + x + log(x)).subs(x=x+5).truncate(5)
+            x^3 + 15*x^2 + 76*x + log(x) + 130 + O(x^(-1))
+            sage: _.parent()
+            Asymptotic Ring <(e^x)^QQ * x^ZZ * log(x)^ZZ> over Rational Field
+
+        ::
+
+            sage: (e^x * x^2 + log(x)).subs(x=2*x)
+            4*(e^x)^2*x^2 + log(x) + log(2)
+            sage: _.parent()
+            Asymptotic Ring <(e^x)^QQ * x^QQ * log(x)^QQ> over Symbolic Ring
+
+        ::
+
+            sage: (x^2 + log(x)).subs(x=4*x+2).truncate(5)
+            16*x^2 + 16*x + log(x) + log(4) + 4 + 1/2*x^(-1) + O(x^(-2))
+            sage: _.parent()
+            Asymptotic Ring <(e^x)^QQ * x^ZZ * log(x)^ZZ> over Symbolic Ring
+
+        ::
+
+            sage: (e^x * x^2 + log(x)).subs(x=RIF(pi))
+            229.534211738584?
+            sage: _.parent()
+            Real Interval Field with 53 bits of precision
+
+        .. SEEALSO::
+
+            :meth:`sage.symbolic.expression.Expression.subs`
+
+        TESTS::
+
+            sage: x.subs({'y': -1})
+            Traceback (most recent call last):
+            ...
+            ValueError: Cannot substitute y in x since it is not a generator of
+            Asymptotic Ring <(e^x)^QQ * x^ZZ * log(x)^ZZ> over Rational Field.
+            sage: B.<u, v, w> = AsymptoticRing(growth_group='u^QQ * v^QQ * w^QQ', coefficient_ring=QQ)
+            sage: (1/u).subs({'u': 0})
+            Traceback (most recent call last):
+            ...
+            TypeError: Cannot apply the substitution rules {u: 0} on u^(-1) in
+            Asymptotic Ring <u^QQ * v^QQ * w^QQ> over Rational Field.
+            > *previous* ZeroDivisionError: Cannot substitute in u^(-1) in
+            Asymptotic Ring <u^QQ * v^QQ * w^QQ> over Rational Field.
+            >> *previous* ZeroDivisionError: Cannot substitute in u^(-1) in
+            Exact Term Monoid u^QQ * v^QQ * w^QQ with coefficients in Rational Field.
+            >...> *previous* ZeroDivisionError: Cannot substitute in u^(-1) in
+            Growth Group u^QQ * v^QQ * w^QQ.
+            >...> *previous* ZeroDivisionError: Cannot substitute in u^(-1) in
+            Growth Group u^QQ.
+            >...> *previous* ZeroDivisionError: rational division by zero
+            sage: (1/u).subs({'u': 0, 'v': SR.var('v')})
+            Traceback (most recent call last):
+            ...
+            TypeError: Cannot apply the substitution rules {u: 0, v: v} on u^(-1) in
+            Asymptotic Ring <u^QQ * v^QQ * w^QQ> over Rational Field.
+            > *previous* ZeroDivisionError: Cannot substitute in u^(-1) in
+            Asymptotic Ring <u^QQ * v^QQ * w^QQ> over Rational Field.
+            >> *previous* ZeroDivisionError: Cannot substitute in u^(-1) in
+            Exact Term Monoid u^QQ * v^QQ * w^QQ with coefficients in Rational Field.
+            >...> *previous* ZeroDivisionError: Cannot substitute in u^(-1) in
+            Growth Group u^QQ * v^QQ * w^QQ.
+            >...> *previous* ZeroDivisionError: Cannot substitute in u^(-1) in
+            Growth Group u^QQ.
+            >...> *previous* ZeroDivisionError: rational division by zero
+
+        ::
+
+            sage: u.subs({u: 0, 'v': SR.var('v')})
+            0
+            sage: v.subs({u: 0, 'v': SR.var('v')})
+            v
+            sage: _.parent()
+            Symbolic Ring
+
+        ::
+
+            sage: u.subs({SR.var('u'): -1})
+            Traceback (most recent call last):
+            ...
+            TypeError: Cannot substitute u in u since it is neither an
+            asymptotic expansion nor a string
+            (but a <type 'sage.symbolic.expression.Expression'>).
+
+        ::
+
+            sage: u.subs({u: 1, 'u': 1})
+            1
+            sage: u.subs({u: 1}, u=1)
+            1
+            sage: u.subs({u: 1, 'u': 2})
+            Traceback (most recent call last):
+            ...
+            ValueError: Cannot substitute in u: duplicate key u.
+            sage: u.subs({u: 1}, u=3)
+            Traceback (most recent call last):
+            ...
+            ValueError: Cannot substitute in u: duplicate key u.
+        """
+        # check if nothing to do
+        if not rules and not kwds:
+            return self
+
+        # init and process keyword arguments
+        gens = self.parent().gens()
+        locals = kwds or dict()
+
+        # update with rules
+        if isinstance(rules, dict):
+            for k, v in rules.iteritems():
+                if not isinstance(k, str) and k not in gens:
+                    raise TypeError('Cannot substitute %s in %s '
+                                    'since it is neither an '
+                                    'asymptotic expansion '
+                                    'nor a string (but a %s).' %
+                                    (k, self, type(k)))
+                k = str(k)
+                if k in locals and locals[k] != v:
+                    raise ValueError('Cannot substitute in %s: '
+                                     'duplicate key %s.' % (self, k))
+                locals[k] = v
+        elif rules is not None:
+            raise TypeError('Substitution rules %s have to be a dictionary.' %
+                            (rules,))
+
+        # fill up missing rules
+        for g in gens:
+            locals.setdefault(str(g), g)
+
+        # check if all keys are generators
+        gens_str = tuple(str(g) for g in gens)
+        for k in locals:
+            if str(k) not in gens_str:
+                raise ValueError('Cannot substitute %s in %s '
+                                 'since it is not a generator of %s.' %
+                                 (k, self, self.parent()))
+
+        # determine 0 and 1
+        if domain is None and \
+               ('_zero_' not in locals or '_one_' not in locals):
+            P = self.parent()
+            for g in gens:
+                G = locals[str(g)].parent()
+                if G is not P:
+                    domain = G
+                    break
+            else:
+                domain = P
+        locals.setdefault('_zero_', domain.zero())
+        locals.setdefault('_one_', domain.one())
+
+        # do the actual substitution
+        try:
+            return self._substitute_(locals)
+        except (ArithmeticError, TypeError, ValueError) as e:
+            from misc import combine_exceptions
+            rules = '{' + ', '.join(
+                '%s: %s' % (k, v)
+                for k, v in sorted(locals.iteritems(),
+                                   key=lambda k: str(k[0]))
+                if not k.startswith('_') and
+                not any(k == str(g) and v is g for g in gens)) + '}'
+            raise combine_exceptions(
+                TypeError('Cannot apply the substitution rules %s on %s '
+                          'in %s.' % (rules, self, self.parent())), e)
+
+
+    subs = substitute
+
+
+    def _substitute_(self, rules):
+        r"""
+        Substitute the given ``rules`` in this asymptotic expansion.
+
+        INPUT:
+
+        - ``rules`` -- a dictionary.
+          The neutral element of the asymptotic ring is replaced by the value
+          to key ``'_zero_'``.
+
+        OUTPUT:
+
+        An object.
+
+        TESTS::
+
+            sage: A.<z> = AsymptoticRing(growth_group='z^QQ', coefficient_ring=QQ)
+            sage: z._substitute_({'z': SR.var('a')})
+            a
+            sage: _.parent()
+            Symbolic Ring
+            sage: A(0)._substitute_({'_zero_': 'zero'})
+            'zero'
+            sage: (1/z)._substitute_({'z': 4})
+            1/4
+            sage: _.parent()
+            Rational Field
+            sage: (1/z)._substitute_({'z': 0})
+            Traceback (most recent call last):
+            ...
+            ZeroDivisionError: Cannot substitute in z^(-1) in
+            Asymptotic Ring <z^QQ> over Rational Field.
+            > *previous* ZeroDivisionError: Cannot substitute in z^(-1) in
+            Exact Term Monoid z^QQ with coefficients in Rational Field.
+            >> *previous* ZeroDivisionError: Cannot substitute in z^(-1) in
+            Growth Group z^QQ.
+            >...> *previous* ZeroDivisionError: rational division by zero
+        """
+        if not self.summands:
+            return rules['_zero_']
+        from sage.symbolic.operators import add_vararg
+        try:
+            return add_vararg(
+                *tuple(s._substitute_(rules)
+                       for s in self.summands.elements_topological()))
+        except (ArithmeticError, TypeError, ValueError) as e:
+            from misc import substitute_raise_exception
+            substitute_raise_exception(self, e)
+
 
 class AsymptoticRing(Algebra, UniqueRepresentation):
     r"""
@@ -2272,7 +2540,7 @@ class AsymptoticRing(Algebra, UniqueRepresentation):
             > *previous* ValueError: Growth c is not in
             Exact Term Monoid a^ZZ * b^ZZ with coefficients in Rational Field.
             >> *previous* ValueError: c is not in Growth Group a^ZZ * b^ZZ.
-            >>... *previous* ValueError: c is not in any of the factors of
+            >...> *previous* ValueError: c is not in any of the factors of
             Growth Group a^ZZ * b^ZZ
 
         ::

@@ -570,6 +570,50 @@ class Variable(sage.structure.unique_representation.CachedRepresentation,
         return tuple(str(s) for s in SR(s).variables())
 
 
+    def _substitute_(self, rules):
+        r"""
+        Substitute the given ``rules`` in this variable.
+
+        INPUT:
+
+        - ``rules`` -- a dictionary.
+
+        OUTPUT:
+
+        An object.
+
+        TESTS::
+
+            sage: from sage.rings.asymptotic.growth_group import Variable
+            sage: Variable('x^2')._substitute_({'x': SR.var('z')})
+            z^2
+            sage: _.parent()
+            Symbolic Ring
+
+        ::
+
+            sage: Variable('1/x')._substitute_({'x': 'z'})
+            Traceback (most recent call last):
+            ...
+            TypeError: Cannot substitute in 1/x in
+            <class 'sage.rings.asymptotic.growth_group.Variable'>.
+            > *previous* TypeError: unsupported operand parent(s) for '/':
+            'Integer Ring' and '<type 'str'>'
+            sage: Variable('1/x')._substitute_({'x': 0})
+            Traceback (most recent call last):
+            ...
+            ZeroDivisionError: Cannot substitute in 1/x in
+            <class 'sage.rings.asymptotic.growth_group.Variable'>.
+            > *previous* ZeroDivisionError: rational division by zero
+        """
+        from sage.misc.sage_eval import sage_eval
+        try:
+            return sage_eval(self.var_repr, locals=rules)
+        except (ArithmeticError, TypeError, ValueError) as e:
+            from misc import substitute_raise_exception
+            substitute_raise_exception(self, e)
+
+
 # The following function is used in the classes GenericGrowthElement and
 # GenericProduct.Element as a method.
 def _is_lt_one_(self):
@@ -1313,6 +1357,36 @@ class GenericGrowthElement(sage.structure.element.MultiplicativeGroupElement):
 
 
     is_lt_one = _is_lt_one_
+
+
+    def _substitute_(self, rules):
+        r"""
+        Substitute the given ``rules`` in this generic growth element.
+
+        INPUT:
+
+        - ``rules`` -- a dictionary.
+
+        OUTPUT:
+
+        An object.
+
+        TESTS::
+
+            sage: from sage.rings.asymptotic.growth_group import GenericGrowthGroup
+            sage: G = GenericGrowthGroup(ZZ)
+            sage: G(raw_element=42)._substitute_({})
+            Traceback (most recent call last):
+            ...
+            TypeError: Cannot substitute in GenericGrowthElement(42) in
+            Growth Group Generic(ZZ).
+            > *previous* TypeError: Cannot substitute in the abstract base class
+            Growth Group Generic(ZZ).
+        """
+        from misc import substitute_raise_exception
+        substitute_raise_exception(self, TypeError(
+            'Cannot substitute in the abstract '
+            'base class %s.' % (self.parent(),)))
 
 
 class GenericGrowthGroup(
@@ -2608,6 +2682,49 @@ class MonomialGrowthElement(GenericGrowthElement):
         return self.exponent <= other.exponent
 
 
+    def _substitute_(self, rules):
+        r"""
+        Substitute the given ``rules`` in this monomial growth element.
+
+        INPUT:
+
+        - ``rules`` -- a dictionary.
+          The neutral element of the group is replaced by the value
+          to key ``'_one_'``.
+
+        OUTPUT:
+
+        An object.
+
+        TESTS::
+
+            sage: from sage.rings.asymptotic.growth_group import GrowthGroup
+            sage: G = GrowthGroup('x^ZZ')
+            sage: G(x^42)._substitute_({'x': SR.var('z')})
+            z^42
+            sage: _.parent()
+            Symbolic Ring
+            sage: G(x^3)._substitute_({'x': 2})
+            8
+            sage: _.parent()
+            Integer Ring
+            sage: G(1 / x)._substitute_({'x': 0})
+            Traceback (most recent call last):
+            ...
+            ZeroDivisionError: Cannot substitute in x^(-1) in Growth Group x^ZZ.
+            > *previous* ZeroDivisionError: rational division by zero
+            sage: G(1)._substitute_({'_one_': 'one'})
+            'one'
+        """
+        if self.is_one():
+            return rules['_one_']
+        try:
+            return self.parent()._var_._substitute_(rules) ** self.exponent
+        except (ArithmeticError, TypeError, ValueError) as e:
+            from misc import substitute_raise_exception
+            substitute_raise_exception(self, e)
+
+
 class MonomialGrowthGroup(GenericGrowthGroup):
     r"""
     A growth group dealing with powers of a fixed object/symbol.
@@ -3205,6 +3322,44 @@ class ExponentialGrowthElement(GenericGrowthElement):
             True
         """
         return bool(abs(self.base) <= abs(other.base))
+
+
+    def _substitute_(self, rules):
+        r"""
+        Substitute the given ``rules`` in this exponential growth element.
+
+        INPUT:
+
+        - ``rules`` -- a dictionary.
+          The neutral element of the group is replaced by the value
+          to key ``'_one_'``.
+
+        OUTPUT:
+
+        An object.
+
+        TESTS::
+
+            sage: from sage.rings.asymptotic.growth_group import GrowthGroup
+            sage: G = GrowthGroup('QQ^x')
+            sage: G((1/2)^x)._substitute_({'x': SR.var('z')})
+            (1/2)^z
+            sage: _.parent()
+            Symbolic Ring
+            sage: G((1/2)^x)._substitute_({'x': 2})
+            1/4
+            sage: _.parent()
+            Rational Field
+            sage: G(1)._substitute_({'_one_': 'one'})
+            'one'
+        """
+        if self.is_one():
+            return rules['_one_']
+        try:
+            return self.base ** self.parent()._var_._substitute_(rules)
+        except (ArithmeticError, TypeError, ValueError) as e:
+            from misc import substitute_raise_exception
+            substitute_raise_exception(self, e)
 
 
 class ExponentialGrowthGroup(GenericGrowthGroup):

@@ -1,10 +1,19 @@
 r"""
-Growth Groups as Cartesian Products
+Cartesian Products of Growth Groups
+
+See :doc:`growth_group` for a description.
 
 AUTHORS:
 
-- Daniel Krenn (2015-06-02): cartesian products
-- Benjamin Hackl (2015-07)
+- Benjamin Hackl (2015)
+- Daniel Krenn (2015)
+
+ACKNOWLEDGEMENT:
+
+- Benjamin Hackl, Clemens Heuberger and Daniel Krenn are supported by the
+  Austrian Science Fund (FWF): P 24644-N26.
+
+- Benjamin Hackl is supported by the Google Summer of Code 2015.
 
 .. WARNING::
 
@@ -69,9 +78,12 @@ TESTS::
 ::
 
     sage: A.an_element()
-    (1/2)^x * x
+    (1/2)^x*x
     sage: tuple(E.an_element())
     (1, x^(1/2))
+
+Classes and Methods
+===================
 """
 
 #*****************************************************************************
@@ -86,139 +98,6 @@ TESTS::
 #*****************************************************************************
 
 import sage
-from growth_group import combine_exceptions
-
-def merge_overlapping(A, B, key=None):
-    r"""
-    Merge the two overlapping tuples/lists.
-
-    INPUT:
-
-    - ``A`` -- a list or tuple (type has to coincide with type of ``B``).
-
-    - ``B`` -- a list or tuple (type has to coincide with type of ``A``).
-
-    - ``key`` -- (default: ``None``) a function. If ``None``, then the
-      identity is used.  This ``key``-function applied on an element
-      of the list/tuple is used for comparison. Thus elements with the
-      same key are considered as equal.
-
-    OUTPUT:
-
-    A pair of lists or tuples (depending on the type of ``A`` and ``B``).
-
-    .. NOTE::
-
-        Suppose we can decompose the list `A=ac` and `B=cb` with
-        lists `a`, `b`, `c`, where `c` is nonempty. Then
-        :func:`merge_overlapping` returns the pair `(acb, acb)`.
-
-        Suppose a ``key``-function is specified and `A=ac_A` and
-        `B=c_Bb`, where the list of keys of the elements of `c_A`
-        equals the list of keys of the elements of `c_B`. Then
-        :func:`merge_overlapping` returns the pair `(ac_Ab, ac_Bb)`.
-
-        After unsuccessfully merging `A=ac` and `B=cb`,
-        a merge of `A=ca` and `B=bc` is tried.
-
-    TESTS::
-
-        sage: from sage.rings.asymptotic.growth_group_cartesian import merge_overlapping
-        sage: def f(L, s):
-        ....:     return list((ell, s) for ell in L)
-        sage: key = lambda k: k[0]
-        sage: merge_overlapping(f([0..3], 'a'), f([5..7], 'b'), key)
-        Traceback (most recent call last):
-        ...
-        ValueError: Input does not have an overlap.
-        sage: merge_overlapping(f([0..2], 'a'), f([4..7], 'b'), key)
-        Traceback (most recent call last):
-        ...
-        ValueError: Input does not have an overlap.
-        sage: merge_overlapping(f([4..7], 'a'), f([0..2], 'b'), key)
-        Traceback (most recent call last):
-        ...
-        ValueError: Input does not have an overlap.
-        sage: merge_overlapping(f([0..3], 'a'), f([3..4], 'b'), key)
-        ([(0, 'a'), (1, 'a'), (2, 'a'), (3, 'a'), (4, 'b')],
-         [(0, 'a'), (1, 'a'), (2, 'a'), (3, 'b'), (4, 'b')])
-        sage: merge_overlapping(f([3..4], 'a'), f([0..3], 'b'), key)
-        ([(0, 'b'), (1, 'b'), (2, 'b'), (3, 'a'), (4, 'a')],
-         [(0, 'b'), (1, 'b'), (2, 'b'), (3, 'b'), (4, 'a')])
-        sage: merge_overlapping(f([0..1], 'a'), f([0..4], 'b'), key)
-        ([(0, 'a'), (1, 'a'), (2, 'b'), (3, 'b'), (4, 'b')],
-         [(0, 'b'), (1, 'b'), (2, 'b'), (3, 'b'), (4, 'b')])
-        sage: merge_overlapping(f([0..3], 'a'), f([0..1], 'b'), key)
-        ([(0, 'a'), (1, 'a'), (2, 'a'), (3, 'a')],
-         [(0, 'b'), (1, 'b'), (2, 'a'), (3, 'a')])
-        sage: merge_overlapping(f([0..3], 'a'), f([1..3], 'b'), key)
-        ([(0, 'a'), (1, 'a'), (2, 'a'), (3, 'a')],
-         [(0, 'a'), (1, 'b'), (2, 'b'), (3, 'b')])
-        sage: merge_overlapping(f([1..3], 'a'), f([0..3], 'b'), key)
-        ([(0, 'b'), (1, 'a'), (2, 'a'), (3, 'a')],
-         [(0, 'b'), (1, 'b'), (2, 'b'), (3, 'b')])
-        sage: merge_overlapping(f([0..6], 'a'), f([3..4], 'b'), key)
-        ([(0, 'a'), (1, 'a'), (2, 'a'), (3, 'a'), (4, 'a'), (5, 'a'), (6, 'a')],
-         [(0, 'a'), (1, 'a'), (2, 'a'), (3, 'b'), (4, 'b'), (5, 'a'), (6, 'a')])
-        sage: merge_overlapping(f([0..3], 'a'), f([1..2], 'b'), key)
-        ([(0, 'a'), (1, 'a'), (2, 'a'), (3, 'a')],
-         [(0, 'a'), (1, 'b'), (2, 'b'), (3, 'a')])
-        sage: merge_overlapping(f([1..2], 'a'), f([0..3], 'b'), key)
-        ([(0, 'b'), (1, 'a'), (2, 'a'), (3, 'b')],
-         [(0, 'b'), (1, 'b'), (2, 'b'), (3, 'b')])
-        sage: merge_overlapping(f([1..3], 'a'), f([1..3], 'b'), key)
-        ([(1, 'a'), (2, 'a'), (3, 'a')],
-         [(1, 'b'), (2, 'b'), (3, 'b')])
-    """
-    if key is None:
-        Akeys = A
-        Bkeys = B
-    else:
-        Akeys = tuple(key(a) for a in A)
-        Bkeys = tuple(key(b) for b in B)
-
-    def find_overlapping_index(A, B):
-        if len(B) > len(A) - 2:
-            raise StopIteration
-        matches = iter(i for i in xrange(1, len(A) - len(B))
-                       if A[i:i+len(B)] == B)
-        return next(matches)
-
-    def find_mergedoverlapping_index(A, B):
-        """
-        Return in index i where to merge two overlapping tuples/lists ``A`` and ``B``.
-
-        Then ``A + B[i:]`` or ``A[:-i] + B`` are the merged tuples/lists.
-
-        Adapted from http://stackoverflow.com/a/30056066/1052778.
-        """
-        matches = iter(i for i in xrange(min(len(A), len(B)), 0, -1)
-                       if A[-i:] == B[:i])
-        return next(matches, 0)
-
-    i = find_mergedoverlapping_index(Akeys, Bkeys)
-    if i > 0:
-        return A + B[i:], A[:-i] + B
-
-    i = find_mergedoverlapping_index(Bkeys, Akeys)
-    if i > 0:
-        return B[:-i] + A, B + A[i:]
-
-    try:
-        i = find_overlapping_index(Akeys, Bkeys)
-    except StopIteration:
-        pass
-    else:
-        return A, A[:i] + B + A[i+len(B):]
-
-    try:
-        i = find_overlapping_index(Bkeys, Akeys)
-    except StopIteration:
-        pass
-    else:
-        return B[:i] + A + B[i+len(A):], B
-
-    raise ValueError('Input does not have an overlap.')
 
 
 class CartesianProductFactory(sage.structure.factory.UniqueFactory):
@@ -365,31 +244,31 @@ CartesianProductGrowthGroups = CartesianProductFactory('CartesianProductGrowthGr
 
 
 from sage.combinat.posets.cartesian_product import CartesianProductPoset
-from sage.rings.asymptotic.growth_group import GenericGrowthGroup
+from growth_group import GenericGrowthGroup
 class GenericProduct(CartesianProductPoset, GenericGrowthGroup):
     r"""
     A cartesian product of growth groups.
 
     EXAMPLES::
 
-        sage: import sage.rings.asymptotic.growth_group as agg
-        sage: P = agg.MonomialGrowthGroup(QQ, 'x')
-        sage: L = agg.MonomialGrowthGroup(ZZ, 'log(x)')
+        sage: from sage.rings.asymptotic.growth_group import GrowthGroup
+        sage: P = GrowthGroup('x^QQ')
+        sage: L = GrowthGroup('log(x)^ZZ')
         sage: C = cartesian_product([P, L], order='lex'); C  # indirect doctest
         Growth Group x^QQ * log(x)^ZZ
         sage: C.an_element()
-        x^(1/2) * log(x)
+        x^(1/2)*log(x)
 
     ::
 
-        sage: Px = agg.MonomialGrowthGroup(QQ, 'x')
-        sage: Lx = agg.MonomialGrowthGroup(ZZ, 'log(x)')
+        sage: Px = GrowthGroup('x^QQ')
+        sage: Lx = GrowthGroup('log(x)^ZZ')
         sage: Cx = cartesian_product([Px, Lx], order='lex')  # indirect doctest
-        sage: Py = agg.MonomialGrowthGroup(QQ, 'y')
+        sage: Py = GrowthGroup('y^QQ')
         sage: C = cartesian_product([Cx, Py], order='product'); C  # indirect doctest
         Growth Group x^QQ * log(x)^ZZ * y^QQ
         sage: C.an_element()
-        x^(1/2) * log(x) * y^(1/2)
+        x^(1/2)*log(x)*y^(1/2)
 
     .. SEEALSO::
 
@@ -426,6 +305,89 @@ class GenericProduct(CartesianProductPoset, GenericGrowthGroup):
     __hash__ = CartesianProductPoset.__hash__
 
 
+    def some_elements(self):
+        r"""
+        Return some elements of this cartesian product of growth groups.
+
+        See :class:`TestSuite` for a typical use case.
+
+        INPUT:
+
+        Nothing.
+
+        OUTPUT:
+
+        An iterator.
+
+        EXAMPLES::
+
+            sage: from itertools import islice
+            sage: from sage.rings.asymptotic.growth_group import GrowthGroup
+            sage: G = GrowthGroup('QQ^y * x^QQ * log(x)^ZZ')
+            sage: tuple(islice(G.some_elements(), 10))
+            (x^(1/2)*(1/2)^y,
+             x^(-1/2)*log(x)*(-1/2)^y,
+             x^2*log(x)^(-1)*2^y,
+             x^(-2)*log(x)^2*(-2)^y,
+             log(x)^(-2)*0^y,
+             x*log(x)^3,
+             x^(-1)*log(x)^(-3)*(-1)^y,
+             x^42*log(x)^4*42^y,
+             x^(2/3)*log(x)^(-4)*(2/3)^y,
+             x^(-2/3)*log(x)^5*(-2/3)^y)
+        """
+        from itertools import izip
+        return iter(
+            self(c) for c in
+            izip(*tuple(F.some_elements() for F in self.cartesian_factors())))
+
+
+    def _create_element_in_extension_(self, element):
+        r"""
+        Create an element in an extension of this cartesian product of
+        growth groups which is chosen according to the input ``element``.
+
+        INPUT:
+
+        - ``element`` -- a tuple.
+
+        OUTPUT:
+
+        An element.
+
+        EXAMPLES::
+
+            sage: from sage.rings.asymptotic.growth_group import GrowthGroup
+            sage: G = GrowthGroup('z^ZZ * log(z)^ZZ')
+            sage: z = G('z')[0]
+            sage: lz = G('log(z)')[1]
+            sage: G._create_element_in_extension_((z^3, lz)).parent()
+            Growth Group z^ZZ * log(z)^ZZ
+            sage: G._create_element_in_extension_((z^(1/2), lz)).parent()
+            Growth Group z^QQ * log(z)^ZZ
+
+        ::
+
+            sage: G._create_element_in_extension_((3, 3, 3))
+            Traceback (most recent call last):
+            ...
+            ValueError: Cannot create (3, 3, 3) as a cartesian product like
+            Growth Group z^ZZ * log(z)^ZZ.
+        """
+        factors = self.cartesian_factors()
+        if len(element) != len(factors):
+            raise ValueError('Cannot create %s as a cartesian product like %s.' %
+                             (element, self))
+
+        if all(n.parent() is f for n, f in zip(element, factors)):
+            parent = self
+        else:
+            from misc import underlying_class
+            parent = underlying_class(self)(tuple(n.parent() for n in element),
+                                            category=self.category())
+        return parent(element)
+
+
     def _element_constructor_(self, data):
         r"""
         Converts the given object to an element of this cartesian
@@ -440,8 +402,8 @@ class GenericProduct(CartesianProductPoset, GenericGrowthGroup):
         Conversion from the symbolic ring works::
 
             sage: x,y = var('x y')
-            sage: G(x^-3 * y^2)
-            x^(-3) * y^2
+            sage: G(x^-3*y^2)
+            x^(-3)*y^2
             sage: G(x^4), G(y^2)
             (x^4, y^2)
             sage: G(1)
@@ -449,8 +411,8 @@ class GenericProduct(CartesianProductPoset, GenericGrowthGroup):
 
         Even more complex expressions can be parsed::
 
-            sage: G_log(x^42 * log(x)^-42 * y^42)
-            x^42 * log(x)^(-42) * y^42
+            sage: G_log(x^42*log(x)^-42*y^42)
+            x^42*log(x)^(-42)*y^42
 
         TESTS::
 
@@ -473,26 +435,34 @@ class GenericProduct(CartesianProductPoset, GenericGrowthGroup):
             sage: GrowthGroup('QQ^x * x^QQ')(['x^(1/2)'])
             x^(1/2)
             sage: l = GrowthGroup('x^ZZ * log(x)^ZZ')(['x', 'log(x)']); l
-            x * log(x)
+            x*log(x)
             sage: type(l)
             <class 'sage.rings.asymptotic.growth_group_cartesian.UnivariateProduct_with_category.element_class'>
             sage: GrowthGroup('QQ^x * x^QQ')(['2^log(x)'])
             Traceback (most recent call last):
             ...
             ValueError: ['2^log(x)'] is not in Growth Group QQ^x * x^QQ.
-            previous: ValueError: 2^log(x) is not in any of the factors of
+            > *previous* ValueError: 2^log(x) is not in any of the factors of
             Growth Group QQ^x * x^QQ
             sage: GrowthGroup('QQ^x * x^QQ')(['2^log(x)', 'x^55'])
             Traceback (most recent call last):
             ...
             ValueError: ['2^log(x)', 'x^55'] is not in Growth Group QQ^x * x^QQ.
-            previous: ValueError: 2^log(x) is not in any of the factors of
+            > *previous* ValueError: 2^log(x) is not in any of the factors of
             Growth Group QQ^x * x^QQ
+
+        TESTS::
+
+            sage: n = GrowthGroup('n^ZZ * log(n)^ZZ')('n')
+            sage: G = GrowthGroup('QQ^n * n^ZZ * log(n)^ZZ')
+            sage: G(n).value
+            (1, n, 1)
         """
         def convert_factors(data, raw_data):
             try:
                 return self._convert_factors_(data)
             except ValueError as e:
+                from misc import combine_exceptions
                 raise combine_exceptions(
                     ValueError('%s is not in %s.' % (raw_data, self)), e)
 
@@ -505,21 +475,9 @@ class GenericProduct(CartesianProductPoset, GenericGrowthGroup):
         elif type(data) == self.element_class and data.parent() == self:
             return data
 
-        elif isinstance(data, self.element_class):
-            return self.element_class(self, data)
-
-        elif isinstance(data, (tuple, list,
-                               sage.sets.cartesian_product.CartesianProduct.Element)):
-            try:
-                return super(GenericProduct, self)._element_constructor_(data)
-            except ValueError:
-                pass
-
-            return convert_factors(data, data)
-
         elif isinstance(data, str):
-            from growth_group import split_str_by_mul
-            return convert_factors(split_str_by_mul(data), data)
+            from misc import split_str_by_op
+            return convert_factors(split_str_by_op(data, '*'), data)
 
         elif hasattr(data, 'parent'):
             P = data.parent()
@@ -533,6 +491,14 @@ class GenericProduct(CartesianProductPoset, GenericGrowthGroup):
                     return convert_factors(data.operands(), data)
 
             # room for other parents (e.g. polynomial ring et al.)
+
+        try:
+            return super(GenericProduct, self)._element_constructor_(data)
+        except (TypeError, ValueError):
+            pass
+        if isinstance(data, (tuple, list,
+                             sage.sets.cartesian_product.CartesianProduct.Element)):
+            return convert_factors(tuple(data), data)
 
         return convert_factors((data,), data)
 
@@ -555,9 +521,9 @@ class GenericProduct(CartesianProductPoset, GenericGrowthGroup):
 
         EXAMPLES::
 
-            sage: import sage.rings.asymptotic.growth_group as agg
-            sage: P = agg.MonomialGrowthGroup(QQ, 'x')
-            sage: L = agg.MonomialGrowthGroup(ZZ, 'log(x)')
+            sage: from sage.rings.asymptotic.growth_group import GrowthGroup
+            sage: P = GrowthGroup('x^QQ')
+            sage: L = GrowthGroup('log(x)^ZZ')
             sage: cartesian_product([P, L], order='lex')._repr_short_()
             'x^QQ * log(x)^ZZ'
         """
@@ -627,7 +593,7 @@ class GenericProduct(CartesianProductPoset, GenericGrowthGroup):
 
     def _coerce_map_from_(self, S):
         r"""
-        Return ``True`` if there is a coercion from ``S``.
+        Return whether ``S`` coerces into this growth group.
 
         INPUT:
 
@@ -718,6 +684,7 @@ class GenericProduct(CartesianProductPoset, GenericGrowthGroup):
             Growth Group QQ^x * x^QQ * y^ZZ * z^QQ
         """
         from growth_group import GenericGrowthGroup, AbstractGrowthGroupFunctor
+        from misc import merge_overlapping
 
         if isinstance(other, GenericProduct):
             Ofactors = other.cartesian_factors()
@@ -843,8 +810,8 @@ class GenericProduct(CartesianProductPoset, GenericGrowthGroup):
 
         EXAMPLES::
 
-            sage: import sage.rings.asymptotic.growth_group as agg
-            sage: G = agg.GrowthGroup('x^ZZ * log(x)^ZZ * y^QQ * log(z)^ZZ')
+            sage: from sage.rings.asymptotic.growth_group import GrowthGroup
+            sage: G = GrowthGroup('x^ZZ * log(x)^ZZ * y^QQ * log(z)^ZZ')
             sage: G.gens_monomial()
             (x, y)
 
@@ -882,6 +849,10 @@ class GenericProduct(CartesianProductPoset, GenericGrowthGroup):
 
     class Element(CartesianProductPoset.Element):
 
+        from growth_group import _is_lt_one_
+        is_lt_one = _is_lt_one_
+
+
         def _repr_(self):
             r"""
             A representation string for this cartesian product element.
@@ -896,16 +867,262 @@ class GenericProduct(CartesianProductPoset, GenericGrowthGroup):
 
             EXAMPLES::
 
-                sage: import sage.rings.asymptotic.growth_group as agg
-                sage: P = agg.MonomialGrowthGroup(QQ, 'x')
-                sage: L = agg.MonomialGrowthGroup(ZZ, 'log(x)')
+                sage: from sage.rings.asymptotic.growth_group import GrowthGroup
+                sage: P = GrowthGroup('x^QQ')
+                sage: L = GrowthGroup('log(x)^ZZ')
                 sage: cartesian_product([P, L], order='lex').an_element()._repr_()
-                'x^(1/2) * log(x)'
+                'x^(1/2)*log(x)'
             """
-            s = ' * '.join(repr(v) for v in self.value if not v.is_one())
+            s = '*'.join(repr(v) for v in self.value if not v.is_one())
             if s == '':
                 return '1'
             return s
+
+
+        def __pow__(self, exponent):
+            r"""
+            Calculate the power of this growth element to the given
+            ``exponent``.
+
+            INPUT:
+
+            - ``exponent`` -- a number.
+
+            OUTPUT:
+
+            A growth element.
+
+            EXAMPLES::
+
+                sage: from sage.rings.asymptotic.growth_group import GrowthGroup
+                sage: G = GrowthGroup('x^ZZ * y^QQ * z^ZZ')
+                sage: x, y, z = G.gens_monomial()
+                sage: (x^5 * y * z^5)^(1/5)  # indirect doctest
+                x*y^(1/5)*z
+
+            ::
+
+                sage: G = GrowthGroup('x^QQ * log(x)^QQ'); x = G('x')
+                sage: (x^(21/5) * log(x)^7)^(1/42)  # indirect doctest
+                x^(1/10)*log(x)^(1/6)
+            """
+            return self.parent()._create_element_in_extension_(
+                tuple(x ** exponent for x in self.cartesian_factors()))
+
+
+        def factors(self):
+            r"""
+            Return the atomic factors of this growth element. An atomic factor
+            cannot be split further and is not the identity (`1`).
+
+            INPUT:
+
+            Nothing.
+
+            OUTPUT:
+
+            A tuple of growth elements.
+
+            EXAMPLES::
+
+                sage: from sage.rings.asymptotic.growth_group import GrowthGroup
+                sage: G = GrowthGroup('x^ZZ * log(x)^ZZ * y^ZZ')
+                sage: x, y = G.gens_monomial()
+                sage: x.factors()
+                (x,)
+                sage: f = (x * y).factors(); f
+                (x, y)
+                sage: tuple(factor.parent() for factor in f)
+                (Growth Group x^ZZ, Growth Group y^ZZ)
+                sage: f = (x * log(x)).factors(); f
+                (x, log(x))
+                sage: tuple(factor.parent() for factor in f)
+                (Growth Group x^ZZ, Growth Group log(x)^ZZ)
+
+            ::
+
+                sage: G = GrowthGroup('x^ZZ * log(x)^ZZ * log(log(x))^ZZ * y^QQ')
+                sage: x, y = G.gens_monomial()
+                sage: f = (x * log(x) * y).factors(); f
+                (x, log(x), y)
+                sage: tuple(factor.parent() for factor in f)
+                (Growth Group x^ZZ, Growth Group log(x)^ZZ, Growth Group y^QQ)
+
+            ::
+
+                sage: G.one().factors()
+                ()
+            """
+            return sum(iter(f.factors()
+                            for f in self.cartesian_factors()
+                            if f != f.parent().one()),
+                       tuple())
+
+
+        from growth_group import _log_factor_, _log_
+        log = _log_
+        log_factor = _log_factor_
+
+
+        def _log_factor_(self, base=None):
+            r"""
+            Helper method for calculating the logarithm of the factorization
+            of this element.
+
+            INPUT:
+
+            - ``base`` -- the base of the logarithm. If ``None``
+              (default value) is used, the natural logarithm is taken.
+
+            OUTPUT:
+
+            A tuple of pairs, where the first entry is either a growth
+            element or something out of which we can construct a growth element
+            and the second a multiplicative coefficient.
+
+            TESTS::
+
+                sage: from sage.rings.asymptotic.growth_group import GrowthGroup
+                sage: G = GrowthGroup('QQ^x * x^ZZ * log(x)^ZZ * y^ZZ * log(y)^ZZ')
+                sage: x, y = G.gens_monomial()
+                sage: (x * y).log_factor()  # indirect doctest
+                ((log(x), 1), (log(y), 1))
+            """
+            if self.is_one():
+                return tuple()
+
+            def try_create_growth(g):
+                try:
+                    return self.parent()(g)
+                except (TypeError, ValueError):
+                    return g
+
+            try:
+                return sum(iter(tuple((try_create_growth(g), c)
+                                      for g, c in factor._log_factor_(base=base))
+                                for factor in self.cartesian_factors()
+                                if factor != factor.parent().one()),
+                           tuple())
+            except (ArithmeticError, TypeError, ValueError) as e:
+                from misc import combine_exceptions
+                raise combine_exceptions(
+                    ArithmeticError('Cannot build log(%s) in %s.' %
+                                    (self, self.parent())), e)
+
+
+        from growth_group import _rpow_
+        rpow = _rpow_
+
+
+        def _rpow_element_(self, base):
+            r"""
+            Return an element which is the power of ``base`` to this
+            element.
+
+            INPUT:
+
+            - ``base`` -- an element.
+
+            OUTPUT:
+
+            A growth element.
+
+            .. NOTE::
+
+                The parent of the result can be different from the parent
+                of this element.
+
+            A ``ValueError`` is raised if the calculation is not possible
+            within this method. (Then the calling method should take care
+            of the calculation.)
+
+            TESTS::
+
+                sage: from sage.rings.asymptotic.growth_group import GrowthGroup
+                sage: G = GrowthGroup('QQ^x * x^ZZ * log(x)^ZZ')
+                sage: lx = log(G('x'))
+                sage: rp = lx._rpow_element_('e'); rp
+                x
+                sage: rp.parent()
+                Growth Group x^ZZ
+            """
+            factors = self.factors()
+            if len(factors) != 1:
+                raise ValueError  # calling method has to deal with it...
+            from growth_group import MonomialGrowthGroup
+            factor = factors[0]
+            if not isinstance(factor.parent(), MonomialGrowthGroup):
+                raise ValueError  # calling method has to deal with it...
+            return factor._rpow_element_(base)
+
+
+        def exp(self):
+            r"""
+            The exponential of this element.
+
+            INPUT:
+
+            Nothing.
+
+            OUTPUT:
+
+            A growth element.
+
+            EXAMPLES::
+
+                sage: from sage.rings.asymptotic.growth_group import GrowthGroup
+                sage: G = GrowthGroup('x^ZZ * log(x)^ZZ * log(log(x))^ZZ')
+                sage: x = G('x')
+                sage: exp(log(x))
+                x
+                sage: exp(log(log(x)))
+                log(x)
+
+            ::
+
+                sage: exp(x)
+                Traceback (most recent call last):
+                ...
+                ArithmeticError: Cannot construct e^x in
+                Growth Group x^ZZ * log(x)^ZZ * log(log(x))^ZZ
+                > *previous* TypeError: unsupported operand parent(s) for '*':
+                'Growth Group x^ZZ * log(x)^ZZ * log(log(x))^ZZ' and
+                'Growth Group (e^x)^ZZ'
+
+            TESTS::
+
+                sage: E = GrowthGroup("(e^y)^QQ * y^QQ * log(y)^QQ")
+                sage: y = E('y')
+                sage: log(exp(y))
+                y
+                sage: exp(log(y))
+                y
+            """
+            return self.rpow('e')
+
+
+        def __invert__(self):
+            r"""
+            Return the multiplicative inverse of this cartesian product.
+
+            OUTPUT:
+
+            An growth element.
+
+            .. NOTE::
+
+                The result may live in a larger parent than we started with.
+
+            TESTS::
+
+                 sage: from sage.rings.asymptotic.growth_group import GrowthGroup
+                 sage: G = GrowthGroup('ZZ^x * x^ZZ')
+                 sage: g = G('2^x * x^3')
+                 sage: (~g).parent()
+                 Growth Group QQ^x * x^ZZ
+            """
+            return self.parent()._create_element_in_extension_(
+                tuple(~x for x in self.cartesian_factors()))
 
 
     CartesianProduct = CartesianProductGrowthGroups
@@ -929,6 +1146,7 @@ class UnivariateProduct(GenericProduct):
         :class:`MultivariateProduct`,
         :class:`GenericProduct`.
     """
+
     def __init__(self, sets, category, **kwargs):
         r"""
         See :class:`UnivariateProduct` for details.

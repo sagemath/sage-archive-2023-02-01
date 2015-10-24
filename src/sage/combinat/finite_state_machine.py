@@ -111,6 +111,7 @@ Properties
     :meth:`Automaton.is_equivalent` | Checks for equivalent automata
     :meth:`~FiniteStateMachine.is_Markov_chain` | Checks for a Markov chain
     :meth:`~FiniteStateMachine.is_monochromatic` | Checks whether the colors of all states are equal
+    :meth:`~FiniteStateMachine.number_of_words` | Determine the number of successful paths
     :meth:`~FiniteStateMachine.asymptotic_moments` | Main terms of expectation and variance of sums of labels
     :meth:`~FiniteStateMachine.moments_waiting_time` | Moments of the waiting time for first true output
     :meth:`~FiniteStateMachine.epsilon_successors` | Epsilon successors of a state
@@ -9803,6 +9804,105 @@ class FiniteStateMachine(sage.structure.sage_object.SageObject):
                 unhandeled_direct_predecessors[s] = None
                 done.append(s)
         return(done)
+
+
+    def number_of_words(self, variable=sage.symbolic.ring.SR.var('n')):
+        r"""
+        Return the number of successful input words of given length.
+
+        INPUT:
+
+        - ``variable`` -- a symbol denoting the length of the words,
+          by default `n`.
+
+        OUTPUT:
+
+        A symbolic expression.
+
+        EXAMPLES::
+
+            sage: NAFpm = Automaton([(0, 0, 0), (0, 1, 1), (0, 1, -1), (1, 0, 0)],
+            ....:                 initial_states=[0],
+            ....:                 final_states=[0, 1])
+            sage: N = NAFpm.number_of_words(); N
+            4/3*2^n - 1/3*(-1)^n
+            sage: all(len(list(NAFpm.language(_)))
+            ....:     - len(list(NAFpm.language(_-1))) == N.subs(n=_)
+            ....:     for _ in range(1, 6))
+            True
+            sage: NAFp = Automaton([(0, 0, 0), (0, 1, 1),  (1, 0, 0)],
+            ....:                 initial_states=[0],
+            ....:                 final_states=[0, 1])
+            sage: N = NAFp.number_of_words(); N
+            1.170820393249937?*1.618033988749895?^n
+            - 0.1708203932499369?*(-0.618033988749895?)^n
+            sage: all(len(list(NAFp.language(_)))
+            ....:     - len(list(NAFp.language(_-1))) == N.subs(n=_)
+            ....:     for _ in range(1, 6))
+            True
+
+        The adjacency matrix of the following example is a Jordan matrix of size 3 to
+        the eigenvalue 4::
+
+            sage: J3 = Automaton([(0, 1, -1), (1, 2, -1)],
+            ....:     initial_states=[0],
+            ....:     final_states=[0, 1, 2])
+            sage: for i in range(3):
+            ....:     for j in range(4):
+            ....:         new_transition = J3.add_transition(i, i, j)
+            sage: J3.adjacency_matrix(entry=lambda t: 1)
+            [4 1 0]
+            [0 4 1]
+            [0 0 4]
+            sage: N = J3.number_of_words(); N
+            1/2*4^(n - 2)*(n - 1)*n + 4^(n - 1)*n + 4^n
+            sage: all(len(list(J3.language(_)))
+            ....:     - len(list(J3.language(_-1))) == N.subs(n=_)
+            ....:     for _ in range(1, 6))
+            True
+
+        TESTS::
+
+            sage: A = Automaton([(0, 0, 0), (0, 1, 0)],
+            ....:               initial_states=[0])
+            sage: A.number_of_words()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: Finite State Machine must be deterministic.
+        """
+        from sage.matrix.constructor import matrix
+        from sage.modules.free_module_element import vector
+        from sage.rings.arith import falling_factorial
+        from sage.rings.integer_ring import ZZ
+        from sage.rings.qqbar import QQbar
+        from sage.symbolic.ring import SR
+
+        def jordan_block_power(block, exponent):
+            eigenvalue = SR(block[0, 0])
+            return matrix(block.nrows(),
+                          block.nrows(),
+                          lambda i, j: eigenvalue**(exponent-(j-i))*
+                          falling_factorial(exponent, j-i)/ZZ(j-i).factorial()
+                          if j>= i else 0)
+
+        def matrix_power(A, exponent):
+            J, T = A.jordan_form(QQbar, transformation=True)
+            assert T*J*T.inverse() == A
+            Jpower = matrix.block_diagonal(
+                [jordan_block_power(J.subdivision(j, j), exponent)
+                 for j in range(len(J.subdivisions()[0])+1) ])
+            P = Jpower.parent()
+            result = P(T)*Jpower*P(T).inverse()
+            assert all(result.subs(n=_) == A**_ for _ in range(5))
+            return result
+
+        if not self.is_deterministic():
+            raise NotImplementedError("Finite State Machine must be deterministic.")
+
+        left = vector(ZZ(s.is_initial) for s in self.iter_states())
+        right = vector(ZZ(s.is_final) for s in self.iter_states())
+        A = self.adjacency_matrix(entry=lambda t: 1)
+        return left*matrix_power(A, variable)*right
 
 
     def asymptotic_moments(self, variable=sage.symbolic.ring.SR.var('n')):

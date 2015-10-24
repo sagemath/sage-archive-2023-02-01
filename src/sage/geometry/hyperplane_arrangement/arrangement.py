@@ -1362,16 +1362,17 @@ class HyperplaneArrangementElement(Element):
             sage: H.<x,y> = HyperplaneArrangements(QQ)
             sage: chessboard = []
             sage: N = 8
-            sage: for x0, y0 in CartesianProduct(range(N+1), range(N+1)):
-            ....:     chessboard.extend([x-x0, y-y0])
+            sage: for x0 in range(N+1):
+            ....:     for y0 in range(N+1):
+            ....:         chessboard.extend([x-x0, y-y0])
             sage: chessboard = H(chessboard)
             sage: len(chessboard.vertices())
             81
             sage: chessboard.vertices(exclude_sandwiched=True)
             ((0, 0), (0, 8), (8, 0), (8, 8))
         """
+        import itertools
         from sage.matroids.all import Matroid
-        from sage.combinat.cartesian_product import CartesianProduct
         R = self.parent().base_ring()
         parallels = self._parallel_hyperplanes()
         A_list = [parallel[0][1] for parallel in parallels]
@@ -1393,7 +1394,7 @@ class HyperplaneArrangementElement(Element):
             for row, i in enumerate(indices):
                 lhs[row] = A_list[i]
             b_list = [b_list_list[i] for i in indices]
-            for b in CartesianProduct(*b_list):
+            for b in itertools.product(*b_list):
                 for i in range(d):
                     rhs[i] = b[i]
                 vertex = lhs.solve_right(rhs)
@@ -1457,8 +1458,9 @@ class HyperplaneArrangementElement(Element):
         
             sage: chessboard = []
             sage: N = 8
-            sage: for x0, y0 in CartesianProduct(range(N+1), range(N+1)):
-            ....:     chessboard.extend([x-x0, y-y0])
+            sage: for x0 in range(N+1):
+            ....:     for y0 in range(N+1):
+            ....:         chessboard.extend([x-x0, y-y0])
             sage: chessboard = H(chessboard)
             sage: len(chessboard.bounded_regions())   # long time, 359 ms on a Core i7
             64

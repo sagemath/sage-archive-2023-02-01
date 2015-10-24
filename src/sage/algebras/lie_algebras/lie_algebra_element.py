@@ -222,7 +222,7 @@ class LieAlgebraElementWrapper(ElementWrapper):
         EXAMPLES::
 
             sage: R = FreeAlgebra(QQ, 3, 'x,y,z')
-            sage: L.<x,y,z> = LieAlgebra(associative=R)
+            sage: L.<x,y,z> = LieAlgebra(associative=R.gens())
             sage: x + y
             x + y
         """
@@ -235,7 +235,7 @@ class LieAlgebraElementWrapper(ElementWrapper):
         EXAMPLES::
 
             sage: R = FreeAlgebra(QQ, 3, 'x')
-            sage: L.<x0,x1,x2> = LieAlgebra(associative=R)
+            sage: L.<x0,x1,x2> = LieAlgebra(associative=R.gens())
             sage: latex(x0 + x1)
             x_{0} + x_{1}
         """
@@ -249,7 +249,7 @@ class LieAlgebraElementWrapper(ElementWrapper):
         EXAMPLES::
 
             sage: R = FreeAlgebra(QQ, 3, 'x,y,z')
-            sage: L.<x,y,z> = LieAlgebra(associative=R)
+            sage: L.<x,y,z> = LieAlgebra(associative=R.gens())
             sage: x + y
             x + y
         """
@@ -262,7 +262,7 @@ class LieAlgebraElementWrapper(ElementWrapper):
         EXAMPLES::
 
             sage: R = FreeAlgebra(QQ, 3, 'x,y,z')
-            sage: L.<x,y,z> = LieAlgebra(associative=R)
+            sage: L.<x,y,z> = LieAlgebra(associative=R.gens())
             sage: x - y
             x - y
         """
@@ -328,7 +328,7 @@ class LieAlgebraElementWrapper(ElementWrapper):
         EXAMPLES::
 
             sage: R = FreeAlgebra(QQ, 3, 'x,y,z')
-            sage: L.<x,y,z> = LieAlgebra(associative=R)
+            sage: L.<x,y,z> = LieAlgebra(associative=R.gens())
             sage: 3*x
             3*x
             sage: parent(3*x) == parent(x)
@@ -366,7 +366,7 @@ class LieAlgebraElementWrapper(ElementWrapper):
         EXAMPLES::
 
             sage: R = FreeAlgebra(QQ, 3, 'x,y,z')
-            sage: L.<x,y,z> = LieAlgebra(associative=R)
+            sage: L.<x,y,z> = LieAlgebra(associative=R.gens())
             sage: -x
             -x
         """

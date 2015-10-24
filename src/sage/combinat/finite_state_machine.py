@@ -5194,8 +5194,9 @@ class FiniteStateMachine(sage.structure.sage_object.SageObject):
             ([0, 1, 2], None)
 
         .. SEEALSO::
-           :meth:`determine_output_alphabet`
-           :meth:`determine_alphabets`
+
+           :meth:`determine_output_alphabet`,
+           :meth:`determine_alphabets`.
         """
         if reset:
             ain = set()
@@ -5244,8 +5245,9 @@ class FiniteStateMachine(sage.structure.sage_object.SageObject):
             (None, [0, 1, 4])
 
         .. SEEALSO::
-           :meth:`determine_input_alphabet`
-           :meth:`determine_alphabets`
+
+           :meth:`determine_input_alphabet`,
+           :meth:`determine_alphabets`.
         """
         if reset:
             aout = set()
@@ -5297,8 +5299,9 @@ class FiniteStateMachine(sage.structure.sage_object.SageObject):
             ([0, 1, 2], [0, 1, 4])
 
         .. SEEALSO::
-           :meth:`determine_input_alphabet`
-           :meth:`determine_output_alphabet`
+
+           :meth:`determine_input_alphabet`,
+           :meth:`determine_output_alphabet`.
         """
         self.determine_input_alphabet(reset)
         self.determine_output_alphabet(reset)

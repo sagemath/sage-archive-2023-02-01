@@ -2032,9 +2032,15 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
             substitute_raise_exception(self, e)
 
 
-    def symbolic_expression(self):
+    def symbolic_expression(self, R=None):
         r"""
         Return this asymptotic expansion as a symbolic expression.
+
+        INPUT:
+
+        - ``R`` -- (a subring of) the symbolic ring or ``None``.
+          The output is will be an element of ``R``. If ``None``,
+          then the symbolic ring is used.
 
         OUTPUT:
 
@@ -2057,11 +2063,26 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
             Order((1/2)^z*x*sqrt(y)*sqrt(z)*sqrt(log(y)))
             sage: _.parent()
             Symbolic Ring
+
+        ::
+
+            sage: from sage.symbolic.ring import SymbolicRing
+            sage: class MySymbolicRing(SymbolicRing):
+            ....:     pass
+            sage: mySR = MySymbolicRing()
+            sage: a.symbolic_expression(mySR).parent() is mySR
+            True
         """
-        from sage.symbolic.ring import SR
-        return self.substitute(dict((g, SR.var(str(g)))
+        if R is None:
+            from sage.symbolic.ring import SR
+            R = SR
+
+        return self.substitute(dict((g, R(R.var(str(g))))
                                     for g in self.parent().gens()),
-                               domain=SR)
+                               domain=R)
+
+
+    _symbolic_ = symbolic_expression  # will be used by SR._element_constructor_
 
 
 class AsymptoticRing(Algebra, UniqueRepresentation):
@@ -2641,12 +2662,12 @@ class AsymptoticRing(Algebra, UniqueRepresentation):
             return self.create_summand('exact', data)
 
         from misc import combine_exceptions
-        from sage.symbolic.ring import SR
+        from sage.symbolic.ring import SymbolicRing
         from sage.rings.polynomial.polynomial_ring import is_PolynomialRing
         from sage.rings.polynomial.multi_polynomial_ring_generic import is_MPolynomialRing
         from sage.rings.power_series_ring import is_PowerSeriesRing
 
-        if P is SR:
+        if isinstance(P, SymbolicRing):
             from sage.symbolic.operators import add_vararg
             if data.operator() == add_vararg:
                 summands = []

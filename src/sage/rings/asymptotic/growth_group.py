@@ -3014,13 +3014,13 @@ class MonomialGrowthGroup(GenericGrowthGroup):
             from sage.symbolic.ring import SR
             return self._convert_(SR(data))
 
-        from sage.symbolic.ring import SR
+        from sage.symbolic.ring import SymbolicRing
         from sage.rings.polynomial.polynomial_ring import PolynomialRing_general
         from sage.rings.polynomial.multi_polynomial_ring_generic import \
             MPolynomialRing_generic
         from sage.rings.power_series_ring import PowerSeriesRing_generic
         import operator
-        if P is SR:
+        if isinstance(P, SymbolicRing):
             if data.operator() == operator.pow:
                 base, exponent = data.operands()
                 if str(base) == var:
@@ -3636,17 +3636,17 @@ class ExponentialGrowthGroup(GenericGrowthGroup):
             else:
                 return  # end of parsing
 
-        from sage.symbolic.ring import SR
+        from sage.symbolic.ring import SymbolicRing
         import operator
         from sage.symbolic.operators import mul_vararg
-        if P is SR:
+        if isinstance(P, SymbolicRing):
             op = data.operator()
             if op == operator.pow:
                 base, exponent = data.operands()
                 if str(exponent) == var:
                     return base
                 elif exponent.operator() == mul_vararg:
-                    return base ** (exponent / SR(var))
+                    return base ** (exponent / P(var))
             elif isinstance(op, sage.functions.log.Function_exp):
                 from sage.functions.log import exp
                 base = exp(1)
@@ -3654,7 +3654,7 @@ class ExponentialGrowthGroup(GenericGrowthGroup):
                 if str(exponent) == var:
                     return base
                 elif exponent.operator() == mul_vararg:
-                    return base ** (exponent / SR(var))
+                    return base ** (exponent / P(var))
 
         elif data == 1:  # can be expensive, so let's put it at the end
             return self.base().one()

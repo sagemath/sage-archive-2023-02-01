@@ -814,12 +814,12 @@ class SimplicialComplex(Parent, GenericCellComplex):
     From a characteristic monotone boolean function, e.g. the simplicial complex
     of all subsets `S\subseteq \{0,1,2,3,4\}` such that `sum(S)\leq 4`::
 
-        sage: SimplicialComplex(from_characteristic_function=(lambda x:sum(x)<=4,range(5)))
+        sage: SimplicialComplex(from_characteristic_function=(lambda x:sum(x)<=4, range(5)))
         Simplicial complex with vertex set (0, 1, 2, 3, 4) and facets {(0, 4), (0, 1, 2), (0, 1, 3)}
 
     or e.g. the simplicial complex of all 168 hyperovals of the projective plane of order 4::
 
-        sage: l=designs.ProjectiveGeometryDesign(2,1,GF(4,name='a'))
+        sage: l = designs.ProjectiveGeometryDesign(2,1,GF(4,name='a'))
         sage: f = lambda S: not any(len(set(S).intersection(x))>2 for x in l)
         sage: SimplicialComplex(from_characteristic_function=(f, l.ground_set()))
         Simplicial complex with 21 vertices and 168 facets
@@ -1026,7 +1026,7 @@ class SimplicialComplex(Parent, GenericCellComplex):
             raise ValueError("This simplicial complex must be immutable. Call set_immutable().")
         return hash(self._facets)
 
-    def __cmp__(self,right):
+    def __eq__(self,right):
         """
         Two simplicial complexes are equal iff their vertex sets are
         equal and their sets of facets are equal.
@@ -1040,10 +1040,22 @@ class SimplicialComplex(Parent, GenericCellComplex):
             sage: X == SimplicialComplex([[1,3]])
             True
         """
-        if isinstance(right, SimplicialComplex) and set(self._facets) == set(right._facets):
-            return 0
-        else:
-            return -1
+        return isinstance(right, SimplicialComplex) and set(self._facets) == set(right._facets)
+
+    def __ne__(self, right):
+        """
+        Return ``True`` if ``self`` and ``right`` are not equal.
+
+        EXAMPLES::
+
+            sage: SimplicialComplex([[1,2], [2,3], [4]]) != SimplicialComplex([[4], [2,3], [3], [2,1]])
+            False
+            sage: X = SimplicialComplex()
+            sage: X.add_face([1,3])
+            sage: X != SimplicialComplex([[1,3]])
+            False
+        """
+        return not self.__eq__(right)
 
     def __copy__(self):
         """
@@ -1561,9 +1573,9 @@ class SimplicialComplex(Parent, GenericCellComplex):
         These can get large pretty quickly::
 
             sage: T = simplicial_complexes.Torus(); T
-            Simplicial complex with vertex set (0, 1, 2, 3, 4, 5, 6) and 14 facets
+            Minimal triangulation of the torus
             sage: K = simplicial_complexes.KleinBottle(); K
-            Simplicial complex with vertex set (0, 1, 2, 3, 4, 5, 6, 7) and 16 facets
+            Minimal triangulation of the Klein bottle
             sage: T.product(K)      # long time: 5 or 6 seconds
             Simplicial complex with 56 vertices and 1344 facets
         """
@@ -2329,7 +2341,7 @@ class SimplicialComplex(Parent, GenericCellComplex):
             sage: S1.connected_sum(S1.connected_sum(S1)).homology()
             {0: 0, 1: Z}
             sage: P = simplicial_complexes.RealProjectivePlane(); P
-            Simplicial complex with vertex set (0, 1, 2, 3, 4, 5) and 10 facets
+            Minimal triangulation of the real projective plane
             sage: P.connected_sum(P)    # the Klein bottle
             Simplicial complex with 9 vertices and 18 facets
 
@@ -2465,7 +2477,7 @@ class SimplicialComplex(Parent, GenericCellComplex):
 
             sage: S = simplicial_complexes.Sphere(2)
             sage: S
-            Simplicial complex with vertex set (0, 1, 2, 3) and facets {(0, 2, 3), (0, 1, 2), (1, 2, 3), (0, 1, 3)}
+            Minimal triangulation of the 2-sphere
             sage: S.generated_subcomplex([0,1,2])
             Simplicial complex with vertex set (0, 1, 2) and facets {(0, 1, 2)}
 
@@ -2726,7 +2738,7 @@ class SimplicialComplex(Parent, GenericCellComplex):
 
             sage: S4 = simplicial_complexes.Sphere(4)
             sage: S4
-            Simplicial complex with vertex set (0, 1, 2, 3, 4, 5) and 6 facets
+            Minimal triangulation of the 4-sphere
             sage: S4.barycentric_subdivision()
             Simplicial complex with 62 vertices and 720 facets
         """
@@ -2948,7 +2960,7 @@ class SimplicialComplex(Parent, GenericCellComplex):
         EXAMPLES::
 
             sage: T = simplicial_complexes.Torus(); T
-            Simplicial complex with vertex set (0, 1, 2, 3, 4, 5, 6) and 14 facets
+            Minimal triangulation of the torus
 
         Inside the torus, define a subcomplex consisting of a loop::
 
@@ -3386,15 +3398,15 @@ class SimplicialComplex(Parent, GenericCellComplex):
             sage: T = simplicial_complexes.Sphere(2)
             sage: H = Hom(S,T)  # indirect doctest
             sage: H
-            Set of Morphisms from Simplicial complex with vertex set (0, 1, 2) and facets {(1, 2), (0, 2), (0, 1)}
-             to Simplicial complex with vertex set (0, 1, 2, 3) and facets {(0, 2, 3), (0, 1, 2), (1, 2, 3), (0, 1, 3)}
+            Set of Morphisms from Minimal triangulation of the 1-sphere
+             to Minimal triangulation of the 2-sphere
              in Category of finite simplicial complexes
             sage: f = {0:0,1:1,2:3}
             sage: x = H(f)
             sage: x
             Simplicial complex morphism:
-              From: Simplicial complex with vertex set (0, 1, 2) and facets {(1, 2), (0, 2), (0, 1)}
-              To: Simplicial complex with vertex set (0, 1, 2, 3) and facets {(0, 2, 3), (0, 1, 2), (1, 2, 3), (0, 1, 3)}
+              From: Minimal triangulation of the 1-sphere
+              To: Minimal triangulation of the 2-sphere
             Defn: 0 |--> 0
                   1 |--> 1
                   2 |--> 3
@@ -3404,7 +3416,7 @@ class SimplicialComplex(Parent, GenericCellComplex):
             ...
             TypeError: Category of objects is not a subcategory of SimplicialComplexes()
             sage: type(Hom(S, T, Objects()))
-            <class 'sage.categories.homset.Homset_with_category'>
+            <class 'sage.categories.homset.Homset_with_category_with_equality_by_id'>
         """
         if not category.is_subcategory(SimplicialComplexes()):
             raise TypeError("{} is not a subcategory of SimplicialComplexes()".format(category))

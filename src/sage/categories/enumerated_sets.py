@@ -23,7 +23,7 @@ class EnumeratedSets(Category_singleton):
     together with a canonical enumeration of its elements;
     conceptually, this is very similar to an immutable list. The main
     difference lies in the names and the return type of the methods,
-    and of course the fact that the list of element is not supposed to
+    and of course the fact that the list of elements is not supposed to
     be expanded in memory. Whenever possible one should use one of the
     two sub-categories :class:`FiniteEnumeratedSets` or
     :class:`InfiniteEnumeratedSets`.
@@ -39,7 +39,7 @@ class EnumeratedSets(Category_singleton):
        - ``S.cardinality()``: the number of elements of the set. This
          is the equivalent for ``len`` on a list except that the
          return value is specified to be a Sage :class:`Integer` or
-         ``infinity``, instead of a Python ``int``;
+         ``infinity``, instead of a Python ``int``.
 
        - ``iter(S)``: an iterator for the elements of the set;
 
@@ -48,15 +48,15 @@ class EnumeratedSets(Category_singleton):
          predictably too large to be expanded in memory.
 
        - ``S.unrank(n)``: the  ``n-th`` element of the set when ``n`` is a sage
-         ``Integer``. This is the equivanlent for ``l[n]`` on a list.
+         ``Integer``. This is the equivalent for ``l[n]`` on a list.
 
        - ``S.rank(e)``: the position of the element ``e`` in the set;
          This is equivalent to ``l.index(e)`` for a list except that
          the return value is specified to be a Sage :class:`Integer`,
-         instead of a Python ``int``;
+         instead of a Python ``int``.
 
        - ``S.first()``: the first object of the set; it is equivalent to
-         ``S.unrank(0)``;
+         ``S.unrank(0)``.
 
        - ``S.next(e)``: the object of the set which follows ``e``; It is
          equivalent to ``S.unrank(S.rank(e)+1)``.
@@ -148,12 +148,12 @@ class EnumeratedSets(Category_singleton):
             An iterator for the enumerated set.
 
             ``iter(self)`` allows the combinatorial class to be treated as an
-            iterable. This if the default implementation from the category
-            ``EnumeratedSets()`` it just goes through the iterator of the set
+            iterable. This is the default implementation from the category
+            ``EnumeratedSets()``; it just goes through the iterator of the set
             to count the number of objects.
 
             By decreasing order of priority, the second column of the
-            following array shows which methods is used to define
+            following array shows which method is used to define
             ``__iter__``, when the methods of the first column are overloaded:
 
             +------------------------+---------------------------------+
@@ -166,53 +166,53 @@ class EnumeratedSets(Category_singleton):
             | ``list`                | ``_iterator_from_next``         |
             +------------------------+---------------------------------+
 
-            If non of these are provided raise a ``NotImplementedError``
+            If none of these are provided, raise a ``NotImplementedError``.
 
             EXAMPLES::
 
             We start with an example where nothing is implemented::
 
                 sage: class broken(UniqueRepresentation, Parent):
-                ...    def __init__(self):
-                ...        Parent.__init__(self, category = EnumeratedSets())
-                ...
+                ....:     def __init__(self):
+                ....:         Parent.__init__(self, category = EnumeratedSets())
+                ....:
                 sage: it = iter(broken()); [next(it), next(it), next(it)]
                 Traceback (most recent call last):
                 ...
                 NotImplementedError: iterator called but not implemented
 
-            Here is what happends when ``first`` and ``next`` are implemeted::
+            Here is what happens when ``first`` and ``next`` are implemented::
 
                 sage: class set_first_next(UniqueRepresentation, Parent):
-                ...    def __init__(self):
-                ...        Parent.__init__(self, category = EnumeratedSets())
-                ...    def first(self):
-                ...        return 0
-                ...    def next(self, elt):
-                ...        return elt+1
-                ...
+                ....:     def __init__(self):
+                ....:         Parent.__init__(self, category = EnumeratedSets())
+                ....:     def first(self):
+                ....:         return 0
+                ....:     def next(self, elt):
+                ....:         return elt+1
+                ....:
                 sage: it = iter(set_first_next()); [next(it), next(it), next(it)]
                 [0, 1, 2]
 
             Let us try with ``unrank``::
 
                 sage: class set_unrank(UniqueRepresentation, Parent):
-                ...    def __init__(self):
-                ...        Parent.__init__(self, category = EnumeratedSets())
-                ...    def unrank(self, i):
-                ...        return i + 5
-                ...
+                ....:     def __init__(self):
+                ....:         Parent.__init__(self, category = EnumeratedSets())
+                ....:     def unrank(self, i):
+                ....:         return i + 5
+                ....:
                 sage: it = iter(set_unrank()); [next(it), next(it), next(it)]
                 [5, 6, 7]
 
             Let us finally try with ``list``::
 
                 sage: class set_list(UniqueRepresentation, Parent):
-                ...    def __init__(self):
-                ...        Parent.__init__(self, category = EnumeratedSets())
-                ...    def list(self):
-                ...        return [5, 6, 7]
-                ...
+                ....:     def __init__(self):
+                ....:         Parent.__init__(self, category = EnumeratedSets())
+                ....:     def list(self):
+                ....:         return [5, 6, 7]
+                ....:
                 sage: it = iter(set_list()); [next(it), next(it), next(it)]
                 [5, 6, 7]
 
@@ -257,7 +257,7 @@ class EnumeratedSets(Category_singleton):
 
         def list(self):
             """
-            Return an error since the cardinality of self is not known.
+            Return an error since the cardinality of ``self`` is not known.
 
             EXAMPLES::
 

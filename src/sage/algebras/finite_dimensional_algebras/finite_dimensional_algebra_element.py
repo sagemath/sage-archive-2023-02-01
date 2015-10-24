@@ -136,13 +136,16 @@ class FiniteDimensionalAlgebraElement(AlgebraElement):
 
     def monomial_coefficients(self, copy=True):
         """
-        Return a dictionary whose keys are indices of basis in
+        Return a dictionary whose keys are indices of basis elements in
         the support of ``self`` and whose values are the corresponding
         coefficients.
 
         INPUT:
 
-        - ``copy`` -- ignored
+        - ``copy`` -- (default: ``True``) if ``self`` is internally
+          represented by a dictionary ``d``, then make a copy of ``d``;
+          if ``False``, then this can cause undesired behavior by
+          mutating ``d``
 
         EXAMPLES::
 

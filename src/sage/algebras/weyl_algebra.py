@@ -405,7 +405,8 @@ class DifferentialWeylAlgebraElement(AlgebraElement):
     def monomial_coefficients(self, copy=True):
         """
         Return a dictionary which has the basis keys in the support
-        of ``self`` and their corresponding coefficients as values.
+        of ``self`` as keys and their corresponding coefficients
+        as values.
 
         INPUT:
 
@@ -767,10 +768,12 @@ class DifferentialWeylAlgebra(Algebra, UniqueRepresentation):
         """
         n = self._n
         from sage.combinat.integer_lists.nn import IntegerListsNN
-        I = IntegerListsNN(length=n*2)
+        from sage.categories.cartesian_product import cartesian_product
+        I = IntegerListsNN(length=n, element_constructor=tuple)
+        J = cartesian_product([I, I])
         one = self.base_ring().one()
-        f = lambda x: self.element_class(self, {(tuple(x[:n]),tuple(x[n:])): one})
-        return Family(I, f, name="basis map")
+        f = lambda x: self.element_class(self, {(x[0], x[1]): one})
+        return Family(J, f, name="basis map")
 
     @cached_method
     def algebra_generators(self):

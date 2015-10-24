@@ -1569,12 +1569,12 @@ class SteenrodAlgebra_generic(CombinatorialFreeModule):
 
     def _milnor_on_basis(self, t):
         r"""
-        Convert the tuple t in the current basis to an element in the
+        Convert the tuple ``t`` in the current basis to an element in the
         Milnor basis.
 
         INPUT:
 
-        - t - tuple, representing basis element in the current basis.
+        - ``t`` - tuple, representing basis element in the current basis.
 
         OUTPUT: element of the Steenrod algebra with the Milnor basis
 

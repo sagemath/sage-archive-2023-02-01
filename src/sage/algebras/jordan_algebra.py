@@ -558,7 +558,7 @@ class SpecialJordanAlgebra(JordanAlgebra):
 
         def monomial_coefficients(self, copy=True):
             """
-            Return a dictionary whose keys are indices of basis in
+            Return a dictionary whose keys are indices of basis elements in
             the support of ``self`` and whose values are the corresponding
             coefficients.
 
@@ -961,7 +961,7 @@ class JordanAlgebraSymmetricBilinear(JordanAlgebra):
 
         def monomial_coefficients(self, copy=True):
             """
-            Return a dictionary whose keys are indices of basis in
+            Return a dictionary whose keys are indices of basis elements in
             the support of ``self`` and whose values are the corresponding
             coefficients.
 

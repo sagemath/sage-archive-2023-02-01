@@ -884,7 +884,6 @@ class Func_chebyshev_T(ChebyshevFunction):
 
 chebyshev_T = Func_chebyshev_T()
 
-
 class Func_chebyshev_U(ChebyshevFunction):
     """
     Class for the Chebyshev polynomial of the second kind.
@@ -1159,83 +1158,687 @@ class Func_chebyshev_U(ChebyshevFunction):
 chebyshev_U = Func_chebyshev_U()
 
 
-def gen_legendre_P(n, m, x):
-    r"""
-    Returns the generalized (or associated) Legendre function of the
-    first kind.
+class Func_legendre_P(BuiltinFunction):
+    def __init__(self):
+        r"""
+        Init method for the Legendre polynomials of the first kind.
 
-    The awkward code for when m is odd and 1 results from the fact that
-    Maxima is happy with, for example, `(1 - t^2)^3/2`, but
-    Sage is not. For these cases the function is computed from the
-    (m-1)-case using one of the recursions satisfied by the Legendre
-    functions.
+        EXAMPLES::
 
-    REFERENCE:
+            sage: loads(dumps(legendre_P))
+            legendre_P
+        """
+        BuiltinFunction.__init__(self, "legendre_P", nargs=2, latex_name=r"P",
+                conversions={'maxima':'legendre_p', 'mathematica':'LegendreP',
+                    'maple':'LegendreP'})
 
-    - Gradshteyn and Ryzhik 8.706 page 1000.
+    def _eval_(self, n, x, *args, **kwds):
+        r"""
+        Return an evaluation of this Legendre P expression.
 
-    EXAMPLES::
+        EXAMPLES::
 
-        sage: P.<t> = QQ[]
-        sage: gen_legendre_P(2, 0, t)
-        3/2*t^2 - 1/2
-        sage: gen_legendre_P(2, 0, t) == legendre_P(2, t)
-        True
-        sage: gen_legendre_P(3, 1, t)
-        -3/2*(5*t^2 - 1)*sqrt(-t^2 + 1)
-        sage: gen_legendre_P(4, 3, t)
-        105*(t^3 - t)*sqrt(-t^2 + 1)
-        sage: gen_legendre_P(7, 3, I).expand()
-        -16695*sqrt(2)
-        sage: gen_legendre_P(4, 1, 2.5)
-        -583.562373654533*I
-    """
-    from sage.functions.all import sqrt
-    _init()
-    if m.mod(2).is_zero() or m.is_one():
-        return sage_eval(maxima.eval('assoc_legendre_p(%s,%s,x)'%(ZZ(n),ZZ(m))), locals={'x':x})
-    else:
-        return sqrt(1-x**2)*(((n-m+1)*x*gen_legendre_P(n,m-1,x)-(n+m-1)*gen_legendre_P(n-1,m-1,x))/(1-x**2))
+            sage: legendre_P(4, 2.0)
+            55.3750000000000
+            sage: legendre_P(1, x)
+            x
+            sage: legendre_P(4, x+1)
+            35/8*(x + 1)^4 - 15/4*(x + 1)^2 + 3/8
+            sage: legendre_P(1/2, I+1.)
+            1.05338240025858 + 0.359890322109665*I
+            sage: legendre_P(0, SR(1)).parent()
+            Symbolic Ring
+        """
+        ret = self._eval_special_values_(n, x)
+        if ret is not None:
+            return ret
+        if n in ZZ:
+            ret = self.eval_pari(n, x)
+            if ret is not None:
+                return ret
 
+    def _eval_special_values_(self, n, x):
+        """
+        Special values known.
 
-def gen_legendre_Q(n, m, x):
-    """
-    Returns the generalized (or associated) Legendre function of the
-    second kind.
+        EXAMPLES::
 
-    Maxima restricts m = n. Hence the cases m n are computed using the
-    same recursion used for gen_legendre_P(n,m,x) when m is odd and
-    1.
+            sage: legendre_P(0, 0)
+            1
+            sage: legendre_P(1, x)
+            x
+        """
+        if n == 0 or n == -1 or x == 1:
+            return ZZ(1)
+        if n == 1 or n == -2:
+            return x
 
-    EXAMPLES::
+    def _evalf_(self, n, x, parent=None, **kwds):
+        """
+        EXAMPLES::
 
-        sage: P.<t> = QQ[]
-        sage: gen_legendre_Q(2,0,t)
-        3/4*t^2*log(-(t + 1)/(t - 1)) - 3/2*t - 1/4*log(-(t + 1)/(t - 1))
-        sage: gen_legendre_Q(2,0,t) - legendre_Q(2, t)
-        0
-        sage: gen_legendre_Q(3,1,0.5)
-        2.49185259170895
-        sage: gen_legendre_Q(0, 1, x)
-        -1/sqrt(-x^2 + 1)
-        sage: gen_legendre_Q(2, 4, x).factor()
-        48*x/((x + 1)^2*(x - 1)^2)
-    """
-    from sage.functions.all import sqrt
-    if m <= n:
+            sage: legendre_P(4, 2.)
+            55.3750000000000
+            sage: legendre_P(5.5,1.00001)
+            1.00017875754114
+            sage: legendre_P(1/2, I+1).n()
+            1.05338240025858 + 0.359890322109665*I
+            sage: legendre_P(1/2, I+1).n(59)
+            1.0533824002585801 + 0.35989032210966539*I
+            sage: legendre_P(42, RR(12345678))
+            2.66314881466753e309
+            sage: legendre_P(42, Reals(20)(12345678))
+            2.6632e309
+            sage: legendre_P(201/2, 0).n()
+            0.0561386178630179
+            sage: legendre_P(201/2, 0).n(100)
+            0.056138617863017877699963095883
+        """
+        ret = self._eval_special_values_(n, x)
+        if ret is not None:
+            return ret
+
+        import mpmath
+        from sage.libs.mpmath.all import call as mpcall
+        return mpcall(mpmath.legenp, n, 0, x, parent=parent)
+
+    def eval_pari(self, n, arg, **kwds):
+        """
+        Use Pari to evaluate legendre_P for integer, symbolic, and
+        polynomial argument.
+
+        EXAMPLES::
+
+            sage: R.<x> = QQ[]
+            sage: legendre_P(4,x)
+            35/8*x^4 - 15/4*x^2 + 3/8
+            sage: legendre_P(10000,x).coefficient(x,1)
+            0
+            sage: var('t,x')
+            (t, x)
+            sage: legendre_P(-5,t)
+            35/8*t^4 - 15/4*t^2 + 3/8
+            sage: legendre_P(4, x+1)
+            35/8*(x + 1)^4 - 15/4*(x + 1)^2 + 3/8
+            sage: legendre_P(4, sqrt(2))
+            83/8
+            sage: legendre_P(4, I*e)
+            35/8*e^4 + 15/4*e^2 + 3/8
+        """
+        if n < 0:
+            n = - n - 1
+        P = parent(arg)
+        if P in (ZZ, QQ, RR, CC, SR):
+            from sage.libs.pari.all import pari
+            R = PolynomialRing(QQ, 'x')
+            pol = R(pari.pollegendre(n))
+            pol = sum([b*arg**a for (a,b) in enumerate(pol)])
+            return pol
+        elif is_PolynomialRing(P):
+            from sage.libs.pari.all import pari
+            if arg == P.gen():
+                return P(pari.pollegendre(n))
+            else:
+                R = PolynomialRing(QQ, 'x')
+                pol = R(pari.pollegendre(n))
+                pol = pol.subs({pol.parent().gen():arg})
+                pol = pol.change_ring(P.base_ring())
+                return pol
+
+    def _derivative_(self, n, x, *args,**kwds):
+        """
+        Return the derivative of legendre_P.
+
+        EXAMPLES::
+
+            sage: n = var('n')
+            sage: derivative(legendre_P(n,x), x)
+            (n*x*legendre_P(n, x) - n*legendre_P(n - 1, x))/(x^2 - 1)
+            sage: derivative(legendre_P(3,x), x)
+            15/2*x^2 - 3/2
+            sage: derivative(legendre_P(n,x), n)
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: Derivative w.r.t. to the index is not supported.
+        """
+        diff_param = kwds['diff_param']
+        if diff_param == 0:
+            raise NotImplementedError("Derivative w.r.t. to the index is not supported.")
+        else:
+            return (n*legendre_P(n-1, x) - n*x*legendre_P(n, x))/(1 - x**2)
+
+legendre_P = Func_legendre_P()
+
+class Func_legendre_Q(BuiltinFunction):
+    def __init__(self):
+        r"""
+        EXAMPLES::
+
+            sage: loads(dumps(legendre_Q))
+            legendre_Q
+        """
+        BuiltinFunction.__init__(self, "legendre_Q", nargs=2, latex_name=r"Q",
+                conversions={'maxima':'legendre_q', 'mathematica':'LegendreQ',
+                    'maple':'LegendreQ'})
+
+    def _eval_(self, n, x, *args, **kwds):
+        r"""
+        Return an evaluation of this Legendre Q expression.
+
+        EXAMPLES::
+
+            sage: legendre_Q(2,x)
+            1/4*(3*x^2 - 1)*(log(x + 1) - log(-x + 1)) - 3/2*x
+            sage: legendre_Q(5,0)
+            -8/15
+            sage: legendre_Q(2,2*x)
+            1/4*(12*x^2 - 1)*(log(2*x + 1) - log(-2*x + 1)) - 3*x
+            sage: legendre_Q(1/2, I+1.)
+            -0.511424110789061 + 1.34356195297194*I
+            sage: legendre_Q(-1,x)
+            Infinity
+
+        NOTE::
+
+            Maxima (``algorithm='maxima'``) will output the complex
+            conjugate of the correct result, see :trac:`16813`.
+        """
+        ret = self._eval_special_values_(n, x)
+        if ret is not None:
+            return ret
+        if n in ZZ:
+            if n < 0:
+                from sage.rings.infinity import unsigned_infinity
+                return SR(unsigned_infinity);
+            return self.eval_formula(n, x)
+
+    def _maxima_init_evaled_(self, n, x):
+        """
+        Return a string which represents this function evaluated at
+        ``n, x`` in Maxima.
+
+        NOTE::
+
+            Maxima will output the complex conjugate of the
+            correct result, see :trac:`16813`.
+
+        EXAMPLES::
+
+            sage: legendre_Q._maxima_init_evaled_(20,x).coefficient(x,10)
+            -29113619535/131072*log(-(x + 1)/(x - 1))
+        """
         _init()
-        return sage_eval(maxima.eval('assoc_legendre_q(%s,%s,x)'%(ZZ(n),ZZ(m))), locals={'x':x})
-    if m == n + 1 or n == 0:
-        if m.mod(2).is_zero():
-            denom = (1 - x**2)**(m/2)
+        return sage_eval(maxima.eval('legendre_q(%s,x)'%ZZ(n)), locals={'x':x})
+
+    def _eval_special_values_(self, n, x):
+        """
+        Special values known.
+
+        EXAMPLES::
+
+            sage: var('n')
+            n
+            sage: legendre_Q(n, 0)
+            -1/2*sqrt(pi)*sin(1/2*pi*n)*gamma(1/2*n + 1/2)/gamma(1/2*n + 1)
+            sage: legendre_Q(-1., 0.)
+            +infinity
+            sage: legendre_Q(-1/2, 2)
+            elliptic_kc(3/2)
+        """
+        if n == QQ(-1)/2:
+            from sage.functions.special import elliptic_kc
+            return elliptic_kc((x+1)/2)
+
+        if x == 1:
+            from sage.rings.infinity import unsigned_infinity
+            return SR(unsigned_infinity)
+
+        if x == -1:
+            from sage.rings.infinity import unsigned_infinity
+            return SR(unsigned_infinity)
+
+        if x == 0:
+            from sage.functions.other import gamma, sqrt
+            from sage.functions.trig import sin
+            try:
+                gam = gamma((n+1)/2)/gamma(n/2 + 1)
+                if gam.is_infinity():
+                    return gam
+                return -(sqrt(SR.pi()))/2 * sin(SR.pi()/2*n) * gam
+            except TypeError:
+                pass
+
+    def _evalf_(self, n, x, parent=None, **kwds):
+        """
+        Float evaluation of Legendre Q(n, x) function.
+
+        EXAMPLES::
+
+            sage: legendre_Q(4, 2.)
+            0.00116107583162041 - 86.9828465962674*I
+            sage: legendre_Q(1/2, I+1.)
+            -0.511424110789061 + 1.34356195297194*I
+            sage: legendre_Q(1/2, I+1).n(59)
+            -0.51142411078906080 + 1.3435619529719394*I
+        """
+        ret = self._eval_special_values_(n, x)
+        if ret is not None:
+            return ret
+
+        import mpmath
+        from sage.libs.mpmath.all import call as mpcall
+        return mpcall(mpmath.legenq, n, 0, x, parent=parent)
+
+    def eval_recursive(self, n, arg, **kwds):
+        """
+        Return expanded Legendre Q(n, arg) function expression.
+
+        EXAMPLES::
+
+            sage: legendre_Q.eval_recursive(2,x)
+            3/4*x^2*(log(x + 1) - log(-x + 1)) - 3/2*x - 1/4*log(x + 1) + 1/4*log(-x + 1)
+            sage: legendre_Q.eval_recursive(20,x).expand().coefficient(x,10)
+            -29113619535/131072*log(x + 1) + 29113619535/131072*log(-x + 1)
+        """
+        from sage.functions.log import ln
+        if n == 0:
+            return (ln(1+arg)-ln(1-arg))/2
+        elif n == 1:
+            return arg/2*(ln(1+arg)-ln(1-arg))-1
+
+        R = PolynomialRing(QQ, 'x,l')
+        (x,l) = R.gens()
+        help1 = l/2
+        help2 = x/2*l-1
+        for j in xrange(1,n):
+            help3 = (2*j+1)*x*help2 - j*help1
+            help3 = help3/(j+1)
+            help1 = help2
+            help2 = help3
+
+        sum1 = sum([help3.monomial_coefficient(mon)*arg**(mon.exponents()[0][0])
+                    for mon in help3.monomials() if not l.divides(mon)])
+        sum2 = sum([help3.monomial_coefficient(mon)*arg**(mon.exponents()[0][0])*(ln(1+arg)-ln(1-arg))
+                    for mon in help3.monomials() if l.divides(mon)])
+        return sum1 + sum2
+
+    def eval_formula(self, n, arg, **kwds):
+        """
+        Return expanded Legendre ``Q(n, arg)`` function expression.
+
+        REFERENCE:
+
+        - T. M. Dunster, Legendre and Related Functions, http://dlmf.nist.gov/14.7#E2
+
+        EXAMPLES::
+
+            sage: legendre_Q.eval_formula(1, x)
+            1/2*x*(log(x + 1) - log(-x + 1)) - 1
+            sage: legendre_Q.eval_formula(2,x).expand().collect(log(1+x)).collect(log(1-x))
+            1/4*(3*x^2 - 1)*log(x + 1) - 1/4*(3*x^2 - 1)*log(-x + 1) - 3/2*x
+            sage: legendre_Q.eval_formula(20,x).coefficient(x,10)
+            -29113619535/131072*log(x + 1) + 29113619535/131072*log(-x + 1)
+            sage: legendre_Q(0, 2)
+            -1/2*I*pi + 1/2*log(3)
+            sage: legendre_Q(0, 2.)
+            0.549306144334055 - 1.57079632679490*I
+        """
+        from sage.functions.log import ln
+        if n == 0:
+            return (ln(1+arg)-ln(1-arg))/2
+        elif n == 1:
+            return arg/2*(ln(1+arg)-ln(1-arg))-1
+
+        arg = SR(arg)
+        return legendre_P(n, arg)*(ln(1+arg)-ln(1-arg))/2 - self._Wfunc(n, arg)
+
+    def _Wfunc(self, n, arg):
+        """
+        Helper function for ``eval_formula()``.
+
+        EXAMPLES::
+
+            sage: legendre_Q._Wfunc(2, x)
+            3/2*x
+            sage: legendre_Q._Wfunc(7, x)
+            429/16*x^6 - 275/8*x^4 + 849/80*x^2 - 16/35
+        """
+        if n == 0:
+            return 0
+        if n == 1:
+            return 1
+        R = PolynomialRing(QQ, 'x')
+        x = R.gen()
+        help1 = 0
+        help2 = 1
+        for j in xrange(2,n+1):
+            help3 = (2*j-1)*x*help2 - (j-1)*help1
+            help3 = help3/j
+            help1 = help2
+            help2 = help3
+
+        return sum([b*arg**a for (a,b) in enumerate(help3)])
+
+    def _derivative_(self, n, x, *args,**kwds):
+        """
+        Return the derivative of legendre_Q.
+
+        EXAMPLES::
+
+            sage: n = var('n')
+            sage: derivative(legendre_Q(n,x), x)
+            (n*x*legendre_Q(n, x) - n*legendre_Q(n - 1, x))/(x^2 - 1)
+            sage: ex1 = legendre_Q(5,x,hold=True).diff(x).expand().simplify_full()
+            sage: ex2 = legendre_Q(5,x).diff(x).expand().simplify_full()
+            sage: ex1.subs(x=7).n() == ex2.subs(x=7).n()
+            True
+            sage: derivative(legendre_Q(n,x), n)
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: Derivative w.r.t. to the index is not supported.
+        """
+        diff_param = kwds['diff_param']
+        if diff_param == 0:
+            raise NotImplementedError("Derivative w.r.t. to the index is not supported.")
         else:
-            denom = sqrt(1 - x**2)*(1 - x**2)**((m-1)/2)
-        if m == n + 1:
-            return (-1)**m*(m-1).factorial()*2**n/denom
+            return (n*x*legendre_Q(n, x) - n*legendre_Q(n-1, x))/(x**2 - 1)
+
+legendre_Q = Func_legendre_Q()
+
+class Func_assoc_legendre_P(BuiltinFunction):
+    def __init__(self):
+        r"""
+        EXAMPLES::
+
+            sage: loads(dumps(gen_legendre_P))
+            gen_legendre_P
+        """
+        BuiltinFunction.__init__(self, "gen_legendre_P", nargs=3, latex_name=r"P",
+                conversions={'maxima':'assoc_legendre_p', 'mathematica':'LegendreP',
+                    'maple':'LegendreP'})
+
+    def _eval_(self, n, m, x, *args, **kwds):
+        r"""
+        Return an evaluation of this Legendre P(n, m, x) expression.
+
+        EXAMPLES::
+
+            sage: gen_legendre_P(3,2,2)
+            -90
+            sage: gen_legendre_P(13/2,2,0)
+            2*sqrt(2)*gamma(19/4)/(sqrt(pi)*gamma(13/4))
+            sage: gen_legendre_P(3,2,x)
+            -15*(x^2 - 1)*x
+            sage: gen_legendre_P(3,2,2).n() # abs tol 1e-14
+            -90.0000000000000
+        """
+        ret = self._eval_special_values_(n, m, x)
+        if ret is not None:
+            return ret
+        if (n in ZZ and m in ZZ
+            and n >= 0 and m >= 0
+            and (x in ZZ or not SR(x).is_numeric())):
+            return self.eval_poly(n, m, x)
+
+    def _maxima_init_evaled_(self, n, m, x, **kwds):
+        """
+        Return a string which represents this function evaluated at
+        ``n, m, x`` in Maxima.
+
+        EXAMPLES::
+
+            sage: gen_legendre_P._maxima_init_evaled_(20,6,x).expand().coefficient(x,10)
+            2508866163428625/128
+        """
+        _init()
+        return sage_eval(maxima.eval('assoc_legendre_p(%s,%s,x)'%(ZZ(n),ZZ(m))), locals={'x':x})
+
+    def _eval_special_values_(self, n, m, x):
+        """
+        Special values known.
+
+        EXAMPLES::
+            sage: gen_legendre_P(2,3,4)
+            0
+            sage: gen_legendre_P(2,0,4)==legendre_P(2,4)
+            True
+            sage: gen_legendre_P(2,2,4)
+            45
+            sage: gen_legendre_P(2,2,x)
+            3*x^2 - 3
+            sage: gen_legendre_P(13/2,2,0)
+            2*sqrt(2)*gamma(19/4)/(sqrt(pi)*gamma(13/4))
+            sage: (m,n) = var('m,n')
+            sage: gen_legendre_P(n,m,0)
+            2^m*cos(1/2*pi*(m + n))*gamma(1/2*m + 1/2*n + 1/2)/(sqrt(pi)*gamma(-1/2*m + 1/2*n + 1))
+            sage: gen_legendre_P(n,3,0)
+            8*cos(1/2*pi*(n + 3))*gamma(1/2*n + 2)/(sqrt(pi)*gamma(1/2*n - 1/2))
+            sage: gen_legendre_P(3,m,0)
+            2^m*cos(1/2*pi*(m + 3))*gamma(1/2*m + 2)/(sqrt(pi)*gamma(-1/2*m + 5/2))
+        """
+        if m > n:
+            return ZZ(0)
+        if m == 0:
+            return legendre_P(n, x)
+        if n == m:
+            return factorial(2*m)/2**m/factorial(m) * (x**2-1)**(m/2)
+        if x == 0:
+            from sage.functions.other import gamma, sqrt
+            from sage.functions.trig import cos
+            if m in QQ and n in QQ:
+                return 2**m/sqrt(SR.pi())*cos((n+m)/2*SR.pi())*(gamma(QQ(n+m+1)/2)/gamma(QQ(n-m)/2+1))
+            elif isinstance(n, Expression) or isinstance(m, Expression):
+                return 2**m/sqrt(SR.pi())*cos((n+m)/2*SR.pi())*(gamma((n+m+1)/2)/gamma((n-m)/2+1))
+
+    def _evalf_(self, n, m, x, parent=None, **kwds):
+        """
+        Float evaluation of Legendre P(n, m, x) function.
+
+        EXAMPLES::
+
+            sage: gen_legendre_P(10,2,3).n() # abs tol 1e-14
+            -7.19496360000000e8
+            sage: gen_legendre_P(5/2,2,1.+I)
+            14.3165258449040 - 12.7850496155152*I
+            sage: gen_legendre_P(5/2,2,ComplexField(70)(1+I))
+            14.316525844904028532 - 12.785049615515157033*I
+        """
+        ret = self._eval_special_values_(n, m, x)
+        if ret is not None:
+            return ret
+
+        import mpmath
+        from sage.libs.mpmath.all import call as mpcall
+        return mpcall(mpmath.legenp, n, m, x, parent=parent)
+
+    def eval_poly(self, n, m, arg, **kwds):
+        """
+        Return the associated Legendre P(n, m, arg) polynomial for integers `n > -1, m > -1`.
+
+        EXAMPLES::
+
+            sage: gen_legendre_P(7,4,x)
+            3465/2*(13*x^3 - 3*x)*(x^2 - 1)^2
+            sage: gen_legendre_P(3,1,sqrt(x))
+            -3/2*(5*x - 1)*sqrt(-x + 1)
+
+        REFERENCE:
+
+        - T. M. Dunster, Legendre and Related Functions, http://dlmf.nist.gov/14.7#E10
+        """
+        from sage.functions.other import factorial
+        if n < 0 or m < 0:
+            return
+        R = PolynomialRing(QQ, 'x')
+        x = R.gen()
+        p = (1-x**2)**ZZ(n)
+        for i in range(m+n):
+            p = p.diff(x)
+        ex1 = (1-arg**2)**(QQ(m)/2)/2**n/factorial(ZZ(n))
+        ex2 = sum([b*arg**a for (a,b) in enumerate(p)])
+        return (-1)**(m+n)*ex1*ex2
+
+    def _derivative_(self, n, m, x, *args,**kwds):
+        """
+        Return the derivative of ``gen_legendre_P(n,m,x)``.
+
+        EXAMPLES::
+
+            sage: (m,n) = var('m,n')
+            sage: derivative(gen_legendre_P(n,m,x), x)
+            -((n + 1)*x*gen_legendre_P(n, m, x) + (m - n - 1)*gen_legendre_P(n + 1, m, x))/(x^2 - 1)
+            sage: gen_legendre_P(3,2,x,hold=True).diff(x).expand().simplify_full()
+            -45*x^2 + 15
+            sage: derivative(gen_legendre_P(n,m,x), n)
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: Derivative w.r.t. to the index is not supported.
+        """
+        diff_param = kwds['diff_param']
+        if diff_param == 0:
+            raise NotImplementedError("Derivative w.r.t. to the index is not supported.")
         else:
-            return (-1)**m*(m-1).factorial()*((x+1)**m - (x-1)**m)/(2*denom)
-    else:
-        return ((n-m+1)*x*gen_legendre_Q(n,m-1,x)-(n+m-1)*gen_legendre_Q(n-1,m-1,x))/sqrt(1-x**2)
+            return ((n-m+1)*gen_legendre_P(n+1, m, x) - (n+1)*x*gen_legendre_P(n, m, x))/(x**2 - 1)
+
+gen_legendre_P = Func_assoc_legendre_P()
+
+class Func_assoc_legendre_Q(BuiltinFunction):
+    def __init__(self):
+        r"""
+        EXAMPLES::
+
+            sage: loads(dumps(gen_legendre_Q))
+            gen_legendre_Q
+        """
+        BuiltinFunction.__init__(self, "gen_legendre_Q", nargs=3, latex_name=r"Q",
+                conversions={'maxima':'assoc_legendre_q', 'mathematica':'LegendreQ',
+                    'maple':'LegendreQ'})
+
+    def _eval_(self, n, m, x, *args, **kwds):
+        r"""
+        Return an evaluation of this Legendre Q(n, m, x) expression.
+
+        EXAMPLES::
+
+            sage: gen_legendre_Q(2,1,3)
+            -1/4*sqrt(-2)*(-36*I*pi + 36*log(4) - 36*log(2) - 25)
+        """
+        ret = self._eval_special_values_(n, m, x)
+        if ret is not None:
+            return ret
+        if (n in ZZ and m in ZZ
+            and n >= 0 and m >= 0
+            and (x in ZZ or not SR(x).is_numeric())):
+            return self.eval_recursive(n, m, x)
+
+    def _maxima_init_evaled_(self, n, m, x, **kwds):
+        """
+        Return a string which represents this function evaluated at
+        ``n, m, x`` in Maxima.
+
+        EXAMPLES::
+
+            sage: gen_legendre_Q._maxima_init_evaled_(2,1,3)
+            -3*sqrt(-2)*(3*I*pi + 3*log(2)) + 25/4*sqrt(-2)
+        """
+        if m <= n:
+            _init()
+            return sage_eval(maxima.eval('assoc_legendre_q(%s,%s,x)'%(ZZ(n),ZZ(m))), locals={'x':x})
+
+    def _eval_special_values_(self, n, m, x):
+        """
+        Special values known.
+
+        EXAMPLES::
+
+            sage: n, m = var('n m')
+            sage: gen_legendre_Q(n,m,0)
+            -sqrt(pi)*2^(m - 1)*sin(1/2*pi*(m + n))*gamma(1/2*m + 1/2*n + 1/2)/gamma(-1/2*m + 1/2*n + 1)
+        """
+        if m == 0:
+            return legendre_Q(n, x)
+        if x.is_zero():
+            from sage.functions.other import gamma, sqrt
+            from sage.functions.trig import sin
+            if m in QQ and n in QQ:
+                return -(sqrt(SR.pi()))*sin(SR.pi()/2*(m+n))*gamma(QQ(m+n+1)/2)/gamma(QQ(n-m)/2 + 1)*2**(m-1)
+            elif isinstance(n, Expression) or isinstance(m, Expression):
+                return -(sqrt(SR.pi()))*sin(SR.pi()/2*(m+n))*gamma((m+n+1)/2)/gamma((n-m)/2 + 1)*2**(m-1)
+
+    def _evalf_(self, n, m, x, parent=None, **kwds):
+        """
+        Float evaluation of Legendre Q(n, m, x) function.
+
+        EXAMPLES::
+
+            sage: gen_legendre_Q(2,1,3.)
+            -39.9859464434253 + 0.0165114736149193*I
+            sage: gen_legendre_Q(2,1,ComplexField(70)(3))
+            -39.985946443425296223 + 0.016511473614919329585*I
+        """
+        ret = self._eval_special_values_(n, m, x)
+        if ret is not None:
+            return ret
+
+        import mpmath
+        from sage.libs.mpmath.all import call as mpcall
+        return mpcall(mpmath.legenq, n, m, x, parent=parent)
+
+    def eval_recursive(self, n, m, x, **kwds):
+        """
+        Return the associated Legendre Q(n, m, arg) function for integers `n > -1, m > -1`.
+
+        EXAMPLES::
+
+            sage: gen_legendre_Q(3,4,x)
+            48/(x^2 - 1)^2
+            sage: gen_legendre_Q(4,5,x)
+            -384/((x^2 - 1)^2*sqrt(-x^2 + 1))
+            sage: gen_legendre_Q(0,1,x)
+            -1/sqrt(-x^2 + 1)
+            sage: gen_legendre_Q(0,2,x)
+            -1/2*((x + 1)^2 - (x - 1)^2)/(x^2 - 1)
+            sage: gen_legendre_Q(2,2,x).subs(x=2).expand()
+            9/2*I*pi - 9/2*log(3) + 14/3
+        """
+        from sage.functions.all import sqrt
+        if m == n + 1 or n == 0:
+            if m.mod(2).is_zero():
+                denom = (1 - x**2)**(m/2)
+            else:
+                denom = sqrt(1 - x**2)*(1 - x**2)**((m-1)/2)
+            if m == n + 1:
+                return (-1)**m*(m-1).factorial()*2**n/denom
+            else:
+                return (-1)**m*(m-1).factorial()*((x+1)**m - (x-1)**m)/(2*denom)
+        else:
+            return ((n-m+1)*x*gen_legendre_Q(n,m-1,x)-(n+m-1)*gen_legendre_Q(n-1,m-1,x))/sqrt(1-x**2)
+
+    def _derivative_(self, n, m, x, *args,**kwds):
+        """
+        Return the derivative of ``gen_legendre_Q(n,m,x)``.
+
+        EXAMPLES::
+
+            sage: (m,n) = var('m,n')
+            sage: derivative(gen_legendre_Q(n,m,x), x)
+            -((n + 1)*x*gen_legendre_Q(n, m, x) + (m - n - 1)*gen_legendre_Q(n + 1, m, x))/(x^2 - 1)
+            sage: ex1=gen_legendre_Q(3,2,x,hold=True).diff(x).expand().simplify_full()
+            sage: ex2=gen_legendre_Q(3,2,x).diff(x).expand().simplify_full()
+            sage: ex1.subs(x=5).n() == ex2.subs(x=5).n()
+            True
+            sage: derivative(gen_legendre_Q(n,m,x), n)
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: Derivative w.r.t. to the index is not supported.
+        """
+        diff_param = kwds['diff_param']
+        if diff_param == 0:
+            raise NotImplementedError("Derivative w.r.t. to the index is not supported.")
+        else:
+            return ((n-m+1)*gen_legendre_Q(n+1, m, x) - (n+1)*x*gen_legendre_Q(n, m, x))/(x**2 - 1)
+
+gen_legendre_Q = Func_assoc_legendre_Q()
 
 
 def hermite(n, x):
@@ -1330,55 +1933,6 @@ def jacobi_P(n, a, b, x):
 
     _init()
     return sage_eval(maxima.eval('jacobi_p(%s,%s,%s,x)'%(ZZ(n),a,b)), locals={'x':x})
-
-
-def legendre_P(n, x):
-    """
-    Returns the Legendre polynomial of the first kind.
-
-    REFERENCE:
-
-    - [ASHandbook]_ 22.5.35 page 779.
-
-    EXAMPLES::
-
-        sage: P.<t> = QQ[]
-        sage: legendre_P(2,t)
-        3/2*t^2 - 1/2
-        sage: legendre_P(3, 1.1)
-        1.67750000000000
-        sage: legendre_P(3, 1 + I)
-        7/2*I - 13/2
-        sage: legendre_P(3, MatrixSpace(ZZ, 2)([1, 2, -4, 7]))
-        [-179  242]
-        [-484  547]
-        sage: legendre_P(3, GF(11)(5))
-        8
-    """
-    _init()
-    return sage_eval(maxima.eval('legendre_p(%s,x)'%ZZ(n)), locals={'x':x})
-
-
-def legendre_Q(n, x):
-    """
-    Returns the Legendre function of the second kind.
-
-    Computed using Maxima.
-
-    EXAMPLES::
-
-        sage: P.<t> = QQ[]
-        sage: legendre_Q(2, t)
-        3/4*t^2*log(-(t + 1)/(t - 1)) - 3/2*t - 1/4*log(-(t + 1)/(t - 1))
-        sage: legendre_Q(3, 0.5)
-        -0.198654771479482
-        sage: legendre_Q(4, 2)
-        443/16*I*pi + 443/16*log(3) - 365/12
-        sage: legendre_Q(4, 2.0)
-        0.00116107583162324 + 86.9828465962674*I
-    """
-    _init()
-    return sage_eval(maxima.eval('legendre_q(%s,x)'%ZZ(n)), locals={'x':x})
 
 
 def ultraspherical(n, a, x):

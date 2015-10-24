@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Examples of simplicial complexes
+Catalog of simplicial complexes
 
 There are two main types: manifolds and examples related to graph
 theory.
@@ -21,25 +21,25 @@ million simplices.
 All of these examples are accessible by typing
 ``simplicial_complexes.NAME``, where ``NAME`` is the name of the example.
 
-- :func:`BarnetteSphere`
-- :func:`BrucknerGrunbaumSphere`
-- :func:`ChessboardComplex`
-- :func:`ComplexProjectivePlane`
-- :func:`K3Surface`
-- :func:`KleinBottle`
-- :func:`MatchingComplex`
-- :func:`MooreSpace`
-- :func:`NotIConnectedGraphs`
-- :func:`PoincareHomologyThreeSphere`
-- :func:`PseudoQuaternionicProjectivePlane`
-- :func:`RandomComplex`
-- :func:`RealProjectivePlane`
-- :func:`RealProjectiveSpace`
-- :func:`Simplex`
-- :func:`Sphere`
-- :func:`SumComplex`
-- :func:`SurfaceOfGenus`
-- :func:`Torus`
+- :meth:`~sage.homology.examples.BarnetteSphere`
+- :meth:`~sage.homology.examples.BrucknerGrunbaumSphere`
+- :meth:`~sage.homology.examples.ChessboardComplex`
+- :meth:`~sage.homology.examples.ComplexProjectivePlane`
+- :meth:`~sage.homology.examples.K3Surface`
+- :meth:`~sage.homology.examples.KleinBottle`
+- :meth:`~sage.homology.examples.MatchingComplex`
+- :meth:`~sage.homology.examples.MooreSpace`
+- :meth:`~sage.homology.examples.NotIConnectedGraphs`
+- :meth:`~sage.homology.examples.PoincareHomologyThreeSphere`
+- :meth:`~sage.homology.examples.PseudoQuaternionicProjectivePlane`
+- :meth:`~sage.homology.examples.RandomComplex`
+- :meth:`~sage.homology.examples.RealProjectivePlane`
+- :meth:`~sage.homology.examples.RealProjectiveSpace`
+- :meth:`~sage.homology.examples.Simplex`
+- :meth:`~sage.homology.examples.Sphere`
+- :meth:`~sage.homology.examples.SumComplex`
+- :meth:`~sage.homology.examples.SurfaceOfGenus`
+- :meth:`~sage.homology.examples.Torus`
 
 You can also get a list by typing ``simplicial_complexes.`` and hitting the
 TAB key.
@@ -50,7 +50,7 @@ EXAMPLES::
     sage: S.homology()
     {0: 0, 1: 0, 2: Z}
     sage: simplicial_complexes.SurfaceOfGenus(3)
-    Simplicial complex with 15 vertices and 38 facets
+    Triangulation of an orientable surface of genus 3
     sage: M4 = simplicial_complexes.MooreSpace(4)
     sage: M4.homology()
     {0: 0, 1: C4, 2: 0}

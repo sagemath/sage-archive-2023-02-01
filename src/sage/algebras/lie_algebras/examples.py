@@ -96,11 +96,21 @@ def three_dimensional_by_rank(R, n, a=None, names=['X', 'Y', 'Z']):
     """
     Return a 3-dimensional Lie algebra of rank ``n``, where `0 \leq n \leq 3`.
 
+    Here, the *rank* of a Lie algebra `L` is defined as the dimension
+    of its derived subalgebra `[L, L]`. (We are assuming that `R` is
+    a field of characteristic `0`; otherwise the Lie algebras
+    constructed by this function are still well-defined but no longer
+    might have the correct ranks.) This is not to be confused with
+    the other standard definition of a rank (namely, as the
+    dimension of a Cartan subalgebra, when `L` is semisimple).
+
     INPUT:
 
     - ``R`` -- the base ring
     - ``n`` -- the rank
-    - ``a`` -- the deformation parameter, if 0 then returns the degenerate case
+    - ``a`` -- the deformation parameter (used for `n = 2`); this should
+      be a nonzero element of `R` in order for the resulting Lie
+      algebra to actually have the right rank(?)
     - ``names`` -- (optional) the generator names
 
     EXAMPLES::
@@ -141,10 +151,12 @@ def three_dimensional_by_rank(R, n, a=None, names=['X', 'Y', 'Z']):
         from sage.algebras.lie_algebras.structure_coefficients import LieAlgebraWithStructureCoefficients
         if a == 0:
             s_coeff = {(X,Y): {Y:R.one()}, (X,Z): {Y:R(a)}}
+            # Why use R(a) here if R == 0 ? Also this has rank 1.
             L = LieAlgebraWithStructureCoefficients(R, s_coeff, tuple(names))
             L.rename("Degenerate Lie algebra of dimension 3 and rank 2 over {}".format(R))
         else:
             s_coeff = {(X,Y): {Y:R.one()}, (X,Z): {Y:R.one(), Z:R.one()}}
+            # a doesn't appear here :/
             L = LieAlgebraWithStructureCoefficients(R, s_coeff, tuple(names))
             L.rename("Lie algebra of dimension 3 and rank 2 with parameter {} over {}".format(a, R))
         return L
@@ -219,6 +231,15 @@ def affine_transformations_line(R, names=['X', 'Y'], representation='bracket'):
         sage: L = lie_algebras.affine_transformations_line(QQ)
         sage: L.structure_coefficients()
         Finite family {('X', 'Y'): Y}
+        sage: X, Y = L.lie_algebra_generators()
+        sage: L[X, Y] == Y
+        True
+        sage: TestSuite(L).run()
+        sage: L = lie_algebras.affine_transformations_line(QQ, representation="matrix")
+        sage: X, Y = L.lie_algebra_generators()
+        sage: L[X, Y] == Y
+        True
+        sage: TestSuite(L).run()
     """
     if isinstance(names, str):
         names = names.split(',')
@@ -259,7 +280,7 @@ def Heisenberg(R, n, representation="structure"):
     INPUT:
 
     - ``R`` -- the base ring
-    - ``n`` -- the rank
+    - ``n`` -- the rank (a nonnegative integer or infinity)
     - ``representation`` -- (default: "structure") can be one of the following:
 
       - ``"structure"`` -- using structure coefficients
@@ -282,7 +303,11 @@ def Heisenberg(R, n, representation="structure"):
 
 def regular_vector_fields(R):
     r"""
-    Return the Lie algebra of regular vector fields of `\CC^{\times}`.
+    Return the Lie algebra of regular vector fields on `\CC^{\times}`.
+
+    .. SEEALSO::
+
+        :class:`~sage.algebras.lie_algebras.virasoro.LieAlgebraRegularVectorFields`
 
     EXAMPLES::
 
@@ -304,9 +329,9 @@ def pwitt(R, p):
     from sage.algebras.lie_algebras.virasoro import WittLieAlgebra_charp
     return WittLieAlgebra_charp(R, p)
 
-def upper_triangluar_matrices(R, n):
+def upper_triangular_matrices(R, n):
     r"""
-    Return the Lie algebra `\mathfrak{b}_k` of strictly `k \times k` upper
+    Return the Lie algebra `\mathfrak{b}_k` of `k \times k` upper
     triangular matrices.
 
     .. TODO::
@@ -316,16 +341,19 @@ def upper_triangluar_matrices(R, n):
 
     EXAMPLES::
 
-        sage: L = lie_algebras.upper_triangluar_matrices(QQ, 4); L
+        sage: L = lie_algebras.upper_triangular_matrices(QQ, 4); L
         Lie algebra of 4-dimensional upper triangular matrices over Rational Field
         sage: TestSuite(L).run()
+        sage: n0, n1, n2, t0, t1, t2, t3 = L.lie_algebra_generators()
+        sage: L[n2, t2] == -n2
+        True
 
     TESTS::
 
-        sage: L = lie_algebras.upper_triangluar_matrices(QQ, 1); L
+        sage: L = lie_algebras.upper_triangular_matrices(QQ, 1); L
         Lie algebra of 1-dimensional upper triangular matrices over Rational Field
         sage: TestSuite(L).run()
-        sage: L = lie_algebras.upper_triangluar_matrices(QQ, 0); L
+        sage: L = lie_algebras.upper_triangular_matrices(QQ, 0); L
         Lie algebra of 0-dimensional upper triangular matrices over Rational Field
         sage: TestSuite(L).run()
     """
@@ -356,6 +384,12 @@ def strictly_upper_triangular_matrices(R, n):
         sage: L = lie_algebras.strictly_upper_triangular_matrices(QQ, 4); L
         Lie algebra of 4-dimensional strictly upper triangular matrices over Rational Field
         sage: TestSuite(L).run()
+        sage: n0, n1, n2 = L.lie_algebra_generators()
+        sage: L[n2, n1]
+        [ 0  0  0  0]
+        [ 0  0  0 -1]
+        [ 0  0  0  0]
+        [ 0  0  0  0]
 
     TESTS::
 

@@ -156,6 +156,24 @@ class HeisenbergAlgebra_fd:
         """
         self._n = n
 
+    def n(self):
+        """
+        Return the rank of the Heisenberg algebra ``self``.
+
+        This is the ``n`` such that ``self`` is the `n`-th Heisenberg
+        algebra.
+
+        EXAMPLES::
+
+            sage: H = lie_algebras.Heisenberg(QQ, 3)
+            sage: H.n()
+            3
+            sage: H = lie_algebras.Heisenberg(QQ, 3, representation="matrix")
+            sage: H.n()
+            3
+        """
+        return self._n
+
     @cached_method
     def gens(self):
         """
@@ -378,7 +396,7 @@ class HeisenbergAlgebra_matrix(HeisenbergAlgebra_fd, LieAlgebraFromAssociative):
     .. MATH::
 
         \begin{bmatrix}
-        0 & p^T & z \\
+        0 & p^T & k \\
         0 & 0_n & q \\
         0 & 0 & 0
         \end{bmatrix}
@@ -400,13 +418,13 @@ class HeisenbergAlgebra_matrix(HeisenbergAlgebra_fd, LieAlgebraFromAssociative):
         0 & 0 & 0
         \end{bmatrix},
         \\ z & = \begin{bmatrix}
-        0 & 0 & z \\
+        0 & 0 & 1 \\
         0 & 0_n & 0 \\
         0 & 0 & 0
         \end{bmatrix},
         \end{aligned}
 
-    where `\{e_i\}` is the standard basis.
+    where `\{e_i\}` is the standard basis of `R^n`.
 
     INPUT:
 
@@ -424,6 +442,8 @@ class HeisenbergAlgebra_matrix(HeisenbergAlgebra_fd, LieAlgebraFromAssociative):
         [0 0 0]
         sage: z == L.z()
         True
+        sage: L.dimension()
+        3
     """
     def __init__(self, R, n):
         """
@@ -442,8 +462,59 @@ class HeisenbergAlgebra_matrix(HeisenbergAlgebra_fd, LieAlgebraFromAssociative):
         names = tuple('p%s'%i for i in range(1,n+1))
         names = names + tuple('q%s'%i for i in range(1,n+1))
         cat = LieAlgebras(R).FiniteDimensional().WithBasis()
+        # We are allowed to do this, since we override ``basis``.
         LieAlgebraFromAssociative.__init__(self, MS, p + q, names=names,
                                            index_set=names, category=cat)
+
+    def basis(self):
+        """
+        Return the standard basis of ``self``.
+
+        This is the basis
+        `(p_1, p_2, \ldots, p_n, q_1, q_2, \ldots, q_n, z)`, where
+        `p_i = E_{1, i+1}`, `q_i = E_{i+1, n+1}` and `z = E_{1, n+1}`.
+
+        EXAMPLES::
+
+            sage: L = lie_algebras.Heisenberg(QQ, 2, representation="matrix")
+            sage: sorted(dict(L.basis()).items())
+            [(
+                  [0 1 0 0]
+                  [0 0 0 0]
+                  [0 0 0 0]
+            'p1', [0 0 0 0]
+            ),
+             (
+                  [0 0 1 0]
+                  [0 0 0 0]
+                  [0 0 0 0]
+            'p2', [0 0 0 0]
+            ),
+             (
+                  [0 0 0 0]
+                  [0 0 0 1]
+                  [0 0 0 0]
+            'q1', [0 0 0 0]
+            ),
+             (
+                  [0 0 0 0]
+                  [0 0 0 0]
+                  [0 0 0 1]
+            'q2', [0 0 0 0]
+            ),
+             (
+                 [0 0 0 1]
+                 [0 0 0 0]
+                 [0 0 0 0]
+            'z', [0 0 0 0]
+            )]
+        """
+        pq = self.lie_algebra_generators()
+        def monomial(i):
+            if i == 'z':
+                return self.z()
+            return pq[i]
+        return Family(self.variable_names() + ('z',), monomial)
 
     def _repr_(self):
         """
@@ -500,3 +571,40 @@ class HeisenbergAlgebra_matrix(HeisenbergAlgebra_fd, LieAlgebraFromAssociative):
         d = {(0,self._n+1): self.base_ring().one()}
         return self.element_class( self, self._assoc(d) )
 
+    class Element(LieAlgebraFromAssociative.Element):
+        def monomial_coefficients(self, copy=True):
+            """
+            Return a dictionary whose keys are indices of basis elements in
+            the support of ``self`` and whose values are the corresponding
+            coefficients.
+
+            INPUT:
+
+            - ``copy`` -- ignored
+
+            EXAMPLES::
+
+                sage: L = lie_algebras.Heisenberg(QQ, 3, representation="matrix")
+                sage: elt = L(Matrix(QQ, [[0, 1, 3, 0, 3], [0, 0, 0, 0, 0], [0, 0, 0, 0, -3],
+                ....:                     [0, 0, 0, 0, 7], [0, 0, 0, 0, 0]]))
+                sage: elt
+                [ 0  1  3  0  3]
+                [ 0  0  0  0  0]
+                [ 0  0  0  0 -3]
+                [ 0  0  0  0  7]
+                [ 0  0  0  0  0]
+                sage: sorted(elt.monomial_coefficients().items())
+                [('p1', 1), ('p2', 3), ('q2', -3), ('q3', 7), ('z', 3)]
+            """
+            d = {}
+            n = self.parent()._n
+            for i, mon in enumerate(self.parent().basis().keys()):
+                if i < n:
+                    entry = self[0, i+1]
+                elif i < 2 * n:
+                    entry = self[i-n+1, n+1]
+                else:
+                    entry = self[0, n+1]
+                if entry:
+                    d[mon] = entry
+            return d

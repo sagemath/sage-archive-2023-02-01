@@ -73,8 +73,8 @@ class LieAlgebraWithStructureCoefficients(FinitelyGeneratedLieAlgebra, IndexedGe
 
     - ``names`` -- list or tuple of strings
 
-    - ``index_set`` -- list or tuple of hashable and comparable
-      elements
+    - ``index_set`` -- (default: ``names``) list or tuple of hashable
+      and comparable elements
 
     OUTPUT:
 
@@ -259,7 +259,8 @@ class LieAlgebraWithStructureCoefficients(FinitelyGeneratedLieAlgebra, IndexedGe
 
     def bracket_on_basis(self, x, y):
         """
-        Return the Lie bracket of ``[x, y]``.
+        Return the Lie bracket ``[x, y]`` of two basis elements
+        (indexed by) ``x`` and ``y``.
 
         EXAMPLES::
 

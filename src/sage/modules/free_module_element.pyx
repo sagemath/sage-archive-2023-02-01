@@ -2079,9 +2079,16 @@ cdef class FreeModuleElement(Vector):   # abstract base class
         """
         Return dictionary of nonzero entries of ``self``.
 
+        More precisely, this returns a dictionary whose keys are indices
+        of basis elements in the support of ``self`` and whose values are
+        the corresponding coefficients.
+
         INPUT:
 
-        - ``copy`` -- bool (default: ``True``)
+        - ``copy`` -- (default: ``True``) if ``self`` is internally
+          represented by a dictionary ``d``, then make a copy of ``d``;
+          if ``False``, then this can cause undesired behavior by
+          mutating ``d``
 
         OUTPUT:
 
@@ -2092,8 +2099,11 @@ cdef class FreeModuleElement(Vector):   # abstract base class
             sage: v = vector([0,0,0,0,1/2,0,3/14])
             sage: v.dict()
             {4: 1/2, 6: 3/14}
+            sage: sorted(v.support())
+            [4, 6]
 
-        In some cases when copy=False, we get back a dangerous reference::
+        In some cases, when ``copy=False``, we get back a dangerous
+        reference::
 
             sage: v = vector({0:5, 2:3/7}, sparse=True)
             sage: v.dict(copy=False)
@@ -4838,9 +4848,16 @@ cdef class FreeModuleElement_generic_sparse(FreeModuleElement):
         """
         Return dictionary of nonzero entries of ``self``.
 
+        More precisely, this returns a dictionary whose keys are indices
+        of basis elements in the support of ``self`` and whose values are
+        the corresponding coefficients.
+
         INPUT:
 
-        - ``copy`` -- bool (default: ``True``)
+        - ``copy`` -- (default: ``True``) if ``self`` is internally
+          represented by a dictionary ``d``, then make a copy of ``d``;
+          if ``False``, then this can cause undesired behavior by
+          mutating ``d``
 
         OUTPUT:
 
@@ -4851,6 +4868,8 @@ cdef class FreeModuleElement_generic_sparse(FreeModuleElement):
             sage: v = vector([0,0,0,0,1/2,0,3/14], sparse=True)
             sage: v.dict()
             {4: 1/2, 6: 3/14}
+            sage: sorted(v.support())
+            [4, 6]
         """
         if copy:
             return dict(self._entries)

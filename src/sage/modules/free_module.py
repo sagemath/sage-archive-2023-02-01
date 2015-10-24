@@ -654,7 +654,8 @@ class FreeModule_generic(Module):
     def __init__(self, base_ring, rank, degree, sparse=False,
                  coordinate_ring=None, category=None):
         """
-        Create the free module of given rank over the given base_ring.
+        Create the free module of given rank ``rank`` over the given base
+        ring ``base_ring``.
 
         INPUT:
 
@@ -672,10 +673,11 @@ class FreeModule_generic(Module):
         - ``category`` -- category (default: None)
 
         If ``base_ring`` is a field, then the default category is the
-        category of vector spaces over that field; otherwise it is the
-        category of free modules over that ring.  In addition, the
-        category is intersected with the category of finite enumerated
-        sets if the ring is finite or the rank is 0.
+        category of finite-dimensional vector spaces over that field;
+        otherwise it is the category of finite-dimensional free modules
+        over that ring.  In addition, the category is intersected with the
+        category of finite enumerated sets if the ring is finite or the
+        rank is 0.
 
         EXAMPLES::
 
@@ -908,7 +910,7 @@ done from the right side.""")
 
     def _element_constructor_(self, x, coerce=True, copy=True, check=True):
         r"""
-        Create an element of this free module from x.
+        Create an element of this free module from ``x``.
 
         The ``coerce`` and ``copy`` arguments are
         passed on to the underlying element constructor. If
@@ -973,7 +975,7 @@ done from the right side.""")
 
     def is_submodule(self, other):
         """
-        Return True if self is a submodule of other.
+        Return ``True`` if ``self`` is a submodule of ``other``.
 
         EXAMPLES::
 
@@ -1007,11 +1009,9 @@ done from the right side.""")
             sage: M.is_submodule(N)
             True
 
-        Since basis() is not implemented in general, submodule testing does
-        not work for all PID's. However, trivial cases are already used
-        (and useful) for coercion, e.g.
-
-        ::
+        Since :meth:`basis` is not implemented in general, submodule
+        testing does not work for all PID's. However, trivial cases are
+        already used (and useful) for coercion, e.g. ::
 
             sage: QQ(1/2) * vector(ZZ['x']['y'],[1,2,3,4])
             (1/2, 1, 3/2, 2)

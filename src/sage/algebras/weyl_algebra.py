@@ -775,7 +775,7 @@ class DifferentialWeylAlgebra(Algebra, UniqueRepresentation):
             sage: dx, dy = W.differentials()
             sage: (dx*x).monomials()
             [1, x*dx]
-            sage: B[(x*y).monomials()[0]]
+            sage: B[(x*y).support()[0]]
             x*y
             sage: sorted((dx*x).monomial_coefficients().items())
             [(((0, 0), (0, 0)), 1), (((1, 0), (1, 0)), 1)]

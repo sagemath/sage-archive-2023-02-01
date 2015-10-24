@@ -457,7 +457,7 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
 
             sage: R.<q1,q2> = QQ[]
             sage: H = IwahoriHeckeAlgebra("A2", q1, q2=q2, base_ring=Frac(R))
-            sage: TestSuite(H).run()
+            sage: TestSuite(H.a_realization()).run()
         """
         self._W = W
         self._cartan_type = W.cartan_type()
@@ -1954,7 +1954,7 @@ class IwahoriHeckeAlgebra_nonstandard(IwahoriHeckeAlgebra):
         EXAMPLES::
 
             sage: H = sage.algebras.iwahori_hecke_algebra.IwahoriHeckeAlgebra_nonstandard("A2")
-            sage: TestSuite(H).run()
+            sage: TestSuite(H.a_realization()).run()
         """
         self._W = W
         self._cartan_type = W.cartan_type()

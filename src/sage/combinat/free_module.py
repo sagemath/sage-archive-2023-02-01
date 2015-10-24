@@ -556,7 +556,7 @@ class CombinatorialFreeModuleElement(Element):
 
         INPUT:
 
-        - ``new_base_ring`` -- a ring (default: None)
+        - ``new_base_ring`` -- a ring (default: ``None``)
 
         OUTPUT: a dense :func:`FreeModule` vector
 
@@ -597,8 +597,8 @@ class CombinatorialFreeModuleElement(Element):
             sage: a == QS3.from_vector(a.to_vector())
             True
 
-        If ''new_base_ring'' is specified, then a vector over
-        ''new_base_ring'' is returned::
+        If ``new_base_ring`` is specified, then a vector over
+        ``new_base_ring`` is returned::
 
             sage: a._vector_(RDF)
             (2.0, 0.0, 0.0, 0.0, 0.0, 4.0)
@@ -629,7 +629,8 @@ class CombinatorialFreeModuleElement(Element):
 
     def _acted_upon_(self, scalar, self_on_left=False):
         """
-        Return the action of ``scalar`` on ``self``.
+        Return the action of ``scalar`` (an element of the base ring) on
+        ``self``.
 
         EXAMPLES::
 

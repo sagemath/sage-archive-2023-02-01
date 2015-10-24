@@ -1194,6 +1194,31 @@ class LieAlgebraFromAssociative(LieAlgebra):
             return True
         return super(LieAlgebraFromAssociative, self).is_abelian()
 
+    def _an_element_(self):
+        """
+        Return an element of ``self``.
+
+        EXAMPLES::
+
+            sage: F.<x,y> = FreeAlgebra(QQ)
+
+        An infinitely generated example::
+
+            sage: L = LieAlgebra(associative=F)
+            sage: L.an_element()
+            x
+
+        A finitely generated example::
+
+            sage: L = LieAlgebra(associative=F.gens())
+            sage: L.an_element()
+            x + y
+        """
+        G = self.lie_algebra_generators()
+        if G.cardinality() < float('inf'):
+            return self.sum(G)
+        return G[self._indices.an_element()]
+
     class Element(LieAlgebraElementWrapper):
         def _bracket_(self, rhs):
             """
@@ -1234,6 +1259,32 @@ class LieAlgebraFromAssociative(LieAlgebra):
                 Free Algebra on 3 generators (x, y, z) over Rational Field
             """
             return self.value
+
+        def monomial_coefficients(self, copy=True):
+            """
+            Return the monomial coefficients of ``self`` (if this
+            notion makes sense for ``self.parent()``).
+
+            EXAMPLES::
+
+                sage: R.<x,y,z> = FreeAlgebra(QQ)
+                sage: L = LieAlgebra(associative=R)
+                sage: elt = L(x) + 2*L(y) - L(z)
+                sage: sorted(elt.monomial_coefficients().items())
+                [(x, 1), (y, 2), (z, -1)]
+
+                sage: L = LieAlgebra(associative=[x,y])
+                sage: elt = L(x) + 2*L(y)
+                sage: elt.monomial_coefficients()
+                Traceback (most recent call last):
+                ...
+                NotImplementedError: the basis is not defined
+            """
+            if self.parent()._gens is not None:
+                raise NotImplementedError("the basis is not defined")
+            # Copy is ignored until #18066 is merged or a dependency
+            #return self.value.monomial_coefficients(copy)
+            return self.value.monomial_coefficients()
 
 class LiftMorphismToAssociative(LiftMorphism):
     """

@@ -98,6 +98,19 @@ class LieAlgebraWithStructureCoefficients(FinitelyGeneratedLieAlgebra, IndexedGe
         z
         sage: L.bracket(y, x)
         -z
+
+    TESTS:
+
+    We can input structure coefficients that fail the Jacobi
+    identity, but the test suite will call us out on it::
+
+    We create the Lie algebra of `\QQ^3` under the Lie bracket defined
+    by `\times` (cross-product)::
+
+        sage: Fake = LieAlgebra(QQ, 'x,y,z', {('x','y'):{'z':3}, ('y','z'):{'z':1}, ('z','x'):{'y':1}})
+        sage: TestSuite(Fake).run()
+        Failure in _test_jacobi_identity:
+        ...
     """
     @staticmethod
     def __classcall_private__(cls, R, s_coeff, names=None, index_set=None, **kwds):

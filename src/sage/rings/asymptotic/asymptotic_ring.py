@@ -2032,6 +2032,38 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
             substitute_raise_exception(self, e)
 
 
+    def symbolic_expression(self):
+        r"""
+        Return this asymptotic expansion as a symbolic expression.
+
+        OUTPUT:
+
+        A symbolic expression.
+
+        EXAMPLES::
+
+            sage: A.<x, y, z> = AsymptoticRing(growth_group='x^ZZ * y^QQ * log(y)^QQ * QQ^z * z^QQ', coefficient_ring=QQ)
+            sage: SR(A.an_element())  # indirect doctest
+            1/8*(1/8)^z*x^3*y^(3/2)*z^(3/2)*log(y)^(3/2) +
+            Order((1/2)^z*x*sqrt(y)*sqrt(z)*sqrt(log(y)))
+
+        TESTS::
+
+            sage: a = A.an_element(); a
+            1/8*x^3*y^(3/2)*log(y)^(3/2)*(1/8)^z*z^(3/2) +
+            O(x*y^(1/2)*log(y)^(1/2)*(1/2)^z*z^(1/2))
+            sage: a.symbolic_expression()
+            1/8*(1/8)^z*x^3*y^(3/2)*z^(3/2)*log(y)^(3/2) +
+            Order((1/2)^z*x*sqrt(y)*sqrt(z)*sqrt(log(y)))
+            sage: _.parent()
+            Symbolic Ring
+        """
+        from sage.symbolic.ring import SR
+        return self.substitute(dict((g, SR.var(str(g)))
+                                    for g in self.parent().gens()),
+                               domain=SR)
+
+
 class AsymptoticRing(Algebra, UniqueRepresentation):
     r"""
     A ring consisting of :class:`asymptotic expansions <AsymptoticExpansion>`.

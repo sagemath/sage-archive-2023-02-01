@@ -834,9 +834,18 @@ class AbstractLinearCode(module.Module):
             Traceback (most recent call last):
             ...
             ValueError: You must set a valid encoder as default encoder for this code, by completing __init__.py
+
+        A ring instead of a field::
+
+            sage: codes.LinearCode(IntegerModRing(4),matrix.ones(4))
+            Traceback (most recent call last):
+            ...
+            ValueError: 'generator_matrix' must be defined on a field (not a ring)
         """
         if not isinstance(length, (int, Integer)):
             raise ValueError("length must be a Python int or a Sage Integer")
+        if not base_field.is_field():
+            raise ValueError("'base_field' must be a field (and {} is not one)".format(base_field))
         self._length = Integer(length)
         if not default_encoder_name in self._registered_encoders:
             raise ValueError("You must set a valid encoder as default encoder for this code, by completing  __init__.py")
@@ -845,7 +854,6 @@ class AbstractLinearCode(module.Module):
         facade_for = VectorSpace(base_field, self._length)
         self.Element = type(facade_for.an_element()) #for when we made this a non-facade parent
         Parent.__init__(self, base=base_field, facade=facade_for, category=cat)
-
 
     def _latex_(self):
         """
@@ -1642,23 +1650,14 @@ class AbstractLinearCode(module.Module):
         M = self.generator_matrix().transpose()
         R = self.base_ring()
 
-        if R in Fields():
-            def projectivize(row):
-                if not row.is_zero():
-                    for i in range(len(row)):
-                        if row[i]:
-                            break
-                    row = ~(row[i]) * row
-                row.set_immutable()
-                return row
-        else:
-            def projectivize(row):
-                orbit = set()
-                for r in R:
-                    rrow = row*r
-                    rrow.set_immutable()
-                    orbit.add(rrow)
-                return frozenset(orbit)
+        def projectivize(row):
+            if not row.is_zero():
+                for i in range(len(row)):
+                    if row[i]:
+                        break
+                row = ~(row[i]) * row
+            row.set_immutable()
+            return row
 
         rows = set()
         for row in M.rows():
@@ -3677,6 +3676,9 @@ class LinearCode(AbstractLinearCode):
             ValueError: this linear code contains no non-zero vector
         """
         base_ring = generator_matrix.base_ring()
+        if not base_ring.is_field():
+            raise ValueError("'generator_matrix' must be defined on a field (not a ring)")
+
         # if the matrix does not have full rank we replace it
         if generator_matrix.rank() != generator_matrix.nrows():
             from sage.matrix.constructor import matrix

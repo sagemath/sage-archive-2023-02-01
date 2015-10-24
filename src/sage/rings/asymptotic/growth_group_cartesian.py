@@ -27,6 +27,51 @@ AUTHORS:
         without a formal deprecation.
         See http://trac.sagemath.org/17601 for details.
         Growth Group x^ZZ * log(x)^ZZ
+
+TESTS::
+
+    sage: from sage.rings.asymptotic.growth_group import GrowthGroup
+    sage: A = GrowthGroup('QQ^x * x^ZZ'); A
+    Growth Group QQ^x * x^ZZ
+    sage: A.construction()
+    (The cartesian_product functorial construction,
+     (Growth Group QQ^x, Growth Group x^ZZ))
+    sage: A.construction()[1][0].construction()
+    (ExponentialGrowthGroup[x], Rational Field)
+    sage: A.construction()[1][1].construction()
+    (MonomialGrowthGroup[x], Integer Ring)
+    sage: B = GrowthGroup('x^ZZ * y^ZZ'); B
+    Growth Group x^ZZ * y^ZZ
+    sage: B.construction()
+    (The cartesian_product functorial construction,
+     (Growth Group x^ZZ, Growth Group y^ZZ))
+    sage: C = GrowthGroup('x^ZZ * log(x)^ZZ * y^ZZ'); C
+    Growth Group x^ZZ * log(x)^ZZ * y^ZZ
+    sage: C.construction()
+    (The cartesian_product functorial construction,
+     (Growth Group x^ZZ * log(x)^ZZ, Growth Group y^ZZ))
+    sage: C.construction()[1][0].construction()
+    (The cartesian_product functorial construction,
+     (Growth Group x^ZZ, Growth Group log(x)^ZZ))
+    sage: C.construction()[1][1].construction()
+    (MonomialGrowthGroup[y], Integer Ring)
+
+::
+
+    sage: cm = sage.structure.element.get_coercion_model()
+    sage: D = GrowthGroup('QQ^x * x^QQ')
+    sage: cm.common_parent(A, D)
+    Growth Group QQ^x * x^QQ
+    sage: E = GrowthGroup('ZZ^x * x^QQ')
+    sage: cm.common_parent(A, E)
+    Growth Group QQ^x * x^QQ
+
+::
+
+    sage: A.an_element()
+    (1/2)^x * x
+    sage: tuple(E.an_element())
+    (1, x^(1/2))
 """
 
 #*****************************************************************************
@@ -41,6 +86,139 @@ AUTHORS:
 #*****************************************************************************
 
 import sage
+from growth_group import combine_exceptions
+
+def merge_overlapping(A, B, key=None):
+    r"""
+    Merge the two overlapping tuples/lists.
+
+    INPUT:
+
+    - ``A`` -- a list or tuple (type has to coincide with type of ``B``).
+
+    - ``B`` -- a list or tuple (type has to coincide with type of ``A``).
+
+    - ``key`` -- (default: ``None``) a function. If ``None``, then the
+      identity is used.  This ``key``-function applied on an element
+      of the list/tuple is used for comparison. Thus elements with the
+      same key are considered as equal.
+
+    OUTPUT:
+
+    A pair of lists or tuples (depending on the type of ``A`` and ``B``).
+
+    .. NOTE::
+
+        Suppose we can decompose the list `A=ac` and `B=cb` with
+        lists `a`, `b`, `c`, where `c` is nonempty. Then
+        :func:`merge_overlapping` returns the pair `(acb, acb)`.
+
+        Suppose a ``key``-function is specified and `A=ac_A` and
+        `B=c_Bb`, where the list of keys of the elements of `c_A`
+        equals the list of keys of the elements of `c_B`. Then
+        :func:`merge_overlapping` returns the pair `(ac_Ab, ac_Bb)`.
+
+        After unsuccessfully merging `A=ac` and `B=cb`,
+        a merge of `A=ca` and `B=bc` is tried.
+
+    TESTS::
+
+        sage: from sage.rings.asymptotic.growth_group_cartesian import merge_overlapping
+        sage: def f(L, s):
+        ....:     return list((ell, s) for ell in L)
+        sage: key = lambda k: k[0]
+        sage: merge_overlapping(f([0..3], 'a'), f([5..7], 'b'), key)
+        Traceback (most recent call last):
+        ...
+        ValueError: Input does not have an overlap.
+        sage: merge_overlapping(f([0..2], 'a'), f([4..7], 'b'), key)
+        Traceback (most recent call last):
+        ...
+        ValueError: Input does not have an overlap.
+        sage: merge_overlapping(f([4..7], 'a'), f([0..2], 'b'), key)
+        Traceback (most recent call last):
+        ...
+        ValueError: Input does not have an overlap.
+        sage: merge_overlapping(f([0..3], 'a'), f([3..4], 'b'), key)
+        ([(0, 'a'), (1, 'a'), (2, 'a'), (3, 'a'), (4, 'b')],
+         [(0, 'a'), (1, 'a'), (2, 'a'), (3, 'b'), (4, 'b')])
+        sage: merge_overlapping(f([3..4], 'a'), f([0..3], 'b'), key)
+        ([(0, 'b'), (1, 'b'), (2, 'b'), (3, 'a'), (4, 'a')],
+         [(0, 'b'), (1, 'b'), (2, 'b'), (3, 'b'), (4, 'a')])
+        sage: merge_overlapping(f([0..1], 'a'), f([0..4], 'b'), key)
+        ([(0, 'a'), (1, 'a'), (2, 'b'), (3, 'b'), (4, 'b')],
+         [(0, 'b'), (1, 'b'), (2, 'b'), (3, 'b'), (4, 'b')])
+        sage: merge_overlapping(f([0..3], 'a'), f([0..1], 'b'), key)
+        ([(0, 'a'), (1, 'a'), (2, 'a'), (3, 'a')],
+         [(0, 'b'), (1, 'b'), (2, 'a'), (3, 'a')])
+        sage: merge_overlapping(f([0..3], 'a'), f([1..3], 'b'), key)
+        ([(0, 'a'), (1, 'a'), (2, 'a'), (3, 'a')],
+         [(0, 'a'), (1, 'b'), (2, 'b'), (3, 'b')])
+        sage: merge_overlapping(f([1..3], 'a'), f([0..3], 'b'), key)
+        ([(0, 'b'), (1, 'a'), (2, 'a'), (3, 'a')],
+         [(0, 'b'), (1, 'b'), (2, 'b'), (3, 'b')])
+        sage: merge_overlapping(f([0..6], 'a'), f([3..4], 'b'), key)
+        ([(0, 'a'), (1, 'a'), (2, 'a'), (3, 'a'), (4, 'a'), (5, 'a'), (6, 'a')],
+         [(0, 'a'), (1, 'a'), (2, 'a'), (3, 'b'), (4, 'b'), (5, 'a'), (6, 'a')])
+        sage: merge_overlapping(f([0..3], 'a'), f([1..2], 'b'), key)
+        ([(0, 'a'), (1, 'a'), (2, 'a'), (3, 'a')],
+         [(0, 'a'), (1, 'b'), (2, 'b'), (3, 'a')])
+        sage: merge_overlapping(f([1..2], 'a'), f([0..3], 'b'), key)
+        ([(0, 'b'), (1, 'a'), (2, 'a'), (3, 'b')],
+         [(0, 'b'), (1, 'b'), (2, 'b'), (3, 'b')])
+        sage: merge_overlapping(f([1..3], 'a'), f([1..3], 'b'), key)
+        ([(1, 'a'), (2, 'a'), (3, 'a')],
+         [(1, 'b'), (2, 'b'), (3, 'b')])
+    """
+    if key is None:
+        Akeys = A
+        Bkeys = B
+    else:
+        Akeys = tuple(key(a) for a in A)
+        Bkeys = tuple(key(b) for b in B)
+
+    def find_overlapping_index(A, B):
+        if len(B) > len(A) - 2:
+            raise StopIteration
+        matches = iter(i for i in xrange(1, len(A) - len(B))
+                       if A[i:i+len(B)] == B)
+        return next(matches)
+
+    def find_mergedoverlapping_index(A, B):
+        """
+        Return in index i where to merge two overlapping tuples/lists ``A`` and ``B``.
+
+        Then ``A + B[i:]`` or ``A[:-i] + B`` are the merged tuples/lists.
+
+        Adapted from http://stackoverflow.com/a/30056066/1052778.
+        """
+        matches = iter(i for i in xrange(min(len(A), len(B)), 0, -1)
+                       if A[-i:] == B[:i])
+        return next(matches, 0)
+
+    i = find_mergedoverlapping_index(Akeys, Bkeys)
+    if i > 0:
+        return A + B[i:], A[:-i] + B
+
+    i = find_mergedoverlapping_index(Bkeys, Akeys)
+    if i > 0:
+        return B[:-i] + A, B + A[i:]
+
+    try:
+        i = find_overlapping_index(Akeys, Bkeys)
+    except StopIteration:
+        pass
+    else:
+        return A, A[:i] + B + A[i+len(B):]
+
+    try:
+        i = find_overlapping_index(Bkeys, Akeys)
+    except StopIteration:
+        pass
+    else:
+        return B[:i] + A + B[i+len(A):], B
+
+    raise ValueError('Input does not have an overlap.')
 
 
 class CartesianProductFactory(sage.structure.factory.UniqueFactory):
@@ -161,9 +339,9 @@ class CartesianProductFactory(sage.structure.factory.UniqueFactory):
         vgs = tuple((v, tuple(gs)) for v, gs in
                     groupby(sorted(vg, key=lambda k: k[0]), key=lambda k: k[0]))
 
-        # check if variables are pairwise disjoint
+        # check whether variables are pairwise disjoint
         for u, w in product(iter(v for v, _ in vgs), repeat=2):
-            if u != w and set(u).intersection(set(w)):
+            if u != w and not set(u).isdisjoint(set(w)):
                 raise ValueError('The growth groups %s need to have pairwise '
                                  'disjoint or equal variables.' % (growth_groups,))
 
@@ -219,19 +397,7 @@ class GenericProduct(CartesianProductPoset, GenericGrowthGroup):
         :class:`~sage.combinat.posets.cartesian_product.CartesianProductPoset`.
     """
 
-    @staticmethod
-    def __classcall__(cls, *args, **kwds):
-        r"""
-        Normalizes the input in order to ensure a unique
-        representation.
-
-        TESTS::
-
-            sage: from sage.rings.asymptotic.growth_group import GrowthGroup
-            sage: GrowthGroup('x^ZZ * y^ZZ')  # indirect doctest
-            Growth Group x^ZZ * y^ZZ
-        """
-        return CartesianProductPoset.__classcall__(cls, *args, **kwds)
+    __classcall__ = CartesianProductPoset.__classcall__
 
 
     def __init__(self, sets, category, **kwds):
@@ -252,26 +418,12 @@ class GenericProduct(CartesianProductPoset, GenericGrowthGroup):
                    tuple())
         from itertools import groupby
         from growth_group import Variable
-        Vars = Variable(tuple(v for v, _ in groupby(vars)))
+        Vars = Variable(tuple(v for v, _ in groupby(vars)), repr=self._repr_short_())
 
         GenericGrowthGroup.__init__(self, sets[0], Vars, self.category(), **kwds)
 
 
-    def __hash__(self):
-        r"""
-        Return a hash value for this cartesian product.
-
-        OUTPUT:
-
-        An integer.
-
-        TESTS::
-
-            sage: from sage.rings.asymptotic.growth_group import GrowthGroup
-            sage: hash(GrowthGroup('x^ZZ * y^ZZ'))  # indirect doctest, random
-            -1
-        """
-        return CartesianProductPoset.__hash__(self)
+    __hash__ = CartesianProductPoset.__hash__
 
 
     def _element_constructor_(self, data):
@@ -310,72 +462,82 @@ class GenericProduct(CartesianProductPoset, GenericGrowthGroup):
 
             sage: G_log(log(x))
             log(x)
+
+        ::
+
+            sage: G(G.cartesian_factors()[0].gen())
+            x
+
+        ::
+
+            sage: GrowthGroup('QQ^x * x^QQ')(['x^(1/2)'])
+            x^(1/2)
+            sage: l = GrowthGroup('x^ZZ * log(x)^ZZ')(['x', 'log(x)']); l
+            x * log(x)
+            sage: type(l)
+            <class 'sage.rings.asymptotic.growth_group_cartesian.UnivariateProduct_with_category.element_class'>
+            sage: GrowthGroup('QQ^x * x^QQ')(['2^log(x)'])
+            Traceback (most recent call last):
+            ...
+            ValueError: ['2^log(x)'] is not in Growth Group QQ^x * x^QQ.
+            previous: ValueError: 2^log(x) is not in any of the factors of
+            Growth Group QQ^x * x^QQ
+            sage: GrowthGroup('QQ^x * x^QQ')(['2^log(x)', 'x^55'])
+            Traceback (most recent call last):
+            ...
+            ValueError: ['2^log(x)', 'x^55'] is not in Growth Group QQ^x * x^QQ.
+            previous: ValueError: 2^log(x) is not in any of the factors of
+            Growth Group QQ^x * x^QQ
         """
+        def convert_factors(data, raw_data):
+            try:
+                return self._convert_factors_(data)
+            except ValueError as e:
+                raise combine_exceptions(
+                    ValueError('%s is not in %s.' % (raw_data, self)), e)
+
         if data == 1:
             return self.one()
 
-        if data is None:
+        elif data is None:
             raise ValueError('%s cannot be converted.' % (data,))
 
-        if isinstance(data, list):
-            try:
-                obj = super(GenericProduct,
-                            self)._element_constructor_(data)
-                return obj
-            except ValueError:
-                return self.prod(self(elem) for elem in data)
+        elif type(data) == self.element_class and data.parent() == self:
+            return data
 
-        if hasattr(data, 'parent'):
+        elif isinstance(data, self.element_class):
+            return self.element_class(self, data)
+
+        elif isinstance(data, (tuple, list,
+                               sage.sets.cartesian_product.CartesianProduct.Element)):
+            try:
+                return super(GenericProduct, self)._element_constructor_(data)
+            except ValueError:
+                pass
+
+            return convert_factors(data, data)
+
+        elif isinstance(data, str):
+            from growth_group import split_str_by_mul
+            return convert_factors(split_str_by_mul(data), data)
+
+        elif hasattr(data, 'parent'):
             P = data.parent()
+
             if P is self:
                 return data
 
             elif P is sage.symbolic.ring.SR:
-                import operator
                 from sage.symbolic.operators import mul_vararg
-                op = data.operator()
-                if op == operator.pow or data.is_symbol() \
-                        or isinstance(op, sage.functions.log.Function_log):
-                    return self(self._convert_to_factor_(data))
-                elif op == mul_vararg:
-                    return self(data.operands())
+                if data.operator() == mul_vararg:
+                    return convert_factors(data.operands(), data)
+
             # room for other parents (e.g. polynomial ring et al.)
 
-        # try to convert the input to one of the factors
-        data_conv = self._convert_to_factor_(data)
-        if data_conv is not None:
-            factors = self.cartesian_factors()
-            return self([data_conv if factor == data_conv.parent() else 1 for
-                         factor in factors])
-
-        # final attempt: try parsing the representation string
-        str_lst = str(data).replace(' ', '').split('*')
-        return self(str_lst)
+        return convert_factors((data,), data)
 
 
-    def _repr_(self, condense=False):
-        r"""
-        A representation string of this cartesian product of growth groups.
-
-        INPUT:
-
-        - ``condense`` -- (default: ``False``) if set, then a shorter
-          output is returned, e.g. the prefix-string ``Growth Group``
-          is not show in this case.
-
-        OUTPUT:
-
-        A string.
-
-        EXAMPLES::
-
-            sage: import sage.rings.asymptotic.growth_group as agg
-            sage: P = agg.MonomialGrowthGroup(QQ, 'x')
-            sage: L = agg.MonomialGrowthGroup(ZZ, 'log(x)')
-            sage: cartesian_product([P, L], order='lex')._repr_()
-            'Growth Group x^QQ * log(x)^ZZ'
-        """
-        return GenericGrowthGroup._repr_(self, condense)
+    _repr_ = GenericGrowthGroup._repr_
 
 
     def _repr_short_(self):
@@ -402,50 +564,263 @@ class GenericProduct(CartesianProductPoset, GenericGrowthGroup):
         return ' * '.join(S._repr_short_() for S in self.cartesian_factors())
 
 
-    def _convert_to_factor_(self, data):
+    def _convert_factors_(self, factors):
         r"""
-        Helper method. Try to convert some input ``data`` to an
-        element of one of the cartesian factors of this product.
+        Helper method. Try to convert some ``factors`` to an
+        element of one of the cartesian factors and return the product of
+        all these factors.
 
         INPUT:
 
-        - ``data`` -- some input to be converted.
+        - ``factors`` -- a tuple or other iterable.
 
         OUTPUT:
 
-        An element of an cartesian factor of this product,
-        or ``None``.
+        An element of this cartesian product.
 
         EXAMPLES::
 
             sage: from sage.rings.asymptotic.growth_group import GrowthGroup
             sage: G = GrowthGroup('x^ZZ * log(x)^QQ * y^QQ')
-            sage: e1 = G._convert_to_factor_(x^2)
+            sage: e1 = G._convert_factors_([x^2])
             sage: (e1, e1.parent())
-            (x^2, Growth Group x^ZZ * log(x)^QQ)
-            sage: G._convert_to_factor_('asdf') is None
-            True
+            (x^2, Growth Group x^ZZ * log(x)^QQ * y^QQ)
         """
-        for factor in self.cartesian_factors():
-            try:
-                if hasattr(factor, '_convert_to_factor_'):
-                    return factor(factor._convert_to_factor_(data))
-                return factor(data)
-            except (ValueError, TypeError):
-                continue
+        from sage.misc.misc_c import prod
+
+        def get_factor(data):
+            for factor in self.cartesian_factors():
+                try:
+                    return factor, factor(data)
+                except (ValueError, TypeError):
+                    pass
+            raise ValueError('%s is not in any of the factors of %s' % (data, self))
+
+        return prod(self.cartesian_injection(*get_factor(f))
+                    for f in factors)
+
+
+    def cartesian_injection(self, factor, element):
+        r"""
+        Inject the given element into this cartesian product at the given factor.
+
+        INPUT:
+
+        - ``factor`` -- a growth group (a factor of this cartesian product).
+
+        - ``element`` -- an element of ``factor``.
+
+        OUTPUT:
+
+        An element of this cartesian product.
+
+        TESTS::
+
+            sage: from sage.rings.asymptotic.growth_group import GrowthGroup
+            sage: G = GrowthGroup('x^ZZ * y^QQ')
+            sage: G.cartesian_injection(G.cartesian_factors()[1], 'y^7')
+            y^7
+        """
+        return self(tuple((f.one() if f != factor else element)
+                          for f in self.cartesian_factors()))
 
 
     def _coerce_map_from_(self, S):
         r"""
         Return ``True`` if there is a coercion from ``S``.
 
-        EXAMPLES::
+        INPUT:
+
+        - ``S`` -- a parent.
+
+        OUTPUT:
+
+        A boolean.
+
+        TESTS::
 
             sage: from sage.rings.asymptotic.growth_group import GrowthGroup
-            sage: GrowthGroup('x^ZZ * log(x)^ZZ').has_coerce_map_from(QQ)  # indirect doctest
+            sage: A = GrowthGroup('QQ^x * x^QQ')
+            sage: B = GrowthGroup('QQ^x * x^ZZ')
+            sage: A.has_coerce_map_from(B) # indirect doctest
+            True
+            sage: B.has_coerce_map_from(A) # indirect doctest
             False
         """
-        pass
+        if CartesianProductPoset.has_coerce_map_from(self, S):
+            return True
+
+        elif isinstance(S, GenericProduct):
+            factors = S.cartesian_factors()
+        else:
+            factors = (S,)
+
+        if all(any(g.has_coerce_map_from(f) for g in self.cartesian_factors())
+               for f in factors):
+            return True
+
+
+    def _pushout_(self, other):
+        r"""
+        Construct the pushout of this and the other growth group. This is called by
+        :func:`sage.categories.pushout.pushout`.
+
+        TESTS::
+
+            sage: from sage.rings.asymptotic.growth_group import GrowthGroup
+            sage: from sage.categories.pushout import pushout
+            sage: cm = sage.structure.element.get_coercion_model()
+            sage: A = GrowthGroup('QQ^x * x^ZZ')
+            sage: B = GrowthGroup('x^ZZ * log(x)^ZZ')
+            sage: A._pushout_(B)
+            Growth Group QQ^x * x^ZZ * log(x)^ZZ
+            sage: pushout(A, B)
+            Growth Group QQ^x * x^ZZ * log(x)^ZZ
+            sage: cm.discover_coercion(A, B)
+            ((map internal to coercion system -- copy before use)
+             Conversion map:
+               From: Growth Group QQ^x * x^ZZ
+               To:   Growth Group QQ^x * x^ZZ * log(x)^ZZ,
+             (map internal to coercion system -- copy before use)
+             Conversion map:
+               From: Growth Group x^ZZ * log(x)^ZZ
+               To:   Growth Group QQ^x * x^ZZ * log(x)^ZZ)
+            sage: cm.common_parent(A, B)
+            Growth Group QQ^x * x^ZZ * log(x)^ZZ
+
+        ::
+
+            sage: C = GrowthGroup('QQ^x * x^QQ * y^ZZ')
+            sage: D = GrowthGroup('x^ZZ * log(x)^QQ * QQ^z')
+            sage: C._pushout_(D)
+            Growth Group QQ^x * x^QQ * log(x)^QQ * y^ZZ * QQ^z
+            sage: cm.common_parent(C, D)
+            Growth Group QQ^x * x^QQ * log(x)^QQ * y^ZZ * QQ^z
+            sage: A._pushout_(D)
+            Growth Group QQ^x * x^ZZ * log(x)^QQ * QQ^z
+            sage: cm.common_parent(A, D)
+            Growth Group QQ^x * x^ZZ * log(x)^QQ * QQ^z
+            sage: cm.common_parent(B, D)
+            Growth Group x^ZZ * log(x)^QQ * QQ^z
+            sage: cm.common_parent(A, C)
+            Growth Group QQ^x * x^QQ * y^ZZ
+            sage: E = GrowthGroup('log(x)^ZZ * y^ZZ')
+            sage: cm.common_parent(A, E)
+            Traceback (most recent call last):
+            ...
+            TypeError: no common canonical parent for objects with parents:
+            'Growth Group QQ^x * x^ZZ' and 'Growth Group log(x)^ZZ * y^ZZ'
+
+        ::
+
+            sage: F = GrowthGroup('z^QQ')
+            sage: pushout(C, F)
+            Growth Group QQ^x * x^QQ * y^ZZ * z^QQ
+        """
+        from growth_group import GenericGrowthGroup, AbstractGrowthGroupFunctor
+
+        if isinstance(other, GenericProduct):
+            Ofactors = other.cartesian_factors()
+        elif isinstance(other, GenericGrowthGroup):
+            Ofactors = (other,)
+        elif (other.construction() is not None and
+              isinstance(other.construction()[0], AbstractGrowthGroupFunctor)):
+            Ofactors = (other,)
+        else:
+            return
+
+
+        def pushout_univariate_factors(self, other, var, Sfactors, Ofactors):
+            try:
+                return merge_overlapping(
+                    Sfactors, Ofactors,
+                    lambda f: (type(f), f._var_.var_repr))
+            except ValueError:
+                pass
+
+            cm = sage.structure.element.get_coercion_model()
+            try:
+                Z = cm.common_parent(*Sfactors+Ofactors)
+                return (Z,), (Z,)
+            except TypeError:
+                pass
+
+            def subfactors(F):
+                for f in F:
+                    if isinstance(f, GenericProduct):
+                        for g in subfactors(f.cartesian_factors()):
+                            yield g
+                    else:
+                        yield f
+
+            try:
+                return merge_overlapping(
+                    tuple(subfactors(Sfactors)), tuple(subfactors(Ofactors)),
+                    lambda f: (type(f), f._var_.var_repr))
+            except ValueError:
+                pass
+
+            from sage.structure.coerce_exceptions import CoercionException
+            raise CoercionException(
+                'Cannot construct the pushout of %s and %s: The factors '
+                'with variables %s are not overlapping, '
+                'no common parent was found, and '
+                'splitting the factors was unsuccessful.' % (self, other, var))
+
+
+        class it:
+            def __init__(self, it):
+                self.it = it
+                self.var = None
+                self.factors = None
+            def next(self):
+                try:
+                    self.var, factors = next(self.it)
+                    self.factors = tuple(factors)
+                except StopIteration:
+                    self.var = None
+                    self.factors = tuple()
+
+        from itertools import groupby
+        S = it(groupby(self.cartesian_factors(), key=lambda k: k.variable_names()))
+        O = it(groupby(Ofactors, key=lambda k: k.variable_names()))
+
+        newS = []
+        newO = []
+
+        S.next()
+        O.next()
+        while S.var is not None or O.var is not None:
+            if S.var is not None and S.var < O.var:
+                newS.extend(S.factors)
+                newO.extend(S.factors)
+                S.next()
+            elif O.var is not None and S.var > O.var:
+                newS.extend(O.factors)
+                newO.extend(O.factors)
+                O.next()
+            else:
+                SL, OL = pushout_univariate_factors(self, other, S.var,
+                                                    S.factors, O.factors)
+                newS.extend(SL)
+                newO.extend(OL)
+                S.next()
+                O.next()
+
+        assert(len(newS) == len(newO))
+
+        if (len(self.cartesian_factors()) == len(newS) and
+            len(other.cartesian_factors()) == len(newO)):
+            # We had already all factors in each of the self and
+            # other, thus splitting it in subproblems (one for
+            # each factor) is the strategy to use. If a pushout is
+            # possible :func:`sage.categories.pushout.pushout`
+            # will manage this by itself.
+            return
+
+        from sage.categories.pushout import pushout
+        from sage.categories.cartesian_product import cartesian_product
+        return pushout(cartesian_product(newS), cartesian_product(newO))
 
 
     def gens_monomial(self):
@@ -472,9 +847,15 @@ class GenericProduct(CartesianProductPoset, GenericGrowthGroup):
             sage: G = agg.GrowthGroup('x^ZZ * log(x)^ZZ * y^QQ * log(z)^ZZ')
             sage: G.gens_monomial()
             (x, y)
+
+        TESTS::
+
+            sage: all(g.parent() == G for g in G.gens_monomial())
+            True
         """
-        return sum(iter(factor.gens_monomial()
-                        for factor in self.cartesian_factors()),
+        return sum(iter(
+            tuple(self.cartesian_injection(factor, g) for g in factor.gens_monomial())
+            for factor in self.cartesian_factors()),
                    tuple())
 
 
@@ -500,6 +881,7 @@ class GenericProduct(CartesianProductPoset, GenericGrowthGroup):
 
 
     class Element(CartesianProductPoset.Element):
+
         def _repr_(self):
             r"""
             A representation string for this cartesian product element.

@@ -172,6 +172,7 @@ The comparison of asymptotic terms with `\leq` is implemented as follows:
 Long story short: we consider terms with different coefficients that
 have equal growth to be incomparable.
 
+
 Various
 =======
 
@@ -187,6 +188,14 @@ AUTHORS:
 - Benjamin Hackl (2015-06): refactoring caused by refactoring growth groups
 - Daniel Krenn (2015-07): extensive review and patches
 - Benjamin Hackl (2015-07): cross-review; short notation
+
+ACKNOWLEDGEMENT:
+
+- Benjamin Hackl, Clemens Heuberger and Daniel Krenn are supported by the
+  Austrian Science Fund (FWF): P 24644-N26.
+
+- Benjamin Hackl is supported by the Google Summer of Code 2015.
+
 
 Classes and Methods
 ===================
@@ -349,20 +358,17 @@ class GenericTerm(sage.structure.element.MonoidElement):
             sage: atm.GenericTerm(T, agg.GrowthGroup('y^ZZ').gen())
             Traceback (most recent call last):
             ...
-            ValueError: y is not in the parent's specified growth group
+            ValueError: y is not in Growth Group x^ZZ
         """
         from sage.rings.asymptotic.growth_group import GenericGrowthElement
 
         if parent is None:
             raise ValueError('The parent must be provided')
-        if growth is None or not isinstance(growth, GenericGrowthElement):
-            raise ValueError('The growth must be provided and must inherit '
-                             'from GenericGrowthElement')
-        elif growth not in parent.growth_group:
-            raise ValueError("%s is not in the parent's "
-                             "specified growth group" % growth)
+        try:
+            self.growth = parent.growth_group(growth)
+        except ValueError, TypeError:
+            raise ValueError("%s is not in %s" % (growth, parent.growth_group))
 
-        self.growth = growth
         super(GenericTerm, self).__init__(parent=parent)
 
 
@@ -2185,15 +2191,16 @@ class ExactTerm(TermWithCoefficient):
             sage: ET(x^0, 42)
             42
         """
-        if self.growth._raw_element_ == 0:
-            return '%s' % self.coefficient
+        g = repr(self.growth)
+        c = repr(self.coefficient)
+        if g == '1':
+            return c
+        elif c == '1':
+            return '%s' % (g,)
+        elif c == '-1':
+            return '-%s' % (g,)
         else:
-            if self.coefficient == 1:
-                return '%s' % self.growth
-            elif self.coefficient == -1:
-                return '-%s' % self.growth
-            else:
-                return '%s*%s' % (self.coefficient, self.growth)
+            return '%s*%s' % (c, g)
 
 
     def __invert__(self):

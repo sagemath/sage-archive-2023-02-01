@@ -60,19 +60,23 @@ variable `z` this means, `g_1 \leq g_2` if
 
     TESTS::
 
-        sage: import sage.rings.asymptotic.growth_group as agg
-        sage: import sage.rings.asymptotic.term_monoid as atm
-        sage: G = agg.MonomialGrowthGroup(ZZ, 'x')
+        sage: from sage.rings.asymptotic.growth_group import GrowthGroup
+        sage: G = GrowthGroup('x^ZZ')
         doctest:...: FutureWarning: This class/method/function is marked as
         experimental. It, its functionality or its interface might change
         without a formal deprecation.
         See http://trac.sagemath.org/17601 for details.
-        sage: T = atm.ExactTermMonoid(G, ZZ)
+        sage: from sage.rings.asymptotic.term_monoid import TermMonoid
+        sage: T = TermMonoid('exact', G, ZZ)
         doctest:...: FutureWarning: This class/method/function is marked as
         experimental. It, its functionality or its interface might change
         without a formal deprecation.
         See http://trac.sagemath.org/17601 for details.
-        sage: R.<x> = AsymptoticRing(growth_group='x^ZZ', coefficient_ring=ZZ)
+        sage: R.<x, y> = AsymptoticRing(growth_group='x^ZZ * y^ZZ', coefficient_ring=ZZ)
+        doctest:...: FutureWarning: This class/method/function is marked as
+        experimental. It, its functionality or its interface might change
+        without a formal deprecation.
+        See http://trac.sagemath.org/17601 for details.
 
 .. _asymptotic_ring_intro:
 
@@ -1398,6 +1402,8 @@ class AsymptoticRing(Ring, UniqueRepresentation):
             return
         if self.coefficient_ring.has_coerce_map_from(R):
             return True
+        if self.growth_group.has_coerce_map_from(R):
+            return True
         elif isinstance(R, AsymptoticRing):
             if self.growth_group.has_coerce_map_from(R.growth_group) and \
                     self.coefficient_ring.has_coerce_map_from(R.coefficient_ring):
@@ -1521,10 +1527,14 @@ class AsymptoticRing(Ring, UniqueRepresentation):
             sage: AR.<x> = AsymptoticRing(growth_group='x^ZZ', coefficient_ring=ZZ)
             sage: AR.gens()
             (x,)
+            sage: B.<y,z> = AsymptoticRing(growth_group='y^ZZ * z^ZZ', coefficient_ring=QQ)
+            sage: B.gens()
+            (y, z)
         """
-        from sage.rings.asymptotic.growth_group import MonomialGrowthGroup
-        if isinstance(self.growth_group, MonomialGrowthGroup):
-            return self.create_summand('exact', growth=self.growth_group.gen(), coefficient=1),
+        return tuple(self.create_summand('exact',
+                                         growth=g,
+                                         coefficient=self.coefficient_ring(1))
+                     for g in self.growth_group.gens_monomial())
 
 
     def gen(self, n=0):
@@ -1566,11 +1576,7 @@ class AsymptoticRing(Ring, UniqueRepresentation):
             sage: AR.ngens()
             1
         """
-        from sage.rings.asymptotic.growth_group import MonomialGrowthGroup
-        if isinstance(self.growth_group, MonomialGrowthGroup):
-            return 1
-        else:
-            return 0
+        return len(self.growth_group.gens_monomial())
 
 
     def create_summand(self, type, growth, **kwds):
@@ -1611,3 +1617,235 @@ class AsymptoticRing(Ring, UniqueRepresentation):
             return self(kwds['coefficient'])
 
         return self(TM(growth, **kwds))
+
+
+    def variable_names(self):
+        r"""
+        Return the names of the variables.
+
+        OUTPUT:
+
+        A tuple of strings.
+
+        EXAMPLES::
+
+            sage: A = AsymptoticRing(growth_group='x^ZZ * QQ^y', coefficient_ring=QQ)
+            sage: A.variable_names()
+            ('x', 'y')
+        """
+        return self.growth_group.variable_names()
+
+
+    def construction(self):
+        r"""
+        Return the construction of this asymptotic ring.
+
+        OUTPUT:
+
+        A pair whose first entry is an
+        :class:`asymptotic ring construction functor <AsymptoticRingFunctor>`
+        and its second entry the coefficient ring.
+
+        EXAMPLES::
+
+            sage: A = AsymptoticRing(growth_group='x^ZZ * QQ^y', coefficient_ring=QQ)
+            sage: A.construction()
+            (AsymptoticRing<x^ZZ * QQ^y>, Rational Field)
+
+        .. SEEALSO::
+
+            :mod:`sage.rings.asymptotic.asymptotic_ring`,
+            :class:`AsymptoticRing`,
+            :class:`AsymptoticRingFunctor`.
+        """
+
+        return AsymptoticRingFunctor(self.growth_group), self.coefficient_ring
+
+
+from sage.categories.pushout import ConstructionFunctor
+from growth_group import Variable
+class AsymptoticRingFunctor(ConstructionFunctor):
+    r"""
+    A :class:`construction functor <sage.categories.pushout.ConstructionFunctor>`
+    for :class:`asymptotic rings <AsymptoticRing>`.
+
+    INPUT:
+
+    - ``growth_group`` -- a partially ordered group (see
+      :class:`AsymptoticRing` or
+      :mod:`~sage.rings.asymptotic.growth_group` for details).
+
+    EXAMPLES::
+
+        sage: AsymptoticRing(growth_group='x^ZZ', coefficient_ring=QQ).construction()  # indirect doctest
+        (AsymptoticRing<x^ZZ>, Rational Field)
+
+    .. SEEALSO::
+
+        :mod:`sage.rings.asymptotic.asymptotic_ring`,
+        :class:`AsymptoticRing`,
+        :class:`sage.rings.asymptotic.growth_group.AbstractGrowthGroupFunctor`,
+        :class:`sage.rings.asymptotic.growth_group.ExponentialGrowthGroupFunctor`,
+        :class:`sage.rings.asymptotic.growth_group.MonomialGrowthGroupFunctor`,
+        :class:`sage.categories.pushout.ConstructionFunctor`.
+
+    TESTS::
+
+        sage: X = AsymptoticRing(growth_group='x^ZZ', coefficient_ring=QQ)
+        sage: Y = AsymptoticRing(growth_group='y^ZZ', coefficient_ring=QQ)
+        sage: cm = sage.structure.element.get_coercion_model()
+        sage: cm.record_exceptions()
+        sage: cm.common_parent(X, Y)
+        Asymptotic Ring <x^ZZ * y^ZZ> over Rational Field
+        sage: sage.structure.element.coercion_traceback()  # not tested
+    """
+
+    rank = 13
+
+
+    def __init__(self, growth_group):
+        r"""
+        See :class:`AsymptoticRingFunctor` for details.
+
+        TESTS::
+
+            sage: from sage.rings.asymptotic.asymptotic_ring import AsymptoticRingFunctor
+            sage: from sage.rings.asymptotic.growth_group import GrowthGroup
+            sage: AsymptoticRingFunctor(GrowthGroup('x^ZZ'))
+            AsymptoticRing<x^ZZ>
+        """
+        self.growth_group = growth_group
+
+        from sage.categories.rings import Rings
+        super(ConstructionFunctor, self).__init__(
+            Rings(), Rings())
+
+
+    def _repr_(self):
+        r"""
+        Return a representation string of this functor.
+
+        OUTPUT:
+
+        A string.
+
+        TESTS::
+
+            sage: AsymptoticRing(growth_group='x^ZZ', coefficient_ring=QQ).construction()[0]  # indirect doctest
+            AsymptoticRing<x^ZZ>
+        """
+        return 'AsymptoticRing<%s>' % (self.growth_group._repr_(condense=True),)
+
+
+    def _apply_functor(self, coefficient_ring):
+        r"""
+        Apply this functor to the given ``coefficient_ring``.
+
+        INPUT:
+
+        - ``base`` - anything :class:`~sage.rings.asymptotic.growth_group.MonomialGrowthGroup` accepts.
+
+        OUTPUT:
+
+        An :class:`AsymptoticRing`.
+
+        EXAMPLES::
+
+            sage: A = AsymptoticRing(growth_group='x^ZZ', coefficient_ring=QQ)
+            sage: F, C = A.construction()
+            sage: F(C)  # indirect doctest
+            Asymptotic Ring <x^ZZ> over Rational Field
+        """
+        return AsymptoticRing(growth_group=self.growth_group,
+                              coefficient_ring=coefficient_ring)
+
+
+    def merge(self, other):
+        r"""
+        Merge this functor with ``other`` if possible.
+
+        INPUT:
+
+        - ``other`` -- a functor.
+
+        OUTPUT:
+
+        A functor or ``None``.
+
+        EXAMPLES::
+
+            sage: X = AsymptoticRing(growth_group='x^ZZ', coefficient_ring=QQ)
+            sage: Y = AsymptoticRing(growth_group='y^ZZ', coefficient_ring=QQ)
+            sage: F_X = X.construction()[0]
+            sage: F_Y = Y.construction()[0]
+            sage: F_X.merge(F_X)
+            AsymptoticRing<x^ZZ>
+            sage: F_X.merge(F_Y)
+            AsymptoticRing<x^ZZ * y^ZZ>
+        """
+        if self == other:
+            return self
+
+        if isinstance(other, AsymptoticRingFunctor):
+            from sage.structure.element import get_coercion_model
+            cm = get_coercion_model()
+            try:
+                G = cm.common_parent(self.growth_group, other.growth_group)
+            except TypeError:
+                pass
+            else:
+                return AsymptoticRingFunctor(G)
+
+
+    def __eq__(self, other):
+        r"""
+        Return whether this functor is equal to ``other``.
+
+        INPUT:
+
+        - ``other`` -- a functor.
+
+        OUTPUT:
+
+        A boolean.
+
+        EXAMPLES::
+
+            sage: X = AsymptoticRing(growth_group='x^ZZ', coefficient_ring=QQ)
+            sage: Y = AsymptoticRing(growth_group='y^ZZ', coefficient_ring=QQ)
+            sage: F_X = X.construction()[0]
+            sage: F_Y = Y.construction()[0]
+            sage: F_X == F_X
+            True
+            sage: F_X == F_Y
+            False
+        """
+        return type(self) == type(other) and \
+            self.growth_group == other.growth_group
+
+
+    def __ne__(self, other):
+        r"""
+        Return whether this functor is not equal to ``other``.
+
+        INPUT:
+
+        - ``other`` -- a functor.
+
+        OUTPUT:
+
+        A boolean.
+
+        EXAMPLES::
+
+            sage: X = AsymptoticRing(growth_group='x^ZZ', coefficient_ring=QQ)
+            sage: Y = AsymptoticRing(growth_group='y^ZZ', coefficient_ring=QQ)
+            sage: F_X = X.construction()[0]
+            sage: F_Y = Y.construction()[0]
+            sage: F_X != F_X
+            False
+            sage: F_X != F_Y
+            True
+        """
+        return not self.__eq__(other)
+

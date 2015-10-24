@@ -77,6 +77,8 @@ EXAMPLES::
     sage: G_xy.an_element()
     x * y
     sage: x = G_xy('x'); y = G_xy('y')
+    sage: x^2
+    x^2
     sage: elem = x^21 * y^21; elem^2
     x^42 * y^42
 
@@ -212,6 +214,94 @@ def parent_to_repr_short(P):
         if ' ' in rep:
             rep = '(' + rep + ')'
         return rep
+
+
+def split_str_by_mul(string):
+    r"""
+    Split the given string into a tuple of substrings arising by
+    splitting by '*' and taking care of parentheses.
+
+    INPUT:
+
+    - ``string`` - a string.
+
+    OUTPUT:
+
+    A tuple of strings.
+
+    TESTS::
+
+        sage: from sage.rings.asymptotic.growth_group import split_str_by_mul
+        sage: split_str_by_mul('x^ZZ')
+        ('x^ZZ',)
+        sage: split_str_by_mul('log(x)^ZZ * y^QQ')
+        ('log(x)^ZZ', 'y^QQ')
+        sage: split_str_by_mul('log(x)**ZZ * y**QQ')
+        ('log(x)**ZZ', 'y**QQ')
+        sage: split_str_by_mul('a^b * * c^d')
+        Traceback (most recent call last):
+        ...
+        ValueError: 'a^b * * c^d' is invalid since a '*' follows a '*'
+        sage: split_str_by_mul('a^b * (c*d^e)')
+        ('a^b', 'c*d^e')
+    """
+    factors = list()
+    balanced = True
+    if string and string[0] == '*':
+        raise ValueError("'%s' is invalid since it starts with a '*'." %
+                         (string,))
+    for s in string.split('*'):
+        if not s:
+            factors[-1] += '*'
+            balanced = False
+            continue
+        if not s.strip():
+            raise ValueError("'%s' is invalid since a '*' follows a '*'" %
+                             (string,))
+        if not balanced:
+            s = factors.pop() + '*' + s
+        balanced = s.count('(') == s.count(')')
+        factors.append(s)
+
+    if not balanced:
+        raise ValueError("Parentheses in '%s' are not balanced" % (string,))
+
+    def strip(s):
+        s = s.strip()
+        if not s:
+            return s
+        if s[0] == '(' and s[-1] == ')':
+            s = s[1:-1]
+        return s.strip()
+
+    return tuple(strip(f) for f in factors)
+
+
+def combine_exceptions(e, f):
+    r"""
+    Helper function which combines the messages of the two given exceptions.
+
+    INPUT:
+
+    - ``e`` -- an exception.
+
+    - ``f`` -- an exception.
+
+    OUTPUT:
+
+    An exception.
+
+    EXAMPLES::
+
+        sage: from sage.rings.asymptotic.growth_group import combine_exceptions
+        sage: raise combine_exceptions(ValueError('Outer.'), TypeError('Inner.'))
+        Traceback (most recent call last):
+        ...
+        ValueError: Outer.
+        previous: TypeError: Inner.
+    """
+    e.args = ("%s\nprevious: %s: %s" % (e.args[0], f.__class__.__name__, str(f)),)
+    return e
 
 
 class Variable(sage.structure.unique_representation.CachedRepresentation,
@@ -352,6 +442,29 @@ class Variable(sage.structure.unique_representation.CachedRepresentation,
             False
         """
         return self.var_repr == other.var_repr and self.var_bases == other.var_bases
+
+
+    def __ne__(self, other):
+        r"""
+        Return whether this variable does not equal ``other``.
+
+        INPUT:
+
+        - ``other`` -- another variable.
+
+        OUTPUT:
+
+        A boolean.
+
+        TESTS::
+
+            sage: from sage.rings.asymptotic.growth_group import Variable
+            sage: Variable('x') != Variable('x')
+            False
+            sage: Variable('x') != Variable('y')
+            True
+        """
+        return not self.__eq__(other)
 
 
     def _repr_(self):
@@ -903,7 +1016,7 @@ class GenericGrowthGroup(
 
             sage: import sage.rings.asymptotic.growth_group as agg
             sage: agg.GenericGrowthGroup(ZZ).category()
-            Join of Category of groups and Category of posets
+            Join of Category of monoids and Category of posets
 
         ::
 
@@ -938,7 +1051,7 @@ class GenericGrowthGroup(
             Traceback (most recent call last):
             ...
             ValueError: (Category of rings,) is not a subcategory of
-            Join of Category of groups and Category of posets
+            Join of Category of monoids and Category of posets
 
         ::
 
@@ -972,18 +1085,18 @@ class GenericGrowthGroup(
         """
         if not isinstance(base, sage.structure.parent.Parent):
             raise TypeError('%s is not a valid base' % (base,))
-        from sage.categories.groups import Groups
+        from sage.categories.monoids import Monoids
         from sage.categories.posets import Posets
 
         if category is None:
-            category = Groups() & Posets()
+            category = Monoids() & Posets()
         else:
             if not isinstance(category, tuple):
                 category = (category,)
-            if not any(cat.is_subcategory(Groups() & Posets()) for cat in
+            if not any(cat.is_subcategory(Monoids() & Posets()) for cat in
                        category):
                 raise ValueError('%s is not a subcategory of %s'
-                                 % (category, Groups() & Posets()))
+                                 % (category, Monoids() & Posets()))
 
         self._var_ = var
         super(GenericGrowthGroup, self).__init__(category=category,
@@ -1231,7 +1344,7 @@ class GenericGrowthGroup(
             sage: G_ZZ('blub')  # indirect doctest
             Traceback (most recent call last):
             ...
-            ValueError: Cannot convert blub.
+            ValueError: blub is not in Growth Group Generic(ZZ).
             sage: G_ZZ('x', raw_element=42)  # indirect doctest
             Traceback (most recent call last):
             ...
@@ -1245,7 +1358,7 @@ class GenericGrowthGroup(
             sage: G_y(x)  # indirect doctest
             Traceback (most recent call last):
             ...
-            ValueError: Cannot convert x.
+            ValueError: x is not in Growth Group y^ZZ.
         """
         if raw_element is None:
             if isinstance(data, self.element_class):
@@ -1253,7 +1366,7 @@ class GenericGrowthGroup(
                     return data
                 try:
                     if self._var_ != data.parent()._var_:
-                        raise ValueError('Cannot convert %s.' % (data,))
+                        raise ValueError('%s is not in %s.' % (data, self))
                 except AttributeError:
                     pass
                 raw_element = data._raw_element_
@@ -1262,7 +1375,7 @@ class GenericGrowthGroup(
             else:
                 raw_element = self._convert_(data)
             if raw_element is None:
-                raise ValueError('Cannot convert %s.' % (data,))
+                raise ValueError('%s is not in %s.' % (data, self))
         elif not isinstance(data, int) or data != 0:
             raise ValueError('Input is ambigous: '
                              '%s as well as raw_element=%s '
@@ -1312,14 +1425,14 @@ class GenericGrowthGroup(
 
         A boolean.
 
-        EXAMPLES::
+        TESTS::
 
             sage: import sage.rings.asymptotic.growth_group as agg
             sage: G_ZZ = agg.MonomialGrowthGroup(ZZ, 'x')
             sage: G_QQ = agg.MonomialGrowthGroup(QQ, 'x')
-            sage: bool(G_ZZ.has_coerce_map_from(G_QQ))  # indirect doctest
+            sage: G_ZZ.has_coerce_map_from(G_QQ)  # indirect doctest
             False
-            sage: bool(G_QQ.has_coerce_map_from(G_ZZ))  # indirect doctest
+            sage: G_QQ.has_coerce_map_from(G_ZZ)  # indirect doctest
             True
 
         ::
@@ -1327,18 +1440,18 @@ class GenericGrowthGroup(
             sage: import sage.rings.asymptotic.growth_group as agg
             sage: P_x_ZZ = agg.MonomialGrowthGroup(ZZ, 'x')
             sage: P_x_QQ = agg.MonomialGrowthGroup(QQ, 'x')
-            sage: bool(P_x_ZZ.has_coerce_map_from(P_x_QQ))  # indirect doctest
+            sage: P_x_ZZ.has_coerce_map_from(P_x_QQ)  # indirect doctest
             False
-            sage: bool(P_x_QQ.has_coerce_map_from(P_x_ZZ))  # indirect doctest
+            sage: P_x_QQ.has_coerce_map_from(P_x_ZZ)  # indirect doctest
             True
             sage: P_y_ZZ = agg.MonomialGrowthGroup(ZZ, 'y')
-            sage: bool(P_y_ZZ.has_coerce_map_from(P_x_ZZ))  # indirect doctest
+            sage: P_y_ZZ.has_coerce_map_from(P_x_ZZ)  # indirect doctest
             False
-            sage: bool(P_x_ZZ.has_coerce_map_from(P_y_ZZ))  # indirect doctest
+            sage: P_x_ZZ.has_coerce_map_from(P_y_ZZ)  # indirect doctest
             False
-            sage: bool(P_y_ZZ.has_coerce_map_from(P_x_QQ))  # indirect doctest
+            sage: P_y_ZZ.has_coerce_map_from(P_x_QQ)  # indirect doctest
             False
-            sage: bool(P_x_QQ.has_coerce_map_from(P_y_ZZ))  # indirect doctest
+            sage: P_x_QQ.has_coerce_map_from(P_y_ZZ)  # indirect doctest
             False
 
         ::
@@ -1346,23 +1459,89 @@ class GenericGrowthGroup(
             sage: import sage.rings.asymptotic.growth_group as agg
             sage: P_x_ZZ = agg.GrowthGroup('ZZ^x')
             sage: P_x_QQ = agg.GrowthGroup('QQ^x')
-            sage: bool(P_x_ZZ.has_coerce_map_from(P_x_QQ))  # indirect doctest
+            sage: P_x_ZZ.has_coerce_map_from(P_x_QQ)  # indirect doctest
             False
-            sage: bool(P_x_QQ.has_coerce_map_from(P_x_ZZ))  # indirect doctest
+            sage: P_x_QQ.has_coerce_map_from(P_x_ZZ)  # indirect doctest
             True
             sage: P_y_ZZ = agg.GrowthGroup('ZZ^y')
-            sage: bool(P_y_ZZ.has_coerce_map_from(P_x_ZZ))  # indirect doctest
+            sage: P_y_ZZ.has_coerce_map_from(P_x_ZZ)  # indirect doctest
             False
-            sage: bool(P_x_ZZ.has_coerce_map_from(P_y_ZZ))  # indirect doctest
+            sage: P_x_ZZ.has_coerce_map_from(P_y_ZZ)  # indirect doctest
             False
-            sage: bool(P_y_ZZ.has_coerce_map_from(P_x_QQ))  # indirect doctest
+            sage: P_y_ZZ.has_coerce_map_from(P_x_QQ)  # indirect doctest
             False
-            sage: bool(P_x_QQ.has_coerce_map_from(P_y_ZZ))  # indirect doctest
+            sage: P_x_QQ.has_coerce_map_from(P_y_ZZ)  # indirect doctest
+            False
+
+        ::
+
+            sage: agg.GrowthGroup('x^QQ').has_coerce_map_from(agg.GrowthGroup('QQ^x')) # indirect doctest
             False
         """
-        if isinstance(S, GenericGrowthGroup) and self._var_ == S._var_:
+        if isinstance(S, type(self)) and self._var_ == S._var_:
             if self.base().has_coerce_map_from(S.base()):
                 return True
+
+
+    def _pushout_(self, other):
+        r"""
+        Construct the pushout of this and the other growth group. This is called by
+        :func:`sage.categories.pushout.pushout`.
+
+        TESTS::
+
+            sage: from sage.rings.asymptotic.growth_group import GrowthGroup
+            sage: from sage.categories.pushout import pushout
+            sage: cm = sage.structure.element.get_coercion_model()
+            sage: A = GrowthGroup('QQ^x')
+            sage: B = GrowthGroup('y^ZZ')
+
+        When using growth groups with disjoint variable lists, then a
+        pushout can be constructed::
+
+            sage: A._pushout_(B)
+            Growth Group QQ^x * y^ZZ
+            sage: cm.common_parent(A, B)
+            Growth Group QQ^x * y^ZZ
+
+        In general, growth groups of the same variable cannot be
+        combined automatically, since there is no order relation between the two factors::
+
+            sage: C = GrowthGroup('x^QQ')
+            sage: cm.common_parent(A, C)
+            Traceback (most recent call last):
+            ...
+            TypeError: no common canonical parent for objects with parents:
+            'Growth Group QQ^x' and 'Growth Group x^QQ'
+
+        However, combining is possible if the factors with the same variable
+        overlap::
+
+            sage: cm.common_parent(GrowthGroup('x^ZZ * log(x)^ZZ'), GrowthGroup('exp(x)^ZZ * x^ZZ'))
+            Growth Group exp(x)^ZZ * x^ZZ * log(x)^ZZ
+            sage: cm.common_parent(GrowthGroup('x^ZZ * log(x)^ZZ'), GrowthGroup('y^ZZ * x^ZZ'))
+            Growth Group x^ZZ * log(x)^ZZ * y^ZZ
+
+        ::
+
+            sage: cm.common_parent(GrowthGroup('x^ZZ'), GrowthGroup('y^ZZ'))
+            Growth Group x^ZZ * y^ZZ
+
+        ::
+
+            sage: cm.record_exceptions()
+            sage: cm.common_parent(GrowthGroup('x^ZZ'), GrowthGroup('y^ZZ'))
+            Growth Group x^ZZ * y^ZZ
+            sage: sage.structure.element.coercion_traceback()  # not tested
+        """
+        if not isinstance(other, GenericGrowthGroup) and \
+           not (other.construction() is not None and
+                isinstance(other.construction()[0], AbstractGrowthGroupFunctor)):
+            return
+
+        if set(self.variable_names()).isdisjoint(set(other.variable_names())):
+            from sage.categories.cartesian_product import cartesian_product
+            return cartesian_product([self, other])
 
 
     def gens_monomial(self):
@@ -1525,6 +1704,149 @@ class GenericGrowthGroup(
 
 
     CartesianProduct = CartesianProductGrowthGroups
+
+
+from sage.categories.pushout import ConstructionFunctor
+class AbstractGrowthGroupFunctor(ConstructionFunctor):
+    r"""
+    A base class for the functors constructing growth groups.
+
+    INPUT:
+
+    - ``var`` -- a string or list of strings (or anything else
+      :class:`Variable` accepts).
+
+    - ``domain`` -- a category.
+
+    EXAMPLES::
+
+        sage: from sage.rings.asymptotic.growth_group import GrowthGroup
+        sage: GrowthGroup('z^QQ').construction()[0]  # indirect doctest
+        MonomialGrowthGroup[z]
+
+    .. SEEALSO::
+
+        :mod:`sage.rings.asymptotic.asymptotic_ring`,
+        :class:`ExponentialGrowthGroupFunctor`,
+        :class:`MonomialGrowthGroupFunctor`,
+        :class:`sage.rings.asymptotic.asymptotic_ring.AsymptoticRingFunctor`,
+        :class:`sage.categories.pushout.ConstructionFunctor`.
+    """
+
+    _functor_name = 'AbstractGrowthGroup'
+
+    rank = 13
+
+    def __init__(self, var, domain):
+        r"""
+        See :class:`AbstractGrowthGroupFunctor` for details.
+
+        TESTS::
+
+            sage: from sage.rings.asymptotic.growth_group import AbstractGrowthGroupFunctor
+            sage: AbstractGrowthGroupFunctor('x', Groups())
+            AbstractGrowthGroup[x]
+        """
+        if var is None:
+            var = Variable('')
+        elif not isinstance(var, Variable):
+            var = Variable(var)
+        self.var = var
+        super(ConstructionFunctor, self).__init__(
+            domain, sage.categories.monoids.Monoids() & sage.categories.posets.Posets())
+
+
+    def _repr_(self):
+        r"""
+        Return a representation string of this functor.
+
+        OUTPUT:
+
+        A string.
+
+        TESTS::
+
+            sage: from sage.rings.asymptotic.growth_group import GrowthGroup
+            sage: GrowthGroup('QQ^t').construction()[0]  # indirect doctest
+            ExponentialGrowthGroup[t]
+        """
+        return '%s[%s]' % (self._functor_name, self.var)
+
+
+    def merge(self, other):
+        r"""
+        Merge this functor with ``other`` of possible.
+
+        INPUT:
+
+        - ``other`` -- a functor.
+
+        OUTPUT:
+
+        A functor or ``None``.
+
+        EXAMPLES::
+
+            sage: from sage.rings.asymptotic.growth_group import GrowthGroup
+            sage: F = GrowthGroup('QQ^t').construction()[0]
+            sage: G = GrowthGroup('t^QQ').construction()[0]
+            sage: F.merge(F)
+            ExponentialGrowthGroup[t]
+            sage: F.merge(G) is None
+            True
+        """
+        if self == other:
+            return self
+
+
+    def __eq__(self, other):
+        r"""
+        Return whether this functor is equal to ``other``.
+
+        INPUT:
+
+        - ``other`` -- a functor.
+
+        OUTPUT:
+
+        A boolean.
+
+        EXAMPLES::
+
+            sage: from sage.rings.asymptotic.growth_group import GrowthGroup
+            sage: F = GrowthGroup('QQ^t').construction()[0]
+            sage: G = GrowthGroup('t^QQ').construction()[0]
+            sage: F == F
+            True
+            sage: F == G
+            False
+        """
+        return type(self) == type(other) and self.var == other.var
+
+
+    def __ne__(self, other):
+        r"""
+        Return whether this functor is not equal to ``other``.
+
+        INPUT:
+
+        - ``other`` -- a functor.
+
+        OUTPUT:
+
+        A boolean.
+
+        EXAMPLES::
+
+            sage: from sage.rings.asymptotic.growth_group import GrowthGroup
+            sage: F = GrowthGroup('QQ^t').construction()[0]
+            sage: G = GrowthGroup('t^QQ').construction()[0]
+            sage: F != F
+            False
+            sage: F != G
+            True
+        """
+        return not self.__eq__(other)
 
 
 class MonomialGrowthElement(GenericGrowthElement):
@@ -1855,7 +2177,7 @@ class MonomialGrowthGroup(GenericGrowthGroup):
             sage: P(log(x)^2)  # indirect doctest
             Traceback (most recent call last):
             ...
-            ValueError: Cannot convert log(x)^2.
+            ValueError: log(x)^2 is not in Growth Group x^ZZ.
 
         ::
 
@@ -1872,7 +2194,7 @@ class MonomialGrowthGroup(GenericGrowthGroup):
             sage: P(x^12 + O(x^17))
             Traceback (most recent call last):
             ...
-            ValueError: Cannot convert x^12 + O(x^17).
+            ValueError: x^12 + O(x^17) is not in Growth Group x^ZZ.
 
         ::
 
@@ -1882,7 +2204,7 @@ class MonomialGrowthGroup(GenericGrowthGroup):
             sage: P(w^4242)  # indirect doctest
             Traceback (most recent call last):
             ...
-            ValueError: Cannot convert w^4242.
+            ValueError: w^4242 is not in Growth Group x^ZZ.
 
         ::
 
@@ -1892,7 +2214,7 @@ class MonomialGrowthGroup(GenericGrowthGroup):
             sage: P(w^7)  # indirect doctest
             Traceback (most recent call last):
             ...
-            ValueError: Cannot convert w^7.
+            ValueError: w^7 is not in Growth Group x^ZZ.
 
         ::
 
@@ -1984,6 +2306,98 @@ class MonomialGrowthGroup(GenericGrowthGroup):
         if not self._var_.is_monomial():
             return tuple()
         return (self(raw_element=self.base().one()),)
+
+
+    def construction(self):
+        r"""
+        Return the construction of this growth group.
+
+        OUTPUT:
+
+        A pair whose first entry is a
+        :class:`monomial construction functor <MonomialGrowthGroupFunctor>`
+        and its second entry the base.
+
+        EXAMPLES::
+
+            sage: from sage.rings.asymptotic.growth_group import GrowthGroup
+            sage: GrowthGroup('x^ZZ').construction()
+            (MonomialGrowthGroup[x], Integer Ring)
+        """
+        return MonomialGrowthGroupFunctor(self._var_), self.base()
+
+
+class MonomialGrowthGroupFunctor(AbstractGrowthGroupFunctor):
+    r"""
+    A :class:`construction functor <sage.categories.pushout.ConstructionFunctor>`
+    for :class:`monomial growth groups <MonomialGrowthGroup>`.
+
+    INPUT:
+
+    - ``var`` -- a string or list of strings (or anything else
+      :class:`Variable` accepts).
+
+    EXAMPLES::
+
+        sage: from sage.rings.asymptotic.growth_group import GrowthGroup, MonomialGrowthGroupFunctor
+        sage: GrowthGroup('z^QQ').construction()[0]
+        MonomialGrowthGroup[z]
+
+    .. SEEALSO::
+
+        :mod:`sage.rings.asymptotic.asymptotic_ring`,
+        :class:`AbstractGrowthGroupFunctor`,
+        :class:`ExponentialGrowthGroupFunctor`,
+        :class:`sage.rings.asymptotic.asymptotic_ring.AsymptoticRingFunctor`,
+        :class:`sage.categories.pushout.ConstructionFunctor`.
+
+    TESTS::
+
+        sage: from sage.rings.asymptotic.growth_group import GrowthGroup, MonomialGrowthGroupFunctor
+        sage: cm = sage.structure.element.get_coercion_model()
+        sage: A = GrowthGroup('x^QQ')
+        sage: B = MonomialGrowthGroupFunctor('x')(ZZ['t'])
+        sage: cm.common_parent(A, B)
+        Growth Group x^(Univariate Polynomial Ring in t over Rational Field)
+    """
+
+    _functor_name = 'MonomialGrowthGroup'
+
+
+    def __init__(self, var):
+        r"""
+        See :class:`MonomialGrowthGroupFunctor` for details.
+
+        TESTS::
+
+            sage: from sage.rings.asymptotic.growth_group import MonomialGrowthGroupFunctor
+            sage: MonomialGrowthGroupFunctor('x')
+            MonomialGrowthGroup[x]
+        """
+        super(MonomialGrowthGroupFunctor, self).__init__(var,
+            sage.categories.commutative_additive_monoids.CommutativeAdditiveMonoids())
+
+
+    def _apply_functor(self, base):
+        r"""
+        Apply this functor to the given ``base``.
+
+        INPUT:
+
+        - ``base`` - anything :class:`MonomialGrowthGroup` accepts.
+
+        OUTPUT:
+
+        A monomial growth group.
+
+        EXAMPLES::
+
+            sage: from sage.rings.asymptotic.growth_group import GrowthGroup
+            sage: F, R = GrowthGroup('z^QQ').construction()
+            sage: F(R)  # indirect doctest
+            Growth Group z^QQ
+        """
+        return MonomialGrowthGroup(base, self.var)
 
 
 class ExponentialGrowthElement(GenericGrowthElement):
@@ -2309,7 +2723,7 @@ class ExponentialGrowthGroup(GenericGrowthGroup):
             sage: P(0)  # indirect doctest
             Traceback (most recent call last):
             ...
-            ValueError: Cannot convert 0.
+            ValueError: 0 is not in Growth Group ZZ^x.
 
         ::
 
@@ -2378,6 +2792,98 @@ class ExponentialGrowthGroup(GenericGrowthGroup):
         return tuple()
 
 
+    def construction(self):
+        r"""
+        Return the construction of this growth group.
+
+        OUTPUT:
+
+        A pair whose first entry is an
+        :class:`exponential construction functor <ExponentialGrowthGroupFunctor>`
+        and its second entry the base.
+
+        EXAMPLES::
+
+            sage: from sage.rings.asymptotic.growth_group import GrowthGroup
+            sage: GrowthGroup('QQ^x').construction()
+            (ExponentialGrowthGroup[x], Rational Field)
+        """
+        return ExponentialGrowthGroupFunctor(self._var_), self.base()
+
+
+class ExponentialGrowthGroupFunctor(AbstractGrowthGroupFunctor):
+    r"""
+    A :class:`construction functor <sage.categories.pushout.ConstructionFunctor>`
+    for :class:`exponential growth groups <ExponentialGrowthGroup>`.
+
+    INPUT:
+
+    - ``var`` -- a string or list of strings (or anything else
+      :class:`Variable` accepts).
+
+    EXAMPLES::
+
+        sage: from sage.rings.asymptotic.growth_group import GrowthGroup, ExponentialGrowthGroupFunctor
+        sage: GrowthGroup('QQ^z').construction()[0]
+        ExponentialGrowthGroup[z]
+
+    .. SEEALSO::
+
+        :mod:`sage.rings.asymptotic.asymptotic_ring`,
+        :class:`AbstractGrowthGroupFunctor`,
+        :class:`MonomialGrowthGroupFunctor`,
+        :class:`sage.rings.asymptotic.asymptotic_ring.AsymptoticRingFunctor`,
+        :class:`sage.categories.pushout.ConstructionFunctor`.
+
+    TESTS::
+
+        sage: from sage.rings.asymptotic.growth_group import GrowthGroup, ExponentialGrowthGroupFunctor
+        sage: cm = sage.structure.element.get_coercion_model()
+        sage: A = GrowthGroup('QQ^x')
+        sage: B = ExponentialGrowthGroupFunctor('x')(ZZ['t'])
+        sage: cm.common_parent(A, B)
+        Growth Group (Univariate Polynomial Ring in t over Rational Field)^x
+    """
+
+    _functor_name = 'ExponentialGrowthGroup'
+
+
+    def __init__(self, var):
+        r"""
+        See :class:`ExponentialGrowthGroupFunctor` for details.
+
+        TESTS::
+
+            sage: from sage.rings.asymptotic.growth_group import ExponentialGrowthGroupFunctor
+            sage: ExponentialGrowthGroupFunctor('x')
+            ExponentialGrowthGroup[x]
+        """
+        super(ExponentialGrowthGroupFunctor, self).__init__(var,
+            sage.categories.monoids.Monoids())
+
+
+    def _apply_functor(self, base):
+        r"""
+        Apply this functor to the given ``base``.
+
+        INPUT:
+
+        - ``base`` - anything :class:`ExponentialGrowthGroup` accepts.
+
+        OUTPUT:
+
+        An exponential growth group.
+
+        EXAMPLES::
+
+            sage: from sage.rings.asymptotic.growth_group import GrowthGroup
+            sage: F, R = GrowthGroup('QQ^z').construction()
+            sage: F(R)  # indirect doctest
+            Growth Group QQ^z
+        """
+        return ExponentialGrowthGroup(base, self.var)
+
+
 class GrowthGroupFactory(sage.structure.factory.UniqueFactory):
     r"""
     A factory creating asymptotic growth groups.
@@ -2418,50 +2924,12 @@ class GrowthGroupFactory(sage.structure.factory.UniqueFactory):
         TESTS::
 
             sage: import sage.rings.asymptotic.growth_group as agg
-            sage: agg.GrowthGroup.create_key_and_extra_args('x^ZZ')
-            (('x^ZZ',), {})
             sage: agg.GrowthGroup.create_key_and_extra_args('asdf')
             Traceback (most recent call last):
             ...
             ValueError: 'asdf' is not a valid string describing a growth group.
-            sage: agg.GrowthGroup.create_key_and_extra_args('log(x)^ZZ * y^QQ')
-            (('log(x)^ZZ', 'y^QQ'), {})
-            sage: agg.GrowthGroup.create_key_and_extra_args('log(x)**ZZ * y**QQ')
-            (('log(x)**ZZ', 'y**QQ'), {})
-            sage: agg.GrowthGroup.create_key_and_extra_args('a^b * * c^d')
-            Traceback (most recent call last):
-            ...
-            ValueError: 'a^b * * c^d' is invalid since a '*' follows a '*'
-            sage: agg.GrowthGroup.create_key_and_extra_args('a^b * (c*d^e)')
-            (('a^b', 'c*d^e'), {})
         """
-        factors = list()
-        balanced = True
-        if specification and specification[0] == '*':
-            raise ValueError("'%s' is invalid since it starts with a '*'." %
-                             (specification,))
-        for s in specification.split('*'):
-            if not s:
-                factors[-1] += '*'
-                balanced = False
-                continue
-            if not s.strip():
-                raise ValueError("'%s' is invalid since a '*' follows a '*'" %
-                                 (specification,))
-            if not balanced:
-                s = factors.pop() + '*' + s
-            balanced = s.count('(') == s.count(')')
-            factors.append(s)
-
-        def strip(s):
-            s = s.strip()
-            if not s:
-                return s
-            if s[0] == '(' and s[-1] == ')':
-                s = s[1:-1]
-            return s.strip()
-
-        factors = tuple(strip(f) for f in factors)
+        factors = split_str_by_mul(specification)
 
         for f in factors:
             if '^' not in f and '**' not in f:

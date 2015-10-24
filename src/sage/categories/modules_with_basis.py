@@ -1059,25 +1059,6 @@ class ModulesWithBasis(CategoryWithAxiom_over_base_ring):
                                             for key, coeff in
                                             x._monomial_coefficients.iteritems() )
 
-        def _test_keytype(self, **options):
-            """
-            Check that the keys returned by
-            ``self.element_class.monomial_coefficients()`` are of the
-            same type as the keys of ``self.basis()``.
-
-            See also: :class:`TestSuite`.
-
-            EXAMPLES::
-
-                sage: ZZ._test_characteristic()
-            """
-            tester = self._tester(**options)
-            xs = self.some_elements()
-            B = self.basis()
-            for x in xs:
-                t = [(B[key], coeff) for key, coeff in x.monomial_coefficients().iteritems()]
-                assert self.linear_combination(t) == x
-
     class ElementMethods:
         # TODO: Define the appropriate element methods here (instead of in
         # subclasses).  These methods should be consistent with those on

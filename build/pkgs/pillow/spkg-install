@@ -17,8 +17,10 @@ for patch in ../patches/*.patch; do
     fi
 done
 
-python setup.py install
-
+# Note: Avoid shared libraries inside egg files, Trac #19467
+python setup.py install \
+       --single-version-externally-managed \
+       --record /dev/null
 if [ $? -ne 0 ]; then
     echo "Error building / installing Pillow"
     exit 1

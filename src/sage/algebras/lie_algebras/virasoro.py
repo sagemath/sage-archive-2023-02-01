@@ -1,5 +1,5 @@
 """
-Virasoro Algebras
+Virasoro Algebra and Related Lie Algebras
 
 AUTHORS:
 
@@ -42,7 +42,7 @@ class LieAlgebraRegularVectorFields(InfinitelyGeneratedLieAlgebra, IndexedGenera
 
         [d_i, d_j] = (j - i) d_{i+j}.
 
-    This is known as the Witt (Lie) algebra.
+    This is also known as the Witt (Lie) algebra.
 
     REFERENCES:
 
@@ -184,6 +184,8 @@ class WittLieAlgebra_charp(FinitelyGeneratedLieAlgebra, IndexedGenerators):
 
             sage: lie_algebras.pwitt(Zmod(5), 5)
             The 5-Witt Lie algebra over Ring of integers modulo 5
+            sage: lie_algebras.pwitt(Zmod(5), 15)
+            The 15-Witt Lie algebra over Ring of integers modulo 5
         """
         return "The {}-Witt Lie algebra over {}".format(self._p, self.base_ring())
 
@@ -322,6 +324,8 @@ class VirasoroAlgebra(InfinitelyGeneratedLieAlgebra, IndexedGenerators):
             'c'
             sage: d._latex_term(2)
             'd_{2}'
+            sage: d._latex_term(-13)
+            'd_{-13}'
         """
         if isinstance(m, str):
             return m
@@ -359,9 +363,15 @@ class VirasoroAlgebra(InfinitelyGeneratedLieAlgebra, IndexedGenerators):
         EXAMPLES::
 
             sage: d = lie_algebras.VirasoroAlgebra(QQ)
-            sage: d.basis()
+            sage: B = d.basis(); B
             Lazy family (basis map(i))_{i in Disjoint union of
                                         Family ({'c'}, Integer Ring)}
+            sage: B['c']
+            c
+            sage: B[3]
+            d[3]
+            sage: B[-15]
+            d[-15]
         """
         I = DisjointUnionEnumeratedSets([Set(['c']), ZZ])
         return Family(I, self.monomial, name='basis map')

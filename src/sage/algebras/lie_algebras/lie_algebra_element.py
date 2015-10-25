@@ -387,3 +387,18 @@ class LieAlgebraElementWrapper(ElementWrapper):
         """
         return self.value.__getitem__(i)
 
+class LieAlgebraMatrixWrapper(LieAlgebraElementWrapper):
+    def __init__(self, parent, value):
+        """
+        Initialize ``self``.
+
+        EXAMPLES::
+
+            sage: L = lie_algebras.Heisenberg(QQ, 1, representation="matrix")
+            sage: z = L.z()
+            sage: z.value.is_immutable()
+            True
+        """
+        value.set_immutable() # Make the matrix immutable for hashing
+        LieAlgebraElementWrapper.__init__(self, parent, value)
+

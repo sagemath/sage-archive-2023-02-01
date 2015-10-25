@@ -22,23 +22,18 @@ AUTHORS:
 #*****************************************************************************
 
 from sage.misc.cachefunc import cached_method
-#from sage.misc.misc import repr_lincomb
 from sage.structure.indexed_generators import IndexedGenerators
 
-#from sage.algebras.algebra import Algebra
 from sage.algebras.lie_algebras.lie_algebra import (InfinitelyGeneratedLieAlgebra,
     LieAlgebraFromAssociative, FinitelyGeneratedLieAlgebra)
-#from sage.algebras.lie_algebras.lie_algebra_element import LieAlgebraElement
+from sage.algebras.lie_algebras.lie_algebra_element import LieAlgebraMatrixWrapper
 from sage.categories.lie_algebras import LieAlgebras
-from sage.combinat.cartesian_product import CartesianProduct
+from sage.categories.cartesian_product import cartesian_product
 from sage.matrix.matrix_space import MatrixSpace
-#from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
-#from sage.rings.infinity import infinity
 from sage.sets.disjoint_union_enumerated_sets import DisjointUnionEnumeratedSets
 from sage.sets.family import Family
 from sage.sets.positive_integers import PositiveIntegers
 from sage.sets.set import Set
-#from sage.rings.all import ZZ
 
 class HeisenbergAlgebra_abstract(IndexedGenerators):
     """
@@ -321,7 +316,7 @@ class InfiniteHeisenbergAlgebra(HeisenbergAlgebra_abstract, InfinitelyGeneratedL
             sage: L = lie_algebras.Heisenberg(QQ, oo)
             sage: TestSuite(L).run()
         """
-        S = CartesianProduct(PositiveIntegers(), ['p','q'])
+        S = cartesian_product([PositiveIntegers(), ['p','q']])
         cat = LieAlgebras(R).WithBasis()
         InfinitelyGeneratedLieAlgebra.__init__(self, R, index_set=S, category=cat)
         HeisenbergAlgebra_abstract.__init__(self, S)
@@ -358,8 +353,9 @@ class InfiniteHeisenbergAlgebra(HeisenbergAlgebra_abstract, InfinitelyGeneratedL
 
             sage: L = lie_algebras.Heisenberg(QQ, oo)
             sage: L.lie_algebra_generators()
-            Lazy family (generator map(i))_{i in Cartesian product of
-                                            Positive integers, ['p', 'q']}
+            Lazy family (generator map(i))_{i in The cartesian product of
+                                            (Positive integers, {'p', 'q'})}
+
         """
         return Family(self._indices, lambda x: self.monomial(x[1] + str(x[0])),
                       name='generator map')
@@ -372,10 +368,10 @@ class InfiniteHeisenbergAlgebra(HeisenbergAlgebra_abstract, InfinitelyGeneratedL
 
             sage: L = lie_algebras.Heisenberg(QQ, oo)
             sage: L.basis()
-            Lazy family (basis map(i))_{i in Disjoint union of
-             Family ({'z'}, Cartesian product of Positive integers, ['p', 'q'])}
+            Lazy family (basis map(i))_{i in Disjoint union of Family ({'z'},
+             The cartesian product of (Positive integers, {'p', 'q'}))}
         """
-        S = CartesianProduct(PositiveIntegers(), ['p','q'])
+        S = cartesian_product([PositiveIntegers(), ['p','q']])
         I = DisjointUnionEnumeratedSets([Set(['z']), S])
         def basis_elt(x):
             if isinstance(x, str):
@@ -571,7 +567,7 @@ class HeisenbergAlgebra_matrix(HeisenbergAlgebra_fd, LieAlgebraFromAssociative):
         d = {(0,self._n+1): self.base_ring().one()}
         return self.element_class( self, self._assoc(d) )
 
-    class Element(LieAlgebraFromAssociative.Element):
+    class Element(LieAlgebraMatrixWrapper, LieAlgebraFromAssociative.Element):
         def monomial_coefficients(self, copy=True):
             """
             Return a dictionary whose keys are indices of basis elements in
@@ -608,3 +604,4 @@ class HeisenbergAlgebra_matrix(HeisenbergAlgebra_fd, LieAlgebraFromAssociative):
                 if entry:
                     d[mon] = entry
             return d
+

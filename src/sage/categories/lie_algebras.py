@@ -604,8 +604,8 @@ class LieAlgebras(Category_over_base_ring):
             tester = self._tester(**options)
             S = tester.some_elements()
             P = S[0].parent()
-            from sage.combinat.cartesian_product import CartesianProduct
-            for x,y,z in tester.some_elements(CartesianProduct(S,S,S)):
+            from sage.categories.cartesian_product import cartesian_product
+            for x,y,z in tester.some_elements(cartesian_product([S,S,S])):
                 # left distributivity
                 tester.assert_(P.bracket(x, (y + z)) == P.bracket(x, y) + P.bracket(x, z))
                 # right distributivity

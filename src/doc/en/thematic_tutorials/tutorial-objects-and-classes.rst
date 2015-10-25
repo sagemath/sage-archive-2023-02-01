@@ -246,7 +246,7 @@ As an element of a vector space, ``el`` has a particular behavior::
 
     sage: 2*el
     2*B[[1, 2, 3]] + 6*B[[1, 3, 2]] + B[[3, 2, 1]]
-    sage: el.support()
+    sage: sorted(el.support())
     [[1, 2, 3], [1, 3, 2], [3, 2, 1]]
     sage: el.coefficient([1, 2, 3])
     1

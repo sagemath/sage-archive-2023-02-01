@@ -556,6 +556,30 @@ class SpecialJordanAlgebra(JordanAlgebra):
             """
             return self.__class__(self.parent(), other * self._x)
 
+        def monomial_coefficients(self, copy=True):
+            """
+            Return a dictionary whose keys are indices of basis elements in
+            the support of ``self`` and whose values are the corresponding
+            coefficients.
+
+            INPUT:
+
+            - ``copy`` -- (default: ``True``) if ``self`` is internally
+              represented by a dictionary ``d``, then make a copy of ``d``;
+              if ``False``, then this can cause undesired behavior by
+              mutating ``d``
+
+            EXAMPLES::
+
+                sage: F.<x,y,z> = FreeAlgebra(QQ)
+                sage: J = JordanAlgebra(F)
+                sage: a,b,c = map(J, F.gens())
+                sage: elt = a + 2*b - c
+                sage: elt.monomial_coefficients()
+                {x: 1, y: 2, z: -1}
+            """
+            return self._x.monomial_coefficients(copy)
+
 class JordanAlgebraSymmetricBilinear(JordanAlgebra):
     r"""
     A Jordan algebra given by a symmetric bilinear form `m`.
@@ -934,6 +958,29 @@ class JordanAlgebraSymmetricBilinear(JordanAlgebra):
                 2 + (2, -2)
             """
             return self.__class__(self.parent(), other * self._s, other * self._v)
+
+        def monomial_coefficients(self, copy=True):
+            """
+            Return a dictionary whose keys are indices of basis elements in
+            the support of ``self`` and whose values are the corresponding
+            coefficients.
+
+            INPUT:
+
+            - ``copy`` -- ignored
+
+            EXAMPLES::
+
+                sage: m = matrix([[0,1],[1,1]])
+                sage: J.<a,b,c> = JordanAlgebra(m)
+                sage: elt = a + 2*b - c
+                sage: elt.monomial_coefficients()
+                {0: 1, 1: 2, 2: -1}
+            """
+            d = {0: self._s}
+            for i,c in enumerate(self._v):
+                d[i+1] = c
+            return d
 
         def trace(self):
             r"""

@@ -265,9 +265,29 @@ class HeisenbergAlgebra_fd(object):
             True
             sage: HM.has_coerce_map_from(HB)
             True
-            sage: HZ = lie_algebras.Heisenberg(ZZ, 2, representation="matrix")
-            sage: HB.has_coerce_map_from(HM)
+            sage: HB(HM.p(2))
+            p2
+            sage: HM(-HB.q(3)) == -HM.q(3)
             True
+            sage: HB(HM.z())
+            z
+            sage: HM(HB.z()) == HM.z()
+            True
+            sage: HQ = lie_algebras.Heisenberg(QQ, 2)
+            sage: HB.has_coerce_map_from(HQ)
+            True
+            sage: HB(HQ.p(2))
+            p2
+            sage: HZ = lie_algebras.Heisenberg(ZZ, 2)
+            sage: HB.has_coerce_map_from(HZ)
+            True
+            sage: HB(HZ.p(2))
+            p2
+            sage: HZ = lie_algebras.Heisenberg(ZZ, 2, representation="matrix")
+            sage: HB.has_coerce_map_from(HZ)
+            True
+            sage: HB(HZ.p(2))
+            p2
         """
         if isinstance(H, HeisenbergAlgebra_fd):
             if H._n <= self._n and self.base_ring().has_coerce_map_from(H.base_ring()):
@@ -438,7 +458,10 @@ class InfiniteHeisenbergAlgebra(HeisenbergAlgebra_abstract, InfinitelyGeneratedL
     def _from_fd_on_basis(self, i):
         """
         Return the monomial in ``self`` corresponding to the
-        finite-dimensional basis element indexed by ``i``.
+        basis element indexed by ``i``, where ``i`` is a basis index for
+        a *finite-dimensional* Heisenberg algebra.
+
+        This is used for coercion.
 
         EXAMPLES::
 
@@ -466,11 +489,24 @@ class InfiniteHeisenbergAlgebra(HeisenbergAlgebra_abstract, InfinitelyGeneratedL
             sage: H = lie_algebras.Heisenberg(QQ, oo)
             sage: HZ = lie_algebras.Heisenberg(ZZ, oo)
             sage: phi = H.coerce_map_from(HZ)
+            sage: phi(HZ.p(3)) == H.p(3)
+            True
             sage: phi(HZ.p(3)).leading_coefficient().parent()
             Rational Field
             sage: HF = lie_algebras.Heisenberg(QQ, 3, representation="matrix")
             sage: H.has_coerce_map_from(HF)
             True
+            sage: H(HF.p(2))
+            p2
+            sage: H(HF.z())
+            z
+            sage: HF = lie_algebras.Heisenberg(QQ, 3)
+            sage: H.has_coerce_map_from(HF)
+            True
+            sage: H(HF.p(2))
+            p2
+            sage: H(HF.z())
+            z
         """
         if isinstance(H, HeisenbergAlgebra_fd):
             if self.base_ring().has_coerce_map_from(H.base_ring()):
@@ -501,7 +537,7 @@ class HeisenbergAlgebra_matrix(HeisenbergAlgebra_fd, LieAlgebraFromAssociative):
         \end{bmatrix}
 
     where `p, q \in R^n` and `0_n` in the `n \times n` zero matrix. It has
-    a basis consisting of of
+    a basis consisting of
 
     .. MATH::
 
@@ -523,7 +559,10 @@ class HeisenbergAlgebra_matrix(HeisenbergAlgebra_fd, LieAlgebraFromAssociative):
         \end{bmatrix},
         \end{aligned}
 
-    where `\{e_i\}` is the standard basis of `R^n`.
+    where `\{e_i\}` is the standard basis of `R^n`. In other words, it has
+    the basis `(p_1, p_2, \ldots, p_n, q_1, q_2, \ldots, q_n, z)`, where
+    `p_i = E_{1, i+1}`, `q_i = E_{i+1, n+2}` and `z = E_{1, n+2}` are
+    elementary matrices.
 
     This Lie algebra is isomorphic to the `n`-th Heisenberg algebra
     cosnstructed in :class:`HeisenbergAlgebra`; the bases correspond to
@@ -580,6 +619,21 @@ class HeisenbergAlgebra_matrix(HeisenbergAlgebra_fd, LieAlgebraFromAssociative):
              [0 0 0 0]
         'z', [0 0 0 0]
         )]
+
+        sage: L = lie_algebras.Heisenberg(QQ, 0, representation="matrix")
+        sage: sorted(dict(L.basis()).items())
+        [(
+             [0 1]
+        'z', [0 0]
+        )]
+        sage: L.gens()
+        (
+        [0 1]
+        [0 0]
+        )
+        sage: L.lie_algebra_generators()
+        Finite family {'z': [0 1]
+        [0 0]}
     """
     def __init__(self, R, n):
         """
@@ -595,7 +649,7 @@ class HeisenbergAlgebra_matrix(HeisenbergAlgebra_fd, LieAlgebraFromAssociative):
         one = R.one()
         p = tuple(MS({(0,i): one}) for i in range(1, n+1))
         q = tuple(MS({(i,n+1): one}) for i in range(1, n+1))
-        z = (MS({(0,self._n+1): one}),)
+        z = (MS({(0,n+1): one}),)
         names = tuple('p%s'%i for i in range(1,n+1))
         names = names + tuple('q%s'%i for i in range(1,n+1)) + ('z',)
         cat = LieAlgebras(R).FiniteDimensional().WithBasis()

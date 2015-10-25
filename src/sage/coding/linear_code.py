@@ -1621,10 +1621,10 @@ class AbstractLinearCode(module.Module):
         r"""
         Test  whether the code is projective.
 
-        A linear code `C` over a a ring `R` is called *projective* when its dual
-        `Cd` has minimum weight `\geq 3`, i.e. when no two coordinate positions
-        of `C` are linearly independent (cf. definition 3 from [BS11] or 9.8.1
-        from [BH12]).
+        A linear code `C` over a field is called *projective* when its dual `Cd`
+        has minimum weight `\geq 3`, i.e. when no two coordinate positions of
+        `C` are linearly independent (cf. definition 3 from [BS11] or 9.8.1 from
+        [BH12]).
 
         EXAMPLE::
 
@@ -1648,7 +1648,7 @@ class AbstractLinearCode(module.Module):
            https://hal.inria.fr/inria-00607341/document
         """
         M = self.generator_matrix().transpose()
-        R = self.base_ring()
+        R = self.base_field()
 
         def projectivize(row):
             if not row.is_zero():

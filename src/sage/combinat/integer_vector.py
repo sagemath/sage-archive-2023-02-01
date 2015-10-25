@@ -27,6 +27,7 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
+import itertools
 import misc
 from __builtin__ import list as builtinlist
 from sage.categories.enumerated_sets import EnumeratedSets
@@ -34,7 +35,6 @@ from sage.combinat.combinat import CombinatorialClass
 from sage.rings.integer import Integer
 from sage.rings.arith import binomial
 from sage.rings.infinity import PlusInfinity
-import cartesian_product
 import functools
 from sage.combinat.integer_lists import IntegerListsLex
 
@@ -1217,7 +1217,7 @@ class IntegerVectors_nnondescents(CombinatorialClass):
          """
         for iv in IntegerVectors(self.n, len(self.comp)):
             blocks = [ IntegerVectors(iv[i], self.comp[i], max_slope=0).list() for i in range(len(self.comp))]
-            for parts in cartesian_product.CartesianProduct(*blocks):
+            for parts in itertools.product(*blocks):
                 res = []
                 for part in parts:
                     res += part

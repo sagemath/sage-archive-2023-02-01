@@ -7,7 +7,7 @@ This module stores a database of two-weight codes.
 
 REFERENCE:
 
-.. [BJ03] I. Bouyukliev and S. Juriaan,
+.. [BS03] I. Bouyukliev and J. Simonis,
    Some new results on optimal codes over `F_5`,
    Designs, Codes and Cryptography 30, no. 1 (2003): 97-111,
    http://www.moi.math.bas.bg/moiuser/~iliya/pdf_site/gf5srev.pdf,
@@ -105,7 +105,7 @@ data = [
                "111111222222333333444444000000111111000",
                "223300133440112240112240133440123400110",
                "402340414201142301132013234230044330401"),
-        'source': "From Bouyukliev and JuriaanFrom ([BJ03]_, Theorem 4.1)",
+        'source': "From Bouyukliev and JuriaanFrom ([BS03]_, Theorem 4.1)",
     },
     {
         'K' : GF(3),
@@ -251,7 +251,7 @@ for code in data:
     code['n'] = M.ncols()
     code['k'] = M.nrows()
     code['q'] = M.base_ring().cardinality()
-    _,w1,w2 = sorted(set([x.hamming_weight() for x in LinearCode(M)]))
+    w1,w2 = [w for w,f in enumerate(LinearCode(M).weight_distribution()) if w and f]
     code['w1'] = w1
     code['w2'] = w2
 

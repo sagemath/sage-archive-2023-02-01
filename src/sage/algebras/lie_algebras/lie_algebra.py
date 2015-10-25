@@ -33,7 +33,7 @@ from sage.categories.rings import Rings
 from sage.categories.morphism import SetMorphism
 from sage.categories.homset import Hom
 
-from sage.algebras.free_algebra import FreeAlgebra, is_FreeAlgebra
+from sage.algebras.free_algebra import FreeAlgebra
 from sage.algebras.lie_algebras.lie_algebra_element import (LieAlgebraElement,
     LieAlgebraElementWrapper, LieAlgebraMatrixWrapper)
 from sage.rings.all import ZZ

@@ -260,7 +260,10 @@ class LieAlgebraWithStructureCoefficients(FinitelyGeneratedLieAlgebra, IndexedGe
     def bracket_on_basis(self, x, y):
         """
         Return the Lie bracket ``[x, y]`` of two basis elements
-        (indexed by) ``x`` and ``y``.
+        (indexed by) ``x`` and ``y`` where ``x < y``.
+
+        (This particular implementation actually does not require
+        ``x < y``.)
 
         EXAMPLES::
 
@@ -272,9 +275,8 @@ class LieAlgebraWithStructureCoefficients(FinitelyGeneratedLieAlgebra, IndexedGe
             sage: L.bracket(x + y - z, x - y + z)
             -2*y - 2*z
         """
-        comp = self._print_options['generator_cmp']
         ordered = True
-        if comp(x, y) > 0: # x > y
+        if x > y:
             x,y = y,x
             ordered = False
         b = (x, y)

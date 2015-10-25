@@ -783,11 +783,11 @@ class DifferentialWeylAlgebra(Algebra, UniqueRepresentation):
         n = self._n
         from sage.combinat.integer_lists.nn import IntegerListsNN
         from sage.categories.cartesian_product import cartesian_product
-        I = IntegerListsNN(length=2*n)
-        J = I.map(lambda u : (tuple(u[:n]), tuple(u[n:])))
+        elt_map = lambda u : (tuple(u[:n]), tuple(u[n:]))
+        I = IntegerListsNN(length=2*n, element_constructor=elt_map)
         one = self.base_ring().one()
         f = lambda x: self.element_class(self, {(x[0], x[1]): one})
-        return Family(J, f, name="basis map")
+        return Family(I, f, name="basis map")
 
     @cached_method
     def algebra_generators(self):

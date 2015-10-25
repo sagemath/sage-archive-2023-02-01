@@ -424,94 +424,91 @@ class Graph(GenericGraph):
     Undirected graph.
 
     A graph is a set of vertices connected by edges. See also the
-    :wikipedia:`Wikipedia article on graphs <Graph_(mathematics)>`.
+    :wikipedia:`Wikipedia article on graphs <Graph_(mathematics)>`. For a
+    collection of pre-defined graphs, see the
+    :mod:`~sage.graphs.graph_generators` module.
 
-    One can very easily create a graph in Sage by typing::
-
-        sage: g = Graph()
-
-    By typing the name of the graph, one can get some basic information
-    about it::
-
-        sage: g
-        Graph on 0 vertices
-
-    This graph is not very interesting as it is by default the empty graph.
-    But Sage contains a large collection of pre-defined graph classes that
-    can be listed this way:
-
-    * Within a Sage session, type ``graphs.``
-      (Do not press "Enter", and do not forget the final period ".")
-
-    * Hit "tab".
-
-    You will see a list of methods which will construct named graphs. For
-    example::
-
-        sage: g = graphs.PetersenGraph()
-        sage: g.plot()
-        Graphics object consisting of 26 graphics primitives
-
-    or::
-
-        sage: g = graphs.ChvatalGraph()
-        sage: g.plot()
-        Graphics object consisting of 37 graphics primitives
-
-    In order to obtain more information about these graph constructors, access
-    the documentation using the command ``graphs.RandomGNP?``.
-
-    Once you have defined the graph you want, you can begin to work on it
-    by using the almost 200 functions on graphs in the Sage library!
-    If your graph is named ``g``, you can list these functions as previously
-    this way
-
-    * Within a Sage session, type ``g.``
-      (Do not press "Enter", and do not forget the final period "." )
-
-    * Hit "tab".
-
-    As usual, you can get some information about what these functions do by
-    typing (e.g. if you want to know about the ``diameter()`` method)
-    ``g.diameter?``.
-
-    If you have defined a graph ``g`` having several connected components
-    (i.e. ``g.is_connected()`` returns False), you can print each one of its
-    connected components with only two lines::
-
-        sage: for component in g.connected_components():
-        ....:      g.subgraph(component).plot()
-        Graphics object consisting of 37 graphics primitives
-
+    A :class:`Graph` object has many methods whose list can be obtained by
+    typing ``g.<tab>`` (i.e. hit the 'tab' key) or by reading the documentation
+    of :mod:`~sage.graphs.graph`, :mod:`~sage.graphs.generic_graph`, and
+    :mod:`~sage.graphs.digraph`.
 
     INPUT:
 
+    By default, a :class:`Graph` object is simple (i.e. no *loops* nor *multiple
+    edges*) and unweighted. This can be easily tuned with the appropriate flags
+    (see below).
+
     -  ``data`` -- can be any of the following (see the ``format`` argument):
 
-      #.  An integer specifying the number of vertices
+      #. ``Graph()`` -- build a graph on 0 vertices.
 
-      #.  A dictionary of dictionaries
+      #. ``Graph(5)`` -- return an edgeless graph on the 5 vertices 0,...,4.
 
-      #.  A dictionary of lists
+      #. ``Graph(list_of_edges)`` -- return a graph with a given list of edges
+         (see documentation of
+         :meth:`~sage.graphs.generic_graph.GenericGraph.add_edges`).
 
-      #.  A Sage adjacency matrix or incidence matrix
+         To bypass auto-detection, prefer the more explicit ``Graph(L,
+         format='list_of_edges')``.
 
-      #.  A Sage :meth:`Seidel adjacency matrix <seidel_adjacency_matrix>`
+      #. ``Graph({1:[2,3,4],3:[4]})`` -- return a graph by associating to each
+         vertex the list of its neighbors.
 
-      #.  A pygraphviz graph
+         To bypass auto-detection, prefer the more explicit ``Graph(D,
+         format='dict_of_lists')``.
 
-      #.  A NetworkX graph
+      #. ``Graph({1: {2: 'a', 3:'b'} ,3:{2:'c'}})`` -- return a graph by
+         associating a list of neighbors to each vertex and providing its edge
+         label.
 
-      #.  An igraph graph (see http://igraph.org/python/)
+         To bypass auto-detection, prefer the more explicit ``Graph(D,
+         format='dict_of_dicts')``.
 
-    -  ``pos`` -  a positioning dictionary: for example, the
-       spring layout from NetworkX for the 5-cycle is::
+         For graphs with multiple edges, you can provide a list of labels
+         instead, e.g.: ``Graph({1: {2: ['a1', 'a2'], 3:['b']} ,3:{2:['c']}})``.
 
-         {0: [-0.91679746, 0.88169588],
-          1: [ 0.47294849, 1.125     ],
-          2: [ 1.125     ,-0.12867615],
-          3: [ 0.12743933,-1.125     ],
-          4: [-1.125     ,-0.50118505]}
+      #. ``Graph(a_symmetric_matrix)`` -- return a graph with given (weighted)
+         adjacency matrix (see documentation of
+         :meth:`~sage.graphs.generic_graph.GenericGraph.adjacency_matrix`).
+
+         To bypass auto-detection, prefer the more explicit ``Graph(M,
+         format='adjacency_matrix')``. To take weights into account, use
+         ``format='weighted_adjacency_matrix'`` instead.
+
+      #. ``Graph(a_nonsymmetric_matrix)`` -- return a graph with given incidence
+         matrix (see documentation of
+         :meth:`~sage.graphs.generic_graph.GenericGraph.incidence_matrix`).
+
+         To bypass auto-detection, prefer the more explicit ``Graph(M,
+         format='incidence_matrix')``.
+
+      #. ``Graph([V, f])`` -- return a graph from a vertex set ``V`` and a
+         *symmetric* function ``f``. The graph contains an edge `u,v` whenever
+         ``f(u,v)`` is ``True``.. Example: ``Graph([ [1..10], lambda x,y:
+         abs(x-y).is_square()])``
+
+      #. ``Graph(':I`ES@obGkqegW~')`` -- return a graph from a graph6 or sparse6
+         string (see documentation of :meth:`graph6_string` or
+         :meth:`sparse6_string`).
+
+      #. ``Graph(a_seidel_matrix, format='seidel_adjacency_matrix')`` -- return
+         a graph with a given seidel adjacency matrix (see documentation of
+         :meth:`seidel_adjacency_matrix`).
+
+      #. ``Graph(another_graph)`` -- return a graph from a Sage (di)graph,
+         `pygraphviz <https://pygraphviz.github.io/>`__ graph, `NetworkX
+         <https://networkx.github.io/>`__ graph, or `igraph
+         <http://igraph.org/python/>`__ graph.
+
+    - ``pos`` - a positioning dictionary (cf. documentation of
+      :meth:`~sage.graphs.generic_graph.GenericGraph.layout`). For example, to
+      draw 4 vertices on a square::
+
+         {0: [-1,-1],
+          1: [ 1,-1],
+          2: [ 1, 1],
+          3: [-1, 1]}
 
     -  ``name`` - (must be an explicitly named parameter,
        i.e., ``name="complete")`` gives the graph a name
@@ -520,57 +517,19 @@ class Graph(GenericGraph):
        if data is an instance of the ``Graph`` class)
 
     -  ``multiedges`` - boolean, whether to allow multiple
-       edges (ignored if data is an instance of the ``Graph`` class)
+       edges (ignored if data is an instance of the ``Graph`` class).
 
-    -  ``weighted`` - whether graph thinks of itself as
-       weighted or not. See ``self.weighted()``
+    - ``weighted`` - whether graph thinks of itself as weighted or not. See
+      :meth:`~sage.graphs.generic_graph.GenericGraph.weighted`.
 
-    -  ``format`` - if None, Graph tries to guess; can take
-       a number of values, namely:
-
-       -  ``'int'`` - an integer specifying the number of vertices in an
-          edge-free graph with vertices labelled from 0 to n-1
-
-       -  ``'graph6'`` - Brendan McKay's graph6 format, in a
-          string (if the string has multiple graphs, the first graph is
-          taken)
-
-       -  ``'sparse6'`` - Brendan McKay's sparse6 format, in a
-          string (if the string has multiple graphs, the first graph is
-          taken)
-
-       -  ``'adjacency_matrix'`` - a square Sage matrix M,
-          with M[i,j] equal to the number of edges {i,j}
-
-       -  ``'weighted_adjacency_matrix'`` - a square Sage
-          matrix M, with M[i,j] equal to the weight of the single edge {i,j}.
-          Given this format, weighted is ignored (assumed True).
-
-       -  ``'seidel_adjacency_matrix'`` - a symmetric Sage matrix M
-          with 0s on the  diagonal, and the other entries -1 or 1,
-          `M[i,j]=-1` indicating that {i,j} is an edge, otherwise `M[i,j]=1`.
-
-       -  ``'incidence_matrix'`` - a Sage matrix, with one
-          column C for each edge, where if C represents {i, j}, C[i] is -1
-          and C[j] is 1
-
-       -  ``'elliptic_curve_congruence'`` - data must be an
-          iterable container of elliptic curves, and the graph produced has
-          each curve as a vertex (it's Cremona label) and an edge E-F
-          labelled p if and only if E is congruent to F mod p
-
-       -  ``NX`` - data must be a NetworkX Graph.
-
-           .. NOTE::
-
-               As Sage's default edge labels is ``None`` while NetworkX uses
-               ``{}``, the ``{}`` labels of a NetworkX graph are automatically
-               set to ``None`` when it is converted to a Sage graph. This
-               behaviour can be overruled by setting the keyword
-               ``convert_empty_dict_labels_to_None`` to ``False`` (it is
-               ``True`` by default).
-
-       - ``igraph`` - data must be an `igraph <http://igraph.org/>`__ graph.
+    - ``format`` - if set to ``None`` (default), :class:`Graph` tries to guess
+      input's format. To avoid this possibly time-consuming step, one of the
+      following values can be specified (see description above): ``"int"``,
+      ``"graph6"``, ``"sparse6"``, ``"rule"``, ``"list_of_edges"``,
+      ``"dict_of_lists"``, ``"dict_of_dicts"``, ``"adjacency_matrix"``,
+      ``"weighted_adjacency_matrix"``, ``"seidel_adjacency_matrix"``,
+      ``"incidence_matrix"``, ``"elliptic_curve_congruence"``, ``"NX"``,
+      ``"igraph"``.
 
     - ``sparse`` (boolean) -- ``sparse=True`` is an alias for
       ``data_structure="sparse"``, and ``sparse=False`` is an alias for
@@ -595,7 +554,7 @@ class Graph(GenericGraph):
       ``data_structure='static_sparse'``. Set to ``False`` by default.
 
     - ``vertex_labels`` - Whether to allow any object as a vertex (slower), or
-       only the integers 0, ..., n-1, where n is the number of vertices.
+      only the integers `0,...,n-1`, where `n` is the number of vertices.
 
     -  ``convert_empty_dict_labels_to_None`` - this arguments sets
        the default edge labels used by NetworkX (empty dictionaries)
@@ -859,6 +818,21 @@ class Graph(GenericGraph):
            sage: g = igraph.Graph([(0,1),(0,2)], edge_attrs={'name':['a','b'], 'weight':[1,3]}) # optional - python_igraph
            sage: Graph(g).edges()                                                               # optional - python_igraph
            [(0, 1, {'name': 'a', 'weight': 1}), (0, 2, {'name': 'b', 'weight': 3})]
+
+
+    When defining an undirected graph from a function ``f``, it is *very*
+    important that ``f`` be symmetric. If it is not, anything can happen::
+
+        sage: f_sym = lambda x,y : abs(x-y) == 1
+        sage: f_nonsym = lambda x,y : (x-y) == 1
+        sage: G_sym = Graph([[4,6,1,5,3,7,2,0], f_sym])
+        sage: G_sym.is_isomorphic(graphs.PathGraph(8))
+        True
+        sage: G_nonsym = Graph([[4,6,1,5,3,7,2,0], f_nonsym])
+        sage: G_nonsym.size()
+        4
+        sage: G_nonsym.is_isomorphic(G_sym)
+        False
 
     By default, graphs are mutable and can thus not be used as a dictionary
     key::

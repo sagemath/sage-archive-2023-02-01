@@ -198,6 +198,7 @@ from sage.misc.all import (LatexExpr,
                            random)
 from sage.misc.html import HtmlFragment
 from sage.misc.misc import get_main_globals
+from sage.misc.superseded import deprecation
 from sage.modules.all import random_vector, vector
 from sage.plot.all import Graphics, arrow, line, point, rainbow, text
 from sage.rings.all import Infinity, PolynomialRing, QQ, RDF, ZZ
@@ -2151,7 +2152,7 @@ class InteractiveLPProblemStandardForm(InteractiveLPProblem):
             \end{equation*}
             The initial dictionary is infeasible, solving auxiliary problem.
             ...
-            Leaving: $x_{5}$. Entering: $x_{0}$.
+            Entering: $x_{0}$. Leaving: $x_{5}$.
             ...
             Entering: $x_{1}$. Leaving: $x_{0}$.
             ...
@@ -2271,12 +2272,17 @@ class LPAbstractDictionary(SageObject):
                                        latex(self),
                                        r"\end{equation*}"]))
 
-    def _preupdate_output(self):
+    def _preupdate_output(self, direction):
         r"""
         Return auxiliary output before the update step.
         
         Called from :meth:`run_simplex_method`.
         
+        INPUT:
+        
+        - ``direction`` -- a string specifying the type of the simplex method
+          used, either "primal" or "dual"
+
         OUTPUT:
         
         - :class:`~sage.misc.html.HtmlFragment`.
@@ -2290,15 +2296,19 @@ class LPAbstractDictionary(SageObject):
             sage: D = P.initial_dictionary()
             sage: D.enter(1)
             sage: D.leave(4)
-            sage: D._preupdate_output()
+            sage: D._preupdate_output("primal")
             Entering: $x_{1}$. Leaving: $x_{4}$.
+            sage: D._preupdate_output("dual")
+            Leaving: $x_{4}$. Entering: $x_{1}$.
         """
-        first = "Entering: ${}$. ".format(latex(self.entering()))
-        second = "Leaving: ${}$. ".format(latex(self.leaving()))
-        if self.is_dual_feasible():
-            # Most likely we are running dual simplex method
-            first, second = second, first
-        return HtmlFragment(first + second)
+        entering = "Entering: ${}$. ".format(latex(self.entering()))
+        leaving = "Leaving: ${}$. ".format(latex(self.leaving()))
+        if direction == "primal":
+            return HtmlFragment(entering + leaving)
+        elif direction =="dual":
+            return HtmlFragment(leaving + entering)
+        else:
+            raise ValueError("direction must be either primal or dual")
 
     def _repr_(self):
         r"""
@@ -2916,7 +2926,7 @@ class LPAbstractDictionary(SageObject):
             \begin{equation*}
             ...
             \end{equation*}
-            The problem is infeasible.
+            The problem is infeasible because of $x_{3}$ constraint.
         """
         output = []
         while not self.is_optimal():
@@ -2928,9 +2938,10 @@ class LPAbstractDictionary(SageObject):
                     self.enter(min(possible))
             output.append(self._html_())
             if self.entering() is None:
-                output.append("The problem is infeasible.")
+                output.append("The problem is infeasible because of "
+                              "${}$ constraint.".format(latex(self.leaving())))
                 break
-            output.append(self._preupdate_output())
+            output.append(self._preupdate_output("dual"))
             self.update()
         if self.is_optimal():
             output.append(self._html_())
@@ -3010,7 +3021,7 @@ class LPAbstractDictionary(SageObject):
                 output.append("The problem is unbounded in ${}$ direction."
                               .format(latex(self.entering())))
                 break
-            output.append(self._preupdate_output())
+            output.append(self._preupdate_output("primal"))
             self.update()
         if self.is_optimal():
             output.append(self._html_())
@@ -3243,6 +3254,8 @@ class LPDictionary(LPAbstractDictionary):
             sage: P = InteractiveLPProblemStandardForm(A, b, c)
             sage: D = P.initial_dictionary()
             sage: D.ELLUL("x1", "x4")
+            doctest:...: DeprecationWarning: ELLUL is deprecated, please use separate enter-leave-update and output commands
+            See http://trac.sagemath.org/19097 for details.
             \renewcommand{\arraystretch}{1.5} %notruncate
             \begin{array}{|rcrcrcr|}
             \hline
@@ -3285,6 +3298,8 @@ class LPDictionary(LPAbstractDictionary):
         leaving variable is red in the original dictionary state on the top.
         The new state after the update step is shown on the bottom.
         """
+        deprecation(19097, "ELLUL is deprecated, please use separate "
+                    "enter-leave-update and output commands")
         self.enter(entering)
         self.leave(leaving)
         result = latex(self).rsplit("\n", 1)[0] # Remove \end{array}
@@ -3845,11 +3860,16 @@ class LPRevisedDictionary(LPAbstractDictionary):
         bottom = "\n".join(lines)
         return _assemble_arrayl([top, "", bottom], 1.5)
 
-    def _preupdate_output(self):
+    def _preupdate_output(self, direction):
         r"""
         Return auxiliary output before the update step.
         
         In addition to generic output, show matrices for updating B-inverse.
+        
+        INPUT:
+        
+        - ``direction`` -- a string specifying the type of the simplex method
+          used, either "primal" or "dual"
         
         OUTPUT:
         
@@ -3864,7 +3884,7 @@ class LPRevisedDictionary(LPAbstractDictionary):
             sage: D = P.revised_dictionary()
             sage: D.enter(1)
             sage: D.leave(4)
-            sage: D._preupdate_output()
+            sage: D._preupdate_output("primal")
             Entering: $x_{1}$. Leaving: $x_{4}$.
             \begin{equation*}
             B_\mathrm{new}^{-1} = E^{-1} B_\mathrm{old}^{-1} = 
@@ -3879,7 +3899,7 @@ class LPRevisedDictionary(LPAbstractDictionary):
             \end{equation*}
         """
         return HtmlFragment("\n".join([
-            super(LPRevisedDictionary, self)._preupdate_output(),
+            super(LPRevisedDictionary, self)._preupdate_output(direction),
             r"\begin{equation*}",
             r"B_\mathrm{new}^{-1} = E^{-1} B_\mathrm{old}^{-1} = ",
             latex(self.E_inverse()),

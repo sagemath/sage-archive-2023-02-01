@@ -1039,7 +1039,8 @@ class ModulesWithBasis(CategoryWithAxiom_over_base_ring):
                                                     for key, coeff in mc.iteritems() )
             else:
                 return_sum = codomain.zero()
-                for key, coeff in x._monomial_coefficients.iteritems():
+                mc = x.monomial_coefficients(copy=False)
+                for key, coeff in mc.iteritems():
                     return_sum += coeff * on_basis(key)
                 return return_sum
 
@@ -1055,9 +1056,9 @@ class ModulesWithBasis(CategoryWithAxiom_over_base_ring):
                 sage: s._apply_module_endomorphism( s([2,1]) + s([1,1,1]), f)
                 2*s[2, 1] + 2*s[3]
             """
-            return self.linear_combination( ( on_basis(key), coeff )
-                                            for key, coeff in
-                                            x._monomial_coefficients.iteritems() )
+            mc = x.monomial_coefficients(copy=False)
+            return self.linear_combination( (on_basis(key), coeff)
+                                            for key, coeff in mc.iteritems() )
 
     class ElementMethods:
         # TODO: Define the appropriate element methods here (instead of in

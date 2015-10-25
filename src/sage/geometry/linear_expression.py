@@ -180,8 +180,8 @@ class LinearExpression(ModuleElement):
             sage: from sage.geometry.linear_expression import LinearExpressionModule
             sage: L.<x,y,z> = LinearExpressionModule(QQ)
             sage: linear = L([1, 2, 3], 4)
-            sage: sorted(linear.monomial_coefficients().items()
-            ((0, 1), (1, 2), (2, 3), ('b', 4)}
+            sage: sorted(linear.monomial_coefficients().items())
+            [(0, 1), (1, 2), (2, 3), ('b', 4)]
         """
         zero = self.parent().base_ring().zero()
         d = {i: v for i,v in enumerate(self._coeffs) if v != zero}

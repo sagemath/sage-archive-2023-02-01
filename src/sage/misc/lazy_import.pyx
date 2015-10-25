@@ -313,6 +313,7 @@ cdef class LazyImport(object):
         Check that :trac:`19475` is fixed::
 
             sage: 'A subset of the real line' in RealSet._sage_doc_()
+            True
         """
         return sageinspect.sage_getdoc_original(self._get_object())
 

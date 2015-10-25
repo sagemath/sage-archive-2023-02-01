@@ -4635,14 +4635,12 @@ class Partition(CombinatorialElement):
 
         if directed:
             from sage.graphs.digraph import DiGraph
-            G = DiGraph(edges, multiedges=True)
-            G.add_vertices(T) # Add isolated vertices
-            self._DDEG = G.copy(immutable=True)
+            self._DDEG = DiGraph([T, edges], format="vertices_and_edges",
+                                 immutable=True, multiedges=True)
         else:
             from sage.graphs.graph import Graph
-            G = Graph(edges, multiedges=True)
-            G.add_vertices(T) # Add isolated vertices
-            self._DEG = G.copy(immutable=True)
+            self._DEG = Graph([T, edges], format="vertices_and_edges",
+                              immutable=True, multiedges=True)
         return self.dual_equivalence_graph(directed, coloring)
 
 ##############

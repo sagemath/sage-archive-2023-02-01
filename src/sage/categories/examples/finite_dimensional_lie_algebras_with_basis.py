@@ -74,7 +74,9 @@ class AbelianLieAlgebra(Parent, UniqueRepresentation):
             M = FreeModule(R, n)
         else:
             M = M.change_ring(R)
-        return super(AbelianLieAlgebra, cls).__classcall__(cls, R, n=None, M=M, ambient=ambient)
+            n = M.dimension()
+        return super(AbelianLieAlgebra, cls).__classcall__(cls, R, n=n, M=M,
+                                                           ambient=ambient)
 
     def __init__(self, R, n=None, M=None, ambient=None):
         """
@@ -355,6 +357,20 @@ class AbelianLieAlgebra(Parent, UniqueRepresentation):
                 (2, 2, 3)
             """
             return self.value
+
+        def monomial_coefficients(self, copy=True):
+            """
+            Return the monomial coefficients of ``self``.
+
+            EXAMPLES::
+
+                sage: L = LieAlgebras(QQ).FiniteDimensional().WithBasis().example()
+                sage: a, b, c = L.lie_algebra_generators()
+                sage: elt = 2*a + 2*b + 3*c
+                sage: elt.monomial_coefficients()
+                {0: 2, 1: 2, 2: 3}
+            """
+            return self.value.monomial_coefficients(copy)
 
 Example = AbelianLieAlgebra
 

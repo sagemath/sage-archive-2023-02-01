@@ -603,13 +603,14 @@ class LieAlgebras(Category_over_base_ring):
             """
             tester = self._tester(**options)
             S = tester.some_elements()
-            P = S[0].parent()
-            from sage.categories.cartesian_product import cartesian_product
-            for x,y,z in tester.some_elements(cartesian_product([S,S,S])):
+            from sage.misc.misc import some_tuples
+            for x,y,z in some_tuples(S, 3, tester._max_runs):
                 # left distributivity
-                tester.assert_(P.bracket(x, (y + z)) == P.bracket(x, y) + P.bracket(x, z))
+                tester.assert_(self.bracket(x, (y + z))
+                               == self.bracket(x, y) + self.bracket(x, z))
                 # right distributivity
-                tester.assert_(P.bracket((x + y), z) == P.bracket(x, z) + P.bracket(y, z))
+                tester.assert_(self.bracket((x + y), z)
+                               == self.bracket(x, z) + self.bracket(y, z))
 
     class ElementMethods:
         @coerce_binop

@@ -783,7 +783,36 @@ class ParallelogramPolyomino(ClonableList):
         """
         return list(ClonableList.__getitem__(self, 0))
 
-    def _path_heights(self, word, up):
+    @staticmethod
+    def _prefix_lengths(word, up):
+        r"""
+        Convert a word to a list of lengths using the following algorithm:
+
+        1) convert each 1- ̀̀`up`̀` letter of the word by the number of ``up`` 
+           located on the left in the word;
+        2) remove all the `̀`up`̀̀` letters and retrun the resulting list of 
+           integers.
+
+        INPUTS:
+
+        - ``word`` -- A word of 0 and 1.
+        - `̀`up`` -- 0 or 1 (a letter of the word)
+
+        OUTPUT:
+
+        A list of integers
+
+        EXAMPLES::
+
+        sage: ParallelogramPolyomino._prefix_lengths([], 1)
+        []
+        sage: ParallelogramPolyomino._prefix_lengths([], 0)
+        []
+        sage: ParallelogramPolyomino._prefix_lengths([1,1,0,1,0,0,1], 1)
+        [2, 3, 3]
+        sage: ParallelogramPolyomino._prefix_lengths([1,1,0,1,0,0,1], 0)
+        [0, 0, 1, 3]
+        """
         res = []
         h = 0
         for e in word:
@@ -794,16 +823,84 @@ class ParallelogramPolyomino(ClonableList):
         return res
 
     def upper_heights(self):
-        return self._path_heights(self.upper_path(), 0)
+        r"""
+        Return the list of heights associated to each vertical step of the 
+        parallogram polyomino's upper path.
+
+        OUTPUT:
+
+        A list of integers.
+
+        EXAMPLES::
+
+        sage: ParallelogramPolyomino([[0, 1], [1, 0]]).upper_heights()
+        [0]
+        sage: ParallelogramPolyomino(
+        ....:     [[0, 0, 1, 1, 0, 1, 1, 1], [1, 0, 1, 1, 0, 1, 1, 0]]
+        ....: ).upper_heights()
+        [0, 1, 1, 2, 2]
+        """
+        return ParallelogramPolyomino._prefix_lengths(self.upper_path(), 0)
 
     def lower_heights(self):
-        return self._path_heights(self.lower_path(), 0)
+        r"""
+        Return the list of heights associated to each vertical step of the 
+        parallogram polyomino's lower path.
+
+        OUTPUT:
+
+        A list of integers.
+
+        EXAMPLES::
+
+        sage: ParallelogramPolyomino([[0, 1], [1, 0]]).lower_heights()
+        [1]
+        sage: ParallelogramPolyomino(
+        ....:     [[0, 0, 1, 1, 0, 1, 1, 1], [1, 0, 1, 1, 0, 1, 1, 0]]
+        ....: ).lower_heights()
+        [2, 2, 3, 3, 3]
+        """
+        return ParallelogramPolyomino._prefix_lengths(self.lower_path(), 0)
 
     def upper_widths(self):
-        return self._path_heights(self.upper_path(), 1)
+        r"""
+        Return the list of widths associated to each horizontal step of the 
+        parallogram polyomino's upper path.
+
+        OUTPUT:
+
+        A list of integers.
+
+        EXAMPLES::
+
+        sage: ParallelogramPolyomino([[0, 1], [1, 0]]).upper_widths()
+        [1]
+        sage: ParallelogramPolyomino(
+        ....:     [[0, 0, 1, 1, 0, 1, 1, 1], [1, 0, 1, 1, 0, 1, 1, 0]]
+        ....: ).upper_widths()
+        [1, 3, 5]
+        """
+        return ParallelogramPolyomino._prefix_lengths(self.upper_path(), 1)
 
     def lower_widths(self):
-        return self._path_heights(self.lower_path(), 1)
+        r"""
+        Return the list of widths associated to each horizontal step of the 
+        parallogram polyomino's lower path.
+
+        OUTPUT:
+
+        A list of integers.
+
+        EXAMPLES::
+
+        sage: ParallelogramPolyomino([[0, 1], [1, 0]]).lower_widths()
+        [0]
+        sage: ParallelogramPolyomino(
+        ....:     [[0, 0, 1, 1, 0, 1, 1, 1], [1, 0, 1, 1, 0, 1, 1, 0]]
+        ....: ).lower_widths()
+        [0, 0, 2]
+        """
+        return ParallelogramPolyomino._prefix_lengths(self.lower_path(), 1)
 
     def widths(self):
         r"""
@@ -1548,6 +1645,24 @@ class ParallelogramPolyomino(ClonableList):
             return True
 
     def box_is_root(self, box):
+        r"""
+        Return True if the box contain the root of the tree : it is the left top
+        most celle of the parallelogram polyomino.
+
+        INPUTS:
+        
+        - `box` -- the x,y coordinate of the cell.
+
+        EXAMPLES:
+
+            sage: pp = ParallelogramPolyomino(
+            ....:     [[0, 0, 1, 0, 0, 0, 1, 1], [1, 1, 0, 1, 0, 0, 0, 0]]
+            ....: )
+            sage: pp.box_is_root( [0, 0] )
+            True
+            sage: pp.box_is_root( [0, 1] )
+            False
+        """
         return box[0] == 0 and box[1] == 0
 
     def get_path_in_pair_of_tree_from_box(self, box, direction):
@@ -1723,7 +1838,12 @@ class ParallelogramPolyomino(ClonableList):
             sage: pp = ParallelogramPolyomino(
             ....:     [[0, 1], [1, 0]]
             ....: )
-            sage: pp.to_tikz() # not tested
+            sage: print( pp.to_tikz() )
+            <BLANKLINE>
+              \draw[color=black, line width=1] (0.000000, 1.000000) -- (0.000000, 0.000000);
+              \draw[color=black, line width=1] (1.000000, 1.000000) -- (1.000000, 0.000000);
+              \draw[color=black, line width=1] (0.000000, 1.000000) -- (1.000000, 1.000000);
+              \draw[color=black, line width=1] (0.000000, 0.000000) -- (1.000000, 0.000000);
         """
         res = ""
         drawing_components = self.get_options()['drawing_components']
@@ -1799,6 +1919,15 @@ class ParallelogramPolyomino(ClonableList):
         r"""
         Return a LaTeX version of ``self``.
 
+        EXAMPLES::
+
+            sage: pp = ParallelogramPolyomino([[0,1],[1,0]])
+            sage: latex( pp )
+            <BLANKLINE>
+            \begin{tikzpicture}[scale=1]
+            ...
+            \end{tikzpicture}
+
         For more on the latex options, see
         :meth:`ParallelogramPolyominoes.global_options`.
         """
@@ -1807,6 +1936,15 @@ class ParallelogramPolyomino(ClonableList):
     def _latex_drawing(self):
         r"""
         Return a LaTeX version of ``self`` in a drawing style.
+
+        EXAMPLES::
+
+            sage: pp = ParallelogramPolyomino([[0,1],[1,0]])
+            sage: print( pp._latex_drawing() )
+            <BLANKLINE>
+            \begin{tikzpicture}[scale=1]
+            ...
+            \end{tikzpicture}
         """
         latex.add_package_to_preamble_if_available("tikz")
         tikz_options = self.get_tikz_options()
@@ -1818,9 +1956,14 @@ class ParallelogramPolyomino(ClonableList):
     def _latex_list(self):
         r"""
         Return a LaTeX version of ``self`` in a list style.
+
+        EXAMPLES::
+
+            sage: pp = ParallelogramPolyomino([[0,1],[1,0]])
+            sage: pp._latex_list()
+            '\\[[[0, 1], [1, 0]]\\]'
         """
         return "\\[%s\\]" % self._repr_list()
-        NotImplemented
 
 
 class ParallelogramPolyominoesFactory(SetFactory):

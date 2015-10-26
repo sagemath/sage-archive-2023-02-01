@@ -1446,3 +1446,8 @@ def SumComplex(n, A):
             facets.append(tuple(f))
     return UniqueSimplicialComplex(facets, name='Sum complex on vertices Z/{}Z associated to {}'.format(n, Set(A)))
 
+
+# For taking care of old pickles
+from sage.structure.sage_object import register_unpickle_override
+register_unpickle_override('sage.homology.examples', 'SimplicialSurface', SimplicialComplex)
+

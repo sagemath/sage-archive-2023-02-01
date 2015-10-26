@@ -9813,13 +9813,11 @@ class FiniteStateMachine(sage.structure.sage_object.SageObject):
 
         def matrix_power(A, exponent):
             J, T = A.jordan_form(QQbar, transformation=True)
-            assert T*J*T.inverse() == A
             Jpower = matrix.block_diagonal(
                 [jordan_block_power(J.subdivision(j, j), exponent)
                  for j in range(len(J.subdivisions()[0])+1) ])
             P = Jpower.parent()
             result = P(T)*Jpower*P(T).inverse()
-            assert all(result.subs(n=_) == A**_ for _ in range(5))
             return result
 
         if not self.is_deterministic():

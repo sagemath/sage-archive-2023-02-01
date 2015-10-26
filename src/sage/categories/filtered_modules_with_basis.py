@@ -211,6 +211,12 @@ class FilteredModulesWithBasis(FilteredModulesCategory):
                  with basis: the free module on partitions over Integer Ring
             """
             from sage.categories.modules_with_basis import ModulesWithBasis
+            from sage.categories.filtered_algebras import FilteredAlgebras
+            if self.base_ring() in FilteredAlgebras:
+                raise NotImplementedError("this is only a natural module over"
+                                          " the degree 0 component of the filtered"
+                                          " algebra and coordinate rings are not"
+                                          " yet implemented for submodules")
             category = ModulesWithBasis(self.category().base_ring())
             M = self.submodule(self.homogeneous_component_basis(d),
                                category=category,

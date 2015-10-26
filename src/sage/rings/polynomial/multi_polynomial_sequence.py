@@ -194,6 +194,7 @@ def is_PolynomialSequence(F):
         sage: from sage.rings.polynomial.multi_polynomial_sequence import is_PolynomialSequence
         sage: is_PolynomialSequence(F)
         True
+
     """
     return isinstance(F,PolynomialSequence_generic)
 
@@ -261,6 +262,14 @@ def PolynomialSequence(arg1, arg2=None, immutable=False, cr=False, cr_str=None):
 
         sage: PolynomialSequence([[1,x,y], [0]]).ring()
         Multivariate Polynomial Ring in x, y, z over Finite Field of size 2
+
+    TESTS::
+        sage: from sage.rings.polynomial.multi_polynomial_sequence import PolynomialSequence
+        sage: F = GF(2)
+        sage: L.<t> = PowerSeriesRing(F,'t')
+        sage: R.<x,y> = PolynomialRing(L,'x,y')
+        sage: PolynomialSequence([0], R)
+        [0]
     """
 
     from sage.matrix.matrix import is_Matrix

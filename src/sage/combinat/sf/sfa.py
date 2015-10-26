@@ -382,9 +382,13 @@ class SymmetricFunctionsBases(Category_realization_of_parent):
             sage: Sym = SymmetricFunctions(QQ)
             sage: bases = SymmetricFunctionsBases(Sym)
             sage: bases.super_categories()
-            [Category of commutative hopf algebras with basis over Rational Field,
-             Category of realizations of Symmetric Functions over Rational Field]
+            [Category of realizations of Symmetric Functions over Rational Field,
+             Category of commutative hopf algebras with basis over Rational Field,
+             Join of Category of realizations of hopf algebras over Rational Field
+                 and Category of graded algebras over Rational Field]
         """
+        # FIXME: The last one should also be commutative, but this triggers a
+        #   KeyError when doing the C3 algorithm!!!
         cat = HopfAlgebras(self.base().base_ring())
         return [self.base().Realizations(),
                 cat.Commutative().WithBasis(),
@@ -1315,7 +1319,6 @@ class FilteredSymmetricFunctionsBases(Category_realization_of_parent):
             sage: bases.super_categories()
             [Category of bases of Symmetric Functions over Rational Field,
              Join of Category of hopf algebras with basis over Rational Field
-                 and Category of realizations of hopf algebras over Rational Field
                  and Category of filtered algebras with basis over Rational Field
                  and Category of commutative algebras over Rational Field]
         """
@@ -1361,11 +1364,8 @@ class GradedSymmetricFunctionsBases(Category_realization_of_parent):
             sage: Sym = SymmetricFunctions(QQ)
             sage: bases = GradedSymmetricFunctionsBases(Sym)
             sage: bases.super_categories()
-            [Join of Category of hopf algebras with basis over Rational Field
-                 and Category of realizations of hopf algebras over Rational Field
-                 and Category of graded algebras over Rational Field
-                 and Category of commutative algebras over Rational Field,
-             Category of filtered bases of Symmetric Functions over Rational Field]
+            [Category of filtered bases of Symmetric Functions over Rational Field,
+             Category of commutative graded hopf algebras with basis over Rational Field]
         """
         cat = HopfAlgebras(self.base().base_ring()).Commutative().WithBasis().Graded()
         return [FilteredSymmetricFunctionsBases(self.base()), cat]

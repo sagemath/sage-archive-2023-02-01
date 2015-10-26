@@ -21,7 +21,9 @@ Symmetric functions, with their multiple realizations
 #*****************************************************************************
 from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation
-from sage.categories.all import Rings, GradedHopfAlgebras
+from sage.categories.rings import Rings
+from sage.categories.graded_hopf_algebras import GradedHopfAlgebras
+from sage.categories.fields import Fields
 from sage.combinat.partition import Partitions
 from sage.combinat.free_module import CombinatorialFreeModule
 from sage.rings.rational_field import QQ
@@ -831,6 +833,11 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
 
         """
         assert(R in Rings())
+        # FIXME: We just automatically check that the base ring is a field to
+        #   prevent category refinement during construction of the category,
+        #   thus preventing the MRO issues noted in #15536, #15475 (and likely others).
+        #   Thus fix the MRO/category-refinement issue and remove the line below.
+        R in Fields()
         self._base = R # Won't be needed when CategoryObject won't override anymore base_ring
         Parent.__init__(self, category = GradedHopfAlgebras(R).WithRealizations())
 

@@ -87,7 +87,9 @@ Manipulation
     :meth:`~FiniteStateMachine.delete_transition` | Delete a transition
     :meth:`~FiniteStateMachine.remove_epsilon_transitions` | Remove epsilon transitions (not implemented)
     :meth:`~FiniteStateMachine.split_transitions` | Split transitions with input words of length ``> 1``
-    :meth:`~FiniteStateMachine.determine_alphabets` | Determines input and output alphabets
+    :meth:`~FiniteStateMachine.determine_alphabets` | Determine input and output alphabets
+    :meth:`~FiniteStateMachine.determine_input_alphabet` | Determine input alphabet
+    :meth:`~FiniteStateMachine.determine_output_alphabet` | Determine output alphabet
     :meth:`~FiniteStateMachine.construct_final_word_out` | Construct final output by implicitly reading trailing letters; cf. :meth:`~FiniteStateMachine.with_final_word_out`
 
 
@@ -2973,6 +2975,38 @@ class FiniteStateMachine(sage.structure.sage_object.SageObject):
         ValueError: with_final_word_out cannot be specified when
         copying another finite state machine.
 
+    :trac:`19454` rewrote automatic detection of the alphabets::
+
+        sage: def transition_function(state, letter):
+        ....:     return (0, 3 + letter)
+        sage: T1 = Transducer(transition_function,
+        ....:     input_alphabet=[0, 1],
+        ....:     initial_states=[0],
+        ....:     final_states=[0])
+        sage: T1.output_alphabet
+        [3, 4]
+        sage: T2 = Transducer([(0, 0, 0, 3), (0, 0, 0, 4)],
+        ....:     initial_states=[0],
+        ....:     final_states=[0])
+        sage: T2.output_alphabet
+        [3, 4]
+        sage: T = Transducer([(0, 0, 1, 2)])
+        sage: (T.input_alphabet, T.output_alphabet)
+        ([1], [2])
+        sage: T = Transducer([(0, 0, 1, 2)], determine_alphabets=False)
+        sage: (T.input_alphabet, T.output_alphabet)
+        (None, None)
+        sage: T = Transducer([(0, 0, 1, 2)], input_alphabet=[0, 1])
+        sage: (T.input_alphabet, T.output_alphabet)
+        ([0, 1], [2])
+        sage: T = Transducer([(0, 0, 1, 2)], output_alphabet=[2, 3])
+        sage: (T.input_alphabet, T.output_alphabet)
+        ([1], [2, 3])
+        sage: T = Transducer([(0, 0, 1, 2)], input_alphabet=[0, 1],
+        ....:     output_alphabet=[2, 3])
+        sage: (T.input_alphabet, T.output_alphabet)
+        ([0, 1], [2, 3])
+
     .. automethod:: __call__
     """
 
@@ -3142,9 +3176,6 @@ class FiniteStateMachine(sage.structure.sage_object.SageObject):
                         self.add_transition(L)
                 else:
                     raise TypeError('Wrong input data for transition.')
-            if determine_alphabets is None and input_alphabet is None \
-                    and output_alphabet is None:
-                determine_alphabets = True
         elif hasattr(data, '__iter__'):
             # data is a something that is iterable,
             # items are transitions
@@ -3157,15 +3188,17 @@ class FiniteStateMachine(sage.structure.sage_object.SageObject):
                     self.add_transition(transition)
                 else:
                     raise TypeError('Wrong input data for transition.')
-            if determine_alphabets is None and input_alphabet is None \
-                    and output_alphabet is None:
-                determine_alphabets = True
         elif hasattr(data, '__call__'):
             self.add_from_transition_function(data)
         else:
             raise TypeError('Cannot decide what to do with data.')
 
-        if determine_alphabets:
+        if determine_alphabets is None and data is not None:
+            if input_alphabet is None:
+                self.determine_input_alphabet()
+            if output_alphabet is None:
+                self.determine_output_alphabet()
+        elif determine_alphabets:
             self.determine_alphabets()
 
         if with_final_word_out is not None:
@@ -5128,10 +5161,114 @@ class FiniteStateMachine(sage.structure.sage_object.SageObject):
             len(relabeledFSM.states()), dictionary)
 
 
+    def determine_input_alphabet(self, reset=True):
+        """
+        Determine the input alphabet according to the transitions
+        of this finite state machine.
+
+        INPUT:
+
+        - ``reset`` -- a boolean (default: ``True``). If ``True``, then
+          the existing input alphabet is erased, otherwise new letters are
+          appended to the existing alphabet.
+
+        OUTPUT:
+
+        Nothing.
+
+        After this operation the input alphabet of this finite state machine
+        is a list of letters.
+
+        .. TODO::
+
+            At the moment, the letters of the alphabet need to be hashable.
+
+        EXAMPLES::
+
+            sage: T = Transducer([(1, 1, 1, 0), (1, 2, 2, 1),
+            ....:                 (2, 2, 1, 1), (2, 2, 0, 0)],
+            ....:                final_states=[1],
+            ....:                determine_alphabets=False)
+            sage: (T.input_alphabet, T.output_alphabet)
+            (None, None)
+            sage: T.determine_input_alphabet()
+            sage: (T.input_alphabet, T.output_alphabet)
+            ([0, 1, 2], None)
+
+        .. SEEALSO::
+
+           :meth:`determine_output_alphabet`,
+           :meth:`determine_alphabets`.
+        """
+        if reset:
+            ain = set()
+        else:
+            ain = set(self.input_alphabet)
+
+        for t in self.iter_transitions():
+            for letter in t.word_in:
+                ain.add(letter)
+        self.input_alphabet = list(ain)
+
+
+    def determine_output_alphabet(self, reset=True):
+        """
+        Determine the output alphabet according to the transitions
+        of this finite state machine.
+
+        INPUT:
+
+        - ``reset`` -- a boolean (default: ``True``). If ``True``, then
+          the existing output alphabet is erased, otherwise new letters are
+          appended to the existing alphabet.
+
+        OUTPUT:
+
+        Nothing.
+
+        After this operation the output alphabet of this finite state machine
+        is a list of letters.
+
+        .. TODO::
+
+            At the moment, the letters of the alphabet need to be hashable.
+
+        EXAMPLES::
+
+            sage: T = Transducer([(1, 1, 1, 0), (1, 2, 2, 1),
+            ....:                 (2, 2, 1, 1), (2, 2, 0, 0)],
+            ....:                final_states=[1],
+            ....:                determine_alphabets=False)
+            sage: T.state(1).final_word_out = [1, 4]
+            sage: (T.input_alphabet, T.output_alphabet)
+            (None, None)
+            sage: T.determine_output_alphabet()
+            sage: (T.input_alphabet, T.output_alphabet)
+            (None, [0, 1, 4])
+
+        .. SEEALSO::
+
+           :meth:`determine_input_alphabet`,
+           :meth:`determine_alphabets`.
+        """
+        if reset:
+            aout = set()
+        else:
+            aout = set(self.output_alphabet)
+
+        for t in self.iter_transitions():
+            for letter in t.word_out:
+                aout.add(letter)
+        for s in self.iter_final_states():
+            for letter in s.final_word_out:
+                aout.add(letter)
+        self.output_alphabet = list(aout)
+
+
     def determine_alphabets(self, reset=True):
         """
-        Determines the input and output alphabet according to the
-        transitions in self.
+        Determine the input and output alphabet according to the
+        transitions in this finite state machine.
 
         INPUT:
 
@@ -5144,7 +5281,7 @@ class FiniteStateMachine(sage.structure.sage_object.SageObject):
         Nothing.
 
         After this operation the input alphabet and the output
-        alphabet of self are a list of letters.
+        alphabet of this finite state machine are a list of letters.
 
         .. TODO::
 
@@ -5162,24 +5299,14 @@ class FiniteStateMachine(sage.structure.sage_object.SageObject):
             sage: T.determine_alphabets()
             sage: (T.input_alphabet, T.output_alphabet)
             ([0, 1, 2], [0, 1, 4])
-       """
-        if reset:
-            ain = set()
-            aout = set()
-        else:
-            ain = set(self.input_alphabet)
-            aout = set(self.output_alphabet)
 
-        for t in self.iter_transitions():
-            for letter in t.word_in:
-                ain.add(letter)
-            for letter in t.word_out:
-                aout.add(letter)
-        for s in self.iter_final_states():
-            for letter in s.final_word_out:
-                aout.add(letter)
-        self.input_alphabet = list(ain)
-        self.output_alphabet = list(aout)
+        .. SEEALSO::
+
+           :meth:`determine_input_alphabet`,
+           :meth:`determine_output_alphabet`.
+        """
+        self.determine_input_alphabet(reset)
+        self.determine_output_alphabet(reset)
 
 
     #*************************************************************************

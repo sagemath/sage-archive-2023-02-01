@@ -1231,10 +1231,19 @@ cdef class LaurentSeries(AlgebraElement):
             sage: f.power_series()
             Traceback (most recent call last):
             ...
-            ArithmeticError: self is a not a power series
+            TypeError: self is a not a power series
+
+        TESTS:
+
+            sage: L.<t> = LaurentSeriesRing(GF(2))
+            sage: R.<x,y> = PolynomialRing(L)
+            sage: O = L.power_series_ring()
+            sage: S.<x,y> = PolynomialRing(O)
+            sage: t**(-1)*x*y in S
+            False
         """
         if self.__n < 0:
-            raise ArithmeticError, "self is a not a power series"
+            raise TypeError, "self is a not a power series"
         u = self.__u
         t = u.parent().gen()
         return t**(self.__n) * u

@@ -1235,6 +1235,9 @@ cdef class LaurentSeries(AlgebraElement):
 
         TESTS:
 
+        Check whether a polynomial over a Laurent series ring is contained in the
+        polynomial ring over the power series ring (see :trac:`19459`):
+
             sage: L.<t> = LaurentSeriesRing(GF(2))
             sage: R.<x,y> = PolynomialRing(L)
             sage: O = L.power_series_ring()

@@ -720,7 +720,7 @@ class PowerSeriesRing_generic(UniqueRepresentation, commutative_ring.Commutative
             sage: P(1/q)
             Traceback (most recent call last):
             ...
-            ArithmeticError: self is a not a power series
+            TypeError: self is a not a power series
 
         It is checked that the precision is non-negative
         (see :trac:`19409`)::

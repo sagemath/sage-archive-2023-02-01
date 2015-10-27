@@ -307,7 +307,7 @@ class FiniteDimensionalAlgebra(Algebra):
 
     def base_extend(self, F):
         """
-        Return ``self`` base changed to ``F``.
+        Return ``self`` base changed to the field ``F``.
 
         EXAMPLES::
 
@@ -350,9 +350,9 @@ class FiniteDimensionalAlgebra(Algebra):
 
         - ``gens`` -- (default: None) - either an element of ``A`` or a
           list of elements of ``A``, given as vectors, matrices, or
-          FiniteDimensionalAlgebraElements.  If ``given_by_matrix`` is ``True``, then
-          ``gens`` should instead be a matrix whose rows form a basis
-          of an ideal of ``A``.
+          FiniteDimensionalAlgebraElements.  If ``given_by_matrix`` is
+          ``True``, then ``gens`` should instead be a matrix whose rows
+          form a basis of an ideal of ``A``.
 
         - ``given_by_matrix`` -- boolean (default: ``False``) - if
           ``True``, no checking is done
@@ -442,6 +442,11 @@ class FiniteDimensionalAlgebra(Algebra):
         """
         Return ``True`` if ``self`` has a two-sided multiplicative
         identity element.
+
+        .. WARNING::
+
+            This uses linear algebra; thus expect wrong results when
+            the base ring is not a field.
 
         EXAMPLES::
 

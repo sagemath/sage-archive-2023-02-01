@@ -140,6 +140,7 @@ List of Poset methods
     :delim: |
 
     :meth:`~FinitePoset.is_isomorphic` | Return ``True`` if both posets are isomorphic.
+    :meth:`~FinitePoset.is_induced_subposet` | Return ``True`` if given poset is an induced subposet of this poset.
 
 **Polynomials**
 
@@ -5882,6 +5883,54 @@ class FinitePoset(UniqueRepresentation, Parent):
             q = PolynomialRing(ZZ, 'q').gen(0)
         poly = self._kl_poly(x, y, canonical_labels)
         return poly(q=q)
+
+    def is_induced_subposet(self, other):
+        r"""
+        Return ``True`` if the poset is an induced subposet of ``other``, and
+        ``False`` otherwise.
+
+        A poset `P` is an induced subposet of `Q` if every element
+        of `P` is an element of `Q`, and `x \le_P y` iff `x \le_Q y`.
+        Note that "induced" here has somewhat different meaning compared
+        to that of graphs.
+
+        .. NOTE::
+
+            This method does not check whether the poset is a
+            *isomorphic* (i.e., up to relabeling) subposet of ``other``,
+            but only if ``other`` directly contains the poset as an
+            induced subposet. For isomorphic subposets see
+            :meth:`has_isomorphic_subposet`.
+
+        EXAMPLES::
+
+            sage: P = Poset({1:[2, 3]})
+            sage: Q = Poset({1:[2, 4], 2:[3]})
+            sage: P.is_induced_subposet(Q)
+            False
+            sage: R = Poset({0:[1], 1:[3, 4], 3:[5], 4:[2]})
+            sage: P.is_induced_subposet(R)
+            True
+
+        TESTS::
+
+            sage: P = Poset({2:[1]})
+            sage: Poset().is_induced_subposet(P)
+            True
+            sage: Poset().is_induced_subposet(Poset())
+            True
+            sage: P.is_induced_subposet(Poset())
+            False
+        """
+        if not hasattr(other, 'hasse_diagram'):
+            raise TypeError('the input is not a finite poset')
+        if not self._is_facade or not other._is_facade:
+            raise TypeError('the function is not defined on non-facade posets')
+        # TODO: When we have decided if
+        # Poset({'x':[42]}) == LatticePoset({'x':[42]})
+        # or not, either remove this note or remove .hasse_diagram() below.
+        return (set(self).issubset(set(other)) and
+                other.subposet(self).hasse_diagram() == self.hasse_diagram())
 
 FinitePoset._dual_class = FinitePoset
 

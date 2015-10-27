@@ -218,6 +218,11 @@ build_libsingular()
         return 1
     fi
 
+    if [ "$UNAME" = "Darwin" ]; then
+        # on darwin we need to adjust the install name of the library
+        install_name_tool -id "${SAGE_LOCAL}"/lib/libsingular.dylib "${SAGE_LOCAL}"/lib/libsingular.dylib
+    fi
+
     # singular does not install this header
     cp Singular/sing_dbm.h $SAGE_LOCAL/include/singular/
 

@@ -219,7 +219,7 @@ from sage.rings.finite_rings.integer_mod_ring import is_IntegerModRing
 from sage.rings.number_field.number_field_base cimport NumberField
 
 from sage.rings.arith import gcd
-from sage.structure.element import coerce_binop, get_coercion_model
+from sage.structure.element import coerce_binop
 
 from sage.structure.parent cimport Parent
 from sage.structure.parent_base cimport ParentWithBase
@@ -231,6 +231,7 @@ from sage.structure.element cimport RingElement
 from sage.structure.element cimport ModuleElement
 from sage.structure.element cimport Element
 from sage.structure.element cimport CommutativeRingElement
+from sage.structure.element cimport coercion_model
 
 from sage.structure.factorization import Factorization
 from sage.structure.sequence import Sequence
@@ -2114,7 +2115,7 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
 
         cdef poly *res    # ownership will be transferred to us in the next line
         singular_polynomial_call(&res, self._poly, _ring, coerced_x, MPolynomial_libsingular_get_element)
-        res_parent = get_coercion_model().common_parent(parent._base, *x)
+        res_parent = coercion_model.common_parent(parent._base, *x)
 
         if res == NULL:
             return res_parent(0)

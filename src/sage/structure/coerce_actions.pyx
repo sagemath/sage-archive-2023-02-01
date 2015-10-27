@@ -18,14 +18,13 @@ import operator
 include "sage/ext/interrupt.pxi"
 from cpython.int cimport *
 from cpython.number cimport *
-from sage.structure.element cimport parent_c
+from sage.structure.element cimport parent_c, coercion_model
 
 from sage.categories.action import InverseAction, PrecomposedAction
 from coerce_exceptions import CoercionException
 
 cdef _record_exception():
-    from element import get_coercion_model
-    get_coercion_model()._record_exception()
+    coercion_model._record_exception()
 
 cdef inline an_element(R):
     if isinstance(R, Parent):

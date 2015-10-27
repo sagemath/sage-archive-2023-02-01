@@ -120,11 +120,25 @@ class LieAlgebraWithStructureCoefficients(FinitelyGeneratedLieAlgebra, IndexedGe
             sage: L2 = LieAlgebra(QQ, 'x,y', {('y','x'):{'x':-1}})
             sage: L1 is L2
             True
+
+        Check that we convert names to the indexing set::
+
+            sage: L = LieAlgebra(QQ, 'x,y,z', {('x','y'):{'z':1}, ('y','z'):{'x':1}, ('z','x'):{'y':1}}, index_set=range(3))
+            sage: (x,y,z) = L.gens()
+            sage: L[x,y]
+            L[2]
         """
         names, index_set = LieAlgebra._standardize_names_index_set(names, index_set)
 
+        # Make sure the structure coefficients are given by the indexing set
+        if names is not None and names != tuple(index_set):
+            d = {x: index_set[i] for i,x in enumerate(names)}
+            get_pairs = lambda X: X.items() if isinstance(X, dict) else X
+            s_coeff = {(d[k[0]], d[k[1]]): [(d[x], y) for x,y in get_pairs(s_coeff[k])]
+                       for k in s_coeff}
+
         s_coeff = LieAlgebraWithStructureCoefficients._standardize_s_coeff(s_coeff)
-        if len(s_coeff) == 0:
+        if s_coeff.cardinality() == 0:
             return AbelianLieAlgebra(R, names, index_set, **kwds)
 
         if (names is None and len(index_set) <= 1) or len(names) <= 1:
@@ -181,8 +195,8 @@ class LieAlgebraWithStructureCoefficients(FinitelyGeneratedLieAlgebra, IndexedGe
                 sc[key] = vals
         return Family(sc)
 
-    def __init__(self, R, s_coeff, names, index_set, category=None, prefix='',
-                 bracket=False, latex_bracket=False, string_quotes=False, **kwds):
+    def __init__(self, R, s_coeff, names, index_set, category=None, prefix=None,
+                 bracket=None, latex_bracket=None, string_quotes=None, **kwds):
         """
         Initialize ``self``.
 
@@ -191,6 +205,19 @@ class LieAlgebraWithStructureCoefficients(FinitelyGeneratedLieAlgebra, IndexedGe
             sage: L = LieAlgebra(QQ, 'x,y', {('x','y'): {'x':1}})
             sage: TestSuite(L).run()
         """
+        default = (names != tuple(index_set))
+        if prefix is None:
+            if default:
+                prefix = 'L'
+            else:
+                prefix = ''
+        if bracket is None:
+            bracket = default
+        if latex_bracket is None:
+            latex_bracket = default
+        if string_quotes is None:
+            string_quotes = default
+
         cat = LieAlgebras(R).WithBasis().FiniteDimensional().or_subcategory(category)
         FinitelyGeneratedLieAlgebra.__init__(self, R, names, index_set, cat)
         IndexedGenerators.__init__(self, self._indices, prefix=prefix,

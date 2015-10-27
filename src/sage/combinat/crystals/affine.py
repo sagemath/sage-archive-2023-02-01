@@ -571,15 +571,15 @@ class AffineCrystalFromClassicalElement(ElementWrapper):
             sage: c = K(rows=[[2]])
             sage: cmp(b,c)
             -1
-            sage: cmp(b,1)
-            -1
             sage: cmp(b,b)
             0
-         """
-        if parent(self) is parent(other):
-            return cmp(self.value, other.value)
-        else:
-            return cmp(parent(self), parent(other))
+
+        If the parent are different, it uses comparison of the parents::
+
+            sage: cmp(b,1) == cmp(b.parent(), ZZ)
+            True
+        """
+        return cmp(parent(self), parent(other)) or cmp(self.value, other.value)
 
 AffineCrystalFromClassical.Element = AffineCrystalFromClassicalElement
 

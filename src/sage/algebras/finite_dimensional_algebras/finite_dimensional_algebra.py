@@ -18,17 +18,18 @@ from finite_dimensional_algebra_ideal import FiniteDimensionalAlgebraIdeal
 
 from sage.rings.integer_ring import ZZ
 
-from sage.categories.all import FiniteDimensionalAlgebrasWithBasis
+from sage.categories.magmatic_algebras import MagmaticAlgebras
 from sage.matrix.constructor import Matrix
 from sage.matrix.matrix import is_Matrix
 from sage.modules.free_module_element import vector
 from sage.rings.ring import Algebra
+from sage.structure.unique_representation import UniqueRepresentation
 
 from sage.misc.cachefunc import cached_method
 from functools import reduce
 
 
-class FiniteDimensionalAlgebra(Algebra):
+class FiniteDimensionalAlgebra(Algebra, UniqueRepresentation):
     """
     Create a finite-dimensional `k`-algebra from a multiplication table.
 
@@ -64,6 +65,66 @@ class FiniteDimensionalAlgebra(Algebra):
         sage: B
         Finite-dimensional algebra of degree 3 over Rational Field
     """
+    @staticmethod
+    def __classcall_private__(cls, k, table, names='e', assume_associative=False,
+                              category=None):
+        """
+        Normalize input.
+
+        EXAMPLES::
+
+            sage: table = [Matrix([[1, 0], [0, 1]]), Matrix([[0, 1], [0, 0]])]
+            sage: A1 = FiniteDimensionalAlgebra(GF(3), table)
+            sage: A2 = FiniteDimensionalAlgebra(GF(3), table, names='e')
+            sage: A3 = FiniteDimensionalAlgebra(GF(3), table, names=['e0', 'e1'])
+            sage: A1 is A2 and A2 is A3
+            True
+
+        TESTS:
+
+        Uniqueness is not perfectly enforces across all categories::
+
+            sage: table = [Matrix([[1, 0], [0, 1]]), Matrix([[0, 1], [0, 0]])]
+            sage: cat = Algebras(GF(3)).FiniteDimensional().WithBasis()
+            sage: A1 = FiniteDimensionalAlgebra(GF(3), table)
+            sage: A2 = FiniteDimensionalAlgebra(GF(3), table, category=cat)
+            sage: A1 == A2
+            True
+            sage: A1 is A2
+            False
+            sage: hash(A1) == hash(A2)
+            True
+        """
+        n = len(table)
+        table = [b.base_extend(k) for b in table]
+        for b in table:
+            b.set_immutable()
+        table = tuple(table)
+        if not all([is_Matrix(b) and b.dimensions() == (n, n) for b in table]):
+            raise ValueError("input is not a multiplication table")
+
+        cat = MagmaticAlgebras(k).FiniteDimensional().WithBasis()
+        cat = cat.or_subcategory(category)
+        if assume_associative:
+            cat = cat.Associative()
+
+        # TODO: Change once normalize_names is a static method or a function
+        #names = CategoryObject.normalize_names(n, names)
+        # TODO: ...and remove this
+        if isinstance(names, str):
+            if ',' in names:
+                names = names.split(',')
+            elif n != 1:
+                names = [names + str(i) for i in range(n)]
+            else:
+                names = [names]
+        names = tuple(names)
+        if len(names) != n:
+            # This is the same type of error that normalize_names throws - TCS
+            raise IndexError("the number of names must equal the number of generators")
+
+        return super(FiniteDimensionalAlgebra, cls).__classcall__(cls, k, table,
+                             names, assume_associative, cat)
 
     def __init__(self, k, table, names='e', assume_associative=False, category=None):
         """
@@ -99,14 +160,9 @@ class FiniteDimensionalAlgebra(Algebra):
             sage: E.gens()
             (e,)
         """
-        n = len(table)
-        self._table = [b.base_extend(k) for b in table]
-        if not all([is_Matrix(b) and b.dimensions() == (n, n) for b in table]):
-            raise ValueError("input is not a multiplication table")
+        self._table = table
         self._assume_associative = assume_associative
         # No further validity checks necessary!
-        if category is None:
-            category = FiniteDimensionalAlgebrasWithBasis(k)
         Algebra.__init__(self, base_ring=k, names=names, category=category)
 
     def _repr_(self):
@@ -172,7 +228,8 @@ class FiniteDimensionalAlgebra(Algebra):
             sage: A._Hom_(B, A.category())
             Set of Homomorphisms from Finite-dimensional algebra of degree 1 over Rational Field to Finite-dimensional algebra of degree 2 over Rational Field
         """
-        if category.is_subcategory(FiniteDimensionalAlgebrasWithBasis(self.base_ring())):
+        cat = MagmaticAlgebras(self.base_ring()).FiniteDimensional().WithBasis()
+        if category.is_subcategory(cat):
             from sage.algebras.finite_dimensional_algebras.finite_dimensional_algebra_morphism import FiniteDimensionalAlgebraHomset
             return FiniteDimensionalAlgebraHomset(self, B, category=category)
         return super(FiniteDimensionalAlgebra, self)._Hom_(B, category)
@@ -257,10 +314,10 @@ class FiniteDimensionalAlgebra(Algebra):
 
             sage: A = FiniteDimensionalAlgebra(GF(3), [Matrix([[1, 0], [0, 1]]), Matrix([[0, 1], [0, 0]])])
             sage: A.table()
-            [
+            (
             [1 0]  [0 1]
             [0 1], [0 0]
-            ]
+            )
         """
         return self._table
 
@@ -273,37 +330,66 @@ class FiniteDimensionalAlgebra(Algebra):
         EXAMPLES::
 
             sage: B = FiniteDimensionalAlgebra(QQ, [Matrix([[1,0], [0,1]]), Matrix([[0,1],[-1,0]])])
-            sage: B.left_table()
-            [
+            sage: T = B.left_table(); T
+            (
             [1 0]  [ 0  1]
             [0 1], [-1  0]
-            ]
+            )
+
+        We check immutability::
+
+            sage: T[0] = "vandalized by h4xx0r"
+            Traceback (most recent call last):
+            ...
+            TypeError: 'tuple' object does not support item assignment
+            sage: T[1][0] = [13, 37]
+            Traceback (most recent call last):
+            ...
+            ValueError: matrix is immutable; please change a copy instead
+             (i.e., use copy(M) to change a copy of M).
         """
         B = self.table()
         n = self.degree()
-        return [Matrix([B[j][i] for j in xrange(n)]) for i in xrange(n)]
+        table = [Matrix([B[j][i] for j in xrange(n)]) for i in xrange(n)]
+        for b in table:
+            b.set_immutable()
+        return tuple(table)
 
-    def __cmp__(self, other):
+    def __eq__(self, other):
         """
-        Compare ``self`` to ``other``.
+        Check equality of ``self`` to ``other``.
 
         EXAMPLES::
 
             sage: A = FiniteDimensionalAlgebra(GF(3), [Matrix([[1, 0], [0, 1]]), Matrix([[0, 1], [0, 0]])])
             sage: B = FiniteDimensionalAlgebra(GF(5), [Matrix([0])])
-            sage: cmp(A, A)
-            0
-            sage: cmp(B, B)
-            0
-            sage: cmp(A, B)
-            1
+            sage: A == A
+            True
+            sage: B == B
+            True
+            sage: A == B
+            False
         """
-        if not isinstance(other, FiniteDimensionalAlgebra):
-            return cmp(type(self), type(other))
-        if self.base_ring() == other.base_ring():
-            return cmp(self.table(), other.table())
-        else:
-            return 1
+        return (isinstance(other, FiniteDimensionalAlgebra)
+                and self.base_ring() == other.base_ring()
+                and self.table() == other.table())
+
+    def __ne__(self, other):
+        """
+        Check if ``self`` is not equal to ``other``.
+
+        EXAMPLES::
+
+            sage: A = FiniteDimensionalAlgebra(GF(3), [Matrix([[1, 0], [0, 1]]), Matrix([[0, 1], [0, 0]])])
+            sage: B = FiniteDimensionalAlgebra(GF(5), [Matrix([0])])
+            sage: A != A
+            False
+            sage: B != B
+            False
+            sage: A != B
+            True
+        """
+        return not self.__eq__(other)
 
     def base_extend(self, F):
         """
@@ -316,7 +402,7 @@ class FiniteDimensionalAlgebra(Algebra):
             sage: C.base_extend(k)
             Finite-dimensional algebra of degree 1 over Finite Field in y of size 2^2
         """
-        # Base extension of the multiplication table is done by __init__.
+        # Base extension of the multiplication table is done by __classcall_private__.
         return FiniteDimensionalAlgebra(F, self.table())
 
     def cardinality(self):

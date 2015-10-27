@@ -1246,7 +1246,7 @@ cdef class LaurentSeries(AlgebraElement):
             False
         """
         if self.__n < 0:
-            raise TypeError("self is a not a power series")
+            raise TypeError("self is not a power series")
         u = self.__u
         t = u.parent().gen()
         return t**(self.__n) * u

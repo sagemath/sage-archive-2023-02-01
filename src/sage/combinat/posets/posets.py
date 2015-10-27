@@ -3495,7 +3495,7 @@ class FinitePoset(UniqueRepresentation, Parent):
         union of chains.
 
         According to Dilworth's theorem, the number of chains is equal to
-            `\alpha` (the posets' width).
+        `\alpha` (the posets' width).
 
         EXAMPLES::
 
@@ -5921,8 +5921,16 @@ class FinitePoset(UniqueRepresentation, Parent):
             True
             sage: P.is_induced_subposet(Poset())
             False
+
+        Bad input::
+
+            sage: Poset().is_induced_subposet('junk')
+            Traceback (most recent call last):
+            ...
+            AttributeError: 'str' object has no attribute 'subposet'
         """
-        if not self._is_facade or not other._is_facade:
+        if (not self._is_facade or
+            (isinstance(other, FinitePoset) and not other._is_facade)):
             raise TypeError('the function is not defined on non-facade posets')
         # TODO: When we have decided if
         # Poset({'x':[42]}) == LatticePoset({'x':[42]})

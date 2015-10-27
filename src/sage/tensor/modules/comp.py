@@ -250,7 +250,7 @@ In case of symmetries, only non-redundant components are stored::
 
 from sage.structure.sage_object import SageObject
 from sage.rings.integer import Integer
-from sage.parallel.all import parallel
+from sage.parallel.decorate import parallel
 from sage.parallel.parallelism import Parallelism
 from operator import itemgetter
 import time

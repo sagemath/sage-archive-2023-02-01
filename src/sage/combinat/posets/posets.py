@@ -5922,8 +5922,6 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: P.is_induced_subposet(Poset())
             False
         """
-        if not hasattr(other, 'hasse_diagram'):
-            raise TypeError('the input is not a finite poset')
         if not self._is_facade or not other._is_facade:
             raise TypeError('the function is not defined on non-facade posets')
         # TODO: When we have decided if

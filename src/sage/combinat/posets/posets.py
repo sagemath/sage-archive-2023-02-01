@@ -5894,6 +5894,10 @@ class FinitePoset(UniqueRepresentation, Parent):
         Note that "induced" here has somewhat different meaning compared
         to that of graphs.
 
+        INPUT:
+
+        - ``other``, a poset.
+
         .. NOTE::
 
             This method does not check whether the poset is a

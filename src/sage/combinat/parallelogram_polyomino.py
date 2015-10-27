@@ -788,15 +788,15 @@ class ParallelogramPolyomino(ClonableList):
         r"""
         Convert a word to a list of lengths using the following algorithm:
 
-        1) convert each 1- ̀̀`up`̀` letter of the word by the number of ``up`` 
+        1) convert each 1-``up`` letter of the word by the number of ``up``
            located on the left in the word;
-        2) remove all the `̀`up`̀̀` letters and retrun the resulting list of 
+        2) remove all the ``up`` letters and retrun the resulting list of
            integers.
 
         INPUTS:
 
         - ``word`` -- A word of 0 and 1.
-        - `̀`up`` -- 0 or 1 (a letter of the word)
+        - ``up`` -- 0 or 1 (a letter of the word)
 
         OUTPUT:
 
@@ -1637,6 +1637,41 @@ class ParallelogramPolyomino(ClonableList):
         return pos
 
     def box_is_node(self, pos):
+        r"""
+        Return True if the box contains a node in the context of the 
+        Aval-Boussicault bijection between parallelogram polyomino and binary
+        tree.
+
+        TODO : Vérifier le cas de la racine et donc si c'est Boussic&ault-Aval
+        ou Boussicault-Socci
+
+        INPUT:
+
+        - ``pos`` -- the x,y coordinate of the box.
+
+        OUTPUT:
+
+        A boolean
+
+        EXAMPLES::
+
+            sage: pp = ParallelogramPolyomino(
+            ....:     [[0, 0, 1, 0, 0, 0, 1, 1], [1, 1, 0, 1, 0, 0, 0, 0]]
+            ....: )
+            sage: pp.set_options(display='drawing')
+            sage: pp
+            [1 1 0]
+            [1 1 1]
+            [0 1 1]
+            [0 1 1]
+            [0 1 1]
+            sage: pp.bix_is_node( [2,1] )
+            True
+            sage: pp.bix_is_node( [2,0] )
+            False
+            sage: pp.bix_is_node( [1,1] )
+            False
+        """
         if self[pos[0]][pos[1]] == 0:
             return False
         if self[pos[0]-1][pos[1]] == 0:
@@ -1646,11 +1681,11 @@ class ParallelogramPolyomino(ClonableList):
 
     def box_is_root(self, box):
         r"""
-        Return True if the box contain the root of the tree : it is the left top
-        most celle of the parallelogram polyomino.
+        Return True if the box contains the root of the tree : it is the left 
+        top most celle of the parallelogram polyomino.
 
         INPUTS:
-        
+
         - `box` -- the x,y coordinate of the cell.
 
         EXAMPLES:

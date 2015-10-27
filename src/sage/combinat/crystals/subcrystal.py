@@ -127,6 +127,8 @@ class Subcrystal(UniqueRepresentation, Parent):
             generators = ambient.module_generators
 
         category = Crystals().or_subcategory(category)
+        if ambient in FiniteCrystals() or isinstance(contained, frozenset):
+            category = category.Finite()
 
         if virtualization is not None:
             if scaling_factors is None:
@@ -250,6 +252,18 @@ class Subcrystal(UniqueRepresentation, Parent):
             sage: S = B.subcrystal(max_depth=4)
             sage: S.cardinality()
             22
+
+        TESTS:
+
+        Check that :trac:`19481` is fixed::
+
+            sage: from sage.combinat.crystals.virtual_crystal import VirtualCrystal
+            sage: A = crystals.infinity.Tableaux(['A',3])
+            sage: V = VirtualCrystal(A, {1:(1,3), 2:(2,)}, {1:1, 2:2}, cartan_type=['C',2])
+            sage: V.cardinality()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: unknown cardinality
         """
         if self._cardinality is not None:
             return self._cardinality
@@ -261,7 +275,10 @@ class Subcrystal(UniqueRepresentation, Parent):
         except AttributeError:
             if self in FiniteCrystals():
                 return Integer(len(self.list()))
-            card = super(Subcrystal, self).cardinality()
+            try:
+                card = super(Subcrystal, self).cardinality()
+            except AttributeError:
+                raise NotImplementedError("unknown cardinality")
             if card == infinity:
                 self._cardinality = card
                 return card

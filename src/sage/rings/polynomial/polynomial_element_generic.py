@@ -405,6 +405,8 @@ class Polynomial_generic_sparse(Polynomial):
             start, stop, step = n.start, n.stop, n.step
             if step is None:
                 step = 1
+            elif step <= 0:
+                raise IndexError("step (= %s) must be strictly positive" % step)
             if start is None:
                 start = 0
             elif start < 0:

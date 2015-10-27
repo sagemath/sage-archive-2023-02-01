@@ -977,12 +977,21 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: f[-2:4:2]
             x^2 + 1
 
+        Negative values of the step argument are forbidden:
+
+            sage: f[3:-1:-2]
+            Traceback (most recent call last):
+            ...
+            IndexError: step (= -2) must be strictly positive
+
         """
         cdef Py_ssize_t d = self.degree() + 1
         if isinstance(n, slice):
             start, stop, step = n.start, n.stop, n.step
             if step is None:
                 step = 1
+            elif step <= 0:
+                raise IndexError("step (= %s) must be strictly positive" % step)
             if start is None:
                 start = 0
             elif start < 0:

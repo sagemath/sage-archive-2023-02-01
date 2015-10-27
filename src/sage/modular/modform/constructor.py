@@ -278,9 +278,7 @@ def ModularForms(group  = 1,
         sage: M = ModularForms(Gamma1(57), 1); M
         Modular Forms space of dimension (unknown) for Congruence Subgroup Gamma1(57) of weight 1 over Rational Field
         sage: M.basis()
-        Traceback (most recent call last):
-        ...
-        NotImplementedError: Computation of dimensions of weight 1 cusp forms spaces not implemented in general
+        <repr(<sage.structure.sequence.Sequence_generic at 0x...>) failed: NotImplementedError: Computation of dimensions of weight 1 cusp forms spaces not implemented in general>
         sage: M.cuspidal_subspace().basis()
         Traceback (most recent call last):
         ...
@@ -430,7 +428,7 @@ def Newforms(group, weight=2, base_ring=None, names=None):
     base field that is not minimal for that character::
 
         sage: K.<i> = QuadraticField(-1)
-        sage: chi = DirichletGroup(5, K)[3]
+        sage: chi = DirichletGroup(5, K)[1]
         sage: len(Newforms(chi, 7, names='a'))
         1
         sage: x = polygen(K); L.<c> = K.extension(x^2 - 402*i)
@@ -439,11 +437,19 @@ def Newforms(group, weight=2, base_ring=None, names=None):
         sage: sorted([N[0][2], N[1][2]]) == sorted([1/2*c - 5/2*i - 5/2, -1/2*c - 5/2*i - 5/2])
         True
 
+    TESTS:
+
     We test that :trac:`8630` is fixed::
 
         sage: chi = DirichletGroup(109, CyclotomicField(3)).0
         sage: CuspForms(chi, 2, base_ring = CyclotomicField(9))
         Cuspidal subspace of dimension 8 of Modular Forms space of dimension 10, character [zeta3 + 1] and weight 2 over Cyclotomic Field of order 9 and degree 6
+
+    Check that :trac:`15486` is fixed (this used to take over a day)::
+
+        sage: N = Newforms(719, names='a'); len(N)  # long time (3 s)
+        3
+
     """
     return CuspForms(group, weight, base_ring).newforms(names)
 

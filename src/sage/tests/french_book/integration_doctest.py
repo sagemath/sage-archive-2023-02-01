@@ -14,6 +14,7 @@ Sage example in ./integration.tex, line 44::
     sage: N(integrate(f, x, 1, 3))
     0.035860294991267694
     sage: plot(f, 1, 3, fill='axis')
+    Graphics object consisting of 2 graphics primitives
 
 Sage example in ./integration.tex, line 103::
 
@@ -77,8 +78,8 @@ Sage example in ./integration.tex, line 436::
 
 Sage example in ./integration.tex, line 465::
 
-    sage: gp('intnum(x=17, 42, exp(-x^2)*log(x))') # rel tol 8e-29
-    2.5657285005610514829173563961304785900 E-127
+    sage: gp('intnum(x=17, 42, exp(-x^2)*log(x))') # rel tol 1e-17
+    2.5657285005610514829176211363206621657 E-127
 
 Sage example in ./integration.tex, line 474::
 
@@ -175,12 +176,13 @@ Sage example in ./integration.tex, line 786::
 Sage example in ./integration.tex, line 801::
 
     sage: plot(f, 0, 100)
+    Graphics object consisting of 1 graphics primitive
 
 Sage example in ./integration.tex, line 838::
 
     sage: t, y = var('t, y')
     sage: desolve_rk4(t*y*(2-y), y, ics=[0,1], end_points=[0, 1], step=0.5)
-    [[0, 1], [0.5, 1.12419127425], [1.0, 1.46159016229]]
+    [[0, 1], [0.5, 1.12419127424558], [1.0, 1.461590162288825]]
 
 Sage example in ./integration.tex, line 861::
 

@@ -42,7 +42,6 @@ import numpy as np
 cimport numpy as np
 
 from sage.rings.all import CIF
-from sage.rings.arith import gcd
 
 cdef class PeriodicRegion:
 
@@ -67,10 +66,12 @@ cdef class PeriodicRegion:
             sage: from sage.schemes.elliptic_curves.period_lattice_region import PeriodicRegion
             sage: S = PeriodicRegion(CDF(2), CDF(2*I), np.zeros((4, 4)))
             sage: S.plot()
+            Graphics object consisting of 1 graphics primitive
             sage: data = np.zeros((4, 4))
             sage: data[1,1] = True
             sage: S = PeriodicRegion(CDF(2), CDF(2*I+1), data)
             sage: S.plot()
+            Graphics object consisting of 5 graphics primitives
         """
         if data.dtype is not np.int8:
             data = data.astype(np.int8)
@@ -262,13 +263,16 @@ cdef class PeriodicRegion:
             sage: data[1,1] = True
             sage: S = PeriodicRegion(CDF(1), CDF(I + 1/2), data)
             sage: S.plot()
+            Graphics object consisting of 5 graphics primitives
             sage: S.expand().plot()
+            Graphics object consisting of 13 graphics primitives
             sage: S.expand().data
             array([[1, 1, 1, 0],
                    [1, 1, 1, 0],
                    [1, 1, 1, 0],
                    [0, 0, 0, 0]], dtype=int8)
             sage: S.expand(corners=False).plot()
+            Graphics object consisting of 13 graphics primitives
             sage: S.expand(corners=False).data
             array([[0, 1, 0, 0],
                    [1, 1, 1, 0],
@@ -307,7 +311,9 @@ cdef class PeriodicRegion:
             sage: data[1:4,1:4] = True
             sage: S = PeriodicRegion(CDF(1), CDF(I + 1/2), data)
             sage: S.plot()
+            Graphics object consisting of 13 graphics primitives
             sage: S.contract().plot()
+            Graphics object consisting of 5 graphics primitives
             sage: S.contract().data.sum()
             1
             sage: S.contract().contract().is_empty()
@@ -364,7 +370,7 @@ cdef class PeriodicRegion:
         m, n = self.data.shape
         return self.data[int(m * i), int(n * j)]
 
-    def __div__(self, int n):
+    def __div__(self, unsigned int n):
         """
         Returns a new region of the same resolution that is the image
         of this region under the map z -> z/n.
@@ -373,6 +379,7 @@ cdef class PeriodicRegion:
         always at worse a superset of the true image.
 
         EXAMPLES::
+
             sage: import numpy as np
             sage: from sage.schemes.elliptic_curves.period_lattice_region import PeriodicRegion
 
@@ -382,8 +389,11 @@ cdef class PeriodicRegion:
             sage: data[3, 3] = True
             sage: S = PeriodicRegion(CDF(1), CDF(I + 1/2), data)
             sage: S.plot()
+            Graphics object consisting of 29 graphics primitives
             sage: (S / 2).plot()
+            Graphics object consisting of 57 graphics primitives
             sage: (S / 3).plot()
+            Graphics object consisting of 109 graphics primitives
             sage: (S / 2 / 3) == (S / 6) == (S / 3 / 2)
             True
 
@@ -405,30 +415,36 @@ cdef class PeriodicRegion:
             False
             sage: any(z/3 + j/3 + k/3 in S/3 for z in outside for j in range(3) for k in range(3))
             False
+
+            sage: (S / 1) is S
+            True
+            sage: S / 0
+            Traceback (most recent call last):
+            ...
+            ValueError: divisor must be positive
+            sage: S / (-1)
+            Traceback (most recent call last):
+            ...
+            OverflowError: can't convert negative value to unsigned int
         """
-        cdef int i, j, a, b, rows, cols, g
-        cdef double d, e
-        if n == 1:
-            return self
+        cdef unsigned int i, j, a, b, rows, cols
+        if n <= 1:
+            if n == 1:
+                return self
+            raise ValueError("divisor must be positive")
         self._ensure_full()
         cdef np.ndarray[np.npy_int8, ndim=2] data, new_data
         data = self.data
         rows, cols = self.data.shape
-        if n != 1:
-            new_data = np.zeros(self.data.shape, self.data.dtype)
-            d = 1.0/n
-            e = 1-d/2
-            for i in range(rows):
-                for j in range(cols):
-                    if data[i,j]:
-                        for a in range(n):
-                            for b in range(n):
-                                new_data[<int>((a*rows+i  )*d), <int>((b*cols+j  )*d)] = True
-                                new_data[<int>((a*rows+i+e)*d), <int>((b*cols+j  )*d)] = True
-                                new_data[<int>((a*rows+i+e)*d), <int>((b*cols+j+e)*d)] = True
-                                new_data[<int>((a*rows+i  )*d), <int>((b*cols+j+e)*d)] = True
-            data = new_data
-        return PeriodicRegion(self.w1, self.w2, data)
+
+        new_data = np.zeros(self.data.shape, self.data.dtype)
+        for i in range(rows):
+            for j in range(cols):
+                if data[i,j]:
+                    for a in range(n):
+                        for b in range(n):
+                            new_data[(a*rows+i)//n, (b*cols+j)//n] = data[i,j]
+        return PeriodicRegion(self.w1, self.w2, new_data)
 
     def __invert__(self):
         """
@@ -614,6 +630,7 @@ cdef class PeriodicRegion:
             sage: S.innermost_point()
             0.375 + 0.25*I
             sage: S.plot() + point(S.innermost_point())
+            Graphics object consisting of 24 graphics primitives
         """
         if self.is_empty():
             from sage.categories.sets_cat import EmptySetError
@@ -640,6 +657,7 @@ cdef class PeriodicRegion:
             sage: data[3, 3] = True
             sage: S = PeriodicRegion(CDF(1), CDF(I + 1/2), data)
             sage: plot(S) + plot(S.expand(), rgbcolor=(1, 0, 1), thickness=2)
+            Graphics object consisting of 46 graphics primitives
         """
         from sage.all import line
         dw1, dw2 = self.ds()

@@ -483,7 +483,9 @@ class KBoundedQuotientBases(Category_realization_of_parent):
             sage: Q = Sym.kBoundedQuotient(3,t=1)
             sage: KQB = KBoundedQuotientBases(Q)
             sage: KQB.super_categories()
-            [Category of realizations of 3-Bounded Quotient of Symmetric Functions over Univariate Polynomial Ring in t over Rational Field with t=1, Join of Category of graded hopf algebras with basis over Univariate Polynomial Ring in t over Rational Field and Category of subquotients of monoids and Category of quotients of semigroups]
+            [Category of realizations of 3-Bounded Quotient of Symmetric Functions over Univariate Polynomial Ring in t over Rational Field with t=1,
+             Join of Category of graded hopf algebras with basis over Univariate Polynomial Ring in t over Rational Field and
+                     Category of quotients of algebras over Univariate Polynomial Ring in t over Rational Field]
         """
         R = self.base().base_ring()
         category = GradedHopfAlgebrasWithBasis(R)
@@ -551,8 +553,8 @@ class KBoundedQuotientBases(Category_realization_of_parent):
                 else:
                     raise TypeError("do not know how to make x (= %s) an element of %s"%(x, self))
             #x is an element of the basis enumerated set;
-            elif x in self._basis_keys:
-                return self.monomial(self._basis_keys(x))
+            elif x in self._indices:
+                return self.monomial(self._indices(x))
             raise TypeError("do not know how to make x (= %s) an element of self (=%s)"%(x,self))
 
         def ambient(self):
@@ -648,6 +650,7 @@ class KBoundedQuotientBases(Category_realization_of_parent):
             The set of `k`-bounded partitions of all non-negative integers.
 
             EXAMPLES::
+
                 sage: km = SymmetricFunctions(QQ).kBoundedQuotient(3,t=1).km()
                 sage: km.indices()
                 3-Bounded Partitions

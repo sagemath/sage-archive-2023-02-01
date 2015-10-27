@@ -8,7 +8,7 @@ either equalities or less-or-equal. For example::
 
     sage: p = MixedIntegerLinearProgram()
     sage: x = p.new_variable()
-    doctest:839: DeprecationWarning: The default behaviour of new_variable() will soon change ! It will return 'real' variables instead of nonnegative ones. Please be explicit and call new_variable(nonnegative=True) instead.
+    doctest:...: DeprecationWarning: The default value of 'nonnegative' will change, to False instead of True. You should add the explicit 'nonnegative=True'.
     See http://trac.sagemath.org/15521 for details.
     sage: f = 1 + x[1] + 2*x[2];  f     #  a linear function
     1 + x_0 + 2*x_1
@@ -39,7 +39,7 @@ chained::
     x_0 <= x_1 <= x_2 <= x_3 <= x_4
 
 If necessary, the direction of inequality is flipped to always write
-inqualities as less or equal::
+inequalities as less or equal::
 
     sage: x[5] >= ieq_01234
     x_0 <= x_1 <= x_2 <= x_3 <= x_4 <= x_5
@@ -75,14 +75,10 @@ See :trac:`12091` ::
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-include "sage/ext/stdsage.pxi"
 include "sage/ext/interrupt.pxi"
-include "sage/ext/cdefs.pxi"
 from cpython.object cimport *
 
-cdef extern from "limits.h":
-    long LONG_MAX
-
+from sage.misc.fast_methods cimport hash_by_id
 from sage.structure.parent cimport Parent
 from sage.structure.element cimport ModuleElement, Element
 from sage.misc.cachefunc import cached_function
@@ -93,7 +89,7 @@ from sage.misc.cachefunc import cached_function
 #
 #*****************************************************************************
 
-def is_LinearFunction(x):
+cpdef is_LinearFunction(x):
     """
     Test whether ``x`` is a linear function
 
@@ -159,7 +155,7 @@ def LinearFunctionsParent(base_ring):
     INPUT:
 
     - ``base_ring`` -- a ring. The coefficient ring for the linear
-      funcitons.
+      functions.
 
     OUTPUT:
 
@@ -286,6 +282,54 @@ cdef class LinearFunctionsParent_class(Parent):
             '*'
         """
         return self._multiplication_symbol
+
+    def tensor(self, free_module):
+        """
+        Return the tensor product with ``free_module``.
+
+        INPUT:
+
+        - ``free_module`` -- vector space or matrix space over the
+          same base ring.
+        
+        OUTPUT:
+
+        Instance of
+        :class:`sage.numerical.linear_tensor.LinearTensorParent_class`.
+        
+        EXAMPLES::
+
+            sage: LF = MixedIntegerLinearProgram().linear_functions_parent()
+            sage: LF.tensor(RDF^3)
+            Tensor product of Vector space of dimension 3 over Real Double Field
+            and Linear functions over Real Double Field
+            sage: LF.tensor(QQ^2)
+            Traceback (most recent call last):
+            ...
+            ValueError: base rings must match
+        """
+        from sage.numerical.linear_tensor import LinearTensorParent
+        return LinearTensorParent(free_module, self)
+
+    def gen(self, i):
+        """
+        Return the linear variable `x_i`.
+
+        INPUT:
+
+        - ``i`` -- non-negative integer.
+
+        OUTPUT:
+
+        The linear function `x_i`.
+
+        EXAMPLES::
+
+            sage: LF = MixedIntegerLinearProgram().linear_functions_parent()
+            sage: LF.gen(23)
+            x_23
+        """
+        return LinearFunction(self, {i:1})
 
     def _repr_(self):
         """
@@ -472,7 +516,7 @@ cdef class LinearFunction(ModuleElement):
 
     def dict(self):
         r"""
-        Returns the dictionary corresponding to the Linear Function.
+        Return the dictionary corresponding to the Linear Function.
 
         OUTPUT:
 
@@ -489,6 +533,65 @@ cdef class LinearFunction(ModuleElement):
             {0: 1.0, 3: -8.0}
         """
         return dict(self._f)
+
+    def coefficient(self, x):
+        r"""
+        Return one of the the coefficients.
+
+        INPUT:
+
+        - ``x`` -- a linear variable or an integer. If an integer `i`
+          is passed, then `x_i` is used as linear variable.
+
+        OUTPUT:
+
+        A base ring element. The coefficient of ``x`` in the linear
+        function. Pass ``-1`` for the constant term.
+
+        EXAMPLE::
+
+            sage: mip.<b> = MixedIntegerLinearProgram()
+            sage: lf = -8 * b[3] + b[0] - 5;  lf
+            -5 - 8*x_0 + x_1
+            sage: lf.coefficient(b[3])
+            -8.0
+            sage: lf.coefficient(0)      # x_0 is b[3]
+            -8.0
+            sage: lf.coefficient(4)
+            0.0
+            sage: lf.coefficient(-1)
+            -5.0
+
+        TESTS::
+
+            sage: lf.coefficient(b[3] + b[4])
+            Traceback (most recent call last):
+            ...
+            ValueError: x is a sum, must be a single variable
+            sage: lf.coefficient(2*b[3])
+            Traceback (most recent call last):
+            ...
+            ValueError: x must have a unit coefficient
+            sage: mip.<q> = MixedIntegerLinearProgram(solver='ppl')
+            sage: lf.coefficient(q[0])
+            Traceback (most recent call last):
+            ...
+            ValueError: x is from a different linear functions module
+        """
+        if is_LinearFunction(x):
+            if self.parent() != x.parent():
+                raise ValueError('x is from a different linear functions module')
+            if len((<LinearFunction>x)._f) != 1:
+                raise ValueError('x is a sum, must be a single variable')
+            i = (<LinearFunction>x)._f.keys()[0]
+            if (<LinearFunction>x)._f[i] != 1:
+                raise ValueError('x must have a unit coefficient')
+        else:
+            i = int(x)
+        try:
+            return self._f[i]
+        except KeyError:
+            return self.parent().base_ring().zero()
 
     cpdef ModuleElement _add_(self, ModuleElement b):
         r"""
@@ -589,12 +692,32 @@ cdef class LinearFunction(ModuleElement):
            sage: x = p.new_variable()
            sage: x[0] * 0.6
            3/5*x_0
+
+           sage: vf = (2 + x[0]) * vector(ZZ, [3,4]);  vf
+           (6, 8) + (3, 4)*x_0
+           sage: vf.parent()
+           Tensor product of Vector space of dimension 2 over Rational Field
+           and Linear functions over Rational Field
+
+           sage: tf = x[0] * identity_matrix(2);  tf
+           [x_0 0  ]
+           [0   x_0]
+           sage: tf.parent()
+           Tensor product of Full MatrixSpace of 2 by 2 dense matrices over 
+           Rational Field and Linear functions over Rational Field
        """
        R = self.base_ring()
        try:
            x_R = R(x)
        except TypeError:
-           return None
+           M = x.parent().base_extend(R)
+           x_M = M(x)
+           from sage.numerical.linear_tensor import LinearTensorParent
+           P = LinearTensorParent(M, self.parent())
+           tensor = dict()
+           for k, v in self._f.items():
+               tensor[k] = x_M * v
+           return P(tensor)
        return self._rmul_(x_R)
 
     def _coeff_formatter(self, coeff, constant_term=False):
@@ -718,14 +841,9 @@ cdef class LinearFunction(ModuleElement):
         """
         return (left-right).is_zero()
 
-    def __richcmp__(left, right, int op):
+    cdef _richcmp(left, right, int op):
         """
-        Override the rich comparison.
-
-        The Sage framework sometimes expects that rich comparison
-        results in a boolean value, but we want to return
-        :class:`~sage.numerical.linear_functions.LinearConstraint`
-        objects.
+        Create an inequality or equality object.
 
         EXAMPLES::
 
@@ -733,14 +851,8 @@ cdef class LinearFunction(ModuleElement):
             sage: x = p.new_variable()
             sage: x[0].__le__(x[1])    # indirect doctest
             x_0 <= x_1
-        """
-        return (<LinearFunction>left)._richcmp(right, op)
 
-    cdef _richcmp(left, right, int op):
-        """
-        Create a inequality or equality object.
-
-        EXAMPLE::
+        ::
 
             sage: p = MixedIntegerLinearProgram()
             sage: from sage.numerical.linear_functions import LinearFunction
@@ -792,18 +904,14 @@ cdef class LinearFunction(ModuleElement):
         equality = (op == Py_EQ)
         cdef LinearConstraint  left_constraint = LC(left,  equality=equality)
         cdef LinearConstraint right_constraint = LC(right, equality=equality)
-        if op == Py_LT:
+        if op == Py_EQ or op == Py_LE or op == Py_GE:
+            return PyObject_RichCompare(left_constraint, right_constraint, op)
+        elif op == Py_LT:
             raise ValueError("strict < is not allowed, use <= instead.")
-        elif op == Py_EQ:
-            return left_constraint._richcmp(right_constraint, op)
         elif op == Py_GT:
             raise ValueError("strict > is not allowed, use >= instead.")
-        elif op == Py_LE:
-            return left_constraint._richcmp(right_constraint, op)
         elif op == Py_NE:
             raise ValueError("inequality != is not allowed, use one of <=, ==, >=.")
-        elif op == Py_GE:
-            return left_constraint._richcmp(right_constraint, op)
         else:
             assert(False)   # unreachable
 
@@ -820,23 +928,10 @@ cdef class LinearFunction(ModuleElement):
             sage: d = {}
             sage: d[f] = 3
         """
-        # see _cmp_c_impl() if you want to change the hash function
-        return id(self) % LONG_MAX
+        # see _cmp_() if you want to change the hash function
+        return hash_by_id(<void *> self)
 
-    def __cmp__(left, right):
-        """
-        Part of the comparison framework.
-
-        EXAMPLES::
-
-            sage: p = MixedIntegerLinearProgram()
-            sage: f = p({2 : 5, 3 : 2})
-            sage: cmp(f, f)
-            0
-        """
-        return (<Element>left)._cmp(right)
-
-    cdef int _cmp_c_impl(left, Element right) except -2:
+    cpdef int _cmp_(left, Element right) except -2:
         """
         Implement comparison of two linear functions.
 
@@ -874,7 +969,7 @@ cdef class LinearConstraintsParent_class(Parent):
 
     .. warning::
 
-        This class has no reason to be instanciated by the user, and
+        This class has no reason to be instantiated by the user, and
         is meant to be used by instances of
         :class:`MixedIntegerLinearProgram`. Also, use the
         :func:`LinearConstraintsParent` factory function.
@@ -1063,7 +1158,7 @@ cdef class LinearConstraint(Element):
 
     .. warning::
 
-        This class has no reason to be instanciated by the user, and
+        This class has no reason to be instantiated by the user, and
         is meant to be used by instances of
         :class:`MixedIntegerLinearProgram`.
 
@@ -1298,12 +1393,12 @@ cdef class LinearConstraint(Element):
         if not self.is_equation() or self.is_trivial():
             raise StopIteration
         term_iter = iter(self)
-        lhs = term_iter.next()
-        rhs = term_iter.next()
+        lhs = next(term_iter)
+        rhs = next(term_iter)
         while True:
             yield (lhs, rhs)
             lhs = rhs
-            rhs = term_iter.next()
+            rhs = next(term_iter)
 
     def inequalities(self):
         """
@@ -1331,12 +1426,12 @@ cdef class LinearConstraint(Element):
         if not self.is_less_or_equal() or self.is_trivial():
             raise StopIteration
         term_iter = iter(self)
-        lhs = term_iter.next()
-        rhs = term_iter.next()
+        lhs = next(term_iter)
+        rhs = next(term_iter)
         while True:
             yield (lhs, rhs)
             lhs = rhs
-            rhs = term_iter.next()
+            rhs = next(term_iter)
 
     def _repr_(self):
         r"""
@@ -1380,14 +1475,9 @@ cdef class LinearConstraint(Element):
         self._chained_comparator_hack_part2()
         return True
 
-    def __richcmp__(left, right, int op):
+    cdef _richcmp(py_left, py_right, int op):
         """
-        Override the rich comparison.
-
-        The Sage framework sometimes expects that rich comparison
-        results in a boolean value, but we want to return
-        :class:`~sage.numerical.linear_functions.LinearConstraint`
-        objects.
+        Chain (in)equalities
 
         EXAMPLES::
 
@@ -1397,12 +1487,6 @@ cdef class LinearConstraint(Element):
             x_0 <= x_1 <= x_2 <= x_3
             sage: b[0] <= 1 <= b[1] <= 2 <= b[2] <= 3
             x_0 <= 1 <= x_1 <= 2 <= x_2 <= 3
-        """
-        return (<LinearConstraint>left)._richcmp(right, op)
-
-    cdef _richcmp(py_left, py_right, int op):
-        """
-        Chain (in)equalities
         """
         #  print 'richcmp', py_left, ', ', py_right
         LC = py_left.parent()

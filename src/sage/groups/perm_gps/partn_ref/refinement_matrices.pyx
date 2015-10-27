@@ -16,12 +16,16 @@ REFERENCE:
 """
 
 #*****************************************************************************
-#      Copyright (C) 2006 - 2011 Robert L. Miller <rlmillster@gmail.com>
+#       Copyright (C) 2006 - 2011 Robert L. Miller <rlmillster@gmail.com>
 #
-# Distributed  under  the  terms  of  the  GNU  General  Public  License (GPL)
-#                         http://www.gnu.org/licenses/
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
+#                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
+from libc.string cimport memcmp
 include 'data_structures_pyx.pxi' # includes bitsets
 
 from sage.misc.misc import uniq
@@ -218,7 +222,8 @@ cdef class MatrixStruct:
 
         """
         cdef int i, j, n = self.degree
-        cdef int *output, *ordering
+        cdef int *output
+        cdef int *ordering
         cdef PartitionStack *part
         cdef NonlinearBinaryCodeStruct S_temp
         for i from 0 <= i < self.nsymbols:

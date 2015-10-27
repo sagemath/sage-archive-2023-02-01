@@ -67,6 +67,7 @@ Classes and methods
 
 from sage.numerical.mip import MIPSolverException
 
+include "sage/ext/stdsage.pxi"
 include "sage/ext/interrupt.pxi"
 
 cdef class GLPKGraphBackend(object):
@@ -668,18 +669,14 @@ cdef class GLPKGraphBackend(object):
         cdef _glp_arc* a
         cdef int u
         cdef int v
-        cdef char* u_name
-        cdef char* v_name
         cdef double cost
         cdef double cap
         cdef double low
         cdef int isdirected = g.is_directed()
 
         for (eu,ev,label) in g.edges():
-            s = str(eu)
-            u_name = s
-            s = str(ev)
-            v_name = s
+            u_name = str(eu)
+            v_name = str(ev)
             u = glp_find_vertex(self.graph, u_name)
             v = glp_find_vertex(self.graph, v_name)
             if u < 1 or v < 1:
@@ -910,7 +907,7 @@ cdef class GLPKGraphBackend(object):
         - ``u`` -- The name (as ``str``) of the tail vertex of the edge
         - ``v`` -- The name (as ``str``) of the tail vertex of the edge
         - ``params`` -- ``params`` -- An optional ``dict`` containing the edge
-          parameters (see meth:``add_edge``). If this parameter
+          parameters (see :meth:``add_edge``). If this parameter
           is not provided, all edges connecting ``u`` and ``v`` are deleted.
           Otherwise only edges with matching parameters are deleted.
 

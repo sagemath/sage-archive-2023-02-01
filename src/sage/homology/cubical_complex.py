@@ -686,7 +686,9 @@ class CubicalComplex(GenericCellComplex):
         sage: X.maximal_cells()
         {[0,0] x [2,3] x [-12,-12], [0,1] x [3,3] x [5,5], [0,1] x [2,2] x [3,3], [0,1] x [2,2] x [0,0], [0,1] x [3,3] x [6,6], [1,1] x [2,3] x [0,0], [0,1] x [2,2] x [-12,-12], [0,0] x [2,3] x [6,6], [1,1] x [2,3] x [-12,-12], [1,1] x [2,3] x [5,5], [0,1] x [2,2] x [5,5], [0,1] x [3,3] x [3,3], [1,1] x [2,3] x [3,3], [0,0] x [2,3] x [5,5], [0,1] x [3,3] x [0,0], [1,1] x [2,3] x [6,6], [0,1] x [2,2] x [6,6], [0,0] x [2,3] x [0,0], [0,0] x [2,3] x [3,3], [0,1] x [3,3] x [-12,-12]}
         sage: S1.cells()
-        {0: set([[1,1] x [2,2], [0,0] x [2,2], [1,1] x [3,3], [0,0] x [3,3]]), 1: set([[0,1] x [3,3], [1,1] x [2,3], [0,0] x [2,3], [0,1] x [2,2]]), -1: set([])}
+        {-1: set(),
+         0: {[0,0] x [3,3], [1,1] x [3,3], [0,0] x [2,2], [1,1] x [2,2]},
+         1: {[0,1] x [2,2], [0,0] x [2,3], [1,1] x [2,3], [0,1] x [3,3]}}
 
     Chain complexes, homology, and cohomology::
 
@@ -821,6 +823,21 @@ class CubicalComplex(GenericCellComplex):
         else:
             return -1
 
+    def __hash__(self):
+        r"""
+        TESTS::
+
+            sage: I1 = cubical_complexes.Cube(1)
+            sage: I2 = cubical_complexes.Cube(1)
+            sage: hash(I1)
+            2025268965           # 32-bit
+            6535457225869567717  # 64-bit
+            sage: hash(I1.product(I1))
+            -117854811           # 32-bit
+            -1640877824464540251 # 64-bit
+        """
+        return hash(frozenset(self._facets))
+
     def is_subcomplex(self, other):
         r"""
         Return True if ``self`` is a subcomplex of ``other``.
@@ -886,7 +903,12 @@ class CubicalComplex(GenericCellComplex):
 
             sage: S2 = cubical_complexes.Sphere(2)
             sage: S2.cells()[2]
-            set([[1,1] x [0,1] x [0,1], [0,1] x [0,0] x [0,1], [0,1] x [1,1] x [0,1], [0,0] x [0,1] x [0,1], [0,1] x [0,1] x [1,1], [0,1] x [0,1] x [0,0]])
+            {[0,1] x [0,1] x [0,0],
+             [0,1] x [0,1] x [1,1],
+             [0,0] x [0,1] x [0,1],
+             [0,1] x [1,1] x [0,1],
+             [0,1] x [0,0] x [0,1],
+             [1,1] x [0,1] x [0,1]}
         """
         if subcomplex not in self._cells:
             if subcomplex is not None and subcomplex.dimension() > -1:
@@ -942,9 +964,14 @@ class CubicalComplex(GenericCellComplex):
 
             sage: C = cubical_complexes.Cube(3)
             sage: C.n_cubes(3)
-            set([[0,1] x [0,1] x [0,1]])
+            {[0,1] x [0,1] x [0,1]}
             sage: C.n_cubes(2)
-            set([[1,1] x [0,1] x [0,1], [0,1] x [0,0] x [0,1], [0,1] x [1,1] x [0,1], [0,0] x [0,1] x [0,1], [0,1] x [0,1] x [1,1], [0,1] x [0,1] x [0,0]])
+            {[0,1] x [0,1] x [0,0],
+             [0,1] x [0,1] x [1,1],
+             [0,0] x [0,1] x [0,1],
+             [0,1] x [1,1] x [0,1],
+             [0,1] x [0,0] x [0,1],
+             [1,1] x [0,1] x [0,1]}
         """
         return set(self.n_cells(n, subcomplex))
 

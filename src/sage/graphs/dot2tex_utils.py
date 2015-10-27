@@ -10,7 +10,9 @@ This file contains some utility functions for the interface with dot2tex
 
 import re
 from sage.misc.latex import latex
+from sage.misc.cachefunc import cached_function
 
+@cached_function
 def have_dot2tex():
     """
     Returns whether ``dot2tex`` >= 2.8.7 and graphviz are installed
@@ -27,9 +29,9 @@ def have_dot2tex():
         import dot2tex
         # Test for this required feature from dot2tex 2.8.7
         return dot2tex.dot2tex("graph {}", format = "positions") == {}
-    except Exception:
+    except (Exception, SystemExit):
         return False
-    return True
+
 
 def assert_have_dot2tex():
     """
@@ -48,18 +50,20 @@ and check the installation of graphviz and the dot2tex spkg.
 
 For support, please contact <sage-combinat-devel at googlegroups.com>.
 """
-    missing_error_string = """
-dot2tex not available.
+    import_error_string = """
+An error occured when importing dot2tex.
 
 Please see :meth:`sage.graphs.generic_graph.GenericGraph.layout_graphviz`
 for installation instructions.
 """
     try:
         import dot2tex
+    except ImportError as e:
+        print import_error_string
+        raise # re-raise current exception
+    else:
         if dot2tex.dot2tex("graph {}", format = "positions") != {}:
             raise RuntimeError(check_error_string)
-    except ImportError:
-        raise RuntimeError(missing_error_string)
 
 def quoted_latex(x):
     """

@@ -2270,23 +2270,6 @@ class IwahoriHeckeAlgebra_nonstandard(IwahoriHeckeAlgebra):
             # \tau is the Hecke involution.
             return (-1)**w.length()*self.realization_of().Cp().to_T_basis(w).hash_involution()
 
-def IwahoriHeckeAlgebraT(W, q1, q2=-1, base_ring=None, prefix="T"):
-    """
-    TESTS::
-
-        sage: H = IwahoriHeckeAlgebraT("A2", 1)
-        doctest:...: DeprecationWarning: this class is deprecated. Use IwahoriHeckeAlgebra().T instead
-        See http://trac.sagemath.org/14261 for details.
-    """
-    from sage.misc.superseded import deprecation
-    deprecation(14261,'this class is deprecated. Use IwahoriHeckeAlgebra().T instead')
-    if W not in CoxeterGroups():
-        W = WeylGroup(W)
-    if base_ring is None:
-        base_ring = q1.parent()
-    q2 = base_ring(q2)
-    return IwahoriHeckeAlgebra(W, q1=q1, q2=q2, base_ring=base_ring).T(prefix=prefix)
-
 from sage.structure.sage_object import register_unpickle_override
 register_unpickle_override('sage.algebras.iwahori_hecke_algebra',
-                           'IwahoriHeckeAlgebraT', IwahoriHeckeAlgebraT)
+                           'IwahoriHeckeAlgebraT', IwahoriHeckeAlgebra)

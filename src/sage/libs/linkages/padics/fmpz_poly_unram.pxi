@@ -648,7 +648,7 @@ cdef int cconv(celement out, x, long prec, long valshift, PowComputer_ prime_pow
         cconv_shared(prime_pow.mpz_cconv, x, prec, valshift, prime_pow)
         fmpz_poly_set_mpz(out, prime_pow.mpz_cconv)
 
-cdef inline long cconv_mpq_t(celement out, celement x, long prec, bint absolute, PowComputer_ prime_pow) except? -10000:
+cdef inline long cconv_mpq_t(celement out, mpq_t x, long prec, bint absolute, PowComputer_ prime_pow) except? -10000:
     """
     A fast pathway for conversion of rationals that doesn't require
     precomputation of the valuation.

@@ -1,6 +1,5 @@
 .. _linear_programming:
 
-
 Linear Programming (Mixed Integer)
 ==================================
 
@@ -15,7 +14,6 @@ constraints.
 
 This is a translation of a chapter from the book
 `Calcul mathematique avec Sage <http://sagebook.gforge.inria.fr>`_.
-
 
 Definition
 ----------
@@ -48,10 +46,10 @@ Maximum Matching problem, and a Flow problem.
 Mixed integer linear programming
 --------------------------------
 
-There is a bad news coming along with this definition of linear
-programming: an LP can be solved in polynomial time. This is indeed a
+There are bad news coming along with this definition of linear
+programming: an LP can be solved in polynomial time. This is indeed
 bad news, because this would mean that unless we define LP of
-exponential size, we can not expect LP to solve NP-complete problems,
+exponential size, we cannot expect LP to solve NP-complete problems,
 which would be a disappointment. On a brighter side, it becomes
 NP-complete to solve a linear program if we are allowed to specify
 constraints of a different kind: requiring that some variables be
@@ -77,18 +75,17 @@ solvers.
 Let us ask Sage to solve the following LP:
 
 .. MATH::
-    \text{Max: } & x + y - 3z\\
+    \text{Max: } & x + y + 3z\\
     \text{Such that: } & x + 2y \leq 4\\
     \text{} & 5z - y \leq 8\\
+    \text{} & x,y,z \geq 0\\
 
 To achieve it, we need to define a corresponding ``MILP`` object, along with 3
-variables ``x,y`` and ``z`` (which by default can only take **non-negative
-values**, see next section)::
+variables ``x``, ``y`` and ``z``::
 
     sage: p = MixedIntegerLinearProgram()
-    sage: x, y, z = p['x'], p['y'], p['z']
-    doctest:839: DeprecationWarning: The default behaviour of new_variable() will soon change ! It will return 'real' variables instead of nonnegative ones. Please be explicit and call new_variable(nonnegative=True) instead.
-    See http://trac.sagemath.org/15521 for details.
+    sage: v = p.new_variable(real=True, nonnegative=True)
+    sage: x, y, z = v['x'], v['y'], v['z']
 
 Next, we set the objective function
 
@@ -117,7 +114,7 @@ the objective function
     sage: round(p.solve(), 2)
     8.8
 
-We can read the optimal assignation found by the solver for `x, y` and
+We can read the optimal assignation found by the solver for `x`, `y` and
 `z` through the ``get_values`` method
 
 .. link
@@ -135,21 +132,16 @@ We can read the optimal assignation found by the solver for `x, y` and
 Variables
 ^^^^^^^^^
 
-In the previous example, we obtained variables through ``p['x'], p['y']`` and
-``p['z']``, which is a convenient shortcut when our LP is defined over a small
-number of variables. This being said, larger LP/MILP will require us to
-associate a LP variable to many Sage objects, which can be integers, strings, or
-even the vertices and edges of a graph. We use in this case an alternative
-syntax.
-
-If we need 15 variables `x_1, \dots, x_{15}`, we will first define a dictionary
-of variables with the ``new_variable`` method
+In the previous example, we obtained variables through ``v['x']``, ``v['y']``
+and ``v['z']``. This being said, larger LP/MILP will require us to associate an
+LP variable to many Sage objects, which can be integers, strings, or even the
+vertices and edges of a graph. For example:
 
 .. link
 
 ::
 
-    sage: x = p.new_variable()
+    sage: x = p.new_variable(real=True, nonnegative=True)
 
 With this new object ``x`` we can now write constraints using
 ``x[1],...,x[15]``.
@@ -185,16 +177,14 @@ And because any immutable object can be used as a key, doubly indexed variables
 Typed variables and bounds
 """"""""""""""""""""""""""
 
-By default, all the LP variables represent **non-negative reals**.
-
 **Types :** If you want a variable to assume only integer or binary values, use
 the ``integer=True`` or ``binary=True`` arguments of the ``new_variable``
 method. Alternatively, call the ``set_integer`` and ``set_binary`` methods.
 
-**Bounds :** By default all variables represent **non-negative reals**. If you
-want a variable to represent arbitrary reals (or arbitrary integers), you should
-redefine its lower bound using the ``set_min`` method. If you want to set an
-upper bound on a variable, use the ``set_max`` method.
+**Bounds :** If you want your variables to only take nonnegative values, you can
+say so when calling ``new_variable`` with the argument ``nonnegative=True``. If
+you want to set a different upper/lower bound on a variable, add a constraint or
+use the ``set_min``, ``set_max`` methods.
 
 Basic linear programs
 ---------------------
@@ -247,8 +237,8 @@ Using Sage, we will give to our items a random weight::
 
     sage: set_random_seed(685474)
     sage: for o in L:
-    ...       weight[o] = random()
-    ...       usefulness[o] = random()
+    ....:     weight[o] = random()
+    ....:     usefulness[o] = random()
 
 We can now define the MILP itself
 
@@ -348,8 +338,8 @@ Let us write the Sage code of this MILP::
 ::
 
     sage: for v in g:
-    ...       p.add_constraint(sum(matching[e]
-    ...           for e in g.edges_incident(v, labels=False)) <= 1)
+    ....:     p.add_constraint(sum(matching[e]
+    ....:         for e in g.edges_incident(v, labels=False)) <= 1)
 
 .. link
 
@@ -409,7 +399,7 @@ graph, in which all the edges have a capacity of 1::
 ::
 
     sage: p = MixedIntegerLinearProgram()
-    sage: f = p.new_variable()
+    sage: f = p.new_variable(real=True, nonnegative=True)
     sage: s, t = 0, 2
 
 .. link
@@ -417,17 +407,17 @@ graph, in which all the edges have a capacity of 1::
 ::
 
     sage: for v in g:
-    ...       if v != s and v != t:
-    ...           p.add_constraint(
-    ...               sum(f[(v,u)] for u in g.neighbors_out(v))
-    ...               - sum(f[(u,v)] for u in g.neighbors_in(v)) == 0)
+    ....:     if v != s and v != t:
+    ....:         p.add_constraint(
+    ....:             sum(f[(v,u)] for u in g.neighbors_out(v))
+    ....:             - sum(f[(u,v)] for u in g.neighbors_in(v)) == 0)
 
 .. link
 
 ::
 
     sage: for e in g.edges(labels=False):
-    ...       p.add_constraint(f[e] <= 1)
+    ....:     p.add_constraint(f[e] <= 1)
 
 .. link
 
@@ -439,7 +429,7 @@ graph, in which all the edges have a capacity of 1::
 
 ::
 
-    sage: p.solve()
+    sage: p.solve()  # rel tol 2e-11
     2.0
 
 .. image:: media/lp_flot2.png
@@ -456,7 +446,8 @@ following libraries are currently supported:
   `COIN-OR <http://www.coin-or.org/>`_
 
   Provided under the open source license CPL, but incompatible with
-  GPL. CBC can be installed through the command ``install_package("cbc")``.
+  GPL. CBC can be installed using the shell command
+  ``sage -i cbc sagelib``.
 
 * `CPLEX
   <http://www-01.ibm.com/software/integration/optimization/cplex/>`_:
@@ -464,10 +455,15 @@ following libraries are currently supported:
 
   Proprietary, but free for researchers and students.
 
+* `CVXOPT <http://cvxopt.org/>`_: an LP solver from Python Software for
+  Convex Optimization, uses an interior-point method, always installed in Sage.
+
+  Licensed under the GPL.
+
 * `GLPK <http://www.gnu.org/software/glpk/>`_: A solver from `GNU
   <http://www.gnu.org/>`_
 
-  Licensed under the GPLv3. This solver is installed by default with Sage.
+  Licensed under the GPLv3. This solver is always installed, as the default one, in Sage.
 
 * `GUROBI <http://www.gurobi.com/>`_
 
@@ -475,8 +471,9 @@ following libraries are currently supported:
 
 * `PPL <http://bugseng.com/products/ppl>`_: A solver from bugSeng.
 
-  Licensed under the GPLv3. This solver provides exact (arbitrary precision) computation.
+  This solver provides exact (arbitrary precision) computation, always installed in Sage.
 
+  Licensed under the GPLv3.
 
 Using CPLEX or GUROBI through Sage
 ----------------------------------
@@ -527,9 +524,9 @@ create symbolic links to these files in the appropriate directories:
 
 * For GUROBI
 
-    * ``libgurobi45.so`` -- in ``SAGE_ROOT/local/lib/``, type::
+    * ``libgurobi56.so`` -- in ``SAGE_ROOT/local/lib/``, type::
 
-        ln -s /path/to/lib/libgurobi45.so libgurobi.so
+        ln -s /path/to/lib/libgurobi56.so libgurobi.so
 
     * ``gurobi_c.h`` -- in ``SAGE_ROOT/local/include/``, type::
 
@@ -539,6 +536,6 @@ create symbolic links to these files in the appropriate directories:
 ** be precisely as indicated. If the names differ, Sage will not notice that**
 **the files are present**
 
-Once this is done, Sage is to be asked to notice the changes by calling::
+Once this is done, Sage is to be asked to notice the changes by running::
 
-    sage -b
+    make

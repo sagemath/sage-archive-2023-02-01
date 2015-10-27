@@ -76,9 +76,9 @@ class CoalgebrasWithBasis(CategoryWithAxiom_over_base_ring):
 
             """
             if self.coproduct_on_basis is not NotImplemented:
-                # TODO: if self is a coalgebra, then one would want
+                # TODO: if self is a hopf algebra, then one would want
                 # to create a morphism of algebras with basis instead
-                # should there be a method self.coproduct_hom_category?
+                # should there be a method self.coproduct_homset_category?
                 return Hom(self, tensor([self, self]), ModulesWithBasis(self.base_ring()))(on_basis = self.coproduct_on_basis)
             elif hasattr(self, "coproduct_by_coercion"):
                 return self.coproduct_by_coercion

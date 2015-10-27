@@ -15,7 +15,7 @@ Vue d'ensemble
 Le plus simple pour comprendre comment Sage peut faire appel à LaTeX est
 peut-être de passer en revue les trois principales techniques.
 
-    #. Dans Sage, chaque « objet » doit disposer d'une représentation LaTeX. La
+    #. Dans Sage, chaque « objet » doit disposer d'une représentation LaTeX. La
        représentation d'un objet ``foo`` est accessible par la commande
        ``latex(foo)``, utilisable dans le bloc-notes ou en ligne de commande.
        Celle-ci renvoie une chaîne de caractères qui, interprétée par TeX en
@@ -24,7 +24,7 @@ peut-être de passer en revue les trois principales techniques.
        quelques exemples plus bas.
 
        On peut ainsi utiliser Sage pour préparer des fragments de document
-       LaTeX : il suffit de définir ou obtenir par un calcul un objet Sage et
+       LaTeX : il suffit de définir ou obtenir par un calcul un objet Sage et
        de copier-coller le résultat de ``latex()`` appliqué à l'objet dans le
        document en question.
 
@@ -86,7 +86,7 @@ possède la classe CSS "math", laquelle indique de faire appel à MathJax. ::
     <html><script type="math/tex; mode=display">\newcommand{\Bold}[1]{\mathbf{#1}}z^{12}</script></html>
     sage: mj(QQ)
     <html><script type="math/tex; mode=display">\newcommand{\Bold}[1]{\mathbf{#1}}\Bold{Q}</script></html>
-    sage: mj(ZZ[x])
+    sage: mj(ZZ['x'])
     <html><script type="math/tex; mode=display">\newcommand{\Bold}[1]{\mathbf{#1}}\Bold{Z}[x]</script></html>
     sage: mj(integrate(z^4, z))
     <html><script type="math/tex; mode=display">\newcommand{\Bold}[1]{\mathbf{#1}}\frac{1}{5} \, z^{5}</script></html>
@@ -125,19 +125,18 @@ La commande interne ``pretty_print()`` permet de convertir un objet Sage en code
 HTML utilisant MathJax. C'est le code qui sera ensuite utilisé dans le
 bloc-notes ::
 
-    sage: from sage.misc.latex import pretty_print
     sage: pretty_print(x^12)
     <html><script type="math/tex">\newcommand{\Bold}[1]{\mathbf{#1}}x^{12}</script></html>
     sage: pretty_print(integrate(sin(x), x))
     <html><script type="math/tex">\newcommand{\Bold}[1]{\mathbf{#1}}-\cos\left(x\right)</script></html>
 
 Le bloc-notes dispose de deux autres fonctionnalités pour appeler LaTeX.
-Premièrement, lorsque la case « Typeset » (juste au-dessus de la première
+Premièrement, lorsque la case « Typeset » (juste au-dessus de la première
 cellule d'une feuille de travail, à droite des quatre listes déroulantes) est
 cochée, le résultat de l'évaluation d'une cellule est automatiquement
 interprété par MathJax et affiché sous forme de formule plutôt que de texte
 brut. Les sorties déjà affichées ne sont pas modifiées tant que l'on ne
-ré-évalue pas les cellules correspondantes. Cocher la case « Typeset » revient
+ré-évalue pas les cellules correspondantes. Cocher la case « Typeset » revient
 essentiellement à appeler ``view()`` sur le résultat de chaque cellule.
 
 Deuxièmement, le bloc-notes permet d'annoter une feuille de travail en
@@ -302,7 +301,7 @@ evince...).
 
 Dans le bloc-notes, la première étape est de décider s'il faut utiliser MathJax
 ou LaTeX pour interpréter un fragment de TeX donné. La décision se fonde sur
-une liste de chaînes « interdites » dont la présence dans le fragment indique
+une liste de chaînes « interdites » dont la présence dans le fragment indique
 d'appeler latex (ou plus généralement le moteur choisi via ``latex.engine()``)
 au lieu MathJax. Les méthodes ``latex.add_to_mathjax_avoid_list`` et
 ``latex.mathjax_avoid_list`` permettent de gérer le contenu de cette liste. ::
@@ -331,7 +330,7 @@ est ensuite insérée dans le bloc-notes comme sortie associée à la cellule.
 
 Plusieurs facteurs influencent la conversion, principalement le moteur TeX
 choisi et la palette d'utilitaires de conversion disponibles sur le système.
-Les convertisseurs suivants couvrent à eux quatre toutes les situations :
+Les convertisseurs suivants couvrent à eux quatre toutes les situations :
 ``dvips``, ``ps2pdf``, ``dvipng`` et ``convert`` (de la collection ImageMagick).
 Dans tous les cas, il s'agit d'arriver à produire une image PNG à insérer dans
 la feuille de travail. Lorsque le moteur LaTeX produit un fichier dvi, le
@@ -354,7 +353,7 @@ de qualité de graphes grâce au package LaTeX ``tkz-graph``. Les tests inclus
 dans Sage contiennent d'autres exemples. On y accède en important l'objet
 prédéfini ``sage.misc.latex.latex_examples``, instance de la classe
 ``sage.misc.latex.LatexExamples``, comme illustré ci-dessous. Les exemples
-fournis actuellement couvrent les types d'objets suivants : diagrammes
+fournis actuellement couvrent les types d'objets suivants : diagrammes
 commutatifs (utilisant le package `xy`), graphes combinatoires (`tkz-graph`),
 nœuds (`xypic`), schémas pstricks (`pstricks`). Pour obtenir la liste des
 exemples, utilisez la complétion de ligne de commande après avoir importé
@@ -378,12 +377,12 @@ la commande ``view()`` pour visualiser l'exemple. ::
 
 .. _sec-tkz-graph:
 
-Example : rendu de graphes avec tkz-graph
+Example : rendu de graphes avec tkz-graph
 =========================================
 
 Le package ``tkz-graph`` permet de produire des dessins de graphes
 (combinatoires) de qualité. Il repose sur TikZ, lui-même une interface pour la
-bibliothèque TeX pgf : pgf, TikZ et tkz-graph doivent donc tous être présents
+bibliothèque TeX pgf : pgf, TikZ et tkz-graph doivent donc tous être présents
 dans l'installation TeX du système pour que cet exemple fonctionne. Les
 versions fournies par certaines distributions TeX sont parfois trop anciennes,
 et il peut donc être souhaitable de les installer manuellement dans son arbre
@@ -431,7 +430,7 @@ Une installation TeX pleinement opérationnelle
 Beaucoup de fonctionnalités avancées de l'intégration Sage-TeX nécessitent
 qu'une installation extérieure de TeX soit disponible sur le système. Les
 distributions Linux en fournissent généralement, sous forme de paquets basés
-sur TeX Live ; sous OS X, on peut installer TeXshop ; et sous Windows, MikTeX.
+sur TeX Live ; sous OS X, on peut installer TeXshop ; et sous Windows, MikTeX.
 L'utilitaire ``convert`` fait partie de la boîte à outils `ImageMagick
 <http://www.imagemagick.org/>`_ (probablement disponible dans l'archive de
 paquets de votre système ou facile à télécharger et installer). Les programmes
@@ -474,7 +473,7 @@ deviennent exécutables. Cet outil est en cours de développement, on consultera
 la page `tex2sws @ BitBucket <http://bitbucket.org/rbeezer/tex2sws/>`_ pour
 plus d'information.
 
-sws2tex fait l'inverse : il part d'une feuille de travail Sage, qu'il convertit
+sws2tex fait l'inverse : il part d'une feuille de travail Sage, qu'il convertit
 en document LaTeX pour permettre de la traiter ensuite avec tous les outils
 disponibles pour les documents LaTeX. sws2tex est en cours de développement, on
 pourra se référer à la page  `sws2tex @ BitBucket

@@ -15,9 +15,11 @@ Randomized tests of GiNaC / PyNaC.
 from sage.misc.prandom import randint, random
 import operator
 from sage.rings.all import QQ
-import sage.calculus.calculus
+from sage.symbolic.ring import SR
 import sage.symbolic.pynac
-from sage.symbolic.constants import *
+from sage.symbolic.constants import (pi, e, golden_ratio, log2, euler_gamma,
+                                     catalan, khinchin, twinprime, mertens)
+from sage.functions.hypergeometric import hypergeometric
 
 
 ###################################################################
@@ -51,7 +53,8 @@ def _mk_full_functions():
     return [(1.0, f, f.number_of_arguments())
             for (name, f) in items
             if hasattr(f, 'number_of_arguments') and
-               f.number_of_arguments() > 0]
+               f.number_of_arguments() > 0 and
+               f != hypergeometric]
 
 # For creating simple expressions
 
@@ -67,7 +70,7 @@ full_unary = [(0.8, operator.neg), (0.2, operator.inv)]
 full_functions = _mk_full_functions()
 full_nullary = [(1.0, c) for c in [pi, e]] + [(0.05, c) for c in
         [golden_ratio, log2, euler_gamma, catalan, khinchin, twinprime,
-            mertens, brun]]
+            mertens]]
 full_internal = [(0.6, full_binary, 2), (0.2, full_unary, 1),
         (0.2, full_functions)]
 
@@ -270,7 +273,7 @@ def random_expr(size, nvars=1, ncoeffs=None, var_frac=0.5,
         sgn(v1) + 1/31
 
     """
-    vars = [(1.0, sage.calculus.calculus.var('v%d' % (n+1))) for n in range(nvars)]
+    vars = [(1.0, SR.var('v%d' % (n+1))) for n in range(nvars)]
     if ncoeffs is None:
         ncoeffs = size
     coeffs = [(1.0, coeff_generator()) for _ in range(ncoeffs)]

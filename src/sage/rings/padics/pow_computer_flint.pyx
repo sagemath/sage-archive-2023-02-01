@@ -1,3 +1,6 @@
+include "sage/ext/interrupt.pxi"
+include "sage/ext/stdsage.pxi"
+
 from sage.libs.flint.padic cimport *
 from sage.libs.flint.fmpz_poly cimport *
 from sage.libs.flint.nmod_vec cimport *
@@ -127,7 +130,7 @@ cdef class PowComputer_flint(PowComputer_class):
             fmpz_pow_ui(self._fpow_variable, self.fprime, n)
             return &self._fpow_variable
 
-    cdef mpz_t* pow_mpz_t_tmp(self, unsigned long n):
+    cdef mpz_srcptr pow_mpz_t_tmp(self, unsigned long n):
         """
         Returns a pointer to an ``mpz_t`` holding `p^n`.
 
@@ -136,14 +139,14 @@ cdef class PowComputer_flint(PowComputer_class):
         for important warnings.
         """
         fmpz_get_mpz(self.temp_m, self.pow_fmpz_t_tmp(n)[0])
-        return &(self.temp_m)
+        return self.temp_m
 
-    cdef mpz_t* pow_mpz_t_top(self):
+    cdef mpz_srcptr pow_mpz_t_top(self):
         """
         Returns a pointer to an ``mpz_t`` holding `p^N`, where `N` is
         the precision cap.
         """
-        return &self.top_power
+        return self.top_power
 
     cdef unsigned long capdiv(self, unsigned long n):
         """
@@ -253,7 +256,7 @@ cdef class PowComputer_flint_1step(PowComputer_flint):
         fmpz_poly_set(self.modulus, poly.__poly)
 
         cdef Py_ssize_t i
-        cdef fmpz* coeffs = (<fmpz_poly_struct*>self.modulus)[0].coeffs
+        cdef fmpz* coeffs = self.modulus.coeffs
         fmpz_one(self.tfmpz)
         for i in range(1,cache_limit+1):
             fmpz_mul(self.tfmpz, self.tfmpz, self.fprime)

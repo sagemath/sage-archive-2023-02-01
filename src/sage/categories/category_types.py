@@ -17,7 +17,8 @@ This is placed in a separate file from categories.py to avoid circular imports
 from sage.misc.latex import latex
 from sage.misc.unknown import Unknown
 from category import JoinCategory, Category, CategoryWithParameters
-from objects import Objects
+from sage.misc.lazy_import import lazy_import
+lazy_import('sage.categories.objects', 'Objects')
 
 ####################################################################
 #   Different types of categories
@@ -110,92 +111,6 @@ class Elements(Category):
 
 
 #############################################################
-# Category of sequences of elements of objects
-#############################################################
-class Sequences(Category):
-    """
-    The category of sequences of elements of a given object.
-
-    This category is deprecated.
-
-    EXAMPLES::
-
-        sage: v = Sequence([1,2,3]); v
-        [1, 2, 3]
-        sage: C = v.category(); C
-        Category of sequences in Integer Ring
-        sage: loads(C.dumps()) == C
-        True
-        sage: Sequences(ZZ) is C
-        True
-
-        True
-        sage: Sequences(ZZ).category()
-        Category of objects
-    """
-    def __init__(self, object):
-        Category.__init__(self)
-        self.__object = object
-
-    @classmethod
-    def an_instance(cls):
-        """
-        Returns an instance of this class
-
-        EXAMPLES::
-
-            sage: Elements(ZZ)
-            Category of elements of Integer Ring
-        """
-        from sage.rings.rational_field import QQ
-        return cls(QQ)
-
-    def super_categories(self):
-        """
-        EXAMPLES::
-
-            sage: Sequences(ZZ).super_categories()
-            [Category of objects]
-        """
-        return [Objects()]  # Almost FiniteEnumeratedSets() except for possible repetitions
-
-    def _call_(self, x):
-        """
-        EXAMPLES::
-
-            sage: v = Sequence([1,2,3]); v
-            [1, 2, 3]
-            sage: C = v.category(); C
-            Category of sequences in Integer Ring
-            sage: w = C([2/1, 3/1, GF(2)(5)]); w # indirect doctest
-            [2, 3, 1]
-            sage: w.category()
-            Category of sequences in Integer Ring
-        """
-        from sage.structure.sequence import Sequence
-        return Sequence(x, self.__object)
-
-    def object(self):
-        return self.__object
-
-    def __reduce__(self):
-        return Sequences, (self.__object, )
-
-    def _repr_object_names(self):
-        return "sequences in %s"%self.object()
-
-    def _latex_(self):
-        r"""
-        EXAMPLES::
-
-            sage: v = Sequence([1,2,3])
-            sage: latex(v.category()) # indirect doctest
-            \mathbf{Seq}_{\Bold{Z}}
-        """
-
-        return "\\mathbf{Seq}_{%s}"%latex(self.__object)
-
-#############################################################
 # Category of objects over some base object
 #############################################################
 class Category_over_base(CategoryWithParameters):
@@ -218,7 +133,8 @@ class Category_over_base(CategoryWithParameters):
         sage: Algebras(GF(2)).parent_class is Algebras(C).parent_class
         True
 
-        sage: Algebras(ZZ).element_class is Algebras(EuclideanDomains()).element_class
+        sage: C = ZZ.category()
+        sage: Algebras(ZZ).element_class is Algebras(C).element_class
         True
     """
 
@@ -277,7 +193,7 @@ class Category_over_base(CategoryWithParameters):
         EXAMPLES::
 
             sage: Modules(ZZ)._make_named_class_key('element_class')
-            Category of euclidean domains
+            Join of Category of euclidean domains and Category of infinite enumerated sets
             sage: Modules(QQ)._make_named_class_key('parent_class')
             Category of quotient fields
             sage: Schemes(Spec(ZZ))._make_named_class_key('parent_class')

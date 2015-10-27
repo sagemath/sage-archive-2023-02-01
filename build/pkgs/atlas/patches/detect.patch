@@ -5,35 +5,29 @@ diff -druN ATLAS.orig/CONFIG/include/atlconf.h ATLAS/CONFIG/include/atlconf.h
  enum ARCHFAM {AFOther=0, AFPPC, AFSPARC, AFALPHA, AFX86, AFIA64, AFMIPS,
                AFARM, AFS390};
  
--#define NMACH 47
-+#define NMACH 49
+-#define NMACH 52
++#define NMACH 53
  static char *machnam[NMACH] =
     {"UNKNOWN", "POWER3", "POWER4", "POWER5", "PPCG4", "PPCG5",
-     "POWER6", "POWER7", "IBMz9", "IBMz10", "IBMz196",
-@@ -27,8 +27,8 @@
-     "CoreDuo", "Core2Solo", "Core2", "Corei1", "Corei2", "Atom", "P4", "P4E",
-     "Efficeon", "K7", "HAMMER", "AMD64K10h", "AMDDOZER", "UNKNOWNx86",
-     "IA64Itan", "IA64Itan2",
--    "USI", "USII", "USIII", "USIV", "UST2", "UnknownUS",
+     "POWER6", "POWER7", "POWERe6500", "IBMz9", "IBMz10", "IBMz196",
+@@ -29,7 +29,7 @@
+     "Efficeon", "K7", "HAMMER", "AMD64K10h", "AMDLLANO", "AMDDOZER","AMDDRIVER",
+     "UNKNOWNx86", "IA64Itan", "IA64Itan2",
+     "USI", "USII", "USIII", "USIV", "UST1", "UST2", "UnknownUS",
 -    "MIPSR1xK", "MIPSICE9", "ARMv7"};
-+    "USI", "USII", "USIII", "USIV", "UST1", "UST2", "UnknownUS",
 +    "MIPSR1xK", "MIPSICE9", "ARMv6", "ARMv7"};
  enum MACHTYPE {MACHOther, IbmPwr3, IbmPwr4, IbmPwr5, PPCG4, PPCG5,
-                IbmPwr6, IbmPwr7,
+                IbmPwr6, IbmPwr7, Pwre6500,
                 IbmZ9, IbmZ10, IbmZ196,  /* s390(x) in Linux */
-@@ -38,9 +38,10 @@
-                IntAtom, IntP4, IntP4E, TMEff,
-                AmdAthlon, AmdHammer, Amd64K10h, AmdDozer, x86X,
-                IA64Itan, IA64Itan2,
--               SunUSI, SunUSII, SunUSIII, SunUSIV, SunUST2, SunUSX,
-+               SunUSI, SunUSII, SunUSIII, SunUSIV, SunUST1, SunUST2, SunUSX,
+@@ -42,6 +42,7 @@
+                SunUSI, SunUSII, SunUSIII, SunUSIV, SunUST1, SunUST2, SunUSX,
                 MIPSR1xK, /* includes R10K, R12K, R14K, R16K */
                 MIPSICE9,  /* SiCortex ICE9 -- like MIPS5K */
 +               ARMv6, /* includes Raspberry Pi */
                 ARMv7      /* includes Cortex A8, A9 */
                 };
  #define MachIsX86(mach_) \
-@@ -59,7 +60,7 @@
+@@ -60,7 +61,7 @@
  #define MachIsPPC(mach_) \
     ( (mach_) >= PPCG4 && (mach_) <= PPCG5 )
  #define MachIsARM(mach_) \
@@ -42,255 +36,3 @@ diff -druN ATLAS.orig/CONFIG/include/atlconf.h ATLAS/CONFIG/include/atlconf.h
  #define MachIsS390(mach_) \
     ( (mach_) >= IbmZ9 && (mach_) <= IbmZ196 )
  
-diff -druN ATLAS.orig/CONFIG/include/atlconf_misc.h ATLAS/CONFIG/include/atlconf_misc.h
---- ATLAS.orig/CONFIG/include/atlconf_misc.h	2013-01-08 10:15:42.000000000 -0800
-+++ ATLAS/CONFIG/include/atlconf_misc.h	2014-02-10 03:19:05.492547732 -0800
-@@ -15,10 +15,14 @@
- int FileIsThere(char *nam);
- void ATL_mprintf(int np, ...);
- int GetFirstInt(char *ln);
-+int GetFirstHex(char *ln);
- long long GetFirstLong(char *ln);
-+long long GetFirstLongHex(char *ln);
- double GetFirstDouble(char *ln);
- int GetLastInt(char *ln);
-+int GetLastHex(char *ln);
- long long GetLastLong(char *ln);
-+long long GetLastLongHex(char *ln);
- int fNumLines(char *fnam);
- char *GetPathEnvVar(void);
- int GetIntBeforeWord(char *word, char *ln);
-diff -druN ATLAS.orig/CONFIG/src/atlconf_misc.c ATLAS/CONFIG/src/atlconf_misc.c
---- ATLAS.orig/CONFIG/src/atlconf_misc.c	2013-01-08 10:15:42.000000000 -0800
-+++ ATLAS/CONFIG/src/atlconf_misc.c	2014-02-10 03:19:05.502547733 -0800
-@@ -221,6 +221,20 @@
-    return(iret);
- }
- 
-+int GetFirstHex(char *ln)
-+{
-+   int i, iret=0;
-+   for (i=0; ln[i]; i++)
-+   {
-+      if (isxdigit(ln[i]))
-+      {
-+         sscanf(ln+i, "%x", &iret);
-+         break;
-+      }
-+   }
-+   return(iret);
-+}
-+
- long long GetFirstLong(char *ln)
- {
-    int i;
-@@ -236,6 +250,21 @@
-    return(iret);
- }
- 
-+long long GetFirstLongHex(char *ln)
-+{
-+   int i;
-+   long long  iret=0;
-+   for (i=0; ln[i]; i++)
-+   {
-+      if (isxdigit(ln[i]))
-+      {
-+         sscanf(ln+i, "%lx", &iret);
-+         break;
-+      }
-+   }
-+   return(iret);
-+}
-+
- double GetFirstDouble(char *ln)
- /*
-  * Gets a double, which begins wt digit or "." (i.e., won't get e10)
-@@ -269,6 +298,20 @@
-    return(iret);
- }
- 
-+int GetLastHex(char *ln)
-+{
-+   int i, iret=0;
-+   for (i=0; ln[i]; i++);
-+   if (i > 0) for (i--; i > 0 && !isxdigit(ln[i]); i--);
-+   if (i > 0 || (i == 0 && isxdigit(ln[0])))
-+   {
-+      while(isxdigit(ln[i]) && i > 0) i--;
-+      if (!isxdigit(ln[i])) i++;
-+      sscanf(ln+i, "%x", &iret);
-+   }
-+   return(iret);
-+}
-+
- long long GetLastLong(char *ln)
- {
-    int i;
-@@ -283,6 +326,21 @@
-    }
-    return(iret);
- }
-+
-+long long GetLastLongHex(char *ln)
-+{
-+   int i;
-+   long iret=0;
-+   for (i=0; ln[i]; i++);
-+   if (i > 0) for (i--; i > 0 && !isxdigit(ln[i]); i--);
-+   if (i > 0 || (i == 0 && isxdigit(ln[0])))
-+   {
-+      while(isxdigit(ln[i]) && i > 0) i--;
-+      if (!isxdigit(ln[i])) i++;
-+      sscanf(ln+i, "%lx", &iret);
-+   }
-+   return(iret);
-+}
- 
- char *ATL_fgetln(FILE *fpin)
- /*
-diff -druN ATLAS.orig/CONFIG/src/backend/archinfo_freebsd.c ATLAS/CONFIG/src/backend/archinfo_freebsd.c
---- ATLAS.orig/CONFIG/src/backend/archinfo_freebsd.c	2013-01-08 10:15:42.000000000 -0800
-+++ ATLAS/CONFIG/src/backend/archinfo_freebsd.c	2014-02-10 03:19:05.502547733 -0800
-@@ -206,6 +206,12 @@
-       mhz = GetFirstDouble(res) / 1000000;
-       free(res);
-    }
-+   else if ((res=atlsys_1L(NULL, "sysctl hw.clockrate", 0, 0)))
-+   {
-+      mhz = GetFirstDouble(res);
-+      free(res);
-+   }
-+
-    return(mhz);
- }
- 
-diff -druN ATLAS.orig/CONFIG/src/backend/archinfo_linux.c ATLAS/CONFIG/src/backend/archinfo_linux.c
---- ATLAS.orig/CONFIG/src/backend/archinfo_linux.c	2013-01-08 10:15:42.000000000 -0800
-+++ ATLAS/CONFIG/src/backend/archinfo_linux.c	2014-02-10 04:26:18.502951033 -0800
-@@ -108,16 +108,18 @@
-       if (res)
-       {
-          if (strstr(res, "ARMv7") || strstr(res,"v7l")) mach = ARMv7;
-+         else if (strstr(res, "ARMv6") || strstr(res,"v6l")) mach = ARMv6;
-          free(res);
-       }
-       else if ( res=atlsys_1L(NULL, "fgrep cpu /proc/cpuinfo", 0, 0) )
-       {
-          if (strstr(res, "ARMv7") || strstr(res,"v7l")) mach = ARMv7;
-+         else if (strstr(res, "ARMv6") || strstr(res,"v6l")) mach = ARMv6;
-          free(res);
-       }
-       break;
-    case AFIA64:
--      res = atlsys_1L(NULL, "fgrep 'Itanium' /proc/cpuinfo", 0, 0);
-+      res = atlsys_1L(NULL, "fgrep 'IA-64' /proc/cpuinfo", 0, 0);
-       if (res && res[0] == '\0')
-       {
-          free(res);
-@@ -129,7 +131,7 @@
-       {
-          if (res[0] != '\0')
-          {
--            if (strstr(res, "Itanium 2") || strstr(res, "McKinley"))
-+            if (strstr(res, "IA-64") || strstr(res, "McKinley"))
-                mach = IA64Itan2;
-             else if (strstr(res, "Itanium")) mach = IA64Itan;
-          }
-@@ -215,7 +217,9 @@
-       res = atlsys_1L(NULL, "fgrep cpu /proc/cpuinfo", 0, 0);
-       if (res)
-       {
--         if (strstr(res, "UltraSparc IV")) mach = SunUSIV;
-+         if (strstr(res, "UltraSparc T2")) mach = SunUST2;
-+         else if (strstr(res, "UltraSparc T1")) mach = SunUST1;
-+         else if (strstr(res, "UltraSparc IV")) mach = SunUSIV;
-          else if (strstr(res, "UltraSparc III")) mach = SunUSIII;
-          else if (strstr(res, "UltraSparc II")) mach = SunUSII;
-          else if (strstr(res, "UltraSparc I")) mach = SunUSI;
-@@ -281,6 +285,15 @@
-          fclose(fpres);
-       }
-    }
-+   if (!ncpu)
-+   {
-+      res = atlsys_1L(NULL, "grep 'ncpus active' /proc/cpuinfo", 0, 0);
-+      if (res)
-+      {
-+         ncpu = GetFirstInt(res);
-+         free(res);
-+      }
-+   }
-    return(ncpu);
- }
- 
-@@ -341,14 +354,21 @@
-       mhz = GetFirstInt(res);
-       free(res);
-    }
--   if (!mhz)
-+   else if ((res = atlsys_1L(NULL, "cat /proc/cpuinfo | fgrep clock | fgrep MHz",0,0)))
-    {
--      res = atlsys_1L(NULL, "cat /proc/cpuinfo | fgrep clock | fgrep MHz",0,0);
--      if (res)
-+      mhz = GetLastInt(res);
-+      /* Linux PPC */
-+      if (!mhz)
-       {
--         mhz = GetLastInt(res);
--         free(res);
-+         mhz = GetFirstInt(res);
-       }
-+      free(res);
-+   }
-+   /* Linux SPARC */
-+   else if ((res = atlsys_1L(NULL, "fgrep 'ClkTck' /proc/cpuinfo",0,0)))
-+   {
-+      mhz = GetLastHex(res) / 1000000;
-+      free(res);
-    }
-    return(mhz);
- }
-diff -druN ATLAS.orig/CONFIG/src/backend/archinfo_sunos.c ATLAS/CONFIG/src/backend/archinfo_sunos.c
---- ATLAS.orig/CONFIG/src/backend/archinfo_sunos.c	2013-01-08 10:15:42.000000000 -0800
-+++ ATLAS/CONFIG/src/backend/archinfo_sunos.c	2014-02-10 03:19:05.522547735 -0800
-@@ -65,10 +65,12 @@
-       res = atlsys_1L(NULL, "/usr/sbin/psrinfo -pv | fgrep UltraSPARC", 0, 0);
-       if (res)
-       {
--         if (strstr(res, "UltraSPARC-IV"))
--            mach = SunUSIV;
--         else if (strstr(res, "UltraSPARC-T2"))
-+         if (strstr(res, "UltraSPARC-T2"))
-             mach = SunUST2;
-+         else if (strstr(res, "UltraSPARC-T1"))
-+            mach = SunUST1;
-+         else if (strstr(res, "UltraSPARC-IV"))
-+            mach = SunUSIV;
-          else if (strstr(res, "UltraSPARC-III"))
-             mach = SunUSIII;
-          else if (strstr(res, "UltraSPARC-II"))
-diff -druN ATLAS.orig/CONFIG/src/probe_comp.c ATLAS/CONFIG/src/probe_comp.c
---- ATLAS.orig/CONFIG/src/probe_comp.c	2013-01-08 10:15:42.000000000 -0800
-+++ ATLAS/CONFIG/src/probe_comp.c	2014-02-10 03:19:05.522547735 -0800
-@@ -607,6 +607,8 @@
-       return(sp);
-    else if (OS == OSAIX)
-       sp = (ptrbits == 64) ? "-maix64" : "-maix32";
-+   else if (arch == IA64Itan2)
-+      printf("Itanium2 - not setting -m64"); // -m64 is not supported on RHEL 5/Itanium
-    else if ((MachIsX86(arch) || MachIsPPC(arch) || MachIsUS(arch)) ||
-             arch == IbmPwr7 || arch == IbmPwr6)
-    {
-diff -druN ATLAS.orig/include/atlas_prefetch.h ATLAS/include/atlas_prefetch.h
---- ATLAS.orig/include/atlas_prefetch.h	2013-01-08 10:15:40.000000000 -0800
-+++ ATLAS/include/atlas_prefetch.h	2014-02-10 03:19:05.532547736 -0800
-@@ -81,7 +81,7 @@
-  */
- #elif defined(ATL_ARCH_USIV) || defined(ATL_ARCH_SunUSIII) || \
-       defined(ATL_ARCH_SunUSII) || defined(ATL_ARCH_SunUSI) || \
--      defined(ATL_ARCH_SunUST2)
-+      defined(ATL_ARCH_SunUST1) || defined(ATL_ARCH_SunUST2)
-    #ifdef __GNUC__
-       #define ATL_pfl1R(mem) \
-          __asm__ __volatile__ ("prefetch %0,0" : : "m" (*((char *)(mem))))

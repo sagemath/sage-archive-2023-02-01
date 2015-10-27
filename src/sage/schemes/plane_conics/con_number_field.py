@@ -124,7 +124,7 @@ class ProjectiveConic_number_field(ProjectiveConic_field):
             sage: C.has_rational_point(algorithm = 'local', read_cache = False)
             True
 
-        Examples over number fields ::
+        Examples over number fields::
 
             sage: K.<i> = QuadraticField(-1)
             sage: C = Conic(K, [1, 3, -5])

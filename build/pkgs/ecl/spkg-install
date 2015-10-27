@@ -7,16 +7,6 @@ if [ -z "$SAGE_LOCAL" ] ; then
 fi
 
 cd src
-# For some of the patches, Cygwin also has upstream fixes that are
-# closely related, keep track.  See Trac 11119, for example.
-for patch in ../patches/*.patch; do
-    [ -f "$patch" ] || continue
-    patch -p1 <"$patch"
-    if [ $? -ne 0 ]; then
-        echo >&2 "Error applying '$patch'"
-        exit 1
-    fi
-done
 
 if [ -z "$CFLAG64" ] ; then
     CFLAG64=-m64
@@ -60,6 +50,8 @@ echo "Using CPPFLAGS=$CPPFLAGS"
 echo "Using LDFLAGS=$LDFLAGS"
 echo "configure scripts and/or makefiles might override these later"
 echo ""
+echo "Note that the patches were applied by spkg-source"
+echo ""
 
 # export everything. Probably not necessary in most cases.
 export CFLAGS
@@ -69,14 +61,6 @@ export LDFLAGS
 
 # Building ECL in parallel doesn't work, so use only 1 thread
 MAKE="$MAKE -j1"
-
-# Currently config.[guess|sub] scripts are too old
-cp "$SAGE_ROOT"/config/config.* src/
-if [ $? -ne 0 ]; then
-    echo >&2 "Failed to copy up-to-date FSF config.* scripts from"
-    echo >&2 "\$SAGE_ROOT/config directory ... exiting"
-    exit 1
-fi
 
 if [ "`uname -sm`" = "SunOS i86pc" ] && [ "x$SAGE64" = xyes ]; then
     # Need to add --with-dffi=no to disable assembly code on OpenSolaris x64.
@@ -90,7 +74,7 @@ fi
 
 ./configure --prefix="$SAGE_LOCAL" --with-gmp-prefix=$SAGE_LOCAL \
     --libdir="$SAGE_LOCAL/lib" --disable-threads \
-    --enable-unicode=no $ECL_CONFIGURE
+    --enable-unicode=yes $ECL_CONFIGURE
 if [ $? -ne 0 ]; then
     echo >&2 "Error - Failed to configure ECL ... exiting"
     exit 1

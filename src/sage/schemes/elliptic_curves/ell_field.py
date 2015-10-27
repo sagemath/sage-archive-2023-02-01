@@ -19,12 +19,15 @@ import sage.rings.all as rings
 from sage.rings.complex_field import is_ComplexField
 from sage.rings.real_mpfr import is_RealField
 from constructor import EllipticCurve
+from sage.schemes.elliptic_curves.ell_point import EllipticCurvePoint_field
 
 from ell_curve_isogeny import EllipticCurveIsogeny, isogeny_codomain_from_kernel
 
 class EllipticCurve_field(ell_generic.EllipticCurve_generic):
 
     base_field = ell_generic.EllipticCurve_generic.base_ring
+
+    _point = EllipticCurvePoint_field
 
     # Twists: rewritten by John Cremona as follows:
     #
@@ -391,7 +394,7 @@ class EllipticCurve_field(ell_generic.EllipticCurve_generic):
         if not is_EllipticCurve(E) or not is_EllipticCurve(F):
             raise ValueError("arguments are not elliptic curves")
         K = E.base_ring()
-        zero = K.zero_element()
+        zero = K.zero()
         if not K == F.base_ring():
             return zero
         j=E.j_invariant()
@@ -401,7 +404,7 @@ class EllipticCurve_field(ell_generic.EllipticCurve_generic):
         if E.is_isomorphic(F):
             if K is rings.QQ:
                 return rings.ZZ(1)
-            return K.one_element()
+            return K.one()
 
         char=K.characteristic()
 
@@ -490,7 +493,7 @@ class EllipticCurve_field(ell_generic.EllipticCurve_generic):
         if not is_EllipticCurve(E) or not is_EllipticCurve(F):
             raise ValueError("arguments are not elliptic curves")
         K = E.base_ring()
-        zero = K.zero_element()
+        zero = K.zero()
         if not K == F.base_ring():
             return zero
         j=E.j_invariant()
@@ -498,7 +501,7 @@ class EllipticCurve_field(ell_generic.EllipticCurve_generic):
             return zero
 
         if E.is_isomorphic(F):
-            return K.one_element()
+            return K.one()
 
         char=K.characteristic()
 
@@ -559,7 +562,7 @@ class EllipticCurve_field(ell_generic.EllipticCurve_generic):
         if not is_EllipticCurve(E) or not is_EllipticCurve(F):
             raise ValueError("arguments are not elliptic curves")
         K = E.base_ring()
-        zero = K.zero_element()
+        zero = K.zero()
         if not K == F.base_ring():
             return zero
         j=E.j_invariant()
@@ -567,7 +570,7 @@ class EllipticCurve_field(ell_generic.EllipticCurve_generic):
             return zero
 
         if E.is_isomorphic(F):
-            return K.one_element()
+            return K.one()
 
         char=K.characteristic()
 
@@ -588,23 +591,29 @@ class EllipticCurve_field(ell_generic.EllipticCurve_generic):
 
     def descend_to(self, K, f=None):
         r"""
-        Given a subfield `K` and an elliptic curve self defined over a field `L`,
-        this function determines whether there exists an elliptic curve over `K`
-        which is isomorphic over `L` to self. If one exists, it finds it.
+        Given an elliptic curve self defined over a field `L` and a
+        subfield `K` of `L`, return all elliptic curves over `K` which
+        are isomorphic over `L` to self.
 
         INPUT:
 
-        - `K` -- a subfield of the base field of self.
-        - `f` -- an embedding of `K` into the base field of self.
+        - `K` -- a field which embeds into the base field `L` of self.
+
+        - `f` (optional) -- an embedding of `K` into `L`.  Ignored if
+          `K` is `\QQ`.
 
         OUTPUT:
 
-        Either an elliptic curve defined over `K` which is isomorphic to self
-        or None if no such curve exists.
+        A list (possibly empty) of elliptic curves defined over `K`
+        which are isomorphic to self over `L`, up to isomorphism over
+        `K`.
 
         .. NOTE::
 
-            This only works over number fields and QQ.
+           Currently only implemented over number fields.  To extend
+           to other fields of characteristic not 2 or 3, what is
+           needed is a method giving the preimages in `K^*/(K^*)^m` of
+           an element of the base field, for `m=2,4,6`.
 
         EXAMPLES::
 
@@ -619,84 +628,129 @@ class EllipticCurve_field(ell_generic.EllipticCurve_generic):
             sage: F.<b> = QuadraticField(23)
             sage: G.<a> = F.extension(x^3+5)
             sage: E = EllipticCurve(j=1728*b).change_ring(G)
-            sage: E.descend_to(F)
-            Elliptic Curve defined by y^2 = x^3 + (8957952*b-206032896)*x + (-247669456896*b+474699792384) over Number Field in b with defining polynomial x^2 - 23
+            sage: EF = E.descend_to(F); EF
+            [Elliptic Curve defined by y^2 = x^3 + (27*b-621)*x + (-1296*b+2484) over Number Field in b with defining polynomial x^2 - 23]
+            sage: all([Ei.change_ring(G).is_isomorphic(E) for Ei in EF])
+            True
 
         ::
 
             sage: L.<a> = NumberField(x^4 - 7)
-            sage: K.<b> = NumberField(x^2 - 7)
+            sage: K.<b> = NumberField(x^2 - 7, embedding=a^2)
             sage: E = EllipticCurve([a^6,0])
-            sage: E.descend_to(K)
-            Elliptic Curve defined by y^2 = x^3 + 1296/49*b*x over Number Field in b with defining polynomial x^2 - 7
+            sage: EK = E.descend_to(K); EK
+            [Elliptic Curve defined by y^2 = x^3 + b*x over Number Field in b with defining polynomial x^2 - 7,
+            Elliptic Curve defined by y^2 = x^3 + 7*b*x over Number Field in b with defining polynomial x^2 - 7]
+            sage: all([Ei.change_ring(L).is_isomorphic(E) for Ei in EK])
+            True
 
         ::
 
             sage: K.<a> = QuadraticField(17)
             sage: E = EllipticCurve(j = 2*a)
-            sage: print E.descend_to(QQ)
-            None
+            sage: E.descend_to(QQ)
+            []
+
+        TESTS:
+
+        Check that :trac:`16456` is fixed::
+
+            sage: K.<a> = NumberField(x^3-2)
+            sage: E = EllipticCurve('11a1').quadratic_twist(2)
+            sage: EK = E.change_ring(K)
+            sage: EK2 = EK.change_weierstrass_model((a,a,a,a+1))
+            sage: EK2.descend_to(QQ)
+            [Elliptic Curve defined by y^2 = x^3 + x^2 - 41*x - 199 over Rational Field]
+
+            sage: k.<i> = QuadraticField(-1)
+            sage: E = EllipticCurve(k,[0,0,0,1,0])
+            sage: E.descend_to(QQ)
+            [Elliptic Curve defined by y^2 = x^3 + x over Rational Field,
+            Elliptic Curve defined by y^2 = x^3 - 4*x over Rational Field]
+
         """
         if not K.is_field():
             raise TypeError("Input must be a field.")
-        if self.base_field()==K:
+        L = self.base_field()
+        if L is K:
             return self
+        elif L == K:  # number fields can be equal but not identical
+            return self.base_extend(K)
+
+        # Construct an embedding f of K in L, and check that the
+        # j-invariant is in the image, otherwise return an empty list:
+
         j = self.j_invariant()
         from sage.rings.all import QQ
         if K == QQ:
-            f = QQ.embeddings(self.base_field())[0]
-            if j in QQ:
-                jbase = QQ(j)
-            else:
-                return None
+            try:
+                jK = QQ(j)
+            except (ValueError, TypeError):
+                return []
         elif f is None:
-            embeddings = K.embeddings(self.base_field())
+            embeddings = K.embeddings(L)
             if len(embeddings) == 0:
                 raise TypeError("Input must be a subfield of the base field of the curve.")
             for g in embeddings:
                 try:
-                    jbase = g.preimage(j)
+                    jK = g.preimage(j)
                     f = g
                     break
                 except Exception:
                     pass
             if f is None:
-                return None
+                return []
         else:
             try:
-                jbase = f.preimage(j)
-            except Exception:
-                return None
-        E = EllipticCurve(j=jbase)
-        E2 = EllipticCurve(self.base_field(), [f(a) for a in E.a_invariants()])
-        if jbase==0:
-            d = self.is_sextic_twist(E2)
-            if d == 1:
-                return E
-            if d == 0:
-                return None
-            Etwist = E2.sextic_twist(d)
-        elif jbase==1728:
-            d = self.is_quartic_twist(E2)
-            if d == 1:
-                return E
-            if d == 0:
-                return None
-            Etwist = E2.quartic_twist(d)
-        else:
-            d = self.is_quadratic_twist(E2)
-            if d == 1:
-                return E
-            if d == 0:
-                return None
-            Etwist = E2.quadratic_twist(d)
-        if Etwist.is_isomorphic(self):
+                if f.domain() != K:
+                    raise ValueError("embedding has wrong domain")
+                if f.codomain() != L:
+                    raise ValueError("embedding has wrong codomain")
+            except AttributeError:
+                raise ValueError("invalid embedding: %s" % s)
             try:
-                Eout = EllipticCurve(K, [f.preimage(a) for a in Etwist.a_invariants()])
+                jK = f.preimage(j)
             except Exception:
-                return None
-            else:
-                return Eout
+                return []
+
+        # Now we have the j-invariant in K and must find all twists
+        # which work, separating the cases of j=0 and j=1728.
+
+        if L.characteristic():
+            raise NotImplementedError("Not implemented in positive characteristic")
+
+        if jK == 0:
+            t = -54*self.c6()
+            try:
+                dlist = t.descend_mod_power(K,6)
+                # list of d in K such that t/d is in L*^6
+            except AttributeError:
+                raise NotImplementedError("Not implemented over %s" % L)
+            Elist = [EllipticCurve([0,0,0,0,d]) for d in dlist]
+        elif jK == 1728:
+            t = -27*self.c4()
+            try:
+                dlist = t.descend_mod_power(K,4)
+                # list of d in K such that t/d is in L*^4
+            except AttributeError:
+                raise NotImplementedError("Not implemented over %s" % L)
+            Elist = [EllipticCurve([0,0,0,d,0]) for d in dlist]
+        else:
+            c4, c6 = self.c_invariants()
+            t = c6/c4
+            try:
+                dlist = t.descend_mod_power(K,2)
+                # list of d in K such that t/d is in L*^2
+            except AttributeError:
+                raise NotImplementedError("Not implemented over %s" % L)
+            c = -27*jK/(jK-1728) # =-27c4^3/c6^2
+            a4list = [c*d**2 for d in dlist]
+            a6list = [2*a4*d for a4,d in zip(a4list,dlist)]
+            Elist = [EllipticCurve([0,0,0,a4,a6]) for a4,a6 in zip(a4list,a6list)]
+
+        if K is QQ:
+            Elist = [E.minimal_model() for E in Elist]
+        return Elist
 
     def isogeny(self, kernel, codomain=None, degree=None, model=None, check=True):
         r"""
@@ -743,10 +797,11 @@ class EllipticCurve_field(ell_generic.EllipticCurve_generic):
                           kernel polynomial with the two torsion polynomial of
                           ``E``.
 
-        - ``model``     - a string (default:None).  Only supported variable is
-                          "minimal", in which case if``E`` is a curve over the
-                          rationals, then the codomain is set to be the unique
-                          global minimum model.
+        - ``model`` - a string (default:None).  Only supported
+                          variable is "minimal", in which case if``E``
+                          is a curve over the rationals or over a
+                          number field, then the codomain is a global
+                          minimum model where this exists.
 
         - ``check`` (default: True) does some partial checks that the
                           input is valid (e.g., that the points
@@ -804,7 +859,10 @@ class EllipticCurve_field(ell_generic.EllipticCurve_generic):
             sage: phi.domain().conductor().norm().factor()
             11^2
         """
-        return EllipticCurveIsogeny(self, kernel, codomain, degree, model, check=check)
+        try:
+            return EllipticCurveIsogeny(self, kernel, codomain, degree, model, check=check)
+        except AttributeError as e:
+            raise RuntimeError("Unable to contruct isogeny: %s" % e)
 
 
     def isogeny_codomain(self, kernel, degree=None):
@@ -926,16 +984,17 @@ class EllipticCurve_field(ell_generic.EllipticCurve_generic):
             sage: QQroot2.<e> = NumberField(x^2-2)
             sage: E = EllipticCurve(QQroot2, j=8000)
             sage: E.isogenies_prime_degree()
-            [Isogeny of degree 2 from Elliptic Curve defined by y^2 = x^3 + (-150528000)*x + (-629407744000) over Number Field in e with defining polynomial x^2 - 2 to Elliptic Curve defined by y^2 = x^3 + (-602112000)*x + 5035261952000 over Number Field in e with defining polynomial x^2 - 2,
-            Isogeny of degree 2 from Elliptic Curve defined by y^2 = x^3 + (-150528000)*x + (-629407744000) over Number Field in e with defining polynomial x^2 - 2 to Elliptic Curve defined by y^2 = x^3 + (903168000*e-1053696000)*x + (14161674240000*e-23288086528000) over Number Field in e with defining polynomial x^2 - 2,
-            Isogeny of degree 2 from Elliptic Curve defined by y^2 = x^3 + (-150528000)*x + (-629407744000) over Number Field in e with defining polynomial x^2 - 2 to Elliptic Curve defined by y^2 = x^3 + (-903168000*e-1053696000)*x + (-14161674240000*e-23288086528000) over Number Field in e with defining polynomial x^2 - 2]
+            [Isogeny of degree 2 from Elliptic Curve defined by y^2 = x^3 + (-150528000)*x + (-629407744000) over Number Field in e with defining polynomial x^2 - 2 to Elliptic Curve defined by y^2 = x^3 + (-36750)*x + 2401000 over Number Field in e with defining polynomial x^2 - 2,
+            Isogeny of degree 2 from Elliptic Curve defined by y^2 = x^3 + (-150528000)*x + (-629407744000) over Number Field in e with defining polynomial x^2 - 2 to Elliptic Curve defined by y^2 = x^3 + (220500*e-257250)*x + (54022500*e-88837000) over Number Field in e with defining polynomial x^2 - 2,
+            Isogeny of degree 2 from Elliptic Curve defined by y^2 = x^3 + (-150528000)*x + (-629407744000) over Number Field in e with defining polynomial x^2 - 2 to Elliptic Curve defined by y^2 = x^3 + (-220500*e-257250)*x + (-54022500*e-88837000) over Number Field in e with defining polynomial x^2 - 2]
 
             sage: E = EllipticCurve(QQroot2, [1,0,1,4, -6]); E
             Elliptic Curve defined by y^2 + x*y + y = x^3 + 4*x + (-6) over Number Field in e with defining polynomial x^2 - 2
             sage: E.isogenies_prime_degree(2)
             [Isogeny of degree 2 from Elliptic Curve defined by y^2 + x*y + y = x^3 + 4*x + (-6) over Number Field in e with defining polynomial x^2 - 2 to Elliptic Curve defined by y^2 + x*y + y = x^3 + (-36)*x + (-70) over Number Field in e with defining polynomial x^2 - 2]
             sage: E.isogenies_prime_degree(3)
-            [Isogeny of degree 3 from Elliptic Curve defined by y^2 + x*y + y = x^3 + 4*x + (-6) over Number Field in e with defining polynomial x^2 - 2 to Elliptic Curve defined by y^2 + x*y + y = x^3 + (-128/3)*x + 5662/27 over Number Field in e with defining polynomial x^2 - 2, Isogeny of degree 3 from Elliptic Curve defined by y^2 + x*y + y = x^3 + 4*x + (-6) over Number Field in e with defining polynomial x^2 - 2 to Elliptic Curve defined by y^2 + x*y + y = x^3 + (-171)*x + (-874) over Number Field in e with defining polynomial x^2 - 2]
+            [Isogeny of degree 3 from Elliptic Curve defined by y^2 + x*y + y = x^3 + 4*x + (-6) over Number Field in e with defining polynomial x^2 - 2 to Elliptic Curve defined by y^2 + x*y + y = x^3 + (-1)*x over Number Field in e with defining polynomial x^2 - 2,
+            Isogeny of degree 3 from Elliptic Curve defined by y^2 + x*y + y = x^3 + 4*x + (-6) over Number Field in e with defining polynomial x^2 - 2 to Elliptic Curve defined by y^2 + x*y + y = x^3 + (-171)*x + (-874) over Number Field in e with defining polynomial x^2 - 2]
         """
         F = self.base_ring()
         if is_RealField(F):
@@ -1130,4 +1189,4 @@ class EllipticCurve_field(ell_generic.EllipticCurve_generic):
             x = R.gen()
             E = self.short_weierstrass_model()
             f=(x**3+E.a4()*x+E.a6())**((p-1)//2)
-            return f.coeffs()[p-1]
+            return f.coefficients(sparse=False)[p-1]

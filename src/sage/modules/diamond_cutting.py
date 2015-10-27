@@ -259,7 +259,7 @@ def calculate_voronoi_cell(basis, radius=None, verbose=False):
     artificial_length = None
     if dim[0] < dim[1]:
         # introduce "artificial" basis points (representing infinity)
-        artificial_length = ceil(max(abs(v) for v in basis)) * 2
+        artificial_length = max(abs(v) for v in basis).ceil() * 2
         additional_vectors = identity_matrix(dim[1]) * artificial_length
         basis = basis.stack(additional_vectors)
         # LLL-reduce to get quadratic matrix

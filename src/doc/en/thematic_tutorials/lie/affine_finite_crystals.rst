@@ -120,7 +120,7 @@ In Sage this can be obtained via::
 
     sage: K = crystals.KirillovReshetikhin(['A',2,1],1,1)
     sage: G = K.digraph()
-    sage: view(G, pdflatex=True, tightpage=True) # optional - dot2tex graphviz
+    sage: view(G, tightpage=True) # optional - dot2tex graphviz, not tested (opens external window)
 
 
 Types `D_n^{(1)}`, `B_n^{(1)}`, `A_{2n-1}^{(2)}`
@@ -168,7 +168,8 @@ only holds in the ranges `1\le r\le n-2` for type `D_n^{(1)}`, and
 
     sage: K = crystals.KirillovReshetikhin(['D',6,1],4,2)
     sage: K.classical_decomposition()
-    The crystal of tableaux of type ['D', 6] and shape(s) [[], [1, 1], [1, 1, 1, 1], [2, 2], [2, 2, 1, 1], [2, 2, 2, 2]]
+    The crystal of tableaux of type ['D', 6] and shape(s)
+     [[], [1, 1], [1, 1, 1, 1], [2, 2], [2, 2, 1, 1], [2, 2, 2, 2]]
 
 For type `B_n^{(1)}` and `r=n`, one needs to be aware that `\omega_n`
 is a spin weight and hence corresponds in the partition language to a
@@ -355,8 +356,8 @@ up to a relabeling of the arrows::
     sage: f = { 1:1, 0:2, 2:0 }
     sage: for u,v,label in Gdual.edges():
     ....:     Gdual.set_edge_label(u,v,f[label])
-    sage: G.is_isomorphic(Gdual, edge_labels = True, certify = True)
-    (True, {[[-2]]: [[1]], [[-1]]: [[2]], [[1]]: [[-2]], []: [[0]], [[2]]: [[-1]]})
+    sage: G.is_isomorphic(Gdual, edge_labels = True)
+    True
 
 .. image:: ../media/KR_Atwisted_dual.png
    :scale: 60
@@ -469,6 +470,32 @@ crystal are labelled by tuples which specify their nonzero `\phi_i(b)` and
 .. image:: ../media/KR_E6.png
    :scale: 40
    :align: center
+
+
+Single column KR crystals
+-------------------------
+
+A single column KR crystal is `B^{r,1}` for any `r \in I_0`.
+
+In [LNSSS14I]_ and [LNSSS14II]_, it was shown that single column KR
+crystals can be constructed by projecting level 0 crystals of LS paths onto
+the classical weight lattice. We first verify that we do get an isomorphic
+crystal for `B^{1,1}` in type `E_6^{(1)}`::
+
+    sage: K = crystals.KirillovReshetikhin(['E',6,1], 1,1)
+    sage: K2 = crystals.kirillov_reshetikhin.LSPaths(['E',6,1], 1,1)
+    sage: K.digraph().is_isomorphic(K2.digraph(), edge_labels=True)
+    True
+
+Here is an example in `E_8^{(1)}` and we calculate its
+classical decomposition::
+
+    sage: K = crystals.kirillov_reshetikhin.LSPaths(['E',8,1], 8,1)
+    sage: K.cardinality()
+    249
+    sage: L = [x for x in K if x.is_highest_weight([1,2,3,4,5,6,7,8])]
+    sage: map(lambda x: x.weight(), L)
+    [-2*Lambda[0] + Lambda[8], 0]
 
 
 Applications

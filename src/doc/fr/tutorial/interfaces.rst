@@ -11,15 +11,15 @@ sain.
 
 Les méthodes ``console`` et ``interact`` d'une interface avec un
 programme externe font des choses tout-à-fait différentes. Prenons
-l'exemple de GAP :
+l'exemple de GAP :
 
 #. ``gap.console()`` : Cette commande ouvre la console GAP. Cela
-   transfère le contrôle à GAP ; Sage n'est dans ce cas qu'un moyen
+   transfère le contrôle à GAP ; Sage n'est dans ce cas qu'un moyen
    commode de lancer des programmes, un peu comme le shell sous Unix.
 
 #. ``gap.interact()`` : Cette commande permet d'interagir avec une
-   instance de GAP en cours d'exécution, et éventuellement « remplie
-   d'objets Sage ». Il est possible d'importer des objets Sage dans la
+   instance de GAP en cours d'exécution, et éventuellement « remplie
+   d'objets Sage ». Il est possible d'importer des objets Sage dans la
    session GAP (y compris depuis l'interface interactive), etc.
 
 .. index: PARI; GP
@@ -29,7 +29,7 @@ GP/PARI
 
 PARI est un programme C compact, mature, fortement optimisé et
 spécialisé en théorie des nombres. Il possède deux
-interfaces très différentes utilisables depuis Sage :
+interfaces très différentes utilisables depuis Sage :
 
 -  ``gp`` - l'interpréteur "**G** o **P** ARI", et
 
@@ -57,7 +57,7 @@ démarré, la chaîne ``'znprimroot(10007)'`` est évaluée par une certaine
 fonction de la bibliothèque C PARI. Le résultat est stocké sur le tas de
 l'interpréteur Python, et la zone de mémoire utilisée est libérée
 lorsque son contenu n'est plus utilisé. Les objets renvoyés par ces deux
-commandes sont de types différents :
+commandes sont de types différents :
 
 ::
 
@@ -66,7 +66,7 @@ commandes sont de types différents :
     sage: type(pari('znprimroot(10007)'))
     <type 'sage.libs.pari.gen.gen'>
 
-Alors, laquelle des intrefaces utiliser ? Tout dépend de ce que vous
+Alors, laquelle des intrefaces utiliser ? Tout dépend de ce que vous
 cherchez à faire. L'interface GP permet de faire absolument tout ce que
 vous pourriez faire avec la ligne de commande GP/PARI habituelle,
 puisqu'elle fait appel à celle-ci. En particulier, vous pouvez
@@ -84,7 +84,7 @@ n'avez pas évalué convenablement l'espace qui nécessite. C'est une
 caractéristique commode que l'interpréteur GP habituel ne semble pas
 fournir. L'interface PARI, quant à elle, déplace immédiatement les
 objets créés en-dehors de la pile de PARI, de sorte que celle-ci ne
-grossit pas. Cependant, la taille de chaque objet est limitée à 100 Mo,
+grossit pas. Cependant, la taille de chaque objet est limitée à 100 Mo,
 sous peine que la pile ne déborde à la création de l'objet. Par
 ailleurs, cette copie supplémentaire a un léger impact sur les
 performances.)
@@ -133,7 +133,7 @@ calculs avec.
     sage: e.elltors()
     [1, [], []]
     sage: e.ellglobalred()
-    [10351, [1, -1, 0, -1], 1]
+    [10351, [1, -1, 0, -1], 1, [11, 1; 941, 1], [[1, 5, 0, 1], [1, 5, 0, 1]]]
     sage: f = e.ellchangecurve([1,-1,0,-1])
     sage: f[:5]
     [1, -1, 0, 4, 3]
@@ -146,7 +146,7 @@ GAP
 ===
 
 Pour les mathématiques discrètes effectives et principalement la théorie
-des groupes, Sage utilise GAP 4.4.10.
+des groupes, Sage utilise GAP.
 
 Voici un exemple d'utilisation de la fonction GAP ``IdGroup``, qui
 nécessite une base de données optionnelle de groupes de petit ordre, à
@@ -165,7 +165,7 @@ installer séparément comme décrit plus bas.
     120
 
 On peut faire le même calcul en SAGE sans invoquer explicitement
-l'interface GAP comme suit :
+l'interface GAP comme suit :
 
 ::
 
@@ -177,15 +177,12 @@ l'interface GAP comme suit :
     sage: n = G.order(); n
     120
 
-(Certaines fonctionnalités de GAP nécessitent l'installation de deux
-paquets facultatifs. Saisissez ``sage -optional`` pour consulter la
-liste des paquets facultatifs, et choisissez celui dont le nom ressemble
-à ``gap\_packages-x.y.z``, puis installez-le par
-``sage -i gap\_packages-x.y.z``. Faites de même avec
-``database\_gap-x.y.z``. D'autres paquets GAP, non couverts par la
-licence GPL, peuvent être téléchargés depuis le site web de GAP
-[GAPkg]_ et installés en les désarchivant dans
-``$SAGE_ROOT/local/lib/gap-4.4.10/pkg``.)
+Pour utiliser certaines fonctionnalités de GAP,
+vous devez installer deux paquets Sage optionnels.
+Cela peut être fait avec la commande::
+
+    sage -i gap_packages database_gap
+
 
 Singular
 ========
@@ -195,7 +192,7 @@ autres, de calculer des pgcd de polynômes de plusieurs variables, des
 factorisations, des bases de Gröbner ou encore des bases d'espaces de
 Riemann-Roch de courbes planes. Considérons la factorisation de
 polynômes de plusieurs variables à l'aide de l'interface à Singular
-fournie par Sage (n'entrez pas les ``...``) :
+fournie par Sage (n'entrez pas les ``....:``) :
 
 ::
 
@@ -206,9 +203,9 @@ fournie par Sage (n'entrez pas les ``...``) :
     //        block   1 : ordering dp
     //                  : names    x y
     //        block   2 : ordering C
-    sage: f = singular('9*y^8 - 9*x^2*y^7 - 18*x^3*y^6 - 18*x^5*y^6 + \
-    ...   9*x^6*y^4 + 18*x^7*y^5 + 36*x^8*y^4 + 9*x^10*y^4 - 18*x^11*y^2 - \
-    ...   9*x^12*y^3 - 18*x^13*y^2 + 9*x^16')
+    sage: f = singular('9*y^8 - 9*x^2*y^7 - 18*x^3*y^6 - 18*x^5*y^6 +'
+    ....:     '9*x^6*y^4 + 18*x^7*y^5 + 36*x^8*y^4 + 9*x^10*y^4 - 18*x^11*y^2 -'
+    ....:     '9*x^12*y^3 - 18*x^13*y^2 + 9*x^16')
 
 Maintenant que nous avons défini :math:`f`, affichons-le puis
 factorisons-le.
@@ -236,9 +233,9 @@ Singular (Sage y fera tout de même appel en coulisses pour le calcul).
 ::
 
     sage: x, y = QQ['x, y'].gens()
-    sage: f = 9*y^8 - 9*x^2*y^7 - 18*x^3*y^6 - 18*x^5*y^6 + 9*x^6*y^4\
-    ...   + 18*x^7*y^5 + 36*x^8*y^4 + 9*x^10*y^4 - 18*x^11*y^2 - 9*x^12*y^3\
-    ...   - 18*x^13*y^2 + 9*x^16
+    sage: f = (9*y^8 - 9*x^2*y^7 - 18*x^3*y^6 - 18*x^5*y^6 + 9*x^6*y^4
+    ....:     + 18*x^7*y^5 + 36*x^8*y^4 + 9*x^10*y^4 - 18*x^11*y^2 - 9*x^12*y^3
+    ....:     - 18*x^13*y^2 + 9*x^16)
     sage: factor(f)
     (9) * (-x^5 + y^2)^2 * (x^6 - 2*x^3*y^2 - x^2*y^3 + y^4)
 
@@ -278,7 +275,7 @@ pour :math:`i,j=1,\ldots,4`.
     sage: A.eigenvectors()
     [[[0,4],[3,1]],[[[1,0,0,-4],[0,1,0,-2],[0,0,1,-4/3]],[[1,2,3,4]]]]
 
-Un deuxième exemple :
+Un deuxième exemple :
 
 ::
 
@@ -307,43 +304,42 @@ Voici enfin quelques exemples de tracés de graphiques avec ``openmath``
 depuis Sage. Un grand nombre de ces exemples sont des adaptations de
 ceux du manuel de référence de Maxima.
 
-Tracé en 2D de plusieurs fonctions (n'entrez pas les ``...``) :
+Tracé en 2D de plusieurs fonctions (n'entrez pas les ``....:``) :
 
 ::
 
     sage: maxima.plot2d('[cos(7*x),cos(23*x)^4,sin(13*x)^3]','[x,0,1]', # not tested
-    ....: '[plot_format,openmath]')
+    ....:     '[plot_format,openmath]')
 
 Un graphique 3D interactif, que vous pouvez déplacer à la souris
-(n'entrez pas les ``...``) :
+(n'entrez pas les ``....:``) :
 
 ::
 
     sage: maxima.plot3d ("2^(-u^2 + v^2)", "[u, -3, 3]", "[v, -2, 2]", # not tested
-    ....: '[plot_format, openmath]')
+    ....:     '[plot_format, openmath]')
     sage: maxima.plot3d("atan(-x^2 + y^3/4)", "[x, -4, 4]", "[y, -4, 4]", # not tested
-    ....: "[grid, 50, 50]",'[plot_format, openmath]')
+    ....:     "[grid, 50, 50]",'[plot_format, openmath]')
 
-Le célèbre ruban de Möbius (n'entrez pas les ``...``) :
+Le célèbre ruban de Möbius (n'entrez pas les ``....:``) :
 
 ::
 
     sage: maxima.plot3d("[cos(x)*(3 + y*cos(x/2)), sin(x)*(3 + y*cos(x/2)), y*sin(x/2)]", # not tested
-    ....: "[x, -4, 4]", "[y, -4, 4]",
-    ....: '[plot_format, openmath]')
+    ....:     "[x, -4, 4]", "[y, -4, 4]",
+    ....:     '[plot_format, openmath]')
 
-Et la fameuse bouteille de Klein (n'entrez pas les ``...``):
+Et la fameuse bouteille de Klein (n'entrez pas les ``....:``):
 
 ::
 
-    sage: maxima("expr_1: 5*cos(x)*(cos(x/2)*cos(y) + sin(x/2)*sin(2*y)+ 3.0)\
-    ...   - 10.0")
+    sage: maxima("expr_1: 5*cos(x)*(cos(x/2)*cos(y) + sin(x/2)*sin(2*y)+ 3.0) - 10.0")
     5*cos(x)*(sin(x/2)*sin(2*y)+cos(x/2)*cos(y)+3.0)-10.0
     sage: maxima("expr_2: -5*sin(x)*(cos(x/2)*cos(y) + sin(x/2)*sin(2*y)+ 3.0)")
     -5*sin(x)*(sin(x/2)*sin(2*y)+cos(x/2)*cos(y)+3.0)
     sage: maxima("expr_3: 5*(-sin(x/2)*cos(y) + cos(x/2)*sin(2*y))")
     5*(cos(x/2)*sin(2*y)-sin(x/2)*cos(y))
     sage: maxima.plot3d ("[expr_1, expr_2, expr_3]", "[x, -%pi, %pi]", # not tested
-    ....: "[y, -%pi, %pi]", "['grid, 40, 40]",
-    ....: '[plot_format, openmath]')
+    ....:     "[y, -%pi, %pi]", "['grid, 40, 40]",
+    ....:     '[plot_format, openmath]')
 

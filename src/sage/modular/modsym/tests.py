@@ -264,8 +264,8 @@ class Test:
         V = M.cuspidal_submodule().new_submodule()
         d = V.dimension()
         d2 = M._cuspidal_new_submodule_dimension_formula()
-        if d != d2:
-            assert False, "Test failed for M=\"%s\", where computed dimension is %s but formula dimension is %s."%(M, d, d2)
+        assert d == d2, \
+            "Test failed for M=\"%s\", where computed dimension is %s but formula dimension is %s."%(M, d, d2)
 
     def test_csns_nscs(self):
         """
@@ -283,8 +283,8 @@ class Test:
         V2 = M.new_submodule().cuspidal_submodule()
         assert V1 == V2, "Test failed for M=\"%s\", where the new cuspidal and cuspidal new spaces are computed differently."%M
         d = M._cuspidal_new_submodule_dimension_formula()
-        if d != V1.dimension():
-            assert False, "Test failed for M=\"%s\", where computed dimension is %s but formula dimension is %s."%(
+        assert d == V1.dimension(), \
+            "Test failed for M=\"%s\", where computed dimension is %s but formula dimension is %s."%(
                      M, V1.dimension(), d)
 
 

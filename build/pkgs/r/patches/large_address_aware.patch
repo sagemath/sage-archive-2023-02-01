@@ -1,7 +1,7 @@
 diff -druN r-3.0.2.orig/configure.ac r-3.0.2/configure.ac
 --- r-3.0.2.orig/configure.ac	2013-08-26 15:05:06.000000000 -0700
 +++ r-3.0.2/configure.ac	2014-01-18 09:35:57.516091309 -0800
-@@ -1310,7 +1310,11 @@
+@@ -1310,7 +1321,11 @@
      SHLIB_EXT=".dll"
      dylib_undefined_allowed=no
      is_cygwin=yes
@@ -17,7 +17,7 @@ diff -druN r-3.0.2.orig/configure.ac r-3.0.2/configure.ac
 diff -druN r-3.0.2.orig/configure r-3.0.2/configure
 --- r-3.0.2.orig/configure	2013-09-17 15:06:13.000000000 -0700
 +++ r-3.0.2/configure	2014-01-18 09:38:03.426103900 -0800
-@@ -26247,7 +26247,11 @@
+@@ -26313,7 +26247,11 @@
      SHLIB_EXT=".dll"
      dylib_undefined_allowed=no
      is_cygwin=yes

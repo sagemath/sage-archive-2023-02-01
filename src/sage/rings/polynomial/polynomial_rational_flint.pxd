@@ -6,11 +6,10 @@
 #                        http://www.gnu.org/licenses/                         #
 ###############################################################################
 
-include "sage/ext/cdefs.pxi"
+from sage.libs.flint.fmpq_poly cimport *
 
 from sage.libs.flint.fmpq_poly cimport fmpq_poly_t
 from sage.rings.polynomial.polynomial_element cimport Polynomial
-from sage.structure.parent cimport Parent
 
 cdef class Polynomial_rational_flint(Polynomial):
     cdef fmpq_poly_t __poly

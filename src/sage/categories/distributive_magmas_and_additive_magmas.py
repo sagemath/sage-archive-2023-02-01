@@ -51,7 +51,7 @@ class DistributiveMagmasAndAdditiveMagmas(CategoryWithAxiom):
             Test the distributivity of `*` on `+` on (not necessarily
             all) elements of this set.
 
-            INPUT::
+            INPUT:
 
             - ``options`` -- any keyword arguments accepted by :meth:`_tester`
 
@@ -93,6 +93,6 @@ class DistributiveMagmasAndAdditiveMagmas(CategoryWithAxiom):
                 sage: C.extra_super_categories();
                 [Category of distributive magmas and additive magmas]
                 sage: C.axioms()
-                frozenset(['Distributive'])
+                frozenset({'Distributive'})
             """
             return [DistributiveMagmasAndAdditiveMagmas()]

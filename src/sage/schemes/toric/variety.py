@@ -91,7 +91,7 @@ realized as the toric variety associated to the
 :func:`face fan <sage.geometry.fan.FaceFan>` of the "diamond"::
 
     sage: diamond = lattice_polytope.cross_polytope(2)
-    sage: diamond.vertices_pc()
+    sage: diamond.vertices()
     M( 1,  0),
     M( 0,  1),
     M(-1,  0),
@@ -1515,8 +1515,8 @@ class ToricVariety_field(ClearCacheOnPickle, AmbientSpace):
             sage: P4_11169.Mori_cone()
             2-d cone in 7-d lattice
             sage: P4_11169.Mori_cone().rays()
-            (0, 0, 1, 1, 1, -3,  0),
-            (3, 2, 0, 0, 0,  1, -6)
+            (3, 2, 0, 0, 0,  1, -6),
+            (0, 0, 1, 1, 1, -3,  0)
             in Ambient free module of rank 7
             over the principal ideal domain Integer Ring
         """
@@ -1549,6 +1549,7 @@ class ToricVariety_field(ClearCacheOnPickle, AmbientSpace):
 
             sage: X = toric_varieties.Cube_deformation(4)
             sage: X.plot()
+            Graphics3d Object
         """
         if "ray_label" not in options:
             gens = self.coordinate_ring().gens()
@@ -3214,7 +3215,7 @@ class CohomologyRing(QuotientRing_generic, UniqueRepresentation):
         r"""
         Construct a :class:`CohomologyClass`.
 
-        INPUT::
+        INPUT:
 
         - ``x`` -- something that defines a cohomology class. Either a
           cohomology class, a cone of the fan, or something that can

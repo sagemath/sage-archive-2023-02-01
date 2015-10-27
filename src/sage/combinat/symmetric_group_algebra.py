@@ -10,8 +10,9 @@ Symmetric Group Algebra
 from sage.misc.cachefunc import cached_method
 from combinatorial_algebra import CombinatorialAlgebra
 from free_module import CombinatorialFreeModule
-from sage.categories.all import FiniteDimensionalAlgebrasWithBasis
-from sage.combinat.permutation import Permutation, Permutations, Permutations_nk, PermutationOptions
+from sage.categories.weyl_groups import WeylGroups
+from sage.combinat.permutation import (Permutation, Permutations,
+     from_permutation_group_element, PermutationOptions)
 import partition
 from tableau import Tableau, StandardTableaux_size, StandardTableaux_shape, StandardTableaux
 from sage.interfaces.all import gap
@@ -20,13 +21,38 @@ from sage.rings.arith import factorial
 from sage.matrix.all import matrix
 from sage.modules.all import vector
 from sage.groups.perm_gps.permgroup_named import SymmetricGroup
-from sage.categories.all import GroupAlgebras
+from sage.groups.perm_gps.permgroup_element import PermutationGroupElement
+import itertools
+from sage.combinat.permutation_cython import (left_action_same_n, right_action_same_n)
 
 permutation_options = PermutationOptions
 
-def SymmetricGroupAlgebra(R, n):
+# TODO: Remove this function and replace it with the class
+# TODO: Create parents for other bases (such as the seminormal basis)
+def SymmetricGroupAlgebra(R, W, category=None):
     """
-    Return the symmetric group algebra of order ``n`` over the ring ``R``.
+    Return the symmetric group algebra of order ``W`` over the ring ``R``.
+
+    INPUT:
+
+    - ``W`` -- a symmetric group; alternatively an integer `n` can be
+      provided, as shorthand for ``Permutations(n)``.
+    - ``R`` -- a base ring
+    - ``category`` -- a category (default: the category of ``W``)
+
+    This supports several implementations of the symmetric group. At
+    this point this has been tested with ``W=Permutations(n)`` and
+    ``W=SymmetricGroup(n)``.
+
+    .. WARNING::
+
+        Some features are failing in the latter case, in particular if
+        the domain of the symmetric group is not `1,\ldots,n`.
+
+    .. NOTE::
+
+        The brave can also try setting ``W=WeylGroup(['A',n-1])``, but
+        little support for this currently exists.
 
     EXAMPLES::
 
@@ -50,6 +76,43 @@ def SymmetricGroupAlgebra(R, n):
         [1, 2, 3] + [1, 3, 2] + [2, 1, 3] + [2, 3, 1] + [3, 1, 2] + [3, 2, 1]
         sage: b*a == a
         True
+
+    We now construct the symmetric group algebra by providing
+    explicitly the underlying group::
+
+        sage: SGA = SymmetricGroupAlgebra(QQ, Permutations(4)); SGA
+        Symmetric group algebra of order 4 over Rational Field
+        sage: SGA.group()
+        Standard permutations of 4
+        sage: SGA.an_element()
+        [1, 2, 3, 4] + 2*[1, 2, 4, 3] + 3*[1, 3, 2, 4] + [4, 1, 2, 3]
+
+        sage: SGA = SymmetricGroupAlgebra(QQ, SymmetricGroup(4)); SGA
+        Symmetric group algebra of order 4 over Rational Field
+        sage: SGA.group()
+        Symmetric group of order 4! as a permutation group
+        sage: SGA.an_element()
+        () + 2*(1,2) + 4*(1,2,3,4)
+
+        sage: SGA = SymmetricGroupAlgebra(QQ, WeylGroup(["A",3], prefix='s')); SGA
+        Symmetric group algebra of order 4 over Rational Field
+        sage: SGA.group()
+        Weyl Group of type ['A', 3] (as a matrix group acting on the ambient space)
+        sage: SGA.an_element()
+        2*s1*s2*s3*s2*s1 + 3*s1*s2*s3*s1 + s1*s2*s3 + 1
+
+    The preferred way to construct the symmetric group algebra is to
+    go through the usual ``algebra`` method::
+
+        sage: SGA = Permutations(3).algebra(QQ); SGA
+        Symmetric group algebra of order 3 over Rational Field
+        sage: SGA.group()
+        Standard permutations of 3
+
+        sage: SGA = SymmetricGroup(3).algebra(QQ); SGA
+        Symmetric group algebra of order 3 over Rational Field
+        sage: SGA.group()
+        Symmetric group of order 3! as a permutation group
 
     The canonical embedding from the symmetric group algebra of order
     `n` to the symmetric group algebra of order `p > n` is available as
@@ -88,85 +151,250 @@ def SymmetricGroupAlgebra(R, n):
 
     .. WARNING::
 
-        The semantics of multiplication in symmetric group algebras is
-        determined by the order in which permutations are multiplied,
-        which currently defaults to "in such a way that multiplication
-        is associative with permutations acting on integers from the
-        right", but can be changed to the opposite order at runtime
-        by setting a global variable (see
+        The semantics of multiplication in symmetric group algebras
+        with index set ``Permutations(n)`` is determined by the order
+        in which permutations are multiplied, which currently defaults
+        to "in such a way that multiplication is associative with
+        permutations acting on integers from the right", but can be
+        changed to the opposite order at runtime by setting the global
+        variable ``Permutations.global_options['mult']`` (see
         :meth:`sage.combinat.permutation.Permutations.global_options` ).
+        On the other hand, the semantics of multiplication in symmetric
+        group algebras with index set ``SymmetricGroup(n)`` does not
+        depend on this global variable. (This has the awkward
+        consequence that the coercions between these two sorts of
+        symmetric group algebras do not respect multiplication when
+        this global variable is set to ``'r2l'``.)
         In view of this, it is recommended that code not rely on the
         usual multiplication function, but rather use the methods
         :meth:`left_action_product` and :meth:`right_action_product`
         for multiplying permutations (these methods don't depend on the
         setting). See :trac:`14885` for more information.
 
+    We conclude by constructing the algebra of the symmetric group as
+    a monoid algebra::
+
+        sage: QS3 = SymmetricGroupAlgebra(QQ, 3, category=Monoids())
+        sage: QS3.category()
+        Category of finite dimensional monoid algebras over Rational Field
+        sage: TestSuite(QS3).run()
+
+
     TESTS::
 
+        sage: QS3 = SymmetricGroupAlgebra(QQ, 3)
         sage: TestSuite(QS3).run()
+
+        sage: QS3.group()
+        Standard permutations of 3
+
+        sage: QS3.one_basis()
+        [1, 2, 3]
+
+        sage: p1 = Permutation([1,2,3])
+        sage: p2 = Permutation([2,1,3])
+        sage: QS3.product_on_basis(p1,p2)
+        [2, 1, 3]
+
+        sage: W = WeylGroup(["A",3])
+        sage: SGA = SymmetricGroupAlgebra(QQ, W)
+        sage: SGA.group() is W
+        True
+        sage: TestSuite(SGA).run()
+
+        sage: SG = SymmetricGroupAlgebra(ZZ, 3)
+        sage: SG.group().conjugacy_classes_representatives()
+        [[1, 2, 3], [2, 1, 3], [2, 3, 1]]
+
+        sage: SGg = SymmetricGroup(3).algebra(ZZ)
+        sage: SGg.group().conjugacy_classes_representatives()
+        [(), (1,2), (1,2,3)]
     """
-    return SymmetricGroupAlgebra_n(R,n)
+    from sage.rings.semirings.non_negative_integer_semiring import NN
+    if W in NN:
+        W = Permutations(W)
+    if category is None:
+        category = W.category()
+    return SymmetricGroupAlgebra_n(R, W, category.Algebras(R))
 
 class SymmetricGroupAlgebra_n(CombinatorialFreeModule):
 
-    def __init__(self, R, n):
+    def __init__(self, R, W, category):
         """
         TESTS::
 
             sage: QS3 = SymmetricGroupAlgebra(QQ, 3)
             sage: TestSuite(QS3).run()
+
+            sage: QS3 in GroupAlgebras(QQ)
+            True
+            sage: QS3 in FiniteDimensionalAlgebrasWithBasis(QQ)
+            True
+
+        Check that :trac:`16926` works::
+
+            sage: S = SymmetricGroup(4)
+            sage: SGA = S.algebra(QQ)
+            sage: TestSuite(SGA).run()
+
+        Checking that coercion works between equivalent indexing sets::
+
+            sage: G = SymmetricGroup(4).algebra(QQ)
+            sage: S = SymmetricGroupAlgebra(QQ,4)
+            sage: S(G.an_element())
+            [1, 2, 3, 4] + 2*[2, 1, 3, 4] + 4*[2, 3, 4, 1]
+            sage: G(S.an_element())
+            () + 2*(3,4) + 3*(2,3) + (1,4,3,2)
         """
-        self.n = n
-        self._name = "Symmetric group algebra of order %s"%self.n
-        CombinatorialFreeModule.__init__(self, R, Permutations(n), prefix='', latex_prefix='', category = (GroupAlgebras(R),FiniteDimensionalAlgebrasWithBasis(R)))
-        # This is questionable, and won't be inherited properly
-        if n > 0:
-            S = SymmetricGroupAlgebra(R, n-1)
-            self.register_coercion(S.canonical_embedding(self))
+        if not W in WeylGroups or W.cartan_type().type() != 'A':
+            raise ValueError("W (=%s) should be a symmetric group or a nonnegative integer")
+        rank = W.cartan_type().rank()
+        if rank == 0:   # Ambiguous: n=0 or n=1?
+            # The following trick works for both SymmetricGroup(n) and
+            # Permutations(n) and it's currently not possible to
+            # construct the WeylGroup for n=0
+            self.n = len(W.one().fixed_points())
+        else:
+            self.n = W.cartan_type().rank() + 1
+        CombinatorialFreeModule.__init__(self, R, W, prefix='',
+                                         latex_prefix='', category=category)
+
+    def _repr_(self):
+        """
+        Return a string representation of ``self``.
+
+        EXAMPLES::
+
+            sage: SymmetricGroupAlgebra(QQ, 3)
+            Symmetric group algebra of order 3 over Rational Field
+        """
+        return "Symmetric group algebra of order {} over {}".format(self.n, self.base_ring())
+
+    def _coerce_map_from_(self, S):
+        """
+        Return ``True`` or a morphism if there exists a coercion from ``S``
+        into ``self`` or ``False`` otherwise.
+
+        EXAMPLES:
+
+        Symmetric group algebras::
+
+            sage: SGA4 = SymmetricGroupAlgebra(QQ, 4)
+            sage: SGA2 = SymmetricGroupAlgebra(QQ, 2)
+            sage: SGA4.has_coerce_map_from(SGA2)
+            True
+            sage: SGA2Z = SymmetricGroupAlgebra(ZZ, 2)
+            sage: SGA4.has_coerce_map_from(SGA2Z)
+            True
+            sage: p = Permutation([2,1])
+            sage: SGA4(-3*SGA2Z.monomial(p))
+            -3*[2, 1, 3, 4]
+
+        Descent algebras::
+
+            sage: DA = DescentAlgebra(QQ, 4)
+            sage: SGA4 = SymmetricGroupAlgebra(QQ, 4)
+            sage: SGA4.has_coerce_map_from(DA.D())
+            True
+            sage: SGA4.has_coerce_map_from(DA.B())
+            True
+            sage: SGA4.has_coerce_map_from(DA.I())
+            True
+            sage: x = DA.B()[4]
+            sage: SGA4(x)
+            [1, 2, 3, 4]
+
+            sage: DAB = DescentAlgebra(ZZ,2).B()
+            sage: SGA4.has_coerce_map_from(DAB)
+            True
+            sage: SGA4(DAB[2])
+            [1, 2, 3, 4]
+
+            sage: QSG4 = SymmetricGroup(4).algebra(ZZ)
+            sage: DAB = DescentAlgebra(ZZ,4).B()
+            sage: QSG4(DAB[1,2,1])
+            () + (3,4) + (2,3,4) + (1,2) + (1,2)(3,4) + (1,2,3,4)
+             + (1,3,2) + (1,3,4,2) + (1,3,4) + (1,4,3,2) + (1,4,2) + (1,4)
+        """
+        # Symmetric group algebras of smaller rank
+        if (isinstance(S, SymmetricGroupAlgebra_n) and S.n <= self.n
+                and self.base_ring().has_coerce_map_from(S.base_ring())):
+            return S.canonical_embedding(self)
+
+        # Descent algebras
+        from sage.combinat.descent_algebra import DescentAlgebra
+        # TODO: A better way to handle all of the bases
+        if isinstance(S, (DescentAlgebra.D, DescentAlgebra.B, DescentAlgebra.I)):
+            # Same rank and base ring, just the natural morphism
+            if (S.realization_of()._n == self.n and self.base_ring() == S.base_ring()
+                    and self._indices == Permutations(self.n)):
+                return S.to_symmetric_group_algebra
+            # Otherwise compose with the canonical embedding in order to ensure
+            # that the right base ring and the right index set are being used.
+            # Slightly hacky!
+            if (S.realization_of()._n <= self.n and
+                    self.base_ring().has_coerce_map_from(S.base_ring())):
+                phi = S.to_symmetric_group_algebra
+                return phi.codomain().canonical_embedding(self) * phi
+
+        return super(SymmetricGroupAlgebra_n, self)._coerce_map_from_(S)
+
+    def _element_constructor_(self, x):
+        """
+        Construct an element of ``self``.
+
+        EXAMPLES::
+
+            sage: S = SymmetricGroupAlgebra(QQ, 4)
+            sage: G = SymmetricGroup(3)
+            sage: p = Permutation((1,2))
+            sage: S(p)
+            [2, 1, 3, 4]
+            sage: S(G(p))
+            [2, 1, 3, 4]
+            sage: S(p) == S(G(p))
+            True
+        """
+        if isinstance(x, Permutation):
+            return self.monomial_from_smaller_permutation(x)
+        if isinstance(x, PermutationGroupElement):
+            return self.monomial_from_smaller_permutation(
+                    from_permutation_group_element(x))
+
+        return super(SymmetricGroupAlgebra_n, self)._element_constructor_(x)
+
+    def _sibling(self, n):
+        r"""
+        Return the sibling group algebra of order `n`.
+
+        EXAMPLES::
+
+            sage: SGA = SymmetricGroupAlgebra(QQ, Permutations(3))._sibling(4); SGA
+            Symmetric group algebra of order 4 over Rational Field
+            sage: SGA.group()
+            Standard permutations of 4
+
+            sage: SGA = SymmetricGroupAlgebra(QQ, SymmetricGroup(3))._sibling(4); SGA
+            Symmetric group algebra of order 4 over Rational Field
+            sage: SGA.group()
+            Symmetric group of order 4! as a permutation group
+
+            sage: SGA = SymmetricGroupAlgebra(QQ, WeylGroup(["A",2]))._sibling(4); SGA
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: Constructing the sibling algebra of a different order
+            only implemented for PermutationGroup and SymmetricGroup
+        """
+        try:
+            W = self.basis().keys().__class__(n)
+        except Exception:
+            raise NotImplementedError("Constructing the sibling algebra of a different order "
+                                      "only implemented for PermutationGroup and SymmetricGroup")
+        return SymmetricGroupAlgebra(self.base_ring(), W)
+
 
     # _repr_ customization: output the basis element indexed by [1,2,3] as [1,2,3]
     _repr_option_bracket = False
-
-    def group(self):
-        """
-        Return the underlying group.
-
-        EXAMPLES::
-
-            sage: SymmetricGroupAlgebra(QQ,4).group()
-            Symmetric group of order 4! as a permutation group
-        """
-        return SymmetricGroup(self.n)
-
-    @cached_method
-    def one_basis(self):
-        """
-        Return the identity of the symmetric group, as per
-        ``AlgebrasWithBasis.ParentMethods.one_basis``.
-
-        EXAMPLES::
-
-            sage: QS3 = SymmetricGroupAlgebra(QQ, 3)
-            sage: QS3.one_basis()
-            [1, 2, 3]
-        """
-        P = self.basis().keys()
-        return P(range(1,self.n+1))
-
-    def product_on_basis(self, left, right):
-        """
-        Return the product of the basis elements indexed by ``left`` and
-        ``right``.
-
-        EXAMPLES::
-
-            sage: QS3 = SymmetricGroupAlgebra(QQ, 3)
-            sage: p1 = Permutation([1,2,3])
-            sage: p2 = Permutation([2,1,3])
-            sage: QS3.product_on_basis(p1,p2)
-            [2, 1, 3]
-        """
-        return self.monomial(left * right)
 
     def left_action_product(self, left, right):
         """
@@ -200,6 +428,14 @@ class SymmetricGroupAlgebra_n(CombinatorialFreeModule):
             sage: QS4.left_action_product(1, Permutation([4, 1, 2, 3]))
             [4, 1, 2, 3]
 
+        TESTS::
+
+            sage: QS4 = SymmetricGroup(4).algebra(QQ)
+            sage: QS4.left_action_product(QS4((1,2)), QS4((2,3)))
+            (1,2,3)
+            sage: QS4.left_action_product(1, QS4((1,2)))
+            (1,2)
+
         .. WARNING::
 
             Note that coercion presently works from permutations of ``n``
@@ -210,11 +446,13 @@ class SymmetricGroupAlgebra_n(CombinatorialFreeModule):
         """
         a = self(left)
         b = self(right)
-        P = self.basis().keys()
-        return self.sum_of_terms([(P([p[i-1] for i in q]), x * y)
+        if not isinstance(self._indices, Permutations):
+            return b * a
+        P = Permutations(self.n)
+        return self.sum_of_terms([(P(left_action_same_n(p._list, q._list)), x * y)
                                   for (p, x) in a for (q, y) in b])
-        # Why did we use P([p[i-1] for i in q])
-        # instead of p.left_action_product(q) ?
+        # Why did we use left_action_same_n instead of
+        # left_action_product?
         # Because having cast a and b into self, we already know that
         # p and q are permutations of the same number of elements,
         # and thus we don't need to waste our time on the input
@@ -252,6 +490,14 @@ class SymmetricGroupAlgebra_n(CombinatorialFreeModule):
             sage: QS4.right_action_product(1, Permutation([4, 1, 2, 3]))
             [4, 1, 2, 3]
 
+        TESTS::
+
+            sage: QS4 = SymmetricGroup(4).algebra(QQ)
+            sage: QS4.right_action_product(QS4((1,2)), QS4((2,3)))
+            (1,3,2)
+            sage: QS4.right_action_product(1, QS4((1,2)))
+            (1,2)
+
         .. WARNING::
 
             Note that coercion presently works from permutations of ``n``
@@ -262,11 +508,13 @@ class SymmetricGroupAlgebra_n(CombinatorialFreeModule):
         """
         a = self(left)
         b = self(right)
-        P = self.basis().keys()
-        return self.sum_of_terms([(P([q[i-1] for i in p]), x * y)
+        if not isinstance(self._indices, Permutations):
+            return a * b
+        P = Permutations(self.n)
+        return self.sum_of_terms([(P(right_action_same_n(p._list, q._list)), x * y)
                                   for (p, x) in a for (q, y) in b])
-        # Why did we use P([q[i-1] for i in p])
-        # instead of p.right_action_product(q) ?
+        # Why did we use right_action_same_n instead of
+        # right_action_product?
         # Because having cast a and b into self, we already know that
         # p and q are permutations of the same number of elements,
         # and thus we don't need to waste our time on the input
@@ -274,12 +522,15 @@ class SymmetricGroupAlgebra_n(CombinatorialFreeModule):
 
     def canonical_embedding(self, other):
         """
-        Return the canonical embedding of ``self`` into ``other``.
+        Return the canonical coercion of ``self`` into a symmetric
+        group algebra ``other``.
 
         INPUT:
 
         - ``other`` -- a symmetric group algebra with order `p`
-          satisfying `p \leq n` where `n` is the order of ``self``.
+          satisfying `p \geq n`, where `n` is the order of ``self``,
+          over a ground ring into which the ground ring of ``self``
+          coerces.
 
         EXAMPLES::
 
@@ -298,6 +549,35 @@ class SymmetricGroupAlgebra_n(CombinatorialFreeModule):
             Generic morphism:
               From: Symmetric group algebra of order 2 over Rational Field
               To:   Symmetric group algebra of order 4 over Rational Field
+
+            sage: ZS2 = SymmetricGroupAlgebra(ZZ, 2)
+            sage: phi = ZS2.canonical_embedding(QS4); phi
+            Generic morphism:
+              From: Symmetric group algebra of order 2 over Integer Ring
+              To:   Symmetric group algebra of order 4 over Rational Field
+
+            sage: phi = ZS2.canonical_embedding(QS2); phi
+            Generic morphism:
+              From: Symmetric group algebra of order 2 over Integer Ring
+              To:   Symmetric group algebra of order 2 over Rational Field
+
+            sage: QS4.canonical_embedding(QS2)
+            Traceback (most recent call last):
+            ...
+            ValueError: There is no canonical embedding from Symmetric group
+             algebra of order 2 over Rational Field to Symmetric group
+             algebra of order 4 over Rational Field
+
+            sage: QS4g = SymmetricGroup(4).algebra(QQ)
+            sage: QS4.canonical_embedding(QS4g)(QS4([1,3,2,4]))
+            (2,3)
+            sage: QS4g.canonical_embedding(QS4)(QS4g((2,3)))
+            [1, 3, 2, 4]
+            sage: ZS2.canonical_embedding(QS4g)(ZS2([2,1]))
+            (1,2)
+            sage: ZS2g = SymmetricGroup(2).algebra(ZZ)
+            sage: ZS2g.canonical_embedding(QS4)(ZS2g((1,2)))
+            [2, 1, 3, 4]
         """
         if not isinstance(other, SymmetricGroupAlgebra_n) or self.n > other.n:
             raise ValueError("There is no canonical embedding from {0} to {1}".format(other, self))
@@ -318,6 +598,12 @@ class SymmetricGroupAlgebra_n(CombinatorialFreeModule):
             [3, 1, 2, 4, 5]
             sage: QS5.monomial_from_smaller_permutation([5,3,4,1,2])
             [5, 3, 4, 1, 2]
+            sage: QS5.monomial_from_smaller_permutation(SymmetricGroup(2)((1,2)))
+            [2, 1, 3, 4, 5]
+
+            sage: QS5g = SymmetricGroup(5).algebra(QQ)
+            sage: QS5g.monomial_from_smaller_permutation([2,1])
+            (1,2)
 
         TESTS::
 
@@ -400,16 +686,26 @@ class SymmetricGroupAlgebra_n(CombinatorialFreeModule):
             sage: SGA5.retract_plain(8*SGA5([1,2,3,4,5]) - 6*SGA5([1,3,2,4,5]), 0)
             8*[]
 
+        TESTS:
+
+        Check this works with other indexing sets::
+
+            sage: G = SymmetricGroup(4).algebra(QQ)
+            sage: G.retract_plain(G.an_element(), 3)
+            () + 2*(1,2)
+
         .. SEEALSO::
 
             :meth:`retract_direct_product`, :meth:`retract_okounkov_vershik`
         """
-        RSm = SymmetricGroupAlgebra(self.base_ring(), m)
+        RSm = self._sibling(m)
+        I = RSm.group()
         pairs = []
+        P = Permutations(self.n)
         for (p, coeff) in f.monomial_coefficients().iteritems():
-            p_ret = p.retract_plain(m)
+            p_ret = P(p).retract_plain(m)
             if p_ret is not None:
-                pairs.append((p_ret, coeff))
+                pairs.append((I(p_ret), coeff))
         return RSm.sum_of_terms(pairs, distinct=True)
 
     def retract_direct_product(self, f, m):
@@ -456,16 +752,27 @@ class SymmetricGroupAlgebra_n(CombinatorialFreeModule):
             sage: SGA5.retract_direct_product(8*SGA5([1,2,3,4,5]) - 6*SGA5([1,3,2,4,5]), 0)
             2*[]
 
+        TESTS:
+
+        Check this works with other indexing sets::
+
+            sage: G = SymmetricGroup(4).algebra(QQ)
+            sage: G.retract_direct_product(G.an_element(), 3)
+            () + 2*(1,2)
+
         .. SEEALSO::
 
             :meth:`retract_plain`, :meth:`retract_okounkov_vershik`
         """
-        RSm = SymmetricGroupAlgebra(self.base_ring(), m)
+        RSm = self._sibling(m)
+        I = RSm.group()
         dct = {}
+        P = Permutations(self.n)
         for (p, coeff) in f.monomial_coefficients().iteritems():
-            p_ret = p.retract_direct_product(m)
-            if not (p_ret is None):
-                if not p_ret in dct.keys():
+            p_ret = P(p).retract_direct_product(m)
+            if p_ret is not None:
+                p_ret = I(p_ret)
+                if not p_ret in dct:
                     dct[p_ret] = coeff
                 else:
                     dct[p_ret] += coeff
@@ -508,15 +815,25 @@ class SymmetricGroupAlgebra_n(CombinatorialFreeModule):
             sage: SGA5.retract_okounkov_vershik(8*SGA5([1,2,3,4,5]) - 6*SGA5([1,3,2,4,5]), 0)
             2*[]
 
+        TESTS:
+
+        Check this works with other indexing sets::
+
+            sage: G = SymmetricGroup(4).algebra(QQ)
+            sage: G.retract_okounkov_vershik(G.an_element(), 3)
+            () + 2*(1,2) + 4*(1,2,3)
+
         .. SEEALSO::
 
             :meth:`retract_plain`, :meth:`retract_direct_product`
         """
-        RSm = SymmetricGroupAlgebra(self.base_ring(), m)
+        RSm = self._sibling(m)
+        I = RSm.group()
         dct = {}
+        P = Permutations(self.n)
         for (p, coeff) in f.monomial_coefficients().iteritems():
-            p_ret = p.retract_okounkov_vershik(m)
-            if not p_ret in dct.keys():
+            p_ret = I(P(p).retract_okounkov_vershik(m))
+            if not p_ret in dct:
                 dct[p_ret] = coeff
             else:
                 dct[p_ret] += coeff
@@ -555,6 +872,17 @@ class SymmetricGroupAlgebra_n(CombinatorialFreeModule):
             1/6*[1, 2, 3] + 1/6*[1, 3, 2] + 1/6*[2, 1, 3] + 1/6*[2, 3, 1] + 1/6*[3, 1, 2] + 1/6*[3, 2, 1]
             sage: a[1]  # [2, 1]
             2/3*[1, 2, 3] - 1/3*[2, 3, 1] - 1/3*[3, 1, 2]
+
+        TESTS:
+
+        Check this works with other indexing sets::
+
+            sage: G = SymmetricGroup(3).algebra(QQ)
+            sage: a = G.cpis()
+            sage: a[0]
+            1/6*() + 1/6*(2,3) + 1/6*(1,2) + 1/6*(1,2,3) + 1/6*(1,3,2) + 1/6*(1,3)
+            sage: a[1]
+            2/3*() - 1/3*(1,2,3) - 1/3*(1,3,2)
         """
         return [self.cpi(p) for p in partition.Partitions_n(self.n)]
 
@@ -597,11 +925,13 @@ class SymmetricGroupAlgebra_n(CombinatorialFreeModule):
         big_coeff = character_table[p_index][0] / factorial(self.n)
 
         character_row = character_table[p_index]
-        P = self.basis().keys()
-        dct = { g : big_coeff * character_row[np.index(g.cycle_type())] for g in P }
+        P = Permutations(self.n)
+        dct = { self._indices(g): big_coeff * character_row[np.index(g.cycle_type())]
+                for g in P }
 
         return self._from_dict(dct)
 
+    @cached_method
     def algebra_generators(self):
         r"""
         Return generators of this group algebra (as algebra) as a
@@ -614,13 +944,13 @@ class SymmetricGroupAlgebra_n(CombinatorialFreeModule):
         EXAMPLES::
 
             sage: SymmetricGroupAlgebra(ZZ,5).algebra_generators()
-            [[2, 1, 3, 4, 5], [2, 3, 4, 5, 1]]
+            Family ([2, 1, 3, 4, 5], [2, 3, 4, 5, 1])
 
             sage: SymmetricGroupAlgebra(QQ,0).algebra_generators()
-            []
+            Family ()
 
             sage: SymmetricGroupAlgebra(QQ,1).algebra_generators()
-            []
+            Family ()
 
         TESTS:
 
@@ -628,30 +958,40 @@ class SymmetricGroupAlgebra_n(CombinatorialFreeModule):
 
             sage: S3 = SymmetricGroupAlgebra(QQ, 3)
             sage: S3.algebra_generators()
-            [[2, 1, 3], [2, 3, 1]]
+            Family ([2, 1, 3], [2, 3, 1])
             sage: C = CombinatorialFreeModule(ZZ, ZZ)
             sage: M = C.module_morphism(lambda x: S3.zero(), codomain=S3)
             sage: M.register_as_coercion()
         """
+        from sage.sets.family import Family
         if self.n <= 1:
-            return []
+            return Family([])
         a = range(1, self.n+1)
         a[0] = 2
         a[1] = 1
         b = range(2, self.n+2)
         b[self.n-1] = 1
-        return [self.monomial(self._basis_keys(a)), self.monomial(self._basis_keys(b))]
+        return Family([self.monomial(self._indices(a)), self.monomial(self._indices(b))])
 
     def _conjugacy_classes_representatives_underlying_group(self):
         r"""
         Return a complete list of representatives of conjugacy
         classes of the underlying symmetric group.
 
+        .. WARNING::
+
+            This currently is only implemented when ``self`` is built using
+            the index set ``Permutations(n)``.
+
         EXAMPLES::
 
             sage: SG=SymmetricGroupAlgebra(ZZ,3)
             sage: SG._conjugacy_classes_representatives_underlying_group()
             [[2, 3, 1], [2, 1, 3], [1, 2, 3]]
+
+            sage: SGg = SymmetricGroup(3).algebra(ZZ)
+            sage: SGg._conjugacy_classes_representatives_underlying_group() # not tested
+            [(1,2,3), (1,2), ()]
         """
         P = self.basis().keys()
         return [P.element_in_conjugacy_classes(nu) for nu in partition.Partitions(self.n)]
@@ -727,7 +1067,8 @@ class SymmetricGroupAlgebra_n(CombinatorialFreeModule):
             :meth:`semi_rsw_element`, :meth:`binary_unshuffle_sum`
         """
         P = self.basis().keys()
-        return self.sum_of_terms([(p, p.number_of_noninversions(k)) for p in P],
+        I = Permutations(self.n)
+        return self.sum_of_terms([(p, I(p).number_of_noninversions(k)) for p in P],
                                  distinct=True)
 
     def semi_rsw_element(self, k):
@@ -812,9 +1153,10 @@ class SymmetricGroupAlgebra_n(CombinatorialFreeModule):
             for x in xs:
                 res.remove(x)
             return res
-        P = Permutations()
-        return self.sum_of_monomials([P(complement(q) + list(q))
-                                      for q in Permutations_nk(n, n-k)])
+        P = Permutations(n)
+        I = self._indices
+        return self.sum_of_monomials([I(P(complement(q) + list(q)))
+                                      for q in itertools.permutations(range(1, n+1), n-k)])
 
     def binary_unshuffle_sum(self, k):
         r"""
@@ -903,9 +1245,9 @@ class SymmetricGroupAlgebra_n(CombinatorialFreeModule):
             for x in xs:
                 res.remove(x)
             return res
-        from sage.combinat.subset import Subsets
-        P = Permutations()
-        return self.sum_of_monomials([P(sorted(q) + complement(q)) for q in Subsets(n, k)])
+        P = Permutations(n)
+        return self.sum_of_monomials([self._indices(P(list(q) + complement(q)))
+                                      for q in itertools.combinations(range(1, n+1), k)])
 
     def jucys_murphy(self, k):
         r"""
@@ -962,7 +1304,7 @@ class SymmetricGroupAlgebra_n(CombinatorialFreeModule):
             p = range(1, self.n+1)
             p[i-1] = k
             p[k-1] = i
-            res += self.monomial(self._basis_keys(p))
+            res += self.monomial(self._indices(p))
         return res
 
 
@@ -1104,6 +1446,17 @@ class SymmetricGroupAlgebra_n(CombinatorialFreeModule):
             1/4*[1, 3, 2] - 1/4*[2, 3, 1] + 1/4*[3, 1, 2] - 1/4*[3, 2, 1],
             1/3*[1, 2, 3] - 1/6*[1, 3, 2] + 1/3*[2, 1, 3] - 1/6*[2, 3, 1] - 1/6*[3, 1, 2] - 1/6*[3, 2, 1],
             1/6*[1, 2, 3] - 1/6*[1, 3, 2] - 1/6*[2, 1, 3] + 1/6*[2, 3, 1] + 1/6*[3, 1, 2] - 1/6*[3, 2, 1]]
+
+        TESTS::
+
+            sage: QS3g = SymmetricGroup(3).algebra(QQ)
+            sage: QS3g.seminormal_basis()
+            [1/6*() + 1/6*(2,3) + 1/6*(1,2) + 1/6*(1,2,3) + 1/6*(1,3,2) + 1/6*(1,3),
+             1/3*() + 1/6*(2,3) - 1/3*(1,2) - 1/6*(1,2,3) - 1/6*(1,3,2) + 1/6*(1,3),
+             1/3*(2,3) + 1/3*(1,2,3) - 1/3*(1,3,2) - 1/3*(1,3),
+             1/4*(2,3) - 1/4*(1,2,3) + 1/4*(1,3,2) - 1/4*(1,3),
+             1/3*() - 1/6*(2,3) + 1/3*(1,2) - 1/6*(1,2,3) - 1/6*(1,3,2) - 1/6*(1,3),
+             1/6*() - 1/6*(2,3) - 1/6*(1,2) + 1/6*(1,2,3) + 1/6*(1,3,2) - 1/6*(1,3)]
 
         REFERENCES:
 
@@ -1324,10 +1677,11 @@ class SymmetricGroupAlgebra_n(CombinatorialFreeModule):
             raise ValueError("it and kt must be of the same shape")
 
         BR = self.base_ring()
+        I = self._indices
         z_elts = {}
         epik = epsilon_ik(it, kt, star=star)
         for m,c in epik._monomial_coefficients.iteritems():
-            z_elts[m] = BR(c)
+            z_elts[I(m)] = BR(c)
         z = self._from_dict(z_elts)
 
         if mult == 'l2r':
@@ -1381,14 +1735,14 @@ def epsilon_ik(itab, ktab, star=0):
     if kt == it:
         res = epsilon(itab)
     elif (it, kt) in epsilon_ik_cache:
-        res =  epsilon_ik_cache[(it,kt)]
+        res = epsilon_ik_cache[(it, kt)]
     else:
         eik = e_ik(it, kt, star)
         QSn = eik.parent()
         mul = QSn.right_action_product
-        epsilon_ik_cache[(it,kt)] = mul(mul(epsilon(it, star+1), eik),
-                                        epsilon(kt, star+1)) * (1/kappa(it.shape()))
-        res =  epsilon_ik_cache[(it,kt)]
+        epsilon_ik_cache[(it, kt)] = mul(mul(epsilon(it, star+1), eik),
+                                         epsilon(kt, star+1)) * (1/kappa(it.shape()))
+        res = epsilon_ik_cache[(it, kt)]
 
     return res
 
@@ -1422,11 +1776,11 @@ def epsilon(tab, star=0):
         res = epsilon_cache[t]
     else:
         if t.size() == 2:
-            epsilon_cache[t] = e(t)*(1 / kappa(t.shape()))
-            res =  epsilon_cache[t]
+            epsilon_cache[t] = e(t) * (1 / kappa(t.shape()))
+            res = epsilon_cache[t]
         elif t == Tableau([[1]]):
             epsilon_cache[t] = e(t)
-            res =  epsilon_cache[t]
+            res = epsilon_cache[t]
         else:
             et = e(t)
             QSn = et.parent()
@@ -1979,9 +2333,9 @@ class HeckeAlgebraSymmetricGroup_generic(CombinatorialAlgebra):
             Hecke algebra of the symmetric group of order 3 with q=1 on the T basis over Rational Field
         """
         self.n = n
-        self._basis_keys = Permutations(n)
+        self._indices = Permutations(n)
         self._name = "Hecke algebra of the symmetric group of order {}".format(n)
-        self._one = self._basis_keys(range(1,n+1))
+        self._one = self._indices(range(1,n+1))
 
         if q is None:
             q = PolynomialRing(R, 'q').gen()
@@ -2025,7 +2379,7 @@ class HeckeAlgebraSymmetricGroup_generic(CombinatorialAlgebra):
         if x == []:
             return self.one()
         if len(x) < self.n and x in Permutations():
-            return self.monomial(self._basis_keys( list(x) + range(len(x)+1, self.n+1) ))
+            return self.monomial(self._indices( list(x) + range(len(x)+1, self.n+1) ))
         raise TypeError
 
 class HeckeAlgebraSymmetricGroup_t(HeckeAlgebraSymmetricGroup_generic):
@@ -2072,7 +2426,7 @@ class HeckeAlgebraSymmetricGroup_t(HeckeAlgebraSymmetricGroup_generic):
         # -- Darij, 19 Nov 2013
 
         if perm[i-1] < perm[i]:
-            return self.monomial(self._basis_keys(perm_i))
+            return self.monomial(self._indices(perm_i))
         else:
             #Ti^2 = (q - q^(-1))*Ti - q1*q2
             q = self.q()
@@ -2150,7 +2504,7 @@ class HeckeAlgebraSymmetricGroup_t(HeckeAlgebraSymmetricGroup_generic):
             sage: HeckeAlgebraSymmetricGroupT(QQ,3).algebra_generators()
             [T[2, 1, 3], T[1, 3, 2]]
         """
-        return map(self.t, range(1, self.n))
+        return [self.t(_) for _ in range(1, self.n)]
 
     def jucys_murphy(self, k):
         """
@@ -2201,7 +2555,7 @@ class HeckeAlgebraSymmetricGroup_t(HeckeAlgebraSymmetricGroup_generic):
             raise ValueError("k (= %(k)d) must be between 1 and n (= %(n)d)" % {'k': k, 'n': self.n})
 
         q = self.q()
-        P = self._basis_keys
+        P = self._indices
         v = self.sum_of_terms( ( ( P(range(1, l) + [k] + range(l+1, k) + [l]),
                                    q ** l - q ** (l-1) )
                                  for l in range(1, k) ),

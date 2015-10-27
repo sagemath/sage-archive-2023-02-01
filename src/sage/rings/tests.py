@@ -1,5 +1,8 @@
 """
-TESTS:
+Tests for rings
+
+TESTS::
+
     sage: K.<x>=FractionField(QQ['x'])
     sage: V.<z> = K[]
     sage: x+z
@@ -21,10 +24,11 @@ def prime_finite_field():
     """
     Create a random prime finite field with cardinality at most 10^20.
 
-    OUTPUT:
-        a prime finite field
+    OUTPUT: a prime finite field
 
-    EXAMPLES:
+    EXAMPLES::
+
+        sage: import sage.rings.tests
         sage: sage.rings.tests.prime_finite_field()
         Finite Field of size 64748301524082521489
     """
@@ -35,10 +39,11 @@ def finite_field():
     """
     Create a random finite field with degree at most 20 and prime at most 10^6.
 
-    OUTPUT:
-        a finite field
+    OUTPUT: a finite field
 
-    EXAMPLES:
+    EXAMPLES::
+
+        sage: import sage.rings.tests
         sage: sage.rings.tests.finite_field()
         Finite Field in a of size 161123^4
     """
@@ -51,10 +56,11 @@ def small_finite_field():
     """
     Create a random finite field with cardinality at most 2^16.
 
-    OUTPUT:
-        a finite field
+    OUTPUT: a finite field
 
-    EXAMPLES:
+    EXAMPLES::
+
+        sage: import sage.rings.tests
         sage: sage.rings.tests.small_finite_field()
         Finite Field of size 30029
     """
@@ -68,7 +74,9 @@ def integer_mod_ring():
     """
     Return a random ring of integers modulo n with n at most 50000.
 
-    EXAMPLES:
+    EXAMPLES::
+
+        sage: import sage.rings.tests
         sage: sage.rings.tests.integer_mod_ring()
         Ring of integers modulo 30029
     """
@@ -80,7 +88,9 @@ def quadratic_number_field():
     """
     Return a quadratic extension of QQ.
 
-    EXAMPLES:
+    EXAMPLES::
+
+        sage: import sage.rings.tests
         sage: sage.rings.tests.quadratic_number_field()
         Number Field in a with defining polynomial x^2 - 61099
     """
@@ -94,7 +104,9 @@ def absolute_number_field(maxdeg=10):
     """
     Return an absolute extension of QQ of degree at most 10.
 
-    EXAMPLES:
+    EXAMPLES::
+
+        sage: import sage.rings.tests
         sage: sage.rings.tests.absolute_number_field()
         Number Field in a with defining polynomial x^5 + 82*x^4 - 46*x^3 + 39*x^2 - x - 41
     """
@@ -111,7 +123,9 @@ def relative_number_field(n=2, maxdeg=2):
     """
     Return a tower of at most n extensions each of degree at most maxdeg.
 
-    EXAMPLES:
+    EXAMPLES::
+
+        sage: import sage.rings.tests
         sage: sage.rings.tests.relative_number_field(3)
         Number Field in aaa with defining polynomial x^2 - 15*x + 17 over its base field
     """
@@ -140,17 +154,20 @@ def rings0():
     called creates a random ring of a certain representative type
     described by desc.
 
-    RINGS::
-       - ZZ
-       - QQ
-       - ZZ/nZZ
-       - GF(p)
-       - GF(q)
-       - quadratic number fields
-       - absolute number fields
-       - relative number fields (disabled in the automatic tests for now)
+    RINGS:
 
-    EXAMPLES:
+    - ZZ
+    - QQ
+    - ZZ/nZZ
+    - GF(p)
+    - GF(q)
+    - quadratic number fields
+    - absolute number fields
+    - relative number fields (disabled in the automatic tests for now)
+
+    EXAMPLES::
+
+        sage: import sage.rings.tests
         sage: type(sage.rings.tests.rings0())
         <type 'list'>
     """
@@ -171,24 +188,28 @@ def rings0():
 def rings1():
     """
     Return an iterator over random rings.
+
     Return a list of pairs (f, desc), where f is a function that
     outputs a random ring that takes a ring and possibly
     some other data as constructor.
 
-    RINGS::
-        - polynomial ring in one variable over a rings0() ring.
-        - polynomial ring over a rings1() ring.
-        - multivariate polynomials
+    RINGS:
 
-    EXAMPLES:
+    - polynomial ring in one variable over a rings0() ring.
+    - polynomial ring over a rings1() ring.
+    - multivariate polynomials
+
+    EXAMPLES::
+
+        sage: import sage.rings.tests
         sage: type(sage.rings.tests.rings0())
         <type 'list'>
     """
     v = rings0()
     X = random_rings(level=0)
     from sage.all import PolynomialRing, ZZ
-    v = [(lambda : PolynomialRing(X.next(), names='x'), 'univariate polynomial ring over level 0 ring'),
-         (lambda : PolynomialRing(X.next(), abs(ZZ.random_element(x=2,y=10)), names='x'),
+    v = [(lambda : PolynomialRing(next(X), names='x'), 'univariate polynomial ring over level 0 ring'),
+         (lambda : PolynomialRing(next(X), abs(ZZ.random_element(x=2,y=10)), names='x'),
                      'multivariate polynomial ring in between 2 and 10 variables over a level 0 ring')]
     return v
 
@@ -198,7 +219,9 @@ def random_rings(level=MAX_LEVEL):
     """
     Return an iterator over random rings up to the given "level" of complexity.
 
-    EXAMPLES:
+    EXAMPLES::
+
+        sage: import sage.rings.tests
         sage: type(sage.rings.tests.random_rings())
         <type 'generator'>
     """
@@ -218,14 +241,17 @@ def test_random_elements(level=MAX_LEVEL, trials=1):
         while True: test_random_elements(trials=100, print_seed=True)
 
     INPUT:
-        level -- (default: MAX_LEVEL); controls the types of rings to use
-        trials -- A positive integer (default 1); the number of trials
-                  to run.
-        seed -- the random seed to use; if not specified, uses a truly
-                random seed.
-        print_seed -- If True (default False), prints the random seed chosen.
 
-    EXAMPLES:
+    - level -- (default: MAX_LEVEL); controls the types of rings to use
+    - trials -- A positive integer (default 1); the number of trials
+      to run.
+    - seed -- the random seed to use; if not specified, uses a truly
+      random seed.
+    - print_seed -- If True (default False), prints the random seed chosen.
+
+    EXAMPLES::
+
+        sage: import sage.rings.tests
         sage: sage.rings.tests.test_random_elements(trials=2, seed=0)
         survived 0 tests (memory usage = ...)
         Rational Field
@@ -261,14 +287,17 @@ def test_random_arith(level=MAX_LEVEL, trials=1):
         while True: test_random_arith(trials=100, print_seed=True)
 
     INPUT:
-        level -- (default: MAX_LEVEL); controls the types of rings to use
-        trials -- A positive integer (default 1); the number of trials
-                  to run.
-        seed -- the random seed to use; if not specified, uses a truly
-                random seed.
-        print_seed -- If True (default False), prints the random seed chosen.
 
-    EXAMPLES:
+    - level -- (default: MAX_LEVEL); controls the types of rings to use
+    - trials -- A positive integer (default 1); the number of trials
+      to run.
+    - seed -- the random seed to use; if not specified, uses a truly
+      random seed.
+    - print_seed -- If True (default False), prints the random seed chosen.
+
+    EXAMPLES::
+
+        sage: import sage.rings.tests
         sage: sage.rings.tests.test_random_arith(trials=2, seed=0)
         survived 0 tests (memory usage = ...)
         Rational Field
@@ -305,18 +334,19 @@ def test_karatsuba_multiplication(base_ring, maxdeg1, maxdeg2,
 
     First check that random tests are reproducible::
 
+        sage: import sage.rings.tests
         sage: sage.rings.tests.test_karatsuba_multiplication(ZZ, 6, 5, verbose=True, seed=42)
         test_karatsuba_multiplication: ring=Univariate Polynomial Ring in x over Integer Ring, threshold=2
-          (-x^5 - x^4 - 3*x^3 + 4*x^2 + 4*x + 1)*(-2*x^4 - 20*x^3 + 3*x^2 + 2*x)
-          (x^5 + 16*x^4 + 4*x + 1)*(x^2 - 41)
-          (8*x^2 - x + 1)*(2)
-          (3*x + 1)*(-8*x^2 - x - 4)
-          (-x^6 - x^5 - x^2 - 1)*(2*x^2 + x + 1)
-          (-x^2 + 3*x - 1)*(-x^4 + x^3 + x^2 + x + 1)
-          (x^3 + 4*x^2 + 76*x - 1)*(-x^2 + 6*x)
-          (-5)*(4*x + 1)
-          (5*x - 1)*(-2)
-          (4*x^6 + x^5 + 21*x^4 + x^3 - x + 3)*(14*x^4 - 1)
+          (2*x^6 - x^5 - x^4 - 3*x^3 + 4*x^2 + 4*x + 1)*(4*x^4 + x^3 - 2*x^2 - 20*x + 3)
+          (16*x^2)*(x^2 - 41*x + 1)
+          (-x + 1)*(x^2 + 2*x + 8)
+          (-x^6 - x^4 - 8*x^3 - x^2 - 4*x + 3)*(-x^3 - x^2)
+          (2*x^2 + x + 1)*(x^4 - x^3 + 3*x^2 - x)
+          (-x^3 + x^2 + x + 1)*(4*x^2 + 76*x - 1)
+          (6*x + 1)*(-5*x - 1)
+          (-x^3 + 4*x^2 + x)*(-x^5 + 3*x^4 - 2*x + 5)
+          (-x^5 + 4*x^4 + x^3 + 21*x^2 + x)*(14*x^3)
+          (2*x + 1)*(12*x^3 - 12)
 
     Test Karatsuba multiplication of polynomials of small degree over some common rings::
 

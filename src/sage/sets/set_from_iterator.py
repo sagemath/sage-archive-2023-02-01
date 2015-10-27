@@ -128,15 +128,20 @@ class EnumeratedSetFromIterator(Parent):
         sage: E = EnumeratedSetFromIterator(count, args=(0,), category=InfiniteEnumeratedSets(), cache=True)
         sage: e1 = iter(E)
         sage: e2 = iter(E)
-        sage: e1.next(), e1.next()
+        sage: next(e1), next(e1)
         (0, 1)
-        sage: e2.next(), e2.next(), e2.next()
+        sage: next(e2), next(e2), next(e2)
         (0, 1, 2)
-        sage: e1.next(), e1.next()
+        sage: next(e1), next(e1)
         (2, 3)
-        sage: e2.next()
+        sage: next(e2)
         3
+
+    The following warning is due to ``E`` being a facade parent. For more,
+    see the discussion on :trac:`16239`::
+
         sage: TestSuite(E).run()
+        doctest:...: UserWarning: Testing equality of infinite sets which will not end in case of equality
 
         sage: E = EnumeratedSetFromIterator(xsrange, args=(10,), category=FiniteEnumeratedSets(), cache=True)
         sage: TestSuite(E).run()
@@ -224,7 +229,7 @@ class EnumeratedSetFromIterator(Parent):
         i = iter(self)
         for _ in xrange(6):
             try:
-                l.append(i.next())
+                l.append(next(i))
             except StopIteration:
                 break
         if len(l) < 6:
@@ -294,15 +299,15 @@ class EnumeratedSetFromIterator(Parent):
             i2 = iter(other)
             while True:
                 try:
-                    x = i1.next()
+                    x = next(i1)
                 except StopIteration:
                     try:
-                        i2.next()
+                        next(i2)
                         return False
                     except StopIteration:
                         return True
                 try:
-                    y = i2.next()
+                    y = next(i2)
                 except StopIteration:
                     return False
                 if x != y:
@@ -341,10 +346,10 @@ class EnumeratedSetFromIterator(Parent):
 
             sage: from sage.sets.set_from_iterator import EnumeratedSetFromIterator
             sage: E = EnumeratedSetFromIterator(graphs, args=(8,))
-            sage: g1 = iter(E).next(); g1
+            sage: g1 = next(iter(E)); g1
             Graph on 8 vertices
             sage: E = EnumeratedSetFromIterator(graphs, args=(8,), cache=True)
-            sage: g2 = iter(E).next(); g2
+            sage: g2 = next(iter(E)); g2
             Graph on 8 vertices
             sage: g1 == g2
             True
@@ -438,13 +443,12 @@ class Decorator:
             sage: print sage_getdoc(d)   # indirect doctest
                Test whether "self" is prime.
             ...
-               IMPLEMENTATION: Calls the PARI "isprime" function.
-            <BLANKLINE>
+               Calls the PARI "isprime" function.
         """
         from sage.misc.sageinspect import sage_getsourcelines, sage_getfile, _extract_embedded_position
         f = self.f
         doc = f.__doc__ or ''
-        if _extract_embedded_position(doc.splitlines()[0]) is None:
+        if _extract_embedded_position(doc) is None:
             try:
                 sourcelines = sage_getsourcelines(f)
                 from sage.env import SAGE_LIB, SAGE_SRC
@@ -494,7 +498,7 @@ class Decorator:
             sage: S = sage_getsourcelines(d)   # indirect doctest
             sage: S[0][2]
             '        Return the number of elements of this group.\n'
-            sage: S[0][17]
+            sage: S[0][18]
             '            return Integer(1)\n'
         """
         from sage.misc.sageinspect import sage_getsourcelines
@@ -790,23 +794,22 @@ class EnumeratedSetFromIterator_method_caller(Decorator):
         TESTS::
 
             sage: from sage.sets.set_from_iterator import set_from_method
-            sage: from sage.structure.misc import getattr_from_other_class
             sage: class A:
-            ...      stop = 10000
-            ...      @set_from_method
-            ...      def f(self,start):
-            ...          return xsrange(start,self.stop)
+            ....:    stop = 10000
+            ....:    @set_from_method
+            ....:    def f(self,start):
+            ....:        return xsrange(start,self.stop)
             sage: a = A()
-            sage: getattr_from_other_class(a, A, 'f')(4)
+            sage: A.f(a,4)
             {4, 5, 6, 7, 8, ...}
 
             sage: class B:
-            ...      stop = 10000
-            ...      @set_from_method(category=FiniteEnumeratedSets())
-            ...      def f(self,start):
-            ...          return xsrange(start,self.stop)
+            ....:    stop = 10000
+            ....:    @set_from_method(category=FiniteEnumeratedSets())
+            ....:    def f(self,start):
+            ....:        return xsrange(start,self.stop)
             sage: b = B()
-            sage: getattr_from_other_class(b, B, 'f')(2)
+            sage: B.f(b,2)
             {2, 3, 4, 5, 6, ...}
         """
         return EnumeratedSetFromIterator_method_caller(

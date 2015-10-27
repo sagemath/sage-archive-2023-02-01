@@ -14,7 +14,7 @@ It also computes the exit status in the ``error_status`` attribute of
 - 32: TAB character found
 - 64: Internal error in the doctesting framework
 - 128: Testing interrupted, not all tests run
-
+- 256: Doctest contains explicit source line number
 
 AUTHORS:
 
@@ -375,6 +375,10 @@ class DocTestReporter(SageObject):
                     log("    Error: TAB character found at line%s"%(tabs))
                     postscript['lines'].append(cmd + "  # Tab character found")
                     self.error_status |= 32
+                elif result_dict.err == 'line_number':
+                    log("    Error: Source line number found")
+                    postscript['lines'].append(cmd + "  # Source line number found")
+                    self.error_status |= 256
                 elif result_dict.err is not None:
                     # This case should not occur
                     if result_dict.err is True:

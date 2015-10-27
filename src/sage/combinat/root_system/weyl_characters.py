@@ -925,7 +925,7 @@ class WeylCharacterRing(CombinatorialFreeModule):
             sage: v = A2._space([3,1,0])
             sage: d = dict([(x,1) for x in v.orbit()])
             sage: A2._char_from_weights(d)
-            {(2, 2, 0): -1, (3, 1, 0): 1, (2, 1, 1): -1}
+            {(2, 1, 1): -1, (2, 2, 0): -1, (3, 1, 0): 1}
         """
         hdict = {}
         ddict = mdict.copy()
@@ -1104,7 +1104,9 @@ class WeylCharacterRing(CombinatorialFreeModule):
 
         def __pow__(self, n):
             """
-            We override the method in :module:`sage.monoids.monoids` since
+            Return the nth power of self.
+
+            We override the method in :mod:`sage.monoids.monoids` since
             using the Brauer-Klimyk algorithm, it is more efficient to
             compute ``a*(a*(a*a))`` than ``(a*a)*(a*a)``.
 

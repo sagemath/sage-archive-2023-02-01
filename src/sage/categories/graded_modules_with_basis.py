@@ -65,9 +65,9 @@ class GradedModulesWithBasis(GradedModulesCategory):
             """
             from sage.sets.family import Family
             if d is None:
-                return Family(self._basis_keys, self.monomial)
+                return Family(self._indices, self.monomial)
             else:
-                return Family(self._basis_keys.subset(size=d), self.monomial)
+                return Family(self._indices.subset(size=d), self.monomial)
 
     class ElementMethods:
 

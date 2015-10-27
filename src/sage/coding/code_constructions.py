@@ -149,11 +149,11 @@ from sage.matrix.matrix_space import MatrixSpace
 from sage.matrix.constructor import matrix
 from sage.rings.finite_rings.constructor import FiniteField as GF
 from sage.groups.perm_gps.permgroup_named import SymmetricGroup
-from sage.misc.misc import prod
+from sage.misc.all import prod
 from linear_code import LinearCodeFromVectorSpace, LinearCode
 from sage.modules.free_module import span
 from sage.schemes.projective.projective_space import ProjectiveSpace
-from sage.structure.sequence import Sequence
+from sage.structure.sequence import Sequence, Sequence_generic
 from sage.rings.arith import GCD,LCM,divisors,quadratic_residues
 from sage.rings.finite_rings.integer_mod_ring import IntegerModRing
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
@@ -463,7 +463,10 @@ def permutation_action(g,v):
     if isinstance(v, list):
         v_type_list = True
         v = Sequence(v)
-    V = v.parent()
+    if isinstance(v, Sequence_generic):
+        V = v.universe()
+    else:
+        V = v.parent()
     n = len(list(v))
     gv = []
     for i in range(n):
@@ -646,7 +649,7 @@ def CyclicCodeFromGeneratingPolynomial(n,g,ignore=True):
         sage: g = x^3+x+1
         sage: C = codes.CyclicCodeFromGeneratingPolynomial(7,g); C
         Linear code of length 7, dimension 4 over Finite Field of size 2
-        sage: C.gen_mat()
+        sage: C.generator_matrix()
         [1 1 0 1 0 0 0]
         [0 1 1 0 1 0 0]
         [0 0 1 1 0 1 0]
@@ -654,7 +657,7 @@ def CyclicCodeFromGeneratingPolynomial(n,g,ignore=True):
         sage: g = x+1
         sage: C = codes.CyclicCodeFromGeneratingPolynomial(4,g); C
         Linear code of length 4, dimension 3 over Finite Field of size 2
-        sage: C.gen_mat()
+        sage: C.generator_matrix()
         [1 1 0 0]
         [0 1 1 0]
         [0 0 1 1]
@@ -720,7 +723,7 @@ def CyclicCodeFromCheckPolynomial(n,h,ignore=True):
         Linear code of length 4, dimension 1 over Finite Field of size 3
         sage: C = codes.CyclicCodeFromCheckPolynomial(4,x^3 + x^2 + x + 1); C
         Linear code of length 4, dimension 3 over Finite Field of size 3
-        sage: C.gen_mat()
+        sage: C.generator_matrix()
         [2 1 0 0]
         [0 2 1 0]
         [0 0 2 1]
@@ -776,8 +779,8 @@ def DuadicCodeEvenPair(F,S1,S2):
     g2 = prod([x-zeta**i for i in S2+[0]])
     P2 = PolynomialRing(F,"x")
     x = P2.gen()
-    gg1 = P2([lift2smallest_field(c)[0] for c in g1.coeffs()])
-    gg2 = P2([lift2smallest_field(c)[0] for c in g2.coeffs()])
+    gg1 = P2([lift2smallest_field(c)[0] for c in g1.coefficients(sparse=False)])
+    gg2 = P2([lift2smallest_field(c)[0] for c in g2.coefficients(sparse=False)])
     C1 = CyclicCodeFromGeneratingPolynomial(n,gg1)
     C2 = CyclicCodeFromGeneratingPolynomial(n,gg2)
     return C1,C2
@@ -823,8 +826,8 @@ def DuadicCodeOddPair(F,S1,S2):
     j = sum([x**i/n for i in range(n)])
     P2 = PolynomialRing(F,"x")
     x = P2.gen()
-    coeffs1 = [lift2smallest_field(c)[0] for c in (g1+j).coeffs()]
-    coeffs2 = [lift2smallest_field(c)[0] for c in (g2+j).coeffs()]
+    coeffs1 = [lift2smallest_field(c)[0] for c in (g1+j).coefficients(sparse=False)]
+    coeffs2 = [lift2smallest_field(c)[0] for c in (g2+j).coefficients(sparse=False)]
     gg1 = P2(coeffs1)
     gg2 = P2(coeffs2)
     C1 = CyclicCodeFromGeneratingPolynomial(n,gg1)
@@ -980,7 +983,7 @@ def HammingCode(r,F):
     ``HammingCode`` is still available in the global namespace::
 
         sage: HammingCode(3,GF(2))
-        doctest:1: DeprecationWarning: This method soon will not be available in that way anymore. To use it, you can now call it by typing codes.HammingCode
+        doctest:...: DeprecationWarning: This method soon will not be available in that way anymore. To use it, you can now call it by typing codes.HammingCode
         See http://trac.sagemath.org/15445 for details.
         Linear code of length 7, dimension 4 over Finite Field of size 2
 
@@ -994,7 +997,7 @@ def HammingCode(r,F):
     H = MS(PFn).transpose()
     Cd = LinearCode(H)
     # Hamming code always has distance 3, so we provide the distance.
-    return LinearCode(Cd.dual_code().gen_mat(), d=3)
+    return LinearCode(Cd.dual_code().generator_matrix(), d=3)
 
 
 def LinearCodeFromCheckMatrix(H):
@@ -1019,20 +1022,20 @@ def LinearCodeFromCheckMatrix(H):
     EXAMPLES::
 
         sage: C = codes.HammingCode(3,GF(2))
-        sage: H = C.check_mat(); H
+        sage: H = C.parity_check_matrix(); H
         [1 0 1 0 1 0 1]
         [0 1 1 0 0 1 1]
         [0 0 0 1 1 1 1]
         sage: codes.LinearCodeFromCheckMatrix(H) == C
         True
         sage: C = codes.HammingCode(2,GF(3))
-        sage: H = C.check_mat(); H
+        sage: H = C.parity_check_matrix(); H
         [1 0 1 1]
         [0 1 1 2]
         sage: codes.LinearCodeFromCheckMatrix(H) == C
         True
         sage: C = codes.RandomLinearCode(10,5,GF(4,"a"))
-        sage: H = C.check_mat()
+        sage: H = C.parity_check_matrix()
         sage: codes.LinearCodeFromCheckMatrix(H) == C
         True
     """
@@ -1296,7 +1299,7 @@ def ReedSolomonCode(n,k,F,pts = None):
     ``ReedSolomonCode`` is still available in the global namespace::
 
         sage: ReedSolomonCode(6,4,GF(7))
-        doctest:1: DeprecationWarning: This method soon will not be available in that way anymore. To use it, you can now call it by typing codes.ReedSolomonCode
+        doctest:...: DeprecationWarning: This method soon will not be available in that way anymore. To use it, you can now call it by typing codes.ReedSolomonCode
         See http://trac.sagemath.org/15445 for details.
         Linear code of length 6, dimension 4 over Finite Field of size 7
 

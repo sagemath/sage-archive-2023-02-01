@@ -99,23 +99,19 @@ Authors
 #*****************************************************************************
 #       Copyright (C) 2007 William Stein and John Voight
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
-#
-#    This code is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-#    General Public License for more details.
-#
-#  The full text of the GPL is available at:
-#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
 include 'sage/ext/stdsage.pxi'
-include 'sage/libs/pari/decl.pxi'
 
-import math, sys, bisect
+import math, sys
 
+from sage.libs.gmp.mpz cimport *
+from sage.libs.pari.types cimport *
 from sage.libs.pari.pari_instance cimport PariInstance
 from sage.libs.pari.gen cimport gen as pari_gen
 
@@ -132,12 +128,6 @@ from sage.misc.misc import cputime
 from sage.rings.number_field.totallyreal_data import tr_data, int_has_small_square_divisor
 from sage.rings.number_field.totallyreal_data cimport tr_data
 
-#ZZx = PolynomialRing(IntegerRing(), 'x')
-
-cdef extern from "math.h":
-    cdef long lrint(double x)
-    cdef double floor(double x)
-    cdef double ceil(double x)
 
 cpdef double odlyzko_bound_totallyreal(int n):
     r"""
@@ -277,7 +267,7 @@ def enumerate_totallyreal_fields_prim(n, B, a = [], verbose=0, return_seqs=False
     cdef int counts[4]
     cdef int i, n_int, j, skip_jp
     cdef bint found, use_t2, phc_flag, verb_int, temp_bint
-    cdef Py_ssize_t k0, ind, lenS
+    cdef Py_ssize_t k0, lenS
     cdef tr_data T
     cdef Integer dB
     cdef double db_odlyzko
@@ -292,7 +282,7 @@ def enumerate_totallyreal_fields_prim(n, B, a = [], verbose=0, return_seqs=False
 
     # Initialize
     n_int = int(n)
-    S = []
+    S = set()        # set of pairs (d, f)
     lenS = 0
 
     # This is just to quiet valgrind down
@@ -333,7 +323,7 @@ def enumerate_totallyreal_fields_prim(n, B, a = [], verbose=0, return_seqs=False
 
     if t_2:
         k0 = len(a)
-        if PY_TYPE_CHECK(t_2, Integer):
+        if isinstance(t_2, Integer):
             t2val = pari(t_2)
         else:
             t2val = pari(a[k0-2]**2-2*a[k0-3])
@@ -389,7 +379,7 @@ def enumerate_totallyreal_fields_prim(n, B, a = [], verbose=0, return_seqs=False
 
         d_poly = nf.poldisc()
         counts[0] += 1
-        if d_poly > 0 and nf.polsturm_full() == n:
+        if d_poly > 0 and nf.polsturm() == n:
             da = int_has_small_square_divisor(Integer(d_poly))
             if d_poly > dB or d_poly <= B*da:
                 counts[1] += 1
@@ -405,21 +395,13 @@ def enumerate_totallyreal_fields_prim(n, B, a = [], verbose=0, return_seqs=False
                         counts[3] += 1
                         ng = <pari_gen>((<pari_gen>(pari([nf,zk]))).polredabs())
 
-                        dng = [d, ng]
+                        dng = (d, ng)
 
                         if skip_jp:
                             # Check if K is contained in the list.
-                            found = 0
-                            ind = bisect.bisect_left(S, dng)
-                            while ind < lenS:
-                                if S[ind][0] != d:
-                                    break
-                                if S[ind][1] == ng:
-                                    if verb_int:
-                                        print "but is not new"
-                                    found = 1
-                                    break
-                                ind += 1
+                            found = dng in S
+                            if found and verb_int:
+                                print "but is not new"
 
                             ngt2 = <pari_gen>(ng[n_int-1]**2-2*ng[n_int-2])
                             if not found:
@@ -427,7 +409,7 @@ def enumerate_totallyreal_fields_prim(n, B, a = [], verbose=0, return_seqs=False
                                 if ((not use_t2) or temp_bint):
                                     if verb_int:
                                         print "and is new!"
-                                    S.insert(ind, dng)
+                                    S.add(dng)
                                     lenS += 1
                         else:
                             if ((not use_t2) or ngt2 >= t2val):
@@ -465,18 +447,22 @@ def enumerate_totallyreal_fields_prim(n, B, a = [], verbose=0, return_seqs=False
         sage_free(f_out)
         return
 
+    # Convert S to a sorted list of pairs [d, f], taking care to use
+    # cmp() and not the comparison operators on PARI polynomials.
+    S = [list(s) for s in S]
+    S.sort(cmp=lambda x, y: cmp(x[0], y[0]) or cmp(x[1], y[1]))
 
     # In the application of Smyth's theorem above (and easy
     # irreducibility test), we exclude finitely many possibilities
     # which we must now throw back in.
     if n_int == 2 and B >= 5 and ((not use_t2) or t2val <= 5):
-        S = [[5,pari('x^2-x-1')]] + S
+        S = [[5, pari('x^2-x-1')]] + S
         lenS += 1
         if B >= 8 and B < 32:
-            S.insert(1, [8,  pari('x^2-2')])
+            S.insert(1, [8, pari('x^2-2')])
             lenS += 1
     elif n_int == 3 and B >= 49 and ((not use_t2) or 5 >= t2val):
-        S = [[49,pari('x^3-x^2-2*x+1')]] + S
+        S = [[49, pari('x^3-x^2-2*x+1')]] + S
         lenS += 1
     # The polynomials with n = 4 define imprimitive number fields.
 

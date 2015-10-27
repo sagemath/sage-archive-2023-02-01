@@ -151,7 +151,8 @@ class Coalgebras(Category_over_base_ring):
                 sage: Coalgebras(QQ).TensorProducts().extra_super_categories()
                 [Category of coalgebras over Rational Field]
                 sage: Coalgebras(QQ).TensorProducts().super_categories()
-                [Category of coalgebras over Rational Field]
+                [Category of tensor products of vector spaces over Rational Field,
+                 Category of coalgebras over Rational Field]
 
             Meaning: a tensor product of coalgebras is a coalgebra
             """
@@ -273,7 +274,5 @@ class Coalgebras(Category_over_base_ring):
                     sage: R[1].coproduct()
                     R[] # R[1] + R[1] # R[]
                 """
-                from sage.categories.tensor import tensor
                 R = self.realization_of().a_realization()
-                return self.tensor_square().sum(coeff * tensor([self(R[I]), self(R[J])])
-                                                for ((I, J), coeff) in R(x).coproduct())
+                return self.tensor_square()(R(x).coproduct())

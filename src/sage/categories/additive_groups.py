@@ -11,7 +11,7 @@ Additive groups
 from sage.misc.lazy_import import LazyImport
 from sage.categories.category_with_axiom import CategoryWithAxiom_singleton
 from sage.categories.additive_monoids import AdditiveMonoids
-from sage.structure.sage_object import have_same_parent
+from sage.structure.element import have_same_parent
 
 class AdditiveGroups(CategoryWithAxiom_singleton):
     r"""
@@ -41,7 +41,7 @@ class AdditiveGroups(CategoryWithAxiom_singleton):
          Category of objects]
 
         sage: AdditiveGroups().axioms()
-        frozenset(['AdditiveAssociative', 'AdditiveUnital', 'AdditiveInverse'])
+        frozenset({'AdditiveAssociative', 'AdditiveInverse', 'AdditiveUnital'})
         sage: AdditiveGroups() is AdditiveMonoids().AdditiveInverse()
         True
 

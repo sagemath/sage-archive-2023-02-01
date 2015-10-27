@@ -1,5 +1,5 @@
 r"""
-Symbolic functions
+Factory for symbolic functions
 """
 
 ###############################################################################
@@ -124,7 +124,7 @@ def unpickle_function(name, nargs, latex_name, conversions, evalf_params_first,
         sage: nf(2).conjugate()
         1
     """
-    funcs = map(unpickle_wrapper, pickled_funcs)
+    funcs = [unpickle_wrapper(_) for _ in pickled_funcs]
     args = [name, nargs, latex_name, conversions, evalf_params_first] + funcs
     return function_factory(*args)
 
@@ -217,9 +217,9 @@ def function(s, *args, **kwds):
         (r^2*D[0, 0](psi)(r) + 2*r*D[0](psi)(r))/r^2
         sage: g.expand()
         2*D[0](psi)(r)/r + D[0, 0](psi)(r)
-        sage: g.coeff(psi.derivative(r,2))
+        sage: g.coefficient(psi.derivative(r,2))
         1
-        sage: g.coeff(psi.derivative(r,1))
+        sage: g.coefficient(psi.derivative(r,1))
         2/r
 
     Defining custom methods for automatic or numeric evaluation, derivation,
@@ -298,6 +298,20 @@ def function(s, *args, **kwds):
         args: (x, x)
         kwds: {'diff_param': 1}
         2*x
+
+    TESTS:
+
+    Make sure that :trac:`15860` is fixed and whitespaces are removed::
+
+        sage: function('A, B')
+        (A, B)
+        sage: B
+        B
+        sage: C, D, E = function(' C  D E')
+        sage: C(D(x))
+        C(D(x))
+        sage: E
+        E
     """
     if not isinstance(s, (str, unicode)):
         raise TypeError("expect string as first argument")
@@ -309,6 +323,7 @@ def function(s, *args, **kwds):
         names = s.split(' ')
     else:
         names = [s]
+    names = [sn.strip() for sn in names if sn.strip()]
 
     funcs = [function_factory(name, **kwds) for name in names]
 

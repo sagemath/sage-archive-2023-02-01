@@ -60,9 +60,6 @@ cdef extern from "flint/padic.h":
     void _padic_reduce(padic_t rop, padic_ctx_t ctx)
     void padic_reduce(padic_t rop, padic_ctx_t ctx)
 
-    # Randomisation ************************************************************ void padic_randtest(padic_t rop, flint_rand_t state, padic_ctx_t ctx)
-    void padic_randtest_not_zero(padic_t rop, flint_rand_t state, padic_ctx_t ctx)
-
     # Assignments and conversions **********************************************
     void _padic_set(padic_t rop, padic_t op)
     void padic_set(padic_t rop, padic_t op, padic_ctx_t ctx)

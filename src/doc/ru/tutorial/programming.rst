@@ -159,7 +159,7 @@ C и обработан компилятором C.
 
 ::
 
-    #!/usr/bin/env sage -python
+    #!/usr/bin/env sage
 
     import sys
     from sage.all import *
@@ -466,16 +466,18 @@ http://docs.python.org/lib/typesmapping.html) произвольным объе�
 ::
 
     sage: X = set([1,19,'a']);   Y = set([1,1,1, 2/3])
-    sage: X
-    set(['a', 1, 19])
+    sage: X   # random sort order
+    {1, 19, 'a'}
+    sage: X == set(['a', 1, 1, 19])
+    True
     sage: Y
-    set([1, 2/3])
+    {2/3, 1}
     sage: 'a' in X
     True
     sage: 'a' in Y
     False
     sage: X.intersection(Y)
-    set([1])
+    {1}
 
 В Sage также имеется свой тип данных множество, который (в некоторых случаях)
 осуществлен с использованием встроенного типа множество Python, но включает в
@@ -485,8 +487,10 @@ http://docs.python.org/lib/typesmapping.html) произвольным объе�
 ::
 
     sage: X = Set([1,19,'a']);   Y = Set([1,1,1, 2/3])
-    sage: X
+    sage: X   # random sort order
     {'a', 1, 19}
+    sage: X == Set(['a', 1, 1, 19])
+    True
     sage: Y
     {1, 2/3}
     sage: X.intersection(Y)
@@ -507,11 +511,11 @@ http://docs.python.org/lib/typesmapping.html) произвольным объе�
 ::
 
     sage: v = (n^2 for n in xrange(10000000))
-    sage: v.next()
+    sage: next(v)
     0
-    sage: v.next()
+    sage: next(v)
     1
-    sage: v.next()
+    sage: next(v)
     4
 
 Следующий пример - создание итераторов из простых чисел вида :math:`4p+1` с
@@ -522,11 +526,11 @@ http://docs.python.org/lib/typesmapping.html) произвольным объе�
     sage: w = (4*p + 1 for p in Primes() if is_prime(4*p+1))
     sage: w         # random output на следующей строке 0xb0853d6c может быть другим шестнадцатиричным числом
     <generator object at 0xb0853d6c>
-    sage: w.next()
+    sage: next(w)
     13
-    sage: w.next()
+    sage: next(w)
     29
-    sage: w.next()
+    sage: next(w)
     53
 
 Определенные кольца, как и конечные поля и целые числа, имеют итераторы:
@@ -536,11 +540,11 @@ http://docs.python.org/lib/typesmapping.html) произвольным объе�
     sage: [x for x in GF(7)]
     [0, 1, 2, 3, 4, 5, 6]
     sage: W = ((x,y) for x in ZZ for y in ZZ)
-    sage: W.next()
+    sage: next(W)
     (0, 0)
-    sage: W.next()
+    sage: next(W)
     (0, 1)
-    sage: W.next()
+    sage: next(W)
     (0, -1)
 
 Циклы, функции, управляющие конструкции и сравнения
@@ -583,8 +587,8 @@ http://docs.python.org/lib/typesmapping.html) произвольным объе�
 ::
 
     sage: for i in range(15):
-    ...       if gcd(i,15) == 1:
-    ...           print(i)
+    ....:     if gcd(i,15) == 1:
+    ....:         print(i)
     1
     2
     4
@@ -600,11 +604,11 @@ http://docs.python.org/lib/typesmapping.html) произвольным объе�
 ::
 
     sage: def legendre(a,p):
-    ...       is_sqr_modp=-1
-    ...       for i in range(p):
-    ...           if a % p == i^2 % p:
-    ...               is_sqr_modp=1
-    ...       return is_sqr_modp
+    ....:     is_sqr_modp=-1
+    ....:     for i in range(p):
+    ....:         if a % p == i^2 % p:
+    ....:             is_sqr_modp=1
+    ....:     return is_sqr_modp
 
     sage: legendre(2,7)
     1

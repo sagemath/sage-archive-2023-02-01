@@ -26,6 +26,9 @@ Methods
 #                  http://www.gnu.org/licenses/
 ##############################################################################
 
+include "sage/ext/stdsage.pxi"
+include "sage/ext/interrupt.pxi"
+
 from sage.numerical.mip import MIPSolverException
 
 cdef class GurobiBackend(GenericBackend):
@@ -51,7 +54,7 @@ cdef class GurobiBackend(GenericBackend):
         # Initializing the model
         error = GRBnewmodel(self.env_master, &self.model, NULL, 0, NULL, NULL, NULL, NULL, NULL)
 
-        self.env = GRBgetenv (self.model)
+        self.env = GRBgetenv(self.model)
 
         if error:
             raise RuntimeError("Could not initialize Gurobi model")
@@ -377,7 +380,8 @@ cdef class GurobiBackend(GenericBackend):
         Constants in the objective function are respected::
 
             sage: p = MixedIntegerLinearProgram(solver='Gurobi')# optional - Gurobi
-            sage: x,y = p[0], p[1]                              # optional - Gurobi
+            sage: v = p.new_variable(nonnegative=True)          # optional - Gurobi
+            sage: x,y = v[0], v[1]                              # optional - Gurobi
             sage: p.add_constraint(2*x + 3*y, max = 6)          # optional - Gurobi
             sage: p.add_constraint(3*x + 2*y, max = 6)          # optional - Gurobi
             sage: p.set_objective(x + y + 7)                    # optional - Gurobi
@@ -432,7 +436,8 @@ cdef class GurobiBackend(GenericBackend):
         EXAMPLE::
 
             sage: p = MixedIntegerLinearProgram(solver='Gurobi')# optional - Gurobi
-            sage: x,y = p[0], p[1]                             # optional - Gurobi
+            sage: v = p.new_variable(nonnegative=True)         # optional - Gurobi
+            sage: x,y = v[0], v[1]                             # optional - Gurobi
             sage: p.add_constraint(2*x + 3*y, max = 6)         # optional - Gurobi
             sage: p.add_constraint(3*x + 2*y, max = 6)         # optional - Gurobi
             sage: p.set_objective(x + y + 7)                   # optional - Gurobi
@@ -648,8 +653,8 @@ cdef class GurobiBackend(GenericBackend):
             sage: p.col_bounds(0)                                                   # optional - Gurobi
             (0.0, 5.0)
         """
-
-        cdef double lb[1], ub[1]
+        cdef double lb[1]
+        cdef double ub[1]
 
         error = GRBgetdblattrelement(self.model, "LB", index, <double *> lb)
         check(self.env, error)
@@ -756,7 +761,10 @@ cdef class GurobiBackend(GenericBackend):
 
         cdef double value[1]
         check(self.env,GRBgetdblattrelement(self.model, "X", variable, value))
-        return round(value[0]) if self.is_variable_binary(variable) else value[0]
+        if self.is_variable_continuous(variable):
+            return value[0]
+        else:
+            return round(value[0])
 
     cpdef int ncols(self):
         """
@@ -1109,6 +1117,8 @@ cdef class GurobiBackend(GenericBackend):
 
         if name == "timelimit":
             name = "TimeLimit"
+        elif name.lower() == "logfile":
+            name = "LogFile"
 
         try:
             t = parameters_type[name]
@@ -1143,12 +1153,12 @@ cdef class GurobiBackend(GenericBackend):
 
         EXAMPLE::
 
-            sage: from sage.numerical.backends.generic_backend import get_solver    # optional - GUROBI
-            sage: p = MixedIntegerLinearProgram(solver = "GUROBI")                  # optional - GUROBI
-            sage: b = p.new_variable()                                              # optional - GUROBI
-            sage: p.add_constraint(b[1] + b[2] <= 6)                                # optional - GUROBI
-            sage: p.set_objective(b[1] + b[2])                                      # optional - GUROBI
-            sage: copy(p).solve()                                                   # optional - GUROBI
+            sage: from sage.numerical.backends.generic_backend import get_solver    # optional - Gurobi
+            sage: p = MixedIntegerLinearProgram(solver = "GUROBI")                  # optional - Gurobi
+            sage: b = p.new_variable(nonnegative=True)                              # optional - Gurobi
+            sage: p.add_constraint(b[1] + b[2] <= 6)                                # optional - Gurobi
+            sage: p.set_objective(b[1] + b[2])                                      # optional - Gurobi
+            sage: copy(p).solve()                                                   # optional - Gurobi
             6.0
         """
         cdef GurobiBackend p = GurobiBackend(maximization = self.is_maximization())
@@ -1160,9 +1170,8 @@ cdef class GurobiBackend(GenericBackend):
         """
         Destructor
         """
-        GRBfreeenv(self.env)
-        GRBfreeenv(self.env_master)
         GRBfreemodel(self.model)
+        GRBfreeenv(self.env_master)
 
 cdef dict errors = {
     10001 : "GRB_ERROR_OUT_OF_MEMORY",

@@ -81,6 +81,11 @@ if [ "$UNAME" = "SunOS" ]; then
 fi
 
 
+# There is a race condition in the Singular Makefiles, building in
+# parallel sometimes fails (Trac #17774)
+export MAKE="$MAKE -j1"
+
+
 choose_patches()
 {
     cd "$PATCHES" || return $?
@@ -92,6 +97,7 @@ choose_patches()
         rm -r "$SRC/omalloc"/*
         mv configure_omalloc "$SRC/omalloc/configure"
         mv conditional/singular_xalloc.patch . || return $?
+        mv conditional/cygwin64_debug.patch ./cygwin64.patch || return $?
     fi
 }
 
@@ -136,10 +142,10 @@ config()
                 --with-apint=gmp \
                 --with-malloc=system \
                 --with-NTL \
+                --with-flint="$SAGE_LOCAL" \
                 --without-MP \
                 --without-lex \
                 --without-Boost \
-                --without-flint \
                 --enable-Singular \
                 --enable-factory \
                 --enable-libfac \
@@ -234,7 +240,7 @@ build_factory()
                 --with-gmp="$SAGE_LOCAL" \
                 --enable-NTL \
                 --with-NTL="$SAGE_LOCAL" \
-                --without-flint \
+                --with-flint="$SAGE_LOCAL" \
                 --with-gmp="$SAGE_LOCAL" \
                 $ENABLE_DEBUGOUTPUT
 

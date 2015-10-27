@@ -24,14 +24,12 @@ AUTHORS:
 #*****************************************************************************
 
 from cpython.int cimport *
-include "sage/libs/pari/decl.pxi"
-include "sage/ext/python.pxi"
 
+from sage.libs.gmp.all cimport *
 import sage.rings.finite_rings.integer_mod
-from sage.rings.finite_rings import element_base
+from sage.libs.pari.types cimport *
 from sage.libs.pari.gen cimport gen as pari_gen
-cdef extern from "convert.h":
-    cdef void t_INT_to_ZZ( mpz_t value, GEN g )
+from sage.libs.pari.pari_instance cimport INT_to_mpz
 from sage.rings.padics.common_conversion cimport get_ordp, get_preccap
 from sage.rings.integer cimport Integer
 from sage.rings.infinity import infinity
@@ -98,24 +96,19 @@ cdef class pAdicTemplateElement(pAdicGenericElement):
         cdef GEN pari_tmp
         if isinstance(x, (int, long)):
             x = Integer(x)
-        elif PY_TYPE_CHECK(x, pari_gen):
+        elif isinstance(x, pari_gen):
             pari_tmp = (<pari_gen>x).g
             if typ(pari_tmp) == t_INT:
                 x = PY_NEW(Integer)
-                t_INT_to_ZZ((<Integer>x).value, pari_tmp)
+                INT_to_mpz((<Integer>x).value, pari_tmp)
             elif typ(pari_tmp) == t_FRAC:
                 x = Rational(x)
-        elif PY_TYPE_CHECK(x, pAdicGenericElement):
+        elif isinstance(x, pAdicGenericElement):
             if not ((<pAdicGenericElement>x)._is_base_elt(self.prime_pow.prime) or x.parent() is self.parent()):
                 raise NotImplementedError("conversion between padic extensions not implemented")
         elif sage.rings.finite_rings.element_base.is_FiniteFieldElement(x) and x.parent() is self.parent().residue_field():
             x = x.polynomial().list()
-        elif not (PY_TYPE_CHECK(x, Integer) or \
-                  PY_TYPE_CHECK(x, Rational) or \
-                  PY_TYPE_CHECK(x, pari_gen) or \
-                  PyList_Check(x) or \
-                  PyTuple_Check(x) or \
-                  sage.rings.finite_rings.integer_mod.is_IntegerMod(x)):
+        elif not isinstance(x, (Integer, Rational, pari_gen, list, tuple)):
             x = Rational(x)
         val = get_ordp(x, self.prime_pow)
         if val < 0 and self.prime_pow.in_field == 0:
@@ -196,7 +189,7 @@ cdef class pAdicTemplateElement(pAdicGenericElement):
         if PyInt_Check(shift):
             s = PyInt_AS_LONG(shift)
         else:
-            if not PY_TYPE_CHECK(shift, Integer):
+            if not isinstance(shift, Integer):
                 shift = Integer(shift)
             if mpz_fits_slong_p((<Integer>shift).value) == 0:
                 raise ValueError("valuation overflow")
@@ -244,7 +237,7 @@ cdef class pAdicTemplateElement(pAdicGenericElement):
         if PyInt_Check(shift):
             s = PyInt_AS_LONG(shift)
         else:
-            if not PY_TYPE_CHECK(shift, Integer):
+            if not isinstance(shift, Integer):
                 shift = Integer(shift)
             if mpz_fits_slong_p((<Integer>shift).value) == 0:
                 raise ValueError, "valuation overflow"
@@ -312,7 +305,7 @@ cdef class pAdicTemplateElement(pAdicGenericElement):
         """
         if absprec is None:
             absprec = maxordp
-        if not PY_TYPE_CHECK(absprec, Integer):
+        if not isinstance(absprec, Integer):
             absprec = Integer(absprec)
         if mpz_fits_slong_p((<Integer>absprec).value) == 0:
             raise PrecisionError("Precision higher than allowed by the precision cap")
@@ -448,10 +441,10 @@ cdef Integer exact_pow_helper(long *ansrelprec, long relprec, _right, PowCompute
     cdef bint isbase
     if isinstance(_right, (int, long)):
         _right = Integer(_right)
-    if PY_TYPE_CHECK(_right, Integer):
+    if isinstance(_right, Integer):
         right = <Integer> _right
         exp_val = mpz_get_si((<Integer>right.valuation(p)).value)
-    elif PY_TYPE_CHECK(_right, Rational):
+    elif isinstance(_right, Rational):
         raise NotImplementedError
     ansrelprec[0] = relprec + exp_val
     if exp_val > 0 and mpz_cmp_ui(p.value, 2) == 0 and relprec == 1:

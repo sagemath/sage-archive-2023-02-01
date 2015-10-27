@@ -12,10 +12,8 @@ Utility functions for libGAP
 ###############################################################################
 
 from sage.env import SAGE_LOCAL
-from sage.misc.misc import is_64_bit
 from libc.stdint cimport uintptr_t
 from element cimport *
-
 
 
 ############################################################################
@@ -185,7 +183,7 @@ cdef initialize():
     # Define argv and environ variables, which we will pass in to
     # initialize GAP. Note that we must pass define the memory pool
     # size!
-    cdef char* argv[12]
+    cdef char* argv[14]
     argv[0] = "sage"
     argv[1] = "-l"
     s = gap_root()
@@ -205,6 +203,14 @@ cdef initialize():
     argv[10] = "-T"    # no debug loop
     argv[11] = NULL
     cdef int argc = 11   # argv[argc] must be NULL
+
+    from .saved_workspace import workspace
+    workspace, workspace_is_up_to_date = workspace()
+    if workspace_is_up_to_date:
+        argv[11] = "-L"
+        argv[12] = workspace
+        argv[13] = NULL
+        argc = 13
 
     # Initialize GAP and capture any error messages
     # The initialization just prints error and does not use the error handler
@@ -227,6 +233,9 @@ cdef initialize():
     # Finished!
     _gap_is_initialized = True
 
+    # Save a new workspace if necessary
+    if not workspace_is_up_to_date:
+        gap_eval('SaveWorkspace("{0}")'.format(workspace))
 
 
 ############################################################################

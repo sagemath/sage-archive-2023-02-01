@@ -370,7 +370,9 @@ class mwrank_EllipticCurve(SageObject):
 
         Nothing -- nothing is returned.
 
-        TESTS (see #7992)::
+        TESTS:
+
+        See :trac:`7992`::
 
             sage: EllipticCurve([0, prod(prime_range(10))]).mwrank_curve().two_descent()
             Basic pair: I=0, J=-5670
@@ -405,6 +407,14 @@ class mwrank_EllipticCurve(SageObject):
             ...
             RuntimeError: Aborted
 
+        Calling this method twice does not cause a segmentation fault
+        (see :trac:`10665`)::
+
+            sage: E = EllipticCurve([1, 1, 0, 0, 528])
+            sage: E.two_descent(verbose=False)
+            True
+            sage: E.two_descent(verbose=False)
+            True
 
         """
         from sage.libs.mwrank.mwrank import _two_descent # import here to save time
@@ -422,8 +432,9 @@ class mwrank_EllipticCurve(SageObject):
                                       second_limit,
                                       n_aux,
                                       second_descent)
-        if not self.__two_descent_data().ok():
+        if not self.__descent.ok():
             raise RuntimeError("A 2-descent did not complete successfully.")
+        self.__saturate = -2  # not yet saturated
 
     def __two_descent_data(self):
         r"""
@@ -626,6 +637,13 @@ class mwrank_EllipticCurve(SageObject):
             sage: E.gens()
             [[-1001107, -4004428, 1]]
 
+        Check that :trac:`18031` is fixed::
+
+            sage: E = EllipticCurve([0,-1,1,-266,968])
+            sage: Q1 = E([-1995,3674,125])
+            sage: Q2 = E([157,1950,1])
+            sage: E.saturation([Q1,Q2])
+            ([(1 : -27 : 1), (157 : 1950 : 1)], 3, 0.801588644684981)
         """
         bound = int(bound)
         if self.__saturate < bound:
@@ -643,9 +661,9 @@ class mwrank_EllipticCurve(SageObject):
             [[0, -1, 1]]
         """
         self.saturate()
-        from sage.misc.all import preparse
         from sage.rings.all import Integer
-        return eval(preparse(self.__two_descent_data().getbasis().replace(":",",")))
+        L = eval(self.__two_descent_data().getbasis().replace(":",","))
+        return [[Integer(x), Integer(y), Integer(z)] for (x,y,z) in L]
 
     def certain(self):
         r"""
@@ -1396,8 +1414,6 @@ class mwrank_MordellWeil(SageObject):
             [[1, -1, 1], [-2, 3, 1], [-14, 25, 8]]
 
         """
-        from sage.misc.all import preparse
+        L = eval(self.__mw.getbasis().replace(":",","))
         from sage.rings.all import Integer
-        return eval(preparse(self.__mw.getbasis().replace(":",",")))
-
-
+        return [[Integer(x), Integer(y), Integer(z)] for (x,y,z) in L]

@@ -22,11 +22,9 @@ AUTHORS:
 
 
 from sage.structure.parent import Parent
-from sage.structure.element import Element
 from sage.structure.unique_representation import UniqueRepresentation
-from sage.misc.classcall_metaclass import ClasscallMetaclass
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
-from sage.combinat.combinat import CombinatorialObject
+from sage.combinat.combinat import CombinatorialElement
 from sage.combinat.partition import Partition
 
 def find_min(vect):
@@ -99,12 +97,10 @@ def IntegerVectorsIterator(vect, min = None):
                 for vec in IntegerVectorsIterator(vect[1:]):
                     yield [j]+vec
 
-class VectorPartition(CombinatorialObject, Element):
+class VectorPartition(CombinatorialElement):
     r"""
     A vector partition is a multiset of integer vectors.
     """
-    __metaclass__ = ClasscallMetaclass
-
     @staticmethod
     def __classcall_private__(cls, vecpar):
         """
@@ -135,8 +131,7 @@ class VectorPartition(CombinatorialObject, Element):
             sage: elt =  VectorPartition([[3, 2, 1], [2, 2, 1]])
             sage: TestSuite(elt).run()
         """
-        CombinatorialObject.__init__(self, sorted(vecpar))
-        Element.__init__(self, parent)
+        CombinatorialElement.__init__(self, parent, sorted(vecpar))
 
     def sum(self):
         """
@@ -163,7 +158,7 @@ class VectorPartition(CombinatorialObject, Element):
         """
         return Partition(sorted([vec[i] for vec in self._list], reverse = True))
 
-class VectorPartitions(Parent, UniqueRepresentation):
+class VectorPartitions(UniqueRepresentation, Parent):
     r"""
     Class of all vector partitions of ``vec`` with all parts greater than
     or equal to ``min`` in lexicographic order.

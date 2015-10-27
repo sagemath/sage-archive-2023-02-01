@@ -53,9 +53,9 @@ class WordDatatype_callable(WordDatatype):
 
             sage: from sage.combinat.words.word_infinite_datatypes import WordDatatype_callable
             sage: WordDatatype_callable(Words(),lambda n:n%3)
-            <class 'sage.combinat.words.word_infinite_datatypes.WordDatatype_callable'>
+            <sage.combinat.words.word_infinite_datatypes.WordDatatype_callable object at ...>
             sage: WordDatatype_callable(Words([0,1,2]),lambda n:n%3)
-            <class 'sage.combinat.words.word_infinite_datatypes.WordDatatype_callable'>
+            <sage.combinat.words.word_infinite_datatypes.WordDatatype_callable object at ...>
         """
         self._len = Infinity if length is None else length
         self._func = callable
@@ -69,16 +69,16 @@ class WordDatatype_callable(WordDatatype):
 
             sage: w = Word(lambda x : x % 2)
             sage: it = iter(w)
-            sage: [it.next() for _ in range(10)]
+            sage: [next(it) for _ in range(10)]
             [0, 1, 0, 1, 0, 1, 0, 1, 0, 1]
 
         TESTS::
 
             sage: from sage.combinat.words.word_infinite_datatypes import WordDatatype_callable
             sage: s = WordDatatype_callable(Words(), lambda n:n%3+10, length=10); s
-            <class 'sage.combinat.words.word_infinite_datatypes.WordDatatype_callable'>
+            <sage.combinat.words.word_infinite_datatypes.WordDatatype_callable object at ...>
             sage: it = iter(s)
-            sage: [it.next() for _ in range(10)]
+            sage: [next(it) for _ in range(10)]
             [10, 11, 12, 10, 11, 12, 10, 11, 12, 10]
         """
         if self._len is Infinity:
@@ -223,7 +223,7 @@ class WordDatatype_callable(WordDatatype):
             ...
             ValueError: for infinite words, start and stop values cannot be negative
 
-        Out of range index (#8673)::
+        Out of range index (:trac:`8673`)::
 
             sage: w = Word(lambda n:n^2, length=23)
             sage: w[100]
@@ -346,7 +346,7 @@ class WordDatatype_callable_with_caching(WordDatatype_callable):
 
             sage: w = Word(lambda x : x % 2)
             sage: it = iter(w)
-            sage: [it.next() for _ in range(10)]
+            sage: [next(it) for _ in range(10)]
             [0, 1, 0, 1, 0, 1, 0, 1, 0, 1]
         """
         if self._len is Infinity:
@@ -370,7 +370,8 @@ class WordDatatype_callable_with_caching(WordDatatype_callable):
             sage: w.length()
             12
 
-        Test getitems with indexes.
+        Test getitems with indexes::
+
             sage: w[0]
             'a'
             sage: w[4]
@@ -382,41 +383,48 @@ class WordDatatype_callable_with_caching(WordDatatype_callable):
             sage: [w[i] for i in range(12)]
             ['a', 'b', 'b', 'a', 'b', 'a', 'a', 'b', 'b', 'a', 'a', 'b']
 
-        Slicing.
+        Slicing::
+
             sage: w[:]
             word: abbabaabbaab
 
-        Prefixes.
+        Prefixes::
+
             sage: w[0:]
             word: abbabaabbaab
 
             sage: w[1:]
             word: bbabaabbaab
 
-        Suffixes.
+        Suffixes::
+
             sage: w[:0]
             word:
 
             sage: w[:5]
             word: abbab
 
-        With positive steps.
+        With positive steps::
+
             sage: w[::2]
             word: abbaba
 
-        With a negative start position.
+        With a negative start position::
+
             sage: w[-2:]
             word: ab
             sage: w[-20:]
             word: abbabaabbaab
 
-        With a negative stop position.
+        With a negative stop position::
+
             sage: w[:-1]
             word: abbabaabbaa
             sage: w[:-10]
             word: ab
 
-        With a negative step.
+        With a negative step::
+
             sage: w[::-2]
             word: babaab
 
@@ -427,9 +435,10 @@ class WordDatatype_callable_with_caching(WordDatatype_callable):
             sage: w[:1:-3]
             word: bbab
 
-        TESTS::
+        TESTS:
 
-        For infinite words
+        For infinite words::
+
             sage: f = lambda n : add(Integer(n).digits(2)) % 2
             sage: tm = Word(f); tm
             word: 0110100110010110100101100110100110010110...
@@ -437,7 +446,8 @@ class WordDatatype_callable_with_caching(WordDatatype_callable):
             sage: tm.length()
             +Infinity
 
-        Test getitems with indexes.
+        Test getitems with indexes::
+
             sage: tm[0]
             0
             sage: tm[4]
@@ -449,29 +459,34 @@ class WordDatatype_callable_with_caching(WordDatatype_callable):
             ...
             IndexError: cannot use a negative index with an infinite word
 
-        Slicing.
+        Slicing::
+
             sage: tm[:]
             word: 0110100110010110100101100110100110010110...
 
-        Prefixes.
+        Prefixes::
+
             sage: tm[:0]
             word:
 
             sage: tm[:5]
             word: 01101
 
-        Suffixes.
+        Suffixes::
+
             sage: tm[0:]
             word: 0110100110010110100101100110100110010110...
 
             sage: tm[1:]
             word: 1101001100101101001011001101001100101100...
 
-        With positive steps.
+        With positive steps::
+
             sage: tm[::2]
             word: 0110100110010110100101100110100110010110...
 
-        With a negative step.
+        With a negative step::
+
             sage: tm[20:1:-3]
             word: 0011101
             sage: tm[10:1:-2]
@@ -533,9 +548,10 @@ class WordDatatype_callable_with_caching(WordDatatype_callable):
         r"""
         Empty the associated cache of letters.
 
-        EXAMPLES::
+        EXAMPLES:
 
-        The first 40 (by default) values are always cached.
+        The first 40 (by default) values are always cached::
+
             sage: w = words.ThueMorseWord()
             sage: w._letter_cache
             {0: 0, 1: 1, 2: 1, 3: 0, 4: 1, 5: 0, 6: 0, 7: 1, 8: 1, 9: 0, 10: 0, 11: 1, 12: 0, 13: 1, 14: 1, 15: 0, 16: 1, 17: 0, 18: 0, 19: 1, 20: 0, 21: 1, 22: 1, 23: 0, 24: 0, 25: 1, 26: 1, 27: 0, 28: 1, 29: 0, 30: 0, 31: 1, 32: 1, 33: 0, 34: 0, 35: 1, 36: 0, 37: 1, 38: 1, 39: 0}
@@ -593,7 +609,7 @@ class WordDatatype_iter(WordDatatype):
         if length is None or length is Infinity:
             self._len = Infinity
             self._data = iter
-        elif length is 'unknown' or length is 'finite':
+        elif length == 'unknown' or length == 'finite':
             self._len = None
             self._data = iter
         else:
@@ -843,11 +859,11 @@ class WordDatatype_iter(WordDatatype):
                 else:
                     key = self.length() + key
             it = iter(self)
-            a = it.next()
+            a = next(it)
             counter = 0
             while counter < key:
                 try:
-                    a = it.next()
+                    a = next(it)
                     counter += 1
                 except StopIteration:
                     raise IndexError("word index out of range")
@@ -920,7 +936,7 @@ class WordDatatype_iter_with_caching(WordDatatype_iter):
 
             sage: w = Word(iter([0,1,0,0,1,0,1,0,0,1,0,1,0]))
             sage: it = iter(w)
-            sage: [it.next() for _ in range(10)]
+            sage: [next(it) for _ in range(10)]
             [0, 1, 0, 0, 1, 0, 1, 0, 0, 1]
         """
         # first iterator through the cached values
@@ -1122,7 +1138,7 @@ class WordDatatype_iter_with_caching(WordDatatype_iter):
             else:
                 while self._last_index < key:
                     try:
-                        self._list.append(self._gen.next())
+                        self._list.append(next(self._gen))
                         self._last_index += 1
                     except StopIteration:
                         raise IndexError("word index out of range")

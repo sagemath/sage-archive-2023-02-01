@@ -259,7 +259,7 @@ def PermutationGraph(second_permutation, first_permutation = None):
         vertex_to_index[v] = i+1
 
     from sage.combinat.permutation import Permutation
-    p2 = Permutation(map(lambda x:vertex_to_index[x], second_permutation))
+    p2 = Permutation([vertex_to_index[x] for x in second_permutation])
     p2 = p2.inverse()
 
     g = Graph(name="Permutation graph for "+str(second_permutation))
@@ -415,7 +415,7 @@ def OrthogonalArrayBlockGraph(k,n,OA=None):
     Two graphs built from different orthogonal arrays are also different::
 
         sage: k=4;n=10
-        sage: OAa = designs.orthogonal_array(k,n)
+        sage: OAa = designs.orthogonal_arrays.build(k,n)
         sage: OAb = [[(x+1)%n for x in R] for R in OAa]
         sage: set(map(tuple,OAa)) == set(map(tuple,OAb))
         False
@@ -497,3 +497,55 @@ def OrthogonalArrayBlockGraph(k,n,OA=None):
     g.name("OA({},{})".format(k,n))
 
     return g
+
+def IntersectionGraph(S):
+    r"""
+    Returns the intersection graph of the family `S`
+
+    The intersection graph of a family `S` is a graph `G` with `V(G)=S` such
+    that two elements `s_1,s_2\in S` are adjacent in `G` if and only if `s_1\cap
+    s_2\neq \emptyset`.
+
+    INPUT:
+
+    - ``S`` -- a list of sets/tuples/iterables
+
+        .. NOTE::
+
+            The elements of `S` must be finite, hashable, and the elements of
+            any `s\in S` must be hashable too.
+
+    EXAMPLE::
+
+        sage: graphs.IntersectionGraph([(1,2,3),(3,4,5),(5,6,7)])
+        Intersection Graph: Graph on 3 vertices
+
+    TESTS::
+
+        sage: graphs.IntersectionGraph([(1,2,[1])])
+        Traceback (most recent call last):
+        ...
+        TypeError: The elements of S must be hashable, and this one is not: (1, 2, [1])
+    """
+    from itertools import combinations
+
+    for s in S:
+        try:
+            hash(s)
+        except TypeError:
+            raise TypeError("The elements of S must be hashable, and this one is not: {}".format(s))
+
+    ground_set_to_sets = {}
+    for s in S:
+        for x in s:
+            if x not in ground_set_to_sets:
+                ground_set_to_sets[x] = []
+            ground_set_to_sets[x].append(s)
+
+    g = Graph(name="Intersection Graph")
+    g.add_vertices(S)
+    for clique in ground_set_to_sets.itervalues():
+        g.add_edges((u,v) for u,v in combinations(clique,2))
+
+    return g
+

@@ -132,7 +132,7 @@ class Posets(Category):
 
             sage: P = Posets()
             sage: it = iter(P)
-            sage: for _ in range(10): print it.next();
+            sage: for _ in range(10): print next(it);
             Finite poset containing 0 elements
             Finite poset containing 1 elements
             Finite poset containing 2 elements
@@ -333,8 +333,9 @@ class Posets(Category):
             """
             if direction == 'up':
                 return self.order_filter(elements)
-            else:
+            if direction == 'down':
                 return self.order_ideal(elements)
+            raise ValueError("Direction must be either 'up' or 'down'.")
 
         def principal_order_ideal(self, x):
             r"""
@@ -404,18 +405,18 @@ class Posets(Category):
                 sage: P.order_ideal_toggle(I, 4)
                 {1, 2, 4}
                 sage: P4 = Posets(4)
-                sage: all( all( all( P.order_ideal_toggle(P.order_ideal_toggle(I, i), i) == I
-                ....:                for i in range(4) )
-                ....:           for I in P.order_ideals_lattice() )
-                ....:      for P in P4 )
+                sage: all(all(all(P.order_ideal_toggle(P.order_ideal_toggle(I, i), i) == I
+                ....:               for i in range(4))
+                ....:          for I in P.order_ideals_lattice(facade=True))
+                ....:     for P in P4)
                 True
             """
             if not v in I:
-                if all( u in I for u in self.lower_covers(v) ):
+                if all(u in I for u in self.lower_covers(v)):
                     from sage.sets.set import Set
                     return I.union(Set({v}))
             else:
-                if all( u not in I for u in self.upper_covers(v) ):
+                if all(u not in I for u in self.upper_covers(v)):
                     from sage.sets.set import Set
                     return I.difference(Set({v}))
             return I

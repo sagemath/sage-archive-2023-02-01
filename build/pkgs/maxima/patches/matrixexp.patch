@@ -1,5 +1,5 @@
---- a/share/linearalgebra/matrixexp.lisp	2013-10-07 04:37:12.000000000 +0100
-+++ b/share/linearalgebra/matrixexp.lisp	2014-05-16 02:16:09.112011893 +0100
+--- a/share/linearalgebra/matrixexp.lisp
++++ b/share/linearalgebra/matrixexp.lisp
 @@ -138,8 +138,8 @@
  	   (print `(ratvars = ,$ratvars gcd = '$gcd algebraic = ,$algebraic))
  	   (print `(ratfac = ,$ratfac))
@@ -7,7 +7,7 @@
 -   
 -    (setq res ($fullratsimp (ncpower (sub (mult z ($ident n)) mat) -1) z))
 +
-+    (setq res ($fullratsimp ($invert (sub (mult z ($ident n)) mat) '$crering) z))
++    (setq res ($fullratsimp ($invert_by_lu (sub (mult z ($ident n)) mat) '$crering) z))
      (setq m (length sp))
      (dotimes (i m)
        (setq zi (nth i sp))

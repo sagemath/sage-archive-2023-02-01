@@ -349,6 +349,24 @@ class LieAlgebra(Parent, UniqueRepresentation): # IndexedGenerators):
         """
         Standardize the ``names`` and ``index_set`` for a Lie algebra.
 
+        The method is supposed to return a pair
+        ``(names', index_set')``, where ``names'`` is either
+        ``None`` or a tuple of strings, and where ``index_set'``
+        is a finite enumerated set. (The purpose of
+        ``index_set'`` is to index the basis elements or the
+        generators of some Lie algebra; the strings in
+        ``names'``, when they exist, are used for printing these
+        indices.)
+
+        .. TODO::
+
+            As far as I understand, the optional parameter ``ngens``
+            is only used to raise errors when it is wrong. There is
+            no automatic numbering like "if ``names`` is a string
+            with no commas and ``ngens`` is not ``None``, then set
+            ``names = [names + str(i) for i in range(ngens)]``". Do
+            we need this parameter then?
+
         .. TODO::
 
             This function could likely be generalized for any parent
@@ -407,9 +425,7 @@ class LieAlgebra(Parent, UniqueRepresentation): # IndexedGenerators):
             index_set = FiniteEnumeratedSet(index_set)
 
         if names is not None:
-            if index_set is None:
-                index_set = names
-            elif len(names) != index_set.cardinality():
+            if len(names) != index_set.cardinality():
                 raise ValueError("the number of names must equal"
                                  " the size of the indexing set")
             if ngens is not None and len(names) != ngens:

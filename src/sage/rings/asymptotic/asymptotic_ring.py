@@ -704,6 +704,26 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
         return self._summands_
 
 
+    def __hash__(self):
+        r"""
+        A hash value for this element.
+
+        .. WARNING::
+
+            This hash value uses the string representation and might not be
+            always right.
+
+        TESTS::
+
+            sage: R_log = AsymptoticRing(growth_group='log(x)^QQ', coefficient_ring=QQ)
+            sage: lx = R_log(log(SR.var('x')))
+            sage: elt = (O(lx) + lx^3)^4
+            sage: hash(elt) # random
+            -4395085054568712393
+        """
+        return hash(str(self))
+
+
     def __nonzero__(self):
         r"""
         Return whether this asymptotic expansion is not identically zero.

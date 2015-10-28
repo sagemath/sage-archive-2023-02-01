@@ -138,14 +138,9 @@ def is_orthogonal_array_block_graph(int v,int k,int l,int mu):
     # notations from
     # http://www.win.tue.nl/~aeb/graphs/OA.html
     from sage.combinat.matrices.hadamard_matrix import skew_hadamard_matrix
-    if not is_square(v):
-        return
-    n = int(sqrt(v))
-    if k % (n-1):
-        return
-    m = k//(n-1)
-    if (l  != (m-1)*(m-2)+n-2 or
-        mu != m*(m-1)):
+    try:
+        m, n = latin_squares_graph_parameters(v,k,l,mu)
+    except:
         return
     if orthogonal_array(m,n,existence=True):
         from sage.graphs.generators.intersection import OrthogonalArrayBlockGraph
@@ -153,7 +148,7 @@ def is_orthogonal_array_block_graph(int v,int k,int l,int mu):
 
     elif n>2 and skew_hadamard_matrix(n+1, existence=True):
         if m==(n+1)/2:
-            from sage.graphs.generators.families import Pseudo_L_2n_4n_m_1 as G
+            from sage.graphs.generators.families import SquaredSkewHadamardMatrixGraph as G
         elif m==(n-1)/2:
             from sage.graphs.generators.families import PasechnikGraph as G
         else:
@@ -1322,7 +1317,7 @@ def is_switch_skewhad(int v, int k, int l, int mu):
     The `switch skewhad^2+*` graphs appear on `Andries Brouwer's database
     <http://www.win.tue.nl/~aeb/graphs/srg/srgtab.html>`__ and are built by
     adding an isolated vertex to the complement of
-    :func:`~sage.graphs.graph_generators.GraphGenerators.Pseudo_L_2n_4n_m_1`,
+    :func:`~sage.graphs.graph_generators.GraphGenerators.SquaredSkewHadamardMatrixGraph`,
     and a :meth:`Seidel switching <Graph.seidel_switching>` a set of disjoint
     `n`-cocliques.
 
@@ -1347,7 +1342,7 @@ def is_switch_skewhad(int v, int k, int l, int mu):
 
     """
     from sage.combinat.matrices.hadamard_matrix import skew_hadamard_matrix
-    from sage.graphs.generators.families import switch_skewhad_pow2
+    from sage.graphs.generators.families import SwitchedSquaredSkewHadamardMatrixGraph
     cdef int n
     r,s = eigenvalues(v,k,l,mu)
     if r is None:
@@ -1359,7 +1354,7 @@ def is_switch_skewhad(int v, int k, int l, int mu):
         v == (4*n-1)**2 + 1     and \
         k == (4*n-1)*(2*n-1)    and \
         skew_hadamard_matrix(4*n, existence=True):
-            return (switch_skewhad_pow2, n)
+            return (SwitchedSquaredSkewHadamardMatrixGraph, n)
 
 def is_switch_OA_srg(int v, int k, int l, int mu):
     r"""
@@ -1447,7 +1442,7 @@ cdef eigenvalues(int v,int k,int l,int mu):
             (-b-sqrt(D))/2.0]
 
 
-cdef _L_g_n_params(int v,int k, int l,int mu):
+cpdef latin_squares_graph_parameters(int v,int k, int l,int mu):
     r"""
     Check whether (v,k,l,mu)-strongly regular graph has parameters of an `L_g(n)` s.r.g.
 
@@ -1456,8 +1451,18 @@ cdef _L_g_n_params(int v,int k, int l,int mu):
 
     INPUT:
 
-    - ``v,k,l,mu`` (integers)
+    - ``v,k,l,mu`` -- (integers) parameters of the graph
 
+    OUTPUT:
+
+    - ``(g, n)`` -- parameters of an `L_g(n)` graph, or `None`
+
+    TESTS::
+
+        sage: from sage.graphs.strongly_regular_db import latin_squares_graph_parameters
+        sage: latin_squares_graph_parameters(9,4,1,2)
+        (2, 3)
+        sage: latin_squares_graph_parameters(5,4,1,2)
     """
     cdef int g, n
     r,s = eigenvalues(v,k,l,mu)
@@ -1468,7 +1473,7 @@ cdef _L_g_n_params(int v,int k, int l,int mu):
     g = -s
     n = r+g
     if v==n**2 and k==g*(n-1) and l==(g-1)*(g-2)+n-2 and mu==g*(g-1):
-        return [g, n]
+        return g, n
     return
 
 def _H_3_cayley_graph(L):

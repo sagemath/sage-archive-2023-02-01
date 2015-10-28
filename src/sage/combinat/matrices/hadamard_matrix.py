@@ -992,10 +992,10 @@ def skew_hadamard_matrix(n,existence=False, check=True):
                 return true()
             M = _GS_skew_hadamard(n)
 
-    if M is None:
-        if existence:
-            return Unknown
-        raise ValueError("A skew Hadamard matrix of order %s is not yet implemented." % n)
+        else:
+            if existence:
+                return Unknown
+            raise ValueError("A skew Hadamard matrix of order %s is not yet implemented." % n)
 
     if check:
         assert is_hadamard_matrix(M, normalized=False, skew=True)

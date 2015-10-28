@@ -1631,7 +1631,7 @@ def PasechnikGraph(n):
     G.name("Pasechnik Graph_" + str((n)))
     return G
 
-def Pseudo_L_2n_4n_m_1(n):
+def SquaredSkewHadamardMatrixGraph(n):
     """
     Pseudo-`OA(2n,4n-1)`-graph from a skew Hadamard matrix of order `4n`
 
@@ -1639,14 +1639,14 @@ def Pseudo_L_2n_4n_m_1(n):
     :func:`OrthogonalArrayBlockGraph
     <sage.graphs.generators.GraphGenerators.OrthogonalArrayBlockGraph>`, also
     known as pseudo Latin squares graph `L_{2n}(4n-1)`, constructed from a
-    skew Hadamard matrix of order `4n` due to Goethals and Seidel, see [BvL84]_.
+    skew Hadamard matrix of order `4n`, due to Goethals and Seidel, see [BvL84]_.
 
     EXAMPLES::
 
-        sage: from sage.graphs.generators.families import Pseudo_L_2n_4n_m_1
-        sage: Pseudo_L_2n_4n_m_1(4).is_strongly_regular(parameters=True)
+        sage: from sage.graphs.generators.families import SquaredSkewHadamardMatrixGraph
+        sage: SquaredSkewHadamardMatrixGraph(4).is_strongly_regular(parameters=True)
         (225, 112, 55, 56)
-        sage: Pseudo_L_2n_4n_m_1(9).is_strongly_regular(parameters=True) # long time
+        sage: SquaredSkewHadamardMatrixGraph(9).is_strongly_regular(parameters=True) # long time
         (1225, 612, 305, 306)
 
     """
@@ -1664,24 +1664,24 @@ def Pseudo_L_2n_4n_m_1(n):
     G.name("skewhad^2_" + str((n)))
     return G
 
-def switch_skewhad_pow2(n):
+def SwitchedSquaredSkewHadamardMatrixGraph(n):
     """
-    a strongly regular graph in Seidel switching class of `Pseudo_L_{2n}(4n-1)`
+    a strongly regular graph in Seidel switching class of `SquaredSkewHadamardMatrixGraph`
 
     A strongly regular graph in the
-    :meth:`Seidel switching <Graph.seidel_switching>` class of
-    func:`Pseudo_L_{2n}(4n-1)
-    <sage.graphs.generators.GraphGenerators.Pseudo_L_2n_4n_m_1>`
+    :meth:`Seidel switching <Graph.seidel_switching>` class of the dijoint union of
+    a 1-vertex graph and func:`Pseudo-L_{2n}(4n-1)
+    <sage.graphs.generators.GraphGenerators.SquaredSkewHadamardMatrixGraph>`
 
     EXAMPLES::
 
-        sage: from sage.graphs.generators.families import switch_skewhad_pow2
-        sage: switch_skewhad_pow2(4).is_strongly_regular(parameters=True)
+        sage: from sage.graphs.generators.families import SwitchedSquaredSkewHadamardMatrixGraph
+        sage: SwitchedSquaredSkewHadamardMatrixGraph(4).is_strongly_regular(parameters=True)
         (226, 105, 48, 49)
 
     """
-    from sage.graphs.generators.families import Pseudo_L_2n_4n_m_1
-    G = Pseudo_L_2n_4n_m_1(n).complement()
+    from sage.graphs.generators.families import SquaredSkewHadamardMatrixGraph
+    G = SquaredSkewHadamardMatrixGraph(n).complement()
     G.add_vertex((4*n-1)**2)
     G.seidel_switching(range((4*n-1)*(2*n-1)))
     G.name("switch skewhad^2+*_" + str((n)))

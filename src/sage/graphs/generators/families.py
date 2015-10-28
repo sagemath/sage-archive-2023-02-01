@@ -1621,10 +1621,8 @@ def PasechnikGraph(n):
       Acta Applicandaie Math. 29(1992), 129-138
     """
     from sage.combinat.matrices.hadamard_matrix import skew_hadamard_matrix
-    from sage.matrix.constructor import identity_matrix, matrix, diagonal_matrix
+    from sage.matrix.constructor import identity_matrix, matrix
     H = skew_hadamard_matrix(4*n)
-    dd = diagonal_matrix(H[0])
-    H = dd*H*dd
     M = H[1:].T[1:] - identity_matrix(4*n-1)
     G = Graph(M.tensor_product(M.T), format='seidel_adjacency_matrix')
     G.relabel()
@@ -1651,12 +1649,10 @@ def SquaredSkewHadamardMatrixGraph(n):
 
     """
     from sage.combinat.matrices.hadamard_matrix import skew_hadamard_matrix
-    from sage.matrix.constructor import identity_matrix, matrix, diagonal_matrix
+    from sage.matrix.constructor import identity_matrix, matrix
     idm = identity_matrix(4*n-1)
     e = matrix([1]*(4*n-1))
     H = skew_hadamard_matrix(4*n)
-    dd = diagonal_matrix(H[0])
-    H = dd*H*dd
     M = H[1:].T[1:] - idm
     s = M.tensor_product(M.T) - idm.tensor_product(e.T*e - idm)
     G = Graph(s, format='seidel_adjacency_matrix')

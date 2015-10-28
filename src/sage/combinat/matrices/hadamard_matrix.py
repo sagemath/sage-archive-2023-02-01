@@ -885,7 +885,7 @@ def _GS_skew_hadamard(n, existence=False, check=True):
         
 _skew_had_cache={}
 
-def skew_hadamard_matrix(n,existence=False, check=True):
+def skew_hadamard_matrix(n,existence=False, skew_normalize=True, check=True):
     r"""
     Tries to construct a skew Hadamard matrix
 
@@ -906,6 +906,9 @@ def skew_hadamard_matrix(n,existence=False, check=True):
           matrix, but that the design may exist (see :mod:`sage.misc.unknown`).
 
         - ``False`` -- meaning that the matrix does not exist.
+
+    - ``skew_normalize`` (boolean) -- whether to make the 1st row all-one, and
+      adjust the 1st column accordingly. Set to ``True`` by default.
 
     - ``check`` (boolean) -- whether to check that output is correct before
       returning it. As this is expected to be useless (but we are cautious
@@ -940,6 +943,8 @@ def skew_hadamard_matrix(n,existence=False, check=True):
         ValueError: A skew Hadamard matrix of order 10 does not exist
         sage: skew_hadamard_matrix(36)
         36 x 36 dense matrix over Integer Ring...
+        sage: skew_hadamard_matrix(36)==skew_hadamard_matrix(36,skew_normalize=False)
+        False
         sage: skew_hadamard_matrix(52)
         52 x 52 dense matrix over Integer Ring...
         sage: skew_hadamard_matrix(92)
@@ -1007,7 +1012,9 @@ def skew_hadamard_matrix(n,existence=False, check=True):
             if existence:
                 return Unknown
             raise ValueError("A skew Hadamard matrix of order %s is not yet implemented." % n)
-
+    if skew_normalize:
+        dd = diagonal_matrix(M[0])
+        M = dd*M*dd
     if check:
         assert is_hadamard_matrix(M, normalized=False, skew=True)
     _skew_had_cache[n]=True

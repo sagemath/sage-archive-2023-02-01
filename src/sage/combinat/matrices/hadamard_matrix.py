@@ -263,6 +263,12 @@ def is_hadamard_matrix(M, normalized=False, skew=False, verbose=False):
         True
         sage: is_hadamard_matrix(h, skew=False, verbose=True)
         True
+        sage: h=-h
+        sage: is_hadamard_matrix(h, skew=True, verbose=True)
+        The matrix is not skew - diagonal entries must be all 1
+        False
+        sage: is_hadamard_matrix(h, skew=False, verbose=True)
+        True
     """
     n = M.ncols()
     if n != M.nrows():
@@ -302,6 +308,11 @@ def is_hadamard_matrix(M, normalized=False, skew=False, verbose=False):
                     if verbose:
                         print "The matrix is not skew"
                     return False
+        for i in xrange(n):
+            if M[i,i] != 1:
+                if verbose:
+                    print "The matrix is not skew - diagonal entries must be all 1"
+                return False
     return True
 
 from sage.matrix.constructor import matrix_method

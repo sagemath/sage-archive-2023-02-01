@@ -1610,13 +1610,11 @@ class AbstractLinearCode(module.Module):
 
     def dual_code(self):
         r"""
-        This computes the dual code `Cd` of the code `C`,
+        Returns the dual code `C^{\perp}` of the code `C`,
 
         .. math::
 
-            Cd = \{ v \in V\ |\ v\cdot c = 0,\ \forall c \in C \}.
-
-        Does not call GAP.
+            C^{\perp} = \{ v \in V\ |\ v\cdot c = 0,\ \forall c \in C \}.
 
         EXAMPLES::
 
@@ -1627,20 +1625,7 @@ class AbstractLinearCode(module.Module):
             sage: C.dual_code()
             Linear code of length 21, dimension 3 over Finite Field in a of size 2^2
         """
-        G = self.generator_matrix()
-        H = G.transpose().kernel()
-        V = H.ambient_vector_space()
-        Cd = LinearCodeFromVectorSpace(V.span(H))
-        return Cd
-        #another way:
-        #Gsf, p = standard_form(G)
-        #k = len(G.rows())
-        #n = len(G.columns())
-        #MS = G.parent()
-        #sG = G.matrix_from_columns(range(k,n))
-        #Inmk = MatrixSpace(F,n-k,n-k).identity_matrix()
-        #H = Inmk.augment(sG.transpose())
-        #return LinearCode(H)
+        return LinearCode(self.parity_check_matrix())
 
     def dimension(self):
         r"""

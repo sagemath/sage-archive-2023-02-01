@@ -1231,7 +1231,7 @@ cdef class LaurentSeries(AlgebraElement):
             sage: f.power_series()
             Traceback (most recent call last):
             ...
-            TypeError: self is a not a power series
+            TypeError: self is not a power series
 
         TESTS:
 

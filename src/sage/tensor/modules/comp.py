@@ -1286,9 +1286,8 @@ class Components(SageObject):
         Parallel computation::
 
             sage: Parallelism().set('tensor', nproc=2)
-            sage: Parallelism()
-            Number of processes for parallelization:
-             - tensor computations: 2
+            sage: Parallelism().get('tensor')
+            2
             sage: s_par = a.__add__(b) ; s_par
             1-index components w.r.t. [1, 2, 3]
             sage: s_par[:]
@@ -1404,9 +1403,8 @@ class Components(SageObject):
         Parallel computation::
 
             sage: Parallelism().set('tensor', nproc=2)
-            sage: Parallelism()
-            Number of processes for parallelization:
-             - tensor computations: 2
+            sage: Parallelism().get('tensor')
+            2
             sage: s_par = a.__sub__(b) ; s_par
             1-index components w.r.t. [1, 2, 3]
             sage: s_par[:]
@@ -1480,9 +1478,8 @@ class Components(SageObject):
         Parallel computation::
 
             sage: Parallelism().set('tensor', nproc=2)
-            sage: Parallelism()
-            Number of processes for parallelization:
-             - tensor computations: 2
+            sage: Parallelism().get('tensor')
+            2
             sage: s_par = a.__mul__(b) ; s_par
             2-indices components w.r.t. [1, 2, 3]
             sage: s_par[:]
@@ -1783,9 +1780,8 @@ class Components(SageObject):
         :class:`~sage.parallel.parallelism.Parallelism`)::
 
             sage: Parallelism().set('tensor', nproc=2)
-            sage: Parallelism()
-            Number of processes for parallelization:
-             - tensor computations: 2
+            sage: Parallelism().get('tensor')
+            2
             sage: s0_par = a.contract(0, b, 0) ; s0_par
             1-index components w.r.t. [
             (1, 0, 0),
@@ -3241,9 +3237,8 @@ class CompWithSym(Components):
         Parallel computation::
 
             sage: Parallelism().set('tensor', nproc=2)
-            sage: Parallelism()
-            Number of processes for parallelization:
-             - tensor computations: 2
+            sage: Parallelism().get('tensor')
+            2
             sage: s1_par = a.__mul__(b) ; s1_par
             4-indices components w.r.t. [1, 2, 3], with symmetry on the index positions (0, 1), with symmetry on the index positions (2, 3)
             sage: s1_par[1,0,0,1]
@@ -4562,9 +4557,8 @@ class CompFullySym(CompWithSym):
         Parallel computation::
 
             sage: Parallelism().set('tensor', nproc=2)
-            sage: Parallelism()
-            Number of processes for parallelization:
-             - tensor computations: 2
+            sage: Parallelism().get('tensor')
+            2
             sage: s_par = a.__add__(c) ; s_par
             2-indices components w.r.t. (1, 2, 3)
             sage: s[:]

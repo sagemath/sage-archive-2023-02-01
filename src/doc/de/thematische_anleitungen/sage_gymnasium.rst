@@ -592,7 +592,7 @@ einer rationalen Funktion zu finden. Diese Zerlegung kann auch mit Sage gemacht 
 
 betrachten, kann diese als Summe von zwei Brüchen geschrieben werden:
 
-.. math:: f(x) = \frac{1}{x^2 - 1} = \frac{\frac{1}{2}}{x^2-1} - \frac{\frac{1}{2}}{x^2+1}
+.. math:: f(x) = \frac{1}{x^2 - 1} = \frac{\frac{1}{2}}{x-1} - \frac{\frac{1}{2}}{x+1}
 
 Diese Zerlegung findet ``partial_fraction()`` in Sage für uns::
 

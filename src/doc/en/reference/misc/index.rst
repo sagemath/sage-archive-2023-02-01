@@ -12,7 +12,6 @@ General Infrastructure
    sage/misc/randstate
    sage/misc/prandom
    sage/misc/unknown
-   sage/misc/exceptions
 
 Programming Utilities
 ---------------------
@@ -37,6 +36,7 @@ Special Base Classes, Decorators, etc.
    sage/misc/constant_function
    sage/misc/classcall_metaclass
    sage/misc/cython_metaclass
+   sage/misc/inherit_comparison
    sage/misc/method_decorator
    sage/misc/object_multiplexer
    sage/misc/fast_methods
@@ -48,22 +48,13 @@ Lists and Iteration, etc.
    :maxdepth: 1
 
    sage/misc/callable_dict
+   sage/misc/converting_dict
    sage/misc/flatten
    sage/misc/search
    sage/misc/sage_itertools
    sage/misc/mrange
    sage/misc/multireplace
    sage/misc/map_threaded
-
-Integer Arithmetic
-~~~~~~~~~~~~~~~~~~
-
-.. toctree::
-   :maxdepth: 1
-
-   sage/rings/sum_of_squares
-   sage/ext/multi_modular
-   sage/rings/arith
 
 File and OS Access
 ~~~~~~~~~~~~~~~~~~
@@ -292,6 +283,7 @@ Miscellaneous Inspection and Development Tools
    sage/misc/dev_tools
    sage/misc/function_mangling
    sage/misc/memory_info
+   sage/misc/rest_index_of_methods
 
 Low-Level Utilities
 -------------------

@@ -12,10 +12,6 @@ to prettify source code.
 
 Modified BSD
 
-== SPKG Maintainers ==
-
-Mike Hansen <mhansen@gmail.com>
-
 == Upstream Contact ==
 
 Author: Georg Brandl <georg at python org>

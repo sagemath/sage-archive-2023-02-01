@@ -196,47 +196,6 @@ class Sage(Expect):
         """
         return eval(self.eval('print repr(globals().keys())'))
 
-    def quit(self, verbose=False):
-        """
-        EXAMPLES::
-
-            sage: s = Sage()
-            sage: s.eval('2+2')
-            '4'
-            sage: s.quit()
-        """
-        import signal
-        if not self._expect is None:
-            pid = self._expect.pid
-            if verbose:
-                if self.is_remote():
-                    print "Exiting spawned %s process (local pid=%s, running on %s)"%(self,pid,self._server)
-                else:
-                    print "Exiting spawned %s process (pid=%s)."%(self, pid)
-            try:
-                for i in range(10):   # multiple times, since clears out junk injected with ._get, etc.
-                    self._expect.sendline(chr(3))  # send ctrl-c
-                    self._expect.sendline('quit_sage(verbose=%s)'%verbose)
-                    self._so_far(wait=0.2)
-
-                os.killpg(pid, 9)
-                os.kill(pid, 9)
-
-            except (RuntimeError, OSError):
-                pass
-
-            try:
-                os.killpg(pid, 9)
-                os.kill(pid, 9)
-            except OSError:
-                pass
-
-            try:
-                self._expect.close(signal.SIGQUIT)
-            except Exception:
-                pass
-            self._expect = None
-
     def __call__(self, x):
         """
         EXAMPLES::
@@ -442,6 +401,22 @@ class SageElement(ExpectElement):
             True
         """
         return None
+
+    def _repr_option(self, option):
+        """
+        Disable repr option.
+
+        This is necessary because otherwise our :meth:`__getattr__`
+        would be called.
+
+        EXAMPLES::
+
+            sage: from sage.repl.rich_output import get_display_manager
+            sage: m = sage0(4)
+            sage: m._repr_option('ascii_art')
+            False
+        """
+        return False
 
     def __getattr__(self, attrname):
         """

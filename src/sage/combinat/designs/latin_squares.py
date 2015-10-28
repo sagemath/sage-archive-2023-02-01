@@ -395,8 +395,8 @@ def mutually_orthogonal_latin_squares(k,n, partitions = False, check = True, exi
                 return False
             raise EmptySetError("There does not exist {} MOLS of order {}!".format(k,n))
 
-        OA = orthogonal_array(k+2,n,check=False)
-        OA.sort() # make sure that the first two columns are "11, 12, ..., 1n, 21, 22, ..."
+        # make sure that the first two columns are "11, 12, ..., 1n, 21, 22, ..."
+        OA = sorted(orthogonal_array(k+2,n,check=False))
 
         # We first define matrices as lists of n^2 values
         matrices = [[] for _ in range(k)]
@@ -551,8 +551,7 @@ def MOLS_table(start,stop=None,compare=False,width=None):
         from sage.rings.integer import Integer
         width = max(3,Integer(stop-1).ndigits(10))
 
-    from string import join
-    print " "*(width+2) + join("{i:>{width}}".format(i=i,width=width) for i in range(20))
+    print " "*(width+2) + "".join("{i:>{width}}".format(i=i,width=width) for i in range(20))
     print " "*(width+1) + "_"*((width+1)*20),
     for i in range(start,stop):
         if i%20==0:

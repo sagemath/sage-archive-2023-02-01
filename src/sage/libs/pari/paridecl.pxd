@@ -23,51 +23,16 @@ AUTHORS:
 
 """
 
+from .types cimport *
 from libc.stdio cimport FILE
 
 cdef extern from '<stdarg.h>':
     ctypedef void* va_list
 
-from sage.libs.flint.types cimport ulong
-
 cdef extern from "sage/libs/pari/parisage.h":
     char* PARIVERSION
 
-    ctypedef long* GEN
-    ctypedef char* byteptr
-    ctypedef unsigned long pari_sp
-
-    # Various structures that we don't use in Sage but which need to be
-    # declared, otherwise Cython complains.
-    struct bb_group
-    struct bb_field
-    struct bb_ring
-    struct bb_algebra
-    struct qfr_data
-    struct nfmaxord_t
-    struct forcomposite_t
-    struct forpart_t
-    struct forprime_t
-    struct forvec_t
-    struct entree
-    struct gp_context
-    struct pariFILE
-    struct pari_mt
-    struct pari_thread
-    struct pari_timer
-    struct GENbin
-    struct hashentry
-    struct hashtable
-
-    # PARI types: these are actually an enum type, but that doesn't
-    # matter for Cython.
-    extern int t_INT, t_REAL, t_INTMOD, t_FRAC, t_FFELT, t_COMPLEX, t_PADIC, t_QUAD, \
-        t_POLMOD, t_POL, t_SER, t_RFRAC, t_QFR, t_QFI, t_VEC, t_COL,  \
-        t_MAT, t_LIST, t_STR, t_VECSMALL, t_CLOSURE, \
-        t_FF_FpXQ, t_FF_Flxq, t_FF_F2xq
-
     # parierr.h
-
     int e_SYNTAX, e_BUG, \
         e_ALARM, e_FILE, \
         e_MISC, e_FLAG, e_IMPL, e_ARCH, e_PACKAGE, e_NOTFUNC, \
@@ -81,40 +46,6 @@ cdef extern from "sage/libs/pari/parisage.h":
         e_NONE
 
     int warner, warnprec, warnfile, warnmem, warnuser
-
-    # parigen.h
-
-    extern int BITS_IN_LONG
-    extern int DEFAULTPREC       #  64 bits precision
-    extern int MEDDEFAULTPREC    # 128 bits precision
-    extern int BIGDEFAULTPREC    # 192 bits precision
-    long    typ(GEN x)
-    long    settyp(GEN x, long s)
-    long    isclone(GEN x)
-    long    setisclone(GEN x)
-    long    unsetisclone(GEN x)
-    long    lg(GEN x)
-    long    setlg(GEN x, long s)
-    long    signe(GEN x)
-    long    setsigne(GEN x, long s)
-    long    lgefint(GEN x)               # macro
-    long    setlgefint(GEN x, long s)    # macro
-    long    expo(GEN x)
-    long    setexpo(GEN x, long s)
-    long    valp(GEN x)
-    long    setvalp(GEN x, long s)
-    long    precp(GEN x)
-    long    setprecp(GEN x, long s)
-    long    varn(GEN x)
-    long    setvarn(GEN x, long s)
-    long    evaltyp(long x)
-    long    evallg(long x)
-    long    evalvarn(long x)
-    long    evalsigne(long x)
-    long    evalprecp(long x)
-    long    evalvalp(long x)
-    long    evalexpo(long x)
-    long    evallgefint(long x)
 
     # paricast.h
 
@@ -135,22 +66,24 @@ cdef extern from "sage/libs/pari/parisage.h":
 
     # paricom.h
 
-    GEN     gpi
-    GEN     geuler
-    GEN     gen_m1
     GEN     gen_1
+    GEN     gen_m1
     GEN     gen_2
+    GEN     gen_m2
     GEN     ghalf
-    GEN     gi
     GEN     gen_0
     GEN     gnil
-    extern int INIT_JMPm, INIT_SIGm, INIT_DFTm
-    extern int new_galois_format, precdl
+    int     PARI_SIGINT_block, PARI_SIGINT_pending
+    void    NEXT_PRIME_VIADIFF(long, byteptr)
+    void    PREC_PRIME_VIADIFF(long, byteptr)
+    int     INIT_JMPm, INIT_SIGm, INIT_DFTm, INIT_noPRIMEm, INIT_noIMTm
+    int     new_galois_format, factor_add_primes, factor_proven
+    int     precdl
     # The "except 0" here is to ensure compatibility with
     # _pari_err_handle() in handle_error.pyx
-    extern int (*cb_pari_err_handle)(GEN) except 0
-    extern int (*cb_pari_handle_exception)(long) except 0
-    extern void (*cb_pari_err_recover)(long)
+    int     (*cb_pari_err_handle)(GEN) except 0
+    int     (*cb_pari_handle_exception)(long) except 0
+    void    (*cb_pari_err_recover)(long)
 
     # kernel/gmp/int.h
 
@@ -1502,6 +1435,7 @@ cdef extern from "sage/libs/pari/parisage.h":
     long    fetch_var_higher()
     GEN     fetch_var_value(long vx, GEN t)
     GEN     gp_read_str(char *t)
+    GEN     gp_read_str_multiline(char *t)
     entree* install(void *f, char *name, char *code)
     entree* is_entry(char *s)
     void    kill0(char *e)
@@ -2270,7 +2204,7 @@ cdef extern from "sage/libs/pari/parisage.h":
 
     # classpoly.c
 
-    GEN     polclass(GEN D, long xvar)
+    GEN     polclass(GEN D, long inv, long xvar)
 
     # compile.c
 
@@ -2283,8 +2217,8 @@ cdef extern from "sage/libs/pari/parisage.h":
 
     # concat.c
 
-    GEN     concat(GEN x, GEN y)
-    GEN     concat1(GEN x)
+    GEN     gconcat(GEN x, GEN y)
+    GEN     gconcat1(GEN x)
     GEN     matconcat(GEN v)
     GEN     shallowconcat(GEN x, GEN y)
     GEN     shallowconcat1(GEN x)
@@ -3248,7 +3182,101 @@ cdef extern from "sage/libs/pari/parisage.h":
 
     GEN     rnfkummer(GEN bnr, GEN subgroup, long all, long prec)
 
+    # lfun.c
+
+    long    is_linit(GEN data)
+    GEN     ldata_get_an(GEN ldata)
+    long    ldata_get_selfdual(GEN ldata)
+    long    ldata_isreal(GEN ldata)
+    GEN     ldata_get_gammavec(GEN ldata)
+    long    ldata_get_degree(GEN ldata)
+    long    ldata_get_k(GEN ldata)
+    GEN     ldata_get_conductor(GEN ldata)
+    GEN     ldata_get_rootno(GEN ldata)
+    GEN     ldata_get_residue(GEN ldata)
+    GEN     ldata_vecan(GEN ldata, long L, long prec)
+    long    ldata_get_type(GEN ldata)
+    long    linit_get_type(GEN linit)
+    GEN     linit_get_ldata(GEN linit)
+    GEN     linit_get_tech(GEN linit)
+    GEN     lfun_get_domain(GEN tech)
+    GEN     lfun_get_dom(GEN tech)
+    long    lfun_get_bitprec(GEN tech)
+    GEN     lfun_get_factgammavec(GEN tech)
+    GEN     lfun_get_step(GEN tech)
+    GEN     lfun_get_pol(GEN tech)
+    GEN     lfun_get_Residue(GEN tech)
+    GEN     lfun_get_k2(GEN tech)
+    GEN     lfun_get_w2(GEN tech)
+    GEN     lfun_get_expot(GEN tech)
+    long    lfun_get_der(GEN tech)
+    long    lfun_get_bitprec(GEN tech)
+    GEN     lfun(GEN ldata, GEN s, long prec)
+    GEN     lfun_bitprec(GEN ldata, GEN s, long bitprec)
+    GEN     lfun0_bitprec(GEN ldata, GEN s, long der, long bitprec)
+    GEN     lfun0(GEN ldata, GEN s, long der, long prec)
+    long    lfuncheckfeq(GEN data, GEN t0, long prec)
+    long    lfuncheckfeq_bitprec(GEN data, GEN t0, long bitprec)
+    GEN     lfunconductor(GEN data, GEN maxcond, long flag, long prec)
+    GEN     lfuncreate(GEN obj)
+    GEN     lfunan(GEN ldata, long L, long prec)
+    GEN     lfunhardy(GEN ldata, GEN t, long prec)
+    GEN     lfunhardy_bitprec(GEN ldata, GEN t, long bitprec)
+    GEN     lfuninit(GEN ldata, GEN dom, long der, long prec)
+    GEN     lfuninit_bitprec(GEN ldata, GEN dom, long der, long bitprec)
+    GEN     lfuninit_make(long t, GEN ldata, GEN molin, GEN domain)
+    long    lfunisvgaell(GEN Vga, long flag)
+    GEN     lfunlambda(GEN ldata, GEN s, long prec)
+    GEN     lfunlambda_bitprec(GEN ldata, GEN s, long bitprec)
+    GEN     lfunlambda0(GEN ldata, GEN s, long der, long prec)
+    GEN     lfunlambda0_bitprec(GEN ldata, GEN s, long der, long bitprec)
+    GEN     lfunmisc_to_ldata(GEN ldata)
+    GEN     lfunmisc_to_ldata_shallow(GEN ldata)
+    long    lfunorderzero(GEN ldata, long prec)
+    long    lfunorderzero_bitprec(GEN ldata, long bitprec)
+    GEN     lfunprod_get_fact(GEN tech)
+    GEN     lfunrootno(GEN data, long prec)
+    GEN     lfunrootno_bitprec(GEN data, long bitprec)
+    GEN     lfunrootres(GEN data, long prec)
+    GEN     lfunrootres_bitprec(GEN data, long bitprec)
+    GEN     lfunrtopoles(GEN r)
+    GEN     lfuntheta(GEN data, GEN t, long m, long prec)
+    GEN     lfuntheta_bitprec(GEN data, GEN t, long m, long bitprec)
+    GEN     lfunthetainit(GEN ldata, GEN tinf, long m, long prec)
+    GEN     lfunthetainit_bitprec(GEN ldata, GEN tdom, long m, long bitprec)
+    GEN     lfunthetacheckinit(GEN data, GEN tinf, long m, long *ptbitprec, long fl)
+    GEN     lfunzeros(GEN ldata, GEN lim, long divz, long prec)
+    GEN     lfunzeros_bitprec(GEN ldata, GEN lim, long divz, long bitprec)
+    int     sdomain_isincl(GEN dom, GEN dom0)
+    GEN     theta_get_an(GEN tdata)
+    GEN     theta_get_K(GEN tdata)
+    GEN     theta_get_R(GEN tdata)
+    long    theta_get_bitprec(GEN tdata)
+    long    theta_get_m(GEN tdata)
+    GEN     theta_get_tdom(GEN tdata)
+    GEN     theta_get_sqrtN(GEN tdata)
+
+    # lfunutils.c
+
+    GEN     dirzetak(GEN nf, GEN b)
+    GEN     ellmoddegree(GEN e, long prec)
+    GEN     lfunabelianrelinit(GEN bnfabs, GEN bnf, GEN polrel, GEN dom, long der, long prec)
+    GEN     lfunabelianrelinit_bitprec(GEN bnfabs, GEN bnf, GEN polrel, GEN dom, long der, long bitprec)
+    GEN     lfunconvol(GEN a1, GEN a2)
+    GEN     lfundiv(GEN ldata1, GEN ldata2, long prec)
+    GEN     lfunzetakinit(GEN pol, GEN dom, long der, long flag, long prec)
+    GEN     lfunzetakinit_bitprec(GEN pol, GEN dom, long der, long flag, long bitprec)
+    GEN     lfunetaquo(GEN ldata)
+    GEN     lfunmfspec(GEN ldata, long prec)
+    GEN     lfunmfpeters(GEN ldata, long prec)
+    GEN     lfunmfpeters_bitprec(GEN ldata, long bitprec)
+    GEN     lfunmul(GEN ldata1, GEN ldata2, long prec)
+    GEN     lfunqf(GEN ldata)
+    GEN     lfunsymsq(GEN ldata, GEN known, long prec)
+    GEN     lfunsymsqspec(GEN ldata, long prec)
+
     # lll.c
+
     GEN     ZM_lll_norms(GEN x, double D, long flag, GEN *B)
     GEN     kerint(GEN x)
     GEN     lll(GEN x)
@@ -3340,13 +3368,13 @@ cdef extern from "sage/libs/pari/parisage.h":
     GEN     member_zk(GEN x)
     GEN     member_zkst(GEN bid)
 
-    # modpoly.c
+    # polmodular.c
 
     GEN     Flm_Fl_polmodular_evalx(GEN phi, long L, ulong j, ulong p, ulong pi)
-    GEN     Fp_polmodular_evalx(long L, GEN J, GEN P, long v, int compute_derivs)
-    GEN     polmodular_ZM(long L)
-    GEN     polmodular_ZXX(long L, long xvar, long yvar)
-    GEN     polmodular(long L, GEN x, long yvar, int compute_derivs)
+    GEN     Fp_polmodular_evalx(long L, long inv, GEN J, GEN P, long v, int compute_derivs)
+    GEN     polmodular(long L, long inv, GEN x, long yvar, long compute_derivs)
+    GEN     polmodular_ZM(long L, long inv)
+    GEN     polmodular_ZXX(long L, long inv, long xvar, long yvar)
 
     # mp.c
 
@@ -4248,24 +4276,3 @@ cdef extern from "sage/libs/pari/parisage.h":
 
 # Inline functions in separate file
 include 'declinl.pxi'
-
-
-cdef extern from 'pari/paripriv.h':
-    int gpd_QUIET, gpd_TEST, gpd_EMACS, gpd_TEXMACS
-
-    struct pariout_t:
-        char format  # e,f,g
-        long fieldw  # 0 (ignored) or field width
-        long sigd    # -1 (all) or number of significant digits printed
-        int sp       # 0 = suppress whitespace from output
-        int prettyp  # output style: raw, prettyprint, etc
-        int TeXstyle
-
-    struct gp_data:
-        pariout_t *fmt
-        unsigned long flags
-
-    extern gp_data* GP_DATA
-
-cdef extern from 'pari/anal.h':
-    char* closure_func_err()

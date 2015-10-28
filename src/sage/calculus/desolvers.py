@@ -1116,7 +1116,7 @@ def desolve_rk4(de, dvar, ics=None, ivar=None, end_points=None, step=0.1, output
 
       - ``de`` - equation, including term with ``diff(y,x)``
 
-      - ``dvar``` - dependent variable (declared as funciton of independent variable)
+      - ``dvar`` - dependent variable (declared as function of independent variable)
 
     - Other parameters
 

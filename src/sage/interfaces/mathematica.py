@@ -570,8 +570,8 @@ remote connection to a server running Mathematica -- for hints, type
 
         EXAMPLES::
 
-            sage: mathematica.chdir('/')          # optional
-            sage: mathematica('Directory[]')      # optional
+            sage: mathematica.chdir('/')          # optional - mathematica
+            sage: mathematica('Directory[]')      # optional - mathematica
             "/"
         """
         self.eval('SetDirectory["%s"]'%dir)

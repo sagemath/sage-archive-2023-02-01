@@ -27,11 +27,10 @@ from sage.categories.quotients    import QuotientsCategory
 from sage.categories.subobjects   import SubobjectsCategory
 from sage.categories.isomorphic_objects   import IsomorphicObjectsCategory
 from sage.categories.algebra_functor import AlgebrasCategory
-from sage.categories.cartesian_product import cartesian_product, CartesianProductsCategory
+from sage.categories.cartesian_product import CartesianProductsCategory, CartesianProductFunctor
 from sage.categories.realizations import RealizationsCategory, Category_realization_of_parent
 from sage.categories.with_realizations import WithRealizationsCategory
 from sage.categories.category_with_axiom import CategoryWithAxiom
-
 lazy_import('sage.sets.cartesian_product', 'CartesianProduct')
 
 def print_compare(x, y):
@@ -130,6 +129,7 @@ class Sets(Category_singleton):
 
         sage: TestSuite(P).run(verbose=True)
         running ._test_an_element() . . . pass
+        running ._test_cardinality() . . . pass
         running ._test_category() . . . pass
         running ._test_elements() . . .
           Running the test suite of self.an_element()
@@ -298,7 +298,7 @@ class Sets(Category_singleton):
                 sage: Semigroups().CartesianProducts()
                 Category of Cartesian products of semigroups
                 sage: EuclideanDomains().CartesianProducts()
-                Join of Category of rings and Category of Cartesian products of ...
+                Category of Cartesian products of commutative rings
             """
             return CartesianProductsCategory.category_of(self)
 
@@ -648,6 +648,30 @@ class Sets(Category_singleton):
                 sage: TestSuite(Sets().IsomorphicObjects()).run()
             """
             return IsomorphicObjectsCategory.category_of(self)
+
+        @cached_method
+        def Topological(self):
+            """
+            Return the subcategory of the topological objects of ``self``.
+
+            TESTS::
+
+                sage: TestSuite(Sets().Topological()).run()
+            """
+            from sage.categories.topological_spaces import TopologicalSpacesCategory
+            return TopologicalSpacesCategory.category_of(self)
+
+        @cached_method
+        def Metric(self):
+            """
+            Return the subcategory of the metric objects of ``self``.
+
+            TESTS::
+
+                sage: TestSuite(Sets().Metric()).run()
+            """
+            from sage.categories.metric_spaces import MetricSpacesCategory
+            return MetricSpacesCategory.category_of(self)
 
         @cached_method
         def Algebras(self, base_ring):
@@ -1363,12 +1387,67 @@ class Sets(Category_singleton):
         # def is_empty(self)
         # def random_element(self):
 
+        def _test_cardinality(self, **options):
+            r"""
+            Run generic test on the method :meth:`.cardinality`.
+
+            EXAMPLES::
+
+                sage: C = Sets().example()
+                sage: C._test_cardinality()
+
+            Let us now write a broken :meth:`cardinality` method::
+
+                sage: from sage.categories.examples.sets_cat import *
+                sage: class CCls(PrimeNumbers):
+                ....:     def cardinality(self):
+                ....:         return int(5)
+                sage: CC = CCls()
+                sage: CC._test_cardinality()
+                Traceback (most recent call last):
+                ...
+                AssertionError: the output of the method cardinality must either
+                be a Sage integer or infinity. Not <type 'int'>.
+            """
+            try:
+                cardinality = self.cardinality()
+            except (AttributeError,NotImplementedError):
+                return
+            from sage.structure.element import parent
+            from sage.rings.infinity import Infinity
+            from sage.rings.integer_ring import ZZ
+            tester = self._tester(**options)
+            tester.assertTrue(cardinality is Infinity or parent(cardinality) is ZZ,
+                    "the output of the method cardinality must either be a Sage integer or infinity. Not {}.".format(type(cardinality)))
+
         # Functorial constructions
 
         CartesianProduct = CartesianProduct
-        def cartesian_product(*parents):
+        def cartesian_product(*parents, **kwargs):
             """
             Return the cartesian product of the parents.
+
+            INPUT:
+
+            - ``parents`` -- a list (or other iterable) of parents.
+
+            - ``category`` -- (default: ``None``) the category the
+              cartesian product belongs to. If ``None`` is passed,
+              then
+              :meth:`~sage.categories.covariant_functorial_construction.CovariantFactorialConstruction.category_from_parents`
+              is used to determine the category.
+
+            - ``extra_category`` -- (default: ``None``) a category
+              that is added to the cartesian product in addition
+              to the categories obtained from the parents.
+
+            - other keyword arguments will passed on to the class used
+              for this cartesian product (see also
+              :class:`~sage.sets.cartesian_product.CartesianProduct`).
+
+            OUTPUT:
+
+            The cartesian product.
 
             EXAMPLES::
 
@@ -1389,10 +1468,31 @@ class Sets(Category_singleton):
                 sage: C.category()
                 Join of Category of rings and ...
                     and Category of Cartesian products of commutative additive groups
+
+            ::
+
+                sage: cartesian_product([ZZ, ZZ], category=Sets()).category()
+                Category of sets
+                sage: cartesian_product([ZZ, ZZ]).category()
+                Join of
+                Category of Cartesian products of commutative rings and
+                Category of Cartesian products of enumerated sets
+                sage: cartesian_product([ZZ, ZZ], extra_category=Posets()).category()
+                Join of
+                Category of Cartesian products of commutative rings and
+                Category of posets and
+                Category of Cartesian products of enumerated sets
             """
-            return parents[0].CartesianProduct(
-                parents,
-                category = cartesian_product.category_from_parents(parents))
+            category = kwargs.pop('category', None)
+            extra_category = kwargs.pop('extra_category', None)
+
+            category = category or cartesian_product.category_from_parents(parents)
+            if extra_category:
+                if isinstance(category, (list, tuple)):
+                    category = tuple(category) + (extra_category,)
+                else:
+                    category = category & extra_category
+            return parents[0].CartesianProduct(parents, category=category, **kwargs)
 
         def algebra(self, base_ring, category=None):
             """
@@ -1621,6 +1721,10 @@ Please use, e.g., S.algebra(QQ, category=Semigroups())""".format(self))
 
     Facade = LazyImport('sage.categories.facade_sets', 'FacadeSets')
     Finite = LazyImport('sage.categories.finite_sets', 'FiniteSets', at_startup=True)
+    Topological = LazyImport('sage.categories.topological_spaces',
+                             'TopologicalSpaces', 'Topological', at_startup=True)
+    Metric = LazyImport('sage.categories.metric_spaces', 'MetricSpaces',
+                        'Mertic', at_startup=True)
 
     class Infinite(CategoryWithAxiom):
 
@@ -2546,3 +2650,6 @@ Please use, e.g., S.algebra(QQ, category=Semigroups())""".format(self))
                     The subset algebra of {1, 2, 3} over Rational Field in the realization Blah
                 """
                 return "{} in the realization {}".format(self.realization_of(), self._realization_name())
+
+# Moved from sage.categories.cartesian_product to avoid circular import errors
+cartesian_product = CartesianProductFunctor()

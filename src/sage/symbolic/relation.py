@@ -1204,7 +1204,7 @@ def solve_ineq_fourier(ineq,vars=None):
     Note that different systems will find default variables in different
     orders, so the following is not tested::
 
-        sage: solve_ineq_fourier([log(x)>log(y)]) # not tested - one of the following appears
+        sage: solve_ineq_fourier([log(x)>log(y)])  # random (one of the following appears)
         [[0 < y, y < x, 0 < x]]
         [[y < x, 0 < y]]
 
@@ -1294,7 +1294,7 @@ def solve_ineq(ineq, vars=None):
     the order it puts them in may depend on the system, so the following
     command is only guaranteed to give you one of the above answers::
 
-        sage: solve_ineq([x-y<0,x+y-3<0]) # not tested - random
+        sage: solve_ineq([x-y<0,x+y-3<0])  # random
         [[x < y, y < -x + 3, x < (3/2)]]
 
     ALGORITHM:

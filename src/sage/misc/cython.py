@@ -19,7 +19,7 @@ from __future__ import print_function
 
 import os, sys, platform, __builtin__
 
-from sage.env import SAGE_LOCAL, SAGE_SRC, UNAME
+from sage.env import SAGE_LOCAL, SAGE_SRC, SAGE_LIB, UNAME
 from misc import SPYX_TMP
 from temporary_file import tmp_filename
 
@@ -68,14 +68,6 @@ def atlas():
         return 'blas'
     else:
         return 'atlas'
-
-include_dirs = [os.path.join(SAGE_LOCAL,'include'),
-                os.path.join(SAGE_LOCAL,'include','python'+platform.python_version().rsplit('.', 1)[0]),
-                os.path.join(SAGE_LOCAL,'lib','python','site-packages','numpy','core','include'),
-                os.path.join(SAGE_SRC,'sage','ext'),
-                os.path.join(SAGE_SRC),
-                os.path.join(SAGE_SRC,'sage','gsl')]
-
 
 standard_libs = ['mpfr', 'gmp', 'gmpxx', 'stdc++', 'pari', 'm', \
                  'ec', 'gsl', cblas(), atlas(), 'ntl']
@@ -210,11 +202,10 @@ def pyx_preparse(s):
         ...,
         'ntl'],
         ['.../include',
-        '.../include/python2.7',
-        '.../lib/python/site-packages/numpy/core/include',
-        '.../sage/ext',
+        '.../include/python...',
+        '.../lib/python.../site-packages/numpy/core/include',
         '...',
-        '.../sage/gsl'],
+        '.../sage/ext'],
         'c',
         [], ['-w', '-O2'])
         sage: s, libs, inc, lang, f, args = pyx_preparse("# clang c++\n #clib foo\n # cinclude bar\n")
@@ -236,11 +227,10 @@ def pyx_preparse(s):
         sage: inc
         ['bar',
         '.../include',
-        '.../include/python2.7',
-        '.../lib/python/site-packages/numpy/core/include',
-        '.../sage/ext',
+        '.../include/python...',
+        '.../lib/python.../site-packages/numpy/core/include',
         '...',
-        '.../sage/gsl']
+        '.../sage/ext']
 
         sage: s, libs, inc, lang, f, args = pyx_preparse("# cargs -O3 -ggdb\n")
         sage: args
@@ -253,6 +243,8 @@ def pyx_preparse(s):
         sage: module.evaluate_at_power_of_gen(x^3 + x - 7, 5)  # long time
         x^15 + x^5 - 7
     """
+    from sage.env import sage_include_directories
+
     lang, s = parse_keywords('clang', s)
     if lang:
         lang = lang[0].lower() # this allows both C++ and c++
@@ -265,7 +257,7 @@ def pyx_preparse(s):
     additional_source_files, s = parse_keywords('cfile', s)
 
     v, s = parse_keywords('cinclude', s)
-    inc = [environ_parse(x.replace('"','').replace("'","")) for x in v] + include_dirs
+    inc = [environ_parse(x.replace('"','').replace("'","")) for x in v] + sage_include_directories()
     s = """\ninclude "cdefs.pxi"\n""" + s
     s = """\ninclude "interrupt.pxi"  # ctrl-c interrupt block support\ninclude "stdsage.pxi"\n""" + s
     args, s = parse_keywords('cargs', s)
@@ -291,7 +283,7 @@ sequence_number = {}
 def cython(filename, verbose=False, compile_message=False,
            use_cache=False, create_local_c_file=False, annotate=True, sage_namespace=True,
            create_local_so_file=False):
-    """
+    r"""
     Compile a Cython file. This converts a Cython file to a C (or C++ file),
     and then compiles that. The .c file and the .so file are
     created in a temporary directory.
@@ -349,6 +341,11 @@ def cython(filename, verbose=False, compile_message=False,
         sage: x
         x^2
 
+    Check that compiling c++ code works::
+
+        sage: cython("#clang C++\n"+
+        ....:        "from libcpp.vector cimport vector\n"
+        ....:        "cdef vector[int] * v = new vector[int](4)\n")
     """
     if not filename.endswith('pyx'):
         print("Warning: file (={}) should have extension .pyx".format(filename), file=sys.stderr)
@@ -462,7 +459,6 @@ setup(ext_modules = ext_modules,
       include_dirs = %s)
     """%(extra_args, name, name, extension, additional_source_files, libs, language, includes)
     open('%s/setup.py'%build_dir,'w').write(setup)
-
     cython_include = ' '.join(["-I '%s'"%x for x in includes if len(x.strip()) > 0 ])
 
     options = ['-p']
@@ -471,7 +467,12 @@ setup(ext_modules = ext_modules,
     if sage_namespace:
         options.append('--pre-import sage.all')
 
-    cmd = "cd '%s' && cython %s %s '%s.pyx' 1>log 2>err " % (build_dir, ' '.join(options), cython_include, name)
+    cmd = "cd '{DIR}' && cython {OPT} {INC} {LANG} '{NAME}.pyx' 1>log 2>err ".format(
+        DIR=build_dir,
+        OPT=' '.join(options),
+        INC=cython_include,
+        LANG='--cplus' if language=='c++' else '',
+        NAME=name)
 
     if create_local_c_file:
         target_c = '%s/_%s.c'%(os.path.abspath(os.curdir), base)
@@ -488,9 +489,6 @@ setup(ext_modules = ext_modules,
         log = open('%s/log'%build_dir).read()
         err = subtract_from_line_numbers(open('%s/err'%build_dir).read(), offset)
         raise RuntimeError("Error converting {} to C:\n{}\n{}".format(filename, log, err))
-
-    if language=='c++':
-        os.system("cd '%s' && mv '%s.c' '%s.cpp'"%(build_dir,name,name))
 
     cmd = 'cd %s && python setup.py build 1>log 2>err'%build_dir
     if verbose:

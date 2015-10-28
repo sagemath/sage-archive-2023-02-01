@@ -125,11 +125,8 @@ todo_include_todos = True
 
 
 # Cross-links to other project's online documentation.
-# intersphinx_mapping = {'http://docs.python.org/': None}
-#intersphinx_mapping = {'python': ('http://docs.python.org/',
-#                                  'python-inv.txt')}
 intersphinx_mapping = {
-    'http://docs.python.org/': get_doc_abspath('common/python.inv')}
+    'python' : ('https://docs.python.org/', get_doc_abspath('common/python.inv'))}
 
 def set_intersphinx_mappings(app):
     """
@@ -141,17 +138,21 @@ def set_intersphinx_mappings(app):
             not (os.path.exists(refpath) and os.path.exists(invpath)):
         app.config.intersphinx_mapping = {}
         return
+
     app.config.intersphinx_mapping = intersphinx_mapping
 
-    def add(subdoc=''):
-        src = os.path.join(refpath, subdoc) if subdoc else refpath
-        dst = os.path.join(invpath, subdoc, 'objects.inv')
-        app.config.intersphinx_mapping[src] = dst
+    # Add master intersphinx mapping
+    dst = os.path.join(invpath, 'objects.inv')
+    app.config.intersphinx_mapping['sagemath'] = (refpath, dst)
 
-    add()
+    # Add intersphinx mapping for subdirectories
+    # We intentionally do not name these such that these get higher
+    # priority in case of conflicts
     for directory in os.listdir(os.path.join(invpath)):
         if os.path.isdir(os.path.join(invpath, directory)):
-            add(directory)
+            src = os.path.join(refpath, directory)
+            dst = os.path.join(invpath, directory, 'objects.inv')
+            app.config.intersphinx_mapping[src] = dst
 
 
 pythonversion = sys.version.split(' ')[0]
@@ -159,12 +160,12 @@ pythonversion = sys.version.split(' ')[0]
 
 # Sage trac ticket shortcuts. For example, :trac:`7549` .
 extlinks = {
-    'python': ('http://docs.python.org/release/'+pythonversion+'/%s', ''),
+    'python': ('https://docs.python.org/release/'+pythonversion+'/%s', ''),
     'trac': ('http://trac.sagemath.org/%s', 'trac ticket #'),
-    'wikipedia': ('http://en.wikipedia.org/wiki/%s', 'Wikipedia article '),
+    'wikipedia': ('https://en.wikipedia.org/wiki/%s', 'Wikipedia article '),
     'arxiv': ('http://arxiv.org/abs/%s', 'Arxiv '),
-    'oeis': ('http://oeis.org/%s', 'OEIS sequence '),
-    'doi': ('http://dx.doi.org/%s', 'doi:'),
+    'oeis': ('https://oeis.org/%s', 'OEIS sequence '),
+    'doi': ('https://dx.doi.org/%s', 'doi:'),
     'mathscinet': ('http://www.ams.org/mathscinet-getitem?mr=%s', 'MathSciNet ')
     }
 
@@ -288,7 +289,7 @@ html_split_index = True
 
 # Options for LaTeX output
 # ------------------------
-# See http://sphinx.pocoo.org/config.html#confval-latex_elements
+# See http://sphinx-doc.org/config.html#confval-latex_elements
 latex_elements = {}
 
 # The paper size ('letterpaper' or 'a4paper').
@@ -383,6 +384,7 @@ latex_elements['preamble'] = r"""
 \DeclareUnicodeCharacter{230B}{\rfloor}
 \DeclareUnicodeCharacter{2308}{\lceil}
 \DeclareUnicodeCharacter{2309}{\rceil}
+\DeclareUnicodeCharacter{22C5}{\ensuremath{\cdot}}
 
 \newcommand{\sageMexSymbol}[1]
 {{\fontencoding{OMX}\fontfamily{cmex}\selectfont\raisebox{0.75em}{\symbol{#1}}}}

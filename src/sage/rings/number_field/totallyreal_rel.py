@@ -197,7 +197,7 @@ def integral_elements_in_box(K, C):
     S = []
 
     try:
-        pts = P.points_pc()
+        pts = P.points()
     except ValueError:
         return []
 
@@ -371,13 +371,6 @@ class tr_data_rel:
         OUTPUT:
 
         the successor polynomial as a coefficient list.
-
-        EXAMPLES:
-
-        As this function is heavily used internally by the various enumeration
-        routines, there is no separate test::
-
-            sage: pass # not tested
         """
 
         import numpy

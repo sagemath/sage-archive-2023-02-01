@@ -519,7 +519,7 @@ class MupadFunctionElement(FunctionElement):
         EXAMPLES::
 
             sage: three = mupad(3) # optional - mupad
-            sage: 'list' in three.combinat.tableaux.trait_names() #optional
+            sage: 'list' in three.combinat.tableaux.trait_names() # optional - mupad
             True
         """
         P = self._obj.parent()
@@ -552,7 +552,7 @@ class MupadElement(ExpectElement):
         EXAMPLES::
 
             sage: mupad.package('"MuPAD-Combinat"') # optional - mupad-Combinat
-            sage: S = mupad.examples.SymmetricFunctions() #optional
+            sage: S = mupad.examples.SymmetricFunctions() # optional - mupad-Combinat
             sage: type(S)                           # optional - mupad-Combinat
             <class 'sage.interfaces.mupad.MupadElement'>
             sage: S.s                               # optional - mupad-Combinat

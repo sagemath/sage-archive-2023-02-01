@@ -494,7 +494,7 @@ class Maxima(MaximaAbstract, Expect):
         False
     """
     def __init__(self, script_subdirectory=None, logfile=None, server=None,
-                 init_code = None):
+                 init_code=None):
         """
         Create an instance of the Maxima interpreter.
 
@@ -573,7 +573,25 @@ class Maxima(MaximaAbstract, Expect):
         self._error_re = re.compile('(Principal Value|debugmode|incorrect syntax|Maxima encountered a Lisp error)')
         self._display2d = False
 
+    def set_seed(self, seed=None):
+        """
+        http://maxima.sourceforge.net/docs/manual/maxima_10.html
+        make_random_state (n) returns a new random state object created from an
+        integer seed value equal to n modulo 2^32. n may be negative.
 
+        EXAMPLES::
+
+            sage: m = Maxima()
+            sage: m.set_seed(1)
+            1
+            sage: [m.random(100) for i in range(5)]
+            [45, 39, 24, 68, 63]
+        """
+        if seed is None:
+            seed = self.rand_seed()
+        self.set_random_state(self.make_random_state(seed))
+        self._seed = seed
+        return seed
 
     def _start(self):
         """
@@ -604,6 +622,9 @@ class Maxima(MaximaAbstract, Expect):
         # to 256MB with ECL).
         self._sendline(":lisp (ext:set-limit 'ext:heap-size 0)")
         self._eval_line('0;')
+
+        # set random seed
+        self.set_seed(self._seed)
 
     def __reduce__(self):
         """

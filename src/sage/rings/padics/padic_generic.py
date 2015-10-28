@@ -56,6 +56,7 @@ class pAdicGeneric(PrincipalIdealDomain, LocalGeneric):
                 category = Fields()
             else:
                 category = PrincipalIdealDomains()
+        category = category.Metric().Complete()
         LocalGeneric.__init__(self, base, prec, names, element_class, category)
         self._printer = pAdicPrinter(self, print_mode)
 

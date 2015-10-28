@@ -50,7 +50,10 @@ from fpickle import pickle_function, unpickle_function
 
 from dist import install_scripts
 
-from package import install_package, is_package_installed, standard_packages, optional_packages, experimental_packages, upgrade
+from package import (install_package,
+        installed_packages, is_package_installed,
+        standard_packages, optional_packages, experimental_packages,
+        upgrade, package_versions)
 
 from pager import pager
 
@@ -63,8 +66,6 @@ from classgraph import class_graph
 from reset import reset, restore
 
 from getusage import top, get_memory_usage
-
-from log import log_html, log_dvi, log_text
 
 from mathml import mathml
 

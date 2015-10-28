@@ -978,14 +978,15 @@ class BasesOfQSymOrNCSF(Category_realization_of_parent):
                 sage: S.zero().degree()
                 Traceback (most recent call last):
                 ...
-                ValueError: The zero element does not have a well-defined degree.
+                ValueError: the zero element does not have a well-defined degree
                 sage: F = QuasiSymmetricFunctions(QQ).F()
                 sage: F.zero().degree()
                 Traceback (most recent call last):
                 ...
-                ValueError: The zero element does not have a well-defined degree.
+                ValueError: the zero element does not have a well-defined degree
             """
             return self.maximal_degree()
+
 
 class AlgebraMorphism(ModuleMorphismByLinearity): # Find a better name
     """

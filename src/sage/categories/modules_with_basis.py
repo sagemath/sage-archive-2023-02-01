@@ -25,6 +25,7 @@ from sage.categories.tensor import tensor, TensorProductsCategory
 from sage.categories.dual import DualObjectsCategory
 from sage.categories.category_with_axiom import CategoryWithAxiom_over_base_ring
 from sage.categories.modules import Modules
+from sage.rings.infinity import Infinity
 from sage.structure.element import Element, parent
 from sage.misc.lazy_import import lazy_import
 lazy_import('sage.modules.with_basis.morphism',
@@ -123,6 +124,12 @@ class ModulesWithBasis(CategoryWithAxiom_over_base_ring):
 
     .. TODO:: ``End(X)`` is an algebra.
 
+    .. NOTE::
+
+        This category currently requires an implementation of an
+        element method ``support``. Once :trac:`18066` is merged, an
+        implementation of an ``items`` method will be required.
+
     TESTS::
 
         sage: TestSuite(ModulesWithBasis(ZZ)).run()
@@ -181,7 +188,9 @@ class ModulesWithBasis(CategoryWithAxiom_over_base_ring):
         return self.base_ring().is_field()
 
     FiniteDimensional = LazyImport('sage.categories.finite_dimensional_modules_with_basis', 'FiniteDimensionalModulesWithBasis')
+    Filtered = LazyImport('sage.categories.filtered_modules_with_basis', 'FilteredModulesWithBasis')
     Graded = LazyImport('sage.categories.graded_modules_with_basis', 'GradedModulesWithBasis')
+    Super = LazyImport('sage.categories.super_modules_with_basis', 'SuperModulesWithBasis')
 
     class ParentMethods:
         @cached_method
@@ -764,6 +773,28 @@ class ModulesWithBasis(CategoryWithAxiom_over_base_ring):
             """
             return parents[0].__class__.Tensor(parents, category = tensor.category_from_parents(parents))
 
+        def cardinality(self):
+            """
+            Return the cardinality of ``self``.
+
+            EXAMPLES::
+
+                sage: S = SymmetricGroupAlgebra(QQ, 4)
+                sage: S.cardinality()
+                +Infinity
+                sage: S = SymmetricGroupAlgebra(GF(2), 4)
+                sage: S.cardinality()
+                16777216
+                sage: S.cardinality().factor()
+                2^24
+
+                sage: s = SymmetricFunctions(GF(2)).s()
+                sage: s.cardinality()
+                +Infinity
+            """
+            if self.dimension() == Infinity:
+                return Infinity
+            return self.base_ring().cardinality() ** self.dimension()
 
     class ElementMethods:
         # TODO: Define the appropriate element methods here (instead of in
@@ -776,7 +807,6 @@ class ModulesWithBasis(CategoryWithAxiom_over_base_ring):
 #             TODO: doctest
 #             """
 #             return self._lmul_(-self.parent().base_ring().one(), self)
-
 
         def support_of_term(self):
             """
@@ -1403,8 +1433,10 @@ class ModulesWithBasis(CategoryWithAxiom_over_base_ring):
                     An example of an algebra with basis: the free algebra on the generators ('a', 'b', 'c') over Rational Field
                     sage: B = HopfAlgebrasWithBasis(QQ).example(); B
                     An example of Hopf algebra with basis: the group algebra of the Dihedral group of order 6 as a permutation group over Rational Field
-                    sage: A.an_element(), B.an_element()
-                    (2*B[word: ] + 2*B[word: a] + 3*B[word: b], B[()] + 4*B[(1,2,3)] + 2*B[(1,3)])
+                    sage: A.an_element()
+                    B[word: ] + 2*B[word: a] + 3*B[word: b] + B[word: bab]
+                    sage: B.an_element()
+                    B[()] + 4*B[(1,2,3)] + 2*B[(1,3)]
                     sage: cartesian_product((A, B, A)).an_element()           # indirect doctest
                     2*B[(0, word: )] + 2*B[(0, word: a)] + 3*B[(0, word: b)]
                 """

@@ -5,10 +5,6 @@
 Michael Stoll's program which searches for rational points on hyperelliptic
 curves.
 
-== SPKG Maintainers ==
-
- * Robert Miller
-
 == Upstream Contact ==
 
  * Author: Michael Stoll

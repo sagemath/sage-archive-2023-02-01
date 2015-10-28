@@ -102,7 +102,6 @@ from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 import sage.rings.polynomial.polynomial_element
 import power_series_ring
 import sage.misc.misc
-import ring_element
 import arith
 import sage.misc.latex
 import rational_field, integer_ring
@@ -166,8 +165,6 @@ cdef class PowerSeries(AlgebraElement):
         """
         AlgebraElement.__init__(self, parent)
         self.__is_gen = is_gen
-        if not (prec is infinity):
-            prec = int(prec)
         self._prec = prec
 
     def __hash__(self):
@@ -316,18 +313,6 @@ cdef class PowerSeries(AlgebraElement):
         S = self._parent.change_ring(R)
         return S(self)
 
-    def __cmp__(left, right):
-        """
-        Called by comparison operations.
-        
-        EXAMPLES::
-        
-            sage: R.<x> = PowerSeriesRing(ZZ)
-            sage: 1+x^2 < 2-x
-            True
-        """
-        return (<Element>left)._cmp(right)
-
     cpdef int _cmp_(self, Element right) except -2:
         r"""
         Comparison of self and ``right``.
@@ -359,9 +344,23 @@ cdef class PowerSeries(AlgebraElement):
             sage: 1 - 2*q + q^2 +O(q^3) == 1 - 2*q^2 + q^2 + O(q^4)
             False
 
+        ::
+
+            sage: R.<t> = ZZ[[]]
+            sage: 1 + t^2 < 2 - t
+            True
+            sage: f = 1 + t + t^7 - 5*t^10
+            sage: g = 1 + t + t^7 - 5*t^10 + O(t^15)
+            sage: f == f
+            True
+            sage: f < g
+            False
+            sage: f == g
+            True
+
         TESTS:
 
-        Ticket :trac:`9457` is fixed::
+        :trac:`9457` is fixed::
 
             sage: A.<t> = PowerSeriesRing(ZZ)
             sage: g = t + t^3 + t^5 + O(t^6); g
@@ -1024,6 +1023,12 @@ cdef class PowerSeries(AlgebraElement):
             ...
             ZeroDivisionError: leading coefficient must be a unit
 
+        A test for the case where the precision is 0::
+
+            sage: R.<x> = PowerSeriesRing(ZZ, default_prec=0)
+            sage: ~(1+x)
+            O(x^0)
+
         AUTHORS:
 
         - David Harvey (2006-09-09): changed to use Newton's method
@@ -1049,6 +1054,8 @@ cdef class PowerSeries(AlgebraElement):
 
         if prec is infinity:
             return self._parent(first_coeff, prec=prec)
+        elif not prec:
+            return self._parent(0, prec=0)
 
         A = self.truncate()
         R = A.parent()     # R is the corresponding polynomial ring

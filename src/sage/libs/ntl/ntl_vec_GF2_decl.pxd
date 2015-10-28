@@ -1,3 +1,5 @@
+# distutils: depends = NTL/ZZ.h
+
 from sage.libs.ntl.ntl_GF2_decl cimport GF2_c
 
 cdef extern from "sage/libs/ntl/ntlwrap.cpp":

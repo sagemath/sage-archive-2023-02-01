@@ -23,6 +23,7 @@ quadratic forms over the rationals.
 ###########################################################################
 
 
+from copy import deepcopy
 from sage.rings.integer_ring import ZZ
 from sage.rings.rational_field import QQ
 from sage.rings.real_mpfr import RR
@@ -32,7 +33,6 @@ from sage.matrix.matrix_space import MatrixSpace
 from sage.misc.cachefunc import cached_method
 
 
-@cached_method
 def rational_diagonal_form(self, return_matrix=False):
     """
     Return a diagonal form equivalent to the given quadratic from
@@ -140,6 +140,78 @@ def rational_diagonal_form(self, return_matrix=False):
         [ * -0.05000000000000? 0.?e-12 0.?e-12 ]
         [ * * 13.00000000000? 0.?e-10 ]
         [ * * * 10.8269230769? ]
+
+    TESTS:
+
+    Changing the output quadratic form does not affect the caching::
+
+        sage: Q, T = Q1.rational_diagonal_form(return_matrix=True)
+        sage: Q[0,0] = 13
+        sage: Q1.rational_diagonal_form()
+        Quadratic form in 4 variables over Rational Field with coefficients:
+        [ 1 0 0 0 ]
+        [ * 3/4 0 0 ]
+        [ * * 1 0 ]
+        [ * * * 18 ]
+
+    The transformation matrix is immutable::
+
+        sage: T[0,0] = 13
+        Traceback (most recent call last):
+        ...
+        ValueError: matrix is immutable; please change a copy instead (i.e., use copy(M) to change a copy of M).
+    """
+    Q, T = self._rational_diagonal_form_and_transformation()
+
+    # Quadratic forms do not support immutability, so we need to make
+    # a copy to be safe. The matrix T is already immutable.
+    Q = deepcopy(Q)
+
+    if return_matrix:
+        return Q, T
+    else:
+        return Q
+
+
+@cached_method
+def _rational_diagonal_form_and_transformation(self):
+    """
+    Return a diagonal form equivalent to the given quadratic from and
+    the corresponding transformation matrix. This is over the fraction
+    field of the base ring of the given quadratic form.
+
+    OUTPUT: a tuple ``(D,T)`` where
+
+    - ``D`` -- the diagonalized form of this quadratic form.
+
+    - ``T`` -- transformation matrix. This is such that
+      ``T.transpose() * self.matrix() * T`` gives ``D.matrix()``.
+
+    Both ``D`` and ``T`` are defined over the fraction field of the
+    base ring of the given form.
+
+    EXAMPLES::
+
+        sage: Q = QuadraticForm(ZZ, 4, [1, 1, 0, 0, 1, 0, 0, 1, 0, 18])
+        sage: Q
+        Quadratic form in 4 variables over Integer Ring with coefficients:
+        [ 1 1 0 0 ]
+        [ * 1 0 0 ]
+        [ * * 1 0 ]
+        [ * * * 18 ]
+        sage: Q._rational_diagonal_form_and_transformation()
+        (
+        Quadratic form in 4 variables over Rational Field with coefficients:
+        [ 1 0 0 0 ]
+        [ * 3/4 0 0 ]
+        [ * * 1 0 ]
+        [ * * * 18 ]                                                         ,
+        <BLANKLINE>
+        [   1 -1/2    0    0]
+        [   0    1    0    0]
+        [   0    0    1    0]
+        [   0    0    0    1]
+        )
     """
     n = self.dim()
     K = self.base_ring().fraction_field()
@@ -200,10 +272,8 @@ def rational_diagonal_form(self, return_matrix=False):
         Q = Q(temp)
         T = T * temp
 
-    if return_matrix:
-        return Q, T
-    else:
-        return Q
+    T.set_immutable()
+    return Q, T
 
 
 def signature_vector(self):
@@ -273,12 +343,15 @@ def signature(self):
     of the matrix of the quadratic form.
 
     INPUT:
+
         None
 
     OUTPUT:
+
         an integer
 
     EXAMPLES:
+
         sage: Q = DiagonalQuadraticForm(ZZ, [1,0,0,-4,3,11,3])
         sage: Q.signature()
         3
@@ -331,9 +404,11 @@ def hasse_invariant(self, p):
 
 
     INPUT:
+
         `p` -- a prime number > 0
 
     OUTPUT:
+
         1 or -1
 
     EXAMPLES::
@@ -415,9 +490,11 @@ def hasse_invariant__OMeara(self, p):
 
 
     INPUT:
+
         `p` -- a prime number > 0
 
     OUTPUT:
+
         1 or -1
 
     EXAMPLES::
@@ -488,14 +565,17 @@ def is_hyperbolic(self, p):
     the p-adic numbers Q_p.
 
     REFERENCES:
+
         This criteria follows from Cassels's "Rational Quadratic Forms":
             - local invariants for hyperbolic plane (Lemma 2.4, p58)
             - direct sum formulas (Lemma 2.3 on p58)
 
     INPUT:
+
         `p` -- a prime number > 0
 
     OUTPUT:
+
         boolean
 
     EXAMPLES::
@@ -543,9 +623,11 @@ def is_anisotropic(self, p):
     Checks if the quadratic form is anisotropic over the p-adic numbers `Q_p`.
 
     INPUT:
+
         `p` -- a prime number > 0
 
     OUTPUT:
+
         boolean
 
     EXAMPLES::
@@ -607,9 +689,11 @@ def is_isotropic(self, p):
     Checks if Q is isotropic over the p-adic numbers `Q_p`.
 
     INPUT:
+
         `p` -- a prime number > 0
 
     OUTPUT:
+
         boolean
 
     EXAMPLES::
@@ -652,9 +736,11 @@ def anisotropic_primes(self):
 
 
     INPUT:
+
         None
 
     OUTPUT:
+
         Returns a list of prime numbers >0.
 
     EXAMPLES::
@@ -711,9 +797,11 @@ def compute_definiteness(self):
     Note:  The zero-dim'l form is considered both positive definite and negative definite.
 
     INPUT:
+
         QuadraticForm
 
     OUTPUT:
+
         boolean
 
     EXAMPLES::
@@ -796,12 +884,15 @@ def compute_definiteness_string_by_determinants(self):
     self.compute_definiteness() for more documentation.
 
     INPUT:
+
         None
 
     OUTPUT:
+
         string describing the definiteness
 
     EXAMPLES:
+
         sage: Q = DiagonalQuadraticForm(ZZ, [1,1,1,1,1])
         sage: Q.compute_definiteness_string_by_determinants()
         'pos_def'
@@ -885,9 +976,11 @@ def is_positive_definite(self):
     Note:  The zero-dim'l form is considered both positive definite and negative definite.
 
     INPUT:
+
         None
 
     OUTPUT:
+
         boolean -- True or False
 
     EXAMPLES::
@@ -924,9 +1017,11 @@ def is_negative_definite(self):
     Note:  The zero-dim'l form is considered both positive definite and negative definite.
 
     INPUT:
+
         None
 
     OUTPUT:
+
         boolean -- True or False
 
     EXAMPLES::
@@ -962,9 +1057,11 @@ def is_indefinite(self):
     Note:  The zero-dim'l form is not considered indefinite.
 
     INPUT:
+
         None
 
     OUTPUT:
+
         boolean -- True or False
 
     EXAMPLES::
@@ -999,9 +1096,11 @@ def is_definite(self):
     Note:  The zero-dim'l form is considered indefinite.
 
     INPUT:
+
         None
 
     OUTPUT:
+
         boolean -- True or False
 
     EXAMPLES::

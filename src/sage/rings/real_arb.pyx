@@ -387,9 +387,9 @@ class RealBallField(UniqueRepresentation, Parent):
         intervals. (This is faster and yields tighter error bounds.) ::
 
             sage: RBF(e)  # optional - arb
-            [2.718281828459045 +/- 5.49e-16]
+            [2.718281828459045 +/- 5.35e-16]
             sage: RBF(pi)  # optional - arb
-            [3.141592653589793 +/- 5.62e-16]
+            [3.141592653589793 +/- 5.61e-16]
         """
         try:
             return self.element_class(self, mid, rad)
@@ -540,7 +540,7 @@ class RealBallField(UniqueRepresentation, Parent):
             sage: RBF.sinpi(1/3)  # optional - arb
             [0.866025403784439 +/- 5.15e-16]
             sage: RBF.sinpi(1 + 2^(-100))  # optional - arb
-            [-2.478279624546525e-30 +/- 5.92e-46]
+            [-2.478279624546525e-30 +/- 5.90e-46]
 
         TESTS::
 
@@ -632,7 +632,7 @@ class RealBallField(UniqueRepresentation, Parent):
             sage: RBF.gamma(10**20)  # optional - arb
             [+/- 5.92e+1956570551809674821757]
             sage: RBF.gamma(1/3)  # optional - arb
-            [2.678938534707747 +/- 9.06e-16]
+            [2.678938534707747 +/- 8.99e-16]
             sage: RBF.gamma(-5)  # optional - arb
             nan
 
@@ -918,13 +918,13 @@ cdef class RealBall(RingElement):
             sage: RealBall(RBF, sage.symbolic.constants.Log2()) # abs tol 1e-16, optional - arb
             [0.693147180559945 +/- 4.06e-16]
             sage: RealBall(RBF, sage.symbolic.constants.Catalan())  # optional - arb
-            [0.915965594177219 +/- 9.43e-17]
+            [0.915965594177219 +/- 1.23e-16]
             sage: RealBall(RBF, sage.symbolic.constants.Khinchin())  # optional - arb
             [2.685452001065306 +/- 6.82e-16]
             sage: RealBall(RBF, sage.symbolic.constants.Glaisher())  # optional - arb
             [1.282427129100623 +/- 6.02e-16]
             sage: RealBall(RBF, sage.symbolic.constants.e)  # optional - arb
-            [2.718281828459045 +/- 5.49e-16]
+            [2.718281828459045 +/- 5.35e-16]
         """
         cdef fmpz_t tmpz
         cdef fmpq_t tmpq
@@ -1392,33 +1392,6 @@ cdef class RealBall(RingElement):
         """
         return arb_is_exact(self.value)
 
-    def __richcmp__(left, right, int op):
-        """
-        Compare ``left`` and ``right``.
-
-        For more information, see :mod:`sage.rings.real_arb`.
-
-        EXAMPLES::
-
-                sage: from sage.rings.real_arb import RealBallField # optional - arb
-                sage: RBF = RealBallField() # optional - arb
-                sage: a = RBF(1) # optional - arb
-                sage: b = RBF(1) # optional - arb
-                sage: a is b # optional - arb
-                False
-                sage: a == b # optional - arb
-                True
-                sage: a = RBF(1/3) # optional - arb
-                sage: a.is_exact() # optional - arb
-                False
-                sage: b = RBF(1/3) # optional - arb
-                sage: b.is_exact() # optional - arb
-                False
-                sage: a == b # optional - arb
-                False
-        """
-        return (<Element>left)._richcmp(right, op)
-
     cpdef _richcmp_(left, Element right, int op):
         """
         Compare ``left`` and ``right``.
@@ -1427,164 +1400,172 @@ cdef class RealBall(RingElement):
 
         EXAMPLES::
 
-                sage: from sage.rings.real_arb import RealBallField # optional - arb
-                sage: RBF = RealBallField() # optional - arb
-                sage: a = RBF(1) # optional - arb
-                sage: b = RBF(1) # optional - arb
-                sage: a is b # optional - arb
-                False
-                sage: a == b # optional - arb
-                True
+            sage: from sage.rings.real_arb import RealBallField # optional - arb
+            sage: RBF = RealBallField() # optional - arb
+            sage: a = RBF(1) # optional - arb
+            sage: b = RBF(1) # optional - arb
+            sage: a is b # optional - arb
+            False
+            sage: a == b # optional - arb
+            True
+            sage: a = RBF(1/3) # optional - arb
+            sage: a.is_exact() # optional - arb
+            False
+            sage: b = RBF(1/3) # optional - arb
+            sage: b.is_exact() # optional - arb
+            False
+            sage: a == b # optional - arb
+            False
 
         TESTS:
 
-            Balls whose intersection consists of one point::
+        Balls whose intersection consists of one point::
 
-                sage: a = RBF(RIF(1, 2)) # optional - arb
-                sage: b = RBF(RIF(2, 4)) # optional - arb
-                sage: a < b # optional - arb
-                False
-                sage: a > b # optional - arb
-                False
-                sage: a <= b # optional - arb
-                False
-                sage: a >= b # optional - arb
-                False
-                sage: a == b # optional - arb
-                False
-                sage: a != b # optional - arb
-                False
+            sage: a = RBF(RIF(1, 2)) # optional - arb
+            sage: b = RBF(RIF(2, 4)) # optional - arb
+            sage: a < b # optional - arb
+            False
+            sage: a > b # optional - arb
+            False
+            sage: a <= b # optional - arb
+            False
+            sage: a >= b # optional - arb
+            False
+            sage: a == b # optional - arb
+            False
+            sage: a != b # optional - arb
+            False
 
-            Balls with non-trivial intersection::
+        Balls with non-trivial intersection::
 
-                sage: a = RBF(RIF(1, 4)) # optional - arb
-                sage: a = RBF(RIF(2, 5)) # optional - arb
-                sage: a < b # optional - arb
-                False
-                sage: a <= b # optional - arb
-                False
-                sage: a > b # optional - arb
-                False
-                sage: a >= b # optional - arb
-                False
-                sage: a == b # optional - arb
-                False
-                sage: a != b # optional - arb
-                False
+            sage: a = RBF(RIF(1, 4)) # optional - arb
+            sage: a = RBF(RIF(2, 5)) # optional - arb
+            sage: a < b # optional - arb
+            False
+            sage: a <= b # optional - arb
+            False
+            sage: a > b # optional - arb
+            False
+            sage: a >= b # optional - arb
+            False
+            sage: a == b # optional - arb
+            False
+            sage: a != b # optional - arb
+            False
 
-            One ball contained in another::
+        One ball contained in another::
 
-                sage: a = RBF(RIF(1, 4)) # optional - arb
-                sage: b = RBF(RIF(2, 3)) # optional - arb
-                sage: a < b # optional - arb
-                False
-                sage: a <= b # optional - arb
-                False
-                sage: a > b # optional - arb
-                False
-                sage: a >= b # optional - arb
-                False
-                sage: a == b # optional - arb
-                False
-                sage: a != b # optional - arb
-                False
+            sage: a = RBF(RIF(1, 4)) # optional - arb
+            sage: b = RBF(RIF(2, 3)) # optional - arb
+            sage: a < b # optional - arb
+            False
+            sage: a <= b # optional - arb
+            False
+            sage: a > b # optional - arb
+            False
+            sage: a >= b # optional - arb
+            False
+            sage: a == b # optional - arb
+            False
+            sage: a != b # optional - arb
+            False
 
-            Disjoint balls::
+        Disjoint balls::
 
-                sage: a = RBF(1/3) # optional - arb
-                sage: b = RBF(1/2) # optional - arb
-                sage: a < b # optional - arb
-                True
-                sage: a <= b # optional - arb
-                True
-                sage: a > b # optional - arb
-                False
-                sage: a >= b # optional - arb
-                False
-                sage: a == b # optional - arb
-                False
-                sage: a != b # optional - arb
-                True
+            sage: a = RBF(1/3) # optional - arb
+            sage: b = RBF(1/2) # optional - arb
+            sage: a < b # optional - arb
+            True
+            sage: a <= b # optional - arb
+            True
+            sage: a > b # optional - arb
+            False
+            sage: a >= b # optional - arb
+            False
+            sage: a == b # optional - arb
+            False
+            sage: a != b # optional - arb
+            True
 
-            Exact elements::
+        Exact elements::
 
-                sage: a = RBF(2) # optional - arb
-                sage: b = RBF(2) # optional - arb
-                sage: a.is_exact() # optional - arb
-                True
-                sage: b.is_exact() # optional - arb
-                True
-                sage: a < b # optional - arb
-                False
-                sage: a <= b # optional - arb
-                True
-                sage: a > b # optional - arb
-                False
-                sage: a >= b # optional - arb
-                True
-                sage: a == b # optional - arb
-                True
-                sage: a != b # optional - arb
-                False
+            sage: a = RBF(2) # optional - arb
+            sage: b = RBF(2) # optional - arb
+            sage: a.is_exact() # optional - arb
+            True
+            sage: b.is_exact() # optional - arb
+            True
+            sage: a < b # optional - arb
+            False
+            sage: a <= b # optional - arb
+            True
+            sage: a > b # optional - arb
+            False
+            sage: a >= b # optional - arb
+            True
+            sage: a == b # optional - arb
+            True
+            sage: a != b # optional - arb
+            False
 
-            Special values::
+        Special values::
 
-                sage: inf = RBF(+infinity)  # optional - arb
-                sage: other_inf = RBF(+infinity, 42.r)  # optional - arb
-                sage: neg_inf = RBF(-infinity)  # optional - arb
-                sage: extended_line = 1/RBF(0)  # optional - arb
-                sage: exact_nan = inf - inf  # optional - arb
-                sage: exact_nan.mid(), exact_nan.rad()  # optional - arb
-                (NaN, 0.00000000)
-                sage: other_exact_nan = inf - inf  # optional - arb
+            sage: inf = RBF(+infinity)  # optional - arb
+            sage: other_inf = RBF(+infinity, 42.r)  # optional - arb
+            sage: neg_inf = RBF(-infinity)  # optional - arb
+            sage: extended_line = 1/RBF(0)  # optional - arb
+            sage: exact_nan = inf - inf  # optional - arb
+            sage: exact_nan.mid(), exact_nan.rad()  # optional - arb
+            (NaN, 0.00000000)
+            sage: other_exact_nan = inf - inf  # optional - arb
 
-            ::
+        ::
 
-                sage: exact_nan == exact_nan, exact_nan <= exact_nan, exact_nan >= exact_nan  # optional - arb
-                (False, False, False)
-                sage: exact_nan != exact_nan, exact_nan < exact_nan, exact_nan > exact_nan  # optional - arb
-                (False, False, False)
-                sage: from operator import eq, ne, le, lt, ge, gt  # optional - arb
-                sage: ops = [eq, ne, le, lt, ge, gt]  # optional - arb
-                sage: any(op(exact_nan, other_exact_nan) for op in ops)  # optional - arb
-                False
-                sage: any(op(exact_nan, b) for op in ops for b in [RBF(1), extended_line, inf, neg_inf])  # optional - arb
-                False
+            sage: exact_nan == exact_nan, exact_nan <= exact_nan, exact_nan >= exact_nan  # optional - arb
+            (False, False, False)
+            sage: exact_nan != exact_nan, exact_nan < exact_nan, exact_nan > exact_nan  # optional - arb
+            (False, False, False)
+            sage: from operator import eq, ne, le, lt, ge, gt  # optional - arb
+            sage: ops = [eq, ne, le, lt, ge, gt]  # optional - arb
+            sage: any(op(exact_nan, other_exact_nan) for op in ops)  # optional - arb
+            False
+            sage: any(op(exact_nan, b) for op in ops for b in [RBF(1), extended_line, inf, neg_inf])  # optional - arb
+            False
 
-            ::
+        ::
 
-                sage: neg_inf < a < inf and inf > a > neg_inf  # optional - arb
-                True
-                sage: neg_inf <= b <= inf and inf >= b >= neg_inf  # optional - arb
-                True
-                sage: neg_inf <= extended_line <= inf and inf >= extended_line >= neg_inf  # optional - arb
-                True
-                sage: neg_inf < extended_line or extended_line < inf  # optional - arb
-                False
-                sage: inf > extended_line or extended_line > neg_inf  # optional - arb
-                False
+            sage: neg_inf < a < inf and inf > a > neg_inf  # optional - arb
+            True
+            sage: neg_inf <= b <= inf and inf >= b >= neg_inf  # optional - arb
+            True
+            sage: neg_inf <= extended_line <= inf and inf >= extended_line >= neg_inf  # optional - arb
+            True
+            sage: neg_inf < extended_line or extended_line < inf  # optional - arb
+            False
+            sage: inf > extended_line or extended_line > neg_inf  # optional - arb
+            False
 
-            ::
+        ::
 
-                sage: all(b <= b == b >= b and not (b < b or b != b or b > b)  # optional - arb
-                ....:     for b in [inf, neg_inf, other_inf])
-                True
-                sage: any(b1 == b2 for b1 in [inf, neg_inf, a, extended_line]  # optional - arb
-                ....:              for b2 in [inf, neg_inf, a, extended_line]
-                ....:              if not b1 is b2)
-                False
-                sage: all(b1 != b2 and not b1 == b2  # optional - arb
-                ....:     for b1 in [inf, neg_inf, a]
-                ....:     for b2 in [inf, neg_inf, a]
-                ....:     if not b1 is b2)
-                True
-                sage: neg_inf <= -other_inf == neg_inf == -other_inf < other_inf == inf <= other_inf  # optional - arb
-                True
-                sage: any(inf < b or b > inf  # optional - arb
-                ....:     for b in [inf, other_inf,  a, extended_line])
-                False
-                sage: any(inf <= b or b >= inf for b in [a, extended_line])  # optional - arb
-                False
+            sage: all(b <= b == b >= b and not (b < b or b != b or b > b)  # optional - arb
+            ....:     for b in [inf, neg_inf, other_inf])
+            True
+            sage: any(b1 == b2 for b1 in [inf, neg_inf, a, extended_line]  # optional - arb
+            ....:              for b2 in [inf, neg_inf, a, extended_line]
+            ....:              if not b1 is b2)
+            False
+            sage: all(b1 != b2 and not b1 == b2  # optional - arb
+            ....:     for b1 in [inf, neg_inf, a]
+            ....:     for b2 in [inf, neg_inf, a]
+            ....:     if not b1 is b2)
+            True
+            sage: neg_inf <= -other_inf == neg_inf == -other_inf < other_inf == inf <= other_inf  # optional - arb
+            True
+            sage: any(inf < b or b > inf  # optional - arb
+            ....:     for b in [inf, other_inf,  a, extended_line])
+            False
+            sage: any(inf <= b or b >= inf for b in [a, extended_line])  # optional - arb
+            False
         """
         cdef RealBall lt, rt
         cdef arb_t difference
@@ -1960,7 +1941,7 @@ cdef class RealBall(RingElement):
 
             sage: from sage.rings.real_arb import RBF  # optional - arb
             sage: RBF(pi)/RBF(e)  # optional - arb
-            [1.155727349790922 +/- 8.49e-16]
+            [1.155727349790922 +/- 8.43e-16]
             sage: RBF(2)/RBF(0)  # optional - arb
             [+/- inf]
         """
@@ -1976,13 +1957,13 @@ cdef class RealBall(RingElement):
 
             sage: from sage.rings.real_arb import RBF  # optional - arb
             sage: RBF(e)^17  # optional - arb
-            [24154952.753575 +/- 3.47e-7]
+            [24154952.7535753 +/- 9.30e-8]
             sage: RBF(e)^(-1)  # optional - arb
-            [0.367879441171442 +/- 4.52e-16]
+            [0.367879441171442 +/- 4.50e-16]
             sage: RBF(e)^(1/2)  # optional - arb
-            [1.648721270700128 +/- 5.00e-16]
+            [1.648721270700128 +/- 4.96e-16]
             sage: RBF(e)^RBF(pi)  # optional - arb
-            [23.1406926327793 +/- 9.20e-14]
+            [23.1406926327793 +/- 9.16e-14]
 
         ::
 
@@ -1996,9 +1977,9 @@ cdef class RealBall(RingElement):
         TESTS::
 
             sage: RBF(e)**(2r)  # optional - arb
-            [7.38905609893065 +/- 4.75e-15]
+            [7.38905609893065 +/- 4.68e-15]
             sage: RBF(e)**(-1r)  # optional - arb
-            [0.367879441171442 +/- 4.52e-16]
+            [0.367879441171442 +/- 4.50e-16]
         """
         cdef fmpz_t tmpz
         if not isinstance(base, RealBall):
@@ -2476,7 +2457,7 @@ cdef class RealBall(RingElement):
 
             sage: from sage.rings.real_arb import RBF  # optional - arb
             sage: RBF(1/2).gamma()  # optional - arb
-            [1.772453850905516 +/- 3.72e-16]
+            [1.772453850905516 +/- 3.41e-16]
         """
         cdef RealBall res = self._new()
         if _do_sig(prec(self)): sig_on()
@@ -2581,11 +2562,11 @@ cdef class RealBall(RingElement):
             sage: polylog(0, -1)  # optional - arb
             -1/2
             sage: RBF(-1).polylog(0)  # optional - arb
-            [-0.50000000000000 +/- 1.78e-15]
+            [-0.50000000000000 +/- 1.29e-15]
             sage: polylog(1, 1/2)  # optional - arb
             -log(1/2)
             sage: RBF(1/2).polylog(1)  # optional - arb
-            [0.6931471805599 +/- 5.08e-14]
+            [0.6931471805599 +/- 5.02e-14]
             sage: RBF(1/3).polylog(1/2)  # optional - arb
             [0.44210883528067 +/- 6.75e-15]
             sage: RBF(1/3).polylog(RLF(pi))  # optional - arb

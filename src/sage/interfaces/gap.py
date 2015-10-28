@@ -178,6 +178,7 @@ AUTHORS:
 from expect import Expect, ExpectElement, FunctionElement, ExpectFunction
 from sage.env import SAGE_LOCAL, SAGE_EXTCODE, DOT_SAGE
 from sage.misc.misc import is_in_string
+from sage.misc.superseded import deprecation
 import re
 import os
 import pexpect
@@ -496,14 +497,14 @@ class Gap_generic(Expect):
             sage: gap.load_package("chevie")
             Traceback (most recent call last):
             ...
-            RuntimeError: Error loading Gap package chevie. You may want to install the gap_packages SPKG.
+            RuntimeError: Error loading Gap package chevie. You may want to install the gap_packages and/or database_gap SPKGs.
         """
         if verbose:
             print "Loading GAP package %s"%pkg
         x = self.eval('LoadPackage("%s")'%pkg)
         if x == 'fail':
             raise RuntimeError("Error loading Gap package "+str(pkg)+". "+
-                               "You may want to install the gap_packages SPKG.")
+                               "You may want to install the gap_packages and/or database_gap SPKGs.")
 
     def eval(self, x, newlines=False, strip=True, split_lines=True, **kwds):
         r"""
@@ -1010,6 +1011,20 @@ class GapElement_generic(ExpectElement):
         else:
             return int(self.Length())
 
+    def is_string(self):
+        """
+        Tell whether this element is a string.
+
+        EXAMPLES::
+
+            sage: gap('"abc"').is_string()
+            True
+            sage: gap('[1,2,3]').is_string()
+            False
+
+        """
+        return bool(self.IsString())
+
     def _matrix_(self, R):
         r"""
         Return matrix over the (Sage) ring R determined by self, where self
@@ -1064,7 +1079,8 @@ class Gap(Gap_generic):
                  use_workspace_cache=True,
                  server=None,
                  server_tmpdir=None,
-                 logfile=None):
+                 logfile=None,
+                 seed=None):
         """
         EXAMPLES::
 
@@ -1093,6 +1109,27 @@ class Gap(Gap_generic):
                         logfile=logfile,
                         eval_using_file_cutoff=100)
         self.__seq = 0
+        self._seed = seed
+
+    def set_seed(self,seed=None):
+        """
+        Sets the seed for gap interpeter.
+        The seed should be an integer.
+
+        EXAMPLES::
+
+            sage: g = Gap()
+            sage: g.set_seed(0)
+            0
+            sage: [g.Random(1,10) for i in range(5)]
+            [2, 3, 3, 4, 2]
+        """
+        if seed is None:
+            seed = self.rand_seed()
+        self.eval("Reset(GlobalMersenneTwister,%d)" % seed)
+        self.eval("Reset(GlobalRandomSource,%d)" % seed)
+        self._seed = seed
+        return seed
 
     def __reduce__(self):
         """
@@ -1177,6 +1214,9 @@ class Gap(Gap_generic):
                 '@e','@c','@f','@h','@i','@m','@n','@r','@s\d','@w.*\+','@x','@z'])
         # read everything up to the first "ready" prompt
         self._expect.expect("@i")
+
+        # set random seed
+        self.set_seed(self._seed)
 
     def _function_class(self):
         """
@@ -1530,20 +1570,6 @@ class GapElement(GapElement_generic):
         else:
             return self.parent().new('%s%s'%(self._name, ''.join(['[%s]'%x for x in n])))
 
-    def __reduce__(self):
-        """
-        Note that GAP elements cannot be pickled.
-
-        EXAMPLES::
-
-            sage: gap(2).__reduce__()
-            (<function reduce_load at 0x...>, ())
-            sage: f, args = _
-            sage: f(*args)
-            <repr(<sage.interfaces.gap.GapElement at 0x...>) failed: ValueError: The session in which this object was defined is no longer running.>
-        """
-        return reduce_load, ()  # default is an invalid object
-
     def str(self, use_file=False):
         """
         EXAMPLES::
@@ -1773,19 +1799,31 @@ def reduce_load_GAP():
     """
     return gap
 
+# This is only for backwards compatibility, in order to be able
+# to unpickle the invalid objects that are in the pickle jar.
 def reduce_load():
     """
-    Returns an invalid GAP element. Note that this is the object
-    returned when a GAP element is unpickled.
+    This is for backwards compatibility only.
+
+    To be precise, it only serves at unpickling the invalid
+    gap elements that are stored in the pickle jar.
 
     EXAMPLES::
 
         sage: from sage.interfaces.gap import reduce_load
         sage: reduce_load()
-        <repr(<sage.interfaces.gap.GapElement at 0x...>) failed: ValueError: The session in which this object was defined is no longer running.>
-        sage: loads(dumps(gap(2)))
-        <repr(<sage.interfaces.gap.GapElement at 0x...>) failed: ValueError: The session in which this object was defined is no longer running.>
+        doctest:...: DeprecationWarning: This function is only used to unpickle invalid objects
+        See http://trac.sagemath.org/18848 for details.
+        <repr(<sage.interfaces.gap.GapElement at ...>) failed:
+        ValueError: The session in which this object was defined is no longer running.>
+
+    By :trac:`18848`, pickling actually often works::
+
+        sage: loads(dumps(gap([1,2,3])))
+        [ 1, 2, 3 ]
+
     """
+    deprecation(18848, "This function is only used to unpickle invalid objects")
     return GapElement(None, None)
 
 def gap_console():

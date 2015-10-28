@@ -18,6 +18,9 @@ AUTHORS:
 
 
 import signal
+from libc.signal cimport (SIGHUP, SIGINT, SIGABRT, SIGILL, SIGSEGV,
+        SIGFPE, SIGBUS, SIGQUIT)
+from libc.stdlib cimport abort
 
 cdef extern from 'interrupt/tests_helper.c':
     void ms_sleep(long ms) nogil
@@ -28,7 +31,6 @@ cdef extern from *:
     ctypedef int volatile_int "volatile int"
 
 
-include 'sage/ext/signals.pxi'
 include 'sage/ext/interrupt.pxi'
 include 'sage/ext/stdsage.pxi'
 from cpython cimport PyErr_SetString
@@ -847,7 +849,7 @@ def test_graceful_exit():
         sage: while "GO" not in P.stdout.readline(): pass  # long time
         sage: os.kill(P.pid, SIGHUP)  # long time
         sage: print 'stdout =', P.stdout.read()  # long time
-        stdout = ...Exiting spawned PARI/GP interpreter process...
+        stdout = ...Exiting PARI/GP interpreter...
         sage: P.wait()  # long time
         0
     """

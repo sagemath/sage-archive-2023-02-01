@@ -35,6 +35,8 @@ We can also construct the product by specifying the dimensions and the base ring
 # the License, or (at your option) any later version.
 # http://www.gnu.org/licenses/
 #*****************************************************************************
+
+import six
 from sage.misc.cachefunc import cached_method
 
 from sage.rings.all import (PolynomialRing, ZZ, QQ, Integer)
@@ -133,7 +135,7 @@ def ProductProjectiveSpaces(n, R=None, names='x'):
             raise ValueError("Must be a commutative ring")
         from sage.structure.parent_gens import normalize_names
         n_vars=sum(d+1 for d in n)
-        if isinstance(names, basestring):
+        if isinstance(names, six.string_types):
             names = normalize_names(n_vars, names)
         else:
             name_list = list(names)

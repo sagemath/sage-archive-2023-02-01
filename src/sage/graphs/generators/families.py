@@ -1612,13 +1612,6 @@ def PasechnikGraph(n):
         (225, 98, 43, 42)
         sage: PasechnikGraph(9).is_strongly_regular(parameters=True) # long time
         (1225, 578, 273, 272)
-
-    REFERENCES:
-
-    .. [Pa92] D. V. Pasechnik,
-      Skew-symmetric association schemes with two classes and strongly
-      regular graphs of type `L_{2n-1}(4n- 1)`,
-      Acta Applicandaie Math. 29(1992), 129-138
     """
     from sage.combinat.matrices.hadamard_matrix import skew_hadamard_matrix
     from sage.matrix.constructor import identity_matrix, matrix

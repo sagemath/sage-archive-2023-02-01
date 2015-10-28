@@ -134,6 +134,13 @@ def is_orthogonal_array_block_graph(int v,int k,int l,int mu):
         (225, 112, 55, 56)
 
         sage: t = is_orthogonal_array_block_graph(5,5,5,5); t
+
+    REFERENCE:
+
+    .. [Pa92] D. V. Pasechnik,
+      Skew-symmetric association schemes with two classes and strongly
+      regular graphs of type `L_{2n-1}(4n- 1)`,
+      Acta Applicandaie Math. 29(1992), 129-138
     """
     # notations from
     # http://www.win.tue.nl/~aeb/graphs/OA.html

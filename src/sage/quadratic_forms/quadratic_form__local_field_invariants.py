@@ -127,6 +127,14 @@ def rational_diagonal_form(self, return_matrix=False):
         [   0    0    0    1]
         )
 
+    PARI returns a singular transformation matrix for this case::
+
+        sage: Q = QuadraticForm(QQ, 2, [1/2, 1, 1/2])
+        sage: Q.rational_diagonal_form()
+        Quadratic form in 2 variables over Rational Field with coefficients:
+        [ 1/2 0 ]
+        [ * 0 ]
+
     This example cannot be computed by PARI::
 
         sage: Q = QuadraticForm(RIF, 4, range(10))
@@ -162,9 +170,10 @@ def rational_diagonal_form(self, return_matrix=False):
         ValueError: matrix is immutable; please change a copy instead (i.e., use copy(M) to change a copy of M).
     """
     Q, T = self._rational_diagonal_form_and_transformation()
+    T.set_immutable()
 
     # Quadratic forms do not support immutability, so we need to make
-    # a copy to be safe. The matrix T is already immutable.
+    # a copy to be safe.
     Q = deepcopy(Q)
 
     if return_matrix:
@@ -232,13 +241,15 @@ def _rational_diagonal_form_and_transformation(self):
         for i in range(n):
             D[i,i] = R[i,i]
         Q = Q.parent()(D)
-        if not return_matrix:
-            return Q
         # Transformation matrix (inverted)
         T = MS(R.sage())
         for i in range(n):
             T[i,i] = K.one()
-        return Q, ~T
+        try:
+            return Q, ~T
+        except ZeroDivisionError:
+            # Singular case is not fully supported by PARI
+            pass
 
     # General case if conversion to/from PARI failed
     T = MS(1)
@@ -272,7 +283,6 @@ def _rational_diagonal_form_and_transformation(self):
         Q = Q(temp)
         T = T * temp
 
-    T.set_immutable()
     return Q, T
 
 

@@ -1,9 +1,9 @@
 r"""
-Parallelization utilities
+Parallelization control
 
-This module defines the singleton class :class:`Parallelism` to gather the
-information relative to parallelization of computations in some specific topics
-(basically the number of  processes to be used).
+This module defines the singleton class :class:`Parallelism` to govern the
+parallelization of computations in some specific topics. It allows the user to
+set the number of  processes to be used for parallelization.
 
 Some examples of use are provided in the documentation of
 :meth:`sage.tensor.modules.comp.Components.contract`.
@@ -121,8 +121,8 @@ class Parallelism(Singleton, SageObject):
 
     def reset(self):
         r"""
-        Put the singleton object ``Parallelism()`` in the same state as just
-        after its creation.
+        Put the singleton object ``Parallelism()`` in the same state as
+        immediately after its creation.
 
         EXAMPLE:
 
@@ -165,10 +165,10 @@ class Parallelism(Singleton, SageObject):
 
         INPUT:
 
-        - ``field`` -- (defaut: ``None``) string specifying the computational
+        - ``field`` -- (default: ``None``) string specifying the computational
           field for which the number of parallel processes is to be set; if
           ``None``, all fields are considered
-        - ``nproc`` -- (defaut: ``None``) number of processes to be used for
+        - ``nproc`` -- (default: ``None``) number of processes to be used for
           parallelization; if ``None``, the number of processes will be set to
           the default value, which, unless redefined by :meth:`set_default`,
           is the total number of cores found on the computer.
@@ -211,7 +211,7 @@ class Parallelism(Singleton, SageObject):
 
         Switching off the parallelization::
 
-            sage: Parallelism().set('tensor', nproc=1)
+            sage: Parallelism().set(nproc=1)
             sage: Parallelism()
             Number of processes for parallelization:
              - tensor computations: 1
@@ -222,20 +222,19 @@ class Parallelism(Singleton, SageObject):
                 self.set(field=fi, nproc=nproc)
         else:
             if field not in self._nproc :
-                raise KeyError(
-                    """entry for field {0} is not implemented in the Parallelism""".format(field)
-                )
+                raise KeyError("entry for field {} is not ".format(field) +
+                               "implemented in Parallelism")
             if nproc is None:
                 self._nproc[field] = self._default
             else:
-                if not isinstance(nproc,(int,Integer)):
+                if not isinstance(nproc, (int,Integer)):
                     raise TypeError("nproc must be integer")
                 self._nproc[field] = nproc
 
     def get(self, field):
         r"""
-        Get the number of processes which will be used in parallel computations
-        regarding some specific field.
+        Return the number of processes which will be used in parallel
+        computations regarding some specific field.
 
         INPUT:
 
@@ -244,12 +243,12 @@ class Parallelism(Singleton, SageObject):
 
         OUTPUT:
 
-        - number of processes used in parallelization of computations in the
-          domain ``field``
+        - number of processes used in parallelization of computations
+          pertaining to ``field``
 
         EXAMPLES:
 
-        The default is a single proces (no parallelization)::
+        The default is a single process (no parallelization)::
 
             sage: Parallelism().reset()
             sage: Parallelism().get('tensor')
@@ -270,7 +269,7 @@ class Parallelism(Singleton, SageObject):
 
     def get_all(self):
         r"""
-        Get the number of processes which will be used in parallel
+        Return the number of processes which will be used in parallel
         computations in all fields
 
         OUTPUT:
@@ -301,14 +300,14 @@ class Parallelism(Singleton, SageObject):
 
         INPUT:
 
-        - ``nproc`` -- (defaut: ``None``) default number of processes;
+        - ``nproc`` -- (default: ``None``) default number of processes;
           if ``None``, the number of processes will be set to the total number
           of cores found on the computer.
 
         EXAMPLES:
 
-        The default number of process for parallelization is the total number
-        of cores found on the computer::
+        A priori the default number of process for parallelization is the
+        total number of cores found on the computer::
 
             sage: Parallelism().get_default()  # random (depends on the computer)
             8
@@ -335,14 +334,15 @@ class Parallelism(Singleton, SageObject):
 
     def get_default(self):
         r"""
-        Get the default number of processes to be launched in parallel
+        Return the default number of processes to be launched in parallel
         computations.
 
         EXAMPLES:
 
-        The default number of process for parallelization is the total number
-        of cores found on the computer::
+        A priori, the default number of process for parallelization is the
+        total number of cores found on the computer::
 
+            sage: Parallelism().reset()
             sage: Parallelism().get_default()  # random (depends on the computer)
             8
 

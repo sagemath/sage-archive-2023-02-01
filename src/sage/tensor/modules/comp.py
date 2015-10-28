@@ -1285,15 +1285,17 @@ class Components(SageObject):
 
         Parallel computation::
 
-            sage: Parallelism().set('tensor',2); Parallelism().get('tensor')
-            2
-            sage: s = a.__add__(b) ; s
+            sage: Parallelism().set('tensor', nproc=2)
+            sage: Parallelism()
+            Number of processes for parallelization:
+             - tensor computations: 2
+            sage: s_par = a.__add__(b) ; s_par
             1-index components w.r.t. [1, 2, 3]
-            sage: s[:]
+            sage: s_par[:]
             [5, 5, 3]
-            sage: s == a+b
+            sage: s_par == s
             True
-            sage: Parallelism().set('tensor',2)
+            sage: Parallelism().set('tensor', nproc=1)  # switch off parallelization
 
         """
         if other == 0:
@@ -1401,15 +1403,17 @@ class Components(SageObject):
 
         Parallel computation::
 
-            sage: Parallelism().set('tensor',2); Parallelism().get('tensor')
-            2
-            sage: s = a.__sub__(b) ; s
+            sage: Parallelism().set('tensor', nproc=2)
+            sage: Parallelism()
+            Number of processes for parallelization:
+             - tensor computations: 2
+            sage: s_par = a.__sub__(b) ; s_par
             1-index components w.r.t. [1, 2, 3]
-            sage: s[:]
+            sage: s_par[:]
             [-3, -5, -9]
-            sage: s == a - b
+            sage: s_par == s
             True
-            sage: Parallelism().set('tensor',1)
+            sage: Parallelism().set('tensor', nproc=1)  # switch off parallelization
 
         """
         if other == 0:
@@ -1474,18 +1478,20 @@ class Components(SageObject):
             True
 
         Parallel computation::
-            sage: Parallelism().set('tensor',2); Parallelism().get('tensor')
-            2
-            sage: s = a.__mul__(b) ; s
+
+            sage: Parallelism().set('tensor', nproc=2)
+            sage: Parallelism()
+            Number of processes for parallelization:
+             - tensor computations: 2
+            sage: s_par = a.__mul__(b) ; s_par
             2-indices components w.r.t. [1, 2, 3]
-            sage: s[:]
+            sage: s_par[:]
             [  4   5   6]
             [  0   0   0]
             [-12 -15 -18]
-            sage: s == a*b
+            sage: s_par == s
             True
-            sage: Parallelism().set('tensor',1); Parallelism().get('tensor')
-            1
+            sage: Parallelism().set('tensor', nproc=1)  # switch off parallelization
 
         """
         if not isinstance(other, Components):
@@ -1758,37 +1764,43 @@ class Components(SageObject):
             sage: a[:] = (-1, 2, 3)
             sage: b = Components(QQ, V.basis(), 2)
             sage: b[:] = [[1,2,3], [4,5,6], [7,8,9]]
-            sage: s = a.contract(0, b, 0) ; s
+            sage: s0 = a.contract(0, b, 0) ; s0
             1-index components w.r.t. [
             (1, 0, 0),
             (0, 1, 0),
             (0, 0, 1)
             ]
-            sage: s[:]
+            sage: s0[:]
             [28, 32, 36]
-            sage: [sum(a[j]*b[j,i] for j in range(3)) for i in range(3)]  # check
-            [28, 32, 36]
-            sage: s = a.contract(0, b, 1) ; s[:]
+            sage: s0[:] == [sum(a[j]*b[j,i] for j in range(3)) for i in range(3)]  # check
+            True
+            sage: s1 = a.contract(0, b, 1) ; s1[:]
             [12, 24, 36]
-            sage: [sum(a[j]*b[i,j] for j in range(3)) for i in range(3)]  # check
-            [12, 24, 36]
+            sage: s1[:] == [sum(a[j]*b[i,j] for j in range(3)) for i in range(3)]  # check
+            True
 
-        Parallel computation::
+        Parallel computations (see
+        :class:`~sage.parallel.parallelism.Parallelism`)::
 
-            sage: Parallelism().set('tensor',2); Parallelism().get('tensor')
-            2
-            sage: s = a.contract(0, b, 0) ; s
+            sage: Parallelism().set('tensor', nproc=2)
+            sage: Parallelism()
+            Number of processes for parallelization:
+             - tensor computations: 2
+            sage: s0_par = a.contract(0, b, 0) ; s0_par
             1-index components w.r.t. [
             (1, 0, 0),
             (0, 1, 0),
             (0, 0, 1)
             ]
-            sage: s[:]
+            sage: s0_par[:]
             [28, 32, 36]
-            sage: s = a.contract(0, b, 1) ; s[:]
+            sage: s0_par == s0
+            True
+            sage: s1_par = a.contract(0, b, 1) ; s1_par[:]
             [12, 24, 36]
-            sage: Parallelism().set('tensor',1)
-
+            sage: s1_par == s1
+            True
+            sage: Parallelism().set('tensor', nproc = 1)  # switch off parallelization
 
         Contraction on 2 indices::
 
@@ -1812,24 +1824,26 @@ class Components(SageObject):
 
         Parallel computation::
 
-            sage: Parallelism().set('tensor',2); Parallelism().get('tensor')
-            2
-            sage: c = a*b ; c
+            sage: Parallelism().set('tensor', nproc=2)
+            sage: c_par = a*b ; c_par
             3-indices components w.r.t. [
             (1, 0, 0),
             (0, 1, 0),
             (0, 0, 1)
             ]
-            sage: s = c.contract(1,2, b, 0,1) ; s
+            sage: c_par == c
+            True
+            sage: s_par = c_par.contract(1,2, b, 0,1) ; s_par
             1-index components w.r.t. [
             (1, 0, 0),
             (0, 1, 0),
             (0, 0, 1)
             ]
-            sage: s[:]
+            sage: s_par[:]
             [-285, 570, 855]
-            sage: Parallelism().set('tensor',1)
-
+            sage: s_par == s
+            True
+            sage: Parallelism().set('tensor', nproc=1)  # switch off parallelization
 
         Consistency check with :meth:`trace`::
 
@@ -3205,46 +3219,44 @@ class CompWithSym(Components):
             sage: a[0,1], a[1,2] = 4, 5
             sage: b = CompWithSym(ZZ, [1,2,3], 2, sym=(0,1))
             sage: b[0,1], b[2,2] = 2, -3
-            sage: s = a.__mul__(b) ; s
+            sage: s1 = a.__mul__(b) ; s1
             4-indices components w.r.t. [1, 2, 3], with symmetry on the index positions (0, 1), with symmetry on the index positions (2, 3)
-            sage: s[1,0,0,1]
+            sage: s1[1,0,0,1]
             8
-            sage: s[1,0,0,1] == a[1,0] * b[0,1]
+            sage: s1[1,0,0,1] == a[1,0] * b[0,1]
             True
-            sage: s == a*b
+            sage: s1 == a*b
             True
             sage: c = CompWithSym(ZZ, [1,2,3], 2, antisym=(0,1))
             sage: c[0,1], c[0,2] = 3, 7
-            sage: s = a.__mul__(c) ; s
+            sage: s2 = a.__mul__(c) ; s2
             4-indices components w.r.t. [1, 2, 3], with symmetry on the index positions (0, 1), with antisymmetry on the index positions (2, 3)
-            sage: s[1,0,2,0]
+            sage: s2[1,0,2,0]
             -28
-            sage: s[1,0,2,0] == a[1,0] * c[2,0]
+            sage: s2[1,0,2,0] == a[1,0] * c[2,0]
             True
-            sage: s == a*c
+            sage: s2 == a*c
             True
 
         Parallel computation::
-            sage: Parallelism().set('tensor',2); Parallelism().get('tensor')
-            2
-            sage: s = a.__mul__(b) ; s
+
+            sage: Parallelism().set('tensor', nproc=2)
+            sage: Parallelism()
+            Number of processes for parallelization:
+             - tensor computations: 2
+            sage: s1_par = a.__mul__(b) ; s1_par
             4-indices components w.r.t. [1, 2, 3], with symmetry on the index positions (0, 1), with symmetry on the index positions (2, 3)
-            sage: s[1,0,0,1]
+            sage: s1_par[1,0,0,1]
             8
-            sage: s[1,0,0,1] == a[1,0] * b[0,1]
+            sage: s1_par == s1
             True
-            sage: s == a*b
-            True
-            sage: s = a.__mul__(c) ; s
+            sage: s2_par = a.__mul__(c) ; s2_par
             4-indices components w.r.t. [1, 2, 3], with symmetry on the index positions (0, 1), with antisymmetry on the index positions (2, 3)
-            sage: s[1,0,2,0]
+            sage: s2_par[1,0,2,0]
             -28
-            sage: s[1,0,2,0] == a[1,0] * c[2,0]
+            sage: s2_par == s2
             True
-            sage: s == a*c
-            True
-            sage: Parallelism().set('tensor',1); Parallelism().get('tensor')
-            1
+            sage: Parallelism().set('tensor', nproc=1)  # switch off parallelization
 
         """
         if not isinstance(other, Components):
@@ -4549,18 +4561,19 @@ class CompFullySym(CompWithSym):
 
         Parallel computation::
 
-            sage: Parallelism().set('tensor',2); Parallelism().get('tensor')
-            2
-            sage: s = a.__add__(c) ; s  # the symmetry is lost
+            sage: Parallelism().set('tensor', nproc=2)
+            sage: Parallelism()
+            Number of processes for parallelization:
+             - tensor computations: 2
+            sage: s_par = a.__add__(c) ; s_par
             2-indices components w.r.t. (1, 2, 3)
             sage: s[:]
             [ 0  7  7]
             [ 1  0  5]
             [-7  5  0]
-            sage: s == a + c
+            sage: s_par == s
             True
-            sage: Parallelism().set('tensor',1)
-
+            sage: Parallelism().set('tensor', nproc=1)  # switch off parallelization
 
         """
         if other == 0:

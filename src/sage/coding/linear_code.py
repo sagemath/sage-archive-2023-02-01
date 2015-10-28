@@ -323,15 +323,8 @@ def wtdist_gap(Gmat, n, F):
     G = gap(Gmat)
     q = F.order()
     k = gap(F)
-    #C = G.GeneratorMatCode(k)
-    #n = int(C.WordLength())
     z = 'Z(%s)*%s'%(q, [0]*n)     # GAP zero vector as a string
     _ = gap.eval("w:=DistancesDistributionMatFFEVecFFE("+Gmat+", GF("+str(q)+"),"+z+")")
-    # for some reason, this commented code doesn't work:
-    #dist0 = gap("DistancesDistributionMatFFEVecFFE("+Gmat+", GF("+str(q)+"),"+z+")")
-    #v0 = dist0._matrix_(F)
-    #print dist0,v0
-    #d = G.DistancesDistributionMatFFEVecFFE(k, z)
     v = [eval(gap.eval("w["+str(i)+"]")) for i in range(1,n+2)] # because GAP returns vectors in compressed form
     return v
 
@@ -394,7 +387,6 @@ def min_wt_vec_gap(Gmat, n, k, F, algorithm=None):
         from sage.interfaces.gap import gfq_gap_to_sage
         gap.eval("G:="+Gmat)
         C = gap(Gmat).GeneratorMatCode(F)
-        #n = int(C.length())
         cg = C.MinimumDistanceCodeword()
         c = [gfq_gap_to_sage(cg[j],F) for j in range(1,n+1)]
         V = VectorSpace(F,n)
@@ -410,7 +402,6 @@ def min_wt_vec_gap(Gmat, n, k, F, algorithm=None):
         gap.eval("P:=AClosestVectorCombinationsMatFFEVecFFECoords(Gmat,K,v,{},1)".format(i))
         gap.eval("d:=WeightVecFFE(P[1])")
         v = gap("P[1]")
-        # P[2] is m = gap("[P[2]]")
         dist = gap("d")
         if dist and dist < dist_min:
             dist_min = dist
@@ -450,7 +441,6 @@ def best_known_linear_code(n, k, F):
     Gs = G._matrix_(F)
     MS = MatrixSpace(F,k,n)
     return LinearCode(MS(Gs))
-    #return gap.eval("BestKnownLinearCode(%s,%s,GF(%s))"%(n,k,q))
 
 def best_known_linear_code_www(n, k, F, verbose=False):
     r"""
@@ -505,13 +495,11 @@ def best_known_linear_code_www(n, k, F, verbose=False):
     param = ("?q=%s&n=%s&k=%s"%(q,n,k)).replace('L','')
 
     url = "http://iaks-www.ira.uka.de/home/grassl/codetables/BKLC/BKLC.php"+param
-    #url = "http://homepages.cwi.nl/htbin/aeb/lincodbd/"+param
     if verbose:
         print "Looking up the bounds at %s"%url
     f = urllib.urlopen(url)
     s = f.read()
     f.close()
-    #print s
 
     i = s.find("<PRE>")
     j = s.find("</PRE>")
@@ -1086,22 +1074,19 @@ class AbstractLinearCode(module.Module):
         if t>=d:
             return 0
         nonzerowts = [i for i in range(len(wts)) if wts[i]!=0 and i<=n and i>=d]
-        #print d,t,len(nonzerowts)
         if mode=="verbose":
-            #print "\n"
             for w in nonzerowts:
                 print "The weight ",w," codewords of C form a t-(v,k,lambda) design, where"
-                print "      t = ",t," , v = ",n," , k = ",w," , lambda = ",wts[w]*binomial(w,t)/binomial(n,t)#,"\n"
+                print "      t = ",t," , v = ",n," , k = ",w," , lambda = ",wts[w]*binomial(w,t)/binomial(n,t)
                 print "      There are ",wts[w]," blocks of this design."
         wtsp = Cp.spectrum()
         dp = min([i for i in range(1,len(wtsp)) if wtsp[i]!=0])
         nonzerowtsp = [i for i in range(len(wtsp)) if wtsp[i]!=0 and i<=n-t and i>=dp]
         s = len([i for i in range(1,n) if wtsp[i]!=0 and i<=n-t and i>0])
         if mode=="verbose":
-            #print "\n"
             for w in nonzerowtsp:
                 print "The weight ",w," codewords of C* form a t-(v,k,lambda) design, where"
-                print "      t = ",t," , v = ",n," , k = ",w," , lambda = ",wtsp[w]*binomial(w,t)/binomial(n,t)#,"\n"
+                print "      t = ",t," , v = ",n," , k = ",w," , lambda = ",wtsp[w]*binomial(w,t)/binomial(n,t)
                 print "      There are ",wts[w]," blocks of this design."
         if s<=d-t:
             des = [[t,(n,w,wts[w]*binomial(w,t)/binomial(n,t))] for w in nonzerowts]
@@ -1604,7 +1589,6 @@ class AbstractLinearCode(module.Module):
         V = VectorSpace(QQ,n+1)
         S = V(A).nonzero_positions()
         S0 = [S[i] for i in range(1,len(S))]
-        #print S0
         if len(S)>1: return GCD(S0)
         return 1
 
@@ -1693,30 +1677,17 @@ class AbstractLinearCode(module.Module):
             sage: C == ZZ
             False
         """
-        if not isinstance(right, LinearCode):
+        if not (isinstance(right, LinearCode)\
+                and self.length() == right.length()\
+                and self.dimension() == right.dimension()\
+                and self.base_ring() == right.base_ring()):
             return False
-        slength = self.length()
-        rlength = right.length()
-        sdim = self.dimension()
-        rdim = right.dimension()
-        sF = self.base_ring()
-        rF = right.base_ring()
-        if slength != rlength:
+        Ks, rbas = self.parity_check_matrix().right_kernel(), right.gens()
+        if not all(c in Ks for c in rbas):
             return False
-        if sdim != rdim:
+        Kr, sbas = self.parity_check_matrix().right_kernel(), right.gens()
+        if not all(c in Kr for c in sbas):
             return False
-        if sF != rF:
-            return False
-        sbasis = self.gens()
-        rbasis = right.gens()
-        scheck = self.parity_check_matrix()
-        rcheck = right.parity_check_matrix()
-        for c in sbasis:
-            if rcheck*c:
-                return False
-        for c in rbasis:
-            if scheck*c:
-                return False
         return True
 
     def encode(self, word, encoder_name=None, **kwargs):
@@ -2180,7 +2151,6 @@ class AbstractLinearCode(module.Module):
         H = self.parity_check_matrix()
         V = H.column_space()
         HGm = H*g.matrix()
-        # raise TypeError, (type(H), type(V), type(basis[0]), type(Gmc))
         for c in basis:
             if HGm*c != V(0):
                 return False
@@ -2464,7 +2434,6 @@ class AbstractLinearCode(module.Module):
         if (q == 2 or q == 3) and algorithm=="guava":
             C = gapG.GeneratorMatCode(gap(F))
             d = C.MinimumWeight()
-            #print "Running Guava's MinimumWeight ...\n"
             return ZZ(d)
         Gstr = "%s*Z(%s)^0"%(gapG, q)
         return min_wt_vec_gap(Gstr,n,k,F).hamming_weight()
@@ -3399,7 +3368,6 @@ class AbstractLinearCode(module.Module):
         Bs = B.coefficients()
         b = [Bs[i]/binomial(n,i+d) for i in range(len(Bs))]
         r = n-d-dperp+2
-        #print B,Bs,b,r
         P_coeffs = []
         for i in range(len(b)):
            if i == 0:
@@ -3408,7 +3376,6 @@ class AbstractLinearCode(module.Module):
               P_coeffs.append(b[1] - (q+1)*b[0])
            if i>1:
               P_coeffs.append(b[i] - (q+1)*b[i-1] + q*b[i-2])
-        #print P_coeffs
         P = sum([P_coeffs[i]*T**i for i in range(r+1)])
         return RT(P)/RT(P)(1)
 

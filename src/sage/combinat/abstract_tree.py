@@ -786,31 +786,6 @@ class AbstractTree(object):
         """
         return list(self.node_paths_generator())
 
-    def get_node(self, path):
-        r"""
-        Return the node associated with the path given in parameter.
-
-        In a tree T, a path [p1,p2,p3,p4, ...] represents the node
-        T[p1][p2][p3][p4]... .
-
-        If the path is not associated to any node in the tree, then the
-        function returns ``None``.
-
-        EXAMPLES::
-
-            sage: T = OrderedTree([[[], [[], [[]]]], [], [[[], []]], [], []])
-            sage: T.get_node(tuple())
-            [[[], [[], [[]]]], [], [[[], []]], [], []]
-            sage: T.get_node((0,1))
-            [[], [[]]]
-            sage: T.get_node((0,1,1,1))
-        """
-        if not len(path):
-            return self
-        if path[0] >= len(self):
-            return None
-        return self[path[0]].get_node(path[1:])
-
     def path_generator_of_node_to_the_right(self, path):
         r"""
         Return a generator of paths for all nodes located to the right

@@ -1665,11 +1665,11 @@ class ParallelogramPolyomino(ClonableList):
             [0 1 1]
             [0 1 1]
             [0 1 1]
-            sage: pp.bix_is_node( [2,1] )
+            sage: pp.box_is_node( [2,1] )
             True
-            sage: pp.bix_is_node( [2,0] )
+            sage: pp.box_is_node( [2,0] )
             False
-            sage: pp.bix_is_node( [1,1] )
+            sage: pp.box_is_node( [1,1] )
             False
         """
         if self[pos[0]][pos[1]] == 0:
@@ -1678,6 +1678,7 @@ class ParallelogramPolyomino(ClonableList):
             return True
         if self[pos[0]][pos[1]-1] == 0:
             return True
+        return False
 
     def box_is_root(self, box):
         r"""

@@ -2195,10 +2195,14 @@ def circulant(v, sparse=False):
         sage: m = matrix.circulant(vector(GF(3),[0,1,-1],sparse=True))
         sage: m.is_sparse()
         True
+        sage: m = matrix.circulant(vector(GF(3),[0,1,-1],sparse=False))
+        sage: m.is_sparse()
+        False
     """
+    from exceptions import AttributeError
     try:
         sparse = v.is_sparse()
-    except:
+    except AttributeError:
         pass
     n = len(v)
     return matrix(n, n, lambda i, j: v[(j-i)%n], sparse=sparse)

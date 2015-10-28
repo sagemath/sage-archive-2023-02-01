@@ -2119,6 +2119,53 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
             return 0
         return 1 + sum(t.hook_number() for t in self.comb('left') + self.comb('right'))
 
+    def twisting_number(self):
+        r"""
+        Return a 2-tuple where the first element of the tuple is the number 
+        of straight left branches in the binary tree and the second one is 
+        the number of straight right branches in the binary tree.
+
+        OUTPUT : 
+
+        A list of size 2 of non negative integers.        
+
+        EXAMPLES::
+            sage: BT = BinaryTree( '.' )
+            sage: BT.twisting_number()
+            [0, 0]
+            sage: BT = BinaryTree( '[.,.]' )
+            sage: BT.twisting_number()
+            [0, 0]
+            sage: BT = BinaryTree( '[[[.,.], .], [.,.]]' )
+            sage: BT.twisting_number()
+            [1, 1]
+            sage: BT = BinaryTree( '[[[[., [., .]], .], [[., .], [[[., .], [., .]], [., .]]]], [., [[[., .], [[[., .], [., .]], .]], .]]]' )
+            sage: BT.twisting_number()
+            [5, 6]
+            sage: BT = BinaryTree( '[.,[[[.,.],.],.]]' )
+            sage: BT.twisting_number()
+            [1, 1]
+        """
+        tn=[0,0]
+        if self.node_number()<=1:
+            return tn
+        L=self.comb('left')
+        if len(L)>0:
+            tn[0]=tn[0]+1
+            for h in L:
+                tw=BinaryTree([None,h]).twisting_number()
+                tn[0]=tn[0]+tw[0]
+                tn[1]=tn[1]+tw[1]
+        R=self.comb('right')
+        if len(R)>0:
+            tn[1]=tn[1]+1        
+            for l in R:
+                tw=BinaryTree([l,None]).twisting_number()
+                tn[0]=tn[0]+tw[0]
+                tn[1]=tn[1]+tw[1]            
+        return tn
+
+
     def q_hook_length_fraction(self, q=None, q_factor=False):
         r"""
         Compute the ``q``-hook length fraction of the binary tree ``self``,

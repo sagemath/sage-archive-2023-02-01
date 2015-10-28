@@ -114,8 +114,7 @@ def hadamard_matrix_paleyI(n, normalize=True):
 
     TESTS::
 
-        sage: from sage.combinat.matrices.hadamard_matrix import hadamard_matrix_paleyI
-        sage: from sage.combinat.matrices.hadamard_matrix import is_hadamard_matrix
+        sage: from sage.combinat.matrices.hadamard_matrix import (hadamard_matrix_paleyI, is_hadamard_matrix)
         sage: test_cases = [x+1 for x in range(100) if is_prime_power(x) and x%4==3]
         sage: all(is_hadamard_matrix(hadamard_matrix_paleyI(n),normalized=True,verbose=True)
         ....:     for n in test_cases)
@@ -181,8 +180,7 @@ def hadamard_matrix_paleyII(n):
 
     TESTS::
 
-        sage: from sage.combinat.matrices.hadamard_matrix import hadamard_matrix_paleyII
-        sage: from sage.combinat.matrices.hadamard_matrix import is_hadamard_matrix
+        sage: from sage.combinat.matrices.hadamard_matrix import (hadamard_matrix_paleyII, is_hadamard_matrix)
         sage: test_cases = [2*(x+1) for x in range(50) if is_prime_power(x) and x%4==1]
         sage: all(is_hadamard_matrix(hadamard_matrix_paleyII(n),normalized=True,verbose=True)
         ....:     for n in test_cases)
@@ -212,7 +210,7 @@ def hadamard_matrix_paleyII(n):
 
     return normalise_hadamard(H)
 
-def is_hadamard_matrix(M, normalized=False, verbose=False, skew=False):
+def is_hadamard_matrix(M, normalized=False, skew=False, verbose=False):
     r"""
     Test if `M` is a hadamard matrix.
 
@@ -232,7 +230,12 @@ def is_hadamard_matrix(M, normalized=False, verbose=False, skew=False):
     EXAMPLE::
 
         sage: from sage.combinat.matrices.hadamard_matrix import is_hadamard_matrix
-        sage: is_hadamard_matrix(matrix.hadamard(12))
+        sage: h = matrix.hadamard(12)
+        sage: is_hadamard_matrix(h)
+        True
+        sage: from sage.combinat.matrices.hadamard_matrix import skew_hadamard_matrix
+        sage: h=skew_hadamard_matrix(12)
+        sage: is_hadamard_matrix(h, skew=True)
         True
         sage: h = matrix.hadamard(12)
         sage: h[0,0] = 2
@@ -246,7 +249,20 @@ def is_hadamard_matrix(M, normalized=False, verbose=False, skew=False):
         The matrix is not normalized
         False
 
+    TESTS::
 
+        sage: from sage.combinat.matrices.hadamard_matrix import (is_hadamard_matrix, skew_hadamard_matrix)
+        sage: h = matrix.hadamard(12)
+        sage: is_hadamard_matrix(h, skew=True)
+        False
+        sage: is_hadamard_matrix(h, skew=True, verbose=True)
+        The matrix is not skew
+        False
+        sage: h=skew_hadamard_matrix(12)
+        sage: is_hadamard_matrix(h, skew=True, verbose=True)
+        True
+        sage: is_hadamard_matrix(h, skew=False, verbose=True)
+        True
     """
     n = M.ncols()
     if n != M.nrows():
@@ -280,12 +296,12 @@ def is_hadamard_matrix(M, normalized=False, verbose=False, skew=False):
             return False
 
     if skew:
-        S = M - I(n)
-        if -S != S.T:
-            if verbose:
-                print "The matrix is not skew"
-            return False
-
+        for i in xrange(n-1):
+            for j in xrange(i+1, n):
+                if M[i,j] != -M[j,i]:
+                    if verbose:
+                        print "The matrix is not skew"
+                    return False
     return True
 
 from sage.matrix.constructor import matrix_method
@@ -621,7 +637,7 @@ def regular_symmetric_hadamard_matrix_with_constant_diagonal(n,e,existence=False
 
     return M
 
-def _helper_payley_matrix(n, zero_position=1):
+def _helper_payley_matrix(n, zero_position=True):
     r"""
     Return the marix constructed in Lemma 1.19 page 291 of [SWW72]_.
 
@@ -637,6 +653,9 @@ def _helper_payley_matrix(n, zero_position=1):
 
     - ``n`` -- a prime power
 
+    - ``zero_position`` -- is true (default), place 0 of ``F_n`` in the middle, otherwise
+     place it first.
+
     .. SEEALSO::
 
         :func:`rshcd_from_close_prime_powers`
@@ -650,6 +669,10 @@ def _helper_payley_matrix(n, zero_position=1):
         [-1  1  0  1 -1]
         [-1 -1  1  0  1]
         [ 1 -1 -1  1  0]
+        sage: _helper_payley_matrix(3)
+        [ 0 -1  1]
+        [ 1  0 -1]
+        [-1  1  0]
     """
     from sage.rings.finite_rings.constructor import FiniteField as GF
     K = GF(n,conway=True,prefix='x')
@@ -830,6 +853,21 @@ def williamson_goethals_seidel_skew_hadamard_matrix(a, b, c, d, check=True):
     return M
 
 def _GS_skew_hadamard(n, existence=False, check=True):
+    r"""
+    Data for Williamson-Goethals-Seidel construction of skew Hadamard matrices
+
+    Here we keep the data for this construction.
+    Namely, it needs 4 circulant matrices with extra properties, as described in
+    :func:`sage.combinat.matrices.hadamard_matrix.williamson_goethals_seidel_skew_hadamard_matrix`
+
+    INPUT:
+
+    - ``n`` -- the order of the matrix
+
+    - ``existence`` -- if true (default), only check that we can do the construction
+
+    - ``check`` -- if true (default), check the result.
+    """
     from sage.combinat.matrices.hadamard_matrix import\
          williamson_goethals_seidel_skew_hadamard_matrix as WGS
     def pmtoZ(s):

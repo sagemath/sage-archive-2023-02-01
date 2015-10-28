@@ -771,28 +771,6 @@ def rshcd_from_close_prime_powers(n):
     assert HH**2 == n**2*I(n**2)
     return HH
 
-def _circulant_matrix(v):
-    r"""
-    Return the circulant matrix specified by its 1st row `v`
-
-    A circulant `n \times n` matrix specified by the 1st row `v=(v_0...v_{n-1})` is 
-    the matrix $(c_{ij})_{0 \leq i,j\leq n-1}$ where $c_{ij}=v_{j-i \mod b}$.
-
-    EXAMPLES::
-
-        sage: from sage.combinat.matrices.hadamard_matrix import _circulant_matrix 
-        sage: v=[1,2,3,4,8]
-        sage: _circulant_matrix(v)
-        [1 2 3 4 8]
-        [8 1 2 3 4]
-        [4 8 1 2 3]
-        [3 4 8 1 2]
-        [2 3 4 8 1]
-    """
-    from sage.rings.finite_rings.integer_mod import mod
-    n = len(v)
-    return matrix(n, n, lambda i, j: v[mod(j-i,n)])
-
 def williamson_goethals_seidel_skew_hadamard_matrix(a, b, c, d, check=True):
     r"""
     Williamson-Goethals-Seidel construction of a skew Hadamard matrix
@@ -836,10 +814,9 @@ def williamson_goethals_seidel_skew_hadamard_matrix(a, b, c, d, check=True):
 
 
     """
-    from sage.combinat.matrices.hadamard_matrix import _circulant_matrix 
     n = len(a)
     R = matrix(ZZ, n, n, lambda i,j: 1 if i+j==n-1 else 0)
-    A,B,C,D=map(_circulant_matrix, [a,b,c,d])
+    A,B,C,D=map(matrix.circulant, [a,b,c,d])
     if check:
         assert A*A.T+B*B.T+C*C.T+D*D.T==4*n*I(n)
         assert A+A.T==2*I(n)

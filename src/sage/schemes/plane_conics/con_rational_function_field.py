@@ -27,8 +27,11 @@ from sage.schemes.plane_conics.con_field import ProjectiveConic_field
 
 class ProjectiveConic_rational_function_field(ProjectiveConic_field):
     r"""
-    Create a projective plane conic curve over a rational function field.
+    Create a projective plane conic curve over a rational function field `F(t)`,
+    where `F` is any field.
     See ``Conic`` for full documentation.
+    
+    The algorithms used in this class come mostly from [HC2006].
 
     EXAMPLES::
 
@@ -41,12 +44,37 @@ class ProjectiveConic_rational_function_field(ProjectiveConic_field):
 
         sage: K = FractionField(PolynomialRing(QQ, 't'))
         sage: Conic([K(1), 1, -1])._test_pickling()
+        
+    REFERENCES:
+    
+    .. [HC2006] van Hoeij, Mark and Cremona, John. Solving Conics over
+    function fields. J. Théor. Nombres Bordeaux, 2006.
     """
     
     def __init__(self, A, f):
         ProjectiveConic_field.__init__(self, A, f)
-        
+    
     def has_rational_point(self, point = False, algorithm = 'default', read_cache = True):
+        r"""
+        Returns True if and only if the conic ``self``
+        has a point over its base field `B`, which is a field of rational
+        functions.
+
+        If ``point`` is True, then returns a second output, which is
+        a rational point if one exists.
+
+        Points are cached whenever they are found. Cached information
+        is used if and only if ``read_cache`` is True.
+        
+        ALGORITHM:
+        The algorithm used is the algorithm Conic in [HC2006].
+        
+        EXAMPLES:
+            sage: K.<t> = FractionField(PolynomialRing(QQ, 't'))
+            sage: C = Conic(K, [t^2-2, 2*t^3, -2*t^3-13*t^2-2*t+18])
+            sage: C.has_rational_point(point=True)
+            (True, (3 : (1/3*t + 1/3)/(1/3*t) : 1))
+        """
         from constructor import Conic
         
         if read_cache:
@@ -75,15 +103,20 @@ class ProjectiveConic_rational_function_field(ProjectiveConic_field):
                 else:
                     return True
             
+            # We save the coefficients of the reduced form in coeff
+            # A zero of the reduced conic can be multiplied by multipliers
+            # to get a zero of the old conic
             (coeff, multipliers) = new_conic._reduce_conic()
             if coeff[0].degree() % 2 == coeff[1].degree() % 2 and coeff[1].degree() % 2 == coeff[2].degree() % 2:
                 case = 0
             else:
                 case = 1
             
-            t, = self.base_ring().base().gens()
+            t, = self.base_ring().base().gens() # t in F[t]
             supp = []
             roots = [[], [], []]
+            # loop through the coefficients and find a root of f_i (as in [HC2006])
+            # modulo each element in the coefficients support
             for i in (0,1,2):
                 supp.append(list(coeff[i].factor()))
                 for p in supp[i]:
@@ -101,8 +134,9 @@ class ProjectiveConic_rational_function_field(ProjectiveConic_field):
                     if f.is_irreducible():
                         return False
                     roots[i].append(f.roots()[0][0])
-            import pdb;pdb.set_trace()
+            
             if case == 0:
+            # Find a solution of (5) in [HC2006]
                 leading_conic = Conic(self.base_ring().base_ring(), [coeff[0].leading_coefficient(), coeff[1].leading_coefficient(), coeff[2].leading_coefficient()])
                 has_point = leading_conic.has_rational_point(True)
                 if has_point[0]:
@@ -125,6 +159,26 @@ class ProjectiveConic_rational_function_field(ProjectiveConic_field):
         
     
     def _reduce_conic(self):
+        r"""
+        Return the reduced form of the conic, i.e. a conic with base field `K=F(t)`
+        and coefficients `a,b,c` such that `a,b,c \in F[t]`,
+        `\gcd(a,b)=\gcd(b,c)=\gcd(c,a)=1` and `abc` is square-free.
+        
+        OUTPUT:
+        A tuple (coefficients, multipliers), the coefficients of the conic
+        in reduced form and multipliers `\lambda, \mu, \nu \in F(t)^*` such that
+        `(x,y,z) \in F(t)` is a solution of the reduced conic if and only if
+        `(\lambda x, \mu y, \nu z)` is a solution of the original conic.
+        
+        ALGORITMH:
+        The algorithm used is the algorithm ReduceConic in [HC2006].
+        
+        EXAMPLES:
+        sage: K.<t> = FractionField(PolynomialRing(QQ, 't'))
+        sage: C = Conic(K, [t^2-2, 2*t^3, -2*t^3-13*t^2-2*t+18])
+        sage: C._reduce_conic()
+        ([t^2 - 2, 2*t, -2*t^3 - 13*t^2 - 2*t + 18], [t, 1, t])
+        """
         from sage.rings.arith import lcm, gcd
         from sage.modules.free_module_element import vector
         from sage.rings.fraction_field import is_FractionField
@@ -156,16 +210,42 @@ class ProjectiveConic_rational_function_field(ProjectiveConic_field):
             x = decom.unit(); x2 = 1
             for factor in decom:
                 if factor[1] > 1:
-                    x2 = x2 * factor[0] ** (factor[1] - 1)
-                x = x * factor[0]
+                    if factor[1] % 2 == 0:
+                        x2 = x2 * factor[0] ** (factor[1] / 2)
+                    else:
+                        x = x * factor[0]
+                        x2 = x2 * factor[0] ** ((factor[1]-1) / 2)
+                else:
+                    x = x * factor[0]
             for j, y in enumerate(multipliers):
                 if j != i:
                     multipliers[j] = y * x2
             coeff[i] = self.base_ring().base().coerce(x);
         
         return (coeff, multipliers)
-        
+    
     def _find_point(self, coefficients, roots, supports, solution = 0):
+        r"""
+        Given a solubility certificate like in [HC2006], find a point on
+        the conic given by ``coefficients``.
+        
+        INPUT:
+        
+        - ``coefficients`` -- list of three defining coefficients of a
+        conic in reduced form.
+        - ``roots`` -- roots of a solubility certificate like in [HC2006]
+        - ``supports`` -- 3-tuple where supports[i] is a list of all monic
+        irreducible `p \in F[t]` that divide the `i`'th coefficient.
+        - ``solution`` -- (default: 0) a solution of (5) in [HC2006], if
+        one is required, 0 otherwise.
+        
+        OUTPUT:
+        
+        A point `(x,y,z) \in F(t)` of the conic give by ``coefficients``.
+        
+        ALGORITMH:
+        The algorithm used is the algorithm FindPoint in [HC2006].
+        """
         from sage.matrix.constructor import matrix
         Ft = self.base_ring().base()
         deg = [coefficients[0].degree(), coefficients[1].degree(), coefficients[2].degree()]
@@ -182,9 +262,11 @@ class ProjectiveConic_rational_function_field(ProjectiveConic_field):
                     break
         else:
             case = 1
-        A = ((deg[1] + deg[2]) / 2).round('up') - case
-        B = ((deg[2] + deg[0]) / 2).round('up') - case
-        C = ((deg[0] + deg[1]) / 2).round('up') - case
+        # definitions as in [HC2006]
+        A = max(0, ((deg[1] + deg[2]) / 2).round('up') - case)
+        B = max(0, ((deg[2] + deg[0]) / 2).round('up') - case)
+        C = max(0, ((deg[0] + deg[1]) / 2).round('up') - case)
+        # generate the names of all variables we require
         var_names = [Ft.gens()[0]] + ['X%d' % i for i in range(A+1)] + ['Y%d' % i for i in range(B+1)] + ['Z%d' % i for i in range(C+1)] + ['W']
         R = PolynomialRing(self.base_ring().base_ring(), A+B+C+5, var_names)
         var_names = R.gens()
@@ -195,13 +277,17 @@ class ProjectiveConic_rational_function_field(ProjectiveConic_field):
         X = sum([XX[n]*t**n for n in range(A+1)])
         Y = sum([YY[n]*t**n for n in range(B+1)])
         Z = sum([ZZ[n]*t**n for n in range(C+1)])
-        E = [] # list that will contain linear polynomials (set E from the article)
+        E = [] # list that will contain linear polynomials (set E in [HC2006)
         
         if case == 0:
+            # We need an extra variable an linear equation
             W = var_names[A+B+C+4]
             (x,y,z) = solution
             E += [XX[A] - x*W, YY[B] - y*W, ZZ[C] - z*W]
+        # For all roots as calculated by has_rational_point(), do the
+        # calculations from step (6) of FindPoint in [HC2006]
         for (i, p) in enumerate(supports[0]):
+            # lift to F[t] and map to R, with R as defined above
             alpha = roots[0][i].lift().parent().hom([t])(roots[0][i].lift())
             r = (Y - alpha*Z).quo_rem(p[0])[1]
             for i in range(r.degree(t) + 1):
@@ -216,6 +302,8 @@ class ProjectiveConic_rational_function_field(ProjectiveConic_field):
             r = (X - alpha*Y).quo_rem(p[0])[1]
             for i in range(r.degree(t) + 1):
                 E.append(r.coefficient({t:i}))
+        # Create a matrix to compute a solution of the system obtained by
+        # equating all elements of E to 0
         E2 = []
         for f in E:
             column = []

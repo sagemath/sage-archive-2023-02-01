@@ -614,17 +614,22 @@ class Posets(object):
         return Poset(dict([[s,weak_covers(s)] for s in Permutations(n)]),element_labels)
         
     @staticmethod
-    def TetrahedralPoset(n, *colors):
+    def TetrahedralPoset(n, int_label = False, *colors):
         r"""
         Return the tetrahedral poset based on the input colors. 
         
-        This method will return the tetralhedral poset with n-1 layers and covering relations based on the input colors of 'green', 'red', 'orange', 'silver', and 'blue'
-        as defined in [Striker2011]_.  For particular color choices, the order ideals of the resulting tetrahedral poset will be isomorphic to known combinatorial objects,
-        see the second example below.
+        This method will return the tetrahedral poset with n-1 layers and covering relations based on the input colors of 'green', 'red', 'orange', 'silver', and 'blue'
+        as defined in [Striker2011]_.  For particular color choices, the order ideals of the resulting tetrahedral poset will be isomorphic to known combinatorial objects.
+        
+        For the colors 'blue', 'yellow', 'orange', and 'green', the order ideals will be in bijection with alternating sign matrices
+        For the colors 'yellow', 'orange', and 'green', the order ideals will be in bijection with semistandard Young tableaux of staircase shape
+        For the colors 'red', 'orange', 'green', and optionally 'yellow', the order ideals will be in bijection with totally symmetric self-complementary plane partitions in a 2n by 2n by 2n box
 
         INPUT:
 
         - ``n`` - Defines the number (n-1) of layers in the poset.
+        
+        - ``int_label`` - Optional variable with default value False, determines whether the poset elements are labeled as integers or as ordered tuples. 
 
         - ``colors`` - The colors that define the covering relations of the poset. Colors used are 'green', 'red', 'yellow', 'orange', 'silver', and 'blue'.
 
@@ -659,9 +664,10 @@ class Posets(object):
         rels = []
         labels = {}
         labelcount = 0;
-        for (i,j,k) in elem:
-            labels[(i,j,k)] = labelcount
-            labelcount += 1
+        if int_label == True:
+            for (i,j,k) in elem:
+                labels[(i,j,k)] = labelcount
+                labelcount += 1
         for c in colors:
             for (i,j,k) in elem:
                 if(i+j+k < n-1):

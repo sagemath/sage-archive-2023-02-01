@@ -618,18 +618,18 @@ class Posets(object):
         r"""
         Return the tetrahedral poset based on the input colors. 
         
-        This method will return the tetrahedral poset with n-1 layers and covering relations based on the input colors of 'green', 'red', 'orange', 'silver', and 'blue'
+        This method will return the tetrahedral poset with n-1 layers and covering relations based on the input colors of 'green', 'red', 'orange', 'silver', 'yellow' and 'blue'
         as defined in [Striker2011]_.  For particular color choices, the order ideals of the resulting tetrahedral poset will be isomorphic to known combinatorial objects.
         
-        For the colors 'blue', 'yellow', 'orange', and 'green', the order ideals will be in bijection with alternating sign matrices
-        For the colors 'yellow', 'orange', and 'green', the order ideals will be in bijection with semistandard Young tableaux of staircase shape
-        For the colors 'red', 'orange', 'green', and optionally 'yellow', the order ideals will be in bijection with totally symmetric self-complementary plane partitions in a 2n by 2n by 2n box
+        For example, for the colors 'blue', 'yellow', 'orange', and 'green', the order ideals will be in bijection with alternating sign matrices.
+        For the colors 'yellow', 'orange', and 'green', the order ideals will be in bijection with semistandard Young tableaux of staircase shape.
+        For the colors 'red', 'orange', 'green', and optionally 'yellow', the order ideals will be in bijection with totally symmetric self-complementary plane partitions in a `2n \times 2n \times 2n` box.
 
         INPUT:
 
         - ``n`` - Defines the number (n-1) of layers in the poset.
         
-        - ``int_label`` - Optional variable with default value False, determines whether the poset elements are labeled as integers or as ordered tuples. 
+        - ``int_label`` - Optional variable with default value ``False``. A value of ``True`` results in the poset elements labeled with integers and a value of ``False`` results in the poset elements labeled with ordered tuples. 
 
         - ``colors`` - The colors that define the covering relations of the poset. Colors used are 'green', 'red', 'yellow', 'orange', 'silver', and 'blue'.
 

@@ -100,6 +100,7 @@ base: $(INST)/$(BZIP2) $(INST)/$(PATCH) $(INST)/$(PKGCONF)
 # Sage library (e.g. CYTHON, JINJA2), and on the other hand all
 # dependencies for Cython files (e.g. PARI, NTL, SAGE_MP_LIBRARY).
 sagelib: \
+		$(INST)/$(ARB) \
 		$(INST)/$(ATLAS) \
 		$(INST)/$(BRIAL) \
 		$(INST)/$(CEPHES) \

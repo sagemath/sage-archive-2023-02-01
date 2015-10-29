@@ -137,3 +137,5 @@ cdef extern from "arf.h":
     int arf_complex_mul(arf_t e, arf_t f, const arf_t a, const arf_t b, const arf_t c, const arf_t d, long prec, arf_rnd_t rnd)
     int arf_complex_mul_fallback(arf_t e, arf_t f, const arf_t a, const arf_t b, const arf_t c, const arf_t d, long prec, arf_rnd_t rnd)
     int arf_complex_sqr(arf_t e, arf_t f, const arf_t a, const arf_t b, long prec, arf_rnd_t rnd)
+
+    long ARF_PREC_EXACT

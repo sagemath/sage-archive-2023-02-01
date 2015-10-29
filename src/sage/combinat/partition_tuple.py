@@ -2187,19 +2187,22 @@ class RegularPartitionTuples(PartitionTuples):
             False
             sage: [[5,2], [17, 1], [], [3,3,1], [1,1]] in RPT
             False
+            sage: RPT = PartitionTuples(4,2,3)
+            sage: elt = RPT([[1], [], [], [1]])
+            sage: elt in RPT
+            True
         """
         if not PartitionTuples.__contains__(self, mu):
             return False
         if isinstance(mu, Partition):
             return max(mu.to_exp(1)) < self._ell
         if isinstance(mu, PartitionTuple):
-            return all(nu.to_exp(1) < self._ell for nu in mu)
-        if len(mu) == 0:
+            return all(max(nu.to_exp(1)) < self._ell for nu in mu)
+        if not mu:
             return True
         if mu[0] in ZZ:
             return all(mu.count(i) < self._ell for i in set(mu) if i > 0)
-        mu = map(list, mu)
-        return all(nu.count(i) < self._ell for nu in mu for i in set(nu) if i > 0)
+        return all(list(nu).count(i) < self._ell for nu in mu for i in set(nu) if i > 0)
 
     def _an_element_(self):
         """
@@ -2515,7 +2518,7 @@ class RegularPartitionTuples_level_size(RegularPartitionTuples):
         """
         p = [RegularPartitions_n(i, self._ell) for i in range(self.size()+1)]
         for iv in IntegerVectors(self.size(),self.level()):
-            for cp in CartesianProduct(*[p[i] for i in iv]):
+            for cp in itertools.product(*[p[i] for i in iv]):
                 yield self._element_constructor_(cp)
 
     def _an_element_(self):
@@ -2527,11 +2530,12 @@ class RegularPartitionTuples_level_size(RegularPartitionTuples):
             sage: PartitionTuples(level=4, size=4, regular=3).an_element()
             ([1], [], [], [3])
         """
-        mu=[[] for l in range(self._level)]
+        mu = [[] for l in range(self._level)]
         if self._size > 0:
-            if self._level == 1: mu=[self._size-1,1]
+            if self._level == 1:
+                mu = [self._size-1,1]
             else:
-                mu[0]=[1]
-                mu[-1]=[self._size-1]
+                mu[0] = [1]
+                mu[-1] = [self._size-1]
         return self.element_class(self, mu)
 

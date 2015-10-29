@@ -3382,8 +3382,8 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
              Lenstra's elliptic curve method.
 
         - ``proof`` - bool (default: True) whether or not to prove
-           primality of each factor (only applicable for ``'pari'``
-           and ``'ecm'``).
+          primality of each factor (only applicable for ``'pari'``
+          and ``'ecm'``).
 
         -  ``limit`` - int or None (default: None) if limit is
            given it must fit in a signed int, and the factorization is done
@@ -3454,6 +3454,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
 
         TESTS::
 
+	    sage: n = 42
             sage: n.factor(algorithm='foobar')
             Traceback (most recent call last):
             ...
@@ -3461,6 +3462,9 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         """
         from sage.structure.factorization import Factorization
         from sage.structure.factorization_integer import IntegerFactorization
+
+        if algorithm not in ['pari', 'kash', 'magma', 'qsieve', 'ecm']:
+            raise ValueError("Algorithm is not known")
 
         cdef Integer n, p, unit
         cdef int i
@@ -3533,7 +3537,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             F = IntegerFactorization(res, unit)
             return F
         else:
-            raise ValueError, "Algorithm is not known"
+            assert False, "BUG: Algorithm selection if factor() failed."
 
     def support(self):
         """

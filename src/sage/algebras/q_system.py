@@ -13,6 +13,7 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
+import itertools
 from sage.misc.lazy_attribute import lazy_attribute
 from sage.misc.cachefunc import cached_method
 
@@ -24,7 +25,6 @@ from sage.rings.arith import LCM
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.sets.family import Family
 from sage.sets.positive_integers import PositiveIntegers
-from sage.combinat.cartesian_product import CartesianProduct
 from sage.combinat.free_module import CombinatorialFreeModule
 from sage.monoids.indexed_free_monoid import IndexedFreeAbelianMonoid, IndexedMonoid
 from sage.matrix.constructor import matrix
@@ -73,8 +73,8 @@ class QSystem(CombinatorialFreeModule):
         sage: Q.gen(1,2)
         Q^(1)[1]^2 - Q^(2)[1]
         sage: Q.gen(3,3)
-        Q^(1)[1]*Q^(4)[1]^2 - Q^(1)[1]*Q^(3)[1]
-         - 2*Q^(2)[1]*Q^(3)[1]*Q^(4)[1] + Q^(3)[1]^3 + Q^(2)[1]^2
+        -Q^(1)[1]*Q^(3)[1] + Q^(1)[1]*Q^(4)[1]^2 + Q^(2)[1]^2
+         - 2*Q^(2)[1]*Q^(3)[1]*Q^(4)[1] + Q^(3)[1]^3
         sage: x = Q.gen(1,1) + Q.gen(2,1); x
         Q^(1)[1] + Q^(2)[1]
         sage: x * x
@@ -122,7 +122,7 @@ class QSystem(CombinatorialFreeModule):
         """
         self._cartan_type = cartan_type
         self._level = level
-        indices = CartesianProduct(cartan_type.index_set(), [1])
+        indices = tuple(itertools.product(cartan_type.index_set(), [1]))
         basis = IndexedFreeAbelianMonoid(indices, prefix='Q', bracket=False)
         # This is used to do the reductions
         self._poly = PolynomialRing(ZZ, ['q'+str(i) for i in cartan_type.index_set()])
@@ -290,10 +290,10 @@ class QSystem(CombinatorialFreeModule):
             sage: Q.gen(2, 1)
             Q^(2)[1]
             sage: Q.gen(6, 2)
-            Q^(6)[1]^2 - Q^(5)[1]*Q^(7)[1]
+            -Q^(5)[1]*Q^(7)[1] + Q^(6)[1]^2
             sage: Q.gen(7, 3)
-            -2*Q^(6)[1]*Q^(7)[1]*Q^(8)[1] + Q^(6)[1]^2
-             + Q^(5)[1]*Q^(8)[1]^2 - Q^(5)[1]*Q^(7)[1] + Q^(7)[1]^3
+            -Q^(5)[1]*Q^(7)[1] + Q^(5)[1]*Q^(8)[1]^2 + Q^(6)[1]^2
+             - 2*Q^(6)[1]*Q^(7)[1]*Q^(8)[1] + Q^(7)[1]^3
             sage: Q.gen(1, 0)
             1
         """
@@ -381,8 +381,8 @@ class QSystem(CombinatorialFreeModule):
                 sage: x = Q.gen(1, 2)
                 sage: y = Q.gen(3, 2)
                 sage: x * y
-                -Q^(1)[1]^2*Q^(2)[1]*Q^(4)[1] + Q^(2)[1]^2*Q^(4)[1]
-                 - Q^(2)[1]*Q^(3)[1]^2 + Q^(1)[1]^2*Q^(3)[1]^2
+                -Q^(1)[1]^2*Q^(2)[1]*Q^(4)[1] + Q^(1)[1]^2*Q^(3)[1]^2
+                 + Q^(2)[1]^2*Q^(4)[1] - Q^(2)[1]*Q^(3)[1]^2
             """
             return self.parent().sum_of_terms((tl*tr, cl*cr)
                                               for tl,cl in self for tr,cr in x)

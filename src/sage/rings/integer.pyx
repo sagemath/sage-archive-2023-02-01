@@ -3454,7 +3454,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
 
         TESTS::
 
-	    sage: n = 42
+            sage: n = 42
             sage: n.factor(algorithm='foobar')
             Traceback (most recent call last):
             ...

@@ -114,7 +114,7 @@ def hadamard_matrix_paleyI(n, normalize=True):
 
     TESTS::
 
-        sage: from sage.combinat.matrices.hadamard_matrix import (hadamard_matrix_paleyI, is_hadamard_matrix)
+        sage: from sage.combinat.matrices.hadamard_matrix import is_hadamard_matrix
         sage: test_cases = [x+1 for x in range(100) if is_prime_power(x) and x%4==3]
         sage: all(is_hadamard_matrix(hadamard_matrix_paleyI(n),normalized=True,verbose=True)
         ....:     for n in test_cases)
@@ -251,7 +251,6 @@ def is_hadamard_matrix(M, normalized=False, skew=False, verbose=False):
 
     TESTS::
 
-        sage: from sage.combinat.matrices.hadamard_matrix import (is_hadamard_matrix, skew_hadamard_matrix)
         sage: h = matrix.hadamard(12)
         sage: is_hadamard_matrix(h, skew=True)
         False
@@ -333,7 +332,7 @@ def hadamard_matrix(n,existence=False, check=True):
         - ``True`` -- meaning that Sage knows how to build the matrix
 
         - ``Unknown`` -- meaning that Sage does not know how to build the
-          matrix, but that the design may exist (see :mod:`sage.misc.unknown`).
+          matrix, although the matrix may exist (see :mod:`sage.misc.unknown`).
 
         - ``False`` -- meaning that the matrix does not exist.
 
@@ -654,18 +653,19 @@ def _helper_payley_matrix(n, zero_position=True):
 
     This function return a `n^2` matrix `M` whose rows/columns are indexed by
     the element of a finite field on `n` elements `x_1,...,x_n`. The value
-    `M_{i,j}` is equal to `\chi(x_i-x_j)`. Note that `n` must be an odd prime power.
+    `M_{i,j}` is equal to `\chi(x_i-x_j)`.
 
-    The elements `x_1,...,x_n` are ordered in such a way that the matrix is
-    symmetric with respect to its second diagonal. The matrix is symmetric if
-    n==4k+1, and skew-symmetric if n=4k-1.
+    The elements `x_1,...,x_n` are ordered in such a way that the matrix
+    (respectively, its submatrix obtained by removing first row and first column in the case
+    ``zero_position=False``) is symmetric with respect to its second diagonal.
+    The matrix is symmetric if `n=4k+1`, and skew-symmetric otherwise.
 
     INPUT:
 
-    - ``n`` -- a prime power
+    - ``n`` -- an odd prime power.
 
-    - ``zero_position`` -- is true (default), place 0 of ``F_n`` in the middle, otherwise
-     place it first.
+    - ``zero_position`` -- if it is true (default), place 0 of ``F_n`` in the middle,
+      otherwise place it first.
 
     .. SEEALSO::
 
@@ -680,10 +680,33 @@ def _helper_payley_matrix(n, zero_position=True):
         [-1  1  0  1 -1]
         [-1 -1  1  0  1]
         [ 1 -1 -1  1  0]
-        sage: _helper_payley_matrix(3)
-        [ 0 -1  1]
-        [ 1  0 -1]
-        [-1  1  0]
+
+    TESTS::
+
+        sage: _helper_payley_matrix(11,zero_position=True)
+        [ 0 -1  1 -1 -1 -1  1  1  1 -1  1]
+        [ 1  0 -1 -1  1 -1  1 -1  1  1 -1]
+        [-1  1  0  1 -1 -1 -1 -1  1  1  1]
+        [ 1  1 -1  0  1 -1 -1  1 -1 -1  1]
+        [ 1 -1  1 -1  0  1 -1 -1 -1  1  1]
+        [ 1  1  1  1 -1  0  1 -1 -1 -1 -1]
+        [-1 -1  1  1  1 -1  0  1 -1  1 -1]
+        [-1  1  1 -1  1  1 -1  0  1 -1 -1]
+        [-1 -1 -1  1  1  1  1 -1  0 -1  1]
+        [ 1 -1 -1  1 -1  1 -1  1  1  0 -1]
+        [-1  1 -1 -1 -1  1  1  1 -1  1  0]
+        sage: _helper_payley_matrix(11,zero_position=False)
+        [ 0  1  1  1  1 -1  1 -1 -1 -1 -1]
+        [-1  0 -1  1 -1 -1  1  1  1 -1  1]
+        [-1  1  0 -1 -1  1  1 -1  1  1 -1]
+        [-1 -1  1  0  1 -1 -1 -1  1  1  1]
+        [-1  1  1 -1  0  1 -1  1 -1 -1  1]
+        [ 1  1 -1  1 -1  0 -1 -1 -1  1  1]
+        [-1 -1 -1  1  1  1  0  1 -1  1 -1]
+        [ 1 -1  1  1 -1  1 -1  0  1 -1 -1]
+        [ 1 -1 -1 -1  1  1  1 -1  0 -1  1]
+        [ 1  1 -1 -1  1 -1 -1  1  1  0 -1]
+        [ 1 -1  1 -1 -1 -1  1  1 -1  1  0]
     """
     from sage.rings.finite_rings.constructor import FiniteField as GF
     K = GF(n,conway=True,prefix='x')
@@ -786,11 +809,9 @@ def williamson_goethals_seidel_skew_hadamard_matrix(a, b, c, d, check=True):
     r"""
     Williamson-Goethals-Seidel construction of a skew Hadamard matrix
 
-    Given `n\times n` (anti)circulant (or matrices `A`, `B`, `C`, `D` with 1,-1 entries, 
+    Given `n\times n` (anti)circulant matrices `A`, `B`, `C`, `D` with 1,-1 entries, 
     and satisfying `A+A^\top = 2I`, `AA^\top + BB^\top + CC^\top + DD^\top = 4nI`,
     one can construct a skew Hadamard matrix of order `4n`, cf. [GS70s]_.
-    Matrices for `n=36` and `52` are given in [GS70s]_. Matrices for `n=92` are given
-    in [Wall71]_.
 
     INPUT:
 
@@ -840,13 +861,15 @@ def williamson_goethals_seidel_skew_hadamard_matrix(a, b, c, d, check=True):
         assert is_hadamard_matrix(M, normalized=False, skew=True)
     return M
 
-def _GS_skew_hadamard(n, existence=False, check=True):
+def GS_skew_hadamard_smallcases(n, existence=False, check=True):
     r"""
     Data for Williamson-Goethals-Seidel construction of skew Hadamard matrices
 
     Here we keep the data for this construction.
     Namely, it needs 4 circulant matrices with extra properties, as described in
     :func:`sage.combinat.matrices.hadamard_matrix.williamson_goethals_seidel_skew_hadamard_matrix`
+    Matrices for `n=36` and `52` are given in [GS70s]_. Matrices for `n=92` are given
+    in [Wall71]_.
 
     INPUT:
 
@@ -855,6 +878,17 @@ def _GS_skew_hadamard(n, existence=False, check=True):
     - ``existence`` -- if true (default), only check that we can do the construction
 
     - ``check`` -- if true (default), check the result.
+
+    TESTS::
+
+        sage: from sage.combinat.matrices.hadamard_matrix import GS_skew_hadamard_smallcases
+        sage: GS_skew_hadamard_smallcases(36)
+        36 x 36 dense matrix over Integer Ring...
+        sage: GS_skew_hadamard_smallcases(52)
+        52 x 52 dense matrix over Integer Ring...
+        sage: GS_skew_hadamard_smallcases(92)
+        92 x 92 dense matrix over Integer Ring...
+        sage: GS_skew_hadamard_smallcases(100)
     """
     from sage.combinat.matrices.hadamard_matrix import\
          williamson_goethals_seidel_skew_hadamard_matrix as WGS
@@ -930,12 +964,11 @@ def skew_hadamard_matrix(n,existence=False, skew_normalize=True, check=True):
 
     TESTS::
 
-        sage: from sage.combinat.matrices.hadamard_matrix import skew_hadamard_matrix
         sage: skew_hadamard_matrix(10,existence=True)
         False
         sage: skew_hadamard_matrix(12,existence=True)
         True
-        sage: skew_hadamard_matrix(784,existence=True) # long time
+        sage: skew_hadamard_matrix(784,existence=True)
         True
         sage: skew_hadamard_matrix(10)
         Traceback (most recent call last):
@@ -980,7 +1013,7 @@ def skew_hadamard_matrix(n,existence=False, skew_normalize=True, check=True):
         M = hadamard_matrix_paleyI(n, normalize=False)
 
     elif n % 8 == 0:
-        if skew_hadamard_matrix(n//2,existence=True, check=False):
+        if skew_hadamard_matrix(n//2,existence=True):
             if existence:
                 return true()
             H = skew_hadamard_matrix(n//2,check=False)
@@ -990,7 +1023,7 @@ def skew_hadamard_matrix(n,existence=False, skew_normalize=True, check=True):
             for d in divisors(n)[2:-2]: # skip 1, 2, n/2, and n
                 n1 = n//d
                 if is_prime_power(d - 1) and (d % 4 == 0) and (n1 % 4 == 0)\
-                    and skew_hadamard_matrix(n1,existence=True, check=False):
+                    and skew_hadamard_matrix(n1,existence=True):
                     if existence:
                         return true()
                     H = skew_hadamard_matrix(n1, check=False)-I(n1)
@@ -1003,10 +1036,10 @@ def skew_hadamard_matrix(n,existence=False, skew_normalize=True, check=True):
                     M = A.tensor_product(I(n1))+(U*A).tensor_product(H)
                     break
     if M is None: # try Williamson-Goethals-Seidel construction
-        if _GS_skew_hadamard(n, existence=True):
+        if GS_skew_hadamard_smallcases(n, existence=True):
             if existence:
                 return true()
-            M = _GS_skew_hadamard(n)
+            M = GS_skew_hadamard_smallcases(n)
 
         else:
             if existence:
@@ -1018,6 +1051,7 @@ def skew_hadamard_matrix(n,existence=False, skew_normalize=True, check=True):
     if check:
         assert is_hadamard_matrix(M, normalized=False, skew=True)
         if skew_normalize:
-            assert M[0]==[1]*n
+            from sage.modules.free_module_element import vector
+            assert M[0]==vector([1]*n)
     _skew_had_cache[n]=True
     return M

@@ -314,6 +314,9 @@ class RealBallField(UniqueRepresentation, Parent):
                 # FIXME: RBF is not even associative, but CompletionFunctor only works with rings.
                 category=category or sage.categories.rings.Rings().Infinite())
         self._prec = precision
+        from sage.rings.qqbar import AA
+        from sage.rings.real_lazy import RLF
+        self._populate_coercion_lists_([ZZ, QQ, AA, RLF])
 
     def _repr_(self):
         r"""
@@ -352,12 +355,8 @@ class RealBallField(UniqueRepresentation, Parent):
             sage: RealBallField().has_coerce_map_from(RR)
             False
         """
-        from sage.rings.qqbar import AA
-        from sage.rings.real_lazy import RLF
         if isinstance(other, RealBallField):
             return (other._prec >= self._prec)
-        elif (other is ZZ) or (other is QQ) or (other is AA) or (other is RLF):
-            return True
         else:
             return False
 
@@ -366,8 +365,7 @@ class RealBallField(UniqueRepresentation, Parent):
         Convert ``mid`` to an element of this real ball field, perhaps
         non-canonically.
 
-        In addition to the inputs supported by
-        :meth:`ElementConstructor.__init__`,
+        In addition to the inputs supported by :meth:`RealBall.__init__`,
         anything that is convertible to a real interval can also be used to
         construct a real ball::
 
@@ -379,7 +377,7 @@ class RealBallField(UniqueRepresentation, Parent):
             sage: RBF(x)
             Traceback (most recent call last):
             ...
-            TypeError: unable to convert x to a RealIntervalFieldElement
+            TypeError: unable to convert x to a RealBall
 
         Various symbolic constants can be converted without going through real
         intervals. (This is faster and yields tighter error bounds.) ::
@@ -393,17 +391,16 @@ class RealBallField(UniqueRepresentation, Parent):
             return self.element_class(self, mid, rad)
         except TypeError:
             pass
-
         try:
             return self.element_class(self, mid.pyobject(), rad)
         except (AttributeError, TypeError):
             pass
-
         try:
             mid = RealIntervalField(self._prec)(mid)
+            return self.element_class(self, mid, rad)
         except TypeError:
-            raise TypeError("unable to convert {} to a RealIntervalFieldElement".format(mid))
-        return self.element_class(self, mid, rad)
+            pass
+        raise TypeError("unable to convert {} to a RealBall".format(mid))
 
     def gens(self):
         r"""
@@ -461,6 +458,27 @@ class RealBallField(UniqueRepresentation, Parent):
                                     self._prec,
                                     {'type': 'Ball'})
         return functor, QQ
+
+    def complex_field(self):
+        """
+        Return the complex ball field with the same precision.
+
+        EXAMPLES::
+
+            sage: from sage.rings.real_arb import RBF, RealBallField
+            sage: from sage.rings.complex_ball_acb import ComplexBallField
+            doctest:...: FutureWarning: This class/method/function is marked as experimental.
+            It, its functionality or its interface might change without a formal deprecation.
+            See http://trac.sagemath.org/17218 for details.
+            sage: RBF.complex_field()
+            Complex ball field with 53 bits precision
+            sage: RealBallField(3).algebraic_closure()
+            Complex ball field with 3 bits precision
+        """
+        from sage.rings.complex_ball_acb import ComplexBallField
+        return ComplexBallField(self._prec)
+
+    algebraic_closure = complex_field
 
     def precision(self):
         """
@@ -875,6 +893,8 @@ cdef class RealBall(RingElement):
           floating-point, the radius is adjusted to account for the roundoff
           error.
 
+        .. SEEALSO:: :meth:`RealBallField._element_constructor_`
+
         EXAMPLES::
 
             sage: from sage.rings.real_arb import RealBallField
@@ -1126,6 +1146,26 @@ cdef class RealBall(RingElement):
             fmpz_clear(tmp)
         return res
 
+    def _rational_(self):
+        """
+        Check that this ball contains a single rational number and return that
+        number.
+
+        EXAMPLES::
+
+            sage: from sage.rings.real_arb import RBF
+            sage: QQ(RBF(123456/2^12))
+            1929/64
+            sage: QQ(RBF(1/3))
+            Traceback (most recent call last):
+            ...
+            ValueError: [0.3333333333333333 +/- 7.04e-17] does not contain a unique rational number
+        """
+        if arb_is_exact(self.value):
+            return self.mid().exact_rational()
+        else:
+            raise ValueError("{} does not contain a unique rational number".format(self))
+
     def _mpfr_(self, RealField_class field):
         """
         Convert this real ball to a real number.
@@ -1192,7 +1232,7 @@ cdef class RealBall(RingElement):
                     return field(0)
         raise ValueError("unknown rounding mode")
 
-    # Center and radius
+    # Center and radius, absolute value
 
     def mid(self):
         """
@@ -1206,7 +1246,11 @@ cdef class RealBall(RingElement):
             sage: RealBallField(16)(1/3).mid()
             0.3333
             sage: RealBallField(16)(1/3).mid().parent()
-            Real Field with 15 bits of precision
+            Real Field with 16 bits of precision
+            sage: RealBallField(16)(RBF(1/3)).mid().parent()
+            Real Field with 53 bits of precision
+            sage: RBF('inf').mid()
+            +infinity
 
         ::
 
@@ -1216,7 +1260,7 @@ cdef class RealBall(RingElement):
             ...
             RuntimeError: unable to convert to MPFR (exponent out of range?)
         """
-        cdef long mid_prec = arb_bits(self.value) or prec(self)
+        cdef long mid_prec = max(arb_bits(self.value), prec(self))
         if mid_prec < MPFR_PREC_MIN:
             mid_prec = MPFR_PREC_MIN
         cdef RealField_class mid_field = RealField(mid_prec)
@@ -1251,7 +1295,7 @@ cdef class RealBall(RingElement):
 
     def squash(self):
         """
-        Return an exact ball with the same center of this ball.
+        Return an exact ball with the same center as this ball.
 
         .. SEEALSO:: :meth:`mid`, :meth:`rad_as_ball`
 
@@ -1293,6 +1337,80 @@ cdef class RealBall(RingElement):
         mag_zero(arb_radref(res.value))
         return res
 
+    def abs(self):
+        """
+        Return the absolute value of this ball.
+
+        EXAMPLES::
+
+            sage: from sage.rings.real_arb import RBF
+            sage: RBF(-1/3).abs()
+            [0.3333333333333333 +/- 7.04e-17]
+        """
+        cdef RealBall r = self._new()
+        arb_abs(r.value, self.value)
+        return r
+
+    def below_abs(self, test_zero=False):
+        """
+        Return a lower bound for the absolute value of this ball.
+
+        INPUT:
+
+        - ``test_zero`` (boolean, default ``False``) -- if ``True``,
+          make sure that the returned lower bound is positive, raising
+          an error if the ball contains zero.
+
+        .. SEEALSO:: :meth:`abs`, :meth:`above_abs`
+
+        EXAMPLES::
+
+            sage: from sage.rings.real_arb import RealBallField, RBF
+            sage: RealBallField(8)(1/3).below_abs()
+            [0.33 +/- 7.82e-5]
+            sage: b = RealBallField(8)(1/3).below_abs()
+            sage: b
+            [0.33 +/- 7.82e-5]
+            sage: b.is_exact()
+            True
+            sage: QQ(b)
+            169/512
+
+            sage: RBF(0).below_abs()
+            0
+            sage: RBF(0).below_abs(test_zero=True)
+            Traceback (most recent call last):
+            ...
+            ValueError: ball contains zero
+        """
+        cdef RealBall res = self._new()
+        arb_get_abs_lbound_arf(arb_midref(res.value), self.value, prec(self))
+        if test_zero and arb_contains_zero(res.value):
+            assert arb_contains_zero(self.value)
+            raise ValueError("ball contains zero")
+        return res
+
+    def above_abs(self):
+        """
+        Return an upper bound for the absolute value of this ball.
+
+        .. SEEALSO:: :meth:`abs`, :meth:`below_abs`
+
+        EXAMPLES::
+
+            sage: from sage.rings.real_arb import RealBallField
+            sage: b = RealBallField(8)(1/3).above_abs()
+            sage: b
+            [0.33 +/- 3.99e-3]
+            sage: b.is_exact()
+            True
+            sage: QQ(b)
+            171/512
+        """
+        cdef RealBall res = self._new()
+        arb_get_abs_ubound_arf(arb_midref(res.value), self.value, prec(self))
+        return res
+
     # Precision
 
     def round(self):
@@ -1309,7 +1427,7 @@ cdef class RealBall(RingElement):
             sage: b.mid()
             3.141592653589793238462643383
             sage: b.round().mid()
-            3.1415926535898
+            3.14159265358979
         """
         cdef RealBall res = self._new()
         if _do_sig(prec(self)): sig_on()
@@ -1356,11 +1474,11 @@ cdef class RealBall(RingElement):
         EXAMPLES::
 
             sage: from sage.rings.real_arb import RBF
-            sage: b = RBF(RIF(3.1415,3.1416))
+            sage: b = RBF(0.11111111111111, rad=.001)
             sage: b.mid()
-            3.14155000000000
+            0.111111111111110
             sage: b.trim().mid()
-            3.14155000
+            0.111111104488373
         """
         cdef RealBall res = self._new()
         if _do_sig(prec(self)): sig_on()

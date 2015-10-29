@@ -389,8 +389,6 @@ cdef class pAdicZZpXElement(pAdicExtElement):
            sage: ((1+2*w)).norm()^5
            1 + 5^2 + O(5^5)
 
-        TESTS:
-
         Check that #11586 has been resolved::
 
             sage: R.<x> = QQ[]

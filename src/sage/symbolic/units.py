@@ -73,8 +73,8 @@ Check that Trac 12373 if fixed::
 
 AUTHORS:
 
-    - David Ackerman
-    - William Stein
+- David Ackerman
+- William Stein
 """
 
 ###############################################################################

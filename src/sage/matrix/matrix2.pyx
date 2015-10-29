@@ -9810,8 +9810,6 @@ cdef class Matrix(matrix1.Matrix):
             [0 0|0], [  0   1   0]
             )
 
-        TESTS:
-
         The base ring for the matrix needs to have a fraction field
         and it needs to be implemented.  ::
 

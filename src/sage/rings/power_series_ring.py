@@ -400,9 +400,6 @@ def _multi_variate(base_ring, num_gens=None, names=None,
                      order='negdeglex', default_prec=None, sparse=False):
     """
     Construct multivariate power series ring.
-
-    TESTS::
-
     """
     if names is None:
         raise TypeError("you must specify a variable name or names")

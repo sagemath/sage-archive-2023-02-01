@@ -146,7 +146,7 @@ class QuiverRepHom(CallMorphism):
             sage: Proj.hom(im, Simp).is_surjective()
             True
 
-        TESTS::
+        ::
 
             sage: Q = DiGraph({1:{2:['a']}}).path_semigroup()
             sage: H1 = Q.P(GF(3), 2).Hom(Q.S(GF(3), 2))

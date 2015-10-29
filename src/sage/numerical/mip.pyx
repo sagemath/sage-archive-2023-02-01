@@ -1604,8 +1604,6 @@ cdef class MixedIntegerLinearProgram(SageObject):
                 x_0 is a continuous variable (min=0.0, max=+oo)
                 x_1 is a continuous variable (min=0.0, max=+oo)
 
-        TESTS:
-
         Catch ``True`` / ``False`` as INPUT (:trac:`13646`)::
 
             sage: p = MixedIntegerLinearProgram()

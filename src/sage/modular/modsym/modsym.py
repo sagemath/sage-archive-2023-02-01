@@ -316,7 +316,9 @@ def ModularSymbols(group  = 1,
         sage: M.customize
         'hi2'
 
-    TESTS: We test use_cache::
+    TESTS:
+
+    We test use_cache::
 
         sage: ModularSymbols_clear_cache()
         sage: M = ModularSymbols(11,use_cache=False)

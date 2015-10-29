@@ -23,12 +23,6 @@ AUTHORS:
 
 - Chris Swierczewski, 2008
 
-TESTS::
-
-    sage: ohlc = sage.finance.stock.OHLC('18-Aug-04', 100.01, 104.06, 95.96, 100.34, 22353092)
-    sage: loads(dumps(ohlc)) == ohlc
-    True
-
 Classes and methods
 -------------------
 """
@@ -55,6 +49,12 @@ class OHLC:
 
             sage: sage.finance.stock.OHLC('18-Aug-04', 100.01, 104.06, 95.96, 100.34, 22353092)
              18-Aug-04 100.01 104.06 95.96 100.34   22353092
+
+        TESTS::
+
+            sage: ohlc = sage.finance.stock.OHLC('18-Aug-04', 100.01, 104.06, 95.96, 100.34, 22353092)
+            sage: loads(dumps(ohlc)) == ohlc
+            True
         """
         self.timestamp = timestamp
         self.open=float(open); self.high=float(high); self.low=float(low); self.close=float(close)

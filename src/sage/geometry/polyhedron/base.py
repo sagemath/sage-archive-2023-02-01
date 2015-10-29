@@ -2603,8 +2603,6 @@ class Polyhedron_base(Element):
             sage: p.dilation(3)
             The empty polyhedron in ZZ^2
 
-        TESTS::
-
             sage: p = Polyhedron(vertices=[(1,1)], rays=[(1,0)], lines=[(0,1)])
             sage: (-p).rays()
             (A ray in the direction (-1, 0),)

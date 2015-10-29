@@ -826,7 +826,7 @@ class FiniteRankFreeModuleMorphism(Morphism):
             sage: w.display()
             phi(v) = 3 f_0 + 13 f_1
 
-        Tests::
+        TESTS::
 
             sage: for i in range(2):
             ....:     print w[i] == sum( phi.matrix()[i,j]*v[j] for j in range(3) ),

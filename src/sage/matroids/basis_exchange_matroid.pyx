@@ -14,17 +14,6 @@ AUTHORS:
 
 - Rudi Pendavingh, Stefan van Zwam (2013-04-01): initial version
 
-TESTS::
-
-    sage: from sage.matroids.advanced import *
-    sage: import sage.matroids.basis_exchange_matroid
-    sage: M = sage.matroids.basis_exchange_matroid.BasisExchangeMatroid(
-    ....:                                         groundset=[1, 2, 3], rank=2)
-    sage: TestSuite(M).run(skip="_test_pickling")
-
-Note that this is an abstract base class, without data structure, so no
-pickling mechanism was implemented.
-
 Methods
 =======
 """
@@ -155,6 +144,18 @@ cdef class BasisExchangeMatroid(Matroid):
             ['a', 'b', 'c', 'd', 'e', 'f']
             sage: sorted(M.basis())
             ['a', 'b', 'c']
+
+        TESTS::
+
+            sage: from sage.matroids.advanced import *
+            sage: import sage.matroids.basis_exchange_matroid
+            sage: M = sage.matroids.basis_exchange_matroid.BasisExchangeMatroid(
+            ....:                                   groundset=[1, 2, 3], rank=2)
+            sage: TestSuite(M).run(skip="_test_pickling")
+
+        Note that this is an abstract base class, without data structure, so no
+        pickling mechanism was implemented.
+
         """
         self._groundset_size = len(groundset)
         self._bitset_size = max(self._groundset_size, 1)

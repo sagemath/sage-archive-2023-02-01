@@ -2381,8 +2381,6 @@ class Graph(GenericGraph):
             sage: graphs.PetersenGraph().treewidth(k=4,certificate=True)
             Graph on 6 vertices
 
-        TESTS:
-
         All edges do appear (:trac:`17893`)::
 
             sage: from itertools import combinations

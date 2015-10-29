@@ -1709,7 +1709,9 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
             sage: U*A == H
             True
 
-        TESTS: Make sure the zero matrices are handled correctly::
+        TESTS:
+
+        Make sure the zero matrices are handled correctly::
 
             sage: m = matrix(ZZ,3,3,[0]*9)
             sage: m.echelon_form()
@@ -3952,7 +3954,9 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
             [ 2 -3]
             [ 3  0]
 
-        TESTS: We create a random 100x100 matrix and solve the
+        TESTS:
+
+        We create a random 100x100 matrix and solve the
         corresponding system, then verify that the result is correct.
         (Note that this test is very risky without having a seeded
         random number generator!)

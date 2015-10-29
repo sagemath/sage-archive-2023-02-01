@@ -949,8 +949,6 @@ class GenericGraph(GenericGraph_pyx):
             sage: copy(H) is H
             False
 
-        TESTS:
-
         Bad input::
 
             sage: G.copy(data_structure="sparse", sparse=False)
@@ -966,7 +964,7 @@ class GenericGraph(GenericGraph_pyx):
             ...
             ValueError: There is no dense immutable backend at the moment.
 
-        Which backend ?::
+        Which backend? ::
 
             sage: G.copy(data_structure="sparse")._backend
             <type 'sage.graphs.base.sparse_graph.SparseGraphBackend'>
@@ -11209,7 +11207,9 @@ class GenericGraph(GenericGraph_pyx):
 
 
 
-        TESTS: The appropriate properties are preserved.
+        TESTS:
+
+        The appropriate properties are preserved.
 
         ::
 
@@ -11334,7 +11334,9 @@ class GenericGraph(GenericGraph_pyx):
             sage: S.edges()
             [('00', '01', None), ('10', '11', None)]
 
-        TESTS: Properties of the graph are preserved.
+        TESTS:
+
+        Properties of the graph are preserved.
 
         ::
 
@@ -11477,7 +11479,9 @@ class GenericGraph(GenericGraph_pyx):
             sage: S.edges()
             [('00', '01', None), ('10', '11', None)]
 
-        TESTS: Properties of the graph are preserved.
+        TESTS:
+
+        Properties of the graph are preserved.
 
         ::
 
@@ -11976,6 +11980,14 @@ class GenericGraph(GenericGraph_pyx):
             sage: for g in graphs(5):
             ....:     _ = g.is_chordal()
 
+        :trac:`11735`::
+
+           sage: g = Graph({3:[2,1,4],2:[1],4:[1],5:[2,1,4]})
+           sage: _, g1 = g.is_chordal(certificate=True); g1.is_chordal()
+           False
+           sage: g1.is_isomorphic(graphs.CycleGraph(g1.order()))
+           True
+
         REFERENCES:
 
         .. [Rose75] Rose, D.J. and Tarjan, R.E.,
@@ -11987,16 +11999,6 @@ class GenericGraph(GenericGraph_pyx):
           Incidence matrices and interval graphs
           Pacific J. Math 1965
           Vol. 15, number 3, pages 835--855
-
-        TESTS:
-
-        Trac Ticket #11735::
-
-           sage: g = Graph({3:[2,1,4],2:[1],4:[1],5:[2,1,4]})
-           sage: _, g1 = g.is_chordal(certificate=True); g1.is_chordal()
-           False
-           sage: g1.is_isomorphic(graphs.CycleGraph(g1.order()))
-           True
         """
         self._scream_if_not_simple()
 

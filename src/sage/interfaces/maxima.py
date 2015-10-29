@@ -413,7 +413,9 @@ a robust manner, as long as you are creating a new object.
     sage: t = '"%s"'%10^10000   # ten thousand character string.
     sage: a = maxima(t)
 
-TESTS: This working tests that a subtle bug has been fixed::
+TESTS:
+
+This working tests that a subtle bug has been fixed::
 
     sage: f = maxima.function('x','gamma(x)')
     sage: g = f(1/7)

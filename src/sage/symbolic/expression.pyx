@@ -520,6 +520,7 @@ cdef class Expression(CommutativeRingElement):
         data is passed to the class via this function instead.
 
         TESTS::
+
             sage: var('x,y,z')
             (x, y, z)
             sage: t = 2*x*y^z+3
@@ -3055,8 +3056,6 @@ cdef class Expression(CommutativeRingElement):
             sage: ex = -(x1 + r2 - x2*r1)/x3
             sage: ex.substitute(a=z, b=z)
             (r1*x2 - r2 - x1)/x3
-
-        TESTS:
 
         Check that :trac:`18360` is fixed::
 

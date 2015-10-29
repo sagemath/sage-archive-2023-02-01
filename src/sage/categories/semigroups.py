@@ -422,7 +422,7 @@ class Semigroups(CategoryWithAxiom):
 
             .. TODO::
 
-                - Fix the above failure by providing a default
+                - Fix the failure in TESTS by providing a default
                   implementation of ``__invert__`` for finite groups
                   (or even finite monoids).
                 - Provide a default implementation of ``one`` for a

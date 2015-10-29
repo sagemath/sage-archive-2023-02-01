@@ -1,7 +1,8 @@
 """
 Python interface to partition backtrack functions
 
-DOCTEST:
+EXAMPLES::
+
     sage: import sage.groups.perm_gps.partn_ref.refinement_python
 
 This module provides Python frontends to the Cython-based partition backtrack

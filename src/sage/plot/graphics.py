@@ -135,8 +135,6 @@ class Graphics(WithEqualityById, SageObject):
         sage: isinstance(g2, Graphics)
         True
 
-    TESTS::
-
         sage: hash(Graphics()) # random
         42
 
@@ -1995,7 +1993,7 @@ class Graphics(WithEqualityById, SageObject):
             ValueError: figsize should be a positive number or a list of two positive numbers, not [2, 3, 4]
             sage: P.show(figsize=[sqrt(2),sqrt(3)])
 
-        TESTS::
+        ::
 
             sage: P = plot(x^2,(x,0,1))
             sage: P.show(linkmode=True)

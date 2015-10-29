@@ -356,8 +356,6 @@ def Family(indices, function=None, hidden_keys=[], hidden_function=None, lazy=Fa
         sage: list(f)
         ['cc', 'aa', 'bb']
 
-    TESTS:
-
     Only the hidden function is applied to the hidden keys::
 
         sage: f = lambda x : 2*x
@@ -1126,10 +1124,10 @@ class TrivialFamily(AbstractFamily):
         """
         TESTS::
 
-        sage: f = Family((3,4,7))
-        sage: g = Family([3,4,7])
-        sage: f == g
-        True
+            sage: f = Family((3,4,7))
+            sage: g = Family([3,4,7])
+            sage: f == g
+            True
         """
         return (isinstance(other, self.__class__) and
                 self._enumeration == other._enumeration)

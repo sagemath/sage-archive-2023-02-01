@@ -70,7 +70,9 @@ Base ring::
     sage: VectorSpace(QQ, 10).base_ring()
     Rational Field
 
-TESTS: We intersect a zero-dimensional vector space with a
+TESTS:
+
+We intersect a zero-dimensional vector space with a
 1-dimension submodule.
 
 ::

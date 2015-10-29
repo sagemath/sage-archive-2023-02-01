@@ -453,8 +453,7 @@ class RegularCrystals(Category_singleton):
                         if checker(y):
                             edges.append([x, y, i])
             from sage.graphs.all import DiGraph
-            G = DiGraph(edges)
-            G.add_vertices(X)
+            G = DiGraph([X, edges], format="vertices_and_edges", immutable=True)
             if have_dot2tex():
                 G.set_latex_options(format="dot2tex", edge_labels=True,
                                     color_by_label=self.cartan_type()._index_set_coloring)
@@ -560,7 +559,7 @@ class RegularCrystals(Category_singleton):
                 sage: K = crystals.KirillovReshetikhin(['A',2,1],2,1)
                 sage: t = K(rows=[[3],[2]])
                 sage: t.demazure_operator_simple(0)
-                B[[[2, 3]]] + B[[[1, 2]]]
+                B[[[1, 2]]] + B[[[2, 3]]]
 
             TESTS::
 
@@ -874,8 +873,8 @@ class RegularCrystals(Category_singleton):
                         if y not in visited:
                             todo.add(y)
             from sage.graphs.graph import Graph
-            G = Graph(edges, multiedges=True)
-            G.add_vertices(visited)
+            G = Graph([visited, edges], format="vertices_and_edges",
+                      immutable=True, multiedges=True)
             if have_dot2tex():
                 G.set_latex_options(format="dot2tex", edge_labels=True,
                                     color_by_label=self.cartan_type()._index_set_coloring)

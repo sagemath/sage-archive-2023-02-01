@@ -164,13 +164,13 @@ coefficients) through the usual free module accessors::
     [((0, 0, 0), 1), ((1, 0, 0), 1), ((1, 1, 0), 1), ((1, 1, 1), 1)]
     sage: pprint(dict(chi))
     {(0, 0, 0): 1, (1, 0, 0): 1, (1, 1, 0): 1, (1, 1, 1): 1}
-    sage: chi.monomials()
+    sage: M = sorted(chi.monomials(), key=lambda x: x.support()); M
     [B3(0,0,0), B3(1,0,0), B3(1,1,0), B3(1,1,1)]
-    sage: chi.support()
+    sage: sorted(chi.support())
     [(0, 0, 0), (1, 0, 0), (1, 1, 0), (1, 1, 1)]
     sage: chi.coefficients()
     [1, 1, 1, 1]
-    sage: [r.degree() for r in chi.monomials()]
+    sage: [r.degree() for r in M]
     [1, 7, 21, 35]
     sage: sum(r.degree() for r in chi.monomials())
     64
@@ -484,10 +484,10 @@ itself, that is, the integral of `|tr(g)|^{10}`::
 
     sage: tr^5
     5*A2(2,2,1) + 6*A2(3,1,1) + 5*A2(3,2,0) + 4*A2(4,1,0) + A2(5,0,0)
-    sage: (tr^5).monomials()
+    sage: sorted((tr^5).monomials(), key=lambda x: x.support())
     [A2(2,2,1), A2(3,1,1), A2(3,2,0), A2(4,1,0), A2(5,0,0)]
-    sage: (tr^5).coefficients()
-    [5, 6, 5, 4, 1]
+    sage: sorted((tr^5).coefficients())
+    [1, 4, 5, 5, 6]
     sage: sum(x^2 for x in (tr^5).coefficients())
     103
 

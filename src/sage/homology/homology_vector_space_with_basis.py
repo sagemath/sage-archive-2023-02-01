@@ -242,24 +242,20 @@ class HomologyVectorSpaceWithBasis(CombinatorialFreeModule):
 
             sage: H = simplicial_complexes.Simplex(2).homology_with_basis(QQ)
             sage: H.contraction()
-            Chain homotopy between
-              Chain complex morphism
-                From: Chain complex with at most 3 nonzero terms over Rational Field
-                To: Chain complex with at most 3 nonzero terms over Rational Field
-              and Chain complex morphism
-                From: Chain complex with at most 3 nonzero terms over Rational Field
-                To: Chain complex with at most 3 nonzero terms over Rational Field
+            Chain homotopy between:
+              Chain complex endomorphism of Chain complex with at most 3 nonzero terms over Rational Field
+              and Chain complex endomorphism of Chain complex with at most 3 nonzero terms over Rational Field
 
         From the chain contraction, one can also recover the maps `\pi`
         and `\iota`::
 
             sage: phi = H.contraction()
             sage: phi.pi()
-            Chain complex morphism
+            Chain complex morphism:
               From: Chain complex with at most 3 nonzero terms over Rational Field
               To: Chain complex with at most 1 nonzero terms over Rational Field
             sage: phi.iota()
-            Chain complex morphism
+            Chain complex morphism:
               From: Chain complex with at most 1 nonzero terms over Rational Field
               To: Chain complex with at most 3 nonzero terms over Rational Field
         """

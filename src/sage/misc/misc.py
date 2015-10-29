@@ -1722,7 +1722,33 @@ def random_sublist(X, s):
     return [a for a in X if random.random() <= s]
 
 
+def some_tuples(elements, repeat, bound):
+    r"""
+    Return an iterator over at most ``bound`` number of ``repeat``-tuples of
+    ``elements``.
 
+    TESTS::
+
+        sage: from sage.misc.misc import some_tuples
+        sage: l = some_tuples([0,1,2,3], 2, 3)
+        sage: l
+        <itertools.islice object at ...>
+        sage: len(list(l))
+        3
+
+        sage: l = some_tuples(range(50), 3, 10)
+        sage: len(list(l))
+        10
+
+    .. TODO::
+
+        Currently, this only return an iterator over the first element of the
+        cartesian product. It would be smarter to return something more
+        "random like" as it is used in tests. However, this should remain
+        deterministic.
+    """
+    from itertools import islice, product
+    return islice(product(elements, repeat=repeat), bound)
 
 def powerset(X):
     r"""

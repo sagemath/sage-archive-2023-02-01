@@ -39,7 +39,7 @@ from sage.rings.all import CC
 from sage.rings.real_mpfr import RR
 from sage.rings.infinity import Infinity
 from sage.misc.latex import latex
-from sage.manifolds.manifold import TopManifold
+from sage.manifolds.manifold import TopologicalManifold
 
 class Chart(UniqueRepresentation, SageObject):
     r"""
@@ -57,7 +57,7 @@ class Chart(UniqueRepresentation, SageObject):
     INPUT:
 
     - ``domain`` -- open subset `U` on which the chart is defined (must be
-      an instance of :class:`~sage.manifolds.manifold.TopManifold`)
+      an instance of :class:`~sage.manifolds.manifold.TopologicalManifold`)
     - ``coordinates`` -- (default: '' (empty string)) single string defining
       the coordinate symbols, with ' ' (whitespace) as a separator; each item
       has at most two fields, separated by ':':
@@ -81,7 +81,7 @@ class Chart(UniqueRepresentation, SageObject):
 
     A chart on a complex 2-dimensional topological manifold::
 
-        sage: M = TopManifold(2, 'M', field='complex')
+        sage: M = Manifold(2, 'M', field='complex', type='topological')
         sage: X = M.chart('x y'); X
         Chart (M, (x, y))
         sage: latex(X)
@@ -97,8 +97,8 @@ class Chart(UniqueRepresentation, SageObject):
     side of the chart declaration (there is then no need to pass the string
     ``'x y'`` to ``chart()``)::
 
-        sage: TopManifold._clear_cache_()  # for doctests only
-        sage: M = TopManifold(2, 'M', field='complex')
+        sage: sage.manifolds.manifold.TopologicalManifold._clear_cache_()  # for doctests only
+        sage: M = Manifold(2, 'M', field='complex', type='topological')
         sage: X.<x,y> = M.chart(); X
         Chart (M, (x, y))
 
@@ -118,8 +118,8 @@ class Chart(UniqueRepresentation, SageObject):
     names and do not have to coincide with the coordinate symbols;
     for instance, one may write::
 
-        sage: TopManifold._clear_cache_()  # for doctests only
-        sage: M = TopManifold(2, 'M', field='complex')
+        sage: sage.manifolds.manifold.TopologicalManifold._clear_cache_()  # for doctests only
+        sage: M = Manifold(2, 'M', field='complex', type='topological')
         sage: X.<x1,y1> = M.chart('x y'); X
         Chart (M, (x, y))
 
@@ -136,8 +136,8 @@ class Chart(UniqueRepresentation, SageObject):
     However, having the name of the Python variable coincide with the
     coordinate symbol is quite convenient; so it is recommended to declare::
 
-        sage: TopManifold._clear_cache_()  # for doctests only
-        sage: M = TopManifold(2, 'M', field='complex')
+        sage: sage.manifolds.manifold.TopologicalManifold._clear_cache_()  # for doctests only
+        sage: M = Manifold(2, 'M', field='complex', type='topological')
         sage: X.<x,y> = M.chart()
 
     In the above example, the chart X covers entirely the manifold M::
@@ -179,7 +179,8 @@ class Chart(UniqueRepresentation, SageObject):
     default, it starts at 0, but this can be changed via the parameter
     ``start_index``::
 
-        sage: M1 = TopManifold(2, 'M_1', field='complex', start_index=1)
+        sage: M1 = Manifold(2, 'M_1', field='complex', type='topological',
+        ....:               start_index=1)
         sage: Z.<u,v> = M1.chart()
         sage: Z[1], Z[2]
         (u, v)
@@ -203,7 +204,7 @@ class Chart(UniqueRepresentation, SageObject):
 
     Manifold subsets have a *default chart*, which, unless changed via the
     method
-    :meth:`~sage.manifolds.manifold.TopManifold.set_default_chart`,
+    :meth:`~sage.manifolds.manifold.TopologicalManifold.set_default_chart`,
     is the first defined chart on the subset (or on a open subset of it)::
 
         sage: M.default_chart()
@@ -237,7 +238,7 @@ class Chart(UniqueRepresentation, SageObject):
 
         TESTS::
 
-            sage: M = TopManifold(2, 'M', field='complex')
+            sage: M = Manifold(2, 'M', field='complex', type='topological')
             sage: X.<x,y> = M.chart()
             sage: X
             Chart (M, (x, y))
@@ -248,7 +249,7 @@ class Chart(UniqueRepresentation, SageObject):
             sage: TestSuite(X).run()
 
         """
-        if not isinstance(domain, TopManifold):
+        if not isinstance(domain, TopologicalManifold):
             raise TypeError("the first argument must be an open subset of " +
                             "a topological manifold")
         if coordinates == '':
@@ -314,7 +315,7 @@ class Chart(UniqueRepresentation, SageObject):
 
         TESTS::
 
-            sage: M = TopManifold(2, 'M', field='complex')
+            sage: M = Manifold(2, 'M', field='complex', type='topological')
             sage: X.<z1, z2> = M.chart()
             sage: X._init_coordinates(['z1', 'z2'])
             sage: X
@@ -345,7 +346,7 @@ class Chart(UniqueRepresentation, SageObject):
 
         TESTS::
 
-            sage: M = TopManifold(2, 'M', field='complex')
+            sage: M = Manifold(2, 'M', field='complex', type='topological')
             sage: X.<x,y> = M.chart()
             sage: X._repr_()
             'Chart (M, (x, y))'
@@ -363,7 +364,7 @@ class Chart(UniqueRepresentation, SageObject):
 
         TESTS::
 
-            sage: M = TopManifold(2, 'M', field='complex')
+            sage: M = Manifold(2, 'M', field='complex', type='topological')
             sage: X.<x,y> = M.chart()
             sage: X._latex_()
             '\\left(M,(x, y)\\right)'
@@ -409,7 +410,7 @@ class Chart(UniqueRepresentation, SageObject):
 
         EXAMPLES::
 
-            sage: M = TopManifold(2, 'M', field='complex')
+            sage: M = Manifold(2, 'M', field='complex', type='topological')
             sage: X.<x,y> = M.chart()
             sage: X[0]
             x
@@ -420,7 +421,8 @@ class Chart(UniqueRepresentation, SageObject):
 
         The index range is controlled by the parameter ``start_index``::
 
-            sage: M = TopManifold(2, 'M', field='complex', start_index=1)
+            sage: M = Manifold(2, 'M', field='complex', type='topological',
+            ....:              start_index=1)
             sage: X.<x,y> = M.chart()
             sage: X[1]
             x
@@ -449,7 +451,7 @@ class Chart(UniqueRepresentation, SageObject):
 
         EXAMPLES::
 
-            sage: M = TopManifold(2, 'M', field='complex')
+            sage: M = Manifold(2, 'M', field='complex', type='topological')
             sage: X.<x,y> = M.chart()
             sage: p = M.point((1+i, 2-i), chart=X)
             sage: X(p)
@@ -466,7 +468,7 @@ class Chart(UniqueRepresentation, SageObject):
 
         EXAMPLES::
 
-            sage: M = TopManifold(2, 'M')
+            sage: M = Manifold(2, 'M', type='topological')
             sage: X.<x,y> = M.chart()
             sage: X.domain()
             2-dimensional topological manifold M
@@ -484,7 +486,7 @@ class Chart(UniqueRepresentation, SageObject):
 
         EXAMPLES::
 
-            sage: M = TopManifold(2, 'M')
+            sage: M = Manifold(2, 'M', type='topological')
             sage: U = M.open_subset('U')
             sage: X.<x,y> = U.chart()
             sage: X.manifold()
@@ -516,7 +518,7 @@ class Chart(UniqueRepresentation, SageObject):
 
         EXAMPLES::
 
-            sage: M = TopManifold(2, 'M', field='complex')
+            sage: M = Manifold(2, 'M', field='complex', type='topological')
             sage: X.<x,y> = M.chart()
             sage: X.add_restrictions(abs(x) > 1)
             sage: X.valid_coordinates(2+i, 1)
@@ -545,7 +547,7 @@ class Chart(UniqueRepresentation, SageObject):
         INPUT:
 
         - ``subset`` -- open subset `V` of the chart domain `U` (must be an
-          instance of :class:`~sage.manifolds.manifold.TopManifold`)
+          instance of :class:`~sage.manifolds.manifold.TopologicalManifold`)
         - ``restrictions`` -- (default: ``None``) list of coordinate
           restrictions defining the subset `V`.
           A restriction can be any symbolic equality or
@@ -570,7 +572,7 @@ class Chart(UniqueRepresentation, SageObject):
         Coordinates on the unit open ball of  `\CC^2` as a subchart
         of the global coordinates of `\CC^2`::
 
-            sage: M = TopManifold(2, 'C^2', field='complex')
+            sage: M = Manifold(2, 'C^2', field='complex', type='topological')
             sage: X.<z1, z2> = M.chart()
             sage: B = M.open_subset('B')
             sage: X_B = X.restrict(B, abs(z1)^2 + abs(z2)^2 < 1); X_B
@@ -621,8 +623,8 @@ class Chart(UniqueRepresentation, SageObject):
 
         EXAMPLE::
 
-            sage: TopManifold._clear_cache_()  # for doctests only
-            sage: M = TopManifold(2, 'M', field='complex')
+            sage: sage.manifolds.manifold.TopologicalManifold._clear_cache_()  # for doctests only
+            sage: M = Manifold(2, 'M', field='complex', type='topological')
             sage: X.<x,y> = M.chart()
             sage: X.add_restrictions([abs(x)<1, y!=0])
             sage: X.valid_coordinates(0, i)
@@ -727,7 +729,7 @@ class Chart(UniqueRepresentation, SageObject):
 
         Transition map between two stereographic charts on the circle `S^1`::
 
-            sage: M = TopManifold(1, 'S^1')
+            sage: M = Manifold(1, 'S^1', type='topological')
             sage: U = M.open_subset('U') # Complement of the North pole
             sage: cU.<x> = U.chart() # Stereographic chart from the North pole
             sage: V = M.open_subset('V') # Complement of the South pole
@@ -757,8 +759,8 @@ class Chart(UniqueRepresentation, SageObject):
         Transition map between the spherical chart and the Cartesian one on
         `\RR^2`::
 
-            sage: TopManifold._clear_cache_() # for doctests only
-            sage: M = TopManifold(2, 'R^2')
+            sage: sage.manifolds.manifold.TopologicalManifold._clear_cache_()  # for doctests only
+            sage: M = Manifold(2, 'R^2', type='topological')
             sage: c_cart.<x,y> = M.chart()
             sage: U = M.open_subset('U') # the complement of the half line {y=0, x >= 0}
             sage: c_spher.<r,phi> = U.chart(r'r:(0,+oo) phi:(0,2*pi):\phi')
@@ -848,7 +850,8 @@ class RealChart(Chart):
 
     Cartesian coordinates on `\RR^3`::
 
-        sage: M = TopManifold(3, 'R^3', r'\RR^3', start_index=1)
+        sage: M = Manifold(3, 'R^3', r'\RR^3', type='topological',
+        ....:              start_index=1)
         sage: c_cart = M.chart('x y z'); c_cart
         Chart (R^3, (x, y, z))
         sage: type(c_cart)
@@ -862,8 +865,9 @@ class RealChart(Chart):
     side of the chart declaration (there is then no need to pass the string
     ``'x y z'`` to  ``chart()``)::
 
-        sage: TopManifold._clear_cache_() # for doctests only
-        sage: M = TopManifold(3, 'R^3', r'\RR^3', start_index=1)
+        sage: sage.manifolds.manifold.TopologicalManifold._clear_cache_()  # for doctests only
+        sage: M = Manifold(3, 'R^3', r'\RR^3', type='topological',
+        ....:              start_index=1)
         sage: c_cart.<x,y,z> = M.chart(); c_cart
         Chart (R^3, (x, y, z))
 
@@ -883,7 +887,7 @@ class RealChart(Chart):
     names and do not have to coincide with the coordinate symbols; for instance,
     one may write::
 
-        sage: M = TopManifold(3, 'R^3', r'\RR^3', start_index=1)
+        sage: M = Manifold(3, 'R^3', r'\RR^3', type='topological', start_index=1)
         sage: c_cart.<x1,y1,z1> = M.chart('x y z'); c_cart
         Chart (R^3, (x, y, z))
 
@@ -898,9 +902,9 @@ class RealChart(Chart):
     However, having the name of the Python variable coincide with the
     coordinate symbol is quite convenient; so it is recommended to declare::
 
-        sage: TopManifold._clear_cache_()  # for doctests only
+        sage: sage.manifolds.manifold.TopologicalManifold._clear_cache_()  # for doctests only
         sage: forget()   # for doctests only
-        sage: M = TopManifold(3, 'R^3', r'\RR^3', start_index=1)
+        sage: M = Manifold(3, 'R^3', r'\RR^3', type='topological', start_index=1)
         sage: c_cart.<x,y,z> = M.chart()
 
     Spherical coordinates on the subset `U` of `\RR^3` that is the
@@ -972,7 +976,7 @@ class RealChart(Chart):
 
     Manifold subsets have a *default chart*, which, unless changed via the
     method
-    :meth:`~sage.manifolds.manifold.TopManifold.set_default_chart`,
+    :meth:`~sage.manifolds.manifold.TopologicalManifold.set_default_chart`,
     is the first defined chart on the subset (or on a open subset of it)::
 
         sage: M.default_chart()
@@ -1031,7 +1035,7 @@ class RealChart(Chart):
         TESTS::
 
             sage: forget()  # for doctests only
-            sage: M = TopManifold(2, 'M')
+            sage: M = Manifold(2, 'M', type='topological')
             sage: X.<x,y> = M.chart()
             sage: X
             Chart (M, (x, y))
@@ -1060,7 +1064,7 @@ class RealChart(Chart):
 
         TESTS::
 
-            sage: M = TopManifold(2, 'M')
+            sage: M = Manifold(2, 'M', type='topological')
             sage: X.<x,y> = M.chart()
             sage: X._init_coordinates(['x', 'y'])
             sage: X
@@ -1157,8 +1161,8 @@ class RealChart(Chart):
         Some coordinate bounds on a 2-dimensional manifold::
 
             sage: forget()  # for doctests only
-            sage: TopManifold._clear_cache_()  # for doctests only
-            sage: M = TopManifold(2, 'M')
+            sage: sage.manifolds.manifold.TopologicalManifold._clear_cache_()  # for doctests only
+            sage: M = Manifold(2, 'M', type='topological')
             sage: c_xy.<x,y> = M.chart('x y:[0,1)')
             sage: c_xy.coord_bounds(0)  # x in (-oo,+oo) (the default)
             ((-Infinity, False), (+Infinity, False))
@@ -1206,7 +1210,7 @@ class RealChart(Chart):
 
         Ranges of coordinates on a 2-dimensional manifold::
 
-            sage: M = TopManifold(2, 'M')
+            sage: M = Manifold(2, 'M', type='topological')
             sage: X.<x,y> = M.chart()
             sage: X.coord_range()
             x: (-oo, +oo); y: (-oo, +oo)
@@ -1298,8 +1302,8 @@ class RealChart(Chart):
 
         Cartesian coordinates on the open unit disc in $\RR^2$::
 
-            sage: TopManifold._clear_cache_() # for doctests only
-            sage: M = TopManifold(2, 'M') # the open unit disc
+            sage: sage.manifolds.manifold.TopologicalManifold._clear_cache_()  # for doctests only
+            sage: M = Manifold(2, 'M', type='topological') # the open unit disc
             sage: X.<x,y> = M.chart()
             sage: X.add_restrictions(x^2+y^2<1)
             sage: X.valid_coordinates(0,2)
@@ -1398,7 +1402,7 @@ class RealChart(Chart):
         INPUT:
 
         - ``subset`` -- open subset `V` of the chart domain `U` (must be an
-          instance of :class:`~sage.manifolds.manifold.TopManifold`)
+          instance of :class:`~sage.manifolds.manifold.TopologicalManifold`)
         - ``restrictions`` -- (default: ``None``) list of coordinate
           restrictions defining the subset `V`.
           A restriction can be any symbolic equality or
@@ -1423,7 +1427,7 @@ class RealChart(Chart):
         Cartesian coordinates on the unit open disc in `\RR^2` as a subchart
         of the global Cartesian coordinates::
 
-            sage: M = TopManifold(2, 'R^2')
+            sage: M = Manifold(2, 'R^2', type='topological')
             sage: c_cart.<x,y> = M.chart() # Cartesian coordinates on R^2
             sage: D = M.open_subset('D') # the unit open disc
             sage: c_cart_D = c_cart.restrict(D, x^2+y^2<1)
@@ -1494,7 +1498,7 @@ class RealChart(Chart):
         Cartesian coordinates on a square interior::
 
             sage: forget()  # for doctest only
-            sage: M = TopManifold(2, 'M')  # the square interior
+            sage: M = Manifold(2, 'M', type='topological')  # the square interior
             sage: X.<x,y> = M.chart('x:(-2,2) y:(-2,2)')
             sage: X.valid_coordinates(0,1)
             True
@@ -1600,7 +1604,7 @@ class CoordChange(SageObject):
 
     Transition map on a 2-dimensional topological manifold::
 
-        sage: M = TopManifold(2, 'M')
+        sage: M = Manifold(2, 'M', type='topological')
         sage: X.<x,y> = M.chart()
         sage: Y.<u,v> = M.chart()
         sage: X_to_Y = X.transition_map(Y, [x+y, x-y])
@@ -1619,7 +1623,7 @@ class CoordChange(SageObject):
 
         TESTS::
 
-            sage: M = TopManifold(2, 'M')
+            sage: M = Manifold(2, 'M', type='topological')
             sage: X.<x,y> = M.chart()
             sage: Y.<u,v> = M.chart()
             sage: X_to_Y = X.transition_map(Y, [x+y, x-y])
@@ -1659,7 +1663,7 @@ class CoordChange(SageObject):
 
         TESTS::
 
-            sage: M = TopManifold(2, 'M')
+            sage: M = Manifold(2, 'M', type='topological')
             sage: X.<x,y> = M.chart()
             sage: Y.<u,v> = M.chart()
             sage: X_to_Y = X.transition_map(Y, [x+y, x-y])
@@ -1680,7 +1684,7 @@ class CoordChange(SageObject):
 
         TESTS::
 
-            sage: M = TopManifold(2, 'M')
+            sage: M = Manifold(2, 'M', type='topological')
             sage: X.<x,y> = M.chart()
             sage: Y.<u,v> = M.chart()
             sage: X_to_Y = X.transition_map(Y, [x+y, x-y])
@@ -1706,7 +1710,7 @@ class CoordChange(SageObject):
 
         EXAMPLE::
 
-            sage: M = TopManifold(2, 'M')
+            sage: M = Manifold(2, 'M', type='topological')
             sage: X.<x,y> = M.chart()
             sage: Y.<u,v> = M.chart()
             sage: X_to_Y = X.transition_map(Y, [x+y, x-y])
@@ -1736,7 +1740,7 @@ class CoordChange(SageObject):
         Inverse of a coordinate transformation corresponding to a pi/3-rotation
         in the plane::
 
-            sage: M = TopManifold(2, 'M')
+            sage: M = Manifold(2, 'M', type='topological')
             sage: c_xy.<x,y> = M.chart()
             sage: c_uv.<u,v> = M.chart()
             sage: xy_to_uv = c_xy.transition_map(c_uv, ((x - sqrt(3)*y)/2, (sqrt(3)*x + y)/2))
@@ -1840,7 +1844,7 @@ class CoordChange(SageObject):
 
         From spherical coordinates to Cartesian ones in the plane::
 
-            sage: M = TopManifold(2, 'R^2')
+            sage: M = Manifold(2, 'R^2', type='topological')
             sage: U = M.open_subset('U') # the complement of the half line {y=0, x>= 0}
             sage: c_cart.<x,y> = U.chart()
             sage: c_spher.<r,ph> = U.chart(r'r:(0,+oo) ph:(0,2*pi):\phi')
@@ -1901,7 +1905,7 @@ class CoordChange(SageObject):
 
         EXAMPLE::
 
-            sage: M = TopManifold(2, 'M')
+            sage: M = Manifold(2, 'M', type='topological')
             sage: X.<x,y> = M.chart()
             sage: U.<u,v> = M.chart()
             sage: X_to_U = X.transition_map(U, (x+y, x-y))
@@ -1943,7 +1947,7 @@ class CoordChange(SageObject):
 
         EXAMPLE::
 
-            sage: M = TopManifold(2, 'M')
+            sage: M = Manifold(2, 'M', type='topological')
             sage: X.<x,y> = M.chart()
             sage: Y.<u,v> = M.chart()
             sage: X_to_Y = X.transition_map(Y, [x+y, x-y])
@@ -1984,7 +1988,7 @@ class CoordChange(SageObject):
 
         From spherical coordinates to Cartesian ones in the plane::
 
-            sage: M = TopManifold(2, 'R^2')
+            sage: M = Manifold(2, 'R^2', type='topological')
             sage: U = M.open_subset('U') # the complement of the half line {y=0, x>= 0}
             sage: c_cart.<x,y> = U.chart()
             sage: c_spher.<r,ph> = U.chart(r'r:(0,+oo) ph:(0,2*pi):\phi')

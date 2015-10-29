@@ -58,6 +58,8 @@ def is_mutation_finite(M, nr_of_checks=None):
     """
     import random
     n, m = M.ncols(), M.nrows()
+    if n == 1:
+        return True, None
     if nr_of_checks is None:
         nr_of_checks = 1000 * n
     k = 0

@@ -95,7 +95,7 @@ def hadamard_matrix_paleyI(n, normalize=True):
     We note that this method by default returns a normalised Hadamard matrix ::
 
         sage: from sage.combinat.matrices.hadamard_matrix import hadamard_matrix_paleyI
-        sage: hadamard_matrix_paleyI(4) # random
+        sage: hadamard_matrix_paleyI(4)
         [ 1  1  1  1]
         [ 1 -1  1 -1]
         [ 1 -1 -1  1]
@@ -104,11 +104,11 @@ def hadamard_matrix_paleyI(n, normalize=True):
     Otherwise, it returns a skew Hadamard matrix `H`, i.e. `H=S+I`, with
     `S=-S^\top`  ::
 
-        sage: M=hadamard_matrix_paleyI(4, normalize=False); M # random
+        sage: M=hadamard_matrix_paleyI(4, normalize=False); M
         [ 1  1  1  1]
-        [ 1 -1  1 -1]
-        [ 1 -1 -1  1]
-        [ 1  1 -1 -1]
+        [-1  1  1 -1]
+        [-1 -1  1  1]
+        [-1  1 -1  1]
         sage: S=M-identity_matrix(4); -S==S.T
         True
 
@@ -159,7 +159,7 @@ def hadamard_matrix_paleyII(n):
 
     We note that the method returns a normalised Hadamard matrix ::
 
-        sage: sage.combinat.matrices.hadamard_matrix.hadamard_matrix_paleyII(12) # random
+        sage: sage.combinat.matrices.hadamard_matrix.hadamard_matrix_paleyII(12)
         [ 1  1| 1  1| 1  1| 1  1| 1  1| 1  1]
         [ 1 -1|-1  1|-1  1|-1  1|-1  1|-1  1]
         [-----+-----+-----+-----+-----+-----]

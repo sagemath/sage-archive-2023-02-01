@@ -1108,7 +1108,7 @@ def EllipticLinesProjectivePlaneScheme(k):
     Pseudo-cyclic association scheme for action of `O(3,2^k)` on elliptic lines
 
     The group `O(3,2^k)` acts naturally on the `q(q-1)/2` lines of `PG(2,2^k)`
-    skew to the conic preseerved by it, see Sect. 12.7.B of [BCN89]_ and Sect. 6.D
+    skew to the conic preserved by it, see Sect. 12.7.B of [BCN89]_ and Sect. 6.D
     in [BvL84]_. Compute the orbitals of this action and return them.
 
     INPUT:

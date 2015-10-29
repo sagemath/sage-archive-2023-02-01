@@ -1775,13 +1775,13 @@ def mathon_pseudocylcic_merging_graph(M, t):
         sage: from sage.graphs.strongly_regular_db import mathon_pseudocylcic_merging_graph
         sage: from sage.graphs.generators.classical_geometries import EllipticLinesProjectivePlaneScheme as ES
         sage: G = mathon_pseudocylcic_merging_graph(ES(3), 0) # long time
-        sage: sage: G.is_strongly_regular(parameters=True)    # long time
+        sage: G.is_strongly_regular(parameters=True)    # long time
         (784, 243, 82, 72)
         sage: G = mathon_pseudocylcic_merging_graph(ES(3), 1) # long time
-        sage: sage: G.is_strongly_regular(parameters=True)    # long time
+        sage: G.is_strongly_regular(parameters=True)    # long time
         (784, 270, 98, 90)
         sage: G = mathon_pseudocylcic_merging_graph(ES(3), 2) # long time
-        sage: sage: G.is_strongly_regular(parameters=True)    # long time
+        sage: G.is_strongly_regular(parameters=True)    # long time
         (784, 297, 116, 110)
         sage: G = mathon_pseudocylcic_merging_graph(ES(2), 2)
         Traceback (most recent call last):

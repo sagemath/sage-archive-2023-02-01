@@ -6,6 +6,8 @@ Colored Permutations
     Much of the colored permutations (and element) class can be
     generalized to `G \wr S_n`
 """
+import itertools
+
 from sage.categories.groups import Groups
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
 from sage.categories.finite_coxeter_groups import FiniteCoxeterGroups
@@ -16,7 +18,6 @@ from sage.misc.cachefunc import cached_method
 from sage.misc.misc_c import prod
 
 from sage.combinat.permutation import Permutations
-from sage.combinat.cartesian_product import CartesianProduct
 from sage.matrix.constructor import diagonal_matrix
 from sage.rings.finite_rings.integer_mod_ring import IntegerModRing
 from sage.rings.number_field.number_field import CyclotomicField
@@ -41,6 +42,18 @@ class ColoredPermutation(MultiplicativeGroupElement):
         self._colors = tuple(colors)
         self._perm = perm
         MultiplicativeGroupElement.__init__(self, parent=parent)
+
+    def __hash__(self):
+        r"""
+        TESTS::
+
+            sage: C = ColoredPermutations(4, 3)
+            sage: s1,s2,t = C.gens()
+            sage: hash(s1), hash(s2), hash(t)
+            (2666658751600856334, 3639282354432100950, 3639281107336048003) # 64-bit
+            (-1973744370, 88459862, -1467077245)                            # 32-bit
+        """
+        return hash(self._perm) ^ hash(self._colors)
 
     def _repr_(self):
         """
@@ -460,9 +473,8 @@ class ColoredPermutations(Parent, UniqueRepresentation):
              [[1, 0], [2, 1]],
              [[1, 1], [2, 1]]]
         """
-        C = CartesianProduct(*[self._C] * self._n)
         for p in self._P:
-            for c in C:
+            for c in itertools.product(self._C, repeat=self._n):
                 yield self.element_class(self, c, p)
 
     def cardinality(self):
@@ -983,10 +995,9 @@ class SignedPermutations(ColoredPermutations):
             [[1, 2], [1, -2], [-1, 2], [-1, -2],
              [2, 1], [2, -1], [-2, 1], [-2, -1]]
         """
-        one = ZZ.one()
-        C = CartesianProduct(*[[one, -one]] * self._n)
+        pmone = [ZZ.one(), -ZZ.one()]
         for p in self._P:
-            for c in C:
+            for c in itertools.product(pmone, repeat=self._n):
                 yield self.element_class(self, c, p)
 
     def _coerce_map_from_(self, C):

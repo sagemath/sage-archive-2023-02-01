@@ -38,6 +38,8 @@ Algebras
    sage/algebras/hall_algebra
    sage/algebras/jordan_algebra
 
+   quantum_groups
+
    sage/algebras/quatalg/quaternion_algebra
 
    sage/algebras/schur_algebra

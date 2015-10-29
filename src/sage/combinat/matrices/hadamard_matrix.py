@@ -1017,5 +1017,7 @@ def skew_hadamard_matrix(n,existence=False, skew_normalize=True, check=True):
         M = dd*M*dd
     if check:
         assert is_hadamard_matrix(M, normalized=False, skew=True)
+        if skew_normalize:
+            assert M[0]==[1]*n
     _skew_had_cache[n]=True
     return M

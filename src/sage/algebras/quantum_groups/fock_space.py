@@ -540,7 +540,7 @@ class HighestWeightRepresentation(Parent, UniqueRepresentation):
                 # Reduce down to the lower level Fock space and do the computation
                 #   and then lift back up to us by prepending empty partitions
                 if k == len(fock._r): # This means we get the empty partition
-                    cur = self.highest_weight_vector()
+                    cur = fock.highest_weight_vector()
                 else:
                     F = FockSpace(fock._n, fock._r[k:], fock._q, fock.base_ring())
                     Gp = F.highest_weight_representation().G()

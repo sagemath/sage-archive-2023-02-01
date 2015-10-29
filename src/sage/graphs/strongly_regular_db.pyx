@@ -1757,6 +1757,74 @@ def strongly_regular_from_two_weight_code(L):
     G.relabel()
     return G
 
+def mathon_pseudocylcic_merging_graph(M, t):
+    r"""
+    Mathon's merging of classes in a pseudo-cyclic 3-class association scheme
+
+    Construct strongly regular graphs from p.97 of [BvL84]_.
+
+    INPUT:
+
+    - ``M`` -- the list of matrices in a pseudo-cyclic 3-class association scheme.
+      The identity matrix must be the first entry.
+
+    - ``t`` (integer) -- the number of the graph, from 0 to 2.
+
+    TESTS::
+
+        sage: from sage.graphs.strongly_regular_db import mathon_pseudocylcic_merging_graph
+        sage: from sage.graphs.generators.classical_geometries import EllipticLinesProjectivePlaneScheme as ES
+        sage: G = mathon_pseudocylcic_merging_graph(ES(3), 0) # long time
+        sage: sage: G.is_strongly_regular(parameters=True)    # long time
+        (784, 243, 82, 72)
+        sage: G = mathon_pseudocylcic_merging_graph(ES(3), 1) # long time
+        sage: sage: G.is_strongly_regular(parameters=True)    # long time
+        (784, 270, 98, 90)
+        sage: G = mathon_pseudocylcic_merging_graph(ES(3), 2) # long time
+        sage: sage: G.is_strongly_regular(parameters=True)    # long time
+        (784, 297, 116, 110)
+        sage: G = mathon_pseudocylcic_merging_graph(ES(2), 2)
+        Traceback (most recent call last):
+        ...
+        AssertionError...
+        sage: M = ES(3)
+        sage: M = [M[1],M[0],M[2],M[3]]
+        sage: G = mathon_pseudocylcic_merging_graph(M, 2)
+        Traceback (most recent call last):
+        ...
+        AssertionError...
+    """
+    from sage.graphs.graph import Graph
+    from sage.matrix.constructor import identity_matrix
+    assert (len(M) == 4)
+    assert (M[0]==identity_matrix(M[0].nrows()))
+    A = sum(map(lambda x: x.tensor_product(x), M[1:]))
+    if t > 0:
+        A += sum(map(lambda x: x.tensor_product(M[0]), M[1:]))
+    if t > 1:
+        A += sum(map(lambda x: M[0].tensor_product(x), M[1:]))
+    return Graph(A)
+
+def mathon_graph_on_784_vertices(t):
+    r"""
+    return one of Mathon's graphs on 784 vertices
+
+    INPUT:
+
+    - ``t`` (integer) -- the number of the graph, from 0 to 2.
+
+    EXAMPLE::
+
+        sage: from sage.graphs.strongly_regular_db import mathon_graph_on_784_vertices
+        sage: G = mathon_graph_on_784_vertices(0)
+        sage: G.is_strongly_regular(parameters=True)
+        (784, 243, 82, 72)
+    """
+    from sage.graphs.generators.classical_geometries import \
+                    EllipticLinesProjectivePlaneScheme as ES
+
+    return mathon_pseudocylcic_merging_graph(ES(3), t)
+
 def SRG_256_187_138_132():
     r"""
     Return a `(256, 187, 138, 132)`-strongly regular graph.
@@ -2786,6 +2854,9 @@ def strongly_regular_graph(int v,int k,int l,int mu=-1,bint existence=False,bint
         (729, 560, 433,420): [SRG_729_560_433_420],
         (729, 476, 313,306): [SRG_729_476_313_306],
         (729, 532, 391,380): [SRG_729_532_391_380],
+        (784, 243,  82, 72): [mathon_graph_on_784_vertices, 0],
+        (784, 270, 98, 90):  [mathon_graph_on_784_vertices, 1],
+        (784, 297, 116, 110):[mathon_graph_on_784_vertices, 2],
         (1024,825, 668,650): [SRG_1024_825_668_650],
         (1782,416, 100, 96): [SuzukiGraph],
     }

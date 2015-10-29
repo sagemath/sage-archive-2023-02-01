@@ -1617,6 +1617,11 @@ class PartitionTuples(UniqueRepresentation, Parent):
             True
             sage: [[5,1,1]] in PartitionTuples()
             True
+            sage: la = Partition([3,3,1])
+            sage: la in PartitionTuples()
+            True
+            sage: PT(la)
+            ([3, 3, 1])
 
         Check that :trac:`14145` is fixed::
 

@@ -2,9 +2,10 @@ from category import Category
 
 from category_types import(
                         Elements,
-                        SimplicialComplexes,
                         ChainComplexes,
 )
+
+from sage.categories.simplicial_complexes import SimplicialComplexes
 
 from tensor     import tensor
 from cartesian_product import cartesian_product

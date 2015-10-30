@@ -872,9 +872,6 @@ cdef class LaurentSeries(AlgebraElement):
             return self.prec()
         return min(self.prec(), f.prec())
 
-    def __richcmp__(left, right, int op):
-        return (<Element>left)._richcmp(right, op)
-
     cpdef int _cmp_(self, Element right_r) except -2:
         r"""
         Comparison of self and right.
@@ -1234,10 +1231,22 @@ cdef class LaurentSeries(AlgebraElement):
             sage: f.power_series()
             Traceback (most recent call last):
             ...
-            ArithmeticError: self is a not a power series
+            TypeError: self is not a power series
+
+        TESTS:
+
+        Check whether a polynomial over a Laurent series ring is contained in the
+        polynomial ring over the power series ring (see :trac:`19459`):
+
+            sage: L.<t> = LaurentSeriesRing(GF(2))
+            sage: R.<x,y> = PolynomialRing(L)
+            sage: O = L.power_series_ring()
+            sage: S.<x,y> = PolynomialRing(O)
+            sage: t**(-1)*x*y in S
+            False
         """
         if self.__n < 0:
-            raise ArithmeticError, "self is a not a power series"
+            raise TypeError("self is not a power series")
         u = self.__u
         t = u.parent().gen()
         return t**(self.__n) * u

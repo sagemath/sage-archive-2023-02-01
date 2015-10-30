@@ -33,7 +33,7 @@ saclib="$SAGE_LOCAL/lib/saclib"
 export saclib
 qe=$(pwd -P)
 export qe
-$MAKE opt
+$MAKE -j1 opt
 
 if [ $? -ne 0 ]; then
    echo >&2 "Error building qepcad."

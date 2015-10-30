@@ -529,7 +529,7 @@ cdef class Polynomial_template(Polynomial):
         """
         return not celement_is_zero(&self.x, (<Polynomial_template>self)._cparent)
 
-    def __richcmp__(left, right, int op):
+    cpdef int _cmp_(left, Element right) except -2:
         """
         EXAMPLE::
 
@@ -540,14 +540,6 @@ cdef class Polynomial_template(Polynomial):
             False
             sage: x > 1
             True
-        """
-        return (<Element>left)._richcmp(right, op)
-
-    cpdef int _cmp_(left, Element right) except -2:
-        """
-        EXAMPLE::
-
-            sage: P.<x> = GF(2)[]
         """
         return celement_cmp(&(<Polynomial_template>left).x, &(<Polynomial_template>right).x, (<Polynomial_template>left)._cparent)
 

@@ -377,10 +377,15 @@ class ComplexIntervalField_class(ring.Field):
             2 + 3*I
             sage: CIF(pi, e)
             3.141592653589794? + 2.718281828459046?*I
+            sage: ComplexIntervalField(100)(CIF(RIF(2,3)))
+            3.?
         """
         if im is None:
-            if isinstance(x, complex_interval.ComplexIntervalFieldElement) and x.parent() is self:
-                return x
+            if isinstance(x, complex_interval.ComplexIntervalFieldElement):
+                if x.parent() is self:
+                    return x
+                else:
+                    return complex_interval.ComplexIntervalFieldElement(self, x)
             elif isinstance(x, complex_double.ComplexDoubleElement):
                 return complex_interval.ComplexIntervalFieldElement(self, x.real(), x.imag())
             elif isinstance(x, str):

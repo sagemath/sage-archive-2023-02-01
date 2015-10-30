@@ -341,18 +341,6 @@ cdef class FpTElement(RingElement):
         else:
             return "\\frac{%s}{%s}" % (self.numer()._latex_(), self.denom()._latex_())
 
-    def __richcmp__(left, right, int op):
-        """
-        EXAMPLES::
-
-            sage: K = Frac(GF(5)['t']); t = K.gen()
-            sage: t == 1
-            False
-            sage: t + 1 < t^2
-            True
-        """
-        return (<Element>left)._richcmp(right, op)
-
     cpdef int _cmp_(self, Element other) except -2:
         """
         Compares this with another element.  The ordering is arbitrary,
@@ -387,6 +375,14 @@ cdef class FpTElement(RingElement):
             True
             sage: b < 1/a
             False
+
+        ::
+
+            sage: K = Frac(GF(5)['t']); t = K.gen()
+            sage: t == 1
+            False
+            sage: t + 1 < t^2
+            True
         """
         # They are normalized.
         cdef int j = sage_cmp_nmod_poly_t(self._numer, (<FpTElement>other)._numer)

@@ -362,8 +362,8 @@ fact that the third output is different than the first::
     AA(2)
 
 Just for fun, let's try ``sage_input`` on a very complicated expression. The
-output of this example changed with the rewritting of polynomial multiplication
-algorithms in #10255::
+output of this example changed with the rewriting of polynomial multiplication
+algorithms in :trac:`10255`::
 
     sage: rt2 = sqrt(AA(2))
     sage: rt3 = sqrt(QQbar(3))
@@ -449,7 +449,7 @@ Here are examples of all of these conversions::
     ....:     def convert_test(v):
     ....:         try:
     ....:             return ty(v)
-    ....:         except ValueError:
+    ....:         except (TypeError, ValueError):
     ....:             return None
     ....:     return [convert_test(_) for _ in all_vals]
     sage: convert_test_all(float)
@@ -3807,7 +3807,8 @@ class AlgebraicNumber_base(sage.structure.element.FieldElement):
 
     def interval_fast(self, field):
         r"""
-        Given a ``RealIntervalField``, compute the value of this number
+        Given a :class:`RealIntervalField` or
+        :class:`ComplexIntervalField`, compute the value of this number
         using interval arithmetic of at least the precision of the field,
         and return the value in that field. (More precision may be used
         in the computation.)  The returned interval may be arbitrarily
@@ -3827,15 +3828,11 @@ class AlgebraicNumber_base(sage.structure.element.FieldElement):
             sage: x.interval_fast(RIF)
             Traceback (most recent call last):
             ...
-            TypeError: Unable to convert number to real interval.
+            TypeError: unable to convert 0.7071067811865475244? + 0.7071067811865475244?*I to real interval
         """
-        if field.prec() == self._value.prec():
-            return field(self._value)
-        elif field.prec() > self._value.prec():
+        while self._value.prec() < field.prec():
             self._more_precision()
-            return self.interval_fast(field)
-        else:
-            return field(self._value)
+        return field(self._value)
 
     def interval_diameter(self, diam):
         """
@@ -3887,10 +3884,21 @@ class AlgebraicNumber_base(sage.structure.element.FieldElement):
             0.8412535328311811689? + 0.540640817455597582?*I
             sage: x.interval(CIF64)
             0.8412535328311811689? + 0.5406408174555975822?*I
+
+        The following implicitly use this method::
+
+            sage: RIF(AA(5).sqrt())
+            2.236067977499790?
+            sage: AA(-5).sqrt().interval(RIF)
+            Traceback (most recent call last):
+            ...
+            TypeError: unable to convert 2.236067977499789697?*I to real interval
         """
         target = RR(1.0) >> field.prec()
         val = self.interval_diameter(target)
         return field(val)
+
+    _real_mpfi_ = interval
 
     def radical_expression(self):
         r"""
@@ -4553,13 +4561,13 @@ class AlgebraicNumber(AlgebraicNumber_base):
         EXAMPLES::
 
             sage: a = QQbar.zeta(5)
-            sage: a.complex_number(CIF)
+            sage: a.complex_number(CC)
             0.309016994374947 + 0.951056516295154*I
-            sage: (a + a.conjugate()).complex_number(CIF)
+            sage: (a + a.conjugate()).complex_number(CC)
             0.618033988749895 - 5.42101086242752e-20*I
         """
         v = self.interval(ComplexIntervalField(field.prec()))
-        return v.center()
+        return field(v)
 
     def complex_exact(self, field):
         r"""
@@ -5204,21 +5212,7 @@ class AlgebraicReal(AlgebraicNumber_base):
             1.41421356237309
         """
         v = self.interval(RealIntervalField(field.prec()))
-
-        mode = field.rounding_mode()
-        if mode == 'RNDN':
-            return v.center()
-        if mode == 'RNDD':
-            return v.lower()
-        if mode == 'RNDU':
-            return v.upper()
-        if mode == 'RNDZ':
-            if v > 0:
-                return field(v.lower())
-            elif v < 0:
-                return field(v.upper())
-            else:
-                return field(0)
+        return field(v)
 
     _mpfr_ = real_number
 

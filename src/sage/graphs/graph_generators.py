@@ -136,6 +136,7 @@ __append_to_doc(
      "LivingstoneGraph",
      "M22Graph",
      "MarkstroemGraph",
+     "MathonStronglyRegularGraph",
      "McGeeGraph",
      "McLaughlinGraph",
      "MeredithGraph",
@@ -210,6 +211,7 @@ __append_to_doc(
      "KneserGraph",
      "LCFGraph",
      "line_graph_forbidden_subgraphs",
+     "MathonPseudocyclicMergingGraph",
      "MycielskiGraph",
      "MycielskiStep",
      "NKStarGraph",
@@ -1920,6 +1922,7 @@ class GraphGenerators():
     LivingstoneGraph         = staticmethod(sage.graphs.generators.smallgraphs.LivingstoneGraph)
     M22Graph                 = staticmethod(sage.graphs.generators.smallgraphs.M22Graph)
     MarkstroemGraph          = staticmethod(sage.graphs.generators.smallgraphs.MarkstroemGraph)
+    MathonStronglyRegularGraph = staticmethod(sage.graphs.generators.smallgraphs.MathonStronglyRegularGraph)
     McGeeGraph               = staticmethod(sage.graphs.generators.smallgraphs.McGeeGraph)
     McLaughlinGraph          = staticmethod(sage.graphs.generators.smallgraphs.McLaughlinGraph)
     MeredithGraph            = staticmethod(sage.graphs.generators.smallgraphs.MeredithGraph)
@@ -1983,6 +1986,7 @@ class GraphGenerators():
     KneserGraph            = staticmethod(sage.graphs.generators.families.KneserGraph)
     LCFGraph               = staticmethod(sage.graphs.generators.families.LCFGraph)
     line_graph_forbidden_subgraphs = staticmethod(sage.graphs.generators.families.line_graph_forbidden_subgraphs)
+    MathonPseudocyclicMergingGraph = staticmethod(sage.graphs.generators.families.MathonPseudocyclicMergingGraph)
     MycielskiGraph         = staticmethod(sage.graphs.generators.families.MycielskiGraph)
     MycielskiStep          = staticmethod(sage.graphs.generators.families.MycielskiStep)
     NKStarGraph            = staticmethod(sage.graphs.generators.families.NKStarGraph)

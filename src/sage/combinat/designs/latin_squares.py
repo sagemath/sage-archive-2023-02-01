@@ -395,8 +395,8 @@ def mutually_orthogonal_latin_squares(k,n, partitions = False, check = True, exi
                 return False
             raise EmptySetError("There does not exist {} MOLS of order {}!".format(k,n))
 
-        OA = orthogonal_array(k+2,n,check=False)
-        OA.sort() # make sure that the first two columns are "11, 12, ..., 1n, 21, 22, ..."
+        # make sure that the first two columns are "11, 12, ..., 1n, 21, 22, ..."
+        OA = sorted(orthogonal_array(k+2,n,check=False))
 
         # We first define matrices as lists of n^2 values
         matrices = [[] for _ in range(k)]

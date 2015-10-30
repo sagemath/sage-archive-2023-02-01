@@ -26,10 +26,6 @@ Public License, the Lesser GPL enables developers of non-free programs to use
 MPFR in their programs. If you have written a new function for MPFR or improved
 an existing one, please share your work!
 
-== SPKG Maintainers ==
-
- * David Kirkby
-
 == Upstream Contact ==
 
 The MPFR website is located at http://mpfr.org/

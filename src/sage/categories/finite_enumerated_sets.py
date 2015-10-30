@@ -501,9 +501,9 @@ class FiniteEnumeratedSets(CategoryWithAxiom):
 
             # Ambiguity resolution between methods inherited from
             # Sets.CartesianProducts and from EnumeratedSets.Finite.
-            random_element = Sets.CartesianProducts.ParentMethods.random_element.im_func
-            cardinality = Sets.CartesianProducts.ParentMethods.cardinality.im_func
-            __iter__ = EnumeratedSets.CartesianProducts.ParentMethods.__iter__.im_func
+            random_element = Sets.CartesianProducts.ParentMethods.random_element.__func__
+            cardinality = Sets.CartesianProducts.ParentMethods.cardinality.__func__
+            __iter__ = EnumeratedSets.CartesianProducts.ParentMethods.__iter__.__func__
 
             def last(self):
                 r"""

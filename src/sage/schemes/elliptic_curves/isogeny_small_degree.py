@@ -1145,8 +1145,7 @@ def isogenies_13_0(E):
         [endo.set_post_isomorphism(endo.codomain().isomorphism_to(E)) for endo in isogs]
 
     # we may have up to 12 other isogenies:
-    ts = (x**4 + 7*x**3 + 20*x**2 + 19*x + 1).roots(multiplicities=False)
-    ts.sort()
+    ts = sorted((x**4 + 7*x**3 + 20*x**2 + 19*x + 1).roots(multiplicities=False))
     for t0 in ts:
         s3 = a / (6*t0**3 + 32*t0**2 + 68*t0 + 4)
         ss = sorted((x**3-s3).roots(multiplicities=False))
@@ -1256,8 +1255,7 @@ def isogenies_13_1728(E):
 
     # we may have up to 12 other isogenies:
 
-    ts = (x**6 + 10*x**5 + 46*x**4 + 108*x**3 + 122*x**2 + 38*x - 1).roots(multiplicities=False)
-    ts.sort()
+    ts = sorted((x**6 + 10*x**5 + 46*x**4 + 108*x**3 + 122*x**2 + 38*x - 1).roots(multiplicities=False))
     for t0 in ts:
         s2 = a/(66*t0**5 + 630*t0**4 + 2750*t0**3 + 5882*t0**2 + 5414*t0 + 162)
         ss = sorted((x**2-s2).roots(multiplicities=False))

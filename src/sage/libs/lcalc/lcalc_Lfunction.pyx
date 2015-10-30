@@ -10,25 +10,21 @@ AUTHORS:
 - Yann Laigle-Chapuy (2009): refactored
 - Rishikesh (2009): initial version
 """
+
 #*****************************************************************************
 #       Copyright (C) 2009 William Stein <wstein@gmail.com>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
-#
-#    This code is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-#    General Public License for more details.
-#
-#  The full text of the GPL is available at:
-#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
 include "sage/ext/interrupt.pxi"
 include "sage/ext/cdefs.pxi"
-include "sage/libs/mpfr.pxd"
 
+from sage.libs.mpfr cimport *
 from sage.rings.integer cimport Integer
 
 from sage.rings.complex_number cimport ComplexNumber
@@ -139,14 +135,14 @@ cdef class Lfunction:
             sage: chi=DirichletGroup(5)[2] #This is a quadratic character
             sage: from sage.libs.lcalc.lcalc_Lfunction import *
             sage: L=Lfunction_from_character(chi, type="int")
-            sage: L.value(.5)
-            0.231750947504... + 5.75329642226...e-18*I
+            sage: L.value(.5)  # abs tol 3e-15
+            0.231750947504016 + 5.75329642226136e-18*I
             sage: L.value(.2+.4*I)
             0.102558603193... + 0.190840777924...*I
 
             sage: L=Lfunction_from_character(chi, type="double")
-            sage: L.value(.6)
-            0.274633355856... + 6.59869267328...e-18*I
+            sage: L.value(.6)  # abs tol 3e-15
+            0.274633355856345 + 6.59869267328199e-18*I
             sage: L.value(.6+I)
             0.362258705721... + 0.433888250620...*I
 

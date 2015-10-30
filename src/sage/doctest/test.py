@@ -331,7 +331,7 @@ Test running under gdb, without and with a timeout::
     exec gdb ...
     Running doctests...
     Doctesting 1 file.
-    sage -t ... 1second.rst
+    sage -t... 1second.rst
         [2 tests, ... s]
     ----------------------------------------------------------------------
     All tests passed!

@@ -215,7 +215,7 @@ class ModuleMorphism(Morphism):
         # The category infrastructure handles this automatically for
         # parents with a single element class. But for now we still
         # need to do it by hand here, since H may have many different
-        # element classes::
+        # element classes
         if not issubclass(self.__class__, H._abstract_element_class):
             self.__class__ = H.__make_element_class__(self.__class__)
 
@@ -996,7 +996,7 @@ class TriangularModuleMorphism(ModuleMorphism):
         """
         G = self.codomain()
         if G.base_ring() not in Fields and not self._unitriangular:
-            raise NotImplementedError, "coreduce for a triangular but not unitriangular morphism over a ring"
+            raise NotImplementedError("coreduce for a triangular but not unitriangular morphism over a ring")
         on_basis = self.on_basis()
         assert y in G
 
@@ -1068,9 +1068,9 @@ class TriangularModuleMorphism(ModuleMorphism):
         """
         R = self.domain().base_ring()
         if R not in Fields and not self._unitriangular:
-            raise NotImplementedError, "cokernel_basis_indices for a triangular but not unitriangular morphism over a ring"
+            raise NotImplementedError("cokernel_basis_indices for a triangular but not unitriangular morphism over a ring")
         if self.codomain() not in Modules(R).FiniteDimensional():
-            raise NotImplementedError, "cokernel_basis_indices implemented only for morphisms with a finite dimensional codomain"
+            raise NotImplementedError("cokernel_basis_indices implemented only for morphisms with a finite dimensional codomain")
         return [i for i in self.codomain().basis().keys() if self._inverse_on_support(i) is None]
 
     def cokernel_projection(self, category = None):

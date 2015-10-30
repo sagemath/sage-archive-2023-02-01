@@ -10,7 +10,7 @@ def excepthook(*exc):
     When an error occurs, display an error message similar to the error
     messages from ``sage-spkg``.
 
-    In particular, ``build/install`` will recognize "sage" as a failed
+    In particular, ``build/make/install`` will recognize "sage" as a failed
     package, see :trac:`16774`.
     """
     stars = '*' * 72
@@ -577,7 +577,6 @@ def run_cythonize():
     version_file = os.path.join(os.path.dirname(__file__), '.cython_version')
     version_stamp = '\n'.join([
         'cython version: ' + str(Cython.__version__),
-        'NTL dependencies fixed: True',
         'debug: ' + str(debug),
         'profile: ' + str(profile),
     ""])

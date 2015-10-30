@@ -19,10 +19,6 @@
 GPLv3+ except the french html documentation which is freely redistributable
        for non commercial only purposes. This doc has been removed in the spkg)
 
-== SPKG Maintener ==
-
-  * Han Frederic: frederic.han@imj-prg.fr
-
 == Upstream Contact ==
 
   * Bernard Parisse: http://www-fourier.ujf-grenoble.fr/~parisse/giac.html

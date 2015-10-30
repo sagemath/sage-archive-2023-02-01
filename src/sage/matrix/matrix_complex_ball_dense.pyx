@@ -5,7 +5,7 @@ AUTHORS:
 
 - Clemens Heuberger (2014-10-25): Initial version.
 
-This is a rudimentary binding to the optional `Arb library
+This is a rudimentary binding to the `Arb library
 <http://fredrikj.net/arb/>`_; it may be useful to refer to its
 documentation for more details.
 
@@ -103,17 +103,17 @@ cdef class Matrix_complex_ball_dense(matrix_dense.Matrix_dense):
 
     EXAMPLES::
 
-        sage: from sage.rings.complex_ball_acb import ComplexBallField # optional - arb
-        sage: CBF = ComplexBallField() # optional - arb
+        sage: from sage.rings.complex_ball_acb import ComplexBallField
+        sage: CBF = ComplexBallField()
         doctest:...: FutureWarning: This class/method/function is marked as
         experimental. It, its functionality or its interface might change
         without a formal deprecation.
         See http://trac.sagemath.org/17218 for details.
-        sage: MatrixSpace(CBF, 3)(2) # optional - arb
+        sage: MatrixSpace(CBF, 3)(2)
         [2.000000000000000                 0                 0]
         [                0 2.000000000000000                 0]
         [                0                 0 2.000000000000000]
-        sage: matrix(CBF, 1, 3, [1, 2, -3]) # optional - arb
+        sage: matrix(CBF, 1, 3, [1, 2, -3])
         [ 1.000000000000000  2.000000000000000 -3.000000000000000]
     """
     #################################################################
@@ -141,12 +141,12 @@ cdef class Matrix_complex_ball_dense(matrix_dense.Matrix_dense):
 
         EXAMPLES::
 
-            sage: from sage.matrix.matrix_complex_ball_dense import Matrix_complex_ball_dense # optional - arb
-            sage: from sage.rings.complex_ball_acb import ComplexBallField # optional - arb
-            sage: CBF = ComplexBallField() # optional - arb
-            sage: a = Matrix_complex_ball_dense.__new__( # optional - arb; indirect doctest
+            sage: from sage.matrix.matrix_complex_ball_dense import Matrix_complex_ball_dense
+            sage: from sage.rings.complex_ball_acb import ComplexBallField
+            sage: CBF = ComplexBallField()
+            sage: a = Matrix_complex_ball_dense.__new__( # indirect doctest
             ....:     Matrix_complex_ball_dense, Mat(CBF, 2), 0, 0, 0)
-            sage: type(a) # optional - arb
+            sage: type(a)
             <type 'sage.matrix.matrix_complex_ball_dense.Matrix_complex_ball_dense'>
         """
         self._parent = parent
@@ -163,10 +163,10 @@ cdef class Matrix_complex_ball_dense(matrix_dense.Matrix_dense):
 
         EXAMPLES::
 
-            sage: from sage.rings.complex_ball_acb import ComplexBallField # optional - arb
-            sage: CBF = ComplexBallField() # optional - arb
-            sage: a = Matrix(CBF, 2, [1, 2, 3, 4]) # optional - arb; indirect doctest
-            sage: del a # optional - arb
+            sage: from sage.rings.complex_ball_acb import ComplexBallField
+            sage: CBF = ComplexBallField()
+            sage: a = Matrix(CBF, 2, [1, 2, 3, 4]) # indirect doctest
+            sage: del a
         """
         acb_mat_clear(self.value)
 
@@ -202,15 +202,15 @@ cdef class Matrix_complex_ball_dense(matrix_dense.Matrix_dense):
 
         ::
 
-            sage: from sage.rings.complex_ball_acb import ComplexBallField # optional - arb
-            sage: CBF = ComplexBallField() # optional - arb
+            sage: from sage.rings.complex_ball_acb import ComplexBallField
+            sage: CBF = ComplexBallField()
 
         We create a `2 \times 2` and a `1\times 4` matrix::
 
-            sage: matrix(CBF, 2, 2, range(4)) # optional - arb
+            sage: matrix(CBF, 2, 2, range(4))
             [                0 1.000000000000000]
             [2.000000000000000 3.000000000000000]
-            sage: Matrix(CBF, 1, 4, range(4)) # optional - arb
+            sage: Matrix(CBF, 1, 4, range(4))
             [                0 1.000000000000000 2.000000000000000 3.000000000000000]
 
         If the number of columns isn't given, it is determined from the
@@ -218,10 +218,10 @@ cdef class Matrix_complex_ball_dense(matrix_dense.Matrix_dense):
 
         ::
 
-            sage: matrix(CBF, 2, range(4)) # optional - arb
+            sage: matrix(CBF, 2, range(4))
             [                0 1.000000000000000]
             [2.000000000000000 3.000000000000000]
-            sage: matrix(CBF, 2, range(6)) # optional - arb
+            sage: matrix(CBF, 2, range(6))
             [                0 1.000000000000000 2.000000000000000]
             [3.000000000000000 4.000000000000000 5.000000000000000]
 
@@ -230,27 +230,27 @@ cdef class Matrix_complex_ball_dense(matrix_dense.Matrix_dense):
 
         ::
 
-            sage: A = Mat(CBF, 2); A # optional - arb
+            sage: A = Mat(CBF, 2); A
             Full MatrixSpace of 2 by 2 dense matrices over
             Complex ball field with 53 bits precision
-            sage: A(range(4)) # optional - arb
+            sage: A(range(4))
             [                0 1.000000000000000]
             [2.000000000000000 3.000000000000000]
 
         Actually it is only necessary that the input can be converted to a
         list, so the following also works::
 
-            sage: v = reversed(range(4)); type(v) # optional - arb
+            sage: v = reversed(range(4)); type(v)
             <type 'listreverseiterator'>
-            sage: A(v) # optional - arb
+            sage: A(v)
             [3.000000000000000 2.000000000000000]
             [1.000000000000000                 0]
 
         Matrices can have many rows or columns (in fact, on a 64-bit
         machine they could have up to `2^64-1` rows or columns)::
 
-            sage: v = matrix(CBF, 1, 10^5, range(10^5)) # optional - arb
-            sage: v.parent() # optional - arb
+            sage: v = matrix(CBF, 1, 10^5, range(10^5))
+            sage: v.parent()
             Full MatrixSpace of 1 by 100000 dense matrices over
             Complex ball field with 53 bits precision
         """
@@ -320,13 +320,13 @@ cdef class Matrix_complex_ball_dense(matrix_dense.Matrix_dense):
 
         EXAMPLES::
 
-            sage: from sage.rings.complex_ball_acb import ComplexBallField # optional - arb
-            sage: CBF = ComplexBallField() # optional - arb
-            sage: a = matrix(CBF, 2, 3, range(6)); a # optional - arb
+            sage: from sage.rings.complex_ball_acb import ComplexBallField
+            sage: CBF = ComplexBallField()
+            sage: a = matrix(CBF, 2, 3, range(6)); a
             [                0 1.000000000000000 2.000000000000000]
             [3.000000000000000 4.000000000000000 5.000000000000000]
-            sage: a[0, 0] = 10 # optional - arb
-            sage: a # optional - arb
+            sage: a[0, 0] = 10
+            sage: a
             [10.00000000000000  1.000000000000000  2.000000000000000]
             [3.000000000000000  4.000000000000000  5.000000000000000]
         """
@@ -343,19 +343,19 @@ cdef class Matrix_complex_ball_dense(matrix_dense.Matrix_dense):
 
         EXAMPLES::
 
-            sage: from sage.rings.complex_ball_acb import ComplexBallField # optional - arb
-            sage: CBF = ComplexBallField() # optional - arb
-            sage: a = MatrixSpace(CBF, 3)(range(9)); a # optional - arb
+            sage: from sage.rings.complex_ball_acb import ComplexBallField
+            sage: CBF = ComplexBallField()
+            sage: a = MatrixSpace(CBF, 3)(range(9)); a
             [                0 1.000000000000000 2.000000000000000]
             [3.000000000000000 4.000000000000000 5.000000000000000]
             [6.000000000000000 7.000000000000000 8.000000000000000]
-            sage: a[1, 2] # optional - arb
+            sage: a[1, 2]
             5.000000000000000
-            sage: a[4, 7] # optional - arb
+            sage: a[4, 7]
             Traceback (most recent call last):
             ...
             IndexError: matrix index out of range
-            sage: a[-1, 0] # optional - arb
+            sage: a[-1, 0]
             6.000000000000000
         """
         cdef ComplexBall z = ComplexBall.__new__(ComplexBall)
@@ -367,12 +367,12 @@ cdef class Matrix_complex_ball_dense(matrix_dense.Matrix_dense):
         """
         EXAMPLE::
 
-            sage: from sage.rings.complex_ball_acb import ComplexBallField # optional - arb
-            sage: CBF = ComplexBallField() # optional - arb
-            sage: a = CBF(1) # optional - arb
-            sage: m1 = MatrixSpace(CBF, 1)([a]) # optional - arb
-            sage: m2 = MatrixSpace(CBF, 1)([a]) # optional - arb
-            sage: m1 == m2 # indirect doctest; optional - arb
+            sage: from sage.rings.complex_ball_acb import ComplexBallField
+            sage: CBF = ComplexBallField()
+            sage: a = CBF(1)
+            sage: m1 = MatrixSpace(CBF, 1)([a])
+            sage: m2 = MatrixSpace(CBF, 1)([a])
+            sage: m1 == m2 # indirect doctest
             True
         """
         return self._richcmp(right, op)

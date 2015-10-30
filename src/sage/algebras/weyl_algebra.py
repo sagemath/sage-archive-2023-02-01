@@ -402,9 +402,38 @@ class DifferentialWeylAlgebraElement(AlgebraElement):
         M = self.__monomials
         return self.__class__(self.parent(), {t: M[t]*other for t in M})
 
+    def monomial_coefficients(self, copy=True):
+        """
+        Return a dictionary which has the basis keys in the support
+        of ``self`` as keys and their corresponding coefficients
+        as values.
+
+        INPUT:
+
+        - ``copy`` -- (default: ``True``) if ``self`` is internally
+          represented by a dictionary ``d``, then make a copy of ``d``;
+          if ``False``, then this can cause undesired behavior by
+          mutating ``d``
+
+        EXAMPLES::
+
+            sage: W.<x,y,z> = DifferentialWeylAlgebra(QQ)
+            sage: dx,dy,dz = W.differentials()
+            sage: elt = (dy - (3*x - z)*dx)
+            sage: sorted(elt.monomial_coefficients().items())
+            [(((0, 0, 0), (0, 1, 0)), 1),
+             (((0, 0, 1), (1, 0, 0)), 1),
+             (((1, 0, 0), (1, 0, 0)), -3)]
+        """
+        if copy:
+            return dict(self.__monomials)
+        return self.__monomials
+
     def __iter__(self):
         """
         Return an iterator of ``self``.
+
+        This is the iterator of ``self.list()``.
 
         EXAMPLES::
 
@@ -420,6 +449,11 @@ class DifferentialWeylAlgebraElement(AlgebraElement):
     def list(self):
         """
         Return ``self`` as a list.
+
+        This list consists of pairs `(m, c)`, where `m` is a pair of
+        tuples indexing a basis element of ``self``, and `c` is the
+        coordinate of ``self`` corresponding to this basis element.
+        (Only nonzero coordinates are shown.)
 
         EXAMPLES::
 
@@ -738,13 +772,21 @@ class DifferentialWeylAlgebra(Algebra, UniqueRepresentation):
             sage: [next(it) for i in range(20)]
             [1, x, y, dx, dy, x^2, x*y, x*dx, x*dy, y^2, y*dx, y*dy,
              dx^2, dx*dy, dy^2, x^3, x^2*y, x^2*dx, x^2*dy, x*y^2]
+            sage: dx, dy = W.differentials()
+            sage: (dx*x).monomials()
+            [1, x*dx]
+            sage: B[(x*y).support()[0]]
+            x*y
+            sage: sorted((dx*x).monomial_coefficients().items())
+            [(((0, 0), (0, 0)), 1), (((1, 0), (1, 0)), 1)]
         """
         n = self._n
-        # TODO in #17927: use IntegerVectors(length=2*n)
-        from sage.combinat.integer_list import IntegerListsNN
-        I = IntegerListsNN(length=n*2)
+        from sage.combinat.integer_lists.nn import IntegerListsNN
+        from sage.categories.cartesian_product import cartesian_product
+        elt_map = lambda u : (tuple(u[:n]), tuple(u[n:]))
+        I = IntegerListsNN(length=2*n, element_constructor=elt_map)
         one = self.base_ring().one()
-        f = lambda x: self.element_class(self, {(tuple(x[:n]),tuple(x[n:])): one})
+        f = lambda x: self.element_class(self, {(x[0], x[1]): one})
         return Family(I, f, name="basis map")
 
     @cached_method

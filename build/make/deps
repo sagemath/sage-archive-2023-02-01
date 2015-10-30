@@ -102,6 +102,7 @@ base: $(INST)/$(BZIP2) $(INST)/$(PATCH) $(INST)/$(PKGCONF)
 sagelib: \
 		$(INST)/$(ARB) \
 		$(INST)/$(ATLAS) \
+		$(INST)/$(BRIAL) \
 		$(INST)/$(CEPHES) \
 		$(INST)/$(CLIQUER) \
 		$(INST)/$(CYTHON) \
@@ -116,6 +117,7 @@ sagelib: \
 		$(INST)/$(GSL) \
 		$(INST)/$(IML) \
 		$(INST)/$(JINJA2) \
+		$(INST)/$(JUPYTER_CORE) \
 		$(INST)/$(LCALC) \
 		$(INST)/$(LRCALC) \
 		$(INST)/$(LIBGAP) \
@@ -131,7 +133,6 @@ sagelib: \
 		$(INST)/$(NUMPY) \
 		$(INST)/$(PARI) \
 		$(INST)/$(PLANARITY) \
-		$(INST)/$(BRIAL) \
 		$(INST)/$(PPL) \
 		$(INST)/$(PYNAC) \
 		$(INST)/$(PYTHON) \
@@ -141,7 +142,8 @@ sagelib: \
 		$(INST)/$(SINGULAR) \
 		$(INST)/$(SIX) \
 		$(INST)/$(SYMMETRICA) \
-		$(INST)/$(ZN_POLY)
+		$(INST)/$(ZN_POLY) \
+		$(EXTCODE)
 	if [ -z "$$SAGE_INSTALL_FETCH_ONLY" ]; then \
 		cd $(SAGE_SRC) && source bin/sage-env && \
 		sage-logger 'time $(MAKE) sage' '$(SAGE_LOGS)/sage-$(SAGE_VERSION).log'; \

@@ -590,6 +590,18 @@ class QuotientRingElement(RingElement):
         """
         return float(self.lift())
 
+    def __hash__(self):
+        r"""
+        TESTS::
+
+            sage: R.<x,y> = QQ[]
+            sage: S.<a,b> = R.quo(x^2 + y^2)
+            sage: hash(a)
+            15360174650385711  # 64-bit
+            1505322287         # 32-bit
+        """
+        return hash(self.__rep)
+
     def __cmp__(self, other):
         """
         EXAMPLES::

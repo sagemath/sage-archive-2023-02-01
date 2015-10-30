@@ -160,22 +160,6 @@ cdef class CAElement(pAdicTemplateElement):
         """
         return unpickle_cae_v2, (self.__class__, self.parent(), cpickle(self.value, self.prime_pow), self.absprec)
 
-    def __richcmp__(self, right, int op):
-        """
-        Compare this element to ``right`` using the comparison operator ``op``.
-
-        TESTS::
-
-            sage: R = ZpCA(5)
-            sage: a = R(17)
-            sage: b = R(21)
-            sage: a == b
-            False
-            sage: a < b
-            True
-        """
-        return (<Element>self)._richcmp(right, op)
-
     cpdef ModuleElement _neg_(self):
         """
         Return the additive inverse of this element.

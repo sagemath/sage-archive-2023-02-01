@@ -64,4 +64,3 @@ class Ideal_1poly_field(Ideal_pid):
 
         from sage.rings.finite_rings.residue_field import ResidueField
         return ResidueField(self, names, check=False)
-

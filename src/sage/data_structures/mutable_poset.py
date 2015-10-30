@@ -131,8 +131,7 @@ us; they are just there and sometimes useful.
 
 AUTHORS:
 
-- Daniel Krenn (2015-01-21): initial version
-- Daniel Krenn (2015-08-28): mapping methods, bug fixes, cleanup
+- Daniel Krenn (2015)
 
 ACKNOWLEDGEMENT:
 

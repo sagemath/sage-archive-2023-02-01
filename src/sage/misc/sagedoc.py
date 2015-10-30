@@ -234,12 +234,13 @@ def skip_TESTS_block(docstring):
 
     - ``docstring``, a string
 
-    A "TESTS" block is a block starting with "TEST:" or "TESTS:", on a
-    line by its own, and ending at the beginning of a line which
-    contains either a Sphinx directive of the form ".. foo::" or text
-    of the form "UPPERCASE:". Either of these ending strings may be
-    followed by other text. Return the string obtained from
-    ``docstring`` by removing these blocks.
+    A "TESTS" block is a block starting with "TEST:" or "TESTS:" (or
+    the same with two colons), on a line on its own, and ending at the
+    beginning of a line which starts with whitespace and then either a
+    Sphinx directive of the form ".. foo:" or text of the form
+    "UPPERCASE:". Either of these ending strings may be followed by
+    other text. Return the string obtained from ``docstring`` by
+    removing these blocks.
 
     EXAMPLES::
 
@@ -258,8 +259,17 @@ def skip_TESTS_block(docstring):
         sage: skip_TESTS_block(start + test + refs + test2 + directive).rstrip() == (start + refs + directive).rstrip()
         True
    """
+    # tests_block: match a line starting with whitespace, then
+    # "TEST" or "TESTS" followed by ":" or "::", then possibly
+    # more whitespace, then the end of the line.
     tests_block = re.compile('[ ]*TEST[S]?:[:]?[ ]*$')
-    end_of_block = re.compile('[ ]*(\.\.[ ]+[A-Za-z]+::|[A-Z]+:)')
+    # end_of_block: match a line starting with whitespace, then Sphinx
+    # directives of the form ".. foo:". This will match directive
+    # names "foo" containing letters of either case, hyphens,
+    # underscores.
+    # Also match uppercase text followed by a colon, like
+    # "REFERENCES:" or "ALGORITHM:".
+    end_of_block = re.compile('[ ]*(\.\.[ ]+[-_A-Za-z]+|[A-Z]+):')
     s = ''
     skip = False
     for l in docstring.split('\n'):

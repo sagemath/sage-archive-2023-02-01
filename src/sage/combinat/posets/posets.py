@@ -2676,7 +2676,7 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: Poset().dimension(certificate=True)
             []
 
-        References:
+        REFERENCES:
 
         .. [FT00] Stefan Felsner, William T. Trotter,
            Dimension, Graph and Hypergraph Coloring,

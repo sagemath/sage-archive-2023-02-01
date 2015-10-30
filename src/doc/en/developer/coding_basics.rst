@@ -379,6 +379,13 @@ information. You can use the existing functions of Sage as templates.
   for help via `foo?`: they are stripped by the function
   :func:`sage.misc.sagedoc.skip_TESTS_block`.
 
+  For the purposes of removal, a "TESTS" block is a block starting
+  with "TEST:" or "TESTS:" (or the same with two colons), on a line on
+  its own, and ending at the beginning of a line which starts with
+  whitespace and then either a Sphinx directive of the form ".. foo:"
+  or text of the form "UPPERCASE:". Either of these
+  ending strings may be followed by other text.
+
 Template
 ^^^^^^^^
 

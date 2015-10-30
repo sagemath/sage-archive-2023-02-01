@@ -374,7 +374,10 @@ information. You can use the existing functions of Sage as templates.
 
 - A **TESTS** block (optional)
 
-  Formatted just like EXAMPLES, containing tests that are not relevant to users.
+  Formatted just like EXAMPLES, containing tests that are not relevant
+  to users.  In particular, these blocks are not shown when users ask
+  for help via `foo?`: they are stripped by the function
+  :func:`sage.misc.sagedoc.skip_TESTS_block`.
 
 Template
 ^^^^^^^^

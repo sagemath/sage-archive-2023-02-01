@@ -226,6 +226,56 @@ def detex(s, embedded=False):
         s = s.replace('\\','')        # nuke backslashes
     return s
 
+def skip_TESTS_block(docstring):
+    r"""
+    Remove blocks labeled "TESTS:" from ``docstring``.
+
+    INPUT:
+
+    - ``docstring``, a string
+
+    A "TESTS" block is a block starting with "TEST:" or "TESTS:", on a
+    line by its own, and ending at the beginning of a line which
+    contains either a Sphinx directive of the form ".. foo::" or text
+    of the form "UPPERCASE:". Either of these ending strings may be
+    followed by other text. Return the string obtained from
+    ``docstring`` by removing these blocks.
+
+    EXAMPLES::
+
+        sage: from sage.misc.sagedoc import skip_TESTS_block
+        sage: start = ' Docstring\n\n'
+        sage: test = ' TEST: \n\n Here is a test::\n     sage: 2+2 \n     5 \n\n'
+        sage: test2 = ' TESTS:: \n\n     sage: 2+2 \n     6 \n\n'
+        sage: refs = ' REFERENCES: \n text text \n'
+        sage: directive = ' .. todo:: \n     do some stuff \n'
+        sage: skip_TESTS_block(start + test + refs).rstrip() == (start + refs).rstrip()
+        True
+        sage: skip_TESTS_block(start + test + test2 + refs).rstrip() == (start + refs).rstrip()
+        True 
+        sage: skip_TESTS_block(start + test + refs + test2).rstrip() == (start + refs).rstrip()
+        True
+        sage: skip_TESTS_block(start + test + refs + test2 + directive).rstrip() == (start + refs + directive).rstrip()
+        True
+   """
+    tests_block = re.compile('[ ]*TEST[S]?:[:]?[ ]*$')
+    end_of_block = re.compile('[ ]*(\.\.[ ]+[A-Za-z]+::|[A-Z]+:)')
+    s = ''
+    skip = False
+    for l in docstring.split('\n'):
+        if not skip:
+            if tests_block.match(l):
+                skip = True
+            else:
+                s += "\n"
+                s += l
+        else:
+            if end_of_block.match(l) and not tests_block.match(l):
+                skip = False
+                s += "\n"
+                s += l
+    return s[1:] # Remove empty line from the beginning. 
+
 def process_dollars(s):
     r"""nodetex
     Replace dollar signs with backticks.
@@ -552,6 +602,7 @@ def format(s, embedded=False):
 
     if 'nodetex' not in directives:
         s = process_dollars(s)
+        s = skip_TESTS_block(s)
         if not embedded:
             s = process_mathtt(s)
         s = process_extlinks(s, embedded=embedded)

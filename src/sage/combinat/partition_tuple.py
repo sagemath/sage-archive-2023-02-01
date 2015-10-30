@@ -1618,7 +1618,8 @@ class PartitionTuples(UniqueRepresentation, Parent):
             sage: [[5,1,1]] in PartitionTuples()
             True
             sage: la = Partition([3,3,1])
-            sage: la in PartitionTuples()
+            sage: PT = PartitionTuples()
+            sage: la in PT
             True
             sage: PT(la)
             ([3, 3, 1])

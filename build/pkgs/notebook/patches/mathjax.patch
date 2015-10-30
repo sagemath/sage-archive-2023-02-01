@@ -1,0 +1,73 @@
+commit 17b364389182e667d64db93db2dcecc84dada8f9
+Author: Jeroen Demeyer <jdemeyer@cage.ugent.be>
+Date:   Mon Oct 26 18:29:42 2015 +0100
+
+    Interpret mathjax_url relative to base_url
+
+diff --git a/notebook/base/handlers.py b/notebook/base/handlers.py
+index 30b1223..127a6ba 100644
+--- a/notebook/base/handlers.py
++++ b/notebook/base/handlers.py
+@@ -32,7 +32,7 @@ from ipython_genutils.path import filefind
+ from ipython_genutils.py3compat import string_types
+ 
+ import notebook
+-from notebook.utils import is_hidden, url_path_join, url_escape
++from notebook.utils import is_hidden, url_path_join, url_is_absolute, url_escape
+ from notebook.services.security import csp_report_uri
+ 
+ #-----------------------------------------------------------------------------
+@@ -155,7 +155,10 @@ class IPythonHandler(AuthenticatedHandler):
+     
+     @property
+     def mathjax_url(self):
+-        return self.settings.get('mathjax_url', '')
++        url = self.settings.get('mathjax_url', '')
++        if not url or url_is_absolute(url):
++            return url
++        return url_path_join(self.base_url, url)
+     
+     @property
+     def base_url(self):
+diff --git a/notebook/notebookapp.py b/notebook/notebookapp.py
+index bfbe467..c74e4eb 100644
+--- a/notebook/notebookapp.py
++++ b/notebook/notebookapp.py
+@@ -658,9 +658,7 @@ class NotebookApp(JupyterApp):
+     def _mathjax_url_default(self):
+         if not self.enable_mathjax:
+             return u''
+-        static_url_prefix = self.tornado_settings.get("static_url_prefix",
+-                         url_path_join(self.base_url, "static")
+-        )
++        static_url_prefix = self.tornado_settings.get("static_url_prefix", "static")
+         return url_path_join(static_url_prefix, 'components', 'MathJax', 'MathJax.js')
+     
+     def _mathjax_url_changed(self, name, old, new):
+diff --git a/notebook/utils.py b/notebook/utils.py
+index 9ba424c..ee9c6ac 100644
+--- a/notebook/utils.py
++++ b/notebook/utils.py
+@@ -13,9 +13,10 @@ import sys
+ from distutils.version import LooseVersion
+ 
+ try:
+-    from urllib.parse import quote, unquote
++    from urllib.parse import quote, unquote, urlparse
+ except ImportError:
+     from urllib import quote, unquote
++    from urlparse import urlparse
+ 
+ from ipython_genutils import py3compat
+ 
+@@ -39,6 +40,10 @@ def url_path_join(*pieces):
+     if result == '//': result = '/'
+     return result
+ 
++def url_is_absolute(url):
++    """Determine whether a given URL is absolute"""
++    return urlparse(url).path.startswith("/")
++
+ def path2url(path):
+     """Convert a local file path to a URL"""
+     pieces = [ quote(p) for p in path.split(os.sep) ]

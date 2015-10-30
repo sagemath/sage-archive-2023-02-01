@@ -104,11 +104,11 @@ cdef class Matrix_complex_ball_dense(matrix_dense.Matrix_dense):
     EXAMPLES::
 
         sage: from sage.rings.complex_ball_acb import ComplexBallField
-        sage: CBF = ComplexBallField()
         doctest:...: FutureWarning: This class/method/function is marked as
         experimental. It, its functionality or its interface might change
         without a formal deprecation.
         See http://trac.sagemath.org/17218 for details.
+        sage: CBF = ComplexBallField()
         sage: MatrixSpace(CBF, 3)(2)
         [2.000000000000000                 0                 0]
         [                0 2.000000000000000                 0]

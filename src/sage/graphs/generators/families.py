@@ -1597,7 +1597,7 @@ def PaleyGraph(q):
 
 def PasechnikGraph(n):
     """
-    Pseudo-`OA(2n-1,4n-1)`-graph from a skew Hadamard matrix of order `4n`
+    Pasechnik strongly regular graph on `(4n-1)^2` vertices
 
     A strongly regular graph with parameters of the orthogonal array graph
     :func:`OrthogonalArrayBlockGraph
@@ -1607,10 +1607,9 @@ def PasechnikGraph(n):
 
     EXAMPLES::
 
-        sage: from sage.graphs.generators.families import PasechnikGraph
-        sage: PasechnikGraph(4).is_strongly_regular(parameters=True)
+        sage: graphs.PasechnikGraph(4).is_strongly_regular(parameters=True)
         (225, 98, 43, 42)
-        sage: PasechnikGraph(9).is_strongly_regular(parameters=True) # long time
+        sage: graphs.PasechnikGraph(9).is_strongly_regular(parameters=True) # long time
         (1225, 578, 273, 272)
     """
     from sage.combinat.matrices.hadamard_matrix import skew_hadamard_matrix
@@ -1634,10 +1633,9 @@ def SquaredSkewHadamardMatrixGraph(n):
 
     EXAMPLES::
 
-        sage: from sage.graphs.generators.families import SquaredSkewHadamardMatrixGraph
-        sage: SquaredSkewHadamardMatrixGraph(4).is_strongly_regular(parameters=True)
+        sage: graphs.SquaredSkewHadamardMatrixGraph(4).is_strongly_regular(parameters=True)
         (225, 112, 55, 56)
-        sage: SquaredSkewHadamardMatrixGraph(9).is_strongly_regular(parameters=True) # long time
+        sage: graphs.SquaredSkewHadamardMatrixGraph(9).is_strongly_regular(parameters=True) # long time
         (1225, 612, 305, 306)
 
     """
@@ -1655,19 +1653,27 @@ def SquaredSkewHadamardMatrixGraph(n):
 
 def SwitchedSquaredSkewHadamardMatrixGraph(n):
     """
-    a strongly regular graph in Seidel switching class of `SquaredSkewHadamardMatrixGraph`
+    A strongly regular graph in Seidel switching class of `SquaredSkewHadamardMatrixGraph`
 
     A strongly regular graph in the
-    :meth:`Seidel switching <Graph.seidel_switching>` class of the dijoint union of
-    a 1-vertex graph and func:`Pseudo-L_{2n}(4n-1)
+    :meth:`Seidel switching <Graph.seidel_switching>` class of the disjoint union of
+    a 1-vertex graph and the one produced by :func:`Pseudo-L_{2n}(4n-1)
     <sage.graphs.generators.GraphGenerators.SquaredSkewHadamardMatrixGraph>`
+
+    In this case, the other possible parameter set of a strongly regular graph in the
+    Seidel switching class of the latter graph (see [BH12]_) coincides with the set
+    of parameters of the complement of the graph returned by this function.
 
     EXAMPLES::
 
-        sage: from sage.graphs.generators.families import SwitchedSquaredSkewHadamardMatrixGraph
-        sage: SwitchedSquaredSkewHadamardMatrixGraph(4).is_strongly_regular(parameters=True)
+        sage: g=graphs.SwitchedSquaredSkewHadamardMatrixGraph(4)
+        sage: g.is_strongly_regular(parameters=True)
         (226, 105, 48, 49)
-
+        sage: from sage.combinat.designs.twographs import twograph_descendant
+        sage: twograph_descendant(g,0).is_strongly_regular(parameters=True)
+        (225, 112, 55, 56)
+        sage: twograph_descendant(g.complement(),0).is_strongly_regular(parameters=True)
+        (225, 112, 55, 56)
     """
     from sage.graphs.generators.families import SquaredSkewHadamardMatrixGraph
     G = SquaredSkewHadamardMatrixGraph(n).complement()

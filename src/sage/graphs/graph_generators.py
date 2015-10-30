@@ -216,11 +216,14 @@ __append_to_doc(
      "NStarGraph",
      "OddGraph",
      "PaleyGraph",
+     "PasechnikGraph",
      "petersen_family",
      "planar_graphs",
      "quadrangulations",
      "RingedTree",
      "SierpinskiGasketGraph",
+     "SquaredSkewHadamardMatrixGraph",
+     "SwitchedSquaredSkewHadamardMatrixGraph",
      "strongly_regular_graph",
      "trees",
      "triangulations",
@@ -1989,9 +1992,12 @@ class GraphGenerators():
     NStarGraph             = staticmethod(sage.graphs.generators.families.NStarGraph)
     OddGraph               = staticmethod(sage.graphs.generators.families.OddGraph)
     PaleyGraph             = staticmethod(sage.graphs.generators.families.PaleyGraph)
+    PasechnikGraph         = staticmethod(sage.graphs.generators.families.PasechnikGraph)
     petersen_family        = staticmethod(sage.graphs.generators.families.petersen_family)
     RingedTree             = staticmethod(sage.graphs.generators.families.RingedTree)
     SierpinskiGasketGraph  = staticmethod(sage.graphs.generators.families.SierpinskiGasketGraph)
+    SquaredSkewHadamardMatrixGraph = staticmethod(sage.graphs.generators.families.SquaredSkewHadamardMatrixGraph)
+    SwitchedSquaredSkewHadamardMatrixGraph = staticmethod(sage.graphs.generators.families.SwitchedSquaredSkewHadamardMatrixGraph)
     strongly_regular_graph = staticmethod(sage.graphs.strongly_regular_db.strongly_regular_graph)
     trees                  = staticmethod(sage.graphs.generators.families.trees)
     WheelGraph             = staticmethod(sage.graphs.generators.families.WheelGraph)

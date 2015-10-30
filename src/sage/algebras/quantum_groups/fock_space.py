@@ -212,9 +212,15 @@ class FockSpace(CombinatorialFreeModule):
         """
         An element in the Fock space.
         """
-        def e(self, i):
+        def e(self, i, p=1):
             """
-            Apply the action of `e_i` on ``self``.
+            Apply the action of the divided difference operator `e_i^{(p)}`
+            on ``self``.
+
+            INPUT:
+
+            - ``i`` -- an element of the indexing set
+            - ``p`` -- (default: 1) the exponent
 
             EXAMPLES::
 
@@ -227,10 +233,14 @@ class FockSpace(CombinatorialFreeModule):
                 |2> + q*|1, 1>
                 sage: F[2,1,1].e(0).e(1).e(1)
                 ((q^2+1)/q)*|1>
+                sage: F[2,1,1].e(0).e(1, 2)
+                |1>
                 sage: F[2,1,1].e(0).e(1).e(1).e(1)
                 0
-                sage: F[2,1,1].e(0).e(1).e(1).e(0)
-                ((q^2+1)/q)*|>
+                sage: F[2,1,1].e(0).e(1, 3)
+                0
+                sage: F[2,1,1].e(0).e(1,2).e(0)
+                |>
                 sage: F[2,1,1].e(1).e(0).e(1).e(0)
                 1/q*|>
 
@@ -250,6 +260,11 @@ class FockSpace(CombinatorialFreeModule):
                 sage: F[[2,1],[1],[2]].e(3).e(2).e(1).e(0).e(1).e(2)
                 2/q^3*|[], [], []>
             """
+            if p > 1:
+                ret = self
+                for _ in range(p):
+                    ret = ret.e(i)
+                return ret / q_factorial(p, self.parent()._q)
             P = self.parent()
             N_left = lambda la, x, i: \
                 sum(1 for y in P._addable(la, i) if P._above(x, y)) \
@@ -258,9 +273,15 @@ class FockSpace(CombinatorialFreeModule):
             return P.sum_of_terms( [( la.remove_cell(*x), c * q**(-N_left(la, x, i)) )
                                     for la,c in self for x in P._removable(la, i)] )
 
-        def f(self, i):
+        def f(self, i, p=1):
             """
-            Apply the action of `f_i` on ``self``.
+            Apply the action of the divided difference operator `f_i^{(p)}`
+            on ``self``.
+
+            INPUT:
+
+            - ``i`` -- an element of the indexing set
+            - ``p`` -- (default: 1) the exponent
 
             EXAMPLES::
 
@@ -272,8 +293,12 @@ class FockSpace(CombinatorialFreeModule):
                 |2> + q*|1, 1>
                 sage: mg.f(0).f(0)
                 0
+                sage: mg.f(0, 2)
+                0
                 sage: mg.f(0).f(1).f(1)
                 ((q^2+1)/q)*|2, 1>
+                sage: mg.f(0).f(1, 2)
+                |2, 1>
                 sage: mg.f(0).f(1).f(0)
                 |3> + q*|1, 1, 1>
 
@@ -294,6 +319,11 @@ class FockSpace(CombinatorialFreeModule):
                 sage: mg.f(3)
                 0
             """
+            if p > 1:
+                ret = self
+                for _ in range(p):
+                    ret = ret.f(i)
+                return ret / q_factorial(p, self.parent()._q)
             P = self.parent()
             N_right = lambda la, x, i: \
                 sum(1 for y in P._addable(la, i) if P._above(y, x)) \
@@ -522,6 +552,11 @@ class HighestWeightRepresentation(Parent, UniqueRepresentation):
                 |3> + q*|2, 1>
                 sage: A._A_to_fock_basis(Partition([2,1]))
                 |2, 1> + q*|1, 1, 1>
+
+                sage: F = FockSpace(2, [0,1])
+                sage: A = F.highest_weight_representation().A()
+                sage: F(A[[],[1]])
+                |[], [1]>
             """
             fock = self.realization_of()._fock
 
@@ -529,8 +564,7 @@ class HighestWeightRepresentation(Parent, UniqueRepresentation):
                 return fock.highest_weight_vector()
 
             if len(fock._r) > 1:
-                # Find the first to be non-empty partition
-                # Note this is one more than the first non-empty partition
+                # Find one more than the first non-empty partition
                 k = 1
                 for p in la:
                     if p.size() != 0:
@@ -551,15 +585,16 @@ class HighestWeightRepresentation(Parent, UniqueRepresentation):
                         cur = Gp._G_to_fock_basis(Gp._indices(la[k:]))
                         cur = fock.sum_of_terms((fock._indices([[]]*k + list(pt)), c) for pt,c in cur)
                 la = la[k-1]
+                r = fock._r[k-1]
             else:
                 cur = fock.highest_weight_vector()
+                r = fock._r[0]
 
             # Get the ladders and apply it to the current element
             corners = la.corners()
             cells = set(la.cells())
             q = fock._q
             k = fock._n - 1 # This is sl_{k+1}
-            r = fock._r[0]
             b = ZZ.zero()
             while any(c[1]*k + c[0] >= b for c in corners): # While there is some cell left to count
                 power = 0
@@ -790,13 +825,6 @@ class HighestWeightRepresentation(Parent, UniqueRepresentation):
                                 s.insert(i+1, x)
                                 break
             return cur
-
-        #def _repr_(self):
-        #    """
-        #    Return a string representation of ``self``.
-        #    """
-        #    R = self.realization_of()
-        #    return "Lower global crystal basis of type {} and weight {}".format(R._cartan_type, R._wt)
 
     lower_global_crystal_basis = G
 

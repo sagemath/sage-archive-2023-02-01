@@ -41,9 +41,9 @@ from sage.graphs.generators.smallgraphs import CameronGraph
 from sage.graphs.generators.smallgraphs import M22Graph
 from sage.graphs.generators.smallgraphs import SimsGewirtzGraph
 from sage.graphs.generators.smallgraphs import HoffmanSingletonGraph
-from sage.graphs.generators.smallgraphs import SchlaefliGraph
 from sage.graphs.generators.smallgraphs import HigmanSimsGraph
 from sage.graphs.generators.smallgraphs import LocalMcLaughlinGraph
+from sage.graphs.generators.smallgraphs import MathonStronglyRegularGraph
 from sage.graphs.generators.smallgraphs import SuzukiGraph
 from sage.graphs.graph import Graph
 from libc.math cimport sqrt, floor
@@ -2927,7 +2927,6 @@ def strongly_regular_graph(int v,int k,int l,int mu=-1,bint existence=False,bint
         return G
 
     constructions = {
-        ( 27,  16, 10,  8): [SchlaefliGraph],
         ( 36,  14,  4,  6): [Graph,('c~rLDEOcKTPO`U`HOIj@MWFLQFAaRIT`HIWqPsQQJ'+
           'DXGLqYM@gRLAWLdkEW@RQYQIErcgesClhKefC_ygSGkZ`OyHETdK[?lWStCapVgKK')],
         ( 50,   7,  0,  1): [HoffmanSingletonGraph],
@@ -2976,6 +2975,9 @@ def strongly_regular_graph(int v,int k,int l,int mu=-1,bint existence=False,bint
         (729, 560, 433,420): [SRG_729_560_433_420],
         (729, 476, 313,306): [SRG_729_476_313_306],
         (729, 532, 391,380): [SRG_729_532_391_380],
+        (784, 243,  82, 72): [MathonStronglyRegularGraph, 0],
+        (784, 270, 98, 90):  [MathonStronglyRegularGraph, 1],
+        (784, 297, 116, 110):[MathonStronglyRegularGraph, 2],
         (1024,825, 668,650): [SRG_1024_825_668_650],
         (1288,792, 476,504): [SRG_1288_792_476_504],
         (1782,416, 100, 96): [SuzukiGraph],

@@ -485,6 +485,10 @@ class MatrixSpace(UniqueRepresentation, parent_gens.ParentWithGens):
             ...       B = A.augment(A)
             ...       A = MatrixSpace(R,60,30,sparse=True)(0)
             ...       B = A.augment(A)
+            doctest:...: FutureWarning: This class/method/function is
+            marked as experimental. It, its functionality or its
+            interface might change without a formal deprecation.
+            See http://trac.sagemath.org/17218 for details.
 
         Check that :trac:`13012` is fixed::
 

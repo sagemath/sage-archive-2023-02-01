@@ -111,7 +111,12 @@ TESTS::
 
     sage: from sage.rings.real_arb import RBF
     sage: (RBF(pi) * identity_matrix(QQ, 3)).parent()
-    Full MatrixSpace of 3 by 3 dense matrices over Real ball field with 53 bits precision
+    doctest:...: FutureWarning: This class/method/function is marked
+    as experimental. It, its functionality or its interface might
+    change without a formal deprecation.
+    See http://trac.sagemath.org/17218 for details.
+    Full MatrixSpace of 3 by 3 dense matrices over Real ball field
+    with 53 bits precision
 
 Classes and Methods
 ===================
@@ -467,9 +472,6 @@ class RealBallField(UniqueRepresentation, Parent):
 
             sage: from sage.rings.real_arb import RBF, RealBallField
             sage: from sage.rings.complex_ball_acb import ComplexBallField
-            doctest:...: FutureWarning: This class/method/function is marked as experimental.
-            It, its functionality or its interface might change without a formal deprecation.
-            See http://trac.sagemath.org/17218 for details.
             sage: RBF.complex_field()
             Complex ball field with 53 bits precision
             sage: RealBallField(3).algebraic_closure()

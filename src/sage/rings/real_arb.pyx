@@ -547,7 +547,7 @@ class RealBallField(UniqueRepresentation, Field):
 
         They already specify it via their category, but we currently need to
         re-implement this method due to the legacy implementation in
-        :class:`sage.rings.ring`.
+        :class:`sage.rings.ring.Ring`.
 
         EXAMPLES::
 

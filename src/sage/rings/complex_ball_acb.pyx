@@ -577,7 +577,7 @@ class ComplexBallField(UniqueRepresentation, Field):
 
         They already specify it via their category, but we currently need to
         re-implement this method due to the legacy implementation in
-        :class:`sage.rings.ring`.
+        :class:`sage.rings.ring.Ring`.
 
         EXAMPLES::
 
@@ -1185,7 +1185,8 @@ cdef class ComplexBall(RingElement):
 
         .. WARNING::
 
-            Unlike a :class:`RealBall`, a :class:`ComplexBall` is *not* defined
+            Unlike a :class:`~sage.rings.real_arb.RealBall`,
+            a :class:`ComplexBall` is *not* defined
             by its midpoint and radius. (Instances of :class:`ComplexBall` are
             actually rectangles, not balls.)
 

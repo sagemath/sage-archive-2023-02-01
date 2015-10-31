@@ -29,6 +29,7 @@ for further details.
 #******************************************************************************
 
 from sage.categories.filtered_modules import FilteredModulesCategory
+from sage.categories.category_with_axiom import CategoryWithAxiom_over_base_ring
 from sage.misc.abstract_method import abstract_method
 
 class FilteredModulesWithBasis(FilteredModulesCategory):
@@ -105,7 +106,6 @@ class FilteredModulesWithBasis(FilteredModulesCategory):
         sage: TestSuite(C).run()
     """
     class ParentMethods:
-
         # TODO: which syntax do we prefer?
         # A.basis(degree = 3)
         # A.basis().subset(degree=3)
@@ -180,11 +180,49 @@ class FilteredModulesWithBasis(FilteredModulesCategory):
                  The exterior algebra of rank 2 over Rational Field(i))_{i in
                  Subsets of {0, 1}}
             """
-            from sage.sets.family import Family
             if d is None:
+                from sage.sets.family import Family
                 return Family(self._indices, self.monomial)
             else:
-                return Family(self._indices.subset(size=d), self.monomial)
+                return self.homogeneous_component_basis(d)
+
+        def homogeneous_component_basis(self, d):
+            """
+            Return a basis for the ``d``-th homogeneous component of ``self``.
+
+            EXAMPLES::
+
+                sage: A = GradedModulesWithBasis(ZZ).example()
+                sage: A.homogeneous_component_basis(4)
+                Lazy family (Term map from Partitions to An example of a graded module with basis: the free module on partitions over Integer Ring(i))_{i in Partitions of the integer 4}
+            """
+            from sage.sets.family import Family
+            return Family(self._indices.subset(size=d), self.monomial)
+
+        def homogeneous_component(self, d):
+            """
+            Return the ``d``-th homogeneous component of ``self``.
+
+            EXAMPLES::
+
+                sage: A = GradedModulesWithBasis(ZZ).example()
+                sage: A.homogeneous_component(4)
+                Degree 4 homogeneous component of An example of a graded module
+                 with basis: the free module on partitions over Integer Ring
+            """
+            from sage.categories.modules_with_basis import ModulesWithBasis
+            from sage.categories.filtered_algebras import FilteredAlgebras
+            if self.base_ring() in FilteredAlgebras:
+                raise NotImplementedError("this is only a natural module over"
+                                          " the degree 0 component of the filtered"
+                                          " algebra and coordinate rings are not"
+                                          " yet implemented for submodules")
+            category = ModulesWithBasis(self.category().base_ring())
+            M = self.submodule(self.homogeneous_component_basis(d),
+                               category=category,
+                               already_echelonized=True)
+            M.rename("Degree {} homogeneous component of {}".format(d, self))
+            return M
 
         def graded_algebra(self):
             r"""
@@ -925,4 +963,27 @@ class FilteredModulesWithBasis(FilteredModulesCategory):
             degree_on_basis = self.parent().degree_on_basis
             return self.parent().sum_of_terms((i, c) for (i, c) in self
                                               if degree_on_basis(i) < n)
+
+    class FiniteDimensional(CategoryWithAxiom_over_base_ring):
+        class ParentMethods:
+            def homogeneous_component_basis(self, d):
+                """
+                Return a basis for the ``d``-th graded component of ``self``.
+
+                EXAMPLES::
+
+                    sage: cat = GradedModulesWithBasis(ZZ).FiniteDimensional()
+                    sage: C = CombinatorialFreeModule(ZZ, ['a', 'b'], category=cat)
+                    sage: C.degree_on_basis = lambda x: 1 if x == 'a' else 2
+                    sage: C.homogeneous_component_basis(1)
+                    Finite family {'a': B['a']}
+                    sage: C.homogeneous_component_basis(2)
+                    Finite family {'b': B['b']}
+                """
+                from sage.sets.family import Family
+                try:
+                    S = self._indices.subset(size=d)
+                except (AttributeError, ValueError, TypeError):
+                    S = [i for i in self._indices if self.degree_on_basis(i) == d]
+                return Family(S, self.monomial)
 

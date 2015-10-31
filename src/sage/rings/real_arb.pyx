@@ -2121,7 +2121,7 @@ cdef class RealBall(RingElement):
 
     def contains_exact(self, other):
         """
-        Returns nonzero *iff* the given number (or ball) ``other`` is contained
+        Return ``True`` *iff* the given number (or ball) ``other`` is contained
         in the interval represented by ``self``.
 
         If ``self`` contains NaN, this function always returns nonzero (as

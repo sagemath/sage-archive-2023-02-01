@@ -9822,22 +9822,19 @@ class FiniteStateMachine(sage.structure.sage_object.SageObject):
                           falling_factorial(exponent, j-i)/ZZ(j-i).factorial()
                           if j>= i else 0)
 
-        def matrix_power(A, exponent):
-            J, T = A.jordan_form(base_ring, transformation=True)
-            Jpower = matrix.block_diagonal(
-                [jordan_block_power(J.subdivision(j, j), exponent)
-                 for j in range(len(J.subdivisions()[0])+1) ])
-            P = Jpower.parent()
-            result = P(T)*Jpower*P(T).inverse()
-            return result
-
         if not self.is_deterministic():
             raise NotImplementedError("Finite State Machine must be deterministic.")
 
         left = vector(ZZ(s.is_initial) for s in self.iter_states())
         right = vector(ZZ(s.is_final) for s in self.iter_states())
         A = self.adjacency_matrix(entry=lambda t: 1)
-        return left*matrix_power(A, variable)*right
+        J, T = A.jordan_form(base_ring, transformation=True)
+        Jpower = matrix.block_diagonal(
+            [jordan_block_power(J.subdivision(j, j), variable)
+             for j in range(len(J.subdivisions()[0])+1) ])
+        T_inv_right = T.solve_right(right).change_ring(SR)
+        left_T = (left*T).change_ring(SR)
+        return left_T*Jpower*T_inv_right
 
 
     def asymptotic_moments(self, variable=sage.symbolic.ring.SR.var('n')):

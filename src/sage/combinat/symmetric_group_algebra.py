@@ -8,6 +8,7 @@ Symmetric Group Algebra
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from sage.misc.cachefunc import cached_method
+from sage.misc.lazy_attribute import lazy_attribute
 from combinatorial_algebra import CombinatorialAlgebra
 from free_module import CombinatorialFreeModule
 from sage.categories.weyl_groups import WeylGroups
@@ -176,7 +177,7 @@ def SymmetricGroupAlgebra(R, W, category=None):
 
         sage: QS3 = SymmetricGroupAlgebra(QQ, 3, category=Monoids())
         sage: QS3.category()
-        Category of finite dimensional monoid algebras over Rational Field
+        Category of finite dimensional cellular monoid algebras over Rational Field
         sage: TestSuite(QS3).run()
 
 
@@ -215,7 +216,8 @@ def SymmetricGroupAlgebra(R, W, category=None):
         W = Permutations(W)
     if category is None:
         category = W.category()
-    return SymmetricGroupAlgebra_n(R, W, category.Algebras(R))
+    category = category.Algebras(R).FiniteDimensional().WithBasis()
+    return SymmetricGroupAlgebra_n(R, W, category.Cellular())
 
 class SymmetricGroupAlgebra_n(CombinatorialFreeModule):
 
@@ -641,6 +643,69 @@ class SymmetricGroupAlgebra_n(CombinatorialFreeModule):
         return self.sum_of_terms([(p.inverse(), coeff) for
                                   (p, coeff) in self(x)],
                                  distinct=True)
+
+    @cached_method
+    def cell_poset(self):
+        """
+        Return the cell poset of ``self``.
+
+        EXAMPLES::
+
+            sage: S = SymmetricGroupAlgebra(QQ, 4)
+            sage: S.cell_poset()
+            Finite poset containing 5 elements
+        """
+        from sage.combinat.posets.posets import Poset
+        from sage.combinat.partition import Partitions
+        return Poset([Partitions(self.n), lambda x,y: x.dominates(y)])
+
+    def cell(self, la):
+        """
+        Return the cell indexed by ``la`` in ``self``.
+
+        EXAMPLES::
+
+            sage: S = SymmetricGroupAlgebra(QQ, 4)
+            sage: S.cell([3,1])
+            Standard tableaux of shape [3, 1]
+        """
+        return StandardTableaux(la)
+
+    @cached_method
+    def _index_to_cell_element(self, i):
+        r"""
+        Return the cell index ``(la, s, t)`` corresponding to the
+        basis index ``i`` in ``self``.
+
+        EXAMPLES::
+
+            sage: S = SymmetricGroupAlgebra(QQ, 3)
+            sage: [S._index_to_cell_element(i) for i in S._indices]
+            [([3], [[1, 2, 3]], [[1, 2, 3]]),
+             ([2, 1], [[1, 2], [3]], [[1, 2], [3]]),
+             ([2, 1], [[1, 3], [2]], [[1, 3], [2]]),
+             ([2, 1], [[1, 3], [2]], [[1, 2], [3]]),
+             ([2, 1], [[1, 2], [3]], [[1, 3], [2]]),
+             ([1, 1, 1], [[1], [2], [3]], [[1], [2], [3]])]
+        """
+        P, Q = i.robinson_schensted()
+        return (P.shape(), P, Q)
+
+    @cached_method
+    def _cell_element_to_index(self, la, s, t):
+        r"""
+        Return the basis index ``i`` corresponding to the
+        cell index ``(la, s, t)`` in ``self``.
+
+        EXAMPLES::
+
+            sage: S = SymmetricGroupAlgebra(QQ, 3)
+            sage: [S._cell_element_to_index(la, s, t) for la in S.cell_poset()
+            ....:  for s in S.cell(la) for t in S.cell(la)]
+            [[1, 2, 3], [2, 1, 3], [2, 3, 1], [3, 1, 2], [1, 3, 2], [3, 2, 1]]
+        """
+        from sage.combinat.rsk import RSK_inverse
+        return self._indices(RSK_inverse(s, t, output='permutation'))
 
     def retract_plain(self, f, m):
         r"""

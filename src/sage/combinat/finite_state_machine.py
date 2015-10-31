@@ -9732,7 +9732,8 @@ class FiniteStateMachine(sage.structure.sage_object.SageObject):
         return(done)
 
 
-    def number_of_words(self, variable=sage.symbolic.ring.SR.var('n')):
+    def number_of_words(self, variable=sage.symbolic.ring.SR.var('n'),
+                        base_ring=sage.rings.qqbar.QQbar):
         r"""
         Return the number of successful input words of given length.
 
@@ -9740,6 +9741,9 @@ class FiniteStateMachine(sage.structure.sage_object.SageObject):
 
         - ``variable`` -- a symbol denoting the length of the words,
           by default `n`.
+
+        - ``base_ring`` -- Ring (default: ``QQbar``) in which to
+          compute the eigenvalues.
 
         OUTPUT:
 
@@ -9808,7 +9812,6 @@ class FiniteStateMachine(sage.structure.sage_object.SageObject):
         from sage.modules.free_module_element import vector
         from sage.rings.arith import falling_factorial
         from sage.rings.integer_ring import ZZ
-        from sage.rings.qqbar import QQbar
         from sage.symbolic.ring import SR
 
         def jordan_block_power(block, exponent):
@@ -9820,7 +9823,7 @@ class FiniteStateMachine(sage.structure.sage_object.SageObject):
                           if j>= i else 0)
 
         def matrix_power(A, exponent):
-            J, T = A.jordan_form(QQbar, transformation=True)
+            J, T = A.jordan_form(base_ring, transformation=True)
             Jpower = matrix.block_diagonal(
                 [jordan_block_power(J.subdivision(j, j), exponent)
                  for j in range(len(J.subdivisions()[0])+1) ])

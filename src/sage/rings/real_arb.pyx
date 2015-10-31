@@ -1641,7 +1641,7 @@ cdef class RealBall(RingElement):
         """
         Increase the radius of this ball by (an upper bound on) ``ampl``.
 
-        If ``ampl`` is negative, the radius in unchanged.
+        If ``ampl`` is negative, the radius is unchanged.
 
         EXAMPLES::
 
@@ -2213,7 +2213,7 @@ cdef class RealBall(RingElement):
             sage: from sage.rings.real_arb import RBF
             sage: RBF(0).contains_zero()
             True
-            sage: RBF(RIF(-1,1)).contains_zero()
+            sage: RBF(RIF(-1, 1)).contains_zero()
             True
             sage: RBF(1/3).contains_zero()
             False

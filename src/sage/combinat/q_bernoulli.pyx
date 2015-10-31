@@ -2,7 +2,7 @@
 `q`-Bernoulli Numbers and Polynomials
 """
 from sage.rings.integer_ring import ZZ
-from sage.rings.polynomial.polynomial_ring import polygen
+from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.misc.cachefunc import cached_function
 
 
@@ -50,7 +50,7 @@ def q_bernoulli(m, p=None):
         sage: q_bernoulli(-1)
         Traceback (most recent call last):
         ...
-        ValueError: the argument must be a nonnegative integer.
+        ValueError: the argument must be a nonnegative integer
 
     REFERENCES:
 
@@ -60,11 +60,11 @@ def q_bernoulli(m, p=None):
     """
     m = ZZ(m)
     if m < 0:
-        raise ValueError("the argument must be a nonnegative integer.")
+        raise ValueError("the argument must be a nonnegative integer")
     cdef int i
-    q = polygen(ZZ, 'q')
-    result = (q-1)**(1-m) * sum((-1)**(m-i)*m.binomial(i)*(i+1)/(q**(i+1)-1)
-                                for i in range(m + 1))
+    q = PolynomialRing(ZZ, 'q').gen()
+    result = (q - 1)**(1-m) * sum((-1)**(m-i)*m.binomial(i)*(i+1)/(q**(i+1)-1)
+                                  for i in range(m + 1))
     if p is None:
         return result
     else:
@@ -80,8 +80,10 @@ def q_bernoulli_polynomial(m):
     is a polynomial in one variable `x` with coefficients in `\QQ(q)` whose
     value at `q=1` is the usual Bernoulli polynomial `B_m(x)`.
 
-    This function returns a slight modification of the original
-    Carlitz `q`-Bernoulli polynomials.
+    The original `q`-Bernoulli polynomials introduced by Carlitz were
+    polynomials in `q^y` with coefficients in `\QQ(q)`. This function returns
+    these polynomials but expressed in the variable `x=(q^y-1)/(q-1)`. This
+    allows to let `q=1` to recover the classical Bernoulli polynomials.
 
     INPUT:
 
@@ -109,16 +111,16 @@ def q_bernoulli_polynomial(m):
         sage: q_bernoulli_polynomial(-1)
         Traceback (most recent call last):
         ...
-        ValueError: the argument must be a nonnegative integer.
+        ValueError: the argument must be a nonnegative integer
 
     REFERENCES: [Ca1948]_, [Ca1954]_
     """
     m = ZZ(m)
     if m < 0:
-        raise ValueError("the argument must be a nonnegative integer.")
+        raise ValueError("the argument must be a nonnegative integer")
     cdef int i
-    q = polygen(ZZ, 'q')
-    x = polygen(q.parent(), 'x')
+    q = PolynomialRing(ZZ, 'q').gen()
+    x = PolynomialRing(q.parent(), 'x').gen()
     z = 1 + (q - 1) * x
     return sum(m.binomial(i) * x ** (m - i) * z ** i * q_bernoulli(i)
                for i in range(m + 1))

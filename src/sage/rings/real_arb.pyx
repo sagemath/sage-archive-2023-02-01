@@ -1502,6 +1502,9 @@ cdef class RealBall(RingElement):
             sage: RBF(-1/3).upper().parent()
             Real Field with 53 bits of precision and rounding RNDU
 
+        .. SEEALSO::
+
+           :meth:`lower`, :meth:`endpoints`
         """
         # naive and slow
         return self._real_mpfi_(RealIntervalField(prec(self))).upper(rnd)
@@ -1517,6 +1520,10 @@ cdef class RealBall(RingElement):
             -0.333333333333334
             sage: RBF(-1/3).lower().parent()
             Real Field with 53 bits of precision and rounding RNDD
+
+        .. SEEALSO::
+
+           :meth:`upper`, :meth:`endpoints`
         """
         # naive and slow
         return self._real_mpfi_(RealIntervalField(prec(self))).lower(rnd)
@@ -1530,6 +1537,10 @@ cdef class RealBall(RingElement):
             sage: from sage.rings.real_arb import RBF
             sage: RBF(-1/3).endpoints()
             (-0.333333333333334, -0.333333333333333)
+
+        .. SEEALSO::
+
+           :meth:`lower`, :meth:`upper`
         """
         # naive and slow
         return self._real_mpfi_(RealIntervalField(prec(self))).endpoints(rnd)
@@ -1994,6 +2005,10 @@ cdef class RealBall(RingElement):
             sage: RBF('nan').min(RBF('nan'))
             nan
 
+        .. SEEALSO::
+
+            :meth:`max`
+
         TESTS::
 
             sage: RBF(0).min()
@@ -2029,6 +2044,10 @@ cdef class RealBall(RingElement):
             0
             sage: RBF('nan').max(RBF('nan'))
             nan
+
+        .. SEEALSO::
+
+            :meth:`min`
 
         TESTS::
 

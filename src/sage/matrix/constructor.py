@@ -2159,22 +2159,21 @@ def elementary_matrix(arg0, arg1=None, **kwds):
         return elem.transpose()
 
 @matrix_method
-def circulant(v, sparse=False):
+def circulant(v, sparse=None):
     r"""
     Return the circulant matrix specified by its 1st row `v`
 
     A circulant `n \times n` matrix specified by the 1st row `v=(v_0...v_{n-1})` is
-    the matrix $(c_{ij})_{0 \leq i,j\leq n-1}$ where $c_{ij}=v_{j-i \mod b}$.
-    If the input (a vector) is sparse, return a sparse matrix.
-    Else, by default, if the data is a plain list, return a dense matrix.
+    the matrix $(c_{ij})_{0 \leq i,j\leq n-1}$, where $c_{ij}=v_{j-i \mod b}$.
 
     INPUT:
 
     - ``v`` -- a list or a vector of values
 
-    - ``sparse`` -- if ``v`` is a vector, the output sparsity is determined by the
-      sparsity of ``v``. Else, by default, it is dense; otherwise, if ``sparse`` is
-      set to ``True``, it will be sparse.
+    - ``sparse`` -- ``None`` by default; if ``sparse`` is set to ``True``, the output
+      will be sparse.  Respectively, setting it to ``False`` produces dense output.
+      If ``sparse`` is not set, and if ``v`` is a vector, the output sparsity is determined
+      by the sparsity of ``v``; else, the output will be dense.
 
     EXAMPLES::
 
@@ -2185,25 +2184,29 @@ def circulant(v, sparse=False):
         [4 8 1 2 3]
         [3 4 8 1 2]
         [2 3 4 8 1]
-        sage: matrix.circulant(vector(GF(3),[0,1,-1],sparse=True))
+        sage: m = matrix.circulant(vector(GF(3),[0,1,-1],sparse=True)); m
         [0 1 2]
         [2 0 1]
         [1 2 0]
+        sage: m.is_sparse()
+        True
 
     TESTS::
 
-        sage: m = matrix.circulant(vector(GF(3),[0,1,-1],sparse=True))
-        sage: m.is_sparse()
-        True
         sage: m = matrix.circulant(vector(GF(3),[0,1,-1],sparse=False))
         sage: m.is_sparse()
         False
+        sage: matrix.circulant([0,1,-1]).is_sparse()
+        False
+        sage: matrix.circulant([0,1,-1], sparse=True).is_sparse()
+        True
     """
     from exceptions import AttributeError
-    try:
-        sparse = v.is_sparse()
-    except AttributeError:
-        pass
+    if sparse==None:
+        try:
+            sparse = v.is_sparse()
+        except AttributeError:
+            sparse = False
     n = len(v)
     return matrix(n, n, lambda i, j: v[(j-i)%n], sparse=sparse)
 

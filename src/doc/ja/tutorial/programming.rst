@@ -638,7 +638,7 @@ Sageに付属している関数 ``kronecker`` は，PARIのCライブラリを�
 
     sage: 2 < CC(3.1,1)
     True
-    sage: 5 < VectorSpace(QQ,3)   # 出力は一定しない。
+    sage: 5 < VectorSpace(QQ,3)   # random 出力は一定しない。
     False
 
 記号を含む不等号の判定には  ``bool`` 関数を用いる:

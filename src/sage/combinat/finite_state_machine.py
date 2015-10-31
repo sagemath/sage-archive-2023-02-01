@@ -9787,6 +9787,14 @@ class FiniteStateMachine(sage.structure.sage_object.SageObject):
             ....:     for _ in range(1, 6))
             True
 
+        Here is an automaton without cycles, so with eigenvalue `0`. ::
+
+            sage: A = Automaton([(j, j+1, 0) for j in range(3)],
+            ....:               initial_states=[0],
+            ....:               final_states=range(3))
+            sage: A.number_of_words()
+            1/2*0^(n - 2)*(n - 1)*n + 0^(n - 1)*n + 0^n
+
         TESTS::
 
             sage: A = Automaton([(0, 0, 0), (0, 1, 0)],

@@ -56,7 +56,7 @@ contain zero. ::
     sage: b != 0
     True
 
-However, ``bool(b)`` returns ``True`` for a ball ``b`` only if ``b`` is exactly
+However, ``bool(b)`` returns ``False`` for a ball ``b`` only if ``b`` is exactly
 zero::
 
     sage: bool(a)

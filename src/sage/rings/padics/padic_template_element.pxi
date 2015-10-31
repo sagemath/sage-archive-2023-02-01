@@ -106,9 +106,14 @@ cdef class pAdicTemplateElement(pAdicGenericElement):
         elif isinstance(x, pAdicGenericElement):
             if not ((<pAdicGenericElement>x)._is_base_elt(self.prime_pow.prime) or x.parent() is self.parent()):
                 raise NotImplementedError("conversion between padic extensions not implemented")
-        elif sage.rings.finite_rings.element_base.is_FiniteFieldElement(x) and x.parent() is self.parent().residue_field():
-            x = x.polynomial().list()
-        elif not isinstance(x, (Integer, Rational, pari_gen, list, tuple)):
+        elif sage.rings.finite_rings.element_base.is_FiniteFieldElement(x):
+            if x.parent() is self.parent().residue_field():
+                pass
+            else:
+                raise NotImplementedError("conversion from finite fields other than the residue field not implemented.")
+        elif isinstance(x, (Integer, Rational, list, tuple)):
+            pass
+        else:
             x = Rational(x)
         val = get_ordp(x, self.prime_pow)
         if val < 0 and self.prime_pow.in_field == 0:

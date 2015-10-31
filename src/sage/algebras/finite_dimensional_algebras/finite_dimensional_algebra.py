@@ -464,6 +464,14 @@ class FiniteDimensionalAlgebra(Algebra):
             sage: E = FiniteDimensionalAlgebra(QQ, [Matrix([[1,0],[1,0]]), Matrix([[0,1],[0,1]])])
             sage: E.is_unitary()
             False
+
+            sage: F = FiniteDimensionalAlgebra(QQ, [Matrix([[1,0,0], [0,1,0], [0,0,1]]), Matrix([[0,1,0], [0,0,0], [0,0,0]]), Matrix([[0,0,1], [0,0,0], [1,0,0]])])
+            sage: F.is_unitary()
+            True
+
+            sage: G = FiniteDimensionalAlgebra(QQ, [Matrix([[1,0,0], [0,1,0], [0,0,1]]), Matrix([[0,1,0], [0,0,0], [0,0,0]]), Matrix([[0,1,0], [0,0,0], [1,0,0]])])
+            sage: G.is_unitary()  # Unique right identity, but no left identity.
+            False
         """
         n = self.degree()
         k = self.base_ring()
@@ -521,6 +529,16 @@ class FiniteDimensionalAlgebra(Algebra):
 
             sage: C = FiniteDimensionalAlgebra(QQ, [Matrix([[0,0], [0,0]]), Matrix([[0,0], [0,0]])])
             sage: C.one()
+            Traceback (most recent call last):
+            ...
+            TypeError: algebra is not unitary
+
+            sage: D = FiniteDimensionalAlgebra(QQ, [Matrix([[1,0,0], [0,1,0], [0,0,1]]), Matrix([[0,1,0], [0,0,0], [0,0,0]]), Matrix([[0,0,1], [0,0,0], [1,0,0]])])
+            sage: D.one()
+            e0
+
+            sage: E = FiniteDimensionalAlgebra(QQ, [Matrix([[1,0,0], [0,1,0], [0,0,1]]), Matrix([[0,1,0], [0,0,0], [0,0,0]]), Matrix([[0,1,0], [0,0,0], [1,0,0]])])
+            sage: E.one()
             Traceback (most recent call last):
             ...
             TypeError: algebra is not unitary

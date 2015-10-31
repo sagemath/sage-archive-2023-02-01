@@ -924,7 +924,8 @@ def skew_hadamard_matrix(n,existence=False, skew_normalize=True, check=True):
     Tries to construct a skew Hadamard matrix
 
     A Hadamard matrix `H` is called skew if `H=S-I`, for `I` the identity matrix
-    and `-S=S^\top`.
+    and `-S=S^\top`. Currently constructions from Section 14.1 of [Ha83]_ and few
+    more exotic ones are implemented.
 
     INPUT:
 
@@ -982,12 +983,21 @@ def skew_hadamard_matrix(n,existence=False, skew_normalize=True, check=True):
         52 x 52 dense matrix over Integer Ring...
         sage: skew_hadamard_matrix(92)
         92 x 92 dense matrix over Integer Ring...
+        sage: skew_hadamard_matrix(816)     # long time
+        816 x 816 dense matrix over Integer Ring...
         sage: skew_hadamard_matrix(100)
         Traceback (most recent call last):
         ...
         ValueError: A skew Hadamard matrix of order 100 is not yet implemented.
         sage: skew_hadamard_matrix(100,existence=True)
         Unknown
+
+    REFERENCES:
+
+    .. [Ha83] M. Hall,
+      Combinatorial Theory,
+      2nd edition,
+      Wiley, 1983
     """
     def true():
         _skew_had_cache[n]=True
@@ -1013,13 +1023,13 @@ def skew_hadamard_matrix(n,existence=False, skew_normalize=True, check=True):
         M = hadamard_matrix_paleyI(n, normalize=False)
 
     elif n % 8 == 0:
-        if skew_hadamard_matrix(n//2,existence=True):
+        if skew_hadamard_matrix(n//2,existence=True): # (Lemma 14.1.6 in [Ha83]_)
             if existence:
                 return true()
             H = skew_hadamard_matrix(n//2,check=False)
             M = block_matrix([[H,H], [-H.T,H.T]])
 
-        else: # try Williamson construction
+        else: # try Williamson construction (Lemma 14.1.5 in [Ha83]_)
             for d in divisors(n)[2:-2]: # skip 1, 2, n/2, and n
                 n1 = n//d
                 if is_prime_power(d - 1) and (d % 4 == 0) and (n1 % 4 == 0)\
@@ -1030,9 +1040,9 @@ def skew_hadamard_matrix(n,existence=False, skew_normalize=True, check=True):
                     U = matrix(ZZ, d, lambda i, j: -1 if i==j==0 else\
                                         1 if i==j==1 or (i>1 and j-1==d-i)\
                                           else 0)
-                    A = block_matrix([[matrix([0]), matrix(ZZ,1,n1-1,[1]*(n1-1))],
-                                      [ matrix(ZZ,n1-1,1,[-1]*(n1-1)),
-                                        _helper_payley_matrix(n1-1,zero_position=0)]])+I(n1)
+                    A = block_matrix([[matrix([0]), matrix(ZZ,1,d-1,[1]*(d-1))],
+                                      [ matrix(ZZ,d-1,1,[-1]*(d-1)),
+                                        _helper_payley_matrix(d-1,zero_position=0)]])+I(d)
                     M = A.tensor_product(I(n1))+(U*A).tensor_product(H)
                     break
     if M is None: # try Williamson-Goethals-Seidel construction

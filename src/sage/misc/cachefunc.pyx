@@ -426,7 +426,7 @@ in caches. This can be achieved by defining an appropriate method
     sage: hash(b)
     Traceback (most recent call last):
     ...
-    TypeError: unhashable type: 'sage.rings.padics.padic_ZZ_pX_CR_element.pAdicZZpXCRElement'
+    TypeError: unhashable type: 'sage.rings.padics.qadic_flint_CR.qAdicCappedRelativeElement'
     sage: @cached_method
     ....: def f(x): return x == a
     sage: f(b)

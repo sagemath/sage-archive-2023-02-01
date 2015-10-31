@@ -380,6 +380,7 @@ cdef inline int cconv_shared(mpz_t out, x, long prec, long valshift, PowComputer
       storing the result in ``out``.
 
     - ``prime_pow`` -- a PowComputer for the ring.
+
     """
     if PyInt_Check(x):
         x = Integer(x)

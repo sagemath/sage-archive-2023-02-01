@@ -958,7 +958,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: hash(f)
             Traceback (most recent call last):
             ...
-            TypeError: unhashable type: 'sage.rings.padics.padic_ZZ_pX_CR_element.pAdicZZpXCRElement'
+            TypeError: unhashable type: 'sage.rings.padics.qadic_flint_CR.qAdicCappedRelativeElement'
             sage: f._cache_key()
             (..., (0, 1 + O(2^20)))
 

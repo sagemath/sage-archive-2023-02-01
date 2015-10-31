@@ -9757,9 +9757,9 @@ class FiniteStateMachine(sage.structure.sage_object.SageObject):
             ....:                   final_states=[0, 1])
             sage: N = NAFpm.number_of_words(); N
             4/3*2^n - 1/3*(-1)^n
-            sage: all(len(list(NAFpm.language(_)))
-            ....:     - len(list(NAFpm.language(_-1))) == N.subs(n=_)
-            ....:     for _ in range(1, 6))
+            sage: all(len(list(NAFpm.language(s)))
+            ....:     - len(list(NAFpm.language(s-1))) == N.subs(n=s)
+            ....:     for s in srange(1, 6))
             True
 
         An example with non-rational eigenvalues. By default,
@@ -9772,9 +9772,9 @@ class FiniteStateMachine(sage.structure.sage_object.SageObject):
             sage: N = NAFp.number_of_words(); N
             1.170820393249937?*1.618033988749895?^n
             - 0.1708203932499369?*(-0.618033988749895?)^n
-            sage: all(len(list(NAFp.language(_)))
-            ....:     - len(list(NAFp.language(_-1))) == N.subs(n=_)
-            ....:     for _ in range(1, 6))
+            sage: all(len(list(NAFp.language(s)))
+            ....:     - len(list(NAFp.language(s-1))) == N.subs(n=s)
+            ....:     for s in srange(1, 6))
             True
 
         We specify a suitable ``base_ring`` to obtain a radical
@@ -9789,9 +9789,9 @@ class FiniteStateMachine(sage.structure.sage_object.SageObject):
             sage: N = NAFp.number_of_words(base_ring=R); N
             1/10*(1/2*sqrt(5) + 1/2)^n*(3*sqrt(5) + 5)
             - 1/10*(-1/2*sqrt(5) + 1/2)^n*(3*sqrt(5) - 5)
-            sage: all(len(list(NAFp.language(_)))
-            ....:     - len(list(NAFp.language(_-1))) == N.subs(n=_)
-            ....:     for _ in range(1, 6))
+            sage: all(len(list(NAFp.language(s)))
+            ....:     - len(list(NAFp.language(s-1))) == N.subs(n=s)
+            ....:     for s in srange(1, 6))
             True
 
         In this special case, we might also use the constant
@@ -9801,9 +9801,9 @@ class FiniteStateMachine(sage.structure.sage_object.SageObject):
             sage: N = NAFp.number_of_words(base_ring=R); N
             1/5*(3*golden_ratio + 1)*golden_ratio^n
             - 1/5*(3*golden_ratio - 4)*(-golden_ratio + 1)^n
-            sage: all(len(list(NAFp.language(_)))
-            ....:     - len(list(NAFp.language(_-1))) == N.subs(n=_)
-            ....:     for _ in range(1, 6))
+            sage: all(len(list(NAFp.language(s)))
+            ....:     - len(list(NAFp.language(s-1))) == N.subs(n=s)
+            ....:     for s in srange(1, 6))
             True
 
         The adjacency matrix of the following example is a Jordan
@@ -9821,9 +9821,9 @@ class FiniteStateMachine(sage.structure.sage_object.SageObject):
             [0 0 4]
             sage: N = J3.number_of_words(); N
             1/2*4^(n - 2)*(n - 1)*n + 4^(n - 1)*n + 4^n
-            sage: all(len(list(J3.language(_)))
-            ....:     - len(list(J3.language(_-1))) == N.subs(n=_)
-            ....:     for _ in range(1, 6))
+            sage: all(len(list(J3.language(s)))
+            ....:     - len(list(J3.language(s-1))) == N.subs(n=s)
+            ....:     for s in range(1, 6))
             True
 
         Here is an automaton without cycles, so with eigenvalue `0`. ::

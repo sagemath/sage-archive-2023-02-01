@@ -9751,9 +9751,10 @@ class FiniteStateMachine(sage.structure.sage_object.SageObject):
 
         EXAMPLES::
 
-            sage: NAFpm = Automaton([(0, 0, 0), (0, 1, 1), (0, 1, -1), (1, 0, 0)],
-            ....:                 initial_states=[0],
-            ....:                 final_states=[0, 1])
+            sage: NAFpm = Automaton([(0, 0, 0), (0, 1, 1),
+            ....:                    (0, 1, -1), (1, 0, 0)],
+            ....:                   initial_states=[0],
+            ....:                   final_states=[0, 1])
             sage: N = NAFpm.number_of_words(); N
             4/3*2^n - 1/3*(-1)^n
             sage: all(len(list(NAFpm.language(_)))
@@ -9771,8 +9772,8 @@ class FiniteStateMachine(sage.structure.sage_object.SageObject):
             ....:     for _ in range(1, 6))
             True
 
-        The adjacency matrix of the following example is a Jordan matrix of size 3 to
-        the eigenvalue 4::
+        The adjacency matrix of the following example is a Jordan
+        matrix of size 3 to the eigenvalue 4::
 
             sage: J3 = Automaton([(0, 1, -1), (1, 2, -1)],
             ....:     initial_states=[0],

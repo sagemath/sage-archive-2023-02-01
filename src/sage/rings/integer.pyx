@@ -3936,7 +3936,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
 
         # base case
         if 0 < n < k:
-            return one
+            return n
 
         # easy to calculate
         elif n % k == 0:
@@ -3957,7 +3957,9 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             else:
                 sign = one
             return sign / Integer(-k-n).multifactorial(k)
-
+        elif n > k:
+            return n * Integer(n-k).multifactorial(k)
+            
         # compute the actual product, optimizing the number of large
         # multiplications
         cdef int i,j

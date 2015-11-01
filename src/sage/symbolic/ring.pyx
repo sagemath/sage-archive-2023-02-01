@@ -294,7 +294,6 @@ cdef class SymbolicRing(CommutativeRing):
             (<function mul_vararg at 0x...>, [x^5, log(y), 3])
         """
         cdef GEx exp
-
         if is_Expression(x):
             if (<Expression>x)._parent is self:
                 return x

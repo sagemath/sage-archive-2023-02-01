@@ -598,18 +598,6 @@ def diagonal_isometry(V, W):
 
         return column_matrix(vectors)
     
-    def vectors_of_common_length(Q, F):
-        i = max(Q.Gram_matrix()[0][0], F.Gram_matrix()[0][0])
-        n = 100
-        while True:
-            q_vecs, f_vecs = Q.short_vector_list_up_to_length(n), F.short_vector_list_up_to_length(n)
-            while i < n:
-                ##Find a value represented by both forms
-                if q_vecs[i] and f_vecs[i]:
-                    return (q_vecs[i][0], f_vecs[i][0]);
-                i += 1
-            n += 100
-
     def vectors_of_common_length_dev(Q, F, qb, fb, iteration):
         ##Returns a pair of vectors v1 and v2, such that Q(v1) = F(v2), 
         ##and qb and fb are bases when their columns at index iteration are replaced with
@@ -628,7 +616,7 @@ def diagonal_isometry(V, W):
         n = 100
         #NOTE: If the given forms are not equivalent, this will be an infinite loop.
         while True:
-            q_vecs, f_vecs = Q.short_vector_list_up_to_length(n), F.short_vector_list_up_to_length(n)
+            q_vecs, f_vecs = Q.short_vector_list_up_to_length(n, real_entry_flag=True), F.short_vector_list_up_to_length(n, real_entry_flag=True)
             while i < n:
                 ##Find a value that is represented by both forms
                 if q_vecs[i] and f_vecs[i]:

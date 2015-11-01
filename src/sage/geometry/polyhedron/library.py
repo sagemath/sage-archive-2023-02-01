@@ -15,6 +15,7 @@ The following constructions are available
     :delim: |
 
     :meth:`~sage.geometry.polyhedron.library.Polytopes.Birkhoff_polytope`
+    :meth:`~sage.geometry.polyhedron.library.Polytopes.associahedron`
     :meth:`~sage.geometry.polyhedron.library.Polytopes.buckyball`
     :meth:`~sage.geometry.polyhedron.library.Polytopes.cross_polytope`
     :meth:`~sage.geometry.polyhedron.library.Polytopes.cube`
@@ -1113,5 +1114,11 @@ class Polytopes():
         par =  [ V.zero() ]
         par.extend(sum(c) for k in range(1,len(generators)+1) for c in combinations(generators,k))
         return Polyhedron(vertices=par, base_ring=R)
+
+    # --------------------------------------------------------
+    # imports from other files
+    # --------------------------------------------------------
+    import sage.combinat.root_system.associahedron
+    associahedron = staticmethod(sage.combinat.root_system.associahedron.Associahedron)
 
 polytopes = Polytopes()

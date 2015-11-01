@@ -205,52 +205,6 @@ class AsymptoticExpansionGenerators(object):
         return result
 
 
-    @staticmethod
-    def Binomial_kn_over_n(var, k, precision=None, skip_constant_factor=False):
-        r"""
-        EXAMPLES::
-
-            sage: asymptotic_expansions.Binomial_kn_over_n('n', k=2, precision=5)
-            sage: _.parent()
-        """
-        log_Stirling = AsymptoticExpansionGenerators.log_Stirling(
-            var, precision=precision, skip_constant_summand=True)
-        n = log_Stirling.parent().gen()
-
-        from sage.symbolic.ring import SR
-        SCR = SR.subring(no_variables=True)
-        try:
-            k = SCR.coerce(k)
-        except TypeError as e:
-            from misc import combine_exceptions
-            raise combine_exceptions(
-                TypeError('Cannot use k=%s.' % (k,)), e)
-
-        result = log_Stirling.subs(n=k*n) - \
-                 log_Stirling.subs(n=(k-1)*n) - log_Stirling
-        print "log-result:", result
-        print result.parent()
-
-        #P = log_Stirling.parent().change_parameter(
-        #    growth_group=('(e^(n*log(n)))^SCR * (e^n)^SCR * n^SCR * '
-        #                  'log(n)^SCR').replace('SCR', 'SR.subring(no_variables=True)'),
-        #    coefficient_ring=SCR)
-        P = log_Stirling.parent().change_parameter(
-            growth_group='(e^(n*log(n)))^QQ * (e^n)^QQ * n^QQ * log(n)^QQ',
-            coefficient_ring=SCR)
-        from sage.functions.log import exp
-        result = exp(P.coerce(result))
-        print "exp-result:", result
-        print result.parent()
-        return result
-
-        if not skip_constant_factor:
-            from sage.symbolic.ring import SR
-            result *= (2*SR('pi')).sqrt()
-
-        return result
-
-
 # Easy access to the asymptotic expansions generators from the command line:
 asymptotic_expansions = AsymptoticExpansionGenerators()
 r"""

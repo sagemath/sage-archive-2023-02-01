@@ -119,8 +119,9 @@ def q_bernoulli_polynomial(m):
     if m < 0:
         raise ValueError("the argument must be a nonnegative integer")
     cdef int i
-    q = PolynomialRing(ZZ, 'q').gen()
-    x = PolynomialRing(q.parent(), 'x').gen()
+    R = PolynomialRing(ZZ, 'q')
+    q = R.gen()
+    x = PolynomialRing(R, 'x').gen()
     z = 1 + (q - 1) * x
     return sum(m.binomial(i) * x ** (m - i) * z ** i * q_bernoulli(i)
                for i in range(m + 1))

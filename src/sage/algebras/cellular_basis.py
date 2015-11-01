@@ -71,6 +71,19 @@ class CellularBasis(CombinatorialFreeModule):
         """
         return "Cellular basis of {}".format(self._algebra)
 
+    def cellular_basis_of(self):
+        """
+        Return the defining algebra of ``self``.
+
+        EXAMPLES::
+
+            sage: S = SymmetricGroupAlgebra(QQ, 3)
+            sage: C = S.cellular_basis()
+            sage: C.cellular_basis_of() is S
+            True
+        """
+        return self._algebra
+
     def cell_poset(self):
         """
         Return the cell poset of ``self``.

@@ -808,6 +808,35 @@ class PerfectMatching(ElementWrapper):
         from sage.combinat.permutation import Permutation
         return Permutation(self.value)
 
+    def to_non_crossing_set_partition(self):
+        r"""
+        Returns the noncrossing set partition (on half as many elements) 
+        corresponding to the perfect matching if the perfect matching is 
+        noncrossing, and otherwise gives an error.
+
+        OUTPUT:
+
+            The realization of ``self`` as a noncrossing set partition.
+
+        EXAMPLES::
+
+            sage: PerfectMatching([[1,3], [4,2]]).to_non_crossing_set_partition()
+            Traceback (most recent call last):
+            ...
+            ValueError: matching must be non-crossing
+            sage: PerfectMatching([[1,4], [3,2]]).to_non_crossing_set_partition()
+            {{1, 2}}
+            sage: PerfectMatching([]).to_non_crossing_set_partition()
+            {}
+        """
+        from sage.combinat.set_partition import SetPartition        
+        if not self.is_non_crossing():
+            raise ValueError("matching must be non-crossing")
+        else:
+            perm = self.to_permutation()
+            perm2 = Permutation([(perm[2*i])/2 for i in range(len(perm)/2)])
+        return SetPartition(perm2.cycle_tuples())
+
 
 class PerfectMatchings(UniqueRepresentation, Parent):
     r"""

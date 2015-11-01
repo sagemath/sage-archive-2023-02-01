@@ -264,6 +264,34 @@ cdef class SymbolicRing(CommutativeRing):
             sage: bool(si == CC.0)
             True
 
+        Polynomial ring element factorizations::
+
+            sage: R.<x> = QQ[]
+            sage: SR(factor(5*x^2 - 5))
+            5*(x + 1)*(x - 1)
+            sage: R.<x,y> = QQ[]
+            sage: SR(factor(x^2 - y^2))
+            (x + y)*(x - y)
+            sage: R.<x,y,z> = QQ[]
+            sage: SR(factor(x^2*y^3 + x^2*y^2*z - x*y^3 - x*y^2*z - 2*x*y*z - 2*x*z^2 + 2*y*z + 2*z^2))
+            (x*y^2 - 2*z)*(x - 1)*(y + z)
+
+        Asymptotic expansions::
+
+            sage: A.<x, y> = AsymptoticRing(growth_group='x^ZZ * y^QQ * log(y)^ZZ', coefficient_ring=ZZ)
+            doctest:...: FutureWarning: This class/method/function is
+            marked as experimental.
+            ...
+            See http://trac.sagemath.org/17601 for details.
+            sage: s = SR(3*x^5 * log(y) + 4*y^(3/7) + O(x*log(y))); s
+            3*x^5*log(y) + 4*y^(3/7) + Order(x*log(y))
+            sage: s.operator(), s.operands()
+            (<function add_vararg at 0x...>,
+             [3*x^5*log(y), 4*y^(3/7), Order(x*log(y))])
+            sage: t = s.operands()[0]; t
+            3*x^5*log(y)
+            sage: t.operator(), t.operands()
+            (<function mul_vararg at 0x...>, [x^5, log(y), 3])
         """
         cdef GEx exp
 
@@ -284,6 +312,7 @@ cdef class SymbolicRing(CommutativeRing):
 
         from sage.rings.infinity import (infinity, minus_infinity,
                                          unsigned_infinity)
+        from sage.structure.factorization import Factorization
 
         if isinstance(x, (Integer, RealNumber, float, long, complex)):
             GEx_construct_pyobject(exp, x)
@@ -297,6 +326,9 @@ cdef class SymbolicRing(CommutativeRing):
             return new_Expression_from_GEx(self, g_UnsignedInfinity)
         elif isinstance(x, (RingElement, Matrix)):
             GEx_construct_pyobject(exp, x)
+        elif isinstance(x, Factorization):
+            from sage.misc.all import prod
+            return prod([SR(p)**e for p,e in x], SR(x.unit()))
         else:
             raise TypeError
 

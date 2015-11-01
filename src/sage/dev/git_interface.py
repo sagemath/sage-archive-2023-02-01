@@ -211,16 +211,7 @@ class GitProxy(object):
             sage: git._execute('status',foo=True) # --foo is not a valid parameter
             Traceback (most recent call last):
             ...
-            GitError: git returned with non-zero exit code (129) for
-            "git -c user.email=doc@test.test -c user.name=doctest status --foo".
-            output to stderr: error: unknown option `foo'
-             usage: git status [options] [--] ...
-            <BLANKLINE>
-                 -v, --verbose         be verbose
-                 -s, --short           show status concisely
-                 -b, --branch          show branch information
-                 --porcelain           machine-readable output
-            ...
+            GitError: git returned with non-zero exit code ...
         """
         exit_code, stdout, stderr, cmd = self._run_git(cmd, args, kwds)
         if exit_code:
@@ -251,16 +242,7 @@ class GitProxy(object):
             sage: git._execute_silent('status',foo=True) # --foo is not a valid parameter
             Traceback (most recent call last):
             ...
-            GitError: git returned with non-zero exit code (129) for
-            "git -c user.email=doc@test.test -c user.name=doctest status --foo".
-            output to stderr: error: unknown option `foo'
-             usage: git status [options] [--] ...
-            <BLANKLINE>
-                 -v, --verbose         be verbose
-                 -s, --short           show status concisely
-                 -b, --branch          show branch information
-                 --porcelain           machine-readable output
-            ...
+            GitError: git returned with non-zero exit code ...
         """
         exit_code, stdout, stderr, cmd = self._run_git(cmd, args, kwds)
         if exit_code:
@@ -546,9 +528,7 @@ class GitInterface(ReadStdoutGitProxy):
             sage: git._execute_supersilent('rebase', 'branch2')
             Traceback (most recent call last):
             ...
-            GitError: git returned with non-zero exit code (1) for
-            "git -c user.email=doc@test.test -c user.name=doctest rebase branch2".
-            ...
+            GitError: git returned with non-zero exit code ...
             sage: git.get_state()
             ('rebase',)
             sage: git.super_silent.rebase(abort=True)

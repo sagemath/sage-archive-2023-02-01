@@ -93,7 +93,6 @@ class AbelianGroupElement(AbelianGroupElementBase):
         sage: a*b in F
         True
     """
-
     def as_permutation(self):
         r"""
         Return the element of the permutation group G (isomorphic to the

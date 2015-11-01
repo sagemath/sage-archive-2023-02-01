@@ -802,6 +802,73 @@ class Polynomial_generic_sparse(Polynomial):
             rem = rem[:rem.degree()] - c*other[:d].shift(e)
         return (quo,rem)
 
+    def gcd(self,other,algorithm=None):
+        """
+        Return the gcd of this polynomial and ``other``
+
+        INPUT:
+
+        - ``other`` -- a polynomial defined over the same ring as this
+          polynomial.
+
+        ALGORITHM:
+
+        Two algorithms are provided:
+
+        - ``generic``: Uses the generic implementation, which depends on the
+          base ring being a UFD or a field.
+        - ``dense``: The polynomials are converted to the dense representation,
+          their gcd is computed and is converted back to the sparse
+          representation.
+
+        Default is ``dense`` for polynomials over ZZ and ``generic`` in the
+        other cases.
+
+        EXAMPLES::
+
+            sage: R.<x> = PolynomialRing(ZZ,sparse=True)
+            sage: p = x^6 + 7*x^5 + 8*x^4 + 6*x^3 + 2*x^2 + x + 2
+            sage: q = 2*x^4 - x^3 - 2*x^2 - 4*x - 1
+            sage: gcd(p,q)
+            x^2 + x + 1
+            sage: gcd(p, q, algorithm = "dense")
+            x^2 + x + 1
+            sage: gcd(p, q, algorithm = "generic")
+            x^2 + x + 1
+            sage: gcd(p, q, algorithm = "foobar")
+            Traceback (most recent call last):
+            ...
+            ValueError: Unknown algorithm 'foobar'
+        """
+
+        from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
+        from sage.rings.arith import lcm
+
+        if algorithm is None:
+            if self.base_ring() == ZZ:
+                algorithm = "dense"
+            else:
+                algorithm = "generic"
+        if algorithm=="dense":
+            S = self.parent()
+            # FLINT is faster but a bug makes the conversion extremely slow,
+            # so NTL is used in those cases where the conversion is too slow. Cf
+            # <https://groups.google.com/d/msg/sage-devel/6qhW90dgd1k/Hoq3N7fWe4QJ>
+            sd = self.degree()
+            od = other.degree()
+            if max(sd,od)<100 or \
+               min(len(self.__coeffs)/sd, len(other.__coeffs)/od)>.06:
+                implementation="FLINT"
+            else:
+                implementation="NTL"
+            D = PolynomialRing(S.base_ring(),'x',implementation=implementation)
+            g = D(self).gcd(D(other))
+            return S(g)
+        elif algorithm=="generic":
+            return Polynomial.gcd(self,other)
+        else:
+            raise ValueError("Unknown algorithm '%s'" % algorithm)
+
     def reverse(self, degree=None):
         """
         Return this polynomial but with the coefficients reversed.
@@ -839,7 +906,6 @@ class Polynomial_generic_sparse(Polynomial):
             x^1267650600228229401496703205376 + 1
         """
         return self[:n]
-
 
 class Polynomial_generic_domain(Polynomial, IntegralDomainElement):
     def __init__(self, parent, is_gen=False, construct=False):

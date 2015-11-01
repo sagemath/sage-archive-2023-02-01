@@ -490,14 +490,14 @@ class Sandpile(DiGraph):
 
         INPUT:
 
-         - ``g`` -- dict for directed multigraph with edges weighted by
-           nonnegative integers (see NOTE), a Graph or DiGraph.
+        - ``g`` -- dict for directed multigraph with edges weighted by
+          nonnegative integers (see NOTE), a Graph or DiGraph.
 
-         - ``sink`` -- (optional) A sink vertex.  Any outgoing edges from the
-           designated sink are ignored for the purposes of stabilization.  It is
-           assumed that every vertex has a directed path into the sink.  If the
-           ``sink`` argument is omitted, the first vertex in the list of the
-           Sandpile's vertices is set as the sink.
+        - ``sink`` -- (optional) A sink vertex.  Any outgoing edges from the
+          designated sink are ignored for the purposes of stabilization.  It is
+          assumed that every vertex has a directed path into the sink.  If the
+          ``sink`` argument is omitted, the first vertex in the list of the
+          Sandpile's vertices is set as the sink.
 
         OUTPUT:
 
@@ -517,41 +517,37 @@ class Sandpile(DiGraph):
             sage: G = Sandpile(g,'d')
 
         Here is a square with unweighted edges.  In this example, the graph is
-        also undirected.
-
-        ::
+        also undirected. ::
 
             sage: g = {0:[1,2], 1:[0,3], 2:[0,3], 3:[1,2]}
             sage: G = Sandpile(g,3)
 
         In the following example, multiple edges and loops in the dictionary
-        become edge weights in the Sandpile.
+        become edge weights in the Sandpile. ::
 
-        ::
+            sage: s = Sandpile({0:[1,2,3], 1:[0,1,2,2,2], 2:[1,1,0,2,2,2,2]})
+            sage: s.laplacian()
+            [ 3 -1 -1 -1]
+            [-1  4 -3  0]
+            [-1 -2  3  0]
+            [ 0  0  0  0]
+            sage: s.dict()
+            {0: {1: 1, 2: 1, 3: 1}, 1: {0: 1, 1: 1, 2: 3}, 2: {0: 1, 1: 2, 2: 4}}
 
-        sage: s = Sandpile({0:[1,2,3], 1:[0,1,2,2,2], 2:[1,1,0,2,2,2,2]})
-        sage: s.laplacian()
-        [ 3 -1 -1 -1]
-        [-1  4 -3  0]
-        [-1 -2  3  0]
-        [ 0  0  0  0]
-        sage: s.dict()
-        {0: {1: 1, 2: 1, 3: 1}, 1: {0: 1, 1: 1, 2: 3}, 2: {0: 1, 1: 2, 2: 4}}
+        Sandpiles can be created from Graphs and DiGraphs. ::
 
-        Sandpiles can be created from Graphs and DiGraphs.
-
-        sage: g = DiGraph({0:{1:2,2:4}, 1:{1:3,2:1}, 2:{1:7}}, weighted=True)
-        sage: s = Sandpile(g)
-        sage: s.dict()
-        {0: {1: 2, 2: 4}, 1: {0: 0, 1: 3, 2: 1}, 2: {0: 0, 1: 7}}
-        sage: s.sink()
-        0
-        sage: s = sandpiles.Cycle(4)
-        sage: s.laplacian()
-        [ 2 -1  0 -1]
-        [-1  2 -1  0]
-        [ 0 -1  2 -1]
-        [-1  0 -1  2]
+            sage: g = DiGraph({0:{1:2,2:4}, 1:{1:3,2:1}, 2:{1:7}}, weighted=True)
+            sage: s = Sandpile(g)
+            sage: s.dict()
+            {0: {1: 2, 2: 4}, 1: {0: 0, 1: 3, 2: 1}, 2: {0: 0, 1: 7}}
+            sage: s.sink()
+            0
+            sage: s = sandpiles.Cycle(4)
+            sage: s.laplacian()
+            [ 2 -1  0 -1]
+            [-1  2 -1  0]
+            [ 0 -1  2 -1]
+            [-1  0 -1  2]
 
         .. NOTE::
 

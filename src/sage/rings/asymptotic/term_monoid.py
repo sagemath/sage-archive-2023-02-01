@@ -1843,8 +1843,8 @@ class GenericTermMonoid(sage.structure.unique_representation.UniqueRepresentatio
         except AttributeError:
             return (data,)
 
-        from sage.symbolic.ring import SR
-        if P is SR:
+        from sage.symbolic.ring import SymbolicRing
+        if isinstance(P, SymbolicRing):
             from sage.symbolic.operators import mul_vararg
             if data.operator() == mul_vararg:
                 return tuple(data.operands())
@@ -2302,9 +2302,9 @@ class OTerm(GenericTerm):
             Order(z)
             sage: t._substitute_({'x': SR.var('z'), 'O': function('Oh')})
             Oh(z)
-            sage: e = AsymptoticRing('x^ZZ', ZZ)('2*x'); e
+            sage: u = AsymptoticRing('x^ZZ', ZZ)('2*x'); u
             2*x
-            sage: t._substitute_({'x': e})
+            sage: t._substitute_({'x': u})
             O(x)
             sage: T(1/x)._substitute_({'x': 0})
             Traceback (most recent call last):
@@ -2340,10 +2340,12 @@ class OTerm(GenericTerm):
             pass
         else:
             from asymptotic_ring import AsymptoticRing
+            from sage.symbolic.ring import SymbolicRing
+
             if isinstance(P, AsymptoticRing):
                 return g.O()
 
-            elif P is sage.symbolic.ring.SR:
+            elif isinstance(P, SymbolicRing):
                 return g.Order()
 
         try:

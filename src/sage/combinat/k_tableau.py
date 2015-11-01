@@ -4211,9 +4211,9 @@ class StrongTableaux(UniqueRepresentation, Parent):
         if td == {}: # the tableau is empty
             yield StrongTableau( unmarkedT, k, [] )
         else:
-            allmarkings = cartesian_product.CartesianProduct(*[td[v] for v in td.keys()])
+            import itertools
             dsc = Composition(weight).descents()
-            for m in allmarkings:
+            for m in itertools.product(*td.values()):
                 if all(((m[i][1]-m[i][0]<m[i+1][1]-m[i+1][0]) or (i in dsc)) for i in range(len(m)-1)):
                    yield StrongTableaux.add_marking( unmarkedT, m, k, weight )
 

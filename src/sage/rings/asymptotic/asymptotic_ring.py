@@ -704,6 +704,26 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
         return self._summands_
 
 
+    def __hash__(self):
+        r"""
+        A hash value for this element.
+
+        .. WARNING::
+
+            This hash value uses the string representation and might not be
+            always right.
+
+        TESTS::
+
+            sage: R_log = AsymptoticRing(growth_group='log(x)^QQ', coefficient_ring=QQ)
+            sage: lx = R_log(log(SR.var('x')))
+            sage: elt = (O(lx) + lx^3)^4
+            sage: hash(elt) # random
+            -4395085054568712393
+        """
+        return hash(str(self))
+
+
     def __nonzero__(self):
         r"""
         Return whether this asymptotic expansion is not identically zero.
@@ -2032,6 +2052,59 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
             substitute_raise_exception(self, e)
 
 
+    def symbolic_expression(self, R=None):
+        r"""
+        Return this asymptotic expansion as a symbolic expression.
+
+        INPUT:
+
+        - ``R`` -- (a subring of) the symbolic ring or ``None``.
+          The output is will be an element of ``R``. If ``None``,
+          then the symbolic ring is used.
+
+        OUTPUT:
+
+        A symbolic expression.
+
+        EXAMPLES::
+
+            sage: A.<x, y, z> = AsymptoticRing(growth_group='x^ZZ * y^QQ * log(y)^QQ * QQ^z * z^QQ', coefficient_ring=QQ)
+            sage: SR(A.an_element())  # indirect doctest
+            1/8*(1/8)^z*x^3*y^(3/2)*z^(3/2)*log(y)^(3/2) +
+            Order((1/2)^z*x*sqrt(y)*sqrt(z)*sqrt(log(y)))
+
+        TESTS::
+
+            sage: a = A.an_element(); a
+            1/8*x^3*y^(3/2)*log(y)^(3/2)*(1/8)^z*z^(3/2) +
+            O(x*y^(1/2)*log(y)^(1/2)*(1/2)^z*z^(1/2))
+            sage: a.symbolic_expression()
+            1/8*(1/8)^z*x^3*y^(3/2)*z^(3/2)*log(y)^(3/2) +
+            Order((1/2)^z*x*sqrt(y)*sqrt(z)*sqrt(log(y)))
+            sage: _.parent()
+            Symbolic Ring
+
+        ::
+
+            sage: from sage.symbolic.ring import SymbolicRing
+            sage: class MySymbolicRing(SymbolicRing):
+            ....:     pass
+            sage: mySR = MySymbolicRing()
+            sage: a.symbolic_expression(mySR).parent() is mySR
+            True
+        """
+        if R is None:
+            from sage.symbolic.ring import SR
+            R = SR
+
+        return self.substitute(dict((g, R(R.var(str(g))))
+                                    for g in self.parent().gens()),
+                               domain=R)
+
+
+    _symbolic_ = symbolic_expression  # will be used by SR._element_constructor_
+
+
 class AsymptoticRing(Algebra, UniqueRepresentation):
     r"""
     A ring consisting of :class:`asymptotic expansions <AsymptoticExpansion>`.
@@ -2609,12 +2682,12 @@ class AsymptoticRing(Algebra, UniqueRepresentation):
             return self.create_summand('exact', data)
 
         from misc import combine_exceptions
-        from sage.symbolic.ring import SR
+        from sage.symbolic.ring import SymbolicRing
         from sage.rings.polynomial.polynomial_ring import is_PolynomialRing
         from sage.rings.polynomial.multi_polynomial_ring_generic import is_MPolynomialRing
         from sage.rings.power_series_ring import is_PowerSeriesRing
 
-        if P is SR:
+        if isinstance(P, SymbolicRing):
             from sage.symbolic.operators import add_vararg
             if data.operator() == add_vararg:
                 summands = []

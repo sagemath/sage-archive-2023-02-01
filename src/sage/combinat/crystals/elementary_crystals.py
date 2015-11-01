@@ -83,6 +83,7 @@ from sage.structure.unique_representation import UniqueRepresentation
 from sage.combinat.root_system.cartan_type import CartanType
 from sage.combinat.root_system.root_system import RootSystem
 from sage.rings.integer import Integer
+from sage.rings.integer_ring import ZZ
 
 class AbstractSingleCrystalElement(Element):
     r"""
@@ -101,6 +102,17 @@ class AbstractSingleCrystalElement(Element):
             False
         """
         return False
+
+    def __hash__(self):
+        r"""
+        TESTS::
+
+            sage: C = crystals.elementary.Component("D7")
+            sage: c = C.highest_weight_vector()
+            sage: hash(c) # random
+            879
+        """
+        return hash(self.parent())
 
     def __eq__(self,other):
         r"""
@@ -787,7 +799,7 @@ class ElementaryCrystal(UniqueRepresentation, Parent):
             sage: B(721)
             721
         """
-        return self.element_class(self, m)
+        return self.element_class(self, ZZ(m))
 
     def weight_lattice_realization(self):
         """
@@ -816,6 +828,16 @@ class ElementaryCrystal(UniqueRepresentation, Parent):
             """
             self._m = m
             Element.__init__(self, parent)
+
+        def __hash__(self):
+            r"""
+            TESTS::
+
+                sage: B = crystals.elementary.Elementary(['B',7],7)
+                sage: hash(B(17))
+                17
+            """
+            return hash(self._m)
 
         def _repr_(self):
             r"""

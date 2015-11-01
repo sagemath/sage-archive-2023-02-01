@@ -100,6 +100,24 @@ class AsymptoticExpansionGenerators(SageObject):
     @staticmethod
     def Stirling(var, precision=None, skip_constant_factor=False):
         r"""
+        Return Stirling's approximation formula for factorials.
+
+        INPUT:
+
+        - ``var`` -- a string for the variable name.
+
+        - ``precision`` -- (default: ``None``) an integer. If ``None``, then
+          the default precision of the asymptotic ring is used.
+
+        - ``skip_constant_factor`` -- (default: ``False``) a
+          boolean. If set, then the constant factor is left out.
+          As a consequence, the coefficient ring of the output changes
+          from ``Symbolic Constants Subring`` (if ``False``) to
+          ``Rational Field`` (if ``True``).
+
+        OUTPUT:
+
+        An asymptotic expansion.
 
         EXAMPLES::
 
@@ -143,6 +161,26 @@ class AsymptoticExpansionGenerators(SageObject):
     @staticmethod
     def log_Stirling(var, precision=None, skip_constant_summand=False):
         r"""
+        Return the logarithm of Stirling's approximation formula
+        for factorials.
+
+        INPUT:
+
+        - ``var`` -- a string for the variable name.
+
+        - ``precision`` -- (default: ``None``) an integer. If ``None``, then
+          the default precision of the asymptotic ring is used.
+
+        - ``skip_constant_summand`` -- (default: ``False``) a
+          boolean. If set, then the constant summand is left out.
+          As a consequence, the coefficient ring of the output changes
+          from ``Symbolic Constants Subring`` (if ``False``) to
+          ``Rational Field`` (if ``True``).
+
+        OUTPUT:
+
+        An asymptotic expansion.
+
         EXAMPLES::
 
             sage: asymptotic_expansions.log_Stirling('n', precision=7)

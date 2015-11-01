@@ -206,11 +206,11 @@ class AsymptoticExpansionGenerators(object):
 
 
     @staticmethod
-    def binomial_kn_over_n(var, k, precision=None, skip_constant_factor=False):
+    def Binomial_kn_over_n(var, k, precision=None, skip_constant_factor=False):
         r"""
         EXAMPLES::
 
-            sage: asymptotic_expansions.binomial_kn_over_n('n', k=2, precision=5)
+            sage: asymptotic_expansions.Binomial_kn_over_n('n', k=2, precision=5)
             sage: _.parent()
         """
         log_Stirling = AsymptoticExpansionGenerators.log_Stirling(

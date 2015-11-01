@@ -219,8 +219,7 @@ def SymmetricGroupAlgebra(R, W, category=None):
         W = Permutations(W)
     if category is None:
         category = W.category()
-    category = category.Algebras(R).FiniteDimensional().WithBasis()
-    return SymmetricGroupAlgebra_n(R, W, category.Cellular())
+    return SymmetricGroupAlgebra_n(R, W, category.Algebras(R))
 
 class SymmetricGroupAlgebra_n(CombinatorialFreeModule):
 
@@ -262,6 +261,7 @@ class SymmetricGroupAlgebra_n(CombinatorialFreeModule):
             self.n = len(W.one().fixed_points())
         else:
             self.n = W.cartan_type().rank() + 1
+        category = category.Unital().FiniteDimensional().WithBasis().Cellular()
         CombinatorialFreeModule.__init__(self, R, W, prefix='',
                                          latex_prefix='', category=category)
 
@@ -699,6 +699,8 @@ class SymmetricGroupAlgebra_n(CombinatorialFreeModule):
         SGA = SymmetricGroupAlgebra(self.base_ring(), self.n)
         P = self.basis().keys()
         if SGA.basis().keys() is P: # Indexed by permutations
+            return self.epsilon_ik(x[1], x[2])
+        if P == SymmetricGroup(self.n):
             return self.epsilon_ik(x[1], x[2])
         ret = SGA.epsilon_ik(x[1], x[2], mult='r2l')
         try:

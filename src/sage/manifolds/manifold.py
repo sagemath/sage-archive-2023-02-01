@@ -19,6 +19,9 @@ charts (see :class:`~sage.manifolds.chart.Chart`).
 :class:`TopologicalManifold` serves as a base class for more specific manifold
 classes.
 
+The user interface is provided by the generic function :func:`Manifold`, with
+the argument ``type`` set to ``'topological'``.
+
 .. RUBRIC:: Example 1: the 2-sphere as a topological manifold of dimension
   2 over `\RR`
 
@@ -400,16 +403,6 @@ class TopologicalManifold(TopologicalManifoldSubset):
         sage: isinstance(p, sage.manifolds.point.TopologicalManifoldPoint)
         True
 
-    Manifolds are unique, as long as they are created with the same arguments::
-
-        sage: M is Manifold(4, 'M', type='topological', start_index=1)
-        True
-        sage: M is Manifold(4, 'M', type='topological')
-        False
-        sage: M is Manifold(4, 'M', latex_name='M', type='topological',
-        ....:               start_index=1)
-        False
-
     Since an open subset of a topological manifold `M` is itself a topological
     manifold, open subsets of `M` are instances of the class
     :class:`TopologicalManifold`::
@@ -476,7 +469,7 @@ class TopologicalManifold(TopologicalManifoldSubset):
                             "a topological manifold")
         # Initialization as a subset of the ambient manifold (possibly itself):
         TopologicalManifoldSubset.__init__(self, ambient_manifold, name,
-                                   latex_name=latex_name, category=category)
+                                      latex_name=latex_name, category=category)
         self._is_open = True
         self._open_covers = [[self]]  # list of open covers of self
         self._atlas = []  # list of charts defined on subsets of self
@@ -549,6 +542,106 @@ class TopologicalManifold(TopologicalManifoldSubset):
 
         """
         return self._latex_name
+
+    def __hash__(self):
+        r"""
+        Hash function.
+
+        TESTS::
+
+            sage: M = Manifold(3, 'M', type='topological')
+            sage: M.__hash__()  # random
+            9122374470132259666
+
+        """
+        return hash((self._dim, self._field, self._name))
+
+    def __eq__(self, other):
+        r"""
+        Compare ``self`` with ``other``.
+
+        TESTS::
+
+            sage: M = Manifold(3, 'M', type='topological')
+            sage: N = Manifold(3, 'M', type='topological')
+            sage: M.__eq__(N)
+            True
+            sage: N = Manifold(3, 'N', type='topological')  # change the name
+            sage: M.__eq__(N)
+            False
+            sage: N = Manifold(2, 'M', type='topological')  # change the dimension
+            sage: M.__eq__(N)
+            False
+            sage: N = Manifold(3, 'M', type='topological', field='complex')  # change the base field
+            sage: M.__eq__(N)
+            False
+
+        """
+        if not isinstance(other, TopologicalManifold):
+            return False
+        return (self._dim == other._dim) and (self._field == other._field) \
+               and (self._name == other._name)
+        #!# this is rather primitive: the atlases should be compared as well...
+
+    def __ne__(self, other):
+        r"""
+        Non-equality operator.
+
+        TESTS::
+
+            sage: M = Manifold(3, 'M', type='topological')
+            sage: N = Manifold(3, 'M', type='topological')
+            sage: M.__ne__(N)
+            False
+            sage: N = Manifold(3, 'N', type='topological')  # change the name
+            sage: M.__ne__(N)
+            True
+
+        """
+        return not self.__eq__(other)
+
+    def __reduce__(self):
+        r"""
+        Reduction function for the pickle protocole.
+
+        TESTS::
+
+            sage: M = Manifold(3, 'M', type='topological')
+            sage: M.__reduce__()
+            (<class 'sage.manifolds.manifold.TopologicalManifold'>,
+             (3,
+              'M',
+              'M',
+              Real Field with 53 bits of precision,
+              0,
+              Category of manifolds over Real Field with 53 bits of precision,
+              None))
+            sage: U = M.open_subset('U')
+            sage: U.__reduce__()
+            (<class 'sage.manifolds.manifold.TopologicalManifold'>,
+             (3,
+              'U',
+              'U',
+              Real Field with 53 bits of precision,
+              0,
+              Category of facade manifolds over Real Field with 53 bits of precision,
+              3-dimensional topological manifold M))
+
+        Tests of pickling::
+
+            sage: loads(dumps(M)) == M
+            True
+            sage: loads(dumps(U)) == U
+            True
+
+        """
+        if self._manifold is self:
+            ambient_manifold = None
+        else:
+            ambient_manifold = self._manifold
+        return (TopologicalManifold, (self._dim, self._name, self._latex_name,
+                                      self._field, self._sindex,
+                                      self.category(), ambient_manifold))
 
     def _an_element_(self):
         r"""
@@ -885,22 +978,41 @@ class TopologicalManifold(TopologicalManifoldSubset):
 
         EXAMPLES:
 
-        Charts on subsets of `\RR^2`::
+        Let us consider `\RR^2` as a 2-dimensional manifold::
 
             sage: M = Manifold(2, 'R^2', type='topological')
-            sage: c_cart.<x,y> = M.chart() # Cartesian coordinates on R^2
+
+        Immediately after the manifold creation, the atlas is empty, since no
+        chart has been defined yet::
+
+            sage: M.atlas()
+            []
+
+        Let us introduce the chart of Cartesian coordinates::
+
+            sage: c_cart.<x,y> = M.chart()
             sage: M.atlas()
             [Chart (R^2, (x, y))]
-            sage: U = M.open_subset('U', coord_def={c_cart: (y!=0,x<0)}) # U = R^2 \ half line {y=0,x>=0}
+
+        The complement of the half line `\{y=0,\;  x\geq 0\}`::
+
+            sage: U = M.open_subset('U', coord_def={c_cart: (y!=0,x<0)})
             sage: U.atlas()
             [Chart (U, (x, y))]
             sage: M.atlas()
             [Chart (R^2, (x, y)), Chart (U, (x, y))]
-            sage: c_spher.<r, ph> = U.chart(r'r:(0,+oo) ph:(0,2*pi):\phi') # spherical (polar) coordinates on U
+
+        Spherical (polar) coordinates on `U`::
+
+            sage: c_spher.<r, ph> = U.chart(r'r:(0,+oo) ph:(0,2*pi):\phi')
             sage: U.atlas()
             [Chart (U, (x, y)), Chart (U, (r, ph))]
             sage: M.atlas()
             [Chart (R^2, (x, y)), Chart (U, (x, y)), Chart (U, (r, ph))]
+
+        .. SEEALSO::
+
+            :meth:`top_charts`
 
         """
         return self._atlas
@@ -919,7 +1031,6 @@ class TopologicalManifold(TopologicalManifoldSubset):
 
         Charts on a 2-dimensional manifold::
 
-            sage: sage.manifolds.manifold.TopologicalManifold._clear_cache_()  # for doctests only
             sage: M = Manifold(2, 'M', type='topological')
             sage: X.<x,y> = M.chart()
             sage: U = M.open_subset('U', coord_def={X: x>0})
@@ -927,11 +1038,16 @@ class TopologicalManifold(TopologicalManifoldSubset):
             sage: M.top_charts()
             [Chart (M, (x, y)), Chart (U, (u, v))]
 
-        Note that the (user) atlas contains one more chart: (U, (x,y)), which
-        is not a "top" chart::
+        Note that the (user) atlas contains one more chart: ``(U, (x,y))``,
+        which is not a "top" chart::
 
             sage: M.atlas()
             [Chart (M, (x, y)), Chart (U, (x, y)), Chart (U, (u, v))]
+
+        .. SEEALSO::
+
+            :meth:`atlas` for the complete list of charts defined on the
+            manifold.
 
         """
         return self._top_charts
@@ -952,7 +1068,6 @@ class TopologicalManifold(TopologicalManifoldSubset):
 
         Default chart on a 2-dimensional manifold and on some subsets::
 
-            sage: sage.manifolds.manifold.TopologicalManifold._clear_cache_()  # for doctests only
             sage: M = Manifold(2, 'M', type='topological')
             sage: M.chart('x y')
             Chart (M, (x, y))
@@ -981,7 +1096,6 @@ class TopologicalManifold(TopologicalManifoldSubset):
 
         Charts on a 2-dimensional manifold::
 
-            sage: sage.manifolds.manifold.TopologicalManifold._clear_cache_() # for doctests only
             sage: M = Manifold(2, 'M', type='topological')
             sage: c_xy.<x,y> = M.chart()
             sage: c_uv.<u,v> = M.chart()
@@ -1027,13 +1141,12 @@ class TopologicalManifold(TopologicalManifoldSubset):
 
         Change of coordinates on a 2-dimensional manifold::
 
-            sage: sage.manifolds.manifold.TopologicalManifold._clear_cache_() # for doctests only
             sage: M = Manifold(2, 'M', type='topological')
             sage: c_xy.<x,y> = M.chart()
             sage: c_uv.<u,v> = M.chart()
-            sage: c_xy.transition_map(c_uv, (x+y, x-y)) # defines the coordinate change
+            sage: c_xy.transition_map(c_uv, (x+y, x-y)) # defines the coord. change
             Change of coordinates from Chart (M, (x, y)) to Chart (M, (u, v))
-            sage: M.coord_change(c_xy, c_uv) # returns the coordinate change defined above
+            sage: M.coord_change(c_xy, c_uv) # returns the coord. change defined above
             Change of coordinates from Chart (M, (x, y)) to Chart (M, (u, v))
 
         """
@@ -1056,7 +1169,6 @@ class TopologicalManifold(TopologicalManifoldSubset):
 
         Various changes of coordinates on a 2-dimensional manifold::
 
-            sage: sage.manifolds.manifold.TopologicalManifold._clear_cache_() # for doctests only
             sage: M = Manifold(2, 'M', type='topological')
             sage: c_xy.<x,y> = M.chart()
             sage: c_uv.<u,v> = M.chart()
@@ -1103,7 +1215,6 @@ class TopologicalManifold(TopologicalManifoldSubset):
 
         EXAMPLES::
 
-            sage: sage.manifolds.manifold.TopologicalManifold._clear_cache_()  # for doctests only
             sage: M = Manifold(2, 'M', type='topological')
             sage: U = M.open_subset('U')
             sage: X.<x,y> = U.chart()
@@ -1145,7 +1256,6 @@ class TopologicalManifold(TopologicalManifoldSubset):
 
         Creating an open subset of a 2-dimensional manifold::
 
-            sage: sage.manifolds.manifold.TopologicalManifold._clear_cache_() # for doctests only
             sage: M = Manifold(2, 'M', type='topological')
             sage: A = M.open_subset('A'); A
             Open subset A of the 2-dimensional topological manifold M
@@ -1206,7 +1316,8 @@ class TopologicalManifold(TopologicalManifoldSubset):
                            category=self.category(),
                            ambient_manifold=self._manifold)
         #!# NB: the above could have been
-        # resu = type(self).__base__(...) instead of resu = TopologicalManifold(...)
+        # resu = type(self).__base__(...)
+        # instead of resu = TopologicalManifold(...)
         # to allow for open_subset() of derived classes to call first this
         # version,
         # but, because of the category framework, it could NOT have been
@@ -1291,7 +1402,6 @@ class TopologicalManifold(TopologicalManifoldSubset):
 
         Chart on a 2-dimensional manifold::
 
-            sage: sage.manifolds.manifold.TopologicalManifold._clear_cache_() # for doctests only
             sage: M = Manifold(2, 'M', type='topological')
             sage: U = M.open_subset('U')
             sage: X = U.chart('x y'); X
@@ -1322,7 +1432,6 @@ class TopologicalManifold(TopologicalManifoldSubset):
         left-hand side of the chart declaration (there is then no need to
         pass the string 'x y' to chart())::
 
-            sage: sage.manifolds.manifold.TopologicalManifold._clear_cache_() # for doctests only
             sage: M = Manifold(2, 'M', type='topological')
             sage: U = M.open_subset('U')
             sage: X.<x,y> = U.chart(); X
@@ -1382,7 +1491,8 @@ def Manifold(dim, name, latex_name=None, field='real', type='smooth',
     - ``start_index`` -- (default: 0) integer; lower value of the range of
       indices used for "indexed objects" on the manifold, e.g. coordinates
       in a chart
-    - ``extra_kwds`` -- keywords for specific types of manifolds
+    - ``extra_kwds`` -- keywords meaningful only for specific types of
+      manifolds
 
     OUTPUT:
 
@@ -1413,13 +1523,9 @@ def Manifold(dim, name, latex_name=None, field='real', type='smooth',
         sage: M = Manifold(3, 'M', type='topological', field=QQ); M
         3-dimensional topological manifold M over the Rational Field
 
-    A manifold has a unique representation::
-
-        sage: M is Manifold(3, 'M', type='topological', field=QQ)
-        True
-
     See the documentation of class
-    :class:`~sage.manifolds.manifold.TopologicalManifold` for more examples.
+    :class:`~sage.manifolds.manifold.TopologicalManifold` for more
+    detailed examples.
 
     """
     type_ = type  # in case the built-in function type is to be restored...

@@ -3,8 +3,8 @@ Subsets of topological manifolds
 
 The class :class:`TopologicalManifoldSubset` implements generic subsets of a
 topological manifold. Open subsets are implemented by the class
-:class:`~sage.manifolds.manifold.TopologicalManifold` (since an open subset of a
-manifold is a manifold by itself), which inherits from
+:class:`~sage.manifolds.manifold.TopologicalManifold` (since an open subset of
+a manifold is a manifold by itself), which inherits from
 :class:`TopologicalManifoldSubset`.
 
 AUTHORS:
@@ -71,19 +71,15 @@ Lists of subsets after the above operations::
 #*****************************************************************************
 
 from sage.structure.parent import Parent
-from sage.misc.fast_methods import WithEqualityById
-from sage.structure.unique_representation import UniqueRepresentation
 from sage.categories.sets_cat import Sets
-from sage.categories.homset import Hom
-from sage.rings.infinity import Infinity
 from sage.manifolds.point import TopologicalManifoldPoint
 
-class TopologicalManifoldSubset(UniqueRepresentation, Parent):
+class TopologicalManifoldSubset(Parent):
     r"""
     Subset of a topological manifold.
 
-    The class :class:`TopologicalManifoldSubset` inherits from the generic Sage class
-    :class:`~sage.structure.parent.Parent` and is declared to belong to
+    The class :class:`TopologicalManifoldSubset` inherits from the generic Sage
+    class :class:`~sage.structure.parent.Parent` and is declared to belong to
     the category of facade sets
     (see :meth:`~sage.categories.sets_cat.Sets.SubcategoryMethods.Facade`).
     The corresponding element class is
@@ -92,8 +88,9 @@ class TopologicalManifoldSubset(UniqueRepresentation, Parent):
     (see example below).
 
     Note that open subsets are not implemented directly by this class, but
-    by the derived class :class:`~sage.manifolds.manifold.TopologicalManifold` (an
-    open subset of a topological manifold being itself a topological manifold).
+    by the derived class :class:`~sage.manifolds.manifold.TopologicalManifold`
+    (an open subset of a topological manifold being itself a topological
+    manifold).
 
     INPUT:
 
@@ -108,18 +105,19 @@ class TopologicalManifoldSubset(UniqueRepresentation, Parent):
 
     A subset of a manifold::
 
-        sage: sage.manifolds.manifold.TopologicalManifold._clear_cache_()  # for doctests only
         sage: M = Manifold(2, 'M', type='topological')
         sage: from sage.manifolds.subset import TopologicalManifoldSubset
-        sage: A = TopologicalManifoldSubset(M, 'A', latex_name=r'\mathcal{A}'); A
+        sage: A = TopologicalManifoldSubset(M, 'A', latex_name=r'\mathcal{A}')
+        sage: A
         Subset A of the 2-dimensional topological manifold M
         sage: latex(A)
         \mathcal{A}
         sage: A.is_subset(M)
         True
 
-    Instead of importing :class:`TopologicalManifoldSubset` in the global namespace,
-    it is recommended to use the method :meth:`subset` to create a new subset::
+    Instead of importing :class:`TopologicalManifoldSubset` in the global
+    namespace, it is recommended to use the method :meth:`subset` to create a
+    new subset::
 
         sage: B = M.subset('B', latex_name=r'\mathcal{B}'); B
         Subset B of the 2-dimensional topological manifold M
@@ -164,15 +162,12 @@ class TopologicalManifoldSubset(UniqueRepresentation, Parent):
 
         TESTS::
 
-            sage: sage.manifolds.manifold.TopologicalManifold._clear_cache_()  # for doctests only
             sage: M = Manifold(2, 'M', type='topological')
             sage: X.<x,y> = M.chart()
             sage: A = M.subset('A'); A
             Subset A of the 2-dimensional topological manifold M
 
         """
-        if not isinstance(name, str):
-            raise TypeError("{} is not a string".format(name))
         if category is None:
             base = None
             category = Sets()
@@ -184,13 +179,9 @@ class TopologicalManifoldSubset(UniqueRepresentation, Parent):
         else:
             Parent.__init__(self, base=base, category=category,
                             facade=manifold)
-            for dom in manifold._subsets:
-                if name == dom._name:
-                    raise ValueError("the name '" + name +
-                                     "' is already used for another " +
-                                     "subset of the {}".format(manifold))
-            manifold._subsets.add(self)
         self._manifold = manifold
+        if not isinstance(name, str):
+            raise TypeError("{} is not a string".format(name))
         self._name = name
         if latex_name is None:
             self._latex_name = self._name
@@ -198,6 +189,13 @@ class TopologicalManifoldSubset(UniqueRepresentation, Parent):
             if not isinstance(latex_name, str):
                 raise TypeError("{} is not a string".format(latex_name))
             self._latex_name = latex_name
+        if self is not self._manifold:
+            for dom in manifold._subsets:
+                if name == dom._name:
+                    raise ValueError("the name '" + name +
+                                     "' is already used for another " +
+                                     "subset of the {}".format(manifold))
+            manifold._subsets.add(self)
         self._supersets = set([manifold, self]) # subsets containing self
         self._subsets = set([self]) # subsets of self
         self._top_subsets = set([self]) # subsets contained in self but not
@@ -240,9 +238,7 @@ class TopologicalManifoldSubset(UniqueRepresentation, Parent):
 
             sage: M = Manifold(2, 'M', type='topological')
             sage: X.<x,y> = M.chart()
-            sage: p = M._element_constructor_(); p
-            Point on the 2-dimensional topological manifold M
-            sage: p = M._element_constructor_((-2,3)); p  # coord in the default chart
+            sage: p = M((-2,3)); p  # coord in the default chart
             Point on the 2-dimensional topological manifold M
             sage: X(p)
             (-2, 3)
@@ -250,7 +246,7 @@ class TopologicalManifoldSubset(UniqueRepresentation, Parent):
         A generic subset has no default chart, so the chart must be explicited::
 
             sage: A = M.subset('A')
-            sage: p = A._element_constructor_((-2,3), chart=X); p
+            sage: p = A((-2,3), chart=X); p
             Point on the 2-dimensional topological manifold M
             sage: X(p)
             (-2, 3)
@@ -262,28 +258,27 @@ class TopologicalManifoldSubset(UniqueRepresentation, Parent):
         Coordinates in a chart with some coordinate restrictions::
 
             sage: Y.<u,v> = M.chart('u:(-1,1) v:(-1,1)')
-            sage: p = A._element_constructor_((0,1/2), chart=Y); p
+            sage: p = A((0,1/2), chart=Y); p
             Point on the 2-dimensional topological manifold M
             sage: Y(p)
             (0, 1/2)
-            sage: p = A._element_constructor_((0,1/2), chart=Y,
-            ....:                             check_coords=False); p
+            sage: p = A((0,1/2), chart=Y, check_coords=False); p
             Point on the 2-dimensional topological manifold M
             sage: Y(p)
             (0, 1/2)
-            sage: p = A._element_constructor_((3,1/2), chart=Y)
+            sage: p = A((3,1/2), chart=Y)
             Traceback (most recent call last):
             ...
             ValueError: the coordinates (3, 1/2) are not valid on the Chart (M, (u, v))
 
         Specifying the name of the point::
 
-            sage: p = A._element_constructor_((-2,3), chart=X, name='p'); p
+            sage: p = A((-2,3), chart=X, name='p'); p
             Point p on the 2-dimensional topological manifold M
 
         A point as entry::
 
-            sage: q = A._element_constructor_(p); q
+            sage: q = A(p); q
             Point p on the 2-dimensional topological manifold M
             sage: X(q)
             (-2, 3)
@@ -360,13 +355,86 @@ class TopologicalManifoldSubset(UniqueRepresentation, Parent):
         """
         return self._latex_name
 
+    def __hash__(self):
+        r"""
+        Hash function.
+
+        TEST::
+
+            sage: M = Manifold(3, 'M', type='topological')
+            sage: A = M.subset('A')
+            sage: A.__hash__()  # random
+            1649998564335275777
+
+        """
+        return hash((self._manifold, self._name))
+
+
+    def __eq__(self, other):
+        r"""
+        Compare ``self`` with ``other``.
+
+        TESTS::
+
+            sage: M = Manifold(3, 'M', type='topological')
+            sage: A = M.subset('A')
+            sage: B = M.subset('B')
+            sage: A.__eq__(A)
+            True
+            sage: A.__eq__(B)
+            False
+
+        """
+        if not isinstance(other, TopologicalManifoldSubset):
+            return False
+        return (self._manifold == other._manifold) and \
+               (self._name == other._name)
+
+    def __ne__(self, other):
+        r"""
+        Non-equality operator.
+
+        TESTS::
+
+            sage: M = Manifold(3, 'M', type='topological')
+            sage: A = M.subset('A')
+            sage: B = M.subset('B')
+            sage: A.__ne__(A)
+            False
+            sage: A.__ne__(B)
+            True
+
+        """
+        return not self.__eq__(other)
+
+    def __reduce__(self):
+        r"""
+        Reduction function for the pickle protocole.
+
+        TEST::
+
+            sage: M = Manifold(3, 'M', type='topological')
+            sage: A = M.subset('A')
+            sage: A.__reduce__()
+            (<class 'sage.manifolds.subset.TopologicalManifoldSubset'>,
+             (3-dimensional topological manifold M, 'A', 'A',
+              Category of facade sets))
+
+        Test of pickling::
+
+            sage: loads(dumps(A)) == A
+            True
+
+        """
+        return (TopologicalManifoldSubset, (self._manifold, self._name,
+                                            self._latex_name, self.category()))
+
     def manifold(self):
         r"""
         Return the manifold of which the current object is a subset.
 
         EXAMPLES::
 
-            sage: sage.manifolds.manifold.TopologicalManifold._clear_cache_()  # for doctests only
             sage: M = Manifold(2, 'M', type='topological')
             sage: A = M.subset('A')
             sage: A.manifold()
@@ -401,7 +469,6 @@ class TopologicalManifoldSubset(UniqueRepresentation, Parent):
 
         EXAMPLES::
 
-            sage: sage.manifolds.manifold.TopologicalManifold._clear_cache_()  # for doctests only
             sage: M = Manifold(2, 'M', type='topological')
             sage: M.open_covers()
             [[2-dimensional topological manifold M]]
@@ -446,7 +513,6 @@ class TopologicalManifoldSubset(UniqueRepresentation, Parent):
 
         Subsets of a 2-dimensional manifold::
 
-            sage: sage.manifolds.manifold.TopologicalManifold._clear_cache_()  # for doctests only
             sage: M = Manifold(2, 'M', type='topological')
             sage: U = M.open_subset('U')
             sage: V = M.subset('V')
@@ -491,7 +557,6 @@ class TopologicalManifoldSubset(UniqueRepresentation, Parent):
 
         Subsets of a 2-dimensional manifold::
 
-            sage: sage.manifolds.manifold.TopologicalManifold._clear_cache_()  # for doctests only
             sage: M = Manifold(2, 'M', type='topological')
             sage: U = M.open_subset('U')
             sage: V = M.subset('V')
@@ -524,14 +589,14 @@ class TopologicalManifoldSubset(UniqueRepresentation, Parent):
 
         OUTPUT:
 
-        - the subset, as an instance of :class:`TopologicalManifoldSubset`, or of
-          the derived class :class:`TopologicalManifold` if ``is_open`` is ``True``.
+        - the subset, as an instance of :class:`TopologicalManifoldSubset`, or
+          of the derived class :class:`TopologicalManifold` if ``is_open`` is
+          ``True``.
 
         EXAMPLES:
 
         Creating a subset of a manifold::
 
-            sage: sage.manifolds.manifold.TopologicalManifold._clear_cache_()  # for doctests only
             sage: M = Manifold(2, 'M', type='topological')
             sage: a = M.subset('A'); a
             Subset A of the 2-dimensional topological manifold M
@@ -578,14 +643,14 @@ class TopologicalManifoldSubset(UniqueRepresentation, Parent):
 
         OUTPUT:
 
-        - the superset, as an instance of :class:`TopologicalManifoldSubset` or of
-          the derived class :class:`TopologicalManifold` if ``is_open`` is ``True``.
+        - the superset, as an instance of :class:`TopologicalManifoldSubset` or
+          of the derived class :class:`TopologicalManifold` if ``is_open`` is
+          ``True``.
 
         EXAMPLES:
 
         Creating some superset of a given subset::
 
-            sage: sage.manifolds.manifold.TopologicalManifold._clear_cache_()  # for doctests only
             sage: M = Manifold(2, 'M', type='topological')
             sage: a = M.subset('A')
             sage: b = a.superset('B'); b
@@ -643,14 +708,13 @@ class TopologicalManifoldSubset(UniqueRepresentation, Parent):
 
         OUTPUT:
 
-        - instance of :class:`TopologicalManifoldSubset` representing the subset that
-          is the intersection of the current subset with ``other``
+        - instance of :class:`TopologicalManifoldSubset` representing the
+          subset that is the intersection of the current subset with ``other``
 
         EXAMPLES:
 
         Intersection of two subsets::
 
-            sage: sage.manifolds.manifold.TopologicalManifold._clear_cache_()  # for doctests only
             sage: M = Manifold(2, 'M', type='topological')
             sage: a = M.subset('A')
             sage: b = M.subset('B')
@@ -739,8 +803,8 @@ class TopologicalManifoldSubset(UniqueRepresentation, Parent):
 
         OUTPUT:
 
-        - instance of :class:`TopologicalManifoldSubset` representing the subset that
-          is the union of the current subset with ``other``
+        - instance of :class:`TopologicalManifoldSubset` representing the
+          subset that is the union of the current subset with ``other``
 
         EXAMPLES:
 
@@ -964,7 +1028,6 @@ class TopologicalManifoldSubset(UniqueRepresentation, Parent):
 
         Points on a 2-dimensional manifold::
 
-            sage: sage.manifolds.manifold.TopologicalManifold._clear_cache_()  # for doctests only
             sage: M = Manifold(2, 'M', type='topological')
             sage: c_xy.<x,y> = M.chart()
             sage: p = M.point((1,2), name='p'); p

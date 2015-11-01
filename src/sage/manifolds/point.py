@@ -154,7 +154,6 @@ class TopologicalManifoldPoint(Element):
 
         TESTS::
 
-            sage: sage.manifolds.manifold.TopologicalManifold._clear_cache_()  # for doctests only
             sage: M = Manifold(2, 'M', type='topological')
             sage: X.<x,y> = M.chart()
             sage: p = M((2,3), name='p'); p
@@ -263,7 +262,6 @@ class TopologicalManifoldPoint(Element):
 
         Points on a 2-dimensional manifold::
 
-            sage: sage.manifolds.manifold.TopologicalManifold._clear_cache_()  # for doctests only
             sage: M = Manifold(2, 'M', type='topological')
             sage: X.<x,y> = M.chart()
             sage: p = M.point((1,3), name='p'); p
@@ -314,7 +312,6 @@ class TopologicalManifoldPoint(Element):
 
         Spherical coordinates of a point on `\RR^3`::
 
-            sage: sage.manifolds.manifold.TopologicalManifold._clear_cache_()  # for doctests only
             sage: M = Manifold(3, 'M', type='topological') # the part of R^3 covered by spherical coordinates
             sage: c_spher.<r,th,ph> = M.chart(r'r:(0,+oo) th:(0,pi):\theta ph:(0,2*pi):\phi') # spherical coordinates
             sage: p = M.point((1, pi/2, pi))
@@ -342,7 +339,6 @@ class TopologicalManifoldPoint(Element):
 
         Coordinates of a point on a 2-dimensional manifold::
 
-            sage: sage.manifolds.manifold.TopologicalManifold._clear_cache_()  # for doctests only
             sage: M = Manifold(2, 'M', type='topological')
             sage: c_xy.<x,y> = M.chart()
             sage: (a, b) = var('a b') # generic coordinates for the point
@@ -596,6 +592,8 @@ class TopologicalManifoldPoint(Element):
             False
 
         """
+        if other is self:
+            return True
         if not isinstance(other, TopologicalManifoldPoint):
             return False
         if other._manifold != self._manifold:
@@ -603,7 +601,10 @@ class TopologicalManifoldPoint(Element):
         # Search for a common chart to compare the coordinates
         common_chart = None
         # the subset's default chart is privileged:
-        def_chart = self._subset._def_chart
+        if hasattr(self._subset, '_def_chart'):  # self._subset is open
+            def_chart = self._subset._def_chart
+        else:
+            def_chart = self._manifold._def_chart
         if def_chart in self._coordinates and def_chart in other._coordinates:
             common_chart = def_chart
         else:

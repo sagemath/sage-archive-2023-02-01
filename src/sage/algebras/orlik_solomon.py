@@ -223,10 +223,11 @@ class OrlikSolomonAlgebra(CombinatorialFreeModule):
 
         return r
 
-    # reduce a broken circuit to a sum of terms with lower term order
+    @cached_method
     def _reduce_broken_circuit(self, bc):
         """
-        Reduce the broken circuit ``bc`` in ``self``.
+        Reduce the broken circuit ``bc`` to a sum of terms with
+        lower term order in ``self``.
 
         EXAMPLES::
 

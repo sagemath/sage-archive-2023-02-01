@@ -201,7 +201,10 @@ def SymmetricGroupAlgebra(R, W, category=None):
         sage: SGA = SymmetricGroupAlgebra(QQ, W)
         sage: SGA.group() is W
         True
-        sage: TestSuite(SGA).run()
+        sage: TestSuite(SGA).run(skip="_test_cellular")
+        sage: W = WeylGroup(["A",2])
+        sage: SGA = SymmetricGroupAlgebra(QQ, W)
+        sage: SGA._test_cellular()
 
         sage: SG = SymmetricGroupAlgebra(ZZ, 3)
         sage: SG.group().conjugacy_classes_representatives()
@@ -237,7 +240,8 @@ class SymmetricGroupAlgebra_n(CombinatorialFreeModule):
 
             sage: S = SymmetricGroup(4)
             sage: SGA = S.algebra(QQ)
-            sage: TestSuite(SGA).run()
+            sage: TestSuite(SGA).run(skip="_test_cellular")
+            sage: SGA._test_cellular() # long time
 
         Checking that coercion works between equivalent indexing sets::
 
@@ -671,41 +675,38 @@ class SymmetricGroupAlgebra_n(CombinatorialFreeModule):
         """
         return StandardTableaux(la)
 
-    @cached_method
-    def _index_to_cell_element(self, i):
+    def _from_cellular_index(self, x):
         r"""
-        Return the cell index ``(la, s, t)`` corresponding to the
-        basis index ``i`` in ``self``.
+        Return the image in ``self`` from the index of the
+        cellular basis ``x``.
 
         EXAMPLES::
 
             sage: S = SymmetricGroupAlgebra(QQ, 3)
-            sage: [S._index_to_cell_element(i) for i in S._indices]
-            [([3], [[1, 2, 3]], [[1, 2, 3]]),
-             ([2, 1], [[1, 2], [3]], [[1, 2], [3]]),
-             ([2, 1], [[1, 3], [2]], [[1, 3], [2]]),
-             ([2, 1], [[1, 3], [2]], [[1, 2], [3]]),
-             ([2, 1], [[1, 2], [3]], [[1, 3], [2]]),
-             ([1, 1, 1], [[1], [2], [3]], [[1], [2], [3]])]
+            sage: C = S.cellular_basis()
+            sage: [S._from_cellular_index(i) for i in C.basis().keys()]
+            [1/6*[1, 2, 3] + 1/6*[1, 3, 2] + 1/6*[2, 1, 3]
+                 + 1/6*[2, 3, 1] + 1/6*[3, 1, 2] + 1/6*[3, 2, 1],
+             1/3*[1, 2, 3] + 1/6*[1, 3, 2] - 1/3*[2, 1, 3] - 1/6*[2, 3, 1]
+                 - 1/6*[3, 1, 2] + 1/6*[3, 2, 1],
+             1/3*[1, 3, 2] + 1/3*[2, 3, 1] - 1/3*[3, 1, 2] - 1/3*[3, 2, 1],
+             1/4*[1, 3, 2] - 1/4*[2, 3, 1] + 1/4*[3, 1, 2] - 1/4*[3, 2, 1],
+             1/3*[1, 2, 3] - 1/6*[1, 3, 2] + 1/3*[2, 1, 3] - 1/6*[2, 3, 1]
+                 - 1/6*[3, 1, 2] - 1/6*[3, 2, 1],
+             1/6*[1, 2, 3] - 1/6*[1, 3, 2] - 1/6*[2, 1, 3] + 1/6*[2, 3, 1]
+                 + 1/6*[3, 1, 2] - 1/6*[3, 2, 1]]
         """
-        P, Q = i.robinson_schensted()
-        return (P.shape(), P, Q)
-
-    @cached_method
-    def _cell_element_to_index(self, la, s, t):
-        r"""
-        Return the basis index ``i`` corresponding to the
-        cell index ``(la, s, t)`` in ``self``.
-
-        EXAMPLES::
-
-            sage: S = SymmetricGroupAlgebra(QQ, 3)
-            sage: [S._cell_element_to_index(la, s, t) for la in S.cell_poset()
-            ....:  for s in S.cell(la) for t in S.cell(la)]
-            [[1, 2, 3], [2, 1, 3], [2, 3, 1], [3, 1, 2], [1, 3, 2], [3, 2, 1]]
-        """
-        from sage.combinat.rsk import RSK_inverse
-        return self._indices(RSK_inverse(s, t, output='permutation'))
+        SGA = SymmetricGroupAlgebra(self.base_ring(), self.n)
+        P = self.basis().keys()
+        if SGA.basis().keys() is P: # Indexed by permutations
+            return self.epsilon_ik(x[1], x[2])
+        ret = SGA.epsilon_ik(x[1], x[2], mult='r2l')
+        try:
+            return self(ret)
+        except TypeError:
+            P = self.basis().keys()
+            return self._from_dict({P(i.to_matrix()): c for i,c in ret},
+                                   remove_zeros=False)
 
     def retract_plain(self, f, m):
         r"""

@@ -1059,6 +1059,41 @@ class FiniteDimensionalAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
         - http://webusers.imj-prg.fr/~bernhard.keller/ictp2006/lecturenotes/xi.pdf
         """
         class ParentMethods:
+            def _test_cellular(self, **options):
+                """
+                Check that ``self`` satisfies the properties of a
+                cellular algebra.
+
+                EXAMPLES::
+
+                    sage: S = SymmetricGroupAlgebra(QQ, 3)
+                    sage: S._test_cellular()
+                """
+                tester = self._tester(**options)
+                cell_basis = self.cellular_basis()
+                B = cell_basis.basis()
+                K = B.keys()
+                P = self.cell_poset()
+                for la in P:
+                    C = self.cell(la)
+                    for s in C:
+                        t = C[0]
+                        vals = []
+                        basis_elt = B[(la, s, t)]
+                        for a in B:
+                            elt = a * basis_elt
+                            tester.assertTrue( all(P.lt(i[0], la) or i[2] == t
+                                                   for i in elt.support()) )
+                            vals.append([elt[(la, u, t)] for u in C])
+                        for t in C[1:]:
+                            basis_elt = B[(la, s, t)]
+                            for i,a in enumerate(B):
+                                elt = a * basis_elt
+                                tester.assertTrue( all(P.lt(i[0], la) or i[2] == t
+                                                       for i in elt.support()) )
+                                tester.assertEqual(vals[i], [elt[(la, u, t)]
+                                                             for u in C])
+
             @abstract_method
             def cell_poset(self):
                 """
@@ -1078,7 +1113,6 @@ class FiniteDimensionalAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
 
                 This is the finite set `M(\lambda)`.
 
-
                 EXAMPLES::
 
                     sage: S = SymmetricGroupAlgebra(QQ, 3)
@@ -1086,87 +1120,61 @@ class FiniteDimensionalAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
                     Standard tableaux of shape [2, 1]
                 """
 
-            @lazy_attribute
-            def _index_to_cell_element(self):
-                r"""
-                Return the cell index ``(la, s, t)`` corresponding to the
-                basis index ``i`` in ``self``.
+            @abstract_method(optional=True)
+            def _to_cellular_element(self, i):
+                """
+                Return the image of the basis index ``i`` in the
+                cellular basis of ``self``.
 
                 EXAMPLES::
 
                     sage: S = SymmetricGroupAlgebra(QQ, 3)
-                    sage: [S._index_to_cell_element(i) for i in S._indices]
-                    [([3], [[1, 2, 3]], [[1, 2, 3]]),
-                     ([2, 1], [[1, 2], [3]], [[1, 2], [3]]),
-                     ([2, 1], [[1, 3], [2]], [[1, 3], [2]]),
-                     ([2, 1], [[1, 3], [2]], [[1, 2], [3]]),
-                     ([2, 1], [[1, 2], [3]], [[1, 3], [2]]),
-                     ([1, 1, 1], [[1], [2], [3]], [[1], [2], [3]])]
+                    sage: S._to_cellular_element   # no implementation currently uses this
+                    NotImplemented
                 """
-                d = self._cell_element_to_index
-                C = self.cells()
-                ret = {d(la, s, t): (la, s, t) for la in self.cell_poset()
-                       for s in C[la] for t in C[la]}
-                return lambda i: ret[i]
 
-            @lazy_attribute
-            def _cell_element_to_index(self):
-                r"""
-                Return the basis index ``i`` corresponding to the
-                cell index ``(la, s, t)`` in ``self``.
+            @abstract_method(optional=True)
+            def _from_cellular_index(self, x):
+                """
+                Return the image in ``self`` from the index of the
+                cellular basis ``x``.
 
                 EXAMPLES::
 
                     sage: S = SymmetricGroupAlgebra(QQ, 3)
-                    sage: [S._cell_element_to_index(la, s, t) for la in S.cell_poset()
-                    ....:  for s in S.cell(la) for t in S.cell(la)]
-                    [[1, 2, 3], [2, 1, 3], [2, 3, 1],
-                     [3, 1, 2], [1, 3, 2], [3, 2, 1]]
+                    sage: la = Partition([2,1])
+                    sage: s = StandardTableau([[1,2],[3]])
+                    sage: t = StandardTableau([[1,3],[2]])
+                    sage: S._from_cellular_index((la, s, t))
+                    1/4*[1, 3, 2] - 1/4*[2, 3, 1] + 1/4*[3, 1, 2]
+                     - 1/4*[3, 2, 1]
                 """
-                d = self._index_to_cell_element
-                ret = {d(i): i for i in self.basis().keys()}
-                return lambda la, s, t: ret[(la, s, t)]
 
-            @cached_method
-            def _cellular_involution_on_basis(self, i):
+            def cellular_involution(self, x):
                 """
-                Return the image of the cellular involution of the basis
-                element indexed by ``i``.
-
-                EXAMPLES::
-
-                    sage: S = SymmetricGroupAlgebra(QQ, 3)
-                    sage: for b in S.basis().keys(): b, S._cellular_involution_on_basis(b)
-                    ([1, 2, 3], [1, 2, 3])
-                    ([1, 3, 2], [1, 3, 2])
-                    ([2, 1, 3], [2, 1, 3])
-                    ([2, 3, 1], [3, 1, 2])
-                    ([3, 1, 2], [2, 3, 1])
-                    ([3, 2, 1], [3, 2, 1])
-                """
-                i_to_c = self._index_to_cell_element
-                c_to_i = self._cell_element_to_index
-                y = i_to_c(i)
-                return self.monomial(c_to_i(y[0], y[2], y[1]))
-
-            @lazy_attribute
-            def cellular_involution(self):
-                """
-                Return the cellular involution of ``self``.
+                Return the cellular involution of ``x`` in ``self``.
 
                 EXAMPLES::
 
                     sage: S = SymmetricGroupAlgebra(QQ, 3)
                     sage: for b in S.basis(): b, S.cellular_involution(b)
                     ([1, 2, 3], [1, 2, 3])
-                    ([1, 3, 2], [1, 3, 2])
+                    ([1, 3, 2], 49/48*[1, 3, 2] + 7/48*[2, 3, 1]
+                                - 7/48*[3, 1, 2] - 1/48*[3, 2, 1])
                     ([2, 1, 3], [2, 1, 3])
-                    ([2, 3, 1], [3, 1, 2])
-                    ([3, 1, 2], [2, 3, 1])
-                    ([3, 2, 1], [3, 2, 1])
+                    ([2, 3, 1], -7/48*[1, 3, 2] - 1/48*[2, 3, 1]
+                                 + 49/48*[3, 1, 2] + 7/48*[3, 2, 1])
+                    ([3, 1, 2], 7/48*[1, 3, 2] + 49/48*[2, 3, 1]
+                                 - 1/48*[3, 1, 2] - 7/48*[3, 2, 1])
+                    ([3, 2, 1], -1/48*[1, 3, 2] - 7/48*[2, 3, 1]
+                                 + 7/48*[3, 1, 2] + 49/48*[3, 2, 1])
                 """
-                return self.module_morphism(self._cellular_involution_on_basis,
-                                            codomain=self)
+                C = self.cellular_basis()
+                if C is self:
+                    M = x.monomial_coefficients(copy=False)
+                    return self._from_dict({(i[0], i[2], i[1]): M[i] for i in M},
+                                           remove_zeros=False)
+                return self(C(x).cellular_involution())
 
             @cached_method
             def cells(self):
@@ -1183,6 +1191,37 @@ class FiniteDimensionalAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
                 """
                 from sage.sets.family import Family
                 return Family(self.cell_poset(), self.cell)
+
+            def cellular_basis(self):
+                """
+                Return the cellular basis of ``self``.
+
+                EXAMPLES::
+
+                    sage: S = SymmetricGroupAlgebra(QQ, 3)
+                    sage: S.cellular_basis()
+                    Cellular basis of Symmetric group algebra of order 3
+                     over Rational Field
+                """
+                from sage.algebras.cellular_basis import CellularBasis
+                return CellularBasis(self)
+
+        class ElementMethods:
+            def cellular_involution(self):
+                """
+                Return the cellular involution on ``self``.
+
+                EXAMPLES::
+
+                    sage: S = SymmetricGroupAlgebra(QQ, 4)
+                    sage: elt = S([3,1,2,4])
+                    sage: ci = elt.cellular_involution(); ci
+                    7/48*[1, 3, 2, 4] + 49/48*[2, 3, 1, 4]
+                     - 1/48*[3, 1, 2, 4] - 7/48*[3, 2, 1, 4]
+                    sage: ci.cellular_involution()
+                    [3, 1, 2, 4]
+                """
+                return self.parent().cellular_involution(self)
 
         class TensorProducts(TensorProductsCategory):
             """
@@ -1241,8 +1280,8 @@ class FiniteDimensionalAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
                     return cartesian_product([self._sets[i].cell(x)
                                               for i,x in enumerate(la)])
 
-                @cached_method
-                def _cellular_involution_on_basis(self, i):
+                @lazy_attribute
+                def cellular_involution(self):
                     """
                     Return the image of the cellular involution of the basis
                     element indexed by ``i``.
@@ -1252,101 +1291,99 @@ class FiniteDimensionalAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
                         sage: S2 = SymmetricGroupAlgebra(QQ, 2)
                         sage: S3 = SymmetricGroupAlgebra(QQ, 3)
                         sage: T = S2.tensor(S3)
-                        sage: phi = T._cellular_involution_on_basis
-                        sage: for b in T.basis().keys(): b, phi(b)
-                        (([1, 2], [1, 2, 3]), [1, 2] # [1, 2, 3])
-                        (([1, 2], [1, 3, 2]), [1, 2] # [1, 3, 2])
-                        (([1, 2], [2, 1, 3]), [1, 2] # [2, 1, 3])
-                        (([1, 2], [2, 3, 1]), [1, 2] # [3, 1, 2])
-                        (([1, 2], [3, 1, 2]), [1, 2] # [2, 3, 1])
-                        (([1, 2], [3, 2, 1]), [1, 2] # [3, 2, 1])
-                        (([2, 1], [1, 2, 3]), [2, 1] # [1, 2, 3])
-                        (([2, 1], [1, 3, 2]), [2, 1] # [1, 3, 2])
-                        (([2, 1], [2, 1, 3]), [2, 1] # [2, 1, 3])
-                        (([2, 1], [2, 3, 1]), [2, 1] # [3, 1, 2])
-                        (([2, 1], [3, 1, 2]), [2, 1] # [2, 3, 1])
-                        (([2, 1], [3, 2, 1]), [2, 1] # [3, 2, 1])
+                        sage: for b in T.basis(): b, T.cellular_involution(b)
+                        ([1, 2] # [1, 2, 3], [1, 2] # [1, 2, 3])
+                        ([1, 2] # [1, 3, 2],
+                         49/48*[1, 2] # [1, 3, 2] + 7/48*[1, 2] # [2, 3, 1]
+                          - 7/48*[1, 2] # [3, 1, 2] - 1/48*[1, 2] # [3, 2, 1])
+                        ([1, 2] # [2, 1, 3], [1, 2] # [2, 1, 3])
+                        ([1, 2] # [2, 3, 1],
+                         -7/48*[1, 2] # [1, 3, 2] - 1/48*[1, 2] # [2, 3, 1]
+                          + 49/48*[1, 2] # [3, 1, 2] + 7/48*[1, 2] # [3, 2, 1])
+                        ([1, 2] # [3, 1, 2],
+                         7/48*[1, 2] # [1, 3, 2] + 49/48*[1, 2] # [2, 3, 1]
+                          - 1/48*[1, 2] # [3, 1, 2] - 7/48*[1, 2] # [3, 2, 1])
+                        ([1, 2] # [3, 2, 1],
+                         -1/48*[1, 2] # [1, 3, 2] - 7/48*[1, 2] # [2, 3, 1]
+                          + 7/48*[1, 2] # [3, 1, 2] + 49/48*[1, 2] # [3, 2, 1])
+                        ([2, 1] # [1, 2, 3], [2, 1] # [1, 2, 3])
+                        ([2, 1] # [1, 3, 2],
+                         49/48*[2, 1] # [1, 3, 2] + 7/48*[2, 1] # [2, 3, 1]
+                          - 7/48*[2, 1] # [3, 1, 2] - 1/48*[2, 1] # [3, 2, 1])
+                        ([2, 1] # [2, 1, 3], [2, 1] # [2, 1, 3])
+                        ([2, 1] # [2, 3, 1],
+                         -7/48*[2, 1] # [1, 3, 2] - 1/48*[2, 1] # [2, 3, 1]
+                          + 49/48*[2, 1] # [3, 1, 2] + 7/48*[2, 1] # [3, 2, 1])
+                        ([2, 1] # [3, 1, 2],
+                         7/48*[2, 1] # [1, 3, 2] + 49/48*[2, 1] # [2, 3, 1]
+                          - 1/48*[2, 1] # [3, 1, 2] - 7/48*[2, 1] # [3, 2, 1])
+                        ([2, 1] # [3, 2, 1],
+                         -1/48*[2, 1] # [1, 3, 2] - 7/48*[2, 1] # [2, 3, 1]
+                          + 7/48*[2, 1] # [3, 1, 2] + 49/48*[2, 1] # [3, 2, 1])
                     """
-                    elts = [A._cellular_involution_on_basis(i[j])
-                            for j,A in enumerate(self._sets)]
+                    if self.cellular_basis() is self:
+                        M = x.monomial_coefficients(copy=False)
+                        return self._from_dict({(i[0], i[2], i[1]): M[i] for i in M},
+                                               remove_zeros=False)
+                    on_basis = lambda i: self._tensor_of_elements([
+                                                    A.basis()[i[j]].cellular_involution()
+                                                    for j,A in enumerate(self._sets)])
+                    return self.module_morphism(on_basis, codomain=self)
+
+                @cached_method
+                def _to_cellular_element(self, i):
+                    """
+                    Return the image of the basis index ``i`` in the
+                    cellular basis of ``self``.
+
+                    EXAMPLES::
+
+                        sage: S2 = SymmetricGroupAlgebra(QQ, 2)
+                        sage: S3 = SymmetricGroupAlgebra(QQ, 3)
+                        sage: T = S2.tensor(S3)
+                        sage: all(T(T._to_cellular_element(k)).leading_support() == k
+                        ....:     for k in T.basis().keys())
+                        True
+                    """
+                    C = [A.cellular_basis() for A in self._sets]
+                    elts = [C[j](self._sets[j].basis()[ij]) for j,ij in enumerate(i)]
+                    from sage.categories.tensor import tensor
+                    T = tensor(C)
+                    temp = T._tensor_of_elements(elts)
+                    B = self.cellular_basis()
+                    M = temp.monomial_coefficients(copy=False)
+                    def convert_index(i):
+                        la = []
+                        s = []
+                        t = []
+                        for a,b,c in i:
+                            la.append(a)
+                            s.append(b)
+                            t.append(c)
+                        C = self.cell(la)
+                        return (tuple(la), C(s), C(t))
+                    return B._from_dict({convert_index(i): M[i] for i in M},
+                                        remove_zeros=False)
+
+                @cached_method
+                def _from_cellular_index(self, x):
+                    """
+                    Return the image in ``self`` from the index of the
+                    cellular basis ``x``.
+
+                    EXAMPLES::
+
+                        sage: S2 = SymmetricGroupAlgebra(QQ, 2)
+                        sage: S3 = SymmetricGroupAlgebra(QQ, 3)
+                        sage: T = S2.tensor(S3)
+                        sage: C = T.cellular_basis()
+                        sage: all(C(T._from_cellular_index(k)).leading_support() == k
+                        ....:     for k in C.basis().keys())
+                        True
+                    """
+                    elts = [A(A.cellular_basis().basis()[ (x[0][i], x[1][i], x[2][i]) ])
+                            for i,A in enumerate(self._sets)]
                     return self._tensor_of_elements(elts)
-
-                @cached_method
-                def _index_to_cell_element(self, i):
-                    r"""
-                    Return the cell index ``(la, s, t)`` corresponding to the
-                    basis index ``i`` in ``self``.
-
-                    EXAMPLES::
-
-                        sage: S2 = SymmetricGroupAlgebra(QQ, 2)
-                        sage: S3 = SymmetricGroupAlgebra(QQ, 3)
-                        sage: T = S2.tensor(S3)
-                        sage: [T._index_to_cell_element(i) for i in T.basis().keys()]
-                        [([[2], [3]],
-                          [[[1, 2]], [[1, 2, 3]]], [[[1, 2]], [[1, 2, 3]]]),
-                         ([[2], [2, 1]],
-                          [[[1, 2]], [[1, 2], [3]]], [[[1, 2]], [[1, 2], [3]]]),
-                         ([[2], [2, 1]],
-                          [[[1, 2]], [[1, 3], [2]]], [[[1, 2]], [[1, 3], [2]]]),
-                         ([[2], [2, 1]],
-                          [[[1, 2]], [[1, 3], [2]]], [[[1, 2]], [[1, 2], [3]]]),
-                         ([[2], [2, 1]],
-                          [[[1, 2]], [[1, 2], [3]]], [[[1, 2]], [[1, 3], [2]]]),
-                         ([[2], [1, 1, 1]],
-                          [[[1, 2]], [[1], [2], [3]]], [[[1, 2]], [[1], [2], [3]]]),
-                         ([[1, 1], [3]],
-                          [[[1], [2]], [[1, 2, 3]]], [[[1], [2]], [[1, 2, 3]]]),
-                         ([[1, 1], [2, 1]],
-                          [[[1], [2]], [[1, 2], [3]]], [[[1], [2]], [[1, 2], [3]]]),
-                         ([[1, 1], [2, 1]],
-                          [[[1], [2]], [[1, 3], [2]]], [[[1], [2]], [[1, 3], [2]]]),
-                         ([[1, 1], [2, 1]],
-                          [[[1], [2]], [[1, 3], [2]]], [[[1], [2]], [[1, 2], [3]]]),
-                         ([[1, 1], [2, 1]],
-                          [[[1], [2]], [[1, 2], [3]]], [[[1], [2]], [[1, 3], [2]]]),
-                         ([[1, 1], [1, 1, 1]],
-                          [[[1], [2]], [[1], [2], [3]]], [[[1], [2]], [[1], [2], [3]]])]
-                    """
-                    la = []
-                    s = []
-                    t = []
-                    for j,A in enumerate(self._sets):
-                        x,y,z = A._index_to_cell_element(i[j])
-                        la.append(x)
-                        s.append(y)
-                        t.append(z)
-                    return (la, s, t)
-
-                @cached_method
-                def _cell_element_to_index(self, la, s, t):
-                    r"""
-                    Return the basis index ``i`` corresponding to the
-                    cell index ``(la, s, t)`` in ``self``.
-
-                    EXAMPLES::
-
-                        sage: S2 = SymmetricGroupAlgebra(QQ, 2)
-                        sage: S3 = SymmetricGroupAlgebra(QQ, 3)
-                        sage: T = S2.tensor(S3)
-                        sage: [T._cell_element_to_index(la, s, t)
-                        ....:  for la in T.cell_poset()
-                        ....:  for s in T.cell(la) for t in T.cell(la)]
-                        [([1, 2], [1, 2, 3]),
-                         ([1, 2], [2, 1, 3]),
-                         ([1, 2], [2, 3, 1]),
-                         ([1, 2], [3, 1, 2]),
-                         ([1, 2], [1, 3, 2]),
-                         ([1, 2], [3, 2, 1]),
-                         ([2, 1], [1, 2, 3]),
-                         ([2, 1], [2, 1, 3]),
-                         ([2, 1], [2, 3, 1]),
-                         ([2, 1], [3, 1, 2]),
-                         ([2, 1], [1, 3, 2]),
-                         ([2, 1], [3, 2, 1])]
-                    """
-                    return tuple([A._cell_element_to_index(la[i], s[i], t[i])
-                                  for i,A in enumerate(self._sets)])
 
     class SubcategoryMethods:
         @cached_method

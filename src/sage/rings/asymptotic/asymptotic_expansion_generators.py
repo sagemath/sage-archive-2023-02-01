@@ -109,7 +109,7 @@ class AsymptoticExpansionGenerators(object):
             O(e^(n*log(n))*(e^n)^(-1)*n^(-5/2))
             sage: _.parent()
             Asymptotic Ring <(e^(n*log(n)))^QQ * (e^n)^QQ * n^QQ * log(n)^QQ>
-            over Symbolic Ring
+            over Symbolic Constants Subring
 
         TESTS::
 
@@ -133,7 +133,8 @@ class AsymptoticExpansionGenerators(object):
 
         if not skip_constant_factor:
             from sage.symbolic.ring import SR
-            result *= (2*SR('pi')).sqrt()
+            SCR = SR.subring(no_variables=True)
+            result *= (2*SCR('pi')).sqrt()
 
         return result
 
@@ -158,7 +159,7 @@ class AsymptoticExpansionGenerators(object):
             - 3392780147/93960*n^(-27) + 1723168255201/2492028*n^(-29)
             - 7709321041217/505920*n^(-31) + O(n^(-33))
             sage: _.parent()
-            Asymptotic Ring <n^ZZ * log(n)^ZZ> over Symbolic Ring
+            Asymptotic Ring <n^ZZ * log(n)^ZZ> over Symbolic Constants Subring
 
         ::
 
@@ -171,7 +172,7 @@ class AsymptoticExpansionGenerators(object):
         """
         if not skip_constant_summand:
             from sage.symbolic.ring import SR
-            coefficient_ring = SR
+            coefficient_ring = SR.subring(no_variables=True)
         else:
             from sage.rings.rational_field import QQ
             coefficient_ring = QQ
@@ -193,7 +194,7 @@ class AsymptoticExpansionGenerators(object):
         if precision >= 3:
             result += log(n) / 2
         if precision >= 4 and not skip_constant_summand:
-            result += log(2*SR('pi')) / 2
+            result += log(2*coefficient_ring('pi')) / 2
 
         from sage.misc.misc import srange
         from sage.rings.arith import bernoulli

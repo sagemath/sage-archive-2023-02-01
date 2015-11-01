@@ -2556,7 +2556,7 @@ class MonomialGrowthElement(GenericGrowthElement):
             sage: e2 == ~e1
             True
             sage: Q = GrowthGroup('x^NN'); Q
-            Growth Group x^((Non negative integer semiring))
+            Growth Group x^(Non negative integer semiring)
             sage: e3 = ~Q('x'); e3
             x^(-1)
             sage: e3.parent()

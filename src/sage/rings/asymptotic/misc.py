@@ -107,15 +107,15 @@ def parent_to_repr_short(P):
         sage: parent_to_repr_short(ZZ['x'])
         'ZZ[x]'
         sage: parent_to_repr_short(QQ['d, k'])
-        '(QQ[d, k])'
+        'QQ[d, k]'
         sage: parent_to_repr_short(QQ['e'])
         'QQ[e]'
         sage: parent_to_repr_short(SR[['a, r']])
-        '(SR[[a, r]])'
+        'SR[[a, r]]'
         sage: parent_to_repr_short(Zmod(3))
-        '(Ring of integers modulo 3)'
+        'Ring of integers modulo 3'
         sage: parent_to_repr_short(Zmod(3)['g'])
-        '(Univariate Polynomial Ring in g over Ring of integers modulo 3)'
+        'Univariate Polynomial Ring in g over Ring of integers modulo 3'
     """
     def abbreviate(P):
         if P is sage.rings.integer_ring.ZZ:
@@ -147,8 +147,6 @@ def parent_to_repr_short(P):
         except ValueError:
             s = str(P)
 
-    if ' ' in s:
-        s = '(' + s + ')'
     return s
 
 

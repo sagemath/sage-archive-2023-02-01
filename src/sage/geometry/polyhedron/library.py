@@ -68,6 +68,7 @@ from sage.misc.superseded import deprecated_function_alias
 from constructor import Polyhedron
 
 from sage.graphs.digraph import DiGraph
+from sage.combinat.root_system.associahedron import Associahedron
 
 def zero_sum_projection(d):
     r"""
@@ -148,8 +149,6 @@ class Polytopes():
     A class of constructors for commonly used, famous, or interesting
     polytopes.
     """
-
-    flow_polytope = staticmethod(DiGraph.flow_polytope)
 
     def regular_polygon(self, n, exact=True, base_ring=None):
         """
@@ -1118,7 +1117,8 @@ class Polytopes():
     # --------------------------------------------------------
     # imports from other files
     # --------------------------------------------------------
-    import sage.combinat.root_system.associahedron
-    associahedron = staticmethod(sage.combinat.root_system.associahedron.Associahedron)
+    associahedron = staticmethod(Associahedron)
+
+    flow_polytope = staticmethod(DiGraph.flow_polytope)
 
 polytopes = Polytopes()

@@ -81,8 +81,9 @@ Classes and Methods
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
+from sage.structure.sage_object import SageObject
 
-class AsymptoticExpansionGenerators(object):
+class AsymptoticExpansionGenerators(SageObject):
     r"""
     A collection of constructors for several common asymptotic expansions.
 

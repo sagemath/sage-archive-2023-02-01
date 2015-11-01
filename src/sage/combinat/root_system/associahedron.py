@@ -28,9 +28,7 @@ from sage.rings.all import QQ
 
 def Associahedron(cartan_type):
     r"""
-    Construct an associahedron
-
-    An Associahedron
+    Construct an associahedron.
 
     The generalized associahedron is a polytopal complex with vertices in
     one-to-one correspondence with clusters in the cluster complex, and with
@@ -38,9 +36,9 @@ def Associahedron(cartan_type):
     intersect in codimension 1.
 
     The associahedron of type `A_n` is one way to realize the classical
-    associahedron as defined in :wikipedia:`Associahedron`
+    associahedron as defined in the :wikipedia:`Associahedron`.
 
-    A polytopal realization of the associahedron can be found in [CFZ]_.  The
+    A polytopal realization of the associahedron can be found in [CFZ]_. The
     implementation is based on [CFZ]_, Theorem 1.5, Remark 1.6, and Corollary
     1.9.
 
@@ -48,12 +46,14 @@ def Associahedron(cartan_type):
 
         sage: Asso = polytopes.associahedron(['A',2]); Asso
         Generalized associahedron of type ['A', 2] with 5 vertices
+
         sage: sorted(Asso.Hrepresentation(), key=repr)
         [An inequality (-1, 0) x + 1 >= 0,
          An inequality (0, -1) x + 1 >= 0,
          An inequality (0, 1) x + 1 >= 0,
          An inequality (1, 0) x + 1 >= 0,
          An inequality (1, 1) x + 1 >= 0]
+
         sage: Asso.Vrepresentation()
         (A vertex at (1, -1), A vertex at (1, 1), A vertex at (-1, 1),
          A vertex at (-1, 0), A vertex at (0, -1))
@@ -61,7 +61,7 @@ def Associahedron(cartan_type):
         sage: polytopes.associahedron(['B',2])
         Generalized associahedron of type ['B', 2] with 6 vertices
 
-   The two pictures of [CFZ]_ can be recovered with::
+    The two pictures of [CFZ]_ can be recovered with::
 
         sage: Asso = polytopes.associahedron(['A',3]); Asso
         Generalized associahedron of type ['A', 3] with 14 vertices
@@ -100,11 +100,6 @@ def Associahedron(cartan_type):
         (1, 42, 84, 56, 14, 1)
         sage: polytopes.associahedron(['B',4]).f_vector()
         (1, 70, 140, 90, 20, 1)
-
-    REFERENCES:
-
-    .. [CFZ] Chapoton, Fomin, Zelevinsky - Polytopal realizations of
-       generalized associahedra, arXiv:0202004.
     """
     cartan_type = CartanType(cartan_type)
     parent = Associahedra(QQ, cartan_type.rank())

@@ -210,7 +210,26 @@ def split_str_by_op(string, op, strip_parentheses=True):
         ('(t)s',)
         sage: split_str_by_op(' ( t  ) s', op=None)
         ('t', 's')
+
+    ::
+
+        sage: split_str_by_op('(e^(n*log(n)))^SR.subring(no_variables=True)', '*')
+        ('(e^(n*log(n)))^SR.subring(no_variables=True)',)
     """
+    def is_balanced(s):
+        open = 0
+        for l in s:
+            if l == '(':
+                open += 1
+            elif l == ')':
+                open += -1
+            if open < 0:
+                return False
+        else:
+            if open != 0:
+                return False
+        return True
+
     factors = list()
     balanced = True
     if string and op is not None and string.startswith(op):
@@ -226,7 +245,7 @@ def split_str_by_op(string, op, strip_parentheses=True):
                              (string, op, op))
         if not balanced:
             s = factors.pop() + (op if op else '') + s
-        balanced = s.count('(') == s.count(')')
+        balanced = is_balanced(s)  #s.count('(') == s.count(')')
         factors.append(s)
 
     if not balanced:
@@ -237,7 +256,9 @@ def split_str_by_op(string, op, strip_parentheses=True):
         if not s:
             return s
         if strip_parentheses and s[0] == '(' and s[-1] == ')':
-            s = s[1:-1]
+            t = s[1:-1]
+            if is_balanced(t):
+                s = t
         return s.strip()
 
     return tuple(strip(f) for f in factors)

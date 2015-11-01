@@ -461,25 +461,40 @@ class FiniteDimensionalAlgebra(Algebra):
             sage: D.is_unitary()
             False
 
-        .. NOTE::
+            sage: E = FiniteDimensionalAlgebra(QQ, [Matrix([[1,0],[1,0]]), Matrix([[0,1],[0,1]])])
+            sage: E.is_unitary()
+            False
 
-            If a finite-dimensional algebra over a field admits a left identity,
-            then this is the unique left identity, and it is also a
-            right identity.
+            sage: F = FiniteDimensionalAlgebra(QQ, [Matrix([[1,0,0], [0,1,0], [0,0,1]]), Matrix([[0,1,0], [0,0,0], [0,0,0]]), Matrix([[0,0,1], [0,0,0], [1,0,0]])])
+            sage: F.is_unitary()
+            True
+
+            sage: G = FiniteDimensionalAlgebra(QQ, [Matrix([[1,0,0], [0,1,0], [0,0,1]]), Matrix([[0,1,0], [0,0,0], [0,0,0]]), Matrix([[0,1,0], [0,0,0], [1,0,0]])])
+            sage: G.is_unitary()  # Unique right identity, but no left identity.
+            False
         """
-        k = self.base_ring()
         n = self.degree()
-        # B is obtained by concatenating the elements of
-        # self.table(), and v by concatenating the rows of
-        # the n times n identity matrix.
-        B = reduce(lambda x, y: x.augment(y),
-                   self.table(), Matrix(k, n, 0))
-        v = vector(Matrix.identity(k, n).list())
-        try:
-            self._one = B.solve_left(v)
+        k = self.base_ring()
+        if n == 0:
+            self._one = vector(k, [])
             return True
+        B1 = reduce(lambda x, y: x.augment(y),
+                    self._table, Matrix(k, n, 0))
+        B2 = reduce(lambda x, y: x.augment(y),
+                    self.left_table(), Matrix(k, n, 0))
+        # This is the vector obtained by concatenating the rows of the
+        # n times n identity matrix:
+        kone = k.one()
+        kzero = k.zero()
+        v = vector(k, (n - 1) * ([kone] + n * [kzero]) + [kone])
+        try:
+            sol1 = B1.solve_left(v)
+            sol2 = B2.solve_left(v)
         except ValueError:
             return False
+        assert sol1 == sol2
+        self._one = sol1
+        return True
 
     def is_zero(self):
         """
@@ -514,6 +529,16 @@ class FiniteDimensionalAlgebra(Algebra):
 
             sage: C = FiniteDimensionalAlgebra(QQ, [Matrix([[0,0], [0,0]]), Matrix([[0,0], [0,0]])])
             sage: C.one()
+            Traceback (most recent call last):
+            ...
+            TypeError: algebra is not unitary
+
+            sage: D = FiniteDimensionalAlgebra(QQ, [Matrix([[1,0,0], [0,1,0], [0,0,1]]), Matrix([[0,1,0], [0,0,0], [0,0,0]]), Matrix([[0,0,1], [0,0,0], [1,0,0]])])
+            sage: D.one()
+            e0
+
+            sage: E = FiniteDimensionalAlgebra(QQ, [Matrix([[1,0,0], [0,1,0], [0,0,1]]), Matrix([[0,1,0], [0,0,0], [0,0,0]]), Matrix([[0,1,0], [0,0,0], [1,0,0]])])
+            sage: E.one()
             Traceback (most recent call last):
             ...
             TypeError: algebra is not unitary

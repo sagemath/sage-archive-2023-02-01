@@ -246,7 +246,7 @@ def short_vector_list_up_to_length(self, len_bound, up_to_sign_flag=False):
     len_bound_pari = 2*(len_bound - 1)
 
     # Call PARI's qfminim()
-    parilist = self._pari_().qfminim(len_bound_pari)[2].Vec()
+    parilist = self._pari_().qfminim(len_bound_pari, flag=2)[2].Vec()
 
     # List of lengths
     parilens = pari(r"(M,v) -> vector(#v, i, (v[i]~ * M * v[i])\2)")(self, parilist)

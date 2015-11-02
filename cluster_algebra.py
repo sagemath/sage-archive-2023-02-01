@@ -29,6 +29,7 @@ class ClusterAlgebraElement(ElementWrapper):
 
     # this function is quite disgusting but at least it works for any element of
     # the algebra, can we do better?
+    #For cluster variables yes we can do better: use CA4 Prop 7.16
     def d_vector(self):
         n = self.parent().rk
         one = self.parent().ambient_field()(1)
@@ -193,6 +194,25 @@ class ClusterAlgebraSeed(SageObject):
         if not inplace:
             return seed
 
+    def mutate_initial(self, k, inplace=True, mutating_F=True):
+        if inplace:
+            seed = self
+        else:
+            seed = copy(self)
+
+        n = seed.parent().rk
+
+        if k not in xrange(n):
+            raise ValueError('Cannot mutate in direction ' + str(k) + '.')
+
+        #store mutation path
+        if seed._path != [] and seed._path[0] == k:
+            seed._path.pop(0)
+        else:
+            seed._path.insert(0,k)
+
+
+
     def _mutated_F(self, k, old_g_vector):
         alg = self.parent()
         pos = alg._U(1)
@@ -249,7 +269,7 @@ class ClusterAlgebraSeed(SageObject):
         if not inplace:
             return seed
 
-    def path_form_initial_seed(self):
+    def path_from_initial_seed(self):
         return copy(self._path)
 
     # TODO: ideally we should allow to mutate in direction "this g-vector" or

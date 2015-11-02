@@ -570,7 +570,12 @@ class ClusterAlgebra(Parent):
                     new_sd  = sd.mutate(i, inplace=False, mutating_F=mutating_F)
                     new_cl = frozenset(new_sd.g_matrix().columns())
                     if new_cl in clusters:
-                        if i in clusters[new_cl][1]:
+                        #the following lines were throwing away the wrong mutation direction 
+                        #because it is comparing sets and not ordered sets
+                        #removing it slowed my computation of E8 by 5 seconds
+                        #is it worth it to optimize this?
+                        #would it even speed things up to compare lists instead of sets?
+                        if i in clusters[new_cl][1] and false:
                             clusters[new_cl][1].remove(i)
                     else:
                         gets_bigger = True

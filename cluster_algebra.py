@@ -1,4 +1,3 @@
-import time
 from types import MethodType
 from sage.structure.element_wrapper import ElementWrapper
 from sage.structure.sage_object import SageObject
@@ -296,9 +295,11 @@ class ClusterAlgebra(Parent):
         m = M0.nrows() + n
         I = identity_matrix(n)
 
-        # TODO: is ZZ the correct ambient here?
-        # ambient space for F-polynomials
-        self._U = PolynomialRing(ZZ, ['u%s'%i for i in xrange(n)])
+        # Ambient space for F-polynomials
+        # For speed purposes we need to have QQ here instead of the more natural ZZ
+        # the reason is that _mutated_F is faster if we do not cast the result
+        # to polynomials but then we get "rational" coefficients
+        self._U = PolynomialRing(QQ, ['u%s'%i for i in xrange(n)])
 
         # already computed data
         # TODO: I am unhappy because _g_vect_set is slightly redundant (we could
@@ -676,7 +677,7 @@ class TropicalSemifieldElement(ElementWrapper):
         r = map(min,zip(s,o))
         v = self.parent().gens()
         return prod([ x**i for (x,i) in zip(v,r) ])
-     
+    
     def _repr_(self):
         return repr(self.lift())
  
@@ -696,7 +697,7 @@ class TropicalSemifield(Parent):
         # setup Parent and ambient
         if names == None:
             names = [prefix+'%s'%i for i in xrange(n)]
-        Parent.__init__(self, base=ZZ, category=Rings().Subobjects(), names=names, gens=names)
+        Parent.__init__(self, base=ZZ, category=CommutativeRings().Subobjects(), names=names, gens=names)
         self._ambient = LaurentPolynomialRing(ZZ, names)
 
     def gens(self):
@@ -724,5 +725,15 @@ class TropicalSemifield(Parent):
     def ambient(self):
         return self._ambient
 
+    def is_field(self):
+        return False
 
+    def is_prime_field(self):
+        return False
+
+    def is_integral_domain(self, proof=True):
+        return True
+
+    def is_finite(self):
+        return False
 

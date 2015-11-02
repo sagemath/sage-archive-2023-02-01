@@ -30,7 +30,6 @@ REFERENCES:
 from sage.combinat.sf.sfa import SymmetricFunctionAlgebra_generic as SFA_generic
 from sage.misc.cachefunc import cached_method
 from sage.categories.homset import Hom
-from sage.categories.hopf_algebras_with_basis import HopfAlgebrasWithBasis
 from sage.categories.morphism import SetMorphism
 from sage.combinat.partition import Partition
 from sage.rings.arith import divisors, moebius
@@ -116,33 +115,6 @@ class generic_character(SFA_generic):
             sexpr -= sexpr.coefficient(mup) * self._self_to_other_on_basis(mup)
         return out
 
-    def counit(self, x):
-        r"""
-        Return the counit of ``x`` in ``self``.
-
-        EXAMPLES::
-
-            sage: ht = SymmetricFunctions(QQ).ht()
-            sage: ht.an_element()
-            2*ht[] + 2*ht[1] + 3*ht[2]
-            sage: ht.counit(ht.an_element())
-            2
-        """
-        return self._other.counit(self._other(x))
-
-    def antipode(self, x):
-        r"""
-        Return the antipode of ``x`` in ``self``.
-
-        EXAMPLES::
-
-            sage: ht = SymmetricFunctions(QQ).ht()
-            sage: ht.an_element()
-            2*ht[] + 2*ht[1] + 3*ht[2]
-            sage: ht.antipode(ht.an_element())
-            2*ht[] + ht[1] + 3*ht[1, 1] - 3*ht[2]
-        """
-        return self( self._other.antipode(self._other(x)) )
 
 class character_basis(generic_character):
     r"""
@@ -215,11 +187,9 @@ class character_basis(generic_character):
         """
         SFA_generic.__init__(self, Sym, basis_name=bname, prefix=pfix, graded=False)
         self._other = other_basis
-        categ = HopfAlgebrasWithBasis(self.base_ring()).Graded()
         self.module_morphism(self._self_to_other_on_basis,
-                             codomain=self._other,
-                             category=categ).register_as_coercion()
-        self.register_coercion(SetMorphism(Hom(self._other, self, categ),
+                             codomain=self._other).register_as_coercion()
+        self.register_coercion(SetMorphism(Hom(self._other, self),
                                            self._other_to_self))
 
     @cached_method
@@ -306,6 +276,15 @@ class irreducible_character_basis(generic_character):
         st[1] + st[1, 1] + st[2] + st[2, 1] + st[3]
         sage: s[4,2].kronecker_product(s[5,1])
         s[3, 2, 1] + s[3, 3] + s[4, 1, 1] + s[4, 2] + s[5, 1]
+        sage: st[1,1,1].counit()
+        -1
+        sage: all(sum(c*st(la)*st(mu).antipode() for
+        ....:    ((la,mu),c) in st(ga).coproduct())==st(st(ga).counit())
+        ....:    for ga in Partitions(3))
+        True
+
+    TESTS::
+
         sage: TestSuite(st).run()
     """
     def __init__(self, Sym, pfix):
@@ -335,12 +314,10 @@ class irreducible_character_basis(generic_character):
         self._other = Sym.Schur()
         self._p = Sym.powersum()
 
-        categ = HopfAlgebrasWithBasis(self.base_ring()).Graded()
         self.module_morphism(self._self_to_power_on_basis,
-                             codomain=Sym.powersum(),
-                             category=categ).register_as_coercion()
+                             codomain=Sym.powersum()).register_as_coercion()
         from sage.categories.morphism import SetMorphism
-        self.register_coercion(SetMorphism(Hom(self._other, self, categ),
+        self.register_coercion(SetMorphism(Hom(self._other, self),
                                            self._other_to_self))
 
     def _b_power_k(self, k):

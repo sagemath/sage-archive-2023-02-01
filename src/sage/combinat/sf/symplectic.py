@@ -61,7 +61,7 @@ class SymmetricFunctionAlgebra_symplectic(sfa.SymmetricFunctionAlgebra_generic):
 
     .. [KoikeTerada1987] K. Koike, I. Terada, *Young-diagrammatic methods for
        the representation theory of the classical groups of type Bn, Cn, Dn*.
-       J. Algebra 107 (1987), no. 2, 466–511.
+       J. Algebra 107 (1987), no. 2, 466-511.
 
     .. [ShimozonoZabrocki2006] Mark Shimozono and Mike Zabrocki.
        *Deformed universal characters for classical and affine algebras*.

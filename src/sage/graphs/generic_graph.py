@@ -16423,11 +16423,15 @@ class GenericGraph(GenericGraph_pyx):
             [(2, 3, 2), (3, 2, None)]
         """
         if to_undirected:
-            g=self.to_undirected(immutable=immutable)
+            g=self.to_undirected(immutable=False)
         else:
-            g=self.copy(immutable=immutable)
+            g=self.copy(immutable=False)
         g.allow_loops(False)
         g.allow_multiple_edges(False, keep_label=keep_label)
+        if immutable is None:
+            immutable = getattr(self, '_immutable', False)
+        if immutable:
+            g = g.copy(immutable=True)
         return g
 
     def disjoint_union(self, other, verbose_relabel=None, labels="pairs"):

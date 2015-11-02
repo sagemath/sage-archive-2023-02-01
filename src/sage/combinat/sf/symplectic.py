@@ -59,6 +59,10 @@ class SymmetricFunctionAlgebra_symplectic(sfa.SymmetricFunctionAlgebra_generic):
        *Symmetric functions and representations of quantum affine algebras*.
        :arXiv:`math/0011161v1`
 
+    .. [KoikeTerada1987] K. Koike, I. Terada, *Young-diagrammatic methods for
+       the representation theory of the classical groups of type Bn, Cn, Dn*.
+       J. Algebra 107 (1987), no. 2, 466-511.
+
     .. [ShimozonoZabrocki2006] Mark Shimozono and Mike Zabrocki.
        *Deformed universal characters for classical and affine algebras*.
        Journal of Algebra, **299** (2006). :arxiv:`math/0404288`.
@@ -137,6 +141,8 @@ class SymmetricFunctionAlgebra_symplectic(sfa.SymmetricFunctionAlgebra_generic):
 
     Some multiplication::
 
+        sage: sp([2]) * sp([1,1])
+        sp[1, 1] + sp[2] + sp[2, 1, 1] + sp[3, 1]
         sage: sp([2,1,1]) * sp([2])
         sp[1, 1] + sp[1, 1, 1, 1] + 2*sp[2, 1, 1] + sp[2, 2] + sp[2, 2, 1, 1]
          + sp[3, 1] + sp[3, 1, 1, 1] + sp[3, 2, 1] + sp[4, 1, 1]
@@ -183,33 +189,6 @@ class SymmetricFunctionAlgebra_symplectic(sfa.SymmetricFunctionAlgebra_generic):
         Mi = self.module_morphism(self._sp_to_s_on_basis, codomain=self._s,
                                   triangular='upper', unitriangular=True)
         Mi.register_as_coercion()
-
-    def _multiply(self, r, l):
-        r"""
-        Return the product of ``r`` and ``l`` by coercing to the Schur
-        functions and then pulling back.
-
-        EXAMPLES::
-
-            sage: sp = SymmetricFunctions(QQ).sp()
-            sage: sp([2]) * sp([1,1]) # indirect doctest
-            sp[1, 1] + sp[2] + sp[2, 1, 1] + sp[3, 1]
-        """
-        return self(self._s(r) * self._s(l))
-
-    def counit(self, x):
-        r"""
-        Return the counit of ``x`` in ``self``.
-
-        EXAMPLES::
-
-            sage: sp = SymmetricFunctions(QQ).sp()
-            sage: sp.an_element()
-            2*sp[] + 2*sp[1] + 3*sp[2]
-            sage: sp.counit(sp.an_element())
-            2
-        """
-        return self._s.counit(self._s(x))
 
     @cached_method
     def _sp_to_s_on_basis(self, lam):

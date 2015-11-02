@@ -709,9 +709,9 @@ cdef class Rational(sage.structure.element.FieldElement):
         l = self.continued_fraction_list()
         return ContinuedFraction_periodic(l)
 
-    def __richcmp__(left, right, int op):
+    cpdef int _cmp_(left, sage.structure.element.Element right) except -2:
         """
-        Rich comparison between two rational numbers.
+        Compare two rational numbers.
 
         INPUT:
 
@@ -730,9 +730,6 @@ cdef class Rational(sage.structure.element.FieldElement):
             sage: 4/5 < 0.8
             False
         """
-        return (<sage.structure.element.Element>left)._richcmp(right, op)
-
-    cpdef int _cmp_(left, sage.structure.element.Element right) except -2:
         cdef int i
         i = mpq_cmp((<Rational>left).value, (<Rational>right).value)
         if i < 0: return -1

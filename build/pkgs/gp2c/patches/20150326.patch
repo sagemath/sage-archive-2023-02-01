@@ -1,0 +1,218 @@
+Various fixes between released version 0.0.9pl3 and gp2c git repo
+
+diff -ru gp2c-0.0.9pl3/gp2c gp2c/gp2c
+--- gp2c-0.0.9pl3/gp2c	2011-10-02 22:28:23.000000000 +0200
++++ gp2c/gp2c	2015-07-09 14:50:05.600098572 +0200
+@@ -14,4 +14,4 @@
+ EOF
+ exit 1;
+ fi
+-GP2C_FUNC_DSC=desc/func.dsc src/gp2c $*
++GP2C_FUNC_DSC=desc/func.dsc exec src/gp2c "$@"
+diff -ru gp2c-0.0.9pl3/gp2c-dbg gp2c/gp2c-dbg
+--- gp2c-0.0.9pl3/gp2c-dbg	2011-10-02 22:28:23.000000000 +0200
++++ gp2c/gp2c-dbg	2015-07-09 14:50:05.601098584 +0200
+@@ -13,4 +13,4 @@
+ EOF
+ exit 1;
+ fi
+-GP2C=./gp2c scripts/gp2c-dbg $*
++GP2C=./gp2c exec scripts/gp2c-dbg "$@"
+diff -ru gp2c-0.0.9pl3/gp2c-run gp2c/gp2c-run
+--- gp2c-0.0.9pl3/gp2c-run	2011-10-02 22:28:23.000000000 +0200
++++ gp2c/gp2c-run	2015-07-09 14:50:05.601098584 +0200
+@@ -13,4 +13,4 @@
+ EOF
+ exit 1;
+ fi
+-GP2C=./gp2c scripts/gp2c-run $*
++GP2C=./gp2c exec scripts/gp2c-run "$@"
+diff -ru gp2c-0.0.9pl3/src/funcdesc.c gp2c/src/funcdesc.c
+--- gp2c-0.0.9pl3/src/funcdesc.c	2014-11-17 14:30:55.000000000 +0100
++++ gp2c/src/funcdesc.c	2015-07-09 14:50:05.603098609 +0200
+@@ -575,7 +575,8 @@
+     gpfunc *gp = lfunc + findfunction(entryname(arg[0]));
+     if (gp->spec==GPuser && gp->user->wrapper>=0)
+     {
+-      if (funcmode(*gp)&(1<<Mprec))
++      gpfunc *wr = lfunc + gp->user->wrapper;
++      if ((funcmode(*gp)&(1<<Mprec)) && !(funcmode(*wr)&(1<<Mprec)))
+         genfuncbydesc(d->fout, nb-1,arg+1,FC_tovecprec,d->nerr);
+       else
+       {
+diff -ru gp2c-0.0.9pl3/src/funcspec.c gp2c/src/funcspec.c
+--- gp2c-0.0.9pl3/src/funcspec.c	2014-11-22 22:28:59.000000000 +0100
++++ gp2c/src/funcspec.c	2015-07-09 14:50:05.604098621 +0200
+@@ -432,8 +432,11 @@
+         arg[0] = newleaf(pred);
+       }
+       genblock(arg[0],n);
+-      arg[1]=geninsertvar(arg[1],ret);
+-      makesubblock(arg[1]);
++      if (arg[1]!=GNOARG)
++      {
++        arg[1]=geninsertvar(arg[1],ret);
++        makesubblock(arg[1]);
++      }
+       if(nb==3)
+       {
+         arg[2]=geninsertvar(arg[2],ret==-1?-1:newleaf(ret));
+diff -ru gp2c-0.0.9pl3/src/genfunc.c gp2c/src/genfunc.c
+--- gp2c-0.0.9pl3/src/genfunc.c	2014-12-16 10:56:21.000000000 +0100
++++ gp2c/src/genfunc.c	2015-07-09 14:50:05.605098633 +0200
+@@ -524,13 +524,15 @@
+     }
+     if (name)
+     {
+-      if (i>=nb)
+-        die(err_func,"too few arguments in lambda");
+       fputs(" ",fout);
+       if (c=='p')
+         fprintf(fout,"prec");
+       else
++      {
++        if (i>=nb)
++          die(err_func,"too few arguments in lambda");
+         gencode(fout, name[i++]);
++      }
+     }
+   }
+   if (name && i<nb)
+@@ -589,7 +591,7 @@
+ }
+ 
+ static int
+-genwrapargs(FILE *fout, int nf, int nb, int *name)
++genwrapargs(FILE *fout, int nf, int nb, int *name, long mode)
+ {
+   gpfunc *gp=lfunc+nf;
+   int i = 0;
+@@ -600,8 +602,6 @@
+   PPproto mod;
+   while((mod=parseproto(&p,&c)))
+   {
+-    if (!firstarg) fprintf(fout,", ");
+-    firstarg=0;
+     switch(c)
+     {
+     case 'p':
+@@ -625,12 +625,28 @@
+     default:
+       die(err_func,"prototype letter `%c' not known",c);
+     }
+-    if (i>=nb)
+-      die(err_func,"too few arguments in lambda");
+     if (c=='p')
+-      fprintf(fout,"prec");
++    {
++      if (mode&(1<<Mprec))
++      {
++        if (!firstarg) fprintf(fout,", ");
++        firstarg=0;
++        fprintf(fout,"prec");
++      }
++    }
+     else
+-      gencast(fout, name[i++], t);
++    {
++      int ot;
++      if (i>=nb)
++        die(err_func,"too few arguments in lambda");
++      if (!firstarg) fprintf(fout,", ");
++      firstarg=0;
++      ot = tree[name[i]].t;
++      tree[name[i]].t = t;
++      gencast(fout, name[i], ot);
++      tree[name[i]].t = ot;
++      i++;
++    }
+   }
+   if (name && i<nb)
+     die(err_func,"too many arguments in lambda");
+@@ -640,8 +656,9 @@
+ void genwrapper(FILE *fout, int nf, int wrap)
+ {
+   gpfunc *gp=lfunc+nf;
++  gpfunc *wr=lfunc+wrap;
+   int t=functype(*gp), m=funcmode(*gp);
+-  int has_prec=m&(1<<Mprec);
++  int has_prec=(m&(1<<Mprec)) && !(funcmode(*wr)&(1<<Mprec));
+   int i,firstarg=1,d;
+   int nerr=gp->user->defnode;
+   int savc=s_ctx.n;
+@@ -650,7 +667,6 @@
+   int res;
+   ctxvar *vres;
+   context *fc=block+gp->user->bl;
+-  gpfunc *wr=lfunc+wrap;
+   gpdescarg *rule;
+   if (!wr->proto.code)
+     die(wr->node,"Wrapper not defined");
+@@ -688,7 +704,7 @@
+     fprintf(fout," = ");
+   }
+   fprintf(fout,"%s(",gp->proto.cname);
+-  firstarg=genwrapargs(fout, wrap, nb, stack);
++  firstarg=genwrapargs(fout, wrap, nb, stack, m);
+   for (i=0,d=1;i<fc->s.n;i++)
+   {
+     ctxvar *v=fc->c+i;
+diff -ru gp2c-0.0.9pl3/src/printnode.c gp2c/src/printnode.c
+--- gp2c-0.0.9pl3/src/printnode.c	2013-10-12 20:32:23.000000000 +0200
++++ gp2c/src/printnode.c	2015-07-09 14:50:05.606098645 +0200
+@@ -231,6 +231,10 @@
+     fprintf(fout,"&");
+     printnode(fout,x);
+     break;
++  case Fvararg:
++    printnode(fout,x);
++    fprintf(fout,"[..]");
++    break;
+   case Fcall:
+     printnode(fout,x);
+     fprintf(fout,"(");
+diff -ru gp2c-0.0.9pl3/src/topfunc.c gp2c/src/topfunc.c
+--- gp2c-0.0.9pl3/src/topfunc.c	2014-12-16 10:53:09.000000000 +0100
++++ gp2c/src/topfunc.c	2015-07-09 14:50:05.606098645 +0200
+@@ -109,7 +109,7 @@
+   int nn = newanon();
+   int nf = newnode(Fdeffunc,newnode(Ffunction,nn,x),y);
+   int seq = newnode(Fentry,nn,-1);
+-  topfunc(n,p,fun,pfun,nf,wr);
++  topfunc(nf,p,fun,pfun,nf,wr);
+   if (fun>=0) tree[n] = tree[seq];
+ }
+ 
+diff -ru gp2c-0.0.9pl3/test2/gp/apply.gp gp2c/test2/gp/apply.gp
+--- gp2c-0.0.9pl3/test2/gp/apply.gp	2013-06-11 12:02:48.000000000 +0200
++++ gp2c/test2/gp/apply.gp	2015-07-09 14:50:05.609098682 +0200
+@@ -3,6 +3,7 @@
+ f3(f,v)=apply(f,v)
+ g(x)=x^2+1
+ f4(v)=apply(g,v)
++f5(z:small)=apply(n:small->(n+z)!,[1,2,3,4,5])
+ 
+ g1(v,z)=select(x->x>z,v)
+ g2(v)=select(isprime,v)
+diff -ru gp2c-0.0.9pl3/test2/input/apply gp2c/test2/input/apply
+--- gp2c-0.0.9pl3/test2/input/apply	2013-06-11 12:02:48.000000000 +0200
++++ gp2c/test2/input/apply	2015-07-09 14:50:05.609098682 +0200
+@@ -2,6 +2,7 @@
+ f2([1,2,3,4])
+ f3(sqr,[1,2,3,4])
+ f4([1,2,3,4])
++f5(-1)
+ 
+ g1([1,2,3,4],2)
+ g2([1,2,3,4])
+diff -ru gp2c-0.0.9pl3/test2/res/apply.res gp2c/test2/res/apply.res
+--- gp2c-0.0.9pl3/test2/res/apply.res	2013-06-11 12:02:48.000000000 +0200
++++ gp2c/test2/res/apply.res	2015-07-09 14:50:05.610098694 +0200
+@@ -2,6 +2,7 @@
+ [1, 4, 9, 16]
+ [1, 4, 9, 16]
+ [2, 5, 10, 17]
++[1, 1, 2, 6, 24]
+ [3, 4]
+ [2, 3]
+ [2, 3]

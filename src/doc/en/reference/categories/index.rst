@@ -56,6 +56,7 @@ Individual Categories
    sage/categories/coxeter_group_algebras
    sage/categories/coxeter_groups
    sage/categories/crystals
+   sage/categories/cw_complexes
    sage/categories/discrete_valuation
    sage/categories/distributive_magmas_and_additive_magmas
    sage/categories/division_rings
@@ -98,6 +99,7 @@ Individual Categories
    sage/categories/graded_hopf_algebras_with_basis
    sage/categories/graded_modules
    sage/categories/graded_modules_with_basis
+   sage/categories/graphs
    sage/categories/group_algebras
    sage/categories/groupoid
    sage/categories/groups
@@ -109,10 +111,13 @@ Individual Categories
    sage/categories/integral_domains
    sage/categories/lattice_posets
    sage/categories/left_modules
+   sage/categories/lie_groups
    sage/categories/magmas
    sage/categories/magmas_and_additive_magmas
    sage/categories/magmatic_algebras
+   sage/categories/manifolds
    sage/categories/matrix_algebras
+   sage/categories/metric_spaces
    sage/categories/modular_abelian_varieties
    sage/categories/modules
    sage/categories/modules_with_basis
@@ -139,6 +144,8 @@ Individual Categories
    sage/categories/sets_cat
    sage/categories/sets_with_grading
    sage/categories/sets_with_partial_maps
+   sage/categories/simplicial_complexes
+   sage/categories/topological_spaces
    sage/categories/unique_factorization_domains
    sage/categories/unital_algebras
    sage/categories/vector_spaces
@@ -187,6 +194,7 @@ Examples of parents using categories
    sage/categories/examples/commutative_additive_semigroups
    sage/categories/examples/coxeter_groups
    sage/categories/examples/crystals
+   sage/categories/examples/cw_complexes
    sage/categories/examples/facade_sets
    sage/categories/examples/finite_coxeter_groups
    sage/categories/examples/finite_dimensional_algebras_with_basis
@@ -196,8 +204,10 @@ Examples of parents using categories
    sage/categories/examples/finite_weyl_groups
    sage/categories/examples/graded_connected_hopf_algebras_with_basis
    sage/categories/examples/graded_modules_with_basis
+   sage/categories/examples/graphs
    sage/categories/examples/hopf_algebras_with_basis
    sage/categories/examples/infinite_enumerated_sets
+   sage/categories/examples/manifolds
    sage/categories/examples/monoids
    sage/categories/examples/posets
    sage/categories/examples/semigroups_cython

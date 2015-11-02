@@ -56,6 +56,7 @@ class SymmetricFunctionAlgebra_orthogonal(sfa.SymmetricFunctionAlgebra_generic):
     REFERENCES:
 
     - [ChariKleber2000]_
+    - [KoikeTerada1987]_
     - [ShimozonoZabrocki2006]_
 
     EXAMPLES:
@@ -132,6 +133,8 @@ class SymmetricFunctionAlgebra_orthogonal(sfa.SymmetricFunctionAlgebra_generic):
 
     Some multiplication::
 
+        sage: o([2]) * o([1,1])
+        o[1, 1] + o[2] + o[2, 1, 1] + o[3, 1]
         sage: o([2,1,1]) * o([2])
         o[1, 1] + o[1, 1, 1, 1] + 2*o[2, 1, 1] + o[2, 2] + o[2, 2, 1, 1]
          + o[3, 1] + o[3, 1, 1, 1] + o[3, 2, 1] + o[4, 1, 1]
@@ -178,33 +181,6 @@ class SymmetricFunctionAlgebra_orthogonal(sfa.SymmetricFunctionAlgebra_generic):
         Mi = self.module_morphism(self._o_to_s_on_basis, codomain=self._s,
                                   triangular='upper', unitriangular=True)
         Mi.register_as_coercion()
-
-    def _multiply(self, r, l):
-        r"""
-        Return the product of ``r`` and ``l`` by coercing to the Schur
-        functions and then pulling back.
-
-        EXAMPLES::
-
-            sage: o = SymmetricFunctions(QQ).o()
-            sage: o([2]) * o([1,1]) # indirect doctest
-            o[1, 1] + o[2] + o[2, 1, 1] + o[3, 1]
-        """
-        return self(self._s(r) * self._s(l))
-
-    def counit(self, x):
-        r"""
-        Return the counit of ``x`` in ``self``.
-
-        EXAMPLES::
-
-            sage: o = SymmetricFunctions(QQ).o()
-            sage: o.an_element()
-            2*o[] + 2*o[1] + 3*o[2]
-            sage: o.counit(o.an_element())
-            -1
-        """
-        return self._s.counit(self._s(x))
 
     @cached_method
     def _o_to_s_on_basis(self, lam):

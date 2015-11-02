@@ -326,9 +326,9 @@ For a typical category, few bases, if any, need to be added to force
     sage: x.mro == x.mro_standard
     False
     sage: x.all_bases_len()
-    90
+    92
     sage: x.all_bases_controlled_len()
-    97
+    100
 
 The following can be used to search through the Sage named categories
 for any that requires the addition of some bases::
@@ -343,8 +343,7 @@ for any that requires the addition of some bases::
      Category of finite dimensional algebras with basis over Rational Field,
      Category of finite dimensional hopf algebras with basis over Rational Field,
      Category of finite permutation groups,
-     Category of graded hopf algebras with basis over Rational Field,
-     Category of hopf algebras with basis over Rational Field]
+     Category of graded hopf algebras with basis over Rational Field]
 
 AUTHOR:
 

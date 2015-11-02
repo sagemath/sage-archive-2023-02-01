@@ -5465,7 +5465,7 @@ class GenericGraph(GenericGraph_pyx):
         if not weighted:
             gg = g.subgraph(vertices)
             if gg.is_connected():
-                st = g.subgraph(edges = gg.min_spanning_tree())
+                st = g.subgraph(edges = gg.min_spanning_tree(), immutable=False)
                 st.delete_vertices([v for v in g if st.degree(v) == 0])
                 return st
 
@@ -5517,7 +5517,8 @@ class GenericGraph(GenericGraph_pyx):
 
         edges = p.get_values(edges)
 
-        st =  g.subgraph(edges=[e for e in g.edges(labels = False) if edges[R(e)] == 1])
+        st =  g.subgraph(edges=[e for e in g.edges(labels = False) if edges[R(e)] == 1],
+                         immutable=False)
         st.delete_vertices([v for v in g if st.degree(v) == 0])
         return st
 
@@ -11083,7 +11084,8 @@ class GenericGraph(GenericGraph_pyx):
     ### Substructures
 
     def subgraph(self, vertices=None, edges=None, inplace=False,
-                       vertex_property=None, edge_property=None, algorithm=None):
+                       vertex_property=None, edge_property=None, algorithm=None,
+                       immutable=None):
         """
         Returns the subgraph containing the given vertices and edges.
 
@@ -11123,6 +11125,10 @@ class GenericGraph(GenericGraph_pyx):
           building a new graph from the appropriate vertices and
           edges.  If not specified, then the algorithm is chosen based
           on the number of vertices in the subgraph.
+
+        - ``immutable`` (boolean) -- whether to create a mutable/immutable
+           subgraph. ``immutable=None`` (default) means that the graph and its
+           subgraph will behave the same way.
 
 
         EXAMPLES::
@@ -11244,12 +11250,14 @@ class GenericGraph(GenericGraph_pyx):
         if inplace or len(vertices)>0.05*self.order() or algorithm=="delete":
             return self._subgraph_by_deleting(vertices=vertices, edges=edges,
                                               inplace=inplace,
-                                              edge_property=edge_property)
+                                              edge_property=edge_property,
+                                              immutable=immutable)
         else:
             return self._subgraph_by_adding(vertices=vertices, edges=edges,
-                                            edge_property=edge_property)
+                                            edge_property=edge_property,
+                                            immutable=immutable)
 
-    def _subgraph_by_adding(self, vertices=None, edges=None, edge_property=None):
+    def _subgraph_by_adding(self, vertices=None, edges=None, edge_property=None, immutable=None):
         """
         Returns the subgraph containing the given vertices and edges.
         The edges also satisfy the edge_property, if it is not None.
@@ -11270,6 +11278,10 @@ class GenericGraph(GenericGraph_pyx):
         -  ``edge_property`` - If specified, this is expected
            to be a function on edges, which is intersected with the edges
            specified, if any are.
+
+           - ``immutable`` (boolean) -- whether to create a mutable/immutable
+           subgraph. ``immutable=None`` (default) means that the graph and its
+           subgraph will behave the same way.
 
 
         EXAMPLES::
@@ -11381,10 +11393,15 @@ class GenericGraph(GenericGraph_pyx):
                 value = dict([(v, getattr(self, attr).get(v, None)) for v in G])
                 setattr(G, attr,value)
 
+        if immutable is None:
+            immutable = getattr(self, '_immutable', False)
+        if immutable:
+            G = G.copy(immutable=True)
+
         return G
 
     def _subgraph_by_deleting(self, vertices=None, edges=None, inplace=False,
-                              edge_property=None):
+                              edge_property=None, immutable=None):
         """
         Returns the subgraph containing the given vertices and edges.
         The edges also satisfy the edge_property, if it is not None.
@@ -11409,6 +11426,10 @@ class GenericGraph(GenericGraph_pyx):
         -  ``inplace`` - Using inplace is True will simply
            delete the extra vertices and edges from the current graph. This
            will modify the graph.
+
+           - ``immutable`` (boolean) -- whether to create a mutable/immutable
+           subgraph. ``immutable=None`` (default) means that the graph and its
+           subgraph will behave the same way.
 
 
         EXAMPLES::
@@ -11531,8 +11552,10 @@ class GenericGraph(GenericGraph_pyx):
 
         G.delete_edges(edges_to_delete)
         if not inplace:
-            if getattr(self, '_immutable', False):
-                return G.copy(immutable=True)
+            if immutable is None:
+                immutable = getattr(self, '_immutable', False)
+            if immutable:
+                G = G.copy(immutable=True)
             return G
 
     def subgraph_search(self, G, induced=False):

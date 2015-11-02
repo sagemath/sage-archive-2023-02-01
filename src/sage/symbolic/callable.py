@@ -61,7 +61,8 @@ The arguments in the definition must be symbolic variables #10747::
     SyntaxError: can't assign to function call
 """
 
-from sage.symbolic.ring import SymbolicRing, SR, ParentWithBase
+from sage.structure.parent_base import ParentWithBase
+from sage.symbolic.ring import SymbolicRing, SR
 from sage.categories.pushout import ConstructionFunctor
 
 #########################################################################################
@@ -283,6 +284,7 @@ class CallableSymbolicExpressionRing_class(SymbolicRing):
         self._arguments = arguments
         ParentWithBase.__init__(self, SR)
         self._populate_coercion_lists_(coerce_list=[SR])
+        self.symbols = SR.symbols  # Use the same list of symbols as SR
 
     def __hash__(self):
         """

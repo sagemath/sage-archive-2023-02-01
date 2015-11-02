@@ -11492,14 +11492,16 @@ cdef class Expression(CommutativeRingElement):
             ValueError: Expression cos(x)*sin(x) contains no y terms
 
 
-        TESTS::
+        TESTS:
 
-            sage: var('x,y')  # check that the pynac registry is not polluted
+        Check that the symbols registry is not polluted::
+
+            sage: var('x,y')
             (x, y)
-            sage: psr = copy(sage.symbolic.ring.pynac_symbol_registry)
+            sage: psr = copy(SR.symbols)
             sage: (x^6*y^5).implicit_derivative(y, x, 3)
             -792/125*y/x^3 + 12/25*(15*x^4*y^5 + 28*x^3*y^5)/(x^6*y^4) - 36/125*(20*x^5*y^4 + 43*x^4*y^4)/(x^7*y^3)
-            sage: psr == sage.symbolic.ring.pynac_symbol_registry
+            sage: psr == SR.symbols
             True
         """
         from sage.symbolic.ring import SR

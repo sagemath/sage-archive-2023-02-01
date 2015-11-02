@@ -1960,7 +1960,6 @@ syms_default = dict(syms_cur)
 # _find_var() and _find_func() functions below without extra arguments.
 _augmented_syms = {}
 
-from sage.symbolic.ring import pynac_symbol_registry
 
 def _find_var(name):
     """
@@ -1976,13 +1975,17 @@ def _find_var(name):
         I
     """
     try:
-        res = _augmented_syms.get(name)
-        if res is None:
-            return pynac_symbol_registry[name]
+        res = _augmented_syms[name]
+    except KeyError:
+        pass
+    else:
         # _augmented_syms might contain entries pointing to functions if
         # previous computations polluted the maxima workspace
         if not isinstance(res, Function):
             return res
+
+    try:
+        return SR.symbols[name]
     except KeyError:
         pass
 

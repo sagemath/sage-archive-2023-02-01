@@ -13,10 +13,6 @@ The symbolic ring
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-#################################################################
-# Initialize the library
-#################################################################
-
 from ginac cimport *
 
 from sage.rings.integer cimport Integer
@@ -27,14 +23,11 @@ from sage.symbolic.expression cimport Expression, new_Expression_from_GEx, new_E
 from sage.libs.pari.pari_instance import PariInstance
 from sage.misc.latex import latex_variable_name
 from sage.structure.element cimport RingElement, Element, Matrix
-from sage.structure.parent_base import ParentWithBase
-from sage.rings.ring cimport CommutativeRing
 from sage.categories.morphism cimport Morphism
 from sage.structure.coerce cimport is_numpy_type
 
 from sage.rings.all import RR, CC, ZZ
 
-pynac_symbol_registry = {}
 
 cdef class SymbolicRing(CommutativeRing):
     """
@@ -51,6 +44,7 @@ cdef class SymbolicRing(CommutativeRing):
         """
         CommutativeRing.__init__(self, self)
         self._populate_coercion_lists_(convert_method_name='_symbolic_')
+        self.symbols = {}
 
     def __reduce__(self):
         """
@@ -501,7 +495,7 @@ cdef class SymbolicRing(CommutativeRing):
             sage: SR._an_element_()
             some_variable
         """
-        return self.var('some_variable')
+        return self.symbol('some_variable')
 
     def is_field(self, proof = True):
         """
@@ -555,7 +549,7 @@ cdef class SymbolicRing(CommutativeRing):
         from sage.symbolic.constants import pi
         return self(pi)
 
-    cpdef symbol(self, name=None, latex_name=None, domain=None):
+    cpdef Expression symbol(self, name=None, latex_name=None, domain=None):
         """
         EXAMPLES::
 
@@ -609,13 +603,13 @@ cdef class SymbolicRing(CommutativeRing):
         cdef Expression e
 
         # check if there is already a symbol with same name
-        e = pynac_symbol_registry.get(name)
+        e = self.symbols.get(name)
 
         # fast path to get an already existing variable
         if e is not None:
             if domain is None:
                 if latex_name is None:
-                    return self(e)
+                    return e
 
             # get symbol
             symb = ex_to_symbol(e._gobj)
@@ -627,7 +621,7 @@ cdef class SymbolicRing(CommutativeRing):
             if domain is not None:
                 send_sage_domain_to_maxima(e, domain)
 
-            return self(e)
+            return e
 
         else: # initialize a new symbol
             # Construct expression
@@ -646,7 +640,7 @@ cdef class SymbolicRing(CommutativeRing):
                 else:
                     ginac_domain = domain_complex
                 symb = ginac_symbol(name, latex_name, ginac_domain)
-                pynac_symbol_registry[name] = e
+                self.symbols[name] = e
 
             GEx_construct_symbol(&e._gobj, symb)
             if domain is not None:
@@ -654,7 +648,7 @@ cdef class SymbolicRing(CommutativeRing):
 
         return e
 
-    cpdef var(self, name, latex_name=None, domain=None):
+    def var(self, name, latex_name=None, domain=None):
         """
         Return the symbolic variable defined by x as an element of the
         symbolic ring.
@@ -1043,8 +1037,8 @@ def var(name, **kwds):
 
     TESTS:
 
-    These examples test that variables can only be made from
-    valid identifiers.  See Trac 7496 (and 9724) for details::
+    These examples test that variables can only be made from valid
+    identifiers.  See :trac:`7496` (and :trac:`9724`) for details::
 
         sage: var(' ')
         Traceback (most recent call last):

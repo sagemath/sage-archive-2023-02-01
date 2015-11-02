@@ -46,7 +46,10 @@ class FiniteDimensionalAlgebra(Algebra, UniqueRepresentation):
       ``True``, then methods requiring associativity assume this
       without checking
 
-    - ``category`` -- (default: ``FiniteDimensionalAlgebrasWithBasis(k)``)
+    - ``category`` -- (default:
+      ``MagmaticAlgebras(k).FiniteDimensional().WithBasis()``
+      when ``assume_associative`` is ``False``, else
+      ``Algebras(k).FiniteDimensional().WithBasis()``)
       the category to which this algebra belongs
 
     The list ``table`` must have the following form: there exists a
@@ -64,6 +67,14 @@ class FiniteDimensionalAlgebra(Algebra, UniqueRepresentation):
         sage: B = FiniteDimensionalAlgebra(QQ, [Matrix([[1,0,0], [0,1,0], [0,0,0]]), Matrix([[0,1,0], [0,0,0], [0,0,0]]), Matrix([[0,0,0], [0,0,0], [0,0,1]])])
         sage: B
         Finite-dimensional algebra of degree 3 over Rational Field
+
+    TESTS::
+
+        sage: A.category()
+        Category of finite dimensional magmatic algebras with basis over Finite Field of size 3
+        sage: A = FiniteDimensionalAlgebra(GF(3), [Matrix([[1, 0], [0, 1]]), Matrix([[0, 1], [0, 0]])], assume_associative=True)
+        sage: A.category()
+        Category of finite dimensional associative algebras with basis over Finite Field of size 3
     """
     @staticmethod
     def __classcall_private__(cls, k, table, names='e', assume_associative=False,

@@ -63,6 +63,7 @@ class FiniteDimensionalAlgebra(Algebra, UniqueRepresentation):
         sage: A = FiniteDimensionalAlgebra(GF(3), [Matrix([[1, 0], [0, 1]]), Matrix([[0, 1], [0, 0]])])
         sage: A
         Finite-dimensional algebra of degree 2 over Finite Field of size 3
+        sage: TestSuite(A).run()
 
         sage: B = FiniteDimensionalAlgebra(QQ, [Matrix([[1,0,0], [0,1,0], [0,0,0]]), Matrix([[0,1,0], [0,0,0], [0,0,0]]), Matrix([[0,0,0], [0,0,0], [0,0,1]])])
         sage: B
@@ -110,9 +111,9 @@ class FiniteDimensionalAlgebra(Algebra, UniqueRepresentation):
         table = [b.base_extend(k) for b in table]
         for b in table:
             b.set_immutable()
+            if not (is_Matrix(b) and b.dimensions() == (n, n)):
+                raise ValueError("input is not a multiplication table")
         table = tuple(table)
-        if not all([is_Matrix(b) and b.dimensions() == (n, n) for b in table]):
-            raise ValueError("input is not a multiplication table")
 
         cat = MagmaticAlgebras(k).FiniteDimensional().WithBasis()
         cat = cat.or_subcategory(category)
@@ -306,7 +307,8 @@ class FiniteDimensionalAlgebra(Algebra, UniqueRepresentation):
 
     def _ideal_class_(self, n=0):
         """
-        Return the ideal class of ``self``.
+        Return the ideal class of ``self`` (that is, the class that
+        all ideals of ``self`` inherit from).
 
         EXAMPLES::
 

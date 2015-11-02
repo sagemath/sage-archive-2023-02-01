@@ -16353,7 +16353,7 @@ class GenericGraph(GenericGraph_pyx):
             return G.copy(immutable=True)
         return G
 
-    def to_simple(self, to_undirected=True, keep_label='any'):
+    def to_simple(self, to_undirected=True, keep_label='any', immutable=None):
         """
         Returns a simple version of itself.
 
@@ -16369,6 +16369,10 @@ class GenericGraph(GenericGraph_pyx):
           with different labels, this variable defines which label should be
           kept: any label (``'any'``), the smallest label (``'min'``), or the
           largest (``'max'``).
+
+        - ``immutable`` (boolean) -- whether to create a mutable/immutable
+           copy. ``immutable=None`` (default) means that the graph and its copy
+           will behave the same way.
 
         EXAMPLES::
 
@@ -16391,9 +16395,9 @@ class GenericGraph(GenericGraph_pyx):
             [(2, 3, 2), (3, 2, None)]
         """
         if to_undirected:
-            g=self.to_undirected()
+            g=self.to_undirected(immutable=immutable)
         else:
-            g=copy(self)
+            g=self.copy(immutable=immutable)
         g.allow_loops(False)
         g.allow_multiple_edges(False, keep_label=keep_label)
         return g

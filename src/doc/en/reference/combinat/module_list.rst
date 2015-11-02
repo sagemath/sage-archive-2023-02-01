@@ -261,6 +261,7 @@ Comprehensive Module list
     sage/combinat/set_partition_ordered
     sage/combinat/sf/__init__
     sage/combinat/sf/all
+    sage/combinat/sf/character
     sage/combinat/sf/classical
     sage/combinat/sf/dual
     sage/combinat/sf/elementary

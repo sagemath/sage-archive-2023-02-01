@@ -5313,6 +5313,99 @@ class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
                         for mu in Partitions(d+1, max_length=len(nu)) )
                 )
 
+    def eval_at_permutation_roots(self, rho):
+        r"""
+        Evaluate at eigenvalues of a permutation matrix.
+
+        Evaluate a symmetric function at the eigenvalues of a permutation
+        matrix whose cycle structure is ``rho``.  This computation is
+        computed by coercing to the power sum basis where the value may
+        be computed on the generators.
+
+        This function evaluates an element at the roots of unity
+
+        .. MATH::
+
+            \Xi_{\rho_1},\Xi_{\rho_2},\ldots,\Xi_{\rho_\ell}
+
+        where
+
+        .. MATH::
+
+            \Xi_{m} = 1,\zeta_m,\zeta_m^2,\ldots,\zeta_m^{m-1}
+
+        and `\zeta_m` is an `m` root of unity.
+        These roots of unity represent the eigenvalues of permutation
+        matrix with cycle structure `\rho`.
+
+        INPUT:
+
+        - ``rho`` -- a partition or a list of non-negative integers
+
+        OUTPUT:
+
+        - an element of the base ring
+
+        EXAMPLES::
+
+            sage: s = SymmetricFunctions(QQ).s()
+            sage: s([3,3]).eval_at_permutation_roots([6])
+            0
+            sage: s([3,3]).eval_at_permutation_roots([3])
+            1
+            sage: s([3,3]).eval_at_permutation_roots([1])
+            0
+            sage: s([3,3]).eval_at_permutation_roots([3,3])
+            4
+            sage: s([3,3]).eval_at_permutation_roots([1,1,1,1,1])
+            175
+            sage: (s[1]+s[2]+s[3]).eval_at_permutation_roots([3,2])
+            2
+        """
+        p = self.parent().symmetric_function_ring().p()
+        return p(self).eval_at_permutation_roots(rho)
+
+    def character_to_frobenius_image(self, n):
+        r"""
+        Interpret ``self`` as a `Gl_n` character and then take the Frobenius
+        image of this character of the permutation matrices `S_n` which
+        naturally sit inside of `Gl_n`.
+
+        To know the value of this character at a permutation of cycle structure
+        `\rho` the symmetric function ``self`` is evaluated at the
+        eigenvalues of of a permutation of cycle structure `\rho`.  The
+        Frobenius image is then defined as
+        `\sum_{\rho \vdash n} f[ \Xi_\rho ] p_\rho/z_\rho`.
+
+        .. SEEALSO::
+            :meth:`eval_at_permutation_roots`
+
+        INPUT:
+
+        - ``n`` -- a non-negative integer to interpret ``self`` as
+          a character of `Gl_n`
+
+        OUTPUT:
+
+        - a symmetric function of degree ``n``
+
+        EXAMPLES::
+
+            sage: s = SymmetricFunctions(QQ).s()
+            sage: s([1,1]).character_to_frobenius_image(5)
+            s[3, 1, 1] + s[4, 1]
+            sage: s([2,1]).character_to_frobenius_image(5)
+            s[2, 2, 1] + 2*s[3, 1, 1] + 2*s[3, 2] + 3*s[4, 1] + s[5]
+            sage: s([2,2,2]).character_to_frobenius_image(3)
+            s[3]
+            sage: s([2,2,2]).character_to_frobenius_image(4)
+            s[2, 2] + 2*s[3, 1] + 2*s[4]
+            sage: s([2,2,2]).character_to_frobenius_image(5)
+            2*s[2, 2, 1] + s[3, 1, 1] + 4*s[3, 2] + 3*s[4, 1] + 2*s[5]
+        """
+        p = self.parent().symmetric_function_ring().p()
+        return self.parent()(p.sum(self.eval_at_permutation_roots(rho) \
+            *p(rho)/rho.centralizer_size() for rho in Partitions(n)))
 
 SymmetricFunctionAlgebra_generic.Element = SymmetricFunctionAlgebra_generic_Element
 

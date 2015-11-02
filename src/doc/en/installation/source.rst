@@ -991,15 +991,14 @@ Here are some of the more commonly used variables affecting the build process:
   Typically, building the documentation using LaTeX and dvipng takes longer
   and uses more memory and disk space than using MathJax.
 
-- :envvar:`SAGE_SKIP_TESTS_BLOCKS` - if this is "True", when building
-  the reference manual, do not include any "TESTS" blocks in
-  docstrings. The default behavior is to include those blocks.
-
 - :envvar:`SAGE_DOCBUILD_OPTS` - the value of this variable is passed as an
   argument to ``sage --docbuild all html`` or ``sage --docbuild all pdf`` when
   you run ``make``, ``make doc``, or ``make doc-pdf``.
   For example, you can add ``--no-plot`` to this variable to avoid building
-  the graphics coming from the ``.. PLOT`` directive within the documentation.
+  the graphics coming from the ``.. PLOT`` directive within the documentation,
+  or you can add ``--no-tests`` to omit all "TESTS" blocks in the
+  reference manual. Run ``sage --docbuild help`` to see the full list
+  of options.
 
 - :envvar:`SAGE_BUILD_DIR` - the default behavior is to build each spkg in a
   subdirectory of :file:`$SAGE_ROOT/local/var/tmp/sage/build/`; for

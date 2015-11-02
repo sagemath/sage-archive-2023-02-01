@@ -29,7 +29,7 @@ from sage.misc.cachefunc import cached_method
 from functools import reduce
 
 
-class FiniteDimensionalAlgebra(Algebra, UniqueRepresentation):
+class FiniteDimensionalAlgebra(UniqueRepresentation, Algebra):
     """
     Create a finite-dimensional `k`-algebra from a multiplication table.
 
@@ -44,12 +44,10 @@ class FiniteDimensionalAlgebra(Algebra, UniqueRepresentation):
 
     - ``assume_associative`` -- (default: ``False``) boolean; if
       ``True``, then methods requiring associativity assume this
-      without checking
+      without checking and sets the category as ``category.Associative()``
 
     - ``category`` -- (default:
-      ``MagmaticAlgebras(k).FiniteDimensional().WithBasis()``
-      when ``assume_associative`` is ``False``, else
-      ``Algebras(k).FiniteDimensional().WithBasis()``)
+      ``MagmaticAlgebras(k).FiniteDimensional().WithBasis()``)
       the category to which this algebra belongs
 
     The list ``table`` must have the following form: there exists a
@@ -83,7 +81,7 @@ class FiniteDimensionalAlgebra(Algebra, UniqueRepresentation):
         """
         Normalize input.
 
-        EXAMPLES::
+        TESTS::
 
             sage: table = [Matrix([[1, 0], [0, 1]]), Matrix([[0, 1], [0, 0]])]
             sage: A1 = FiniteDimensionalAlgebra(GF(3), table)
@@ -92,19 +90,40 @@ class FiniteDimensionalAlgebra(Algebra, UniqueRepresentation):
             sage: A1 is A2 and A2 is A3
             True
 
-        TESTS:
+        The ``assume_associative`` keyword is built into the category::
 
-        Uniqueness is not perfectly enforces across all categories::
+            sage: from sage.categories.magmatic_algebras import MagmaticAlgebras
+            sage: cat = MagmaticAlgebras(GF(3)).FiniteDimensional().WithBasis()
+            sage: A1 = FiniteDimensionalAlgebra(GF(3), table, category=cat.Associative())
+            sage: A2 = FiniteDimensionalAlgebra(GF(3), table, assume_associative=True)
+            sage: A1 is A2
+            True
 
-            sage: table = [Matrix([[1, 0], [0, 1]]), Matrix([[0, 1], [0, 0]])]
+        Uniqueness depends on the category::
+
             sage: cat = Algebras(GF(3)).FiniteDimensional().WithBasis()
             sage: A1 = FiniteDimensionalAlgebra(GF(3), table)
             sage: A2 = FiniteDimensionalAlgebra(GF(3), table, category=cat)
             sage: A1 == A2
-            True
+            False
             sage: A1 is A2
             False
-            sage: hash(A1) == hash(A2)
+
+        Checking that equality is still as expected::
+
+            sage: A = FiniteDimensionalAlgebra(GF(3), table)
+            sage: B = FiniteDimensionalAlgebra(GF(5), [Matrix([0])])
+            sage: A == A
+            True
+            sage: B == B
+            True
+            sage: A == B
+            False
+            sage: A != A
+            False
+            sage: B != B
+            False
+            sage: A != B
             True
         """
         n = len(table)
@@ -136,9 +155,9 @@ class FiniteDimensionalAlgebra(Algebra, UniqueRepresentation):
             raise IndexError("the number of names must equal the number of generators")
 
         return super(FiniteDimensionalAlgebra, cls).__classcall__(cls, k, table,
-                             names, assume_associative, cat)
+                             names, category=cat)
 
-    def __init__(self, k, table, names='e', assume_associative=False, category=None):
+    def __init__(self, k, table, names='e', category=None):
         """
         TESTS::
 
@@ -173,7 +192,7 @@ class FiniteDimensionalAlgebra(Algebra, UniqueRepresentation):
             (e,)
         """
         self._table = table
-        self._assume_associative = assume_associative
+        self._assume_associative = "Associative" in category.axioms()
         # No further validity checks necessary!
         Algebra.__init__(self, base_ring=k, names=names, category=category)
 
@@ -367,42 +386,6 @@ class FiniteDimensionalAlgebra(Algebra, UniqueRepresentation):
         for b in table:
             b.set_immutable()
         return tuple(table)
-
-    def __eq__(self, other):
-        """
-        Check equality of ``self`` to ``other``.
-
-        EXAMPLES::
-
-            sage: A = FiniteDimensionalAlgebra(GF(3), [Matrix([[1, 0], [0, 1]]), Matrix([[0, 1], [0, 0]])])
-            sage: B = FiniteDimensionalAlgebra(GF(5), [Matrix([0])])
-            sage: A == A
-            True
-            sage: B == B
-            True
-            sage: A == B
-            False
-        """
-        return (isinstance(other, FiniteDimensionalAlgebra)
-                and self.base_ring() == other.base_ring()
-                and self.table() == other.table())
-
-    def __ne__(self, other):
-        """
-        Check if ``self`` is not equal to ``other``.
-
-        EXAMPLES::
-
-            sage: A = FiniteDimensionalAlgebra(GF(3), [Matrix([[1, 0], [0, 1]]), Matrix([[0, 1], [0, 0]])])
-            sage: B = FiniteDimensionalAlgebra(GF(5), [Matrix([0])])
-            sage: A != A
-            False
-            sage: B != B
-            False
-            sage: A != B
-            True
-        """
-        return not self.__eq__(other)
 
     def base_extend(self, F):
         """

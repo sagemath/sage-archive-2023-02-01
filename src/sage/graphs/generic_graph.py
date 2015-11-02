@@ -5237,17 +5237,22 @@ class GenericGraph(GenericGraph_pyx):
             if len([(uu,vv) for uu,vv,ll in self.edges_incident(u) if uu == v or vv == v]) > 1:
                 return False
 
-        self.delete_edge(u,v,label)
-        if self.is_directed():
+        if getattr(self, '_immutable', False):
+            G = copy(self)
+        else:
+            G = self
+        G.delete_edge(u,v,label)
+        if G.is_directed():
             # (u,v) is a cut-edge if u is not in the connected
             # component containing v of self-(u,v)
-            sol = not u in self.connected_component_containing_vertex(v)
+            sol = not u in G.connected_component_containing_vertex(v)
         else:
             # (u,v) is a cut-edge if there is no path from u to v in
             # self-(u,v)
-            sol = not self.distance(u,v) < self.order()
+            sol = not G.distance(u,v) < G.order()
 
-        self.add_edge(u,v,label)
+        if not getattr(self, '_immutable', False):
+            G.add_edge(u,v,label)
         return sol
 
 

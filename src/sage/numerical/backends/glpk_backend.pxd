@@ -15,6 +15,8 @@ cdef extern from "float.h":
     cdef double DBL_MAX
 
 cdef extern from "glpk.h":
+     ctypedef struct c_glp_tree "glp_tree":
+         pass
      ctypedef struct c_glp_prob "glp_prob":
          pass
      ctypedef struct c_glp_iocp "glp_iocp":
@@ -35,6 +37,8 @@ cdef extern from "glpk.h":
          int out_dly
          int presolve
          int binarize
+         void (*cb_func)(c_glp_tree *T, void *info) # callback function
+         void *cb_info                              # callback function input
      ctypedef struct c_glp_smcp "glp_smcp":
          int msg_lev
          int meth
@@ -66,6 +70,9 @@ cdef extern from "glpk.h":
      void glp_set_row_bnds(c_glp_prob *, int, int, double, double)
      void glp_set_col_bnds(c_glp_prob *, int, int, double, double)
      void glp_set_obj_coef(c_glp_prob *, int, double)
+     void glp_set_row_stat(c_glp_prob *, int, int)
+     void glp_set_col_stat(c_glp_prob *, int, int)
+     int glp_warm_up(c_glp_prob *)
      void glp_load_matrix(c_glp_prob *, int, int *, int *, double *)
      int glp_simplex(c_glp_prob *, c_glp_smcp *)
      int glp_exact(c_glp_prob *, c_glp_smcp *)
@@ -121,6 +128,9 @@ cdef extern from "glpk.h":
      double glp_get_obj_coef(c_glp_prob *lp, int)
      int glp_get_obj_dir(c_glp_prob *lp)
      void glp_copy_prob(c_glp_prob *dst, c_glp_prob *src, int names)
+     double glp_ios_mip_gap(c_glp_tree *T)
+     int glp_ios_best_node(c_glp_tree *tree)
+     double glp_ios_node_bound(c_glp_tree *T, int p)
 
      # constants
 
@@ -209,13 +219,21 @@ cdef extern from "glpk.h":
      int GLP_NF      # non-basic free (unbounded) variable
      int GLP_NS      # non-basic fixed variable
 
+# search_tree_data_t:
+#
+# This structure stores the data gathered by the callback function while the
+# search tree is explored.
+ctypedef struct search_tree_data_t:
+    double mip_gap
+    double best_bound
+
 cdef class GLPKBackend(GenericBackend):
     cdef c_glp_prob * lp
     cdef c_glp_iocp * iocp
     cdef c_glp_smcp * smcp
     cdef int simplex_or_intopt
+    cdef search_tree_data_t search_tree_data
     cpdef GLPKBackend copy(self)
-
     cpdef int print_ranges(self, char * filename = *) except -1
     cpdef double get_row_dual(self, int variable)
     cpdef double get_col_dual(self, int variable)
@@ -223,4 +241,7 @@ cdef class GLPKBackend(GenericBackend):
     cpdef int get_col_stat(self, int variable)
     cpdef eval_tab_row(self, int k)
     cpdef eval_tab_col(self, int k)
-
+    cpdef get_row_prim(self, int i)
+    cpdef set_row_stat(self, int i, int stat)
+    cpdef set_col_stat(self, int j, int stat)
+    cpdef int warm_up(self)

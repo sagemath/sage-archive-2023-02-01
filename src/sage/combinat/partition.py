@@ -304,7 +304,7 @@ from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.rings.integer import Integer
 from sage.rings.infinity import infinity
 
-from combinat import CombinatorialClass, CombinatorialElement, cyclic_permutations_iterator
+from combinat import CombinatorialClass, CombinatorialElement
 import tableau
 import permutation
 import composition

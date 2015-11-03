@@ -1632,7 +1632,7 @@ class PartitionTuples(UniqueRepresentation, Parent):
         if isinstance(mu, PartitionTuple) or isinstance(mu, Partition):
             return True
         if isinstance(mu, (tuple, list)):
-            if len(mu) == 0:
+            if not mu:
                 return True
             if mu[0] in ZZ:
                 return mu in _Partitions
@@ -1847,6 +1847,7 @@ class PartitionTuples_level(PartitionTuples):
             sage: 1 in PartitionTuples(level=2)
             False
         """
+        # Note that self._level > 1
         return PartitionTuples.__contains__(self, mu) and len(mu) == self._level
 
     def __iter__(self):
@@ -1943,14 +1944,17 @@ class PartitionTuples_size(PartitionTuples):
             False
             sage: all(mu in PartitionTuples(size=8) for mu in PartitionTuples(3,8))
             True
+            sage: [3, 2, 1] in PartitionTuples(size=7)
+            False
 
         Check that :trac:`14145` is fixed::
 
             sage: 1 in PartitionTuples(size=7)
             False
         """
-        return (mu in _Partitions and self._size == sum(mu)) or \
-               (PartitionTuples.__contains__(self, mu) and self._size == sum(map(sum, mu)))
+        if mu in _Partitions:
+            return self._size == sum(mu)
+        return PartitionTuples.__contains__(self, mu) and self._size == sum(map(sum, mu))
 
     def __iter__(self):
         r"""
@@ -2051,9 +2055,11 @@ class PartitionTuples_level_size(PartitionTuples):
             sage: 1 in PartitionTuples(5,7)
             False
         """
-        return (   (mu in _Partitions and self._size == sum(mu) and self._level == 1)
-                or (PartitionTuples.__contains__(self, mu) and self._size == sum(map(sum,mu)))
-                    and self._level == len(mu))
+        if self._level == 1 and mu in _Partitions:
+            return self._size == sum(mu)
+        return (PartitionTuples.__contains__(self, mu)
+                and self._level == len(mu)
+                and self._size == sum(map(sum,mu)))
 
     def __iter__(self):
         r"""
@@ -2204,9 +2210,9 @@ class RegularPartitionTuples(PartitionTuples):
             return max(mu.to_exp(1)) < self._ell
         if isinstance(mu, PartitionTuple):
             return all(max(nu.to_exp(1)) < self._ell for nu in mu)
-        if not mu:
+        if len(mu) == 0:
             return True
-        if mu[0] in ZZ:
+        if mu in _Partitions:
             return all(mu.count(i) < self._ell for i in set(mu) if i > 0)
         return all(list(nu).count(i) < self._ell for nu in mu for i in set(nu) if i > 0)
 
@@ -2331,9 +2337,13 @@ class RegularPartitionTuples_level(RegularPartitionTuples):
             False
             sage: [[5,2], [], [3,3,1], [1,1]] in RPT
             False
+            sage: [4, 3, 2] in RPT
+            False
         """
-        return (   (mu in RegularPartitions_all(self._ell) and self._level == 1)
-                or (RegularPartitionTuples.__contains__(self, mu) and self._level == len(mu)) )
+        if self._level == 1:
+            if mu[0] in ZZ:
+                return mu in RegularPartitions_all(self._ell)
+        return RegularPartitionTuples.__contains__(self, mu) and self._level == len(mu)
 
     def __iter__(self):
         r"""
@@ -2421,6 +2431,9 @@ class RegularPartitionTuples_size(RegularPartitionTuples):
             sage: RPT = PartitionTuples(size=7, regular=2)
             sage: [[], [3,2,2,1], [1], [1]] in RPT
             False
+            sage: RPT = PartitionTuples(size=9, regular=2)
+            sage: [4, 3, 2] in RPT
+            True
         """
         return (   (mu in RegularPartitions_all(self._ell) and self._size == sum(mu))
                 or (RegularPartitionTuples.__contains__(self, mu) and self._size == sum(map(sum,mu)))
@@ -2495,10 +2508,15 @@ class RegularPartitionTuples_level_size(RegularPartitionTuples):
             True
             sage: [[1,1,1], [], [], []] in RPT
             False
+            sage: RPT = PartitionTuples(9, 3, 2)
+            sage: [4, 3, 2] in RPT
+            False
         """
-        return (   (mu in RegularPartitions_all(self._ell) and self._size == sum(mu) and self._level == 1)
-                or (RegularPartitionTuples.__contains__(self, mu) and self._size == sum(map(sum,mu)))
-                    and self._level == len(mu))
+        if self._level == 1 and mu[0] in ZZ:
+            return mu in RegularPartitions_all(self._ell) and self._size == sum(mu)
+        return (RegularPartitionTuples.__contains__(self, mu)
+                and self._level == len(mu)
+                and self._size == sum(map(sum,mu)))
 
     def __iter__(self):
         r"""

@@ -95,7 +95,6 @@ REFERENCES:
 from sage.matrix.matrix import is_Matrix
 from sage.matrix.all import matrix
 from itertools import izip
-from sage.misc.superseded import deprecated_function_alias
 
 def RSK(obj1=None, obj2=None, insertion='RSK', check_standard=False, **options):
     r"""
@@ -326,7 +325,6 @@ def RSK(obj1=None, obj2=None, insertion='RSK', check_standard=False, **options):
         return [P, Q]
     return [SemistandardTableau(p), SemistandardTableau(q)]
 
-RobinsonSchenstedKnuth = deprecated_function_alias(15142, RSK)
 robinson_schensted_knuth = RSK
 
 def RSK_inverse(p, q, output='array', insertion='RSK'):
@@ -542,7 +540,6 @@ def RSK_inverse(p, q, output='array', insertion='RSK'):
         raise TypeError("q must be standard to have a %s as valid output"%output)
     raise ValueError("Invalid output option")
 
-RobinsonSchenstedKnuth_inverse = deprecated_function_alias(15142, RSK_inverse)
 robinson_schensted_knuth_inverse = RSK_inverse
 
 def to_matrix(t, b):

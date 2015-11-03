@@ -51,7 +51,7 @@ class ClusterComplex(SubwordComplex):
 
     .. [CLS] C. Ceballos, J.-P. Labbe, C. Stump, ``Subword complexes,
        cluster complexes, and generalized multi-associahedra``,
-       arXiv:`1108.1776`.
+       :arxiv:`1108.1776`.
 
     EXAMPLES:
 
@@ -122,7 +122,7 @@ class ClusterComplex(SubwordComplex):
 
     def _repr_(self):
         r"""
-        Return a string representation of ``self``
+        Return a string representation of ``self``.
 
         EXAMPLES::
 
@@ -137,7 +137,7 @@ class ClusterComplex(SubwordComplex):
 
     def k(self):
         r"""
-        Return the index `k` of ``self``
+        Return the index `k` of ``self``.
 
         EXAMPLES::
 
@@ -148,7 +148,7 @@ class ClusterComplex(SubwordComplex):
 
     def minimal_nonfaces(self):
         """
-        Return the minimal non-faces of ``self``
+        Return the minimal non-faces of ``self``.
 
         EXAMPLES::
 
@@ -167,14 +167,12 @@ class ClusterComplex(SubwordComplex):
         """
         W = self._W
         w = self._w0
-        S = W.simple_reflections()
-        S_inv = dict([(S[i], i) for i in W.index_set()])
-        w = W.w0
-        phi = lambda i: S_inv[w * S[i] * w]
         Q = self._Q
         l = len(Q)
-        Q = Q + [phi(i) for i in Q]
-        D = dict([(i, (Q[i + 1:].index(Q[i]) + i + 1) % l) for i in range(l)])
+        S = W.simple_reflections()
+        S_inv = {S[j]: j for j in W.index_set()}
+        Q += [S_inv[w * S[k] * w] for k in Q]
+        D = {i: (Q[i + 1:].index(Q[i]) + i + 1) % l for i in range(l)}
 
         def act(F):
             return Simplex(sorted([D[i] for i in F]))

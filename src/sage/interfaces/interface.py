@@ -98,6 +98,7 @@ class Interface(ParentWithBase):
         other than a small positive integer.
 
         EXAMPLES::
+
             from sage.misc.random_testing import random_testing
             sage: from sage.interfaces.interface import Interface
             sage: i = Interface("")
@@ -553,7 +554,7 @@ class Interface(ParentWithBase):
         TESTS::
 
             sage: ParentWithBase.__getattribute__(singular, '_coerce_map_from_')
-            <built-in method _coerce_map_from_ of Singular object at ...>
+            <bound method Singular._coerce_map_from_ of Singular>
         """
         try:
             return ParentWithBase.__getattribute__(self, attrname)

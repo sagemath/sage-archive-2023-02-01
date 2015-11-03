@@ -818,7 +818,7 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
             1.4553 + 0.34356*I
         """
         if isinstance(right, (int, long, integer.Integer)):
-            return sage.rings.ring_element.RingElement.__pow__(self, right)
+            return RingElement.__pow__(self, right)
 
         try:
             return (self.log()*right).exp()

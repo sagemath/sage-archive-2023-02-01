@@ -33,7 +33,6 @@ from sage.rings.finite_rings.constructor import is_FiniteField
 from sage.rings.number_field.number_field import is_NumberField
 from sage.rings.polynomial.multi_polynomial_element import is_MPolynomial
 from sage.rings.ring import is_Ring
-from sage.rings.ring_element import is_RingElement
 
 from sage.categories.fields import Fields
 _Fields = Fields()

@@ -52,7 +52,7 @@ AUTHORS:
 
 include "sage/ext/interrupt.pxi"
 include "sage/libs/ntl/decl.pxi"
-include "sage/libs/pari/decl.pxi"
+from sage.libs.pari.paridecl cimport *
 include "sage/libs/pari/pari_err.pxi"
 
 from sage.misc.randstate cimport randstate, current_randstate

@@ -789,7 +789,9 @@ def _connected_mutation_type_AAtildeD(dg, ret_conn_vert=False):
 
     INPUT:
 
-    - ``ret_conn_vert`` (boolean; default:``False``). If ``True, returns 'connecting vertices', technical information that is used in the algorithm.
+    - ``ret_conn_vert`` -- boolean (default: ``False``). If ``True``,
+      returns 'connecting vertices', technical information that is
+      used in the algorithm.
 
     A brief description of the algorithm::
 

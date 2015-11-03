@@ -57,6 +57,8 @@ from sage.misc.randstate cimport randstate, current_randstate
 from sage.structure.sage_object cimport rich_to_bool
 from sage.misc.superseded import deprecation, deprecated_function_alias
 
+from .paridecl cimport *
+from .paripriv cimport *
 include 'pari_err.pxi'
 include 'sage/ext/stdsage.pxi'
 include 'sage/ext/python.pxi'
@@ -8072,7 +8074,7 @@ cdef class gen(gen_auto):
             sage: x = polygen(QQ)
             sage: K.<a> = NumberField(x^2 - 1/8)
             sage: pari(x^2 - 2).factornf(K.pari_polynomial("a"))
-            [x + Mod(-4*a, 8*a^2 - 1), 1; x + Mod(4*a, 8*a^2 - 1), 1]
+            [x + Mod(-a, a^2 - 2), 1; x + Mod(a, a^2 - 2), 1]
         """
         cdef gen t0 = objtogen(t)
         pari_catch_sig_on()

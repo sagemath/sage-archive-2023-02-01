@@ -25,6 +25,7 @@ AUTHORS:
 
 from sage.misc.lazy_attribute import lazy_attribute
 from sage.structure.unique_representation import UniqueRepresentation
+from sage.structure.element import parent
 from sage.structure.parent import Parent
 from sage.structure.element_wrapper import ElementWrapper
 from sage.categories.crystals import Crystals
@@ -127,6 +128,8 @@ class Subcrystal(UniqueRepresentation, Parent):
             generators = ambient.module_generators
 
         category = Crystals().or_subcategory(category)
+        if ambient in FiniteCrystals() or isinstance(contained, frozenset):
+            category = category.Finite()
 
         if virtualization is not None:
             if scaling_factors is None:
@@ -250,6 +253,18 @@ class Subcrystal(UniqueRepresentation, Parent):
             sage: S = B.subcrystal(max_depth=4)
             sage: S.cardinality()
             22
+
+        TESTS:
+
+        Check that :trac:`19481` is fixed::
+
+            sage: from sage.combinat.crystals.virtual_crystal import VirtualCrystal
+            sage: A = crystals.infinity.Tableaux(['A',3])
+            sage: V = VirtualCrystal(A, {1:(1,3), 2:(2,)}, {1:1, 2:2}, cartan_type=['C',2])
+            sage: V.cardinality()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: unknown cardinality
         """
         if self._cardinality is not None:
             return self._cardinality
@@ -261,7 +276,10 @@ class Subcrystal(UniqueRepresentation, Parent):
         except AttributeError:
             if self in FiniteCrystals():
                 return Integer(len(self.list()))
-            card = super(Subcrystal, self).cardinality()
+            try:
+                card = super(Subcrystal, self).cardinality()
+            except AttributeError:
+                raise NotImplementedError("unknown cardinality")
             if card == infinity:
                 self._cardinality = card
                 return card
@@ -285,9 +303,9 @@ class Subcrystal(UniqueRepresentation, Parent):
         """
         An element of a subcrystal. Wraps an element in the ambient crystal.
         """
-        def __lt__(self, other):
+        def __eq__(self, other):
             """
-            Check less than.
+            Check sorting
 
             EXAMPLES::
 
@@ -307,11 +325,87 @@ class Subcrystal(UniqueRepresentation, Parent):
                 [[-1, -1]](1),
                 [[-1, -1]](2)]
             """
-            if not isinstance(other, Subcrystal.Element):
-                return False
-            if other.parent() is not self.parent():
-                return False
-            return self.value < other.value
+            return parent(self) is parent(other) and self.value == other.value
+
+        def __ne__(self, other):
+            """
+            TESTS::
+
+                sage: A = crystals.KirillovReshetikhin(['C',2,1], 1,2).affinization()
+                sage: S = A.subcrystal(max_depth=2)
+                sage: ([(i,j) for i in range(len(S)) for j in range(len(S)) if S[i]!=S[j]]
+                ....: == [(i,j) for i in range(len(S)) for j in range(len(S)) if 
+                ....: S[i].value!=S[j].value])
+                True
+            """
+            return parent(self) is not parent(other) or self.value != other.value
+
+        def __lt__(self, other):
+            """
+            TESTS::
+
+                sage: A = crystals.KirillovReshetikhin(['C',2,1], 1,2).affinization()
+                sage: S = A.subcrystal(max_depth=2)
+                sage: ([(i,j) for i in range(len(S)) for j in range(len(S)) if S[i]<S[j]]
+                ....: == [(i,j) for i in range(len(S)) for j in range(len(S)) if 
+                ....: S[i].value<S[j].value])
+                True
+            """
+            return parent(self) is parent(other) and self.value < other.value
+ 
+        def __le__(self, other):
+            """
+            TESTS::
+
+                sage: A = crystals.KirillovReshetikhin(['C',2,1], 1,2).affinization()
+                sage: S = A.subcrystal(max_depth=2)
+                sage: ([(i,j) for i in range(len(S)) for j in range(len(S)) if S[i]<=S[j]]
+                ....: == [(i,j) for i in range(len(S)) for j in range(len(S)) if 
+                ....: S[i].value<=S[j].value])
+                True
+            """
+            return parent(self) is parent(other) and self.value <= other.value
+ 
+        def __gt__(self, other):
+            """
+            TESTS::
+
+                sage: A = crystals.KirillovReshetikhin(['C',2,1], 1,2).affinization()
+                sage: S = A.subcrystal(max_depth=2)
+                sage: ([(i,j) for i in range(len(S)) for j in range(len(S)) if S[i]>S[j]]
+                ....: == [(i,j) for i in range(len(S)) for j in range(len(S)) if 
+                ....: S[i].value>S[j].value])
+                True
+            """
+            return parent(self) is parent(other) and self.value > other.value
+ 
+        def __ge__(self, other):
+            """
+            TESTS::
+
+                sage: A = crystals.KirillovReshetikhin(['C',2,1], 1,2).affinization()
+                sage: S = A.subcrystal(max_depth=2)
+                sage: ([(i,j) for i in range(len(S)) for j in range(len(S)) if S[i]>=S[j]]
+                ....: == [(i,j) for i in range(len(S)) for j in range(len(S)) if 
+                ....: S[i].value>=S[j].value])
+                True
+            """
+            return parent(self) is parent(other) and self.value >= other.value
+        
+        def __cmp__(self, other):
+            """
+            TESTS::
+
+                sage: A = crystals.KirillovReshetikhin(['C',2,1], 1,2).affinization()
+                sage: S = A.subcrystal(max_depth=2)
+                sage: ([(i,j,cmp(S[i],S[j])) for i in range(len(S)) for j in range(len(S))]
+                ....: == [(i,j,cmp(S[i].value,S[j].value)) for i in range(len(S)) for j in range(len(S))])
+                True
+            """
+            if parent(self) is parent(other):
+                return cmp(self.value, other.value)
+            else:
+                return cmp(parent(self), parent(other))
 
         def e(self, i):
             """

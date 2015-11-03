@@ -123,13 +123,11 @@ def algebraic_topological_model(K, base_ring=None):
         sage: M.dual().degree_of_differential()
         1
         sage: phi.dual()
-        Chain homotopy between
-          Chain complex morphism
+        Chain homotopy between:
+          Chain complex endomorphism of Chain complex with at most 3 nonzero terms over Rational Field
+          and Chain complex morphism:
             From: Chain complex with at most 3 nonzero terms over Rational Field
-            To: Chain complex with at most 3 nonzero terms over Rational Field
-          and Chain complex morphism
-            From: Chain complex with at most 3 nonzero terms over Rational Field
-            To: Chain complex with at most 3 nonzero terms over Rational Field
+            To:   Chain complex with at most 3 nonzero terms over Rational Field
 
     In degree 0, the inclusion of the homology `M` into the chain
     complex `C` sends the homology generator to a single vertex::
@@ -393,13 +391,11 @@ def algebraic_topological_model_delta_complex(K, base_ring=None):
         sage: M.dual().degree_of_differential()
         1
         sage: phi.dual()
-        Chain homotopy between
-          Chain complex morphism
+        Chain homotopy between:
+          Chain complex endomorphism of Chain complex with at most 3 nonzero terms over Rational Field
+          and Chain complex morphism:
             From: Chain complex with at most 3 nonzero terms over Rational Field
-            To: Chain complex with at most 3 nonzero terms over Rational Field
-          and Chain complex morphism
-            From: Chain complex with at most 3 nonzero terms over Rational Field
-            To: Chain complex with at most 3 nonzero terms over Rational Field
+            To:   Chain complex with at most 3 nonzero terms over Rational Field
 
     In degree 0, the inclusion of the homology `M` into the chain
     complex `C` sends the homology generator to a single vertex::

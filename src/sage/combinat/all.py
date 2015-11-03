@@ -143,7 +143,9 @@ deprecated_callable_import(6637,
                            'sage.combinat.backtrack',
                            globals(),
                            locals(),
-                           ["SearchForest"],
+                           ["SearchForest",
+                            "TransitiveIdeal",
+                            "TransitiveIdealGraded"],
                            ("This class soon will not be available in that "
                             "way anymore. Use RecursivelyEnumeratedSet "
                             "instead."))

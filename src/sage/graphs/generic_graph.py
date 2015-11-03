@@ -16434,7 +16434,8 @@ class GenericGraph(GenericGraph_pyx):
             g = g.copy(immutable=True)
         return g
 
-    def disjoint_union(self, other, verbose_relabel=None, labels="pairs"):
+    def disjoint_union(self, other, verbose_relabel=None, labels="pairs",
+                             immutable=None):
         """
         Return the disjoint union of self and other.
 
@@ -16447,6 +16448,10 @@ class GenericGraph(GenericGraph_pyx):
           each element ``u`` in ``other`` will be named ``(1,u)`` in
           the result. If set to 'integers', the elements of the result
           will be relabeled with consecutive integers.
+
+        - ``immutable`` (boolean) -- whether to create a mutable/immutable
+           disjoint union. ``immutable=None`` (default) means that the graphs
+           and their disjoint union will behave the same way.
 
         .. SEEALSO::
 
@@ -16498,16 +16503,16 @@ class GenericGraph(GenericGraph_pyx):
                 r_self[v] = i; i += 1
             for v in other:
                 r_other[v] = i; i += 1
-            G = self.relabel(r_self, inplace=False).union(other.relabel(r_other, inplace=False))
+            G = self.relabel(r_self, inplace=False).union(other.relabel(r_other, inplace=False), immutable=immutable)
         else:
             r_self = dict([[v,(0,v)] for v in self])
             r_other = dict([[v,(1,v)] for v in other])
-            G = self.relabel(r_self, inplace=False).union(other.relabel(r_other, inplace=False))
+            G = self.relabel(r_self, inplace=False).union(other.relabel(r_other, inplace=False), immutable=immutable)
 
         G._name = '%s disjoint_union %s'%(self.name(), other.name())
         return G
 
-    def union(self, other):
+    def union(self, other, immutable=None):
         """
         Returns the union of self and other.
 
@@ -16517,7 +16522,14 @@ class GenericGraph(GenericGraph_pyx):
         If one of the two graphs allows loops (or multiple edges), the resulting
         graph will allow loops (or multiple edges).
 
-        If both graphs are immutable, the resulting graph is immutable.
+        If both graphs are immutable, the resulting graph is immutable, unless
+        requested otherwise.
+
+        INPUT:
+
+        - ``immutable`` (boolean) -- whether to create a mutable/immutable
+           union. ``immutable=None`` (default) means that the graphs and their
+           union will behave the same way.
 
         .. SEEALSO::
 
@@ -16574,7 +16586,9 @@ class GenericGraph(GenericGraph_pyx):
         G.add_edges(self.edges())
         G.add_edges(other.edges())
 
-        if getattr(self, "_immutable", False) and getattr(other, "_immutable", False):
+        if immutable is None:
+            immutable = getattr(self, "_immutable", False) and getattr(other, "_immutable", False)
+        if immutable:
             G = G.copy(immutable=True)
 
         return G

@@ -4924,7 +4924,7 @@ class Graph(GenericGraph):
         """
         return self.copy(immutable=immutable)
 
-    def join(self, other, verbose_relabel=None, labels="pairs"):
+    def join(self, other, verbose_relabel=None, labels="pairs", immutable=None):
         """
         Returns the join of ``self`` and ``other``.
 
@@ -4937,6 +4937,10 @@ class Graph(GenericGraph):
           each element ``u`` in ``other`` will be named ``(1,u)`` in
           the result. If set to 'integers', the elements of the result
           will be relabeled with consecutive integers.
+
+        - ``immutable`` (boolean) -- whether to create a mutable/immutable
+           join. ``immutable=None`` (default) means that the graphs and their
+           join will behave the same way.
 
         .. SEEALSO::
 
@@ -4981,7 +4985,7 @@ class Graph(GenericGraph):
             if verbose_relabel is False:
                 labels="integers"
 
-        G = self.disjoint_union(other, labels=labels)
+        G = self.disjoint_union(other, labels=labels, immutable=False)
         if labels=="integers":
             G.add_edges((u,v) for u in range(self.order())
                         for v in range(self.order(), self.order()+other.order()))
@@ -4990,6 +4994,12 @@ class Graph(GenericGraph):
                         for v in other.vertices())
 
         G.name('%s join %s'%(self.name(), other.name()))
+
+        if immutable is None:
+            immutable = getattr(self, "_immutable", False) and getattr(other, "_immutable", False)
+        if immutable:
+            G = G.copy(immutable=True)
+
         return G
 
 

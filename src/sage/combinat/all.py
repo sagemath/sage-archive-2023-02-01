@@ -8,8 +8,7 @@ from combinat import bell_number, catalan_number, euler_number, fibonacci, \
         InfiniteAbstractCombinatorialClass, \
         tuples, number_of_tuples, \
         unordered_tuples, number_of_unordered_tuples, \
-        permutations, cyclic_permutations, \
-        cyclic_permutations_iterator, bell_polynomial, fibonacci_sequence, \
+        bell_polynomial, fibonacci_sequence, \
         fibonacci_xrange, bernoulli_polynomial
 
 from expnums import expnums

@@ -74,10 +74,10 @@ cdef class Polynomial_GF2X(Polynomial_template):
             1
             sage: f[1]
             0
-            sage: f[-5:50] == f
+            sage: f[:50] == f
             True
-            sage: f[1:]
-            x^3 + x^2
+            sage: f[:3]
+            x^2 + 1
         """
         cdef long c = GF2_conv_to_long(GF2X_coeff(self.x, i))
         return self._parent._base(c)

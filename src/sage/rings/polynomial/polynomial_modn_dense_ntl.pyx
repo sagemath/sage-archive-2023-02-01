@@ -17,13 +17,15 @@ AUTHORS:
 - Robert Bradshaw: Major rewrite to use NTL directly (2007-09)
 """
 
-################################################################################
+#*****************************************************************************
 #       Copyright (C) 2007 William Stein <wstein@gmail.com>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
-#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
-################################################################################
+#*****************************************************************************
 
 from sage.rings.polynomial.polynomial_element import is_Polynomial, Polynomial_generic_dense
 
@@ -189,8 +191,8 @@ cdef class Polynomial_dense_mod_n(Polynomial):
             4*x^4 + x^3 + 13*x^2 + 10*x + 5
             sage: f[2]
             13
-            sage: f[1:3]
-            13*x^2 + 10*x
+            sage: f[:3]
+            13*x^2 + 10*x + 5
         """
         return self._parent._base(self.__poly[n]._sage_())
 
@@ -655,12 +657,10 @@ cdef class Polynomial_dense_modn_ntl_zz(Polynomial_dense_mod_n):
             sage: f = Polynomial_dense_modn_ntl_zz(R,[2, 1])^7
             sage: f[3]
             60
-            sage: f[3:6]
-            84*x^5 + 80*x^4 + 60*x^3
-            sage: f[-5:50] == f
+            sage: f[:6]
+            84*x^5 + 80*x^4 + 60*x^3 + 72*x^2 + 48*x + 28
+            sage: f[:50] == f
             True
-            sage: f[6:]
-            x^7 + 14*x^6
         """
         return self._parent._base(zz_p_rep(zz_pX_GetCoeff(self.x, n)))
 
@@ -1205,12 +1205,10 @@ cdef class Polynomial_dense_modn_ntl_ZZ(Polynomial_dense_mod_n):
             sage: f = Polynomial_dense_modn_ntl_ZZ(R,[2,1])^7
             sage: f[3]
             560
-            sage: f[3:6]
-            84*x^5 + 280*x^4 + 560*x^3
-            sage: f[-5:50] == f
+            sage: f[:6]
+            84*x^5 + 280*x^4 + 560*x^3 + 672*x^2 + 448*x + 128
+            sage: f[:50] == f
             True
-            sage: f[6:]
-            x^7 + 14*x^6
         """
         self.c.restore_c()
         # TODO, make this faster

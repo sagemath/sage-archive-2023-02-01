@@ -163,9 +163,9 @@ cdef class Polynomial_ZZ_pEX(Polynomial_template):
             2*a + 1
             sage: f[2]
             0
-            sage: f[1:4]
-            x^3 + (2*a + 1)*x
-            sage: f[-5:50] == f
+            sage: f[:2]
+            (2*a + 1)*x + a
+            sage: f[:50] == f
             True
         """
         self._parent._modulus.restore()

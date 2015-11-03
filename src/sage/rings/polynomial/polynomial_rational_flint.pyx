@@ -382,17 +382,17 @@ cdef class Polynomial_rational_flint(Polynomial):
 
         INPUT:
 
-        - ``n`` - Degree of the monomial whose coefficient is to be returned
-                  or a slice.
+        - ``n`` -- Degree of the monomial whose coefficient is to be
+          returned.
 
         EXAMPLES::
 
             sage: R.<t> = QQ[]
             sage: f = 1 + t + t^2/2 + t^3/3 + t^4/4
-            sage: f[-1], f[0], f[3], f[5]            # indirect doctest
+            sage: f[-1], f[0], f[3], f[5]           # indirect doctest
             (0, 1, 1/3, 0)
-            sage: f[1:3]                             # indirect doctest
-            1/2*t^2 + t
+            sage: f[:3]                             # indirect doctest
+            1/2*t^2 + t + 1
         """
         cdef Rational z = Rational.__new__(Rational)
         fmpq_poly_get_coeff_mpq(z.value, self.__poly, n)
@@ -817,8 +817,6 @@ cdef class Polynomial_rational_flint(Polynomial):
             sage: R.<t> = QQ[]
             sage: f = R.random_element(2000)
             sage: f - f/2 == 1/2 * f          # indirect doctest
-            True
-            sage: f[:1000] == f - f[1000:]    # indirect doctest
             True
         """
         cdef Polynomial_rational_flint op2 = <Polynomial_rational_flint> right

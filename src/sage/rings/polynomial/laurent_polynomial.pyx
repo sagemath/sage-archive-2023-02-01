@@ -2,7 +2,15 @@ r"""
 Elements of Laurent polynomial rings
 """
 
-from sage.rings.integer import Integer
+#*****************************************************************************
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
+#                  http://www.gnu.org/licenses/
+#*****************************************************************************
+
+from sage.rings.integer cimport Integer
 from sage.structure.element import is_Element, coerce_binop
 from sage.misc.latex import latex
 import sage.misc.latex
@@ -320,7 +328,7 @@ cdef class LaurentPolynomial_univariate(LaurentPolynomial_generic):
 
     def __getitem__(self, i):
         """
-        Return the `i`-th coefficient or slice of ``self``.
+        Return the `i`-th coefficient of ``self``.
 
         EXAMPLES::
 
@@ -337,22 +345,29 @@ cdef class LaurentPolynomial_univariate(LaurentPolynomial_generic):
             0
             sage: f = -5/t^(10) + 1/3 + t + t^2 - 10/3*t^3; f
             -5*t^-10 + 1/3 + t + t^2 - 10/3*t^3
+
+        Slicing is deprecated::
+
             sage: f[-10:2]
+            doctest:...: DeprecationWarning: polynomial slicing with a start index is deprecated, use list() and slice the resulting list instead
+            See http://trac.sagemath.org/18940 for details.
             -5*t^-10 + 1/3 + t
             sage: f[0:]
             1/3 + t + t^2 - 10/3*t^3
             sage: f[:3]
             -5*t^-10 + 1/3 + t + t^2
             sage: f[-14:5:2]
-            -5*t^-10 + 1/3 + t^2
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: polynomial slicing with a step is not defined
         """
         if isinstance(i, slice):
             start = i.start - self.__n if i.start is not None else 0
             stop = i.stop - self.__n if i.stop is not None else self.__u.degree() + 1
-            f = self.__u[start:stop:i.step]
+            f = self.__u[start:stop:i.step]  # deprecation(18940)
             return LaurentPolynomial_univariate(self._parent, f, self.__n)
-        else:
-            return self.__u[i-self.__n]
+
+        return self.__u[i - self.__n]
 
     def __iter__(self):
         """

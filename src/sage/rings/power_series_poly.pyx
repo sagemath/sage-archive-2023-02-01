@@ -416,36 +416,17 @@ cdef class PowerSeries_poly(PowerSeries):
             ...
             IndexError: coefficient not known
             sage: f[1:4]
+            doctest:...: DeprecationWarning: polynomial slicing with a start index is deprecated, use list() and slice the resulting list instead
+            See http://trac.sagemath.org/18940 for details.
             -17/5*t^3 + O(t^5)
 
             sage: R.<t> = ZZ[[]]
             sage: f = (2-t)^5; f
             32 - 80*t + 80*t^2 - 40*t^3 + 10*t^4 - t^5
-            sage: f[2:4]
-            80*t^2 - 40*t^3
-            sage: f[5:9]
-            -t^5
-            sage: f[2:7:2]
-            80*t^2 + 10*t^4
-            sage: f[10:20]
-            0
-            sage: f[10:]
-            0
             sage: f[:4]
             32 - 80*t + 80*t^2 - 40*t^3
-
             sage: f = 1 + t^3 - 4*t^4 + O(t^7) ; f
             1 + t^3 - 4*t^4 + O(t^7)
-            sage: f[2:4]
-            t^3 + O(t^7)
-            sage: f[4:9]
-            -4*t^4 + O(t^7)
-            sage: f[2:7:2]
-            -4*t^4 + O(t^7)
-            sage: f[10:20]
-            O(t^7)
-            sage: f[10:]
-            O(t^7)
             sage: f[:4]
             1 + t^3 + O(t^7)
         """

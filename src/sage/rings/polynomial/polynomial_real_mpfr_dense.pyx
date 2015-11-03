@@ -204,11 +204,6 @@ cdef class PolynomialRealDense(Polynomial):
             x^5 + 5.0*x^4 + 10.*x^3 + 10.*x^2 + 5.0*x + 1.0
             sage: f[:3]
             10.*x^2 + 5.0*x + 1.0
-            sage: f[3:]
-            x^5 + 5.0*x^4 + 10.*x^3
-            sage: f[1:4]
-            10.*x^3 + 10.*x^2 + 5.0*x
-
         """
         cdef RealNumber r = <RealNumber>RealNumber(self._base_ring)
         mpfr_set(r.value, self._coeffs[i], self._base_ring.rnd)

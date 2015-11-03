@@ -43,6 +43,7 @@ TESTS::
 cdef is_FractionField, is_RealField, is_ComplexField
 cdef ZZ, QQ, RR, CC, RDF, CDF
 
+cimport cython
 import operator, copy, re
 
 import sage.rings.rational
@@ -57,6 +58,7 @@ import sage.rings.fraction_field_element
 import sage.rings.infinity as infinity
 from sage.misc.sage_eval import sage_eval
 from sage.misc.latex import latex
+from sage.misc.long cimport pyobject_to_long
 from sage.structure.factorization import Factorization
 from sage.structure.element import coerce_binop
 
@@ -940,7 +942,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
     def __getitem__(self, n):
         r"""
-        Return the `n`-th coefficient or slice of ``self``.
+        Return the `n`-th coefficient of ``self``.
 
         .. WARNING::
 
@@ -964,49 +966,46 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: list(f)[-1]
             1
 
-        TESTS:
+        Slices can be used to truncate polynomials::
 
-        Check that the step argument in a slice is taken into account
-        (see :trac:`18940`)::
+            sage: pol = R(range(8)); pol
+            7*x^7 + 6*x^6 + 5*x^5 + 4*x^4 + 3*x^3 + 2*x^2 + x
+            sage: pol[:6]
+            5*x^5 + 4*x^4 + 3*x^3 + 2*x^2 + x
 
-            sage: R.<x> = ZZ[]
-            sage: f = sum(x^j for j in range(5)); f
-            x^4 + x^3 + x^2 + x + 1
-            sage: f[-2:4:2]
-            x^2 + 1
+        Any other kind of slicing is deprecated or an error::
 
-        Negative values of the step argument are forbidden:
-
-            sage: f[3:-1:-2]
+            sage: f[1:3]
+            doctest:...: DeprecationWarning: polynomial slicing with a start index is deprecated, use list() and slice the resulting list instead
+            See http://trac.sagemath.org/18940 for details.
+            x
+            sage: f[1:3:2]
             Traceback (most recent call last):
             ...
-            IndexError: step (= -2) must be strictly positive
-
+            NotImplementedError: polynomial slicing with a step is not defined
         """
         cdef Py_ssize_t d = self.degree() + 1
         if isinstance(n, slice):
             start, stop, step = n.start, n.stop, n.step
-            if step is None:
-                step = 1
-            elif step <= 0:
-                raise IndexError("step (= %s) must be strictly positive" % step)
+            if step is not None:
+                raise NotImplementedError("polynomial slicing with a step is not defined")
             if start is None:
                 start = 0
-            elif start < 0:
-                start %= step
+            else:
+                if start < 0:
+                    start = 0
+                from sage.misc.superseded import deprecation
+                deprecation(18940, "polynomial slicing with a start index is deprecated, use list() and slice the resulting list instead")
             if stop is None or stop > d:
                 stop = d
-            if step == 1:
-                values = ([self.base_ring().zero()] * start
-                          + [self.get_unsafe(i) for i in xrange(start, stop)])
-            else:
-                values = {i: self.get_unsafe(i)
-                          for i in xrange(start, stop, step)}
+            values = ([self.base_ring().zero()] * start
+                      + [self.get_unsafe(i) for i in xrange(start, stop)])
             return self.parent()(values)
-        else:
-            if n < 0 or n >= d:
-                return self.base_ring().zero()
-            return self.get_unsafe(n)
+
+        cdef long k = pyobject_to_long(n)
+        if k < 0 or k >= d:
+            return self.base_ring().zero()
+        return self.get_unsafe(k)
 
     cdef get_unsafe(self, Py_ssize_t i):
         """
@@ -8004,6 +8003,8 @@ cdef class Polynomial_generic_dense(Polynomial):
     def __hash__(self):
         return self._hash_c()
 
+    @cython.boundscheck(False)
+    @cython.wraparound(False)
     cdef get_unsafe(self, Py_ssize_t n):
         """
         Return the `n`-th coefficient of ``self``.
@@ -8021,10 +8022,6 @@ cdef class Polynomial_generic_dense(Polynomial):
             0.0
             sage: f[:3]
             40.0*x^2 + 10.0*x + 1.0
-            sage: f[2:5]
-            80.0*x^4 + 80.0*x^3 + 40.0*x^2
-            sage: f[2:]
-            32.0*x^5 + 80.0*x^4 + 80.0*x^3 + 40.0*x^2
         """
         return self.__coeffs[n]
 

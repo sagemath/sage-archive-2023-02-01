@@ -300,12 +300,10 @@ cdef class Polynomial_integer_dense_ntl(Polynomial):
             sage: f[-1]
             0
             sage: f = 1 + x + 2*x^2 + 3*x^3 + 4*x^4 + 5*x^5
-            sage: f[2:4]
-            3*x^3 + 2*x^2
-            sage: f[-2:4]
+            sage: f[:4]
             3*x^3 + 2*x^2 + x + 1
-            sage: f[4:100]
-            5*x^5 + 4*x^4
+            sage: f[:100]
+            5*x^5 + 4*x^4 + 3*x^3 + 2*x^2 + x + 1
         """
         cdef Integer z = PY_NEW(Integer)
         ZZ_to_mpz(z.value, &self.__poly.rep.elts()[n])

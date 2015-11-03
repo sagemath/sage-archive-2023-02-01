@@ -244,9 +244,9 @@ cdef class Polynomial_zmod_flint(Polynomial_template):
             2252
             sage: f[-1]
             0
-            sage: f[1:3]
-            24998*x^2 + 29761*x
-            sage: f[-5:50] == f
+            sage: f[:2]
+            29761*x + 2252
+            sage: f[:50] == f
             True
         """
         cdef unsigned long c = nmod_poly_get_coeff_ui(&self.x, i)
@@ -502,10 +502,14 @@ cdef class Polynomial_zmod_flint(Polynomial_template):
 
             sage: P.<a>=GF(7)[]
             sage: b = P(range(10)); c = P(range(5, 15))
-            sage: (b._mul_trunc_opposite(c, 10))[10:18]
-            5*a^17 + 2*a^16 + 6*a^15 + 4*a^14 + 4*a^13 + 5*a^10
-            sage: (b._mul_trunc_opposite(c, 18))[18:]
-            0
+            sage: b._mul_trunc_opposite(c, 10)
+            5*a^17 + 2*a^16 + 6*a^15 + 4*a^14 + 4*a^13 + 5*a^10 + 2*a^9 + 5*a^8 + 4*a^5 + 4*a^4 + 6*a^3 + 2*a^2 + 5*a
+            sage: list(b._mul_trunc_opposite(c, 10))[10:18]
+            [5, 0, 0, 4, 4, 6, 2, 5]
+            sage: list(b*c)[10:18]
+            [5, 0, 0, 4, 4, 6, 2, 5]
+            sage: list(b._mul_trunc_opposite(c, 18))[18:]
+            []
 
         TESTS::
 

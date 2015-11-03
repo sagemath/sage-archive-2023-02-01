@@ -23,33 +23,6 @@ AUTHORS:
 #*****************************************************************************
 from sage.rings.arith import binomial
 
-def ChooseNK(n, k):
-    """
-    All possible choices of k elements out of range(n) without repetitions.
-
-    The elements of the output are tuples of Python int (and not Sage Integer).
-
-    This was deprecated in :trac:`10534` for :func:`Combinations`
-    (or ``itertools.combinations`` for doing iteration).
-
-    EXAMPLES::
-
-        sage: from sage.combinat.choose_nk import ChooseNK
-        sage: c = ChooseNK(4,2)
-        doctest:...: DeprecationWarning: ChooseNk is deprecated and will be
-        removed. Use Combinations instead (or combinations from the itertools
-        module for iteration)
-        See http://trac.sagemath.org/10534 for details.
-        sage: c.first()
-        [0, 1]
-        sage: c.list()
-        [[0, 1], [0, 2], [0, 3], [1, 2], [1, 3], [2, 3]]
-    """
-    from sage.misc.superseded import deprecation
-    deprecation(10534, "ChooseNk is deprecated and will be removed. Use Combinations instead (or combinations from the itertools module for iteration)")
-    from sage.combinat.combination import Combinations
-    return Combinations(n,k)
-
 #TODO: the following functions are used sage.combinat.combination and
 #      sage.combinat.subset. It might be good to move them somewhere else.
 def rank(comb, n, check=True):

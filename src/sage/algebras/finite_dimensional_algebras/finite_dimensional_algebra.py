@@ -44,7 +44,8 @@ class FiniteDimensionalAlgebra(UniqueRepresentation, Algebra):
 
     - ``assume_associative`` -- (default: ``False``) boolean; if
       ``True``, then methods requiring associativity assume this
-      without checking and sets the category as ``category.Associative()``
+      without checking, and the category is set to
+      ``category.Associative()``
 
     - ``category`` -- (default:
       ``MagmaticAlgebras(k).FiniteDimensional().WithBasis()``)

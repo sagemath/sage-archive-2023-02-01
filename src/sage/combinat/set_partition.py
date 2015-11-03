@@ -38,7 +38,6 @@ from sage.misc.inherit_comparison import InheritComparisonClasscallMetaclass
 from sage.rings.infinity import infinity
 from sage.rings.integer import Integer
 
-from sage.combinat.cartesian_product import CartesianProduct
 from sage.combinat.misc import IterableFunctionCall
 from sage.combinat.combinatorial_map import combinatorial_map
 import sage.combinat.subset as subset
@@ -845,7 +844,7 @@ class SetPartition(ClonableArray):
             [{}]
         """
         L = [SetPartitions(part) for part in self]
-        return [SetPartition(sum(map(list, x), [])) for x in CartesianProduct(*L)]
+        return [SetPartition(sum(map(list, x), [])) for x in itertools.product(*L)]
 
     def coarsenings(self):
         """
@@ -1118,7 +1117,7 @@ class SetPartitions(UniqueRepresentation, Parent):
 
         for b in blocs:
             lb = [IterableFunctionCall(_listbloc, nonzero[i][0], nonzero[i][1], b[i]) for i in range(len(nonzero))]
-            for x in itertools.imap(lambda x: _union(x), CartesianProduct( *lb )):
+            for x in itertools.imap(lambda x: _union(x), itertools.product( *lb )):
                 yield x
 
     def is_less_than(self, s, t):

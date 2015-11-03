@@ -122,7 +122,8 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
         False
         sage: Z.category()
         Join of Category of euclidean domains
-            and Category of infinite enumerated sets
+             and Category of infinite enumerated sets
+             and Category of metric spaces
         sage: Z(2^(2^5) + 1)
         4294967297
 
@@ -303,7 +304,7 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
             True
         """
         ParentWithGens.__init__(self, self, ('x',), normalize=False,
-                                category=(EuclideanDomains(), InfiniteEnumeratedSets()))
+                                category=(EuclideanDomains(), InfiniteEnumeratedSets().Metric()))
         self._populate_coercion_lists_(element_constructor=integer.Integer,
                                        init_no_parent=True,
                                        convert_method_name='_integer_')
@@ -1245,9 +1246,9 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
         elif n == 2:
             return sage.rings.integer.Integer(-1)
         elif n < 1:
-            raise ValueError, "n must be positive in zeta()"
+            raise ValueError("n must be positive in zeta()")
         else:
-            raise ValueError, "no nth root of unity in integer ring"
+            raise ValueError("no nth root of unity in integer ring")
 
     def parameter(self):
         r"""

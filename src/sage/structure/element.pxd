@@ -148,5 +148,6 @@ cdef class CoercionModel:
     cpdef canonical_coercion(self, x, y)
     cpdef bin_op(self, x, y, op)
 
+cdef CoercionModel coercion_model
 
 cdef generic_power_c(a, nn, one)

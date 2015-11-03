@@ -200,7 +200,7 @@ class AlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
 
         def __invert__(self):
             """
-            Returns the inverse of self if self is a multiple of one,
+            Return the inverse of ``self`` if ``self`` is a multiple of one,
             and one is in the basis of this algebra. Otherwise throws
             an error.
 
@@ -208,6 +208,14 @@ class AlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
             may be invertible elements in the algebra that can't be
             inversed this way. It is correct though for graded
             connected algebras with basis.
+
+            .. WARNING::
+
+                This might produce a result which does not belong to
+                the parent of ``self``, yet believes to do so. For
+                instance, inverting 2 times the unity will produce 1/2
+                times the unity, even if 1/2 is not in the base ring.
+                Handle with care.
 
             EXAMPLES::
 
@@ -224,17 +232,18 @@ class AlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
                 ValueError: cannot invert self (= B[word: a])
             """
             # FIXME: make this generic
-            mcs = self._monomial_coefficients
+            mcs = self.monomial_coefficients(copy=False)
             one = self.parent().one_basis()
             if len(mcs) == 1 and one in mcs:
-                return self.parent()( ~mcs[ one ] )
+                return self.parent().term(one, ~mcs[one])
             else:
                 raise ValueError("cannot invert self (= %s)"%self)
 
 
     class CartesianProducts(CartesianProductsCategory):
         """
-        The category of algebras with basis, constructed as cartesian products of algebras with basis
+        The category of algebras with basis, constructed as cartesian
+        products of algebras with basis.
 
         Note: this construction give the direct products of algebras with basis.
         See comment in :class:`Algebras.CartesianProducts

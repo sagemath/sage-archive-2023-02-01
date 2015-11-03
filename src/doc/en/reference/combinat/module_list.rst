@@ -118,7 +118,9 @@ Comprehensive Module list
     sage/combinat/graph_path
     sage/combinat/gray_codes
     sage/combinat/hall_polynomial
-    sage/combinat/integer_list
+    sage/combinat/integer_lists/base
+    sage/combinat/integer_lists/lists
+    sage/combinat/integer_lists/invlex
     sage/combinat/integer_matrices
     sage/combinat/integer_vector
     sage/combinat/integer_vector_weighted
@@ -169,6 +171,7 @@ Comprehensive Module list
     sage/combinat/posets/incidence_algebras
     sage/combinat/posets/lattices
     sage/combinat/posets/linear_extensions
+    sage/combinat/posets/moebius_algebra
     sage/combinat/posets/poset_examples
     sage/combinat/posets/posets
     sage/combinat/q_analogues
@@ -210,6 +213,7 @@ Comprehensive Module list
     sage/combinat/root_system/cartan_type
     sage/combinat/root_system/coxeter_group
     sage/combinat/root_system/coxeter_matrix
+    sage/combinat/root_system/coxeter_type
     sage/combinat/root_system/dynkin_diagram
     sage/combinat/root_system/hecke_algebra_representation
     sage/combinat/root_system/integrable_representations

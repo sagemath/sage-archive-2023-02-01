@@ -1161,8 +1161,7 @@ v            EXAMPLES::
                     if i == len(x):
                         continue
                     a, b = x[i], y[i]
-                    I = P.index_set()
-                    m = P.coxeter_matrix()[I.index(a),I.index(b)]
+                    m = P.coxeter_matrix()[a,b]
                     subword = [a,b] * (m // 2)
                     subword2 = [b,a] * (m // 2)
                     if m % 2 != 0:

@@ -1673,8 +1673,11 @@ from sage.categories.category_cy_helper import AxiomContainer, canonicalize_axio
 
 all_axioms = AxiomContainer()
 all_axioms += ("Flying", "Blue",
+               "Compact",
+               "Differentiable", "Smooth", "Analytic", "AlmostComplex",
                "FinitelyGeneratedAsMagma",
                "Facade", "Finite", "Infinite",
+               "Complete",
                "FiniteDimensional", "Connected", "WithBasis",
                "Irreducible",
                "Commutative", "Associative", "Inverse", "Unital", "Division", "NoZeroDivisors",

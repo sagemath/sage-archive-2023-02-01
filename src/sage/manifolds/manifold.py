@@ -322,6 +322,14 @@ class TopologicalManifold(TopologicalManifoldSubset):
     - ``ambient_manifold`` -- (default: ``None``) if not ``None``, the created
       object is considered as an open subset of the topological manifold
       ``ambient_manifold``
+    - ``unique_tag`` -- (default: ``None``) tag used to force the construction
+      of a new object when all the other arguments have been used previously
+      (without ``unique_tag``, the
+      :class:`~sage.structure.unique_representation.UniqueRepresentation`
+      behavior inherited from
+      :class:`~sage.manifolds.subset.TopologicalManifoldSubset`
+      would return the previously constructed object corresponding to these
+      arguments).
 
     EXAMPLES:
 
@@ -423,7 +431,7 @@ class TopologicalManifold(TopologicalManifoldSubset):
 
     """
     def __init__(self, n, name, latex_name=None, field='real', start_index=0,
-                 category=None, ambient_manifold=None):
+                 category=None, ambient_manifold=None, unique_tag=None):
         r"""
         Construct a topological manifold.
 
@@ -542,106 +550,6 @@ class TopologicalManifold(TopologicalManifoldSubset):
 
         """
         return self._latex_name
-
-    def __hash__(self):
-        r"""
-        Hash function.
-
-        TESTS::
-
-            sage: M = Manifold(3, 'M', type='topological')
-            sage: M.__hash__()  # random
-            9122374470132259666
-
-        """
-        return hash((self._dim, self._field, self._name))
-
-    def __eq__(self, other):
-        r"""
-        Compare ``self`` with ``other``.
-
-        TESTS::
-
-            sage: M = Manifold(3, 'M', type='topological')
-            sage: N = Manifold(3, 'M', type='topological')
-            sage: M.__eq__(N)
-            True
-            sage: N = Manifold(3, 'N', type='topological')  # change the name
-            sage: M.__eq__(N)
-            False
-            sage: N = Manifold(2, 'M', type='topological')  # change the dimension
-            sage: M.__eq__(N)
-            False
-            sage: N = Manifold(3, 'M', type='topological', field='complex')  # change the base field
-            sage: M.__eq__(N)
-            False
-
-        """
-        if not isinstance(other, TopologicalManifold):
-            return False
-        return (self._dim == other._dim) and (self._field == other._field) \
-               and (self._name == other._name)
-        #!# this is rather primitive: the atlases should be compared as well...
-
-    def __ne__(self, other):
-        r"""
-        Non-equality operator.
-
-        TESTS::
-
-            sage: M = Manifold(3, 'M', type='topological')
-            sage: N = Manifold(3, 'M', type='topological')
-            sage: M.__ne__(N)
-            False
-            sage: N = Manifold(3, 'N', type='topological')  # change the name
-            sage: M.__ne__(N)
-            True
-
-        """
-        return not self.__eq__(other)
-
-    def __reduce__(self):
-        r"""
-        Reduction function for the pickle protocole.
-
-        TESTS::
-
-            sage: M = Manifold(3, 'M', type='topological')
-            sage: M.__reduce__()
-            (<class 'sage.manifolds.manifold.TopologicalManifold'>,
-             (3,
-              'M',
-              'M',
-              Real Field with 53 bits of precision,
-              0,
-              Category of manifolds over Real Field with 53 bits of precision,
-              None))
-            sage: U = M.open_subset('U')
-            sage: U.__reduce__()
-            (<class 'sage.manifolds.manifold.TopologicalManifold'>,
-             (3,
-              'U',
-              'U',
-              Real Field with 53 bits of precision,
-              0,
-              Category of facade manifolds over Real Field with 53 bits of precision,
-              3-dimensional topological manifold M))
-
-        Tests of pickling::
-
-            sage: loads(dumps(M)) == M
-            True
-            sage: loads(dumps(U)) == U
-            True
-
-        """
-        if self._manifold is self:
-            ambient_manifold = None
-        else:
-            ambient_manifold = self._manifold
-        return (TopologicalManifold, (self._dim, self._name, self._latex_name,
-                                      self._field, self._sindex,
-                                      self.category(), ambient_manifold))
 
     def _an_element_(self):
         r"""
@@ -1491,7 +1399,7 @@ def Manifold(dim, name, latex_name=None, field='real', type='smooth',
     - ``start_index`` -- (default: 0) integer; lower value of the range of
       indices used for "indexed objects" on the manifold, e.g. coordinates
       in a chart
-    - ``extra_kwds`` -- keywords meaningful only for specific types of
+    - ``extra_kwds`` -- keywords meaningful only for some specific types of
       manifolds
 
     OUTPUT:
@@ -1527,10 +1435,72 @@ def Manifold(dim, name, latex_name=None, field='real', type='smooth',
     :class:`~sage.manifolds.manifold.TopologicalManifold` for more
     detailed examples.
 
+    .. RUBRIC:: Reusability of the manifold name
+
+    Suppose we construct a manifold named `M`::
+
+        sage: M = Manifold(2, 'M', type='topological')
+        sage: X.<x,y> = M.chart()
+
+    At some point, we change our mind and would like to restart with a new
+    manifold, using the same name `M` and keeping the previous manifold for
+    reference::
+
+        sage: M_old = M  # for reference
+        sage: M = Manifold(2, 'M', type='topological')
+
+    This results in a brand new object::
+
+        sage: M.atlas()
+        []
+
+    The object ``M_old`` is intact::
+
+        sage: M_old.atlas()
+        [Chart (M, (x, y))]
+
+    Both objects have the same display::
+
+        sage: M
+        2-dimensional topological manifold M
+        sage: M_old
+        2-dimensional topological manifold M
+
+    but they are different::
+
+        sage: M != M_old
+        True
+
+    Let us introduce a chart on ``M``, using the same coordinate symbols as
+    for ``M_old``::
+
+        sage: X.<x,y> = M.chart()
+
+    The charts are displayed in the same way::
+
+        sage: M.atlas()
+        [Chart (M, (x, y))]
+        sage: M_old.atlas()
+        [Chart (M, (x, y))]
+
+    but they are actually different::
+
+        sage: M.atlas()[0] != M_old.atlas()[0]
+        True
+
+    The pickling works for both objects::
+
+        sage: loads(dumps(M)) == M
+        True
+        sage: loads(dumps(M_old)) == M_old
+        True
+
     """
+    from time import time
     type_ = type  # in case the built-in function type is to be restored...
     if type_ in ['topological', 'top']:
         return TopologicalManifold(dim, name, latex_name=latex_name,
-                                   field=field, start_index=start_index)
+                                   field=field, start_index=start_index,
+                                   unique_tag=time())
     raise NotImplementedError("manifolds of type {} are not ".format(type_) +
                               "implemented")

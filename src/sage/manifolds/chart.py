@@ -33,6 +33,7 @@ REFERENCES:
 #*****************************************************************************
 
 from sage.structure.sage_object import SageObject
+from sage.structure.unique_representation import UniqueRepresentation
 from sage.symbolic.ring import SR
 from sage.rings.all import CC
 from sage.rings.real_mpfr import RR
@@ -40,7 +41,7 @@ from sage.rings.infinity import Infinity
 from sage.misc.latex import latex
 from sage.manifolds.manifold import TopologicalManifold
 
-class Chart(SageObject):
+class Chart(UniqueRepresentation, SageObject):
     r"""
     Chart on a topological manifold.
 
@@ -251,7 +252,6 @@ class Chart(SageObject):
         if coordinates == '':
             for x in names:
                 coordinates += x + ' '
-        self._coordinate_string = coordinates[:-1]  # for pickling (cf. __reduce__)
         self._manifold = domain.manifold()
         self._domain = domain
         # Treatment of the coordinates:
@@ -390,131 +390,6 @@ class Chart(SageObject):
 
         """
         return self[:]
-
-    def __hash__(self):
-        r"""
-        Hash function.
-
-        TEST::
-
-            sage: M = Manifold(2, 'M', type='topological')
-            sage: X.<x,y> = M.chart()
-            sage: X.__hash__()  # random
-            -4817665684801967664
-
-        """
-        return hash((self._domain,) + self._xx)
-
-    def __eq__(self, other):
-        r"""
-        Compare ``self`` with ``other``.
-
-        TESTS::
-
-            sage: M = Manifold(2, 'M', type='topological')
-            sage: X.<x,y> = M.chart()
-            sage: Y.<u,v> = M.chart()
-            sage: X.__eq__(Y)
-            False
-            sage: X.__eq__(X)
-            True
-            sage: U = M.open_subset('U', coord_def={X: x>0})
-            sage: XU = X.restrict(U)
-            sage: XU.__eq__(X)
-            False
-
-        """
-        if not isinstance(other, Chart):
-            return False
-        return (self._domain == other._domain) and (self._xx == other._xx)
-
-    def __ne__(self, other):
-        r"""
-        Non-equality operator.
-
-        TESTS::
-
-            sage: M = Manifold(2, 'M', type='topological')
-            sage: X.<x,y> = M.chart()
-            sage: Y.<u,v> = M.chart()
-            sage: X.__ne__(Y)
-            True
-            sage: X.__ne__(X)
-            False
-
-        """
-        return not self.__eq__(other)
-
-    def __reduce__(self):
-        r"""
-        Reduction function for the pickle protocole.
-
-        TESTS::
-
-            sage: M = Manifold(2, 'M', type='topological')
-            sage: X.<x,y> = M.chart()
-            sage: X.__reduce__()
-            (<class 'sage.manifolds.chart.RealChart'>,
-             (2-dimensional topological manifold M, 'x y'),
-             [])
-            sage: X.add_restrictions(x^2 + y^2 < 1)
-            sage: X.__reduce__()
-            (<class 'sage.manifolds.chart.RealChart'>,
-             (2-dimensional topological manifold M, 'x y'),
-             [x^2 + y^2 < 1])
-
-        Test of pickling::
-
-            sage: loads(dumps(X)) == X
-            True
-
-        """
-        return (self.__class__, (self._domain, self._coordinate_string),
-                self.__getstate__())
-
-    def __getstate__(self):
-        r"""
-        Return the attributes of ``self`` that have been set after
-        the construction of the object.
-
-        This is used in pickling, to handle the coordinate restrictions,
-        since the latter have been defined by calls to
-        ``self.add_restrictions()`` and not at the object construction.
-
-        TESTS::
-
-            sage: M = Manifold(2, 'M', type='topological')
-            sage: X.<x,y> = M.chart()
-            sage: X.__getstate__()
-            []
-            sage: X.add_restrictions(x^2 + y^2 < 1)
-            sage: X.__getstate__()
-            [x^2 + y^2 < 1]
-
-        """
-        return self._restrictions
-
-    def __setstate__(self, coord_restrictions):
-        r"""
-        Set the attributes of ``self`` that are not initialized at the object
-        construction.
-
-        This is used in unpickling, to handle the coordinate restrictions,
-        since the latter have been defined by calls to
-        ``self.add_restrictions()`` and not at the object construction.
-
-        TESTS::
-
-            sage: M = Manifold(2, 'M', type='topological')
-            sage: X.<x,y> = M.chart()
-            sage: X._restrictions
-            []
-            sage: X.__setstate__([x^2+y^2<1])
-            sage: X._restrictions
-            [x^2 + y^2 < 1]
-
-        """
-        self._restrictions = coord_restrictions
 
     def __getitem__(self, i):
         r"""
@@ -898,7 +773,7 @@ class Chart(SageObject):
             [2-dimensional topological manifold R^2,
              Open subset U of the 2-dimensional topological manifold R^2]
 
-        ... but a new chart has been created: `(U, (x, y))`::
+        but a new chart has been created: `(U, (x, y))`::
 
             sage: M.atlas()
             [Chart (R^2, (x, y)), Chart (U, (r, phi)), Chart (U, (x, y))]

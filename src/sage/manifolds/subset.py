@@ -71,10 +71,11 @@ Lists of subsets after the above operations::
 #*****************************************************************************
 
 from sage.structure.parent import Parent
+from sage.structure.unique_representation import UniqueRepresentation
 from sage.categories.sets_cat import Sets
 from sage.manifolds.point import TopologicalManifoldPoint
 
-class TopologicalManifoldSubset(Parent):
+class TopologicalManifoldSubset(UniqueRepresentation, Parent):
     r"""
     Subset of a topological manifold.
 
@@ -354,80 +355,6 @@ class TopologicalManifoldSubset(Parent):
 
         """
         return self._latex_name
-
-    def __hash__(self):
-        r"""
-        Hash function.
-
-        TEST::
-
-            sage: M = Manifold(3, 'M', type='topological')
-            sage: A = M.subset('A')
-            sage: A.__hash__()  # random
-            1649998564335275777
-
-        """
-        return hash((self._manifold, self._name))
-
-
-    def __eq__(self, other):
-        r"""
-        Compare ``self`` with ``other``.
-
-        TESTS::
-
-            sage: M = Manifold(3, 'M', type='topological')
-            sage: A = M.subset('A')
-            sage: B = M.subset('B')
-            sage: A.__eq__(A)
-            True
-            sage: A.__eq__(B)
-            False
-
-        """
-        if not isinstance(other, TopologicalManifoldSubset):
-            return False
-        return (self._manifold == other._manifold) and \
-               (self._name == other._name)
-
-    def __ne__(self, other):
-        r"""
-        Non-equality operator.
-
-        TESTS::
-
-            sage: M = Manifold(3, 'M', type='topological')
-            sage: A = M.subset('A')
-            sage: B = M.subset('B')
-            sage: A.__ne__(A)
-            False
-            sage: A.__ne__(B)
-            True
-
-        """
-        return not self.__eq__(other)
-
-    def __reduce__(self):
-        r"""
-        Reduction function for the pickle protocole.
-
-        TEST::
-
-            sage: M = Manifold(3, 'M', type='topological')
-            sage: A = M.subset('A')
-            sage: A.__reduce__()
-            (<class 'sage.manifolds.subset.TopologicalManifoldSubset'>,
-             (3-dimensional topological manifold M, 'A', 'A',
-              Category of facade sets))
-
-        Test of pickling::
-
-            sage: loads(dumps(A)) == A
-            True
-
-        """
-        return (TopologicalManifoldSubset, (self._manifold, self._name,
-                                            self._latex_name, self.category()))
 
     def manifold(self):
         r"""

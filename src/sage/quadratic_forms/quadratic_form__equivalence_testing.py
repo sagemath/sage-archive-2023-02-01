@@ -327,7 +327,6 @@ def is_rationally_isometric(self, other):
 
     INPUT:
 
-<<<<<<< HEAD
     a quadratic form
 
     OUTPUT:
@@ -555,6 +554,7 @@ def isometry(self, other):
     sage: E.Gram_matrix() == T.transpose() * F.Gram_matrix() * T
     True
     """
+    import copy
     from sage.matrix.constructor import Matrix
     ##Define a method that determines whether or not a matrix is diagonal.
     def is_diagonal(matrix):
@@ -592,6 +592,7 @@ def isometry(self, other):
 ##Helper method for isometry.
 def diagonal_isometry(V, W):
 ##Computes an isometry between diagonal equivalent forms V and W.
+    import copy
     from sage.functions.other import sqrt
     from quadratic_form import DiagonalQuadraticForm
     from sage.matrix.constructor import matrix, column_matrix, Matrix
@@ -710,4 +711,3 @@ def diagonal_isometry(V, W):
         f_basis.set_col_to_multiple_of_col(n-1, n-1, sqrt(QM[0][0] / FM[0][0]))
 
     return f_basis * q_basis.inverse()
-

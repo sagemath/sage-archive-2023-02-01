@@ -1919,7 +1919,11 @@ class Graph(GenericGraph):
             forest = Graph([])
             forest.add_vertices(self.vertices())
             forest.add_edges(self.bridges())
-            return _recursive_spanning_trees(self, forest)
+            if getattr(self, "_immutable", False):
+                G = copy(self)
+            else:
+                G = self
+            return _recursive_spanning_trees(G, forest)
         else:
             return []
 
@@ -5069,7 +5073,7 @@ class Graph(GenericGraph):
             True
         """
         from itertools import product
-        G = self if inplace else self.copy()
+        G = self if inplace else copy(self)
         boundary = self.edge_boundary(s)
         G.add_edges(product(s, set(self).difference(s)))
         G.delete_edges(boundary)
@@ -5366,7 +5370,7 @@ class Graph(GenericGraph):
             return False
 
 
-        minor = G.subgraph()
+        minor = G.subgraph(immutable=False)
 
         is_repr = p.get_values(is_repr)
         v_repr = p.get_values(v_repr)
@@ -6680,7 +6684,7 @@ class Graph(GenericGraph):
         flow,edges,[U,V] = self.edge_cut(u, v, use_edge_labels=True, vertices=True, method=method)
 
         # One graph for each part of the previous one
-        gU,gV = self.subgraph(U), self.subgraph(V)
+        gU,gV = self.subgraph(U, immutable=False), self.subgraph(V, immutable=False)
 
         # A fake vertex fU (resp. fV) to represent U (resp. V)
         fU = frozenset(U)

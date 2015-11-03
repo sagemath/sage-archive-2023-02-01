@@ -13,7 +13,7 @@ def rank(comb, n, check=True):
 
         sage: import sage.combinat.choose_nk as choose_nk
         sage: choose_nk.rank((), 3)
-        doctest:1: DeprecationWarning: choose_nk.rank is deprecated and will be removed. Use combination.rank instead
+        doctest:...: DeprecationWarning: choose_nk.rank is deprecated and will be removed. Use combination.rank instead
         See http://trac.sagemath.org/18674 for details.
         0
         sage: choose_nk.rank((0,), 3)
@@ -61,7 +61,7 @@ def from_rank(r, n, k):
 
         sage: import sage.combinat.choose_nk as choose_nk
         sage: choose_nk.from_rank(0,3,0)
-        doctest:1: DeprecationWarning: choose_nk.from_rank is deprecated and will be removed. Use combination.from_rank instead
+        doctest:...: DeprecationWarning: choose_nk.from_rank is deprecated and will be removed. Use combination.from_rank instead
         See http://trac.sagemath.org/18674 for details.
         ()
         sage: choose_nk.from_rank(0,3,1)

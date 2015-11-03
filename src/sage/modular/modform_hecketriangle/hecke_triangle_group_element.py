@@ -23,6 +23,7 @@ from sage.misc.cachefunc import cached_method
 from sage.rings.all import AA, QQbar, ZZ, infinity
 
 from sage.groups.matrix_gps.group_element import MatrixGroupElement_generic
+from sage.geometry.hyperbolic_space.hyperbolic_interface import HyperbolicPlane
 
 
 # We want to simplify p after the coercion (pari bug for AA)
@@ -3141,10 +3142,6 @@ class HeckeTriangleGroupElement(MatrixGroupElement_generic):
             return self*tau*self.inverse()
 
         # if tau is a point of HyperbolicPlane then we use it's coordinates in the UHP model
-        # TODO: Make it possible to interpret elements as isometries of the HyperbolicPlane
-        #       and possibly use/implement actions using the HyperbolicPlane model
-        from sage.geometry.hyperbolic_space.hyperbolic_interface import HyperbolicPlane
-
         model = None
         if (tau in HyperbolicPlane()):
             model = tau.model()
@@ -3167,10 +3164,33 @@ class HeckeTriangleGroupElement(MatrixGroupElement_generic):
         else:
             return HyperbolicPlane().UHP().get_point(result).to_model(model)
 
-    # def _act_on_(self, other, self_on_left):
-    #     TODO: implement default actions for "suitable" other
-    #     if (self_on_left):
-    #         return self.acton(other)
+    # TODO: extend the action to more general settings, e.g. try if other coerces into HyperbolicPlane()
+    #       Note however that the group also acts on itself by conjugation. So it's not completely clear
+    #       what exactly should be the default action...
+    def _act_on_(self, other, self_on_left):
+        r"""
+        Defines what Hecke triangle group elements act on using :meth:`acton`.
+        For now only the action on HyperbolicPlane() is enabled.
+
+        EXAMPLES::
+
+            sage: from sage.modular.modform_hecketriangle.hecke_triangle_groups import HeckeTriangleGroup
+            sage: G = HeckeTriangleGroup(5)
+            sage: p = HyperbolicPlane().PD().get_point(I)
+            sage: G.U()*p
+            Boundary point in PD 1/2*(sqrt(5) - 2*I + 1)/(-1/2*I*sqrt(5) - 1/2*I + 1)
+            sage: G.S()*G.U()*p == G.S()*(G.U()*p)
+            True
+            sage: G.S()*G.U()*p == (G.S()*G.U())*p
+            True
+            sage: (G.S()*G.U())*p == G.S()*(G.U()*p)
+            True
+        """
+
+        if (self_on_left):
+            if (other in HyperbolicPlane()):
+                return self.acton(other)
+        return None
 
     def slash(self, f, tau=None, k=None):
         r"""
@@ -3256,14 +3276,12 @@ class HeckeTriangleGroupElement(MatrixGroupElement_generic):
             except (ValueError, TypeError, AttributeError):
                 raise ValueError("f={} is not a rational function or a polynomial in one variable, so tau has to be specfied explicitely!".format(f))
 
-        from sage.geometry.hyperbolic_space.hyperbolic_interface import HyperbolicPlane
-
         if (tau in HyperbolicPlane()):
             tau = tau.to_model('UHP').coordinates()
 
         return (self.c()*tau + self.d())**(-k) * f(self.acton(tau))
 
-    def as_isometry(self):
+    def as_hyperbolic_plane_isometry(self, model="UHP"):
         r"""
         Return ``self`` as an isometry of ``HyperbolicPlane()`` (in the upper half plane model).
 
@@ -3271,14 +3289,14 @@ class HeckeTriangleGroupElement(MatrixGroupElement_generic):
 
             sage: from sage.modular.modform_hecketriangle.hecke_triangle_groups import HeckeTriangleGroup
             sage: el = HeckeTriangleGroup(7).V(4)
-            sage: el.as_isometry()
+            sage: el.as_hyperbolic_plane_isometry()
             Isometry in UHP
             [lam^2 - 1       lam]
             [lam^2 - 1 lam^2 - 1]
-            sage: el.as_isometry().parent()
+            sage: el.as_hyperbolic_plane_isometry().parent()
             Set of Morphisms from Hyperbolic plane in the Upper Half Plane Model model to Hyperbolic plane in the Upper Half Plane Model model in Category of hyperbolic models of Hyperbolic plane
+            sage: el.as_hyperbolic_plane_isometry("KM").parent()
+            Set of Morphisms from Hyperbolic plane in the Klein Disk Model model to Hyperbolic plane in the Klein Disk Model model in Category of hyperbolic models of Hyperbolic plane
         """
 
-        from sage.geometry.hyperbolic_space.hyperbolic_interface import HyperbolicPlane
-
-        return HyperbolicPlane().UHP().get_isometry(self.matrix())
+        return HyperbolicPlane().UHP().get_isometry(self.matrix()).to_model(model)

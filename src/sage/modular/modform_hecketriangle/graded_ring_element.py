@@ -2082,9 +2082,7 @@ class FormsRingElement(CommutativeAlgebraElement, UniqueRepresentation):
             sage: (f.q_expansion_fixed_d().polynomial())(exp((2*pi*i).n(1000)*az/G.lam()))    # long time
             -140.471170232432551196978... + 469.079369280804086032719...*I
 
-        It is possible to evaluate at points of ``HyperbolicPlane()``:
-
-        ::
+        It is possible to evaluate at points of ``HyperbolicPlane()``::
 
             sage: p = HyperbolicPlane().PD().get_point(-I/2)
             sage: bool(p.to_model('UHP').coordinates() == I/3)

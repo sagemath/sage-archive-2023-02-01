@@ -8169,7 +8169,7 @@ class GenericGraph(GenericGraph_pyx):
         """
         self._scream_if_not_simple(allow_loops=True)
         from sage.numerical.mip import MixedIntegerLinearProgram
-        g=copy(self)
+        g=self
         p=MixedIntegerLinearProgram(maximization=True, solver = solver)
 
         # Adding the intensity if not present

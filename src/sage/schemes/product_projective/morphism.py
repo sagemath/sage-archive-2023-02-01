@@ -20,6 +20,7 @@ EXAMPLES::
 # the License, or (at your option) any later version.
 # http://www.gnu.org/licenses/
 #*****************************************************************************
+from sage.categories.homset        import Hom
 from sage.schemes.generic.morphism import SchemeMorphism_polynomial
 
 
@@ -164,3 +165,58 @@ class ProductProjectiveSpaces_morphism_ring(SchemeMorphism_polynomial):
         Q = P[0]._coords + P[1]._coords
         newP = [f(Q) for f in self.defining_polynomials()]
         return(A.point(newP, check))
+
+    def is_morphism(self):
+        r"""
+        Returns ``True`` if ``self`` is a morphism of products of projective spaces. This is determined by checking
+        that the coordinates of ``self`` corresponding to each component space have no common zeros.
+
+        OUTPUT:
+
+        - Boolean
+
+        EXAMPLES::
+
+            sage: Z.<a,b,x,y,z> = ProductProjectiveSpaces([1,2],QQ)
+            sage: H = Hom(Z,Z)
+            sage: f = H([a^2,b^2,x*z-y*z,x^2-y^2,z^2])
+            sage: f.is_morphism()
+            False
+
+        ::
+
+            sage: Z.<a,b,c,x,y,z> = ProductProjectiveSpaces([2,2],CC)
+            sage: H = Hom(Z,Z)
+            sage: f = H([a^3-a*b*c,b^3,c^3,x^2,x^2+y^2,CC.0*z^2])
+            sage: f.is_morphism()
+            True
+        """
+        Z = self.domain().ambient_space()
+        counter = 0
+        for t in range(Z.num_components()):
+            M = Z.dimension_relative_components()[t] + 1
+            R = Z._components[t].coordinate_ring()
+            F = [self._polys[k] for k in range(counter,M+counter)]
+            H = Hom(Z.coordinate_ring(),R)
+            l = []
+            for i in range(0,len(Z.coordinate_ring().gens())):
+                if i in range(counter, M+counter):
+                    l.append(R.gens()[i-counter])
+                else:
+                    l.append(R(0))
+            phi = H(l)
+            F = [phi(f) for f in F]
+
+            defpolys = list(Z._components[t].defining_polynomials())
+            if R.base_ring().is_field():
+                F.extend(defpolys)
+                J = R.ideal(F)
+            else:
+                S = PolynomialRing(R.base_ring().fraction_field(), R.gens(), R.ngens())
+                L = [S(f) for f in F] + [S(f) for f in defpolys]
+                J = S.ideal(L)
+            if J.dimension() > 0:
+                return False
+            counter = counter + M
+
+        return True

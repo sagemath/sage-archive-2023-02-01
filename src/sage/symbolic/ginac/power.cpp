@@ -779,14 +779,12 @@ bool power::has(const ex & other, unsigned options) const
 		return basic::has(other, options);
 	if (exponent.info(info_flags::posint)
 			&& other.op(1).info(info_flags::posint)
-			&& ex_to<numeric>(exponent).to_int()
-					> ex_to<numeric>(other.op(1)).to_int()
+			&& ex_to<numeric>(exponent)	> ex_to<numeric>(other.op(1))
 			&& basis.match(other.op(0)))
 		return true;
 	if (exponent.info(info_flags::negint)
 			&& other.op(1).info(info_flags::negint)
-			&& ex_to<numeric>(exponent).to_int()
-					< ex_to<numeric>(other.op(1)).to_int()
+			&& ex_to<numeric>(exponent) < ex_to<numeric>(other.op(1))
 			&& basis.match(other.op(0)))
 		return true;
 	return basic::has(other, options);

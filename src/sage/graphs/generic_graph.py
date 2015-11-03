@@ -4239,7 +4239,7 @@ class GenericGraph(GenericGraph_pyx):
 
         # A local copy of self
         from sage.graphs.planarity import is_planar
-        graph = self.to_undirected()
+        graph = self.to_undirected(immutable=False)
         if hasattr(graph, '_embedding'):
             del(graph._embedding)
 
@@ -4357,7 +4357,7 @@ class GenericGraph(GenericGraph_pyx):
         """
         from sage.graphs.schnyder import _triangulate, _normal_label, _realizer, _compute_coordinates
 
-        G = self.to_undirected()
+        G = self.to_undirected(immutable=False)
         try:
             G._embedding = self._embedding
         except AttributeError:
@@ -4626,7 +4626,7 @@ class GenericGraph(GenericGraph_pyx):
         if not self.is_connected():
             raise TypeError("Graph must be connected to use Euler's Formula to compute minimal genus.")
 
-        G = self.to_simple()
+        G = self.to_simple(immutable=False)
         verts = G.order()
         edges = G.size()
 
@@ -8169,7 +8169,7 @@ class GenericGraph(GenericGraph_pyx):
         """
         self._scream_if_not_simple(allow_loops=True)
         from sage.numerical.mip import MixedIntegerLinearProgram
-        g=self
+        g=copy(self)
         p=MixedIntegerLinearProgram(maximization=True, solver = solver)
 
         # Adding the intensity if not present
@@ -8358,7 +8358,7 @@ class GenericGraph(GenericGraph_pyx):
                     g.set_edge_label(u,v, int(round(l)))
 
         # returning a graph with the same embedding, the corresponding name, etc ...
-        h = self.subgraph(edges=[])
+        h = self.subgraph(edges=[], immutable=False)
         h.delete_vertices([v for v in self if (v not in g) or g.degree(v)==0])
         h.add_edges(g.edges())
 
@@ -12386,7 +12386,7 @@ class GenericGraph(GenericGraph_pyx):
         # As we will be deleting vertices ...
         g = copy(self)
 
-        for cc in self.connected_components_subgraphs():
+        for cc in g.connected_components_subgraphs():
 
             # We pick a perfect elimination order for every connected
             # component. We will then iteratively take the last vertex

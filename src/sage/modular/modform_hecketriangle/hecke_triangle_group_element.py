@@ -3195,10 +3195,13 @@ class HeckeTriangleGroupElement(MatrixGroupElement_generic):
             sage: p = CC(-i + sqrt(2))
             sage: G.U()*p
             1.14662946795886 - 0.333333333333333*I
+            sage: p = infinity
+            sage: G.U()*p
+            lam
         """
 
         if (self_on_left):
-            if (other in CC or other in HyperbolicPlane()):
+            if (other == infinity or other in CC or other in HyperbolicPlane()):
                 return self.acton(other)
         return None
 

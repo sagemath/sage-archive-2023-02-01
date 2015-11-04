@@ -4245,39 +4245,66 @@ class FiniteWord_class(Word_class):
         r"""
         Returns the number of times self appears in other as a subword.
 
+        This corresponds to the notion of `binomial coefficient` of two
+        finite words whose properties are presented in the chapter of
+        Lothaire's book written by Sakarovitch and Simon [1].
+
+        INPUT:
+
+        - ``other`` -- finite word
+
         EXAMPLES::
 
-            sage: Word().nb_subword_occurrences_in(Word('123'))
-            Traceback (most recent call last):
-            ...
-            NotImplementedError: undefined value
-            sage: Word('123').nb_subword_occurrences_in(Word('1133432311132311112'))
+            sage: u = words.ThueMorseWord()[:1000]
+            sage: w = Word([0,1,0,1])
+            sage: w.nb_subword_occurrences_in(u)
+            2604124996
+
+        TESTS::
+
+            sage: v,u = Word(), Word('123')
+            sage: v.nb_subword_occurrences_in(u)
+            1
+            sage: v,u = Word('123'), Word('1133432311132311112')
+            sage: v.nb_subword_occurrences_in(u)
             11
-            sage: Word('4321').nb_subword_occurrences_in(Word('1132231112233212342231112'))
+            sage: v,u = Word('4321'), Word('1132231112233212342231112')
+            sage: v.nb_subword_occurrences_in(u)
             0
-            sage: Word('3').nb_subword_occurrences_in(Word('122332112321213'))
+            sage: v,u = Word('3'), Word('122332112321213')
+            sage: v.nb_subword_occurrences_in(u)
             4
+            sage: v,u = Word([]), words.ThueMorseWord()[:1000]
+            sage: v.nb_subword_occurrences_in(u)
+            1
+
+        REFERENCES:
+
+        - [1] M. Lothaire, Combinatorics on Words, Cambridge University
+          Press, (1997).
+        - [2] Mateescu, A., Salomaa, A., Salomaa, K. and Yu, S., A
+          sharpening of the Parikh mapping. Theoret. Informatics Appl. 35
+          (2001) 551-564.
         """
-        ls = self.length()
-        if ls == 0:
-            raise NotImplementedError("undefined value")
-        elif ls == 1:
-            return self.nb_factor_occurrences_in(other)
-        elif len(other) < ls:
-            return 0
-        symb = self[:1]
-        suffword = other
-        suffsm = self[1:]
-        n = 0
-        cpt = 0
-        i = symb.first_pos_in(suffword)
-        while i is not None:
-            suffword = suffword[i+1:]
-            m = suffsm.nb_subword_occurrences_in(suffword)
-            if m == 0: break
-            n += m
-            i = symb.first_pos_in(suffword)
-        return n
+        # record the position of letters in self
+        pos = {}
+        for i,a in enumerate(self):
+            if a in pos:
+                pos[a].append(i)
+            else:
+                pos[a] = [i]
+
+        # compute the occurrences of all prefixes of self as subwords in other
+        occ = [0] * (len(self)+1)
+        occ[0] = 1
+        for a in other:
+            l = pos.get(a)
+            if l is not None:
+                for i in l:
+                    occ[i+1] += occ[i]
+
+        # return only the number of occurrences of self
+        return occ[-1]
 
     def _return_words_list(self, fact):
         r"""

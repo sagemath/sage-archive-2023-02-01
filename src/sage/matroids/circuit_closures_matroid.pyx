@@ -47,6 +47,12 @@ AUTHORS:
 
 - Rudi Pendavingh, Stefan van Zwam (2013-04-01): initial version
 
+TESTS::
+
+    sage: from sage.matroids.advanced import *
+    sage: M = CircuitClosuresMatroid(matroids.named_matroids.Fano())
+    sage: TestSuite(M).run()
+
 Methods
 =======
 """
@@ -119,13 +125,6 @@ cdef class CircuitClosuresMatroid(Matroid):
         ....:                              4: ['abcdefgh']})
         sage: M.equals(matroids.named_matroids.P8())
         True
-
-    TESTS::
-
-        sage: from sage.matroids.advanced import *
-        sage: M = CircuitClosuresMatroid(matroids.named_matroids.Fano())
-        sage: TestSuite(M).run()
-
     """
 
     # NECESSARY

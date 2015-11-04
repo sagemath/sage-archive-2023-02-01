@@ -235,12 +235,23 @@ def skip_TESTS_block(docstring):
     - ``docstring``, a string
 
     A "TESTS" block is a block starting with "TEST:" or "TESTS:" (or
-    the same with two colons), on a line on its own, and ending at the
-    beginning of a line which starts with whitespace and then either a
-    Sphinx directive of the form ".. foo:" or text of the form
-    "UPPERCASE:". Either of these ending strings may be followed by
-    other text. Return the string obtained from ``docstring`` by
-    removing these blocks.
+    the same with two colons), on a line on its own, and ending in one
+    of the following ways:
+
+    - a line which starts with whitespace and then a Sphinx directive
+      of the form ".. foo:", optionally followed by other text.
+
+    - a line which starts with whitespace and then text of the form
+      "UPPERCASE:", optionally followed by other text.
+
+    - lines which look like a ReST header: one line containing
+      anything, followed by a line consisting only of whitespace,
+      followed by a string of hyphens, equal signs, or other
+      characters which are valid markers for ReST headers: 
+      ``- = ` : ' " ~ _ ^ * + # < >``.
+
+    Return the string obtained from ``docstring`` by removing these
+    blocks.
 
     EXAMPLES::
 
@@ -250,6 +261,7 @@ def skip_TESTS_block(docstring):
         sage: test2 = ' TESTS:: \n\n     sage: 2+2 \n     6 \n\n'
         sage: refs = ' REFERENCES: \n text text \n'
         sage: directive = ' .. todo:: \n     do some stuff \n'
+
         sage: skip_TESTS_block(start + test + refs).rstrip() == (start + refs).rstrip()
         True
         sage: skip_TESTS_block(start + test + test2 + refs).rstrip() == (start + refs).rstrip()
@@ -257,6 +269,13 @@ def skip_TESTS_block(docstring):
         sage: skip_TESTS_block(start + test + refs + test2).rstrip() == (start + refs).rstrip()
         True
         sage: skip_TESTS_block(start + test + refs + test2 + directive).rstrip() == (start + refs + directive).rstrip()
+        True
+
+        sage: header = 'Header:\n~~~~~~~~'
+        sage: fake_header = 'Header:\n-=-=-=-=-='
+        sage: skip_TESTS_block(start + test + header) == start + header
+        True
+        sage: skip_TESTS_block(start + test + fake_header).rstrip() == start.rstrip()
         True
    """
     # tests_block: match a line starting with whitespace, then
@@ -270,8 +289,12 @@ def skip_TESTS_block(docstring):
     # Also match uppercase text followed by a colon, like
     # "REFERENCES:" or "ALGORITHM:".
     end_of_block = re.compile('[ ]*(\.\.[ ]+[-_A-Za-z]+|[A-Z]+):')
+    # header: match a string of hyphens, or other characters which are
+    # valid markers for ReST headers: - = ` : ' " ~ _ ^ * + # < >
+    header = re.compile(r'^[ ]*([-=`:\'"~_^*+#><])\1+[ ]*$')
     s = ''
     skip = False
+    previous = ''
     for l in docstring.split('\n'):
         if not skip:
             if tests_block.match(l):
@@ -284,6 +307,14 @@ def skip_TESTS_block(docstring):
                 skip = False
                 s += "\n"
                 s += l
+            elif header.match(l):
+                skip = False
+                if previous:
+                    s += "\n"
+                    s += previous
+                s += "\n"
+                s += l
+        previous = l
     return s[1:] # Remove empty line from the beginning. 
 
 def process_dollars(s):

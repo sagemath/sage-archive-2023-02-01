@@ -304,7 +304,7 @@ class ClusterAlgebra(Parent):
 
     Element = ClusterAlgebraElement
 
-    def __init__(self, data, scalars=ZZ, coefficients_prefix='x', cluster_variables_prefix='x', coefficients_names=None, cluster_variables_names=None):
+    def __init__(self, data, scalars=ZZ, coefficients_prefix='y', cluster_variables_prefix='x', coefficients_names=None, cluster_variables_names=None):
         # Temporary variables
         # TODO: right now  we use ClusterQuiver to parse input data. It looks
         # like a good idea but we should make sure it is.
@@ -341,7 +341,7 @@ class ClusterAlgebra(Parent):
             # we may want to allow coeff_vars to be a single name and produce the list on the fly
             if coefficients_names:
                 if len(coefficients_names) == m-n:
-                    variables = coefficients_names
+                    coefficients = coefficients_names
                 else:
                     raise ValueError("coefficients_names should be a list of %d valid variable names"%(m-n))
             else: 
@@ -349,10 +349,13 @@ class ClusterAlgebra(Parent):
                     offset = n
                 else:
                     offset = 0
-                variables = [coefficients_prefix+'%s'%i for i in xrange(offset,m-n+offset)]
-            base = LaurentPolynomialRing(scalars, variables)
+                coefficients = [coefficients_prefix+'%s'%i for i in xrange(offset,m-n+offset)]
+            # TODO: replace LaurentPolynomialRing with the group algebra of a tropical semifield once it is implemented
+            base = LaurentPolynomialRing(scalars, coefficients)
         else:
             base = scalars
+            # BUG WORKAROUD: remove the following line once base is recognized as a subobject of ambient
+            coefficients = []
         # TODO: understand why using CommutativeAlgebras() instead of Rings() makes A(1) complain of missing _lmul_
         Parent.__init__(self, base=base, category=Rings(scalars).Subobjects())
         # *** here we might want to replace scalars with base and m with n
@@ -363,14 +366,19 @@ class ClusterAlgebra(Parent):
                     raise ValueError("cluster_variables_names should be a list of %d valid variable names"%n)
         else:
             variables = [cluster_variables_prefix+'%s'%i for i in xrange(n)]
-        self._ambient = LaurentPolynomialRing(base, variables)
+        # BUG WORKAROUND: In an ideal world this should be 
+        # self._ambient = LaurentPolynomialRing(base, variables)
+        # but at the moment base is not recognized as a subobject of ambient
+        self._ambient = LaurentPolynomialRing(scalars, variables+coefficients)
         self._ambient_field = self._ambient.fraction_field()
         # TODO: understand if we need this
         #self._populate_coercion_lists_()
 
-        # these are used for computing cluster variables using separation of
-        # additions
-        self._y = dict([ (self._U.gen(j), prod([self._base.gen(i)**M0[i,j] for i in xrange(m-n)])) for j in xrange(n)])
+        # these are used for computing cluster variables using separation of additions
+        # BUG WORKAROUND: replace the following line with
+        # self._y = dict([ (self._U.gen(j), prod([self._base.gen(i)**M0[i,j] for i in xrange(m-n)])) for j in xrange(n)])
+        # once base is recognized as a subobject of ambient
+        self._y = dict([ (self._U.gen(j), prod([self._ambient.gen(n+i)**M0[i,j] for i in xrange(m-n)])) for j in xrange(n)])
         self._yhat = dict([ (self._U.gen(j), prod([self._ambient.gen(i)**B0[i,j] for i in xrange(n)])*self._y[self._U.gen(j)]) for j in xrange(n)])
 
         # recover g-vector from monomials

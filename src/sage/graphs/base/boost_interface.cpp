@@ -73,15 +73,10 @@ private:
 
 public:
     adjacency_list graph;
-    std::vector<vertex_descriptor> *vertices;
+    std::vector<vertex_descriptor> vertices;
     vertex_to_int_map index;
 
     BoostGraph() {
-        vertices = new std::vector<vertex_descriptor>();
-    }
-
-    ~BoostGraph() {
-        delete vertices;
     }
 
     v_index num_verts() {
@@ -93,15 +88,15 @@ public:
     }
 
     void add_vertex() {
-        (*vertices).push_back(boost::add_vertex((*vertices).size(), graph));
+        vertices.push_back(boost::add_vertex(vertices.size(), graph));
     }
 
     void add_edge(v_index u, v_index v) {
-        boost::add_edge((*vertices)[u], (*vertices)[v], graph);
+        boost::add_edge(vertices[u], vertices[v], graph);
     }
 
     void add_edge(v_index u, v_index v, double weight) {
-        boost::add_edge((*vertices)[u], (*vertices)[v], weight, graph);
+        boost::add_edge(vertices[u], vertices[v], weight, graph);
     }
 
     result_ec edge_connectivity() {
@@ -119,7 +114,7 @@ public:
     }
 
     double clustering_coeff(v_index v) {
-        return clustering_coefficient(graph, (*vertices)[v]);
+        return clustering_coefficient(graph, vertices[v]);
     }
 
     result_cc clustering_coeff_all() {
@@ -135,7 +130,7 @@ public:
         std::vector<vertex_descriptor> fathers_descr(num_verts(),
                     boost::graph_traits<adjacency_list>::null_vertex());
 
-        lengauer_tarjan_dominator_tree(graph, (*vertices)[v],
+        lengauer_tarjan_dominator_tree(graph, vertices[v],
                                        boost::make_iterator_property_map(
                                            fathers_descr.begin(), index));
 
@@ -201,7 +196,7 @@ public:
          std::vector<double> distances(N, (std::numeric_limits<double>::max)());
          std::vector<vertex_descriptor> predecessors(N);
          try {
-             boost::dijkstra_shortest_paths(graph, (*vertices)[s], distance_map(boost::make_iterator_property_map(distances.begin(), index))
+             boost::dijkstra_shortest_paths(graph, vertices[s], distance_map(boost::make_iterator_property_map(distances.begin(), index))
                                             .predecessor_map(boost::make_iterator_property_map(predecessors.begin(), index)));
          } catch (boost::exception_detail::clone_impl<boost::exception_detail::error_info_injector<boost::negative_edge> > e) {
              return to_return;
@@ -225,7 +220,7 @@ public:
          typename boost::property_map<adjacency_list, boost::edge_weight_t>::type weight = get(boost::edge_weight, (graph));
 
          for (v_index i = 0; i < N; ++i)
-             predecessors[i] = (*vertices)[i];
+             predecessors[i] = vertices[i];
 
          distance[s] = 0;
          bool r = boost::bellman_ford_shortest_paths

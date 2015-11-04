@@ -169,21 +169,31 @@ class CellModule(CombinatorialFreeModule):
         def _acted_upon_(self, scalar, self_on_left=False):
             """
             Return the action of ``scalar`` on ``self``.
+
+            EXAMPLES::
+
+                sage: S = SymmetricGroupAlgebra(QQ, 3)
+                sage: C = S.cellular_basis()
+                sage: M = S.cell_module([2,1])
+                sage: elt = M.an_element()
+                sage: sc = C.an_element()
+                sage: sc * elt
+                0
             """
-            if scalar in self._algebra:
-                P = self.parent()
-                if not self_on_left:
+            P = self.parent()
+            if scalar in P._algebra:
+                if self_on_left:
                     raise NotImplementedError
                     #scalar = scalar.cellular_involution()
                 mc = self._monomial_coefficients
                 scalar_mc = scalar.monomial_coefficients(copy=False)
-                D = dict_linear_combination([(P._action_basis(x), scalar_mc[x] * mc[k])
+                D = dict_linear_combination([(P._action_basis(x, k), scalar_mc[x] * mc[k])
                                              for k in mc for x in scalar_mc],
                                             factor_on_left=False)
 
                 return P._from_dict(D, remove_zeros=False)
 
-            return CombinatorialFreeModule._acted_upon_(self, scalar, self_on_left)
+            return CombinatorialFreeModule.Element._acted_upon_(self, scalar, self_on_left)
 
         # For backward compatibility
         _lmul_ = _acted_upon_

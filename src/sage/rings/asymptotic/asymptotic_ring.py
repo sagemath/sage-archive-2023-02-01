@@ -1160,6 +1160,14 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
             Traceback (most recent call last):
             ...
             ZeroDivisionError: Cannot invert O(x).
+
+        TESTS:
+
+        See :trac:`19521`::
+
+            sage: A.<n> = AsymptoticRing('n^ZZ', SR.subring(no_variables=True))
+            sage: (A.one() / 1).parent()
+            Asymptotic Ring <n^ZZ> over Symbolic Constants Subring
         """
         return self * ~other
 
@@ -1787,6 +1795,12 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
 
             sage: exp(x+1)
             e*e^x
+
+        See :trac:`19521`::
+
+            sage: A.<n> = AsymptoticRing('n^ZZ', SR.subring(no_variables=True))
+            sage: exp(O(n^(-3))).parent()
+            Asymptotic Ring <n^ZZ> over Symbolic Constants Subring
         """
         return self.rpow('e', precision=precision)
 

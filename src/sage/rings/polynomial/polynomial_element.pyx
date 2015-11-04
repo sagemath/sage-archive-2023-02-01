@@ -973,7 +973,8 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: pol[:6]
             5*x^5 + 4*x^4 + 3*x^3 + 2*x^2 + x
 
-        Any other kind of slicing is deprecated or an error::
+        Any other kind of slicing is deprecated or an error, see
+        :trac:`18940`::
 
             sage: f[1:3]
             doctest:...: DeprecationWarning: polynomial slicing with a start index is deprecated, use list() and slice the resulting list instead

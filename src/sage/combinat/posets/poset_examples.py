@@ -33,6 +33,7 @@ Moreover, the set of all posets of order `n` is represented by ``Posets(n)``::
     :meth:`~Posets.SymmetricGroupBruhatOrderPoset` | The poset of permutations with respect to Bruhat order.
     :meth:`~Posets.SymmetricGroupWeakOrderPoset` | The poset of permutations of `\{ 1, 2, \ldots, n \}` with respect to the weak order.
     :meth:`~Posets.TamariLattice` | Return the Tamari lattice.
+    :meth:`~Posets.TetrahedralPoset` | Return the Tetrahedral poset with `n-1` layers based on the input colors.
 
 Constructions
 -------------
@@ -680,9 +681,9 @@ class Posets(object):
         elem=[(i,j,k) for i in range (n) for j in range (n-i) for k in range (n-i-j)]
         rels = []
         elem_labels = {}
-        labelcount = 0;
         if 'labels' in labels:
             if labels['labels'] == 'integers':
+                labelcount = 0
                 for (i,j,k) in elem:
                     elem_labels[(i,j,k)] = labelcount
                     labelcount += 1

@@ -99,6 +99,7 @@ List of Poset methods
     :meth:`~FinitePoset.ordinal_sum` | Return the ordinal sum of the poset with other poset.
     :meth:`~FinitePoset.ordinal_product` | Return the ordinal product of the poset with other poset.
     :meth:`~FinitePoset.product` | Return the cartesian product of the poset with other poset.
+    :meth:`~FinitePoset.addbounds` | Return the poset with bottom and top element adjoined.
     :meth:`~FinitePoset.dual` | Return the dual poset of this poset.
     :meth:`~FinitePoset.completion_by_cuts` | Return the Dedekind-MacNeille completion of the poset.
     :meth:`~FinitePoset.connected_components` | Return the connected components of the poset as subposets.
@@ -3916,6 +3917,76 @@ class FinitePoset(UniqueRepresentation, Parent):
                                 elements=elements,
                                 category=self.category(),
                                 facade=self._is_facade)
+
+    def addbounds(self, labels='strings'):
+        r"""
+        Return the poset with bottom and top element adjoined.
+
+        This functions always adds two new elements to poset, i.e.
+        it does not check if the poset already has a bottom or a
+        top element.
+
+        For lattices and semilattices this function returns lattice.
+
+        INPUT:
+
+        - ``labels`` -- a string. If ``'strings'`` (the default), add
+          strings ``'bottom'`` and ``'top'``; if ``'integers'``, return
+          poset with plain integers as elements.
+
+        EXAMPLES::
+
+            sage: V = Poset({0: [1, 2]})
+            sage: trafficsign = V.addbounds(); trafficsign
+            Finite poset containing 5 elements
+            sage: trafficsign.list()
+            ['bottom', 0, 1, 2, 'top']
+            sage: trafficsign = V.addbounds(labels='integers')
+            sage: trafficsign.cover_relations()
+            [[0, 1], [1, 2], [1, 3], [2, 4], [3, 4]]
+
+            sage: P = Posets.PentagonPoset()  # A lattice
+            sage: P.addbounds()
+            Finite lattice containing 7 elements
+
+        TESTS::
+
+            P = Poset().addbounds()
+            P.cover_relations()
+            [['bottom', 'top']]
+        """
+        from sage.combinat.posets.lattices import LatticePoset, \
+             JoinSemilattice, MeetSemilattice, FiniteLatticePoset, \
+             FiniteMeetSemilattice, FiniteJoinSemilattice
+        if ( isinstance(self, FiniteLatticePoset) or
+             isinstance(self, FiniteMeetSemilattice) or
+             isinstance(self, FiniteJoinSemilattice) ):
+            constructor = FiniteLatticePoset
+        else:
+            constructor = FinitePoset
+
+        if labels not in ['strings', 'integers']:
+            raise ValueError("labels must be either 'strings' or 'integers'")
+
+        if self.cardinality() == 0:
+            if labels == 'strings':
+                return constructor({'bottom': ['top']})
+            else:
+                return constructor({0: [1]})
+
+        if labels == 'strings':
+            if 'top' in self or 'bottom' in self:
+                raise ValueError("the poset already contains an element 'bottom' or 'top'")
+            D = self.hasse_diagram()
+            D.add_edges([('bottom', e) for e in D.sources()])
+            D.add_edges([(e, 'top') for e in D.sinks()])
+        else:  # labels='integers'
+            D = self._hasse_diagram.copy(immutable=False)
+            n = self.cardinality()
+            D.add_edges([(n, e) for e in D.minimal_elements()])
+            D.add_edges([(e, n+1) for e in D.maximal_elements()])
+            D.canonical_label(return_graph=False)
+        return constructor(D)
 
     def relabel(self, relabeling):
         r"""

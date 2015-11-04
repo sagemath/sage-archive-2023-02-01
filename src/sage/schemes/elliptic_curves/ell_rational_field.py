@@ -7002,13 +7002,13 @@ def elliptic_curve_congruence_graph(curves):
 
     INPUT:
 
-       - ``curves`` - a list of elliptic curves
+    - ``curves`` -- a list of elliptic curves
 
     OUTPUT:
 
     The graph with each curve as a vertex (labelled by its Cremona
-    label) and an edge from E to F labelled p if and only if E is
-    congruent to F mod p
+    label) and an edge from `E` to `F` labelled `p` if and only if `E` is
+    congruent to `F` mod `p`
 
     EXAMPLE::
 
@@ -7032,16 +7032,16 @@ def elliptic_curve_congruence_graph(curves):
             F = curves[j]
             N = F.conductor()
             MN = lcm(M, N)
-            lim = prod([(p-1)*p**(e-1) for p,e in MN.factor()])
+            lim = prod([(p - 1) * p ** (e - 1) for p, e in MN.factor()])
             a_E = E.anlist(lim)
             a_F = F.anlist(lim)
-            l_list = [p for p in prime_range(lim) if not p.divides(MN) ]
+            l_list = [p for p in prime_range(lim) if not p.divides(MN)]
             p_edges = l_list
             for l in l_list:
                 n = a_E[l] - a_F[l]
                 if n != 0:
                     p_edges = [p for p in p_edges if p.divides(n)]
-                    if len(p_edges) > 0:
+                    if len(p_edges):
                         G.add_edge(E.cremona_label(), F.cremona_label())
-                        G.set_edge_label(i,j,str(p_edges)[1:-1])
+                        G.set_edge_label(i, j, str(p_edges)[1:-1])
     return G

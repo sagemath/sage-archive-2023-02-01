@@ -466,17 +466,19 @@ class ModularForm_abstract(ModuleElement):
             O(q^1)
             sage: f.q_expansion(0)
             O(q^0)
+            sage: f.q_expansion(-1)
+            Traceback (most recent call last):
+            ...
+            ValueError: prec (= -1) must be non-negative
         """
         if prec is None:
             prec = self.parent().prec()
         prec = rings.Integer(prec)
-        if prec < 0:
-            raise ValueError("prec (=%s) must be at least 0"%prec)
         try:
             current_prec, f = self.__q_expansion
         except AttributeError:
             current_prec = 0
-            f = self.parent()._q_expansion_ring()(0, -1)
+            f = self.parent()._q_expansion_ring()(0, 0)
 
         if current_prec == prec:
             return f

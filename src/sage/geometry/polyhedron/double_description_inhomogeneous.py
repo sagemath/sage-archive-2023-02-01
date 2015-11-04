@@ -232,7 +232,7 @@ class Hrep2Vrep(PivotedInequalities):
         return self._pivot_inequalities(A)
 
     def _split_linear_subspace(self):
-        """
+        r"""
         Split the linear subspace in a generator with `x_0\not=0` and the
         remaining generators with `x_0=0`.
 
@@ -504,7 +504,7 @@ class Vrep2Hrep(PivotedInequalities):
         self.equations = self._linear_subspace.matrix().rows()
 
     def _repr_(self):
-        """
+        r"""
         Return a string representation.
 
         OUTPUT:

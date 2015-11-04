@@ -334,6 +334,8 @@ import sage.rings.integer
 from sage.misc.misc import get_verbose
 from sage.misc.superseded import deprecation
 
+from six import reraise as raise_
+
 class SingularError(RuntimeError):
     """
     Raised if Singular printed an error message
@@ -1261,7 +1263,7 @@ class SingularElement(ExpectElement):
             # coercion to work properly.
             except SingularError as x:
                 self._session_number = -1
-                raise TypeError, x, sys.exc_info()[2]
+                raise_(TypeError, x, sys.exc_info()[2])
             except BaseException:
                 self._session_number = -1
                 raise

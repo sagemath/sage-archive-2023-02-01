@@ -1,3 +1,8 @@
 #!/usr/bin/env bash
 
 cd src && python setup.py install
+
+# Install the Jupyter notebook configuration
+ETC_JUPYTER="$SAGE_ETC"/jupyter
+mkdir -p "$ETC_JUPYTER"
+cp ../patches/jupyter_notebook_config.py  "$ETC_JUPYTER"/

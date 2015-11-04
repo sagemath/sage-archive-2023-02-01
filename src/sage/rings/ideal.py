@@ -1229,6 +1229,22 @@ class Ideal_principal(Ideal_generic):
             return x.is_zero()
         return self.gen().divides(x)
 
+    def __hash__(self):
+        r"""
+        Very stupid constant hash function!
+
+        TESTS::
+
+            sage: P.<x, y> = PolynomialRing(ZZ)
+            sage: I = P.ideal(x^2)
+            sage: J = [x, y^2 + x*y]*P
+            sage: hash(I)
+            0
+            sage: hash(J)
+            0
+        """
+        return 0
+
     def __cmp__(self, other):
         """
         Compare the two ideals.

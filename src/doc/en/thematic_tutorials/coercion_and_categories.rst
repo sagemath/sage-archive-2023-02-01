@@ -878,7 +878,7 @@ The four axioms requested for coercions
       rational field is a homomorphism of euclidean domains::
 
           sage: QQ.coerce_map_from(ZZ).category_for()
-          Category of euclidean domains
+          Join of Category of euclidean domains and Category of metric spaces
 
       .. end of output
 

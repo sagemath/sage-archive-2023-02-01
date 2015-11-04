@@ -503,7 +503,7 @@ documentation for more information on its behaviour and optional arguments.
       def my_new_function():
           ...
 
-      my_old_function = deprecated_function_alias(my_new_function)
+      my_old_function = deprecated_function_alias(666, my_new_function)
 
 * **Moving an object to a different module:**
   if you rename a source file or move some function (or class) to a

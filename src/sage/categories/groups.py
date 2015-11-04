@@ -19,6 +19,7 @@ from sage.categories.monoids import Monoids
 from sage.categories.algebra_functor import AlgebrasCategory
 from sage.categories.cartesian_product import CartesianProductsCategory, cartesian_product
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
+from sage.categories.topological_spaces import TopologicalSpacesCategory
 
 class Groups(CategoryWithAxiom):
     """
@@ -480,6 +481,7 @@ class Groups(CategoryWithAxiom):
             return self.parent().conjugacy_class(self)
 
     Finite = LazyImport('sage.categories.finite_groups', 'FiniteGroups')
+    Lie = LazyImport('sage.categories.lie_groups', 'LieGroups', 'Lie')
     #Algebras = LazyImport('sage.categories.group_algebras', 'GroupAlgebras')
 
     class Commutative(CategoryWithAxiom):
@@ -914,6 +916,7 @@ class Groups(CategoryWithAxiom):
                 # Infinitely generated
                 # This does not return a good output, but it is "correct"
                 # TODO: Figure out a better way to do things
+                from sage.categories.cartesian_product import cartesian_product
                 gens_prod = cartesian_product([Family(G.group_generators(),
                                                       lambda g: (i, g))
                                                for i,G in enumerate(F)])
@@ -942,3 +945,15 @@ class Groups(CategoryWithAxiom):
                 """
                 from sage.misc.misc_c import prod
                 return prod(c.cardinality() for c in self.cartesian_factors())
+
+    class Topological(TopologicalSpacesCategory):
+        """
+        Category of topological groups.
+
+        A topological group `G` is a group which has a topology such that
+        multiplication and taking inverses are continuous functions.
+
+        REFERENCES:
+
+        - :wikipedia:`Topological_group`
+        """

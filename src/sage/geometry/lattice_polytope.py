@@ -839,19 +839,19 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
         reflexive polytopes, faces of this polytope and its polar are in
         inclusion reversing bijection.
 
-        .. note::
+        .. NOTE::
 
             This function does not perform any checks that this operation makes
             sense.
 
         INPUT:
 
-        - ``other`` - another LatticePolytope, whose facial structure will be
+        - ``other`` -- another LatticePolytope, whose facial structure will be
           copied
 
-        -  ``reverse`` - (default: False) if True, the facial structure of the
-          other polytope will be reversed, i.e. vertices will correspond to
-          facets etc.
+        - ``reverse`` -- (default: ``False``) if ``True``, the facial
+          structure of the other polytope will be reversed,
+          i.e. vertices will correspond to facets etc.
 
         TESTS::
 
@@ -1101,8 +1101,8 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
 
         INPUT:
 
-        - ``data`` - rational point or matrix of points (as columns) in the
-        ambient space
+        - ``data`` -- rational point or matrix of points (as columns) in the
+          ambient space
 
         OUTPUT: The same point(s) in the coordinates of the affine subspace
         space spanned by this polytope.
@@ -5752,7 +5752,7 @@ def _palp_convert_permutation(permutation):
 
     PALP specifies a permutation group element by its domain. Furthermore,
     it only supports permutations of up to 62 objects and labels these by
-    `0 \dots 9', 'a \dots z', and 'A \dots Z'.
+    `0 \dots 9`, `a \dots z`, and `A \dots Z`.
 
     INPUT:
 
@@ -5760,8 +5760,7 @@ def _palp_convert_permutation(permutation):
 
     OUTPUT:
 
-    A :class:`permutation group element
-    <sage.groups.perm_gps.permgroup_element.PermmutationGroupElement>`.
+    A :class:`permutation group element <sage.groups.perm_gps.permgroup_element.PermmutationGroupElement>`.
 
     EXAMPLES::
 

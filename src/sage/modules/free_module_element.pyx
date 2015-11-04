@@ -2077,23 +2077,33 @@ cdef class FreeModuleElement(Vector):   # abstract base class
 
     def dict(self, copy=True):
         """
-        Return dictionary of nonzero entries of self.
+        Return dictionary of nonzero entries of ``self``.
+
+        More precisely, this returns a dictionary whose keys are indices
+        of basis elements in the support of ``self`` and whose values are
+        the corresponding coefficients.
 
         INPUT:
 
-            - ``copy`` -- bool (default: True)
+        - ``copy`` -- (default: ``True``) if ``self`` is internally
+          represented by a dictionary ``d``, then make a copy of ``d``;
+          if ``False``, then this can cause undesired behavior by
+          mutating ``d``
 
         OUTPUT:
 
-            - Python dictionary
+        - Python dictionary
 
         EXAMPLES::
 
             sage: v = vector([0,0,0,0,1/2,0,3/14])
             sage: v.dict()
             {4: 1/2, 6: 3/14}
+            sage: sorted(v.support())
+            [4, 6]
 
-        In some cases when copy=False, we get back a dangerous reference::
+        In some cases, when ``copy=False``, we get back a dangerous
+        reference::
 
             sage: v = vector({0:5, 2:3/7}, sparse=True)
             sage: v.dict(copy=False)
@@ -2109,6 +2119,8 @@ cdef class FreeModuleElement(Vector):   # abstract base class
             if c:
                 e[i] = c
         return e
+
+    monomial_coefficients = dict
 
     #############################
     # Plotting
@@ -4580,8 +4592,21 @@ cdef class FreeModuleElement_generic_sparse(FreeModuleElement):
             sage: w = vector(R, [], sparse=True)
             sage: parent(v._dot_product_coerce_(w))
             Univariate Polynomial Ring in x over Real Double Field
+
+        TESTS:
+
+        Check that :trac:`19377` is fixed::
+
+            sage: w = vector(ZZ, (1,2,3), sparse=False)
+            sage: v = vector(ZZ, (1,2,3), sparse=True)
+            sage: v._dot_product_coerce_(w)
+            14
         """
-        cdef dict e = (<FreeModuleElement_generic_sparse>right)._entries
+        cdef dict e
+        try:
+            e = (<FreeModuleElement_generic_sparse?>right)._entries
+        except TypeError:
+            e = right.dict()
         z = left.base_ring().zero()
         if left.base_ring() is not right.base_ring():
             z *= right.base_ring().zero()
@@ -4821,30 +4846,41 @@ cdef class FreeModuleElement_generic_sparse(FreeModuleElement):
 
     def dict(self, copy=True):
         """
-        Return dictionary of nonzero entries of self.
+        Return dictionary of nonzero entries of ``self``.
+
+        More precisely, this returns a dictionary whose keys are indices
+        of basis elements in the support of ``self`` and whose values are
+        the corresponding coefficients.
 
         INPUT:
 
-            - ``copy`` -- bool (default: True)
+        - ``copy`` -- (default: ``True``) if ``self`` is internally
+          represented by a dictionary ``d``, then make a copy of ``d``;
+          if ``False``, then this can cause undesired behavior by
+          mutating ``d``
 
         OUTPUT:
 
-            - Python dictionary
+        - Python dictionary
 
         EXAMPLES::
 
             sage: v = vector([0,0,0,0,1/2,0,3/14], sparse=True)
             sage: v.dict()
             {4: 1/2, 6: 3/14}
+            sage: sorted(v.support())
+            [4, 6]
         """
         if copy:
             return dict(self._entries)
         else:
             return self._entries
 
+    monomial_coefficients = dict
+
     def list(self, copy=True):
         """
-        Return list of elements of self.
+        Return list of elements of ``self``.
 
         INPUT:
 

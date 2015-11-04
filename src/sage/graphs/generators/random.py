@@ -17,7 +17,9 @@ The methods defined here appear in :mod:`sage.graphs.graph_generators`.
 # import from Sage library
 from sage.graphs.graph import Graph
 from sage.misc.randstate import current_randstate
+from sage.misc.prandom import randint
 from sage.rings.rational_field import QQ
+
 
 def RandomGNP(n, p, seed=None, fast=True, method='Sage'):
     r"""
@@ -791,7 +793,7 @@ def RandomTriangulation(n, embed=False, base_ring=QQ):
     - ``base_ring`` -- (optional, default ``QQ``) specifies the field over
       which to do the intermediate computations. The default setting is slower,
       but works for any input; one can instead use ``RDF``, but this occasionally
-      fails due to loss of precision, as mentioned on :trac:10276.
+      fails due to loss of precision, as mentioned on :trac:`10276`.
 
     EXAMPLES::
 
@@ -809,7 +811,6 @@ def RandomTriangulation(n, embed=False, base_ring=QQ):
     """
     from sage.misc.prandom import normalvariate
     from sage.geometry.polyhedron.constructor import Polyhedron
-    from sage.rings.real_double import RDF
 
     # this function creates a random unit vector in R^3
     def rand_unit_vec():
@@ -836,3 +837,252 @@ def RandomTriangulation(n, embed=False, base_ring=QQ):
 
     g.relabel()
     return g
+
+
+# uniform random triangulation using Schaeffer-Poulalhon algorithm
+
+
+def auxiliary_random_word(n):
+    """
+    Return a random word used to generate random triangulations.
+
+    INPUT:
+
+    n -- an integer
+
+    OUTPUT:
+
+    a sequence of `0` and `1`
+
+    The result is a word with `3n-1` occurrences of `0` and `n-1`
+    occurrences of `1` that can be used as input in
+    :func:`contour_and_graph_from_word`.
+
+    A random word with these numbers of `0` and `1` is chosen. This word
+    is then rotated in order to give an admissible code for a tree as
+    explained in [PS2006]_. There are exactly two such rotations, one
+    of which is chosen at random.
+
+    EXAMPLES::
+
+        sage: from sage.graphs.generators.random import auxiliary_random_word
+        sage: auxiliary_random_word(4)  # random
+        [1, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0]
+
+        sage: def check(w):
+        ....:     steps = {1: 3, 0: -1}
+        ....:     return all(sum(steps[u] for u in w[:i]) >= -1 for i in range(len(w)))
+
+        sage: for n in range(1, 10):
+        ....:     w = auxiliary_random_word(n)
+        ....:     assert len(w) == 4 * n - 2
+        ....:     assert w.count(0) == 3 * n - 1
+        ....:     assert check(w)
+    """
+    from sage.misc.prandom import shuffle
+    w = [0] * (3 * n - 1) + [1] * (n - 1)
+    shuffle(w)
+
+    # finding the two admissible shifts
+    cuts = [0, 0]
+    height = 0
+    height_min = 0
+    for i in range(4 * n - 3):
+        if w[i] == 1:
+            height += 3 * n
+        else:
+            height -= n
+            if height < height_min - 1:
+                height_min = height
+                cuts[0] = cuts[1]
+                cuts[1] = i + 1
+
+    # random choice of one of the two possible cuts
+    idx = cuts[randint(0, 1)]
+    return w[idx:] + w[:idx]
+
+
+def contour_and_graph_from_word(w):
+    """
+    Return the contour word and the graph of inner vertices of the tree
+    associated with the word `w`.
+
+    INPUT:
+
+    - `w` -- a word in `0` and `1` as given by :func:`auxiliary_random_word`
+
+    This word must satisfy the conditions described in [PS2006]_.
+
+    OUTPUT:
+
+    a pair (``seq``, ``G``) where:
+
+    - ``seq`` is a sequence of pairs (label, integer) representing the
+      contour walk along the tree associated with `w`
+
+    - ``G`` is the tree obtained by restriction to the set of inner vertices
+
+    The underlying bijection from words to trees is given by lemma 4.1
+    in [PS2006]_. It maps the admissible words to planar trees where
+    every inner vertex has two leaves.
+
+    In the word `w`, the letter `1` means going up (away from the root)
+    from an inner vertex to another inner vertex. The letter `0` means
+    either going up and then down to a leaf, or going down (towards the root)
+    to an inner vertex already visited.
+
+    Inner vertices are tagged with 'i' and leaves are tagged with
+    'f'. Inner vertices are moreover labelled by integers, and leaves
+    by the label of the neighbor inner vertex.
+
+    EXAMPLES::
+
+        sage: from sage.graphs.generators.random import contour_and_graph_from_word
+        sage: seq, G = contour_and_graph_from_word([1,0,0,0,0,0])
+        sage: seq
+        [('i', 0),
+         ('i', 1),
+         ('f', 1),
+         ('i', 1),
+         ('f', 1),
+         ('i', 1),
+         ('i', 0),
+         ('f', 0),
+         ('i', 0),
+         ('f', 0)]
+        sage: G
+        Graph on 2 vertices
+
+        sage: from sage.graphs.generators.random import auxiliary_random_word
+        sage: seq, G = contour_and_graph_from_word(auxiliary_random_word(20))
+        sage: G.is_tree()
+        True
+    """
+    index = 0  # numbering of inner vertices
+    word = [('i', 0)]  # initial vertex is inner
+    leaf_stack = [0, 0]  # stack of leaves still to be created
+    inner_stack = [0]  # stack of active inner nodes
+    active_vertex = 0
+    edges = []
+    for x in w:
+        if x == 1:  # going up to a new inner vertex
+            index += 1
+            leaf_stack += [index, index]
+            inner_stack += [index]
+            edges += [(active_vertex, index)]
+            active_vertex = index
+            word += [('i', index)]
+        else:
+            if active_vertex in leaf_stack:  # up and down to a new leaf
+                leaf_stack.remove(active_vertex)
+                word += [('f', active_vertex), ('i', active_vertex)]
+            else:  # going down to a known inner vertex
+                inner_stack.pop()
+                active_vertex = inner_stack[-1]
+                word += [('i', active_vertex)]
+    return word[:-1], Graph(edges, format='list_of_edges')
+
+
+def RandomTriangulation_uniform(n, set_position=False):
+    """
+    Return a random triangulation on `n` vertices.
+
+    A triangulation is a planar graph all of whose faces are
+    triangles (3-cycles).
+
+    INPUT:
+
+    - `n` -- an integer
+
+    - ``set_position`` -- boolean (default ``False``) if set to ``True``, this
+      will compute a planar embedding of the graph.
+
+    OUTPUT:
+
+    a graph
+
+    The algorithm is taken from [PS2006]_.
+
+    EXAMPLES::
+
+        sage: G = graphs.RandomTriangulation_uniform(6, True); G
+        Graph on 6 vertices
+        sage: G.is_planar()
+        True
+        sage: G.girth()
+        3
+        sage: G.plot(vertex_size=0, vertex_labels=False)
+        Graphics object consisting of 13 graphics primitives
+
+    TESTS::
+
+        sage: for i in range(10):
+        ....:     g = graphs.RandomTriangulation_uniform(30)
+        ....:     assert g.is_planar() and g.size() == 3 * g.order() - 6
+
+    REFERENCES:
+
+    .. [PS2006] Dominique Poulalhon and Gilles Schaeffer, *Optimal coding and
+       sampling of triangulations*. Algorithmica 46 (2006), no. 3-4, 505-527.
+    """
+    n -= 2
+    w = auxiliary_random_word(n)
+    word, graph = contour_and_graph_from_word(w)
+
+    edges = []
+    done = False
+    kill_next = False
+    while not done:
+        stack = []
+        new_word = []
+        done = True
+        for x in word:
+            if kill_next:
+                kill_next = False
+            elif x[0] == 'f':  # leaf vertex 'f'
+                if len(stack) == 3:
+                    a, b = stack[0][1], stack[2][1]
+                    edges += [(a, b)]
+                    new_word += [('i', a), ('i', b)]
+                    kill_next = True
+                    stack = []
+                    done = False
+                else:
+                    new_word += stack + [x]
+                    stack = []
+            else:  # inner vertex 'i'
+                if len(stack) == 3:
+                    new_word += [stack[0]]
+                    stack = stack[1:] + [x]
+                else:
+                    stack += [x]
+        word = new_word + stack
+        if done and not(word[-1][0] == 'f'):
+            done = False
+            word = [word[-1]] + word[:-1]
+
+    graph.add_edges(edges)
+
+    # remains to add two new vertices 'a' and 'b'
+    target_vertex = True
+    after_f = False
+    after_fi = False
+    vab = {True: 'a', False: 'b'}
+    for i in range(len(word)):
+        if word[i][0] == 'f':
+            if after_fi:
+                target_vertex = not target_vertex
+            graph.add_edge((vab[target_vertex], word[i][1]))
+            after_f = True
+            after_fi = False
+        else:
+            if after_f:
+                after_fi = True
+            else:
+                after_fi = False
+            after_f = False
+
+    graph.add_edge(('a', 'b'))
+    if set_position:
+        graph.set_planar_positions()
+    return graph

@@ -293,7 +293,8 @@ __append_to_doc(
      "RandomToleranceGraph",
      "RandomTree",
      "RandomTreePowerlaw",
-     "RandomTriangulation"])
+     "RandomTriangulation",
+     "RandomTriangulation_uniform"])
 
 __doc__ += """
 **Graphs with a given degree sequence**
@@ -2055,6 +2056,7 @@ class GraphGenerators():
     RandomTreePowerlaw       = staticmethod(sage.graphs.generators.random.RandomTreePowerlaw)
     RandomTree               = staticmethod(sage.graphs.generators.random.RandomTree)
     RandomTriangulation      = staticmethod(sage.graphs.generators.random.RandomTriangulation)
+    RandomTriangulation_uniform      = staticmethod(sage.graphs.generators.random.RandomTriangulation_uniform)
 
 ###########################################################################
 # World Map

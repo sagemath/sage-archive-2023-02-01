@@ -30,19 +30,18 @@ This approach to implementing Rijndael-GF bears some similarity to the
 multivariate quadratic (MQ) systems utilized in :mod:`SR <sage.crypto.mq.sr>`,
 in that the MQ systems also seek to describe the AES cipher as a system of
 algebraic equations. Despite this initial similarity though, Rijndael-GF and
-:mod:`SR <sage.crypto.mq.sr>` are quite different, as this implementation
-operates over `(\GF{2^8})^{n_t}` and seeks to provide a fully generalized
-algebraic representation of both the whole AES cipher as well as its
-individual components, while :mod:`SR <sage.crypto.mq.sr>` operates on
-`(\GF{2})^{4 n_t}` and `(\GF{2})^{8 n_t}` and is instead a family of
-parameterizable variants of the AES suitable as a framework for comparing
-different cryptanalytic techniques that can be brought to bear on the AES.
+:mod:`SR <sage.crypto.mq.sr>` are quite different as this implementation
+seeks to provide a fully generalized algebraic representation of both the
+whole AES cipher as well as its individual components, while
+:mod:`SR <sage.crypto.mq.sr>` is instead a family of parameterizable variants
+of the AES suitable as a framework for comparing different cryptanalytic
+techniques that can be brought to bear on the AES.
 
 EXAMPLES
 
 We build Rijndael-GF with a block length of 4 and a key length of 6: ::
 
-    sage: from sage.crypto.block_cipher.rijndael_gf import RijndaelGF
+    sage: from sage.crypto.mq.rijndael_gf import RijndaelGF
     sage: rgf = RijndaelGF(4, 6)
 
 We can encrypt plaintexts and decrypt and ciphertexts by calling the
@@ -460,7 +459,7 @@ class RijndaelGF(SageObject):
 
         EXAMPLES::
 
-            sage: from sage.crypto.block_cipher.rijndael_gf import RijndaelGF
+            sage: from sage.crypto.mq.rijndael_gf import RijndaelGF
             sage: rgf = RijndaelGF(6, 8)
             sage: rgf
             Rijndael-GF block cipher with block length 6, key length 8, and 14 rounds.
@@ -596,7 +595,7 @@ class RijndaelGF(SageObject):
 
         EXAMPLES::
 
-            sage: from sage.crypto.block_cipher.rijndael_gf import RijndaelGF
+            sage: from sage.crypto.mq.rijndael_gf import RijndaelGF
             sage: rgf = RijndaelGF(4, 4)
             sage: text = 'ef053f7c8b3d32fd4d2a64ad3c93071a'
             sage: key = '2d7e86a339d9393ee6570a1101904e16'
@@ -629,7 +628,7 @@ class RijndaelGF(SageObject):
 
         EXAMPLES ::
 
-            sage: from sage.crypto.block_cipher.rijndael_gf import RijndaelGF
+            sage: from sage.crypto.mq.rijndael_gf import RijndaelGF
             sage: rgf = RijndaelGF(5, 8)
             sage: rgf
             Rijndael-GF block cipher with block length 5, key length 8, and 14 rounds.
@@ -645,7 +644,7 @@ class RijndaelGF(SageObject):
 
         EXAMPLES::
 
-            sage: from sage.crypto.block_cipher.rijndael_gf import RijndaelGF
+            sage: from sage.crypto.mq.rijndael_gf import RijndaelGF
             sage: rgf = RijndaelGF(4, 6)
             sage: rgf.block_length()
             4
@@ -658,7 +657,7 @@ class RijndaelGF(SageObject):
 
         EXAMPLES::
 
-            sage: from sage.crypto.block_cipher.rijndael_gf import RijndaelGF
+            sage: from sage.crypto.mq.rijndael_gf import RijndaelGF
             sage: rgf = RijndaelGF(4, 8)
             sage: rgf.key_length()
             8
@@ -671,7 +670,7 @@ class RijndaelGF(SageObject):
 
         EXAMPLES::
 
-            sage: from sage.crypto.block_cipher.rijndael_gf import RijndaelGF
+            sage: from sage.crypto.mq.rijndael_gf import RijndaelGF
             sage: rgf = RijndaelGF(5, 4)
             sage: rgf.number_rounds()
             11
@@ -700,7 +699,7 @@ class RijndaelGF(SageObject):
 
         EXAMPLES::
 
-            sage: from sage.crypto.block_cipher.rijndael_gf import RijndaelGF
+            sage: from sage.crypto.mq.rijndael_gf import RijndaelGF
             sage: rgf = RijndaelGF(4, 4)
             sage: state = rgf.hex_to_GF('1147659047cf663b9b0ece8dfc0bf1f0')
             sage: output = rgf.shift_rows(state)
@@ -746,7 +745,7 @@ class RijndaelGF(SageObject):
 
         EXAMPLES::
 
-            sage: from sage.crypto.block_cipher.rijndael_gf import RijndaelGF
+            sage: from sage.crypto.mq.rijndael_gf import RijndaelGF
             sage: rgf = RijndaelGF(4,4)
             sage: F.<a> = GF(2^8)
             sage: els = [a^7 + a^5 + a + 1, a^7 + a^6 + a^4 + a^2]
@@ -817,7 +816,7 @@ class RijndaelGF(SageObject):
 
         EXAMPLES::
 
-            sage: from sage.crypto.block_cipher.rijndael_gf import RijndaelGF
+            sage: from sage.crypto.mq.rijndael_gf import RijndaelGF
             sage: rgf = RijndaelGF(4, 4)
             sage: bs = '11101011100111110000000111001100' * 4
             sage: len(bs)
@@ -874,7 +873,7 @@ class RijndaelGF(SageObject):
 
         EXAMPLES::
 
-            sage: from sage.crypto.block_cipher.rijndael_gf import RijndaelGF
+            sage: from sage.crypto.mq.rijndael_gf import RijndaelGF
             sage: rgf = RijndaelGF(4, 4)
             sage: F.<a> = GF(2^8)
             sage: els = [a^7 + a^5 + a + 1, a^7 + a^6 + a^4 + a^2]
@@ -940,7 +939,7 @@ class RijndaelGF(SageObject):
 
         EXAMPLES::
 
-            sage: from sage.crypto.block_cipher.rijndael_gf import RijndaelGF
+            sage: from sage.crypto.mq.rijndael_gf import RijndaelGF
             sage: rgf = RijndaelGF(4, 4)
             sage: key = 'c81677bc9b7ac93b25027992b0261996'
             sage: plain = 'fde3bad205e5d0d73547964ef1fe37f1'
@@ -1030,7 +1029,7 @@ class RijndaelGF(SageObject):
 
         EXAMPLES ::
 
-            sage: from sage.crypto.block_cipher.rijndael_gf import RijndaelGF
+            sage: from sage.crypto.mq.rijndael_gf import RijndaelGF
             sage: rgf = RijndaelGF(4, 4)
             sage: key = '2dfb02343f6d12dd09337ec75b36e3f0'
             sage: ciphertext = '54d990a16ba09ab596bbf40ea111702f'
@@ -1119,7 +1118,7 @@ class RijndaelGF(SageObject):
 
         EXAMPLES::
 
-            sage: from sage.crypto.block_cipher.rijndael_gf import RijndaelGF
+            sage: from sage.crypto.mq.rijndael_gf import RijndaelGF
             sage: rgf = RijndaelGF(4, 4)
             sage: good_state = rgf.hex_to_GF('0'*32)
             sage: rgf._check_valid_PRmatrix(good_state, 'state')
@@ -1179,7 +1178,7 @@ class RijndaelGF(SageObject):
 
         EXAMPLES::
 
-            sage: from sage.crypto.block_cipher.rijndael_gf import RijndaelGF
+            sage: from sage.crypto.mq.rijndael_gf import RijndaelGF
             sage: rgf = RijndaelGF(4, 6)
             sage: key = '331D0084B176C3FB59CAA0EDA271B565BB5D9A2D1E4B2892'
             sage: key_state = rgf.hex_to_GF(key)
@@ -1249,7 +1248,7 @@ class RijndaelGF(SageObject):
 
         EXAMPLES::
 
-            sage: from sage.crypto.block_cipher.rijndael_gf import RijndaelGF
+            sage: from sage.crypto.mq.rijndael_gf import RijndaelGF
             sage: rgf = RijndaelGF(4, 4)
             sage: rgf.expand_key_poly(1, 2, 0)
             k012
@@ -1355,7 +1354,7 @@ class RijndaelGF(SageObject):
 
         EXAMPLES::
 
-            sage: from sage.crypto.block_cipher.rijndael_gf import RijndaelGF
+            sage: from sage.crypto.mq.rijndael_gf import RijndaelGF
             sage: rgf = RijndaelGF(4, 4)
             sage: state = rgf.hex_to_GF('3b59cb73fcd90ee05774222dc067fb68')
             sage: result = rgf.apply_poly(state, rgf.shift_rows_poly_constr())
@@ -1489,7 +1488,7 @@ class RijndaelGF(SageObject):
         wanted a polynomial representing the ``1,3`` entry of a matrix after
         we first apply ShiftRows and then MixColumns to that matrix, we do: ::
 
-            sage: from sage.crypto.block_cipher.rijndael_gf import RijndaelGF
+            sage: from sage.crypto.mq.rijndael_gf import RijndaelGF
             sage: rgf = RijndaelGF(4, 4)
             sage: mcp = rgf.mix_columns_poly_constr()(1, 3); mcp
             a03 + (x)*a13 + (x + 1)*a23 + a33
@@ -1596,7 +1595,7 @@ class RijndaelGF(SageObject):
 
         EXAMPLES::
 
-            sage: from sage.crypto.block_cipher.rijndael_gf import RijndaelGF
+            sage: from sage.crypto.mq.rijndael_gf import RijndaelGF
             sage: rgf = RijndaelGF(4, 4)
             sage: ark_pc = rgf.add_round_key_poly_constr()
             sage: ark_pc
@@ -1668,7 +1667,7 @@ class RijndaelGF(SageObject):
 
         EXAMPLES::
 
-            sage: from sage.crypto.block_cipher.rijndael_gf import RijndaelGF
+            sage: from sage.crypto.mq.rijndael_gf import RijndaelGF
             sage: rgf = RijndaelGF(4, 4)
             sage: rgf._add_round_key_pc(1, 2, round=7)
             a12 + k712
@@ -1708,7 +1707,7 @@ class RijndaelGF(SageObject):
 
         EXAMPLES::
 
-            sage: from sage.crypto.block_cipher.rijndael_gf import RijndaelGF
+            sage: from sage.crypto.mq.rijndael_gf import RijndaelGF
             sage: rgf = RijndaelGF(4, 4)
             sage: state = rgf.hex_to_GF('36339d50f9b539269f2c092dc4406d23')
             sage: key = rgf.hex_to_GF('7CC78D0E22754E667E24573F454A6531')
@@ -1730,7 +1729,7 @@ class RijndaelGF(SageObject):
 
         EXAMPLES::
 
-            sage: from sage.crypto.block_cipher.rijndael_gf import RijndaelGF
+            sage: from sage.crypto.mq.rijndael_gf import RijndaelGF
             sage: rgf = RijndaelGF(4, 4)
             sage: sb_pc = rgf.sub_bytes_poly_constr()
             sage: sb_pc
@@ -1829,7 +1828,7 @@ class RijndaelGF(SageObject):
 
         EXAMPLES::
 
-            sage: from sage.crypto.block_cipher.rijndael_gf import RijndaelGF
+            sage: from sage.crypto.mq.rijndael_gf import RijndaelGF
             sage: rgf = RijndaelGF(4, 4)
             sage: rgf._sub_bytes_pc(2, 3)
             (x^2 + 1)*a23^254 + (x^3 + 1)*a23^253 + (x^7 + x^6 + x^5 + x^4 + x^3 + 1)*a23^251 + (x^5 + x^2 + 1)*a23^247 + (x^7 + x^6 + x^5 + x^4 + x^2)*a23^239 + a23^223 + (x^7 + x^5 + x^4 + x^2 + 1)*a23^191 + (x^7 + x^3 + x^2 + x + 1)*a23^127 + (x^6 + x^5 + x + 1)
@@ -1904,7 +1903,7 @@ class RijndaelGF(SageObject):
 
         EXAMPLES::
 
-            sage: from sage.crypto.block_cipher.rijndael_gf import RijndaelGF
+            sage: from sage.crypto.mq.rijndael_gf import RijndaelGF
             sage: rgf = RijndaelGF(4, 4)
             sage: el = rgf.hex_to_GF('2A', matrix=False)[0]
             sage: rgf._srd(el)
@@ -1941,7 +1940,7 @@ class RijndaelGF(SageObject):
 
         EXAMPLES::
 
-            sage: from sage.crypto.block_cipher.rijndael_gf import RijndaelGF
+            sage: from sage.crypto.mq.rijndael_gf import RijndaelGF
             sage: rgf = RijndaelGF(4, 4)
             sage: state = rgf.hex_to_GF('d1c4941f7955f40fb46f6c0ad68730ad')
             sage: result = rgf.sub_bytes(state)
@@ -1961,7 +1960,7 @@ class RijndaelGF(SageObject):
 
         EXAMPLES::
 
-            sage: from sage.crypto.block_cipher.rijndael_gf import RijndaelGF
+            sage: from sage.crypto.mq.rijndael_gf import RijndaelGF
             sage: rgf = RijndaelGF(4, 4)
             sage: mc_pc = rgf.mix_columns_poly_constr()
             sage: mc_pc
@@ -2000,7 +1999,7 @@ class RijndaelGF(SageObject):
 
         EXAMPLES::
 
-            sage: from sage.crypto.block_cipher.rijndael_gf import RijndaelGF
+            sage: from sage.crypto.mq.rijndael_gf import RijndaelGF
             sage: rgf = RijndaelGF(4, 4)
             sage: rgf._mix_columns_pc(3, 1)
             (x + 1)*a01 + a11 + a21 + (x)*a31
@@ -2045,7 +2044,7 @@ class RijndaelGF(SageObject):
 
         EXAMPLES::
 
-            sage: from sage.crypto.block_cipher.rijndael_gf import RijndaelGF
+            sage: from sage.crypto.mq.rijndael_gf import RijndaelGF
             sage: rgf = RijndaelGF(4, 4)
             sage: state = rgf.hex_to_GF('cd54c7283864c0c55d4c727e90c9a465')
             sage: result = rgf.mix_columns(state)
@@ -2065,7 +2064,7 @@ class RijndaelGF(SageObject):
 
         EXAMPLES::
 
-            sage: from sage.crypto.block_cipher.rijndael_gf import RijndaelGF
+            sage: from sage.crypto.mq.rijndael_gf import RijndaelGF
             sage: rgf = RijndaelGF(4, 4)
             sage: sr_pc = rgf.shift_rows_poly_constr()
             sage: sr_pc(3, 0)
@@ -2102,7 +2101,7 @@ class RijndaelGF(SageObject):
 
         EXAMPLES::
 
-            sage: from sage.crypto.block_cipher.rijndael_gf import RijndaelGF
+            sage: from sage.crypto.mq.rijndael_gf import RijndaelGF
             sage: rgf = RijndaelGF(4, 4)
             sage: rgf._shift_rows_pc(2, 3)
             a21
@@ -2149,7 +2148,7 @@ class RijndaelGF(SageObject):
 
         EXAMPLES::
 
-            sage: from sage.crypto.block_cipher.rijndael_gf import RijndaelGF
+            sage: from sage.crypto.mq.rijndael_gf import RijndaelGF
             sage: rgf = RijndaelGF(4, 4)
             sage: state = rgf.hex_to_GF('adcb0f257e9c63e0bc557e951c15ef01')
             sage: result = rgf.shift_rows(state)
@@ -2190,7 +2189,7 @@ class RijndaelGF(SageObject):
 
             EXAMPLES::
 
-                sage: from sage.crypto.block_cipher.rijndael_gf import \
+                sage: from sage.crypto.mq.rijndael_gf import \
                 ....: RijndaelGF
                 sage: rgf = RijndaelGF(4, 4)
                 sage: rcpc = RijndaelGF.Round_Component_Poly_Constr(
@@ -2314,7 +2313,7 @@ class RijndaelGF(SageObject):
               `\GF{2^8}`.
 
             EXAMPLES::
-                sage: from sage.crypto.block_cipher.rijndael_gf import \
+                sage: from sage.crypto.mq.rijndael_gf import \
                 ....: RijndaelGF
                 sage: rgf = RijndaelGF(4, 4)
                 sage: rcpc = RijndaelGF.Round_Component_Poly_Constr(
@@ -2343,7 +2342,7 @@ class RijndaelGF(SageObject):
 
             EXAMPLES::
 
-                sage: from sage.crypto.block_cipher.rijndael_gf import \
+                sage: from sage.crypto.mq.rijndael_gf import \
                 ....: RijndaelGF
                 sage: rgf = RijndaelGF(4, 4)
                 sage: RijndaelGF.Round_Component_Poly_Constr(

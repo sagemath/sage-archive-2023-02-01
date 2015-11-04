@@ -273,14 +273,17 @@ class AsymptoticExpansionGenerators(SageObject):
 
         TESTS::
 
-            sage: asymptotic_expansions.Binomial_kn_over_n(
-            ....:     'n', k=2, precision=5, algorithm='log')
-            sage: asymptotic_expansions.Binomial_kn_over_n(
-            ....:     'n', k=3, precision=5, algorithm='log')
-
+            sage: all(  # long time
+            ....:     asymptotic_expansions.Binomial_kn_over_n('n', k=k,
+            ....:         precision=5, algorithm='direct').has_same_summands(
+            ....:     asymptotic_expansions.Binomial_kn_over_n('n', k=k,
+            ....:     precision=5, algorithm='log'))
+            ....:     for k in (2, 4))
+            True
         """
         if algorithm is None:
-            algorithm = 'direct'
+            algorithm = 'log'  # 'log' seems to be faster, so we use it
+                               # as a default.
 
         from sage.symbolic.ring import SR
         SCR = SR.subring(no_variables=True)
@@ -315,7 +318,8 @@ class AsymptoticExpansionGenerators(SageObject):
             if not skip_constant_factor:
                 result /= (2*SCR('pi')).sqrt()
 
-            return result
+            return result.map_coefficients(
+                lambda c: c.canonicalize_radical())
 
         else:
             raise ValueError('Unknown algorithm %s.' % (algorithm,))

@@ -245,16 +245,42 @@ class AsymptoticExpansionGenerators(SageObject):
 
 
     @staticmethod
-    def Binomial_kn_over_n(var, k, precision=None, skip_constant_factor=False):
+    def Binomial_kn_over_n(var, k, precision=None, skip_constant_factor=False,
+                           algorithm=None):
         r"""
         EXAMPLES::
 
             sage: asymptotic_expansions.Binomial_kn_over_n('n', k=2, precision=5)
+            1/sqrt(pi)*(e^n)^(2*log(2))*n^(-1/2)
+            - 1/8/sqrt(pi)*(e^n)^(2*log(2))*n^(-3/2)
+            + 1/128/sqrt(pi)*(e^n)^(2*log(2))*n^(-5/2)
+            + O((e^n)^(2*log(2))*n^(-7/2))
             sage: _.parent()
+            Asymptotic Ring <(e^(n*log(n)))^(Symbolic Constants Subring)
+            * (e^n)^(Symbolic Constants Subring)
+            * n^(Symbolic Constants Subring)
+            * log(n)^(Symbolic Constants Subring)>
+            over Symbolic Constants Subring
+
+        ::
+
+            sage: asymptotic_expansions.Binomial_kn_over_n('n', k=3, precision=5)
+            1/2*sqrt(3)/sqrt(pi)*(e^n)^(3*log(3) - 2*log(2))*n^(-1/2)
+            - 7/144*sqrt(3)/sqrt(pi)*(e^n)^(3*log(3)
+            - 2*log(2))*n^(-3/2) + 49/20736*sqrt(3)/sqrt(pi)*(e^n)^(3*log(3)
+            - 2*log(2))*n^(-5/2)
+            + O((e^n)^(3*log(3) - 2*log(2))*n^(-7/2))
+
+        TESTS::
+
+            sage: asymptotic_expansions.Binomial_kn_over_n(
+            ....:     'n', k=2, precision=5, algorithm='log')
+            sage: asymptotic_expansions.Binomial_kn_over_n(
+            ....:     'n', k=3, precision=5, algorithm='log')
+
         """
-        log_Stirling = AsymptoticExpansionGenerators.log_Stirling(
-            var, precision=precision, skip_constant_summand=True)
-        n = log_Stirling.parent().gen()
+        if algorithm is None:
+            algorithm = 'direct'
 
         from sage.symbolic.ring import SR
         SCR = SR.subring(no_variables=True)
@@ -265,29 +291,34 @@ class AsymptoticExpansionGenerators(SageObject):
             raise combine_exceptions(
                 TypeError('Cannot use k=%s.' % (k,)), e)
 
-        result = log_Stirling.subs(n=k*n) - \
-                 log_Stirling.subs(n=(k-1)*n) - log_Stirling
-        print "log-result:", result
-        print result.parent()
+        if algorithm == 'direct':
+            Stirling = AsymptoticExpansionGenerators.Stirling(
+                var, precision=precision, skip_constant_factor=skip_constant_factor)
+            n = Stirling.parent().gen()
+            return Stirling.subs(n=k*n) / \
+                       (Stirling.subs(n=(k-1)*n) * Stirling)
 
-        #P = log_Stirling.parent().change_parameter(
-        #    growth_group=('(e^(n*log(n)))^SCR * (e^n)^SCR * n^SCR * '
-        #                  'log(n)^SCR').replace('SCR', 'SR.subring(no_variables=True)'),
-        #    coefficient_ring=SCR)
-        P = log_Stirling.parent().change_parameter(
-            growth_group='(e^(n*log(n)))^QQ * (e^n)^QQ * n^QQ * log(n)^QQ',
-            coefficient_ring=SCR)
-        from sage.functions.log import exp
-        result = exp(P.coerce(result))
-        print "exp-result:", result
-        print result.parent()
-        return result
+        if algorithm == 'log':
+            log_Stirling = AsymptoticExpansionGenerators.log_Stirling(
+                var, precision=precision, skip_constant_summand=True)
+            n = log_Stirling.parent().gen()
 
-        if not skip_constant_factor:
-            from sage.symbolic.ring import SR
-            result *= (2*SR('pi')).sqrt()
+            result = log_Stirling.subs(n=k*n) - \
+                     log_Stirling.subs(n=(k-1)*n) - log_Stirling
 
-        return result
+            P = log_Stirling.parent().change_parameter(
+                growth_group='(e^(n*log(n)))^QQ * (e^n)^QQ * n^QQ * log(n)^QQ',
+                coefficient_ring=SCR)
+            from sage.functions.log import exp
+            result = exp(P.coerce(result))
+
+            if not skip_constant_factor:
+                result /= (2*SCR('pi')).sqrt()
+
+            return result
+
+        else:
+            raise ValueError('Unknown algorithm %s.' % (algorithm,))
 
 
 # Easy access to the asymptotic expansions generators from the command line:

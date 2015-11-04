@@ -4518,7 +4518,7 @@ class Graph(GenericGraph):
 
     @doc_index("Basic methods")
     def to_directed(self, implementation='c_graph', data_structure=None,
-                    sparse=None):
+                    sparse=None, immutable=None):
         """
         Returns a directed version of the graph. A single edge becomes two
         edges, one in each direction.
@@ -4532,6 +4532,10 @@ class Graph(GenericGraph):
          - ``sparse`` (boolean) -- ``sparse=True`` is an alias for
            ``data_structure="sparse"``, and ``sparse=False`` is an alias for
            ``data_structure="dense"``.
+
+           - ``immutable`` (boolean) -- whether to create a mutable/immutable
+           digraph. ``immutable=None`` (default) means that the graph and its
+           directed version will behave the same way.
 
         EXAMPLES::
 
@@ -4565,6 +4569,8 @@ class Graph(GenericGraph):
                 data_structure = "sparse"
             else:
                 data_structure = "static_sparse"
+        if immutable is None:
+            immutable = (data_structure == "static_sparse")
         from sage.graphs.all import DiGraph
         D = DiGraph(name           = self.name(),
                     pos            = self._pos,
@@ -4582,26 +4588,32 @@ class Graph(GenericGraph):
             D._embedding = copy(self._embedding)
         D._weighted = self._weighted
 
-        if data_structure == "static_sparse":
-            D = D.copy(data_structure=data_structure)
+        if immutable:
+            D = D.copy(data_structure="static_sparse")
 
         return D
 
     @doc_index("Basic methods")
-    def to_undirected(self):
+    def to_undirected(self, immutable=None):
         """
         Since the graph is already undirected, simply returns a copy of
         itself.
+
+        INPUT:
+
+        - ``immutable`` (boolean) -- whether to create a mutable/immutable
+           copy. ``immutable=None`` (default) means that the graph and its copy
+           will behave the same way.
 
         EXAMPLES::
 
             sage: graphs.PetersenGraph().to_undirected()
             Petersen graph: Graph on 10 vertices
         """
-        return self.copy()
+        return self.copy(immutable=immutable)
 
     @doc_index("Basic methods")
-    def join(self, other, verbose_relabel=None, labels="pairs"):
+    def join(self, other, verbose_relabel=None, labels="pairs", immutable=None):
         """
         Returns the join of ``self`` and ``other``.
 
@@ -4614,6 +4626,10 @@ class Graph(GenericGraph):
           each element ``u`` in ``other`` will be named ``(1,u)`` in
           the result. If set to 'integers', the elements of the result
           will be relabeled with consecutive integers.
+
+        - ``immutable`` (boolean) -- whether to create a mutable/immutable
+           join. ``immutable=None`` (default) means that the graphs and their
+           join will behave the same way.
 
         .. SEEALSO::
 
@@ -4658,7 +4674,7 @@ class Graph(GenericGraph):
             if verbose_relabel is False:
                 labels="integers"
 
-        G = self.disjoint_union(other, labels=labels)
+        G = self.disjoint_union(other, labels=labels, immutable=False)
         if labels=="integers":
             G.add_edges((u,v) for u in range(self.order())
                         for v in range(self.order(), self.order()+other.order()))
@@ -4667,6 +4683,12 @@ class Graph(GenericGraph):
                         for v in other.vertices())
 
         G.name('%s join %s'%(self.name(), other.name()))
+
+        if immutable is None:
+            immutable = getattr(self, "_immutable", False) and getattr(other, "_immutable", False)
+        if immutable:
+            G = G.copy(immutable=True)
+
         return G
 
     @doc_index("Leftovers")
@@ -4737,7 +4759,7 @@ class Graph(GenericGraph):
             True
         """
         from itertools import product
-        G = self if inplace else self.copy()
+        G = self if inplace else copy(self)
         boundary = self.edge_boundary(s)
         G.add_edges(product(s, set(self).difference(s)))
         G.delete_edges(boundary)
@@ -5037,7 +5059,7 @@ class Graph(GenericGraph):
             return False
 
 
-        minor = G.subgraph()
+        minor = G.subgraph(immutable=False)
 
         is_repr = p.get_values(is_repr)
         v_repr = p.get_values(v_repr)
@@ -6366,7 +6388,7 @@ class Graph(GenericGraph):
         flow,edges,[U,V] = self.edge_cut(u, v, use_edge_labels=True, vertices=True, method=method)
 
         # One graph for each part of the previous one
-        gU,gV = self.subgraph(U), self.subgraph(V)
+        gU,gV = self.subgraph(U, immutable=False), self.subgraph(V, immutable=False)
 
         # A fake vertex fU (resp. fV) to represent U (resp. V)
         fU = frozenset(U)

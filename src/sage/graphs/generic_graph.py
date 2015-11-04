@@ -4239,7 +4239,7 @@ class GenericGraph(GenericGraph_pyx):
 
         # A local copy of self
         from sage.graphs.planarity import is_planar
-        graph = self.to_undirected()
+        graph = self.to_undirected(immutable=False)
         if hasattr(graph, '_embedding'):
             del(graph._embedding)
 
@@ -4357,7 +4357,7 @@ class GenericGraph(GenericGraph_pyx):
         """
         from sage.graphs.schnyder import _triangulate, _normal_label, _realizer, _compute_coordinates
 
-        G = self.to_undirected()
+        G = self.to_undirected(immutable=False)
         try:
             G._embedding = self._embedding
         except AttributeError:
@@ -4626,7 +4626,7 @@ class GenericGraph(GenericGraph_pyx):
         if not self.is_connected():
             raise TypeError("Graph must be connected to use Euler's Formula to compute minimal genus.")
 
-        G = self.to_simple()
+        G = self.to_simple(immutable=False)
         verts = G.order()
         edges = G.size()
 
@@ -5237,17 +5237,22 @@ class GenericGraph(GenericGraph_pyx):
             if len([(uu,vv) for uu,vv,ll in self.edges_incident(u) if uu == v or vv == v]) > 1:
                 return False
 
-        self.delete_edge(u,v,label)
-        if self.is_directed():
+        if getattr(self, '_immutable', False):
+            G = copy(self)
+        else:
+            G = self
+        G.delete_edge(u,v,label)
+        if G.is_directed():
             # (u,v) is a cut-edge if u is not in the connected
             # component containing v of self-(u,v)
-            sol = not u in self.connected_component_containing_vertex(v)
+            sol = not u in G.connected_component_containing_vertex(v)
         else:
             # (u,v) is a cut-edge if there is no path from u to v in
             # self-(u,v)
-            sol = not self.distance(u,v) < self.order()
+            sol = not G.distance(u,v) < G.order()
 
-        self.add_edge(u,v,label)
+        if not getattr(self, '_immutable', False):
+            G.add_edge(u,v,label)
         return sol
 
 
@@ -5460,7 +5465,7 @@ class GenericGraph(GenericGraph_pyx):
         if not weighted:
             gg = g.subgraph(vertices)
             if gg.is_connected():
-                st = g.subgraph(edges = gg.min_spanning_tree())
+                st = g.subgraph(edges = gg.min_spanning_tree(), immutable=False)
                 st.delete_vertices([v for v in g if st.degree(v) == 0])
                 return st
 
@@ -5512,7 +5517,8 @@ class GenericGraph(GenericGraph_pyx):
 
         edges = p.get_values(edges)
 
-        st =  g.subgraph(edges=[e for e in g.edges(labels = False) if edges[R(e)] == 1])
+        st =  g.subgraph(edges=[e for e in g.edges(labels = False) if edges[R(e)] == 1],
+                         immutable=False)
         st.delete_vertices([v for v in g if st.degree(v) == 0])
         return st
 
@@ -8352,7 +8358,7 @@ class GenericGraph(GenericGraph_pyx):
                     g.set_edge_label(u,v, int(round(l)))
 
         # returning a graph with the same embedding, the corresponding name, etc ...
-        h = self.subgraph(edges=[])
+        h = self.subgraph(edges=[], immutable=False)
         h.delete_vertices([v for v in self if (v not in g) or g.degree(v)==0])
         h.add_edges(g.edges())
 
@@ -11078,7 +11084,8 @@ class GenericGraph(GenericGraph_pyx):
     ### Substructures
 
     def subgraph(self, vertices=None, edges=None, inplace=False,
-                       vertex_property=None, edge_property=None, algorithm=None):
+                       vertex_property=None, edge_property=None, algorithm=None,
+                       immutable=None):
         """
         Returns the subgraph containing the given vertices and edges.
 
@@ -11118,6 +11125,10 @@ class GenericGraph(GenericGraph_pyx):
           building a new graph from the appropriate vertices and
           edges.  If not specified, then the algorithm is chosen based
           on the number of vertices in the subgraph.
+
+        - ``immutable`` (boolean) -- whether to create a mutable/immutable
+           subgraph. ``immutable=None`` (default) means that the graph and its
+           subgraph will behave the same way.
 
 
         EXAMPLES::
@@ -11239,12 +11250,14 @@ class GenericGraph(GenericGraph_pyx):
         if inplace or len(vertices)>0.05*self.order() or algorithm=="delete":
             return self._subgraph_by_deleting(vertices=vertices, edges=edges,
                                               inplace=inplace,
-                                              edge_property=edge_property)
+                                              edge_property=edge_property,
+                                              immutable=immutable)
         else:
             return self._subgraph_by_adding(vertices=vertices, edges=edges,
-                                            edge_property=edge_property)
+                                            edge_property=edge_property,
+                                            immutable=immutable)
 
-    def _subgraph_by_adding(self, vertices=None, edges=None, edge_property=None):
+    def _subgraph_by_adding(self, vertices=None, edges=None, edge_property=None, immutable=None):
         """
         Returns the subgraph containing the given vertices and edges.
         The edges also satisfy the edge_property, if it is not None.
@@ -11265,6 +11278,10 @@ class GenericGraph(GenericGraph_pyx):
         -  ``edge_property`` - If specified, this is expected
            to be a function on edges, which is intersected with the edges
            specified, if any are.
+
+           - ``immutable`` (boolean) -- whether to create a mutable/immutable
+           subgraph. ``immutable=None`` (default) means that the graph and its
+           subgraph will behave the same way.
 
 
         EXAMPLES::
@@ -11376,10 +11393,15 @@ class GenericGraph(GenericGraph_pyx):
                 value = dict([(v, getattr(self, attr).get(v, None)) for v in G])
                 setattr(G, attr,value)
 
+        if immutable is None:
+            immutable = getattr(self, '_immutable', False)
+        if immutable:
+            G = G.copy(immutable=True)
+
         return G
 
     def _subgraph_by_deleting(self, vertices=None, edges=None, inplace=False,
-                              edge_property=None):
+                              edge_property=None, immutable=None):
         """
         Returns the subgraph containing the given vertices and edges.
         The edges also satisfy the edge_property, if it is not None.
@@ -11404,6 +11426,10 @@ class GenericGraph(GenericGraph_pyx):
         -  ``inplace`` - Using inplace is True will simply
            delete the extra vertices and edges from the current graph. This
            will modify the graph.
+
+           - ``immutable`` (boolean) -- whether to create a mutable/immutable
+           subgraph. ``immutable=None`` (default) means that the graph and its
+           subgraph will behave the same way.
 
 
         EXAMPLES::
@@ -11526,8 +11552,10 @@ class GenericGraph(GenericGraph_pyx):
 
         G.delete_edges(edges_to_delete)
         if not inplace:
-            if getattr(self, '_immutable', False):
-                return G.copy(immutable=True)
+            if immutable is None:
+                immutable = getattr(self, '_immutable', False)
+            if immutable:
+                G = G.copy(immutable=True)
             return G
 
     def subgraph_search(self, G, induced=False):
@@ -12358,7 +12386,7 @@ class GenericGraph(GenericGraph_pyx):
         # As we will be deleting vertices ...
         g = copy(self)
 
-        for cc in self.connected_components_subgraphs():
+        for cc in g.connected_components_subgraphs():
 
             # We pick a perfect elimination order for every connected
             # component. We will then iteratively take the last vertex
@@ -16361,7 +16389,7 @@ class GenericGraph(GenericGraph_pyx):
             return G.copy(immutable=True)
         return G
 
-    def to_simple(self, to_undirected=True, keep_label='any'):
+    def to_simple(self, to_undirected=True, keep_label='any', immutable=None):
         """
         Returns a simple version of itself.
 
@@ -16377,6 +16405,10 @@ class GenericGraph(GenericGraph_pyx):
           with different labels, this variable defines which label should be
           kept: any label (``'any'``), the smallest label (``'min'``), or the
           largest (``'max'``).
+
+        - ``immutable`` (boolean) -- whether to create a mutable/immutable
+           copy. ``immutable=None`` (default) means that the graph and its copy
+           will behave the same way.
 
         EXAMPLES::
 
@@ -16399,14 +16431,19 @@ class GenericGraph(GenericGraph_pyx):
             [(2, 3, 2), (3, 2, None)]
         """
         if to_undirected:
-            g=self.to_undirected()
+            g=self.to_undirected(immutable=False)
         else:
-            g=copy(self)
+            g=self.copy(immutable=False)
         g.allow_loops(False)
         g.allow_multiple_edges(False, keep_label=keep_label)
+        if immutable is None:
+            immutable = getattr(self, '_immutable', False)
+        if immutable:
+            g = g.copy(immutable=True)
         return g
 
-    def disjoint_union(self, other, verbose_relabel=None, labels="pairs"):
+    def disjoint_union(self, other, verbose_relabel=None, labels="pairs",
+                             immutable=None):
         """
         Return the disjoint union of self and other.
 
@@ -16419,6 +16456,10 @@ class GenericGraph(GenericGraph_pyx):
           each element ``u`` in ``other`` will be named ``(1,u)`` in
           the result. If set to 'integers', the elements of the result
           will be relabeled with consecutive integers.
+
+        - ``immutable`` (boolean) -- whether to create a mutable/immutable
+           disjoint union. ``immutable=None`` (default) means that the graphs
+           and their disjoint union will behave the same way.
 
         .. SEEALSO::
 
@@ -16470,16 +16511,16 @@ class GenericGraph(GenericGraph_pyx):
                 r_self[v] = i; i += 1
             for v in other:
                 r_other[v] = i; i += 1
-            G = self.relabel(r_self, inplace=False).union(other.relabel(r_other, inplace=False))
+            G = self.relabel(r_self, inplace=False).union(other.relabel(r_other, inplace=False), immutable=immutable)
         else:
             r_self = dict([[v,(0,v)] for v in self])
             r_other = dict([[v,(1,v)] for v in other])
-            G = self.relabel(r_self, inplace=False).union(other.relabel(r_other, inplace=False))
+            G = self.relabel(r_self, inplace=False).union(other.relabel(r_other, inplace=False), immutable=immutable)
 
         G._name = '%s disjoint_union %s'%(self.name(), other.name())
         return G
 
-    def union(self, other):
+    def union(self, other, immutable=None):
         """
         Returns the union of self and other.
 
@@ -16489,7 +16530,14 @@ class GenericGraph(GenericGraph_pyx):
         If one of the two graphs allows loops (or multiple edges), the resulting
         graph will allow loops (or multiple edges).
 
-        If both graphs are immutable, the resulting graph is immutable.
+        If both graphs are immutable, the resulting graph is immutable, unless
+        requested otherwise.
+
+        INPUT:
+
+        - ``immutable`` (boolean) -- whether to create a mutable/immutable
+           union. ``immutable=None`` (default) means that the graphs and their
+           union will behave the same way.
 
         .. SEEALSO::
 
@@ -16546,7 +16594,9 @@ class GenericGraph(GenericGraph_pyx):
         G.add_edges(self.edges())
         G.add_edges(other.edges())
 
-        if getattr(self, "_immutable", False) and getattr(other, "_immutable", False):
+        if immutable is None:
+            immutable = getattr(self, "_immutable", False) and getattr(other, "_immutable", False)
+        if immutable:
             G = G.copy(immutable=True)
 
         return G

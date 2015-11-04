@@ -24,6 +24,11 @@ class CellularBasis(CombinatorialFreeModule):
     INPUT:
 
     - ``A`` -- the cellular algebra
+
+    EXAMPLES::
+
+        sage: S = SymmetricGroupAlgebra(QQ, 3)
+        sage: C = S.cellular_basis()
     """
     def __init__(self, A):
         r"""
@@ -37,7 +42,7 @@ class CellularBasis(CombinatorialFreeModule):
         """
         self._algebra = A
         I = [(la, s, t) for la in A.cell_poset()
-             for s in A.cell(la) for t in A.cell(la)]
+             for s in A.cell_module_indices(la) for t in A.cell_module_indices(la)]
         # TODO: Use instead A.category().Realizations() so
         #   operations are defined by coercion?
         cat = Algebras(A.category().base_ring()).FiniteDimensional().WithBasis().Cellular()
@@ -97,18 +102,21 @@ class CellularBasis(CombinatorialFreeModule):
         """
         return self._algebra.cell_poset()
 
-    def cell(self, la):
+    def cell_module_indices(self, la):
         """
-        Return the cell indexed by ``la`` of ``self``.
+        Return the indices of the cell module of ``self``
+        indexed by ``la`` .
+
+        This is the finite set `M(\lambda)`.
 
         EXAMPLES::
 
             sage: S = SymmetricGroupAlgebra(QQ, 3)
             sage: C = S.cellular_basis()
-            sage: C.cell([2,1])
+            sage: C.cell_module_indices([2,1])
             Standard tableaux of shape [2, 1]
         """
-        return self._algebra.cell(la)
+        return self._algebra.cell_module_indices(la)
 
     def cellular_basis(self):
         """

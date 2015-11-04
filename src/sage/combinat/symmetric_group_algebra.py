@@ -663,14 +663,17 @@ class SymmetricGroupAlgebra_n(CombinatorialFreeModule):
         from sage.combinat.partition import Partitions
         return Poset([Partitions(self.n), lambda x,y: x.dominates(y)])
 
-    def cell(self, la):
+    def cell_module_indices(self, la):
         """
-        Return the cell indexed by ``la`` in ``self``.
+        Return the indices of the cell module of ``self``
+        indexed by ``la`` .
+
+        This is the finite set `M(\lambda)`.
 
         EXAMPLES::
 
             sage: S = SymmetricGroupAlgebra(QQ, 4)
-            sage: S.cell([3,1])
+            sage: S.cell_module_indices([3,1])
             Standard tableaux of shape [3, 1]
         """
         return StandardTableaux(la)
@@ -709,6 +712,28 @@ class SymmetricGroupAlgebra_n(CombinatorialFreeModule):
             P = self.basis().keys()
             return self._from_dict({P(i.to_matrix()): c for i,c in ret},
                                    remove_zeros=False)
+
+    def cell_module(self, la, **kwds):
+        """
+        Return the cell module indexed by ``la``.
+
+        EXAMPLES::
+
+            sage: S = SymmetricGroupAlgebra(QQ, 3)
+            sage: M = S.cell_module(Partition([2,1])); M
+            Cell module indexed by [2, 1] of Cellular basis of
+             Symmetric group algebra of order 3 over Rational Field
+
+        We check that the input ``la`` is standardized::
+
+            sage: N = S.cell_module([2,1])
+            sage: M is N
+            True
+        """
+        from sage.combinat.partition import _Partitions
+        la = _Partitions(la)
+        kwds['bracket'] = kwds.get('bracket', False)
+        return super(SymmetricGroupAlgebra_n, self).cell_module(la, **kwds)
 
     def retract_plain(self, f, m):
         r"""

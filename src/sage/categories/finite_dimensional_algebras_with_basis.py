@@ -1075,7 +1075,7 @@ class FiniteDimensionalAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
                 K = B.keys()
                 P = self.cell_poset()
                 for la in P:
-                    C = self.cell(la)
+                    C = self.cell_module_indices(la)
                     for s in C:
                         t = C[0]
                         vals = []
@@ -1107,16 +1107,17 @@ class FiniteDimensionalAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
                 """
 
             @abstract_method
-            def cell(self, la):
+            def cell_module_indices(self, la):
                 """
-                Return the cell indexed by ``la`` of ``self``.
+                Return the indices of the cell module of ``self``
+                indexed by ``la`` .
 
                 This is the finite set `M(\lambda)`.
 
                 EXAMPLES::
 
                     sage: S = SymmetricGroupAlgebra(QQ, 3)
-                    sage: S.cell([2,1])
+                    sage: S.cell_module_indices([2,1])
                     Standard tableaux of shape [2, 1]
                 """
 
@@ -1190,7 +1191,7 @@ class FiniteDimensionalAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
                      [3]: Standard tableaux of shape [3]}
                 """
                 from sage.sets.family import Family
-                return Family(self.cell_poset(), self.cell)
+                return Family(self.cell_poset(), self.cell_module_indices)
 
             def cellular_basis(self):
                 """
@@ -1205,6 +1206,44 @@ class FiniteDimensionalAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
                 """
                 from sage.algebras.cellular_basis import CellularBasis
                 return CellularBasis(self)
+
+            def cell_module(self, la, **kwds):
+                """
+                Return the cell module indexed by ``la``.
+
+                EXAMPLES::
+
+                    sage: S = SymmetricGroupAlgebra(QQ, 3)
+                    sage: S.cell_module(Partition([2,1]))
+                    Cell module indexed by [2, 1] of Cellular basis of
+                     Symmetric group algebra of order 3 over Rational Field
+                """
+                from sage.modules.with_basis.cell_module import CellModule
+                return CellModule(self.cellular_basis(), la, **kwds)
+
+            @cached_method
+            def simple_module_parameterization(self):
+                r"""
+                Return a parameterization of the simple modules of ``self``.
+
+                The set of simple modules are parameterized by
+                `\lambda \in \Lambda` such that the cell module
+                bilinear form `\Phi_{\lambda} \neq 0`.
+
+                EXAMPLES::
+
+                    sage: S = SymmetricGroupAlgebra(QQ, 4)
+                    sage: S.simple_module_parameterization()
+                    ([4], [3, 1], [2, 2], [2, 1, 1], [1, 1, 1, 1])
+                """
+                param = []
+                for la in self.cell_poset():
+                    W = self.cell_module(la)
+                    C = W.basis().keys()
+                    if any(W._bilinear_form_on_basis(s, t)
+                           for s in C for t in C):
+                        param.append(la)
+                return tuple(param)
 
         class ElementMethods:
             def cellular_involution(self):
@@ -1261,9 +1300,10 @@ class FiniteDimensionalAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
                         ret = ret.product(A.cell_poset())
                     return ret
 
-                def cell(self, la):
+                def cell_module_indices(self, la):
                     """
-                    Return the cell indexed by ``la`` of ``self``.
+                    Return the indices of the cell module of ``self``
+                    indexed by ``la`` .
 
                     This is the finite set `M(\lambda)`.
 
@@ -1272,12 +1312,12 @@ class FiniteDimensionalAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
                         sage: S2 = SymmetricGroupAlgebra(QQ, 2)
                         sage: S3 = SymmetricGroupAlgebra(QQ, 3)
                         sage: T = S2.tensor(S3)
-                        sage: T.cell(([1,1], [2,1]))
+                        sage: T.cell_module_indices(([1,1], [2,1]))
                         The cartesian product of (Standard tableaux of shape [1, 1],
                                                   Standard tableaux of shape [2, 1])
                     """
                     from sage.categories.cartesian_product import cartesian_product
-                    return cartesian_product([self._sets[i].cell(x)
+                    return cartesian_product([self._sets[i].cell_module_indices(x)
                                               for i,x in enumerate(la)])
 
                 @lazy_attribute
@@ -1360,7 +1400,7 @@ class FiniteDimensionalAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
                             la.append(a)
                             s.append(b)
                             t.append(c)
-                        C = self.cell(la)
+                        C = self.cell_module_indices(la)
                         return (tuple(la), C(s), C(t))
                     return B._from_dict({convert_index(i): M[i] for i in M},
                                         remove_zeros=False)

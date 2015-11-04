@@ -1,3 +1,4 @@
+# distutils: language = c++
 """
 GLPK Backend
 
@@ -9,14 +10,22 @@ AUTHORS:
 - Christian Kuper (2012-10): Additions for sensitivity analysis
 """
 
-##############################################################################
+#*****************************************************************************
 #       Copyright (C) 2010 Nathann Cohen <nathann.cohen@gmail.com>
-#  Distributed under the terms of the GNU General Public License (GPL)
-#  The full text of the GPL is available at:
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
-##############################################################################
+#*****************************************************************************
+
 
 from sage.numerical.mip import MIPSolverException
+from sage.libs.glpk.constants cimport *
+from sage.libs.glpk.lp cimport *
+from libc.float cimport DBL_MAX
+from libc.limits cimport INT_MAX
 
 include "sage/ext/stdsage.pxi"
 include "sage/ext/interrupt.pxi"
@@ -33,9 +42,9 @@ cdef class GLPKBackend(GenericBackend):
         """
         self.lp = glp_create_prob()
         self.simplex_or_intopt = glp_intopt_only
-        self.smcp = <c_glp_smcp* > sage_malloc(sizeof(c_glp_smcp))
+        self.smcp = <glp_smcp* > sage_malloc(sizeof(glp_smcp))
         glp_init_smcp(self.smcp)
-        self.iocp = <c_glp_iocp* > sage_malloc(sizeof(c_glp_iocp))
+        self.iocp = <glp_iocp* > sage_malloc(sizeof(glp_iocp))
         glp_init_iocp(self.iocp)
 
         self.iocp.cb_func = glp_callback                      # callback function
@@ -2414,7 +2423,7 @@ cdef class GLPKBackend(GenericBackend):
         sage_free(self.iocp)
         sage_free(self.smcp)
 
-cdef void glp_callback(c_glp_tree* tree, void* info):
+cdef void glp_callback(glp_tree* tree, void* info):
     r"""
     A callback routine called by glp_intopt
 
@@ -2424,7 +2433,7 @@ cdef void glp_callback(c_glp_tree* tree, void* info):
 
     INPUT:
 
-    - ``tree`` -- a pointer toward ``c_glp_tree``, which is GLPK's search tree
+    - ``tree`` -- a pointer toward ``glp_tree``, which is GLPK's search tree
 
     - ``info`` -- a ``void *`` to let the function know *where* it should store
       the data we need. The value of ``info`` is equal to the one stored in

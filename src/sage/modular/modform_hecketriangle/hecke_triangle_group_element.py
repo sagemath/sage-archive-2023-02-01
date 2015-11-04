@@ -20,7 +20,7 @@ from sage.misc.latex import latex
 from sage.misc.misc_c import prod
 from sage.misc.cachefunc import cached_method
 
-from sage.rings.all import AA, QQbar, ZZ, infinity
+from sage.rings.all import AA, QQbar, ZZ, infinity, CC
 
 from sage.groups.matrix_gps.group_element import MatrixGroupElement_generic
 from sage.geometry.hyperbolic_space.hyperbolic_interface import HyperbolicPlane
@@ -3164,13 +3164,13 @@ class HeckeTriangleGroupElement(MatrixGroupElement_generic):
         else:
             return HyperbolicPlane().UHP().get_point(result).to_model(model)
 
-    # TODO: extend the action to more general settings, e.g. try if other coerces into HyperbolicPlane()
-    #       Note however that the group also acts on itself by conjugation. So it's not completely clear
-    #       what exactly should be the default action...
     def _act_on_(self, other, self_on_left):
         r"""
-        Defines what Hecke triangle group elements act on using :meth:`acton`.
-        For now only the action on HyperbolicPlane() is enabled.
+        Defines the action by linear fractional transformation of Hecke triangle group
+        elements on complext points (using :meth:`acton`).
+
+        For the action on matrices by conjugation :meth:`acton` has to be used explicitely
+        (to avoid confusion/ambiguity in expressions of the form gamma1*gamma2*z).
 
         EXAMPLES::
 
@@ -3185,10 +3185,20 @@ class HeckeTriangleGroupElement(MatrixGroupElement_generic):
             True
             sage: (G.S()*G.U())*p == G.S()*(G.U()*p)
             True
+
+            sage: p = G.lam()
+            sage: G.U()*G.T()*p
+            1/2*lam + 1/2
+            sage: p = QQbar(i*sqrt(2))
+            sage: G.U()*p
+            1.618033988749895? + 0.7071067811865475?*I
+            sage: p = CC(-i + sqrt(2))
+            sage: G.U()*p
+            1.14662946795886 - 0.333333333333333*I
         """
 
         if (self_on_left):
-            if (other in HyperbolicPlane()):
+            if (other in CC or other in HyperbolicPlane()):
                 return self.acton(other)
         return None
 

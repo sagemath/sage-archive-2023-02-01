@@ -2439,11 +2439,16 @@ class AsymptoticRing(Algebra, UniqueRepresentation):
 
             sage: A.change_parameter(coefficient_ring=ZZ) is A
             True
+            sage: A.change_parameter(coefficient_ring=None) is A
+            True
         """
         parameters = ('growth_group', 'coefficient_ring', 'default_prec')
         values = dict()
         for parameter in parameters:
-            values[parameter] = kwds.get(parameter, getattr(self, parameter))
+            default = getattr(self, parameter)
+            values[parameter] = kwds.get(parameter, default)
+            if values[parameter] is None:
+                values[parameter] = default
         values['category'] = self.category()
         if isinstance(values['growth_group'], str):
             from growth_group import GrowthGroup

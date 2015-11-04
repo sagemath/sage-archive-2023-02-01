@@ -357,8 +357,7 @@ class FiniteCoxeterGroups(CategoryWithAxiom):
             from sage.combinat.posets.lattices import LatticePoset
             if hasattr(c,"reduced_word"):
                c = c.reduced_word()
-            elif not isinstance(c,list):
-               c = list(c)
+            c = list(c)
 
             if on_roots:
                 if not hasattr(self.long_element(),"reflection_to_root"):
@@ -373,42 +372,41 @@ class FiniteCoxeterGroups(CategoryWithAxiom):
                 T = self.reflections_from_w0()
                 Twords = {t : t.reduced_word() for t in T}
 
-            elements = []
+            elements = set()
             covers = []
 
-            bottom_elt = sorted([[s,0] for s in S])
-            new = [bottom_elt]
-            while new != []:
-                for new_element in new:
-                    new.remove(new_element)
-                    elements.append(new_element)
-                    for t in new_element:
-                        if t[1] < m:
-                            cov_element = [s for s in new_element if s != t]
-                            cov_element.append([t[0],t[1]+1])
-                            for t_conj in [[i,t[1]] for i in inv_woc[inv_woc.index(t[0]):]]+[[i,t[1]+1] for i in inv_woc[:inv_woc.index(t[0])]]:
-                                if t_conj in cov_element:
-                                    cov_element.remove(t_conj)
-                                    if on_roots:
-                                        tmp = t_conj[0].weyl_action(t[0].associated_reflection())
-                                        if tmp in PhiP:
-                                            cov_element.append([tmp,t_conj[1]])
-                                        else:
-                                            cov_element.append([-tmp,t_conj[1]-1])
+            bottom_elt = frozenset((s,0) for s in S)
+            new = set([bottom_elt])
+            while new:
+                new_element = new.pop()
+                elements.add(new_element)
+                for t in new_element:
+                    if t[1] < m:
+                        cov_element = [s for s in new_element if s != t]
+                        cov_element.append((t[0],t[1]+1))
+                        for t_conj in [(i,t[1]) for i in inv_woc[inv_woc.index(t[0]):]]+[(i,t[1]+1) for i in inv_woc[:inv_woc.index(t[0])]]:
+                            if t_conj in cov_element:
+                                cov_element.remove(t_conj)
+                                if on_roots:
+                                    tmp = t_conj[0].weyl_action(t[0].associated_reflection())
+                                    if tmp in PhiP:
+                                        cov_element.append(( tmp,t_conj[1]  ))
                                     else:
-                                        tmp = t[0]*t_conj[0]*t[0]
-                                        invs = self.inversion_sequence(Twords[t[0]]+Twords[t_conj[0]])
-                                        plus_or_minus = invs.count(tmp)
-                                        if plus_or_minus % 2 == 1:
-                                            cov_element.append([tmp,t_conj[1]])
-                                        else:
-                                            cov_element.append([tmp,t_conj[1]-1])
+                                        cov_element.append((-tmp,t_conj[1]-1))
+                                else:
+                                    tmp = t[0]*t_conj[0]*t[0]
+                                    invs = self.inversion_sequence(Twords[t[0]]+Twords[t_conj[0]])
+                                    plus_or_minus = invs.count(tmp)
+                                    if plus_or_minus % 2 == 1:
+                                        cov_element.append((tmp,t_conj[1]  ))
+                                    else:
+                                        cov_element.append((tmp,t_conj[1]-1))
 
-                            cov_element = sorted(cov_element)
-                            if cov_element not in elements and cov_element not in new:
-                                new.append(cov_element)
-                            covers.append([tuple(map(tuple,new_element)),tuple(map(tuple,cov_element))])
-            return LatticePoset([[tuple(map(tuple,e)) for e in elements],covers],cover_relations=True)
+                        cov_element = frozenset(cov_element)
+                        if cov_element not in elements:
+                            new.add(cov_element)
+                        covers.append((new_element,cov_element))
+            return LatticePoset([elements,covers],cover_relations=True)
 
         def cambrian_lattice(self, c, on_roots=False):
             """

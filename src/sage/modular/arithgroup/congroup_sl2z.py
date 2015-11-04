@@ -3,7 +3,7 @@ The modular group `{\rm SL}_2(\ZZ)`
 
 AUTHORS:
 
-- Niles Johnson (2010-08): Trac #3893: ``random_element()`` should pass on ``*args`` and ``**kwds``.
+- Niles Johnson (2010-08): :trac:`3893`: ``random_element()`` should pass on ``*args`` and ``**kwds``.
 
 """
 

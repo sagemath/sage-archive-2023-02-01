@@ -1095,9 +1095,9 @@ class DirichletCharacter(MultiplicativeGroupElement):
             sage: sum([g(x)*g(1-x) for x in IntegerModRing(N)])
             11
 
-        And sums where exactly one character is nontrivial (see trac #6393)::
+        And sums where exactly one character is nontrivial (see :trac:`6393`)::
 
-            sage: G=DirichletGroup(5); X=G.list(); Y=X[0]; Z=X[1]
+            sage: G = DirichletGroup(5); X=G.list(); Y=X[0]; Z=X[1]
             sage: Y.jacobi_sum(Z)
             -1
             sage: Z.jacobi_sum(Y)

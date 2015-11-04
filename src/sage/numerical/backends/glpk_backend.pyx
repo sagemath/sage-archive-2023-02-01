@@ -389,11 +389,10 @@ cdef class GLPKBackend(GenericBackend):
         EXAMPLE::
 
             sage: p = MixedIntegerLinearProgram(solver='GLPK')
-            sage: x,y = p[0], p[1]
-            doctest:...: DeprecationWarning: The default value of 'nonnegative' will change, to False instead of True. You should add the explicit 'nonnegative=True'.
-            See http://trac.sagemath.org/15521 for details.
-            sage: p.add_constraint(2*x + 3*y, max = 6)
-            sage: p.add_constraint(3*x + 2*y, max = 6)
+            sage: v = p.new_variable(nonnegative=True)
+            sage: x, y = v['x'], v['y']
+            sage: p.add_constraint(2*x + 3*y, max=6)
+            sage: p.add_constraint(3*x + 2*y, max=6)
             sage: p.set_objective(x + y + 7)
             sage: p.set_integer(x); p.set_integer(y)
             sage: p.solve()
@@ -429,9 +428,10 @@ cdef class GLPKBackend(GenericBackend):
         EXAMPLE::
 
             sage: p = MixedIntegerLinearProgram(solver='GLPK')
-            sage: x,y = p[0], p[1]
-            sage: p.add_constraint(2*x + 3*y, max = 6)
-            sage: p.add_constraint(3*x + 2*y, max = 6)
+            sage: v = p.new_variable(nonnegative=True)
+            sage: x, y = v['x'], v['y']
+            sage: p.add_constraint(2*x + 3*y, max=6)
+            sage: p.add_constraint(3*x + 2*y, max=6)
             sage: p.set_objective(x + y + 7)
             sage: p.set_integer(x); p.set_integer(y)
             sage: p.solve()
@@ -814,12 +814,13 @@ cdef class GLPKBackend(GenericBackend):
         EXAMPLE::
 
             sage: lp = MixedIntegerLinearProgram(solver = "GLPK")
-            sage: lp.add_constraint( lp[1] +lp[2] -2.0 *lp[3] , max =-1.0)
-            sage: lp.add_constraint( lp[0] -4.0/3 *lp[1] +1.0/3 *lp[2] , max =-1.0/3)
-            sage: lp.add_constraint( lp[0] +0.5 *lp[1] -0.5 *lp[2] +0.25 *lp[3] , max =-0.25)
+            sage: v = lp.new_variable(nonnegative=True)
+            sage: lp.add_constraint(v[1] +v[2] -2.0 *v[3], max=-1.0)
+            sage: lp.add_constraint(v[0] -4.0/3 *v[1] +1.0/3 *v[2], max=-1.0/3)
+            sage: lp.add_constraint(v[0] +0.5 *v[1] -0.5 *v[2] +0.25 *v[3], max=-0.25)
             sage: lp.solve()
             0.0
-            sage: lp.add_constraint( lp[0] +4.0 *lp[1] -lp[2] +lp[3] , max =-1.0)
+            sage: lp.add_constraint(v[0] +4.0 *v[1] -v[2] +v[3], max=-1.0)
             sage: lp.solve()
             Traceback (most recent call last):
             ...

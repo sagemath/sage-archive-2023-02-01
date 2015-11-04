@@ -967,19 +967,19 @@ def contour_and_graph_from_word(w):
     for x in w:
         if x == 1:  # going up to a new inner vertex
             index += 1
-            leaf_stack += [index, index]
-            inner_stack += [index]
-            edges += [(active_vertex, index)]
+            leaf_stack.extend([index, index])
+            inner_stack.append(index)
+            edges.extend([(active_vertex, index)])
             active_vertex = index
-            word += [('i', index)]
+            word.append(('i', index))
         else:
             if active_vertex in leaf_stack:  # up and down to a new leaf
                 leaf_stack.remove(active_vertex)
-                word += [('f', active_vertex), ('i', active_vertex)]
+                word.extend([('f', active_vertex), ('i', active_vertex)])
             else:  # going down to a known inner vertex
                 inner_stack.pop()
                 active_vertex = inner_stack[-1]
-                word += [('i', active_vertex)]
+                word.append(('i', active_vertex))
     return word[:-1], Graph(edges, format='list_of_edges')
 
 
@@ -1042,8 +1042,8 @@ def RandomTriangulation_uniform(n, set_position=False):
             elif x[0] == 'f':  # leaf vertex 'f'
                 if len(stack) == 3:
                     a, b = stack[0][1], stack[2][1]
-                    edges += [(a, b)]
-                    new_word += [('i', a), ('i', b)]
+                    edges.append((a, b))
+                    new_word.extend([('i', a), ('i', b)])
                     kill_next = True
                     stack = []
                     done = False
@@ -1052,7 +1052,7 @@ def RandomTriangulation_uniform(n, set_position=False):
                     stack = []
             else:  # inner vertex 'i'
                 if len(stack) == 3:
-                    new_word += [stack[0]]
+                    new_word.append(stack[0])
                     stack = stack[1:] + [x]
                 else:
                     stack += [x]

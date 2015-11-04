@@ -1236,14 +1236,8 @@ class FiniteDimensionalAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
                     sage: S.simple_module_parameterization()
                     ([4], [3, 1], [2, 2], [2, 1, 1], [1, 1, 1, 1])
                 """
-                param = []
-                for la in self.cell_poset():
-                    W = self.cell_module(la)
-                    C = W.basis().keys()
-                    if any(W._bilinear_form_on_basis(s, t)
-                           for s in C for t in C):
-                        param.append(la)
-                return tuple(param)
+                return tuple([la for la in self.cell_poset()
+                              if self.cell_module(la).nonzero_bilinear_form()])
 
         class ElementMethods:
             def cellular_involution(self):

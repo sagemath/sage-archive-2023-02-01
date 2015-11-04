@@ -24,11 +24,54 @@ class CellularBasis(CombinatorialFreeModule):
     INPUT:
 
     - ``A`` -- the cellular algebra
+    - ``indices_unique`` -- (default: ``False``) if ``True``, then
+      the cell module indices are unique; i.e., for any `s \in M(\lambda)`,
+      then `s \notin M(\mu)` for all `\mu \neq \lambda`
 
-    EXAMPLES::
+    If ``indices_unique`` is ``True``, then the index `\lambda` is
+    surpressed from the output.
+
+    EXAMPLES:
+
+    We compute a cellular basis and do some basic computations::
 
         sage: S = SymmetricGroupAlgebra(QQ, 3)
         sage: C = S.cellular_basis()
+        sage: C
+        Cellular basis of Symmetric group algebra of order 3
+         over Rational Field
+        sage: len(C.basis())
+        6
+        sage: len(S.basis())
+        6
+        sage: a,b,c,d,e,f = C.basis()
+        sage: a
+        C([3], [[1, 2, 3]], [[1, 2, 3]])
+        sage: c
+        C([2, 1], [[1, 3], [2]], [[1, 2], [3]])
+        sage: d
+        C([2, 1], [[1, 2], [3]], [[1, 3], [2]])
+        sage: a * a
+        C([3], [[1, 2, 3]], [[1, 2, 3]])
+        sage: a * c
+        0
+        sage: d * c
+        C([2, 1], [[1, 2], [3]], [[1, 2], [3]])
+        sage: c * d
+        C([2, 1], [[1, 3], [2]], [[1, 3], [2]])
+        sage: S(a)
+        1/6*[1, 2, 3] + 1/6*[1, 3, 2] + 1/6*[2, 1, 3] + 1/6*[2, 3, 1]
+         + 1/6*[3, 1, 2] + 1/6*[3, 2, 1]
+        sage: S(d)
+        1/4*[1, 3, 2] - 1/4*[2, 3, 1] + 1/4*[3, 1, 2] - 1/4*[3, 2, 1]
+        sage: B = list(S.basis())
+        sage: B[2]
+        [2, 1, 3]
+        sage: C(B[2])
+        -C([1, 1, 1], [[1], [2], [3]], [[1], [2], [3]])
+         + C([2, 1], [[1, 2], [3]], [[1, 2], [3]])
+         - C([2, 1], [[1, 3], [2]], [[1, 3], [2]])
+         + C([3], [[1, 2, 3]], [[1, 2, 3]])
     """
     def __init__(self, A):
         r"""
@@ -42,12 +85,14 @@ class CellularBasis(CombinatorialFreeModule):
         """
         self._algebra = A
         I = [(la, s, t) for la in A.cell_poset()
-             for s in A.cell_module_indices(la) for t in A.cell_module_indices(la)]
+             for s in A.cell_module_indices(la)
+             for t in A.cell_module_indices(la)]
+
         # TODO: Use instead A.category().Realizations() so
         #   operations are defined by coercion?
         cat = Algebras(A.category().base_ring()).FiniteDimensional().WithBasis().Cellular()
         CombinatorialFreeModule.__init__(self, A.base_ring(), I,
-                                         prefix='C', bracket=(A.prefix() == ''),
+                                         prefix='C', bracket=False,
                                          category=cat)
 
         # Register coercions
@@ -75,6 +120,30 @@ class CellularBasis(CombinatorialFreeModule):
             Cellular basis of Symmetric group algebra of order 3 over Rational Field
         """
         return "Cellular basis of {}".format(self._algebra)
+
+    def _latex_term(self, x):
+        r"""
+        Return a latex representation of the term indexed by ``x``.
+
+        EXAMPLES::
+
+            sage: S = SymmetricGroupAlgebra(QQ, 3)
+            sage: C = S.cellular_basis()
+            sage: s = Tableau([[1,2],[3]])
+            sage: C._latex_term((Partition([2,1]), s, s))
+            'C^{...}_{\\left(...\\right)}'
+        """
+        from sage.misc.latex import latex
+        la = x[0]
+        m = (x[1], x[2])
+        # m contains "non-LaTeXed" strings, use string representation
+        sla = latex(la)
+        if sla.find('\\text{\\textt') != -1:
+            sla = str(la)
+        sm = latex(m)
+        if sm.find('\\text{\\textt') != -1:
+            sm = str(m)
+        return "C^{%s}_{%s}"%(sla, sm)
 
     def cellular_basis_of(self):
         """
@@ -141,10 +210,10 @@ class CellularBasis(CombinatorialFreeModule):
             sage: S = SymmetricGroupAlgebra(QQ, 3)
             sage: C = S.cellular_basis()
             sage: C.one()
-            C[([1, 1, 1], [[1], [2], [3]], [[1], [2], [3]])]
-             + C[([2, 1], [[1, 2], [3]], [[1, 2], [3]])]
-             + C[([2, 1], [[1, 3], [2]], [[1, 3], [2]])]
-             + C[([3], [[1, 2, 3]], [[1, 2, 3]])]
+            C([1, 1, 1], [[1], [2], [3]], [[1], [2], [3]])
+             + C([2, 1], [[1, 2], [3]], [[1, 2], [3]])
+             + C([2, 1], [[1, 3], [2]], [[1, 3], [2]])
+             + C([3], [[1, 2, 3]], [[1, 2, 3]])
         """
         return self(self._algebra.one())
 

@@ -138,18 +138,6 @@ from matrices.all import *
 # Posets
 from posets.all import *
 
-from sage.misc.superseded import deprecated_callable_import
-deprecated_callable_import(6637,
-                           'sage.combinat.backtrack',
-                           globals(),
-                           locals(),
-                           ["SearchForest",
-                            "TransitiveIdeal",
-                            "TransitiveIdealGraded"],
-                           ("This class soon will not be available in that "
-                            "way anymore. Use RecursivelyEnumeratedSet "
-                            "instead."))
-
 # Cluster Algebras and Quivers
 from cluster_algebra_quiver.all import *
 

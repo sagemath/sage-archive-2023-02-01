@@ -974,19 +974,17 @@ cdef class MixedIntegerLinearProgram(SageObject):
         A LP on two variables::
 
             sage: p = MixedIntegerLinearProgram()
-            sage: v = p.new_variable(nonnegative=True)
-            sage: p.add_constraint(2*v['x'] + v['y'] <= 1)
-            sage: p.add_constraint(3*v['y'] + v['x'] <= 2)
+            sage: p.add_constraint(0 <= 2*p['x'] + p['y'] <= 1)
+            sage: p.add_constraint(0 <= 3*p['y'] + p['x'] <= 2)
             sage: P = p.polyhedron(); P
             A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 4 vertices
 
         3-D Polyhedron::
 
             sage: p = MixedIntegerLinearProgram()
-            sage: v = p.new_variable(nonnegative=True)
-            sage: p.add_constraint(2*v['x'] + v['y'] + 3*v['z'] <= 1)
-            sage: p.add_constraint(2*v['y'] + v['z'] + 3*v['x'] <= 1)
-            sage: p.add_constraint(2*v['z'] + v['x'] + 3*v['y'] <= 1)
+            sage: p.add_constraint(0 <= 2*p['x'] + p['y'] + 3*p['z'] <= 1)
+            sage: p.add_constraint(0 <= 2*p['y'] + p['z'] + 3*p['x'] <= 1)
+            sage: p.add_constraint(0 <= 2*p['z'] + p['x'] + 3*p['y'] <= 1)
             sage: P = p.polyhedron(); P
             A 3-dimensional polyhedron in QQ^3 defined as the convex hull of 8 vertices
 
@@ -1003,10 +1001,9 @@ cdef class MixedIntegerLinearProgram(SageObject):
         An unbounded polyhedron::
 
             sage: p = MixedIntegerLinearProgram()
-            sage: v = p.new_variable(nonnegative=True)
-            sage: p.add_constraint(2*v['x'] + v['y'] - v['z'] <= 1)
+            sage: p.add_constraint(2*p['x'] + p['y'] - p['z'] <= 1)
             sage: P = p.polyhedron(); P
-            A 3-dimensional polyhedron in QQ^3 defined as the convex hull of 3 vertices and 3 rays
+            A 3-dimensional polyhedron in QQ^3 defined as the convex hull of 1 vertex, 1 ray, 2 lines
 
         A square (see :trac:`14395`) ::
 

@@ -30,6 +30,7 @@ can be applied on both. Here is what it can do:
     :meth:`~GenericGraph.allow_multiple_edges` | Change whether multiple edges are permitted in the (di)graph.
     :meth:`~GenericGraph.multiple_edges` | Return any multiple edges in the (di)graph.
     :meth:`~GenericGraph.name` | Return or sets the graph's name.
+    :meth:`~GenericGraph.is_immutable` | Returns whether the graph is immutable.
     :meth:`~GenericGraph.weighted` | Whether the (di)graph is to be considered as a weighted (di)graph.
     :meth:`~GenericGraph.antisymmetric` | Test whether the graph is antisymmetric
     :meth:`~GenericGraph.density` | Return the density
@@ -571,7 +572,7 @@ class GenericGraph(GenericGraph_pyx):
             True
 
         """
-        if getattr(self, "_immutable", False):
+        if self.is_immutable():
             edge_items = self.edge_iterator(labels = self._weighted)
             if self.allows_multiple_edges():
                 from collections import Counter
@@ -796,6 +797,20 @@ class GenericGraph(GenericGraph_pyx):
             name = self.name() + ": " + name
         return name
 
+    def is_immutable(self):
+        """
+        Returns whether the graph is immutable.
+
+        EXAMPLES:
+
+            sage: G = graphs.PetersenGraph()
+            sage: G.is_immutable()
+            False
+            sage: Graph(G, immutable=True).is_immutable()
+            True
+        """
+        return getattr(self, '_immutable', False)
+
     ### Formats
 
     def copy(self, weighted=None, implementation='c_graph', data_structure=None,
@@ -1013,7 +1028,7 @@ class GenericGraph(GenericGraph_pyx):
             # If the users requests a mutable graph and input is immutable, we
             # chose the 'sparse' cgraph backend. Unless the user explicitly
             # asked for something different.
-            if getattr(self, '_immutable', False):
+            if self.is_immutable():
                 data_structure = 'dense' if sparse is False else 'sparse'
         elif sparse is True:
             data_structure = "sparse"
@@ -1022,7 +1037,7 @@ class GenericGraph(GenericGraph_pyx):
 
         # Immutable copy of an immutable graph ? return self !
         # (if okay for weightedness)
-        if (getattr(self, '_immutable', False) and
+        if (self.is_immutable() and
                 (weighted is None or self._weighted == weighted)):
             from sage.graphs.base.static_sparse_backend import StaticSparseBackend
             if (isinstance(self._backend, StaticSparseBackend) and
@@ -2772,7 +2787,7 @@ class GenericGraph(GenericGraph_pyx):
         if new is None:
             return getattr(self, '_name', "")
 
-        if getattr(self, '_immutable', False):
+        if self.is_immutable():
             raise NotImplementedError("An immutable graph does not change name")
 
         self._name = str(new)
@@ -2962,7 +2977,7 @@ class GenericGraph(GenericGraph_pyx):
 
         """
         if new is not None:
-            if getattr(self, '_immutable', False):
+            if self.is_immutable():
                 raise TypeError("This graph is immutable and can thus not be changed. "
                                 "Create a mutable copy, e.g., by `copy(g)`")
             if new in [True, False]:
@@ -5237,10 +5252,7 @@ class GenericGraph(GenericGraph_pyx):
             if len([(uu,vv) for uu,vv,ll in self.edges_incident(u) if uu == v or vv == v]) > 1:
                 return False
 
-        if getattr(self, '_immutable', False):
-            G = copy(self)
-        else:
-            G = self
+        G = self.copy(immutable=False) if self.is_immutable() else self
         G.delete_edge(u,v,label)
         if G.is_directed():
             # (u,v) is a cut-edge if u is not in the connected
@@ -5251,8 +5263,7 @@ class GenericGraph(GenericGraph_pyx):
             # self-(u,v)
             sol = not G.distance(u,v) < G.order()
 
-        if not getattr(self, '_immutable', False):
-            G.add_edge(u,v,label)
+        G.add_edge(u,v,label)
         return sol
 
 
@@ -11394,7 +11405,7 @@ class GenericGraph(GenericGraph_pyx):
                 setattr(G, attr,value)
 
         if immutable is None:
-            immutable = getattr(self, '_immutable', False)
+            immutable = self.is_immutable()
         if immutable:
             G = G.copy(immutable=True)
 
@@ -11553,7 +11564,7 @@ class GenericGraph(GenericGraph_pyx):
         G.delete_edges(edges_to_delete)
         if not inplace:
             if immutable is None:
-                immutable = getattr(self, '_immutable', False)
+                immutable = self.is_immutable()
             if immutable:
                 G = G.copy(immutable=True)
             return G
@@ -16377,7 +16388,7 @@ class GenericGraph(GenericGraph_pyx):
             for v in self:
                 if not self.has_edge(u,v):
                     G.add_edge(u,v)
-        if getattr(self, '_immutable', False):
+        if self.is_immutable():
             return G.copy(immutable=True)
         return G
 
@@ -16429,7 +16440,7 @@ class GenericGraph(GenericGraph_pyx):
         g.allow_loops(False)
         g.allow_multiple_edges(False, keep_label=keep_label)
         if immutable is None:
-            immutable = getattr(self, '_immutable', False)
+            immutable = self.is_immutable()
         if immutable:
             g = g.copy(immutable=True)
         return g
@@ -16587,7 +16598,7 @@ class GenericGraph(GenericGraph_pyx):
         G.add_edges(other.edges())
 
         if immutable is None:
-            immutable = getattr(self, "_immutable", False) and getattr(other, "_immutable", False)
+            immutable = self.is_immutable() and other.is_immutable()
         if immutable:
             G = G.copy(immutable=True)
 
@@ -19549,7 +19560,7 @@ class GenericGraph(GenericGraph_pyx):
                               check_input = check_input,
                               complete_partial_function = complete_partial_function)
 
-            if getattr(self, "_immutable", False):
+            if self.is_immutable():
                 G = self.__class__(G, immutable = True)
 
             if return_map:
@@ -19557,7 +19568,7 @@ class GenericGraph(GenericGraph_pyx):
             else:
                 return G
 
-        if getattr(self, "_immutable", False):
+        if self.is_immutable():
             raise ValueError("To relabel an immutable graph use inplace=False")
 
         # If perm is not a dictionary, we build one !

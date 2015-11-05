@@ -1919,10 +1919,7 @@ class Graph(GenericGraph):
             forest = Graph([])
             forest.add_vertices(self.vertices())
             forest.add_edges(self.bridges())
-            if getattr(self, "_immutable", False):
-                G = copy(self)
-            else:
-                G = self
+            G = self.copy(immutable=False) if self.is_immutable() else self
             return _recursive_spanning_trees(G, forest)
         else:
             return []
@@ -4988,7 +4985,7 @@ class Graph(GenericGraph):
         G.name('%s join %s'%(self.name(), other.name()))
 
         if immutable is None:
-            immutable = getattr(self, "_immutable", False) and getattr(other, "_immutable", False)
+            immutable = self.is_immutable() and other.is_immutable()
         if immutable:
             G = G.copy(immutable=True)
 

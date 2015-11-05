@@ -153,10 +153,10 @@ has been evaluated. ::
 
     sage: inv_affine = sb_pc(1, 2, algorithm='decrypt',
     ....: no_inversion=True)
-    sage: state = rgf.hex_to_GF('ff87968431d86a51645151fa773ad009')
+    sage: state = rgf._hex_to_GF('ff87968431d86a51645151fa773ad009')
     sage: evaluated = inv_affine(state.list())
     sage: result = evaluated * -1
-    sage: rgf.GF_to_hex(result)
+    sage: rgf._GF_to_hex(result)
     '79'
 
 We can see how the variables of these polynomials are organized in `A`: ::
@@ -198,7 +198,7 @@ We can evaluate any of these constructed polynomials for a particular input
 state (in essence, calculate `\phi(A)_{i,j}`) as such: ::
 
     sage: rgf = RijndaelGF(4, 6)
-    sage: state = rgf.hex_to_GF('fe7b5170fe7c8e93477f7e4bf6b98071')
+    sage: state = rgf._hex_to_GF('fe7b5170fe7c8e93477f7e4bf6b98071')
     sage: poly = mc_pc(3, 2, algorithm='decrypt')
     sage: poly(state.list())
     x^7 + x^6 + x^5 + x^2 + x
@@ -211,9 +211,9 @@ associated with the round component function `\phi`. Essentially,
 Calling ``apply_poly`` is equivalent to applying the round component function
 associated this ``Round_Component_Poly_Constr`` object to `A`. ::
 
-    sage: state = rgf.hex_to_GF('c4cedcabe694694e4b23bfdd6fb522fa')
+    sage: state = rgf._hex_to_GF('c4cedcabe694694e4b23bfdd6fb522fa')
     sage: result = rgf.apply_poly(state, rgf.sub_bytes_poly_constr())
-    sage: rgf.GF_to_hex(result)
+    sage: rgf._GF_to_hex(result)
     '1c8b86628e22f92fb32608c1a8d5932d'
     sage: result == rgf.sub_bytes(state)
     True
@@ -267,7 +267,7 @@ entries of `A`. ::
     sage: rcpc(2, 1)
     a01 + a12 + (x)*a23 + (x + 1)*a30
     <BLANKLINE>
-    sage: state = rgf.hex_to_GF('afb73eeb1cd1b85162280f27fb20d585')
+    sage: state = rgf._hex_to_GF('afb73eeb1cd1b85162280f27fb20d585')
     sage: result = rgf.apply_poly(state, rcpc)
     sage: new_state = rgf.shift_rows(state)
     sage: new_state = rgf.mix_columns(new_state)
@@ -342,7 +342,7 @@ its own ``algorithm`` keyword defaulted to 'encrypt'. ::
     sage: rgf.compose(rgf.mix_columns_poly_constr(), poly, algorithm='decrypt')
     (x^3 + x^2 + 1)*a03 + (x^3 + 1)*a13 + (x^3 + x^2 + x)*a23 + (x^3 + x + 1)*a33
     <BLANKLINE>
-    sage: state = rgf.hex_to_GF('80121e0776fd1d8a8d8c31bc965d1fee')
+    sage: state = rgf._hex_to_GF('80121e0776fd1d8a8d8c31bc965d1fee')
     sage: with_decrypt = rgf.compose(rgf.sub_bytes_poly_constr(),
     ....: rgf.shift_rows_poly_constr(), algorithm='decrypt')
     sage: result_wd = rgf.apply_poly(state, with_decrypt)
@@ -677,7 +677,7 @@ class RijndaelGF(SageObject):
         """
         return self._Nr
 
-    def hex_to_GF(self, H, matrix=True):
+    def _hex_to_GF(self, H, matrix=True):
         r"""
         Returns a matrix/list of elements of `\GF{2^8}` corresponding to ``H``.
 
@@ -701,16 +701,16 @@ class RijndaelGF(SageObject):
 
             sage: from sage.crypto.mq.rijndael_gf import RijndaelGF
             sage: rgf = RijndaelGF(4, 4)
-            sage: state = rgf.hex_to_GF('1147659047cf663b9b0ece8dfc0bf1f0')
+            sage: state = rgf._hex_to_GF('1147659047cf663b9b0ece8dfc0bf1f0')
             sage: output = rgf.shift_rows(state)
-            sage: rgf.GF_to_hex(output)
+            sage: rgf._GF_to_hex(output)
             '11cfcef0470ef1909b0b653bfc47668d'
 
         We can output a list instead by setting ``matrix`` to ``False``. ::
 
-            sage: rgf.hex_to_GF('2f', matrix=False)
+            sage: rgf._hex_to_GF('2f', matrix=False)
             [x^5 + x^3 + x^2 + x + 1]
-            sage: rgf.hex_to_GF('1a2b0f', matrix=False)
+            sage: rgf._hex_to_GF('1a2b0f', matrix=False)
             [x^4 + x^3 + x, x^5 + x^3 + x + 1, x^3 + x^2 + x + 1]
         """
         if not isinstance(H, basestring) or \
@@ -726,7 +726,7 @@ class RijndaelGF(SageObject):
         else:
             return result
 
-    def GF_to_hex(self, GF):
+    def _GF_to_hex(self, GF):
         r"""
         Returns the hex string representation of ``GF``.
 
@@ -749,19 +749,19 @@ class RijndaelGF(SageObject):
             sage: rgf = RijndaelGF(4,4)
             sage: F.<a> = GF(2^8)
             sage: els = [a^7 + a^5 + a + 1, a^7 + a^6 + a^4 + a^2]
-            sage: rgf.GF_to_hex(els)
+            sage: rgf._GF_to_hex(els)
             'a3d4'
             <BLANKLINE>
             sage: h = '8fb999c973b26839c7f9d89d85c68c72'
-            sage: h == rgf.GF_to_hex(rgf.hex_to_GF(h))
+            sage: h == rgf._GF_to_hex(rgf._hex_to_GF(h))
             True
 
         We can use this to get concise output from round functions. ::
 
-            sage: plain = rgf.hex_to_GF('72b86c7c0f0d52d3e0d0da104055036b')
-            sage: key = rgf.hex_to_GF('93faa123c2903f4743e4dd83431692de')
+            sage: plain = rgf._hex_to_GF('72b86c7c0f0d52d3e0d0da104055036b')
+            sage: key = rgf._hex_to_GF('93faa123c2903f4743e4dd83431692de')
             sage: output = rgf.add_round_key(plain, key)
-            sage: rgf.GF_to_hex(output)
+            sage: rgf._GF_to_hex(output)
             'e142cd5fcd9d6d94a3340793034391b5'
         """
         from sage.rings.finite_rings.element_base import is_FiniteFieldElement
@@ -778,14 +778,14 @@ class RijndaelGF(SageObject):
                not GF.base_ring().order() == 2**8:
                 msg = "The elements of keyword 'GF' must all be from {0}"
                 raise TypeError(msg.format(self._F))
-            return ''.join([self.GF_to_hex(el)
+            return ''.join([self._GF_to_hex(el)
                             for col in GF.columns() for el in col])
         elif isinstance(GF, list):
             if not all([g.parent().is_field() and g.parent().is_finite() and
                         g.parent().order() == 2**8 for g in GF]):
                 msg = "The elements of keyword 'GF' must all be from {0}"
                 raise TypeError(msg.format(self._F))
-            return ''.join([self.GF_to_hex(el) for el in GF])
+            return ''.join([self._GF_to_hex(el) for el in GF])
         else:
             if not GF.parent().is_field() or \
                not GF.parent().is_finite() or \
@@ -794,7 +794,7 @@ class RijndaelGF(SageObject):
                 raise TypeError(msg.format(self._F))
             return hex(GF.integer_representation())[2:].zfill(2)
 
-    def bin_to_GF(self, B, matrix=True):
+    def _bin_to_GF(self, B, matrix=True):
         r"""
         Returns a matrix/list of elements of `\GF{2^8}` corresponding to ``B``.
 
@@ -821,19 +821,19 @@ class RijndaelGF(SageObject):
             sage: bs = '11101011100111110000000111001100' * 4
             sage: len(bs)
             128
-            sage: state = rgf.bin_to_GF(bs)
+            sage: state = rgf._bin_to_GF(bs)
             sage: output = rgf.sub_bytes(state)
-            sage: rgf.GF_to_bin(output)
+            sage: rgf._GF_to_bin(output)
             '11101001110110110111110001001011111010011101101101111100010010111110100111011011011111000100101111101001110110110111110001001011'
 
         We can make this method output a list by setting ``matrix`` to
         ``False``. ::
 
             sage: bs = '01010011'
-            sage: rgf.bin_to_GF(bs, matrix=False)
+            sage: rgf._bin_to_GF(bs, matrix=False)
             [x^6 + x^4 + x + 1]
             sage: bs = '000100000111001000110101110001101101011100110101'
-            sage: rgf.bin_to_GF(bs, matrix=False)
+            sage: rgf._bin_to_GF(bs, matrix=False)
             [x^4,
              x^6 + x^5 + x^4 + x,
              x^5 + x^4 + x^2 + 1,
@@ -854,7 +854,7 @@ class RijndaelGF(SageObject):
         else:
             return result
 
-    def GF_to_bin(self, GF):
+    def _GF_to_bin(self, GF):
         r"""
         Returns the binary string representation of ``GF``.
 
@@ -877,17 +877,17 @@ class RijndaelGF(SageObject):
             sage: rgf = RijndaelGF(4, 4)
             sage: F.<a> = GF(2^8)
             sage: els = [a^7 + a^5 + a + 1, a^7 + a^6 + a^4 + a^2]
-            sage: rgf.GF_to_bin(els)
+            sage: rgf._GF_to_bin(els)
             '1010001111010100'
 
         We can use this to get clearer output from the round functions. ::
 
             sage: plain = '11101011100111110000000111001100' * 4
-            sage: plain_state = rgf.bin_to_GF(plain)
+            sage: plain_state = rgf._bin_to_GF(plain)
             sage: key = '00110011100000001111100111010111' * 4
-            sage: key_state = rgf.bin_to_GF(key)
+            sage: key_state = rgf._bin_to_GF(key)
             sage: output = rgf.add_round_key(plain_state, key_state)
-            sage: rgf.GF_to_bin(output)
+            sage: rgf._GF_to_bin(output)
             '11011000000111111111100000011011110110000001111111111000000110111101100000011111111110000001101111011000000111111111100000011011'
         """
         from sage.rings.finite_rings.element_base import is_FiniteFieldElement
@@ -904,14 +904,14 @@ class RijndaelGF(SageObject):
                not GF.base_ring().order() == 2**8:
                 msg = "The elements of keyword 'GF' must all be from {0}"
                 raise TypeError(msg.format(self._F))
-            return ''.join([self.GF_to_bin(el)
+            return ''.join([self._GF_to_bin(el)
                             for col in GF.columns() for el in col])
         elif isinstance(GF, list):
             if not all([g.parent().is_field() and g.parent().is_finite() and
                         g.parent().order() == 2**8 for g in GF]):
                 msg = "The elements of keyword 'GF' must all be from {0}"
                 raise TypeError(msg.format(self._F))
-            return ''.join([self.GF_to_bin(el) for el in GF])
+            return ''.join([self._GF_to_bin(el) for el in GF])
         else:
             if not GF.parent().is_field() or \
                not GF.parent().is_finite() or \
@@ -971,8 +971,8 @@ class RijndaelGF(SageObject):
             if len(key) != 8 * self._Nk:
                 msg = "'key' keyword's length must be {0}, not {1}"
                 raise ValueError(msg.format(8 * self._Nk, len(key)))
-            state = self.hex_to_GF(plain)
-            key_state = self.hex_to_GF(key)
+            state = self._hex_to_GF(plain)
+            key_state = self._hex_to_GF(key)
             roundKeys = self.expand_key(key_state)
         elif format == 'binary':
             if not isinstance(plain, basestring) or \
@@ -987,8 +987,8 @@ class RijndaelGF(SageObject):
             if len(key) != 32 * self._Nk:
                 msg = "'key' keyword's length must be {0}, not {1}"
                 raise ValueError(msg.format(32 * self._Nk, len(key)))
-            state = self.bin_to_GF(plain)
-            key_state = self.bin_to_GF(key)
+            state = self._bin_to_GF(plain)
+            key_state = self._bin_to_GF(key)
             roundKeys = self.expand_key(key_state)
         else:
             raise ValueError(("'format' keyword must be either 'hex' or "
@@ -1005,9 +1005,9 @@ class RijndaelGF(SageObject):
         state = self.add_round_key(state, roundKeys[self._Nr])
 
         if format == 'hex':
-            return self.GF_to_hex(state)
+            return self._GF_to_hex(state)
         else:
-            return self.GF_to_bin(state)
+            return self._GF_to_bin(state)
 
     def decrypt(self, ciphertext, key, format='hex'):
         r"""
@@ -1061,8 +1061,8 @@ class RijndaelGF(SageObject):
             if len(key) != 8 * self._Nk:
                 msg = "'key' keyword's length must be {0}, not {1}"
                 raise ValueError(msg.format(8 * self._Nk, len(key)))
-            state = self.hex_to_GF(ciphertext)
-            key_state = self.hex_to_GF(key)
+            state = self._hex_to_GF(ciphertext)
+            key_state = self._hex_to_GF(key)
             roundKeys = self.expand_key(key_state)
         elif format == 'binary':
             if not isinstance(ciphertext, basestring) or \
@@ -1078,8 +1078,8 @@ class RijndaelGF(SageObject):
             if len(key) != 32 * self._Nk:
                 msg = "'key' keyword\'s length must be {0}, not {1}"
                 raise ValueError(msg.format(32 * self._Nk, len(key)))
-            state = self.bin_to_GF(ciphertext)
-            key_state = self.bin_to_GF(key)
+            state = self._bin_to_GF(ciphertext)
+            key_state = self._bin_to_GF(key)
             roundKeys = self.expand_key(key_state)
         else:
             raise ValueError(("'format' keyword must be either \'hex\' or "
@@ -1096,9 +1096,9 @@ class RijndaelGF(SageObject):
         state = self.add_round_key(state, roundKeys[0])
 
         if format == 'hex':
-            return self.GF_to_hex(state)
+            return self._GF_to_hex(state)
         else:
-            return self.GF_to_bin(state)
+            return self._GF_to_bin(state)
 
     def _check_valid_PRmatrix(self, PRm, keyword):
         r"""
@@ -1120,7 +1120,7 @@ class RijndaelGF(SageObject):
 
             sage: from sage.crypto.mq.rijndael_gf import RijndaelGF
             sage: rgf = RijndaelGF(4, 4)
-            sage: good_state = rgf.hex_to_GF('0'*32)
+            sage: good_state = rgf._hex_to_GF('0'*32)
             sage: rgf._check_valid_PRmatrix(good_state, 'state')
             sage: rgf._check_valid_PRmatrix(rgf.state_vrs, 'state')
             sage: rgf._check_valid_PRmatrix(5, 'state')
@@ -1181,11 +1181,11 @@ class RijndaelGF(SageObject):
             sage: from sage.crypto.mq.rijndael_gf import RijndaelGF
             sage: rgf = RijndaelGF(4, 6)
             sage: key = '331D0084B176C3FB59CAA0EDA271B565BB5D9A2D1E4B2892'
-            sage: key_state = rgf.hex_to_GF(key)
+            sage: key_state = rgf._hex_to_GF(key)
             sage: key_schedule = rgf.expand_key(key_state)
-            sage: rgf.GF_to_hex(key_schedule[0])
+            sage: rgf._GF_to_hex(key_schedule[0])
             '331d0084b176c3fb59caa0eda271b565'
-            sage: rgf.GF_to_hex(key_schedule[6])
+            sage: rgf._GF_to_hex(key_schedule[6])
             '5c5d51c4121f018d0f4f3e408ae9f78c'
         """
         msg = "keyword '{0}' must be a {1} x {2} matrix over GF({3})"
@@ -1275,7 +1275,7 @@ class RijndaelGF(SageObject):
             ...
             TypeError: keyword 'g' must be a Round_Component_Poly_Constr or a polynomial over Finite Field in x of size 2^8
             <BLANKLINE>
-            sage: state = rgf.hex_to_GF('00000000000000000000000000000000')
+            sage: state = rgf._hex_to_GF('00000000000000000000000000000000')
             sage: rgf.apply_poly(state, rgf.expand_key_poly)
             Traceback (most recent call last):
             ...
@@ -1306,8 +1306,7 @@ class RijndaelGF(SageObject):
                 # Identify key_col - Nk
                 recur_r = int((key_col - self._Nk)/self._Nb)
                 recur_j = (key_col - self._Nk) - (recur_r * self._Nb)
-                return self.expand_key_poly(row, recur_j, recur_r) + \
-                       non_linear
+                return self.expand_key_poly(row, recur_j, recur_r) + non_linear
             else:
                 # Identify key_col - Nk
                 recur_r = int((key_col - self._Nk)/self._Nb)
@@ -1356,16 +1355,16 @@ class RijndaelGF(SageObject):
 
             sage: from sage.crypto.mq.rijndael_gf import RijndaelGF
             sage: rgf = RijndaelGF(4, 4)
-            sage: state = rgf.hex_to_GF('3b59cb73fcd90ee05774222dc067fb68')
+            sage: state = rgf._hex_to_GF('3b59cb73fcd90ee05774222dc067fb68')
             sage: result = rgf.apply_poly(state, rgf.shift_rows_poly_constr())
-            sage: rgf.GF_to_hex(result)
+            sage: rgf._GF_to_hex(result)
             '3bd92268fc74fb735767cbe0c0590e2d'
 
         Calling ``apply_poly`` with the ``Round_Component_Poly_Constr`` object
         of a round component (e.g. ``sub_bytes_poly``) is identical to
         calling that round component function itself. ::
 
-            sage: state = rgf.hex_to_GF('4915598f55e5d7a0daca94fa1f0a63f7')
+            sage: state = rgf._hex_to_GF('4915598f55e5d7a0daca94fa1f0a63f7')
             sage: apply_poly_result = rgf.apply_poly(state,
             ....: rgf.sub_bytes_poly_constr())
             sage: direct_result = rgf.sub_bytes(state)
@@ -1378,8 +1377,8 @@ class RijndaelGF(SageObject):
         evaluated as the key variables. If this is not provided, the key
         variables will remain as is.::
 
-            sage: state = rgf.hex_to_GF('14f9701ae35fe28c440adf4d4ea9c026')
-            sage: key = rgf.hex_to_GF('54d990a16ba09ab596bbf40ea111702f')
+            sage: state = rgf._hex_to_GF('14f9701ae35fe28c440adf4d4ea9c026')
+            sage: key = rgf._hex_to_GF('54d990a16ba09ab596bbf40ea111702f')
             sage: keys = rgf.expand_key(key)
             sage: result = rgf.apply_poly(state,
             ....: rgf.add_round_key_poly_constr(), keys=keys)
@@ -1498,7 +1497,7 @@ class RijndaelGF(SageObject):
 
         We can test the correctness of this: ::
 
-            sage: state = rgf.hex_to_GF('fa636a2825b339c940668a3157244d17')
+            sage: state = rgf._hex_to_GF('fa636a2825b339c940668a3157244d17')
             sage: new_state = rgf.shift_rows(state)
             sage: new_state = rgf.mix_columns(new_state)
             sage: result(state.list()) == new_state[1,3]
@@ -1517,9 +1516,9 @@ class RijndaelGF(SageObject):
         object, we can use that object as input to ``apply_poly`` and
         ``compose``: ::
 
-            sage: state = rgf.hex_to_GF('36400926f9336d2d9fb59d23c42c3950')
+            sage: state = rgf._hex_to_GF('36400926f9336d2d9fb59d23c42c3950')
             sage: result = rgf.apply_poly(state, fn)
-            sage: rgf.GF_to_hex(result)
+            sage: rgf._GF_to_hex(result)
             'f4bcd45432e554d075f1d6c51dd03b3c'
             <BLANKLINE>
             sage: new_state = rgf.shift_rows(state)
@@ -1709,11 +1708,11 @@ class RijndaelGF(SageObject):
 
             sage: from sage.crypto.mq.rijndael_gf import RijndaelGF
             sage: rgf = RijndaelGF(4, 4)
-            sage: state = rgf.hex_to_GF('36339d50f9b539269f2c092dc4406d23')
-            sage: key = rgf.hex_to_GF('7CC78D0E22754E667E24573F454A6531')
+            sage: state = rgf._hex_to_GF('36339d50f9b539269f2c092dc4406d23')
+            sage: key = rgf._hex_to_GF('7CC78D0E22754E667E24573F454A6531')
             sage: key_schedule = rgf.expand_key(key)
             sage: result = rgf.add_round_key(state, key_schedule[0])
-            sage: rgf.GF_to_hex(result)
+            sage: rgf._GF_to_hex(result)
             '4af4105edbc07740e1085e12810a0812'
         """
         self._check_valid_PRmatrix(state, 'state')
@@ -1773,9 +1772,9 @@ class RijndaelGF(SageObject):
         calculate the inverse of the result. ::
 
             sage: poly = sb_pc(1, 2, algorithm='decrypt', no_inversion=True)
-            sage: state = rgf.hex_to_GF('39daee38f4f1a82aaf432410c36d45b9')
+            sage: state = rgf._hex_to_GF('39daee38f4f1a82aaf432410c36d45b9')
             sage: result = poly(state.list())
-            sage: rgf.GF_to_hex(result * -1)
+            sage: rgf._GF_to_hex(result * -1)
             '49'
 
         When passing the returned object to ``apply_poly`` and ``compose``, we
@@ -1785,7 +1784,7 @@ class RijndaelGF(SageObject):
 
             sage: result = rgf.apply_poly(state, sb_pc,
             ....: poly_constr_attr={'no_inversion' : True})
-            sage: rgf.GF_to_hex(result)
+            sage: rgf._GF_to_hex(result)
             '961c72894526f746aa85fc920adcc719'
 
         ::
@@ -1836,7 +1835,7 @@ class RijndaelGF(SageObject):
         We can use this polynomial to calculate individual entries of the
         output matrix for any given state as such: ::
 
-            sage: state = rgf.hex_to_GF('6385b79ffc538df997be478e7547d691')
+            sage: state = rgf._hex_to_GF('6385b79ffc538df997be478e7547d691')
             sage: poly = rgf._sub_bytes_pc(2, 3)
             sage: poly(state.list())
             x^7 + x^6 + x^5 + x^4 + x^2 + x
@@ -1857,7 +1856,7 @@ class RijndaelGF(SageObject):
 
             sage: poly = rgf._sub_bytes_pc(0, 0,
             ....: algorithm='decrypt', no_inversion=True)
-            sage: state = rgf.hex_to_GF('b415f8016858552e4bb6124c5f998a4c')
+            sage: state = rgf._hex_to_GF('b415f8016858552e4bb6124c5f998a4c')
             sage: poly(state.list()) ^ -1
             x^7 + x^6 + x^2 + x
         """
@@ -1905,7 +1904,7 @@ class RijndaelGF(SageObject):
 
             sage: from sage.crypto.mq.rijndael_gf import RijndaelGF
             sage: rgf = RijndaelGF(4, 4)
-            sage: el = rgf.hex_to_GF('2A', matrix=False)[0]
+            sage: el = rgf._hex_to_GF('2A', matrix=False)[0]
             sage: rgf._srd(el)
             x^7 + x^6 + x^5 + x^2 + 1
         """
@@ -1942,9 +1941,9 @@ class RijndaelGF(SageObject):
 
             sage: from sage.crypto.mq.rijndael_gf import RijndaelGF
             sage: rgf = RijndaelGF(4, 4)
-            sage: state = rgf.hex_to_GF('d1c4941f7955f40fb46f6c0ad68730ad')
+            sage: state = rgf._hex_to_GF('d1c4941f7955f40fb46f6c0ad68730ad')
             sage: result = rgf.sub_bytes(state)
-            sage: rgf.GF_to_hex(result)
+            sage: rgf._GF_to_hex(result)
             '3e1c22c0b6fcbf768da85067f6170495'
             sage: decryption = rgf.sub_bytes(result, algorithm='decrypt')
             sage: decryption == state
@@ -2008,9 +2007,9 @@ class RijndaelGF(SageObject):
         the decryption version of MixColumns has been applied to it as such: ::
 
             sage: poly = rgf._mix_columns_pc(2, 2, algorithm='decrypt')
-            sage: state = rgf.hex_to_GF('a761ca9b97be8b45d8ad1a611fc97369')
+            sage: state = rgf._hex_to_GF('a761ca9b97be8b45d8ad1a611fc97369')
             sage: result = poly(state.list())
-            sage: rgf.GF_to_hex(result)
+            sage: rgf._GF_to_hex(result)
             'b7'
             sage: output = rgf.mix_columns(state, algorithm='decrypt')
             sage: output[2,2] == result
@@ -2046,9 +2045,9 @@ class RijndaelGF(SageObject):
 
             sage: from sage.crypto.mq.rijndael_gf import RijndaelGF
             sage: rgf = RijndaelGF(4, 4)
-            sage: state = rgf.hex_to_GF('cd54c7283864c0c55d4c727e90c9a465')
+            sage: state = rgf._hex_to_GF('cd54c7283864c0c55d4c727e90c9a465')
             sage: result = rgf.mix_columns(state)
-            sage: rgf.GF_to_hex(result)
+            sage: rgf._GF_to_hex(result)
             '921f748fd96e937d622d7725ba8ba50c'
             sage: decryption = rgf.mix_columns(result, algorithm='decrypt')
             sage: decryption == state
@@ -2111,9 +2110,9 @@ class RijndaelGF(SageObject):
         such: ::
 
             sage: poly = rgf._shift_rows_pc(2, 3, algorithm='decrypt')
-            sage: state = rgf.hex_to_GF('78c4f708318d3cd69655b701bfc093cf')
+            sage: state = rgf._hex_to_GF('78c4f708318d3cd69655b701bfc093cf')
             sage: result = poly(state.list())
-            sage: rgf.GF_to_hex(result)
+            sage: rgf._GF_to_hex(result)
             '3c'
             sage: output = rgf.shift_rows(state, algorithm='decrypt')
             sage: output[2,3] == result
@@ -2150,9 +2149,9 @@ class RijndaelGF(SageObject):
 
             sage: from sage.crypto.mq.rijndael_gf import RijndaelGF
             sage: rgf = RijndaelGF(4, 4)
-            sage: state = rgf.hex_to_GF('adcb0f257e9c63e0bc557e951c15ef01')
+            sage: state = rgf._hex_to_GF('adcb0f257e9c63e0bc557e951c15ef01')
             sage: result = rgf.shift_rows(state)
-            sage: rgf.GF_to_hex(result)
+            sage: rgf._GF_to_hex(result)
             'ad9c7e017e55ef25bc150fe01ccb6395'
             sage: decryption = rgf.shift_rows(result, algorithm='decrypt')
             sage: decryption == state
@@ -2206,7 +2205,7 @@ class RijndaelGF(SageObject):
                 ....: rgf._mix_columns_pc, rgf, "Mix Columns")
                 sage: poly = rcpc(1, 2); poly
                 a02 + (x)*a12 + (x + 1)*a22 + a32
-                sage: state = rgf.hex_to_GF('d1876c0f79c4300ab45594add66ff41f')
+                sage: state = rgf._hex_to_GF('d1876c0f79c4300ab45594add66ff41f')
                 sage: result = rgf.mix_columns(state)
                 sage: result[1,2] == poly(state.list())
                 True

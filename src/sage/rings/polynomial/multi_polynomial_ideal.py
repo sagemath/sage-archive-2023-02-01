@@ -2205,7 +2205,6 @@ class MPolynomialIdeal_singular_repr(
         This is due to precision error,
         which causes the computation of an intermediate Groebner basis to fail.
 
-
         If the ground field's characteristic is too large for
         Singular, we resort to a toy implementation::
 
@@ -2216,6 +2215,22 @@ class MPolynomialIdeal_singular_repr(
             verbose 0 (...: multi_polynomial_ideal.py, dimension) Warning: falling back to very slow toy implementation.
             verbose 0 (...: multi_polynomial_ideal.py, variety) Warning: falling back to very slow toy implementation.
             [{y: 0, x: 0}]
+
+        The dictionary expressing the variety will be indexed by generators
+        of the polynomial ring after changing to the target field.
+        But the mapping will also accept generators of the original ring,
+        or even generator names as strings, when provided as keys::
+
+            sage: K.<x,y> = QQ[]
+            sage: I = ideal([x^2+2*y-5,x+y+3])
+            sage: v = I.variety(AA)[0]; v
+            {x: 4.464101615137755?, y: -7.464101615137755?}
+            sage: v.keys()[0].parent()
+            Multivariate Polynomial Ring in x, y over Algebraic Real Field
+            sage: v[x]
+            4.464101615137755?
+            sage: v["y"]
+            -7.464101615137755?
 
         TESTS::
 
@@ -2246,27 +2261,27 @@ class MPolynomialIdeal_singular_repr(
                              x26^2 + x26, x27^2 + x27, x28^2 + x28, x29^2 + x29, x30^2 + x30])
             sage: I.basis_is_groebner()
             True
-            sage: for V in I.variety(): print V  # long time (6s on sage.math, 2011)
-            {x14: 0, x24: 0, x16: 1, x1: 1, x3: 1, x2: 0, x5: 0, x4: 0, x19: 0, x18: 0, x7: 1, x6: 0, x10: 0, x30: 0, x28: 1, x29: 1, x13: 0, x27: 0, x11: 0, x25: 1, x9: 0, x8: 0, x20: 0, x17: 1, x23: 0, x26: 0, x15: 0, x21: 1, x12: 0, x22: 0}
-            {x14: 0, x24: 0, x16: 1, x1: 1, x3: 1, x2: 0, x5: 0, x4: 1, x19: 0, x18: 0, x7: 1, x6: 0, x10: 0, x30: 0, x28: 1, x29: 1, x13: 0, x27: 0, x11: 0, x25: 1, x9: 0, x8: 0, x20: 0, x17: 1, x23: 0, x26: 0, x15: 0, x21: 1, x12: 0, x22: 0}
-            {x14: 0, x24: 0, x16: 1, x1: 1, x3: 1, x2: 0, x5: 1, x4: 0, x19: 0, x18: 0, x7: 1, x6: 0, x10: 0, x30: 0, x28: 1, x29: 1, x13: 0, x27: 0, x11: 0, x25: 1, x9: 0, x8: 0, x20: 0, x17: 1, x23: 0, x26: 0, x15: 0, x21: 1, x12: 0, x22: 0}
-            {x14: 0, x24: 0, x16: 1, x1: 1, x3: 1, x2: 0, x5: 1, x4: 1, x19: 0, x18: 0, x7: 1, x6: 0, x10: 0, x30: 0, x28: 1, x29: 1, x13: 0, x27: 0, x11: 0, x25: 1, x9: 0, x8: 0, x20: 0, x17: 1, x23: 0, x26: 0, x15: 0, x21: 1, x12: 0, x22: 0}
-            {x14: 0, x24: 0, x16: 1, x1: 1, x3: 1, x2: 0, x5: 1, x4: 0, x19: 0, x18: 0, x7: 1, x6: 0, x10: 0, x30: 0, x28: 1, x29: 1, x13: 0, x27: 0, x11: 1, x25: 1, x9: 0, x8: 0, x20: 0, x17: 1, x23: 0, x26: 0, x15: 0, x21: 1, x12: 0, x22: 0}
-            {x14: 0, x24: 0, x16: 1, x1: 1, x3: 1, x2: 0, x5: 1, x4: 1, x19: 0, x18: 0, x7: 1, x6: 0, x10: 0, x30: 0, x28: 1, x29: 1, x13: 0, x27: 0, x11: 1, x25: 1, x9: 0, x8: 0, x20: 0, x17: 1, x23: 0, x26: 0, x15: 0, x21: 1, x12: 0, x22: 0}
-            {x14: 0, x24: 0, x16: 1, x1: 1, x3: 1, x2: 0, x5: 1, x4: 0, x19: 0, x18: 0, x7: 1, x6: 0, x10: 1, x30: 0, x28: 1, x29: 1, x13: 0, x27: 0, x11: 1, x25: 1, x9: 0, x8: 0, x20: 0, x17: 1, x23: 0, x26: 0, x15: 0, x21: 1, x12: 0, x22: 0}
-            {x14: 0, x24: 0, x16: 1, x1: 1, x3: 1, x2: 0, x5: 1, x4: 1, x19: 0, x18: 0, x7: 1, x6: 0, x10: 1, x30: 0, x28: 1, x29: 1, x13: 0, x27: 0, x11: 1, x25: 1, x9: 0, x8: 0, x20: 0, x17: 1, x23: 0, x26: 0, x15: 0, x21: 1, x12: 0, x22: 0}
-            {x14: 0, x24: 0, x16: 1, x1: 1, x3: 1, x2: 0, x5: 0, x4: 0, x19: 0, x18: 1, x7: 1, x6: 0, x10: 1, x30: 0, x28: 1, x29: 1, x13: 0, x27: 0, x11: 0, x25: 1, x9: 0, x8: 0, x20: 0, x17: 0, x23: 0, x26: 0, x15: 0, x21: 1, x12: 0, x22: 0}
-            {x14: 0, x24: 0, x16: 1, x1: 1, x3: 1, x2: 0, x5: 0, x4: 1, x19: 0, x18: 1, x7: 1, x6: 0, x10: 1, x30: 0, x28: 1, x29: 1, x13: 0, x27: 0, x11: 0, x25: 1, x9: 0, x8: 0, x20: 0, x17: 0, x23: 0, x26: 0, x15: 0, x21: 1, x12: 0, x22: 0}
-            {x14: 0, x24: 0, x16: 1, x1: 1, x3: 1, x2: 0, x5: 0, x4: 0, x19: 0, x18: 0, x7: 1, x6: 0, x10: 0, x30: 0, x28: 1, x29: 1, x13: 0, x27: 1, x11: 0, x25: 1, x9: 0, x8: 0, x20: 0, x17: 1, x23: 0, x26: 0, x15: 0, x21: 1, x12: 0, x22: 0}
-            {x14: 0, x24: 0, x16: 1, x1: 1, x3: 1, x2: 0, x5: 0, x4: 1, x19: 0, x18: 0, x7: 1, x6: 0, x10: 0, x30: 0, x28: 1, x29: 1, x13: 0, x27: 1, x11: 0, x25: 1, x9: 0, x8: 0, x20: 0, x17: 1, x23: 0, x26: 0, x15: 0, x21: 1, x12: 0, x22: 0}
-            {x14: 0, x24: 0, x16: 1, x1: 1, x3: 1, x2: 0, x5: 1, x4: 0, x19: 0, x18: 0, x7: 1, x6: 0, x10: 0, x30: 0, x28: 1, x29: 1, x13: 0, x27: 1, x11: 0, x25: 1, x9: 0, x8: 0, x20: 0, x17: 1, x23: 0, x26: 0, x15: 0, x21: 1, x12: 0, x22: 0}
-            {x14: 0, x24: 0, x16: 1, x1: 1, x3: 1, x2: 0, x5: 1, x4: 1, x19: 0, x18: 0, x7: 1, x6: 0, x10: 0, x30: 0, x28: 1, x29: 1, x13: 0, x27: 1, x11: 0, x25: 1, x9: 0, x8: 0, x20: 0, x17: 1, x23: 0, x26: 0, x15: 0, x21: 1, x12: 0, x22: 0}
-            {x14: 0, x24: 0, x16: 1, x1: 1, x3: 1, x2: 0, x5: 1, x4: 0, x19: 0, x18: 0, x7: 1, x6: 0, x10: 0, x30: 0, x28: 1, x29: 1, x13: 0, x27: 1, x11: 1, x25: 1, x9: 0, x8: 0, x20: 0, x17: 1, x23: 0, x26: 0, x15: 0, x21: 1, x12: 0, x22: 0}
-            {x14: 0, x24: 0, x16: 1, x1: 1, x3: 1, x2: 0, x5: 1, x4: 1, x19: 0, x18: 0, x7: 1, x6: 0, x10: 0, x30: 0, x28: 1, x29: 1, x13: 0, x27: 1, x11: 1, x25: 1, x9: 0, x8: 0, x20: 0, x17: 1, x23: 0, x26: 0, x15: 0, x21: 1, x12: 0, x22: 0}
-            {x14: 0, x24: 0, x16: 1, x1: 1, x3: 1, x2: 0, x5: 1, x4: 0, x19: 0, x18: 0, x7: 1, x6: 0, x10: 1, x30: 0, x28: 1, x29: 1, x13: 0, x27: 1, x11: 1, x25: 1, x9: 0, x8: 0, x20: 0, x17: 1, x23: 0, x26: 0, x15: 0, x21: 1, x12: 0, x22: 0}
-            {x14: 0, x24: 0, x16: 1, x1: 1, x3: 1, x2: 0, x5: 1, x4: 1, x19: 0, x18: 0, x7: 1, x6: 0, x10: 1, x30: 0, x28: 1, x29: 1, x13: 0, x27: 1, x11: 1, x25: 1, x9: 0, x8: 0, x20: 0, x17: 1, x23: 0, x26: 0, x15: 0, x21: 1, x12: 0, x22: 0}
-            {x14: 0, x24: 0, x16: 1, x1: 1, x3: 1, x2: 0, x5: 0, x4: 0, x19: 0, x18: 1, x7: 1, x6: 0, x10: 1, x30: 0, x28: 1, x29: 1, x13: 0, x27: 1, x11: 0, x25: 1, x9: 0, x8: 0, x20: 0, x17: 0, x23: 0, x26: 0, x15: 0, x21: 1, x12: 0, x22: 0}
-            {x14: 0, x24: 0, x16: 1, x1: 1, x3: 1, x2: 0, x5: 0, x4: 1, x19: 0, x18: 1, x7: 1, x6: 0, x10: 1, x30: 0, x28: 1, x29: 1, x13: 0, x27: 1, x11: 0, x25: 1, x9: 0, x8: 0, x20: 0, x17: 0, x23: 0, x26: 0, x15: 0, x21: 1, x12: 0, x22: 0}
+            sage: sorted("".join(str(V[g]) for g in R.gens()) for V in I.variety())  # long time (6s on sage.math, 2011)
+            ['101000100000000110001000100110',
+             '101000100000000110001000101110',
+             '101000100100000101001000100110',
+             '101000100100000101001000101110',
+             '101010100000000110001000100110',
+             '101010100000000110001000101110',
+             '101010100010000110001000100110',
+             '101010100010000110001000101110',
+             '101010100110000110001000100110',
+             '101010100110000110001000101110',
+             '101100100000000110001000100110',
+             '101100100000000110001000101110',
+             '101100100100000101001000100110',
+             '101100100100000101001000101110',
+             '101110100000000110001000100110',
+             '101110100000000110001000101110',
+             '101110100010000110001000100110',
+             '101110100010000110001000101110',
+             '101110100110000110001000100110',
+             '101110100110000110001000101110']
 
         Check that the issue at :trac:`7425` is fixed::
 
@@ -2353,15 +2368,16 @@ class MPolynomialIdeal_singular_repr(
           else:
             raise TypeError("Local/unknown orderings not supported by 'toy_buchberger' implementation.")
 
+        from sage.misc.converting_dict import KeyConvertingDict
         V = []
         for t in T:
             Vbar = _variety([P(f) for f in t], [])
             #Vbar = _variety(list(t.gens()),[])
 
             for v in Vbar:
-                V.append(dict([(P(var),val) for var,val in v.iteritems()]))
+                V.append(KeyConvertingDict(P, v))
         V.sort()
-        return Sequence(V)
+        return V
 
     @require_field
     def hilbert_polynomial(self):
@@ -2692,10 +2708,14 @@ class NCPolynomialIdeal(MPolynomialIdeal_singular_repr, Ideal_nc):
             sage: H.inject_variables()
             Defining x, y, z
             sage: I = H.ideal([y^2, x^2, z^2-H.one()],coerce=False) # indirect doctest
-            sage: I
+            sage: I #random
             Left Ideal (y^2, x^2, z^2 - 1) of Noncommutative Multivariate Polynomial Ring in x, y, z over Rational Field, nc-relations: {z*x: x*z + 2*x, z*y: y*z - 2*y, y*x: x*y - z}
-            sage: H.ideal([y^2, x^2, z^2-H.one()], side="twosided")
+            sage: sorted(I.gens(),key=str)
+            [x^2, y^2, z^2 - 1]
+            sage: H.ideal([y^2, x^2, z^2-H.one()], side="twosided") #random
             Twosided Ideal (y^2, x^2, z^2 - 1) of Noncommutative Multivariate Polynomial Ring in x, y, z over Rational Field, nc-relations: {z*x: x*z + 2*x, z*y: y*z - 2*y, y*x: x*y - z}
+            sage: sorted(H.ideal([y^2, x^2, z^2-H.one()], side="twosided").gens(),key=str)
+            [x^2, y^2, z^2 - 1]
             sage: H.ideal([y^2, x^2, z^2-H.one()], side="right")
             Traceback (most recent call last):
             ...
@@ -2726,8 +2746,10 @@ class NCPolynomialIdeal(MPolynomialIdeal_singular_repr, Ideal_nc):
             sage: H.inject_variables()
             Defining x, y, z
             sage: id = H.ideal(x + y, y + z)
-            sage: id.std()  # indirect doctest
+            sage: id.std()  # indirect doctest # random
             Left Ideal (z, y, x) of Noncommutative Multivariate Polynomial Ring in x, y, z over Rational Field, nc-relations: {z*x: x*z + 2*x, z*y: y*z - 2*y, y*x: x*y - z}
+            sage: sorted(id.std().gens(),key=str)
+            [x, y, z]
         """
         from sage.libs.singular.function import singular_function
         fun = singular_function(cmd)
@@ -2748,23 +2770,34 @@ class NCPolynomialIdeal(MPolynomialIdeal_singular_repr, Ideal_nc):
             sage: H.inject_variables()
             Defining x, y, z
             sage: I = H.ideal([y^2, x^2, z^2-H.one()],coerce=False)
-            sage: I.std()
+            sage: I.std() #random
             Left Ideal (z^2 - 1, y*z - y, x*z + x, y^2, 2*x*y - z - 1, x^2) of Noncommutative Multivariate Polynomial Ring in x, y, z over Rational Field, nc-relations: {z*x: x*z + 2*x, z*y: y*z - 2*y, y*x: x*y - z}
+            sage: sorted(I.std().gens(),key=str)
+            [2*x*y - z - 1, x*z + x, x^2, y*z - y, y^2, z^2 - 1]
+
 
         If the ideal is a left ideal, then std returns a left
         Groebner basis. But if it is a two-sided ideal, then
         the output of std and :meth:`twostd` coincide::
 
             sage: JL = H.ideal([x^3, y^3, z^3 - 4*z])
-            sage: JL
+            sage: JL #random
             Left Ideal (x^3, y^3, z^3 - 4*z) of Noncommutative Multivariate Polynomial Ring in x, y, z over Rational Field, nc-relations: {z*x: x*z + 2*x, z*y: y*z - 2*y, y*x: x*y - z}
-            sage: JL.std()
+            sage: sorted(JL.gens(),key=str)
+            [x^3, y^3, z^3 - 4*z]
+            sage: JL.std() #random
             Left Ideal (z^3 - 4*z, y*z^2 - 2*y*z, x*z^2 + 2*x*z, 2*x*y*z - z^2 - 2*z, y^3, x^3) of Noncommutative Multivariate Polynomial Ring in x, y, z over Rational Field, nc-relations: {z*x: x*z + 2*x, z*y: y*z - 2*y, y*x: x*y - z}
+            sage: sorted(JL.std().gens(),key=str)
+            [2*x*y*z - z^2 - 2*z, x*z^2 + 2*x*z, x^3, y*z^2 - 2*y*z, y^3, z^3 - 4*z]
             sage: JT = H.ideal([x^3, y^3, z^3 - 4*z], side='twosided')
-            sage: JT
+            sage: JT #random
             Twosided Ideal (x^3, y^3, z^3 - 4*z) of Noncommutative Multivariate Polynomial Ring in x, y, z over Rational Field, nc-relations: {z*x: x*z + 2*x, z*y: y*z - 2*y, y*x: x*y - z}
-            sage: JT.std()
+            sage: sorted(JT.gens(),key=str)
+            [x^3, y^3, z^3 - 4*z]
+            sage: JT.std() #random
             Twosided Ideal (z^3 - 4*z, y*z^2 - 2*y*z, x*z^2 + 2*x*z, y^2*z - 2*y^2, 2*x*y*z - z^2 - 2*z, x^2*z + 2*x^2, y^3, x*y^2 - y*z, x^2*y - x*z - 2*x, x^3) of Noncommutative Multivariate Polynomial Ring in x, y, z over Rational Field, nc-relations: {z*x: x*z + 2*x, z*y: y*z - 2*y, y*x: x*y - z}
+            sage: sorted(JT.std().gens(),key=str)
+            [2*x*y*z - z^2 - 2*z, x*y^2 - y*z, x*z^2 + 2*x*z, x^2*y - x*z - 2*x, x^2*z + 2*x^2, x^3, y*z^2 - 2*y*z, y^2*z - 2*y^2, y^3, z^3 - 4*z]
             sage: JT.std() == JL.twostd()
             True
 
@@ -2787,8 +2820,10 @@ class NCPolynomialIdeal(MPolynomialIdeal_singular_repr, Ideal_nc):
             sage: H.inject_variables()
             Defining x, y, z
             sage: I = H.ideal([y^2, x^2, z^2-H.one()],coerce=False)
-            sage: I.twostd()
+            sage: I.twostd() #random
             Twosided Ideal (z^2 - 1, y*z - y, x*z + x, y^2, 2*x*y - z - 1, x^2) of Noncommutative Multivariate Polynomial Ring in x, y, z over Rational Field...
+            sage: sorted(I.twostd().gens(),key=str)
+            [2*x*y - z - 1, x*z + x, x^2, y*z - y, y^2, z^2 - 1]
 
         ALGORITHM: Uses Singular's twostd command
         """
@@ -2809,7 +2844,7 @@ class NCPolynomialIdeal(MPolynomialIdeal_singular_repr, Ideal_nc):
            sage: A.<x,y,z> = FreeAlgebra(QQ, 3)
            sage: H.<x,y,z> = A.g_algebra({y*x:x*y-z, z*x:x*z+2*x, z*y:y*z-2*y})
            sage: I = H.ideal([y^2, x^2, z^2-H.one()],coerce=False)
-           sage: I._groebner_strategy()
+           sage: I._groebner_strategy() #random
            Groebner Strategy for ideal generated by 6 elements over
            Noncommutative Multivariate Polynomial Ring in x, y, z over Rational
            Field, nc-relations: {z*x: x*z + 2*x, z*y: y*z - 2*y, y*x: x*y - z}
@@ -2837,7 +2872,7 @@ class NCPolynomialIdeal(MPolynomialIdeal_singular_repr, Ideal_nc):
             sage: A.<x,y,z> = FreeAlgebra(QQ, 3)
             sage: H.<x,y,z> = A.g_algebra({y*x:x*y-z, z*x:x*z+2*x, z*y:y*z-2*y})
             sage: I = H.ideal([y^2, x^2, z^2-H.one()],coerce=False, side='twosided')
-            sage: Q = H.quotient(I); Q
+            sage: Q = H.quotient(I); Q #random
             Quotient of Noncommutative Multivariate Polynomial Ring in x, y, z
              over Rational Field, nc-relations: {z*x: x*z + 2*x,
              z*y: y*z - 2*y, y*x: x*y - z} by the ideal (y^2, x^2, z^2 - 1)
@@ -2847,10 +2882,8 @@ class NCPolynomialIdeal(MPolynomialIdeal_singular_repr, Ideal_nc):
         Here, we see that the relation that we just found in the quotient
         is actually a consequence of the given relations::
 
-            sage: I.std()
-            Twosided Ideal (z^2 - 1, y*z - y, x*z + x, y^2, 2*x*y - z - 1, x^2)
-            of Noncommutative Multivariate Polynomial Ring in x, y, z over
-            Rational Field, nc-relations: {z*x: x*z + 2*x, z*y: y*z - 2*y, y*x: x*y - z}
+            sage: H.2^2-H.one() in I.std().gens()
+            True
 
         Here is the corresponding direct test::
 
@@ -2869,10 +2902,10 @@ class NCPolynomialIdeal(MPolynomialIdeal_singular_repr, Ideal_nc):
             sage: A.<x,y,z> = FreeAlgebra(QQ, 3)
             sage: H.<x,y,z> = A.g_algebra({y*x:x*y-z, z*x:x*z+2*x, z*y:y*z-2*y})
             sage: JL = H.ideal([x^3, y^3, z^3 - 4*z])
-            sage: JL.std()
+            sage: JL.std() #random
             Left Ideal (z^3 - 4*z, y*z^2 - 2*y*z, x*z^2 + 2*x*z, 2*x*y*z - z^2 - 2*z, y^3, x^3) of Noncommutative Multivariate Polynomial Ring in x, y, z over Rational Field, nc-relations: {z*x: x*z + 2*x, z*y: y*z - 2*y, y*x: x*y - z}
             sage: JT = H.ideal([x^3, y^3, z^3 - 4*z], side='twosided')
-            sage: JT.std()
+            sage: JT.std() #random
             Twosided Ideal (z^3 - 4*z, y*z^2 - 2*y*z, x*z^2 + 2*x*z, y^2*z - 2*y^2, 2*x*y*z - z^2 - 2*z, x^2*z + 2*x^2, y^3, x*y^2 - y*z, x^2*y - x*z - 2*x, x^3) of Noncommutative Multivariate Polynomial Ring in x, y, z over Rational Field, nc-relations: {z*x: x*z + 2*x, z*y: y*z - 2*y, y*x: x*y - z}
 
         Apparently, ``x*y^2-y*z`` should be in the two-sided, but not
@@ -2995,6 +3028,18 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
         """
         Ideal_generic.__init__(self, ring, gens, coerce=coerce)
         self._gb_by_ordering = dict()
+
+    def __hash__(self):
+        r"""
+        Stupid constant hash function!
+
+        TESTS::
+
+            sage: R.<x,y> = PolynomialRing(IntegerRing(), 2, order='lex')
+            sage: hash(R.ideal([x, y]))
+            0
+        """
+        return 0
 
     @cached_method
     def gens(self):
@@ -4401,8 +4446,9 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
             Ring in x0, x1, x2, x3, x4, y0, y1, y2, y3, y4, z0, z1, z2, z3, z4 over
             Finite Field of size 3
             sage: J += sage.rings.ideal.FieldIdeal(J.ring()) # ensure radical ideal
-            sage: J.variety()
-            [{y1: 0, y4: 0, x4: 0, y2: 0, y3: 0, y0: 0, x2: 0, z4: 0, z3: 0, z2: 0, x1: 0, z1: 0, z0: 0, x0: 1, x3: 0}]
+            sage: from sage.doctest.fixtures import reproducible_repr
+            sage: print(reproducible_repr(J.variety()))
+            [{x0: 1, x1: 0, x2: 0, x3: 0, x4: 0, y0: 0, y1: 0, y2: 0, y3: 0, y4: 0, z0: 0, z1: 0, z2: 0, z3: 0, z4: 0}]
 
 
         Weil restrictions are often used to study elliptic curves over

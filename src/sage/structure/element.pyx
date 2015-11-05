@@ -128,6 +128,8 @@ underscores).
 # by any element.  Derived class must call __init__
 ##################################################################
 
+from libc.limits cimport LONG_MAX, LONG_MIN
+
 include "sage/ext/python.pxi"
 from sage.ext.stdsage cimport *
 
@@ -523,9 +525,6 @@ cdef class Element(SageObject):
             except AttributeError:
                 pass
         return res
-
-    def __hash__(self):
-        return hash(str(self))
 
     def _im_gens_(self, codomain, im_gens):
         """
@@ -961,6 +960,19 @@ cdef class Element(SageObject):
             if (<Element>left)._richcmp_(<Element>right, Py_GT):
                 return 1
             raise
+
+    def _cache_key(self):
+        """
+        Provide a hashable key for an element if it is not hashable
+        
+        EXAMPLES::
+        
+            sage: a=sage.structure.element.Element(ZZ)
+            sage: a._cache_key()
+            (Integer Ring, 'Generic element of a structure')
+        """
+        
+        return(self.parent(),str(self))
 
     cdef _richcmp(self, other, int op):
         """
@@ -3279,10 +3291,26 @@ cdef class InfinityElement(RingElement):
         return ZZ(0)
 
 cdef class PlusInfinityElement(InfinityElement):
-    pass
+    def __hash__(self):
+        r"""
+        TESTS::
+
+            sage: hash(+infinity)
+            9223372036854775807 # 64-bit
+            2147483647          # 32-bit
+        """
+        return LONG_MAX
 
 cdef class MinusInfinityElement(InfinityElement):
-    pass
+    def __hash__(self):
+        r"""
+        TESTS::
+
+            sage: hash(-infinity)
+            -9223372036854775808 # 64-bit
+            -2147483648          # 32-bit
+        """
+        return LONG_MIN
 
 
 #################################################################################

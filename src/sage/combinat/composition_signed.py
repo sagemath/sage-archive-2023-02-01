@@ -16,8 +16,9 @@ Signed Compositions
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
+import itertools
+
 from composition import Compositions_n, Composition
-import cartesian_product
 from sage.rings.all import Integer
 from sage.rings.arith import binomial
 import __builtin__
@@ -130,8 +131,7 @@ class SignedCompositions(Compositions_n):
         """
         for comp in Compositions_n.__iter__(self):
             l = len(comp)
-            a = [[1,-1] for i in range(l)]
-            for sign in cartesian_product.CartesianProduct(*a):
+            for sign in itertools.product([1,-1], repeat=l):
                 yield [ sign[i]*comp[i] for i in range(l)]
 
 from sage.structure.sage_object import register_unpickle_override

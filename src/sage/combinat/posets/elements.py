@@ -51,6 +51,17 @@ class PosetElement(Element):
             self.element = element
         self.vertex = vertex
 
+    def __hash__(self):
+        r"""
+        TESTS::
+
+            sage: P = Poset([[1,2],[4],[3],[4],[]], facade = False)
+            sage: e = P(0)
+            sage: hash(e)
+            0
+        """
+        return hash(self.element)
+
     def _repr_(self):
         """
         TESTS::

@@ -1570,6 +1570,10 @@ ext_modules = [
               sources = ['sage/rings/polynomial/real_roots.pyx'],
               libraries=['mpfr']),
 
+    Extension('sage.rings.polynomial.refine_root',
+              sources = ['sage/rings/polynomial/refine_root.pyx'],
+              libraries=['gmp', 'mpfr', 'mpfi']),
+
     Extension('sage.rings.polynomial.symmetric_reduction',
               sources = ['sage/rings/polynomial/symmetric_reduction.pyx']),
 

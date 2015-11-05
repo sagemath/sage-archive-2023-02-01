@@ -202,6 +202,7 @@ __append_to_doc(
      "fusenes",
      "FuzzyBallGraph",
      "GeneralizedPetersenGraph",
+     "GoethalsSeidelGraph",
      "HanoiTowerGraph",
      "HararyGraph",
      "HyperStarGraph",
@@ -235,6 +236,7 @@ quadrics and Hermitean varieties there.
 
 __append_to_doc(
     ["AffineOrthogonalPolarGraph",
+     "AhrensSzekeresGeneralizedQuadrangleGraph",
      "NonisotropicOrthogonalPolarGraph",
      "NonisotropicUnitaryPolarGraph",
      "OrthogonalPolarGraph",
@@ -242,6 +244,7 @@ __append_to_doc(
      "SymplecticPolarGraph",
      "TaylorTwographDescendantSRG",
      "TaylorTwographSRG",
+     "T2starGeneralizedQuadrangleGraph",
      "UnitaryDualPolarGraph",
      "UnitaryPolarGraph"])
 
@@ -1972,6 +1975,7 @@ class GraphGenerators():
     FriendshipGraph        = staticmethod(sage.graphs.generators.families.FriendshipGraph)
     FuzzyBallGraph         = staticmethod(sage.graphs.generators.families.FuzzyBallGraph)
     GeneralizedPetersenGraph = staticmethod(sage.graphs.generators.families.GeneralizedPetersenGraph)
+    GoethalsSeidelGraph    = staticmethod(sage.graphs.generators.families.GoethalsSeidelGraph)
     HanoiTowerGraph        = staticmethod(sage.graphs.generators.families.HanoiTowerGraph)
     HararyGraph            = staticmethod(sage.graphs.generators.families.HararyGraph)
     HyperStarGraph         = staticmethod(sage.graphs.generators.families.HyperStarGraph)
@@ -1997,6 +2001,7 @@ class GraphGenerators():
 ###########################################################################
     import sage.graphs.generators.classical_geometries
     AffineOrthogonalPolarGraph = staticmethod(sage.graphs.generators.classical_geometries.AffineOrthogonalPolarGraph)
+    AhrensSzekeresGeneralizedQuadrangleGraph = staticmethod(sage.graphs.generators.classical_geometries.AhrensSzekeresGeneralizedQuadrangleGraph)
     NonisotropicOrthogonalPolarGraph = staticmethod(sage.graphs.generators.classical_geometries.NonisotropicOrthogonalPolarGraph)
     NonisotropicUnitaryPolarGraph = staticmethod(sage.graphs.generators.classical_geometries.NonisotropicUnitaryPolarGraph)
     OrthogonalPolarGraph   = staticmethod(sage.graphs.generators.classical_geometries.OrthogonalPolarGraph)
@@ -2006,6 +2011,7 @@ class GraphGenerators():
     TaylorTwographDescendantSRG = \
              staticmethod(sage.graphs.generators.classical_geometries.TaylorTwographDescendantSRG)
     TaylorTwographSRG      = staticmethod(sage.graphs.generators.classical_geometries.TaylorTwographSRG)
+    T2starGeneralizedQuadrangleGraph      = staticmethod(sage.graphs.generators.classical_geometries.T2starGeneralizedQuadrangleGraph)
     UnitaryDualPolarGraph  = staticmethod(sage.graphs.generators.classical_geometries.UnitaryDualPolarGraph)
     UnitaryPolarGraph      = staticmethod(sage.graphs.generators.classical_geometries.UnitaryPolarGraph)
 

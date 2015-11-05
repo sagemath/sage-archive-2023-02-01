@@ -775,7 +775,7 @@ def RandomToleranceGraph(n):
 
 
 def auxiliary_random_word(n):
-    """
+    r"""
     Return a random word used to generate random triangulations.
 
     INPUT:
@@ -784,16 +784,17 @@ def auxiliary_random_word(n):
 
     OUTPUT:
 
-    a sequence of `0` and `1`
+    A binary sequence `w` of length `4n-2` with `n-1` ones, such that any prefix
+    `u` of `w` satisfies `3|u|_1 - |u|_0 > -2` (where `|u|_1` and `|u|_0` are
+    respectively the number of 1s and 0s in `u`). Those words are the expected
+    input of :func:`contour_and_graph_from_word`.
 
-    The result is a word with `3n-1` occurrences of `0` and `n-1`
-    occurrences of `1` that can be used as input in
-    :func:`contour_and_graph_from_word`.
+    ALGORITHM:
 
-    A random word with these numbers of `0` and `1` is chosen. This word
-    is then rotated in order to give an admissible code for a tree as
-    explained in [PS2006]_. There are exactly two such rotations, one
-    of which is chosen at random.
+    A random word with these numbers of `0` and `1` is chosen. This word is then
+    rotated in order to give an admissible code for a tree (as explained in
+    Proposition 4.2, [PS2006]_). There are exactly two such rotations, one of
+    which is chosen at random.
 
     EXAMPLES::
 
@@ -810,6 +811,7 @@ def auxiliary_random_word(n):
         ....:     assert len(w) == 4 * n - 2
         ....:     assert w.count(0) == 3 * n - 1
         ....:     assert check(w)
+
     """
     from sage.misc.prandom import shuffle
     w = [0] * (3 * n - 1) + [1] * (n - 1)
@@ -833,9 +835,8 @@ def auxiliary_random_word(n):
     idx = cuts[randint(0, 1)]
     return w[idx:] + w[:idx]
 
-
 def contour_and_graph_from_word(w):
-    """
+    r"""
     Return the contour word and the graph of inner vertices of the tree
     associated with the word `w`.
 
@@ -843,11 +844,12 @@ def contour_and_graph_from_word(w):
 
     - `w` -- a word in `0` and `1` as given by :func:`auxiliary_random_word`
 
-    This word must satisfy the conditions described in [PS2006]_.
+    This word must satisfy the conditions described in Proposition 4.2 of
+    [PS2006]_ (see :func:`auxiliary_random_word`).
 
     OUTPUT:
 
-    a pair (``seq``, ``G``) where:
+    a pair ``(seq, G)`` where:
 
     - ``seq`` is a sequence of pairs (label, integer) representing the
       contour walk along the tree associated with `w`
@@ -889,6 +891,7 @@ def contour_and_graph_from_word(w):
         sage: seq, G = contour_and_graph_from_word(auxiliary_random_word(20))
         sage: G.is_tree()
         True
+
     """
     index = 0  # numbering of inner vertices
     word = [('i', 0)]  # initial vertex is inner

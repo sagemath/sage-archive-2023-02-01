@@ -730,6 +730,23 @@ cdef class CAElement(pAdicTemplateElement):
         ans.absprec = absprec
         return ans
 
+    def _cache_key(self):
+        r"""
+        Return a hashable key which identifies this element for caching.
+
+        TESTS::
+
+            sage: R.<a> = ZqCA(9)
+            sage: (9*a)._cache_key()
+            (..., ((), (), (0, 1)), 20)
+
+        .. SEEALSO::
+
+            :meth:`sage.misc.cachefunc._cache_key`
+        """
+        tuple_recursive = lambda l: tuple(tuple_recursive(x) for x in l) if isinstance(l, list) else l
+        return (self.parent(), tuple_recursive(self.list()), self.precision_absolute())
+
     def list(self, lift_mode = 'simple', start_val = None):
         """
         Returns a list of coefficients of `p` starting with `p^0`.

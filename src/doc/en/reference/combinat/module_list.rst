@@ -27,7 +27,6 @@ Comprehensive Module list
     sage/combinat/binary_tree
     sage/combinat/cartesian_product
     sage/combinat/catalog_partitions
-    sage/combinat/choose_nk
     sage/combinat/cluster_algebra_quiver/__init__
     sage/combinat/cluster_algebra_quiver/all
     sage/combinat/cluster_algebra_quiver/cluster_seed
@@ -316,7 +315,6 @@ Comprehensive Module list
     sage/combinat/species/structure
     sage/combinat/species/subset_species
     sage/combinat/species/sum_species
-    sage/combinat/split_nk
     sage/combinat/subset
     sage/combinat/subsets_hereditary
     sage/combinat/subsets_pairwise

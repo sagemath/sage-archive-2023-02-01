@@ -153,7 +153,7 @@ def delsarte_bound_hamming_space(n, d, q, return_data=False, solver="PPL"):
     Such an input is invalid::
 
        sage: delsarte_bound_hamming_space(11,3,-4)
-       Solver exception:  'PPL : There is no feasible solution' ()
+       Solver exception: PPL : There is no feasible solution
        False
 
     REFERENCES:
@@ -169,7 +169,7 @@ def delsarte_bound_hamming_space(n, d, q, return_data=False, solver="PPL"):
     try:
         bd=p.solve()
     except MIPSolverException as exc:
-        print "Solver exception: ", exc, exc.args
+        print "Solver exception:", exc
         if return_data:
             return A,p,False
         return False
@@ -240,7 +240,7 @@ def delsarte_bound_additive_hamming_space(n, d, q, d_star=1, q_base=0,
    Such a d_star is not possible::
 
        sage: delsarte_bound_additive_hamming_space(11,3,4,d_star=9)
-       Solver exception:  'PPL : There is no feasible solution' ()
+       Solver exception: PPL : There is no feasible solution
        False
 
    """
@@ -270,7 +270,7 @@ def delsarte_bound_additive_hamming_space(n, d, q, d_star=1, q_base=0,
       try:
         bd=p.solve()
       except MIPSolverException as exc:
-        print "Solver exception: ", exc, exc.args
+        print "Solver exception:", exc
         if return_data:
            return A,p,False
         return False

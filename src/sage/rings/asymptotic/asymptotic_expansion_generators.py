@@ -248,6 +248,27 @@ class AsymptoticExpansionGenerators(SageObject):
     def Binomial_kn_over_n(var, k, precision=None, skip_constant_factor=False,
                            algorithm=None):
         r"""
+        Return the asymptotic expansion of binomial coefficient
+        `kn` choose `n`.
+
+        INPUT:
+
+        - ``var`` -- a string for the variable name.
+
+        - ``k`` -- a number.
+
+        - ``precision`` -- (default: ``None``) an integer. If ``None``, then
+          the default precision of the asymptotic ring is used.
+
+        - ``skip_constant_factor`` -- (default: ``False``) a
+          boolean. If set, then the constant summand is left out.
+
+        - ``algorithm`` -- either ``'direct'`` or ``'log'`` (default).
+
+        OUTPUT:
+
+        An asymptotic expansion.
+
         EXAMPLES::
 
             sage: asymptotic_expansions.Binomial_kn_over_n('n', k=2, precision=5)

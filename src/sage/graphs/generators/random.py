@@ -1016,5 +1016,5 @@ def RandomTriangulation(n, set_position=False):
 
     graph.add_edge(('a', 'b'))
     if set_position:
-        g.layout(layout="planar", save_pos=True)
+        graph.layout(layout="planar", save_pos=True)
     return graph

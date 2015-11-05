@@ -11,8 +11,10 @@ Cell Modules
 from sage.misc.cachefunc import cached_method
 from sage.misc.lazy_attribute import lazy_attribute
 from sage.categories.all import ModulesWithBasis
+from sage.structure.element import Element
 from sage.combinat.free_module import CombinatorialFreeModule
 from sage.combinat.dict_addition import dict_addition, dict_linear_combination
+from sage.modules.with_basis.subquotient import QuotientModuleWithBasis
 from sage.sets.family import Family
 
 class CellModule(CombinatorialFreeModule):
@@ -123,10 +125,10 @@ class CellModule(CombinatorialFreeModule):
 
             sage: S = SymmetricGroupAlgebra(QQ, 3)
             sage: C = S.cellular_basis()
-            sage: M = S.cell_module([2,1])
+            sage: W = S.cell_module([2,1])
             sage: s = StandardTableaux([2,1])([[1,2],[3]])
             sage: la = Partition([2,1])
-            sage: M._action_basis((la, s, s), s)
+            sage: W._action_basis((la, s, s), s)
             W[[1, 2], [3]]
         """
         t = self.basis().keys()[0]
@@ -145,9 +147,9 @@ class CellModule(CombinatorialFreeModule):
         EXAMPLES::
 
             sage: S = SymmetricGroupAlgebra(QQ, 3)
-            sage: M = S.cell_module([2,1])
-            sage: K = M.basis().keys()
-            sage: matrix([[M._bilinear_form_on_basis(s, t) for t in K] for s in K])
+            sage: W = S.cell_module([2,1])
+            sage: K = W.basis().keys()
+            sage: matrix([[W._bilinear_form_on_basis(s, t) for t in K] for s in K])
             [1 0]
             [0 1]
         """
@@ -172,10 +174,10 @@ class CellModule(CombinatorialFreeModule):
         EXAMPLES::
 
             sage: S = SymmetricGroupAlgebra(QQ, 3)
-            sage: M = S.cell_module([2,1])
-            sage: elt = M.an_element(); elt
+            sage: W = S.cell_module([2,1])
+            sage: elt = W.an_element(); elt
             2*W[[1, 2], [3]] + 2*W[[1, 3], [2]]
-            sage: M.bilinear_form(elt, elt)
+            sage: W.bilinear_form(elt, elt)
             8
         """
         R = self.base_ring()
@@ -194,8 +196,8 @@ class CellModule(CombinatorialFreeModule):
         EXAMPLES::
 
             sage: S = SymmetricGroupAlgebra(QQ, 3)
-            sage: M = S.cell_module([2,1])
-            sage: M.bilinear_form_matrix()
+            sage: W = S.cell_module([2,1])
+            sage: W.bilinear_form_matrix()
             [1 0]
             [0 1]
         """
@@ -218,8 +220,8 @@ class CellModule(CombinatorialFreeModule):
         EXAMPLES::
 
             sage: S = SymmetricGroupAlgebra(QQ, 3)
-            sage: M = S.cell_module([2,1])
-            sage: M.nonzero_bilinear_form()
+            sage: W = S.cell_module([2,1])
+            sage: W.nonzero_bilinear_form()
             True
         """
         C = list(self.basis().keys())
@@ -236,8 +238,8 @@ class CellModule(CombinatorialFreeModule):
         EXAMPLES::
 
             sage: S = SymmetricGroupAlgebra(QQ, 3)
-            sage: M = S.cell_module([2,1])
-            sage: M.radical_basis()
+            sage: W = S.cell_module([2,1])
+            sage: W.radical_basis()
             ()
         """
         mat = self.bilinear_form_matrix(self.get_order())
@@ -260,8 +262,8 @@ class CellModule(CombinatorialFreeModule):
         EXAMPLES::
 
             sage: S = SymmetricGroupAlgebra(QQ, 3)
-            sage: M = S.cell_module([2,1])
-            sage: R = M.radical(); R
+            sage: W = S.cell_module([2,1])
+            sage: R = W.radical(); R
             Radical of Cell module indexed by [2, 1] of Cellular basis of
              Symmetric group algebra of order 3 over Rational Field
             sage: R.basis()
@@ -290,24 +292,18 @@ class CellModule(CombinatorialFreeModule):
         EXAMPLES::
 
             sage: S = SymmetricGroupAlgebra(QQ, 3)
-            sage: M = S.cell_module([2,1])
-            sage: L = M.simple_module(); L
+            sage: W = S.cell_module([2,1])
+            sage: L = W.simple_module(); L
             Simple module indexed by [2, 1] of Cellular basis of
              Symmetric group algebra of order 3 over Rational Field
-            sage: L.has_coerce_map_from(M)
+            sage: L.has_coerce_map_from(W)
             True
         """
         if not self.nonzero_bilinear_form():
             raise ValueError("bilinear form is 0; no corresponding simple module")
-        L = self.quotient_module(self.radical(), check=False,
-                                 already_echelonized=True)
-        L.rename("Simple module indexed by {} of {}".format(self._la, self._algebra))
-        # Add the coercion
-        self.module_morphism(L.retract, codomain=L).register_as_coercion()
-        return L
+        return SimpleModule(self.radical())
 
     class Element(CombinatorialFreeModule.Element):
-
         def _acted_upon_(self, scalar, self_on_left=False):
             """
             Return the action of ``scalar`` on ``self``.
@@ -316,35 +312,145 @@ class CellModule(CombinatorialFreeModule):
 
                 sage: S = SymmetricGroupAlgebra(QQ, 3)
                 sage: C = S.cellular_basis()
-                sage: M = S.cell_module([2,1])
-                sage: elt = M.an_element(); elt
+                sage: W = S.cell_module([2,1])
+                sage: elt = W.an_element(); elt
                 2*W[[1, 2], [3]] + 2*W[[1, 3], [2]]
-                sage: sc = C.an_element()
-                sage: sc
+                sage: sc = C.an_element(); sc
                 3*C([2, 1], [[1, 3], [2]], [[1, 2], [3]])
                  + 2*C([2, 1], [[1, 3], [2]], [[1, 3], [2]])
                  + 2*C([3], [[1, 2, 3]], [[1, 2, 3]])
                 sage: sc * elt
                 10*W[[1, 3], [2]]
 
+                sage: s = S.an_element(); s
+                [1, 2, 3] + 2*[1, 3, 2] + 3*[2, 1, 3] + [3, 1, 2]
+                sage: s * elt
+                11*W[[1, 2], [3]] - 3/2*W[[1, 3], [2]]
+
                 sage: 1/2 * elt
                 W[[1, 2], [3]] + W[[1, 3], [2]]
             """
+            # Check for elements coercable to the base ring first
+            ret = CombinatorialFreeModule.Element._acted_upon_(self, scalar, self_on_left)
+            if ret is not None:
+                return ret
+            # See message in CombinatorialFreeModuleElement._acted_upon_
             P = self.parent()
-            if scalar in P._algebra:
-                if self_on_left:
-                    raise NotImplementedError
-                    #scalar = scalar.cellular_involution()
-                mc = self._monomial_coefficients
-                scalar_mc = scalar.monomial_coefficients(copy=False)
-                D = dict_linear_combination([(P._action_basis(x, k)._monomial_coefficients,
-                                              scalar_mc[x] * mc[k])
-                                             for k in mc for x in scalar_mc],
-                                            factor_on_left=False)
+            if isinstance(scalar, Element) and scalar.parent() is not P._algebra:
+                # Temporary needed by coercion (see Polynomial/FractionField tests).
+                if not P._algebra.has_coerce_map_from(scalar.parent()):
+                    return None
+                scalar = P._algebra( scalar )
 
-                return P._from_dict(D, remove_zeros=False)
+            if self_on_left:
+                raise NotImplementedError
+                #scalar = scalar.cellular_involution()
+            mc = self._monomial_coefficients
+            scalar_mc = scalar.monomial_coefficients(copy=False)
+            D = dict_linear_combination([(P._action_basis(x, k)._monomial_coefficients,
+                                          scalar_mc[x] * mc[k])
+                                         for k in mc for x in scalar_mc],
+                                        factor_on_left=False)
 
-            return CombinatorialFreeModule.Element._acted_upon_(self, scalar, self_on_left)
+            return P._from_dict(D, remove_zeros=False)
+
+        # For backward compatibility
+        _lmul_ = _acted_upon_
+        _rmul_ = _acted_upon_
+
+class SimpleModule(QuotientModuleWithBasis):
+    """
+    A simple module of a cellular algebra.
+
+    Let `W(\lambda)` denote a cell module. The simple module `L(\lambda)`
+    is defined as `W(\lambda) / \operatorname{rad}(\lambda)`,
+    where `\operatorname{rad}(\lambda)` is the radical of the
+    bilinear form `\Phi_{\lambda}`.
+    """
+    def __init__(self, submodule):
+        """
+        Initialize ``self``.
+
+        EXAMPLES::
+
+            sage: S = SymmetricGroupAlgebra(QQ, 3)
+            sage: L = S.cell_module([2,1]).simple_module()
+            sage: TestSuite(L).run()
+        """
+        cat = ModulesWithBasis(submodule.category().base_ring()).Quotients()
+        QuotientModuleWithBasis.__init__(self, submodule, cat)
+        # We set some print options since QuotientModuleWithBasis doesn't take them
+        self.print_options(prefix='L', bracket=False)
+
+    def _repr_(self):
+        """
+        Return a string representation of ``self``.
+
+        EXAMPLES::
+
+            sage: S = SymmetricGroupAlgebra(QQ, 3)
+            sage: S.cell_module([2,1]).simple_module()
+            Simple module indexed by [2, 1] of Cellular basis of
+             Symmetric group algebra of order 3 over Rational Field
+        """
+        W = self.ambient()
+        return "Simple module indexed by {} of {}".format(W._la, W._algebra)
+
+    def _coerce_map_from_(self, A):
+        """
+        Return a coercion map from ``A`` if one exists.
+
+        EXAMPLES::
+
+            sage: S = SymmetricGroupAlgebra(QQ, 3)
+            sage: W = S.cell_module([2,1])
+            sage: L = W.simple_module()
+            sage: L._coerce_map_from_(W)
+            Generic morphism:
+              From: Cell module indexed by [2, 1] of Cellular basis
+                 of Symmetric group algebra of order 3 over Rational Field
+              To:   Simple module indexed by [2, 1] of Cellular basis
+                 of Symmetric group algebra of order 3 over Rational Field
+        """
+        if A == self._ambient:
+            return A.module_morphism(self.retract, codomain=self)
+        return super(SimpleModule, self)._coerce_map_from_(A)
+
+    class Element(QuotientModuleWithBasis.Element):
+        def _acted_upon_(self, scalar, self_on_left=False):
+            """
+            Return the action of ``scalar`` on ``self``.
+
+            EXAMPLES::
+
+                sage: S = SymmetricGroupAlgebra(QQ, 3)
+                sage: C = S.cellular_basis()
+                sage: L = S.cell_module([2,1]).simple_module()
+                sage: elt = L.an_element(); elt
+                2*L[[1, 2], [3]] + 2*L[[1, 3], [2]]
+                sage: sc = C.an_element(); sc
+                3*C([2, 1], [[1, 3], [2]], [[1, 2], [3]])
+                 + 2*C([2, 1], [[1, 3], [2]], [[1, 3], [2]])
+                 + 2*C([3], [[1, 2, 3]], [[1, 2, 3]])
+                sage: sc * elt
+                10*L[[1, 3], [2]]
+
+                sage: s = S.an_element(); s
+                [1, 2, 3] + 2*[1, 3, 2] + 3*[2, 1, 3] + [3, 1, 2]
+                sage: s * elt
+                11*L[[1, 2], [3]] - 3/2*L[[1, 3], [2]]
+
+                sage: 1/2 * elt
+                L[[1, 2], [3]] + L[[1, 3], [2]]
+            """
+            ret = CombinatorialFreeModule.Element._acted_upon_(self, scalar, self_on_left)
+            if ret is not None:
+                return ret
+            P = self.parent()
+            ret = P.lift(self)._acted_upon_(scalar, self_on_left)
+            if ret is None:
+                return None
+            return P.retract(ret)
 
         # For backward compatibility
         _lmul_ = _acted_upon_

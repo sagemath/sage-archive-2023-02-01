@@ -24,12 +24,6 @@ class CellularBasis(CombinatorialFreeModule):
     INPUT:
 
     - ``A`` -- the cellular algebra
-    - ``indices_unique`` -- (default: ``False``) if ``True``, then
-      the cell module indices are unique; i.e., for any `s \in M(\lambda)`,
-      then `s \notin M(\mu)` for all `\mu \neq \lambda`
-
-    If ``indices_unique`` is ``True``, then the index `\lambda` is
-    surpressed from the output.
 
     EXAMPLES:
 

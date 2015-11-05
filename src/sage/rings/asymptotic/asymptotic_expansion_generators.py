@@ -55,6 +55,9 @@ examples.
    * - :meth:`~AsymptoticExpansionGenerators.log_Stirling`
      - the logarithm of Stirling's approximation formula for factorials
 
+   * - :meth:`~AsymptoticExpansionGenerators.Binomial_kn_over_n`
+     - an asymptotic expansion of the binomial coefficient
+
 
 AUTHORS:
 
@@ -95,6 +98,7 @@ class AsymptoticExpansionGenerators(SageObject):
 
     - :meth:`~Stirling`
     - :meth:`~log_Stirling`
+    - :meth:`~Binomial_kn_over_n`
     """
 
     @staticmethod
@@ -248,7 +252,7 @@ class AsymptoticExpansionGenerators(SageObject):
     def Binomial_kn_over_n(var, k, precision=None, skip_constant_factor=False,
                            algorithm=None):
         r"""
-        Return the asymptotic expansion of binomial coefficient
+        Return the asymptotic expansion of the binomial coefficient
         `kn` choose `n`.
 
         INPUT:

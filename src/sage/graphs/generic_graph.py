@@ -4239,7 +4239,7 @@ class GenericGraph(GenericGraph_pyx):
 
         # A local copy of self
         from sage.graphs.planarity import is_planar
-        graph = self.to_undirected(immutable=False)
+        graph = Graph(self)
         if hasattr(graph, '_embedding'):
             del(graph._embedding)
 
@@ -4357,7 +4357,7 @@ class GenericGraph(GenericGraph_pyx):
         """
         from sage.graphs.schnyder import _triangulate, _normal_label, _realizer, _compute_coordinates
 
-        G = self.to_undirected(immutable=False)
+        G = Graph(self)
         try:
             G._embedding = self._embedding
         except AttributeError:

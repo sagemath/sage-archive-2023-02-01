@@ -262,6 +262,9 @@ class AsymptoticExpansionGenerators(SageObject):
 
         - ``skip_constant_factor`` -- (default: ``False``) a
           boolean. If set, then the constant summand is left out.
+          As a consequence, the coefficient ring of the output changes
+          from ``Symbolic Constants Subring`` (if ``False``) to
+          ``Rational Field`` (if ``True``).
 
         - ``algorithm`` -- either ``'direct'`` or ``'log'`` (default).
 
@@ -292,8 +295,29 @@ class AsymptoticExpansionGenerators(SageObject):
             - 2*log(2))*n^(-5/2)
             + O((e^n)^(3*log(3) - 2*log(2))*n^(-7/2))
 
+        ::
+
+            sage: asymptotic_expansions.Binomial_kn_over_n('n', k=7/5, precision=5)
+            1/2*sqrt(7)/sqrt(pi)*(e^n)^(7/5*log(7/5) - 2/5*log(2/5))*n^(-1/2)
+            - 13/112*sqrt(7)/sqrt(pi)*(e^n)^(7/5*log(7/5) - 2/5*log(2/5))*n^(-3/2)
+            + 169/12544*sqrt(7)/sqrt(pi)*(e^n)^(7/5*log(7/5) - 2/5*log(2/5))*n^(-5/2)
+            + O((e^n)^(7/5*log(7/5) - 2/5*log(2/5))*n^(-7/2))
+
         TESTS::
 
+            sage: asymptotic_expansions.Binomial_kn_over_n(
+            ....:     'n', k=5, precision=5, skip_constant_factor=True)
+            1/2*(e^n)^(5*log(5)
+            - 4*log(4))*n^(-1/2)
+            - 7/160*(e^n)^(5*log(5) - 4*log(4))*n^(-3/2)
+            + 49/25600*(e^n)^(5*log(5) - 4*log(4))*n^(-5/2)
+            + O((e^n)^(5*log(5) - 4*log(4))*n^(-7/2))
+            sage: _.parent()
+            Asymptotic Ring <(e^(n*log(n)))^(Symbolic Constants Subring)
+            * (e^n)^(Symbolic Constants Subring)
+            * n^(Symbolic Constants Subring)
+            * log(n)^(Symbolic Constants Subring)>
+            over Rational Field
             sage: all(  # long time
             ....:     asymptotic_expansions.Binomial_kn_over_n('n', k=k,
             ....:         precision=5, algorithm='direct').has_same_summands(
@@ -319,7 +343,7 @@ class AsymptoticExpansionGenerators(SageObject):
             Stirling = AsymptoticExpansionGenerators.Stirling(
                 var, precision=precision, skip_constant_factor=skip_constant_factor)
             n = Stirling.parent().gen()
-            return Stirling.subs(n=k*n) / \
+            result = Stirling.subs(n=k*n) / \
                        (Stirling.subs(n=(k-1)*n) * Stirling)
 
         if algorithm == 'log':
@@ -339,12 +363,17 @@ class AsymptoticExpansionGenerators(SageObject):
             if not skip_constant_factor:
                 result /= (2*SCR('pi')).sqrt()
 
-            return result.map_coefficients(
+            result = result.map_coefficients(
                 lambda c: c.canonicalize_radical())
 
         else:
             raise ValueError('Unknown algorithm %s.' % (algorithm,))
 
+        if skip_constant_factor:
+            from sage.rings.rational_field import QQ
+            result = result.parent().change_parameter(
+                coefficient_ring=QQ)(result / SCR(k.sqrt()))
+        return result
 
 # Easy access to the asymptotic expansions generators from the command line:
 asymptotic_expansions = AsymptoticExpansionGenerators()

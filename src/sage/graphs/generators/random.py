@@ -980,7 +980,7 @@ def RandomTriangulation(n, set_position=False):
                     stack = []
                     done = False
                 else:
-                    new_word += stack + [x]
+                    new_word.extend(stack + [x])
                     stack = []
             else:  # inner vertex 'i'
                 if len(stack) == 3:

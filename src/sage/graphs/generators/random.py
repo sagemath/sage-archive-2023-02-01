@@ -791,10 +791,27 @@ def auxiliary_random_word(n):
 
     ALGORITHM:
 
-    A random word with these numbers of `0` and `1` is chosen. This word is then
-    rotated in order to give an admissible code for a tree (as explained in
-    Proposition 4.2, [PS2006]_). There are exactly two such rotations, one of
-    which is chosen at random.
+    A random word with these numbers of `0` and `1` is chosen. This
+    word is then rotated in order to give an admissible code for a
+    tree (as explained in Proposition 4.2, [PS2006]_). There are
+    exactly two such rotations, one of which is chosen at random.
+
+    Let us consider a word `w` satisfying the expected conditions. By
+    drawing a step (1,3) for each 1 and a step (1,-1) for each 0 in
+    `w`, one gets a path starting at height 0, ending at height -2 and
+    staying above or on the horizontal line of height -1 except at the
+    end point. By cutting the word at the first position of height -1,
+    let us write `w=uv`. One can then see that `v` can only touch the line
+    of height -1 at its initial point and just before its end point
+    (these two points may be the same).
+
+    Now consider a word `w'` obtained from `w` by any
+    rotation. Because `vu` is another word satisfying the expected
+    conditions, one can assume that `w'` is obtained from `w` by
+    starting at some point in `u`. The algorithm must then recognize
+    the end of `u` and the end of `v` inside `w'`. The end of `v` is
+    the unique point of minimal height `h`. The end of `u` is the first
+    point reaching the height `h+1`.
 
     EXAMPLES::
 
@@ -817,16 +834,21 @@ def auxiliary_random_word(n):
     w = [0] * (3 * n - 1) + [1] * (n - 1)
     shuffle(w)
 
-    # finding the two admissible shifts
+    # Finding the two admissible shifts.
+    # The 'if height' is true at least once.
+    # If it is true just once, then the word is admissible
+    # and cuts = [0, first position of -1] (ok)
+    # Otherwise, cuts will always contain
+    # [first position of hmin, first position of hmin - 1] (ok)
     cuts = [0, 0]
     height = 0
     height_min = 0
     for i in range(4 * n - 3):
         if w[i] == 1:
-            height += 3 * n
+            height += 3
         else:
-            height -= n
-            if height < height_min - 1:
+            height -= 1
+            if height < height_min:
                 height_min = height
                 cuts[0] = cuts[1]
                 cuts[1] = i + 1
@@ -834,6 +856,7 @@ def auxiliary_random_word(n):
     # random choice of one of the two possible cuts
     idx = cuts[randint(0, 1)]
     return w[idx:] + w[:idx]
+
 
 def contour_and_graph_from_word(w):
     r"""
@@ -960,8 +983,7 @@ def RandomTriangulation(n, set_position=False):
     .. [PS2006] Dominique Poulalhon and Gilles Schaeffer, *Optimal coding and
        sampling of triangulations*. Algorithmica 46 (2006), no. 3-4, 505-527.
     """
-    n -= 2
-    w = auxiliary_random_word(n)
+    w = auxiliary_random_word(n - 2)
     word, graph = contour_and_graph_from_word(w)
 
     edges = []

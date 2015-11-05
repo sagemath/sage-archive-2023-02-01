@@ -241,6 +241,19 @@ class BinaryQF(SageObject):
         x, y = args
         return (self._a * x + self._b * y) * x + self._c * y**2
 
+    def __hash__(self):
+        r"""
+        TESTS::
+
+            sage: hash(BinaryQF([2,2,3]))
+            802
+            sage: hash(BinaryQF([2,3,2]))
+            562
+            sage: hash(BinaryQF([3,2,2]))
+            547
+        """
+        return hash(self._a) ^ (hash(self._b) << 4) ^ (hash(self._c) << 8)
+
     def __cmp__(self, right):
         """
         Returns True if self and right are identical: the same coefficients.
@@ -599,8 +612,8 @@ class BinaryQF(SageObject):
         of the 2-by-2 matrix ``M`` on the quadratic form ``self``.
 
         Here the action of the matrix `M = \begin{pmatrix} a & b \\ c & d
-        \end{pmatrix}` on the form `Q(x, y)` produces the form `Q(ax+by,
-        cx+dy)`.
+        \end{pmatrix}` on the form `Q(x, y)` produces the form `Q(ax+cy,
+        bx+dy)`.
 
         EXAMPLES::
 
@@ -622,8 +635,8 @@ class BinaryQF(SageObject):
         of the 2-by-2 matrix ``M`` on the quadratic form ``self``.
 
         Here the action of the matrix `M = \begin{pmatrix} a & b \\ c & d
-        \end{pmatrix}` on the form `Q(x, y)` produces the form `Q(ax+cy,
-        bx+dy)`.
+        \end{pmatrix}` on the form `Q(x, y)` produces the form `Q(ax+by,
+        cx+dy)`.
 
         EXAMPLES::
 
@@ -669,8 +682,7 @@ class BinaryQF(SageObject):
         B = 10
         while True:
             llist = list(Set([self(x,y) for x in srange(-B,B) for y in srange(B)]))
-            llist = [l for l in llist if l.is_prime()]
-            llist.sort()
+            llist = sorted([l for l in llist if l.is_prime()])
             if llist:
                 return llist[0]
             if B >= Bmax:

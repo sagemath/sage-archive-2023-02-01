@@ -35,6 +35,9 @@ AUTHORS:
 include "sage/ext/interrupt.pxi"
 include "sage/ext/stdsage.pxi"
 
+from sage.libs.gmp.mpz cimport *
+from sage.libs.gmp.mpq cimport *
+
 from sage.structure.element cimport Element
 from sage.structure.sage_object cimport rich_to_bool_sgn
 
@@ -655,22 +658,15 @@ cdef class NumberFieldElement_quadratic(NumberFieldElement_absolute):
             return test
         return -test
 
-    def __richcmp__(left, right, int op):
+    cpdef _richcmp_(left, Element _right, int op):
         r"""
-        Note: we may implement a more direct way of comparison for integer,
-        float and quadratic numbers input (ie avoiding coercion).
+        Rich comparison of elements.
 
         TESTS::
 
             sage: K.<i> = QuadraticField(-1)
             sage: sorted([5*i+1, 2, 3*i+1, 2-i])
             [3*i + 1, 5*i + 1, -i + 2, 2]
-        """
-        return (<Element>left)._richcmp(right, op)
-
-    cpdef _richcmp_(left, Element _right, int op):
-        r"""
-        C implementation of comparison.
 
         TESTS:
 
@@ -793,8 +789,8 @@ cdef class NumberFieldElement_quadratic(NumberFieldElement_absolute):
         mpz_clear(j)
         return rich_to_bool_sgn(op, test)
 
-    def __cmp__(left, right):
-        r"""
+    cpdef int _cmp_(left, Element _right) except -2:
+        """
         Comparisons of elements.
 
         When there is a real embedding defined, the comparisons uses comparison
@@ -865,12 +861,6 @@ cdef class NumberFieldElement_quadratic(NumberFieldElement_absolute):
             [-3.0 + 1.0*I, -2.0, -2.0 + 2.0*I, -1.0 + 1.0*I, 5.0*I, 1.0 - 3.0*I, 1.0, 2.0 + 2.0*I]
             sage: map(CDF, l) == sorted(map(CDF, l))
             True
-        """
-        return (<Element>left)._cmp(right)
-
-    cpdef int _cmp_(left, Element _right) except -2:
-        """
-        C implementation of comparison.
         """
         cdef NumberFieldElement_quadratic right = <NumberFieldElement_quadratic> _right
         cdef int test
@@ -1266,13 +1256,33 @@ cdef class NumberFieldElement_quadratic(NumberFieldElement_absolute):
         return res
 
 
-    cdef NumberFieldElement conjugate_c(self):
+    cpdef NumberFieldElement galois_conjugate(self):
+        """
+        Return the image of this element under action of the nontrivial
+        element of the Galois group of this field.
+
+        EXAMPLES::
+
+            sage: K.<a> = QuadraticField(23)
+            sage: a.galois_conjugate()
+            -a
+
+            sage: K.<a> = NumberField(x^2 - 5*x + 1)
+            sage: a.galois_conjugate()
+            -a + 5
+            sage: b = 5*a + 1/3
+            sage: b.galois_conjugate()
+            -5*a + 76/3
+            sage: b.norm() ==  b * b.galois_conjugate()
+            True
+            sage: b.trace() ==  b + b.galois_conjugate()
+            True
+        """
         cdef NumberFieldElement_quadratic res = <NumberFieldElement_quadratic>self._new()
         mpz_set(res.a, self.a)
         mpz_neg(res.b, self.b)
         mpz_set(res.denom, self.denom)
         return res
-
 
 #################################################################################
 # We must override everything that makes uses of self.__numerator/__denominator

@@ -9,18 +9,20 @@ TESTS::
     sage: TestSuite(A).run()
 """
 
-################################################################################
+#*****************************************************************************
 #       Copyright (C) 2005, 2006 William Stein <wstein@gmail.com>
 #
-#  Distributed under the terms of the GNU General Public License (GPL).
-#  The full text of the GPL is available at:
-#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
-################################################################################
+#*****************************************************************************
 
 include "sage/ext/python.pxi"
 
 import sage.modules.free_module
+from sage.structure.element cimport coercion_model
 
 
 cdef class Matrix(matrix0.Matrix):
@@ -169,21 +171,21 @@ cdef class Matrix(matrix0.Matrix):
 
         EXAMPLES::
 
-            sage: M = matrix(ZZ,2,range(4))             #optional
-            sage: giac(M)                              #optional (indirect doctest)
+            sage: M = matrix(ZZ,2,range(4))
+            sage: giac(M)                              # optional - giac
             [[0,1],[2,3]]
 
         ::
 
-            sage: M = matrix(QQ,3,[1,2,3,4/3,5/3,6/4,7,8,9])    #optional
-            sage: giac(M)                                      #optional
+            sage: M = matrix(QQ,3,[1,2,3,4/3,5/3,6/4,7,8,9])
+            sage: giac(M)                                      # optional - giac
             [[1,2,3],[4/3,5/3,3/2],[7,8,9]]
 
         ::
 
-            sage: P.<x> = ZZ[]                          #optional
-            sage: M = matrix(P, 2, [-9*x^2-2*x+2, x-1, x^2+8*x, -3*x^2+5]) #optional
-            sage: giac(M)                             #optional
+            sage: P.<x> = ZZ[]
+            sage: M = matrix(P, 2, [-9*x^2-2*x+2, x-1, x^2+8*x, -3*x^2+5])
+            sage: giac(M)                             # optional - giac
             [[-9*x^2-2*x+2,x-1],[x^2+8*x,-3*x^2+5]]
         """
         s = str(self.rows()).replace('(','[').replace(')',']')
@@ -224,7 +226,7 @@ cdef class Matrix(matrix0.Matrix):
         EXAMPLES::
 
             sage: A = MatrixSpace(QQ,3)([1,2,3,4/3,5/3,6/4,7,8,9])
-            sage: g = mathematica(A); g                  # optional
+            sage: g = mathematica(A); g                  # optional - mathematica
             {{1, 2, 3}, {4/3, 5/3, 3/2}, {7, 8, 9}}
             sage: A._mathematica_init_()
             '{{1/1, 2/1, 3/1}, {4/3, 5/3, 3/2}, {7/1, 8/1, 9/1}}'
@@ -232,7 +234,7 @@ cdef class Matrix(matrix0.Matrix):
         ::
 
             sage: A = matrix([[1,2],[3,4]])
-            sage: g = mathematica(A); g                  # optional
+            sage: g = mathematica(A); g                  # optional - mathematica
             {{1, 2}, {3, 4}}
 
         ::
@@ -324,21 +326,21 @@ cdef class Matrix(matrix0.Matrix):
 
         EXAMPLES::
 
-            sage: M = matrix(ZZ,2,range(4))             #optional
-            sage: maple(M)                              #optional (indirect doctest)
+            sage: M = matrix(ZZ,2,range(4))
+            sage: maple(M)  # optional - maple
             Matrix(2, 2, [[0,1],[2,3]])
 
         ::
 
-            sage: M = matrix(QQ,3,[1,2,3,4/3,5/3,6/4,7,8,9])    #optional
-            sage: maple(M)                                      #optional
+            sage: M = matrix(QQ,3,[1,2,3,4/3,5/3,6/4,7,8,9])
+            sage: maple(M)  # optional - maple
             Matrix(3, 3, [[1,2,3],[4/3,5/3,3/2],[7,8,9]])
 
         ::
 
-            sage: P.<x> = ZZ[]                          #optional
-            sage: M = matrix(P, 2, [-9*x^2-2*x+2, x-1, x^2+8*x, -3*x^2+5]) #optional
-            sage: maple(M)                             #optional
+            sage: P.<x> = ZZ[]
+            sage: M = matrix(P, 2, [-9*x^2-2*x+2, x-1, x^2+8*x, -3*x^2+5])
+            sage: maple(M)  # optional - maple
             Matrix(2, 2, [[-9*x^2-2*x+2,x-1],[x^2+8*x,-3*x^2+5]])
         """
         s = str(self.rows()).replace('(','[').replace(')',']')
@@ -363,7 +365,7 @@ cdef class Matrix(matrix0.Matrix):
         EXAMPLES::
 
             sage: m = matrix(ZZ, [[1,2],[3,4]])
-            sage: macaulay2(m)                  #optional (indirect doctest)
+            sage: macaulay2(m)                  #optional - macaulay2 (indirect doctest)
             | 1 2 |
             | 3 4 |
 
@@ -371,7 +373,7 @@ cdef class Matrix(matrix0.Matrix):
 
             sage: R.<x,y> = QQ[]
             sage: m = matrix([[x,y],[1+x,1+y]])
-            sage: macaulay2(m)                  #optional
+            sage: macaulay2(m)                  #optional - macaulay2
             | x   y   |
             | x+1 y+1 |
         """
@@ -386,11 +388,11 @@ cdef class Matrix(matrix0.Matrix):
 
         EXAMPLES:
 
-            sage: a = matrix([[1,2,3],[4,5,6],[7,8,9]]); a  # optional - scilab
+            sage: a = matrix([[1,2,3],[4,5,6],[7,8,9]]); a
             [1 2 3]
             [4 5 6]
             [7 8 9]
-            sage: a._scilab_init_()         # optional - scilab
+            sage: a._scilab_init_()
             '[1,2,3;4,5,6;7,8,9]'
 
         AUTHORS:
@@ -415,7 +417,7 @@ cdef class Matrix(matrix0.Matrix):
 
         EXAMPLES:
 
-            sage: a = matrix([[1,2,3],[4,5,6],[7,8,9]]); a  # optional - scilab
+            sage: a = matrix([[1,2,3],[4,5,6],[7,8,9]]); a
             [1 2 3]
             [4 5 6]
             [7 8 9]
@@ -1363,8 +1365,6 @@ cdef class Matrix(matrix0.Matrix):
         top_ring = self._base_ring
         bottom_ring = other._base_ring
         if top_ring is not bottom_ring:
-            from sage.structure.element import get_coercion_model
-            coercion_model = get_coercion_model()
             R = coercion_model.common_parent(top_ring, bottom_ring)
             if top_ring is not R:
                 self = self.change_ring(R)

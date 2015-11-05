@@ -22,7 +22,7 @@ AUTHORS:
 include "sage/ext/stdsage.pxi"
 include "sage/ext/interrupt.pxi"
 include "sage/libs/ntl/decl.pxi"
-include "sage/libs/pari/decl.pxi"
+from sage.libs.pari.paridecl cimport *
 include "sage/libs/pari/pari_err.pxi"
 
 from sage.structure.sage_object cimport SageObject
@@ -690,21 +690,6 @@ cdef class FiniteField_ntl_gf2eElement(FinitePolyExtElement):
         GF2E_add(r.x, (<FiniteField_ntl_gf2eElement>self).x, (<FiniteField_ntl_gf2eElement>right).x)
         return r
 
-    cpdef ModuleElement _iadd_(self, ModuleElement right):
-        """
-        Add two elements.
-
-        EXAMPLES::
-
-            sage: k.<a> = GF(2^16)
-            sage: e = a^2 + a + 1 # indirect doctest
-            sage: f = a^15 + a^2 + 1
-            sage: e + f
-            a^15 + a
-        """
-        GF2E_add((<FiniteField_ntl_gf2eElement>self).x, (<FiniteField_ntl_gf2eElement>self).x, (<FiniteField_ntl_gf2eElement>right).x)
-        return self
-
     cpdef RingElement _mul_(self, RingElement right):
         """
         Multiply two elements.
@@ -720,21 +705,6 @@ cdef class FiniteField_ntl_gf2eElement(FinitePolyExtElement):
         cdef FiniteField_ntl_gf2eElement r = (<FiniteField_ntl_gf2eElement>self)._new()
         GF2E_mul(r.x, (<FiniteField_ntl_gf2eElement>self).x, (<FiniteField_ntl_gf2eElement>right).x)
         return r
-
-    cpdef RingElement _imul_(self, RingElement right):
-        """
-        Multiply two elements.
-
-        EXAMPLES::
-
-            sage: k.<a> = GF(2^16)
-            sage: e = a^2 * a + 1 # indirect doctest
-            sage: f = a^15 * a^2 + 1
-            sage: e * f
-            a^9 + a^7 + a + 1
-        """
-        GF2E_mul((<FiniteField_ntl_gf2eElement>self).x, (<FiniteField_ntl_gf2eElement>self).x, (<FiniteField_ntl_gf2eElement>right).x)
-        return self
 
     cpdef RingElement _div_(self, RingElement right):
         """
@@ -758,21 +728,6 @@ cdef class FiniteField_ntl_gf2eElement(FinitePolyExtElement):
         GF2E_div(r.x, (<FiniteField_ntl_gf2eElement>self).x, (<FiniteField_ntl_gf2eElement>right).x)
         return r
 
-    cpdef RingElement _idiv_(self, RingElement right):
-        """
-        Divide two elements.
-
-        EXAMPLES::
-
-            sage: k.<a> = GF(2^16)
-            sage: e = a^2 / a + 1 # indirect doctest
-            sage: f = a^15 / a^2 + 1
-            sage: e / f
-            a^15 + a^12 + a^10 + a^9 + a^6 + a^5 + a^3
-        """
-        GF2E_div((<FiniteField_ntl_gf2eElement>self).x, (<FiniteField_ntl_gf2eElement>self).x, (<FiniteField_ntl_gf2eElement>right).x)
-        return self
-
     cpdef ModuleElement _sub_(self, ModuleElement right):
         """
         Subtract two elements.
@@ -788,21 +743,6 @@ cdef class FiniteField_ntl_gf2eElement(FinitePolyExtElement):
         cdef FiniteField_ntl_gf2eElement r = (<FiniteField_ntl_gf2eElement>self)._new()
         GF2E_sub(r.x, (<FiniteField_ntl_gf2eElement>self).x, (<FiniteField_ntl_gf2eElement>right).x)
         return r
-
-    cpdef ModuleElement _isub_(self, ModuleElement right):
-        """
-        Subtract two elements.
-
-        EXAMPLES::
-
-            sage: k.<a> = GF(2^16)
-            sage: e = a^2 - a + 1 # indirect doctest
-            sage: f = a^15 - a^2 + 1
-            sage: e - f
-            a^15 + a
-        """
-        GF2E_sub((<FiniteField_ntl_gf2eElement>self).x, (<FiniteField_ntl_gf2eElement>self).x, (<FiniteField_ntl_gf2eElement>right).x)
-        return self
 
     def __neg__(FiniteField_ntl_gf2eElement self):
         """
@@ -863,9 +803,15 @@ cdef class FiniteField_ntl_gf2eElement(FinitePolyExtElement):
             from sage.groups.generic import power
             return power(self,exp)
 
-    def __richcmp__(left, right, int op):
+    cpdef int _cmp_(left, Element right) except -2:
         """
         Comparison of finite field elements.
+
+        .. NOTE::
+
+            Finite fields are unordered. However, we adopt the convention that
+            an element ``e`` is bigger than element ``f`` if its polynomial
+            representation is bigger.
 
         EXAMPLES::
 
@@ -879,13 +825,7 @@ cdef class FiniteField_ntl_gf2eElement(FinitePolyExtElement):
             sage: e != (e + 1)
             True
 
-        .. NOTE::
-
-            Finite fields are unordered. However, we adopt the convention that
-            an element ``e`` is bigger than element ``f`` if its polynomial
-            representation is bigger.
-
-        EXAMPLES::
+        ::
 
             sage: K.<a> = GF(2^100)
             sage: a < a^2
@@ -902,12 +842,6 @@ cdef class FiniteField_ntl_gf2eElement(FinitePolyExtElement):
             False
             sage: a == a
             True
-        """
-        return (<Element>left)._richcmp(right, op)
-
-    cpdef int _cmp_(left, Element right) except -2:
-        """
-        Comparison of finite field elements.
         """
         (<Cache_ntl_gf2e>left._parent._cache).F.restore()
         c = GF2E_equal((<FiniteField_ntl_gf2eElement>left).x, (<FiniteField_ntl_gf2eElement>right).x)

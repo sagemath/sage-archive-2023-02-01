@@ -215,7 +215,7 @@ class ModuleMorphism(Morphism):
         # The category infrastructure handles this automatically for
         # parents with a single element class. But for now we still
         # need to do it by hand here, since H may have many different
-        # element classes::
+        # element classes
         if not issubclass(self.__class__, H._abstract_element_class):
             self.__class__ = H.__make_element_class__(self.__class__)
 
@@ -380,10 +380,11 @@ class ModuleMorphismByLinearity(ModuleMorphism):
         x = args[self._position]
         assert(x.parent() is self.domain())
 
+        mc = x.monomial_coefficients(copy=False)
         if self._is_module_with_basis_over_same_base_ring:
-            return self.codomain().linear_combination( (self._on_basis(*(before+(index,)+after)), coeff ) for (index, coeff) in args[self._position] )
+            return self.codomain().linear_combination( (self._on_basis(*(before+(index,)+after)), coeff ) for (index, coeff) in mc.iteritems() )
         else:
-            return sum(( coeff * self._on_basis(*(before+(index,)+after)) for (index, coeff) in args[self._position]), self._zero)
+            return sum(( coeff * self._on_basis(*(before+(index,)+after)) for (index, coeff) in mc.iteritems() ), self._zero)
 
     # As per the specs of Map, we should in fact implement _call_.
     # However we currently need to abuse Map.__call__ (which strict
@@ -996,7 +997,7 @@ class TriangularModuleMorphism(ModuleMorphism):
         """
         G = self.codomain()
         if G.base_ring() not in Fields and not self._unitriangular:
-            raise NotImplementedError, "coreduce for a triangular but not unitriangular morphism over a ring"
+            raise NotImplementedError("coreduce for a triangular but not unitriangular morphism over a ring")
         on_basis = self.on_basis()
         assert y in G
 
@@ -1068,9 +1069,9 @@ class TriangularModuleMorphism(ModuleMorphism):
         """
         R = self.domain().base_ring()
         if R not in Fields and not self._unitriangular:
-            raise NotImplementedError, "cokernel_basis_indices for a triangular but not unitriangular morphism over a ring"
+            raise NotImplementedError("cokernel_basis_indices for a triangular but not unitriangular morphism over a ring")
         if self.codomain() not in Modules(R).FiniteDimensional():
-            raise NotImplementedError, "cokernel_basis_indices implemented only for morphisms with a finite dimensional codomain"
+            raise NotImplementedError("cokernel_basis_indices implemented only for morphisms with a finite dimensional codomain")
         return [i for i in self.codomain().basis().keys() if self._inverse_on_support(i) is None]
 
     def cokernel_projection(self, category = None):

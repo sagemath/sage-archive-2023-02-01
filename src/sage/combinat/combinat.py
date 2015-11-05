@@ -136,17 +136,14 @@ Functions and classes
 #                     2007 Mike Hansen <mhansen@gmail.com>,
 #                     2006 William Stein <wstein@gmail.com>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
-#
-#    This code is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-#    General Public License for more details.
-#
-#  The full text of the GPL is available at:
-#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+
+
 from sage.interfaces.all import maxima
 from sage.rings.all import ZZ, QQ, Integer, infinity
 from sage.rings.arith import bernoulli, binomial
@@ -158,7 +155,11 @@ from sage.structure.sage_object import SageObject
 from sage.structure.parent import Parent
 from sage.misc.lazy_attribute import lazy_attribute
 from combinat_cython import _stirling_number2
-######### combinatorial sequences
+from sage.categories.enumerated_sets import EnumeratedSets
+from sage.misc.classcall_metaclass import ClasscallMetaclass
+from sage.misc.inherit_comparison import InheritComparisonClasscallMetaclass
+from sage.structure.element import Element
+
 
 def bell_number(n, algorithm='flint', **options):
     r"""
@@ -817,6 +818,7 @@ def stirling_number2(n, k, algorithm=None):
     else:
         raise ValueError("unknown algorithm: %s" % algorithm)
 
+
 class CombinatorialObject(SageObject):
     def __init__(self, l, copy=True):
         """
@@ -829,6 +831,11 @@ class CombinatorialObject(SageObject):
         function which computes the hash of the string representation of a
         list and the hash of its parent's class. Thus, each
         CombinatorialObject should have a unique string representation.
+
+        .. SEEALSO::
+
+            :class:`CombinatorialElement` if you want a combinatorial
+            object which is an element of a parent.
 
         .. WARNING::
 
@@ -1199,8 +1206,95 @@ class CombinatorialObject(SageObject):
         return self._list.index(key)
 
 
-from sage.misc.classcall_metaclass import ClasscallMetaclass
-from sage.categories.enumerated_sets import EnumeratedSets
+class CombinatorialElement(CombinatorialObject, Element):
+    """
+    ``CombinatorialElement`` is both a :class:`CombinatorialObject`
+    and an :class:`Element`. So it represents a list which is an
+    element of some parent.
+
+    A ``CombinatorialElement`` subclass also automatically supports
+    the ``__classcall__`` mechanism.
+
+    .. WARNING::
+
+        This class is slowly being deprecated. Use
+        :class:`~sage.structure.list_clone.ClonableList` instead.
+
+    INPUT:
+
+    -  ``parent`` -- the :class:`Parent` class for this element.
+
+    -  ``lst`` -- a list or any object that can be converted to a
+       list by calling ``list()``.
+
+    EXAMPLES::
+
+        sage: from sage.combinat.combinat import CombinatorialElement
+        sage: e = CombinatorialElement(Partitions(6), [3,2,1])
+        sage: e == loads(dumps(e))
+        True
+        sage: parent(e)
+        Partitions of the integer 6
+        sage: list(e)
+        [3, 2, 1]
+
+    Check classcalls::
+
+        sage: class Foo(CombinatorialElement):
+        ....:     @staticmethod
+        ....:     def __classcall__(cls, x):
+        ....:         return x
+        sage: Foo(17)
+        17
+    """
+    __metaclass__ = InheritComparisonClasscallMetaclass
+
+    def __init__(self, parent, *args, **kwds):
+        """
+        Initialize this ``CombinatorialElement`` with a parent and a
+        list.
+
+        EXAMPLES::
+
+            sage: from sage.combinat.combinat import CombinatorialElement
+            sage: e = CombinatorialElement(ZZ, list=(3,2,1))
+            sage: e._list
+            [3, 2, 1]
+            sage: e.parent()
+            Integer Ring
+
+        TESTS::
+
+            sage: CombinatorialElement(ZZ)
+            Traceback (most recent call last):
+            ...
+            TypeError: __init__() takes exactly 2 arguments (1 given)
+            sage: CombinatorialElement(ZZ, 1, 2)
+            Traceback (most recent call last):
+            ...
+            TypeError: __init__() takes exactly 2 arguments (3 given)
+            sage: CombinatorialElement(ZZ, 1, list=2)
+            Traceback (most recent call last):
+            ...
+            TypeError: __init__() takes exactly 2 arguments (3 given)
+            sage: CombinatorialElement(ZZ, a=1, b=2)
+            Traceback (most recent call last):
+            ...
+            TypeError: __init__() takes exactly 2 arguments (3 given)
+        """
+        # There should be one "list" argument, which can be given as
+        # positional or keyword argument (in the latter case, the name
+        # doesn't matter).
+        if len(args) == 1 and not kwds:
+            L = args[0]
+        elif len(kwds) == 1 and not args:
+            L = kwds.values()[0]
+        else:
+            raise TypeError("__init__() takes exactly 2 arguments ({} given)".format(1+len(args)+len(kwds)))
+        super(CombinatorialElement, self).__init__(L)
+        super(CombinatorialObject, self).__init__(parent)
+
+
 class CombinatorialClass(Parent):
     """
     This class is deprecated, and will disappear as soon as all derived
@@ -2680,9 +2774,12 @@ def bell_polynomial(n, k):
 
     .. MATH::
 
-       B_{n,k}(x_1, x_2, \ldots, x_{n-k+1}) = \sum_{\sum{j_i}=k, \sum{i j_i}
-       =n} \frac{n!}{j_1!j_2!\cdots} \frac{x_1}{1!}^j_1 \frac{x_2}{2!}^j_2
-       \cdots.
+       B_{n,k}(x_0, x_1, \ldots, x_{n-k}) =
+            \sum_{\sum{j_i}=k, \sum{(i+1) j_i}=n}
+            \frac{n!}{j_0!j_1!\cdots j_{n-k}!}
+            \left(\frac{x_0}{(0+1)!}\right)^{j_0}
+            \left(\frac{x_1}{(1+1)!}\right)^{j_1} \cdots
+            \left(\frac{x_{n-k}}{(n-k+1)!}\right)^{j_{n-k}}.
 
     INPUT:
 
@@ -2692,14 +2789,30 @@ def bell_polynomial(n, k):
 
     OUTPUT:
 
-    - a polynomial in `n-k+1` variables over `\QQ`
+    - a polynomial in `n-k+1` variables over `\ZZ`
 
     EXAMPLES::
 
         sage: bell_polynomial(6,2)
-        10*x_3^2 + 15*x_2*x_4 + 6*x_1*x_5
+        10*x2^2 + 15*x1*x3 + 6*x0*x4
         sage: bell_polynomial(6,3)
-        15*x_2^3 + 60*x_1*x_2*x_3 + 15*x_1^2*x_4
+        15*x1^3 + 60*x0*x1*x2 + 15*x0^2*x3
+
+    TESTS:
+
+    Check that :trac:`18338` is fixed::
+
+        sage: bell_polynomial(0,0).parent()
+        Multivariate Polynomial Ring in x over Integer Ring
+
+        sage: for n in (0..4):
+        ....:     print [bell_polynomial(n,k).coefficients() for k in (0..n)]
+        [[1]]
+        [[], [1]]
+        [[], [1], [1]]
+        [[], [1], [3], [1]]
+        [[], [1], [3, 4], [6], [1]]
+
 
     REFERENCES:
 
@@ -2708,23 +2821,23 @@ def bell_polynomial(n, k):
     AUTHORS:
 
     - Blair Sutton (2009-01-26)
+    - Thierry Monteil (2015-09-29): the result must always be a polynomial.
     """
+    from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
     from sage.combinat.partition import Partitions
     from sage.rings.arith import factorial
-    vars = ZZ[tuple(['x_'+str(i) for i in range(1, n-k+2)])].gens()
-    result = 0
+    R = PolynomialRing(ZZ, 'x', n-k+1)
+    vars = R.gens()
+    result = R.zero()
     for p in Partitions(n, length=k):
-        factorial_product  = 1
+        factorial_product = 1
         power_factorial_product = 1
         for part, count in p.to_exp_dict().iteritems():
             factorial_product *= factorial(count)
             power_factorial_product *= factorial(part)**count
-
-        coefficient = factorial(n) / (factorial_product * power_factorial_product)
+        coefficient = factorial(n) // (factorial_product * power_factorial_product)
         result += coefficient * prod([vars[i - 1] for i in p])
-
     return result
-
 
 def fibonacci_sequence(start, stop=None, algorithm=None):
     r"""

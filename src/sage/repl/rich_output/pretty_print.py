@@ -227,6 +227,13 @@ def pretty_print(*args, **kwds):
     """
     if len(args) == 1 and isinstance(args[0], (types.GeneratorType, collections.Iterator)):
         args = tuple(args[0])
+
+    # Support deprecation :trac:`18292`
+    if len(args) == 1:
+        import sage.misc.html
+        if sage.misc.html.WarnIfNotPrinted.skip_pretty_print(args[0]):
+            return
+
     dm = get_display_manager()
     old_preferences_text = dm.preferences.text
     try:
@@ -241,5 +248,27 @@ def pretty_print(*args, **kwds):
     finally:
         dm.preferences.text = old_preferences_text
     
-    
-show = pretty_print
+
+def show(*args, **kwds):
+    """
+    Alias for ``pretty_print``
+
+    This function is an alias for :meth:`pretty_print`.
+
+    INPUT/OUTPUT:
+
+    See :meth:`pretty_print`. Except if the argument is a graph, in
+    which case it is plotted instead.
+
+    EXAMPLES::
+
+        sage: show(1)
+        <html><script type="math/tex">\newcommand{\Bold}[1]{\mathbf{#1}}1</script></html>
+    """
+    from sage.graphs.generic_graph import GenericGraph
+    if len(args) == 1 and isinstance(args[0], GenericGraph):
+        # Graphs are special, they ride the short bus...
+        # Please, somebody help me get rid of this! #18289
+        args[0].show()
+        return
+    pretty_print(*args, **kwds)

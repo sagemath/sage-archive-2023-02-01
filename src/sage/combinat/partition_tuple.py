@@ -245,32 +245,35 @@ subgroup::
     [1, 2, 3, 6, 8, 11, 12]
 
 """
+
 #*****************************************************************************
-#       Copyright (C) 2012 Andrew Mathas <andrew.mathas@sydney.edu.au>,
+#       Copyright (C) 2012 Andrew Mathas <andrew.mathas@sydney.edu.au>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from cartesian_product import CartesianProduct
-from combinat import CombinatorialObject
+import itertools
+
+from combinat import CombinatorialElement
 from integer_vector import IntegerVectors
 from partition import Partition, Partitions, Partitions_n, _Partitions
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
 from sage.categories.infinite_enumerated_sets import InfiniteEnumeratedSets
 from sage.groups.perm_gps.permgroup import PermutationGroup
 from sage.interfaces.all import gp
-from sage.misc.classcall_metaclass import ClasscallMetaclass
 from sage.rings.all import NN, ZZ
 from sage.rings.integer import Integer
-from sage.structure.element import Element
 from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation
 
 #--------------------------------------------------
 # Partition tuple - element class
 #--------------------------------------------------
-class PartitionTuple(CombinatorialObject,Element):
+class PartitionTuple(CombinatorialElement):
     r"""
     A tuple of :class:`Partition`.
 
@@ -394,7 +397,6 @@ class PartitionTuple(CombinatorialObject,Element):
         - :class:`PartitionTuples`
         - :class:`Partitions`
     """
-    __metaclass__ = ClasscallMetaclass
     Element = Partition
 
     @staticmethod
@@ -451,9 +453,8 @@ class PartitionTuple(CombinatorialObject,Element):
             ValueError: [[], [], [2, 1, 2, 1]] is not a tuple of Partitions
 
         """
-        Element.__init__(self, parent)
-        mu=[Partition(nu) for nu in mu]
-        CombinatorialObject.__init__(self, mu)
+        mu = [Partition(nu) for nu in mu]
+        CombinatorialElement.__init__(self, parent, mu)
 
     def level(self):
         """
@@ -538,8 +539,10 @@ class PartitionTuple(CombinatorialObject,Element):
 
         EXAMPLES::
 
-            sage: PartitionTuple(([2,1],[3,2],[1,1,1]))._repr_diagram()
-            '   **   ***   *\n   *    **    *\n              *'
+            sage: print PartitionTuple(([2,1],[3,2],[1,1,1]))._repr_diagram()
+               **   ***   *
+               *    **    *
+                          *
         """
         return self.diagram()
 
@@ -1485,7 +1488,7 @@ class PartitionTuples(UniqueRepresentation, Parent):
         sage: ( [] ) in PartitionTuples()
         True
 
-    Check that trac:`14145` has been fixed::
+    Check that :trac:`14145` has been fixed::
 
         sage: 1 in PartitionTuples()
         False
@@ -1562,7 +1565,7 @@ class PartitionTuples(UniqueRepresentation, Parent):
 
         """
         # one way or another these two cases need to be treated separately
-        if mu==[] or mu==[[]]:
+        if mu == [] or mu == () or mu == [[]]:
             return Partition([])
 
         # As partitions are 1-tuples of partitions we need to treat them separately
@@ -1681,9 +1684,9 @@ class PartitionTuples(UniqueRepresentation, Parent):
         Return a generic element.
 
         EXAMPLES::
+
             sage: PartitionTuples().an_element()  # indirect doctest
             ([1, 1, 1, 1], [2, 1, 1], [3, 1], [4])
-
         """
         return PartitionTuple( ([1,1,1,1],[2,1,1],[3,1],[4]) )
 
@@ -1756,9 +1759,9 @@ class PartitionTuples_all(PartitionTuples):
         Return a generic element.
 
         EXAMPLES::
+
             sage: PartitionTuples().an_element()   # indirect doctest
             ([1, 1, 1, 1], [2, 1, 1], [3, 1], [4])
-
         """
         return self.element_class(self,([1,1,1,1],[2,1,1],[3,1],[4]))
 
@@ -1826,28 +1829,28 @@ class PartitionTuples_level(PartitionTuples):
 
         EXAMPLES::
 
-        sage: parts=PartitionTuples(3)
-        sage: [parts[k] for k in range(20)]
-        [([], [], []),
-         ([1], [], []),
-         ([], [1], []),
-         ([], [], [1]),
-         ([2], [], []),
-         ([1, 1], [], []),
-         ([1], [1], []),
-         ([1], [], [1]),
-         ([], [2], []),
-         ([], [1, 1], []),
-         ([], [1], [1]),
-         ([], [], [2]),
-         ([], [], [1, 1]),
-         ([3], [], []),
-         ([2, 1], [], []),
-         ([1, 1, 1], [], []),
-         ([2], [1], []),
-         ([1, 1], [1], []),
-         ([2], [], [1]),
-         ([1, 1], [], [1])]
+            sage: parts=PartitionTuples(3)
+            sage: [parts[k] for k in range(20)]
+            [([], [], []),
+             ([1], [], []),
+             ([], [1], []),
+             ([], [], [1]),
+             ([2], [], []),
+             ([1, 1], [], []),
+             ([1], [1], []),
+             ([1], [], [1]),
+             ([], [2], []),
+             ([], [1, 1], []),
+             ([], [1], [1]),
+             ([], [], [2]),
+             ([], [], [1, 1]),
+             ([3], [], []),
+             ([2, 1], [], []),
+             ([1, 1, 1], [], []),
+             ([2], [1], []),
+             ([1, 1], [1], []),
+             ([2], [], [1]),
+             ([1, 1], [], [1])]
         """
         for size in NN:
             for mu in PartitionTuples_level_size(self.level(),size):
@@ -1858,9 +1861,9 @@ class PartitionTuples_level(PartitionTuples):
         Return a generic element.
 
         EXAMPLES::
+
             sage: PartitionTuples(level=4).an_element()  # indirect doctest
             ([], [1], [2], [3])
-
         """
         return self.element_class(self, tuple([l] for l in range(self.level()) ))
 
@@ -1874,6 +1877,7 @@ class PartitionTuples_size(PartitionTuples):
         Initializes this class.
 
         EXAMPLES::
+
             sage: PartitionTuples(size=4)
             Partition tuples of size 4
             sage: PartitionTuples(size=6)
@@ -1957,9 +1961,9 @@ class PartitionTuples_size(PartitionTuples):
         Return a generic element.
 
         EXAMPLES::
+
             sage: PartitionTuples(size=4).an_element()  # indirect doctest
             ([1], [1], [1], [1])
-
         """
         return self.element_class(self, tuple([1] for l in range(self.size()) ))
 
@@ -2048,7 +2052,7 @@ class PartitionTuples_level_size(PartitionTuples):
         """
         p = [Partitions(i) for i in range(self.size()+1)]
         for iv in IntegerVectors(self.size(),self.level()):
-            for cp in CartesianProduct(*[p[i] for i in iv]):
+            for cp in itertools.product(*[p[i] for i in iv]):
                 yield self._element_constructor_(cp)
 
 
@@ -2105,7 +2109,7 @@ class PartitionTuples_level_size(PartitionTuples):
         """
         In order to maintain backwards compatibility and be able to unpickle a
         old pickle from PartitionTuples_nk we have to override the default
-        __setstate__.
+        ``__setstate__``.
 
         TESTS::
 

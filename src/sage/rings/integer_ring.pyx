@@ -45,7 +45,6 @@ other types will also coerce to the integers, when it makes sense.
 include "sage/ext/cdefs.pxi"
 include "sage/ext/stdsage.pxi"
 include "sage/ext/interrupt.pxi"  # ctrl-c interrupt block support
-include "sage/ext/random.pxi"
 
 from cpython.int cimport *
 from cpython.list cimport *
@@ -64,6 +63,7 @@ from sage.structure.parent_gens import ParentWithGens
 from sage.structure.parent cimport Parent
 from sage.structure.sequence import Sequence
 from sage.misc.misc_c import prod
+from sage.misc.randstate cimport randstate, current_randstate, SAGE_RAND_MAX
 
 cimport integer
 cimport rational
@@ -105,8 +105,6 @@ def is_IntegerRing(x):
     """
     return isinstance(x, IntegerRing_class)
 
-import integer_ring_python
-
 cdef class IntegerRing_class(PrincipalIdealDomain):
     r"""
     The ring of integers.
@@ -124,7 +122,8 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
         False
         sage: Z.category()
         Join of Category of euclidean domains
-            and Category of infinite enumerated sets
+             and Category of infinite enumerated sets
+             and Category of metric spaces
         sage: Z(2^(2^5) + 1)
         4294967297
 
@@ -283,6 +282,10 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
     TESTS::
 
         sage: TestSuite(ZZ).run()
+        sage: list(ZZ)
+        Traceback (most recent call last):
+        ...
+        NotImplementedError: len() of an infinite set
     """
 
     def __init__(self):
@@ -301,7 +304,7 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
             True
         """
         ParentWithGens.__init__(self, self, ('x',), normalize=False,
-                                category=(EuclideanDomains(), InfiniteEnumeratedSets()))
+                                category=(EuclideanDomains(), InfiniteEnumeratedSets().Metric()))
         self._populate_coercion_lists_(element_constructor=integer.Integer,
                                        init_no_parent=True,
                                        convert_method_name='_integer_')
@@ -402,21 +405,6 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
         """
         return "\\Bold{Z}"
 
-    def __len__(self):
-        r"""
-        Return the length of the integers `\ZZ`. This throws a ``TypeError``
-        since `\ZZ` is an infinite set.
-
-        TESTS::
-
-            sage: from sage.rings.integer_ring import IntegerRing_class
-            sage: IntegerRing_class().__len__()
-            Traceback (most recent call last):
-            ...
-            TypeError: len() of unsized object
-        """
-        raise TypeError, 'len() of unsized object'
-
     def _div(self, integer.Integer left, integer.Integer right):
         """
         TESTS::
@@ -428,11 +416,11 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
             sage: A._div(12,0)
             Traceback (most recent call last):
             ...
-            ZeroDivisionError: Rational division by zero
+            ZeroDivisionError: rational division by zero
         """
         cdef rational.Rational x = rational.Rational.__new__(rational.Rational)
         if mpz_sgn(right.value) == 0:
-            raise ZeroDivisionError('Rational division by zero')
+            raise ZeroDivisionError('rational division by zero')
         mpz_set(mpq_numref(x.value), left.value)
         mpz_set(mpq_denref(x.value), right.value)
         mpq_canonicalize(x.value)
@@ -556,15 +544,21 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
         EXAMPLES::
 
             sage: for n in ZZ:
-            ...    if n < 3: print n
-            ...    else: break
+            ....:  if n < 3: print n
+            ....:  else: break
             0
             1
             -1
             2
             -2
         """
-        return integer_ring_python.iterator(self)
+        yield self(0)
+        n = self(1)
+        while True:
+            sig_check()
+            yield n
+            yield -n
+            n += 1
 
     cdef Integer _coerce_ZZ(self, ZZ_c *z):
         cdef integer.Integer i
@@ -1252,9 +1246,9 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
         elif n == 2:
             return sage.rings.integer.Integer(-1)
         elif n < 1:
-            raise ValueError, "n must be positive in zeta()"
+            raise ValueError("n must be positive in zeta()")
         else:
-            raise ValueError, "no nth root of unity in integer ring"
+            raise ValueError("no nth root of unity in integer ring")
 
     def parameter(self):
         r"""

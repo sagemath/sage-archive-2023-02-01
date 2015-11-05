@@ -162,17 +162,32 @@ Sage (:trac:`9636`)::
 
 """
 
+#*****************************************************************************
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
+#                  http://www.gnu.org/licenses/
+#*****************************************************************************
+
+
+from .paridecl cimport *
+from .paripriv cimport *
 include 'pari_err.pxi'
 include 'sage/ext/interrupt.pxi'
+cdef extern from *:
+    int sig_on_count "_signals.sig_on_count"
 
 import sys
 
 cimport libc.stdlib
+from libc.stdio cimport *
 cimport cython
 
 from sage.ext.memory cimport sage_malloc, sage_free
 from sage.ext.memory import init_memory_functions
 from sage.structure.parent cimport Parent
+from sage.libs.gmp.all cimport *
 from sage.libs.flint.fmpz cimport fmpz_get_mpz
 from sage.libs.flint.fmpz_mat cimport *
 
@@ -516,7 +531,22 @@ cdef class PariInstance(PariInstance_auto):
     def __hash__(self):
         return 907629390   # hash('pari')
 
-    cdef has_coerce_map_from_c_impl(self, x):
+    cpdef _coerce_map_from_(self, x):
+        """
+        Return ``True`` if ``x`` admits a coercion map into the
+        PARI interface.
+
+        This currently always returns ``True``.
+
+        EXAMPLES::
+
+            sage: pari._coerce_map_from_(ZZ)
+            True
+            sage: pari.coerce_map_from(ZZ)
+            Call morphism:
+              From: Integer Ring
+              To:   Interface to the PARI C library
+        """
         return True
 
     def __richcmp__(left, right, int op):
@@ -612,7 +642,7 @@ cdef class PariInstance(PariInstance_auto):
 
         """
         global avma
-        if _signals.sig_on_count <= 1:
+        if sig_on_count <= 1:
             avma = pari_mainstack.top
         pari_catch_sig_off()
 
@@ -969,6 +999,24 @@ cdef class PariInstance(PariInstance_auto):
 
     cdef _an_element_c_impl(self):  # override this in Cython
         return self.PARI_ZERO
+
+    cpdef gen zero(self):
+        """
+        EXAMPLES::
+
+            sage: pari.zero()
+            0
+        """
+        return self.PARI_ZERO
+
+    cpdef gen one(self):
+        """
+        EXAMPLES::
+
+            sage: pari.one()
+            1
+        """
+        return self.PARI_ONE
 
     def new_with_bits_prec(self, s, long precision):
         r"""

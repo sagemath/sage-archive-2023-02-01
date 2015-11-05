@@ -25,17 +25,11 @@ from dedekind_domain import DedekindDomain
 from principal_ideal_domain import PrincipalIdealDomain
 from euclidean_domain import EuclideanDomain
 
-from commutative_algebra_element import CommutativeAlgebraElement
-
 # Ring element base classes
-from ring_element import RingElement
-from commutative_ring_element import CommutativeRingElement
-from integral_domain_element import IntegralDomainElement
-from dedekind_domain_element import DedekindDomainElement
-from principal_ideal_domain_element import PrincipalIdealDomainElement
-from euclidean_domain_element import EuclideanDomainElement
-from field_element import FieldElement
-
+from sage.structure.element import (CommutativeAlgebraElement,
+        RingElement, CommutativeRingElement, IntegralDomainElement,
+        DedekindDomainElement, PrincipalIdealDomainElement,
+        EuclideanDomainElement, FieldElement)
 
 # Ideals
 from ideal import Ideal
@@ -99,6 +93,7 @@ from qqbar import (AlgebraicRealField, AA,
                    AlgebraicField, QQbar,
                    AlgebraicNumber,
                    number_field_elements_from_algebraics)
+from universal_cyclotomic_field import UniversalCyclotomicField, E
 
 # Intervals
 from real_mpfi import (RealIntervalField,
@@ -133,6 +128,9 @@ from big_oh import O
 # Fraction field
 from fraction_field import FractionField
 Frac = FractionField
+
+# c-finite sequences
+from cfinite_sequence import CFiniteSequence, CFiniteSequences
 
 # Arithmetic
 from arith import algdep, bernoulli, is_prime, is_prime_power, \
@@ -171,8 +169,6 @@ CIF = ComplexIntervalField()
 
 from misc import composite_field
 
-# Universal Cyclotomic Field
-from sage.rings.universal_cyclotomic_field.all import *
 
 from sage.misc.lazy_import import lazy_import
 lazy_import('sage.rings.invariant_theory', 'invariant_theory')
@@ -183,3 +179,6 @@ from sage.rings.continued_fraction import (farey, convergents,
    Hirzebruch_Jung_continued_fraction_list)
 # and deprecated continued fractions
 from sage.rings.contfrac import (CFF, ContinuedFractionField)
+
+# asymptotic ring
+from asymptotic.all import *

@@ -41,6 +41,7 @@ from sage.rings.infinity import Infinity
 
 from sage.sets.non_negative_integers import NonNegativeIntegers
 from sage.sets.positive_integers import PositiveIntegers
+from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
 
 import itertools
 
@@ -274,6 +275,12 @@ Alphabet = build_alphabet
 # Sage.
 
 from sage.structure.sage_object import register_unpickle_override
+
+register_unpickle_override(
+    'sage.combinat.words.alphabet',
+    'OrderedAlphabet_Finite',
+    FiniteEnumeratedSets,
+    call_name=('sage.categories.finite_enumerated_sets', 'FiniteEnumeratedSets'))
 
 register_unpickle_override(
     'sage.combinat.words.alphabet',

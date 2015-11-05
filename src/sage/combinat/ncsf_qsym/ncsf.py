@@ -4475,7 +4475,7 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
                                    distinct=True )
             # Note: sum(I) works both if I is a list and if I is a composition
             # (although the latter case doesn't work in IPython, cf.
-            # :trac:`15163`).
+            # trac #15163).
 
         def _from_psi_on_basis(self, I):
             r"""

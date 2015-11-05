@@ -587,7 +587,7 @@ class InterfaceInit(Converter):
             # symbolic variable, yet we would like to treat it like
             # one. So, we replace the argument `1` with a temporary
             # variable e.g. `t0` and then evaluate the derivative
-            # f'(t0) symbolically at t0=1. See :trac:`12796`.
+            # f'(t0) symbolically at t0=1. See trac #12796.
             temp_args = [SR.var("t%s"%i) for i in range(len(args))]
             f = operator.function()(*temp_args)
             params = operator.parameter_set()

@@ -771,74 +771,6 @@ def RandomToleranceGraph(n):
     return ToleranceGraph(tolrep)
 
 
-def RandomTriangulation(n, embed=False, base_ring=QQ):
-    """
-    Returns a random triangulation on n vertices.
-
-    A triangulation is a planar graph all of whose faces are
-    triangles (3-cycles).
-
-    The graph is built by independently generating `n` points
-    uniformly at random on the surface of a sphere, finding the
-    convex hull of those points, and then returning the 1-skeleton
-    of that polyhedron.
-
-    INPUT:
-
-    - ``n`` -- number of vertices (recommend `n \ge 3`)
-
-    - ``embed`` -- (optional, default ``False``) whether to use the
-      stereographic point projections to draw the graph.
-
-    - ``base_ring`` -- (optional, default ``QQ``) specifies the field over
-      which to do the intermediate computations. The default setting is slower,
-      but works for any input; one can instead use ``RDF``, but this occasionally
-      fails due to loss of precision, as mentioned on :trac:`10276`.
-
-    EXAMPLES::
-
-        sage: g = graphs.RandomTriangulation(10)
-        sage: g.is_planar()
-        True
-        sage: g.num_edges() == 3*g.order() - 6
-        True
-
-    TESTS::
-
-        sage: for i in range(10):
-        ....:     g = graphs.RandomTriangulation(30,embed=True)
-        ....:     assert g.is_planar() and g.size() == 3*g.order()-6
-    """
-    from sage.misc.prandom import normalvariate
-    from sage.geometry.polyhedron.constructor import Polyhedron
-
-    # this function creates a random unit vector in R^3
-    def rand_unit_vec():
-        vec = [normalvariate(0, 1) for k in range(3)]
-        mag = sum([x * x for x in vec]) ** 0.5
-        return [x / mag for x in vec]
-
-    # generate n unit vectors at random
-    points = [rand_unit_vec() for k in range(n)]
-
-    # find their convex hull
-    P = Polyhedron(vertices=points, base_ring=base_ring)
-
-    # extract the 1-skeleton
-    g = P.vertex_graph()
-    g.rename('Planar triangulation on {} vertices'.format(n))
-
-    if embed:
-        from sage.geometry.polyhedron.plot import ProjectionFuncStereographic
-        from sage.modules.free_module_element import vector
-        proj = ProjectionFuncStereographic([0, 0, 1])
-        g.set_pos({v: proj(vector(v))
-                   for v in g})
-
-    g.relabel()
-    return g
-
-
 # uniform random triangulation using Schaeffer-Poulalhon algorithm
 
 
@@ -983,7 +915,7 @@ def contour_and_graph_from_word(w):
     return word[:-1], Graph(edges, format='list_of_edges')
 
 
-def RandomTriangulation_uniform(n, set_position=False):
+def RandomTriangulation(n, set_position=False):
     """
     Return a random triangulation on `n` vertices.
 
@@ -1005,7 +937,7 @@ def RandomTriangulation_uniform(n, set_position=False):
 
     EXAMPLES::
 
-        sage: G = graphs.RandomTriangulation_uniform(6, True); G
+        sage: G = graphs.RandomTriangulation(6, True); G
         Graph on 6 vertices
         sage: G.is_planar()
         True
@@ -1017,7 +949,7 @@ def RandomTriangulation_uniform(n, set_position=False):
     TESTS::
 
         sage: for i in range(10):
-        ....:     g = graphs.RandomTriangulation_uniform(30)
+        ....:     g = graphs.RandomTriangulation(30)
         ....:     assert g.is_planar() and g.size() == 3 * g.order() - 6
 
     REFERENCES:

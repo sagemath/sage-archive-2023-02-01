@@ -4253,6 +4253,7 @@ class GenericGraph(GenericGraph_pyx):
             boundary = self
 
         # A local copy of self
+        from sage.graphs.graph import Graph
         from sage.graphs.planarity import is_planar
         graph = Graph(self)
         if hasattr(graph, '_embedding'):
@@ -4370,6 +4371,7 @@ class GenericGraph(GenericGraph_pyx):
             ...
             ValueError: Complete graph is not a planar graph
         """
+        from sage.graphs.graph import Graph
         from sage.graphs.schnyder import _triangulate, _normal_label, _realizer, _compute_coordinates
 
         G = Graph(self)
@@ -16434,6 +16436,7 @@ class GenericGraph(GenericGraph_pyx):
             [(2, 3, 2), (3, 2, None)]
         """
         if to_undirected:
+            from sage.graphs.graph import Graph
             g=Graph(self)
         else:
             g=copy(self)

@@ -18,33 +18,36 @@ should be true, we write::
 Solvers
 -------
 
-Any SAT solver supporting the DIMACS input format is easily interfaced using the
-:class:`sage.sat.solvers.dimacs.DIMACS` blueprint. Sage ships with pre-written interfaces for *RSat*
-[RS]_ and *Glucose* [GL]_. Furthermore, Sage provides a C++ interface to the *CryptoMiniSat* [CMS]_ SAT
-solver which can be used interchangably with DIMACS-based solvers, but also provides advanced
-features. For this, the optional CryptoMiniSat package must be
-installed, this can be accomplished by typing the following in the
+By default, Sage solves SAT instances as an Integer Linear Program (see
+:mod:`sage.numerical.mip`), but any SAT solver supporting the DIMACS input
+format is easily interfaced using the :class:`sage.sat.solvers.dimacs.DIMACS`
+blueprint. Sage ships with pre-written interfaces for *RSat* [RS]_ and *Glucose*
+[GL]_. Furthermore, Sage provides a C++ interface to the *CryptoMiniSat* [CMS]_
+SAT solver which can be used interchangably with DIMACS-based solvers, but also
+provides advanced features. For this last solver, the optional CryptoMiniSat
+package must be installed, this can be accomplished by typing the following in the
 shell::
 
     sage -i cryptominisat sagelib
 
-Since by default Sage does not include any SAT solver, we demonstrate key features by instantiating
-a fake DIMACS-based solver. We start with a trivial example::
+We now show how to solve a simple SAT problem. ::
 
     (x1 OR x2 OR x3) AND (x1 OR x2 OR (NOT x3))
 
 In Sage's notation::
 
-    sage: from sage.sat.solvers.dimacs import DIMACS
-    sage: solver = DIMACS(command="sat-solver")
+    sage: solver = SAT()
     sage: solver.add_clause( ( 1,  2,  3) )
     sage: solver.add_clause( ( 1,  2, -3) )
+    sage: solver()       # random
+    (None, True, True, False)
 
 .. NOTE::
 
-    :meth:`sage.sat.solvers.dimacs.DIMACS.add_clause` creates new variables when necessary. In
-    particular, it creates *all* variables up to the given index. Hence, adding a literal involving
-    the variable 1000 creates up to 1000 internal variables.
+    :meth:`~sage.sat.solvers.dimacs.DIMACS.add_clause` creates new variables
+    when necessary. When using CryptoMiniSat, it creates *all* variables up to
+    the given index. Hence, adding a literal involving the variable 1000 creates
+    up to 1000 internal variables.
 
 DIMACS-base solvers can also be used to write DIMACS files::
 
@@ -76,14 +79,6 @@ Alternatively, there is :meth:`sage.sat.solvers.dimacs.DIMACS.clauses`::
 
 These files can then be passed external SAT solvers.
 
-We demonstrate solving using CryptoMiniSat::
-
-    sage: from sage.sat.solvers import CryptoMiniSat # optional - cryptominisat
-    sage: cms = CryptoMiniSat()                      # optional - cryptominisat
-    sage: cms.add_clause((1,2,-3))                   # optional - cryptominisat
-    sage: cms()                                      # optional - cryptominisat
-    (None, True, True, False)
-
 Details on Specific Solvers
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
@@ -92,6 +87,7 @@ Details on Specific Solvers
 
    sage/sat/solvers/satsolver
    sage/sat/solvers/dimacs
+   sage/sat/solvers/sat_lp
 .. optional - cryptominisat
 .. sage/sat/solvers/cryptominisat/cryptominisat
 .. sage/sat/solvers/cryptominisat/solverconf

@@ -36,6 +36,8 @@ from yang_baxter_graph import YangBaxterGraph
 #Permutations
 from permutation import Permutation, Permutations, Arrangements, PermutationOptions, CyclicPermutations, CyclicPermutationsOfPartition
 from affine_permutation import AffinePermutationGroup
+lazy_import('sage.combinat.colored_permutations', ['ColoredPermutations',
+                                                   'SignedPermutations'])
 from derangements import Derangements
 lazy_import('sage.combinat.baxter_permutations', ['BaxterPermutations'])
 
@@ -46,9 +48,8 @@ from rsk import RSK, RSK_inverse, robinson_schensted_knuth, robinson_schensted_k
 #PerfectMatchings
 from perfect_matching import PerfectMatching, PerfectMatchings
 
-# Integer lists lex
-
-from integer_list import IntegerListsLex as IntegerListsLex
+# Integer lists
+from integer_lists import IntegerListsLex
 
 #Compositions
 from composition import Composition, Compositions

@@ -23,7 +23,9 @@ linear combinations of the coordinates::
     sage: -2*h
     Hyperplane -6*x - 4*y + 10*z + 14
     sage: x, y, z
-    (Hyperplane x + 0*y + 0*z + 0, Hyperplane 0*x + y + 0*z + 0, Hyperplane 0*x + 0*y + z + 0)
+    (Hyperplane x + 0*y + 0*z + 0,
+     Hyperplane 0*x + y + 0*z + 0,
+     Hyperplane 0*x + 0*y + z + 0)
 
 See :mod:`sage.geometry.hyperplane_arrangement.hyperplane` for more
 functionality of the individual hyperplanes.
@@ -340,9 +342,11 @@ from sage.rings.all import QQ, ZZ
 from sage.misc.cachefunc import cached_method
 from sage.misc.misc import uniq
 from sage.matrix.constructor import matrix, vector
+from sage.modules.free_module import VectorSpace
 
 from sage.geometry.hyperplane_arrangement.hyperplane import AmbientVectorSpace, Hyperplane
 
+from copy import copy
 
 
 class HyperplaneArrangementElement(Element):
@@ -695,7 +699,6 @@ class HyperplaneArrangementElement(Element):
         """
         K = self.base_ring()
         from sage.geometry.hyperplane_arrangement.affine_subspace import AffineSubspace
-        from sage.modules.all import VectorSpace
         whole_space = AffineSubspace(0, VectorSpace(K, self.dimension()))
         L = [[whole_space]]
         active = True
@@ -1359,16 +1362,17 @@ class HyperplaneArrangementElement(Element):
             sage: H.<x,y> = HyperplaneArrangements(QQ)
             sage: chessboard = []
             sage: N = 8
-            sage: for x0, y0 in CartesianProduct(range(N+1), range(N+1)):
-            ....:     chessboard.extend([x-x0, y-y0])
+            sage: for x0 in range(N+1):
+            ....:     for y0 in range(N+1):
+            ....:         chessboard.extend([x-x0, y-y0])
             sage: chessboard = H(chessboard)
             sage: len(chessboard.vertices())
             81
             sage: chessboard.vertices(exclude_sandwiched=True)
             ((0, 0), (0, 8), (8, 0), (8, 8))
         """
+        import itertools
         from sage.matroids.all import Matroid
-        from sage.combinat.cartesian_product import CartesianProduct
         R = self.parent().base_ring()
         parallels = self._parallel_hyperplanes()
         A_list = [parallel[0][1] for parallel in parallels]
@@ -1390,7 +1394,7 @@ class HyperplaneArrangementElement(Element):
             for row, i in enumerate(indices):
                 lhs[row] = A_list[i]
             b_list = [b_list_list[i] for i in indices]
-            for b in CartesianProduct(*b_list):
+            for b in itertools.product(*b_list):
                 for i in range(d):
                     rhs[i] = b[i]
                 vertex = lhs.solve_right(rhs)
@@ -1418,7 +1422,7 @@ class HyperplaneArrangementElement(Element):
             sage: h._make_region([x, 1-x, y, 1-y])
             A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 4 vertices
         """
-        ieqs = [h.coefficients() for h in hyperplanes]
+        ieqs = [h.dense_coefficient_list() for h in hyperplanes]
         from sage.geometry.polyhedron.constructor import Polyhedron
         return Polyhedron(ieqs=ieqs, ambient_dim=self.dimension(), 
                           base_ring=self.parent().base_ring())
@@ -1454,8 +1458,9 @@ class HyperplaneArrangementElement(Element):
         
             sage: chessboard = []
             sage: N = 8
-            sage: for x0, y0 in CartesianProduct(range(N+1), range(N+1)):
-            ....:     chessboard.extend([x-x0, y-y0])
+            sage: for x0 in range(N+1):
+            ....:     for y0 in range(N+1):
+            ....:         chessboard.extend([x-x0, y-y0])
             sage: chessboard = H(chessboard)
             sage: len(chessboard.bounded_regions())   # long time, 359 ms on a Core i7
             64
@@ -1468,7 +1473,7 @@ class HyperplaneArrangementElement(Element):
         universe = Polyhedron(eqns=[[0] + [0] * dim], base_ring=R)
         regions = [universe]
         for hyperplane in self:
-            ieq = vector(R, hyperplane.coefficients())
+            ieq = vector(R, hyperplane.dense_coefficient_list())
             pos_half = Polyhedron(ieqs=[ ieq], base_ring=R)
             neg_half = Polyhedron(ieqs=[-ieq], base_ring=R)
             subdivided = []
@@ -1928,7 +1933,112 @@ class HyperplaneArrangementElement(Element):
         v.set_immutable()
         return v
 
+    @cached_method
+    def matroid(self):
+        r"""
+        Return the matroid associated to ``self``.
 
+        Let `A` denote a central hyperplane arrangement and `n_H` the
+        normal vector of some hyperplane `H \in A`. We define a matroid
+        `M_A` as the linear matroid spanned by `\{ n_H | H \in A \}`.
+        The matroid `M_A` is such that the lattice of flats of `M` is
+        isomorphic to the intersection lattice of `A`
+        (Proposition 3.6 in [RS]_).
+
+        EXAMPLES::
+
+            sage: P.<x,y,z> = HyperplaneArrangements(QQ)
+            sage: A = P(x, y, z, x+y+z, 2*x+y+z, 2*x+3*y+z, 2*x+3*y+4*z)
+            sage: M = A.matroid(); M
+            Linear matroid of rank 3 on 7 elements represented over the Rational Field
+
+        We check the lattice of flats is isomorphic to the
+        intersection lattice::
+
+            sage: f = sum([list(M.flats(i)) for i in range(M.rank()+1)], [])
+            sage: PF = Poset([f, lambda x,y: x < y])
+            sage: PF.is_isomorphic(A.intersection_poset())
+            True
+        """
+        if not self.is_central():
+            raise ValueError("the hyperplane arrangement must be central")
+        norms = [p.normal() for p in self]
+        from sage.matroids.constructor import Matroid
+        return Matroid(matrix=matrix(norms).transpose())
+
+    @cached_method
+    def minimal_generated_number(self):
+        r"""
+        Return the minimum `k` such that ``self`` is `k`-generated.
+
+        Let `A` be a central hyperplane arrangement. Let `W_k` denote
+        the solution space of the linear system corresponding to the
+        linear dependencies among the hyperplanes of `A` of length at
+        most `k`. We say `A` is `k`-*generated* if
+        `\dim W_k = \operatorname{rank} A`.
+
+        Equivalently this says all dependencies forming the Orlik-Terao
+        ideal are generated by at most `k` hyperplanes.
+
+        EXAMPLES:
+
+        We construct Example 2.2 from [Vuz93]_::
+
+            sage: P.<x,y,z> = HyperplaneArrangements(QQ)
+            sage: A = P(x, y, z, x+y+z, 2*x+y+z, 2*x+3*y+z, 2*x+3*y+4*z, 3*x+5*z, 3*x+4*y+5*z)
+            sage: B = P(x, y, z, x+y+z, 2*x+y+z, 2*x+3*y+z, 2*x+3*y+4*z, x+3*z, x+2*y+3*z)
+            sage: A.minimal_generated_number()
+            3
+            sage: B.minimal_generated_number()
+            4
+
+        REFERENCES:
+
+        .. [Vuz93] Sergey Yuzvinksy,
+           *The first two obstructions to the freeness of arrangements*,
+           Transactions of the American Mathematical Society,
+           Vol. 335, **1** (1993) pp. 231--244.
+        """
+        V = VectorSpace(self.base_ring(), self.dimension())
+        W = VectorSpace(self.base_ring(), self.n_hyperplanes())
+        r = self.rank()
+        M = self.matroid()
+        norms = M.representation().columns()
+        circuits = M.circuits()
+        for i in range(2, self.n_hyperplanes()):
+            sol = []
+            for d in circuits:
+                if len(d) > i:
+                    continue
+                d = list(d)
+                dep = V.linear_dependence([norms[j] for j in d])
+                w = W.zero().list()
+                for j,k in enumerate(d):
+                    w[k] = dep[0][j]
+                sol.append(w)
+            mat = matrix(sol)
+            if mat.right_kernel().dimension() == r:
+                return i
+        return self.n_hyperplanes()
+
+    def is_formal(self):
+        """
+        Return if ``self`` is formal.
+
+        A hyperplane arrangement is *formal* if it is 3-generated [Vuz93]_,
+        where `k`-generated is defined in :meth:`minimal_generated_number`.
+
+        EXAMPLES::
+
+            sage: P.<x,y,z> = HyperplaneArrangements(QQ)
+            sage: A = P(x, y, z, x+y+z, 2*x+y+z, 2*x+3*y+z, 2*x+3*y+4*z, 3*x+5*z, 3*x+4*y+5*z)
+            sage: B = P(x, y, z, x+y+z, 2*x+y+z, 2*x+3*y+z, 2*x+3*y+4*z, x+3*z, x+2*y+3*z)
+            sage: A.is_formal()
+            True
+            sage: B.is_formal()
+            False
+        """
+        return self.minimal_generated_number() <= 3
 
 class HyperplaneArrangements(Parent, UniqueRepresentation):
     """

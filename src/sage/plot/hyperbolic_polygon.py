@@ -8,7 +8,8 @@ AUTHORS:
 """
 #*****************************************************************************
 #       Copyright (C) 2011 Hartmut Monien <monien@th.physik.uni-bonn.de>,
-#                     2014 Vincent Delecroix <20100.delecroix@gmail.com>
+#                     2014 Vincent Delecroix <20100.delecroix@gmail.com>,
+#                     2015 Stefan Kraemer <skraemer@th.physik.uni-bonn.de>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #
@@ -85,20 +86,21 @@ class HyperbolicPolygon(BezierPath):
         the hyperbolic arc between the complex numbers z0 and z3 in the
         hyperbolic plane.
         """
-        if (z0-z3).real() == 0:
+        z0, z3 = (CC(z0), CC(z3))
+        p = (abs(z0)*abs(z0)-abs(z3)*abs(z3))/(z0-z3).real()/2
+        r = abs(z0-p)
+
+        if abs(z3-z0)/r < 0.1:
             self.path.append([(z0.real(), z0.imag()), (z3.real(), z3.imag())])
             return
-        z0, z3 = (CC(z0), CC(z3))
+
         if z0.imag() == 0 and z3.imag() == 0:
             p = (z0.real()+z3.real())/2
-            r = abs(z0-p)
             zm = CC(p, r)
             self._hyperbolic_arc(z0, zm, first)
             self._hyperbolic_arc(zm, z3)
             return
         else:
-            p = (abs(z0)*abs(z0)-abs(z3)*abs(z3))/(z0-z3).real()/2
-            r = abs(z0-p)
             zm = ((z0+z3)/2-p)/abs((z0+z3)/2-p)*r+p
             t = (8*zm-4*(z0+z3)).imag()/3/(z3-z0).real()
             z1 = z0 + t*CC(z0.imag(), (p-z0.real()))

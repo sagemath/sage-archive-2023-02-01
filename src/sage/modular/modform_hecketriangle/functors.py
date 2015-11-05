@@ -92,6 +92,35 @@ def _get_base_ring(ring, var_name="d"):
     return base_ring
 
 
+def _common_subgroup(group1, group2):
+    r"""
+    Return a common (Hecke triangle) subgroup of both given groups
+    ``group1`` and ``group2`` if it exists. Otherwise return ``None``.
+
+    EXAMPLES::
+
+        sage: from sage.modular.modform_hecketriangle.functors import _common_subgroup
+        sage: from sage.modular.modform_hecketriangle.hecke_triangle_groups import HeckeTriangleGroup
+        sage: _common_subgroup(HeckeTriangleGroup(n=3), HeckeTriangleGroup(n=infinity))
+        Hecke triangle group for n = +Infinity
+        sage: _common_subgroup(HeckeTriangleGroup(n=infinity), HeckeTriangleGroup(n=3))
+        Hecke triangle group for n = +Infinity
+        sage: _common_subgroup(HeckeTriangleGroup(n=4), HeckeTriangleGroup(n=infinity)) is None
+        True
+        sage: _common_subgroup(HeckeTriangleGroup(n=4), HeckeTriangleGroup(n=4))
+        Hecke triangle group for n = 4
+    """
+
+    if group1 == group2:
+        return group1
+    elif (group1.n() == 3) and (group2.n() == infinity):
+        return group2
+    elif (group1.n() == infinity) and (group2.n() == 3):
+        return group1
+    else:
+        return None
+
+
 def ConstantFormsSpaceFunctor(group):
     r"""
     Construction functor for the space of constant forms.
@@ -458,19 +487,21 @@ class FormsSpaceFunctor(ConstructionFunctor):
             other = other._ambient_space_functor
 
         if isinstance(other, FormsSpaceFunctor):
-            if not (self._group == other._group):
+            group = _common_subgroup(self._group, other._group)
+            if group == None:
                 return None
             analytic_type = self._analytic_type + other._analytic_type
             if (self._k == other._k) and (self._ep == other._ep):
-                return FormsSpaceFunctor(analytic_type, self._group, self._k, self._ep)
+                return FormsSpaceFunctor(analytic_type, group, self._k, self._ep)
             else:
-                return FormsRingFunctor(analytic_type, self._group, True)
+                return FormsRingFunctor(analytic_type, group, True)
         elif isinstance(other, FormsRingFunctor):
-            if not (self._group == other._group):
+            group = _common_subgroup(self._group, other._group)
+            if group == None:
                 return None
             red_hom = other._red_hom
             analytic_type = self._analytic_type + other._analytic_type
-            return FormsRingFunctor(analytic_type, self._group, red_hom)
+            return FormsRingFunctor(analytic_type, group, red_hom)
 
     def __eq__(self, other):
         r"""
@@ -647,17 +678,19 @@ class FormsRingFunctor(ConstructionFunctor):
             other = other._ambient_space_functor
 
         if isinstance(other, FormsSpaceFunctor):
-            if not (self._group == other._group):
+            group = _common_subgroup(self._group, other._group)
+            if group == None:
                 return None
             red_hom = self._red_hom
             analytic_type = self._analytic_type + other._analytic_type
-            return FormsRingFunctor(analytic_type, self._group, red_hom)
+            return FormsRingFunctor(analytic_type, group, red_hom)
         elif isinstance(other, FormsRingFunctor):
-            if not (self._group == other._group):
+            group = _common_subgroup(self._group, other._group)
+            if group == None:
                 return None
             red_hom = self._red_hom & other._red_hom
             analytic_type = self._analytic_type + other._analytic_type
-            return FormsRingFunctor(analytic_type, self._group, red_hom)
+            return FormsRingFunctor(analytic_type, group, red_hom)
 
     def __eq__(self, other):
         r"""

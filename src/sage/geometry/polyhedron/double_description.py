@@ -628,7 +628,7 @@ class Problem:
         return self._A.ncols()
 
     def __repr__(self):
-        """
+        r"""
         Return a string representation.
 
         OUTPUT:

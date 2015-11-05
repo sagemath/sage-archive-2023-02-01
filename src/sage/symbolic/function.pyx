@@ -1032,7 +1032,7 @@ cdef class BuiltinFunction(Function):
             sage: p3 = AFunction('p3', 3)
             sage: p3(x)
             x^3
-            sage: loads(dumps(cot)) == cot    # :trac:`15138`
+            sage: loads(dumps(cot)) == cot    # trac #15138
             True
         """
         # check if already defined

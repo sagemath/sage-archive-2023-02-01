@@ -1011,17 +1011,13 @@ cdef class MixedIntegerLinearProgram(SageObject):
         A square (see :trac:`14395`) ::
 
             sage: p = MixedIntegerLinearProgram()
-            sage: v = p.new_variable(nonnegative=True)
-            sage: x,y = v['x'], v['y']
-            sage: p.set_min(x,None)
-            sage: p.set_min(y,None)
+            sage: x,y = p['x'], p['y']
             sage: p.add_constraint( x <= 1 )
             sage: p.add_constraint( x >= -1 )
             sage: p.add_constraint( y <= 1 )
             sage: p.add_constraint( y >= -1 )
             sage: p.polyhedron()
             A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 4 vertices
-
         """
         from sage.geometry.polyhedron.constructor import Polyhedron
         cdef GenericBackend b = self._backend

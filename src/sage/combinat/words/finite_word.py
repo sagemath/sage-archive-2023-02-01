@@ -191,6 +191,7 @@ Left-special and bispecial factors::
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from collections import defaultdict
 from itertools import islice, izip, cycle
 from sage.combinat.words.abstract_word import Word_class
 from sage.combinat.words.words import Words
@@ -4255,13 +4256,30 @@ class FiniteWord_class(Word_class):
 
         EXAMPLES::
 
-            sage: u = words.ThueMorseWord()[:1000]
-            sage: w = Word([0,1,0,1])
-            sage: w.nb_subword_occurrences_in(u)
+            sage: tm = words.ThueMorseWord()
+
+            sage: u = Word([0,1,0,1])
+            sage: u.nb_subword_occurrences_in(tm[:1000])
             2604124996
+
+            sage: u = Word([0,1,0,1,1,0])
+            sage: u.nb_subword_occurrences_in(tm[:100])
+            20370432
+
+        .. NOTE::
+
+            This code actually compute the number of occurrences of all prefixes
+            of ``self`` as subwords in all prefixes of ``other``. In particular,
+            its complexity is bounded by ``len(self) * len(other)`` and one can
+            extract much more information from it rather than only the total
+            number of occurrences.
 
         TESTS::
 
+            sage: Word('').nb_subword_occurrences_in(Word(''))
+            1
+            sage: parent(_)
+            Integer Ring
             sage: v,u = Word(), Word('123')
             sage: v.nb_subword_occurrences_in(u)
             1
@@ -4287,21 +4305,18 @@ class FiniteWord_class(Word_class):
           (2001) 551-564.
         """
         # record the position of letters in self
-        pos = {}
+        pos = defaultdict(list)
         for i,a in enumerate(self):
-            if a in pos:
-                pos[a].append(i)
-            else:
-                pos[a] = [i]
+            pos[a].append(i)
+        for a in pos:
+            pos[a].reverse()
 
         # compute the occurrences of all prefixes of self as subwords in other
-        occ = [0] * (len(self)+1)
-        occ[0] = 1
+        occ = [ZZ.zero()] * (len(self)+1)
+        occ[0] = ZZ.one()
         for a in other:
-            l = pos.get(a)
-            if l is not None:
-                for i in l:
-                    occ[i+1] += occ[i]
+            for i in pos[a]:
+                occ[i+1] += occ[i]
 
         # return only the number of occurrences of self
         return occ[-1]

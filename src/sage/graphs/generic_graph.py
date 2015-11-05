@@ -16399,8 +16399,8 @@ class GenericGraph(GenericGraph_pyx):
           largest (``'max'``).
 
         - ``immutable`` (boolean) -- whether to create a mutable/immutable
-           copy. ``immutable=None`` (default) means that the graph and its copy
-           will behave the same way.
+          copy. ``immutable=None`` (default) means that the graph and its copy
+          will behave the same way.
 
         EXAMPLES::
 
@@ -16423,9 +16423,9 @@ class GenericGraph(GenericGraph_pyx):
             [(2, 3, 2), (3, 2, None)]
         """
         if to_undirected:
-            g=self.to_undirected(immutable=False)
+            g=Graph(self)
         else:
-            g=self.copy(immutable=False)
+            g=copy(self)
         g.allow_loops(False)
         g.allow_multiple_edges(False, keep_label=keep_label)
         if immutable is None:

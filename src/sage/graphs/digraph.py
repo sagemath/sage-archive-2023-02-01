@@ -1071,26 +1071,20 @@ class DiGraph(GenericGraph):
         """
         return self._backend.is_directed_acyclic(certificate = certificate)
 
-    def to_directed(self, immutable=None):
+    def to_directed(self):
         """
         Since the graph is already directed, simply returns a copy of
         itself.
-
-        INPUT:
-
-        - ``immutable`` (boolean) -- whether to create a mutable/immutable
-           copy. ``immutable=None`` (default) means that the graph and its copy
-           will behave the same way.
 
         EXAMPLES::
 
             sage: DiGraph({0:[1,2,3],4:[5,1]}).to_directed()
             Digraph on 6 vertices
         """
-        return self.copy(immutable=immutable)
+        return self.copy()
 
     def to_undirected(self, implementation='c_graph', data_structure=None,
-                      sparse=None, immutable=None):
+                      sparse=None):
         """
         Returns an undirected version of the graph. Every directed edge
         becomes an edge.
@@ -1104,10 +1098,6 @@ class DiGraph(GenericGraph):
          - ``sparse`` (boolean) -- ``sparse=True`` is an alias for
            ``data_structure="sparse"``, and ``sparse=False`` is an alias for
            ``data_structure="dense"``.
-
-           - ``immutable`` (boolean) -- whether to create a mutable/immutable
-           graph. ``immutable=None`` (default) means that the graph and its
-           undirected version will behave the same way.
 
         EXAMPLES::
 
@@ -1140,8 +1130,6 @@ class DiGraph(GenericGraph):
                 data_structure = "sparse"
             else:
                 data_structure = "static_sparse"
-        if immutable is None:
-            immutable = (data_structure == "static_sparse")
         from sage.graphs.all import Graph
         G = Graph(name           = self.name(),
                   pos            = self._pos,
@@ -1157,8 +1145,8 @@ class DiGraph(GenericGraph):
             G._embedding = copy(self._embedding)
         G._weighted = self._weighted
 
-        if immutable:
-            G=G.copy(data_structure="static_sparse")
+        if data_structure == "static_sparse":
+            G=G.copy(data_structure=data_structure)
 
         return G
 

@@ -7,7 +7,7 @@ AUTHOR:
     -- William Stein (2008): fix trac #2391 and document the code.
     -- Dan Drake (2009): fix trac #5052
     -- Dan Drake (2010-12-08): fix trac #10440
-    -- Johan S. R. Nielsen (2014-09-20): fix trac #17019
+    -- Johan S. R. Nielsen (2015-11-06): fix trac #17019
 """
 
 import os, sys, re

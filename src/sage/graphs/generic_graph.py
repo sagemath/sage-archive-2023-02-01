@@ -3985,27 +3985,26 @@ class GenericGraph(GenericGraph_pyx):
 
         INPUT:
 
-
         - ``kuratowski`` - returns a tuple with boolean as first entry. If the
           graph is nonplanar, will return the Kuratowski subgraph (i.e. an edge
           subdivision of `K_5` or `K_{3,3}`) as the second tuple entry.  If the
           graph is planar, returns ``None`` as the second entry.
 
         - ``on_embedding`` - the embedding dictionary to test planarity
-           on. (i.e.: will return ``True`` or ``False`` only for the given
-           embedding.)
+          on. (i.e.: will return ``True`` or ``False`` only for the given
+          embedding.)
 
         - ``set_embedding`` - whether or not to set the instance field variable
-           that contains a combinatorial embedding (clockwise ordering of
-           neighbors at each vertex). This value will only be set if a planar
-           embedding is found. It is stored as a Python dict: ``v1: [n1,n2,n3]``
-           where ``v1`` is a vertex and ``n1,n2,n3`` are its neighbors.
+          that contains a combinatorial embedding (clockwise ordering of
+          neighbors at each vertex). This value will only be set if a planar
+          embedding is found. It is stored as a Python dict: ``v1: [n1,n2,n3]``
+          where ``v1`` is a vertex and ``n1,n2,n3`` are its neighbors.
 
-        -  ``set_pos`` - whether or not to set the position
-           dictionary (for plotting) to reflect the combinatorial embedding.
-           Note that this value will default to False if set_emb is set to
-           False. Also, the position dictionary will only be updated if a
-           planar embedding is found.
+        - ``set_pos`` - whether or not to set the position
+          dictionary (for plotting) to reflect the combinatorial embedding.
+          Note that this value will default to False if set_emb is set to
+          False. Also, the position dictionary will only be updated if a
+          planar embedding is found.
 
         EXAMPLES::
 
@@ -4140,34 +4139,34 @@ class GenericGraph(GenericGraph_pyx):
         INPUT:
 
         - ``kuratowski`` (boolean) - if set to True, returns a tuple with
-           boolean first entry and the Kuratowski subgraph (i.e. an edge
-           subdivision of `K_5` or `K_{3,3}`) as the second entry (see OUTPUT below).
-           It is set to ``False`` by default.
+          boolean first entry and the Kuratowski subgraph (i.e. an edge
+          subdivision of `K_5` or `K_{3,3}`) as the second entry (see OUTPUT below).
+          It is set to ``False`` by default.
 
         - ``on_embedding`` (boolean) - the embedding dictionary to test
-           planarity on. (i.e.: will return ``True`` or ``False`` only for the
-           given embedding). It is set to ``False`` by default.
+          planarity on. (i.e.: will return ``True`` or ``False`` only for the
+          given embedding). It is set to ``False`` by default.
 
         - ``set_embedding`` (boolean) - whether or not to set the instance field
-           variable that contains a combinatorial embedding (clockwise ordering
-           of neighbors at each vertex). This value will only be set if a
-           circular planar embedding is found. It is stored as a Python dict:
-           ``v1: [n1,n2,n3]`` where ``v1`` is a vertex and ``n1,n2,n3`` are its
-           neighbors. It is set to ``True`` by default.
+          variable that contains a combinatorial embedding (clockwise ordering
+          of neighbors at each vertex). This value will only be set if a
+          circular planar embedding is found. It is stored as a Python dict:
+          ``v1: [n1,n2,n3]`` where ``v1`` is a vertex and ``n1,n2,n3`` are its
+          neighbors. It is set to ``True`` by default.
 
         - ``boundary`` - a set of vertices that are required to be drawn on the
           circle, all others being drawn inside of it. It is set to ``None`` by
           default, meaning that *all* vertices should be drawn on the boundary.
 
         - ``ordered`` (boolean) - whether or not to consider the order of the
-           boundary. It is set to ``False`` by default, and required
-           ``boundary`` to be defined.
+          boundary. It is set to ``False`` by default, and required
+          ``boundary`` to be defined.
 
         - ``set_pos`` - whether or not to set the position dictionary (for
-           plotting) to reflect the combinatorial embedding.  Note that this
-           value will default to False if set_emb is set to False. Also, the
-           position dictionary will only be updated if a circular planar
-           embedding is found.
+          plotting) to reflect the combinatorial embedding.  Note that this
+          value will default to False if set_emb is set to False. Also, the
+          position dictionary will only be updated if a circular planar
+          embedding is found.
 
         OUTPUT:
 
@@ -4542,9 +4541,9 @@ class GenericGraph(GenericGraph_pyx):
            default minimal.
 
         - ``circular (list)`` - if ``circular`` is a list of vertices, the
-           method computes the genus preserving a planar embedding of the this
-           list. If circular is defined, ``on_embedding`` is not a valid
-           option. It is set to ``None`` by default.
+          method computes the genus preserving a planar embedding of the this
+          list. If circular is defined, ``on_embedding`` is not a valid
+          option. It is set to ``None`` by default.
 
         -  ``ordered (boolean)`` - if circular is True, then
            whether or not the boundary order may be permuted. (Default is
@@ -11256,11 +11255,11 @@ class GenericGraph(GenericGraph_pyx):
         -  ``vertices`` - Vertices is a list of vertices
 
         - ``edges`` - Edges can be a single edge or an iterable
-           container of edges (e.g., a list, set, file, numeric array,
-           etc.). If not edges are not specified, then all edges are
-           assumed and the returned graph is an induced subgraph. In
-           the case of multiple edges, specifying an edge as (u,v)
-           means to keep all edges (u,v), regardless of the label.
+          container of edges (e.g., a list, set, file, numeric array,
+          etc.). If not edges are not specified, then all edges are
+          assumed and the returned graph is an induced subgraph. In
+          the case of multiple edges, specifying an edge as (u,v)
+          means to keep all edges (u,v), regardless of the label.
 
         -  ``edge_property`` - If specified, this is expected
            to be a function on edges, which is intersected with the edges
@@ -11391,11 +11390,11 @@ class GenericGraph(GenericGraph_pyx):
         -  ``vertices`` - Vertices is a list of vertices
 
         - ``edges`` - Edges can be a single edge or an iterable
-           container of edges (e.g., a list, set, file, numeric array,
-           etc.). If not edges are not specified, then all edges are
-           assumed and the returned graph is an induced subgraph. In
-           the case of multiple edges, specifying an edge as (u,v)
-           means to keep all edges (u,v), regardless of the label.
+          container of edges (e.g., a list, set, file, numeric array,
+          etc.). If not edges are not specified, then all edges are
+          assumed and the returned graph is an induced subgraph. In
+          the case of multiple edges, specifying an edge as (u,v)
+          means to keep all edges (u,v), regardless of the label.
 
         -  ``edge_property`` - If specified, this is expected
            to be a function on edges, which is intersected with the edges
@@ -17884,12 +17883,12 @@ class GenericGraph(GenericGraph_pyx):
         - ``iterations`` - how many iterations of the spring layout
           algorithm to go through, if applicable
 
-        - ``color_by_label`` - a boolean or dictionary or function (default: False)
-           whether to color each edge with a different color according
-           to its label; the colors are chosen along a rainbow, unless
-           they are specified by a function or dictionary mapping
-           labels to colors; this option is incompatible with
-           ``edge_color`` and ``edge_colors``.
+        - ``color_by_label`` - a boolean or dictionary or function (default:
+          False) whether to color each edge with a different color according
+          to its label; the colors are chosen along a rainbow, unless
+          they are specified by a function or dictionary mapping
+          labels to colors; this option is incompatible with
+          ``edge_color`` and ``edge_colors``.
 
         - ``heights`` - if specified, this is a dictionary from a set
           of floating point heights to a set of vertices
@@ -18203,12 +18202,12 @@ class GenericGraph(GenericGraph_pyx):
            colors: each key is a color recognized by tachyon ( default:
            (0,0,0) ), and each entry is a list of edges.
 
-        - ``color_by_label`` - a boolean or dictionary or function (default: False)
-           whether to color each edge with a different color according
-           to its label; the colors are chosen along a rainbow, unless
-           they are specified by a function or dictionary mapping
-           labels to colors; this option is incompatible with
-           ``edge_color`` and ``edge_colors``.
+        - ``color_by_label`` - a boolean or dictionary or function (default:
+          False) whether to color each edge with a different color according
+          to its label; the colors are chosen along a rainbow, unless
+          they are specified by a function or dictionary mapping
+          labels to colors; this option is incompatible with
+          ``edge_color`` and ``edge_colors``.
 
         -  ``edge_size`` - float (default: 0.02)
 

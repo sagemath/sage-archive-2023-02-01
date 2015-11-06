@@ -298,7 +298,7 @@ def test_executable(args, input="", timeout=100.0, **kwds):
     Testing ``sage --preparse FILE`` and ``sage -t FILE``.  First create
     a file and preparse it::
 
-        sage: s = "'''\nThis is a test file.\n'''\ndef my_add(a,b):\n    '''\n    Add a to b.\n\n        EXAMPLES::\n\n            sage: my_add(2,2)\n            4\n        '''\n    return a + b\n"
+        sage: s = "# -*- coding: utf-8 -*-\n'''This is a test file.\nAnd I am its doctest'''\ndef my_add(a):\n    '''\n    Add 2 to a.\n\n        EXAMPLES::\n\n            sage: my_add(2)\n            4\n        '''\n    return a + 2\n"
         sage: script = os.path.join(tmp_dir(), 'my_script.sage')
         sage: script_py = script + '.py'
         sage: F = open(script, 'w')
@@ -322,6 +322,16 @@ def test_executable(args, input="", timeout=100.0, **kwds):
         0
         sage: out.find("All tests passed!") >= 0
         True
+
+    Test that the coding line and doctest are preserved::
+
+        sage: Fpy = open(script_py, "r")
+        sage: Fpy.readline()
+        '# -*- coding: utf-8 -*-\n'
+        sage: Fpy.readline()
+        "'''This is a test file.\n"
+        sage: Fpy.readline()
+        "And I am its doctest'''\n"
 
     Now for a file which should fail tests::
 

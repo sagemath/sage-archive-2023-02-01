@@ -534,8 +534,7 @@ class Graph(GenericGraph):
       ``"graph6"``, ``"sparse6"``, ``"rule"``, ``"list_of_edges"``,
       ``"dict_of_lists"``, ``"dict_of_dicts"``, ``"adjacency_matrix"``,
       ``"weighted_adjacency_matrix"``, ``"seidel_adjacency_matrix"``,
-      ``"incidence_matrix"``, ``"elliptic_curve_congruence"``, ``"NX"``,
-      ``"igraph"``.
+      ``"incidence_matrix"``, ``"NX"``, ``"igraph"``.
 
     - ``sparse`` (boolean) -- ``sparse=True`` is an alias for
       ``data_structure="sparse"``, and ``sparse=False`` is an alias for

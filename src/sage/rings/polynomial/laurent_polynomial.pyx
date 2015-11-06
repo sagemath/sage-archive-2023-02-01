@@ -1297,9 +1297,31 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial_generic):
             4*w*z^3 + w^-1*z^-1
             sage: L(1/2)
             1/2
+
+        TESTS::
+
+        Check that #19538 is fixed
+
+            sage: R = LaurentPolynomialRing(ZZ, 'x', 4)
+            sage: S = LaurentPolynomialRing(ZZ, 'x0,x1')
+            sage: S.inject_variables()
+            Defining x0, x1
+            sage: x0 in R
+            True
+
         """
         if isinstance(x, LaurentPolynomial_mpair):
-            x = x.dict()
+            inject_dict = {}
+            for y in x.variables():
+                x_index = x.parent().gens().index(y)
+                name = x.parent().variable_names()[x_index]
+                inject_dict[parent.variable_names().index(name)] = x_index
+            tmp_x = x.dict()
+            x = dict()
+            n = int(parent.ngens())
+            for k in tmp_x.keys():
+                img_k = ETuple(dict([(a,k[inject_dict[a]]) for a in inject_dict.keys()]),n)
+                x[img_k] = tmp_x[k]
         elif isinstance(x, PolyDict):
             x = x.dict()
         if isinstance(x, dict):

@@ -41,7 +41,7 @@ cdef int sage_glpk_term_hook(void *info, const char *s) with gil:
     A hook to intercept all output written by GLPK.
     """
     global error_message
-    if glp_have_error():
+    if glp_at_error():
         # Save error message and skip normal printing
         error_message += s
         return 1

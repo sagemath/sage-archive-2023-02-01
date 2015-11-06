@@ -1,4 +1,4 @@
-Add a function glp_have_error() to check whether we are currently
+Add a function glp_at_error() to check whether we are currently
 handling an error message.
 
 diff -ru glpk-4.55/doc/glpk06.tex glpk-4.55-patched//doc/glpk06.tex
@@ -13,12 +13,12 @@ diff -ru glpk-4.55/doc/glpk06.tex glpk-4.55-patched//doc/glpk06.tex
 +\synopsis
 +
 +\begin{verbatim}
-+   int glp_have_error(void);
++   int glp_at_error(void);
 +\end{verbatim}
 +
 +\description
 +
-+The routine \verb|glp_have_error| returns 0 in normal operation and 1
++The routine \verb|glp_at_error| returns 0 in normal operation and 1
 +if GLPK is currently handling an error.
 +
 +This can be used by a custom output handler (installed with
@@ -35,7 +35,7 @@ diff -ru glpk-4.55/src/env/env.h glpk-4.55-patched//src/env/env.h
  void glp_error_hook(void (*func)(void *info), void *info);
  /* install hook to intercept abnormal termination */
  
-+int glp_have_error(void);
++int glp_at_error(void);
 +/* are we currently handling an error? */
 +
  #define put_err_msg _glp_put_err_msg
@@ -58,21 +58,21 @@ diff -ru glpk-4.55/src/env/error.c glpk-4.55-patched//src/env/error.c
  /***********************************************************************
 +*  NAME
 +*
-+*  glp_have_error - are we currently handling an error?
++*  glp_at_error - are we currently handling an error?
 +*
 +*  SYNOPSIS
 +*
-+*  int glp_have_error(void);
++*  int glp_at_error(void);
 +*
 +*  DESCRIPTION
 +*
-+*  The routine glp_have_error returns 0 in normal operation and 1 if
++*  The routine glp_at_error returns 0 in normal operation and 1 if
 +*  GLPK is currently handling an error.
 +*
 +*  This can be used by a term hook to determine whether or not the
 +*  message to be displayed is an error message. */
 +
-+int glp_have_error(void)
++int glp_at_error(void)
 +{     ENV *env = get_env_ptr();
 +      return env->err_file != NULL;
 +}
@@ -88,7 +88,7 @@ diff -ru glpk-4.55/src/glpk.h glpk-4.55-patched//src/glpk.h
  void glp_error_hook(void (*func)(void *info), void *info);
  /* install hook to intercept abnormal termination */
  
-+int glp_have_error(void);
++int glp_at_error(void);
 +/* are we currently handling an error? */
 +
  #define glp_malloc(size) glp_alloc(1, size)

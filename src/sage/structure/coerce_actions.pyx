@@ -509,6 +509,26 @@ cdef class ModuleAction(Action):
             with precomposition on right by Conversion via FractionFieldElement map:
               From: Univariate Polynomial Ring in y over Integer Ring
               To:   Fraction Field of Univariate Polynomial Ring in y over Univariate Polynomial Ring in x over Integer Ring
+
+        TESTS:
+
+        See :trac:`19521`::
+
+            sage: Q.<y> = SR.subring(no_variables=True)[[]]
+            sage: (y / 1).parent()
+            Power Series Ring in y over Symbolic Constants Subring
+            sage: R.<x> = SR.subring(no_variables=True)[]
+            sage: cm = sage.structure.element.get_coercion_model()
+            sage: cm.explain(x, 1, operator.div)
+            Action discovered.
+                Right inverse action by Symbolic Constants Subring on
+                Univariate Polynomial Ring in x over Symbolic Constants Subring
+                with precomposition on right by Conversion map:
+                  From: Integer Ring
+                  To:   Symbolic Constants Subring
+            Result lives in Univariate Polynomial Ring in x over
+            Symbolic Constants Subring
+            Univariate Polynomial Ring in x over Symbolic Constants Subring
         """
         K = self.G._pseudo_fraction_field()
         if K is self.G:
@@ -521,7 +541,28 @@ cdef class ModuleAction(Action):
             K = pushout(self.G._pseudo_fraction_field(), R)
             if K is None:
                 K = R._pseudo_fraction_field()
-            for _, Ri in reversed(construction_tower(K)):
+
+            # Suppose we have parents of a construction tower
+            #   A -> B -> C <- D <- E -> F <- G -> H,
+            # where the arrows specify the direction of coercion (i.e.
+            # A -> B means A coerces to B). Note that B = FA(A), C = FB(B), ...
+            # As we want to find a "smallest" parent with some properties,
+            # we need the order
+            #   A, B, E, D, C, G, F, H
+            # for our search. Thus the elements connected with a <- have to
+            # be reversed. See code below.
+            tower = []
+            reversed_part = []
+            for Fi, Ri in reversed(construction_tower(K)):
+                if Fi is not None and Fi.coercion_reversed:
+                    reversed_part.append((Fi, Ri))
+                else:
+                    tower.append((Fi, Ri))
+                    if reversed_part:
+                        tower += reversed(reversed_part)
+                        reversed_part = []
+            assert(not reversed_part)
+            for _, Ri in tower:
                 if not Ri.has_coerce_map_from(self.G):
                     continue
                 Ki = Ri._pseudo_fraction_field()

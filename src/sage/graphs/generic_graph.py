@@ -30,7 +30,7 @@ can be applied on both. Here is what it can do:
     :meth:`~GenericGraph.allow_multiple_edges` | Change whether multiple edges are permitted in the (di)graph.
     :meth:`~GenericGraph.multiple_edges` | Return any multiple edges in the (di)graph.
     :meth:`~GenericGraph.name` | Return or sets the graph's name.
-    :meth:`~GenericGraph.is_immutable` | Returns whether the graph is immutable.
+    :meth:`~GenericGraph.is_immutable` | Return whether the graph is immutable.
     :meth:`~GenericGraph.weighted` | Whether the (di)graph is to be considered as a weighted (di)graph.
     :meth:`~GenericGraph.antisymmetric` | Test whether the graph is antisymmetric
     :meth:`~GenericGraph.density` | Return the density

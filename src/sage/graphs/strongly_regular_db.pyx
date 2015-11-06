@@ -41,9 +41,9 @@ from sage.graphs.generators.smallgraphs import CameronGraph
 from sage.graphs.generators.smallgraphs import M22Graph
 from sage.graphs.generators.smallgraphs import SimsGewirtzGraph
 from sage.graphs.generators.smallgraphs import HoffmanSingletonGraph
-from sage.graphs.generators.smallgraphs import SchlaefliGraph
 from sage.graphs.generators.smallgraphs import HigmanSimsGraph
 from sage.graphs.generators.smallgraphs import LocalMcLaughlinGraph
+from sage.graphs.generators.smallgraphs import MathonStronglyRegularGraph
 from sage.graphs.generators.smallgraphs import SuzukiGraph
 from sage.graphs.graph import Graph
 from libc.math cimport sqrt, floor
@@ -90,7 +90,17 @@ def is_paley(int v,int k,int l,int mu):
 @cached_function
 def is_orthogonal_array_block_graph(int v,int k,int l,int mu):
     r"""
-    Test whether some Orthogonal Array graph is `(v,k,\lambda,\mu)`-strongly regular.
+    Test whether some (pseudo)Orthogonal Array graph is `(v,k,\lambda,\mu)`-strongly regular.
+
+    We know how to construct graphs with parameters of an Orthogonal Array (`OA(m,n)`),
+    also known as Latin squares graphs `L_m(n)`, in several cases where no orthogonal
+    array is known, or even in some cases for which they are known not to exist.
+
+    Such graphs are usually called pseudo-Latin squares graphs. Namely, Sage
+    can construct a graph with parameters of an `OA(m,n)`-graph whenever there
+    exists a skew-Hadamard matrix of order `n+1`, and `m=(n+1)/2` or `m=(n-1)/2`.
+    The construction in the former case is due to Goethals-Seidel [BvL84]_, and in the
+    latter case due to Pasechnik [Pa92]_.
 
     INPUT:
 
@@ -110,23 +120,47 @@ def is_orthogonal_array_block_graph(int v,int k,int l,int mu):
         OA(5,8): Graph on 64 vertices
         sage: g.is_strongly_regular(parameters=True)
         (64, 35, 18, 20)
+        sage: t=is_orthogonal_array_block_graph(225,98,43,42); t
+        (..., 4)
+        sage: g = t[0](*t[1:]); g
+        Pasechnik Graph_4: Graph on 225 vertices
+        sage: g.is_strongly_regular(parameters=True)
+        (225, 98, 43, 42)
+        sage: t=is_orthogonal_array_block_graph(225,112,55,56); t
+        (..., 4)
+        sage: g = t[0](*t[1:]); g
+        skewhad^2_4: Graph on 225 vertices
+        sage: g.is_strongly_regular(parameters=True)
+        (225, 112, 55, 56)
 
         sage: t = is_orthogonal_array_block_graph(5,5,5,5); t
+
+    REFERENCE:
+
+    .. [Pa92] D. V. Pasechnik,
+      Skew-symmetric association schemes with two classes and strongly
+      regular graphs of type `L_{2n-1}(4n- 1)`,
+      Acta Applicandaie Math. 29(1992), 129-138
     """
     # notations from
     # http://www.win.tue.nl/~aeb/graphs/OA.html
-    if not is_square(v):
-        return
-    n = int(sqrt(v))
-    if k % (n-1):
-        return
-    m = k//(n-1)
-    if (l  != (m-1)*(m-2)+n-2 or
-        mu != m*(m-1)):
+    from sage.combinat.matrices.hadamard_matrix import skew_hadamard_matrix
+    try:
+        m, n = latin_squares_graph_parameters(v,k,l,mu)
+    except:
         return
     if orthogonal_array(m,n,existence=True):
         from sage.graphs.generators.intersection import OrthogonalArrayBlockGraph
         return (lambda m,n : OrthogonalArrayBlockGraph(m, n), m,n)
+
+    elif n>2 and skew_hadamard_matrix(n+1, existence=True):
+        if m==(n+1)/2:
+            from sage.graphs.generators.families import SquaredSkewHadamardMatrixGraph as G
+        elif m==(n-1)/2:
+            from sage.graphs.generators.families import PasechnikGraph as G
+        else:
+            return
+        return (G, (n+1)/4)
 
 @cached_function
 def is_johnson(int v,int k,int l,int mu):
@@ -1283,6 +1317,52 @@ def is_taylor_twograph_srg(int v,int k,int l,int mu):
         return (TaylorTwographSRG, q)
     return
 
+def is_switch_skewhad(int v, int k, int l, int mu):
+    r"""
+    Test whether some `switch skewhad^2+*` is `(v,k,\lambda,\mu)`-strongly regular.
+
+    The `switch skewhad^2+*` graphs appear on `Andries Brouwer's database
+    <http://www.win.tue.nl/~aeb/graphs/srg/srgtab.html>`__ and are built by
+    adding an isolated vertex to the complement of
+    :func:`~sage.graphs.graph_generators.GraphGenerators.SquaredSkewHadamardMatrixGraph`,
+    and a :meth:`Seidel switching <Graph.seidel_switching>` a set of disjoint
+    `n`-cocliques.
+
+    INPUT:
+
+    - ``v,k,l,mu`` (integers)
+
+    OUTPUT:
+
+    A tuple ``t`` such that ``t[0](*t[1:])`` builds the requested graph if the
+    parameters match, and ``None`` otherwise.
+
+    EXAMPLES::
+
+        sage: graphs.strongly_regular_graph(226, 105, 48, 49)
+        switch skewhad^2+*_4: Graph on 226 vertices
+
+    TESTS::
+
+        sage: from sage.graphs.strongly_regular_db import is_switch_skewhad
+        sage: t = is_switch_skewhad(5,5,5,5); t
+
+    """
+    from sage.combinat.matrices.hadamard_matrix import skew_hadamard_matrix
+    from sage.graphs.generators.families import SwitchedSquaredSkewHadamardMatrixGraph
+    cdef int n
+    r,s = eigenvalues(v,k,l,mu)
+    if r is None:
+        return
+    if r<s:
+        r,s = s,r
+    n = -s // 2
+    if  int(r) == 2*n-1         and \
+        v == (4*n-1)**2 + 1     and \
+        k == (4*n-1)*(2*n-1)    and \
+        skew_hadamard_matrix(4*n, existence=True):
+            return (SwitchedSquaredSkewHadamardMatrixGraph, n)
+
 def is_switch_OA_srg(int v, int k, int l, int mu):
     r"""
     Test whether some *switch* `OA(k,n)+*` is `(v,k,\lambda,\mu)`-strongly regular.
@@ -1324,8 +1404,6 @@ def is_switch_OA_srg(int v, int k, int l, int mu):
         (<cyfunction is_switch_OA_srg.<locals>.switch_OA_srg at ..., 14, 29)
 
     """
-    from sage.combinat.designs.orthogonal_arrays import orthogonal_array
-
     cdef int n_2_p_1 = v
     cdef int n = <int> floor(sqrt(n_2_p_1-1))
 
@@ -1369,6 +1447,41 @@ cdef eigenvalues(int v,int k,int l,int mu):
         return [None,None]
     return [(-b+sqrt(D))/2.0,
             (-b-sqrt(D))/2.0]
+
+
+cpdef latin_squares_graph_parameters(int v,int k, int l,int mu):
+    r"""
+    Check whether (v,k,l,mu)-strongly regular graph has parameters of an `L_g(n)` s.r.g.
+
+    Also known as pseudo-OA(n,g) case, i.e. s.r.g. with parameters of an OA(n,g)-graph.
+    Return g and n, if they exist. See Sect. 9.1 of [BH12]_ for details.
+
+    INPUT:
+
+    - ``v,k,l,mu`` -- (integers) parameters of the graph
+
+    OUTPUT:
+
+    - ``(g, n)`` -- parameters of an `L_g(n)` graph, or `None`
+
+    TESTS::
+
+        sage: from sage.graphs.strongly_regular_db import latin_squares_graph_parameters
+        sage: latin_squares_graph_parameters(9,4,1,2)
+        (2, 3)
+        sage: latin_squares_graph_parameters(5,4,1,2)
+    """
+    cdef int g, n
+    r,s = eigenvalues(v,k,l,mu)
+    if r is None:
+        return
+    if r < s:
+        r, s = s, r
+    g = -s
+    n = r+g
+    if v==n**2 and k==g*(n-1) and l==(g-1)*(g-2)+n-2 and mu==g*(g-1):
+        return g, n
+    return
 
 def _H_3_cayley_graph(L):
     r"""
@@ -2927,7 +3040,6 @@ def strongly_regular_graph(int v,int k,int l,int mu=-1,bint existence=False,bint
         return G
 
     constructions = {
-        ( 27,  16, 10,  8): [SchlaefliGraph],
         ( 36,  14,  4,  6): [Graph,('c~rLDEOcKTPO`U`HOIj@MWFLQFAaRIT`HIWqPsQQJ'+
           'DXGLqYM@gRLAWLdkEW@RQYQIErcgesClhKefC_ygSGkZ`OyHETdK[?lWStCapVgKK')],
         ( 50,   7,  0,  1): [HoffmanSingletonGraph],
@@ -2976,6 +3088,9 @@ def strongly_regular_graph(int v,int k,int l,int mu=-1,bint existence=False,bint
         (729, 560, 433,420): [SRG_729_560_433_420],
         (729, 476, 313,306): [SRG_729_476_313_306],
         (729, 532, 391,380): [SRG_729_532_391_380],
+        (784, 243,  82, 72): [MathonStronglyRegularGraph, 0],
+        (784, 270, 98, 90):  [MathonStronglyRegularGraph, 1],
+        (784, 297, 116, 110):[MathonStronglyRegularGraph, 2],
         (1024,825, 668,650): [SRG_1024_825_668_650],
         (1288,792, 476,504): [SRG_1288_792_476_504],
         (1782,416, 100, 96): [SuzukiGraph],
@@ -2999,7 +3114,8 @@ def strongly_regular_graph(int v,int k,int l,int mu=-1,bint existence=False,bint
                       is_twograph_descendant_of_srg,
                       is_taylor_twograph_srg,
                       is_switch_OA_srg,
-                      is_polhill]
+                      is_polhill,
+                      is_switch_skewhad]
 
     # Going through all test functions, for the set of parameters and its
     # complement.

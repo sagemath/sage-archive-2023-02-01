@@ -475,7 +475,7 @@ def End(X, category=None):
         Category of finite groups
         sage: H = Hom(G,G)
         sage: H.homset_category()
-        Category of groups
+        Category of finite groups
         sage: H.category()
         Category of endsets of unital magmas
 

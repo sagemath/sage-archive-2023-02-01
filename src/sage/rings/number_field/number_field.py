@@ -7177,7 +7177,7 @@ class NumberField_absolute(NumberField_generic):
             sage: L2, _, _ = K.subfields(2)[0]; L2, CDF(L2.gen()) # indirect doctest
             (Number Field in a0 with defining polynomial x^2 - 23, -4.795831523312721)
 
-        Test for :trac: `7695`::
+        Test for :trac:`7695`::
 
             sage: F = CyclotomicField(7)
             sage: K = F.subfields(3)[0][0]

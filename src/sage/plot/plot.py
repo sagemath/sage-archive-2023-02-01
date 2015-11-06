@@ -1281,7 +1281,9 @@ def plot(funcs, *args, **kwds):
         funcs = tuple(funcs)
 
 
-    if hasattr(funcs, 'plot'):
+    if isinstance(funcs, Graphics):
+        G = funcs
+    elif hasattr(funcs, 'plot'):
         G = funcs.plot(*args, **original_opts)
     # if we are using the generic plotting method
     else:

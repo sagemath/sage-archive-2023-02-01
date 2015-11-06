@@ -41,7 +41,6 @@ from sage.rings.infinity import Infinity
 
 from sage.sets.non_negative_integers import NonNegativeIntegers
 from sage.sets.positive_integers import PositiveIntegers
-from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
 
 import itertools
 
@@ -274,13 +273,80 @@ Alphabet = build_alphabet
 # just allows to unpickle old style alphabet saved from previous version of
 # Sage.
 
-from sage.structure.sage_object import register_unpickle_override
+class OrderedAlphabet(object):
+    r"""
+    .. WARNING::
 
-register_unpickle_override(
-    'sage.combinat.words.alphabet',
-    'OrderedAlphabet_Finite',
-    FiniteEnumeratedSets,
-    call_name=('sage.categories.finite_enumerated_sets', 'FiniteEnumeratedSets'))
+        Not to be used! (backward compatibility)
+
+    Returns a finite or infinite ordered alphabet.
+
+    EXAMPLES::
+
+        sage: from sage.combinat.words.alphabet import OrderedAlphabet
+        sage: A = OrderedAlphabet('ab'); A
+        doctest:...: DeprecationWarning: OrderedAlphabet is deprecated; use Alphabet instead.
+        See http://trac.sagemath.org/8920 for details.
+        {'a', 'b'}
+        sage: type(A)
+        <class 'sage.sets.totally_ordered_finite_set.TotallyOrderedFiniteSet_with_category'>
+    """
+    def __new__(self, alphabet=None, name=None):
+        """
+        EXAMPLES::
+
+            sage: from sage.combinat.words.alphabet import OrderedAlphabet
+            sage: A = OrderedAlphabet('ab'); A # indirect doctest
+            doctest:...: DeprecationWarning: OrderedAlphabet is deprecated; use Alphabet instead.
+            See http://trac.sagemath.org/8920 for details.
+            {'a', 'b'}
+        """
+        from sage.misc.superseded import deprecation
+        deprecation(8920, 'OrderedAlphabet is deprecated; use Alphabet instead.')
+
+        if alphabet is not None or name is not None:
+            return build_alphabet(data=alphabet, name=name)
+        from sage.structure.parent import Parent
+        return Parent.__new__(OrderedAlphabet_backward_compatibility)
+
+OrderedAlphabet_Finite = OrderedAlphabet
+
+class OrderedAlphabet_backward_compatibility(TotallyOrderedFiniteSet):
+    r"""
+    .. WARNING::
+
+        Not to be used! (backward compatibility)
+
+    Version prior to :trac:`8920` uses classes ``Alphabet`` with an argument
+    ``._alphabet`` instead of ``._elements`` used in
+    :class:`TotallyOrderedFiniteSet`. This class is dedicated to handle this
+    problem which occurs when unpickling ``OrderedAlphabet``.
+    """
+    def __getattr__(self, name):
+        r"""
+        If the attribute '_elements' is called then it is set to '_alphabet'.
+
+        EXAMPLES::
+
+            sage: from sage.combinat.words.alphabet import OrderedAlphabet
+            sage: O = OrderedAlphabet()
+            doctest:...: DeprecationWarning: OrderedAlphabet is deprecated; use Alphabet instead.
+            See http://trac.sagemath.org/8920 for details.
+            sage: O._alphabet = ['a', 'b']
+            sage: O._elements
+            ('a', 'b')
+        """
+        if name == '_elements':
+            if not hasattr(self, '_alphabet'):
+                raise AttributeError("no attribute '_elements'")
+            self._elements = tuple(self._alphabet)
+            from sage.structure.parent import Parent
+            from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
+            Parent.__init__(self, category=FiniteEnumeratedSets(), facade=True)
+            return self._elements
+        raise AttributeError("no attribute %s"%name)
+
+from sage.structure.sage_object import register_unpickle_override
 
 register_unpickle_override(
     'sage.combinat.words.alphabet',

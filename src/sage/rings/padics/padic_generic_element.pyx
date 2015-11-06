@@ -30,8 +30,6 @@ AUTHORS:
 include "sage/ext/interrupt.pxi"
 include "sage/ext/stdsage.pxi"
 
-import sys
-
 cimport sage.rings.padics.local_generic_element
 from sage.libs.gmp.mpz cimport mpz_set_si
 from sage.rings.padics.local_generic_element cimport LocalGenericElement
@@ -44,18 +42,6 @@ from sage.structure.element import coerce_binop
 cdef long maxordp = (1L << (sizeof(long) * 8 - 2)) - 1
 
 cdef class pAdicGenericElement(LocalGenericElement):
-    def __richcmp__(left, right, int op):
-        """
-        Comparison.
-
-        EXAMPLES::
-
-            sage: R = Zp(5); a = R(5, 6); b = R(5 + 5^6, 8)
-            sage: a == b #indirect doctest
-            True
-        """
-        return (<Element>left)._richcmp(right, op)
-
     cpdef int _cmp_(left, Element right) except -2:
         """
         First compare valuations, then compare normalized

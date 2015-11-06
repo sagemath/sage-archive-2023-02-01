@@ -4518,7 +4518,7 @@ class Graph(GenericGraph):
 
     @doc_index("Basic methods")
     def to_directed(self, implementation='c_graph', data_structure=None,
-                    sparse=None, immutable=None):
+                    sparse=None):
         """
         Returns a directed version of the graph. A single edge becomes two
         edges, one in each direction.
@@ -4532,10 +4532,6 @@ class Graph(GenericGraph):
          - ``sparse`` (boolean) -- ``sparse=True`` is an alias for
            ``data_structure="sparse"``, and ``sparse=False`` is an alias for
            ``data_structure="dense"``.
-
-           - ``immutable`` (boolean) -- whether to create a mutable/immutable
-           digraph. ``immutable=None`` (default) means that the graph and its
-           directed version will behave the same way.
 
         EXAMPLES::
 
@@ -4569,8 +4565,6 @@ class Graph(GenericGraph):
                 data_structure = "sparse"
             else:
                 data_structure = "static_sparse"
-        if immutable is None:
-            immutable = (data_structure == "static_sparse")
         from sage.graphs.all import DiGraph
         D = DiGraph(name           = self.name(),
                     pos            = self._pos,
@@ -4588,29 +4582,23 @@ class Graph(GenericGraph):
             D._embedding = copy(self._embedding)
         D._weighted = self._weighted
 
-        if immutable:
-            D = D.copy(data_structure="static_sparse")
+        if data_structure == "static_sparse":
+            D = D.copy(data_structure=data_structure)
 
         return D
 
     @doc_index("Basic methods")
-    def to_undirected(self, immutable=None):
+    def to_undirected(self):
         """
         Since the graph is already undirected, simply returns a copy of
         itself.
-
-        INPUT:
-
-        - ``immutable`` (boolean) -- whether to create a mutable/immutable
-           copy. ``immutable=None`` (default) means that the graph and its copy
-           will behave the same way.
 
         EXAMPLES::
 
             sage: graphs.PetersenGraph().to_undirected()
             Petersen graph: Graph on 10 vertices
         """
-        return self.copy(immutable=immutable)
+        return self.copy()
 
     @doc_index("Basic methods")
     def join(self, other, verbose_relabel=None, labels="pairs", immutable=None):
@@ -4685,7 +4673,7 @@ class Graph(GenericGraph):
         G.name('%s join %s'%(self.name(), other.name()))
 
         if immutable is None:
-            immutable = getattr(self, "_immutable", False) and getattr(other, "_immutable", False)
+            immutable = self.is_immutable() and other.is_immutable()
         if immutable:
             G = G.copy(immutable=True)
 

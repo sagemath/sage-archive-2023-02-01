@@ -17,7 +17,9 @@ The methods defined here appear in :mod:`sage.graphs.graph_generators`.
 # import from Sage library
 from sage.graphs.graph import Graph
 from sage.misc.randstate import current_randstate
+from sage.misc.prandom import randint
 from sage.rings.rational_field import QQ
+
 
 def RandomGNP(n, p, seed=None, fast=True, method='Sage'):
     r"""
@@ -769,70 +771,275 @@ def RandomToleranceGraph(n):
     return ToleranceGraph(tolrep)
 
 
-def RandomTriangulation(n, embed=False, base_ring=QQ):
+# uniform random triangulation using Schaeffer-Poulalhon algorithm
+
+
+def auxiliary_random_word(n):
+    r"""
+    Return a random word used to generate random triangulations.
+
+    INPUT:
+
+    n -- an integer
+
+    OUTPUT:
+
+    A binary sequence `w` of length `4n-2` with `n-1` ones, such that any prefix
+    `u` of `w` satisfies `3|u|_1 - |u|_0 > -2` (where `|u|_1` and `|u|_0` are
+    respectively the number of 1s and 0s in `u`). Those words are the expected
+    input of :func:`contour_and_graph_from_word`.
+
+    ALGORITHM:
+
+    A random word with these numbers of `0` and `1` is chosen. This
+    word is then rotated in order to give an admissible code for a
+    tree (as explained in Proposition 4.2, [PS2006]_). There are
+    exactly two such rotations, one of which is chosen at random.
+
+    Let us consider a word `w` satisfying the expected conditions. By
+    drawing a step (1,3) for each 1 and a step (1,-1) for each 0 in
+    `w`, one gets a path starting at height 0, ending at height -2 and
+    staying above or on the horizontal line of height -1 except at the
+    end point. By cutting the word at the first position of height -1,
+    let us write `w=uv`. One can then see that `v` can only touch the line
+    of height -1 at its initial point and just before its end point
+    (these two points may be the same).
+
+    Now consider a word `w'` obtained from `w` by any
+    rotation. Because `vu` is another word satisfying the expected
+    conditions, one can assume that `w'` is obtained from `w` by
+    starting at some point in `u`. The algorithm must then recognize
+    the end of `u` and the end of `v` inside `w'`. The end of `v` is
+    the unique point of minimal height `h`. The end of `u` is the first
+    point reaching the height `h+1`.
+
+    EXAMPLES::
+
+        sage: from sage.graphs.generators.random import auxiliary_random_word
+        sage: auxiliary_random_word(4)  # random
+        [1, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0]
+
+        sage: def check(w):
+        ....:     steps = {1: 3, 0: -1}
+        ....:     return all(sum(steps[u] for u in w[:i]) >= -1 for i in range(len(w)))
+
+        sage: for n in range(1, 10):
+        ....:     w = auxiliary_random_word(n)
+        ....:     assert len(w) == 4 * n - 2
+        ....:     assert w.count(0) == 3 * n - 1
+        ....:     assert check(w)
+
     """
-    Returns a random triangulation on n vertices.
+    from sage.misc.prandom import shuffle
+    w = [0] * (3 * n - 1) + [1] * (n - 1)
+    shuffle(w)
+
+    # Finding the two admissible shifts.
+    # The 'if height' is true at least once.
+    # If it is true just once, then the word is admissible
+    # and cuts = [0, first position of -1] (ok)
+    # Otherwise, cuts will always contain
+    # [first position of hmin, first position of hmin - 1] (ok)
+    cuts = [0, 0]
+    height = 0
+    height_min = 0
+    for i in range(4 * n - 3):
+        if w[i] == 1:
+            height += 3
+        else:
+            height -= 1
+            if height < height_min:
+                height_min = height
+                cuts[0] = cuts[1]
+                cuts[1] = i + 1
+
+    # random choice of one of the two possible cuts
+    idx = cuts[randint(0, 1)]
+    return w[idx:] + w[:idx]
+
+
+def contour_and_graph_from_word(w):
+    r"""
+    Return the contour word and the graph of inner vertices of the tree
+    associated with the word `w`.
+
+    INPUT:
+
+    - `w` -- a word in `0` and `1` as given by :func:`auxiliary_random_word`
+
+    This word must satisfy the conditions described in Proposition 4.2 of
+    [PS2006]_ (see :func:`auxiliary_random_word`).
+
+    OUTPUT:
+
+    a pair ``(seq, G)`` where:
+
+    - ``seq`` is a sequence of pairs (label, integer) representing the
+      contour walk along the tree associated with `w`
+
+    - ``G`` is the tree obtained by restriction to the set of inner vertices
+
+    The underlying bijection from words to trees is given by lemma 4.1
+    in [PS2006]_. It maps the admissible words to planar trees where
+    every inner vertex has two leaves.
+
+    In the word `w`, the letter `1` means going up (away from the root)
+    from an inner vertex to another inner vertex. The letter `0` means
+    either going up and then down to a leaf, or going down (towards the root)
+    to an inner vertex already visited.
+
+    Inner vertices are tagged with 'i' and leaves are tagged with
+    'f'. Inner vertices are moreover labelled by integers, and leaves
+    by the label of the neighbor inner vertex.
+
+    EXAMPLES::
+
+        sage: from sage.graphs.generators.random import contour_and_graph_from_word
+        sage: seq, G = contour_and_graph_from_word([1,0,0,0,0,0])
+        sage: seq
+        [('i', 0),
+         ('i', 1),
+         ('f', 1),
+         ('i', 1),
+         ('f', 1),
+         ('i', 1),
+         ('i', 0),
+         ('f', 0),
+         ('i', 0),
+         ('f', 0)]
+        sage: G
+        Graph on 2 vertices
+
+        sage: from sage.graphs.generators.random import auxiliary_random_word
+        sage: seq, G = contour_and_graph_from_word(auxiliary_random_word(20))
+        sage: G.is_tree()
+        True
+
+    """
+    index = 0  # numbering of inner vertices
+    word = [('i', 0)]  # initial vertex is inner
+    leaf_stack = [0, 0]  # stack of leaves still to be created
+    inner_stack = [0]  # stack of active inner nodes
+    active_vertex = 0
+    edges = []
+    for x in w:
+        if x == 1:  # going up to a new inner vertex
+            index += 1
+            leaf_stack.extend([index, index])
+            inner_stack.append(index)
+            edges.extend([(active_vertex, index)])
+            active_vertex = index
+            word.append(('i', index))
+        else:
+            if active_vertex in leaf_stack:  # up and down to a new leaf
+                leaf_stack.remove(active_vertex)
+                word.extend([('f', active_vertex), ('i', active_vertex)])
+            else:  # going down to a known inner vertex
+                inner_stack.pop()
+                active_vertex = inner_stack[-1]
+                word.append(('i', active_vertex))
+    return word[:-1], Graph(edges, format='list_of_edges')
+
+
+def RandomTriangulation(n, set_position=False):
+    """
+    Return a random triangulation on `n` vertices.
 
     A triangulation is a planar graph all of whose faces are
     triangles (3-cycles).
 
-    The graph is built by independently generating `n` points
-    uniformly at random on the surface of a sphere, finding the
-    convex hull of those points, and then returning the 1-skeleton
-    of that polyhedron.
-
     INPUT:
 
-    - ``n`` -- number of vertices (recommend `n \ge 3`)
+    - `n` -- an integer
 
-    - ``embed`` -- (optional, default ``False``) whether to use the
-      stereographic point projections to draw the graph.
+    - ``set_position`` -- boolean (default ``False``) if set to ``True``, this
+      will compute a planar embedding of the graph.
 
-    - ``base_ring`` -- (optional, default ``QQ``) specifies the field over
-      which to do the intermediate computations. The default setting is slower,
-      but works for any input; one can instead use ``RDF``, but this occasionally
-      fails due to loss of precision, as mentioned on :trac:10276.
+    OUTPUT:
+
+    a graph
+
+    The algorithm is taken from [PS2006]_.
 
     EXAMPLES::
 
-        sage: g = graphs.RandomTriangulation(10)
-        sage: g.is_planar()
+        sage: G = graphs.RandomTriangulation(6, True); G
+        Graph on 6 vertices
+        sage: G.is_planar()
         True
-        sage: g.num_edges() == 3*g.order() - 6
-        True
+        sage: G.girth()
+        3
+        sage: G.plot(vertex_size=0, vertex_labels=False)
+        Graphics object consisting of 13 graphics primitives
 
     TESTS::
 
         sage: for i in range(10):
-        ....:     g = graphs.RandomTriangulation(30,embed=True)
-        ....:     assert g.is_planar() and g.size() == 3*g.order()-6
+        ....:     g = graphs.RandomTriangulation(30)
+        ....:     assert g.is_planar() and g.size() == 3 * g.order() - 6
+
+    REFERENCES:
+
+    .. [PS2006] Dominique Poulalhon and Gilles Schaeffer, *Optimal coding and
+       sampling of triangulations*. Algorithmica 46 (2006), no. 3-4, 505-527.
     """
-    from sage.misc.prandom import normalvariate
-    from sage.geometry.polyhedron.constructor import Polyhedron
-    from sage.rings.real_double import RDF
+    w = auxiliary_random_word(n - 2)
+    word, graph = contour_and_graph_from_word(w)
 
-    # this function creates a random unit vector in R^3
-    def rand_unit_vec():
-        vec = [normalvariate(0, 1) for k in range(3)]
-        mag = sum([x * x for x in vec]) ** 0.5
-        return [x / mag for x in vec]
+    edges = []
+    done = False
+    kill_next = False
+    while not done:
+        stack = []
+        new_word = []
+        done = True
+        for x in word:
+            if kill_next:
+                kill_next = False
+            elif x[0] == 'f':  # leaf vertex 'f'
+                if len(stack) == 3:
+                    a, b = stack[0][1], stack[2][1]
+                    edges.append((a, b))
+                    new_word.extend([('i', a), ('i', b)])
+                    kill_next = True
+                    stack = []
+                    done = False
+                else:
+                    new_word.extend(stack + [x])
+                    stack = []
+            else:  # inner vertex 'i'
+                if len(stack) == 3:
+                    new_word.append(stack[0])
+                    stack = stack[1:] + [x]
+                else:
+                    stack += [x]
+        word = new_word + stack
+        if done and not(word[-1][0] == 'f'):
+            done = False
+            word = [word[-1]] + word[:-1]
 
-    # generate n unit vectors at random
-    points = [rand_unit_vec() for k in range(n)]
+    graph.add_edges(edges)
 
-    # find their convex hull
-    P = Polyhedron(vertices=points, base_ring=base_ring)
+    # remains to add two new vertices 'a' and 'b'
+    target_vertex = True
+    after_f = False
+    after_fi = False
+    vab = {True: 'a', False: 'b'}
+    for i in range(len(word)):
+        if word[i][0] == 'f':
+            if after_fi:
+                target_vertex = not target_vertex
+            graph.add_edge((vab[target_vertex], word[i][1]))
+            after_f = True
+            after_fi = False
+        else:
+            if after_f:
+                after_fi = True
+            else:
+                after_fi = False
+            after_f = False
 
-    # extract the 1-skeleton
-    g = P.vertex_graph()
-    g.rename('Planar triangulation on {} vertices'.format(n))
-
-    if embed:
-        from sage.geometry.polyhedron.plot import ProjectionFuncStereographic
-        from sage.modules.free_module_element import vector
-        proj = ProjectionFuncStereographic([0, 0, 1])
-        g.set_pos({v: proj(vector(v))
-                   for v in g})
-
-    g.relabel()
-    return g
+    graph.add_edge(('a', 'b'))
+    if set_position:
+        graph.layout(layout="planar", save_pos=True)
+    return graph

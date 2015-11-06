@@ -815,8 +815,8 @@ def _auxiliary_random_word(n):
 
     EXAMPLES::
 
-        sage: from sage.graphs.generators.random import auxiliary_random_word
-        sage: auxiliary_random_word(4)  # random
+        sage: from sage.graphs.generators.random import _auxiliary_random_word
+        sage: _auxiliary_random_word(4)  # random
         [1, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0]
 
         sage: def check(w):
@@ -824,7 +824,7 @@ def _auxiliary_random_word(n):
         ....:     return all(sum(steps[u] for u in w[:i]) >= -1 for i in range(len(w)))
 
         sage: for n in range(1, 10):
-        ....:     w = auxiliary_random_word(n)
+        ....:     w = _auxiliary_random_word(n)
         ....:     assert len(w) == 4 * n - 2
         ....:     assert w.count(0) == 3 * n - 1
         ....:     assert check(w)
@@ -893,8 +893,8 @@ def _contour_and_graph_from_word(w):
 
     EXAMPLES::
 
-        sage: from sage.graphs.generators.random import contour_and_graph_from_word
-        sage: seq, G = contour_and_graph_from_word([1,0,0,0,0,0])
+        sage: from sage.graphs.generators.random import _contour_and_graph_from_word
+        sage: seq, G = _contour_and_graph_from_word([1,0,0,0,0,0])
         sage: seq
         [('in', 0),
          ('in', 1),
@@ -909,8 +909,8 @@ def _contour_and_graph_from_word(w):
         sage: G
         Graph on 2 vertices
 
-        sage: from sage.graphs.generators.random import auxiliary_random_word
-        sage: seq, G = contour_and_graph_from_word(auxiliary_random_word(20))
+        sage: from sage.graphs.generators.random import _auxiliary_random_word
+        sage: seq, G = _contour_and_graph_from_word(_auxiliary_random_word(20))
         sage: G.is_tree()
         True
     """
@@ -995,8 +995,8 @@ def RandomTriangulation(n, set_position=False):
        http://www.lix.polytechnique.fr/~poulalho/Articles/PoSc_Algorithmica06.pdf
 
     """
-    w = auxiliary_random_word(n - 2)
-    word, graph = contour_and_graph_from_word(w)
+    w = _auxiliary_random_word(n - 2)
+    word, graph = _contour_and_graph_from_word(w)
 
     edges = []
     done = False

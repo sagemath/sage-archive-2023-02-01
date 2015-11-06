@@ -226,7 +226,7 @@ class AsymptoticExpansionGenerators(SageObject):
         n = A.gen()
 
         if precision is None:
-            precision = A.default_prec
+            precision = AsymptoticRing.__default_prec__
 
         from sage.functions.log import log
         result = A.zero()

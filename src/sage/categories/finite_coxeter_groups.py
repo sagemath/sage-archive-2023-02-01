@@ -303,11 +303,13 @@ class FiniteCoxeterGroups(CategoryWithAxiom):
                 [[2], [1, 2, 1], [2, 3, 2], [1, 2, 3, 2, 1], [3], [1]]
 
             """
-            return [self.from_reduced_word(word[:i+1]+list(reversed(word[:i]))) for i in range(len(word))]
+            return [self.from_reduced_word(word[:i+1]+list(reversed(word[:i])))
+                    for i in range(len(word))]
 
         def reflections_from_w0(self):
             """
-            Return the reflections of ``self`` using the inversion set of ``w_0``.
+            Return the reflections of ``self`` using the inversion set
+            of ``w_0``.
 
             EXAMPLES::
 
@@ -331,19 +333,25 @@ class FiniteCoxeterGroups(CategoryWithAxiom):
         @cached_method
         def m_cambrian_lattice(self, c, m=1, on_roots=False):
             """
-            Return the m-Cambrian lattice on ``m``-delta sequences (see arXiv:1503.00710 and arXiv:math/0611106).
-            ``m``-delta sequences are certain ``m``-colored minimal factorizations of ``c`` into reflections.
+            Return the `m`-Cambrian lattice on `m`-delta sequences.
+
+            See :arxiv:`1503.00710` and :arXiv:`math/0611106`.
+
+            The `m`-delta sequences are certain `m`-colored minimal
+            factorizations of `c` into reflections.
 
             INPUT:
 
-            - ``c`` -- a Coxeter element of ``self`` (as a tuple, or as an element of ``self``)
+            - `c` -- a Coxeter element of ``self`` (as a tuple, or
+              as an element of ``self``)
 
-            - ``m`` -- a positive integer (default: 1)
+            - `m` -- a positive integer (optional, default 1)
 
-            - ``on_roots`` (optional) -- if ``on_roots`` is ``True``,
-              the lattice is realized on roots rather than on
-              reflections. In order for this to work, the ElementMethod
-              ``reflection_to_root`` must be available.
+            - ``on_roots`` (optional, default ``False``) -- if
+              ``on_roots`` is ``True``, the lattice is realized on
+              roots rather than on reflections. In order for this to
+              work, the ElementMethod ``reflection_to_root`` must be
+              available.
 
             EXAMPLES::
 
@@ -352,22 +360,25 @@ class FiniteCoxeterGroups(CategoryWithAxiom):
 
                 sage: CoxeterGroup(["A",2]).m_cambrian_lattice((1,2),2)
                 Finite lattice containing 12 elements
-
             """
             from sage.combinat.posets.lattices import LatticePoset
-            if hasattr(c,"reduced_word"):
+            if hasattr(c, "reduced_word"):
                c = c.reduced_word()
             c = list(c)
 
+            sorting_word = self.long_element().coxeter_sorting_word(c)
+            
             if on_roots:
-                if not hasattr(self.long_element(),"reflection_to_root"):
-                    raise ValueError("The parameter 'on_root=True' needs the ElementMethod 'reflection_to_root'")
-                
-                inv_woc = [t.reflection_to_root() for t in self.inversion_sequence(self.long_element().coxeter_sorting_word(c))]
+                if not hasattr(self.long_element(), "reflection_to_root"):
+                    raise ValueError("The parameter 'on_root=True' needs "
+                                     "the ElementMethod 'reflection_to_root'")
+
+                inv_woc = [t.reflection_to_root()
+                           for t in self.inversion_sequence(sorting_word)]
                 S = [s.reflection_to_root() for s in self.simple_reflections()]
-                PhiP = [t.reflection_to_root() for t in self.reflections().keys()]
+                PhiP = [t.reflection_to_root() for t in self.reflections()]
             else:
-                inv_woc = self.inversion_sequence(self.long_element().coxeter_sorting_word(c))
+                inv_woc = self.inversion_sequence(sorting_word)
                 S = self.simple_reflections()
                 T = self.reflections_from_w0()
                 Twords = {t : t.reduced_word() for t in T}
@@ -375,7 +386,7 @@ class FiniteCoxeterGroups(CategoryWithAxiom):
             elements = set()
             covers = []
 
-            bottom_elt = frozenset((s,0) for s in S)
+            bottom_elt = frozenset((s, 0) for s in S)
             new = set([bottom_elt])
             while new:
                 new_element = new.pop()
@@ -383,35 +394,38 @@ class FiniteCoxeterGroups(CategoryWithAxiom):
                 for t in new_element:
                     if t[1] < m:
                         cov_element = [s for s in new_element if s != t]
-                        cov_element.append((t[0],t[1]+1))
-                        for t_conj in [(i,t[1]) for i in inv_woc[inv_woc.index(t[0]):]]+[(i,t[1]+1) for i in inv_woc[:inv_woc.index(t[0])]]:
+                        cov_element.append((t[0], t[1] + 1))
+                        idx_t0 = inv_woc.index(t[0])
+                        for t_conj in [(i, t[1]) for i in inv_woc[idx_t0:]] + [(i, t[1] + 1) for i in inv_woc[:idx_t0]]:
                             if t_conj in cov_element:
                                 cov_element.remove(t_conj)
                                 if on_roots:
                                     tmp = t_conj[0].weyl_action(t[0].associated_reflection())
                                     if tmp in PhiP:
-                                        cov_element.append(( tmp,t_conj[1]  ))
+                                        cov_element.append((tmp, t_conj[1]))
                                     else:
-                                        cov_element.append((-tmp,t_conj[1]-1))
+                                        cov_element.append((-tmp, t_conj[1] - 1))
                                 else:
-                                    tmp = t[0]*t_conj[0]*t[0]
+                                    tmp = t[0] * t_conj[0] * t[0]
                                     invs = self.inversion_sequence(Twords[t[0]]+Twords[t_conj[0]])
                                     plus_or_minus = invs.count(tmp)
-                                    if plus_or_minus % 2 == 1:
-                                        cov_element.append((tmp,t_conj[1]  ))
+                                    if plus_or_minus % 2:
+                                        cov_element.append((tmp, t_conj[1]))
                                     else:
-                                        cov_element.append((tmp,t_conj[1]-1))
+                                        cov_element.append((tmp, t_conj[1] - 1))
 
                         cov_element = frozenset(cov_element)
                         if cov_element not in elements:
                             new.add(cov_element)
-                        covers.append((new_element,cov_element))
-            return LatticePoset([elements,covers],cover_relations=True)
+                        covers.append((new_element, cov_element))
+            return LatticePoset([elements, covers], cover_relations=True)
 
         def cambrian_lattice(self, c, on_roots=False):
             """
-            Return the c-Cambrian lattice on delta sequences, see
-            :arXiv:`1503.00710` and :arXiv:`math/0611106`.
+            Return the `c`-Cambrian lattice on delta sequences.
+
+            See :arxiv:`1503.00710` and :arxiv:`math/0611106`.
+
             Delta sequences are certain 2-colored minimal factorizations
             of ``c`` into reflections.
 
@@ -420,10 +434,11 @@ class FiniteCoxeterGroups(CategoryWithAxiom):
             - ``c`` -- a standard Coxeter element in ``self``
               (as a tuple, or as an element of ``self``)
 
-            - ``on_roots`` (optional) -- if ``on_roots`` is ``True``,
-              the lattice is realized on roots rather than on
-              reflections. In order for this to work, the ElementMethod
-              ``reflection_to_root`` must be available.
+            - ``on_roots`` (optional, default ``False``) -- if
+              ``on_roots`` is ``True``, the lattice is realized on
+              roots rather than on reflections. In order for this to
+              work, the ElementMethod ``reflection_to_root`` must be
+              available.
 
             EXAMPLES::
 

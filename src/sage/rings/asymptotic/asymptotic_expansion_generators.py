@@ -379,6 +379,93 @@ class AsymptoticExpansionGenerators(SageObject):
                 coefficient_ring=QQ)(result / SCR(k.sqrt()))
         return result
 
+
+def _sa_coefficients_e_(K, alpha):
+    r"""
+    Return the coefficient `e_k` used in singularity analysis.
+
+    INPUT:
+
+    - ``K`` -- an integer specifying the number of coefficients.
+
+    - ``alpha`` -- an object.
+
+    OUTPUT:
+
+    A tuple of objects.
+
+    .. SEEALSO::
+
+        :meth:`~AsymptoticExpansionGenerators.SingularityAnalysis`
+
+    TESTS::
+
+        sage: from sage.rings.asymptotic.asymptotic_expansion_generators \
+        ....:     import _sa_coefficients_e_
+        sage: a = SR.var('a')
+        sage: tuple(c.factor() for c in _sa_coefficients_e_(4, a))
+        (1,
+         1/2*(a - 1)*a,
+         1/24*(3*a - 1)*(a - 1)*(a - 2)*a,
+         1/48*(a - 1)^2*(a - 2)*(a - 3)*a^2)
+    """
+    from sage.rings.arith import falling_factorial
+    from sage.misc.misc import srange
+    from sage.rings.integer_ring import ZZ
+
+    L = _sa_coefficients_lambda_(K)
+    return tuple(sum((-1)**ell * L[(k, ell)] *
+                     falling_factorial(alpha - 1, ell)
+                     for ell in srange(k, 2*k+1) if L.has_key((k, ell)))
+                 for k in srange(K))
+
+
+def _sa_coefficients_lambda_(K):
+    r"""
+    Return the coefficient `e_k` used in singularity analysis.
+
+    INPUT:
+
+    - ``K`` -- an integer.
+
+    OUTPUT:
+
+    A dictionary mapping pairs of indices to rationals.
+
+    .. SEEALSO::
+
+        :meth:`~AsymptoticExpansionGenerators.SingularityAnalysis`
+
+    TESTS::
+
+        sage: from sage.rings.asymptotic.asymptotic_expansion_generators \
+        ....:     import _sa_coefficients_lambda_
+        sage: _sa_coefficients_lambda_(3)
+        {(0, 0): 1,
+         (1, 1): -1,
+         (1, 2): 1/2,
+         (2, 2): 1,
+         (2, 3): -5/6,
+         (2, 4): 1/8,
+         (3, 3): -1,
+         (3, 4): 13/12,
+         (4, 4): 1}
+    """
+    from sage.rings.laurent_series_ring import LaurentSeriesRing
+    from sage.rings.power_series_ring import PowerSeriesRing
+    from sage.rings.rational_field import QQ
+
+    V = LaurentSeriesRing(QQ, names='v', default_prec=K)
+    v = V.gen()
+    T = PowerSeriesRing(V, names='t', default_prec=2*K-1)
+    t = T.gen()
+
+    S = (t - (1+1/v) * (1+v*t).log()).exp()
+    return dict(((k + L.valuation(), ell), c)
+                for ell, L in enumerate(S.list())
+                for k, c in enumerate(L.list()))
+
+
 # Easy access to the asymptotic expansions generators from the command line:
 asymptotic_expansions = AsymptoticExpansionGenerators()
 r"""

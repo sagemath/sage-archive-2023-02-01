@@ -584,7 +584,7 @@ def tutte_polynomial(G, edge_selector=None, cache=None):
     if G.num_edges() == 0:
         return R.one()
 
-    if getattr(G, "_immutable", False):
+    if G.is_immutable():
         G = G.copy(immutable=False)
         G.relabel(inplace=True)
     else:

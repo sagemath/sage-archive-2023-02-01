@@ -1300,7 +1300,7 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial_generic):
 
         TESTS::
 
-        Check that #19538 is fixed
+        Check that :trac:`19538` is fixed
 
             sage: R = LaurentPolynomialRing(ZZ, 'x', 4)
             sage: S = LaurentPolynomialRing(ZZ, 'x0,x1')
@@ -1308,7 +1308,6 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial_generic):
             Defining x0, x1
             sage: x0 in R
             True
-
         """
         if isinstance(x, LaurentPolynomial_mpair):
             inject_dict = {}

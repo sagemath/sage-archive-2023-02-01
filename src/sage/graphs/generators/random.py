@@ -773,7 +773,6 @@ def RandomToleranceGraph(n):
 
 # uniform random triangulation using Schaeffer-Poulalhon algorithm
 
-
 def auxiliary_random_word(n):
     r"""
     Return a random word used to generate random triangulations.
@@ -784,10 +783,10 @@ def auxiliary_random_word(n):
 
     OUTPUT:
 
-    A binary sequence `w` of length `4n-2` with `n-1` ones, such that any prefix
-    `u` of `w` satisfies `3|u|_1 - |u|_0 > -2` (where `|u|_1` and `|u|_0` are
-    respectively the number of 1s and 0s in `u`). Those words are the expected
-    input of :func:`contour_and_graph_from_word`.
+    A binary sequence `w` of length `4n-2` with `n-1` ones, such that any proper
+    prefix `u` of `w` satisfies `3|u|_1 - |u|_0 > -2` (where `|u|_1` and `|u|_0`
+    are respectively the number of 1s and 0s in `u`). Those words are the
+    expected input of :func:`contour_and_graph_from_word`.
 
     ALGORITHM:
 
@@ -799,7 +798,7 @@ def auxiliary_random_word(n):
     Let us consider a word `w` satisfying the expected conditions. By
     drawing a step (1,3) for each 1 and a step (1,-1) for each 0 in
     `w`, one gets a path starting at height 0, ending at height -2 and
-    staying above or on the horizontal line of height -1 except at the
+    staying above (or on) the horizontal line of height -1 except at the
     end point. By cutting the word at the first position of height -1,
     let us write `w=uv`. One can then see that `v` can only touch the line
     of height -1 at its initial point and just before its end point
@@ -850,13 +849,11 @@ def auxiliary_random_word(n):
             height -= 1
             if height < height_min:
                 height_min = height
-                cuts[0] = cuts[1]
-                cuts[1] = i + 1
+                cuts = cuts[1], i+1
 
     # random choice of one of the two possible cuts
     idx = cuts[randint(0, 1)]
     return w[idx:] + w[:idx]
-
 
 def contour_and_graph_from_word(w):
     r"""
@@ -883,10 +880,11 @@ def contour_and_graph_from_word(w):
     in [PS2006]_. It maps the admissible words to planar trees where
     every inner vertex has two leaves.
 
-    In the word `w`, the letter `1` means going up (away from the root)
-    from an inner vertex to another inner vertex. The letter `0` means
-    either going up and then down to a leaf, or going down (towards the root)
-    to an inner vertex already visited.
+    In the word `w`, the letter `1` means going away from the root ("up") from
+    an inner vertex to another inner vertex. The letter `0` denotes all other
+    steps of the discovery, i.e. discovering a leaf vertex either or going
+    toward the root ("down"). Thus, the length of `w` is twice the number of
+    edges between inner vertices, plus the number of leaves.
 
     Inner vertices are tagged with 'i' and leaves are tagged with
     'f'. Inner vertices are moreover labelled by integers, and leaves
@@ -916,30 +914,26 @@ def contour_and_graph_from_word(w):
         True
 
     """
-    index = 0  # numbering of inner vertices
-    word = [('i', 0)]  # initial vertex is inner
-    leaf_stack = [0, 0]  # stack of leaves still to be created
-    inner_stack = [0]  # stack of active inner nodes
-    active_vertex = 0
+    index       = 0          # numbering of inner vertices
+    word        = [('i', 0)] # initial vertex is inner
+    leaf_stack  = [0, 0]     # stack of leaves still to be created
+    inner_stack = [0]        # stack of active inner nodes
     edges = []
     for x in w:
         if x == 1:  # going up to a new inner vertex
             index += 1
             leaf_stack.extend([index, index])
             inner_stack.append(index)
-            edges.extend([(active_vertex, index)])
-            active_vertex = index
+            edges.append(inner_stack[-2:])
             word.append(('i', index))
         else:
-            if active_vertex in leaf_stack:  # up and down to a new leaf
-                leaf_stack.remove(active_vertex)
-                word.extend([('f', active_vertex), ('i', active_vertex)])
+            if leaf_stack and inner_stack[-1] == leaf_stack[-1]:  # up and down to a new leaf
+                leaf_stack.pop()
+                word.extend([('f', inner_stack[-1]), ('i', inner_stack[-1])])
             else:  # going down to a known inner vertex
                 inner_stack.pop()
-                active_vertex = inner_stack[-1]
-                word.append(('i', active_vertex))
+                word.append(('i', inner_stack[-1]))
     return word[:-1], Graph(edges, format='list_of_edges')
-
 
 def RandomTriangulation(n, set_position=False):
     """
@@ -980,8 +974,10 @@ def RandomTriangulation(n, set_position=False):
 
     REFERENCES:
 
-    .. [PS2006] Dominique Poulalhon and Gilles Schaeffer, *Optimal coding and
-       sampling of triangulations*. Algorithmica 46 (2006), no. 3-4, 505-527.
+    .. [PS2006] Dominique Poulalhon and Gilles Schaeffer,
+       *Optimal coding and sampling of triangulations*,
+       Algorithmica 46 (2006), no. 3-4, 505-527,
+       http://www.lix.polytechnique.fr/~poulalho/Articles/PoSc_Algorithmica06.pdf
     """
     w = auxiliary_random_word(n - 2)
     word, graph = contour_and_graph_from_word(w)

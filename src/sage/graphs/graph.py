@@ -4616,8 +4616,8 @@ class Graph(GenericGraph):
           will be relabeled with consecutive integers.
 
         - ``immutable`` (boolean) -- whether to create a mutable/immutable
-           join. ``immutable=None`` (default) means that the graphs and their
-           join will behave the same way.
+          join. ``immutable=None`` (default) means that the graphs and their
+          join will behave the same way.
 
         .. SEEALSO::
 

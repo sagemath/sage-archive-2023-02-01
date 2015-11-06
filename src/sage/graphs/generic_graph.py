@@ -30,7 +30,7 @@ can be applied on both. Here is what it can do:
     :meth:`~GenericGraph.allow_multiple_edges` | Change whether multiple edges are permitted in the (di)graph.
     :meth:`~GenericGraph.multiple_edges` | Return any multiple edges in the (di)graph.
     :meth:`~GenericGraph.name` | Return or sets the graph's name.
-    :meth:`~GenericGraph.is_immutable` | Returns whether the graph is immutable.
+    :meth:`~GenericGraph.is_immutable` | Return whether the graph is immutable.
     :meth:`~GenericGraph.weighted` | Whether the (di)graph is to be considered as a weighted (di)graph.
     :meth:`~GenericGraph.antisymmetric` | Test whether the graph is antisymmetric
     :meth:`~GenericGraph.density` | Return the density
@@ -11140,8 +11140,8 @@ class GenericGraph(GenericGraph_pyx):
           on the number of vertices in the subgraph.
 
         - ``immutable`` (boolean) -- whether to create a mutable/immutable
-           subgraph. ``immutable=None`` (default) means that the graph and its
-           subgraph will behave the same way.
+          subgraph. ``immutable=None`` (default) means that the graph and its
+          subgraph will behave the same way.
 
 
         EXAMPLES::
@@ -11292,7 +11292,7 @@ class GenericGraph(GenericGraph_pyx):
            to be a function on edges, which is intersected with the edges
            specified, if any are.
 
-           - ``immutable`` (boolean) -- whether to create a mutable/immutable
+        -  ``immutable`` (boolean) -- whether to create a mutable/immutable
            subgraph. ``immutable=None`` (default) means that the graph and its
            subgraph will behave the same way.
 
@@ -11440,7 +11440,7 @@ class GenericGraph(GenericGraph_pyx):
            delete the extra vertices and edges from the current graph. This
            will modify the graph.
 
-           - ``immutable`` (boolean) -- whether to create a mutable/immutable
+        -  ``immutable`` (boolean) -- whether to create a mutable/immutable
            subgraph. ``immutable=None`` (default) means that the graph and its
            subgraph will behave the same way.
 
@@ -16472,8 +16472,8 @@ class GenericGraph(GenericGraph_pyx):
           will be relabeled with consecutive integers.
 
         - ``immutable`` (boolean) -- whether to create a mutable/immutable
-           disjoint union. ``immutable=None`` (default) means that the graphs
-           and their disjoint union will behave the same way.
+          disjoint union. ``immutable=None`` (default) means that the graphs
+          and their disjoint union will behave the same way.
 
         .. SEEALSO::
 
@@ -16550,8 +16550,8 @@ class GenericGraph(GenericGraph_pyx):
         INPUT:
 
         - ``immutable`` (boolean) -- whether to create a mutable/immutable
-           union. ``immutable=None`` (default) means that the graphs and their
-           union will behave the same way.
+          union. ``immutable=None`` (default) means that the graphs and their
+          union will behave the same way.
 
         .. SEEALSO::
 

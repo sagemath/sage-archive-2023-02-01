@@ -6996,6 +6996,7 @@ def integral_points_with_bounded_mw_coeffs(E, mw_base, N):
 
     return xs
 
+
 def elliptic_curve_congruence_graph(curves):
     r"""
     Return the congruence graph for this set of elliptic curves.
@@ -7041,7 +7042,7 @@ def elliptic_curve_congruence_graph(curves):
                 n = a_E[l] - a_F[l]
                 if n != 0:
                     p_edges = [p for p in p_edges if p.divides(n)]
-                    if len(p_edges):
-                        G.add_edge(E.cremona_label(), F.cremona_label())
-                        G.set_edge_label(i, j, str(p_edges)[1:-1])
+            if len(p_edges):
+                G.add_edge(E.cremona_label(), F.cremona_label(),
+                           p_edges)
     return G

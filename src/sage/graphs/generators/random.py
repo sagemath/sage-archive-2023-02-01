@@ -773,7 +773,8 @@ def RandomToleranceGraph(n):
 
 # uniform random triangulation using Schaeffer-Poulalhon algorithm
 
-def auxiliary_random_word(n):
+
+def _auxiliary_random_word(n):
     r"""
     Return a random word used to generate random triangulations.
 
@@ -786,7 +787,7 @@ def auxiliary_random_word(n):
     A binary sequence `w` of length `4n-2` with `n-1` ones, such that any proper
     prefix `u` of `w` satisfies `3|u|_1 - |u|_0 > -2` (where `|u|_1` and `|u|_0`
     are respectively the number of 1s and 0s in `u`). Those words are the
-    expected input of :func:`contour_and_graph_from_word`.
+    expected input of :func:`_contour_and_graph_from_word`.
 
     ALGORITHM:
 
@@ -827,7 +828,6 @@ def auxiliary_random_word(n):
         ....:     assert len(w) == 4 * n - 2
         ....:     assert w.count(0) == 3 * n - 1
         ....:     assert check(w)
-
     """
     from sage.misc.prandom import shuffle
     w = [0] * (3 * n - 1) + [1] * (n - 1)
@@ -849,23 +849,24 @@ def auxiliary_random_word(n):
             height -= 1
             if height < height_min:
                 height_min = height
-                cuts = cuts[1], i+1
+                cuts = cuts[1], i + 1
 
     # random choice of one of the two possible cuts
     idx = cuts[randint(0, 1)]
     return w[idx:] + w[:idx]
 
-def contour_and_graph_from_word(w):
+
+def _contour_and_graph_from_word(w):
     r"""
     Return the contour word and the graph of inner vertices of the tree
     associated with the word `w`.
 
     INPUT:
 
-    - `w` -- a word in `0` and `1` as given by :func:`auxiliary_random_word`
+    - `w` -- a word in `0` and `1` as given by :func:`_auxiliary_random_word`
 
     This word must satisfy the conditions described in Proposition 4.2 of
-    [PS2006]_ (see :func:`auxiliary_random_word`).
+    [PS2006]_ (see :func:`_auxiliary_random_word`).
 
     OUTPUT:
 
@@ -882,12 +883,12 @@ def contour_and_graph_from_word(w):
 
     In the word `w`, the letter `1` means going away from the root ("up") from
     an inner vertex to another inner vertex. The letter `0` denotes all other
-    steps of the discovery, i.e. discovering a leaf vertex either or going
+    steps of the discovery, i.e. either discovering a leaf vertex or going
     toward the root ("down"). Thus, the length of `w` is twice the number of
     edges between inner vertices, plus the number of leaves.
 
-    Inner vertices are tagged with 'i' and leaves are tagged with
-    'f'. Inner vertices are moreover labelled by integers, and leaves
+    Inner vertices are tagged with 'in' and leaves are tagged with
+    'lf'. Inner vertices are moreover labelled by integers, and leaves
     by the label of the neighbor inner vertex.
 
     EXAMPLES::
@@ -895,16 +896,16 @@ def contour_and_graph_from_word(w):
         sage: from sage.graphs.generators.random import contour_and_graph_from_word
         sage: seq, G = contour_and_graph_from_word([1,0,0,0,0,0])
         sage: seq
-        [('i', 0),
-         ('i', 1),
-         ('f', 1),
-         ('i', 1),
-         ('f', 1),
-         ('i', 1),
-         ('i', 0),
-         ('f', 0),
-         ('i', 0),
-         ('f', 0)]
+        [('in', 0),
+         ('in', 1),
+         ('lf', 1),
+         ('in', 1),
+         ('lf', 1),
+         ('in', 1),
+         ('in', 0),
+         ('lf', 0),
+         ('in', 0),
+         ('lf', 0)]
         sage: G
         Graph on 2 vertices
 
@@ -912,10 +913,9 @@ def contour_and_graph_from_word(w):
         sage: seq, G = contour_and_graph_from_word(auxiliary_random_word(20))
         sage: G.is_tree()
         True
-
     """
     index       = 0          # numbering of inner vertices
-    word        = [('i', 0)] # initial vertex is inner
+    word        = [('in', 0)] # initial vertex is inner
     leaf_stack  = [0, 0]     # stack of leaves still to be created
     inner_stack = [0]        # stack of active inner nodes
     edges = []
@@ -925,15 +925,16 @@ def contour_and_graph_from_word(w):
             leaf_stack.extend([index, index])
             inner_stack.append(index)
             edges.append(inner_stack[-2:])
-            word.append(('i', index))
+            word.append(('in', index))
         else:
             if leaf_stack and inner_stack[-1] == leaf_stack[-1]:  # up and down to a new leaf
                 leaf_stack.pop()
-                word.extend([('f', inner_stack[-1]), ('i', inner_stack[-1])])
+                word.extend([('lf', inner_stack[-1]), ('in', inner_stack[-1])])
             else:  # going down to a known inner vertex
                 inner_stack.pop()
-                word.append(('i', inner_stack[-1]))
+                word.append(('in', inner_stack[-1]))
     return word[:-1], Graph(edges, format='list_of_edges')
+
 
 def RandomTriangulation(n, set_position=False):
     """
@@ -992,25 +993,25 @@ def RandomTriangulation(n, set_position=False):
         for x in word:
             if kill_next:
                 kill_next = False
-            elif x[0] == 'f':  # leaf vertex 'f'
+            elif x[0] == 'lf':  # leaf vertex 'lf'
                 if len(stack) == 3:
                     a, b = stack[0][1], stack[2][1]
                     edges.append((a, b))
-                    new_word.extend([('i', a), ('i', b)])
+                    new_word.extend([('in', a), ('in', b)])
                     kill_next = True
                     stack = []
                     done = False
                 else:
                     new_word.extend(stack + [x])
                     stack = []
-            else:  # inner vertex 'i'
+            else:  # inner vertex 'in'
                 if len(stack) == 3:
                     new_word.append(stack[0])
                     stack = stack[1:] + [x]
                 else:
                     stack += [x]
         word = new_word + stack
-        if done and not(word[-1][0] == 'f'):
+        if done and not(word[-1][0] == 'lf'):
             done = False
             word = [word[-1]] + word[:-1]
 
@@ -1022,7 +1023,7 @@ def RandomTriangulation(n, set_position=False):
     after_fi = False
     vab = {True: 'a', False: 'b'}
     for i in range(len(word)):
-        if word[i][0] == 'f':
+        if word[i][0] == 'lf':
             if after_fi:
                 target_vertex = not target_vertex
             graph.add_edge((vab[target_vertex], word[i][1]))

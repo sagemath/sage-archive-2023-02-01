@@ -140,9 +140,9 @@ class FiniteEnumeratedSets(CategoryWithAxiom):
                 [1]
                 sage: P.cardinality()
                 1
-                sage: P.cardinality('use alt algorithm') # Used to break here: see :trac:`13688`
+                sage: P.cardinality('use alt algorithm') # Used to break here: see trac #13688
                 1
-                sage: P.cardinality(dummy_arg='use alg algorithm') # Used to break here: see :trac:`13688`
+                sage: P.cardinality(dummy_arg='use alg algorithm') # Used to break here: see trac #13688
                 1
             """
             c = 0

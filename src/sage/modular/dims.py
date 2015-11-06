@@ -314,7 +314,7 @@ def dimension_new_cusp_forms(X, k=2, p=0):
         if N <= 2:
             return Gamma0(N).dimension_new_cusp_forms(k,p=p)
         else:
-            # Gamma1(N) for N<=2 just returns Gamma0(N), which has no eps parameter. See :trac:`12640`.
+            # Gamma1(N) for N<=2 just returns Gamma0(N), which has no eps parameter. See trac #12640.
             return Gamma1(N).dimension_new_cusp_forms(k,eps=X,p=p)
     elif isinstance(X, (int,long,Integer)):
         return Gamma0(X).dimension_new_cusp_forms(k,p=p)

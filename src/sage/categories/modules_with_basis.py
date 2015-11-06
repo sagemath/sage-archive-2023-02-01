@@ -797,10 +797,10 @@ class ModulesWithBasis(CategoryWithAxiom_over_base_ring):
                 sage: S = SymmetricGroupAlgebra(QQ, 4)
                 sage: S.cardinality()
                 +Infinity
-                sage: S = SymmetricGroupAlgebra(GF(2), 4) # not tested -- MRO bug :trac:`15475`
-                sage: S.cardinality() # not tested -- MRO bug :trac:`15475`
+                sage: S = SymmetricGroupAlgebra(GF(2), 4) # not tested -- MRO bug trac #15475
+                sage: S.cardinality() # not tested -- MRO bug trac #15475
                 16777216
-                sage: S.cardinality().factor() # not tested -- MRO bug :trac:`15475`
+                sage: S.cardinality().factor() # not tested -- MRO bug trac #15475
                 2^24
 
                 sage: E.<x,y> = ExteriorAlgebra(QQ)

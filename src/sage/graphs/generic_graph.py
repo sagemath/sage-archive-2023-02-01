@@ -19370,7 +19370,7 @@ class GenericGraph(GenericGraph_pyx):
 
     ### Automorphism and isomorphism
 
-    def relabel(self, perm=None, inplace=True, return_map=False, check_input = True, complete_partial_function = True):
+    def relabel(self, perm=None, inplace=True, return_map=False, check_input = True, complete_partial_function = True, immutable = None):
         r"""
         Relabels the vertices of ``self``
 
@@ -19390,6 +19390,10 @@ class GenericGraph(GenericGraph_pyx):
            complete the permutation if some elements of the graph are not
            associated with any new name. In this case, those elements are not
            relabeled *This can potentially be very time-consuming !*.
+
+         - ``immutable`` (boolean) -- with ``inplace=False``, whether to create
+           a mutable/immutable relabelled copy. ``immutable=None`` (default)
+           means that the graph and its copy will behave the same way.
 
         If ``perm`` is a function ``f``, then each vertex ``v`` is
         relabeled to ``f(v)``.
@@ -19571,13 +19575,18 @@ class GenericGraph(GenericGraph_pyx):
                               check_input = check_input,
                               complete_partial_function = complete_partial_function)
 
-            if self.is_immutable():
+            if immutable is None:
+                immutable = self.is_immutable()
+            if immutable:
                 G = self.__class__(G, immutable = True)
 
             if return_map:
                 return G, perm2
             else:
                 return G
+
+        if immutable:
+            raise ValueError("To make an immutable copy use inplace=False")
 
         if self.is_immutable():
             raise ValueError("To relabel an immutable graph use inplace=False")

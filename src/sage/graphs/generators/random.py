@@ -954,7 +954,21 @@ def RandomTriangulation(n, set_position=False):
 
     a graph
 
-    The algorithm is taken from [PS2006]_.
+    The algorithm is taken from [PS2006]_, section 2.1.
+
+    Starting from a planar tree (represented by its contour), one
+    first performs local closures, until no one is possible. A local
+    closure amounts to replace in the cyclic contour word a sequence
+    ``in,in,in,lf,in`` by ``in,in``. After all local closures are
+    done, one has reached the situation of [PS2006]_, figure 5 (a).
+
+    Then one has to perform complete closure by adding two more
+    vertices, in order to reach the situation of [PS2006]_, figure 5 (b).
+    For this, it is necessary to find inside the final contour
+    one of the two subsequences ``lf,in,lf``.
+
+    At every step of the algorithm, newly created edges are recorded
+    in a graph, which will be returned at the end.
 
     EXAMPLES::
 
@@ -979,6 +993,7 @@ def RandomTriangulation(n, set_position=False):
        *Optimal coding and sampling of triangulations*,
        Algorithmica 46 (2006), no. 3-4, 505-527,
        http://www.lix.polytechnique.fr/~poulalho/Articles/PoSc_Algorithmica06.pdf
+
     """
     w = auxiliary_random_word(n - 2)
     word, graph = contour_and_graph_from_word(w)

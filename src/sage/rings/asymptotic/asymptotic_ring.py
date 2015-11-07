@@ -494,7 +494,7 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
         sage: (x+2*x^2+3*x^3+4*x^4) * (O(x)+x^2)
         4*x^6 + O(x^5)
 
-    In particular, :meth:`~sage.rings.big_oh.O` can be used to
+    In particular, :func:`~sage.rings.big_oh.O` can be used to
     construct the asymptotic expansions. With the help of the
     :meth:`summands`, we can also have a look at the inner structure
     of an asymptotic expansion::

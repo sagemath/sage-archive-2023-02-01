@@ -103,8 +103,10 @@ class ClusterAlgebraSeed(SageObject):
         return other
 
     def __eq__(self, other):
-        P = self.c_matrix().inverse()*other.c_matrix()
-        return frozenset(P.columns()) == frozenset(identity_matrix(self.parent().rk).columns()) and self.g_matrix()*P == other.g_matrix() and P.inverse()*self.b_matrix()*P == other.b_matrix() and self.parent() == other.parent()
+        return frozenset(self.g_vectors()) == frozenset(other.g_vectors())
+        # Why was I doing something so convoluted?
+        #P = self.c_matrix().inverse()*other.c_matrix()
+        #return frozenset(P.columns()) == frozenset(identity_matrix(self.parent().rk).columns()) and self.g_matrix()*P == other.g_matrix() and P.inverse()*self.b_matrix()*P == other.b_matrix() and self.parent() == other.parent()
 
     def _repr_(self):
         if self._path == []:
@@ -292,7 +294,7 @@ class ClusterAlgebraSeed(SageObject):
             cluster = [ self.cluster_variable(i) for i in xrange(self.parent().rk) ]
         else:
             element = tuple(element)
-            cluster = map( tuple, self.g_matrix().columns() )
+            cluster = self.g_vectors()
         return element in cluster
 
 ################################################################################
@@ -589,7 +591,7 @@ class ClusterAlgebra(Parent):
         yield seed
         depth_counter = 0
         n = self.rk
-        cl = frozenset(seed.g_matrix().columns())
+        cl = frozenset(seed.g_vectors())
         clusters = {}
         clusters[cl] = [ seed, range(n) ]
         gets_bigger = True
@@ -601,9 +603,9 @@ class ClusterAlgebra(Parent):
                 while directions:
                     i = directions.pop()
                     new_sd  = sd.mutate(i, inplace=False, mutating_F=mutating_F)
-                    new_cl = frozenset(new_sd.g_matrix().columns())
+                    new_cl = frozenset(new_sd.g_vectors())
                     if new_cl in clusters:
-                        j = map(tuple,clusters[new_cl][0].g_matrix().columns()).index(new_sd.g_vector(i))
+                        j = map(tuple,clusters[new_cl][0].g_vectors()).index(new_sd.g_vector(i))
                         try:
                             clusters[new_cl][1].remove(j)
                         except:

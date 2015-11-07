@@ -2470,3 +2470,115 @@ def MathonPseudocyclicMergingGraph(M, t):
     if t > 1:
         A += sum(map(lambda x: M[0].tensor_product(x), M[1:]))
     return Graph(A)
+
+def MathonPseudocyclicStronglyRegularGraph(t, G=None, L=None):
+    r"""
+    Return a strongly regular graph on `(4t+1)(4t-1)^2` vertices from [Mat78]_
+
+    Let `4t-1` be a prime power, and `4t+1` be such that there exists
+    a strongly regular graph `G` with parameters `(4t+1,2t,t-1,t)`. With
+    this input, Mathon [Mat78]_ gives a construction of a strongly regular
+    graph with parameters `(4 \mu + 1, 2 \mu, \mu-1, \mu)`, where
+    `\mu =  t(4t(4t-1)-1)`. The construction is optionally parametrised by an
+    a skew-symmetric Latin square of order `4t+1`, with entries in
+    `-2t,...,-1,0,1,...,2t`.
+
+    Our implementation follows a description given in [ST78]_.
+
+    INPUT:
+
+    - ``t`` -- a positive integer
+
+    - ``G`` -- if `None` (default), try to construct the necessary graph
+      with parameters `(4t+1,2t,t-1,t)`, otherwise use the user-supplied one,
+      with vertices labelled from `0` to `4t`.
+
+    - ``L`` -- if `None` (default), construct a necessary skew Latin square,
+      otherwise use the user-supplied one.
+
+    EXAMPLES::
+
+        sage: from sage.graphs.generators.families import MathonPseudocyclicStronglyRegularGraph
+        sage: G=MathonPseudocyclicStronglyRegularGraph(1); G
+        Mathon's PC SRG on 45 vertices: Graph on 45 vertices
+        sage: G.is_strongly_regular(parameters=True)
+        (45, 22, 10, 11)
+
+    TESTS::
+
+        sage: G=MathonPseudocyclicStronglyRegularGraph(2); G    # long time
+        Mathon's PC SRG on 441 vertices: Graph on 441 vertices
+        sage: G.is_strongly_regular(parameters=True)            # long time
+        (441, 220, 109, 110)
+
+
+    REFERENCES:
+
+    .. [Mat78] R. A. Mathon,
+       Symmetric conference matrices of order `pq^2 + 1`,
+       Canad. J. Math. 30 (1978) 321-331
+
+    .. [ST78] J. J. Seidel and D. E. Taylor,
+       Two-graphs, a second survey.
+       Algebraic methods in graph theory, Vol. I, II (Szeged, 1978), pp. 689–711,
+       Colloq. Math. Soc. János Bolyai, 25,
+       North-Holland, Amsterdam-New York, 1981.
+    """
+    from sage.rings.finite_rings.constructor import FiniteField as GF
+    from sage.rings.integer_ring import ZZ
+    from sage.matrix.constructor import matrix, block_matrix, \
+        ones_matrix, identity_matrix
+    from sage.graphs.graph import Graph
+    from itertools import product
+    p = 4*t+1
+    if G is None:
+        from sage.graphs.strongly_regular_db import strongly_regular_graph as SRG
+        G = SRG(p, 2*t, t-1)
+        G.relabel()
+    if L is None:
+        from sage.matrix.constructor import circulant
+        L = circulant(range(2*t+1)+map(lambda i: -2*t+i, range(2*t)))
+    q = 4*t -1
+    K = GF(q,conway=True,prefix='x')
+    # Order the elements of K in K_list
+    # so that K_list[i] = -K_list[n-i-1], and 0 comes last
+    K_pairs = set(frozenset([x,-x]) for x in K)
+    K_pairs.discard(frozenset([0]))
+    a = [None]*(q-1)
+    for i,(x,y) in enumerate(K_pairs):
+        a[i]   = x
+        a[-i-1] = y
+    a.append(K(0))
+    P = map(lambda b: matrix(ZZ,q,q,lambda i,j: 1 if a[j]==a[i]+b else 0), a)
+    g = K.primitive_element()
+    F = sum(P[a.index(g**(2*i))] for i in xrange(1, 2*t))
+    E = matrix(ZZ,q,q, lambda i,j: 0 if (a[j]-a[0]).is_square() else 1)
+    def B(m):
+        I = identity_matrix(q)
+        J = ones_matrix(q)
+        if m == 0:
+           f = lambda (i, j): 0*I if i==j                    else\
+                              I+F if (a[j]-a[i]).is_square() else\
+                              J-F
+        elif m < 2*t:
+           f = lambda (i, j): F*P[a.index(g**(2*m) * (a[i]+a[j]))]
+        elif m == 2*t:
+           f = lambda (i, j): E*P[i]
+        return block_matrix(q,q, map(f, product(xrange(q), xrange(q))))
+
+    def Acon((i, j)):
+        J = ones_matrix(q**2)
+        if i==j:
+            return              B(0)
+        if L[i,j]>0:
+            if G.has_edge(i,j):
+                return          B(L[i,j])
+            return              J-B(L[i,j])
+        if G.has_edge(i,j):
+            return              B(-L[i,j]).T
+        return                  J-B(-L[i,j]).T
+
+    A = Graph(block_matrix(p, p, map(Acon, product(xrange(p), xrange(p)))))
+    A.name("Mathon's PC SRG on "+str(p*q**2)+" vertices")
+    A.relabel()
+    return A

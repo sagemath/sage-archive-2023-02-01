@@ -387,12 +387,14 @@ class AsymptoticExpansionGenerators(SageObject):
         Return the asymptotic expansion of the coefficients of
         an power series with specified pole and logarithmic singularity.
 
-        More precisely, this extracts the `n`th coefficient
+        More precisely, this extracts the `n`-th coefficient
 
         .. MATH::
 
             [z^n] \left(\frac{1}{1-z}\right)^\alpha
             \left(\frac{1}{z} \log \frac{1}{1-z}\right)^\beta.
+
+        INPUT:
 
         - ``var`` -- a string for the variable name.
 

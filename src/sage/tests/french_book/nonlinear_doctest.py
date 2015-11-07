@@ -45,7 +45,7 @@ Sage example in ./nonlinear.tex, line 231::
     ....:         v.extend(R(c).roots(multiplicities=False))
     ....:     return v
     sage: data = build_complex_roots(12) # long time
-    sage: g = plot(points(data, pointsize=1), aspect_ratio=1) # long time
+    sage: g = points(data, pointsize=1, aspect_ratio=1)  # long time
 
 Sage example in ./nonlinear.tex, line 275::
 

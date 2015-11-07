@@ -12,9 +12,9 @@ class ClusterAlgebraElement(ElementWrapper):
 
     def __init__(self, parent, value):
         ElementWrapper.__init__(self, parent=parent, value=value)
-    
+
         # setup methods defined only in special cases
-        if parent._deg_matrix:
+        if parent._is_principal:
             self.g_vector = MethodType(g_vector, self, self.__class__)
             self.is_homogeneous = MethodType(is_homogeneous, self, self.__class__)
             self.homogeneous_components = MethodType(homogeneous_components, self, self.__class__)
@@ -22,6 +22,10 @@ class ClusterAlgebraElement(ElementWrapper):
     # This function needs to be removed once AdditiveMagmas.Subobjects implements _add_
     def _add_(self, other):
         return self.parent().retract(self.lift() + other.lift())
+
+    # I am not sure we want to have this function: its output is most of the times not in the algebra but it is convenient to have
+    def __div__(self, other):
+        return self.parent().retract(self.lift()/other.lift())
 
     # HACK: LaurentPolynomial_mpair does not know how to compute denominators, we need to lift to its fraction field
     def lift_to_field(self):
@@ -63,11 +67,12 @@ def is_homogeneous(self):
     return len(self.homogeneous_components()) == 1
 
 def homogeneous_components(self):
+    deg_matrix = block_matrix([[self.parent()._M0,-self.parent()._B0]])
     components = dict()
     x = self.lift()
     monomials = x.monomials()
     for m in monomials:
-        gvect = tuple(self.parent()._deg_matrix*vector(m.exponents()[0]))
+        gvect = tuple(deg_matrix*vector(m.exponents()[0]))
         if gvect in components:
             components[gvect] += self.parent().retract(x.monomial_coefficient(m)*m)
         else:
@@ -108,7 +113,7 @@ class ClusterAlgebraSeed(SageObject):
             return "The seed of %s obtained from the initial by mutating in direction %s"%(str(self.parent()),str(self._path[0]))
         else:
             return "The seed of %s obtained from the initial by mutating along the sequence %s"%(str(self.parent()),str(self._path))
-    
+
     @property
     def depth(self):
         return len(self._path)
@@ -125,18 +130,24 @@ class ClusterAlgebraSeed(SageObject):
     def c_vector(self, j):
         return tuple(self._C.column(j))
 
+    def c_vectors(self):
+        return map(tuple, self._C.columns())
+
     def g_matrix(self):
         return copy(self._G)
 
     def g_vector(self, j):
         return tuple(self._G.column(j))
 
+    def g_vectors(self):
+        return map(tuple, self._G.columns())
+
     def F_polynomial(self, j):
         return self.parent().F_polynomial(self.g_vector(j))
 
     def cluster_variable(self, j):
         return self.parent().cluster_variable(self.g_vector(j))
-    
+
     def mutate(self, k, inplace=True, mutating_F=True):
         if inplace:
             seed = self
@@ -174,7 +185,6 @@ class ClusterAlgebraSeed(SageObject):
         # g-vector path list
         g_vector = seed.g_vector(k)
         if g_vector not in seed.parent().g_vectors_so_far():
-            seed.parent()._g_vect_set.add(g_vector)
             seed.parent()._path_dict[g_vector] = copy(seed._path)
             # F-polynomials
             if mutating_F:
@@ -211,8 +221,6 @@ class ClusterAlgebraSeed(SageObject):
         else:
             seed._path.insert(0,k)
 
-
-
     def _mutated_F(self, k, old_g_vector):
         alg = self.parent()
         pos = alg._U(1)
@@ -241,11 +249,11 @@ class ClusterAlgebraSeed(SageObject):
         # Bad news: as of 19/10/2015 we got a huge slowdown:
         # right now it takes 150s with / and 100s with //
         # what did we do wrong?
-        ## 
+        ##
         # I figured it out: the problem is that casting the result to alg._U is
         # quite slow: it amounts to run // instead of / :(
         # do we need to perform this or can we be less precise here and allow
-        # F-polynomials to be rational funtions? 
+        # F-polynomials to be rational funtions?
         # I am partucularly unhappy about this, for the moment the correct and
         # slow code is commented
         #return alg._U((pos+neg)/alg.F_polynomial(old_g_vector))
@@ -292,122 +300,133 @@ class ClusterAlgebraSeed(SageObject):
 ################################################################################
 
 class ClusterAlgebra(Parent):
-    # it would be nice to have inject_variables() to allow the user to
-    # automagically export the initial cluster variables into the sage shell.
-    # Unfortunately to do this we need to inherit form ParentWithGens and, as a
-    # drawback, we get several functions that are meaningless/misleading in a
-    # cluster algebra like ngens() or gens()
-    # If we only care about initial cluster variables we can always do the following:
-    # def inject_variables(self, scope=None, verbose=True):
-    #     self._ambient.inject_variables(scope=scope,verbose=verbose)
-    # for labeled non-initial cluster variables we can also manually add them to the scope.
+    r"""
+    INPUT:
+
+    - ``data`` -- some data defining a cluster algebra.
+
+    - ``scalars`` -- (default ZZ) the scalars on which the cluster algebra
+      is defined.
+
+    - ``cluster_variables_prefix`` -- string (default 'x').
+
+    - ``cluster_variables_names`` -- a list of strings.  Superseedes
+      ``cluster_variables_prefix``.
+
+    - ``coefficients_prefix`` -- string (default 'y').
+
+    - ``coefficients_names`` -- a list of strings. Superseedes
+      ``cluster_variables_prefix``.
+
+    - ``principal_coefficients`` -- bool (default: False). Superseedes any
+      coefficient defined by ``data``.
+    """
 
     Element = ClusterAlgebraElement
 
-    def __init__(self, data, scalars=ZZ, coefficients_prefix='y', cluster_variables_prefix='x', coefficients_names=None, cluster_variables_names=None):
+    def __init__(self, data, **kwargs):
+        r"""
+        See :class:`ClusterAlgebra` for full documentation.
+        """
+        # TODO: right now we use ClusterQuiver to parse input data. It looks like a good idea but we should make sure it is.
+        # TODO: in base replace LaurentPolynomialRing with the group algebra of a tropical semifield once it is implemented
+
         # Temporary variables
-        # TODO: right now  we use ClusterQuiver to parse input data. It looks
-        # like a good idea but we should make sure it is.
         Q = ClusterQuiver(data)
         n = Q.n()
         B0 = Q.b_matrix()[:n,:]
-        M0 = Q.b_matrix()[n:,:]
-        m = M0.nrows() + n
         I = identity_matrix(n)
+        if 'principal_coefficients' in kwargs and kwargs['principal_coefficients']:
+            M0 = I
+        else:
+            M0 = Q.b_matrix()[n:,:]
+        m = M0.nrows() + n
 
         # Ambient space for F-polynomials
-        # For speed purposes we need to have QQ here instead of the more natural ZZ
-        # the reason is that _mutated_F is faster if we do not cast the result
-        # to polynomials but then we get "rational" coefficients
+        # NOTE: for speed purposes we need to have QQ here instead of the more natural ZZ. The reason is that _mutated_F is faster if we do not cast the result to polynomials but then we get "rational" coefficients
         self._U = PolynomialRing(QQ, ['u%s'%i for i in xrange(n)])
 
-        # already computed data
-        # TODO: I am unhappy because _g_vect_set is slightly redundant (we could
-        # use _path_dict.keys() instead) but it is faster to check membership in
-        # sets than in lists and _path_dict.keys() returns a list. Depending on
-        # the number of cluster variables this may be relevant or not.
-        self._g_vect_set = set([ tuple(v) for v in I.columns() ])
-        self._F_poly_dict = dict([ (v, self._U(1)) for v in self._g_vect_set ])
-        self._path_dict = dict([ (v, []) for v in self._g_vect_set ])
-        
-        # setup Parent and ambient
-        # TODO: at the moment self.base() is not a subobject of self.ambient()
-        # unfortunately if we change `scalars` to `base` in *** it becomes
-        # harder to list generators of ambient 
-        if m>n: 
-            # do we want change this to its fraction field (so that we can
-            # invert coefficients)? 
-            # I really think we do. S.
-            # we may want to allow coeff_vars to be a single name and produce the list on the fly
-            if coefficients_names:
-                if len(coefficients_names) == m-n:
-                    coefficients = coefficients_names
+        # Storage for computed data
+        self._path_dict = dict([ (v, []) for v in map(tuple,I.columns()) ])
+        self._F_poly_dict = dict([ (v, self._U(1)) for v in self._path_dict ])
+
+        # Determine the names of the initial cluster variables
+        if 'cluster_variables_names' in kwargs:
+            if len(kwargs['cluster_variables_names']) == n:
+                variables = kwargs['cluster_variables_names']
+            else:
+                    raise ValueError("cluster_variables_names should be a list of %d valid variable names"%n)
+        else:
+            try:
+                cluster_variables_prefix = kwargs['cluster_variables_prefix']
+            except:
+                cluster_variables_prefix = 'x'
+            variables = [cluster_variables_prefix+'%s'%i for i in xrange(n)]
+
+        # Determine scalars
+        try:
+            scalars = kwargs['scalars']
+        except:
+            scalars = ZZ
+
+        # Determine coefficients and setup self._base
+        if m>n:
+            if 'coefficients_names' in kwargs:
+                if len(kwargs['coefficients_names']) == m-n:
+                    coefficients = kwargs['coefficients_names']
                 else:
                     raise ValueError("coefficients_names should be a list of %d valid variable names"%(m-n))
-            else: 
+            else:
+                try:
+                    coefficients_prefix = kwargs['coefficients_prefix']
+                except:
+                    coefficients_prefix = 'y'
                 if coefficients_prefix == cluster_variables_prefix:
                     offset = n
                 else:
                     offset = 0
                 coefficients = [coefficients_prefix+'%s'%i for i in xrange(offset,m-n+offset)]
-            # TODO: replace LaurentPolynomialRing with the group algebra of a tropical semifield once it is implemented
+            # TODO: (***) base should eventually become the group algebra of a tropical semifield
             base = LaurentPolynomialRing(scalars, coefficients)
         else:
             base = scalars
-            # BUG WORKAROUD: remove the following line once base is recognized as a subobject of ambient
+            # TODO: next line should be removed when (***) is implemented
             coefficients = []
-        # TODO: understand why using CommutativeAlgebras() instead of Rings() makes A(1) complain of missing _lmul_
-        Parent.__init__(self, base=base, category=Rings(scalars).Subobjects())
-        # *** here we might want to replace scalars with base and m with n
-        if cluster_variables_names:
-            if len(cluster_variables_names) == n:
-                variables = cluster_variables_names
-            else:
-                    raise ValueError("cluster_variables_names should be a list of %d valid variable names"%n)
-        else:
-            variables = [cluster_variables_prefix+'%s'%i for i in xrange(n)]
-        # BUG WORKAROUND: In an ideal world this should be 
-        # self._ambient = LaurentPolynomialRing(base, variables)
-        # but at the moment base is not recognized as a subobject of ambient
+
+        # setup Parent and ambient
+        # TODO: (***) _ambient should eventually be replaced with LaurentPolynomialRing(base, variables)
         self._ambient = LaurentPolynomialRing(scalars, variables+coefficients)
         self._ambient_field = self._ambient.fraction_field()
-        # TODO: understand if we need this
-        #self._populate_coercion_lists_()
+        # TODO: understand why using Algebras() instead of Rings() makes A(1) complain of missing _lmul_
+        Parent.__init__(self, base=base, category=Rings(scalars).Commutative().Subobjects(), names=variables+coefficients)
 
-        # these are used for computing cluster variables using separation of additions
-        # BUG WORKAROUND: replace the following line with
-        # self._y = dict([ (self._U.gen(j), prod([self._base.gen(i)**M0[i,j] for i in xrange(m-n)])) for j in xrange(n)])
-        # once base is recognized as a subobject of ambient
-        self._y = dict([ (self._U.gen(j), prod([self._ambient.gen(n+i)**M0[i,j] for i in xrange(m-n)])) for j in xrange(n)])
+        # Data to compute cluster variables using separation of additions
+        # BUG WORKAROUND: if your sage installation does not have trac:`19538` merged uncomment the following line and comment the next
+        #self._y = dict([ (self._U.gen(j), prod([self._ambient.gen(n+i)**M0[i,j] for i in xrange(m-n)])) for j in xrange(n)])
+        self._y = dict([ (self._U.gen(j), prod([self._base.gen(i)**M0[i,j] for i in xrange(m-n)])) for j in xrange(n)])
         self._yhat = dict([ (self._U.gen(j), prod([self._ambient.gen(i)**B0[i,j] for i in xrange(n)])*self._y[self._U.gen(j)]) for j in xrange(n)])
 
-        # recover g-vector from monomials
-        # TODO: there should be a method to compute partial inverses
-        # right now we are failing
-        if M0.rank() == n:
-            #M0p = matrix(map(lambda row: map(lambda x: max(x, 0),row), M0.rows()))
-            #M0m = M0 - M0p
-            #self._deg_matrix = block_matrix([[I,-B0*(M0p.transpose()*M0p).inverse()*M0p.transpose()]])
-            self._deg_matrix = block_matrix([[I,-B0*(M0.transpose()*M0).inverse()*M0.transpose()]])
-        #if M0 == I:
-        #    self._deg_matrix = block_matrix([[I,-B0]])
-        else:
-            self._deg_matrix = None
+        # Have we principal coefficients?
+        self._is_principal = (M0 == I)
 
+        # Store initial data
         self._B0 = copy(B0)
         self._M0 = copy(M0)
         self._n = n
         self._m = m
         self.reset_current_seed()
 
-        # internal data for exploring the exchange graph
+        # Internal data for exploring the exchange graph
         self.reset_exploring_iterator()
 
-        # add methods that are defined only for special cases
+        # Add methods that are defined only for special cases
         if n == 2:
             self.greedy_element = MethodType(greedy_element, self, self.__class__)
             self.greedy_coeff = MethodType(greedy_coeff, self, self.__class__)
             self.theta_basis_element = MethodType(theta_basis_element, self, self.__class__)
+
+        # TODO: understand if we need this
+        #self._populate_coercion_lists_()
 
     # enable standard cohercions: everything that is in the base can be coherced
     def _coerce_map_from_(self, other):
@@ -447,7 +466,7 @@ class ClusterAlgebra(Parent):
     def contains_seed(self, seed):
         computed_sd = self.initial_seed
         computed_sd.mutation_sequence(seed._path, mutating_F=False)
-        return computed_sd == seed 
+        return computed_sd == seed
 
     def reset_current_seed(self):
         r"""
@@ -473,7 +492,7 @@ class ClusterAlgebra(Parent):
         r"""
         Return the g-vectors of cluster variables encountered so far.
         """
-        return self._g_vect_set
+        return self._path_dict.keys()
 
     def F_polynomial(self, g_vector):
         g_vector= tuple(g_vector)
@@ -520,7 +539,7 @@ class ClusterAlgebra(Parent):
             except:
                 raise ValueError("Could not find a cluster variable with g-vector %s after %s mutations."%(str(g_vector),str(mutation_counter)))
 
-            # If there was a way to have the seeds iterator continue after the depth_counter reaches depth, 
+            # If there was a way to have the seeds iterator continue after the depth_counter reaches depth,
             # the following code would allow the user to continue searching the exchange graph
             #cont = raw_input("Could not find a cluster variable with g-vector %s up to mutation depth %s."%(str(g_vector),str(depth))+"  Continue searching? (y or n):")
             #if cont == 'y':
@@ -548,7 +567,13 @@ class ClusterAlgebra(Parent):
 
     def retract(self, x):
         return self(x)
-    
+
+    def gens(self):
+        r"""
+        Return the generators of :meth:`self.ambient`
+        """
+        return map(self.retract, self.ambient().gens())
+
     def seeds(self, depth=infinity, mutating_F=True, from_current_seed=False):
         r"""
         Return an iterator producing all seeds of ``self`` up to distance
@@ -596,9 +621,9 @@ class ClusterAlgebra(Parent):
                         yield new_sd
             depth_counter += 1
 
-    def reset_exploring_iterator(self):
-        self._sd_iter = self.seeds()
-        self._explored_depth = 0 
+    def reset_exploring_iterator(self, mutating_F=True):
+        self._sd_iter = self.seeds(mutating_F=mutating_F)
+        self._explored_depth = 0
 
     def explore_to_depth(self, depth):
         while self._explored_depth <= depth:
@@ -607,6 +632,11 @@ class ClusterAlgebra(Parent):
                 self._explored_depth = seed.depth
             except:
                 break
+
+    def cluster_fan(self, depth=infinity):
+        seeds = self.seeds(depth=depth, mutating_F=False)
+        cones = map(lambda s: Cone(s.g_vectors()), seeds)
+        return Fan(cones)
 
     # DESIDERATA. Some of these are probably unrealistic
     def upper_cluster_algebra(self):
@@ -690,12 +720,12 @@ def theta_basis_element(self, g_vector):
 ################################################################################
 # Elements of a tropical semifield
 ################################################################################
-     
+
 class TropicalSemifieldElement(ElementWrapper):
-     
+
     def __init__(self, parent, value):
         ElementWrapper.__init__(self, parent=parent, value=value)
-     
+
     def vector(self):
         try:
             return vector(self.lift().exponents()[0])
@@ -708,13 +738,13 @@ class TropicalSemifieldElement(ElementWrapper):
         r = map(min,zip(s,o))
         v = self.parent().gens()
         return prod([ x**i for (x,i) in zip(v,r) ])
-    
+
     def _repr_(self):
         return repr(self.lift())
- 
+
     def __invert__(self):
         return self.parent().retract(self.lift().__invert__())
- 
+
 ################################################################################
 # Tropical Semifield
 ################################################################################
@@ -724,7 +754,7 @@ class TropicalSemifield(Parent):
     Element = TropicalSemifieldElement
 
     def __init__(self, n=1, prefix='x', names=None):
-        
+
         # setup Parent and ambient
         if names == None:
             names = [prefix+'%s'%i for i in xrange(n)]

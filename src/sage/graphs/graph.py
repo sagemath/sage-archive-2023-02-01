@@ -3660,30 +3660,36 @@ class Graph(GenericGraph):
         r"""
         Return the chromatic quasisymmetric function of ``self``.
 
-        Let `G` be a graph. The chromatic quasisymmetric function `X_G(t)`
-        was first described in [SW12]_. We use the equivalent definition
+        Let `G` be a graph whose vertex set is totally ordered. The
+        chromatic quasisymmetric function `X_G(t)` was first
+        described in [SW12]_. We use the equivalent definition
         given in [BC15]_:
 
         .. MATH::
 
             X_G(t) = \sum_{\sigma=(\sigma_1,\ldots,\sigma_n)}
-            t^{\operatorname{asc}(\sigma) M_{|\sigma_1|,\ldots,|\sigma_n|},
+            t^{\operatorname{asc}(\sigma)}
+            M_{|\sigma_1|,\ldots,|\sigma_n|},
 
-        where we sum over all ordered set partitions of the vertices of `G`
-        such that `\sigma_i` is an independent (i.e., stable) set of `G`
-        and `\operatorname{asc}(\sigma)` is the number of edges `\{u, v\}`
-        of `G` such that `u < v` and `v` appears in a later part of
-        `\sigma` than `u`.
+        where we sum over all ordered set partitions of the vertex
+        set of `G` such that each block `\sigma_i` is an independent
+        (i.e., stable) set of `G`, and where
+        `\operatorname{asc}(\sigma)` denotes the number of edges
+        `\{u, v\}` of `G` such that `u < v` and `v` appears in a
+        later part of `\sigma` than `u`.
 
         INPUT:
 
         - ``t`` -- (optional) the parameter `t`; uses the variable `t`
           in `\ZZ[t]` by default
-        - ``R`` -- (optional) the base ring for the symmetric functions;
-          uses the parent of `t` by default
+        - ``R`` -- (optional) the base ring for the quasisymmetric
+          functions; uses the parent of `t` by default
 
         EXAMPLES::
 
+            sage: G = Graph([[1,2,3], [[1,3], [2,3]]])
+            sage: G.chromatic_quasisymmetric_function()
+            (2*t^2+2*t+2)*M[1, 1, 1] + M[1, 2] + t^2*M[2, 1]
             sage: G = graphs.PathGraph(4)
             sage: XG = G.chromatic_quasisymmetric_function(); XG
             (t^3+11*t^2+11*t+1)*M[1, 1, 1, 1] + (3*t^2+3*t)*M[1, 1, 2]
@@ -3747,12 +3753,10 @@ class Graph(GenericGraph):
         V = self.vertices()
         def asc(sigma):
             stat = 0
-            for u in V:
-                for i,s in enumerate(sigma):
-                    if u in s:
-                        stat += sum(1 for p in sigma[i+1:] for v in p
-                                    if v > u and self.has_edge(u, v))
-                        break
+            for i, s in enumerate(sigma):
+                for u in s:
+                    stat += sum(1 for p in sigma[i+1:] for v in p
+                                if v > u and self.has_edge(u, v))
             return stat
         for sigma in OrderedSetPartitions(V):
             if any(not self.is_independent_set(s) for s in sigma):

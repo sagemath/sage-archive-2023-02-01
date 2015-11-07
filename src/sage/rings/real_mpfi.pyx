@@ -4996,22 +4996,15 @@ cdef class RealIntervalFieldElement(RingElement):
 
         A :class:`RealIntervalFieldElement`.
 
-        This uses the optional `arb library <http://fredrikj.net/arb/>`_.
-        You may have to install it via ``sage -i arb``.
-
         EXAMPLES::
 
-            sage: psi_1 = RIF(1).psi() # optional - arb
-            sage: psi_1 # optional - arb
+            sage: psi_1 = RIF(1).psi()
+            sage: psi_1
             -0.577215664901533?
-            sage: psi_1.overlaps(-RIF.euler_constant()) # optional - arb
+            sage: psi_1.overlaps(-RIF.euler_constant())
             True
         """
-        try:
-            from sage.rings.real_arb import RealBallField
-        except ImportError:
-            raise TypeError("The optional arb package is not installed. "
-                            "Consider installing it via 'sage -i arb'")
+        from sage.rings.real_arb import RealBallField
         return RealBallField(self.precision())(self).psi()._real_mpfi_(self._parent)
 
 # MPFI does not have: agm, erf, gamma, zeta

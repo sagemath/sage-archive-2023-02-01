@@ -164,48 +164,6 @@ from sage.rings.finite_rings.integer_mod import Mod
 ############### utility functions ################
 
 
-def cyclotomic_cosets(q, n, t = None):
-    r"""
-    This method is deprecated.
-
-    See the documentation in
-    :func:`~sage.categories.rings.Rings.Finite.ParentMethods.cyclotomic_cosets`.
-
-    INPUT: q,n,t positive integers (or t=None) Some type-checking of
-    inputs is performed.
-
-    OUTPUT: q-cyclotomic cosets mod n (or, if t is not None, the q-cyclotomic
-    coset mod n containing t)
-
-    EXAMPLES::
-
-        sage: cyclotomic_cosets(2,11)
-        doctest:...: DeprecationWarning: cyclotomic_cosets(q,n,t) is deprecated.
-        Use Zmod(n).cyclotomic_cosets(q) or Zmod(n).cyclotomic_cosets(q,[t])
-        instead. Be careful that this method returns elements of Zmod(n).
-        See http://trac.sagemath.org/16464 for details.
-        [[0], [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]]
-
-        sage: Zmod(11).cyclotomic_cosets(2)
-        [[0], [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]]
-
-        sage: cyclotomic_cosets(5,11)
-        [[0], [1, 3, 4, 5, 9], [2, 6, 7, 8, 10]]
-        sage: cyclotomic_cosets(5,11,3)
-        [1, 3, 4, 5, 9]
-    """
-    from sage.misc.superseded import deprecation
-    deprecation(16464, """cyclotomic_cosets(q,n,t) is deprecated. Use
-                          Zmod(n).cyclotomic_cosets(q) or
-                          Zmod(n).cyclotomic_cosets(q,[t]) instead. Be careful
-                          that this method returns elements of Zmod(n).""")
-
-    from sage.rings.finite_rings.integer_mod_ring import Zmod
-    if t is None:
-        return [[x.lift() for x in cos] for cos in Zmod(n).cyclotomic_cosets(q)]
-    else:
-        return [x.lift() for x in Zmod(n).cyclotomic_cosets(q,[t])[0]]
-
 def is_a_splitting(S1, S2, n, return_automorphism=False):
     """
     Check wether ``(S1,S2)`` is a splitting of `\ZZ/n\ZZ`.
@@ -978,15 +936,6 @@ def HammingCode(r,F):
         3
         sage: C = codes.HammingCode(3,GF(4,'a')); C
         Linear code of length 21, dimension 18 over Finite Field in a of size 2^2
-
-    While the ``codes`` object now gathers all code constructors,
-    ``HammingCode`` is still available in the global namespace::
-
-        sage: HammingCode(3,GF(2))
-        doctest:...: DeprecationWarning: This method soon will not be available in that way anymore. To use it, you can now call it by typing codes.HammingCode
-        See http://trac.sagemath.org/15445 for details.
-        Linear code of length 7, dimension 4 over Finite Field of size 2
-
     """
     q = F.order()
     n =  (q**r-1)/(q-1)
@@ -1294,14 +1243,6 @@ def ReedSolomonCode(n,k,F,pts = None):
         Linear code of length 6, dimension 4 over Finite Field in a of size 3^2
         sage: C.minimum_distance()
         3
-
-    While the ``codes`` object now gathers all code constructors,
-    ``ReedSolomonCode`` is still available in the global namespace::
-
-        sage: ReedSolomonCode(6,4,GF(7))
-        doctest:...: DeprecationWarning: This method soon will not be available in that way anymore. To use it, you can now call it by typing codes.ReedSolomonCode
-        See http://trac.sagemath.org/15445 for details.
-        Linear code of length 6, dimension 4 over Finite Field of size 7
 
     REFERENCES:
 

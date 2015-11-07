@@ -2172,6 +2172,51 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
         return P(S, simplify=False, convert=False)
 
 
+    def factorial(self):
+        r"""
+        Return the factorial of this asymptotic expansion.
+
+        OUTPUT:
+
+        An asymptotic expansion.
+
+        EXAMPLES::
+
+            sage: A.<n> = AsymptoticRing(growth_group='n^ZZ * log(n)^ZZ', coefficient_ring=ZZ, default_prec=5)
+            sage: n.factorial()
+            sqrt(2)*sqrt(pi)*e^(n*log(n))*(e^n)^(-1)*n^(1/2)
+            + 1/12*sqrt(2)*sqrt(pi)*e^(n*log(n))*(e^n)^(-1)*n^(-1/2)
+            + 1/288*sqrt(2)*sqrt(pi)*e^(n*log(n))*(e^n)^(-1)*n^(-3/2)
+            + O(e^(n*log(n))*(e^n)^(-1)*n^(-5/2))
+            sage: _.parent()
+            Asymptotic Ring <(e^(n*log(n)))^(Symbolic Constants Subring) *
+                             (e^n)^(Symbolic Constants Subring) *
+                             n^(Symbolic Constants Subring) *
+                             log(n)^(Symbolic Constants Subring)>
+            over Symbolic Constants Subring
+
+        Catalan-Numbers `\frac{1}{n+1}\binom{2n}{n}`::
+
+            sage: (2*n).factorial() / n.factorial()^2 / (n+1)  # long time
+            1/sqrt(pi)*(e^n)^(2*log(2))*n^(-3/2)
+            - 9/8/sqrt(pi)*(e^n)^(2*log(2))*n^(-5/2)
+            + 145/128/sqrt(pi)*(e^n)^(2*log(2))*n^(-7/2)
+            + O((e^n)^(2*log(2))*n^(-9/2))
+
+        .. SEEALSO::
+
+            :meth:`~sage.rings.asymptotic.asymptotic_expansions.Stirling`,
+            :meth:`~sage.rings.asymptotic.asymptotic_expansions.Binomial_kn_over_n`.
+        """
+        from asymptotic_expansion_generators import asymptotic_expansions
+        S = asymptotic_expansions.Stirling(
+            'n', precision=self.parent().default_prec)
+        from sage.structure.element import get_coercion_model
+        cm = get_coercion_model()
+        P = cm.common_parent(self, S)
+        return S.subs(n=P.coerce(self))
+
+
 class AsymptoticRing(Algebra, UniqueRepresentation):
     r"""
     A ring consisting of :class:`asymptotic expansions <AsymptoticExpansion>`.

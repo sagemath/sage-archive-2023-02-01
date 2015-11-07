@@ -350,7 +350,7 @@ class AsymptoticExpansionGenerators(SageObject):
             result = Stirling.subs(n=k*n) / \
                        (Stirling.subs(n=(k-1)*n) * Stirling)
 
-        if algorithm == 'log':
+        elif algorithm == 'log':
             log_Stirling = AsymptoticExpansionGenerators.log_Stirling(
                 var, precision=precision, skip_constant_summand=True)
             n = log_Stirling.parent().gen()

@@ -276,7 +276,7 @@ class IncidenceStructure(object):
 
     def __eq__(self, other):
         """
-        Tests is the two incidence structures are equal
+        Test whether the two incidence structures are equal.
 
         TESTS::
 
@@ -1229,6 +1229,10 @@ class IncidenceStructure(object):
             sage: bibd.relabel({i:str(i) for i in bibd.ground_set()})
             sage: bibd.complement().ground_set()
             ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12']
+
+            sage: I = IncidenceStructure('abc', ['ab','ac','bc'])
+            sage: I.is_t_design(return_parameters=True)
+            (True, (2, 3, 2, 1))
         """
         if uniform:
             k = self.is_uniform()

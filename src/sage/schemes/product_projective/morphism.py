@@ -178,7 +178,7 @@ class ProductProjectiveSpaces_morphism_ring(SchemeMorphism_polynomial):
 
         EXAMPLES::
 
-            sage: Z.<a,b,x,y,z> = ProductProjectiveSpaces([1,2],QQ)
+            sage: Z.<a,b,x,y,z> = ProductProjectiveSpaces([1,2],ZZ)
             sage: H = End(Z)
             sage: f = H([a^2,b^2,x*z-y*z,x^2-y^2,z^2])
             sage: f.is_morphism()
@@ -204,9 +204,16 @@ class ProductProjectiveSpaces_morphism_ring(SchemeMorphism_polynomial):
         m = 0
         T = self.domain().ambient_space()
         S = self.codomain().ambient_space()
+
+        if T.base_ring().is_field():
+            f = self
+        else:
+            f = self.change_ring(T.base_ring().fraction_field())
+            T = T.change_ring(T.base_ring().fraction_field())
+
         for i in range(S.num_components()):
             t = S[i].dimension_relative() + 1
-            X = T.subscheme(list(self)[m : m + t])
+            X = T.subscheme(list(f)[m : m + t])
             if X.dimension() > -1:
                 return False
             m = m + t

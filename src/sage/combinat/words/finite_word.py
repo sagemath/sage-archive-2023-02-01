@@ -4268,11 +4268,10 @@ class FiniteWord_class(Word_class):
 
         .. NOTE::
 
-            This code actually compute the number of occurrences of all prefixes
-            of ``self`` as subwords in all prefixes of ``other``. In particular,
-            its complexity is bounded by ``len(self) * len(other)`` and one can
-            extract much more information from it rather than only the total
-            number of occurrences.
+            This code, based on [2], actually compute the number of
+            occurrences of all prefixes of ``self`` as subwords in all
+            prefixes of ``other``.  In particular, its complexity is
+            bounded by ``len(self) * len(other)``.
 
         TESTS::
 

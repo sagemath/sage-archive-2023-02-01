@@ -2195,7 +2195,8 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
                              log(n)^(Symbolic Constants Subring)>
             over Symbolic Constants Subring
 
-        Catalan-Numbers `\frac{1}{n+1}\binom{2n}{n}`::
+        :wikipedia:`Catalan numbers <Catalan_number>`
+        `\frac{1}{n+1}\binom{2n}{n}`::
 
             sage: (2*n).factorial() / n.factorial()^2 / (n+1)  # long time
             1/sqrt(pi)*(e^n)^(2*log(2))*n^(-3/2)
@@ -2205,8 +2206,7 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
 
         .. SEEALSO::
 
-            :meth:`~sage.rings.asymptotic.asymptotic_expansions.Stirling`,
-            :meth:`~sage.rings.asymptotic.asymptotic_expansions.Binomial_kn_over_n`.
+            :meth:`~sage.rings.asymptotic.asymptotic_expansion_generators.AsymptoticExpansionGenerators.Stirling`
         """
         from asymptotic_expansion_generators import asymptotic_expansions
         S = asymptotic_expansions.Stirling(

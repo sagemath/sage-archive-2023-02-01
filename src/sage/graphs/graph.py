@@ -3625,6 +3625,115 @@ class Graph(GenericGraph):
             ret += (-1)**len(F) * p[la]
         return ret
 
+    @doc_index("Algorithmically hard stuff")
+    def chromatic_quasisymmetric_function(self, t=None, R=None):
+        r"""
+        Return the chromatic quasisymmetric function of ``self``.
+
+        Let `G` be a graph whose vertex set is totally ordered. The
+        chromatic quasisymmetric function `X_G(t)` was first
+        described in [SW12]_. We use the equivalent definition
+        given in [BC15]_:
+
+        .. MATH::
+
+            X_G(t) = \sum_{\sigma=(\sigma_1,\ldots,\sigma_n)}
+            t^{\operatorname{asc}(\sigma)}
+            M_{|\sigma_1|,\ldots,|\sigma_n|},
+
+        where we sum over all ordered set partitions of the vertex
+        set of `G` such that each block `\sigma_i` is an independent
+        (i.e., stable) set of `G`, and where
+        `\operatorname{asc}(\sigma)` denotes the number of edges
+        `\{u, v\}` of `G` such that `u < v` and `v` appears in a
+        later part of `\sigma` than `u`.
+
+        INPUT:
+
+        - ``t`` -- (optional) the parameter `t`; uses the variable `t`
+          in `\ZZ[t]` by default
+        - ``R`` -- (optional) the base ring for the quasisymmetric
+          functions; uses the parent of `t` by default
+
+        EXAMPLES::
+
+            sage: G = Graph([[1,2,3], [[1,3], [2,3]]])
+            sage: G.chromatic_quasisymmetric_function()
+            (2*t^2+2*t+2)*M[1, 1, 1] + M[1, 2] + t^2*M[2, 1]
+            sage: G = graphs.PathGraph(4)
+            sage: XG = G.chromatic_quasisymmetric_function(); XG
+            (t^3+11*t^2+11*t+1)*M[1, 1, 1, 1] + (3*t^2+3*t)*M[1, 1, 2]
+             + (3*t^2+3*t)*M[1, 2, 1] + (3*t^2+3*t)*M[2, 1, 1]
+             + (t^2+t)*M[2, 2]
+            sage: XG.to_symmetric_function()
+            (t^3+11*t^2+11*t+1)*m[1, 1, 1, 1] + (3*t^2+3*t)*m[2, 1, 1]
+             + (t^2+t)*m[2, 2]
+            sage: G = graphs.CompleteGraph(4)
+            sage: G.chromatic_quasisymmetric_function()
+            (t^6+3*t^5+5*t^4+6*t^3+5*t^2+3*t+1)*M[1, 1, 1, 1]
+
+        Not all chromatic quasisymmetric functions are symmetric::
+
+            sage: G = Graph([[1,2], [1,5], [3,4], [3,5]])
+            sage: G.chromatic_quasisymmetric_function().is_symmetric()
+            False
+
+        We check that at `t = 1`, we recover the usual chromatic
+        symmetric function::
+
+            sage: p = SymmetricFunctions(QQ).p()
+            sage: G = graphs.CycleGraph(5)
+            sage: XG = G.chromatic_quasisymmetric_function(t=1); XG
+            120*M[1, 1, 1, 1, 1] + 30*M[1, 1, 1, 2] + 30*M[1, 1, 2, 1]
+             + 30*M[1, 2, 1, 1] + 10*M[1, 2, 2] + 30*M[2, 1, 1, 1]
+             + 10*M[2, 1, 2] + 10*M[2, 2, 1]
+            sage: p(XG.to_symmetric_function())
+            p[1, 1, 1, 1, 1] - 5*p[2, 1, 1, 1] + 5*p[2, 2, 1]
+             + 5*p[3, 1, 1] - 5*p[3, 2] - 5*p[4, 1] + 4*p[5]
+
+            sage: G = graphs.ClawGraph()
+            sage: XG = G.chromatic_quasisymmetric_function(t=1); XG
+            24*M[1, 1, 1, 1] + 6*M[1, 1, 2] + 6*M[1, 2, 1] + M[1, 3]
+             + 6*M[2, 1, 1] + M[3, 1]
+            sage: p(XG.to_symmetric_function())
+            p[1, 1, 1, 1] - 3*p[2, 1, 1] + 3*p[3, 1] - p[4]
+
+        REFERENCES:
+
+        .. [SW12] John Shareshian and Michelle Wachs.
+           *Chromatic quasisymmetric functions and Hessenberg varieties*.
+           Configuration Spaces. CRM Series. Scuola Normale Superiore.
+           (2012) pp. 433-460.
+           http://www.math.miami.edu/~wachs/papers/chrom.pdf
+
+        .. [BC15] Patrick Brosnan and Timothy Y. Chow.
+           *Unit interval orders and the dot action on the cohomology
+           of regular semisimple Hessenberg varieties*.
+           (2015) :arxiv:`1511.00773v1`.
+        """
+        from sage.combinat.ncsf_qsym.qsym import QuasiSymmetricFunctions
+        from sage.combinat.composition import Compositions
+        from sage.combinat.set_partition_ordered import OrderedSetPartitions
+        if t is None:
+            t = ZZ['t'].gen()
+        if R is None:
+            R = t.parent()
+        M = QuasiSymmetricFunctions(R).M()
+        ret = M.zero()
+        V = self.vertices()
+        def asc(sigma):
+            stat = 0
+            for i, s in enumerate(sigma):
+                for u in s:
+                    stat += sum(1 for p in sigma[i+1:] for v in p
+                                if v > u and self.has_edge(u, v))
+            return stat
+        for sigma in OrderedSetPartitions(V):
+            if any(not self.is_independent_set(s) for s in sigma):
+                continue
+            ret += M.term(sigma.to_composition(), t**asc(sigma))
+        return ret
+
     @doc_index("Leftovers")
     def matching(self, value_only=False, algorithm="Edmonds", use_edge_labels=True, solver=None, verbose=0):
         r"""

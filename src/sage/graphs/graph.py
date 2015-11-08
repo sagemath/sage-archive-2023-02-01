@@ -6314,7 +6314,7 @@ class Graph(GenericGraph):
 
         return D[0] == "Prime" and len(D[1]) == self.order()
 
-    @rename_keyword(deprecation=19550, method='algorithm=')
+    @rename_keyword(deprecation=19550, method='algorithm')
     def _gomory_hu_tree(self, vertices, algorithm="FF"):
         r"""
         Return a Gomory-Hu tree associated to self.
@@ -6411,7 +6411,7 @@ class Graph(GenericGraph):
         return g
 
     @doc_index("Connectivity, orientations, trees")
-    @rename_keyword(deprecation=19550, method='algorithm=')
+    @rename_keyword(deprecation=19550, method='algorithm')
     def gomory_hu_tree(self, algorithm="FF"):
         r"""
         Returns a Gomory-Hu tree of self.

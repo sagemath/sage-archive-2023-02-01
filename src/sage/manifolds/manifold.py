@@ -86,9 +86,9 @@ and `V`::
     sage: M.declare_union(U,V)
 
 and we provide the transition map between the charts ``stereoN`` = `(U, (x, y))`
-and ``stereoS`` = `(V, (u, v))`, denoting by W the intersection of U and V
-(W is the subset of U defined by `x^2+y^2\not=0`, as well as the subset of V
-defined by`u^2+v^2\not=0`)::
+and ``stereoS`` = `(V, (u, v))`, denoting by `W` the intersection of `U` and `V`
+(`W` is the subset of `U` defined by `x^2+y^2\not=0`, as well as the subset of
+`V` defined by `u^2+v^2\not=0`)::
 
     sage: stereoN_to_S = stereoN.transition_map(stereoS, [x/(x^2+y^2), y/(x^2+y^2)],
     ....:                          intersection_name='W', restrictions1= x^2+y^2!=0,
@@ -147,7 +147,8 @@ Let us consider the point of coordinates (1,2) in the chart ``stereoN``::
     sage: p in W
     True
 
-The coordinates of `p` in the chart ``stereoS`` are::
+The coordinates of `p` in the chart ``stereoS`` are computed by letting
+the chart act on the point::
 
     sage: stereoS(p)
     (1/5, 2/5)
@@ -322,14 +323,6 @@ class TopologicalManifold(TopologicalManifoldSubset):
     - ``ambient_manifold`` -- (default: ``None``) if not ``None``, the created
       object is considered as an open subset of the topological manifold
       ``ambient_manifold``
-    - ``unique_tag`` -- (default: ``None``) tag used to force the construction
-      of a new object when all the other arguments have been used previously
-      (without ``unique_tag``, the
-      :class:`~sage.structure.unique_representation.UniqueRepresentation`
-      behavior inherited from
-      :class:`~sage.manifolds.subset.TopologicalManifoldSubset`
-      would return the previously constructed object corresponding to these
-      arguments).
 
     EXAMPLES:
 
@@ -431,7 +424,7 @@ class TopologicalManifold(TopologicalManifoldSubset):
 
     """
     def __init__(self, n, name, latex_name=None, field='real', start_index=0,
-                 category=None, ambient_manifold=None, unique_tag=None):
+                 category=None, ambient_manifold=None):
         r"""
         Construct a topological manifold.
 
@@ -550,6 +543,76 @@ class TopologicalManifold(TopologicalManifoldSubset):
 
         """
         return self._latex_name
+
+    def __reduce__(self):
+        r"""
+        Reduction function for the pickle protocole.
+
+        TESTS::
+
+            sage: M = Manifold(3, 'M', type='topological')
+            sage: M.__reduce__()
+            (<class 'sage.manifolds.manifold.TopologicalManifold'>,
+             (3,
+              'M',
+              'M',
+              Real Field with 53 bits of precision,
+              0,
+              Category of manifolds over Real Field with 53 bits of precision,
+              None))
+            sage: U = M.open_subset('U')
+            sage: U.__reduce__()
+            (<class 'sage.manifolds.manifold.TopologicalManifold'>,
+             (3,
+              'U',
+              'U',
+              Real Field with 53 bits of precision,
+              0,
+              Category of facade manifolds over Real Field with 53 bits of precision,
+              3-dimensional topological manifold M))
+
+        Tests of pickling::
+
+            sage: loads(dumps(M))
+            3-dimensional topological manifold M
+            sage: loads(dumps(U))
+            Open subset U of the 3-dimensional topological manifold M
+
+        """
+        if self._manifold is self:
+            ambient_manifold = None
+        else:
+            ambient_manifold = self._manifold
+        return (TopologicalManifold, (self._dim, self._name, self._latex_name,
+                                      self._field, self._sindex,
+                                      self.category(), ambient_manifold))
+
+    def _test_pickling(self, **options):
+        r"""
+        Test pickling.
+
+        This test is weaker than
+        :meth:`sage.structure.sage_object.SageObject._test_pickling` in that
+        it does not require ``loads(dumps(self)) == self``.
+        It however checks that ``loads(dumps(self))`` proceeds without any
+        error and results in an object that is a manifold of the same type as
+        ``self``, with some identical characteristics (dimension, name).
+
+        TESTS::
+
+            sage: M = Manifold(3, 'M', type='topological')
+            sage: M._test_pickling()
+            sage: M = Manifold(3, 'M', type='topological', field='complex')
+            sage: M._test_pickling()
+
+        """
+        tester = self._tester(**options)
+        from sage.misc.all import loads, dumps
+        bckp = loads(dumps(self))
+        tester.assertEqual(type(bckp), type(self))
+        tester.assertEqual(bckp.category(), self.category())
+        tester.assertEqual(bckp._dim, self._dim)
+        tester.assertEqual(bckp._name, self._name)
 
     def _an_element_(self):
         r"""
@@ -1229,7 +1292,7 @@ class TopologicalManifold(TopologicalManifoldSubset):
         # to allow for open_subset() of derived classes to call first this
         # version,
         # but, because of the category framework, it could NOT have been
-        # resu = self.__class__(...)
+        # resu = type(self)(...)
         # cf. the discussion in
         # https://groups.google.com/forum/#!topic/sage-devel/jHlFxhMDf3Y
         resu._supersets.update(self._supersets)
@@ -1435,7 +1498,7 @@ def Manifold(dim, name, latex_name=None, field='real', type='smooth',
     :class:`~sage.manifolds.manifold.TopologicalManifold` for more
     detailed examples.
 
-    .. RUBRIC:: Reusability of the manifold name
+    .. RUBRIC:: Uniqueness of manifold objects
 
     Suppose we construct a manifold named `M`::
 
@@ -1488,19 +1551,24 @@ def Manifold(dim, name, latex_name=None, field='real', type='smooth',
         sage: M.atlas()[0] != M_old.atlas()[0]
         True
 
-    The pickling works for both objects::
+    Moreover, the two manifolds ``M`` and ``M_old`` are still considered
+    distinct::
 
-        sage: loads(dumps(M)) == M
+        sage: M != M_old
         True
-        sage: loads(dumps(M_old)) == M_old
+
+    This reflects the fact that the equality of manifold objects holds only
+    for identical objects, i.e. one has ``M1 == M2`` if, and only if,
+    ``M1 is M2``. Actually, the manifold classes inherit from
+    :class:`~sage.misc.fast_methods.WithEqualityById`::
+
+        sage: isinstance(M, sage.misc.fast_methods.WithEqualityById)
         True
 
     """
-    from time import time
     type_ = type  # in case the built-in function type is to be restored...
     if type_ in ['topological', 'top']:
         return TopologicalManifold(dim, name, latex_name=latex_name,
-                                   field=field, start_index=start_index,
-                                   unique_tag=time())
+                                   field=field, start_index=start_index)
     raise NotImplementedError("manifolds of type {} are not ".format(type_) +
                               "implemented")

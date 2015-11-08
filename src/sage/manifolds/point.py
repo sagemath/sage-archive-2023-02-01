@@ -637,7 +637,7 @@ class TopologicalManifoldPoint(Element):
             # raise ValueError("no common chart has been found to compare " +
             #                  "{} and {}".format(self, other))
         return self._coordinates[common_chart] == \
-                                              other._coordinates[common_chart]
+                                               other._coordinates[common_chart]
 
     def __ne__(self, other):
         r"""
@@ -655,7 +655,7 @@ class TopologicalManifoldPoint(Element):
             False
 
         """
-        return not self.__eq__(other)
+        return not (self == other)
 
     def __cmp__(self, other):
         r"""
@@ -676,7 +676,7 @@ class TopologicalManifoldPoint(Element):
             -1
 
         """
-        if self.__eq__(other):
+        if self == other:
             return 0
         else:
             return -1
@@ -694,10 +694,33 @@ class TopologicalManifoldPoint(Element):
             sage: M = Manifold(2, 'M', type='topological')
             sage: X.<x,y> = M.chart()
             sage: p = M((2,-3), chart=X)
-            sage: p.__hash__()  # random
+            sage: hash(p)  # random
             8791657334475
-            sage: p.__hash__() == hash(M)
+            sage: hash(p) == hash(M)
             True
 
         """
-        return self._manifold.__hash__()
+        return hash(self._manifold)
+
+    def _test_pickling(self, **options):
+        r"""
+        Test pickling.
+
+        This test is weaker than
+        :meth:`sage.structure.sage_object.SageObject._test_pickling` in that
+        it does not require ``loads(dumps(self)) == self``.
+        It however checks that ``loads(dumps(self))`` proceeds without any
+        error and results in an object that is a manifold point.
+
+        TESTS::
+
+            sage: M = Manifold(2, 'M', type='topological')
+            sage: X.<x,y> = M.chart()
+            sage: p = M((1,2), chart=X)
+            sage: p._test_pickling()
+
+        """
+        tester = self._tester(**options)
+        from sage.misc.all import loads, dumps
+        bckp = loads(dumps(self))
+        tester.assertEqual(type(bckp), type(self))

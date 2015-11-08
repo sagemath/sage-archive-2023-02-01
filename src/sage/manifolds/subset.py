@@ -71,11 +71,11 @@ Lists of subsets after the above operations::
 #*****************************************************************************
 
 from sage.structure.parent import Parent
-from sage.structure.unique_representation import UniqueRepresentation
+from sage.misc.fast_methods import WithEqualityById
 from sage.categories.sets_cat import Sets
 from sage.manifolds.point import TopologicalManifoldPoint
 
-class TopologicalManifoldSubset(UniqueRepresentation, Parent):
+class TopologicalManifoldSubset(WithEqualityById, Parent):
     r"""
     Subset of a topological manifold.
 
@@ -355,6 +355,55 @@ class TopologicalManifoldSubset(UniqueRepresentation, Parent):
 
         """
         return self._latex_name
+
+    def __reduce__(self):
+        r"""
+        Reduction function for the pickle protocole.
+
+        TEST::
+
+            sage: M = Manifold(3, 'M', type='topological')
+            sage: A = M.subset('A')
+            sage: A.__reduce__()
+            (<class 'sage.manifolds.subset.TopologicalManifoldSubset'>,
+             (3-dimensional topological manifold M, 'A', 'A',
+              Category of facade sets))
+
+        Test of pickling::
+
+            sage: loads(dumps(A))
+            Subset A of the 3-dimensional topological manifold M
+
+        """
+        return (TopologicalManifoldSubset, (self._manifold, self._name,
+                                            self._latex_name, self.category()))
+
+    def _test_pickling(self, **options):
+        r"""
+        Test pickling.
+
+        This test is weaker than
+        :meth:`sage.structure.sage_object.SageObject._test_pickling` in that
+        it does not require ``loads(dumps(self)) == self``.
+        It however checks that ``loads(dumps(self))`` proceeds without any
+        error and results in an object that is a manifold subset of the same
+        type as ``self``, with the same name.
+
+        TESTS::
+
+            sage: M = Manifold(3, 'M', type='topological')
+            sage: A = M.subset('A')
+            sage: A._test_pickling()
+            sage: B = A.subset('B')
+            sage: B._test_pickling()
+
+        """
+        tester = self._tester(**options)
+        from sage.misc.all import loads, dumps
+        bckp = loads(dumps(self))
+        tester.assertEqual(type(bckp), type(self))
+        tester.assertEqual(bckp.category(), self.category())
+        tester.assertEqual(bckp._name, self._name)
 
     def manifold(self):
         r"""

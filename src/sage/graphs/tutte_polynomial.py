@@ -584,7 +584,7 @@ def tutte_polynomial(G, edge_selector=None, cache=None):
     if G.num_edges() == 0:
         return R.one()
 
-    G = G.relabel(inplace=False) # making sure the vertices are integers
+    G = G.relabel(inplace=False, immutable=False) # making sure the vertices are integers
     G.allow_loops(True)
     G.allow_multiple_edges(True)
 

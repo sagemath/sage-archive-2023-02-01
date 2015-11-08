@@ -1628,6 +1628,14 @@ class Graphics(WithEqualityById, SageObject):
             sage: plot(sin(x), (x, -4, 4), transparent=True)
             Graphics object consisting of 1 graphics primitive
 
+        Prior to :trac:`19485`, legends by default had a shadowless gray
+        background. This behavior can be recovered by passing in certain
+        ``legend_options``::
+
+            sage: p = plot(sin(x), legend_label='$\sin(x)$')
+            sage: p.show(legend_options={'back_color': (0.9,0.9,0.9),
+            ....:                        'shadow': False})
+
         We can change the scale of the axes in the graphics before
         displaying::
 

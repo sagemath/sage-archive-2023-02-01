@@ -1,0 +1,15 @@
+diff -Naur numpy-1.10.1.orig/numpy/core/function_base.py numpy-1.10.1/numpy/core/function_base.py
+--- numpy-1.10.1.orig/numpy/core/function_base.py	2015-11-09 10:40:25.078701111 +1300
++++ numpy-1.10.1/numpy/core/function_base.py	2015-11-09 10:41:36.858716491 +1300
+@@ -87,8 +87,9 @@
+     div = (num - 1) if endpoint else num
+ 
+     # Convert float/complex array scalars to float, gh-3504
+-    start = start * 1.
+-    stop = stop * 1.
++    from numpy import asarray
++    start = asarray(start) * 1.
++    stop = asarray(stop) * 1.
+ 
+     dt = result_type(start, stop, float(num))
+     if dtype is None:

@@ -11990,7 +11990,7 @@ class GenericGraph(GenericGraph_pyx):
 
         TESTS:
 
-        Trac Ticket #11735::
+        See :trac:`11735`::
 
            sage: g = Graph({3:[2,1,4],2:[1],4:[1],5:[2,1,4]})
            sage: _, g1 = g.is_chordal(certificate=True); g1.is_chordal()
@@ -16170,7 +16170,7 @@ class GenericGraph(GenericGraph_pyx):
 
         TESTS:
 
-        There were some problems with the following call in the past (trac 10899) -- now
+        There were some problems with the following call in the past (:trac:`10899`) -- now
         it should be fine::
 
             sage: Graph(1).lex_BFS(tree=True)
@@ -19940,7 +19940,7 @@ class GenericGraph(GenericGraph_pyx):
 
         TESTS:
 
-        We get a KeyError when given an invalid partition (trac #6087)::
+        We get a KeyError when given an invalid partition (:trac:`6087`)::
 
             sage: g=graphs.CubeGraph(3)
             sage: g.relabel()
@@ -20414,7 +20414,7 @@ class GenericGraph(GenericGraph_pyx):
             sage: D.is_isomorphic(D,edge_labels=True, certify = True)
             (True, {0: 0, 1: 1, 2: 2, 3: 3, 4: 4, 5: 5})
 
-        Ensure that trac :trac:`11620` is fixed::
+        Ensure that :trac:`11620` is fixed::
 
             sage: G1 = DiGraph([(0, 0, 'c'), (0, 4, 'b'), (0, 5, 'c'),
             ...   (0, 5, 't'), (1, 1, 'c'), (1, 3,'c'), (1, 3, 't'), (1, 5, 'b'),

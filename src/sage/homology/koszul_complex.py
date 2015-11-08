@@ -14,7 +14,7 @@ Koszul Complexes
 
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.parent import Parent
-from sage.combinat.choose_nk import rank
+from sage.combinat.combination import rank
 from sage.rings.arith import binomial
 from sage.rings.all import ZZ
 from sage.matrix.constructor import matrix

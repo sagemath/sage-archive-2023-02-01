@@ -21,6 +21,8 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
+import itertools
+
 from sage.misc.cachefunc import cached_method
 from sage.misc.lazy_attribute import lazy_attribute
 from sage.structure.global_options import GlobalOptions
@@ -32,7 +34,6 @@ from sage.rings.all import QQ
 from sage.categories.finite_crystals import FiniteCrystals
 from sage.categories.regular_crystals import RegularCrystals
 from sage.combinat.root_system.cartan_type import CartanType
-from sage.combinat.cartesian_product import CartesianProduct
 from sage.combinat.rigged_configurations.kleber_tree import KleberTree, VirtualKleberTree
 from sage.combinat.rigged_configurations.rigged_configuration_element import (
      RiggedConfigurationElement, KRRCSimplyLacedElement, KRRCNonSimplyLacedElement,
@@ -588,10 +589,9 @@ class RiggedConfigurations(UniqueRepresentation, Parent):
                 L2 = []
                 for block in blocks[-1]:
                     L2.append(IterableFunctionCall(self._block_iterator, block))
-                L.append(CartesianProduct(*L2))
+                L.append(itertools.product(*L2))
 
-            # TODO Find a more efficient method without appealing to the CartesianProduct
-            C = CartesianProduct(*L)
+            C = itertools.product(*L)
             for curBlocks in C:
                 module_gens.append( self.element_class(self, KT_constructor=[shapes[:],
                                          self._blocks_to_values(curBlocks[:]),
@@ -1265,10 +1265,9 @@ class RCNonSimplyLaced(RiggedConfigurations):
                 L2 = []
                 for block in blocks[-1]:
                     L2.append(IterableFunctionCall(self._block_iterator, block))
-                L.append(CartesianProduct(*L2))
+                L.append(itertools.product(*L2))
 
-            # TODO Find a more efficient method without appealing to the CartesianProduct
-            C = CartesianProduct(*L)
+            C = itertools.product(*L)
             for cur_blocks in C:
                 module_gens.append( self.element_class(self, KT_constructor=[shapes[:],
                                          self._blocks_to_values(cur_blocks[:]), vac_nums[:]]) )
@@ -1754,7 +1753,7 @@ class RCTypeA2Dual(RCTypeA2Even):
                 L2 = []
                 for block in blocks[-1]:
                     L2.append(IterableFunctionCall(self._block_iterator, block))
-                L.append(CartesianProduct(*L2))
+                L.append(itertools.product(*L2))
 
             # Special case for the final tableau
             partition = base[-1]
@@ -1785,10 +1784,9 @@ class RCTypeA2Dual(RCTypeA2Even):
                         L2.append(IterableFunctionCall(self._block_iterator_n_odd, block))
                     else:
                         L2.append(IterableFunctionCall(self._block_iterator, block))
-                L.append(CartesianProduct(*L2))
+                L.append(itertools.product(*L2))
 
-            # TODO Find a more efficient method without appealing to the CartesianProduct
-            C = CartesianProduct(*L)
+            C = itertools.product(*L)
             for curBlocks in C:
                 module_gens.append( self.element_class(self, KT_constructor=[shapes[:],
                                          self._blocks_to_values(curBlocks[:]), vac_nums[:]]) )

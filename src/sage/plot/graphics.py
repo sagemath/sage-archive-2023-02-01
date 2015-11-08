@@ -1128,7 +1128,7 @@ class Graphics(WithEqualityById, SageObject):
         """
         self._objects.append(primitive)
 
-    def plot(self, *args, **kwds):
+    def plot(self):
         """
         Draw a 2D plot of this graphics object, which just returns this
         object since this is already a 2D graphics object.
@@ -1138,6 +1138,17 @@ class Graphics(WithEqualityById, SageObject):
             sage: S = circle((0,0), 2)
             sage: S.plot() is S
             True
+
+        It does not accept any argument (:trac:`19539`)::
+
+            sage: S.plot(1)
+            Traceback (most recent call last):
+            ...
+            TypeError: plot() takes exactly 1 argument (2 given)
+            sage: S.plot(hey="hou")
+            Traceback (most recent call last):
+            ...
+            TypeError: plot() got an unexpected keyword argument 'hey'
         """
         return self
 

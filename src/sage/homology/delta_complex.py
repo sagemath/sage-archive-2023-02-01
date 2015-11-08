@@ -124,11 +124,11 @@ class DeltaComplex(GenericCellComplex):
       To construct a torus, use::
 
         sage: torus_dict = {Simplex([0,1,2]): True,
-        ...          Simplex([3,4,5]): (Simplex([0,1]), Simplex([0,2]), Simplex([1,2])),
-        ...          Simplex([0,1]): (Simplex(0), Simplex(0)),
-        ...          Simplex([0,2]): (Simplex(0), Simplex(0)),
-        ...          Simplex([1,2]): (Simplex(0), Simplex(0)),
-        ...          Simplex(0): ()}
+        ....:        Simplex([3,4,5]): (Simplex([0,1]), Simplex([0,2]), Simplex([1,2])),
+        ....:        Simplex([0,1]): (Simplex(0), Simplex(0)),
+        ....:        Simplex([0,2]): (Simplex(0), Simplex(0)),
+        ....:        Simplex([1,2]): (Simplex(0), Simplex(0)),
+        ....:        Simplex(0): ()}
         sage: T = DeltaComplex(torus_dict); T
         Delta complex with 1 vertex and 7 simplices
         sage: T.cohomology(base_ring=QQ)
@@ -158,7 +158,7 @@ class DeltaComplex(GenericCellComplex):
       index in the list of (n-1)-faces.  For example, consider this::
 
         sage: P = DeltaComplex( [ [(), ()],  [(1,0), (1,0), (0,0)],
-        ...                       [(1,0,2), (0, 1, 2)] ])
+        ....:                     [(1,0,2), (0, 1, 2)] ])
 
       The 0th entry in the list is ``[(), ()]``: there are two
       0-simplices, and their boundaries are empty.
@@ -204,7 +204,7 @@ class DeltaComplex(GenericCellComplex):
       :meth:`cells` method. ::
 
         sage: P = DeltaComplex( [ [(), ()],  [(1,0), (1,0), (0,0)],
-        ...                       [(1,0,2), (0, 1, 2)] ])
+        ....:                     [(1,0,2), (0, 1, 2)] ])
         sage: cells_dict = P.cells()
         sage: cells_dict
         {-1: ((),),

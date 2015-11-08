@@ -351,10 +351,20 @@ class FiniteEnumeratedSet(UniqueRepresentation, Parent):
             2
             sage: F('a')
             'a'
+
+        Check that :trac:`19554` is fixed::
+
+            sage: S = FiniteEnumeratedSet(range(5))
+            sage: S(1)
+            1
+            sage: type(S(1))
+            <type 'int'>
         """
         if not isinstance(el, Element):
             return self._element_constructor_(el)
-        else:
+        try:
+            return self._element_constructor_(el)
+        except ValueError:
             return Parent.__call__(self, el)
 
     def _element_constructor_(self, el):

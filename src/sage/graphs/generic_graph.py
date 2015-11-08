@@ -314,6 +314,7 @@ from sage.rings.rational import Rational
 from generic_graph_pyx import GenericGraph_pyx, spring_layout_fast
 from sage.graphs.dot2tex_utils import assert_have_dot2tex
 from sage.misc.superseded import deprecation, deprecated_function_alias
+from sage.misc.decorators import rename_keyword
 
 class GenericGraph(GenericGraph_pyx):
     """
@@ -5716,14 +5717,14 @@ class GenericGraph(GenericGraph_pyx):
 
         return classes
 
-    def edge_cut(self, s, t, value_only=True, use_edge_labels=False, vertices=False, method="FF", solver=None, verbose=0):
+    @rename_keyword(deprecation=19550, method='algorithm=')
+    def edge_cut(self, s, t, value_only=True, use_edge_labels=False, vertices=False, algorithm="FF", solver=None, verbose=0):
         r"""
-        Returns a minimum edge cut between vertices `s` and `t`
-        represented by a list of edges.
+        Return a minimum edge cut between vertices `s` and `t`.
 
         A minimum edge cut between two vertices `s` and `t` of self
         is a set `A` of edges of minimum weight such that the graph
-        obtained by removing `A` from self is disconnected. For more
+        obtained by removing `A` from the graph is disconnected. For more
         information, see the
         `Wikipedia article on cuts
         <http://en.wikipedia.org/wiki/Cut_%28graph_theory%29>`_.
@@ -5749,22 +5750,21 @@ class GenericGraph(GenericGraph_pyx):
 
           Note: ``vertices=True`` implies ``value_only=False``.
 
-        - ``method`` -- There are currently two different
-          implementations of this method :
+        - ``algorithm`` -- algorithm to use:
 
-              * If ``method = "FF"``, a Python implementation of the
-                Ford-Fulkerson algorithm is used
+          * If ``algorithm = "FF"``, a Python implementation of the
+            Ford-Fulkerson algorithm is used
 
-              * If ``method = "LP"``, the flow problem is solved using
-                Linear Programming.
+          * If ``algorithm = "LP"``, the flow problem is solved using
+            Linear Programming.
 
-              * If ``method = "igraph"``, the igraph implementation of the
-                Goldberg-Tarjan algorithm is used (only available when
-                igraph is installed)
+          * If ``algorithm = "igraph"``, the igraph implementation of the
+            Goldberg-Tarjan algorithm is used (only available when
+            igraph is installed)
 
-              * If ``method = None`` (default), we use ``LP`` if
-                ``vertex_bound = True``, otherwise, we use ``igraph`` if
-                it is available, ``FF`` if it is not available.
+          * If ``algorithm = None`` (default), we use ``LP`` if
+            ``vertex_bound = True``, otherwise, we use ``igraph`` if
+            it is available, ``FF`` if it is not available.
 
         - ``solver`` -- (default: ``None``) Specify a Linear Program (LP)
           solver to be used. If set to ``None``, the default one is used. For
@@ -5829,39 +5829,39 @@ class GenericGraph(GenericGraph_pyx):
 
         TESTS:
 
-        If method is set to an exotic value::
+        If algorithm is set to an exotic value::
 
            sage: g = graphs.PetersenGraph()
-           sage: g.edge_cut(0,1, method="Divination")
+           sage: g.edge_cut(0, 1, algorithm="Divination")
            Traceback (most recent call last):
            ...
-           ValueError: The method argument has to be equal to "FF", "LP", "igraph", or None
+           ValueError: The algorithm argument has to be equal to "FF", "LP", "igraph", or None
 
         Same result for all three methods::
 
            sage: g = graphs.RandomGNP(20,.3)
            sage: for u,v in g.edges(labels=False):
            ...      g.set_edge_label(u,v,round(random(),5))
-           sage: g.edge_cut(0,1, method="FF") == g.edge_cut(0,1,method="LP")
+           sage: g.edge_cut(0, 1, algorithm="FF") == g.edge_cut(0, 1, algorithm="LP")
            True
-           sage: g.edge_cut(0,1, method="FF") == g.edge_cut(0,1,method="igraph") # optional - python_igraph
+           sage: g.edge_cut(0, 1, algorithm="FF") == g.edge_cut(0, 1, algorithm="igraph") # optional - python_igraph
            True
 
         Rounded return value when using the LP method::
 
            sage: g = graphs.PappusGraph()
-           sage: g.edge_cut(1, 2, value_only=True, method = "LP")
+           sage: g.edge_cut(1, 2, value_only=True, algorithm="LP")
            3
 
         :trac:`12797`::
 
             sage: G = Graph([(0, 3, 1), (0, 4, 1), (1, 2, 1), (2, 3, 1), (2, 4, 1)])
-            sage: G.edge_cut(0,1,value_only=False,use_edge_labels=True)
+            sage: G.edge_cut(0, 1, value_only=False, use_edge_labels=True)
             [1, [(1, 2, 1)]]
             sage: G = DiGraph([(0, 3, 1), (0, 4, 1), (2, 1, 1), (3, 2, 1), (4, 2, 1)])
-            sage: G.edge_cut(0,1,value_only=False,use_edge_labels=True)
+            sage: G.edge_cut(0, 1, value_only=False, use_edge_labels=True)
             [1, [(2, 1, 1)]]
-            sage: G.edge_cut(0,1,value_only=False,use_edge_labels=True,method='LP')
+            sage: G.edge_cut(0, 1, value_only=False, use_edge_labels=True, algorithm='LP')
             (1.0, [(2, 1)])
         """
         self._scream_if_not_simple(allow_loops=True)
@@ -5873,14 +5873,14 @@ class GenericGraph(GenericGraph_pyx):
         else:
             weight = lambda x: 1
 
-        if method in ["FF", "igraph", None]:
+        if algorithm in ["FF", "igraph", None]:
             if value_only:
-                return self.flow(s,t,value_only=value_only,use_edge_labels=use_edge_labels, method=method)
+                return self.flow(s,t,value_only=value_only,use_edge_labels=use_edge_labels, algorithm=algorithm)
 
             from sage.graphs.digraph import DiGraph
             g = DiGraph(self)
 
-            flow_value, flow_graph = self.flow(s,t,value_only=value_only,use_edge_labels=use_edge_labels, method=method)
+            flow_value, flow_graph = self.flow(s,t,value_only=value_only,use_edge_labels=use_edge_labels, algorithm=algorithm)
 
             for u,v,l in flow_graph.edge_iterator():
                 g.add_edge(v,u)
@@ -5899,8 +5899,8 @@ class GenericGraph(GenericGraph_pyx):
 
             return return_value
 
-        if method != "LP":
-            raise ValueError("The method argument has to be equal to \"FF\", " +
+        if algorithm != "LP":
+            raise ValueError("The algorithm argument has to be equal to \"FF\", " +
                              "\"LP\", \"igraph\", or None")
 
         from sage.numerical.mip import MixedIntegerLinearProgram
@@ -7617,7 +7617,8 @@ class GenericGraph(GenericGraph_pyx):
 
                 return [v for v in self if b_sol[v] == 1]
 
-    def flow(self, x, y, value_only=True, integer=False, use_edge_labels=True, vertex_bound=False, method = None, solver=None, verbose=0):
+    @rename_keyword(deprecation=19550, method='algorithm=')
+    def flow(self, x, y, value_only=True, integer=False, use_edge_labels=True, vertex_bound=False, algorithm = None, solver=None, verbose=0):
         r"""
         Returns a maximum flow in the graph from ``x`` to ``y``
         represented by an optimal valuation of the edges. For more
@@ -7670,21 +7671,21 @@ class GenericGraph(GenericGraph_pyx):
             a vertex different from `x` to `1` (useful for vertex
             connectivity parameters).
 
-        - ``method`` -- There are currently two different
-          implementations of this method :
+        - ``algorithm`` -- There are currently three different
+          implementations of this method:
 
-              * If ``method = "FF"``, a Python implementation of the
+              * If ``algorithm = "FF"``, a Python implementation of the
                 Ford-Fulkerson algorithm is used (only available when
                 ``vertex_bound = False``)
 
-              * If ``method = "LP"``, the flow problem is solved using
+              * If ``algorithm = "LP"``, the flow problem is solved using
                 Linear Programming.
 
-              * If ``method = "igraph"``, the igraph implementation of the
+              * If ``algorithm = "igraph"``, the igraph implementation of the
                 Goldberg-Tarjan algorithm is used (only available when
                 igraph is installed and ``vertex_bound = False``)
 
-              * If ``method = None`` (default), we use ``LP`` if
+              * If ``algorithm = None`` (default), we use ``LP`` if
                 ``vertex_bound = True``, otherwise, we use ``igraph`` if
                 it is available, ``FF`` if it is not available.
 
@@ -7754,41 +7755,41 @@ class GenericGraph(GenericGraph_pyx):
         An exception if raised when forcing "FF" or "igraph" with ``vertex_bound = True``::
 
             sage: g = graphs.PetersenGraph()
-            sage: g.flow(0,1,vertex_bound = True, method = "FF")
+            sage: g.flow(0,1,vertex_bound = True, algorithm = "FF")
             Traceback (most recent call last):
             ...
-            ValueError: This method does not support both vertex_bound=True and method='FF'.
-            sage: g.flow(0,1,vertex_bound = True, method = "igraph")
+            ValueError: This method does not support both vertex_bound=True and algorithm='FF'.
+            sage: g.flow(0,1,vertex_bound = True, algorithm = "igraph")
             Traceback (most recent call last):
             ...
-            ValueError: This method does not support both vertex_bound=True and method='igraph'.
+            ValueError: This method does not support both vertex_bound=True and algorithm='igraph'.
 
         Or if the method is different from the expected values::
 
-            sage: g.flow(0,1, method="Divination")
+            sage: g.flow(0,1, algorithm="Divination")
             Traceback (most recent call last):
             ...
-            ValueError: The method argument has to be equal to either "FF", "LP", "igraph", or None
+            ValueError: The algorithm argument has to be equal to either "FF", "LP", "igraph", or None
 
-        The two methods are indeed returning the same results (possibly with
+        The two algorithms are indeed returning the same results (possibly with
         some numerical noise, cf. :trac:`12362`)::
 
            sage: g = graphs.RandomGNP(20,.3)
            sage: for u,v in g.edges(labels=False):
            ...      g.set_edge_label(u,v,round(random(),5))
-           sage: flow_ff = g.flow(0,1, method="FF")
-           sage: flow_lp = g.flow(0,1, method="LP")
+           sage: flow_ff = g.flow(0,1, algorithm="FF")
+           sage: flow_lp = g.flow(0,1, algorithm="LP")
            sage: abs(flow_ff-flow_lp) < 0.01
            True
-           sage: flow_igraph = g.flow(0,1, method="igraph") # optional python_igraph
+           sage: flow_igraph = g.flow(0,1, algorithm="igraph") # optional python_igraph
            sage: abs(flow_ff-flow_igraph) < 0.00001         # optional python_igraph
            True
         """
         from sage.misc.package import is_package_installed
         self._scream_if_not_simple(allow_loops=True)
-        if vertex_bound and method in ["FF", "igraph"]:
+        if vertex_bound and algorithm in ["FF", "igraph"]:
             raise ValueError("This method does not support both " +
-                             "vertex_bound=True and method='" + method + "'.")
+                             "vertex_bound=True and algorithm='" + algorithm + "'.")
         if use_edge_labels:
             from sage.rings.real_mpfr import RR
             if integer:
@@ -7799,17 +7800,17 @@ class GenericGraph(GenericGraph_pyx):
         else:
             capacity=lambda x: 1
 
-        if method is None:
+        if algorithm is None:
             if vertex_bound:
-                method = "LP"
+                algorithm = "LP"
             elif is_package_installed("python_igraph"):
-                method = "igraph"
+                algorithm = "igraph"
             else:
-                method = "FF"
+                algorithm = "FF"
 
-        if (method == "FF"):
+        if (algorithm == "FF"):
             return self._ford_fulkerson(x,y, value_only=value_only, integer=integer, use_edge_labels=use_edge_labels)
-        elif (method == 'igraph'):
+        elif (algorithm == 'igraph'):
 
             try:
                 import igraph
@@ -7851,8 +7852,8 @@ class GenericGraph(GenericGraph_pyx):
                 flow_digraph.relabel({i:vertices[i] for i in flow_digraph})
                 return [maxflow.value, flow_digraph]
 
-        if method != "LP":
-            raise ValueError("The method argument has to be equal to either " +
+        if algorithm != "LP":
+            raise ValueError("The algorithm argument has to be equal to either " +
                              "\"FF\", \"LP\", \"igraph\", or None")
 
 
@@ -8406,7 +8407,8 @@ class GenericGraph(GenericGraph_pyx):
         except EmptySetError:
             raise EmptySetError("The disjoint routed paths do not exist.")
 
-    def edge_disjoint_paths(self, s, t, method = "FF"):
+    @rename_keyword(deprecation=19550, method='algorithm=')
+    def edge_disjoint_paths(self, s, t, algorithm = "FF"):
         r"""
         Returns a list of edge-disjoint paths between two
         vertices as given by Menger's theorem.
@@ -8421,13 +8423,13 @@ class GenericGraph(GenericGraph_pyx):
 
         INPUT:
 
-        - ``method`` -- There are currently two different
+        - ``algorithm`` -- There are currently two different
           implementations of this method :
 
-              * If ``method = "FF"`` (default), a Python implementation of the
+              * If ``algorithm = "FF"`` (default), a Python implementation of the
                 Ford-Fulkerson algorithm is used.
 
-              * If ``method = "LP"``, the flow problem is solved using
+              * If ``algorithm = "LP"``, the flow problem is solved using
                 Linear Programming.
 
         .. NOTE::
@@ -8444,7 +8446,7 @@ class GenericGraph(GenericGraph_pyx):
             [[0, 2, 1], [0, 3, 1], [0, 4, 1]]
         """
 
-        [obj, flow_graph] = self.flow(s,t,value_only=False, integer=True, use_edge_labels=False, method=method)
+        [obj, flow_graph] = self.flow(s,t,value_only=False, integer=True, use_edge_labels=False, algorithm=algorithm)
 
         paths = []
 

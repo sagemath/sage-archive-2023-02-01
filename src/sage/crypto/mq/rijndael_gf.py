@@ -1,14 +1,19 @@
 r"""
 Rijndael-GF
 
-An algebraic implementation of the Rijndael-GF extension of the AES cipher, as
-described in [DR02]_. The AES cipher itself is defined to operate on a state
-in `(\GF{2})^{8 n_t}` where `n_t \in \{16, 20, 24, 28, 32\}`. Rijndael-GF is a
-generalization of AES which allows for operations in `(\GF{2^8})^{n_t}`,
-enabling more algebraically sophisticated study of AES and its variants.
-This implementation of Rijndael-GF is suitable for learning purposes, for
-comparison to other algebraic ciphers, and for studying various techniques
-of algebraic cryptanalysis of AES. This cipher is different from
+Rijndael-GF is an algebraic implementation of the AES cipher which seeks to
+provide a fully generalized algebraic representation of both the whole AES
+cipher as well as its individual components.
+
+This class is an algebraic implementation of the Rijndael-GF extension of the
+AES cipher, as described in [DR02]_. The AES cipher itself is defined to
+operate on a state in `(\GF{2})^{8 n_t}` where
+`n_t \in \{16, 20, 24, 28, 32\}`. Rijndael-GF is a generalization of AES which
+allows for operations in `(\GF{2^8})^{n_t}`, enabling more algebraically
+sophisticated study of AES and its variants. This implementation of
+Rijndael-GF is suitable for learning purposes, for comparison to other
+algebraic ciphers, and for studying various techniques of algebraic
+cryptanalysis of AES. This cipher is different from
 :mod:`Mini-AES <sage.crypto.block_cipher.miniaes>`, which is a
 teaching tool for beginners to understand the basic structure of AES.
 
@@ -36,6 +41,10 @@ whole AES cipher as well as its individual components, while
 :mod:`SR <sage.crypto.mq.sr>` is instead a family of parameterizable variants
 of the AES suitable as a framework for comparing different cryptanalytic
 techniques that can be brought to bear on the AES.
+
+AUTHORS:
+
+- Thomas Gagne (2015-06): initial version
 
 EXAMPLES
 
@@ -401,10 +410,6 @@ Since ``expand_key_poly`` is not actually a
     Traceback (most recent call last):
     ...
     TypeError: keyword 'f' must be a Round_Component_Poly_Constr
-
-AUTHORS:
-
-- Thomas Gagne (2015-06): initial version
 
 REFERENCES:
 

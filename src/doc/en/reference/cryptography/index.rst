@@ -13,7 +13,6 @@ Cryptography
 
    sage/crypto/block_cipher/sdes
    sage/crypto/block_cipher/miniaes
-   sage/crypto/mq/rijndael_gf
 
    sage/crypto/public_key/blum_goldwasser
 
@@ -27,6 +26,7 @@ Cryptography
    sage/crypto/mq/mpolynomialsystemgenerator
    sage/crypto/mq/sr
    sage/crypto/mq/sbox
+   sage/crypto/mq/rijndael_gf
 
    sage/crypto/lattice
    sage/crypto/lwe

@@ -273,6 +273,25 @@ The following subsets and charts have been defined::
     sage: M.atlas()
     [Chart (U, (z,)), Chart (V, (w,)), Chart (A, (z,)), Chart (A, (w,))]
 
+A constant map `\CC^* \rightarrow \CC`::
+
+    sage: f = M.constant_scalar_field(3+2*I, name='f'); f
+    Scalar field f on the Complex 1-dimensional topological manifold C*
+    sage: f.display()
+    f: C* --> C
+    on U: z |--> 2*I + 3
+    on V: w |--> 2*I + 3
+    sage: f(O)
+    2*I + 3
+    sage: f(i)
+    2*I + 3
+    sage: f(inf)
+    2*I + 3
+    sage: f.parent()
+    Algebra of scalar fields on the Complex 1-dimensional topological
+     manifold C*
+    sage: f.parent().category()
+    Category of commutative algebras over Symbolic Ring
 
 AUTHORS:
 
@@ -1475,8 +1494,7 @@ class TopologicalManifold(TopologicalManifoldSubset):
 
         Scalar algebra of a 3-dimensional open subset::
 
-            sage: TopManifold._clear_cache_() # for doctests only
-            sage: M = TopManifold(3, 'M')
+            sage: M = Manifold(3, 'M', type='topological')
             sage: U = M.open_subset('U')
             sage: CU = U.scalar_field_algebra() ; CU
             Algebra of scalar fields on the Open subset U of the 3-dimensional topological manifold M
@@ -1534,8 +1552,7 @@ class TopologicalManifold(TopologicalManifoldSubset):
         A scalar field defined by its coordinate expression in the open
         set's default chart::
 
-            sage: TopManifold._clear_cache_() # for doctests only
-            sage: M = TopManifold(3, 'M')
+            sage: M = Manifold(3, 'M', type='topological')
             sage: U = M.open_subset('U')
             sage: c_xyz.<x,y,z> = U.chart()
             sage: f = U.scalar_field(sin(x)*cos(y) + z, name='F'); f
@@ -1604,7 +1621,7 @@ class TopologicalManifold(TopologicalManifoldSubset):
 
         A constant scalar field on the 2-sphere::
 
-            sage: M = TopManifold(2, 'M') # the 2-dimensional sphere S^2
+            sage: M = Manifold(2, 'M', type='topological') # the 2-dimensional sphere S^2
             sage: U = M.open_subset('U') # complement of the North pole
             sage: c_xy.<x,y> = U.chart() # stereographic coordinates from the North pole
             sage: V = M.open_subset('V') # complement of the South pole
@@ -1651,8 +1668,7 @@ class TopologicalManifold(TopologicalManifoldSubset):
 
         EXAMPLE::
 
-            sage: TopManifold._clear_cache_() # for doctests only
-            sage: M = TopManifold(2, 'M')
+            sage: M = Manifold(2, 'M', type='topological')
             sage: X.<x,y> = M.chart()
             sage: f = M.zero_scalar_field() ; f
             Scalar field zero on the 2-dimensional topological manifold M
@@ -1680,7 +1696,7 @@ class TopologicalManifold(TopologicalManifoldSubset):
 
         EXAMPLE::
 
-            sage: M = TopManifold(2, 'M')
+            sage: M = Manifold(2, 'M', type='topological')
             sage: X.<x,y> = M.chart()
             sage: f = M.one_scalar_field(); f
             Scalar field 1 on the 2-dimensional topological manifold M

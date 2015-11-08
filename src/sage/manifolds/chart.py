@@ -957,7 +957,7 @@ class Chart(WithEqualityById, SageObject):
 
         A symbolic coordinate function::
 
-            sage: M = TopManifold(2, 'M')
+            sage: M = Manifold(2, 'M', type='topological')
             sage: X.<x,y> = M.chart()
             sage: f = X.function(sin(x*y))
             sage: f
@@ -1002,7 +1002,7 @@ class Chart(WithEqualityById, SageObject):
 
         EXAMPLES::
 
-            sage: M = TopManifold(2, 'M')
+            sage: M = Manifold(2, 'M', type='topological')
             sage: X.<x,y> = M.chart()
             sage: X.zero_function()
             0
@@ -1018,7 +1018,7 @@ class Chart(WithEqualityById, SageObject):
 
         Zero function on a p-adic manifold::
 
-            sage: M = TopManifold(2, 'M', field=Qp(5)); M
+            sage: M = Manifold(2, 'M', type='topological', field=Qp(5)); M
             2-dimensional topological manifold M over the 5-adic Field with
              capped relative precision 20
             sage: X.<x,y> = M.chart()
@@ -1056,7 +1056,7 @@ class Chart(WithEqualityById, SageObject):
 
         EXAMPLES::
 
-            sage: M = TopManifold(2, 'M')
+            sage: M = Manifold(2, 'M', type='topological')
             sage: X.<x,y> = M.chart()
             sage: X.one_function()
             1
@@ -1072,7 +1072,7 @@ class Chart(WithEqualityById, SageObject):
 
         One function on a p-adic manifold::
 
-            sage: M = TopManifold(2, 'M', field=Qp(5)); M
+            sage: M = Manifold(2, 'M', type='topological', field=Qp(5)); M
             2-dimensional topological manifold M over the 5-adic Field with
              capped relative precision 20
             sage: X.<x,y> = M.chart()
@@ -1125,7 +1125,7 @@ class Chart(WithEqualityById, SageObject):
 
         Function of two coordinates with values in `\RR^3`::
 
-            sage: M = TopManifold(2, 'M')
+            sage: M = Manifold(2, 'M', type='topological')
             sage: X.<x,y> = M.chart()
             sage: f = X.multifunction(x+y, sin(x*y), x^2 + 3*y); f
             Coordinate functions (x + y, sin(x*y), x^2 + 3*y) on the Chart (M, (x, y))

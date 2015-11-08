@@ -150,7 +150,7 @@ def simplify_abs_trig(expr):
     EXAMPLES::
 
         sage: forget()  # for doctests only
-        sage: M = TopManifold(3, 'M')
+        sage: M = Manifold(3, 'M', type='topological')
         sage: X.<x,y,z> = M.chart(r'x y:(0,pi) z:(-pi/3,0)')
         sage: X.coord_range()
         x: (-oo, +oo); y: (0, pi); z: (-1/3*pi, 0)
@@ -267,7 +267,7 @@ def simplify_chain_real(expr):
     We consider variables that are coordinates of a chart on a real manifold::
 
         sage: forget()  # for doctest only
-        sage: M = TopManifold(2, 'M')
+        sage: M = Manifold(2, 'M', type='topological')
         sage: X.<x,y> = M.chart('x:(0,1) y')
 
     The following assumptions then hold::
@@ -368,7 +368,7 @@ def simplify_chain_generic(expr):
     manifold::
 
         sage: forget()  # for doctest only
-        sage: M = TopManifold(2, 'M', field='complex')
+        sage: M = Manifold(2, 'M', type='topological', field='complex')
         sage: X.<x,y> = M.chart()
 
     Then neither ``x`` nor ``y`` is assumed to be real::
@@ -845,7 +845,7 @@ def nice_derivatives(status):
 
     EXAMPLES::
 
-        sage: M = TopManifold(2, 'M')
+        sage: M = Manifold(2, 'M', type='topological')
         sage: X.<x,y> = M.chart()
         sage: g = function('g', x, y)
         sage: f = X.function(diff(g, x) + diff(g, y))

@@ -487,7 +487,7 @@ class DeltaComplex(GenericCellComplex):
         """
         return hash(frozenset(self._cells_dict.items()))
 
-    def __cmp__(self,right):
+    def __eq__(self, right):
         r"""
         Two `\Delta`-complexes are equal, according to this, if they have
         the same ``_cells_dict``.
@@ -502,10 +502,23 @@ class DeltaComplex(GenericCellComplex):
             sage: newS2 == S2
             True
         """
-        if self._cells_dict == right._cells_dict:
-            return 0
-        else:
-            return -1
+        return self._cells_dict == right._cells_dict
+
+    def __ne__(self, other):
+        r"""
+        Return ``True`` if ``self`` and ``other`` are not equal.
+
+        EXAMPLES::
+
+            sage: S4 = delta_complexes.Sphere(4)
+            sage: S2 = delta_complexes.Sphere(2)
+            sage: S4 != S2
+            True
+            sage: newS2 = DeltaComplex({Simplex(2):True, Simplex([8,12,17]): Simplex(2)})
+            sage: newS2 != S2
+            False
+        """
+        return not self.__eq__(other)
 
     def cells(self, subcomplex=None):
         r"""

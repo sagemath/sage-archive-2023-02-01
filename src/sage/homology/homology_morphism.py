@@ -60,9 +60,9 @@ class InducedHomologyMorphism(Morphism):
         sage: f = H({0:0, 1:2, 2:1})  # f switches two vertices
         sage: f_star = f.induced_homology_morphism(QQ, cohomology=True)
         sage: f_star
-        Graded algebra endomorphism of Cohomology ring of Simplicial complex with vertex set (0, 1, 2) and facets {(1, 2), (0, 2), (0, 1)} over Rational Field
+        Graded algebra endomorphism of Cohomology ring of Minimal triangulation of the 1-sphere over Rational Field
           Defn: induced by:
-            Simplicial complex endomorphism of Simplicial complex with vertex set (0, 1, 2) and facets {(1, 2), (0, 2), (0, 1)}
+            Simplicial complex endomorphism of Minimal triangulation of the 1-sphere
               Defn: 0 |--> 0
                     1 |--> 2
                     2 |--> 1
@@ -84,8 +84,8 @@ class InducedHomologyMorphism(Morphism):
 
         sage: Hom(S1, T)({0:0, 1:3, 2:6})
         Simplicial complex morphism:
-          From: Simplicial complex with vertex set (0, 1, 2) and facets {(1, 2), (0, 2), (0, 1)}
-          To: Simplicial complex with vertex set (0, 1, 2, 3, 4, 5, 6) and 14 facets
+          From: Minimal triangulation of the 1-sphere
+          To: Minimal triangulation of the torus
           Defn: 0 |--> 0
                 1 |--> 3
                 2 |--> 6
@@ -398,8 +398,8 @@ class InducedHomologyMorphism(Morphism):
             sage: print f.induced_homology_morphism()._repr_defn()
             induced by:
               Simplicial complex morphism:
-                From: Simplicial complex with vertex set (0, 1, 2) and facets {(1, 2), (0, 2), (0, 1)}
-                To:   Simplicial complex with vertex set (0, 1, 2) and facets {(0, 1, 2)}
+                From: Minimal triangulation of the 1-sphere
+                To:   The 2-simplex
                 Defn: 0 |--> 0
                       1 |--> 1
                       2 |--> 2

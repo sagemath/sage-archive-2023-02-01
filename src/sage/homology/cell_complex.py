@@ -70,7 +70,7 @@ class GenericCellComplex(SageObject):
         sage: from sage.homology.cell_complex import GenericCellComplex
         sage: A = GenericCellComplex()
     """
-    def __cmp__(self,right):
+    def __eq__(self,right):
         """
         Comparisons of cell complexes are not implemented.
 
@@ -79,6 +79,21 @@ class GenericCellComplex(SageObject):
             sage: from sage.homology.cell_complex import GenericCellComplex
             sage: A = GenericCellComplex(); B = GenericCellComplex()
             sage: A == B # indirect doctest
+            Traceback (most recent call last):
+            ...
+            NotImplementedError
+        """
+        raise NotImplementedError
+
+    def __ne__(self,right):
+        """
+        Comparisons of cell complexes are not implemented.
+
+        EXAMPLES::
+
+            sage: from sage.homology.cell_complex import GenericCellComplex
+            sage: A = GenericCellComplex(); B = GenericCellComplex()
+            sage: A != B # indirect doctest
             Traceback (most recent call last):
             ...
             NotImplementedError
@@ -782,13 +797,13 @@ class GenericCellComplex(SageObject):
 
             sage: K = simplicial_complexes.KleinBottle()
             sage: H = K.homology_with_basis(QQ); H
-            Homology module of Simplicial complex with vertex set
-             (0, 1, 2, 3, 4, 5, 6, 7) and 16 facets over Rational Field
+            Homology module of Minimal triangulation of the Klein bottle
+             over Rational Field
             sage: sorted(H.basis(), key=str)
             [h_{0,0}, h_{1,0}]
             sage: H = K.homology_with_basis(GF(2)); H
-            Homology module of Simplicial complex with vertex set
-             (0, 1, 2, 3, 4, 5, 6, 7) and 16 facets over Finite Field of size 2
+            Homology module of Minimal triangulation of the Klein bottle
+             over Finite Field of size 2
             sage: sorted(H.basis(), key=str)
             [h_{0,0}, h_{1,0}, h_{1,1}, h_{2,0}]
 
@@ -842,13 +857,13 @@ class GenericCellComplex(SageObject):
 
             sage: K = simplicial_complexes.KleinBottle()
             sage: H = K.cohomology_ring(QQ); H
-            Cohomology ring of Simplicial complex with vertex set
-             (0, 1, 2, 3, 4, 5, 6, 7) and 16 facets over Rational Field
+            Cohomology ring of Minimal triangulation of the Klein bottle
+             over Rational Field
             sage: sorted(H.basis(), key=str)
             [h^{0,0}, h^{1,0}]
             sage: H = K.cohomology_ring(GF(2)); H
-            Cohomology ring of Simplicial complex with vertex set
-             (0, 1, 2, 3, 4, 5, 6, 7) and 16 facets over Finite Field of size 2
+            Cohomology ring of Minimal triangulation of the Klein bottle
+             over Finite Field of size 2
             sage: sorted(H.basis(), key=str)
             [h^{0,0}, h^{1,0}, h^{1,1}, h^{2,0}]
 
@@ -860,8 +875,8 @@ class GenericCellComplex(SageObject):
             [h^{1,0}, h^{1,1}, h^{1,2}, h^{1,3}]
 
             sage: H = simplicial_complexes.Torus().cohomology_ring(QQ); H
-            Cohomology ring of Simplicial complex with vertex set
-             (0, 1, 2, 3, 4, 5, 6) and 14 facets over Rational Field
+            Cohomology ring of Minimal triangulation of the torus
+             over Rational Field
             sage: x = H.basis()[1,0]; x
             h^{1,0}
             sage: y = H.basis()[1,1]; y

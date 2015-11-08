@@ -58,7 +58,7 @@ EXAMPLES::
     sage: j
     Simplicial complex morphism:
       From: Simplicial complex with 4 vertices and 4 facets
-      To:   Simplicial complex with vertex set (0, 1, 2, 3) and facets {(0, 2, 3), (0, 1, 2), (1, 2, 3), (0, 1, 3)}
+      To:   Minimal triangulation of the 2-sphere
       Defn: L1R1 |--> 1
             L3R3 |--> 3
             L2R2 |--> 2
@@ -75,14 +75,14 @@ EXAMPLES::
     sage: U = simplicial_complexes.Sphere(1)
     sage: G = Hom(U,S)
     sage: U
-    Simplicial complex with vertex set (0, 1, 2) and facets {(1, 2), (0, 2), (0, 1)}
+    Minimal triangulation of the 1-sphere
     sage: g = {0:0,1:1,2:2}
     sage: y = G(g)
     sage: z = y.fiber_product(x)
     sage: z                                     # this is the mapping path space
     Simplicial complex morphism:
       From: Simplicial complex with 6 vertices and 6 facets
-      To:   Simplicial complex with vertex set (0, 1, 2, 3) and facets {(0, 2, 3), (0, 1, 2), (1, 2, 3), (0, 1, 3)}
+      To:   Minimal triangulation of the 2-sphere
       Defn: ['L2R(2, 0)', 'L2R(2, 1)', 'L0R(0, 0)', 'L0R(0, 1)', 'L1R(1, 0)', 'L1R(1, 1)'] --> [2, 2, 0, 0, 1, 1]
 """
 
@@ -184,7 +184,7 @@ class SimplicialComplexMorphism(Morphism):
             sage: H = Hom(S,S)
             sage: i = H.identity()
             sage: i
-            Simplicial complex endomorphism of Simplicial complex with vertex set (0, 1, 2, 3) and facets {(0, 2, 3), (0, 1, 2), (1, 2, 3), (0, 1, 3)}
+            Simplicial complex endomorphism of Minimal triangulation of the 2-sphere
               Defn: 0 |--> 0
                     1 |--> 1
                     2 |--> 2
@@ -223,9 +223,9 @@ class SimplicialComplexMorphism(Morphism):
             sage: S = simplicial_complexes.Sphere(2)
             sage: T = simplicial_complexes.Sphere(3)
             sage: S
-            Simplicial complex with vertex set (0, 1, 2, 3) and facets {(0, 2, 3), (0, 1, 2), (1, 2, 3), (0, 1, 3)}
+            Minimal triangulation of the 2-sphere
             sage: T
-            Simplicial complex with vertex set (0, 1, 2, 3, 4) and 5 facets
+            Minimal triangulation of the 3-sphere
             sage: f = {0:0,1:1,2:2,3:3}
             sage: H = Hom(S,T)
             sage: x = H(f)
@@ -304,8 +304,8 @@ class SimplicialComplexMorphism(Morphism):
             sage: x = H(f)
             sage: x
             Simplicial complex morphism:
-              From: Simplicial complex with vertex set (0, 1, 2) and facets {(1, 2), (0, 2), (0, 1)}
-              To:   Simplicial complex with vertex set (0, 1, 2, 3) and facets {(0, 2, 3), (0, 1, 2), (1, 2, 3), (0, 1, 3)}
+              From: Minimal triangulation of the 1-sphere
+              To:   Minimal triangulation of the 2-sphere
               Defn: 0 |--> 0
                     1 |--> 1
                     2 |--> 2
@@ -520,7 +520,7 @@ class SimplicialComplexMorphism(Morphism):
             sage: T = simplicial_complexes.Sphere(1)
             sage: G = Hom(T,T)
             sage: T
-            Simplicial complex with vertex set (0, 1, 2) and facets {(1, 2), (0, 2), (0, 1)}
+            Minimal triangulation of the 1-sphere
             sage: j = G({0:0,1:1,2:2})
             sage: j.is_identity()
             True
@@ -532,8 +532,8 @@ class SimplicialComplexMorphism(Morphism):
             sage: x = H(f)
             sage: x
             Simplicial complex morphism:
-              From: Simplicial complex with vertex set (0, 1, 2, 3) and facets {(0, 2, 3), (0, 1, 2), (1, 2, 3), (0, 1, 3)}
-              To:   Simplicial complex with vertex set (0, 1, 2, 3, 4) and 5 facets
+              From: Minimal triangulation of the 2-sphere
+              To:   Minimal triangulation of the 3-sphere
               Defn: 0 |--> 0
                     1 |--> 1
                     2 |--> 2
@@ -665,11 +665,11 @@ class SimplicialComplexMorphism(Morphism):
             sage: h = diag.induced_homology_morphism(QQ)
             sage: h
             Graded vector space morphism:
-              From: Homology module of Simplicial complex with vertex set (0, 1, 2) and facets {(1, 2), (0, 2), (0, 1)} over Rational Field
+              From: Homology module of Minimal triangulation of the 1-sphere over Rational Field
               To:   Homology module of Simplicial complex with 9 vertices and 18 facets over Rational Field
               Defn: induced by:
                 Simplicial complex morphism:
-                  From: Simplicial complex with vertex set (0, 1, 2) and facets {(1, 2), (0, 2), (0, 1)}
+                  From: Minimal triangulation of the 1-sphere
                   To:   Simplicial complex with 9 vertices and 18 facets
                   Defn: 0 |--> L0R0
                         1 |--> L1R1

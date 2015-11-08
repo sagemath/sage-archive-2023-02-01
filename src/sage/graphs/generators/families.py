@@ -2476,7 +2476,8 @@ def MathonPseudocyclicStronglyRegularGraph(t, G=None, L=None):
     Return a strongly regular graph on `(4t+1)(4t-1)^2` vertices from [Mat78]_
 
     Let `4t-1` be a prime power, and `4t+1` be such that there exists
-    a strongly regular graph `G` with parameters `(4t+1,2t,t-1,t)`. With
+    a strongly regular graph `G` with parameters `(4t+1,2t,t-1,t)`. In
+    particular, `4t+1` must be a sum of two squares [Mat78]_. With
     this input, Mathon [Mat78]_ gives a construction of a strongly regular
     graph with parameters `(4 \mu + 1, 2 \mu, \mu-1, \mu)`, where
     `\mu =  t(4t(4t-1)-1)`. The construction is optionally parametrised by an
@@ -2510,7 +2511,10 @@ def MathonPseudocyclicStronglyRegularGraph(t, G=None, L=None):
         Mathon's PC SRG on 441 vertices: Graph on 441 vertices
         sage: G.is_strongly_regular(parameters=True)            # long time
         (441, 220, 109, 110)
-
+        sage: graphs.MathonPseudocyclicStronglyRegularGraph(5)
+        Traceback (most recent call last):
+        ...
+        ValueError: 21  must be a sum of two squares!...
 
     REFERENCES:
 
@@ -2530,7 +2534,13 @@ def MathonPseudocyclicStronglyRegularGraph(t, G=None, L=None):
         ones_matrix, identity_matrix
     from sage.graphs.graph import Graph
     from itertools import product
+    from sage.rings.arith import two_squares
+    from exceptions import ValueError
     p = 4*t+1
+    try:
+        x = two_squares(p)
+    except ValueError:
+        raise ValueError(str(p)+" must be a sum of two squares!")
     if G is None:
         from sage.graphs.strongly_regular_db import strongly_regular_graph as SRG
         G = SRG(p, 2*t, t-1)

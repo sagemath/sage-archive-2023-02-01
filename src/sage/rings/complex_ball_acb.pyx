@@ -129,7 +129,7 @@ cimport sage.rings.integer
 cimport sage.rings.rational
 
 from libc.stdlib cimport abort
-from sage.libs.mpfr cimport GMP_RNDU
+from sage.libs.mpfr cimport MPFR_RNDU
 from sage.libs.arb.arb cimport *
 from sage.libs.arb.acb cimport *
 from sage.libs.arb.acb_hypgeom cimport *
@@ -1215,7 +1215,7 @@ cdef class ComplexBall(RingElement):
         arf_init(tmp)
         acb_get_rad_ubound_arf(tmp, self.value, MAG_BITS)
         sig_str("unable to convert the radius to MPFR (exponent out of range?)")
-        if arf_get_mpfr(rad.value, tmp, GMP_RNDU):
+        if arf_get_mpfr(rad.value, tmp, MPFR_RNDU):
             abort()
         sig_off()
         arf_clear(tmp)

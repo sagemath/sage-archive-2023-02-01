@@ -170,7 +170,7 @@ from sage.libs.flint.fmpq cimport fmpq_t, fmpq_init, fmpq_set_mpq, fmpq_clear
 from sage.libs.gmp.mpz cimport mpz_fits_ulong_p, mpz_fits_slong_p, mpz_get_ui, mpz_get_si
 from sage.libs.mpfi cimport mpfi_get_left, mpfi_get_right, mpfi_interv_fr
 from sage.libs.mpfr cimport mpfr_t, mpfr_init2, mpfr_clear, mpfr_sgn, MPFR_PREC_MIN, mpfr_equal_p
-from sage.libs.mpfr cimport GMP_RNDN, GMP_RNDU, GMP_RNDD, GMP_RNDZ
+from sage.libs.mpfr cimport MPFR_RNDN, MPFR_RNDU, MPFR_RNDD, MPFR_RNDZ
 from sage.rings.real_double cimport RealDoubleElement
 from sage.rings.real_mpfr cimport RealField_class, RealField, RealNumber
 from sage.rings.ring import Field
@@ -1282,8 +1282,8 @@ cdef class RealBall(RingElement):
         cdef RealNumber left, mid, right
         cdef long prec = field.precision()
         cdef int sl, sr
-        if (field.rnd == GMP_RNDN or
-                field.rnd == GMP_RNDZ and arb_contains_zero(self.value)):
+        if (field.rnd == MPFR_RNDN or
+                field.rnd == MPFR_RNDZ and arb_contains_zero(self.value)):
             mid = RealNumber(field, None)
             sig_str("unable to convert to MPFR (exponent out of range?)")
             arf_get_mpfr(mid.value, arb_midref(self.value), field.rnd)
@@ -1295,11 +1295,11 @@ cdef class RealBall(RingElement):
             sig_str("unable to convert to MPFR (exponent out of range?)")
             arb_get_interval_mpfr(left.value, right.value, self.value)
             sig_off()
-            if field.rnd == GMP_RNDD:
+            if field.rnd == MPFR_RNDD:
                 return left
-            elif field.rnd == GMP_RNDU:
+            elif field.rnd == MPFR_RNDU:
                 return right
-            elif field.rnd == GMP_RNDZ:
+            elif field.rnd == MPFR_RNDZ:
                 sl, sr = mpfr_sgn(left.value), mpfr_sgn(left.value)
                 if sr > 0 and sl > 0:
                     return left
@@ -1374,7 +1374,7 @@ cdef class RealBall(RingElement):
         arf_init(tmp)
         sig_str("unable to convert the radius to MPFR (exponent out of range?)")
         arf_set_mag(tmp, arb_radref(self.value))
-        if arf_get_mpfr(rad.value, tmp, GMP_RNDN):
+        if arf_get_mpfr(rad.value, tmp, MPFR_RNDN):
             abort()
         sig_off()
         arf_clear(tmp)

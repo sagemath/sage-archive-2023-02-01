@@ -2495,9 +2495,12 @@ def MathonPseudocyclicStronglyRegularGraph(t, G=None, L=None):
       with vertices labelled from `0` to `4t`.
 
     - ``L`` -- if `None` (default), construct a necessary skew Latin square,
-      otherwise use the user-supplied one.
+      otherwise use the user-supplied one. Limited experimental data below suggests
+      that non-isomorphic Latin squares still lead to isomorphic graphs.
 
-    EXAMPLES::
+    EXAMPLES:
+
+    Using default ``G`` and ``L``. ::
 
         sage: from sage.graphs.generators.families import MathonPseudocyclicStronglyRegularGraph
         sage: G=MathonPseudocyclicStronglyRegularGraph(1); G
@@ -2505,12 +2508,36 @@ def MathonPseudocyclicStronglyRegularGraph(t, G=None, L=None):
         sage: G.is_strongly_regular(parameters=True)
         (45, 22, 10, 11)
 
+    Supplying ``G`` and ``L`` (constructed from the automorphism group of ``G``). ::
+
+        sage: G=graphs.PaleyGraph(9)
+        sage: a=G.automorphism_group()
+        sage: r=map(lambda z: matrix(libgap.PermutationMat(libgap(z),9).sage()), \
+        ....:                   filter(lambda x: x.order()==9, a.normal_subgroups())[0])
+        sage: ff=map(lambda y: (y[0]-1,y[1]-1), \
+        ....:          Permutation(map(lambda x: 1+r.index(x^-1), r)).cycle_tuples()[1:])
+        sage: L=sum(map(lambda (i,(a,b)): i*(r[a]-r[b]), zip(range(1,len(ff)+1), ff))); L
+        [ 0  1 -1  2  3 -4 -2  4 -3]
+        [-1  0  1 -4  2  3 -3 -2  4]
+        [ 1 -1  0  3 -4  2  4 -3 -2]
+        [-2  4 -3  0  1 -1  2  3 -4]
+        [-3 -2  4 -1  0  1 -4  2  3]
+        [ 4 -3 -2  1 -1  0  3 -4  2]
+        [ 2  3 -4 -2  4 -3  0  1 -1]
+        [-4  2  3 -3 -2  4 -1  0  1]
+        [ 3 -4  2  4 -3 -2  1 -1  0]
+        sage: G.relabel()
+        sage: G3x3=graphs.MathonPseudocyclicStronglyRegularGraph(2,G=G,L=L)
+        sage: G3x3.is_strongly_regular(parameters=True)
+        (441, 220, 109, 110)
+        sage: G9=graphs.MathonPseudocyclicStronglyRegularGraph(2)
+        sage: G9.is_strongly_regular(parameters=True)
+        (441, 220, 109, 110)
+        sage: G9.is_isomorphic(G3x3) # not tested (long time)
+        True
+
     TESTS::
 
-        sage: G=MathonPseudocyclicStronglyRegularGraph(2); G    # long time
-        Mathon's PC SRG on 441 vertices: Graph on 441 vertices
-        sage: G.is_strongly_regular(parameters=True)            # long time
-        (441, 220, 109, 110)
         sage: graphs.MathonPseudocyclicStronglyRegularGraph(5)
         Traceback (most recent call last):
         ...
@@ -2532,10 +2559,8 @@ def MathonPseudocyclicStronglyRegularGraph(t, G=None, L=None):
     from sage.rings.integer_ring import ZZ
     from sage.matrix.constructor import matrix, block_matrix, \
         ones_matrix, identity_matrix
-    from sage.graphs.graph import Graph
     from itertools import product
     from sage.rings.arith import two_squares
-    from exceptions import ValueError
     p = 4*t+1
     try:
         x = two_squares(p)

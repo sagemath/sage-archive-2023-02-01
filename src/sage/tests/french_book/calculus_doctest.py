@@ -46,7 +46,7 @@ Sage example in ./calculus.tex, line 110::
 Sage example in ./calculus.tex, line 122::
 
     sage: y = var('y'); u = sin(x) + x*cos(y)
-    sage: v = u.function(x)(y); v
+    sage: v = u.function(x,y); v
     (x, y) |--> x*cos(y) + sin(x)
     sage: w(x, y) = u; w
     (x, y) |--> x*cos(y) + sin(x)

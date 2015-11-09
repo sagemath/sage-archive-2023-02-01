@@ -5645,7 +5645,7 @@ cdef class Expression(CommutativeRingElement):
 
         We can find coefficients of symbolic functions, :trac:`12255`::
 
-            sage: g = function('g', var('t'))
+            sage: g = function('g')(var('t'))
             sage: f = 3*g + g**2 + t
             sage: f.coefficients(g)
             [[t, 0], [3, 1], [1, 2]]

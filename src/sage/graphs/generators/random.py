@@ -1000,58 +1000,61 @@ def RandomTriangulation(n, set_position=False):
 
     edges = []
     done = False
-    kill_next = False
     while not done:
-        stack = []
-        new_word = []
         done = True
+        stack_in = []  # stack of consecutive 'in'
+        new_word = []
+
         for x in word:
-            if kill_next:
-                kill_next = False
-            elif x[0] == 'lf':  # leaf vertex 'lf'
-                if len(stack) == 3:
-                    a, b = stack[0][1], stack[2][1]
-                    edges.append((a, b))
-                    new_word.extend([('in', a), ('in', b)])
-                    kill_next = True
-                    stack = []
+            if x[0] == 'lf':  # leaf vertex 'lf'
+                if len(stack_in) >= 3:
+                    # place to perform a local closure
                     done = False
+                    edges.append((stack_in[-3][1], stack_in[-1][1]))
+                    end_in = stack_in.pop()
+                    stack_in[-1] = end_in
                 else:
-                    new_word.extend(stack + [x])
-                    stack = []
+                    # clear the stack of consecutive 'in'
+                    new_word.extend(stack_in + [x])
+                    stack_in = []
             else:  # inner vertex 'in'
-                if len(stack) == 3:
-                    new_word.append(stack[0])
-                    stack = stack[1:] + [x]
-                else:
-                    stack += [x]
-        word = new_word + stack
+                if not stack_in or (x != stack_in[-1]):
+                    # add one 'in' to the stack
+                    stack_in += [x]
+        word = new_word + stack_in
+
         if done and not(word[-1][0] == 'lf'):
+            # trying again after rotation if needed
+            # this is cumbersome
             done = False
             word = [word[-1]] + word[:-1]
 
     graph.add_edges(edges)
+    # This is the end of partial closure.
 
-    # remains to add two new vertices 'a' and 'b'
+    # There remains to add two new vertices 'a' and 'b'.
+    graph.add_edge(('a', 'b'))
+
+    # Every remaining 'lf' vertex is linked either to 'a' or to 'b'.
+    # Switching a/b happens when one meets the sequence 'lf','in','lf'.
     target_vertex = True
-    after_f = False
-    after_fi = False
+    after_lf = False
+    after_lf_in = False
     vab = {True: 'a', False: 'b'}
     for i in range(len(word)):
         if word[i][0] == 'lf':
-            if after_fi:
+            if after_lf_in:
                 target_vertex = not target_vertex
             graph.add_edge((vab[target_vertex], word[i][1]))
-            after_f = True
-            after_fi = False
+            after_lf = True
+            after_lf_in = False
         else:
-            if after_f:
-                after_fi = True
+            if after_lf:
+                after_lf_in = True
             else:
-                after_fi = False
-            after_f = False
+                after_lf_in = False
+            after_lf = False
 
-    graph.add_edge(('a', 'b'))
     if set_position:
         graph.layout(layout="planar", save_pos=True)
     return graph

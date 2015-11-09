@@ -74,7 +74,7 @@ class CoordFunctionSymb(CoordFunction):
 
     A symbolic coordinate function associated with a 2-dimensional chart::
 
-        sage: M = TopManifold(2, 'M')
+        sage: M = Manifold(2, 'M', type='topological')
         sage: X.<x,y> = M.chart()
         sage: f = X.function(x^2+3*y+1)
         sage: type(f)
@@ -270,7 +270,7 @@ class CoordFunctionSymb(CoordFunction):
 
         Coordinate function on a real manifold::
 
-            sage: M = TopManifold(2, 'M')
+            sage: M = Manifold(2, 'M', type='topological')
             sage: X.<x,y> = M.chart()
             sage: f = X.function(1+x*y); f
             x*y + 1
@@ -280,7 +280,7 @@ class CoordFunctionSymb(CoordFunction):
 
         Coordinate function on a complex manifold::
 
-            sage: N = TopManifold(2, 'N', field='complex')
+            sage: N = Manifold(2, 'N', type='topological', field='complex')
             sage: Y.<z,w> = N.chart()
             sage: g = Y.function(i*z + 2*w); g
             2*w + I*z
@@ -300,6 +300,31 @@ class CoordFunctionSymb(CoordFunction):
         self._der = None  # list of partial derivatives (to be set by diff()
                           # and unset by del_derived())
 
+    def _test_pickling(self, **options):
+        r"""
+        Test pickling.
+
+        This test is weaker than
+        :meth:`sage.structure.sage_object.SageObject._test_pickling` in that
+        it does not require ``loads(dumps(self)) == self``.
+        It however checks that ``loads(dumps(self))`` proceeds without any
+        error and results in an object that is a coordinate function with
+        the same coordinate expression as ``self``.
+
+        TEST::
+
+            sage: M = Manifold(2, 'M', type='topological')
+            sage: X.<x,y> = M.chart()
+            sage: f = X.function(1+x*y)
+            sage: f._test_pickling()
+
+        """
+        tester = self._tester(**options)
+        from sage.misc.all import loads, dumps
+        bckp = loads(dumps(self))
+        tester.assertEqual(type(bckp), type(self))
+        tester.assertEqual(bckp._express, self._express)
+
     # -------------------------------------------------------------
     # Methods to be implemented by derived classes of CoordFunction
     # -------------------------------------------------------------
@@ -310,7 +335,7 @@ class CoordFunctionSymb(CoordFunction):
 
         TESTS::
 
-            sage: M = TopManifold(2, 'M')
+            sage: M = Manifold(2, 'M', type='topological')
             sage: X.<x,y> = M.chart()
             sage: f = X.function(1+x*y)
             sage: f._repr_()
@@ -332,7 +357,7 @@ class CoordFunctionSymb(CoordFunction):
 
         TESTS::
 
-            sage: M = TopManifold(2, 'M')
+            sage: M = Manifold(2, 'M', type='topological')
             sage: X.<x,y> = M.chart()
             sage: f = X.function(cos(x*y/2))
             sage: f._latex_()
@@ -357,7 +382,7 @@ class CoordFunctionSymb(CoordFunction):
 
         Coordinate function on a 2-dimensional manifold::
 
-            sage: M = TopManifold(2, 'M')
+            sage: M = Manifold(2, 'M', type='topological')
             sage: X.<x,y> = M.chart()
             sage: f = X.function(cos(x*y/2))
             sage: f.display()
@@ -399,7 +424,7 @@ class CoordFunctionSymb(CoordFunction):
 
         Coordinate function of a 2-dimensional manifold::
 
-            sage: M = TopManifold(2, 'M')
+            sage: M = Manifold(2, 'M', type='topological')
             sage: X.<x,y> = M.chart()
             sage: f = X.function(x^2+3*y+1)
             sage: f.expr()
@@ -453,7 +478,7 @@ class CoordFunctionSymb(CoordFunction):
 
         TESTS::
 
-            sage: M = TopManifold(2, 'M')
+            sage: M = Manifold(2, 'M', type='topological')
             sage: X.<x,y> = M.chart()
             sage: f = X.function(sin(x*y))
             sage: f.__call__(-2, 3)
@@ -492,7 +517,7 @@ class CoordFunctionSymb(CoordFunction):
 
         Coordinate functions associated to a 2-dimensional chart::
 
-            sage: M = TopManifold(2, 'M')
+            sage: M = Manifold(2, 'M', type='topological')
             sage: X.<x,y> = M.chart()
             sage: f = X.function(x^2+3*y+1)
             sage: f.is_zero()
@@ -522,7 +547,7 @@ class CoordFunctionSymb(CoordFunction):
 
         EXAMPLE::
 
-            sage: M = TopManifold(2, 'M')
+            sage: M = Manifold(2, 'M', type='topological')
             sage: X.<x,y> = M.chart()
             sage: f = X.function(x+y^2)
             sage: g = f.copy(); g
@@ -565,7 +590,7 @@ class CoordFunctionSymb(CoordFunction):
 
         Partial derivatives of a 2-dimensional coordinate function::
 
-            sage: M = TopManifold(2, 'M')
+            sage: M = Manifold(2, 'M', type='topological')
             sage: X.<x,y> = M.chart()
             sage: f = X.function(x^2+3*y+1); f
             x^2 + 3*y + 1
@@ -588,7 +613,7 @@ class CoordFunctionSymb(CoordFunction):
 
         The index range depends on the convention used on the chart's domain::
 
-            sage: M = TopManifold(2, 'M', start_index=1)
+            sage: M = Manifold(2, 'M', type='topological', start_index=1)
             sage: X.<x,y> = M.chart()
             sage: f = X.function(x^2+3*y+1)
             sage: f.diff(0)
@@ -636,29 +661,29 @@ class CoordFunctionSymb(CoordFunction):
 
         Coordinate functions associated to a 2-dimensional chart::
 
-            sage: M = TopManifold(2, 'M')
+            sage: M = Manifold(2, 'M', type='topological')
             sage: X.<x,y> = M.chart()
             sage: f = X.function(x+y^2)
             sage: g = X.function(x+y^2)
-            sage: f.__eq__(g)
-            True
             sage: f == g
             True
-            sage: f.__eq__(1)
+            sage: f == 1
             False
             sage: h = X.function(1)
-            sage: h.__eq__(1)
+            sage: h == 1
             True
-            sage: h.__eq__(f)
+            sage: h == f
             False
-            sage: h.__eq__(0)
+            sage: h == 0
             False
-            sage: X.function(0).__eq__(0)
+            sage: X.function(0) == 0
             True
-            sage: X.zero_function().__eq__(0)
+            sage: X.zero_function() == 0
             True
 
         """
+        if other is self:
+            return True
         if isinstance(other, CoordFunctionSymb):
             if other._chart != self._chart:
                 return False
@@ -681,7 +706,7 @@ class CoordFunctionSymb(CoordFunction):
 
         Coordinate functions associated to a 2-dimensional chart::
 
-            sage: M = TopManifold(2, 'M')
+            sage: M = Manifold(2, 'M', type='topological')
             sage: X.<x,y> = M.chart()
             sage: f = X.function(x+y^2)
             sage: g = +f; g
@@ -706,7 +731,7 @@ class CoordFunctionSymb(CoordFunction):
 
         Coordinate functions associated to a 2-dimensional chart::
 
-            sage: M = TopManifold(2, 'M')
+            sage: M = Manifold(2, 'M', type='topological')
             sage: X.<x,y> = M.chart()
             sage: f = X.function(x+y^2)
             sage: g = -f; g
@@ -736,7 +761,7 @@ class CoordFunctionSymb(CoordFunction):
 
         Coordinate functions associated to a 2-dimensional chart::
 
-            sage: M = TopManifold(2, 'M')
+            sage: M = Manifold(2, 'M', type='topological')
             sage: X.<x,y> = M.chart()
             sage: f = X.function(1+x^2+y^2)
             sage: g = f.__invert__(); g
@@ -770,7 +795,7 @@ class CoordFunctionSymb(CoordFunction):
 
         TESTS::
 
-            sage: M = TopManifold(2, 'M')
+            sage: M = Manifold(2, 'M', type='topological')
             sage: X.<x,y> = M.chart()
             sage: f = X.function(x+y^2)
             sage: g = X.function(x+1)
@@ -824,7 +849,7 @@ class CoordFunctionSymb(CoordFunction):
 
         TESTS::
 
-            sage: M = TopManifold(2, 'M')
+            sage: M = Manifold(2, 'M', type='topological')
             sage: X.<x,y> = M.chart()
             sage: f = X.function(x+y^2)
             sage: g = X.function(x+1)
@@ -881,7 +906,7 @@ class CoordFunctionSymb(CoordFunction):
 
         TESTS::
 
-            sage: M = TopManifold(2, 'M')
+            sage: M = Manifold(2, 'M', type='topological')
             sage: X.<x,y> = M.chart()
             sage: f = X.function(x+y)
             sage: g = X.function(x-y)
@@ -936,7 +961,7 @@ class CoordFunctionSymb(CoordFunction):
 
         TESTS::
 
-            sage: M = TopManifold(2, 'M')
+            sage: M = Manifold(2, 'M', type='topological')
             sage: X.<x,y> = M.chart()
             sage: f = X.function(x+y)
             sage: g = X.function(1+x^2+y^2)
@@ -994,7 +1019,7 @@ class CoordFunctionSymb(CoordFunction):
 
         EXAMPLES::
 
-            sage: M = TopManifold(2, 'M')
+            sage: M = Manifold(2, 'M', type='topological')
             sage: X.<x,y> = M.chart()
             sage: f = X.function(x+y)
             sage: f.exp()
@@ -1026,7 +1051,7 @@ class CoordFunctionSymb(CoordFunction):
 
         EXAMPLES::
 
-            sage: M = TopManifold(2, 'M')
+            sage: M = Manifold(2, 'M', type='topological')
             sage: X.<x,y> = M.chart()
             sage: f = X.function(x+y)
             sage: f.log()
@@ -1059,7 +1084,7 @@ class CoordFunctionSymb(CoordFunction):
 
         EXAMPLES::
 
-            sage: M = TopManifold(2, 'M')
+            sage: M = Manifold(2, 'M', type='topological')
             sage: X.<x,y> = M.chart()
             sage: f = X.function(x+y)
             sage: f.__pow__(3)
@@ -1090,7 +1115,7 @@ class CoordFunctionSymb(CoordFunction):
 
         EXAMPLES::
 
-            sage: M = TopManifold(2, 'M')
+            sage: M = Manifold(2, 'M', type='topological')
             sage: X.<x,y> = M.chart()
             sage: f = X.function(x+y)
             sage: f.sqrt()
@@ -1117,7 +1142,7 @@ class CoordFunctionSymb(CoordFunction):
 
         EXAMPLES::
 
-            sage: M = TopManifold(2, 'M')
+            sage: M = Manifold(2, 'M', type='topological')
             sage: X.<x,y> = M.chart()
             sage: f = X.function(x*y)
             sage: f.cos()
@@ -1144,7 +1169,7 @@ class CoordFunctionSymb(CoordFunction):
 
         EXAMPLES::
 
-            sage: M = TopManifold(2, 'M')
+            sage: M = Manifold(2, 'M', type='topological')
             sage: X.<x,y> = M.chart()
             sage: f = X.function(x*y)
             sage: f.sin()
@@ -1171,7 +1196,7 @@ class CoordFunctionSymb(CoordFunction):
 
         EXAMPLES::
 
-            sage: M = TopManifold(2, 'M')
+            sage: M = Manifold(2, 'M', type='topological')
             sage: X.<x,y> = M.chart()
             sage: f = X.function(x*y)
             sage: f.tan()
@@ -1198,7 +1223,7 @@ class CoordFunctionSymb(CoordFunction):
 
         EXAMPLES::
 
-            sage: M = TopManifold(2, 'M')
+            sage: M = Manifold(2, 'M', type='topological')
             sage: X.<x,y> = M.chart()
             sage: f = X.function(x*y)
             sage: f.arccos()
@@ -1227,7 +1252,7 @@ class CoordFunctionSymb(CoordFunction):
 
         EXAMPLES::
 
-            sage: M = TopManifold(2, 'M')
+            sage: M = Manifold(2, 'M', type='topological')
             sage: X.<x,y> = M.chart()
             sage: f = X.function(x*y)
             sage: f.arcsin()
@@ -1256,7 +1281,7 @@ class CoordFunctionSymb(CoordFunction):
 
         EXAMPLES::
 
-            sage: M = TopManifold(2, 'M')
+            sage: M = Manifold(2, 'M', type='topological')
             sage: X.<x,y> = M.chart()
             sage: f = X.function(x*y)
             sage: f.arctan()
@@ -1285,7 +1310,7 @@ class CoordFunctionSymb(CoordFunction):
 
         EXAMPLES::
 
-            sage: M = TopManifold(2, 'M')
+            sage: M = Manifold(2, 'M', type='topological')
             sage: X.<x,y> = M.chart()
             sage: f = X.function(x*y)
             sage: f.cosh()
@@ -1312,7 +1337,7 @@ class CoordFunctionSymb(CoordFunction):
 
         EXAMPLES::
 
-            sage: M = TopManifold(2, 'M')
+            sage: M = Manifold(2, 'M', type='topological')
             sage: X.<x,y> = M.chart()
             sage: f = X.function(x*y)
             sage: f.sinh()
@@ -1339,7 +1364,7 @@ class CoordFunctionSymb(CoordFunction):
 
         EXAMPLES::
 
-            sage: M = TopManifold(2, 'M')
+            sage: M = Manifold(2, 'M', type='topological')
             sage: X.<x,y> = M.chart()
             sage: f = X.function(x*y)
             sage: f.tanh()
@@ -1366,7 +1391,7 @@ class CoordFunctionSymb(CoordFunction):
 
         EXAMPLES::
 
-            sage: M = TopManifold(2, 'M')
+            sage: M = Manifold(2, 'M', type='topological')
             sage: X.<x,y> = M.chart()
             sage: f = X.function(x*y)
             sage: f.arccosh()
@@ -1395,7 +1420,7 @@ class CoordFunctionSymb(CoordFunction):
 
         EXAMPLES::
 
-            sage: M = TopManifold(2, 'M')
+            sage: M = Manifold(2, 'M', type='topological')
             sage: X.<x,y> = M.chart()
             sage: f = X.function(x*y)
             sage: f.arcsinh()
@@ -1424,7 +1449,7 @@ class CoordFunctionSymb(CoordFunction):
 
         EXAMPLES::
 
-            sage: M = TopManifold(2, 'M')
+            sage: M = Manifold(2, 'M', type='topological')
             sage: X.<x,y> = M.chart()
             sage: f = X.function(x*y)
             sage: f.arctanh()
@@ -1452,7 +1477,7 @@ class CoordFunctionSymb(CoordFunction):
 
         TESTS::
 
-            sage: M = TopManifold(2, 'M')
+            sage: M = Manifold(2, 'M', type='topological')
             sage: X.<x,y> = M.chart()
             sage: f = X.function(cos(x*y))
             sage: f._der
@@ -1484,7 +1509,7 @@ class CoordFunctionSymb(CoordFunction):
 
         Simplification of a 2-dimension coordinate function::
 
-            sage: M = TopManifold(2, 'M')
+            sage: M = Manifold(2, 'M', type='topological')
             sage: X.<x,y> = M.chart()
             sage: f = X.function(cos(x)^2+sin(x)^2 + sqrt(x^2))
             sage: f.display()
@@ -1507,7 +1532,7 @@ class CoordFunctionSymb(CoordFunction):
 
         Examples taking into account the declared range of a coordinate::
 
-            sage: M =  TopManifold(2, 'M_1')
+            sage: M =  Manifold(2, 'M_1', type='topological')
             sage: X.<x,y> = M.chart('x:(0,+oo) y')
             sage: f = X.function(sqrt(x^2))
             sage: f
@@ -1518,7 +1543,7 @@ class CoordFunctionSymb(CoordFunction):
         ::
 
             sage: forget()  # to clear the previous assumption on x
-            sage: M =  TopManifold(2, 'M_2')
+            sage: M =  Manifold(2, 'M_2', type='topological')
             sage: X.<x,y> = M.chart('x:(-oo,0) y')
             sage: f = X.function(sqrt(x^2))
             sage: f
@@ -1543,7 +1568,7 @@ class CoordFunctionSymb(CoordFunction):
 
         Factorization of a 2-dimensional coordinate function::
 
-            sage: M = TopManifold(2, 'M')
+            sage: M = Manifold(2, 'M', type='topological')
             sage: X.<x,y> = M.chart()
             sage: f = X.function(x^2 + 2*x*y + y^2)
             sage: f.display()
@@ -1573,7 +1598,7 @@ class CoordFunctionSymb(CoordFunction):
 
         Expanding a 2-dimensional coordinate function::
 
-            sage: M = TopManifold(2, 'M')
+            sage: M = Manifold(2, 'M', type='topological')
             sage: X.<x,y> = M.chart()
             sage: f = X.function((x - y)^2)
             sage: f.display()
@@ -1609,7 +1634,7 @@ class CoordFunctionSymb(CoordFunction):
 
         Action on a 2-dimensional coordinate function::
 
-            sage: M = TopManifold(2, 'M')
+            sage: M = Manifold(2, 'M', type='topological')
             sage: X.<x,y> = M.chart()
             sage: f = X.function(x^2*y + x*y + (x*y)^2)
             sage: f.display()
@@ -1644,7 +1669,7 @@ class CoordFunctionSymb(CoordFunction):
 
         Action on a 2-dimensional coordinate function::
 
-            sage: M = TopManifold(2, 'M')
+            sage: M = Manifold(2, 'M', type='topological')
             sage: X.<x,y> = M.chart()
             sage: f = X.function(x/(x^2*y + x*y))
             sage: f.display()

@@ -51,6 +51,10 @@ class GeneralizedReedSolomonCode(AbstractLinearCode):
     - ``column_multipliers`` -- (default: ``None``) List of column multipliers in F for this code.
       All column multipliers are set to 1 if default value is kept.
 
+    REFERENCES:
+
+    .. [Nielsen] Johan S. R. Nielsen, (https://bitbucket.org/jsrn/codinglib/)
+
     EXAMPLES:
 
     We construct a GRS code with a manually built support, without specifying column multipliers::
@@ -280,8 +284,7 @@ class GeneralizedReedSolomonCode(AbstractLinearCode):
 
         AUTHORS:
 
-        This function is taken from codinglib (https://bitbucket.org/jsrn/codinglib/)
-        and was written by Johan Nielsen.
+            This function is taken from codinglib [Nielsen]_
 
         EXAMPLES::
 
@@ -302,8 +305,7 @@ class GeneralizedReedSolomonCode(AbstractLinearCode):
 
         AUTHORS:
 
-        This function is taken from codinglib (https://bitbucket.org/jsrn/codinglib/)
-        and was written by Johan Nielsen.
+            This function is taken from codinglib [Nielsen]_
 
         EXAMPLES::
 
@@ -316,7 +318,7 @@ class GeneralizedReedSolomonCode(AbstractLinearCode):
         n = self.length()
         col_mults = self.column_multipliers()
         etas = self.multipliers_product()
-        return [ etas[i]/col_mults[i] for i in range(0,n) ]
+        return [ etas[i]/col_mults[i] for i in range(n) ]
 
     @cached_method
     def parity_check_matrix(self):
@@ -363,11 +365,15 @@ class GeneralizedReedSolomonCode(AbstractLinearCode):
         r"""
         Returns the covering radius of ``self``.
 
-        The covering radius of a linear code `C` is the smallest number `r` s.t. any element of
+        The covering radius of a linear code `C` is the smallest
+        number `r` s.t. any element of
         the ambient space of `C` is at most at distance `r` to `C`.
 
-        As Reed-Solomon codes are MDS codes, their covering radius is always `d-1`, where `d` is
-        the minimum distance.
+        As Reed-Solomon codes are MDS codes, their covering radius
+        is always `d-1`, where `d` is the minimum distance.
+
+        This is a custom method for GRS codes which is faster than
+        generic implementation.
 
         EXAMPLES::
 
@@ -384,8 +390,11 @@ class GeneralizedReedSolomonCode(AbstractLinearCode):
         r"""
         Returns the weight distribution of ``self``.
 
-        The weight distribution is returned as a list, where the `i-th` entry corresponds to
-        the number of words of weight `i` in the code.
+        The weight distribution is returned as a list, where the
+        `i-th` entry corresponds to the number of words of weight `i` in the code.
+
+        This is a custom method for GRS codes which is faster than
+        generic implementation.
 
         EXAMPLES::
 
@@ -408,6 +417,9 @@ class GeneralizedReedSolomonCode(AbstractLinearCode):
     def weight_enumerator(self):
         r"""
         Returns the weight enumerator of ``self``.
+
+        This is a custom method for GRS codes which is faster than
+        generic implementation.
 
         EXAMPLES::
 

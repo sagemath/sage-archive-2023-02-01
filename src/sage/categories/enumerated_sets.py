@@ -23,7 +23,7 @@ class EnumeratedSets(Category_singleton):
     together with a canonical enumeration of its elements;
     conceptually, this is very similar to an immutable list. The main
     difference lies in the names and the return type of the methods,
-    and of course the fact that the list of element is not supposed to
+    and of course the fact that the list of elements is not supposed to
     be expanded in memory. Whenever possible one should use one of the
     two sub-categories :class:`FiniteEnumeratedSets` or
     :class:`InfiniteEnumeratedSets`.
@@ -39,7 +39,7 @@ class EnumeratedSets(Category_singleton):
        - ``S.cardinality()``: the number of elements of the set. This
          is the equivalent for ``len`` on a list except that the
          return value is specified to be a Sage :class:`Integer` or
-         ``infinity``, instead of a Python ``int``;
+         ``infinity``, instead of a Python ``int``.
 
        - ``iter(S)``: an iterator for the elements of the set;
 
@@ -48,15 +48,15 @@ class EnumeratedSets(Category_singleton):
          predictably too large to be expanded in memory.
 
        - ``S.unrank(n)``: the  ``n-th`` element of the set when ``n`` is a sage
-         ``Integer``. This is the equivanlent for ``l[n]`` on a list.
+         ``Integer``. This is the equivalent for ``l[n]`` on a list.
 
        - ``S.rank(e)``: the position of the element ``e`` in the set;
          This is equivalent to ``l.index(e)`` for a list except that
          the return value is specified to be a Sage :class:`Integer`,
-         instead of a Python ``int``;
+         instead of a Python ``int``.
 
        - ``S.first()``: the first object of the set; it is equivalent to
-         ``S.unrank(0)``;
+         ``S.unrank(0)``.
 
        - ``S.next(e)``: the object of the set which follows ``e``; It is
          equivalent to ``S.unrank(S.rank(e)+1)``.
@@ -148,12 +148,12 @@ class EnumeratedSets(Category_singleton):
             An iterator for the enumerated set.
 
             ``iter(self)`` allows the combinatorial class to be treated as an
-            iterable. This if the default implementation from the category
-            ``EnumeratedSets()`` it just goes through the iterator of the set
+            iterable. This is the default implementation from the category
+            ``EnumeratedSets()``; it just goes through the iterator of the set
             to count the number of objects.
 
             By decreasing order of priority, the second column of the
-            following array shows which methods is used to define
+            following array shows which method is used to define
             ``__iter__``, when the methods of the first column are overloaded:
 
             +------------------------+---------------------------------+
@@ -166,53 +166,53 @@ class EnumeratedSets(Category_singleton):
             | ``list`                | ``_iterator_from_next``         |
             +------------------------+---------------------------------+
 
-            If non of these are provided raise a ``NotImplementedError``
+            If none of these are provided, raise a ``NotImplementedError``.
 
             EXAMPLES::
 
             We start with an example where nothing is implemented::
 
                 sage: class broken(UniqueRepresentation, Parent):
-                ...    def __init__(self):
-                ...        Parent.__init__(self, category = EnumeratedSets())
-                ...
+                ....:     def __init__(self):
+                ....:         Parent.__init__(self, category = EnumeratedSets())
+                ....:
                 sage: it = iter(broken()); [next(it), next(it), next(it)]
                 Traceback (most recent call last):
                 ...
                 NotImplementedError: iterator called but not implemented
 
-            Here is what happends when ``first`` and ``next`` are implemeted::
+            Here is what happens when ``first`` and ``next`` are implemented::
 
                 sage: class set_first_next(UniqueRepresentation, Parent):
-                ...    def __init__(self):
-                ...        Parent.__init__(self, category = EnumeratedSets())
-                ...    def first(self):
-                ...        return 0
-                ...    def next(self, elt):
-                ...        return elt+1
-                ...
+                ....:     def __init__(self):
+                ....:         Parent.__init__(self, category = EnumeratedSets())
+                ....:     def first(self):
+                ....:         return 0
+                ....:     def next(self, elt):
+                ....:         return elt+1
+                ....:
                 sage: it = iter(set_first_next()); [next(it), next(it), next(it)]
                 [0, 1, 2]
 
             Let us try with ``unrank``::
 
                 sage: class set_unrank(UniqueRepresentation, Parent):
-                ...    def __init__(self):
-                ...        Parent.__init__(self, category = EnumeratedSets())
-                ...    def unrank(self, i):
-                ...        return i + 5
-                ...
+                ....:     def __init__(self):
+                ....:         Parent.__init__(self, category = EnumeratedSets())
+                ....:     def unrank(self, i):
+                ....:         return i + 5
+                ....:
                 sage: it = iter(set_unrank()); [next(it), next(it), next(it)]
                 [5, 6, 7]
 
             Let us finally try with ``list``::
 
                 sage: class set_list(UniqueRepresentation, Parent):
-                ...    def __init__(self):
-                ...        Parent.__init__(self, category = EnumeratedSets())
-                ...    def list(self):
-                ...        return [5, 6, 7]
-                ...
+                ....:     def __init__(self):
+                ....:         Parent.__init__(self, category = EnumeratedSets())
+                ....:     def list(self):
+                ....:         return [5, 6, 7]
+                ....:
                 sage: it = iter(set_list()); [next(it), next(it), next(it)]
                 [5, 6, 7]
 
@@ -257,7 +257,7 @@ class EnumeratedSets(Category_singleton):
 
         def list(self):
             """
-            Return an error since the cardinality of self is not known.
+            Return an error since the cardinality of ``self`` is not known.
 
             EXAMPLES::
 
@@ -715,98 +715,6 @@ class EnumeratedSets(Category_singleton):
     class CartesianProducts(CartesianProductsCategory):
 
         class ParentMethods:
-            def __iter__(self):
-                r"""
-                Return a lexicographic iterator for the elements of this cartesian product.
-
-                EXAMPLES::
-
-                    sage: A = FiniteEnumeratedSets()(["a", "b"])
-                    sage: B = FiniteEnumeratedSets().example(); B
-                    An example of a finite enumerated set: {1,2,3}
-                    sage: C = cartesian_product([A, B, A]); C
-                    The cartesian product of ({'a', 'b'}, An example of a finite enumerated set: {1,2,3}, {'a', 'b'})
-                    sage: C in FiniteEnumeratedSets()
-                    True
-                    sage: list(C)
-                    [('a', 1, 'a'), ('a', 1, 'b'), ('a', 2, 'a'), ('a', 2, 'b'), ('a', 3, 'a'), ('a', 3, 'b'),
-                     ('b', 1, 'a'), ('b', 1, 'b'), ('b', 2, 'a'), ('b', 2, 'b'), ('b', 3, 'a'), ('b', 3, 'b')]
-                    sage: C.__iter__.__module__
-                    'sage.categories.enumerated_sets'
-
-                    sage: F22 = GF(2).cartesian_product(GF(2))
-                    sage: list(F22)
-                    [(0, 0), (0, 1), (1, 0), (1, 1)]
-
-                    sage: C = cartesian_product([Permutations(10)]*4)
-                    sage: it = iter(C)
-                    sage: next(it)
-                    ([1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
-                     [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
-                     [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
-                     [1, 2, 3, 4, 5, 6, 7, 8, 9, 10])
-                    sage: next(it)
-                    ([1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
-                     [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
-                     [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
-                     [1, 2, 3, 4, 5, 6, 7, 8, 10, 9])
-
-                .. WARNING::
-
-                    The elements are returned in lexicographic order,
-                    which gives a valid enumeration only if all
-                    factors, but possibly the first one, are
-                    finite. So the following one is fine::
-
-                        sage: it = iter(cartesian_product([ZZ, GF(2)]))
-                        sage: [next(it) for _ in range(10)]
-                        [(0, 0), (0, 1), (1, 0), (1, 1),
-                         (-1, 0), (-1, 1), (2, 0), (2, 1),
-                         (-2, 0), (-2, 1)]
-
-                    But this one is not::
-
-                        sage: it = iter(cartesian_product([GF(2), ZZ]))
-                        sage: [next(it) for _ in range(10)]
-                        doctest:...: UserWarning: Sage is not able to determine
-                        whether the factors of this cartesian product are
-                        finite. The lexicographic ordering might not go through
-                        all elements.
-                        [(0, 0), (0, 1), (0, -1), (0, 2), (0, -2),
-                         (0, 3), (0, -3), (0, 4), (0, -4), (0, 5)]
-
-                .. NOTE::
-
-                    Here it would be faster to use :func:`itertools.product` for sets
-                    of small size. But the latter expands all factor in memory!
-                    So we can not reasonably use it in general.
-
-                ALGORITHM:
-
-                Recipe 19.9 in the Python Cookbook by Alex Martelli
-                and David Ascher.
-                """
-                if any(f not in Sets().Finite() for f in self.cartesian_factors()[1:]):
-                    from warnings import warn
-                    warn("Sage is not able to determine whether the factors of "
-                         "this cartesian product are finite. The lexicographic "
-                         "ordering might not go through all elements.")
-
-                # visualize an odometer, with "wheels" displaying "digits"...:
-                factors = list(self.cartesian_factors())
-                wheels = map(iter, factors)
-                digits = [next(it) for it in wheels]
-                while True:
-                    yield self._cartesian_product_of_elements(digits)
-                    for i in range(len(digits)-1, -1, -1):
-                        try:
-                            digits[i] = next(wheels[i])
-                            break
-                        except StopIteration:
-                            wheels[i] = iter(factors[i])
-                            digits[i] = next(wheels[i])
-                    else:
-                        break
 
             def first(self):
                 r"""

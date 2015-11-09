@@ -13,7 +13,7 @@ AUTHORS:
 
 - Golam Mortuza Hossain (2009-06-22): _laplace_latex(), _inverse_laplace_latex()
 
-- Tom Coates (2010-06-11): fixed Trac #9217
+- Tom Coates (2010-06-11): fixed :trac:`9217`
 
 The Sage calculus module is loosely based on the Sage Enhancement
 Proposal found at: http://www.sagemath.org:9001/CalculusSEP.
@@ -1768,7 +1768,7 @@ def symbolic_expression_from_maxima_string(x, equals_sub=False, maxima=maxima):
         sage: solve([2*x==3, x != 5], x)
         [[x == (3/2), (-7/2) != 0]]
 
-    Make sure that we don't accidentally pick up variables in the maxima namespace (trac #8734)::
+    Make sure that we don't accidentally pick up variables in the maxima namespace (:trac:`8734`)::
 
         sage: sage.calculus.calculus.maxima('my_new_var : 2')
         2

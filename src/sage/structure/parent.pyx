@@ -95,7 +95,7 @@ This came up in some subtle bug once::
 """
 
 from types import MethodType
-from element cimport parent_c
+from .element cimport parent_c, coercion_model
 cimport sage.categories.morphism as morphism
 cimport sage.categories.map as map
 from sage.structure.debug_options import debug
@@ -118,8 +118,7 @@ dummy_attribute_error = AttributeError(dummy_error_message)
 
 
 cdef _record_exception():
-    from element import get_coercion_model
-    get_coercion_model()._record_exception()
+    coercion_model._record_exception()
 
 cdef object _Integer
 cdef bint is_Integer(x):
@@ -805,6 +804,7 @@ cdef class Parent(category_object.CategoryObject):
             running ._test_eq() . . . pass
             running ._test_euclidean_degree() . . . pass
             running ._test_gcd_vs_xgcd() . . . pass
+            running ._test_metric() . . . pass
             running ._test_not_implemented_methods() . . . pass
             running ._test_one() . . . pass
             running ._test_pickling() . . . pass
@@ -875,6 +875,7 @@ cdef class Parent(category_object.CategoryObject):
             _test_eq
             _test_euclidean_degree
             _test_gcd_vs_xgcd
+            _test_metric
             _test_not_implemented_methods
             _test_one
             _test_pickling
@@ -1117,7 +1118,7 @@ cdef class Parent(category_object.CategoryObject):
         it is a ring, from the point of view of categories::
 
             sage: MS.category()
-            Category of infinite algebras over quotient fields
+            Category of infinite algebras over (quotient fields and metric spaces)
             sage: MS in Rings()
             True
 
@@ -1808,7 +1809,6 @@ cdef class Parent(category_object.CategoryObject):
         if embedding is not None:
             self.register_embedding(embedding)
 
-
     def _unset_coercions_used(self):
         r"""
         Pretend that this parent has never been interrogated by the coercion
@@ -1820,8 +1820,7 @@ cdef class Parent(category_object.CategoryObject):
             For internal use only!
         """
         self._coercions_used = False
-        import sage.structure.element
-        sage.structure.element.get_coercion_model().reset_cache()
+        coercion_model.reset_cache()
 
     def _unset_embedding(self):
         r"""
@@ -2082,10 +2081,10 @@ cdef class Parent(category_object.CategoryObject):
             [      0       1]
             [-272118       0]
 
-            sage: a.matrix() * b
+            sage: a.matrix() * b.matrix()
             [-272118       0]
             [      0    -462]
-            sage: a * b.matrix()
+            sage: a.matrix() * b.matrix()
             [-272118       0]
             [      0    -462]
         """

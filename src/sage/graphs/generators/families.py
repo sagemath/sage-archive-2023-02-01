@@ -689,6 +689,69 @@ def CubeGraph(n):
 
     return r
 
+def GoethalsSeidelGraph(k,r):
+    r"""
+    Returns the graph `\text{Goethals-Seidel}(k,r)`.
+
+    The graph `\text{Goethals-Seidel}(k,r)` comes from a construction presented
+    in Theorem 2.4 of [GS70]_. It relies on a :func:`(v,k)-BIBD
+    <sage.combinat.designs.bibd.balanced_incomplete_block_design>` with `r`
+    blocks and a
+    :func:`~sage.combinat.matrices.hadamard_matrix.hadamard_matrix>` of order
+    `r+1`. The result is a
+    :func:`sage.graphs.strongly_regular_db.strongly_regular_graph` on `v(r+1)`
+    vertices with degree `k=(n+r-1)/2`.
+
+    It appears under this name in Andries Brouwer's `database of strongly
+    regular graphs <http://www.win.tue.nl/~aeb/graphs/srg/srgtab.html>`__.
+
+    INPUT:
+
+    - ``k,r`` -- integers
+
+    EXAMPLE::
+
+        sage: graphs.GoethalsSeidelGraph(3,3)
+        Graph on 28 vertices
+        sage: graphs.GoethalsSeidelGraph(3,3).is_strongly_regular(parameters=True)
+        (28, 15, 6, 10)
+
+    """
+    from sage.combinat.designs.bibd import balanced_incomplete_block_design
+    from sage.combinat.matrices.hadamard_matrix import hadamard_matrix
+    from sage.matrix.constructor import Matrix
+    from sage.matrix.constructor import block_matrix
+    from sage.matrix.constructor import identity_matrix
+
+    v = (k-1)*r+1
+    n = v*(r+1)
+
+    # N is the (v times b) incidence matrix of a bibd
+    N = balanced_incomplete_block_design(v,k).incidence_matrix()
+
+    # L is a (r+1 times r) matrix, where r is the row sum of N
+    L = hadamard_matrix(r+1).submatrix(0,1)
+    L = [Matrix(C).transpose() for C in L.columns()]
+    zero = Matrix(r+1,1,[0]*(r+1))
+
+    # For every row of N, we replace the 0s with a column of zeros, and we
+    # replace the ith 1 with the ith column of L. The result is P.
+    P = []
+    for row in N:
+        Ltmp = L[:]
+        P.append([Ltmp.pop(0) if i else zero
+                  for i in row])
+
+    P = block_matrix(P)
+
+    # The final graph
+    PP = P*P.transpose()
+    for i in range(n):
+        PP[i,i] = 0
+
+    G = Graph(PP, format="seidel_adjacency_matrix")
+    return G
+
 def DorogovtsevGoltsevMendesGraph(n):
     """
     Construct the n-th generation of the Dorogovtsev-Goltsev-Mendes
@@ -1532,6 +1595,93 @@ def PaleyGraph(q):
     loops=False, name = "Paley graph with parameter %d"%q)
     return g
 
+def PasechnikGraph(n):
+    """
+    Pasechnik strongly regular graph on `(4n-1)^2` vertices
+
+    A strongly regular graph with parameters of the orthogonal array graph
+    :func:`OrthogonalArrayBlockGraph
+    <sage.graphs.generateudo_L_2n_4n_m_1ors.GraphGenerators.OrthogonalArrayBlockGraph>`, also
+    known as pseudo Latin squares graph `L_{2n-1}(4n-1)`, constructed from a
+    skew Hadamard matrix of order `4n` following [Pa92]_.
+
+    EXAMPLES::
+
+        sage: graphs.PasechnikGraph(4).is_strongly_regular(parameters=True)
+        (225, 98, 43, 42)
+        sage: graphs.PasechnikGraph(9).is_strongly_regular(parameters=True) # long time
+        (1225, 578, 273, 272)
+    """
+    from sage.combinat.matrices.hadamard_matrix import skew_hadamard_matrix
+    from sage.matrix.constructor import identity_matrix, matrix
+    H = skew_hadamard_matrix(4*n)
+    M = H[1:].T[1:] - identity_matrix(4*n-1)
+    G = Graph(M.tensor_product(M.T), format='seidel_adjacency_matrix')
+    G.relabel()
+    G.name("Pasechnik Graph_" + str((n)))
+    return G
+
+def SquaredSkewHadamardMatrixGraph(n):
+    """
+    Pseudo-`OA(2n,4n-1)`-graph from a skew Hadamard matrix of order `4n`
+
+    A strongly regular graph with parameters of the orthogonal array graph
+    :func:`OrthogonalArrayBlockGraph
+    <sage.graphs.generators.GraphGenerators.OrthogonalArrayBlockGraph>`, also
+    known as pseudo Latin squares graph `L_{2n}(4n-1)`, constructed from a
+    skew Hadamard matrix of order `4n`, due to Goethals and Seidel, see [BvL84]_.
+
+    EXAMPLES::
+
+        sage: graphs.SquaredSkewHadamardMatrixGraph(4).is_strongly_regular(parameters=True)
+        (225, 112, 55, 56)
+        sage: graphs.SquaredSkewHadamardMatrixGraph(9).is_strongly_regular(parameters=True) # long time
+        (1225, 612, 305, 306)
+
+    """
+    from sage.combinat.matrices.hadamard_matrix import skew_hadamard_matrix
+    from sage.matrix.constructor import identity_matrix, matrix
+    idm = identity_matrix(4*n-1)
+    e = matrix([1]*(4*n-1))
+    H = skew_hadamard_matrix(4*n)
+    M = H[1:].T[1:] - idm
+    s = M.tensor_product(M.T) - idm.tensor_product(e.T*e - idm)
+    G = Graph(s, format='seidel_adjacency_matrix')
+    G.relabel()
+    G.name("skewhad^2_" + str((n)))
+    return G
+
+def SwitchedSquaredSkewHadamardMatrixGraph(n):
+    """
+    A strongly regular graph in Seidel switching class of `SquaredSkewHadamardMatrixGraph`
+
+    A strongly regular graph in the
+    :meth:`Seidel switching <Graph.seidel_switching>` class of the disjoint union of
+    a 1-vertex graph and the one produced by :func:`Pseudo-L_{2n}(4n-1)
+    <sage.graphs.generators.GraphGenerators.SquaredSkewHadamardMatrixGraph>`
+
+    In this case, the other possible parameter set of a strongly regular graph in the
+    Seidel switching class of the latter graph (see [BH12]_) coincides with the set
+    of parameters of the complement of the graph returned by this function.
+
+    EXAMPLES::
+
+        sage: g=graphs.SwitchedSquaredSkewHadamardMatrixGraph(4)
+        sage: g.is_strongly_regular(parameters=True)
+        (226, 105, 48, 49)
+        sage: from sage.combinat.designs.twographs import twograph_descendant
+        sage: twograph_descendant(g,0).is_strongly_regular(parameters=True)
+        (225, 112, 55, 56)
+        sage: twograph_descendant(g.complement(),0).is_strongly_regular(parameters=True)
+        (225, 112, 55, 56)
+    """
+    from sage.graphs.generators.families import SquaredSkewHadamardMatrixGraph
+    G = SquaredSkewHadamardMatrixGraph(n).complement()
+    G.add_vertex((4*n-1)**2)
+    G.seidel_switching(range((4*n-1)*(2*n-1)))
+    G.name("switch skewhad^2+*_" + str((n)))
+    return G
+
 def HanoiTowerGraph(pegs, disks, labels=True, positions=True):
     r"""
     Returns the graph whose vertices are the states of the
@@ -2270,3 +2420,53 @@ def RingedTree(k, vertex_labels = True):
     g.relabel(vertices)
 
     return g
+
+
+
+def MathonPseudocyclicMergingGraph(M, t):
+    r"""
+    Mathon's merging of classes in a pseudo-cyclic 3-class association scheme
+
+    Construct strongly regular graphs from p.97 of [BvL84]_.
+
+    INPUT:
+
+    - ``M`` -- the list of matrices in a pseudo-cyclic 3-class association scheme.
+      The identity matrix must be the first entry.
+
+    - ``t`` (integer) -- the number of the graph, from 0 to 2.
+
+    TESTS::
+
+        sage: from sage.graphs.generators.families import MathonPseudocyclicMergingGraph as mer
+        sage: from sage.graphs.generators.smallgraphs import _EllipticLinesProjectivePlaneScheme as ES
+        sage: G = mer(ES(3), 0) # long time
+        sage: G.is_strongly_regular(parameters=True)    # long time
+        (784, 243, 82, 72)
+        sage: G = mer(ES(3), 1) # long time
+        sage: G.is_strongly_regular(parameters=True)    # long time
+        (784, 270, 98, 90)
+        sage: G = mer(ES(3), 2) # long time
+        sage: G.is_strongly_regular(parameters=True)    # long time
+        (784, 297, 116, 110)
+        sage: G = mer(ES(2), 2)
+        Traceback (most recent call last):
+        ...
+        AssertionError...
+        sage: M = ES(3)
+        sage: M = [M[1],M[0],M[2],M[3]]
+        sage: G = mer(M, 2)
+        Traceback (most recent call last):
+        ...
+        AssertionError...
+    """
+    from sage.graphs.graph import Graph
+    from sage.matrix.constructor import identity_matrix
+    assert (len(M) == 4)
+    assert (M[0]==identity_matrix(M[0].nrows()))
+    A = sum(map(lambda x: x.tensor_product(x), M[1:]))
+    if t > 0:
+        A += sum(map(lambda x: x.tensor_product(M[0]), M[1:]))
+    if t > 1:
+        A += sum(map(lambda x: M[0].tensor_product(x), M[1:]))
+    return Graph(A)

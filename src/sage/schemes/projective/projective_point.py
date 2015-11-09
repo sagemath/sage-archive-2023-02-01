@@ -609,7 +609,7 @@ class SchemeMorphism_point_projective_ring(SchemeMorphism_point):
                 Q.append(self[i]/self[n])
         return(A.point(Q))
 
-    def nth_iterate(self,f,n,normalize=False):
+    def nth_iterate(self,f, n, **kwds):
         r"""
         For a map ``self`` and a point `P` in ``self.domain()``
         this function returns the nth iterate of `P` by ``self``. If ``normalize==True``,
@@ -621,6 +621,10 @@ class SchemeMorphism_point_projective_ring(SchemeMorphism_point):
 
         - ``n`` -- a positive integer.
 
+        kwds:
+
+        - ``check`` -- boolean (optional - default: ``True``)
+
         - ``normalize`` -- Boolean (optional Default: ``False``)
 
         OUTPUT:
@@ -629,64 +633,66 @@ class SchemeMorphism_point_projective_ring(SchemeMorphism_point):
 
         EXAMPLES::
 
-            sage: P.<x,y>=ProjectiveSpace(ZZ,1)
-            sage: H=Hom(P,P)
-            sage: f=H([x^2+y^2,2*y^2])
+            sage: P.<x,y> = ProjectiveSpace(ZZ, 1)
+            sage: H = Hom(P,P)
+            sage: f = H([x^2+y^2, 2*y^2])
             sage: P(1,1).nth_iterate(f,4)
             (32768 : 32768)
 
         ::
 
-            sage: P.<x,y>=ProjectiveSpace(ZZ,1)
-            sage: H=Hom(P,P)
-            sage: f=H([x^2+y^2,2*y^2])
-            sage: P(1,1).nth_iterate(f,4,1)
+            sage: P.<x,y> = ProjectiveSpace(ZZ,1)
+            sage: H = Hom(P,P)
+            sage: f = H([x^2+y^2,2*y^2])
+            sage: P(1,1).nth_iterate(f,4,normalize=True)
             (1 : 1)
 
         ::
 
-            sage: R.<t>=PolynomialRing(QQ)
-            sage: P.<x,y,z>=ProjectiveSpace(R,2)
-            sage: H=Hom(P,P)
-            sage: f=H([x^2+t*y^2,(2-t)*y^2,z^2])
+            sage: R.<t> = PolynomialRing(QQ)
+            sage: P.<x,y,z> = ProjectiveSpace(R,2)
+            sage: H = Hom(P,P)
+            sage: f = H([x^2+t*y^2,(2-t)*y^2,z^2])
             sage: P(2+t,7,t).nth_iterate(f,2)
             (t^4 + 2507*t^3 - 6787*t^2 + 10028*t + 16 : -2401*t^3 + 14406*t^2 -
             28812*t + 19208 : t^4)
 
         ::
 
-            sage: P.<x,y,z>=ProjectiveSpace(ZZ,2)
-            sage: X=P.subscheme(x^2-y^2)
-            sage: H=Hom(X,X)
-            sage: f=H([x^2,y^2,z^2])
+            sage: P.<x,y,z> = ProjectiveSpace(ZZ,2)
+            sage: X = P.subscheme(x^2-y^2)
+            sage: H = Hom(X,X)
+            sage: f = H([x^2,y^2,z^2])
             sage: X(2,2,3).nth_iterate(f,3)
             (256 : 256 : 6561)
 
         .. TODO:: Is there a more efficient way to do this?
         """
-        if self.codomain()!=f.domain():
+        if self.codomain() != f.domain():
             raise TypeError("Point is not defined over domain of function")
         if f.domain() != f.codomain():
             raise TypeError("Domain and Codomain of function not equal")
         try:
-            n=ZZ(n)
+            n = ZZ(n)
         except TypeError:
             raise TypeError("Iterate number must be an integer")
-        if n <0:
+        if n < 0:
             raise TypeError("Must be a forward orbit")
-        if n==0:
+        if n == 0:
             return(self)
         else:
-            Q=f(self)
-            if normalize==True:
+            normalize = kwds.pop("normalize", False)
+            check = kwds.pop("check",True)
+            Q = f(self, check)
+            if normalize == True:
                 Q.normalize_coordinates()
-            for i in range(2,n+1):
-                Q=f(Q)
-                if normalize==True:
+            for i in range(2, n+1):
+                Q = f(Q)
+                if normalize == True:
                     Q.normalize_coordinates()
             return(Q)
 
-    def orbit(self,f,N,**kwds):
+    def orbit(self, f, N, **kwds):
         r"""
         Returns the orbit of `P` by ``self``. If `n` is an integer it returns `[P,self(P),\ldots,self^n(P)]`.
         If `n` is a list or tuple `n=[m,k]` it returns `[self^m(P),\ldots,self^k(P)`].
@@ -712,63 +718,65 @@ class SchemeMorphism_point_projective_ring(SchemeMorphism_point):
 
         EXAMPLES::
 
-            sage: P.<x,y,z>=ProjectiveSpace(ZZ,2)
-            sage: H=Hom(P,P)
-            sage: f=H([x^2+y^2,y^2-z^2,2*z^2])
+            sage: P.<x,y,z> = ProjectiveSpace(ZZ,2)
+            sage: H = Hom(P,P)
+            sage: f = H([x^2+y^2,y^2-z^2,2*z^2])
             sage: P(1,2,1).orbit(f,3)
             [(1 : 2 : 1), (5 : 3 : 2), (34 : 5 : 8), (1181 : -39 : 128)]
 
         ::
 
-            sage: P.<x,y,z>=ProjectiveSpace(ZZ,2)
-            sage: H=Hom(P,P)
-            sage: f=H([x^2+y^2,y^2-z^2,2*z^2])
+            sage: P.<x,y,z> = ProjectiveSpace(ZZ,2)
+            sage: H = Hom(P,P)
+            sage: f = H([x^2+y^2,y^2-z^2,2*z^2])
             sage: P(1,2,1).orbit(f,[2,4])
             [(34 : 5 : 8), (1181 : -39 : 128), (1396282 : -14863 : 32768)]
 
         ::
 
-            sage: P.<x,y,z>=ProjectiveSpace(ZZ,2)
-            sage: X=P.subscheme(x^2-y^2)
-            sage: H=Hom(X,X)
-            sage: f=H([x^2,y^2,x*z])
+            sage: P.<x,y,z> = ProjectiveSpace(ZZ,2)
+            sage: X = P.subscheme(x^2-y^2)
+            sage: H = Hom(X,X)
+            sage: f = H([x^2,y^2,x*z])
             sage: X(2,2,3).orbit(f,3,normalize=True)
             [(2 : 2 : 3), (2 : 2 : 3), (2 : 2 : 3), (2 : 2 : 3)]
 
         ::
 
-            sage: P.<x,y>=ProjectiveSpace(QQ,1)
-            sage: H=Hom(P,P)
-            sage: f=H([x^2+y^2,y^2])
+            sage: P.<x,y> = ProjectiveSpace(QQ,1)
+            sage: H = Hom(P,P)
+            sage: f = H([x^2+y^2,y^2])
             sage: P.point([1,2],False).orbit(f,4,check = False)
             [(1 : 2), (5 : 4), (41 : 16), (1937 : 256), (3817505 : 65536)]
         """
+        if not f.is_endomorphism():
+            raise TypeError("Map must be an endomorphism for iteration.")
         if (isinstance(N,(list,tuple))==False):
-            N=[0,N]
+            N = [0,N]
         try:
-            N[0]=ZZ(N[0])
-            N[1]=ZZ(N[1])
+            N[0] = ZZ(N[0])
+            N[1] = ZZ(N[1])
         except TypeError:
             raise TypeError("Orbit bounds must be integers")
-        if N[0]<0 or N[1] <0:
+        if N[0] < 0 or N[1] < 0:
             raise TypeError("Orbit bounds must be non-negative")
         if N[0] > N[1]:
             return([])
 
-        Q=copy(self)
+        Q = copy(self)
         check = kwds.pop("check",True)
         normalize = kwds.pop("normalize",False)
 
-        if normalize==True:
+        if normalize == True:
             Q.normalize_coordinates()
-        for i in range(1,N[0]+1):
-            Q=f(Q,check)
-            if normalize==True:
+        for i in range(1, N[0]+1):
+            Q = f(Q, check)
+            if normalize == True:
                 Q.normalize_coordinates()
-        Orb=[Q]
-        for i in range(N[0]+1,N[1]+1):
-            Q=f(Q,check)
-            if normalize==True:
+        Orb = [Q]
+        for i in range(N[0]+1, N[1]+1):
+            Q = f(Q, check)
+            if normalize == True:
                 Q.normalize_coordinates()
             Orb.append(Q)
         return(Orb)

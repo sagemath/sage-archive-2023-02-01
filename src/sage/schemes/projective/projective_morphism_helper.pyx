@@ -7,6 +7,8 @@ AUTHORS:
 
 - Dillon Rose (2014-01):  Speed enhancements
 
+- Ben Hutz (2015-11): subscheme iteration
+
 """
 
 #*****************************************************************************
@@ -19,6 +21,7 @@ AUTHORS:
 
 from sage.rings.arith              import lcm
 from sage.rings.finite_rings.constructor import GF
+from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.sets.all                 import Set
 from sage.misc.misc                import subsets
 
@@ -272,3 +275,81 @@ def _normalize_coordinates(list point, int prime, int len_points):
         point[coefficient] = (point[coefficient]*mod_inverse)%prime
 
     return point
+
+def _forward_image_subscheme(self, X):
+    """
+    Compute the forward image of a projective subscheme ``x`` by ``self``.
+
+    The forward image is compute through elimination.
+    In particular, let $X = V(h_1,\ldots, h_t)$ and define the ideal
+    $I = (h_1,\ldots,h_t,y_0-f_0(\bar{x}), \ldots, y_n-f_n(\bar{x}))$.
+    Then the elimination ideal $I_{n+1} = I \cap K[y_0,\ldots,y_n]$ is a homogeneous
+    ideal and $self(X) = V(I_{n+1})$.
+
+    INPUT:
+
+    - ``X`` - a subscheme in the domain of ``self``
+
+    OUTPUT:
+
+    - a subscheme in the domain of ``self``
+
+    EXAMPLES:
+
+        sage: PS.<x,y,z,w> = ProjectiveSpace(CC, 3)
+        sage: H = End(PS)
+        sage: f = H([x^2 + y^2, y^2, z^2-y^2, w^2])
+        sage: X = PS.subscheme([z-2*w])
+        sage: f(X)
+        Closed subscheme of Projective Space of dimension 3 over Complex Field
+        with 53 bits of precision defined by:
+          y + z + (-4.00000000000000)*w
+
+    ::
+
+        sage: R.<t> = PolynomialRing(QQ)
+        sage: P.<x,y,z> = ProjectiveSpace(FractionField(R), 2)
+        sage: H = End(P)
+        sage: f = H([x^2 + 2*y*z, t^2*y^2, z^2])
+        sage: f([t^2*y-z])
+        Closed subscheme of Projective Space of dimension 2 over Fraction Field
+        of Univariate Polynomial Ring in t over Rational Field defined by:
+          y + (-1/t^2)*z
+
+    ::
+
+        sage: set_verbose(-1)
+        sage: PS.<x,y,z> = ProjectiveSpace(Qp(3), 2)
+        sage: H = End(PS)
+        sage: f = H([x^2,2*y^2,z^2])
+        sage: X = PS.subscheme([2*x-y,z])
+        sage: f(X)
+        Closed subscheme of Projective Space of dimension 2 over 3-adic Field
+        with capped relative precision 20 defined by:
+          z,
+          x + (1 + 3^2 + 3^4 + 3^6 + 3^8 + 3^10 + 3^12 + 3^14 + 3^16 + 3^18 +
+        O(3^20))*y
+    """
+    dom = self.domain()
+    codom = self.codomain()
+    CR_dom = dom.coordinate_ring()
+    CR_codom = codom.coordinate_ring()
+    n = CR_dom.ngens()
+    m = CR_codom.ngens()
+    #can't call eliminate if the base ring is polynomial so we do it ourselves
+    #with a lex ordering
+    R = PolynomialRing(self.base_ring(), n+m, 'y', order = 'lex')
+    Rvars = R.gens()[0 : n]
+    phi = CR_dom.hom(Rvars,R)
+    zero = [0 for _ in range(n)]
+    psi = R.hom(zero + list(CR_codom.gens()),CR_codom)
+    #set up ideal
+    L = R.ideal([phi(t) for t in X.defining_polynomials()] + [R.gen(n+i) - phi(self[i]) for i in range(m)])
+    G = L.groebner_basis() #eliminate
+    newL = []
+    #get only the elimination ideal portion
+    for i in range (len(G)-1,0,-1):
+        v = G[i].variables()
+        if all([Rvars[j] not in v for j in range(n)]):
+            newL.append(psi(G[i]))
+    return(codom.subscheme(newL))

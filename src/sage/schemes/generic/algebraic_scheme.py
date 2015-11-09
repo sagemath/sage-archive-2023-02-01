@@ -130,7 +130,7 @@ AUTHORS:
 #          class AlgebraicScheme_subscheme_affine_toric
 #    class AlgebraicScheme_quasi
 
-
+from copy import copy
 from sage.categories.number_fields import NumberFields
 
 from sage.rings.all import ZZ
@@ -2208,6 +2208,112 @@ class AlgebraicScheme_subscheme_projective(AlgebraicScheme_subscheme):
         self._smooth = (sing_dim <= 0)
         return self._smooth
 
+    def orbit(self, f, N):
+        r"""
+        Returns the orbit of `self` by ``f``. If `N` is an integer it returns `[self,f(self),\ldots,f^N(self)]`.
+        If `N` is a list or tuple `N=[m,k]` it returns `[f^m(self),\ldots,f^k(self)`].
+        Perform the checks on subscheme initialization if ``check=True``
+
+        INPUT:
+
+        - ``f`` -- a :class:`SchemeMorphism_polynomial` with ``self`` in ``f.domain()``
+
+        - ``N`` -- a non-negative integer or list or tuple of two non-negative integers
+
+        OUTPUT:
+
+        - a proejctive subscheme
+
+        EXAMPLES::
+
+            sage: P.<x,y,z,w> = ProjectiveSpace(QQ, 3)
+            sage: H = End(P)
+            sage: f = H([(x-2*y)^2,(x-2*z)^2,(x-2*w)^2,x^2])
+            sage: f.orbit(P.subscheme([x]),5)
+            [Closed subscheme of Projective Space of dimension 3 over Rational Field
+            defined by:
+               x,
+             Closed subscheme of Projective Space of dimension 3 over Rational Field
+            defined by:
+               w,
+             Closed subscheme of Projective Space of dimension 3 over Rational Field
+            defined by:
+               z - w,
+             Closed subscheme of Projective Space of dimension 3 over Rational Field
+            defined by:
+               y - z,
+             Closed subscheme of Projective Space of dimension 3 over Rational Field
+            defined by:
+               x - y,
+             Closed subscheme of Projective Space of dimension 3 over Rational Field
+            defined by:
+               x - w]
+        """
+        if not f.is_endomorphism():
+            raise TypeError("Map must be an endomorphism for iteration.")
+        if (isinstance(N,(list,tuple)) == False):
+            N = [0,N]
+        try:
+            N[0] = ZZ(N[0])
+            N[1] = ZZ(N[1])
+        except TypeError:
+            raise TypeError("Orbit bounds must be integers")
+        if N[0] < 0 or N[1] < 0:
+            raise TypeError("Orbit bounds must be non-negative")
+        if N[0] > N[1]:
+            return([])
+
+        Q = copy(self)
+        for i in range(1, N[0]+1):
+            Q = f(Q)
+        Orb = [Q]
+
+        for i in range(N[0]+1, N[1]+1):
+            Q = f(Q)
+            Orb.append(Q)
+        return(Orb)
+
+    def nth_iterate(self, f, n , **kwds):
+        r"""
+        For a subscheme ``self`` and a map `f` this function returns
+        the nth iterate of `self` by ``f``.
+
+        INPUT:
+
+        - ``f`` -- a SchmemMorphism_polynomial with ``self`` in ``f.domain()``
+
+        - ``n`` -- a positive integer.
+
+        OUTPUT:
+
+        - A subscheme in ``f.codomain()``
+
+        EXAMPLES::
+
+            sage: P.<x,y,z,w> = ProjectiveSpace(QQ, 3)
+            sage: H = End(P)
+            sage: f = H([y^2, z^2, x^2, w^2])
+            sage: f.nth_iterate(P.subscheme([x-w,y-z]), 3)
+            Closed subscheme of Projective Space of dimension 3 over Rational Field
+            defined by:
+              y - z,
+              x - w
+        """
+        if not f.is_endomorphism():
+            raise TypeError("Map must be an endomorphism for iteration.")
+        try:
+            n = ZZ(n)
+        except TypeError:
+            raise TypeError("Iterate number must be an integer")
+        if n < 0:
+            raise TypeError("Must be a forward orbit")
+        if n == 0:
+            return(self)
+        else:
+            Q = f(self)
+            for i in range(2,n+1):
+                Q = f(Q)
+            return(Q)
 
 class AlgebraicScheme_subscheme_product_projective(AlgebraicScheme_subscheme_projective):
 

@@ -22,6 +22,8 @@ AUTHORS:
 
 - Dillon Rose (2014-01):  Speed enhancements
 
+- Ben Hutz (2015-11): iteration of subschemes
+
 """
 
 # Historical note: in trac #11599, V.B. renamed
@@ -75,13 +77,13 @@ from sage.parallel.ncpus           import ncpus
 from sage.parallel.use_fork        import p_iter_fork
 from sage.ext.fast_callable        import fast_callable
 from sage.misc.lazy_attribute      import lazy_attribute
-from sage.schemes.projective.projective_morphism_helper import _fast_possible_periods
+from sage.schemes.projective.projective_morphism_helper import _fast_possible_periods, _forward_image_subscheme
 import sys
 from sage.categories.number_fields import NumberFields
 _NumberFields = NumberFields()
 
 class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
-    """
+    r"""
     A morphism of schemes determined by rational functions that define
     what the morphism does on points in the ambient projective space.
 
@@ -144,6 +146,33 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
         ...
         TypeError: polys (=[e^x, e^y]) must be elements of
         Multivariate Polynomial Ring in x, y over Rational Field
+
+    We can also compute the forward image of subschemes through
+    elimination. In particular, let `X = V(h_1,\ldots, h_t)` and define the ideal
+    `I = (h_1,\ldots,h_t,y_0-f_0(\bar{x}), \ldots, y_n-f_n(\bar{x}))`.
+    Then the elimination ideal `I_{n+1} = I \cap K[y_0,\ldots,y_n]` is a homogeneous
+    ideal and `f(X) = V(I_{n+1})`::
+
+        sage: P.<x,y,z> = ProjectiveSpace(QQ, 2)
+        sage: H = End(P)
+        sage: f = H([(x-2*y)^2, (x-2*z)^2, x^2])
+        sage: X = P.subscheme(y-z)
+        sage: f(f(f(X)))
+        Closed subscheme of Projective Space of dimension 2 over Rational Field
+        defined by:
+          y - z
+
+    ::
+
+        sage: P.<x,y,z,w> = ProjectiveSpace(QQ, 3)
+        sage: H = End(P)
+        sage: f = H([(x-2*y)^2, (x-2*z)^2, (x-2*w)^2, x^2])
+        sage: f(P.subscheme([x,y,z]))
+        Closed subscheme of Projective Space of dimension 3 over Rational Field
+        defined by:
+          w,
+          y,
+          x
     """
 
     def __init__(self, parent, polys, check=True):
@@ -179,7 +208,22 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
 
     def __call__(self, x, check=True):
         """
-        Evaluate projective morphism at point described by ``x``.
+        Compute the forward image of the point or subscheme ``x`` by the map ``self``.
+        For subschemes, the forward image is compute through elimination.
+        In particular, let $X = V(h_1,\ldots, h_t)$ and define the ideal
+        $I = (h_1,\ldots,h_t,y_0-f_0(\bar{x}), \ldots, y_n-f_n(\bar{x}))$.
+        Then the elimination ideal $I_{n+1} = I \cap K[y_0,\ldots,y_n]$ is a homogeneous
+        ideal and $self(X) = V(I_{n+1})$.
+
+        The input boolean ``check`` can be set to false when fast iteration of
+        points is desired. It bypasses all input checking and passes ``x`` straight
+        to the fast evaluation of points function.
+
+        INPUT:
+
+        - ``x`` - a point or subscheme in domain of ``self``
+
+        - ``check`` - Boolean - if `False` assume that ``x`` is a point
 
         EXAMPLES::
 
@@ -188,16 +232,44 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             sage: f=H([x^2+y^2,y^2,z^2 + y*z])
             sage: f(P([1,1,1]))
             (1 : 1/2 : 1)
+
+        ::
+
+            sage: PS.<x,y,z,w>=ProjectiveSpace(QQ,3)
+            sage: H=End(PS)
+            sage: f=H([y^2,x^2,w^2,z^2])
+            sage: X=PS.subscheme([z^2+y*w])
+            sage: f(X)
+            Closed subscheme of Projective Space of dimension 3 over Rational Field
+            defined by:
+              x*z - w^2
         """
         from sage.schemes.projective.projective_point import SchemeMorphism_point_projective_ring
         if check:
-            if not isinstance(x, SchemeMorphism_point_projective_ring):
+            from sage.schemes.generic.algebraic_scheme import AlgebraicScheme_subscheme_projective
+            if isinstance(x, SchemeMorphism_point_projective_ring):
+                if self.domain() != x.codomain():
+                    try:
+                        x = self.domain()(x)
+                    except (TypeError, NotImplementedError):
+                        raise TypeError("%s fails to convert into the map's domain %s, but a `pushforward` method is not properly implemented"%(x, self.domain()))
+                #else pass it onto the eval below
+            elif isinstance(x, AlgebraicScheme_subscheme_projective):
+                if self.domain() != x.ambient_space():
+                    try:
+                        x = self.domain().subscheme(x.defining_polynomials())
+                    except (TypeError, NotImplementedError):
+                        raise TypeError("%s fails to convert into the map's domain %s, but a `pushforward` method is not properly implemented"%(x, self.domain()))
+                return _forward_image_subscheme(self,x) #call subscheme eval
+            else: #not a projective point or subscheme
                 try:
                     x = self.domain()(x)
                 except (TypeError, NotImplementedError):
-                    raise TypeError("%s fails to convert into the map's domain %s, but a `pushforward` method is not properly implemented"%(x, self.domain()))
-            elif self.domain()!=x.codomain():
-                raise TypeError("%s fails to convert into the map's domain %s, but a `pushforward` method is not properly implemented"%(x, self.domain()))
+                    try:
+                        x = self.domain().subscheme(x)
+                        return _forward_image_subscheme(self,x) #call subscheme eval
+                    except (TypeError, NotImplementedError):
+                        raise TypeError("%s fails to convert into the map's domain %s, but a `pushforward` method is not properly implemented"%(x, self.domain()))
 
         # Passes the array of args to _fast_eval
         P = self._fast_eval(x._coords)
@@ -872,7 +944,7 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             D >>= 1
         return End(E)(PHI)
 
-    def nth_iterate(self, P, n, normalize=False):
+    def nth_iterate(self, P, n, **kwds):
         r"""
         For a map ``self`` and a point `P` in ``self.domain()``
         this function returns the nth iterate of `P` by ``self``.
@@ -887,6 +959,8 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
         - ``P`` -- a point in ``self.domain()``
 
         - ``n`` -- a positive integer.
+
+        kwds:
 
         - ``normalize`` - Boolean (optional Default: ``False``)
 
@@ -909,7 +983,7 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             sage: H = Hom(P,P)
             sage: f = H([x^2+y^2,2*y^2])
             sage: Q = P(1,1)
-            sage: f.nth_iterate(Q,4,1)
+            sage: f.nth_iterate(Q,4,normalize = True)
             (1 : 1)
 
         Is this the right behavior? ::
@@ -950,7 +1024,7 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             sage: f.nth_iterate(P(c,1),2)
             ((c^6 - 9*c^4 + 25*c^2 - c - 21)/(c^2 - 3) : 1)
         """
-        return(P.nth_iterate(self, n, normalize))
+        return(P.nth_iterate(self, n, **kwds))
 
     def degree(self):
         r"""
@@ -3178,7 +3252,7 @@ class SchemeMorphism_polynomial_projective_space_field(SchemeMorphism_polynomial
                         T.clear_denominators()
                         newT = T.change_ring(RQ, check = False)
                         fp = self.change_ring(RQ, check = False)
-                        S = newT.nth_iterate(fp, n, False).change_ring(QQ, check = False)
+                        S = newT.nth_iterate(fp, n, normalize = False).change_ring(QQ, check = False)
                         T.scale_by(1 / T[qindex])
                         S.scale_by(1 / S[qindex])
                         for i in range(N + 1):
@@ -3220,7 +3294,7 @@ class SchemeMorphism_polynomial_projective_space_field(SchemeMorphism_polynomial
                                 if i != qindex:
                                     newT._coords[i] = newT[i] + shift[shiftindex] * p ** k
                                     shiftindex += 1
-                            TT = fp.nth_iterate(newT, n, False)
+                            TT = fp.nth_iterate(newT, n, normalize = False)
                             if TT == newT:
                                 if first == 0:
                                     newq.append(newT.change_ring(QQ, check = False))
@@ -3399,16 +3473,19 @@ class SchemeMorphism_polynomial_projective_space_field(SchemeMorphism_polynomial
         in the domain of ``self`` with `self(P)==Q`. In other words, the set of first pre-images of `Q`.
         ``self`` must be defined over number fields and be an endomorphism.
 
+        In ``Q`` is a subscheme, the return the subscheme that maps to ``Q`` by ``self``.
+        In particular, `f^{-1}(V(h_1,\ldots,h_t)) = V(h_1 \circ f, \ldots, h_t \circ f)`.
+
         ALGORITHM:
-            Use elimination via groebner bases to find the rational pre-images
+            points: Use elimination via groebner bases to find the rational pre-images
 
         INPUT:
 
-        - ``Q`` - a rational point in the domain of ``self``.
+        - ``Q`` - a rational point or subscheme in the domain of ``self``.
 
         OUTPUT:
 
-        - a list of rational points in the domain of ``self``.
+        - a list of rational points or a subscheme in the domain of ``self``.
 
         Examples::
 
@@ -3483,7 +3560,41 @@ class SchemeMorphism_polynomial_projective_space_field(SchemeMorphism_polynomial
             Traceback (most recent call last):
             ...
             NotImplementedError: Subschemes as Preimages not implemented
+
+        ::
+
+            sage: P.<x, y> = ProjectiveSpace(QQ, 1)
+            sage: H = End(P)
+            sage: f = H([x^2-y^2, y^2])
+            sage: f.rational_preimages(P.subscheme([x]))
+            Closed subscheme of Projective Space of dimension 1 over Rational Field
+            defined by:
+              x^2 - y^2
+
+        ::
+
+            sage: P.<x,y,z,w,t> = ProjectiveSpace(QQ, 4)
+            sage: H = End(P)
+            sage: f = H([x^2-y^2, z*y, z^2, w^2, t^2+w^2])
+            sage: f.rational_preimages(P.subscheme([x-z, t^2, w-t]))
+            Closed subscheme of Projective Space of dimension 4 over Rational Field
+            defined by:
+              x^2 - y^2 - z^2,
+              w^4 + 2*w^2*t^2 + t^4,
+              -t^2
         """
+        #first check if subscheme
+        from sage.schemes.generic.algebraic_scheme import AlgebraicScheme_subscheme_projective
+        if isinstance(Q, AlgebraicScheme_subscheme_projective):
+            dom = self.domain()
+            codom = self.codomain()
+            R = codom.coordinate_ring()
+            dict = {}
+            for i in range(codom.dimension_relative()+1):
+                dict.update({R.gen(i): self[i]})
+            return(dom.subscheme([t.subs(dict) for t in Q.defining_polynomials()]))
+
+        #else assume a point
         BR = self.base_ring()
         if not self.is_endomorphism():
             raise NotImplementedError("Must be an endomorphism of projective space")

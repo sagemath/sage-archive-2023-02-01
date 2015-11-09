@@ -1453,7 +1453,9 @@ cdef class RealBall(RingElement):
           make sure that the returned lower bound is positive, raising
           an error if the ball contains zero.
 
-        .. SEEALSO:: :meth:`abs`, :meth:`above_abs`
+        OUPUT: a ball with zero radius
+
+        .. SEEALSO:: :meth:`above_abs`
 
         EXAMPLES::
 
@@ -1486,7 +1488,9 @@ cdef class RealBall(RingElement):
         """
         Return an upper bound for the absolute value of this ball.
 
-        .. SEEALSO:: :meth:`abs`, :meth:`below_abs`
+        OUPUT: a ball with zero radius
+
+        .. SEEALSO:: :meth:`below_abs`
 
         EXAMPLES::
 
@@ -2161,7 +2165,7 @@ cdef class RealBall(RingElement):
             sage: RBF(sqrt(2)).contains_exact(sqrt(2))
             Traceback (most recent call last):
             ...
-            TypeError
+            TypeError: unsupported type: <type 'sage.symbolic.expression.Expression'>
 
         TESTS::
 
@@ -2190,7 +2194,7 @@ cdef class RealBall(RingElement):
             elif isinstance(other, RealNumber):
                 res = arb_contains_mpfr(self.value, (<RealNumber> other).value)
             else:
-                raise TypeError
+                raise TypeError("unsupported type: " + str(type(other)))
         finally:
             if _do_sig(prec(self)): sig_off()
         return res

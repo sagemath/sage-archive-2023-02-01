@@ -1050,7 +1050,9 @@ cdef class ComplexBall(RingElement):
           make sure that the returned lower bound is positive, raising
           an error if the ball contains zero.
 
-        .. SEEALSO:: :meth:`abs`, :meth:`above_abs`
+        OUPUT: a ball with zero radius
+
+        .. SEEALSO:: :meth:`above_abs`
 
         EXAMPLES::
 
@@ -1080,7 +1082,9 @@ cdef class ComplexBall(RingElement):
         """
         Return an upper bound for the absolute value of this complex ball.
 
-        .. SEEALSO:: :meth:`abs`, :meth:`below_abs`
+        OUPUT: a ball with zero radius
+
+        .. SEEALSO:: :meth:`below_abs`
 
         EXAMPLES::
 
@@ -1607,6 +1611,11 @@ cdef class ComplexBall(RingElement):
             True
             sage: CBF(1).contains_exact(CBF(1))
             True
+
+            sage: CBF(sqrt(2)).contains_exact(sqrt(2))
+            Traceback (most recent call last):
+            ...
+            TypeError: unsupported type: <type 'sage.symbolic.expression.Expression'>
         """
         cdef fmpz_t tmpz
         cdef fmpq_t tmpq
@@ -1625,7 +1634,7 @@ cdef class ComplexBall(RingElement):
                 res = acb_contains_fmpq(self.value, tmpq)
                 fmpq_clear(tmpq)
             else:
-                raise TypeError
+                raise TypeError("unsupported type: " + str(type(other)))
         finally:
             if _do_sig(prec(self)): sig_off()
         return res

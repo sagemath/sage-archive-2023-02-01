@@ -836,7 +836,7 @@ cdef class ComplexBall(RingElement):
             sage: CBF['x']([1, -1/3])
             ([-0.3333333333333333 +/- 7.04e-17])*x + 1.000000000000000
         """
-        return self.is_real() or self.imag().is_zero()
+        return self.is_real() or self.real().is_zero()
 
     # Conversions
 

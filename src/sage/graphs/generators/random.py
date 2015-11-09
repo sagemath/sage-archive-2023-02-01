@@ -1021,13 +1021,13 @@ def RandomTriangulation(n, set_position=False):
                 if not stack_in or (x != stack_in[-1]):
                     # add one 'in' to the stack
                     stack_in += [x]
-        word = new_word + stack_in
 
-        if done and not(word[-1][0] == 'lf'):
+        if stack_in:
             # trying again after rotation if needed
-            # this is cumbersome
+            word = stack_in + new_word
             done = False
-            word = [word[-1]] + word[:-1]
+        else:
+            word = new_word
 
     graph.add_edges(edges)
     # This is the end of partial closure.

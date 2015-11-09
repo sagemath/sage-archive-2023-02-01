@@ -985,7 +985,7 @@ def RandomTriangulation(n, set_position=False):
 
         sage: for i in range(10):
         ....:     g = graphs.RandomTriangulation(30)
-        ....:     assert g.is_planar() and g.size() == 3 * g.order() - 6
+        ....:     assert g.is_planar()
 
     REFERENCES:
 
@@ -1008,7 +1008,8 @@ def RandomTriangulation(n, set_position=False):
         for x in word:
             if x[0] == 'lf':  # leaf vertex 'lf'
                 if len(stack_in) >= 3:
-                    # place to perform a local closure
+                    # place to perform a local closure: in, in, in, lf
+                    # this is followed by another 'in'
                     done = False
                     edges.append((stack_in[-3][1], stack_in[-1][1]))
                     end_in = stack_in.pop()
@@ -1020,10 +1021,12 @@ def RandomTriangulation(n, set_position=False):
             else:  # inner vertex 'in'
                 if not stack_in or (x != stack_in[-1]):
                     # add one 'in' to the stack
+                    # unless this 'in' was following a previous local closure
                     stack_in += [x]
 
         if stack_in:
             # trying again after rotation if needed
+            # by flushing all final 'in's to the beginning
             word = stack_in + new_word
             done = False
         else:
@@ -1054,6 +1057,8 @@ def RandomTriangulation(n, set_position=False):
             else:
                 after_lf_in = False
             after_lf = False
+
+    assert graph.num_edges() == 3 * (n - 2)
 
     if set_position:
         graph.layout(layout="planar", save_pos=True)

@@ -1467,22 +1467,18 @@ ext_modules = [
     Extension('sage.rings.padics.pow_computer_flint',
               sources = ['sage/rings/padics/pow_computer_flint.pyx'],
               libraries = ["flint", "gmpxx", "gmp", "ntl"],
-              language='c++',
-              include_dirs = [SAGE_INC + 'flint/']),
+              language='c++'),
 
     Extension('sage.rings.padics.qadic_flint_CR',
               sources = ['sage/rings/padics/qadic_flint_CR.pyx'],
-              include_dirs = [SAGE_INC + 'flint/'],
               libraries = ["flint"]),
 
     Extension('sage.rings.padics.qadic_flint_CA',
               sources = ['sage/rings/padics/qadic_flint_CA.pyx'],
-              include_dirs = [SAGE_INC + 'flint/'],
               libraries = ["flint"]),
 
     Extension('sage.rings.padics.qadic_flint_FM',
               sources = ['sage/rings/padics/qadic_flint_FM.pyx'],
-              include_dirs = [SAGE_INC + 'flint/'],
               libraries = ["flint"]),
 
     ################################

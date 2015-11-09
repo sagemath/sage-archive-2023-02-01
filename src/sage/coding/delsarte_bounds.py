@@ -16,15 +16,15 @@ AUTHORS:
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-def Krawtchouk(n,q,l,i):
+def Krawtchouk(n,q,l,x):
     """
-    Compute ``K^{n,q}_l(i)``, the Krawtchouk polynomial:
+    Compute ``K^{n,q}_l(x)``, the Krawtchouk polynomial:
     see :wikipedia:`Kravchuk_polynomials`.
     It is given by
 
     .. math::
 
-        K^{n,q}_l(i)=\sum_{j=0}^l (-1)^j(q-1)^{(l-j)}{i \choose j}{n-i \choose l-j}
+        K^{n,q}_l(x)=\sum_{j=0}^l (-1)^j(q-1)^{(l-j)}{x \choose j}{n-x \choose l-j}
 
     EXAMPLES::
 
@@ -33,13 +33,24 @@ def Krawtchouk(n,q,l,i):
         sage: Krawtchouk(12300,4,5,6)
         567785569973042442072
 
+    TESTS:
+
+    check that the bug reported on #19561 is fixed::
+
+        sage: Krawtchouk(3,2,3,3)
+        -1
+        sage: Krawtchouk(int(3),int(2),int(3),int(3))
+        -1
     """
     from sage.rings.arith import binomial
+    from sage.rings.integer_ring import ZZ
+    from sage.misc.misc import srange
     # Use the expression in equation (55) of MacWilliams & Sloane, pg 151
     # We write jth term = some_factor * (j-1)th term
-    kraw = jth_term = (q-1)**l * binomial(n, l) # j=0
-    for j in range(1,l+1):
-        jth_term *= -q*(l-j+1)*(i-j+1)/((q-1)*j*(n-j+1))
+    l = ZZ(l)
+    kraw = jth_term = ZZ((q-1)**l * binomial(n, l)) # j=0
+    for j in srange(1,l+1):
+        jth_term *= -q*(l-j+1)*(x-j+1)/((q-1)*j*(n-j+1))
         kraw += jth_term
     return kraw
 

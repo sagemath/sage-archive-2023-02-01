@@ -33,16 +33,16 @@ done
 # Find out the machine type
 ###############################################################################
 
-MACHINE_TYPE_MPIR=$(sh ./config.guess)
+MACHINE_TYPE_MPIR=$(bash ./config.guess)
 if [ $? -ne 0 ]; then
     echo >&2 "Error: failed to determine the machine type (mpir-extended)"
     exit 1
 fi
 
-#  This is the vanilla config.guessq (renamed to configfsf.guess in
+#  This is the vanilla config.guess (renamed to configfsf.guess in
 #  MPIR) file instead of MPIR's version. It is used when
 #  SAGE_FAT_BINARY is set.
-MACHINE_TYPE_DEFAULT=$(sh ./configfsf.guess)
+MACHINE_TYPE_DEFAULT=$(bash ./configfsf.guess)
 if [ $? -ne 0 ]; then
     echo >&2 "Error: failed to determine the machine type (default)"
     exit 1

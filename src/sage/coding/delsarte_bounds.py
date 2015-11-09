@@ -33,12 +33,23 @@ def Krawtchouk(n,q,l,i):
         sage: Krawtchouk(12300,4,5,6)
         567785569973042442072
 
+    TESTS:
+
+    check that the bug reported on #19561 is fixed::
+
+        sage: Krawtchouk(3,2,3,3)
+        -1
+        sage: Krawtchouk(int(3),int(2),int(3),int(3))
+        -1
     """
     from sage.rings.arith import binomial
+    from sage.rings.integer_ring import ZZ
+    from sage.misc.misc import srange
     # Use the expression in equation (55) of MacWilliams & Sloane, pg 151
     # We write jth term = some_factor * (j-1)th term
-    kraw = jth_term = (q-1)**l * binomial(n, l) # j=0
-    for j in range(1,l+1):
+    n,q,l,i = map(ZZ,(n,q,l,i))
+    kraw = jth_term = ZZ((q-1)**l * binomial(n, l)) # j=0
+    for j in srange(1,l+1):
         jth_term *= -q*(l-j+1)*(i-j+1)/((q-1)*j*(n-j+1))
         kraw += jth_term
     return kraw

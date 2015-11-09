@@ -418,6 +418,7 @@ from sage.graphs.digraph import DiGraph
 from sage.graphs.independent_sets import IndependentSets
 from sage.combinat.combinatorial_map import combinatorial_map
 from sage.misc.rest_index_of_methods import doc_index, gen_thematic_rest_table_index
+from sage.misc.decorators import rename_keyword
 
 class Graph(GenericGraph):
     r"""
@@ -2104,13 +2105,13 @@ class Graph(GenericGraph):
         - ``algorithm`` -- (default: ``'bitset'``) specifies the algorithm to
           use among:
 
-            - ``'matrix'`` -- tests if the trace of the adjacency matrix is
-              positive.
+          - ``'matrix'`` -- tests if the trace of the adjacency matrix is
+            positive.
 
-            - ``'bitset'`` -- encodes adjacencies into bitsets and uses fast
-              bitset operations to test if the input graph contains a
-              triangle. This method is generaly faster than stantard matrix
-              multiplication.
+          - ``'bitset'`` -- encodes adjacencies into bitsets and uses fast
+            bitset operations to test if the input graph contains a
+            triangle. This method is generaly faster than stantard matrix
+            multiplication.
 
         EXAMPLE:
 
@@ -3180,14 +3181,14 @@ class Graph(GenericGraph):
         - ``bound`` -- Maximum bound on the out-degree. Can be of
           three different types :
 
-             * An integer `k`. In this case, computes an orientation
-               whose maximum out-degree is less than `k`.
+         * An integer `k`. In this case, computes an orientation
+           whose maximum out-degree is less than `k`.
 
-             * A dictionary associating to each vertex its associated
-               maximum out-degree.
+         * A dictionary associating to each vertex its associated
+           maximum out-degree.
 
-             * A function associating to each vertex its associated
-               maximum out-degree.
+         * A function associating to each vertex its associated
+           maximum out-degree.
 
         OUTPUT:
 
@@ -4120,11 +4121,11 @@ class Graph(GenericGraph):
 
         - ``value_only`` (boolean) -- ``True`` by default
 
-            - If ``value_only=True``, only the numerical
-              value of the `MAD` is returned.
+          - If ``value_only=True``, only the numerical
+            value of the `MAD` is returned.
 
-            - Else, the subgraph of `G` realizing the `MAD`
-              is returned.
+          - Else, the subgraph of `G` realizing the `MAD`
+            is returned.
 
         - ``solver`` -- (default: ``None``) Specify a Linear Program (LP)
           solver to be used. If set to ``None``, the default one is used. For
@@ -5242,17 +5243,17 @@ class Graph(GenericGraph):
 
         - ``algorithm`` -- the algorithm to be used :
 
-           - If ``algorithm = "Cliquer"`` (default) - This wraps the C program
-             Cliquer [NisOst2003]_.
+          - If ``algorithm = "Cliquer"`` (default) - This wraps the C program
+            Cliquer [NisOst2003]_.
 
-           - If ``algorithm = "MILP"``, the problem is solved through a Mixed
-             Integer Linear Program.
+          - If ``algorithm = "MILP"``, the problem is solved through a Mixed
+            Integer Linear Program.
 
-             (see :class:`~sage.numerical.mip.MixedIntegerLinearProgram`)
+            (see :class:`~sage.numerical.mip.MixedIntegerLinearProgram`)
 
-           - If ``algorithm = "mcqd"`` - Uses the MCQD solver
-             (`<http://www.sicmm.org/~konc/maxclique/>`_). Note that the MCQD
-             package must be installed.
+          - If ``algorithm = "mcqd"`` - Uses the MCQD solver
+            (`<http://www.sicmm.org/~konc/maxclique/>`_). Note that the MCQD
+            package must be installed.
 
         .. NOTE::
 
@@ -5319,21 +5320,21 @@ class Graph(GenericGraph):
 
         - ``algorithm`` -- the algorithm to be used :
 
-           - If ``algorithm = "Cliquer"`` - This wraps the C program Cliquer
-             [NisOst2003]_.
+          - If ``algorithm = "Cliquer"`` - This wraps the C program Cliquer
+            [NisOst2003]_.
 
-           - If ``algorithm = "networkx"`` - This function is based on
-             NetworkX's implementation of the Bron and Kerbosch Algorithm
-             [BroKer1973]_.
+          - If ``algorithm = "networkx"`` - This function is based on
+            NetworkX's implementation of the Bron and Kerbosch Algorithm
+            [BroKer1973]_.
 
-           - If ``algorithm = "MILP"``, the problem is solved through a Mixed
-             Integer Linear Program.
+          - If ``algorithm = "MILP"``, the problem is solved through a Mixed
+            Integer Linear Program.
 
-             (see :class:`~sage.numerical.mip.MixedIntegerLinearProgram`)
+            (see :class:`~sage.numerical.mip.MixedIntegerLinearProgram`)
 
-           - If ``algorithm = "mcqd"`` - Uses the MCQD solver
-             (`<http://www.sicmm.org/~konc/maxclique/>`_). Note that the MCQD
-             package must be installed.
+          - If ``algorithm = "mcqd"`` - Uses the MCQD solver
+            (`<http://www.sicmm.org/~konc/maxclique/>`_). Note that the MCQD
+            package must be installed.
 
         - ``cliques`` - an optional list of cliques that can be input if
           already computed. Ignored unless ``algorithm=="networkx"``.
@@ -5526,19 +5527,19 @@ class Graph(GenericGraph):
 
         - ``algorithm`` -- the algorithm to be used
 
-            * If ``algorithm = "Cliquer"`` (default), the problem is solved
-              using Cliquer [NisOst2003]_.
+          * If ``algorithm = "Cliquer"`` (default), the problem is solved
+            using Cliquer [NisOst2003]_.
 
-              (see the :mod:`Cliquer modules <sage.graphs.cliquer>`)
+            (see the :mod:`Cliquer modules <sage.graphs.cliquer>`)
 
-            * If ``algorithm = "MILP"``, the problem is solved through a Mixed
-              Integer Linear Program.
+          * If ``algorithm = "MILP"``, the problem is solved through a Mixed
+            Integer Linear Program.
 
-              (see :class:`~sage.numerical.mip.MixedIntegerLinearProgram`)
+            (see :class:`~sage.numerical.mip.MixedIntegerLinearProgram`)
 
-           * If ``algorithm = "mcqd"`` - Uses the MCQD solver
-             (`<http://www.sicmm.org/~konc/maxclique/>`_). Note that the MCQD
-             package must be installed.
+         * If ``algorithm = "mcqd"`` - Uses the MCQD solver
+           (`<http://www.sicmm.org/~konc/maxclique/>`_). Note that the MCQD
+           package must be installed.
 
         - ``value_only`` -- boolean (default: ``False``). If set to ``True``,
           only the size of a maximum independent set is returned. Otherwise,
@@ -6287,15 +6288,15 @@ class Graph(GenericGraph):
 
         A pair of two values (recursively encoding the decomposition) :
 
-            * The type of the current module :
+        * The type of the current module :
 
-                * ``"Parallel"``
-                * ``"Prime"``
-                * ``"Serie"``
+          * ``"Parallel"``
+          * ``"Prime"``
+          * ``"Serie"``
 
-            * The list of submodules (as list of pairs ``(type, list)``,
-              recursively...) or the vertex's name if the module is a
-              singleton.
+        * The list of submodules (as list of pairs ``(type, list)``,
+          recursively...) or the vertex's name if the module is a
+          singleton.
 
         EXAMPLES:
 
@@ -6402,9 +6403,10 @@ class Graph(GenericGraph):
 
         return D[0] == "Prime" and len(D[1]) == self.order()
 
-    def _gomory_hu_tree(self, vertices, method="FF"):
+    @rename_keyword(deprecation=19550, method='algorithm')
+    def _gomory_hu_tree(self, vertices, algorithm="FF"):
         r"""
-        Returns a Gomory-Hu tree associated to self.
+        Return a Gomory-Hu tree associated to self.
 
         This function is the private counterpart of ``gomory_hu_tree()``,
         with the difference that it has an optional argument
@@ -6419,15 +6421,15 @@ class Graph(GenericGraph):
           fakes one introduced during the computations. This variable is
           useful for the algorithm and for recursion purposes.
 
-        - ``method`` -- There are currently two different
+        - ``algorithm`` -- There are currently two different
           implementations of this method :
 
-              * If ``method = "FF"`` (default), a Python
-                implementation of the Ford-Fulkerson algorithm is
-                used.
+          * If ``algorithm = "FF"`` (default), a Python
+            implementation of the Ford-Fulkerson algorithm is
+            used.
 
-              * If ``method = "LP"``, the flow problem is solved using
-                Linear Programming.
+          * If ``algorithm = "LP"``, the flow problem is solved using
+            Linear Programming.
 
         EXAMPLE:
 
@@ -6452,7 +6454,7 @@ class Graph(GenericGraph):
         # Compute a uv min-edge-cut.
         #
         # The graph is split into U,V with u \in U and v\in V.
-        flow,edges,[U,V] = self.edge_cut(u, v, use_edge_labels=True, vertices=True, method=method)
+        flow,edges,[U,V] = self.edge_cut(u, v, use_edge_labels=True, vertices=True, algorithm=algorithm)
 
         # One graph for each part of the previous one
         gU,gV = self.subgraph(U, immutable=False), self.subgraph(V, immutable=False)
@@ -6486,8 +6488,8 @@ class Graph(GenericGraph):
             gV.set_edge_label(vv, fU, gV.edge_label(vv, fU) + capacity)
 
         # Recursion on each side
-        gU_tree = gU._gomory_hu_tree(vertices & frozenset(gU), method=method)
-        gV_tree = gV._gomory_hu_tree(vertices & frozenset(gV), method=method)
+        gU_tree = gU._gomory_hu_tree(vertices & frozenset(gU), algorithm=algorithm)
+        gV_tree = gV._gomory_hu_tree(vertices & frozenset(gV), algorithm=algorithm)
 
         # Union of the two partial trees
         g = gU_tree.union(gV_tree)
@@ -6498,7 +6500,8 @@ class Graph(GenericGraph):
         return g
 
     @doc_index("Connectivity, orientations, trees")
-    def gomory_hu_tree(self, method="FF"):
+    @rename_keyword(deprecation=19550, method='algorithm')
+    def gomory_hu_tree(self, algorithm="FF"):
         r"""
         Returns a Gomory-Hu tree of self.
 
@@ -6516,15 +6519,15 @@ class Graph(GenericGraph):
 
         INPUT:
 
-        - ``method`` -- There are currently two different
+        - ``algorithm`` -- There are currently two different
           implementations of this method :
 
-              * If ``method = "FF"`` (default), a Python
-                implementation of the Ford-Fulkerson algorithm is
-                used.
+          * If ``algorithm = "FF"`` (default), a Python
+            implementation of the Ford-Fulkerson algorithm is
+            used.
 
-              * If ``method = "LP"``, the flow problems are solved
-                using Linear Programming.
+          * If ``algorithm = "LP"``, the flow problems are solved
+            using Linear Programming.
 
         OUTPUT:
 
@@ -6586,9 +6589,9 @@ class Graph(GenericGraph):
         if not self.is_connected():
             g = Graph()
             for cc in self.connected_components_subgraphs():
-                g = g.union(cc._gomory_hu_tree(frozenset(cc.vertices()),method=method))
+                g = g.union(cc._gomory_hu_tree(frozenset(cc.vertices()), algorithm=algorithm))
         else:
-            g = self._gomory_hu_tree(frozenset(self.vertices()),method=method)
+            g = self._gomory_hu_tree(frozenset(self.vertices()), algorithm=algorithm)
 
         if self.get_pos() is not None:
             g.set_pos(dict(self.get_pos()))

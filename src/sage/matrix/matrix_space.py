@@ -118,11 +118,13 @@ class MatrixSpace(UniqueRepresentation, parent_gens.ParentWithGens):
         sage: MatrixSpace(ZZ,10,5)
         Full MatrixSpace of 10 by 5 dense matrices over Integer Ring
         sage: MatrixSpace(ZZ,10,5).category()
-        Category of infinite modules over (euclidean domains and infinite enumerated sets)
+        Category of infinite modules over (euclidean domains
+             and infinite enumerated sets and metric spaces)
         sage: MatrixSpace(ZZ,10,10).category()
-        Category of infinite algebras over (euclidean domains and infinite enumerated sets)
+        Category of infinite algebras over (euclidean domains
+             and infinite enumerated sets and metric spaces)
         sage: MatrixSpace(QQ,10).category()
-        Category of infinite algebras over quotient fields
+        Category of infinite algebras over (quotient fields and metric spaces)
 
     TESTS::
 

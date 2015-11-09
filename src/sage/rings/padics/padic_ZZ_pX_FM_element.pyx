@@ -445,25 +445,6 @@ cdef class pAdicZZpXFMElement(pAdicZZpXElement):
         ans.prime_pow = self.prime_pow
         return ans
 
-    def __richcmp__(left, right, op):
-        """
-        Compares ``left`` and ``right`` under the operation ``op``.
-
-        EXAMPLES::
-
-            sage: R = ZpFM(5,5)
-            sage: S.<x> = R[]
-            sage: f = x^5 + 75*x^3 - 15*x^2 +125*x - 5
-            sage: W.<w> = R.ext(f)
-            sage: w == 1 # indirect doctest
-            False
-            sage: y = 1 + w
-            sage: z = 1 + w + w^27
-            sage: y == z
-            True
-        """
-        return (<Element>left)._richcmp(right, op)
-
     cpdef int _cmp_(left, Element right) except -2:
         """
         First compare valuations, then compare the values.

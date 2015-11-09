@@ -35,6 +35,7 @@ Comprehensive Module list
     sage/combinat/cluster_algebra_quiver/mutation_type
     sage/combinat/cluster_algebra_quiver/quiver
     sage/combinat/cluster_algebra_quiver/quiver_mutation_type
+    sage/combinat/colored_permutations 
     sage/combinat/combinat
     sage/combinat/combinat_cython
     sage/combinat/combination
@@ -117,7 +118,9 @@ Comprehensive Module list
     sage/combinat/graph_path
     sage/combinat/gray_codes
     sage/combinat/hall_polynomial
-    sage/combinat/integer_list
+    sage/combinat/integer_lists/base
+    sage/combinat/integer_lists/lists
+    sage/combinat/integer_lists/invlex
     sage/combinat/integer_matrices
     sage/combinat/integer_vector
     sage/combinat/integer_vector_weighted
@@ -162,11 +165,13 @@ Comprehensive Module list
     sage/combinat/permutation_nk
     sage/combinat/posets/__init__
     sage/combinat/posets/all
+    sage/combinat/posets/cartesian_product
     sage/combinat/posets/elements
     sage/combinat/posets/hasse_diagram
     sage/combinat/posets/incidence_algebras
     sage/combinat/posets/lattices
     sage/combinat/posets/linear_extensions
+    sage/combinat/posets/moebius_algebra
     sage/combinat/posets/poset_examples
     sage/combinat/posets/posets
     sage/combinat/q_analogues
@@ -208,6 +213,7 @@ Comprehensive Module list
     sage/combinat/root_system/cartan_type
     sage/combinat/root_system/coxeter_group
     sage/combinat/root_system/coxeter_matrix
+    sage/combinat/root_system/coxeter_type
     sage/combinat/root_system/dynkin_diagram
     sage/combinat/root_system/hecke_algebra_representation
     sage/combinat/root_system/integrable_representations

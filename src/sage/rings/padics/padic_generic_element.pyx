@@ -64,6 +64,42 @@ cdef class pAdicGenericElement(LocalGenericElement):
             3 + O(19^5)
             sage: a < b
             True
+
+        ::
+
+            sage: R = Zp(5); a = R(5, 6); b = R(5 + 5^6, 8)
+            sage: a == b #indirect doctest
+            True
+
+        ::
+
+            sage: R = Zp(5)
+            sage: a = R(17)
+            sage: b = R(21)
+            sage: a == b
+            False
+            sage: a < b
+            True
+
+        ::
+
+            sage: R = ZpCA(5)
+            sage: a = R(17)
+            sage: b = R(21)
+            sage: a == b
+            False
+            sage: a < b
+            True
+
+        ::
+
+            sage: R = ZpFM(5)
+            sage: a = R(17)
+            sage: b = R(21)
+            sage: a == b
+            False
+            sage: a < b
+            True
         """
         m = min(left.precision_absolute(), right.precision_absolute())
         x_ordp = left.valuation()

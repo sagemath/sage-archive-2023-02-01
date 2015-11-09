@@ -103,37 +103,3 @@ cdef class qAdicCappedRelativeElement(CRElement):
             return self._flint_rep(var), Integer(self.ordp)
         cshift(self.prime_pow.poly_flint_rep, self.unit, self.ordp, self.ordp + self.relprec, self.prime_pow, False)
         return self.prime_pow._new_fmpz_poly(self.prime_pow.poly_flint_rep, var), Integer(0)
-
-    def __hash__(self):
-        r"""
-        Raise a ``TypeError`` since this element is not hashable
-        (:trac:`11895`.)
-
-        TESTS::
-
-            sage: K.<a> = Qq(9)
-            sage: hash(a)
-            Traceback (most recent call last):
-            ...
-            TypeError: unhashable type: 'sage.rings.padics.qadic_flint_CR.qAdicCappedRelativeElement'
-
-        """
-        # Eventually, hashing will be disabled for all (non-fixed-mod) p-adic
-        # elements (#11895), until then, we only to this for types which did
-        # not support hashing before we switched some elements to FLINT
-        raise TypeError("unhashable type: 'sage.rings.padics.qadic_flint_CR.qAdicCappedRelativeElement'")
-
-    # Since we override __hash__ we need to override __richcmp__ as well
-    def __richcmp__(self, right, int op):
-        """
-        Compare this element to ``right`` using the comparison operator ``op``.
-
-        TESTS::
-
-            sage: K.<a> = Qq(9)
-            sage: b = K([0,1])
-            sage: a == b
-            True
-
-        """
-        return (<Element>self)._richcmp(right, op)

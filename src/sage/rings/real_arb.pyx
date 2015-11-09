@@ -139,9 +139,6 @@ Classes and Methods
 include 'sage/ext/interrupt.pxi'
 include "sage/ext/python.pxi"
 
-cdef extern from "math.h":
-    long lrint(double)
-
 import operator
 
 import sage.categories.fields
@@ -160,12 +157,15 @@ from libc.stdlib cimport abort
 from sage.libs.arb.arb cimport *
 from sage.libs.arb.arf cimport (
         arf_t, arf_init, arf_get_mpfr, arf_set_mpfr, arf_clear, arf_set_mag,
-        arf_set, arf_get_d, arf_abs_bound_lt_2exp_si, ARF_RND_UP, ARF_PREC_EXACT
+        arf_set, arf_get_d, arf_get_fmpz_2exp, arf_abs_bound_lt_2exp_si,
+        ARF_RND_UP, ARF_PREC_EXACT
 )
 from sage.libs.arb.arf cimport arf_equal, arf_is_nan, arf_is_neg_inf, arf_is_pos_inf, arf_get_mag
 from sage.libs.arb.mag cimport mag_t, mag_init, mag_clear, mag_add, mag_set_d, MAG_BITS, mag_is_inf, mag_is_finite, mag_zero
 from sage.libs.flint.flint cimport flint_free
-from sage.libs.flint.fmpz cimport fmpz_t, fmpz_init, fmpz_get_mpz, fmpz_set_mpz, fmpz_clear
+from sage.libs.flint.fmpz cimport (
+        fmpz_t, fmpz_init, fmpz_get_mpz, fmpz_set_mpz, fmpz_clear, fmpz_fdiv_ui
+)
 from sage.libs.flint.fmpq cimport fmpq_t, fmpq_init, fmpq_set_mpq, fmpq_clear
 from sage.libs.gmp.mpz cimport mpz_fits_ulong_p, mpz_fits_slong_p, mpz_get_ui, mpz_get_si
 from sage.libs.mpfi cimport mpfi_get_left, mpfi_get_right, mpfi_interv_fr
@@ -1132,9 +1132,15 @@ cdef class RealBall(RingElement):
             True
             sage: hash(RBF(1/3)) == hash(RBF(1/3, rad=.1))
             False
+            sage: vals = [0, 1, 3/4, 5/8, 7/8, infinity, 'nan']
+            sage: len({hash(RBF(v)) for v in vals}) == len(vals)
+            True
         """
         cdef arf_t mid = arb_midref(self.value)
-        return (lrint(arf_get_d(mid, ARF_RND_UP))
+        cdef fmpz_t mant, expo
+        arf_get_fmpz_2exp(mant, expo, mid)
+        return (fmpz_fdiv_ui(mant, 1073741789)
+                ^ fmpz_fdiv_ui(expo, 2**30)
                 ^ (arf_abs_bound_lt_2exp_si(mid) << 10)
                 ^ arb_rel_error_bits(self.value) << 20)
 

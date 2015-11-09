@@ -137,7 +137,6 @@ Classes and Methods
 #*****************************************************************************
 
 include 'sage/ext/interrupt.pxi'
-include "sage/ext/python.pxi"
 
 import operator
 
@@ -153,7 +152,11 @@ cimport sage.rings.integer
 cimport sage.rings.rational
 cimport sage.structure.element
 
+from cpython.float cimport PyFloat_AS_DOUBLE
+from cpython.int cimport PyInt_AS_LONG
+from cpython.object cimport Py_LT, Py_LE, Py_EQ, Py_NE, Py_GT, Py_GE
 from libc.stdlib cimport abort
+
 from sage.libs.arb.arb cimport *
 from sage.libs.arb.arf cimport (
         arf_t, arf_init, arf_get_mpfr, arf_set_mpfr, arf_clear, arf_set_mag,

@@ -120,7 +120,6 @@ Classes and Methods
 #                http://www.gnu.org/licenses/
 #*****************************************************************************
 include 'sage/ext/interrupt.pxi'
-include "sage/ext/python.pxi"
 include "sage/ext/stdsage.pxi"
 
 import sage.categories.fields
@@ -128,7 +127,11 @@ import sage.categories.fields
 cimport sage.rings.integer
 cimport sage.rings.rational
 
+from cpython.float cimport PyFloat_AS_DOUBLE
+from cpython.int cimport PyInt_AS_LONG
+from cpython.object cimport Py_LT, Py_LE, Py_EQ, Py_NE, Py_GT, Py_GE
 from libc.stdlib cimport abort
+
 from sage.libs.mpfr cimport MPFR_RNDU
 from sage.libs.arb.arb cimport *
 from sage.libs.arb.acb cimport *

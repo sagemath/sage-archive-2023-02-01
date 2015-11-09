@@ -69,7 +69,8 @@ class Decoder(SageObject):
 
         We first create a new :class:`Decoder` subclass::
 
-            sage: class DecoderExample(sage.coding.decoder.Decoder):
+            sage: from sage.coding.decoder import Decoder
+            sage: class DecoderExample(Decoder):
             ....:   def __init__(self, code):
             ....:       in_space = code.base_field()
             ....:       connected_enc = "GeneratorMatrix"

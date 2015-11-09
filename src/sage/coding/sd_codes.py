@@ -87,9 +87,11 @@ REFERENCES:
   "A classification of self-orthogonal codes over GF(2)", Discrete
   Math 3 (1972) 209-246.
 """
+from sage.misc.lazy_import import lazy_import
 from sage.rings.finite_rings.constructor import FiniteField as GF
 from sage.matrix.matrix_space import MatrixSpace
-from linear_code import LinearCode
+lazy_import("sage.coding.linear_code", "LinearCode")
+#from linear_code import LinearCode
 from sage.matrix.constructor import block_diagonal_matrix
 from sage.rings.integer_ring import ZZ
 from sage.groups.perm_gps.permgroup import PermutationGroup

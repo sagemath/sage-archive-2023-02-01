@@ -85,7 +85,7 @@ def is_paley(int v,int k,int l,int mu):
         l   == (v-5)/4 and
         mu  == (v-1)/4):
         from sage.graphs.generators.families import PaleyGraph
-        return (lambda q : PaleyGraph(q),v)
+        return (PaleyGraph,v)
 
 @cached_function
 def is_mathon_PC_srg(int v,int k,int l,int mu):
@@ -141,7 +141,7 @@ def is_mathon_PC_srg(int v,int k,int l,int mu):
                 is_prime_power(4*t+1)): # extra assumption in TODO!
                 from sage.graphs.generators.families import \
                                     MathonPseudocyclicStronglyRegularGraph
-                return (lambda q : MathonPseudocyclicStronglyRegularGraph(q),t)
+                return (MathonPseudocyclicStronglyRegularGraph,t)
 
 @cached_function
 def is_orthogonal_array_block_graph(int v,int k,int l,int mu):

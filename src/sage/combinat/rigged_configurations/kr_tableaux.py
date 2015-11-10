@@ -44,6 +44,7 @@ REFERENCES:
 
 from sage.misc.cachefunc import cached_method
 from sage.misc.abstract_method import abstract_method
+from sage.misc.lazy_attribute import lazy_attribute
 from sage.misc.flatten import flatten
 
 from sage.structure.parent import Parent
@@ -113,6 +114,7 @@ class KirillovReshetikhinTableaux(CrystalOfWords):
 
     - type `A_{2n}^{(2)}` for all `r`,
     - type `D_{n+1}^{(2)}` when `r < n`,
+    - type `D_4^{(3)}` when `r = 1`,
 
     the filling map is the same as given in [OSS2011]_ except for
     the rightmost column which is given by the column `[1, 2, \ldots, k,
@@ -261,8 +263,11 @@ class KirillovReshetikhinTableaux(CrystalOfWords):
                 if r == ct.dual().classical().rank():
                     return KRTableauxDTwistedSpin(ct, r, s)
                 return KRTableauxTypeBox(ct, r, s)
-            #if ct.dual().letter == 'F': # E_6^{(2)}
-            #if ct.dual().letter == 'G': # D_4^{(3)}
+            #if ct.dual().type() == 'F': # E_6^{(2)}
+            if ct.dual().type() == 'G': # D_4^{(3)}
+                if r == 1:
+                    return KRTableauxTypeBox(ct, r, s)
+                return KRTableauxTypeDTri2(ct, r, s)
 
         raise NotImplementedError
         #return super(KirillovReshetikhinTableaux, cls).__classcall__(cls, ct, r, s)
@@ -421,7 +426,7 @@ class KirillovReshetikhinTableaux(CrystalOfWords):
             ([[1, 1, 1], [2, 2, 2]],)
         """
 
-    @abstract_method
+    @abstract_method(optional=True)
     def from_kirillov_reshetikhin_crystal(self, krc):
         """
         Construct an element of ``self`` from the Kirillov-Reshetikhin
@@ -488,7 +493,7 @@ class KirillovReshetikhinTableaux(CrystalOfWords):
     @cached_method
     def kirillov_reshetikhin_crystal(self):
         """
-        Return the corresponding KR crystal in the 
+        Return the corresponding KR crystal in the
         :func:`Kashiwara-Nakashima model
         <sage.combinat.crystals.kirillov_reshetikhin.KashiwaraNakashimaTableaux>`.
 
@@ -844,13 +849,16 @@ class KRTableauxTypeBox(KRTableauxTypeVertical):
     Kirillov-Reshetikhin tableaux `B^{r,s}` of type:
 
     - `A_{2n}^{(2)}` for all `r \leq n`,
-    - `D_{n+1}^{(2)}` for all `r < n`.
+    - `D_{n+1}^{(2)}` for all `r < n`,
+    - `D_4^{(3)}` for `r = 1`.
 
     TESTS::
 
         sage: KRT = crystals.KirillovReshetikhin(['A', 4, 2], 2, 2, model='KR')
         sage: TestSuite(KRT).run()
         sage: KRT = crystals.KirillovReshetikhin(['D', 4, 2], 2, 2, model='KR')
+        sage: TestSuite(KRT).run() # long time
+        sage: KRT = crystals.KirillovReshetikhin(['D', 4, 3], 1, 2, model='KR')
         sage: TestSuite(KRT).run() # long time
     """
     def _fill(self, weight):
@@ -1318,7 +1326,7 @@ class KirillovReshetikhinTableauxElement(TensorProductOfRegularCrystalsElement):
             sage: KRT.module_generators[0].e(0)
             [[-2, 1], [-1, -1]]
         """
-        if i == 0:
+        if i == self.parent()._cartan_type.special_node():
             ret = self.to_kirillov_reshetikhin_crystal().e0()
             if ret is None:
                 return None
@@ -1339,7 +1347,7 @@ class KirillovReshetikhinTableauxElement(TensorProductOfRegularCrystalsElement):
             sage: KRT.module_generators[0].f(0)
             [[1, 1], [2, -1]]
         """
-        if i == 0:
+        if i == self.parent()._cartan_type.special_node():
             ret = self.to_kirillov_reshetikhin_crystal().f0()
             if ret is None:
                 return None
@@ -1361,7 +1369,7 @@ class KirillovReshetikhinTableauxElement(TensorProductOfRegularCrystalsElement):
             sage: KRT.module_generators[0].epsilon(0)
             2
         """
-        if i == 0:
+        if i == self.parent()._cartan_type.special_node():
             return self.to_kirillov_reshetikhin_crystal().epsilon0()
         return TensorProductOfRegularCrystalsElement.epsilon(self, i)
 
@@ -1379,7 +1387,7 @@ class KirillovReshetikhinTableauxElement(TensorProductOfRegularCrystalsElement):
             sage: KRT.module_generators[0].phi(0)
             2
         """
-        if i == 0:
+        if i == self.parent()._cartan_type.special_node():
             return self.to_kirillov_reshetikhin_crystal().phi0()
         return TensorProductOfRegularCrystalsElement.phi(self, i)
 
@@ -1477,7 +1485,8 @@ class KRTableauxSpinElement(KirillovReshetikhinTableauxElement):
             [[1], [3], [-4], [-2]]
             sage: KRT(-1, -4, 3, 2).e(3)
         """
-        if i == 0: # Only need to do it once since we pull to the KR crystal
+        if i == self.parent()._cartan_type.special_node():
+            # Only need to do it once since we pull to the KR crystal
             return KirillovReshetikhinTableauxElement.e(self, i)
 
         half = KirillovReshetikhinTableauxElement.e(self, i)
@@ -1496,7 +1505,8 @@ class KRTableauxSpinElement(KirillovReshetikhinTableauxElement):
             sage: KRT(-1, -4, 3, 2).f(3)
             [[2], [4], [-3], [-1]]
         """
-        if i == 0: # Only need to do it once since we pull to the KR crystal
+        if i == self.parent()._cartan_type.special_node():
+            # Only need to do it once since we pull to the KR crystal
             return KirillovReshetikhinTableauxElement.f(self, i)
 
         half = KirillovReshetikhinTableauxElement.f(self, i)
@@ -1517,7 +1527,8 @@ class KRTableauxSpinElement(KirillovReshetikhinTableauxElement):
             sage: KRT(-1, -4, 3, 2).epsilon(3)
             0
         """
-        if i == 0: # Don't need to half it since we pull to the KR crystal
+        if i == self.parent()._cartan_type.special_node():
+            # Don't need to half it since we pull to the KR crystal
             return KirillovReshetikhinTableauxElement.epsilon(self, i)
         return KirillovReshetikhinTableauxElement.epsilon(self, i) // 2
 
@@ -1533,7 +1544,8 @@ class KRTableauxSpinElement(KirillovReshetikhinTableauxElement):
             sage: KRT(-1, -4, 3, 2).phi(3)
             1
         """
-        if i == 0: # Don't need to half it since we pull to the KR crystal
+        if i == self.parent()._cartan_type.special_node():
+            # Don't need to half it since we pull to the KR crystal
             return KirillovReshetikhinTableauxElement.phi(self, i)
         return KirillovReshetikhinTableauxElement.phi(self, i) // 2
 
@@ -1639,4 +1651,166 @@ class KRTableauxDTwistedSpin(KRTableauxRectangle):
         True
     """
     Element = KRTableauxSpinElement
+
+class KRTableauxTypeDTri2Element(KirillovReshetikhinTableauxElement):
+    r"""
+    A Kirillov-Reshetikhin tableau in `B^{2,s}` of type `D_4^{(3)}`.
+    """
+    def e(self, i):
+        """
+        Perform the action of `e_i` on ``self``.
+
+        .. TODO::
+
+            Implement a direct action of `e_0` without moving to
+            rigged configurations.
+
+        EXAMPLES::
+
+            sage: KRT = crystals.KirillovReshetikhin(['D',4,3], 2, 1, model='KR')
+            sage: KRT.module_generators[0].e(0)
+            [[2], [E]]
+        """
+        if i == self.parent().cartan_type().special_node():
+            P = self.parent()
+            from sage.combinat.rigged_configurations.tensor_product_kr_tableaux import TensorProductOfKirillovReshetikhinTableaux
+            K = TensorProductOfKirillovReshetikhinTableaux(P.cartan_type(), [[2, P.s()]])
+            ret = K(self).to_rigged_configuration()
+            RC = ret.parent()
+            ret = ret.to_virtual_configuration().e(0)
+            if ret is None:
+                return None
+            ret = RC.from_virtual(ret)
+            return ret.to_tensor_product_of_kirillov_reshetikhin_tableaux()[0]
+        return TensorProductOfRegularCrystalsElement.e(self, i)
+
+    def f(self, i):
+        """
+        Perform the action of `f_i` on ``self``.
+
+        .. TODO::
+
+            Implement a direct action of `f_0` without moving to
+            rigged configurations.
+
+        EXAMPLES::
+
+            sage: KRT = crystals.KirillovReshetikhin(['D',4,3], 2, 1, model='KR')
+            sage: KRT.module_generators[0].f(0)
+            sage: KRT.module_generators[3].f(0)
+            [[1], [0]]
+        """
+        if i == self.parent().cartan_type().special_node():
+            P = self.parent()
+            from sage.combinat.rigged_configurations.tensor_product_kr_tableaux import TensorProductOfKirillovReshetikhinTableaux
+            K = TensorProductOfKirillovReshetikhinTableaux(P.cartan_type(), [[2, P.s()]])
+            ret = K(self).to_rigged_configuration()
+            RC = ret.parent()
+            ret = ret.to_virtual_configuration().f(0)
+            if ret is None:
+                return None
+            ret = RC.from_virtual(ret)
+            return ret.to_tensor_product_of_kirillov_reshetikhin_tableaux()[0]
+        return TensorProductOfRegularCrystalsElement.f(self, i)
+
+    def epsilon(self, i):
+        r"""
+        Compute `\varepsilon_i` of ``self``.
+
+        .. TODO::
+
+            Implement a direct action of `\epsilon_0` without moving to
+            KR crystals.
+
+        EXAMPLES::
+
+            sage: KRT = crystals.KirillovReshetikhin(['D',4,3], 2, 2, model='KR')
+            sage: KRT.module_generators[0].epsilon(0)
+            6
+        """
+        if i == self.parent().cartan_type().special_node():
+            P = self.parent()
+            from sage.combinat.rigged_configurations.tensor_product_kr_tableaux import TensorProductOfKirillovReshetikhinTableaux
+            K = TensorProductOfKirillovReshetikhinTableaux(P.cartan_type(), [[2, P.s()]])
+            rc = K(self).to_rigged_configuration().to_virtual_configuration()
+            return rc.epsilon(0)
+        return TensorProductOfRegularCrystalsElement.epsilon(self, i)
+
+    def phi(self, i):
+        r"""
+        Compute `\varphi_i` of ``self``.
+
+        .. TODO::
+
+            Compute `\phi_0` without moving to KR crystals.
+
+        EXAMPLES::
+
+            sage: KRT = crystals.KirillovReshetikhin(['D',4,3], 2, 2, model='KR')
+            sage: KRT.module_generators[0].phi(0)
+            0
+        """
+        if i == self.parent().cartan_type().special_node():
+            P = self.parent()
+            from sage.combinat.rigged_configurations.tensor_product_kr_tableaux import TensorProductOfKirillovReshetikhinTableaux
+            K = TensorProductOfKirillovReshetikhinTableaux(P.cartan_type(), [[2, P.s()]])
+            rc = K(self).to_rigged_configuration().to_virtual_configuration()
+            return rc.phi(0)
+        return TensorProductOfRegularCrystalsElement.phi(self, i)
+
+class KRTableauxTypeDTri2(KirillovReshetikhinTableaux):
+    r"""
+    Kirillov-Reshetikhin tableaux `B^{2,s}` of type `D_4^{(3)}`.
+
+    .. WARNING::
+
+        The Kashiwara-Nakashima version is not implemented due to the
+        non-trivial multiplicities of classical components, so
+        :meth:`classical_decomposition` does not work.
+    """
+    def __init__(self, cartan_type, r, s):
+        r"""
+        Initialize ``self``.
+
+        EXAMPLES::
+
+            sage: KRT = crystals.KirillovReshetikhin(['D', 4, 3], 2, 1, model='KR')
+            sage: TestSuite(KRT).run() # long time
+        """
+        # We must modify the constructor of KirillovReshetikhinTableaux
+        self._r = r
+        self._s = s
+        self._cartan_type = cartan_type
+        Parent.__init__(self, category=(RegularCrystals(), FiniteCrystals()))
+        self.letters = CrystalOfLetters(cartan_type.classical())
+
+    @lazy_attribute
+    def module_generators(self):
+        """
+        The module generators of ``self``.
+
+        EXAMPLES::
+
+            sage: KRT = crystals.KirillovReshetikhin(['D',4,3], 2, 1, model='KR')
+            sage: KRT.module_generators
+            ([[1], [2]], [[1], [0]], [[1], [E]], [[E], [E]])
+        """
+        return self._build_module_generators()
+
+    def _build_module_generators(self):
+        r"""
+        Return the module generators of ``self``.
+
+        EXAMPLES::
+
+            sage: KRT = crystals.KirillovReshetikhin(['D',4,3], 2, 1, model='KR')
+            sage: KRT._build_module_generators()
+            ([[1], [2]], [[1], [0]], [[1], [E]], [[E], [E]])
+        """
+        from sage.combinat.rigged_configurations.rigged_configurations import RiggedConfigurations
+        RC = RiggedConfigurations(self._cartan_type, [[self._r, self._s]])
+        return tuple(mg.to_tensor_product_of_kirillov_reshetikhin_tableaux()[0]
+                     for mg in RC.module_generators)
+
+    Element = KRTableauxTypeDTri2Element
 

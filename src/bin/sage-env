@@ -279,13 +279,14 @@ if [ "$UNAME" = "Darwin" ]; then
     # cause lots of random "Abort trap" issues on OSX. see trac
     # #7095 for an example.
     MACOSX_VERSION=`uname -r | awk -F. '{print $1}'`
-    MACOSX_DEPLOYMENT_TARGET=10.$[$MACOSX_VERSION-4]
-    if [ $MACOSX_DEPLOYMENT_TARGET = '10.10' ]; then
-        # Workaround for the libtool version detection bug
-        # See http://trac.sagemath.org/ticket/17204
+    if [ $MACOSX_VERSION -ge 14 ]; then
+        # various packages have still have issues with
+        # two digit OS X versions
         MACOSX_DEPLOYMENT_TARGET=10.9
+    else
+        MACOSX_DEPLOYMENT_TARGET=10.$[$MACOSX_VERSION-4]
     fi
-    export MACOSX_DEPLOYMENT_TARGET
+    export MACOSX_DEPLOYMENT_TARGET MACOSX_VERSION
 fi
 
 # Compile-time path for libraries.  This is the equivalent of

@@ -311,3 +311,4 @@ def canonical_form(G, partition=None, return_graph=False, certify=False):
         return sorted(edges),relabel
 
     return sorted(edges)
+

@@ -15,6 +15,7 @@ Coding Theory
    sage/coding/code_constructions
    sage/coding/guava
    sage/coding/sd_codes
+   sage/coding/bounds_catalog
    sage/coding/code_bounds
    sage/coding/codecan/codecan
    sage/coding/codecan/autgroup_can_label

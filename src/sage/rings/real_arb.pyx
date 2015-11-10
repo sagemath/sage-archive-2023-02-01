@@ -159,12 +159,12 @@ from libc.stdlib cimport abort
 
 from sage.libs.arb.arb cimport *
 from sage.libs.arb.arf cimport (
-        arf_t, arf_init, arf_get_mpfr, arf_set_mpfr, arf_clear, arf_set_mag,
+        arf_init, arf_get_mpfr, arf_set_mpfr, arf_clear, arf_set_mag,
         arf_set, arf_get_d, arf_get_fmpz_2exp, arf_abs_bound_lt_2exp_si,
         ARF_RND_UP, ARF_PREC_EXACT
 )
 from sage.libs.arb.arf cimport arf_equal, arf_is_nan, arf_is_neg_inf, arf_is_pos_inf, arf_get_mag
-from sage.libs.arb.mag cimport mag_t, mag_init, mag_clear, mag_add, mag_set_d, MAG_BITS, mag_is_inf, mag_is_finite, mag_zero
+from sage.libs.arb.mag cimport mag_init, mag_clear, mag_add, mag_set_d, MAG_BITS, mag_is_inf, mag_is_finite, mag_zero
 from sage.libs.flint.flint cimport flint_free
 from sage.libs.flint.fmpz cimport (
         fmpz_t, fmpz_init, fmpz_get_mpz, fmpz_set_mpz, fmpz_clear, fmpz_fdiv_ui

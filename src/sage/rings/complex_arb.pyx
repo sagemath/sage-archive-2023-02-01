@@ -136,8 +136,8 @@ from sage.libs.mpfr cimport MPFR_RNDU
 from sage.libs.arb.arb cimport *
 from sage.libs.arb.acb cimport *
 from sage.libs.arb.acb_hypgeom cimport *
-from sage.libs.arb.arf cimport arf_t, arf_init, arf_get_mpfr, arf_set_mpfr, arf_clear, arf_set_mag, arf_set
-from sage.libs.arb.mag cimport mag_t, mag_init, mag_clear, mag_add, mag_set_d, MAG_BITS, mag_is_inf, mag_is_finite, mag_zero
+from sage.libs.arb.arf cimport arf_init, arf_get_mpfr, arf_set_mpfr, arf_clear, arf_set_mag, arf_set
+from sage.libs.arb.mag cimport mag_init, mag_clear, mag_add, mag_set_d, MAG_BITS, mag_is_inf, mag_is_finite, mag_zero
 from sage.libs.flint.fmpz cimport fmpz_t, fmpz_init, fmpz_get_mpz, fmpz_set_mpz, fmpz_clear
 from sage.libs.flint.fmpq cimport fmpq_t, fmpq_init, fmpq_set_mpq, fmpq_clear
 from sage.misc.superseded import experimental
@@ -150,9 +150,6 @@ from sage.rings.ring import Field
 from sage.structure.element cimport Element, ModuleElement
 from sage.structure.parent cimport Parent
 from sage.structure.unique_representation import UniqueRepresentation
-
-cdef inline bint acb_is_nonzero(const acb_t z):
-    return arb_is_nonzero(&z.real) or arb_is_nonzero(&z.imag)
 
 cdef void ComplexIntervalFieldElement_to_acb(
     acb_t target,
@@ -172,8 +169,8 @@ cdef void ComplexIntervalFieldElement_to_acb(
     """
     cdef long precision
     precision = source.parent().precision()
-    mpfi_to_arb(&target.real, source.__re, precision)
-    mpfi_to_arb(&target.imag, source.__im, precision)
+    mpfi_to_arb(acb_realref(target), source.__re, precision)
+    mpfi_to_arb(acb_imagref(target), source.__im, precision)
 
 cdef int acb_to_ComplexIntervalFieldElement(
     ComplexIntervalFieldElement target,
@@ -193,8 +190,8 @@ cdef int acb_to_ComplexIntervalFieldElement(
     """
     cdef long precision = target._prec
 
-    arb_to_mpfi(target.__re, &source.real, precision)
-    arb_to_mpfi(target.__im, &source.imag, precision)
+    arb_to_mpfi(target.__re, acb_realref(source), precision)
+    arb_to_mpfi(target.__im, acb_imagref(source), precision)
     return 0
 
 class ComplexBallField(UniqueRepresentation, Field):
@@ -1362,7 +1359,8 @@ cdef class ComplexBall(RingElement):
             sage: CBF(RIF(-0.5, 0.5), RIF(-0.5, 0.5)).is_nonzero()
             False
         """
-        return acb_is_nonzero(self.value)
+        return (arb_is_nonzero(acb_realref(self.value))
+                or arb_is_nonzero(acb_imagref(self.value)))
 
     def __nonzero__(self):
         """

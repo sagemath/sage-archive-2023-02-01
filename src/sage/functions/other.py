@@ -1688,10 +1688,10 @@ class Function_beta(GinacFunction):
             sage: beta(3,x+I)
             beta(3, x + I)
 
-        Note that the order of arguments does not matter::
+        Ginac might reorder the arguments::
 
-            sage: beta(1/2,3*x)
-            beta(1/2, 3*x)
+            sage: beta(1/3, 1/2)
+            beta(1/2, 1/3)
 
         The result is symbolic if exact input is given::
 

@@ -76,10 +76,12 @@ internal git repository::
     Checking connectivity... done.
 
 This creates a directory named ``sage`` containing the sources for the
-current stable and development releases of Sage.  You will need to
-`compile Sage <http://www.sagemath.org/doc/installation/source.html>`_
-in order to use it (if you cloned, you will need to remain on the internet
-for it to download various packages of Sage).
+current stable and development releases of Sage. You next need to switch
+to the develop branch (latest development release)::
+
+    [user@localhost]$ git checkout develop
+
+You will then need to `compile Sage <http://www.sagemath.org/doc/installation/source.html>`_ in order to use it (if you cloned, you will need to remain on the internet for it to download various packages of Sage).
 
 (For the experts, note that the repository at
 `git.sagemath.org <http://git.sagemath.org>`_ is where development

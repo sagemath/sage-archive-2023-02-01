@@ -204,8 +204,8 @@ class ProductProjectiveSpaces_morphism_ring(SchemeMorphism_polynomial):
         r"""
         Returns the orbit of `P` by ``self``. If `n` is an integer it returns `[P,self(P),\ldots,self^n(P)]`.
         If `n` is a list or tuple `n=[m,k]` it returns `[self^m(P),\ldots,self^k(P)]`.
-        Automatically normalize the points if ``normalize=True``. Perform the checks on point initialize if
-        ``check=True``
+        Automatically normalize the points if ``normalize==True``. Perform the checks on point initialize if
+        ``check==True``
 
         INPUT:
 
@@ -273,9 +273,9 @@ class ProductProjectiveSpaces_morphism_ring(SchemeMorphism_polynomial):
         D = int(n)
         if D < 0:
             raise TypeError("Iterate number must be a nonnegative integer")
-        N = sum([self.codomain().ambient_space()[i].dimension_relative() + 1 for i in range(self.codomain().ambient_space().num_components())])
+        N = sum([E.ambient_space()[i].dimension_relative() + 1 for i in range(E.ambient_space().num_components())])
         F = list(self._polys)
-        Coord_ring = self.codomain().coordinate_ring()
+        Coord_ring = E.coordinate_ring()
         if isinstance(Coord_ring, QuotientRing_generic):
             PHI = [Coord_ring.gen(i).lift() for i in range(N)]
         else:

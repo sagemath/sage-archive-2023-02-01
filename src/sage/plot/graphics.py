@@ -1943,17 +1943,6 @@ class Graphics(WithEqualityById, SageObject):
 
         TESTS:
 
-        The figsize width and height parameters (at default dpi) must be
-        less than 328 inches each, corresponding to the maximum allowed
-        pixels in each direction of 32768.  See :trac:`5956` for more about
-        the next several tests::
-
-            sage: p = ellipse((0,0),4,1)
-            sage: p.show(figsize=[328,10],dpi=100)
-            Traceback (most recent call last):
-            ...
-            ValueError: width and height must each be below 32768
-
         The following tests result in a segmentation fault and should not
         be run or doctested::
 

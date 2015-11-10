@@ -773,7 +773,7 @@ cdef class ComplexBall(RingElement):
         if self.is_real():
             return hash(self.real())
         else:
-            return (hash(self.real()) >> 7) ^ hash(self.imag())
+            return (hash(self.real()) // 3) ^ hash(self.imag())
 
     def _repr_(self):
         """

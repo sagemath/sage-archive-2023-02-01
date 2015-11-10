@@ -351,7 +351,7 @@ class FindStat(SageObject):
     - a collection and a callable.  The callable is used to generate
       ``max_values`` (object, value) pairs.  The number of terms
       generated may also be controlled by passing an iterable
-      collection, such as Permutations(3).  The keyword arguments
+      collection, such as ``Permutations(3)``.  The keyword arguments
       ``depth`` and ``max_values`` are passed to the finder.
 
     OUTPUT:
@@ -1282,6 +1282,9 @@ class FindStatStatistic(SageObject):
         else:
             return ""
 
+    # apart from efficiency considerations, it is important to make
+    # this lazy because the method _get_level is not available for
+    # unsupported collections.
     @lazy_attribute
     def _generating_functions_dict(self):
         r""" Return the generating functions of ``self`` in a dictionary,
@@ -1930,6 +1933,26 @@ class FindStatCollection(Element):
         """
         return self.id().__cmp__(other.id())
 
+    def is_supported(self):
+        """
+        Check whether the collection is fully supported by the interface.
+
+        EXAMPLES::
+
+            sage: from sage.databases.findstat import FindStatCollection
+            sage: FindStatCollection(1).is_supported()                          # optional -- internet
+            True
+
+            sage: FindStatCollection(24).is_supported()                         # optional -- internet, random
+            False
+
+        """
+        try:
+            self._sageconstructor(self._levels.keys()[0])
+            return True
+        except NotImplementedError:
+            return False
+
     def in_range(self, element):
         r"""
         Check whether an element of the collection is in FindStat's precomputed range.
@@ -1960,8 +1983,8 @@ class FindStatCollection(Element):
             sage: from sage.databases.findstat import FindStatCollections
             sage: l = FindStatCollections()                                     # optional -- internet
             sage: long = [9, 12, 14, 20]
-            sage: for c in l:                                                   # optional -- internet
-            ....:     if c.id() not in long:
+            sage: for c in l:                                                   # optional -- internet, random
+            ....:     if c.id() not in long and c.is_supported():
             ....:         f = c.first_terms(lambda x: 1, max_values=10000)
             ....:         print c, len(f), all(c.in_range(e) for e, _ in f)
             ....:
@@ -1974,7 +1997,7 @@ class FindStatCollection(Element):
             Cc0013: Cores 100 True
             Cc0017: Alternating sign matrices 7916 True
             Cc0018: Gelfand-Tsetlin patterns 934 True
-            Cc0019: Semistandard tableaux 2100 True
+            Cc0019: Semistandard tableaux 10000 True
             Cc0021: Ordered trees 2055 True
             Cc0022: Finite Cartan types 31 True
             Cc0023: Parking functions 10000 True
@@ -2149,7 +2172,7 @@ class FindStatCollections(Parent, UniqueRepresentation):
     EXAMPLES::
 
         sage: from sage.databases.findstat import FindStatCollections
-        sage: sorted(c for c in FindStatCollections())                          # optional -- internet
+        sage: sorted(c for c in FindStatCollections())                          # optional -- internet, random
         [Cc0001: Permutations,
          Cc0002: Integer partitions,
          Cc0005: Dyck paths,
@@ -2289,7 +2312,17 @@ class FindStatCollections(Parent, UniqueRepresentation):
              lambda x: StandardTableau(literal_eval(x))]}
 
     def _raise_unsupported_error(*args):
-        raise NotImplementedError("This collection is not supported")
+        """A placeholder function for unsupported collections that raises an
+        error.
+
+        sage: from sage.databases.findstat import FindStatCollection
+        sage: FindStatCollection(24).first_terms(lambda x: 1)                   # optional -- internet, indirect doctest
+        Traceback (most recent call last):
+        ...
+        NotImplementedError: This FindStatCollection is not yet supported.
+        """
+
+        raise NotImplementedError("This FindStatCollection is not yet supported.")
 
     # The following is used for unknown collections, with the
     # intention to make as much as possible working.
@@ -2345,7 +2378,7 @@ class FindStatCollections(Parent, UniqueRepresentation):
         Create an object and find its collection::
 
             sage: from sage.databases.findstat import FindStatCollection, FindStatCollections
-            sage: [FindStatCollection(c.first_terms(lambda x: 0, max_values=1)[0][0]) for c in FindStatCollections()]   # optional -- internet
+            sage: [FindStatCollection(c.first_terms(lambda x: 0, max_values=1)[0][0]) for c in FindStatCollections() if c.is_supported()]   # optional -- internet, random
             [Cc0001: Permutations,
              Cc0002: Integer partitions,
              Cc0005: Dyck paths,

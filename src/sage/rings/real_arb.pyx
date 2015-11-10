@@ -354,10 +354,6 @@ class RealBallField(UniqueRepresentation, Field):
             raise ValueError("Precision must be at least 2.")
         super(RealBallField, self).__init__(
                 base_ring=self,
-                #category=category or sage.categories.magmas_and_additive_magmas.MagmasAndAdditiveMagmas().Infinite(),
-                # FIXME: RBF is not even associative, but CompletionFunctor
-                # only works with rings, and other coercion features require
-                # methods like is_integral_domain() to be defined
                 category=category or sage.categories.fields.Fields().Infinite())
         self._prec = precision
         from sage.rings.qqbar import AA
@@ -3230,7 +3226,5 @@ cdef class RealBall(RingElement):
         arb_agm(res.value, self.value, other_as_ball.value, prec(self))
         if _do_sig(prec(self)): sig_off()
         return res
-
-    # TODO: once CBF is there, also wrap functions that only exist in acb*
 
 RBF = RealBallField()

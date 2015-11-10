@@ -125,8 +125,23 @@ class SageDisplayFormatter(DisplayFormatter):
             sage: shell.run_cell('%display default')
             sage: shell.quit()
         """
-        return self.dm.displayhook(obj)
-
+        # First, use Sage rich output if there is any
+        PLAIN_TEXT = u'text/plain'
+        sage_format, sage_metadata = self.dm.displayhook(obj)
+        assert('text/plain' in sage_format, 'plain text is always present')
+        if sage_format.keys() != [PLAIN_TEXT]:
+            return sage_format, sage_metadata
+        # Second, try IPython widgets (obj._ipython_display_ and type registry)
+        if self.ipython_display_formatter(obj):
+            return {}, {}
+        # Finally, try IPython rich representation (obj._repr_foo_ methods)
+        if exclude is not None:
+            exclude = list(exclude) + [PLAIN_TEXT]
+        ipy_format, ipy_metadata = super(SageDisplayFormatter, self).format(
+            obj, include=include, exclude=exclude)
+        ipy_format.update(sage_format)
+        ipy_metadata.update(sage_metadata)
+        return ipy_format, ipy_metadata
 
 
 class SagePlainTextFormatter(PlainTextFormatter):

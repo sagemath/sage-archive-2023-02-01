@@ -2490,13 +2490,14 @@ def MathonPseudocyclicStronglyRegularGraph(t, G=None, L=None):
 
     - ``t`` -- a positive integer
 
-    - ``G`` -- if `None` (default), try to construct the necessary graph
+    - ``G`` -- if ``None`` (default), try to construct the necessary graph
       with parameters `(4t+1,2t,t-1,t)`, otherwise use the user-supplied one,
       with vertices labelled from `0` to `4t`.
 
-    - ``L`` -- if `None` (default), construct a necessary skew Latin square,
-      otherwise use the user-supplied one. Limited experimental data below suggests
-      that non-isomorphic Latin squares still lead to isomorphic graphs.
+    - ``L`` -- if ``None`` (default), construct a necessary skew Latin square,
+      otherwise use the user-supplied one. Here non-isomorphic Latin squares
+      -- one constructed from `Z/9Z`, and the other from `(Z/3Z)^2` --
+      lead to non-isomorphic graphs.
 
     EXAMPLES:
 
@@ -2512,9 +2513,9 @@ def MathonPseudocyclicStronglyRegularGraph(t, G=None, L=None):
 
         sage: G=graphs.PaleyGraph(9)
         sage: a=G.automorphism_group()
-        sage: r=map(lambda z: matrix(libgap.PermutationMat(libgap(z),9).sage()), \
+        sage: r=map(lambda z: matrix(libgap.PermutationMat(libgap(z),9).sage()),
         ....:                   filter(lambda x: x.order()==9, a.normal_subgroups())[0])
-        sage: ff=map(lambda y: (y[0]-1,y[1]-1), \
+        sage: ff=map(lambda y: (y[0]-1,y[1]-1),
         ....:          Permutation(map(lambda x: 1+r.index(x^-1), r)).cycle_tuples()[1:])
         sage: L=sum(map(lambda (i,(a,b)): i*(r[a]-r[b]), zip(range(1,len(ff)+1), ff))); L
         [ 0  1 -1  2  3 -4 -2  4 -3]
@@ -2530,11 +2531,13 @@ def MathonPseudocyclicStronglyRegularGraph(t, G=None, L=None):
         sage: G3x3=graphs.MathonPseudocyclicStronglyRegularGraph(2,G=G,L=L)
         sage: G3x3.is_strongly_regular(parameters=True)
         (441, 220, 109, 110)
+        sage: G3x3.automorphism_group().order()         # long time
+        27
         sage: G9=graphs.MathonPseudocyclicStronglyRegularGraph(2)
         sage: G9.is_strongly_regular(parameters=True)
         (441, 220, 109, 110)
-        sage: G9.is_isomorphic(G3x3) # not tested (long time)
-        True
+        sage: G9.automorphism_group().order()           # long time
+        9
 
     TESTS::
 
@@ -2575,15 +2578,13 @@ def MathonPseudocyclicStronglyRegularGraph(t, G=None, L=None):
         L = circulant(range(2*t+1)+map(lambda i: -2*t+i, range(2*t)))
     q = 4*t -1
     K = GF(q,conway=True,prefix='x')
-    # Order the elements of K in K_list
-    # so that K_list[i] = -K_list[n-i-1], and 0 comes last
     K_pairs = set(frozenset([x,-x]) for x in K)
     K_pairs.discard(frozenset([0]))
-    a = [None]*(q-1)
+    a = [None]*(q-1)    # order the non-0 elements of K as required 
     for i,(x,y) in enumerate(K_pairs):
         a[i]   = x
         a[-i-1] = y
-    a.append(K(0))
+    a.append(K(0))      # and append the 0 of K at the end
     P = map(lambda b: matrix(ZZ,q,q,lambda i,j: 1 if a[j]==a[i]+b else 0), a)
     g = K.primitive_element()
     F = sum(P[a.index(g**(2*i))] for i in xrange(1, 2*t))

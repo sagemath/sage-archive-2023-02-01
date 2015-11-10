@@ -85,7 +85,63 @@ def is_paley(int v,int k,int l,int mu):
         l   == (v-5)/4 and
         mu  == (v-1)/4):
         from sage.graphs.generators.families import PaleyGraph
-        return (lambda q : PaleyGraph(q),v)
+        return (PaleyGraph,v)
+
+@cached_function
+def is_mathon_PC_srg(int v,int k,int l,int mu):
+    r"""
+    Test whether some Mathon's Pseudocyclic s.r.g. is `(v,k,\lambda,\mu)`-strongly regular.
+
+    INPUT:
+
+    - ``v,k,l,mu`` (integers)
+
+    OUTPUT:
+
+    A tuple ``t`` such that ``t[0](*t[1:])`` builds the requested graph if one
+    exists, and ``None`` otherwise.
+
+    .. TODO::
+
+        The current implementation only gives a subset of all possible graphs that can be
+        obtained using this construction. A  full implementation should rely on a database
+        of conference matrices (or, equivalently, on a database of s.r.g.'s with parameters
+        `(4t+1,2t,t-1,t)`. Currently we make an extra assumtion that `4t+1` is a prime power.
+        The first case where we miss a construction is `t=11`, where we could (recursively)
+        use the graph for `t=1` to construct a graph on 83205 vertices.
+
+    EXAMPLES::
+
+        sage: from sage.graphs.strongly_regular_db import is_mathon_PC_srg
+        sage: t = is_mathon_PC_srg(45,22,10,11); t
+        (..., 1)
+        sage: g = t[0](*t[1:]); g
+        Mathon's PC SRG on 45 vertices: Graph on 45 vertices
+        sage: g.is_strongly_regular(parameters=True)
+        (45, 22, 10, 11)
+
+    TESTS::
+
+        sage: t = is_mathon_PC_srg(5,5,5,5); t
+        sage: mu = 1895  # t=5 case -- the construction cannot work
+        sage: t = is_mathon_PC_srg(4*mu+1,2*mu,mu-1,mu); t
+    """
+    cdef int t
+    if (v%4 == 1 and
+        k   == (v-1)/2 and
+        l   == (v-5)/4 and
+        mu  == (v-1)/4):
+        from sage.rings.integer_ring import ZZ
+        K = ZZ['x']
+        x = K.gen()
+        rpoly = filter(lambda w: w[0]>0, (x*(4*x*(4*x-1)-1)-mu).roots())
+        if rpoly != []:
+            t = rpoly[0][0]
+            if (is_prime_power(4*t-1) and
+                is_prime_power(4*t+1)): # extra assumption in TODO!
+                from sage.graphs.generators.families import \
+                                    MathonPseudocyclicStronglyRegularGraph
+                return (MathonPseudocyclicStronglyRegularGraph,t)
 
 @cached_function
 def is_orthogonal_array_block_graph(int v,int k,int l,int mu):
@@ -3115,6 +3171,7 @@ def strongly_regular_graph(int v,int k,int l,int mu=-1,bint existence=False,bint
                       is_taylor_twograph_srg,
                       is_switch_OA_srg,
                       is_polhill,
+                      is_mathon_PC_srg,
                       is_switch_skewhad]
 
     # Going through all test functions, for the set of parameters and its
@@ -3244,7 +3301,7 @@ def _check_database():
 
         sage: from sage.graphs.strongly_regular_db import _check_database
         sage: _check_database() # long time
-        Sage cannot build a (45   22   10   11  ) that exists. Comment from Brouwer's database: <a href="srgtabrefs.html#Mathon78">Mathon</a>; 2-graph*
+        Sage cannot build a (96   19   2    4   ) that exists. Comment from Brouwer's database: Haemers(4)...
         ...
         In Andries Brouwer's database:
         - 448 impossible entries

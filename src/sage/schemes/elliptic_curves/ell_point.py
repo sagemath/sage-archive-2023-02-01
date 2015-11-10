@@ -556,8 +556,8 @@ class EllipticCurvePoint_field(SchemeMorphism_point_abelian_variety_field):
 
     def has_finite_order(self):
         """
-        Return True if this point has finite additive order as an element
-        of the group of points on this curve.
+        Return ``True`` if this point has finite additive order as an
+        element of the group of points on this curve.
 
         For fields other than number fields and finite fields, this is
         NotImplemented unless self.is_zero().
@@ -2103,7 +2103,7 @@ class EllipticCurvePoint_number_field(EllipticCurvePoint_field):
 
     def has_finite_order(self):
         """
-        Return True iff this point has finite order on the elliptic curve.
+        Return ``True`` iff this point has finite order on the elliptic curve.
 
         EXAMPLES::
 
@@ -3420,6 +3420,22 @@ class EllipticCurvePoint_finite_field(EllipticCurvePoint_field):
             return generic.discrete_log(Q, self, ord, operation='+')
         except Exception:
             raise ValueError("ECDLog problem has no solution")
+
+    def has_finite_order(self):
+        r"""
+        Return ``True`` if this point has finite additive order as an element
+        of the group of points on this curve.
+
+        Since the base field is finite, the answer will always be ``True``.
+
+        EXAMPLE::
+
+            sage: E = EllipticCurve(GF(7), [1,3])
+            sage: P = E.points()[3]
+            sage: P.has_finite_order()
+            True
+        """
+        return True
 
     def order(self):
         r"""

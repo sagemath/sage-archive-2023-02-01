@@ -3301,7 +3301,7 @@ def _check_database():
 
         sage: from sage.graphs.strongly_regular_db import _check_database
         sage: _check_database() # long time
-        Sage cannot build a (45   22   10   11  ) that exists. Comment from Brouwer's database: <a href="srgtabrefs.html#Mathon78">Mathon</a>; 2-graph*
+        Sage cannot build a (96   19   2    4   ) that exists. Comment from Brouwer's database: Haemers(4)...
         ...
         In Andries Brouwer's database:
         - 448 impossible entries

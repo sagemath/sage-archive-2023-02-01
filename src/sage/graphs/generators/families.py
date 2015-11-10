@@ -2531,12 +2531,12 @@ def MathonPseudocyclicStronglyRegularGraph(t, G=None, L=None):
         sage: G3x3=graphs.MathonPseudocyclicStronglyRegularGraph(2,G=G,L=L)
         sage: G3x3.is_strongly_regular(parameters=True)
         (441, 220, 109, 110)
-        sage: G3x3.automorphism_group().order()         # long time
+        sage: G3x3.automorphism_group(algorithm="bliss").order() # optional - bliss
         27
         sage: G9=graphs.MathonPseudocyclicStronglyRegularGraph(2)
         sage: G9.is_strongly_regular(parameters=True)
         (441, 220, 109, 110)
-        sage: G9.automorphism_group().order()           # long time
+        sage: G9.automorphism_group(algorithm="bliss").order() # optional - bliss
         9
 
     TESTS::

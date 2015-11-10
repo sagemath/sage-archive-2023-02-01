@@ -2068,7 +2068,7 @@ class Function_real_part(GinacFunction):
             sage: latex(x.real())
             \Re \left( x \right)
 
-            sage: f(x) = function('f',x)
+            sage: f(x) = function('f')(x)
             sage: latex( f(x).real())
             \Re \left( f\left(x\right) \right)
         """
@@ -2138,7 +2138,7 @@ class Function_imag_part(GinacFunction):
             sage: latex(x.imag())
             \Im \left( x \right)
 
-            sage: f(x) = function('f',x)
+            sage: f(x) = function('f')(x)
             sage: latex( f(x).imag())
             \Im \left( f\left(x\right) \right)
         """
@@ -2203,7 +2203,7 @@ class Function_conjugate(GinacFunction):
             sage: f = function('f')
             sage: latex(f(x).conjugate())
             \overline{f\left(x\right)}
-            sage: f = function('psi',x,y)
+            sage: f = function('psi')(x,y)
             sage: latex(f.conjugate())
             \overline{\psi\left(x, y\right)}
             sage: x.conjugate().conjugate()

@@ -1221,8 +1221,8 @@ ext_modules = [
               libraries=['ntl'],
               language = 'c++'),
 
-    Extension("sage.rings.complex_ball_acb",
-              ["sage/rings/complex_ball_acb.pyx"],
+    Extension("sage.rings.complex_arb",
+              ["sage/rings/complex_arb.pyx"],
               libraries=['arb', 'mpfi', 'mpfr'],
               include_dirs=[SAGE_INC + '/flint']),
 

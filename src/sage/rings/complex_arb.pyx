@@ -48,7 +48,7 @@ Comparison
 Two elements are equal if and only if they are the same object
 or if both are exact and equal::
 
-    sage: from sage.rings.complex_ball_acb import CBF
+    sage: from sage.rings.complex_arb import CBF
     doctest:...: FutureWarning: This class/method/function is marked as experimental.
     It, its functionality or its interface might change without a formal deprecation.
     See http://trac.sagemath.org/17218 for details.
@@ -208,7 +208,7 @@ class ComplexBallField(UniqueRepresentation, Field):
 
     EXAMPLES::
 
-        sage: from sage.rings.complex_ball_acb import ComplexBallField
+        sage: from sage.rings.complex_arb import ComplexBallField
         sage: CBF = ComplexBallField() # indirect doctest
         sage: CBF(1)
         1.000000000000000
@@ -233,7 +233,7 @@ class ComplexBallField(UniqueRepresentation, Field):
 
         TESTS::
 
-            sage: from sage.rings.complex_ball_acb import ComplexBallField
+            sage: from sage.rings.complex_arb import ComplexBallField
             sage: ComplexBallField(53) is ComplexBallField()
             True
         """
@@ -250,14 +250,14 @@ class ComplexBallField(UniqueRepresentation, Field):
 
         EXAMPLES::
 
-            sage: from sage.rings.complex_ball_acb import ComplexBallField
+            sage: from sage.rings.complex_arb import ComplexBallField
             sage: CBF = ComplexBallField()
             sage: CBF(1)
             1.000000000000000
 
         TESTS::
 
-            sage: from sage.rings.complex_ball_acb import CBF
+            sage: from sage.rings.complex_arb import CBF
             sage: CBF.base()
             Real ball field with 53 bits precision
             sage: CBF.base_ring()
@@ -313,7 +313,7 @@ class ComplexBallField(UniqueRepresentation, Field):
         """
         TESTS::
 
-            sage: from sage.rings.complex_ball_acb import CBF
+            sage: from sage.rings.complex_arb import CBF
             sage: CBF._real_field()
             Real ball field with 53 bits precision
         """
@@ -325,7 +325,7 @@ class ComplexBallField(UniqueRepresentation, Field):
 
         EXAMPLES::
 
-            sage: from sage.rings.complex_ball_acb import ComplexBallField
+            sage: from sage.rings.complex_arb import ComplexBallField
             sage: ComplexBallField()
             Complex ball field with 53 bits precision
             sage: ComplexBallField(106)
@@ -340,7 +340,7 @@ class ComplexBallField(UniqueRepresentation, Field):
 
         EXAMPLES::
 
-            sage: from sage.rings.complex_ball_acb import CBF
+            sage: from sage.rings.complex_arb import CBF
             sage: functor, base = CBF.construction()
             sage: functor, base
             (AlgebraicClosureFunctor, Real ball field with 53 bits precision)
@@ -356,7 +356,7 @@ class ComplexBallField(UniqueRepresentation, Field):
 
         EXAMPLES::
 
-            sage: from sage.rings.complex_ball_acb import CBF
+            sage: from sage.rings.complex_arb import CBF
             sage: CBF.complex_field() is CBF
             True
         """
@@ -368,7 +368,7 @@ class ComplexBallField(UniqueRepresentation, Field):
 
         EXAMPLE::
 
-            sage: from sage.rings.complex_ball_acb import CBF
+            sage: from sage.rings.complex_arb import CBF
             sage: CBF.ngens()
             1
         """
@@ -380,7 +380,7 @@ class ComplexBallField(UniqueRepresentation, Field):
 
         EXAMPLE::
 
-            sage: from sage.rings.complex_ball_acb import CBF
+            sage: from sage.rings.complex_arb import CBF
             sage: CBF.0
             1.000000000000000*I
             sage: CBF.gen(1)
@@ -400,7 +400,7 @@ class ComplexBallField(UniqueRepresentation, Field):
 
         EXAMPLE::
 
-            sage: from sage.rings.complex_ball_acb import CBF
+            sage: from sage.rings.complex_arb import CBF
             sage: CBF.gens()
             (1.000000000000000*I,)
             sage: CBF.gens_dict()
@@ -422,7 +422,7 @@ class ComplexBallField(UniqueRepresentation, Field):
 
         TESTS::
 
-            sage: from sage.rings.complex_ball_acb import CBF, ComplexBallField
+            sage: from sage.rings.complex_arb import CBF, ComplexBallField
             sage: from sage.rings.real_arb import RBF, RealBallField
             sage: CBF.coerce_map_from(CBF)
             Identity endomorphism of Complex ball field with 53 bits precision
@@ -467,7 +467,7 @@ class ComplexBallField(UniqueRepresentation, Field):
         EXAMPLES::
 
             sage: from sage.rings.real_arb import RBF
-            sage: from sage.rings.complex_ball_acb import CBF, ComplexBallField
+            sage: from sage.rings.complex_arb import CBF, ComplexBallField
             sage: CBF()
             0
             sage: CBF(1) # indirect doctest
@@ -544,7 +544,7 @@ class ComplexBallField(UniqueRepresentation, Field):
 
         EXAMPLES::
 
-            sage: from sage.rings.complex_ball_acb import CBF
+            sage: from sage.rings.complex_arb import CBF
             sage: CBF.an_element() # indirect doctest
             [0.3333333333333333 +/- 1.49e-17] - [0.1666666666666667 +/- 4.26e-17]*I
         """
@@ -556,7 +556,7 @@ class ComplexBallField(UniqueRepresentation, Field):
 
         EXAMPLES::
 
-            sage: from sage.rings.complex_ball_acb import ComplexBallField
+            sage: from sage.rings.complex_arb import ComplexBallField
             sage: ComplexBallField().precision()
             53
         """
@@ -568,7 +568,7 @@ class ComplexBallField(UniqueRepresentation, Field):
 
         EXAMPLES::
 
-            sage: from sage.rings.complex_ball_acb import ComplexBallField
+            sage: from sage.rings.complex_arb import ComplexBallField
             sage: ComplexBallField().is_exact()
             False
         """
@@ -584,7 +584,7 @@ class ComplexBallField(UniqueRepresentation, Field):
 
         EXAMPLES::
 
-            sage: from sage.rings.complex_ball_acb import ComplexBallField
+            sage: from sage.rings.complex_arb import ComplexBallField
             sage: ComplexBallField().is_finite()
             False
         """
@@ -596,7 +596,7 @@ class ComplexBallField(UniqueRepresentation, Field):
 
         EXAMPLES::
 
-            sage: from sage.rings.complex_ball_acb import ComplexBallField
+            sage: from sage.rings.complex_arb import ComplexBallField
             sage: ComplexBallField().characteristic()
             0
         """
@@ -609,7 +609,7 @@ class ComplexBallField(UniqueRepresentation, Field):
 
         EXAMPLES::
 
-            sage: from sage.rings.complex_ball_acb import CBF
+            sage: from sage.rings.complex_arb import CBF
             sage: CBF.some_elements()
             [1.000000000000000,
              -0.5000000000000000*I,
@@ -634,7 +634,7 @@ cdef inline bint _do_sig(long prec):
 
     TESTS::
 
-        sage: from sage.rings.complex_ball_acb import ComplexBallField
+        sage: from sage.rings.complex_arb import ComplexBallField
     """
     return (prec > 1000)
 
@@ -651,7 +651,7 @@ cdef class ComplexBall(RingElement):
 
     EXAMPLES::
 
-        sage: from sage.rings.complex_ball_acb import ComplexBallField
+        sage: from sage.rings.complex_arb import ComplexBallField
         sage: a = ComplexBallField()(1, 1)
         sage: a
         1.000000000000000 + 1.000000000000000*I
@@ -662,7 +662,7 @@ cdef class ComplexBall(RingElement):
 
         EXAMPLES::
 
-            sage: from sage.rings.complex_ball_acb import ComplexBallField
+            sage: from sage.rings.complex_arb import ComplexBallField
             sage: ComplexBallField(2)(0) # indirect doctest
             0
         """
@@ -674,7 +674,7 @@ cdef class ComplexBall(RingElement):
 
         EXAMPLES::
 
-            sage: from sage.rings.complex_ball_acb import ComplexBallField
+            sage: from sage.rings.complex_arb import ComplexBallField
             sage: a = ComplexBallField(2)(0) # indirect doctest
             sage: del a
         """
@@ -695,7 +695,7 @@ cdef class ComplexBall(RingElement):
 
         TESTS::
 
-            sage: from sage.rings.complex_ball_acb import ComplexBallField, ComplexBall
+            sage: from sage.rings.complex_arb import ComplexBallField, ComplexBall
             sage: from sage.rings.real_arb import RBF
             sage: CBF53, CBF100 = ComplexBallField(53), ComplexBallField(100)
             sage: ComplexBall(CBF100)
@@ -770,7 +770,7 @@ cdef class ComplexBall(RingElement):
         TESTS::
 
             sage: from sage.rings.real_arb import RBF
-            sage: from sage.rings.complex_ball_acb import CBF
+            sage: from sage.rings.complex_arb import CBF
             sage: hash(CBF(1/3)) == hash(RBF(1/3))
             True
             sage: hash(CBF(1/3 + 2*i)) != hash(CBF(1/3 + i))
@@ -791,7 +791,7 @@ cdef class ComplexBall(RingElement):
 
         EXAMPLES::
 
-           sage: from sage.rings.complex_ball_acb import CBF
+           sage: from sage.rings.complex_arb import CBF
            sage: CBF(1/3)
            [0.3333333333333333 +/- 7.04e-17]
            sage: CBF(0, 1/3)
@@ -823,7 +823,7 @@ cdef class ComplexBall(RingElement):
 
         TESTS::
 
-            sage: from sage.rings.complex_ball_acb import CBF
+            sage: from sage.rings.complex_arb import CBF
             sage: CBF(-1/3)._is_atomic()
             True
 
@@ -849,7 +849,7 @@ cdef class ComplexBall(RingElement):
 
         EXAMPLES::
 
-            sage: from sage.rings.complex_ball_acb import CBF
+            sage: from sage.rings.complex_arb import CBF
             sage: CIF(CBF(1/3, 1/3)) # indirect doctest
             0.3333333333333333? + 0.3333333333333333?*I
         """
@@ -864,7 +864,7 @@ cdef class ComplexBall(RingElement):
 
         EXAMPLES::
 
-            sage: from sage.rings.complex_ball_acb import CBF
+            sage: from sage.rings.complex_arb import CBF
             sage: from sage.rings.real_arb import RBF
             sage: ZZ(CBF(-42, RBF(.1, rad=.2))) # indirect doctest
             -42
@@ -893,7 +893,7 @@ cdef class ComplexBall(RingElement):
 
         EXAMPLES::
 
-            sage: from sage.rings.complex_ball_acb import CBF
+            sage: from sage.rings.complex_arb import CBF
             sage: QQ(CBF(12345/2^5))
             12345/32
             sage: QQ(CBF(i))
@@ -917,7 +917,7 @@ cdef class ComplexBall(RingElement):
 
         EXAMPLES::
 
-            sage: from sage.rings.complex_ball_acb import CBF
+            sage: from sage.rings.complex_arb import CBF
             sage: CC(CBF(1/3, 1/3))
             0.333333333333333 + 0.333333333333333*I
             sage: ComplexField(100)(CBF(1/3, 1/3))
@@ -939,7 +939,7 @@ cdef class ComplexBall(RingElement):
 
         EXAMPLES::
 
-            sage: from sage.rings.complex_ball_acb import CBF
+            sage: from sage.rings.complex_arb import CBF
             sage: from sage.rings.real_arb import RBF
             sage: RIF(CBF(RBF(1/3, rad=1e-5)))
             0.3334?
@@ -966,7 +966,7 @@ cdef class ComplexBall(RingElement):
 
         EXAMPLES::
 
-            sage: from sage.rings.complex_ball_acb import CBF
+            sage: from sage.rings.complex_arb import CBF
             sage: RR(CBF(1/3))
             0.333333333333333
             sage: RR(CBF(1, 1/3) - CBF(0, 1/3))
@@ -991,7 +991,7 @@ cdef class ComplexBall(RingElement):
 
         EXAMPLES::
 
-           sage: from sage.rings.complex_ball_acb import ComplexBallField
+           sage: from sage.rings.complex_arb import ComplexBallField
            sage: CBF = ComplexBallField()
            sage: a = CBF(1/3, 1/5)
            sage: a.real()
@@ -1011,7 +1011,7 @@ cdef class ComplexBall(RingElement):
 
         EXAMPLES::
 
-           sage: from sage.rings.complex_ball_acb import ComplexBallField
+           sage: from sage.rings.complex_arb import ComplexBallField
            sage: CBF = ComplexBallField()
            sage: a = CBF(1/3, 1/5)
            sage: a.imag()
@@ -1027,7 +1027,7 @@ cdef class ComplexBall(RingElement):
 
         EXAMPLES::
 
-            sage: from sage.rings.complex_ball_acb import CBF
+            sage: from sage.rings.complex_arb import CBF
             sage: CBF(1 + i).abs() # indirect doctest
             [1.414213562373095 +/- 2.99e-16]
             sage: abs(CBF(i))
@@ -1056,7 +1056,7 @@ cdef class ComplexBall(RingElement):
 
         EXAMPLES::
 
-            sage: from sage.rings.complex_ball_acb import ComplexBallField, CBF
+            sage: from sage.rings.complex_arb import ComplexBallField, CBF
             sage: b = ComplexBallField(8)(1+i).below_abs()
             sage: b
             [1.4 +/- 0.0141]
@@ -1088,7 +1088,7 @@ cdef class ComplexBall(RingElement):
 
         EXAMPLES::
 
-            sage: from sage.rings.complex_ball_acb import ComplexBallField
+            sage: from sage.rings.complex_arb import ComplexBallField
             sage: b = ComplexBallField(8)(1+i).above_abs()
             sage: b
             [1.4 +/- 0.0219]
@@ -1107,7 +1107,7 @@ cdef class ComplexBall(RingElement):
 
         EXAMPLES::
 
-            sage: from sage.rings.complex_ball_acb import CBF
+            sage: from sage.rings.complex_arb import CBF
             sage: CBF(1 + i).arg()
             [0.785398163397448 +/- 3.91e-16]
             sage: CBF(-1).arg()
@@ -1133,7 +1133,7 @@ cdef class ComplexBall(RingElement):
 
         EXAMPLES::
 
-            sage: from sage.rings.complex_ball_acb import CBF
+            sage: from sage.rings.complex_arb import CBF
             sage: CBF(1/3, 1).mid()
             0.333333333333333 + 1.00000000000000*I
             sage: CBF(1/3, 1).mid().parent()
@@ -1165,7 +1165,7 @@ cdef class ComplexBall(RingElement):
 
         EXAMPLES::
 
-            sage: from sage.rings.complex_ball_acb import CBF
+            sage: from sage.rings.complex_arb import CBF
             sage: mid = CBF(1/3, 1/10).squash()
             sage: mid
             [0.3333333333333333 +/- 1.49e-17] + [0.09999999999999999 +/- 1.68e-18]*I
@@ -1199,7 +1199,7 @@ cdef class ComplexBall(RingElement):
 
         EXAMPLES::
 
-            sage: from sage.rings.complex_ball_acb import CBF
+            sage: from sage.rings.complex_arb import CBF
             sage: CBF(1 + i).rad()
             0.00000000
             sage: CBF(i/3).rad()
@@ -1241,7 +1241,7 @@ cdef class ComplexBall(RingElement):
 
         EXAMPLES::
 
-            sage: from sage.rings.complex_ball_acb import CBF
+            sage: from sage.rings.complex_arb import CBF
             sage: b = CBF(exp(I*pi/3).n(100))
             sage: b.mid()
             0.50000000000000000000000000000 + 0.86602540378443864676372317075*I
@@ -1266,7 +1266,7 @@ cdef class ComplexBall(RingElement):
 
         EXAMPLES::
 
-            sage: from sage.rings.complex_ball_acb import CBF
+            sage: from sage.rings.complex_arb import CBF
             sage: CBF(exp(I*pi/3)).accuracy()
             51
             sage: CBF(I/2).accuracy() == CBF.base().maximal_accuracy()
@@ -1291,7 +1291,7 @@ cdef class ComplexBall(RingElement):
 
         EXAMPLES::
 
-            sage: from sage.rings.complex_ball_acb import CBF
+            sage: from sage.rings.complex_arb import CBF
             sage: from sage.rings.real_arb import RBF
             sage: b = CBF(1/3, RBF(1/3, rad=.01))
             sage: b.mid()
@@ -1315,7 +1315,7 @@ cdef class ComplexBall(RingElement):
 
         EXAMPLES::
 
-            sage: from sage.rings.complex_ball_acb import CBF
+            sage: from sage.rings.complex_arb import CBF
             sage: CBF(1+i).add_error(10^-16)
             [1.000000000000000 +/- 1.01e-16] + [1.000000000000000 +/- 1.01e-16]*I
         """
@@ -1329,7 +1329,7 @@ cdef class ComplexBall(RingElement):
 
         EXAMPLES::
 
-            sage: from sage.rings.complex_ball_acb import ComplexBallField
+            sage: from sage.rings.complex_arb import ComplexBallField
             sage: CBF = ComplexBallField()
             sage: CBF(0).is_zero()
             True
@@ -1351,7 +1351,7 @@ cdef class ComplexBall(RingElement):
 
         EXAMPLES::
 
-            sage: from sage.rings.complex_ball_acb import ComplexBallField
+            sage: from sage.rings.complex_arb import ComplexBallField
             sage: CBF = ComplexBallField()
             sage: CBF(pi, 1/3).is_nonzero()
             True
@@ -1380,7 +1380,7 @@ cdef class ComplexBall(RingElement):
 
         EXAMPLES::
 
-            sage: from sage.rings.complex_ball_acb import CBF
+            sage: from sage.rings.complex_arb import CBF
             sage: bool(CBF(0)) # indirect doctest
             False
             sage: bool(CBF(i))
@@ -1396,7 +1396,7 @@ cdef class ComplexBall(RingElement):
 
         EXAMPLES::
 
-            sage: from sage.rings.complex_ball_acb import ComplexBallField
+            sage: from sage.rings.complex_arb import ComplexBallField
             sage: CBF = ComplexBallField()
             sage: CBF(1).is_exact()
             True
@@ -1411,7 +1411,7 @@ cdef class ComplexBall(RingElement):
 
         EXAMPLES::
 
-            sage: from sage.rings.complex_ball_acb import CBF
+            sage: from sage.rings.complex_arb import CBF
             sage: CBF(1/3, 0).is_real()
             True
             sage: (CBF(i/3) - CBF(1, 1/3)).is_real()
@@ -1425,11 +1425,11 @@ cdef class ComplexBall(RingElement):
         """
         Compare ``left`` and ``right``.
 
-        For more information, see :mod:`sage.rings.complex_ball_acb`.
+        For more information, see :mod:`sage.rings.complex_arb`.
 
         EXAMPLES::
 
-            sage: from sage.rings.complex_ball_acb import ComplexBallField
+            sage: from sage.rings.complex_arb import ComplexBallField
             sage: CBF = ComplexBallField()
             sage: a = CBF(1)
             sage: b = CBF(1)
@@ -1558,7 +1558,7 @@ cdef class ComplexBall(RingElement):
 
         EXAMPLES::
 
-            sage: from sage.rings.complex_ball_acb import CBF
+            sage: from sage.rings.complex_arb import CBF
             sage: CBF(1, 1/3).identical(1 + CBF(0, 1)/3)
             True
             sage: CBF(1, 1).identical(1 + CBF(0, 1/3)*3)
@@ -1576,7 +1576,7 @@ cdef class ComplexBall(RingElement):
 
         EXAMPLES::
 
-            sage: from sage.rings.complex_ball_acb import CBF
+            sage: from sage.rings.complex_arb import CBF
             sage: CBF(1, 1).overlaps(1 + CBF(0, 1/3)*3)
             True
             sage: CBF(1, 1).overlaps(CBF(1, 'nan'))
@@ -1603,7 +1603,7 @@ cdef class ComplexBall(RingElement):
 
         EXAMPLES::
 
-            sage: from sage.rings.complex_ball_acb import CBF
+            sage: from sage.rings.complex_arb import CBF
             sage: from sage.rings.real_arb import RealBallField
             sage: CBF(RealBallField(100)(1/3), 0).contains_exact(1/3)
             True
@@ -1651,7 +1651,7 @@ cdef class ComplexBall(RingElement):
 
         EXAMPLES::
 
-            sage: from sage.rings.complex_ball_acb import CBF
+            sage: from sage.rings.complex_arb import CBF
             sage: 1/3*i in CBF(0, 1/3)
             True
 
@@ -1674,7 +1674,7 @@ cdef class ComplexBall(RingElement):
 
         EXAMPLES::
 
-            sage: from sage.rings.complex_ball_acb import CBF
+            sage: from sage.rings.complex_arb import CBF
             sage: CBF(0).contains_zero()
             True
             sage: CBF(RIF(-1,1)).contains_zero()
@@ -1692,7 +1692,7 @@ cdef class ComplexBall(RingElement):
 
         EXAMPLES::
 
-            sage: from sage.rings.complex_ball_acb import CBF
+            sage: from sage.rings.complex_arb import CBF
             sage: -CBF(1/3 + I)
             [-0.3333333333333333 +/- 7.04e-17] - 1.000000000000000*I
         """
@@ -1706,7 +1706,7 @@ cdef class ComplexBall(RingElement):
 
         EXAMPLES::
 
-            sage: from sage.rings.complex_ball_acb import CBF
+            sage: from sage.rings.complex_arb import CBF
             sage: CBF(-2 + I/3).conjugate()
             -2.000000000000000 + [-0.3333333333333333 +/- 7.04e-17]*I
         """
@@ -1723,7 +1723,7 @@ cdef class ComplexBall(RingElement):
 
         EXAMPLES::
 
-            sage: from sage.rings.complex_ball_acb import CBF
+            sage: from sage.rings.complex_arb import CBF
             sage: CBF(1) + CBF(I)
             1.000000000000000 + 1.000000000000000*I
         """
@@ -1743,7 +1743,7 @@ cdef class ComplexBall(RingElement):
 
         EXAMPLES::
 
-            sage: from sage.rings.complex_ball_acb import CBF
+            sage: from sage.rings.complex_arb import CBF
             sage: CBF(1) - CBF(I)
             1.000000000000000 - 1.000000000000000*I
         """
@@ -1762,7 +1762,7 @@ cdef class ComplexBall(RingElement):
 
         EXAMPLES::
 
-            sage: from sage.rings.complex_ball_acb import CBF
+            sage: from sage.rings.complex_arb import CBF
             sage: ~CBF(i/3)
             [-3.00000000000000 +/- 9.44e-16]*I
             sage: ~CBF(0)
@@ -1786,7 +1786,7 @@ cdef class ComplexBall(RingElement):
 
         EXAMPLES::
 
-            sage: from sage.rings.complex_ball_acb import CBF
+            sage: from sage.rings.complex_arb import CBF
             sage: CBF(-2, 1)*CBF(1, 1/3)
             [-2.333333333333333 +/- 5.37e-16] + [0.333333333333333 +/- 4.82e-16]*I
         """
@@ -1808,7 +1808,7 @@ cdef class ComplexBall(RingElement):
 
         EXAMPLES::
 
-            sage: from sage.rings.complex_ball_acb import CBF
+            sage: from sage.rings.complex_arb import CBF
             sage: CBF(i/3) << 2
             [1.333333333333333 +/- 4.82e-16]*I
             sage: CBF(i) << -2
@@ -1860,7 +1860,7 @@ cdef class ComplexBall(RingElement):
 
         EXAMPLES::
 
-            sage: from sage.rings.complex_ball_acb import CBF
+            sage: from sage.rings.complex_arb import CBF
             sage: CBF(1+I) >> 2
             0.2500000000000000 + 0.2500000000000000*I
 
@@ -1889,7 +1889,7 @@ cdef class ComplexBall(RingElement):
 
         EXAMPLES::
 
-            sage: from sage.rings.complex_ball_acb import CBF
+            sage: from sage.rings.complex_arb import CBF
             sage: from sage.rings.real_arb import RBF
             sage: CBF(-2, 1)/CBF(1, 1/3)
             [-1.50000000000000 +/- 1.27e-15] + [1.500000000000000 +/- 8.94e-16]*I

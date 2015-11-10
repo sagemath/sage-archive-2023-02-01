@@ -506,7 +506,7 @@ class RealBallField(UniqueRepresentation, Field):
         EXAMPLES::
 
             sage: from sage.rings.real_arb import RBF, RealBallField
-            sage: from sage.rings.complex_ball_acb import ComplexBallField
+            sage: from sage.rings.complex_arb import ComplexBallField
             doctest:...: FutureWarning: This class/method/function is marked as experimental.
             It, its functionality or its interface might change without a formal deprecation.
             See http://trac.sagemath.org/17218 for details.
@@ -515,7 +515,7 @@ class RealBallField(UniqueRepresentation, Field):
             sage: RealBallField(3).algebraic_closure()
             Complex ball field with 3 bits precision
         """
-        from sage.rings.complex_ball_acb import ComplexBallField
+        from sage.rings.complex_arb import ComplexBallField
         return ComplexBallField(self._prec)
 
     algebraic_closure = complex_field

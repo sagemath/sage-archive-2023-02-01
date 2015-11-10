@@ -42,7 +42,7 @@ ComplexBallField).
    sage/rings/complex_interval
 
    sage/rings/real_arb
-   sage/rings/complex_ball_acb
+   sage/rings/complex_arb
 
 Exact Real Arithmetic
 ---------------------

@@ -912,6 +912,13 @@ def plot(funcs, *args, **kwds):
         sage: p1 + p2
         Graphics object consisting of 2 graphics primitives
 
+    Prior to :trac:`19485`, legends by default had a shadowless gray
+    background. This behavior can be recovered by setting the legend
+    options on your plot object::
+
+        sage: p = plot(sin(x), legend_label='$\sin(x)$')
+        sage: p.set_legend_options(back_color=(0.9,0.9,0.9), shadow=False)
+
     Note that the independent variable may be omitted if there is no
     ambiguity::
 

@@ -792,7 +792,7 @@ Regarding bounds on coding theory parameters, this module implements:
    ::
 
 
-       sage: dimension_upper_bound(10, 3, 2)
+       sage: codes.bounds.dimension_upper_bound(10, 3, 2)
        6
 
    This was established in the example above.
@@ -942,17 +942,17 @@ Here are all the bounds together:
 ::
 
 
-    sage: f1 = lambda x: gv_bound_asymp(x,2)
+    sage: f1 = lambda x: codes.bounds.gv_bound_asymp(x,2)
     sage: P1 = plot(f1,0,1/2,linestyle=":")
-    sage: f2 = lambda x: plotkin_bound_asymp(x,2)
+    sage: f2 = lambda x: codes.bounds.plotkin_bound_asymp(x,2)
     sage: P2 = plot(f2,0,1/2,linestyle="--")
-    sage: f3 = lambda x: elias_bound_asymp(x,2)
+    sage: f3 = lambda x: codes.bounds.elias_bound_asymp(x,2)
     sage: P3 = plot(f3,0,1/2,rgbcolor=(1,0,0))
-    sage: f4 = lambda x: singleton_bound_asymp(x,2)
+    sage: f4 = lambda x: codes.bounds.singleton_bound_asymp(x,2)
     sage: P4 = plot(f4,0,1/2,linestyle="-.")
-    sage: f5 = lambda x: mrrw1_bound_asymp(x,2)
+    sage: f5 = lambda x: codes.bounds.mrrw1_bound_asymp(x,2)
     sage: P5 = plot(f5,0,1/2,linestyle="steps")
-    sage: f6 = lambda x: hamming_bound_asymp(x,2)
+    sage: f6 = lambda x: codes.bounds.hamming_bound_asymp(x,2)
     sage: P6 = plot(f6,0,1/2,rgbcolor=(0,1,0))
     sage: show(P1+P2+P3+P4+P5+P6)
 

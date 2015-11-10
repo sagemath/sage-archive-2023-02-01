@@ -1339,7 +1339,7 @@ class SchemeMorphism_polynomial(SchemeMorphism):
                 Defn: Defined on coordinates by sending (x : y) to
                     (x : y)
 
-            Check that :trac:'16834' is fixed::
+        Check that :trac:`16834` is fixed::
 
             sage: A.<x,y,z> = AffineSpace(RR,3)
             sage: h = Hom(A,A)

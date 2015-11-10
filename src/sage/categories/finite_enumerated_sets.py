@@ -496,14 +496,14 @@ class FiniteEnumeratedSets(CategoryWithAxiom):
                 'sage.categories.sets_cat'
 
                 sage: C.__iter__.__module__
-                'sage.categories.enumerated_sets'
+                'sage.categories.sets_cat'
             """
 
             # Ambiguity resolution between methods inherited from
             # Sets.CartesianProducts and from EnumeratedSets.Finite.
             random_element = Sets.CartesianProducts.ParentMethods.random_element.__func__
             cardinality = Sets.CartesianProducts.ParentMethods.cardinality.__func__
-            __iter__ = EnumeratedSets.CartesianProducts.ParentMethods.__iter__.__func__
+            __iter__ = Sets.CartesianProducts.ParentMethods.__iter__.__func__
 
             def last(self):
                 r"""

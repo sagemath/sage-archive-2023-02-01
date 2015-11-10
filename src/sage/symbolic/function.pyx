@@ -22,7 +22,7 @@ from expression cimport new_Expression_from_GEx, Expression
 from ring import SR
 
 from sage.structure.coerce cimport py_scalar_to_element, is_numpy_type
-from sage.structure.element import get_coercion_model
+from sage.structure.element cimport coercion_model
 
 # we keep a database of symbolic functions initialized in a session
 # this also makes the .operator() method of symbolic expressions work
@@ -255,7 +255,7 @@ cdef class Function(SageObject):
             evalf = self._evalf_  # catch AttributeError early
             if any(self._is_numerical(x) for x in args):
                 if not any(isinstance(x, Expression) for x in args):
-                    p = get_coercion_model().common_parent(*args)
+                    p = coercion_model.common_parent(*args)
                     return evalf(*args, parent=p)
         except Exception:
             pass

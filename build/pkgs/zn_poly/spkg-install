@@ -192,6 +192,7 @@ else
         echo >&2 "Error copying 'libzn_poly.dylib'."
         exit 1
     fi
+    install_name_tool -id ${SAGE_LOCAL}/lib/libzn_poly.dylib "${SAGE_LOCAL}"/lib/libzn_poly.dylib
 fi
 
 ###############################################################################

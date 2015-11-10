@@ -15,6 +15,7 @@ The following constructions are available
     :delim: |
 
     :meth:`~sage.geometry.polyhedron.library.Polytopes.Birkhoff_polytope`
+    :meth:`~sage.geometry.polyhedron.library.Polytopes.associahedron`
     :meth:`~sage.geometry.polyhedron.library.Polytopes.buckyball`
     :meth:`~sage.geometry.polyhedron.library.Polytopes.cross_polytope`
     :meth:`~sage.geometry.polyhedron.library.Polytopes.cube`
@@ -67,6 +68,7 @@ from sage.misc.superseded import deprecated_function_alias
 from constructor import Polyhedron
 
 from sage.graphs.digraph import DiGraph
+from sage.combinat.root_system.associahedron import Associahedron
 
 def zero_sum_projection(d):
     r"""
@@ -147,8 +149,6 @@ class Polytopes():
     A class of constructors for commonly used, famous, or interesting
     polytopes.
     """
-
-    flow_polytope = staticmethod(DiGraph.flow_polytope)
 
     def regular_polygon(self, n, exact=True, base_ring=None):
         """
@@ -1113,5 +1113,12 @@ class Polytopes():
         par =  [ V.zero() ]
         par.extend(sum(c) for k in range(1,len(generators)+1) for c in combinations(generators,k))
         return Polyhedron(vertices=par, base_ring=R)
+
+    # --------------------------------------------------------
+    # imports from other files
+    # --------------------------------------------------------
+    associahedron = staticmethod(Associahedron)
+
+    flow_polytope = staticmethod(DiGraph.flow_polytope)
 
 polytopes = Polytopes()

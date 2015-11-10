@@ -30,14 +30,17 @@ cdef class RealIntervalField_class(sage.rings.ring.Field):
     cdef real_mpfr.RealField_class __lower_field
     cdef real_mpfr.RealField_class __middle_field
     cdef real_mpfr.RealField_class __upper_field
-    cdef RealIntervalFieldElement _new(self)
+    cdef inline RealIntervalFieldElement _new(self):
+        """Return a new real interval with parent ``self``."""
+        return RealIntervalFieldElement.__new__(RealIntervalFieldElement, self)
 
 
 cdef class RealIntervalFieldElement(RingElement):
     cdef mpfi_t value
-    cdef char init
-    cdef RealIntervalFieldElement _new(self)
 
+    cdef inline RealIntervalFieldElement _new(self):
+        """Return a new real interval with same parent as ``self``."""
+        return RealIntervalFieldElement.__new__(RealIntervalFieldElement, self._parent)
     cdef RealIntervalFieldElement abs(RealIntervalFieldElement self)
     cdef Rational _simplest_rational_helper(self)
     cpdef _str_question_style(self, int base, int error_digits, e, bint prefer_sci)

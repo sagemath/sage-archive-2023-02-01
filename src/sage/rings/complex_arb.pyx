@@ -981,7 +981,7 @@ cdef class ComplexBall(RingElement):
 
         OUTPUT:
 
-        A :class:`RealBall`.
+        A :class:`~sage.rings.real_arb.RealBall`.
 
         EXAMPLES::
 
@@ -1001,7 +1001,7 @@ cdef class ComplexBall(RingElement):
 
         OUTPUT:
 
-        A :class:`RealBall`.
+        A :class:`~sage.rings.real_arb.RealBall`.
 
         EXAMPLES::
 

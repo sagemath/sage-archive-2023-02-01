@@ -3200,7 +3200,7 @@ cdef class RealBall(RingElement):
 
     def chebyshev_T(self, n):
         """
-        Evaluates the Chebyshev polynomial of the first kind ``T_n`` at this
+        Evaluate the Chebyshev polynomial of the first kind ``T_n`` at this
         ball.
 
         EXAMPLES::
@@ -3233,7 +3233,7 @@ cdef class RealBall(RingElement):
 
     def chebyshev_U(self, n):
         """
-        Evaluates the Chebyshev polynomial of the second kind ``U_n`` at this
+        Evaluate the Chebyshev polynomial of the second kind ``U_n`` at this
         ball.
 
         EXAMPLES::

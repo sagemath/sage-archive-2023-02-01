@@ -50,9 +50,6 @@ Two elements are equal if and only if they are the same object
 or if both are exact and equal::
 
     sage: from sage.rings.complex_arb import CBF
-    doctest:...: FutureWarning: This class/method/function is marked as experimental.
-    It, its functionality or its interface might change without a formal deprecation.
-    See http://trac.sagemath.org/17218 for details.
     sage: a = CBF(1, 2)
     sage: b = CBF(1, 2)
     sage: a is b
@@ -140,7 +137,6 @@ from sage.libs.arb.arf cimport arf_init, arf_get_mpfr, arf_set_mpfr, arf_clear, 
 from sage.libs.arb.mag cimport mag_init, mag_clear, mag_add, mag_set_d, MAG_BITS, mag_is_inf, mag_is_finite, mag_zero
 from sage.libs.flint.fmpz cimport fmpz_t, fmpz_init, fmpz_get_mpz, fmpz_set_mpz, fmpz_clear
 from sage.libs.flint.fmpq cimport fmpq_t, fmpq_init, fmpq_set_mpq, fmpq_clear
-from sage.misc.superseded import experimental
 from sage.rings.complex_field import ComplexField
 from sage.rings.complex_interval_field import ComplexIntervalField
 from sage.rings.real_arb cimport mpfi_to_arb, arb_to_mpfi
@@ -236,7 +232,6 @@ class ComplexBallField(UniqueRepresentation, Field):
         """
         return super(ComplexBallField, cls).__classcall__(cls, precision, category)
 
-    @experimental(17218)
     def __init__(self, precision, category):
         r"""
         Initialize the complex ball field.

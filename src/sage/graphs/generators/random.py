@@ -956,15 +956,16 @@ def RandomTriangulation(n, set_position=False):
 
     The algorithm is taken from [PS2006]_, section 2.1.
 
-    Starting from a planar tree (represented by its contour), one
-    first performs local closures, until no one is possible. A local
-    closure amounts to replace in the cyclic contour word a sequence
-    ``in,in,in,lf,in`` by ``in,in``. After all local closures are
-    done, one has reached the situation of [PS2006]_, figure 5 (a).
+    Starting from a planar tree (represented by its contour as a
+    sequence of vertices), one first performs local closures, until no
+    one is possible. A local closure amounts to replace in the cyclic
+    contour word a sequence ``in1,in2,in3,lf,in3`` by
+    ``in1,in3``. After all local closures are done, one has reached
+    the partial closure, as in [PS2006]_, figure 5 (a).
 
     Then one has to perform complete closure by adding two more
-    vertices, in order to reach the situation of [PS2006]_, figure 5 (b).
-    For this, it is necessary to find inside the final contour
+    vertices, in order to reach the situation of [PS2006]_, figure 5
+    (b). For this, it is necessary to find inside the final contour
     one of the two subsequences ``lf,in,lf``.
 
     At every step of the algorithm, newly created edges are recorded
@@ -995,6 +996,8 @@ def RandomTriangulation(n, set_position=False):
        http://www.lix.polytechnique.fr/~poulalho/Articles/PoSc_Algorithmica06.pdf
 
     """
+    if n < 3:
+        raise ValueError('only defined for n >= 3')
     w = _auxiliary_random_word(n - 2)
     word, graph = _contour_and_graph_from_word(w)
 
@@ -1008,21 +1011,20 @@ def RandomTriangulation(n, set_position=False):
         for x in word:
             if x[0] == 'lf':  # leaf vertex 'lf'
                 if len(stack_in) >= 3:
-                    # place to perform a local closure: in, in, in, lf
-                    # this is followed by another 'in'
+                    # place to perform a local closure: in1, in2, in3, lf
+                    # this is followed in the cycle by another 'in3'
+                    # and get replaced by 'in1', 'in3'
+                    # here we just need to remove 'in2' and 'in3' from stack_in
                     done = False
                     edges.append((stack_in[-3][1], stack_in[-1][1]))
-                    end_in = stack_in.pop()
-                    stack_in[-1] = end_in
+                    stack_in = stack_in[:-2]
                 else:
                     # clear the stack of consecutive 'in'
                     new_word.extend(stack_in + [x])
                     stack_in = []
             else:  # inner vertex 'in'
-                if not stack_in or (x != stack_in[-1]):
-                    # add one 'in' to the stack
-                    # unless this 'in' was following a previous local closure
-                    stack_in += [x]
+                # add one 'in' to the stack
+                stack_in += [x]
 
         if stack_in:
             # trying again after rotation if needed
@@ -1040,23 +1042,14 @@ def RandomTriangulation(n, set_position=False):
 
     # Every remaining 'lf' vertex is linked either to 'a' or to 'b'.
     # Switching a/b happens when one meets the sequence 'lf','in','lf'.
-    target_vertex = True
-    after_lf = False
-    after_lf_in = False
-    vab = {True: 'a', False: 'b'}
-    for i in range(len(word)):
-        if word[i][0] == 'lf':
-            if after_lf_in:
-                target_vertex = not target_vertex
-            graph.add_edge((vab[target_vertex], word[i][1]))
-            after_lf = True
-            after_lf_in = False
-        else:
-            if after_lf:
-                after_lf_in = True
-            else:
-                after_lf_in = False
-            after_lf = False
+    target_vertex = 'a'
+    memory = ('', '')
+    for x in word:
+        if x[0] == 'lf':
+            if memory == ('lf', 'in'):
+                target_vertex = 'b' if target_vertex == 'a' else 'a'
+            graph.add_edge((target_vertex, x[1]))
+        memory = (memory[1], x[0])
 
     assert graph.num_edges() == 3 * (n - 2)
 

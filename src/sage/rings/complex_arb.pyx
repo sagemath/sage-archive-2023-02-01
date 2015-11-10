@@ -459,8 +459,6 @@ class ComplexBallField(UniqueRepresentation, Field):
           or two real ones (see examples below for more information on accepted
           number types).
 
-        .. SEEALSO:: :meth:`sage.rings.real_arb.RealBallField._element_constructor_`
-
         EXAMPLES::
 
             sage: from sage.rings.real_arb import RBF
@@ -499,6 +497,10 @@ class ComplexBallField(UniqueRepresentation, Field):
             Traceback (most recent call last):
             ...
             TypeError: unable to convert x to a ComplexBall
+
+        .. SEEALSO::
+
+            :meth:`sage.rings.real_arb.RealBallField._element_constructor_`
 
         TESTS::
 
@@ -1049,8 +1051,6 @@ cdef class ComplexBall(RingElement):
 
         OUPUT: a ball with zero radius
 
-        .. SEEALSO:: :meth:`above_abs`
-
         EXAMPLES::
 
             sage: from sage.rings.complex_arb import ComplexBallField, CBF
@@ -1067,6 +1067,8 @@ cdef class ComplexBall(RingElement):
             Traceback (most recent call last):
             ...
             ValueError: ball contains zero
+
+        .. SEEALSO:: :meth:`above_abs`
         """
         cdef RealBall res = RealBall(real_ball_field(self))
         acb_get_abs_lbound_arf(arb_midref(res.value), self.value, prec(self))
@@ -1081,8 +1083,6 @@ cdef class ComplexBall(RingElement):
 
         OUPUT: a ball with zero radius
 
-        .. SEEALSO:: :meth:`below_abs`
-
         EXAMPLES::
 
             sage: from sage.rings.complex_arb import ComplexBallField
@@ -1093,6 +1093,8 @@ cdef class ComplexBall(RingElement):
             True
             sage: QQ(b)*128
             182
+
+        .. SEEALSO:: :meth:`below_abs`
         """
         cdef RealBall res = RealBall(real_ball_field(self))
         acb_get_abs_ubound_arf(arb_midref(res.value), self.value, prec(self))
@@ -1126,8 +1128,6 @@ cdef class ComplexBall(RingElement):
         complex number formed by the centers of the real and imaginary parts of
         this ball.
 
-        .. SEEALSO:: :meth:`squash`
-
         EXAMPLES::
 
             sage: from sage.rings.complex_arb import CBF
@@ -1145,6 +1145,8 @@ cdef class ComplexBall(RingElement):
             +infinity
             sage: CBF(0, 'inf').mid()
             +infinity*I
+
+        .. SEEALSO:: :meth:`squash`
         """
         re, im = self.real().mid(), self.imag().mid()
         field = ComplexField(max(prec(self), re.prec(), im.prec()))
@@ -1158,8 +1160,6 @@ cdef class ComplexBall(RingElement):
 
         A :class:`ComplexBall`.
 
-        .. SEEALSO:: :meth:`mid`
-
         EXAMPLES::
 
             sage: from sage.rings.complex_arb import CBF
@@ -1170,6 +1170,8 @@ cdef class ComplexBall(RingElement):
             Complex ball field with 53 bits precision
             sage: mid.is_exact()
             True
+
+        .. SEEALSO:: :meth:`mid`
         """
         cdef ComplexBall res = self._new()
         arf_set(arb_midref(acb_realref(res.value)), arb_midref(acb_realref(self.value)))
@@ -1234,8 +1236,6 @@ cdef class ComplexBall(RingElement):
         """
         Return a copy of this ball rounded to the precision of the parent.
 
-        .. SEEALSO:: :meth:`trim`
-
         EXAMPLES:
 
         It is possible to create balls whose midpoint is more precise that
@@ -1251,6 +1251,8 @@ cdef class ComplexBall(RingElement):
 
             sage: b.round().mid()
             0.500000000000000 + 0.866025403784439*I
+
+        .. SEEALSO:: :meth:`trim`
         """
         cdef ComplexBall res = self._new()
         if _do_sig(prec(self)): sig_on()
@@ -1278,7 +1280,7 @@ cdef class ComplexBall(RingElement):
             sage: CBF('nan', 'inf').accuracy() == -CBF.base().maximal_accuracy()
             True
 
-        .. seealso::
+        .. SEEALSO::
 
             :meth:`~sage.rings.real_arb.RealBallField.maximal_accuracy`
         """
@@ -1291,8 +1293,6 @@ cdef class ComplexBall(RingElement):
         Return a copy of this ball with both the real and imaginary parts
         trimmed (see :meth:`~sage.rings.real_arb.RealBall.trim()`).
 
-        .. SEEALSO:: :meth:`round`
-
         EXAMPLES::
 
             sage: from sage.rings.complex_arb import CBF
@@ -1303,6 +1303,7 @@ cdef class ComplexBall(RingElement):
             sage: b.trim().mid()
             0.333333333333333 + 0.333333015441895*I
 
+        .. SEEALSO:: :meth:`round`
         """
         cdef ComplexBall res = self._new()
         if _do_sig(prec(self)): sig_on()
@@ -1595,16 +1596,14 @@ cdef class ComplexBall(RingElement):
         """
         Return ``True`` *iff* ``other`` is contained in ``self``.
 
+        Use ``other in self`` for a test that works for a wider range of inputs
+        but may return false negatives.
+
         INPUT:
 
         - ``other`` -- :class:`ComplexBall`,
           :class:`~sage.rings.integer.Integer`,
           or :class:`~sage.rings.rational.Rational`
-
-        .. SEEALSO::
-
-            Use ``other in self`` for a test that works for a wider range of
-            inputs but may return false negatives.
 
         EXAMPLES::
 
@@ -1652,8 +1651,6 @@ cdef class ComplexBall(RingElement):
         arithmetic with a precision determined by the parent of ``self`` and
         may return false negatives.
 
-        .. SEEALSO:: :meth:`contains_exact`
-
         EXAMPLES::
 
             sage: from sage.rings.complex_arb import CBF
@@ -1665,6 +1662,8 @@ cdef class ComplexBall(RingElement):
             sage: from sage.rings.real_arb import RealBallField
             sage: RLF(1/3) in CBF(RealBallField(100)(1/3), 0)
             False
+
+        .. SEEALSO:: :meth:`contains_exact`
         """
         if not isinstance(other, (
                 ComplexBall,

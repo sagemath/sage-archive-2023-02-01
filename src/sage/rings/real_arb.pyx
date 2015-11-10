@@ -649,8 +649,6 @@ class RealBallField(UniqueRepresentation, Field):
         This works even if ``x`` itself is not a ball, and may be faster or
         more accurate where ``x`` is a rational number.
 
-        .. seealso:: :meth:`~sage.rings.real_arb.RealBall.sin`
-
         EXAMPLES::
 
             sage: from sage.rings.real_arb import RBF
@@ -660,6 +658,8 @@ class RealBallField(UniqueRepresentation, Field):
             [0.866025403784439 +/- 5.15e-16]
             sage: RBF.sinpi(1 + 2^(-100))
             [-2.478279624546525e-30 +/- 5.90e-46]
+
+        .. SEEALSO:: :meth:`~sage.rings.real_arb.RealBall.sin`
 
         TESTS::
 
@@ -696,8 +696,6 @@ class RealBallField(UniqueRepresentation, Field):
         This works even if ``x`` itself is not a ball, and may be faster or
         more accurate where ``x`` is a rational number.
 
-        .. seealso:: :meth:`~sage.rings.real_arb.RealBall.cos`
-
         EXAMPLES::
 
             sage: from sage.rings.real_arb import RBF
@@ -705,6 +703,8 @@ class RealBallField(UniqueRepresentation, Field):
             -1.000000000000000
             sage: RBF.cospi(1/3)
             0.5000000000000000
+
+        .. SEEALSO:: :meth:`~sage.rings.real_arb.RealBall.cos`
 
         TESTS::
 
@@ -741,8 +741,6 @@ class RealBallField(UniqueRepresentation, Field):
         This works even if ``x`` itself is not a ball, and may be more
         efficient in the case where ``x`` is an integer or a rational number.
 
-        .. seealso:: :meth:`~sage.rings.real_arb.RealBall.gamma`
-
         EXAMPLES::
 
             sage: from sage.rings.real_arb import RBF
@@ -754,6 +752,8 @@ class RealBallField(UniqueRepresentation, Field):
             [2.678938534707747 +/- 8.99e-16]
             sage: RBF.gamma(-5)
             nan
+
+        .. SEEALSO:: :meth:`~sage.rings.real_arb.RealBall.gamma`
 
         TESTS::
 
@@ -801,8 +801,6 @@ class RealBallField(UniqueRepresentation, Field):
         This works even if ``s`` itself is not a ball, and may be more
         efficient in the case where ``s`` is an integer.
 
-        .. SEEALSO:: :meth:`~sage.rings.real_arb.RealBall.zeta`
-
         EXAMPLES::
 
             sage: from sage.rings.real_arb import RBF
@@ -812,6 +810,8 @@ class RealBallField(UniqueRepresentation, Field):
             nan
             sage: RBF.zeta(1/2)
             [-1.460354508809587 +/- 1.94e-16]
+
+        .. SEEALSO:: :meth:`~sage.rings.real_arb.RealBall.zeta`
         """
         cdef RealBall res
         cdef sage.rings.integer.Integer s_as_Integer
@@ -918,9 +918,7 @@ class RealBallField(UniqueRepresentation, Field):
             9223372036854775807 # 64-bit
             2147483647          # 32-bit
 
-        .. seealso::
-
-            :meth:`RealBall.accuracy`
+        .. SEEALSO:: :meth:`RealBall.accuracy`
         """
         return ARF_PREC_EXACT
 
@@ -995,8 +993,6 @@ cdef class RealBall(RingElement):
           floating-point, the radius is adjusted to account for the roundoff
           error.
 
-        .. SEEALSO:: :meth:`RealBallField._element_constructor_`
-
         EXAMPLES::
 
             sage: from sage.rings.real_arb import RealBallField
@@ -1050,6 +1046,8 @@ cdef class RealBall(RingElement):
             (+infinity, -infinity, 0.000000000000000)
             sage: RBF(NaN)
             nan
+
+        .. SEEALSO:: :meth:`RealBallField._element_constructor_`
 
         TESTS::
 
@@ -1361,8 +1359,6 @@ cdef class RealBall(RingElement):
         """
         Return the center of this ball.
 
-        .. SEEALSO:: :meth:`rad`, :meth:`squash`
-
         EXAMPLES::
 
             sage: from sage.rings.real_arb import RealBallField, RBF
@@ -1382,6 +1378,8 @@ cdef class RealBall(RingElement):
             Traceback (most recent call last):
             ...
             RuntimeError: unable to convert to MPFR (exponent out of range?)
+
+        .. SEEALSO:: :meth:`rad`, :meth:`squash`
         """
         cdef long mid_prec = max(arb_bits(self.value), prec(self))
         if mid_prec < MPFR_PREC_MIN:
@@ -1395,8 +1393,6 @@ cdef class RealBall(RingElement):
         """
         Return the radius of this ball.
 
-        .. SEEALSO:: :meth:`mid`, :meth:`rad_as_ball`
-
         EXAMPLES::
 
             sage: from sage.rings.real_arb import RBF
@@ -1404,6 +1400,8 @@ cdef class RealBall(RingElement):
             5.5511151e-17
             sage: RBF(1/3).rad().parent()
             Real Field with 30 bits of precision
+
+        .. SEEALSO:: :meth:`mid`, :meth:`rad_as_ball`
 
         TESTS::
 
@@ -1430,8 +1428,6 @@ cdef class RealBall(RingElement):
         """
         Return an exact ball with the same center as this ball.
 
-        .. SEEALSO:: :meth:`mid`, :meth:`rad_as_ball`
-
         EXAMPLES::
 
             sage: from sage.rings.real_arb import RealBallField
@@ -1442,6 +1438,8 @@ cdef class RealBall(RingElement):
             True
             sage: mid.parent()
             Real ball field with 16 bits precision
+
+        .. SEEALSO:: :meth:`mid`, :meth:`rad_as_ball`
         """
         cdef RealBall res = self._new()
         arf_set(arb_midref(res.value), arb_midref(self.value))
@@ -1451,8 +1449,6 @@ cdef class RealBall(RingElement):
     def rad_as_ball(self):
         """
         Return an exact ball with center equal to the radius of this ball.
-
-        .. SEEALSO:: :meth:`squash`, :meth:`rad`
 
         EXAMPLES::
 
@@ -1464,6 +1460,8 @@ cdef class RealBall(RingElement):
             True
             sage: rad.parent()
             Real ball field with 30 bits precision
+
+        .. SEEALSO:: :meth:`squash`, :meth:`rad`
         """
         cdef RealBall res = self._parent.element_class(RealBallField(MAG_BITS))
         arf_set_mag(arb_midref(res.value), arb_radref(self.value))
@@ -1498,8 +1496,6 @@ cdef class RealBall(RingElement):
 
         OUPUT: a ball with zero radius
 
-        .. SEEALSO:: :meth:`above_abs`
-
         EXAMPLES::
 
             sage: from sage.rings.real_arb import RealBallField, RBF
@@ -1519,6 +1515,8 @@ cdef class RealBall(RingElement):
             Traceback (most recent call last):
             ...
             ValueError: ball contains zero
+
+        .. SEEALSO:: :meth:`above_abs`
         """
         cdef RealBall res = self._new()
         arb_get_abs_lbound_arf(arb_midref(res.value), self.value, prec(self))
@@ -1533,8 +1531,6 @@ cdef class RealBall(RingElement):
 
         OUPUT: a ball with zero radius
 
-        .. SEEALSO:: :meth:`below_abs`
-
         EXAMPLES::
 
             sage: from sage.rings.real_arb import RealBallField
@@ -1545,6 +1541,8 @@ cdef class RealBall(RingElement):
             True
             sage: QQ(b)
             171/512
+
+        .. SEEALSO:: :meth:`below_abs`
         """
         cdef RealBall res = self._new()
         arb_get_abs_ubound_arf(arb_midref(res.value), self.value, prec(self))
@@ -1581,9 +1579,7 @@ cdef class RealBall(RingElement):
             sage: RBF(-1/3).lower().parent()
             Real Field with 53 bits of precision and rounding RNDD
 
-        .. SEEALSO::
-
-           :meth:`upper`, :meth:`endpoints`
+        .. SEEALSO:: :meth:`upper`, :meth:`endpoints`
         """
         # naive and slow
         return self._real_mpfi_(RealIntervalField(prec(self))).lower(rnd)
@@ -1598,9 +1594,7 @@ cdef class RealBall(RingElement):
             sage: RBF(-1/3).endpoints()
             (-0.333333333333334, -0.333333333333333)
 
-        .. SEEALSO::
-
-           :meth:`lower`, :meth:`upper`
+        .. SEEALSO:: :meth:`lower`, :meth:`upper`
         """
         # naive and slow
         return self._real_mpfi_(RealIntervalField(prec(self))).endpoints(rnd)
@@ -1629,8 +1623,6 @@ cdef class RealBall(RingElement):
         Return a copy of this ball with center rounded to the precision of the
         parent.
 
-        .. SEEALSO:: :meth:`trim`
-
         EXAMPLES:
 
         It is possible to create balls whose midpoint is more precise that
@@ -1646,6 +1638,8 @@ cdef class RealBall(RingElement):
 
             sage: b.round().mid()
             3.14159265358979
+
+        .. SEEALSO:: :meth:`trim`
         """
         cdef RealBall res = self._new()
         if _do_sig(prec(self)): sig_on()
@@ -1672,9 +1666,7 @@ cdef class RealBall(RingElement):
             sage: RBF(NaN).accuracy() == -RBF.maximal_accuracy()
             True
 
-        .. seealso::
-
-           :meth:`~RealBallField.maximal_accuracy`
+        .. SEEALSO:: :meth:`~RealBallField.maximal_accuracy`
         """
         return arb_rel_accuracy_bits(self.value)
 
@@ -1687,8 +1679,6 @@ cdef class RealBall(RingElement):
         resulting ball is guaranteed to contain ``self``, but is more economical
         if ``self`` has less than full accuracy.
 
-        .. SEEALSO:: :meth:`round`
-
         EXAMPLES::
 
             sage: from sage.rings.real_arb import RBF
@@ -1697,6 +1687,8 @@ cdef class RealBall(RingElement):
             0.111111111111110
             sage: b.trim().mid()
             0.111111104488373
+
+        .. SEEALSO:: :meth:`round`
         """
         cdef RealBall res = self._new()
         if _do_sig(prec(self)): sig_on()
@@ -2072,9 +2064,7 @@ cdef class RealBall(RingElement):
             sage: RBF('nan').min(RBF('nan'))
             nan
 
-        .. SEEALSO::
-
-            :meth:`max`
+        .. SEEALSO:: :meth:`max`
 
         TESTS::
 
@@ -2112,9 +2102,7 @@ cdef class RealBall(RingElement):
             sage: RBF('nan').max(RBF('nan'))
             nan
 
-        .. SEEALSO::
-
-            :meth:`min`
+        .. SEEALSO:: :meth:`min`
 
         TESTS::
 
@@ -2256,8 +2244,6 @@ cdef class RealBall(RingElement):
         The test is done using interval arithmetic with a precision determined
         by the parent of ``self`` and may return false negatives.
 
-        .. SEEALSO:: :meth:`contains_exact`
-
         EXAMPLES::
 
             sage: from sage.rings.real_arb import RBF, RealBallField
@@ -2268,6 +2254,8 @@ cdef class RealBall(RingElement):
 
             sage: sqrt(2) in RBF(RealBallField(100)(sqrt(2)))
             False
+
+        .. SEEALSO:: :meth:`contains_exact`
         """
         return self.contains_exact(self._parent(other))
 
@@ -2800,13 +2788,13 @@ cdef class RealBall(RingElement):
         """
         Return the sine of this ball.
 
-        .. seealso:: :meth:`~sage.rings.real_arb.RealBallField.sinpi`
-
         EXAMPLES::
 
             sage: from sage.rings.real_arb import RBF
             sage: RBF(pi).sin() # abs tol 1e-16
             [+/- 5.69e-16]
+
+        .. SEEALSO:: :meth:`~sage.rings.real_arb.RealBallField.sinpi`
         """
         cdef RealBall res = self._new()
         if _do_sig(prec(self)): sig_on()
@@ -2818,13 +2806,13 @@ cdef class RealBall(RingElement):
         """
         Return the cosine of this ball.
 
-        .. seealso:: :meth:`~sage.rings.real_arb.RealBallField.cospi`
-
         EXAMPLES::
 
             sage: from sage.rings.real_arb import RBF
             sage: RBF(pi).cos() # abs tol 1e-16
             [-1.00000000000000 +/- 6.69e-16]
+
+        .. SEEALSO:: :meth:`~sage.rings.real_arb.RealBallField.cospi`
         """
         cdef RealBall res = self._new()
         if _do_sig(prec(self)): sig_on()

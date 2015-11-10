@@ -130,7 +130,6 @@ cimport sage.rings.rational
 from cpython.float cimport PyFloat_AS_DOUBLE
 from cpython.int cimport PyInt_AS_LONG
 from cpython.object cimport Py_LT, Py_LE, Py_EQ, Py_NE, Py_GT, Py_GE
-from libc.stdlib cimport abort
 
 from sage.libs.mpfr cimport MPFR_RNDU
 from sage.libs.arb.arb cimport *
@@ -1220,7 +1219,7 @@ cdef class ComplexBall(RingElement):
         acb_get_rad_ubound_arf(tmp, self.value, MAG_BITS)
         sig_str("unable to convert the radius to MPFR (exponent out of range?)")
         if arf_get_mpfr(rad.value, tmp, MPFR_RNDU):
-            abort()
+            sig_error()
         sig_off()
         arf_clear(tmp)
         return rad

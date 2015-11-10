@@ -171,6 +171,7 @@ from sage.structure.element import Element
 from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.misc.cachefunc import cached_method
+from sage.misc.lazy_attribute import lazy_attribute
 
 from sage.categories.sets_cat import Sets
 from sage.structure.sage_object import SageObject
@@ -191,7 +192,7 @@ import time
 import inspect
 import json
 import cgi
-
+#import copy
 
 # Combinatoral collections
 from sage.combinat.alternating_sign_matrix import AlternatingSignMatrix, AlternatingSignMatrices
@@ -321,22 +322,31 @@ class FindStat(SageObject):
     One of the following:
 
     - an integer or a string representing a valid FindStat identifier
-      (e.g. 45 or 'St000045').  The keyword argument ``statistic``
-      should be ``None`` (the default), the keyword arguments
-      ``depth`` and ``max_values`` are ignored.
+      (e.g. 45 or 'St000045').  The keyword arguments ``depth`` and
+      ``max_values`` are ignored.
 
     - a list of pairs of the form (object, value), or a dictionary
-      from sage objects to integer values.  The keyword argument
-      ``statistic`` should be ``None`` (the default), the keyword
-      arguments ``depth`` and ``max_values`` are passed to the
-      finder.
+      from sage objects to integer values.  The keyword arguments
+      ``depth`` and ``max_values`` are passed to the finder.
 
     - a list of pairs of the form (list of objects, list of values),
       or a single pair of the form (list of objects, list of values).
       In each pair there should be as many objects as values.  The
-      keyword argument ``statistic`` should be ``None`` (the
-      default), the keyword arguments ``depth`` and ``max_values``
-      are passed to the finder.
+      keyword arguments ``depth`` and ``max_values`` are passed to
+      the finder.
+
+    - a collection and a list of pairs of the form (string, value),
+      or a dictionary from strings to integer values.  The keyword
+      arguments ``depth`` and ``max_values`` are passed to the
+      finder.  This should only be used if the collection is not yet
+      supported.
+
+    - a collection and a list of pairs of the form (list of strings,
+      list of values), or a single pair of the form (list of strings,
+      list of values).  In each pair there should be as many strings
+      as values.  The keyword arguments ``depth`` and ``max_values``
+      are passed to the finder.  This should only be used if the
+      collection is not yet supported.
 
     - a collection and a callable.  The callable is used to generate
       ``max_values`` (object, value) pairs.  The number of terms
@@ -440,7 +450,7 @@ class FindStat(SageObject):
         self._user_name  = ""
         self._user_email = ""
 
-    def __call__(self, query, function=None, depth=2, max_values=FINDSTAT_MAX_VALUES):
+    def __call__(self, query_1, query_2=None, depth=2, max_values=FINDSTAT_MAX_VALUES):
         r"""
         Return an instance of a :class:`FindStatStatistic`.
 
@@ -492,118 +502,130 @@ class FindStat(SageObject):
         try:
             depth = int(depth)
             assert 0 <= depth <= FINDSTAT_MAX_DEPTH
-        except:
+        except AssertionError:
             raise ValueError("The depth of a FindStat query must be a non-negative integer less than or equal to %i." %FINDSTAT_MAX_DEPTH)
 
-        if function is None:
-            if isinstance(query, str):
-                if re.match('^St[0-9]{6}$', query):
-                    return self._statistic_find_by_id_cached(Integer(query[2:].lstrip("0")))
-                else:
-                    raise ValueError("The value %s is not a valid FindStat statistic identifier." %query)
+        def get_collection(collection=None, element=None):
+            if collection is None:
+                collection = FindStatCollection(element)
+                return (collection, collection.to_string())
+            else:
+                return (FindStatCollection(collection), lambda x: x)
 
-            elif isinstance(query, (int, Integer)):
-                return self._statistic_find_by_id_cached(query)
+        def query_by_dict(query, collection=None):
+            # we expect a dictionary from objects or strings to
+            # integers
+            l = query.iteritems()
+            (key, value) = l.next()
 
-            elif isinstance(query, dict):
-                # we expect a dictionary from objects to integers
-                l = query.iteritems()
-                (key, value) = l.next()
-                collection = FindStatCollection(key)
-                to_str = collection.to_string()
+            (collection, to_str) = get_collection(collection, key)
 
-                data = ([([key], [to_str(key)], [Integer(value)])] +
-                        [([key], [to_str(key)], [Integer(value)]) for (key, value) in l])
+            data = ([([key], [to_str(key)], [Integer(value)])] +
+                    [([key], [to_str(key)], [Integer(value)]) for (key, value) in l])
 
-                first_terms = [(key[0], value[0]) for (key, key_str, value) in data]
+            first_terms = [(key[0], value[0]) for (key, key_str, value) in data]
+
+            return FindStatStatistic(id=0, data=data,
+                                     first_terms=first_terms,
+                                     collection=collection,
+                                     depth=depth)._find_by_values(max_values=max_values)
+
+        def query_by_iterable(query, collection=None):
+            # either a pair (list of objects, list of integers)
+            # or a list of such or (object, integer) pairs
+
+            # values must always be converted to lists because
+            # otherwise we get a trailing comma when printing
+            if (len(query) == 2 and
+                isinstance(query[1], (list, tuple)) and
+                len(query[1]) != 0 and
+                isinstance(query[1][0], (int, Integer))):
+                # just a single pair, i.e., a pure distribution query
+
+                (collection, to_str) = get_collection(collection, query[0][0])
+                data = [(query[0], map(to_str, query[0]), map(Integer, query[1]))]
+                if len(data[0][0]) != len(data[0][2]):
+                    raise ValueError("FindStat expects the same number of objects as values.")
+                if len(set(data[0][1])) != len(data[0][2]):
+                    raise ValueError("FindStat expects that every object occurs at most once.")
 
                 return FindStatStatistic(id=0, data=data,
-                                         first_terms=first_terms,
                                          collection=collection,
                                          depth=depth)._find_by_values(max_values=max_values)
+            else:
+                (key, value) = query[0]
+                if isinstance(value, (list, tuple)):
+                    (collection, to_str) = get_collection(collection, key[0])
+                else:
+                    (collection, to_str) = get_collection(collection, key)
 
-            elif isinstance(query, (list, tuple)):
-                # either a pair (list of objects, list of integers)
-                # or a list of such or (object, integer) pairs
+                data = []
+                is_statistic = True
+                for (key, value) in query:
+                    if isinstance(value, (list, tuple)):
+                        if len(key) != len(value):
+                            raise ValueError("FindStat expects the same number of objects as values.")
+                        if len(value) != 1:
+                            is_statistic = False
+                        data += [(key, map(to_str, key), map(Integer, value))]
+                    else:
+                        data += [([key], [to_str(key)], [Integer(value)])]
 
-                # values must always be converted to lists because
-                # otherwise we get a trailing comma when printing
-                if (len(query) == 2 and
-                    isinstance(query[1], (list, tuple)) and
-                    len(query[1]) != 0 and
-                    isinstance(query[1][0], (int, Integer))):
-                    # just a single pair, i.e., a pure distribution query
-                    collection = FindStatCollection(query[0][0])
-                    to_str = collection.to_string()
-                    data = [(query[0], map(to_str, query[0]), map(Integer, query[1]))]
-                    if len(data[0][0]) != len(data[0][2]):
-                        raise ValueError("FindStat expects the same number of objects as values.")
-                    if len(set(data[0][1])) != len(data[0][2]):
-                        raise ValueError("FindStat expects that every object occurs at most once.")
+                all_elements = [e for (elements, elements_str, values) in data for e in elements_str]
+                if len(set(all_elements)) != len(all_elements):
+                    raise ValueError("FindStat expects that every object occurs at most once.")
 
+                if is_statistic:
+                    return FindStatStatistic(id=0, data=data,
+                                             collection=collection,
+                                             first_terms=query,
+                                             depth=depth)._find_by_values(max_values=max_values)
+                else:
                     return FindStatStatistic(id=0, data=data,
                                              collection=collection,
                                              depth=depth)._find_by_values(max_values=max_values)
+
+        if query_2 is None:
+            if isinstance(query_1, str):
+                if re.match('^St[0-9]{6}$', query_1):
+                    return self._statistic_find_by_id_cached(Integer(query_1[2:].lstrip("0")))
                 else:
-                    is_statistic = True
-                    (key, value) = query[0]
-                    if isinstance(value, (list, tuple)):
-                        collection = FindStatCollection(key[0])
-                        to_str = collection.to_string()
-                        data = [(key, map(to_str, key), map(Integer, value))]
-                        if len(data[0][0]) != len(data[0][2]):
-                            raise ValueError("FindStat expects the same number of objects as values.")
-                    else:
-                        collection = FindStatCollection(key)
-                        to_str = collection.to_string()
-                        data = [([key], [to_str(key)], [Integer(value)])]
+                    raise ValueError("The value %s is not a valid FindStat statistic identifier." %query_1)
 
-                    for (key, value) in query[1:]:
-                        if isinstance(value, (list, tuple)):
-                            data += [(key, map(to_str, key), map(Integer, value))]
-                            if len(data[-1][0]) != len(data[-1][2]):
-                                raise ValueError("FindStat expects the same number of objects as values.")
-                            is_statistic = False
-                        else:
-                            data += [([key], [to_str(key)], [Integer(value)])]
+            elif isinstance(query_1, (int, Integer)):
+                return self._statistic_find_by_id_cached(query_1)
 
-                    all_elements = [e for (elements, elements_str, values) in data for e in elements_str]
-                    if len(set(all_elements)) != len(all_elements):
-                           raise ValueError("FindStat expects that every object occurs at most once.")
+            elif isinstance(query_1, dict):
+                return query_by_dict(query_1)
 
-                    if is_statistic:
-                        return FindStatStatistic(id=0, data=data,
-                                                 collection=collection,
-                                                 first_terms=query,
-                                                 depth=depth)._find_by_values(max_values=max_values)
-                    else:
-                        return FindStatStatistic(id=0, data=data,
-                                                 collection=collection,
-                                                 depth=depth)._find_by_values(max_values=max_values)
+            elif isinstance(query_1, (list, tuple)):
+                return query_by_iterable(query_1)
 
             else:
-                raise ValueError("The given query, %s, cannot be used for a FindStat search." %query)
+                raise ValueError("The given query, %s, cannot be used for a FindStat search." %query_1)
 
         else:
-            if callable(function):
-                if isinstance(query, FindStatCollection):
-                    collection = query
-                else:
-                    collection = FindStatCollection(query)
-                to_str = collection.to_string()
-                first_terms = collection.first_terms(function, max_values=max_values)
+            (collection, to_str) = get_collection(None, query_1)
+            if isinstance(query_2, dict):
+                return query_by_dict(query_2, collection)
+
+            elif isinstance(query_2, (list, tuple)):
+                return query_by_iterable(query_2, collection)
+
+            elif callable(query_2):
+                first_terms = collection.first_terms(query_2, max_values=max_values)
                 data = [([key], [to_str(key)], [Integer(value)]) for (key, value) in first_terms]
                 try:
-                    code = inspect.getsource(function)
+                    code = inspect.getsource(query_2)
                 except IOError:
                     _ = verbose("inspect.getsource could not get code from function provided", caller_name='FindStat')
                     code = ""
                 return FindStatStatistic(id=0, first_terms=first_terms,
-                                         data=data, function=function, code=code,
+                                         data=data, function=query_2, code=code,
                                          collection=collection,
                                          depth=depth)._find_by_values(max_values=max_values)
             else:
-                raise ValueError("The given arguments, %s and %s, cannot be used for a FindStat search." %(query, function))
+                raise ValueError("The given arguments, %s and %s, cannot be used for a FindStat search." %(query_1, query_2))
 
     def __repr__(self):
         r"""
@@ -930,17 +952,14 @@ class FindStatStatistic(SageObject):
 
         from ast import literal_eval
         gf                          = self._raw[FINDSTAT_STATISTIC_GENERATING_FUNCTION]
-        self._generating_function_dict  = { literal_eval(key):
-                                            { literal_eval(inner_key): inner_value
-                                              for inner_key, inner_value in value.iteritems() }
-                                            for key, value in gf.iteritems() }
+        self._generating_functions_dict  = { literal_eval(key):
+                                             { literal_eval(inner_key): inner_value
+                                               for inner_key, inner_value in value.iteritems() }
+                                             for key, value in gf.iteritems() }
 
         from_str = self._collection.from_string()
         # we want to keep FindStat's ordering here!
-        if from_str is None:
-            self._first_terms = self._raw[FINDSTAT_STATISTIC_DATA]
-        else:
-            self._first_terms = [(from_str(obj), Integer(val)) for (obj, val) in self._raw[FINDSTAT_STATISTIC_DATA].iteritems()]
+        self._first_terms = [(from_str(obj), Integer(val)) for (obj, val) in self._raw[FINDSTAT_STATISTIC_DATA].iteritems()]
         return self
 
     ######################################################################
@@ -1012,15 +1031,14 @@ class FindStatStatistic(SageObject):
 
         try:
             result = json.load(response)
-            self._result = FancyTuple((findstat(match[FINDSTAT_STATISTIC_IDENTIFIER]),
-                                       [FindStatMap(mp[FINDSTAT_MAP_IDENTIFIER]) for mp in match[FINDSTAT_QUERY_MAPS]],
-                                       len(match[FINDSTAT_QUERY_MATCHING_DATA]))
-                                      for match in result[FINDSTAT_QUERY_MATCHES])
-
         except Exception as e:
             raise IOError("FindStat did not answer with a json response: %s" %e)
 
-        self._generating_function_dict = self._compute_generating_functions()
+        self._result = FancyTuple((findstat(match[FINDSTAT_STATISTIC_IDENTIFIER]),
+                                   [FindStatMap(mp[FINDSTAT_MAP_IDENTIFIER]) for mp in match[FINDSTAT_QUERY_MAPS]],
+                                   len(match[FINDSTAT_QUERY_MATCHING_DATA]))
+                                  for match in result[FINDSTAT_QUERY_MATCHES])
+
         return self
 
     def _raise_error_modifying_statistic_with_perfect_match(self):
@@ -1264,7 +1282,8 @@ class FindStatStatistic(SageObject):
         else:
             return ""
 
-    def _compute_generating_functions(self):
+    @lazy_attribute
+    def _generating_functions_dict(self):
         r""" Return the generating functions of ``self`` in a dictionary,
         computed from ``self._data``.
 
@@ -1274,6 +1293,12 @@ class FindStatStatistic(SageObject):
             a new statistic on Cc0005: Dyck paths
             sage: s.generating_functions()                                      # optional -- internet, indirect doctest
             {4: q^13 + q^12 + q^11 + q^10 + q^9 + q^8 + q^7 + q^6 + q^5 + q^4 + q^3 + q^2 + q + 1}
+
+            sage: C = AlternatingSignMatrices(4)
+            sage: s = findstat((C, range(C.cardinality()))); s                  # optional -- internet, indirect doctest
+            a new statistic on Cc0017: Alternating sign matrices
+            sage: s.generating_functions()                                      # optional -- internet, indirect doctest
+            {4: q^41 + q^40 + q^39 + q^38 + q^37 + q^36 + q^35 + q^34 + q^33 + q^32 + q^31 + q^30 + q^29 + q^28 + q^27 + q^26 + q^25 + q^24 + q^23 + q^22 + q^21 + q^20 + q^19 + q^18 + q^17 + q^16 + q^15 + q^14 + q^13 + q^12 + q^11 + q^10 + q^9 + q^8 + q^7 + q^6 + q^5 + q^4 + q^3 + q^2 + q + 1}
         """
         c = self.collection()
         gfs = dict()
@@ -1361,7 +1386,7 @@ class FindStatStatistic(SageObject):
              5: [1, 4, 9, 15, 20, 22, 20, 15, 9, 4, 1],
              6: [1, 5, 14, 29, 49, 71, 90, 101, 101, 90, 71, 49, 29, 14, 5, 1]}
         """
-        gfs = self._generating_function_dict
+        gfs = self._generating_functions_dict
         if style == "dictionary":
             return gfs
         elif style == "list":
@@ -2147,12 +2172,12 @@ class FindStatCollections(Parent, UniqueRepresentation):
     # we set up a dict of FindStat collections containing, with key
     # being the FINDSTAT_COLLECTION_IDENTIFIER to tuples, containing in this order:
 
-    # * the FindStat name                                        (FINDSTAT_COLLECTION_NAME)
-    # * the FindStat name plural                                 (FINDSTAT_COLLECTION_NAME_PLURAL)
-    # * url's as needed by FindStat                              (FINDSTAT_COLLECTION_NAME_WIKI)
-    # * sage element constructor
-    # * sage constructor                                         (would be parent_initializer)
-    # * a dictionary from levels to sizes                        (FINDSTAT_COLLECTION_LEVELS)
+    # * the FindStat name                  (None)                (FINDSTAT_COLLECTION_NAME)
+    # * the FindStat name plural           (None)                (FINDSTAT_COLLECTION_NAME_PLURAL)
+    # * url's as needed by FindStat        (None)                (FINDSTAT_COLLECTION_NAME_WIKI)
+    # * sage element constructor (used in _element_constructor_ to check whether an element is an instance of this collection, this should be replaced by a function that recognises elements)
+    # * sage constructor                                         (would be parent_initializer, accepts a level to return the component of this degree)
+    # * a dictionary from levels to sizes  (None)                (FINDSTAT_COLLECTION_LEVELS)
     #   the levels are used as arguments for the sage constructor
     # * a function to check whether an object is produced by applying the constructor to some element in the list
     # * the (FindStat) string representations of the sage object (would be element_repr)
@@ -2246,7 +2271,7 @@ class FindStatCollections(Parent, UniqueRepresentation):
              lambda x, l: x.cardinality() in l,
              lambda X: str((sorted(X._hasse_diagram.canonical_label().cover_relations()), len(X._hasse_diagram.vertices()))),
              lambda x: (lambda R, E: Poset((range(E), R)))(*literal_eval(x))],
-        19: [None, None, None, SemistandardTableau,   lambda x: SemistandardTableaux(x, max_entry=4),
+        19: [None, None, None, SemistandardTableau,   lambda x: SemistandardTableaux(x),
              None,
              lambda x: x.size(),
              lambda x, l: x.size() in l,
@@ -2263,6 +2288,24 @@ class FindStatCollections(Parent, UniqueRepresentation):
              str,
              lambda x: StandardTableau(literal_eval(x))]}
 
+    def _raise_unsupported_error(*args):
+        raise NotImplementedError("This collection is not supported")
+
+    # The following is used for unknown collections, with the
+    # intention to make as much as possible working.
+    #
+    # In particular, we keep the elements provided by findstat.org as
+    # strings.  Therefore, to_string and from_string should do
+    # nothing.  Furthermore, in_range always returns True to make
+    # submission of sequences possible.
+    _findstat_unsupported_collection_default = [None, None, None,
+                                                _raise_unsupported_error,
+                                                _raise_unsupported_error,
+                                                None,
+                                                _raise_unsupported_error,
+                                                lambda x, l: True,
+                                                lambda x: x, lambda x: x]
+
     def __init__(self):
         """
         Fetch the collections from FindStat.
@@ -2274,7 +2317,14 @@ class FindStatCollections(Parent, UniqueRepresentation):
             sage: TestSuite(C).run()                                            # optional -- internet
         """
         for j in json.load(urlopen(FINDSTAT_URL_DOWNLOADS_COLLECTIONS)):
-            c = self._findstat_collections[j[FINDSTAT_COLLECTION_IDENTIFIER]]
+            id = j[FINDSTAT_COLLECTION_IDENTIFIER]
+            if id in self._findstat_collections:
+                c = self._findstat_collections[id]
+            else:
+                print "There is a new collection available at `%s`: %s."%(findstat, j[FINDSTAT_COLLECTION_NAME_PLURAL])
+                print "To use it with this interface, it has to be added to the dictionary FindStatCollections._findstat_collections in src/sage/databases/findstat.py of the SageMath distribution.  Please open a ticket on trac!"
+                self._findstat_collections[id] = list(self._findstat_unsupported_collection_default)
+                c = self._findstat_collections[id]
             c[0] = j[FINDSTAT_COLLECTION_NAME]
             c[1] = j[FINDSTAT_COLLECTION_NAME_PLURAL]
             c[2] = j[FINDSTAT_COLLECTION_NAME_WIKI]

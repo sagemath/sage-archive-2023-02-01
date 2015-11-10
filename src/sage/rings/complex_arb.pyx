@@ -1,6 +1,6 @@
 # -*- coding: utf-8
 r"""
-Arbitrary Precision Complex Balls using Arb
+Arbitrary precision complex balls using Arb
 
 AUTHORS:
 
@@ -15,7 +15,7 @@ version 2, or later.
 
 .. SEEALSO::
 
-    - :mod:`Real intervals using Arb <sage.rings.real_arb>`
+    - :mod:`Real balls using Arb <sage.rings.real_arb>`
     - :mod:`Complex interval field (using MPFI) <sage.rings.complex_interval_field>`
     - :mod:`Complex intervals (using MPFI) <sage.rings.complex_interval>`
 
@@ -24,7 +24,8 @@ Data Structure
 
 A :class:`ComplexBall` represents a complex number with error bounds. It wraps
 an Arb object of type ``acb_t``, which  consists of a pair of real number balls
-representing the real and imaginary part with separate error bounds.
+representing the real and imaginary part with separate error bounds. (See the
+documentation of :mod:`sage.rings.real_arb` for more information.)
 
 A :class:`ComplexBall` thus represents a rectangle `[m_1-r_1, m_1+r_1] +
 [m_2-r_2, m_2+r_2] i` in the complex plane. This is used in Arb instead of a
@@ -1235,12 +1236,19 @@ cdef class ComplexBall(RingElement):
 
         .. SEEALSO:: :meth:`trim`
 
-        EXAMPLES::
+        EXAMPLES:
+
+        It is possible to create balls whose midpoint is more precise that
+        their parent's nominal precision (see :mod:`~sage.rings.real_arb` for
+        more information)::
 
             sage: from sage.rings.complex_arb import CBF
             sage: b = CBF(exp(I*pi/3).n(100))
             sage: b.mid()
             0.50000000000000000000000000000 + 0.86602540378443864676372317075*I
+
+        The ``round()`` method rounds such a ball to its parent's precision::
+
             sage: b.round().mid()
             0.500000000000000 + 0.866025403784439*I
         """

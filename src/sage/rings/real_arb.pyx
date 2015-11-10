@@ -1,17 +1,66 @@
 # -*- coding: utf-8
 r"""
-Arbitrary precision real intervals using Arb
+Arbitrary precision real balls using Arb
 
 AUTHORS:
 
 - Clemens Heuberger (2014-10-21): Initial version.
 
-This is a binding to the `Arb library <http://fredrikj.net/arb/>`_; it
-may be useful to refer to its documentation for more details.
+This is a binding to the `Arb library <http://fredrikj.net/arb/>`_ for ball
+arithmetic. It may be useful to refer to its documentation for more details.
 
 Parts of the documentation for this module are copied or adapted from
 Arb's own documentation, licenced under the GNU General Public License
 version 2, or later.
+
+.. SEEALSO::
+
+    - :mod:`Complex balls using Arb <sage.rings.complex_arb>`
+    - :mod:`Real intervals using MPFI <sage.rings.real_mpfi>`
+
+Data Structure
+==============
+
+Ball arithmetic, also known as mid-rad interval arithmetic, is an extension of
+floating-point arithmetic in which an error bound is attached to each variable.
+This allows doing rigorous computations over the real numbers, while avoiding
+the overhead of traditional (inf-sup) interval arithmetic at high precision,
+and eliminating much of the need for time-consuming and bug-prone manual error
+analysis associated with standard floating-point arithmetic.
+
+Sage :class:`RealBall` objects wrap Arb objects of type ``arb_t``. A real
+ball represents a ball over the real numbers, that is, an interval `[m-r,m+r]`
+where the midpoint `m` and the radius `r` are (extended) real numbers::
+
+    sage: from sage.rings.real_arb import RBF
+    sage: RBF(pi)
+    [3.141592653589793 +/- 5.61e-16]
+    sage: RBF(pi).mid(), RBF(pi).rad()
+    (3.14159265358979, 4.4408921e-16)
+
+The midpoint is represented as an arbitrary-precision floating-point number
+with arbitrary-precision exponent. The radius is a floating-point number with
+fixed-precision mantissa and arbitrary-precision exponent. ::
+
+    sage: RBF(2)^(2^100)
+    [2.285367694229514e+381600854690147056244358827360 +/- 2.98e+381600854690147056244358827344]
+
+:class:`RealBallField` objects (the parents of real balls) model the field of
+real numbers represented by balls on which computations are carried out with a
+certain precision::
+
+    sage: RBF
+    Real ball field with 53 bits precision
+
+It is possible to construct a ball whose parent is the real ball field with
+precision `p` but whose midpoint does not fit on `p` bits. However, the results
+of operations involving such a ball will (usually) be rounded to its parent's
+precision::
+
+    sage: RBF(factorial(50)).mid(), RBF(factorial(50)).rad()
+    (3.0414093201713378043612608166064768844377641568961e64, 0.00000000)
+    sage: (RBF(factorial(50)) + 0).mid()
+    3.04140932017134e64
 
 Comparison
 ==========
@@ -27,8 +76,6 @@ Comparison
 Two elements are equal if and only if they are the same object
 or if both are exact and equal::
 
-    sage: from sage.rings.real_arb import RealBallField
-    sage: RBF = RealBallField()
     sage: a = RBF(1)
     sage: b = RBF(1)
     sage: a is b
@@ -1584,12 +1631,19 @@ cdef class RealBall(RingElement):
 
         .. SEEALSO:: :meth:`trim`
 
-        EXAMPLES::
+        EXAMPLES:
+
+        It is possible to create balls whose midpoint is more precise that
+        their parent's nominal precision (see :mod:`~sage.rings.real_arb` for
+        more information)::
 
             sage: from sage.rings.real_arb import RBF
             sage: b = RBF(pi.n(100))
             sage: b.mid()
             3.141592653589793238462643383
+
+        The ``round()`` method rounds such a ball to its parent's precision::
+
             sage: b.round().mid()
             3.14159265358979
         """

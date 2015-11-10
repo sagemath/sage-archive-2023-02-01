@@ -1550,7 +1550,13 @@ cdef class RealBall(RingElement):
 
     def upper(self, rnd=None):
         """
-        Return the right endpoint of this ball, viewed as an interval.
+        Return the right endpoint of this ball, rounded upwards.
+
+        INPUT:
+
+        - ``rnd`` (string) -- rounding mode for the parent of the result (does
+          not affect its value!), see
+          :meth:`sage.rings.real_mpfi.RealIntervalFieldElement.upper`
 
         EXAMPLES::
 
@@ -1569,7 +1575,13 @@ cdef class RealBall(RingElement):
 
     def lower(self, rnd=None):
         """
-        Return the right endpoint of this ball, viewed as an interval.
+        Return the right endpoint of this ball, rounded downwards.
+
+        INPUT:
+
+        - ``rnd`` (string) -- rounding mode for the parent of the result (does
+          not affect its value!), see
+          :meth:`sage.rings.real_mpfi.RealIntervalFieldElement.lower`
 
         EXAMPLES::
 
@@ -1586,7 +1598,13 @@ cdef class RealBall(RingElement):
 
     def endpoints(self, rnd=None):
         """
-        Return the endpoints of this ball, viewed as an interval.
+        Return the endpoints of this ball, rounded outwards.
+
+        INPUT:
+
+        - ``rnd`` (string) -- rounding mode for the parent of the resulting
+          floating-point numbers (does not affect their values!), see
+          :meth:`sage.rings.real_mpfi.RealIntervalFieldElement.upper`
 
         EXAMPLES::
 

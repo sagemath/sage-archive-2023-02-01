@@ -77,7 +77,7 @@ from sage.parallel.ncpus           import ncpus
 from sage.parallel.use_fork        import p_iter_fork
 from sage.ext.fast_callable        import fast_callable
 from sage.misc.lazy_attribute      import lazy_attribute
-from sage.schemes.projective.projective_morphism_helper import _fast_possible_periods, _forward_image_subscheme
+from sage.schemes.projective.projective_morphism_helper import _fast_possible_periods
 import sys
 from sage.categories.number_fields import NumberFields
 _NumberFields = NumberFields()
@@ -209,7 +209,7 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
     def __call__(self, x, check=True):
         """
         Compute the forward image of the point or subscheme ``x`` by the map ``self``.
-        For subschemes, the forward image is compute through elimination.
+        For subschemes, the forward image is computed through elimination.
         In particular, let $X = V(h_1,\ldots, h_t)$ and define the ideal
         $I = (h_1,\ldots,h_t,y_0-f_0(\bar{x}), \ldots, y_n-f_n(\bar{x}))$.
         Then the elimination ideal $I_{n+1} = I \cap K[y_0,\ldots,y_n]$ is a homogeneous
@@ -260,14 +260,14 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
                         x = self.domain().subscheme(x.defining_polynomials())
                     except (TypeError, NotImplementedError):
                         raise TypeError("%s fails to convert into the map's domain %s, but a `pushforward` method is not properly implemented"%(x, self.domain()))
-                return _forward_image_subscheme(self,x) #call subscheme eval
+                return x.forward_image(self) #call subscheme eval
             else: #not a projective point or subscheme
                 try:
                     x = self.domain()(x)
                 except (TypeError, NotImplementedError):
                     try:
                         x = self.domain().subscheme(x)
-                        return _forward_image_subscheme(self,x) #call subscheme eval
+                        return x.forward_image(self) #call subscheme eval
                     except (TypeError, NotImplementedError):
                         raise TypeError("%s fails to convert into the map's domain %s, but a `pushforward` method is not properly implemented"%(x, self.domain()))
 
@@ -3570,29 +3570,11 @@ class SchemeMorphism_polynomial_projective_space_field(SchemeMorphism_polynomial
             Closed subscheme of Projective Space of dimension 1 over Rational Field
             defined by:
               x^2 - y^2
-
-        ::
-
-            sage: P.<x,y,z,w,t> = ProjectiveSpace(QQ, 4)
-            sage: H = End(P)
-            sage: f = H([x^2-y^2, z*y, z^2, w^2, t^2+w^2])
-            sage: f.rational_preimages(P.subscheme([x-z, t^2, w-t]))
-            Closed subscheme of Projective Space of dimension 4 over Rational Field
-            defined by:
-              x^2 - y^2 - z^2,
-              w^4 + 2*w^2*t^2 + t^4,
-              -t^2
         """
         #first check if subscheme
         from sage.schemes.generic.algebraic_scheme import AlgebraicScheme_subscheme_projective
         if isinstance(Q, AlgebraicScheme_subscheme_projective):
-            dom = self.domain()
-            codom = self.codomain()
-            R = codom.coordinate_ring()
-            dict = {}
-            for i in range(codom.dimension_relative()+1):
-                dict.update({R.gen(i): self[i]})
-            return(dom.subscheme([t.subs(dict) for t in Q.defining_polynomials()]))
+            return(Q.preimage(self))
 
         #else assume a point
         BR = self.base_ring()

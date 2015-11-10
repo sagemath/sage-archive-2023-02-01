@@ -138,6 +138,7 @@ from sage.rings.all import ZZ
 from sage.rings.ideal import is_Ideal
 from sage.rings.rational_field import is_RationalField
 from sage.rings.polynomial.multi_polynomial_ring import is_MPolynomialRing
+from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.rings.finite_rings.constructor import is_FiniteField
 
 from sage.misc.cachefunc import cached_method
@@ -2314,6 +2315,156 @@ class AlgebraicScheme_subscheme_projective(AlgebraicScheme_subscheme):
             for i in range(2,n+1):
                 Q = f(Q)
             return(Q)
+
+    def forward_image(self, f):
+        """
+        Compute the forward image of the subscheme ``self`` by the map ``f``.
+
+        The forward image is computed through elimination.
+        In particular, let $X = V(h_1,\ldots, h_t)$ and define the ideal
+        $I = (h_1,\ldots,h_t,y_0-f_0(\bar{x}), \ldots, y_n-f_n(\bar{x}))$.
+        Then the elimination ideal $I_{n+1} = I \cap K[y_0,\ldots,y_n]$ is a homogeneous
+        ideal and $self(X) = V(I_{n+1})$.
+
+        INPUT:
+
+        - ``f`` -- a map whose domain contains ``self``
+
+        OUTPUT:
+
+         - a subscheme in the codomain of ``f``.
+
+        EXAMPLES::
+
+            sage: PS.<x,y,z> = ProjectiveSpace(QQ, 2)
+            sage: H = End(PS)
+            sage: f = H([x^2, y^2-2*z^2, z^2])
+            sage: X = PS.subscheme(y-2*z)
+            sage: f(X)
+            Closed subscheme of Projective Space of dimension 2 over Rational Field
+            defined by:
+              y - 2*z
+
+        ::
+
+            sage: set_verbose(None)
+            sage: PS.<x,y,z,w> = ProjectiveSpace(ZZ, 3)
+            sage: H = End(PS)
+            sage: f = H([y^2, x^2, w^2, z^2])
+            sage: X = PS.subscheme([z^2+y*w, x-w])
+            sage: f(X)
+            Closed subscheme of Projective Space of dimension 3 over Integer Ring
+            defined by:
+              y - z,
+              x*z - w^2
+
+        ::
+
+            sage: PS.<x,y,z,w> = ProjectiveSpace(CC, 3)
+            sage: H = End(PS)
+            sage: f = H([x^2 + y^2, y^2, z^2-y^2, w^2])
+            sage: X = PS.subscheme([z-2*w])
+            sage: f(X)
+            Closed subscheme of Projective Space of dimension 3 over Complex Field
+            with 53 bits of precision defined by:
+              y + z + (-4.00000000000000)*w
+
+        ::
+
+            sage: R.<t> = PolynomialRing(QQ)
+            sage: P.<x,y,z> = ProjectiveSpace(FractionField(R), 2)
+            sage: H = End(P)
+            sage: f = H([x^2 + 2*y*z, t^2*y^2, z^2])
+            sage: f([t^2*y-z])
+            Closed subscheme of Projective Space of dimension 2 over Fraction Field
+            of Univariate Polynomial Ring in t over Rational Field defined by:
+              y + (-1/t^2)*z
+
+        ::
+
+            sage: set_verbose(-1)
+            sage: PS.<x,y,z> = ProjectiveSpace(Qp(3), 2)
+            sage: H = End(PS)
+            sage: f = H([x^2,2*y^2,z^2])
+            sage: X = PS.subscheme([2*x-y,z])
+            sage: f(X)
+            Closed subscheme of Projective Space of dimension 2 over 3-adic Field
+            with capped relative precision 20 defined by:
+              z,
+              x + (1 + 3^2 + 3^4 + 3^6 + 3^8 + 3^10 + 3^12 + 3^14 + 3^16 + 3^18 +
+            O(3^20))*y
+        """
+        dom = f.domain()
+        codom = f.codomain()
+        if self.ambient_space() != dom:
+            raise TypeError("Subscheme must be in ambient space of domain of map.")
+        CR_dom = dom.coordinate_ring()
+        CR_codom = codom.coordinate_ring()
+        n = CR_dom.ngens()
+        m = CR_codom.ngens()
+        #can't call eliminate if the base ring is polynomial so we do it ourselves
+        #with a lex ordering
+        R = PolynomialRing(f.base_ring(), n+m, 'y', order = 'lex')
+        Rvars = R.gens()[0 : n]
+        phi = CR_dom.hom(Rvars,R)
+        zero = [0 for _ in range(n)]
+        psi = R.hom(zero + list(CR_codom.gens()),CR_codom)
+        #set up ideal
+        L = R.ideal([phi(t) for t in self.defining_polynomials()] + [R.gen(n+i) - phi(f[i]) for i in range(m)])
+        G = L.groebner_basis() #eliminate
+        newL = []
+        #get only the elimination ideal portion
+        for i in range (len(G)-1,0,-1):
+            v = G[i].variables()
+            if all([Rvars[j] not in v for j in range(n)]):
+                newL.append(psi(G[i]))
+        return(codom.subscheme(newL))
+
+    def preimage(self, f):
+        r"""
+        Given a subscheme ``self``, return the subscheme that maps to ``self`` by ``f``.
+        In particular, `f^{-1}(V(h_1,\ldots,h_t)) = V(h_1 \circ f, \ldots, h_t \circ f)`.
+
+        INPUT:
+
+        - ``f`` - a map whose codomain contains ``self``
+
+        OUTPUT:
+
+        - a subscheme in the domain of ``f``.
+
+        Examples::
+
+            sage: PS.<x,y,z> = ProjectiveSpace(ZZ, 2)
+            sage: H = End(PS)
+            sage: f = H([y^2, x^2, z^2])
+            sage: X = PS.subscheme([x-y])
+            sage: X.preimage(f)
+            Closed subscheme of Projective Space of dimension 2 over Integer Ring
+            defined by:
+              -x^2 + y^2
+
+        ::
+
+            sage: P.<x,y,z,w,t> = ProjectiveSpace(QQ, 4)
+            sage: H = End(P)
+            sage: f = H([x^2-y^2, z*y, z^2, w^2, t^2+w^2])
+            sage: f.rational_preimages(P.subscheme([x-z, t^2, w-t]))
+            Closed subscheme of Projective Space of dimension 4 over Rational Field
+            defined by:
+              x^2 - y^2 - z^2,
+              w^4 + 2*w^2*t^2 + t^4,
+              -t^2
+        """
+        dom = f.domain()
+        codom = f.codomain()
+        if self.ambient_space() != codom:
+            raise TypeError("Subscheme must be in ambient space of codomain.")
+        R = codom.coordinate_ring()
+        dict = {}
+        for i in range(codom.dimension_relative()+1):
+            dict.update({R.gen(i): f[i]})
+        return(dom.subscheme([t.subs(dict) for t in self.defining_polynomials()]))
 
 class AlgebraicScheme_subscheme_product_projective(AlgebraicScheme_subscheme_projective):
 

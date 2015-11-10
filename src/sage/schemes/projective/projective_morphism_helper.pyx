@@ -7,8 +7,6 @@ AUTHORS:
 
 - Dillon Rose (2014-01):  Speed enhancements
 
-- Ben Hutz (2015-11): subscheme iteration
-
 """
 
 #*****************************************************************************
@@ -21,7 +19,6 @@ AUTHORS:
 
 from sage.rings.arith              import lcm
 from sage.rings.finite_rings.constructor import GF
-from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.sets.all                 import Set
 from sage.misc.misc                import subsets
 

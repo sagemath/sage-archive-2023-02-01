@@ -679,7 +679,7 @@ class ArithmeticSubgroup(group.Group):
         representatives for the orbits of self on `\mathbb{P}^1(\QQ)`.
         These should be returned in a reduced form where this makes sense.
 
-        INPUTS:
+        INPUT:
 
         - ``algorithm`` -- which algorithm to use to compute the cusps of self.
           ``'default'`` finds representatives for a known complete set of

@@ -528,7 +528,7 @@ cdef class pAdicGenericElement(LocalGenericElement):
         """
         Returns a string representation of self.
 
-        INPUTS:
+        INPUT:
 
         - ``mode`` -- allows one to override the default print mode of
           the parent (default: ``None``).
@@ -1704,7 +1704,7 @@ cdef class pAdicGenericElement(LocalGenericElement):
         to 0 under any homomorphism to the fraction field, which is a torsion
         free group.
 
-        INPUTS:
+        INPUT:
 
         - ``p_branch`` -- an element in the base ring or its fraction
           field; the implementation will choose the branch of the

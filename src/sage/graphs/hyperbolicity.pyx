@@ -294,7 +294,7 @@ cdef tuple hyperbolicity_basic_algorithm(int N,
     of a graph which tests all 4-tuples of vertices not satisfying a cutting
     rule proposed in [Soto11]_.
 
-    INPUTS:
+    INPUT:
 
     - ``N`` -- number of vertices of the graph.
 
@@ -619,7 +619,7 @@ cdef tuple hyperbolicity_BCCM(int N,
 
     This method assumes that the graph under consideration is connected.
 
-    INPUTS:
+    INPUT:
 
     - ``N`` -- number of vertices of the graph
 
@@ -875,7 +875,7 @@ cdef tuple hyperbolicity_CCL(int N,
 
     This method assumes that the graph under consideration is connected.
 
-    INPUTS:
+    INPUT:
 
     - ``N`` -- number of vertices of the graph
 

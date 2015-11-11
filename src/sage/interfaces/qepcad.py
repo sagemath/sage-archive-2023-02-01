@@ -1914,7 +1914,7 @@ class qepcad_formula_factory:
         r"""
         Constructs a QEPCAD formula from the given input.
 
-        INPUTS:
+        INPUT:
 
         - ``formula`` -- a polynomial, a symbolic equality or inequality,
           or a list of polynomials, equalities, or inequalities

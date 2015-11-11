@@ -505,7 +505,7 @@ class pAdicFieldCappedRelative(pAdicFieldBaseGeneric, pAdicCappedRelativeFieldGe
         """
         Initialization.
 
-        INPUT::
+        INPUT:
 
         - ``p`` -- prime
         - ``prec`` -- precision cap

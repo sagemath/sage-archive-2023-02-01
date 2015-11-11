@@ -158,7 +158,7 @@ cpdef Integer integer_rational_power(Integer a, Rational b):
     Compute `a^b` as an integer, if it is integral, or return None.
     The positive real root is taken for even denominators.
 
-    INPUT::
+    INPUT:
 
         a -- an Integer
         b -- a positive Rational
@@ -230,7 +230,7 @@ cpdef rational_power_parts(a, b, factor_limit=10**5):
     Compute rationals or integers `c` and `d` such that `a^b = c*d^b`
     with `d` small. This is used for simplifying radicals.
 
-    INPUT::
+    INPUT:
 
         - ``a`` -- a rational or integer
         - ``b`` -- a rational

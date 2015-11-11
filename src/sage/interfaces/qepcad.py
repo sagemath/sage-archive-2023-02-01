@@ -619,7 +619,7 @@ def _qepcad_atoms(formula):
     r"""
     Return the atoms of a qepcad quantifier-free formula, as a set of strings.
 
-    INPUT::
+    INPUT:
 
     - `formula` (string) - a quantifier-free formula.
 

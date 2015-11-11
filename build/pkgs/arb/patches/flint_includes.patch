@@ -1,0 +1,807 @@
+commit 514bd65de44b4eae74c6b92516feb0ea0b11f005
+Author: Jeroen Demeyer <jdemeyer@cage.ugent.be>
+Date:   Tue Nov 10 17:02:16 2015 -0800
+
+    Fix FLINT include paths
+
+diff --git a/acb/test/t-rising2_ui.c b/acb/test/t-rising2_ui.c
+index f5cb9e9..5cd2c17 100644
+--- a/acb/test/t-rising2_ui.c
++++ b/acb/test/t-rising2_ui.c
+@@ -23,7 +23,7 @@
+ 
+ ******************************************************************************/
+ 
+-#include "arith.h"
++#include "flint/arith.h"
+ #include "acb_poly.h"
+ 
+ int main()
+diff --git a/acb/test/t-rising2_ui_bs.c b/acb/test/t-rising2_ui_bs.c
+index 0710df7..727982f 100644
+--- a/acb/test/t-rising2_ui_bs.c
++++ b/acb/test/t-rising2_ui_bs.c
+@@ -23,7 +23,7 @@
+ 
+ ******************************************************************************/
+ 
+-#include "arith.h"
++#include "flint/arith.h"
+ #include "acb_poly.h"
+ 
+ int main()
+diff --git a/acb/test/t-rising2_ui_rs.c b/acb/test/t-rising2_ui_rs.c
+index a78f631..d029f80 100644
+--- a/acb/test/t-rising2_ui_rs.c
++++ b/acb/test/t-rising2_ui_rs.c
+@@ -23,7 +23,7 @@
+ 
+ ******************************************************************************/
+ 
+-#include "arith.h"
++#include "flint/arith.h"
+ #include "acb_poly.h"
+ 
+ int main()
+diff --git a/acb_mat.h b/acb_mat.h
+index 563e7d6..314740c 100644
+--- a/acb_mat.h
++++ b/acb_mat.h
+@@ -34,8 +34,8 @@
+ 
+ #include "arb.h"
+ #include "acb.h"
+-#include "fmpz_mat.h"
+-#include "fmpq_mat.h"
++#include "flint/fmpz_mat.h"
++#include "flint/fmpq_mat.h"
+ #include "arb_mat.h"
+ #include "acb_poly.h"
+ 
+diff --git a/acb_mat/exp.c b/acb_mat/exp.c
+index 98669bc..9da434a 100644
+--- a/acb_mat/exp.c
++++ b/acb_mat/exp.c
+@@ -23,7 +23,7 @@
+ 
+ ******************************************************************************/
+ 
+-#include "double_extras.h"
++#include "flint/double_extras.h"
+ #include "acb_mat.h"
+ 
+ long _arb_mat_exp_choose_N(const mag_t norm, long prec);
+diff --git a/acb_modular/test/t-epsilon_arg.c b/acb_modular/test/t-epsilon_arg.c
+index 480b2b4..610e402 100644
+--- a/acb_modular/test/t-epsilon_arg.c
++++ b/acb_modular/test/t-epsilon_arg.c
+@@ -24,7 +24,7 @@
+ ******************************************************************************/
+ 
+ #include "acb_modular.h"
+-#include "arith.h"
++#include "flint/arith.h"
+ 
+ static void
+ acb_modular_epsilon_arg_naive(fmpq_t arg, const psl2z_t g)
+diff --git a/arb/digamma.c b/arb/digamma.c
+index 33f97eb..d4c355d 100644
+--- a/arb/digamma.c
++++ b/arb/digamma.c
+@@ -24,7 +24,7 @@
+ ******************************************************************************/
+ 
+ #include "arb.h"
+-#include "arith.h"
++#include "flint/arith.h"
+ 
+ void arb_gamma_stirling_choose_param(int * reflect, long * r, long * n,
+     const arb_t x, int use_reflect, int digamma, long prec);
+diff --git a/arb/rising_ui_rs.c b/arb/rising_ui_rs.c
+index 9473917..2c1ebce 100644
+--- a/arb/rising_ui_rs.c
++++ b/arb/rising_ui_rs.c
+@@ -23,7 +23,7 @@
+ 
+ ******************************************************************************/
+ 
+-#include "arith.h"
++#include "flint/arith.h"
+ #include "arb.h"
+ 
+ void
+diff --git a/arb/sin_cos.c b/arb/sin_cos.c
+index 41d149e..7785eba 100644
+--- a/arb/sin_cos.c
++++ b/arb/sin_cos.c
+@@ -24,7 +24,7 @@
+ ******************************************************************************/
+ 
+ #include "arb.h"
+-#include "mpn_extras.h"
++#include "flint/mpn_extras.h"
+ 
+ #define TMP_ALLOC_LIMBS(__n) TMP_ALLOC((__n) * sizeof(mp_limb_t))
+ 
+diff --git a/arb/sin_cos_pi_fmpq_algebraic.c b/arb/sin_cos_pi_fmpq_algebraic.c
+index 5e4b29f..ec41002 100644
+--- a/arb/sin_cos_pi_fmpq_algebraic.c
++++ b/arb/sin_cos_pi_fmpq_algebraic.c
+@@ -29,8 +29,8 @@
+ 
+ 
+ /* include minpoly code here until it appears in a flint release */
+-#include "fmpz_poly.h"
+-#include "ulong_extras.h"
++#include "flint/fmpz_poly.h"
++#include "flint/ulong_extras.h"
+ 
+ /* Use a lookup table for small n. We skip 53, 59 and 61, as the
+    coefficients do not fit in 16 bits. */
+diff --git a/arb/test/t-add_ui.c b/arb/test/t-add_ui.c
+index 3e26d5a..e664f9f 100644
+--- a/arb/test/t-add_ui.c
++++ b/arb/test/t-add_ui.c
+@@ -24,7 +24,7 @@
+ ******************************************************************************/
+ 
+ #include "arb.h"
+-#include "ulong_extras.h"
++#include "flint/ulong_extras.h"
+ 
+ int main()
+ {
+diff --git a/arb/test/t-addmul_ui.c b/arb/test/t-addmul_ui.c
+index 704da4d..724a901 100644
+--- a/arb/test/t-addmul_ui.c
++++ b/arb/test/t-addmul_ui.c
+@@ -24,7 +24,7 @@
+ ******************************************************************************/
+ 
+ #include "arb.h"
+-#include "ulong_extras.h"
++#include "flint/ulong_extras.h"
+ 
+ int main()
+ {
+diff --git a/arb/test/t-atan_taylor_rf.c b/arb/test/t-atan_taylor_rf.c
+index e4e4e9e..3ad203d 100644
+--- a/arb/test/t-atan_taylor_rf.c
++++ b/arb/test/t-atan_taylor_rf.c
+@@ -24,7 +24,7 @@
+ ******************************************************************************/
+ 
+ #include "arb.h"
+-#include "mpn_extras.h"
++#include "flint/mpn_extras.h"
+ 
+ int main()
+ {
+diff --git a/arb/test/t-div_ui.c b/arb/test/t-div_ui.c
+index 3d5f215..7bf67e0 100644
+--- a/arb/test/t-div_ui.c
++++ b/arb/test/t-div_ui.c
+@@ -24,7 +24,7 @@
+ ******************************************************************************/
+ 
+ #include "arb.h"
+-#include "ulong_extras.h"
++#include "flint/ulong_extras.h"
+ 
+ int main()
+ {
+diff --git a/arb/test/t-exp_taylor_rf.c b/arb/test/t-exp_taylor_rf.c
+index 43b5cbc..fe44923 100644
+--- a/arb/test/t-exp_taylor_rf.c
++++ b/arb/test/t-exp_taylor_rf.c
+@@ -24,7 +24,7 @@
+ ******************************************************************************/
+ 
+ #include "arb.h"
+-#include "mpn_extras.h"
++#include "flint/mpn_extras.h"
+ 
+ int main()
+ {
+diff --git a/arb/test/t-mul_ui.c b/arb/test/t-mul_ui.c
+index 8ac8b3b..b7df59a 100644
+--- a/arb/test/t-mul_ui.c
++++ b/arb/test/t-mul_ui.c
+@@ -24,7 +24,7 @@
+ ******************************************************************************/
+ 
+ #include "arb.h"
+-#include "ulong_extras.h"
++#include "flint/ulong_extras.h"
+ 
+ int main()
+ {
+diff --git a/arb/test/t-rising2_ui.c b/arb/test/t-rising2_ui.c
+index 3ec1009..dab0623 100644
+--- a/arb/test/t-rising2_ui.c
++++ b/arb/test/t-rising2_ui.c
+@@ -23,7 +23,7 @@
+ 
+ ******************************************************************************/
+ 
+-#include "arith.h"
++#include "flint/arith.h"
+ #include "arb_poly.h"
+ 
+ int main()
+diff --git a/arb/test/t-rising2_ui_bs.c b/arb/test/t-rising2_ui_bs.c
+index 6a096cc..f9ae424 100644
+--- a/arb/test/t-rising2_ui_bs.c
++++ b/arb/test/t-rising2_ui_bs.c
+@@ -23,7 +23,7 @@
+ 
+ ******************************************************************************/
+ 
+-#include "arith.h"
++#include "flint/arith.h"
+ #include "arb_poly.h"
+ 
+ int main()
+diff --git a/arb/test/t-rising2_ui_rs.c b/arb/test/t-rising2_ui_rs.c
+index c0f7ff3..e7091bb 100644
+--- a/arb/test/t-rising2_ui_rs.c
++++ b/arb/test/t-rising2_ui_rs.c
+@@ -23,7 +23,7 @@
+ 
+ ******************************************************************************/
+ 
+-#include "arith.h"
++#include "flint/arith.h"
+ #include "arb_poly.h"
+ 
+ int main()
+diff --git a/arb/test/t-sin_cos_taylor_rf.c b/arb/test/t-sin_cos_taylor_rf.c
+index 5b9ce48..1ec03cf 100644
+--- a/arb/test/t-sin_cos_taylor_rf.c
++++ b/arb/test/t-sin_cos_taylor_rf.c
+@@ -24,7 +24,7 @@
+ ******************************************************************************/
+ 
+ #include "arb.h"
+-#include "mpn_extras.h"
++#include "flint/mpn_extras.h"
+ 
+ int main()
+ {
+diff --git a/arb/test/t-sub_ui.c b/arb/test/t-sub_ui.c
+index 9ed54f8..c6dcdd1 100644
+--- a/arb/test/t-sub_ui.c
++++ b/arb/test/t-sub_ui.c
+@@ -24,7 +24,7 @@
+ ******************************************************************************/
+ 
+ #include "arb.h"
+-#include "ulong_extras.h"
++#include "flint/ulong_extras.h"
+ 
+ int main()
+ {
+diff --git a/arb/test/t-submul_ui.c b/arb/test/t-submul_ui.c
+index ba48337..7d57f2f 100644
+--- a/arb/test/t-submul_ui.c
++++ b/arb/test/t-submul_ui.c
+@@ -24,7 +24,7 @@
+ ******************************************************************************/
+ 
+ #include "arb.h"
+-#include "ulong_extras.h"
++#include "flint/ulong_extras.h"
+ 
+ int main()
+ {
+diff --git a/arb/zeta_ui.c b/arb/zeta_ui.c
+index 8f5e972..065cbb7 100644
+--- a/arb/zeta_ui.c
++++ b/arb/zeta_ui.c
+@@ -24,7 +24,7 @@
+ ******************************************************************************/
+ 
+ #include <math.h>
+-#include "arith.h"
++#include "flint/arith.h"
+ #include "arb.h"
+ 
+ void
+diff --git a/arb_mat.h b/arb_mat.h
+index c3b3527..747aa4f 100644
+--- a/arb_mat.h
++++ b/arb_mat.h
+@@ -33,9 +33,9 @@
+ #endif
+ 
+ #include "arb.h"
+-#include "fmpz_mat.h"
+-#include "fmpq_mat.h"
+-#include "perm.h"
++#include "flint/fmpz_mat.h"
++#include "flint/fmpq_mat.h"
++#include "flint/perm.h"
+ #include "arb_poly.h"
+ 
+ #ifdef __cplusplus
+diff --git a/arb_mat/exp.c b/arb_mat/exp.c
+index 9a206b6..0f657cd 100644
+--- a/arb_mat/exp.c
++++ b/arb_mat/exp.c
+@@ -23,7 +23,7 @@
+ 
+ ******************************************************************************/
+ 
+-#include "double_extras.h"
++#include "flint/double_extras.h"
+ #include "arb_mat.h"
+ 
+ #define LOG2_OVER_E 0.25499459743395350926
+diff --git a/arb_poly.h b/arb_poly.h
+index 7a2111d..2248395 100644
+--- a/arb_poly.h
++++ b/arb_poly.h
+@@ -34,8 +34,8 @@
+ 
+ #include "arb.h"
+ #include "acb.h"
+-#include "fmpz_poly.h"
+-#include "fmpq_poly.h"
++#include "flint/fmpz_poly.h"
++#include "flint/fmpq_poly.h"
+ 
+ #ifdef __cplusplus
+ extern "C" {
+diff --git a/arf.h b/arf.h
+index 18ef132..715aa5c 100644
+--- a/arf.h
++++ b/arf.h
+@@ -36,7 +36,7 @@
+ #endif
+ 
+ #include <math.h>
+-#include "flint.h"
++#include "flint/flint.h"
+ #include "fmpr.h"
+ #include "mag.h"
+ 
+diff --git a/arf/div.c b/arf/div.c
+index ba18b3d..0f1967d 100644
+--- a/arf/div.c
++++ b/arf/div.c
+@@ -24,7 +24,7 @@
+ ******************************************************************************/
+ 
+ #include "arf.h"
+-#include "mpn_extras.h"
++#include "flint/mpn_extras.h"
+ 
+ #if !defined(__MPIR_VERSION)
+ #define USE_GMP_DIV_Q 1
+diff --git a/arf/get_d.c b/arf/get_d.c
+index 2831a4c..3280901 100644
+--- a/arf/get_d.c
++++ b/arf/get_d.c
+@@ -24,7 +24,7 @@
+ ******************************************************************************/
+ 
+ #include "arf.h"
+-#include "double_extras.h"
++#include "flint/double_extras.h"
+ 
+ /* most double: (2^53-1) * 2^971 */
+ /* least normal: 2^-1022 */
+diff --git a/arf/set_d.c b/arf/set_d.c
+index 3970d93..fc20ee3 100644
+--- a/arf/set_d.c
++++ b/arf/set_d.c
+@@ -24,7 +24,7 @@
+ ******************************************************************************/
+ 
+ #include "arf.h"
+-#include "double_extras.h"
++#include "flint/double_extras.h"
+ 
+ void
+ arf_set_d(arf_t x, double v)
+diff --git a/arf/test/t-add_ui.c b/arf/test/t-add_ui.c
+index 5d82dfd..aeeb917 100644
+--- a/arf/test/t-add_ui.c
++++ b/arf/test/t-add_ui.c
+@@ -24,7 +24,7 @@
+ ******************************************************************************/
+ 
+ #include "arf.h"
+-#include "ulong_extras.h"
++#include "flint/ulong_extras.h"
+ 
+ int
+ arf_add_ui_naive(arf_t z, const arf_t x, ulong y, long prec, arf_rnd_t rnd)
+diff --git a/arf/test/t-mul_ui.c b/arf/test/t-mul_ui.c
+index 302dad3..08d839e 100644
+--- a/arf/test/t-mul_ui.c
++++ b/arf/test/t-mul_ui.c
+@@ -24,7 +24,7 @@
+ ******************************************************************************/
+ 
+ #include "arf.h"
+-#include "ulong_extras.h"
++#include "flint/ulong_extras.h"
+ 
+ int
+ arf_mul_ui_naive(arf_t z, const arf_t x, ulong y, long prec, arf_rnd_t rnd)
+diff --git a/arf/test/t-sub_ui.c b/arf/test/t-sub_ui.c
+index 9eea8b8..1ac40c6 100644
+--- a/arf/test/t-sub_ui.c
++++ b/arf/test/t-sub_ui.c
+@@ -24,7 +24,7 @@
+ ******************************************************************************/
+ 
+ #include "arf.h"
+-#include "ulong_extras.h"
++#include "flint/ulong_extras.h"
+ 
+ int
+ arf_sub_ui_naive(arf_t z, const arf_t x, ulong y, long prec, arf_rnd_t rnd)
+diff --git a/bernoulli.h b/bernoulli.h
+index f4703be..5004218 100644
+--- a/bernoulli.h
++++ b/bernoulli.h
+@@ -27,11 +27,11 @@
+ #define BERNOULLI_H
+ 
+ #include <math.h>
+-#include "flint.h"
+-#include "fmpz.h"
+-#include "fmpz_vec.h"
+-#include "fmpq.h"
+-#include "arith.h"
++#include "flint/flint.h"
++#include "flint/fmpz.h"
++#include "flint/fmpz_vec.h"
++#include "flint/fmpq.h"
++#include "flint/arith.h"
+ #include "fmprb.h"
+ #include "arb.h"
+ 
+diff --git a/bernoulli/test/t-fmpq_ui.c b/bernoulli/test/t-fmpq_ui.c
+index 29e806a..58ecd8b 100644
+--- a/bernoulli/test/t-fmpq_ui.c
++++ b/bernoulli/test/t-fmpq_ui.c
+@@ -26,7 +26,7 @@
+ #include <stdio.h>
+ #include <stdlib.h>
+ #include "fmpz_vec.h"
+-#include "arith.h"
++#include "flint/arith.h"
+ #include "bernoulli.h"
+ 
+ int main()
+diff --git a/bernoulli/test/t-rev.c b/bernoulli/test/t-rev.c
+index 67d26ad..6f44c24 100644
+--- a/bernoulli/test/t-rev.c
++++ b/bernoulli/test/t-rev.c
+@@ -26,7 +26,7 @@
+ #include <stdio.h>
+ #include <stdlib.h>
+ #include "bernoulli.h"
+-#include "ulong_extras.h"
++#include "flint/ulong_extras.h"
+ #include "nmod_poly.h"
+ #include "nmod_vec.h"
+ 
+diff --git a/configure b/configure
+index 8f7b71a..f5ce7a7 100755
+--- a/configure
++++ b/configure
+@@ -262,10 +262,6 @@ else
+    exit 1
+ fi
+ 
+-if [ -d "${FLINT_INC_DIR}/flint" ]; then
+-   FLINT_INC_DIR="${FLINT_INC_DIR}/flint"
+-fi
+-
+ LIB_DIRS="${LIB_DIRS} ${FLINT_LIB_DIR}"
+ INC_DIRS="${INC_DIRS} ${FLINT_INC_DIR}"
+ LIBS="${LIBS} flint"
+diff --git a/examples/poly_roots.c b/examples/poly_roots.c
+index b61cf93..f31d765 100644
+--- a/examples/poly_roots.c
++++ b/examples/poly_roots.c
+@@ -3,7 +3,7 @@
+ #include <string.h>
+ #include "acb.h"
+ #include "acb_poly.h"
+-#include "arith.h"
++#include "flint/arith.h"
+ #include "profiler.h"
+ 
+ int check_accuracy(acb_ptr vec, long len, long prec)
+diff --git a/fmpr.h b/fmpr.h
+index 9a995e2..b586541 100644
+--- a/fmpr.h
++++ b/fmpr.h
+@@ -30,12 +30,12 @@
+ #include <limits.h>
+ #include <gmp.h>
+ #include <mpfr.h>
+-#include "flint.h"
+-#include "fmpz.h"
+-#include "fmpq.h"
++#include "flint/flint.h"
++#include "flint/fmpz.h"
++#include "flint/fmpq.h"
+ #include "fmpz_extras.h"
+ 
+-#include "config.h"
++#include "flint/config.h"
+ #ifdef HAVE_TLS
+ #if HAVE_TLS
+ #define TLS_PREFIX __thread
+diff --git a/fmpr/test/t-mul_ui.c b/fmpr/test/t-mul_ui.c
+index a574041..54c6fe5 100644
+--- a/fmpr/test/t-mul_ui.c
++++ b/fmpr/test/t-mul_ui.c
+@@ -24,7 +24,7 @@
+ ******************************************************************************/
+ 
+ #include "fmpr.h"
+-#include "ulong_extras.h"
++#include "flint/ulong_extras.h"
+ 
+ static long
+ fmpr_mul_ui_naive(fmpr_t z, const fmpr_t x, ulong y, long prec, fmpr_rnd_t rnd)
+diff --git a/fmprb.h b/fmprb.h
+index 7797e71..4f8868e 100644
+--- a/fmprb.h
++++ b/fmprb.h
+@@ -27,7 +27,7 @@
+ #define FMPRB_H
+ 
+ #include "fmpr.h"
+-#include "fmpz_poly.h"
++#include "flint/fmpz_poly.h"
+ 
+ #ifdef __cplusplus
+ extern "C" {
+diff --git a/fmpz_extras.h b/fmpz_extras.h
+index b10c553..813d0d8 100644
+--- a/fmpz_extras.h
++++ b/fmpz_extras.h
+@@ -27,8 +27,8 @@
+ #define FMPZ_EXTRAS_H
+ 
+ #include <limits.h>
+-#include "flint.h"
+-#include "fmpz.h"
++#include "flint/flint.h"
++#include "flint/fmpz.h"
+ 
+ #ifdef __cplusplus
+ extern "C" {
+diff --git a/hypgeom.h b/hypgeom.h
+index 8f9d9f3..a7046f8 100644
+--- a/hypgeom.h
++++ b/hypgeom.h
+@@ -29,7 +29,7 @@
+ #include "fmprb.h"
+ #include "arb.h"
+ #include "mag.h"
+-#include "fmpz_poly.h"
++#include "flint/fmpz_poly.h"
+ 
+ #ifdef __cplusplus
+ extern "C" {
+diff --git a/hypgeom/bound.c b/hypgeom/bound.c
+index 5da773e..c9a2e03 100644
+--- a/hypgeom/bound.c
++++ b/hypgeom/bound.c
+@@ -24,7 +24,7 @@
+ ******************************************************************************/
+ 
+ #include <math.h>
+-#include "double_extras.h"
++#include "flint/double_extras.h"
+ #include "hypgeom.h"
+ 
+ long
+diff --git a/hypgeom/estimate_terms_d.c b/hypgeom/estimate_terms_d.c
+index 55ecc4b..8e53f48 100644
+--- a/hypgeom/estimate_terms_d.c
++++ b/hypgeom/estimate_terms_d.c
+@@ -24,7 +24,7 @@
+ ******************************************************************************/
+ 
+ #include <math.h>
+-#include "double_extras.h"
++#include "flint/double_extras.h"
+ #include "hypgeom.h"
+ 
+ #define LOG2 0.69314718055994530942
+diff --git a/mag.h b/mag.h
+index f1dbd3c..8b6ada2 100644
+--- a/mag.h
++++ b/mag.h
+@@ -33,8 +33,8 @@
+ #endif
+ 
+ #include <math.h>
+-#include "flint.h"
+-#include "fmpz.h"
++#include "flint/flint.h"
++#include "flint/fmpz.h"
+ #include "fmpz_extras.h"
+ 
+ #ifdef __cplusplus
+diff --git a/mag/d_log.c b/mag/d_log.c
+index f192bfa..b28bb4b 100644
+--- a/mag/d_log.c
++++ b/mag/d_log.c
+@@ -24,7 +24,7 @@
+ ******************************************************************************/
+ 
+ #include "mag.h"
+-#include "double_extras.h"
++#include "flint/double_extras.h"
+ 
+ /*
+ This is a bad implementation the logarithm function,
+diff --git a/mag/exp.c b/mag/exp.c
+index 89a603a..4b9c303 100644
+--- a/mag/exp.c
++++ b/mag/exp.c
+@@ -24,7 +24,7 @@
+ ******************************************************************************/
+ 
+ #include "mag.h"
+-#include "double_extras.h"
++#include "flint/double_extras.h"
+ 
+ static const double inverse_factorials[] = {
+     1.0,
+diff --git a/mag/get_d.c b/mag/get_d.c
+index e972e17..f11b721 100644
+--- a/mag/get_d.c
++++ b/mag/get_d.c
+@@ -23,7 +23,7 @@
+ 
+ ******************************************************************************/
+ 
+-#include "double_extras.h"
++#include "flint/double_extras.h"
+ #include "mag.h"
+ 
+ double
+diff --git a/mag/log1p.c b/mag/log1p.c
+index 04c9e90..547b5a9 100644
+--- a/mag/log1p.c
++++ b/mag/log1p.c
+@@ -24,7 +24,7 @@
+ ******************************************************************************/
+ 
+ #include "mag.h"
+-#include "double_extras.h"
++#include "flint/double_extras.h"
+ 
+ void
+ mag_log1p(mag_t z, const mag_t x)
+diff --git a/mag/test/t-d_log_lower_bound.c b/mag/test/t-d_log_lower_bound.c
+index 4511828..3a5e4bf 100644
+--- a/mag/test/t-d_log_lower_bound.c
++++ b/mag/test/t-d_log_lower_bound.c
+@@ -23,7 +23,7 @@
+ 
+ ******************************************************************************/
+ 
+-#include "double_extras.h"
++#include "flint/double_extras.h"
+ #include "mag.h"
+ 
+ /* XXX: d_randtest is not good enough */
+diff --git a/mag/test/t-d_log_upper_bound.c b/mag/test/t-d_log_upper_bound.c
+index 84da460..3c2ab4a 100644
+--- a/mag/test/t-d_log_upper_bound.c
++++ b/mag/test/t-d_log_upper_bound.c
+@@ -23,7 +23,7 @@
+ 
+ ******************************************************************************/
+ 
+-#include "double_extras.h"
++#include "flint/double_extras.h"
+ #include "mag.h"
+ 
+ /* XXX: d_randtest is not good enough */
+diff --git a/mag/test/t-set_d.c b/mag/test/t-set_d.c
+index 38a0d0a..a073195 100644
+--- a/mag/test/t-set_d.c
++++ b/mag/test/t-set_d.c
+@@ -23,7 +23,7 @@
+ 
+ ******************************************************************************/
+ 
+-#include "double_extras.h"
++#include "flint/double_extras.h"
+ #include "mag.h"
+ 
+ /* XXX: d_randtest is not good enough */
+diff --git a/mag/test/t-set_d_2exp_fmpz.c b/mag/test/t-set_d_2exp_fmpz.c
+index 9a76514..afc2a35 100644
+--- a/mag/test/t-set_d_2exp_fmpz.c
++++ b/mag/test/t-set_d_2exp_fmpz.c
+@@ -23,7 +23,7 @@
+ 
+ ******************************************************************************/
+ 
+-#include "double_extras.h"
++#include "flint/double_extras.h"
+ #include "mag.h"
+ 
+ /* XXX: d_randtest is not good enough */
+diff --git a/partitions.h b/partitions.h
+index 783d4f5..48cbf14 100644
+--- a/partitions.h
++++ b/partitions.h
+@@ -27,8 +27,8 @@
+ #define PARTITIONS_H
+ 
+ #include <math.h>
+-#include "flint.h"
+-#include "arith.h"
++#include "flint/flint.h"
++#include "flint/arith.h"
+ #include "arb.h"
+ 
+ #ifdef __cplusplus
+diff --git a/partitions/hrr_sum_arb.c b/partitions/hrr_sum_arb.c
+index 0ed0152..343a820 100644
+--- a/partitions/hrr_sum_arb.c
++++ b/partitions/hrr_sum_arb.c
+@@ -25,7 +25,7 @@
+ 
+ #include "partitions.h"
+ 
+-#include "arith.h"
++#include "flint/arith.h"
+ #include "arb.h"
+ #include "math.h"
+ 
+diff --git a/partitions/test/t-partitions_fmpz_ui.c b/partitions/test/t-partitions_fmpz_ui.c
+index 3fdaf39..a23c731 100644
+--- a/partitions/test/t-partitions_fmpz_ui.c
++++ b/partitions/test/t-partitions_fmpz_ui.c
+@@ -23,7 +23,7 @@
+ 
+ ******************************************************************************/
+ 
+-#include "arith.h"
++#include "flint/arith.h"
+ #include "partitions.h"
+ 
+ /* Values mod 10^9 generated with Sage */
+diff --git a/partitions/test/t-partitions_fmpz_ui_threaded.c b/partitions/test/t-partitions_fmpz_ui_threaded.c
+index 2e6c371..a8b432b 100644
+--- a/partitions/test/t-partitions_fmpz_ui_threaded.c
++++ b/partitions/test/t-partitions_fmpz_ui_threaded.c
+@@ -23,7 +23,7 @@
+ 
+ ******************************************************************************/
+ 
+-#include "arith.h"
++#include "flint/arith.h"
+ #include "partitions.h"
+ 
+ /* Values mod 10^9 */
+diff --git a/partitions/test/t-partitions_fmpz_ui_using_doubles.c b/partitions/test/t-partitions_fmpz_ui_using_doubles.c
+index 908606c..80f7561 100644
+--- a/partitions/test/t-partitions_fmpz_ui_using_doubles.c
++++ b/partitions/test/t-partitions_fmpz_ui_using_doubles.c
+@@ -23,7 +23,7 @@
+ 
+ ******************************************************************************/
+ 
+-#include "arith.h"
++#include "flint/arith.h"
+ #include "partitions.h"
+ 
+ /* Values mod 10^9 generated with Sage */

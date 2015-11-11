@@ -473,6 +473,11 @@ class FindStat(SageObject):
 
         TESTS::
 
+            sage: findstat("Permutations", lambda x: 1, depth="x")
+            Traceback (most recent call last):
+            ...
+            ValueError: The depth of a FindStat query must be a non-negative integer less than or equal to 5.
+
             sage: findstat("Permutations", lambda x: 1, depth=100)
             Traceback (most recent call last):
             ...
@@ -502,7 +507,7 @@ class FindStat(SageObject):
         try:
             depth = int(depth)
             assert 0 <= depth <= FINDSTAT_MAX_DEPTH
-        except AssertionError:
+        except (ValueError, AssertionError):
             raise ValueError("The depth of a FindStat query must be a non-negative integer less than or equal to %i." %FINDSTAT_MAX_DEPTH)
 
         def get_collection(collection=None, element=None):
@@ -939,7 +944,7 @@ class FindStatStatistic(SageObject):
         _ = verbose("Fetching URL %s ..." %url, caller_name='FindStat')
         try:
             self._raw = json.load(urlopen(url), object_pairs_hook=OrderedDict)
-        except HTTPError, error:
+        except HTTPError as error:
             if error.code == 404:
                 raise ValueError("%s is not a FindStat statistic identifier." %self.id_str())
             else:

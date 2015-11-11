@@ -3079,7 +3079,7 @@ cdef class RealBall(RingElement):
 
             sage: from sage.rings.real_arb import RBF
             sage: RBF(1/2).log_gamma()
-            [0.572364942924700 +/- 4.87e-16]
+            [0.572364942924700 +/- 2.67e-16]
         """
         cdef RealBall res = self._new()
         if _do_sig(prec(self)): sig_on()

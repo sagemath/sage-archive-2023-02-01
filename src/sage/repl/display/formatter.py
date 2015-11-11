@@ -128,7 +128,7 @@ class SageDisplayFormatter(DisplayFormatter):
         # First, use Sage rich output if there is any
         PLAIN_TEXT = u'text/plain'
         sage_format, sage_metadata = self.dm.displayhook(obj)
-        assert('text/plain' in sage_format, 'plain text is always present')
+        assert(PLAIN_TEXT in sage_format, 'plain text is always present')
         if sage_format.keys() != [PLAIN_TEXT]:
             return sage_format, sage_metadata
         # Second, try IPython widgets (obj._ipython_display_ and type registry)

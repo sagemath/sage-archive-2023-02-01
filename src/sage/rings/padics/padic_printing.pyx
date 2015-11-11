@@ -299,7 +299,7 @@ cdef class pAdicPrinter_class(SageObject):
         """
         Initializes a pAdicPrinter.
 
-        INPUTS::
+        INPUT:
 
             - ring -- the ring or field to which this pAdicPrinter is
               attached.
@@ -1190,7 +1190,7 @@ cdef class pAdicPrinter_class(SageObject):
         """
         Takes a list L of coefficients and returns a list with at most max_terms nonzero terms.
 
-        INPUTS::
+        INPUT:
 
             - L -- a list
 
@@ -1224,7 +1224,7 @@ cdef class pAdicPrinter_class(SageObject):
         """
         Returns a string representation of L when considered as a polynomial, truncating to at most max_unram_terms nonzero terms.
 
-        INPUTS::
+        INPUT:
 
             - L -- A list of coefficients.
 
@@ -1317,7 +1317,7 @@ cdef class pAdicPrinter_class(SageObject):
         """
         Prints a list L as a polynomial.
 
-        INPUTS::
+        INPUT:
 
             - L -- A list of coefficients.
 

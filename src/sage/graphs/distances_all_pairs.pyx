@@ -910,7 +910,7 @@ cdef inline uint32_t simple_BFS(uint32_t n,
     either the last computed distance when all vertices are seen, or a very
     large number (UINT32_MAX) when the graph is not connected.
 
-    INPUTS:
+    INPUT:
 
     - ``n`` -- number of vertices of the graph.
 
@@ -1007,7 +1007,7 @@ cdef uint32_t diameter_lower_bound_2sweep(uint32_t n,
     this method is linear in the size of the graph.
 
 
-    INPUTS:
+    INPUT:
 
     - ``n`` -- number of vertices of the graph.
 
@@ -1076,7 +1076,7 @@ cdef tuple diameter_lower_bound_multi_sweep(uint32_t n,
     bound on the diameter, s is a vertex of eccentricity LB, d is a vertex at
     distance LB from s, and m is a vertex at distance LB/2 from both s and d.
 
-    INPUTS:
+    INPUT:
 
     - ``n`` -- number of vertices of the graph.
 
@@ -1152,7 +1152,7 @@ cdef uint32_t diameter_iFUB(uint32_t n,
     `O(nm)`, but it can be very fast in practice. See the code's documentation
     and [CGH+13]_ for more details.
 
-    INPUTS:
+    INPUT:
 
     - ``n`` -- number of vertices of the graph.
 
@@ -1239,7 +1239,7 @@ def diameter(G, method='iFUB', source=None):
     quickly return a lower bound on the diameter using the ``2sweep`` and
     ``multi-sweep`` schemes.
 
-    INPUTS:
+    INPUT:
 
     - ``method`` -- (default: 'iFUB') specifies the algorithm to use among:
 

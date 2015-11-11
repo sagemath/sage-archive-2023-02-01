@@ -17243,7 +17243,7 @@ class GenericGraph(GenericGraph_pyx):
         r"""
         Sets multiple options for rendering a graph with LaTeX.
 
-        INPUTS:
+        INPUT:
 
         - ``kwds`` - any number of option/value pairs to set many graph
           latex options at once (a variable number, in any

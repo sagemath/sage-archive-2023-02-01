@@ -649,7 +649,7 @@ class SimplicialComplexMorphism(Morphism):
         """
         The map in (co)homology induced by this map
 
-        INPUTS:
+        INPUT:
 
         - ``base_ring`` -- must be a field (optional, default ``QQ``)
 

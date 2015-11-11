@@ -458,7 +458,7 @@ class SageDocTestParser(doctest.DocTestParser):
         r"""
         A Sage specialization of :class:`doctest.DocTestParser`.
 
-        INPUTS:
+        INPUT:
 
         - ``string`` -- the string to parse.
         - ``name`` -- optional string giving the name indentifying string,

@@ -483,7 +483,7 @@ class FindStat(SageObject):
             ...
             ValueError: The depth of a FindStat query must be a non-negative integer less than or equal to 5.
 
-            sage: findstat("Permutations", 1)
+            sage: findstat("Permutations", 1)                                   # optional -- internet
             Traceback (most recent call last):
             ...
             ValueError: The given arguments, Permutations and 1, cannot be used for a FindStat search.

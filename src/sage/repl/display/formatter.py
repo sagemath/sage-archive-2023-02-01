@@ -97,7 +97,7 @@ class SageDisplayFormatter(DisplayFormatter):
         self.dm.check_backend_class(BackendIPython)
 
     def format(self, obj, include=None, exclude=None):
-        """
+        r"""
         Use the Sage rich output instead of IPython
 
         INPUT/OUTPUT:

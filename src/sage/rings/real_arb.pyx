@@ -1559,6 +1559,10 @@ cdef class RealBall(RingElement):
           not affect its value!), see
           :meth:`sage.rings.real_mpfi.RealIntervalFieldElement.upper`
 
+        OUTPUT:
+
+        A real number.
+
         EXAMPLES::
 
             sage: from sage.rings.real_arb import RBF
@@ -1584,6 +1588,10 @@ cdef class RealBall(RingElement):
           not affect its value!), see
           :meth:`sage.rings.real_mpfi.RealIntervalFieldElement.lower`
 
+        OUTPUT:
+
+        A real number.
+
         EXAMPLES::
 
             sage: from sage.rings.real_arb import RBF
@@ -1606,6 +1614,10 @@ cdef class RealBall(RingElement):
         - ``rnd`` (string) -- rounding mode for the parent of the resulting
           floating-point numbers (does not affect their values!), see
           :meth:`sage.rings.real_mpfi.RealIntervalFieldElement.upper`
+
+        OUTPUT:
+
+        A pair of real numbers.
 
         EXAMPLES::
 

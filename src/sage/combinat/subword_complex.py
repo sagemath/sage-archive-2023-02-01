@@ -2,8 +2,8 @@ r"""
 Subword complex
 
 Fix a Coxeter system `(W,S)`. The subword complex `\mathcal{SC}(Q,w)`
-associated to a word `Q \in S^*` and an element `w \in W` the
-simplicial whose ground set is the set of positions in `Q` and whose
+associated to a word `Q \in S^*` and an element `w \in W` is the
+simplicial complex whose ground set is the set of positions in `Q` and whose
 facets are complements of sets of positions defining a reduced
 expression for `w`.
 
@@ -17,8 +17,8 @@ AUTHORS:
 
 REFERENCES:
 
-.. [KnuMil] Knutson and Miller. Subword complexes in Coxeter groups. Adv. Math., 184(1):161-176, 2004.
-.. [PilStu] Pilaud and Stump. Brick polytopes of spherical subword complexes and generalized associahedra. Adv. Math. 276:1-61, 2015.
+.. [KnuMil] Knutson and Miller. *Subword complexes in Coxeter groups*. Adv. Math., 184(1):161-176, 2004.
+.. [PilStu] Pilaud and Stump. *Brick polytopes of spherical subword complexes and generalized associahedra*. Adv. Math. 276:1-61, 2015.
 """
 #*****************************************************************************
 #       Copyright (C) 2012      Christian Stump <christian.stump@gmail.com>
@@ -44,7 +44,7 @@ class SubwordComplex(SimplicialComplex, Parent):
     r"""
     Fix a Coxeter system `(W,S)`. The subword complex
     `\mathcal{SC}(Q,w)` associated to a word `Q \in S^*` and an
-    element `w \in W` the simplicial whose ground set is the set of
+    element `w \in W` is the simplicial complex whose ground set is the set of
     positions in `Q` and whose facets are complements of sets of
     positions defining a reduced expression for `w`.
 
@@ -508,7 +508,6 @@ class SubwordComplex(SimplicialComplex, Parent):
 
             :func:`root_fan <sage.combinat.subword_complex.SubwordComplexFacet.root_fan>`
 
-        EXAMPLES::
         """
         if F is None:
             F = self.greedy_facet()
@@ -526,7 +525,6 @@ class SubwordComplex(SimplicialComplex, Parent):
 
             :func:`weight_cone <sage.combinat.subword_complex.SubwordComplexFacet.weight_cone>`
 
-        EXAMPLES::
         """
         from sage.geometry.fan import Fan
         return Fan([F.weight_cone() for F in self])
@@ -541,7 +539,6 @@ class SubwordComplex(SimplicialComplex, Parent):
 
             :func:`brick_vector <sage.combinat.subword_complex.SubwordComplexFacet.brick_vector>`
 
-        EXAMPLES::
         """
         return [F.brick_vector(coefficients=coefficients) for F in self]
 
@@ -549,7 +546,6 @@ class SubwordComplex(SimplicialComplex, Parent):
         r"""
         Return the ``i``th Minkowski summand of ``self``.
 
-        EXAMPLES::
         """
         return Polyhedron([F.extended_weight_configuration()[i] for F in self])
 
@@ -558,7 +554,6 @@ class SubwordComplex(SimplicialComplex, Parent):
         Return the brick polytope of ``self``.
 
         This polytope is the convex hull of the brick vectors of ``self``.
-        The coefficients
 
         .. SEEALSO::
 
@@ -1076,7 +1071,6 @@ class SubwordComplexFacet(Simplex, Element):
 
             :meth:`upper_root_configuration`
 
-        EXAMPLES::
         """
         W = self.parent().group()
         return W.prod(W.root_to_reflection(beta)
@@ -1222,7 +1216,7 @@ class SubwordComplexFacet(Simplex, Element):
         INPUT:
 
         - ``i`` -- position in the word `Q` (integer).
-        - ``return_position`` -- boolean (default: False) tells
+        - ``return_position`` -- boolean (default: ``False``) tells
           whether the new position should be returned as well.
 
         OUTPUT:

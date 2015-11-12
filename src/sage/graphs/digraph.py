@@ -864,16 +864,16 @@ class DiGraph(GenericGraph):
 
         OUTPUT:
 
-            * When ``certificate=False``, returns a boolean value.
+        * When ``certificate=False``, returns a boolean value.
 
-            * When ``certificate=True`` :
+        * When ``certificate=True`` :
 
-                * If the graph is acyclic, returns a pair ``(True, ordering)``
-                  where ``ordering`` is a list of the vertices such that ``u``
-                  appears before ``v`` in ``ordering`` if ``u, v`` is an edge.
+          * If the graph is acyclic, returns a pair ``(True, ordering)``
+            where ``ordering`` is a list of the vertices such that ``u``
+            appears before ``v`` in ``ordering`` if ``u, v`` is an edge.
 
-                * Else, returns a pair ``(False, cycle)`` where ``cycle`` is a
-                  list of vertices representing a circuit in the graph.
+          * Else, returns a pair ``(False, cycle)`` where ``cycle`` is a
+            list of vertices representing a circuit in the graph.
 
         EXAMPLES:
 
@@ -2944,7 +2944,7 @@ class DiGraph(GenericGraph):
 
         OUTPUT:
 
-         - a list of non empty lists of vertices of this graph
+        - a list of non empty lists of vertices of this graph
 
         The level set decomposition of the digraph is a list `l` such that the
         level `l[i]` contains all the vertices having all their predecessors in

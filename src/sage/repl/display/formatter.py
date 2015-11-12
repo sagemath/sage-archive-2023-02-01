@@ -132,11 +132,18 @@ class SageDisplayFormatter(DisplayFormatter):
             sage: example_png = os.path.join(SAGE_EXTCODE, 'doctest', 'rich_output', 'example.png')
             sage: from sage.repl.rich_output.backend_ipython import BackendIPython
             sage: backend = BackendIPython()
-            sage: shell = get_test_shell();
+            sage: shell = get_test_shell()
             sage: backend.install(shell=shell)
+            sage: shell.run_cell('get_ipython().display_formatter')
+            <sage.repl.display.formatter.SageDisplayFormatter object at 0x...>
             sage: shell.run_cell('from IPython.display import Image')
-            sage: shell.run_cell('Image("{0}")'.format(example_png))
+            sage: shell.run_cell('ipython_image = Image("{0}")'.format(example_png))
+            sage: shell.run_cell('ipython_image')
             <IPython.core.display.Image object>
+            sage: shell.run_cell('get_ipython().display_formatter.format(ipython_image)')
+            ({u'image/png': '\x89PNG...',
+              u'text/plain': u'<IPython.core.display.Image object>'},
+            {})
         """
         # First, use Sage rich output if there is any
         PLAIN_TEXT = u'text/plain'

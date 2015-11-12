@@ -7675,7 +7675,7 @@ class GenericGraph(GenericGraph_pyx):
             constraint that the flow going through an edge has to be an
             integer.
 
-        - ``use_edge_labels`` -- boolean (default: ``False``)
+        - ``use_edge_labels`` -- boolean (default: ``True``)
 
           - When set to ``True``, computes a maximum flow
             where each edge has a capacity defined by its label. (If
@@ -13249,7 +13249,7 @@ class GenericGraph(GenericGraph_pyx):
                 if with_labels:
                     return dict(zip(self.vertices(), eccentricity(self)))
                 else:
-                    return eccentricity(self, method='standard' if self.is_directed() else 'bounds')
+                    return eccentricity(self, algorithm='standard' if self.is_directed() else 'bounds')
             if algorithm in ['Floyd-Warshall-Python', 'Floyd-Warshall-Cython', 'Johnson_Boost']:
                 dist_dict = self.shortest_path_all_pairs(by_weight, algorithm,
                                                          weight_function,
@@ -13479,7 +13479,7 @@ class GenericGraph(GenericGraph_pyx):
                 raise ValueError("Algorithm '" + algorithm + "' does not work" +
                                  " on weighted graphs.")
             from distances_all_pairs import diameter
-            return diameter(self, method=algorithm)
+            return diameter(self, algorithm=algorithm)
 
         return max(self.eccentricity(by_weight=by_weight,
                                      weight_function=weight_function,

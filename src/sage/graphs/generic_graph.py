@@ -14566,10 +14566,10 @@ class GenericGraph(GenericGraph_pyx):
             [4, 17, 16, 12, 13, 9]
             sage: D.shortest_path(4, 9, algorithm='BFS')
             [4, 3, 2, 1, 8, 9]
-            sage: D.shortest_path(4, 9, algorithm='Dijkstra_NetworkX')
-            [4, 3, 2, 1, 8, 9]
-            sage: D.shortest_path(4, 9, algorithm='Dijkstra_Bid_NetworkX')
-            [4, 3, 2, 1, 8, 9]
+            sage: D.shortest_path(4, 8, algorithm='Dijkstra_NetworkX')
+            [4, 3, 2, 1, 8]
+            sage: D.shortest_path(4, 8, algorithm='Dijkstra_Bid_NetworkX')
+            [4, 3, 2, 1, 8]
             sage: D.shortest_path(4, 9, algorithm='Dijkstra_Bid')
             [4, 3, 19, 0, 10, 9]
             sage: D.shortest_path(5, 5)
@@ -15941,6 +15941,10 @@ class GenericGraph(GenericGraph_pyx):
             sage: list(D.breadth_first_search(0, ignore_direction=True))
             [0, 1, 2]
         """
+        from sage.rings.semirings.non_negative_integer_semiring import NN
+        if (distance is not None and distance not in NN):
+            raise ValueError("distance must be a non-negative integer, not {0}".format(distance))
+
         # Preferably use the Cython implementation
         if neighbors is None and not isinstance(start, list) and distance is None and hasattr(self._backend,"breadth_first_search") and not report_distance:
             for v in self._backend.breadth_first_search(start, ignore_direction=ignore_direction):
@@ -15956,6 +15960,12 @@ class GenericGraph(GenericGraph_pyx):
                 queue = [(v, 0) for v in start]
             else:
                 queue = [(start, 0)]
+
+            # Non-existing start vertex is detected later if distance > 0.
+            if distance == 0:
+                for v in queue:
+                    if not v[0] in self:
+                        raise LookupError("start vertex ({0}) is not a vertex of the graph".format(v[0]))
 
             for v, d in queue:
                 if report_distance:
@@ -15982,7 +15992,6 @@ class GenericGraph(GenericGraph_pyx):
         Return an iterator over the vertices in a depth-first ordering.
 
         INPUT:
-
 
         - ``start`` - vertex or list of vertices from which to start
           the traversal
@@ -16291,8 +16300,7 @@ class GenericGraph(GenericGraph_pyx):
             vert1 = v
 
     def complement(self):
-        """
-        Returns the complement of the (di)graph.
+        """Returns the complement of the (di)graph.
 
         The complement of a graph has the same vertices, but exactly those
         edges that are not in the original graph. This is not well defined
@@ -16320,7 +16328,10 @@ class GenericGraph(GenericGraph_pyx):
             sage: G.complement()
             Traceback (most recent call last):
             ...
-            TypeError: complement not well defined for (di)graphs with multiple edges
+            ValueError: This method is not known to work on graphs with
+            multiedges. Perhaps this method can be updated to handle them, but
+            in the meantime if you want to use it please disallow multiedges
+            using allow_multiple_edges().
 
         TESTS:
 
@@ -16338,17 +16349,14 @@ class GenericGraph(GenericGraph_pyx):
             Graph on 10 vertices
 
         """
-        if self.has_multiple_edges():
-            raise TypeError('complement not well defined for (di)graphs with multiple edges')
         self._scream_if_not_simple()
-        G = copy(self)
-        G.delete_edges(G.edges())
+
+        G = self.copy(data_structure='dense')
+        G._backend.c_graph()[0].complement()
+
         if self.name():
             G.name("complement({})".format(self.name()))
-        for u in self:
-            for v in self:
-                if not self.has_edge(u,v):
-                    G.add_edge(u,v)
+
         if getattr(self, '_immutable', False):
             return G.copy(immutable=True)
         return G

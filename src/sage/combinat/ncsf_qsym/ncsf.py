@@ -951,8 +951,9 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
                     ....:     for i in reversed(xs):
                     ....:         res = res.bernstein_creation_operator(i)
                     ....:     return res
+                    sage: import itertools
                     sage: all( immaculate_by_bernstein(p) == I.immaculate_function(p)
-                    ....:      for p in CartesianProduct(range(-1, 3), range(-1, 3), range(-1, 3)) )
+                    ....:      for p in itertools.product(range(-1, 3), repeat=3))
                     True
 
                 Some examples::

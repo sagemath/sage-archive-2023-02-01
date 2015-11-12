@@ -714,23 +714,33 @@ class CrystalOfAlcovePathsElement(ElementWrapper):
 
     def weight(self):
         """
-        Returns the weight of self.
+        Return the weight of ``self``.
 
         EXAMPLES::
 
             sage: C = crystals.AlcovePaths(['A',2],[2,0])
             sage: for i in C: i.weight()
-            2*Lambda[1]
-            Lambda[2]
-            Lambda[1] - Lambda[2]
-            -2*Lambda[1] + 2*Lambda[2]
-            -Lambda[1]
-            -2*Lambda[2]
+            (0, 2, 0)
+            (0, 0, 1)
+            (0, 1, -1)
+            (0, -2, 2)
+            (0, -1, 0)
+            (0, 0, -2)
 
             sage: B = crystals.AlcovePaths(['A',2,1],[1,0,0])
             sage: p = B.module_generators[0].f_string([0,1,2])
             sage: p.weight()
             Lambda[0] - delta
+
+        TESTS:
+
+        Check that crystal morphisms work (:trac:`19481`)::
+
+            sage: C1 = crystals.AlcovePaths(['A',2],[1,0])
+            sage: C2 = crystals.AlcovePaths(['A',2],[2,0])
+            sage: phi = C1.crystal_morphism(C2.module_generators, scaling_factors={1:2, 2:2})
+            sage: [phi(x) for x in C1]
+            [(), ((alpha[1], 0),), ((alpha[1], 0), (alpha[1] + alpha[2], 0))]
         """
         root_space = self.parent().R.root_space()
         weight = -self.parent().weight
@@ -738,7 +748,10 @@ class CrystalOfAlcovePathsElement(ElementWrapper):
             root = root_space(i.root)
             weight = -i.height*root + weight.reflection(root)
 
-        return -weight
+        WLR = self.parent().weight_lattice_realization()
+        B = WLR.basis()
+        return WLR._from_dict({i: Integer(c) for i,c in -weight},
+                              remove_zeros=False)
 
     #def __repr__(self):
         #return str(self.integer_sequence())

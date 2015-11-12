@@ -3070,13 +3070,16 @@ cdef class RealBall(RingElement):
         Return the image of this ball by the Euler Gamma function.
 
         For integer and rational arguments,
-        :meth:`~sage.rings.real_arb.RealBall.gamma` may be faster.
+        :meth:`~sage.rings.real_arb.RealBallField.gamma` may be faster.
 
         EXAMPLES::
 
             sage: from sage.rings.real_arb import RBF
             sage: RBF(1/2).gamma()
             [1.772453850905516 +/- 3.41e-16]
+
+        .. SEEALSO::
+            :meth:`~sage.rings.real_arb.RealBallField.gamma`
         """
         cdef RealBall res = self._new()
         if _do_sig(prec(self)): sig_on()

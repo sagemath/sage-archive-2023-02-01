@@ -1000,39 +1000,27 @@ def RandomTriangulation(n, set_position=False):
         raise ValueError('only defined for n >= 3')
     w = _auxiliary_random_word(n - 2)
     word, graph = _contour_and_graph_from_word(w)
-
     edges = []
-    done = False
-    while not done:
-        done = True
-        stack_in = []  # stack of consecutive 'in'
-        new_word = []
 
-        for x in word:
-            if x[0] == 'lf':  # leaf vertex 'lf'
-                if len(stack_in) >= 3:
-                    # place to perform a local closure: in1, in2, in3, lf
-                    # this is followed in the cycle by another 'in3'
-                    # and get replaced by 'in1', 'in3'
-                    # here we just need to remove 'in2' and 'in3' from stack_in
-                    done = False
-                    edges.append((stack_in[-3][1], stack_in[-1][1]))
-                    stack_in = stack_in[:-2]
-                else:
-                    # clear the stack of consecutive 'in'
-                    new_word.extend(stack_in + [x])
-                    stack_in = []
-            else:  # inner vertex 'in'
-                # add one 'in' to the stack
-                stack_in += [x]
+    # 'partial closures' described in 2.1 of [PS2006]_.
 
-        if stack_in:
-            # trying again after rotation if needed
-            # by flushing all final 'in's to the beginning
-            word = stack_in + new_word
-            done = False
+    def rotate_word_to_next_occurrence(word):
+        # Rotates 'word' so that 'in1,in2,in3,lf,in3' occurs at word[:5].
+        pattern = ['in','in','in','lf','in']
+        n = len(word)
+        for i in range(n):
+            if all(word[(i+j)%n][0] == pattern[j] for j in range(5)):
+                return word[i:] + word[:i]
+        return []
+
+    # We greedily perform the replacements 'in1,in2,in3,lf,in3'->'in1,in3'.
+    while True:
+        word2 = rotate_word_to_next_occurrence(word)
+        if len(word2) >= 5:
+            word = [word2[0]]+word2[4:]
+            edges.append(word[:2]) # edge 'in1,in3'
         else:
-            word = new_word
+            break
 
     graph.add_edges(edges)
     # This is the end of partial closure.
@@ -1042,17 +1030,19 @@ def RandomTriangulation(n, set_position=False):
 
     # Every remaining 'lf' vertex is linked either to 'a' or to 'b'.
     # Switching a/b happens when one meets the sequence 'lf','in','lf'.
-    target_vertex = 'a'
-    memory = ('', '')
+    a_or_b = 'a'
+    last_lf_occurrence = -42
     for x in word:
+        last_lf_occurrence -= 1
         if x[0] == 'lf':
-            if memory == ('lf', 'in'):
-                target_vertex = 'b' if target_vertex == 'a' else 'a'
-            graph.add_edge((target_vertex, x[1]))
-        memory = (memory[1], x[0])
+            if last_lf_occurrence == -2:
+                a_or_b = 'b' if a_or_b == 'a' else 'a'
+            graph.add_edge((a_or_b, x[1]))
+            last_lf_occurrence = 0
 
     assert graph.num_edges() == 3 * (n - 2)
 
     if set_position:
         graph.layout(layout="planar", save_pos=True)
+
     return graph

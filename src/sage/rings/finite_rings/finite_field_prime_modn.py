@@ -121,7 +121,7 @@ class FiniteField_prime_modn(FiniteField_generic, integer_mod_ring.IntegerModRin
             return integer_mod.Integer_to_IntegerMod(self)
         elif isinstance(S, IntegerModRing_generic):
             from residue_field import ResidueField_generic
-            if S.characteristic() == self.characteristic() and \
+            if S.characteristic() % self.characteristic() == 0 and \
                (not isinstance(S, ResidueField_generic) or S.degree() == 1):
                 try:
                     return integer_mod.IntegerMod_to_IntegerMod(S, self)

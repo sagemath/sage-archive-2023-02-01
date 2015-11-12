@@ -114,6 +114,16 @@ class FiniteField_prime_modn(FiniteField_generic, integer_mod_ring.IntegerModRin
              From: Residue field of Fractional ideal (w + 18)
              To:   Finite Field of size 13
              Defn: 1 |--> 1
+
+
+        TESTS:
+
+        Check that :trac:`19573` is resolved::
+
+            sage: Integers(9).hom(GF(3))
+            Ring Coercion morphism:
+              From: Ring of integers modulo 9
+              To:   Finite Field of size 3
         """
         if S is int:
             return integer_mod.Int_to_IntegerMod(self)

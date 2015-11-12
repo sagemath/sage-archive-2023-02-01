@@ -45,7 +45,7 @@ def Krawtchouk(n,q,l,x,check=True):
 
     TESTS:
 
-    check that the bug reported on :trac:19561 is fixed::
+    check that the bug reported on :trac:`19561` is fixed::
 
         sage: Krawtchouk(3,2,3,3)
         -1

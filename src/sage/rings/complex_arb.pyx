@@ -1044,7 +1044,9 @@ cdef class ComplexBall(RingElement):
           make sure that the returned lower bound is positive, raising
           an error if the ball contains zero.
 
-        OUPUT: a ball with zero radius
+        OUTPUT:
+
+        A ball with zero radius
 
         EXAMPLES::
 
@@ -1076,7 +1078,9 @@ cdef class ComplexBall(RingElement):
         """
         Return an upper bound for the absolute value of this complex ball.
 
-        OUPUT: a ball with zero radius
+        OUTPUT:
+
+        A ball with zero radius
 
         EXAMPLES::
 

@@ -322,7 +322,7 @@ class SubwordComplex(SimplicialComplex, Parent):
             sage: w = W.from_reduced_word([1,2,1])
             sage: SC = SubwordComplex([1,2,1,2,1], w)
             sage: for X in SC:
-            ...       print X
+            ....:     print X
             (0, 1)
             (0, 4)
             (1, 2)

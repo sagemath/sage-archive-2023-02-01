@@ -124,11 +124,24 @@ class SageDisplayFormatter(DisplayFormatter):
             10*x   + 9*x  + 8*x  + 7*x  + 6*x  + 5*x  + 4*x  + 3*x  + 2*x  + x
             sage: shell.run_cell('%display default')
             sage: shell.quit()
+
+        TESTS::
+
+            sage: import os
+            sage: from sage.env import SAGE_EXTCODE
+            sage: example_png = os.path.join(SAGE_EXTCODE, 'doctest', 'rich_output', 'example.png')
+            sage: from sage.repl.rich_output.backend_ipython import BackendIPython
+            sage: backend = BackendIPython()
+            sage: shell = get_test_shell();
+            sage: backend.install(shell=shell)
+            sage: shell.run_cell('from IPython.display import Image')
+            sage: shell.run_cell('Image("{0}")'.format(example_png))
+            <IPython.core.display.Image object>
         """
         # First, use Sage rich output if there is any
         PLAIN_TEXT = u'text/plain'
         sage_format, sage_metadata = self.dm.displayhook(obj)
-        assert(PLAIN_TEXT in sage_format, 'plain text is always present')
+        assert PLAIN_TEXT in sage_format, 'plain text is always present'
         if sage_format.keys() != [PLAIN_TEXT]:
             return sage_format, sage_metadata
         # Second, try IPython widgets (obj._ipython_display_ and type registry)
@@ -170,7 +183,7 @@ class SagePlainTextFormatter(PlainTextFormatter):
             sage: from sage.repl.interpreter import get_test_shell
             sage: shell = get_test_shell()
             sage: shell.display_formatter.formatters['text/plain']
-            <sage.repl.display.formatter.SagePlainTextFormatter object at 0x...>
+            <IPython.core.formatters.PlainTextFormatter object at 0x...>
             sage: shell.quit()
         """
         super(SagePlainTextFormatter, self).__init__(*args, **kwds)

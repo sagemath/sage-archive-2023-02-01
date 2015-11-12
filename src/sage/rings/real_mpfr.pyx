@@ -454,7 +454,7 @@ cdef class RealField_class(sage.rings.ring.Field):
             sage: RealField(17,rnd='RNDD')
             Real Field with 17 bits of precision and rounding RNDD
 
-        TESTS::
+        TESTS:
 
         Test the various rounding modes::
 

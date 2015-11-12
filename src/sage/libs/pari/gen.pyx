@@ -226,8 +226,11 @@ cdef class gen(gen_auto):
             sage: f = pari('x^3 - 3')
             sage: loads(dumps(f)) == f
             True
+            sage: f = pari('"hello world"')
+            sage: loads(dumps(f)) == f
+            True
         """
-        s = str(self)
+        s = repr(self)
         return (objtogen, (s,))
 
     cpdef ModuleElement _add_(self, ModuleElement right):

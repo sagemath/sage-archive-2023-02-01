@@ -22,8 +22,21 @@ cpdef _flip_c(W, set positions, list extended_root_conf_indices, int i, side="bo
 
 cpdef _construct_facets_c(list Q, w, int n=-1, int pos=0, int l=-1):
     r"""
-        Returns the list of facets of the subword complex associated to the word Q and the element w in a Coxeter group W.
-        """
+    Return the list of facets of the subword complex associated to the
+    word `Q` and the element `w` in a Coxeter group `W`.
+
+    EXAMPLES::
+
+        sage: from sage.combinat.subword_complex_c import _construct_facets_c
+        sage: W = CoxeterGroup(['A',2])
+        sage: w = W.from_reduced_word([1,2])
+        sage: _construct_facets_c([2,1], w)
+        []
+        sage: _construct_facets_c([2,1,2], w)
+        [[0]]
+        sage: _construct_facets_c([2,1,2,1], w)
+        [[0, 3]]
+    """
     cdef int s
     cdef list X, Y
     if n == -1:
@@ -35,22 +48,22 @@ cpdef _construct_facets_c(list Q, w, int n=-1, int pos=0, int l=-1):
         first = False
     
     if l == 0:
-        return [range(pos,n)]
-    elif n < l+pos:
+        return [range(pos, n)]
+    elif n < l + pos:
         return []
     
     s = Q[pos]
-    X = _construct_facets_c(Q, w, n=n, pos=pos+1, l=l)
+    X = _construct_facets_c(Q, w, n=n, pos=pos + 1, l=l)
     for f in X:
         f.append(pos)
     
     if w.has_left_descent(s):
-        Y = _construct_facets_c(Q, w.apply_simple_reflection_left(s), n=n, pos=pos+1, l=l-1)
-        Y = X+Y
+        Y = _construct_facets_c(Q, w.apply_simple_reflection_left(s),
+                                n=n, pos=pos + 1, l=l - 1)
+        Y = X + Y
     else:
         Y = X
     if first:
-        return sorted([ sorted(x) for x in Y ])
+        return sorted([sorted(x) for x in Y])
     else:
         return Y
-

@@ -492,7 +492,7 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_generic):
         Construct a new element in this polynomial ring by converting
         ``element`` into ``self`` if possible.
 
-        INPUT::
+        INPUT:
 
         - ``element`` -- several types are supported, see below
 

@@ -228,7 +228,7 @@ class ChainComplexMorphism(Morphism):
         degree; otherwise, return the (block) matrix for the whole
         chain map.
 
-        INPUTS:
+        INPUT:
 
         - ``deg`` -- (optional, default ``None``) the degree
 

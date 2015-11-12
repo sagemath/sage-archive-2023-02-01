@@ -206,6 +206,7 @@ from sage.rings.ideal import FieldIdeal
 from sage.structure.element cimport Element
 from sage.structure.element cimport RingElement
 from sage.structure.element cimport ModuleElement
+from sage.structure.element cimport have_same_parent_c, coercion_model
 
 from sage.structure.parent cimport Parent
 from sage.structure.sequence import Sequence
@@ -3076,6 +3077,45 @@ cdef class BooleanPolynomial(MPolynomial):
 
     def __richcmp__(left, right, int op):
         """
+        Optimized comparison function, checking for boolean ``False``
+        in one of the arguments.
+
+        EXAMPLES::
+
+            sage: P.<x> = BooleanPolynomialRing()
+            sage: P.zero() == True
+            False
+            sage: P(0) != True
+            True
+            sage: P(False) == False
+            True
+            sage: P() != False
+            False
+            sage: x == True
+            False
+            sage: x != True
+            True
+            sage: x == False
+            False
+            sage: x != False
+            True
+        """
+        cdef bint bl, br
+
+        if (op == Py_EQ) or (op == Py_NE):
+            bl = not not left
+            br = not not right
+            if not bl or not br:
+                return (br or bl) == (op == Py_NE)
+
+        # Copy from Element.__richcmp__
+        if have_same_parent_c(left, right):
+            return (<Element>left)._richcmp_(<Element>right, op)
+        else:
+            return coercion_model.richcmp(left, right, op)
+
+    cpdef int _cmp_(left, Element right) except -2:
+        """
         Compare left and right and return -1, 0, 1 for ``less than``,
         ``equal``, and ``greater than`` respectively.
 
@@ -3098,27 +3138,11 @@ cdef class BooleanPolynomial(MPolynomial):
 
         ::
 
-            sage: P(0) == 0
+            sage: P(True) == True
             True
+            sage: cmp(P(0), 0)
+            0
         """
-        cdef bint bl = bool(left)
-        cdef bint br = bool(right)
-
-        if op == Py_EQ:
-            if not bl or not br:
-                return (not br and not bl)
-
-        elif op == Py_NE:
-            if not bl or not br:
-                return not (not br and not bl)
-
-        #boilerplate from sage.structure.element
-        return (<Element>left)._richcmp(right, op)
-
-    cpdef int _cmp_(left, Element right) except -2:
-
-
-
         cdef int res
         from itertools import izip
         for lm, rm in izip(left, right):

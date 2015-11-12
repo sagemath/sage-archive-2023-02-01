@@ -94,6 +94,20 @@ cdef class gen(gen_auto):
             sage_free(<void*> self.b)
 
     def __repr__(self):
+        """
+        Display representation of a gen.
+
+        OUTPUT: a Python string
+
+        EXAMPLES::
+
+            sage: pari('vector(5,i,i)')
+            [1, 2, 3, 4, 5]
+            sage: pari('[1,2;3,4]')
+            [1, 2; 3, 4]
+            sage: pari('Str(hello)')
+            "hello"
+        """
         cdef char *c
         pari_catch_sig_on()
         # Use sig_block(), which is needed because GENtostr() uses
@@ -106,6 +120,29 @@ cdef class gen(gen_auto):
         s = str(c)
         pari_free(c)
         return s
+
+    def __str__(self):
+        """
+        Convert this gen to a string.
+
+        Except for PARI strings, we have ``str(x) == repr(x)``.
+        For strings (type ``t_STR``), the returned string is not quoted.
+
+        OUTPUT: a Python string
+
+        EXAMPLES::
+
+            sage: print(pari('vector(5,i,i)'))
+            [1, 2, 3, 4, 5]
+            sage: print(pari('[1,2;3,4]'))
+            [1, 2; 3, 4]
+            sage: print(pari('Str(hello)'))
+            hello
+        """
+        # Use __repr__ except for strings
+        if typ(self.g) == t_STR:
+            return GSTR(self.g)
+        return repr(self)
 
     def __hash__(self):
         """
@@ -2844,10 +2881,10 @@ cdef class gen(gen_auto):
             sage: pari('"2"').binary()
             Traceback (most recent call last):
             ...
-            TypeError: x (="2") must be of type t_INT, but is of type t_STR.
+            TypeError: x (=2) must be of type t_INT, but is of type t_STR
         """
         if typ(x.g) != t_INT:
-            raise TypeError("x (=%s) must be of type t_INT, but is of type %s." % (x, x.type()))
+            raise TypeError("x (=%s) must be of type t_INT, but is of type %s" % (x, x.type()))
         pari_catch_sig_on()
         return P.new_gen(binaire(x.g))
 

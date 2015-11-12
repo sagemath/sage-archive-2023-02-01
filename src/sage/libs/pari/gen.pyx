@@ -2853,20 +2853,15 @@ cdef class gen(gen_auto):
 
     def binary(gen x):
         """
-        binary(x): gives the vector formed by the binary digits of abs(x),
-        where x is of type t_INT.
+        Return the vector formed by the binary digits of abs(x).
 
         INPUT:
 
-
-        -  ``x`` - gen of type t_INT
-
+        - ``x`` -- gen of type ``t_INT``
 
         OUTPUT:
 
-
-        -  ``gen`` - of type t_VEC
-
+        - ``gen`` -- gen of type ``t_VEC``
 
         EXAMPLES::
 
@@ -2884,10 +2879,8 @@ cdef class gen(gen_auto):
             sage: pari('"2"').binary()
             Traceback (most recent call last):
             ...
-            TypeError: x (=2) must be of type t_INT, but is of type t_STR
+            PariError: incorrect type in binary (t_STR)
         """
-        if typ(x.g) != t_INT:
-            raise TypeError("x (=%s) must be of type t_INT, but is of type %s" % (x, x.type()))
         pari_catch_sig_on()
         return P.new_gen(binaire(x.g))
 

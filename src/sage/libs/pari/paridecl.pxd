@@ -63,6 +63,7 @@ cdef extern from "sage/libs/pari/parisage.h":
     GEN     gel(GEN, long)
     GEN     gcoeff(GEN, long, long)
     long    coeff(GEN, long, long)
+    char*   GSTR(GEN)
 
     # paricom.h
 

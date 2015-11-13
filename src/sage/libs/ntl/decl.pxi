@@ -21,7 +21,6 @@ cdef extern from "sage/libs/ntl/ntlwrap.h":
     bint NTL_OVERFLOW(long, long, long)
 
     object mat_ZZ_to_PyString "_to_PyString<mat_ZZ>"(mat_ZZ_c *x)
-    int mat_ZZ_equal "_equal<mat_ZZ>"(mat_ZZ_c x, mat_ZZ_c y)
 
     void mat_ZZ_mul "mul"( mat_ZZ_c x, mat_ZZ_c a, mat_ZZ_c b)
     void mat_ZZ_add "add"( mat_ZZ_c x, mat_ZZ_c a, mat_ZZ_c b)
@@ -84,7 +83,6 @@ cdef extern from "sage/libs/ntl/ntlwrap.h":
 
     void GF2_from_str "_from_str<GF2>"(GF2_c* dest, char* s)
     object GF2_to_PyString "_to_PyString<GF2>"(GF2_c *x)
-    int GF2_equal "_equal<GF2>"(GF2_c x, GF2_c y)
     int GF2_IsOne "IsOne"(GF2_c x)
     int GF2_IsZero "IsZero"(GF2_c x)
 
@@ -103,7 +101,6 @@ cdef extern from "sage/libs/ntl/ntlwrap.h":
 
     void GF2X_from_str "_from_str<GF2X>"(GF2X_c* dest, char* s)
     object GF2X_to_PyString "_to_PyString<GF2X>"(GF2X_c *x)
-    int GF2X_equal "_equal<GF2X>"(GF2X_c x, GF2X_c y)
     int GF2X_IsOne "IsOne"(GF2X_c x)
     int GF2X_IsZero "IsZero"(GF2X_c x)
 
@@ -157,7 +154,6 @@ cdef extern from "sage/libs/ntl/ntlwrap.h":
 
     void GF2E_from_str "_from_str<GF2E>"(GF2E_c* dest, char* s)
     object GF2E_to_PyString "_to_PyString<GF2E>"(GF2E_c *x)
-    int GF2E_equal "_equal<GF2E>"(GF2E_c x, GF2E_c y)
     int GF2E_IsOne "IsOne"(GF2E_c x)
     int GF2E_IsZero "IsZero"(GF2E_c x)
 
@@ -180,7 +176,6 @@ cdef extern from "sage/libs/ntl/ntlwrap.h":
 
     void GF2EX_from_str "_from_str<GF2EX>"(GF2EX_c* dest, char* s)
     object GF2EX_to_PyString "_to_PyString<GF2EX>"(GF2EX_c *x)
-    int GF2EX_equal "_equal<GF2EX>"(GF2EX_c x, GF2EX_c y)
     void GF2EX_add "add"( GF2EX_c x, GF2EX_c a, GF2EX_c b)
     void GF2EX_sub "sub"( GF2EX_c x, GF2EX_c a, GF2EX_c b)
     void GF2EX_mul "mul"( GF2EX_c x, GF2EX_c a, GF2EX_c b)
@@ -194,7 +189,6 @@ cdef extern from "sage/libs/ntl/ntlwrap.h":
 
     void mat_GF2E_from_str "_from_str<mat_GF2E>"(mat_GF2E_c* dest, char* s)
     object mat_GF2E_to_PyString "_to_PyString<mat_GF2E>"(mat_GF2E_c *x)
-    int mat_GF2E_equal "_equal<mat_GF2E>"(mat_GF2E_c x, mat_GF2E_c y)
     void mat_GF2E_add "add"( mat_GF2E_c x, mat_GF2E_c a, mat_GF2E_c b)
     void mat_GF2E_sub "sub"( mat_GF2E_c x, mat_GF2E_c a, mat_GF2E_c b)
     void mat_GF2E_mul "mul"( mat_GF2E_c x, mat_GF2E_c a, mat_GF2E_c b)
@@ -223,7 +217,6 @@ cdef extern from "sage/libs/ntl/ntlwrap.h":
 
     void mat_GF2_from_str "_from_str<mat_GF2>"(mat_GF2_c* dest, char* s)
     object mat_GF2_to_PyString "_to_PyString<mat_GF2>"(mat_GF2_c *x)
-    int mat_GF2_equal "_equal<mat_GF2>"(mat_GF2_c x, mat_GF2_c y)
     void mat_GF2_add "add"( mat_GF2_c x, mat_GF2_c a, mat_GF2_c b)
     void mat_GF2_sub "sub"( mat_GF2_c x, mat_GF2_c a, mat_GF2_c b)
     void mat_GF2_mul "mul"( mat_GF2_c x, mat_GF2_c a, mat_GF2_c b)

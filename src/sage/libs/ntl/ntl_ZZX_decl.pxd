@@ -15,7 +15,6 @@ cdef extern from "sage/libs/ntl/ntlwrap.cpp":
     void ZZX_swap "swap"(ZZX_c x, ZZX_c y)
     void ZZX_from_str "_from_str<ZZX>"(ZZX_c* dest, char* s)
     object ZZX_to_PyString "_to_PyString<ZZX>"(ZZX_c *x)
-    int ZZX_equal "_equal<ZZX>"(ZZX_c x, ZZX_c y)
 
     void ZZX_PseudoRem "PseudoRem"(ZZX_c x, ZZX_c a, ZZX_c b)
     ZZ_c ZZX_LeadCoeff "LeadCoeff"(ZZX_c x)

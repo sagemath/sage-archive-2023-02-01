@@ -18,5 +18,3 @@ cdef extern from "sage/libs/ntl/ntlwrap.cpp":
     void zz_p_set_zero "clear"(zz_p_c x)
     void zz_p_set_one "set"(zz_p_c x)
     void zz_p_swap "swap"(zz_p_c x, zz_p_c y)
-
-    bint NTL_zz_p_DOUBLE_EQUALS(zz_p_c x, zz_p_c y)

@@ -420,11 +420,12 @@ cdef class ntl_ZZX(object):
         from copy import copy
         return generic.power(self, n, copy(one_ZZX))
 
-    def __cmp__(ntl_ZZX self, ntl_ZZX other):
+    def __richcmp__(ntl_ZZX self, other, int op):
         """
-        Decide whether or not self and other are equal.
+        Compare self to other.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: f = ntl.ZZX([1,2,3])
             sage: g = ntl.ZZX([1,2,3,0])
             sage: f == g
@@ -432,10 +433,19 @@ cdef class ntl_ZZX(object):
             sage: g = ntl.ZZX([0,1,2,3])
             sage: f == g
             False
+            sage: f == ntl.ZZ(0)
+            False
         """
-        if ZZX_equal(self.x, other.x):
-            return 0
-        return -1
+        if op != Py_EQ and op != Py_NE:
+            raise TypeError("polynomials are not ordered")
+
+        cdef ntl_ZZX b
+        try:
+            b = <ntl_ZZX?>other
+        except TypeError:
+            b = ntl_ZZX(other)
+
+        return (op == Py_EQ) == (self.x == b.x)
 
     def is_zero(self):
         """

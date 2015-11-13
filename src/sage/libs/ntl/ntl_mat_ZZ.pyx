@@ -17,9 +17,9 @@ include "sage/ext/interrupt.pxi"
 include 'misc.pxi'
 include 'decl.pxi'
 
-
 from sage.libs.ntl.ntl_ZZ cimport ntl_ZZ
 from sage.libs.ntl.ntl_ZZX cimport ntl_ZZX
+from cpython.object cimport PyObject_RichCompare
 
 from ntl_ZZ import unpickle_class_args
 
@@ -195,21 +195,33 @@ cdef class ntl_mat_ZZ(object):
         sig_off()
         return r
 
-
-    def __cmp__(self, other):
+    def __richcmp__(ntl_mat_ZZ self, other, int op):
         """
         Compare self to other.
 
-        EXAMPLES:
-            sage: M = ntl.mat_ZZ(2,2,[3..6]) ; N = M**2
-            sage: M == M ## indirect doctest
+        EXAMPLES::
+
+            sage: M = ntl.mat_ZZ(2,2,[3..6])
+            sage: N = M^2
+            sage: M == M
             True
             sage: M == N
             False
+            sage: M == 0
+            False
+            sage: M < ntl.mat_ZZ(2,2,[4,4,4,4])
+            True
+            sage: M != ntl.mat_ZZ(1,1,[3])
+            True
+            sage: M != 0
+            True
         """
-        if type(self) != type(other):
-            return cmp(type(self),type(other))
-        return cmp(self.list(), other.list())
+        cdef ntl_mat_ZZ b
+        try:
+            b = <ntl_mat_ZZ?>other
+        except TypeError:
+            return NotImplemented
+        return PyObject_RichCompare(self.list(), other.list(), op)
 
     def __pow__(ntl_mat_ZZ self, long e, ignored):
         """

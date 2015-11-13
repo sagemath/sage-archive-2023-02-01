@@ -50,9 +50,5 @@ typedef struct {} mat_GF2E;
 
 #define zz_p_set_from_long( obj1, obj2 )\
         ((obj1) = (obj2))
-#define NTL_zz_p_DOUBLE_EQUALS( obj1, obj2 )\
-        ((obj1) == (obj2))
-#define NTL_zz_pX_DOUBLE_EQUALS( obj1, obj2 )\
-        ((obj1) == (obj2))
 
 #endif

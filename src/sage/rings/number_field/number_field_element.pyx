@@ -703,7 +703,7 @@ cdef class NumberFieldElement(FieldElement):
             False
         """
         cdef NumberFieldElement _right = right
-        return not (ZZX_equal(left.__numerator, _right.__numerator) and ZZ_equal(left.__denominator, _right.__denominator))
+        return (left.__numerator != _right.__numerator) or (left.__denominator != _right.__denominator)
 
     def _random_element(self, num_bound=None, den_bound=None, distribution=None):
         """

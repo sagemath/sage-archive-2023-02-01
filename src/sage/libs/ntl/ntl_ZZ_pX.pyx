@@ -501,9 +501,9 @@ cdef class ntl_ZZ_pX(object):
         sig_off()
         return r
 
-    def __cmp__(ntl_ZZ_pX self, ntl_ZZ_pX other):
+    def __richcmp__(ntl_ZZ_pX self, other, int op):
         """
-        Decide whether or not self and other are equal.
+        Compare self to other.
 
         EXAMPLES::
 
@@ -513,13 +513,23 @@ cdef class ntl_ZZ_pX(object):
             sage: f == g
             True
             sage: g = ntl.ZZ_pX([0,1,2,3],c)
-            sage: f == g
-            False
+            sage: f != g
+            True
+            sage: f != 0
+            True
         """
         self.c.restore_c()
-        if ZZ_pX_equal(self.x, other.x):
-            return 0
-        return -1
+
+        if op != Py_EQ and op != Py_NE:
+            raise TypeError("polynomials are not ordered")
+
+        cdef ntl_ZZ_pX b
+        try:
+            b = <ntl_ZZ_pX?>other
+        except TypeError:
+            b = ntl_ZZ_pX(other, self.c)
+
+        return (op == Py_EQ) == (self.x == b.x)
 
     def is_zero(self):
         """

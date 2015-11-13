@@ -5,7 +5,6 @@ from .types cimport ZZ_c, ZZ_p_c, ZZ_pX_c, ZZ_pE_c
 cdef extern from "sage/libs/ntl/ntlwrap.cpp":
     void ZZ_pE_from_str "_from_str<ZZ_pE>"(ZZ_pE_c* dest, char* s)
     object ZZ_pE_to_PyString "_to_PyString<ZZ_pE>"(ZZ_pE_c *x)
-    int ZZ_pE_equal "_equal<ZZ_pE>"(ZZ_pE_c x, ZZ_pE_c y)
 
     void ZZ_pE_add "add"( ZZ_pE_c x, ZZ_pE_c a, ZZ_pE_c b)
     void ZZ_pE_add_long "add"( ZZ_pE_c x, ZZ_pE_c a, long b)

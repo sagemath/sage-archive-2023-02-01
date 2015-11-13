@@ -7,7 +7,6 @@ cdef extern from "sage/libs/ntl/ntlwrap.cpp":
 
     void GF2X_from_str "_from_str<GF2X>"(GF2X_c* dest, char* s)
     object GF2X_to_PyString "_to_PyString<GF2X>"(GF2X_c *x)
-    int GF2X_equal "_equal<GF2X>"(GF2X_c x, GF2X_c y)
     int GF2X_IsOne "IsOne"(GF2X_c x)
     int GF2X_IsZero "IsZero"(GF2X_c x)
     int GF2X_IsX "IsX"(GF2X_c x)

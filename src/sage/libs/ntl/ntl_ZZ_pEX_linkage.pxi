@@ -155,7 +155,7 @@ cdef inline bint celement_equal(ZZ_pEX_c *a, ZZ_pEX_c *b, cparent parent) except
     if parent != NULL:
         parent[0].zzpc[0].restore()
         parent[0].zzpec[0].restore()
-    return ZZ_pEX_equal(a[0], b[0])
+    return a[0] == b[0]
 
 cdef inline int celement_cmp(ZZ_pEX_c *a, ZZ_pEX_c *b, cparent parent) except -2:
     """

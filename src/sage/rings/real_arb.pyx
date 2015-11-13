@@ -1676,7 +1676,7 @@ cdef class RealBall(RingElement):
 
         INPUT:
 
-        - ``ampl`` - A real ball (or an object that can be coerced to a real
+        - ``ampl`` -- A real ball (or an object that can be coerced to a real
           ball).
 
         OUTPUT:

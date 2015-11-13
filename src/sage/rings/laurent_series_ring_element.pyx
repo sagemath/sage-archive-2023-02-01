@@ -641,8 +641,11 @@ cdef class LaurentSeries(AlgebraElement):
         """
         if prec == infinity or prec >= self.prec():
             return self
+        P = self._parent
+        if not self:
+            return LaurentSeries(P, P.power_series_ring()(0, prec=0), prec)
         u = self.__u.add_bigoh(prec - self.__n)
-        return LaurentSeries(self._parent, u, self.__n)
+        return LaurentSeries(P, u, self.__n)
 
     def degree(self):
         """
@@ -1228,10 +1231,22 @@ cdef class LaurentSeries(AlgebraElement):
             sage: f.power_series()
             Traceback (most recent call last):
             ...
-            ArithmeticError: self is a not a power series
+            TypeError: self is not a power series
+
+        TESTS:
+
+        Check whether a polynomial over a Laurent series ring is contained in the
+        polynomial ring over the power series ring (see :trac:`19459`):
+
+            sage: L.<t> = LaurentSeriesRing(GF(2))
+            sage: R.<x,y> = PolynomialRing(L)
+            sage: O = L.power_series_ring()
+            sage: S.<x,y> = PolynomialRing(O)
+            sage: t**(-1)*x*y in S
+            False
         """
         if self.__n < 0:
-            raise ArithmeticError, "self is a not a power series"
+            raise TypeError("self is not a power series")
         u = self.__u
         t = u.parent().gen()
         return t**(self.__n) * u

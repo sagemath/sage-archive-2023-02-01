@@ -1,8 +1,8 @@
 """
 The Sage ZMQ Kernel
 
-Version of the IPython kernel when running Sage inside the IPython
-notebook or remote IPython sessions.
+Version of the Jupyter kernel when running Sage inside the Jupyter
+notebook or remote Jupyter sessions.
 """
 
 #*****************************************************************************
@@ -27,7 +27,7 @@ class SageZMQInteractiveShell(SageNotebookInteractiveShell, ZMQInteractiveShell)
     pass
 
 
-class SageKernel(IPythonKernel):    
+class SageKernel(IPythonKernel):
     implementation = 'sage'
     implementation_version = SAGE_VERSION
 
@@ -35,11 +35,11 @@ class SageKernel(IPythonKernel):
 
     def __init__(self, **kwds):
         """
-        The Sage IPython Kernel
+        The Sage Jupyter Kernel
 
         INPUT:
 
-        See the IPython documentation
+        See the Jupyter documentation
 
         EXAMPLES::
 
@@ -54,8 +54,8 @@ class SageKernel(IPythonKernel):
     def banner(self):
         r"""
         The Sage Banner
-        
-        The value of this property is displayed in the IPython
+
+        The value of this property is displayed in the Jupyter
         notebook.
 
         OUTPUT:
@@ -75,11 +75,11 @@ class SageKernel(IPythonKernel):
     @property
     def help_links(self):
         r"""
-        Help in the IPython Notebook
-        
+        Help in the Jupyter Notebook
+
         OUTPUT:
 
-        See the IPython documentation.
+        See the Jupyter documentation.
 
         EXAMPLES::
 
@@ -87,12 +87,12 @@ class SageKernel(IPythonKernel):
             sage: sk = SageKernel.__new__(SageKernel)
             sage: sk.help_links
             [{'text': 'Sage Documentation',
-              'url': '/kernelspecs/sage_.../doc/index.html'},
+              'url': '../kernelspecs/sagemath/doc/index.html'},
              ...]
         """
         from sage.repl.ipython_kernel.install import SageKernelSpec
         identifier = SageKernelSpec.identifier()
-        kernel_url = lambda x: '/kernelspecs/{0}/{1}'.format(identifier, x)
+        kernel_url = lambda x: '../kernelspecs/{0}/{1}'.format(identifier, x)
         return [
             {
                 'text': 'Sage Documentation',
@@ -119,7 +119,7 @@ class SageKernel(IPythonKernel):
                 'url': kernel_url('doc/reference/index.html'),
             },
             {
-                'text': 'Developers Guide',
+                'text': "Developer's Guide",
                 'url': kernel_url('doc/developer/index.html'),
             },
             {

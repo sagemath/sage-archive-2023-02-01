@@ -48,7 +48,7 @@ We compute some Hecke operators and do a consistency check::
     sage: t2*t5 - t5*t2 == 0
     True
 
-This tests the bug reported in trac #1220::
+This tests the bug reported in :trac:`1220`::
 
     sage: G = GammaH(36, [13, 19])
     sage: G.modular_symbols()

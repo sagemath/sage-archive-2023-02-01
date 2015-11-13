@@ -216,6 +216,7 @@ import urllib
 import sage.modules.free_module as fm
 import sage.modules.module as module
 from sage.categories.modules import Modules
+from sage.categories.fields import Fields
 from copy import copy
 from sage.interfaces.all import gap
 from sage.rings.finite_rings.constructor import FiniteField as GF
@@ -833,9 +834,18 @@ class AbstractLinearCode(module.Module):
             Traceback (most recent call last):
             ...
             ValueError: You must set a valid encoder as default encoder for this code, by completing __init__.py
+
+        A ring instead of a field::
+
+            sage: codes.LinearCode(IntegerModRing(4),matrix.ones(4))
+            Traceback (most recent call last):
+            ...
+            ValueError: 'generator_matrix' must be defined on a field (not a ring)
         """
         if not isinstance(length, (int, Integer)):
             raise ValueError("length must be a Python int or a Sage Integer")
+        if not base_field.is_field():
+            raise ValueError("'base_field' must be a field (and {} is not one)".format(base_field))
         self._length = Integer(length)
         if not default_encoder_name in self._registered_encoders:
             raise ValueError("You must set a valid encoder as default encoder for this code, by completing  __init__.py")
@@ -844,7 +854,6 @@ class AbstractLinearCode(module.Module):
         facade_for = VectorSpace(base_field, self._length)
         self.Element = type(facade_for.an_element()) #for when we made this a non-facade parent
         Parent.__init__(self, base=base_field, facade=facade_for, category=cat)
-
 
     def _latex_(self):
         """
@@ -1607,6 +1616,57 @@ class AbstractLinearCode(module.Module):
         #print S0
         if len(S)>1: return GCD(S0)
         return 1
+
+    def is_projective(self):
+        r"""
+        Test  whether the code is projective.
+
+        A linear code `C` over a field is called *projective* when its dual `Cd`
+        has minimum weight `\geq 3`, i.e. when no two coordinate positions of
+        `C` are linearly independent (cf. definition 3 from [BS11] or 9.8.1 from
+        [BH12]).
+
+        EXAMPLE::
+
+            sage: C = codes.BinaryGolayCode()
+            sage: C.is_projective()
+            True
+            sage: C.dual_code().minimum_distance()
+            8
+
+        A non-projective code::
+
+            sage: C = codes.LinearCode(matrix(GF(2),[[1,0,1],[1,1,1]]))
+            sage: C.is_projective()
+            False
+
+        REFERENCE:
+
+        .. [BS11] E. Byrne and A. Sneyd,
+           On the Parameters of Codes with Two Homogeneous Weights.
+           WCC 2011-Workshop on coding and cryptography, pp. 81-90. 2011.
+           https://hal.inria.fr/inria-00607341/document
+        """
+        M = self.generator_matrix().transpose()
+        R = self.base_field()
+
+        def projectivize(row):
+            if not row.is_zero():
+                for i in range(len(row)):
+                    if row[i]:
+                        break
+                row = ~(row[i]) * row
+            row.set_immutable()
+            return row
+
+        rows = set()
+        for row in M.rows():
+            row = projectivize(row)
+            if row in rows:
+                return False
+            rows.add(row)
+
+        return True
 
     def dual_code(self):
         r"""
@@ -3616,6 +3676,9 @@ class LinearCode(AbstractLinearCode):
             ValueError: this linear code contains no non-zero vector
         """
         base_ring = generator_matrix.base_ring()
+        if not base_ring.is_field():
+            raise ValueError("'generator_matrix' must be defined on a field (not a ring)")
+
         # if the matrix does not have full rank we replace it
         if generator_matrix.rank() != generator_matrix.nrows():
             from sage.matrix.constructor import matrix

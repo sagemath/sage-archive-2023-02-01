@@ -683,8 +683,8 @@ cdef class Matrix_cyclo_dense(matrix_dense.Matrix_dense):
 
         Yes, this works::
 
-            sage: hash(A)
-            -25
+            sage: hash(A)  # random
+            3107179158321342168
         """
         return self._matrix._hash()
 
@@ -702,8 +702,8 @@ cdef class Matrix_cyclo_dense(matrix_dense.Matrix_dense):
             ...
             TypeError: mutable matrices are unhashable
             sage: A.set_immutable()
-            sage: A.__hash__()
-            -18
+            sage: A.__hash__()  # random
+            2347601038649299176
         """
         if self._is_immutable:
             return self._hash()

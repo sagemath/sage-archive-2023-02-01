@@ -388,7 +388,7 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
         Returns either the real or imaginary component of self depending on
         the choice of i: real (i=0), imaginary (i=1)
 
-        INPUTS:
+        INPUT:
 
         - ``i`` - 0 or 1
             - ``0`` -- will return the real component of ``self``
@@ -462,7 +462,7 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
         r"""
         Return a string representation of ``self``.
 
-        INPUTS:
+        INPUT:
 
         - ``base`` --  (Default: 10) The base to use for printing
 

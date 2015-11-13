@@ -499,6 +499,15 @@ class PowerSeriesRing_generic(UniqueRepresentation, commutative_ring.Commutative
             sage: R.category()
             Category of complete discrete valuation rings
             sage: TestSuite(R).run()
+
+        It is checked that the default precision is non-negative
+        (see :trac:`19409`)::
+
+            sage: PowerSeriesRing(ZZ, 'x', default_prec=-5)
+            Traceback (most recent call last):
+            ...
+            ValueError: default_prec (= -5) must be non-negative
+
         """
         R = PolynomialRing(base_ring, name, sparse=sparse)
         self.__poly_ring = R
@@ -506,6 +515,9 @@ class PowerSeriesRing_generic(UniqueRepresentation, commutative_ring.Commutative
         if default_prec is None:
             from sage.misc.defaults import series_precision
             default_prec = series_precision()
+        elif default_prec < 0:
+            raise ValueError("default_prec (= %s) must be non-negative"
+                             % default_prec)
         self.__params = (base_ring, name, default_prec, sparse)
 
         if use_lazy_mpoly_ring and (is_MPolynomialRing(base_ring) or \
@@ -708,9 +720,21 @@ class PowerSeriesRing_generic(UniqueRepresentation, commutative_ring.Commutative
             sage: P(1/q)
             Traceback (most recent call last):
             ...
-            ArithmeticError: self is a not a power series
+            TypeError: self is not a power series
+
+        It is checked that the precision is non-negative
+        (see :trac:`19409`)::
+
+            sage: PowerSeriesRing(ZZ, 'x')(1, prec=-5)
+            Traceback (most recent call last):
+            ...
+            ValueError: prec (= -5) must be non-negative
 
         """
+        if prec is not infinity:
+            prec = integer.Integer(prec)
+            if prec < 0:
+                raise ValueError("prec (= %s) must be non-negative" % prec)
         if isinstance(f, power_series_ring_element.PowerSeries) and f.parent() is self:
             if prec >= f.prec():
                 return f

@@ -265,7 +265,33 @@ class FiniteDimensionalModulesWithBasis(CategoryWithAxiom_over_base_ring):
             return QuotientModuleWithBasis(submodule, category=category)
 
     class ElementMethods:
-        pass
+        def dense_coefficient_list(self, order=None):
+            """
+            Return a list of *all* coefficients of ``self``.
+
+            By default, this list is ordered in the same way as the
+            indexing set of the basis of the parent of ``self``.
+
+            INPUT:
+
+            - ``order`` -- (optional) an ordering of the basis indexing set
+
+            EXAMPLES::
+
+                sage: v = vector([0, -1, -3])
+                sage: v.dense_coefficient_list()
+                [0, -1, -3]
+                sage: v.dense_coefficient_list([2,1,0])
+                [-3, -1, 0]
+                sage: sorted(v.coefficients())
+                [-3, -1]
+            """
+            if order is None:
+                try:
+                    order = sorted(self.parent().basis().keys())
+                except AttributeError: # Not a family, assume it is list-like
+                    order = range(self.parent().dimension())
+            return [self[i] for i in order]
 
     class MorphismMethods:
         def matrix(self, base_ring=None, side="left"):

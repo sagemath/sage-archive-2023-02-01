@@ -7875,22 +7875,26 @@ cdef class Matrix(matrix1.Matrix):
 
     def randomize(self, density=1, nonzero=False, *args, **kwds):
         """
-        Randomize density proportion of the entries of this matrix, leaving
-        the rest unchanged.
+        Replace a proportion of the entries of a matrix by random elements,
+        leaving the remaining entries unchanged.
 
         .. note::
 
-           We actually choose at random ``density`` proportion of entries of
-           the matrix and set them to random elements. It's possible that the
-           same position can be chosen multiple times, especially for a very
-           small matrix.
+           The locations of the entries of the matrix to change are
+           determined randomly, with the total number of locations
+           determined by the ``density`` keyword. These locations
+           are not guaranteed to be distinct.  So it is possible
+           that the same position can be chosen multiple times,
+           especially for a very small matrix.  The exception is
+           when ``density = 1``, in which case every entry of the
+           matrix will be changed.
 
         INPUT:
 
-        -  ``density`` - ``float`` (default: 1); rough measure of the
-           proportion of nonzero entries in the random matrix
-        -  ``nonzero`` - Bool (default: ``False``); whether the new entries
-           have to be non-zero
+        -  ``density`` - ``float`` (default: ``1``); upper bound for the
+           proportion of entries that are changed
+        -  ``nonzero`` - Bool (default: ``False``); if ``True``, then new
+           entries will be nonzero
         -  ``*args, **kwds`` - Remaining parameters may be passed to the
            ``random_element`` function of the base ring
 
@@ -7927,9 +7931,9 @@ cdef class Matrix(matrix1.Matrix):
             [0 0]
             [0 0]
 
-        Then we randomize it; the x and y parameters, which determine the
-        size of the random elements, are passed onto the ZZ random_element
-        method.
+        Then we randomize it; the ``x`` and ``y`` keywords, which determine the
+        size of the random elements, are passed on to the ``random_element``
+        method for ``ZZ``.
 
         ::
 

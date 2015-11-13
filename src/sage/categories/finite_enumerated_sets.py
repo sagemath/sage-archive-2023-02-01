@@ -140,9 +140,9 @@ class FiniteEnumeratedSets(CategoryWithAxiom):
                 [1]
                 sage: P.cardinality()
                 1
-                sage: P.cardinality('use alt algorithm') # Used to break here: see :trac:`13688`
+                sage: P.cardinality('use alt algorithm') # Used to break here: see trac #13688
                 1
-                sage: P.cardinality(dummy_arg='use alg algorithm') # Used to break here: see :trac:`13688`
+                sage: P.cardinality(dummy_arg='use alg algorithm') # Used to break here: see trac #13688
                 1
             """
             c = 0
@@ -496,14 +496,14 @@ class FiniteEnumeratedSets(CategoryWithAxiom):
                 'sage.categories.sets_cat'
 
                 sage: C.__iter__.__module__
-                'sage.categories.enumerated_sets'
+                'sage.categories.sets_cat'
             """
 
             # Ambiguity resolution between methods inherited from
             # Sets.CartesianProducts and from EnumeratedSets.Finite.
             random_element = Sets.CartesianProducts.ParentMethods.random_element.__func__
             cardinality = Sets.CartesianProducts.ParentMethods.cardinality.__func__
-            __iter__ = EnumeratedSets.CartesianProducts.ParentMethods.__iter__.__func__
+            __iter__ = Sets.CartesianProducts.ParentMethods.__iter__.__func__
 
             def last(self):
                 r"""

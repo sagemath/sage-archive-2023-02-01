@@ -526,9 +526,6 @@ cdef class Element(SageObject):
                 pass
         return res
 
-    def __hash__(self):
-        return hash(str(self))
-
     def _im_gens_(self, codomain, im_gens):
         """
         Return the image of ``self`` in codomain under the map that sends
@@ -889,7 +886,7 @@ cdef class Element(SageObject):
         """
         return not self
 
-    cdef int _cmp(self, other) except -2:
+    def __cmp__(self, other):
         """
         Compare ``left`` and ``right`` using the coercion framework.
 
@@ -898,8 +895,8 @@ cdef class Element(SageObject):
 
         EXAMPLES:
 
-        We create an ``Element`` class where we define ``__cmp__``
-        and ``_richcmp_`` and check that comparison works::
+        We create an ``Element`` class where we define ``_richcmp_``
+        and check that comparison works::
 
             sage: cython('''
             ....: from sage.structure.sage_object cimport rich_to_bool
@@ -908,8 +905,6 @@ cdef class Element(SageObject):
             ....:     cdef float x
             ....:     def __init__(self, float v):
             ....:         self.x = v
-            ....:     def __cmp__(self, other):
-            ....:         return (<Element>self)._cmp(other)
             ....:     cpdef _richcmp_(self, Element other, int op):
             ....:         cdef float x1 = (<FloatCmp>self).x
             ....:         cdef float x2 = (<FloatCmp>other).x
@@ -964,85 +959,17 @@ cdef class Element(SageObject):
                 return 1
             raise
 
-    cdef _richcmp(self, other, int op):
+    def _cache_key(self):
         """
-        Compare ``self`` and ``other`` using the coercion framework,
-        comparing according to the comparison operator ``op``.
-
-        This method exists only because of historical reasons: before
-        :trac:`18329`, the ``__richcmp__`` method would not be
-        inherited if ``__hash__`` was defined. Eventually, we should
-        completely replace ``_richcmp`` by ``__richcmp__``.
-
-        Normally, a class will not redefine ``_richcmp`` but rely on
-        this ``Element._richcmp`` method which uses coercion to
-        compare elements. Then ``_richcmp_`` is called on the coerced
-        elements.
-
-        If a class wants to implement rich comparison without coercion,
-        then ``_richcmp`` should be defined (as well as ``__richcmp__``
-        as usual).
-        See :class:`sage.numerical.linear_functions.LinearConstraint`
-        for such an example.
-
-        For efficiency reasons, a class can do certain "manual"
-        coercions directly in ``__richcmp__``, using ``_richcmp``
-        for the remaining cases. This is done for example in
-        :class:`Integer`.
+        Provide a hashable key for an element if it is not hashable
+        
+        EXAMPLES::
+        
+            sage: a=sage.structure.element.Element(ZZ)
+            sage: a._cache_key()
+            (Integer Ring, 'Generic element of a structure')
         """
-        if have_same_parent_c(self, other):
-            # Same parents, in particular other must be an Element too.
-            # The explicit cast <Element>other tells Cython to omit the
-            # check isinstance(other, Element) when calling _richcmp_
-            return self._richcmp_(<Element>other, op)
-
-        # Some very special cases
-        if self is None or self is Ellipsis:
-            return rich_to_bool(op, -1)
-        if other is None or other is Ellipsis:
-            return rich_to_bool(op, 1)
-
-        # Different parents => coerce
-        try:
-            left, right = coercion_model.canonical_coercion(self, other)
-        except (TypeError, NotImplementedError):
-            pass
-        else:
-            if isinstance(left, Element):
-                return (<Element>left)._richcmp(<Element>right, op)
-            # left and right are the same non-Element type:
-            # use a plain cmp()
-            return rich_to_bool(op, cmp(left, right))
-
-        # Comparing with coercion didn't work, try something else.
-
-        # Often things are compared against 0, even when there is no
-        # canonical coercion from ZZ. For ModuleElements, we manually
-        # convert zero to handle this case.
-        from sage.rings.integer import Integer
-        cdef Element zero
-        try:
-            if isinstance(self, ModuleElement) and isinstance(other, (int, float, Integer)) and not other:
-                zero = (<Element>self)._parent(0)
-                return self._richcmp_(zero, op)
-            elif isinstance(other, ModuleElement) and isinstance(self, (int, float, Integer)) and not self:
-                zero = (<Element>other)._parent(0)
-                return zero._richcmp_(other, op)
-        except (TypeError, AttributeError):
-            pass
-
-        # If types are not equal: compare types
-        cdef int r = cmp(type(self), type(other))
-        if r:
-            return rich_to_bool(op, r)
-
-        # Final attempt: compare by id()
-        if (<unsigned long><PyObject*>self) >= (<unsigned long><PyObject*>other):
-            # It cannot happen that self is other, since they don't
-            # have the same parent.
-            return rich_to_bool(op, 1)
-        else:
-            return rich_to_bool(op, -1)
+        return(self.parent(),str(self))
 
     ####################################################################
     # In a Cython or a Python class, you must define either _cmp_
@@ -1058,11 +985,33 @@ cdef class Element(SageObject):
     # In the _cmp_ and _richcmp_ methods, you can assume that both
     # arguments have identical parents.
     ####################################################################
-    def __richcmp__(left, right, int op):
-        return (<Element>left)._richcmp(right, op)
+    def __richcmp__(self, other, int op):
+        """
+        Compare ``self`` and ``other`` using the coercion framework,
+        comparing according to the comparison operator ``op``.
 
-    def __cmp__(left, right):
-        return (<Element>left)._cmp(right)
+        Normally, a class will not redefine ``__richcmp__`` but rely on
+        this ``Element.__richcmp__`` method which uses coercion if
+        needed to compare elements. After coercion (or if no coercion
+        is needed), ``_richcmp_`` is called.
+
+        If a class wants to implement rich comparison without coercion,
+        then ``__richcmp__`` should be defined.
+        See :class:`sage.numerical.linear_functions.LinearConstraint`
+        for such an example.
+
+        For efficiency reasons, a class can do certain "manual"
+        coercions directly in ``__richcmp__``, using
+        ``coercion_model.richcmp()`` for the remaining cases.
+        This is done for example in :class:`Integer`.
+        """
+        if have_same_parent_c(self, other):
+            # Same parents, in particular self and other must both be
+            # an instance of Element. The explicit casts below make
+            # Cython generate optimized code for this call.
+            return (<Element>self)._richcmp_(<Element>other, op)
+        else:
+            return coercion_model.richcmp(self, other, op)
 
     cpdef _richcmp_(left, Element right, int op):
         r"""
@@ -3349,6 +3298,7 @@ def coerce_cmp(x,y):
         if c == 0: c = -1
         return c
 
+
 # We define this base class here to avoid circular cimports.
 cdef class CoercionModel:
     """
@@ -3364,8 +3314,14 @@ cdef class CoercionModel:
             return op(x,y)
         raise TypeError(arith_error_message(x,y,op))
 
+    cpdef richcmp(self, x, y, int op):
+        x, y = self.canonical_coercion(x, y)
+        return PyObject_RichCompare(x, y, op)
+
+
 import coerce
 cdef CoercionModel coercion_model = coerce.CoercionModel_cache_maps()
+
 
 def get_coercion_model():
     """

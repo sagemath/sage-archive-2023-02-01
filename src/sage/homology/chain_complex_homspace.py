@@ -23,7 +23,9 @@ EXAMPLES::
     sage: i = H.identity()
     sage: x = i.associated_chain_complex_morphism(augmented=True)
     sage: x
-    Chain complex morphism from Chain complex with at most 4 nonzero terms over Integer Ring to Chain complex with at most 4 nonzero terms over Integer Ring
+    Chain complex morphism:
+      From: Chain complex with at most 4 nonzero terms over Integer Ring
+      To: Chain complex with at most 4 nonzero terms over Integer Ring
     sage: x._matrix_dictionary
     {-1: [1], 0: [1 0 0 0 0 0 0 0 0]
      [0 1 0 0 0 0 0 0 0]
@@ -62,11 +64,15 @@ EXAMPLES::
     sage: i = A.identity()
     sage: x = i.associated_chain_complex_morphism()
     sage: x
-    Chain complex morphism from Chain complex with at most 3 nonzero terms over Integer Ring to Chain complex with at most 3 nonzero terms over Integer Ring
+    Chain complex morphism:
+      From: Chain complex with at most 3 nonzero terms over Integer Ring
+      To: Chain complex with at most 3 nonzero terms over Integer Ring
     sage: y = x*4
     sage: z = y*y
     sage: (y+z)
-    Chain complex morphism from Chain complex with at most 3 nonzero terms over Integer Ring to Chain complex with at most 3 nonzero terms over Integer Ring
+    Chain complex morphism:
+      From: Chain complex with at most 3 nonzero terms over Integer Ring
+      To: Chain complex with at most 3 nonzero terms over Integer Ring
     sage: f = x._matrix_dictionary
     sage: C = S.chain_complex()
     sage: G = Hom(C,C)
@@ -93,7 +99,7 @@ EXAMPLES::
 #*****************************************************************************
 
 import sage.categories.homset
-import sage.homology.chain_complex_morphism as chain_complex_morphism
+from sage.homology.chain_complex_morphism import ChainComplexMorphism
 
 def is_ChainComplexHomspace(x):
     """
@@ -142,4 +148,4 @@ class ChainComplexHomspace(sage.categories.homset.Homset):
             True
 
         """
-        return chain_complex_morphism.ChainComplexMorphism(f, self.domain(), self.codomain())
+        return ChainComplexMorphism(f, self.domain(), self.codomain())

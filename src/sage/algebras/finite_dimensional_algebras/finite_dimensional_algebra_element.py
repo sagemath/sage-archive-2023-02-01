@@ -134,6 +134,28 @@ class FiniteDimensionalAlgebraElement(AlgebraElement):
         """
         return self._matrix
 
+    def monomial_coefficients(self, copy=True):
+        """
+        Return a dictionary whose keys are indices of basis elements in
+        the support of ``self`` and whose values are the corresponding
+        coefficients.
+
+        INPUT:
+
+        - ``copy`` -- (default: ``True``) if ``self`` is internally
+          represented by a dictionary ``d``, then make a copy of ``d``;
+          if ``False``, then this can cause undesired behavior by
+          mutating ``d``
+
+        EXAMPLES::
+
+            sage: B = FiniteDimensionalAlgebra(QQ, [Matrix([[1,0], [0,1]]), Matrix([[0,1], [-1,0]])])
+            sage: elt = B(Matrix([[1,1], [-1,1]]))
+            sage: elt.monomial_coefficients()
+            {0: 1, 1: 1}
+        """
+        return self._vector.dict(copy)
+
     def left_matrix(self):
         """
         Return the matrix for multiplication by ``self`` from the left.
@@ -344,6 +366,9 @@ class FiniteDimensionalAlgebraElement(AlgebraElement):
         Return ``True`` if ``self`` has a two-sided multiplicative
         inverse.
 
+        This assumes that the algebra to which ``self`` belongs is
+        associative.
+
         .. NOTE::
 
             If an element of a unitary finite-dimensional algebra over a field
@@ -365,6 +390,9 @@ class FiniteDimensionalAlgebraElement(AlgebraElement):
         """
         The two-sided inverse of ``self``, if it exists; otherwise this
         is ``None``.
+
+        This assumes that the algebra to which ``self`` belongs is
+        associative.
 
         EXAMPLES::
 
@@ -391,11 +419,14 @@ class FiniteDimensionalAlgebraElement(AlgebraElement):
         Return the two-sided multiplicative inverse of ``self``, if it
         exists.
 
+        This assumes that the algebra to which ``self`` belongs is
+        associative.
+
         .. NOTE::
 
-            If an element of a unitary finite-dimensional algebra over a field
-            admits a left inverse, then this is the unique left
-            inverse, and it is also a right inverse.
+            If an element of a finite-dimensional unitary associative
+            algebra over a field admits a left inverse, then this is the
+            unique left inverse, and it is also a right inverse.
 
         EXAMPLES::
 

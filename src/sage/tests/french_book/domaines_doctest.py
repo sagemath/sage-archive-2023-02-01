@@ -174,7 +174,7 @@ Sage example in ./domaines.tex, line 383::
 Sage example in ./domaines.tex, line 415::
 
     sage: QQ.category()
-    Category of quotient fields
+    Join of Category of quotient fields and Category of metric spaces
 
 Sage example in ./domaines.tex, line 421::
 

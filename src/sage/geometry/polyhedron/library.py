@@ -1197,6 +1197,76 @@ class Polytopes():
         verts += [[v[2], v[0], v[1]] for v in pts]
         return Polyhedron(vertices=verts, base_ring=base_ring)
 
+    def truncated_icosidodecahedron(self, exact=True, base_ring=None):
+        """
+        Return the truncated icosidodecahedron.
+
+        The truncated icosidodecahedron is an Archimedean solid.
+        It has 62 faces and 120 vertices. For more information, see the
+        :wikipedia:`Truncated_icosidodecahedron`.
+
+        INPUT:
+
+        - ``exact`` -- (boolean, default ``True``) If ``False`` use an
+          approximate ring for the coordinates.
+
+        - ``base_ring`` -- the ring in which the coordinates will belong to. If
+          it is not provided and ``exact=True`` it will be a the number field
+          `\QQ[\phi]` where `\phi` is the golden ratio and if ``exact=False`` it
+          will be the real double field.
+
+        EXAMPLES::
+
+            sage: bb = polytopes.truncated_icosidodecahedron()   # long time
+            sage: bb.f_vector()                # long time
+            (1, 120, 180, 62, 1)
+            sage: bb.base_ring()               # long time
+            Number Field in sqrt5 with defining polynomial x^2 - 5
+
+        A much faster implementation using floating point approximations::
+
+            sage: bb = polytopes.truncated_icosidodecahedron(exact=False)
+            sage: bb.f_vector()
+            (1, 120, 180, 62, 1)
+            sage: bb.base_ring()
+            Real Double Field
+
+        Its faces are 30 squares, 20 hexagons and 12 decagons::
+
+            sage: sum(1 for f in bb.faces(2) if len(f.vertices()) == 4)
+            30
+            sage: sum(1 for f in bb.faces(2) if len(f.vertices()) == 6)
+            20
+            sage: sum(1 for f in bb.faces(2) if len(f.vertices()) == 10)
+            12
+        """
+        if base_ring is None and exact:
+            from sage.rings.number_field.number_field import QuadraticField
+            K = QuadraticField(5, 'sqrt5')
+            sqrt5 = K.gen()
+            g = (1 + sqrt5) / 2
+            base_ring = K
+        else:
+            if base_ring is None:
+                base_ring = RDF
+            g = (1 + base_ring(5).sqrt()) / 2
+
+        pts = [[s1 * 1 / g, s2 * 1 / g, s3 * (3 + g)]
+                for s1, s2, s3 in itertools.product([1, -1], repeat=3)]
+        pts += [[s1 * 2 / g, s2 * g, s3 * (1 + 2 * g)]
+                for s1, s2, s3 in itertools.product([1, -1], repeat=3)]
+        pts += [[s1 * 1 / g, s2 * (g**2), s3 * (-1 + 3 * g)]
+                for s1, s2, s3 in itertools.product([1, -1], repeat=3)]
+        pts += [[s1 * (-1 + 2 * g), s2 * 2 * base_ring.one(), s3 * (2 + g)]
+                for s1, s2, s3 in itertools.product([1, -1], repeat=3)]
+        pts += [[s1 * g, s2 * 3 * base_ring.one(), s3 * 2 * g]
+                for s1, s2, s3 in itertools.product([1, -1], repeat=3)]
+        #the vertices are all ever permutations of the lists in pts
+        verts = pts
+        verts += [[v[1], v[2], v[0]] for v in pts]
+        verts += [[v[2], v[0], v[1]] for v in pts]
+        return Polyhedron(vertices=verts, base_ring=base_ring)
+
     def twenty_four_cell(self):
         """
         Return the standard 24-cell polytope.

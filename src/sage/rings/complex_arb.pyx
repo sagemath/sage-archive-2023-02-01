@@ -36,10 +36,10 @@ Comparison
 
 .. WARNING::
 
-    Identical :class:`ComplexBall` objects are understood to give
-    permission for algebraic simplification. This assumption is made
-    to improve performance. For example, setting ``z = x*x`` sets `z`
-    to a ball enclosing the set `\{t^2 : t \in x\}` and not the
+    In accordance with the semantics of Arb, identical :class:`ComplexBall`
+    objects are understood to give permission for algebraic simplification.
+    This assumption is made to improve performance. For example, setting ``z =
+    x*x`` sets `z` to a ball enclosing the set `\{t^2 : t \in x\}` and not the
     (generally larger) set `\{tu : t \in x, u \in x\}`.
 
 Two elements are equal if and only if they are the same object

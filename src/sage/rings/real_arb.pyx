@@ -62,11 +62,11 @@ Comparison
 
 .. WARNING::
 
-    Identical :class:`RealBall` objects are understood to give
-    permission for algebraic simplification. This assumption is made
-    to improve performance.  For example, setting ``z = x*x`` may set `z`
-    to a ball enclosing the set `\{t^2 : t \in x\}` and not the
-    (generally larger) set `\{tu : t \in x, u \in x\}`.
+    In accordance with the semantics of Arb, identical :class:`RealBall`
+    objects are understood to give permission for algebraic simplification.
+    This assumption is made to improve performance.  For example, setting ``z =
+    x*x`` may set `z` to a ball enclosing the set `\{t^2 : t \in x\}` and not
+    the (generally larger) set `\{tu : t \in x, u \in x\}`.
 
 Two elements are equal if and only if they are the same object
 or if both are exact and equal::

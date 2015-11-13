@@ -155,6 +155,7 @@ can be applied on both. Here is what it can do:
     :meth:`~GenericGraph.is_vertex_transitive` | Return whether the automorphism group of self is transitive within the partition provided
     :meth:`~GenericGraph.is_isomorphic` | Test for isomorphism between self and other.
     :meth:`~GenericGraph.canonical_label` | Return the unique graph on `\{0,1,...,n-1\}` ( ``n = self.order()`` ) which 1) is isomorphic to self 2) is invariant in the isomorphism class.
+    :meth:`~GenericGraph.is_cayley_graph` | Check whether self is a Cayley graph.
 
 **Graph properties:**
 
@@ -20789,7 +20790,7 @@ class GenericGraph(GenericGraph_pyx):
 
     def is_cayley_graph(self, certificate = False):
         r"""
-        Check whether self is a Cayley graph
+        Check whether self is a Cayley graph.
 
         INPUT:
 
@@ -20811,7 +20812,7 @@ class GenericGraph(GenericGraph_pyx):
 
         AUTHOR:
 
-        Janoš Vidali (implementation)
+        Janos Vidali (implementation)
 
         EXAMPLES:
 
@@ -20820,6 +20821,24 @@ class GenericGraph(GenericGraph_pyx):
             sage: g = graphs.PetersenGraph()
             sage: g.is_cayley_graph()
             False
+
+        A Cayley digraph is a Cayley graph::
+
+            sage: C7 = groups.permutation.Cyclic(7)
+            sage: S = [(1,2,3,4,5,6,7), (1,3,5,7,2,4,6), (1,5,2,6,3,7,4)]
+            sage: d = C7.cayley_graph(generators=S)
+            sage: d.is_cayley_graph()
+            True
+
+        TESTS:
+
+        Cayley graphs can be reconstructed from the certificate::
+
+            sage: g = graphs.PaleyGraph(9)
+            sage: _, G, S = Graph.is_cayley_graph(g, certificate=True)
+            sage: Graph(G.cayley_graph(generators=S)).is_isomorphic(g)
+            True
+
         """
         if not self.is_connected():
             # TODO

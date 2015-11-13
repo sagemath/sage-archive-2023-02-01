@@ -35,6 +35,7 @@ The following constructions are available
     :meth:`~sage.geometry.polyhedron.library.Polytopes.permutahedron`
     :meth:`~sage.geometry.polyhedron.library.Polytopes.regular_polygon`
     :meth:`~sage.geometry.polyhedron.library.Polytopes.rhombic_dodecahedron`
+    :meth:`~sage.geometry.polyhedron.library.Polytopes.rhombicosidodecahedron`
     :meth:`~sage.geometry.polyhedron.library.Polytopes.simplex`
     :meth:`~sage.geometry.polyhedron.library.Polytopes.six_hundred_cell`
     :meth:`~sage.geometry.polyhedron.library.Polytopes.small_rhombicuboctahedron`
@@ -85,7 +86,7 @@ def zero_sum_projection(d):
     the canonical basis in `\RR^{d-1}`.
 
     OUTPUT:
-    
+
     A matrix of dimensions `(d-1)\times d` defined over :class:`RDF
     <sage.rings.real_double.RealDoubleField_class>`.
 
@@ -1129,6 +1130,72 @@ class Polytopes():
                     [0, 12, 8], [0, -12, 8], [0, 12, -8], [0, -12, -8],
                     [6, 0, 12], [-6, 0, 12], [6, 0, -12], [-6, 0, -12]]
         return Polyhedron(vertices=vertices, base_ring=ZZ)
+
+    def rhombicosidodecahedron(self, exact=True, base_ring=None):
+        """
+        Return the rhombicosidodecahedron.
+
+        The rhombicosidodecahedron is an Archimedean solid.
+        It has 62 faces and 60 vertices. For more information, see the
+        :wikipedia:`Rhombicosidodecahedron`.
+
+        INPUT:
+
+        - ``exact`` -- (boolean, default ``True``) If ``False`` use an
+          approximate ring for the coordinates.
+
+        - ``base_ring`` -- the ring in which the coordinates will belong to. If
+          it is not provided and ``exact=True`` it will be a the number field
+          `\QQ[\phi]` where `\phi` is the golden ratio and if ``exact=False`` it
+          will be the real double field.
+
+        EXAMPLES::
+
+            sage: bb = polytopes.rhombicosidodecahedron()   # long time - 6secs
+            sage: bb.f_vector()                # long time
+            (1, 60, 120, 62, 1)
+            sage: bb.base_ring()               # long time
+            Number Field in sqrt5 with defining polynomial x^2 - 5
+
+        A much faster implementation using floating point approximations::
+
+            sage: bb = polytopes.rhombicosidodecahedron(exact=False)
+            sage: bb.f_vector()
+            (1, 60, 120, 62, 1)
+            sage: bb.base_ring()
+            Real Double Field
+
+        Its faces are 20 triangles, 30 squares and 12 pentagons::
+
+            sage: sum(1 for f in bb.faces(2) if len(f.vertices()) == 3)
+            20
+            sage: sum(1 for f in bb.faces(2) if len(f.vertices()) == 4)
+            30
+            sage: sum(1 for f in bb.faces(2) if len(f.vertices()) == 5)
+            12
+        """
+        if base_ring is None and exact:
+            from sage.rings.number_field.number_field import QuadraticField
+            K = QuadraticField(5, 'sqrt5')
+            sqrt5 = K.gen()
+            g = (1 + sqrt5) / 2
+            base_ring = K
+        else:
+            if base_ring is None:
+                base_ring = RDF
+            g = (1 + base_ring(5).sqrt()) / 2
+
+        pts = [[s1 * base_ring.one(), s2 * base_ring.one(), s3 * (g**3)]
+                for s1, s2, s3 in itertools.product([1, -1], repeat=3)]
+        pts += [[s1 * (g**2), s2 * g, s3 * 2 * g]
+                for s1, s2, s3 in itertools.product([1, -1], repeat=3)]
+        pts += [[s1 * (2 + g), 0, s2 * (g**2)]
+                for s1, s2 in itertools.product([1, -1], repeat=2)]
+        #the vertices are all ever permutations of the lists in pts
+        verts = pts
+        verts += [[v[1], v[2], v[0]] for v in pts]
+        verts += [[v[2], v[0], v[1]] for v in pts]
+        return Polyhedron(vertices=verts, base_ring=base_ring)
 
     def twenty_four_cell(self):
         """

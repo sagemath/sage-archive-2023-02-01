@@ -2670,7 +2670,7 @@ cdef class RealBall(RingElement):
         """
         Return the logarithm of this ball.
 
-        INPUT::
+        INPUT:
 
         - ``base`` (optional, positive real ball or number) -- if ``None``,
           return the natural logarithm ``ln(self)``, otherwise, return the

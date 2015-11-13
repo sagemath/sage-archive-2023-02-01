@@ -3454,7 +3454,7 @@ class MutablePoset(SageObject):
         .. NOTE::
 
             If ``function`` returns ``None``, then the element is
-            removed after the mapping.
+            removed.
 
         EXAMPLES::
 

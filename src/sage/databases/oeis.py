@@ -26,10 +26,12 @@ What about a sequence starting with `3, 7, 15, 1` ?
 
     sage: search = oeis([3, 7, 15, 1], max_results=4) ; search  # optional -- internet
     0: A001203: Continued fraction expansion of Pi.
-    1: A246674: Run Length Transform of A000225.
-    2: A165416: Irregular array read by rows: The n-th row contains those distinct positive integers that each, when written in binary, occurs as a substring in binary n.
-    3: A193583: Number of fixed points under iteration of sum of squares of digits in base b.
+    1: A082495: a(n) = (2^n - 1) mod n.
+    2: A246674: Run Length Transform of A000225.
+    3: A165416: Irregular array read by rows: The n-th row contains those distinct positive integers that each, when written in binary, occurs as a substring in binary n.
 
+    sage: [u.id() for u in search]                      # optional -- internet
+    ['A001203', 'A082495', 'A246674', 'A165416']
     sage: c = search[0] ; c                             # optional -- internet
     A001203: Continued fraction expansion of Pi.
 
@@ -1554,7 +1556,7 @@ class OEISSequence(SageObject):
             A039834: a(n+2) = -a(n+1)+a(n) (signed Fibonacci numbers); or Fibonacci numbers (A000045) extended to negative indices.
 
             sage: sfibo.extensions_or_errors()[0]       # optional -- internet
-            'Signs corrected by Len Smiley (smiley(AT)math.uaa.alaska.edu) and _N. J. A. Sloane_.'
+            'Signs corrected by _Len Smiley_ and _N. J. A. Sloane_.'
 
         TESTS::
 
@@ -1673,16 +1675,16 @@ class OEISSequence(SageObject):
             A012345
             <BLANKLINE>
             NAME
-            sinh(arcsin(x)*arcsin(x))=2/2!*x^2+8/4!*x^4+248/6!*x^6+11328/8!*x^8...
+            Coefficients in the expansion sinh(arcsin(x)*arcsin(x)) = 2*x^2/2!+8*x^4/4!+248*x^6/6!+11328*x^8/8!+...
             <BLANKLINE>
             FIRST TERMS
-            (2, 8, 248, 11328, 849312, 94857600, 14819214720, 3091936512000, ...
+            (2, 8, 248, 11328, 849312, 94857600, 14819214720, 3091936512000, 831657655349760, 280473756197529600, 115967597965430077440, 57712257892456911912960, 34039765801079493369569280)
             <BLANKLINE>
-            KEYWORDS
-            ('nonn',)
-            <BLANKLINE>
+            FORMULAS
+            ...
             OFFSETS
             (0, 1)
+            <BLANKLINE>
             URL
             http://oeis.org/A012345
             <BLANKLINE>

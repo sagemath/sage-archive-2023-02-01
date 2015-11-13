@@ -20821,7 +20821,35 @@ class GenericGraph(GenericGraph_pyx):
             sage: g.is_cayley_graph()
             False
         """
-        pass
+        if not self.is_connected():
+            # TODO
+            raise NotImplementedError
+        A = self.automorphism_group()
+        n = self.order()
+        if n == 0:
+            c = False
+        elif A.order() == n:
+            c = A.is_transitive()
+            G = A
+        else:
+            try:
+                G = next(g for g in A.conjugacy_classes_subgroups()
+                         if g.order() == n and g.is_transitive())
+                c = True
+            except StopIteration:
+                c = False
+        if certificate:
+            if not c:
+                return (False, None, None)
+            v = next(self.vertex_iterator())
+            if self.is_directed():
+                adj = self.neighbors_out(v)
+            else:
+                adj = self.neighbors(v)
+            S = [f for f in G if f(v) in adj]
+            return (True, G, S)
+        else:
+            return c
 
 import types
 

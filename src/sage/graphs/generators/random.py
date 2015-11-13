@@ -1006,10 +1006,10 @@ def RandomTriangulation(n, set_position=False):
 
     def rotate_word_to_next_occurrence(word):
         # Rotates 'word' so that 'in1,in2,in3,lf,in3' occurs at word[:5].
-        pattern = ['in','in','in','lf','in']
+        pattern = ['in', 'in', 'in', 'lf', 'in']
         n = len(word)
         for i in range(n):
-            if all(word[(i+j)%n][0] == pattern[j] for j in range(5)):
+            if all(word[(i + j) % n][0] == pattern[j] for j in range(5)):
                 return word[i:] + word[:i]
         return []
 
@@ -1017,8 +1017,8 @@ def RandomTriangulation(n, set_position=False):
     while True:
         word2 = rotate_word_to_next_occurrence(word)
         if len(word2) >= 5:
-            word = [word2[0]]+word2[4:]
-            edges.append(word[:2]) # edge 'in1,in3'
+            word = [word2[0]] + word2[4:]
+            edges.append([u[1] for u in word[:2]])  # edge 'in1,in3'
         else:
             break
 
@@ -1041,6 +1041,7 @@ def RandomTriangulation(n, set_position=False):
             last_lf_occurrence = 0
 
     assert graph.num_edges() == 3 * (n - 2)
+    assert graph.num_verts() == n
 
     if set_position:
         graph.layout(layout="planar", save_pos=True)

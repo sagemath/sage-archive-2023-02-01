@@ -20,9 +20,10 @@ from sage.misc.latex import latex
 from sage.misc.misc_c import prod
 from sage.misc.cachefunc import cached_method
 
-from sage.rings.all import AA, QQbar, ZZ, infinity
+from sage.rings.all import AA, QQbar, ZZ, infinity, CC
 
 from sage.groups.matrix_gps.group_element import MatrixGroupElement_generic
+from sage.geometry.hyperbolic_space.hyperbolic_interface import HyperbolicPlane
 
 
 # We want to simplify p after the coercion (pari bug for AA)
@@ -2018,7 +2019,7 @@ class HeckeTriangleGroupElement(MatrixGroupElement_generic):
 
             sage: el = G.V(3)*G.V(2)^(-1)*G.V(1)*G.V(6)
             sage: el.simple_fixed_point_set()
-            {(-lam + 3/2)*e + 1/2*lam - 1, 1/2*e + 1/2*lam, 1/2*e - 1/2*lam, (-lam + 3/2)*e - 1/2*lam + 1}
+            {(-lam + 3/2)*e - 1/2*lam + 1, 1/2*e + 1/2*lam, (-lam + 3/2)*e + 1/2*lam - 1, 1/2*e - 1/2*lam}
             sage: el.simple_fixed_point_set(extended=False)
             {1/2*e + 1/2*lam, 1/2*e - 1/2*lam}
         """
@@ -2517,7 +2518,7 @@ class HeckeTriangleGroupElement(MatrixGroupElement_generic):
             sage: el.is_hecke_symmetric()
             True
             sage: el.simple_fixed_point_set()
-            {(lam - 3/2)*e + 1/2*lam - 1, (lam - 3/2)*e - 1/2*lam + 1, (-lam + 3/2)*e - 1/2*lam + 1, (-lam + 3/2)*e + 1/2*lam - 1}
+            {(lam - 3/2)*e + 1/2*lam - 1, (-lam + 3/2)*e + 1/2*lam - 1, (lam - 3/2)*e - 1/2*lam + 1, (-lam + 3/2)*e - 1/2*lam + 1}
             sage: el.simple_fixed_point_set() == el.inverse().simple_fixed_point_set()
             True
         """
@@ -3068,11 +3069,13 @@ class HeckeTriangleGroupElement(MatrixGroupElement_generic):
 
             return (root1, root2)
 
-    def acton(self, z):
+    def acton(self, tau):
         r"""
-        Return the image of ``z`` under the action of ``self``
+        Return the image of ``tau`` under the action of ``self``
         by linear fractional transformations or by conjugation
-        in case ``z`` is an element of the parent of ``self``.
+        in case ``tau`` is an element of the parent of ``self``.
+
+        It is possible to act on points of ``HyperbolicPlane()``.
 
         .. NOTE:
 
@@ -3083,13 +3086,16 @@ class HeckeTriangleGroupElement(MatrixGroupElement_generic):
 
         INPUT:
 
-        - ``z``     -- Either an element of ``self`` or any
+        - ``tau``   -- Either an element of ``self`` or any
                        element to which a linear fractional
                        transformation can be applied in
                        the usual way.
 
                        In particular ``infinity`` is a possible
                        argument and a possible return value.
+
+                       As mentioned it is also possible to use
+                       points of ``HyperbolicPlane()``.
 
         EXAMPLES::
 
@@ -3116,52 +3122,117 @@ class HeckeTriangleGroupElement(MatrixGroupElement_generic):
             sage: G.V(2).inverse().acton(G.U())
             [  0  -1]
             [  1 lam]
+
+            sage: p = HyperbolicPlane().PD().get_point(-I/2+1/8)
+            sage: G.V(2).acton(p)
+            Point in PD -((-(47*I + 161)*sqrt(5) - 47*I - 161)/(145*sqrt(5) + 94*I + 177) + I)/(I*(-(47*I + 161)*sqrt(5) - 47*I - 161)/(145*sqrt(5) + 94*I + 177) + 1)
+            sage: bool(G.V(2).acton(p).to_model('UHP').coordinates() == G.V(2).acton(p.to_model('UHP').coordinates()))
+            True
+
+            sage: p = HyperbolicPlane().PD().get_point(I)
+            sage: G.U().acton(p)
+            Boundary point in PD 1/2*(sqrt(5) - 2*I + 1)/(-1/2*I*sqrt(5) - 1/2*I + 1)
+            sage: G.U().acton(p).to_model('UHP') == HyperbolicPlane().UHP().get_point(G.lam())
+            True
+            sage: G.U().acton(p) == HyperbolicPlane().UHP().get_point(G.lam()).to_model('PD')
+            True
         """
-        if z.parent() == self.parent():
-            return self*z*self.inverse()
+
+        if tau.parent() == self.parent():
+            return self*tau*self.inverse()
+
+        # if tau is a point of HyperbolicPlane then we use it's coordinates in the UHP model
+        model = None
+        if (tau in HyperbolicPlane()):
+            model = tau.model()
+            tau = tau.to_model('UHP').coordinates()
 
         a,b,c,d = self._matrix.list()
 
-        if z == infinity:
+        if tau == infinity:
             if c.is_zero():
-                return infinity
+                result = infinity
             else:
-                return a/c
-        elif not c.is_zero() and c*z == -d:
-            return infinity
+                result = a/c
+        elif c*tau + d == 0:
+            result = infinity
         else:
-            return (a*z + b) / (c*z + d)
+            result = (a*tau + b) / (c*tau + d)
 
-    # def _act_on_(self, other, self_on_left):
-    #     TODO: implement default actions for "suitable" other
-    #     if (self_on_left):
-    #         return self.acton(other)
+        if model is None:
+            return result
+        else:
+            return HyperbolicPlane().UHP().get_point(result).to_model(model)
 
-    def slash(self, f, z=None, k=None):
+    def _act_on_(self, other, self_on_left):
+        r"""
+        Defines the action by linear fractional transformation of Hecke triangle group
+        elements on complext points (using :meth:`acton`).
+
+        For the action on matrices by conjugation :meth:`acton` has to be used explicitely
+        (to avoid confusion/ambiguity in expressions of the form gamma1*gamma2*z).
+
+        EXAMPLES::
+
+            sage: from sage.modular.modform_hecketriangle.hecke_triangle_groups import HeckeTriangleGroup
+            sage: G = HeckeTriangleGroup(5)
+            sage: p = HyperbolicPlane().PD().get_point(I)
+            sage: G.U()*p
+            Boundary point in PD 1/2*(sqrt(5) - 2*I + 1)/(-1/2*I*sqrt(5) - 1/2*I + 1)
+            sage: G.S()*G.U()*p == G.S()*(G.U()*p)
+            True
+            sage: G.S()*G.U()*p == (G.S()*G.U())*p
+            True
+            sage: (G.S()*G.U())*p == G.S()*(G.U()*p)
+            True
+
+            sage: p = G.lam()
+            sage: G.U()*G.T()*p
+            1/2*lam + 1/2
+            sage: p = QQbar(i*sqrt(2))
+            sage: G.U()*p
+            1.618033988749895? + 0.7071067811865475?*I
+            sage: p = CC(-i + sqrt(2))
+            sage: G.U()*p
+            1.14662946795886 - 0.333333333333333*I
+            sage: p = infinity
+            sage: G.U()*p
+            lam
+        """
+
+        if (self_on_left):
+            if (other == infinity or other in CC or other in HyperbolicPlane()):
+                return self.acton(other)
+        return None
+
+    def slash(self, f, tau=None, k=None):
         r"""
         Return the `slash-operator` of weight ``k`` to applied to ``f``,
-        evaluated at ``z``. I.e. ``(f|_k[self])(z)``.
+        evaluated at ``tau``. I.e. ``(f|_k[self])(tau)``.
 
         INPUT:
 
-        - ``f``  -- A function in ``z`` (or an object for which
-                    evaluation at ``self.acton(z)`` makes sense.
+        - ``f``   -- A function in ``tau`` (or an object for which
+                     evaluation at ``self.acton(tau)`` makes sense.
 
-        - ``z``  -- Where to evaluate the result.
-                    This should be a valid argument for :meth:`acton`.
+        - ``tau`` -- Where to evaluate the result.
+                     This should be a valid argument for :meth:`acton`.
 
-                    Default: ``None`` in which case ``f`` has to be
-                    a rational function / polynomial in one variable and
-                    the generator of the polynomial ring is used for ``z``.
-                    That way ``slash`` acts on rational functions / polynomials.
+                     If ``tau`` is a point of ``HyperbolicPlane()`` then
+                     its coordinates in the upper half plane model are used.
 
-        - ``k``  -- An even integer.
+                     Default: ``None`` in which case ``f`` has to be
+                     a rational function / polynomial in one variable and
+                     the generator of the polynomial ring is used for ``tau``.
+                     That way ``slash`` acts on rational functions / polynomials.
 
-                    Default: ``None`` in which case ``f`` either
-                    has to be a rational function / polynomial in one
-                    variable (then -degree is used).
-                    Or ``f`` needs to have a ``weight`` attribute which
-                    is then used.
+        - ``k``   -- An even integer.
+
+                     Default: ``None`` in which case ``f`` either
+                     has to be a rational function / polynomial in one
+                     variable (then -degree is used).
+                     Or ``f`` needs to have a ``weight`` attribute which
+                     is then used.
 
         EXAMPLES::
 
@@ -3177,10 +3248,14 @@ class HeckeTriangleGroupElement(MatrixGroupElement_generic):
             sage: E4(z)
             32288.0558881... - 118329.856601...*I
 
+            sage: z = HyperbolicPlane().PD().get_point(CC(-I/2 + 1/8))
+            sage: (G.V(2)*G.V(3)).slash(E4, z)
+            -(21624.437... - 12725.035...*I)/((0.610... + 0.324...*I)*sqrt(5) + 2.720... + 0.648...*I)^4
+
             sage: z = PolynomialRing(G.base_ring(), 'z').gen()
             sage: rat = z^2 + 1/(z-G.lam())
             sage: dr = rat.numerator().degree() - rat.denominator().degree()
-            sage: G.S().slash(rat) == G.S().slash(rat, z=None, k=-dr)
+            sage: G.S().slash(rat) == G.S().slash(rat, tau=None, k=-dr)
             True
             sage: G.S().slash(rat)
             (z^6 - lam*z^4 - z^3)/(-lam*z^4 - z^3)
@@ -3189,6 +3264,7 @@ class HeckeTriangleGroupElement(MatrixGroupElement_generic):
             sage: G.S().slash(rat, k=-4)
             (z^8 - lam*z^6 - z^5)/(-lam*z^4 - z^3)
         """
+
         if k is None:
             if hasattr(f, 'weight'):
                 k = f.weight()
@@ -3207,10 +3283,33 @@ class HeckeTriangleGroupElement(MatrixGroupElement_generic):
         except TypeError:
             raise ValueError("k={} must be an even integer!".format(k))
 
-        if z is None:
+        if tau is None:
             try:
-                z = f.numerator().parent().gen()
+                tau = f.numerator().parent().gen()
             except (ValueError, TypeError, AttributeError):
-                raise ValueError("f={} is not a rational function or a polynomial in one variable, so z has to be specfied explicitely!".format(f))
+                raise ValueError("f={} is not a rational function or a polynomial in one variable, so tau has to be specfied explicitely!".format(f))
 
-        return (self.c()*z + self.d())**(-k) * f(self.acton(z))
+        if (tau in HyperbolicPlane()):
+            tau = tau.to_model('UHP').coordinates()
+
+        return (self.c()*tau + self.d())**(-k) * f(self.acton(tau))
+
+    def as_hyperbolic_plane_isometry(self, model="UHP"):
+        r"""
+        Return ``self`` as an isometry of ``HyperbolicPlane()`` (in the upper half plane model).
+
+        EXAMPLES::
+
+            sage: from sage.modular.modform_hecketriangle.hecke_triangle_groups import HeckeTriangleGroup
+            sage: el = HeckeTriangleGroup(7).V(4)
+            sage: el.as_hyperbolic_plane_isometry()
+            Isometry in UHP
+            [lam^2 - 1       lam]
+            [lam^2 - 1 lam^2 - 1]
+            sage: el.as_hyperbolic_plane_isometry().parent()
+            Set of Morphisms from Hyperbolic plane in the Upper Half Plane Model model to Hyperbolic plane in the Upper Half Plane Model model in Category of hyperbolic models of Hyperbolic plane
+            sage: el.as_hyperbolic_plane_isometry("KM").parent()
+            Set of Morphisms from Hyperbolic plane in the Klein Disk Model model to Hyperbolic plane in the Klein Disk Model model in Category of hyperbolic models of Hyperbolic plane
+        """
+
+        return HyperbolicPlane().UHP().get_isometry(self.matrix()).to_model(model)

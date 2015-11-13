@@ -366,6 +366,9 @@ class FiniteDimensionalAlgebraElement(AlgebraElement):
         Return ``True`` if ``self`` has a two-sided multiplicative
         inverse.
 
+        This assumes that the algebra to which ``self`` belongs is
+        associative.
+
         .. NOTE::
 
             If an element of a unitary finite-dimensional algebra over a field
@@ -387,6 +390,9 @@ class FiniteDimensionalAlgebraElement(AlgebraElement):
         """
         The two-sided inverse of ``self``, if it exists; otherwise this
         is ``None``.
+
+        This assumes that the algebra to which ``self`` belongs is
+        associative.
 
         EXAMPLES::
 
@@ -413,11 +419,14 @@ class FiniteDimensionalAlgebraElement(AlgebraElement):
         Return the two-sided multiplicative inverse of ``self``, if it
         exists.
 
+        This assumes that the algebra to which ``self`` belongs is
+        associative.
+
         .. NOTE::
 
-            If an element of a unitary finite-dimensional algebra over a field
-            admits a left inverse, then this is the unique left
-            inverse, and it is also a right inverse.
+            If an element of a finite-dimensional unitary associative
+            algebra over a field admits a left inverse, then this is the
+            unique left inverse, and it is also a right inverse.
 
         EXAMPLES::
 

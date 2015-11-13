@@ -2350,7 +2350,7 @@ Please use, e.g., S.algebra(QQ, category=Semigroups())""".format(self))
                 Return the projection of ``self`` onto the `i`-th
                 factor of the cartesian product.
 
-                INPUTS:
+                INPUT:
 
                 - ``i`` -- the index of a factor of the cartesian product
 

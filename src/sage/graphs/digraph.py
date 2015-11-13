@@ -1603,7 +1603,7 @@ class DiGraph(GenericGraph):
         INPUT:
 
         - ``inplace`` -- (default: True) if ``False``, a new digraph is created
-           and returned as output, otherwise ``self`` is modified.
+          and returned as output, otherwise ``self`` is modified.
 
         - ``multiedges`` -- (default: None) how to decide what should be done in
           case of doubt (for instance when edge `(1,2)` is to be reversed in a
@@ -1823,11 +1823,11 @@ class DiGraph(GenericGraph):
         - ``edges`` -- a list of edges in the DiGraph.
 
         - ``inplace`` -- (default: True) if ``False``, a new digraph is created
-           and returned as output, otherwise ``self`` is modified.
+          and returned as output, otherwise ``self`` is modified.
 
         - ``multiedges`` -- (default: None) if ``True``, input graph will be
-           forced to allow parallel edges when necessary (for more information
-           see the documentation of :meth:`~DiGraph.reverse_edge`)
+          forced to allow parallel edges when necessary (for more information
+          see the documentation of :meth:`~DiGraph.reverse_edge`)
 
         .. SEEALSO::
 

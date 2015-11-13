@@ -1182,7 +1182,8 @@ cdef class LazyBinop(LazyFieldElement):
             sage: from sage.rings.real_lazy import LazyBinop
             sage: a = LazyBinop(RLF, 5, 1/2, operator.sub)
             sage: hash(a)
-            2
+            -1607638785           # 32-bit
+            -7461864723258187521  # 64-bit
         """
         return hash(self._op(hash(self._left), hash(self._right)))
 

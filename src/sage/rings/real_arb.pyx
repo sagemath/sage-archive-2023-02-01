@@ -2152,10 +2152,10 @@ cdef class RealBall(RingElement):
         Return ``True`` *iff* the given number (or ball) ``other`` is contained
         in the interval represented by ``self``.
 
-        If ``self`` contains NaN, this function always returns nonzero (as
+        If ``self`` contains NaN, this function always returns ``True`` (as
         it could represent anything, and in particular could represent all the
         points included in ``other``). If ``other`` contains NaN and ``self``
-        does not, it always returns zero.
+        does not, it always returns ``False``.
 
         Use ``other in self`` for a test that works for a wider range of inputs
         but may return false negatives.

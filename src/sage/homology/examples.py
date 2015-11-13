@@ -1238,6 +1238,113 @@ class SimplicialComplexExamples():
             facets.extend([f for f in maybe if random.random() <= p])
             return SimplicialComplex(facets, is_mutable=False)
 
+    def RandomTwoSphere(self, n):
+        r"""
+        Return a random triangulation of the 2-dimensional sphere with `n`
+        vertices.
+
+        INPUT:
+
+        `n` -- an integer
+
+        OUTPUT:
+
+        A random triangulation of the sphere chosen uniformly among
+        the *rooted* triangulations on `n` vertices. Because some
+        triangulations have nontrivial automorphism groups, this may
+        not be equal to the uniform distribution among unrooted
+        triangulations.
+
+        ALGORITHM:
+
+        The algorithm is taken from [PS2006]_, section 2.1.
+
+        Starting from a planar tree (represented by its contour as a
+        sequence of vertices), one first performs local closures, until no
+        one is possible. A local closure amounts to replace in the cyclic
+        contour word a sequence ``in1,in2,in3,lf,in3`` by
+        ``in1,in3``. After all local closures are done, one has reached
+        the partial closure, as in [PS2006]_, figure 5 (a).
+
+        Then one has to perform complete closure by adding two more
+        vertices, in order to reach the situation of [PS2006]_, figure 5
+        (b). For this, it is necessary to find inside the final contour
+        one of the two subsequences ``lf,in,lf``.
+
+        At every step of the algorithm, newly created edges are recorded
+        in a graph, which will be returned at the end.
+
+        .. SEEALSO::
+
+            :meth:`~sage.graphs.graph_generators.GraphGenerators.triangulations`.
+
+        EXAMPLES::
+
+            sage: G = simplicial_complexes.RandomTwoSphere(6); G
+            ?
+            sage: G.homology()
+            ?
+            sage: G.is_pure()
+            True
+            sage: G.flip_graph()
+            ?
+
+        REFERENCES: [PS2006]_
+        """
+        from sage.graphs.generators.random import (_auxiliary_random_word,
+                                                   _contour_and_graph_from_word)
+        
+        if n < 3:
+            raise ValueError('only defined for n >= 3')
+        w = _auxiliary_random_word(n - 2)
+        word, graph = _contour_and_graph_from_word(w)
+        triangles = []
+
+        # 'partial closures' described in 2.1 of [PS2006]_.
+
+        def rotate_word_to_next_occurrence(word):
+            # Rotates 'word' so that 'in1,in2,in3,lf,in3' occurs at word[:5].
+            pattern = ['in', 'in', 'in', 'lf', 'in']
+            n = len(word)
+            for i in range(n):
+                if all(word[(i + j) % n][0] == pattern[j] for j in range(5)):
+                    return word[i:] + word[:i]
+            return []
+
+        # We greedily perform the replacements 'in1,in2,in3,lf,in3'->'in1,in3'.
+        while True:
+            word2 = rotate_word_to_next_occurrence(word)
+            if len(word2) >= 5:
+                triangles.append([u[1] for u in word2[:3]])  # new triangle
+                word = [word2[0]] + word2[4:]
+            else:
+                break
+
+        # This is the end of partial closure.
+
+        # There remains to add two new vertices 'a' and 'b'.
+
+        # Every remaining 'lf' vertex is linked either to 'a' or to 'b'.
+        # Switching a/b happens when one meets the sequence 'lf','in','lf'.
+        a_or_b = 'a'
+        last_lf_occurrence = -42
+        previous_x = None
+        for x in word:
+            last_lf_occurrence -= 1
+            if x[0] == 'lf':
+                if last_lf_occurrence == -2:
+                    a_or_b = 'b' if a_or_b == 'a' else 'a'
+                triangles.append(('a', 'b', previous_x[1]))
+                last_lf_occurrence = 0
+            elif previous_x is not None:
+                triangles.append((a_or_b, previous_x[1], x[1]))
+            previous_x = x
+
+        assert len(triangles) == 2 * (n - 2)
+
+        return SimplicialComplex(triangles)
+
+
     def SumComplex(self, n, A):
         r"""
         The sum complexes of Linial, Meshulam, and Rosenthal [LMR2010]_.

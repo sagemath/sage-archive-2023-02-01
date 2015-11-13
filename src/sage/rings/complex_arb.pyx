@@ -2,10 +2,6 @@
 r"""
 Arbitrary precision complex balls using Arb
 
-AUTHORS:
-
-- Clemens Heuberger (2014-10-25): Initial version.
-
 This is a binding to the `Arb library <http://fredrikj.net/arb/>`_; it
 may be useful to refer to its documentation for more details.
 

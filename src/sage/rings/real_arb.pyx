@@ -2,10 +2,6 @@
 r"""
 Arbitrary precision real balls using Arb
 
-AUTHORS:
-
-- Clemens Heuberger (2014-10-21): Initial version.
-
 This is a binding to the `Arb library <http://fredrikj.net/arb/>`_ for ball
 arithmetic. It may be useful to refer to its documentation for more details.
 

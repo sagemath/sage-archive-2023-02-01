@@ -937,7 +937,7 @@ def _contour_and_graph_from_word(w):
 
 
 def RandomTriangulation(n, set_position=False):
-    """
+    r"""
     Return a random triangulation on `n` vertices.
 
     A triangulation is a planar graph all of whose faces are
@@ -952,7 +952,12 @@ def RandomTriangulation(n, set_position=False):
 
     OUTPUT:
 
-    a graph
+    A random triangulation chosen uniformly among the *rooted* triangulations on
+    `n` vertices. Because some triangulations have nontrivial automorphism
+    groups, this may not be equal to the uniform distribution among unlabelled
+    triangulations.
+
+    ALGORITHM:
 
     The algorithm is taken from [PS2006]_, section 2.1.
 
@@ -970,6 +975,10 @@ def RandomTriangulation(n, set_position=False):
 
     At every step of the algorithm, newly created edges are recorded
     in a graph, which will be returned at the end.
+
+    .. SEEALSO::
+
+        :meth:`~sage.graphs.graph_generators.GraphGenerators.triangulations`.
 
     EXAMPLES::
 
@@ -1042,6 +1051,8 @@ def RandomTriangulation(n, set_position=False):
 
     assert graph.num_edges() == 3 * (n - 2)
     assert graph.num_verts() == n
+
+    graph.relabel()
 
     if set_position:
         graph.layout(layout="planar", save_pos=True)

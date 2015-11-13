@@ -1733,6 +1733,15 @@ cdef class RealBall(RingElement):
 
         If ``ampl`` is negative, the radius is unchanged.
 
+        INPUT:
+
+        - ``ampl`` - A real ball (or an object that can be coerced to a real
+          ball).
+
+        OUTPUT:
+
+        A new real ball.
+
         EXAMPLES::
 
             sage: from sage.rings.real_arb import RBF

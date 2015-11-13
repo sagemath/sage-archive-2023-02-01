@@ -1317,6 +1317,15 @@ cdef class ComplexBall(RingElement):
 
         If ``ampl`` is negative, the radii remain unchanged.
 
+        INPUT:
+
+        - ``ampl`` - A **real** ball (or an object that can be coerced to a
+          real ball).
+
+        OUTPUT:
+
+        A new complex ball.
+
         EXAMPLES::
 
             sage: from sage.rings.complex_arb import CBF

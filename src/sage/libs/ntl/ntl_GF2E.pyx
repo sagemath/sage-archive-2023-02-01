@@ -139,14 +139,9 @@ cdef class ntl_GF2E:
         if isinstance(modulus, ntl_GF2EContext_class):
             self.c = <ntl_GF2EContext_class>modulus
             self.c.restore_c()
-            GF2E_construct(&self.x)
         else:
             self.c = <ntl_GF2EContext_class>ntl_GF2EContext(modulus)
             self.c.restore_c()
-            GF2E_construct(&self.x)
-
-    def __dealloc__(self):
-        GF2E_destruct(&self.x)
 
     cdef ntl_GF2E _new(self):
         cdef ntl_GF2E r

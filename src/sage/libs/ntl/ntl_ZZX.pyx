@@ -33,7 +33,7 @@ cdef inline ntl_ZZ make_ZZ(ZZ_c* x):
     cdef ntl_ZZ y
     y = ntl_ZZ()
     y.x = x[0]
-    ZZ_delete(x)
+    del x
     return y
 
 # You must do sig_on() before calling this function
@@ -47,7 +47,7 @@ cdef inline ntl_ZZX make_ZZX(ZZX_c* x):
     cdef ntl_ZZX y
     y = ntl_ZZX()
     y.x = x[0]
-    ZZX_delete(x)
+    del x
     return y
 
 # You must do sig_on() before calling this function
@@ -138,12 +138,6 @@ cdef class ntl_ZZX:
         True
         """
         return unpickle_class_value, (ntl_ZZX, self.list())
-
-    def __cinit__(self):
-        ZZX_construct(&self.x)
-
-    def __dealloc__(self):
-        ZZX_destruct(&self.x)
 
     def __repr__(self):
         """
@@ -345,9 +339,9 @@ cdef class ntl_ZZX:
         cdef ZZX_c* q
         q = ZZX_div(&self.x, &other.x, &divisible)
         if not divisible:
-            ZZX_delete(q)
+            del q
             sig_off()
-            raise ArithmeticError, "self (=%s) is not divisible by other (=%s)"%(self, other)
+            raise ArithmeticError("self (=%s) is not divisible by other (=%s)"%(self, other))
         result = make_ZZX_sig_off(q)
         return result
 

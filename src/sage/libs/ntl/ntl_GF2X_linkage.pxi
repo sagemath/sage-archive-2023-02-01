@@ -24,8 +24,7 @@ cdef GF2X_c *celement_new(long parent):
     EXAMPLE:
         sage: P.<x> = GF(2)[]
     """
-    cdef GF2X_c *e = GF2X_new()
-    return e
+    return new GF2X_c()
 
 cdef int celement_delete(GF2X_c *e, long parent):
     """
@@ -33,14 +32,14 @@ cdef int celement_delete(GF2X_c *e, long parent):
         sage: P.<x> = GF(2)[]
         sage: del x
     """
-    GF2X_delete(e)
+    del e
 
 cdef int celement_construct(GF2X_c *e, long parent):
     """
     EXAMPLE:
         sage: P.<x> = GF(2)[]
     """
-    GF2X_construct(e)
+    pass
 
 cdef int celement_destruct(GF2X_c *e, long parent):
     """
@@ -48,7 +47,7 @@ cdef int celement_destruct(GF2X_c *e, long parent):
         sage: P.<x> = GF(2)[]
         sage: del x
     """
-    GF2X_destruct(e)
+    pass
 
 cdef int celement_gen(GF2X_c *e, long i, long parent) except -2:
     """

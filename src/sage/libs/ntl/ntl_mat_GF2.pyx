@@ -85,7 +85,6 @@ cdef class ntl_mat_GF2:
         if is_Matrix(nrows):
             _nrows = nrows.nrows()
             _ncols = nrows.ncols()
-            GF2_construct(&_elem)
             v = nrows
             self.x.SetDims(_nrows, _ncols)
             sig_on()
@@ -94,7 +93,6 @@ cdef class ntl_mat_GF2:
                     GF2_conv_long(_elem, int(v[i,j])%2)
                     mat_GF2_setitem(&self.x, i, j, &_elem)
             sig_off()
-            GF2_destruct(&_elem)
             return
 
         _nrows = nrows
@@ -111,9 +109,6 @@ cdef class ntl_mat_GF2:
                     mat_GF2_setitem(&self.x, i, j, &(<ntl_GF2>elem).x)
             sig_off()
 
-    def __cinit__(self):
-        mat_GF2_construct(&self.x)
-
     cdef ntl_GF2 _new_element(self):
         cdef ntl_GF2 r
         r = ntl_GF2.__new__(ntl_GF2)
@@ -124,12 +119,6 @@ cdef class ntl_mat_GF2:
         r = ntl_mat_GF2.__new__(ntl_mat_GF2)
         r.x.SetDims(self.x.NumRows(),self.x.NumCols())
         return r
-
-    def __dealloc__(self):
-        # With NTL 6.0.0, mat_GF2 is a proper C++ class.
-        # Therefore Cython automagically calls the class destructor.
-        #mat_GF2_destruct(&self.x)
-        pass
 
     def __reduce__(self):
         """

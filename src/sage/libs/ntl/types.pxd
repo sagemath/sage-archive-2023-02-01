@@ -1,0 +1,116 @@
+# distutils: depends = NTL/ZZ.h
+
+cdef extern from "sage/libs/ntl/ntlwrap.cpp":
+    cdef cppclass ZZ_c "ZZ":
+        pass
+
+    cdef cppclass zz_p_c "zz_p":
+        void *rep
+
+    cdef cppclass ZZ_p_c "ZZ_p":
+        pass
+
+    cdef cppclass ZZ_pE_c "ZZ_pE":
+        pass
+
+    cdef cppclass GF2_c "GF2":
+        pass
+
+    cdef cppclass GF2E_c "GF2E":
+        pass
+
+    cdef cppclass vec_ZZ_c "vec_ZZ":
+        ZZ_c RawGet(long i)
+        ZZ_c *elts()
+        long length()
+
+    cdef cppclass vec_ZZ_p_c "vec_ZZ_p":
+        pass
+
+    cdef cppclass vec_ZZ_pE_c "vec_ZZ_pE":
+        pass
+
+    cdef cppclass vec_GF2_c "vec_GF2":
+        void (*SetLength)(long n)
+        void (*SetMaxLength)(long n)
+        long (*length)()
+        long (*MaxLength)()
+        long (*allocated)()
+
+        GF2_c (*get)(long i)
+        void  (*put_GF2 "put")(long i, GF2_c a)
+        void  (*put_long "put")(long i, long a)
+
+    cdef cppclass vec_GF2E_c "vec_GF2E":
+        pass
+
+    cdef cppclass ZZX_c "ZZX":
+        vec_ZZ_c rep
+
+    cdef cppclass zz_pX_c "zz_pX":
+        void *rep
+        void (* SetMaxLength)(long n)
+
+    cdef cppclass zz_pX_Modulus_c "zz_pXModulus":
+        zz_pX_c (* val) ( )
+
+    cdef cppclass ZZ_pX_c "ZZ_pX":
+        ZZ_pX_c()
+        void *rep
+        void (* SetMaxLength)(long n)
+
+    cdef cppclass ZZ_pX_Modulus_c "ZZ_pXModulus":
+        ZZ_pX_c (* val) ( )
+
+    cdef cppclass ZZ_pX_Multiplier_c "ZZ_pXMultiplier":
+        ZZ_pX_c (* val) ( )
+
+    cdef cppclass ZZ_pEX_c "ZZ_pEX":
+        void *rep
+        void (* SetMaxLength)(long n)
+
+    cdef cppclass ZZ_pEX_Modulus_c "ZZ_pEXModulus":
+        ZZ_pEX_c val()
+
+    cdef cppclass GF2X_c "GF2X":
+        pass
+
+    cdef cppclass GF2XModulus_c "GF2XModulus":
+        pass
+
+    cdef cppclass GF2EX_c "GF2EX":
+        pass
+
+    cdef cppclass mat_ZZ_c "mat_ZZ":
+        pass
+
+    cdef cppclass mat_GF2_c "mat_GF2":
+        void (*SetDims)(long nrows, long ncols)
+        long (*NumRows)()
+        long (*NumCols)()
+        GF2_c (*get "operator()") (long i, long j)
+
+    cdef cppclass mat_GF2E_c "mat_GF2E":
+        void (*SetDims)(long nrows, long ncols)
+        long (*NumRows)()
+        long (*NumCols)()
+        GF2E_c (*get "operator()") (long i, long j)
+
+    cdef cppclass zz_pContext_c "zz_pContext":
+        zz_pContext_c()
+        zz_pContext_c(long)
+
+    cdef cppclass ZZ_pContext_c "ZZ_pContext":
+        ZZ_pContext_c()
+        ZZ_pContext_c(ZZ_c)
+        void (*restore)()
+
+    cdef cppclass ZZ_pEContext_c "ZZ_pEContext":
+        ZZ_pEContext_c()
+        ZZ_pEContext_c(ZZ_pX_c)
+        void (*restore)()
+
+    cdef cppclass GF2EContext_c "GF2EContext":
+        GF2EContext_c()
+        GF2EContext_c(GF2X_c)
+        void (*restore)()

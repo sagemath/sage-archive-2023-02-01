@@ -27,7 +27,7 @@ cdef inline ntl_ZZ make_ZZ(ZZ_c* x):
     cdef ntl_ZZ y
     y = ntl_ZZ()
     y.x = x[0]
-    ZZ_delete(x)
+    del x
     return y
 
 # You must do sig_on() before calling this function
@@ -40,7 +40,7 @@ cdef inline ntl_mat_ZZ make_mat_ZZ(mat_ZZ_c* x):
     cdef ntl_mat_ZZ y
     y = ntl_mat_ZZ(_INIT)
     y.x = x[0]
-    mat_ZZ_delete(x)
+    del x
     y.__nrows = mat_ZZ_nrows(&y.x);
     y.__ncols = mat_ZZ_ncols(&y.x);
     return y
@@ -118,15 +118,6 @@ cdef class ntl_mat_ZZ:
             True
         """
         return unpickle_class_args, (ntl_mat_ZZ, (self.__nrows, self.__ncols, self.list()))
-
-    def __cinit__(self):
-        mat_ZZ_construct(&self.x)
-
-    def __dealloc__(self):
-        # With NTL 6.0.0, mat_ZZ is a proper C++ class.
-        # Therefore Cython automagically calls the class destructor.
-        #mat_ZZ_destruct(&self.x)
-        pass
 
     def __repr__(self):
         """

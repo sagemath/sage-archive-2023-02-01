@@ -141,19 +141,13 @@ cdef class ntl_ZZ_pE:
         ## _new in your own code).                    ##
         ################################################
         if modulus is None:
-            ZZ_pE_construct(&self.x)
             return
         if isinstance(modulus, ntl_ZZ_pEContext_class):
             self.c = <ntl_ZZ_pEContext_class>modulus
             self.c.restore_c()
-            ZZ_pE_construct(&self.x)
         else:
             self.c = <ntl_ZZ_pEContext_class>ntl_ZZ_pEContext(modulus)
             self.c.restore_c()
-            ZZ_pE_construct(&self.x)
-
-    def __dealloc__(ntl_ZZ_pE self):
-        ZZ_pE_destruct(&self.x)
 
     cdef ntl_ZZ_pE _new(self):
         cdef ntl_ZZ_pE r

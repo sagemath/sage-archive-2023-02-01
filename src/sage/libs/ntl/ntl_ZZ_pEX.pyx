@@ -106,7 +106,6 @@ cdef class ntl_ZZ_pEX:
         ## _new in your own code).                    ##
         ################################################
         if modulus is None and v is None: # we also check for v is None so that a user can specify the modulus by v.
-            ZZ_pEX_construct(&self.x)
             return
         if isinstance(modulus, ntl_ZZ_pEContext_class):
             self.c = <ntl_ZZ_pEContext_class>modulus
@@ -126,10 +125,6 @@ cdef class ntl_ZZ_pEX:
         else:
             raise ValueError, "modulus must not be None"
         self.c.restore_c()
-        ZZ_pEX_construct(&self.x)
-
-    def __dealloc__(self):
-        ZZ_pEX_destruct(&self.x)
 
     cdef ntl_ZZ_pEX _new(self):
         cdef ntl_ZZ_pEX r

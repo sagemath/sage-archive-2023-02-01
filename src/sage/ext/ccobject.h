@@ -106,6 +106,17 @@ PyObject* _to_PyString(const T *x)
   return Py_BuildValue("s#",instr.c_str(), instr.size());
 }
 
+/* Arrays */
+template <class T>
+static inline T* Allocate_array(size_t n){
+  return new T[n];
+}
+
+template <class T>
+static inline void Delete_array(T* v){
+  delete[] v;
+}
+
 #endif
 
 #endif /* ifndef __SAGE_CCOBJECT_H__ */

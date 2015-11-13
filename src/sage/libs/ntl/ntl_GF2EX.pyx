@@ -71,11 +71,9 @@ cdef class ntl_GF2EX:
         if isinstance(modulus, ntl_GF2EContext_class):
             self.c = <ntl_GF2EContext_class>modulus
             self.c.restore_c()
-            GF2EX_construct(&self.x)
         else:
             self.c = <ntl_GF2EContext_class>ntl_GF2EContext(modulus)
             self.c.restore_c()
-            GF2EX_construct(&self.x)
 
     cdef ntl_GF2E _new_element(self):
         cdef ntl_GF2E r
@@ -97,7 +95,6 @@ cdef class ntl_GF2EX:
     def __dealloc__(self):
         if <object>self.c is not None:
             self.c.restore_c()
-        GF2EX_destruct(&self.x)
 
     def __reduce__(self):
         """

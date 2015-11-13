@@ -954,7 +954,7 @@ def RandomTriangulation(n, set_position=False):
 
     A random triangulation chosen uniformly among the *rooted* triangulations on
     `n` vertices. Because some triangulations have nontrivial automorphism
-    groups, this may not be equal to the uniform distribution among unlabelled
+    groups, this may not be equal to the uniform distribution among unrooted
     triangulations.
 
     ALGORITHM:

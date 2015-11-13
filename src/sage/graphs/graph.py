@@ -214,8 +214,7 @@ examples are covered here.
 Generators
 ----------
 
-If you wish to iterate through all the isomorphism types of graphs,
-type, for example::
+Use ``graphs(n)`` to iterate through all non-isomorphic graphs of given size::
 
     sage: for g in graphs(4):
     ...     print g.spectrum()
@@ -230,6 +229,16 @@ type, for example::
     [2, 0, 0, -2]
     [2.5615528128..., 0, -1, -1.5615528128...]
     [3, -1, -1, -1]
+
+Similarly ``graphs()`` will iterate through all graphs. The complete
+graph of 4 vertices is of course smallest graph with chromatic number
+bigger than three::
+
+    sage: for g in graphs():
+    ...       if g.chromatic_number() > 3:
+    ...           break
+    sage: g.is_isomorphic(graphs.CompleteGraph(4))
+    True
 
 For some commonly used graphs to play with, type
 

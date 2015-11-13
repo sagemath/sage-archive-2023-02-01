@@ -20787,6 +20787,42 @@ class GenericGraph(GenericGraph_pyx):
         else:
             return H
 
+    def is_cayley_graph(self, certificate = False):
+        r"""
+        Check whether self is a Cayley graph
+
+        INPUT:
+
+        - ``certificate`` (boolean) -- The function returns ``True``
+          or ``False`` according to the graph, when ``certificate =
+          False`` (default). When ``certificate = True`` and the graph
+          is a Cayley graph, the function returns ``(True, grp, gens)``,
+          where ``grp`` is a subgroup of the automorphism group of the graph
+          and ``gens`` is a list of its generators for which it is a Cayley
+          graph. When ``certificate = True`` and the graph is not a Cayley
+          graph, ``(False, None, None)`` is returned.
+
+        ALGORITHM:
+
+        For connected graphs, find a subgroup of the automorphism group with
+        the same order as the graph that is transitive on vertices. For
+        disconnected graphs, check that the graph is vertex-transitive and
+        perform the check on one of its connected components.
+
+        AUTHOR:
+
+        Janoš Vidali (implementation)
+
+        EXAMPLES:
+
+        A Petersen Graph is not a Cayley graph::
+
+            sage: g = graphs.PetersenGraph()
+            sage: g.is_cayley_graph()
+            False
+        """
+        pass
+
 import types
 
 import sage.graphs.distances_all_pairs

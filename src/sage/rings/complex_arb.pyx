@@ -1348,6 +1348,8 @@ cdef class ComplexBall(RingElement):
             True
             sage: CBF(RIF(-0.5, 0.5)).is_zero()
             False
+
+        .. SEEALSO:: :meth:`is_nonzero`
         """
         return acb_is_zero(self.value)
 
@@ -1358,9 +1360,12 @@ cdef class ComplexBall(RingElement):
 
         .. NOTE::
 
-            Use :meth:`__nonzero__` or :meth:`is_zero` to check that a ball is
-            not exactly the zero ball (for instance, to determine the “degree”
-            of a polynomial with ball coefficients).
+            This method is not the negation of :meth:`is_zero`: it only
+            returns ``True`` if zero is known not to be contained in the ball.
+
+            Use ``bool(b)`` (or, equivalently, ``not b.is_zero()``) to check if
+            a ball ``b`` **may** represent a nonzero number (for instance, to
+            determine the “degree” of a polynomial with ball coefficients).
 
         EXAMPLES::
 
@@ -1374,6 +1379,8 @@ cdef class ComplexBall(RingElement):
             True
             sage: CBF(RIF(-0.5, 0.5), RIF(-0.5, 0.5)).is_nonzero()
             False
+
+        .. SEEALSO:: :meth:`is_zero`
         """
         return (arb_is_nonzero(acb_realref(self.value))
                 or arb_is_nonzero(acb_imagref(self.value)))

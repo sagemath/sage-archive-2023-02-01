@@ -3375,6 +3375,118 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
                 self._strict_quotient = quotient
         return self._strict_quotient
 
+    def solid_quotient(self):
+        r"""
+        Return the quotient of ``self`` by its orthogonal subspace.
+
+        We define the **solid quotient** of a cone to be its image in
+        the quotient of the ambient space by the orthogonal sublattice
+        of the cone.
+
+        OUTPUT:
+
+        A solid cone.
+
+        EXAMPLES:
+
+        The nonnegative quadrant in the plane is left after we take its
+        solid quotient in space::
+
+            sage: K = Cone([(1,0,0), (0,1,0)])
+            sage: K.solid_quotient().rays()
+            N(1, 0),
+            N(0, 1)
+            in 2-d lattice N
+
+        The solid quotient of the trivial cone lives in a trivial space::
+
+            sage: K = Cone([], ToricLattice(0))
+            sage: K.solid_quotient()
+            0-d cone in 0-d lattice N
+            sage: K = Cone([(0,0,0,0)])
+            sage: K.solid_quotient()
+            0-d cone in 0-d lattice N
+
+        TESTS:
+
+        The solid quotient of any cone should be solid::
+
+            sage: set_random_seed()
+            sage: K = random_cone(max_ambient_dim=6)
+            sage: K.solid_quotient().is_solid()
+            True
+
+        If the original cone is strictly convex, then its solid
+        quotient is proper::
+
+            sage: set_random_seed()
+            sage: K = random_cone(max_ambient_dim=6, strictly_convex=True)
+            sage: K.solid_quotient().is_proper()
+            True
+
+        The solid quotient of a solid convex cone is itself::
+
+            sage: set_random_seed()
+            sage: K = random_cone(max_ambient_dim=6, solid=True)
+            sage: K.solid_quotient() == K
+            True
+
+        The solid quotient has the same dimension as the original cone::
+
+            sage: set_random_seed()
+            sage: K = random_cone(max_ambient_dim=6)
+            sage: K.solid_quotient().dim() == K.dim()
+            True
+
+        The solid quotient is idempotent::
+
+            sage: set_random_seed()
+            sage: K = random_cone(max_ambient_dim=6)
+            sage: K1 = K.solid_quotient()
+            sage: K2 = K1.solid_quotient()
+            sage: K1 == K2
+            True
+
+        The solid quotient has the same number of rays as the original::
+
+            sage: set_random_seed()
+            sage: K = random_cone(max_ambient_dim=6)
+            sage: K.solid_quotient().nrays() == K.nrays()
+            True
+
+        The solid quotient has the same lineality as the original::
+
+            sage: set_random_seed()
+            sage: K = random_cone(max_ambient_dim=6)
+            sage: K.solid_quotient().lineality() == K.lineality()
+            True
+
+        The solid quotient has the same number of facets as the original::
+
+            sage: set_random_seed()
+            sage: K = random_cone(max_ambient_dim=6)
+            sage: len(K.solid_quotient().facets()) == len(K.facets())
+            True
+        """
+        if "_solid_quotient" not in self.__dict__:
+            if self.is_solid():
+                self._solid_quotient = self
+            else:
+                L = self.lattice()
+                L_perp = self.orthogonal_sublattice()
+                Q = L.base_extend(QQ) / L_perp.base_extend(QQ)
+
+                # There's a naming issue here, see `strict_quotient`.
+                if is_ToricLattice(L):
+                    S = ToricLattice(Q.dimension(), L._name, L._dual_name,
+                                     L._latex_name, L._latex_dual_name)
+                else:
+                    S = ZZ**Q.dimension()
+                rays = [Q(ray) for ray in self.rays() if not Q(ray).is_zero()]
+                quotient = Cone(rays, S, check=False)
+                self._solid_quotient = quotient
+        return self._solid_quotient
+
     def _split_ambient_lattice(self):
         r"""
         Compute a decomposition of the ``N``-lattice into `N_\sigma`

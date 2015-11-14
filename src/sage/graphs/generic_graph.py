@@ -20852,7 +20852,6 @@ class GenericGraph(GenericGraph_pyx):
             True
 
         """
-        c = False
         if not self.is_connected():
             if self.is_vertex_transitive():
                 C = self.connected_components_subgraphs()
@@ -20871,33 +20870,24 @@ class GenericGraph(GenericGraph_pyx):
                                 PermutationGroup(gens, domain = self.vertices()),
                                 inflate(S))
                 else:
-                    c = C[0].is_cayley()
+                    return C[0].is_cayley()
         else:
             n = self.order()
             A = self.automorphism_group()
-            if A.order() == n:
-                c = A.is_transitive()
-                G = A
+            if certificate:
+                c, G = A.has_transitive_subgroup(n, certificate=True)
+                if c:
+                    v = next(self.vertex_iterator())
+                    d = {f(v): f for f in G}
+                    adj = [y if v == x else x for x, y, z in self.edge_iterator(v)]
+                    S = [d[u] for u in adj]
+                    return (True, G, S)
             else:
-                gap = A._gap_().parent()
-                C = gap.new("""
-                    First(ConjugacyClassesSubgroups(%s),
-                        x -> Order(Representative(x)) = %d
-                            and IsTransitive(Representative(x), [1..%d]));
-                """ % (A._gap_().name(), n, n))
-                c = (gap.eval('%s = fail' % C.name()) != 'true')
-                if c and certificate:
-                    G = A.subgroup(gap_group=C.Representative())
+                return A.has_transitive_subgroup(n)
         if certificate:
-            if not c:
-                return (False, None, None)
-            v = next(self.vertex_iterator())
-            d = {f(v): f for f in G}
-            adj = [y if v == x else x for x, y, z in self.edge_iterator(v)]
-            S = [d[u] for u in adj]
-            return (True, G, S)
+            return (False, None, None)
         else:
-            return c
+            return False
 
 import types
 

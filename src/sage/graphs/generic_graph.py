@@ -20816,10 +20816,6 @@ class GenericGraph(GenericGraph_pyx):
         disconnected graphs, check that the graph is vertex-transitive and
         perform the check on one of its connected components.
 
-        AUTHOR:
-
-        Janos Vidali (implementation)
-
         EXAMPLES:
 
         A Petersen Graph is not a Cayley graph::

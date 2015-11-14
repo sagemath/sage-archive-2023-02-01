@@ -2958,7 +2958,7 @@ class PermutationGroup_generic(group.FiniteGroup):
                 all_sg.append(self.subgroup(gap_group=h))
         return all_sg
 
-    def has_transitive_subgroup(order = None, certificate = False):
+    def has_transitive_subgroup(self, order = None, certificate = False):
         """
         Returns whether self has a transitive subgroup of the given order.
 
@@ -2976,7 +2976,30 @@ class PermutationGroup_generic(group.FiniteGroup):
           ``certificate = True`` and there is no such subgroup,
           ``(False, None)`` is returned.
         """
-        pass
+        if order is None:
+            order = self.order()
+        b = False
+        G = None
+        d = len(self.domain())
+        if order >= d and self.order() % order == 0:
+            if self.order() == order:
+                b = self.is_transitive()
+                if b:
+                    G = self
+            else:
+                gap = self._gap_().parent()
+                C = gap.new("""
+                    First(ConjugacyClassesSubgroups(%s),
+                        x -> Order(Representative(x)) = %d
+                            and IsTransitive(Representative(x), [1..%d]));
+                """ % (self._gap_().name(), order, d))
+                b = (gap.eval('%s = fail' % C.name()) != 'true')
+                if b and certificate:
+                    G = self.subgroup(gap_group=C.Representative())
+        if certificate:
+            return (b, G)
+        else:
+            return b
 
     def blocks_all(self, representatives = True):
         r"""

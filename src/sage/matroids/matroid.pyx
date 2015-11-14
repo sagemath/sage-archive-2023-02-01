@@ -2890,6 +2890,26 @@ cdef class Matroid(SageObject):
                     ret.append(I)
         return ret
 
+    def orlik_solomon_algebra(self, R, ordering=None):
+        """
+        Return the Orlik-Solomon algebra of ``self``.
+
+        INPUT:
+
+        - ``R`` -- the base ring
+        - ``ordering`` -- (optional) an ordering of the ground set
+
+        EXAMPLES::
+
+            sage: M = matroids.Uniform(3, 4)
+            sage: OS = M.orlik_solomon_algebra(QQ)
+            Orlik-Solomon algebra of U(3, 4): Matroid of rank 3 on 4 elements
+             with circuit-closures
+             {3: {{0, 1, 2, 3}}}
+        """
+        from sage.algebras.orlik_solomon import OrlikSolomonAlgebra
+        return OrlikSolomonAlgebra(R, self, ordering)
+
     # polytopes
 
     def matroid_polytope(self):

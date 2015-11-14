@@ -155,7 +155,7 @@ can be applied on both. Here is what it can do:
     :meth:`~GenericGraph.is_vertex_transitive` | Return whether the automorphism group of self is transitive within the partition provided
     :meth:`~GenericGraph.is_isomorphic` | Test for isomorphism between self and other.
     :meth:`~GenericGraph.canonical_label` | Return the unique graph on `\{0,1,...,n-1\}` ( ``n = self.order()`` ) which 1) is isomorphic to self 2) is invariant in the isomorphism class.
-    :meth:`~GenericGraph.is_cayley_graph` | Check whether self is a Cayley graph.
+    :meth:`~GenericGraph.is_cayley` | Check whether self is a Cayley graph.
 
 **Graph properties:**
 
@@ -20788,7 +20788,7 @@ class GenericGraph(GenericGraph_pyx):
         else:
             return H
 
-    def is_cayley_graph(self, certificate = False):
+    def is_cayley(self, certificate = False):
         r"""
         Check whether self is a Cayley graph.
 
@@ -20816,16 +20816,12 @@ class GenericGraph(GenericGraph_pyx):
         disconnected graphs, check that the graph is vertex-transitive and
         perform the check on one of its connected components.
 
-        AUTHOR:
-
-        Janos Vidali (implementation)
-
         EXAMPLES:
 
         A Petersen Graph is not a Cayley graph::
 
             sage: g = graphs.PetersenGraph()
-            sage: g.is_cayley_graph()
+            sage: g.is_cayley()
             False
 
         A Cayley digraph is a Cayley graph::
@@ -20833,7 +20829,7 @@ class GenericGraph(GenericGraph_pyx):
             sage: C7 = groups.permutation.Cyclic(7)
             sage: S = [(1,2,3,4,5,6,7), (1,3,5,7,2,4,6), (1,5,2,6,3,7,4)]
             sage: d = C7.cayley_graph(generators=S)
-            sage: d.is_cayley_graph()
+            sage: d.is_cayley()
             True
 
         TESTS:
@@ -20841,7 +20837,7 @@ class GenericGraph(GenericGraph_pyx):
         Cayley graphs can be reconstructed from the certificate::
 
             sage: g = graphs.PaleyGraph(9)
-            sage: _, G, S = Graph.is_cayley_graph(g, certificate=True)
+            sage: _, G, S = Graph.is_cayley(g, certificate=True)
             sage: Graph(G.cayley_graph(generators=S)).is_isomorphic(g)
             True
 
@@ -20851,7 +20847,7 @@ class GenericGraph(GenericGraph_pyx):
             sage: h = g.disjoint_union(g)
             sage: h = h.disjoint_union(h)
             sage: h = h.disjoint_union(g)
-            sage: _, G, S = h.is_cayley_graph(certificate=True)
+            sage: _, G, S = h.is_cayley(certificate=True)
             sage: Graph(G.cayley_graph(generators=S)).is_isomorphic(h)
             True
 
@@ -20861,7 +20857,7 @@ class GenericGraph(GenericGraph_pyx):
             if self.is_vertex_transitive():
                 C = self.connected_components_subgraphs()
                 if certificate:
-                    c, G, S = C[0].is_cayley_graph(certificate=True)
+                    c, G, S = C[0].is_cayley(certificate=True)
                     if c:
                         from sage.groups.perm_gps.permgroup import PermutationGroup
                         I = [C[0].is_isomorphic(g, certify=True)[1] for g in C]
@@ -20875,7 +20871,7 @@ class GenericGraph(GenericGraph_pyx):
                                 PermutationGroup(gens, domain = self.vertices()),
                                 inflate(S))
                 else:
-                    c = C[0].is_cayley_graph()
+                    c = C[0].is_cayley()
         else:
             n = self.order()
             A = self.automorphism_group()
@@ -20896,11 +20892,9 @@ class GenericGraph(GenericGraph_pyx):
             if not c:
                 return (False, None, None)
             v = next(self.vertex_iterator())
-            if self.is_directed():
-                adj = self.neighbors_out(v)
-            else:
-                adj = self.neighbors(v)
-            S = [f for f in G if f(v) in adj]
+            d = {f(v): f for f in G}
+            adj = [y if v == x else x for x, y, z in self.edge_iterator(v)]
+            S = [d[u] for u in adj]
             return (True, G, S)
         else:
             return c

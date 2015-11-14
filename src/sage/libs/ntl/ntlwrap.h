@@ -48,7 +48,4 @@ typedef struct {} mat_GF2;
 typedef struct {} mat_GF2E;
 #endif
 
-#define zz_p_set_from_long( obj1, obj2 )\
-        ((obj1) = (obj2))
-
 #endif

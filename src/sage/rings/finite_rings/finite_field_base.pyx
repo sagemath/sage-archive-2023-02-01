@@ -77,7 +77,7 @@ cdef class FiniteFieldIterator:
 
     def __iter__(self):
         """
-        Return ``self`` since this is an interator class.
+        Return ``self`` since this is an iterator class.
 
         EXAMPLES::
 

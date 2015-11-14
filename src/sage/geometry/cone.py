@@ -3303,6 +3303,56 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
             sage: ssc.rays()
             Empty collection
             in 1-d lattice N
+
+        The quotient of the trivial cone is trivial::
+
+            sage: K = Cone([], ToricLattice(0))
+            sage: K.strict_quotient()
+            0-d cone in 0-d lattice N
+            sage: K = Cone([(0,0,0,0)])
+            sage: K.strict_quotient()
+            0-d cone in 4-d lattice N
+
+        TESTS:
+
+        The strict quotient of any cone should be strictly convex::
+
+            sage: set_random_seed()
+            sage: K = random_cone(max_ambient_dim=6)
+            sage: K.strict_quotient().is_strictly_convex()
+            True
+
+        If the original cone is solid, then its strict quotient is proper::
+
+            sage: set_random_seed()
+            sage: K = random_cone(max_ambient_dim=6, solid=True)
+            sage: K.strict_quotient().is_proper()
+            True
+
+        The strict quotient of a strictly convex cone is itself::
+
+            sage: set_random_seed()
+            sage: K = random_cone(max_ambient_dim=6, strictly_convex=True)
+            sage: K.strict_quotient() == K
+            True
+
+        The complement of our linear subspace has the same dimension as
+        our dual, so the resulting quotient cannot live in a larger space
+        than our dual::
+
+            sage: set_random_seed()
+            sage: K = random_cone(max_ambient_dim=6)
+            sage: K.strict_quotient().dim() <= K.dual().dim()
+            True
+
+        The strict quotient is idempotent::
+
+            sage: set_random_seed()
+            sage: K = random_cone(max_ambient_dim=6)
+            sage: K1 = K.strict_quotient()
+            sage: K2 = K1.strict_quotient()
+            sage: K1 == K2
+            True
         """
         if "_strict_quotient" not in self.__dict__:
             if self.is_strictly_convex():
@@ -5008,7 +5058,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
         if l > 0:
             # K is not pointed; restrict it to the span of its
             # dual (Proposition 2 in [Orlitzky]_).
-            K = K._restrict_to_subspace(K.dual().span())
+            K = K.strict_quotient()
 
             # Add the Lyapunov rank of the subspace we just peeled off
             # (Lemma 2 in [Orlitzky]_).

@@ -20839,24 +20839,50 @@ class GenericGraph(GenericGraph_pyx):
             sage: Graph(G.cayley_graph(generators=S)).is_isomorphic(g)
             True
 
+        The same also holds for disconnected graphs::
+
+            sage: g = graphs.PaleyGraph(9)
+            sage: h = g.disjoint_union(g)
+            sage: h = h.disjoint_union(h)
+            sage: h = h.disjoint_union(g)
+            sage: _, G, S = h.is_cayley_graph(certificate=True)
+            sage: Graph(G.cayley_graph(generators=S)).is_isomorphic(h)
+            True
+
         """
+        c = False
         if not self.is_connected():
-            # TODO
-            raise NotImplementedError
-        A = self.automorphism_group()
-        n = self.order()
-        if n == 0:
-            c = False
-        elif A.order() == n:
-            c = A.is_transitive()
-            G = A
+            if self.is_vertex_transitive():
+                C = self.connected_components_subgraphs()
+                if certificate:
+                    c, G, S = C[0].is_cayley_graph(certificate=True)
+                    if c:
+                        from sage.groups.perm_gps.permgroup import PermutationGroup
+                        I = [C[0].is_isomorphic(g, certify=True)[1] for g in C]
+                        inflate = lambda T: [sum([[tuple([M[x] for x in p])
+                                for p in h.cycle_tuples()] for M in I], [])
+                                for h in T]
+                        gens = inflate(G.gens()) + \
+                                [[tuple([M[v] for M in I])
+                                  for v in C[0].vertices()]]
+                        return (True,
+                                PermutationGroup(gens, domain = self.vertices()),
+                                inflate(S))
+                else:
+                    c = C[0].is_cayley_graph()
         else:
-            try:
-                G = next(g for g in A.conjugacy_classes_subgroups()
-                         if g.order() == n and g.is_transitive())
-                c = True
-            except StopIteration:
-                c = False
+            n = self.order()
+            A = self.automorphism_group()
+            if A.order() == n:
+                c = A.is_transitive()
+                G = A
+            else:
+                try:
+                    G = next(g for g in A.conjugacy_classes_subgroups()
+                             if g.order() == n and g.is_transitive())
+                    c = True
+                except StopIteration:
+                    pass
         if certificate:
             if not c:
                 return (False, None, None)

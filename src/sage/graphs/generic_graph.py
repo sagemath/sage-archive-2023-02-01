@@ -20889,11 +20889,9 @@ class GenericGraph(GenericGraph_pyx):
             if not c:
                 return (False, None, None)
             v = next(self.vertex_iterator())
-            if self.is_directed():
-                adj = self.neighbors_out(v)
-            else:
-                adj = self.neighbors(v)
-            S = [f for f in G if f(v) in adj]
+            d = {f(v): f for f in G}
+            adj = [y if v == x else x for x, y, z in self.edge_iterator(v)]
+            S = [d[u] for u in adj]
             return (True, G, S)
         else:
             return c

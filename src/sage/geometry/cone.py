@@ -4886,12 +4886,12 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
         [Rudolf]_::
 
             sage: set_random_seed()
-            sage: K1 = random_cone(max_ambient_dim = 6,
-            ....:                  strictly_convex = True,
-            ....:                  solid = True)
-            sage: K2 = random_cone(max_ambient_dim = 6,
-            ....:                  strictly_convex = True,
-            ....:                  solid = True)
+            sage: K1 = random_cone(max_ambient_dim=6,
+            ....:                  strictly_convex=True,
+            ....:                  solid=True)
+            sage: K2 = random_cone(max_ambient_dim=6,
+            ....:                  strictly_convex=True,
+            ....:                  solid=True)
             sage: K = K1.cartesian_product(K2)
             sage: K.lyapunov_rank() == K1.lyapunov_rank() + K2.lyapunov_rank()
             True
@@ -4900,7 +4900,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
         [Orlitzky]_::
 
             sage: set_random_seed()
-            sage: K1 = random_cone(max_ambient_dim = 8)
+            sage: K1 = random_cone(max_ambient_dim=8)
             sage: n = K1.lattice_dim()
             sage: A = random_matrix(QQ, n, algorithm='unimodular')
             sage: K2 = Cone( [ A*r for r in K1.rays() ], lattice=K1.lattice())
@@ -4910,7 +4910,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
         Lyapunov rank should be invariant under :meth:`dual` [Rudolf]_::
 
             sage: set_random_seed()
-            sage: K = random_cone(max_ambient_dim = 8)
+            sage: K = random_cone(max_ambient_dim=8)
             sage: K.lyapunov_rank() == K.dual().lyapunov_rank()
             True
 
@@ -4919,10 +4919,10 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
         inclusive, excluding `n-1` [Gowda-Tao]_::
 
             sage: set_random_seed()
-            sage: K = random_cone(max_ambient_dim = 8,
-            ....:                 min_rays = 1,
-            ....:                 strictly_convex = True,
-            ....:                 solid = True)
+            sage: K = random_cone(max_ambient_dim=8,
+            ....:                 min_rays=1,
+            ....:                 strictly_convex=True,
+            ....:                 solid=True)
             sage: b = K.lyapunov_rank()
             sage: n = K.lattice_dim()
             sage: 1 <= b <= n
@@ -4934,7 +4934,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
         rank `n-1` [Orlitzky]_::
 
             sage: set_random_seed()
-            sage: K = random_cone(max_ambient_dim = 8)
+            sage: K = random_cone(max_ambient_dim=8)
             sage: K.lyapunov_rank() == K.lattice_dim() - 1
             False
 
@@ -4942,10 +4942,8 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
         be reduced to that of a proper cone [Orlitzky]_::
 
             sage: set_random_seed()
-            sage: K = random_cone(max_ambient_dim = 8)
-            sage: K_S = K._restrict_to_subspace(K.span())
-            sage: P = K_S.dual().span()
-            sage: K_SP = K_S.dual()._restrict_to_subspace(P).dual()
+            sage: K = random_cone(max_ambient_dim=8)
+            sage: K_SP = K.solid_quotient().strict_quotient()
             sage: l = K.lineality()
             sage: c = K.codim()
             sage: actual = K.lyapunov_rank()
@@ -4957,7 +4955,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
         :meth:`lyapunov_like_basis` for it::
 
             sage: set_random_seed()
-            sage: K = random_cone(max_ambient_dim = 8)
+            sage: K = random_cone(max_ambient_dim=8)
             sage: K.lyapunov_rank() == len(K.lyapunov_like_basis())
             True
 
@@ -4966,7 +4964,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
         variable [Orlitzky]_::
 
             sage: set_random_seed()
-            sage: K = random_cone(max_ambient_dim = 8)
+            sage: K = random_cone(max_ambient_dim=8)
             sage: L = ToricLattice(K.lattice_dim() + 1)
             sage: K = Cone([ r.list() + [0] for r in K.rays() ], lattice=L)
             sage: K.lyapunov_rank() >= K.lattice_dim()

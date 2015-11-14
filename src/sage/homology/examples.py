@@ -1281,13 +1281,16 @@ class SimplicialComplexExamples():
         EXAMPLES::
 
             sage: G = simplicial_complexes.RandomTwoSphere(6); G
-            Simplicial complex with vertex set ? and 8 facets
+            Simplicial complex with vertex set (0, 1, 2, 3, 'a', 'b')
+            and 8 facets
             sage: G.homology()
             {0: 0, 1: 0, 2: Z}
             sage: G.is_pure()
             True
-            sage: G.flip_graph()
-            ?
+            sage: fg = G.flip_graph(); fg
+            Graph on 8 vertices
+            sage: fg.is_planar() and fg.is_regular(3)
+            True
 
         REFERENCES: [PS2006]_
         """

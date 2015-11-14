@@ -20878,9 +20878,14 @@ class GenericGraph(GenericGraph_pyx):
                 G = A
             else:
                 try:
-                    G = next(g for g in A.conjugacy_classes_subgroups()
-                             if g.order() == n and g.is_transitive())
+                    C = A._gap_().parent().new("""
+                        First(ConjugacyClassesSubgroups(%s),
+                            x -> Order(Representative(x)) = %d
+                                and IsTransitive(Representative(x), [1..%d]));
+                    """ % (A._gap_().name(), n, n))
                     c = True
+                    if certificate:
+                        G = A.subgroup(gap_group=C.Representative())
                 except StopIteration:
                     pass
         if certificate:

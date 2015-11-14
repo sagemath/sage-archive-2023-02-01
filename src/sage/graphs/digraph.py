@@ -868,12 +868,12 @@ class DiGraph(GenericGraph):
 
         * When ``certificate=True``:
 
-            * If the graph is acyclic, returns a pair ``(True, ordering)``
-              where ``ordering`` is a list of the vertices such that ``u``
-              appears before ``v`` in ``ordering`` if ``u, v`` is an edge.
+          * If the graph is acyclic, returns a pair ``(True, ordering)``
+            where ``ordering`` is a list of the vertices such that ``u``
+            appears before ``v`` in ``ordering`` if ``u, v`` is an edge.
 
-            * Else, returns a pair ``(False, cycle)`` where ``cycle`` is a
-              list of vertices representing a circuit in the graph.
+          * Else, returns a pair ``(False, cycle)`` where ``cycle`` is a
+            list of vertices representing a circuit in the graph.
 
         EXAMPLES:
 

@@ -1334,16 +1334,15 @@ class SimplicialComplexExamples():
             if x[0] == 'lf':
                 if last_lf_occurrence == -2:
                     a_or_b = 'b' if a_or_b == 'a' else 'a'
-                    triangles.append(('a', 'b', previous_x[1]))
+                    triangles.append(('a', 'b', x[1]))
                 last_lf_occurrence = 0
-            elif previous_x is not None:
+            elif previous_x is not None and previous_x[0] == 'in':
                 triangles.append((a_or_b, previous_x[1], x[1]))
             previous_x = x
 
         assert len(triangles) == 2 * (n - 2)
 
         return SimplicialComplex(triangles)
-
 
     def SumComplex(self, n, A):
         r"""

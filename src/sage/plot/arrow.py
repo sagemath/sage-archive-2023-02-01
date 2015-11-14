@@ -405,10 +405,7 @@ class Arrow(GraphicPrimitive):
                     vert1, code1 = path.vertices, path.codes
                     import numpy as np
 
-                    if np.array_equal(vert1, tpath.vertices) and np.array_equal(code1, tpath.codes):
-                        return True
-                    else:
-                        return False
+                    return np.array_equal(vert1, tpath.vertices) and np.array_equal(code1, tpath.codes)
 
 
             class ConditionalStroke(pe.RendererBase):

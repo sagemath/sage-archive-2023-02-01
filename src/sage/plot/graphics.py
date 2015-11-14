@@ -299,7 +299,7 @@ class Graphics(WithEqualityById, SageObject):
 
         - ``borderaxespad`` - (default: None) float, length between the axes and the legend
 
-        - ``back_color`` - (default: (0.9, 0.9, 0.9)) This parameter can be a string
+        - ``back_color`` - (default: 'white') This parameter can be a string
           denoting a color or an RGB tuple. The string can be a color name
           as in ('red', 'green', 'yellow', ...) or a floating point number
           like '0.8' which gets expanded to (0.8, 0.8, 0.8). The
@@ -360,7 +360,7 @@ class Graphics(WithEqualityById, SageObject):
         - ``font_size`` - (default: 'medium') string, one of 'xx-small', 'x-small', 'small',
           'medium', 'large', 'x-large', 'xx-large' or an absolute font size (e.g. 12)
 
-        -  ``shadow`` - (default: False) boolean - draw a shadow behind the legend
+        -  ``shadow`` - (default: True) boolean - draw a shadow behind the legend
 
         - ``fancybox`` - (default: False) a boolean.  If True, draws a frame with a round
           fancybox.
@@ -377,11 +377,11 @@ class Graphics(WithEqualityById, SageObject):
             sage: p.set_legend_options()
             {}
 
-        We build a legend with a shadow::
+        We build a legend without a shadow::
 
-            sage: p.set_legend_options(shadow=True)
+            sage: p.set_legend_options(shadow=False)
             sage: p.set_legend_options()['shadow']
-            True
+            False
 
         To set the legend position to the center of the plot, all these
         methods are roughly equivalent::
@@ -1067,11 +1067,11 @@ class Graphics(WithEqualityById, SageObject):
 
             sage: p1 = plot(x, x, 0, 1)
             sage: p2 = p1
-            sage: p1.set_legend_options(back_color = 'white')
-            sage: p2.set_legend_options(shadow = True)
+            sage: p1.set_legend_options(back_color = 'black')
+            sage: p2.set_legend_options(shadow = False)
             sage: p3 = p1 + p2
             sage: p3._legend_opts
-            {'back_color': 'white', 'shadow': True}
+            {'back_color': 'black', 'shadow': False}
 
         If the same legend option is specified more than once, the
         latter takes precedence::
@@ -1128,7 +1128,7 @@ class Graphics(WithEqualityById, SageObject):
         """
         self._objects.append(primitive)
 
-    def plot(self, *args, **kwds):
+    def plot(self):
         """
         Draw a 2D plot of this graphics object, which just returns this
         object since this is already a 2D graphics object.
@@ -1138,6 +1138,17 @@ class Graphics(WithEqualityById, SageObject):
             sage: S = circle((0,0), 2)
             sage: S.plot() is S
             True
+
+        It does not accept any argument (:trac:`19539`)::
+
+            sage: S.plot(1)
+            Traceback (most recent call last):
+            ...
+            TypeError: plot() takes exactly 1 argument (2 given)
+            sage: S.plot(hey="hou")
+            Traceback (most recent call last):
+            ...
+            TypeError: plot() got an unexpected keyword argument 'hey'
         """
         return self
 
@@ -1320,7 +1331,7 @@ class Graphics(WithEqualityById, SageObject):
                         typeset='default')
 
     @suboptions('legend',
-                back_color=(0.9, 0.9, 0.9), borderpad=0.6,
+                back_color='white', borderpad=0.6,
                 borderaxespad=None,
                 columnspacing=None,
                 fancybox=False, font_family='sans-serif',
@@ -1329,7 +1340,7 @@ class Graphics(WithEqualityById, SageObject):
                 handlelength=0.05, handletextpad=0.5,
                 labelspacing=0.02, loc='best',
                 markerscale=0.6, ncol=1, numpoints=2,
-                shadow=False, title=None)
+                shadow=True, title=None)
     def show(self, filename=None, linkmode=False, **kwds):
         r"""
         Show this graphics image immediately.
@@ -1627,6 +1638,14 @@ class Graphics(WithEqualityById, SageObject):
 
             sage: plot(sin(x), (x, -4, 4), transparent=True)
             Graphics object consisting of 1 graphics primitive
+
+        Prior to :trac:`19485`, legends by default had a shadowless gray
+        background. This behavior can be recovered by passing in certain
+        ``legend_options``::
+
+            sage: p = plot(sin(x), legend_label='$\sin(x)$')
+            sage: p.show(legend_options={'back_color': (0.9,0.9,0.9),
+            ....:                        'shadow': False})
 
         We can change the scale of the axes in the graphics before
         displaying::
@@ -2688,7 +2707,7 @@ class Graphics(WithEqualityById, SageObject):
                     weight  = lopts.pop('font_weight', 'medium'),
                     variant = lopts.pop('font_variant', 'normal')
                    )
-            color = lopts.pop('back_color', (0.9, 0.9, 0.9))
+            color = lopts.pop('back_color', 'white')
             leg = subplot.legend(prop=prop, **lopts)
             if leg is None:
                 sage.misc.misc.warn("legend requested but no items are labeled")
@@ -3059,7 +3078,7 @@ class Graphics(WithEqualityById, SageObject):
     # filename argument is written explicitly so that it can be used as a
     # positional one, which is a very likely usage for this function.
     @suboptions('legend',
-                back_color=(0.9, 0.9, 0.9), borderpad=0.6,
+                back_color='white', borderpad=0.6,
                 borderaxespad=None,
                 columnspacing=None,
                 fancybox=False, font_family='sans-serif',
@@ -3068,7 +3087,7 @@ class Graphics(WithEqualityById, SageObject):
                 handlelength=0.05, handletextpad=0.5,
                 labelspacing=0.02, loc='best',
                 markerscale=0.6, ncol=1, numpoints=2,
-                shadow=False, title=None)
+                shadow=True, title=None)
     def save(self, filename=None, **kwds):
         r"""
         Save the graphics to an image file.

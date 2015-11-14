@@ -229,7 +229,7 @@ class RingClassField(SageObject):
     """
     def __init__(self, D, c, check=True):
         """
-        INPUTS:
+        INPUT:
 
             - `D` -- discriminant of quadratic imaginary field
 
@@ -1994,7 +1994,7 @@ class HeegnerPoints_level(HeegnerPoints):
         Return the first `n` quadratic imaginary discriminants that
         satisfy the Heegner hypothesis for `N`.
 
-        INPUTS:
+        INPUT:
 
             - `n` -- nonnegative integer
 

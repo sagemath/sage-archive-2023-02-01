@@ -6996,3 +6996,53 @@ def integral_points_with_bounded_mw_coeffs(E, mw_base, N):
 
     return xs
 
+
+def elliptic_curve_congruence_graph(curves):
+    r"""
+    Return the congruence graph for this set of elliptic curves.
+
+    INPUT:
+
+    - ``curves`` -- a list of elliptic curves
+
+    OUTPUT:
+
+    The graph with each curve as a vertex (labelled by its Cremona
+    label) and an edge from `E` to `F` labelled `p` if and only if `E` is
+    congruent to `F` mod `p`
+
+    EXAMPLE::
+
+        sage: from sage.schemes.elliptic_curves.ell_rational_field import elliptic_curve_congruence_graph
+        sage: curves = list(cremona_optimal_curves([11..30]))
+        sage: G = elliptic_curve_congruence_graph(curves)
+        sage: G
+        Graph on 12 vertices
+    """
+    from sage.graphs.graph import Graph
+    from sage.rings.arith import lcm, prime_divisors
+    from sage.rings.fast_arith import prime_range
+    from sage.misc.all import prod
+    G = Graph()
+    G.add_vertices([curve.cremona_label() for curve in curves])
+    n = len(curves)
+    for i in xrange(n):
+        E = curves[i]
+        M = E.conductor()
+        for j in xrange(i):
+            F = curves[j]
+            N = F.conductor()
+            MN = lcm(M, N)
+            lim = prod([(p - 1) * p ** (e - 1) for p, e in MN.factor()])
+            a_E = E.anlist(lim)
+            a_F = F.anlist(lim)
+            l_list = [p for p in prime_range(lim) if not p.divides(MN)]
+            p_edges = l_list
+            for l in l_list:
+                n = a_E[l] - a_F[l]
+                if n != 0:
+                    p_edges = [p for p in p_edges if p.divides(n)]
+            if len(p_edges):
+                G.add_edge(E.cremona_label(), F.cremona_label(),
+                           p_edges)
+    return G

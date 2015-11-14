@@ -1424,7 +1424,7 @@ def picklejar(obj, dir=None):
     descriptions of them.  Use the :func:`unpickle_all` to see if they unpickle
     later.
 
-    INPUTS:
+    INPUT:
 
     - ``obj`` -- a pickleable object
 

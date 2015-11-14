@@ -4488,7 +4488,7 @@ class FreeModule_ambient(FreeModule_generic):
         Return the linear combination of the basis for self obtained from
         the elements of the list v.
 
-        INPUTS:
+        INPUT:
 
         - ``v`` - list
 
@@ -6047,7 +6047,7 @@ class FreeModule_submodule_with_basis_pid(FreeModule_generic_pid):
         Return the linear combination of the basis for self obtained from
         the coordinates of v.
 
-        INPUTS:
+        INPUT:
 
         - ``v`` - list
 

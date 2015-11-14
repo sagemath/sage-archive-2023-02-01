@@ -1237,7 +1237,7 @@ class FGP_Module_class(Module):
             the same as the Smith form generators, since this may not be true
             for a general derived class.
 
-        INPUTS:
+        INPUT:
 
         - ``im_gens`` -- a list of the images of ``self.gens()`` in some
           R-module
@@ -1396,7 +1396,7 @@ class FGP_Module_class(Module):
         Homomorphism defined by giving the images of the Smith-form generators
         of self in some fixed fg R-module.
 
-        INPUTS:
+        INPUT:
 
         - ``im_gens`` -- a Sequence object giving the images of the Smith-form
           generators of self, whose universe is some fixed fg R-module

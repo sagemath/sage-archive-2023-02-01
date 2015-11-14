@@ -941,7 +941,7 @@ cdef class MPComplexNumber(sage.structure.element.FieldElement):
         Returns either the real or imaginary component of ``self``
         depending on the choice of ``i``: real (``i``=0), imaginary (``i``=1).
 
-        INPUTS:
+        INPUT:
 
         - ``i`` -- 0 or 1
 

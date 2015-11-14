@@ -39,7 +39,7 @@ class InducedHomologyMorphism(Morphism):
     induced by a map of simplicial complexes. It requires working
     with field coefficients.
 
-    INPUTS:
+    INPUT:
 
     - ``map`` -- the map of simplicial complexes
     - ``base_ring`` -- a field (optional, default ``QQ``)
@@ -122,7 +122,7 @@ class InducedHomologyMorphism(Morphism):
     """
     def __init__(self, map, base_ring=None, cohomology=False):
         """
-        INPUTS:
+        INPUT:
 
         - ``map`` -- the map of simplicial complexes
         - ``base_ring`` -- a field (optional, default ``QQ``)
@@ -200,7 +200,7 @@ class InducedHomologyMorphism(Morphism):
         degree; otherwise, return the block matrix representing the
         entire map.
 
-        INPUTS:
+        INPUT:
 
         - ``deg`` -- (optional, default ``None``) the degree
 
@@ -280,7 +280,7 @@ class InducedHomologyMorphism(Morphism):
         """
         Return ``True`` if and only if this map agrees with ``other``.
 
-        INPUTS:
+        INPUT:
 
         - ``other`` -- another induced homology morphism
 

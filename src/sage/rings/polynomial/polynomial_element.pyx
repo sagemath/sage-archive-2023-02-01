@@ -4156,7 +4156,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
         The additional inputs to this function are to speed up computation for
         field semantics (see note).
 
-        INPUTS:
+        INPUT:
 
           - ``n`` (default: ``None``) - if provided, should equal
             `q-1` where ``self.parent()`` is the field with `q`

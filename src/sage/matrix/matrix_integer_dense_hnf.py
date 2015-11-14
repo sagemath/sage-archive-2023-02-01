@@ -190,7 +190,7 @@ def det_padic(A, proof=True, stabilize=2):
     Return the determinant of A, computed using a p-adic/multimodular
     algorithm.
 
-    INPUTS:
+    INPUT:
 
     - ``A`` -- a square matrix
 

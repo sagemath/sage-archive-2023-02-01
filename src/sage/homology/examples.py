@@ -1281,9 +1281,9 @@ class SimplicialComplexExamples():
         EXAMPLES::
 
             sage: G = simplicial_complexes.RandomTwoSphere(6); G
-            ?
+            Simplicial complex with vertex set ? and 8 facets
             sage: G.homology()
-            ?
+            {0: 0, 1: 0, 2: Z}
             sage: G.is_pure()
             True
             sage: G.flip_graph()
@@ -1334,7 +1334,7 @@ class SimplicialComplexExamples():
             if x[0] == 'lf':
                 if last_lf_occurrence == -2:
                     a_or_b = 'b' if a_or_b == 'a' else 'a'
-                triangles.append(('a', 'b', previous_x[1]))
+                    triangles.append(('a', 'b', previous_x[1]))
                 last_lf_occurrence = 0
             elif previous_x is not None:
                 triangles.append((a_or_b, previous_x[1], x[1]))

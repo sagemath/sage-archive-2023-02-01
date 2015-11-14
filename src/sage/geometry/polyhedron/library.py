@@ -43,6 +43,7 @@ The following constructions are available
     :meth:`~sage.geometry.polyhedron.library.Polytopes.tetrahedron`
     :meth:`~sage.geometry.polyhedron.library.Polytopes.truncated_cube`
     :meth:`~sage.geometry.polyhedron.library.Polytopes.truncated_dodecahedron`
+    :meth:`~sage.geometry.polyhedron.library.Polytopes.truncated_icosidodecahedron`
     :meth:`~sage.geometry.polyhedron.library.Polytopes.truncated_tetrahedron`
     :meth:`~sage.geometry.polyhedron.library.Polytopes.truncated_octahedron`
     :meth:`~sage.geometry.polyhedron.library.Polytopes.twenty_four_cell`

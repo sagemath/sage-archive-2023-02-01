@@ -2958,6 +2958,26 @@ class PermutationGroup_generic(group.FiniteGroup):
                 all_sg.append(self.subgroup(gap_group=h))
         return all_sg
 
+    def has_transitive_subgroup(order = None, certificate = False):
+        """
+        Returns whether self has a transitive subgroup of the given order.
+
+        INPUT:
+
+        - ``order`` (integer) -- The order of the desired subgroup. If
+          ``order = None`` (default), the order of self is used (i.e.,
+          it is checked whether self is transitive).
+
+        - ``certificate`` (boolean) -- The function returns ``True``
+          or ``False`` according to the group, when ``certificate =
+          False`` (default). When ``certificate = True`` and there is a
+          transitive subgroup of the given order, the function returns
+          ``(True, grp)``, where ``grp`` is such a subgroup. When
+          ``certificate = True`` and there is no such subgroup,
+          ``(False, None)`` is returned.
+        """
+        pass
+
     def blocks_all(self, representatives = True):
         r"""
         Returns the list of block systems of imprimitivity.

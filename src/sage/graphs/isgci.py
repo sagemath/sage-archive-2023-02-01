@@ -370,6 +370,12 @@ Methods
 -------
 """
 
+# import compatible with py2 and py3
+try:
+    from urllib2 import urlopen
+except ImportError:
+    from urllib.request import urlopen
+
 from sage.structure.sage_object import SageObject
 from sage.structure.unique_representation import CachedRepresentation, UniqueRepresentation
 from sage.misc.unknown import Unknown
@@ -804,9 +810,8 @@ class GraphClasses(UniqueRepresentation):
         """
 
         from sage.misc.misc import SAGE_TMP
-        import urllib2
         import os.path
-        u = urllib2.urlopen('http://www.graphclasses.org/data.zip')
+        u = urlopen('http://www.graphclasses.org/data.zip')
         localFile = open(os.path.join(SAGE_TMP,'isgci.zip'), 'w')
         localFile.write(u.read())
         localFile.close()

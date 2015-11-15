@@ -15,9 +15,17 @@
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
+# import compatible with py2 and py3
+try:
+    from urllib import urlencode
+except ImportError:
+    from urllib.parse import urlencode
+
+
 class MagmaExpr(str):
     def __repr__(self):
         return str(self)
+
 
 def magma_free_eval(code, strip=True, columns=0):
     """
@@ -31,7 +39,7 @@ def magma_free_eval(code, strip=True, columns=0):
         sage: magma_free("Factorization(9290348092384)")  # optional - internet
         [ <2, 5>, <290323377887, 1> ]
     """
-    import urllib, httplib
+    import httplib
     from xml.dom.minidom import parseString
 
     server = "magma.maths.usyd.edu.au"
@@ -39,7 +47,7 @@ def magma_free_eval(code, strip=True, columns=0):
     refererPath = "/calc/"
     refererUrl = "http://%s%s" % ( server, refererPath)
     code = "SetColumns(%s);\n"%columns + code
-    params = urllib.urlencode({'input':code})
+    params = urlencode({'input':code})
     headers = {"Content-type": "application/x-www-form-urlencoded", "Accept":"Accept: text/html, application/xml, application/xhtml+xml", "Referer": refererUrl}
     conn = httplib.HTTPConnection(server)
     conn.request("POST", processPath, params, headers)

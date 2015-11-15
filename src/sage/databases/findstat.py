@@ -182,8 +182,6 @@ from sage.databases.oeis import FancyTuple
 from string import join
 from ast import literal_eval
 from collections import OrderedDict
-from urllib import urlencode
-from urllib2 import Request, urlopen, HTTPError
 import re
 import webbrowser
 import tempfile
@@ -192,6 +190,13 @@ import inspect
 import json
 import cgi
 
+# import compatible with py2 and py3
+try:
+    from urllib import urlencode
+    from urllib2 import Request, urlopen, HTTPError
+except ImportError:
+    from urllib.parse import urlencode
+    from urllib.request import Request, urlopen, HTTPError
 
 # Combinatoral collections
 from sage.combinat.alternating_sign_matrix import AlternatingSignMatrix, AlternatingSignMatrices

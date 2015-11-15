@@ -295,8 +295,14 @@ class DoctestTicketProxy(object):
         ticket.attributes = attributes
 
         from sage.env import TRAC_SERVER_URI
-        import urlparse
-        return urlparse.urljoin(TRAC_SERVER_URI, 'ticket/%s#comment:%s'%(ticket.id, len(ticket.comments)))
+
+        # import compatible with py2 and py3
+        try:
+            from urlparse import urljoin
+        except ImportError:
+            from urllib.parse import urljoin
+
+        return urljoin(TRAC_SERVER_URI, 'ticket/%s#comment:%s' % (ticket.id, len(ticket.comments)))
 
     def get(self, ticket):
         r"""

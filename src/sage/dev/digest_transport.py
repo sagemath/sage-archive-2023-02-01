@@ -82,7 +82,7 @@ class DigestTransport(object, SafeTransport):
             sage: dt = DigestTransport()
             sage: dt.add_authentication("realm", "url", "username", "password")
             sage: dt.opener
-            <OpenerDirector instance at 0x...>
+            <urllib2.OpenerDirector instance at 0x...>
         """
         assert self._opener is None
         authhandler = HTTPDigestAuthHandler()

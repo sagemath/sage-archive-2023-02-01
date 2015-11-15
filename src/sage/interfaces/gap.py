@@ -891,9 +891,8 @@ class Gap_generic(Expect):
         self.eval('__SAGE_LAST__ := "__SAGE_LAST__";;')
         res = self.eval("%s(%s);;"%(function, ",".join([s.name() for s in args]+
                         ['%s=%s'%(key,value.name()) for key, value in kwds.items()])))
-        if not res: # No printing was done
-            if self.eval('IsIdenticalObj(last, __SAGE_LAST__)') != 'true':
-                return self.new('last2;')
+        if self.eval('IsIdenticalObj(last, __SAGE_LAST__)') != 'true':
+            return self.new('last2;')
         else:
             if res.strip():
                 from sage.interfaces.expect import AsciiArtString

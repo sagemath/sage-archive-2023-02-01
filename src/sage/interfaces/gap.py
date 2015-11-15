@@ -888,8 +888,10 @@ class Gap_generic(Expect):
         #is in the 'last' variable in GAP.  If the function returns a
         #value, then that value will be in 'last', otherwise it will
         #be the marker.
-        self.eval('__SAGE_LAST__ := "__SAGE_LAST__";;')
-        res = self.eval("%s(%s);;"%(function, ",".join([s.name() for s in args]+
+        # We combine the two commands so we only run eval() once and the
+        #   only output would be from the second command
+        cmd = '__SAGE_LAST__ := "__SAGE_LAST__";;'
+        res = self.eval(cmd+"%s(%s);;"%(function, ",".join([s.name() for s in args]+
                         ['%s=%s'%(key,value.name()) for key, value in kwds.items()])))
         if self.eval('IsIdenticalObj(last, __SAGE_LAST__)') != 'true':
             return self.new('last2;')

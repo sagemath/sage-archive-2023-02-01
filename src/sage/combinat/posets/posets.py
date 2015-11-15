@@ -3958,6 +3958,10 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: LatticePoset({}).with_bounds()
             Finite lattice containing 2 elements
 
+            sage: Posets.PentagonPoset().with_bounds(labels=(4, 5))
+            Traceback (most recent call last):
+            ...
+            ValueError: the poset already has element 4
         """
         from sage.combinat.posets.lattices import LatticePoset, \
              JoinSemilattice, MeetSemilattice, FiniteLatticePoset, \

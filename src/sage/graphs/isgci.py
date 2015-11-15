@@ -370,12 +370,6 @@ Methods
 -------
 """
 
-# import compatible with py2 and py3
-try:
-    from urllib2 import urlopen
-except ImportError:
-    from urllib.request import urlopen
-
 from sage.structure.sage_object import SageObject
 from sage.structure.unique_representation import CachedRepresentation, UniqueRepresentation
 from sage.misc.unknown import Unknown
@@ -808,6 +802,11 @@ class GraphClasses(UniqueRepresentation):
 
             sage: graph_classes._download_db() # Not tested -- requires internet
         """
+        # import compatible with py2 and py3
+        try:
+            from urllib2 import urlopen
+        except ImportError:
+            from urllib.request import urlopen
 
         from sage.misc.misc import SAGE_TMP
         import os.path

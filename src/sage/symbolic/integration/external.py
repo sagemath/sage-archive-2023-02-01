@@ -3,13 +3,6 @@
 from sage.symbolic.expression import Expression
 from sage.symbolic.ring import SR
 
-# import compatible with py2 and py3
-try:
-    from urllib import urlopen, urlencode
-except ImportError:
-    from urllib.request import urlopen
-    from urllib.parse import urlencode
-
 
 def maxima_integrator(expression, v, a=None, b=None):
     """
@@ -55,6 +48,12 @@ def mma_free_integrator(expression, v, a=None, b=None):
         -cos(x)
     """
     import re
+    # import compatible with py2 and py3
+    try:
+        from urllib import urlopen, urlencode
+    except ImportError:
+        from urllib.request import urlopen
+        from urllib.parse import urlencode
     # We need to integrate against x
     vars = [str(x) for x in expression.variables()]
     if any(len(x)>1 for x in vars):

@@ -10,7 +10,7 @@ def maxima_integrator(expression, v, a=None, b=None):
         -cos(x)
         sage: maxima_integrator(cos(x), x)
         sin(x)
-        sage: f(x) = function('f', x)
+        sage: f(x) = function('f')(x)
         sage: maxima_integrator(f(x), x)
         integrate(f(x), x)
     """

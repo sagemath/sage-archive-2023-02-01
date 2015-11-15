@@ -135,7 +135,7 @@ def function(s, *args, **kwds):
     INPUT:
 
     - ``args`` - arguments to the function, if specified returns the new
-      function evaluated at the given arguments
+      function evaluated at the given arguments (deprecated as of :trac:`17447`)
     - ``nargs=0`` - number of arguments the function accepts, defaults to
       variable number of arguments, or 0
     - ``latex_name`` - name used when printing in latex mode
@@ -168,9 +168,11 @@ def function(s, *args, **kwds):
 
     EXAMPLES::
 
+        sage: from sage.symbolic.function_factory import function
         sage: var('a, b')
         (a, b)
-        sage: f = function('cr', a)
+        sage: cr = function('cr')
+        sage: f = cr(a)
         sage: g = f.diff(a).integral(b)
         sage: g
         b*D[0](cr)(a)
@@ -303,10 +305,6 @@ def function(s, *args, **kwds):
 
     Make sure that :trac:`15860` is fixed and whitespaces are removed::
 
-        sage: function('A, B')
-        (A, B)
-        sage: B
-        B
         sage: C, D, E = function(' C  D E')
         sage: C(D(x))
         C(D(x))
@@ -328,6 +326,8 @@ def function(s, *args, **kwds):
     funcs = [function_factory(name, **kwds) for name in names]
 
     if len(args) > 0:
+        from sage.misc.superseded import deprecation
+        deprecation(17447, "Calling function('f',x) is deprecated. Use function('f')(x) instead.")
         res = [f(*args) for f in funcs]
     else:
         res = funcs

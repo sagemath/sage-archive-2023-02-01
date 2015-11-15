@@ -1920,7 +1920,7 @@ cdef class InstructionStream:
         r"""
         Initialize an InstructionStream.
 
-        INPUTS:
+        INPUT:
 
         - metadata - The metadata_by_opname from a wrapper module
 

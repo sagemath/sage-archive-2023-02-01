@@ -414,7 +414,7 @@ def aut_gp_and_can_lab_python(S, partition, n,
     """
     Calls the automorphism group and canonical label function.
 
-    INPUT::
+    INPUT:
 
         S -- the object to examine
         partition -- an ordered partition, as a list of lists
@@ -500,7 +500,7 @@ def double_coset_python(S1, S2, partition1, ordering2, n,
     """
     Calls the double coset function.
 
-    INPUT::
+    INPUT:
 
         S1, S2 -- the objects to examine
         partition1 -- an ordered partition, as a list of lists

@@ -231,10 +231,10 @@ class ode_solver(object):
     prince-dormand algorithm. ::
 
         sage: def f_1(t,y,params):
-        ...      return[y[1],-y[0]-params[0]*y[1]*(y[0]**2-1.0)]
+        ....:    return[y[1],-y[0]-params[0]*y[1]*(y[0]**2-1.0)]
 
         sage: def j_1(t,y,params):
-        ...      return [ [0.0, 1.0],[-2.0*params[0]*y[0]*y[1]-1.0,-params[0]*(y[0]*y[0]-1.0)], [0.0, 0.0] ]
+        ....:    return [ [0.0, 1.0],[-2.0*params[0]*y[0]*y[1]-1.0,-params[0]*(y[0]*y[0]-1.0)], [0.0, 0.0] ]
 
         sage: T=ode_solver()
         sage: T.algorithm="rk8pd"
@@ -356,20 +356,49 @@ class ode_solver(object):
         object.__setattr__(self,name,value)
 
     def interpolate_solution(self,i=0):
-        l=eval('[ (x[0],x[1][i]) for x in solution]',{'solution':self.solution,'i':i})
-        return sage.gsl.interpolation.spline(l)
+        pts = [(t,y[i]) for t,y in self.solution]
+        return sage.gsl.interpolation.spline(pts)
 
+    def plot_solution(self, i=0, filename=None, interpolate=False, **kwds):
+        r"""
+        Plot a one dimensional projection of the solution.
 
-    def plot_solution(self, i=0, filename=None, interpolate=False):
-        from sage.plot.all import plot, point
-        points=[]
-        for x in self.solution:
-            points.append(point((x[0],x[1][i])))
-        t = plot(points)
-        if filename is None:
-            t.show()
+        INPUT:
+
+        - ``i`` -- (non-negative integer) composant of the projection
+
+        - ``filename`` -- (string or ``None``) whether to plot the picture or
+          save it in a file
+
+        - ``interpolate`` -- whether to interpolate between the points of the
+          discretized solution
+
+        - additional keywords are passed to the graphics primitive
+
+        EXAMPLES::
+
+            sage: T = ode_solver()
+            sage: T.function = lambda t,y: [cos(y[0]) * sin(t)]
+            sage: T.jacobian = lambda t,y: [[-sin(y[0]) * sin(t)]]
+            sage: T.ode_solve(y_0=[1],t_span=[0,20],num_points=1000)
+            sage: T.plot_solution()
+
+        And with some options::
+
+            sage: T.plot_solution(color='red', axes_labels=["t", "x(t)"])
+        """
+        if interpolate:
+            from sage.plot.line import line2d
+            pts = self.interpolate_solution(i)
+            G = line2d(pts, **kwds)
         else:
-            t.save(filename=filename)
+            pts = [(t,y[i]) for t,y in self.solution]
+            from sage.plot.point import point2d
+            G = point2d([(t,y[i]) for t,y in self.solution], **kwds)
+        if filename is None:
+            G.show()
+        else:
+            G.save(filename=filename)
 
     def ode_solve(self,t_span=False,y_0=False,num_points=False,params=[]):
         import inspect

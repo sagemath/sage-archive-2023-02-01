@@ -657,7 +657,7 @@ class GenericCellComplex(SageObject):
         r"""
         Return the free module of chains in degree ``n`` over ``base_ring``.
 
-        INPUTS:
+        INPUT:
 
         - ``n`` -- integer
         - ``base_ring`` -- ring (optional, default `\ZZ`)
@@ -760,7 +760,7 @@ class GenericCellComplex(SageObject):
         This is implemented for simplicial, cubical, and
         `\Delta`-complexes, not for arbitrary generic cell complexes.
 
-        INPUTS:
+        INPUT:
 
         - ``base_ring`` -- coefficient ring (optional, default
           ``QQ``); must be a field
@@ -819,7 +819,7 @@ class GenericCellComplex(SageObject):
         for computing cohomology operations; so far, only mod 2
         cohomology operations have been implemented.
 
-        INPUTS:
+        INPUT:
 
         - ``base_ring`` -- coefficient ring (optional, default
           ``QQ``); must be a field

@@ -1676,7 +1676,7 @@ cdef class RealIntervalFieldElement(RingElement):
         with the given base and error_digits. See the documentation for
         the str method for the definition of the question style.
 
-        INPUTS:
+        INPUT:
 
           - ``base`` - base for output
 

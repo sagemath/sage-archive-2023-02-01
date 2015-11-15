@@ -1731,7 +1731,9 @@ class FiniteWordPath_2d(FiniteWordPath_all):
             sage: p = P('aaaccaccacacacaccccccbbdd'); p
             Path: aaaccaccacacacaccccccbbdd
             sage: R = p.plot() + p.plot_directive_vector()
-            sage: R.plot(axes=False, aspect_ratio=1)
+            sage: R.axes(False)
+            sage: R.set_aspect_ratio(1)
+            sage: R.plot()
             Graphics object consisting of 4 graphics primitives
 
         TESTS:

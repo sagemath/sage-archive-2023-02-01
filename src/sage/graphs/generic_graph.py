@@ -20851,6 +20851,22 @@ class GenericGraph(GenericGraph_pyx):
             sage: Graph(G.cayley_graph(generators=S)).is_isomorphic(h)
             True
 
+        Graphs with loops and multiedges will have identity and repeated
+        elements, respectively, among the generators::
+
+            sage: g = Graph(graphs.PaleyGraph(9), loops=True, multiedges=True)
+            sage: g.add_edges([(u, u) for u in g.vertex_iterator()])
+            sage: g.add_edges([(u, u+1) for u in g.vertex_iterator()])
+            sage: _, G, S = g.is_cayley(certificate=True)
+            sage: S
+            [(),
+             (0,1,2)(a,a + 1,a + 2)(2*a,2*a + 1,2*a + 2),
+             (0,1,2)(a,a + 1,a + 2)(2*a,2*a + 1,2*a + 2),
+             (0,2,1)(a,a + 2,a + 1)(2*a,2*a + 2,2*a + 1),
+             (0,2,1)(a,a + 2,a + 1)(2*a,2*a + 2,2*a + 1),
+             (0,a + 1,2*a + 2)(1,a + 2,2*a)(2,a,2*a + 1),
+             (0,2*a + 2,a + 1)(1,2*a,a + 2)(2,2*a + 1,a)]
+
         """
         if not self.is_connected():
             if self.is_vertex_transitive():
@@ -20863,6 +20879,7 @@ class GenericGraph(GenericGraph_pyx):
                         inflate = lambda T: [sum([[tuple([M[x] for x in p])
                                 for p in h.cycle_tuples()] for M in I], [])
                                 for h in T]
+                        # gens generate the direct product of G and a cyclic group
                         gens = inflate(G.gens()) + \
                                 [[tuple([M[v] for M in I])
                                   for v in C[0].vertices()]]
@@ -20879,6 +20896,8 @@ class GenericGraph(GenericGraph_pyx):
                 if c:
                     v = next(self.vertex_iterator())
                     d = {f(v): f for f in G}
+                    # self.(out_)neighbors ignores multiedges,
+                    # so we use edge_iterator instead
                     adj = [y if v == x else x for x, y, z in self.edge_iterator(v)]
                     S = [d[u] for u in adj]
                     return (True, G, S)

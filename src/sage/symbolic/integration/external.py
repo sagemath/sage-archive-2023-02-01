@@ -49,11 +49,8 @@ def mma_free_integrator(expression, v, a=None, b=None):
     """
     import re
     # import compatible with py2 and py3
-    try:
-        from urllib import urlopen, urlencode
-    except ImportError:
-        from urllib.request import urlopen
-        from urllib.parse import urlencode
+    from six.moves.urllib.request import urlopen
+    from six.moves.urllib.parse import urlencode
     # We need to integrate against x
     vars = [str(x) for x in expression.variables()]
     if any(len(x)>1 for x in vars):

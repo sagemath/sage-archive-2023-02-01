@@ -191,12 +191,8 @@ import json
 import cgi
 
 # import compatible with py2 and py3
-try:
-    from urllib import urlencode
-    from urllib2 import Request, urlopen, HTTPError
-except ImportError:
-    from urllib.parse import urlencode
-    from urllib.request import Request, urlopen, HTTPError
+from six.moves.urllib.parse import urlencode
+from six.moves.urllib.request import Request, urlopen, HTTPError
 
 # Combinatoral collections
 from sage.combinat.alternating_sign_matrix import AlternatingSignMatrix, AlternatingSignMatrices

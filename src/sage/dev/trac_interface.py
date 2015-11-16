@@ -29,12 +29,8 @@ import time
 import datetime
 
 # import compatible with py2 and py3
-try:
-    from urlparse import urljoin
-    from urllib import pathname2url
-except ImportError:
-    from urllib.parse import urljoin
-    from urllib.request import pathname2url
+from six.moves.urllib.parse import urljoin
+from six.moves.urllib.request import pathname2url
 
 
 FIELD_REGEX = re.compile("^([A-Za-z ]+):(.*)$")

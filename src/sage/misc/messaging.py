@@ -70,10 +70,7 @@ def pushover(message, **kwds):
     import httplib
 
     # import compatible with py2 and py3
-    try:
-        from urllib import urlencode
-    except ImportError:
-        from urllib.parse import urlencode
+    from six.moves.urllib.parse import urlencode
 
     request = {"message": message}
     request.update(pushover_defaults)

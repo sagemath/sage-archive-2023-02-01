@@ -34,10 +34,7 @@ def magma_free_eval(code, strip=True, columns=0):
         [ <2, 5>, <290323377887, 1> ]
     """
     # import compatible with py2 and py3
-    try:
-        from urllib import urlencode
-    except ImportError:
-        from urllib.parse import urlencode
+    from six.moves.urllib.parse import urlencode
     import httplib
     from xml.dom.minidom import parseString
 

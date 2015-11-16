@@ -49,10 +49,7 @@ from sage.misc.all import tmp_filename
 import sys
 
 # import compatible with py2 and py3
-try:
-    from urllib2 import urlopen
-except ImportError:
-    from urllib.request import urlopen
+from six.moves.urllib.request import urlopen
 
 XML_NAMESPACE   = 'http://designtheory.org/xml-namespace'
 DTRS_PROTOCOL   = '2.0'

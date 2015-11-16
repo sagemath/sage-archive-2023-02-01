@@ -487,10 +487,7 @@ def best_known_covering_design_www(v, k, t, verbose=False):
     found in the database.
     """
     # import compatible with py2 and py3
-    try:
-        from urllib import urlopen
-    except ImportError:
-        from urllib.request import urlopen
+    from six.moves.urllib.request import urlopen
 
     from sage.misc.sage_eval import sage_eval
 

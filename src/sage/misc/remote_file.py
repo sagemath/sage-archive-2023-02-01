@@ -33,10 +33,7 @@ def get_remote_file(filename, verbose=True):
     # so do not import it in the module scope.
 
     # import compatible with py2 and py3
-    try:
-        from urllib import urlretrieve
-    except ImportError:
-        from urllib.request import urlretrieve
+    from six.moves.urllib.request import urlretrieve
 
     global cur
     cur = 0

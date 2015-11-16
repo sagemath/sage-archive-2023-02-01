@@ -31,14 +31,7 @@ import os
 import re
 
 # import compatible with py2 and py3
-try:
-    from urllib import urlretrieve
-except ImportError:
-    from urllib.request import urlretrieve
-try:
-    from urllib2 import urlopen
-except ImportError:
-    from urllib.request import urlopen
+from six.moves.urllib.request import urlretrieve, urlopen
 
     
 # regular expressions to parse mercurial patches

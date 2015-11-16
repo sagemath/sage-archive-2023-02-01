@@ -37,10 +37,7 @@ from sage.structure.all import Sequence
 from datetime import date
 
 # import compatible with py2 and py3
-try:
-    from urllib import urlopen
-except ImportError:
-    from urllib.request import urlopen
+from six.moves.urllib.request import urlopen
 
 
 class OHLC:

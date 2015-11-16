@@ -1967,10 +1967,7 @@ def xkcd(n=""):
     from sage.misc.html import html
 
     # import compatible with py2 and py3
-    try:
-        from urllib2 import urlopen, HTTPError, URLError
-    except ImportError:
-        from urllib.request import urlopen, HTTPError, URLError
+    from six.moves.urllib.request import urlopen, HTTPError, URLError
 
     data = None
     url = "http://dynamic.xkcd.com/api-0/jsonp/comic/{}".format(n)

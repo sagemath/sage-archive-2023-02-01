@@ -241,10 +241,7 @@ from sage.misc.superseded import deprecated_function_alias
 from encoder import Encoder
 
 # import compatible with py2 and py3
-try:
-    from urllib import urlopen
-except ImportError:
-    from urllib.request import urlopen
+from six.moves.urllib.request import urlopen
 
 ZZ = IntegerRing()
 

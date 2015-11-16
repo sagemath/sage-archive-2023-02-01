@@ -20,14 +20,9 @@ AUTHORS:
 from xmlrpclib import SafeTransport, Fault
 
 # import compatible with py2 and py3
-try:
-    from urllib2 import (build_opener, HTTPDigestAuthHandler,
-                         Request, HTTPError)
-    from urlparse import urlunparse
-except ImportError:
-    from urllib.request import (build_opener, HTTPDigestAuthHandler,
-                                Request, HTTPError)
-    from urllib.parse import urlunparse
+from six.moves.urllib.request import (build_opener, HTTPDigestAuthHandler,
+                            Request, HTTPError)
+from six.moves.urllib.parse import urlunparse
 
 
 class DigestTransport(object, SafeTransport):

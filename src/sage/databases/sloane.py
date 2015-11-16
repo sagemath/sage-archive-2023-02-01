@@ -87,10 +87,7 @@ import os
 import re
 
 # import compatible with py2 and py3
-try:
-    from urllib import urlretrieve
-except ImportError:
-    from urllib.request import urlretrieve
+from six.moves.urllib.request import urlretrieve
 
 from sage.misc.all import verbose
 from sage.env import SAGE_SHARE

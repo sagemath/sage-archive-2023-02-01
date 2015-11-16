@@ -152,14 +152,6 @@ done
 
 if $import_errors; then
     echo >&2 "Error: One or more modules failed to import."
-    # Check if we are on Debian or one of its derivatives:
-    if { command -v dpkg && ! command -v dpkg-architecture; } >/dev/null; then
-        echo >&2 "You may have to install 'dpkg-architecture'"
-        echo >&2 "which is part of the Debian package 'dpkg-dev'."
-        echo >&2 "Try installing it by typing"
-        echo >&2 "    sudo apt-get install dpkg-dev"
-        echo >&2 "and rerun 'make'."
-    fi
     exit 1
 fi
 

@@ -83,6 +83,7 @@ from sage.structure.unique_representation import UniqueRepresentation
 from sage.combinat.root_system.cartan_type import CartanType
 from sage.combinat.root_system.root_system import RootSystem
 from sage.rings.integer import Integer
+from sage.rings.integer_ring import ZZ
 
 class AbstractSingleCrystalElement(Element):
     r"""
@@ -101,6 +102,17 @@ class AbstractSingleCrystalElement(Element):
             False
         """
         return False
+
+    def __hash__(self):
+        r"""
+        TESTS::
+
+            sage: C = crystals.elementary.Component("D7")
+            sage: c = C.highest_weight_vector()
+            sage: hash(c) # random
+            879
+        """
+        return hash(self.parent())
 
     def __eq__(self,other):
         r"""
@@ -181,7 +193,7 @@ class AbstractSingleCrystalElement(Element):
         """
         return None
 
-class TCrystal(Parent, UniqueRepresentation):
+class TCrystal(UniqueRepresentation, Parent):
     r"""
     The crystal `T_{\lambda}`.
 
@@ -416,7 +428,7 @@ class TCrystal(Parent, UniqueRepresentation):
             """
             return self.parent()._weight
 
-class RCrystal(Parent, UniqueRepresentation):
+class RCrystal(UniqueRepresentation, Parent):
     r"""
     The crystal `R_{\lambda}`.
 
@@ -672,7 +684,7 @@ class RCrystal(Parent, UniqueRepresentation):
             """
             return self.parent()._weight
 
-class ElementaryCrystal(Parent, UniqueRepresentation):
+class ElementaryCrystal(UniqueRepresentation, Parent):
     r"""
     The elementary crystal `B_i`.
 
@@ -787,7 +799,7 @@ class ElementaryCrystal(Parent, UniqueRepresentation):
             sage: B(721)
             721
         """
-        return self.element_class(self, m)
+        return self.element_class(self, ZZ(m))
 
     def weight_lattice_realization(self):
         """
@@ -816,6 +828,16 @@ class ElementaryCrystal(Parent, UniqueRepresentation):
             """
             self._m = m
             Element.__init__(self, parent)
+
+        def __hash__(self):
+            r"""
+            TESTS::
+
+                sage: B = crystals.elementary.Elementary(['B',7],7)
+                sage: hash(B(17))
+                17
+            """
+            return hash(self._m)
 
         def _repr_(self):
             r"""
@@ -986,7 +1008,7 @@ class ElementaryCrystal(Parent, UniqueRepresentation):
             Q = self.parent().weight_lattice_realization()
             return self._m * Q.simple_root(self.parent()._i)
 
-class ComponentCrystal(Parent,UniqueRepresentation):
+class ComponentCrystal(UniqueRepresentation, Parent):
     r"""
     The component crystal.
 

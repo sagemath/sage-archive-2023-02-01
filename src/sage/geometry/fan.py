@@ -671,8 +671,9 @@ def FaceFan(polytope, lattice=None):
     if is_LatticePolytope(polytope):
         if any(d <= 0 for d in polytope.distances([0]*polytope.dim())):
             raise interior_point_error
-        cones = (facet.vertices() for facet in polytope.facets())
-        rays = polytope.vertices_pc()
+        cones = (f.ambient_vertex_indices() for f in polytope.facets_lp())
+        rays = polytope.vertices()
+        is_complete = polytope.dim() == polytope.lattice_dim()
     else:
         origin = polytope.ambient_space().zero()
         if not (polytope.is_compact() and
@@ -681,13 +682,13 @@ def FaceFan(polytope, lattice=None):
         cones = [ [ v.index() for v in facet.incident() ]
                   for facet in polytope.inequalities() ]
         rays = [vector(_) for _ in polytope.vertices()]
+        is_complete = polytope.dim() == polytope.ambient_dim()
         if lattice is None:
             # Since default lattice polytopes are in the M lattice,
             # treat polyhedra as being there as well.
             lattice = ToricLattice(len(origin)).dual()
-    fan = Fan(cones, rays, lattice=lattice, check=False,
-              is_complete=(polytope.dim() == polytope.ambient_dim()))
-    return fan
+    return Fan(cones, rays, lattice=lattice, check=False,
+               is_complete=is_complete)
 
 
 def NormalFan(polytope, lattice=None):
@@ -752,21 +753,23 @@ def NormalFan(polytope, lattice=None):
         sage: fan1.is_equivalent(fan2)
         True
     """
+    dimension_error = ValueError(
+        'the normal fan is only defined for full-dimensional polytopes')
     from sage.geometry.lattice_polytope import is_LatticePolytope
-    if polytope.dim() != polytope.ambient_dim():
-        raise ValueError('the normal fan is only defined for full-dimensional polytopes')
     if is_LatticePolytope(polytope):
+        if polytope.dim() != polytope.lattice_dim():
+            raise dimension_error
         rays = polytope.facet_normals()
-        cones = (vertex.facets() for vertex in polytope.faces(dim=0))
+        cones = (v.ambient_facet_indices() for v in polytope.faces_lp(dim=0))
     else:
+        if polytope.dim() != polytope.ambient_dim():
+            raise dimension_error
         if not polytope.is_compact():
             raise NotImplementedError('the normal fan is only supported for polytopes (compact polyhedra).')
         cones = [ [ ieq.index() for ieq in vertex.incident() ]
                   for vertex in polytope.vertices() ]
         rays =[ ieq.A() for ieq in polytope.inequalities() ]
-    fan = Fan(cones, rays, lattice=lattice, check=False,
-              is_complete=(polytope.dim() == polytope.ambient_dim()))
-    return fan
+    return Fan(cones, rays, lattice=lattice, check=False, is_complete=True)
 
 
 def Fan2d(rays, lattice=None):

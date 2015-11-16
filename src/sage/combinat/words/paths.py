@@ -842,9 +842,9 @@ class WordPaths_cube_grid(WordPaths_all):
 
         INPUT:
 
-        - ``alphabet - ordered alphabet of length 6. The order for the steps
-          is : e_x, e_y, e_z, -e_x, -e_y, -e_z, where e_v denotes
-          the canonical basis.
+        - ``alphabet`` -- ordered alphabet of length 6. The order for
+          the steps is `e_x, e_y, e_z, -e_x, -e_y, -e_z`, where `e_v`
+          denotes the canonical basis.
 
         EXAMPLES::
 
@@ -1731,7 +1731,9 @@ class FiniteWordPath_2d(FiniteWordPath_all):
             sage: p = P('aaaccaccacacacaccccccbbdd'); p
             Path: aaaccaccacacacaccccccbbdd
             sage: R = p.plot() + p.plot_directive_vector()
-            sage: R.plot(axes=False, aspect_ratio=1)
+            sage: R.axes(False)
+            sage: R.set_aspect_ratio(1)
+            sage: R.plot()
             Graphics object consisting of 4 graphics primitives
 
         TESTS:

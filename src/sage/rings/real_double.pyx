@@ -45,7 +45,6 @@ from cpython.float cimport *
 include "sage/ext/python_debug.pxi"
 include 'sage/ext/cdefs.pxi'
 include 'sage/ext/stdsage.pxi'
-include 'sage/ext/random.pxi'
 include 'sage/ext/interrupt.pxi'
 from sage.libs.gsl.all cimport *
 cimport libc.math
@@ -66,6 +65,7 @@ from sage.rings.integer_ring import ZZ
 
 from sage.categories.morphism cimport Morphism
 from sage.structure.coerce cimport is_numpy_type
+from sage.misc.randstate cimport randstate, current_randstate
 
 
 def is_RealDoubleField(x):
@@ -140,7 +140,7 @@ cdef class RealDoubleField_class(Field):
             sage: TestSuite(R).run()
         """
         from sage.categories.fields import Fields
-        Field.__init__(self, self, category = Fields())
+        Field.__init__(self, self, category=Fields().Metric().Complete())
         self._populate_coercion_lists_(element_constructor=RealDoubleElement,
                                        init_no_parent=True,
                                        convert_method_name='_real_double_')

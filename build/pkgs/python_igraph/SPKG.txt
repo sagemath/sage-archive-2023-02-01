@@ -10,10 +10,6 @@ analysis of large graphs.
 
 GPL version 2
 
-== SPKG Maintainers ==
-
-* Michele Borassi
-
 == Upstream Contact ==
 
 http://igraph.org/python/

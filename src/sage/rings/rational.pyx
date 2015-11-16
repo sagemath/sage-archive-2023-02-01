@@ -158,7 +158,7 @@ cpdef Integer integer_rational_power(Integer a, Rational b):
     Compute `a^b` as an integer, if it is integral, or return None.
     The positive real root is taken for even denominators.
 
-    INPUT::
+    INPUT:
 
         a -- an Integer
         b -- a positive Rational
@@ -230,7 +230,7 @@ cpdef rational_power_parts(a, b, factor_limit=10**5):
     Compute rationals or integers `c` and `d` such that `a^b = c*d^b`
     with `d` small. This is used for simplifying radicals.
 
-    INPUT::
+    INPUT:
 
         - ``a`` -- a rational or integer
         - ``b`` -- a rational
@@ -709,9 +709,9 @@ cdef class Rational(sage.structure.element.FieldElement):
         l = self.continued_fraction_list()
         return ContinuedFraction_periodic(l)
 
-    def __richcmp__(left, right, int op):
+    cpdef int _cmp_(left, sage.structure.element.Element right) except -2:
         """
-        Rich comparison between two rational numbers.
+        Compare two rational numbers.
 
         INPUT:
 
@@ -730,9 +730,6 @@ cdef class Rational(sage.structure.element.FieldElement):
             sage: 4/5 < 0.8
             False
         """
-        return (<sage.structure.element.Element>left)._richcmp(right, op)
-
-    cpdef int _cmp_(left, sage.structure.element.Element right) except -2:
         cdef int i
         i = mpq_cmp((<Rational>left).value, (<Rational>right).value)
         if i < 0: return -1
@@ -2019,20 +2016,24 @@ cdef class Rational(sage.structure.element.FieldElement):
 
         EXAMPLES::
 
-            sage: (-4/17).__hash__()
-            -19
-            sage: (-5/1).__hash__()
-            -5
+            sage: QQ(42).__hash__()
+            42
+            sage: QQ(1/42).__hash__()
+            1488680910            # 32-bit
+            -7658195599476688946  # 64-bit
+            sage: n = ZZ.random_element(10^100)
+            sage: hash(n) == hash(QQ(n)) or n
+            True
+            sage: hash(-n) == hash(-QQ(n)) or n
+            True
+            sage: hash(-4/17)
+            -47583156            # 32-bit
+            8709371129873690700  # 64-bit
         """
-        cdef long n, d
-        n = mpz_pythonhash(mpq_numref(self.value))
-        d = mpz_pythonhash(mpq_denref(self.value))
-        if d == 1:
-            return n
-        n = n ^ d
-        if n == -1:
-            return -2
-        return n
+        cdef Py_hash_t n = mpz_pythonhash(mpq_numref(self.value))
+        cdef Py_hash_t d = mpz_pythonhash(mpq_denref(self.value))
+        # The constant below is (1 + sqrt(5)) << 61
+        return n + (d - 1) * <Py_hash_t>(7461864723258187525)
 
     def __getitem__(self, int n):
         """
@@ -2141,10 +2142,10 @@ cdef class Rational(sage.structure.element.FieldElement):
             sage: 3/0 # indirect doctest
             Traceback (most recent call last):
             ...
-            ZeroDivisionError: Rational division by zero
+            ZeroDivisionError: rational division by zero
         """
         if mpq_cmp_si((<Rational> right).value, 0, 1) == 0:
-            raise ZeroDivisionError, "Rational division by zero"
+            raise ZeroDivisionError('rational division by zero')
         cdef Rational x
         x = <Rational> Rational.__new__(Rational)
         mpq_div(x.value, self.value, (<Rational>right).value)
@@ -2168,7 +2169,7 @@ cdef class Rational(sage.structure.element.FieldElement):
             -17/4
         """
         if self.is_zero():
-            raise ZeroDivisionError, "rational division by zero"
+            raise ZeroDivisionError('rational division by zero')
         cdef Rational x
         x = <Rational> Rational.__new__(Rational)
         mpq_inv(x.value, self.value)
@@ -2255,6 +2256,13 @@ cdef class Rational(sage.structure.element.FieldElement):
             1/8*8^(4/5)
             sage: 3^(-3/2)
             1/9*sqrt(3)
+
+        TESTS::
+
+            sage: QQ(0)^(-1)
+            Traceback (most recent call last):
+            ...
+            ZeroDivisionError: rational division by zero
         """
         if dummy is not None:
             raise ValueError, "__pow__ dummy variable not used"
@@ -2328,6 +2336,9 @@ cdef class Rational(sage.structure.element.FieldElement):
             return x
 
         if nn < 0:
+            if mpz_sgn(mpq_numref(_self.value)) == 0:
+                raise ZeroDivisionError('rational division by zero')
+
             sig_on()
             # mpz_pow_ui(mpq_denref(x.value), mpq_numref(_self.value), <unsigned long int>(-nn))
             # mpz_pow_ui(mpq_numref(x.value), mpq_denref(_self.value), <unsigned long int>(-nn))

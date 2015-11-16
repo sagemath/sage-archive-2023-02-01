@@ -24,10 +24,6 @@ License.  It is permitted to link MPFI to non-free programs, as long as
 when distributing them the MPFI source code and a means to re-link with
 a modified MPFI is provided.
 
-== SPKG Maintainers ==
-
- * ???
-
 == Upstream Contact ==
 
 The MPFI website is located at http://mpfi.gforge.inria.fr/

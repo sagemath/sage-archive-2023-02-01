@@ -73,8 +73,13 @@ cdef class Matrix(matrix1.Matrix):
         """
         return self.solve_right(B)
 
-    def subs(self, in_dict=None, **kwds):
+    def subs(self, *args, **kwds):
         """
+        Substitute values to the variables in that matrix.
+
+        All the arguments are transmitted unchanged to the method ``subs`` of
+        the coefficients.
+
         EXAMPLES::
 
             sage: var('a,b,d,e')
@@ -86,9 +91,37 @@ cdef class Matrix(matrix1.Matrix):
             sage: m.subs(a=b, b=d)
             [b d]
             [d e]
+            sage: m.subs({a: 3, b:2, d:1, e:-1})
+            [ 3  2]
+            [ 1 -1]
+
+        The parent of the newly created matrix might be different from the
+        initial one. It depends on what the method ``.subs`` does on
+        coefficients (see :trac:`19045`)::
+
+            sage: x = polygen(ZZ)
+            sage: m = matrix([[x]])
+            sage: m2 = m.subs(x=2)
+            sage: m2.parent()
+            Full MatrixSpace of 1 by 1 dense matrices over Integer Ring
+            sage: m1 = m.subs(x=RDF(1))
+            sage: m1.parent()
+            Full MatrixSpace of 1 by 1 dense matrices over Real Double Field
+
+        However, sparse matrices remain sparse::
+
+            sage: m = matrix({(3,2): -x, (59,38): x^2+2}, nrows=1000, ncols=1000)
+            sage: m1 = m.subs(x=1)
+            sage: m1.is_sparse()
+            True
         """
-        v = [a.subs(in_dict, **kwds) for a in self.list()]
-        return self.new_matrix(self.nrows(), self.ncols(), v)
+        from sage.matrix.constructor import matrix
+        if self.is_sparse():
+            return matrix({ij: self[ij].subs(*args, **kwds) for ij in self.nonzero_positions()},
+                    nrows=self._nrows, ncols=self._ncols, sparse=True)
+        else:
+            return matrix([a.subs(*args, **kwds) for a in self.list()],
+                        nrows=self._nrows, ncols=self._ncols, sparse=False)
 
     def solve_left(self, B, check=True):
         """
@@ -1006,7 +1039,7 @@ cdef class Matrix(matrix1.Matrix):
 
         These numbers are the coefficients of a modified Laguerre polynomial::
 
-            sage: x = polygen(ZZ)
+            sage: x = polygen(QQ)
             sage: factorial(8) * laguerre(8,-x)
             x^8 + 64*x^7 + 1568*x^6 + 18816*x^5 + 117600*x^4 + 376320*x^3 +
             564480*x^2 + 322560*x + 40320
@@ -7842,22 +7875,26 @@ cdef class Matrix(matrix1.Matrix):
 
     def randomize(self, density=1, nonzero=False, *args, **kwds):
         """
-        Randomize density proportion of the entries of this matrix, leaving
-        the rest unchanged.
+        Replace a proportion of the entries of a matrix by random elements,
+        leaving the remaining entries unchanged.
 
         .. note::
 
-           We actually choose at random ``density`` proportion of entries of
-           the matrix and set them to random elements. It's possible that the
-           same position can be chosen multiple times, especially for a very
-           small matrix.
+           The locations of the entries of the matrix to change are
+           determined randomly, with the total number of locations
+           determined by the ``density`` keyword. These locations
+           are not guaranteed to be distinct.  So it is possible
+           that the same position can be chosen multiple times,
+           especially for a very small matrix.  The exception is
+           when ``density = 1``, in which case every entry of the
+           matrix will be changed.
 
         INPUT:
 
-        -  ``density`` - ``float`` (default: 1); rough measure of the
-           proportion of nonzero entries in the random matrix
-        -  ``nonzero`` - Bool (default: ``False``); whether the new entries
-           have to be non-zero
+        -  ``density`` - ``float`` (default: ``1``); upper bound for the
+           proportion of entries that are changed
+        -  ``nonzero`` - Bool (default: ``False``); if ``True``, then new
+           entries will be nonzero
         -  ``*args, **kwds`` - Remaining parameters may be passed to the
            ``random_element`` function of the base ring
 
@@ -7894,9 +7931,9 @@ cdef class Matrix(matrix1.Matrix):
             [0 0]
             [0 0]
 
-        Then we randomize it; the x and y parameters, which determine the
-        size of the random elements, are passed onto the ZZ random_element
-        method.
+        Then we randomize it; the ``x`` and ``y`` keywords, which determine the
+        size of the random elements, are passed on to the ``random_element``
+        method for ``ZZ``.
 
         ::
 

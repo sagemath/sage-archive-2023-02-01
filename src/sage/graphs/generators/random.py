@@ -24,7 +24,7 @@ def RandomGNP(n, p, seed=None, fast=True, method='Sage'):
     Returns a random graph on `n` nodes. Each edge is inserted independently
     with probability `p`.
 
-    INPUTS:
+    INPUT:
 
     - ``n`` -- number of nodes of the graph
 
@@ -749,7 +749,7 @@ def RandomToleranceGraph(n):
         sage: g.clique_number() == g.chromatic_number()
         True
 
-    TEST:
+    TEST::
 
         sage: g = graphs.RandomToleranceGraph(-2)
         Traceback (most recent call last):

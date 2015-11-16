@@ -341,14 +341,8 @@ cdef class FiniteFieldHomomorphism_generic(RingHomomorphism_im_gens):
         """
         return self._section_class(self)
 
-
-    def __richcmp__(left, right, int op):
-        return (<Element>left)._richcmp(right, op)
-
-
     def __hash__(self):
         return Morphism.__hash__(self)
-
 
 
 cdef class FrobeniusEndomorphism_finite_field(FrobeniusEndomorphism_generic):
@@ -669,11 +663,6 @@ cdef class FrobeniusEndomorphism_finite_field(FrobeniusEndomorphism_generic):
             True
         """
         return self.power() == 0
-
-
-    def __richcmp__(left, right, int op):
-        return (<Element>left)._richcmp(right, op)
-
 
     def __hash__(self):
         return Morphism.__hash__(self)

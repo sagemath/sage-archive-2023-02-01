@@ -12,6 +12,7 @@ Base class for polyhedra
 #                  http://www.gnu.org/licenses/
 ########################################################################
 
+import itertools
 import six
 from sage.structure.element import Element, coerce_binop, is_Vector
 
@@ -25,8 +26,6 @@ from sage.matrix.constructor import matrix
 from sage.functions.other import sqrt, floor, ceil
 
 from sage.graphs.graph import Graph
-
-from sage.combinat.cartesian_product import CartesianProduct
 
 from constructor import Polyhedron
 
@@ -119,6 +118,32 @@ class Polyhedron_base(Element):
             self._init_from_Hrepresentation(ieqs, eqns, **kwds)
         else:
             self._init_empty_polyhedron()
+
+    def __hash__(self):
+        r"""
+        TESTS::
+
+            sage: K.<a> = QuadraticField(2)
+            sage: p = Polyhedron(vertices=[(0,1,a),(3,a,5)],
+            ....:                rays=[(a,2,3), (0,0,1)],
+            ....:                base_ring=K)
+            sage: q = Polyhedron(vertices=[(3,a,5),(0,1,a)],
+            ....:                rays=[(0,0,1), (a,2,3)],
+            ....:                base_ring=K)
+            sage: hash(p) == hash(q)
+            True
+        """
+        # TODO: find something better *but* fast
+        return hash((self.dim(),
+                     self.ambient_dim(),
+                     self.n_Hrepresentation(),
+                     self.n_Vrepresentation(),
+                     self.n_equations(),
+                     self.n_facets(),
+                     self.n_inequalities(),
+                     self.n_lines(),
+                     self.n_rays(),
+                     self.n_vertices()))
 
     def _sage_input_(self, sib, coerced):
         """
@@ -291,7 +316,7 @@ class Polyhedron_base(Element):
                 set_adjacent(Vrep[0], Vrep[1])
         return M
 
-    def delete(self):
+    def _delete(self):
         """
         Delete this polyhedron.
 
@@ -305,20 +330,20 @@ class Polyhedron_base(Element):
         EXAMPLES::
 
             sage: p = Polyhedron([(0,0),(1,0),(0,1)])
-            sage: p.delete()
+            sage: p._delete()
 
             sage: vertices = [(0,0,0,0),(1,0,0,0),(0,1,0,0),(1,1,0,0),(0,0,1,0),(0,0,0,1)]
             sage: def loop_polyhedra():
-            ...       for i in range(0,100):
-            ...           p = Polyhedron(vertices)
+            ....:     for i in range(0,100):
+            ....:         p = Polyhedron(vertices)
 
             sage: timeit('loop_polyhedra()')                   # not tested - random
             5 loops, best of 3: 79.5 ms per loop
 
             sage: def loop_polyhedra_with_recycling():
-            ...       for i in range(0,100):
-            ...           p = Polyhedron(vertices)
-            ...           p.delete()
+            ....:     for i in range(0,100):
+            ....:         p = Polyhedron(vertices)
+            ....:         p._delete()
 
             sage: timeit('loop_polyhedra_with_recycling()')    # not tested - random
             5 loops, best of 3: 57.3 ms per loop
@@ -433,8 +458,8 @@ class Polyhedron_base(Element):
             True
         """
         return all( other_H.contains(self_V)
-                    for other_H, self_V in
-                    CartesianProduct(other.Hrepresentation(), self.Vrepresentation()) )
+                    for other_H in other.Hrepresentation() \
+                    for self_V in self.Vrepresentation())
 
     def plot(self,
              point=None, line=None, polygon=None, # None means unspecified by the user
@@ -819,6 +844,14 @@ class Polyhedron_base(Element):
              1 -1 0
              1 0 -1
             end
+            
+            sage: triangle = Polyhedron(vertices = [[1,0],[0,1],[1,1]],base_ring=AA)
+            sage: triangle.base_ring()
+            Algebraic Real Field
+            sage: triangle.cdd_Hrepresentation()
+            Traceback (most recent call last):
+            ...
+            TypeError: The base ring must be ZZ, QQ, or RDF
         """
         from cdd_file_format import cdd_Hrepresentation
         try:
@@ -1891,8 +1924,17 @@ class Polyhedron_base(Element):
 
         OUTPUT:
 
-        Either ``QQ`` (exact arithmetic using gmp, default) or ``RDF``
-        (double precision floating-point arithmetic)
+        The ring over which the polyhedron is defined. Must be a
+        sub-ring of the reals to define a polyhedron, in particular
+        comparison must be defined. Popular choices are
+
+        * ``ZZ`` (the ring of integers, lattice polytope), 
+
+        * ``QQ`` (exact arithmetic using gmp),
+
+        * ``RDF`` (double precision floating-point arithmetic), or
+
+        * ``AA`` (real algebraic field).
 
         EXAMPLES::
 
@@ -1909,7 +1951,7 @@ class Polyhedron_base(Element):
         """
         Return the average of the vertices.
 
-        See also :meth:`interior_point`.
+        See also :meth:`representative_point`.
 
         OUTPUT:
 
@@ -2381,7 +2423,7 @@ class Polyhedron_base(Element):
         return P.element_class(P, None, [new_ieqs, new_eqns])
 
     def __sub__(self, other):
-        """
+        r"""
         Implement minus binary operation
 
         Polyhedra are not a ring with respect to dilatation and
@@ -3828,7 +3870,7 @@ class Polyhedron_base(Element):
             sage: P = Polyhedron( vertices = [(1, 0), (0, 1), (-1, 0), (0, -1)])
             sage: lp = P.lattice_polytope(); lp
             2-d reflexive polytope #3 in 2-d lattice M
-            sage: lp.vertices_pc()
+            sage: lp.vertices()
             M(-1,  0),
             M( 0, -1),
             M( 0,  1),
@@ -3846,7 +3888,7 @@ class Polyhedron_base(Element):
             lattice polytope.
             sage: lp = P.lattice_polytope(True); lp
             2-d reflexive polytope #5 in 2-d lattice M
-            sage: lp.vertices_pc()
+            sage: lp.vertices()
             M(-1,  0),
             M( 0, -1),
             M( 0,  1),
@@ -3867,7 +3909,7 @@ class Polyhedron_base(Element):
             vertices = []
             for v in self.vertex_generator():
                 vbox = [ set([floor(x),ceil(x)]) for x in v ]
-                vertices.extend( CartesianProduct(*vbox) )
+                vertices.extend( itertools.product(*vbox) )
 
         # construct the (enveloping) lattice polytope
         from sage.geometry.lattice_polytope import LatticePolytope
@@ -3888,7 +3930,7 @@ class Polyhedron_base(Element):
 
             sage: Polyhedron(vertices=[(-1,-1),(1,0),(1,1),(0,1)])._integral_points_PALP()
             [M(-1, -1), M(0, 1), M(1, 0), M(1, 1), M(0, 0)]
-            sage: Polyhedron(vertices=[(-1/2,-1/2),(1,0),(1,1),(0,1)]).lattice_polytope(True).points_pc()
+            sage: Polyhedron(vertices=[(-1/2,-1/2),(1,0),(1,1),(0,1)]).lattice_polytope(True).points()
             M( 0, -1),
             M(-1,  0),
             M(-1, -1),
@@ -3910,8 +3952,8 @@ class Polyhedron_base(Element):
         except AttributeError:
             pass
         if self.is_lattice_polytope():
-            return list(lp.points_pc())
-        return [p for p in lp.points_pc() if self.contains(p)]
+            return list(lp.points())
+        return [p for p in lp.points() if self.contains(p)]
 
     @cached_method
     def bounding_box(self, integral=False):
@@ -4016,9 +4058,8 @@ class Polyhedron_base(Element):
                                stderr=(None if verbose else PIPE),
                                cwd=str(SAGE_TMP))
         except OSError:
-            raise ValueError("The package latte_int must be installed "
-                    "(type 'sage -i latte_int' in a console or "
-                    "'install_package('latte_int')' at a Sage prompt)!\n")
+            from sage.misc.package import PackageNotFoundError
+            raise PackageNotFoundError('latte_int')
 
         ans, err = latte_proc.communicate(ine)
         ret_code = latte_proc.poll()
@@ -4089,7 +4130,7 @@ class Polyhedron_base(Element):
             sage: pts1 = P.integral_points()                     # Sage's own code
             sage: all(P.contains(p) for p in pts1)
             True
-            sage: pts2 = LatticePolytope(v).points_pc()          # PALP
+            sage: pts2 = LatticePolytope(v).points()          # PALP
             sage: for p in pts1: p.set_immutable()
             sage: set(pts1) == set(pts2)
             True

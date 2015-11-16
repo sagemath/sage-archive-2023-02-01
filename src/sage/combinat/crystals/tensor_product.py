@@ -36,11 +36,11 @@ from sage.structure.parent import Parent
 from sage.structure.element import parent
 from sage.structure.global_options import GlobalOptions
 from sage.categories.category import Category
+from sage.categories.cartesian_product import cartesian_product
 from sage.categories.classical_crystals import ClassicalCrystals
 from sage.categories.regular_crystals import RegularCrystals
 from sage.categories.sets_cat import Sets
 from sage.combinat.root_system.cartan_type import CartanType
-from sage.combinat.cartesian_product import CartesianProduct
 from sage.combinat.combinat import CombinatorialElement
 from sage.combinat.partition import Partition
 from sage.combinat.tableau import Tableau
@@ -84,9 +84,9 @@ class TestParent(UniqueRepresentation, Parent):
         """
         EXAMPLES::
 
-        sage: from sage.combinat.crystals.tensor_product import TestParent
-        sage: TestParent()
-        A parent for tests
+            sage: from sage.combinat.crystals.tensor_product import TestParent
+            sage: TestParent()
+            A parent for tests
         """
         return "A parent for tests"
 
@@ -808,7 +808,7 @@ class FullTensorProductOfCrystals(TensorProductOfCrystals):
                 raise ValueError("you need to specify the Cartan type if the tensor product list is empty")
             else:
                 self._cartan_type = crystals[0].cartan_type()
-        self.cartesian_product = CartesianProduct(*self.crystals)
+        self.cartesian_product = cartesian_product(self.crystals)
         self.module_generators = self
 
     def _repr_(self):
@@ -1808,15 +1808,15 @@ class CrystalOfTableaux(CrystalOfWords):
 
     def __init__(self, cartan_type, shapes):
         """
-        Construct the crystal of all tableaux of the given shapes
+        Construct the crystal of all tableaux of the given shapes.
 
         INPUT:
 
-        - ``cartan_type`` - (data coercible into) a Cartan type
-        - ``shapes``      - a list (or iterable) of shapes
-        - ``shape` `      - a shape
+        - ``cartan_type`` -- (data coercible into) a Cartan type
+        - ``shapes``      -- a list (or iterable) of shapes
+        - ``shape``       -- a shape
 
-        shapes themselves are lists (or iterable) of integers
+        Shapes themselves are lists (or iterable) of integers.
 
         EXAMPLES::
 

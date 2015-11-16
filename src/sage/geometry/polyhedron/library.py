@@ -1268,6 +1268,88 @@ class Polytopes():
         verts += [[v[2], v[0], v[1]] for v in pts]
         return Polyhedron(vertices=verts, base_ring=base_ring)
 
+    def snub_dodecahedron(self, exact=True, base_ring=None):
+        """
+        Return the snub dodecahedron.
+
+        The snub dodecahedron is an Archimedean solid.
+        It has 92 faces and 60 vertices. For more information, see the
+        :wikipedia:`Snub_dodecahedron`.
+
+        INPUT:
+
+        - ``exact`` -- (boolean, default ``True``) If ``False`` use an
+          approximate ring for the coordinates.
+
+        - ``base_ring`` -- the ring in which the coordinates will belong to. If
+          it is not provided and ``exact=True`` it will be a the number field
+          `\QQ[\phi,\\xi]` where `\phi` is the golden ratio and `\\xi` the real
+          solution of `x^3 - 2x = \phi`, and if ``exact=False`` it will be the
+          real double field.
+
+        EXAMPLES::
+
+            sage: sd = polytopes.snub_dodecahedron()   # long time
+            sage: sd.f_vector()                # long time
+            (1, 60, 150, 92, 1)
+            sage: sd.base_ring()               # long time
+            Number Field in xi with defining polynomial x^3 - 2*x - 1/2*sqrt5 - 1/2 over its base field
+
+        A much faster implementation using floating point approximations::
+
+            sage: sd = polytopes.snub_dodecahedron(exact=False)
+            sage: sd.f_vector()
+            (1, 60, 150, 92, 1)
+            sage: sd.base_ring()
+            Real Double Field
+
+        Its faces are 80 triangles and 12 pentagons::
+
+            sage: sum(1 for f in sd.faces(2) if len(f.vertices()) == 3)
+            80
+            sage: sum(1 for f in sd.faces(2) if len(f.vertices()) == 5)
+            12
+        """
+        if base_ring is None and exact:
+            from sage.rings.number_field.number_field import QuadraticField
+            from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
+            from sage.rings.number_field.number_field import NumberField
+            Q = QuadraticField(5, 'sqrt5')
+            sqrt5 = Q.gen()
+            phi = (1 + sqrt5) / 2
+            R = PolynomialRing(Q, 'x')
+            x = R.gen()
+            A = NumberField(x**3 - 2 * x - phi, 'xi')
+            xi = A.gen()
+            base_ring = A
+        else:
+            if base_ring is None:
+                base_ring = RDF
+            phi = (1 + base_ring(5).sqrt()) / 2
+            xi = ((phi/2 + (phi - 5/27).sqrt()/2).nth_root(3) +
+                  (phi/2 - (phi - 5/27).sqrt()/2).nth_root(3))
+
+        alpha = xi - 1 / xi
+        beta = xi * phi + phi**2 + phi / xi
+        signs = [[-1,-1,-1], [-1,1,1], [1,-1,1], [1,1,-1]]
+
+        pts = [[s1 * 2 * alpha, s2 * 2 * base_ring.one(), s3 * 2 * beta]
+                for s1, s2, s3 in signs]
+        pts += [[s1 * (alpha + beta/phi + phi), s2 * (-alpha * phi + beta + 1/phi), s3 * (alpha/phi + beta * phi - 1)]
+                for s1, s2, s3 in signs]
+        pts += [[s1 * (alpha + beta/phi - phi), s2 * (alpha * phi - beta + 1/phi), s3 * (alpha/phi + beta * phi + 1)]
+                for s1, s2, s3 in signs]
+        pts += [[s1 * (-alpha/phi + beta * phi + 1), s2 * (-alpha + beta/phi - phi), s3 * (alpha * phi + beta - 1/phi)]
+                for s1, s2, s3 in signs]
+        pts += [[s1 * (-alpha/phi + beta * phi - 1), s2 * (alpha - beta/phi - phi), s3 * (alpha * phi + beta + 1/phi)]
+                for s1, s2, s3 in signs]
+
+        #the vertices are all ever permutations of the lists in pts
+        verts = pts
+        verts += [[v[1], v[2], v[0]] for v in pts]
+        verts += [[v[2], v[0], v[1]] for v in pts]
+        return Polyhedron(vertices=verts, base_ring=base_ring)
+
     def twenty_four_cell(self):
         """
         Return the standard 24-cell polytope.

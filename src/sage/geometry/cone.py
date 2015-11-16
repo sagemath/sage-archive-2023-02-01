@@ -4778,7 +4778,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
         space is `n > 0`, then the resulting Lyapunov rank will be
         between `1` and `n^2` inclusive. If this cone :meth:`is_proper`,
         then that upper bound reduces from `n^2` to `n`. A Lyapunov rank
-        of `n-1` is not possible [Orlitzky]_ in either case.
+        of `n-1` is not possible (by Lemma 5 [Orlitzky]_) in either case.
 
         ALGORITHM:
 

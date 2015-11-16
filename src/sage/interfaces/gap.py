@@ -877,6 +877,25 @@ class Gap_generic(Expect):
             <class 'sage.interfaces.interface.AsciiArtString'>
             sage: s.startswith('CT')
             True
+
+        TESTS:
+
+        If the function call is too long, two ``gap.eval`` calls are made
+        since returned values from commands in a file cannot be handled
+        properly::
+
+            sage: gap.function_call("ConjugacyClassesSubgroups", sage.interfaces.gap.GapElement(gap, 'SymmetricGroup(2)', name = 'a_variable_with_a_very_very_very_long_name'))
+            [ ConjugacyClassSubgroups(SymmetricGroup( [ 1 .. 2 ] ),Group( [ () ] )), 
+              ConjugacyClassSubgroups(SymmetricGroup( [ 1 .. 2 ] ),SymmetricGroup( [ 1 .. 2 ] )) ]
+
+        When the command itself is so long that it warrants use of a temporary
+        file to be communicated to GAP, this does not cause problems since
+        the file will contain a single command::
+
+            sage: gap.function_call("ConjugacyClassesSubgroups", sage.interfaces.gap.GapElement(gap, 'SymmetricGroup(2)', name = 'a_variable_with_a_name_so_very_very_very_long_that_even_by_itself_will_make_expect_use_a_file'))
+            [ ConjugacyClassSubgroups(SymmetricGroup( [ 1 .. 2 ] ),Group( [ () ] )), 
+              ConjugacyClassSubgroups(SymmetricGroup( [ 1 .. 2 ] ),SymmetricGroup( [ 1 .. 2 ] )) ]
+
         """
         args, kwds = self._convert_args_kwds(args, kwds)
         self._check_valid_function_name(function)

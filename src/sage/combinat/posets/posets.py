@@ -3920,9 +3920,9 @@ class FinitePoset(UniqueRepresentation, Parent):
 
     def with_bounds(self, labels=('bottom', 'top')):
         r"""
-        Return the poset with bottom and top element adjoined.
+        Return the poset with bottom and top elements adjoined.
 
-        This functions always adds two new elements to poset, i.e.
+        This functions always adds two new elements to the poset, i.e.
         it does not check if the poset already has a bottom or a
         top element.
 

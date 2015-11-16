@@ -149,7 +149,6 @@ cdef class ntl_zz_pX:
         ## _new in your own code).                    ##
         ################################################
         if modulus is None:
-            zz_pX_construct(&self.x)
             return
         if isinstance(modulus, ntl_zz_pContext_class):
             self.c = <ntl_zz_pContext_class>modulus
@@ -166,10 +165,6 @@ cdef class ntl_zz_pX:
 
         ## now that we've determined the modulus, set that modulus.
         self.c.restore_c()
-        zz_pX_construct(&self.x)
-
-    def __dealloc__(self):
-        zz_pX_destruct(&self.x)
 
     def __reduce__(self):
         """

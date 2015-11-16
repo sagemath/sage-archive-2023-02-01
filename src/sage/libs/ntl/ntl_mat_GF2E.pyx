@@ -122,11 +122,9 @@ cdef class ntl_mat_GF2E:
         if isinstance(modulus, ntl_GF2EContext_class):
             self.c = <ntl_GF2EContext_class>modulus
             self.c.restore_c()
-            mat_GF2E_construct(&self.x)
         else:
             self.c = <ntl_GF2EContext_class>ntl_GF2EContext(modulus)
             self.c.restore_c()
-            mat_GF2E_construct(&self.x)
 
     cdef ntl_GF2E _new_element(self):
         cdef ntl_GF2E r
@@ -159,12 +157,6 @@ cdef class ntl_mat_GF2E:
             True
         """
         return self.c
-
-    def __dealloc__(self):
-        # With NTL 6.0.0, mat_GF2E is a proper C++ class.
-        # Therefore Cython automagically calls the class destructor.
-        #mat_GF2E_destruct(&self.x)
-        pass
 
     def __reduce__(self):
         """

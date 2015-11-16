@@ -132,7 +132,6 @@ cdef class ntl_zz_p:
         ## _new in your own code).                    ##
         ################################################
         if modulus is None:
-            zz_p_construct(&self.x)
             return
         if isinstance(modulus, ntl_zz_pContext_class):
             self.c = <ntl_zz_pContext_class>modulus
@@ -149,10 +148,6 @@ cdef class ntl_zz_p:
 
         ## now that we've determined the modulus, set that modulus.
         self.c.restore_c()
-        zz_p_construct(&self.x)
-
-    def __dealloc__(self):
-        zz_p_destruct(&self.x)
 
     cdef ntl_zz_p _new(self):
         """

@@ -53,12 +53,6 @@ cdef class ntl_GF2:
             GF2_from_str(&self.x, v)
             sig_off()
 
-    def __cinit__(self):
-        GF2_construct(&self.x)
-
-    def __dealloc__(self):
-        GF2_destruct(&self.x)
-
     def __repr__(self):
         """
         Return the string representation of self.

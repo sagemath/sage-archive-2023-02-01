@@ -154,12 +154,6 @@ cdef class ntl_GF2X:
         GF2X_from_str(&self.x, s)
         sig_off()
 
-    def __cinit__(self):
-        GF2X_construct(&self.x)
-
-    def __dealloc__(self):
-        GF2X_destruct(&self.x)
-
     def __reduce__(self):
         """
         EXAMPLES:

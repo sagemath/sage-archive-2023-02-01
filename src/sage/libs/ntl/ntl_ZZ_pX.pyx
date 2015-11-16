@@ -32,7 +32,7 @@ cdef inline make_ZZ_p(ZZ_p_c* x, ntl_ZZ_pContext_class ctx):
     sig_off()
     y = ntl_ZZ_p(modulus = ctx)
     y.x = x[0]
-    ZZ_p_delete(x)
+    del x
     return y
 
 cdef make_ZZ_pX(ZZ_pX_c* x, ntl_ZZ_pContext_class ctx):
@@ -40,7 +40,7 @@ cdef make_ZZ_pX(ZZ_pX_c* x, ntl_ZZ_pContext_class ctx):
     y = <ntl_ZZ_pX>ntl_ZZ_pX.__new__(ntl_ZZ_pX)
     y.c = ctx
     y.x = x[0]
-    ZZ_pX_delete(x)
+    del x
     sig_off()
     return y
 
@@ -118,25 +118,18 @@ cdef class ntl_ZZ_pX:
         ## _new in your own code).                    ##
         ################################################
         if modulus is None:
-            ZZ_pX_construct(&self.x)
             return
         if isinstance(modulus, ntl_ZZ_pContext_class):
             self.c = <ntl_ZZ_pContext_class>modulus
             self.c.restore_c()
-            ZZ_pX_construct(&self.x)
         elif modulus is not None:
             self.c = <ntl_ZZ_pContext_class>ntl_ZZ_pContext(ntl_ZZ(modulus))
             self.c.restore_c()
-            ZZ_pX_construct(&self.x)
-
-    def __dealloc__(self):
-        ZZ_pX_destruct(&self.x)
 
     cdef ntl_ZZ_pX _new(self):
         cdef ntl_ZZ_pX r
         self.c.restore_c()
         r = ntl_ZZ_pX.__new__(ntl_ZZ_pX)
-        #ZZ_pX_construct(&r.x)
         r.c = self.c
         return r
 
@@ -874,11 +867,9 @@ cdef class ntl_ZZ_pX:
         """
         c.restore_c()
         cdef ntl_ZZ_pX ans = ntl_ZZ_pX.__new__(ntl_ZZ_pX)
-        ZZ_pX_construct(&ans.x)
         ZZ_pX_conv_modulus(ans.x, self.x, c.x)
         ans.c = c
         return ans
-
 
     def derivative(self):
         """
@@ -943,7 +934,7 @@ cdef class ntl_ZZ_pX:
             F.append((r, e[i]))
             #F.append((make_ZZ_pX(v[i], self.c), e[i]))
         for i from 0 <= i < n:
-            ZZ_pX_delete(v[i])
+            del v[i]
         sage_free(v)
         sage_free(e)
         return F
@@ -989,7 +980,7 @@ cdef class ntl_ZZ_pX:
             F.append(r)
             #F.append(make_ZZ_p(v[i], self.c))
         for i from 0 <= i < n:
-            ZZ_p_delete(v[i])
+            del v[i]
         sage_free(v)
         return F
 
@@ -1407,15 +1398,8 @@ cdef class ntl_ZZ_pX_Modulus:
     Thin holder for ZZ_pX_Moduli.
     """
     def __cinit__(self, ntl_ZZ_pX poly):
-        ZZ_pX_Modulus_construct(&self.x)
         ZZ_pX_Modulus_build(self.x, poly.x)
         self.poly = poly
-
-    def __init__(self, ntl_ZZ_pX poly):
-        pass
-
-    def __dealloc__(self):
-        ZZ_pX_Modulus_destruct(&self.x)
 
     def __repr__(self):
         return "NTL ZZ_pXModulus %s (mod %s)"%(self.poly, self.poly.c.p)

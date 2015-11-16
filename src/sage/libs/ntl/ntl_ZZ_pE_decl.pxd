@@ -1,19 +1,8 @@
 # distutils: depends = NTL/ZZ.h
 
-from sage.libs.ntl.ntl_ZZ_decl cimport ZZ_c
-from sage.libs.ntl.ntl_ZZ_p_decl cimport ZZ_p_c
-from sage.libs.ntl.ntl_ZZ_pX_decl cimport ZZ_pX_c
+from .types cimport ZZ_c, ZZ_p_c, ZZ_pX_c, ZZ_pE_c
 
 cdef extern from "sage/libs/ntl/ntlwrap.cpp":
-    #### ZZ_pE_c
-    ctypedef struct ZZ_pE_c "struct ZZ_pE":
-        pass
-
-    # Some boiler-plate
-    ZZ_pE_c* ZZ_pE_new "New<ZZ_pE>"()
-    ZZ_pE_c* ZZ_pE_construct "Construct<ZZ_pE>"(void *mem)
-    void ZZ_pE_destruct "Destruct<ZZ_pE>"(ZZ_pE_c *mem)
-    void ZZ_pE_delete "Delete<ZZ_pE>"(ZZ_pE_c *mem)
     void ZZ_pE_from_str "_from_str<ZZ_pE>"(ZZ_pE_c* dest, char* s)
     object ZZ_pE_to_PyString "_to_PyString<ZZ_pE>"(ZZ_pE_c *x)
     int ZZ_pE_equal "_equal<ZZ_pE>"(ZZ_pE_c x, ZZ_pE_c y)

@@ -1,4 +1,4 @@
-include "decl.pxi"
+from sage.libs.ntl.types cimport ZZ_c
 
 cdef class ntl_ZZ:
     cdef ZZ_c x

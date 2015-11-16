@@ -30,7 +30,7 @@ cdef make_ZZ(ZZ_c* x):
     cdef ntl_ZZ y
     y = ntl_ZZ()
     y.x = x[0]
-    ZZ_delete(x)
+    del x
     sig_off()
     return y
 
@@ -97,12 +97,6 @@ cdef class ntl_ZZ:
             sig_on()
             ZZ_from_str(&self.x, v)
             sig_off()
-
-    def __cinit__(self):
-        ZZ_construct(&self.x)
-
-    def __dealloc__(self):
-        ZZ_destruct(&self.x)
 
     def __repr__(self):
         """

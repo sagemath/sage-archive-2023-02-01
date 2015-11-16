@@ -176,7 +176,7 @@ def search_forest_iterator(roots, children, algorithm='depth'):
          [1, 0, 0], [1, 0, 1], [1, 1, 0], [1, 1, 1],
          [0, 0, 0, 0]]
 
-    Here is an interator through the prefix tree of sequences of
+    Here is an iterator through the prefix tree of sequences of
     letters in `0,1,2` without repetitions, sorted by length; the
     leaves are therefore permutations::
 

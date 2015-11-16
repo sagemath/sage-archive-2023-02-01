@@ -4773,10 +4773,12 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
 
         A nonnegative integer representing the Lyapunov rank of this cone.
 
-        If the ambient space is trivial, the Lyapunov rank will be zero.
-        Otherwise, if the dimension of the ambient vector space is `n`,
-        then the resulting Lyapunov rank will be between `1` and `n`
-        inclusive. A Lyapunov rank of `n-1` is not possible [Orlitzky]_.
+        If the ambient space is trivial, then the Lyapunov rank will be
+        zero. On the other hand, if the dimension of the ambient vector
+        space is `n > 0`, then the resulting Lyapunov rank will be
+        between `1` and `n^2` inclusive. If this cone :meth:`is_proper`,
+        then that upper bound reduces from `n^2` to `n`. A Lyapunov rank
+        of `n-1` is not possible [Orlitzky]_ in either case.
 
         ALGORITHM:
 

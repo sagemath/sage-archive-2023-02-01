@@ -1195,19 +1195,19 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
 
         - ``certificate`` (boolean) -- Whether to return a certificate.
 
-            * If ``certificate = False`` (default), returns ``True`` or
-              ``False`` accordingly.
+          * If ``certificate = False`` (default), returns ``True`` or
+            ``False`` accordingly.
 
-            * If ``certificate = True``, returns:
+          * If ``certificate = True``, returns:
 
-                * ``(True, elms)`` when the lattice is dismantlable, where
-                  ``elms`` is elements listed in a possible removing order.
+            * ``(True, elms)`` when the lattice is dismantlable, where
+              ``elms`` is elements listed in a possible removing order.
 
-                * ``(False, crown)`` when the lattice is not dismantlable,
-                  where ``crown`` is a subposet of `2k` elements
-                  `a_1, \ldots, a_k, b_1, \ldots, b_k` with covering
-                  relations `a_i \lessdot b_i` and `a_i \lessdot b_{i+1}`
-                  for `i \in [1, \ldots, k-1]`, and `a_k \lessdot b_1`.
+            * ``(False, crown)`` when the lattice is not dismantlable,
+              where ``crown`` is a subposet of `2k` elements
+              `a_1, \ldots, a_k, b_1, \ldots, b_k` with covering
+              relations `a_i \lessdot b_i` and `a_i \lessdot b_{i+1}`
+              for `i \in [1, \ldots, k-1]`, and `a_k \lessdot b_1`.
 
         EXAMPLES::
 

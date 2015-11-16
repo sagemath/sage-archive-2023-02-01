@@ -70,6 +70,9 @@ cdef extern from "glpk.h":
      void glp_set_row_bnds(c_glp_prob *, int, int, double, double)
      void glp_set_col_bnds(c_glp_prob *, int, int, double, double)
      void glp_set_obj_coef(c_glp_prob *, int, double)
+     void glp_set_row_stat(c_glp_prob *, int, int)
+     void glp_set_col_stat(c_glp_prob *, int, int)
+     int glp_warm_up(c_glp_prob *)
      void glp_load_matrix(c_glp_prob *, int, int *, int *, double *)
      int glp_simplex(c_glp_prob *, c_glp_smcp *)
      int glp_exact(c_glp_prob *, c_glp_smcp *)
@@ -241,4 +244,7 @@ cdef class GLPKBackend(GenericBackend):
     cpdef int get_col_stat(self, int variable)
     cpdef eval_tab_row(self, int k)
     cpdef eval_tab_col(self, int k)
-
+    cpdef get_row_prim(self, int i)
+    cpdef set_row_stat(self, int i, int stat)
+    cpdef set_col_stat(self, int j, int stat)
+    cpdef int warm_up(self)

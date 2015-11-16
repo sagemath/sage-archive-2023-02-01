@@ -67,7 +67,7 @@ cdef proof_flag(t):
 ##############################################################################
 
 
-cdef class ntl_ZZX:
+cdef class ntl_ZZX(object):
     r"""
     The class \class{ZZX} implements polynomials in $\Z[X]$, i.e.,
     univariate polynomials with integer coefficients.

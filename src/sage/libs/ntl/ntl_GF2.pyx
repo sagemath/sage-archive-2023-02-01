@@ -24,7 +24,7 @@ from sage.rings.integer_ring cimport IntegerRing_class
 # GF2: Bits
 ##############################################################################
 
-cdef class ntl_GF2:
+cdef class ntl_GF2(object):
     r"""
     The \class{GF2} represents the field GF(2). Computationally
     speaking, it is not a particularly useful class.  Its main use is

@@ -23,7 +23,7 @@ from sage.libs.ntl.ntl_ZZ_pX cimport ntl_ZZ_pX
 from sage.libs.ntl.ntl_ZZ_pContext import ntl_ZZ_pContext
 from sage.libs.ntl.ntl_ZZ cimport ntl_ZZ
 
-cdef class ntl_ZZ_pEContext_class:
+cdef class ntl_ZZ_pEContext_class(object):
     def __init__(self, ntl_ZZ_pX f):
         """
         EXAMPLES:

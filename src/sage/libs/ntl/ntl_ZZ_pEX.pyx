@@ -42,7 +42,7 @@ from sage.libs.ntl.ntl_ZZ import unpickle_class_args
 #
 ##############################################################################
 
-cdef class ntl_ZZ_pEX:
+cdef class ntl_ZZ_pEX(object):
     r"""
     The class \class{ZZ_pEX} implements polynomials over finite ring extensions of $\Z / p\Z$.
 

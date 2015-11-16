@@ -50,7 +50,7 @@ cdef make_ZZ_pX(ZZ_pX_c* x, ntl_ZZ_pContext_class ctx):
 #
 ##############################################################################
 
-cdef class ntl_ZZ_pX:
+cdef class ntl_ZZ_pX(object):
     r"""
     The class \class{ZZ_pX} implements polynomial arithmetic modulo $p$.
 
@@ -1393,7 +1393,7 @@ cdef class ntl_ZZ_pX:
         #ZZ_pX_preallocate_space(&self.x, n)
         sig_off()
 
-cdef class ntl_ZZ_pX_Modulus:
+cdef class ntl_ZZ_pX_Modulus(object):
     """
     Thin holder for ZZ_pX_Moduli.
     """

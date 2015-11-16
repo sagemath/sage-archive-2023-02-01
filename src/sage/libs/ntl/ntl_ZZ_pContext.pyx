@@ -23,7 +23,7 @@ from sage.rings.integer_ring import IntegerRing
 ZZ_sage = IntegerRing()
 
 
-cdef class ntl_ZZ_pContext_class:
+cdef class ntl_ZZ_pContext_class(object):
     def __init__(self, ntl_ZZ v):
         """
         EXAMPLES:
@@ -108,7 +108,7 @@ cdef class ntl_ZZ_pContext_class:
     cdef void restore_c(self):
         self.x.restore()
 
-cdef class ntl_ZZ_pContext_factory:
+cdef class ntl_ZZ_pContext_factory(object):
     def __init__(self):
         self.context_dict = {}
 

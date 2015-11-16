@@ -73,7 +73,7 @@ def GF2XHexOutput(have_hex=None):
     else:
         GF2XHexOutput_c[0] = 0
 
-cdef class ntl_GF2X:
+cdef class ntl_GF2X(object):
     """
     Univariate Polynomials over GF(2) via NTL.
     """

@@ -34,7 +34,7 @@ from ntl_GF2 cimport ntl_GF2
 from sage.rings.integer cimport Integer
 from sage.libs.ntl.ntl_ZZ import unpickle_class_args
 
-cdef class ntl_mat_GF2:
+cdef class ntl_mat_GF2(object):
     r"""
     The \class{mat_GF2} class implements arithmetic with matrices over $F_2$.
     """

@@ -43,7 +43,7 @@ ZZ_sage = IntegerRing()
 # ZZ_pE_c: An extension of the integers modulo p
 #
 ##############################################################################
-cdef class ntl_ZZ_pE:
+cdef class ntl_ZZ_pE(object):
     r"""
     The \class{ZZ_pE} class is used to model $\Z / p\Z [x] / (f(x))$.
     The modulus $p$ may be any positive integer, not necessarily prime,

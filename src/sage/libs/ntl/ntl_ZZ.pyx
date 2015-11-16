@@ -39,7 +39,7 @@ cdef make_ZZ(ZZ_c* x):
 # ZZ: Arbitrary precision integers
 ##############################################################################
 
-cdef class ntl_ZZ:
+cdef class ntl_ZZ(object):
     r"""
     The \class{ZZ} class is used to represent signed, arbitrary length integers.
 

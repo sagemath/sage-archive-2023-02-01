@@ -53,7 +53,7 @@ ZZ_sage = IntegerRing()
 #
 ##############################################################################
 
-cdef class ntl_zz_p:
+cdef class ntl_zz_p(object):
     r"""
     The class \class{zz_p} implements arithmetic modulo $p$,
     for p smaller than a machine word.

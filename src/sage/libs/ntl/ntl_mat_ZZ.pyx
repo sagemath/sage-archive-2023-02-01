@@ -58,7 +58,7 @@ cdef inline ntl_mat_ZZ make_mat_ZZ_sig_off(mat_ZZ_c* x):
 #
 ##############################################################################
 
-cdef class ntl_mat_ZZ:
+cdef class ntl_mat_ZZ(object):
     # see ntl_mat_ZZ.pxd for data members
     r"""
     The \class{mat_ZZ} class implements arithmetic with matrices over $\Z$.

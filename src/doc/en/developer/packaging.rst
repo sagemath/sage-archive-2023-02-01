@@ -397,16 +397,6 @@ Sage (``FoO-1.3.tar.gz`` in the example of section
 in the ``SAGE_ROOT/upstream/`` directory and run
 ``sage --fix-pkg-checksums`` if you have not done that yet.
 
-In order to update ``build/make/Makefile``, which contains the rules
-to build all packages, you need to run the following command from
-``SAGE_ROOT``::
-
-    [user@localhost]$ ./configure
-
-You need to re-run ``./configure`` whenever you change any package
-metadata: if you add or remove a package or if you change the version,
-type or dependencies of a package.
-
 Now you can install the package using::
 
     [user@localhost]$ sage -i package_name

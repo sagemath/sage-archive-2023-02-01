@@ -850,7 +850,7 @@ def eta_poly_relations(eta_elements, degree, labels=['x1','x2'], verbose=False):
     r"""
     Find polynomial relations between eta products.
 
-    INPUTS:
+    INPUT:
 
     - ``eta_elements`` - (list): a list of EtaGroupElement objects.
       Not implemented unless this list has precisely two elements. degree

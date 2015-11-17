@@ -381,7 +381,10 @@ information. You can use the existing functions of Sage as templates.
 
   For the purposes of removal, A "TESTS" block is a block starting
   with "TEST:" or "TESTS:" (or the same with two colons), on a line on
-  its own, and ending in one of the following ways:
+  its own, and ending with an unindented line (that is, the same level
+  of indentation as "TESTS") matching one of the following:
+
+  one of the following ways:
 
   - a line which starts with whitespace and then a Sphinx directive
     of the form ".. foo:", optionally followed by other text.

@@ -235,8 +235,9 @@ def skip_TESTS_block(docstring):
     - ``docstring``, a string
 
     A "TESTS" block is a block starting with "TEST:" or "TESTS:" (or
-    the same with two colons), on a line on its own, and ending in one
-    of the following ways:
+    the same with two colons), on a line on its own, and ending with
+    an unindented line (that is, the same level of indentation as
+    "TESTS") matching one of the following:
 
     - a line which starts with whitespace and then a Sphinx directive
       of the form ".. foo:", optionally followed by other text.
@@ -277,11 +278,18 @@ def skip_TESTS_block(docstring):
         True
         sage: skip_TESTS_block(start + test + fake_header).rstrip() == start.rstrip()
         True
+
+    Not a header because it's indented compared to 'TEST' in the
+    string ``test``::
+
+        sage: another_fake = '\n    blah\n    ----'
+        sage: skip_TESTS_block(start + test + another_fake).rstrip() == start.rstrip()
+        True
    """
     # tests_block: match a line starting with whitespace, then
     # "TEST" or "TESTS" followed by ":" or "::", then possibly
     # more whitespace, then the end of the line.
-    tests_block = re.compile('[ ]*TEST[S]?:[:]?[ ]*$')
+    tests_block = re.compile('([ ]*)TEST[S]?:[:]?[ ]*$')
     # end_of_block: match a line starting with whitespace, then Sphinx
     # directives of the form ".. foo:". This will match directive
     # names "foo" containing letters of either case, hyphens,
@@ -295,10 +303,14 @@ def skip_TESTS_block(docstring):
     s = ''
     skip = False
     previous = ''
+    # indentation: amount of indentation at the start of 'TESTS:'.
+    indentation = ''
     for l in docstring.split('\n'):
         if not skip:
-            if tests_block.match(l):
+            m = tests_block.match(l)
+            if m:
                 skip = True
+                indentation = m.group(1)
             else:
                 s += "\n"
                 s += l
@@ -308,6 +320,8 @@ def skip_TESTS_block(docstring):
                 s += "\n"
                 s += l
             elif header.match(l):
+                if l.find(indentation) == 0:
+                    continue
                 skip = False
                 if previous:
                     s += "\n"

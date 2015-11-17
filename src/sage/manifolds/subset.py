@@ -560,14 +560,15 @@ class TopologicalManifoldSubset(WithEqualityById, Parent):
         - ``name`` -- name given to the subset
         - ``latex_name`` --  (default: ``None``) LaTeX symbol to denote the
           subset; if none is provided, it is set to ``name``
-        - ``is_open`` -- (default: False) if ``True``, the created subset is
-          assumed to be open with respect to the manifold's topology
+        - ``is_open`` -- (default: ``False``) if ``True``, the created subset
+          is assumed to be open with respect to the manifold's topology
 
         OUTPUT:
 
         - the subset, as an instance of :class:`TopologicalManifoldSubset`, or
-          of the derived class :class:`TopologicalManifold` if ``is_open`` is
-          ``True``.
+          of the derived class
+          :class:`~sage.manifolds.manifold.TopologicalManifold` if ``is_open``
+          is ``True``.
 
         EXAMPLES:
 
@@ -595,12 +596,62 @@ class TopologicalManifoldSubset(WithEqualityById, Parent):
         """
         if is_open:
             return self.open_subset(name, latex_name=latex_name)
-        res = TopologicalManifoldSubset(self._manifold, name, latex_name=latex_name)
+        res = TopologicalManifoldSubset(self._manifold, name,
+                                        latex_name=latex_name)
         res._supersets.update(self._supersets)
         for sd in self._supersets:
             sd._subsets.add(res)
         self._top_subsets.add(res)
         return res
+
+    def get_subset(self, name):
+        r"""
+        Get a subset by its name.
+
+        The subset must have been previously created by the method
+        :meth:`subset` (or
+        :meth:`~sage.manifolds.manifold.TopologicalManifold.open_subset`)
+
+        INPUT:
+
+        - ``name`` -- (string) name of the subset
+
+        OUTPUT:
+
+        - instance of :class:`TopologicalManifoldSubset` (or
+          of the derived class
+          :class:`~sage.manifolds.manifold.TopologicalManifold` for an open
+          subset) representing the subset whose name is ``name``.
+
+        EXAMPLES::
+
+            sage: M = Manifold(4, 'M', type='topological')
+            sage: A = M.subset('A')
+            sage: B = A.subset('B')
+            sage: U = M.open_subset('U')
+            sage: M.list_of_subsets()
+            [Subset A of the 4-dimensional topological manifold M,
+             Subset B of the 4-dimensional topological manifold M,
+             4-dimensional topological manifold M,
+             Open subset U of the 4-dimensional topological manifold M]
+            sage: M.get_subset('A')
+            Subset A of the 4-dimensional topological manifold M
+            sage: M.get_subset('A') is A
+            True
+            sage: M.get_subset('B') is B
+            True
+            sage: A.get_subset('B') is B
+            True
+            sage: M.get_subset('U')
+            Open subset U of the 4-dimensional topological manifold M
+            sage: M.get_subset('U') is U
+            True
+
+        """
+        for ss in self._subsets:
+            if ss._name == name:
+                return ss
+        raise ValueError("no subset of name '{}' found".format(name))
 
     def superset(self, name, latex_name=None, is_open=False):
         r"""
@@ -614,14 +665,15 @@ class TopologicalManifoldSubset(WithEqualityById, Parent):
         - ``name`` -- name given to the superset
         - ``latex_name`` --  (default: ``None``) LaTeX symbol to denote the
           superset; if none is provided, it is set to ``name``
-        - ``is_open`` -- (default: False) if ``True``, the created subset is
-          assumed to be open with respect to the manifold's topology
+        - ``is_open`` -- (default: ``False``) if ``True``, the created subset
+          is assumed to be open with respect to the manifold's topology
 
         OUTPUT:
 
         - the superset, as an instance of :class:`TopologicalManifoldSubset` or
-          of the derived class :class:`TopologicalManifold` if ``is_open`` is
-          ``True``.
+          of the derived class
+          :class:`~sage.manifolds.manifold.TopologicalManifold` if ``is_open``
+          is ``True``.
 
         EXAMPLES:
 

@@ -36,8 +36,6 @@ REFERENCES:
 
 from sage.structure.element import CommutativeAlgebraElement
 from sage.rings.integer import Integer
-from sage.rings.all import CC
-from sage.rings.real_mpfr import RR
 from sage.symbolic.expression import Expression
 from sage.manifolds.coord_func import CoordFunction
 
@@ -1412,10 +1410,11 @@ class ScalarField(CommutativeAlgebraElement):
 
         # Name of the base field:
         field = self._domain.base_field()
-        if field == RR:
+        field_type = self._domain.base_field_type()
+        if field_type == 'real':
             field_name = 'R'
             field_latex_name = r'\mathbb{R}'
-        elif field == CC:
+        elif field_type == 'complex':
             field_name = 'C'
             field_latex_name = r'\mathbb{C}'
         else:

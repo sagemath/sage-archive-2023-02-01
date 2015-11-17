@@ -37,7 +37,6 @@ AUTHORS:
 #*****************************************************************************
 
 from sage.symbolic.ring import SR
-from sage.rings.real_mpfr import RR
 from sage.structure.element import RingElement
 from sage.misc.latex import latex
 from sage.manifolds.coord_func import CoordFunction, MultiCoordFunction
@@ -292,7 +291,7 @@ class CoordFunctionSymb(CoordFunction):
         self._express = SR(expression)  # symbolic expression enforced
         # Definition of the simplification chain to be applied in
         # symbolic calculus:
-        if self._chart.manifold().base_field() == RR:
+        if self._chart.manifold().base_field_type() == 'real':
             self._simplify = simplify_chain_real
         else:
             self._simplify = simplify_chain_generic

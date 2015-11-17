@@ -47,7 +47,7 @@ class PBWDatum(object):
                 self.long_word == other_PBWDatum.long_word and
                 self.lusztig_datum == other_PBWDatum.lusztig_datum)
 
-    def is_equivalent_to(self, other_PBWDatum):
+    def is_equivalent_to(self, other_pbw_datum):
         r"""
         Return whether ``self`` is equivalent to ``other_PBWDatum``.
         modulo the tropical Plucker relations.
@@ -60,10 +60,10 @@ class PBWDatum(object):
             sage: L1.is_equivalent_to(L2)
             True
         """
-        other_long_word = other_PBWDatum.long_word
-        other_lusztig_datum = other_PBWDatum.lusztig_datum
-        equiv_PBWDatum = self.convert_to_new_long_word(other_long_word)
-        return equiv_PBWDatum.lusztig_datum == other_lusztig_datum
+        other_long_word = other_pbw_datum.long_word
+        other_lusztig_datum = other_pbw_datum.lusztig_datum
+        equiv_pbw_datum = self.convert_to_new_long_word(other_long_word)
+        return equiv_pbw_datum.lusztig_datum == other_lusztig_datum
         
     def convert_to_long_word_with_first_letter(self, i):
         r"""
@@ -72,7 +72,7 @@ class PBWDatum(object):
         """
         return self.convert_to_new_long_word(self.parent._long_word_begin_with(i))
 
-    def convert_to_new_long_word(self,new_long_word):
+    def convert_to_new_long_word(self, new_long_word):
         r"""
         Return a new PBWDatum equivalent to ``self``
         whose long word is ``new_long_word``.
@@ -83,10 +83,10 @@ class PBWDatum(object):
             sage: P.convert_to_new_long_word(P((1,2,1),(1,0,1)),(2,1,2)).long_word
             (2, 1, 2)
             sage: P.convert_to_new_long_word(P((1,2,1),(1,0,1)),(2,1,2)).lusztig_datum
-            (0, 1, 0) 
-        """ 
-        return self.parent.convert_to_new_long_word(self,new_long_word)
-        
+            (0, 1, 0)
+        """
+        return self.parent.convert_to_new_long_word(self, new_long_word)
+
     def wt(self):
         """
         EXAMPLES::

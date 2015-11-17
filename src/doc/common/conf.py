@@ -75,12 +75,11 @@ release = version
 # Else, today_fmt is used as the format for a strftime call.
 #today_fmt = '%B %d, %Y'
 
-# List of documents that shouldn't be included in the build.
-#unused_docs = []
-
-# List of directories, relative to source directory, that shouldn't be searched
-# for source files.
-exclude_trees = ['.build']
+# List of glob-style patterns that should be excluded when looking for
+# source files. [1] They are matched against the source file names
+# relative to the source directory, using slashes as directory
+# separators on all platforms.
+exclude_patterns = ['.build']
 
 # The reST default role (used for this markup: `text`) to use for all documents.
 default_role = 'math'
@@ -227,8 +226,9 @@ if (os.environ.get('SAGE_DOC_MATHJAX', 'no') != 'no'
 
     mathjax_static = os.path.join(sagenb_path, mathjax_relative)
     html_static_path.append(mathjax_static)
-    exclude_patterns=['**/'+os.path.join(mathjax_relative, i) for i in ('docs', 'README*', 'test',
-                                                                        'unpacked', 'LICENSE')]
+    exclude_patterns += ['**/'+os.path.join(mathjax_relative, i)
+                         for i in ('docs', 'README*', 'test',
+                                   'unpacked', 'LICENSE')]
 else:
      extensions.append('sphinx.ext.pngmath')
 

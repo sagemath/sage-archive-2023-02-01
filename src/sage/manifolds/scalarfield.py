@@ -36,8 +36,6 @@ REFERENCES:
 
 from sage.structure.element import CommutativeAlgebraElement
 from sage.rings.integer import Integer
-from sage.rings.all import CC
-from sage.rings.real_mpfr import RR
 from sage.symbolic.expression import Expression
 from sage.manifolds.coord_func import CoordFunction
 
@@ -178,7 +176,7 @@ class ScalarField(CommutativeAlgebraElement):
     A scalar field can also be defined by some unspecified function of the
     coordinates::
 
-        sage: h = U.scalar_field(function('H', x, y), name='h') ; h
+        sage: h = U.scalar_field(function('H')(x, y), name='h') ; h
         Scalar field h on the Open subset U of the 2-dimensional topological
          manifold M
         sage: h.display()
@@ -1370,7 +1368,7 @@ class ScalarField(CommutativeAlgebraElement):
                (x, y) |--> sqrt(x + 1)
             sage: latex(f.display())
             \begin{array}{llcl} f:& M & \longrightarrow & \mathbb{R} \\ & \left(x, y\right) & \longmapsto & \sqrt{x + 1} \end{array}
-            sage: g = M.scalar_field(function('G', x, y), name='g')
+            sage: g = M.scalar_field(function('G')(x, y), name='g')
             sage: g.display()
             g: M --> R
                (x, y) |--> G(x, y)
@@ -1412,10 +1410,11 @@ class ScalarField(CommutativeAlgebraElement):
 
         # Name of the base field:
         field = self._domain.base_field()
-        if field == RR:
+        field_type = self._domain.base_field_type()
+        if field_type == 'real':
             field_name = 'R'
             field_latex_name = r'\mathbb{R}'
-        elif field == CC:
+        elif field_type == 'complex':
             field_name = 'C'
             field_latex_name = r'\mathbb{C}'
         else:

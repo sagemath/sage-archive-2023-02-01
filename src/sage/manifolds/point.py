@@ -907,9 +907,8 @@ class TopologicalManifoldPoint(Element):
         from sage.plot.text import text
         from sage.plot.graphics import Graphics
         from sage.plot.plot3d.shapes2 import point3d, text3d
-        from sage.rings.real_mpfr import RR
         from sage.manifolds.chart import Chart
-        if self._manifold.base_field() != RR:
+        if self._manifold.base_field_type() != 'real':
             raise NotImplementedError('plot of points on manifolds over ' +
                                   'fields different from R is not implemented')
         # The ambient chart:

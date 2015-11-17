@@ -37,7 +37,6 @@ AUTHORS:
 #*****************************************************************************
 
 from sage.symbolic.ring import SR
-from sage.rings.real_mpfr import RR
 from sage.structure.element import RingElement
 from sage.misc.latex import latex
 from sage.manifolds.coord_func import CoordFunction, MultiCoordFunction
@@ -109,7 +108,7 @@ class CoordFunctionSymb(CoordFunction):
 
     An unspecified coordinate function::
 
-        sage: g = X.function(function('G', x, y))
+        sage: g = X.function(function('G')(x, y))
         sage: g
         G(x, y)
         sage: g.display()
@@ -186,7 +185,7 @@ class CoordFunctionSymb(CoordFunction):
     Another difference regards the display of partial derivatives: for callable
     symbolic functions, it relies on Pynac notation ``D[0]``, ``D[1]``, etc.::
 
-        sage: g = function('g', x, y)
+        sage: g = function('g')(x, y)
         sage: f0(x,y) = diff(g, x) + diff(g, y)
         sage: f0
         (x, y) |--> D[0](g)(x, y) + D[1](g)(x, y)
@@ -225,10 +224,10 @@ class CoordFunctionSymb(CoordFunction):
     callable symbolic expression is the possibility to switch off the display
     of the arguments of unspecified functions. Consider for instance::
 
-        sage: f = X.function(function('u', x, y) * function('v', x, y))
+        sage: f = X.function(function('u')(x, y) * function('v')(x, y))
         sage: f
         u(x, y)*v(x, y)
-        sage: f0(x,y) = function('u', x, y) * function('v', x, y)
+        sage: f0(x,y) = function('u')(x, y) * function('v')(x, y)
         sage: f0
         (x, y) |--> u(x, y)*v(x, y)
 
@@ -292,7 +291,7 @@ class CoordFunctionSymb(CoordFunction):
         self._express = SR(expression)  # symbolic expression enforced
         # Definition of the simplification chain to be applied in
         # symbolic calculus:
-        if self._chart.manifold().base_field() == RR:
+        if self._chart.manifold().base_field_type() == 'real':
             self._simplify = simplify_chain_real
         else:
             self._simplify = simplify_chain_generic

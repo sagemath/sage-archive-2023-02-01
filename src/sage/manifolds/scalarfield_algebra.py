@@ -35,8 +35,6 @@ from sage.structure.parent import Parent
 from sage.misc.fast_methods import WithEqualityById
 from sage.categories.commutative_algebras import CommutativeAlgebras
 from sage.symbolic.ring import SR
-from sage.rings.all import CC
-from sage.rings.real_mpfr import RR
 from sage.manifolds.scalarfield import ScalarField
 
 class ScalarFieldAlgebra(WithEqualityById, Parent):
@@ -387,7 +385,7 @@ class ScalarFieldAlgebra(WithEqualityById, Parent):
 
         """
         base_field = domain.base_field()
-        if base_field in [RR, CC]:
+        if domain.base_field_type() in ['real', 'complex']:
             base_field = SR
         Parent.__init__(self, base=base_field,
                         category=CommutativeAlgebras(base_field))

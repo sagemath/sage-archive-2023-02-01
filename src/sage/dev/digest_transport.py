@@ -21,8 +21,9 @@ from xmlrpclib import SafeTransport, Fault
 
 # import compatible with py2 and py3
 from six.moves.urllib.request import (build_opener, HTTPDigestAuthHandler,
-                            Request, HTTPError)
+                            Request)
 from six.moves.urllib.parse import urlunparse
+from six.moves.urllib.error import HTTPError
 
 
 class DigestTransport(object, SafeTransport):

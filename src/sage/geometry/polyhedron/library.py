@@ -1016,25 +1016,25 @@ class Polytopes():
 
         EXAMPLES::
 
-            sage: bb = polytopes.truncated_dodecahedron()   # long time - 6secs
-            sage: bb.f_vector()                # long time
+            sage: td = polytopes.truncated_dodecahedron()   # long time - 6secs
+            sage: td.f_vector()                # long time
             (1, 60, 90, 32, 1)
-            sage: bb.base_ring()               # long time
+            sage: td.base_ring()               # long time
             Number Field in sqrt5 with defining polynomial x^2 - 5
 
         A much faster implementation using floating point approximations::
 
-            sage: bb = polytopes.truncated_dodecahedron(exact=False)
-            sage: bb.f_vector()
+            sage: td = polytopes.truncated_dodecahedron(exact=False)
+            sage: td.f_vector()
             (1, 60, 90, 32, 1)
-            sage: bb.base_ring()
+            sage: td.base_ring()
             Real Double Field
 
         Its faces are 20 triangles and 12 regular decagons::
 
-            sage: sum(1 for f in bb.faces(2) if len(f.vertices()) == 3)
+            sage: sum(1 for f in td.faces(2) if len(f.vertices()) == 3)
             20
-            sage: sum(1 for f in bb.faces(2) if len(f.vertices()) == 10)
+            sage: sum(1 for f in td.faces(2) if len(f.vertices()) == 10)
             12
         """
         if base_ring is None and exact:

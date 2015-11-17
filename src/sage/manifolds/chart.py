@@ -35,8 +35,6 @@ REFERENCES:
 from sage.structure.sage_object import SageObject
 from sage.misc.fast_methods import WithEqualityById
 from sage.symbolic.ring import SR
-from sage.rings.all import CC
-from sage.rings.real_mpfr import RR
 from sage.rings.infinity import Infinity
 from sage.misc.latex import latex
 from sage.manifolds.manifold import TopologicalManifold
@@ -252,7 +250,8 @@ class Chart(WithEqualityById, SageObject):
         if coordinates == '':
             for x in names:
                 coordinates += x + ' '
-        self._coordinate_string = coordinates[:-1]  # for pickling (cf. __reduce__)
+            coordinates = coordinates[:-1]
+        self._coordinate_string = coordinates  # for pickling (cf. __reduce__)
         self._manifold = domain.manifold()
         self._domain = domain
         # Treatment of the coordinates:
@@ -267,6 +266,15 @@ class Chart(WithEqualityById, SageObject):
         # _init_coordinates, which sets self._xx and
         # which may be redefined for subclasses (for instance RealChart).
         self._init_coordinates(coord_list)
+        coord_string = ''
+        for x in self._xx:
+            coord_string += str(x) + ' '
+        coord_string = coord_string[:-1]
+        if coord_string in self._domain._charts_by_coord:
+            raise ValueError("the chart with coordinates " + coord_string +
+                             " has already been declared on " +
+                             "the {}".format(self._domain))
+        self._domain._charts_by_coord[coord_string] = self
         #
         # Additional restrictions on the coordinates
         self._restrictions = []  # to be set with method add_restrictions()
@@ -1863,9 +1871,10 @@ class CoordChange(SageObject):
                              "charts)")
         # New symbolic variables (different from x2 to allow for a
         #  correct solution even when chart2 = chart1):
-        if self._chart1.domain().base_field() == RR:
+        base_field = self._chart1.domain().base_field_type()
+        if base_field == 'real':
             coord_domain = ['real' for i in range(n2)]
-        elif self._chart1.domain().base_field() == CC:
+        elif base_field == 'complex':
             coord_domain = ['complex' for i in range(n2)]
         else:
             coord_domain = [None for i in range(n2)]

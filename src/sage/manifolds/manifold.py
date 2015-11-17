@@ -280,7 +280,8 @@ REFERENCES:
 from sage.categories.fields import Fields
 from sage.categories.manifolds import Manifolds
 from sage.rings.all import CC
-from sage.rings.real_mpfr import RR
+from sage.rings.real_mpfr import RR, RealField_class
+from sage.rings.complex_field import ComplexField_class
 from sage.manifolds.subset import TopologicalManifoldSubset
 
 class TopologicalManifold(TopologicalManifoldSubset):
@@ -307,8 +308,10 @@ class TopologicalManifold(TopologicalManifoldSubset):
     - ``field`` -- (default: ``'real'``) field `K` on which the manifold is
       defined; allowed values are
 
-        - ``'real'`` or ``RR`` for a manifold over `\RR`
-        - ``'complex'`` or ``CC`` for a manifold over `\CC`
+        - ``'real'`` or an object of type ``RealField`` (e.g. ``RR``) for a
+          manifold over `\RR`
+        - ``'complex'`` or an object of type ``ComplexField`` (e.g. ``CC``) for
+          a manifold over `\CC`
         - an object in the category of topological fields (see
           :class:`~sage.categories.fields.Fields` and
           :class:`~sage.categories.topological_spaces.TopologicalSpaces`)
@@ -452,12 +455,20 @@ class TopologicalManifold(TopologicalManifoldSubset):
         self._dim = n
         if field == 'real':
             self._field = RR
+            self._field_type = 'real'
         elif field == 'complex':
             self._field = CC
+            self._field_type = 'complex'
         else:
             if field not in Fields():
                 raise TypeError("the argument 'field' must be a field")
             self._field = field
+            if isinstance(field, RealField_class):
+                self._field_type = 'real'
+            elif isinstance(field, ComplexField_class):
+                self._field_type = 'complex'
+            else:
+                self._field_type = 'neither_real_nor_complex'
         if not isinstance(start_index, (int, Integer)):
             raise TypeError("the starting index must be an integer")
         self._sindex = start_index
@@ -477,7 +488,11 @@ class TopologicalManifold(TopologicalManifoldSubset):
         self._top_charts = []  # list of charts defined on subsets of self
                         # that are not subcharts of charts on larger subsets
         self._def_chart = None  # default chart
-        self._coord_changes = {} # dictionary of transition maps
+        self._charts_by_coord = {} # dictionary of charts whose domain is self
+                                   # (key: string formed by the coordinate
+                                   #  symbols separated by a white space)
+        self._coord_changes = {} # dictionary of transition maps (key: pair of
+                                 # of charts)
         # List of charts that individually cover self, i.e. whose
         # domains are self (if non-empty, self is a coordinate domain):
         self._covering_charts = []
@@ -511,10 +526,10 @@ class TopologicalManifold(TopologicalManifoldSubset):
 
         """
         if self._manifold is self:
-            if self._field == RR:
+            if self._field_type == 'real':
                 return "{}-dimensional topological manifold {}".format(
                                                          self._dim, self._name)
-            elif self._field == CC:
+            elif self._field_type == 'complex':
                 return "Complex {}-dimensional topological manifold {}".format(
                                                          self._dim, self._name)
             return "{}-dimensional topological manifold {} over the {}".format(
@@ -648,7 +663,7 @@ class TopologicalManifold(TopologicalManifoldSubset):
             return self.element_class(self)
         # Attempt to construct a point in the domain of the default chart
         chart = self._def_chart
-        if self._field == RR:
+        if self._field_type == 'real':
             coords = []
             for coord_range in chart._bounds:
                 xmin = coord_range[0][0]
@@ -668,7 +683,7 @@ class TopologicalManifold(TopologicalManifoldSubset):
             coords = self._dim*[0]
         if not chart.valid_coordinates(*coords):
             # Attempt to construct a point in the domain of other charts
-            if self._field == RR:
+            if self._field_type == 'real':
                 for ch in self._atlas:
                     if ch is self._def_chart:
                         continue # since this case has already been attempted
@@ -779,7 +794,7 @@ class TopologicalManifold(TopologicalManifoldSubset):
 
     def base_field(self):
         r"""
-        Return the field on which the manifolds is defined.
+        Return the field on which the manifold is defined.
 
         OUTPUT:
 
@@ -799,6 +814,34 @@ class TopologicalManifold(TopologicalManifoldSubset):
 
         """
         return self._field
+
+    def base_field_type(self):
+        r"""
+        Return the type of topological field on which the manifold is defined.
+
+        OUTPUT:
+
+        - a string describing the field, with three possible values:
+
+          - ``'real'`` for the real field `\RR`
+          - ``'complex'`` for the complex field `\CC`
+          - ``'neither_real_nor_complex'`` for a field different from `\RR` and
+            `\CC`
+
+        EXAMPLES::
+
+            sage: M = Manifold(3, 'M', type='topological')
+            sage: M.base_field_type()
+            'real'
+            sage: M = Manifold(3, 'M', type='topological', field='complex')
+            sage: M.base_field_type()
+            'complex'
+            sage: M = Manifold(3, 'M', type='topological', field=QQ)
+            sage: M.base_field_type()
+            'neither_real_nor_complex'
+
+        """
+        return self._field_type
 
     def start_index(self):
         r"""
@@ -1425,10 +1468,66 @@ class TopologicalManifold(TopologicalManifoldSubset):
 
         """
         from sage.manifolds.chart import Chart, RealChart
-        if self._field == RR:
+        if self._field_type == 'real':
             return RealChart(self, coordinates=coordinates, names=names)
         return Chart(self, coordinates=coordinates, names=names)
 
+    def get_chart(self, coordinates, domain=None):
+        r"""
+        Get a chart from its coordinates.
+
+        The chart must have been previously created by the method
+        :meth:`chart`.
+
+        INPUT:
+
+        - ``coordinates`` --  single string composed of the coordinate symbols
+          separated by a space
+        - ``domain`` -- (default: ``None``) string containing the name of the
+          chart's domain, which must be a subset of the current manifold; if
+          ``None``, the current manifold is assumed.
+
+        OUTPUT:
+
+        - instance of
+          :class:`~sage.manifolds.chart.Chart` (or of the subclass
+          :class:`~sage.manifolds.chart.RealChart`) representing the chart
+          corresponding to the above specifications.
+
+        EXAMPLES::
+
+            sage: M = Manifold(2, 'M', type='topological')
+            sage: X.<x,y> = M.chart()
+            sage: M.get_chart('x y')
+            Chart (M, (x, y))
+            sage: M.get_chart('x y') is X
+            True
+            sage: U = M.open_subset('U', coord_def={X: (y!=0,x<0)})
+            sage: Y.<r, ph> = U.chart(r'r:(0,+oo) ph:(0,2*pi):\phi')
+            sage: M.atlas()
+            [Chart (M, (x, y)), Chart (U, (x, y)), Chart (U, (r, ph))]
+            sage: M.get_chart('x y', domain='U')
+            Chart (U, (x, y))
+            sage: M.get_chart('x y', domain='U') is X.restrict(U)
+            True
+            sage: U.get_chart('r ph')
+            Chart (U, (r, ph))
+            sage: M.get_chart('r ph', domain='U')
+            Chart (U, (r, ph))
+            sage: M.get_chart('r ph', domain='U') is Y
+            True
+
+        """
+        if domain is None:
+            dom = self
+        else:
+            dom = self.get_subset(domain)
+        try:
+            return dom._charts_by_coord[coordinates]
+        except KeyError:
+            raise KeyError("the coordinates '{}' ".format(coordinates) +
+                           "do not correspond to any chart with " +
+                           "the {} as domain".format(dom))
 
 def Manifold(dim, name, latex_name=None, field='real', type='smooth',
              start_index=0, **extra_kwds):
@@ -1444,8 +1543,10 @@ def Manifold(dim, name, latex_name=None, field='real', type='smooth',
     - ``field`` -- (default: ``'real'``) field `K` on which the manifold is
       defined; allowed values are
 
-        - ``'real'`` or ``RR`` for a manifold over `\RR`
-        - ``'complex'`` or ``CC`` for a manifold over `\CC`
+        - ``'real'`` or an object of type ``RealField`` (e.g. ``RR``) for a
+          manifold over `\RR`
+        - ``'complex'`` or an object of type ``ComplexField`` (e.g. ``CC``) for
+          a manifold over `\CC`
         - an object in the category of topological fields (see
           :class:`~sage.categories.fields.Fields` and
           :class:`~sage.categories.topological_spaces.TopologicalSpaces`)

@@ -557,9 +557,9 @@ class TamariIntervalPoset(Element):
         EXAMPLES::
 
             sage: hash(TamariIntervalPosets(4)[0])
-            8782299153813
+            3527539
         """
-        return hash(self.poset())
+        return hash(self._cover_relations)
 
     @cached_method
     def increasing_cover_relations(self):

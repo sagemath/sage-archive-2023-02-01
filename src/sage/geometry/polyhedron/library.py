@@ -1152,27 +1152,27 @@ class Polytopes():
 
         EXAMPLES::
 
-            sage: bb = polytopes.rhombicosidodecahedron()   # long time - 6secs
-            sage: bb.f_vector()                # long time
+            sage: rid = polytopes.rhombicosidodecahedron()   # long time - 6secs
+            sage: rid.f_vector()                # long time
             (1, 60, 120, 62, 1)
-            sage: bb.base_ring()               # long time
+            sage: rid.base_ring()               # long time
             Number Field in sqrt5 with defining polynomial x^2 - 5
 
         A much faster implementation using floating point approximations::
 
-            sage: bb = polytopes.rhombicosidodecahedron(exact=False)
-            sage: bb.f_vector()
+            sage: rid = polytopes.rhombicosidodecahedron(exact=False)
+            sage: rid.f_vector()
             (1, 60, 120, 62, 1)
-            sage: bb.base_ring()
+            sage: rid.base_ring()
             Real Double Field
 
         Its faces are 20 triangles, 30 squares and 12 pentagons::
 
-            sage: sum(1 for f in bb.faces(2) if len(f.vertices()) == 3)
+            sage: sum(1 for f in rid.faces(2) if len(f.vertices()) == 3)
             20
-            sage: sum(1 for f in bb.faces(2) if len(f.vertices()) == 4)
+            sage: sum(1 for f in rid.faces(2) if len(f.vertices()) == 4)
             30
-            sage: sum(1 for f in bb.faces(2) if len(f.vertices()) == 5)
+            sage: sum(1 for f in rid.faces(2) if len(f.vertices()) == 5)
             12
         """
         if base_ring is None and exact:

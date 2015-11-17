@@ -3375,117 +3375,168 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
                 self._strict_quotient = quotient
         return self._strict_quotient
 
-    def solid_quotient(self):
+    def solid_restriction(self):
         r"""
-        Return the quotient of ``self`` by its orthogonal subspace.
+        Return a solid representation of this cone in terms of a basis
+        of its :meth:`sublattice`.
 
-        We define the **solid quotient** of a cone to be its image in
-        the quotient of the ambient space by the orthogonal sublattice
-        of the cone.
+        We define the **solid restriction** of a cone to be a
+        representation of that cone in a basis of its own
+        sublattice. Since a cone's sublattice is just large enough to
+        hold the cone (by definition), the resulting solid restriction
+        :meth:`is_solid`. For convenience, the solid restriction lives
+        in a new lattice (of the appropriate dimension) and not actually
+        in the sublattice object returned by :meth:`sublattice`.
 
         OUTPUT:
 
-        A solid cone.
+        A solid cone in a new lattice having the same dimension as this
+        cone's :meth:`sublattice`.
 
         EXAMPLES:
 
         The nonnegative quadrant in the plane is left after we take its
-        solid quotient in space::
+        solid restriction in space::
 
             sage: K = Cone([(1,0,0), (0,1,0)])
-            sage: K.solid_quotient().rays()
+            sage: K.solid_restriction().rays()
             N(1, 0),
             N(0, 1)
             in 2-d lattice N
 
-        The solid quotient of the trivial cone lives in a trivial space::
+        The solid restriction of a single ray has the same
+        representation regardless of the ambient space::
+
+            sage: K = Cone([(1,0)])
+            sage: K.solid_restriction().rays()
+            N(1)
+            in 1-d lattice N
+            sage: K = Cone([(1,1,1)])
+            sage: K.solid_restriction().rays()
+            N(1)
+            in 1-d lattice N
+
+        The solid restriction of the trivial cone lives in a trivial space::
 
             sage: K = Cone([], ToricLattice(0))
-            sage: K.solid_quotient()
+            sage: K.solid_restriction()
             0-d cone in 0-d lattice N
             sage: K = Cone([(0,0,0,0)])
-            sage: K.solid_quotient()
+            sage: K.solid_restriction()
             0-d cone in 0-d lattice N
+
+        Unlike with :meth:`strict_quotient`, the solid restriction of a
+        solid cone may not equal the original cone::
+
+            sage: K = Cone([(1,1),(1,2)])
+            sage: K.solid_restriction().rays()
+            N(0, 1),
+            N(1, 0)
+            in 2-d lattice N
 
         TESTS:
 
-        The solid quotient of any cone should be solid::
+        The solid restriction of any cone is solid::
 
             sage: set_random_seed()
             sage: K = random_cone(max_ambient_dim=6)
-            sage: K.solid_quotient().is_solid()
+            sage: K.solid_restriction().is_solid()
             True
 
-        If the original cone is strictly convex, then its solid
-        quotient is proper::
+        If a cone :meth:`is_strictly_convex`, then its solid restriction
+        :meth:`is_proper`::
 
             sage: set_random_seed()
             sage: K = random_cone(max_ambient_dim=6, strictly_convex=True)
-            sage: K.solid_quotient().is_proper()
+            sage: K.solid_restriction().is_proper()
             True
 
-        The solid quotient of a solid convex cone is itself::
-
-            sage: set_random_seed()
-            sage: K = random_cone(max_ambient_dim=6, solid=True)
-            sage: K.solid_quotient() == K
-            True
-
-        The solid quotient has the same dimension as the original cone::
+        The solid restriction of a cone has the same dimension as the
+        original::
 
             sage: set_random_seed()
             sage: K = random_cone(max_ambient_dim=6)
-            sage: K.solid_quotient().dim() == K.dim()
+            sage: K.solid_restriction().dim() == K.dim()
             True
 
-        The solid quotient is idempotent::
+        The solid restriction of a cone has the same number of rays as
+        the original::
 
             sage: set_random_seed()
             sage: K = random_cone(max_ambient_dim=6)
-            sage: K1 = K.solid_quotient()
-            sage: K2 = K1.solid_quotient()
-            sage: K1 == K2
+            sage: K.solid_restriction().nrays() == K.nrays()
             True
 
-        The solid quotient has the same number of rays as the original::
+        The solid restriction of a cone has the same lineality as the
+        original::
 
             sage: set_random_seed()
             sage: K = random_cone(max_ambient_dim=6)
-            sage: K.solid_quotient().nrays() == K.nrays()
+            sage: K.solid_restriction().lineality() == K.lineality()
             True
 
-        The solid quotient has the same lineality as the original::
+        The solid restriction of a cone has the same number of facets as
+        the original::
 
             sage: set_random_seed()
             sage: K = random_cone(max_ambient_dim=6)
-            sage: K.solid_quotient().lineality() == K.lineality()
+            sage: len(K.solid_restriction().facets()) == len(K.facets())
             True
 
-        The solid quotient has the same number of facets as the original::
+        The solid restriction of a solid cone should have the same
+        ambient dimension as the original::
 
             sage: set_random_seed()
-            sage: K = random_cone(max_ambient_dim=6)
-            sage: len(K.solid_quotient().facets()) == len(K.facets())
+            sage: K = random_cone(max_ambient_dim=8, solid=True)
+            sage: K.lattice_dim() == K.solid_restriction().lattice_dim()
+            True
+
+        The solid restriction operation on a **solid cone** is a linear
+        isomorphism (change of basis) that establishes a bijection
+        between discrete complementarity sets::
+
+            sage: set_random_seed()
+            sage: K = random_cone(max_ambient_dim=8, solid=True)
+            sage: K_S = K.solid_restriction()
+            sage: dcs1 = K.discrete_complementarity_set()
+            sage: dcs2 = K_S.discrete_complementarity_set()
+            sage: len(dcs1) == len(dcs2)
+            True
+
+        The solid restriction operation on a **solid cone** is a linear
+        isomorphism (change of basis) that leaves invariant the Lyapunov
+        rank (the length of a Lyapunov-like basis)::
+
+            sage: set_random_seed()
+            sage: K = random_cone(max_ambient_dim=8, solid=True)
+            sage: LL1 = K.lyapunov_like_basis()
+            sage: LL2 = K.solid_restriction().lyapunov_like_basis()
+            sage: len(LL1) == len(LL2)
             True
         """
-        if "_solid_quotient" not in self.__dict__:
-            if self.is_solid():
-                self._solid_quotient = self
-            else:
-                L = self.lattice()
-                L_perp = self.orthogonal_sublattice()
-                Q = L.base_extend(QQ) / L_perp.base_extend(QQ)
+        if "_solid_restriction" in self.__dict__:
+            # If the result is cached, just return it.
+            return self._solid_restriction
 
-                # There's a naming issue here, see `strict_quotient`.
-                if is_ToricLattice(L):
-                    S = ToricLattice(Q.dimension(), L._name, L._dual_name,
-                                     L._latex_name, L._latex_dual_name)
-                else:
-                    S = ZZ**Q.dimension()
-                rays = [Q(ray) for ray in self.rays() if not Q(ray).is_zero()]
-                quotient = Cone(rays, S, check=False)
-                self._solid_quotient = quotient
-        return self._solid_quotient
+        # Construct a NEW lattice ``S`` (of the appropriate dimension)
+        # to use. This works around the fact that it's difficult to
+        # work with sublattice objects. There are naming issues here
+        # similar to those in the strict_quotient() method.
+        L = self.lattice()
+        subL = self.sublattice()
+        S = ToricLattice(subL.dimension(), L._name,
+                         L._dual_name, L._latex_name, L._latex_dual_name)
+
+        # We don't need to check if these rays are zero: they will all
+        # have at least one non-zero coordinate; otherwise they would
+        # lie outside of the span of our cone. And they don't, because
+        # they generate the cone.
+        rays = [ S(subL.coordinates(ray)) for ray in self ]
+        restriction = Cone(rays, lattice=S, check=False)
+
+        # Cache and return the result.
+        self._solid_restriction = restriction
+        return restriction
 
     def _split_ambient_lattice(self):
         r"""
@@ -4945,7 +4996,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
 
             sage: set_random_seed()
             sage: K = random_cone(max_ambient_dim=8)
-            sage: K_SP = K.solid_quotient().strict_quotient()
+            sage: K_SP = K.solid_restriction().strict_quotient()
             sage: l = K.lineality()
             sage: c = K.codim()
             sage: actual = K.lyapunov_rank()
@@ -4972,22 +5023,32 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
             sage: K.lyapunov_rank() >= K.lattice_dim()
             True
         """
-        # The solid_quotient() and strict_quotient() methods already
-        # check if the cone is solid or strictly convex, so we can't
-        # save any additional time here by seeing if the quotients
-        # would be no-ops.
-        #
-        # The call to solid_quotient() restricts K to its own span,
-        # resulting in the cone K_S from the paper. The call to
-        # strict_quotient() then restricts K_S to the span of its dual.
-        K_SP = self.solid_quotient().strict_quotient()
-
-        # K_SP is proper, so we have to compute its Lyapunov rank the
-        # hard way -- by counting a Lyapunov-like basis for it.
+        beta = 0
         m = self.dim()
         n = self.lattice_dim()
         l = self.lineality()
-        return (n - m)*n + l*m + len(K_SP.lyapunov_like_basis())
+        K = self
+
+        # The strict_quotient() method checks if the cone is already
+        # strictly convex, but the solid_restriction() method does
+        # not. To save a little time, we see if this cone is already
+        # solid and avoid the restriction if it is.
+        if m < n:
+                # The call to solid_restriction() restricts K to its
+                # own span, resulting in the cone K_S from the paper.
+                K = self.solid_restriction()
+                beta += (n - m)*n
+
+        # Now The call to strict_quotient() restricts K = K_S to the
+        # span of its dual, giving the cone K_{SP} from the paper.
+        # This will do nothing if K is already strictly convex.
+        K = K.strict_quotient()
+        beta += l*m
+
+        # K is proper here, so we have to compute its Lyapunov rank the
+        # hard way -- by counting a Lyapunov-like basis for it.
+        beta += len(K.lyapunov_like_basis())
+        return beta
 
 
 def random_cone(lattice=None, min_ambient_dim=0, max_ambient_dim=None,

@@ -1218,27 +1218,27 @@ class Polytopes():
 
         EXAMPLES::
 
-            sage: bb = polytopes.truncated_icosidodecahedron()   # long time
-            sage: bb.f_vector()                # long time
+            sage: ti = polytopes.truncated_icosidodecahedron()   # long time
+            sage: ti.f_vector()                # long time
             (1, 120, 180, 62, 1)
-            sage: bb.base_ring()               # long time
+            sage: ti.base_ring()               # long time
             Number Field in sqrt5 with defining polynomial x^2 - 5
 
         A much faster implementation using floating point approximations::
 
-            sage: bb = polytopes.truncated_icosidodecahedron(exact=False)
-            sage: bb.f_vector()
+            sage: ti = polytopes.truncated_icosidodecahedron(exact=False)
+            sage: ti.f_vector()
             (1, 120, 180, 62, 1)
-            sage: bb.base_ring()
+            sage: ti.base_ring()
             Real Double Field
 
         Its faces are 30 squares, 20 hexagons and 12 decagons::
 
-            sage: sum(1 for f in bb.faces(2) if len(f.vertices()) == 4)
+            sage: sum(1 for f in ti.faces(2) if len(f.vertices()) == 4)
             30
-            sage: sum(1 for f in bb.faces(2) if len(f.vertices()) == 6)
+            sage: sum(1 for f in ti.faces(2) if len(f.vertices()) == 6)
             20
-            sage: sum(1 for f in bb.faces(2) if len(f.vertices()) == 10)
+            sage: sum(1 for f in ti.faces(2) if len(f.vertices()) == 10)
             12
         """
         if base_ring is None and exact:

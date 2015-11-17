@@ -40,6 +40,7 @@ The following constructions are available
     :meth:`~sage.geometry.polyhedron.library.Polytopes.six_hundred_cell`
     :meth:`~sage.geometry.polyhedron.library.Polytopes.small_rhombicuboctahedron`
     :meth:`~sage.geometry.polyhedron.library.Polytopes.snub_cube`
+    :meth:`~sage.geometry.polyhedron.library.Polytopes.snub_dodecahedron`
     :meth:`~sage.geometry.polyhedron.library.Polytopes.tetrahedron`
     :meth:`~sage.geometry.polyhedron.library.Polytopes.truncated_cube`
     :meth:`~sage.geometry.polyhedron.library.Polytopes.truncated_dodecahedron`

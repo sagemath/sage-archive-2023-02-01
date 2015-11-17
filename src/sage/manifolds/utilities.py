@@ -427,9 +427,9 @@ class ExpressionNice(Expression):
 
         sage: var('x y z')
         (x, y, z)
-        sage: f = function('f', x, y)
+        sage: f = function('f')(x, y)
         sage: g = f.diff(y).diff(x)
-        sage: h = function('h', y, z)
+        sage: h = function('h')(y, z)
         sage: k = h.diff(z)
         sage: fun = x*g + y*(k-z)^2
 
@@ -453,8 +453,8 @@ class ExpressionNice(Expression):
 
     An example when function variables are themselves functions::
 
-        sage: f = function('f', x, y)
-        sage: g = function('g', x, f)  # the second variable is the function f
+        sage: f = function('f')(x, y)
+        sage: g = function('g')(x, f)  # the second variable is the function f
         sage: fun = (g.diff(x))*x - x^2*f.diff(x,y)
         sage: fun
         -x^2*D[0, 1](f)(x, y) + (D[0](f)(x, y)*D[1](g)(x, f(x, y)) + D[0](g)(x, f(x, y)))*x
@@ -513,7 +513,7 @@ class ExpressionNice(Expression):
 
         TESTS::
 
-            sage: f = function('f', x)
+            sage: f = function('f')(x)
             sage: df = f.diff(x)
             sage: df
             D[0](f)(x)
@@ -535,9 +535,9 @@ class ExpressionNice(Expression):
 
             sage: var('x y z')
             (x, y, z)
-            sage: f = function('f', x, y)
+            sage: f = function('f')(x, y)
             sage: g = f.diff(y).diff(x)
-            sage: h = function('h', y, z)
+            sage: h = function('h')(y, z)
             sage: k = h.diff(z)
             sage: fun = x*g + y*(k-z)^2
             sage: fun
@@ -614,9 +614,9 @@ class ExpressionNice(Expression):
 
             sage: var('x y z')
             (x, y, z)
-            sage: f = function('f', x, y)
+            sage: f = function('f')(x, y)
             sage: g = f.diff(y).diff(x)
-            sage: h = function('h', y, z)
+            sage: h = function('h')(y, z)
             sage: k = h.diff(z)
             sage: fun = x*g + y*(k-z)^2
             sage: fun
@@ -629,14 +629,14 @@ class ExpressionNice(Expression):
 
         Testing the behavior if no latex_name of the function is given::
 
-            sage: f = function('f_x', x, y)
+            sage: f = function('f_x')(x, y)
             sage: fun = f.diff(y)
             sage: latex(ExpressionNice(fun))
             \frac{\partial\,f_{x}}{\partial y}
 
         If latex_name, it should be used in LaTeX output:
 
-            sage: f = function('f_x', x, y, latex_name=r"{\cal F}")
+            sage: f = function('f_x', latex_name=r"{\cal F}")(x,y)
             sage: fun = f.diff(y)
             sage: latex(ExpressionNice(fun))
             \frac{\partial\,{\cal F}}{\partial y}
@@ -730,7 +730,7 @@ def _list_derivatives(ex, list_d, exponent=0):
 
     TESTS::
 
-        sage: f = function('f_x', x, latex_name=r"{\cal F}")
+        sage: f = function('f_x', latex_name=r"{\cal F}")(x)
         sage: df = f.diff(x)^2
         sage: from sage.manifolds.utilities import _list_derivatives
         sage: list_d = []
@@ -793,8 +793,8 @@ def _list_functions(ex, list_f):
 
         sage: var('x y z')
         (x, y, z)
-        sage: f = function('f', x, y, latex_name=r"{\cal F}")
-        sage: g = function('g_x', x, y)
+        sage: f = function('f', latex_name=r"{\cal F}")(x, y)
+        sage: g = function('g_x')(x, y)
         sage: d = sin(x)*g.diff(x)*x*f - x^2*f.diff(x,y)/g
         sage: from sage.manifolds.utilities import _list_functions
         sage: list_f = []
@@ -847,7 +847,7 @@ def nice_derivatives(status):
 
         sage: M = Manifold(2, 'M', type='topological')
         sage: X.<x,y> = M.chart()
-        sage: g = function('g', x, y)
+        sage: g = function('g')(x, y)
         sage: f = X.function(diff(g, x) + diff(g, y))
         sage: f
         d(g)/dx + d(g)/dy
@@ -891,7 +891,7 @@ def omit_function_args(status):
     TESTS::
 
         sage: from sage.manifolds.utilities import ExpressionNice
-        sage: f = function('f_x', x)
+        sage: f = function('f_x')(x)
         sage: f = f*(1 + f^2)
         sage: ExpressionNice(f)
         (f_x(x)^2 + 1)*f_x(x)

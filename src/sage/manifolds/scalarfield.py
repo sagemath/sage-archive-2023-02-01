@@ -176,7 +176,7 @@ class ScalarField(CommutativeAlgebraElement):
     A scalar field can also be defined by some unspecified function of the
     coordinates::
 
-        sage: h = U.scalar_field(function('H', x, y), name='h') ; h
+        sage: h = U.scalar_field(function('H')(x, y), name='h') ; h
         Scalar field h on the Open subset U of the 2-dimensional topological
          manifold M
         sage: h.display()
@@ -1368,7 +1368,7 @@ class ScalarField(CommutativeAlgebraElement):
                (x, y) |--> sqrt(x + 1)
             sage: latex(f.display())
             \begin{array}{llcl} f:& M & \longrightarrow & \mathbb{R} \\ & \left(x, y\right) & \longmapsto & \sqrt{x + 1} \end{array}
-            sage: g = M.scalar_field(function('G', x, y), name='g')
+            sage: g = M.scalar_field(function('G')(x, y), name='g')
             sage: g.display()
             g: M --> R
                (x, y) |--> G(x, y)

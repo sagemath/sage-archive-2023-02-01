@@ -906,8 +906,8 @@ class Polytopes():
 
         EXAMPLES::
 
-            sage: gr = polytopes.icosidodecahedron()
-            sage: gr.f_vector()
+            sage: id = polytopes.icosidodecahedron()
+            sage: id.f_vector()
             (1, 30, 60, 32, 1)
 
         TESTS::
@@ -956,25 +956,25 @@ class Polytopes():
 
         EXAMPLES::
 
-            sage: bb = polytopes.icosidodecahedron()   # long time - 6secs
-            sage: bb.f_vector()                # long time
+            sage: id = polytopes.icosidodecahedron()   # long time - 6secs
+            sage: id.f_vector()                # long time
             (1, 30, 60, 32, 1)
-            sage: bb.base_ring()               # long time
+            sage: id.base_ring()               # long time
             Number Field in sqrt5 with defining polynomial x^2 - 5
 
         A much faster implementation using floating point approximations::
 
-            sage: bb = polytopes.icosidodecahedron(exact=False)
-            sage: bb.f_vector()
+            sage: id = polytopes.icosidodecahedron(exact=False)
+            sage: id.f_vector()
             (1, 30, 60, 32, 1)
-            sage: bb.base_ring()
+            sage: id.base_ring()
             Real Double Field
 
         Its faces are 20 triangles and 12 regular pentagons::
 
-            sage: sum(1 for f in bb.faces(2) if len(f.vertices()) == 3)
+            sage: sum(1 for f in id.faces(2) if len(f.vertices()) == 3)
             20
-            sage: sum(1 for f in bb.faces(2) if len(f.vertices()) == 5)
+            sage: sum(1 for f in id.faces(2) if len(f.vertices()) == 5)
             12
         """
         if base_ring is None and exact:

@@ -114,14 +114,14 @@ def qfparam(G, sol):
     # Interpret the rows of mat as coefficients of polynomials
     return vector(R, mat.Col())
 
-def solve(self, c):
+def solve(self, c=0):
     r""" 
     Return a vector x such that self(x) == c.
 
     INPUT:
     
     - ``self`` -- a quadratic form.
-    - ``c`` -- a rational number.
+    - ``c`` -- (default: 0) a rational number. 
 
     OUTPUT:
     
@@ -134,26 +134,39 @@ def solve(self, c):
     EXAMPLES::
     
         sage: Q = QuadraticForm(QQ, 2, [17, 94, 130])
-        sage: Q.solve(5)
-        (-17, 6)
-        sage: Q([-17, 6])
+        sage: x = Q.solve(5); x
+        (17, -6)
+        sage: Q(x)
         5
     
         sage: Q.solve(6)
         Traceback (most recent call last):
         ...
-        ValueError: No solution found
+        ArithmeticError: no solution found (local obstruction at 3)
     
         sage: G = DiagonalQuadraticForm(QQ, [5, -3, -2])
         sage: x = G.solve(10); x
         (3/2, -1/2, 1/2)
         sage: G(x)
         10
+
+        sage: F = DiagonalQuadraticForm(QQ, [1, -4])
+        sage: x = F.solve(); x
+        (2, 1)
+        sage: F(x)
+        0
     """
     from sage.quadratic_forms.quadratic_form import QuadraticForm
     from sage.rings.integer import Integer
     
-    # Define a new quadratic form Q = self - c*z^2
+    # If no argument passed for c, we just pass self into qfsolve().
+    if c == 0:
+        x = qfsolve(self.Gram_matrix())
+        if isinstance(x, Integer):
+            raise ArithmeticError("no solution found (local obstruction at {})".format(x))
+        return x
+
+    # If c != 0, define a new quadratic form Q = self - c*z^2
     M = self.Gram_matrix()
     q_terms = []
     for i in range(self.dim()):
@@ -171,18 +184,21 @@ def solve(self, c):
     x = qfsolve(Q.Gram_matrix())
     # Raise an error if qfsolve() doesn't find a solution
     if isinstance(x, Integer):
-        raise ValueError("No solution found")
+        raise ArithmeticError("no solution found (local obstruction at {})".format(x))
     
     # Let z be the last term of x, and remove z from x
     z = x[-1]
     x = x[:-1]
     # If z != 0, then Q(x/z) = c
-    if z != 0:
-        return x * (1/abs(z))
+    if z:
+        return x * (1/z)
 
-    # Case 2: We found a solution self(x) = 0. Let e be any vector such that B(x,e) != 0, where B is the bilinear form corresponding to self.
-    # To find e, just try all unit vectors (0,..0,1,0...0). Let a = (c - self(e))/2*B(x,e) and let y = e + a*x.
-    # Then self(y) = B(e + a*x, e + a*x) = self(e) + 2B(e, a*x) = self(e) + 2([c - self(e)]/[2B(x,e)]) * B(x,e) = c.
+    # Case 2: We found a solution self(x) = 0. Let e be any vector such 
+    # that B(x,e) != 0, where B is the bilinear form corresponding to self.
+    # To find e, just try all unit vectors (0,..0,1,0...0). 
+    # Let a = (c - self(e))/2*B(x,e) and let y = e + a*x.
+    # Then self(y) = B(e + a*x, e + a*x) = self(e) + 2B(e, a*x) 
+    #              = self(e) + 2([c - self(e)]/[2B(x,e)]) * B(x,e) = c.
     e = vector([0] * self.dim())
     e[0] = 1
     i = 1

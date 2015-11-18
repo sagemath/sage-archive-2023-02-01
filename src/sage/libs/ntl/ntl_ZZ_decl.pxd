@@ -7,7 +7,6 @@ cdef extern from "sage/libs/ntl/ntlwrap.cpp":
 
     void ZZ_from_str "_from_str<ZZ>"(ZZ_c* dest, char* s)
     object ZZ_to_PyString "_to_PyString<ZZ>"(ZZ_c *x)
-    int ZZ_equal "_equal<ZZ>"(ZZ_c x, ZZ_c y)
 
     void ZZ_conv_from_int "conv"(ZZ_c x, int i)
     void ZZ_conv_to_int "conv"(int i, ZZ_c x)

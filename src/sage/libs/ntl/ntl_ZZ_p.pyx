@@ -61,7 +61,7 @@ def ntl_ZZ_p_random_element(v):
 # ZZ_p_c: integers modulo p
 #
 ##############################################################################
-cdef class ntl_ZZ_p:
+cdef class ntl_ZZ_p(object):
     r"""
     The \class{ZZ_p} class is used to represent integers modulo $p$.
     The modulus $p$ may be any positive integer, not necessarily prime.
@@ -188,32 +188,34 @@ cdef class ntl_ZZ_p:
         self.c.restore_c()
         return ZZ_p_to_PyString(&self.x)
 
-    def __richcmp__(ntl_ZZ_p self, ntl_ZZ_p other, op):
+    def __richcmp__(ntl_ZZ_p self, other, int op):
         r"""
-        EXAMPLES:
+        Compare self to other.
+
+        EXAMPLES::
+
             sage: c = ntl.ZZ_pContext(11)
             sage: ntl.ZZ_p(12r, c) == ntl.ZZ_p(1, c)
             True
             sage: ntl.ZZ_p(35r, c) == ntl.ZZ_p(1, c)
             False
+            sage: "2" == ntl.ZZ_p(35r, c)
+            True
+            sage: ntl.ZZ_p(35r, c) == 2
+            True
         """
         self.c.restore_c()
-        if op != 2 and op != 3:
-            raise TypeError, "Integers mod p are not ordered."
 
-        cdef int t
-#        cdef ntl_ZZ_p y
-#        if not isinstance(other, ntl_ZZ_p):
-#            other = ntl_ZZ_p(other)
-#        y = other
-        sig_on()
-        t = ZZ_p_equal(self.x, other.x)
-        sig_off()
-        # t == 1 if self == other
-        if op == 2:
-            return t == 1
-        elif op == 3:
-            return t == 0
+        if op != Py_EQ and op != Py_NE:
+            raise TypeError("integers mod p are not ordered")
+
+        cdef ntl_ZZ_p b
+        try:
+            b = <ntl_ZZ_p?>other
+        except TypeError:
+            b = ntl_ZZ_p(other, self.c)
+
+        return (op == Py_EQ) == (self.x == b.x)
 
     def __invert__(ntl_ZZ_p self):
         r"""

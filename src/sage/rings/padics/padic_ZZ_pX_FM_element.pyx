@@ -457,7 +457,7 @@ cdef class pAdicZZpXFMElement(pAdicZZpXElement):
             _left.prime_pow.restore_top_context()
             if x_ordp == left.prime_pow.ram_prec_cap:
                 return 0 # since both are zero
-            elif ZZ_pX_equal(_left.value, _right.value):
+            elif _left.value == _right.value:
                 return 0
             else:
                 # for now just return 1

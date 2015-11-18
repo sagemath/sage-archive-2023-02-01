@@ -1,23 +1,34 @@
 # distutils: depends = NTL/ZZ.h
 
-cdef extern from "sage/libs/ntl/ntlwrap.cpp":
+cdef extern from "sage/libs/ntl/ntlwrap.h":
     cdef cppclass ZZ_c "ZZ":
-        pass
+        bint operator==(ZZ_c)
+        bint operator!=(ZZ_c)
+        bint operator<(ZZ_c)
+        bint operator<=(ZZ_c)
+        bint operator>(ZZ_c)
+        bint operator>=(ZZ_c)
 
     cdef cppclass zz_p_c "zz_p":
+        bint operator==(zz_p_c)
+        bint operator!=(zz_p_c)
         void *rep
 
     cdef cppclass ZZ_p_c "ZZ_p":
-        pass
+        bint operator==(ZZ_p_c)
+        bint operator!=(ZZ_p_c)
 
     cdef cppclass ZZ_pE_c "ZZ_pE":
-        pass
+        bint operator==(ZZ_pE_c)
+        bint operator!=(ZZ_pE_c)
 
     cdef cppclass GF2_c "GF2":
-        pass
+        bint operator==(GF2_c)
+        bint operator!=(GF2_c)
 
     cdef cppclass GF2E_c "GF2E":
-        pass
+        bint operator==(GF2E_c)
+        bint operator!=(GF2E_c)
 
     cdef cppclass vec_ZZ_c "vec_ZZ":
         ZZ_c RawGet(long i)
@@ -45,9 +56,13 @@ cdef extern from "sage/libs/ntl/ntlwrap.cpp":
         pass
 
     cdef cppclass ZZX_c "ZZX":
+        bint operator==(ZZX_c)
+        bint operator!=(ZZX_c)
         vec_ZZ_c rep
 
     cdef cppclass zz_pX_c "zz_pX":
+        bint operator==(zz_pX_c)
+        bint operator!=(zz_pX_c)
         void *rep
         void (* SetMaxLength)(long n)
 
@@ -56,6 +71,8 @@ cdef extern from "sage/libs/ntl/ntlwrap.cpp":
 
     cdef cppclass ZZ_pX_c "ZZ_pX":
         ZZ_pX_c()
+        bint operator==(ZZ_pX_c)
+        bint operator!=(ZZ_pX_c)
         void *rep
         void (* SetMaxLength)(long n)
 
@@ -66,6 +83,8 @@ cdef extern from "sage/libs/ntl/ntlwrap.cpp":
         ZZ_pX_c (* val) ( )
 
     cdef cppclass ZZ_pEX_c "ZZ_pEX":
+        bint operator==(ZZ_pEX_c)
+        bint operator!=(ZZ_pEX_c)
         void *rep
         void (* SetMaxLength)(long n)
 
@@ -73,24 +92,30 @@ cdef extern from "sage/libs/ntl/ntlwrap.cpp":
         ZZ_pEX_c val()
 
     cdef cppclass GF2X_c "GF2X":
-        pass
+        bint operator==(GF2X_c)
+        bint operator!=(GF2X_c)
 
     cdef cppclass GF2XModulus_c "GF2XModulus":
         pass
 
     cdef cppclass GF2EX_c "GF2EX":
-        pass
+        bint operator==(GF2EX_c)
+        bint operator!=(GF2EX_c)
 
     cdef cppclass mat_ZZ_c "mat_ZZ":
         pass
 
     cdef cppclass mat_GF2_c "mat_GF2":
+        bint operator==(mat_GF2_c)
+        bint operator!=(mat_GF2_c)
         void (*SetDims)(long nrows, long ncols)
         long (*NumRows)()
         long (*NumCols)()
         GF2_c (*get "operator()") (long i, long j)
 
     cdef cppclass mat_GF2E_c "mat_GF2E":
+        bint operator==(mat_GF2E_c)
+        bint operator!=(mat_GF2E_c)
         void (*SetDims)(long nrows, long ncols)
         long (*NumRows)()
         long (*NumCols)()

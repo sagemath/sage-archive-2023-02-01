@@ -610,7 +610,7 @@ cdef class FiniteField_ntl_gf2eElement(FinitePolyExtElement):
 
         """
         (<Cache_ntl_gf2e>self._parent._cache).F.restore()
-        return bool(GF2E_equal(self.x,self._cache._one_element.x))
+        return self.x == self._cache._one_element.x
 
     def is_unit(FiniteField_ntl_gf2eElement self):
         """
@@ -848,7 +848,7 @@ cdef class FiniteField_ntl_gf2eElement(FinitePolyExtElement):
             True
         """
         (<Cache_ntl_gf2e>left._parent._cache).F.restore()
-        c = GF2E_equal((<FiniteField_ntl_gf2eElement>left).x, (<FiniteField_ntl_gf2eElement>right).x)
+        cdef int c = (<FiniteField_ntl_gf2eElement>left).x == (<FiniteField_ntl_gf2eElement>right).x
         if c == 1:
             return 0
         else:

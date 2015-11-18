@@ -78,12 +78,6 @@ void Delete(T* mem){
 }
 
 template <class T>
-bool _equal(T lhs, T rhs)
-{
-    return lhs == rhs;
-}
-
-template <class T>
 void _from_str(T* dest, const char* src){
   std::istringstream out(src);
   out >> *dest;

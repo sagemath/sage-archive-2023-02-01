@@ -31,7 +31,7 @@ from ntl_GF2E cimport ntl_GF2E
 #
 ##############################################################################
 
-cdef class ntl_GF2EX:
+cdef class ntl_GF2EX(object):
     r"""
     Minimal wrapper of NTL's GF2EX class.
     """
@@ -106,11 +106,12 @@ cdef class ntl_GF2EX:
         """
         return unpickle_class_args, (ntl_GF2EX, (self.c, self.__repr__()))
 
-    def __cmp__(self, other):
+    def __richcmp__(ntl_GF2EX self, other, int op):
         """
         Compare self to other.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: ctx = ntl.GF2EContext(ntl.GF2X([1,1,0,1,1,0,1]))
             sage: f = ntl.GF2EX(ctx, '[[1 0 1] [1 0 0 1] [1]]')
             sage: g = ntl.GF2EX(ctx, '[[1 0 1] [1 1] [1] [0 0 1]]')
@@ -118,11 +119,21 @@ cdef class ntl_GF2EX:
             True
             sage: f == g
             False
+            sage: f == "??"
+            False
         """
-        ## TODO: this is shady. fix that.
-        if (type(self) != type(other)):
-            return cmp(type(self), type(other))
-        return cmp(self.__repr__(), other.__repr__())
+        self.c.restore_c()
+
+        if op != Py_EQ and op != Py_NE:
+            raise TypeError("elements of GF(2^e)[X] are not ordered")
+
+        cdef ntl_GF2EX b
+        try:
+            b = <ntl_GF2EX?>other
+        except TypeError:
+            return NotImplemented
+
+        return (op == Py_EQ) == (self.x == b.x)
 
     def __repr__(self):
         """

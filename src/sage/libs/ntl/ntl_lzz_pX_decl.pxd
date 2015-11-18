@@ -57,4 +57,3 @@ cdef extern from "sage/libs/ntl/ntlwrap.cpp":
     void zz_pX_InvMod_pre "InvMod"(zz_pX_c x, zz_pX_c a, zz_pX_Modulus_c F)
 
     long NTL_SP_BOUND
-    bint NTL_zz_pX_DOUBLE_EQUALS(zz_pX_c x, zz_pX_c y)

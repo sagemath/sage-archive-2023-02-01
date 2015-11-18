@@ -127,7 +127,7 @@ cdef inline bint celement_equal(GF2X_c *a, GF2X_c *b, long parent) except -2:
         sage: x^2 + 1 == x^2 + x
         False
     """
-    return GF2X_equal(a[0], b[0])
+    return a[0] == b[0]
 
 cdef inline int celement_cmp(GF2X_c *a, GF2X_c *b, long parent) except -2:
     """

@@ -5,7 +5,6 @@ from .types cimport GF2_c, vec_GF2_c
 cdef extern from "sage/libs/ntl/ntlwrap.cpp":
     void vec_GF2_from_str "_from_str<vec_GF2>"(vec_GF2_c* dest, char* s)
     object vec_GF2_to_PyString "_to_PyString<vec_GF2>"(vec_GF2_c *x)
-    int vec_GF2_equal "_equal<vec_GF2>"(vec_GF2_c x, vec_GF2_c y)
     int vec_GF2_IsZero "IsZero"(vec_GF2_c x)
 
     void vec_GF2_swap "swap"(vec_GF2_c x, vec_GF2_c y)

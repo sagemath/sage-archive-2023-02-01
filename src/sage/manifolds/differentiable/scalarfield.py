@@ -64,7 +64,7 @@ class DiffScalarField(ScalarField):
 
     - ``domain`` -- the differentiable manifold `M` on which the scalar field
       is defined (must be an instance of class
-      :class:`~sage.manifolds.differentiable.manifold.DiffManifold`)
+      :class:`~sage.manifolds.differentiable.manifold.DifferentiableManifold`)
     - ``coord_expression`` -- (default: ``None``) coordinate expression(s) of
       the scalar field; this can be either
 
@@ -95,7 +95,7 @@ class DiffScalarField(ScalarField):
 
     A scalar field on the 2-sphere::
 
-        sage: M = DiffManifold(2, 'M') # the 2-dimensional sphere S^2
+        sage: M = Manifold(2, 'M') # the 2-dimensional sphere S^2
         sage: U = M.open_subset('U') # complement of the North pole
         sage: c_xy.<x,y> = U.chart() # stereographic coordinates from the North pole
         sage: V = M.open_subset('V') # complement of the South pole
@@ -185,7 +185,7 @@ class DiffScalarField(ScalarField):
     A scalar field can also be defined by some unspecified function of the
     coordinates::
 
-        sage: h = U.scalar_field(function('H', x, y), name='h') ; h
+        sage: h = U.scalar_field(function('H')(x, y), name='h') ; h
         Scalar field h on the Open subset U of the 2-dimensional differentiable
          manifold M
         sage: h.display()
@@ -241,7 +241,7 @@ class DiffScalarField(ScalarField):
         on V: (u, v) |--> 2
 
     A shortcut is to use the method
-    :meth:`~sage.manifolds.manifold.TopManifold.constant_scalar_field`::
+    :meth:`~sage.manifolds.manifold.TopologicalManifold.constant_scalar_field`::
 
         sage: c == M.constant_scalar_field(2)
         True
@@ -267,7 +267,7 @@ class DiffScalarField(ScalarField):
         on V: (u, v) |--> 0
 
     It can be obtained directly by means of the function
-    :meth:`~sage.manifolds.manifold.TopManifold.zero_scalar_field`::
+    :meth:`~sage.manifolds.manifold.TopologicalManifold.zero_scalar_field`::
 
         sage: zer is M.zero_scalar_field()
         True
@@ -616,7 +616,7 @@ class DiffScalarField(ScalarField):
 
         TEST::
 
-            sage: M = DiffManifold(2, 'M')
+            sage: M = Manifold(2, 'M')
             sage: X.<x,y> = M.chart()
             sage: f = M.scalar_field({X: x+y}, name='f') ; f
             Scalar field f on the 2-dimensional differentiable manifold M
@@ -640,7 +640,7 @@ class DiffScalarField(ScalarField):
 
         TEST::
 
-            sage: M = DiffManifold(2, 'M')
+            sage: M = Manifold(2, 'M')
             sage: X.<x,y> = M.chart()
             sage: f = M.scalar_field({X: x+y})
             sage: f._init_derived()
@@ -655,7 +655,7 @@ class DiffScalarField(ScalarField):
 
         TEST::
 
-            sage: M = DiffManifold(2, 'M')
+            sage: M = Manifold(2, 'M')
             sage: X.<x,y> = M.chart()
             sage: f = M.scalar_field({X: x+y})
             sage: U = M.open_subset('U', coord_def={X: x>0})

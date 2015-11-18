@@ -76,7 +76,7 @@ class DiffChart(Chart):
 
     A chart on a complex 2-dimensional differentiable manifold::
 
-        sage: M = DiffManifold(2, 'M', field='complex')
+        sage: M = Manifold(2, 'M', field='complex')
         sage: X = M.chart('x y'); X
         Chart (M, (x, y))
         sage: latex(X)
@@ -92,8 +92,7 @@ class DiffChart(Chart):
     side of the chart declaration (there is then no need to pass the string
     ``'x y'`` to ``chart()``)::
 
-        sage: DiffManifold._clear_cache_()  # for doctests only
-        sage: M = DiffManifold(2, 'M', field='complex')
+        sage: M = Manifold(2, 'M', field='complex')
         sage: X.<x,y> = M.chart(); X
         Chart (M, (x, y))
 
@@ -113,8 +112,7 @@ class DiffChart(Chart):
     names and do not have to coincide with the coordinate symbols;
     for instance, one may write::
 
-        sage: DiffManifold._clear_cache_()  # for doctests only
-        sage: M = DiffManifold(2, 'M', field='complex')
+        sage: M = Manifold(2, 'M', field='complex')
         sage: X.<x1,y1> = M.chart('x y'); X
         Chart (M, (x, y))
 
@@ -131,8 +129,7 @@ class DiffChart(Chart):
     However, having the name of the Python variable coincide with the
     coordinate symbol is quite convenient; so it is recommended to declare::
 
-        sage: DiffManifold._clear_cache_()  # for doctests only
-        sage: M = DiffManifold(2, 'M', field='complex')
+        sage: M = Manifold(2, 'M', field='complex')
         sage: X.<x,y> = M.chart()
 
     In the above example, the chart X covers entirely the manifold M::
@@ -174,7 +171,7 @@ class DiffChart(Chart):
     default, it starts at 0, but this can be changed via the parameter
     ``start_index``::
 
-        sage: M1 = DiffManifold(2, 'M_1', field='complex', start_index=1)
+        sage: M1 = Manifold(2, 'M_1', field='complex', start_index=1)
         sage: Z.<u,v> = M1.chart()
         sage: Z[1], Z[2]
         (u, v)
@@ -198,7 +195,7 @@ class DiffChart(Chart):
 
     Manifold subsets have a *default chart*, which, unless changed via the
     method
-    :meth:`~sage.manifolds.manifold.TopManifold.set_default_chart`,
+    :meth:`~sage.manifolds.manifold.TopologicalManifold.set_default_chart`,
     is the first defined chart on the subset (or on a open subset of it)::
 
         sage: M.default_chart()
@@ -232,7 +229,7 @@ class DiffChart(Chart):
 
         TESTS::
 
-            sage: M = DiffManifold(2, 'M', field='complex')
+            sage: M = Manifold(2, 'M', field='complex')
             sage: X.<x,y> = M.chart()
             sage: X
             Chart (M, (x, y))
@@ -269,7 +266,7 @@ class DiffChart(Chart):
         By definition, the transition map `\psi\circ\varphi^{-1}` must be
         of classe `C^k`, where `k` is the degree of differentiability of the
         manifold (cf.
-        :meth:`~sage.manifolds.differentiable.manifold.DiffManifold.diff_degree`).
+        :meth:`~sage.manifolds.differentiable.manifold.DifferentiableManifold.diff_degree`).
 
         INPUT:
 
@@ -305,7 +302,7 @@ class DiffChart(Chart):
 
         Transition map between two stereographic charts on the circle `S^1`::
 
-            sage: M = DiffManifold(1, 'S^1')
+            sage: M = Manifold(1, 'S^1')
             sage: U = M.open_subset('U') # Complement of the North pole
             sage: cU.<x> = U.chart() # Stereographic chart from the North pole
             sage: V = M.open_subset('V') # Complement of the South pole
@@ -335,8 +332,7 @@ class DiffChart(Chart):
         Transition map between the polar chart and the Cartesian one on
         `\RR^2`::
 
-            sage: DiffManifold._clear_cache_() # for doctests only
-            sage: M = DiffManifold(2, 'R^2')
+            sage: M = Manifold(2, 'R^2')
             sage: c_cart.<x,y> = M.chart()
             sage: U = M.open_subset('U') # the complement of the half line {y=0, x >= 0}
             sage: c_spher.<r,phi> = U.chart(r'r:(0,+oo) phi:(0,2*pi):\phi')
@@ -354,7 +350,7 @@ class DiffChart(Chart):
             [2-dimensional differentiable manifold R^2,
              Open subset U of the 2-dimensional differentiable manifold R^2]
 
-        ... but a new chart has been created: `(U, (x, y))`::
+        but a new chart has been created: `(U, (x, y))`::
 
             sage: M.atlas()
             [Chart (R^2, (x, y)), Chart (U, (r, phi)), Chart (U, (x, y))]
@@ -428,7 +424,7 @@ class RealDiffChart(DiffChart, RealChart):
 
     Cartesian coordinates on `\RR^3`::
 
-        sage: M = DiffManifold(3, 'R^3', r'\RR^3', start_index=1)
+        sage: M = Manifold(3, 'R^3', r'\RR^3', start_index=1)
         sage: c_cart = M.chart('x y z'); c_cart
         Chart (R^3, (x, y, z))
         sage: type(c_cart)
@@ -442,8 +438,7 @@ class RealDiffChart(DiffChart, RealChart):
     side of the chart declaration (there is then no need to pass the string
     ``'x y z'`` to  ``chart()``)::
 
-        sage: DiffManifold._clear_cache_() # for doctests only
-        sage: M = DiffManifold(3, 'R^3', r'\RR^3', start_index=1)
+        sage: M = Manifold(3, 'R^3', r'\RR^3', start_index=1)
         sage: c_cart.<x,y,z> = M.chart(); c_cart
         Chart (R^3, (x, y, z))
 
@@ -463,7 +458,7 @@ class RealDiffChart(DiffChart, RealChart):
     names and do not have to coincide with the coordinate symbols; for instance,
     one may write::
 
-        sage: M = DiffManifold(3, 'R^3', r'\RR^3', start_index=1)
+        sage: M = Manifold(3, 'R^3', r'\RR^3', start_index=1)
         sage: c_cart.<x1,y1,z1> = M.chart('x y z'); c_cart
         Chart (R^3, (x, y, z))
 
@@ -478,9 +473,8 @@ class RealDiffChart(DiffChart, RealChart):
     However, having the name of the Python variable coincide with the
     coordinate symbol is quite convenient; so it is recommended to declare::
 
-        sage: DiffManifold._clear_cache_()  # for doctests only
         sage: forget()   # for doctests only
-        sage: M = DiffManifold(3, 'R^3', r'\RR^3', start_index=1)
+        sage: M = Manifold(3, 'R^3', r'\RR^3', start_index=1)
         sage: c_cart.<x,y,z> = M.chart()
 
     Spherical coordinates on the subset `U` of `\RR^3` that is the
@@ -552,7 +546,7 @@ class RealDiffChart(DiffChart, RealChart):
 
     Manifold subsets have a *default chart*, which, unless changed via the
     method
-    :meth:`~sage.manifolds.manifold.TopManifold.set_default_chart`,
+    :meth:`~sage.manifolds.manifold.TopologicalManifold.set_default_chart`,
     is the first defined chart on the subset (or on a open subset of it)::
 
         sage: M.default_chart()
@@ -614,7 +608,7 @@ class RealDiffChart(DiffChart, RealChart):
         TESTS::
 
             sage: forget()  # for doctests only
-            sage: M = DiffManifold(2, 'M')
+            sage: M = Manifold(2, 'M')
             sage: X.<x,y> = M.chart()
             sage: X
             Chart (M, (x, y))
@@ -651,7 +645,7 @@ class DiffCoordChange(CoordChange):
     By definition, the transition map `\psi\circ\varphi^{-1}` must be
     of classe `C^k`, where `k` is the degree of differentiability of the
     manifold (cf.
-    :meth:`~sage.manifolds.differentiable.manifold.DiffManifold.diff_degree`).
+    :meth:`~sage.manifolds.differentiable.manifold.DifferentiableManifold.diff_degree`).
 
     INPUT:
 
@@ -665,7 +659,7 @@ class DiffCoordChange(CoordChange):
 
     Transition map on a 2-dimensional differentiable manifold::
 
-        sage: M = DiffManifold(2, 'M')
+        sage: M = Manifold(2, 'M')
         sage: X.<x,y> = M.chart()
         sage: Y.<u,v> = M.chart()
         sage: X_to_Y = X.transition_map(Y, [x+y, x-y])
@@ -684,7 +678,7 @@ class DiffCoordChange(CoordChange):
 
         TESTS::
 
-            sage: M = DiffManifold(2, 'M')
+            sage: M = Manifold(2, 'M')
             sage: X.<x,y> = M.chart()
             sage: Y.<u,v> = M.chart()
             sage: X_to_Y = X.transition_map(Y, [x+y, x-y])

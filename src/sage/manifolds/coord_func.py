@@ -69,7 +69,7 @@ class CoordFunction(SageObject):
 
         TEST::
 
-            sage: M = TopManifold(2, 'M')
+            sage: M = Manifold(2, 'M', type='topological')
             sage: X.<x,y> = M.chart()
             sage: from sage.manifolds.coord_func import CoordFunction
             sage: f = CoordFunction(X)
@@ -92,7 +92,7 @@ class CoordFunction(SageObject):
 
         EXAMPLE::
 
-            sage: M = TopManifold(2, 'M')
+            sage: M = Manifold(2, 'M', type='topological')
             sage: X.<x,y> = M.chart()
             sage: f = X.function(1+x+y^2)
             sage: f.chart()
@@ -126,7 +126,7 @@ class CoordFunction(SageObject):
 
         Construction of a scalar field on a 2-dimensional manifold::
 
-            sage: M = TopManifold(2, 'M')
+            sage: M = Manifold(2, 'M', type='topological')
             sage: c_xy.<x,y> = M.chart()
             sage: fc = c_xy.function(x+2*y^3)
             sage: f = fc.scalar_field() ; f
@@ -157,7 +157,7 @@ class CoordFunction(SageObject):
 
         TESTS::
 
-            sage: M = TopManifold(2, 'M')
+            sage: M = Manifold(2, 'M', type='topological')
             sage: X.<x,y> = M.chart()
             sage: f = X.function(x+y)
             sage: g = X.function(x*y)
@@ -168,7 +168,7 @@ class CoordFunction(SageObject):
             False
 
         """
-        return not self.__eq__(other)
+        return not (self == other)
 
     def __radd__(self, other):
         r"""
@@ -185,7 +185,7 @@ class CoordFunction(SageObject):
 
         TESTS::
 
-            sage: M = TopManifold(2, 'M')
+            sage: M = Manifold(2, 'M', type='topological')
             sage: X.<x,y> = M.chart()
             sage: f = X.function(x+y)
             sage: g = X.function(x*y)
@@ -214,7 +214,7 @@ class CoordFunction(SageObject):
 
         TESTS::
 
-            sage: M = TopManifold(2, 'M')
+            sage: M = Manifold(2, 'M', type='topological')
             sage: X.<x,y> = M.chart()
             sage: f = X.function(x+y)
             sage: g = X.function(x*y)
@@ -243,7 +243,7 @@ class CoordFunction(SageObject):
 
         TESTS::
 
-            sage: M = TopManifold(2, 'M')
+            sage: M = Manifold(2, 'M', type='topological')
             sage: X.<x,y> = M.chart()
             sage: f = X.function(x+y)
             sage: g = X.function(x*y)
@@ -272,7 +272,7 @@ class CoordFunction(SageObject):
 
         TESTS::
 
-            sage: M = TopManifold(2, 'M')
+            sage: M = Manifold(2, 'M', type='topological')
             sage: X.<x,y> = M.chart()
             sage: f = X.function(x+y)
             sage: g = X.function(x*y)
@@ -301,7 +301,7 @@ class CoordFunction(SageObject):
 
         TESTS::
 
-            sage: M = TopManifold(2, 'M')
+            sage: M = Manifold(2, 'M', type='topological')
             sage: X.<x,y> = M.chart()
             sage: f = X.function(x+y)
             sage: g = X.function(x*y)
@@ -332,7 +332,7 @@ class CoordFunction(SageObject):
 
         TESTS::
 
-            sage: M = TopManifold(2, 'M')
+            sage: M = Manifold(2, 'M', type='topological')
             sage: X.<x,y> = M.chart()
             sage: f = X.function(x+y)
             sage: g = X.function(x*y)
@@ -361,7 +361,7 @@ class CoordFunction(SageObject):
 
         TESTS::
 
-            sage: M = TopManifold(2, 'M')
+            sage: M = Manifold(2, 'M', type='topological')
             sage: X.<x,y> = M.chart()
             sage: f = X.function(x+y)
             sage: g = X.function(x*y)
@@ -390,7 +390,7 @@ class CoordFunction(SageObject):
 
         TESTS::
 
-            sage: M = TopManifold(2, 'M')
+            sage: M = Manifold(2, 'M', type='topological')
             sage: X.<x,y> = M.chart()
             sage: f = X.function(x+y)
             sage: g = X.function(x*y)
@@ -417,7 +417,7 @@ class CoordFunction(SageObject):
         This method must be implemented by derived classes; it is not
         implemented here::
 
-            sage: M = TopManifold(2, 'M')
+            sage: M = Manifold(2, 'M', type='topological')
             sage: X.<x,y> = M.chart()
             sage: from sage.manifolds.coord_func import CoordFunction
             sage: f = CoordFunction(X)
@@ -438,7 +438,7 @@ class CoordFunction(SageObject):
         This method must be implemented by derived classes; it is not
         implemented here::
 
-            sage: M = TopManifold(2, 'M')
+            sage: M = Manifold(2, 'M', type='topological')
             sage: X.<x,y> = M.chart()
             sage: from sage.manifolds.coord_func import CoordFunction
             sage: f = CoordFunction(X)
@@ -459,7 +459,7 @@ class CoordFunction(SageObject):
         This method must be implemented by derived classes; it is not
         implemented here::
 
-            sage: M = TopManifold(2, 'M')
+            sage: M = Manifold(2, 'M', type='topological')
             sage: X.<x,y> = M.chart()
             sage: from sage.manifolds.coord_func import CoordFunction
             sage: f = CoordFunction(X)
@@ -488,7 +488,7 @@ class CoordFunction(SageObject):
         This method must be implemented by derived classes; it is not
         implemented here::
 
-            sage: M = TopManifold(2, 'M')
+            sage: M = Manifold(2, 'M', type='topological')
             sage: X.<x,y> = M.chart()
             sage: from sage.manifolds.coord_func import CoordFunction
             sage: f = CoordFunction(X)
@@ -521,7 +521,7 @@ class CoordFunction(SageObject):
         This method must be implemented by derived classes; it is not
         implemented here::
 
-            sage: M = TopManifold(2, 'M')
+            sage: M = Manifold(2, 'M', type='topological')
             sage: X.<x,y> = M.chart()
             sage: from sage.manifolds.coord_func import CoordFunction
             sage: f = CoordFunction(X)
@@ -542,7 +542,7 @@ class CoordFunction(SageObject):
         This method must be implemented by derived classes; it is not
         implemented here::
 
-            sage: M = TopManifold(2, 'M')
+            sage: M = Manifold(2, 'M', type='topological')
             sage: X.<x,y> = M.chart()
             sage: from sage.manifolds.coord_func import CoordFunction
             sage: f = CoordFunction(X)
@@ -567,7 +567,7 @@ class CoordFunction(SageObject):
         This method must be implemented by derived classes; it is not
         implemented here::
 
-            sage: M = TopManifold(2, 'M')
+            sage: M = Manifold(2, 'M', type='topological')
             sage: X.<x,y> = M.chart()
             sage: from sage.manifolds.coord_func import CoordFunction
             sage: f = CoordFunction(X)
@@ -601,7 +601,7 @@ class CoordFunction(SageObject):
         This method must be implemented by derived classes; it is not
         implemented here::
 
-            sage: M = TopManifold(2, 'M')
+            sage: M = Manifold(2, 'M', type='topological')
             sage: X.<x,y> = M.chart()
             sage: from sage.manifolds.coord_func import CoordFunction
             sage: f = CoordFunction(X)
@@ -630,12 +630,12 @@ class CoordFunction(SageObject):
         This method must be implemented by derived classes; it is not
         implemented here::
 
-            sage: M = TopManifold(2, 'M')
+            sage: M = Manifold(2, 'M', type='topological')
             sage: X.<x,y> = M.chart()
             sage: from sage.manifolds.coord_func import CoordFunction
             sage: f = CoordFunction(X)
             sage: g = CoordFunction(X)
-            sage: f.__eq__(g)
+            sage: f == g
             Traceback (most recent call last):
             ...
             NotImplementedError: CoordFunction.__eq__ not implemented
@@ -656,7 +656,7 @@ class CoordFunction(SageObject):
         This method must be implemented by derived classes; it is not
         implemented here::
 
-            sage: M = TopManifold(2, 'M')
+            sage: M = Manifold(2, 'M', type='topological')
             sage: X.<x,y> = M.chart()
             sage: from sage.manifolds.coord_func import CoordFunction
             sage: f = CoordFunction(X)
@@ -681,7 +681,7 @@ class CoordFunction(SageObject):
         This method must be implemented by derived classes; it is not
         implemented here::
 
-            sage: M = TopManifold(2, 'M')
+            sage: M = Manifold(2, 'M', type='topological')
             sage: X.<x,y> = M.chart()
             sage: from sage.manifolds.coord_func import CoordFunction
             sage: f = CoordFunction(X)
@@ -711,7 +711,7 @@ class CoordFunction(SageObject):
         This method must be implemented by derived classes; it is not
         implemented here::
 
-            sage: M = TopManifold(2, 'M')
+            sage: M = Manifold(2, 'M', type='topological')
             sage: X.<x,y> = M.chart()
             sage: from sage.manifolds.coord_func import CoordFunction
             sage: f = CoordFunction(X)
@@ -741,7 +741,7 @@ class CoordFunction(SageObject):
         This method must be implemented by derived classes; it is not
         implemented here::
 
-            sage: M = TopManifold(2, 'M')
+            sage: M = Manifold(2, 'M', type='topological')
             sage: X.<x,y> = M.chart()
             sage: from sage.manifolds.coord_func import CoordFunction
             sage: f = CoordFunction(X)
@@ -771,7 +771,7 @@ class CoordFunction(SageObject):
         This method must be implemented by derived classes; it is not
         implemented here::
 
-            sage: M = TopManifold(2, 'M')
+            sage: M = Manifold(2, 'M', type='topological')
             sage: X.<x,y> = M.chart()
             sage: from sage.manifolds.coord_func import CoordFunction
             sage: f = CoordFunction(X)
@@ -801,7 +801,7 @@ class CoordFunction(SageObject):
         This method must be implemented by derived classes; it is not
         implemented here::
 
-            sage: M = TopManifold(2, 'M')
+            sage: M = Manifold(2, 'M', type='topological')
             sage: X.<x,y> = M.chart()
             sage: from sage.manifolds.coord_func import CoordFunction
             sage: f = CoordFunction(X)
@@ -831,7 +831,7 @@ class CoordFunction(SageObject):
         This method must be implemented by derived classes; it is not
         implemented here::
 
-            sage: M = TopManifold(2, 'M')
+            sage: M = Manifold(2, 'M', type='topological')
             sage: X.<x,y> = M.chart()
             sage: from sage.manifolds.coord_func import CoordFunction
             sage: f = CoordFunction(X)
@@ -857,7 +857,7 @@ class CoordFunction(SageObject):
         This method must be implemented by derived classes; it is not
         implemented here::
 
-            sage: M = TopManifold(2, 'M')
+            sage: M = Manifold(2, 'M', type='topological')
             sage: X.<x,y> = M.chart()
             sage: from sage.manifolds.coord_func import CoordFunction
             sage: f = CoordFunction(X)
@@ -889,7 +889,7 @@ class CoordFunction(SageObject):
         This method must be implemented by derived classes; it is not
         implemented here::
 
-            sage: M = TopManifold(2, 'M')
+            sage: M = Manifold(2, 'M', type='topological')
             sage: X.<x,y> = M.chart()
             sage: from sage.manifolds.coord_func import CoordFunction
             sage: f = CoordFunction(X)
@@ -920,7 +920,7 @@ class CoordFunction(SageObject):
         This method must be implemented by derived classes; it is not
         implemented here::
 
-            sage: M = TopManifold(2, 'M')
+            sage: M = Manifold(2, 'M', type='topological')
             sage: X.<x,y> = M.chart()
             sage: from sage.manifolds.coord_func import CoordFunction
             sage: f = CoordFunction(X)
@@ -947,7 +947,7 @@ class CoordFunction(SageObject):
         This method must be implemented by derived classes; it is not
         implemented here::
 
-            sage: M = TopManifold(2, 'M')
+            sage: M = Manifold(2, 'M', type='topological')
             sage: X.<x,y> = M.chart()
             sage: from sage.manifolds.coord_func import CoordFunction
             sage: f = CoordFunction(X)
@@ -973,7 +973,7 @@ class CoordFunction(SageObject):
         This method must be implemented by derived classes; it is not
         implemented here::
 
-            sage: M = TopManifold(2, 'M')
+            sage: M = Manifold(2, 'M', type='topological')
             sage: X.<x,y> = M.chart()
             sage: from sage.manifolds.coord_func import CoordFunction
             sage: f = CoordFunction(X)
@@ -999,7 +999,7 @@ class CoordFunction(SageObject):
         This method must be implemented by derived classes; it is not
         implemented here::
 
-            sage: M = TopManifold(2, 'M')
+            sage: M = Manifold(2, 'M', type='topological')
             sage: X.<x,y> = M.chart()
             sage: from sage.manifolds.coord_func import CoordFunction
             sage: f = CoordFunction(X)
@@ -1025,7 +1025,7 @@ class CoordFunction(SageObject):
         This method must be implemented by derived classes; it is not
         implemented here::
 
-            sage: M = TopManifold(2, 'M')
+            sage: M = Manifold(2, 'M', type='topological')
             sage: X.<x,y> = M.chart()
             sage: from sage.manifolds.coord_func import CoordFunction
             sage: f = CoordFunction(X)
@@ -1051,7 +1051,7 @@ class CoordFunction(SageObject):
         This method must be implemented by derived classes; it is not
         implemented here::
 
-            sage: M = TopManifold(2, 'M')
+            sage: M = Manifold(2, 'M', type='topological')
             sage: X.<x,y> = M.chart()
             sage: from sage.manifolds.coord_func import CoordFunction
             sage: f = CoordFunction(X)
@@ -1077,7 +1077,7 @@ class CoordFunction(SageObject):
         This method must be implemented by derived classes; it is not
         implemented here::
 
-            sage: M = TopManifold(2, 'M')
+            sage: M = Manifold(2, 'M', type='topological')
             sage: X.<x,y> = M.chart()
             sage: from sage.manifolds.coord_func import CoordFunction
             sage: f = CoordFunction(X)
@@ -1103,7 +1103,7 @@ class CoordFunction(SageObject):
         This method must be implemented by derived classes; it is not
         implemented here::
 
-            sage: M = TopManifold(2, 'M')
+            sage: M = Manifold(2, 'M', type='topological')
             sage: X.<x,y> = M.chart()
             sage: from sage.manifolds.coord_func import CoordFunction
             sage: f = CoordFunction(X)
@@ -1129,7 +1129,7 @@ class CoordFunction(SageObject):
         This method must be implemented by derived classes; it is not
         implemented here::
 
-            sage: M = TopManifold(2, 'M')
+            sage: M = Manifold(2, 'M', type='topological')
             sage: X.<x,y> = M.chart()
             sage: from sage.manifolds.coord_func import CoordFunction
             sage: f = CoordFunction(X)
@@ -1155,7 +1155,7 @@ class CoordFunction(SageObject):
         This method must be implemented by derived classes; it is not
         implemented here::
 
-            sage: M = TopManifold(2, 'M')
+            sage: M = Manifold(2, 'M', type='topological')
             sage: X.<x,y> = M.chart()
             sage: from sage.manifolds.coord_func import CoordFunction
             sage: f = CoordFunction(X)
@@ -1181,7 +1181,7 @@ class CoordFunction(SageObject):
         This method must be implemented by derived classes; it is not
         implemented here::
 
-            sage: M = TopManifold(2, 'M')
+            sage: M = Manifold(2, 'M', type='topological')
             sage: X.<x,y> = M.chart()
             sage: from sage.manifolds.coord_func import CoordFunction
             sage: f = CoordFunction(X)
@@ -1207,7 +1207,7 @@ class CoordFunction(SageObject):
         This method must be implemented by derived classes; it is not
         implemented here::
 
-            sage: M = TopManifold(2, 'M')
+            sage: M = Manifold(2, 'M', type='topological')
             sage: X.<x,y> = M.chart()
             sage: from sage.manifolds.coord_func import CoordFunction
             sage: f = CoordFunction(X)
@@ -1233,7 +1233,7 @@ class CoordFunction(SageObject):
         This method must be implemented by derived classes; it is not
         implemented here::
 
-            sage: M = TopManifold(2, 'M')
+            sage: M = Manifold(2, 'M', type='topological')
             sage: X.<x,y> = M.chart()
             sage: from sage.manifolds.coord_func import CoordFunction
             sage: f = CoordFunction(X)
@@ -1259,7 +1259,7 @@ class CoordFunction(SageObject):
         This method must be implemented by derived classes; it is not
         implemented here::
 
-            sage: M = TopManifold(2, 'M')
+            sage: M = Manifold(2, 'M', type='topological')
             sage: X.<x,y> = M.chart()
             sage: from sage.manifolds.coord_func import CoordFunction
             sage: f = CoordFunction(X)
@@ -1309,7 +1309,7 @@ class MultiCoordFunction(SageObject):
 
     A function `f: V\subset \RR^2 \longrightarrow \RR^3`::
 
-        sage: M = TopManifold(2, 'M')
+        sage: M = Manifold(2, 'M', type='topological')
         sage: X.<x,y> = M.chart()
         sage: f = X.multifunction(x-y, x*y, cos(x)*exp(y)); f
         Coordinate functions (x - y, x*y, cos(x)*e^y) on the Chart (M, (x, y))
@@ -1373,7 +1373,7 @@ class MultiCoordFunction(SageObject):
 
         TESTS::
 
-            sage: M = TopManifold(3, 'M')
+            sage: M = Manifold(3, 'M', type='topological')
             sage: X.<x,y,z> = M.chart()
             sage: f = X.multifunction(x+y+z, x*y*z); f
             Coordinate functions (x + y + z, x*y*z) on the Chart (M, (x, y, z))
@@ -1397,7 +1397,7 @@ class MultiCoordFunction(SageObject):
 
         TESTS::
 
-            sage: M = TopManifold(2, 'M')
+            sage: M = Manifold(2, 'M', type='topological')
             sage: X.<x,y> = M.chart()
             sage: f = X.multifunction(x-y, x*y, cos(x)*exp(y))
             sage: f._repr_()
@@ -1415,7 +1415,7 @@ class MultiCoordFunction(SageObject):
 
         TESTS::
 
-            sage: M = TopManifold(2, 'M')
+            sage: M = Manifold(2, 'M', type='topological')
             sage: X.<x,y> = M.chart()
             sage: f = X.multifunction(x-y, x*y, cos(x)*exp(y))
             sage: f._latex_()
@@ -1441,7 +1441,7 @@ class MultiCoordFunction(SageObject):
 
         EXAMPLE::
 
-            sage: M = TopManifold(2, 'M')
+            sage: M = Manifold(2, 'M', type='topological')
             sage: X.<x,y> = M.chart()
             sage: f = X.multifunction(x-y, x*y, cos(x)*exp(y))
             sage: f.expr()
@@ -1467,7 +1467,7 @@ class MultiCoordFunction(SageObject):
 
         EXAMPLE::
 
-            sage: M = TopManifold(2, 'M')
+            sage: M = Manifold(2, 'M', type='topological')
             sage: X.<x,y> = M.chart()
             sage: f = X.multifunction(x-y, x*y, cos(x)*exp(y))
             sage: f.chart()
@@ -1494,7 +1494,7 @@ class MultiCoordFunction(SageObject):
 
         TESTS::
 
-            sage: M = TopManifold(2, 'M')
+            sage: M = Manifold(2, 'M', type='topological')
             sage: X.<x,y> = M.chart()
             sage: f = X.multifunction(x-y, x*y, cos(x*y))
             sage: f == X.multifunction(x-y, x*y)
@@ -1508,6 +1508,8 @@ class MultiCoordFunction(SageObject):
             False
 
         """
+        if other is self:
+            return True
         if not isinstance(other, MultiCoordFunction):
             return False
         if other._chart != self._chart:
@@ -1534,7 +1536,7 @@ class MultiCoordFunction(SageObject):
 
         TESTS::
 
-            sage: M = TopManifold(2, 'M')
+            sage: M = Manifold(2, 'M', type='topological')
             sage: X.<x,y> = M.chart()
             sage: f = X.multifunction(x-y, x*y, cos(x*y))
             sage: f != X.multifunction(x-y, x*y)
@@ -1545,7 +1547,35 @@ class MultiCoordFunction(SageObject):
             False
 
         """
-        return not self.__eq__(other)
+        return not (self == other)
+
+    def _test_pickling(self, **options):
+        r"""
+        Test pickling.
+
+        This test is weaker than
+        :meth:`sage.structure.sage_object.SageObject._test_pickling` in that
+        it does not require ``loads(dumps(self)) == self``.
+        It however checks that ``loads(dumps(self))`` proceeds without any
+        error and results in an object that is a multi-coordinate function
+        of the same type as ``self`` and with the same coordinate expressions.
+
+        TEST::
+
+            sage: M = Manifold(2, 'M', type='topological')
+            sage: X.<x,y> = M.chart()
+            sage: f = X.multifunction(x-y, x*y, cos(x*y))
+            sage: f._test_pickling()
+
+        """
+        tester = self._tester(**options)
+        from sage.misc.all import loads, dumps
+        bckp = loads(dumps(self))
+        tester.assertEqual(type(bckp), type(self))
+        tester.assertEqual(bckp._nf, self._nf)
+        for i in range(self._nf):
+            tester.assertEqual(bckp._functions[i]._express,
+                               self._functions[i]._express)
 
     def __getitem__(self, index):
         r"""
@@ -1561,7 +1591,7 @@ class MultiCoordFunction(SageObject):
 
         TESTS::
 
-            sage: M = TopManifold(2, 'M')
+            sage: M = Manifold(2, 'M', type='topological')
             sage: X.<x,y> = M.chart()
             sage: f = X.multifunction(x-y, x*y, cos(x*y))
             sage: f.__getitem__(0)
@@ -1594,7 +1624,7 @@ class MultiCoordFunction(SageObject):
 
         TESTS::
 
-            sage: M = TopManifold(2, 'M')
+            sage: M = Manifold(2, 'M', type='topological')
             sage: X.<x,y> = M.chart()
             sage: f = X.multifunction(x-y, x*y, cos(x*y))
             sage: f.__call__(2,3)
@@ -1628,7 +1658,7 @@ class MultiCoordFunction(SageObject):
 
         Jacobian of a set of 3 functions of 2 coordinates::
 
-            sage: M = TopManifold(2, 'M')
+            sage: M = Manifold(2, 'M', type='topological')
             sage: X.<x,y> = M.chart()
             sage: f = X.multifunction(x-y, x*y, y^3*cos(x))
             sage: f.jacobian()
@@ -1648,7 +1678,7 @@ class MultiCoordFunction(SageObject):
 
         Test with ``start_index=1``::
 
-            sage: M = TopManifold(2, 'M', start_index=1)
+            sage: M = Manifold(2, 'M', type='topological', start_index=1)
             sage: X.<x,y> = M.chart()
             sage: f = X.multifunction(x-y, x*y, y^3*cos(x))
             sage: f.jacobian()
@@ -1679,8 +1709,7 @@ class MultiCoordFunction(SageObject):
 
         Jacobian determinant of a set of 2 functions of 2 coordinates::
 
-            sage: M = TopManifold(3, 'M')
-            sage: M = TopManifold(2, 'M')
+            sage: M = Manifold(2, 'M', type='topological')
             sage: X.<x,y> = M.chart()
             sage: f = X.multifunction(x-y, x*y)
             sage: f.jacobian_det()
@@ -1710,7 +1739,7 @@ class MultiCoordFunction(SageObject):
 
         Jacobian determinant of a set of 3 functions of 3 coordinates::
 
-            sage: M = TopManifold(3, 'M')
+            sage: M = Manifold(3, 'M', type='topological')
             sage: X.<x,y,z> = M.chart()
             sage: f = X.multifunction(x*y+z^2, z^2*x+y^2*z, (x*y*z)^3)
             sage: f.jacobian_det().display()

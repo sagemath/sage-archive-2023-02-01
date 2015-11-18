@@ -246,7 +246,7 @@ class Cube(SageObject):
             sage: C[1]
             (5, 5)
         """
-        return self.__tuple.__getitem__(n)
+        return self.__tuple[n]
 
     def __iter__(self):
         """
@@ -259,7 +259,7 @@ class Cube(SageObject):
             sage: [x[0] for x in C]
             [1, 5, 6, -1]
         """
-        return self.__tuple.__iter__()
+        return iter(self.__tuple)
 
     def __add__(self, other):
         """
@@ -284,7 +284,7 @@ class Cube(SageObject):
             sage: D + C * C
             [4,4] x [0,1] x [1,2] x [3,3] x [1,2] x [3,3]
         """
-        return Cube(self.__tuple.__add__(other.__tuple))
+        return Cube(self.__tuple + other.__tuple)
 
     # the __add__ operation actually produces the product of the two cubes
     __mul__ = __add__

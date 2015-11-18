@@ -500,7 +500,7 @@ class ContinuedFraction_base(SageObject):
         """
         if self.quotient(0) >= 0:
             return self
-        return self.__neg__()
+        return -self
 
     def __cmp__(self, other):
         """
@@ -871,7 +871,7 @@ class ContinuedFraction_base(SageObject):
             7
         """
         if isinstance(n, slice):
-            quots = self.quotients().__getitem__(n)
+            quots = self.quotients()[n]
             if n.stop is not None:
                 quots = list(quots)
             return continued_fraction(quots)
@@ -1510,7 +1510,7 @@ class ContinuedFraction_periodic(ContinuedFraction_base):
             raise ZeroDivisionError("rational division by zero")
         if self._x1:
             if self._x1[0] < 0:
-                return -(-self).__invert__()
+                return -~-self
             if self._x1[0] == 0:
                 return self.__class__(self._x1[1:], self._x2)
         return self.__class__((0,) + self._x1, self._x2)

@@ -302,7 +302,7 @@ class NumberFieldFractionalIdeal_rel(NumberFieldFractionalIdeal):
         """
         if self.is_zero():
             raise ZeroDivisionError
-        return self._from_absolute_ideal( self.absolute_ideal().__invert__() )
+        return self._from_absolute_ideal(~self.absolute_ideal())
 
     def is_principal(self, proof=None):
         """

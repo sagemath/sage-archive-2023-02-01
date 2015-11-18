@@ -462,7 +462,7 @@ class GraphClass(SageObject, CachedRepresentation):
             sage: graph_classes.Chordal <= graph_classes.Tree
             Unknown
         """
-        return other.__ge__(self)
+        return other >= self
 
     def __ge__(self, other):
         r"""
@@ -489,7 +489,7 @@ class GraphClass(SageObject, CachedRepresentation):
             sage: graph_classes.Chordal == graph_classes.Tree
             Unknown
         """
-        return self.__ge__(other) and other.__ge__(self)
+        return self >= other and other >= self
 
     def __lt__(self, other):
         r"""

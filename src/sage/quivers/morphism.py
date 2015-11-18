@@ -304,7 +304,7 @@ class QuiverRepHom(CallMorphism):
             sage: S.hom(M) # indirect doctest
             Homomorphism of representations of Multi-digraph on 3 vertices
         """
-        return "Homomorphism of representations of " + self._quiver.__repr__()
+        return "Homomorphism of representations of " + repr(self._quiver)
 
     def _call_(self, x):
         """

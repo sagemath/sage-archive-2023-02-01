@@ -1556,7 +1556,7 @@ class FreeModuleTensor(ModuleElement):
             False
 
         """
-        return not self.__eq__(other)
+        return not self == other
 
     def __pos__(self):
         r"""

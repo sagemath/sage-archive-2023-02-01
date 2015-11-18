@@ -3557,7 +3557,7 @@ class AlgebraicNumber_base(sage.structure.element.FieldElement):
             else:
                 return []
 
-        root = self.__pow__(~ZZ(2))
+        root = self ** ~ZZ(2)
 
         if all:
             return [root, -root]
@@ -3582,7 +3582,7 @@ class AlgebraicNumber_base(sage.structure.element.FieldElement):
             sage: QQbar.zeta(12).nth_root(15)
             0.9993908270190957? + 0.03489949670250097?*I
         """
-        return self.__pow__(~ZZ(n))
+        return self ** ~ZZ(n)
 
     def as_number_field_element(self, minimal=False):
         r"""
@@ -4141,10 +4141,10 @@ class AlgebraicNumber(AlgebraicNumber_base):
                 return False
         if self is other: return True
         if other._descr.is_rational() and other._descr.rational_value() == 0:
-            return not self.__nonzero__()
+            return not self
         if self._descr.is_rational() and self._descr.rational_value() == 0:
-            return not other.__nonzero__()
-        return not self._sub_(other).__nonzero__()
+            return not other
+        return not self._sub_(other)
 
     def __ne__(self, other):
         r"""
@@ -4161,7 +4161,7 @@ class AlgebraicNumber(AlgebraicNumber_base):
             sage: QQbar(2) != GF(7)(2)
             True
         """
-        return not self.__eq__(other)
+        return not self == other
 
     def __nonzero__(self):
         """
@@ -4831,7 +4831,7 @@ class AlgebraicReal(AlgebraicNumber_base):
             return AlgebraicNumber(0)
         if d % 2 == 0:
             if self.sign() < 0:
-                return QQbar(self).__pow__(e)
+                return QQbar(self) ** e
         pow_n = self**n
         poly = AAPoly.gen()**d - pow_n
         range = pow_n.interval_fast(RIF)

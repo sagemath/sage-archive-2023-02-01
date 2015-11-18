@@ -819,7 +819,7 @@ class Words_all(InfiniteAbstractCombinatorialClass):
             True
         """
         if isinstance(other, Words_all):
-            return not self.__eq__(other)
+            return not self == other
         else:
             return NotImplemented
 

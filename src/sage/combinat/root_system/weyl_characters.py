@@ -105,7 +105,7 @@ class WeylCharacterRing(CombinatorialFreeModule):
             if ct.is_atomic():
                 prefix = ct[0]+str(ct[1])
             else:
-                prefix = ct.__repr__()
+                prefix = repr(ct)
         return super(WeylCharacterRing, cls).__classcall__(cls, ct, base_ring=base_ring, prefix=prefix, style=style)
 
     def __init__(self, ct, base_ring=ZZ, prefix=None, style="lattice"):
@@ -125,7 +125,7 @@ class WeylCharacterRing(CombinatorialFreeModule):
             if ct.is_atomic():
                 prefix = ct[0]+str(ct[1])
             else:
-                prefix = ct.__repr__()
+                prefix = repr(ct)
         self._prefix = prefix
         self._style = style
         if style == "coroots":
@@ -1122,7 +1122,7 @@ class WeylCharacterRing(CombinatorialFreeModule):
             elif n == 1:
                 return self
             else:
-                return self*self.__pow__(n-1)
+                return self * self ** (n-1)
 
         def is_irreducible(self):
             """

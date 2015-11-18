@@ -1581,7 +1581,7 @@ class GapElement(GapElement_generic):
             P = self._check_valid()
             return P.get(self.name(), use_file=True)
         else:
-            return self.__repr__()
+            return repr(self)
 
     def _latex_(self):
         r"""

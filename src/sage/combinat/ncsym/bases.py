@@ -110,8 +110,8 @@ class NCSymOrNCSymDualBases(Category_realization_of_parent):
             str = "{} in the {} basis".format(self.realization_of(), self._realization_name())
             if hasattr(self,'_q'):
                 str += " with parameter q"
-                if self._q.__repr__()!='q':
-                    str += "="+self._q.__repr__()
+                if repr(self._q)!='q':
+                    str += "="+repr(self._q)
             return str
 
         def __getitem__(self, i):

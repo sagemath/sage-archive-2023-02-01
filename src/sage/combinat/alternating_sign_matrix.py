@@ -159,7 +159,7 @@ class AlternatingSignMatrix(Element):
             sage: M != A([[1, 0, 0],[0, 0, 1],[0, 1, 0]])
             True
         """
-        return not self.__eq__(other)
+        return not self == other
 
     def __le__(self, other):
         """

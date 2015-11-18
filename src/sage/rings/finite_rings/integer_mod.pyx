@@ -1491,7 +1491,7 @@ cdef class IntegerMod_abstract(FiniteRingElement):
             45154201192451
         """
         n = self.__modulus.sageInteger
-        return sage.rings.integer.Integer(n.__floordiv__(self.lift().gcd(n)))
+        return sage.rings.integer.Integer(n // self.lift().gcd(n))
 
     def is_primitive_root(self):
         """

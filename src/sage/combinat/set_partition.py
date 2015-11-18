@@ -286,7 +286,7 @@ class SetPartition(ClonableArray):
             sage: A <= A
             True
         """
-        return self.__eq__(y) or self.__lt__(y)
+        return self == y or self < y
 
     def __ge__(self, y):
         """
@@ -312,7 +312,7 @@ class SetPartition(ClonableArray):
             sage: B >= B
             True
         """
-        return self.__eq__(y) or self.__gt__(y)
+        return self == y or self > y
 
     def _cmp_(self, y):
         """

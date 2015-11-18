@@ -4982,26 +4982,24 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
             sage: K.lyapunov_rank() >= K.lattice_dim()
             True
         """
-        beta = 0
+        # The solid_restriction() and strict_quotient() methods
+        # already check if the cone is solid or strictly convex, so we
+        # can't save any additional time here by seeing if those
+        # methods would be no-ops.
+        #
+        # The call to solid_restriction() restricts K to its own span,
+        # resulting in the cone K_S from the paper. The call to
+        # strict_quotient() then restricts K_S to the span of its dual.
+        K_SP = self.solid_restriction().strict_quotient()
+
+        # K_SP is proper, so we have to compute its Lyapunov rank the
+        # hard way -- by counting a Lyapunov-like basis for it.
         m = self.dim()
         n = self.lattice_dim()
         l = self.lineality()
-        K = self
 
-        # The call to solid_restriction() restricts K to its
-        # own span, resulting in the cone K_S from the paper.
-        K = self.solid_restriction()
-        beta += (n - m)*n
-
-        # Now The call to strict_quotient() restricts K = K_S to the
-        # span of its dual, giving the cone K_{SP} from the paper.
-        K = K.strict_quotient()
-        beta += l*m
-
-        # K is proper here, so we have to compute its Lyapunov rank the
-        # hard way -- by counting a Lyapunov-like basis for it.
-        beta += len(K.lyapunov_like_basis())
-        return beta
+        # cf. Theorem 2
+        return len(K_SP.lyapunov_like_basis()) + l*m + (n - m)*n
 
 
 def random_cone(lattice=None, min_ambient_dim=0, max_ambient_dim=None,

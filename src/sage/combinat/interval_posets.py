@@ -550,6 +550,17 @@ class TamariIntervalPoset(Element):
         """
         return self._poset
 
+    def __hash__(self):
+        """
+        Return the hash of ``self``.
+
+        EXAMPLES::
+
+            sage: hash(TamariIntervalPosets(4)[0])
+            3527539
+        """
+        return hash(self._cover_relations)
+
     @cached_method
     def increasing_cover_relations(self):
         r"""

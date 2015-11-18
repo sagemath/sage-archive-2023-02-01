@@ -3275,6 +3275,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
         """
         return Polyhedron(rays=self.rays(), vertices=[self.lattice()(0)])
 
+    @cached_method
     def strict_quotient(self):
         r"""
         Return the quotient of ``self`` by the linear subspace.
@@ -3333,11 +3334,11 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
 
             sage: set_random_seed()
             sage: K = random_cone(max_ambient_dim=6, strictly_convex=True)
-            sage: K.strict_quotient() == K
+            sage: K.strict_quotient() is K
             True
 
         The complement of our linear subspace has the same dimension as
-        our dual, so the resulting quotient cannot live in a larger space
+        our dual, so the strict quotient cannot have a larger dimension
         than our dual::
 
             sage: set_random_seed()
@@ -3351,30 +3352,28 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
             sage: K = random_cone(max_ambient_dim=6)
             sage: K1 = K.strict_quotient()
             sage: K2 = K1.strict_quotient()
-            sage: K1 == K2
+            sage: K1 is K2
             True
         """
-        if "_strict_quotient" not in self.__dict__:
-            if self.is_strictly_convex():
-                self._strict_quotient = self
-            else:
-                L = self.lattice()
-                Q = L.base_extend(QQ) / self.linear_subspace()
-                # Maybe we can improve this one if we create something special
-                # for sublattices. But it seems to be the most natural choice
-                # for names. If many subcones land in the same lattice -
-                # that's just how it goes.
-                if is_ToricLattice(L):
-                    S = ToricLattice(Q.dimension(), L._name, L._dual_name,
-                                     L._latex_name, L._latex_dual_name)
-                else:
-                    S = ZZ**Q.dimension()
-                rays = [Q(ray) for ray in self.rays() if not Q(ray).is_zero()]
-                quotient = Cone(rays, S, check=False)
-                quotient._is_strictly_convex = True
-                self._strict_quotient = quotient
-        return self._strict_quotient
+        if self.is_strictly_convex():
+            return self
+        L = self.lattice()
+        Q = L.base_extend(QQ) / self.linear_subspace()
+        # Maybe we can improve this one if we create something special
+        # for sublattices. But it seems to be the most natural choice
+        # for names. If many subcones land in the same lattice -
+        # that's just how it goes.
+        if is_ToricLattice(L):
+            S = ToricLattice(Q.dimension(), L._name, L._dual_name,
+                             L._latex_name, L._latex_dual_name)
+        else:
+            S = ZZ**Q.dimension()
+        rays = [Q(ray) for ray in self.rays() if not Q(ray).is_zero()]
+        quotient = Cone(rays, S, check=False)
+        quotient._is_strictly_convex = True
+        return quotient
 
+    @cached_method
     def solid_restriction(self):
         r"""
         Return a solid representation of this cone in terms of a basis
@@ -3425,14 +3424,11 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
             sage: K.solid_restriction()
             0-d cone in 0-d lattice N
 
-        Unlike with :meth:`strict_quotient`, the solid restriction of a
-        solid cone may not equal the original cone::
+        The solid restriction of a solid cone is itself::
 
             sage: K = Cone([(1,1),(1,2)])
-            sage: K.solid_restriction().rays()
-            N(0, 1),
-            N(1, 0)
-            in 2-d lattice N
+            sage: K.solid_restriction() is K
+            True
 
         TESTS:
 
@@ -3482,42 +3478,9 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
             sage: K = random_cone(max_ambient_dim=6)
             sage: len(K.solid_restriction().facets()) == len(K.facets())
             True
-
-        The solid restriction of a solid cone should have the same
-        ambient dimension as the original::
-
-            sage: set_random_seed()
-            sage: K = random_cone(max_ambient_dim=8, solid=True)
-            sage: K.lattice_dim() == K.solid_restriction().lattice_dim()
-            True
-
-        The solid restriction operation on a **solid cone** is a linear
-        isomorphism (change of basis) that establishes a bijection
-        between discrete complementarity sets::
-
-            sage: set_random_seed()
-            sage: K = random_cone(max_ambient_dim=8, solid=True)
-            sage: K_S = K.solid_restriction()
-            sage: dcs1 = K.discrete_complementarity_set()
-            sage: dcs2 = K_S.discrete_complementarity_set()
-            sage: len(dcs1) == len(dcs2)
-            True
-
-        The solid restriction operation on a **solid cone** is a linear
-        isomorphism (change of basis) that leaves invariant the Lyapunov
-        rank (the length of a Lyapunov-like basis)::
-
-            sage: set_random_seed()
-            sage: K = random_cone(max_ambient_dim=8, solid=True)
-            sage: LL1 = K.lyapunov_like_basis()
-            sage: LL2 = K.solid_restriction().lyapunov_like_basis()
-            sage: len(LL1) == len(LL2)
-            True
         """
-        if "_solid_restriction" in self.__dict__:
-            # If the result is cached, just return it.
-            return self._solid_restriction
-
+        if self.is_solid():
+            return self
         # Construct a NEW lattice ``S`` (of the appropriate dimension)
         # to use. This works around the fact that it's difficult to
         # work with sublattice objects. There are naming issues here
@@ -3532,11 +3495,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
         # lie outside of the span of our cone. And they don't, because
         # they generate the cone.
         rays = [ S(subL.coordinates(ray)) for ray in self ]
-        restriction = Cone(rays, lattice=S, check=False)
-
-        # Cache and return the result.
-        self._solid_restriction = restriction
-        return restriction
+        return Cone(rays, lattice=S, check=False)
 
     def _split_ambient_lattice(self):
         r"""
@@ -4815,7 +4774,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
         Compute the Lyapunov rank of this cone.
 
         The Lyapunov rank of a cone is the dimension of the space of its
-        Lyapunov-like transformations---that is, the length of a
+        Lyapunov-like transformations --- that is, the length of a
         :meth:`lyapunov_like_basis`. Equivalently, the Lyapunov rank is
         the dimension of the Lie algebra of the automorphism group of
         the cone.
@@ -5029,19 +4988,13 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
         l = self.lineality()
         K = self
 
-        # The strict_quotient() method checks if the cone is already
-        # strictly convex, but the solid_restriction() method does
-        # not. To save a little time, we see if this cone is already
-        # solid and avoid the restriction if it is.
-        if m < n:
-                # The call to solid_restriction() restricts K to its
-                # own span, resulting in the cone K_S from the paper.
-                K = self.solid_restriction()
-                beta += (n - m)*n
+        # The call to solid_restriction() restricts K to its
+        # own span, resulting in the cone K_S from the paper.
+        K = self.solid_restriction()
+        beta += (n - m)*n
 
         # Now The call to strict_quotient() restricts K = K_S to the
         # span of its dual, giving the cone K_{SP} from the paper.
-        # This will do nothing if K is already strictly convex.
         K = K.strict_quotient()
         beta += l*m
 

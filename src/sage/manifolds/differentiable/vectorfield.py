@@ -110,7 +110,7 @@ class VectorField(TensorField):
 
     A vector field on a non-parallelizable 2-dimensional manifold::
 
-        sage: M = DiffManifold(2, 'M')
+        sage: M = Manifold(2, 'M')
         sage: U = M.open_subset('U') ; V = M.open_subset('V')
         sage: M.declare_union(U,V)   # M is the union of U and V
         sage: c_xy.<x,y> = U.chart() ; c_tu.<t,u> = V.chart()
@@ -202,8 +202,7 @@ class VectorField(TensorField):
         Construction via ``parent.element_class``, and not via a direct call
         to ``VectorField``, to fit with the category framework::
 
-            sage: DiffManifold._clear_cache_() # for doctests only
-            sage: M = DiffManifold(2, 'M') # the 2-dimensional sphere S^2
+            sage: M = Manifold(2, 'M') # the 2-dimensional sphere S^2
             sage: U = M.open_subset('U') # complement of the North pole
             sage: c_xy.<x,y> = U.chart() # stereographic coordinates from the North pole
             sage: V = M.open_subset('V') # complement of the South pole
@@ -216,7 +215,7 @@ class VectorField(TensorField):
             sage: a[c_uv.frame(),:] = [-u, -v]
             sage: TestSuite(a).run(skip='_test_pickling')
 
-        Construction with ``DiffManifold.vector_field``::
+        Construction with ``DifferentiableManifold.vector_field``::
 
             sage: a1 = M.vector_field(name='a'); a1
             Vector field a on the 2-dimensional differentiable manifold M
@@ -241,7 +240,7 @@ class VectorField(TensorField):
 
         TESTS::
 
-            sage: M = DiffManifold(2, 'M')
+            sage: M = Manifold(2, 'M')
             sage: v = M.vector_field(name='v')
             sage: v._repr_()
             'Vector field v on the 2-dimensional differentiable manifold M'
@@ -262,7 +261,7 @@ class VectorField(TensorField):
 
         TEST::
 
-            sage: M = DiffManifold(2, 'M')
+            sage: M = Manifold(2, 'M')
             sage: v = M.vector_field(name='v')
             sage: u = v._new_instance(); u
             Vector field on the 2-dimensional differentiable manifold M
@@ -278,7 +277,7 @@ class VectorField(TensorField):
 
         TEST::
 
-            sage: M = DiffManifold(2, 'M')
+            sage: M = Manifold(2, 'M')
             sage: v = M.vector_field(name='v')
             sage: v._init_dependencies()
 
@@ -291,7 +290,7 @@ class VectorField(TensorField):
 
         TEST::
 
-            sage: M = DiffManifold(2, 'M')
+            sage: M = Manifold(2, 'M')
             sage: v = M.vector_field(name='v')
             sage: v._del_dependencies()
 
@@ -316,7 +315,7 @@ class VectorField(TensorField):
 
         TESTS::
 
-            sage: M = DiffManifold(2, 'M') # the 2-dimensional sphere S^2
+            sage: M = Manifold(2, 'M') # the 2-dimensional sphere S^2
             sage: U = M.open_subset('U') # complement of the North pole
             sage: c_xy.<x,y> = U.chart() # stereographic coordinates from the North pole
             sage: V = M.open_subset('V') # complement of the South pole
@@ -424,7 +423,7 @@ class VectorFieldParal(FiniteRankFreeModuleElement, TensorFieldParal,
 
     A vector field on a parallelizable 3-dimensional manifold::
 
-        sage: M = DiffManifold(3, 'M')
+        sage: M = Manifold(3, 'M')
         sage: c_xyz.<x,y,z> = M.chart()
         sage: v = M.vector_field('V') ; v
         Vector field V on the 3-dimensional differentiable manifold M
@@ -489,8 +488,8 @@ class VectorFieldParal(FiniteRankFreeModuleElement, TensorFieldParal,
 
         sage: f = M.vector_frame('f')
         sage: for i in range(3):
-        ...       v.set_comp(f)[i] = (i+1)**3
-        ...
+        ....:     v.set_comp(f)[i] = (i+1)**3
+        ....:
         sage: v.comp(f)[2]
         27
         sage: v[f, 2]  # equivalent to above
@@ -500,7 +499,7 @@ class VectorFieldParal(FiniteRankFreeModuleElement, TensorFieldParal,
 
     The range of the indices depends on the convention set for the manifold::
 
-        sage: M = DiffManifold(3, 'M', start_index=1)
+        sage: M = Manifold(3, 'M', start_index=1)
         sage: c_xyz.<x,y,z> = M.chart()
         sage: e = M.vector_frame('e') ; M.set_default_frame(e)
         sage: v = M.vector_field('V')
@@ -512,8 +511,7 @@ class VectorFieldParal(FiniteRankFreeModuleElement, TensorFieldParal,
 
     A vector field acts on scalar fields (derivation along the vector field)::
 
-        sage: DiffManifold._clear_cache_() # for doctests only
-        sage: M = DiffManifold(2, 'M')
+        sage: M = Manifold(2, 'M')
         sage: c_cart.<x,y> = M.chart()
         sage: f = M.scalar_field(x*y^2, name='f')
         sage: v = M.vector_field('v')
@@ -530,7 +528,7 @@ class VectorFieldParal(FiniteRankFreeModuleElement, TensorFieldParal,
     Example of a vector field associated with a non-trivial map `\Phi`:
     vector field along a curve in `M`::
 
-        sage: R = DiffManifold(1, 'R')  # R as a 1-dimensional manifold
+        sage: R = Manifold(1, 'R')  # R as a 1-dimensional manifold
         sage: T.<t> = R.chart()  # canonical chart on R
         sage: Phi = R.diff_map(M, [cos(t), sin(t)], name='Phi') ; Phi
         Differentiable map Phi from the 1-dimensional differentiable manifold R
@@ -559,8 +557,7 @@ class VectorFieldParal(FiniteRankFreeModuleElement, TensorFieldParal,
         Construction via ``parent.element_class``, and not via a direct call
         to ``VectorFieldParal``, to fit with the category framework::
 
-            sage: DiffManifold._clear_cache_() # for doctests only
-            sage: M = DiffManifold(2, 'M')
+            sage: M = Manifold(2, 'M')
             sage: X.<x,y> = M.chart()  # makes M parallelizable
             sage: XM = M.vector_field_module()  # the parent
             sage: v = XM.element_class(XM, name='v'); v
@@ -570,7 +567,7 @@ class VectorFieldParal(FiniteRankFreeModuleElement, TensorFieldParal,
             v = -y d/dx + x d/dy
             sage: TestSuite(v).run()
 
-        Construction via ``DiffManifold.vector_field``::
+        Construction via ``DifferentiableManifold.vector_field``::
 
             sage: u = M.vector_field(name='u'); u
             Vector field u on the 2-dimensional differentiable manifold M
@@ -601,7 +598,7 @@ class VectorFieldParal(FiniteRankFreeModuleElement, TensorFieldParal,
 
         TESTS::
 
-            sage: M = DiffManifold(2, 'M')
+            sage: M = Manifold(2, 'M')
             sage: X.<x,y> = M.chart()  # makes M parallelizable
             sage: v = M.vector_field(name='v')
             sage: v._repr_()
@@ -620,7 +617,7 @@ class VectorFieldParal(FiniteRankFreeModuleElement, TensorFieldParal,
 
         TEST::
 
-            sage: M = DiffManifold(2, 'M')
+            sage: M = Manifold(2, 'M')
             sage: X.<x,y> = M.chart()  # makes M parallelizable
             sage: v = M.vector_field(name='v')
             sage: u = v._new_instance(); u
@@ -642,7 +639,7 @@ class VectorFieldParal(FiniteRankFreeModuleElement, TensorFieldParal,
 
         TEST::
 
-            sage: M = DiffManifold(2, 'M')
+            sage: M = Manifold(2, 'M')
             sage: X.<x,y> = M.chart()  # makes M parallelizable
             sage: v = M.vector_field(name='v')
             sage: v._del_derived()
@@ -670,7 +667,7 @@ class VectorFieldParal(FiniteRankFreeModuleElement, TensorFieldParal,
         Action of a vector field on a scalar field on a 2-dimensional
         manifold::
 
-            sage: M = DiffManifold(2, 'M')
+            sage: M = Manifold(2, 'M')
             sage: c_cart.<x,y> = M.chart()
             sage: f = M.scalar_field(x*y^2)
             sage: v = M.vector_field()

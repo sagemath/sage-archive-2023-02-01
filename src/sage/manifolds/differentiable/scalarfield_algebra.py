@@ -40,8 +40,8 @@ from sage.manifolds.differentiable.scalarfield import DiffScalarField
 
 class DiffScalarFieldAlgebra(ScalarFieldAlgebra):
     r"""
-    Commutative algebra of differentiable scalar fields on some open subset of
-    a differentiable manifold.
+    Commutative algebra of differentiable scalar fields on a differentiable
+    manifold.
 
     If `M` is a differentiable manifold of class `C^k` over a topological
     field `K`, the *commutative algebra of scalar fields on* `M` is the set
@@ -66,14 +66,14 @@ class DiffScalarFieldAlgebra(ScalarFieldAlgebra):
 
     - ``domain`` -- the differentiable manifold `M` on which the scalar fields
       are defined (must be an instance of class
-      :class:`~sage.manifolds.differentiable.manifold.DiffManifold`)
+      :class:`~sage.manifolds.differentiable.manifold.DifferentiableManifold`)
 
     EXAMPLES:
 
     Algebras of scalar fields on the sphere `S^2` and on some open subset of
     it::
 
-        sage: M = DiffManifold(2, 'M') # the 2-dimensional sphere S^2
+        sage: M = Manifold(2, 'M') # the 2-dimensional sphere S^2
         sage: U = M.open_subset('U') # complement of the North pole
         sage: c_xy.<x,y> = U.chart() # stereographic coordinates from the North pole
         sage: V = M.open_subset('V') # complement of the South pole
@@ -187,7 +187,7 @@ class DiffScalarFieldAlgebra(ScalarFieldAlgebra):
         True
 
     Elements can also be constructed by means of the method
-    :meth:`~sage.manifolds.manifold.TopManifold.scalar_field` acting on
+    :meth:`~sage.manifolds.manifold.TopologicalManifold.scalar_field` acting on
     the domain (this allows one to set the name of the scalar field at the
     construction)::
 
@@ -379,13 +379,15 @@ class DiffScalarFieldAlgebra(ScalarFieldAlgebra):
 
         TESTS::
 
-            sage: DiffManifold._clear_cache_()  # for doctests only
-            sage: M = DiffManifold(2, 'M')
+            sage: M = Manifold(2, 'M')
             sage: X.<x,y> = M.chart()
-            sage: from sage.manifolds.differentiable.scalarfield_algebra import DiffScalarFieldAlgebra
-            sage: CM = DiffScalarFieldAlgebra(M); CM
+            sage: CM = M.scalar_field_algebra(); CM
             Algebra of differentiable scalar fields on the 2-dimensional
              differentiable manifold M
+            sage: type(CM)
+            <class 'sage.manifolds.differentiable.scalarfield_algebra.DiffScalarFieldAlgebra_with_category'>
+            sage: type(CM).__base__
+            <class 'sage.manifolds.differentiable.scalarfield_algebra.DiffScalarFieldAlgebra'>
             sage: TestSuite(CM).run()
 
         """
@@ -400,7 +402,7 @@ class DiffScalarFieldAlgebra(ScalarFieldAlgebra):
 
         TESTS::
 
-            sage: M = DiffManifold(2, 'M')
+            sage: M = Manifold(2, 'M')
             sage: X.<x,y> = M.chart()
             sage: CM = M.scalar_field_algebra()
             sage: CM._coerce_map_from_(SR)
@@ -431,7 +433,7 @@ class DiffScalarFieldAlgebra(ScalarFieldAlgebra):
 
         TESTS::
 
-            sage: M = DiffManifold(2, 'M')
+            sage: M = Manifold(2, 'M')
             sage: CM = M.scalar_field_algebra()
             sage: CM._repr_()
             'Algebra of differentiable scalar fields on the 2-dimensional differentiable manifold M'
@@ -448,7 +450,7 @@ class DiffScalarFieldAlgebra(ScalarFieldAlgebra):
 
         TESTS::
 
-            sage: M = DiffManifold(2, 'M')
+            sage: M = Manifold(2, 'M')
             sage: CM = M.scalar_field_algebra()
             sage: CM._latex_()
             'C^{\\infty}\\left(M\\right)'
@@ -463,3 +465,25 @@ class DiffScalarFieldAlgebra(ScalarFieldAlgebra):
             latex_degree = "{}".format(degree)
         return r"C^{" + latex_degree + r"}\left("  + self._domain._latex_() + \
                r"\right)"
+
+    def __reduce__(self):
+        r"""
+        Reduction function for the pickle protocole.
+
+        TEST::
+
+            sage: M = Manifold(3, 'M')
+            sage: CM = M.scalar_field_algebra()
+            sage: CM.__reduce__()
+            (<class 'sage.manifolds.differentiable.scalarfield_algebra.DiffScalarFieldAlgebra'>,
+             (3-dimensional differentiable manifold M,))
+
+        Test of pickling::
+
+            sage: loads(dumps(CM))
+            Algebra of differentiable scalar fields on the 3-dimensional
+             differentiable manifold M
+
+        """
+        return (DiffScalarFieldAlgebra, (self._domain,))
+

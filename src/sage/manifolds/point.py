@@ -1,9 +1,9 @@
 r"""
 Points of topological manifolds
 
-The class :class:`TopManifoldPoint` implements points of a
+The class :class:`TopologicalManifoldPoint` implements points of a
 topological manifold.
-A :class:`TopManifoldPoint` object can have coordinates in
+A :class:`TopologicalManifoldPoint` object can have coordinates in
 various charts defined on the manifold. Two points are declared equal if they
 have the same coordinates in the same chart.
 
@@ -22,7 +22,7 @@ EXAMPLES:
 
 Defining a point in `\RR^3` by its spherical coordinates::
 
-    sage: M = TopManifold(3, 'R^3')
+    sage: M = Manifold(3, 'R^3', type='topological')
     sage: U = M.open_subset('U')  # the complement of the half-plane (y=0, x>=0)
     sage: c_spher.<r,th,ph> = U.chart(r'r:(0,+oo) th:(0,pi):\theta ph:(0,2*pi):\phi')
     sage: p = U((1, pi/2, pi), name='P') # coordinates in U's default chart (c_spher)
@@ -70,12 +70,12 @@ Points can be compared::
 
 from sage.structure.element import Element
 
-class TopManifoldPoint(Element):
+class TopologicalManifoldPoint(Element):
     r"""
     Point of a topological manifold.
 
     This is a Sage *element* class, the corresponding *parent* class being
-    :class:`~sage.manifolds.manifold.TopManifold`.
+    :class:`~sage.manifolds.manifold.TopologicalManifold`.
 
     INPUT:
 
@@ -97,7 +97,7 @@ class TopManifoldPoint(Element):
 
     A point on a 2-dimensional manifold::
 
-        sage: M = TopManifold(2, 'M')
+        sage: M = Manifold(2, 'M', type='topological')
         sage: c_xy.<x,y> = M.chart()
         sage: (a, b) = var('a b') # generic coordinates for the point
         sage: p = M.point((a, b), name='P'); p
@@ -154,8 +154,7 @@ class TopManifoldPoint(Element):
 
         TESTS::
 
-            sage: TopManifold._clear_cache_() # for doctests only
-            sage: M = TopManifold(2, 'M')
+            sage: M = Manifold(2, 'M', type='topological')
             sage: X.<x,y> = M.chart()
             sage: p = M((2,3), name='p'); p
             Point p on the 2-dimensional topological manifold M
@@ -203,7 +202,7 @@ class TopManifoldPoint(Element):
 
         TESTS::
 
-            sage: M = TopManifold(2, 'M')
+            sage: M = Manifold(2, 'M', type='topological')
             sage: X.<x,y> = M.chart()
             sage: p = M((2,-3))
             sage: p._repr_()
@@ -227,7 +226,7 @@ class TopManifoldPoint(Element):
 
         TESTS::
 
-            sage: M = TopManifold(2, 'M')
+            sage: M = Manifold(2, 'M', type='topological')
             sage: X.<x,y> = M.chart()
             sage: p = M((2,-3))
             sage: p._latex_()
@@ -257,14 +256,13 @@ class TopManifoldPoint(Element):
         OUTPUT:
 
         - an instance of
-          :class:`~sage.manifolds.subset.TopManifoldSubset`
+          :class:`~sage.manifolds.subset.TopologicalManifoldSubset`
 
         EXAMPLES:
 
         Points on a 2-dimensional manifold::
 
-            sage: TopManifold._clear_cache_() # for doctests only
-            sage: M = TopManifold(2, 'M')
+            sage: M = Manifold(2, 'M', type='topological')
             sage: X.<x,y> = M.chart()
             sage: p = M.point((1,3), name='p'); p
             Point p on the 2-dimensional topological manifold M
@@ -314,8 +312,7 @@ class TopManifoldPoint(Element):
 
         Spherical coordinates of a point on `\RR^3`::
 
-            sage: TopManifold._clear_cache_() # for doctests only
-            sage: M = TopManifold(3, 'M') # the part of R^3 covered by spherical coordinates
+            sage: M = Manifold(3, 'M', type='topological') # the part of R^3 covered by spherical coordinates
             sage: c_spher.<r,th,ph> = M.chart(r'r:(0,+oo) th:(0,pi):\theta ph:(0,2*pi):\phi') # spherical coordinates
             sage: p = M.point((1, pi/2, pi))
             sage: p.coord()    # coordinates on the manifold's default chart
@@ -342,8 +339,7 @@ class TopManifoldPoint(Element):
 
         Coordinates of a point on a 2-dimensional manifold::
 
-            sage: TopManifold._clear_cache_() # for doctests only
-            sage: M = TopManifold(2, 'M')
+            sage: M = Manifold(2, 'M', type='topological')
             sage: c_xy.<x,y> = M.chart()
             sage: (a, b) = var('a b') # generic coordinates for the point
             sage: p = M.point((a, b), name='P')
@@ -462,7 +458,7 @@ class TopManifoldPoint(Element):
 
         Setting coordinates to a point on a 2-dimensional manifold::
 
-            sage: M = TopManifold(2, 'M')
+            sage: M = Manifold(2, 'M', type='topological')
             sage: X.<x,y> = M.chart()
             sage: p = M.point()
             sage: p.set_coord((2,-3)) # coordinates on the manifold's default chart
@@ -513,7 +509,7 @@ class TopManifoldPoint(Element):
 
         Setting coordinates to a point on a 2-dimensional manifold::
 
-            sage: M = TopManifold(2, 'M')
+            sage: M = Manifold(2, 'M', type='topological')
             sage: X.<x,y> = M.chart()
             sage: p = M.point()
             sage: p.add_coord((2,-3)) # coordinates on the manifold's default chart
@@ -561,7 +557,7 @@ class TopManifoldPoint(Element):
 
         Comparison with coordinates in the same chart::
 
-            sage: M = TopManifold(2, 'M')
+            sage: M = Manifold(2, 'M', type='topological')
             sage: X.<x,y> = M.chart()
             sage: p = M((2,-3), chart=X)
             sage: q = M((2,-3), chart=X)
@@ -596,14 +592,19 @@ class TopManifoldPoint(Element):
             False
 
         """
-        if not isinstance(other, TopManifoldPoint):
+        if other is self:
+            return True
+        if not isinstance(other, TopologicalManifoldPoint):
             return False
         if other._manifold != self._manifold:
             return False
         # Search for a common chart to compare the coordinates
         common_chart = None
         # the subset's default chart is privileged:
-        def_chart = self._subset._def_chart
+        if hasattr(self._subset, '_def_chart'):  # self._subset is open
+            def_chart = self._subset._def_chart
+        else:
+            def_chart = self._manifold._def_chart
         if def_chart in self._coordinates and def_chart in other._coordinates:
             common_chart = def_chart
         else:
@@ -636,7 +637,7 @@ class TopManifoldPoint(Element):
             # raise ValueError("no common chart has been found to compare " +
             #                  "{} and {}".format(self, other))
         return self._coordinates[common_chart] == \
-                                              other._coordinates[common_chart]
+                                               other._coordinates[common_chart]
 
     def __ne__(self, other):
         r"""
@@ -644,7 +645,7 @@ class TopManifoldPoint(Element):
 
         TESTS::
 
-            sage: M = TopManifold(2, 'M')
+            sage: M = Manifold(2, 'M', type='topological')
             sage: X.<x,y> = M.chart()
             sage: p = M((2,-3), chart=X)
             sage: q = M((0,1), chart=X)
@@ -654,7 +655,7 @@ class TopManifoldPoint(Element):
             False
 
         """
-        return not self.__eq__(other)
+        return not (self == other)
 
     def __cmp__(self, other):
         r"""
@@ -664,7 +665,7 @@ class TopManifoldPoint(Element):
 
         TESTS::
 
-            sage: M = TopManifold(2, 'M')
+            sage: M = Manifold(2, 'M', type='topological')
             sage: X.<x,y> = M.chart()
             sage: p = M((2,-3), chart=X)
             sage: q = M((2,-3), chart=X)
@@ -675,7 +676,7 @@ class TopManifoldPoint(Element):
             -1
 
         """
-        if self.__eq__(other):
+        if self == other:
             return 0
         else:
             return -1
@@ -690,16 +691,39 @@ class TopManifoldPoint(Element):
 
         TESTS::
 
-            sage: M = TopManifold(2, 'M')
+            sage: M = Manifold(2, 'M', type='topological')
             sage: X.<x,y> = M.chart()
             sage: p = M((2,-3), chart=X)
-            sage: p.__hash__()  # random
+            sage: hash(p)  # random
             8791657334475
-            sage: p.__hash__() == hash(M)
+            sage: hash(p) == hash(M)
             True
 
         """
-        return self._manifold.__hash__()
+        return hash(self._manifold)
+
+    def _test_pickling(self, **options):
+        r"""
+        Test pickling.
+
+        This test is weaker than
+        :meth:`sage.structure.sage_object.SageObject._test_pickling` in that
+        it does not require ``loads(dumps(self)) == self``.
+        It however checks that ``loads(dumps(self))`` proceeds without any
+        error and results in an object that is a manifold point.
+
+        TESTS::
+
+            sage: M = Manifold(2, 'M', type='topological')
+            sage: X.<x,y> = M.chart()
+            sage: p = M((1,2), chart=X)
+            sage: p._test_pickling()
+
+        """
+        tester = self._tester(**options)
+        from sage.misc.all import loads, dumps
+        bckp = loads(dumps(self))
+        tester.assertEqual(type(bckp), type(self))
 
     def plot(self, chart=None, ambient_coords=None, mapping=None, size=10,
              color='black', label=None, label_color=None, fontsize=10,
@@ -753,7 +777,7 @@ class TopManifoldPoint(Element):
 
         Drawing a point on a 2-dimensional manifold::
 
-            sage: M = TopManifold(2, 'M')
+            sage: M = Manifold(2, 'M', type='topological')
             sage: X.<x,y> = M.chart()
             sage: p = M.point((1,3), name='p')
             sage: g = p.plot(X)
@@ -764,7 +788,7 @@ class TopManifoldPoint(Element):
 
         .. PLOT::
 
-            M = TopManifold(2, 'M')
+            M = Manifold(2, 'M', type='topological')
             X = M.chart('x y'); x,y = X[:]
             p = M.point((1,3), name='p')
             g = p.plot(X)
@@ -786,7 +810,7 @@ class TopManifoldPoint(Element):
 
         .. PLOT::
 
-            M = TopManifold(2, 'M')
+            M = Manifold(2, 'M', type='topological')
             X = M.chart('x y'); x,y = X[:]
             p = M.point((1,3), name='p')
             g = p.plot(chart=X, size=40, color='green', label='$P$', \
@@ -804,7 +828,7 @@ class TopManifoldPoint(Element):
 
         .. PLOT::
 
-            M = TopManifold(2, 'M')
+            M = Manifold(2, 'M', type='topological')
             X = M.chart('x y'); x,y = X[:]
             p = M.point((1,3), name='p')
             g = p.plot(chart=X, size=40, color='green', label='$P$', \
@@ -822,7 +846,7 @@ class TopManifoldPoint(Element):
 
         Drawing a point on a 3-dimensional manifold::
 
-            sage: M = TopManifold(3, 'M')
+            sage: M = Manifold(3, 'M', type='topological')
             sage: X.<x,y,z> = M.chart()
             sage: p = M.point((2,1,3), name='p')
             sage: g = p.plot()
@@ -840,7 +864,7 @@ class TopManifoldPoint(Element):
         An example of plot via a mapping: plot of a point on a 2-sphere viewed
         in the 3-dimensional space ``M``::
 
-            sage: S2 = TopManifold(2, 'S^2')
+            sage: S2 = Manifold(2, 'S^2', type='topological')
             sage: U = S2.open_subset('U') # the open set covered by spherical coord.
             sage: XS.<th,ph> = U.chart(r'th:(0,pi):\theta ph:(0,2*pi):\phi')
             sage: p = U.point((pi/4, pi/8), name='p')
@@ -856,7 +880,7 @@ class TopManifoldPoint(Element):
         Use of the option ``ambient_coords`` for plots on a 4-dimensional
         manifold::
 
-            sage: M = TopManifold(4, 'M')
+            sage: M = Manifold(4, 'M', type='topological')
             sage: X.<t,x,y,z> = M.chart()
             sage: p = M.point((1,2,3,4), name='p')
             sage: g = p.plot(X, ambient_coords=(t,x,y), label_offset=0.4)  # the coordinate z is skipped
@@ -871,7 +895,7 @@ class TopManifoldPoint(Element):
 
         .. PLOT::
 
-            M = TopManifold(4, 'M')
+            M = Manifold(4, 'M', type='topological')
             X = M.chart('t x y z'); t,x,y,z = X[:]
             p = M.point((1,2,3,4), name='p')
             g = p.plot(X, ambient_coords=(y,z), label_offset=0.4)
@@ -883,9 +907,8 @@ class TopManifoldPoint(Element):
         from sage.plot.text import text
         from sage.plot.graphics import Graphics
         from sage.plot.plot3d.shapes2 import point3d, text3d
-        from sage.rings.real_mpfr import RR
         from sage.manifolds.chart import Chart
-        if self._manifold.base_field() != RR:
+        if self._manifold.base_field_type() != 'real':
             raise NotImplementedError('plot of points on manifolds over ' +
                                   'fields different from R is not implemented')
         # The ambient chart:

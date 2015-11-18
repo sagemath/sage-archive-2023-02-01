@@ -101,7 +101,7 @@ class TensorFieldModule(UniqueRepresentation, Parent):
 
     Module of type-(2,0) tensor fields on the 2-sphere::
 
-        sage: M = DiffManifold(2, 'M') # the 2-dimensional sphere S^2
+        sage: M = Manifold(2, 'M') # the 2-dimensional sphere S^2
         sage: U = M.open_subset('U') # complement of the North pole
         sage: c_xy.<x,y> = U.chart() # stereographic coordinates from the North pole
         sage: V = M.open_subset('V') # complement of the South pole
@@ -232,7 +232,7 @@ class TensorFieldModule(UniqueRepresentation, Parent):
 
         TESTS::
 
-            sage: M = DiffManifold(2, 'M') # the 2-dimensional sphere S^2
+            sage: M = Manifold(2, 'M') # the 2-dimensional sphere S^2
             sage: U = M.open_subset('U') # complement of the North pole
             sage: c_xy.<x,y> = U.chart() # stereographic coordinates from the North pole
             sage: V = M.open_subset('V') # complement of the South pole
@@ -291,7 +291,7 @@ class TensorFieldModule(UniqueRepresentation, Parent):
 
         TESTS::
 
-            sage: M = DiffManifold(2, 'M')
+            sage: M = Manifold(2, 'M')
             sage: U = M.open_subset('U'); V = M.open_subset('V')
             sage: c_xy.<x,y> = U.chart(); c_uv.<u,v> = V.chart()
             sage: M.declare_union(U,V)
@@ -371,7 +371,7 @@ class TensorFieldModule(UniqueRepresentation, Parent):
 
         TEST::
 
-            sage: M = DiffManifold(2, 'M')
+            sage: M = Manifold(2, 'M')
             sage: U = M.open_subset('U'); V = M.open_subset('V')
             sage: c_xy.<x,y> = U.chart(); c_uv.<u,v> = V.chart()
             sage: M.declare_union(U,V)
@@ -400,7 +400,7 @@ class TensorFieldModule(UniqueRepresentation, Parent):
 
         TESTS::
 
-            sage: M = DiffManifold(2, 'M')
+            sage: M = Manifold(2, 'M')
             sage: U = M.open_subset('U')
             sage: T02 = M.tensor_field_module((0,2))
             sage: T02U = U.tensor_field_module((0,2))
@@ -442,7 +442,7 @@ class TensorFieldModule(UniqueRepresentation, Parent):
 
         TEST::
 
-            sage: M = DiffManifold(2, 'M')
+            sage: M = Manifold(2, 'M')
             sage: T13 = M.tensor_field_module((1,3))
             sage: T13._repr_()
             'Module T^(1,3)(M) of type-(1,3) tensors fields on the 2-dimensional differentiable manifold M'
@@ -472,7 +472,7 @@ class TensorFieldModule(UniqueRepresentation, Parent):
 
         TEST::
 
-            sage: M = DiffManifold(2, 'M')
+            sage: M = Manifold(2, 'M')
             sage: T13 = M.tensor_field_module((1,3))
             sage: T13._latex_()
             '\\mathcal{T}^{(1,3)}\\left(M\\right)'
@@ -498,7 +498,7 @@ class TensorFieldModule(UniqueRepresentation, Parent):
 
         EXAMPLE::
 
-            sage: M = DiffManifold(2, 'M')
+            sage: M = Manifold(2, 'M')
             sage: T13 = M.tensor_field_module((1,3))
             sage: T13.base_module()
             Module X(M) of vector fields on the 2-dimensional differentiable
@@ -523,7 +523,7 @@ class TensorFieldModule(UniqueRepresentation, Parent):
 
         EXAMPLES::
 
-            sage: M = DiffManifold(2, 'M')
+            sage: M = Manifold(2, 'M')
             sage: T13 = M.tensor_field_module((1,3))
             sage: T13.tensor_type()
             (1, 3)
@@ -592,7 +592,7 @@ class TensorFieldFreeModule(TensorFreeModule):
 
     Module of type-(2,0) tensor fields on `\RR^3`::
 
-        sage: M = DiffManifold(3, 'R^3')
+        sage: M = Manifold(3, 'R^3')
         sage: c_xyz.<x,y,z> = M.chart()  # Cartesian coordinates
         sage: T20 = M.tensor_field_module((2,0)) ; T20
         Free module T^(2,0)(R^3) of type-(2,0) tensors fields on the
@@ -689,8 +689,7 @@ class TensorFieldFreeModule(TensorFreeModule):
 
         TESTS::
 
-            sage: DiffManifold._clear_cache_() # for doctests only
-            sage: M = DiffManifold(2, 'M')
+            sage: M = Manifold(2, 'M')
             sage: X.<x,y> = M.chart()  # makes M parallelizable
             sage: XM = M.vector_field_module()
             sage: from sage.manifolds.differentiable.tensorfield_module import TensorFieldFreeModule
@@ -730,7 +729,7 @@ class TensorFieldFreeModule(TensorFreeModule):
 
         TESTS::
 
-            sage: M = DiffManifold(2, 'M')
+            sage: M = Manifold(2, 'M')
             sage: X.<x,y> = M.chart()  # makes M parallelizable
             sage: T12 = M.tensor_field_module((1,2))
             sage: t = T12._element_constructor_(comp=[[[x,-y], [2,y]],
@@ -802,7 +801,7 @@ class TensorFieldFreeModule(TensorFreeModule):
 
         TESTS::
 
-            sage: M = DiffManifold(2, 'M')
+            sage: M = Manifold(2, 'M')
             sage: X.<x,y> = M.chart()  # makes M parallelizable
             sage: U = M.open_subset('U', coord_def={X: x>0})
             sage: T02 = M.tensor_field_module((0,2))
@@ -845,7 +844,7 @@ class TensorFieldFreeModule(TensorFreeModule):
 
         TESTS::
 
-            sage: M = DiffManifold(2, 'M')
+            sage: M = Manifold(2, 'M')
             sage: X.<x,y> = M.chart()  # makes M parallelizable
             sage: T12 = M.tensor_field_module((1,2))
             sage: T12._repr_()

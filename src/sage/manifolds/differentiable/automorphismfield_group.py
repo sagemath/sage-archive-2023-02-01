@@ -81,7 +81,7 @@ class AutomorphismFieldGroup(UniqueRepresentation, Parent):
 
     Group of tangent-space automorphism fields of the 2-sphere::
 
-        sage: M = DiffManifold(2, 'M') # the 2-dimensional sphere S^2
+        sage: M = Manifold(2, 'M') # the 2-dimensional sphere S^2
         sage: U = M.open_subset('U') # complement of the North pole
         sage: c_xy.<x,y> = U.chart() # stereographic coordinates from the North pole
         sage: V = M.open_subset('V') # complement of the South pole
@@ -154,7 +154,7 @@ class AutomorphismFieldGroup(UniqueRepresentation, Parent):
 
         TESTS::
 
-            sage: M = DiffManifold(2, 'M')
+            sage: M = Manifold(2, 'M')
             sage: U = M.open_subset('U') ; V = M.open_subset('V')
             sage: M.declare_union(U,V)   # M is the union of U and V
             sage: c_xy.<x,y> = U.chart() ; c_uv.<u,v> = V.chart()
@@ -195,7 +195,7 @@ class AutomorphismFieldGroup(UniqueRepresentation, Parent):
 
         TESTS::
 
-            sage: M = DiffManifold(2, 'M')
+            sage: M = Manifold(2, 'M')
             sage: U = M.open_subset('U') ; V = M.open_subset('V')
             sage: M.declare_union(U,V)   # M is the union of U and V
             sage: c_xy.<x,y> = U.chart() ; c_uv.<u,v> = V.chart()
@@ -238,7 +238,7 @@ class AutomorphismFieldGroup(UniqueRepresentation, Parent):
 
         TEST::
 
-            sage: M = DiffManifold(2, 'M')
+            sage: M = Manifold(2, 'M')
             sage: U = M.open_subset('U') ; V = M.open_subset('V')
             sage: M.declare_union(U,V)   # M is the union of U and V
             sage: c_xy.<x,y> = U.chart() ; c_uv.<u,v> = V.chart()
@@ -291,7 +291,7 @@ class AutomorphismFieldGroup(UniqueRepresentation, Parent):
         Identity element of the group of tangent-space automorphism fields of
         the 2-sphere::
 
-            sage: M = DiffManifold(2, 'M') # the 2-dimensional sphere S^2
+            sage: M = Manifold(2, 'M') # the 2-dimensional sphere S^2
             sage: U = M.open_subset('U') # complement of the North pole
             sage: c_xy.<x,y> = U.chart() # stereographic coordinates from the North pole
             sage: V = M.open_subset('V') # complement of the South pole
@@ -324,7 +324,7 @@ class AutomorphismFieldGroup(UniqueRepresentation, Parent):
 
         TESTS::
 
-            sage: M = DiffManifold(2, 'M')
+            sage: M = Manifold(2, 'M')
             sage: G = M.automorphism_field_group()
             sage: G._repr_()
             'General linear group of the Module X(M) of vector fields on the
@@ -345,7 +345,7 @@ class AutomorphismFieldGroup(UniqueRepresentation, Parent):
 
         TESTS::
 
-            sage: M = DiffManifold(2, 'M')
+            sage: M = Manifold(2, 'M')
             sage: G = M.automorphism_field_group()
             sage: G._latex_()
             \mathrm{GL}\left( \mathcal{X}\left(M\right) \right)
@@ -356,6 +356,48 @@ class AutomorphismFieldGroup(UniqueRepresentation, Parent):
         from sage.misc.latex import latex
         return r"\mathrm{GL}\left("+ latex(self._vmodule)+ r"\right)"
 
+    def __reduce__(self):
+        r"""
+        Reduction function for the pickle protocole.
+
+        TEST::
+
+            sage: M = Manifold(2, 'M')
+            sage: G = M.automorphism_field_group()
+            sage: G.__reduce__()
+            (<class 'sage.manifolds.differentiable.automorphismfield_group.AutomorphismFieldGroup'>,
+             (Module X(M) of vector fields on the 2-dimensional differentiable manifold M,))
+
+        Test of pickling::
+
+            sage: loads(dumps(G))
+            General linear group of the Module X(M,Id_M) of vector fields along the 2-dimensional differentiable manifold M mapped into the 2-dimensional differentiable manifold M
+
+        """
+        return (AutomorphismFieldGroup, (self._vmodule,))
+
+    def _test_pickling(self, **options):
+        r"""
+        Test pickling.
+
+        This test is weaker than
+        :meth:`sage.structure.sage_object.SageObject._test_pickling` in that
+        it does not require ``loads(dumps(self)) == self``.
+        It however checks that ``loads(dumps(self))`` proceeds without any
+        error and results in an object that is a group of fields of
+        tangent-space automorphisms of the same type as ``self``.
+
+        TEST::
+
+            sage: M = Manifold(3, 'M')
+            sage: G = M.automorphism_field_group()
+            sage: G._test_pickling()
+
+        """
+        tester = self._tester(**options)
+        from sage.misc.all import loads, dumps
+        bckp = loads(dumps(self))
+        tester.assertEqual(type(bckp), type(self))
 
     def base_module(self):
         r"""
@@ -372,7 +414,7 @@ class AutomorphismFieldGroup(UniqueRepresentation, Parent):
         Base module of the group of tangent-space automorphism fields of
         the 2-sphere::
 
-            sage: M = DiffManifold(2, 'M') # the 2-dimensional sphere S^2
+            sage: M = Manifold(2, 'M') # the 2-dimensional sphere S^2
             sage: U = M.open_subset('U') # complement of the North pole
             sage: c_xy.<x,y> = U.chart() # stereographic coordinates from the North pole
             sage: V = M.open_subset('V') # complement of the South pole
@@ -430,8 +472,7 @@ class AutomorphismFieldParalGroup(FreeModuleLinearGroup):
     Group of tangent-space automorphism fields of a 2-dimensional
     parallelizable manifold::
 
-        sage: DiffManifold._clear_cache_() # for doctests only
-        sage: M = DiffManifold(2, 'M')
+        sage: M = Manifold(2, 'M')
         sage: X.<x,y> = M.chart()
         sage: XM = M.vector_field_module() ; XM
         Free module X(M) of vector fields on the 2-dimensional differentiable
@@ -448,7 +489,7 @@ class AutomorphismFieldParalGroup(FreeModuleLinearGroup):
 
     Instead of importing ``AutomorphismFieldParalGroup`` in the global
     namespace, it is recommended to use the method
-    :meth:`~sage.manifolds.differentiable.manifold.DiffManifold.automorphism_field_group`::
+    :meth:`~sage.manifolds.differentiable.manifold.DifferentiableManifold.automorphism_field_group`::
 
         sage: G = M.automorphism_field_group() ; G
         General linear group of the Free module X(M) of vector fields on the
@@ -619,8 +660,7 @@ class AutomorphismFieldParalGroup(FreeModuleLinearGroup):
 
         TEST::
 
-            sage: DiffManifold._clear_cache_() # for doctests only
-            sage: M = DiffManifold(2, 'M') ; M
+            sage: M = Manifold(2, 'M') ; M
             2-dimensional differentiable manifold M
             sage: X.<x,y> = M.chart()  # makes M parallelizable
             sage: from sage.manifolds.differentiable.automorphismfield_group \
@@ -635,3 +675,27 @@ class AutomorphismFieldParalGroup(FreeModuleLinearGroup):
             raise TypeError("{} is not a free module of vector fields".format(
                             vector_field_module))
         FreeModuleLinearGroup.__init__(self, vector_field_module)
+
+    def _test_pickling(self, **options):
+        r"""
+        Test pickling.
+
+        This test is weaker than
+        :meth:`sage.structure.sage_object.SageObject._test_pickling` in that
+        it does not require ``loads(dumps(self)) == self``.
+        It however checks that ``loads(dumps(self))`` proceeds without any
+        error and results in an object that is a group of fields of
+        tangent-space automorphisms of the same type as ``self``.
+
+        TEST::
+
+            sage: M = Manifold(2, 'M')
+            sage: X.<x,y> = M.chart()  # makes M parallelizable
+            sage: G = M.automorphism_field_group()
+            sage: G._test_pickling()
+
+        """
+        tester = self._tester(**options)
+        from sage.misc.all import loads, dumps
+        bckp = loads(dumps(self))
+        tester.assertEqual(type(bckp), type(self))

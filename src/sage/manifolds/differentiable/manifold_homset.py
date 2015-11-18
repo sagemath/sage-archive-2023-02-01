@@ -1,7 +1,7 @@
 r"""
 Sets of morphisms between differentiable manifolds
 
-The class :class:`DiffManifoldHomset` implements sets of morphisms between
+The class :class:`DifferentiableManifoldHomset` implements sets of morphisms between
 two differentiable manifolds over the same topological field `K` (in most
 applications, `K = \RR` or `K = \CC`), a morphism being a *differentiable map*
 for the category of differentiable manifolds.
@@ -27,15 +27,15 @@ REFERENCES:
 #                  http://www.gnu.org/licenses/
 #******************************************************************************
 
-from sage.manifolds.manifold_homset import TopManifoldHomset
+from sage.manifolds.manifold_homset import TopologicalManifoldHomset
 from sage.manifolds.differentiable.diff_map import DiffMap
 
-class DiffManifoldHomset(TopManifoldHomset):
+class DifferentiableManifoldHomset(TopologicalManifoldHomset):
     r"""
     Set of differentiable maps between two differentiable manifolds.
 
     Given two differentiable manifolds `M` and `N` over a topological field `K`,
-    the class :class:`DiffManifoldHomset` implements the set
+    the class :class:`DifferentiableManifoldHomset` implements the set
     `\mathrm{Hom}(M,N)` of morphisms (i.e. differentiable maps)
     `M\rightarrow N`.
 
@@ -46,30 +46,30 @@ class DiffManifoldHomset(TopManifoldHomset):
 
     - ``domain`` -- differentiable manifold `M` (domain of the morphisms),
       as an instance of
-      :class:`~sage.manifolds.differentiable.manifold.DiffManifold`
+      :class:`~sage.manifolds.differentiable.manifold.DifferentiableManifold`
     - ``codomain`` -- differentiable manifold `N` (codomain of the morphisms),
       as an instance of
-      :class:`~sage.manifolds.differentiable.manifold.DiffManifold`
+      :class:`~sage.manifolds.differentiable.manifold.DifferentiableManifold`
     - ``name`` -- (default: ``None``) string; name given to the homset; if
-      none is provided, Hom(M,N) will be used
+      ``None``, Hom(M,N) will be used
     - ``latex_name`` -- (default: ``None``) string; LaTeX symbol to denote the
-      homset; if none is provided, `\mathrm{Hom}(M,N)` will be used
+      homset; if ``None``, `\mathrm{Hom}(M,N)` will be used
 
     EXAMPLES:
 
     Set of differentiable maps between a 2-dimensional differentiable manifold
     and a 3-dimensional one::
 
-        sage: M = DiffManifold(2, 'M')
+        sage: M = Manifold(2, 'M')
         sage: X.<x,y> = M.chart()
-        sage: N = DiffManifold(3, 'N')
+        sage: N = Manifold(3, 'N')
         sage: Y.<u,v,w> = N.chart()
         sage: H = Hom(M, N) ; H
         Set of Morphisms from 2-dimensional differentiable manifold M to
          3-dimensional differentiable manifold N in Category of smooth
          manifolds over Real Field with 53 bits of precision
         sage: type(H)
-        <class 'sage.manifolds.differentiable.manifold_homset.DiffManifoldHomset_with_category'>
+        <class 'sage.manifolds.differentiable.manifold_homset.DifferentiableManifoldHomset_with_category'>
         sage: H.category()
         Category of homsets of topological spaces
         sage: latex(H)
@@ -143,9 +143,9 @@ class DiffManifoldHomset(TopManifoldHomset):
         r"""
         TESTS::
 
-            sage: M = DiffManifold(2, 'M')
+            sage: M = Manifold(2, 'M')
             sage: X.<x,y> = M.chart()
-            sage: N = DiffManifold(3, 'N')
+            sage: N = Manifold(3, 'N')
             sage: Y.<u,v,w> = N.chart()
             sage: H = Hom(M, N) ; H
             Set of Morphisms from 2-dimensional differentiable manifold M to
@@ -162,14 +162,14 @@ class DiffManifoldHomset(TopManifoldHomset):
             sage: TestSuite(E).run()
 
         """
-        from sage.manifolds.differentiable.manifold import DiffManifold
-        if not isinstance(domain, DiffManifold):
+        from sage.manifolds.differentiable.manifold import DifferentiableManifold
+        if not isinstance(domain, DifferentiableManifold):
             raise TypeError("domain = {} is not an ".format(domain) +
-                            "instance of DiffManifold")
-        if not isinstance(codomain, DiffManifold):
+                            "instance of DifferentiableManifold")
+        if not isinstance(codomain, DifferentiableManifold):
             raise TypeError("codomain = {} is not an ".format(codomain) +
-                            "instance of DiffManifold")
-        TopManifoldHomset.__init__(self, domain, codomain, name=name,
+                            "instance of DifferentiableManifold")
+        TopologicalManifoldHomset.__init__(self, domain, codomain, name=name,
                                    latex_name=latex_name)
 
     #### Parent methods ####
@@ -180,9 +180,9 @@ class DiffManifoldHomset(TopManifoldHomset):
 
         EXAMPLE::
 
-            sage: M = DiffManifold(2, 'M')
+            sage: M = Manifold(2, 'M')
             sage: X.<x,y> = M.chart()
-            sage: N = DiffManifold(3, 'N')
+            sage: N = Manifold(3, 'N')
             sage: Y.<u,v,w> = N.chart()
             sage: H = Hom(M,N)
             sage: H._coerce_map_from_(ZZ)

@@ -78,7 +78,7 @@ class AutomorphismField(TensorField):
     Field of tangent-space automorphisms on a non-parallelizable 2-dimensional
     manifold::
 
-        sage: M = DiffManifold(2, 'M')
+        sage: M = Manifold(2, 'M')
         sage: U = M.open_subset('U') ; V = M.open_subset('V')
         sage: M.declare_union(U,V)   # M is the union of U and V
         sage: c_xy.<x,y> = U.chart() ; c_uv.<u,v> = V.chart()
@@ -145,7 +145,7 @@ class AutomorphismField(TensorField):
         Construction via ``parent.element_class``, and not via a direct call
         to ``AutomorphismField``, to fit with the category framework::
 
-            sage: M = DiffManifold(2, 'M')
+            sage: M = Manifold(2, 'M')
             sage: U = M.open_subset('U') ; V = M.open_subset('V')
             sage: M.declare_union(U,V)   # M is the union of U and V
             sage: c_xy.<x,y> = U.chart() ; c_uv.<u,v> = V.chart()
@@ -168,7 +168,7 @@ class AutomorphismField(TensorField):
              differentiable manifold M
             sage: TestSuite(b).run(skip='_test_pickling')
 
-        Construction with ``DiffManifold.automorphism_field``::
+        Construction with ``DifferentiableManifold.automorphism_field``::
 
             sage: a1 = M.automorphism_field(name='a'); a1
             Field of tangent-space automorphisms a on the 2-dimensional
@@ -206,7 +206,7 @@ class AutomorphismField(TensorField):
 
         TESTS::
 
-            sage: M = DiffManifold(2, 'M')
+            sage: M = Manifold(2, 'M')
             sage: a = M.automorphism_field(name='a')
             sage: a._repr_()
             'Field of tangent-space automorphisms a on the 2-dimensional differentiable manifold M'
@@ -232,7 +232,7 @@ class AutomorphismField(TensorField):
 
         TEST::
 
-            sage: M = DiffManifold(2, 'M')
+            sage: M = Manifold(2, 'M')
             sage: a = M.automorphism_field(name='a')
             sage: a._init_derived()
 
@@ -246,7 +246,7 @@ class AutomorphismField(TensorField):
 
         TEST::
 
-            sage: M = DiffManifold(2, 'M')
+            sage: M = Manifold(2, 'M')
             sage: a = M.automorphism_field(name='a')
             sage: a._del_derived()
 
@@ -263,7 +263,7 @@ class AutomorphismField(TensorField):
 
         TEST::
 
-            sage: M = DiffManifold(5, 'M')
+            sage: M = Manifold(5, 'M')
             sage: a = M.automorphism_field(name='a')
             sage: a._new_instance()
             Field of tangent-space automorphisms on the 5-dimensional
@@ -285,7 +285,7 @@ class AutomorphismField(TensorField):
 
         Field of identity maps on the 2-sphere::
 
-            sage: M = DiffManifold(2, 'M') # the 2-dimensional sphere S^2
+            sage: M = Manifold(2, 'M') # the 2-dimensional sphere S^2
             sage: U = M.open_subset('U') # complement of the North pole
             sage: c_xy.<x,y> = U.chart() # stereographic coordinates from the North pole
             sage: V = M.open_subset('V') # complement of the South pole
@@ -405,7 +405,7 @@ class AutomorphismField(TensorField):
         Inverse of a field of tangent-space automorphisms on a
         non-parallelizable 2-dimensional manifold::
 
-            sage: M = DiffManifold(2, 'M')
+            sage: M = Manifold(2, 'M')
             sage: U = M.open_subset('U') ; V = M.open_subset('V')
             sage: M.declare_union(U,V)   # M is the union of U and V
             sage: c_xy.<x,y> = U.chart() ; c_uv.<u,v> = V.chart()
@@ -502,7 +502,7 @@ class AutomorphismField(TensorField):
 
         TEST::
 
-            sage: M = DiffManifold(2, 'M') # the 2-dimensional sphere S^2
+            sage: M = Manifold(2, 'M') # the 2-dimensional sphere S^2
             sage: U = M.open_subset('U') # complement of the North pole
             sage: c_xy.<x,y> = U.chart() # stereographic coordinates from the North pole
             sage: V = M.open_subset('V') # complement of the South pole
@@ -568,7 +568,7 @@ class AutomorphismField(TensorField):
 
         TESTS::
 
-            sage: M = DiffManifold(2, 'M') # the 2-dimensional sphere S^2
+            sage: M = Manifold(2, 'M') # the 2-dimensional sphere S^2
             sage: U = M.open_subset('U') # complement of the North pole
             sage: c_xy.<x,y> = U.chart() # stereographic coordinates from the North pole
             sage: V = M.open_subset('V') # complement of the South pole
@@ -608,7 +608,7 @@ class AutomorphismField(TensorField):
 
         TESTS::
 
-            sage: M = DiffManifold(2, 'M') # the 2-dimensional sphere S^2
+            sage: M = Manifold(2, 'M') # the 2-dimensional sphere S^2
             sage: U = M.open_subset('U') # complement of the North pole
             sage: c_xy.<x,y> = U.chart() # stereographic coordinates from the North pole
             sage: V = M.open_subset('V') # complement of the South pole
@@ -647,7 +647,7 @@ class AutomorphismField(TensorField):
 
         - ``subdomain`` -- open subset `V` of ``self._domain`` (must be an
           instance of
-          :class:`~sage.manifolds.differentiable.manifold.DiffManifold`)
+          :class:`~sage.manifolds.differentiable.manifold.DifferentiableManifold`)
         - ``dest_map`` -- (default: ``None``) destination map
           `\Phi:\ V \rightarrow N`, where `N` is a subdomain of
           ``self._codomain``
@@ -663,7 +663,7 @@ class AutomorphismField(TensorField):
 
         Restrictions of an automorphism field on the 2-sphere::
 
-            sage: M = DiffManifold(2, 'S^2', start_index=1)
+            sage: M = Manifold(2, 'S^2', start_index=1)
             sage: U = M.open_subset('U') # the complement of the North pole
             sage: stereoN.<x,y> = U.chart()  # stereographic coordinates from the North pole
             sage: eN = stereoN.frame() # the associated vector frame
@@ -797,7 +797,7 @@ class AutomorphismFieldParal(FreeModuleAutomorphism, TensorFieldParal):
 
     A pi/3-rotation in the Euclidean 2-plane::
 
-        sage: M = DiffManifold(2,'R^2')
+        sage: M = Manifold(2,'R^2')
         sage: c_xy.<x,y> = M.chart()
         sage: rot = M.automorphism_field('R') ; rot
         Field of tangent-space automorphisms R on the 2-dimensional
@@ -845,8 +845,7 @@ class AutomorphismFieldParal(FreeModuleAutomorphism, TensorFieldParal):
         Construction via ``parent.element_class``, and not via a direct call
         to ``AutomorphismFieldParal``, to fit with the category framework::
 
-            sage: DiffManifold._clear_cache_() # for doctests only
-            sage: M = DiffManifold(2, 'M')
+            sage: M = Manifold(2, 'M')
             sage: X.<x,y> = M.chart()  # makes M parallelizable
             sage: XM = M.vector_field_module()
             sage: GL = XM.general_linear_group()
@@ -888,7 +887,7 @@ class AutomorphismFieldParal(FreeModuleAutomorphism, TensorFieldParal):
 
         TESTS::
 
-            sage: M = DiffManifold(2, 'M')
+            sage: M = Manifold(2, 'M')
             sage: X.<x,y> = M.chart()
             sage: a = M.automorphism_field(name='a')
             sage: a._repr_()
@@ -920,7 +919,7 @@ class AutomorphismFieldParal(FreeModuleAutomorphism, TensorFieldParal):
 
         TEST::
 
-            sage: M = DiffManifold(2, 'M')
+            sage: M = Manifold(2, 'M')
             sage: X.<x,y> = M.chart()
             sage: a = M.automorphism_field(name='a')
             sage: a._del_derived()
@@ -940,7 +939,7 @@ class AutomorphismFieldParal(FreeModuleAutomorphism, TensorFieldParal):
 
         TESTS::
 
-            sage: M = DiffManifold(2, 'M')
+            sage: M = Manifold(2, 'M')
             sage: X.<x,y> = M.chart()
             sage: a = M.automorphism_field(name='a')
             sage: a[:] = [[0, 1], [-1, 0]]
@@ -995,7 +994,7 @@ class AutomorphismFieldParal(FreeModuleAutomorphism, TensorFieldParal):
 
         EXAMPLE::
 
-            sage: M = DiffManifold(2, 'M')
+            sage: M = Manifold(2, 'M')
             sage: X.<x,y> = M.chart()
             sage: a = M.automorphism_field(name='a')
             sage: a[:] = [[0, 2], [-1, 0]]
@@ -1087,7 +1086,7 @@ class AutomorphismFieldParal(FreeModuleAutomorphism, TensorFieldParal):
 
         - ``subdomain`` -- open subset `V` of ``self._domain`` (must be an
           instance of
-          :class:`~sage.manifolds.differentiable.manifold.DiffManifold`)
+          :class:`~sage.manifolds.differentiable.manifold.DifferentiableManifold`)
         - ``dest_map`` -- (default: ``None``) destination map
           `\Phi:\ V \rightarrow N`, where `N` is a subset of
           ``self._codomain``
@@ -1104,7 +1103,7 @@ class AutomorphismFieldParal(FreeModuleAutomorphism, TensorFieldParal):
 
         Restriction of an automorphism field defined on `\RR^2` to a disk::
 
-            sage: M = DiffManifold(2, 'R^2')
+            sage: M = Manifold(2, 'R^2')
             sage: c_cart.<x,y> = M.chart() # Cartesian coordinates on R^2
             sage: D = M.open_subset('D') # the unit open disc
             sage: c_cart_D = c_cart.restrict(D, x^2+y^2<1)

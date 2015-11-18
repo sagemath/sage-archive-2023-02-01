@@ -76,7 +76,7 @@ class DiffFormModule(UniqueRepresentation, Parent):
 
     Module of 2-forms on a non-parallelizable 2-dimensional manifold::
 
-        sage: M = DiffManifold(2, 'M')
+        sage: M = Manifold(2, 'M')
         sage: U = M.open_subset('U') ; V = M.open_subset('V')
         sage: M.declare_union(U,V)   # M is the union of U and V
         sage: c_xy.<x,y> = U.chart() ; c_uv.<u,v> = V.chart()
@@ -99,7 +99,7 @@ class DiffFormModule(UniqueRepresentation, Parent):
 
     Instead of importing ``DiffFormModule`` in the global namespace, it is
     recommended to use the method
-    :meth:`~sage.manifolds.differentiable.manifold.DiffManifold.diff_form_module`::
+    :meth:`~sage.manifolds.differentiable.manifold.DifferentiableManifold.diff_form_module`::
 
         sage: A = M.diff_form_module(2) ; A
         Module /\^2(M) of 2-forms on the 2-dimensional differentiable manifold M
@@ -273,7 +273,7 @@ class DiffFormModule(UniqueRepresentation, Parent):
 
         Module of 2-forms on a non-parallelizable 2-dimensional manifold::
 
-            sage: M = DiffManifold(2, 'M')
+            sage: M = Manifold(2, 'M')
             sage: U = M.open_subset('U') ; V = M.open_subset('V')
             sage: M.declare_union(U,V)   # M is the union of U and V
             sage: c_xy.<x,y> = U.chart() ; c_uv.<u,v> = V.chart()
@@ -327,7 +327,7 @@ class DiffFormModule(UniqueRepresentation, Parent):
 
         TESTS::
 
-            sage: M = DiffManifold(2, 'M')
+            sage: M = Manifold(2, 'M')
             sage: U = M.open_subset('U'); V = M.open_subset('V')
             sage: c_xy.<x,y> = U.chart(); c_uv.<u,v> = V.chart()
             sage: M.declare_union(U,V)
@@ -386,7 +386,7 @@ class DiffFormModule(UniqueRepresentation, Parent):
 
         TESTS::
 
-            sage: M = DiffManifold(2, 'M')
+            sage: M = Manifold(2, 'M')
             sage: U = M.open_subset('U'); V = M.open_subset('V')
             sage: c_xy.<x,y> = U.chart(); c_uv.<u,v> = V.chart()
             sage: M.declare_union(U,V)
@@ -414,7 +414,7 @@ class DiffFormModule(UniqueRepresentation, Parent):
 
         TESTS::
 
-            sage: M = DiffManifold(3, 'M')
+            sage: M = Manifold(3, 'M')
             sage: A1 = M.diff_form_module(1)
             sage: A1._coerce_map_from_(M.tensor_field_module((0,1)))
             True
@@ -450,7 +450,7 @@ class DiffFormModule(UniqueRepresentation, Parent):
 
         TEST::
 
-            sage: M = DiffManifold(3, 'M')
+            sage: M = Manifold(3, 'M')
             sage: A2 = M.diff_form_module(2)
             sage: A2._repr_()
             'Module /\\^2(M) of 2-forms on the 3-dimensional differentiable manifold M'
@@ -478,7 +478,7 @@ class DiffFormModule(UniqueRepresentation, Parent):
 
         TEST::
 
-            sage: M = DiffManifold(3, 'M', latex_name=r'\mathcal{M}')
+            sage: M = Manifold(3, 'M', latex_name=r'\mathcal{M}')
             sage: A2 = M.diff_form_module(2)
             sage: A2._latex_()
             '\\Lambda^{2}\\left(\\mathcal{M}\\right)'
@@ -505,7 +505,7 @@ class DiffFormModule(UniqueRepresentation, Parent):
 
         EXAMPLES::
 
-            sage: M = DiffManifold(3, 'M')
+            sage: M = Manifold(3, 'M')
             sage: A2 = M.diff_form_module(2) ; A2
             Module /\^2(M) of 2-forms on the 3-dimensional differentiable
              manifold M
@@ -536,7 +536,7 @@ class DiffFormModule(UniqueRepresentation, Parent):
 
         EXAMPLES::
 
-            sage: M = DiffManifold(3, 'M')
+            sage: M = Manifold(3, 'M')
             sage: M.diff_form_module(1).degree()
             1
             sage: M.diff_form_module(2).degree()
@@ -582,8 +582,7 @@ class DiffFormFreeModule(ExtPowerFreeModule):
 
     Free module of 2-forms on a parallelizable 3-dimensional manifold::
 
-        sage: DiffManifold._clear_cache_() # for doctests only
-        sage: M = DiffManifold(3, 'M')
+        sage: M = Manifold(3, 'M')
         sage: X.<x,y,z> = M.chart()
         sage: XM = M.vector_field_module() ; XM
         Free module X(M) of vector fields on the 3-dimensional differentiable
@@ -600,7 +599,7 @@ class DiffFormFreeModule(ExtPowerFreeModule):
 
     Instead of importing ``DiffFormFreeModule`` in the global namespace, it is
     recommended to use the method
-    :meth:`~sage.manifolds.differentiable.manifold.DiffManifold.diff_form_module`::
+    :meth:`~sage.manifolds.differentiable.manifold.DifferentiableManifold.diff_form_module`::
 
         sage: A = M.diff_form_module(2) ; A
         Free module /\^2(M) of 2-forms on the 3-dimensional differentiable
@@ -773,7 +772,7 @@ class DiffFormFreeModule(ExtPowerFreeModule):
 
         TEST::
 
-            sage: M = DiffManifold(3, 'M')
+            sage: M = Manifold(3, 'M')
             sage: X.<x,y,z> = M.chart()
             sage: from sage.manifolds.differentiable.diff_form_module import \
             ....:                                            DiffFormFreeModule
@@ -809,7 +808,7 @@ class DiffFormFreeModule(ExtPowerFreeModule):
 
         TESTS::
 
-            sage: M = DiffManifold(2, 'M')
+            sage: M = Manifold(2, 'M')
             sage: X.<x,y> = M.chart()  # makes M parallelizable
             sage: A = M.diff_form_module(2)
             sage: a = A._element_constructor_(comp=[[0, x], [-x, 0]],
@@ -859,7 +858,7 @@ class DiffFormFreeModule(ExtPowerFreeModule):
 
         TESTS::
 
-            sage: M = DiffManifold(3, 'M')
+            sage: M = Manifold(3, 'M')
             sage: X.<x,y,z> = M.chart()
             sage: A2 = M.diff_form_module(2)
             sage: U = M.open_subset('U', coord_def = {X: z<0})
@@ -898,7 +897,7 @@ class DiffFormFreeModule(ExtPowerFreeModule):
 
         TESTS::
 
-            sage: M = DiffManifold(3, 'M')
+            sage: M = Manifold(3, 'M')
             sage: X.<x,y,z> = M.chart()
             sage: A = M.diff_form_module(2)
             sage: A._repr_()

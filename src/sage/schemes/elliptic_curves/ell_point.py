@@ -2749,6 +2749,13 @@ class EllipticCurvePoint_number_field(EllipticCurvePoint_field):
             sage: P.archimedean_local_height()
             -0.2206607955468278492183362746930
 
+        See :trac:`19276`::
+
+            sage: K.<a> = NumberField(x^2-x-104)
+            sage: E = EllipticCurve([1, a - 1, 1, -816765673272*a - 7931030674178, 1478955604013312315*a + 14361086227143654561])
+            sage: P = E(5393511/49*a + 52372721/49 , -33896210324/343*a - 329141996591/343 )
+            sage: P.height()
+            0.974232017827740
         """
         E = self.curve()
         K = E.base_ring()
@@ -2776,14 +2783,24 @@ class EllipticCurvePoint_number_field(EllipticCurvePoint_field):
             vv = K.embeddings(rings.RealField(max(2*prec, prec_v)))[0]
         else:
             vv = refine_embedding(v, 2*prec)  # vv.prec() = max(2*prec, prec_v)
+
+        absdisc = vv(E.discriminant()).abs()
+        while absdisc==0:
+            vv = refine_embedding(vv)
+            # print("doubling precision")
+            absdisc = vv(E.discriminant()).abs()
+        temp = 0 if absdisc>=1 else absdisc.log()/3
+
         b2, b4, b6, b8 = [vv(b) for b in E.b_invariants()]
-        H = max(4, abs(b2), 2*abs(b4), 2*abs(b6), abs(b8))
+        H = max(vv(4), abs(b2), 2*abs(b4), 2*abs(b6), abs(b8))
+
         # The following comes from Silverman Theorem 4.2.  Silverman
         # uses decimal precision d, so his term (5/3)d =
         # (5/3)*(log(2)/log(10))*prec = 0.5017*prec, which we round
         # up.  The rest of the expression was wrongly transcribed in
         # Sage versions <5.6 (see #12509).
-        nterms = int(math.ceil(0.51*prec + 0.5 + 3*math.log(7+(4*math.log(H)+math.log(max(1, ~abs(v(E.discriminant())))))/3)/4))
+        nterms = int(math.ceil(0.51*prec + 0.5 + 0.75 * (7 + 4*H.log()/3 - temp).log()))
+
         b2p = b2 - 12
         b4p = b4 - b2 + 6
         b6p = b6 - 2*b4 + b2 - 4

@@ -14,12 +14,11 @@ AUTHORS:
 
 REFERENCES:
 
-- Chap. 2 of J.M. Lee : *Introduction to Topological Manifolds*, 2nd ed.,
-  Springer (New York) (2011)
+- Chap. 2 of [Lee11]_ J.M. Lee: *Introduction to Topological Manifolds*,
+  2nd ed., Springer (New York) (2011)
 
-- Chap. 1 of J.M. Lee : *Introduction to Smooth Manifolds*, 2nd ed., Springer
-  (New York) (2013)
-
+- Chap. 1 of [Lee13]_ J.M. Lee : *Introduction to Smooth Manifolds*,
+  2nd ed., Springer (New York) (2013)
 """
 
 #*****************************************************************************
@@ -48,32 +47,32 @@ class Chart(WithEqualityById, SageObject):
     of `M` and `\varphi: U \rightarrow V \subset K^n` is a homeomorphism from
     `U` to an open subset `V` of `K^n`.
 
-    The components `(x^1,\ldots,x^n)` of `\varphi`, defined by
-    `\varphi(p) = (x^1(p),\ldots,x^n(p))\in K^n` for any point `p\in U`,
-    are called the *coordinates* of the chart `(U,\varphi)`.
+    The components `(x^1, \ldots, x^n)` of `\varphi`, defined by
+    `\varphi(p) = (x^1(p), \ldots, x^n(p)) \in K^n` for any point
+    `p \in U`, are called the *coordinates* of the chart `(U, \varphi)`.
 
     INPUT:
 
     - ``domain`` -- open subset `U` on which the chart is defined (must be
       an instance of :class:`~sage.manifolds.manifold.TopologicalManifold`)
-    - ``coordinates`` -- (default: '' (empty string)) single string defining
-      the coordinate symbols, with ' ' (whitespace) as a separator; each item
-      has at most two fields, separated by ':':
+    - ``coordinates`` -- (default: ``''`` (empty string)) single string
+      defining the coordinate symbols, with ``' '`` (whitespace) as a
+      separator; each item has at most two fields, separated by ``:``:
 
-        1. The coordinate symbol (a letter or a few letters)
-        2. (optional) The LaTeX spelling of the coordinate; if not provided the
-           coordinate symbol given in the first field will be used.
+      1. The coordinate symbol (a letter or a few letters)
+      2. (optional) The LaTeX spelling of the coordinate; if not provided the
+         coordinate symbol given in the first field will be used.
 
       If it contains any LaTeX expression, the string ``coordinates`` must be
       declared with the prefix 'r' (for "raw") to allow for a proper treatment
       of LaTeX's backslash character (see examples below).
       If no LaTeX spelling is to be set for any coordinate, the argument
       ``coordinates`` can be omitted when the shortcut operator ``<,>`` is
-      used via Sage preparser (see examples below)
+      used via Sage preparser (see examples below).
     - ``names`` -- (default: ``None``) unused argument, except if
       ``coordinates`` is not provided; it must then be a tuple containing
       the coordinate symbols (this is guaranteed if the shortcut operator
-      ``<,>`` is used).
+      ``<,>`` is used)
 
     EXAMPLES:
 
@@ -87,7 +86,8 @@ class Chart(WithEqualityById, SageObject):
         sage: type(X)
         <class 'sage.manifolds.chart.Chart'>
 
-    To manipulate the coordinates `(x,y)` as global variables, one has to set::
+    To manipulate the coordinates `(x,y)` as global variables,
+    one has to set::
 
         sage: x,y = X[:]
 
@@ -105,11 +105,6 @@ class Chart(WithEqualityById, SageObject):
         y
         sage: x is X[0] and y is X[1]
         True
-
-    The trick is performed by Sage preparser::
-
-        sage: preparse("X.<x,y> = M.chart()")
-        "X = M.chart(names=('x', 'y',)); (x, y,) = X._first_ngens(2)"
 
     Note that ``x`` and ``y`` declared in ``<x,y>`` are mere Python variable
     names and do not have to coincide with the coordinate symbols;
@@ -135,12 +130,12 @@ class Chart(WithEqualityById, SageObject):
         sage: M = Manifold(2, 'M', field='complex', type='topological')
         sage: X.<x,y> = M.chart()
 
-    In the above example, the chart X covers entirely the manifold M::
+    In the above example, the chart X covers entirely the manifold ``M``::
 
         sage: X.domain()
         Complex 2-dimensional topological manifold M
 
-    Of course, one may declare a chart only on an open subset of M::
+    Of course, one may declare a chart only on an open subset of ``M``::
 
         sage: U = M.open_subset('U')
         sage: Y.<z1, z2> = U.chart(r'z1:\zeta_1 z2:\zeta_2'); Y
@@ -211,8 +206,8 @@ class Chart(WithEqualityById, SageObject):
     charts whose name can be skipped in the argument list of functions having
     an optional ``chart=`` argument.
 
-    The chart map `\varphi` acting on a point is obtained by means of the
-    call operator, i.e. the operator ``()``::
+    The chart map `\varphi` acting on a point is obtained by passing
+    it as an input to the map::
 
         sage: p = M.point((1+i, 2), chart=X); p
         Point on the Complex 2-dimensional topological manifold M
@@ -266,10 +261,7 @@ class Chart(WithEqualityById, SageObject):
         # _init_coordinates, which sets self._xx and
         # which may be redefined for subclasses (for instance RealChart).
         self._init_coordinates(coord_list)
-        coord_string = ''
-        for x in self._xx:
-            coord_string += str(x) + ' '
-        coord_string = coord_string[:-1]
+        coord_string = ' '.join(str(x) for x in self._xx)
         if coord_string in self._domain._charts_by_coord:
             raise ValueError("the chart with coordinates " + coord_string +
                              " has already been declared on " +
@@ -354,15 +346,11 @@ class Chart(WithEqualityById, SageObject):
 
             sage: M = Manifold(2, 'M', field='complex', type='topological')
             sage: X.<x,y> = M.chart()
-            sage: X._repr_()
-            'Chart (M, (x, y))'
-            sage: repr(X)  # indirect doctest
-            'Chart (M, (x, y))'
-            sage: X  # indirect doctest
+            sage: X
             Chart (M, (x, y))
 
         """
-        return 'Chart (' + self._domain._name + ', ' + str(self._xx) + ')'
+        return 'Chart ({}, {})'.format(self._domain._name, self._xx)
 
     def _latex_(self):
         r"""
@@ -377,7 +365,7 @@ class Chart(WithEqualityById, SageObject):
             sage: Y.<z1, z2> = M.chart(r'z1:\zeta_1 z2:\zeta2')
             sage: Y._latex_()
             '\\left(M,({\\zeta_1}, {\\zeta2})\\right)'
-            sage: latex(Y)  # indirect doctest
+            sage: latex(Y)
             \left(M,({\zeta_1}, {\zeta2})\right)
 
         """
@@ -402,7 +390,7 @@ class Chart(WithEqualityById, SageObject):
 
     def __reduce__(self):
         r"""
-        Reduction function for the pickle protocole.
+        Reduction function for the pickle protocol.
 
         TESTS::
 
@@ -480,7 +468,7 @@ class Chart(WithEqualityById, SageObject):
         it does not require ``loads(dumps(self)) == self``.
         It however checks that ``loads(dumps(self))`` proceeds without any
         error and results in an object that is a chart with the same
-        coordinates as self.
+        coordinates as ``self``.
 
         TESTS::
 
@@ -504,13 +492,13 @@ class Chart(WithEqualityById, SageObject):
 
         INPUT:
 
-        - ``i`` -- index of the coordinate; if [:] all the coordinates
-            are returned
+        - ``i`` -- index of the coordinate; if the slice ``[:]``, then all
+            the coordinates are returned
 
         OUTPUT:
 
         - the coordinate of index ``i`` or all the coordinates (as a tuple) if
-          ``i`` is [:]
+          ``i`` is the slice ``[:]``
 
         EXAMPLES::
 
@@ -535,9 +523,20 @@ class Chart(WithEqualityById, SageObject):
             sage: X[:]
             (x, y)
 
+        We check that slices are properly shifted as well::
+
+            sage: X[2:]
+            (y,)
+            sage: X[:2]
+            (x,)
         """
         if isinstance(i, slice):
-            return self._xx
+            start,stop = i.start,i.stop
+            if start is not None:
+                start -= self._manifold._sindex
+            if stop is not None:
+                stop -= self._manifold._sindex
+            return self._xx[start:stop:i.step]
         else:
             return self._xx[i-self._manifold._sindex]
 
@@ -761,8 +760,8 @@ class Chart(WithEqualityById, SageObject):
         else:
             parameters = None
         # Check of restrictions:
-        if self._restrictions != []:
-            substitutions = dict(zip(self._xx, coordinates))
+        if self._restrictions:
+            substitutions = {x: coordintes[i] for i,x in enumerate(self._xx)}
             if parameters:
                 substitutions.update(parameters)
             for restrict in self._restrictions:
@@ -782,10 +781,10 @@ class Chart(WithEqualityById, SageObject):
                        restrictions1=None, restrictions2=None):
         r"""
         Construct the transition map between the current chart,
-        `(U,\varphi)` say, and another one, `(V,\psi)` say.
+        `(U, \varphi)` say, and another one, `(V, \psi)` say.
 
-        If `n` is the manifold's dimension, the *transition map* is the
-        map
+        If `n` is the manifold's dimension, the *transition map*
+        is the map
 
         .. MATH::
 
@@ -793,19 +792,19 @@ class Chart(WithEqualityById, SageObject):
             \rightarrow \psi(U\cap V) \subset K^n,
 
         where `K` is the manifold's base field. In other words, the
-        transition map expresses the coordinates `(y^1,\ldots,y^n)` of
-        `(V,\psi)` in terms of the coordinates `(x^1,\ldots,x^n)` of
-        `(U,\varphi)` on the open subset where the two charts intersect, i.e.
-        on `U\cap V`.
+        transition map expresses the coordinates `(y^1, \ldots, y^n)` of
+        `(V, \psi)` in terms of the coordinates `(x^1, \ldots, x^n)` of
+        `(U, \varphi)` on the open subset where the two charts intersect,
+        i.e. on `U \cap V`.
 
         INPUT:
 
-        - ``other`` -- the chart `(V,\psi)`
-        - ``transformations`` -- tuple (or list) `(Y_1,\ldots,Y_2)`, where
+        - ``other`` -- the chart `(V, \psi)`
+        - ``transformations`` -- tuple (or list) `(Y_1, \ldots, Y_n)`, where
           `Y_i` is the symbolic expression of the coordinate `y^i` in terms
-          of the coordinates `(x^1,\ldots,x^n)`
+          of the coordinates `(x^1, \ldots, x^n)`
         - ``intersection_name`` -- (default: ``None``) name to be given to the
-          subset `U\cap V` if the latter differs from `U` or `V`
+          subset `U \cap V` if the latter differs from `U` or `V`
         - ``restrictions1`` -- (default: ``None``) list of conditions on the
           coordinates of the current chart that define `U\cap V` if the
           latter differs from `U`. ``restrictions1`` must be a list of
@@ -825,8 +824,8 @@ class Chart(WithEqualityById, SageObject):
 
         OUTPUT:
 
-        - The transition map `\psi\circ\varphi^{-1}` defined on `U\cap V`, as an
-          instance of :class:`CoordChange`.
+        - the transition map `\psi \circ \varphi^{-1}` defined on
+          `U \cap V`, as an instance of :class:`CoordChange`
 
         EXAMPLES:
 
@@ -859,8 +858,8 @@ class Chart(WithEqualityById, SageObject):
             sage: M.atlas()
             [Chart (U, (x,)), Chart (V, (y,)), Chart (W, (x,)), Chart (W, (y,))]
 
-        Transition map between the spherical chart and the Cartesian one on
-        `\RR^2`::
+        Transition map between the spherical chart and the Cartesian
+        one on `\RR^2`::
 
             sage: M = Manifold(2, 'R^2', type='topological')
             sage: c_cart.<x,y> = M.chart()
@@ -874,7 +873,7 @@ class Chart(WithEqualityById, SageObject):
             x = r*cos(phi)
             y = r*sin(phi)
 
-        In this case, no new subset has been created since `U\cap M = U`::
+        In this case, no new subset has been created since `U \cap M = U`::
 
             sage: M.list_of_subsets()
             [2-dimensional topological manifold R^2,
@@ -912,9 +911,9 @@ class RealChart(Chart):
     `\varphi: U \rightarrow V \subset \RR^n` is a homeomorphism from `U` to
     an open subset `V` of `\RR^n`.
 
-    The components `(x^1,\ldots,x^n)` of `\varphi`, defined by
-    `\varphi(p) = (x^1(p),\ldots,x^n(p))\in \RR^n` for any point `p\in U`,
-    are called the *coordinates* of the chart `(U,\varphi)`.
+    The components `(x^1, \ldots, x^n)` of `\varphi`, defined by
+    `\varphi(p) = (x^1(p), \ldots, x^n(p))\in \RR^n` for any point `p \in U`,
+    are called the *coordinates* of the chart `(U, \varphi)`.
 
     INPUT:
 
@@ -979,14 +978,9 @@ class RealChart(Chart):
         sage: y is c_cart[2]
         True
 
-    The trick is performed by Sage preparser::
-
-        sage: preparse("c_cart.<x,y,z> = M.chart()")
-        "c_cart = M.chart(names=('x', 'y', 'z',)); (x, y, z,) = c_cart._first_ngens(3)"
-
     Note that ``x, y, z`` declared in ``<x,y,z>`` are mere Python variable
-    names and do not have to coincide with the coordinate symbols; for instance,
-    one may write::
+    names and do not have to coincide with the coordinate symbols; for
+    instance, one may write::
 
         sage: M = Manifold(3, 'R^3', r'\RR^3', type='topological', start_index=1)
         sage: c_cart.<x1,y1,z1> = M.chart('x y z'); c_cart
@@ -1008,7 +1002,7 @@ class RealChart(Chart):
         sage: c_cart.<x,y,z> = M.chart()
 
     Spherical coordinates on the subset `U` of `\RR^3` that is the
-    complement of the half-plane `\{y=0, x\geq 0\}`::
+    complement of the half-plane `\{y=0, x \geq 0\}`::
 
         sage: U = M.open_subset('U')
         sage: c_spher.<r,th,ph> = U.chart(r'r:(0,+oo) th:(0,pi):\theta ph:(0,2*pi):\phi')
@@ -1036,7 +1030,7 @@ class RealChart(Chart):
         sage: (x1, x2, x3) == (r, th, ph)
         True
 
-    The full set of coordinates is obtained by means of the operator [:]::
+    The full set of coordinates is obtained by means of the slice ``[:]``::
 
         sage: c_cart[:]
         (x, y, z)
@@ -1072,7 +1066,6 @@ class RealChart(Chart):
 
         sage: U.atlas()
         [Chart (U, (r, th, ph))]
-
 
     Manifold subsets have a *default chart*, which, unless changed via the
     method
@@ -1110,8 +1103,8 @@ class RealChart(Chart):
 
     Cartesian coordinates on `U` as an example of chart construction with
     coordinate restrictions: since `U` is the complement of the half-plane
-    `\{y=0, x\geq 0\}`, we must have `y\not=0` or `x<0` on U. Accordingly,
-    we set::
+    `\{y = 0, x \geq 0\}`, we must have `y \neq 0` or `x < 0` on U.
+    Accordingly, we set::
 
         sage: c_cartU.<x,y,z> = U.chart()
         sage: c_cartU.add_restrictions((y!=0, x<0)) # the tuple (y!=0, x<0) means y!=0 or x<0
@@ -1244,17 +1237,16 @@ class RealChart(Chart):
         OUTPUT:
 
         - the coordinate bounds as the tuple
-          ((xmin, min_included), (xmax, max_included))
-          where
+          ``((xmin, min_included), (xmax, max_included))`` where
 
-          - xmin is the coordinate lower bound
-          - min_included is a Boolean, indicating whether the coordinate can
-            take the value xmin, i.e. xmin is a strict lower bound iff
-            min_included is False.
-          - xmin is the coordinate upper bound
-          - max_included is a Boolean, indicating whether the coordinate can
-            take the value xmax, i.e. xmax is a strict upper bound iff
-            max_included is False.
+          - ``xmin`` is the coordinate lower bound
+          - ``min_included`` is a boolean, indicating whether the coordinate
+            can take the value ``xmin``, i.e. ``xmin`` is a strict lower
+            bound iff ``min_included`` is ``False``
+          - ``xmin`` is the coordinate upper bound
+          - ``max_included`` is a boolean, indicating whether the coordinate
+            can take the value ``xmax``, i.e. ``xmax`` is a strict upper
+            bound iff ``max_included`` is ``False``
 
         EXAMPLES:
 
@@ -1301,9 +1293,9 @@ class RealChart(Chart):
 
         INPUT:
 
-        - ``xx`` -- (default: ``None``) symbolic expression corresponding to a
-          coordinate of the current chart; if ``None``, the ranges of all
-          coordinates are displayed.
+        - ``xx`` -- (default: ``None``) symbolic expression corresponding
+          to a coordinate of the current chart; if ``None``, the ranges of
+          all coordinates are displayed
 
         EXAMPLES:
 
@@ -2037,12 +2029,12 @@ class CoordChange(SageObject):
 
         - ``dom1`` -- open subset of the domain of ``chart1``
         - ``dom2`` -- (default: ``None``) open subset of the domain of
-          ``chart2``; if ``None``, ``dom1`` is assumed.
+          ``chart2``; if ``None``, ``dom1`` is assumed
 
         OUTPUT:
 
-        - the transition map between the charts restricted to the specified
-          subsets.
+        - the transition map between the charts restricted to the
+          specified subsets
 
         EXAMPLE::
 
@@ -2131,3 +2123,4 @@ class CoordChange(SageObject):
         return FormattedExpansion(rtxt, rlatex)
 
     disp = display
+

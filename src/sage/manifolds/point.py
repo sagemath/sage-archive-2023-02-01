@@ -13,10 +13,10 @@ AUTHORS:
 
 REFERENCES:
 
-- J.M. Lee : *Introduction to Topological Manifolds*, 2nd ed., Springer (New
-  York) (2011)
-- J.M. Lee : *Introduction to Smooth Manifolds*, 2nd ed., Springer (New York,
-  2013)
+- [Lee11]_ J.M. Lee : *Introduction to Topological Manifolds*, 2nd ed.,
+  Springer (New York) (2011)
+- [Lee13]_ J.M. Lee : *Introduction to Smooth Manifolds*, 2nd ed.,
+  Springer (New York, 2013)
 
 EXAMPLES:
 
@@ -91,7 +91,7 @@ class TopologicalManifoldPoint(Element):
       if ``None``, the LaTeX symbol is set to ``name``
     - ``check_coords`` -- (default: ``True``) determines whether ``coords`` are
       valid coordinates for the chart ``chart``; for symbolic coordinates, it
-      is recommended to set ``check_coords`` to ``False``.
+      is recommended to set ``check_coords`` to ``False``
 
     EXAMPLES:
 
@@ -178,8 +178,8 @@ class TopologicalManifoldPoint(Element):
                 chart = self._subset._def_chart
             elif self._subset._is_open:
                 if chart not in self._subset._atlas:
-                    raise ValueError("the {}".format(chart) + " has not " +
-                                 "been defined on the {}".format(self._subset))
+                    raise ValueError("the {} has not been".format(chart) +
+                                     "defined on the {}".format(self._subset))
             if check_coords:
                 if not chart.valid_coordinates(*coords):
                     raise ValueError("the coordinates {}".format(coords) +

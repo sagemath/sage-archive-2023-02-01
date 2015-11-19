@@ -9,18 +9,19 @@ dimension* `n` *over K* is a topological space `M` such that
 - `M` is second countable,
 - every point in `M` has a neighborhood homeomorphic to `K^n`
 
-Topological manifolds are implemented via the class :class:`TopologicalManifold`.
-Open subsets of topological manifolds are also implemented via
-:class:`TopologicalManifold`, since they are topological manifolds by themselves.
+Topological manifolds are implemented via the class
+:class:`TopologicalManifold`. Open subsets of topological manifolds
+are also implemented via :class:`TopologicalManifold`, since they are
+topological manifolds by themselves.
 
-In the current setting, topological manifolds are mostly described by means of
-charts (see :class:`~sage.manifolds.chart.Chart`).
+In the current setting, topological manifolds are mostly described by
+means of charts (see :class:`~sage.manifolds.chart.Chart`).
 
-:class:`TopologicalManifold` serves as a base class for more specific manifold
-classes.
+:class:`TopologicalManifold` serves as a base class for more specific
+manifold classes.
 
-The user interface is provided by the generic function :func:`Manifold`, with
-the argument ``type`` set to ``'topological'``.
+The user interface is provided by the generic function :func:`Manifold`,
+with the argument ``type`` set to ``'topological'``.
 
 .. RUBRIC:: Example 1: the 2-sphere as a topological manifold of dimension
   2 over `\RR`
@@ -52,8 +53,8 @@ North pole to the equatorial plane::
     Chart (U, (x, y))
 
 Thanks to the operator ``<x,y>`` on the left-hand side, the coordinates
-declared in a chart (here `x` and `y`), are accessible by their names; they are
-Sage's symbolic variables::
+declared in a chart (here `x` and `y`), are accessible by their names;
+they are Sage's symbolic variables::
 
     sage: y
     y
@@ -85,10 +86,11 @@ and `V`::
 
     sage: M.declare_union(U,V)
 
-and we provide the transition map between the charts ``stereoN`` = `(U, (x, y))`
-and ``stereoS`` = `(V, (u, v))`, denoting by `W` the intersection of `U` and `V`
-(`W` is the subset of `U` defined by `x^2+y^2\not=0`, as well as the subset of
-`V` defined by `u^2+v^2\not=0`)::
+and we provide the transition map between the charts ``stereoN`` =
+`(U, (x, y))` and ``stereoS`` = `(V, (u, v))`, denoting by `W` the
+intersection of `U` and `V` (`W` is the subset of `U` defined by
+`x^2 + y^2 \neq 0`, as well as the subset of `V` defined by
+`u^2 + v^2 \neq 0`)::
 
     sage: stereoN_to_S = stereoN.transition_map(stereoS, [x/(x^2+y^2), y/(x^2+y^2)],
     ....:                          intersection_name='W', restrictions1= x^2+y^2!=0,
@@ -99,11 +101,12 @@ and ``stereoS`` = `(V, (u, v))`, denoting by `W` the intersection of `U` and `V`
     u = x/(x^2 + y^2)
     v = y/(x^2 + y^2)
 
-We give the name ``W`` to the Python variable representing `W=U\cap V`::
+We give the name ``W`` to the Python variable representing `W = U \cap V`::
 
     sage: W = U.intersection(V)
 
-The inverse of the transition map is computed by the method ``inverse()``::
+The inverse of the transition map is computed by the method
+:meth:`sage.manifolds.chart.CoordChange.inverse`::
 
     sage: stereoN_to_S.inverse()
     Change of coordinates from Chart (W, (u, v)) to Chart (W, (x, y))
@@ -124,7 +127,6 @@ At this stage, we have four open subsets on `S^2`::
     sage: N in W or S in W
     False
 
-
 The North pole lies in `V` and the South pole in `U`::
 
     sage: N in V, N in U
@@ -136,7 +138,8 @@ The manifold's (user) atlas contains four charts, two of them
 being restrictions of charts to a smaller domain::
 
     sage: M.atlas()
-    [Chart (U, (x, y)), Chart (V, (u, v)), Chart (W, (x, y)), Chart (W, (u, v))]
+    [Chart (U, (x, y)), Chart (V, (u, v)),
+     Chart (W, (x, y)), Chart (W, (u, v))]
 
 Let us consider the point of coordinates (1,2) in the chart ``stereoN``::
 
@@ -176,8 +179,8 @@ over `\CC`::
     Complex 1-dimensional topological manifold C*
 
 We introduce a first open subset, which is actually
-`\CC = \CC^*\setminus\{\infty\}` if we interpret `\CC^*` as the Alexandroff
-one-point compactification of `\CC`::
+`\CC = \CC^*\setminus\{\infty\}` if we interpret `\CC^*` as the
+Alexandroff one-point compactification of `\CC`::
 
     sage: U = M.open_subset('U')
 
@@ -186,7 +189,7 @@ we denote the associated coordinate by `z`::
 
     sage: Z.<z> = U.chart()
 
-The origin of the complex plane is the point of coordinate `z=0`::
+The origin of the complex plane is the point of coordinate `z = 0`::
 
     sage: O = U.point((0,), chart=Z, name='O'); O
     Point O on the Complex 1-dimensional topological manifold C*
@@ -204,13 +207,13 @@ coordinate 0 in this chart::
     sage: inf
     Point inf on the Complex 1-dimensional topological manifold C*
 
-To fully construct the Riemann sphere, we declare that it is the union of `U`
-and `V`::
+To fully construct the Riemann sphere, we declare that it is the union
+of `U` and `V`::
 
     sage: M.declare_union(U,V)
 
-and we provide the transition map between the two charts as `w=1/z` on
-on `A = U\cap V`::
+and we provide the transition map between the two charts as `w = 1 / z`
+on `A = U \cap V`::
 
     sage: Z_to_W = Z.transition_map(W, 1/z, intersection_name='A',
     ....:                           restrictions1= z!=0, restrictions2= w!=0)
@@ -259,12 +262,14 @@ AUTHORS:
 
 REFERENCES:
 
-- J.M. Lee : *Introduction to Topological Manifolds*, 2nd ed., Springer (New
-  York) (2011)
-- S. Kobayashi & K. Nomizu : *Foundations of Differential Geometry*, vol. 1,
-  Interscience Publishers (New York) (1963)
-- D. Huybrechts : *Complex Geometry*, Springer (Berlin) (2005)
-
+.. [Lee11] J.M. Lee : *Introduction to Topological Manifolds*,
+   2nd ed., Springer (New York) (2011).
+.. [Lee13] J.M. Lee : *Introduction to Smooth Manifolds*,
+   2nd ed., Springer (New York) (2013)
+.. [KN63] S. Kobayashi & K. Nomizu : *Foundations of Differential Geometry*,
+   vol. 1, Interscience Publishers (New York) (1963).
+.. [Huybrechts05] D. Huybrechts : *Complex Geometry*,
+   Springer (Berlin) (2005).
 """
 
 #*****************************************************************************
@@ -293,8 +298,8 @@ class TopologicalManifold(TopologicalManifoldSubset):
     dimension* `n` *over K* is a topological space `M` such that
 
     - `M` is a Hausdorff space,
-    - `M` is second countable,
-    - every point in `M` has a neighborhood homeomorphic to `K^n`
+    - `M` is second countable, and
+    - every point in `M` has a neighborhood homeomorphic to `K^n`.
 
     This is a Sage *parent* class, the corresponding *element*
     class being :class:`~sage.manifolds.point.TopologicalManifoldPoint`.
@@ -303,22 +308,22 @@ class TopologicalManifold(TopologicalManifoldSubset):
 
     - ``n`` -- positive integer; dimension of the manifold
     - ``name`` -- string; name (symbol) given to the manifold
-    - ``latex_name`` -- (default: ``None``) string; LaTeX symbol to denote the
-      manifold; if none is provided, it is set to ``name``
+    - ``latex_name`` -- (default: ``None``) string; LaTeX symbol to
+      denote the manifold; if none is provided, it is set to ``name``
     - ``field`` -- (default: ``'real'``) field `K` on which the manifold is
       defined; allowed values are
 
-        - ``'real'`` or an object of type ``RealField`` (e.g. ``RR``) for a
-          manifold over `\RR`
-        - ``'complex'`` or an object of type ``ComplexField`` (e.g. ``CC``) for
-          a manifold over `\CC`
-        - an object in the category of topological fields (see
-          :class:`~sage.categories.fields.Fields` and
-          :class:`~sage.categories.topological_spaces.TopologicalSpaces`)
-          for other types of manifolds
+      - ``'real'`` or an object of type ``RealField`` (e.g., ``RR``) for
+        a manifold over `\RR`
+      - ``'complex'`` or an object of type ``ComplexField`` (e.g., ``CC``)
+        for a manifold over `\CC`
+      - an object in the category of topological fields (see
+        :class:`~sage.categories.fields.Fields` and
+        :class:`~sage.categories.topological_spaces.TopologicalSpaces`)
+        for other types of manifolds
 
     - ``start_index`` -- (default: 0) integer; lower value of the range of
-      indices used for "indexed objects" on the manifold, e.g. coordinates
+      indices used for "indexed objects" on the manifold, e.g., coordinates
       in a chart
     - ``category`` -- (default: ``None``) to specify the category; if ``None``,
       ``Manifolds(field)`` is assumed (see the category
@@ -343,8 +348,8 @@ class TopologicalManifold(TopologicalManifoldSubset):
         sage: dim(M)
         4
 
-    The input parameter ``start_index`` defines the range of indices on the
-    manifold::
+    The input parameter ``start_index`` defines the range of indices
+    on the manifold::
 
         sage: M = Manifold(4, 'M', type='topological')
         sage: list(M.irange())
@@ -407,8 +412,8 @@ class TopologicalManifold(TopologicalManifoldSubset):
         sage: isinstance(p, sage.manifolds.point.TopologicalManifoldPoint)
         True
 
-    Since an open subset of a topological manifold `M` is itself a topological
-    manifold, open subsets of `M` are instances of the class
+    Since an open subset of a topological manifold `M` is itself a
+    topological manifold, open subsets of `M` are instances of the class
     :class:`TopologicalManifold`::
 
         sage: U = M.open_subset('U'); U
@@ -450,8 +455,7 @@ class TopologicalManifold(TopologicalManifoldSubset):
         if not isinstance(n, (int, Integer)):
             raise TypeError("the manifold dimension must be an integer")
         if n<1:
-            raise ValueError("the manifold dimension must be strictly " +
-                             "positive")
+            raise ValueError("the manifold dimension must be strictly positive")
         self._dim = n
         if field == 'real':
             self._field = RR
@@ -472,8 +476,7 @@ class TopologicalManifold(TopologicalManifoldSubset):
         if not isinstance(start_index, (int, Integer)):
             raise TypeError("the starting index must be an integer")
         self._sindex = start_index
-        if category is None:
-            category = Manifolds(self._field)
+        category = Manifolds(self._field).or_subcategory(category)
         if ambient_manifold is None:
             ambient_manifold = self
         elif not isinstance(ambient_manifold, TopologicalManifold):
@@ -499,7 +502,7 @@ class TopologicalManifold(TopologicalManifoldSubset):
 
     def _repr_(self):
         r"""
-        String representation of the manifold.
+        Return a string representation of the manifold.
 
         TESTS::
 
@@ -535,12 +538,11 @@ class TopologicalManifold(TopologicalManifoldSubset):
             return "{}-dimensional topological manifold {} over the {}".format(
                                             self._dim, self._name, self._field)
         else:
-            return "Open subset {} of the {}".format(self._name,
-                                                     self._manifold)
+            return "Open subset {} of the {}".format(self._name, self._manifold)
 
     def _latex_(self):
         r"""
-        LaTeX representation of the manifold.
+        Return a LaTeX representation of the manifold.
 
         TESTS::
 
@@ -561,7 +563,7 @@ class TopologicalManifold(TopologicalManifoldSubset):
 
     def __reduce__(self):
         r"""
-        Reduction function for the pickle protocole.
+        Reduction function for the pickle protocol.
 
         TESTS::
 
@@ -611,7 +613,7 @@ class TopologicalManifold(TopologicalManifoldSubset):
         it does not require ``loads(dumps(self)) == self``.
         It however checks that ``loads(dumps(self))`` proceeds without any
         error and results in an object that is a manifold of the same type as
-        ``self``, with some identical characteristics (dimension, name).
+        ``self``, with some identical characteristics ``(dimension, name)``.
 
         TESTS::
 
@@ -1351,23 +1353,22 @@ class TopologicalManifold(TopologicalManifoldSubset):
         # Transition maps on the result inferred from those of self:
         for chart1 in coord_def:
             for chart2 in coord_def:
-                if chart2 != chart1:
-                    if (chart1, chart2) in self._coord_changes:
-                        self._coord_changes[(chart1, chart2)].restrict(resu)
+                if chart2 != chart1 and (chart1, chart2) in self._coord_changes:
+                    self._coord_changes[(chart1, chart2)].restrict(resu)
         return resu
 
     def chart(self, coordinates='', names=None):
         r"""
         Define a chart, the domain of which is the manifold.
 
-        A *chart* is a pair `(U,\varphi)`, where `U` is the current manifold
-        and `\varphi: U \rightarrow V \subset K^n`
-        is a homeomorphism from `U` to an open subset `V` of `K^n`, `K` being
-        the field on which the manifold is defined.
+        A *chart* is a pair `(U, \varphi)`, where `U` is the current
+        manifold and `\varphi: U \rightarrow V \subset K^n`
+        is a homeomorphism from `U` to an open subset `V` of `K^n`, `K`
+        being the field on which the manifold is defined.
 
-        The components `(x^1,\ldots,x^n)` of `\varphi`, defined by
-        `\varphi(p) = (x^1(p),\ldots,x^n(p))\in K^n` for any point `p\in U`,
-        are called the *coordinates* of the chart `(U,\varphi)`.
+        The components `(x^1, \ldots, x^n)` of `\varphi`, defined by
+        `\varphi(p) = (x^1(p), \ldots, x^n(p)) \in K^n` for any point
+        `p \in U`, are called the *coordinates* of the chart `(U, \varphi)`.
 
         See :class:`~sage.manifolds.chart.Chart` for a complete
         documentation.
@@ -1538,19 +1539,19 @@ def Manifold(dim, name, latex_name=None, field='real', type='smooth',
 
     - ``dim`` -- positive integer; dimension of the manifold
     - ``name`` -- string; name (symbol) given to the manifold
-    - ``latex_name`` -- (default: ``None``) string; LaTeX symbol to denote the
-      manifold; if none is provided, it is set to ``name``
-    - ``field`` -- (default: ``'real'``) field `K` on which the manifold is
-      defined; allowed values are
+    - ``latex_name`` -- (default: ``None``) string; LaTeX symbol to
+      denote the manifold; if none is provided, it is set to ``name``
+    - ``field`` -- (default: ``'real'``) field `K` on which the
+      manifold is defined; allowed values are
 
-        - ``'real'`` or an object of type ``RealField`` (e.g. ``RR``) for a
-          manifold over `\RR`
-        - ``'complex'`` or an object of type ``ComplexField`` (e.g. ``CC``) for
-          a manifold over `\CC`
-        - an object in the category of topological fields (see
-          :class:`~sage.categories.fields.Fields` and
-          :class:`~sage.categories.topological_spaces.TopologicalSpaces`)
-          for other types of manifolds
+      - ``'real'`` or an object of type ``RealField`` (e.g. ``RR``) for a
+        manifold over `\RR`
+      - ``'complex'`` or an object of type ``ComplexField`` (e.g. ``CC``) for
+        a manifold over `\CC`
+      - an object in the category of topological fields (see
+        :class:`~sage.categories.fields.Fields` and
+        :class:`~sage.categories.topological_spaces.TopologicalSpaces`)
+        for other types of manifolds
 
     - ``type`` -- (default: ``'smooth'``) to specify the type of manifold;
       allowed values are
@@ -1579,8 +1580,8 @@ def Manifold(dim, name, latex_name=None, field='real', type='smooth',
         sage: M = Manifold(3, 'M', type='topological'); M
         3-dimensional topological manifold M
 
-    Given the default value of the parameter ``field``, the above is equivalent
-    to::
+    Given the default value of the parameter ``field``, the above is
+    equivalent to::
 
         sage: M = Manifold(3, 'M', type='topological', field='real'); M
         3-dimensional topological manifold M
@@ -1673,3 +1674,4 @@ def Manifold(dim, name, latex_name=None, field='real', type='smooth',
                                    field=field, start_index=start_index)
     raise NotImplementedError("manifolds of type {} are not ".format(type_) +
                               "implemented")
+

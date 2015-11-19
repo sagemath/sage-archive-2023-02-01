@@ -78,8 +78,8 @@ REFERENCES:
    http://www.sciencedirect.com/science/article/pii/0001870887900636
 
 .. [BKSTY06] A. Buch, A. Kresch, M. Shimozono, H. Tamvakis, and A. Yong.
-   *Stable Grothendieck polynomials and* `K`-*theory factor sequences*.
-   Math. Ann. **340** Issue 2, (2008), pp. 359--382. :arxiv:`math/0601514`
+   *Stable Grothendieck polynomials and* `K`-*theoretic factor sequences*.
+   Math. Ann. **340** Issue 2, (2008), pp. 359--382. :arxiv:`math/0601514v1`.
 """
 #*****************************************************************************
 #       Copyright (C) 2012 Travis Scrimshaw <tscrim@ucdavis.edu>
@@ -105,30 +105,37 @@ def RSK(obj1=None, obj2=None, insertion='RSK', check_standard=False, **options):
     r"""
     Perform the Robinson-Schensted-Knuth (RSK) correspondence.
 
-    The Robinson-Schensted-Knuth (RSK) correspondence is most naturally stated
-    as a bijection between generalized permutations (also known as two-line
-    arrays, biwords, ...) and pairs of semi-standard Young tableaux `(P, Q)`
-    of identical shape. The tableau `P` is known as the insertion tableau and
-    `Q` is known as the recording tableau.
+    The Robinson-Schensted-Knuth (RSK) correspondence (also known
+    as the RSK algorithm) is most naturally stated as a bijection
+    between generalized permutations (also known as two-line arrays,
+    biwords, ...) and pairs of semi-standard Young tableaux `(P, Q)`
+    of identical shape. The tableau `P` is known as the insertion
+    tableau, and `Q` is known as the recording tableau.
 
-    The basic operation is known as row insertion `P \leftarrow k` (where `P`
-    is a given semi-standard Young tableau, and `k` is an integer). Row
-    insertion is a recursive algorithm which starts by setting `k_0 = k`,
-    and in its `i`-th step inserts the number `k_i` into the `i`-th row of
-    `P` by replacing the first integer greater than `k_i` in the row by `k_i`
-    and defines `k_{i+1}` as the integer that has been replaced. If no integer
-    greater than `k_i` exists in the `i`-th row, then `k_i` is simply appended
-    to the row and the algorithm terminates at this point.
+    The basic operation is known as row insertion `P \leftarrow k`
+    (where `P` is a given semi-standard Young tableau, and `k` is an
+    integer). Row insertion is a recursive algorithm which starts by
+    setting `k_0 = k`, and in its `i`-th step inserts the number `k_i`
+    into the `i`-th row of `P` (we start counting the rows at `0`) by
+    replacing the first integer greater than `k_i` in the row by `k_i`
+    and defines `k_{i+1}` as the integer that has been replaced. If no
+    integer greater than `k_i` exists in the `i`-th row, then `k_i` is
+    simply appended to the row and the algorithm terminates at this
+    point.
 
-    Now the RSK algorithm starts by initializing two semi-standard tableaux
-    `P_0` and `Q_0` as empty tableaux. For each nonnegative integer `t`
-    starting at `0`, take the pair `(j_t, k_t)` from `p` and set
-    `P_{t+1} = P_t \leftarrow k_t`, and define `Q_{t+1}` by adding a new box
-    filled with `j_t` to the tableau `Q_t` at the same location the row
-    insertion on `P_t` ended (that is to say, adding `j_t` such that
-    `P_{t+1}` and `Q_{t+1}` have the same shape). The iterative process stops
-    when `t` reaches the size of `p`, and the pair `(P_t, Q_t)` at this point
-    is the image of `p` under the Robinson-Schensted-Knuth correspondence.
+    Now the RSK algorithm, applied to a generalized permutation
+    `p = ((j_0, k_0), (j_1, k_1), \ldots, (j_{\ell-1}, k_{\ell-1}))`
+    (encoded as a lexicographically sorted list of pairs) starts by
+    initializing two semi-standard tableaux `P_0` and `Q_0` as empty
+    tableaux. For each nonnegative integer `t` starting at `0`, take
+    the pair `(j_t, k_t)` from `p` and set
+    `P_{t+1} = P_t \leftarrow k_t`, and define `Q_{t+1}` by adding a
+    new box filled with `j_t` to the tableau `Q_t` at the same
+    location the row insertion on `P_t` ended (that is to say, adding
+    a new box with entry `j_t` such that `P_{t+1}` and `Q_{t+1}` have
+    the same shape). The iterative process stops when `t` reaches the
+    size of `p`, and the pair `(P_t, Q_t)` at this point is the image
+    of `p` under the Robinson-Schensted-Knuth correspondence.
 
     This correspondence has been introduced in [Knu1970]_, where it has been
     referred to as "Construction A".
@@ -136,9 +143,10 @@ def RSK(obj1=None, obj2=None, insertion='RSK', check_standard=False, **options):
     For more information, see Chapter 7 in [Sta-EC2]_.
 
     We also note that integer matrices are in bijection with generalized
-    permutations. In addition, we can also convert any word `w` (and any
-    permutation) to a generalized permutation by considering the top line
-    to be `(1, 2, \ldots, n)` where `n` is the length of `w`.
+    permutations. Furthermore, we can convert any word `w` (and, in
+    particular, any permutation) to a generalized permutation by
+    considering the top line to be `(1, 2, \ldots, n)` where `n` is the
+    length of `w`.
 
     The optional argument ``insertion`` allows to specify an alternative
     insertion procedure to be used instead of the standard
@@ -150,16 +158,41 @@ def RSK(obj1=None, obj2=None, insertion='RSK', check_standard=False, **options):
     to the standard row insertion except that if `k_i` and `k_i + 1` both
     exist in row `i`, we *only* set `k_{i+1} = k_i + 1` and continue.
 
-    One can also perform Hecke insertion of [BKSTY06]_. We are going to
-    insert `(i, x)` into an increasing tableau `P` and recording tableau
-    `Q`. Suppose we are inserting `x` into row `R` of `P`. If there
-    exists a `y \in R` such that `x < y`, then let `y` be the minimal
-    such value. We insert `y` into the next row of `P` and we replace
-    `y` with `x` if the result is an increasing tableau. If there is
-    no such `y`, we append `x` to the end of `R` if the result is
-    an increasing tableau and terminate by adding the corresponding box
-    to `Q` filled with `i`. Otherwise we add `i` to the bottom of the
-    column of the rightmost box of `R`.
+    One can also perform a "Hecke RSK algorithm", defined using the
+    Hecke insertion studied in [BKSTY06]_ (but using rows instead of
+    columns). The algorithm proceeds similarly to the classical RSK
+    algorithm. However, it is not clear in what generality it works;
+    thus, following [BKSTY06]_, we shall assume that our biword `p`
+    has top line `(1, 2, \ldots, n)` (or, at least, has its top line
+    strictly increasing). The Hecke RSK algorithm returns a pair of
+    an increasing tableau and a set-valued standard tableau. If
+    `p = ((j_0, k_0), (j_1, k_1), \ldots, (j_{\ell-1}, k_{\ell-1}))`,
+    then the algorithm recursively constructs pairs
+    `(P_0, Q_0), (P_1, Q_1), \ldots, (P_\ell, Q_\ell)` of tableaux.
+    The construction of `P_{t+1}` and `Q_{t+1}` from `P_t`, `Q_t`,
+    `j_t` and `k_t` proceeds as follows: Set `i = j_t`, `x = k_t`,
+    `P = P_t` and `Q = Q_t`. We are going to insert `x` into the
+    increasing tableau `P` and update the set-valued "recording
+    tableau" `Q` accordingly. As in the classical RSK algorithm, we
+    first insert `x` into row `1` of `P`, then into row `2` of the
+    resulting tableau, and so on, until the construction terminates.
+    The details are different: Suppose we are inserting `x` into
+    row `R` of `P`. If (Case 1) there exists an entry `y` in row `R`
+    such that `x < y`, then let `y` be the minimal such entry. We
+    replace this entry `y` with `x` if the result is still an
+    increasing tableau; in either subcase, we then continue
+    recursively, inserting `y` into the next row of `P`.
+    If, on the other hand, (Case 2) no such `y` exists, then we
+    append `x` to the end of `R` if the result is an increasing
+    tableau (Subcase 2.1), and otherwise (Subcase 2.2) do nothing.
+    Furthermore, in Subcase 2.1, we add the box that we have just
+    filled with `x` in `P` to the shape of `Q`, and fill it with
+    the one-element set `\{i\}`. In Subcase 2.2, we find the
+    bottommost box of the column containing the rightmost box of
+    row `R`, and add `i` to the entry of `Q` in this box (this
+    entry is a set, since `Q` is a set-valued). In either
+    subcase, we terminate the recursion, and set
+    `P_{t+1} = P` and `Q_{t+1} = Q`.
 
     INPUT:
 
@@ -178,11 +211,12 @@ def RSK(obj1=None, obj2=None, insertion='RSK', check_standard=False, **options):
       - ``'RSK'`` -- Robinson-Schensted-Knuth
       - ``'EG'`` -- Edelman-Greene (only for reduced words of
         permutations/type `A` Coxeter elements)
-      - ``'hecke'`` -- Hecke insertion (only for reduced words of
-        permutations/type `A` Coxeter elements)
+      - ``'hecke'`` -- Hecke insertion (only guaranteed for
+        generalized permutations whose top row is strictly increasing)
 
     - ``check_standard`` -- (Default: ``False``) Check if either of the
-      resulting tableaux should be standard tableau
+      resulting tableaux is a standard tableau, and if so, typecast it
+      as such
 
     EXAMPLES:
 
@@ -675,6 +709,7 @@ def hecke_insertion(obj1, obj2=None):
             else:
                 # We must have len(p[j-1]) > len(r), otherwise we would
                 #   have added x to the previous row
+                # [DG] I don't understand this comment.
                 if r[-1] < x and (j == 0 or p[j-1][len(r)] < x):
                     # We can add a box to the row
                     r.append(x)

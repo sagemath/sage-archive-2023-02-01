@@ -108,7 +108,7 @@ cdef class pAdicTemplateElement(pAdicGenericElement):
                 raise NotImplementedError("conversion between padic extensions not implemented")
         elif sage.rings.finite_rings.element_base.is_FiniteFieldElement(x):
             if self.parent().residue_field().has_coerce_map_from(x.parent()):
-                x = coerce(self.parent().residue_field(), x)
+                x = self.parent().residue_field()(x)
             else:
                 raise NotImplementedError("conversion from finite fields other than the residue field not implemented.")
         elif isinstance(x, (Integer, Rational, list, tuple)):

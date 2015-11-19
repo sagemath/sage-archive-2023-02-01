@@ -196,6 +196,10 @@ def RSK(obj1=None, obj2=None, insertion='RSK', check_standard=False, **options):
     subcase, we terminate the recursion, and set
     `P_{t+1} = P` and `Q_{t+1} = Q`.
 
+    Notice that set-valued tableaux are encoded as tableaux whose
+    entries are tuples of positive integers; each such tuple is strictly
+    increasing and encodes a set (namely, the set of its entries).
+
     INPUT:
 
     - ``obj1, obj2`` -- Can be one of the following:
@@ -409,7 +413,10 @@ def RSK_inverse(p, q, output='array', insertion='RSK'):
 
     INPUT:
 
-    - ``p``, ``q`` -- Two semi-standard tableaux of the same shape
+    - ``p``, ``q`` -- Two semi-standard tableaux of the same shape, or
+      (in the case when Hecke insertion is used) an increasing tableau and
+      a set-valued tableau of the same shape (see the note below for the
+      format of the set-valued tableau)
 
     - ``output`` -- (Default: ``'array'``) if ``q`` is semi-standard:
 
@@ -431,6 +438,13 @@ def RSK_inverse(p, q, output='array', insertion='RSK'):
       - ``'RSK'`` -- Robinson-Schensted-Knuth insertion
       - ``'EG'`` -- Edelman-Greene insertion
       - ``'hecke'`` -- Hecke insertion
+
+    .. NOTE::
+
+        In the case of Hecke insertion, the input variable ``q`` should
+        be a set-valued tableau, encoded as a tableau whose entries are
+        strictly increasing tuples of positive integers. Each such tuple
+        encodes the set of its entries.
 
     EXAMPLES:
 
@@ -765,6 +779,9 @@ def hecke_insertion_reverse(p, q, output='array'):
     # Make a copy of p and q since this is destructive to it
     p_copy = [list(row) for row in p]
     q_copy = [[list(v) for v in row] for row in q]
+    # We shall work on these copies of p and q. Notice that p might get
+    # some empty rows in the process; we do not bother pruning them, as
+    # they do not matter.
 
     #upper_row and lower_row will be the upper and lower rows of the
     #generalized permutation we get as a result, but both reversed.
@@ -781,11 +798,13 @@ def hecke_insertion_reverse(p, q, output='array'):
     #d is now a double family such that for every integers k and j,
     #the value d[k][j] is the row i such that the (i, j)-th cell of
     #q is filled with k.
-    for value, row_dict in reversed(d.items()):
-        for i in reversed(row_dict.values()):
+    for value, row_dict in sorted(d.items(), key=lambda x: -x[0]):
+        for i in sorted(row_dict.values(), reverse=True):
             # These are always the right-most entry
-            assert value == q_copy[i][-1].pop()
+            should_be_value = q_copy[i][-1].pop()
+            assert value == should_be_value
             if not q_copy[i][-1]:
+                # That is, if value was alone in cell q_copy[i][-1].
                 q_copy[i].pop()
                 x = p_copy[i].pop()
             else:

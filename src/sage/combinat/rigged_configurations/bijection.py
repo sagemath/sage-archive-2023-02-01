@@ -78,7 +78,7 @@ def KRTToRCBijection(tp_krt):
         if typ == 'D':
             return KRTToRCBijectionTypeD(tp_krt)
         if typ == 'E':
-            if ct.rank() < 8:
+            if ct.classical().rank() < 8:
                 return KRTToRCBijectionTypeE67(tp_krt)
         #if typ == 'F':
         #if typ == 'G':
@@ -119,7 +119,7 @@ def RCToKRTBijection(rigged_configuration_elt):
         if typ == 'D':
             return RCToKRTBijectionTypeD(rigged_configuration_elt)
         if typ == 'E':
-            if ct.rank() < 8:
+            if ct.classical().rank() < 8:
                 return RCToKRTBijectionTypeE67(rigged_configuration_elt)
         #if typ == 'F':
         #if typ == 'G':

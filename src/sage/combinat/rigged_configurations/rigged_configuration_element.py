@@ -1790,8 +1790,9 @@ class KRRiggedConfigurationElement(RiggedConfigurationElement):
         if P.dims[0][1] != 1:
             rc = self.left_split()
         bij = RCToKRTBijection(rc)
-        bij.cur_dims[0][0] -= 1 # This takes care of the indexing
-        b = bij.next_state(bij.cur_dims[0][0])
+        ht = bij.cur_dims[0][0]
+        bij.cur_dims[0][0] = bij._next_index(ht)
+        b = bij.next_state(ht)
         if bij.cur_dims[0][0] == 0:
             bij.cur_dims.pop(0)
         from sage.combinat.rigged_configurations.rigged_configurations import RiggedConfigurations

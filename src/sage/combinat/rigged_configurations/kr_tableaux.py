@@ -1842,6 +1842,36 @@ class KRTableauxTypeFromRC(KirillovReshetikhinTableaux):
             ....:  for r in ct.classical().index_set()]
             [1, 3, 2, 3, 4, 2]
         """
+        if self._cartan_type.type() == 'E':
+            if self._cartan_type.classical().rank() == 6:
+                #       6   2 - 5
+                #      /   /
+                # 0 - 1 - 3 - 4
+                if self._r == 1:
+                    return 1
+                if self._r == [3, 6]:
+                    return 2
+                if self._r in [2, 5]:
+                    return 3
+                if self._r == 4:
+                    return 3
+            if self._cartan_type.classical().rank() == 7:
+                #     1-2-3
+                #    /
+                # 0-7-6-5-4
+                if self._r <= 3:
+                    return self._r + 1
+                return 8 - self._r
+            if self._cartan_type.classical().rank() == 8:
+                #     1-2-3
+                #    /
+                # 0-8-7-6-5-4
+                if self._r <= 3:
+                    return self._r + 1
+                return 9 - self._r
+        if not self._cartan_type.is_untwisted_affine():
+            if self._cartan_type.dual().type() == 'G':
+                return self._r
         return len(self.module_generators[0]) // self._s
 
     Element = KRTableauxTypeFromRCElement

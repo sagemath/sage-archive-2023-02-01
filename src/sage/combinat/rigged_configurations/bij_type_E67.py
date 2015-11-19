@@ -10,13 +10,13 @@ AUTHORS:
 
 TESTS::
 
-    sage: KRT = crystals.TensorProductOfKirillovReshetikhinTableaux(['D', 4, 1], [[2,1]])
-    sage: from sage.combinat.rigged_configurations.bij_type_D import KRTToRCBijectionTypeD
-    sage: bijection = KRTToRCBijectionTypeD(KRT(pathlist=[[3, 2]]))
+    sage: from sage.combinat.rigged_configurations.bij_type_E67 import KRTToRCBijectionTypeE67
+    sage: KRT = crystals.TensorProductOfKirillovReshetikhinTableaux(['E', 6, 1], [[3,1]])
+    sage: bijection = KRTToRCBijectionTypeE67(KRT.module_generators[0])
     sage: TestSuite(bijection).run()
-    sage: RC = RiggedConfigurations(['D', 4, 1], [[2, 1]])
-    sage: from sage.combinat.rigged_configurations.bij_type_D import RCToKRTBijectionTypeD
-    sage: bijection = RCToKRTBijectionTypeD(RC(partition_list=[[],[],[],[]]))
+    sage: RC = RiggedConfigurations(['E', 6, 1], [[2, 1]])
+    sage: from sage.combinat.rigged_configurations.bij_type_E67 import RCToKRTBijectionTypeE67
+    sage: bijection = RCToKRTBijectionTypeE67(RC(partition_list=[[1],[1,1],[1,1],[1,1,1], [1,1],[1]]))
     sage: TestSuite(bijection).run()
 """
 
@@ -38,6 +38,7 @@ TESTS::
 from sage.combinat.rigged_configurations.bij_abstract_class import KRTToRCBijectionAbstract
 from sage.combinat.rigged_configurations.bij_abstract_class import RCToKRTBijectionAbstract
 from sage.combinat.crystals.letters import CrystalOfLetters
+from sage.misc.lazy_attribute import lazy_attribute
 from sage.misc.cachefunc import cached_method
 
 class KRTToRCBijectionTypeE67(KRTToRCBijectionAbstract):
@@ -51,15 +52,14 @@ class KRTToRCBijectionTypeE67(KRTToRCBijectionAbstract):
 
         TESTS::
 
-            sage: KRT = crystals.TensorProductOfKirillovReshetikhinTableaux(['D', 4, 1], [[2,1]])
-            sage: from sage.combinat.rigged_configurations.bij_type_D import KRTToRCBijectionTypeD
-            sage: bijection = KRTToRCBijectionTypeD(KRT(pathlist=[[5,3]]))
+            sage: from sage.combinat.rigged_configurations.bij_type_E67 import KRTToRCBijectionTypeE67
+            sage: KRT = crystals.TensorProductOfKirillovReshetikhinTableaux(['E', 6, 1], [[3,1]])
+            sage: bijection = KRTToRCBijectionTypeE67(KRT.module_generators[0])
             sage: bijection.cur_path.insert(0, [])
-            sage: bijection.cur_dims.insert(0, [0, 1])
-            sage: bijection.cur_path[0].insert(0, [3])
-            sage: bijection.next_state(3)
+            sage: bijection.cur_dims.insert(0, [1, 1])
+            sage: bijection.cur_path[0].insert(0, [(1,)])
+            sage: bijection.next_state((1,))
         """
-
         def find_singular_string(p, max_width):
             max_pos = -1
             if max_width > 0:
@@ -73,8 +73,15 @@ class KRTToRCBijectionTypeE67(KRTToRCBijectionAbstract):
 
         b = self.tp_krt.parent().letters(val)
         end = self._endpoint(self.cur_dims[0][0])
+
+        # Do nothing except update the vacancy numbers
+        if b == end:
+            for a in range(len(self.ret_rig_con)):
+                self._update_vacancy_nums(a)
+            return
+
         max_width = float("inf")
-        found = (b != end)
+        found = True
         while found:
             found = False
             data = [(-a, find_singular_string(self.ret_rig_con[-a-1], max_width))
@@ -88,10 +95,20 @@ class KRTToRCBijectionTypeE67(KRTToRCBijectionAbstract):
                     self.ret_rig_con[a-1].insert_cell(max_width)
                     max_width = l
                     b = b.e(a)
-                    found = (b != end)
+                    found = (b != self._top)
                     break
 
-        for a in range(6):
+        for a in end.to_highest_weight()[1]:
+            p = self.ret_rig_con[a-1]
+            for i in range(len(p)-1, -1, -1):
+                if p.rigging[i] is None:
+                    assert p[i] == 1
+                    p._list.pop(i)
+                    p.vacancy_numbers.pop(i)
+                    p.rigging.pop(i)
+                    break
+
+        for a in range(len(self.ret_rig_con)):
             self._update_vacancy_nums(a)
             self._update_partition_values(a)
 
@@ -118,12 +135,10 @@ class KRTToRCBijectionTypeE67(KRTToRCBijectionAbstract):
             sage: bijection._next_index(1, 6)
             6
         """
-        #       3-2-5
-        #      / \
-        # 0 - 1   4
-        #      \
-        #       6
         if self.tp_krt.cartan_type().classical().rank() == 6:
+            #       6   2 - 5
+            #      /   /
+            # 0 - 1 - 3 - 4
             if r == 0:
                 return 1
             if r == 1:
@@ -137,18 +152,64 @@ class KRTToRCBijectionTypeE67(KRTToRCBijectionAbstract):
             if r == 2:
                 return 5
         else: # rank == 7
+            #     1-2-3
+            #    /
+            # 0-7-6-5-4
             if r == 0:
                 return 7
+            if r == 7:
+                if target <= 3:
+                    return 1
+                return 6
+            if r <= 3:
+                return r + 1
+            # r = 6,5
+            return r - 1
+
+    @lazy_attribute
+    def _top(self):
+        """
+        Return the highest weight element in the basic crystal used
+        in the bijection ``self``.
+
+        TESTS::
+
+            sage: from sage.combinat.rigged_configurations.bij_type_E67 import KRTToRCBijectionTypeE67
+            sage: KRT = crystals.TensorProductOfKirillovReshetikhinTableaux(['E', 6, 1], [[3,1]])
+            sage: bijection = KRTToRCBijectionTypeE67(KRT.module_generators[0])
+            sage: bijection._top
+            (1,)
+            sage: KRT = crystals.TensorProductOfKirillovReshetikhinTableaux(['E', 7, 1], [[6,1]])
+            sage: bijection = KRTToRCBijectionTypeE67(KRT.module_generators[0])
+            sage: bijection._top
+            (7,)
+        """
+        if self.tp_krt.cartan_type().classical().rank() == 6:
+            return endpoint6(1)
+        else:
+            return endpoint7(7)
 
     @cached_method
     def _endpoint(self, r):
         r"""
         Return the endpoint for the bijection in type `E_6^{(1)}`.
+
+        EXAMPLES::
+
+            sage: from sage.combinat.rigged_configurations.bij_type_E67 import KRTToRCBijectionTypeE67, endpoint6, endpoint7
+            sage: KRT = crystals.TensorProductOfKirillovReshetikhinTableaux(['E', 6, 1], [[3,1]])
+            sage: bijection = KRTToRCBijectionTypeE67(KRT.module_generators[0])
+            sage: all(bijection._endpoint(r) == endpoint6(r) for r in range(1,7))
+            True
+            sage: KRT = crystals.TensorProductOfKirillovReshetikhinTableaux(['E', 7, 1], [[6,1]])
+            sage: bijection = KRTToRCBijectionTypeE67(KRT.module_generators[0])
+            sage: all(bijection._endpoint(r) == endpoint7(r) for r in range(1,8))
+            True
         """
         if self.tp_krt.cartan_type().classical().rank() == 6:
-            return _endpoint6(r)
+            return endpoint6(r)
         else:
-            return _endpoint7(r)
+            return endpoint7(r)
 
 class RCToKRTBijectionTypeE67(RCToKRTBijectionAbstract):
     r"""
@@ -163,7 +224,7 @@ class RCToKRTBijectionTypeE67(RCToKRTBijectionAbstract):
 
             sage: RC = RiggedConfigurations(['E', 6, 1], [[2, 1]])
             sage: from sage.combinat.rigged_configurations.bij_type_E67 import RCToKRTBijectionTypeE67
-            sage: bijection = RCToKRTBijectionTypeE67(RC(partition_list=[[1],[1,1],[1,1],[1,1,1], [1,1], [1]]))
+            sage: bijection = RCToKRTBijectionTypeE67(RC(partition_list=[[1],[1,1],[1,1],[1,1,1],[1,1],[1]]))
             sage: bijection.next_state(1)
             (-2, 1)
         """
@@ -188,11 +249,11 @@ class RCToKRTBijectionTypeE67(RCToKRTBijectionAbstract):
                     b = b.f(a)
                     break
 
-        for a in range(6):
+        for a,p in enumerate(self.cur_partitions):
             self._update_vacancy_numbers(a)
-            for i in range(len(self.cur_partitions[a])):
-                if self.cur_partitions[a].rigging[i] is None:
-                    self.cur_partitions[a].rigging[i] = self.cur_partitions[a].vacancy_numbers[i]
+            for i in range(len(p)):
+                if p.rigging[i] is None:
+                    p.rigging[i] = p.vacancy_numbers[i]
 
         return(b)
 
@@ -205,11 +266,14 @@ class RCToKRTBijectionTypeE67(RCToKRTBijectionAbstract):
 
             sage: RC = RiggedConfigurations(['E', 6, 1], [[2, 1]])
             sage: from sage.combinat.rigged_configurations.bij_type_E67 import RCToKRTBijectionTypeE67
-            sage: bijection = RCToKRTBijectionTypeE67(RC(partition_list=[[1],[1,1],[1,1],[1,1,1], [1,1], [1]]))
+            sage: bijection = RCToKRTBijectionTypeE67(RC(partition_list=[[1],[1,1],[1,1],[1,1,1], [1,1],[1]]))
             sage: bijection._next_index(2)
             3
         """
         if self.KRT.cartan_type().classical().rank() == 6:
+            #       6   2 - 5
+            #      /   /
+            # 0 - 1 - 3 - 4
             if r == 1:
                 return 0
             if r == 2:
@@ -223,22 +287,59 @@ class RCToKRTBijectionTypeE67(RCToKRTBijectionAbstract):
             if r == 6:
                 return 1
         else: # rank == 7
+            #     1-2-3
+            #    /
+            # 0-7-6-5-4
+            if r == 1:
+                return 7
             if r == 7:
                 return 0
+            if r <= 3:
+                return r - 1
+            # r = 4,5,6
+            return r + 1
 
     @cached_method
     def _endpoint(self, r):
         r"""
-        Return the endpoint for the bijection in type `E_6^{(1)}`.
+        Return the endpoint for the bijection in type `E_{6,7}^{(1)}`.
+
+        EXAMPLES::
+
+            sage: from sage.combinat.rigged_configurations.bij_type_E67 import RCToKRTBijectionTypeE67, endpoint6, endpoint7
+            sage: RC = RiggedConfigurations(['E', 6, 1], [[2, 1]])
+            sage: bijection = RCToKRTBijectionTypeE67(RC(partition_list=[[1],[1,1],[1,1],[1,1,1], [1,1],[1]]))
+            sage: all(bijection._endpoint(r) == endpoint6(r) for r in range(1,7))
+            True
+            sage: RC = RiggedConfigurations(['E', 7, 1], [[6, 1]])
+            sage: bijection = RCToKRTBijectionTypeE67(RC(partition_list=[[1],[1,1],[1,1],[1,1],[1],[1],[]]))
+            sage: all(bijection._endpoint(r) == endpoint7(r) for r in range(1,8))
+            True
         """
         if self.KRT.cartan_type().classical().rank() == 6:
-            return _endpoint6(r)
+            return endpoint6(r)
         else:
-            return _endpoint7(r)
+            return endpoint7(r)
 
-def _endpoint6(r):
-    r"""
-    Return the endpoint for the bijection in type `E_6^{(1)}`.
+def endpoint6(r):
+    """
+    Return the endpoint for `B^{r,1}` in type `E_6^{(1)}`.
+
+    EXAMPLES::
+
+        sage: from sage.combinat.rigged_configurations.bij_type_E67 import endpoint6
+        sage: endpoint6(1)
+        (1,)
+        sage: endpoint6(2)
+        (-3, 2)
+        sage: endpoint6(3)
+        (-1, 3)
+        sage: endpoint6(4)
+        (-3, 4)
+        sage: endpoint6(5)
+        (-2, 5)
+        sage: endpoint6(6)
+        (-1, 6)
     """
     C = CrystalOfLetters(['E',6])
     if r == 1:
@@ -252,5 +353,43 @@ def _endpoint6(r):
     elif r == 5:
         return C((-2, 5))
     elif r == 6:
-        return C((-1,6))
+        return C((-1, 6))
+
+def endpoint7(r):
+    """
+    Return the endpoint for `B^{r,1}` in type `E_7^{(1)}`.
+
+    EXAMPLES::
+
+        sage: from sage.combinat.rigged_configurations.bij_type_E67 import endpoint7
+        sage: endpoint7(1)
+        (-7, 1)
+        sage: endpoint7(2)
+        (-1, 2)
+        sage: endpoint7(3)
+        (-2, 3)
+        sage: endpoint7(4)
+        (-5, 4)
+        sage: endpoint7(5)
+        (-6, 5)
+        sage: endpoint7(6)
+        (-7, 6)
+        sage: endpoint7(7)
+        (7,)
+    """
+    C = CrystalOfLetters(['E',7])
+    if r == 1:
+        return C((-7, 1))
+    elif r == 2:
+        return C((-1, 2))
+    elif r == 3:
+        return C((-2, 3))
+    elif r == 4:
+        return C((-5, 4))
+    elif r == 5:
+        return C((-6, 5))
+    elif r == 6:
+        return C((-7, 6))
+    elif r == 7:
+        return C.module_generators[0]  # C((7,))
 

@@ -1312,7 +1312,7 @@ class SimplicialComplex(Parent, GenericCellComplex):
 
         If the complex has dimension `d` and `(f_{-1}, f_0, f_1, ...,
         f_d)` is its `f`-vector (with `f_{-1} = 1`, representing the
-        empy simplex), then the `h`-vector `(h_0, h_1, ..., h_d,
+        empty simplex), then the `h`-vector `(h_0, h_1, ..., h_d,
         h_{d+1})` is defined by
 
         .. MATH::

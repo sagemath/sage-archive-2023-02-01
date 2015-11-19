@@ -79,7 +79,8 @@ REFERENCES:
 
 .. [BKSTY06] A. Buch, A. Kresch, M. Shimozono, H. Tamvakis, and A. Yong.
    *Stable Grothendieck polynomials and* `K`-*theoretic factor sequences*.
-   Math. Ann. **340** Issue 2, (2008), pp. 359--382. :arxiv:`math/0601514v1`.
+   Math. Ann. **340** Issue 2, (2008), pp. 359--382.
+   :arxiv:`math/0601514v1`.
 """
 #*****************************************************************************
 #       Copyright (C) 2012 Travis Scrimshaw <tscrim@ucdavis.edu>
@@ -137,8 +138,8 @@ def RSK(obj1=None, obj2=None, insertion='RSK', check_standard=False, **options):
     size of `p`, and the pair `(P_t, Q_t)` at this point is the image
     of `p` under the Robinson-Schensted-Knuth correspondence.
 
-    This correspondence has been introduced in [Knu1970]_, where it has been
-    referred to as "Construction A".
+    This correspondence has been introduced in [Knu1970]_, where it has
+    been referred to as "Construction A".
 
     For more information, see Chapter 7 in [Sta-EC2]_.
 
@@ -151,12 +152,13 @@ def RSK(obj1=None, obj2=None, insertion='RSK', check_standard=False, **options):
     The optional argument ``insertion`` allows to specify an alternative
     insertion procedure to be used instead of the standard
     Robinson-Schensted-Knuth insertion. If the input is a reduced word of
-    a permutation (i.e., a type `A` Coxeter element), one can set
-    ``insertion`` to ``'EG'``, which gives Edelman-Greene insertion, an
-    algorithm defined in [EG1987]_ Definition 6.20 (where it is referred
-    to as Coxeter-Knuth insertion). The Edelman-Greene insertion is similar
-    to the standard row insertion except that if `k_i` and `k_i + 1` both
-    exist in row `i`, we *only* set `k_{i+1} = k_i + 1` and continue.
+    a permutation (i.e., an element of a type-`A` Coxeter group), one can
+    set ``insertion`` to ``'EG'``, which gives Edelman-Greene insertion,
+    an algorithm defined in [EG1987]_ Definition 6.20 (where it is
+    referred to as Coxeter-Knuth insertion). The Edelman-Greene insertion
+    is similar to the standard row insertion except that if `k_i` and
+    `k_i + 1` both exist in row `i`, we *only* set `k_{i+1} = k_i + 1` and
+    continue.
 
     One can also perform a "Hecke RSK algorithm", defined using the
     Hecke insertion studied in [BKSTY06]_ (but using rows instead of
@@ -201,16 +203,16 @@ def RSK(obj1=None, obj2=None, insertion='RSK', check_standard=False, **options):
       - A word in an ordered alphabet
       - An integer matrix
       - Two lists of equal length representing a generalized permutation
-      - Any object which has a method ``_rsk_iter()`` which returns an iterator
-        over the object represented as generalized permutation or a pair of
-        lists.
+      - Any object which has a method ``_rsk_iter()`` which returns an
+        iterator over the object represented as generalized permutation or
+        a pair of lists.
 
     - ``insertion`` -- (Default: ``'RSK'``) The following types of insertion
       are currently supported:
 
       - ``'RSK'`` -- Robinson-Schensted-Knuth
       - ``'EG'`` -- Edelman-Greene (only for reduced words of
-        permutations/type `A` Coxeter elements)
+        permutations/elements of a type-`A` Coxeter group)
       - ``'hecke'`` -- Hecke insertion (only guaranteed for
         generalized permutations whose top row is strictly increasing)
 
@@ -272,11 +274,11 @@ def RSK(obj1=None, obj2=None, insertion='RSK', check_standard=False, **options):
           [(6,)],
           [(8, 10)]]]
 
-    There is also :func:`~sage.combinat.rsk.RSK_inverse` which performs the
-    inverse of the bijection on a pair of semistandard tableaux. We note
-    that the inverse function takes 2 separate tableaux inputs, so to compose
-    with :func:`~sage.combinat.rsk.RSK`, we need to use the python ``*`` on
-    the output::
+    There is also :func:`~sage.combinat.rsk.RSK_inverse` which performs
+    the inverse of the bijection on a pair of semistandard tableaux. We
+    note that the inverse function takes 2 separate tableaux as inputs, so
+    to compose with :func:`~sage.combinat.rsk.RSK`, we need to use the
+    python ``*`` on the output::
 
         sage: RSK_inverse(*RSK([1, 2, 2, 2], [2, 1, 1, 2]))
         [[1, 2, 2, 2], [2, 1, 1, 2]]
@@ -299,6 +301,8 @@ def RSK(obj1=None, obj2=None, insertion='RSK', check_standard=False, **options):
         sage: RSK([[]])
         [[], []]
         sage: RSK(Word([]), insertion='EG')
+        [[], []]
+        sage: RSK(Word([]), insertion='hecke')
         [[], []]
     """
     from sage.combinat.tableau import SemistandardTableau, StandardTableau
@@ -397,8 +401,9 @@ robinson_schensted_knuth = RSK
 
 def RSK_inverse(p, q, output='array', insertion='RSK'):
     r"""
-    Return the generalized permutation corresponding to the pair of tableaux
-    `(p,q)` under the inverse of the Robinson-Schensted-Knuth algorithm.
+    Return the generalized permutation corresponding to the pair of
+    tableaux `(p,q)` under the inverse of the Robinson-Schensted-Knuth
+    algorithm.
 
     For more information on the bijection, see :func:`RSK`.
 
@@ -486,9 +491,14 @@ def RSK_inverse(p, q, output='array', insertion='RSK'):
 
     .. NOTE::
 
-        Currently the constructor of ``Tableau`` accept as input lists
-        that are not even tableaux but only filling of a partition diagram.
-        This feature should not be used with ``RSK_inverse``.
+        The constructor of ``Tableau`` accepts not only semistandard
+        tableaux, but also arbitrary lists that are fillings of a
+        partition diagram. (And such lists are used, e.g., for the
+        set-valued tableau ``q`` that is passed to
+        ``RSK_inverse(p, q, insertion='hecke')``.)
+        The user is responsible for ensuring that the tableaux passed to
+        ``RSK_inverse`` are of the right types (semistandard, standard,
+        increasing, set-valued as needed).
 
     TESTS:
 
@@ -707,9 +717,8 @@ def hecke_insertion(obj1, obj2=None):
                     r[y_pos] = x
                 x = y
             else:
-                # We must have len(p[j-1]) > len(r), otherwise we would
-                #   have added x to the previous row
-                # [DG] I don't understand this comment.
+                # We must have len(p[j-1]) > len(r), since x is coming
+                # from the previous row.
                 if r[-1] < x and (j == 0 or p[j-1][len(r)] < x):
                     # We can add a box to the row
                     r.append(x)
@@ -772,7 +781,6 @@ def hecke_insertion_reverse(p, q, output='array'):
     #d is now a double family such that for every integers k and j,
     #the value d[k][j] is the row i such that the (i, j)-th cell of
     #q is filled with k.
-    from sage.combinat.tableau import Tableau
     for value, row_dict in reversed(d.items()):
         for i in reversed(row_dict.values()):
             # These are always the right-most entry

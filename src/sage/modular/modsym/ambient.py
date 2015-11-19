@@ -366,7 +366,7 @@ class ModularSymbolsAmbient(space.ModularSymbolsSpace, hecke.AmbientHeckeModule)
         Coerce `x` into this modular symbols space. The result is
         either an element of self or a subspace of self.
 
-        INPUTS:
+        INPUT:
 
         The allowed input types for `x` are as follows:
 

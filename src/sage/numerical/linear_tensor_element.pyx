@@ -355,7 +355,7 @@ cdef class LinearTensor(ModuleElement):
             result[key] = b * coeff
         return self.parent()(result)
 
-    cdef _richcmp(left, right, int op):
+    def __richcmp__(left, right, int op):
         """
         Create an inequality or equality object.
 

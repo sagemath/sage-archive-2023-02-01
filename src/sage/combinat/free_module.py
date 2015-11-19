@@ -2240,7 +2240,7 @@ class CombinatorialFreeModule_CartesianProduct(CombinatorialFreeModule):
         Return the natural embedding morphism of the ``i``-th
         cartesian factor (summand) of ``self`` into ``self``.
 
-        INPUTS:
+        INPUT:
 
          - ``i`` -- an integer
 
@@ -2274,7 +2274,7 @@ class CombinatorialFreeModule_CartesianProduct(CombinatorialFreeModule):
         Return the natural projection onto the `i`-th cartesian factor
         (summand) of ``self``.
 
-        INPUTS:
+        INPUT:
 
          - ``i`` -- an integer
 

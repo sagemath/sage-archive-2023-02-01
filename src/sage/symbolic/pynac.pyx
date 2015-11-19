@@ -2120,7 +2120,7 @@ def register_symbol(obj, conversions):
     other systems such as Maxima, Mathematica, etc.  This table is used
     to convert *from* other systems back to Sage.
 
-    INPUTS:
+    INPUT:
 
         - `obj` -- a symbolic object or function.
 

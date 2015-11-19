@@ -511,7 +511,7 @@ class Maxima(MaximaAbstract, Expect):
             sage: maxima == loads(dumps(m))
             True
 
-        We make sure labels are turned off (see trac 6816)::
+        We make sure labels are turned off (see :trac:`6816`)::
 
             sage: 'nolabels : true' in maxima._Expect__init_code
             True
@@ -606,7 +606,7 @@ class Maxima(MaximaAbstract, Expect):
             sage: m.is_running()
             True
 
-        Test that we can use more than 256MB RAM (see trac :trac:`6772`)::
+        Test that we can use more than 256MB RAM (see :trac:`6772`)::
 
             sage: a = maxima(10)^(10^5)
             sage: b = a^600              # long time -- about 10-15 seconds

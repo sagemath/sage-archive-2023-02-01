@@ -634,7 +634,7 @@ class Simplex(SageObject):
         subdivide it into simplices `(v_0, v_1, ..., v_{dim})` and
         `(v_{dim}, v_{dim + 1}, ..., v_n)`.
 
-        INPUTS:
+        INPUT:
 
         - ``dim`` -- integer between 0 and one more than the
           dimension of this simplex
@@ -1223,7 +1223,7 @@ class SimplicialComplex(Parent, GenericCellComplex):
         """
         An iterator for the faces in this simplicial complex.
 
-        INPUTS:
+        INPUT:
 
         - ``increasing`` -- (optional, default ``True``) if ``True``, return
           faces in increasing order of dimension, thus starting with

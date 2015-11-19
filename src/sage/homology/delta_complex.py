@@ -1442,7 +1442,7 @@ class DeltaComplex(GenericCellComplex):
         r"""
         Return the free module of chains in degree ``n`` over ``base_ring``.
 
-        INPUTS:
+        INPUT:
 
         - ``n`` -- integer
         - ``base_ring`` -- ring (optional, default `\ZZ`)

@@ -36,7 +36,7 @@ def ChessboardGraphGenerator(dim_list,
     Graphs, Bishop Graph, and many generalizations. It also allows to avoid
     redondant code.
 
-    INPUTS:
+    INPUT:
 
     - ``dim_list`` -- an iterable object (list, set, dict) providing the
       dimensions `n_1, n_2, \ldots, n_d`, with `n_i \geq 1`, of the chessboard.
@@ -248,7 +248,7 @@ def QueenGraph(dim_list, radius=None, relabel=False):
     chromatic number of a `(n,n)`-Queen Graph is at least `n`, and it is exactly
     `n` when `n\equiv 1,5 \bmod{6}`.
 
-    INPUTS:
+    INPUT:
 
     - ``dim_list`` -- an iterable object (list, set, dict) providing the
       dimensions `n_1, n_2, \ldots, n_d`, with `n_i \geq 1`, of the chessboard.
@@ -321,7 +321,7 @@ def KingGraph(dim_list, radius=None, relabel=False):
     All 2-dimensional King Graphs are Hamiltonian, biconnected, and have
     chromatic number 4 as soon as both dimensions are larger or equal to 2.
 
-    INPUTS:
+    INPUT:
 
     - ``dim_list`` -- an iterable object (list, set, dict) providing the
       dimensions `n_1, n_2, \ldots, n_d`, with `n_i \geq 1`, of the chessboard.
@@ -382,7 +382,7 @@ def KnightGraph(dim_list, one=1, two=2, relabel=False):
 
     The `(n,n)`-Knight Graph is Hamiltonian for even `n > 4`.
 
-    INPUTS:
+    INPUT:
 
     - ``dim_list`` -- an iterable object (list, set, dict) providing the
       dimensions `n_1, n_2, \ldots, n_d`, with `n_i \geq 1`, of the chessboard.
@@ -443,7 +443,7 @@ def RookGraph(dim_list, radius=None, relabel=False):
     The Rook's Graph for an `n\times m` chessboard may also be defined as the
     Cartesian product of two complete graphs `K_n \square K_m`.
 
-    INPUTS:
+    INPUT:
 
     - ``dim_list`` -- an iterable object (list, set, dict) providing the
       dimensions `n_1, n_2, \ldots, n_d`, with `n_i \geq 1`, of the chessboard.
@@ -497,7 +497,7 @@ def BishopGraph(dim_list, radius=None, relabel=False):
 
     The Bishop Graph is not connected.
 
-    INPUTS:
+    INPUT:
 
     - ``dim_list`` -- an iterable object (list, set, dict) providing the
       dimensions `n_1, n_2, \ldots, n_d`, with `n_i \geq 1`, of the chessboard.

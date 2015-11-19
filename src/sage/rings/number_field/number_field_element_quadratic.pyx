@@ -17,18 +17,14 @@ AUTHORS:
     The ``_new()`` method should be overridden in this class to copy the ``D``
     and ``standard_embedding`` attributes
 """
+
 #*****************************************************************************
-#     Copyright (C) 2007 Robert Bradshaw <robertwb@math.washington.edu>
+#       Copyright (C) 2007 Robert Bradshaw <robertwb@math.washington.edu>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
-#
-#    This code is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-#    General Public License for more details.
-#
-#  The full text of the GPL is available at:
-#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
@@ -1300,32 +1296,22 @@ cdef class NumberFieldElement_quadratic(NumberFieldElement_absolute):
             sage: L.<a> = QuadraticField(-7)
             sage: hash(a)
             42082631
-
             sage: hash(L(1))
             1
             sage: hash(L(-3))
             -3
-
-            sage: hash(L(-32/118))
-            -53
-            sage: hash(-32/118)
-            -53
+            sage: hash(L(-32/118)) == hash(-32/118)
+            True
         """
         # 1. compute the hash of a/denom as if it was a rational
         # (see the corresponding code in sage/rings/rational.pyx)
-        cdef long a_hash = mpz_pythonhash(self.a)
-        cdef long d_hash = mpz_pythonhash(self.denom)
-        if d_hash != 1:
-            a_hash ^= d_hash
-            if a_hash == -1:
-                a_hash == -2
+        cdef Py_hash_t n = mpz_pythonhash(self.a)
+        cdef Py_hash_t d = mpz_pythonhash(self.denom)
+        cdef Py_hash_t h = n + (d - 1) * <Py_hash_t>(7461864723258187525)
 
-        # 2. mix them together with b
-        a_hash += 42082631 * mpz_pythonhash(self.b)
-        if a_hash == -1:
-            return -2
-        return a_hash
-
+        # 2. mix the hash together with b
+        h += 42082631 * mpz_pythonhash(self.b)
+        return h
 
     def __nonzero__(self):
         """

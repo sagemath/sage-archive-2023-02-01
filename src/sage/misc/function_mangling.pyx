@@ -78,7 +78,7 @@ cdef class ArgumentFixer:
     For the purpose of cached functions, it is important not
     to distinguish between these uses.
 
-    INPUTS:
+    INPUT:
 
     - f           -- a function
     - classmethod -- boolean (default False) -- True if the function

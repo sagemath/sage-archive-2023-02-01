@@ -19,7 +19,7 @@ class table(SageObject):
     Display a rectangular array as a table, either in plain text, LaTeX,
     or html.
 
-    INPUTS:
+    INPUT:
 
     - ``rows`` (default ``None``) - a list of lists (or list of tuples,
       etc.), containing the data to be displayed.
@@ -303,7 +303,7 @@ class table(SageObject):
         With no arguments, return the dictionary of options for this
         table. With arguments, modify options.
 
-        INPUTS:
+        INPUT:
 
         - ``header_row`` - if True, first row is highlighted.
         - ``header_column`` - if True, first column is highlighted.
@@ -752,7 +752,7 @@ class table(SageObject):
         
         Helper method used by the :meth:`_html_` method.
 
-        INPUTS:
+        INPUT:
 
         - ``file`` -- file-like object. The table row data will be
           written to it.

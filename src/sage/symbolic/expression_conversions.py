@@ -668,7 +668,7 @@ class SympyConverter(Converter):
 
     TESTS:
 
-    Make sure we can convert I (trac #6424)::
+    Make sure we can convert I (:trac:`6424`)::
 
         sage: bool(I._sympy_() == I)
         True
@@ -1196,7 +1196,7 @@ class FastFloatConverter(Converter):
             sage: ff(1.0,2.0,3.0)
             4.1780638977...
 
-        Using _fast_float_ without specifying the variable names is
+        Using ``_fast_float_`` without specifying the variable names is
         deprecated::
 
             sage: f = x._fast_float_()
@@ -1208,8 +1208,8 @@ class FastFloatConverter(Converter):
             sage: f(1.2)
             1.2
 
-        Using _fast_float_ on a function which is the identity is
-        now supported (see Trac 10246)::
+        Using ``_fast_float_`` on a function which is the identity is
+        now supported (see :trac:`10246`)::
 
             sage: f = symbolic_expression(x).function(x)
             sage: f._fast_float_(x)

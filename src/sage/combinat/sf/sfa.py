@@ -1280,7 +1280,7 @@ class SymmetricFunctionsBases(Category_realization_of_parent):
 
 class FilteredSymmetricFunctionsBases(Category_realization_of_parent):
     r"""
-    The category of graded bases of the ring of symmetric functions.
+    The category of filtered bases of the ring of symmetric functions.
 
     TESTS::
 
@@ -1328,6 +1328,9 @@ class FilteredSymmetricFunctionsBases(Category_realization_of_parent):
 class GradedSymmetricFunctionsBases(Category_realization_of_parent):
     r"""
     The category of graded bases of the ring of symmetric functions.
+
+    These are further required to have the property that the basis element
+    indexed by the empty partition is `1`.
 
     TESTS::
 

@@ -243,7 +243,8 @@ This is also revealed by the category of each module::
     sage: M.category()
     Category of modules over Integer Ring
     sage: N.category()
-    Category of modules with basis over (euclidean domains and infinite enumerated sets)
+    Category of finite dimensional modules with basis over
+     (euclidean domains and infinite enumerated sets and metric spaces)
 
 In other words, the module created by ``FreeModule`` is actually `\ZZ^3`,
 while, in the absence of any distinguished basis, no *canonical* isomorphism
@@ -367,7 +368,8 @@ created by ``VectorSpace`` is actually a Cartesian power of the base field::
     sage: V = VectorSpace(QQ,3) ; V
     Vector space of dimension 3 over Rational Field
     sage: V.category()
-    Category of vector spaces with basis over quotient fields
+    Category of finite dimensional vector spaces with basis
+     over (quotient fields and metric spaces)
     sage: V is QQ^3
     True
     sage: V.basis()

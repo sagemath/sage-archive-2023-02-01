@@ -1441,10 +1441,8 @@ cdef class Expression(CommutativeRingElement):
 
             sage: hash(SR(3/1))
             3
-            sage: hash(SR(19/23))
-            4
-            sage: hash(19/23)
-            4
+            sage: hash(SR(19/23)) == hash(19/23)  # known bug #19310
+            True
 
         The hash for symbolic expressions are unfortunately random. Here we
         only test that the hash() function returns without error, and that
@@ -1501,7 +1499,7 @@ cdef class Expression(CommutativeRingElement):
 
             sage: num_vars = 10; max_order=7
             sage: X = var(' '.join(['x'+str(i) for i in range(num_vars)]))
-            sage: f = function('f',*X)
+            sage: f = function('f')(*X)
             sage: hashes=set()
             sage: for length in range(1,max_order+1):  # long time (4s on sage.math, 2012)
             ...       for s in UnorderedTuples(X, length):
@@ -1773,7 +1771,7 @@ cdef class Expression(CommutativeRingElement):
             sage: x = var('x')
             sage: x._assume_str()
             '_SAGE_VAR_x'
-            sage: y = function('y', x)
+            sage: y = function('y')(x)
             sage: y._assume_str()
             'y'
             sage: abs(x)._assume_str()
@@ -2107,7 +2105,7 @@ cdef class Expression(CommutativeRingElement):
 
         Check if we can handle derivatives. :trac:`6523`::
 
-            sage: f(x) = function('f',x)
+            sage: f(x) = function('f')(x)
             sage: f(x).diff(x).is_zero()
             False
 
@@ -5645,7 +5643,7 @@ cdef class Expression(CommutativeRingElement):
 
         We can find coefficients of symbolic functions, :trac:`12255`::
 
-            sage: g = function('g', var('t'))
+            sage: g = function('g')(var('t'))
             sage: f = 3*g + g**2 + t
             sage: f.coefficients(g)
             [[t, 0], [3, 1], [1, 2]]
@@ -11492,14 +11490,16 @@ cdef class Expression(CommutativeRingElement):
             ValueError: Expression cos(x)*sin(x) contains no y terms
 
 
-        TESTS::
+        TESTS:
 
-            sage: var('x,y')  # check that the pynac registry is not polluted
+        Check that the symbols registry is not polluted::
+
+            sage: var('x,y')
             (x, y)
-            sage: psr = copy(sage.symbolic.ring.pynac_symbol_registry)
+            sage: psr = copy(SR.symbols)
             sage: (x^6*y^5).implicit_derivative(y, x, 3)
             -792/125*y/x^3 + 12/25*(15*x^4*y^5 + 28*x^3*y^5)/(x^6*y^4) - 36/125*(20*x^5*y^4 + 43*x^4*y^4)/(x^7*y^3)
-            sage: psr == sage.symbolic.ring.pynac_symbol_registry
+            sage: psr == SR.symbols
             True
         """
         from sage.symbolic.ring import SR

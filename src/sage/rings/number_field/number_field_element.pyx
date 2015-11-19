@@ -709,7 +709,7 @@ cdef class NumberFieldElement(FieldElement):
             raise IndexError, "index must be between 0 and degree minus 1."
         return self.polynomial()[n]
 
-    def __richcmp__(left, right, int op):
+    cpdef int _cmp_(left, sage.structure.element.Element right) except -2:
         r"""
         EXAMPLE::
 
@@ -719,9 +719,6 @@ cdef class NumberFieldElement(FieldElement):
             sage: a + 1 < a # indirect doctest
             False
         """
-        return (<Element>left)._richcmp(right, op)
-
-    cpdef int _cmp_(left, sage.structure.element.Element right) except -2:
         cdef NumberFieldElement _right = right
         return not (ZZX_equal(left.__numerator, _right.__numerator) and ZZ_equal(left.__denominator, _right.__denominator))
 

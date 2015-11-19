@@ -533,12 +533,8 @@ class ContinuedFraction_base(SageObject):
 
     def _mpfr_(self, R):
         r"""
-        Return a numerical approximation of ``self`` in the real mpfr ring ``R``.
-
-        The output result is accurate: when the rounding mode of
-        ``R`` is 'RNDN' then the result is the nearest binary number of ``R`` to
-        ``self``. The other rounding mode are 'RNDD' (toward +infinity), 'RNDU'
-        (toward -infinity) and 'RNDZ' (toward zero).
+        Return a correctly-rounded numerical approximation of ``self``
+        in the real mpfr ring ``R``.
 
         EXAMPLES::
 
@@ -589,43 +585,38 @@ class ContinuedFraction_base(SageObject):
             sage: cf.n(digits=11)
             8.9371541378
 
-        TESTS::
+        TESTS:
 
-        We check that the rounding works as expected, at least in the rational
-        case::
+        Check that the rounding works as expected (at least in the
+        rational case)::
 
-            sage: for _ in xrange(100):
-            ....:     a = QQ.random_element(num_bound=1<<64)
+            sage: fields = []
+            sage: for prec in [17, 24, 53, 128, 256]:
+            ....:     for rnd in ['RNDN', 'RNDD', 'RNDU', 'RNDZ']:
+            ....:         fields.append(RealField(prec=prec, rnd=rnd))
+            sage: for n in range(3000):  # long time
+            ....:     a = QQ.random_element(num_bound=2^(n%100))
             ....:     cf = continued_fraction(a)
-            ....:     for prec in 17,24,53,128,256:
-            ....:         for rnd in 'RNDN','RNDD','RNDU','RNDZ':
-            ....:             R = RealField(prec=prec, rnd=rnd)
-            ....:             assert R(cf) == R(a)
+            ....:     for R in fields:
+            ....:         assert R(cf) == R(a)
         """
         # 1. integer case
         if self.quotient(1) is Infinity:
             return R(self.quotient(0))
 
-        # 2. negative numbers
-        # TODO: it is possible to deal with negative values. The only problem is
-        # that we need to find the good value for N (which involves
-        # self.quotient(k) for k=0,1,2)
+        rnd = R.rounding_mode()
+
+        # 2. negative numbers: reduce to the positive case
         if self.quotient(0) < 0:
-            rnd = R.rounding_mode()
-            if rnd == 'RNDN' or rnd == 'RNDZ':
-                return -R(-self)
-            elif rnd == 'RNDD':
-                r = R(-self)
-                s,m,e = r.sign_mantissa_exponent()
-                if e < 0:
-                    return -(R(m+1) >> (-e))
-                return -(R(m+1) << e)
-            else:
-                r = R(-self)
-                s,m,e = r.sign_mantissa_exponent()
-                if e < 0:
-                    return -(R(m-1) >> (-e))
-                return -(R(m-1) << e)
+            sgn = -1
+            self = -self
+            # Adjust rounding for change in sign
+            if rnd == 'RNDD':
+                rnd = 'RNDA'
+            elif rnd == 'RNDU':
+                rnd = 'RNDZ'
+        else:
+            sgn = 1
 
         # 3. positive non integer
         if self.quotient(0) == 0:  # 0 <= self < 1
@@ -655,8 +646,8 @@ class ContinuedFraction_base(SageObject):
 
         assert m_odd.nbits() == R.prec() or m_even.nbits() == R.prec()
 
-        if m_even == m_odd:  # no need to worry (we have a decimal number)
-            return R(m_even) >> N
+        if m_even == m_odd:  # no need to worry (we have an exact number)
+            return R(sgn * m_even) >> N
 
         # check ordering
         # m_even/2^N <= p_even/q_even <= self <= p_odd/q_odd <= m_odd/2^N
@@ -665,30 +656,24 @@ class ContinuedFraction_base(SageObject):
         assert p_even / q_even <= p_odd / q_odd
         assert p_odd / q_odd <= m_odd / (ZZ_1 << N)
 
-        rnd = R.rounding_mode()
         if rnd == 'RNDN':  # round to the nearest
             # in order to find the nearest approximation we possibly need to
             # augment our precision on convergents.
             while True:
                 assert not(p_odd << (N+1) <= (2*m_odd-1) * q_odd) or not(p_even << (N+1) >= (2*m_even+1) * q_even)
                 if p_odd << (N+1) <= (2*m_odd-1) * q_odd:
-                    return R(m_even) >> N
+                    return R(sgn * m_even) >> N
                 if p_even << (N+1) >= (2*m_even+1) * q_even:
-                    return R(m_odd) >> N
+                    return R(sgn * m_odd) >> N
                 k += 1
                 p_even = self.numerator(2*k)
                 p_odd = self.numerator(2*k+1)
                 q_even = self.denominator(2*k)
                 q_odd = self.denominator(2*k+1)
-        elif rnd == 'RNDU':  # round up (toward +infinity)
-            return R(m_odd) >> N
-        elif rnd == 'RNDD':  # round down (toward -infinity)
-            return R(m_even) >> N
-        elif rnd == 'RNDZ':  # round toward zero
-            if m_even.sign() == 1:
-                return R(m_even) >> N
-            else:
-                return R(m_odd) >> N
+        elif rnd == 'RNDU' or rnd == 'RNDA':  # round up
+            return R(sgn * m_odd) >> N
+        elif rnd == 'RNDD' or rnd == 'RNDZ':  # round down
+            return R(sgn * m_even) >> N
         else:
             raise ValueError("%s unknown rounding mode" % rnd)
 
@@ -1471,7 +1456,7 @@ class ContinuedFraction_periodic(ContinuedFraction_base):
         return self.numerator(n-1) / self.denominator(n-1)
 
     def _latex_(self):
-        """
+        r"""
         EXAMPLES::
 
             sage: a = continued_fraction(-17/389)

@@ -65,18 +65,16 @@ class NotebookSageNB(object):
             notebook(*self.args, **self.kwds)
 
 
-class NotebookIPython(object):
+class NotebookJupyter(object):
 
     PREREQUISITE_ERROR = textwrap.dedent("""
-    The IPython notebook requires ssl, even if you do not use
+    The Jupyter notebook requires ssl, even if you do not use
     https. Install the openssl development packages in your system and
     then rebuild Python (sage -f python2).
     """)
 
     def __init__(self, argv):
-        from sage.repl.ipython_kernel.install import \
-            SageKernelSpec, have_prerequisites
-        SageKernelSpec.update()
+        from sage.repl.ipython_kernel.install import have_prerequisites
         if not have_prerequisites():
             print(self.PREREQUISITE_ERROR)
             raise SystemExit(1)
@@ -118,8 +116,8 @@ EXAMPLES:
 notebook_launcher = {
     'default': NotebookSageNB,   # change this to change the default
     'sagenb': NotebookSageNB,
-    'ipython': NotebookIPython,
-    'jupyter': NotebookIPython,
+    'ipython': NotebookJupyter,
+    'jupyter': NotebookJupyter,
 } 
 
 notebook_names = ', '.join(notebook_launcher.keys())
@@ -182,8 +180,8 @@ if __name__ == '__main__':
             parser.print_help()
         elif launcher == NotebookSageNB:
             NotebookSageNB([], help=True)
-        elif launcher == NotebookIPython:
-            NotebookIPython(['help'])
+        elif launcher == NotebookJupyter:
+            NotebookJupyter(['help'])
         else:
             parser.print_help()
         sys.exit(0)

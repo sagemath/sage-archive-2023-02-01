@@ -69,7 +69,7 @@ class IncidenceAlgebra(CombinatorialFreeModule):
         if P in FiniteEnumeratedSets():
             cat = cat.FiniteDimensional()
         self._poset = P
-        CombinatorialFreeModule.__init__(self, R, map(tuple, P.intervals()),
+        CombinatorialFreeModule.__init__(self, R, map(tuple, P.relations()),
                                          prefix=prefix, category=cat)
 
     def _repr_term(self, A):

@@ -13,6 +13,7 @@ from category_types import Category_over_base_ring
 from sage.categories.all import Modules
 from sage.categories.tensor import TensorProductsCategory, tensor
 from sage.categories.dual import DualObjectsCategory
+from sage.categories.super_modules import SuperModulesCategory
 from sage.categories.realizations import RealizationsCategory
 from sage.categories.with_realizations import WithRealizationsCategory
 from sage.misc.abstract_method import abstract_method
@@ -49,19 +50,6 @@ class Coalgebras(Category_over_base_ring):
         #def __init_add__(self): # The analogue of initDomainAdd
         #    # Will declare the coproduct of self to the coercion mechanism when it exists
         #    pass
-
-        @cached_method
-        def tensor_square(self):
-            """
-            Returns the tensor square of ``self``
-
-            EXAMPLES::
-
-                sage: A = HopfAlgebrasWithBasis(QQ).example()
-                sage: A.tensor_square()
-                An example of Hopf algebra with basis: the group algebra of the Dihedral group of order 6 as a permutation group over Rational Field # An example of Hopf algebra with basis: the group algebra of the Dihedral group of order 6 as a permutation group over Rational Field
-            """
-            return tensor([self, self])
 
         @abstract_method
         def counit(self, x):
@@ -192,6 +180,31 @@ class Coalgebras(Category_over_base_ring):
             from sage.categories.algebras import Algebras
             return [Algebras(self.base_category().base_ring())]
 
+    class Super(SuperModulesCategory):
+        def extra_super_categories(self):
+            """
+            EXAMPLES::
+
+                sage: Coalgebras(ZZ).Super().extra_super_categories()
+                [Join of Category of graded modules over Integer Ring
+                    and Category of coalgebras over Integer Ring]
+                sage: Coalgebras(ZZ).Super().super_categories()
+                [Category of super modules over Integer Ring,
+                 Category of coalgebras over Integer Ring]
+
+            Compare this with the situation for bialgebras::
+
+                sage: Bialgebras(ZZ).Super().extra_super_categories()
+                []
+                sage: Bialgebras(ZZ).Super().super_categories()
+                [Category of super algebras over Integer Ring,
+                 Category of super coalgebras over Integer Ring]
+
+            The category of bialgebras does not occur in these results,
+            since super bialgebras are not bialgebras.
+            """
+            return [self.base_category().Graded()]
+
     class WithRealizations(WithRealizationsCategory):
 
         class ParentMethods:
@@ -213,7 +226,7 @@ class Coalgebras(Category_over_base_ring):
 
             def counit(self, x):
                 r"""
-                Returns the counit of ``x``.
+                Return the counit of ``x``.
 
                 EXAMPLES::
 
@@ -245,7 +258,8 @@ class Coalgebras(Category_over_base_ring):
 
             def coproduct_by_coercion(self, x):
                 r"""
-                Returns the coproduct by coercion if coproduct_by_basis is not implemented.
+                Return the coproduct by coercion if ``coproduct_by_basis``
+                is not implemented.
 
                 EXAMPLES::
 
@@ -276,3 +290,26 @@ class Coalgebras(Category_over_base_ring):
                 """
                 R = self.realization_of().a_realization()
                 return self.tensor_square()(R(x).coproduct())
+
+            def counit_by_coercion(self, x):
+                r"""
+                Return the counit of ``x`` if ``counit_by_basis`` is
+                not implemented.
+
+                EXAMPLES::
+
+                    sage: sp = SymmetricFunctions(QQ).sp()
+                    sage: sp.an_element()
+                    2*sp[] + 2*sp[1] + 3*sp[2]
+                    sage: sp.counit(sp.an_element())
+                    2
+
+                    sage: o = SymmetricFunctions(QQ).o()
+                    sage: o.an_element()
+                    2*o[] + 2*o[1] + 3*o[2]
+                    sage: o.counit(o.an_element())
+                    -1
+                """
+                R = self.realization_of().a_realization()
+                return R(x).counit()
+

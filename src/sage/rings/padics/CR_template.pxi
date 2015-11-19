@@ -270,22 +270,6 @@ cdef class CRElement(pAdicTemplateElement):
         """
         return unpickle_cre_v2, (self.__class__, self.parent(), cpickle(self.unit, self.prime_pow), self.ordp, self.relprec)
 
-    def __richcmp__(self, right, int op):
-        """
-        Compare this element to ``right`` using the comparison operator ``op``.
-
-        TESTS::
-
-            sage: R = Zp(5)
-            sage: a = R(17)
-            sage: b = R(21)
-            sage: a == b
-            False
-            sage: a < b   # indirect doctest
-            True
-        """
-        return (<Element>self)._richcmp(right, op)
-
     cpdef ModuleElement _neg_(self):
         """
         Return the additive inverse of this element.

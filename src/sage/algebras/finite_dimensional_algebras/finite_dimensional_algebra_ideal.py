@@ -84,7 +84,7 @@ class FiniteDimensionalAlgebraIdeal(Ideal_generic):
 
             sage: A2 = FiniteDimensionalAlgebra(GF(3), [Matrix([[1, 0], [0, 1]]), Matrix([[0, 1], [0, 0]])])
             sage: A is A2
-            False
+            True
             sage: A == A2
             True
             sage: I2 = A.ideal(A([1,1]))

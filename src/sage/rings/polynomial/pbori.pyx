@@ -206,6 +206,7 @@ from sage.rings.ideal import FieldIdeal
 from sage.structure.element cimport Element
 from sage.structure.element cimport RingElement
 from sage.structure.element cimport ModuleElement
+from sage.structure.element cimport have_same_parent_c, coercion_model
 
 from sage.structure.parent cimport Parent
 from sage.structure.sequence import Sequence
@@ -1260,7 +1261,7 @@ cdef class BooleanPolynomialRing(MPolynomialRing_generic):
             [x*y, x*y, x, x, x, x*y, x, y, x*y, 1]
         """
         from sage.rings.integer_ring import ZZ
-        from sage.combinat.choose_nk import from_rank
+        from sage.combinat.combination import from_rank
 
         t = ZZ.random_element(0,monom_counts[-1])
         if t == 0:
@@ -2200,9 +2201,6 @@ cdef class BooleanMonomial(MonoidElement):
         self._ring = parent._ring
         self._pbmonom = PBMonom_Constructor((<BooleanPolynomialRing>self._ring)._pbring)
 
-    def __dealloc__(self):
-        pass # destruction by C++ object's destructor
-
     def __reduce__(self):
         """
         Pickling
@@ -2219,7 +2217,7 @@ cdef class BooleanMonomial(MonoidElement):
         gens = self._parent.gens()
         return self._parent, (tuple([gens.index(x) for x in self.variables()]),)
 
-    def __richcmp__(left, right, int op):
+    cpdef int _cmp_(left, Element right) except -2:
         """
         Compare BooleanMonomial objects.
 
@@ -2243,10 +2241,6 @@ cdef class BooleanMonomial(MonoidElement):
             sage: M(x) >= M(x)
             True
         """
-        # boilerplate code from sage.structure.parent
-        return (<Element>left)._richcmp(right, op)
-
-    cpdef int _cmp_(left, Element right) except -2:
         cdef int res
         res = left._pbmonom.compare((<BooleanMonomial>right)._pbmonom)
         return res
@@ -3083,6 +3077,45 @@ cdef class BooleanPolynomial(MPolynomial):
 
     def __richcmp__(left, right, int op):
         """
+        Optimized comparison function, checking for boolean ``False``
+        in one of the arguments.
+
+        EXAMPLES::
+
+            sage: P.<x> = BooleanPolynomialRing()
+            sage: P.zero() == True
+            False
+            sage: P(0) != True
+            True
+            sage: P(False) == False
+            True
+            sage: P() != False
+            False
+            sage: x == True
+            False
+            sage: x != True
+            True
+            sage: x == False
+            False
+            sage: x != False
+            True
+        """
+        cdef bint bl, br
+
+        if (op == Py_EQ) or (op == Py_NE):
+            bl = not not left
+            br = not not right
+            if not bl or not br:
+                return (br or bl) == (op == Py_NE)
+
+        # Copy from Element.__richcmp__
+        if have_same_parent_c(left, right):
+            return (<Element>left)._richcmp_(<Element>right, op)
+        else:
+            return coercion_model.richcmp(left, right, op)
+
+    cpdef int _cmp_(left, Element right) except -2:
+        """
         Compare left and right and return -1, 0, 1 for ``less than``,
         ``equal``, and ``greater than`` respectively.
 
@@ -3105,27 +3138,11 @@ cdef class BooleanPolynomial(MPolynomial):
 
         ::
 
-            sage: P(0) == 0
+            sage: P(True) == True
             True
+            sage: cmp(P(0), 0)
+            0
         """
-        cdef bint bl = bool(left)
-        cdef bint br = bool(right)
-
-        if op == Py_EQ:
-            if not bl or not br:
-                return (not br and not bl)
-
-        elif op == Py_NE:
-            if not bl or not br:
-                return not (not br and not bl)
-
-        #boilerplate from sage.structure.element
-        return (<Element>left)._richcmp(right, op)
-
-    cpdef int _cmp_(left, Element right) except -2:
-
-
-
         cdef int res
         from itertools import izip
         for lm, rm in izip(left, right):
@@ -5110,10 +5127,11 @@ class BooleanPolynomialIdeal(MPolynomialIdeal):
 
             A Simple example::
 
+                sage: from sage.doctest.fixtures import reproducible_repr
                 sage: R.<x,y,z> = BooleanPolynomialRing()
                 sage: I = ideal( [ x*y*z + x*z + y + 1, x+y+z+1 ] )
-                sage: I.variety()
-                [{z: 0, y: 1, x: 0}, {z: 1, y: 1, x: 1}]
+                sage: print(reproducible_repr(I.variety()))
+                [{x: 0, y: 1, z: 0}, {x: 1, y: 1, z: 1}]
 
         TESTS:
 
@@ -5130,14 +5148,14 @@ class BooleanPolynomialIdeal(MPolynomialIdeal):
                         x1*x2 + x1*x4 + x1*x5 + x1*x6 + x2*x3 + x2*x4 + x2*x5 + x3*x5 + x5*x6 + x5 + x6, \
                         x1*x2 + x1*x6 + x2*x4 + x2*x5 + x2*x6 + x3*x6 + x4*x6 + x5*x6 + x5]
                  sage: I = R.ideal( polys )
-                 sage: I.variety()
-                 [{x6: 0, x5: 0, x4: 0, x3: 0, x2: 0, x1: 0},
-                  {x6: 1, x5: 0, x4: 0, x3: 1, x2: 1, x1: 1}]
+                 sage: print(reproducible_repr(I.variety()))
+                  [{x1: 0, x2: 0, x3: 0, x4: 0, x5: 0, x6: 0}, {x1: 1, x2: 1, x3: 1, x4: 0, x5: 0, x6: 1}]
 
                  sage: R = PolynomialRing(GF(2), 6, ['x%d'%(i+1) for i in range(6)], order='lex')
                  sage: I = R.ideal( polys )
-                 sage: (I + sage.rings.ideal.FieldIdeal(R)).variety()
-                 [{x2: 0, x5: 0, x4: 0, x1: 0, x6: 0, x3: 0}, {x2: 1, x5: 0, x4: 0, x1: 1, x6: 1, x3: 1}]
+                 sage: v = (I + sage.rings.ideal.FieldIdeal(R)).variety()
+                 sage: print(reproducible_repr(v))
+                 [{x1: 0, x2: 0, x3: 0, x4: 0, x5: 0, x6: 0}, {x1: 1, x2: 1, x3: 1, x4: 0, x5: 0, x6: 1}]
 
 
             Check that :trac:`13976` is fixed::
@@ -5148,13 +5166,21 @@ class BooleanPolynomialIdeal(MPolynomialIdeal):
                 sage: sols[0][y]
                 1
 
+            Make sure the result is a key converting dict, as discussed in
+            :trac:`9788` and consistent with
+            :meth:`sage.rings.polynomial.multi_polynomial_ideal.MPolynomialIdeal_singular_repr.variety`::
+
+                sage: sols[0]["y"]
+                1
+
         """
+        from sage.misc.converting_dict import KeyConvertingDict
         R_bool = self.ring()
         R = R_bool.cover_ring()
         I = R.ideal( [ R( f ) for f in self.groebner_basis() ] )
         J = FieldIdeal(R)
         solutions = (I+J).variety(**kwds)
-        return [ { R_bool(var):val for var,val in s.iteritems() } for s in solutions ]
+        return [ KeyConvertingDict(R_bool, s) for s in solutions ]
 
 
     def reduce(self, f):

@@ -206,7 +206,14 @@ set_environment
 # Set CFLAGS
 if [ "$SAGE_DEBUG" = yes ]; then
     # Disable optimisation, add debug symbols.
-    CFLAGS="$CFLAGS -O0 -g"
+    CFLAGS="-O0 -g $CFLAGS"
+
+    # Compile kernel files with -O1 instead of -funroll-loops; -O0 gives
+    # a segmentation fault on some OS X systems when doing
+    # factor(10356613*10694706299664611221)
+    # See #13921, also reported upstream:
+    # - http://pari.math.u-bordeaux.fr/archives/pari-dev-1301/msg00000.html
+    PARI_MAKEFLAGS="KERNELCFLAGS=-O1 $PARI_MAKEFLAGS"
 else
     # Use PARI's default CFLAGS (with -g added).
     # PARI's Configure adds -O3 to the CFLAGS, so we don't need to add

@@ -2681,7 +2681,7 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
           ``block_size`` should be between 2 and the number of rows
           of ``self``.
 
-        NLT SPECIFIC INPUTS:
+        NLT SPECIFIC INPUT:
 
         - ``prune`` -- (default: ``0``) The optional parameter ``prune`` can
           be set to any positive number to invoke the Volume Heuristic from
@@ -2697,7 +2697,7 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
           orthogonalization strategy. For a nice description of this, see
           Chapter 5 of [GL96]_.
 
-        fpLLL SPECIFIC INPUTS:
+        fpLLL SPECIFIC INPUT:
 
         - ``precision`` -- (default: ``0`` for automatic choice) bit
           precision to use if ``fp='rr'`` is set

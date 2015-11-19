@@ -1851,10 +1851,10 @@ class KRTableauxTypeFromRC(KirillovReshetikhinTableaux):
                     return 1
                 if self._r == [3, 6]:
                     return 2
-                if self._r in [2, 5]:
+                if self._r in [2, 4]:
                     return 3
-                if self._r == 4:
-                    return 3
+                if self._r == 5:
+                    return 4
             if self._cartan_type.classical().rank() == 7:
                 #     1-2-3
                 #    /

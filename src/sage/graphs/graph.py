@@ -2345,7 +2345,7 @@ class Graph(GenericGraph):
             sage: Graph(1).treewidth()
             0
             sage: Graph(0).treewidth()
-            0
+            -1
             sage: graphs.PetersenGraph().treewidth(k=2)
             False
             sage: graphs.PetersenGraph().treewidth(k=6)
@@ -2353,7 +2353,7 @@ class Graph(GenericGraph):
             sage: graphs.PetersenGraph().treewidth(certificate=True).is_tree()
             True
             sage: graphs.PetersenGraph().treewidth(k=3,certificate=True)
-            Tree decomposition: Graph on 6 vertices
+            False
             sage: graphs.PetersenGraph().treewidth(k=4,certificate=True)
             Tree decomposition: Graph on 6 vertices
 
@@ -2411,7 +2411,7 @@ class Graph(GenericGraph):
         # Stupid cases
         if g.order() == 0:
             if certificate: return Graph()
-            elif k is None: return 0
+            elif k is None: return -1
             else:           return True
 
         if k is not None and k >= g.order()-1:
@@ -2432,7 +2432,7 @@ class Graph(GenericGraph):
             width = tdlib.get_width(T)
 
             if certificate:
-                return T
+                return T if (k is None or width <= k) else False
             elif k is None:
                 return width
             else:
@@ -2452,7 +2452,7 @@ class Graph(GenericGraph):
 
         # Forcing k to be defined
         if k is None:
-            for i in range(max(1,g.clique_number()-1,min(g.degree())),
+            for i in range(max(0,g.clique_number()-1,min(g.degree())),
                            g.order()+1):
                 ans = g.treewidth(k=i, certificate=certificate)
                 if ans:

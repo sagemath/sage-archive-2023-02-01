@@ -123,18 +123,18 @@ def treedecomposition_exact(G, lb=-1):
 
     EXAMPLES::
 
-        sage: import sage.graphs.graph_decompositions.tdlib as tdlib
-        sage: G = graphs.HouseGraph()
-        sage: T = tdlib.treedecomposition_exact(G)
-        sage: T.show(vertex_size=2000)
+        sage: import sage.graphs.graph_decompositions.tdlib as tdlib # optional - tdlib
+        sage: G = graphs.HouseGraph()                                # optional - tdlib
+        sage: T = tdlib.treedecomposition_exact(G)                   # optional - tdlib
+        sage: T.show(vertex_size=2000)                               # optional - tdlib
 
     TEST::
 
-        sage: import sage.graphs.graph_decompositions.tdlib as tdlib
-        sage: G = graphs.HouseGraph()
-        sage: T = tdlib.treedecomposition_exact(G)
-        sage: G = graphs.PetersenGraph()
-        sage: T = tdlib.treedecomposition_exact(G)
+        sage: import sage.graphs.graph_decompositions.tdlib as tdlib # optional - tdlib
+        sage: G = graphs.HouseGraph()                                # optional - tdlib
+        sage: T = tdlib.treedecomposition_exact(G)                   # optional - tdlib
+        sage: G = graphs.PetersenGraph()                             # optional - tdlib
+        sage: T = tdlib.treedecomposition_exact(G)                   # optional - tdlib
 
     """
     cdef vector[unsigned int] V_G, E_G, E_T
@@ -170,10 +170,10 @@ def get_width(T):
     - The width of ``T``
 
     EXAMPLES::
-        sage: import sage.graphs.graph_decompositions.tdlib as tdlib
-        sage: G = graphs.PetersenGraph()
-        sage: T = tdlib.treedecomposition_exact(G)
-        sage: tdlib.get_width(T)
+        sage: import sage.graphs.graph_decompositions.tdlib as tdlib # optional - tdlib
+        sage: G = graphs.PetersenGraph()                             # optional - tdlib
+        sage: T = tdlib.treedecomposition_exact(G)                   # optional - tdlib
+        sage: tdlib.get_width(T)                                     # optional - tdlib
         4
     """
     return max(len(x) for x in T)-1 if len(T) > 0 else -1

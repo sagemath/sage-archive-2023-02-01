@@ -18,6 +18,8 @@ AUTHORS:
 #*****************************************************************************
 
 
+import itertools
+
 from sage.structure.parent import Parent
 from sage.rings.integer import Integer
 from sage.structure.unique_representation import UniqueRepresentation
@@ -25,7 +27,6 @@ from sage.categories.sets_cat import Sets, EmptySetError
 from sage.categories.monoids import Monoids
 from sage.categories.enumerated_sets import EnumeratedSets
 from sage.sets.finite_enumerated_set import FiniteEnumeratedSet
-from sage.combinat.cartesian_product import CartesianProduct
 from sage.sets.integer_range import IntegerRange
 from sage.sets.finite_set_map_cy import (
     FiniteSetMap_MN, FiniteSetMap_Set,
@@ -338,7 +339,7 @@ class FiniteSetMaps_MN(FiniteSetMaps):
             sage: FiniteSetMaps(1,1).list()
             [[0]]
         """
-        for v in CartesianProduct(*([range(self._n)]*self._m)):
+        for v in itertools.product(range(self._n), repeat=self._m):
             yield self._from_list_(v)
 
     def _from_list_(self, v):

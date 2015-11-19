@@ -378,6 +378,10 @@ class QuadraticForm(SageObject):
 	    isometry
 
 
+    ## Routines for solving equations of the form Q(x) = c.
+    from sage.quadratic_forms.qfsolve import solve
+        
+
     def __init__(self, R, n=None, entries=None, unsafe_initialization=False, number_of_automorphisms=None, determinant=None):
         """
         EXAMPLES::

@@ -925,9 +925,6 @@ cdef class Polynomial(CommutativeAlgebraElement):
             if c: return c
         return 0
 
-    def __richcmp__(left, right, int op):
-        return (<Element>left)._richcmp(right, op)
-
     def __nonzero__(self):
         """
         EXAMPLES::
@@ -972,9 +969,6 @@ cdef class Polynomial(CommutativeAlgebraElement):
         """
         return (self.parent(), tuple(self))
 
-    # you may have to replicate this boilerplate code in derived classes if you override
-    # __richcmp__.  The python documentation at  http://docs.python.org/api/type-structs.html
-    # explains how __richcmp__, __hash__, and __cmp__ are tied together.
     def __hash__(self):
         return self._hash_c()
 
@@ -7932,14 +7926,8 @@ cdef class Polynomial_generic_dense(Polynomial):
             del x[n]
             n -= 1
 
-    # you may have to replicate this boilerplate code in derived classes if you override
-    # __richcmp__.  The python documentation at  http://docs.python.org/api/type-structs.html
-    # explains how __richcmp__, __hash__, and __cmp__ are tied together.
     def __hash__(self):
         return self._hash_c()
-
-    def __richcmp__(left, right, int op):
-        return (<Element>left)._richcmp(right, op)
 
     def __getitem__(self, n):
         """

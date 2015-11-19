@@ -2393,6 +2393,19 @@ class AlgebraicScheme_subscheme_projective(AlgebraicScheme_subscheme):
               z,
               x + (1 + 3^2 + 3^4 + 3^6 + 3^8 + 3^10 + 3^12 + 3^14 + 3^16 + 3^18 +
             O(3^20))*y
+
+        ::
+
+            sage: R.<y0,y1,y2,y3> = PolynomialRing(QQ)
+            sage: P.<x,y,z> = ProjectiveSpace(FractionField(R), 2)
+            sage: H = End(P)
+            sage: f = H([y0*x^2+y1*z^2, y2*y^2+y3*z^2, z^2])
+            sage: X = P.subscheme(x*z)
+            sage: X.forward_image(f)
+            Closed subscheme of Projective Space of dimension 2 over Fraction Field
+            of Multivariate Polynomial Ring in y0, y1, y2, y3 over Rational Field
+            defined by:
+              x*z + (-y1)*z^2
         """
         dom = f.domain()
         codom = f.codomain()
@@ -2404,7 +2417,7 @@ class AlgebraicScheme_subscheme_projective(AlgebraicScheme_subscheme):
         m = CR_codom.ngens()
         #can't call eliminate if the base ring is polynomial so we do it ourselves
         #with a lex ordering
-        R = PolynomialRing(f.base_ring(), n+m, 'y', order = 'lex')
+        R = PolynomialRing(f.base_ring(), n+m, 'tempvar', order = 'lex')
         Rvars = R.gens()[0 : n]
         phi = CR_dom.hom(Rvars,R)
         zero = [0 for _ in range(n)]

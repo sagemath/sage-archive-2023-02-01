@@ -1646,7 +1646,7 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: get_plot_labels(P2.plot(element_labels=element_labels))
             ['a', 'b', 'c', 'd', 'e']
 
-        Plot of the empy poset::
+        Plot of the empty poset::
 
             sage: P = Poset({})
             sage: P.plot()

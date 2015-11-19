@@ -66,8 +66,8 @@ class EmptySetError(ValueError):
     EXAMPLES::
 
         sage: def first_element(st):
-        ...    if not st: raise EmptySetError, "no elements"
-        ...    else: return st[0]
+        ....:  if not st: raise EmptySetError("no elements")
+        ....:  else: return st[0]
         sage: first_element(Set((1,2,3)))
         1
         sage: first_element(Set([]))

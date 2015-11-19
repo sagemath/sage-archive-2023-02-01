@@ -266,10 +266,10 @@ class ProductProjectiveSpaces_morphism_ring(SchemeMorphism_polynomial):
               Defn: Defined by sending (a : b , x : y : z) to 
                     (a^27 : b^27 , x^8 : y^8 : z^8).
         """
-        E = self.domain()
-        if E is not self.codomain():
+        if not self.is_endomorphism():
             raise TypeError("Domain and Codomain of function not equal")
 
+        E = self.domain()
         D = int(n)
         if D < 0:
             raise TypeError("Iterate number must be a nonnegative integer")

@@ -391,9 +391,7 @@ class ProductProjectiveSpaces_point_ring(SchemeMorphism_point):
 
         .. TODO:: Is there a more efficient way to do this?
         """
-        if self.codomain() != f.domain():
-            raise TypeError("Point is not defined over domain of function")
-        if f.domain() != f.codomain():
+        if not f.is_endomorphism():
             raise TypeError("Domain and Codomain of function not equal")
         try:
             n = ZZ(n)
@@ -455,6 +453,8 @@ class ProductProjectiveSpaces_point_ring(SchemeMorphism_point):
             sage: P.orbit(f,3,normalize = True)
             [(1 : 3 , 1 : 2), (1 : 3 , -7 : 4), (1 : 3 , 407 : 112), (1 : 3 , 66014215 : 5105408)]
         """
+        if not f.is_endomorphism():
+            raise TypeError("Domain and Codomain of function not equal")
         if (isinstance(N,(list,tuple)) == False):
             N = [0,N]
         try:

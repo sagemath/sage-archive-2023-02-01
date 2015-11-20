@@ -175,6 +175,22 @@ class FockSpace(CombinatorialFreeModule):
         """
         return '|' + repr(m)[1:-1] + ">" # Strip the outer brackets of m
 
+    def q(self):
+        """
+        Return the parameter `q` of ``self``.
+
+        EXAMPLES::
+
+            sage: F = FockSpace(2)
+            sage: F.q()
+            q
+
+            sage: F = FockSpace(2, q=-1)
+            sage: F.q()
+            -1
+        """
+        return self._q
+
     def highest_weight_representation(self):
         """
         Return the highest weight representation `B(\Lambda)` in ``self``.
@@ -467,6 +483,24 @@ class HighestWeightRepresentation(Parent, UniqueRepresentation):
         P = ct.root_system().weight_lattice()
         wt = P.sum_of_monomials(self._fock._r)
         return "Highest weight representation of {} of weight {}".format(ct, wt)
+
+    def q(self):
+        """
+        Return the parameter `q` of ``self``.
+
+        EXAMPLES::
+
+            sage: F = FockSpace(2)
+            sage: B = F.highest_weight_representation()
+            sage: B.q()
+            q
+
+            sage: F = FockSpace(2, q=-1)
+            sage: B = F.highest_weight_representation()
+            sage: B.q()
+            -1
+        """
+        return self._fock._q
 
     def a_realization(self):
         """
@@ -896,6 +930,24 @@ class HighestWeightRepresentationBases(Category_realization_of_parent):
                 Highest weight representation of ['A', 1, 1] of weight Lambda[0] in the lower global crystal basis
             """
             return "{} in the {} basis".format(self.realization_of(), self._basis_name)
+
+        def q(self):
+            """
+            Return the parameter `q` of ``self``.
+
+            EXAMPLES::
+
+                sage: F = FockSpace(2)
+                sage: A = F.highest_weight_representation().A()
+                sage: A.q()
+                q
+
+                sage: F = FockSpace(2, q=-1)
+                sage: A = F.highest_weight_representation().A()
+                sage: A.q()
+                -1
+            """
+            return self.realization_of()._fock._q
 
         @cached_method
         def highest_weight_vector(self):

@@ -7,33 +7,6 @@ functions for the latter representation.
 from sage.rings.integer import Integer
 
 
-def permutation_to_perm(p):
-    r"""
-    Returns a list on `[0, n-1]` from a permutation on `[1, n]`
-
-    EXAMPLES::
-
-        sage: from sage.misc.permutation import permutation_to_perm
-        sage: permutation_to_perm(PermutationGroupElement([3, 1, 2]))
-        [2, 0, 1]
-    """
-    return map(lambda x: x-1, p.domain())
-
-
-def perm_to_permutation(l):
-    r"""
-    Returns a permutation on `[1, n]` from a list on `[0, n-1]`
-
-    EXAMPLES::
-
-        sage: from sage.misc.permutation import perm_to_permutation
-        sage: perm_to_permutation([2, 1, 0])
-        (1,3)
-    """
-    from sage.groups.perm_gps.permgroup_element import PermutationGroupElement
-    return PermutationGroupElement(map(lambda x: x+1, l))
-
-
 def cycles_to_list(t):
     r"""
     Returns a permutation on `[0, n-1]` from a list of cycles on `[0, n-1]`
@@ -126,37 +99,6 @@ def equalize_perms(l):
     return n
 
 
-def perm_check(l):
-    r"""
-    Checks that `l` is a permutation of `[0, n-1]` for some `n`
-
-    EXAMPLES::
-
-        sage: from sage.misc.permutation import perm_check
-        sage: perm_check([1, 0, 3, 2])
-
-    TESTS::
-
-        sage: perm_check([1, 0, 4, 2])
-        Traceback (most recent call last):
-        ...
-        ValueError: wrong entries in permutation [1, 0, 4, 2]
-
-        sage: perm_check([1, 0, 2, 2])
-        Traceback (most recent call last):
-        ...
-        ValueError: repetition in permutation [1, 0, 2, 2]
-    """
-    n = len(l)
-    seen = [False]*n
-    for i in xrange(n):
-        if l[i] < 0 or l[i] > n-1 :
-            raise ValueError("wrong entries in permutation %s" % str(l))
-        if seen[l[i]]:
-            raise ValueError("repetition in permutation %s" % str(l))
-        seen[l[i]] = True
-
-
 def perm_invert(l):
     r"""
     Returns the inverse of the permutation `l`
@@ -240,57 +182,6 @@ def perm_orbit(p, i):
         res.append(j)
         j = p[j]
     return res
-
-
-def perm_cycle_tuples(p, singletons=False):
-    r"""
-    Return the cycle decomposition of `p`
-
-    INPUT:
-
-    - ``p`` -- the permutation
-
-    - ``singletons`` -- bool (default: ``False``) - return or not the singletons
-
-    EXAMPLES::
-
-        sage: from sage.misc.permutation import perm_cycle_tuples
-        sage: perm_cycle_tuples([0,2,1])
-        ([1, 2],)
-        sage: perm_cycle_tuples([0,2,1],True)
-        ([0], [1, 2])
-    """
-    seen = [1]*len(p)
-    res = []
-
-    for i in xrange(len(p)):
-        if seen[i]:
-            cycle = []
-            j = i
-            while seen[j]:
-                seen[j] = 0
-                cycle.append(Integer(j))
-                j = p[j]
-            if singletons or len(cycle) > 1:
-                res.append(cycle)
-
-    return tuple(res)
-
-
-def perm_cycle_string(p, singletons=False):
-    r"""
-    Returns a string representing the cycle decomposition of `p`
-
-    EXAMPLES::
-
-        sage: from sage.misc.permutation import perm_cycle_string
-        sage: perm_cycle_string([0,2,1])
-        '(1,2)'
-        sage: perm_cycle_string([0,2,1],True)
-        '(0)(1,2)'
-    """
-    return ''.join(map(lambda x: '('+','.join(map(str, x))+')',
-                       perm_cycle_tuples(p, singletons)))
 
 
 def perm_switch(p1, p2, i, j):

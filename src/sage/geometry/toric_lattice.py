@@ -672,11 +672,11 @@ class ToricLattice_generic(FreeModule_generic_pid):
             by Sublattice <N(1, 8, 0), N(0, 12, 0)>
 
         See :class:`ToricLattice_quotient` for more examples.
-        
+
         TESTS::
-        
+
         We check that :trac:`19603` is fixed::
-        
+
             sage: K = Cone([(1,0,0),(0,1,0)])
             sage: K.lattice()
             3-d lattice N

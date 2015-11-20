@@ -671,6 +671,32 @@ class ToricLattice_generic(FreeModule_generic_pid):
             Quotient with torsion of 3-d lattice N
             by Sublattice <N(1, 8, 0), N(0, 12, 0)>
 
+        Attempting to quotient one lattice by a sublattice of another
+        will result in a ``ValueError``::
+
+            sage: N = ToricLattice(3)
+            sage: M = ToricLattice(3, name='M')
+            sage: Ms = M.submodule([M(2,4,0), M(9,12,0)])
+            sage: N.quotient(Ms)
+            Traceback (most recent call last):
+            ...
+            ValueError: M(1, 8, 0) can not generate a sublattice of
+            3-d lattice N
+
+        However, if we forget the sublattice structure, then it is
+        possible to quotient by vector spaces or modules constructed
+        from any sublattice::
+
+            sage: N = ToricLattice(3)
+            sage: M = ToricLattice(3, name='M')
+            sage: Ms = M.submodule([M(2,4,0), M(9,12,0)])
+            sage: N.quotient(Ms.vector_space())
+            Quotient with torsion of 3-d lattice N by Sublattice
+            <N(1, 8, 0), N(0, 12, 0)>
+            sage: N.quotient(Ms.sparse_module())
+            Quotient with torsion of 3-d lattice N by Sublattice
+            <N(1, 8, 0), N(0, 12, 0)>
+
         See :class:`ToricLattice_quotient` for more examples.
 
         TESTS::
@@ -687,6 +713,19 @@ class ToricLattice_generic(FreeModule_generic_pid):
             ...
             ValueError: M(0, 0, 1) can not generate a sublattice of
             3-d lattice N
+
+        We can quotient by the trivial sublattice::
+
+            sage: N = ToricLattice(3)
+            sage: N.quotient(N.zero_submodule())
+            3-d lattice, quotient of 3-d lattice N by Sublattice <>
+
+        We can quotient a lattice by itself::
+
+            sage: N = ToricLattice(3)
+            sage: N.quotient(N)
+            0-d lattice, quotient of 3-d lattice N by Sublattice
+            <N(1, 0, 0), N(0, 1, 0), N(0, 0, 1)>
         """
         return ToricLattice_quotient(self, sub, check,
                                      positive_point, positive_dual_point)

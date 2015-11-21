@@ -1438,6 +1438,20 @@ class ToricLattice_quotient(FGP_Module_class):
             sage: from sage.geometry.toric_lattice import ToricLattice_quotient
             sage: ToricLattice_quotient(N, N.span([N(1,2,3)]))
             2-d lattice, quotient of 3-d lattice N by Sublattice <N(1, 2, 3)>
+
+        An ``ArithmeticError`` will be raised if ``W`` is not a
+        sublattice of ``V``::
+
+            sage: N = ToricLattice(3)
+            sage: Ns = N.submodule([N.gen(0)])
+            sage: Ns
+            Sublattice <N(1, 0, 0)>
+            sage: Ns.span([N.gen(1)])
+            Sublattice <N(0, 1, 0)>
+            sage: Ns.quotient(Ns.span([N.gen(1)]))
+            Traceback (most recent call last):
+            ...
+            ArithmeticError: W must be a sublattice of V
         """
         if check:
             try:

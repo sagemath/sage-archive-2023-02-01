@@ -1754,7 +1754,7 @@ class CombinatorialFreeModule_Tensor(CombinatorialFreeModule):
             F # G
 
             sage: T.category()
-            Category of tensor products of modules with basis over Integer Ring
+            Category of finite dimensional tensor products of modules with basis over Integer Ring
 
             sage: T.construction() # todo: not implemented
             [tensor, ]
@@ -1831,6 +1831,12 @@ class CombinatorialFreeModule_Tensor(CombinatorialFreeModule):
                 True
                 sage: tensor([F, tensor([G, H])]) == tensor([F, G, H])
                 True
+
+            Check that :trac:`19608` is fixed::
+
+                sage: T = tensor([F, G, H])
+                sage: T in Modules(ZZ).FiniteDimensional()
+                True
             """
             assert(len(modules) > 0)
             R = modules[0].base_ring()
@@ -1838,6 +1844,8 @@ class CombinatorialFreeModule_Tensor(CombinatorialFreeModule):
             # should check the base ring
             # flatten the list of modules so that tensor(A, tensor(B,C)) gets rewritten into tensor(A, B, C)
             modules = sum([module._sets if isinstance(module, CombinatorialFreeModule_Tensor) else (module,) for module in modules], ())
+            if all('FiniteDimensional' in M.category().axioms() for M in modules):
+                options['category'] = options['category'].FiniteDimensional()
             return super(CombinatorialFreeModule.Tensor, cls).__classcall__(cls, modules, **options)
 
 
@@ -1850,7 +1858,9 @@ class CombinatorialFreeModule_Tensor(CombinatorialFreeModule):
             """
             from sage.categories.tensor import tensor
             self._sets = modules
-            CombinatorialFreeModule.__init__(self, modules[0].base_ring(), CartesianProduct_iters(*[module.basis().keys() for module in modules]).map(tuple), **options)
+            indices = CartesianProduct_iters(*[module.basis().keys()
+                                               for module in modules]).map(tuple)
+            CombinatorialFreeModule.__init__(self, modules[0].base_ring(), indices, **options)
             # the following is not the best option, but it's better than nothing.
             self._print_options['tensor_symbol'] = options.get('tensor_symbol', tensor.symbol)
 

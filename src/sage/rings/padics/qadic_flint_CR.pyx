@@ -122,18 +122,3 @@ cdef class qAdicCappedRelativeElement(CRElement):
         # elements (#11895), until then, we only to this for types which did
         # not support hashing before we switched some elements to FLINT
         raise TypeError("unhashable type: 'sage.rings.padics.qadic_flint_CR.qAdicCappedRelativeElement'")
-
-    # Since we override __hash__ we need to override __richcmp__ as well
-    def __richcmp__(self, right, int op):
-        """
-        Compare this element to ``right`` using the comparison operator ``op``.
-
-        TESTS::
-
-            sage: K.<a> = Qq(9)
-            sage: b = K([0,1])
-            sage: a == b
-            True
-
-        """
-        return (<Element>self)._richcmp(right, op)

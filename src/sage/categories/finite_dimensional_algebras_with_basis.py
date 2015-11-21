@@ -67,17 +67,17 @@ class FiniteDimensionalAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
                This implementation handles algebras over fields of
                characteristic zero (using Dixon's lemma) or fields of
                characteristic `p` in which we can compute `x^{1/p}`
-               [FR85], [Eb89].
+               [FR85]_, [Eb89]_.
 
             REFERENCES:
 
-            [Eb89] Eberly, Wayne. "Computations for algebras and group
-            representations." Ph.D. Thesis, University of Toronto, 1989.
+            .. [Eb89] Eberly, Wayne. "Computations for algebras and group
+               representations." Ph.D. Thesis, University of Toronto, 1989.
 
-            [FR85] Friedl, Katalin, and Lajos Rónyai. "Polynomial time
-            solutions of some problems of computational algebra." Proceedings
-            of the seventeenth annual ACM symposium on Theory of computing.
-            ACM, 1985.
+            .. [FR85] Friedl, Katalin, and Lajos Rónyai. "Polynomial time
+               solutions of some problems of computational algebra." Proceedings
+               of the seventeenth annual ACM symposium on Theory of computing.
+               ACM, 1985.
 
             OUTPUT:
 
@@ -92,7 +92,7 @@ class FiniteDimensionalAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
                 the path algebra of the Kronecker quiver
                 (containing the arrows a:x->y and b:x->y) over Rational Field
                 sage: A.radical_basis()
-                [a, b]
+                (a, b)
 
             We construct the group algebra of the Klein Four-Group
             over the rationals::
@@ -112,7 +112,7 @@ class FiniteDimensionalAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
                 sage: A in Algebras(QQ).Semisimple()
                 True
                 sage: A.radical_basis()
-                []
+                ()
 
             Let's work instead over a field of characteristic `2`::
 
@@ -120,7 +120,7 @@ class FiniteDimensionalAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
                 sage: A in Algebras(GF(2)).Semisimple()
                 False
                 sage: A.radical_basis()
-                [B[()] + B[(1,2)(3,4)], B[(3,4)] + B[(1,2)(3,4)], B[(1,2)] + B[(1,2)(3,4)]]
+                (B[()] + B[(1,2)(3,4)], B[(3,4)] + B[(1,2)(3,4)], B[(1,2)] + B[(1,2)(3,4)])
 
             We now implement the algebra `A = K[x] / x^p-1`, where `K`
             is a finite field of characteristic `p`, and check its
@@ -140,24 +140,24 @@ class FiniteDimensionalAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
                 ....:     def product_on_basis(self, w1, w2):
                 ....:         return self.from_vector(vector(w1*w2))
                 sage: AnAlgebra(GF(3)).radical_basis()
-                [B[1] + 2*B[xbar^2], B[xbar] + 2*B[xbar^2]]
+                (B[1] + 2*B[xbar^2], B[xbar] + 2*B[xbar^2])
                 sage: AnAlgebra(GF(16,'a')).radical_basis()
-                [B[1] + B[xbar]]
+                (B[1] + B[xbar],)
                 sage: AnAlgebra(GF(49,'a')).radical_basis()
-                [B[1] + 6*B[xbar^6], B[xbar] + 6*B[xbar^6], B[xbar^2] + 6*B[xbar^6],
-                 B[xbar^3] + 6*B[xbar^6], B[xbar^4] + 6*B[xbar^6], B[xbar^5] + 6*B[xbar^6]]
+                (B[1] + 6*B[xbar^6], B[xbar] + 6*B[xbar^6], B[xbar^2] + 6*B[xbar^6],
+                 B[xbar^3] + 6*B[xbar^6], B[xbar^4] + 6*B[xbar^6], B[xbar^5] + 6*B[xbar^6])
 
             TESTS::
 
                 sage: A = KleinFourGroup().algebra(GF(2))
                 sage: A.radical_basis()
-                [B[()] + B[(1,2)(3,4)], B[(3,4)] + B[(1,2)(3,4)], B[(1,2)] + B[(1,2)(3,4)]]
+                (B[()] + B[(1,2)(3,4)], B[(3,4)] + B[(1,2)(3,4)], B[(1,2)] + B[(1,2)(3,4)])
 
                 sage: A = KleinFourGroup().algebra(QQ, category=Monoids())
                 sage: A.radical_basis.__module__
                 'sage.categories.finite_dimensional_algebras_with_basis'
                 sage: A.radical_basis()
-                []
+                ()
             """
             F = self.base_ring()
             if not F.is_field():
@@ -207,7 +207,7 @@ class FiniteDimensionalAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
                 e = vector(self.one())
                 rad_basis = [b*e for b in B]
 
-            return [self.from_vector(vec) for vec in rad_basis]
+            return tuple([self.from_vector(vec) for vec in rad_basis])
 
         @cached_method
         def radical(self):
@@ -339,9 +339,9 @@ class FiniteDimensionalAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
                 the path algebra of the Kronecker quiver
                 (containing the arrows a:x->y and b:x->y) over Rational Field
                 sage: A.center_basis()
-                [x + y]
+                (x + y,)
             """
-            return self.annihilator_basis(self.algebra_generators(), self.bracket)
+            return tuple(self.annihilator_basis(self.algebra_generators(), self.bracket))
 
         @cached_method
         def center(self):
@@ -482,7 +482,7 @@ class FiniteDimensionalAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
                 the path algebra of the Kronecker quiver
                 (containing the arrows a:x->y and b:x->y) over Rational Field
                 sage: A.orthogonal_idempotents_central_mod_radical()
-                [x, y]
+                (x, y)
 
             ::
 
@@ -529,7 +529,7 @@ class FiniteDimensionalAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
                 fi = self.idempotent_lift((one - f) * g.lift() * (one - f))
                 idempotents.append(fi)
                 f = f + fi
-            return idempotents
+            return tuple(idempotents)
 
         def idempotent_lift(self, x):
             r"""
@@ -708,7 +708,9 @@ class FiniteDimensionalAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
             def C(i,j):
                 summand = self.peirce_summand(idempotents[i], idempotents[j])
                 return summand.dimension() / (dim_simples[i]*dim_simples[j])
-            return Matrix(ZZ, len(idempotents), C)
+            m = Matrix(ZZ, len(idempotents), C)
+            m.set_immutable()
+            return m
 
         def isotypic_projective_modules(self, side='left'):
             r"""
@@ -854,7 +856,7 @@ class FiniteDimensionalAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
                 the path algebra of the Kronecker quiver
                 (containing the arrows a:x->y and b:x->y) over Rational Field
                 sage: A.orthogonal_idempotents_central_mod_radical()
-                [x, y]
+                (x, y)
                 sage: decomposition = A.peirce_decomposition(); decomposition
                 [[Free module generated by {0} over Rational Field,
                   Free module generated by {0, 1} over Rational Field],

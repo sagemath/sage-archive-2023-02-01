@@ -143,24 +143,24 @@ class FiniteDimensionalModulesWithBasis(CategoryWithAxiom_over_base_ring):
             So the annihilator is the subspace spanned by `y`, `a`, and `b`::
 
                 sage: F.annihilator_basis([x])
-                [y, a, b]
+                (y, a, b)
 
             The same holds for `a` and `b`::
 
                 sage: x*a, y*a, a*a, b*a
                 (a, 0, 0, 0)
                 sage: F.annihilator_basis([a])
-                [y, a, b]
+                (y, a, b)
 
             On the other hand, `y` annihilates only `x`::
 
                 sage: F.annihilator_basis([y])
-                [x]
+                (x,)
 
             Here is a non trivial annihilator::
 
                 sage: F.annihilator_basis([a + 3*b + 2*y])
-                [-1/2*a - 3/2*b + x]
+                (-1/2*a - 3/2*b + x,)
 
             Let's check it::
 
@@ -171,15 +171,15 @@ class FiniteDimensionalModulesWithBasis(CategoryWithAxiom_over_base_ring):
             roles of `x` and `y`::
 
                 sage: F.annihilator_basis([y], side="left")
-                [x, a, b]
+                (x, a, b)
                 sage: F.annihilator_basis([a], side="left")
-                [x, a, b]
+                (x, a, b)
                 sage: F.annihilator_basis([b], side="left")
-                [x, a, b]
+                (x, a, b)
                 sage: F.annihilator_basis([x], side="left")
-                [y]
+                (y,)
                 sage: F.annihilator_basis([a+3*b+2*x], side="left")
-                [-1/2*a - 3/2*b + y]
+                (-1/2*a - 3/2*b + y,)
 
             By specifying an inner product, this method can be used to
             compute the orthogonal of a subspace::
@@ -187,19 +187,19 @@ class FiniteDimensionalModulesWithBasis(CategoryWithAxiom_over_base_ring):
                 sage: x,y,a,b = F.basis()
                 sage: def scalar(u,v): return vector([sum(u[i]*v[i] for i in F.basis().keys())])
                 sage: F.annihilator_basis([x+y, a+b], scalar)
-                [x - y, a - b]
+                (x - y, a - b)
 
             By specifying the standard Lie bracket as action, one can
             compute the commutator of a subspace of `F`::
 
                 sage: F.annihilator_basis([a+b], action=F.bracket)
-                [x + y, a, b]
+                (x + y, a, b)
 
             In particular one can compute a basis of the center of the
             algebra. In our example, it is reduced to the identity::
 
                 sage: F.annihilator_basis(F.algebra_generators(), action=F.bracket)
-                [x + y]
+                (x + y,)
 
             But see also
             :meth:`FiniteDimensionalAlgebrasWithBasis.ParentMethods.center_basis`.
@@ -214,7 +214,7 @@ class FiniteDimensionalModulesWithBasis(CategoryWithAxiom_over_base_ring):
             for s in S:
                 mat = mat.augment(matrix(self.base_ring(),
                                          [action(s, b)._vector_() for b in self.basis()]))
-            return map(self.from_vector, mat.left_kernel().basis())
+            return tuple(map(self.from_vector, mat.left_kernel().basis()))
 
         def quotient_module(self, submodule, check=True, already_echelonized=False, category=None):
             r"""

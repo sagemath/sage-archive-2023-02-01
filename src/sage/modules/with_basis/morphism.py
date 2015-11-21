@@ -318,6 +318,8 @@ class ModuleMorphismByLinearity(ModuleMorphism):
 
     def __eq__(self, other):
         """
+        Check equality.
+
         EXAMPLES::
 
             sage: X = CombinatorialFreeModule(ZZ, [-2, -1, 1, 2])
@@ -1539,6 +1541,8 @@ class PointwiseInverseFunction(SageObject):
 
     def __eq__(self, other):
         """
+        Check equality.
+
         TESTS::
 
             sage: from sage.modules.with_basis.morphism import PointwiseInverseFunction

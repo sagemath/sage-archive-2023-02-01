@@ -34,8 +34,6 @@ AUTHORS:
 #*****************************************************************************
 
 from sage.libs.ntl.ntl_lzz_pX import ntl_zz_pX
-from sage.libs.flint.fmpz_poly cimport *
-from sage.libs.flint.nmod_poly cimport *
 from sage.structure.factorization import Factorization
 from sage.structure.element import coerce_binop, parent
 from sage.rings.polynomial.polynomial_integer_dense_flint cimport Polynomial_integer_dense_flint

@@ -43,7 +43,6 @@ from sage.structure.element import coerce_binop
 from sage.rings.polynomial.polynomial_element cimport is_Polynomial
 
 from sage.libs.ntl.ntl_ZZX cimport ntl_ZZX
-from sage.libs.flint.fmpz_poly cimport *
 
 from sage.rings.integer_ring import ZZ
 from sage.rings.rational_field import QQ

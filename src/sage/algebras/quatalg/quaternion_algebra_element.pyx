@@ -18,9 +18,6 @@ quaternion algebras and quaternion algebras over number fields.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from sage.libs.flint.fmpz cimport *
-from sage.libs.flint.fmpz_poly cimport *
-from sage.libs.flint.ntl_interface cimport *
 from sage.structure.element cimport AlgebraElement, RingElement, ModuleElement, Element
 from sage.algebras.quatalg.quaternion_algebra_element cimport QuaternionAlgebraElement_abstract
 from sage.rings.rational cimport Rational

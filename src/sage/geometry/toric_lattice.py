@@ -699,7 +699,7 @@ class ToricLattice_generic(FreeModule_generic_pid):
 
         See :class:`ToricLattice_quotient` for more examples.
 
-        TESTS::
+        TESTS:
 
         We check that :trac:`19603` is fixed::
 

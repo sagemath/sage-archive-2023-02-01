@@ -10,7 +10,6 @@ Finite dimensional modules with basis
 #******************************************************************************
 
 import operator
-from sage.misc.cachefunc import cached_method
 from sage.categories.category_with_axiom import CategoryWithAxiom_over_base_ring
 
 class FiniteDimensionalModulesWithBasis(CategoryWithAxiom_over_base_ring):
@@ -438,7 +437,6 @@ class FiniteDimensionalModulesWithBasis(CategoryWithAxiom_over_base_ring):
                 matrix=inv_mat,
                 codomain=self.domain(), category=self.category_for())
 
-        @cached_method
         def kernel_basis(self):
             """
             Return a basis of the kernel of ``self``.
@@ -471,7 +469,6 @@ class FiniteDimensionalModulesWithBasis(CategoryWithAxiom_over_base_ring):
             return D.submodule(self.kernel_basis(), already_echelonized=True,
                                category=self.category_for())
 
-        @cached_method
         def image_basis(self):
             """
             Return a basis for the image of ``self``.

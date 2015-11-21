@@ -1,3 +1,4 @@
+# distutils: depends = pari/pari.h
 """
 Declarations for types used by PARI
 

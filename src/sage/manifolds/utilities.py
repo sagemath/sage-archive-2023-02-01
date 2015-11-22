@@ -989,7 +989,7 @@ def xder(form):
 
     Exterior derivative of a scalar field (0-form)::
 
-        sage: M = DiffManifold(3, 'M')
+        sage: M = Manifold(3, 'M')
         sage: X.<x,y,z> = M.chart()
         sage: f = M.scalar_field({X: x+y^2+z^3}, name='f')
         sage: df = xder(f); df

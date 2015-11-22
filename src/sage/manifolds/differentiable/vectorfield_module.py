@@ -371,6 +371,55 @@ class VectorFieldModule(UniqueRepresentation, Parent):
         else:
            return self._latex_name
 
+    def __reduce__(self):
+        r"""
+        Reduction function for the pickle protocole.
+
+        TEST::
+
+            sage: M = Manifold(2, 'M')
+            sage: XM = M.vector_field_module()
+            sage: XM.__reduce__()
+            (<class 'sage.manifolds.differentiable.vectorfield_module.VectorFieldModule'>,
+             (2-dimensional differentiable manifold M,
+              Identity map Id_M of the 2-dimensional differentiable manifold M))
+
+        Test of pickling::
+
+            sage: loads(dumps(XM))
+            Module X(M,Id_M) of vector fields along the 2-dimensional
+             differentiable manifold M mapped into the 2-dimensional
+             differentiable manifold M
+
+        """
+        return (VectorFieldModule, (self._domain, self._dest_map))
+
+    def _test_pickling(self, **options):
+        r"""
+        Test pickling.
+
+        This test is weaker than
+        :meth:`sage.structure.sage_object.SageObject._test_pickling` in that
+        it does not require ``loads(dumps(self)) == self``.
+        It however checks that ``loads(dumps(self))`` proceeds without any
+        error and results in an object that is a module of vector fields of
+        the same type as ``self``.
+
+        TEST::
+
+            sage: M = Manifold(2, 'M')
+            sage: XM = M.vector_field_module()
+            sage: XM._test_pickling()
+
+        """
+        tester = self._tester(**options)
+        from sage.misc.all import loads, dumps
+        bckp = loads(dumps(self))
+        tester.assertEqual(type(bckp), type(self))
+        tester.assertEqual(bckp._domain.dimension(), self._domain.dimension())
+        tester.assertEqual(bckp._ambient_domain.dimension(),
+                           self._ambient_domain.dimension())
+
     def domain(self):
         r"""
         Return the domain of the vector fields in this module.
@@ -1237,6 +1286,33 @@ class VectorFieldFreeModule(FiniteRankFreeModule):
             description += "along the {}".format(self._domain) + \
                            " mapped into the {}".format(self._ambient_domain)
         return description
+
+    def _test_pickling(self, **options):
+        r"""
+        Test pickling.
+
+        This test is weaker than
+        :meth:`sage.structure.sage_object.SageObject._test_pickling` in that
+        it does not require ``loads(dumps(self)) == self``.
+        It however checks that ``loads(dumps(self))`` proceeds without any
+        error and results in an object that is a module of vector fields of
+        the same type as ``self``.
+
+        TEST::
+
+            sage: M = Manifold(2, 'M')
+            sage: X.<x,y> = M.chart()  # makes M parallelizable
+            sage: XM = M.vector_field_module()
+            sage: XM._test_pickling()
+
+        """
+        tester = self._tester(**options)
+        from sage.misc.all import loads, dumps
+        bckp = loads(dumps(self))
+        tester.assertEqual(type(bckp), type(self))
+        tester.assertEqual(bckp._domain.dimension(), self._domain.dimension())
+        tester.assertEqual(bckp._ambient_domain.dimension(),
+                           self._ambient_domain.dimension())
 
     def domain(self):
         r"""

@@ -355,6 +355,30 @@ A constant map `\CC^* \rightarrow \CC`::
     sage: f.parent().category()
     Category of commutative algebras over Symbolic Ring
 
+A vector field on the Riemann sphere::
+
+    sage: v = M.vector_field(name='v')
+    sage: v[Z.frame(), 0] = z^2
+    sage: v.add_comp_by_continuation(W.frame(), U.intersection(V), W)
+    sage: v.display(Z.frame())
+    v = z^2 d/dz
+    sage: v.display(W.frame())
+    v = -d/dw
+    sage: v.parent()
+    Module X(C*) of vector fields on the 1-dimensional complex manifold C*
+
+The vector field `v` acting on the scalar field `f`::
+
+    sage: v(f)
+    Scalar field v(f) on the 1-dimensional complex manifold C*
+
+Since `f` is constant, `v(f)` is vanishing::
+
+    sage: v(f).display()
+    v(f): C* --> C
+    on U: z |--> 0
+    on V: w |--> 0
+
 AUTHORS:
 
 - Eric Gourgoulhon (2015): initial version

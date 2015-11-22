@@ -485,6 +485,56 @@ class TensorFieldModule(UniqueRepresentation, Parent):
         else:
            return self._latex_name
 
+    def __reduce__(self):
+        r"""
+        Reduction function for the pickle protocole.
+
+        TEST::
+
+            sage: M = Manifold(2, 'M')
+            sage: T13 = M.tensor_field_module((1,3))
+            sage: T13.__reduce__()
+            (<class 'sage.manifolds.differentiable.tensorfield_module.TensorFieldModule'>,
+             (Module X(M) of vector fields on the 2-dimensional differentiable manifold M,
+              (1, 3)))
+
+        Test of pickling::
+
+            sage: loads(dumps(T13))
+            Module T^(1,3)(M,Id_M) of type-(1,3) tensors fields along the
+             2-dimensional differentiable manifold M mapped into the
+             2-dimensional differentiable manifold M
+
+        """
+        return (TensorFieldModule, (self._vmodule, self._tensor_type))
+
+    def _test_pickling(self, **options):
+        r"""
+        Test pickling.
+
+        This test is weaker than
+        :meth:`sage.structure.sage_object.SageObject._test_pickling` in that
+        it does not require ``loads(dumps(self)) == self``.
+        It however checks that ``loads(dumps(self))`` proceeds without any
+        error and results in an object that is a module of tensor fields of
+        the same type as ``self``.
+
+        TEST::
+
+            sage: M = Manifold(2, 'M')
+            sage: T13 = M.tensor_field_module((1,3))
+            sage: T13._test_pickling()
+
+        """
+        tester = self._tester(**options)
+        from sage.misc.all import loads, dumps
+        bckp = loads(dumps(self))
+        tester.assertEqual(type(bckp), type(self))
+        tester.assertEqual(bckp._tensor_type, self._tensor_type)
+        tester.assertEqual(bckp._domain.dimension(), self._domain.dimension())
+        tester.assertEqual(bckp._ambient_domain.dimension(),
+                           self._ambient_domain.dimension())
+
     def base_module(self):
         r"""
         Return the vector field module on which the tensor module is
@@ -868,3 +918,31 @@ class TensorFieldFreeModule(TensorFreeModule):
             description += "along the {}".format(self._domain) + \
                            " mapped into the {}".format(self._ambient_domain)
         return description
+
+    def _test_pickling(self, **options):
+        r"""
+        Test pickling.
+
+        This test is weaker than
+        :meth:`sage.structure.sage_object.SageObject._test_pickling` in that
+        it does not require ``loads(dumps(self)) == self``.
+        It however checks that ``loads(dumps(self))`` proceeds without any
+        error and results in an object that is a module of tensor fields of
+        the same type as ``self``.
+
+        TEST::
+
+            sage: M = Manifold(2, 'M')
+            sage: X.<x,y> = M.chart()  # makes M parallelizable
+            sage: T13 = M.tensor_field_module((1,3))
+            sage: T13._test_pickling()
+
+        """
+        tester = self._tester(**options)
+        from sage.misc.all import loads, dumps
+        bckp = loads(dumps(self))
+        tester.assertEqual(type(bckp), type(self))
+        tester.assertEqual(bckp._tensor_type, self._tensor_type)
+        tester.assertEqual(bckp._domain.dimension(), self._domain.dimension())
+        tester.assertEqual(bckp._ambient_domain.dimension(),
+                           self._ambient_domain.dimension())

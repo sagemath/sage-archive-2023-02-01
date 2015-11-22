@@ -491,6 +491,56 @@ class DiffFormModule(UniqueRepresentation, Parent):
         else:
            return self._latex_name
 
+    def __reduce__(self):
+        r"""
+        Reduction function for the pickle protocole.
+
+        TEST::
+
+            sage: M = Manifold(3, 'M')
+            sage: A2 = M.diff_form_module(2)
+            sage: A2.__reduce__()
+            (<class 'sage.manifolds.differentiable.diff_form_module.DiffFormModule'>,
+             (Module X(M) of vector fields on the 3-dimensional differentiable manifold M,
+              2))
+
+        Test of pickling::
+
+            sage: loads(dumps(A2))
+            Module /\^2(M,Id_M) of 2-forms along the 3-dimensional
+             differentiable manifold M mapped into the 3-dimensional
+             differentiable manifold M
+
+        """
+        return (DiffFormModule, (self._vmodule, self._degree))
+
+    def _test_pickling(self, **options):
+        r"""
+        Test pickling.
+
+        This test is weaker than
+        :meth:`sage.structure.sage_object.SageObject._test_pickling` in that
+        it does not require ``loads(dumps(self)) == self``.
+        It however checks that ``loads(dumps(self))`` proceeds without any
+        error and results in an object that is a module of differential forms
+        of the same type as ``self``.
+
+        TEST::
+
+            sage: M = Manifold(3, 'M')
+            sage: A2 = M.diff_form_module(2)
+            sage: A2._test_pickling()
+
+        """
+        tester = self._tester(**options)
+        from sage.misc.all import loads, dumps
+        bckp = loads(dumps(self))
+        tester.assertEqual(type(bckp), type(self))
+        tester.assertEqual(bckp._degree, self._degree)
+        tester.assertEqual(bckp._domain.dimension(), self._domain.dimension())
+        tester.assertEqual(bckp._ambient_domain.dimension(),
+                           self._ambient_domain.dimension())
+
     def base_module(self):
         r"""
         Return the vector field module on which the differential form module
@@ -919,3 +969,31 @@ class DiffFormFreeModule(ExtPowerFreeModule):
             description += "along the {} mapped into the {}".format(
                                             self._domain, self._ambient_domain)
         return description
+
+    def _test_pickling(self, **options):
+        r"""
+        Test pickling.
+
+        This test is weaker than
+        :meth:`sage.structure.sage_object.SageObject._test_pickling` in that
+        it does not require ``loads(dumps(self)) == self``.
+        It however checks that ``loads(dumps(self))`` proceeds without any
+        error and results in an object that is a module of differential forms
+        of the same type as ``self``.
+
+        TEST::
+
+            sage: M = Manifold(3, 'M')
+            sage: X.<x,y,z> = M.chart()  # makes M parallelizable
+            sage: A2 = M.diff_form_module(2)
+            sage: A2._test_pickling()
+
+        """
+        tester = self._tester(**options)
+        from sage.misc.all import loads, dumps
+        bckp = loads(dumps(self))
+        tester.assertEqual(type(bckp), type(self))
+        tester.assertEqual(bckp._degree, self._degree)
+        tester.assertEqual(bckp._domain.dimension(), self._domain.dimension())
+        tester.assertEqual(bckp._ambient_domain.dimension(),
+                           self._ambient_domain.dimension())

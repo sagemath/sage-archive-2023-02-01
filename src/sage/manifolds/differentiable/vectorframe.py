@@ -450,6 +450,38 @@ class VectorFrame(FreeModuleBasis):
 
     ###### End of methods to be redefined by derived classes ######
 
+    def _test_pickling(self, **options):
+        r"""
+        Test pickling.
+
+        This test is weaker than
+        :meth:`sage.structure.sage_object.SageObject._test_pickling` in that
+        it does not require ``loads(dumps(self)) == self``.
+        It however checks that ``loads(dumps(self))`` proceeds without any
+        error and results in an object that is a vector frame of the same type
+        as ``self``.
+
+        TESTS::
+
+            sage: M = Manifold(2, 'M')
+            sage: e = M.vector_frame('e')
+            sage: e._test_pickling()
+
+        Test for the derived class :class:`CoordFrame`::
+
+            sage: X.<x,y> = M.chart()
+            sage: X.frame()._test_pickling()
+
+        """
+        tester = self._tester(**options)
+        from sage.misc.all import loads, dumps
+        bckp = loads(dumps(self))
+        tester.assertEqual(type(bckp), type(self))
+        tester.assertEqual(bckp._name, self._name)
+        tester.assertEqual(bckp._domain.dimension(), self._domain.dimension())
+        tester.assertEqual(bckp._ambient_domain.dimension(),
+                           self._ambient_domain.dimension())
+
     def domain(self):
         r"""
         Return the domain on which the current vector frame is defined.
@@ -1142,7 +1174,6 @@ class CoFrame(FreeModuleCoBasis):
                                      " the {}".format(sd))
             sd._coframes.append(self)
 
-
     def _repr_(self):
         r"""
         String representation of the object.
@@ -1162,6 +1193,36 @@ class CoFrame(FreeModuleCoBasis):
         """
         return "Coframe " + self._name
 
+    def _test_pickling(self, **options):
+        r"""
+        Test pickling.
+
+        This test is weaker than
+        :meth:`sage.structure.sage_object.SageObject._test_pickling` in that
+        it does not require ``loads(dumps(self)) == self``.
+        It however checks that ``loads(dumps(self))`` proceeds without any
+        error and results in an object that is a coframe of the same type
+        as ``self``.
+
+        TESTS::
+
+            sage: M = Manifold(2, 'M')
+            sage: e = M.vector_frame('e')
+            sage: f = e.coframe()
+            sage: f._test_pickling()
+
+        Test for the derived class :class:`CoordCoFrame`::
+
+            sage: X.<x,y> = M.chart()
+            sage: X.coframe()._test_pickling()
+
+        """
+        tester = self._tester(**options)
+        from sage.misc.all import loads, dumps
+        bckp = loads(dumps(self))
+        tester.assertEqual(type(bckp), type(self))
+        tester.assertEqual(bckp._name, self._name)
+        tester.assertEqual(bckp._domain.dimension(), self._domain.dimension())
 
 #******************************************************************************
 

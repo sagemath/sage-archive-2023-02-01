@@ -371,7 +371,9 @@ class AutomorphismFieldGroup(UniqueRepresentation, Parent):
         Test of pickling::
 
             sage: loads(dumps(G))
-            General linear group of the Module X(M,Id_M) of vector fields along the 2-dimensional differentiable manifold M mapped into the 2-dimensional differentiable manifold M
+            General linear group of the Module X(M,Id_M) of vector fields
+             along the 2-dimensional differentiable manifold M mapped into
+             the 2-dimensional differentiable manifold M
 
         """
         return (AutomorphismFieldGroup, (self._vmodule,))

@@ -101,7 +101,7 @@ class TensorFieldModule(UniqueRepresentation, Parent):
 
     Module of type-(2,0) tensor fields on the 2-sphere::
 
-        sage: M = DiffManifold(2, 'M') # the 2-dimensional sphere S^2
+        sage: M = Manifold(2, 'M') # the 2-dimensional sphere S^2
         sage: U = M.open_subset('U') # complement of the North pole
         sage: c_xy.<x,y> = U.chart() # stereographic coordinates from the North pole
         sage: V = M.open_subset('V') # complement of the South pole
@@ -232,7 +232,7 @@ class TensorFieldModule(UniqueRepresentation, Parent):
 
         TESTS::
 
-            sage: M = DiffManifold(2, 'M') # the 2-dimensional sphere S^2
+            sage: M = Manifold(2, 'M') # the 2-dimensional sphere S^2
             sage: U = M.open_subset('U') # complement of the North pole
             sage: c_xy.<x,y> = U.chart() # stereographic coordinates from the North pole
             sage: V = M.open_subset('V') # complement of the South pole
@@ -291,19 +291,18 @@ class TensorFieldModule(UniqueRepresentation, Parent):
 
         TESTS::
 
-            sage: M = DiffManifold(2, 'M')
+            sage: M = Manifold(2, 'M')
             sage: U = M.open_subset('U'); V = M.open_subset('V')
             sage: c_xy.<x,y> = U.chart(); c_uv.<u,v> = V.chart()
             sage: M.declare_union(U,V)
             sage: T20 = M.tensor_field_module((2,0))
-            sage: t = T20._element_constructor_(comp=[[1+x, 2], [x*y, 3-y]],
-            ....:                               name='t'); t
+            sage: t = T20([[1+x, 2], [x*y, 3-y]], name='t'); t
             Tensor field t of type (2,0) on the 2-dimensional differentiable
              manifold M
             sage: t.display(c_xy.frame())
             t = (x + 1) d/dx*d/dx + 2 d/dx*d/dy + x*y d/dy*d/dx
              + (-y + 3) d/dy*d/dy
-            sage: T20._element_constructor_(0) is T20.zero()
+            sage: T20(0) is T20.zero()
             True
 
         """
@@ -371,7 +370,7 @@ class TensorFieldModule(UniqueRepresentation, Parent):
 
         TEST::
 
-            sage: M = DiffManifold(2, 'M')
+            sage: M = Manifold(2, 'M')
             sage: U = M.open_subset('U'); V = M.open_subset('V')
             sage: c_xy.<x,y> = U.chart(); c_uv.<u,v> = V.chart()
             sage: M.declare_union(U,V)
@@ -400,7 +399,7 @@ class TensorFieldModule(UniqueRepresentation, Parent):
 
         TESTS::
 
-            sage: M = DiffManifold(2, 'M')
+            sage: M = Manifold(2, 'M')
             sage: U = M.open_subset('U')
             sage: T02 = M.tensor_field_module((0,2))
             sage: T02U = U.tensor_field_module((0,2))
@@ -442,7 +441,7 @@ class TensorFieldModule(UniqueRepresentation, Parent):
 
         TEST::
 
-            sage: M = DiffManifold(2, 'M')
+            sage: M = Manifold(2, 'M')
             sage: T13 = M.tensor_field_module((1,3))
             sage: T13._repr_()
             'Module T^(1,3)(M) of type-(1,3) tensors fields on the 2-dimensional differentiable manifold M'
@@ -472,7 +471,7 @@ class TensorFieldModule(UniqueRepresentation, Parent):
 
         TEST::
 
-            sage: M = DiffManifold(2, 'M')
+            sage: M = Manifold(2, 'M')
             sage: T13 = M.tensor_field_module((1,3))
             sage: T13._latex_()
             '\\mathcal{T}^{(1,3)}\\left(M\\right)'
@@ -484,6 +483,56 @@ class TensorFieldModule(UniqueRepresentation, Parent):
             return r'\mbox{' + str(self) + r'}'
         else:
            return self._latex_name
+
+    def __reduce__(self):
+        r"""
+        Reduction function for the pickle protocole.
+
+        TEST::
+
+            sage: M = Manifold(2, 'M')
+            sage: T13 = M.tensor_field_module((1,3))
+            sage: T13.__reduce__()
+            (<class 'sage.manifolds.differentiable.tensorfield_module.TensorFieldModule'>,
+             (Module X(M) of vector fields on the 2-dimensional differentiable manifold M,
+              (1, 3)))
+
+        Test of pickling::
+
+            sage: loads(dumps(T13))
+            Module T^(1,3)(M,Id_M) of type-(1,3) tensors fields along the
+             2-dimensional differentiable manifold M mapped into the
+             2-dimensional differentiable manifold M
+
+        """
+        return (TensorFieldModule, (self._vmodule, self._tensor_type))
+
+    def _test_pickling(self, **options):
+        r"""
+        Test pickling.
+
+        This test is weaker than
+        :meth:`sage.structure.sage_object.SageObject._test_pickling` in that
+        it does not require ``loads(dumps(self)) == self``.
+        It however checks that ``loads(dumps(self))`` proceeds without any
+        error and results in an object that is a module of tensor fields of
+        the same type as ``self``.
+
+        TEST::
+
+            sage: M = Manifold(2, 'M')
+            sage: T13 = M.tensor_field_module((1,3))
+            sage: T13._test_pickling()
+
+        """
+        tester = self._tester(**options)
+        from sage.misc.all import loads, dumps
+        bckp = loads(dumps(self))
+        tester.assertEqual(type(bckp), type(self))
+        tester.assertEqual(bckp._tensor_type, self._tensor_type)
+        tester.assertEqual(bckp._domain.dimension(), self._domain.dimension())
+        tester.assertEqual(bckp._ambient_domain.dimension(),
+                           self._ambient_domain.dimension())
 
     def base_module(self):
         r"""
@@ -498,7 +547,7 @@ class TensorFieldModule(UniqueRepresentation, Parent):
 
         EXAMPLE::
 
-            sage: M = DiffManifold(2, 'M')
+            sage: M = Manifold(2, 'M')
             sage: T13 = M.tensor_field_module((1,3))
             sage: T13.base_module()
             Module X(M) of vector fields on the 2-dimensional differentiable
@@ -523,7 +572,7 @@ class TensorFieldModule(UniqueRepresentation, Parent):
 
         EXAMPLES::
 
-            sage: M = DiffManifold(2, 'M')
+            sage: M = Manifold(2, 'M')
             sage: T13 = M.tensor_field_module((1,3))
             sage: T13.tensor_type()
             (1, 3)
@@ -592,7 +641,7 @@ class TensorFieldFreeModule(TensorFreeModule):
 
     Module of type-(2,0) tensor fields on `\RR^3`::
 
-        sage: M = DiffManifold(3, 'R^3')
+        sage: M = Manifold(3, 'R^3')
         sage: c_xyz.<x,y,z> = M.chart()  # Cartesian coordinates
         sage: T20 = M.tensor_field_module((2,0)) ; T20
         Free module T^(2,0)(R^3) of type-(2,0) tensors fields on the
@@ -689,8 +738,7 @@ class TensorFieldFreeModule(TensorFreeModule):
 
         TESTS::
 
-            sage: DiffManifold._clear_cache_() # for doctests only
-            sage: M = DiffManifold(2, 'M')
+            sage: M = Manifold(2, 'M')
             sage: X.<x,y> = M.chart()  # makes M parallelizable
             sage: XM = M.vector_field_module()
             sage: from sage.manifolds.differentiable.tensorfield_module import TensorFieldFreeModule
@@ -730,18 +778,18 @@ class TensorFieldFreeModule(TensorFreeModule):
 
         TESTS::
 
-            sage: M = DiffManifold(2, 'M')
+            sage: M = Manifold(2, 'M')
             sage: X.<x,y> = M.chart()  # makes M parallelizable
             sage: T12 = M.tensor_field_module((1,2))
-            sage: t = T12._element_constructor_(comp=[[[x,-y], [2,y]],
-            ....:   [[1+x,y^2], [x^2,3]], [[x*y, 1-x], [y^2, x]]], name='t'); t
+            sage: t = T12([[[x,-y], [2,y]], [[1+x,y^2], [x^2,3]],
+            ....:          [[x*y, 1-x], [y^2, x]]], name='t'); t
             Tensor field t of type (1,2) on the 2-dimensional differentiable
              manifold M
             sage: t.display()
             t = x d/dx*dx*dx - y d/dx*dx*dy + 2 d/dx*dy*dx + y d/dx*dy*dy
              + (x + 1) d/dy*dx*dx + y^2 d/dy*dx*dy + x^2 d/dy*dy*dx
              + 3 d/dy*dy*dy
-            sage: T12._element_constructor_(0) is T12.zero()
+            sage: T12(0) is T12.zero()
             True
 
         """
@@ -802,7 +850,7 @@ class TensorFieldFreeModule(TensorFreeModule):
 
         TESTS::
 
-            sage: M = DiffManifold(2, 'M')
+            sage: M = Manifold(2, 'M')
             sage: X.<x,y> = M.chart()  # makes M parallelizable
             sage: U = M.open_subset('U', coord_def={X: x>0})
             sage: T02 = M.tensor_field_module((0,2))
@@ -845,7 +893,7 @@ class TensorFieldFreeModule(TensorFreeModule):
 
         TESTS::
 
-            sage: M = DiffManifold(2, 'M')
+            sage: M = Manifold(2, 'M')
             sage: X.<x,y> = M.chart()  # makes M parallelizable
             sage: T12 = M.tensor_field_module((1,2))
             sage: T12._repr_()
@@ -869,3 +917,31 @@ class TensorFieldFreeModule(TensorFreeModule):
             description += "along the {}".format(self._domain) + \
                            " mapped into the {}".format(self._ambient_domain)
         return description
+
+    def _test_pickling(self, **options):
+        r"""
+        Test pickling.
+
+        This test is weaker than
+        :meth:`sage.structure.sage_object.SageObject._test_pickling` in that
+        it does not require ``loads(dumps(self)) == self``.
+        It however checks that ``loads(dumps(self))`` proceeds without any
+        error and results in an object that is a module of tensor fields of
+        the same type as ``self``.
+
+        TEST::
+
+            sage: M = Manifold(2, 'M')
+            sage: X.<x,y> = M.chart()  # makes M parallelizable
+            sage: T13 = M.tensor_field_module((1,3))
+            sage: T13._test_pickling()
+
+        """
+        tester = self._tester(**options)
+        from sage.misc.all import loads, dumps
+        bckp = loads(dumps(self))
+        tester.assertEqual(type(bckp), type(self))
+        tester.assertEqual(bckp._tensor_type, self._tensor_type)
+        tester.assertEqual(bckp._domain.dimension(), self._domain.dimension())
+        tester.assertEqual(bckp._ambient_domain.dimension(),
+                           self._ambient_domain.dimension())

@@ -32,14 +32,12 @@ REFERENCES:
 #******************************************************************************
 
 from sage.structure.parent import Parent
-from sage.structure.unique_representation import UniqueRepresentation
+from sage.misc.fast_methods import WithEqualityById
 from sage.categories.commutative_algebras import CommutativeAlgebras
 from sage.symbolic.ring import SR
-from sage.rings.all import CC
-from sage.rings.real_mpfr import RR
 from sage.manifolds.scalarfield import ScalarField
 
-class ScalarFieldAlgebra(UniqueRepresentation, Parent):
+class ScalarFieldAlgebra(WithEqualityById, Parent):
     r"""
     Commutative algebra of scalar fields on a topological manifold.
 
@@ -63,14 +61,14 @@ class ScalarFieldAlgebra(UniqueRepresentation, Parent):
 
     - ``domain`` -- the topological manifold `M` on which the scalar fields are
       defined (must be an instance of class
-      :class:`~sage.manifolds.manifold.TopManifold`)
+      :class:`~sage.manifolds.manifold.TopologicalManifold`)
 
     EXAMPLES:
 
     Algebras of scalar fields on the sphere `S^2` and on some open subsets of
     it::
 
-        sage: M = TopManifold(2, 'M') # the 2-dimensional sphere S^2
+        sage: M = Manifold(2, 'M', type='topological') # the 2-dimensional sphere S^2
         sage: U = M.open_subset('U') # complement of the North pole
         sage: c_xy.<x,y> = U.chart() # stereographic coordinates from the North pole
         sage: V = M.open_subset('V') # complement of the South pole
@@ -183,7 +181,7 @@ class ScalarFieldAlgebra(UniqueRepresentation, Parent):
         True
 
     Elements can also be constructed by means of the method
-    :meth:`~sage.manifolds.manifold.TopManifold.scalar_field` acting on
+    :meth:`~sage.manifolds.manifold.TopologicalManifold.scalar_field` acting on
     the domain (this allows one to set the name of the scalar field at the
     construction)::
 
@@ -374,18 +372,20 @@ class ScalarFieldAlgebra(UniqueRepresentation, Parent):
 
         TESTS::
 
-            sage: TopManifold._clear_cache_()  # for doctests only
-            sage: M = TopManifold(2, 'M')
+            sage: M = Manifold(2, 'M', type='topological')
             sage: X.<x,y> = M.chart()
-            sage: from sage.manifolds.scalarfield_algebra import ScalarFieldAlgebra
-            sage: CM = ScalarFieldAlgebra(M); CM
+            sage: CM = M.scalar_field_algebra(); CM
             Algebra of scalar fields on the 2-dimensional topological
              manifold M
+            sage: type(CM)
+            <class 'sage.manifolds.scalarfield_algebra.ScalarFieldAlgebra_with_category'>
+            sage: type(CM).__base__
+            <class 'sage.manifolds.scalarfield_algebra.ScalarFieldAlgebra'>
             sage: TestSuite(CM).run()
 
         """
         base_field = domain.base_field()
-        if base_field in [RR, CC]:
+        if domain.base_field_type() in ['real', 'complex']:
             base_field = SR
         Parent.__init__(self, base=base_field,
                         category=CommutativeAlgebras(base_field))
@@ -432,34 +432,22 @@ class ScalarFieldAlgebra(UniqueRepresentation, Parent):
 
         TESTS::
 
-            sage: M = TopManifold(2, 'M')
+            sage: M = Manifold(2, 'M', type='topological')
             sage: X.<x,y> = M.chart()
             sage: CM = M.scalar_field_algebra()
-            sage: f = CM._element_constructor_(); f
-            Scalar field on the 2-dimensional topological manifold M
-            sage: f = CM._element_constructor_(coord_expression={X: x+y^2}); f
+            sage: f = CM({X: x+y^2}); f
             Scalar field on the 2-dimensional topological manifold M
             sage: f.display()
             M --> R
             (x, y) |--> y^2 + x
-            sage: f = CM._element_constructor_(coord_expression={X: x+y^2},
-            ....:                              name='f'); f
+            sage: f = CM({X: x+y^2}, name='f'); f
             Scalar field f on the 2-dimensional topological manifold M
             sage: f.display()
             f: M --> R
                (x, y) |--> y^2 + x
-            sage: f1 = CM._element_constructor_(coord_expression=x+y^2,
-            ....:                               chart=X, name='f'); f1
-            Scalar field f on the 2-dimensional topological manifold M
-            sage: f1 == f
-            True
-            sage: g = CM._element_constructor_(f); g
-            Scalar field on the 2-dimensional topological manifold M
-            sage: g == f
-            True
             sage: U = M.open_subset('U', coord_def={X: x>0})
             sage: CU = U.scalar_field_algebra()
-            sage: fU = CU._element_constructor_(f); fU
+            sage: fU = CU(f); fU
             Scalar field on the Open subset U of the 2-dimensional topological
              manifold M
             sage: fU.display()
@@ -496,7 +484,7 @@ class ScalarFieldAlgebra(UniqueRepresentation, Parent):
 
         TESTS::
 
-            sage: M = TopManifold(2, 'M')
+            sage: M = Manifold(2, 'M', type='topological')
             sage: X.<x,y> = M.chart()
             sage: CM = M.scalar_field_algebra()
             sage: f = CM._an_element_(); f
@@ -516,7 +504,7 @@ class ScalarFieldAlgebra(UniqueRepresentation, Parent):
 
         TESTS::
 
-            sage: M = TopManifold(2, 'M')
+            sage: M = Manifold(2, 'M', type='topological')
             sage: X.<x,y> = M.chart()
             sage: CM = M.scalar_field_algebra()
             sage: CM._coerce_map_from_(SR)
@@ -547,7 +535,7 @@ class ScalarFieldAlgebra(UniqueRepresentation, Parent):
 
         TESTS::
 
-            sage: M = TopManifold(2, 'M')
+            sage: M = Manifold(2, 'M', type='topological')
             sage: CM = M.scalar_field_algebra()
             sage: CM._repr_()
             'Algebra of scalar fields on the 2-dimensional topological manifold M'
@@ -563,7 +551,7 @@ class ScalarFieldAlgebra(UniqueRepresentation, Parent):
 
         TESTS::
 
-            sage: M = TopManifold(2, 'M')
+            sage: M = Manifold(2, 'M', type='topological')
             sage: CM = M.scalar_field_algebra()
             sage: CM._latex_()
             'C^0 \\left(M\\right)'
@@ -572,6 +560,49 @@ class ScalarFieldAlgebra(UniqueRepresentation, Parent):
 
          """
         return r"C^0 \left("  + self._domain._latex_() + r"\right)"
+
+    def __reduce__(self):
+        r"""
+        Reduction function for the pickle protocole.
+
+        TEST::
+
+            sage: M = Manifold(3, 'M', type='topological')
+            sage: CM = M.scalar_field_algebra()
+            sage: CM.__reduce__()
+            (<class 'sage.manifolds.scalarfield_algebra.ScalarFieldAlgebra'>,
+             (3-dimensional topological manifold M,))
+
+        Test of pickling::
+
+            sage: loads(dumps(CM))
+            Algebra of scalar fields on the 3-dimensional topological manifold M
+
+        """
+        return (ScalarFieldAlgebra, (self._domain,))
+
+    def _test_pickling(self, **options):
+        r"""
+        Test pickling.
+
+        This test is weaker than
+        :meth:`sage.structure.sage_object.SageObject._test_pickling` in that
+        it does not require ``loads(dumps(self)) == self``.
+        It however checks that ``loads(dumps(self))`` proceeds without any
+        error and results in an object that is an algebra of scalar fields of
+        the same type as ``self``.
+
+        TEST::
+
+            sage: M = Manifold(3, 'M', type='topological')
+            sage: CM = M.scalar_field_algebra()
+            sage: CM._test_pickling()
+
+        """
+        tester = self._tester(**options)
+        from sage.misc.all import loads, dumps
+        bckp = loads(dumps(self))
+        tester.assertEqual(type(bckp), type(self))
 
     def zero(self):
         r"""
@@ -582,7 +613,7 @@ class ScalarFieldAlgebra(UniqueRepresentation, Parent):
 
         EXAMPLE::
 
-            sage: M = TopManifold(2, 'M')
+            sage: M = Manifold(2, 'M', type='topological')
             sage: X.<x,y> = M.chart()
             sage: CM = M.scalar_field_algebra()
             sage: z = CM.zero(); z
@@ -615,7 +646,7 @@ class ScalarFieldAlgebra(UniqueRepresentation, Parent):
 
         EXAMPLE::
 
-            sage: M = TopManifold(2, 'M')
+            sage: M = Manifold(2, 'M', type='topological')
             sage: X.<x,y> = M.chart()
             sage: CM = M.scalar_field_algebra()
             sage: h = CM.one(); h

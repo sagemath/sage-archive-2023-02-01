@@ -114,7 +114,7 @@ class DiffForm(TensorField):
     Differential form of degree 2 on a non-parallelizable 2-dimensional
     manifold::
 
-        sage: M = DiffManifold(2, 'M')
+        sage: M = Manifold(2, 'M')
         sage: U = M.open_subset('U') ; V = M.open_subset('V')
         sage: M.declare_union(U,V)   # M is the union of U and V
         sage: c_xy.<x,y> = U.chart() ; c_uv.<u,v> = V.chart()
@@ -214,7 +214,7 @@ class DiffForm(TensorField):
         Construction via ``parent.element_class``, and not via a direct call
         to ``DiffForm`, to fit with the category framework::
 
-            sage: M = DiffManifold(2, 'M')
+            sage: M = Manifold(2, 'M')
             sage: U = M.open_subset('U') ; V = M.open_subset('V')
             sage: M.declare_union(U,V)   # M is the union of U and V
             sage: c_xy.<x,y> = U.chart() ; c_uv.<u,v> = V.chart()
@@ -232,7 +232,7 @@ class DiffForm(TensorField):
             sage: a.add_comp_by_continuation(e_uv, W, c_uv)
             sage: TestSuite(a).run(skip='_test_pickling')
 
-        Construction with ``DiffManifold.diff_form``::
+        Construction with ``DifferentiableManifold.diff_form``::
 
             sage: a1 = M.diff_form(2, name='a'); a1
             2-form a on the 2-dimensional differentiable manifold M
@@ -257,7 +257,7 @@ class DiffForm(TensorField):
 
         TESTS::
 
-            sage: M = DiffManifold(3, 'M')
+            sage: M = Manifold(3, 'M')
             sage: a = M.diff_form(2, name='a')
             sage: a._repr_()
             '2-form a on the 3-dimensional differentiable manifold M'
@@ -282,7 +282,7 @@ class DiffForm(TensorField):
 
         TESTS::
 
-            sage: M = DiffManifold(3, 'M')
+            sage: M = Manifold(3, 'M')
             sage: a = M.diff_form(2, name='a')
             sage: a1 = a._new_instance(); a1
             2-form on the 3-dimensional differentiable manifold M
@@ -292,7 +292,7 @@ class DiffForm(TensorField):
             True
 
         """
-        return self.__class__(self._vmodule, self._tensor_rank)
+        return type(self)(self._vmodule, self._tensor_rank)
 
     def _init_derived(self):
         r"""
@@ -300,7 +300,7 @@ class DiffForm(TensorField):
 
         TEST::
 
-            sage: M = DiffManifold(3, 'M')
+            sage: M = Manifold(3, 'M')
             sage: a = M.diff_form(2, name='a')
             sage: a._init_derived()
 
@@ -314,7 +314,7 @@ class DiffForm(TensorField):
 
         TEST::
 
-            sage: M = DiffManifold(3, 'M')
+            sage: M = Manifold(3, 'M')
             sage: a = M.diff_form(2, name='a')
             sage: a._del_derived()
 
@@ -335,7 +335,7 @@ class DiffForm(TensorField):
 
         Exterior derivative of a 1-form on the 2-sphere::
 
-            sage: M = DiffManifold(2, 'M') # the 2-dimensional sphere S^2
+            sage: M = Manifold(2, 'M') # the 2-dimensional sphere S^2
             sage: U = M.open_subset('U') # complement of the North pole
             sage: c_xy.<x,y> = U.chart() # stereographic coordinates from the North pole
             sage: V = M.open_subset('V') # complement of the South pole
@@ -418,7 +418,7 @@ class DiffForm(TensorField):
         Exterior product of two 1-forms on the 2-sphere::
 
 
-            sage: M = DiffManifold(2, 'S^2', start_index=1) # the 2-dimensional sphere S^2
+            sage: M = Manifold(2, 'S^2', start_index=1) # the 2-dimensional sphere S^2
             sage: U = M.open_subset('U') ; V = M.open_subset('V')
             sage: M.declare_union(U,V)   # S^2 is the union of U and V
             sage: c_xy.<x,y> = U.chart() ; c_uv.<u,v> = V.chart() # stereographic coord. (North and South)
@@ -500,7 +500,7 @@ class DiffForm(TensorField):
 
         EXAMPLES::
 
-            sage: M = DiffManifold(3, 'M')
+            sage: M = Manifold(3, 'M')
             sage: a = M.diff_form(2); a
             2-form on the 3-dimensional differentiable manifold M
             sage: a.degree()
@@ -563,7 +563,7 @@ class DiffFormParal(FreeModuleAltForm, TensorFieldParal):
 
     A 2-form on a 4-dimensional manifold::
 
-        sage: M = DiffManifold(4, 'M')
+        sage: M = Manifold(4, 'M')
         sage: c_txyz.<t,x,y,z> = M.chart()
         sage: a = M.diff_form(2, 'a') ; a
         2-form a on the 4-dimensional differentiable manifold M
@@ -634,7 +634,7 @@ class DiffFormParal(FreeModuleAltForm, TensorFieldParal):
     An example of 3-form is the volume element on `\RR^3` in Cartesian
     coordinates::
 
-        sage: M = DiffManifold(3, 'R3', '\RR^3', start_index=1)
+        sage: M = Manifold(3, 'R3', '\RR^3', start_index=1)
         sage: c_cart.<x,y,z> = M.chart()
         sage: eps = M.diff_form(3, 'epsilon', r'\epsilon')
         sage: eps[1,2,3] = 1  # the only independent component
@@ -820,8 +820,7 @@ class DiffFormParal(FreeModuleAltForm, TensorFieldParal):
         Construction via ``parent.element_class``, and not via a direct call
         to ``DiffFormParal``, to fit with the category framework::
 
-            sage: DiffManifold._clear_cache_() # for doctests only
-            sage: M = DiffManifold(2, 'M')
+            sage: M = Manifold(2, 'M')
             sage: X.<x,y> = M.chart()  # makes M parallelizable
             sage: A = M.diff_form_module(2)
             sage: XM = M.vector_field_module()
@@ -830,7 +829,7 @@ class DiffFormParal(FreeModuleAltForm, TensorFieldParal):
             sage: a[0,1] = x*y
             sage: TestSuite(a).run()
 
-        Construction via ``DiffManifold.diff_form``::
+        Construction via ``DifferentiableManifold.diff_form``::
 
             sage: a1 = M.diff_form(2, name='a'); a1
             2-form a on the 2-dimensional differentiable manifold M
@@ -855,7 +854,7 @@ class DiffFormParal(FreeModuleAltForm, TensorFieldParal):
 
         TESTS::
 
-            sage: M = DiffManifold(3, 'M')
+            sage: M = Manifold(3, 'M')
             sage: X.<x,y,z> = M.chart()  # makes M parallelizable
             sage: a = M.diff_form(2, name='a')
             sage: a._repr_()
@@ -881,7 +880,7 @@ class DiffFormParal(FreeModuleAltForm, TensorFieldParal):
 
         TESTS::
 
-            sage: M = DiffManifold(3, 'M')
+            sage: M = Manifold(3, 'M')
             sage: X.<x,y,z> = M.chart()  # makes M parallelizable
             sage: a = M.diff_form(2, name='a')
             sage: a1 = a._new_instance(); a1
@@ -892,7 +891,7 @@ class DiffFormParal(FreeModuleAltForm, TensorFieldParal):
             True
 
         """
-        return self.__class__(self._fmodule, self._tensor_rank)
+        return type(self)(self._fmodule, self._tensor_rank)
 
     def _init_derived(self):
         r"""
@@ -900,7 +899,7 @@ class DiffFormParal(FreeModuleAltForm, TensorFieldParal):
 
         TEST::
 
-            sage: M = DiffManifold(3, 'M')
+            sage: M = Manifold(3, 'M')
             sage: X.<x,y,z> = M.chart()  # makes M parallelizable
             sage: a = M.diff_form(2, name='a')
             sage: a._init_derived()
@@ -920,7 +919,7 @@ class DiffFormParal(FreeModuleAltForm, TensorFieldParal):
 
         TEST::
 
-            sage: M = DiffManifold(3, 'M')
+            sage: M = Manifold(3, 'M')
             sage: X.<x,y,z> = M.chart()  # makes M parallelizable
             sage: a = M.diff_form(2, name='a')
             sage: a._del_derived()
@@ -937,7 +936,7 @@ class DiffFormParal(FreeModuleAltForm, TensorFieldParal):
 
         TEST::
 
-            sage: M = DiffManifold(2, 'M')
+            sage: M = Manifold(2, 'M')
             sage: X.<x,y> = M.chart()
             sage: a = M.diff_form(2, name='a')
             sage: a[0,1] = x*y
@@ -973,7 +972,7 @@ class DiffFormParal(FreeModuleAltForm, TensorFieldParal):
 
         Exterior derivative of a 1-form on a 4-dimensional manifold::
 
-            sage: M = DiffManifold(4, 'M')
+            sage: M = Manifold(4, 'M')
             sage: c_txyz.<t,x,y,z> = M.chart()
             sage: a = M.one_form('A')
             sage: a[:] = (t*x*y*z, z*y**2, x*z**2, x**2 + y**2)
@@ -1091,7 +1090,7 @@ class DiffFormParal(FreeModuleAltForm, TensorFieldParal):
 
         Exterior product of a 1-form and a 2-form on a 3-dimensional manifold::
 
-            sage: M = DiffManifold(3, 'M', start_index=1)
+            sage: M = Manifold(3, 'M', start_index=1)
             sage: X.<x,y,z> = M.chart()
             sage: a = M.one_form(name='a')
             sage: a[:] = [2, 1+x, y*z]

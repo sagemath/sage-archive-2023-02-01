@@ -53,7 +53,7 @@ class TangentVector(FiniteRankFreeModuleElement):
 
     Tangent vector on a 2-dimensional manifold::
 
-        sage: M = DiffManifold(2, 'M')
+        sage: M = Manifold(2, 'M')
         sage: c_xy.<x,y> = M.chart()
         sage: p = M.point((2,3), name='p')
         sage: Tp = M.tangent_space(p)
@@ -78,7 +78,7 @@ class TangentVector(FiniteRankFreeModuleElement):
 
         TEST::
 
-            sage: M = DiffManifold(2, 'M')
+            sage: M = Manifold(2, 'M')
             sage: X.<x,y> = M.chart()
             sage: p = M.point((1,-2), name='p')
             sage: Tp = M.tangent_space(p)
@@ -89,7 +89,8 @@ class TangentVector(FiniteRankFreeModuleElement):
             sage: TestSuite(v).run()
 
         """
-        FiniteRankFreeModuleElement.__init__(self, parent, name=name, latex_name=latex_name)
+        FiniteRankFreeModuleElement.__init__(self, parent, name=name,
+                                             latex_name=latex_name)
         # Extra data (with respect to FiniteRankFreeModuleElement):
         self._point = parent._point
 
@@ -99,7 +100,7 @@ class TangentVector(FiniteRankFreeModuleElement):
 
         TESTS::
 
-            sage: M = DiffManifold(2, 'M')
+            sage: M = Manifold(2, 'M')
             sage: X.<x,y> = M.chart()
             sage: p = M.point((1,-2), name='p')
             sage: Tp = M.tangent_space(p)
@@ -115,6 +116,34 @@ class TangentVector(FiniteRankFreeModuleElement):
             desc += " " + str(self._name)
         desc += " at " + str(self._point)
         return desc
+
+    def _test_pickling(self, **options):
+        r"""
+        Test pickling.
+
+        This test is weaker than
+        :meth:`sage.structure.sage_object.SageObject._test_pickling` in that
+        it does not require ``loads(dumps(self)) == self``.
+        It however checks that ``loads(dumps(self))`` proceeds without any
+        error and results in an object that is a tangent vector of the same
+        type as ``self``.
+
+        TEST::
+
+            sage: M = Manifold(2, 'M')
+            sage: X.<x,y> = M.chart()
+            sage: p = M.point((1,-2), name='p')
+            sage: Tp = M.tangent_space(p)
+            sage: v = Tp([-3,2], name='v')
+            sage: v._test_pickling()
+
+        """
+        tester = self._tester(**options)
+        from sage.misc.all import loads, dumps
+        bckp = loads(dumps(self))
+        tester.assertEqual(type(bckp), type(self))
+        tester.assertEqual(bckp._fmodule.dimension(),
+                           self._fmodule.dimension())
 
     def plot(self, chart=None, ambient_coords=None, mapping=None, scale=1,
              color='blue', print_label=True, label=None,  label_color=None,
@@ -183,7 +212,7 @@ class TangentVector(FiniteRankFreeModuleElement):
 
         Vector tangent to a 2-dimensional manifold::
 
-            sage: M = DiffManifold(2, 'M')
+            sage: M = Manifold(2, 'M')
             sage: X.<x,y> = M.chart()
             sage: p = M((2,2), name='p')
             sage: Tp = M.tangent_space(p)
@@ -202,7 +231,7 @@ class TangentVector(FiniteRankFreeModuleElement):
 
         .. PLOT::
 
-            M = DiffManifold(2, 'M')
+            M = Manifold(2, 'M')
             X = M.chart('x y'); x, y = X[:]
             p = M((2,2), name='p'); Tp = M.tangent_space(p)
             v = Tp((2, 1), name='v')
@@ -215,7 +244,7 @@ class TangentVector(FiniteRankFreeModuleElement):
 
         .. PLOT::
 
-            M = DiffManifold(2, 'M')
+            M = Manifold(2, 'M')
             X = M.chart('x y'); x, y = X[:]
             p = M((2,2), name='p'); Tp = M.tangent_space(p)
             v = Tp((2, 1), name='v')
@@ -228,7 +257,7 @@ class TangentVector(FiniteRankFreeModuleElement):
 
         .. PLOT::
 
-            M = DiffManifold(2, 'M')
+            M = Manifold(2, 'M')
             X = M.chart('x y'); x, y = X[:]
             p = M((2,2), name='p'); Tp = M.tangent_space(p)
             v = Tp((2, 1), name='v')
@@ -242,7 +271,7 @@ class TangentVector(FiniteRankFreeModuleElement):
 
         .. PLOT::
 
-            M = DiffManifold(2, 'M')
+            M = Manifold(2, 'M')
             X = M.chart('x y'); x, y = X[:]
             p = M((2,2), name='p'); Tp = M.tangent_space(p)
             v = Tp((2, 1), name='v')
@@ -255,7 +284,7 @@ class TangentVector(FiniteRankFreeModuleElement):
 
         .. PLOT::
 
-            M = DiffManifold(2, 'M')
+            M = Manifold(2, 'M')
             X = M.chart('x y'); x, y = X[:]
             p = M((2,2), name='p'); Tp = M.tangent_space(p)
             v = Tp((2, 1), name='v')
@@ -279,7 +308,7 @@ class TangentVector(FiniteRankFreeModuleElement):
 
         Vector tangent to a 4-dimensional manifold::
 
-            sage: M = DiffManifold(4, 'M')
+            sage: M = Manifold(4, 'M')
             sage: X.<t,x,y,z> = M.chart()
             sage: p = M((0,1,2,3), name='p')
             sage: Tp = M.tangent_space(p)
@@ -303,7 +332,7 @@ class TangentVector(FiniteRankFreeModuleElement):
 
         .. PLOT::
 
-            M = DiffManifold(4, 'M')
+            M = Manifold(4, 'M')
             X = M.chart('t x y z'); t,x,y,z = X[:]
             p = M((0,1,2,3), name='p'); Tp = M.tangent_space(p)
             v = Tp((5,4,3,2), name='v')
@@ -314,7 +343,8 @@ class TangentVector(FiniteRankFreeModuleElement):
         Similarly, for a 3-dimensional plot in terms of the coordinates
         `(t,x,y)`::
 
-            sage: v.plot(ambient_coords=(t,x,z))
+            sage: g = v.plot(ambient_coords=(t,x,z))
+            sage: print(g)
             Graphics3d Object
 
         This plot involves only the components `v^t`,  `v^x` and `v^z` of `v`.
@@ -326,10 +356,10 @@ class TangentVector(FiniteRankFreeModuleElement):
         An example of plot via a differential mapping: plot of a vector tangent
         to a 2-sphere viewed in `\RR^3`::
 
-            sage: S2 = DiffManifold(2, 'S^2')
+            sage: S2 = Manifold(2, 'S^2')
             sage: U = S2.open_subset('U') # the open set covered by spherical coord.
             sage: XS.<th,ph> = U.chart(r'th:(0,pi):\theta ph:(0,2*pi):\phi')
-            sage: R3 = DiffManifold(3, 'R^3')
+            sage: R3 = Manifold(3, 'R^3')
             sage: X3.<x,y,z> = R3.chart()
             sage: F = S2.diff_map(R3, {(XS, X3): [sin(th)*cos(ph), sin(th)*sin(ph),
             ....:                                 cos(th)]}, name='F')

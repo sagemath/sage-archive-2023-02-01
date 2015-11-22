@@ -55,7 +55,7 @@ class DiffMap(ContinuousMap):
 
     The class :class:`DiffMap` is a Sage *element* class, whose *parent*
     class is
-    :class:`~sage.manifolds.differentiable.manifold_homset.DiffManifoldHomset`.
+    :class:`~sage.manifolds.differentiable.manifold_homset.DifferentiableManifoldHomset`.
     It inherits from the class
     :class:`~sage.manifolds.continuous_map.ContinuousMap` since a
     differentiable map is obviously a continuous one.
@@ -69,12 +69,11 @@ class DiffMap(ContinuousMap):
       coordinates of the image expressed in terms of the coordinates of
       the considered point) with the pairs of charts (chart1, chart2)
       as keys (chart1 being a chart on `M` and chart2 a chart on `N`).
-      If the dimension of codomain is 1, a single coordinate
+      If the dimension of the map's codomain is 1, a single coordinate
       expression can be passed instead of a tuple with a single element
     - ``name`` -- (default: ``None``) name given to the differentiable map
     - ``latex_name`` -- (default: ``None``) LaTeX symbol to denote the
-      differentiable map; if none is provided, the LaTeX symbol is set to
-      ``name``
+      differentiable map; if ``None``, the LaTeX symbol is set to ``name``
     - ``is_isomorphism`` -- (default: ``False``) determines whether the
       constructed object is a isomorphism (i.e. a diffeomorphism); if set to
       ``True``, then the manifolds `M` and `N` must have the same dimension.
@@ -94,7 +93,7 @@ class DiffMap(ContinuousMap):
 
     The standard embedding of the sphere `S^2` into `\RR^3`::
 
-        sage: M = DiffManifold(2, 'S^2') # the 2-dimensional sphere S^2
+        sage: M = Manifold(2, 'S^2') # the 2-dimensional sphere S^2
         sage: U = M.open_subset('U') # complement of the North pole
         sage: c_xy.<x,y> = U.chart() # stereographic coordinates from the North pole
         sage: V = M.open_subset('V') # complement of the South pole
@@ -104,7 +103,7 @@ class DiffMap(ContinuousMap):
         ....:                 intersection_name='W', restrictions1= x^2+y^2!=0,
         ....:                 restrictions2= u^2+v^2!=0)
         sage: uv_to_xy = xy_to_uv.inverse()
-        sage: N = DiffManifold(3, 'R^3', r'\RR^3')  # R^3
+        sage: N = Manifold(3, 'R^3', r'\RR^3')  # R^3
         sage: c_cart.<X,Y,Z> = N.chart()  # Cartesian coordinates on R^3
         sage: Phi = M.diff_map(N,
         ....: {(c_xy, c_cart): [2*x/(1+x^2+y^2), 2*y/(1+x^2+y^2), (x^2+y^2-1)/(1+x^2+y^2)],
@@ -120,7 +119,7 @@ class DiffMap(ContinuousMap):
         sage: Phi.parent() is Hom(M, N)
         True
         sage: type(Phi)
-        <class 'sage.manifolds.differentiable.diff_map.DiffManifoldHomset_with_category.element_class'>
+        <class 'sage.manifolds.differentiable.diff_map.DifferentiableManifoldHomset_with_category.element_class'>
         sage: Phi.display()
         Phi: S^2 --> R^3
         on U: (x, y) |--> (X, Y, Z) = (2*x/(x^2 + y^2 + 1), 2*y/(x^2 + y^2 + 1),
@@ -129,7 +128,7 @@ class DiffMap(ContinuousMap):
          -(u^2 + v^2 - 1)/(u^2 + v^2 + 1))
 
     It is possible to create the map via the method
-    :meth:`~sage.manifolds.differentiable.manifold.DiffManifold.diff_map`
+    :meth:`~sage.manifolds.differentiable.manifold.DifferentiableManifold.diff_map`
     only in a single pair of charts: the argument ``coord_functions`` is then
     a mere list of coordinate expressions (and not a dictionary) and the
     arguments ``chart1`` and ``chart2`` have to be provided if the charts
@@ -223,7 +222,7 @@ class DiffMap(ContinuousMap):
     the projection from the point `(X,Y,Z)=(0,0,1)` onto the equatorial plane
     `Z=0`::
 
-        sage: P = DiffManifold(2, 'R^2', r'\RR^2') # R^2 (equatorial plane)
+        sage: P = Manifold(2, 'R^2', r'\RR^2') # R^2 (equatorial plane)
         sage: cP.<xP, yP> = P.chart()
         sage: Psi = N.diff_map(P, (X/(1-Z), Y/(1-Z)), name='Psi',
         ....:                  latex_name=r'\Psi')
@@ -259,16 +258,16 @@ class DiffMap(ContinuousMap):
     defined by a single symbolic expression for each pair of charts, and not
     by a list/tuple with a single element::
 
-        sage: N = DiffManifold(1, 'N')
+        sage: N = Manifold(1, 'N')
         sage: c_N = N.chart('X')
         sage: Phi = M.diff_map(N, {(c_xy, c_N): x^2+y^2,
         ....: (c_uv, c_N): 1/(u^2+v^2)})  # not ...[1/(u^2+v^2)] or (1/(u^2+v^2),)
 
     An example of differentiable map `\RR \rightarrow \RR^2`::
 
-        sage: R = DiffManifold(1, 'R')  # field R
+        sage: R = Manifold(1, 'R')  # field R
         sage: T.<t> = R.chart()  # canonical chart on R
-        sage: R2 = DiffManifold(2, 'R^2')  # R^2
+        sage: R2 = Manifold(2, 'R^2')  # R^2
         sage: c_xy.<x,y> = R2.chart() # Cartesian coordinates on R^2
         sage: Phi = R.diff_map(R2, [cos(t), sin(t)], name='Phi') ; Phi
         Differentiable map Phi from the 1-dimensional differentiable manifold R
@@ -389,9 +388,9 @@ class DiffMap(ContinuousMap):
 
         TESTS::
 
-            sage: M = DiffManifold(2, 'M')
+            sage: M = Manifold(2, 'M')
             sage: X.<x,y> = M.chart()
-            sage: N = DiffManifold(3, 'N')
+            sage: N = Manifold(3, 'N')
             sage: Y.<u,v,w> = N.chart()
             sage: f = Hom(M,N)({(X,Y): (x+y, x*y, x-y)}, name='f') ; f
             Differentiable map f from the 2-dimensional differentiable manifold
@@ -426,9 +425,9 @@ class DiffMap(ContinuousMap):
 
         TESTS::
 
-            sage: M = DiffManifold(2, 'M')
+            sage: M = Manifold(2, 'M')
             sage: X.<x,y> = M.chart()
-            sage: N = DiffManifold(2, 'N')
+            sage: N = Manifold(2, 'N')
             sage: Y.<u,v> = N.chart()
             sage: f = Hom(M,N)({(X,Y): (x+y,x*y)})
             sage: f._repr_()
@@ -475,7 +474,7 @@ class DiffMap(ContinuousMap):
 
         TEST::
 
-            sage: M = DiffManifold(2, 'M')
+            sage: M = Manifold(2, 'M')
             sage: X.<x,y> = M.chart()
             sage: f = M.diffeomorphism(M, [x+y, x-y])
             sage: f._init_derived()
@@ -495,7 +494,7 @@ class DiffMap(ContinuousMap):
 
         TEST::
 
-            sage: M = DiffManifold(2, 'M')
+            sage: M = Manifold(2, 'M')
             sage: X.<x,y> = M.chart()
             sage: f = M.diffeomorphism(M, [x+y, x-y])
             sage: f^(-1)
@@ -553,9 +552,9 @@ class DiffMap(ContinuousMap):
         Differential of a differentiable map between a 2-dimensional manifold
         and a 3-dimensional one::
 
-            sage: M = DiffManifold(2, 'M')
+            sage: M = Manifold(2, 'M')
             sage: X.<x,y> = M.chart()
-            sage: N = DiffManifold(3, 'N')
+            sage: N = Manifold(3, 'N')
             sage: Y.<u,v,w> = N.chart()
             sage: Phi = M.diff_map(N, {(X,Y): (x-2*y, x*y, x^2-y^3)}, name='Phi',
             ....:                  latex_name = r'\Phi')
@@ -714,9 +713,9 @@ class DiffMap(ContinuousMap):
         Differential functions of a map between a 2-dimensional manifold and
         a 3-dimensional one::
 
-            sage: M = DiffManifold(2, 'M')
+            sage: M = Manifold(2, 'M')
             sage: X.<x,y> = M.chart()
-            sage: N = DiffManifold(3, 'N')
+            sage: N = Manifold(3, 'N')
             sage: Y.<u,v,w> = N.chart()
             sage: Phi = M.diff_map(N, {(X,Y): (x-2*y, x*y, x^2-y^3)}, name='Phi',
             ....:                  latex_name = r'\Phi')
@@ -803,9 +802,9 @@ class DiffMap(ContinuousMap):
         Jacobian matrix of a map between a 2-dimensional manifold and a
         3-dimensional one::
 
-            sage: M = DiffManifold(2, 'M')
+            sage: M = Manifold(2, 'M')
             sage: X.<x,y> = M.chart()
-            sage: N = DiffManifold(3, 'N')
+            sage: N = Manifold(3, 'N')
             sage: Y.<u,v,w> = N.chart()
             sage: Phi = M.diff_map(N, {(X,Y): (x-2*y, x*y, x^2-y^3)}, name='Phi',
             ....:                  latex_name = r'\Phi')
@@ -853,10 +852,10 @@ class DiffMap(ContinuousMap):
 
         Pullback on `S^2` of a scalar field defined on `R^3`::
 
-            sage: M = DiffManifold(2, 'S^2', start_index=1)
+            sage: M = Manifold(2, 'S^2', start_index=1)
             sage: U = M.open_subset('U') # the complement of a meridian (domain of spherical coordinates)
             sage: c_spher.<th,ph> = U.chart(r'th:(0,pi):\theta ph:(0,2*pi):\phi') # spherical coord. on U
-            sage: N = DiffManifold(3, 'R^3', r'\RR^3', start_index=1)
+            sage: N = Manifold(3, 'R^3', r'\RR^3', start_index=1)
             sage: c_cart.<x,y,z> = N.chart() # Cartesian coord. on R^3
             sage: Phi = U.diff_map(N, (sin(th)*cos(ph), sin(th)*sin(ph), cos(th)),
             ....:                  name='Phi', latex_name=r'\Phi')
@@ -1059,10 +1058,10 @@ class DiffMap(ContinuousMap):
         Pushforward of a vector field on the 2-sphere `S^2` to the Euclidean
         3-space `\RR^3`, via the standard embedding of `S^2`::
 
-            sage: S2 = DiffManifold(2, 'S^2', start_index=1)
+            sage: S2 = Manifold(2, 'S^2', start_index=1)
             sage: U = S2.open_subset('U')  # domain of spherical coordinates
             sage: spher.<th,ph> = U.chart(r'th:(0,pi):\theta ph:(0,2*pi):\phi')
-            sage: R3 = DiffManifold(3, 'R^3', start_index=1)
+            sage: R3 = Manifold(3, 'R^3', start_index=1)
             sage: cart.<x,y,z> = R3.chart()
             sage: Phi = U.diff_map(R3, {(spher, cart): [sin(th)*cos(ph),
             ....:   sin(th)*sin(ph), cos(th)]}, name='Phi', latex_name=r'\Phi')
@@ -1080,7 +1079,7 @@ class DiffMap(ContinuousMap):
         Pushforward of a vector field on the real line to the `\RR^3`, via a
         helix embedding::
 
-            sage: R = DiffManifold(1, 'R') # the real line
+            sage: R = Manifold(1, 'R') # the real line
             sage: T.<t> = R.chart()
             sage: Psi = R.diff_map(R3, [cos(t), sin(t), t], name='Psi',
             ....:                  latex_name=r'\Psi')

@@ -249,13 +249,11 @@ class VectorFieldModule(UniqueRepresentation, Parent):
             sage: c_xy.<x,y> = U.chart(); c_uv.<u,v> = V.chart()
             sage: M.declare_union(U,V)
             sage: XM = M.vector_field_module()
-            sage: v = XM._element_constructor_(comp=[-x,y], frame=c_xy.frame(),
-            ....:                              name='v')
-            sage: v
+            sage: v = XM([-x,y], frame=c_xy.frame(), name='v'); v
             Vector field v on the 2-dimensional differentiable manifold M
             sage: v.display()
             v = -x d/dx + y d/dy
-            sage: XM._element_constructor_(0) is XM.zero()
+            sage: XM(0) is XM.zero()
             True
 
         """
@@ -1207,11 +1205,11 @@ class VectorFieldFreeModule(FiniteRankFreeModule):
             sage: M = Manifold(2, 'M')
             sage: X.<x,y> = M.chart()  # makes M parallelizable
             sage: XM = M.vector_field_module()
-            sage: v = XM._element_constructor_(comp=[-y,x], name='v'); v
+            sage: v = XM([-y,x], name='v'); v
             Vector field v on the 2-dimensional differentiable manifold M
             sage: v.display()
             v = -y d/dx + x d/dy
-            sage: XM._element_constructor_(0) is XM.zero()
+            sage: XM(0) is XM.zero()
             True
 
         """

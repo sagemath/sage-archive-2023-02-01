@@ -292,7 +292,7 @@ class DiffForm(TensorField):
             True
 
         """
-        return self.__class__(self._vmodule, self._tensor_rank)
+        return type(self)(self._vmodule, self._tensor_rank)
 
     def _init_derived(self):
         r"""
@@ -891,7 +891,7 @@ class DiffFormParal(FreeModuleAltForm, TensorFieldParal):
             True
 
         """
-        return self.__class__(self._fmodule, self._tensor_rank)
+        return type(self)(self._fmodule, self._tensor_rank)
 
     def _init_derived(self):
         r"""

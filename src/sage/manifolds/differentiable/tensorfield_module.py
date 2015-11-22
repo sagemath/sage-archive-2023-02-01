@@ -296,14 +296,13 @@ class TensorFieldModule(UniqueRepresentation, Parent):
             sage: c_xy.<x,y> = U.chart(); c_uv.<u,v> = V.chart()
             sage: M.declare_union(U,V)
             sage: T20 = M.tensor_field_module((2,0))
-            sage: t = T20._element_constructor_(comp=[[1+x, 2], [x*y, 3-y]],
-            ....:                               name='t'); t
+            sage: t = T20([[1+x, 2], [x*y, 3-y]], name='t'); t
             Tensor field t of type (2,0) on the 2-dimensional differentiable
              manifold M
             sage: t.display(c_xy.frame())
             t = (x + 1) d/dx*d/dx + 2 d/dx*d/dy + x*y d/dy*d/dx
              + (-y + 3) d/dy*d/dy
-            sage: T20._element_constructor_(0) is T20.zero()
+            sage: T20(0) is T20.zero()
             True
 
         """
@@ -782,15 +781,15 @@ class TensorFieldFreeModule(TensorFreeModule):
             sage: M = Manifold(2, 'M')
             sage: X.<x,y> = M.chart()  # makes M parallelizable
             sage: T12 = M.tensor_field_module((1,2))
-            sage: t = T12._element_constructor_(comp=[[[x,-y], [2,y]],
-            ....:   [[1+x,y^2], [x^2,3]], [[x*y, 1-x], [y^2, x]]], name='t'); t
+            sage: t = T12([[[x,-y], [2,y]], [[1+x,y^2], [x^2,3]],
+            ....:          [[x*y, 1-x], [y^2, x]]], name='t'); t
             Tensor field t of type (1,2) on the 2-dimensional differentiable
              manifold M
             sage: t.display()
             t = x d/dx*dx*dx - y d/dx*dx*dy + 2 d/dx*dy*dx + y d/dx*dy*dy
              + (x + 1) d/dy*dx*dx + y^2 d/dy*dx*dy + x^2 d/dy*dy*dx
              + 3 d/dy*dy*dy
-            sage: T12._element_constructor_(0) is T12.zero()
+            sage: T12(0) is T12.zero()
             True
 
         """

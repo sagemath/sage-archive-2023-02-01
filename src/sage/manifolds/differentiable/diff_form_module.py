@@ -332,12 +332,11 @@ class DiffFormModule(UniqueRepresentation, Parent):
             sage: c_xy.<x,y> = U.chart(); c_uv.<u,v> = V.chart()
             sage: M.declare_union(U,V)
             sage: A = M.diff_form_module(2)
-            sage: a = A._element_constructor_(comp=[[0, x*y], [-x*y, 0]],
-            ....:                             name='a'); a
+            sage: a = A([[0, x*y], [-x*y, 0]], name='a'); a
             2-form a on the 2-dimensional differentiable manifold M
             sage: a.display(c_xy.frame())
             a = x*y dx/\dy
-            sage: A._element_constructor_(0) is A.zero()
+            sage: A(0) is A.zero()
             True
 
         """
@@ -861,12 +860,11 @@ class DiffFormFreeModule(ExtPowerFreeModule):
             sage: M = Manifold(2, 'M')
             sage: X.<x,y> = M.chart()  # makes M parallelizable
             sage: A = M.diff_form_module(2)
-            sage: a = A._element_constructor_(comp=[[0, x], [-x, 0]],
-            ....:                             name='a'); a
+            sage: a = A([[0, x], [-x, 0]], name='a'); a
             2-form a on the 2-dimensional differentiable manifold M
             sage: a.display()
             a = x dx/\dy
-            sage: A._element_constructor_(0) is A.zero()
+            sage: A(0) is A.zero()
             True
 
         """

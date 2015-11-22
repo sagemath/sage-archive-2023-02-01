@@ -693,8 +693,8 @@ class TensorFieldParal(FreeModuleTensor, TensorField):
             True
 
         """
-        return self.__class__(self._fmodule, self._tensor_type, sym=self._sym,
-                                antisym=self._antisym)
+        return type(self)(self._fmodule, self._tensor_type, sym=self._sym,
+                          antisym=self._antisym)
 
     def _init_derived(self):
         r"""
@@ -1332,7 +1332,7 @@ class TensorFieldParal(FreeModuleTensor, TensorField):
             resu = smodule.tensor(self._tensor_type, name=self._name,
                                   latex_name=self._latex_name, sym=self._sym,
                                   antisym=self._antisym,
-                                  specific_type=self.__class__)
+                                  specific_type=type(self))
             for frame in self._components:
                 for sframe in subdomain._covering_frames:
                     if sframe in frame._subframes:

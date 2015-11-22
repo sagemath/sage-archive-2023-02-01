@@ -204,14 +204,11 @@ class AutomorphismFieldGroup(UniqueRepresentation, Parent):
             ....:  restrictions2= u+v>0)
             sage: inv = transf.inverse()
             sage: G = M.automorphism_field_group()
-            sage: a = G._element_constructor(name='a'); a
-            Field of tangent-space automorphisms a on the 2-dimensional
-             differentiable manifold M
-            sage: a = G._element_constructor(1); a
+            sage: a = G(1); a
             Field of tangent-space identity maps on the 2-dimensional
              differentiable manifold M
-            sage: a = G._element_constructor(comp=[[1+x^2, 0], [0, 1+y^2]],
-            ....:                            frame=c_xy.frame(), name='a'); a
+            sage: a = G([[1+x^2, 0], [0, 1+y^2]], frame=c_xy.frame(),
+            ....:       name='a'); a
             Field of tangent-space automorphisms a on the 2-dimensional
              differentiable manifold M
             sage: a.display(c_xy.frame())

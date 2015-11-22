@@ -550,8 +550,8 @@ class TensorField(ModuleElement):
             True
 
         """
-        return self.__class__(self._vmodule, self._tensor_type, sym=self._sym,
-                              antisym=self._antisym)
+        return type(self)(self._vmodule, self._tensor_type, sym=self._sym,
+                          antisym=self._antisym)
 
     def _final_repr(self, description):
         r"""
@@ -925,7 +925,7 @@ class TensorField(ModuleElement):
                                                   latex_name=self._latex_name,
                                                   sym=self._sym,
                                                   antisym=self._antisym,
-                                                  specific_type=self.__class__)
+                                                  specific_type=type(self))
         return self._restrictions[subdomain]
 
     def set_comp(self, basis=None):
@@ -1607,24 +1607,26 @@ class TensorField(ModuleElement):
             sage: t = M.tensor_field(1, 1, name='t')
             sage: t[e_xy,:] = [[x+y, 0], [2, 1-y]]
             sage: t.add_comp_by_continuation(e_uv, U.intersection(V), c_uv)
-            sage: t.__eq__(t)
+            sage: t == t
             True
-            sage: t.__eq__(t.copy())
+            sage: t == t.copy()
             True
             sage: a = M.tensor_field(1, 1, name='a')
             sage: a.set_restriction(t.restrict(U))
-            sage: t.__eq__(a)  # False since a has not been defined on V
+            sage: t == a  # False since a has not been defined on V
             False
             sage: a.set_restriction(t.restrict(V))
-            sage: t.__eq__(a)  # True now
+            sage: t == a  # True now
             True
             sage: a[e_xy, 0, 0] = -1
-            sage: t.__eq__(a)  # False since a has been reset on U (domain of e_xy)
+            sage: t == a  # False since a has been reset on U (domain of e_xy)
             False
-            sage: t.parent().zero().__eq__(0)
+            sage: t.parent().zero() == 0
             True
 
         """
+        if other is self:
+            return True
         if isinstance(other, (int, Integer)): # other should be 0
             if other == 0:
                 return self.is_zero()

@@ -269,7 +269,7 @@ class VectorField(TensorField):
             True
 
         """
-        return self.__class__(self._vmodule)
+        return type(self)(self._vmodule)
 
     def _init_dependencies(self):
         r"""
@@ -626,7 +626,7 @@ class VectorFieldParal(FiniteRankFreeModuleElement, TensorFieldParal,
             True
 
         """
-        return self.__class__(self._fmodule)
+        return type(self)(self._fmodule)
 
     def _del_derived(self, del_restrictions=True):
         r"""

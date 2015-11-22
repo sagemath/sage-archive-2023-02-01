@@ -272,7 +272,7 @@ class AutomorphismField(TensorField):
             True
 
         """
-        return self.__class__(self._vmodule)
+        return type(self)(self._vmodule)
 
     def __call__(self, *arg):
         r"""
@@ -551,7 +551,7 @@ class AutomorphismField(TensorField):
         if other is self._inverse or self is other._inverse:
             return self.parent().one()
         # General case:
-        resu = self.__class__(self._vmodule)
+        resu = type(self)(self._vmodule)
         for dom in self._common_subdomains(other):
             resu._restrictions[dom] = self._restrictions[dom] * \
                                       other._restrictions[dom]

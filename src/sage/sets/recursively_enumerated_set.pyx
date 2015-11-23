@@ -288,6 +288,7 @@ Depth first search::
 #*****************************************************************************
 from sage.structure.parent cimport Parent
 from sage.categories.enumerated_sets import EnumeratedSets
+from sage.combinat.backtrack import SearchForest
 #from sage.misc.classcall_metaclass import ClasscallMetaclass, typecall
 from collections import deque
 
@@ -419,8 +420,7 @@ def RecursivelyEnumeratedSet(seeds, successors, structure=None,
                 enumeration, max_depth, facade=facade, category=category)
     if structure == 'forest':
         if enumeration is None: enumeration = 'depth'
-        from sage.combinat.backtrack import SearchForest
-        return SearchForest(roots=seeds, children=successors,
+        return RecursivelyEnumeratedSet_forest(roots=seeds, children=successors,
                 algorithm=enumeration, post_process=post_process,
                 facade=facade, category=category)
     if structure == 'graded':
@@ -1210,3 +1210,4 @@ cdef class RecursivelyEnumeratedSet_graded(RecursivelyEnumeratedSet_generic):
                 C.add(y)
         return C
 
+RecursivelyEnumeratedSet_forest = SearchForest

@@ -1149,7 +1149,7 @@ def desolve_rk4(de, dvar, ics=None, ivar=None, end_points=None, step=0.1, output
     Variant 2 for input - more common in numerics::
 
         sage: _ = var('x,y')
-        sage: f = function('f',x)
+        sage: f = function('f')(x)
         sage: desolve_rk4(x*y*(2-y),y,ics=[0,1],end_points=1,step=0.5)
         [[0, 1], [0.5, 1.12419127424558], [1.0, 1.461590162288825]]
 

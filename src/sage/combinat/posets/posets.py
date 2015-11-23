@@ -5488,8 +5488,9 @@ class FinitePoset(UniqueRepresentation, Parent):
 
     def frank_network(self):
         r"""
-        Computes Frank's network of the poset ``self``. This is defined in
-        Section 8 of [BF1999]_.
+        Computes Frank's network of the poset ``self``.
+
+        This is defined in Section 8 of [BF1999]_.
 
         OUTPUT:
 
@@ -5511,7 +5512,7 @@ class FinitePoset(UniqueRepresentation, Parent):
 
             - for each `p` in `P`, an edge from `(1, p)` to `(2, 0)`;
 
-            - for each `p` and `q` in `P` such that `x \geq y`, an edge from
+            - for each `p` and `q` in `P` such that `p \geq q`, an edge from
               `(0, p)` to `(1, q)`.
 
             We make this digraph into a network in the sense of flow theory as

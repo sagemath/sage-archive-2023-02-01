@@ -1711,7 +1711,7 @@ class SymmetricFunctionAlgebra_generic(CombinatorialFreeModule):
     #  - add option orthonormal
     def _apply_multi_module_morphism(self, x, y, f, orthogonal=False):
         r"""
-        Applies morphism specified by ``f`` on (``x``,``y``).
+        Applies morphism specified by ``f`` on (``x``, ``y``).
 
         INPUT:
 

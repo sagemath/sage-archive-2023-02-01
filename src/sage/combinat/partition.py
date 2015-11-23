@@ -311,7 +311,7 @@ import composition
 from sage.combinat.partitions import number_of_partitions as bober_number_of_partitions
 from sage.combinat.partitions import ZS1_iterator, ZS1_iterator_nk
 from sage.combinat.integer_vector import IntegerVectors
-from sage.combinat.integer_list import IntegerListsLex
+from sage.combinat.integer_lists import IntegerListsLex
 from sage.combinat.root_system.weyl_group import WeylGroup
 from sage.combinat.combinatorial_map import combinatorial_map
 from sage.groups.perm_gps.permgroup import PermutationGroup
@@ -1383,7 +1383,7 @@ class Partition(CombinatorialElement):
             [[2, 2], [3, 1]]
             sage: Partition([3,2,1]).down_list()
             [[2, 2, 1], [3, 1, 1], [3, 2]]
-            sage: Partition([]).down_list()  #checks :trac:`11435`
+            sage: Partition([]).down_list()  # checks trac #11435
             []
         """
         return [p for p in self.down()]
@@ -4635,14 +4635,12 @@ class Partition(CombinatorialElement):
 
         if directed:
             from sage.graphs.digraph import DiGraph
-            G = DiGraph(edges, multiedges=True)
-            G.add_vertices(T) # Add isolated vertices
-            self._DDEG = G.copy(immutable=True)
+            self._DDEG = DiGraph([T, edges], format="vertices_and_edges",
+                                 immutable=True, multiedges=True)
         else:
             from sage.graphs.graph import Graph
-            G = Graph(edges, multiedges=True)
-            G.add_vertices(T) # Add isolated vertices
-            self._DEG = G.copy(immutable=True)
+            self._DEG = Graph([T, edges], format="vertices_and_edges",
+                              immutable=True, multiedges=True)
         return self.dual_equivalence_graph(directed, coloring)
 
 ##############
@@ -7548,7 +7546,7 @@ def number_of_partitions(n, algorithm='default'):
         [[5], [4, 1], [3, 2], [3, 1, 1], [2, 2, 1], [2, 1, 1, 1], [1, 1, 1, 1, 1]]
         sage: len(v)
         7
-       sage: number_of_partitions(5, algorithm='bober')
+        sage: number_of_partitions(5, algorithm='bober')
         7
 
     The input must be a nonnegative integer or a ``ValueError`` is raised.
@@ -7708,7 +7706,7 @@ _Partitions = Partitions()
 
 # Rather than caching an under-used function I have cached the default
 # number_of_partitions functions which is currently using FLINT.
-# AM :trac:`13072`
+# AM trac #13072
 cached_number_of_partitions = cached_function( flint_number_of_partitions )
 
 # October 2012: fixing outdated pickles which use classes being deprecated

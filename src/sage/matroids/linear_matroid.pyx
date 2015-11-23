@@ -2422,7 +2422,7 @@ cdef class LinearMatroid(BasisExchangeMatroid):
             ....:         reduced_matrix=[[-1, -1, 0], [1, 0, -1], [0, 1, 1]])
             sage: N.linear_coextension_cochains(F=[0, 1], cosimple=True,
             ....:                           fundamentals=set([1, -1, 1/2, 2]))
-            [{0: 2, 1: 1}, {0: 1/2, 1: 1}, {0: -1, 1: 1}]
+            [{0: 2, 1: 1}, {0: -1, 1: 1}, {0: 1/2, 1: 1}]
         """
         return self.dual().linear_extension_chains(F=F, simple=cosimple, fundamentals=fundamentals)
 

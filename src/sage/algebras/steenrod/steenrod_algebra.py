@@ -404,12 +404,13 @@ corresponding value representing the coefficient of that term::
     1 (2, 1)
     sage: c.monomial_coefficients()
     {(2, 1): 1, (5,): 1}
-    sage: c.monomials()
+    sage: sorted(c.monomials(), key=lambda x: x.support())
     [Sq(2,1), Sq(5)]
-    sage: c.support()
+    sage: sorted(c.support())
     [(2, 1), (5,)]
     sage: Adem = SteenrodAlgebra(basis='adem')
-    sage: (Adem.Sq(10) + Adem.Sq(9) * Adem.Sq(1)).monomials()
+    sage: elt = Adem.Sq(10) + Adem.Sq(9) * Adem.Sq(1)
+    sage: sorted(elt.monomials(), key=lambda x: x.support())
     [Sq^9 Sq^1, Sq^10]
 
     sage: A7 = SteenrodAlgebra(p=7)
@@ -1567,13 +1568,13 @@ class SteenrodAlgebra_generic(CombinatorialFreeModule):
             return self.base_ring().one()
 
     def _milnor_on_basis(self, t):
-        """
-        Convert the tuple t in the current basis to an element in the
+        r"""
+        Convert the tuple ``t`` in the current basis to an element in the
         Milnor basis.
 
         INPUT:
 
-        - t - tuple, representing basis element in the current basis.
+        - ``t`` - tuple, representing basis element in the current basis.
 
         OUTPUT: element of the Steenrod algebra with the Milnor basis
 
@@ -3115,9 +3116,9 @@ class SteenrodAlgebra_generic(CombinatorialFreeModule):
             1 (2, 1)
             sage: c.monomial_coefficients()
             {(2, 1): 1, (5,): 1}
-            sage: c.monomials()
+            sage: sorted(c.monomials(), key=lambda x: x.support())
             [Sq(2,1), Sq(5)]
-            sage: c.support()
+            sage: sorted(c.support())
             [(2, 1), (5,)]
 
         See the documentation for this module (type
@@ -3451,8 +3452,8 @@ class SteenrodAlgebra_generic(CombinatorialFreeModule):
             OUTPUT: ``excess`` - non-negative integer
 
             The excess of a Milnor basis element `\text{Sq}(a,b,c,...)` is
-            `a + b + c + ...`. When `p` is odd, the excess of `Q_{0}^{e_0}
-            Q_{1}^{e_1} ... P(r_1, r_2, ...)` is `\sum e_i + 2 \sum r_i`.
+            `a + b + c + \cdots`. When `p` is odd, the excess of `Q_{0}^{e_0}
+            Q_{1}^{e_1} \cdots P(r_1, r_2, ...)` is `\sum e_i + 2 \sum r_i`.
             The excess of a linear combination of Milnor basis elements is
             the minimum of the excesses of those basis elements.
 
@@ -3470,9 +3471,11 @@ class SteenrodAlgebra_generic(CombinatorialFreeModule):
                 6
                 sage: (Sq(0,0,1) + Sq(4,1) + Sq(7)).excess()
                 1
-                sage: [m.excess() for m in (Sq(0,0,1) + Sq(4,1) + Sq(7)).monomials()]
+                sage: elt = Sq(0,0,1) + Sq(4,1) + Sq(7)
+                sage: M = sorted(elt.monomials(), key=lambda x: x.support())
+                sage: [m.excess() for m in M]
                 [1, 5, 7]
-                sage: [m for m in (Sq(0,0,1) + Sq(4,1) + Sq(7)).monomials()]
+                sage: [m for m in M]
                 [Sq(0,0,1), Sq(4,1), Sq(7)]
                 sage: B = SteenrodAlgebra(7)
                 sage: a = B.Q(1,2,5)
@@ -3495,7 +3498,7 @@ class SteenrodAlgebra_generic(CombinatorialFreeModule):
                 of factors, plus twice the sum of the terms in the second
                 component.
                 """
-                if len(mono) == 0:
+                if not mono:
                     return 0
                 else:
                     return len(mono[0]) + 2 * sum(mono[1])

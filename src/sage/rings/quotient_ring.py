@@ -29,15 +29,16 @@ form of an element `x` with respect to `I` (i.e., we have
 ``x - I.reduce(x) in I``). Here is a toy example::
 
     sage: from sage.rings.noncommutative_ideals import Ideal_nc
+    sage: from itertools import product
     sage: class PowerIdeal(Ideal_nc):
-    ...    def __init__(self, R, n):
-    ...        self._power = n
-    ...        self._power = n
-    ...        Ideal_nc.__init__(self,R,[R.prod(m) for m in CartesianProduct(*[R.gens()]*n)])
-    ...    def reduce(self,x):
-    ...        R = self.ring()
-    ...        return add([c*R(m) for m,c in x if len(m)<self._power],R(0))
-    ...
+    ....:     def __init__(self, R, n):
+    ....:         self._power = n
+    ....:         self._power = n
+    ....:         Ideal_nc.__init__(self, R, [R.prod(m) for m in product(R.gens(), repeat=n)])
+    ....:     def reduce(self,x):
+    ....:         R = self.ring()
+    ....:         return add([c*R(m) for m,c in x if len(m)<self._power],R(0))
+    ....:
     sage: F.<x,y,z> = FreeAlgebra(QQ, 3)
     sage: I3 = PowerIdeal(F,3); I3
     Twosided Ideal (x^3, x^2*y, x^2*z, x*y*x, x*y^2, x*y*z, x*z*x, x*z*y,
@@ -83,15 +84,16 @@ based on Singular's implementation of the Letterplace Algebra. Our
 letterplace wrapper allows to provide the above toy example more
 easily::
 
+    sage: from itertools import product
     sage: F.<x,y,z> = FreeAlgebra(QQ, implementation='letterplace')
-    sage: Q3 = F.quo(F*[F.prod(m) for m in CartesianProduct(*[F.gens()]*3)]*F)
+    sage: Q3 = F.quo(F*[F.prod(m) for m in product(F.gens(), repeat=3)]*F)
     sage: Q3
     Quotient of Free Associative Unital Algebra on 3 generators (x, y, z) over Rational Field by the ideal (x*x*x, x*x*y, x*x*z, x*y*x, x*y*y, x*y*z, x*z*x, x*z*y, x*z*z, y*x*x, y*x*y, y*x*z, y*y*x, y*y*y, y*y*z, y*z*x, y*z*y, y*z*z, z*x*x, z*x*y, z*x*z, z*y*x, z*y*y, z*y*z, z*z*x, z*z*y, z*z*z)
     sage: Q3.0*Q3.1-Q3.1*Q3.0
     xbar*ybar - ybar*xbar
     sage: Q3.0*(Q3.1*Q3.2)-(Q3.1*Q3.2)*Q3.0
     0
-    sage: Q2 = F.quo(F*[F.prod(m) for m in CartesianProduct(*[F.gens()]*2)]*F)
+    sage: Q2 = F.quo(F*[F.prod(m) for m in product(F.gens(), repeat=2)]*F)
     sage: Q2.is_commutative()
     True
 

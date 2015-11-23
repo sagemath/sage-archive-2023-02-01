@@ -794,7 +794,7 @@ class RootLatticeRealizations(Category_over_base_ring):
             if not self.cartan_type().is_affine():
                 raise NotImplementedError("only implemented for finite and affine Cartan types")
 
-            from sage.combinat.cartesian_product import CartesianProduct
+            from sage.categories.cartesian_product import cartesian_product
             from sage.combinat.root_system.root_system import RootSystem
             from sage.sets.positive_integers import PositiveIntegers
             from sage.sets.disjoint_union_enumerated_sets import DisjointUnionEnumeratedSets
@@ -813,19 +813,19 @@ class RootLatticeRealizations(Category_over_base_ring):
             # Add all of the delta shifts
             delta = self.null_root()
             if self.cartan_type().is_untwisted_affine():
-                C = CartesianProduct(PositiveIntegers(), Q.roots())
+                C = cartesian_product([PositiveIntegers(), Q.roots()])
                 F = Family(C, lambda x: lift(x[1]) + x[0]*delta)
                 D = DisjointUnionEnumeratedSets([P, F])
             elif self.cartan_type().type() == 'BC' or self.cartan_type().dual().type() == 'BC':
-                Cs = CartesianProduct(PositiveIntegers(), Q.short_roots())
-                Cl = CartesianProduct(PositiveIntegers(), Q.long_roots())
+                Cs = cartesian_product([PositiveIntegers(), Q.short_roots()])
+                Cl = cartesian_product([PositiveIntegers(), Q.long_roots()])
                 Fs = Family(Cl, lambda x: (lift(x[1]) + (2*x[0]-1)*delta) / 2)
                 Fm = Family(Cs, lambda x: lift(x[1]) + x[0]*delta)
                 Fl = Family(Cl, lambda x: lift(x[1]) + 2*x[0]*delta)
                 D = DisjointUnionEnumeratedSets([P, Fs, Fm, Fl])
             else: # Other twisted types
-                Cs = CartesianProduct(PositiveIntegers(), Q.short_roots())
-                Cl = CartesianProduct(PositiveIntegers(), Q.long_roots())
+                Cs = cartesian_product([PositiveIntegers(), Q.short_roots()])
+                Cl = cartesian_product([PositiveIntegers(), Q.long_roots()])
                 Fs = Family(Cs, lambda x: lift(x[1]) + x[0]*delta)
                 if self.cartan_type().dual() == 'G': # D_4^3
                     k = 3
@@ -1709,7 +1709,8 @@ class RootLatticeRealizations(Category_over_base_ring):
 
             REFERENCES:
 
-                .. [CFZ] Chapoton, Fomin, Zelevinsky - Polytopal realizations of generalized associahedra
+            .. [CFZ] Chapoton, Fomin, Zelevinsky - Polytopal realizations of
+               generalized associahedra, :arxiv:`math/0202004`.
             """
             W = self.weyl_group()
             t = W.from_reduced_word(J)
@@ -1745,7 +1746,7 @@ class RootLatticeRealizations(Category_over_base_ring):
 
             EXAMPLES:
 
-            We explore the example of [CFZ1]_ Eq.(1.3)::
+            We explore the example of [CFZ]_ Eq.(1.3)::
 
                 sage: S = RootSystem(['A',2]).root_lattice()
                 sage: taup, taum = S.tau_plus_minus()
@@ -1755,10 +1756,6 @@ class RootLatticeRealizations(Category_over_base_ring):
                 alpha[1] + alpha[2] , alpha[2] , alpha[1]
                 -alpha[2] , -alpha[2] , alpha[2]
                 alpha[2] , alpha[1] + alpha[2] , -alpha[2]
-
-            REFERENCES:
-
-                .. [CFZ1] Chapoton, Fomin, Zelevinsky - Polytopal realizations of generalized associahedra
             """
             ct = self.cartan_type()
             L,R = ct.index_set_bipartition()
@@ -1790,11 +1787,6 @@ class RootLatticeRealizations(Category_over_base_ring):
                  [-alpha[2], alpha[2], alpha[1] + alpha[2] + alpha[3] + alpha[4], alpha[1] + 2*alpha[2] + alpha[3] + alpha[4]],
                  [-alpha[3], alpha[3], alpha[2] + alpha[3], alpha[1] + alpha[2] + alpha[4]],
                  [-alpha[4], alpha[4], alpha[2] + alpha[4], alpha[1] + alpha[2] + alpha[3]]]
-
-            REFERENCES:
-
-            .. [CFZ2] Chapoton, Fomin, Zelevinsky - Polytopal realizations of
-               generalized associahedra
             """
             # TODO: this should use a generic function for computing
             # orbits under the action of a group:
@@ -3182,7 +3174,7 @@ class RootLatticeRealizations(Category_over_base_ring):
                     return self.cartan_type().root_system().weight_space(self.base_ring())
                 else:
                     return self.cartan_type().dual().root_system().coweight_space(self.base_ring())
-            raise TypeError, "Not implemented for %s"%self
+            raise TypeError("Not implemented for %s" % self)
 
         @abstract_method(optional=True)
         def to_ambient_space_morphism(self):

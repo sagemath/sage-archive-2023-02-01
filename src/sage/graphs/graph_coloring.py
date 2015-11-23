@@ -125,14 +125,14 @@ def all_graph_colorings(G,n,count_only=False, hex_colors=False, vertex_color_dic
         sage: G = Graph({0:[1,2,3],1:[2]})
         sage: n = 0
         sage: for C in all_graph_colorings(G,3,hex_colors=True):
-        ...       parts = [C[k] for k in C]
-        ...       for P in parts:
-        ...           l = len(P)
-        ...           for i in range(l):
-        ...               for j in range(i+1,l):
-        ...                   if G.has_edge(P[i],P[j]):
-        ...                       raise RuntimeError, "Coloring Failed."
-        ...       n+=1
+        ....:     parts = [C[k] for k in C]
+        ....:     for P in parts:
+        ....:         l = len(P)
+        ....:         for i in range(l):
+        ....:             for j in range(i+1,l):
+        ....:                 if G.has_edge(P[i],P[j]):
+        ....:                     raise RuntimeError("Coloring Failed.")
+        ....:     n+=1
         sage: print "G has %s 3-colorings."%n
         G has 12 3-colorings.
 
@@ -374,7 +374,7 @@ def vertex_coloring(g, k=None, value_only=False, hex_colors=False, solver = None
       <sage.numerical.mip.MixedIntegerLinearProgram>`.
 
     - ``verbose`` -- integer (default: ``0``). Sets the level of
-       verbosity. Set to 0 by default, which means quiet.
+      verbosity. Set to 0 by default, which means quiet.
 
 
     OUTPUT:
@@ -950,7 +950,7 @@ def edge_coloring(g, value_only=False, vizing=False, hex_colors=False, solver = 
       <sage.numerical.mip.MixedIntegerLinearProgram>`.
 
     - ``verbose`` -- integer (default: ``0``). Sets the level of
-       verbosity. Set to 0 by default, which means quiet.
+      verbosity. Set to 0 by default, which means quiet.
 
     OUTPUT:
 
@@ -1149,34 +1149,34 @@ def linear_arboricity(g, plus_one=None, hex_colors=False, value_only=False, solv
 
     - ``hex_colors`` (boolean)
 
-        - If ``hex_colors = True``, the function returns a
-          dictionary associating to each color a list
-          of edges (meant as an argument to the ``edge_colors``
-          keyword of the ``plot`` method).
+      - If ``hex_colors = True``, the function returns a
+        dictionary associating to each color a list
+        of edges (meant as an argument to the ``edge_colors``
+        keyword of the ``plot`` method).
 
-        - If ``hex_colors = False`` (default value), returns
-          a list of graphs corresponding to each color class.
+      - If ``hex_colors = False`` (default value), returns
+        a list of graphs corresponding to each color class.
 
     - ``value_only`` (boolean)
 
-        - If ``value_only = True``, only returns the linear
-          arboricity as an integer value.
+      - If ``value_only = True``, only returns the linear
+        arboricity as an integer value.
 
-        - If ``value_only = False``, returns the color classes
-          according to the value of ``hex_colors``
+      - If ``value_only = False``, returns the color classes
+        according to the value of ``hex_colors``
 
     - ``plus_one`` (integer) -- whether to use `\lceil \frac {\Delta(G)} 2
       \rceil` or `\lceil \frac {\Delta(G)+1} 2 \rceil` colors.
 
-        - If ``0``, computes a decomposition of `G` into `\lceil \frac
-          {\Delta(G)} 2 \rceil` forests of paths
+      - If ``0``, computes a decomposition of `G` into `\lceil \frac
+        {\Delta(G)} 2 \rceil` forests of paths
 
-        - If ``1``, computes a decomposition of `G` into `\lceil \frac
-          {\Delta(G)+1} 2 \rceil` colors, which is the conjectured general
-          bound.
+      - If ``1``, computes a decomposition of `G` into `\lceil \frac
+        {\Delta(G)+1} 2 \rceil` colors, which is the conjectured general
+        bound.
 
-        - If ``plus_one = None`` (default), computes a decomposition using the
-          least possible number of colors.
+      - If ``plus_one = None`` (default), computes a decomposition using the
+        least possible number of colors.
 
     - ``solver`` -- (default: ``None``) Specify a Linear Program (LP) solver to
       be used. If set to ``None``, the default one is used. For more information
@@ -1186,7 +1186,7 @@ def linear_arboricity(g, plus_one=None, hex_colors=False, value_only=False, solv
       <sage.numerical.mip.MixedIntegerLinearProgram>`.
 
     - ``verbose`` -- integer (default: ``0``). Sets the level of verbosity. Set
-       to 0 by default, which means quiet.
+      to 0 by default, which means quiet.
 
     ALGORITHM:
 
@@ -1384,7 +1384,7 @@ def acyclic_edge_coloring(g, hex_colors=False, value_only=False, k=0, solver = N
       <sage.numerical.mip.MixedIntegerLinearProgram>`.
 
     - ``verbose`` -- integer (default: ``0``). Sets the level of
-       verbosity. Set to 0 by default, which means quiet.
+      verbosity. Set to 0 by default, which means quiet.
 
     ALGORITHM:
 

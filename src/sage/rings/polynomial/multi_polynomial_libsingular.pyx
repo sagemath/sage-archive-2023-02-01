@@ -219,7 +219,7 @@ from sage.rings.finite_rings.integer_mod_ring import is_IntegerModRing
 from sage.rings.number_field.number_field_base cimport NumberField
 
 from sage.rings.arith import gcd
-from sage.structure.element import coerce_binop, get_coercion_model
+from sage.structure.element import coerce_binop
 
 from sage.structure.parent cimport Parent
 from sage.structure.parent_base cimport ParentWithBase
@@ -231,6 +231,7 @@ from sage.structure.element cimport RingElement
 from sage.structure.element cimport ModuleElement
 from sage.structure.element cimport Element
 from sage.structure.element cimport CommutativeRingElement
+from sage.structure.element cimport coercion_model
 
 from sage.structure.factorization import Factorization
 from sage.structure.sequence import Sequence
@@ -491,7 +492,7 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_generic):
         Construct a new element in this polynomial ring by converting
         ``element`` into ``self`` if possible.
 
-        INPUT::
+        INPUT:
 
         - ``element`` -- several types are supported, see below
 
@@ -2114,7 +2115,7 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
 
         cdef poly *res    # ownership will be transferred to us in the next line
         singular_polynomial_call(&res, self._poly, _ring, coerced_x, MPolynomial_libsingular_get_element)
-        res_parent = get_coercion_model().common_parent(parent._base, *x)
+        res_parent = coercion_model.common_parent(parent._base, *x)
 
         if res == NULL:
             return res_parent(0)
@@ -2127,10 +2128,6 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
         if parent(sage_res) is not res_parent:
             sage_res = res_parent(sage_res)
         return sage_res
-
-    # you may have to replicate this boilerplate code in derived classes if you override
-    # __richcmp__.  The python documentation at  http://docs.python.org/api/type-structs.html
-    # explains how __richcmp__, __hash__, and __cmp__ are tied together.
 
     def __hash__(self):
         """
@@ -2155,7 +2152,7 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
         """
         return self._hash_c()
 
-    def __richcmp__(left, right, int op):
+    cpdef int _cmp_(left, Element right) except -2:
         """
         Compare left and right and return -1, 0, and 1 for <,==, and >
         respectively.
@@ -2207,9 +2204,6 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
             sage: (66*x^2 + 23) > (66*x^2 + 2)
             True
         """
-        return (<Element>left)._richcmp(right, op)
-
-    cpdef int _cmp_(left, Element right) except -2:
         if left is right:
             return 0
         cdef poly *p = (<MPolynomial_libsingular>left)._poly

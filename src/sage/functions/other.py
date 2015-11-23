@@ -441,6 +441,8 @@ class Function_ceil(BuiltinFunction):
             100000000000000000000000000000000000000000000000000
             sage: ceil(int(10^50))
             100000000000000000000000000000000000000000000000000
+            sage: ceil((1725033*pi - 5419351)/(25510582*pi - 80143857))
+            -2
         """
         try:
             return x.ceil()
@@ -453,39 +455,29 @@ class Function_ceil(BuiltinFunction):
                 import numpy
                 return numpy.ceil(x)
 
-        x_original = x
-
         from sage.rings.all import RealIntervalField
-        # If x can be coerced into a real interval, then we should
-        # try increasing the number of bits of precision until
-        # we get the ceiling at each of the endpoints is the same.
-        # The precision will continue to be increased up to maximum_bits
-        # of precision at which point it will raise a value error.
+
         bits = 53
-        try:
-            x_interval = RealIntervalField(bits)(x)
-            upper_ceil = x_interval.upper().ceil()
-            lower_ceil = x_interval.lower().ceil()
-
-            while upper_ceil != lower_ceil and bits < maximum_bits:
-                bits += 100
+        while bits < maximum_bits:
+            try:
                 x_interval = RealIntervalField(bits)(x)
-                upper_ceil = x_interval.upper().ceil()
-                lower_ceil = x_interval.lower().ceil()
+            except TypeError:
+                # If we cannot compute a numerical enclosure, leave the
+                # expression unevaluated.
+                return BuiltinFunction.__call__(self, SR(x))
+            try:
+                return x_interval.unique_ceil()
+            except ValueError:
+                bits *= 2
 
-            if bits < maximum_bits:
-                return lower_ceil
-            else:
-                try:
-                    return ceil(SR(x).full_simplify().canonicalize_radical())
-                except ValueError:
-                    pass
-                raise ValueError("x (= %s) requires more than %s bits of precision to compute its ceiling"%(x, maximum_bits))
+        try:
+            return ceil(SR(x).full_simplify().canonicalize_radical())
+        except ValueError:
+            pass
 
-        except TypeError:
-            # If x cannot be coerced into a RealField, then
-            # it should be left as a symbolic expression.
-            return BuiltinFunction.__call__(self, SR(x_original))
+        raise ValueError("computing ceil(%s) requires more than %s bits of precision (increase maximum_bits to proceed)"%(x, maximum_bits))
+
+
 
     def _eval_(self, x):
         """
@@ -612,6 +604,8 @@ class Function_floor(BuiltinFunction):
             99999999999999999999999999999999999999999999999999
             sage: floor(int(10^50))
             100000000000000000000000000000000000000000000000000
+            sage: floor((1725033*pi - 5419351)/(25510582*pi - 80143857))
+            -3
         """
         try:
             return x.floor()
@@ -624,40 +618,27 @@ class Function_floor(BuiltinFunction):
                 import numpy
                 return numpy.floor(x)
 
-        x_original = x
-
         from sage.rings.all import RealIntervalField
 
-        # If x can be coerced into a real interval, then we should
-        # try increasing the number of bits of precision until
-        # we get the floor at each of the endpoints is the same.
-        # The precision will continue to be increased up to maximum_bits
-        # of precision at which point it will raise a value error.
         bits = 53
-        try:
-            x_interval = RealIntervalField(bits)(x)
-            upper_floor = x_interval.upper().floor()
-            lower_floor = x_interval.lower().floor()
-
-            while upper_floor != lower_floor and bits < maximum_bits:
-                bits += 100
+        while bits < maximum_bits:
+            try:
                 x_interval = RealIntervalField(bits)(x)
-                upper_floor = x_interval.upper().floor()
-                lower_floor = x_interval.lower().floor()
+            except TypeError:
+                # If we cannot compute a numerical enclosure, leave the
+                # expression unevaluated.
+                return BuiltinFunction.__call__(self, SR(x))
+            try:
+                return x_interval.unique_floor()
+            except ValueError:
+                bits *= 2
 
-            if bits < maximum_bits:
-                return lower_floor
-            else:
-                try:
-                    return floor(SR(x).full_simplify().canonicalize_radical())
-                except ValueError:
-                    pass
-                raise ValueError("x (= %s) requires more than %s bits of precision to compute its floor"%(x, maximum_bits))
+        try:
+            return floor(SR(x).full_simplify().canonicalize_radical())
+        except ValueError:
+            pass
 
-        except TypeError:
-            # If x cannot be coerced into a RealField, then
-            # it should be left as a symbolic expression.
-            return BuiltinFunction.__call__(self, SR(x_original))
+        raise ValueError("computing floor(%s) requires more than %s bits of precision (increase maximum_bits to proceed)"%(x, maximum_bits))
 
     def _eval_(self, x):
         """
@@ -1707,10 +1688,10 @@ class Function_beta(GinacFunction):
             sage: beta(3,x+I)
             beta(3, x + I)
 
-        Note that the order of arguments does not matter::
+        Ginac might reorder the arguments::
 
-            sage: beta(1/2,3*x)
-            beta(1/2, 3*x)
+            sage: beta(1/3, 1/2)
+            beta(1/2, 1/3)
 
         The result is symbolic if exact input is given::
 
@@ -2087,7 +2068,7 @@ class Function_real_part(GinacFunction):
             sage: latex(x.real())
             \Re \left( x \right)
 
-            sage: f(x) = function('f',x)
+            sage: f(x) = function('f')(x)
             sage: latex( f(x).real())
             \Re \left( f\left(x\right) \right)
         """
@@ -2157,7 +2138,7 @@ class Function_imag_part(GinacFunction):
             sage: latex(x.imag())
             \Im \left( x \right)
 
-            sage: f(x) = function('f',x)
+            sage: f(x) = function('f')(x)
             sage: latex( f(x).imag())
             \Im \left( f\left(x\right) \right)
         """
@@ -2222,7 +2203,7 @@ class Function_conjugate(GinacFunction):
             sage: f = function('f')
             sage: latex(f(x).conjugate())
             \overline{f\left(x\right)}
-            sage: f = function('psi',x,y)
+            sage: f = function('psi')(x,y)
             sage: latex(f.conjugate())
             \overline{\psi\left(x, y\right)}
             sage: x.conjugate().conjugate()

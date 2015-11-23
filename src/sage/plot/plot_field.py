@@ -258,7 +258,7 @@ def plot_slope_field(f, xrange, yrange, **kwds):
     TESTS:
 
     Verify that we're not getting warnings due to use of headless quivers
-    (trac #11208)::
+    (:trac:`11208`)::
 
         sage: x,y = var('x y')
         sage: import numpy # bump warnings up to errors for testing purposes

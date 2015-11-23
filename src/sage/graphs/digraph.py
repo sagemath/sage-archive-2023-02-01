@@ -119,94 +119,86 @@ from sage.graphs.dot2tex_utils import have_dot2tex
 
 
 class DiGraph(GenericGraph):
-    """Directed graph.
+    r"""
+    Directed graph.
 
     A digraph or directed graph is a set of vertices connected by oriented
-    edges. For more information, see the
-    `Wikipedia article on digraphs
-    <http://en.wikipedia.org/wiki/Digraph_%28mathematics%29>`_.
+    edges. See also the :wikipedia:`Directed_graph`. For a collection of
+    pre-defined digraphs, see the :mod:`~sage.graphs.digraph_generators` module.
 
-    One can very easily create a directed graph in Sage by typing::
-
-        sage: g = DiGraph()
-
-    By typing the name of the digraph, one can get some basic information
-    about it::
-
-        sage: g
-        Digraph on 0 vertices
-
-    This digraph is not very interesting as it is by default the empty
-    graph. But Sage contains several pre-defined digraph classes that can
-    be listed this way:
-
-    * Within a Sage sessions, type ``digraphs.``
-      (Do not press "Enter", and do not forget the final period "." )
-    * Hit "tab".
-
-    You will see a list of methods which will construct named digraphs. For
-    example::
-
-        sage: g = digraphs.ButterflyGraph(3)
-        sage: g.plot()
-        Graphics object consisting of 81 graphics primitives
-
-    You can also use the collection of pre-defined graphs, then create a
-    digraph from them. ::
-
-        sage: g = DiGraph(graphs.PetersenGraph())
-        sage: g.plot()
-        Graphics object consisting of 50 graphics primitives
-
-    Calling ``Digraph`` on a graph returns the original graph in which every
-    edge is replaced by two different edges going toward opposite directions.
-
-    In order to obtain more information about these digraph constructors,
-    access the documentation by typing ``digraphs.RandomDirectedGNP?``.
-
-    Once you have defined the digraph you want, you can begin to work on it
-    by using the almost 200 functions on graphs and digraphs in the Sage
-    library! If your digraph is named ``g``, you can list these functions as
-    previously this way
-
-    * Within a Sage session, type ``g.``
-      (Do not press "Enter", and do not forget the final period "." )
-    * Hit "tab".
-
-    As usual, you can get some information about what these functions do by
-    typing (e.g. if you want to know about the ``diameter()`` method)
-    ``g.diameter?``.
-
-    If you have defined a digraph ``g`` having several connected components
-    ( i.e. ``g.is_connected()`` returns False ), you can print each one of its
-    connected components with only two lines::
-
-        sage: for component in g.connected_components():
-        ....:      g.subgraph(component).plot()
-        Graphics object consisting of 50 graphics primitives
-
-    The same methods works for strongly connected components ::
-
-        sage: for component in g.strongly_connected_components():
-        ....:      g.subgraph(component).plot()
-        Graphics object consisting of 50 graphics primitives
-
+    A :class:`DiGraph` object has many methods whose list can be obtained by
+    typing ``g.<tab>`` (i.e. hit the 'tab' key) or by reading the documentation
+    of :mod:`~sage.graphs.digraph`, :mod:`~sage.graphs.generic_graph`, and
+    :mod:`~sage.graphs.graph`.
 
     INPUT:
 
-    -  ``data`` -  can be any of the following (see the ``format`` keyword):
+    By default, a :class:`DiGraph` object is simple (i.e. no *loops* nor
+    *multiple edges*) and unweighted. This can be easily tuned with the
+    appropriate flags (see below).
 
-       #.  A dictionary of dictionaries
+    -  ``data`` -- can be any of the following (see the ``format`` argument):
 
-       #.  A dictionary of lists
+      #. ``DiGraph()`` -- build a digraph on 0 vertices.
 
-       #.  A Sage adjacency matrix or incidence matrix
+      #. ``DiGraph(5)`` -- return an edgeless digraph on the 5 vertices 0,...,4.
 
-       #.  A pygraphviz graph
+      #. ``DiGraph([list_of_vertices,list_of_edges])`` -- returns a digraph with
+         given vertices/edges.
 
-       #.  A NetworkX digraph
+         To bypass auto-detection, prefer the more explicit
+         ``DiGraph([V,E],format='vertices_and_edges')``.
 
-       #.  An igraph Graph (see http://igraph.org/python/)
+      #. ``DiGraph(list_of_edges)`` -- return a digraph with a given list of
+         edges (see documentation of
+         :meth:`~sage.graphs.generic_graph.GenericGraph.add_edges`).
+
+         To bypass auto-detection, prefer the more explicit ``DiGraph(L,
+         format='list_of_edges')``.
+
+      #. ``DiGraph({1:[2,3,4],3:[4]})`` -- return a digraph by associating to
+         each vertex the list of its out-neighbors.
+
+         To bypass auto-detection, prefer the more explicit ``DiGraph(D,
+         format='dict_of_lists')``.
+
+      #. ``DiGraph({1: {2: 'a', 3:'b'} ,3:{2:'c'}})`` -- return a digraph by
+         associating a list of out-neighbors to each vertex and providing its
+         edge label.
+
+         To bypass auto-detection, prefer the more explicit ``DiGraph(D,
+         format='dict_of_dicts')``.
+
+         For digraphs with multiple edges, you can provide a list of labels
+         instead, e.g.: ``DiGraph({1: {2: ['a1', 'a2'], 3:['b']}
+         ,3:{2:['c']}})``.
+
+      #. ``DiGraph(a_matrix)`` -- return a digraph with given (weighted) adjacency
+         matrix (see documentation of
+         :meth:`~sage.graphs.generic_graph.GenericGraph.adjacency_matrix`).
+
+         To bypass auto-detection, prefer the more explicit ``DiGraph(M,
+         format='adjacency_matrix')``. To take weights into account, use
+         ``format='weighted_adjacency_matrix'`` instead.
+
+      #. ``DiGraph(a_nonsquare_matrix)`` -- return a digraph with given
+         incidence matrix (see documentation of
+         :meth:`~sage.graphs.generic_graph.GenericGraph.incidence_matrix`).
+
+         To bypass auto-detection, prefer the more explicit ``DiGraph(M,
+         format='incidence_matrix')``.
+
+      #. ``DiGraph([V, f])`` -- return a digraph with a vertex set ``V`` and an
+         edge `u,v` whenever ``f(u,v)`` is ``True``. Example: ``DiGraph([
+         [1..10], lambda x,y: abs(x-y).is_square()])``
+
+      #. ``DiGraph('FOC@?OC@_?')`` -- return a digraph from a dig6 string (see
+         documentation of :meth:`dig6_string`).
+
+      #. ``DiGraph(another_digraph)`` -- return a digraph from a Sage (di)graph,
+         `pygraphviz <https://pygraphviz.github.io/>`__ digraph, `NetworkX
+         <https://networkx.github.io/>`__ digraph, or `igraph
+         <http://igraph.org/python/>`__ digraph.
 
     -  ``pos`` - a positioning dictionary: for example, the
        spring layout from NetworkX for the 5-cycle is::
@@ -229,32 +221,13 @@ class DiGraph(GenericGraph):
     -  ``weighted`` - whether digraph thinks of itself as
        weighted or not. See self.weighted()
 
-    -  ``format`` - if None, DiGraph tries to guess- can be
-       several values, including:
-
-       -  ``'adjacency_matrix'`` - a square Sage matrix M,
-          with M[i,j] equal to the number of edges {i,j}
-
-       -  ``'incidence_matrix'`` - a Sage matrix, with one
-          column C for each edge, where if C represents {i, j}, C[i] is -1
-          and C[j] is 1
-
-       -  ``'weighted_adjacency_matrix'`` - a square Sage
-          matrix M, with M[i,j] equal to the weight of the single edge {i,j}.
-          Given this format, weighted is ignored (assumed True).
-
-       -  ``NX`` - data must be a NetworkX DiGraph.
-
-           .. NOTE::
-
-               As Sage's default edge labels is ``None`` while NetworkX uses
-               ``{}``, the ``{}`` labels of a NetworkX digraph are automatically
-               set to ``None`` when it is converted to a Sage graph. This
-               behaviour can be overruled by setting the keyword
-               ``convert_empty_dict_labels_to_None`` to ``False`` (it is
-               ``True`` by default).
-
-       -  ``igraph`` - data must be an igraph directed Graph.
+    - ``format`` - if set to ``None`` (default), :class:`DiGraph` tries to guess
+      input's format. To avoid this possibly time-consuming step, one of the
+      following values can be specified (see description above): ``"int"``,
+      ``"dig6"``, ``"rule"``, ``"list_of_edges"``, ``"dict_of_lists"``,
+      ``"dict_of_dicts"``, ``"adjacency_matrix"``,
+      ``"weighted_adjacency_matrix"``, ``"incidence_matrix"``, ``"NX"``,
+      ``"igraph"``.
 
     - ``sparse`` (boolean) -- ``sparse=True`` is an alias for
       ``data_structure="sparse"``, and ``sparse=False`` is an alias for
@@ -279,7 +252,7 @@ class DiGraph(GenericGraph):
       ``data_structure='static_sparse'``.
 
     - ``vertex_labels`` - Whether to allow any object as a vertex (slower), or
-      only the integers 0, ..., n-1, where n is the number of vertices.
+      only the integers `0,...,n-1`, where `n` is the number of vertices.
 
     -  ``convert_empty_dict_labels_to_None`` - this arguments sets
        the default edge labels used by NetworkX (empty dictionaries)
@@ -462,6 +435,13 @@ class DiGraph(GenericGraph):
         True
         sage: type(J_imm._backend) == type(G_imm._backend)
         True
+
+    From a a list of vertices and a list of edges::
+
+        sage: G = DiGraph([[1,2,3],[(1,2)]]); G
+        Digraph on 3 vertices
+        sage: G.edges()
+        [(1, 2, None)]
     """
     _directed = True
 
@@ -625,6 +605,15 @@ class DiGraph(GenericGraph):
         if format is None and isinstance(data,list) and \
            len(data)>=2 and callable(data[1]):
             format = 'rule'
+
+        if (format is None           and
+            isinstance(data,list)    and
+            len(data) == 2           and
+            isinstance(data[0],list) and # a list of two lists, the second of
+            isinstance(data[1],list) and # which contains iterables (the edges)
+            (not data[1] or callable(getattr(data[1][0],"__iter__",None)))):
+            format = "vertices_and_edges"
+
         if format is None and isinstance(data,dict):
             keys = data.keys()
             if len(keys) == 0: format = 'dict_of_dicts'
@@ -716,6 +705,13 @@ class DiGraph(GenericGraph):
             self.allow_loops(loops,check=False)
             self.add_vertices(data[0])
             self.add_edges((u,v) for u in data[0] for v in data[0] if f(u,v))
+
+        elif format == "vertices_and_edges":
+            self.allow_multiple_edges(bool(multiedges), check=False)
+            self.allow_loops(bool(loops), check=False)
+            self.add_vertices(data[0])
+            self.add_edges(data[1])
+
         elif format == 'dict_of_dicts':
             from graph_input import from_dict_of_dicts
             from_dict_of_dicts(self, data, loops=loops, multiedges=multiedges, weighted=weighted,
@@ -868,16 +864,16 @@ class DiGraph(GenericGraph):
 
         OUTPUT:
 
-            * When ``certificate=False``, returns a boolean value.
+        * When ``certificate=False``, returns a boolean value.
 
-            * When ``certificate=True`` :
+        * When ``certificate=True`` :
 
-                * If the graph is acyclic, returns a pair ``(True, ordering)``
-                  where ``ordering`` is a list of the vertices such that ``u``
-                  appears before ``v`` in ``ordering`` if ``u, v`` is an edge.
+          * If the graph is acyclic, returns a pair ``(True, ordering)``
+            where ``ordering`` is a list of the vertices such that ``u``
+            appears before ``v`` in ``ordering`` if ``u, v`` is an edge.
 
-                * Else, returns a pair ``(False, cycle)`` where ``cycle`` is a
-                  list of vertices representing a circuit in the graph.
+          * Else, returns a pair ``(False, cycle)`` where ``cycle`` is a
+            list of vertices representing a circuit in the graph.
 
         EXAMPLES:
 
@@ -1607,7 +1603,7 @@ class DiGraph(GenericGraph):
         INPUT:
 
         - ``inplace`` -- (default: True) if ``False``, a new digraph is created
-           and returned as output, otherwise ``self`` is modified.
+          and returned as output, otherwise ``self`` is modified.
 
         - ``multiedges`` -- (default: None) how to decide what should be done in
           case of doubt (for instance when edge `(1,2)` is to be reversed in a
@@ -1827,11 +1823,11 @@ class DiGraph(GenericGraph):
         - ``edges`` -- a list of edges in the DiGraph.
 
         - ``inplace`` -- (default: True) if ``False``, a new digraph is created
-           and returned as output, otherwise ``self`` is modified.
+          and returned as output, otherwise ``self`` is modified.
 
         - ``multiedges`` -- (default: None) if ``True``, input graph will be
-           forced to allow parallel edges when necessary (for more information
-           see the documentation of :meth:`~DiGraph.reverse_edge`)
+          forced to allow parallel edges when necessary (for more information
+          see the documentation of :meth:`~DiGraph.reverse_edge`)
 
         .. SEEALSO::
 
@@ -2948,7 +2944,7 @@ class DiGraph(GenericGraph):
 
         OUTPUT:
 
-         - a list of non empty lists of vertices of this graph
+        - a list of non empty lists of vertices of this graph
 
         The level set decomposition of the digraph is a list `l` such that the
         level `l[i]` contains all the vertices having all their predecessors in

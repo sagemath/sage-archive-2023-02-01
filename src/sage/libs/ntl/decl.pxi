@@ -5,33 +5,22 @@ include "sage/ext/python.pxi"
 cdef extern from "ccobject.h":
     pass
 
+from sage.libs.ntl.types cimport *
 from sage.libs.ntl.ntl_ZZ_decl cimport *
 from sage.libs.ntl.ntl_lzz_pX_decl cimport *
 from sage.libs.ntl.ntl_ZZ_pX_decl cimport *
-from sage.libs.ntl.ntl_ZZ_pContext_decl cimport *
 from sage.libs.ntl.ntl_ZZ_p_decl cimport *
-from sage.libs.ntl.ntl_vec_ZZ_p_decl cimport *
 from sage.libs.ntl.ntl_ZZX_decl cimport *
 from sage.libs.ntl.ntl_lzz_pContext_decl cimport *
 from sage.libs.ntl.ntl_ZZ_pEContext_decl cimport *
 from sage.libs.ntl.ntl_ZZ_pE_decl cimport *
-from sage.libs.ntl.ntl_vec_ZZ_pE_decl cimport *
 from sage.libs.ntl.ntl_ZZ_pEX_decl cimport *
 
 cdef extern from "sage/libs/ntl/ntlwrap.h":
     long NTL_OVFBND
     bint NTL_OVERFLOW(long, long, long)
 
-    #### mat_ZZ_c
-    cdef cppclass mat_ZZ_c "mat_ZZ":
-        pass
-
-    # Some boiler-plate
-    mat_ZZ_c* mat_ZZ_construct "Construct<mat_ZZ>"(void *mem)
-    void mat_ZZ_destruct "Destruct<mat_ZZ>"(mat_ZZ_c *mem)
-    void mat_ZZ_delete "Delete<mat_ZZ>"(mat_ZZ_c *mem)
     object mat_ZZ_to_PyString "_to_PyString<mat_ZZ>"(mat_ZZ_c *x)
-    int mat_ZZ_equal "_equal<mat_ZZ>"(mat_ZZ_c x, mat_ZZ_c y)
 
     void mat_ZZ_mul "mul"( mat_ZZ_c x, mat_ZZ_c a, mat_ZZ_c b)
     void mat_ZZ_add "add"( mat_ZZ_c x, mat_ZZ_c a, mat_ZZ_c b)
@@ -92,17 +81,8 @@ cdef extern from "sage/libs/ntl/ntlwrap.h":
     cdef long mat_ZZ_G_BKZ_RR     "G_BKZ_RR"(mat_ZZ_c B, double delta, long BlockSize, long prune, int check, long verbose)
     cdef long mat_ZZ_G_BKZ_RR_U   "G_BKZ_RR"(mat_ZZ_c B, mat_ZZ_c U, double delta, long BlockSize, long prune, int check, long verbose)
 
-    #### GF2_c
-    ctypedef struct GF2_c "struct GF2":
-        pass
-
-    GF2_c* GF2_new "New<GF2>"()
-    GF2_c* GF2_construct "Construct<GF2>"(void *mem)
-    void GF2_destruct "Destruct<GF2>"(GF2_c *mem)
-    void GF2_delete "Delete<GF2>"(GF2_c *mem)
     void GF2_from_str "_from_str<GF2>"(GF2_c* dest, char* s)
     object GF2_to_PyString "_to_PyString<GF2>"(GF2_c *x)
-    int GF2_equal "_equal<GF2>"(GF2_c x, GF2_c y)
     int GF2_IsOne "IsOne"(GF2_c x)
     int GF2_IsZero "IsZero"(GF2_c x)
 
@@ -117,20 +97,10 @@ cdef extern from "sage/libs/ntl/ntlwrap.h":
     void GF2_conv_long "conv" (GF2_c x, long i)
     long GF2_conv_to_long "rep" (GF2_c x)
 
-    #### GF2X_c
-
-    ctypedef struct GF2X_c "struct GF2X":
-        pass
-
     long *GF2XHexOutput_c "(&GF2X::HexOutput)" # work-around for Cython bug
 
-    GF2X_c* GF2X_new "New<GF2X>"()
-    GF2X_c* GF2X_construct "Construct<GF2X>"(void *mem)
-    void GF2X_destruct "Destruct<GF2X>"(GF2X_c *mem)
-    void GF2X_delete "Delete<GF2X>"(GF2X_c *mem)
     void GF2X_from_str "_from_str<GF2X>"(GF2X_c* dest, char* s)
     object GF2X_to_PyString "_to_PyString<GF2X>"(GF2X_c *x)
-    int GF2X_equal "_equal<GF2X>"(GF2X_c x, GF2X_c y)
     int GF2X_IsOne "IsOne"(GF2X_c x)
     int GF2X_IsZero "IsZero"(GF2X_c x)
 
@@ -170,46 +140,20 @@ cdef extern from "sage/libs/ntl/ntlwrap.h":
     long GF2X_NumBits "NumBits" (GF2X_c a)
     long GF2X_NumBytes "NumBytes"(GF2X_c a)
 
-    #### GF2XFactoring
     void GF2X_BuildSparseIrred "BuildSparseIrred" (GF2X_c f, long n)
     void GF2X_BuildRandomIrred "BuildRandomIrred" (GF2X_c f, GF2X_c g)
     void GF2X_BuildIrred "BuildIrred" (GF2X_c f, long n)
-
-    #### GF2XModulus_c
-    ctypedef struct GF2XModulus_c "struct GF2XModulus":
-        pass
 
     GF2X_c GF2XModulus_GF2X "GF2X" (GF2XModulus_c m)
 
     GF2X_c GF2X_IrredPolyMod "IrredPolyMod" (GF2X_c g, GF2XModulus_c F)
 
-    #### GF2EContext_c
-
-    ctypedef struct GF2EContext_c "struct GF2EContext":
-        void (*restore)()
-
-    GF2EContext_c* GF2EContext_new "New<GF2EContext>"()
-    GF2EContext_c* GF2EContext_construct "Construct<GF2EContext>"(void *mem)
-    GF2EContext_c* GF2EContext_new_GF2X "GF2EContext_new"(GF2X_c* p)
-    GF2EContext_c* GF2EContext_construct_GF2X "GF2EContext_construct"(void *mem, GF2X_c* p)
-    void GF2EContext_destruct "Destruct<GF2EContext>"(GF2EContext_c *mem)
-    void GF2EContext_delete "Delete<GF2EContext>"(GF2EContext_c *mem)
-
-    #### GF2E_c
-    ctypedef struct GF2E_c "struct GF2E":
-        pass
-
     void GF2E_init "GF2E::init"(GF2X_c x)
     long GF2E_degree "GF2E::degree"()
     GF2XModulus_c GF2E_modulus "GF2E::modulus"()
 
-    GF2E_c* GF2E_new "New<GF2E>"()
-    GF2E_c* GF2E_construct "Construct<GF2E>"(void *mem)
-    void GF2E_destruct "Destruct<GF2E>"(GF2E_c *mem)
-    void GF2E_delete "Delete<GF2E>"(GF2E_c *mem)
     void GF2E_from_str "_from_str<GF2E>"(GF2E_c* dest, char* s)
     object GF2E_to_PyString "_to_PyString<GF2E>"(GF2E_c *x)
-    int GF2E_equal "_equal<GF2E>"(GF2E_c x, GF2E_c y)
     int GF2E_IsOne "IsOne"(GF2E_c x)
     int GF2E_IsZero "IsZero"(GF2E_c x)
 
@@ -230,17 +174,8 @@ cdef extern from "sage/libs/ntl/ntlwrap.h":
 
     GF2_c GF2E_trace "trace"(GF2E_c x)
 
-    #### GF2EX_c
-    ctypedef struct GF2EX_c "struct GF2EX":
-        pass
-
-    GF2EX_c* GF2EX_new "New<GF2EX>"()
-    GF2EX_c* GF2EX_construct "Construct<GF2EX>"(void *mem)
-    void GF2EX_destruct "Destruct<GF2EX>"(GF2EX_c *mem)
-    void GF2EX_delete "Delete<GF2EX>"(GF2EX_c *mem)
     void GF2EX_from_str "_from_str<GF2EX>"(GF2EX_c* dest, char* s)
     object GF2EX_to_PyString "_to_PyString<GF2EX>"(GF2EX_c *x)
-    int GF2EX_equal "_equal<GF2EX>"(GF2EX_c x, GF2EX_c y)
     void GF2EX_add "add"( GF2EX_c x, GF2EX_c a, GF2EX_c b)
     void GF2EX_sub "sub"( GF2EX_c x, GF2EX_c a, GF2EX_c b)
     void GF2EX_mul "mul"( GF2EX_c x, GF2EX_c a, GF2EX_c b)
@@ -249,31 +184,11 @@ cdef extern from "sage/libs/ntl/ntlwrap.h":
     int GF2EX_IsOne "IsOne"(GF2EX_c x)
     int GF2EX_IsZero "IsZero"(GF2EX_c x)
 
-    #### vec_GF2E_c
-    ctypedef struct vec_GF2E_c "struct vec_GF2E":
-        pass
-
-    vec_GF2E_c* vec_GF2E_new "New<vec_GF2E>"()
-    vec_GF2E_c* vec_GF2E_construct "Construct<vec_GF2E>"(void *mem)
-    void vec_GF2E_destruct "Destruct<vec_GF2E>"(vec_GF2E_c *mem)
-    void vec_GF2E_delete "Delete<vec_GF2E>"(vec_GF2E_c *mem)
     void vec_GF2E_from_str "_from_str<vec_GF2E>"(vec_GF2E_c* dest, char* s)
     object vec_GF2E_to_PyString "_to_PyString<vec_GF2E>"(vec_GF2E_c *x)
 
-    #### mat_GF2E_c
-    cdef cppclass mat_GF2E_c "mat_GF2E":
-        void (*SetDims)(long nrows, long ncols)
-        long (*NumRows)()
-        long (*NumCols)()
-        GF2E_c (*get "operator()") (long i, long j)
-
-    mat_GF2E_c* mat_GF2E_new "New<mat_GF2E>"()
-    mat_GF2E_c* mat_GF2E_construct "Construct<mat_GF2E>"(void *mem)
-    void mat_GF2E_destruct "Destruct<mat_GF2E>"(mat_GF2E_c *mem)
-    void mat_GF2E_delete "Delete<mat_GF2E>"(mat_GF2E_c *mem)
     void mat_GF2E_from_str "_from_str<mat_GF2E>"(mat_GF2E_c* dest, char* s)
     object mat_GF2E_to_PyString "_to_PyString<mat_GF2E>"(mat_GF2E_c *x)
-    int mat_GF2E_equal "_equal<mat_GF2E>"(mat_GF2E_c x, mat_GF2E_c y)
     void mat_GF2E_add "add"( mat_GF2E_c x, mat_GF2E_c a, mat_GF2E_c b)
     void mat_GF2E_sub "sub"( mat_GF2E_c x, mat_GF2E_c a, mat_GF2E_c b)
     void mat_GF2E_mul "mul"( mat_GF2E_c x, mat_GF2E_c a, mat_GF2E_c b)
@@ -288,10 +203,8 @@ cdef extern from "sage/libs/ntl/ntlwrap.h":
     void mat_GF2E_solve "solve"(GF2E_c d, vec_GF2E_c X, mat_GF2E_c A, vec_GF2E_c b)
     void mat_GF2E_inv "inv" (mat_GF2E_c X, mat_GF2E_c A)
 
-
     long mat_GF2E_IsIdent "IsIdent"(mat_GF2E_c A, long n)
     long mat_GF2E_IsDiag "IsDiag"(mat_GF2E_c A, long n, GF2E_c d)
-
 
     void mat_GF2E_image "image"(mat_GF2E_c X, mat_GF2E_c A)
     void mat_GF2E_kernel "kernel" (mat_GF2E_c X, mat_GF2E_c A)
@@ -299,32 +212,11 @@ cdef extern from "sage/libs/ntl/ntlwrap.h":
     void vec_GF2E_conv_mat_GF2E "conv" (vec_GF2E_c out, mat_GF2E_c inp)
     void mat_GF2E_conv_vec_GF2E(mat_GF2E_c out, vec_GF2E_c inp)
 
-    #### vec_GF2_c
-    ctypedef struct vec_GF2_c "struct vec_GF2":
-        pass
-
-    vec_GF2_c* vec_GF2_new "New<vec_GF2>"()
-    vec_GF2_c* vec_GF2_construct "Construct<vec_GF2>"(void *mem)
-    void vec_GF2_destruct "Destruct<vec_GF2>"(vec_GF2_c *mem)
-    void vec_GF2_delete "Delete<vec_GF2>"(vec_GF2_c *mem)
     void vec_GF2_from_str "_from_str<vec_GF2>"(vec_GF2_c* dest, char* s)
     object vec_GF2_to_PyString "_to_PyString<vec_GF2>"(vec_GF2_c *x)
 
-
-    #### mat_GF2_c
-    cdef cppclass mat_GF2_c "mat_GF2":
-        void (*SetDims)(long nrows, long ncols)
-        long (*NumRows)()
-        long (*NumCols)()
-        GF2_c (*get "operator()") (long i, long j)
-
-    mat_GF2_c* mat_GF2_new "New<mat_GF2>"()
-    mat_GF2_c* mat_GF2_construct "Construct<mat_GF2>"(void *mem)
-    void mat_GF2_destruct "Destruct<mat_GF2>"(mat_GF2_c *mem)
-    void mat_GF2_delete "Delete<mat_GF2>"(mat_GF2_c *mem)
     void mat_GF2_from_str "_from_str<mat_GF2>"(mat_GF2_c* dest, char* s)
     object mat_GF2_to_PyString "_to_PyString<mat_GF2>"(mat_GF2_c *x)
-    int mat_GF2_equal "_equal<mat_GF2>"(mat_GF2_c x, mat_GF2_c y)
     void mat_GF2_add "add"( mat_GF2_c x, mat_GF2_c a, mat_GF2_c b)
     void mat_GF2_sub "sub"( mat_GF2_c x, mat_GF2_c a, mat_GF2_c b)
     void mat_GF2_mul "mul"( mat_GF2_c x, mat_GF2_c a, mat_GF2_c b)
@@ -338,7 +230,6 @@ cdef extern from "sage/libs/ntl/ntlwrap.h":
     long mat_GF2_gauss "gauss"(mat_GF2_c A, long w)
     void mat_GF2_solve "solve"(GF2_c d, vec_GF2_c X, mat_GF2_c A, vec_GF2_c b)
     void mat_GF2_inv "inv" (mat_GF2_c X, mat_GF2_c A)
-
 
     long mat_GF2_IsIdent "IsIdent"(mat_GF2_c A, long n)
     long mat_GF2_IsDiag "IsDiag"(mat_GF2_c A, long n, GF2_c d)

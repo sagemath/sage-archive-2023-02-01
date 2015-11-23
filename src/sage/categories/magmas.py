@@ -468,9 +468,11 @@ class Magmas(Category_singleton):
                 for x in tester.some_elements():
                     tester.assert_(x * one == x)
                     tester.assert_(one * x == x)
-                # Check that one is immutable by asking its hash;
-                tester.assertEqual(type(one.__hash__()), int)
-                tester.assertEqual(one.__hash__(), one.__hash__())
+                # Check that one is immutable if it looks like we can test this
+                if hasattr(one,"is_immutable"):
+                    tester.assertEqual(one.is_immutable(),True)
+                if hasattr(one,"is_mutable"):
+                    tester.assertEqual(one.is_mutable(),False)
 
             def is_empty(self):
                 r"""
@@ -767,7 +769,7 @@ class Magmas(Category_singleton):
               :meth:`~sage.matrix.operation_table.OperationTable.dict`
               method.
 
-            INPUTS:
+            INPUT:
 
             - ``names`` - the type of names used
 

@@ -23,6 +23,7 @@ from sage.rings.integer_ring import IntegerRing
 from sage.rings.integer cimport Integer
 from sage.libs.ntl.convert cimport PyLong_to_ZZ
 from sage.misc.randstate cimport randstate, current_randstate
+from cpython.object cimport Py_LT, Py_LE, Py_EQ, Py_NE, Py_GT, Py_GE
 
 ZZ_sage = IntegerRing()
 
@@ -30,7 +31,7 @@ cdef make_ZZ(ZZ_c* x):
     cdef ntl_ZZ y
     y = ntl_ZZ()
     y.x = x[0]
-    ZZ_delete(x)
+    del x
     sig_off()
     return y
 
@@ -39,7 +40,7 @@ cdef make_ZZ(ZZ_c* x):
 # ZZ: Arbitrary precision integers
 ##############################################################################
 
-cdef class ntl_ZZ:
+cdef class ntl_ZZ(object):
     r"""
     The \class{ZZ} class is used to represent signed, arbitrary length integers.
 
@@ -98,12 +99,6 @@ cdef class ntl_ZZ:
             ZZ_from_str(&self.x, v)
             sig_off()
 
-    def __cinit__(self):
-        ZZ_construct(&self.x)
-
-    def __dealloc__(self):
-        ZZ_destruct(&self.x)
-
     def __repr__(self):
         """
         Return the string representation of self.
@@ -123,33 +118,47 @@ cdef class ntl_ZZ:
         """
         return unpickle_class_value, (ntl_ZZ, self._integer_())
 
-    def __cmp__(self, other):
+    def __richcmp__(ntl_ZZ self, other, int op):
         """
         Compare self to other.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: f = ntl.ZZ(1)
             sage: g = ntl.ZZ(2)
             sage: h = ntl.ZZ(2)
             sage: w = ntl.ZZ(7)
             sage: h == g
             True
+            sage: g >= h
+            True
             sage: f == g
             False
-            sage: h > w ## indirect doctest
+            sage: h > w
             False
             sage: h < w
             True
+            sage: h <= 3
+            True
         """
-        if (type(self) != type(other)):
-            return cmp(type(self), type(other))
-        diff = self.__sub__(other)
-        if ZZ_IsZero( (<ntl_ZZ>diff).x ):
-            return 0
-        elif ZZ_sign( (<ntl_ZZ>diff).x ) == 1:
-            return 1
-        else:
-            return -1
+        cdef ntl_ZZ b
+        try:
+            b = <ntl_ZZ?>other
+        except TypeError:
+            b = ntl_ZZ(other)
+
+        if op == Py_EQ:
+            return self.x == b.x
+        if op == Py_NE:
+            return self.x != b.x
+        if op == Py_LT:
+            return self.x < b.x
+        if op == Py_LE:
+            return self.x <= b.x
+        if op == Py_GT:
+            return self.x > b.x
+        if op == Py_GE:
+            return self.x >= b.x
 
     def __hash__(self):
         """

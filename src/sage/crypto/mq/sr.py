@@ -1219,7 +1219,7 @@ class SR_generic(MPolynomialSystemGenerator):
 
         Both must be given as state arrays or coercible to state arrays.
 
-        INPUTS:
+        INPUT:
 
         - ``P`` - plaintext as state array or something coercible to a
           qstate array

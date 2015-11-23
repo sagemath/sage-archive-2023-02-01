@@ -158,18 +158,19 @@ from copy import copy
 from sage.misc.lazy_import import lazy_import
 from sage.homology.cell_complex import GenericCellComplex
 from sage.structure.sage_object import SageObject
-from sage.structure.category_object import CategoryObject
+from sage.structure.parent import Parent
 from sage.rings.integer import Integer
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.sets.set import Set
 from sage.rings.integer_ring import ZZ
 from sage.structure.parent_gens import normalize_names
 from sage.misc.latex import latex
+from sage.misc.misc import union
 from sage.matrix.constructor import matrix
 from sage.homology.chain_complex import ChainComplex
 from sage.graphs.graph import Graph
 from functools import reduce
-lazy_import('sage.categories.category_types', 'SimplicialComplexes')
+lazy_import('sage.categories.simplicial_complexes', 'SimplicialComplexes')
 
 def lattice_paths(t1, t2, length=None):
     """
@@ -625,6 +626,50 @@ class Simplex(SageObject):
             answer.append(Simplex(new))
         return answer
 
+    def alexander_whitney(self, dim):
+        r"""
+        Subdivide this simplex into a pair of simplices.
+
+        If this simplex has vertices `v_0`, `v_1`, ..., `v_n`, then
+        subdivide it into simplices `(v_0, v_1, ..., v_{dim})` and
+        `(v_{dim}, v_{dim + 1}, ..., v_n)`.
+
+        INPUT:
+
+        - ``dim`` -- integer between 0 and one more than the
+          dimension of this simplex
+
+        OUTPUT:
+
+        - a list containing just the triple ``(1, left, right)``,
+          where ``left`` and ``right`` are the two simplices described
+          above.
+
+        This method allows one to construct a coproduct from the
+        `p+q`-chains to the tensor product of the `p`-chains and the
+        `q`-chains. The number 1 (a Sage integer) is the coefficient
+        of ``left tensor right`` in this coproduct. (The corresponding
+        formula is more complicated for the cubes that make up a
+        cubical complex, and the output format is intended to be
+        consistent for both cubes and simplices.)
+
+        Calling this method ``alexander_whitney`` is an abuse of
+        notation, since the actual Alexander-Whitney map goes from
+        `C(X \times Y) \to C(X) \otimes C(Y)`, where `C(-)` denotes
+        the chain complex of singular chains, but this subdivision of
+        simplices is at the heart of it.
+
+        EXAMPLES::
+
+            sage: s = Simplex((0,1,3,4))
+            sage: s.alexander_whitney(0)
+            [(1, (0,), (0, 1, 3, 4))]
+            sage: s.alexander_whitney(2)
+            [(1, (0, 1, 3), (3, 4))]
+        """
+        return [(ZZ.one(), Simplex(self.tuple()[:dim+1]),
+                 Simplex(self.tuple()[dim:]))]
+
     def __cmp__(self, other):
         """
         Return ``True`` iff this simplex is the same as ``other``: that
@@ -691,7 +736,7 @@ class Simplex(SageObject):
         """
         return latex(self.__tuple)
 
-class SimplicialComplex(CategoryObject, GenericCellComplex):
+class SimplicialComplex(Parent, GenericCellComplex):
     r"""
     Define a simplicial complex.
 
@@ -792,7 +837,15 @@ class SimplicialComplex(CategoryObject, GenericCellComplex):
         True
         sage: SimplicialComplex(S, is_immutable=False).is_mutable()
         True
-        """
+
+    .. WARNING::
+
+        Simplicial complexes are not proper parents as they do
+        not possess element classes. In particular, parents are assumed
+        to be hashable (and hence immutable) by the coercion framework.
+        However this is close enough to being a parent with elements
+        being the faces of ``self`` that we currently allow this abuse.
+    """
 
     def __init__(self,
                  maximal_faces=None,
@@ -833,8 +886,7 @@ class SimplicialComplex(CategoryObject, GenericCellComplex):
         if (maximal_faces is not None and
             from_characteristic_function is not None):
             raise ValueError("maximal_faces and from_characteristic_function cannot be both defined")
-        CategoryObject.__init__(self, category=SimplicialComplexes())
-        from sage.misc.misc import union
+        Parent.__init__(self, category=SimplicialComplexes().Finite())
 
         C = None
         vertex_set = []
@@ -987,7 +1039,7 @@ class SimplicialComplex(CategoryObject, GenericCellComplex):
             sage: X == SimplicialComplex([[1,3]])
             True
         """
-        if set(self._facets) == set(right._facets):
+        if isinstance(right, SimplicialComplex) and set(self._facets) == set(right._facets):
             return 0
         else:
             return -1
@@ -1032,6 +1084,57 @@ class SimplicialComplex(CategoryObject, GenericCellComplex):
             <class 'sage.homology.simplicial_complex.Simplex'>
         """
         return self._vertex_set
+
+    def _an_element_(self):
+        """
+        The first facet of this complex.
+
+        EXAMPLES::
+
+            sage: SimplicialComplex()._an_element_()
+            ()
+            sage: simplicial_complexes.Sphere(3)._an_element_()
+            (1, 2, 3, 4)
+        """
+        return self.facets()[0]
+
+    def __contains__(self, x):
+        """
+        True if ``x`` is a simplex which is contained in this complex.
+
+        EXAMPLES::
+
+            sage: K = SimplicialComplex([(0,1,2), (0,2,3)])
+            sage: Simplex((0,2)) in K
+            True
+            sage: Simplex((1,3)) in K
+            False
+            sage: 0 in K  # not a simplex
+            False
+        """
+        if not isinstance(x, Simplex):
+            return False
+        dim = x.dimension()
+        return x in self.n_faces(dim)
+
+    def __call__(self, simplex):
+        """
+        If ``simplex`` is a simplex in this complex, return it.
+        Otherwise, raise a ``ValueError``.
+
+        EXAMPLE::
+
+            sage: K = SimplicialComplex([(0,1,2), (0,2,3)])
+            sage: K(Simplex((1,2)))
+            (1, 2)
+            sage: K(Simplex((0,1,3)))
+            Traceback (most recent call last):
+            ...
+            ValueError: the simplex is not in this complex
+        """
+        if simplex not in self:
+            raise ValueError('the simplex is not in this complex')
+        return simplex
 
     def maximal_faces(self):
         """
@@ -1120,7 +1223,7 @@ class SimplicialComplex(CategoryObject, GenericCellComplex):
         """
         An iterator for the faces in this simplicial complex.
 
-        INPUTS:
+        INPUT:
 
         - ``increasing`` -- (optional, default ``True``) if ``True``, return
           faces in increasing order of dimension, thus starting with
@@ -1209,7 +1312,7 @@ class SimplicialComplex(CategoryObject, GenericCellComplex):
 
         If the complex has dimension `d` and `(f_{-1}, f_0, f_1, ...,
         f_d)` is its `f`-vector (with `f_{-1} = 1`, representing the
-        empy simplex), then the `h`-vector `(h_0, h_1, ..., h_d,
+        empty simplex), then the `h`-vector `(h_0, h_1, ..., h_d,
         h_{d+1})` is defined by
 
         .. MATH::
@@ -2081,8 +2184,6 @@ class SimplicialComplex(CategoryObject, GenericCellComplex):
             self._facets = Facets
 
             # Update the vertex set
-            from sage.misc.misc import union
-
             if self._sorted:
                 self._vertex_set = Simplex(sorted(reduce(union, [self._vertex_set, new_face])))
             else:
@@ -3284,11 +3385,18 @@ class SimplicialComplex(CategoryObject, GenericCellComplex):
             sage: T = simplicial_complexes.Sphere(2)
             sage: H = Hom(S,T)  # indirect doctest
             sage: H
-            Set of Morphisms from Simplicial complex with vertex set (0, 1, 2) and facets {(1, 2), (0, 2), (0, 1)} to Simplicial complex with vertex set (0, 1, 2, 3) and facets {(0, 2, 3), (0, 1, 2), (1, 2, 3), (0, 1, 3)} in Category of simplicial complexes
+            Set of Morphisms from Simplicial complex with vertex set (0, 1, 2) and facets {(1, 2), (0, 2), (0, 1)}
+             to Simplicial complex with vertex set (0, 1, 2, 3) and facets {(0, 2, 3), (0, 1, 2), (1, 2, 3), (0, 1, 3)}
+             in Category of finite simplicial complexes
             sage: f = {0:0,1:1,2:3}
             sage: x = H(f)
             sage: x
-            Simplicial complex morphism {0: 0, 1: 1, 2: 3} from Simplicial complex with vertex set (0, 1, 2) and facets {(1, 2), (0, 2), (0, 1)} to Simplicial complex with vertex set (0, 1, 2, 3) and facets {(0, 2, 3), (0, 1, 2), (1, 2, 3), (0, 1, 3)}
+            Simplicial complex morphism:
+              From: Simplicial complex with vertex set (0, 1, 2) and facets {(1, 2), (0, 2), (0, 1)}
+              To: Simplicial complex with vertex set (0, 1, 2, 3) and facets {(0, 2, 3), (0, 1, 2), (1, 2, 3), (0, 1, 3)}
+            Defn: 0 |--> 0
+                  1 |--> 1
+                  2 |--> 3
 
             sage: S._Hom_(T, Objects())
             Traceback (most recent call last):

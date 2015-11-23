@@ -1739,7 +1739,7 @@ class ResidueFiniteField_givaro(ResidueField_generic, FiniteField_givaro):
 
     def _element_constructor_(self, x):
         """
-        INPUT::
+        INPUT:
 
             - ``x`` -- Something to cast into ``self``.
 

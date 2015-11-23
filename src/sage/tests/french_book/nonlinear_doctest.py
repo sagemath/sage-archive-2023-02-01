@@ -37,14 +37,15 @@ Sage example in ./nonlinear.tex, line 202::
 
 Sage example in ./nonlinear.tex, line 231::
 
+    sage: from itertools import product
     sage: def build_complex_roots(degree):
     ....:     R.<x> = PolynomialRing(CDF, 'x')
     ....:     v = []
-    ....:     for c in CartesianProduct(*[[-1, 1]] * (degree + 1)):
+    ....:     for c in product([-1, 1], repeat=degree+1):
     ....:         v.extend(R(c).roots(multiplicities=False))
     ....:     return v
     sage: data = build_complex_roots(12) # long time
-    sage: g = plot(points(data, pointsize=1), aspect_ratio=1) # long time
+    sage: g = points(data, pointsize=1, aspect_ratio=1)  # long time
 
 Sage example in ./nonlinear.tex, line 275::
 
@@ -118,8 +119,8 @@ Sage example in ./nonlinear.tex, line 367::
 Sage example in ./nonlinear.tex, line 424::
 
     sage: alpha, m, x = var('alpha, m, x')
-    sage: p = function('p', x)
-    sage: q = function('q', x)
+    sage: p = function('p')(x)
+    sage: q = function('q')(x)
     sage: p = (x - alpha)^m * q
     sage: p.derivative(x)
     (-alpha + x)^(m - 1)*m*q(x) + (-alpha + x)^m*D[0](q)(x)

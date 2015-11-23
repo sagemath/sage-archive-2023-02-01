@@ -521,7 +521,7 @@ class BipartiteGraph(Graph):
         vertices.  Vertices that already exist in the graph will not be added
         again.
 
-        INPUTS:
+        INPUT:
 
         - ``vertices`` -- sequence of vertices to add.
 

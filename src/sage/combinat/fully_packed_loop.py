@@ -875,6 +875,37 @@ class FullyPackedLoop(Element):
         G.axes(False)
         return G
 
+    def gyration(self):
+        r"""
+        Return the fully packed loop obtained by applying gyration
+        to the alternating sign matrix in bijection with ``self``.
+
+        Gyration was first defined in [Wieland00]_ as an action on 
+        fully-packed loops.
+
+        REFERENCES:
+
+        .. [Wieland00] B. Wieland. *A large dihedral symmetry of the set of
+           alternating sign matrices*. Electron. J. Combin. 7 (2000).
+
+        EXAMPLES::
+
+            sage: A = AlternatingSignMatrix([[1, 0, 0],[0, 1, 0],[0, 0, 1]])
+            sage: fpl = FullyPackedLoop(A)
+            sage: fpl.gyration().to_alternating_sign_matrix()
+            [0 0 1]
+            [0 1 0]
+            [1 0 0]
+            sage: asm = AlternatingSignMatrix([[0, 0, 1],[1, 0, 0],[0, 1, 0]])
+            sage: f = FullyPackedLoop(asm)
+            sage: f.gyration().to_alternating_sign_matrix()
+            [0 1 0]
+            [0 0 1]
+            [1 0 0]
+        """
+        return FullyPackedLoop(self.to_alternating_sign_matrix().gyration())
+
+
     def link_pattern(self):
         """
         Return a link pattern corresponding to a fully packed loop.

@@ -43,7 +43,7 @@ ZZ_sage = IntegerRing()
 # ZZ_pE_c: An extension of the integers modulo p
 #
 ##############################################################################
-cdef class ntl_ZZ_pE:
+cdef class ntl_ZZ_pE(object):
     r"""
     The \class{ZZ_pE} class is used to model $\Z / p\Z [x] / (f(x))$.
     The modulus $p$ may be any positive integer, not necessarily prime,
@@ -141,19 +141,13 @@ cdef class ntl_ZZ_pE:
         ## _new in your own code).                    ##
         ################################################
         if modulus is None:
-            ZZ_pE_construct(&self.x)
             return
         if isinstance(modulus, ntl_ZZ_pEContext_class):
             self.c = <ntl_ZZ_pEContext_class>modulus
             self.c.restore_c()
-            ZZ_pE_construct(&self.x)
         else:
             self.c = <ntl_ZZ_pEContext_class>ntl_ZZ_pEContext(modulus)
             self.c.restore_c()
-            ZZ_pE_construct(&self.x)
-
-    def __dealloc__(ntl_ZZ_pE self):
-        ZZ_pE_destruct(&self.x)
 
     cdef ntl_ZZ_pE _new(self):
         cdef ntl_ZZ_pE r
@@ -180,34 +174,32 @@ cdef class ntl_ZZ_pE:
         return ZZ_pE_to_PyString(&self.x)
         #return string_delete(ans)
 
-
-    def __richcmp__(ntl_ZZ_pE self, ntl_ZZ_pE other, op):
+    def __richcmp__(ntl_ZZ_pE self, other, int op):
         r"""
-        EXAMPLES:
+        Compare self to other.
+
+        EXAMPLES::
+
             sage: c=ntl.ZZ_pEContext(ntl.ZZ_pX([1,1,1],11))
             sage: c.ZZ_pE([13,1,1])==c.ZZ_pE(1)
             True
             sage: c.ZZ_pE(35r)==c.ZZ_pE(1)
             False
+            sage: c.ZZ_pE(35r) == 2
+            True
         """
         self.c.restore_c()
-        if op != 2 and op != 3:
-            raise TypeError, "Integers mod p are not ordered."
 
-        cdef int t
-#        cdef ntl_ZZ_p y
-#        if not isinstance(other, ntl_ZZ_p):
-#            other = ntl_ZZ_p(other)
-#        y = other
-        sig_on()
-        t = ZZ_pE_equal(self.x, other.x)
-        sig_off()
-        # t == 1 if self == other
-        if op == 2:
-            return t == 1
-        elif op == 3:
-            return t == 0
-        # And what about other op values?
+        if op != Py_EQ and op != Py_NE:
+            raise TypeError("integers mod p are not ordered")
+
+        cdef ntl_ZZ_pE b
+        try:
+            b = <ntl_ZZ_pE?>other
+        except TypeError:
+            b = ntl_ZZ_pE(other, self.c)
+
+        return (op == Py_EQ) == (self.x == b.x)
 
     def __invert__(ntl_ZZ_pE self):
         r"""

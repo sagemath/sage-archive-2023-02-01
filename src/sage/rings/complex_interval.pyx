@@ -40,21 +40,20 @@ heavily modified:
 #*****************************************************************************
 
 
-import math
-import operator
-
 include "sage/ext/interrupt.pxi"
+from sage.libs.gmp.mpz cimport mpz_sgn, mpz_cmpabs_ui
+from sage.libs.flint.fmpz cimport *
 
 from sage.structure.element cimport FieldElement, RingElement, Element, ModuleElement
 from complex_number cimport ComplexNumber
 
 import complex_interval_field
 from complex_field import ComplexField
-import sage.misc.misc
-cimport integer
+from sage.rings.integer cimport Integer
 import infinity
 cimport real_mpfi
 cimport real_mpfr
+from sage.libs.pari.gen cimport gen as pari_gen
 
 
 cdef double LOG_TEN_TWO_PLUS_EPSILON = 3.321928094887363 # a small overestimate of log(10,2)
@@ -120,7 +119,7 @@ cdef class ComplexIntervalFieldElement(sage.structure.element.FieldElement):
                 real, imag = (<ComplexNumber>real).real(), (<ComplexNumber>real).imag()
             elif isinstance(real, ComplexIntervalFieldElement):
                 real, imag = (<ComplexIntervalFieldElement>real).real(), (<ComplexIntervalFieldElement>real).imag()
-            elif isinstance(real, sage.libs.pari.all.pari_gen):
+            elif isinstance(real, pari_gen):
                 real, imag = real.real(), real.imag()
             elif isinstance(real, list) or isinstance(real, tuple):
                 re, imag = real
@@ -176,7 +175,7 @@ cdef class ComplexIntervalFieldElement(sage.structure.element.FieldElement):
         Returns either the real or imaginary component of ``self`` depending
         on the choice of ``i``: real (``i=0``), imaginary (``i=1``)
 
-        INPUTS:
+        INPUT:
 
         - ``i`` - 0 or 1
 
@@ -475,6 +474,54 @@ cdef class ComplexIntervalFieldElement(sage.structure.element.FieldElement):
         mpfi_union(x.__im, self.__im, other_intv.__im)
         return x
 
+    def magnitude(self):
+        """
+        The largest absolute value of the elements of the interval, rounded
+        away from zero.
+
+        OUTPUT: a real number with rounding mode ``RNDU``
+
+        EXAMPLES::
+
+            sage: CIF(RIF(-1,1), RIF(-1,1)).magnitude()
+            1.41421356237310
+            sage: CIF(RIF(1,2), RIF(3,4)).magnitude()
+            4.47213595499958
+            sage: parent(CIF(1).magnitude())
+            Real Field with 53 bits of precision and rounding RNDU
+        """
+        cdef real_mpfi.RealIntervalField_class RIF = self._parent._real_field()
+        cdef real_mpfr.RealNumber x = RIF.__upper_field._new()
+        cdef real_mpfr.RealNumber y = RIF.__upper_field._new()
+        mpfi_mag(x.value, self.__re)
+        mpfi_mag(y.value, self.__im)
+        mpfr_hypot(x.value, x.value, y.value, MPFR_RNDA)
+        return x
+
+    def mignitude(self):
+        """
+        The smallest absolute value of the elements of the interval, rounded
+        towards zero.
+
+        OUTPUT: a real number with rounding mode ``RNDD``
+
+        EXAMPLES::
+
+            sage: CIF(RIF(-1,1), RIF(-1,1)).mignitude()
+            0.000000000000000
+            sage: CIF(RIF(1,2), RIF(3,4)).mignitude()
+            3.16227766016837
+            sage: parent(CIF(1).mignitude())
+            Real Field with 53 bits of precision and rounding RNDD
+        """
+        cdef real_mpfi.RealIntervalField_class RIF = self._parent._real_field()
+        cdef real_mpfr.RealNumber x = RIF.__lower_field._new()
+        cdef real_mpfr.RealNumber y = RIF.__lower_field._new()
+        mpfi_mig(x.value, self.__re)
+        mpfi_mig(y.value, self.__im)
+        mpfr_hypot(x.value, x.value, y.value, MPFR_RNDZ)
+        return x
+
     def center(self):
         """
         Returns the closest floating-point approximation to the center
@@ -732,10 +779,109 @@ cdef class ComplexIntervalFieldElement(sage.structure.element.FieldElement):
             '[0.99109735947126309 .. 1.1179269966896264] + [1.4042388462787560 .. 1.4984624123369835]*I'
             sage: CIF(-7, -1) ^ CIF(0.3)
             1.117926996689626? - 1.408500714575360?*I
+
+        Note that ``x^2`` is not the same as ``x*x``::
+
+            sage: a = CIF(RIF(-1,1))
+            sage: print (a^2).str(style="brackets")
+            [0.00000000000000000 .. 1.0000000000000000]
+            sage: print (a*a).str(style="brackets")
+            [-1.0000000000000000 .. 1.0000000000000000]
+            sage: a = CIF(0, RIF(-1,1))
+            sage: print (a^2).str(style="brackets")
+            [-1.0000000000000000 .. -0.00000000000000000]
+            sage: print (a*a).str(style="brackets")
+            [-1.0000000000000000 .. 1.0000000000000000]
+            sage: a = CIF(RIF(-1,1), RIF(-1,1))
+            sage: print (a^2).str(style="brackets")
+            [-1.0000000000000000 .. 1.0000000000000000] + [-2.0000000000000000 .. 2.0000000000000000]*I
+            sage: print (a*a).str(style="brackets")
+            [-2.0000000000000000 .. 2.0000000000000000] + [-2.0000000000000000 .. 2.0000000000000000]*I
+
+        We can take very high powers::
+
+            sage: RIF = RealIntervalField(27)
+            sage: CIF = ComplexIntervalField(27)
+            sage: s = RealField(27, rnd="RNDZ")(1/2)^(1/3)
+            sage: a = CIF(RIF(-s/2,s/2), RIF(-s, s))
+            sage: r = a^(10^10000)
+            sage: print r.str(style="brackets")
+            [-2.107553304e1028 .. 2.107553304e1028] + [-2.107553304e1028 .. 2.107553304e1028]*I
+
+        TESTS::
+
+            sage: CIF = ComplexIntervalField(7)
+            sage: [CIF(2) ^ RDF(i) for i in range(-5,6)]
+            [0.03125?, 0.06250?, 0.1250?, 0.2500?, 0.5000?, 1, 2, 4, 8, 16, 32]
+            sage: pow(CIF(1), CIF(1), CIF(1))
+            Traceback (most recent call last):
+            ...
+            TypeError: pow() 3rd argument not allowed unless all arguments are integers
         """
-        if isinstance(right, (int, long, integer.Integer)):
-            return RingElement.__pow__(self, right)
-        return (self.log() * self.parent()(right)).exp()
+        if modulus is not None:
+            raise TypeError("pow() 3rd argument not allowed unless all arguments are integers")
+
+        cdef ComplexIntervalFieldElement z, z2, t = None
+        z = <ComplexIntervalFieldElement?>self
+
+        # Convert right to an integer
+        if not isinstance(right, Integer):
+            try:
+                right = Integer(right)
+            except TypeError:
+                # Exponent is really not an integer
+                return (z.log() * z._parent(right)).exp()
+
+        cdef int s = mpz_sgn((<Integer>right).value)
+        if s == 0:
+            return z._parent.one()
+        elif s < 0:
+            z = ~z
+        if not mpz_cmpabs_ui((<Integer>right).value, 1):
+            return z
+
+        # Convert exponent to fmpz_t
+        cdef fmpz_t e
+        fmpz_init(e)
+        fmpz_set_mpz(e, (<Integer>right).value)
+        fmpz_abs(e, e)
+
+        # Now we know that e >= 2.
+        # Use binary powering with special formula for squares.
+
+        # Handle first bit more efficiently:
+        if fmpz_tstbit(e, 0):
+            res = z
+        else:
+            res = z._parent.one()
+        fmpz_tdiv_q_2exp(e, e, 1)  # e >>= 1
+
+        # Allocate a temporary ComplexIntervalFieldElement
+        z2 = z._new()
+
+        while True:
+            # Compute z2 = z^2 using the formula
+            # (a + bi)^2 = (a^2 - b^2) + 2abi
+            mpfi_sqr(z2.__re, z.__re)  # a^2
+            mpfi_sqr(z2.__im, z.__im)  # b^2
+            mpfi_sub(z2.__re, z2.__re, z2.__im)  # a^2 - b^2
+            mpfi_mul(z2.__im, z.__re, z.__im)  # ab
+            mpfi_mul_2ui(z2.__im, z2.__im, 1)  # 2ab
+            z = z2
+            if fmpz_tstbit(e, 0):
+                res *= z
+            fmpz_tdiv_q_2exp(e, e, 1)  # e >>= 1
+            if fmpz_is_zero(e):
+                break
+
+            # Swap temporary elements z2 and t (allocate t first if needed)
+            if t is not None:
+                z2 = t
+            else:
+                z2 = z2._new()
+            t = z
+        fmpz_clear(e)
+        return res
 
     def _magma_init_(self, magma):
         r"""

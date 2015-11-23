@@ -524,8 +524,8 @@ class CliffordAlgebra(CombinatorialFreeModule):
             sage: Q = QuadraticForm(ZZ, 3, [1,2,3,4,5,6])
             sage: Cl = CliffordAlgebra(Q)
             sage: Cl.category()
-            Category of finite dimensional super algebras with basis
-             over (euclidean domains and infinite enumerated sets)
+            Category of finite dimensional super algebras with basis over
+             (euclidean domains and infinite enumerated sets and metric spaces)
             sage: TestSuite(Cl).run()
 
         TESTS:
@@ -1838,9 +1838,9 @@ class ExteriorAlgebra(CliffordAlgebra):
             sage: M = Matrix(QQ, [[1, 2, 3], [2, 3, 4], [3, 4, 5]])
             sage: Eform = E.lifted_bilinear_form(M)
             sage: Eform
-            Bilinear Form from Cartesian product of The exterior algebra of rank 3 over
-             Rational Field, The exterior algebra of rank 3 over Rational Field to
-             Rational Field
+            Bilinear Form from The exterior algebra of rank 3 over Rational
+            Field (+) The exterior algebra of rank 3 over Rational Field to
+            Rational Field
             sage: Eform(x*y, y*z)
             -1
             sage: Eform(x*y, y)
@@ -1908,11 +1908,11 @@ class ExteriorAlgebra(CliffordAlgebra):
                     matr = MC(MS, matrix_list, copy=False, coerce=False)
                     # Using low-level matrix constructor here
                     # because Matrix(...) does too much duck
-                    # typing (:trac:`17124`).
+                    # typing (trac #17124).
                     result += cx * cy * matr.determinant()
             return result
-        from sage.combinat.cartesian_product import CartesianProduct
-        return PoorManMap(lifted_form, domain=CartesianProduct(self, self),
+        from sage.categories.cartesian_product import cartesian_product
+        return PoorManMap(lifted_form, domain=cartesian_product([self, self]),
                           codomain=self.base_ring(),
                           name="Bilinear Form")
 

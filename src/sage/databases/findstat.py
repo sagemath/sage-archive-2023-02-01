@@ -183,8 +183,6 @@ from sage.databases.oeis import FancyTuple
 from string import join
 from ast import literal_eval
 from collections import OrderedDict
-from urllib import urlencode
-from urllib2 import Request, urlopen, HTTPError
 import re
 import webbrowser
 import tempfile
@@ -192,9 +190,13 @@ import time
 import inspect
 import json
 import cgi
-#import copy
 
-# Combinatoral collections
+# import compatible with py2 and py3
+from six.moves.urllib.parse import urlencode
+from six.moves.urllib.request import Request, urlopen
+from six.moves.urllib.error import HTTPError
+
+# Combinatorial collections
 from sage.combinat.alternating_sign_matrix import AlternatingSignMatrix, AlternatingSignMatrices
 from sage.combinat.binary_tree import BinaryTree, BinaryTrees
 from sage.combinat.core import Core, Cores

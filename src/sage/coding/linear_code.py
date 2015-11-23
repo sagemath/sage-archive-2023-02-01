@@ -212,8 +212,6 @@ TESTS::
 #                  http://www.gnu.org/licenses/
 #******************************************************************************
 
-import urllib
-import sage.modules.free_module as fm
 import sage.modules.module as module
 from sage.categories.modules import Modules
 from sage.categories.fields import Fields
@@ -235,13 +233,17 @@ from sage.rings.fraction_field import FractionField
 from sage.rings.integer_ring import IntegerRing
 from sage.rings.integer import Integer
 from sage.combinat.set_partition import SetPartitions
+from sage.modules.free_module import VectorSpace
 from sage.misc.randstate import current_randstate
 from sage.misc.decorators import rename_keyword
 from sage.misc.cachefunc import cached_method
 from sage.misc.superseded import deprecated_function_alias
 from encoder import Encoder
+
+# import compatible with py2 and py3
+from six.moves.urllib.request import urlopen
+
 ZZ = IntegerRing()
-VectorSpace = fm.VectorSpace
 
 ####################### coding theory functions ###############################
 
@@ -509,7 +511,7 @@ def best_known_linear_code_www(n, k, F, verbose=False):
     #url = "http://homepages.cwi.nl/htbin/aeb/lincodbd/"+param
     if verbose:
         print "Looking up the bounds at %s"%url
-    f = urllib.urlopen(url)
+    f = urlopen(url)
     s = f.read()
     f.close()
     #print s

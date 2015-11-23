@@ -10616,7 +10616,7 @@ cdef class Expression(CommutativeRingElement):
         from sympy.solvers.diophantine import diophantine
         from sympy import sympify
 
-        if not (solution_dict == True or solution_dict == False):
+        if solution_dict is not True and solution_dict is not False:
             raise AttributeError("Please use a tuple or list for several variables.")
         if is_a_relational(self._gobj) and self.operator() is operator.eq:
             ex = self.lhs() - self.rhs()

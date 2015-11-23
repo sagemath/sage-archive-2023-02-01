@@ -416,16 +416,6 @@ class Constant(object):
         """
         return self._name
 
-    def __cmp__(self, other):
-        """
-        EXAMPLES::
-
-            sage: cmp(pi, 0)
-            1
-        """
-        from sage.rings.real_double import RDF
-        return cmp(self._real_double_(RDF), RDF(other))
-
     def _latex_(self):
         r"""
         EXAMPLES::

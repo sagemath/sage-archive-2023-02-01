@@ -2105,10 +2105,10 @@ def py_eval_neg_infinity_for_doctests():
 # Constructors
 ##################################################################
 cdef Integer z = Integer(0)
-cdef object py_integer_from_long(long x) except +:
-    cdef Integer z = PY_NEW(Integer)
-    mpz_set_si(z.value, x)
-    return z
+from sage.rings.integer cimport smallInteger
+
+cdef py_integer_from_long(long x):
+    return smallInteger(x)
 
 cdef object py_integer_from_python_obj(object x) except +:
     return Integer(x)

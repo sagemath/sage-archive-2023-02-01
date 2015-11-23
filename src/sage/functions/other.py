@@ -1691,7 +1691,7 @@ class Function_beta(GinacFunction):
         Ginac might reorder the arguments::
 
             sage: beta(1/3, 1/2)
-            beta(1/2, 1/3)
+            beta(1/3, 1/2)
 
         The result is symbolic if exact input is given::
 

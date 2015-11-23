@@ -492,6 +492,7 @@ def create_embedding_from_approx(K, gen_image):
         f = K.defining_polynomial()
         P = gen_image.parent()
         if not P.is_exact() or f(gen_image) != 0:
+            from sage.symbolic.relation import test_relation_maxima
             RR = RealField(mpfr_prec_min())
             CC = ComplexField(mpfr_prec_min())
             if RR.has_coerce_map_from(P):
@@ -499,7 +500,7 @@ def create_embedding_from_approx(K, gen_image):
             elif CC.has_coerce_map_from(P):
                 P = CLF
             # padic lazy, when implemented, would go here
-            elif f(gen_image) != 0:
+            elif test_relation_maxima(f(gen_image) != 0):
                 raise ValueError, "%s is not a root of the defining polynomial of %s" % (gen_image, K)
         return NumberFieldEmbedding(K, P, gen_image)
     else:

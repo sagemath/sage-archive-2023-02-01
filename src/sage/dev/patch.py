@@ -601,7 +601,7 @@ class MercurialPatchMixin(object):
 
         - ``lines`` -- a list (or iterable) of strings
 
-        - ``diff_format`` -- ``'hg'``,``'git'``, or ``None`` (default:
+        - ``diff_format`` -- ``'hg'``, ``'git'``, or ``None`` (default:
           ``None``), the format of the ``diff`` lines in the patch. If
           ``None``, the format will be determined by
           :meth:`_detect_patch_diff_format`.

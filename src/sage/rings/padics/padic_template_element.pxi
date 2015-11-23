@@ -89,6 +89,22 @@ cdef class pAdicTemplateElement(pAdicGenericElement):
             sage: type(a)
             <type 'sage.rings.padics.padic_capped_relative_element.pAdicCappedRelativeElement'>
             sage: TestSuite(a).run()
+
+        TESTS::
+
+            sage: QQq.<zz> = Qq(25,4)
+            sage: FFp = Zp(5,5).residue_field()
+            sage: QQq(FFp.zero())
+            O(5)
+            sage: QQq(FFp.one())
+            1 + O(5)
+            sage: QQq(IntegerModRing(25)(15))
+            3*5 + O(5^2)
+            sage: QQq(IntegerModRing(9)(0))
+            Traceback (most recent call last):
+            ...
+            TypeError: p does not divide modulus 9
+
         """
         self.prime_pow = <PowComputer_?>parent.prime_pow
         pAdicGenericElement.__init__(self, parent)
@@ -106,11 +122,18 @@ cdef class pAdicTemplateElement(pAdicGenericElement):
         elif isinstance(x, pAdicGenericElement):
             if not ((<pAdicGenericElement>x)._is_base_elt(self.prime_pow.prime) or x.parent() is self.parent()):
                 raise NotImplementedError("conversion between padic extensions not implemented")
+        elif sage.rings.finite_rings.integer_mod.is_IntegerMod(x):
+            if not Integer(self.prime_pow.prime).divides(x.parent().order()):
+                raise TypeError("p does not divide modulus %s"%x.parent().order())
         elif sage.rings.finite_rings.element_base.is_FiniteFieldElement(x):
-            if self.parent().residue_field().has_coerce_map_from(x.parent()):
-                x = self.parent().residue_field()(x)
-            else:
-                raise NotImplementedError("conversion from finite fields other than the residue field not implemented.")
+            k = self.parent().residue_field()
+            if not k.has_coerce_map_from(x.parent()):
+                raise NotImplementedError("conversion from finite fields which do not embed into the residue field not implemented.")
+
+            x = k(x)
+            if not k.is_prime_field():
+                x = [k.prime_subfield()(c) for c in x.polynomial().list()]
+                x = x + [k.prime_subfield().zero()] * (k.degree() - len(x))
         elif isinstance(x, (Integer, Rational, list, tuple)):
             pass
         else:

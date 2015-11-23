@@ -139,7 +139,8 @@ cdef long get_ordp(x, PowComputer_class prime_pow) except? -10000:
             return maxordp
         k = mpz_remove(temp.value, value.value, prime_pow.prime.value)
     else:
-        raise TypeError("Unsupported type")
+        from sage.structure.element import parent
+        raise NotImplementedError("Can not determine p-adic valuation of an element of %s"%parent(x))
     # Should check for overflow
     return k * e
 
@@ -208,7 +209,8 @@ cdef long get_preccap(x, PowComputer_class prime_pow) except? -10000:
         if mpz_cmp_ui(temp.value, 1) != 0:
             raise TypeError("cannot coerce from the given integer mod ring (not a power of the same prime)")
     else:
-        raise RuntimeError
+        from sage.structure.element import parent
+        raise NotImplementedError("Can not determine p-adic precision of an element of %s"%parent(x))
     return k * e
 
 cdef long comb_prec(iprec, long prec) except? -10000:

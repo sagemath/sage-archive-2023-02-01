@@ -94,7 +94,7 @@ class SagePkgApplication(CmdlineSubcommands):
         """
         config: Print the configuration
 
-        $ sage-package config
+        $ sage --package config
         Configuration:
           * log = info
           * interactive = True
@@ -106,7 +106,7 @@ class SagePkgApplication(CmdlineSubcommands):
         """
         list: Print a list of all available packages
 
-        $ sage-package list | sort
+        $ sage --package list | sort
         4ti2
         arb
         atlas
@@ -121,7 +121,7 @@ class SagePkgApplication(CmdlineSubcommands):
         """
         name: Find the package name given a tarball filename
     
-        $ sage-package name pari-2.8-1564-gdeac36e.tar.gz
+        $ sage --package name pari-2.8-1564-gdeac36e.tar.gz
         pari
         """
         tarball = Tarball(os.path.basename(tarball_filename))
@@ -131,7 +131,7 @@ class SagePkgApplication(CmdlineSubcommands):
         """
         tarball: Find the tarball filename given a package name
     
-        $ sage-package tarball pari
+        $ sage --package tarball pari
         pari-2.8-1564-gdeac36e.tar.gz
         """
         package = Package(package_name)
@@ -141,7 +141,7 @@ class SagePkgApplication(CmdlineSubcommands):
         """
         apropos: Find up to 5 package names that are close to the given name
 
-        $ sage-package apropos python
+        $ sage --package apropos python
         Did you mean: cython, ipython, python2, python3, patch?
         """
         from sage_bootstrap.levenshtein import Levenshtein, DistanceExceeded
@@ -163,7 +163,7 @@ class SagePkgApplication(CmdlineSubcommands):
         """
         update: Update a package. This modifies the Sage sources. 
     
-        $ sage-package update pari 2015 --url=http://localhost/pari/tarball.tgz
+        $ sage --package update pari 2015 --url=http://localhost/pari/tarball.tgz
         """
         from sage_bootstrap.updater import PackageUpdater
         update = PackageUpdater(package_name, new_version)

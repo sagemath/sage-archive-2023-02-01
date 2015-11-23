@@ -53,14 +53,14 @@ for patch in ../patches/*.patch; do
 done
 
 # Build:
-python setup.py config_fc --noarch build
+python setup.py build
 if [ $? -ne 0 ]; then
     echo >&2 "Error building scipy."
     exit 1
 fi
 
 # Install:
-python setup.py config_fc --noarch install
+python setup.py install
 if [ $? -ne 0 ]; then
     echo >&2 "Error installing scipy."
     exit 1

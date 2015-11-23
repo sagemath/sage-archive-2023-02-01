@@ -1,7 +1,7 @@
 r"""
 Sets of morphisms between topological manifolds
 
-The class :class:`TopManifoldHomset` implements sets of morphisms between
+The class :class:`TopologicalManifoldHomset` implements sets of morphisms between
 two topological manifolds over the same topological field `K`, a morphism
 being a *continuous map* for the category of topological manifolds.
 
@@ -28,15 +28,15 @@ REFERENCES:
 
 from sage.categories.homset import Homset
 from sage.structure.parent import Parent
-from sage.structure.unique_representation import UniqueRepresentation
+from sage.misc.fast_methods import WithEqualityById
 from sage.manifolds.continuous_map import ContinuousMap
 
-class TopManifoldHomset(UniqueRepresentation, Homset):
+class TopologicalManifoldHomset(WithEqualityById, Homset):
     r"""
     Set of continuous maps between two topological manifolds.
 
     Given two topological manifolds `M` and `N` over a topological field `K`,
-    the class :class:`TopManifoldHomset` implements the set
+    the class :class:`TopologicalManifoldHomset` implements the set
     `\mathrm{Hom}(M,N)` of morphisms (i.e. continuous maps) `M\rightarrow N`.
 
     This is a Sage *parent* class, whose *element* class is
@@ -46,10 +46,10 @@ class TopManifoldHomset(UniqueRepresentation, Homset):
 
     - ``domain`` -- topological manifold `M` (domain of the morphisms belonging
       to the homset), as an instance of
-      :class:`~sage.manifolds.manifold.TopManifold`
+      :class:`~sage.manifolds.manifold.TopologicalManifold`
     - ``codomain`` -- topological manifold `N` (codomain of the morphisms
       belonging to the homset), as an instance of
-      :class:`~sage.manifolds.manifold.TopManifold`
+      :class:`~sage.manifolds.manifold.TopologicalManifold`
     - ``name`` -- (default: ``None``) string; name given to the homset; if
       ``None``, Hom(M,N) will be used
     - ``latex_name`` -- (default: ``None``) string; LaTeX symbol to denote the
@@ -60,16 +60,16 @@ class TopManifoldHomset(UniqueRepresentation, Homset):
     Set of continuous maps between a 2-dimensional manifold and a
     3-dimensional one::
 
-        sage: M = TopManifold(2, 'M')
+        sage: M = Manifold(2, 'M', type='topological')
         sage: X.<x,y> = M.chart()
-        sage: N = TopManifold(3, 'N')
+        sage: N = Manifold(3, 'N', type='topological')
         sage: Y.<u,v,w> = N.chart()
         sage: H = Hom(M, N) ; H
         Set of Morphisms from 2-dimensional topological manifold M to
          3-dimensional topological manifold N in Category of manifolds over
          Real Field with 53 bits of precision
         sage: type(H)
-        <class 'sage.manifolds.manifold_homset.TopManifoldHomset_with_category'>
+        <class 'sage.manifolds.manifold_homset.TopologicalManifoldHomset_with_category'>
         sage: H.category()
         Category of homsets of topological spaces
         sage: latex(H)
@@ -143,9 +143,9 @@ class TopManifoldHomset(UniqueRepresentation, Homset):
         r"""
         TESTS::
 
-            sage: M = TopManifold(2, 'M')
+            sage: M = Manifold(2, 'M', type='topological')
             sage: X.<x,y> = M.chart()
-            sage: N = TopManifold(3, 'N')
+            sage: N = Manifold(3, 'N', type='topological')
             sage: Y.<u,v,w> = N.chart()
             sage: H = Hom(M, N) ; H
             Set of Morphisms from 2-dimensional topological manifold M to
@@ -162,13 +162,13 @@ class TopManifoldHomset(UniqueRepresentation, Homset):
             sage: TestSuite(E).run()
 
         """
-        from sage.manifolds.manifold import TopManifold
-        if not isinstance(domain, TopManifold):
+        from sage.manifolds.manifold import TopologicalManifold
+        if not isinstance(domain, TopologicalManifold):
             raise TypeError("domain = {} is not an ".format(domain) +
-                            "instance of TopManifold")
-        if not isinstance(codomain, TopManifold):
+                            "instance of TopologicalManifold")
+        if not isinstance(codomain, TopologicalManifold):
             raise TypeError("codomain = {} is not an ".format(codomain) +
-                            "instance of TopManifold")
+                            "instance of TopologicalManifold")
         Homset.__init__(self, domain, codomain)
         if name is None:
             self._name = "Hom(" + domain._name + "," + codomain._name + ")"
@@ -189,9 +189,9 @@ class TopManifoldHomset(UniqueRepresentation, Homset):
 
         EXAMPLE::
 
-            sage: M = TopManifold(2, 'M')
+            sage: M = Manifold(2, 'M', type='topological')
             sage: X.<x,y> = M.chart()
-            sage: N = TopManifold(3, 'N')
+            sage: N = Manifold(3, 'N', type='topological')
             sage: H = Hom(M, N)
             sage: H._latex_()
             '\\mathrm{Hom}\\left(M,N\\right)'
@@ -202,6 +202,32 @@ class TopManifoldHomset(UniqueRepresentation, Homset):
         else:
            return self._latex_name
 
+    def _test_pickling(self, **options):
+        r"""
+        Test pickling.
+
+        This test is weaker than
+        :meth:`sage.structure.sage_object.SageObject._test_pickling` in that
+        it does not require ``loads(dumps(self)) == self``.
+        It however checks that ``loads(dumps(self))`` proceeds without any
+        error and results in an object that is a topological manifold homset of
+        the same type as ``self``.
+
+        TEST::
+
+            sage: M = Manifold(2, 'M', type='topological')
+            sage: X.<x,y> = M.chart()
+            sage: N = Manifold(3, 'N', type='topological')
+            sage: Y.<u,v,w> = N.chart()
+            sage: H = Hom(M, N)
+            sage: H._test_pickling()
+
+        """
+        tester = self._tester(**options)
+        from sage.misc.all import loads, dumps
+        bckp = loads(dumps(self))
+        tester.assertEqual(type(bckp), type(self))
+        tester.assertEqual(bckp._name, self._name)
 
     #### Parent methods ####
 
@@ -244,19 +270,18 @@ class TopManifoldHomset(UniqueRepresentation, Homset):
 
         EXAMPLES::
 
-            sage: M = TopManifold(2, 'M')
+            sage: M = Manifold(2, 'M', type='topological')
             sage: X.<x,y> = M.chart()
-            sage: N = TopManifold(3, 'N')
+            sage: N = Manifold(3, 'N', type='topological')
             sage: Y.<u,v,w> = N.chart()
             sage: H = Hom(M, N)
-            sage: f = H._element_constructor_({(X, Y): [x+y, x-y, x*y]},
-            ....:                             name='f'); f
+            sage: f = H({(X, Y): [x+y, x-y, x*y]}, name='f'); f
             Continuous map f from the 2-dimensional topological manifold M to
              the 3-dimensional topological manifold N
             sage: f.display()
             f: M --> N
                (x, y) |--> (u, v, w) = (x + y, x - y, x*y)
-            sage: id = Hom(M, M)._element_constructor_({}, is_identity=True)
+            sage: id = Hom(M, M)({}, is_identity=True)
             sage: id
             Identity map Id_M of the 2-dimensional topological manifold M
             sage: id.display()
@@ -281,9 +306,9 @@ class TopManifoldHomset(UniqueRepresentation, Homset):
 
         EXAMPLE::
 
-            sage: M = TopManifold(2, 'M')
+            sage: M = Manifold(2, 'M', type='topological')
             sage: X.<x,y> = M.chart()
-            sage: N = TopManifold(3, 'N')
+            sage: N = Manifold(3, 'N', type='topological')
             sage: Y.<u,v,w> = N.chart()
             sage: H = Hom(M,N)
             sage: f = H._an_element_() ; f
@@ -318,9 +343,9 @@ class TopManifoldHomset(UniqueRepresentation, Homset):
 
         EXAMPLE::
 
-            sage: M = TopManifold(2, 'M')
+            sage: M = Manifold(2, 'M', type='topological')
             sage: X.<x,y> = M.chart()
-            sage: N = TopManifold(3, 'N')
+            sage: N = Manifold(3, 'N', type='topological')
             sage: Y.<u,v,w> = N.chart()
             sage: H = Hom(M,N)
             sage: H._coerce_map_from_(ZZ)
@@ -341,9 +366,9 @@ class TopManifoldHomset(UniqueRepresentation, Homset):
 
         EXAMPLE::
 
-            sage: M = TopManifold(2, 'M')
+            sage: M = Manifold(2, 'M', type='topological')
             sage: X.<x,y> = M.chart()
-            sage: N = TopManifold(3, 'N')
+            sage: N = Manifold(3, 'N', type='topological')
             sage: Y.<u,v,w> = N.chart()
             sage: H = Hom(M,N)
             sage: f = H.__call__({(X, Y): [x+y, x-y, x*y]}, name='f') ; f
@@ -380,7 +405,7 @@ class TopManifoldHomset(UniqueRepresentation, Homset):
 
         The identity map of a 2-dimensional manifold::
 
-            sage: M = TopManifold(2, 'M')
+            sage: M = Manifold(2, 'M', type='topological')
             sage: X.<x,y> = M.chart()
             sage: H = Hom(M, M) ; H
             Set of Morphisms from 2-dimensional topological manifold M to
@@ -404,7 +429,7 @@ class TopManifoldHomset(UniqueRepresentation, Homset):
         If the homset is not a set of endomorphisms, the identity element is
         meaningless::
 
-            sage: N = TopManifold(3, 'N')
+            sage: N = Manifold(3, 'N', type='topological')
             sage: Y.<u,v,w> = N.chart()
             sage: Hom(M, N).one()
             Traceback (most recent call last):

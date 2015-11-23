@@ -10,7 +10,7 @@ Given a differentiable manifold `M`, a *differentiable curve* curve in
 
 where `I` is an interval of `\RR`.
 
-Differentiable curves are implemented by the class :class:`DiffManifoldCurve`.
+Differentiable curves are implemented by the class :class:`DifferentiableCurve`.
 
 AUTHORS:
 
@@ -35,18 +35,17 @@ REFERENCES:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from sage.symbolic.expression import Expression
 from sage.misc.latex import latex
-from sage.manifolds.point import TopManifoldPoint
+from sage.manifolds.point import TopologicalManifoldPoint
 from sage.manifolds.differentiable.diff_map import DiffMap
 from sage.manifolds.utilities import simplify_chain_real
 
-class DiffManifoldCurve(DiffMap):
+class DifferentiableCurve(DiffMap):
     r"""
     Curve in a differentiable manifold.
 
-    Given a differentiable manifold `M`, a *differentiable curve* curve in
-    `M` is a differentiable mapping
+    Given a differentiable manifold `M`, a *differentiable curve* in
+    `M` is a differentiable map
 
     .. MATH::
 
@@ -55,13 +54,13 @@ class DiffManifoldCurve(DiffMap):
     where `I` is an interval of `\RR`.
 
     This is a Sage *element* class, whose *parent* class is
-    :class:`~sage.manifolds.differentiable.manifold_homset.DiffManifoldCurveSet`.
+    :class:`~sage.manifolds.differentiable.manifold_homset.DifferentiableCurveSet`.
 
     INPUT:
 
     - ``parent`` -- the set of curves `\mathrm{Hom}(I, M)` to which the curve
       belongs; this must be an instance of
-      :class:`~sage.manifolds.differentiable.manifold_homset.DiffManifoldCurveSet`
+      :class:`~sage.manifolds.differentiable.manifold_homset.DifferentiableCurveSet`
     - ``coord_expression`` -- (default: ``None``) dictionary (possibly empty)
       of the functions of the curve parameter `t` expressing the curve in
       various charts of `M`, the keys of the dictionary being the charts and
@@ -81,13 +80,13 @@ class DiffManifoldCurve(DiffMap):
 
     The lemniscate of Gerono in the 2-dimensional Euclidean plane::
 
-        sage: M = DiffManifold(2, 'M')
+        sage: M = Manifold(2, 'M')
         sage: X.<x,y> = M.chart()
         sage: t = var('t')
         sage: c = M.curve({X: [sin(t), sin(2*t)/2]}, (t, 0, 2*pi), name='c') ; c
         Curve c in the 2-dimensional differentiable manifold M
         sage: type(c)
-        <class 'sage.manifolds.differentiable.curve.DiffManifoldCurveSet_with_category.element_class'>
+        <class 'sage.manifolds.differentiable.curve.DifferentiableCurveSet_with_category.element_class'>
 
     Instead of declaring the parameter `t`  as a symbolic variable by means
     of ``var('t')``, it is equivalent to get it as the canonical coordinate
@@ -105,7 +104,7 @@ class DiffManifoldCurve(DiffMap):
 
     .. PLOT::
 
-        M = DiffManifold(2, 'M')
+        M = Manifold(2, 'M')
         X = M.chart('x y')
         t = RealLine().canonical_coordinate()
         c = M.curve([sin(t), sin(2*t)/2], (t, 0, 2*pi), name='c')
@@ -139,8 +138,8 @@ class DiffManifoldCurve(DiffMap):
         c: (0, 2*pi) --> M
            t |--> (x, y) = (sin(t), 1/2*sin(2*t))
 
-    Another mapping method is of course ``__call__``, which returns the image
-    of a point in the curve's domain::
+    Another map method is of course ``__call__``, which returns the image of a
+    point in the curve's domain::
 
         sage: t0 = pi/2
         sage: I(t0)
@@ -178,7 +177,7 @@ class DiffManifoldCurve(DiffMap):
         c: (0, 2*pi) --> M
            t |--> (x, y) = (sin(t), 1/2*sin(2*t))
 
-    Note that a curve in `M` can also be created as a differentiable mapping
+    Note that a curve in `M` can also be created as a differentiable map
     `I\rightarrow M`::
 
         sage: c1 = I.diff_map(M, coord_functions={X: [sin(t), sin(2*t)/2]},
@@ -217,7 +216,7 @@ class DiffManifoldCurve(DiffMap):
 
     .. PLOT::
 
-        M = DiffManifold(2, 'M')
+        M = Manifold(2, 'M')
         X = M.chart('x y')
         t = RealLine().canonical_coordinate()
         c = M.curve([sin(t), sin(2*t)/2], (t, 0, 2*pi), name='c')
@@ -259,17 +258,17 @@ class DiffManifoldCurve(DiffMap):
 
         TESTS::
 
-            sage: M = DiffManifold(2, 'M')
+            sage: M = Manifold(2, 'M')
             sage: X.<x,y> = M.chart()
             sage: R.<t> = RealLine()
             sage: I = R.open_interval(0, 2*pi)
-            sage: from sage.manifolds.differentiable.curve import DiffManifoldCurve
-            sage: c = DiffManifoldCurve(Hom(I,M), coord_expression={X: (cos(t), sin(2*t))},
+            sage: from sage.manifolds.differentiable.curve import DifferentiableCurve
+            sage: c = DifferentiableCurve(Hom(I,M), coord_expression={X: (cos(t), sin(2*t))},
             ....:                   name='c') ; c
             Curve c in the 2-dimensional differentiable manifold M
 
         To pass the test suite, the curve must be constructed from the parent
-        and not from a direct call to DiffManifoldCurve::
+        and not from a direct call to DifferentiableCurve::
 
             sage: c = Hom(I,M)({X: (cos(t), sin(2*t))},  name='c') ; c
             Curve c in the 2-dimensional differentiable manifold M
@@ -311,7 +310,7 @@ class DiffManifoldCurve(DiffMap):
 
         TESTS::
 
-            sage: M = DiffManifold(2, 'M')
+            sage: M = Manifold(2, 'M')
             sage: X.<x,y> = M.chart()
             sage: R.<t> = RealLine()
             sage: c = M.curve([cos(t), sin(2*t)], (t, 0, 2*pi))
@@ -330,6 +329,36 @@ class DiffManifoldCurve(DiffMap):
         description += "in the {}".format(self._codomain)
         return description
 
+    def __reduce__(self):
+        r"""
+        Reduction function for the pickle protocole.
+
+        TEST::
+
+            sage: M = Manifold(2, 'M')
+            sage: X.<x,y> = M.chart()
+            sage: R.<t> = RealLine()
+            sage: c = M.curve([cos(t), sin(2*t)], (t, 0, 2*pi))
+            sage: c.__reduce__()
+            (<class 'sage.manifolds.differentiable.curve.DifferentiableCurveSet_with_category.element_class'>,
+             (Set of Morphisms from Real interval (0, 2*pi) to 2-dimensional
+              differentiable manifold M in Category of smooth facade manifolds
+              over Real Field with 53 bits of precision,
+              None,
+              None,
+              None,
+              False,
+              False))
+
+        Test of pickling::
+
+            sage: loads(dumps(c))
+            Curve in the 2-dimensional differentiable manifold M
+
+        """
+        return (type(self), (self.parent(), None, self._name, self._latex_name,
+                             self._is_isomorphism, self._is_identity))
+
     def coord_expr(self, chart=None):
         r"""
         Return the coordinate functions expressing the curve in a given chart.
@@ -347,8 +376,7 @@ class DiffManifoldCurve(DiffMap):
 
         Cartesian and polar expression of a curve in the Euclidean plane::
 
-            sage: DiffManifold._clear_cache_() # for doctests only
-            sage: M = DiffManifold(2, 'R^2', r'\RR^2')  # the Euclidean plane R^2
+            sage: M = Manifold(2, 'R^2', r'\RR^2')  # the Euclidean plane R^2
             sage: c_xy.<x,y> = M.chart() # Cartesian coordinate on R^2
             sage: U = M.open_subset('U', coord_def={c_xy: (y!=0, x<0)}) # the complement of the segment y=0 and x>0
             sage: c_cart = c_xy.restrict(U) # Cartesian coordinates on U
@@ -389,14 +417,14 @@ class DiffManifoldCurve(DiffMap):
         This is a redefinition of :meth:`sage.categories.map.Map.__call__`
         to allow for the direct call with some value of the parameter
         (numerical value or symbolic expression) instead
-        of the element (TopManifoldPoint) of the domain corresponding to that
+        of the element (TopologicalManifoldPoint) of the domain corresponding to that
         value.
 
         EXAMPLES:
 
         Points on circle in the Euclidean plane::
 
-            sage: M = DiffManifold(2, 'M')
+            sage: M = Manifold(2, 'M')
             sage: X.<x,y> = M.chart()
             sage: R.<t> = RealLine()
             sage: c = M.curve([cos(t), sin(t)], (t, 0, 2*pi), name='c')
@@ -415,7 +443,7 @@ class DiffManifoldCurve(DiffMap):
 
         """
         # Case of a point in the domain:
-        if isinstance(t, TopManifoldPoint):
+        if isinstance(t, TopologicalManifoldPoint):
             return DiffMap.__call__(self, t)
         # Case of a value of the canonical coordinate in the domain:
         codom = self._codomain
@@ -468,7 +496,7 @@ class DiffManifoldCurve(DiffMap):
 
         Tangent vector field to a circle curve in `\RR^2`::
 
-            sage: M = DiffManifold(2, 'R^2')
+            sage: M = Manifold(2, 'R^2')
             sage: X.<x,y> = M.chart()
             sage: R.<t> = RealLine()
             sage: c = M.curve([cos(t), sin(t)], (t, 0, 2*pi), name='c')
@@ -499,8 +527,7 @@ class DiffManifoldCurve(DiffMap):
         Tangent vector field to a curve in a non-parallelizable manifold (the
         2-sphere `S^2`): first, we introduce the 2-sphere::
 
-            sage: DiffManifold._clear_cache_() # for doctests only
-            sage: M = DiffManifold(2, 'M') # the 2-dimensional sphere S^2
+            sage: M = Manifold(2, 'M') # the 2-dimensional sphere S^2
             sage: U = M.open_subset('U') # complement of the North pole
             sage: c_xy.<x,y> = U.chart() # stereographic coordinates from the North pole
             sage: V = M.open_subset('V') # complement of the South pole
@@ -640,7 +667,7 @@ class DiffManifoldCurve(DiffMap):
 
         Plot of the lemniscate of Gerono::
 
-            sage: R2 = DiffManifold(2, 'R^2')
+            sage: R2 = Manifold(2, 'R^2')
             sage: X.<x,y> = R2.chart()
             sage: R.<t> = RealLine()
             sage: c = R2.curve([sin(t), sin(2*t)/2], (t, 0, 2*pi), name='c')
@@ -649,7 +676,7 @@ class DiffManifoldCurve(DiffMap):
 
         .. PLOT::
 
-            R2 = DiffManifold(2, 'R^2')
+            R2 = Manifold(2, 'R^2')
             X = R2.chart('x y')
             t = RealLine().canonical_coordinate()
             c = R2.curve([sin(t), sin(2*t)/2], (t, 0, 2*pi), name='c')
@@ -663,7 +690,7 @@ class DiffManifoldCurve(DiffMap):
 
         .. PLOT::
 
-            R2 = DiffManifold(2, 'R^2')
+            R2 = Manifold(2, 'R^2')
             X = R2.chart('x y')
             t = RealLine().canonical_coordinate()
             c = R2.curve([sin(t), sin(2*t)/2], (t, 0, 2*pi), name='c')
@@ -677,7 +704,7 @@ class DiffManifoldCurve(DiffMap):
 
         .. PLOT::
 
-            R2 = DiffManifold(2, 'R^2')
+            R2 = Manifold(2, 'R^2')
             X = R2.chart('x y')
             t = RealLine().canonical_coordinate()
             c = R2.curve([sin(t), sin(2*t)/2], (t, 0, 2*pi), name='c')
@@ -687,10 +714,10 @@ class DiffManifoldCurve(DiffMap):
         Plot via a mapping to another manifold: loxodrome of a sphere viewed
         in `\RR^3`::
 
-            sage: S2 = DiffManifold(2, 'S^2')
+            sage: S2 = Manifold(2, 'S^2')
             sage: U = S2.open_subset('U')
             sage: XS.<th,ph> = U.chart(r'th:(0,pi):\theta ph:(0,2*pi):\phi')
-            sage: R3 = DiffManifold(3, 'R^3')
+            sage: R3 = Manifold(3, 'R^3')
             sage: X3.<x,y,z> = R3.chart()
             sage: F = S2.diff_map(R3, {(XS, X3): [sin(th)*cos(ph),
             ....:                      sin(th)*sin(ph), cos(th)]}, name='F')
@@ -717,7 +744,7 @@ class DiffManifoldCurve(DiffMap):
 
         .. PLOT::
 
-            R2 = DiffManifold(2, 'R^2')
+            R2 = Manifold(2, 'R^2')
             X = R2.chart('x y')
             t = RealLine().canonical_coordinate()
             a, b = var('a b')

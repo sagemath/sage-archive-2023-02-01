@@ -25,12 +25,13 @@ REFERENCES:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
+from sage.structure.unique_representation import UniqueRepresentation
 from sage.misc.latex import latex
 from sage.rings.infinity import infinity, minus_infinity
 from sage.symbolic.ring import SR
-from sage.manifolds.differentiable.manifold import DiffManifold
+from sage.manifolds.differentiable.manifold import DifferentiableManifold
 
-class OpenInterval(DiffManifold):
+class OpenInterval(UniqueRepresentation, DifferentiableManifold):
     r"""
     Open interval as a 1-dimensional differentiable manifold over `\RR`.
 
@@ -66,12 +67,12 @@ class OpenInterval(DiffManifold):
         \left( 0 , \pi \right)
         sage: type(I)
         <class 'sage.manifolds.differentiable.real_line.OpenInterval_with_category'>
+
+    ``I`` is a 1-dimensional smooth manifold over `\RR`::
+
         sage: I.category()
         Category of smooth manifolds over Real Field with 53 bits of precision
-
-    ``I`` is a 1-dimensional differentiable manifold over `\RR`::
-
-        sage: isinstance(I, sage.manifolds.differentiable.manifold.DiffManifold)
+        sage: isinstance(I, sage.manifolds.differentiable.manifold.DifferentiableManifold)
         True
         sage: I.base_field()
         Real Field with 53 bits of precision
@@ -83,8 +84,7 @@ class OpenInterval(DiffManifold):
         sage: I.diff_degree()
         +Infinity
 
-    The instance is unique (as long as the constructor arguments are the
-    same)::
+    The instance is unique (as long as the constructor arguments are the same)::
 
         sage: I is OpenInterval(0, pi)
         True
@@ -300,10 +300,10 @@ class OpenInterval(DiffManifold):
 
             sage: I = OpenInterval(-1,1); I
             Real interval (-1, 1)
-            sage: TestSuite(I).run()
+            sage: TestSuite(I).run(skip='_test_elements')  # pickling of elements fails
             sage: J = OpenInterval(-oo, 2); J
             Real interval (-Infinity, 2)
-            sage: TestSuite(J).run()
+            sage: TestSuite(J).run(skip='_test_elements')  # pickling of elements fails
 
         """
         if latex_name is None:
@@ -321,7 +321,7 @@ class OpenInterval(DiffManifold):
                 raise TypeError("the argument subinterval_of must be an open "
                                 + "interval")
             ambient_manifold = subinterval_of.manifold()
-        DiffManifold.__init__(self, 1, name, latex_name=latex_name,
+        DifferentiableManifold.__init__(self, 1, name, latex_name=latex_name,
                               start_index=start_index,
                               ambient_manifold=ambient_manifold)
         if subinterval_of is None:
@@ -413,7 +413,7 @@ class OpenInterval(DiffManifold):
         Construct an element of ``self``.
 
         This is a redefinition of
-        :meth:`sage.manifolds.differentiable.DiffManifold._element_constructor_`
+        :meth:`sage.manifolds.differentiable.DifferentiableManifold._element_constructor_`
         to allow for construction from a number (considered as the canonical
         coordinate)
 
@@ -435,25 +435,25 @@ class OpenInterval(DiffManifold):
 
         OUTPUT:
 
-        - an instance of :class:`~sage.manifolds.point.TopManifoldPoint`
+        - an instance of :class:`~sage.manifolds.point.TopologicalManifoldPoint`
           representing a point in the current interval.
 
         EXAMPLES::
 
             sage: I = OpenInterval(-1, 4)
-            sage: I._element_constructor_((2,))  # standard used of TopManifoldSubset._element_constructor_
+            sage: I((2,))  # standard used of TopologicalManifoldSubset._element_constructor_
             Point on the Real interval (-1, 4)
-            sage: I._element_constructor_(2)  # specific use with a single coordinate
+            sage: I(2)  # specific use with a single coordinate
             Point on the Real interval (-1, 4)
-            sage: I._element_constructor_(2).coord()
+            sage: I(2).coord()
             (2,)
-            sage: I._element_constructor_(2) == I._element_constructor_((2,))
+            sage: I(2) == I((2,))
             True
-            sage: I._element_constructor_(pi)
+            sage: I(pi)
             Point on the Real interval (-1, 4)
-            sage: I._element_constructor_(pi).coord()
+            sage: I(pi).coord()
             (pi,)
-            sage: I._element_constructor_(8)
+            sage: I(8)
             Traceback (most recent call last):
             ...
             ValueError: the coordinates (8,) are not valid on the Chart
@@ -482,13 +482,13 @@ class OpenInterval(DiffManifold):
         - the set of curves I --> M,  where I is the current open interval
 
         See class
-        :class:`~sage.manifolds.differentiable.manifold_homset.DiffManifoldCurveSet`
+        :class:`~sage.manifolds.differentiable.manifold_homset.DifferentiableCurveSet`
         for more documentation.
 
         TESTS::
 
             sage: I = OpenInterval(-1,1)
-            sage: M = DiffManifold(3, 'M')
+            sage: M = Manifold(3, 'M')
             sage: H = I._Hom_(M); H
             Set of Morphisms from Real interval (-1, 1) to 3-dimensional
              differentiable manifold M in Category of smooth manifolds over
@@ -498,8 +498,10 @@ class OpenInterval(DiffManifold):
 
         """
         from sage.manifolds.differentiable.manifold_homset import \
-                                                           DiffManifoldCurveSet
-        return DiffManifoldCurveSet(self, other)
+                                                         DifferentiableCurveSet
+        if other not in self._homsets:
+            self._homsets[other] = DifferentiableCurveSet(self, other)
+        return self._homsets[other]
 
     def canonical_chart(self):
         r"""
@@ -712,9 +714,11 @@ class RealLine(OpenInterval):
         sage: latex(R)
         \RR
 
-    ``R`` is a 1-dimensional differentiable manifold::
+    ``R`` is a 1-dimensional real smooth manifold::
 
-        sage: isinstance(R, sage.manifolds.differentiable.manifold.DiffManifold)
+        sage: R.category()
+        Category of smooth manifolds over Real Field with 53 bits of precision
+        sage: isinstance(R, sage.manifolds.differentiable.manifold.DifferentiableManifold)
         True
         sage: dim(R)
         1
@@ -840,7 +844,7 @@ class RealLine(OpenInterval):
             Real number line R
             sage: R.category()
             Category of smooth manifolds over Real Field with 53 bits of precision
-            sage: TestSuite(R).run()
+            sage: TestSuite(R).run(skip='_test_elements')  # pickling of elements fails
 
         """
         OpenInterval.__init__(self, minus_infinity, infinity, name=name,
@@ -862,5 +866,3 @@ class RealLine(OpenInterval):
 
         """
         return "Real number line " + self._name
-
-

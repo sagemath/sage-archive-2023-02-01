@@ -153,8 +153,9 @@ void power::do_print_dflt(const print_dflt & c, unsigned level) const
 			c.s << '(';
 		// exp function prints as e^a. Printing powers of this can be
 		// confusing, so we add parenthesis if the basis is exp
-		bool exp_parenthesis = is_ex_the_function(basis, exp) &&
-			basis.op(0) != _ex1;
+		bool exp_parenthesis = is_ex_the_function(basis, exp) and
+			(not is_exactly_a<numeric>(basis.op(0)) or
+                        ex_to<numeric>(basis.op(0)) != _ex1);
 		if (exp_parenthesis)
 			c.s << '(';
 		basis.print(c, precedence());

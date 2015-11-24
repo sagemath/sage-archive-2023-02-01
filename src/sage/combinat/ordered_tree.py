@@ -785,7 +785,7 @@ class OrderedTrees(UniqueRepresentation, Parent):
 
     - ``size`` -- (optional) an integer
 
-    OUPUT:
+    OUTPUT:
 
     - the set of all ordered trees (of the given ``size`` if specified)
 

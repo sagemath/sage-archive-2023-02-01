@@ -727,7 +727,7 @@ class ToricVariety_field(ClearCacheOnPickle, AmbientSpace):
         - same as for
           :class:`~sage.schemes.generic.homset.SchemeHomset_points_toric_field`.
 
-        OUPUT:
+        OUTPUT:
 
         -
           :class:`~sage.schemes.generic.homset.SchemeHomset_points_toric_field`.
@@ -792,7 +792,7 @@ class ToricVariety_field(ClearCacheOnPickle, AmbientSpace):
         - same as for
           :class:`~sage.schemes.generic.morphism.SchemeMorphism_point_toric_field`.
 
-        OUPUT:
+        OUTPUT:
 
         :class:`~sage.schemes.generic.morphism.SchemeMorphism_point_toric_field`.
 

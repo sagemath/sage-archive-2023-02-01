@@ -105,7 +105,7 @@ def treedecomposition_exact(G, lb=-1):
     a tree decomposition of a width than matches the given lower bound
     will be computed.
 
-    INPUTS:
+    INPUT:
 
     - ``G`` -- a generic graph
 

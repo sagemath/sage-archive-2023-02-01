@@ -209,6 +209,7 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
     def __call__(self, x, check=True):
         """
         Compute the forward image of the point or subscheme ``x`` by the map ``self``.
+
         For subschemes, the forward image is computed through elimination.
         In particular, let $X = V(h_1,\ldots, h_t)$ and define the ideal
         $I = (h_1,\ldots,h_t,y_0-f_0(\bar{x}), \ldots, y_n-f_n(\bar{x}))$.
@@ -260,14 +261,14 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
                         x = self.domain().subscheme(x.defining_polynomials())
                     except (TypeError, NotImplementedError):
                         raise TypeError("%s fails to convert into the map's domain %s, but a `pushforward` method is not properly implemented"%(x, self.domain()))
-                return x.forward_image(self) #call subscheme eval
+                return x._forward_image(self) #call subscheme eval
             else: #not a projective point or subscheme
                 try:
                     x = self.domain()(x)
                 except (TypeError, NotImplementedError):
                     try:
                         x = self.domain().subscheme(x)
-                        return x.forward_image(self) #call subscheme eval
+                        return x._forward_image(self) #call subscheme eval
                     except (TypeError, NotImplementedError):
                         raise TypeError("%s fails to convert into the map's domain %s, but a `pushforward` method is not properly implemented"%(x, self.domain()))
 

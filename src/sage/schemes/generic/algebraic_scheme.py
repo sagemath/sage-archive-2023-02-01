@@ -2211,7 +2211,9 @@ class AlgebraicScheme_subscheme_projective(AlgebraicScheme_subscheme):
 
     def orbit(self, f, N):
         r"""
-        Returns the orbit of `self` by ``f``. If `N` is an integer it returns `[self,f(self),\ldots,f^N(self)]`.
+        Returns the orbit of `self` by ``f``.
+
+        If `N` is an integer it returns `[self,f(self),\ldots,f^N(self)]`.
         If `N` is a list or tuple `N=[m,k]` it returns `[f^m(self),\ldots,f^k(self)`].
         Perform the checks on subscheme initialization if ``check=True``
 
@@ -2316,7 +2318,7 @@ class AlgebraicScheme_subscheme_projective(AlgebraicScheme_subscheme):
                 Q = f(Q)
             return(Q)
 
-    def forward_image(self, f):
+    def _forward_image(self, f):
         """
         Compute the forward image of the subscheme ``self`` by the map ``f``.
 
@@ -2340,7 +2342,7 @@ class AlgebraicScheme_subscheme_projective(AlgebraicScheme_subscheme):
             sage: H = End(PS)
             sage: f = H([x^2, y^2-2*z^2, z^2])
             sage: X = PS.subscheme(y-2*z)
-            sage: f(X)
+            sage: X._forward_image(f)
             Closed subscheme of Projective Space of dimension 2 over Rational Field
             defined by:
               y - 2*z
@@ -2401,7 +2403,7 @@ class AlgebraicScheme_subscheme_projective(AlgebraicScheme_subscheme):
             sage: H = End(P)
             sage: f = H([y0*x^2+y1*z^2, y2*y^2+y3*z^2, z^2])
             sage: X = P.subscheme(x*z)
-            sage: X.forward_image(f)
+            sage: X._forward_image(f)
             Closed subscheme of Projective Space of dimension 2 over Fraction Field
             of Multivariate Polynomial Ring in y0, y1, y2, y3 over Rational Field
             defined by:
@@ -2436,6 +2438,7 @@ class AlgebraicScheme_subscheme_projective(AlgebraicScheme_subscheme):
     def preimage(self, f):
         r"""
         Given a subscheme ``self``, return the subscheme that maps to ``self`` by ``f``.
+
         In particular, `f^{-1}(V(h_1,\ldots,h_t)) = V(h_1 \circ f, \ldots, h_t \circ f)`.
 
         INPUT:

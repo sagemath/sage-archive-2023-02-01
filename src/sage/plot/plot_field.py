@@ -113,6 +113,7 @@ class PlotField(GraphicPrimitive):
             PlotField defined by a 20 x 20 vector grid
 
         TESTS:
+
         We check that :trac:`15052` is fixed
         (note that in general :trac:`15002` should be fixed)::
 

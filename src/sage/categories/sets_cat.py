@@ -902,8 +902,6 @@ class Sets(Category_singleton):
                 ....:       Parent.__init__(self, category=(FiniteEnumeratedSets(),Monoids()), facade=True)
                 sage: a = A()
 
-            TESTS::
-
                 sage: Posets().Facade()
                 Category of facade posets
                 sage: Posets().Facade().Finite() is  Posets().Finite().Facade()

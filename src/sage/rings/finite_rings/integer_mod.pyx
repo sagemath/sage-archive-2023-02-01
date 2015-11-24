@@ -3769,7 +3769,9 @@ cpdef square_root_mod_prime(IntegerMod_abstract a, p=None):
 
     - Robert Bradshaw
 
-    TESTS: Every case appears in the first hundred primes.
+    TESTS:
+
+    Every case appears in the first hundred primes.
 
     ::
 

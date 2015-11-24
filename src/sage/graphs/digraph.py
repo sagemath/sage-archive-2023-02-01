@@ -921,7 +921,7 @@ class DiGraph(GenericGraph):
 
         TESTS:
 
-        What about loops?::
+        What about loops? ::
 
             sage: g = digraphs.ButterflyGraph(3)
             sage: g.allow_loops(True)

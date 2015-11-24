@@ -664,8 +664,6 @@ cdef class NumberFieldElement_quadratic(NumberFieldElement_absolute):
             sage: sorted([5*i+1, 2, 3*i+1, 2-i])
             [3*i + 1, 5*i + 1, -i + 2, 2]
 
-        TESTS:
-
         Make some random tests to check that the order is compatible with the
         ones of the real field (RR) and complex field (CC)::
 

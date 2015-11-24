@@ -319,7 +319,9 @@ the state of Sage, so that the examples below work!
 See http://matplotlib.sourceforge.net for complete documentation
 about how to use Matplotlib.
 
-TESTS: We test dumping and loading a plot.
+TESTS:
+
+We test dumping and loading a plot.
 
 ::
 

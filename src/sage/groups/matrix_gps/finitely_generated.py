@@ -600,7 +600,7 @@ class FinitelyGeneratedMatrixGroup_gap(MatrixGroup_gap):
             C = gap("Image( small )")
         else:
             C = gap("Image( iso )")
-        return PermutationGroup(gap_group=C)
+        return PermutationGroup(gap_group=C, canonicalize=False)
 
     def module_composition_factors(self, algorithm=None):
         r"""

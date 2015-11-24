@@ -7374,6 +7374,7 @@ def RestrictedPartitions(n, S, k=None):
 
     EXAMPLES::
 
+        sage: from sage.combinat.partition import RestrictedPartitions
         sage: RestrictedPartitions(5,[3,2,1])
         doctest:...: DeprecationWarning: RestrictedPartitions is deprecated; use Partitions with the parts_in keyword instead.
         See http://trac.sagemath.org/13072 for details.
@@ -7402,6 +7403,7 @@ class RestrictedPartitions_nsk(CombinatorialClass):
 
         TESTS::
 
+            sage: from sage.combinat.partition import RestrictedPartitions
             sage: r = RestrictedPartitions(5,[3,2,1])
             doctest:...: DeprecationWarning: RestrictedPartitions is deprecated; use Partitions with the parts_in keyword instead.
             See http://trac.sagemath.org/13072 for details.
@@ -7424,6 +7426,7 @@ class RestrictedPartitions_nsk(CombinatorialClass):
 
         EXAMPLES::
 
+            sage: from sage.combinat.partition import RestrictedPartitions
             sage: [4,1] in RestrictedPartitions(5,[3,2,1])
             doctest:...: DeprecationWarning: RestrictedPartitions is deprecated; use Partitions with the parts_in keyword instead.
             See http://trac.sagemath.org/13072 for details.
@@ -7444,6 +7447,7 @@ class RestrictedPartitions_nsk(CombinatorialClass):
 
         EXAMPLES::
 
+            sage: from sage.combinat.partition import RestrictedPartitions
             sage: RestrictedPartitions(5,[3,2,1]).__repr__()
             doctest:...: DeprecationWarning: RestrictedPartitions is deprecated; use Partitions with the parts_in keyword instead.
             See http://trac.sagemath.org/13072 for details.
@@ -7465,6 +7469,7 @@ class RestrictedPartitions_nsk(CombinatorialClass):
 
         EXAMPLES::
 
+            sage: from sage.combinat.partition import RestrictedPartitions
             sage: RestrictedPartitions(8,[1,3,5,7]).list()
             doctest:...: DeprecationWarning: RestrictedPartitions is deprecated; use Partitions with the parts_in keyword instead.
             See http://trac.sagemath.org/13072 for details.
@@ -7491,6 +7496,7 @@ class RestrictedPartitions_nsk(CombinatorialClass):
 
         EXAMPLES::
 
+            sage: from sage.combinat.partition import RestrictedPartitions
             sage: RestrictedPartitions(8,[1,3,5,7]).cardinality()
             doctest:...: DeprecationWarning: RestrictedPartitions is deprecated; use Partitions with the parts_in keyword instead.
             See http://trac.sagemath.org/13072 for details.

@@ -1097,9 +1097,7 @@ ext_modules = [
               libraries=["stdc++"]),
 
     Extension("sage.numerical.backends.glpk_backend",
-              ["sage/numerical/backends/glpk_backend.pyx"],
-              language = 'c++',
-              libraries=["gmp", "glpk", "z"]),
+              ["sage/numerical/backends/glpk_backend.pyx"]),
 
     Extension("sage.numerical.backends.ppl_backend",
               ["sage/numerical/backends/ppl_backend.pyx"],
@@ -1110,9 +1108,7 @@ ext_modules = [
               libraries=["stdc++"]),
 
     Extension("sage.numerical.backends.glpk_graph_backend",
-              ["sage/numerical/backends/glpk_graph_backend.pyx"],
-              language = 'c++',
-              libraries=["gmp", "glpk", "z"]),
+              ["sage/numerical/backends/glpk_graph_backend.pyx"]),
 
     OptionalExtension("sage.numerical.backends.gurobi_backend",
               ["sage/numerical/backends/gurobi_backend.pyx"],

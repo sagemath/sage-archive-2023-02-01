@@ -1262,14 +1262,15 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
                 i = H.in_degree(e)
                 o = H.out_degree(e)
                 if i < 2 and o < 2:
-                    if certificate: cert.append(e)
-                    if i == 1 and o == 1: # Remove inside the lattice
+                    if certificate:
+                        cert.append(e)
+                    if i == 1 and o == 1:  # Remove inside the lattice
                         lower = H.neighbors_in(e)[0]
                         upper = H.neighbors_out(e)[0]
                         H.delete_vertex(e)
                         if not upper in H.depth_first_search(lower):
                             H.add_edge(lower, upper)
-                    else: # Remove the top or bottom element
+                    else:  # Remove the top or bottom element
                         H.delete_vertex(e)
                     break
             else:
@@ -1277,7 +1278,8 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
                     return False
                 k = 3
                 while True:
-                    crown = DiGraph( {i: [k+i, k+(i+1)%k] for i in range(k)} )
+                    crown = DiGraph({i: [k + i, k + (i + 1) % k]
+                                     for i in range(k)})
                     sg = H.transitive_closure().subgraph_search(crown, True)
                     if sg:
                         elms = [self[e] for e in sg]

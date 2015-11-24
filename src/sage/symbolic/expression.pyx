@@ -1807,9 +1807,34 @@ cdef class Expression(CommutativeRingElement):
         return self._maxima_init_()
 
     def decl_assume(self, decl):
+        """
+        TESTS::
+
+            sage: from sage.symbolic.assumptions import GenericDeclaration
+            sage: decl = GenericDeclaration(x, 'real')
+            sage: x.is_real()
+            False
+            sage: x.decl_assume(decl._assumption)
+            sage: x.is_real()
+            True
+        """
         pynac_assume_gdecl(self._gobj, decl)
 
     def decl_forget(self, decl):
+        """
+        TESTS::
+
+            sage: from sage.symbolic.assumptions import GenericDeclaration
+            sage: decl = GenericDeclaration(x, 'integer')
+            sage: x.is_integer()
+            False
+            sage: x.decl_assume(decl._assumption)
+            sage: x.is_integer()
+            True
+            sage: x.decl_forget(decl._assumption)
+            sage: x.is_integer()
+            False
+        """
         pynac_forget_gdecl(self._gobj, decl)
 
     def has_wild(self):
@@ -2437,7 +2462,7 @@ cdef class Expression(CommutativeRingElement):
 
             pynac_result = decide_relational(self._gobj)
             if pynac_result == relational_undecidable:
-                raise TypeError('Cannot compare: ' + repr(self))
+                raise ValueError('undecidable relation: ' + repr(self))
 
             # pynac is guaranteed to give the correct answer for comparing infinities
             if is_a_infinity(self._gobj.lhs()) or is_a_infinity(self._gobj.rhs()):
@@ -10616,8 +10641,8 @@ cdef class Expression(CommutativeRingElement):
         from sympy.solvers.diophantine import diophantine
         from sympy import sympify
 
-        if solution_dict is not True and solution_dict is not False:
-            raise AttributeError("Please use a tuple or list for several variables.")
+        if not isinstance(solution_dict, bool):
+            raise AttributeError("please use a tuple or list for several variables.")
         if is_a_relational(self._gobj) and self.operator() is operator.eq:
             ex = self.lhs() - self.rhs()
         else:

@@ -531,7 +531,7 @@ class FiniteRankFreeModuleMorphism(Morphism):
 
         - ``other`` -- a free module morphism (same parent as ``self``)
 
-        OUPUT:
+        OUTPUT:
 
         - the homomorphism resulting from the addition of ``self`` and ``other``
 
@@ -607,7 +607,7 @@ class FiniteRankFreeModuleMorphism(Morphism):
 
         - ``other`` -- a free module morphism (same parent as ``self``)
 
-        OUPUT:
+        OUTPUT:
 
         - the homomorphism resulting from the subtraction of ``other`` from
           ``self``
@@ -689,7 +689,7 @@ class FiniteRankFreeModuleMorphism(Morphism):
         - ``scalar`` -- element of the ring over which the parent of ``self``
           is a module.
 
-        OUPUT:
+        OUTPUT:
 
         - the homomorphism resulting from the multiphication of ``self`` by
           ``scalar``

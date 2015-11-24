@@ -1215,7 +1215,7 @@ class HeckeTriangleGroup(FinitelyGeneratedMatrixGroup_generic, UniqueRepresentat
         - ``primitive``  -- If ``True`` (default) then only primitive
                             elements are considered.
 
-        OUPUT:
+        OUTPUT:
 
         ``True`` if ``D`` is a primitive discriminant (a discriminant of
         a primitive element) and ``False`` otherwise.
@@ -1270,7 +1270,7 @@ class HeckeTriangleGroup(FinitelyGeneratedMatrixGroup_generic, UniqueRepresentat
                             discriminants which were gathered so far are listed
                             (however there might be missing discriminants inbetween).
 
-        OUPUT:
+        OUTPUT:
 
         A list of discriminants less than or equal to ``D``.
 

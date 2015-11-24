@@ -1185,7 +1185,7 @@ class DyckWord(CombinatorialElement):
         r"""
         Return the length of the initial run of ``self``
 
-        OUPUT:
+        OUTPUT:
 
         - a non--negative integer indicating the length of the initial rise
 

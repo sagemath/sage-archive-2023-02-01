@@ -3890,6 +3890,32 @@ class LinearCode(AbstractLinearCode):
         """
         return "Linear code of length %s, dimension %s over %s"%(self.length(), self.dimension(), self.base_ring())
 
+    def __hash__(self):
+        r"""
+        Returns the hash value of ``self``.
+
+        EXAMPLES::
+
+        sage: G = Matrix(GF(2), [[1,1,1,0,0,0,0],[1,0,0,1,1,0,0],[0,1,0,1,0,1,0],[1,1,0,1,0,0,1]])
+        sage: C = LinearCode(G)
+        sage: hash(C) #random
+        9015017528451745710
+
+        If ``C1`` and ``C2`` are two codes which only differs by the coefficients of their
+        generator matrices, their hashes are different (we check that the bug found in trac #18813
+        is fixed)::
+
+        sage: G = Matrix(GF(2), [[1,1,1,0,0,0,0],[1,0,0,1,1,0,0],[0,1,0,1,0,1,0],[1,1,0,1,0,0,1]])
+        sage: C1 = LinearCode(G)
+        sage: G = Matrix(GF(2), [[1,0,0,1,0,1,0],[0,1,0,0,1,0,0],[0,0,1,1,0,1,0],[0,0,0,0,0,0,1]])
+        sage: C2 = LinearCode(G)
+        sage: hash(C1) != hash(C2)
+        True
+        """
+        Str = str(self)
+        G = str(self.generator_matrix()) #str because mutable matrices are unhashable
+        return hash((Str, G)) ^ hash(Str) ^ hash(Str)
+
     def generator_matrix(self, encoder_name=None, **kwargs):
         r"""
         Returns a generator matrix of ``self``.

@@ -38,7 +38,7 @@ class Decoder(SageObject):
       By doing that, your subclass will have all the parameters described above initialized.
 
     - Then, you need to override one of decoding methods, either :meth:`decode_to_code` or
-      :meth:`decode_to_message`. You also need to override the method :meth:`decoding_radius`.
+      :meth:`decode_to_message`. You can also override the optional method :meth:`decoding_radius`.
 
     - By default, comparison of :class:`Decoder` (using methods ``__eq__`` and ``__ne__`` ) are
       by memory reference: if you build the same decoder twice, they will be different. If you
@@ -60,7 +60,8 @@ class Decoder(SageObject):
 
         - ``code`` -- the associated code of ``self``
 
-        - ``input_space`` -- the input space of ``self``
+        - ``input_space`` -- the input space of ``self``, which is the ambient space
+          of ``self``'s ``code``
 
         - ``connected_encoder_name`` -- the associated encoder, which will be
           used by ``self`` to recover elements from the message space
@@ -72,7 +73,7 @@ class Decoder(SageObject):
             sage: from sage.coding.decoder import Decoder
             sage: class DecoderExample(Decoder):
             ....:   def __init__(self, code):
-            ....:       in_space = code.base_field()
+            ....:       in_space = code.ambient_space()
             ....:       connected_enc = "GeneratorMatrix"
             ....:       super(DecoderExample, self).__init__(code, in_space, connected_enc)
 
@@ -85,7 +86,7 @@ class Decoder(SageObject):
         We can check its parameters::
 
             sage: D.input_space()
-            Finite Field of size 2
+            Vector space of dimension 4 over Finite Field of size 2
             sage: D.connected_encoder()
             Generator matrix-based encoder for Linear code of length 4, dimension 2 over Finite Field of size 2
             sage: D.code()
@@ -180,7 +181,7 @@ class Decoder(SageObject):
 
     def decode_to_message(self, r):
         r"""
-        Decodes ``r`` to the message space of meth:`code`.
+        Decodes ``r`` to the message space of meth:`connectoed_encoder`.
 
         This is a default implementation, which assumes that the method
         :meth:`decode_to_code` has been implemented, else it returns an exception.

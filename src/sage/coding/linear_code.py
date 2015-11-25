@@ -821,7 +821,7 @@ class AbstractLinearCode(module.Module):
         TESTS:
 
         If the length field is neither a Python int nor a Sage Integer, it will
-        raise an exception::
+        raise a exception::
 
             sage: C = CodeExample(GF(17), 10.0, 5, generator_matrix)
             Traceback (most recent call last):
@@ -829,7 +829,7 @@ class AbstractLinearCode(module.Module):
             ValueError: length must be a Python int or a Sage Integer
 
         If the name of the default decoder is not known by the class, it will raise
-        an exception::
+        a exception::
 
             sage: class CodeExample(sage.coding.linear_code.AbstractLinearCode):
             ....:   def __init__(self, field, length, dimension, generator_matrix):
@@ -844,7 +844,7 @@ class AbstractLinearCode(module.Module):
             sage: C = CodeExample(GF(17), 10, 5, generator_matrix)
             Traceback (most recent call last):
             ...
-            ValueError: You must set a valid decoder as default decoder for this code, by filling the dicitonary of registered decoders
+            ValueError: You must set a valid decoder as default decoder for this code, by filling in the dicitonary of registered decoders
 
         If the name of the default encoder is not known by the class, it will raise
         an exception::
@@ -862,7 +862,7 @@ class AbstractLinearCode(module.Module):
             sage: C = CodeExample(GF(17), 10, 5, generator_matrix)
             Traceback (most recent call last):
             ...
-            ValueError: You must set a valid encoder as default encoder for this code, by filling the dictionary of registered encoders
+            ValueError: You must set a valid encoder as default encoder for this code, by filling in the dictionary of registered encoders
 
         A ring instead of a field::
 
@@ -875,11 +875,10 @@ class AbstractLinearCode(module.Module):
             raise ValueError("length must be a Python int or a Sage Integer")
         if not base_field.is_field():
             raise ValueError("'base_field' must be a field (and {} is not one)".format(base_field))
-        self._length = Integer(length)
         if not default_encoder_name in self._registered_encoders:
-            raise ValueError("You must set a valid encoder as default encoder for this code, by filling the dictionary of registered encoders")
+            raise ValueError("You must set a valid encoder as default encoder for this code, by filling in the dictionary of registered encoders")
         if not default_decoder_name in self._registered_decoders:
-            raise ValueError("You must set a valid decoder as default decoder for this code, by filling the dicitonary of registered decoders")
+            raise ValueError("You must set a valid decoder as default decoder for this code, by filling in the dicitonary of registered decoders")
         self._length = Integer(length)
         self._default_decoder_name = default_decoder_name
         self._default_encoder_name = default_encoder_name
@@ -1610,7 +1609,7 @@ class AbstractLinearCode(module.Module):
 
         INPUT:
 
-        - ``right`` -- a vector of the same length as ``self`` over test
+        - ``right`` -- a vector of the same length as ``self`` over
           the base field of ``self``
 
         - ``algorithm`` -- (default: ``'syndrome'``) Name of the decoding algorithm which
@@ -1636,7 +1635,7 @@ class AbstractLinearCode(module.Module):
 
         INPUT:
 
-        - ``word`` -- a vector of the same length as ``self`` over test
+        - ``word`` -- a vector of the same length as ``self`` over
           the base field of ``self``
 
         - ``decoder_name`` -- (default: ``None``) Name of the decoder which will be used
@@ -3901,7 +3900,7 @@ class LinearCode(AbstractLinearCode):
         sage: hash(C) #random
         9015017528451745710
 
-        If ``C1`` and ``C2`` are two codes which only differs by the coefficients of their
+        If ``C1`` and ``C2`` are two codes which only differ by the coefficients of their
         generator matrices, their hashes are different (we check that the bug found in trac #18813
         is fixed)::
 
@@ -3914,7 +3913,7 @@ class LinearCode(AbstractLinearCode):
         """
         Str = str(self)
         G = str(self.generator_matrix()) #str because mutable matrices are unhashable
-        return hash((Str, G)) ^ hash(Str) ^ hash(Str)
+        return hash((Str, G)) ^ hash(Str) ^ hash(G)
 
     def generator_matrix(self, encoder_name=None, **kwargs):
         r"""
@@ -4033,8 +4032,12 @@ class LinearCodeGeneratorMatrixEncoder(Encoder):
 ####################### decoders ###############################
 class LinearCodeSyndromeDecoder(Decoder):
     r"""
-    Construct a decoder for Linear Codes. This decoder will use a syndrome
-    based decoding algorithm.
+    Construct a decoder for Linear Codes.
+
+    .. WARNING::
+
+        As explained in trac #19623, despite its name this decoder actually uses a
+        nearest neighbor decoding algorithm.
 
     INPUT:
 

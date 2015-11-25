@@ -4089,7 +4089,7 @@ class LinearCodeSyndromeDecoder(Decoder):
         r"""
         The vector r is a received word, so should be in the same ambient
         space V as ``self.code()``.
-        Returns the all elements in V having the same syndrome (ie, the coset r+C, sorted by weight).
+        Returns all elements in V having the same syndrome (ie, the coset r+C, sorted by weight).
 
         INPUT:
 

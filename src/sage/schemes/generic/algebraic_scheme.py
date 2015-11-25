@@ -2254,8 +2254,8 @@ class AlgebraicScheme_subscheme_projective(AlgebraicScheme_subscheme):
         ::
 
             sage: PS.<x,y,z> = ProjectiveSpace(QQ, 2)
-            sage: P1.<u,v> = ProjectiveSpace(QQ,1)
-            sage: H = Hom(PS,P1)
+            sage: P1.<u,v> = ProjectiveSpace(QQ, 1)
+            sage: H = Hom(PS, P1)
             sage: f = H([x^2, y^2])
             sage: X = PS.subscheme([x-y])
             sage: X.orbit(f,2)
@@ -2334,8 +2334,8 @@ class AlgebraicScheme_subscheme_projective(AlgebraicScheme_subscheme):
         ::
 
             sage: PS.<x,y,z> = ProjectiveSpace(ZZ, 2)
-            sage: P2.<u,v,w>=ProjectiveSpace(QQ,2)
-            sage: H = Hom(PS,P2)
+            sage: P2.<u,v,w>=ProjectiveSpace(QQ, 2)
+            sage: H = Hom(PS, P2)
             sage: f = H([x^2, y^2, z^2])
             sage: X = PS.subscheme([x-y])
             sage: X.nth_iterate(f,2)
@@ -2470,8 +2470,8 @@ class AlgebraicScheme_subscheme_projective(AlgebraicScheme_subscheme):
         ::
 
             sage: PS.<x,y,z> = ProjectiveSpace(QQ, 2)
-            sage: P1.<u,v> = ProjectiveSpace(QQ,1)
-            sage: Y= P1.subscheme([u-v])
+            sage: P1.<u,v> = ProjectiveSpace(QQ, 1)
+            sage: Y = P1.subscheme([u-v])
             sage: H = End(PS)
             sage: f = H([x^2, y^2, z^2])
             sage: Y._forward_image(f)
@@ -2558,8 +2558,8 @@ class AlgebraicScheme_subscheme_projective(AlgebraicScheme_subscheme):
         ::
 
             sage: PS.<x,y,z> = ProjectiveSpace(ZZ, 2)
-            sage: P1.<u,v> = ProjectiveSpace(ZZ,1)
-            sage: Y= P1.subscheme([u^2-v^2])
+            sage: P1.<u,v> = ProjectiveSpace(ZZ, 1)
+            sage: Y = P1.subscheme([u^2-v^2])
             sage: H = End(PS)
             sage: f = H([x^2, y^2, z^2])
             sage: Y.preimage(f)

@@ -928,7 +928,7 @@ class InfinityCrystalOfNakajimaMonomials(UniqueRepresentation, Parent):
 
     def cardinality(self):
         r"""
-        Return the cardinality of ``self``, which is always `\infty`.
+        Return the cardinality of ``self``, which is always `\infty`.i
 
         EXAMPLES::
 
@@ -937,30 +937,6 @@ class InfinityCrystalOfNakajimaMonomials(UniqueRepresentation, Parent):
             +Infinity
         """
         return Infinity
-
-    def weight_lattice_realization(self):
-        r"""
-        Return the weight lattice realization of ``self``.
-
-        EXAMPLES::
-
-            sage: M = crystals.infinity.NakajimaMonomials(['A',3,2])
-            sage: M.weight_lattice_realization()
-            Extended weight lattice of the Root system of type ['B', 2, 1]^*
-            sage: M = crystals.infinity.NakajimaMonomials(['A',2])
-            sage: M.weight_lattice_realization()
-            Ambient space of the Root system of type ['A', 2]
-            sage: A = CartanMatrix([[2,-3],[-3,2]])
-            sage: M = crystals.infinity.NakajimaMonomials(A)
-            sage: M.weight_lattice_realization()
-            Weight lattice of the Root system of type Dynkin diagram of rank 2
-        """
-        F = self.cartan_type().root_system()
-        if self.cartan_type().is_finite() and F.ambient_space() is not None:
-            return F.ambient_space()
-        if self.cartan_type().is_affine():
-            return F.weight_lattice(extended=True)
-        return F.weight_lattice()
 
 class CrystalOfNakajimaMonomialsElement(NakajimaYMonomial):
     r"""

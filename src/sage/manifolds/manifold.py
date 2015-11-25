@@ -1,5 +1,5 @@
 r"""
-Topological manifolds
+Manifolds
 
 Given a topological field `K` (in most applications, `K = \RR` or
 `K = \CC`) and a non-negative integer `n`, a *topological manifold of
@@ -10,25 +10,25 @@ dimension* `n` *over K* is a topological space `M` such that
 - every point in `M` has a neighborhood homeomorphic to `K^n`
 
 Topological manifolds are implemented via the class
-:class:`TopologicalManifold`. Open subsets of topological manifolds
-are also implemented via :class:`TopologicalManifold`, since they are
+:class:`Manifold`. Open subsets of topological manifolds
+are also implemented via :class:`Manifold`, since they are
 topological manifolds by themselves.
 
 In the current setting, topological manifolds are mostly described by
 means of charts (see :class:`~sage.manifolds.chart.Chart`).
 
-:class:`TopologicalManifold` serves as a base class for more specific
+:class:`Manifold` serves as a base class for more specific
 manifold classes.
 
 The user interface is provided by the generic function :func:`Manifold`,
-with the argument ``type`` set to ``'topological'``.
+with the argument ``structure`` set to ``'topological'``.
 
 .. RUBRIC:: Example 1: the 2-sphere as a topological manifold of dimension
   2 over `\RR`
 
 One starts by declaring `S^2` as a 2-dimensional topological manifold::
 
-    sage: M = Manifold(2, 'S^2', type='topological')
+    sage: M = Manifold(2, 'S^2', structure='topological')
     sage: M
     2-dimensional topological manifold S^2
 
@@ -175,7 +175,7 @@ Similarly::
 We declare the Riemann sphere `\CC^*` as a 1-dimensional topological manifold
 over `\CC`::
 
-    sage: M = Manifold(1, 'C*', type='topological', field='complex'); M
+    sage: M = Manifold(1, 'C*', structure='topological', field='complex'); M
     Complex 1-dimensional topological manifold C*
 
 We introduce a first open subset, which is actually
@@ -284,14 +284,20 @@ REFERENCES:
 
 from sage.categories.fields import Fields
 from sage.categories.manifolds import Manifolds
+from sage.categories.sets_cat import Sets
 from sage.rings.all import CC
 from sage.rings.real_mpfr import RR, RealField_class
 from sage.rings.complex_field import ComplexField_class
-from sage.manifolds.subset import TopologicalManifoldSubset
+from sage.rings.integer import Integer
+from sage.manifolds.abstract import AbstractSet
+from sage.manifolds.structure import TopologicalStructure, RealTopologicalStructure
 
-class TopologicalManifold(TopologicalManifoldSubset):
+#####################################################################
+## Classes
+
+class Manifold(AbstractSet):
     r"""
-    Topological manifold over a topological field `K`.
+    Manifold over a topological field `K`.
 
     Given a topological field `K` (in most applications, `K = \RR` or
     `K = \CC`) and a non-negative integer `n`, a *topological manifold of
@@ -302,7 +308,7 @@ class TopologicalManifold(TopologicalManifoldSubset):
     - every point in `M` has a neighborhood homeomorphic to `K^n`.
 
     This is a Sage *parent* class, the corresponding *element*
-    class being :class:`~sage.manifolds.point.TopologicalManifoldPoint`.
+    class being :class:`~sage.manifolds.point.ManifoldPoint`.
 
     INPUT:
 
@@ -336,13 +342,13 @@ class TopologicalManifold(TopologicalManifoldSubset):
 
     A 4-dimensional topological manifold (over `\RR`)::
 
-        sage: M = Manifold(4, 'M', latex_name=r'\mathcal{M}', type='topological')
+        sage: M = Manifold(4, 'M', latex_name=r'\mathcal{M}', structure='topological')
         sage: M
         4-dimensional topological manifold M
         sage: latex(M)
         \mathcal{M}
         sage: type(M)
-        <class 'sage.manifolds.manifold.TopologicalManifold_with_category'>
+        <class 'sage.manifolds.manifold.Manifold_with_category'>
         sage: M.base_field()
         Real Field with 53 bits of precision
         sage: dim(M)
@@ -351,28 +357,28 @@ class TopologicalManifold(TopologicalManifoldSubset):
     The input parameter ``start_index`` defines the range of indices
     on the manifold::
 
-        sage: M = Manifold(4, 'M', type='topological')
+        sage: M = Manifold(4, 'M', structure='topological')
         sage: list(M.irange())
         [0, 1, 2, 3]
-        sage: M = Manifold(4, 'M', type='topological', start_index=1)
+        sage: M = Manifold(4, 'M', structure='topological', start_index=1)
         sage: list(M.irange())
         [1, 2, 3, 4]
-        sage: list(Manifold(4, 'M', type='topological', start_index=-2).irange())
+        sage: list(Manifold(4, 'M', structure='topological', start_index=-2).irange())
         [-2, -1, 0, 1]
 
     A complex manifold::
 
-        sage: N = Manifold(3, 'N', type='topological', field='complex'); N
+        sage: N = Manifold(3, 'N', structure='topological', field='complex'); N
         Complex 3-dimensional topological manifold N
 
     A manifold over `\QQ`::
 
-        sage: N = Manifold(6, 'N', type='topological', field=QQ); N
+        sage: N = Manifold(6, 'N', structure='topological', field=QQ); N
         6-dimensional topological manifold N over the Rational Field
 
     A manifold over `\QQ_5`, the field of 5-adic numbers::
 
-        sage: N = Manifold(2, 'N', type='topological', field=Qp(5)); N
+        sage: N = Manifold(2, 'N', structure='topological', field=Qp(5)); N
         2-dimensional topological manifold N over the 5-adic Field with capped
          relative precision 20
 
@@ -407,18 +413,18 @@ class TopologicalManifold(TopologicalManifoldSubset):
         True
 
     The manifold's points are instances of class
-    :class:`~sage.manifolds.point.TopologicalManifoldPoint`::
+    :class:`~sage.manifolds.point.ManifoldPoint`::
 
-        sage: isinstance(p, sage.manifolds.point.TopologicalManifoldPoint)
+        sage: isinstance(p, sage.manifolds.point.ManifoldPoint)
         True
 
     Since an open subset of a topological manifold `M` is itself a
     topological manifold, open subsets of `M` are instances of the class
-    :class:`TopologicalManifold`::
+    :class:`Manifold`::
 
         sage: U = M.open_subset('U'); U
         Open subset U of the 4-dimensional topological manifold M
-        sage: isinstance(U, sage.manifolds.manifold.TopologicalManifold)
+        sage: isinstance(U, sage.manifolds.manifold.Manifold)
         True
         sage: U.base_field() == M.base_field()
         True
@@ -431,15 +437,15 @@ class TopologicalManifold(TopologicalManifoldSubset):
         sage: TestSuite(M).run()
 
     """
-    def __init__(self, n, name, latex_name=None, field='real', start_index=0,
-                 category=None, ambient_manifold=None):
+    def __init__(self, n, name, latex_name, field, structure,
+                 start_index, category=None):
         r"""
         Construct a topological manifold.
 
         TESTS::
 
             sage: M = Manifold(3, 'M', latex_name=r'\mathbb{M}',
-            ....:              type='topological', start_index=1)
+            ....:              structure='topological', start_index=1)
             sage: M
             3-dimensional topological manifold M
             sage: latex(M)
@@ -448,14 +454,8 @@ class TopologicalManifold(TopologicalManifoldSubset):
             3
             sage: X.<x,y,z> = M.chart()
             sage: TestSuite(M).run()
-
         """
         # Initialization of the attributes _dim, _field and _start_index:
-        from sage.rings.integer import Integer
-        if not isinstance(n, (int, Integer)):
-            raise TypeError("the manifold dimension must be an integer")
-        if n<1:
-            raise ValueError("the manifold dimension must be strictly positive")
         self._dim = n
         if field == 'real':
             self._field = RR
@@ -473,20 +473,17 @@ class TopologicalManifold(TopologicalManifoldSubset):
                 self._field_type = 'complex'
             else:
                 self._field_type = 'neither_real_nor_complex'
+
+        self._structure = structure
+        category = Manifolds(self._field).or_subcategory(category)
+        category = self._structure.subcategory(category)
+
+        AbstractSet.__init__(self, name, latex_name, self._field, category)
+
         if not isinstance(start_index, (int, Integer)):
             raise TypeError("the starting index must be an integer")
         self._sindex = start_index
-        category = Manifolds(self._field).or_subcategory(category)
-        if ambient_manifold is None:
-            ambient_manifold = self
-        elif not isinstance(ambient_manifold, TopologicalManifold):
-            raise TypeError("the argument 'ambient_manifold' must be " +
-                            "a topological manifold")
-        # Initialization as a subset of the ambient manifold (possibly itself):
-        TopologicalManifoldSubset.__init__(self, ambient_manifold, name,
-                                      latex_name=latex_name, category=category)
-        self._is_open = True
-        self._open_covers = [[self]]  # list of open covers of self
+
         self._atlas = []  # list of charts defined on subsets of self
         self._top_charts = []  # list of charts defined on subsets of self
                         # that are not subcharts of charts on larger subsets
@@ -500,23 +497,25 @@ class TopologicalManifold(TopologicalManifoldSubset):
         # domains are self (if non-empty, self is a coordinate domain):
         self._covering_charts = []
 
+        self._open_covers.add(frozenset([self]))  # set of open covers of self
+
     def _repr_(self):
         r"""
         Return a string representation of the manifold.
 
         TESTS::
 
-            sage: M = Manifold(3, 'M', type='topological')
+            sage: M = Manifold(3, 'M', structure='topological')
             sage: M._repr_()
             '3-dimensional topological manifold M'
             sage: repr(M)  # indirect doctest
             '3-dimensional topological manifold M'
             sage: M  # indirect doctest
             3-dimensional topological manifold M
-            sage: M = Manifold(3, 'M', type='topological', field='complex')
+            sage: M = Manifold(3, 'M', structure='topological', field='complex')
             sage: M._repr_()
             'Complex 3-dimensional topological manifold M'
-            sage: M = Manifold(3, 'M', type='topological', field=QQ)
+            sage: M = Manifold(3, 'M', structure='topological', field=QQ)
             sage: M._repr_()
             '3-dimensional topological manifold M over the Rational Field'
 
@@ -528,48 +527,27 @@ class TopologicalManifold(TopologicalManifoldSubset):
             'Open subset U of the 3-dimensional topological manifold M over the Rational Field'
 
         """
-        if self._manifold is self:
-            if self._field_type == 'real':
-                return "{}-dimensional topological manifold {}".format(
-                                                         self._dim, self._name)
-            elif self._field_type == 'complex':
-                return "Complex {}-dimensional topological manifold {}".format(
-                                                         self._dim, self._name)
-            return "{}-dimensional topological manifold {} over the {}".format(
-                                            self._dim, self._name, self._field)
-        else:
-            return "Open subset {} of the {}".format(self._name, self._manifold)
+        if self._field_type == 'real':
+            return "{}-dimensional {} manifold {}".format(self._dim,
+                                                          self._structure.name,
+                                                          self._name)
+        elif self._field_type == 'complex':
+            return "Complex {}-dimensional {} manifold {}".format(self._dim,
+                                                                  self._structure.name,
+                                                                  self._name)
+        return "{}-dimensional {} manifold {} over the {}".format(self._dim,
+                                        self._structure.name, self._name, self._field)
 
-    def _latex_(self):
-        r"""
-        Return a LaTeX representation of the manifold.
-
-        TESTS::
-
-            sage: M = Manifold(3, 'M', type='topological')
-            sage: M._latex_()
-            'M'
-            sage: latex(M)
-            M
-            sage: M = Manifold(3, 'M', latex_name=r'\mathcal{M}',
-            ....:              type='topological')
-            sage: M._latex_()
-            '\\mathcal{M}'
-            sage: latex(M)
-            \mathcal{M}
-
-        """
-        return self._latex_name
-
+    # TODO: Check if this is still needed...
     def __reduce__(self):
         r"""
         Reduction function for the pickle protocol.
 
         TESTS::
 
-            sage: M = Manifold(3, 'M', type='topological')
+            sage: M = Manifold(3, 'M', structure='topological')
             sage: M.__reduce__()
-            (<class 'sage.manifolds.manifold.TopologicalManifold'>,
+            (<class 'sage.manifolds.manifold.Manifold'>,
              (3,
               'M',
               'M',
@@ -579,7 +557,7 @@ class TopologicalManifold(TopologicalManifoldSubset):
               None))
             sage: U = M.open_subset('U')
             sage: U.__reduce__()
-            (<class 'sage.manifolds.manifold.TopologicalManifold'>,
+            (<class 'sage.manifolds.manifold.Manifold'>,
              (3,
               'U',
               'U',
@@ -596,13 +574,9 @@ class TopologicalManifold(TopologicalManifoldSubset):
             Open subset U of the 3-dimensional topological manifold M
 
         """
-        if self._manifold is self:
-            ambient_manifold = None
-        else:
-            ambient_manifold = self._manifold
-        return (TopologicalManifold, (self._dim, self._name, self._latex_name,
-                                      self._field, self._sindex,
-                                      self.category(), ambient_manifold))
+        return (Manifold, (self._dim, self._name, self._latex_name,
+                                      self._field, self._structure, self._sindex,
+                                      self.category()))
 
     def _test_pickling(self, **options):
         r"""
@@ -617,9 +591,9 @@ class TopologicalManifold(TopologicalManifoldSubset):
 
         TESTS::
 
-            sage: M = Manifold(3, 'M', type='topological')
+            sage: M = Manifold(3, 'M', structure='topological')
             sage: M._test_pickling()
-            sage: M = Manifold(3, 'M', type='topological', field='complex')
+            sage: M = Manifold(3, 'M', structure='topological', field='complex')
             sage: M._test_pickling()
 
         """
@@ -637,7 +611,7 @@ class TopologicalManifold(TopologicalManifoldSubset):
 
         EXAMPLES::
 
-            sage: M = Manifold(2, 'M', type='topological')
+            sage: M = Manifold(2, 'M', structure='topological')
             sage: X.<x,y> = M.chart()
             sage: p = M._an_element_(); p
             Point on the 2-dimensional topological manifold M
@@ -734,7 +708,7 @@ class TopologicalManifold(TopologicalManifoldSubset):
 
         EXAMPLES::
 
-            sage: M = Manifold(2, 'M', type='topological')
+            sage: M = Manifold(2, 'M', structure='topological')
             sage: X.<x,y> = M.chart()
             sage: p = M.point((1,2), chart=X)
             sage: M.__contains__(p)
@@ -754,9 +728,9 @@ class TopologicalManifold(TopologicalManifoldSubset):
 
         """
         # for efficiency, a quick test first:
-        if point._subset is self:
+        if point.parent() is self:
             return True
-        if point._subset.is_subset(self):
+        if point.parent().is_subset(self):
             return True
         for chart in self._atlas:
             if chart in point._coordinates:
@@ -769,13 +743,229 @@ class TopologicalManifold(TopologicalManifoldSubset):
                     return True
         return False
 
+    def manifold(self):
+        """
+        Return ``self`` since ``self`` is the ambient manifold.
+
+        This is for compatibility with :class:`TopologicalSubmanifold`.
+
+        EXAMPLES::
+
+            sage: M = Manifold(2, 'R^2', structure='topological')
+            sage: M.manifold() is M
+            True
+        """
+        return self
+
+    def open_subset(self, name, latex_name=None, coord_def={}):
+        r"""
+        Create an open subset of the manifold.
+
+        An open subset is a set that is (i) included in the manifold and (ii)
+        open with respect to the manifold's topology. It is a topological
+        manifold by itself. Hence the returned object is an instance of
+        :class:`Manifold`.
+
+        INPUT:
+
+        - ``name`` -- name given to the open subset
+        - ``latex_name`` --  (default: ``None``) LaTeX symbol to denote the
+          subset; if none is provided, it is set to ``name``
+        - ``coord_def`` -- (default: {}) definition of the subset in
+          terms of coordinates; ``coord_def`` must a be dictionary with keys
+          charts on the manifold and values the symbolic expressions formed by
+          the coordinates to define the subset.
+
+        OUTPUT:
+
+        - the open subset, as an instance of :class:`Manifold`.
+
+        EXAMPLES:
+
+        Creating an open subset of a 2-dimensional manifold::
+
+            sage: M = Manifold(2, 'M', structure='topological')
+            sage: A = M.open_subset('A'); A
+            Open subset A of the 2-dimensional topological manifold M
+
+        As an open subset of a topological manifold, ``A`` is itself a
+        topological manifold, on the same topological field and of the same
+        dimension as ``M``::
+
+            sage: isinstance(A, sage.manifolds.manifold.Manifold)
+            True
+            sage: A.base_field() == M.base_field()
+            True
+            sage: dim(A) == dim(M)
+            True
+
+        Creating an open subset of ``A``::
+
+            sage: B = A.open_subset('B'); B
+            Open subset B of the 2-dimensional topological manifold M
+
+        We have then::
+
+            sage: A.subsets()  # random (set output)
+            {Open subset B of the 2-dimensional topological manifold M,
+             Open subset A of the 2-dimensional topological manifold M}
+            sage: B.is_subset(A)
+            True
+            sage: B.is_subset(M)
+            True
+
+        Defining an open subset by some coordinate restrictions: the open
+        unit disk in `\RR^2`::
+
+            sage: M = Manifold(2, 'R^2', structure='topological')
+            sage: c_cart.<x,y> = M.chart() # Cartesian coordinates on R^2
+            sage: U = M.open_subset('U', coord_def={c_cart: x^2+y^2<1}); U
+            Open subset U of the 2-dimensional topological manifold R^2
+
+        Since the argument ``coord_def`` has been set, ``U`` is automatically
+        provided with a chart, which is the restriction of the Cartesian one
+        to ``U``::
+
+            sage: U.atlas()
+            [Chart (U, (x, y))]
+
+        Therefore, one can immediately check whether a point belongs to U::
+
+            sage: M.point((0,0)) in U
+            True
+            sage: M.point((1/2,1/3)) in U
+            True
+            sage: M.point((1,2)) in U
+            False
+
+        """
+        from sage.manifolds.subset import TopologicalSubmanifold
+        resu = TopologicalSubmanifold(ambient=self.manifold(),
+                                      name=name, latex_name=latex_name,
+                                      category=self.category())
+
+        resu._supersets.update(self._supersets)
+        for sd in self._supersets:
+            sd._subsets.add(resu)
+        self._top_subsets.add(resu)
+        # Charts on the result from the coordinate definition:
+        for chart, restrictions in coord_def.iteritems():
+            if chart not in self._atlas:
+                raise ValueError("the {} does not belong to ".format(chart) +
+                                 "the atlas of {}".format(self))
+            chart.restrict(resu, restrictions)
+        # Transition maps on the result inferred from those of self:
+        for chart1 in coord_def:
+            for chart2 in coord_def:
+                if chart2 != chart1 and (chart1, chart2) in self._coord_changes:
+                    self._coord_changes[(chart1, chart2)].restrict(resu)
+        return resu
+
+    def get_chart(self, coordinates, domain=None):
+        r"""
+        Get a chart from its coordinates.
+
+        The chart must have been previously created by the method
+        :meth:`chart`.
+
+        INPUT:
+
+        - ``coordinates`` --  single string composed of the coordinate symbols
+          separated by a space
+        - ``domain`` -- (default: ``None``) string containing the name of the
+          chart's domain, which must be a subset of the current manifold; if
+          ``None``, the current manifold is assumed.
+
+        OUTPUT:
+
+        - instance of
+          :class:`~sage.manifolds.chart.Chart` (or of the subclass
+          :class:`~sage.manifolds.chart.RealChart`) representing the chart
+          corresponding to the above specifications.
+
+        EXAMPLES::
+
+            sage: M = Manifold(2, 'M', structure='topological')
+            sage: X.<x,y> = M.chart()
+            sage: M.get_chart('x y')
+            Chart (M, (x, y))
+            sage: M.get_chart('x y') is X
+            True
+            sage: U = M.open_subset('U', coord_def={X: (y!=0,x<0)})
+            sage: Y.<r, ph> = U.chart(r'r:(0,+oo) ph:(0,2*pi):\phi')
+            sage: M.atlas()
+            [Chart (M, (x, y)), Chart (U, (x, y)), Chart (U, (r, ph))]
+            sage: M.get_chart('x y', domain='U')
+            Chart (U, (x, y))
+            sage: M.get_chart('x y', domain='U') is X.restrict(U)
+            True
+            sage: U.get_chart('r ph')
+            Chart (U, (r, ph))
+            sage: M.get_chart('r ph', domain='U')
+            Chart (U, (r, ph))
+            sage: M.get_chart('r ph', domain='U') is Y
+            True
+
+        """
+        if domain is None:
+            dom = self
+        else:
+            dom = self.get_subset(domain)
+        try:
+            return dom._charts_by_coord[coordinates]
+        except KeyError:
+            raise KeyError("the coordinates '{}' ".format(coordinates) +
+                           "do not correspond to any chart with " +
+                           "the {} as domain".format(dom))
+
+    def union(self, other, name=None, latex_name=None):
+        r"""
+        Return the union of ``self`` with ``other``.
+
+        INPUT:
+
+        - ``other`` -- another subset of the same manifold
+        - ``name`` -- ignored
+        - ``latex_name`` --  ignored
+
+        OUTPUT:
+
+        - ``self``
+
+        EXAMPLES::
+        """
+        if other.manifold() is not self:
+            raise ValueError("{} is not a subset of this manifold".format(other))
+        return self
+
+    def intersection(self, other, name=None, latex_name=None):
+        r"""
+        Return the intersection of the current subset with another subset.
+
+        INPUT:
+
+        - ``other`` -- another subset of the same manifold
+        - ``name`` -- ignored
+        - ``latex_name`` -- ignored
+
+        OUTPUT:
+
+        - instance of :class:`ManifoldSubset` representing the
+          subset that is the intersection of the current subset with ``other``
+
+        EXAMPLES::
+        """
+        if other.manifold() is not self:
+            raise ValueError("{} is not a subset of this manifold".format(other))
+        return other
+
     def dimension(self):
         r"""
         Return the dimension of the manifold over its base field.
 
         EXAMPLE::
 
-            sage: M = Manifold(2, 'M', type='topological')
+            sage: M = Manifold(2, 'M', structure='topological')
             sage: M.dimension()
             2
 
@@ -804,13 +994,13 @@ class TopologicalManifold(TopologicalManifoldSubset):
 
         EXAMPLES::
 
-            sage: M = Manifold(3, 'M', type='topological')
+            sage: M = Manifold(3, 'M', structure='topological')
             sage: M.base_field()
             Real Field with 53 bits of precision
-            sage: M = Manifold(3, 'M', type='topological', field='complex')
+            sage: M = Manifold(3, 'M', structure='topological', field='complex')
             sage: M.base_field()
             Complex Field with 53 bits of precision
-            sage: M = Manifold(3, 'M', type='topological', field=QQ)
+            sage: M = Manifold(3, 'M', structure='topological', field=QQ)
             sage: M.base_field()
             Rational Field
 
@@ -832,13 +1022,13 @@ class TopologicalManifold(TopologicalManifoldSubset):
 
         EXAMPLES::
 
-            sage: M = Manifold(3, 'M', type='topological')
+            sage: M = Manifold(3, 'M', structure='topological')
             sage: M.base_field_type()
             'real'
-            sage: M = Manifold(3, 'M', type='topological', field='complex')
+            sage: M = Manifold(3, 'M', structure='topological', field='complex')
             sage: M.base_field_type()
             'complex'
-            sage: M = Manifold(3, 'M', type='topological', field=QQ)
+            sage: M = Manifold(3, 'M', structure='topological', field=QQ)
             sage: M.base_field_type()
             'neither_real_nor_complex'
 
@@ -860,10 +1050,10 @@ class TopologicalManifold(TopologicalManifoldSubset):
 
         EXAMPLES::
 
-            sage: M = Manifold(3, 'M', type='topological')
+            sage: M = Manifold(3, 'M', structure='topological')
             sage: M.start_index()
             0
-            sage: M = Manifold(3, 'M', type='topological', start_index=1)
+            sage: M = Manifold(3, 'M', structure='topological', start_index=1)
             sage: M.start_index()
             1
 
@@ -889,7 +1079,7 @@ class TopologicalManifold(TopologicalManifoldSubset):
 
         Index range on a 4-dimensional manifold::
 
-            sage: M = Manifold(4, 'M', type='topological')
+            sage: M = Manifold(4, 'M', structure='topological')
             sage: for i in M.irange():
             ....:     print i,
             ....:
@@ -903,7 +1093,7 @@ class TopologicalManifold(TopologicalManifoldSubset):
 
         Index range on a 4-dimensional manifold with starting index=1::
 
-            sage: M = Manifold(4, 'M', type='topological', start_index=1)
+            sage: M = Manifold(4, 'M', structure='topological', start_index=1)
             sage: for i in M.irange():
             ....:     print i,
             ....:
@@ -946,7 +1136,7 @@ class TopologicalManifold(TopologicalManifoldSubset):
 
         Indices on a 2-dimensional manifold::
 
-            sage: M = Manifold(2, 'M', type='topological', start_index=1)
+            sage: M = Manifold(2, 'M', structure='topological', start_index=1)
             sage: for ind in M.index_generator(2):
             ....:     print ind
             ....:
@@ -996,7 +1186,7 @@ class TopologicalManifold(TopologicalManifoldSubset):
 
         Let us consider `\RR^2` as a 2-dimensional manifold::
 
-            sage: M = Manifold(2, 'R^2', type='topological')
+            sage: M = Manifold(2, 'R^2', structure='topological')
 
         Immediately after the manifold creation, the atlas is empty, since no
         chart has been defined yet::
@@ -1031,7 +1221,7 @@ class TopologicalManifold(TopologicalManifoldSubset):
             :meth:`top_charts`
 
         """
-        return self._atlas
+        return list(self._atlas) # Make a (shallow) copy
 
     def top_charts(self):
         r"""
@@ -1047,7 +1237,7 @@ class TopologicalManifold(TopologicalManifoldSubset):
 
         Charts on a 2-dimensional manifold::
 
-            sage: M = Manifold(2, 'M', type='topological')
+            sage: M = Manifold(2, 'M', structure='topological')
             sage: X.<x,y> = M.chart()
             sage: U = M.open_subset('U', coord_def={X: x>0})
             sage: Y.<u,v> = U.chart()
@@ -1066,7 +1256,7 @@ class TopologicalManifold(TopologicalManifoldSubset):
             manifold.
 
         """
-        return self._top_charts
+        return list(self._top_charts) # Make a (shallow) copy
 
     def default_chart(self):
         r"""
@@ -1084,7 +1274,7 @@ class TopologicalManifold(TopologicalManifoldSubset):
 
         Default chart on a 2-dimensional manifold and on some subsets::
 
-            sage: M = Manifold(2, 'M', type='topological')
+            sage: M = Manifold(2, 'M', structure='topological')
             sage: M.chart('x y')
             Chart (M, (x, y))
             sage: M.chart('u v')
@@ -1112,7 +1302,7 @@ class TopologicalManifold(TopologicalManifoldSubset):
 
         Charts on a 2-dimensional manifold::
 
-            sage: M = Manifold(2, 'M', type='topological')
+            sage: M = Manifold(2, 'M', structure='topological')
             sage: c_xy.<x,y> = M.chart()
             sage: c_uv.<u,v> = M.chart()
             sage: M.default_chart()
@@ -1157,7 +1347,7 @@ class TopologicalManifold(TopologicalManifoldSubset):
 
         Change of coordinates on a 2-dimensional manifold::
 
-            sage: M = Manifold(2, 'M', type='topological')
+            sage: M = Manifold(2, 'M', structure='topological')
             sage: c_xy.<x,y> = M.chart()
             sage: c_uv.<u,v> = M.chart()
             sage: c_xy.transition_map(c_uv, (x+y, x-y)) # defines the coord. change
@@ -1185,7 +1375,7 @@ class TopologicalManifold(TopologicalManifoldSubset):
 
         Various changes of coordinates on a 2-dimensional manifold::
 
-            sage: M = Manifold(2, 'M', type='topological')
+            sage: M = Manifold(2, 'M', structure='topological')
             sage: c_xy.<x,y> = M.chart()
             sage: c_uv.<u,v> = M.chart()
             sage: xy_to_uv = c_xy.transition_map(c_uv, [x+y, x-y])
@@ -1231,7 +1421,7 @@ class TopologicalManifold(TopologicalManifoldSubset):
 
         EXAMPLES::
 
-            sage: M = Manifold(2, 'M', type='topological')
+            sage: M = Manifold(2, 'M', structure='topological')
             sage: U = M.open_subset('U')
             sage: X.<x,y> = U.chart()
             sage: U.is_manifestly_coordinate_domain()
@@ -1243,119 +1433,7 @@ class TopologicalManifold(TopologicalManifoldSubset):
             True
 
         """
-        return not self._covering_charts == []
-
-    def open_subset(self, name, latex_name=None, coord_def={}):
-        r"""
-        Create an open subset of the manifold.
-
-        An open subset is a set that is (i) included in the manifold and (ii)
-        open with respect to the manifold's topology. It is a topological
-        manifold by itself. Hence the returned object is an instance of
-        :class:`TopologicalManifold`.
-
-        INPUT:
-
-        - ``name`` -- name given to the open subset
-        - ``latex_name`` --  (default: ``None``) LaTeX symbol to denote the
-          subset; if none is provided, it is set to ``name``
-        - ``coord_def`` -- (default: {}) definition of the subset in
-          terms of coordinates; ``coord_def`` must a be dictionary with keys
-          charts on the manifold and values the symbolic expressions formed by
-          the coordinates to define the subset.
-
-        OUTPUT:
-
-        - the open subset, as an instance of :class:`TopologicalManifold`.
-
-        EXAMPLES:
-
-        Creating an open subset of a 2-dimensional manifold::
-
-            sage: M = Manifold(2, 'M', type='topological')
-            sage: A = M.open_subset('A'); A
-            Open subset A of the 2-dimensional topological manifold M
-
-        As an open subset of a topological manifold, ``A`` is itself a
-        topological manifold, on the same topological field and of the same
-        dimension as ``M``::
-
-            sage: isinstance(A, sage.manifolds.manifold.TopologicalManifold)
-            True
-            sage: A.base_field() == M.base_field()
-            True
-            sage: dim(A) == dim(M)
-            True
-
-        Creating an open subset of ``A``::
-
-            sage: B = A.open_subset('B'); B
-            Open subset B of the 2-dimensional topological manifold M
-
-        We have then::
-
-            sage: A.subsets()  # random (set output)
-            {Open subset B of the 2-dimensional topological manifold M,
-             Open subset A of the 2-dimensional topological manifold M}
-            sage: B.is_subset(A)
-            True
-            sage: B.is_subset(M)
-            True
-
-        Defining an open subset by some coordinate restrictions: the open
-        unit disk in `\RR^2`::
-
-            sage: M = Manifold(2, 'R^2', type='topological')
-            sage: c_cart.<x,y> = M.chart() # Cartesian coordinates on R^2
-            sage: U = M.open_subset('U', coord_def={c_cart: x^2+y^2<1}); U
-            Open subset U of the 2-dimensional topological manifold R^2
-
-        Since the argument ``coord_def`` has been set, ``U`` is automatically
-        provided with a chart, which is the restriction of the Cartesian one
-        to ``U``::
-
-            sage: U.atlas()
-            [Chart (U, (x, y))]
-
-        Therefore, one can immediately check whether a point belongs to U::
-
-            sage: M.point((0,0)) in U
-            True
-            sage: M.point((1/2,1/3)) in U
-            True
-            sage: M.point((1,2)) in U
-            False
-
-        """
-        resu = TopologicalManifold(self._dim, name, latex_name=latex_name,
-                           field=self._field, start_index=self._sindex,
-                           category=self.category(),
-                           ambient_manifold=self._manifold)
-        #!# NB: the above could have been
-        # resu = type(self).__base__(...)
-        # instead of resu = TopologicalManifold(...)
-        # to allow for open_subset() of derived classes to call first this
-        # version,
-        # but, because of the category framework, it could NOT have been
-        # resu = type(self)(...)
-        # cf. the discussion in
-        # https://groups.google.com/forum/#!topic/sage-devel/jHlFxhMDf3Y
-        resu._supersets.update(self._supersets)
-        for sd in self._supersets:
-            sd._subsets.add(resu)
-        self._top_subsets.add(resu)
-        # Charts on the result from the coordinate definition:
-        for chart, restrictions in coord_def.iteritems():
-            if chart not in self._atlas:
-                raise ValueError("the {} does not belong to ".format(chart) +
-                                 "the atlas of {}".format(self))
-            chart.restrict(resu, restrictions)
-        # Transition maps on the result inferred from those of self:
-        for chart1 in coord_def:
-            for chart2 in coord_def:
-                if chart2 != chart1 and (chart1, chart2) in self._coord_changes:
-                    self._coord_changes[(chart1, chart2)].restrict(resu)
-        return resu
+        return bool(self._covering_charts)
 
     def chart(self, coordinates='', names=None):
         r"""
@@ -1417,7 +1495,7 @@ class TopologicalManifold(TopologicalManifoldSubset):
 
         Chart on a 2-dimensional manifold::
 
-            sage: M = Manifold(2, 'M', type='topological')
+            sage: M = Manifold(2, 'M', structure='topological')
             sage: U = M.open_subset('U')
             sage: X = U.chart('x y'); X
             Chart (U, (x, y))
@@ -1447,7 +1525,7 @@ class TopologicalManifold(TopologicalManifoldSubset):
         left-hand side of the chart declaration (there is then no need to
         pass the string 'x y' to chart())::
 
-            sage: M = Manifold(2, 'M', type='topological')
+            sage: M = Manifold(2, 'M', structure='topological')
             sage: U = M.open_subset('U')
             sage: X.<x,y> = U.chart(); X
             Chart (U, (x, y))
@@ -1468,70 +1546,29 @@ class TopologicalManifold(TopologicalManifoldSubset):
         especially regarding the coordinates ranges and restrictions.
 
         """
-        from sage.manifolds.chart import Chart, RealChart
-        if self._field_type == 'real':
-            return RealChart(self, coordinates=coordinates, names=names)
-        return Chart(self, coordinates=coordinates, names=names)
+        return self._structure.chart(self, coordinates=coordinates, names=names)
 
-    def get_chart(self, coordinates, domain=None):
+    def superset(self, name=None, latex_name=None, is_open=False):
         r"""
-        Get a chart from its coordinates.
-
-        The chart must have been previously created by the method
-        :meth:`chart`.
+        Return ``self`` since the only superset of the manifold is
+        the manifold.
 
         INPUT:
 
-        - ``coordinates`` --  single string composed of the coordinate symbols
-          separated by a space
-        - ``domain`` -- (default: ``None``) string containing the name of the
-          chart's domain, which must be a subset of the current manifold; if
-          ``None``, the current manifold is assumed.
-
-        OUTPUT:
-
-        - instance of
-          :class:`~sage.manifolds.chart.Chart` (or of the subclass
-          :class:`~sage.manifolds.chart.RealChart`) representing the chart
-          corresponding to the above specifications.
+        - ``name`` -- ignored
+        - ``latex_name`` -- ignored
+        - ``is_open`` -- ignored
 
         EXAMPLES::
-
-            sage: M = Manifold(2, 'M', type='topological')
-            sage: X.<x,y> = M.chart()
-            sage: M.get_chart('x y')
-            Chart (M, (x, y))
-            sage: M.get_chart('x y') is X
-            True
-            sage: U = M.open_subset('U', coord_def={X: (y!=0,x<0)})
-            sage: Y.<r, ph> = U.chart(r'r:(0,+oo) ph:(0,2*pi):\phi')
-            sage: M.atlas()
-            [Chart (M, (x, y)), Chart (U, (x, y)), Chart (U, (r, ph))]
-            sage: M.get_chart('x y', domain='U')
-            Chart (U, (x, y))
-            sage: M.get_chart('x y', domain='U') is X.restrict(U)
-            True
-            sage: U.get_chart('r ph')
-            Chart (U, (r, ph))
-            sage: M.get_chart('r ph', domain='U')
-            Chart (U, (r, ph))
-            sage: M.get_chart('r ph', domain='U') is Y
-            True
-
         """
-        if domain is None:
-            dom = self
-        else:
-            dom = self.get_subset(domain)
-        try:
-            return dom._charts_by_coord[coordinates]
-        except KeyError:
-            raise KeyError("the coordinates '{}' ".format(coordinates) +
-                           "do not correspond to any chart with " +
-                           "the {} as domain".format(dom))
+        return self
 
-def Manifold(dim, name, latex_name=None, field='real', type='smooth',
-             start_index=0, **extra_kwds):
+#####################################################################
+## Constructor function
+
+def manifold_constructor(dim, name, latex_name=None,
+                         field='real', structure='smooth',
+                         start_index=0, **extra_kwds):
     r"""
     Construct a manifold of a given type over a topological field `K`.
 
@@ -1553,8 +1590,8 @@ def Manifold(dim, name, latex_name=None, field='real', type='smooth',
         :class:`~sage.categories.topological_spaces.TopologicalSpaces`)
         for other types of manifolds
 
-    - ``type`` -- (default: ``'smooth'``) to specify the type of manifold;
-      allowed values are
+    - ``structure`` -- (default: ``'smooth'``) to specify the structure or
+      type of manifold; allowed values are
 
       - ``'topological'`` or ``'top'`` for a topological manifold
       - ``'differentiable'`` or ``'diff'`` for a differentiable manifold
@@ -1570,41 +1607,41 @@ def Manifold(dim, name, latex_name=None, field='real', type='smooth',
     OUTPUT:
 
     - a manifold of the specified type, as an instance of
-      :class:`~sage.manifolds.manifold.TopologicalManifold` or one of its
+      :class:`~sage.manifolds.manifold.Manifold` or one of its
       subclasses.
 
     EXAMPLES:
 
     A 3-dimensional real topological manifold::
 
-        sage: M = Manifold(3, 'M', type='topological'); M
+        sage: M = Manifold(3, 'M', structure='topological'); M
         3-dimensional topological manifold M
 
     Given the default value of the parameter ``field``, the above is
     equivalent to::
 
-        sage: M = Manifold(3, 'M', type='topological', field='real'); M
+        sage: M = Manifold(3, 'M', structure='topological', field='real'); M
         3-dimensional topological manifold M
 
     A complex topological manifold::
 
-        sage: M = Manifold(3, 'M', type='topological', field='complex'); M
+        sage: M = Manifold(3, 'M', structure='topological', field='complex'); M
         Complex 3-dimensional topological manifold M
 
     A topological manifold over `\QQ`::
 
-        sage: M = Manifold(3, 'M', type='topological', field=QQ); M
+        sage: M = Manifold(3, 'M', structure='topological', field=QQ); M
         3-dimensional topological manifold M over the Rational Field
 
     See the documentation of class
-    :class:`~sage.manifolds.manifold.TopologicalManifold` for more
+    :class:`~sage.manifolds.manifold.Manifold` for more
     detailed examples.
 
     .. RUBRIC:: Uniqueness of manifold objects
 
     Suppose we construct a manifold named `M`::
 
-        sage: M = Manifold(2, 'M', type='topological')
+        sage: M = Manifold(2, 'M', structure='topological')
         sage: X.<x,y> = M.chart()
 
     At some point, we change our mind and would like to restart with a new
@@ -1612,7 +1649,7 @@ def Manifold(dim, name, latex_name=None, field='real', type='smooth',
     reference::
 
         sage: M_old = M  # for reference
-        sage: M = Manifold(2, 'M', type='topological')
+        sage: M = Manifold(2, 'M', structure='topological')
 
     This results in a brand new object::
 
@@ -1666,12 +1703,21 @@ def Manifold(dim, name, latex_name=None, field='real', type='smooth',
 
         sage: isinstance(M, sage.misc.fast_methods.WithEqualityById)
         True
-
     """
-    type_ = type  # in case the built-in function type is to be restored...
-    if type_ in ['topological', 'top']:
-        return TopologicalManifold(dim, name, latex_name=latex_name,
-                                   field=field, start_index=start_index)
-    raise NotImplementedError("manifolds of type {} are not ".format(type_) +
-                              "implemented")
+    # Some sanity checks
+    if not isinstance(dim, (int, Integer)):
+        raise TypeError("the manifold dimension must be an integer")
+    if dim < 1:
+        raise ValueError("the manifold dimension must be strictly positive")
+
+    if structure in ['topological', 'top']:
+        if field == 'real':
+            structure = RealTopologicalStructure()
+        else:
+            structure = TopologicalStructure()
+    else:
+        raise NotImplementedError("manifolds of type {} are not ".format(structure) +
+                                  "implemented")
+
+    return Manifold(dim, name, latex_name, field, structure, start_index)
 

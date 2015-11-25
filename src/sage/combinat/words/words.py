@@ -113,7 +113,7 @@ def Words(alphabet=None, length=None, finite=True, infinite=True):
     raise ValueError("do not know how to make a combinatorial class of words from your input")
 
 class AbstractLanguage(Parent):
-    def __init__(self, alphabet=None):
+    def __init__(self, alphabet=None, category=None):
         r"""
         INPUT:
 
@@ -151,7 +151,10 @@ class AbstractLanguage(Parent):
         else:
             self.cmp_letters = self._cmp_letters
 
-        Parent.__init__(self, category=Sets())
+        if category is None:
+            category = Sets()
+
+        Parent.__init__(self, category=category)
 
     def alphabet(self):
         r"""

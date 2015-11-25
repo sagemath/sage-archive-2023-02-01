@@ -1764,7 +1764,7 @@ class KRTableauxTypeDTri2(KirillovReshetikhinTableaux):
         self._r = r
         self._s = s
         self._cartan_type = cartan_type
-        Parent.__init__(self, category=(RegularCrystals(), FiniteCrystals()))
+        Parent.__init__(self, category=KirillovReshetikhinCrystals())
         self.letters = CrystalOfLetters(cartan_type.classical())
 
     @lazy_attribute

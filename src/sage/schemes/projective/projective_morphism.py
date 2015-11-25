@@ -228,22 +228,73 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
 
         EXAMPLES::
 
-            sage: P.<x,y,z>=ProjectiveSpace(QQ,2)
-            sage: H=Hom(P,P)
-            sage: f=H([x^2+y^2,y^2,z^2 + y*z])
+            sage: P.<x,y,z> = ProjectiveSpace(QQ, 2)
+            sage: H = End(P)
+            sage: f = H([x^2+y^2, y^2, z^2 + y*z])
             sage: f(P([1,1,1]))
             (1 : 1/2 : 1)
 
         ::
 
-            sage: PS.<x,y,z,w>=ProjectiveSpace(QQ,3)
-            sage: H=End(PS)
-            sage: f=H([y^2,x^2,w^2,z^2])
-            sage: X=PS.subscheme([z^2+y*w])
+            sage: PS.<x,y,z> = ProjectiveSpace(QQ, 2)
+            sage: P1.<u,v> = ProjectiveSpace(QQ,1)
+            sage: H = End(P1)
+            sage: f = H([u^2, v^2])
+            sage: f(PS([0,1,1]))
+            Traceback (most recent call last):
+            ...
+            TypeError: (0 : 1 : 1) fails to convert into the map's domain Projective Space of
+            dimension 1 over Rational Field, but a `pushforward` method is not properly implemented
+
+        ::
+
+            sage: PS.<x,y> = ProjectiveSpace(QQ, 1)
+            sage: P1.<u,v> = ProjectiveSpace(QQ, 1)
+            sage: H = End(P1)
+            sage: f = H([u^2, v^2])
+            sage: f([0,1])
+            (0 : 1)
+            sage: f(PS([0,1]))
+            (0 : 1)
+
+        ::
+
+            sage: PS.<x,y,z,w> = ProjectiveSpace(QQ, 3)
+            sage: H = End(PS)
+            sage: f = H([y^2, x^2, w^2, z^2])
+            sage: X = PS.subscheme([z^2+y*w])
             sage: f(X)
             Closed subscheme of Projective Space of dimension 3 over Rational Field
             defined by:
               x*z - w^2
+
+        ::
+
+            sage: PS.<x,y,z> = ProjectiveSpace(QQ, 2)
+            sage: P1.<u,v> = ProjectiveSpace(ZZ, 1)
+            sage: H = End(PS)
+            sage: f = H([x^2, y^2, z^2])
+            sage: X = P1.subscheme([u-v])
+            sage: f(X)
+            Traceback (most recent call last):
+            ...
+            TypeError: subscheme must be in ambient space of domain of map
+
+        ::
+
+            sage: PS.<x,y,z> = ProjectiveSpace(QQ, 2)
+            sage: P1.<u,v> = ProjectiveSpace(ZZ, 1)
+            sage: H = End(P1)
+            sage: f = H([u^2, v^2])
+            sage: f([u-v])
+            Closed subscheme of Projective Space of dimension 1 over Integer Ring defined by:
+              u - v
+            sage: X = PS.subscheme([x-z])
+            sage: f([x-z])
+            Traceback (most recent call last):
+            ...
+            TypeError: [x - z] fails to convert into the map's domain Projective Space of
+            dimension 1 over Integer Ring, but a `pushforward` method is not properly implemented
         """
         from sage.schemes.projective.projective_point import SchemeMorphism_point_projective_ring
         if check:
@@ -256,11 +307,6 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
                         raise TypeError("%s fails to convert into the map's domain %s, but a `pushforward` method is not properly implemented"%(x, self.domain()))
                 #else pass it onto the eval below
             elif isinstance(x, AlgebraicScheme_subscheme_projective):
-                if self.domain() != x.ambient_space():
-                    try:
-                        x = self.domain().subscheme(x.defining_polynomials())
-                    except (TypeError, NotImplementedError):
-                        raise TypeError("%s fails to convert into the map's domain %s, but a `pushforward` method is not properly implemented"%(x, self.domain()))
                 return x._forward_image(self) #call subscheme eval
             else: #not a projective point or subscheme
                 try:

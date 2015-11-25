@@ -2211,11 +2211,10 @@ class AlgebraicScheme_subscheme_projective(AlgebraicScheme_subscheme):
 
     def orbit(self, f, N):
         r"""
-        Returns the orbit of `self` by ``f``.
+        Returns the orbit of this scheme by ``f``.
 
         If `N` is an integer it returns `[self,f(self),\ldots,f^N(self)]`.
         If `N` is a list or tuple `N=[m,k]` it returns `[f^m(self),\ldots,f^k(self)`].
-        Perform the checks on subscheme initialization if ``check=True``
 
         INPUT:
 
@@ -2225,7 +2224,7 @@ class AlgebraicScheme_subscheme_projective(AlgebraicScheme_subscheme):
 
         OUTPUT:
 
-        - a proejctive subscheme
+        - a list of projective subschemes
 
         EXAMPLES::
 
@@ -2251,22 +2250,42 @@ class AlgebraicScheme_subscheme_projective(AlgebraicScheme_subscheme):
              Closed subscheme of Projective Space of dimension 3 over Rational Field
             defined by:
                x - w]
+
+        ::
+
+            sage: PS.<x,y,z> = ProjectiveSpace(QQ, 2)
+            sage: P1.<u,v> = ProjectiveSpace(QQ,1)
+            sage: H = Hom(PS,P1)
+            sage: f = H([x^2, y^2])
+            sage: X = PS.subscheme([x-y])
+            sage: X.orbit(f,2)
+            Traceback (most recent call last):
+            ...
+            TypeError: map must be an endomorphism for iteration
+
+        ::
+
+            sage: PS.<x,y,z> = ProjectiveSpace(QQ, 2)
+            sage: H = End(PS)
+            sage: f = H([x^2, y^2, z^2])
+            sage: X = PS.subscheme([x-y])
+            sage: X.orbit(f,[-1,2])
+            Traceback (most recent call last):
+            ...
+            TypeError: orbit bounds must be non-negative
         """
         if not f.is_endomorphism():
-            raise TypeError("Map must be an endomorphism for iteration.")
-        if (isinstance(N,(list,tuple)) == False):
+            raise TypeError("map must be an endomorphism for iteration")
+        if not isinstance(N,(list,tuple)):
             N = [0,N]
-        try:
-            N[0] = ZZ(N[0])
-            N[1] = ZZ(N[1])
-        except TypeError:
-            raise TypeError("Orbit bounds must be integers")
+        N[0] = ZZ(N[0])
+        N[1] = ZZ(N[1])
         if N[0] < 0 or N[1] < 0:
-            raise TypeError("Orbit bounds must be non-negative")
+            raise TypeError("orbit bounds must be non-negative")
         if N[0] > N[1]:
             return([])
 
-        Q = copy(self)
+        Q = self
         for i in range(1, N[0]+1):
             Q = f(Q)
         Orb = [Q]
@@ -2278,8 +2297,7 @@ class AlgebraicScheme_subscheme_projective(AlgebraicScheme_subscheme):
 
     def nth_iterate(self, f, n , **kwds):
         r"""
-        For a subscheme ``self`` and a map `f` this function returns
-        the nth iterate of `self` by ``f``.
+        The nth forward image of this scheme by the map ``f``.
 
         INPUT:
 
@@ -2301,28 +2319,57 @@ class AlgebraicScheme_subscheme_projective(AlgebraicScheme_subscheme):
             defined by:
               y - z,
               x - w
+
+        ::
+
+            sage: PS.<x,y,z> = ProjectiveSpace(ZZ, 2)
+            sage: H = End(PS)
+            sage: f = H([x^2, y^2, z^2])
+            sage: X = PS.subscheme([x-y])
+            sage: X.nth_iterate(f,-2)
+            Traceback (most recent call last):
+            ...
+            TypeError: must be a forward orbit
+
+        ::
+
+            sage: PS.<x,y,z> = ProjectiveSpace(ZZ, 2)
+            sage: P2.<u,v,w>=ProjectiveSpace(QQ,2)
+            sage: H = Hom(PS,P2)
+            sage: f = H([x^2, y^2, z^2])
+            sage: X = PS.subscheme([x-y])
+            sage: X.nth_iterate(f,2)
+            Traceback (most recent call last):
+            ...
+            TypeError: map must be an endomorphism for iteration
+
+        ::
+
+            sage: PS.<x,y,z> = ProjectiveSpace(QQ, 2)
+            sage: H = End(PS)
+            sage: f = H([x^2, y^2, z^2])
+            sage: X = PS.subscheme([x-y])
+            sage: X.nth_iterate(f,2.5)
+            Traceback (most recent call last):
+            ...
+            TypeError: Attempt to coerce non-integral RealNumber to Integer
         """
         if not f.is_endomorphism():
-            raise TypeError("Map must be an endomorphism for iteration.")
-        try:
-            n = ZZ(n)
-        except TypeError:
-            raise TypeError("Iterate number must be an integer")
+            raise TypeError("map must be an endomorphism for iteration")
+        n = ZZ(n)
         if n < 0:
-            raise TypeError("Must be a forward orbit")
-        if n == 0:
-            return(self)
-        else:
-            Q = f(self)
-            for i in range(2,n+1):
-                Q = f(Q)
-            return(Q)
+            raise TypeError("must be a forward orbit")
+        Q = self
+        for i in range(n):
+            Q = f(Q)
+        return Q
 
     def _forward_image(self, f):
         """
-        Compute the forward image of the subscheme ``self`` by the map ``f``.
+        Compute the forward image of this subscheme by the morphism ``f``.
 
-        The forward image is computed through elimination.
+        The forward image is computed through elimination and ``f`` must be
+        a morphism for this to be well defined.
         In particular, let $X = V(h_1,\ldots, h_t)$ and define the ideal
         $I = (h_1,\ldots,h_t,y_0-f_0(\bar{x}), \ldots, y_n-f_n(\bar{x}))$.
         Then the elimination ideal $I_{n+1} = I \cap K[y_0,\ldots,y_n]$ is a homogeneous
@@ -2408,11 +2455,36 @@ class AlgebraicScheme_subscheme_projective(AlgebraicScheme_subscheme):
             of Multivariate Polynomial Ring in y0, y1, y2, y3 over Rational Field
             defined by:
               x*z + (-y1)*z^2
+
+            ::
+
+            sage: PS.<x,y,z> = ProjectiveSpace(ZZ, 2)
+            sage: H = End(PS)
+            sage: f = H([x^3, x*y^2, x*z^2])
+            sage: X = PS.subscheme([x-y])
+            sage: X._forward_image(f)
+            Traceback (most recent call last):
+            ...
+            TypeError: map must be a morphism
+
+        ::
+
+            sage: PS.<x,y,z> = ProjectiveSpace(QQ, 2)
+            sage: P1.<u,v> = ProjectiveSpace(QQ,1)
+            sage: Y= P1.subscheme([u-v])
+            sage: H = End(PS)
+            sage: f = H([x^2, y^2, z^2])
+            sage: Y._forward_image(f)
+            Traceback (most recent call last):
+            ...
+            TypeError: subscheme must be in ambient space of domain of map
         """
+        if not f.is_morphism():
+            raise TypeError("map must be a morphism")
         dom = f.domain()
         codom = f.codomain()
         if self.ambient_space() != dom:
-            raise TypeError("Subscheme must be in ambient space of domain of map.")
+            raise TypeError("subscheme must be in ambient space of domain of map")
         CR_dom = dom.coordinate_ring()
         CR_codom = codom.coordinate_ring()
         n = CR_dom.ngens()
@@ -2422,7 +2494,7 @@ class AlgebraicScheme_subscheme_projective(AlgebraicScheme_subscheme):
         R = PolynomialRing(f.base_ring(), n+m, 'tempvar', order = 'lex')
         Rvars = R.gens()[0 : n]
         phi = CR_dom.hom(Rvars,R)
-        zero = [0 for _ in range(n)]
+        zero = n*[0]
         psi = R.hom(zero + list(CR_codom.gens()),CR_codom)
         #set up ideal
         L = R.ideal([phi(t) for t in self.defining_polynomials()] + [R.gen(n+i) - phi(f[i]) for i in range(m)])
@@ -2437,7 +2509,7 @@ class AlgebraicScheme_subscheme_projective(AlgebraicScheme_subscheme):
 
     def preimage(self, f):
         r"""
-        Given a subscheme ``self``, return the subscheme that maps to ``self`` by ``f``.
+        The subscheme that maps to this scheme by the map ``f``.
 
         In particular, `f^{-1}(V(h_1,\ldots,h_t)) = V(h_1 \circ f, \ldots, h_t \circ f)`.
 
@@ -2464,18 +2536,43 @@ class AlgebraicScheme_subscheme_projective(AlgebraicScheme_subscheme):
 
             sage: P.<x,y,z,w,t> = ProjectiveSpace(QQ, 4)
             sage: H = End(P)
-            sage: f = H([x^2-y^2, z*y, z^2, w^2, t^2+w^2])
+            sage: f = H([x^2-y^2, y^2, z^2, w^2, t^2+w^2])
             sage: f.rational_preimages(P.subscheme([x-z, t^2, w-t]))
             Closed subscheme of Projective Space of dimension 4 over Rational Field
             defined by:
               x^2 - y^2 - z^2,
               w^4 + 2*w^2*t^2 + t^4,
               -t^2
+
+        ::
+
+            sage: PS.<x,y,z> = ProjectiveSpace(ZZ, 2)
+            sage: H = End(PS)
+            sage: f = H([x^2, x^2, x^2])
+            sage: X = PS.subscheme([x-y])
+            sage: X.preimage(f)
+            Traceback (most recent call last):
+            ...
+            TypeError: map must be a morphism
+
+        ::
+
+            sage: PS.<x,y,z> = ProjectiveSpace(ZZ, 2)
+            sage: P1.<u,v> = ProjectiveSpace(ZZ,1)
+            sage: Y= P1.subscheme([u^2-v^2])
+            sage: H = End(PS)
+            sage: f = H([x^2, y^2, z^2])
+            sage: Y.preimage(f)
+            Traceback (most recent call last):
+            ...
+            TypeError: subscheme must be in ambient space of codomain
         """
+        if not f.is_morphism():
+            raise TypeError("map must be a morphism")
         dom = f.domain()
         codom = f.codomain()
         if self.ambient_space() != codom:
-            raise TypeError("Subscheme must be in ambient space of codomain.")
+            raise TypeError("subscheme must be in ambient space of codomain")
         R = codom.coordinate_ring()
         dict = {}
         for i in range(codom.dimension_relative()+1):

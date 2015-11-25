@@ -946,7 +946,7 @@ class DiGraphGenerators():
         from sage.rings.integer import Integer
 
         my_alphabet = Words([str(i) for i in range(k+1)] if isinstance(k, Integer) else k, 1)
-        if my_alphabet.size_of_alphabet() < 2:
+        if my_alphabet.alphabet().cardinality() < 2:
             raise ValueError("Kautz digraphs are defined for degree at least one.")
 
         if vertices == 'strings':

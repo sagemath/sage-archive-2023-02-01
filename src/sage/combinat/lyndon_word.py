@@ -26,8 +26,10 @@ import __builtin__
 import necklace
 from integer_vector import IntegerVectors
 
+from sage.structure.sage_object import SageObject
+
 from sage.combinat.words.word import FiniteWord_list
-from sage.combinat.words.words import Words_all, FiniteWords_length_k_over_OrderedAlphabet
+from sage.combinat.words.words import FiniteWords
 from sage.combinat.words.alphabet import build_alphabet
 
 def LyndonWords(e=None, k=None):
@@ -133,7 +135,7 @@ class LyndonWord(FiniteWord_list):
         if check and not self.is_lyndon():
             raise ValueError("Not a Lyndon word")
 
-class LyndonWords_class(Words_all):
+class LyndonWords_class(FiniteWords):
     def __repr__(self):
         r"""
         String representation.
@@ -276,7 +278,7 @@ class LyndonWords_evaluation(CombinatorialClass):
         for z in necklace._sfc(self.e[k:], equality=True):
             yield LyndonWord([i+k+1 for i in z], check=False)
 
-class LyndonWords_nk(FiniteWords_length_k_over_OrderedAlphabet):
+class LyndonWords_nk(SageObject):
     def __init__(self, n, k):
         """
         TESTS::

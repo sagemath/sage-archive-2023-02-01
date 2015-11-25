@@ -43,13 +43,13 @@ class Word_class(SageObject):
         TESTS::
 
             sage: Word(iter([1,2,3]), length="unknown").parent()
-            Words
+            Finite words over Set of Python objects of type 'object'
             sage: Word(range(12)).parent()
-            Words
+            Finite words over Set of Python objects of type 'object'
             sage: Word(range(4), alphabet=range(6)).parent()
-            Words over {0, 1, 2, 3, 4, 5}
+            Finite words over {0, 1, 2, 3, 4, 5}
             sage: Word(iter('abac'), alphabet='abc').parent()
-            Words over {'a', 'b', 'c'}
+            Finite words over {'a', 'b', 'c'}
         """
         return self._parent
 
@@ -236,7 +236,7 @@ class Word_class(SageObject):
             sage: len(Word(iter('a'*200)))
             Traceback (most recent call last):
             ...
-            TypeError: Python len method can not return a non integer value (=+Infinity): use length method instead.
+            TypeError: Python len method can not return a non integer value (=None): use length method instead.
 
         For words of unknown length::
 
@@ -547,7 +547,11 @@ class Word_class(SageObject):
             isinstance(other, FiniteWord_class)):
             length = "finite"
         it = self._longest_common_prefix_iterator(other)
-        return self._parent(it, length=length)
+        if length == "finite":
+            parent = self._parent.factors()
+        else:
+            parent = self._parent.shift()
+        return parent(it, length=length)
 
     def _longest_periodic_prefix_iterator(self, period=1):
         r"""
@@ -616,7 +620,11 @@ class Word_class(SageObject):
         """
         from sage.combinat.words.word import FiniteWord_class
         length = 'finite' if isinstance(self, FiniteWord_class) else 'unknown'
-        return self._parent(self._longest_periodic_prefix_iterator(period), length=length)
+        if length == 'finite':
+            parent = self._parent.factors()
+        else:
+            parent = self._parent.shift()
+        return parent(self._longest_periodic_prefix_iterator(period), length=length)
 
     def is_empty(self):
         r"""
@@ -677,9 +685,9 @@ class Word_class(SageObject):
             sage: list(w._to_integer_iterator(True))
             [1, 2, 2, 3, 3, 3]
         """
-        from sage.combinat.words.words import Words_over_Alphabet
+        from sage.combinat.words.words import FiniteWords, InfiniteWords
         if use_parent_alphabet and\
-           isinstance(self.parent(), Words_over_Alphabet):
+            isinstance(self.parent(), (FiniteWords,InfiniteWords)):
             A = self.parent().alphabet()
             for letter in self:
                 yield A.rank(letter)
@@ -938,7 +946,7 @@ class Word_class(SageObject):
         -   [1] A. de Luca, A. De Luca, Pseudopalindrome closure operators
             in free monoids, Theoret. Comput. Sci. 362 (2006) 282--300.
         """
-        par = self.parent()
+        par = self.parent().factors()
         w = self[:0]
         for letter in self:
             length_before = w.length()
@@ -1024,7 +1032,7 @@ class Word_class(SageObject):
             continued fractions, RAIRO Theoret. Informatics Appl. 39 (2005)
             207-215.
         """
-        parent = self.parent()
+        parent = self.parent().factors()
         ipcw = self[:0]
         lengths = []
         for i, letter in enumerate(self):
@@ -1155,7 +1163,13 @@ class Word_class(SageObject):
             it = self._iterated_right_palindromic_closure_recursive_iterator(f=f)
         else:
             raise ValueError("algorithm (=%s) must be either 'definition' or 'recursive'")
-        return self._parent(it, length=length)
+
+        if length == "finite":
+            parent = self._parent.factors()
+        else:
+            parent = self._parent.shift()
+
+        return parent(it, length=length)
 
     def prefixes_iterator(self, max_length=None):
         r"""
@@ -1354,7 +1368,7 @@ class Word_class(SageObject):
         if isinstance(self, FiniteWord_class):
             length = "finite"
         elif isinstance(self, InfiniteWord_class):
-            length = None
+            length = "infinite"
         else:
             length = "unknown"
         from sage.combinat.words.word import Word
@@ -1484,7 +1498,7 @@ class Word_class(SageObject):
         if isinstance(self, FiniteWord_class):
             length = "finite"
         elif isinstance(self, InfiniteWord_class):
-            length = None
+            length = "infinite"
         else:
             length = "unknown"
         from sage.combinat.words.word import Word

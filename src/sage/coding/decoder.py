@@ -181,7 +181,7 @@ class Decoder(SageObject):
 
     def decode_to_message(self, r):
         r"""
-        Decodes ``r`` to the message space of meth:`connectoed_encoder`.
+        Decodes ``r`` to the message space of meth:`connected_encoder`.
 
         This is a default implementation, which assumes that the method
         :meth:`decode_to_code` has been implemented, else it returns an exception.

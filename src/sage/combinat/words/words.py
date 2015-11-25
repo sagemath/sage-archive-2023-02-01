@@ -360,6 +360,21 @@ class FiniteWords(AbstractLanguage):
         sage: W
         Finite words over {'a', 'b'}
     """
+    def cardinality(self):
+        r"""
+        Return the cardinality of this set.
+
+        EXAMPLES::
+
+            sage: FiniteWords('').cardinality()
+            1
+            sage: FiniteWords('a').cardinality()
+            +Infinity
+        """
+        if not self.alphabet():
+            return ZZ.one()
+        return Infinity
+
     def __hash__(self):
         r"""
         TESTS::
@@ -368,7 +383,6 @@ class FiniteWords(AbstractLanguage):
             12
         """
         return hash(self.alphabet()) ^ hash('finite words')
-
 
     @cached_method
     def shift(self):
@@ -1288,6 +1302,26 @@ class FiniteWords(AbstractLanguage):
                 yield WordMorphism(d, codomain=codomain)
 
 class InfiniteWords(AbstractLanguage):
+    def cardinality(self):
+        r"""
+        Return the cardinality of this set
+
+        EXAMPLES::
+
+            sage: InfiniteWords('ab').cardinality()
+            +Infinity
+            sage: InfiniteWords('a').cardinality()
+            1
+            sage: InfiniteWords('').cardinality()
+            0
+        """
+        if not self.alphabet().cardinality():
+            return ZZ.zero()
+        elif self.alphabet().cardinality().is_one():
+            return ZZ.one()
+        else:
+            return Infinity
+
     def __hash__(self):
         r"""
         TESTS::
@@ -1650,6 +1684,21 @@ class FiniteAndInfiniteWords(AbstractLanguage):
             True
         """
         AbstractLanguage.__init__(self, alphabet)
+
+    def cardinality(self):
+        r"""
+        Return the cardinality of this set of words.
+
+        EXAMPLES::
+
+            sage: Words('abcd').cardinality()
+            +Infinity
+            sage: Words('a').cardinality()
+            +Infinity
+            sage: Words('').cardinality()
+            1
+        """
+        return self.finite_words().cardinality()
 
     @lazy_attribute
     def _element_classes(self):

@@ -1224,6 +1224,7 @@ class Tableau(ClonableList):
            Seminaire Lotharingien de Combinatoire 59 (2008) B59f 
            :arxiv:`0711.2150`
         """
+        from sage.rings.all import ZZ
         from sage.sets.positive_integers import PositiveIntegers
         PI = PositiveIntegers()
         for row in self:

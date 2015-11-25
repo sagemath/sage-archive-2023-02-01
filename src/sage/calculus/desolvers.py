@@ -676,7 +676,7 @@ def desolve_laplace(de, dvar, ics=None, ivar=None):
         dvar, ivar = dvar
     elif ivar is None:
         ivars = de.variables()
-        ivars = [t for t in ivars if t != dvar]
+        ivars = [t for t in ivars if t is not dvar]
         if len(ivars) != 1:
             raise ValueError("Unable to determine independent variable, please specify.")
         ivar = ivars[0]

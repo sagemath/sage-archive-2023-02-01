@@ -2998,7 +2998,7 @@ cdef class Expression(CommutativeRingElement):
         Products of non integer powers of exp are not simplified::
 
             sage: exp(x)^I*exp(z)^(2.5)
-            e^x^I*e^z^2.50000000000000
+            (e^x)^I*(e^z)^2.50000000000000
 
         ::
 
@@ -3607,7 +3607,7 @@ cdef class Expression(CommutativeRingElement):
             sage: 0^1.0
             0.000000000000000
             sage: exp(x)^1.0
-            e^x^1.00000000000000
+            (e^x)^1.00000000000000
         """
         cdef Expression base, nexp
 
@@ -10632,7 +10632,7 @@ cdef class Expression(CommutativeRingElement):
             sage: solve_diophantine(x^2 - y, x, y)
             Traceback (most recent call last):
             ...
-            AttributeError: Please use a tuple or list for several variables.
+            AttributeError: please use a tuple or list for several variables.
 
         .. SEEALSO::
 

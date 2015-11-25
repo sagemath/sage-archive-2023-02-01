@@ -2509,6 +2509,20 @@ def strongly_regular_graph(int v,int k,int l,int mu=-1,bint existence=False,bint
 
         sage: graphs.strongly_regular_graph(2058,242,91,20,existence=True)
         False
+
+    TESTS:
+
+    Check that all of our constructions are correct::
+
+        sage: from sage.graphs.strongly_regular_db import apparently_feasible_parameters
+        sage: for p in sorted(apparently_feasible_parameters(1300)):   # not tested
+        ....:     if graphs.strongly_regular_graph(*p,existence=True): # not tested
+        ....:         try:                                             # not tested
+        ....:             _ = graphs.strongly_regular_graph(*p)        # not tested
+        ....:             print p,"built successfully"                 # not tested
+        ....:         except RuntimeError as e:                        # not tested
+        ....:             if 'Brouwer' not in str(e):                  # not tested
+        ....:                 raise                                    # not tested
     """
     load_brouwer_database()
     if mu == -1:
@@ -2718,6 +2732,7 @@ def _build_small_srg_database():
     from sage.graphs.generators.smallgraphs import HigmanSimsGraph
     from sage.graphs.generators.smallgraphs import LocalMcLaughlinGraph
     from sage.graphs.generators.smallgraphs import SuzukiGraph
+    from sage.graphs.generators.smallgraphs import MathonStronglyRegularGraph
 
     global _small_srg_database
     _small_srg_database = {
@@ -2766,7 +2781,7 @@ def _build_small_srg_database():
     cdef int n,q,k,w1,w2,K,N
     import sage.coding.two_weight_db
     for code in sage.coding.two_weight_db.data:
-        n,q,k,w1,w2 = code['n'], code['q'], code['k'], code['w1'], code['w2']
+        n,q,k,w1,w2 = code['n'], code['K'].cardinality(), code['k'], code['w1'], code['w2']
         L = LinearCode(code['M'])
         N = q**k
 

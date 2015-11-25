@@ -151,7 +151,7 @@ data = [
                "111111222222333333444444000000111111000",
                "223300133440112240112240133440123400110",
                "402340414201142301132013234230044330401"),
-        'source': "From Bouyukliev and JuriaanFrom ([BS03]_, Theorem 4.1)",
+        'source': "From Bouyukliev and Simonis ([BS03]_, Theorem 4.1)",
     },
     {
         'n' : 55,

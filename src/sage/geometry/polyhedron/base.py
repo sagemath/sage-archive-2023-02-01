@@ -2898,6 +2898,9 @@ class Polyhedron_base(Element):
             Traceback (most recent call last):
             ...
             ValueError: The polytope has to be compact.
+            sage: P = Polyhedron(vertices=[[0,0,0],[0,1,0],[1,0,0],[0,0,1]], backend='field')
+            sage: P.barycentric_subdivision()
+            A 3-dimensional polyhedron in QQ^3 defined as the convex hull of 14 vertices
         """
         if subdivision_frac is None:
             subdivision_frac = ZZ.one() / 3

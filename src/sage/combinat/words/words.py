@@ -233,7 +233,7 @@ class AbstractLanguage(Parent):
             ValueError: z not in alphabet!
         """
         for a in itertools.islice(w, length):
-            if a not in self._alphabet:
+            if a not in self.alphabet():
                 raise ValueError("%s not in alphabet!" % a)
 
     def has_letter(self, letter):
@@ -320,7 +320,8 @@ class AbstractLanguage(Parent):
             sage: W.cmp_letters('w','w')
             0
         """
-        return int(self._alphabet.rank(letter1) - self._alphabet.rank(letter2))
+        rk = self.alphabet().rank
+        return int(rk(letter1) - rk(letter2))
 
     def __eq__(self, other):
         r"""
@@ -892,7 +893,7 @@ class FiniteWords(AbstractLanguage):
             sage: FiniteWords() # indirect doctest
             Finite words over Set of Python objects of type 'object'
         """
-        return 'Finite words over {!r}'.format(self._alphabet)
+        return 'Finite words over {!r}'.format(self.alphabet())
 
     def _an_element_(self):
         r"""
@@ -1685,6 +1686,19 @@ class FiniteAndInfiniteWords(AbstractLanguage):
         """
         AbstractLanguage.__init__(self, alphabet)
 
+    def __setstate__(self, state):
+        r"""
+        TESTS::
+
+            sage: import os
+            sage: W = Words('ab')
+            sage: filename = os.path.join(tmp_dir(), 'test.sobj')
+            sage: W.save(filename)
+            sage: load(filename)
+        """
+        # add a default to support old pickles from #19619
+        self._alphabet = state.get('_alphabet', build_alphabet())
+
     def cardinality(self):
         r"""
         Return the cardinality of this set of words.
@@ -2156,6 +2170,21 @@ class Words_n(Parent):
 
         Parent.__init__(self, category=Sets(), facade=(words,))
 
+    def __setstate__(self, state):
+        r"""
+        TESTS::
+
+            sage: import os
+            sage: W = Words('ab', 10)
+            sage: filename = os.path.join(tmp_dir(), 'test.sobj')
+            sage: W.save(filename)
+            sage: load(filename)
+            Words of length 10 over {'a', 'b'}
+        """
+        # add a default to support old pickles from #19619
+        self._n = state.get('_n')
+        self._words = state.get('_words', FiniteWords())
+
     def alphabet(self):
         r"""
         Return the underlying alphabet.
@@ -2363,3 +2392,43 @@ class Words_n(Parent):
             return iter(self)
         else:
             return iter([])
+
+
+###############
+# old pickles #
+###############
+class Words_all(FiniteAndInfiniteWords):
+    r"""
+    Deprecated class used for unpickle support only!
+    """
+    _alphabet = build_alphabet()
+
+    def __init__(self):
+        r"""
+        TESTS::
+
+            sage: from sage.combinat.words.words import Words_all
+            sage: Words_all()
+            doctest:...: DeprecationWarning: Words_all is deprecated, use
+            FiniteAndInfiniteWords instead
+            See http://trac.sagemath.org/19619 for details.
+            Finite and infinite words over Set of Python objects of type 'object'
+        """
+        from sage.misc.superseded import deprecation
+        deprecation(19619, "Words_all is deprecated, use FiniteAndInfiniteWords instead")
+        FiniteAndInfiniteWords.__init__(self, None)
+
+    def __setstate__(self, state):
+        if '_element_classes' in state:
+            state.pop('_element_classes')
+        self.__dict__ = state
+
+    def _element_constructor_(self):
+        pass
+
+from sage.structure.sage_object import register_unpickle_override
+register_unpickle_override("sage.combinat.words.words", "Words_over_OrderedAlphabet", FiniteAndInfiniteWords)
+register_unpickle_override("sage.combinat.words.words", "Words_over_Alphabet", FiniteAndInfiniteWords)
+register_unpickle_override("sage.combinat.words.words", "FiniteWords_length_k_over_OrderedAlphabet", Words_n)
+register_unpickle_override("sage.combinat.words.words", "FiniteWords_over_OrderedAlphabet", FiniteWords)
+register_unpickle_override("sage.combinat.words.words", "InfiniteWords_over_OrderedAlphabet", InfiniteWords)

@@ -30,8 +30,6 @@ from sage.misc.cachefunc import cached_method
 
 from hecke_triangle_group_element import HeckeTriangleGroupElement, cyclic_representative, coerce_AA
 
-from sage.misc.decorators import rename_keyword
-
 class HeckeTriangleGroup(FinitelyGeneratedMatrixGroup_generic, UniqueRepresentation):
     r"""
     Hecke triangle group (2, n, infinity).

@@ -1148,7 +1148,7 @@ def desolve_rk4(de, dvar, ics=None, ivar=None, end_points=None, step=0.1, output
 
     Variant 2 for input - more common in numerics::
 
-        sage: _ = var('x,y')
+        sage: x,y = var('x,y')
         sage: desolve_rk4(x*y*(2-y),y,ics=[0,1],end_points=1,step=0.5)
         [[0, 1], [0.5, 1.12419127424558], [1.0, 1.461590162288825]]
 
@@ -1164,7 +1164,7 @@ def desolve_rk4(de, dvar, ics=None, ivar=None, end_points=None, step=0.1, output
     aplications use list_plot instead. To see the resulting picture
     use ``show(P)`` in Sage notebook. ::
 
-        sage: _ = var('x,y')
+        sage: x,y = var('x,y')
         sage: P=desolve_rk4(y*(2-y),y,ics=[0,.1],ivar=x,output='slope_field',end_points=[-4,6],thickness=3)
 
     ALGORITHM:

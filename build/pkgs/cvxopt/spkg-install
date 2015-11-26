@@ -37,6 +37,10 @@ if [ "$UNAME" = FreeBSD ]; then
     export CPPFLAGS="$CPPFLAGS -I$SAGE_LOCAL/include"
 fi
 
+# Delete old version
+site_packages="$SAGE_LOCAL/lib/python/site-packages"
+rm -rf "$site_packages"/cvxopt "$site_packages"/cvxopt-*.egg*
+
 # Note: Avoid shared libraries inside egg files, Trac #19467
 python setup.py install \
        --single-version-externally-managed \

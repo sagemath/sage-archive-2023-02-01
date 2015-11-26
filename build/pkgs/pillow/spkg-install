@@ -17,6 +17,10 @@ for patch in ../patches/*.patch; do
     fi
 done
 
+# Delete old version
+site_packages="$SAGE_LOCAL/lib/python/site-packages"
+rm -rf "$site_packages"/PIL "$site_packages"/PIL-*.egg* "$site_packages"/Pillow-*.egg*
+
 # Note: Avoid shared libraries inside egg files, Trac #19467
 python setup.py install \
        --single-version-externally-managed \

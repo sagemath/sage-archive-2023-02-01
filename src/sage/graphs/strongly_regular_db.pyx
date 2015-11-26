@@ -2337,6 +2337,7 @@ def SRG_630_85_20_10():
         (630, 85, 20, 10)
     """
     from sage.graphs.generators.intersection import IntersectionGraph
+    from sage.graphs.generators.smallgraphs import HoffmanSingletonGraph
     hs = HoffmanSingletonGraph()
     P = range(5)+range(30,35)          # a Petersen in hs
     mc = [0, 1, 5, 6, 12, 13, 16, 17, 22, 23, 29, 33, 39, 42, 47]
@@ -2362,6 +2363,7 @@ def SRG_126_50_13_24():
         (126, 50, 13, 24)
     """
     from sage.graphs.strongly_regular_db import SRG_175_72_20_36
+    from sage.graphs.generators.smallgraphs import HoffmanSingletonGraph
     hs = HoffmanSingletonGraph()
     s = set(hs.vertices()).difference(hs.neighbors(0)+[0])
     return SRG_175_72_20_36().subgraph(hs.edge_boundary(s,s))

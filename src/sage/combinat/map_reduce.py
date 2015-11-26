@@ -207,6 +207,13 @@ Each worker is a process (:class:`RESetMapReduceWorker` inherits from
 - ``worker._thief`` -- a :class:`Thread` which is in charge of stealing from
   ``worker._todo``.
 
+Here is a schematic of the architecture:
+
+.. _figure-map_reduce_arch:
+
+.. figure:: ../../media/map_reduce_arch.png
+
+
 How thefts are performed
 ------------------------
 
@@ -223,7 +230,7 @@ From the point of view of ``W`` here is what happens:
 - ``W`` signals to the master that it is idle :meth:`master._signal_task_done`;
 - ``W`` chose a victim ``V`` at random;
 - ``W`` sends a request to ``V`` : it puts its identifier into ``V._request``;
-- ``W`` tries to read a node from ``W._read_task``. Then three things can happen:
+- ``W`` tries to read a node from ``W._read_task``. Then three things may happen:
 
   + a proper node is read. Then the theft was a success and ``W`` starts
     working locally on the received node.
@@ -235,13 +242,24 @@ From the point of view of ``W`` here is what happens:
     shutdown.
 
 We now describe the protocol on the victims side. Each worker process contains
-a :class:`Thread` which acts like some kinds of Troyan horse during theft. It
-is normally blocked waiting for a steal request.
+a :class:`Thread` which we call ``T`` for thief which acts like some kinds of
+Troyan horse during theft. It is normally blocked waiting for a steal request.
 
-From the point of view of ``V` here is what happens:
+From the point of view of ``V`` and ``T``, here is what happens:
 
+- during normal time ``T`` is blocked waiting on ``V._request``;
+- upon steal request, ``T`` wakes up receiving the identification of ``W``;
+- ``T`` signal to the master that a new task is starting by
+  :meth:`master._signal_task_start`;
+- Two things may happen depending if the queue ``V._todo`` is empty or not.
+  Remark that due to the GIL, there is no parallel execution between the
+  victim ``V`` and its thief tread ``T``.
 
-
+  + If ``V._todo`` is empty, then ``None`` is answered on
+    ``W._write_task``. The task is immediately signaled to end the the master
+    through :meth:`master._signal_task_done`.
+  + Otherwise, a node is removed from the bottom of ``V._todo``. The node is
+    sent to ``W`` on ``W._write_task``. The task will be ended by ``W``.
 
 Are there examples of classes ?
 -------------------------------
@@ -304,7 +322,7 @@ def proc_number(max_proc = None):
 
     INPUT:
 
-    - `max_proc` -- the maximum number of process used
+    - ``max_proc`` -- the maximum number of process used
 
     EXAMPLE::
 
@@ -346,14 +364,13 @@ class RESetMapReduce(object):
     Description of the set: 
 
     - either ``forest=f`` -- where ``f`` is a :class:`RecursivelyEnumeratedSet`
-    - ``roots`` -- = None,
-                 children = None,
-                 post_process = None,
-                 map_function = None,
-                 reduce_function = None,
-                 reduce_init = None,
-                 forest = None
-    
+    - ``roots`` -- (default to ``None``),
+    - ``children` -- (default to ``None``),
+    - ``post_process`` -- (default to ``None``),
+    - ``map_function`` -- (default to ``None``),
+    - ``reduce_function`` -- (default to ``None``),
+    - ``reduce_init`` -- (default to ``None``),
+    - ``forest`` -- (default to ``None``)
     """
     def __init__(self, roots = None,
                  children = None,

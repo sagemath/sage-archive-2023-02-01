@@ -2836,7 +2836,7 @@ def SRG_176_90_38_54():
     :func:`~sage.graphs.strongly_regular_db.SRG_175_72_20_36`
     by attaching a isolated vertex and doing Seidel switching
     with respect to disjoint union of 18 maximum cliques, following
-    a construction by W.Haemers given in [BvL84]_.
+    a construction by W.Haemers given in Sect.10.B.(vi) of [BvL84]_.
 
     EXAMPLES::
 
@@ -2863,6 +2863,31 @@ def SRG_176_90_38_54():
     j.seidel_switching(r)
     return j
 
+def SRG_630_85_20_10():
+    r"""
+    Return a `(630,85,20,10)`-strongly regular graph
+
+    This graph is the line graph of `pg(5,18,2)`; its point graph is
+    :func:`~sage.graphs.strongly_regular_db.SRG_175_72_20_36`.
+    One selects a subset of 630 maximum cliques in the latter following
+    a construction by W.Haemers given in Sect.10.B.(v) of [BvL84]_.
+
+    EXAMPLES::
+
+        sage: from sage.graphs.strongly_regular_db import SRG_630_85_20_10
+        sage: G = SRG_630_85_20_10()                    # long time
+        sage: G.is_strongly_regular(parameters=True)    # long time
+        (630, 85, 20, 10)
+    """
+    from sage.graphs.generators.intersection import IntersectionGraph
+    hs = HoffmanSingletonGraph()
+    P = range(5)+range(30,35)          # a Petersen in hs
+    mc = [0, 1, 5, 6, 12, 13, 16, 17, 22, 23, 29, 33, 39, 42, 47]
+    assert(hs.subgraph(mc).degree()==[0]*15) # a maximum coclique
+    assert(hs.subgraph(P).degree()==[3]*10)
+    h = hs.automorphism_group().stabilizer(mc,action="OnSets")
+    l = h.orbit(tuple(map(lambda x: (x[0],x[1]), hs.subgraph(P).matching())),"OnSetsSets")
+    return IntersectionGraph(l)
 
 def SRG_126_50_13_24():
     r"""
@@ -3173,6 +3198,7 @@ def strongly_regular_graph(int v,int k,int l,int mu=-1,bint existence=False,bint
         (625, 364, 213,210): [SRG_625_364_213_210],
         (625, 416, 279,272): [SRG_625_416_279_272],
         (625, 468, 353,342): [SRG_625_468_353_342],
+        (630,  85,  20, 10): [SRG_630_85_20_10],
         (729, 336, 153,156): [SRG_729_336_153_156],
         (729, 616, 523,506): [SRG_729_616_523_506],
         (729, 420, 243,240): [SRG_729_420_243_240],

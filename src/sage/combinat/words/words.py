@@ -2150,7 +2150,7 @@ class Words_n(Parent):
     """
     def __init__(self, words, n):
         r"""
-        INPUT::
+        INPUT:
 
         - ``words`` -- a set of finite words
 

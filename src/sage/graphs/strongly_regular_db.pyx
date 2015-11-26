@@ -2828,6 +2828,42 @@ def SRG_175_72_20_36():
     """
     return HoffmanSingletonGraph().line_graph().distance_graph([2])
 
+def SRG_176_90_38_54():
+    r"""
+    Return a `(176,90,38,54)`-strongly regular graph
+
+    This graph is obtained from
+    :func:`~sage.graphs.strongly_regular_db.SRG_175_72_20_36`
+    by attaching a isolated vertex and doing Seidel switching
+    with respect to disjoint union of 18 maximum cliques, following
+    a construction by W.Haemers given in [BvL84]_.
+
+    EXAMPLES::
+
+        sage: from sage.graphs.strongly_regular_db import SRG_176_90_38_54
+        sage: G = SRG_176_90_38_54()
+        sage: G.is_strongly_regular(parameters=True)
+        (176, 90, 38, 54)
+    """
+    from sage.graphs.strongly_regular_db import SRG_175_72_20_36
+    from sage.graphs.generators.basic import CompleteGraph
+    from sage.misc.flatten import flatten
+    g = SRG_175_72_20_36()
+    g.relabel()
+    c=filter(lambda x: len(x)==5, g.cliques_maximal())
+    def gcli(s,y):
+        if len(s)==18:
+            return s
+        f=filter(lambda x: set(x).intersection(s[-1])==set(),y)
+        return gcli(s+[f[0]],f[1:])
+    r=flatten(gcli([c[0]],c[1:]))
+    r.sort()
+    j=g.disjoint_union(CompleteGraph(1))
+    j.relabel()
+    j.seidel_switching(r)
+    return j
+
+
 def SRG_126_50_13_24():
     r"""
     Return a `(126,50,13,24)`-strongly regular graph
@@ -2843,7 +2879,6 @@ def SRG_126_50_13_24():
         sage: G.is_strongly_regular(parameters=True)
         (126, 50, 13, 24)
     """
-    from sage.graphs.generators.smallgraphs import HoffmanSingletonGraph
     from sage.graphs.strongly_regular_db import SRG_175_72_20_36
     hs = HoffmanSingletonGraph()
     s = set(hs.vertices()).difference(hs.neighbors(0)+[0])
@@ -3114,6 +3149,7 @@ def strongly_regular_graph(int v,int k,int l,int mu=-1,bint existence=False,bint
         (162,  56,  10, 24): [LocalMcLaughlinGraph],
         (175,  72,  20, 36): [SRG_175_72_20_36],
         (176,  49,  12, 14): [SRG_176_49_12_14],
+        (176,  90,  38, 54): [SRG_176_90_38_54],
         (176, 105,  68, 54): [SRG_176_105_68_54],
         (196,  91,  42, 42): [SRG_196_91_42_42],
         (210,  99,  48, 45): [SRG_210_99_48_45],

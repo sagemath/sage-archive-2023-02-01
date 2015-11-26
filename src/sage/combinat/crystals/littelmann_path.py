@@ -31,7 +31,8 @@ from sage.categories.highest_weight_crystals import HighestWeightCrystals
 from sage.categories.regular_crystals import RegularCrystals
 from sage.categories.classical_crystals import ClassicalCrystals
 from sage.categories.infinite_enumerated_sets import InfiniteEnumeratedSets
-from sage.categories.affine_derived_crystals import KirillovReshetikhinCrystals
+from sage.categories.affine_derived_crystals import (RegularAffineDerivedSubalgebraCrystals,
+                                                     KirillovReshetikhinCrystals)
 from sage.combinat.root_system.cartan_type import CartanType
 from sage.combinat.root_system.weyl_group import WeylGroup
 from sage.rings.integer import Integer
@@ -214,7 +215,12 @@ class CrystalOfLSPaths(UniqueRepresentation, Parent):
             elif starting_weight.parent().is_extended():
                 Parent.__init__(self, category=(RegularCrystals(), InfiniteEnumeratedSets()))
             else:
-                Parent.__init__(self, category=KirillovReshetikhinCrystals().TensorProducts())
+                cl = self._cartan_type.classical().index_set()
+                if sum(self.weight[i] for i in cl) == 1:
+                    cat = KirillovReshetikhinCrystals()
+                else:
+                    cat = RegularAffineDerivedSubalgebraCrystals().Finite()
+                Parent.__init__(self, category=cat)
         else:
             Parent.__init__(self, category=ClassicalCrystals())
 

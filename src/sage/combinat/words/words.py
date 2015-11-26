@@ -1695,6 +1695,7 @@ class FiniteAndInfiniteWords(AbstractLanguage):
             sage: filename = os.path.join(tmp_dir(), 'test.sobj')
             sage: W.save(filename)
             sage: load(filename)
+            Finite and infinite words over {'a', 'b'}
         """
         # add a default to support old pickles from #19619
         self._alphabet = state.get('_alphabet', build_alphabet())

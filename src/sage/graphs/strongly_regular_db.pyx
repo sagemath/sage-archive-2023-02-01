@@ -2845,19 +2845,16 @@ def SRG_176_90_38_54():
         sage: G.is_strongly_regular(parameters=True)
         (176, 90, 38, 54)
     """
-    from sage.graphs.strongly_regular_db import SRG_175_72_20_36
     from sage.graphs.generators.basic import CompleteGraph
     from sage.misc.flatten import flatten
     g = SRG_175_72_20_36()
     g.relabel()
-    c=filter(lambda x: len(x)==5, g.cliques_maximal())
-    def gcli(s,y):
-        if len(s)==18:
-            return s
-        f=filter(lambda x: set(x).intersection(s[-1])==set(),y)
-        return gcli(s+[f[0]],f[1:])
-    r=flatten(gcli([c[0]],c[1:]))
-    r.sort()
+    # c=filter(lambda x: len(x)==5, g.cliques_maximal())
+    # r=flatten(Hypergraph(c).packing()[:18]) # takes 3s, so we put the answer here
+    r=[0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,28,29,32,\
+       38,39,41,42,43,47,49,50,51,52,53,55,57,61,63,65,67,69,72,75,77,79,81,84,87,88,\
+       89,92,95,96,97,99,101,102,104,105,107,112,114,117,118,123,125,129,132,139,140,\
+       141,144,146,147,153,154,162,165,166,167,170,172,173,174]
     j=g.disjoint_union(CompleteGraph(1))
     j.relabel()
     j.seidel_switching(r)
@@ -2883,8 +2880,8 @@ def SRG_630_85_20_10():
     hs = HoffmanSingletonGraph()
     P = range(5)+range(30,35)          # a Petersen in hs
     mc = [0, 1, 5, 6, 12, 13, 16, 17, 22, 23, 29, 33, 39, 42, 47]
-    assert(hs.subgraph(mc).degree()==[0]*15) # a maximum coclique
-    assert(hs.subgraph(P).degree()==[3]*10)
+    assert(hs.subgraph(mc).is_regular(k=0)) # a maximum coclique
+    assert(hs.subgraph(P).is_regular(k=3))
     h = hs.automorphism_group().stabilizer(mc,action="OnSets")
     l = h.orbit(tuple(map(lambda x: (x[0],x[1]), hs.subgraph(P).matching())),"OnSetsSets")
     return IntersectionGraph(l)

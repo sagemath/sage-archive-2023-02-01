@@ -48,6 +48,11 @@ fi
 
 if [ `uname` = "Darwin" ]; then
     PYTHON_CONFIGURE="--disable-toolbox-glue $PYTHON_CONFIGURE"
+    # Workaround for El Capitan, Trac #19626
+    xcode=$(xcode-select --print-path)
+    mkdir "$CUR"/include
+    cp -rp "${xcode}"/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift-migrator/sdk/MacOSX.sdk/usr/include/openssl "$CUR"/include
+    export CFLAGS="$CFLAGS -I$CUR/include"
 fi
 
 if [ "$SAGE64" = yes ]; then

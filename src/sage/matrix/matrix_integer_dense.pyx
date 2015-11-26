@@ -3088,7 +3088,7 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
             A = FP_LLL(self)
             method = algorithm.replace("fpLLL:","")
             A.LLL(delta=delta, eta=eta,
-                  method=method,
+                  algorithm=method,
                   float_type=fp,
                   precision=prec,
                   verbose=verb,

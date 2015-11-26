@@ -1,15 +1,18 @@
 r"""
-Index of encoders
+Index of decoders
 
-The ``codes.encoders`` object may be used to access the encoders that Sage can build.
+The ``codes.decoders`` object may be used to access the decoders that Sage can build.
 
-:class:`linear_code.LinearCodeGeneratorMatrixEncoder <sage.coding.linear_code.LinearCodeGeneratorMatrixEncoder>`
+**Generic decoders**
+
+- :func:`linear_code.LinearCodeSyndromeDecoder <sage.coding.linear_code.LinearCodeSyndromeDecoder>`
+- :func:`linear_code.LinearCodeNearestNeighborDecoder <sage.coding.linear_code.LinearCodeNearestNeighborDecoder>`
 
 .. NOTE::
 
     To import these names into the global namespace, use:
 
-        sage: from sage.coding.encoders_catalog import *
+        sage: from sage.coding.decoders_catalog import *
 """
 #*****************************************************************************
 #       Copyright (C) 2009 David Joyner <wdjoyner@gmail.com>
@@ -21,5 +24,4 @@ The ``codes.encoders`` object may be used to access the encoders that Sage can b
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from sage.misc.lazy_import import lazy_import as _lazy_import
-_lazy_import('sage.coding.linear_code', 'LinearCodeGeneratorMatrixEncoder')
+from linear_code import (LinearCodeSyndromeDecoder, LinearCodeNearestNeighborDecoder)

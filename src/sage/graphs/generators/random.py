@@ -19,7 +19,10 @@ from sage.graphs.graph import Graph
 from sage.misc.randstate import current_randstate
 from sage.rings.rational_field import QQ
 
-def RandomGNP(n, p, seed=None, fast=True, method='Sage'):
+from sage.misc.decorators import rename_keyword
+
+@rename_keyword(deprecation=19559 , method='algorithm')
+def RandomGNP(n, p, seed=None, fast=True, algorithm='Sage'):
     r"""
     Returns a random graph on `n` nodes. Each edge is inserted independently
     with probability `p`.
@@ -34,16 +37,16 @@ def RandomGNP(n, p, seed=None, fast=True, method='Sage'):
 
     - ``fast`` -- boolean set to True (default) to use the algorithm with
       time complexity in `O(n+m)` proposed in [BatBra2005]_. It is designed
-      for generating large sparse graphs. It is faster than other methods for
+      for generating large sparse graphs. It is faster than other algorithms for
       *LARGE* instances (try it to know whether it is useful for you).
 
-    - ``method`` -- By default (```method='Sage'``), this function uses the
-      method implemented in ```sage.graphs.graph_generators_pyx.pyx``. When
-      ``method='networkx'``, this function calls the NetworkX function
+    - ``algorithm`` -- By default (```algorithm='Sage'``), this function uses the
+      algorithm implemented in ```sage.graphs.graph_generators_pyx.pyx``. When
+      ``algorithm='networkx'``, this function calls the NetworkX function
       ``fast_gnp_random_graph``, unless ``fast=False``, then
-      ``gnp_random_graph``. Try them to know which method is the best for
+      ``gnp_random_graph``. Try them to know which algorithm is the best for
       you. The ``fast`` parameter is not taken into account by the 'Sage'
-      method so far.
+      algorithm so far.
 
     REFERENCES:
 
@@ -90,14 +93,14 @@ def RandomGNP(n, p, seed=None, fast=True, method='Sage'):
 
     TESTS::
 
-        sage: graphs.RandomGNP(50,.2,method=50)
+        sage: graphs.RandomGNP(50,.2,algorithm=50)
         Traceback (most recent call last):
         ...
-        ValueError: 'method' must be equal to 'networkx' or to 'Sage'.
+        ValueError: 'algorithm' must be equal to 'networkx' or to 'Sage'.
         sage: set_random_seed(0)
-        sage: graphs.RandomGNP(50,.2, method="Sage").size()
+        sage: graphs.RandomGNP(50,.2, algorithm="Sage").size()
         243
-        sage: graphs.RandomGNP(50,.2, method="networkx").size()
+        sage: graphs.RandomGNP(50,.2, algorithm="networkx").size()
         258
     """
     if n < 0:
@@ -111,19 +114,19 @@ def RandomGNP(n, p, seed=None, fast=True, method='Sage'):
         from sage.graphs.generators.basic import CompleteGraph
         return CompleteGraph(n)
 
-    if method == 'networkx':
+    if algorithm == 'networkx':
         import networkx
         if fast:
             G = networkx.fast_gnp_random_graph(n, p, seed=seed)
         else:
             G = networkx.gnp_random_graph(n, p, seed=seed)
         return Graph(G)
-    elif method in ['Sage', 'sage']:
+    elif algorithm in ['Sage', 'sage']:
         # We use the Sage generator
         from sage.graphs.graph_generators_pyx import RandomGNP as sageGNP
         return sageGNP(n, p)
     else:
-        raise ValueError("'method' must be equal to 'networkx' or to 'Sage'.")
+        raise ValueError("'algorithm' must be equal to 'networkx' or to 'Sage'.")
 
 def RandomBarabasiAlbert(n, m, seed=None):
     u"""
@@ -179,7 +182,7 @@ def RandomBarabasiAlbert(n, m, seed=None):
     import networkx
     return Graph(networkx.barabasi_albert_graph(n,m,seed=seed))
 
-def RandomBipartite(n1,n2, p):
+def RandomBipartite(n1, n2, p):
     r"""
     Returns a bipartite graph with `n1+n2` vertices
     such that any edge from `[n1]` to `[n2]` exists
@@ -187,7 +190,7 @@ def RandomBipartite(n1,n2, p):
 
     INPUT:
 
-        - ``n1,n2`` : Cardinalities of the two sets
+        - ``n1, n2`` : Cardinalities of the two sets
         - ``p``   : Probability for an edge to exist
 
 

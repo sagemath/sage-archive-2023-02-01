@@ -73,7 +73,7 @@ def GF2XHexOutput(have_hex=None):
     else:
         GF2XHexOutput_c[0] = 0
 
-cdef class ntl_GF2X:
+cdef class ntl_GF2X(object):
     """
     Univariate Polynomials over GF(2) via NTL.
     """
@@ -153,12 +153,6 @@ cdef class ntl_GF2X:
         # TODO: this is very slow, but we wait until somebody complains
         GF2X_from_str(&self.x, s)
         sig_off()
-
-    def __cinit__(self):
-        GF2X_construct(&self.x)
-
-    def __dealloc__(self):
-        GF2X_destruct(&self.x)
 
     def __reduce__(self):
         """
@@ -321,31 +315,31 @@ cdef class ntl_GF2X:
         GF2X_power(r.x, self.x, e)
         return r
 
-
-    def __richcmp__(self, other, op):
+    def __richcmp__(ntl_GF2X self, other, int op):
         """
-        EXAMPLES:
-            sage: f = ntl.GF2X([1,0,1,1]) ; g = ntl.GF2X([0,1,0])
+        Compare self to other.
+
+        EXAMPLES::
+
+            sage: f = ntl.GF2X([1,0,1,1])
+            sage: g = ntl.GF2X([0,1,0])
             sage: f == g ## indirect doctest
             False
             sage: f == f
             True
+            sage: g != polygen(GF(2))
+            False
         """
-        if op != 2 and op != 3:
-            raise TypeError, "elements in GF(2)[X] are not ordered."
+        if op != Py_EQ and op != Py_NE:
+            raise TypeError("elements of GF(2)[X] are not ordered")
 
-        if not isinstance(other, ntl_GF2X):
-            other = ntl_GF2X(other)
+        cdef ntl_GF2X b
+        try:
+            b = <ntl_GF2X?>other
+        except TypeError:
+            b = ntl_GF2X(other)
 
-        if not isinstance(self, ntl_GF2X):
-            self = ntl_GF2X(self)
-
-        cdef int t
-        t = GF2X_equal((<ntl_GF2X>self).x, (<ntl_GF2X>other).x)
-        if op == 2:
-            return t == 1
-        elif op == 3:
-            return t == 0
+        return (op == Py_EQ) == (self.x == b.x)
 
     def __lshift__(ntl_GF2X self, int i):
         """

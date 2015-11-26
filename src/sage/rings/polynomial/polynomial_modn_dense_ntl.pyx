@@ -619,7 +619,6 @@ cdef class Polynomial_dense_modn_ntl_zz(Polynomial_dense_mod_n):
     def __dealloc__(self):
         if <object>self.c is not None:
             self.c.restore_c()
-        zz_pX_destruct(&self.x)
 
     def ntl_set_directly(self, v):
         # TODO: Get rid of this
@@ -873,14 +872,12 @@ cdef class Polynomial_dense_modn_ntl_zz(Polynomial_dense_mod_n):
         else:
             if not isinstance(modulus, Polynomial_dense_modn_ntl_zz):
                 modulus = self.parent()._coerce_(modulus)
-            zz_pX_Modulus_construct(mod)
             zz_pX_Modulus_build(mod[0], (<Polynomial_dense_modn_ntl_zz>modulus).x)
 
             do_sig = zz_pX_deg(self.x) * e * self.c.p_bits > 1e5
             if do_sig: sig_on()
             zz_pX_PowerMod_long_pre(r.x, self.x, e, mod[0])
             if do_sig: sig_off()
-            zz_pX_Modulus_destruct(mod)
 
         if recip:
             return ~r
@@ -1207,8 +1204,6 @@ cdef class Polynomial_dense_modn_ntl_ZZ(Polynomial_dense_mod_n):
     def __dealloc__(self):
         if <object>self.c is not None:
             self.c.restore_c()
-        ZZ_pX_destruct(&self.x)
-
 
     cdef Polynomial_dense_modn_ntl_ZZ _new(self):
         cdef Polynomial_dense_modn_ntl_ZZ y = <Polynomial_dense_modn_ntl_ZZ>Polynomial_dense_modn_ntl_ZZ.__new__(Polynomial_dense_modn_ntl_ZZ)
@@ -1436,14 +1431,12 @@ cdef class Polynomial_dense_modn_ntl_ZZ(Polynomial_dense_mod_n):
         else:
             if not isinstance(modulus, Polynomial_dense_modn_ntl_ZZ):
                 modulus = self.parent()._coerce_(modulus)
-            ZZ_pX_Modulus_construct(mod)
             ZZ_pX_Modulus_build(mod[0], (<Polynomial_dense_modn_ntl_ZZ>modulus).x)
 
             do_sig = ZZ_pX_deg(self.x) * e * self.c.p_bits > 1e5
             if do_sig: sig_on()
             ZZ_pX_PowerMod_long_pre(r.x, self.x, e, mod[0])
             if do_sig: sig_off()
-            ZZ_pX_Modulus_destruct(mod)
         if recip:
             return ~r
         else:

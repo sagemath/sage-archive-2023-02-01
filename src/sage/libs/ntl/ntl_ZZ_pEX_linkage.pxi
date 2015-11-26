@@ -21,6 +21,7 @@ from sage.libs.ntl.ntl_ZZ_pEContext_decl cimport *
 from sage.libs.ntl.ntl_ZZ_pEX_decl cimport *
 from sage.libs.ntl.ntl_ZZ_pE_decl cimport ZZ_pE_from_str
 from sage.libs.ntl.ntl_ZZ_pE cimport ntl_ZZ_pE
+from sage.libs.ntl.types cimport ZZ_pX_c, ZZ_pEX_c
 
 cdef ZZ_pEX_c *celement_new(cparent parent):
     """
@@ -30,8 +31,7 @@ cdef ZZ_pEX_c *celement_new(cparent parent):
     if parent != NULL:
         parent[0].zzpc[0].restore()
         parent[0].zzpec[0].restore()
-    cdef ZZ_pEX_c *e = ZZ_pEX_new()
-    return e
+    return new ZZ_pEX_c()
 
 cdef int celement_delete(ZZ_pEX_c *e, cparent parent):
     """
@@ -42,7 +42,7 @@ cdef int celement_delete(ZZ_pEX_c *e, cparent parent):
     if parent != NULL:
         parent[0].zzpc[0].restore()
         parent[0].zzpec[0].restore()
-    ZZ_pEX_delete(e)
+    del e
 
 cdef int celement_construct(ZZ_pEX_c *e, cparent parent):
     """
@@ -52,7 +52,6 @@ cdef int celement_construct(ZZ_pEX_c *e, cparent parent):
     if parent != NULL:
         parent[0].zzpc[0].restore()
         parent[0].zzpec[0].restore()
-    ZZ_pEX_construct(e)
 
 cdef int celement_destruct(ZZ_pEX_c *e, cparent parent):
     """
@@ -63,7 +62,6 @@ cdef int celement_destruct(ZZ_pEX_c *e, cparent parent):
     if parent != NULL:
         parent[0].zzpc[0].restore()
         parent[0].zzpec[0].restore()
-    ZZ_pEX_destruct(e)
 
 cdef int celement_gen(ZZ_pEX_c *e, long i, cparent parent) except -2:
     """
@@ -157,7 +155,7 @@ cdef inline bint celement_equal(ZZ_pEX_c *a, ZZ_pEX_c *b, cparent parent) except
     if parent != NULL:
         parent[0].zzpc[0].restore()
         parent[0].zzpec[0].restore()
-    return ZZ_pEX_equal(a[0], b[0])
+    return a[0] == b[0]
 
 cdef inline int celement_cmp(ZZ_pEX_c *a, ZZ_pEX_c *b, cparent parent) except -2:
     """

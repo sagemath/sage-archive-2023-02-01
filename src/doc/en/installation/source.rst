@@ -150,9 +150,6 @@ On Redhat-derived systems not all perl components are installed by
 default and you might have to install the **perl-ExtUtils-MakeMaker**
 package.
 
-On recent Debian or Ubuntu systems, the **dpkg-dev** package is needed for
-`multiarch <http://wiki.debian.org/Multiarch>`_ support.
-
 On Cygwin, the **lapack** and **liblapack-devel** packages are required to
 provide ATLAS support as the Sage package for ATLAS is not built by default.
 

@@ -710,8 +710,6 @@ class FiniteWord_class(Word_class):
             sage: w.to_integer_word()
             word: 10102
 
-        TODO: ORDERING PROBLEM
-
             sage: w = Words([3,2,1])([2,3,3,1])
             sage: w.to_integer_word()
             word: 1002

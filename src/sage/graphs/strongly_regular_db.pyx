@@ -2921,7 +2921,7 @@ def _check_database():
 
         sage: from sage.graphs.strongly_regular_db import _check_database
         sage: _check_database() # long time
-        Sage cannot build a (96   19   2    4   ) that exists. Comment from Brouwer's database: Haemers(4)...
+        Sage cannot build a (196  90   40   42  ) that exists. Comment ... RSHCD<sup></sup>; 2-graph
         ...
         In Andries Brouwer's database:
         - 448 impossible entries

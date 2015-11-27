@@ -24,5 +24,6 @@ Coding Theory
    sage/coding/delsarte_bounds
    sage/coding/source_coding/huffman
    sage/coding/binary_code
+   sage/coding/two_weight_db
 
 .. include:: ../footer.txt

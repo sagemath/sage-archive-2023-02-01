@@ -2828,6 +2828,64 @@ def SRG_175_72_20_36():
     """
     return HoffmanSingletonGraph().line_graph().distance_graph([2])
 
+def SRG_176_90_38_54():
+    r"""
+    Return a `(176,90,38,54)`-strongly regular graph
+
+    This graph is obtained from
+    :func:`~sage.graphs.strongly_regular_db.SRG_175_72_20_36`
+    by attaching a isolated vertex and doing Seidel switching
+    with respect to disjoint union of 18 maximum cliques, following
+    a construction by W.Haemers given in Sect.10.B.(vi) of [BvL84]_.
+
+    EXAMPLES::
+
+        sage: from sage.graphs.strongly_regular_db import SRG_176_90_38_54
+        sage: G = SRG_176_90_38_54()
+        sage: G.is_strongly_regular(parameters=True)
+        (176, 90, 38, 54)
+    """
+    from sage.graphs.generators.basic import CompleteGraph
+    from sage.misc.flatten import flatten
+    g = SRG_175_72_20_36()
+    g.relabel()
+    # c=filter(lambda x: len(x)==5, g.cliques_maximal())
+    # r=flatten(Hypergraph(c).packing()[:18]) # takes 3s, so we put the answer here
+    r=[0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,28,29,32,\
+       38,39,41,42,43,47,49,50,51,52,53,55,57,61,63,65,67,69,72,75,77,79,81,84,87,88,\
+       89,92,95,96,97,99,101,102,104,105,107,112,114,117,118,123,125,129,132,139,140,\
+       141,144,146,147,153,154,162,165,166,167,170,172,173,174]
+    j=g.disjoint_union(CompleteGraph(1))
+    j.relabel()
+    j.seidel_switching(r)
+    return j
+
+def SRG_630_85_20_10():
+    r"""
+    Return a `(630,85,20,10)`-strongly regular graph
+
+    This graph is the line graph of `pg(5,18,2)`; its point graph is
+    :func:`~sage.graphs.strongly_regular_db.SRG_175_72_20_36`.
+    One selects a subset of 630 maximum cliques in the latter following
+    a construction by W.Haemers given in Sect.10.B.(v) of [BvL84]_.
+
+    EXAMPLES::
+
+        sage: from sage.graphs.strongly_regular_db import SRG_630_85_20_10
+        sage: G = SRG_630_85_20_10()                    # long time
+        sage: G.is_strongly_regular(parameters=True)    # long time
+        (630, 85, 20, 10)
+    """
+    from sage.graphs.generators.intersection import IntersectionGraph
+    hs = HoffmanSingletonGraph()
+    P = range(5)+range(30,35)          # a Petersen in hs
+    mc = [0, 1, 5, 6, 12, 13, 16, 17, 22, 23, 29, 33, 39, 42, 47]
+    assert(hs.subgraph(mc).is_regular(k=0)) # a maximum coclique
+    assert(hs.subgraph(P).is_regular(k=3))
+    h = hs.automorphism_group().stabilizer(mc,action="OnSets")
+    l = h.orbit(tuple(map(lambda x: (x[0],x[1]), hs.subgraph(P).matching())),"OnSetsSets")
+    return IntersectionGraph(l)
+
 def SRG_126_50_13_24():
     r"""
     Return a `(126,50,13,24)`-strongly regular graph
@@ -2843,7 +2901,6 @@ def SRG_126_50_13_24():
         sage: G.is_strongly_regular(parameters=True)
         (126, 50, 13, 24)
     """
-    from sage.graphs.generators.smallgraphs import HoffmanSingletonGraph
     from sage.graphs.strongly_regular_db import SRG_175_72_20_36
     hs = HoffmanSingletonGraph()
     s = set(hs.vertices()).difference(hs.neighbors(0)+[0])
@@ -3114,6 +3171,7 @@ def strongly_regular_graph(int v,int k,int l,int mu=-1,bint existence=False,bint
         (162,  56,  10, 24): [LocalMcLaughlinGraph],
         (175,  72,  20, 36): [SRG_175_72_20_36],
         (176,  49,  12, 14): [SRG_176_49_12_14],
+        (176,  90,  38, 54): [SRG_176_90_38_54],
         (176, 105,  68, 54): [SRG_176_105_68_54],
         (196,  91,  42, 42): [SRG_196_91_42_42],
         (210,  99,  48, 45): [SRG_210_99_48_45],
@@ -3137,6 +3195,7 @@ def strongly_regular_graph(int v,int k,int l,int mu=-1,bint existence=False,bint
         (625, 364, 213,210): [SRG_625_364_213_210],
         (625, 416, 279,272): [SRG_625_416_279_272],
         (625, 468, 353,342): [SRG_625_468_353_342],
+        (630,  85,  20, 10): [SRG_630_85_20_10],
         (729, 336, 153,156): [SRG_729_336_153_156],
         (729, 616, 523,506): [SRG_729_616_523_506],
         (729, 420, 243,240): [SRG_729_420_243_240],

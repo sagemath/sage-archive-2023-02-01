@@ -1,5 +1,6 @@
-from sage.libs.arb.acb cimport acb_t, acb_srcptr
-from sage.libs.arb.mag cimport mag_t
+# distutils: libraries = arb
+
+from sage.libs.arb.types cimport *
 
 cdef extern from "acb_hypgeom.h":
     void acb_hypgeom_pfq_bound_factor(mag_t C, acb_srcptr a, long p, acb_srcptr b, long q, const acb_t z, unsigned long n)

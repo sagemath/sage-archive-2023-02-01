@@ -3536,6 +3536,10 @@ cdef class Expression(CommutativeRingElement):
             e^10
             sage: exp(x)^5
             e^(5*x)
+            sage: ex = exp(sqrt(x))^x; ex
+            (e^sqrt(x))^x
+            sage: latex(ex)
+            \left(e^{\sqrt{x}}\right)^{x}
 
         Test base a Python numeric type::
 

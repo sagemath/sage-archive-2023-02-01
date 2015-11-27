@@ -502,7 +502,7 @@ def create_embedding_from_approx(K, gen_image):
             else:
                 from sage.symbolic.relation import test_relation_maxima
                 rel = (f(gen_image) != 0)
-                if (isinstance(rel, bool) and rel is True
+                if (rel is True
                 or (not isinstance(rel, bool) and test_relation_maxima(rel))):
                     raise ValueError, "%s is not a root of the defining polynomial of %s" % (gen_image, K)
         return NumberFieldEmbedding(K, P, gen_image)

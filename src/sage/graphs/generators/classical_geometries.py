@@ -224,7 +224,7 @@ def _orthogonal_polar_graph(m, q, sign="+", point_type=[0]):
     - ``point_type`` -- a list of elements from `F_q`
 
     EXAMPLES:
-    
+
     Petersen graph::
 `
         sage: from sage.graphs.generators.classical_geometries import _orthogonal_polar_graph
@@ -452,7 +452,7 @@ def NonisotropicOrthogonalPolarGraph(m, q, sign="+", perp=None):
         sage: g=graphs.NonisotropicOrthogonalPolarGraph(5,4,'+')
         sage: g.is_strongly_regular(parameters=True)
         (136, 75, 42, 40)
-        sage: g=graphs.NonisotropicOrthogonalPolarGraph(5,4,'-') 
+        sage: g=graphs.NonisotropicOrthogonalPolarGraph(5,4,'-')
         sage: g.is_strongly_regular(parameters=True)
         (120, 51, 18, 24)
         sage: g=graphs.NonisotropicOrthogonalPolarGraph(7,4,'+'); g # not tested (long time)
@@ -486,7 +486,7 @@ def NonisotropicOrthogonalPolarGraph(m, q, sign="+", perp=None):
         sage: g=graphs.NonisotropicOrthogonalPolarGraph(6,4,'+')
         Traceback (most recent call last):
         ...
-        ValueError: for m even q must be 2 or 3 
+        ValueError: for m even q must be 2 or 3
 
     """
     from sage.graphs.generators.classical_geometries import _orthogonal_polar_graph
@@ -806,7 +806,7 @@ def SymplecticDualPolarGraph(m, q):
         Traceback (most recent call last):
         ...
         ValueError: libGAP: Error, <subfield> must be a prime or a finite field
-    
+
     REFERENCE:
 
     .. [Co81] A. M. Cohen,
@@ -1101,4 +1101,117 @@ def T2starGeneralizedQuadrangleGraph(q, dual=False, hyperoval=None, field=None, 
     else:
         G = IncidenceStructure(L).dual().intersection_graph()
         G.name('T2*(O,'+str(q)+'); GQ'+str((q-1,q+1)))
+    return G
+
+def HaemersGraph(q, hyperoval=None, partition=None, field=None, check_hyperoval=True):
+    r"""
+    Return the Haemers graph obtained from `T_2^*(q)^*`
+
+    Let `q` be a power of 2. In Sect. 8.A of [BvL84]_ one finds a construction
+    of a strongly regular graph with parameters `(q^2(q+2),q^2+q-1,q-2,q)` from
+    the graph of `T_2^*(q)^*`, constructed by
+    :func:`~sage.graphs.GraphGenerators.T2starGeneralizedQuadrangleGraph`, by
+    redefining adjacencies in the way specified by an arbitrary ``partition`` of
+    of the ``hyperoval`` defining `T_2^*(q)^*` into size two parts.
+
+    INPUT:
+
+    - ``q`` -- a power of two
+
+    - ``partition`` -- if ``None`` (default), pair each `i`-th point of
+      ``hyperoval`` with `(i+1)`-th. Otherwise, specifies the pairing
+      in the format `((i_1,i'_1),(i_2,i'_2),...)`.
+
+    - ``hyperoval`` -- a hyperoval defining `T_2^*(q)^*`. If ``None`` (default),
+      the classical hyperoval obatined from a conic is used.
+
+    - ``field`` -- an instance of a finite field of order `q`, must be provided
+      if ``hyperoval`` is provided.
+
+    - ``check_hyperoval`` -- (default: ``True``) if ``True``,
+      check ``hyperoval`` for correctness.
+
+
+    EXAMPLES:
+
+    using the built-in constructions::
+
+        sage: g=graphs.HaemersGraph(4); g
+        Haemers(4): Graph on 96 vertices
+        sage: g.is_strongly_regular(parameters=True)
+        (96, 19, 2, 4)
+
+    supplying your own partition::
+
+        sage: g=graphs.HaemersGraph(4,partition=((0,5),(1,4),(2,3))); g
+        Haemers(4): Graph on 96 vertices
+        sage: g.is_strongly_regular(parameters=True)
+        (96, 19, 2, 4)
+
+    TESTS::
+
+        sage: F=GF(4,'b') # repeating a point...
+        sage: O=[vector(F,(0,1,0,0)),vector(F,(0,0,1,0))]+map(lambda x: vector(F, (0,1,x^2,x)),F)
+        sage: graphs.HaemersGraph(4, hyperoval=O, field=F)
+        Traceback (most recent call last):
+        ...
+        RuntimeError: incorrect hyperoval size
+        sage: O=[vector(F,(0,1,1,0)),vector(F,(0,0,1,0))]+map(lambda x: vector(F, (0,1,x^2,x)),F)
+        sage: graphs.HaemersGraph(4, hyperoval=O, field=F)
+        Traceback (most recent call last):
+        ...
+        RuntimeError: incorrect hyperoval
+
+        sage: g=graphs.HaemersGraph(8); g               # long time
+        Haemers(8): Graph on 640 vertices
+        sage: g.is_strongly_regular(parameters=True)    # long time
+        (640, 71, 6, 8)
+
+    """
+    from sage.modules.free_module_element import free_module_element as vector
+    from sage.rings.finite_rings.constructor import GF
+    from sage.sets.set import Set
+
+    p, k = is_prime_power(q,get_data=True)
+    if k==0 or p!=2:
+        raise ValueError('q must be a power of 2')
+
+    if partition is None:
+        partition = map(lambda k: (2*k+1,2*k), xrange(1+q/2))
+    if field is None:
+        F = GF(q,'a')
+    else:
+        F = field
+    G = T2starGeneralizedQuadrangleGraph(q, field=F, dual=True, hyperoval=hyperoval)
+    v = G.vertices()
+    def nv(v):
+        d=next(x for x in v if x!=F.zero())
+        return vector(map(lambda x: x/d, v))
+
+    P = map(lambda x: nv(x[0]-x[1]), v)
+    O = list(set(map(tuple,P)))
+    Ov = map(vector,O)
+    d = dict(map(lambda x: (x,[]), O))
+    for i in xrange(len(P)):
+        d[tuple(P[i])].append(i)
+
+    G.relabel()
+    F =  filter(lambda x: x!=F.zero(), F)
+    for ip,jp in partition:
+        for s in d[O[ip]]:  # remove the edges between co-cliques
+            for t in d[O[jp]]:
+                G.delete_edge(s,t)
+
+        for i,j in ((ip,jp),(jp,ip)): # add edges in each co-clique
+            cocl=d[O[i]]
+            for s in cocl:            # Ov[j] must be in the plane spanned
+                line=[]               # by s and t for s~t
+                for x in F:           # we check that by check that the line on
+                    u = v[s][0]+x*Ov[j] # s and Ov[j] intersects t
+                    u.set_immutable()
+                    line.append(u)
+                for t in filter(lambda x: \
+                        v[x].intersection(Set(line))!=Set(), cocl):
+                    G.add_edge(s,t)
+    G.name('Haemers('+str(q)+')')
     return G

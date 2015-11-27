@@ -795,6 +795,47 @@ def is_NU(int v,int k,int l,int mu):
             return (NonisotropicUnitaryPolarGraph, n, q)
 
 @cached_function
+def is_haemers(int v,int k,int l,int mu):
+    r"""
+    Test whether some HaemersGraph graph is `(v,k,\lambda,\mu)`-strongly regular.
+
+    For more information, see
+    :func:`sage.graphs.graph_generators.GraphGenerators.HaemersGraph`.
+
+    INPUT:
+
+    - ``v,k,l,mu`` (integers)
+
+    OUTPUT:
+
+    A tuple ``t`` such that ``t[0](*t[1:])`` builds the requested graph if one
+    exists, and ``None`` otherwise.
+
+    EXAMPLES::
+
+        sage: from sage.graphs.strongly_regular_db import is_haemers
+        sage: t = is_haemers(96, 19, 2, 4); t
+        (<function HaemersGraph at ...>, 4)
+        sage: g = t[0](*t[1:]); g
+        Haemers(4): Graph on 96 vertices
+        sage: g.is_strongly_regular(parameters=True)
+        (96, 19, 2, 4)
+
+    TESTS::
+
+        sage: t = is_haemers(5,5,5,5); t
+    """
+    cdef int q, n, p
+    p, n = is_prime_power(mu, get_data=True)
+    q = mu
+    if 2 == p and n != 0:
+        if (v  == q**2*(q+2)     and
+            k  == q*(q+1)-1      and
+            l  == q-2):
+            from sage.graphs.generators.classical_geometries import HaemersGraph
+            return (HaemersGraph, q)
+
+@cached_function
 def is_polhill(int v,int k,int l,int mu):
     r"""
     Test whether some graph from [Polhill09]_ is `(1024,k,\lambda,\mu)`-strongly regular.
@@ -2622,6 +2663,7 @@ def strongly_regular_graph(int v,int k,int l,int mu=-1,bint existence=False,bint
                       is_taylor_twograph_srg,
                       is_switch_OA_srg,
                       is_polhill,
+                      is_haemers,
                       is_mathon_PC_srg,
                       is_switch_skewhad]
 

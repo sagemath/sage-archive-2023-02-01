@@ -23,5 +23,6 @@ Coding Theory
    sage/coding/source_coding/huffman
    sage/coding/binary_code
    sage/coding/decoder
+   sage/coding/two_weight_db
 
 .. include:: ../footer.txt

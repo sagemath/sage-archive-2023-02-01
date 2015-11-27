@@ -154,14 +154,13 @@ void power::do_print_dflt(const print_dflt & c, unsigned level) const
 		// exp function prints as e^a. Printing powers of this can be
 		// confusing, so we add parenthesis if the basis is exp
 		bool exp_parenthesis = is_ex_the_function(basis, exp) and
-			(not is_exactly_a<numeric>(basis.op(0)) or
-                        ex_to<numeric>(basis.op(0)) != _ex1);
+                        not basis.op(0).is_integer_one();
 		if (exp_parenthesis)
 			c.s << '(';
 		basis.print(c, precedence());
 		if (exp_parenthesis)
 			c.s << ')';
-		if (!(-exponent).is_integer_one()) {
+		if (not (-exponent).is_integer_one()) {
     		        c.s << "^" << expstr;
 		}
 		if (precedence() <= level)
@@ -187,8 +186,8 @@ void power::do_print_latex(const print_latex & c, unsigned level) const
 	} else {
 		// exp function prints as e^a. Printing powers of this can be
 		// confusing, so we add parenthesis if the basis is exp
-		bool base_parenthesis = is_ex_the_function(basis, exp) &&
-			basis.op(0) != _ex1;
+		bool base_parenthesis = is_ex_the_function(basis, exp) and
+			not basis.op(0).is_integer_one();
 
 		if (precedence() <= level)
 			c.s << "{\\left(";
@@ -200,7 +199,7 @@ void power::do_print_latex(const print_latex & c, unsigned level) const
 		if (base_parenthesis)
 			c.s << "\\right)";
 
-		if (!(-exponent).is_integer_one()) {
+		if (not (-exponent).is_integer_one()) {
     		        c.s << "^{";
 			bool exp_parenthesis = is_exactly_a<power>(exponent);
 			if (exp_parenthesis)
@@ -243,7 +242,7 @@ static void print_sym_pow(const print_context & c, const symbol &x, int exp)
 void power::do_print_csrc(const print_csrc & c, unsigned level) const
 {
 	if (is_a<print_csrc_cl_N>(c)) {
-		if (exponent.is_equal(_ex_1)) {
+		if (exponent.is_integer_one()) {
 			c.s << "recip(";
 			basis.print(c);
 			c.s << ')';
@@ -271,7 +270,7 @@ void power::do_print_csrc(const print_csrc & c, unsigned level) const
 		c.s << ')';
 
 	// <expr>^-1 is printed as "1.0/<expr>" or with the recip() function of CLN
-	} else if (exponent.is_equal(_ex_1)) {
+	} else if (exponent.is_integer_one()) {
 		c.s << "1.0/(";
 		basis.print(c);
 		c.s << ')';

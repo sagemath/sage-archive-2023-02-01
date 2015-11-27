@@ -313,12 +313,16 @@ class AbstractLanguage(Parent):
         EXAMPLES::
 
             sage: W = FiniteWords('woa')
-            sage: W.cmp_letters('w','a')
+            sage: W.cmp_letters('w','a')  # indirect doctest
             -2
-            sage: W.cmp_letters('w','o')
+            sage: W.cmp_letters('w','o')  # indirect doctest
             -1
-            sage: W.cmp_letters('w','w')
+            sage: W.cmp_letters('w','w')  # indirect doctest
             0
+
+        TESTS::
+
+            sage: assert W.cmp_letters == W._cmp_letters
         """
         rk = self.alphabet().rank
         return int(rk(letter1) - rk(letter2))
@@ -1719,6 +1723,15 @@ class FiniteAndInfiniteWords(AbstractLanguage):
 
     @lazy_attribute
     def _element_classes(self):
+        r"""
+        Return the element classes corresponding to words of unknown length.
+
+        EXAMPLES::
+
+            sage: Words('ab')._element_classes
+            {'iter': <class 'sage.combinat.words.word.Word_iter'>,
+             'iter_with_caching': <class 'sage.combinat.words.word.Word_iter_with_caching'>}
+        """
         import sage.combinat.words.word as word
         return {
                 'iter_with_caching': word.Word_iter_with_caching,

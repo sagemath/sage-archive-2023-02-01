@@ -160,10 +160,6 @@ values and should be preferred::
 TESTS::
 
     sage: (RBF(pi) * identity_matrix(QQ, 3)).parent()
-    doctest:...: FutureWarning: This class/method/function is marked
-    as experimental. It, its functionality or its interface might
-    change without a formal deprecation.
-    See http://trac.sagemath.org/17218 for details.
     Full MatrixSpace of 3 by 3 dense matrices over Real ball field
     with 53 bits precision
 

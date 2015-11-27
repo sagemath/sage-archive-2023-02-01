@@ -103,7 +103,6 @@ cdef class Matrix_complex_ball_dense(matrix_dense.Matrix_dense):
 
     EXAMPLES::
 
-        sage: from sage.rings.complex_arb import CBF
         sage: MatrixSpace(CBF, 3)(2)
         [2.000000000000000                 0                 0]
         [                0 2.000000000000000                 0]
@@ -137,7 +136,6 @@ cdef class Matrix_complex_ball_dense(matrix_dense.Matrix_dense):
         EXAMPLES::
 
             sage: from sage.matrix.matrix_complex_ball_dense import Matrix_complex_ball_dense
-            sage: from sage.rings.complex_arb import CBF
             sage: a = Matrix_complex_ball_dense.__new__( # indirect doctest
             ....:     Matrix_complex_ball_dense, Mat(CBF, 2), 0, 0, 0)
             sage: type(a)
@@ -157,7 +155,6 @@ cdef class Matrix_complex_ball_dense(matrix_dense.Matrix_dense):
 
         EXAMPLES::
 
-            sage: from sage.rings.complex_arb import CBF
             sage: a = Matrix(CBF, 2, [1, 2, 3, 4]) # indirect doctest
             sage: del a
         """
@@ -192,10 +189,6 @@ cdef class Matrix_complex_ball_dense(matrix_dense.Matrix_dense):
 
         The __init__ function is called implicitly in each of the
         examples below to actually fill in the values of the matrix.
-
-        ::
-
-            sage: from sage.rings.complex_arb import CBF
 
         We create a `2 \times 2` and a `1\times 4` matrix::
 
@@ -312,7 +305,6 @@ cdef class Matrix_complex_ball_dense(matrix_dense.Matrix_dense):
 
         EXAMPLES::
 
-            sage: from sage.rings.complex_arb import CBF
             sage: a = matrix(CBF, 2, 3, range(6)); a
             [                0 1.000000000000000 2.000000000000000]
             [3.000000000000000 4.000000000000000 5.000000000000000]
@@ -334,7 +326,6 @@ cdef class Matrix_complex_ball_dense(matrix_dense.Matrix_dense):
 
         EXAMPLES::
 
-            sage: from sage.rings.complex_arb import CBF
             sage: a = MatrixSpace(CBF, 3)(range(9)); a
             [                0 1.000000000000000 2.000000000000000]
             [3.000000000000000 4.000000000000000 5.000000000000000]
@@ -357,7 +348,6 @@ cdef class Matrix_complex_ball_dense(matrix_dense.Matrix_dense):
         """
         EXAMPLE::
 
-            sage: from sage.rings.complex_arb import CBF
             sage: a = CBF(1)
             sage: m1 = MatrixSpace(CBF, 1)([a])
             sage: m2 = MatrixSpace(CBF, 1)([a])

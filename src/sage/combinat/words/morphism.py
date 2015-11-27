@@ -143,14 +143,73 @@ def get_cycles(f, domain=None):
 
 from sage.misc.lazy_list import lazy_list
 
-class PeriodicPointIterator:
+class PeriodicPointIterator(object):
+    r"""
+    (Lazy) constructor of the periodic points of a word morphism.
+
+    This class is mainly used in :class:`WordMorphism.periodic_point` and
+    :class:`WordMorphism.periodic_points`.
+
+    EXAMPLES::
+
+        sage: from sage.combinat.words.morphism import PeriodicPointIterator
+        sage: s = WordMorphism('a->bacca,b->cba,c->aab')
+        sage: p = PeriodicPointIterator(s, ['a','b','c'])
+        sage: p._cache[0]
+        lazy list ['a', 'a', 'b', ...]
+        sage: p._cache[1]
+        lazy list ['b', 'a', 'c', ...]
+        sage: p._cache[2]
+        lazy list ['c', 'b', 'a', ...]
+    """
     def __init__(self, m, cycle):
+        r"""
+        INPUT:
+
+        - ``m`` -- a word morphism
+
+        - ``cycle`` -- a cycle of letters under the morphism
+
+        TESTS::
+
+            sage: from sage.combinat.words.morphism import PeriodicPointIterator
+            sage: s = WordMorphism('a->bacca,b->cba,c->aab')
+            sage: p = PeriodicPointIterator(s, ['a','b','c'])
+            sage: pp = loads(dumps(p))
+            sage: pp._cache[0]
+            lazy list ['a', 'a', 'b', ...]
+        """
+        self._m = m            # for pickling only
         self._image = m.image
-        self._cycle = cycle
+        self._cycle = tuple(cycle)
         self._cache = [lazy_list(self.get_iterator(i)) for i in range(len(cycle))]
+
+    def __reduce__(self):
+        r"""
+        TESTS::
+
+            sage: from sage.combinat.words.morphism import PeriodicPointIterator
+            sage: s = WordMorphism('a->bacca,b->cba,c->aab')
+            sage: p = PeriodicPointIterator(s, ['a','b','c'])
+            sage: p.__reduce__()
+            (<class 'sage.combinat.words.morphism.PeriodicPointIterator'>,
+             (WordMorphism: a->bacca, b->cba, c->aab, ('a', 'b', 'c')))
+        """
+        return PeriodicPointIterator, (self._m, self._cycle)
 
     @cached_method
     def get_iterator(self, i):
+        r"""
+        Internal method.
+
+        EXAMPLES::
+
+            sage: from sage.combinat.words.morphism import PeriodicPointIterator
+            sage: s = WordMorphism('a->bacca,b->cba,c->aab')
+            sage: p = PeriodicPointIterator(s, ['a','b','c'])
+            sage: p.get_iterator(0)
+            <generator object get_iterator at ...>
+        """
         j = (i-1)%len(self._cycle)
         for a in self._image(self._cycle[j]):
             yield a
@@ -159,9 +218,6 @@ class PeriodicPointIterator:
         while True:
             for a in self._image(next(u)):
                 yield a
-
-    def get_cache(self, i):
-        return self._cache[i]
 
 class WordMorphism(SageObject):
     r"""
@@ -1886,7 +1942,7 @@ class WordMorphism(SageObject):
                 raise ValueError("there is no periodic point starting with letter (=%s)"%letter)
 
             P = PeriodicPointIterator(self, cycle)
-            return self.codomain().shift()(P.get_cache(0))
+            return self.codomain().shift()(P._cache[0])
 
     def periodic_points(self):
         r"""
@@ -1938,7 +1994,7 @@ class WordMorphism(SageObject):
         parent = self.codomain().shift()
         for cycle in get_cycles(CallableDict(d),A):
             P = PeriodicPointIterator(self, cycle)
-            res.append([parent(P.get_cache(i)) for i in range(len(cycle))])
+            res.append([parent(P._cache[i]) for i in range(len(cycle))])
 
         return res
 

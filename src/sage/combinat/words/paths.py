@@ -444,12 +444,34 @@ of alphabet (=%s) or half the size of alphabet."%(len(steps),alphabet.cardinalit
         self._vector_space = s.parent()
 
     def __eq__(self, other):
-        return type(self) == type(other) and \
+        r"""
+        TESTS::
+
+            sage: W1 = WordPaths(['a','b'], [vector((0,1)), vector((0,2))])
+            sage: W2 = WordPaths(['a','b'], [vector((0,1)), vector((0,2))])
+            sage: W3 = WordPaths(['a','b'], [vector((0,2)), vector((1,0))])
+            sage: W1 == W2
+            True
+            sage: W1 == W3
+            False
+        """
+        return self is other or (type(self) == type(other) and \
                self.alphabet() == other.alphabet() and \
                self.vector_space() == other.vector_space() and \
-               self.letters_to_steps() == other.letters_to_steps()
+               self.letters_to_steps() == other.letters_to_steps())
 
     def __ne__(self, other):
+        r"""
+        TESTS::
+
+            sage: W1 = WordPaths(['a','b'], [vector((0,1)), vector((0,2))])
+            sage: W2 = WordPaths(['a','b'], [vector((0,1)), vector((0,2))])
+            sage: W3 = WordPaths(['a','b'], [vector((0,2)), vector((1,0))])
+            sage: W1 != W2
+            False
+            sage: W1 != W3
+            True
+        """
         return not (self == other)
 
     @lazy_attribute

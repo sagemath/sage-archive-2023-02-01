@@ -336,7 +336,9 @@ class AbstractLanguage(Parent):
             sage: FiniteWords([0,1]) == FiniteWords([0,1,2,3])
             False
         """
-        return type(self) is type(other) and self.alphabet() == other.alphabet()
+        return self is other or (
+                   type(self) is type(other) and
+                   self.alphabet() == other.alphabet())
 
     def __ne__(self, other):
         r"""

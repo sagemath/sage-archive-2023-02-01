@@ -2434,12 +2434,13 @@ class Words_all(FiniteAndInfiniteWords):
         deprecation(19619, "Words_all is deprecated, use FiniteAndInfiniteWords instead")
         FiniteAndInfiniteWords.__init__(self, None)
 
-    def __setstate__(self, state):
-        if '_element_classes' in state:
-            state.pop('_element_classes')
-        self.__dict__ = state
-
     def _element_constructor_(self):
+        r"""
+        This method exists to make (old) unpickling works.
+
+        It is indirectly tested by the function
+        :func:`sage.structure.sage_object.unpickle_all`.
+        """
         pass
 
 from sage.structure.sage_object import register_unpickle_override

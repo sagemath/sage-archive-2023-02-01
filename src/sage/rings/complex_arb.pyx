@@ -1852,8 +1852,6 @@ cdef class ComplexBall(RingElement):
         """
         EXAMPLES::
 
-            sage: from sage.rings.complex_ball_acb import CBF
-            sage: from sage.rings.real_arb import RBF
             sage: CBF(-1)**(1/2)
             [+/- 2.84e-16] + [1.00000000000000 +/- 4.45e-16]*I
             sage: CBF(e)**CBF(i*pi)
@@ -1917,7 +1915,6 @@ cdef class ComplexBall(RingElement):
 
         EXAMPLES::
 
-            sage: from sage.rings.complex_ball_acb import CBF
             sage: CBF(-2).sqrt()
             [1.414213562373095 +/- 2.99e-16]*I
         """
@@ -1936,7 +1933,6 @@ cdef class ComplexBall(RingElement):
 
         EXAMPLES::
 
-            sage: from sage.rings.complex_ball_acb import CBF
             sage: CBF(-2).rsqrt()
             [-0.707106781186547 +/- 5.73e-16]*I
             sage: CBF(0, 1/2).rsqrt()
@@ -1959,7 +1955,6 @@ cdef class ComplexBall(RingElement):
 
         EXAMPLES::
 
-            sage: from sage.rings.complex_ball_acb import CBF
             sage: CBF(1, 1).cube()
             -2.000000000000000 + 2.000000000000000*I
         """
@@ -1977,7 +1972,6 @@ cdef class ComplexBall(RingElement):
 
         EXAMPLES::
 
-            sage: from sage.rings.complex_ball_acb import CBF
             sage: CBF(1).rising_factorial(5)
             120.0000000000000
             sage: CBF(1/3, 1/2).rising_factorial(300)
@@ -2018,7 +2012,6 @@ cdef class ComplexBall(RingElement):
 
         EXAMPLES::
 
-            sage: from sage.rings.complex_ball_acb import CBF
             sage: CBF(2*i).log()
             [0.6931471805599453 +/- 4.16e-17] + [1.570796326794897 +/- 6.65e-16]*I
             sage: CBF(-1).log()
@@ -2053,8 +2046,6 @@ cdef class ComplexBall(RingElement):
 
         EXAMPLES::
 
-            sage: from sage.rings.complex_ball_acb import CBF
-            sage: from sage.rings.real_arb import RBF
             sage: eps = RBF(1e-50)
             sage: CBF(1+eps, eps).log()
             [+/- 2.23e-16] + [1.000000000000000e-50 +/- 2.30e-66]*I
@@ -2075,7 +2066,6 @@ cdef class ComplexBall(RingElement):
 
         EXAMPLES::
 
-            sage: from sage.rings.complex_ball_acb import CBF
             sage: CBF(i*pi).exp()
             [-1.00000000000000 +/- 6.67e-16] + [+/- 5.68e-16]*I
         """
@@ -2091,7 +2081,6 @@ cdef class ComplexBall(RingElement):
 
         EXAMPLES::
 
-            sage: from sage.rings.complex_ball_acb import CBF
             sage: CBF(1/2).exppii()
             1.000000000000000*I
             sage: CBF(0, -1/pi).exppii()
@@ -2109,7 +2098,6 @@ cdef class ComplexBall(RingElement):
 
         EXAMPLES::
 
-            sage: from sage.rings.complex_ball_acb import CBF
             sage: CBF(i*pi).sin()
             [11.5487393572577 +/- 5.34e-14]*I
         """
@@ -2125,7 +2113,6 @@ cdef class ComplexBall(RingElement):
 
         EXAMPLES::
 
-            sage: from sage.rings.complex_ball_acb import CBF
             sage: CBF(i*pi).cos()
             [11.59195327552152 +/- 8.38e-15]
         """
@@ -2141,7 +2128,6 @@ cdef class ComplexBall(RingElement):
 
         EXAMPLES::
 
-            sage: from sage.rings.complex_ball_acb import CBF
             sage: CBF(pi/2, 1/10).tan()
             [+/- 3.93e-14] + [10.033311132254 +/- 3.64e-13]*I
             sage: CBF(pi/2).tan()
@@ -2159,7 +2145,6 @@ cdef class ComplexBall(RingElement):
 
         EXAMPLES::
 
-            sage: from sage.rings.complex_ball_acb import CBF
             sage: CBF(pi, 1/10).cot()
             [+/- 5.65e-14] + [-10.033311132254 +/- 4.75e-13]*I
             sage: CBF(pi).cot()
@@ -2177,7 +2162,6 @@ cdef class ComplexBall(RingElement):
 
         EXAMPLES::
 
-            sage: from sage.rings.complex_ball_acb import CBF
             sage: CBF(1+i).arctan()
             [1.017221967897851 +/- 4.93e-16] + [0.4023594781085251 +/- 8.52e-17]*I
             sage: CBF(i).arctan()
@@ -2198,7 +2182,6 @@ cdef class ComplexBall(RingElement):
 
         EXAMPLES::
 
-            sage: from sage.rings.complex_ball_acb import CBF
             sage: CBF(1, 1).gamma()
             [0.49801566811836 +/- 4.98e-15] + [-0.154949828301811 +/- 7.67e-16]*I
             sage: CBF(-1).gamma()
@@ -2234,7 +2217,6 @@ cdef class ComplexBall(RingElement):
 
         EXAMPLES::
 
-            sage: from sage.rings.complex_ball_acb import CBF
             sage: CBF(1000, 1000).log_gamma()
             [5466.22252162990 +/- 3.05e-12] + [7039.33429191119 +/- 3.81e-12]*I
             sage: CBF(-1/2).log_gamma()
@@ -2254,7 +2236,6 @@ cdef class ComplexBall(RingElement):
 
         EXAMPLES::
 
-            sage: from sage.rings.complex_ball_acb import CBF
             sage: CBF(1, 1).psi()
             [0.0946503206224770 +/- 7.34e-17] + [1.076674047468581 +/- 2.63e-16]*I
             sage: CBF(-1).psi()
@@ -2275,7 +2256,6 @@ cdef class ComplexBall(RingElement):
 
         EXAMPLES::
 
-            sage: from sage.rings.complex_ball_acb import CBF
             sage: CBF(1, 1).zeta()
             [0.5821580597520036 +/- 5.27e-17] + [-0.9268485643308071 +/- 2.81e-17]*I
             sage: CBF(1, 1).zeta(1)
@@ -2306,7 +2286,6 @@ cdef class ComplexBall(RingElement):
 
         EXAMPLES::
 
-            sage: from sage.rings.complex_ball_acb import CBF
             sage: CBF(2).polylog(1)
             [+/- 4.65e-15] + [-3.14159265358979 +/- 8.15e-15]*I
             sage: CBF(1, 1).polylog(CBF(1, 1))
@@ -2347,7 +2326,6 @@ cdef class ComplexBall(RingElement):
 
         EXAMPLES::
 
-            sage: from sage.rings.complex_ball_acb import CBF
             sage: CBF(0, -1).agm1()
             [0.5990701173678 +/- 1.14e-14] + [-0.5990701173678 +/- 1.22e-14]*I
         """
@@ -2383,7 +2361,6 @@ cdef class ComplexBall(RingElement):
 
         EXAMPLES::
 
-            sage: from sage.rings.complex_ball_acb import CBF
             sage: CBF(1, pi/2).hypergeometric([], [])
             [+/- 3.57e-15] + [2.7182818284590 +/- 5.37e-14]*I
 
@@ -2453,7 +2430,6 @@ cdef class ComplexBall(RingElement):
 
         EXAMPLES::
 
-            sage: from sage.rings.complex_ball_acb import CBF
             sage: CBF(1000, 1000).hypergeometric_U(RLF(pi), -100)
             [-7.261605907166e-11 +/- 4.89e-24] + [-7.928136216391e-11 +/- 5.36e-24]*I
             sage: CBF(1000, 1000).hypergeometric_U(0, -100)
@@ -2473,7 +2449,6 @@ cdef class ComplexBall(RingElement):
 
         EXAMPLES::
 
-            sage: from sage.rings.complex_ball_acb import CBF
             sage: CBF(1, 1).erf()
             [1.31615128169795 +/- 8.80e-15] + [0.19045346923783 +/- 9.19e-15]*I
         """
@@ -2490,7 +2465,6 @@ cdef class ComplexBall(RingElement):
 
         EXAMPLES::
 
-            sage: from sage.rings.complex_ball_acb import CBF
             sage: CBF(20).erfc()
             [5.3958656116079e-176 +/- 1.08e-190]
             sage: CBF(100, 100).erfc()
@@ -2510,7 +2484,6 @@ cdef class ComplexBall(RingElement):
 
         EXAMPLES::
 
-            sage: from sage.rings.complex_ball_acb import CBF
             sage: CBF(1, 1).bessel_J(1)
             [0.614160334922903 +/- 8.48e-16] + [0.365028028827088 +/- 6.62e-16]*I
             sage: CBF(100, -100).bessel_J(1/3)
@@ -2530,7 +2503,6 @@ cdef class ComplexBall(RingElement):
 
         EXAMPLES::
 
-            sage: from sage.rings.complex_ball_acb import CBF
             sage: CBF(1, 1).bessel_K(0)
             [0.08019772694652 +/- 3.19e-15] + [-0.35727745928533 +/- 1.08e-15]*I
             sage: CBF(1, 1).bessel_K(1)
@@ -2552,7 +2524,6 @@ cdef class ComplexBall(RingElement):
 
         EXAMPLES::
 
-            sage: from sage.rings.complex_ball_acb import CBF
             sage: CBF(1+i).exp_integral_e(1)
             [0.00028162445198 +/- 2.78e-15] + [-0.17932453503936 +/- 2.56e-15]*I
             sage: CBF(1+i).exp_integral_e(QQbar(i))
@@ -2571,7 +2542,6 @@ cdef class ComplexBall(RingElement):
 
         EXAMPLES::
 
-            sage: from sage.rings.complex_ball_acb import CBF
             sage: CBF(1, 1).ei()
             [1.76462598556385 +/- 6.65e-15] + [2.38776985151052 +/- 4.34e-15]*I
             sage: CBF(0).ei()
@@ -2589,7 +2559,6 @@ cdef class ComplexBall(RingElement):
 
         EXAMPLES::
 
-            sage: from sage.rings.complex_ball_acb import CBF
             sage: CBF(1, 1).si()
             [1.10422265823558 +/- 2.16e-15] + [0.88245380500792 +/- 3.15e-15]*I
             sage: CBF(0).si()
@@ -2607,7 +2576,6 @@ cdef class ComplexBall(RingElement):
 
         EXAMPLES::
 
-            sage: from sage.rings.complex_ball_acb import CBF
             sage: CBF(1, 1).ci()
             [0.882172180555936 +/- 4.85e-16] + [0.287249133519956 +/- 3.47e-16]*I
             sage: CBF(0).ci()
@@ -2625,7 +2593,6 @@ cdef class ComplexBall(RingElement):
 
         EXAMPLES::
 
-            sage: from sage.rings.complex_ball_acb import CBF
             sage: CBF(1, 1).shi()
             [0.88245380500792 +/- 3.15e-15] + [1.10422265823558 +/- 2.16e-15]*I
             sage: CBF(0).shi()
@@ -2644,7 +2611,6 @@ cdef class ComplexBall(RingElement):
 
         EXAMPLES::
 
-            sage: from sage.rings.complex_ball_acb import CBF
             sage: CBF(1, 1).chi()
             [0.882172180555936 +/- 4.85e-16] + [1.28354719327494 +/- 1.05e-15]*I
             sage: CBF(0).chi()
@@ -2664,7 +2630,6 @@ cdef class ComplexBall(RingElement):
 
         EXAMPLES::
 
-            sage: from sage.rings.complex_ball_acb import CBF
             sage: CBF(1, 1).li()
             [0.61391166922119 +/- 7.03e-15] + [2.05958421419258 +/- 8.25e-15]*I
             sage: CBF(0).li()

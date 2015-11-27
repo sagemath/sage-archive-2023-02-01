@@ -117,6 +117,16 @@ function as well as a Reduce function. Here are some examples :
       sage: bool(sp == sum(factorial(i)*x^i for i in range(9)))
       True
 
+* We now demonstrate the use of ``post_process``::
+
+      sage: S = RecursivelyEnumeratedSet( [[]],
+      ....:   lambda l: ([l[:i] + [len(l)] + l[i:] for i in range(len(l)+1)]
+      ....:               if len(l) < 8 else []),
+      ....:   post_process = lambda l : l if len(l) == 8 else None,
+      ....:   structure='forest', enumeration='depth')
+      sage: sp = S.map_reduce(lambda z: x**len(z)); sp
+      40320*x^8
+
 * On can also compute the list of objects in a
   :class:`RecursivelyEnumeratedSet of forest type<SearchForest>` using
   :class:`RESetMapReduce`. As an example, we compute the set of number
@@ -149,9 +159,9 @@ Advanced use
 
 **Florent :**
 
-- Explication de postprocess
-
 - parametres avances de distribution
+
+- profiling and debugging
 
 How does it work ?
 ------------------
@@ -259,7 +269,23 @@ From the point of view of ``V`` and ``T``, here is what happens:
     ``W._write_task``. The task is immediately signaled to end the the master
     through :meth:`master._signal_task_done`.
   + Otherwise, a node is removed from the bottom of ``V._todo``. The node is
-    sent to ``W`` on ``W._write_task``. The task will be ended by ``W``.
+    sent to ``W`` on ``W._write_task``. The task will be ended by ``W``, that
+    is when finished working on the subtree rooted at the node, ``W`` will
+    call :meth:`master._signal_task_done`.
+
+The end of the computation
+--------------------------
+
+When a worker finishes working on a task, it calls
+:meth:`master._signal_task_done`. This decrease the counter of the semaphore
+``master._active_tasks``. When it reaches 0, it means that there are no more
+nodes: the work is done. The worker executes :meth:`master._shutdown` which
+sends ``AbortError`` on all :meth:`worker._request` and
+:meth:`worker._write_task`. Each worker or thief thread receiving such a
+message raise the corresponding exception, stoping therefore its work. A lock
+called ``master._done`` ensures that shutdown is only done once. Finally, it is
+also possible to interrupt the computation before its ends calling
+:meth:`master.abort()`.
 
 Are there examples of classes ?
 -------------------------------
@@ -344,6 +370,8 @@ class AbortError(Exception):
     r"""
     Exception for aborting parallel computations
 
+    This is used both as exception or as abort message
+
     TESTS::
 
         sage: from sage.combinat.map_reduce import AbortError
@@ -361,16 +389,28 @@ class RESetMapReduce(object):
 
     INPUT:
 
-    Description of the set: 
+    Description of the set:
 
-    - either ``forest=f`` -- where ``f`` is a :class:`RecursivelyEnumeratedSet`
-    - ``roots`` -- (default to ``None``),
-    - ``children` -- (default to ``None``),
-    - ``post_process`` -- (default to ``None``),
-    - ``map_function`` -- (default to ``None``),
-    - ``reduce_function`` -- (default to ``None``),
-    - ``reduce_init`` -- (default to ``None``),
-    - ``forest`` -- (default to ``None``)
+    - either ``forest=f`` -- where ``f`` is
+      a :class:`RecursivelyEnumeratedSet of forest type<SearchForest>`
+
+    - or a triple ``roots, children, post_process`` as follows
+
+      - ``roots=r`` -- The root of the enumeration
+      - ``children=c`` -- a function iterating through children node, given a parent nodes
+      - ``post_process=p`` -- a post processing function
+
+    The option ``post_process`` allows for customizing the nodes that
+    are actually produced. Furthermore, if ``post_process(x)`` returns ``None``,
+    then ``x`` won't be output at all.
+
+    Decription of the map/reduce operation:
+
+    - ``map_function=f`` -- (default to ``None``)
+    - ``reduce_function=red`` -- (default to ``None``)
+    - ``reduce_init=init`` -- (default to ``None``)
+
+    See :mod:`the Map/Reduce module <sage.combinat.map_reduce>` for details and examples.
     """
     def __init__(self, roots = None,
                  children = None,
@@ -432,6 +472,10 @@ class RESetMapReduce(object):
         r"""
         Return the roots of ``self``
 
+        OUTPUT: an iterable of nodes
+
+        .. note:: This should be overloaded in applications.
+
         EXAMPLES::
 
             sage: from sage.combinat.map_reduce import RESetMapReduce
@@ -444,6 +488,12 @@ class RESetMapReduce(object):
     def map_function(self, o):
         r"""
         Return the function mapped by ``self``
+
+        INPUT: ``o`` -- a node
+
+        OUTPUT: By default ``1``.
+
+        .. note:: This should be overloaded in applications.
 
         EXAMPLES::
 
@@ -461,6 +511,12 @@ class RESetMapReduce(object):
         r"""
         Return the reducer function for ``self``
 
+        INPUT: ``a``, ``b`` -- two value to be reduced
+
+        OUTPUT: by default the sum of ``a`` and ``b``.
+
+        .. note:: This should be overloaded in applications.
+
         EXAMPLES::
 
             sage: from sage.combinat.map_reduce import RESetMapReduce
@@ -476,6 +532,12 @@ class RESetMapReduce(object):
     def post_process(self, a):
         r"""
         Return the post-processing function for ``self``
+
+        INPUT: ``a`` -- a node
+
+        By default, returns ``a`` itself
+
+        .. note:: This should be overloaded in applications.
 
         EXAMPLES::
 
@@ -496,6 +558,8 @@ class RESetMapReduce(object):
         r"""
         Return the initial element for a reduction
 
+        .. note:: This should be overloaded in applications.
+
         TESTS::
 
             sage: from sage.combinat.map_reduce import RESetMapReduce
@@ -512,6 +576,14 @@ class RESetMapReduce(object):
     def setup_workers(self, max_proc = None, reduce_locally=True):
         r"""
         Setup the communication channels
+
+        INPUT:
+
+        - ``mac_proc`` -- an integer: the maximum number of workers
+
+        - ``reduce_locally`` -- whether the workers should reduce locally
+          their work or sends results to the master as soon as possible.
+          See :class:`RESetMapReduceWorker` for details.
 
         TESTS::
 
@@ -572,6 +644,10 @@ class RESetMapReduce(object):
         r"""
         Get the results from the queue
 
+        OUTPUT:
+
+        - the reduction of the results of all the workers
+
         EXAMPLES::
 
             sage: from sage.combinat.map_reduce import RESetMapReduce
@@ -599,7 +675,9 @@ class RESetMapReduce(object):
 
     def finish(self):
         r"""
-        Cleanup
+        Destroys the worker and all the communication means.
+
+        Also gathers the communication statistics
 
         TESTS::
 
@@ -664,6 +742,8 @@ class RESetMapReduce(object):
     def _shutdown(self):
         r"""
         Called to shutdown the workers
+
+        Sends a poison pill to all workers and their thief thread.
 
         EXAMPLES::
 
@@ -751,6 +831,10 @@ class RESetMapReduce(object):
     def random_worker(self):
         r"""
         Returns a random workers
+
+        OUTPUT:
+
+        A worker for ``self`` chosed at random
 
         EXAMPLES::
 
@@ -885,10 +969,7 @@ class RESetMapReduceWorker(Process):
     - ``mapred`` -- the instance of :class:`RESetMapReduce` for which
       this process is working.
 
-    - ``syncnodes`` -- how often worker synchronize with the other. The worker
-      will synchronize every ``syncnodes`` processed nodes. The optimal value
-      depend on the ratio communication time over time needed for processing
-      one node.
+    - ``iproc`` -- the id of this worker.
 
     - ``reduce_locally`` -- when reducing the results. Three possible values
       are supported:
@@ -905,7 +986,7 @@ class RESetMapReduceWorker(Process):
         of communications.
 
     """
-    def __init__(self, mapred, i, reduce_locally):
+    def __init__(self, mapred, iproc, reduce_locally):
         r"""
         TESTS::
 
@@ -915,7 +996,7 @@ class RESetMapReduceWorker(Process):
             <RESetMapReduceWorker(RESetMapReduceWorker-..., initial)>
         """
         Process.__init__(self)
-        self._iproc = i
+        self._iproc = iproc
         self._todo = collections.deque()
         self._request = SimpleQueue()  # Faster than Queue
         # currently this is not possible to have to simultaneous read or write
@@ -985,6 +1066,8 @@ class RESetMapReduceWorker(Process):
         r"""
         Steal some node from another worker
 
+        OUTPUT: a node stolen from another worker choosed at random
+
         EXAMPLES::
 
             sage: from sage.combinat.map_reduce import RESetMPExample, RESetMapReduceWorker
@@ -1019,6 +1102,10 @@ class RESetMapReduceWorker(Process):
 
     def run(self):
         r"""
+        The main function executed by the worker
+
+        Calls :meth:`run_myself` after possibly setting up parallel profiling.
+
         EXAMPLES::
 
             sage: from sage.combinat.map_reduce import RESetMPExample, RESetMapReduceWorker
@@ -1052,6 +1139,8 @@ class RESetMapReduceWorker(Process):
 
     def run_myself(self):
         r"""
+        The main function executed by the worker
+
         EXAMPLES::
 
             sage: from sage.combinat.map_reduce import RESetMPExample, RESetMapReduceWorker
@@ -1110,6 +1199,9 @@ class RESetMapReduceWorker(Process):
         r"""
         Send results to the MapReduce process
 
+        Send the result stored in ``self._res`` to the master an reinitialize it to
+        ``master.reduce_init``.
+
         EXAMPLES::
 
             sage: from sage.combinat.map_reduce import RESetMPExample, RESetMapReduceWorker
@@ -1128,9 +1220,15 @@ class RESetMapReduceWorker(Process):
 
     def walk_branch_locally(self, node):
         r"""
-        Work locally.
+        Work locally
 
-        This is where the actual work is performed
+        Performs the map/reduce computation on the subtrees rooted at ``node``.
+
+        INPUT: ``node`` -- the root of the subtree explored.
+
+        OUTPUT: nothing, the result are stored in ``self._res``
+
+        This is where the actual work is performed.
 
         EXAMPLES::
 
@@ -1179,6 +1277,13 @@ class RESetMPExample(RESetMapReduce):
     r"""
     An example of map reduce class
 
+    INPUT:
+
+    - ``maxl`` -- the maximum size of permutations generated (default to `9`).
+
+    This compute the generating series of permutations counted by their size
+    upto size ``maxl``.
+
     EXAMPLE::
 
         sage: from sage.combinat.map_reduce import RESetMPExample
@@ -1197,8 +1302,11 @@ class RESetMPExample(RESetMapReduce):
         from sage.calculus.var import var
         self.x = var('x')
         self.maxl = maxl
+
     def roots(self):
         r"""
+        Return the empty permutation
+
         EXAMPLE::
 
             sage: from sage.combinat.map_reduce import RESetMPExample
@@ -1206,8 +1314,19 @@ class RESetMPExample(RESetMapReduce):
             [[]]
         """
         return [[]]
+
     def children(self, l):
         r"""
+        Return the chidren of the permutation `l`
+
+        INPUT:
+
+        - ``l`` -- a list containing a permutation
+
+        OUTPUT:
+
+        - the lists of ``len(l)`` inserted at all possible positions into ``l``
+
         EXAMPLE::
 
             sage: from sage.combinat.map_reduce import RESetMPExample
@@ -1216,15 +1335,24 @@ class RESetMPExample(RESetMapReduce):
         """
         return [ l[:i] + [len(l)] + l[i:]
                  for i in range(len(l)+1) ] if len(l) < self.maxl else []
-    def map_function(self, z):
+
+    def map_function(self, l):
         r"""
+        The monomial associated to the permutation `l`
+
+        INPUT:
+
+        - ``l`` -- a list containing a permutation
+
+        OUTPUT: ``x^len(l)``.
+
         EXAMPLE::
 
             sage: from sage.combinat.map_reduce import RESetMPExample
             sage: RESetMPExample().map_function([1,0])
             x^2
         """
-        return self.x**len(z)
+        return self.x**len(l)
 
 
 class RESetParallelIterator(RESetMapReduce):
@@ -1245,6 +1373,12 @@ class RESetParallelIterator(RESetMapReduce):
     """
     def map_function(self, z):
         r"""
+        Return a singleton tuple
+
+        INPUT: ``z`` -- a node
+
+        OUPUT: ``(z, )``
+
         EXAMPLE::
 
             sage: from sage.combinat.map_reduce import RESetParallelIterator

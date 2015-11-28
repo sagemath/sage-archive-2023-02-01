@@ -1510,7 +1510,9 @@ class Function_binomial(GinacFunction):
             sage: SR(5).binomial(3, hold=True).simplify()
             10
 
-        TESTS: We verify that we can convert this function to Maxima and
+        TESTS:
+
+        We verify that we can convert this function to Maxima and
         bring it back into Sage.
 
         ::

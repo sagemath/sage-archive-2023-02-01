@@ -858,7 +858,7 @@ class ChowGroup_class(FGP_Module_class):
 
         - ``cone`` -- a :class:`sage.geometry.cone.ConvexRationalPolyhedralCone`.
 
-        OUPUT:
+        OUTPUT:
 
         The corresponding element of ``self.V()``.
 

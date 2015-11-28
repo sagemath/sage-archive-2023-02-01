@@ -226,44 +226,6 @@ from copy import copy
 from functools import reduce
 
 
-def SymmetricFunctionAlgebra(R, basis="schur"):
-    r"""
-    This is deprecated in :trac:`15473`. Use instead
-    :class:`SymmetricFunctions` as ``SymmetricFunctions(R).basis()``
-
-    INPUT:
-
-    -  ``R`` -- ring with identity basis
-    -  ``basis`` -- a string for the name of the basis, must be one of
-       'schur', 'elementary', 'homogeneous', 'power', 'monomial' or their
-       abbreviations 's', 'e', 'h', 'p', 'm'
-
-    OUTPUT: A SymmetricFunctionAlgebra
-
-    EXAMPLES::
-
-        sage: SymmetricFunctionAlgebra(QQ)
-        doctest:...: DeprecationWarning: this function is deprecated. Use SymmetricFunctions(R).basis()
-        See http://trac.sagemath.org/15473 for details.
-        Symmetric Functions over Rational Field in the Schur basis
-    """
-    from sage.misc.superseded import deprecation
-    deprecation(15473, "this function is deprecated. Use SymmetricFunctions(R).basis()")
-    from sage.combinat.sf.sf import SymmetricFunctions
-    Sym = SymmetricFunctions(R)
-    if basis == 'schur' or basis == 's':
-        return Sym.s()
-    elif basis == "elementary" or  basis == 'e':
-        return Sym.e()
-    elif basis == "homogeneous" or basis == 'h':
-        return Sym.h()
-    elif basis == 'power' or basis == 'p':
-        return Sym.p()
-    elif basis == 'monomial' or basis == 'm':
-        return Sym.m()
-    else:
-        raise ValueError("unknown basis (= %s)"%basis)
-
 def is_SymmetricFunctionAlgebra(x):
     """
     Checks whether ``x`` is a symmetric function algebra.
@@ -1280,7 +1242,7 @@ class SymmetricFunctionsBases(Category_realization_of_parent):
 
 class FilteredSymmetricFunctionsBases(Category_realization_of_parent):
     r"""
-    The category of graded bases of the ring of symmetric functions.
+    The category of filtered bases of the ring of symmetric functions.
 
     TESTS::
 
@@ -1328,6 +1290,9 @@ class FilteredSymmetricFunctionsBases(Category_realization_of_parent):
 class GradedSymmetricFunctionsBases(Category_realization_of_parent):
     r"""
     The category of graded bases of the ring of symmetric functions.
+
+    These are further required to have the property that the basis element
+    indexed by the empty partition is `1`.
 
     TESTS::
 
@@ -1711,7 +1676,7 @@ class SymmetricFunctionAlgebra_generic(CombinatorialFreeModule):
     #  - add option orthonormal
     def _apply_multi_module_morphism(self, x, y, f, orthogonal=False):
         r"""
-        Applies morphism specified by ``f`` on (``x``,``y``).
+        Applies morphism specified by ``f`` on (``x``, ``y``).
 
         INPUT:
 

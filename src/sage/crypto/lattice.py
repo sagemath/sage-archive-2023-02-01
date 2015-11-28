@@ -174,21 +174,21 @@ def gen_lattice(type='modular', n=4, m=8, q=11, seed=None,
 
     REFERENCES:
 
-.. [A96] Miklos Ajtai.
-   Generating hard instances of lattice problems (extended abstract).
-   STOC, pp. 99--108, ACM, 1996.
+    .. [A96] Miklos Ajtai.
+      Generating hard instances of lattice problems (extended abstract).
+      STOC, pp. 99--108, ACM, 1996.
 
-.. [GM02] Daniel Goldstein and Andrew Mayer.
-   On the equidistribution of Hecke points.
-   Forum Mathematicum, 15:2, pp. 165--189, De Gruyter, 2003.
+    .. [GM02] Daniel Goldstein and Andrew Mayer.
+      On the equidistribution of Hecke points.
+      Forum Mathematicum, 15:2, pp. 165--189, De Gruyter, 2003.
 
-.. [LM06] Vadim Lyubashevsky and Daniele Micciancio.
-   Generalized compact knapsacks are collision resistant.
-   ICALP, pp. 144--155, Springer, 2006.
+    .. [LM06] Vadim Lyubashevsky and Daniele Micciancio.
+      Generalized compact knapsacks are collision resistant.
+      ICALP, pp. 144--155, Springer, 2006.
 
-.. [R05] Oded Regev.
-   On lattices, learning with errors, random linear codes, and cryptography.
-   STOC, pp. 84--93, ACM, 2005.
+    .. [R05] Oded Regev.
+      On lattices, learning with errors, random linear codes, and cryptography.
+      STOC, pp. 84--93, ACM, 2005.
     """
     from sage.rings.finite_rings.integer_mod_ring \
         import IntegerModRing

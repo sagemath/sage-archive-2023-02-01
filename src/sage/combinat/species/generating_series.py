@@ -108,7 +108,9 @@ def OrdinaryGeneratingSeriesRing(R):
         sage: R([1]).counts(4)
         [1, 1, 1, 1]
 
-    TESTS: We test to make sure that caching works.
+    TESTS:
+
+    We test to make sure that caching works.
 
     ::
 
@@ -181,7 +183,9 @@ def ExponentialGeneratingSeriesRing(R):
         sage: R([1]).counts(4)
         [1, 1, 2, 6]
 
-    TESTS: We test to make sure that caching works.
+    TESTS:
+
+    We test to make sure that caching works.
 
     ::
 
@@ -347,7 +351,9 @@ def CycleIndexSeriesRing(R):
         ....:                        # meaningful.
         [1, 1, 1, 1]
 
-    TESTS: We test to make sure that caching works.
+    TESTS:
+
+    We test to make sure that caching works.
 
     ::
 

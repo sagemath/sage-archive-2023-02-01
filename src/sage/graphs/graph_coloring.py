@@ -75,7 +75,7 @@ def all_graph_colorings(G,n,count_only=False, hex_colors=False, vertex_color_dic
        for each coloring
 
     * `hex_colors` -- (default: ``False``) when set to ``False``, it labels
-      the colors [0,1,..,``n``-1], otherwise it uses the RGB Hex labeling
+      the colors [0,1,.., ``n`` - 1], otherwise it uses the RGB Hex labeling
 
     * `vertex_color_dict` -- (default: ``False``) when set to ``True``, it
       returns a dictionary {vertex:color}, otherwise it returns a dictionary

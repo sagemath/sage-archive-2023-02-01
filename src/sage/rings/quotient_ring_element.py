@@ -428,7 +428,7 @@ class QuotientRingElement(RingElement):
           one for each `x` in ``self.parent().gens()``, that define
           a homomorphism `f` from ``self.parent()`` to ``codomain``
 
-        OUPUT:
+        OUTPUT:
 
         The image of ``self`` in ``codomain`` under the above
         homomorphism `f`.

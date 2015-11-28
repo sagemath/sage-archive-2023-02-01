@@ -866,8 +866,8 @@ cdef class LazyFieldElement(FieldElement):
 
         TESTS::
 
-        sage: "log" in RLF(sqrt(8)).__dir__()
-        True
+            sage: "log" in RLF(sqrt(8)).__dir__()
+            True
 
         """
         return FieldElement.__dir__(self) + named_unops
@@ -1294,7 +1294,8 @@ cdef class LazyUnop(LazyFieldElement):
         """
         For pickling.
 
-        TESTS:
+        TESTS::
+
             sage: from sage.rings.real_lazy import LazyUnop
             sage: a = LazyUnop(RLF, 7, sqrt)
             sage: float(loads(dumps(a))) == float(a)

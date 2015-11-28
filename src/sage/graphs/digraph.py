@@ -866,7 +866,7 @@ class DiGraph(GenericGraph):
 
         * When ``certificate=False``, returns a boolean value.
 
-        * When ``certificate=True`` :
+        * When ``certificate=True``:
 
           * If the graph is acyclic, returns a pair ``(True, ordering)``
             where ``ordering`` is a list of the vertices such that ``u``
@@ -921,7 +921,7 @@ class DiGraph(GenericGraph):
 
         TESTS:
 
-        What about loops?::
+        What about loops? ::
 
             sage: g = digraphs.ButterflyGraph(3)
             sage: g.allow_loops(True)
@@ -1602,23 +1602,27 @@ class DiGraph(GenericGraph):
 
         INPUT:
 
-        - ``inplace`` -- (default: True) if ``False``, a new digraph is created
-          and returned as output, otherwise ``self`` is modified.
+        - ``inplace`` -- (default: ``True``) if ``False``, a new
+          digraph is created and returned as output, otherwise
+          ``self`` is modified.
 
-        - ``multiedges`` -- (default: None) how to decide what should be done in
-          case of doubt (for instance when edge `(1,2)` is to be reversed in a
-          graph while `(2,1)` already exists).
+        - ``multiedges`` -- (default: ``None``) how to decide what
+          should be done in case of doubt (for instance when edge
+          `(1,2)` is to be reversed in a graph while `(2,1)` already
+          exists):
 
-           - If set to ``True``, input graph will be forced to allow parallel
-             edges if necessary and edge `(1,2)` will appear twice in the graph.
+          - If set to ``True``, input graph will be forced to allow
+            parallel edges if necessary and edge `(1,2)` will appear
+            twice in the graph.
 
-           - If set to ``False``, only one edge `(1,2)` will remain in the graph
-             after `(2,1)` is reversed. Besides, the label of edge `(1,2)` will
-             be overwritten with the label of edge `(2,1)`.
+          - If set to ``False``, only one edge `(1,2)` will remain
+            in the graph after `(2,1)` is reversed. Besides, the
+            label of edge `(1,2)` will be overwritten with the label
+            of edge `(2,1)`.
 
-           The default behaviour (``multiedges = None``) will raise an exception
-           each time a subjective decision (setting ``multiedges`` to ``True``
-           or ``False``) is necessary to perform the operation.
+          The default behaviour (``multiedges = None``) will raise an exception
+          each time a subjective decision (setting ``multiedges`` to ``True``
+          or ``False``) is necessary to perform the operation.
 
         The following forms are all accepted:
 
@@ -1822,12 +1826,14 @@ class DiGraph(GenericGraph):
 
         - ``edges`` -- a list of edges in the DiGraph.
 
-        - ``inplace`` -- (default: True) if ``False``, a new digraph is created
-          and returned as output, otherwise ``self`` is modified.
+        - ``inplace`` -- (default: ``True``) if ``False``, a new
+          digraph is created and returned as output, otherwise
+          ``self`` is modified.
 
-        - ``multiedges`` -- (default: None) if ``True``, input graph will be
-          forced to allow parallel edges when necessary (for more information
-          see the documentation of :meth:`~DiGraph.reverse_edge`)
+        - ``multiedges`` -- (default: ``None``) if ``True``, input
+          graph will be forced to allow parallel edges when necessary
+          (for more information see the documentation of
+          :meth:`~DiGraph.reverse_edge`)
 
         .. SEEALSO::
 

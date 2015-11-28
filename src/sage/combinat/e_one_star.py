@@ -692,7 +692,7 @@ class Patch(SageObject):
         r"""
         Returns the number of faces contained in the patch.
 
-        OUPUT:
+        OUTPUT:
 
             integer
 

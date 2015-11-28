@@ -64,7 +64,10 @@ class NumberFieldFractionalIdeal_rel(NumberFieldFractionalIdeal):
         sage: ((a0 + 1) / g).is_integral()
         True
 
-    TESTS: one test fails, because ideals aren't fully integrated into the categories framework yet::
+    TESTS:
+
+    One test fails, because ideals aren't fully integrated into the
+    categories framework yet::
 
         sage: TestSuite(i).run()
         Failure in _test_category:

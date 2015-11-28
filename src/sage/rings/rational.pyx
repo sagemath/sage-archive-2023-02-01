@@ -155,17 +155,17 @@ set_zero_one_elements()
 
 cpdef Integer integer_rational_power(Integer a, Rational b):
     """
-    Compute `a^b` as an integer, if it is integral, or return None.
+    Compute `a^b` as an integer, if it is integral, or return ``None``.
     The positive real root is taken for even denominators.
 
     INPUT:
 
-        a -- an Integer
-        b -- a positive Rational
+    - a -- an ``Integer``
+    - b -- a positive ``Rational``
 
-    OUTPUT::
+    OUTPUT:
 
-        `a^b` as an ``Integer`` or ``None``
+    `a^b` as an ``Integer`` or ``None``
 
     EXAMPLES::
 

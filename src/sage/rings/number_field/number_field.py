@@ -8607,11 +8607,11 @@ class NumberField_absolute(NumberField_generic):
 
         INPUT:
 
-        -``a``,``b`` -- elements of the number field `self`
+        - ``a``, ``b`` -- elements of the number field ``self``
 
         OUTPUT:
 
-        - squarefree ideal of the ring of integers of `self`
+        - squarefree ideal of the ring of integers of ``self``
 
         EXAMPLES::
 

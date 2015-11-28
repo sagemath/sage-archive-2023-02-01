@@ -66,7 +66,7 @@ def ChessboardGraphGenerator(dim_list,
     - ``relabel`` -- (default: ``False``) a boolean set to ``True`` if vertices
       must be relabeled as integers.
 
-    OUTPUTS:
+    OUTPUT:
 
     - A Graph build on a `d`-dimensional chessboard with prescribed dimensions,
       and with edges according given parameters.

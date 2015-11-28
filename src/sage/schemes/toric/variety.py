@@ -727,7 +727,7 @@ class ToricVariety_field(ClearCacheOnPickle, AmbientSpace):
         - same as for
           :class:`~sage.schemes.generic.homset.SchemeHomset_points_toric_field`.
 
-        OUPUT:
+        OUTPUT:
 
         -
           :class:`~sage.schemes.generic.homset.SchemeHomset_points_toric_field`.
@@ -792,7 +792,7 @@ class ToricVariety_field(ClearCacheOnPickle, AmbientSpace):
         - same as for
           :class:`~sage.schemes.generic.morphism.SchemeMorphism_point_toric_field`.
 
-        OUPUT:
+        OUTPUT:
 
         :class:`~sage.schemes.generic.morphism.SchemeMorphism_point_toric_field`.
 
@@ -3140,7 +3140,7 @@ class CohomologyRing(QuotientRing_generic, UniqueRepresentation):
             sage: P2.cohomology_ring()
             Rational cohomology ring of a 2-d CPR-Fano toric variety covered by 3 affine patches
 
-        TESTS::
+        ::
 
             sage: cone1 = Cone([(1,0)]);  cone2 = Cone([(1,0)])
             sage: cone1 is cone2

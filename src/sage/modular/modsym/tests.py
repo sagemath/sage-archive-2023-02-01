@@ -1,7 +1,8 @@
 """
 Testing modular symbols spaces.
 
-TESTS:
+TESTS::
+
     sage: m = ModularSymbols(389)
     sage: [(g.degree(), e) for g, e in m.T(2).fcp()]
     [(1, 1), (1, 2), (2, 2), (3, 2), (6, 2), (20, 2)]

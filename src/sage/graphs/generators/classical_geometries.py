@@ -1114,6 +1114,15 @@ def HaemersGraph(q, hyperoval=None, partition=None, field=None, check_hyperoval=
     redefining adjacencies in the way specified by an arbitrary ``partition`` of
     of the ``hyperoval`` defining `T_2^*(q)^*` into size two parts.
 
+    While [BvL84]_ gives the construction in geometric terms, it can be formulated,
+    and is implemented, in graph-theoretic ones, of re-adjusting the edges.
+    Namely, `G=`T_2^*(q)^*` has a partition
+    into `q+2` independent sets `I_k` of size `q^2` each. Each vertex in `I_j` is
+    adajcent to `q` vertieces from `I_k`. Each `I_k` is paired to some `I_{k'}`,
+    according to ``partition``. One adds edges `(s,t)` for `s,t \in I_k` whenever
+    `s` and `t` are adjacent to some `u \in I_{k'}`, and removes all the edges
+    between `I_k` and `I_{k'}`.
+
     INPUT:
 
     - ``q`` -- a power of two
@@ -1170,7 +1179,6 @@ def HaemersGraph(q, hyperoval=None, partition=None, field=None, check_hyperoval=
     """
     from sage.modules.free_module_element import free_module_element as vector
     from sage.rings.finite_rings.constructor import GF
-    from sage.sets.set import Set
 
     p, k = is_prime_power(q,get_data=True)
     if k==0 or p!=2:
@@ -1182,36 +1190,29 @@ def HaemersGraph(q, hyperoval=None, partition=None, field=None, check_hyperoval=
         F = GF(q,'a')
     else:
         F = field
+    # for q=8, 95% of CPU time taken by this function is spent in the follwing call
     G = T2starGeneralizedQuadrangleGraph(q, field=F, dual=True, hyperoval=hyperoval)
-    v = G.vertices()
-    def nv(v):
+    def nv(v):  # make sure the 1st non-0 coordinate is 1.
         d=next(x for x in v if x!=F.zero())
         return vector(map(lambda x: x/d, v))
 
-    P = map(lambda x: nv(x[0]-x[1]), v)
+    # build the partition into independent sets
+    P = map(lambda x: nv(x[0]-x[1]), G.vertices())
     O = list(set(map(tuple,P)))
-    Ov = map(vector,O)
-    d = dict(map(lambda x: (x,[]), O))
+    I_ks = dict(map(lambda x: (x,[]), range(q+2))) # the partition into I_k's
     for i in xrange(len(P)):
-        d[tuple(P[i])].append(i)
+        I_ks[O.index(tuple(P[i]))].append(i)
 
+    # perform the adjustment of the edges, as described.
     G.relabel()
     F =  filter(lambda x: x!=F.zero(), F)
     for ip,jp in partition:
-        for s in d[O[ip]]:  # remove the edges between co-cliques
-            for t in d[O[jp]]:
-                G.delete_edge(s,t)
-
-        for i,j in ((ip,jp),(jp,ip)): # add edges in each co-clique
-            cocl=d[O[i]]
-            for s in cocl:            # Ov[j] must be in the plane spanned
-                line=[]               # by s and t for s~t
-                for x in F:           # we check that by check that the line on
-                    u = v[s][0]+x*Ov[j] # s and Ov[j] intersects t
-                    u.set_immutable()
-                    line.append(u)
-                for t in filter(lambda x: \
-                        v[x].intersection(Set(line))!=Set(), cocl):
-                    G.add_edge(s,t)
+        for i,j in ((ip,jp),(jp,ip)): # add edges in each I_i, I_j
+            for s,i_s in zip(I_ks[i], xrange(1,q**2)):
+                s_n = filter(lambda x: x in I_ks[j], G.neighbors(s))
+                for t in I_ks[i][i_s:]:
+                    if any(x in s_n for x in G.neighbors(t)):
+                        G.add_edge(s,t)
+        G.delete_edges(G.edge_boundary(I_ks[ip],I_ks[jp])) # edges on (I_i,I_j)
     G.name('Haemers('+str(q)+')')
     return G

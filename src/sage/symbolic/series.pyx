@@ -16,7 +16,7 @@ and
 
 EXAMPLES:
 
-We expand a polynomial in `x` about 0, about `1`, and also truncate
+We expand a polynomial in `x` about `0`, about `1`, and also truncate
 it back to a polynomial::
 
     sage: var('x,y')
@@ -54,8 +54,8 @@ the fractions 1/5 and 1/239.
     sage: x = var('x')
     sage: f = atan(x).series(x, 10); f
     1*x + (-1/3)*x^3 + 1/5*x^5 + (-1/7)*x^7 + 1/9*x^9 + Order(x^10)
-    sage: float(16*f.subs(x==1/5) - 4*f.subs(x==1/239))
-    3.1415926824043994
+    sage: (16*f.subs(x==1/5) - 4*f.subs(x==1/239)).n()
+    3.14159268240440
 """
 ########################################################################
 #       Copyright (C) 2015 Ralf Stephan <ralf@ark.in-berlin.de>
@@ -65,11 +65,6 @@ the fractions 1/5 and 1/239.
 #   the License, or (at your option) any later version.
 #                   http://www.gnu.org/licenses/
 ########################################################################
-
-include "sage/ext/interrupt.pxi"
-include "sage/ext/stdsage.pxi"
-include "sage/ext/cdefs.pxi"
-include "sage/ext/python.pxi"
 
 from ginac cimport *
 from sage.symbolic.expression cimport Expression, new_Expression_from_GEx
@@ -100,14 +95,14 @@ cdef class SymbolicSeries(Expression):
 
     def is_terminating_series(self):
         """
-        Return True if ``self`` is without order term.
+        Return True if the series is without order term.
 
         A series is terminating if it can be represented exactly,
         without requiring an order term.
 
         OUTPUT:
 
-        Boolean. Whether ``self`` has no order term.
+        Boolean. ``True`` if the series has no order term.
 
         EXAMPLES::
 
@@ -128,10 +123,6 @@ cdef class SymbolicSeries(Expression):
         """
         Given a power series or expression, return the corresponding
         expression without the big oh.
-
-        INPUT:
-
-        - ``self`` -- a series as output by the :meth:`series` command.
 
         OUTPUT:
 
@@ -168,11 +159,14 @@ cdef class SymbolicSeries(Expression):
 
     def coefficients(self, x=None, sparse=True):
         r"""
-        Return the coefficients of this symbolic series as a polynomial in x.
+        Return the coefficients of this symbolic series as a list of pairs.
 
         INPUT:
 
         -  ``x`` -- optional variable.
+
+        -  ``sparse`` -- Boolean. If ``False`` return a list with as much
+            entries as the order of the series.
 
         OUTPUT:
 
@@ -202,7 +196,7 @@ cdef class SymbolicSeries(Expression):
         if x is None:
             x = self.default_variable()
         l = [[self.coefficient(x, d), d] for d in xrange(self.degree(x))]
-        if sparse is True:
+        if sparse:
             return l
         else:
             from sage.rings.integer_ring import ZZ

@@ -1,7 +1,8 @@
 r"""
 Partition backtrack functions for sets
 
-DOCTEST:
+EXAMPLES::
+
     sage: import sage.groups.perm_gps.partn_ref.refinement_sets
 
 REFERENCE:

@@ -854,7 +854,7 @@ class GraphLatex(SageObject):
         - ``color_by_label`` - a boolean (default: False). Colors the
           edges according to their labels
 
-        OUTPUTS:
+        OUTPUT:
 
         There are none.  Success happens silently.
 

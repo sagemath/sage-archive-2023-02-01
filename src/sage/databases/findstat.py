@@ -183,8 +183,6 @@ from sage.databases.oeis import FancyTuple
 from string import join
 from ast import literal_eval
 from collections import OrderedDict
-from urllib import urlencode
-from urllib2 import Request, urlopen, HTTPError
 import re
 import webbrowser
 import tempfile
@@ -192,9 +190,13 @@ import time
 import inspect
 import json
 import cgi
-#import copy
 
-# Combinatoral collections
+# import compatible with py2 and py3
+from six.moves.urllib.parse import urlencode
+from six.moves.urllib.request import Request, urlopen
+from six.moves.urllib.error import HTTPError
+
+# Combinatorial collections
 from sage.combinat.alternating_sign_matrix import AlternatingSignMatrix, AlternatingSignMatrices
 from sage.combinat.binary_tree import BinaryTree, BinaryTrees
 from sage.combinat.core import Core, Cores
@@ -213,6 +215,9 @@ from sage.combinat.posets.poset_examples import posets
 from sage.combinat.tableau import SemistandardTableau, SemistandardTableaux, StandardTableau, StandardTableaux
 from sage.combinat.set_partition import SetPartition, SetPartitions
 from sage.graphs.graph_generators import graphs
+from sage.combinat.words.word import Word
+from sage.combinat.words.words import Words
+from sage.combinat.words.abstract_word import Word_class
 
 ######################################################################
 # the FindStat URLs
@@ -2130,6 +2135,11 @@ class FindStatCollection(Element):
             sage: p = c.from_string()('([(0, 2), (2, 1)], 3)')                  # optional -- internet
             sage: p.cover_relations()                                           # optional -- internet
             [[0, 2], [2, 1]]
+
+            sage: c = FindStatCollection("Binary Words")                        # optional -- internet
+            sage: w = c.from_string()('010101')                                 # optional -- internet
+            sage: w in c._sageconstructor(6)                                    # optional -- internet
+            True
         """
         return self._from_str
 
@@ -2225,6 +2235,11 @@ class FindStatCollections(Parent, UniqueRepresentation):
     # several fields are initialised with 'None', they are updated
     # upon the first call to this class
     _findstat_collections = {
+        24: [None, None, None, Word_class, lambda x: Words([0,1], x), None,
+             lambda x: x.length(),
+             lambda x, l: x.length() in l,
+             str,
+             lambda x: Word((int(e) for e in str(x)), alphabet=[0,1])],
         17: [None, None, None, AlternatingSignMatrix, AlternatingSignMatrices, None,
              lambda x: x.to_matrix().nrows(),
              lambda x, l: x.to_matrix().nrows() in l,
@@ -2321,12 +2336,11 @@ class FindStatCollections(Parent, UniqueRepresentation):
         error.
 
         sage: from sage.databases.findstat import FindStatCollection
-        sage: FindStatCollection(24).first_terms(lambda x: 1)                   # optional -- internet, indirect doctest
+        sage: FindStatCollection(24).first_terms(lambda x: 1);                  # optional -- internet,random,indirect doctest
         Traceback (most recent call last):
         ...
         NotImplementedError: This FindStatCollection is not yet supported.
         """
-
         raise NotImplementedError("This FindStatCollection is not yet supported.")
 
     # The following is used for unknown collections, with the

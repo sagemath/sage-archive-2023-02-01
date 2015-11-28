@@ -859,7 +859,7 @@ class CubicalComplex(GenericCellComplex):
         """
         return Set(self._facets)
 
-    def __cmp__(self,other):
+    def __eq__(self, other):
         r"""
         Return True if the set of maximal cells is the same for
         ``self`` and ``other``.
@@ -880,10 +880,29 @@ class CubicalComplex(GenericCellComplex):
             sage: I1.product(S1) == S1.product(I1)
             False
         """
-        if self.maximal_cells() == other.maximal_cells():
-            return 0
-        else:
-            return -1
+        return self.maximal_cells() == other.maximal_cells()
+
+    def __ne__(self, other):
+        r"""
+        Return True if ``self`` and ``other`` are not equal
+
+        :param other: another cubical complex
+        :return: True if the compexes are not equal
+        :rtype: bool
+
+        EXAMPLES::
+
+            sage: I1 = cubical_complexes.Cube(1)
+            sage: I2 = cubical_complexes.Cube(1)
+            sage: I1.product(I2) != I2.product(I1)
+            False
+            sage: I1.product(I2.product(I2)) != I2.product(I1.product(I1))
+            False
+            sage: S1 = cubical_complexes.Sphere(1)
+            sage: I1.product(S1) != S1.product(I1)
+            True
+        """
+        return not self.__eq__(other)
 
     def __hash__(self):
         r"""

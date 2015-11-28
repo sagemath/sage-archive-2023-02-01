@@ -17,6 +17,11 @@ TESTS::
     sage: test_random_simplicial_complex(level=5/2, trials=10)  # long time # optional - CHomP
 """
 from sage.misc.random_testing import random_testing
+from sage.misc.prandom import randint
+from sage.matrix.constructor import random_matrix
+from sage.homology.chain_complex import ChainComplex
+from sage.rings.integer_ring import ZZ
+from sage.homology.examples import RandomComplex
 
 def random_chain_complex(level=1):
     """
@@ -38,10 +43,6 @@ def random_chain_complex(level=1):
         sage: C.degree_of_differential() # random: either 1 or -1
         1
     """
-    from sage.misc.prandom import randint
-    from sage.matrix.constructor import random_matrix
-    from sage.homology.chain_complex import ChainComplex
-    from sage.rings.integer_ring import ZZ
     bound = 50*level
     nrows = randint(0, bound)
     ncols = randint(0, bound)
@@ -102,11 +103,9 @@ def random_simplicial_complex(level=1, p=0.5):
         sage: X.dimension() < 11
         True
     """
-    from sage.misc.prandom import randint
-    from sage.homology.examples import simplicial_complexes
     n = randint(2, 4*level)
     dim = randint(1, n)
-    return simplicial_complexes.RandomComplex(n, dim, p)
+    return RandomComplex(n, dim, p)
 
 @random_testing
 def test_random_simplicial_complex(level=1, trials=1, verbose=False):

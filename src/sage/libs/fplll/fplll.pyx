@@ -42,6 +42,8 @@ from sage.matrix.constructor import matrix
 from sage.modules.vector_integer_dense cimport Vector_integer_dense
 from sage.misc.superseded import deprecation
 
+from sage.misc.decorators import rename_keyword
+
 cdef inline int _check_precision(int precision) except -1:
     """
     Check whether the provided precision is within valid bounds. If not raise
@@ -191,8 +193,9 @@ cdef class FP_LLL:
         """
         return to_sage(self._lattice)
 
+    @rename_keyword(deprecation=19572, method='algorithm')
     def LLL(self, float delta=LLL_DEF_DELTA, float eta=LLL_DEF_ETA,
-            method=None, float_type=None, int precision=0,
+            algorithm=None, float_type=None, int precision=0,
             verbose=False, siegel=False, early_red=False):
         r"""
         `(\delta,\eta)`-LLL reduce this lattice.
@@ -202,7 +205,7 @@ cdef class FP_LLL:
         - ``delta`` -- (default: ``0.99``) parameter `0.25 < \delta < 1.0`
         - ``eta `` -- (default: ``0.51``) parameter `0.5 \leq \eta <
           \sqrt{\delta}`
-        - ``method`` -- (default: ``None``) can be one of the following:
+        - ``algorithm`` -- (default: ``None``) can be one of the following:
 
           * ``'wrapper'`` (``None``)
           * ``'proved'``
@@ -243,7 +246,7 @@ cdef class FP_LLL:
             [   -1     2    -7     1     0     2     3 -1955   -22    -1]
 
             sage: F = FP_LLL(A)
-            sage: F.LLL(method="wrapper")
+            sage: F.LLL(algorithm="wrapper")
             sage: L = F._sage_(); L
             [   1    0    0   -3    2   -2    0   -2    1    0]
             [  -1    1    0    0    1   -1    4   -1    1   -1]
@@ -274,7 +277,7 @@ cdef class FP_LLL:
             [   -1     2    -7     1     0     2     3 -1955   -22    -1]
 
             sage: F = FP_LLL(A)
-            sage: F.LLL(method="proved")
+            sage: F.LLL(algorithm="proved")
             sage: L = F._sage_(); L
             [   1    0    0   -3    2   -2    0   -2    1    0]
             [  -1    1    0    0    1   -1    4   -1    1   -1]
@@ -294,7 +297,7 @@ cdef class FP_LLL:
 
             sage: A = random_matrix(ZZ,10,10,x=-(10^5),y=10^5)
             sage: f = FP_LLL(A)
-            sage: f.LLL(method="fast")
+            sage: f.LLL(algorithm="fast")
             sage: L = f._sage_()
             sage: L.is_LLL_reduced(eta=0.51,delta=0.99)
             True
@@ -315,7 +318,7 @@ cdef class FP_LLL:
             [   -1     2    -7     1     0     2     3 -1955   -22    -1]
 
             sage: F = FP_LLL(A)
-            sage: F.LLL(method="fast", early_red=True)
+            sage: F.LLL(algorithm="fast", early_red=True)
             sage: L = F._sage_(); L
             [   1    0    0   -3    2   -2    0   -2    1    0]
             [  -1    1    0    0    1   -1    4   -1    1   -1]
@@ -347,7 +350,7 @@ cdef class FP_LLL:
             [   -1     2    -7     1     0     2     3 -1955   -22    -1]
 
             sage: F = FP_LLL(A)
-            sage: F.LLL(method="heuristic")
+            sage: F.LLL(algorithm="heuristic")
             sage: L = F._sage_(); L
             [   1    0    0   -3    2   -2    0   -2    1    0]
             [  -1    1    0    0    1   -1    4   -1    1   -1]
@@ -379,7 +382,7 @@ cdef class FP_LLL:
             [   -1     2    -7     1     0     2     3 -1955   -22    -1]
 
             sage: F = FP_LLL(A)
-            sage: F.LLL(method="heuristic", early_red=True)
+            sage: F.LLL(algorithm="heuristic", early_red=True)
             sage: L = F._sage_(); L
             [   1    0    0   -3    2   -2    0   -2    1    0]
             [  -1    1    0    0    1   -1    4   -1    1   -1]
@@ -402,16 +405,16 @@ cdef class FP_LLL:
         _check_precision(precision)
 
         cdef LLLMethod method_
-        if method == "wrapper" or method is None:
+        if algorithm == "wrapper" or algorithm is None:
             method_ = LM_WRAPPER
-        elif method == "proved":
+        elif algorithm == "proved":
             method_ = LM_PROVED
-        elif method == "heuristic":
+        elif algorithm == "heuristic":
             method_ = LM_HEURISTIC
-        elif method == "fast":
+        elif algorithm == "fast":
             method_ = LM_FAST
         else:
-            raise ValueError("method '{}' unknown".format(method))
+            raise ValueError("algorithm '{}' unknown".format(algorithm))
 
         cdef int flags = LLL_DEFAULT
 
@@ -578,13 +581,14 @@ cdef class FP_LLL:
         if r:
             raise RuntimeError( str(getRedStatusStr(r)) )
 
-    def shortest_vector(self, method=None):
+    @rename_keyword(deprecation=19572, method='algorithm')
+    def shortest_vector(self, algorithm=None):
         """
         Return a shortest vector.
 
         INPUT:
 
-        - ``method`` - (default: ``"proved"``) ``"proved"`` or ``"fast"``
+        - ``algorithm`` - (default: ``"proved"``) ``"proved"`` or ``"fast"``
 
         OUTPUT:
 
@@ -600,12 +604,12 @@ cdef class FP_LLL:
 
         """
         cdef SVPMethod method_
-        if method == "proved" or method is None:
+        if algorithm == "proved" or algorithm is None:
             method_ = SVPM_PROVED
-        elif method == "fast":
+        elif algorithm == "fast":
             method_ = SVPM_FAST
         else:
-            raise ValueError("method '{}' unknown".format(method))
+            raise ValueError("algorithm '{}' unknown".format(algorithm))
 
         cdef int r
 

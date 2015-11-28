@@ -6,6 +6,8 @@ Coding Theory
 .. toctree::
    :maxdepth: 1
 
+   sage/coding/decoder
+   sage/coding/decoders_catalog
    sage/coding/encoder
    sage/coding/encoders_catalog
    sage/coding/channel_constructions
@@ -22,7 +24,6 @@ Coding Theory
    sage/coding/delsarte_bounds
    sage/coding/source_coding/huffman
    sage/coding/binary_code
-   sage/coding/decoder
    sage/coding/two_weight_db
 
 .. include:: ../footer.txt

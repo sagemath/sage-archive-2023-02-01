@@ -1,3 +1,4 @@
+# distutils: language = c++
 """
 GLPK Backend for access to GLPK graph functions
 
@@ -58,13 +59,18 @@ Classes and methods
 -------------------
 """
 
-##############################################################################
+#*****************************************************************************
 #       Copyright (C) 2012 Christian Kuper <christian.kuper@t-online.de>
-#  Distributed under the terms of the GNU General Public License (GPL)
-#  The full text of the GPL is available at:
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
-##############################################################################
+#*****************************************************************************
 
+from sage.libs.glpk.constants cimport *
+from sage.libs.glpk.graph cimport *
 from sage.numerical.mip import MIPSolverException
 
 include "sage/ext/stdsage.pxi"
@@ -192,7 +198,7 @@ cdef class GLPKGraphBackend(object):
 
         from sage.graphs.graph import Graph
 
-        self.graph = <_glp_graph*> glp_create_graph(sizeof(c_v_data),
+        self.graph = <glp_graph*> glp_create_graph(sizeof(c_v_data),
                        sizeof(c_a_data))
 
         if self.graph is NULL:
@@ -300,7 +306,7 @@ cdef class GLPKGraphBackend(object):
         cdef int n
         cdef int i
         cdef double rhs
-        cdef _glp_vertex* vert
+        cdef glp_vertex* vert
         cdef char* name
 
         verts = g.vertices()
@@ -409,7 +415,7 @@ cdef class GLPKGraphBackend(object):
         if n < 0:
             raise KeyError("Vertex " + vertex + " does not exist.")
 
-        cdef _glp_vertex* vert = self.graph.v[n+1]
+        cdef glp_vertex* vert = self.graph.v[n+1]
         cdef double val = demand
         (<c_v_data *>vert.data).rhs = val
 
@@ -477,7 +483,7 @@ cdef class GLPKGraphBackend(object):
         if i < 0:
             return None
 
-        cdef _glp_vertex* vert = self.graph.v[i+1]
+        cdef glp_vertex* vert = self.graph.v[i+1]
         cdef c_v_data * vdata = <c_v_data *> vert.data
 
         return {
@@ -596,7 +602,7 @@ cdef class GLPKGraphBackend(object):
             self.add_vertex(v)
             j = self._find_vertex(v)
 
-        cdef _glp_arc *a
+        cdef glp_arc *a
 
         a = glp_add_arc(self.graph, i+1, j+1)
 
@@ -666,7 +672,7 @@ cdef class GLPKGraphBackend(object):
             sage: gbe.maxflow_ffalg('1', '2')
             3.0
         """
-        cdef _glp_arc* a
+        cdef glp_arc* a
         cdef int u
         cdef int v
         cdef double cost
@@ -748,9 +754,9 @@ cdef class GLPKGraphBackend(object):
         if i < 0 or j < 0:
             return None
 
-        cdef _glp_vertex* vert_u = self.graph.v[i+1]
-        cdef _glp_vertex* vert_v = self.graph.v[j+1]
-        cdef _glp_arc* a = vert_u.out
+        cdef glp_vertex* vert_u = self.graph.v[i+1]
+        cdef glp_vertex* vert_v = self.graph.v[j+1]
+        cdef glp_arc* a = vert_u.out
         while a is not NULL:
             if a.head == vert_v:
                 return (u, v, {"low":(<c_a_data *>a.data).low,
@@ -783,9 +789,9 @@ cdef class GLPKGraphBackend(object):
         """
 
         cdef int i = 1
-        cdef _glp_vertex* vert_u
-        cdef _glp_vertex* vert_v
-        cdef _glp_arc* a
+        cdef glp_vertex* vert_u
+        cdef glp_vertex* vert_v
+        cdef glp_arc* a
         edge_list = []
 
         while i <= self.graph.nv:
@@ -935,10 +941,10 @@ cdef class GLPKGraphBackend(object):
         if i < 0 or j < 0:
             return
 
-        cdef _glp_vertex* vert_u = self.graph.v[i+1]
-        cdef _glp_vertex* vert_v = self.graph.v[j+1]
-        cdef _glp_arc* a = vert_u.out
-        cdef _glp_arc* a2 = a
+        cdef glp_vertex* vert_u = self.graph.v[i+1]
+        cdef glp_vertex* vert_v = self.graph.v[j+1]
+        cdef glp_arc* a = vert_u.out
+        cdef glp_arc* a2 = a
 
         cdef double low, cap, cost, x
 

@@ -464,7 +464,7 @@ class SageDocTestParser(doctest.DocTestParser):
         - ``name`` -- optional string giving the name indentifying string,
           to be used in error messages.
 
-        OUTPUTS:
+        OUTPUT:
 
         - A list consisting of strings and :class:`doctest.Example`
           instances.  There will be at least one string between

@@ -99,6 +99,7 @@ List of Poset methods
     :meth:`~FinitePoset.ordinal_sum` | Return the ordinal sum of the poset with other poset.
     :meth:`~FinitePoset.ordinal_product` | Return the ordinal product of the poset with other poset.
     :meth:`~FinitePoset.product` | Return the Cartesian product of the poset with other poset.
+    :meth:`~FinitePoset.with_bounds` | Return the poset with bottom and top element adjoined.
     :meth:`~FinitePoset.dual` | Return the dual poset of this poset.
     :meth:`~FinitePoset.completion_by_cuts` | Return the Dedekind-MacNeille completion of the poset.
     :meth:`~FinitePoset.connected_components` | Return the connected components of the poset as subposets.
@@ -2676,7 +2677,7 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: Poset().dimension(certificate=True)
             []
 
-        References:
+        REFERENCES:
 
         .. [FT00] Stefan Felsner, William T. Trotter,
            Dimension, Graph and Hypergraph Coloring,
@@ -3933,6 +3934,80 @@ class FinitePoset(UniqueRepresentation, Parent):
                                 elements=elements,
                                 category=self.category(),
                                 facade=self._is_facade)
+
+    def with_bounds(self, labels=('bottom', 'top')):
+        r"""
+        Return the poset with bottom and top elements adjoined.
+
+        This functions always adds two new elements to the poset, i.e.
+        it does not check if the poset already has a bottom or a
+        top element.
+
+        For lattices and semilattices this function returns a lattice.
+
+        INPUT:
+
+        - ``labels`` -- A pair of elements to use as a bottom and top
+          element of the poset. Default is strings ``'bottom'`` and
+          ``'top'``.
+
+        EXAMPLES::
+
+            sage: V = Poset({0: [1, 2]})
+            sage: trafficsign = V.with_bounds(); trafficsign
+            Finite poset containing 5 elements
+            sage: trafficsign.list()
+            ['bottom', 0, 1, 2, 'top']
+            sage: trafficsign = V.with_bounds(labels=(-1, -2))
+            sage: trafficsign.cover_relations()
+            [[-1, 0], [0, 1], [0, 2], [1, -2], [2, -2]]
+
+            sage: P = Posets.PentagonPoset()  # A lattice
+            sage: P.with_bounds()
+            Finite lattice containing 7 elements
+
+        TESTS::
+
+            sage: P = Poset().with_bounds()
+            sage: P.cover_relations()
+            [['bottom', 'top']]
+
+            sage: LatticePoset({}).with_bounds()
+            Finite lattice containing 2 elements
+
+            sage: Posets.PentagonPoset().with_bounds(labels=(4, 5))
+            Traceback (most recent call last):
+            ...
+            ValueError: the poset already has element 4
+        """
+        from sage.combinat.posets.lattices import LatticePoset, \
+             JoinSemilattice, MeetSemilattice, FiniteLatticePoset, \
+             FiniteMeetSemilattice, FiniteJoinSemilattice
+        if ( isinstance(self, FiniteLatticePoset) or
+             isinstance(self, FiniteMeetSemilattice) or
+             isinstance(self, FiniteJoinSemilattice) ):
+            constructor = FiniteLatticePoset
+        else:
+            constructor = FinitePoset
+
+        if len(labels) != 2:
+            raise ValueError("labels must be a pair")
+        new_min = labels[0]
+        new_max = labels[1]
+        
+        if self.cardinality() == 0:
+            return constructor(DiGraph({new_min: [new_max]}))
+
+        if new_min in self:
+            raise ValueError("the poset already has element %s" % new_min)
+        if new_max in self:
+            raise ValueError("the poset already has element %s" % new_max)
+
+        D = self.hasse_diagram()
+        D.add_edges([(new_min, e) for e in D.sources()])
+        D.add_edges([(e, new_max) for e in D.sinks()])
+
+        return constructor(D)
 
     def relabel(self, relabeling):
         r"""
@@ -5488,8 +5563,9 @@ class FinitePoset(UniqueRepresentation, Parent):
 
     def frank_network(self):
         r"""
-        Computes Frank's network of the poset ``self``. This is defined in
-        Section 8 of [BF1999]_.
+        Computes Frank's network of the poset ``self``.
+
+        This is defined in Section 8 of [BF1999]_.
 
         OUTPUT:
 
@@ -5511,7 +5587,7 @@ class FinitePoset(UniqueRepresentation, Parent):
 
             - for each `p` in `P`, an edge from `(1, p)` to `(2, 0)`;
 
-            - for each `p` and `q` in `P` such that `x \geq y`, an edge from
+            - for each `p` and `q` in `P` such that `p \geq q`, an edge from
               `(0, p)` to `(1, q)`.
 
             We make this digraph into a network in the sense of flow theory as

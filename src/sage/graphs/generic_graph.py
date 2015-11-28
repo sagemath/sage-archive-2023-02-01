@@ -20892,8 +20892,8 @@ class GenericGraph(GenericGraph_pyx):
             n = self.order()
             A = self.automorphism_group()
             if certificate:
-                c, G = A.has_transitive_subgroup(n, certificate=True)
-                if c:
+                G = A.transitive_subgroup(n)
+                if G is not None:
                     v = next(self.vertex_iterator())
                     d = {f(v): f for f in G}
                     # self.(out_)neighbors ignores multiedges,
@@ -20902,7 +20902,7 @@ class GenericGraph(GenericGraph_pyx):
                     S = [d[u] for u in adj]
                     return (True, G, S)
             else:
-                return A.has_transitive_subgroup(n)
+                return A.transitive_subgroup(n, return_group = False)
         if certificate:
             return (False, None, None)
         else:

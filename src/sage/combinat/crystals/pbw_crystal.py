@@ -208,7 +208,7 @@ class PBWCrystal(Parent, UniqueRepresentation):
         Check if ``word`` is a reduced expression of the long of the
         Coxeter group of ``self``.
         """
-        W = self.pbw_datum_parent.coxeter_group
+        W = self.pbw_datum_parent.weyl_group
         if (len(word) != len(self._default_word)
             or W.from_reduced_word(word) != W.long_element()):
             raise ValueError("not a reduced word of the long element")

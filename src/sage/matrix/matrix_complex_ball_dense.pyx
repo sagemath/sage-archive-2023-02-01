@@ -9,7 +9,6 @@ This is a rudimentary binding to the `Arb library
 <http://fredrikj.net/arb/>`_; it may be useful to refer to its
 documentation for more details.
 
-You may have to run ``sage -i arb`` to use the arb library.
 """
 #*****************************************************************************
 # Copyright (C) 2014 Clemens Heuberger <clemens.heuberger@aau.at>
@@ -166,7 +165,7 @@ cdef class Matrix_complex_ball_dense(matrix_dense.Matrix_dense):
                  entries,
                  copy,
                  coerce):
-        """
+        r"""
         Initialize a dense matrix over the complex ball field.
 
         INPUT:
@@ -187,7 +186,7 @@ cdef class Matrix_complex_ball_dense(matrix_dense.Matrix_dense):
 
         EXAMPLES:
 
-        The __init__ function is called implicitly in each of the
+        The ``__init__`` function is called implicitly in each of the
         examples below to actually fill in the values of the matrix.
 
         We create a `2 \times 2` and a `1\times 4` matrix::
@@ -232,7 +231,7 @@ cdef class Matrix_complex_ball_dense(matrix_dense.Matrix_dense):
             [1.000000000000000                 0]
 
         Matrices can have many rows or columns (in fact, on a 64-bit
-        machine they could have up to `2^64-1` rows or columns)::
+        machine they could have up to `2^{64}-1` rows or columns)::
 
             sage: v = matrix(CBF, 1, 10^5, range(10^5))
             sage: v.parent()

@@ -173,7 +173,7 @@ class ClusterQuiver(SageObject):
         ...
         ValueError: The input data was not recognized.
     """
-    def __init__( self, data, frozen=None ):
+    def __init__( self, data, frozen=None, user_labels = None ):
         """
         TESTS::
 
@@ -182,20 +182,23 @@ class ClusterQuiver(SageObject):
         """
         from sage.combinat.cluster_algebra_quiver.cluster_seed import ClusterSeed
         from sage.matrix.matrix import Matrix
-
+        
         # constructs a quiver from a mutation type
         if type( data ) in [QuiverMutationType_Irreducible,QuiverMutationType_Reducible]:
             if frozen is not None:
-                print 'The input data is a quiver, therefore the additional parameter frozen is ignored.'
+                print 'The input specifies a mutation type, so the additional parameter frozen is ignored.'
 
             mutation_type = data
             self.__init__( mutation_type.standard_quiver() )
+            if user_labels:
+                self.relabel(user_labels)
+                self._nlist = user_labels
 
         # constructs a quiver from string representing a mutation type or a common quiver type (see Examples)
         # NOTE: for now, any string representing a *reducible type* is coerced into the standard quiver, but there is now more flexibility in how to input a connected (irreducible) quiver.
         elif type( data ) in [list,tuple] and ( isinstance(data[0], str) or all(type( comp ) in [list,tuple] and isinstance(comp[0], str) for comp in data) ):
             if frozen is not None:
-                print 'The input data is a quiver, therefore the additional parameter frozen is ignored.'
+                print 'The input specifies a mutation type, so the additional parameter frozen is ignored.'
             mutation_type = QuiverMutationType( data )
 
             # The command QuiverMutationType_Irreducible (which is not imported globally) already creates the desired digraph as long as we bypass the mutation type checking of QuiverMutationType and format the input appropriately.  Thus we handle several special cases this way.
@@ -241,7 +244,11 @@ class ClusterQuiver(SageObject):
             else:
                 self.__init__( mutation_type.standard_quiver() )
 
-         # constructs a quiver from a cluster seed
+            if user_labels:
+                self.relabel(user_labels)
+                self._nlist = user_labels
+                
+        # constructs a quiver from a cluster seed
         elif isinstance(data, ClusterSeed):
             self.__init__( data.quiver() )
 
@@ -253,6 +260,8 @@ class ClusterQuiver(SageObject):
             self._M = copy(data._M)
             self._n = data._n
             self._m = data._m
+            self._mlist = data._mlist
+            self._nlist = data._nlist
             self._digraph = copy( data._digraph )
             self._vertex_dictionary = data._vertex_dictionary
             self._mutation_type = data._mutation_type
@@ -262,7 +271,8 @@ class ClusterQuiver(SageObject):
         elif isinstance(data, Matrix):
             if not _principal_part(data).is_skew_symmetrizable( positive=True ):
                 raise ValueError('The principal part of the matrix data must be skew-symmetrizable.')
-            if frozen is not None:
+
+            if frozen is not None and type(frozen) in [int,Integer]:
                 print 'The input data is a matrix, therefore the additional parameter frozen is ignored.'
 
             self._M = copy(data).sparse_matrix()
@@ -271,6 +281,15 @@ class ClusterQuiver(SageObject):
             self._digraph = _matrix_to_digraph( self._M )
             self._vertex_dictionary = {}
             self._mutation_type = None
+            
+            # In this case, frozen specifies the vertex labels for both the frozen and the free vertices.
+            if isinstance(frozen,list):
+                self._nlist = frozen[0]
+                self._mlist = frozen[1]
+                self._digraph.relabel(frozen[0] + frozen[1])
+            else:
+                self._mlist = range(n,n+m)
+                self._nlist = range(n)
             if n+m == 0:
                 self._description = 'Quiver without vertices'
             elif n+m == 1:
@@ -281,11 +300,29 @@ class ClusterQuiver(SageObject):
         # constructs a quiver from a digraph
         elif isinstance(data, DiGraph):
             if frozen is None:
-                frozen = 0
-            elif not ZZ(frozen) == frozen:
-                raise ValueError("The optional argument frozen (=%s) must be an integer."%frozen)
-            m = self._m = frozen
-            n = self._n = data.order() - m
+                m = self._m = frozen = 0
+                nlist = self._nlist = data.vertices()
+                n = self._n = data.order() - m
+                mlist = self._mlist = []
+                
+            elif isinstance(frozen,list):
+                if not set(frozen).issubset(set(data.vertices())):
+                    raise ValueError("The optional list of frozen elements must be vertices of the digraph.")
+                else:
+                    mlist = self._mlist = frozen
+                    nlist = self._nlist = [x for x in data.vertices() if x not in mlist]
+                    labelDict = dict(zip(nlist + mlist, range(len(mlist) + len(nlist))))
+                    m = self._m = len(frozen)
+                    n = self._n = data.order() - m
+
+            else:
+                if (not ZZ(frozen) == frozen):
+                    raise ValueError("The optional argument frozen (=%s) must be an integer."%frozen)
+                m = self._m = frozen
+                n = self._n = data.order() - m
+                nlist = self._nlist = range(n)
+                mlist = self._mlist = range(n,n+m)
+                
             dg = copy( data )
             dg_labelling = False
             edges = data.edges(labels=False)
@@ -294,8 +331,14 @@ class ClusterQuiver(SageObject):
             if any( (b,a) in edges for (a,b) in edges ):
                 raise ValueError("The input DiGraph contains two-cycles")
             if not set(dg.vertices()) == set(range(n+m)):
-                dg_labelling = dg.vertices()
-                dg.relabel()
+                
+                # frozen vertices must be preserved
+                if m!=0:
+                    dg_labelling = nlist + mlist
+                    dg.relabel(labelDict)
+                else:
+                    dg_labelling = dg.vertices()
+                    dg.relabel()
             if dg.has_multiple_edges():
                 multi_edges = {}
                 for v1,v2,label in dg.multiple_edges():
@@ -874,7 +917,8 @@ class ClusterQuiver(SageObject):
         if self._mutation_type is None:
             # checking mutation type only for the principal part
             if self._m > 0:
-                dg = self._digraph.subgraph( range(self._n) )
+                dg = self._digraph.subgraph(self._nlist)         
+                #dg = self._digraph.subgraph( range(self._n) )
             else:
                 dg = self._digraph
 
@@ -960,6 +1004,30 @@ class ClusterQuiver(SageObject):
         """
         return self._m
 
+    def nlist(self):
+        """
+        Returns the list of free vertices of self.
+        
+        EXAMPLES::
+        
+            sage: Q = ClusterQuiver(DiGraph([['a','b'],['c','b'],['c','d'],['e','d']]),frozen = ['b','d'])
+            sage: Q.nlist()
+            ['a', 'c', 'e']
+        """
+        return self._nlist
+    
+    def mlist(self):
+        """
+        Returns the list of frozen vertices of self.
+        
+            EXAMPLES::
+        
+            sage: Q = ClusterQuiver(DiGraph([['a','b'],['c','b'],['c','d'],['e','d']]),frozen = ['b','d'])
+            sage: Q.mlist()
+            ['b', 'd']
+        """
+        return self._mlist
+        
     def canonical_label( self, certify=False ):
         """
         Returns the canonical labelling of ``self``, see sage.graphs.graph.GenericGraph.canonical_label.
@@ -1263,8 +1331,8 @@ class ClusterQuiver(SageObject):
         n = self._n
         m = self._m
         dg = self._digraph
-        V = range(n)
-
+        V = self._nlist
+        
         # If we get a string, execute as a function
         if isinstance(data, str):
             data = getattr(self, data)()

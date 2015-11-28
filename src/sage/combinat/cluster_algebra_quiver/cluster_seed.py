@@ -127,11 +127,13 @@ class ClusterSeed(SageObject):
 
             * self._n - the number of mutable elements of the cluster seed.
             * self._m - the number of immutable elements of the cluster seed.
+            * self._nlist - a list of mutable elements of the cluster seed.
+            * self._mlist - a list of immutable elements of the cluster seed.
             * self._M - the 'n + m' x 'n' exchange matrix associated to the cluster seed.
             * self._B - the mutable part of self._M.
             * self._b_initial - the initial exchange matrix
             * self._description - the description of the ClusterSeed
-            * self._frozen - the number of frozen vertices, assumed to be the later vertices, when the input is a ClusterQuiver.
+            * self._frozen - a list of frozen vertices or the number of frozen vertices, assumed to be the later vertices, when input is a ClusterQuiver
             * self._use_fpolys - a boolean tracking whether F-polynomials and cluster variables will be tracked as part of every mutation.
             * self._cluster - a list tracking the current names of cluster elements.
             * self._user_labels_prefix - the prefix for every named cluster element. Defaults to 'x'.
@@ -170,6 +172,8 @@ class ClusterSeed(SageObject):
         # numerous doctests if this null state is not first initialized.
         self._n = 0
         self._m = 0
+        self._nlist = None
+        self._mlist = None
         self._M = None
         self._B = None
         self._b_initial = None
@@ -215,6 +219,8 @@ class ClusterSeed(SageObject):
             self._B = copy( data._B )
             self._n = data._n
             self._m = data._m
+            self._nlist = copy( data._nlist )
+            self._mlist = copy( data._mlist )
 
             # initialize matrix of g-vectors if desired and possible
             if data._use_g_vec and (data._G or data._cluster or (data._B.is_skew_symmetric() and data._C) or data._track_mut):
@@ -262,14 +268,14 @@ class ClusterSeed(SageObject):
 
         # constructs a cluster seed from a quiver
         elif isinstance(data, ClusterQuiver):
-            if frozen:
-                print "The input \'frozen\' is ignored"
 
             quiver = ClusterQuiver( data )
             
             self._M = copy(quiver._M)    # B-tilde exchange matrix
             self._n = quiver._n
             self._m = quiver._m
+            self._nlist = copy( quiver._nlist )
+            self._mlist = copy( quiver._mlist )
             self._B = copy(self._M[:self._n,:self._n])  # Square Part of the B_matrix
 
             # If initializing from a ClusterQuiver rather than a ClusterSeed, the initial B-matrix is reset to be the input B-matrix.
@@ -278,11 +284,21 @@ class ClusterSeed(SageObject):
             self._description = 'A seed for a cluster algebra of rank %d' %(self._n)
             self._quiver = quiver
 
+            # Sets user labels to vertex labels if they are not present
+            if not user_labels and set(self._nlist + self._mlist) != set(range(self._n+self._m)):
+                user_labels = self._nlist + self._mlist
+            if user_labels:
+                if set(user_labels) != set(self._nlist + self._mlist) and set(user_labels) != set(range(self._n + self._m)):
+                    print('Warning: user_labels conflict with both the given vertex labels and the default labels.')
+            
+                # Sanitizes our user_labels to use Integers instead of ints
+                user_labels = map(lambda x : ZZ(x) if type(x) == int else x,user_labels)
+            
             # We are now updating labels from user's most recent choice.
             self._is_principal = is_principal
             self._user_labels = user_labels
             self._user_labels_prefix = user_labels_prefix
-
+            
             # initialize the rest
             
             self._C = matrix.identity(self._n)
@@ -319,8 +335,8 @@ class ClusterSeed(SageObject):
 
         # in all other cases, we construct the corresponding ClusterQuiver first
         else:
-            quiver = ClusterQuiver( data, frozen=frozen )
-            self.__init__( quiver, is_principal=is_principal, user_labels=user_labels, user_labels_prefix=user_labels_prefix)
+            quiver = ClusterQuiver( data, frozen=frozen, user_labels = user_labels )
+            self.__init__( quiver, frozen = frozen, is_principal=is_principal, user_labels=user_labels, user_labels_prefix=user_labels_prefix)
 
     def use_c_vectors(self, use=True, bot_is_c=False, force=False):
         r"""
@@ -1168,6 +1184,30 @@ class ClusterSeed(SageObject):
             3
         """
         return self._m
+    
+    def nlist(self):
+        r"""
+        Returns the list of *exchangable variables* of ``self``.
+        
+        EXAMPLES::
+        
+            sage: S = ClusterSeed(DiGraph([['a','b'],['c','b'],['c','d'],['e','d']]), frozen = ['b','d'])
+            sage: S.nlist()
+            ['a', 'c', 'e']
+        """
+        return self._nlist
+    
+    def mlist(self):
+        r"""
+        Returns the list of *frozen variables* of ``self``.
+        
+        EXAMPLES::
+        
+            sage: S = ClusterSeed(DiGraph([['a','b'],['c','b'],['c','d'],['e','d']]), frozen = ['b','d'])
+            sage: S.mlist()
+            ['b', 'd']
+        """
+        return self._mlist
 
     def mutations(self):
         r"""
@@ -1766,7 +1806,7 @@ class ClusterSeed(SageObject):
         """
         from sage.combinat.cluster_algebra_quiver.quiver import ClusterQuiver
         if self._quiver is None:
-            self._quiver = ClusterQuiver( self._M )
+            self._quiver = ClusterQuiver( self._M ,[self._nlist,self._mlist])
         return self._quiver
 
     def is_acyclic(self):
@@ -2310,7 +2350,7 @@ class ClusterSeed(SageObject):
             IE = []
 
         n, m = seed.n(), seed.m()
-        V = range(n)+IE
+        V = self._nlist + IE
         
         if seed._use_fpolys and isinstance(sequence, str):
             sequence = seed.cluster_index(sequence)
@@ -2330,9 +2370,9 @@ class ClusterSeed(SageObject):
             raise ValueError('The quiver can only be mutated at a vertex or at a sequence of vertices')
 
         # remove ineligible vertices
-        #if any( v not in V for v in seqq ):
-            #v = filter( lambda v: v not in V, seqq )[0]
-            #raise ValueError('The quiver cannot be mutated at the vertex ' + str( v ))
+        if any( v not in V for v in seqq ):
+            v = filter( lambda v: v not in V, seqq )[0]
+            raise ValueError('The quiver cannot be mutated at the vertex ' + str( v ))
 
         seq = iter(seqq)
         

@@ -1,22 +1,12 @@
 # distutils: depends = NTL/ZZ.h
 
-from sage.libs.ntl.ntl_GF2_decl cimport GF2_c
-from sage.libs.ntl.ntl_ZZ_decl cimport ZZ_c
-from sage.libs.ntl.ntl_vec_GF2_decl cimport vec_GF2_c
+from .types cimport ZZ_c, GF2_c, GF2X_c, GF2XModulus_c, vec_GF2_c
 
 cdef extern from "sage/libs/ntl/ntlwrap.cpp":
-    ctypedef struct GF2X_c "struct GF2X":
-        pass
-
     long *GF2XHexOutput_c "(&GF2X::HexOutput)" # work-around for Cython bug
 
-    GF2X_c* GF2X_new "New<GF2X>"()
-    GF2X_c* GF2X_construct "Construct<GF2X>"(void *mem)
-    void GF2X_destruct "Destruct<GF2X>"(GF2X_c *mem)
-    void GF2X_delete "Delete<GF2X>"(GF2X_c *mem)
     void GF2X_from_str "_from_str<GF2X>"(GF2X_c* dest, char* s)
     object GF2X_to_PyString "_to_PyString<GF2X>"(GF2X_c *x)
-    int GF2X_equal "_equal<GF2X>"(GF2X_c x, GF2X_c y)
     int GF2X_IsOne "IsOne"(GF2X_c x)
     int GF2X_IsZero "IsZero"(GF2X_c x)
     int GF2X_IsX "IsX"(GF2X_c x)
@@ -67,13 +57,6 @@ cdef extern from "sage/libs/ntl/ntlwrap.cpp":
     void GF2X_BuildIrred "BuildIrred" (GF2X_c f, long n)
 
     #### GF2XModulus_c
-    ctypedef struct GF2XModulus_c "struct GF2XModulus":
-        pass
-
-    GF2XModulus_c* GF2XModulus_new "New<GF2XModulus>"()
-    GF2XModulus_c* GF2XModulus_construct "Construct<GF2XModulus>"(void *mem)
-    void GF2XModulus_destruct "Destruct<GF2XModulus>"(GF2XModulus_c *mem)
-    void GF2XModulus_delete "Delete<GF2XModulus>"(GF2XModulus_c *mem)
     void GF2XModulus_from_str "_from_str<GF2XModulus>"(GF2XModulus_c* dest, char* s)
     void GF2XModulus_build "build"(GF2XModulus_c F, GF2X_c f) # MUST be called before using the modulus
     long GF2XModulus_deg "deg"(GF2XModulus_c F)

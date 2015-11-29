@@ -31,7 +31,6 @@ from sage.rings.complex_number import ComplexNumber
 
 import fast_arith
 
-
 ##################################################################
 # Elementary Arithmetic
 ##################################################################
@@ -1943,6 +1942,7 @@ XGCD = xgcd
 ##         r = new_r; s = new_s
 ##     return (a, p*psign, q*qsign)
 
+
 def xkcd(n=""):
     r"""
     This function is similar to the xgcd function, but behaves
@@ -1963,20 +1963,23 @@ def xkcd(n=""):
         <html><font color='black'><h1>Python</h1><img src="http://imgs.xkcd.com/comics/python.png" title="I wrote 20 short programs in Python yesterday.  It was wonderful.  Perl, I'm leaving you."><div>Source: <a href="http://xkcd.com/353" target="_blank">http://xkcd.com/353</a></div></font></html>
     """
     import contextlib
-    import urllib2
     import json
     from sage.misc.html import html
+
+    # import compatible with py2 and py3
+    from six.moves.urllib.request import urlopen
+    from six.moves.urllib.error import HTTPError, URLError
 
     data = None
     url = "http://dynamic.xkcd.com/api-0/jsonp/comic/{}".format(n)
 
     try:
-        with contextlib.closing(urllib2.urlopen(url)) as f:
+        with contextlib.closing(urlopen(url)) as f:
             data = f.read()
-    except urllib2.HTTPError as error:
+    except HTTPError as error:
         if error.getcode() == 400: # this error occurs when asking for a non valid comic number
             raise RuntimeError("Could not obtain comic data from {}. Maybe you should enable time travel!".format(url))
-    except urllib2.URLError:
+    except URLError:
         pass
 
     if n == 1024:
@@ -1995,6 +1998,7 @@ def xkcd(n=""):
     # TODO: raise this error in such a way that it's not clear that
     # it is produced by sage, see http://xkcd.com/1024/
     html('<script> alert("Error: -41"); </script>')
+
 
 def inverse_mod(a, m):
     """

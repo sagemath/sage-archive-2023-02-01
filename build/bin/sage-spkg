@@ -637,8 +637,8 @@ if [ ! -x spkg-install ]; then
     echo >&2 "WARNING: spkg-install is not executable, making it executable"
     chmod +x spkg-install
 fi
-time ./spkg-install
 
+time ./spkg-install
 if [ $? -ne 0 ]; then
     error_msg "Error installing package $PKG_NAME" "make"
     exit 1
@@ -663,6 +663,12 @@ if [ "$SAGE_CHECK" = "yes" ]; then
         echo "Package $PKG_NAME has no test suite."
         TEST_SUITE_RESULT="not available"
     fi
+fi
+
+rm -f "$SAGE_LOCAL"/lib/*.la
+if [ $? -ne 0 ]; then
+    error_msg "Error deleting unnecessary libtool archive files"
+    exit 1
 fi
 
 # Mark that the new package has been installed (and tested, if

@@ -1228,7 +1228,7 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
         temp = ZZX_discriminant(&ntl_poly, proof)
         x = PY_NEW(Integer)
         ZZ_to_mpz(x.value, temp)
-        ZZ_delete(temp)
+        del temp
 
         return x
 
@@ -1309,7 +1309,7 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
             fac = self._new()
             fmpz_poly_set_ZZX(fac.__poly, v[i][0])
             F.append( (fac,e[i]) )
-            ZZX_delete(v[i])
+            del v[i]
         sage_free(v)
         sage_free(e)
 

@@ -192,7 +192,6 @@ cdef class pAdicZZpXFMElement(pAdicZZpXElement):
 
         """
         pAdicZZpXElement.__init__(self, parent)
-        ZZ_pX_construct(&self.value)
         if empty:
             return
         cdef mpz_t tmp
@@ -410,21 +409,6 @@ cdef class pAdicZZpXFMElement(pAdicZZpXElement):
         holder.x = self.value
         return make_ZZpXFMElement, (self.parent(), holder)
 
-    def __dealloc__(self):
-        """
-        Deallocates ``self.value``.
-
-        EXAMPLES::
-
-            sage: R = ZpFM(5,5)
-            sage: S.<x> = R[]
-            sage: f = x^5 + 75*x^3 - 15*x^2 +125*x - 5
-            sage: W.<w> = R.ext(f)
-            sage: z = W(17)
-            sage: del z # indirect doctest
-        """
-        ZZ_pX_destruct(&self.value)
-
     cdef pAdicZZpXFMElement _new_c(self):
         """
         Returns a new element with the same parent as ``self``.
@@ -441,7 +425,6 @@ cdef class pAdicZZpXFMElement(pAdicZZpXElement):
         self.prime_pow.restore_top_context()
         cdef pAdicZZpXFMElement ans = pAdicZZpXFMElement.__new__(pAdicZZpXFMElement)
         ans._parent = self._parent
-        ZZ_pX_construct(&ans.value)
         ans.prime_pow = self.prime_pow
         return ans
 
@@ -474,7 +457,7 @@ cdef class pAdicZZpXFMElement(pAdicZZpXElement):
             _left.prime_pow.restore_top_context()
             if x_ordp == left.prime_pow.ram_prec_cap:
                 return 0 # since both are zero
-            elif ZZ_pX_equal(_left.value, _right.value):
+            elif _left.value == _right.value:
                 return 0
             else:
                 # for now just return 1

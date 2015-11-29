@@ -1,25 +1,12 @@
 # distutils: depends = NTL/ZZ.h
 
+from .types cimport ZZ_c
+
 cdef extern from "sage/libs/ntl/ntlwrap.cpp":
-    #### ZZ_c
-    ctypedef struct ZZ_c "struct ZZ":
-        pass
-
-    ctypedef struct vec_ZZ_c "vec_ZZ":
-        ZZ_c RawGet(long i)
-        ZZ_c *elts()
-        long length()
-
     void del_charstar(char*)
 
-    # Some boiler-plate
-    ZZ_c* ZZ_new "New<ZZ>"()
-    ZZ_c* ZZ_construct "Construct<ZZ>"(void *mem)
-    void ZZ_destruct "Destruct<ZZ>"(ZZ_c *mem)
-    void ZZ_delete "Delete<ZZ>"(ZZ_c *mem)
     void ZZ_from_str "_from_str<ZZ>"(ZZ_c* dest, char* s)
     object ZZ_to_PyString "_to_PyString<ZZ>"(ZZ_c *x)
-    int ZZ_equal "_equal<ZZ>"(ZZ_c x, ZZ_c y)
 
     void ZZ_conv_from_int "conv"(ZZ_c x, int i)
     void ZZ_conv_to_int "conv"(int i, ZZ_c x)

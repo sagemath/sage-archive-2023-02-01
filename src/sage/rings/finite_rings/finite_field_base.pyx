@@ -77,7 +77,7 @@ cdef class FiniteFieldIterator:
 
     def __iter__(self):
         """
-        Return ``self`` since this is an interator class.
+        Return ``self`` since this is an iterator class.
 
         EXAMPLES::
 
@@ -710,7 +710,7 @@ cdef class FiniteField(Field):
         return self.characteristic()**self.degree()
 
     # cached because constructing the Factorization is slow;
-    # see :trac:`11628`.
+    # see trac #11628.
     @cached_method
     def factored_order(self):
         """

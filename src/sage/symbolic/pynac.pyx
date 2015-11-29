@@ -1437,6 +1437,7 @@ cdef object py_sin(object x) except +:
 cdef object py_cos(object x) except +:
     """
     TESTS::
+
         sage: cos(float(2)) #indirect doctest
         -0.4161468365471424
         sage: cos(2.)
@@ -2054,6 +2055,7 @@ def py_eval_unsigned_infinity_for_doctests():
     This function tests py_eval_unsigned_infinity.
 
     TESTS::
+
         sage: from sage.symbolic.pynac import py_eval_unsigned_infinity_for_doctests as py_eval_unsigned_infinity
         sage: py_eval_unsigned_infinity()
         Infinity
@@ -2072,6 +2074,7 @@ def py_eval_infinity_for_doctests():
     This function tests py_eval_infinity.
 
     TESTS::
+
         sage: from sage.symbolic.pynac import py_eval_infinity_for_doctests as py_eval_infinity
         sage: py_eval_infinity()
         +Infinity
@@ -2090,6 +2093,7 @@ def py_eval_neg_infinity_for_doctests():
     This function tests py_eval_neg_infinity.
 
     TESTS::
+
         sage: from sage.symbolic.pynac import py_eval_neg_infinity_for_doctests as py_eval_neg_infinity
         sage: py_eval_neg_infinity()
         -Infinity
@@ -2120,7 +2124,7 @@ def register_symbol(obj, conversions):
     other systems such as Maxima, Mathematica, etc.  This table is used
     to convert *from* other systems back to Sage.
 
-    INPUTS:
+    INPUT:
 
         - `obj` -- a symbolic object or function.
 

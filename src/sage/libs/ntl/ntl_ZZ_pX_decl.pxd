@@ -1,25 +1,12 @@
 # distutils: depends = NTL/ZZ.h
 
-from sage.libs.ntl.ntl_ZZ_p_decl cimport ZZ_p_c
-from sage.libs.ntl.ntl_vec_ZZ_p_decl cimport vec_ZZ_p_c
-from sage.libs.ntl.ntl_ZZ_decl cimport ZZ_c
-from sage.libs.ntl.ntl_ZZX_decl cimport ZZX_c
-from sage.libs.ntl.ntl_ZZ_pContext_decl cimport ZZ_pContext_c
+from .types cimport (ZZ_c, ZZX_c, ZZ_p_c, vec_ZZ_p_c, ZZ_pContext_c,
+        ZZ_pX_c, ZZ_pX_Modulus_c, ZZ_pX_Multiplier_c)
 
 cdef extern from "sage/libs/ntl/ntlwrap.cpp":
-    #### ZZ_pX_c
-    ctypedef struct ZZ_pX_c "struct ZZ_pX":
-        void *rep
-        void (* SetMaxLength)(long n)
-
-    ZZ_pX_c* ZZ_pX_new "New<ZZ_pX>"()
-    ZZ_pX_c* ZZ_pX_construct "Construct<ZZ_pX>"(void *mem)
-    void ZZ_pX_destruct "Destruct<ZZ_pX>"(ZZ_pX_c *mem)
-    void ZZ_pX_delete "Delete<ZZ_pX>"(ZZ_pX_c *mem)
     void ZZ_pX_from_str "_from_str<ZZ_pX>"(ZZ_pX_c* dest, char* s)
     object ZZ_pX_to_PyString "_to_PyString<ZZ_pX>"(ZZ_pX_c *x)
 
-    long ZZ_pX_equal "operator=="(ZZ_pX_c a, ZZ_pX_c b)
     long ZZ_pX_IsZero "IsZero"(ZZ_pX_c a)
     long ZZ_pX_IsOne "IsOne"(ZZ_pX_c a)
 
@@ -81,13 +68,6 @@ cdef extern from "sage/libs/ntl/ntlwrap.cpp":
     void ZZ_pX_InvMod "InvMod"(ZZ_pX_c x, ZZ_pX_c a, ZZ_pX_c f)
     long ZZ_pX_InvModStatus "InvModStatus"(ZZ_pX_c x, ZZ_pX_c a, ZZ_pX_c f)
 
-    ctypedef struct ZZ_pX_Modulus_c "struct ZZ_pXModulus":
-        ZZ_pX_c (* val) ( )
-
-    ZZ_pX_Modulus_c* ZZ_pX_Modulus_new "New<ZZ_pXModulus>"()
-    ZZ_pX_Modulus_c* ZZ_pX_Modulus_construct "Construct<ZZ_pXModulus>"(void *mem)
-    void ZZ_pX_Modulus_destruct "Destruct<ZZ_pXModulus>"(ZZ_pX_Modulus_c *mem)
-    void ZZ_pX_Modulus_delete "Delete<ZZ_pXModulus>"(ZZ_pX_Modulus_c *mem)
     void ZZ_pX_Modulus_from_str "_from_str<ZZ_pXModulus>"(ZZ_pX_Modulus_c* dest, char* s)
     void ZZ_pX_Modulus_build "build"(ZZ_pX_Modulus_c F, ZZ_pX_c f) # MUST be called before using the modulus
     long ZZ_pX_Modulus_deg "deg"(ZZ_pX_Modulus_c F)
@@ -105,12 +85,6 @@ cdef extern from "sage/libs/ntl/ntlwrap.cpp":
     void ZZ_pX_div_pre "div"(ZZ_pX_c q, ZZ_pX_c a, ZZ_pX_Modulus_c F)
     void ZZ_pX_InvMod_pre "InvMod"(ZZ_pX_c x, ZZ_pX_c a, ZZ_pX_Modulus_c F)
 
-    ctypedef struct ZZ_pX_Multiplier_c "struct ZZ_pXMultiplier":
-        ZZ_pX_c (* val) ( )
-    ZZ_pX_Multiplier_c* ZZ_pX_Multiplier_new "New<ZZ_pXMultiplier>"()
-    ZZ_pX_Multiplier_c* ZZ_pX_Multiplier_construct "Construct<ZZ_pXMultiplier>"(void *mem)
-    void ZZ_pX_Multiplier_destruct "Destruct<ZZ_pXMultiplier>"(ZZ_pX_Multiplier_c *mem)
-    void ZZ_pX_Multiplier_delete "Delete<ZZ_pXMultiplier>"(ZZ_pX_Multiplier_c *mem)
     void ZZ_pX_Multiplier_from_str "_from_str<ZZ_pXMultiplier>"(ZZ_pX_Multiplier_c* dest, char* s)
     void ZZ_pX_Multiplier_build "build"(ZZ_pX_Multiplier_c F, ZZ_pX_c b, ZZ_pX_Modulus_c F) # MUST be called before using the multiplier
     void ZZ_pX_MulMod_premul "MulMod"(ZZ_pX_c x, ZZ_pX_c a, ZZ_pX_Multiplier_c B, ZZ_pX_Modulus_c F)

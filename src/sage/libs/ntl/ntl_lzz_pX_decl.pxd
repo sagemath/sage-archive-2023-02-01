@@ -1,16 +1,8 @@
 # distutils: depends = NTL/ZZ.h
 
-from sage.libs.ntl.ntl_lzz_p_decl cimport zz_p_c
-from sage.libs.ntl.ntl_ZZ_decl cimport ZZ_c
+from .types cimport ZZ_c, zz_p_c, zz_pX_c, zz_pX_Modulus_c
 
 cdef extern from "sage/libs/ntl/ntlwrap.cpp":
-    #### zz_pX_c
-    ctypedef struct zz_pX_c "struct zz_pX":
-        void *rep
-        void (* SetMaxLength)(long n)
-
-    void zz_pX_construct "Construct<zz_pX>"(void *mem)
-    void zz_pX_destruct "Destruct<zz_pX>"(zz_pX_c *mem)
     char* zz_pX_repr(zz_pX_c* x)
     void zz_pX_SetCoeff_long "SetCoeff"(zz_pX_c x, long i, long a)
     zz_p_c zz_pX_GetCoeff "coeff"(zz_pX_c x, long i)
@@ -47,13 +39,6 @@ cdef extern from "sage/libs/ntl/ntlwrap.cpp":
     void zz_pX_eval "eval" (zz_p_c fa, zz_pX_c f, zz_p_c a)
     void zz_pX_MakeMonic "MakeMonic"(zz_pX_c x)
 
-    ctypedef struct zz_pX_Modulus_c "struct zz_pXModulus":
-        zz_pX_c (* val) ( )
-
-    zz_pX_Modulus_c* zz_pX_Modulus_new "New<zz_pXModulus>"()
-    zz_pX_Modulus_c* zz_pX_Modulus_construct "Construct<zz_pXModulus>"(void *mem)
-    void zz_pX_Modulus_destruct "Destruct<zz_pXModulus>"(zz_pX_Modulus_c *mem)
-    void zz_pX_Modulus_delete "Delete<zz_pXModulus>"(zz_pX_Modulus_c *mem)
     void zz_pX_Modulus_from_str "_from_str<zz_pXModulus>"(zz_pX_Modulus_c* dest, char* s)
     void zz_pX_Modulus_build "build"(zz_pX_Modulus_c F, zz_pX_c f) # MUST be called before using the modulus
     long zz_pX_Modulus_deg "deg"(zz_pX_Modulus_c F)
@@ -72,4 +57,3 @@ cdef extern from "sage/libs/ntl/ntlwrap.cpp":
     void zz_pX_InvMod_pre "InvMod"(zz_pX_c x, zz_pX_c a, zz_pX_Modulus_c F)
 
     long NTL_SP_BOUND
-    bint NTL_zz_pX_DOUBLE_EQUALS(zz_pX_c x, zz_pX_c y)

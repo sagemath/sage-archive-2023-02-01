@@ -1,14 +1,9 @@
 # distutils: depends = NTL/ZZ.h
 
 from sage.libs.gmp.types cimport mpz_t
-from sage.libs.ntl.ntl_ZZ_decl cimport vec_ZZ_c
-from sage.libs.ntl.ntl_ZZ_decl cimport ZZ_c
+from .types cimport ZZ_c, vec_ZZ_c, ZZX_c
 
 cdef extern from "sage/libs/ntl/ntlwrap.cpp":
-    # really, this is from NTL/ZZX.h
-    ctypedef struct ZZX_c "struct ZZX":
-        vec_ZZ_c rep
-
     ctypedef struct pair_ZZX_long_c "pair_ZZX_long":
         ZZX_c a
         long b
@@ -17,15 +12,9 @@ cdef extern from "sage/libs/ntl/ntlwrap.cpp":
         pair_ZZX_long_c RawGet(long i)
         long length()
 
-    # Some boiler-plate
-    ZZX_c* ZZX_new "New<ZZX>"()
-    ZZX_c* ZZX_construct "Construct<ZZX>"(void *mem)
-    void ZZX_destruct "Destruct<ZZX>"(ZZX_c *mem)
     void ZZX_swap "swap"(ZZX_c x, ZZX_c y)
-    void ZZX_delete "Delete<ZZX>"(ZZX_c *mem)
     void ZZX_from_str "_from_str<ZZX>"(ZZX_c* dest, char* s)
     object ZZX_to_PyString "_to_PyString<ZZX>"(ZZX_c *x)
-    int ZZX_equal "_equal<ZZX>"(ZZX_c x, ZZX_c y)
 
     void ZZX_PseudoRem "PseudoRem"(ZZX_c x, ZZX_c a, ZZX_c b)
     ZZ_c ZZX_LeadCoeff "LeadCoeff"(ZZX_c x)

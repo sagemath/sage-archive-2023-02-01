@@ -2945,7 +2945,7 @@ class BinaryTrees(UniqueRepresentation, Parent):
 
     - ``size`` -- (optional) an integer
 
-    OUPUT:
+    OUTPUT:
 
     - the set of all binary trees (of the given ``size`` if specified)
 

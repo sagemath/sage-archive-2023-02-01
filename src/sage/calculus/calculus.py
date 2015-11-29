@@ -13,7 +13,7 @@ AUTHORS:
 
 - Golam Mortuza Hossain (2009-06-22): _laplace_latex(), _inverse_laplace_latex()
 
-- Tom Coates (2010-06-11): fixed Trac #9217
+- Tom Coates (2010-06-11): fixed :trac:`9217`
 
 The Sage calculus module is loosely based on the Sage Enhancement
 Proposal found at: http://www.sagemath.org:9001/CalculusSEP.
@@ -357,7 +357,7 @@ the interactive interpreter.
 Check to see that the problem with the variables method mentioned
 in :trac:`3779` is actually fixed::
 
-    sage: f = function('F',x)
+    sage: f = function('F')(x)
     sage: diff(f*SR(1),x)
     D[0](F)(x)
 
@@ -1271,7 +1271,7 @@ def laplace(ex, t, s):
 
     We do a formal calculation::
 
-        sage: f = function('f', x)
+        sage: f = function('f')(x)
         sage: g = f.diff(x); g
         D[0](f)(x)
         sage: g.laplace(x, s)
@@ -1297,8 +1297,8 @@ def laplace(ex, t, s):
         sage: var('t')
         t
         sage: t = var('t')
-        sage: x = function('x', t)
-        sage: y = function('y', t)
+        sage: x = function('x')(t)
+        sage: y = function('y')(t)
         sage: de1 = x.diff(t) + 16*y
         sage: de2 = y.diff(t) + x - 1
         sage: de1.laplace(t, s)
@@ -1424,7 +1424,7 @@ def at(ex, *args, **kwds):
 
         sage: var('s,t')
         (s, t)
-        sage: f=function('f', t)
+        sage: f=function('f')(t)
         sage: f.diff(t,2)
         D[0, 0](f)(t)
         sage: f.diff(t,2).laplace(t,s)
@@ -1521,7 +1521,7 @@ def dummy_diff(*args):
     Here the function is used implicitly::
 
         sage: a = var('a')
-        sage: f = function('cr', a)
+        sage: f = function('cr')(a)
         sage: g = f.diff(a); g
         D[0](cr)(a)
     """
@@ -1539,7 +1539,7 @@ def dummy_integrate(*args):
     EXAMPLES::
 
         sage: from sage.calculus.calculus import dummy_integrate
-        sage: f(x) = function('f',x)
+        sage: f = function('f')
         sage: dummy_integrate(f(x), x)
         integrate(f(x), x)
         sage: a,b = var('a,b')
@@ -1560,7 +1560,7 @@ def dummy_laplace(*args):
 
         sage: from sage.calculus.calculus import dummy_laplace
         sage: s,t = var('s,t')
-        sage: f(t) = function('f',t)
+        sage: f = function('f')
         sage: dummy_laplace(f(t),t,s)
         laplace(f(t), t, s)
     """
@@ -1575,7 +1575,7 @@ def dummy_inverse_laplace(*args):
 
         sage: from sage.calculus.calculus import dummy_inverse_laplace
         sage: s,t = var('s,t')
-        sage: F(s) = function('F',s)
+        sage: F = function('F')
         sage: dummy_inverse_laplace(F(s),s,t)
         ilt(F(s), s, t)
     """
@@ -1649,7 +1649,7 @@ def _laplace_latex_(self, *args):
         sage: from sage.calculus.calculus import _laplace_latex_
         sage: var('s,t')
         (s, t)
-        sage: f = function('f',t)
+        sage: f = function('f')(t)
         sage: _laplace_latex_(0,f,t,s)
         '\\mathcal{L}\\left(f\\left(t\\right), t, s\\right)'
         sage: latex(laplace(f, t, s))
@@ -1668,7 +1668,7 @@ def _inverse_laplace_latex_(self, *args):
         sage: from sage.calculus.calculus import _inverse_laplace_latex_
         sage: var('s,t')
         (s, t)
-        sage: F = function('F',s)
+        sage: F = function('F')(s)
         sage: _inverse_laplace_latex_(0,F,s,t)
         '\\mathcal{L}^{-1}\\left(F\\left(s\\right), s, t\\right)'
         sage: latex(inverse_laplace(F,s,t))
@@ -1731,7 +1731,7 @@ def symbolic_expression_from_maxima_string(x, equals_sub=False, maxima=maxima):
         sage: from sage.calculus.calculus import symbolic_expression_from_maxima_string as sefms
         sage: sefms('x^%e + %e^%pi + %i + sin(0)')
         x^e + e^pi + I
-        sage: f = function('f',x)
+        sage: f = function('f')(x)
         sage: sefms('?%at(f(x),x=2)#1')
         f(2) != 1
         sage: a = sage.calculus.calculus.maxima("x#0"); a
@@ -1768,7 +1768,7 @@ def symbolic_expression_from_maxima_string(x, equals_sub=False, maxima=maxima):
         sage: solve([2*x==3, x != 5], x)
         [[x == (3/2), (-7/2) != 0]]
 
-    Make sure that we don't accidentally pick up variables in the maxima namespace (trac #8734)::
+    Make sure that we don't accidentally pick up variables in the maxima namespace (:trac:`8734`)::
 
         sage: sage.calculus.calculus.maxima('my_new_var : 2')
         2
@@ -1960,7 +1960,6 @@ syms_default = dict(syms_cur)
 # _find_var() and _find_func() functions below without extra arguments.
 _augmented_syms = {}
 
-from sage.symbolic.ring import pynac_symbol_registry
 
 def _find_var(name):
     """
@@ -1976,13 +1975,17 @@ def _find_var(name):
         I
     """
     try:
-        res = _augmented_syms.get(name)
-        if res is None:
-            return pynac_symbol_registry[name]
+        res = _augmented_syms[name]
+    except KeyError:
+        pass
+    else:
         # _augmented_syms might contain entries pointing to functions if
         # previous computations polluted the maxima workspace
         if not isinstance(res, Function):
             return res
+
+    try:
+        return SR.symbols[name]
     except KeyError:
         pass
 

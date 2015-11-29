@@ -533,15 +533,24 @@ class UniversalCyclotomicFieldElement(FieldElement):
 
             sage: UCF = UniversalCyclotomicField()
             sage: hash(UCF.zero())  # indirect doctest
-            1302034650              # 32-bit
-            3713081631936575706     # 64-bit
+            0
             sage: hash(UCF.gen(3,2))
             313156239               # 32-bit
             1524600308199219855     # 64-bit
+
+        TESTS:
+
+        See :trac:`19514`::
+
+            sage: hash(UCF.one())
+            1
         """
         k = self._obj.Conductor().sage()
         coeffs = self._obj.CoeffsCyc(k).sage()
-        return hash((k,) + tuple(coeffs))
+        if k == 1:
+            return hash(coeffs[0])
+        else:
+            return hash((k,) + tuple(coeffs))
 
     def _algebraic_(self, R):
         r"""

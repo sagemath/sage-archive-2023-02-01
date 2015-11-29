@@ -262,7 +262,7 @@ cdef class GenericBackend:
         r"""
         Remove a constraint.
 
-        INPUT::
+        INPUT:
 
         - ``i`` -- index of the constraint to remove.
 

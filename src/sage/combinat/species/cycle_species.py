@@ -134,7 +134,9 @@ class CycleSpecies(GenericCombinatorialSpecies, UniqueRepresentation):
              (1, 4, 2, 3),
              (1, 4, 3, 2)]
 
-        TESTS: We check to verify that the caching of species is actually
+        TESTS:
+
+        We check to verify that the caching of species is actually
         working.
 
         ::

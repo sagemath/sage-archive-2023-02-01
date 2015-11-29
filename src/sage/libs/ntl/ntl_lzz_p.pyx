@@ -53,7 +53,7 @@ ZZ_sage = IntegerRing()
 #
 ##############################################################################
 
-cdef class ntl_zz_p:
+cdef class ntl_zz_p(object):
     r"""
     The class \class{zz_p} implements arithmetic modulo $p$,
     for p smaller than a machine word.
@@ -132,7 +132,6 @@ cdef class ntl_zz_p:
         ## _new in your own code).                    ##
         ################################################
         if modulus is None:
-            zz_p_construct(&self.x)
             return
         if isinstance(modulus, ntl_zz_pContext_class):
             self.c = <ntl_zz_pContext_class>modulus
@@ -149,10 +148,6 @@ cdef class ntl_zz_p:
 
         ## now that we've determined the modulus, set that modulus.
         self.c.restore_c()
-        zz_p_construct(&self.x)
-
-    def __dealloc__(self):
-        zz_p_destruct(&self.x)
 
     cdef ntl_zz_p _new(self):
         """
@@ -306,33 +301,36 @@ cdef class ntl_zz_p:
         zz_p_negate(y.x, self.x)
         return y
 
-    def __cmp__(ntl_zz_p self, other):
+    def __richcmp__(ntl_zz_p self, other, int op):
         """
-        Decide whether or not self and other are equal.
+        Compare self to other.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: f = ntl.zz_p(3,20)
             sage: g = ntl.zz_p(2,20)
+            sage: h = ntl.zz_p(3,60)
             sage: f == g
             False
             sage: f == f
             True
-            sage: g = ntl.zz_p(3,60)
-            sage: f == g
-            False
+            sage: f == h
+            True
+            sage: f == 3
+            True
         """
-        if not isinstance(other, ntl_zz_p):
-            return cmp(ntl_zz_p, other.parent())
-        if not (self.c is (<ntl_zz_p>other).c):
-            return cmp(self.c.p, (<ntl_zz_p>other).c.p)
-
         self.c.restore_c()
-        if not isinstance(other, ntl_zz_p):
-            return -1
-        if (NTL_zz_p_DOUBLE_EQUALS(self.x, (<ntl_zz_p>other).x)):
-            return 0
-        else:
-            return -1
+
+        if op != Py_EQ and op != Py_NE:
+            raise TypeError("integers mod p are not ordered")
+
+        cdef ntl_zz_p b
+        try:
+            b = <ntl_zz_p?>other
+        except TypeError:
+            b = ntl_zz_p(other, self.c)
+
+        return (op == Py_EQ) == (self.x == b.x)
 
     def __int__(self):
         """

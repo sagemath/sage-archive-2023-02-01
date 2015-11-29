@@ -4156,7 +4156,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
         The additional inputs to this function are to speed up computation for
         field semantics (see note).
 
-        INPUTS:
+        INPUT:
 
           - ``n`` (default: ``None``) - if provided, should equal
             `q-1` where ``self.parent()`` is the field with `q`
@@ -4687,6 +4687,12 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: f.is_unit()
             False
 
+        EXERCISE (Atiyah-McDonald, Ch 1): Let `A[x]` be a
+        polynomial ring in one variable. Then
+        `f=\sum a_i x^i \in A[x]` is a unit if and only if
+        `a_0` is a unit and `a_1,\ldots, a_n` are
+        nilpotent.
+
         TESTS:
 
         Check that :trac:`18600` is fixed::
@@ -4695,12 +4701,6 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: c = x^2^100 + 1
             sage: c.is_unit()
             False
-
-        EXERCISE (Atiyah-McDonald, Ch 1): Let `A[x]` be a
-        polynomial ring in one variable. Then
-        `f=\sum a_i x^i \in A[x]` is a unit if and only if
-        `a_0` is a unit and `a_1,\ldots, a_n` are
-        nilpotent.
         """
         if self.degree() > 0:
             try:
@@ -5567,8 +5567,6 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: R.<s> = PolynomialRing(Qp(2))
             sage: (s^2).discriminant()
             0
-
-        TESTS:
 
         This was fixed by :trac:`16014`::
 
@@ -8369,7 +8367,8 @@ cdef class ConstantPolynomialSection(Map):
     """
     cpdef Element _call_(self, x):
         """
-        TESTS:
+        TESTS::
+
             sage: from sage.rings.polynomial.polynomial_element import ConstantPolynomialSection
             sage: R.<x> = QQ[]
             sage: m = ConstantPolynomialSection(R, QQ); m
@@ -8507,7 +8506,8 @@ cdef class PolynomialBaseringInjection(Morphism):
 
     cpdef Element _call_(self, x):
         """
-        TESTS:
+        TESTS::
+
             sage: from sage.rings.polynomial.polynomial_element import PolynomialBaseringInjection
             sage: m = PolynomialBaseringInjection(ZZ, ZZ['x']); m
             Polynomial base injection morphism:
@@ -8522,7 +8522,8 @@ cdef class PolynomialBaseringInjection(Morphism):
 
     cpdef Element _call_with_args(self, x, args=(), kwds={}):
         """
-        TESTS:
+        TESTS::
+
             sage: from sage.rings.polynomial.polynomial_element import PolynomialBaseringInjection
             sage: m = PolynomialBaseringInjection(Qp(5), Qp(5)['x'])
             sage: m(1 + O(5^11), absprec = 5)   # indirect doctest

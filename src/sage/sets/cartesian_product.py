@@ -278,7 +278,7 @@ class CartesianProduct(UniqueRepresentation, Parent):
             :meth:`Sets.CartesianProducts.ElementMethods.cartesian_projection()
             <sage.categories.sets_cat.Sets.CartesianProducts.ElementMethods.cartesian_projection>`.
 
-            INPUTS:
+            INPUT:
 
             - ``i`` -- the index of a factor of the cartesian product
 

@@ -226,6 +226,111 @@ def detex(s, embedded=False):
         s = s.replace('\\','')        # nuke backslashes
     return s
 
+def skip_TESTS_block(docstring):
+    r"""
+    Remove blocks labeled "TESTS:" from ``docstring``.
+
+    INPUT:
+
+    - ``docstring``, a string
+
+    A "TESTS" block is a block starting with "TEST:" or "TESTS:" (or
+    the same with two colons), on a line on its own, and ending with
+    an unindented line (that is, the same level of indentation as
+    "TESTS") matching one of the following:
+
+    - a line which starts with whitespace and then a Sphinx directive
+      of the form ".. foo:", optionally followed by other text.
+
+    - a line which starts with whitespace and then text of the form
+      "UPPERCASE:", optionally followed by other text.
+
+    - lines which look like a ReST header: one line containing
+      anything, followed by a line consisting only of whitespace,
+      followed by a string of hyphens, equal signs, or other
+      characters which are valid markers for ReST headers: 
+      ``- = ` : ' " ~ _ ^ * + # < >``.
+
+    Return the string obtained from ``docstring`` by removing these
+    blocks.
+
+    EXAMPLES::
+
+        sage: from sage.misc.sagedoc import skip_TESTS_block
+        sage: start = ' Docstring\n\n'
+        sage: test = ' TEST: \n\n Here is a test::\n     sage: 2+2 \n     5 \n\n'
+        sage: test2 = ' TESTS:: \n\n     sage: 2+2 \n     6 \n\n'
+        sage: refs = ' REFERENCES: \n text text \n'
+        sage: directive = ' .. todo:: \n     do some stuff \n'
+
+        sage: skip_TESTS_block(start + test + refs).rstrip() == (start + refs).rstrip()
+        True
+        sage: skip_TESTS_block(start + test + test2 + refs).rstrip() == (start + refs).rstrip()
+        True 
+        sage: skip_TESTS_block(start + test + refs + test2).rstrip() == (start + refs).rstrip()
+        True
+        sage: skip_TESTS_block(start + test + refs + test2 + directive).rstrip() == (start + refs + directive).rstrip()
+        True
+
+        sage: header = 'Header:\n~~~~~~~~'
+        sage: fake_header = 'Header:\n-=-=-=-=-='
+        sage: skip_TESTS_block(start + test + header) == start + header
+        True
+        sage: skip_TESTS_block(start + test + fake_header).rstrip() == start.rstrip()
+        True
+
+    Not a header because it's indented compared to 'TEST' in the
+    string ``test``::
+
+        sage: another_fake = '\n    blah\n    ----'
+        sage: skip_TESTS_block(start + test + another_fake).rstrip() == start.rstrip()
+        True
+   """
+    # tests_block: match a line starting with whitespace, then
+    # "TEST" or "TESTS" followed by ":" or "::", then possibly
+    # more whitespace, then the end of the line.
+    tests_block = re.compile('([ ]*)TEST[S]?:[:]?[ ]*$')
+    # end_of_block: match a line starting with whitespace, then Sphinx
+    # directives of the form ".. foo:". This will match directive
+    # names "foo" containing letters of either case, hyphens,
+    # underscores.
+    # Also match uppercase text followed by a colon, like
+    # "REFERENCES:" or "ALGORITHM:".
+    end_of_block = re.compile('[ ]*(\.\.[ ]+[-_A-Za-z]+|[A-Z]+):')
+    # header: match a string of hyphens, or other characters which are
+    # valid markers for ReST headers: - = ` : ' " ~ _ ^ * + # < >
+    header = re.compile(r'^[ ]*([-=`:\'"~_^*+#><])\1+[ ]*$')
+    s = ''
+    skip = False
+    previous = ''
+    # indentation: amount of indentation at the start of 'TESTS:'.
+    indentation = ''
+    for l in docstring.split('\n'):
+        if not skip:
+            m = tests_block.match(l)
+            if m:
+                skip = True
+                indentation = m.group(1)
+            else:
+                s += "\n"
+                s += l
+        else:
+            if end_of_block.match(l) and not tests_block.match(l):
+                skip = False
+                s += "\n"
+                s += l
+            elif header.match(l):
+                if l.find(indentation) == 0:
+                    continue
+                skip = False
+                if previous:
+                    s += "\n"
+                    s += previous
+                s += "\n"
+                s += l
+        previous = l
+    return s[1:] # Remove empty line from the beginning. 
+
 def process_dollars(s):
     r"""nodetex
     Replace dollar signs with backticks.
@@ -552,6 +657,7 @@ def format(s, embedded=False):
 
     if 'nodetex' not in directives:
         s = process_dollars(s)
+        s = skip_TESTS_block(s)
         if not embedded:
             s = process_mathtt(s)
         s = process_extlinks(s, embedded=embedded)

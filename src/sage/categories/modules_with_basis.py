@@ -82,14 +82,6 @@ class ModulesWithBasis(CategoryWithAxiom_over_base_ring):
         sage: H.zero()(x)
         0
 
-    TESTS::
-
-        sage: f = H.zero().on_basis()
-        sage: f(1)
-        0
-        sage: f(2)
-        0
-
     EXAMPLES:
 
     We now construct a more interesting morphism by extending a
@@ -134,7 +126,14 @@ class ModulesWithBasis(CategoryWithAxiom_over_base_ring):
 
     TESTS::
 
+        sage: f = H.zero().on_basis()
+        sage: f(1)
+        0
+        sage: f(2)
+        0
+
         sage: TestSuite(ModulesWithBasis(ZZ)).run()
+
     """
 
     def _call_(self, x):
@@ -797,10 +796,10 @@ class ModulesWithBasis(CategoryWithAxiom_over_base_ring):
                 sage: S = SymmetricGroupAlgebra(QQ, 4)
                 sage: S.cardinality()
                 +Infinity
-                sage: S = SymmetricGroupAlgebra(GF(2), 4) # not tested -- MRO bug :trac:`15475`
-                sage: S.cardinality() # not tested -- MRO bug :trac:`15475`
+                sage: S = SymmetricGroupAlgebra(GF(2), 4) # not tested -- MRO bug trac #15475
+                sage: S.cardinality() # not tested -- MRO bug trac #15475
                 16777216
-                sage: S.cardinality().factor() # not tested -- MRO bug :trac:`15475`
+                sage: S.cardinality().factor() # not tested -- MRO bug trac #15475
                 2^24
 
                 sage: E.<x,y> = ExteriorAlgebra(QQ)

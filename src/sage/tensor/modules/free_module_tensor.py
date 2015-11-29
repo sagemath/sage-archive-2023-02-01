@@ -1318,7 +1318,7 @@ class FreeModuleTensor(ModuleElement):
 
         - ``other`` -- a tensor (instance of :class:`FreeModuleTensor`)
 
-        OUPUT:
+        OUTPUT:
 
         - instance of
           :class:`~sage.tensor.modules.free_module_basis.FreeModuleBasis`
@@ -1634,7 +1634,7 @@ class FreeModuleTensor(ModuleElement):
 
         - ``other`` -- a tensor, of the same type as ``self``
 
-        OUPUT:
+        OUTPUT:
 
         - the tensor resulting from the addition of ``self`` and ``other``
 
@@ -1680,7 +1680,7 @@ class FreeModuleTensor(ModuleElement):
 
         - ``other`` -- a tensor, of the same type as ``self``
 
-        OUPUT:
+        OUTPUT:
 
         - the tensor resulting from the subtraction of ``other`` from ``self``
 

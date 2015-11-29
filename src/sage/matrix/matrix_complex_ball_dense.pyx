@@ -116,7 +116,6 @@ cdef class Matrix_complex_ball_dense(matrix_dense.Matrix_dense):
     # * __dealloc__
     # * set_unsafe(self, size_t i, size_t j, x)
     # * get_unsafe(self, size_t i, size_t j)
-    # * __richcmp__
     ################################################################
 
     def __cinit__(self,
@@ -342,15 +341,3 @@ cdef class Matrix_complex_ball_dense(matrix_dense.Matrix_dense):
         z._parent = self._base_ring
         acb_set(z.value, acb_mat_entry(self.value, i, j))
         return z
-
-    def __richcmp__(Matrix self, right, int op):  # always needed for mysterious reasons.
-        """
-        EXAMPLE::
-
-            sage: a = CBF(1)
-            sage: m1 = MatrixSpace(CBF, 1)([a])
-            sage: m2 = MatrixSpace(CBF, 1)([a])
-            sage: m1 == m2 # indirect doctest
-            True
-        """
-        return self._richcmp(right, op)

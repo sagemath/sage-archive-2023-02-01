@@ -14,3 +14,14 @@ diff -ru a/src/symfcn.h b/src/symfcn.h
  
  int part_itr_sz(vector *part);
  int part_itr_sub(vector *part, vector *outer);
+--- schublib.h	2014-07-17 10:54:21.000000000 -0500
++++ schublib.h	2015-11-29 10:12:28.051670497 -0600
+@@ -1,7 +1,7 @@
+ #ifndef _SCHUBLIB_H
+ #define _SCHUBLIB_H
+ 
+-#include <hashtab.h>
++#include "hashtab.h"
+ 
+ hashtab *trans(vector *w, int vars, hashtab *res);
+ hashtab *monk(int i, hashtab *slc, int rank);

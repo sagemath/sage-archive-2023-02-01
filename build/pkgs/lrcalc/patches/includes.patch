@@ -1,0 +1,16 @@
+No longer require adding an -I option to gcc
+
+diff -ru a/src/symfcn.h b/src/symfcn.h
+--- a/src/symfcn.h	2014-07-17 17:54:21.000000000 +0200
++++ b/src/symfcn.h	2015-11-29 13:58:22.652567261 +0100
+@@ -1,8 +1,8 @@
+ #ifndef _SYMFCN_H
+ #define _SYMFCN_H
+ 
+-#include <hashtab.h>
+-#include <vector.h>
++#include "hashtab.h"
++#include "vector.h"
+ 
+ int part_itr_sz(vector *part);
+ int part_itr_sub(vector *part, vector *outer);

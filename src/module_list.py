@@ -571,9 +571,7 @@ ext_modules = [
               depends = [SAGE_INC + "/ecm.h"]),
 
     Extension('sage.libs.lrcalc.lrcalc',
-              sources = ["sage/libs/lrcalc/lrcalc.pyx"],
-              include_dirs = [SAGE_INC + '/lrcalc/'],
-              libraries = ["lrcalc"]),
+              sources = ["sage/libs/lrcalc/lrcalc.pyx"]),
 
     Extension('sage.libs.mwrank.mwrank',
               sources = ["sage/libs/mwrank/mwrank.pyx",

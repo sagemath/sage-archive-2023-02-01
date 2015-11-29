@@ -1,4 +1,4 @@
-from sage.libs.arb.acb_mat cimport acb_mat_t
+from sage.libs.arb.types cimport acb_mat_t
 cimport matrix_dense
 from sage.matrix.matrix_generic_dense cimport Matrix_generic_dense
 from sage.structure.parent cimport Parent

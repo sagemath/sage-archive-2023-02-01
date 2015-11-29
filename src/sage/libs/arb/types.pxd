@@ -33,3 +33,7 @@ cdef extern from "acb.h":
     ctypedef acb_struct * acb_ptr
     ctypedef const acb_struct * acb_srcptr
 
+cdef extern from "acb_mat.h":
+    ctypedef struct acb_mat_struct:
+        pass
+    ctypedef acb_mat_struct[1] acb_mat_t

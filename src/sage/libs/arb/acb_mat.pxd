@@ -1,10 +1,6 @@
-from sage.libs.arb.acb cimport acb_t
+from sage.libs.arb.types cimport acb_t, acb_mat_t
 
 cdef extern from "acb_mat.h":
-    ctypedef struct acb_mat_struct:
-        pass
-    ctypedef acb_mat_struct[1] acb_mat_t
-
     unsigned int acb_mat_nrows(acb_mat_t mat)
     unsigned int acb_mat_ncols(acb_mat_t mat)
     acb_t acb_mat_entry(acb_mat_t mat, unsigned long i, unsigned long j)

@@ -85,7 +85,7 @@ cpdef modify_for_nested_pickle(cls, str name_prefix, module, first_run=True):
     giving them a mangled name and putting the mangled name in the
     module namespace.
 
-    INPUTS:
+    INPUT:
 
     - ``cls`` - The class to modify.
     - ``name_prefix`` - The prefix to prepend to the class name.
@@ -311,7 +311,24 @@ class MainClass(object):
                 sage: MainClass.NestedClass.NestedSubClass.__name__
                 'MainClass.NestedClass.NestedSubClass'
             """
-            pass
+            def dummy(self, x, *args, r=(1,2,3.4), **kwds):
+                """
+                A dummy method to demonstrate the embedding of
+                method signature for nested classes.
+
+                TESTS::
+
+                    sage: from sage.misc.nested_class import MainClass
+                    sage: print MainClass.NestedClass.NestedSubClass.dummy.__doc__
+                    NestedSubClass.dummy(self, x, *args, r=(1, 2, 3.4), **kwds)
+                    File: sage/misc/nested_class.pyx (starting at line 314)
+                    <BLANKLINE>
+                                    A dummy method to demonstrate the embedding of
+                                    method signature for nested classes.
+                    ...
+
+                """
+                pass
 
 class SubClass(MainClass):
     r"""

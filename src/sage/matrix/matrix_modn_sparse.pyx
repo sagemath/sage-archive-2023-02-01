@@ -62,7 +62,8 @@ EXAMPLES::
     sage: a.rank()
     3
 
-TESTS:
+TESTS::
+
     sage: matrix(Integers(37),0,0,sparse=True).inverse()
     []
 """
@@ -127,7 +128,6 @@ cdef class Matrix_modn_sparse(matrix_sparse.Matrix_sparse):
     # x * __init__
     # x * set_unsafe
     # x * get_unsafe
-    # x * __richcmp__    -- always the same
     ########################################################################
     def __cinit__(self, parent, entries, copy, coerce):
         matrix.Matrix.__init__(self, parent)
@@ -235,8 +235,6 @@ cdef class Matrix_modn_sparse(matrix_sparse.Matrix_sparse):
         n.ivalue = get_entry(&self.rows[i], j)
         return n
 
-    def __richcmp__(matrix.Matrix self, right, int op):  # always need for mysterious reasons.
-        return self._richcmp(right, op)
     def __hash__(self):
         return self._hash()
 
@@ -247,7 +245,7 @@ cdef class Matrix_modn_sparse(matrix_sparse.Matrix_sparse):
     #   * def _unpickle
     #   * cdef _add_
     #   * cdef _mul_
-    #   * cdef _cmp_c_impl
+    #   * cpdef _cmp_
     #   * __neg__
     #   * __invert__
     #   * __copy__
@@ -259,7 +257,7 @@ cdef class Matrix_modn_sparse(matrix_sparse.Matrix_sparse):
     # def _unpickle(self, data, int version):   # use version >= 0
     # cpdef ModuleElement _add_(self, ModuleElement right):
     # cdef _mul_(self, Matrix right):
-    # cdef int _cmp_c_impl(self, Matrix right) except -2:
+    # cpdef int _cmp_(self, Matrix right) except -2:
     # def __neg__(self):
     # def __invert__(self):
     # def __copy__(self):

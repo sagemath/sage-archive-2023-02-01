@@ -160,13 +160,13 @@ def function(s, *args, **kwds):
 
             (1) latex_name=LaTeX
                 where ``LaTeX`` is any valid latex expression.
-                Ex: f = function('f', x, latex_name="\\mathcal{F}")
+                Ex: f = function('f', latex_name="\\mathcal{F}")
                 See EXAMPLES for more.
 
             (2) print_latex_func=my_latex_print
                 where ``my_latex_print`` is any callable function
                 that returns a valid latex expression.
-                Ex: f = function('f', x, print_latex_func=my_latex_print)
+                Ex: f = function('f', print_latex_func=my_latex_print)
                 See EXAMPLES for an explicit usage.
 
     .. note::
@@ -176,13 +176,12 @@ def function(s, *args, **kwds):
        code, it is better to use sage.symbolic.function_factory.function,
        since it won't touch the global namespace.
 
-    EXAMPLES::
+    EXAMPLES:
 
-    We create a formal function called supersin::
+    We create a formal function called supersin ::
 
-        sage: f = function('supersin', x)
-        sage: f
-        supersin(x)
+        sage: function('supersin')
+        supersin
 
     We can immediately use supersin in symbolic expressions::
 
@@ -200,20 +199,20 @@ def function(s, *args, **kwds):
         sage: k = g.diff(x); k
         (x, y) |--> 2*supersin(x)*D[0](supersin)(x)
 
-    Custom typesetting of symbolic functions in LaTeX::
+    Custom typesetting of symbolic functions in LaTeX, either using latex_name
+    keyword::
 
-    (1) Either using latex_name keyword::
-
-        sage: riemann(x) = function('riemann', x, latex_name="\\mathcal{R}")
+        sage: function('riemann', latex_name="\\mathcal{R}")
+        riemann
         sage: latex(riemann(x))
         \mathcal{R}\left(x\right)
 
-    (2) Or passing a custom callable function that returns a
-        latex expression::
+    or passing a custom callable function that returns a latex expression::
 
         sage: mu,nu = var('mu,nu')
         sage: def my_latex_print(self, *args): return "\\psi_{%s}"%(', '.join(map(latex, args)))
-        sage: psi(mu,nu) = function('psi', mu, nu, print_latex_func=my_latex_print)
+        sage: function('psi', print_latex_func=my_latex_print)
+        psi
         sage: latex(psi(mu,nu))
         \psi_{\mu, \nu}
 
@@ -222,8 +221,19 @@ def function(s, *args, **kwds):
 
         sage: k.substitute_function(supersin, sin)
         2*cos(x)*sin(x)
+        
+    TESTS:
+
+    Make sure that :trac:`15860` is fixed and whitespaces are removed::
+    
+        sage: function('A, B')
+        (A, B)
+        sage: B
+        B   
     """
     if len(args) > 0:
+        from sage.misc.superseded import deprecation
+        deprecation(17447, "Calling function('f',x) is deprecated. Use function('f')(x) instead.")
         return function(s, **kwds)(*args)
 
     G = globals()  # this is the reason the code must be in Cython.

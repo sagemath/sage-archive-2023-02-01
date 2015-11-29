@@ -60,7 +60,7 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 ##############################################################################
 
-
+import six
 from sage.groups.group import Group
 from sage.groups.libgap_wrapper import ParentLibGAP, ElementLibGAP
 from sage.structure.unique_representation import UniqueRepresentation
@@ -226,6 +226,17 @@ class FreeGroupElement(ElementLibGAP):
             AbstractWordTietzeWord = libgap.eval('AbstractWordTietzeWord')
             x = AbstractWordTietzeWord(l, parent._gap_gens())
         ElementLibGAP.__init__(self, parent, x)
+
+    def __hash__(self):
+        r"""
+        TESTS::
+
+            sage: G.<a,b> = FreeGroup()
+            sage: hash(a*b*b*~a)
+            -485698212495963022 # 64-bit
+            -1876767630         # 32-bit
+        """
+        return hash(self.Tietze())
 
     def _latex_(self):
         """
@@ -622,7 +633,7 @@ def FreeGroup(n=None, names='x', index_set=None, abelian=False, **kwds):
             n = None
     # derive n from counting names
     if n is None:
-        if isinstance(names, basestring):
+        if isinstance(names, six.string_types):
             n = len(names.split(','))
         else:
             names = list(names)

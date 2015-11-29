@@ -319,7 +319,9 @@ the state of Sage, so that the examples below work!
 See http://matplotlib.sourceforge.net for complete documentation
 about how to use Matplotlib.
 
-TESTS: We test dumping and loading a plot.
+TESTS:
+
+We test dumping and loading a plot.
 
 ::
 
@@ -530,6 +532,7 @@ def SelectiveFormatter(formatter, skip_values):
                 Set the locations for the ticks that are not skipped.
 
                 EXAMPLES::
+
                     sage: from sage.plot.plot import SelectiveFormatter
                     sage: import matplotlib.ticker
                     sage: formatter=SelectiveFormatter(matplotlib.ticker.Formatter(),skip_values=[0,200])
@@ -911,6 +914,13 @@ def plot(funcs, *args, **kwds):
         sage: p1 + p2
         Graphics object consisting of 2 graphics primitives
 
+    Prior to :trac:`19485`, legends by default had a shadowless gray
+    background. This behavior can be recovered by setting the legend
+    options on your plot object::
+
+        sage: p = plot(sin(x), legend_label='$\sin(x)$')
+        sage: p.set_legend_options(back_color=(0.9,0.9,0.9), shadow=False)
+
     Note that the independent variable may be omitted if there is no
     ambiguity::
 
@@ -1103,6 +1113,8 @@ def plot(funcs, *args, **kwds):
         sage: plot(sin(x^2), (x, -3, 3), title='Plot of $\sin(x^2)$', axes_labels=['$x$','$y$']) # These labels will be nicely typeset
         Graphics object consisting of 1 graphics primitive
         sage: plot(sin(x^2), (x, -3, 3), title='Plot of sin(x^2)', axes_labels=['x','y']) # These will not
+        Graphics object consisting of 1 graphics primitive
+        sage: plot(sin(x^2), (x, -3, 3), axes_labels=['x','y'], axes_labels_size=2.5) # Large axes labels (w.r.t. the tick marks)
         Graphics object consisting of 1 graphics primitive
 
     ::
@@ -2072,7 +2084,7 @@ def plot_loglog(funcs, *args, **kwds):
     Plot graphics in 'loglog' scale, that is, both the horizontal and the
     vertical axes will be in logarithmic scale.
 
-    INPUTS:
+    INPUT:
 
     - ``base`` -- (default: 10) the base of the logarithm. This must be
       greater than 1. The base can be also given as a list or tuple
@@ -2107,7 +2119,7 @@ def plot_semilogx(funcs, *args, **kwds):
     Plot graphics in 'semilogx' scale, that is, the horizontal axis will be
     in logarithmic scale.
 
-    INPUTS:
+    INPUT:
 
     - ``base`` -- (default: 10) the base of the logarithm. This must be
       greater than 1.
@@ -2135,7 +2147,7 @@ def plot_semilogy(funcs, *args, **kwds):
     Plot graphics in 'semilogy' scale, that is, the vertical axis will be
     in logarithmic scale.
 
-    INPUTS:
+    INPUT:
 
     - ``base`` -- (default: 10) the base of the logarithm. This must be
       greater than 1.
@@ -2163,7 +2175,7 @@ def list_plot_loglog(data, plotjoined=False, **kwds):
     Plot the ``data`` in 'loglog' scale, that is, both the horizontal and the
     vertical axes will be in logarithmic scale.
 
-    INPUTS:
+    INPUT:
 
     - ``base`` -- (default: 10) the base of the logarithm. This must be
       greater than 1. The base can be also given as a list or tuple
@@ -2216,7 +2228,7 @@ def list_plot_semilogx(data, plotjoined=False, **kwds):
     Plot ``data`` in 'semilogx' scale, that is, the horizontal axis will be
     in logarithmic scale.
 
-    INPUTS:
+    INPUT:
 
     - ``base`` -- (default: 10) the base of the logarithm. This must be
       greater than 1.
@@ -2260,7 +2272,7 @@ def list_plot_semilogy(data, plotjoined=False, **kwds):
     Plot ``data`` in 'semilogy' scale, that is, the vertical axis will be
     in logarithmic scale.
 
-    INPUTS:
+    INPUT:
 
     - ``base`` -- (default: 10) the base of the logarithm. This must be
       greater than 1.
@@ -2364,6 +2376,7 @@ def reshape(v, n, m):
 
     # Now v should be a single list.
     # First, make it have the right length.
+    v = list(v)   # do not mutate the argument
     for i in xrange(n*m - len(v)):
         v.append(G)
 
@@ -2379,20 +2392,21 @@ def reshape(v, n, m):
 
     return L
 
-def graphics_array(array, n=None, m=None):
+def graphics_array(array, nrows=None, ncols=None):
     r"""
     ``graphics_array`` take a list of lists (or tuples) of
     graphics objects and plots them all on one canvas (single plot).
 
     INPUT:
 
-    -  ``array`` - a list of lists or tuples
+    - ``array`` -- a list of lists or tuples. The graphics objects to
+       combine into a graphics array.
 
-    -  ``n, m`` - (optional) integers - if n and m are
-       given then the input array is flattened and turned into an n x m
-       array, with blank graphics objects padded at the end, if
-       necessary.
-
+    - ``nrows, ncols`` -- (optional) integers. If both are given then
+       the input array is flattened and turned into an ``nrows`` x
+       ``ncols`` array, with blank graphics objects padded at the end,
+       if necessary. If only one is specified, the other is chosen
+       automatically.
 
     EXAMPLE: Make some plots of `\sin` functions::
 
@@ -2429,20 +2443,41 @@ def graphics_array(array, n=None, m=None):
         sage: L = [plot(sin(k*x),(x,-pi,pi)) for k in [1..3]]
         sage: G = graphics_array(L)
         sage: G.show(figsize=[5,3])  # smallish and compact
-
-    ::
-
         sage: G.show(figsize=[10,20])  # bigger and tall and thin; long time (2s on sage.math, 2012)
-
-    ::
-
         sage: G.show(figsize=8)  # figure as a whole is a square
+
+    Specifying only the number of rows or the number of columns
+    computes the other dimension automatically::
+
+        sage: ga = graphics_array([plot(sin)] * 10, nrows=3)
+        sage: ga.nrows(), ga.ncols()
+        (3, 4)
+        sage: ga = graphics_array([plot(sin)] * 10, ncols=3)
+        sage: ga.nrows(), ga.ncols()
+        (4, 3)
     """
-    if not n is None:
-        # Flatten then reshape input
-        n = int(n)
-        m = int(m)
-        array = reshape(array, n, m)
+    # TODO: refactor the whole array flattening and reshaping into a class
+    if nrows is None and ncols is None:
+        pass
+    elif nrows is not None and ncols is not None:
+        nrows = int(nrows)
+        ncols = int(ncols)
+        array = reshape(array, nrows, ncols)
+    else:
+        # nrows is None xor ncols is None
+        if len(array) > 0 and isinstance(array[0], Graphics):
+            length = len(array)
+        else:
+            length = sum(map(len, array))
+        if nrows is None:
+            ncols = int(ncols)
+            nrows = length // ncols + 1
+        elif ncols is None:
+            nrows = int(nrows)
+            ncols = length // nrows + 1
+        else:
+            assert False
+        array = reshape(array, nrows, ncols)
     return GraphicsArray(array)
 
 def var_and_list_of_values(v, plot_points):

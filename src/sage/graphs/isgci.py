@@ -184,7 +184,7 @@ Predefined classes
 
    * - Interval
 
-     - :meth:`~sage.graphs.graph_generators.GraphGenerators.RandomInterval`,
+     - :meth:`~sage.graphs.graph_generators.GraphGenerators.RandomIntervalGraph`,
        :meth:`~sage.graphs.graph_generators.GraphGenerators.IntervalGraph`,
        :meth:`~sage.graphs.generic_graph.GenericGraph.is_interval`
 
@@ -802,11 +802,12 @@ class GraphClasses(UniqueRepresentation):
 
             sage: graph_classes._download_db() # Not tested -- requires internet
         """
+        # import compatible with py2 and py3
+        from six.moves.urllib.request import urlopen
 
         from sage.misc.misc import SAGE_TMP
-        import urllib2
         import os.path
-        u = urllib2.urlopen('http://www.graphclasses.org/data.zip')
+        u = urlopen('http://www.graphclasses.org/data.zip')
         localFile = open(os.path.join(SAGE_TMP,'isgci.zip'), 'w')
         localFile.write(u.read())
         localFile.close()
@@ -977,7 +978,7 @@ class GraphClasses(UniqueRepresentation):
 
         # Computing te max of each field with the database
         for key in MAX:
-            MAX[key] = len(max(map(lambda x:str(x.get(key,"")),classes_list), key = len))
+            MAX[key] = len(max((str(x.get(key,"")) for x in classes_list), key = len))
 
         # At most MAX characters per field
         for key, length in MAX.iteritems():

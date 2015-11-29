@@ -591,6 +591,21 @@ cdef class Map(Element):
             s += "\n  Defn: %s"%('\n        '.join(d.split('\n')))
         return s
 
+    def domains(self):
+        """
+        Iterate over the domains of the factors of a (composite) map.
+
+        This default implementation simply yields the domain of this map.
+
+        .. SEEALSO:: :meth:`FormalCompositeMap.domains`
+
+        EXAMPLES::
+
+            sage: list(QQ.coerce_map_from(ZZ).domains())
+            [Integer Ring]
+        """
+        yield self.domain()
+
     def category_for(self):
         """
         Returns the category self is a morphism for.
@@ -613,9 +628,13 @@ cdef class Map(Element):
             sage: R.<x,y> = QQ[]
             sage: f = R.hom([x+y, x-y], R)
             sage: f.category_for()
-            Join of Category of unique factorization domains and Category of commutative algebras over quotient fields
+            Join of Category of unique factorization domains
+             and Category of commutative algebras over (quotient fields and metric spaces)
             sage: f.category()
-            Category of endsets of unital magmas and right modules over quotient fields and left modules over quotient fields
+            Category of endsets of unital magmas
+             and right modules over (quotient fields and metric spaces)
+             and left modules over (quotient fields and metric spaces)
+
 
         FIXME: find a better name for this method
         """
@@ -1903,3 +1922,21 @@ cdef class FormalCompositeMap(Map):
         if all(f.is_surjective() for f in without_bij):
             return True
         raise NotImplementedError("Not enough information to deduce surjectivity.")
+
+    def domains(self):
+        """
+        Iterate over the domains of the factors of this map.
+
+        (This is useful in particular to check for loops in coercion maps.)
+
+        .. SEEALSO:: :meth:`Map.domains`
+
+        EXAMPLES::
+
+            sage: f = QQ.coerce_map_from(ZZ)
+            sage: g = MatrixSpace(QQ, 2, 2).coerce_map_from(QQ)
+            sage: list((g*f).domains())
+            [Integer Ring, Rational Field]
+        """
+        for f in self.__list:
+            yield f.domain()

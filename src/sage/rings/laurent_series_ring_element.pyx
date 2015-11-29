@@ -61,7 +61,6 @@ import power_series_ring_element
 import power_series_ring
 import sage.rings.polynomial.polynomial_element as polynomial
 import sage.misc.latex
-import sage.rings.ring_element as ring_element
 from sage.rings.integer import Integer
 from sage.rings.polynomial.laurent_polynomial import LaurentPolynomial_univariate
 
@@ -594,24 +593,6 @@ cdef class LaurentSeries(AlgebraElement):
         # 3. Add
         return LaurentSeries(self._parent, f1 + f2, m)
 
-    cpdef ModuleElement _iadd_(self, ModuleElement right_m):
-        """
-        EXAMPLES::
-
-            sage: R.<t> = LaurentSeriesRing(QQ)
-            sage: f = t+t
-            sage: f += t; f
-            3*t
-            sage: f += O(t^5); f
-            3*t + O(t^5)
-        """
-        cdef LaurentSeries right = <LaurentSeries>right_m
-        if self.__n == right.__n:
-            self.__u += right.__u
-            return self
-        else:
-            return self._add_(right)
-
     cpdef ModuleElement _sub_(self, ModuleElement right_m):
         """
         Subtract two power series with the same parent.
@@ -660,8 +641,11 @@ cdef class LaurentSeries(AlgebraElement):
         """
         if prec == infinity or prec >= self.prec():
             return self
+        P = self._parent
+        if not self:
+            return LaurentSeries(P, P.power_series_ring()(0, prec=0), prec)
         u = self.__u.add_bigoh(prec - self.__n)
-        return LaurentSeries(self._parent, u, self.__n)
+        return LaurentSeries(P, u, self.__n)
 
     def degree(self):
         """
@@ -708,30 +692,11 @@ cdef class LaurentSeries(AlgebraElement):
                              self.__u * right.__u,
                              self.__n + right.__n)
 
-    cpdef RingElement _imul_(self, RingElement right_r):
-        """
-        EXAMPLES::
-
-            sage: x = Frac(QQ[['x']]).0
-            sage: f = 1/x^3 + x + x^2 + 3*x^4 + O(x^7)
-            sage: g = 1 - x + x^2 - x^4 + O(x^8)
-            sage: f *= g; f
-            x^-3 - x^-2 + x^-1 + 4*x^4 + O(x^5)
-        """
-        cdef LaurentSeries right = <LaurentSeries>right_r
-        self.__u *= right.__u
-        self.__n += right.__n
-        return self
-
     cpdef ModuleElement _rmul_(self, RingElement c):
         return LaurentSeries(self._parent, self.__u._rmul_(c), self.__n)
 
     cpdef ModuleElement _lmul_(self, RingElement c):
         return LaurentSeries(self._parent, self.__u._lmul_(c), self.__n)
-
-    cpdef ModuleElement _ilmul_(self, RingElement c):
-        self.__u *= c
-        return self
 
     def __pow__(_self, r, dummy):
         """
@@ -907,10 +872,7 @@ cdef class LaurentSeries(AlgebraElement):
             return self.prec()
         return min(self.prec(), f.prec())
 
-    def __richcmp__(left, right, int op):
-        return (<Element>left)._richcmp(right, op)
-
-    cdef int _cmp_c_impl(self, Element right_r) except -2:
+    cpdef int _cmp_(self, Element right_r) except -2:
         r"""
         Comparison of self and right.
 
@@ -1269,10 +1231,22 @@ cdef class LaurentSeries(AlgebraElement):
             sage: f.power_series()
             Traceback (most recent call last):
             ...
-            ArithmeticError: self is a not a power series
+            TypeError: self is not a power series
+
+        TESTS:
+
+        Check whether a polynomial over a Laurent series ring is contained in the
+        polynomial ring over the power series ring (see :trac:`19459`):
+
+            sage: L.<t> = LaurentSeriesRing(GF(2))
+            sage: R.<x,y> = PolynomialRing(L)
+            sage: O = L.power_series_ring()
+            sage: S.<x,y> = PolynomialRing(O)
+            sage: t**(-1)*x*y in S
+            False
         """
         if self.__n < 0:
-            raise ArithmeticError, "self is a not a power series"
+            raise TypeError("self is not a power series")
         u = self.__u
         t = u.parent().gen()
         return t**(self.__n) * u

@@ -43,4 +43,8 @@ p-Adics
    sage/rings/padics/precision_error
    sage/rings/padics/misc
 
+   sage/rings/padics/common_conversion
+   sage/rings/padics/discrete_value_group
+   sage/rings/padics/morphism
+
 .. include:: ../footer.txt

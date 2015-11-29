@@ -1,4 +1,6 @@
 """
+Finite field morphisms using Givaro
+
 Special implementation for givaro finite fields of:
 
 - embeddings between finite fields

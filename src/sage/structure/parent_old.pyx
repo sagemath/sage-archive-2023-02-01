@@ -109,9 +109,6 @@ cdef class Parent(parent.Parent):
     # New Coercion support functionality
     #################################################################################
 
-#    def coerce_map_from(self, S):
-#        return self.coerce_map_from_c(S)
-
     cpdef coerce_map_from_c(self, S):
         """
         EXAMPLES:
@@ -151,10 +148,7 @@ cdef class Parent(parent.Parent):
         except KeyError:
             pass
 
-        if HAS_DICTIONARY(self):
-            mor = self.coerce_map_from_impl(S)
-        else:
-            mor = self.coerce_map_from_c_impl(S)
+        mor = self.coerce_map_from_c_impl(S)
         import sage.categories.morphism
         import sage.categories.map
         if mor is True:
@@ -162,7 +156,7 @@ cdef class Parent(parent.Parent):
         elif mor is False:
             mor = None
         elif mor is not None and not isinstance(mor, sage.categories.map.Map):
-            raise TypeError, "coerce_map_from_impl must return a boolean, None, or an explicit Map"
+            raise TypeError("coerce_map_from_c_impl must return a boolean, None, or an explicit Map")
 
         if mor is None and isinstance(S, type):
             #Convert Python types to native Sage types
@@ -178,10 +172,6 @@ cdef class Parent(parent.Parent):
             self._coerce_from_hash.set(S, mor) # TODO: if this is None, could it be non-None in the future?
 
         return mor
-
-    def coerce_map_from_impl(self, S):
-        check_old_coerce(self)
-        return self.coerce_map_from_c_impl(S)
 
     cdef coerce_map_from_c_impl(self, S):
         check_old_coerce(self)
@@ -212,9 +202,6 @@ cdef class Parent(parent.Parent):
             return sage.categories.morphism.CallMorphism(Hom(S, self))
         else:
             return None
-
-#    def get_action(self, S, op=operator.mul, self_on_left=True):
-#        return self.get_action_c(S, op, self_on_left)
 
     cpdef get_action_c(self, S, op, bint self_on_left):
         check_old_coerce(self)
@@ -307,30 +294,6 @@ cdef class Parent(parent.Parent):
                 pass
         raise TypeError, "no canonical coercion of element into self"
 
-    def _coerce_self(self, x):
-        check_old_coerce(self)
-        return self._coerce_self_c(x)
-
-    cdef _coerce_self_c(self, x):
-        """
-        Try to canonically coerce x into self.
-        Return result on success or raise TypeError on failure.
-        """
-        check_old_coerce(self)
-        # todo -- optimize?
-        try:
-            P = x.parent()
-            if P is self:
-                return x
-            elif P == self:
-                return self(x)
-        except AttributeError:
-            pass
-        raise TypeError, "no canonical coercion to self defined"
-
-#    def has_coerce_map_from(self, S):
-#        return self.has_coerce_map_from_c(S)
-
     cpdef has_coerce_map_from_c(self, S):
         """
         Return True if there is a natural map from S to self.
@@ -346,16 +309,9 @@ cdef class Parent(parent.Parent):
                 return self._has_coerce_map_from.get(S)
             except KeyError:
                 pass
-        if HAS_DICTIONARY(self):
-            x = self.has_coerce_map_from_impl(S)
-        else:
-            x = self.has_coerce_map_from_c_impl(S)
+        x = self.has_coerce_map_from_c_impl(S)
         self._has_coerce_map_from.set(S, x)
         return x
-
-    def has_coerce_map_from_impl(self, S):
-        check_old_coerce(self)
-        return self.has_coerce_map_from_c_impl(S)
 
     cdef has_coerce_map_from_c_impl(self, S):
         check_old_coerce(self)
@@ -365,8 +321,6 @@ cdef class Parent(parent.Parent):
             self._coerce_c((<parent.Parent>S).an_element())
         except TypeError:
             return False
-        except NotImplementedError as msg:
-            raise NotImplementedError, "%s\nAlso, please make sure you have implemented has_coerce_map_from_impl or has_coerce_map_from_c_impl (or better _an_element_c_impl or _an_element_impl if possible) for %s"%(msg,self)
         return True
 
     def _an_element_impl(self):     # override this in Python
@@ -405,97 +359,18 @@ cdef class Parent(parent.Parent):
 
     cpdef _an_element_c(self):     # do not override this (call from Cython)
         check_old_coerce(self)
-        if not self.__an_element is None:
-            return self.__an_element
+        if not self._cache_an_element is None:
+            return self._cache_an_element
         if HAS_DICTIONARY(self):
-            self.__an_element = self._an_element_impl()
+            self._cache_an_element = self._an_element_impl()
         else:
-            self.__an_element = self._an_element_c_impl()
-        return self.__an_element
+            self._cache_an_element = self._an_element_c_impl()
+        return self._cache_an_element
 
     # This should eventually be inherited from the EnumeratedSets() category
     # This is just a convenient spot to cover the relevant cython parents,
     # without bothering the new parents
     list = parent.Parent._list_from_iterator_cached
-
-
-    ################################################
-    # Comparison of parent objects
-    ################################################
-    cdef _richcmp(left, right, int op):
-        """
-        Compare left and right.
-        """
-        check_old_coerce(left)
-        cdef int r
-
-        if not isinstance(right, parent.Parent) or not isinstance(left, parent.Parent):
-            # One is not a parent -- use arbitrary ordering
-            if (<PyObject*>left) < (<PyObject*>right):
-                r = -1
-            elif (<PyObject*>left) > (<PyObject*>right):
-                r = 1
-            else:
-                r = 0
-
-        else:
-            # Both are parents -- but need *not* have the same type.
-            if HAS_DICTIONARY(left):
-                r = left.__cmp__(right)
-            else:
-                r = left._cmp_c_impl(right)
-
-        if op == 0:  #<
-            return PyBool_FromLong(r  < 0)
-        elif op == 2: #==
-            return PyBool_FromLong(r == 0)
-        elif op == 4: #>
-            return PyBool_FromLong(r  > 0)
-        elif op == 1: #<=
-            return PyBool_FromLong(r <= 0)
-        elif op == 3: #!=
-            return PyBool_FromLong(r != 0)
-        elif op == 5: #>=
-            return PyBool_FromLong(r >= 0)
-
-##     ####################################################################
-##     # For a derived Cython class, you **must** put the following in
-##     # your subclasses, in order for it to take advantage of the
-##     # above generic comparison code.  You must also define
-##     # _cmp_c_impl for a Cython class.
-##     #
-##     # For a derived Python class, simply define __cmp__.
-##     ####################################################################
-##     def __richcmp__(left, right, int op):
-##         return (<Parent>left)._richcmp(right, op)
-
-##         # NOT NEEDED, since all attributes are public!
-##     def __reduce__(self):
-##         if HAS_DICTIONARY(self):
-##             _dict = self.__dict__
-##         else:
-##             _dict = None
-##         return (make_parent_v0, (self.__class__, _dict, self._has_coerce_map_from))
-
-    cdef int _cmp_c_impl(left, parent.Parent right) except -2:
-        check_old_coerce(left)
-        pass
-        # this would be nice to do, but we can't since
-        # it leads to infinite recursions -- and is slow -- and this
-        # stuff must be fast!
-        #if right.has_coerce_map_from(left):
-        #    if left.has_coerce_map_from(right):
-        #        return 0
-        #    else:
-        #        return -1
-        if (<PyObject*>left) < (<PyObject*>right):
-            return -1
-        elif (<PyObject*>left) > (<PyObject*>right):
-            return 1
-        return 0
-
-##     def __cmp__(left, right):
-##         return left._cmp_c_impl(right)   # default
 
 
     ############################################################################

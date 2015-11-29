@@ -55,8 +55,12 @@ database engine.
    sage/databases/jones
    sage/databases/oeis
    sage/databases/sloane
+   sage/databases/findstat
    sage/databases/conway
    sage/databases/odlyzko
    sage/databases/symbolic_data
+   sage/databases/cunningham_tables
+   sage/databases/db_class_polynomials
+   sage/databases/db_modular_polynomials
 
 .. include:: ../footer.txt

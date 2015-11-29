@@ -1,5 +1,5 @@
 """
-Monoid Elements
+Elements of Free Monoids
 
 AUTHORS:
 
@@ -80,6 +80,23 @@ class FreeMonoidElement(MonoidElement):
             # TODO: should have some other checks here...
             raise TypeError("Argument x (= %s) is of the wrong type."%x)
 
+    def __hash__(self):
+        r"""
+        TESTS::
+
+            sage: R.<x,y> = FreeMonoid(2)
+            sage: hash(x)
+            1914282862589934403  # 64-bit
+            139098947            # 32-bit
+            sage: hash(y)
+            2996819001369607946  # 64-bit
+            13025034             # 32-bit
+            sage: hash(x*y)
+            7114093379175463612  # 64-bit
+            2092317372           # 32-bit
+        """
+        return hash(tuple(self._element_list))
+
     def __iter__(self):
         """
         Returns an iterator which yields tuples of variable and exponent.
@@ -137,7 +154,7 @@ class FreeMonoidElement(MonoidElement):
             sage: z = F([(0,5),(1,2),(0,10),(0,2),(1,2)])
             sage: z._latex_()
             'a_{0}^{5}a_{1}^{2}a_{0}^{12}a_{1}^{2}'
-            sage: F, (alpha,beta,gamma) = FreeMonoid(3, 'alpha,beta,gamma').objgens()
+            sage: F.<alpha,beta,gamma> = FreeMonoid(3)
             sage: latex(alpha*beta*gamma)
             \alpha\beta\gamma
         """
@@ -367,7 +384,7 @@ class FreeMonoidElement(MonoidElement):
         gens = self.parent().gens()
         if alph is None:
             alph = gens
-        alph = map(str, alph)
+        alph = [str(_) for _ in alph]
         W = Words(alph)
         return W(sum([ [alph[gens.index(i[0])]] * i[1] for i in list(self) ], []))
 

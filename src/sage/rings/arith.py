@@ -31,7 +31,6 @@ from sage.rings.complex_number import ComplexNumber
 
 import fast_arith
 
-
 ##################################################################
 # Elementary Arithmetic
 ##################################################################
@@ -94,7 +93,7 @@ def algdep(z, degree, known_bits=None, use_bits=None, known_digits=None, use_dig
         x^3 + 1
         sage: p.factor()
         (x + 1) * (x^2 - x + 1)
-        sage: z^2 - z + 1
+        sage: z^2 - z + 1   # abs tol 2e-16
         0.000000000000000
 
     This example involves a `p`-adic number::
@@ -249,20 +248,21 @@ def bernoulli(n, algorithm='default', num_threads=1):
 
     INPUT:
 
-    -  ``n`` - an integer
-    -  ``algorithm``:
+    - ``n`` - an integer
+    - ``algorithm``:
 
-       -  ``'default'`` - (default) use 'pari' for n <= 30000, and 'bernmm' for
-          n > 30000 (this is just a heuristic, and not guaranteed to be optimal
-          on all hardware)
-       -  ``'pari'`` - use the PARI C library
-       -  ``'gap'`` - use GAP
-       -  ``'gp'`` - use PARI/GP interpreter
-       -  ``'magma'`` - use MAGMA (optional)
-       -  ``'bernmm'`` - use bernmm package (a multimodular algorithm)
+      - ``'default'`` -- use 'flint' for n <= 300000, and 'bernmm'
+        otherwise (this is just a heuristic, and not guaranteed to be
+        optimal on all hardware)
+      - ``'flint'`` -- use the FLINT library
+      - ``'pari'`` -- use the PARI C library
+      - ``'gap'`` -- use GAP
+      - ``'gp'`` -- use PARI/GP interpreter
+      - ``'magma'`` -- use MAGMA (optional)
+      - ``'bernmm'`` -- use bernmm package (a multimodular algorithm)
 
-    -  ``num_threads`` - positive integer, number of
-       threads to use (only used for bernmm algorithm)
+    - ``num_threads`` - positive integer, number of
+      threads to use (only used for bernmm algorithm)
 
     EXAMPLES::
 
@@ -273,6 +273,8 @@ def bernoulli(n, algorithm='default', num_threads=1):
 
     We demonstrate each of the alternative algorithms::
 
+        sage: bernoulli(12, algorithm='flint')
+        -691/2730
         sage: bernoulli(12, algorithm='gap')
         -691/2730
         sage: bernoulli(12, algorithm='gp')
@@ -288,7 +290,7 @@ def bernoulli(n, algorithm='default', num_threads=1):
 
     TESTS::
 
-        sage: algs = ['gap','gp','pari','bernmm']
+        sage: algs = ['gap','gp','pari','bernmm','flint']
         sage: test_list = [ZZ.random_element(2, 2255) for _ in range(500)]
         sage: vals = [[bernoulli(i,algorithm = j) for j in algs] for i in test_list]  # long time (up to 21s on sage.math, 2011)
         sage: union([len(union(x))==1 for x in vals])  # long time (depends on previous line)
@@ -306,9 +308,11 @@ def bernoulli(n, algorithm='default', num_threads=1):
     n = ZZ(n)
 
     if algorithm == 'default':
-        algorithm = 'pari' if n <= 30000 else 'bernmm'
+        algorithm = 'flint' if n <= 300000 else 'bernmm'
 
-    if algorithm == 'pari':
+    if algorithm == 'flint':
+        return flint_arith.bernoulli_number(n)
+    elif algorithm == 'pari':
         x = pari(n).bernfrac()         # Use the PARI C library
         return Rational(x)
     elif algorithm == 'gap':
@@ -404,14 +408,22 @@ def is_prime(n):
     r"""
     Return ``True`` if `n` is a prime number, and ``False`` otherwise.
 
-    AUTHORS:
-
-    - Kevin Stueve kstueve@uw.edu (2010-01-17):
-      delegated calculation to ``n.is_prime()``
+    Use a provable primality test or a strong pseudo-primality test depending
+    on the global :mod:`arithmetic proof flag <sage.structure.proof.proof>`.
 
     INPUT:
 
     -  ``n`` - the object for which to determine primality
+
+    .. SEEALSO::
+
+        - :meth:`is_pseudoprime`
+        - :meth:`sage.rings.integer.Integer.is_prime`
+
+    AUTHORS:
+
+    - Kevin Stueve kstueve@uw.edu (2010-01-17):
+      delegated calculation to ``n.is_prime()``
 
     EXAMPLES::
 
@@ -427,6 +439,13 @@ def is_prime(n):
         False
         sage: is_prime(-2)
         False
+
+        sage: a = 2**2048 + 981
+        sage: is_prime(a)    # not tested - takes ~ 1min
+        sage: proof.arithmetic(False)
+        sage: is_prime(a)    # instantaneous!
+        True
+        sage: proof.arithmetic(True)
     """
     try:
         return n.is_prime()
@@ -482,6 +501,9 @@ def is_prime_power(n, flag=None, get_data=False):
     r"""
     Test whether ``n`` is a positive power of a prime number
 
+    This function simply calls the method :meth:`Integer.is_prime_power()
+    <sage.rings.integer.Integer.is_prime_power>` of Integers.
+
     INPUT:
 
     - ``n`` -- an integer
@@ -502,6 +524,21 @@ def is_prime_power(n, flag=None, get_data=False):
         True
         sage: is_prime_power(1024, get_data=True)
         (2, 10)
+
+    The same results can be obtained with::
+
+        sage: 389.is_prime_power()
+        True
+        sage: 2000.is_prime_power()
+        False
+        sage: 2.is_prime_power()
+        True
+        sage: 1024.is_prime_power()
+        True
+        sage: 1024.is_prime_power(get_data=True)
+        (2, 10)
+
+    TESTS::
 
         sage: is_prime_power(-1)
         False
@@ -933,16 +970,24 @@ def primes(start, stop=None, proof=None):
 
 def next_prime_power(n):
     """
-    The next prime power greater than the integer n. If n is a prime
-    power, then this function does not return n, but the next prime
-    power after n.
+    Return the smallest prime power greater than ``n``.
+
+    Note that if ``n`` is a prime power, then this function does not return
+    ``n``, but the next prime power after ``n``.
+
+    This function just calls the method
+    :meth:`Integer.next_prime_power() <sage.rings.integer.Integer.next_prime_power>`
+    of Integers.
+
+    .. SEEALSO::
+
+        - :func:`is_prime_power` (and
+          :meth:`Integer.is_prime_power() <sage.rings.integer.Integer.is_prime_power()>`)
+        - :func:`previous_prime_power` (and
+          :meth:`Integer.previous_prime_power() <sage.rings.integer.Integer.next_prime_power>`)
 
     EXAMPLES::
 
-        sage: next_prime_power(-10)
-        2
-        sage: next_prime_power(0)
-        2
         sage: next_prime_power(1)
         2
         sage: next_prime_power(2)
@@ -953,13 +998,24 @@ def next_prime_power(n):
         8
         sage: next_prime_power(99)
         101
+
+    The same results can be obtained with::
+
+        sage: 1.next_prime_power()
+        2
+        sage: 2.next_prime_power()
+        3
+        sage: 10.next_prime_power()
+        11
+
+    Note that `2` is the smallest prime power::
+
+        sage: next_prime_power(-10)
+        2
+        sage: next_prime_power(0)
+        2
     """
-    n = ZZ(n) + 1
-    if n <= 2:   # negatives are not prime.
-        return ZZ(2)
-    while not n.is_prime_power():
-        n += 1
-    return n
+    return ZZ(n).next_prime_power()
 
 def next_probable_prime(n):
     """
@@ -1069,10 +1125,21 @@ def previous_prime(n):
 
 def previous_prime_power(n):
     r"""
-    The largest prime power `< n`. The result is provably
-    correct. If `n \leq 2`, this function returns `-x`,
-    where `x` is prime power and `-x < n` and no larger
-    negative of a prime power has this property.
+    Return the largest prime power smaller than ``n``.
+
+    The result is provably correct. If ``n`` is smaller or equal than ``2`` this
+    function raises an error.
+
+    This function simply call the method
+    :meth:`Integer.previous_prime_power() <sage.rings.integer.Integer.previous_prime_power>`
+    of Integers.
+
+    .. SEEALSO::
+
+        - :func:`is_prime_power` (and :meth:`Integer.is_prime_power()
+          <sage.rings.integer.Integer.is_prime_power>`)
+        - :func:`next_prime_power` (and :meth:`Integer.next_prime_power()
+          <sage.rings.integer.Integer.next_prime_power>`)
 
     EXAMPLES::
 
@@ -1085,31 +1152,37 @@ def previous_prime_power(n):
         sage: previous_prime_power(127)
         125
 
-    ::
+    The same results can be obtained with::
+
+        sage: 3.previous_prime_power()
+        2
+        sage: 10.previous_prime_power()
+        9
+        sage: 7.previous_prime_power()
+        5
+        sage: 127.previous_prime_power()
+        125
+
+    Input less than or equal to `2` raises errors::
 
         sage: previous_prime_power(2)
         Traceback (most recent call last):
         ...
-        ValueError: no previous prime power
+        ValueError: no prime power less than 2
         sage: previous_prime_power(-10)
         Traceback (most recent call last):
         ...
-        ValueError: no previous prime power
+        ValueError: no prime power less than 2
 
     ::
 
         sage: n = previous_prime_power(2^16 - 1)
         sage: while is_prime(n):
-        ....:  n = previous_prime_power(n)
+        ....:     n = previous_prime_power(n)
         sage: factor(n)
         251^2
     """
-    n = ZZ(n) - 1
-    if n <= 1:
-        raise ValueError("no previous prime power")
-    while not is_prime_power(n):
-        n -= 1
-    return n
+    return ZZ(n).previous_prime_power()
 
 def random_prime(n, proof=None, lbound=2):
     """
@@ -1869,6 +1942,7 @@ XGCD = xgcd
 ##         r = new_r; s = new_s
 ##     return (a, p*psign, q*qsign)
 
+
 def xkcd(n=""):
     r"""
     This function is similar to the xgcd function, but behaves
@@ -1889,20 +1963,23 @@ def xkcd(n=""):
         <html><font color='black'><h1>Python</h1><img src="http://imgs.xkcd.com/comics/python.png" title="I wrote 20 short programs in Python yesterday.  It was wonderful.  Perl, I'm leaving you."><div>Source: <a href="http://xkcd.com/353" target="_blank">http://xkcd.com/353</a></div></font></html>
     """
     import contextlib
-    import urllib2
     import json
     from sage.misc.html import html
+
+    # import compatible with py2 and py3
+    from six.moves.urllib.request import urlopen
+    from six.moves.urllib.error import HTTPError, URLError
 
     data = None
     url = "http://dynamic.xkcd.com/api-0/jsonp/comic/{}".format(n)
 
     try:
-        with contextlib.closing(urllib2.urlopen(url)) as f:
+        with contextlib.closing(urlopen(url)) as f:
             data = f.read()
-    except urllib2.HTTPError as error:
+    except HTTPError as error:
         if error.getcode() == 400: # this error occurs when asking for a non valid comic number
             raise RuntimeError("Could not obtain comic data from {}. Maybe you should enable time travel!".format(url))
-    except urllib2.URLError:
+    except URLError:
         pass
 
     if n == 1024:
@@ -1921,6 +1998,7 @@ def xkcd(n=""):
     # TODO: raise this error in such a way that it's not clear that
     # it is produced by sage, see http://xkcd.com/1024/
     html('<script> alert("Error: -41"); </script>')
+
 
 def inverse_mod(a, m):
     """
@@ -5115,10 +5193,10 @@ def squarefree_divisors(x):
 
     Depends on the output of the prime_divisors function.
 
-    INPUT::
+    INPUT:
 
-        x -- an element of any ring for which the prime_divisors
-             function works.
+    - x -- an element of any ring for which the prime_divisors
+      function works.
 
     EXAMPLES::
 
@@ -5134,7 +5212,7 @@ def squarefree_divisors(x):
     Check that the first divisor (i.e. `1`) is a Sage integer (see
     :trac:`17852`)::
 
-        sage: a = squarefree_divisors(14).next()
+        sage: a = next(squarefree_divisors(14))
         sage: a
         1
         sage: type(a)

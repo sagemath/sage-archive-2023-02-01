@@ -155,7 +155,7 @@ class Polyhedra_base(UniqueRepresentation, Parent):
 
             sage: p = Polyhedron([(0,0),(1,0),(0,1)])
             sage: n = len(p.parent()._Vertex_pool)
-            sage: p.delete()
+            sage: p._delete()
             sage: len(p.parent()._Vertex_pool) - n
             3
         """
@@ -196,11 +196,13 @@ class Polyhedra_base(UniqueRepresentation, Parent):
             sage: Polyhedra(QQ, 4).an_element()
             A 4-dimensional polyhedron in QQ^4 defined as the convex hull of 5 vertices
         """
-        p = [0] * self.ambient_dim()
+        zero = self.base_ring().zero()
+        one  = self.base_ring().one()
+        p = [zero] * self.ambient_dim()
         points = [p]
         for i in range(0,self.ambient_dim()):
-            p = [0] * self.ambient_dim()
-            p[i] = 1
+            p = [zero] * self.ambient_dim()
+            p[i] = one
             points.append(p)
         return self.element_class(self, [points,[],[]], None)
 
@@ -226,8 +228,9 @@ class Polyhedra_base(UniqueRepresentation, Parent):
                 self.element_class(self, None, None),
                 self.element_class(self, None, [[],[]]) ]
         points = []
+        R = self.base_ring()
         for i in range(0,self.ambient_dim()+5):
-            points.append([i*j^2 for j in range(0,self.ambient_dim())])
+            points.append([R(i*j^2) for j in range(0,self.ambient_dim())])
         return [
             self.element_class(self, [points[0:self.ambient_dim()+1], [], []], None),
             self.element_class(self, [points[0:1], points[1:self.ambient_dim()+1], []], None),
@@ -279,7 +282,8 @@ class Polyhedra_base(UniqueRepresentation, Parent):
             sage: P.universe().is_universe()
             True
         """
-        return self(None, [[[1]+[0]*self.ambient_dim()], []], convert=True)
+        R = self.base_ring()
+        return self(None, [[[R.one()]+[R.zero()]*self.ambient_dim()], []], convert=True)
 
     @cached_method
     def Vrepresentation_space(self):
@@ -417,9 +421,9 @@ class Polyhedra_base(UniqueRepresentation, Parent):
             def convert_base_ring(lstlst):
                 return [ [self.base_ring()(x) for x in lst] for lst in lstlst]
             if convert and Hrep:
-                Hrep = map(convert_base_ring, Hrep)
+                Hrep = [convert_base_ring(_) for _ in Hrep]
             if convert and Vrep:
-                Vrep = map(convert_base_ring, Vrep)
+                Vrep = [convert_base_ring(_) for _ in Vrep]
             return self.element_class(self, Vrep, Hrep, **kwds)
         if nargs==1 and is_Polyhedron(args[0]):
             polyhedron = args[0]
@@ -574,17 +578,19 @@ class Polyhedra_base(UniqueRepresentation, Parent):
         EXAMPLES::
 
             sage: from sage.geometry.polyhedron.parent import Polyhedra
-            sage: Polyhedra(ZZ,2).get_action(ZZ)   # indirect doctest
+            sage: PZZ2 = Polyhedra(ZZ, 2)
+            sage: PZZ2.get_action(ZZ)   # indirect doctest
             Right action by Integer Ring on Polyhedra in ZZ^2
-            sage: Polyhedra(ZZ,2).get_action(QQ)
+            sage: PZZ2.get_action(QQ)
             Right action by Rational Field on Polyhedra in QQ^2
             with precomposition on left by Conversion map:
               From: Polyhedra in ZZ^2
               To:   Polyhedra in QQ^2
             with precomposition on right by Identity endomorphism of Rational Field
-            sage: Polyhedra(QQ,2).get_action(ZZ)
+            sage: PQQ2 = Polyhedra(QQ, 2)
+            sage: PQQ2.get_action(ZZ)
             Right action by Integer Ring on Polyhedra in QQ^2
-            sage: Polyhedra(QQ,2).get_action(QQ)
+            sage: PQQ2.get_action(QQ)
             Right action by Rational Field on Polyhedra in QQ^2
 
             sage: Polyhedra(ZZ,2).an_element() * 2
@@ -606,7 +612,7 @@ class Polyhedra_base(UniqueRepresentation, Parent):
             A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 3 vertices
 
             sage: from sage.geometry.polyhedron.parent import Polyhedra
-            sage: Polyhedra(ZZ,2).get_action( ZZ^2, op=operator.add)
+            sage: PZZ2.get_action(ZZ^2, op=operator.add)
             Right action by Ambient free module of rank 2 over the principal ideal domain Integer Ring on Polyhedra in ZZ^2
             with precomposition on left by Identity endomorphism of Polyhedra in ZZ^2
             with precomposition on right by Generic endomorphism of Ambient free module of rank 2 over the principal ideal domain Integer Ring

@@ -78,6 +78,22 @@ class PolyhedronRepresentation(SageObject):
         """
         return self._vector[i]
 
+    def __hash__(self):
+        r"""
+        TESTS::
+
+            sage: from sage.geometry.polyhedron.representation import Hrepresentation
+            sage: pr = Hrepresentation(Polyhedron(vertices = [[1,2,3]]).parent())
+            sage: hash(pr)
+            1647257843           # 32-bit
+            4686581268940269811  # 64-bit
+        """
+        # TODO: ideally the argument self._vector of self should be immutable.
+        # So that we could change the line below by hash(self._vector). The
+        # mutability is kept because this argument might be reused (see e.g.
+        # Hrepresentation._set_data below).
+        return hash(tuple(self._vector))
+
     def __cmp__(self, other):
         """
         Compare two representation objects
@@ -119,9 +135,7 @@ class PolyhedronRepresentation(SageObject):
         """
         if not isinstance(other, PolyhedronRepresentation):
             return -1
-        type_cmp = cmp(type(self), type(other))
-        if (type_cmp != 0): return type_cmp
-        return cmp(self._vector, other._vector)
+        return cmp(type(self), type(other)) or cmp(self._vector, other._vector)
 
     def vector(self, base_ring=None):
         """
@@ -144,20 +158,20 @@ class PolyhedronRepresentation(SageObject):
             sage: s = polytopes.cuboctahedron()
             sage: v = next(s.vertex_generator())
             sage: v
-            A vertex at (-1/2, -1/2, 0)
+            A vertex at (-1, -1, 0)
             sage: v.vector()
-            (-1/2, -1/2, 0)
+            (-1, -1, 0)
             sage: v()
-            (-1/2, -1/2, 0)
+            (-1, -1, 0)
             sage: type(v())
-            <type 'sage.modules.vector_rational_dense.Vector_rational_dense'>
+            <type 'sage.modules.vector_integer_dense.Vector_integer_dense'>
 
        Conversion to a different base ring can be forced with the optional argument::
 
             sage: v.vector(RDF)
-            (-0.5, -0.5, 0.0)
+            (-1.0, -1.0, 0.0)
             sage: vector(RDF, v)
-            (-0.5, -0.5, 0.0)
+            (-1.0, -1.0, 0.0)
         """
         if (base_ring is None) or (base_ring is self._base_ring):
             return self._vector
@@ -630,7 +644,7 @@ class Inequality(Hrepresentation):
             sage: i1 = next(p.inequality_generator())
             sage: [i1.contains(q) for q in p.vertex_generator()]
             [True, True, True, True, True, True]
-            sage: p2 = 3*polytopes.n_cube(3)
+            sage: p2 = 3*polytopes.hypercube(3)
             sage: [i1.contains(q) for q in p2.vertex_generator()]
             [True, False, False, False, True, True, True, False]
         """
@@ -657,7 +671,7 @@ class Inequality(Hrepresentation):
             sage: i1 = next(p.inequality_generator())
             sage: [i1.interior_contains(q) for q in p.vertex_generator()]
             [False, True, True, False, False, True]
-            sage: p2 = 3*polytopes.n_cube(3)
+            sage: p2 = 3*polytopes.hypercube(3)
             sage: [i1.interior_contains(q) for q in p2.vertex_generator()]
             [True, False, False, False, True, True, True, False]
 
@@ -965,7 +979,7 @@ class Vrepresentation(PolyhedronRepresentation):
 
         EXAMPLES::
 
-            sage: p = polytopes.n_cube(3)
+            sage: p = polytopes.hypercube(3)
             sage: h1 = next(p.inequality_generator())
             sage: h1
             An inequality (0, 0, -1) x + 1 >= 0
@@ -983,7 +997,7 @@ class Vrepresentation(PolyhedronRepresentation):
 
         TESTS::
 
-            sage: p = polytopes.n_cube(3)
+            sage: p = polytopes.hypercube(3)
             sage: h1 = next(p.inequality_generator())
             sage: v1 = next(p.vertex_generator())
             sage: v1.__mul__(h1)
@@ -1090,7 +1104,7 @@ class Vertex(Vrepresentation):
 
         EXAMPLES::
 
-            sage: p = polytopes.n_cube(3)
+            sage: p = polytopes.hypercube(3)
             sage: v = next(p.vertex_generator())
             sage: h = next(p.inequality_generator())
             sage: v

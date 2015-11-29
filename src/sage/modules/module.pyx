@@ -74,21 +74,19 @@ cdef class Module_old(sage.structure.parent_gens.ParentWithAdditiveAbelianGens):
     """
     Generic module class.
     """
+    def __init__(self, *args, **kwds):
+        """
+        TESTS::
 
-    def endomorphism_ring(self):
+            sage: sage.modules.module.Module_old(ZZ)
+            doctest:...: DeprecationWarning: the class Module_old is superseded by Module.
+            See http://trac.sagemath.org/17543 for details.
+            <type 'sage.modules.module.Module_old'>
         """
-        Return the endomorphism ring of this module in its category.
-        """
-        try:
-            return self.__endomorphism_ring
-        except AttributeError:
-            import sage.categories.all
-            E = sage.categories.all.End(self)
-            # the following is invalid code, you can't add attributes
-            # to Cython classes like this. I guess nobody calls this
-            # method.
-            self.__endomorphism_ring = E
-            return E
+        from sage.misc.superseded import deprecation
+        deprecation(17543, "the class Module_old is superseded by Module.")
+        ParentWithAdditiveAbelianGens.__init__(self, *args, **kwds)
+
 
 cdef class Module(sage.structure.parent.Parent):
     """

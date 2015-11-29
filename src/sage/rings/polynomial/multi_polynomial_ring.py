@@ -27,7 +27,7 @@ EXAMPLES:
 We construct the Frobenius morphism on `\GF{5}[x,y,z]` over
 `\GF{5}`::
 
-    sage: R, (x,y,z) = PolynomialRing(GF(5), 3, 'xyz').objgens()
+    sage: R.<x,y,z> = GF(5)[]
     sage: frob = R.hom([x^5, y^5, z^5])
     sage: frob(x^2 + 2*y - z^4)
     -z^20 + x^10 + 2*y^5
@@ -43,6 +43,12 @@ two variables::
     sage: S.<t> = PowerSeriesRing(R)
     sage: t*(x+y)
     (x + y)*t
+
+TESTS::
+
+    sage: PolynomialRing(GF(5), 3, 'xyz').objgens()
+    (Multivariate Polynomial Ring in x, y, z over Finite Field of size 5,
+    (x, y, z))
 """
 
 #*****************************************************************************
@@ -187,14 +193,14 @@ class MPolynomialRing_polydict( MPolynomialRing_macaulay2_repr, PolynomialRing_s
 
         ::
 
-            sage: R.<x,y> = PolynomialRing(QQ, 2)                        # optional
-            sage: I = R.ideal([x^3 + y, y])                              # optional
-            sage: S = I._macaulay2_()                                    # optional
-            sage: T = S*S*S                                              # optional
-            sage: U = T.gens().entries().flatten()                       # optional
-            sage: f = U[2]; f                                            # optional
+            sage: R.<x,y> = PolynomialRing(QQ, 2)
+            sage: I = R.ideal([x^3 + y, y])
+            sage: S = I._macaulay2_()                                    # optional - macaulay2
+            sage: T = S*S*S                                              # optional - macaulay2
+            sage: U = T.gens().entries().flatten()                       # optional - macaulay2
+            sage: f = U[2]; f                                            # optional - macaulay2
             x^6*y+2*x^3*y^2+y^3
-            sage: R(repr(f))                                             # optional
+            sage: R(repr(f))                                             # optional - macaulay2
             x^6*y + 2*x^3*y^2 + y^3
 
         Some other subtle conversions. We create polynomial rings in 2

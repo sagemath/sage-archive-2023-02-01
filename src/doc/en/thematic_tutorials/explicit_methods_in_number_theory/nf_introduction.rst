@@ -274,15 +274,15 @@ it to the variable ``a``.
 Viewing complicated symbolic expressions
 ----------------------------------------
 
-To see the solution nicely typeset, use the ``show``
+To see the solution nicely typeset, use the ``pretty_print``
 command
 
 .. link
 
 ::
 
-    sage: show(a)
-    -\frac{1}{2} ...
+    sage: pretty_print(a)
+    <html><script type="math/tex">\newcommand{\Bold}[1]{\mathbf{#1}}-\frac{1}{2} ...
 
 .. math::
 

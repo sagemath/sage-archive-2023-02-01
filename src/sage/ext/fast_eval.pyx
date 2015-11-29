@@ -1,5 +1,5 @@
 r"""
-Fast Numerical Evaluation.
+Fast Numerical Evaluation
 
 For many applications such as numerical integration, differential
 equation approximation, plotting a 3d surface, optimization problems,

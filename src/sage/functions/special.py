@@ -1,5 +1,5 @@
 r"""
-Special Functions
+Miscellaneous Special Functions
 
 AUTHORS:
 
@@ -553,8 +553,6 @@ class SphericalHarmonic(BuiltinFunction):
 
     For integers `n > -1`, `|m| \leq n`, simplification is done automatically.
     Numeric evaluation is supported for complex `n` and `m`.
-
-    Reference: Merzbacher 9.64
 
     EXAMPLES::
 

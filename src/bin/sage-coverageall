@@ -30,7 +30,7 @@ def coverage_all(directory):
     if total != 0:
         score = (float(scr) / total)
 
-    print("Overall weighted coverage score:  {:.1%}".format(score))
+    print("Overall weighted coverage score: {:.1f}%".format(score))
     print("Total number of functions: {}".format(total))
 
     # Print up to 3 doctest coverage goals.

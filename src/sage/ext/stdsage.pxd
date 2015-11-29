@@ -10,8 +10,7 @@ Standard C helper code for Cython modules
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-include 'python_rich_object.pxi'
-from cpython.ref cimport Py_TYPE
+from cpython.object cimport Py_TYPE, PyTypeObject
 
 
 cdef inline PY_NEW(type t):
@@ -20,7 +19,7 @@ cdef inline PY_NEW(type t):
     :class:`Integer` where we change ``tp_new`` at runtime (Cython
     optimizations assume that ``tp_new`` doesn't change).
     """
-    return (<RichPyTypeObject*>t).tp_new(<PyTypeObject*>t, NULL, NULL)
+    return (<PyTypeObject*>t).tp_new(t, <object>NULL, <object>NULL)
 
 
 cdef inline void PY_SET_TP_NEW(type dst, type src):
@@ -29,11 +28,11 @@ cdef inline void PY_SET_TP_NEW(type dst, type src):
     speed up Cython's boilerplate object construction code by skipping
     irrelevant base class ``tp_new`` methods.
     """
-    (<RichPyTypeObject*>dst).tp_new = (<RichPyTypeObject*>src).tp_new
+    (<PyTypeObject*>dst).tp_new = (<PyTypeObject*>src).tp_new
 
 
 cdef inline bint HAS_DICTIONARY(obj):
     """
     Test whether the given object has a Python dictionary.
     """
-    return (<RichPyTypeObject*>Py_TYPE(obj)).tp_dictoffset != 0
+    return Py_TYPE(obj).tp_dictoffset != 0

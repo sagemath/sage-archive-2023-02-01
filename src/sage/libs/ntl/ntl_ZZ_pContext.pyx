@@ -23,7 +23,7 @@ from sage.rings.integer_ring import IntegerRing
 ZZ_sage = IntegerRing()
 
 
-cdef class ntl_ZZ_pContext_class:
+cdef class ntl_ZZ_pContext_class(object):
     def __init__(self, ntl_ZZ v):
         """
         EXAMPLES:
@@ -47,12 +47,9 @@ cdef class ntl_ZZ_pContext_class:
         pass
 
     def __cinit__(self, ntl_ZZ v):
-        ZZ_pContext_construct_ZZ(&self.x, &(<ntl_ZZ>v).x)
+        self.x = ZZ_pContext_c(v.x)
         self.p = v
         self.p_bits = self.p._integer_().nbits()
-
-    def __dealloc__(self):
-        ZZ_pContext_destruct(&self.x)
 
     def __reduce__(self):
         """
@@ -111,7 +108,7 @@ cdef class ntl_ZZ_pContext_class:
     cdef void restore_c(self):
         self.x.restore()
 
-cdef class ntl_ZZ_pContext_factory:
+cdef class ntl_ZZ_pContext_factory(object):
     def __init__(self):
         self.context_dict = {}
 

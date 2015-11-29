@@ -14,13 +14,16 @@ Library interface to Embeddable Common Lisp (ECL)
 #rationals to SAGE types Integer and Rational. These parts could easily be
 #adapted to work with pure Python types.
 
-include "sage/ext/signals.pxi"
 include "sage/ext/interrupt.pxi"
 include "sage/ext/cdefs.pxi"
 
+from libc.stdlib cimport abort
+from libc.signal cimport SIGINT, SIGBUS, SIGSEGV, SIGCHLD
+from libc.signal cimport raise_ as signal_raise
+from posix.signal cimport sigaction, sigaction_t
+
 from sage.rings.integer cimport Integer
 from sage.rings.rational cimport Rational
-from sage.rings.rational import Rational
 
 #it would be preferrable to let bint_symbolp wrap an efficient macro
 #but the macro provided in object.h doesn't seem to work
@@ -40,9 +43,9 @@ cdef bint bint_rationalp(cl_object obj):
 cdef extern from "eclsig.h":
     int ecl_sig_on() except 0
     void ecl_sig_off()
-    cdef Sigaction ecl_sigint_handler
-    cdef Sigaction ecl_sigbus_handler
-    cdef Sigaction ecl_sigsegv_handler
+    cdef sigaction_t ecl_sigint_handler
+    cdef sigaction_t ecl_sigbus_handler
+    cdef sigaction_t ecl_sigsegv_handler
     cdef mpz_t ecl_mpz_from_bignum(cl_object obj)
     cdef cl_object ecl_bignum_from_mpz(mpz_t num)
 
@@ -232,7 +235,7 @@ def init_ecl():
     global read_from_string_clobj
     global ecl_has_booted
     cdef char *argv[1]
-    cdef Sigaction sage_action[32]
+    cdef sigaction_t sage_action[32]
     cdef int i
 
     if ecl_has_booted:
@@ -262,7 +265,7 @@ def init_ecl():
     sigaction(SIGSEGV, NULL, &ecl_sigsegv_handler)
 
     #verify that no SIGCHLD handler was installed
-    cdef Sigaction sig_test
+    cdef sigaction_t sig_test
     sigaction(SIGCHLD, NULL, &sig_test)
     assert sage_action[SIGCHLD].sa_handler == NULL  # Sage does not set SIGCHLD handler
     assert sig_test.sa_handler == NULL              # And ECL bootup did not set one 
@@ -319,10 +322,10 @@ cdef cl_object ecl_safe_eval(cl_object form) except NULL:
     Test interrupts::
 
         sage: from sage.libs.ecl import *
-        sage: from sage.tests.interrupt import *
+        sage: from sage.ext.interrupt.tests import *
         sage: ecl_eval("(setf i 0)")
         <ECL: 0>
-        sage: inf_loop=ecl_eval("(defun infinite() (loop (incf i)))")
+        sage: inf_loop = ecl_eval("(defun infinite() (loop (incf i)))")
         sage: interrupt_after_delay(1000)
         sage: inf_loop()
         Traceback (most recent call last):
@@ -828,20 +831,7 @@ cdef class EclObject:
         #and does not have generic routines for doing that.
         #we could dispatch based on type here, but that seems
         #inappropriate for an *interface*.
-        raise NotImplementedError,"EclObjects can only be compared for equality"
-
-        #if not(isinstance(left,EclObject)) or not(isinstance(right,EclObject)):
-        #    raise TypeError,"Can only compare EclObjects"
-        #if op == 0: # "<"
-        #    pass
-        #elif op == 1: # "<="
-        #    pass
-        #elif op == 4: # ">"
-        #    pass
-        #elif op == 5: # ">="
-        #    pass
-        #else:
-        #    raise ValueError,"richcmp received operation code %d"%op
+        raise NotImplementedError("EclObjects can only be compared for equality")
 
     def __iter__(self):
         r"""
@@ -1291,13 +1281,13 @@ cdef class EclListIterator:
 
             sage: from sage.libs.ecl import *
             sage: I=EclListIterator(EclObject("(1 2 3)"))
-            sage: I.next()
+            sage: next(I)
             <ECL: 1>
-            sage: I.next()
+            sage: next(I)
             <ECL: 2>
-            sage: I.next()
+            sage: next(I)
             <ECL: 3>
-            sage: I.next()
+            sage: next(I)
             Traceback (most recent call last):
             ...
             StopIteration

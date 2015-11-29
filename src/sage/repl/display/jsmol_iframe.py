@@ -167,7 +167,7 @@ class JSMolHtml(SageObject):
         return ''.join(script)
 
     def js_script(self):
-        """
+        r"""
         The :meth:`script` as Javascript string.
 
         Since the many shortcomings of Javascript include multi-line
@@ -218,7 +218,7 @@ class JSMolHtml(SageObject):
         """
         Return a HTML document containing a JSmol applet
 
-        OUTPUT:
+        EXAMPLES::
 
             sage: from sage.repl.display.jsmol_iframe import JSMolHtml
             sage: from sage.repl.rich_output.output_graphics3d import OutputSceneJmol
@@ -249,7 +249,7 @@ class JSMolHtml(SageObject):
         String.
         
         EXAMPLES::
-        
+
             sage: from sage.repl.display.jsmol_iframe import JSMolHtml
             sage: from sage.repl.rich_output.output_graphics3d import OutputSceneJmol
             sage: jmol = JSMolHtml(OutputSceneJmol.example())
@@ -276,7 +276,7 @@ class JSMolHtml(SageObject):
         String
 
         EXAMPLES::
-        
+
             sage: from sage.repl.display.jsmol_iframe import JSMolHtml
             sage: from sage.repl.rich_output.output_graphics3d import OutputSceneJmol
             sage: jmol = JSMolHtml(OutputSceneJmol.example(), width=500, height=300)

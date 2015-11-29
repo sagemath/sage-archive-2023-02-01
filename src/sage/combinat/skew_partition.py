@@ -146,20 +146,18 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from sage.misc.classcall_metaclass import ClasscallMetaclass
 from sage.structure.global_options import GlobalOptions
 from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.categories.infinite_enumerated_sets import InfiniteEnumeratedSets
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
-from sage.structure.element import Element
 
 from sage.rings.all import ZZ, QQ
 from sage.sets.set import Set
 from sage.graphs.digraph import DiGraph
 from sage.matrix.matrix_space import MatrixSpace
 
-from sage.combinat.combinat import CombinatorialObject
+from sage.combinat.combinat import CombinatorialElement
 from sage.combinat.partition import PartitionOptions, _Partitions
 from sage.combinat.tableau import TableauOptions
 from sage.combinat.composition import Compositions
@@ -238,7 +236,7 @@ SkewPartitionOptions=GlobalOptions(name="skew partitions",
     notation = dict(alt_name='convention')
 )
 
-class SkewPartition(CombinatorialObject, Element):
+class SkewPartition(CombinatorialElement):
     r"""
     A skew partition.
 
@@ -246,8 +244,6 @@ class SkewPartition(CombinatorialObject, Element):
     partition `\lambda` and removing the partition `\mu` from the upper-left
     corner in English convention.
     """
-    __metaclass__ = ClasscallMetaclass
-
     @staticmethod
     def __classcall_private__(cls, skp):
         """
@@ -262,7 +258,7 @@ class SkewPartition(CombinatorialObject, Element):
             sage: skp.outer()
             [3, 2, 1]
         """
-        skp = map(_Partitions, skp)
+        skp = [_Partitions(_) for _ in skp]
         if skp not in SkewPartitions():
             raise ValueError("invalid skew partition: %s"%skp)
         return SkewPartitions()(skp)
@@ -274,8 +270,8 @@ class SkewPartition(CombinatorialObject, Element):
             sage: skp = SkewPartition([[3,2,1],[2,1]])
             sage: TestSuite(skp).run()
         """
-        CombinatorialObject.__init__(self, [_Partitions(skp[0]), _Partitions(skp[1])])
-        Element.__init__(self, parent)
+        CombinatorialElement.__init__(self, parent,
+                [_Partitions(skp[0]), _Partitions(skp[1])])
 
     def _repr_(self):
         """
@@ -311,7 +307,7 @@ class SkewPartition(CombinatorialObject, Element):
             sage: print SkewPartition([[3,2,1],[2,1]])._repr_lists()
             [[3, 2, 1], [2, 1]]
         """
-        return repr(map(list, self))
+        return repr([list(_) for _ in self])
 
     def _latex_(self):
         r"""
@@ -504,7 +500,7 @@ class SkewPartition(CombinatorialObject, Element):
             [ ###, ##,  ##,  #,   #, #,  #,  #,   # ]
             sage: SkewPartitions.global_options.reset()
         """
-        from sage.misc.ascii_art import AsciiArt
+        from sage.typeset.ascii_art import AsciiArt
         return AsciiArt(self.diagram().splitlines())
 
     def inner(self):
@@ -736,7 +732,7 @@ class SkewPartition(CombinatorialObject, Element):
             sage: SkewPartition([[3,2,1],[2]]).conjugate()
             [3, 2, 1] / [1, 1]
         """
-        return SkewPartition(map(lambda x: x.conjugate(), self))
+        return SkewPartition([x.conjugate() for x in self])
 
     def outer_corners(self):
         """
@@ -1017,9 +1013,9 @@ class SkewPartition(CombinatorialObject, Element):
             sage: type(s.to_list())
             <type 'list'>
         """
-        return map(list, list(self))
+        return [list(_) for _ in list(self)]
 
-    def to_dag(self):
+    def to_dag(self, format="string"):
         """
         Return a directed acyclic graph corresponding to the skew
         partition ``self``.
@@ -1029,39 +1025,56 @@ class SkewPartition(CombinatorialObject, Element):
         whose edges go from each cell to its lower and right
         neighbors (in English notation).
 
+        INPUT:
+
+        - ``format`` -- either ``'string'`` or ``'tuple'`` (default:
+          ``'string'``); determines whether the vertices of the
+          resulting dag will be strings or 2-tuples of coordinates
+
         EXAMPLES::
 
-            sage: dag = SkewPartition([[3, 2, 1], [1, 1]]).to_dag()
+            sage: dag = SkewPartition([[3, 3, 1], [1, 1]]).to_dag()
             sage: dag.edges()
-            [('0,1', '0,2', None), ('0,1', '1,1', None)]
+            [('0,1', '0,2', None),
+            ('0,1', '1,1', None),
+            ('0,2', '1,2', None),
+            ('1,1', '1,2', None)]
             sage: dag.vertices()
-            ['0,1', '0,2', '1,1', '2,0']
+            ['0,1', '0,2', '1,1', '1,2', '2,0']
+            sage: dag = SkewPartition([[3, 2, 1], [1, 1]]).to_dag(format="tuple")
+            sage: dag.edges()
+            [((0, 1), (0, 2), None), ((0, 1), (1, 1), None)]
+            sage: dag.vertices()
+            [(0, 1), (0, 2), (1, 1), (2, 0)]
         """
-        i = 0
-
-        #Make the skew tableau from the shape
-        skew = [[1]*row_length for row_length in self.outer()]
-        inner = self.inner()
-        for i in range(len(inner)):
-            for j in range(inner[i]):
-                skew[i][j] = None
+        outer = list(self.outer())
+        inner = list(self.inner())
+        inner += [0] * (len(outer) - len(inner))
 
         G = DiGraph()
-        for row in range(len(skew)):
-            for column in range(len(skew[row])):
-                if skew[row][column] is not None:
-                    string = "%d,%d" % (row, column)
-                    G.add_vertex(string)
-                    #Check to see if there is a node to the right
-                    if column != len(skew[row]) - 1:
-                        newstring = "%d,%d" % (row, column+1)
-                        G.add_edge(string, newstring)
+        for i, outer_i in enumerate(outer):
+            for j in xrange(inner[i], outer_i):
+                if format == "string":
+                    string = "%d,%d" % (i, j)
+                else:
+                    string = (i, j)
+                G.add_vertex(string)
+                #Check to see if there is a node to the right
+                if j != outer_i - 1:
+                    if format == "string":
+                        newstring = "%d,%d" % (i, j + 1)
+                    else:
+                        newstring = (i, j + 1)
+                    G.add_edge(string, newstring)
 
-                    #Check to see if there is anything below
-                    if row != len(skew) - 1:
-                        if len(skew[row+1]) > column:
-                            newstring = "%d,%d" % (row+1, column)
-                            G.add_edge(string, newstring)
+                #Check to see if there is anything below
+                if i != len(outer) - 1:
+                    if outer[i+1] > j:
+                        if format == "string":
+                            newstring = "%d,%d" % (i + 1, j)
+                        else:
+                            newstring = (i + 1, j)
+                        G.add_edge(string, newstring)
         return G
 
     def quotient(self, k):
@@ -1201,22 +1214,6 @@ class SkewPartition(CombinatorialObject, Element):
             m.append(row)
         return H(m)
 
-def from_row_and_column_length(rowL, colL):
-    """
-    This has been deprecated in :trac:`14101`. Use
-    :meth:`SkewPartitions().from_row_and_column_length()` instead.
-
-    EXAMPLES::
-
-        sage: sage.combinat.skew_partition.from_row_and_column_length([3,1,2,2],[2,3,1,1,1])
-        doctest:...: DeprecationWarning: from_row_and_column_length is deprecated. Use SkewPartitions().from_row_and_column_length instead.
-        See http://trac.sagemath.org/14101 for details.
-        [5, 2, 2, 2] / [2, 1]
-    """
-    from sage.misc.superseded import deprecation
-    deprecation(14101, 'from_row_and_column_length is deprecated. Use SkewPartitions().from_row_and_column_length instead.')
-    return SkewPartitions().from_row_and_column_length(rowL, colL)
-
 def row_lengths_aux(skp):
     """
     EXAMPLES::
@@ -1230,9 +1227,9 @@ def row_lengths_aux(skp):
     if skp[0] == []:
         return []
     else:
-        return map(lambda x: x[0] - x[1], zip(skp[0], skp[1]))
+        return [x[0] - x[1] for x in zip(skp[0], skp[1])]
 
-class SkewPartitions(Parent, UniqueRepresentation):
+class SkewPartitions(UniqueRepresentation, Parent):
     """
     Skew partitions.
 
@@ -1822,11 +1819,11 @@ class SkewPartitions_rowlengths(SkewPartitions):
 
         nn -= overlap
         for i in range(nn+1):
-            (skp1, skp2) = sskp
+            skp1, skp2 = sskp
             skp2 += [0]*(len(skp1)-len(skp2))
-            skp1 = map(lambda x: x + i + mm, skp1)
+            skp1 = [x + i + mm for x in skp1]
             skp1 += [ck]
-            skp2 = map(lambda x: x + i + mm, skp2)
+            skp2 = [x + i + mm for x in skp2]
             skp2 = [x for x in skp2 if x != 0]
             yield SkewPartition([skp1, skp2])
 

@@ -13,7 +13,7 @@ AUTHORS:
 
 - Golam Mortuza Hossain (2009-06-22): _laplace_latex(), _inverse_laplace_latex()
 
-- Tom Coates (2010-06-11): fixed Trac #9217
+- Tom Coates (2010-06-11): fixed :trac:`9217`
 
 The Sage calculus module is loosely based on the Sage Enhancement
 Proposal found at: http://www.sagemath.org:9001/CalculusSEP.
@@ -357,7 +357,7 @@ the interactive interpreter.
 Check to see that the problem with the variables method mentioned
 in :trac:`3779` is actually fixed::
 
-    sage: f = function('F',x)
+    sage: f = function('F')(x)
     sage: diff(f*SR(1),x)
     D[0](F)(x)
 
@@ -554,7 +554,7 @@ def symbolic_sum(expression, v, a, b, algorithm='maxima'):
     An example of this summation with Giac::
 
         sage: symbolic_sum(1/(1+k^2), k, -oo, oo, algorithm = 'giac')           # optional - giac
-        -(pi*e^(-2*pi) - pi*e^(2*pi))/(e^(-2*pi) + e^(2*pi) - 2)
+        (pi*e^(2*pi) - pi*e^(-2*pi))/(e^(2*pi) + e^(-2*pi) - 2)
 
     Use Maple as a backend for summation::
 
@@ -736,11 +736,11 @@ def nintegral(ex, x, a, b,
     to high precision::
 
         sage: gp.eval('intnum(x=17,42,exp(-x^2)*log(x))')
-        '2.565728500561051482917356396 E-127'            # 32-bit
-        '2.5657285005610514829173563961304785900 E-127'  # 64-bit
+        '2.565728500561051474934096410 E-127'            # 32-bit
+        '2.5657285005610514829176211363206621657 E-127'  # 64-bit
         sage: old_prec = gp.set_real_precision(50)
         sage: gp.eval('intnum(x=17,42,exp(-x^2)*log(x))')
-        '2.5657285005610514829173563961304785900147709554020 E-127'
+        '2.5657285005610514829173563961304957417746108003917 E-127'
         sage: gp.set_real_precision(old_prec)
         57
 
@@ -889,24 +889,16 @@ def minpoly(ex, var='x', algorithm=None, bits=None, degree=None, epsilon=0):
         sage: f = a.minpoly(); f
         x^8 - 40*x^6 + 352*x^4 - 960*x^2 + 576
         sage: f(a)
-        ((((sqrt(5) + sqrt(3) + sqrt(2))^2 - 40)*(sqrt(5) + sqrt(3) + sqrt(2))^2 + 352)*(sqrt(5) + sqrt(3) + sqrt(2))^2 - 960)*(sqrt(5) + sqrt(3) + sqrt(2))^2 + 576
+        (sqrt(5) + sqrt(3) + sqrt(2))^8 - 40*(sqrt(5) + sqrt(3) + sqrt(2))^6 + 352*(sqrt(5) + sqrt(3) + sqrt(2))^4 - 960*(sqrt(5) + sqrt(3) + sqrt(2))^2 + 576
         sage: f(a).expand()
         0
 
-    Here we show use of the ``epsilon`` parameter. That
-    this result is actually exact can be shown using the addition
-    formula for sin, but maxima is unable to see that.
-
     ::
 
-        sage: a = sin(pi/5)
-        sage: a.minpoly(algorithm='numerical')
-        Traceback (most recent call last):
-        ...
-        NotImplementedError: Could not prove minimal polynomial x^4 - 5/4*x^2 + 5/16 (epsilon 0.00000000000000e-1)
-        sage: f = a.minpoly(algorithm='numerical', epsilon=1e-100); f
-        x^4 - 5/4*x^2 + 5/16
-        sage: f(a).numerical_approx(100)
+        sage: a = sin(pi/7)
+        sage: f = a.minpoly(algorithm='numerical'); f
+        x^6 - 7/4*x^4 + 7/8*x^2 - 7/64
+        sage: f(a).horner(a).numerical_approx(100)
         0.00000000000000000000000000000
 
     The degree must be high enough (default tops out at 24).
@@ -921,15 +913,12 @@ def minpoly(ex, var='x', algorithm=None, bits=None, degree=None, epsilon=0):
         sage: a.minpoly(algorithm='numerical', bits=100, degree=10)
         x^4 - 10*x^2 + 1
 
-    There is a difference between algorithm='algebraic' and
-    algorithm='numerical'::
+    ::
 
         sage: cos(pi/33).minpoly(algorithm='algebraic')
         x^10 + 1/2*x^9 - 5/2*x^8 - 5/4*x^7 + 17/8*x^6 + 17/16*x^5 - 43/64*x^4 - 43/128*x^3 + 3/64*x^2 + 3/128*x + 1/1024
         sage: cos(pi/33).minpoly(algorithm='numerical')
-        Traceback (most recent call last):
-        ...
-        NotImplementedError: Could not prove minimal polynomial x^10 + 1/2*x^9 - 5/2*x^8 - 5/4*x^7 + 17/8*x^6 + 17/16*x^5 - 43/64*x^4 - 43/128*x^3 + 3/64*x^2 + 3/128*x + 1/1024 (epsilon ...)
+        x^10 + 1/2*x^9 - 5/2*x^8 - 5/4*x^7 + 17/8*x^6 + 17/16*x^5 - 43/64*x^4 - 43/128*x^3 + 3/64*x^2 + 3/128*x + 1/1024
 
     Sometimes it fails, as it must given that some numbers aren't algebraic::
 
@@ -1282,7 +1271,7 @@ def laplace(ex, t, s):
 
     We do a formal calculation::
 
-        sage: f = function('f', x)
+        sage: f = function('f')(x)
         sage: g = f.diff(x); g
         D[0](f)(x)
         sage: g.laplace(x, s)
@@ -1308,8 +1297,8 @@ def laplace(ex, t, s):
         sage: var('t')
         t
         sage: t = var('t')
-        sage: x = function('x', t)
-        sage: y = function('y', t)
+        sage: x = function('x')(t)
+        sage: y = function('y')(t)
         sage: de1 = x.diff(t) + 16*y
         sage: de2 = y.diff(t) + x - 1
         sage: de1.laplace(t, s)
@@ -1435,7 +1424,7 @@ def at(ex, *args, **kwds):
 
         sage: var('s,t')
         (s, t)
-        sage: f=function('f', t)
+        sage: f=function('f')(t)
         sage: f.diff(t,2)
         D[0, 0](f)(t)
         sage: f.diff(t,2).laplace(t,s)
@@ -1532,7 +1521,7 @@ def dummy_diff(*args):
     Here the function is used implicitly::
 
         sage: a = var('a')
-        sage: f = function('cr', a)
+        sage: f = function('cr')(a)
         sage: g = f.diff(a); g
         D[0](cr)(a)
     """
@@ -1550,7 +1539,7 @@ def dummy_integrate(*args):
     EXAMPLES::
 
         sage: from sage.calculus.calculus import dummy_integrate
-        sage: f(x) = function('f',x)
+        sage: f = function('f')
         sage: dummy_integrate(f(x), x)
         integrate(f(x), x)
         sage: a,b = var('a,b')
@@ -1571,7 +1560,7 @@ def dummy_laplace(*args):
 
         sage: from sage.calculus.calculus import dummy_laplace
         sage: s,t = var('s,t')
-        sage: f(t) = function('f',t)
+        sage: f = function('f')
         sage: dummy_laplace(f(t),t,s)
         laplace(f(t), t, s)
     """
@@ -1586,7 +1575,7 @@ def dummy_inverse_laplace(*args):
 
         sage: from sage.calculus.calculus import dummy_inverse_laplace
         sage: s,t = var('s,t')
-        sage: F(s) = function('F',s)
+        sage: F = function('F')
         sage: dummy_inverse_laplace(F(s),s,t)
         ilt(F(s), s, t)
     """
@@ -1660,7 +1649,7 @@ def _laplace_latex_(self, *args):
         sage: from sage.calculus.calculus import _laplace_latex_
         sage: var('s,t')
         (s, t)
-        sage: f = function('f',t)
+        sage: f = function('f')(t)
         sage: _laplace_latex_(0,f,t,s)
         '\\mathcal{L}\\left(f\\left(t\\right), t, s\\right)'
         sage: latex(laplace(f, t, s))
@@ -1679,7 +1668,7 @@ def _inverse_laplace_latex_(self, *args):
         sage: from sage.calculus.calculus import _inverse_laplace_latex_
         sage: var('s,t')
         (s, t)
-        sage: F = function('F',s)
+        sage: F = function('F')(s)
         sage: _inverse_laplace_latex_(0,F,s,t)
         '\\mathcal{L}^{-1}\\left(F\\left(s\\right), s, t\\right)'
         sage: latex(inverse_laplace(F,s,t))
@@ -1742,7 +1731,7 @@ def symbolic_expression_from_maxima_string(x, equals_sub=False, maxima=maxima):
         sage: from sage.calculus.calculus import symbolic_expression_from_maxima_string as sefms
         sage: sefms('x^%e + %e^%pi + %i + sin(0)')
         x^e + e^pi + I
-        sage: f = function('f',x)
+        sage: f = function('f')(x)
         sage: sefms('?%at(f(x),x=2)#1')
         f(2) != 1
         sage: a = sage.calculus.calculus.maxima("x#0"); a
@@ -1779,7 +1768,7 @@ def symbolic_expression_from_maxima_string(x, equals_sub=False, maxima=maxima):
         sage: solve([2*x==3, x != 5], x)
         [[x == (3/2), (-7/2) != 0]]
 
-    Make sure that we don't accidentally pick up variables in the maxima namespace (trac #8734)::
+    Make sure that we don't accidentally pick up variables in the maxima namespace (:trac:`8734`)::
 
         sage: sage.calculus.calculus.maxima('my_new_var : 2')
         2
@@ -1843,7 +1832,7 @@ def symbolic_expression_from_maxima_string(x, equals_sub=False, maxima=maxima):
     cursor = 0
     l = []
     for m in maxima_var.finditer(s):
-        if symtable.has_key(m.group(0)):
+        if m.group(0) in symtable:
             l.append(s[cursor:m.start()])
             l.append(symtable.get(m.group(0)))
             cursor = m.end()
@@ -1971,7 +1960,6 @@ syms_default = dict(syms_cur)
 # _find_var() and _find_func() functions below without extra arguments.
 _augmented_syms = {}
 
-from sage.symbolic.ring import pynac_symbol_registry
 
 def _find_var(name):
     """
@@ -1987,13 +1975,17 @@ def _find_var(name):
         I
     """
     try:
-        res = _augmented_syms.get(name)
-        if res is None:
-            return pynac_symbol_registry[name]
+        res = _augmented_syms[name]
+    except KeyError:
+        pass
+    else:
         # _augmented_syms might contain entries pointing to functions if
         # previous computations polluted the maxima workspace
         if not isinstance(res, Function):
             return res
+
+    try:
+        return SR.symbols[name]
     except KeyError:
         pass
 

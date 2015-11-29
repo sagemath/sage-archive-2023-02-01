@@ -69,6 +69,7 @@ class DihedralGroup(UniqueRepresentation, Parent):
         sage: TestSuite(G).run(verbose = True)
         running ._test_an_element() . . . pass
         running ._test_associativity() . . . pass
+        running ._test_cardinality() . . . pass
         running ._test_category() . . . pass
         running ._test_elements() . . .
           Running the test suite of self.an_element()
@@ -225,7 +226,7 @@ class DihedralGroup(UniqueRepresentation, Parent):
             r"""
             Implements :meth:`CoxeterGroups.ElementMethods.apply_simple_reflection`.
 
-            EXEMPLES::
+            EXAMPLES::
 
                 sage: D5 = FiniteCoxeterGroups().example(5)
                 sage: [i^2 for i in D5]

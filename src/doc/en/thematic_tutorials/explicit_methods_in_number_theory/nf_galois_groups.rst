@@ -41,7 +41,7 @@ Some more advanced number-theoretical tools are available via G:
     sage: P = K.primes_above(2)[0]
     sage: G.inertia_group(P)
     Subgroup [(), (1,4,6)(2,5,3), (1,6,4)(2,3,5)] of Galois group of Number Field in alpha with defining polynomial x^6 + 40*x^3 + 1372
-    sage: sorted([G.artin_symbol(Q) for Q in K.primes_above(5)])
+    sage: sorted([G.artin_symbol(Q) for Q in K.primes_above(5)])  # random order, see Trac #18308
     [(1,3)(2,6)(4,5), (1,2)(3,4)(5,6), (1,5)(2,4)(3,6)]
 
 If the number field is not Galois over `\QQ`, then the ``galois_group``
@@ -89,8 +89,7 @@ groups in the GAP transitive groups database.
 ::
 
     sage: K.<a> = NumberField(x^3 - 2)
-    sage: K.galois_group(type="gap", algorithm='magma')    # optional
-    verbose...
+    sage: K.galois_group(type="gap", algorithm='magma')  # optional - magma database_gap
     Galois group Transitive group number 2 of degree 3 of
     the Number Field in a with defining polynomial x^3 - 2
 

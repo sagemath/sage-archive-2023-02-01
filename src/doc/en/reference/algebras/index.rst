@@ -4,6 +4,8 @@ Algebras
 .. toctree::
    :maxdepth: 2
 
+   sage/algebras/associated_graded
+
    sage/algebras/catalog
 
    sage/algebras/clifford_algebra
@@ -25,9 +27,10 @@ Algebras
    sage/algebras/free_algebra_quotient
    sage/algebras/free_algebra_quotient_element
 
+   sage/algebras/free_zinbiel_algebra
+
    sage/algebras/group_algebra
 
-   sage/algebras/iwahori_hecke_algebra
    sage/algebras/iwahori_hecke_algebra
    sage/algebras/nil_coxeter_algebra
    sage/algebras/affine_nil_temperley_lieb
@@ -37,6 +40,7 @@ Algebras
 
    sage/algebras/quatalg/quaternion_algebra
 
+   sage/algebras/schur_algebra
    sage/algebras/shuffle_algebra
 
    sage/algebras/steenrod/steenrod_algebra

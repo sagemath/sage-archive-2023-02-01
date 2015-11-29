@@ -2156,7 +2156,7 @@ def maximum_root_first_lambda(p):
         sage: maximum_root_first_lambda((x-1)*(x-2)*(x-3))
         6.00000000000001
         sage: maximum_root_first_lambda((x+1)*(x+2)*(x+3))
-        0
+        0.000000000000000
         sage: maximum_root_first_lambda(x^2 - 1)
         1.00000000000000
     """
@@ -2180,6 +2180,13 @@ def cl_maximum_root_first_lambda(cl):
         sage: from sage.rings.polynomial.real_roots import *
         sage: cl_maximum_root_first_lambda([RIF(-1), RIF(0), RIF(1)])
         1.00000000000000
+
+    TESTS::
+
+        sage: bnd = cl_maximum_root_first_lambda(map(RIF, [0, 0, 0, 14, 1]))
+        sage: bnd, bnd.parent()
+        (0.000000000000000,
+        Real Field with 53 bits of precision and rounding RNDU)
     """
     n = len(cl) - 1
     assert(cl[n] > 0)
@@ -2210,7 +2217,8 @@ def cl_maximum_root_first_lambda(cl):
             pending_pos_exp = j
             posCounter = posCounter+1
 
-    if len(neg) == 0: return 0
+    if len(neg) == 0:
+        return RIF._upper_field().zero()
 
     max_ub_log = RIF('-infinity')
     for j in xrange(len(neg)):
@@ -2311,9 +2319,9 @@ def root_bounds(p):
         sage: root_bounds((x-1)*(x-2)*(x-3))
         (0.545454545454545, 6.00000000000001)
         sage: root_bounds(x^2)
-        (0, 0)
+        (0.000000000000000, 0.000000000000000)
         sage: root_bounds(x*(x+1))
-        (-1.00000000000000, 0)
+        (-1.00000000000000, 0.000000000000000)
         sage: root_bounds((x+2)*(x-3))
         (-2.44948974278317, 3.46410161513776)
         sage: root_bounds(x^995 * (x^2 - 9999) - 1)
@@ -2336,7 +2344,10 @@ def root_bounds(p):
         zero_roots = zero_roots + 1
         n = n-1
 
-    if n == 0: return (0, 0)
+    if n == 0:
+        # not RIF.zero().endpoints() because of MPFI's convention that the
+        # upper bound is -0.
+        return RIF._lower_field().zero(), RIF._upper_field().zero()
 
     ub = cl_maximum_root(cl)
 

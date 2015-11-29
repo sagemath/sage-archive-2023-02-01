@@ -378,6 +378,22 @@ class Magmas(Category_singleton):
                 """
                 return [Magmas().Commutative()]
 
+        class CartesianProducts(CartesianProductsCategory):
+            def extra_super_categories(self):
+                r"""
+                Implement the fact that a cartesian product of commutative
+                additive magmas is still an commutative additive magmas.
+
+                EXAMPLES::
+
+                    sage: C = Magmas().Commutative().CartesianProducts()
+                    sage: C.extra_super_categories()
+                    [Category of commutative magmas]
+                    sage: C.axioms()
+                    frozenset({'Commutative'})
+                """
+                return [Magmas().Commutative()]
+
     class Unital(CategoryWithAxiom):
 
         def additional_structure(self):
@@ -452,9 +468,37 @@ class Magmas(Category_singleton):
                 for x in tester.some_elements():
                     tester.assert_(x * one == x)
                     tester.assert_(one * x == x)
-                # Check that one is immutable by asking its hash;
-                tester.assertEqual(type(one.__hash__()), int)
-                tester.assertEqual(one.__hash__(), one.__hash__())
+                # Check that one is immutable if it looks like we can test this
+                if hasattr(one,"is_immutable"):
+                    tester.assertEqual(one.is_immutable(),True)
+                if hasattr(one,"is_mutable"):
+                    tester.assertEqual(one.is_mutable(),False)
+
+            def is_empty(self):
+                r"""
+                Return whether ``self`` is empty.
+
+                Since this set is a unital magma it is not empty and this method
+                always return ``False``.
+
+                EXAMPLES::
+
+                    sage: S = SymmetricGroup(2)
+                    sage: S.is_empty()
+                    False
+
+                    sage: M = Monoids().example()
+                    sage: M.is_empty()
+                    False
+
+                TESTS::
+
+                    sage: S.is_empty.__module__
+                    'sage.categories.magmas'
+                    sage: M.is_empty.__module__
+                    'sage.categories.magmas'
+                """
+                return False
 
         class SubcategoryMethods:
 
@@ -609,6 +653,24 @@ class Magmas(Category_singleton):
                 """
                 return [Magmas().Unital()]
 
+        class Realizations(RealizationsCategory):
+
+            class ParentMethods:
+
+                @cached_method
+                def one(self):
+                    r"""
+                    Return the unit element of ``self``.
+
+                        sage: from sage.combinat.root_system.extended_affine_weyl_group import ExtendedAffineWeylGroup
+                        sage: PvW0 = ExtendedAffineWeylGroup(['A',2,1]).PvW0()
+                        sage: PvW0 in Magmas().Unital().Realizations()
+                        True
+                        sage: PvW0.one()
+                        1
+                    """
+                    return(self(self.realization_of().a_realization().one()))
+
     class ParentMethods:
 
         def product(self, x, y):
@@ -707,7 +769,7 @@ class Magmas(Category_singleton):
               :meth:`~sage.matrix.operation_table.OperationTable.dict`
               method.
 
-            INPUTS:
+            INPUT:
 
             - ``names`` - the type of names used
 
@@ -850,9 +912,9 @@ class Magmas(Category_singleton):
             r"""
             Product of two elements
 
-            INPUT::
+            INPUT:
 
-             - ``self``, ``right`` -- two elements
+            - ``self``, ``right`` -- two elements
 
             This calls the `_mul_` method of ``self``, if it is
             available and the two elements have the same parent.
@@ -882,13 +944,13 @@ class Magmas(Category_singleton):
             """
             Product of two elements
 
-            INPUT::
+            INPUT:
 
-             - ``self``, ``right`` -- two elements with the same parent
+            - ``self``, ``right`` -- two elements with the same parent
 
-            OUTPUT::
+            OUTPUT:
 
-             - an element of the same parent
+            - an element of the same parent
 
             EXAMPLES::
 
@@ -906,13 +968,13 @@ class Magmas(Category_singleton):
             This is the default implementation of _mul_ if
             ``product`` is implemented in the parent.
 
-            INPUT::
+            INPUT:
 
-             - ``other`` -- an element of the parent of ``self``
+            - ``other`` -- an element of the parent of ``self``
 
-            OUTPUT::
+            OUTPUT:
 
-             - an element of the parent of ``self``
+            - an element of the parent of ``self``
 
             EXAMPLES::
 
@@ -976,9 +1038,11 @@ class Magmas(Category_singleton):
                 sage: C = Magmas().CartesianProducts().example(); C
                 The cartesian product of (Rational Field, Integer Ring, Integer Ring)
                 sage: C.category()
-                Join of Category of rings ...
+                Category of Cartesian products of commutative rings
                 sage: sorted(C.category().axioms())
-                ['AdditiveAssociative', 'AdditiveCommutative', 'AdditiveInverse', 'AdditiveUnital', 'Associative', 'Distributive', 'Unital']
+                ['AdditiveAssociative', 'AdditiveCommutative', 'AdditiveInverse',
+                 'AdditiveUnital', 'Associative', 'Commutative',
+                 'Distributive', 'Unital']
 
                 sage: TestSuite(C).run()
             """
@@ -1044,8 +1108,18 @@ class Magmas(Category_singleton):
                 EXAMPLES::
 
                     sage: S = Semigroups().Subquotients().example()
+                    sage: S
+                    An example of a (sub)quotient semigroup:
+                    a quotient of the left zero semigroup
                     sage: S.product(S(19), S(3))
                     19
+
+                Here is a more elaborate example involving a sub algebra::
+
+                    sage: Z = SymmetricGroup(5).algebra(QQ).center()
+                    sage: B = Z.basis()
+                    sage: B[3] * B[2]
+                    4*B[2] + 6*B[3] + 5*B[6]
                 """
                 assert(x in self)
                 assert(y in self)

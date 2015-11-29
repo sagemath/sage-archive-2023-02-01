@@ -1,5 +1,5 @@
 r"""
-Multivariate Power Series.
+Multivariate Power Series
 
 Construct and manipulate multivariate power series (in finitely many
 variables) over a given commutative ring. Multivariate power series
@@ -208,7 +208,7 @@ class MPowerSeries(PowerSeries):
     #
     # change_ring : works just fine
     #
-    # _cmp_c_impl : don't understand this
+    # _cmp_ : don't understand this
     #
     # __copy__ : works just fine
     #
@@ -659,7 +659,7 @@ class MPowerSeries(PowerSeries):
             raise NotImplementedError("Multiplicative inverse of multivariate power series currently implemented only if constant coefficient is a unit.")
 
     ## comparisons
-    def __cmp__(self, other):
+    def _cmp_(self, other):
         """
         Compare ``self`` to ``other``.
 

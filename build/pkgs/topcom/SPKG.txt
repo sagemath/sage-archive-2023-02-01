@@ -15,9 +15,6 @@ is a significant speed up compared to PUNTOS.
 == License ==
 GPL v2
 
-== SPKG Maintainers ==
-* Volker Braun
-
 == Upstream Contact ==
 Prof. Dr. Jörg Rambau <Joerg.Rambau@uni-bayreuth.de>
 Lehrstuhl für Wirtschaftsmathematik 

@@ -1,7 +1,5 @@
 # Run by ``sage-CSI`` in gdb's Python interpreter.
 
-from __future__ import print_function
-
 import os
 import sys
 import glob
@@ -74,12 +72,11 @@ try:
                 func_address = int(str(gdb_value.address).split()[0], 0)
 
             source_desc, lineno = self.get_source_desc(frame)
-            a = ', '.join('{}={}'.format(name, val) for name, val in func_args)
-            print('#{:<2d} {:#016x} in {}({})'
-                  .format(index, func_address, func_name, a), end=' ')
+            a = ', '.join('%s=%s' % (name, val) for name, val in func_args)
+            out = '#%-2d 0x%016x in %s(%s)' % (index, func_address, func_name, a)
             if source_desc.filename is not None:
-                print('at {}:{}'.format(source_desc.filename, lineno), end=' ')
-            print()
+                out += 'at %s:%s' % (source_desc.filename, lineno)
+            print(out)
             try:
                 source = source_desc.get_source(lineno - 5, lineno + 5,
                                                 mark_line=lineno, lex_entire=True)
@@ -121,7 +118,6 @@ try:
 
 
 except Exception as e:
-    print('Exception: ', type(e), e)
     import traceback
     traceback.print_exc()
 

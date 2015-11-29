@@ -9,7 +9,7 @@ cdef class SectionFiniteFieldHomomorphism_generic(Section):
 
 cdef class FiniteFieldHomomorphism_generic(RingHomomorphism_im_gens):
     cdef _gen
-    cdef type _section_class
+    cdef _section_class
 
     cpdef Element _call_(self, x)
 
@@ -20,5 +20,3 @@ cdef class FrobeniusEndomorphism_finite_field(FrobeniusEndomorphism_generic):
     cdef long _order
 
     cpdef Element _call_(self, x)
-
-    cdef int _cmp_c_impl(self, Element other) except -2

@@ -180,6 +180,24 @@ class EnumeratedSetFromIterator(Parent):
                                          *getattr(self, '_args', ()),
                                         **getattr(self, '_kwds', {}))))
 
+    def __hash__(self):
+        r"""
+        A simple hash using the first elements of the set.
+
+        EXAMPLES::
+
+            sage: from sage.sets.set_from_iterator import EnumeratedSetFromIterator
+            sage: E = EnumeratedSetFromIterator(xsrange, (1,200))
+            sage: hash(E)
+            4600916458883504074 # 64-bit
+            -2063607862         # 32-bit
+        """
+        try:
+            return hash(self._cache[:13])
+        except AttributeError:
+            from itertools import islice
+            return hash(tuple(islice(self, 13)))
+
     def __reduce__(self):
         r"""
         Support for pickle.
@@ -443,8 +461,7 @@ class Decorator:
             sage: print sage_getdoc(d)   # indirect doctest
                Test whether "self" is prime.
             ...
-               IMPLEMENTATION: Calls the PARI "isprime" function.
-            <BLANKLINE>
+               Calls the PARI "isprime" function.
         """
         from sage.misc.sageinspect import sage_getsourcelines, sage_getfile, _extract_embedded_position
         f = self.f

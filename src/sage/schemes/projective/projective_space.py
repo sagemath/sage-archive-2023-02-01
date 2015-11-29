@@ -1,8 +1,9 @@
 r"""
 Projective `n` space over a ring
 
-EXAMPLES: We construct projective space over various rings of
-various dimensions.
+EXAMPLES:
+
+We construct projective space over various rings of various dimensions.
 
 The simplest projective space::
 
@@ -26,17 +27,28 @@ base rings.
     sage: X/CC
     Projective Space of dimension 5 over Complex Field with 53 bits of precision
 
-The third argument specifies the printing names of the generators
-of the homogenous coordinate ring. Using objgens() you can obtain
-both the space and the generators as ready to use variables.
+The third argument specifies the printing names of the generators of the
+homogenous coordinate ring. Using the method `.objgens()` you can obtain both
+the space and the generators as ready to use variables. ::
+
+    sage: P2, vars = ProjectiveSpace(10, QQ, 't').objgens()
+    sage: vars
+    (t0, t1, t2, t3, t4, t5, t6, t7, t8, t9, t10)
+
+You can alternatively use the special syntax with ``<`` and ``>``.
 
 ::
 
-    sage: P2, (x,y,z) = ProjectiveSpace(2, QQ, 'xyz').objgens()
+    sage: P2.<x,y,z> = ProjectiveSpace(2, QQ)
     sage: P2
     Projective Space of dimension 2 over Rational Field
-    sage: x.parent()
+    sage: P2.coordinate_ring()
     Multivariate Polynomial Ring in x, y, z over Rational Field
+
+The first of the three lines above is just equivalent to the two lines::
+
+    sage: P2 = ProjectiveSpace(2, QQ, 'xyz')
+    sage: x,y,z = P2.gens()
 
 For example, we use `x,y,z` to define the intersection of
 two lines.
@@ -538,7 +550,7 @@ class ProjectiveSpace_ring(AmbientSpace):
             for col in range(M.ncols()):
                 f = monoms[col][:i] + monoms[col][i+1:]
                 if min([f[j]-e[j] for j in range(n)]) >= 0:
-                    M[row,col] = prod([ binomial(f[j],e[j]) * pt[j]**(f[j]-e[j]) 
+                    M[row,col] = prod([ binomial(f[j],e[j]) * pt[j]**(f[j]-e[j])
                                         for j in (k for k in range(n) if f[k] > e[k]) ])
         return M
 
@@ -977,11 +989,11 @@ class ProjectiveSpace_field(ProjectiveSpace_ring):
                 iters = [ R.range_by_height(bound) for _ in range(i) ]
             else: # if number field
                 iters = [ R.elements_of_bounded_height(bound, precision=prec) for _ in range(i) ]
-            for x in iters: x.next() # put at zero
+            for x in iters: next(x) # put at zero
             j = 0
             while j < i:
                 try:
-                    P[j] = iters[j].next()
+                    P[j] = next(iters[j])
                     yield self(P)
                     j = 0
                 except StopIteration:
@@ -989,7 +1001,7 @@ class ProjectiveSpace_field(ProjectiveSpace_ring):
                         iters[j] = R.range_by_height(bound) # reset
                     else: # if number field
                         iters[j] = R.elements_of_bounded_height(bound, precision=prec) # reset
-                    iters[j].next() # put at zero
+                    next(iters[j]) # put at zero
                     P[j] = zero
                     j += 1
             i -= 1

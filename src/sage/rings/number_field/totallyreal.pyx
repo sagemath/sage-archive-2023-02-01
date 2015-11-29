@@ -99,23 +99,19 @@ Authors
 #*****************************************************************************
 #       Copyright (C) 2007 William Stein and John Voight
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
-#
-#    This code is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-#    General Public License for more details.
-#
-#  The full text of the GPL is available at:
-#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
 include 'sage/ext/stdsage.pxi'
-include 'sage/libs/pari/decl.pxi'
 
 import math, sys
 
+from sage.libs.gmp.mpz cimport *
+from sage.libs.pari.types cimport *
 from sage.libs.pari.pari_instance cimport PariInstance
 from sage.libs.pari.gen cimport gen as pari_gen
 
@@ -132,12 +128,6 @@ from sage.misc.misc import cputime
 from sage.rings.number_field.totallyreal_data import tr_data, int_has_small_square_divisor
 from sage.rings.number_field.totallyreal_data cimport tr_data
 
-#ZZx = PolynomialRing(IntegerRing(), 'x')
-
-cdef extern from "math.h":
-    cdef long lrint(double x)
-    cdef double floor(double x)
-    cdef double ceil(double x)
 
 cpdef double odlyzko_bound_totallyreal(int n):
     r"""
@@ -389,7 +379,7 @@ def enumerate_totallyreal_fields_prim(n, B, a = [], verbose=0, return_seqs=False
 
         d_poly = nf.poldisc()
         counts[0] += 1
-        if d_poly > 0 and nf.polsturm_full() == n:
+        if d_poly > 0 and nf.polsturm() == n:
             da = int_has_small_square_divisor(Integer(d_poly))
             if d_poly > dB or d_poly <= B*da:
                 counts[1] += 1

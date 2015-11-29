@@ -212,10 +212,10 @@ TESTS::
 #                  http://www.gnu.org/licenses/
 #******************************************************************************
 
-import urllib
-import sage.modules.free_module as fm
 import sage.modules.module as module
 from sage.categories.modules import Modules
+from sage.categories.fields import Fields
+from copy import copy
 from sage.interfaces.all import gap
 from sage.rings.finite_rings.constructor import FiniteField as GF
 from sage.groups.perm_gps.permgroup import PermutationGroup
@@ -233,13 +233,17 @@ from sage.rings.fraction_field import FractionField
 from sage.rings.integer_ring import IntegerRing
 from sage.rings.integer import Integer
 from sage.combinat.set_partition import SetPartitions
+from sage.modules.free_module import VectorSpace
 from sage.misc.randstate import current_randstate
 from sage.misc.decorators import rename_keyword
 from sage.misc.cachefunc import cached_method
 from sage.misc.superseded import deprecated_function_alias
+from encoder import Encoder
+from decoder import Decoder, DecodingError
+# import compatible with py2 and py3
+from six.moves.urllib.request import urlopen
 
 ZZ = IntegerRing()
-VectorSpace = fm.VectorSpace
 
 ####################### coding theory functions ###############################
 
@@ -375,6 +379,13 @@ def min_wt_vec_gap(Gmat, n, k, F, algorithm=None):
 
     Here ``Gstr`` is a generator matrix of the Hamming [7,4,3] binary code.
 
+    TESTS:
+
+    We check that :trac:`18480` is fixed::
+
+        sage: codes.HammingCode(2, GF(2)).minimum_distance()
+        3
+
     AUTHORS:
 
     - David Joyner (11-2005)
@@ -394,7 +405,7 @@ def min_wt_vec_gap(Gmat, n, k, F, algorithm=None):
 
     q = F.order()
     ans = None
-    dist_min = n
+    dist_min = n + 1
     gap.eval('Gmat:='+Gmat)
     gap.eval('K:=GF({})'.format(q))
     gap.eval('v:=Z({})*{}'.format(q,[0]*n))
@@ -431,8 +442,8 @@ def best_known_linear_code(n, k, F):
 
     This means that best possible binary linear code of length 10 and
     dimension 5 is a code with minimum distance 4 and covering radius
-    somewhere between 2 and 4. Use ``minimum_distance_why(10,5,GF(2))`` or
-    ``print bounds_minimum_distance(10,5,GF(2))`` for further details.
+    somewhere between 2 and 4.
+    Use ``bounds_minimum_distance(10,5,GF(2))`` for further details.
     """
     q = F.order()
     C = gap("BestKnownLinearCode(%s,%s,GF(%s))"%(n,k,q))
@@ -477,6 +488,7 @@ def best_known_linear_code_www(n, k, F, verbose=False):
         x^10 + x^8 + x^7 + x^5 + x^3 + 1
         [2]:  [72, 36, 15] Linear Code over GF(2)
              Puncturing of [1] at 1
+        <BLANKLINE>
         last modified: 2002-03-20
 
     This function raises an ``IOError`` if an error occurs downloading data or
@@ -499,7 +511,7 @@ def best_known_linear_code_www(n, k, F, verbose=False):
     #url = "http://homepages.cwi.nl/htbin/aeb/lincodbd/"+param
     if verbose:
         print "Looking up the bounds at %s"%url
-    f = urllib.urlopen(url)
+    f = urlopen(url)
     s = f.read()
     f.close()
     #print s
@@ -522,8 +534,7 @@ def bounds_minimum_distance(n, k, F):
 
     The values for the lower and upper bound are obtained from a table
     constructed by Cen Tjhai for GUAVA, derived from the table of
-    Brouwer. (See http://www.codetables.de/ or use the
-    Sage function ``minimum_distance_why`` for the most recent data.)
+    Brouwer. See http://www.codetables.de/ for the most recent data.
     These tables contain lower and upper bounds for `q=2` (when ``n <= 257``),
     `q=3` (when ``n <= 243``), `q=4` (``n <= 256``). (Current as of
     11 May 2006.) For codes over other fields and for larger word lengths,
@@ -693,160 +704,189 @@ def self_orthogonal_binary_codes(n, k, b=2, parent=None, BC=None, equal=False,
                     for N in self_orthogonal_binary_codes(n, k, d, child, BC, in_test=in_test):
                         if out_test(N): yield N
 
-############################ linear codes python class ########################
+class AbstractLinearCode(module.Module):
+    """
+    Abstract class for linear codes.
 
-class LinearCode(module.Module):
-    r"""
-    Linear codes over a finite field or finite ring.
+    This class contains all methods that can be used on Linear Codes
+    and on Linear Codes families.
+    So, every Linear Code-related class should inherit from this abstract
+    class.
 
-    A *linear code* is a subspace of a vector space over a finite field. It can
-    be defined by one of its basis or equivalently a generator matrix (a `k
-    \times n` matrix of full rank `k`).
+    To implement a linear code, you need to:
 
-    See :wikipedia:`Linear_code` for more information.
+    - inherit from AbstractLinearCode
 
-    INPUT:
+    - call AbstractLinearCode ``__init__`` method in the subclass constructor. Example:
+      ``super(SubclassName, self).__init__(base_field, length, "EncoderName", "DecoderName")``.
+      By doing that, your subclass will have its ``length`` parameter
+      initialized and will be properly set as a member of the category framework.
+      You need of course to complete the constructor by adding any additional parameter
+      needed to describe properly the code defined in the subclass.
 
-    - ``generator_matrix`` -- a generator matrix over a finite field (``G`` can be
-      defined over a finite ring but the matrices over that ring must have
-      certain attributes, such as ``rank``)
+    - fill the dictionary of its encoders in ``sage.coding.__init__.py`` file. Example:
+      I want to link the encoder ``MyEncoderClass`` to ``MyNewCodeClass``
+      under the name ``MyEncoderName``.
+      All I need to do is to write this line in the ``__init__.py`` file:
+      ``MyNewCodeClass._registered_encoders["NameOfMyEncoder"] = MyEncoderClass`` and all instances of
+      ``MyNewCodeClass`` will be able to use instances of ``MyEncoderClass``.
 
-    - ``d`` -- (optional, default: ``None``) the minimum distance of the code
+    - fill the dictionary of its decoders in ``sage.coding.__init__`` file. Example:
+      I want to link the encoder ``MyDecoderClass`` to ``MyNewCodeClass``
+      under the name ``MyDecoderName``.
+      All I need to do is to write this line in the ``__init__.py`` file:
+      ``MyNewCodeClass._registered_decoders["NameOfMyDecoder"] = MyDecoderClass`` and all instances of
+      ``MyNewCodeClass`` will be able to use instances of ``MyDecoderClass``.
+
+
+    As AbstractLinearCode is not designed to be implemented, it does not have any representation
+    methods. You should implement ``_repr_`` and ``_latex_`` methods in the subclass.
 
     .. NOTE::
 
-        The veracity of the minimum distance ``d``, if provided, is not
-        checked.
+        :class:`AbstractLinearCode` has generic implementations of the comparison methods ``__cmp__``
+        and ``__eq__`` which use the generator matrix and are quite slow. In subclasses you are
+        encouraged to override these functions.
 
+    .. WARNING::
 
-    EXAMPLES::
+        The default encoder should always have `F^{k}` as message space, with `k` the dimension
+        of the code and `F` is the base ring of the code.
 
-        sage: MS = MatrixSpace(GF(2),4,7)
-        sage: G  = MS([[1,1,1,0,0,0,0], [1,0,0,1,1,0,0], [0,1,0,1,0,1,0], [1,1,0,1,0,0,1]])
-        sage: C  = LinearCode(G)
-        sage: C
-        Linear code of length 7, dimension 4 over Finite Field of size 2
-        sage: C.base_ring()
-        Finite Field of size 2
-        sage: C.dimension()
-        4
-        sage: C.length()
-        7
-        sage: C.minimum_distance()
-        3
-        sage: C.spectrum()
-        [1, 0, 0, 7, 7, 0, 0, 1]
-        sage: C.weight_distribution()
-        [1, 0, 0, 7, 7, 0, 0, 1]
-
-    The minimum distance of the code, if known, can be provided as an
-    optional parameter.::
-
-        sage: C  = LinearCode(G, d=3)
-        sage: C.minimum_distance()
-        3
-
-    Another example.::
-
-        sage: MS = MatrixSpace(GF(5),4,7)
-        sage: G  = MS([[1,1,1,0,0,0,0], [1,0,0,1,1,0,0], [0,1,0,1,0,1,0], [1,1,0,1,0,0,1]])
-        sage: C  = LinearCode(G)
-        sage: C
-        Linear code of length 7, dimension 4 over Finite Field of size 5
-
-    AUTHORS:
-
-    - David Joyner (11-2005)
+        A lot of methods of the abstract class rely on the knowledge of a generator matrix.
+        It is thus strongly recommended to set an encoder with a generator matrix implemented
+        as a default encoder.
     """
-    #    sage: C.minimum_distance_upper_bound()   # optional (net connection)
-    #    3
-    #    sage: C.minimum_distance_why()     # optional (net connection)
-    #    Ub(7,4) = 3 follows by the Griesmer bound.
-    def __init__(self, generator_matrix, d=None):
-        r"""
-        See the docstring for :meth:`LinearCode`.
+    _registered_encoders = {}
+    _registered_decoders = {}
 
-        EXAMPLES::
+    def __init__(self, base_field, length, default_encoder_name, default_decoder_name):
+        """
+        Initializes mandatory parameters for a Linear Code object.
 
-            sage: MS = MatrixSpace(GF(2),4,7)
-            sage: G  = MS([[1,1,1,0,0,0,0], [1,0,0,1,1,0,0], [0,1,0,1,0,1,0], [1,1,0,1,0,0,1]])
-            sage: C  = LinearCode(G)    # indirect doctest
+        This method only exists for inheritance purposes as it initializes
+        parameters that need to be known by every linear code. An abstract
+        linear code object should never be created.
+
+        INPUT:
+
+        - ``base_field`` -- the base field of ``self``
+
+        - ``length`` -- the length of ``self``
+
+        - ``default_encoder_name`` -- the name of the default encoder of ``self``
+
+        - ``default_decoder_name`` -- the name of the default decoder of ``self``
+
+        EXAMPLES:
+
+        We first create a new LinearCode subclass::
+
+            sage: class CodeExample(sage.coding.linear_code.AbstractLinearCode):
+            ....:   def __init__(self, field, length, dimension, generator_matrix):
+            ....:       sage.coding.linear_code.AbstractLinearCode.__init__(self,field, length, "GeneratorMatrix", "Syndrome")
+            ....:       self._dimension = dimension
+            ....:       self._generator_matrix = generator_matrix
+            ....:   def generator_matrix(self):
+            ....:       return self._generator_matrix
+            ....:   def _repr_(self):
+            ....:       return "Dummy code of length %d, dimension %d over %s" % (self.length(), self.dimension(), self.base_field())
+
+        We now create a member of our newly made class::
+
+            sage: generator_matrix = matrix(GF(17), 5, 10,
+            ....:                           {(i,i):1 for i in range(5)})
+            sage: C = CodeExample(GF(17), 10, 5, generator_matrix)
+
+        We can check its existence and parameters::
+
             sage: C
-            Linear code of length 7, dimension 4 over Finite Field of size 2
+            Dummy code of length 10, dimension 5 over Finite Field of size 17
 
-        The minimum distance of the code, if known, can be provided as an
-        optional parameter.::
+        We can check that it is truly a part of the framework category::
 
-            sage: C  = LinearCode(G, d=3)
+            sage: C.parent()
+            <class '__main__.CodeExample_with_category'>
+            sage: C.category()
+            Category of facade finite dimensional vector spaces with basis over Finite Field of size 17
+
+        And any method that works on linear codes works for our new dummy code::
+
             sage: C.minimum_distance()
-            3
+            1
+            sage: C.is_self_orthogonal()
+            False
+            sage: print C.divisor() #long time
+            1
 
-        TESTS::
+        TESTS:
 
-            sage: C = codes.HammingCode(3, GF(2))
-            sage: TestSuite(C).run()
+        If the length field is neither a Python int nor a Sage Integer, it will
+        raise a exception::
 
-        Check that it works even with input matrix with non full rank (see
-        :trac:`17452`)::
-
-            sage: K.<a> = GF(4)
-            sage: G = matrix([[a, a + 1, 1, a + 1, 1, 0, 0],
-            ....:             [0, a, a + 1, 1, a + 1, 1, 0],
-            ....:             [0, 0, a, a + 1, 1, a + 1, 1],
-            ....:             [a + 1, 0, 1, 0, a + 1, 1, a + 1],
-            ....:             [a, a + 1, a + 1, 0, 0, a + 1, 1],
-            ....:             [a + 1, a, a, 1, 0, 0, a + 1],
-            ....:             [a, a + 1, 1, a + 1, 1, 0, 0]])
-            sage: C = LinearCode(G)
-            sage: C.basis()
-            [(1, 0, 0, a + 1, 0, 1, 0),
-             (0, 1, 0, 0, a + 1, 0, 1),
-             (0, 0, 1, a, a + 1, a, a + 1)]
-            sage: C.minimum_distance()
-            3
-
-        Forbid the zero vector space (see :trac:`17452` and :trac:`6486`)::
-
-            sage: G = matrix(GF(2), [[0,0,0]])
-            sage: C = LinearCode(G)
+            sage: C = CodeExample(GF(17), 10.0, 5, generator_matrix)
             Traceback (most recent call last):
             ...
-            ValueError: this linear code contains no non-zero vector
+            ValueError: length must be a Python int or a Sage Integer
+
+        If the name of the default decoder is not known by the class, it will raise
+        a exception::
+
+            sage: class CodeExample(sage.coding.linear_code.AbstractLinearCode):
+            ....:   def __init__(self, field, length, dimension, generator_matrix):
+            ....:       sage.coding.linear_code.AbstractLinearCode.__init__(self,field, length, "GeneratorMatrix", "Fail")
+            ....:       self._dimension = dimension
+            ....:       self._generator_matrix = generator_matrix
+            ....:   def generator_matrix(self):
+            ....:       return self._generator_matrix
+            ....:   def _repr_(self):
+            ....:       return "Dummy code of length %d, dimension %d over %s" % (self.length(), self.dimension(), self.base_field())
+
+            sage: C = CodeExample(GF(17), 10, 5, generator_matrix)
+            Traceback (most recent call last):
+            ...
+            ValueError: You must set a valid decoder as default decoder for this code, by filling in the dicitonary of registered decoders
+
+        If the name of the default encoder is not known by the class, it will raise
+        an exception::
+
+            sage: class CodeExample(sage.coding.linear_code.AbstractLinearCode):
+            ....:   def __init__(self, field, length, dimension, generator_matrix):
+            ....:       sage.coding.linear_code.AbstractLinearCode.__init__(self,field, length, "Fail", "Syndrome")
+            ....:       self._dimension = dimension
+            ....:       self._generator_matrix = generator_matrix
+            ....:   def generator_matrix(self):
+            ....:       return self._generator_matrix
+            ....:   def _repr_(self):
+            ....:       return "Dummy code of length %d, dimension %d over %s" % (self.length(), self.dimension(), self.base_field())
+
+            sage: C = CodeExample(GF(17), 10, 5, generator_matrix)
+            Traceback (most recent call last):
+            ...
+            ValueError: You must set a valid encoder as default encoder for this code, by filling in the dictionary of registered encoders
+
+        A ring instead of a field::
+
+            sage: codes.LinearCode(IntegerModRing(4),matrix.ones(4))
+            Traceback (most recent call last):
+            ...
+            ValueError: 'generator_matrix' must be defined on a field (not a ring)
         """
-        base_ring = generator_matrix.base_ring()
-        # if the matrix does not have full rank we replace it
-        if generator_matrix.rank() != generator_matrix.nrows():
-            from sage.matrix.constructor import matrix
-            basis = generator_matrix.row_space().basis()
-            generator_matrix = matrix(base_ring, basis)
-
-            if generator_matrix.nrows() == 0:
-                raise ValueError("this linear code contains no non-zero vector")
-
-        cat = Modules(base_ring).FiniteDimensional().WithBasis().Finite()
-        facade_for = generator_matrix.row(0).parent()
-        self.Element = type(generator_matrix.row(0)) # for when we make this a non-facade parent
-        Parent.__init__(self, base=base_ring, facade=facade_for, category=cat)
-        self._gens = generator_matrix.rows()
-        self._generator_matrix = generator_matrix
-        self._length = generator_matrix.ncols()
-        self._dimension = generator_matrix.rank()
-        self._minimum_distance = d
-
-    def _repr_(self):
-        r"""
-        See the docstring for :meth:`LinearCode`.
-
-        EXAMPLES::
-
-            sage: MS = MatrixSpace(GF(2),4,7)
-            sage: G  = MS([[1,1,1,0,0,0,0], [1,0,0,1,1,0,0], [0,1,0,1,0,1,0], [1,1,0,1,0,0,1]])
-            sage: C  = LinearCode(G)
-            sage: C                     # indirect doctest
-            Linear code of length 7, dimension 4 over Finite Field of size 2
-        """
-        return "Linear code of length %s, dimension %s over %s"%(self.length(), self.dimension(), self.base_ring())
-
+        if not isinstance(length, (int, Integer)):
+            raise ValueError("length must be a Python int or a Sage Integer")
+        if not base_field.is_field():
+            raise ValueError("'base_field' must be a field (and {} is not one)".format(base_field))
+        if not default_encoder_name in self._registered_encoders:
+            raise ValueError("You must set a valid encoder as default encoder for this code, by filling in the dictionary of registered encoders")
+        if not default_decoder_name in self._registered_decoders:
+            raise ValueError("You must set a valid decoder as default decoder for this code, by filling in the dicitonary of registered decoders")
+        self._length = Integer(length)
+        self._default_decoder_name = default_decoder_name
+        self._default_encoder_name = default_encoder_name
+        cat = Modules(base_field).FiniteDimensional().WithBasis().Finite()
+        facade_for = VectorSpace(base_field, self._length)
+        self.Element = type(facade_for.an_element()) #for when we made this a non-facade parent
+        Parent.__init__(self, base=base_field, facade=facade_for, category=cat)
 
     def _latex_(self):
         """
@@ -878,6 +918,130 @@ class LinearCode(module.Module):
             ((1, 0, 0, 0, 0, 1, 1), (1, 0, 0, 0, 0, 1, 1))
         """
         return self.gens()[0]
+
+    def add_decoder(self, name, decoder):
+        r"""
+        Adds an decoder to the list of registered decoders of ``self``.
+
+        .. NOTE::
+
+            This method only adds ``decoder`` to ``self``, and not to any member of the class
+            of ``self``. To know how to add an :class:`sage.coding.decoder.Decoder`, please refer
+            to the documentation of :class:`AbstractLinearCode`.
+
+        INPUT:
+
+        - ``name`` -- the string name for the decoder
+
+        - ``decoder`` -- the class name of the decoder
+
+        EXAMPLES:
+
+        First of all, we create a (very basic) new decoder::
+
+            sage: class MyDecoder(sage.coding.decoder.Decoder):
+            ....:   def __init__(self, code):
+            ....:       super(MyDecoder, self).__init__(code)
+            ....:   def _repr_(self):
+            ....:       return "MyDecoder decoder with associated code %s" % self.code()
+
+        We now create a new code::
+
+            sage: C = codes.HammingCode(3, GF(2))
+
+        We can add our new decoder to the list of available decoders of C::
+
+            sage: C.add_decoder("MyDecoder", MyDecoder)
+            sage: C.decoders_available()
+            ['MyDecoder', 'Syndrome', 'NearestNeighbor']
+
+        We can verify that any new code will not know MyDecoder::
+
+            sage: C2 = codes.HammingCode(3, GF(3))
+            sage: C2.decoders_available()
+            ['Syndrome', 'NearestNeighbor']
+
+        TESTS:
+
+        It is impossible to use a name which is in the dictionnary of available decoders::
+
+            sage: C.add_decoder("Syndrome", MyDecoder)
+            Traceback (most recent call last):
+            ...
+            ValueError: There is already a registered decoder with this name
+        """
+        if self._registered_decoders == self.__class__._registered_decoders:
+            self._registered_decoders = copy(self._registered_decoders)
+            reg_dec = self._registered_decoders
+            if name in reg_dec:
+                raise ValueError("There is already a registered decoder with this name")
+            reg_dec[name] = decoder
+        else:
+            if name in self._registered_decoders:
+                raise ValueError("There is already a registered decoder with this name")
+            reg_dec[name] = decoder
+
+    def add_encoder(self, name, encoder):
+        r"""
+        Adds an encoder to the list of registered encoders of ``self``.
+
+        .. NOTE::
+
+            This method only adds ``encoder`` to ``self``, and not to any member of the class
+            of ``self``. To know how to add an :class:`sage.coding.encoder.Encoder`, please refer
+            to the documentation of :class:`AbstractLinearCode`.
+
+        INPUT:
+
+        - ``name`` -- the string name for the encoder
+
+        - ``encoder`` -- the class name of the encoder
+
+        EXAMPLES:
+
+        First of all, we create a (very basic) new encoder::
+
+            sage: class MyEncoder(sage.coding.encoder.Encoder):
+            ....:   def __init__(self, code):
+            ....:       super(MyEncoder, self).__init__(code)
+            ....:   def _repr_(self):
+            ....:       return "MyEncoder encoder with associated code %s" % self.code()
+
+        We now create a new code::
+
+            sage: C = codes.HammingCode(3, GF(2))
+
+        We can add our new encoder to the list of available encoders of C::
+
+            sage: C.add_encoder("MyEncoder", MyEncoder)
+            sage: C.encoders_available()
+            ['MyEncoder', 'GeneratorMatrix']
+
+        We can verify that any new code will not know MyEncoder::
+
+            sage: C2 = codes.HammingCode(3, GF(3))
+            sage: C2.encoders_available()
+            ['GeneratorMatrix']
+
+        TESTS:
+
+        It is impossible to use a name which is in the dictionnary of available encoders::
+
+            sage: C.add_encoder("GeneratorMatrix", MyEncoder)
+            Traceback (most recent call last):
+            ...
+            ValueError: There is already a registered encoder with this name
+        """
+        if self._registered_encoders == self.__class__._registered_encoders:
+            self._registered_encoders = copy(self._registered_encoders)
+            reg_enc = self._registered_encoders
+            if name in reg_enc:
+                raise ValueError("There is already a registered encoder with this name")
+            reg_enc[name] = encoder
+        else:
+            if name in self._registered_encoders:
+                raise ValueError("There is already a registered encoder with this name")
+            reg_enc[name] = encoder
 
     def automorphism_group_gens(self, equivalence="semilinear"):
         r"""
@@ -921,31 +1085,6 @@ class LinearCode(module.Module):
         aut_group_can_label = self._canonize(equivalence)
         return aut_group_can_label.get_autom_gens(), \
                aut_group_can_label.get_autom_order()
-
-    def __iter__(self):
-        """
-        Return an iterator over the elements of this linear code.
-
-        EXAMPLES::
-
-            sage: C = codes.HammingCode(3,GF(2))
-            sage: [list(c) for c in C if c.hamming_weight() < 4]
-            [[0, 0, 0, 0, 0, 0, 0], [1, 0, 0, 0, 0, 1, 1],
-             [0, 1, 0, 0, 1, 0, 1], [0, 0, 1, 0, 1, 1, 0],
-             [1, 1, 1, 0, 0, 0, 0], [1, 0, 0, 1, 1, 0, 0],
-             [0, 1, 0, 1, 0, 1, 0], [0, 0, 1, 1, 0, 0, 1]]
-
-        TESTS::
-
-            sage: C = codes.HammingCode(3,GF(2))
-            sage: L = list(C)
-            sage: L[10].is_immutable()
-            True
-
-        """
-        from sage.modules.finite_submodule_iter import \
-                                                FiniteFieldsubspace_iterator
-        return FiniteFieldsubspace_iterator(self.generator_matrix(), immutable=True)
 
     def ambient_space(self):
         r"""
@@ -1075,6 +1214,19 @@ class LinearCode(module.Module):
             ans = ans + ["weights from C*: ",nonzerowtsp,"designs from C*: ",desp]
             return ans
         return 0
+
+    def base_field(self):
+        r"""
+        Return the base field of ``self``.
+
+        EXAMPLES::
+
+            sage: G  = Matrix(GF(2), [[1,1,1,0,0,0,0], [1,0,0,1,1,0,0], [0,1,0,1,0,1,0], [1,1,0,1,0,0,1]])
+            sage: C  = LinearCode(G)
+            sage: C.base_field()
+            Finite Field of size 2
+        """
+        return self.base_ring()
 
     def basis(self):
         r"""
@@ -1235,7 +1387,7 @@ class LinearCode(module.Module):
         return aut_group_can_label.get_canonical_form(), \
                aut_group_can_label.get_transporter()
 
-    def __contains__(self,v):
+    def __contains__(self, v):
         r"""
         Returns True if `v` can be coerced into `self`. Otherwise, returns False.
 
@@ -1249,9 +1401,9 @@ class LinearCode(module.Module):
             sage: vector((1, 0, 0, 0, 0, 1/2, 1)) in C # indirect doctest
             False
         """
-        A = self.ambient_space()
-        C = A.subspace(self.gens())
-        return C.__contains__(v)
+        if not v in self.ambient_space() or len(v) != self.length():
+            return False
+        return self.syndrome(v) == 0
 
     def characteristic(self):
         r"""
@@ -1380,13 +1532,13 @@ class LinearCode(module.Module):
         """
         if not isinstance(right, LinearCode):
             return cmp(type(self), type(right))
-        return cmp(self._generator_matrix, right._generator_matrix)
+        return cmp(self.generator_matrix(), right.generator_matrix())
 
     def parity_check_matrix(self):
         r"""
         Returns the parity check matrix of ``self``.
 
-        The parity check matrix of a linear code `C` corresponds to the 
+        The parity check matrix of a linear code `C` corresponds to the
         generator matrix of the dual code of `C`.
 
         EXAMPLES::
@@ -1454,87 +1606,175 @@ class LinearCode(module.Module):
 
     def decode(self, right, algorithm="syndrome"):
         r"""
-        Decodes the received vector ``right`` to an element `c` in this code.
-
-        Optional algorithms are "guava", "nearest neighbor" or "syndrome". The
-        ``algorithm="guava"`` wraps GUAVA's ``Decodeword``.  Hamming codes have
-        a special decoding algorithm; otherwise, ``"syndrome"`` decoding is
-        used.
+        Corrects the errors in ``right`` and returns a codeword.
 
         INPUT:
 
-        - ``right`` - Vector of length the length of this code
-        - ``algorithm`` - Algorithm to use, one of ``"syndrome"``, ``"nearest
-          neighbor"``, and ``"guava"`` (default: ``"syndrome"``)
+        - ``right`` -- a vector of the same length as ``self`` over
+          the base field of ``self``
+
+        - ``algorithm`` -- (default: ``'syndrome'``) Name of the decoding algorithm which
+          will be used to decode ``right``. Can be ``'syndrome'`` or ``'nearest_neighbor'``.
+
+        .. NOTE::
+
+            This is a deprecated method which will soon be removed from Sage. Please use
+            :func:`decode_to_code` instead.
+        """
+        from sage.misc.superseded import deprecation
+        deprecation(18813, "decode is deprecated and will be removed from sage soon. Please call decode_to_code instead")
+        if algorithm == "syndrome":
+            return self.decode_to_code(right, decoder_name="Syndrome")
+        elif algorithm == "nearest neighbor":
+            return self.decode_to_code(right, decoder_name="NearestNeighbor")
+        else:
+            return self.decode_to_code(right, decoder_name=algorithm)
+
+    def decode_to_code(self, word, decoder_name=None, **kwargs):
+        r"""
+        Corrects the errors in ``word`` and returns a codeword.
+
+        INPUT:
+
+        - ``word`` -- a vector of the same length as ``self`` over
+          the base field of ``self``
+
+        - ``decoder_name`` -- (default: ``None``) Name of the decoder which will be used
+          to decode ``word``. The default decoder of ``self`` will be used if
+          default value is kept.
+
+        - ``kwargs`` -- all additional arguments are forwarded to :meth:`decoder`
 
         OUTPUT:
 
-        - The codeword in this code closest to ``right``.
+        - A vector of ``self``.
 
         EXAMPLES::
 
-            sage: C = codes.HammingCode(3,GF(2))
-            sage: MS = MatrixSpace(GF(2),1,7)
-            sage: F = GF(2); a = F.gen()
-            sage: v1 = [a,a,F(0),a,a,F(0),a]
-            sage: C.decode(v1)
-            (1, 1, 0, 1, 0, 0, 1)
-            sage: C.decode(v1,algorithm="nearest neighbor")
-            (1, 1, 0, 1, 0, 0, 1)
-            sage: C.decode(v1,algorithm="guava")  # optional - gap_packages (Guava package)
-            (1, 1, 0, 1, 0, 0, 1)
-            sage: v2 = matrix([[a,a,F(0),a,a,F(0),a]])
-            sage: C.decode(v2)
-            (1, 1, 0, 1, 0, 0, 1)
-            sage: v3 = vector([a,a,F(0),a,a,F(0),a])
-            sage: c = C.decode(v3); c
-            (1, 1, 0, 1, 0, 0, 1)
-            sage: c in C
-            True
-            sage: C = codes.HammingCode(2,GF(5))
-            sage: v = vector(GF(5),[1,0,0,2,1,0])
-            sage: C.decode(v)
-            (1, 0, 0, 2, 2, 0)
-            sage: F.<a> = GF(4)
-            sage: C = codes.HammingCode(2,F)
-            sage: v = vector(F, [1,0,0,a,1])
-            sage: C.decode(v)
-            (a + 1, 0, 0, a, 1)
-            sage: C.decode(v, algorithm="nearest neighbor")
-            (a + 1, 0, 0, a, 1)
-            sage: C.decode(v, algorithm="guava")  # optional - gap_packages (Guava package)
-            (a + 1, 0, 0, a, 1)
+            sage: G = Matrix(GF(2), [[1,1,1,0,0,0,0],[1,0,0,1,1,0,0],[0,1,0,1,0,1,0],[1,1,0,1,0,0,1]])
+            sage: C = LinearCode(G)
+            sage: word = vector(GF(2), (1, 1, 0, 0, 1, 1, 0))
+            sage: w_err = word + vector(GF(2), (1, 0, 0, 0, 0, 0, 0))
+            sage: C.decode_to_code(w_err)
+            (1, 1, 0, 0, 1, 1, 0)
 
-        Does not work for very long codes since the syndrome table grows too
-        large.
+        It is possible to manually choose the decoder amongst the list of the available ones::
 
-        TESTS:
-
-        Test that the codeword returned is immutable (see :trac:`16469`)::
-
-            sage: (C.decode(v)).is_immutable()
-            True
-
+            sage: C.decoders_available()
+            ['Syndrome', 'NearestNeighbor']
+            sage: C.decode_to_code(w_err, 'NearestNeighbor')
+            (1, 1, 0, 0, 1, 1, 0)
         """
-        from decoder import decode
-        if algorithm == 'syndrome' or algorithm == 'nearest neighbor':
-            c = decode(self, right)
-            c.set_immutable()
-            return c
-        elif algorithm == 'guava':
-            gap.load_package('guava')
-            code = gap.GeneratorMatCode(self.generator_matrix(), self.base_ring())
-            right = gap(list(right))
-            right_word = gap.Codeword(right)
-            result = gap.Decodeword(code, right_word)
-            result = gap.VectorCodeword(result)
-            from sage.interfaces.gap import gfq_gap_to_sage
-            result = [gfq_gap_to_sage(v, self.base_ring()) for v in result]
-            c = self.ambient_space()(result)
-            c.set_immutable()
-            return c
+        D = self.decoder(decoder_name, **kwargs)
+        return D.decode_to_code(word)
+
+    def decode_to_message(self, word, decoder_name=None, **kwargs):
+        r"""
+        Correct the errors in word and decodes it to the message space.
+
+        INPUT:
+
+        - ``word`` -- a vector of the same length as ``self`` over the
+          base field of ``self``
+
+        - ``decoder_name`` -- (default: ``None``) Name of the decoder which will be used
+          to decode ``word``. The default decoder of ``self`` will be used if
+          default value is kept.
+
+        - ``kwargs`` -- all additional arguments are forwarded to :meth:`decoder`
+
+        OUTPUT:
+
+        - A vector of the message space of ``self``.
+
+        EXAMPLES::
+
+            sage: G = Matrix(GF(2), [[1,1,1,0,0,0,0],[1,0,0,1,1,0,0],[0,1,0,1,0,1,0],[1,1,0,1,0,0,1]])
+            sage: C = LinearCode(G)
+            sage: word = vector(GF(2), (1, 1, 0, 0, 1, 1, 0))
+            sage: C.decode_to_message(word)
+            (0, 1, 1, 0)
+
+        It is possible to manually choose the decoder amongst the list of the available ones::
+
+            sage: C.decoders_available()
+            ['Syndrome', 'NearestNeighbor']
+            sage: C.decode_to_message(word, 'NearestNeighbor')
+            (0, 1, 1, 0)
+        """
+        return self.unencode(self.decode_to_code(word, decoder_name, **kwargs), **kwargs)
+
+    @cached_method
+    def decoder(self, decoder_name=None, **kwargs):
+        r"""
+        Return a decoder of ``self``.
+
+        INPUT:
+
+        - ``decoder_name`` -- (default: ``None``) name of the decoder which will be
+          returned. The default decoder of ``self`` will be used if
+          default value is kept.
+
+        - ``kwargs`` -- all additional arguments will be forwarded to the constructor of the decoder
+          that will be returned by this method
+
+        OUTPUT:
+
+        - a decoder object
+
+        Besides creating the decoder and returning it, this method also stores
+        the decoder in a cache. With this behaviour, each decoder will be created
+        at most one time for ``self``.
+
+        EXAMPLES::
+
+            sage: G = Matrix(GF(2), [[1,1,1,0,0,0,0],[1,0,0,1,1,0,0],[0,1,0,1,0,1,0],[1,1,0,1,0,0,1]])
+            sage: C = LinearCode(G)
+            sage: C.decoder()
+            Syndrome decoder for  Linear code of length 7, dimension 4 over Finite Field of size 2
+
+        If the name of a decoder which is not known by ``self`` is passed,
+        an exception will be raised::
+
+            sage: C.decoders_available()
+            ['Syndrome', 'NearestNeighbor']
+            sage: C.decoder('Try')
+            Traceback (most recent call last):
+            ...
+            ValueError: Passed Decoder name not known
+        """
+        if decoder_name is None:
+            decoder_name = self._default_decoder_name
+        if decoder_name in self._registered_decoders:
+            decClass = self._registered_decoders[decoder_name]
+            D = decClass(self, **kwargs)
+            return D
         else:
-            raise NotImplementedError("Only 'syndrome','nearest neighbor','guava' are implemented.")
+            raise ValueError("Passed Decoder name not known")
+
+    def decoders_available(self, classes=False):
+        r"""
+        Returns a list of the available decoders' names for ``self``.
+
+        INPUT:
+
+        - ``classes`` -- (default: ``False``) if ``classes`` is set to ``True``, it also
+          returns the decoders' classes associated with the decoders' names.
+
+        EXAMPLES::
+
+            sage: G = Matrix(GF(2), [[1,1,1,0,0,0,0],[1,0,0,1,1,0,0],[0,1,0,1,0,1,0],[1,1,0,1,0,0,1]])
+            sage: C = LinearCode(G)
+            sage: C.decoders_available()
+            ['Syndrome', 'NearestNeighbor']
+
+            sage: C.decoders_available(True)
+            {'NearestNeighbor': <class 'sage.coding.linear_code.LinearCodeNearestNeighborDecoder'>,
+             'Syndrome': <class 'sage.coding.linear_code.LinearCodeSyndromeDecoder'>}
+        """
+        if classes == True:
+            return copy(self._registered_decoders)
+        return self._registered_decoders.keys()
 
     def divisor(self):
         r"""
@@ -1559,6 +1799,57 @@ class LinearCode(module.Module):
         #print S0
         if len(S)>1: return GCD(S0)
         return 1
+
+    def is_projective(self):
+        r"""
+        Test  whether the code is projective.
+
+        A linear code `C` over a field is called *projective* when its dual `Cd`
+        has minimum weight `\geq 3`, i.e. when no two coordinate positions of
+        `C` are linearly independent (cf. definition 3 from [BS11] or 9.8.1 from
+        [BH12]).
+
+        EXAMPLE::
+
+            sage: C = codes.BinaryGolayCode()
+            sage: C.is_projective()
+            True
+            sage: C.dual_code().minimum_distance()
+            8
+
+        A non-projective code::
+
+            sage: C = codes.LinearCode(matrix(GF(2),[[1,0,1],[1,1,1]]))
+            sage: C.is_projective()
+            False
+
+        REFERENCE:
+
+        .. [BS11] E. Byrne and A. Sneyd,
+           On the Parameters of Codes with Two Homogeneous Weights.
+           WCC 2011-Workshop on coding and cryptography, pp. 81-90. 2011.
+           https://hal.inria.fr/inria-00607341/document
+        """
+        M = self.generator_matrix().transpose()
+        R = self.base_field()
+
+        def projectivize(row):
+            if not row.is_zero():
+                for i in range(len(row)):
+                    if row[i]:
+                        break
+                row = ~(row[i]) * row
+            row.set_immutable()
+            return row
+
+        rows = set()
+        for row in M.rows():
+            row = projectivize(row)
+            if row in rows:
+                return False
+            rows.add(row)
+
+        return True
 
     def dual_code(self):
         r"""
@@ -1685,6 +1976,133 @@ class LinearCode(module.Module):
             if scheck*c:
                 return False
         return True
+
+    def encode(self, word, encoder_name=None, **kwargs):
+        r"""
+        Transforms an element of a message space into a codeword.
+
+        INPUT:
+
+        - ``word`` -- a vector of a message space of the code.
+
+        - ``encoder_name`` -- (default: ``None``) Name of the encoder which will be used
+          to encode ``word``. The default encoder of ``self`` will be used if
+          default value is kept.
+
+        - ``kwargs`` -- all additional arguments are forwarded to the construction of the
+          encoder that is used.
+
+        .. NOTE::
+
+            The default encoder always has `F^{k}` as message space, with `k` the dimension
+            of ``self`` and `F` the base ring of ``self``.
+
+        OUTPUT:
+
+        - a vector of ``self``.
+
+        EXAMPLES::
+
+            sage: G = Matrix(GF(2), [[1,1,1,0,0,0,0],[1,0,0,1,1,0,0],[0,1,0,1,0,1,0],[1,1,0,1,0,0,1]])
+            sage: C = LinearCode(G)
+            sage: word = vector((0, 1, 1, 0))
+            sage: C.encode(word)
+            (1, 1, 0, 0, 1, 1, 0)
+
+        It is possible to manually choose the encoder amongst the list of the available ones::
+
+            sage: C.encoders_available()
+            ['GeneratorMatrix']
+            sage: word = vector((0, 1, 1, 0))
+            sage: C.encode(word, 'GeneratorMatrix')
+            (1, 1, 0, 0, 1, 1, 0)
+        """
+        E = self.encoder(encoder_name, **kwargs)
+        return E.encode(word)
+
+    @cached_method
+    def encoder(self, encoder_name=None, **kwargs):
+        r"""
+        Returns an encoder of ``self``.
+
+        The returned encoder provided by this method is cached.
+
+        This methods creates a new instance of the encoder subclass designated by ``encoder_name``.
+        While it is also possible to do the same by directly calling the subclass' constructor,
+        it is strongly advised to use this method to take advantage of the caching mechanism.
+
+        INPUT:
+
+        - ``encoder_name`` -- (default: ``None``) name of the encoder which will be
+          returned. The default encoder of ``self`` will be used if
+          default value is kept.
+
+        - ``kwargs`` -- all additional arguments are forwarded to the constructor of the encoder
+          this method will return.
+
+        OUTPUT:
+
+        - an Encoder object.
+
+        .. NOTE::
+
+            The default encoder always has `F^{k}` as message space, with `k` the dimension
+            of ``self`` and `F` the base ring of ``self``.
+
+        EXAMPLES::
+
+            sage: G = Matrix(GF(2), [[1,1,1,0,0,0,0],[1,0,0,1,1,0,0],[0,1,0,1,0,1,0],[1,1,0,1,0,0,1]])
+            sage: C = LinearCode(G)
+            sage: C.encoder()
+            Generator matrix-based encoder for Linear code of length 7, dimension 4 over Finite Field of size 2
+
+        We check that the returned encoder is cached::
+
+            sage: C.encoder.is_in_cache()
+            True
+
+        If the name of an encoder which is not known by ``self`` is passed,
+        an exception will be raised::
+
+            sage: C.encoders_available()
+            ['GeneratorMatrix']
+            sage: C.encoder('NonExistingEncoder')
+            Traceback (most recent call last):
+            ...
+            ValueError: Passed Encoder name not known
+        """
+        if encoder_name is None:
+            encoder_name = self._default_encoder_name
+        if encoder_name in self._registered_encoders:
+            encClass = self._registered_encoders[encoder_name]
+            E = encClass(self, **kwargs)
+            return E
+        else:
+            raise ValueError("Passed Encoder name not known")
+
+    def encoders_available(self, classes=False):
+        r"""
+        Returns a list of the available encoders' names for ``self``.
+
+        INPUT:
+
+        - ``classes`` -- (default: ``False``) if ``classes`` is set to ``True``, it also
+          returns the encoders' classes associated with the encoders' names.
+
+        EXAMPLES::
+
+            sage: G = Matrix(GF(2), [[1,1,1,0,0,0,0],[1,0,0,1,1,0,0],[0,1,0,1,0,1,0],[1,1,0,1,0,0,1]])
+            sage: C = LinearCode(G)
+            sage: C.encoders_available()
+            ['GeneratorMatrix']
+
+            sage: C.encoders_available(True)
+            {'GeneratorMatrix':
+            <class 'sage.coding.linear_code.LinearCodeGeneratorMatrixEncoder'>}
+        """
+        if classes == True:
+            return copy(self._registered_encoders)
+        return self._registered_encoders.keys()
 
     def extended_code(self):
         r"""
@@ -1857,25 +2275,29 @@ class LinearCode(module.Module):
         codeword.set_immutable()
         return codeword
 
-    def generator_matrix(self):
+    def generator_matrix(self, encoder_name=None, **kwargs):
         r"""
-        Return a generator matrix of this code.
+        Returns a generator matrix of ``self``.
+
+        INPUT:
+
+        - ``encoder_name`` -- (default: ``None``) name of the encoder which will be
+          used to compute the generator matrix. The default encoder of ``self``
+          will be used if default value is kept.
+
+        - ``kwargs`` -- all additional arguments are forwarded to the construction of the
+          encoder that is used.
 
         EXAMPLES::
 
-            sage: C1 = codes.HammingCode(3,GF(2))
-            sage: C1.generator_matrix()
-            [1 0 0 0 0 1 1]
-            [0 1 0 0 1 0 1]
-            [0 0 1 0 1 1 0]
-            [0 0 0 1 1 1 1]
-            sage: C2 = codes.HammingCode(2,GF(4,"a"))
-            sage: C2.generator_matrix()
-            [    1     0     0 a + 1     a]
-            [    0     1     0     1     1]
-            [    0     0     1     a a + 1]
+            sage: G = matrix(GF(3),2,[1,-1,1,-1,1,1])
+            sage: code = LinearCode(G)
+            sage: code.generator_matrix()
+            [1 2 1]
+            [2 1 1]
         """
-        return self._generator_matrix
+        E = self.encoder(encoder_name, **kwargs)
+        return E.generator_matrix()
 
     gen_mat = deprecated_function_alias(17973, generator_matrix)
 
@@ -1901,6 +2323,7 @@ class LinearCode(module.Module):
 
     gen_mat_systematic = deprecated_function_alias(17973, generator_matrix_systematic)
 
+    @cached_method
     def gens(self):
         r"""
         Returns the generators of this code as a list of vectors.
@@ -1911,7 +2334,7 @@ class LinearCode(module.Module):
             sage: C.gens()
              [(1, 0, 0, 0, 0, 1, 1), (0, 1, 0, 0, 1, 0, 1), (0, 0, 1, 0, 1, 1, 0), (0, 0, 0, 1, 1, 1, 1)]
         """
-        return self._gens
+        return self.generator_matrix().rows()
 
     def genus(self):
         r"""
@@ -1937,9 +2360,37 @@ class LinearCode(module.Module):
         gammaC = n+1-k-d
         return gammaC
 
+    def __iter__(self):
+        """
+        Return an iterator over the elements of this linear code.
+
+        EXAMPLES::
+
+            sage: C = codes.HammingCode(3,GF(2))
+            sage: [list(c) for c in C if c.hamming_weight() < 4]
+            [[0, 0, 0, 0, 0, 0, 0], [1, 0, 0, 0, 0, 1, 1],
+             [0, 1, 0, 0, 1, 0, 1], [0, 0, 1, 0, 1, 1, 0],
+             [1, 1, 1, 0, 0, 0, 0], [1, 0, 0, 1, 1, 0, 0],
+             [0, 1, 0, 1, 0, 1, 0], [0, 0, 1, 1, 0, 0, 1]]
+
+        TESTS::
+
+            sage: C = codes.HammingCode(3,GF(2))
+            sage: L = list(C)
+            sage: L[10].is_immutable()
+            True
+
+        """
+        from sage.modules.finite_submodule_iter import \
+                                                FiniteFieldsubspace_iterator
+        return FiniteFieldsubspace_iterator(self.generator_matrix(), immutable=True)
+
+    @cached_method
     def information_set(self):
         """
         Return an information set of the code.
+
+        Return value of this method is cached.
 
         A set of column positions of a generator matrix of a code
         is called an information set if the corresponding columns
@@ -2189,6 +2640,7 @@ class LinearCode(module.Module):
         s = 'LinearCode(%s)' % G
         return s
 
+    @cached_method
     def minimum_distance(self, algorithm=None):
         r"""
         Returns the minimum distance of this linear code.
@@ -2257,16 +2709,10 @@ class LinearCode(module.Module):
         # If the minimum distance has already been computed or provided by
         # the user then simply return the stored value.
         # This is done only if algorithm is None.
-        if self._minimum_distance is not None and algorithm is None:
-            return self._minimum_distance
         if algorithm not in (None, "gap", "guava"):
             raise ValueError("The algorithm argument must be one of None, "
                         "'gap' or 'guava'; got '{0}'".format(algorithm))
 
-        #sage: C.minimum_distance_upper_bound()  # optional (net connection)
-        #5
-        #    sage: C.minimum_distance_why()          # optional (net connection)
-        #    Ub(10,5) = 5 follows by the Griesmer bound.
         F = self.base_ring()
         q = F.order()
         G = self.generator_matrix()
@@ -2279,8 +2725,7 @@ class LinearCode(module.Module):
             #print "Running Guava's MinimumWeight ...\n"
             return ZZ(d)
         Gstr = "%s*Z(%s)^0"%(gapG, q)
-        self._minimum_distance = min_wt_vec_gap(Gstr,n,k,F).hamming_weight()
-        return self._minimum_distance
+        return min_wt_vec_gap(Gstr,n,k,F).hamming_weight()
 
     def module_composition_factors(self, gp):
         r"""
@@ -2396,6 +2841,7 @@ class LinearCode(module.Module):
             sage: GG == G # long time
             True
             sage: C.permutation_automorphism_group(algorithm="gap")  # optional - gap_packages (Guava package)
+            Permutation Group with generators [(1,3)(4,5), (1,4)(3,5)]
             sage: C = codes.TernaryGolayCode()
             sage: C.permutation_automorphism_group(algorithm="gap")  # optional - gap_packages (Guava package)
             Permutation Group with generators [(3,4)(5,7)(6,9)(8,11), (3,5,8)(4,11,7)(6,9,10), (2,3)(4,6)(5,8)(7,10), (1,2)(4,11)(5,8)(9,10)]
@@ -2435,20 +2881,20 @@ class LinearCode(module.Module):
                     size = Gp.Size()
                     print "\n Using the %s codewords of weight %s \n Supergroup size: \n %s\n "%(wts[wt],wt,size)
                 gap.eval("Cwt:=Filtered(eltsC,c->WeightCodeword(c)=%s)"%wt)   # bottleneck 2 (repeated
-                gap.eval("matCwt:=List(Cwt,c->VectorCodeword(c))")            #        for each i until stop = 1)
-                A = gap("MatrixAutomorphisms(matCwt)")
-                #print "A = ",A, "\n Gp = ", Gp, "\n strGp = ", str(Gp)
-                G2 = gap("Intersection2(%s,%s)"%(str(A).replace("\n",""),str(Gp).replace("\n",""))) #  bottleneck 3
-                Gp = G2
-                if Gp.Size()==1:
-                    return PermutationGroup([()])
-                autgp_gens = Gp.GeneratorsOfGroup()
-                gens = [Sn(str(x).replace("\n","")) for x in autgp_gens]
-                stop = 1                         # get ready to stop
-                for x in gens:                   # if one of these gens is not an auto then don't stop
-                    if not(self.is_permutation_automorphism(x)):
-                        stop = 0
-                        break
+                gap.eval("matCwt:=List(Cwt,c->VectorCodeword(c))")            # for each i until stop = 1)
+                if gap("Length(matCwt)") > 0:
+                    A = gap("MatrixAutomorphisms(matCwt)")
+                    G2 = gap("Intersection2(%s,%s)"%(str(A).replace("\n",""),str(Gp).replace("\n",""))) #  bottleneck 3
+                    Gp = G2
+                    if Gp.Size()==1:
+                        return PermutationGroup([()])
+                    autgp_gens = Gp.GeneratorsOfGroup()
+                    gens = [Sn(str(x).replace("\n","")) for x in autgp_gens]
+                    stop = 1                    # get ready to stop
+                    for x in gens:              # if one of these gens is not an auto then don't stop
+                        if not(self.is_permutation_automorphism(x)):
+                            stop = 0
+                            break
             G = PermutationGroup(gens)
             return G
         if algorithm=="partition":
@@ -2915,18 +3361,13 @@ class LinearCode(module.Module):
             # version of the Guava libraries, so gives us the location of the Guava binaries too.
             guava_bin_dir = gap.eval('DirectoriesPackagePrograms("guava")[1]')
             guava_bin_dir = guava_bin_dir[guava_bin_dir.index('"') + 1:guava_bin_dir.rindex('"')]
-            input = code2leon(self)
-            from sage.misc.temporary_file import tmp_filename
-            output = tmp_filename()
-            import os
-            status = os.system(os.path.join(guava_bin_dir, 'wtdist')
-                               + ' ' + input + "::code > " + output)
-            if status != 0:
-                raise RuntimeError("Problem calling Leon's wtdist program. Install gap_packages*.spkg and run './configure ../..; make'.")
-            f = open(output); lines = f.readlines(); f.close()
+            input = code2leon(self) + "::code"
+            import os, subprocess
+            lines = subprocess.check_output([os.path.join(guava_bin_dir, 'wtdist'), input])
+            import StringIO  # to use the already present output parser
             wts = [0]*(n+1)
             s = 0
-            for L in lines:
+            for L in StringIO.StringIO(lines).readlines():
                 L = L.strip()
                 if len(L) > 0:
                     o = ord(L[0])
@@ -3021,7 +3462,7 @@ class LinearCode(module.Module):
         Returns the syndrome of ``r``.
 
         The syndrome of ``r`` is the result of `H \times r` where `H` is
-        the parity check matrix of ``self``. If ``r`` belongs to ``self``, 
+        the parity check matrix of ``self``. If ``r`` belongs to ``self``,
         its syndrome equals to the zero vector.
 
         INPUT:
@@ -3031,13 +3472,13 @@ class LinearCode(module.Module):
         OUTPUT:
 
         - a column vector
-        
+
         EXAMPLES::
 
             sage: MS = MatrixSpace(GF(2),4,7)
             sage: G  = MS([[1,1,1,0,0,0,0], [1,0,0,1,1,0,0], [0,1,0,1,0,1,0], [1,1,0,1,0,0,1]])
             sage: C  = LinearCode(G)
-            sage: r = vector(GF(2), (1,0,1,0,1,0,1)) 
+            sage: r = vector(GF(2), (1,0,1,0,1,0,1))
             sage: r in C
             True
             sage: C.syndrome(r)
@@ -3045,7 +3486,7 @@ class LinearCode(module.Module):
 
         If ``r`` is not a codeword, its syndrome is not equal to zero::
 
-            sage: r = vector(GF(2), (1,0,1,0,1,1,1)) 
+            sage: r = vector(GF(2), (1,0,1,0,1,1,1))
             sage: r in C
             False
             sage: C.syndrome(r)
@@ -3060,6 +3501,42 @@ class LinearCode(module.Module):
         """
         return self.parity_check_matrix()*r
 
+    def unencode(self, c, encoder_name=None, nocheck=False, **kwargs):
+        r"""
+        Returns the message corresponding to ``c``.
+
+        This is the inverse of :meth:`encode`.
+
+        INPUT:
+
+        - ``c`` -- a codeword of ``self``
+
+        - ``encoder_name`` -- (default: ``None``) name of the decoder which will be used
+          to decode ``word``. The default decoder of ``self`` will be used if
+          default value is kept.
+
+        - ``nocheck`` -- (default: ``False``) checks if ``c`` is in ``self``. You might set
+          this to ``True`` to disable the check for saving computation. Note that if ``c`` is
+          not in ``self`` and ``nocheck = True``, then the output of :meth:`unencode` is
+          not defined (except that it will be in the message space of ``self``).
+
+        - ``kwargs`` -- all additional arguments are forwarded to the construction of the
+          encoder that is used.
+
+        OUTPUT:
+
+        - an element of the message space of ``encoder_name`` of ``self``.
+
+        EXAMPLES::
+
+            sage: G = Matrix(GF(2), [[1,1,1,0,0,0,0],[1,0,0,1,1,0,0],[0,1,0,1,0,1,0],[1,1,0,1,0,0,1]])
+            sage: C = LinearCode(G)
+            sage: c = vector(GF(2), (1, 1, 0, 0, 1, 1, 0))
+            sage: C.unencode(c)
+            (0, 1, 1, 0)
+        """
+        E = self.encoder(encoder_name, **kwargs)
+        return E.unencode(c, nocheck)
 
     def weight_enumerator(self, names="xy", name2=None):
         """
@@ -3259,3 +3736,546 @@ def LinearCodeFromVectorSpace(V, d=None):
     G = MS([B[i].list() for i in range(k)])
     return LinearCode(G, d=d)
 
+############################ linear codes python class ########################
+
+class LinearCode(AbstractLinearCode):
+    r"""
+    Linear codes over a finite field or finite ring, represented using a
+    generator matrix.
+
+    This class should be used for arbitrary and unstructured linear codes. This
+    means that basic operations on the code, such as the computation of the
+    minimum distance, will use generic, slow algorithms.
+
+    If you are looking for constructing a code from a more specific family, see
+    if the family has been implemented by investigating codes.<tab>. These
+    more specific classes use properties particular for that family to allow
+    faster algorithms, and could also have family-specific methods.
+
+    See :wikipedia:`Linear_code` for more information on unstructured linear codes.
+
+    INPUT:
+
+    - ``generator_matrix`` -- a generator matrix over a finite field (``G`` can be
+      defined over a finite ring but the matrices over that ring must have
+      certain attributes, such as ``rank``)
+
+    - ``d`` -- (optional, default: ``None``) the minimum distance of the code
+
+    .. NOTE::
+
+        The veracity of the minimum distance ``d``, if provided, is not
+        checked.
+
+
+    EXAMPLES::
+
+        sage: MS = MatrixSpace(GF(2),4,7)
+        sage: G  = MS([[1,1,1,0,0,0,0], [1,0,0,1,1,0,0], [0,1,0,1,0,1,0], [1,1,0,1,0,0,1]])
+        sage: C  = LinearCode(G)
+        sage: C
+        Linear code of length 7, dimension 4 over Finite Field of size 2
+        sage: C.base_ring()
+        Finite Field of size 2
+        sage: C.dimension()
+        4
+        sage: C.length()
+        7
+        sage: C.minimum_distance()
+        3
+        sage: C.spectrum()
+        [1, 0, 0, 7, 7, 0, 0, 1]
+        sage: C.weight_distribution()
+        [1, 0, 0, 7, 7, 0, 0, 1]
+
+    The minimum distance of the code, if known, can be provided as an
+    optional parameter.::
+
+        sage: C  = LinearCode(G, d=3)
+        sage: C.minimum_distance()
+        3
+
+    Another example.::
+
+        sage: MS = MatrixSpace(GF(5),4,7)
+        sage: G  = MS([[1,1,1,0,0,0,0], [1,0,0,1,1,0,0], [0,1,0,1,0,1,0], [1,1,0,1,0,0,1]])
+        sage: C  = LinearCode(G)
+        sage: C
+        Linear code of length 7, dimension 4 over Finite Field of size 5
+
+    AUTHORS:
+
+    - David Joyner (11-2005)
+    """
+    def __init__(self, generator_matrix, d=None):
+        r"""
+        See the docstring for :meth:`LinearCode`.
+
+        EXAMPLES::
+
+            sage: MS = MatrixSpace(GF(2),4,7)
+            sage: G  = MS([[1,1,1,0,0,0,0], [1,0,0,1,1,0,0], [0,1,0,1,0,1,0], [1,1,0,1,0,0,1]])
+            sage: C  = LinearCode(G)    # indirect doctest
+            sage: C
+            Linear code of length 7, dimension 4 over Finite Field of size 2
+
+        The minimum distance of the code, if known, can be provided as an
+        optional parameter.::
+
+            sage: C  = LinearCode(G, d=3)
+            sage: C.minimum_distance()
+            3
+
+        TESTS::
+
+            sage: C = codes.HammingCode(3, GF(2))
+            sage: TestSuite(C).run()
+
+        Check that it works even with input matrix with non full rank (see
+        :trac:`17452`)::
+
+            sage: K.<a> = GF(4)
+            sage: G = matrix([[a, a + 1, 1, a + 1, 1, 0, 0],
+            ....:             [0, a, a + 1, 1, a + 1, 1, 0],
+            ....:             [0, 0, a, a + 1, 1, a + 1, 1],
+            ....:             [a + 1, 0, 1, 0, a + 1, 1, a + 1],
+            ....:             [a, a + 1, a + 1, 0, 0, a + 1, 1],
+            ....:             [a + 1, a, a, 1, 0, 0, a + 1],
+            ....:             [a, a + 1, 1, a + 1, 1, 0, 0]])
+            sage: C = LinearCode(G)
+            sage: C.basis()
+            [(1, 0, 0, a + 1, 0, 1, 0),
+             (0, 1, 0, 0, a + 1, 0, 1),
+             (0, 0, 1, a, a + 1, a, a + 1)]
+            sage: C.minimum_distance()
+            3
+
+        Forbid the zero vector space (see :trac:`17452` and :trac:`6486`)::
+
+            sage: G = matrix(GF(2), [[0,0,0]])
+            sage: C = LinearCode(G)
+            Traceback (most recent call last):
+            ...
+            ValueError: this linear code contains no non-zero vector
+        """
+        base_ring = generator_matrix.base_ring()
+        if not base_ring.is_field():
+            raise ValueError("'generator_matrix' must be defined on a field (not a ring)")
+
+        # if the matrix does not have full rank we replace it
+        if generator_matrix.rank() != generator_matrix.nrows():
+            from sage.matrix.constructor import matrix
+            basis = generator_matrix.row_space().basis()
+            generator_matrix = matrix(base_ring, basis)
+
+            if generator_matrix.nrows() == 0:
+                raise ValueError("this linear code contains no non-zero vector")
+
+        super(LinearCode, self).__init__(base_ring, generator_matrix.ncols(), "GeneratorMatrix", "Syndrome")
+        self._generator_matrix = generator_matrix
+        self._dimension = generator_matrix.rank()
+        self._minimum_distance = d
+
+    def _repr_(self):
+        r"""
+        See the docstring for :meth:`LinearCode`.
+
+        EXAMPLES::
+
+            sage: MS = MatrixSpace(GF(2),4,7)
+            sage: G  = MS([[1,1,1,0,0,0,0], [1,0,0,1,1,0,0], [0,1,0,1,0,1,0], [1,1,0,1,0,0,1]])
+            sage: C  = LinearCode(G)
+            sage: C                     # indirect doctest
+            Linear code of length 7, dimension 4 over Finite Field of size 2
+        """
+        return "Linear code of length %s, dimension %s over %s"%(self.length(), self.dimension(), self.base_ring())
+
+    def __hash__(self):
+        r"""
+        Returns the hash value of ``self``.
+
+        EXAMPLES::
+
+        sage: G = Matrix(GF(2), [[1,1,1,0,0,0,0],[1,0,0,1,1,0,0],[0,1,0,1,0,1,0],[1,1,0,1,0,0,1]])
+        sage: C = LinearCode(G)
+        sage: hash(C) #random
+        9015017528451745710
+
+        If ``C1`` and ``C2`` are two codes which only differ by the coefficients of their
+        generator matrices, their hashes are different (we check that the bug found in trac #18813
+        is fixed)::
+
+        sage: G = Matrix(GF(2), [[1,1,1,0,0,0,0],[1,0,0,1,1,0,0],[0,1,0,1,0,1,0],[1,1,0,1,0,0,1]])
+        sage: C1 = LinearCode(G)
+        sage: G = Matrix(GF(2), [[1,0,0,1,0,1,0],[0,1,0,0,1,0,0],[0,0,1,1,0,1,0],[0,0,0,0,0,0,1]])
+        sage: C2 = LinearCode(G)
+        sage: hash(C1) != hash(C2)
+        True
+        """
+        Str = str(self)
+        G = str(self.generator_matrix()) #str because mutable matrices are unhashable
+        return hash((Str, G)) ^ hash(Str) ^ hash(G)
+
+    def generator_matrix(self, encoder_name=None, **kwargs):
+        r"""
+        Returns a generator matrix of ``self``.
+
+        INPUT:
+
+        - ``encoder_name`` -- (default: ``None``) name of the encoder which will be
+          used to compute the generator matrix. ``self._generator_matrix``
+          will be returned if default value is kept.
+
+        - ``kwargs`` -- all additional arguments are forwarded to the construction of the
+          encoder that is used.
+
+        EXAMPLES::
+
+            sage: G = matrix(GF(3),2,[1,-1,1,-1,1,1])
+            sage: code = LinearCode(G)
+            sage: code.generator_matrix()
+            [1 2 1]
+            [2 1 1]
+        """
+        if encoder_name is None or encoder_name is 'GeneratorMatrix':
+            return self._generator_matrix
+        return super(LinearCode, self).generator_matrix(encoder_name, **kwargs)
+
+
+
+
+
+
+
+
+
+
+####################### encoders ###############################
+class LinearCodeGeneratorMatrixEncoder(Encoder):
+    r"""
+    Encoder based on generator_matrix for Linear codes.
+
+    This is the default encoder of a generic linear code, and should never be used for other codes than
+    :class:`LinearCode`.
+
+    INPUT:
+
+    - ``code`` -- The associated :class:`LinearCode` of this encoder.
+    """
+
+    def __init__(self, code):
+        r"""
+        EXAMPLES::
+
+            sage: G = Matrix(GF(2), [[1,1,1,0,0,0,0],[1,0,0,1,1,0,0],[0,1,0,1,0,1,0],[1,1,0,1,0,0,1]])
+            sage: C = LinearCode(G)
+            sage: E = codes.encoders.LinearCodeGeneratorMatrixEncoder(C)
+            sage: E
+            Generator matrix-based encoder for Linear code of length 7, dimension 4 over Finite Field of size 2
+        """
+        super(LinearCodeGeneratorMatrixEncoder, self).__init__(code)
+
+    def _repr_(self):
+        r"""
+        Returns a string representation of ``self``.
+
+        EXAMPLES::
+
+            sage: G = Matrix(GF(2), [[1,1,1,0,0,0,0],[1,0,0,1,1,0,0],[0,1,0,1,0,1,0],[1,1,0,1,0,0,1]])
+            sage: C = LinearCode(G)
+            sage: E = codes.encoders.LinearCodeGeneratorMatrixEncoder(C)
+            sage: E
+            Generator matrix-based encoder for Linear code of length 7, dimension 4 over Finite Field of size 2
+        """
+        return "Generator matrix-based encoder for %s" % self.code()
+
+    def _latex_(self):
+        r"""
+        Returns a latex representation of ``self``.
+
+        EXAMPLES::
+
+            sage: G = Matrix(GF(2), [[1,1,1,0,0,0,0],[1,0,0,1,1,0,0],[0,1,0,1,0,1,0],[1,1,0,1,0,0,1]])
+            sage: C = LinearCode(G)
+            sage: E = codes.encoders.LinearCodeGeneratorMatrixEncoder(C)
+            sage: latex(E)
+            \textnormal{Generator matrix-based encoder for }[7, 4]\textnormal{ Linear code over }\Bold{F}_{2}
+        """
+        return "\\textnormal{Generator matrix-based encoder for }%s" % self.code()._latex_()
+
+    @cached_method
+    def generator_matrix(self):
+        r"""
+        Returns a generator matrix of the associated code of ``self``.
+
+        EXAMPLES::
+
+            sage: G = Matrix(GF(2), [[1,1,1,0,0,0,0],[1,0,0,1,1,0,0],[0,1,0,1,0,1,0],[1,1,0,1,0,0,1]])
+            sage: C = LinearCode(G)
+            sage: E = codes.encoders.LinearCodeGeneratorMatrixEncoder(C)
+            sage: E.generator_matrix()
+            [1 1 1 0 0 0 0]
+            [1 0 0 1 1 0 0]
+            [0 1 0 1 0 1 0]
+            [1 1 0 1 0 0 1]
+        """
+        return self.code().generator_matrix()
+
+
+
+
+
+
+
+
+
+
+####################### decoders ###############################
+class LinearCodeSyndromeDecoder(Decoder):
+    r"""
+    Construct a decoder for Linear Codes.
+
+    .. WARNING::
+
+        As explained in trac #19623, despite its name this decoder actually uses a
+        nearest neighbor decoding algorithm.
+
+    INPUT:
+
+    - ``code`` -- A code associated to this decoder
+    """
+
+    def __init__(self, code):
+        r"""
+        EXAMPLES::
+
+            sage: G = Matrix(GF(2), [[1,1,1,0,0,0,0],[1,0,0,1,1,0,0],[0,1,0,1,0,1,0],[1,1,0,1,0,0,1]])
+            sage: C = LinearCode(G)
+            sage: D = codes.decoders.LinearCodeSyndromeDecoder(C)
+            sage: D
+            Syndrome decoder for Linear code of length 7, dimension 4 over Finite Field of size 2
+        """
+        super(LinearCodeSyndromeDecoder, self).__init__(code, code.ambient_space(),\
+                code._default_encoder_name)
+
+    def _repr_(self):
+        r"""
+        Return a string representation of ``self``.
+
+        EXAMPLES::
+
+            sage: G = Matrix(GF(2), [[1,1,1,0,0,0,0],[1,0,0,1,1,0,0],[0,1,0,1,0,1,0],[1,1,0,1,0,0,1]])
+            sage: C = LinearCode(G)
+            sage: D = codes.decoders.LinearCodeSyndromeDecoder(C)
+            sage: D
+            Syndrome decoder for Linear code of length 7, dimension 4 over Finite Field of size 2
+        """
+        return "Syndrome decoder for %s" % self.code()
+
+    def _latex_(self):
+        r"""
+        Return a latex representation of ``self``.
+
+        EXAMPLES::
+
+            sage: G = Matrix(GF(2), [[1,1,1,0,0,0,0],[1,0,0,1,1,0,0],[0,1,0,1,0,1,0],[1,1,0,1,0,0,1]])
+            sage: C = LinearCode(G)
+            sage: D = codes.decoders.LinearCodeSyndromeDecoder(C)
+            sage: latex(D)
+            \textnormal{Syndrome decoder for }[7, 4]\textnormal{ Linear code over }\Bold{F}_{2}
+        """
+        return "\\textnormal{Syndrome decoder for }%s" % self.code()._latex_()
+
+    def syndrome(self, r):
+        r"""
+        The vector r is a received word, so should be in the same ambient
+        space V as ``self.code()``.
+        Returns all elements in V having the same syndrome (ie, the coset r+C, sorted by weight).
+
+        INPUT:
+
+        - ``r`` -- a vector of the ambient space of ``self.code()``
+
+        OUTPUT:
+
+        - a list of vectors
+
+        EXAMPLES::
+
+            sage: C = codes.HammingCode(2,GF(3))
+            sage: V = VectorSpace(GF(3), 4)
+            sage: r = V([0, 2, 0, 1])
+            sage: D = codes.decoders.LinearCodeSyndromeDecoder(C)
+            sage: D.syndrome(r)
+             [(0, 0, 1, 0), (0, 2, 0, 1), (2, 0, 0, 2), (1, 1, 0, 0), (2, 2, 2, 0), (1, 0, 2, 1), (0, 1, 2, 2), (1, 2, 1, 2), (2, 1, 1, 1)]
+
+        """
+        C = self.code()
+        V = C.ambient_space()
+        if not isinstance(r, list):
+            r = r.list()
+        r = V(r)
+        coset = [[c + r, (c + r).hamming_weight()] for c in C]
+        return [x[0] for x in sorted(coset, key=lambda x: x[1])]
+
+    def decode_to_code(self, r):
+        r"""
+        Decode the received word ``r`` to an element in associated code of ``self``.
+
+        INPUT:
+
+        - ``r`` -- a vector of same length as the length of the associated
+           code of ``self`` and over the base field of the associated code of ``self``
+
+        OUTPUT:
+
+        - a codeword of the associated code of ``self``
+
+        EXAMPLES::
+
+            sage: G = Matrix(GF(2), [[1,1,1,0,0,0,0],[1,0,0,1,1,0,0],[0,1,0,1,0,1,0],[1,1,0,1,0,0,1]])
+            sage: C = LinearCode(G)
+            sage: D = codes.decoders.LinearCodeSyndromeDecoder(C)
+            sage: word = vector(GF(2), (1, 1, 0, 0, 1, 1, 0))
+            sage: w_err = word + vector(GF(2), (1, 0, 0, 0, 0, 0, 0))
+            sage: D.decode_to_code(word)
+            (1, 1, 0, 0, 1, 1, 0)
+        """
+        V = self.input_space()
+        if not isinstance(r, list):
+            r = r.list()
+        r = V(r)
+        c =  -V(self.syndrome(r)[0]) + r
+        c.set_immutable()
+        return c
+
+    def decoding_radius(self):
+        r"""
+        Return maximal number of errors ``self`` can decode.
+
+        EXAMPLES::
+
+            sage: G = Matrix(GF(2), [[1,1,1,0,0,0,0],[1,0,0,1,1,0,0],[0,1,0,1,0,1,0],[1,1,0,1,0,0,1]])
+            sage: C = LinearCode(G)
+            sage: D = codes.decoders.LinearCodeSyndromeDecoder(C)
+            sage: D.decoding_radius()
+            1
+        """
+
+        return (self.code().minimum_distance()-1) // 2
+
+
+
+
+
+
+
+
+
+
+class LinearCodeNearestNeighborDecoder(Decoder):
+    r"""
+    Construct a decoder for Linear Codes. This decoder will decode to the
+    nearest codeword found.
+
+    INPUT:
+
+    - ``code`` -- A code associated to this decoder
+    """
+
+    def __init__(self, code):
+        r"""
+        EXAMPLES::
+
+            sage: G = Matrix(GF(2), [[1,1,1,0,0,0,0],[1,0,0,1,1,0,0],[0,1,0,1,0,1,0],[1,1,0,1,0,0,1]])
+            sage: C = LinearCode(G)
+            sage: D = codes.decoders.LinearCodeNearestNeighborDecoder(C)
+            sage: D
+            Nearest neighbor decoder for Linear code of length 7, dimension 4 over Finite Field of size 2
+        """
+        super(LinearCodeNearestNeighborDecoder, self).__init__(code, code.ambient_space(), \
+                code._default_encoder_name)
+
+    def _repr_(self):
+        r"""
+        Returns a string representation of ``self``.
+
+        EXAMPLES::
+
+            sage: G = Matrix(GF(2), [[1,1,1,0,0,0,0],[1,0,0,1,1,0,0],[0,1,0,1,0,1,0],[1,1,0,1,0,0,1]])
+            sage: C = LinearCode(G)
+            sage: D = codes.decoders.LinearCodeNearestNeighborDecoder(C)
+            sage: D
+            Nearest neighbor decoder for Linear code of length 7, dimension 4 over Finite Field of size 2
+        """
+        return "Nearest neighbor decoder for %s" % self.code()
+
+    def _latex_(self):
+        r"""
+        Returns a latex representation of ``self``.
+
+        EXAMPLES::
+
+            sage: G = Matrix(GF(2), [[1,1,1,0,0,0,0],[1,0,0,1,1,0,0],[0,1,0,1,0,1,0],[1,1,0,1,0,0,1]])
+            sage: C = LinearCode(G)
+            sage: D = codes.decoders.LinearCodeNearestNeighborDecoder(C)
+            sage: latex(D)
+            \textnormal{Nearest neighbor decoder for }[7, 4]\textnormal{ Linear code over }\Bold{F}_{2}
+        """
+        return "\\textnormal{Nearest neighbor decoder for }%s" % self.code()._latex_()
+
+    def decode_to_code(self, r):
+        r"""
+        Decode the received word ``r`` to the nearest element in associated code of ``self``.
+
+        INPUT:
+
+        - ``r`` -- a vector of same length as the length of the associated
+          code of ``self`` and over the base field of the associated code of ``self``
+
+        OUTPUT:
+
+        - a codeword of the associated code of ``self``
+
+        EXAMPLES::
+
+            sage: G = Matrix(GF(2), [[1,1,1,0,0,0,0],[1,0,0,1,1,0,0],[0,1,0,1,0,1,0],[1,1,0,1,0,0,1]])
+            sage: C = LinearCode(G)
+            sage: D = codes.decoders.LinearCodeNearestNeighborDecoder(C)
+            sage: word = vector(GF(2), (1, 1, 0, 0, 1, 1, 0))
+            sage: w_err = word + vector(GF(2), (1, 0, 0, 0, 0, 0, 0))
+            sage: D.decode_to_code(word)
+            (1, 1, 0, 0, 1, 1, 0)
+        """
+        V = self.input_space()
+        if not isinstance(r, list):
+            r = r.list()
+        r = V(r)
+        diffs = [[c - r, (c - r).hamming_weight()] for c in self.code()]
+        diffs.sort(key=lambda x: x[1])
+        c = diffs[0][0] + r
+        c.set_immutable()
+        return c
+
+    def decoding_radius(self):
+        r"""
+        Return maximal number of errors ``self`` can decode.
+
+        EXAMPLES::
+
+            sage: G = Matrix(GF(2), [[1,1,1,0,0,0,0],[1,0,0,1,1,0,0],[0,1,0,1,0,1,0],[1,1,0,1,0,0,1]])
+            sage: C = LinearCode(G)
+            sage: D = codes.decoders.LinearCodeNearestNeighborDecoder(C)
+            sage: D.decoding_radius()
+            1
+        """
+        return (self.code().minimum_distance()-1) // 2
+
+####################### registration ###############################
+
+LinearCode._registered_encoders["GeneratorMatrix"] = LinearCodeGeneratorMatrixEncoder
+
+LinearCode._registered_decoders["Syndrome"] = LinearCodeSyndromeDecoder
+LinearCodeSyndromeDecoder._decoder_type = {"hard-decision", "unique", "always-succeed", "complete"}
+LinearCode._registered_decoders["NearestNeighbor"] = LinearCodeNearestNeighborDecoder
+LinearCodeNearestNeighborDecoder._decoder_type = {"hard-decision", "unique", "always-succeed", "complete"}

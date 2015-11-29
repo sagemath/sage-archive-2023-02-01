@@ -255,16 +255,15 @@ class InfinitePolynomial_sparse(RingElement):
         """
         return repr(self._p)
 
-    def _hash_(self):
+    def __hash__(self):
         """
         TESTS::
 
             sage: X.<x> = InfinitePolynomialRing(QQ)
             sage: a = x[0] + x[1]
             sage: hash(a) # indirect doctest
-            -6172640511012239345   # 64-bit
-            -957478897             # 32-bit
-
+            971115012877883067 # 64-bit
+            -2103273797        # 32-bit
         """
         return hash(self._p)
 
@@ -334,7 +333,7 @@ class InfinitePolynomial_sparse(RingElement):
         res = R(self._p)(*args, **kwargs)
         try:
             from sage.misc.sage_eval import sage_eval
-            return sage_eval(repr(res), self.parent()._gens_dict)
+            return sage_eval(repr(res), self.parent().gens_dict())
         except Exception:
             return res
 
@@ -1028,8 +1027,7 @@ class InfinitePolynomial_sparse(RingElement):
         # "not Fbig" is now impossible, because we only consider *global* monomial orderings.
         # These are the occurring shifts:
         Lsmall = sorted(Fsmall.keys())
-        Lbig   = Fbig.keys()
-        Lbig.sort()
+        Lbig   = sorted(Fbig.keys())
         P = range(Lbig[-1]+1)
         gens = xrange(PARENT.ngens())
         if Lsmall[0]==0:

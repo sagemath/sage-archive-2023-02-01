@@ -33,7 +33,8 @@ EXAMPLES::
     sage: pari('5! + 10/x')
     (120*x + 10)/x
     sage: pari('intnum(x=0,13,sin(x)+sin(x^2) + x)')
-    85.1885681951527
+    83.8179442684285  # 32-bit
+    84.1818153922297  # 64-bit
     sage: f = pari('x^3-1')
     sage: v = f.factor(); v
     [x - 1, 1; x^2 + x + 1, 1]
@@ -161,22 +162,38 @@ Sage (:trac:`9636`)::
 
 """
 
+#*****************************************************************************
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
+#                  http://www.gnu.org/licenses/
+#*****************************************************************************
+
+
+from .paridecl cimport *
+from .paripriv cimport *
 include 'pari_err.pxi'
 include 'sage/ext/interrupt.pxi'
+cdef extern from *:
+    int sig_on_count "_signals.sig_on_count"
 
 import sys
 
 cimport libc.stdlib
+from libc.stdio cimport *
 cimport cython
 
 from sage.ext.memory cimport sage_malloc, sage_free
 from sage.ext.memory import init_memory_functions
 from sage.structure.parent cimport Parent
+from sage.libs.gmp.all cimport *
 from sage.libs.flint.fmpz cimport fmpz_get_mpz
 from sage.libs.flint.fmpz_mat cimport *
 
 from sage.libs.pari.gen cimport gen, objtogen
 from sage.libs.pari.handle_error cimport _pari_init_error_handling
+from sage.misc.superseded import deprecated_function_alias
 
 # so Galois groups are represented in a sane way
 # See the polgalois section of the PARI users manual.
@@ -514,7 +531,22 @@ cdef class PariInstance(PariInstance_auto):
     def __hash__(self):
         return 907629390   # hash('pari')
 
-    cdef has_coerce_map_from_c_impl(self, x):
+    cpdef _coerce_map_from_(self, x):
+        """
+        Return ``True`` if ``x`` admits a coercion map into the
+        PARI interface.
+
+        This currently always returns ``True``.
+
+        EXAMPLES::
+
+            sage: pari._coerce_map_from_(ZZ)
+            True
+            sage: pari.coerce_map_from(ZZ)
+            Call morphism:
+              From: Integer Ring
+              To:   Interface to the PARI C library
+        """
         return True
 
     def __richcmp__(left, right, int op):
@@ -610,7 +642,7 @@ cdef class PariInstance(PariInstance_auto):
 
         """
         global avma
-        if _signals.sig_on_count <= 1:
+        if sig_on_count <= 1:
             avma = pari_mainstack.top
         pari_catch_sig_off()
 
@@ -967,6 +999,24 @@ cdef class PariInstance(PariInstance_auto):
 
     cdef _an_element_c_impl(self):  # override this in Cython
         return self.PARI_ZERO
+
+    cpdef gen zero(self):
+        """
+        EXAMPLES::
+
+            sage: pari.zero()
+            0
+        """
+        return self.PARI_ZERO
+
+    cpdef gen one(self):
+        """
+        EXAMPLES::
+
+            sage: pari.one()
+            1
+        """
+        return self.PARI_ONE
 
     def new_with_bits_prec(self, s, long precision):
         r"""
@@ -1332,22 +1382,24 @@ cdef class PariInstance(PariInstance_auto):
         pari_catch_sig_on()
         return self.new_gen(pollegendre(n, self.get_var(v)))
 
-    def poltchebi(self, long n, v=-1):
+    def polchebyshev(self, long n, v=-1):
         """
-        poltchebi(n, v=x): Chebyshev polynomial of the first kind of degree
+        polchebyshev(n, v=x): Chebyshev polynomial of the first kind of degree
         n, in variable v.
 
         EXAMPLES::
 
-            sage: pari.poltchebi(7)
+            sage: pari.polchebyshev(7)
             64*x^7 - 112*x^5 + 56*x^3 - 7*x
-            sage: pari.poltchebi(7, 'z')
+            sage: pari.polchebyshev(7, 'z')
             64*z^7 - 112*z^5 + 56*z^3 - 7*z
-            sage: pari.poltchebi(0)
+            sage: pari.polchebyshev(0)
             1
         """
         pari_catch_sig_on()
         return self.new_gen(polchebyshev1(n, self.get_var(v)))
+
+    poltchebi = deprecated_function_alias(18203, polchebyshev)
 
     def factorial(self, long n):
         """

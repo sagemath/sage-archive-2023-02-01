@@ -4,7 +4,6 @@ Cartesian products
 AUTHORS:
 
 - Nicolas Thiery (2010-03): initial version
-
 """
 #*****************************************************************************
 #       Copyright (C) 2008 Nicolas Thiery <nthiery at users.sf.net>,
@@ -14,24 +13,45 @@ AUTHORS:
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+import itertools
+
 from sage.misc.misc import attrcall
 from sage.misc.cachefunc import cached_method
 from sage.misc.superseded import deprecated_function_alias
+from sage.misc.misc_c import prod
+
 from sage.categories.sets_cat import Sets
+
 from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.element_wrapper import ElementWrapper
+
+from sage.rings.integer_ring import ZZ
+from sage.rings.infinity import Infinity
 
 class CartesianProduct(UniqueRepresentation, Parent):
     """
     A class implementing a raw data structure for cartesian products
     of sets (and elements thereof). See :obj:`cartesian_product` for
-    how to construct full fledge cartesian products.
+    how to construct full fledged cartesian products.
+
+    EXAMPLES::
+
+        sage: G = cartesian_product([GF(5), Permutations(10)])
+        sage: G.cartesian_factors()
+        (Finite Field of size 5, Standard permutations of 10)
+        sage: G.cardinality()
+        18144000
+        sage: G.random_element()    # random
+        (1, [4, 7, 6, 5, 10, 1, 3, 2, 8, 9])
+        sage: G.category()
+        Join of Category of finite monoids
+            and Category of Cartesian products of monoids
+            and Category of Cartesian products of finite enumerated sets
 
     .. automethod:: _cartesian_product_of_elements
     """
-
-    def __init__(self, sets, category, flatten = False):
+    def __init__(self, sets, category, flatten=False):
         r"""
         INPUT:
 
@@ -40,6 +60,8 @@ class CartesianProduct(UniqueRepresentation, Parent):
          - ``flatten`` -- a boolean (default: ``False``)
 
         ``flatten`` is current ignored, and reserved for future use.
+
+        No other keyword arguments (``kwargs``) are accepted.
 
         TESTS::
 
@@ -50,9 +72,13 @@ class CartesianProduct(UniqueRepresentation, Parent):
             sage: C.an_element()
             (1/2, 1, 1)
             sage: TestSuite(C).run()
+            sage: cartesian_product([ZZ, ZZ], blub=None)
+            Traceback (most recent call last):
+            ...
+            TypeError: __init__() got an unexpected keyword argument 'blub'
         """
-        self._sets = sets
-        Parent.__init__(self, category = category)
+        self._sets = tuple(sets)
+        Parent.__init__(self, category=category)
 
     def _element_constructor_(self,x):
         r"""
@@ -93,7 +119,7 @@ class CartesianProduct(UniqueRepresentation, Parent):
         if len(x) != len(self._sets):
             raise ValueError(
                 "{} should be of length {}".format(x, len(self._sets)))
-        x = tuple(c(xx) for c,xx in zip(self._sets,x))
+        x = tuple(c(xx) for c,xx in itertools.izip(self._sets,x))
         return self.element_class(self, x)
 
     def _repr_(self):
@@ -131,9 +157,12 @@ class CartesianProduct(UniqueRepresentation, Parent):
         EXAMPLES::
 
             sage: cartesian_product([QQ, ZZ, ZZ])._sets_keys()
-            [0, 1, 2]
+            {0, 1, 2}
+            sage: cartesian_product([ZZ]*100)._sets_keys()
+            {0, ..., 99}
         """
-        return range(len(self._sets))
+        from sage.sets.integer_range import IntegerRange
+        return IntegerRange(len(self._sets))
 
     @cached_method
     def cartesian_projection(self, i):
@@ -156,35 +185,26 @@ class CartesianProduct(UniqueRepresentation, Parent):
             sage: pi = C.cartesian_projection(1)
             sage: pi(x)
             42
+
+            sage: C.cartesian_projection('hey')
+            Traceback (most recent call last):
+            ...
+            ValueError: i (=hey) must be in {0, 1, 2}
         """
-        assert i in self._sets_keys()
+        if i not in self._sets_keys():
+            raise ValueError("i (={}) must be in {}".format(i, self._sets_keys()))
         return attrcall("cartesian_projection", i)
 
     summand_projection = deprecated_function_alias(10963, cartesian_projection)
-
-    def __iter__(self):
-        r"""
-        Iterates over the elements of self.
-
-        EXAMPLE::
-
-            sage: F33 = GF(2).cartesian_product(GF(2))
-            sage: list(F33)
-            [(0, 0), (0, 1), (1, 0), (1, 1)]
-        """
-        from itertools import product
-        for x in product(*self._sets):
-            yield self(x)
 
     def _cartesian_product_of_elements(self, elements):
         """
         Return the cartesian product of the given ``elements``.
 
         This implements :meth:`Sets.CartesianProducts.ParentMethods._cartesian_product_of_elements`.
-
         INPUT:
 
-        - ``elements`` -- a tuple (or iterable) with one element of
+        - ``elements`` -- an iterable (e.g. tuple, list) with one element of
           each cartesian factor of ``self``
 
         .. WARNING::
@@ -206,6 +226,45 @@ class CartesianProduct(UniqueRepresentation, Parent):
         assert len(elements) == len(self._sets)
         return self.element_class(self, elements)
 
+    def construction(self):
+        r"""
+        Return the construction functor and its arguments for this
+        cartesian product.
+
+        OUTPUT:
+
+        A pair whose first entry is a cartesian product functor and
+        its second entry is a list of the cartesian factors.
+
+        EXAMPLES::
+
+            sage: cartesian_product([ZZ, QQ]).construction()
+            (The cartesian_product functorial construction,
+             (Integer Ring, Rational Field))
+        """
+        from sage.categories.cartesian_product import cartesian_product
+        return cartesian_product, self.cartesian_factors()
+
+    def _coerce_map_from_(self, S):
+        r"""
+        Return ``True`` if ``S`` coerces into this cartesian product.
+
+        TESTS::
+
+            sage: Z = cartesian_product([ZZ])
+            sage: Q = cartesian_product([QQ])
+            sage: Z.has_coerce_map_from(Q)  # indirect doctest
+            False
+            sage: Q.has_coerce_map_from(Z)  # indirect doctest
+            True
+        """
+        if isinstance(S, CartesianProduct):
+            S_factors = S.cartesian_factors()
+            R_factors = self.cartesian_factors()
+            if len(S_factors) == len(R_factors):
+                if all(r.has_coerce_map_from(s) for r, s in zip(R_factors, S_factors)):
+                    return True
+
     an_element = Sets.CartesianProducts.ParentMethods.an_element
 
     class Element(ElementWrapper):
@@ -219,7 +278,7 @@ class CartesianProduct(UniqueRepresentation, Parent):
             :meth:`Sets.CartesianProducts.ElementMethods.cartesian_projection()
             <sage.categories.sets_cat.Sets.CartesianProducts.ElementMethods.cartesian_projection>`.
 
-            INPUTS:
+            INPUT:
 
             - ``i`` -- the index of a factor of the cartesian product
 
@@ -261,3 +320,17 @@ class CartesianProduct(UniqueRepresentation, Parent):
                 1
             """
             return iter(self.value)
+
+        def cartesian_factors(self):
+            r"""
+            Return the tuple of elements that compose this element.
+
+            EXAMPLES::
+
+                sage: A = cartesian_product([ZZ, RR])
+                sage: A((1, 1.23)).cartesian_factors()
+                (1, 1.23000000000000)
+                sage: type(_)
+                <type 'tuple'>
+            """
+            return self.value

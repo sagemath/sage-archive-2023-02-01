@@ -229,7 +229,7 @@ class RingClassField(SageObject):
     """
     def __init__(self, D, c, check=True):
         """
-        INPUTS:
+        INPUT:
 
             - `D` -- discriminant of quadratic imaginary field
 
@@ -1994,7 +1994,7 @@ class HeegnerPoints_level(HeegnerPoints):
         Return the first `n` quadratic imaginary discriminants that
         satisfy the Heegner hypothesis for `N`.
 
-        INPUTS:
+        INPUT:
 
             - `n` -- nonnegative integer
 
@@ -3526,6 +3526,7 @@ class HeegnerPointOnEllipticCurve(HeegnerPoint):
             - 2-tuple of polynomials with floating point coefficients
 
         EXAMPLES::
+
             sage: E = EllipticCurve('37a')
             sage: y = E.heegner_point(-7,3); y
             Heegner point of discriminant -7 and conductor 3 on elliptic curve of conductor 37
@@ -6177,22 +6178,20 @@ def ell_heegner_point(self, D, c=ZZ(1), f=None, check=True):
     If the optional parameter `c` is given, returns the higher Heegner
     point associated to the order of conductor `c`.
 
-    INPUT::
+    INPUT:
 
-        - `D`        -- a Heegner discriminant
+    - `D`        -- a Heegner discriminant
 
-        - `c`        -- (default: 1) conductor, must be coprime to `DN`
+    - `c`        -- (default: 1) conductor, must be coprime to `DN`
 
-        - `f`        -- binary quadratic form or 3-tuple `(A,B,C)` of coefficients
-                        of `AX^2 + BXY + CY^2`
+    - `f`        -- binary quadratic form or 3-tuple `(A,B,C)` of coefficients
+      of `AX^2 + BXY + CY^2`
 
-        - ``check``  -- bool (default: ``True``)
+    - ``check``  -- bool (default: ``True``)
 
+    OUTPUT:
 
-    OUTPUT::
-
-        The Heegner point `y_c`.
-
+    The Heegner point `y_c`.
 
     EXAMPLES::
 

@@ -1,4 +1,8 @@
-import os, sys
+"get_remote_file"
+
+import os
+import sys
+
 
 def get_remote_file(filename, verbose=True):
     """
@@ -27,16 +31,19 @@ def get_remote_file(filename, verbose=True):
     temp_name = tmp_filename() + '.' + os.path.splitext(filename)[1][1:]
     # IMPORTANT -- urllib takes a long time to load,
     # so do not import it in the module scope.
-    import urllib
+
+    # import compatible with py2 and py3
+    from six.moves.urllib.request import urlretrieve
+
     global cur
     cur = 0
     if verbose:
         sys.stdout.write("Loading: [")
         sys.stdout.flush()
-        urllib.urlretrieve(filename, temp_name, report_hook)
+        urlretrieve(filename, temp_name, report_hook)
         print("]")
     else:
-        urllib.urlretrieve(filename, temp_name)
+        urlretrieve(filename, temp_name)
     return temp_name
 
 cur = 0
@@ -47,4 +54,3 @@ def report_hook(block, size, total):
           cur = n
           sys.stdout.write('.')
           sys.stdout.flush()
-

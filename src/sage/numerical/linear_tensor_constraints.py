@@ -123,7 +123,7 @@ class LinearTensorConstraint(Element):
 
     .. warning::
 
-        This class has no reason to be instanciated by the user, and
+        This class has no reason to be instantiated by the user, and
         is meant to be used by instances of
         :class:`MixedIntegerLinearProgram`.
 
@@ -255,7 +255,7 @@ class LinearTensorConstraint(Element):
             [0 0] <= [x_0   2*x_0]
             [0 0]    [3*x_0 4*x_0]
         """
-        from sage.misc.ascii_art import AsciiArt
+        from sage.typeset.ascii_art import AsciiArt
         def matrix_art(m):
             lines = str(m).splitlines()
             return AsciiArt(lines, baseline=len(lines)/2)

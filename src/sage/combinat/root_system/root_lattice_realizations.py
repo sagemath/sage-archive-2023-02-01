@@ -16,7 +16,7 @@ from sage.misc.abstract_method import abstract_method, AbstractMethod
 from sage.misc.misc import attrcall
 from sage.misc.cachefunc import cached_method, cached_in_parent_method
 from sage.misc.lazy_attribute import lazy_attribute
-from sage.misc.lazy_import import lazy_import, LazyImport
+from sage.misc.lazy_import import LazyImport
 from sage.categories.coxeter_groups import CoxeterGroups
 from sage.categories.category_types import Category_over_base_ring
 from sage.categories.modules_with_basis import ModulesWithBasis
@@ -25,8 +25,9 @@ from sage.sets.family import Family
 from sage.rings.all import ZZ, QQ
 from sage.matrix.constructor import matrix
 from sage.modules.free_module_element import vector
-from sage.combinat.backtrack import TransitiveIdeal, TransitiveIdealGraded
+from sage.sets.recursively_enumerated_set import RecursivelyEnumeratedSet
 from sage.combinat.root_system.plot import PlotOptions, barycentric_projection_matrix
+
 
 class RootLatticeRealizations(Category_over_base_ring):
     r"""
@@ -618,7 +619,7 @@ class RootLatticeRealizations(Category_over_base_ring):
             """
             if not self.cartan_type().is_finite():
                 raise NotImplementedError("only implemented for finite Cartan types")
-            return filter(lambda x: x.is_short_root(), self.roots())
+            return [x for x in self.roots() if x.is_short_root()]
 
         def long_roots(self):
             """
@@ -637,7 +638,7 @@ class RootLatticeRealizations(Category_over_base_ring):
             """
             if not self.cartan_type().is_finite():
                 raise NotImplementedError("only implemented for finite Cartan types")
-            return filter(lambda x: x.is_long_root(), self.roots())
+            return [x for x in self.roots() if x.is_long_root()]
 
         @cached_method
         def positive_roots(self, index_set=None):
@@ -688,8 +689,9 @@ class RootLatticeRealizations(Category_over_base_ring):
                                           " affine Cartan types")
             if index_set is None:
                 index_set = tuple(self.cartan_type().index_set())
-            return TransitiveIdealGraded(attrcall('pred', index_set=index_set),
-                                         [self.simple_root(i) for i in index_set])
+            return RecursivelyEnumeratedSet([self.simple_root(i) for i in index_set],
+                       attrcall('pred', index_set=index_set),
+                       structure='graded', enumeration='breadth')
 
         @cached_method
         def nonparabolic_positive_roots(self, index_set = None):
@@ -786,11 +788,13 @@ class RootLatticeRealizations(Category_over_base_ring):
                  alpha[0] + alpha[1] + 2*alpha[2]]
             """
             if self.cartan_type().is_finite():
-                return tuple(TransitiveIdealGraded(attrcall('pred'), self.simple_roots()))
+                return tuple(RecursivelyEnumeratedSet(self.simple_roots(),
+                    attrcall('pred'), structure='graded',
+                    enumeration='breadth'))
             if not self.cartan_type().is_affine():
                 raise NotImplementedError("only implemented for finite and affine Cartan types")
 
-            from sage.combinat.cartesian_product import CartesianProduct
+            from sage.categories.cartesian_product import cartesian_product
             from sage.combinat.root_system.root_system import RootSystem
             from sage.sets.positive_integers import PositiveIntegers
             from sage.sets.disjoint_union_enumerated_sets import DisjointUnionEnumeratedSets
@@ -809,19 +813,19 @@ class RootLatticeRealizations(Category_over_base_ring):
             # Add all of the delta shifts
             delta = self.null_root()
             if self.cartan_type().is_untwisted_affine():
-                C = CartesianProduct(PositiveIntegers(), Q.roots())
+                C = cartesian_product([PositiveIntegers(), Q.roots()])
                 F = Family(C, lambda x: lift(x[1]) + x[0]*delta)
                 D = DisjointUnionEnumeratedSets([P, F])
             elif self.cartan_type().type() == 'BC' or self.cartan_type().dual().type() == 'BC':
-                Cs = CartesianProduct(PositiveIntegers(), Q.short_roots())
-                Cl = CartesianProduct(PositiveIntegers(), Q.long_roots())
+                Cs = cartesian_product([PositiveIntegers(), Q.short_roots()])
+                Cl = cartesian_product([PositiveIntegers(), Q.long_roots()])
                 Fs = Family(Cl, lambda x: (lift(x[1]) + (2*x[0]-1)*delta) / 2)
                 Fm = Family(Cs, lambda x: lift(x[1]) + x[0]*delta)
                 Fl = Family(Cl, lambda x: lift(x[1]) + 2*x[0]*delta)
                 D = DisjointUnionEnumeratedSets([P, Fs, Fm, Fl])
             else: # Other twisted types
-                Cs = CartesianProduct(PositiveIntegers(), Q.short_roots())
-                Cl = CartesianProduct(PositiveIntegers(), Q.long_roots())
+                Cs = cartesian_product([PositiveIntegers(), Q.short_roots()])
+                Cl = cartesian_product([PositiveIntegers(), Q.long_roots()])
                 Fs = Family(Cs, lambda x: lift(x[1]) + x[0]*delta)
                 if self.cartan_type().dual() == 'G': # D_4^3
                     k = 3
@@ -933,7 +937,8 @@ class RootLatticeRealizations(Category_over_base_ring):
                 return [x for x in alpha.pred() if x.is_parabolic_root(index_set)]
 
             generators = [x for x in self.simple_roots() if x.is_parabolic_root(index_set)]
-            return TransitiveIdealGraded(parabolic_covers, generators)
+            return RecursivelyEnumeratedSet(generators, parabolic_covers,
+                    structure='graded', enumeration='breadth')
 
         @cached_method
         def positive_roots_nonparabolic(self, index_set = None):
@@ -1023,6 +1028,7 @@ class RootLatticeRealizations(Category_over_base_ring):
 
                 sage: Phi = RootSystem(['A',2]).root_poset(); Phi
                 Finite poset containing 3 elements
+
                 sage: sorted(Phi.cover_relations(), key=str)
                 [[alpha[1], alpha[1] + alpha[2]], [alpha[2], alpha[1] + alpha[2]]]
 
@@ -1040,7 +1046,7 @@ class RootLatticeRealizations(Category_over_base_ring):
 
             TESTS:
 
-            Check that trac:`17982` is fixed::
+            Check that :trac:`17982` is fixed::
 
                 sage: RootSystem(['A', 2]).ambient_space().root_poset()
                 Finite poset containing 3 elements
@@ -1190,7 +1196,7 @@ class RootLatticeRealizations(Category_over_base_ring):
                 raise ValueError("%s is not a finite Cartan type"%(self.cartan_type()))
             from sage.combinat.combinat import MapCombinatorialClass
             return MapCombinatorialClass(self.positive_roots(), attrcall('__neg__'), "The negative roots of %s"%self)
-            # Todo: use this instead once TransitiveIdeal will be a proper enumerated set
+            # Todo: use this instead once RecursivelyEnumeratedSet will be a proper enumerated set
             #return self.positive_roots().map(attrcall('__negate__'))
 
         ##########################################################################
@@ -1703,7 +1709,8 @@ class RootLatticeRealizations(Category_over_base_ring):
 
             REFERENCES:
 
-                .. [CFZ] Chapoton, Fomin, Zelevinsky - Polytopal realizations of generalized associahedra
+            .. [CFZ] Chapoton, Fomin, Zelevinsky - Polytopal realizations of
+               generalized associahedra, :arxiv:`math/0202004`.
             """
             W = self.weyl_group()
             t = W.from_reduced_word(J)
@@ -1739,7 +1746,7 @@ class RootLatticeRealizations(Category_over_base_ring):
 
             EXAMPLES:
 
-            We explore the example of [CFZ1]_ Eq.(1.3)::
+            We explore the example of [CFZ]_ Eq.(1.3)::
 
                 sage: S = RootSystem(['A',2]).root_lattice()
                 sage: taup, taum = S.tau_plus_minus()
@@ -1749,10 +1756,6 @@ class RootLatticeRealizations(Category_over_base_ring):
                 alpha[1] + alpha[2] , alpha[2] , alpha[1]
                 -alpha[2] , -alpha[2] , alpha[2]
                 alpha[2] , alpha[1] + alpha[2] , -alpha[2]
-
-            REFERENCES:
-
-                .. [CFZ1] Chapoton, Fomin, Zelevinsky - Polytopal realizations of generalized associahedra
             """
             ct = self.cartan_type()
             L,R = ct.index_set_bipartition()
@@ -1784,11 +1787,6 @@ class RootLatticeRealizations(Category_over_base_ring):
                  [-alpha[2], alpha[2], alpha[1] + alpha[2] + alpha[3] + alpha[4], alpha[1] + 2*alpha[2] + alpha[3] + alpha[4]],
                  [-alpha[3], alpha[3], alpha[2] + alpha[3], alpha[1] + alpha[2] + alpha[4]],
                  [-alpha[4], alpha[4], alpha[2] + alpha[4], alpha[1] + alpha[2] + alpha[3]]]
-
-            REFERENCES:
-
-            .. [CFZ2] Chapoton, Fomin, Zelevinsky - Polytopal realizations of
-               generalized associahedra
             """
             # TODO: this should use a generic function for computing
             # orbits under the action of a group:
@@ -2149,11 +2147,14 @@ class RootLatticeRealizations(Category_over_base_ring):
         @cached_method
         def _plot_projection_barycentric_matrix(self):
             """
-            A rational approximation of the matrix for the barycentric projection
+            A rational approximation of the matrix for the barycentric
+            projection.
 
-            OUTPUT: a matrix with rational coefficients whose column sum is zero
+            OUTPUT:
 
-            .. SEE_ALSO::
+            a matrix with rational coefficients whose column sum is zero
+
+            .. SEEALSO::
 
                 - :func:`sage.combinat.root_system.plot.barycentric_projection_matrix`
                 - :meth:`_plot_projection_barycentric`
@@ -2179,7 +2180,6 @@ class RootLatticeRealizations(Category_over_base_ring):
                 (0, 0, 0)
 
             """
-            from sage.matrix.constructor import matrix
             from sage.symbolic.constants import pi
             m = matrix(QQ, barycentric_projection_matrix(self.dimension()-1, angle=2*pi/3).n(20))
             # We want to guarantee that the sum of the columns of the
@@ -2797,7 +2797,7 @@ class RootLatticeRealizations(Category_over_base_ring):
             #     def neighbors(x):
             #         return filter(lambda y: plot_options.bounding_box.contains(plot_options.origin_projected+y),
             #                       [immutable_vector(x+epsilon*t) for t in translation_vectors for epsilon in [-1,1]])
-            #     alcoves_shift = list(TransitiveIdeal(neighbors, [immutable_vector(plot_options.origin_projected)]))
+            #     alcoves_shift = list(RecursivelyEnumeratedSet([immutable_vector(plot_options.origin_projected)], neighbors))
             # else:
             #     alcoves_shift = [sum(x*v for x,v in zip(alcove, translation_vectors))
             #                      for alcove in alcoves]
@@ -3015,7 +3015,7 @@ class RootLatticeRealizations(Category_over_base_ring):
             for i,b in enumerate(paths):
                 prev = plot_options.projection(self.zero())
                 for x in b.value:
-                    next = plot_options.projection(self(x))
+                    next = prev + plot_options.projection(self(x))
                     G += line([prev, next], rgbcolor=color[i])
                     prev = next
                 if plot_labels is not None:
@@ -3140,6 +3140,63 @@ class RootLatticeRealizations(Category_over_base_ring):
                         mid += diff / QQ(10)
                     G += plot_options.text(i, mid, rgbcolor=plot_options.color(i))
             return G
+
+        @cached_method
+        def dual_type_cospace(self):
+            r"""
+            Returns the cospace of dual type.
+
+            For example, if invoked on the root lattice of type `['B',2]`, returns the
+            coroot lattice of type `['C',2]`.
+
+            ..warning::
+
+                Not implemented for ambient spaces.
+
+            EXAMPLES::
+
+                sage: CartanType(['B',2]).root_system().root_lattice().dual_type_cospace()
+                Coroot lattice of the Root system of type ['C', 2]
+                sage: CartanType(['F',4]).root_system().coweight_lattice().dual_type_cospace()
+                Weight lattice of the Root system of type ['F', 4] relabelled by {1: 4, 2: 3, 3: 2, 4: 1}
+
+            """
+            from root_space import RootSpace
+            from weight_space import WeightSpace
+
+            if isinstance(self, RootSpace):
+                if self.root_system.dual_side:
+                    return self.cartan_type().root_system().root_space(self.base_ring())
+                else:
+                    return self.cartan_type().dual().root_system().coroot_space(self.base_ring())
+            if isinstance(self, WeightSpace):
+                if self.root_system.dual_side:
+                    return self.cartan_type().root_system().weight_space(self.base_ring())
+                else:
+                    return self.cartan_type().dual().root_system().coweight_space(self.base_ring())
+            raise TypeError("Not implemented for %s" % self)
+
+        @abstract_method(optional=True)
+        def to_ambient_space_morphism(self):
+            r"""
+            Return the morphism to the ambient space.
+
+            EXAMPLES::
+
+                sage: CartanType(['B',2]).root_system().root_lattice().to_ambient_space_morphism()
+                Generic morphism:
+                From: Root lattice of the Root system of type ['B', 2]
+                To:   Ambient space of the Root system of type ['B', 2]
+                sage: CartanType(['B',2]).root_system().coroot_lattice().to_ambient_space_morphism()
+                Generic morphism:
+                From: Coroot lattice of the Root system of type ['B', 2]
+                To:   Ambient space of the Root system of type ['B', 2]
+                sage: CartanType(['B',2]).root_system().weight_lattice().to_ambient_space_morphism()
+                Generic morphism:
+                From: Weight lattice of the Root system of type ['B', 2]
+                To:   Ambient space of the Root system of type ['B', 2]
+
+            """
 
     ##########################################################################
 
@@ -3314,7 +3371,9 @@ class RootLatticeRealizations(Category_over_base_ring):
                 sage: len(L.fundamental_weights()[2].orbit())
                 6
             """
-            return [x for x in TransitiveIdealGraded(attrcall('simple_reflections'), [self])]
+            R = RecursivelyEnumeratedSet([self], attrcall('simple_reflections'),
+                    structure=None, enumeration='breadth')
+            return list(R)
 
         ##########################################################################
         #
@@ -3694,7 +3753,8 @@ class RootLatticeRealizations(Category_over_base_ring):
                 sage: sorted([len(x.greater()) for x in L.rho().orbit()])
                 [1, 2, 2, 2, 3, 3, 3, 3, 4, 4, 4, 5, 5, 6, 6, 6, 8, 8, 8, 8, 12, 12, 12, 24]
             """
-            return [x for x in TransitiveIdeal(attrcall('succ'), [self])]
+            R = RecursivelyEnumeratedSet([self], attrcall('succ'), structure=None)
+            return list(R.naive_search_iterator())
 
         def smaller(self):
             r"""
@@ -3714,7 +3774,53 @@ class RootLatticeRealizations(Category_over_base_ring):
                 sage: sorted([len(x.smaller()) for x in L.rho().orbit()])
                 [1, 2, 2, 2, 3, 3, 3, 3, 4, 4, 4, 5, 5, 6, 6, 6, 8, 8, 8, 8, 12, 12, 12, 24]
             """
-            return [x for x in TransitiveIdeal(attrcall('pred'), [self])]
+            R = RecursivelyEnumeratedSet([self], attrcall('pred'), structure=None)
+            return list(R.naive_search_iterator())
+
+        def extraspecial_pair(self):
+            r"""
+            Return the extraspecial pair of ``self`` under the ordering
+            defined by
+            :meth:`~sage.combinat.root_system.root_lattice_realizations.RootLatticeRealizations.ParentMethods.positive_roots_by_height`.
+
+            The *extraspecial pair* of a positive root `\gamma` with some total
+            ordering `<` of the root lattice that respects height is the pair
+            of positive roots `(\alpha, \beta)` such that `\gamma = \alpha +
+            \beta` and `\alpha` is as small as possible.
+
+            EXAMPLES::
+
+                sage: Q = RootSystem(['G', 2]).root_lattice()
+                sage: Q.highest_root().extraspecial_pair()
+                (alpha[2], 3*alpha[1] + alpha[2])
+            """
+            if self.is_positive_root():
+                r = self
+            else:
+                r = -self
+            p_roots = self.parent().positive_roots_by_height()
+            # We won't need any roots higher than us
+            p_roots = p_roots[:p_roots.index(r)]
+            for i, a in enumerate(p_roots):
+                for b in p_roots[i + 1:]:
+                    if a + b == r:
+                        return (a, b)
+            raise ValueError("Unable to find an extraspecial pair")
+
+        def height(self):
+            r"""
+            Return the height of ``self``.
+
+            The height of a root `\alpha = \sum_i a_i \alpha_i` is defined
+            to be `h(\alpha) := \sum_i a_i`.
+
+            EXAMPLES::
+
+                sage: Q = RootSystem(['G', 2]).root_lattice()
+                sage: Q.highest_root().height()
+                5
+            """
+            return sum(self.coefficients())
 
         ##########################################################################
         # Level
@@ -4064,6 +4170,74 @@ class RootLatticeRealizations(Category_over_base_ring):
             #if ct.type() == 'C' or ct.type() == 'G':
             #    return True
             #return False
+
+        def to_dual_type_cospace(self):
+            r"""
+            Map ``self`` to the dual type cospace.
+
+            For example, if ``self`` is in the root lattice of type `['B',2]`, send it to
+            the coroot lattice of type `['C',2]`.
+
+            EXAMPLES::
+
+                sage: v = CartanType(['C',3]).root_system().weight_lattice().an_element(); v
+                2*Lambda[1] + 2*Lambda[2] + 3*Lambda[3]
+                sage: w = v.to_dual_type_cospace(); w
+                2*Lambdacheck[1] + 2*Lambdacheck[2] + 3*Lambdacheck[3]
+                sage: w.parent()
+                Coweight lattice of the Root system of type ['B', 3]
+
+            """
+            return self.parent().dual_type_cospace().from_vector(self.to_vector())
+
+        def to_classical(self):
+            r"""
+            Map ``self`` to the classical lattice/space.
+
+            Only makes sense for affine type.
+
+            EXAMPLES::
+
+                sage: R = CartanType(['A',3,1]).root_system()
+                sage: alpha = R.root_lattice().an_element(); alpha
+                2*alpha[0] + 2*alpha[1] + 3*alpha[2]
+                sage: alb = alpha.to_classical(); alb
+                alpha[2] - 2*alpha[3]
+                sage: alb.parent()
+                Root lattice of the Root system of type ['A', 3]
+                sage: v = R.ambient_space().an_element(); v
+                2*e[0] + 2*e[1] + 3*e[2]
+                sage: v.to_classical()
+                (2, 2, 3, 0)
+
+            """
+            return self.parent().classical()(self)
+
+        @abstract_method(optional=True)
+        def to_ambient(self):
+            r"""
+            Map ``self`` to the ambient space.
+
+            EXAMPLES::
+
+                sage: alpha = CartanType(['B',4]).root_system().root_lattice().an_element(); alpha
+                2*alpha[1] + 2*alpha[2] + 3*alpha[3]
+                sage: alpha.to_ambient()
+                (2, 0, 1, -3)
+                sage: mu = CartanType(['B',4]).root_system().weight_lattice().an_element(); mu
+                2*Lambda[1] + 2*Lambda[2] + 3*Lambda[3]
+                sage: mu.to_ambient()
+                (7, 5, 3, 0)
+                sage: v = CartanType(['B',4]).root_system().ambient_space().an_element(); v
+                (2, 2, 3, 0)
+                sage: v.to_ambient()
+                (2, 2, 3, 0)
+                sage: alphavee = CartanType(['B',4]).root_system().coroot_lattice().an_element(); alphavee
+                2*alphacheck[1] + 2*alphacheck[2] + 3*alphacheck[3]
+                sage: alphavee.to_ambient()
+                (2, 0, 1, -3)
+
+            """
 
         def is_long_root(self):
             """

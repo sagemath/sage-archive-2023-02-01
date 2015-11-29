@@ -388,7 +388,7 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
         Returns either the real or imaginary component of self depending on
         the choice of i: real (i=0), imaginary (i=1)
 
-        INPUTS:
+        INPUT:
 
         - ``i`` - 0 or 1
             - ``0`` -- will return the real component of ``self``
@@ -462,7 +462,7 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
         r"""
         Return a string representation of ``self``.
 
-        INPUTS:
+        INPUT:
 
         - ``base`` --  (Default: 10) The base to use for printing
 
@@ -818,7 +818,7 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
             1.4553 + 0.34356*I
         """
         if isinstance(right, (int, long, integer.Integer)):
-            return sage.rings.ring_element.RingElement.__pow__(self, right)
+            return RingElement.__pow__(self, right)
 
         try:
             return (self.log()*right).exp()
@@ -1123,11 +1123,10 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
         """
         return complex(mpfr_get_d(self.__re, rnd),
                        mpfr_get_d(self.__im, rnd))
-        # return complex(float(self.__re), float(self.__im))
 
-    def __richcmp__(left, right, int op):
+    cpdef int _cmp_(left, sage.structure.element.Element right) except -2:
         """
-        Rich comparision between ``left`` and ``right``.
+        Compare ``left`` and ``right``.
 
         EXAMPLES::
 
@@ -1136,9 +1135,6 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
             sage: cmp(CC(2, 1), CC(2, 1))
             0
         """
-        return (<Element>left)._richcmp(right, op)
-
-    cdef int _cmp_c_impl(left, sage.structure.element.Element right) except -2:
         cdef int a, b
         a = mpfr_nan_p(left.__re)
         b = mpfr_nan_p((<ComplexNumber>right).__re)

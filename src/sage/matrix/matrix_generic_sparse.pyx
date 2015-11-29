@@ -313,9 +313,6 @@ cdef class Matrix_generic_sparse(matrix_sparse.Matrix_sparse):
         else:
             raise RuntimeError("unknown matrix version (=%s)"%version)
 
-    def __richcmp__(matrix.Matrix self, right, int op):  # always need for mysterious reasons.
-        return self._richcmp(right, op)
-
     def __hash__(self):
         return self._hash()
 
@@ -323,7 +320,7 @@ cdef class Matrix_generic_sparse(matrix_sparse.Matrix_sparse):
     # LEVEL 2 functionality
     # x  * cdef _add_
     #    * cdef _mul_
-    #    * cdef _cmp_c_impl
+    #    * cpdef _cmp_
     #    * __neg__
     #    * __invert__
     # x  * __copy__

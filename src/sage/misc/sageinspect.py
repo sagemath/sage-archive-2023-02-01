@@ -93,13 +93,14 @@ Python functions::
     sage: sage_getsource(sage.misc.sageinspect.sage_getfile)[4:]
     'sage_getfile(obj):...'
 
-Unfortunately, there is no argspec extractable from builtins::
+Unfortunately, no argspec is extractable from builtins. Hence, we use a
+generic argspec::
 
     sage: sage_getdef(''.find, 'find')
-    'find( [noargspec] )'
+    'find(*args, **kwds)'
 
     sage: sage_getdef(str.find, 'find')
-    'find( [noargspec] )'
+    'find(*args, **kwds)'
 
 By :trac:`9976` and :trac:`14017`, introspection also works for interactively
 defined Cython code, and with rather tricky argument lines::
@@ -120,6 +121,23 @@ import tokenize
 import types
 EMBEDDED_MODE = False
 from sage.env import SAGE_SRC
+
+def loadable_module_extension():
+    r"""
+    Return the filename extension of loadable modules, including the dot.
+    It is '.dll' on cygwin, '.so' otherwise.
+
+    EXAMPLES::
+
+        sage: from sage.misc.sageinspect import loadable_module_extension
+        sage: sage.structure.sage_object.__file__.endswith(loadable_module_extension())
+        True
+    """
+    import sys
+    if sys.platform == 'cygwin':
+        return os.path.extsep+'dll'
+    else:
+        return os.path.extsep+'so'
 
 def isclassinstance(obj):
     r"""
@@ -212,6 +230,48 @@ def _extract_embedded_position(docstring):
     original = res.group('ORIGINAL')
     return (original, filename, lineno)
 
+def _extract_embedded_signature(docstring, name):
+    r"""
+    If docstring starts with the embedded of a method called ``name``, return
+    a tuple (original_docstring, argspec).  If not, return (docstring, None).
+
+    See :trac:`17814`.
+
+    INPUT: ``docstring`` (string)
+
+    AUTHORS:
+
+    - Simon King
+
+    EXAMPLES::
+
+        sage: from sage.misc.sageinspect import _extract_embedded_signature
+        sage: from sage.misc.nested_class import MainClass
+        sage: print _extract_embedded_signature(MainClass.NestedClass.NestedSubClass.dummy.__doc__, 'dummy')[0]
+        File: sage/misc/nested_class.pyx (starting at line 314)
+        ...
+        sage: _extract_embedded_signature(MainClass.NestedClass.NestedSubClass.dummy.__doc__, 'dummy')[1]
+        ArgSpec(args=['self', 'x', 'r'], varargs='args', keywords='kwds', defaults=((1, 2, 3.4),))
+        sage: _extract_embedded_signature(range.__call__.__doc__, '__call__')
+        ('x.__call__(...) <==> x(...)', None)
+
+    """
+    # If there is an embedded signature, it is in the first line
+    L = docstring.split(os.linesep, 1)
+    firstline = L[0]
+    # It is possible that the signature is of the form ClassName.method_name,
+    # and thus we need to do the following:
+    if name not in firstline:
+        return docstring, None
+    signature = firstline.split(name, 1)[-1]
+    if signature.startswith("(") and signature.endswith(")"):
+        docstring = L[1] if len(L)>1 else '' # Remove first line, keep the rest
+        def_string = "def "+name+signature+": pass"
+        try:
+            return docstring, inspect.ArgSpec(*_sage_getargspec_cython(def_string))
+        except SyntaxError:
+            docstring = os.linesep.join(L)
+    return docstring, None
 
 class BlockFinder:
     """
@@ -776,7 +836,7 @@ def _split_syntactical_unit(s):
         ...
         SyntaxError: Syntactical group starting with '(' did not end with ')'
 
-    Numbers are not recognised:::
+    Numbers are not recognised::
 
         sage: _split_syntactical_unit('123')
         ('1', '23')
@@ -1154,6 +1214,12 @@ def sage_getfile(obj):
         sage: sage_getfile(Foo)
         '...pyx'
 
+    By :trac:`18249`, we return an empty string for Python builtins. In that
+    way, there is no error when the user types, for example, ``range?``::
+
+        sage: sage_getfile(range)
+        ''
+
     AUTHORS:
 
     - Nick Alexander
@@ -1174,9 +1240,12 @@ def sage_getfile(obj):
         return sage_getfile(obj.__class__) #inspect.getabsfile(obj.__class__)
 
     # No go? fall back to inspect.
-    sourcefile = inspect.getabsfile(obj)
-    if sourcefile.endswith(os.path.extsep+'so'):
-        return sourcefile[:-3]+os.path.extsep+'pyx'
+    try:
+        sourcefile = inspect.getabsfile(obj)
+    except TypeError: # this happens for Python builtins
+        return ''
+    if sourcefile.endswith(loadable_module_extension()):
+        return sourcefile[:-len(loadable_module_extension())]+os.path.extsep+'pyx'
     return sourcefile
 
 def sage_getargspec(obj):
@@ -1325,6 +1394,24 @@ def sage_getargspec(obj):
         sage: sage_getargspec(gap)
         ArgSpec(args=['self', 'x', 'name'], varargs=None, keywords=None, defaults=(None,))
 
+    By :trac:`17814`, the following gives the correct answer (previously, the
+    defaults would have been found ``None``)::
+
+        sage: from sage.misc.nested_class import MainClass
+        sage: sage_getargspec(MainClass.NestedClass.NestedSubClass.dummy)
+        ArgSpec(args=['self', 'x', 'r'], varargs='args', keywords='kwds', defaults=((1, 2, 3.4),))
+
+    In :trac:`18249` was decided to return a generic signature for Python
+    builtin functions, rather than to raise an error (which is what Python's
+    inspect module does)::
+
+        sage: import inspect
+        sage: inspect.getargspec(range)
+        Traceback (most recent call last):
+        ...
+        TypeError: <built-in function range> is not a Python function
+        sage: sage_getargspec(range)
+        ArgSpec(args=[], varargs='args', keywords='kwds', defaults=None)
 
     AUTHORS:
 
@@ -1335,6 +1422,8 @@ def sage_getargspec(obj):
     """
     from sage.misc.lazy_attribute import lazy_attribute
     from sage.misc.abstract_method import AbstractMethod
+    if inspect.isclass(obj):
+        return sage_getargspec(obj.__call__)
     if isinstance(obj, (lazy_attribute, AbstractMethod)):
         source = sage_getsource(obj)
         return inspect.ArgSpec(*_sage_getargspec_cython(source))
@@ -1344,10 +1433,17 @@ def sage_getargspec(obj):
         return inspect.ArgSpec(*obj._sage_argspec_())
     except (AttributeError, TypeError):
         pass
-    if hasattr(obj, 'func_code'):
+    # If we are lucky, the function signature is embedded in the docstring.
+    docstring = _sage_getdoc_unformatted(obj)
+    name = obj.__name__ if hasattr(obj,'__name__') else type(obj).__name__
+    argspec = _extract_embedded_signature(docstring, name)[1]
+    if argspec is not None:
+        return argspec
+    if hasattr(obj, '__code__'):
+        # Note that this may give a wrong result for the constants!
         try:
-            args, varargs, varkw = inspect.getargs(obj.func_code)
-            return inspect.ArgSpec(args, varargs, varkw, obj.func_defaults)
+            args, varargs, varkw = inspect.getargs(obj.__code__)
+            return inspect.ArgSpec(args, varargs, varkw, obj.__defaults__)
         except (TypeError, AttributeError):
             pass
     if isclassinstance(obj):
@@ -1364,16 +1460,20 @@ def sage_getargspec(obj):
             base_spec = sage_getargspec(obj.func)
             return base_spec
         return sage_getargspec(obj.__class__.__call__)
-    elif inspect.isclass(obj):
-        return sage_getargspec(obj.__call__)
     elif (hasattr(obj, '__objclass__') and hasattr(obj, '__name__') and
           obj.__name__ == 'next'):
         # Handle sage.rings.ring.FiniteFieldIterator.next and similar
         # slot wrappers.  This is mainly to suppress Sphinx warnings.
         return ['self'], None, None, None
     else:
-        # Perhaps it is binary and defined in a Cython file
-        source = sage_getsource(obj)
+        # We try to get the argspec by reading the source, which may be
+        # expensive, but should only be needed for functions defined outside
+        # of the Sage library (since otherwise the signature should be
+        # embedded in the docstring)
+        try:
+            source = sage_getsource(obj)
+        except TypeError: # happens for Python builtins
+            source = ''
         if source:
             return inspect.ArgSpec(*_sage_getargspec_cython(source))
         else:
@@ -1386,13 +1486,18 @@ def sage_getargspec(obj):
         try:
             args, varargs, varkw = inspect.getargs(func_obj)
         except TypeError: # arg is not a code object
-        # The above "hopefully" was wishful thinking:
-            return inspect.ArgSpec(*_sage_getargspec_cython(sage_getsource(obj)))
-            #return _sage_getargspec_from_ast(sage_getsource(obj))
+            # The above "hopefully" was wishful thinking:
+            try:
+                return inspect.ArgSpec(*_sage_getargspec_cython(sage_getsource(obj)))
+            except TypeError: # This happens for Python builtins
+                # The best we can do is to return a generic argspec
+                args = []
+                varargs = 'args'
+                varkw = 'kwds'
     try:
         defaults = func_obj.__defaults__
     except AttributeError:
-        defaults = tuple([])
+        defaults = None
     return inspect.ArgSpec(args, varargs, varkw, defaults)
 
 def sage_getdef(obj, obj_name=''):
@@ -1590,23 +1695,10 @@ def sage_getdoc_original(obj):
     else:
         typ = type(obj)
 
-    s = _sage_getdoc_unformatted(obj)
+    s,argspec = _extract_embedded_signature(_sage_getdoc_unformatted(obj), typ.__name__)
     if s:
         pos = _extract_embedded_position(s)
-        if pos is None:
-            # It can still be that the doc starts with the signature of the
-            # class' __init__ method, but does not contain embedding
-            # information. This is particularly critical if it contains * or
-            # **, which would be misinterpreted by sphinx.
-            name = typ.__name__.split('.')[-1]
-            if s.startswith(name + "("):
-                L = s.split(os.linesep, 1)
-                if L[0].endswith(")"):
-                    if len(L) < 2:
-                        s = ""    # The doc was just one line with the signature
-                    else:
-                        s = L[1]  # Remove first line, keep the rest
-        else:
+        if pos is not None:
             s = pos[0]
     if not s:
         try:

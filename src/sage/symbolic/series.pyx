@@ -88,7 +88,8 @@ cdef class SymbolicSeries(Expression):
 
         EXAMPLES::
 
-            sage: exp(x).series(x,10).is_series()
+            sage: ex = exp(x).series(x,10)
+            sage: ex.is_series()
             True
         """
         return True

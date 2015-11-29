@@ -1,12 +1,12 @@
 r"""
 Sets of morphisms between differentiable manifolds
 
-The class :class:`DiffManifoldHomset` implements sets of morphisms between
+The class :class:`DifferentiableManifoldHomset` implements sets of morphisms between
 two differentiable manifolds over the same topological field `K` (in most
 applications, `K = \RR` or `K = \CC`), a morphism being a *differentiable map*
 for the category of differentiable manifolds.
 
-The subclass :class:`DiffManifoldCurveSet` is devoted to the specific case of
+The subclass :class:`DifferentiableCurveSet` is devoted to the specific case of
 differential curves, i.e. morphisms whose domain is an open interval of
 `\RR`.
 
@@ -31,16 +31,16 @@ REFERENCES:
 #                  http://www.gnu.org/licenses/
 #******************************************************************************
 
-from sage.manifolds.manifold_homset import TopManifoldHomset
+from sage.manifolds.manifold_homset import TopologicalManifoldHomset
 from sage.manifolds.differentiable.diff_map import DiffMap
-from sage.manifolds.differentiable.curve import DiffManifoldCurve
+from sage.manifolds.differentiable.curve import DifferentiableCurve
 
-class DiffManifoldHomset(TopManifoldHomset):
+class DifferentiableManifoldHomset(TopologicalManifoldHomset):
     r"""
     Set of differentiable maps between two differentiable manifolds.
 
     Given two differentiable manifolds `M` and `N` over a topological field `K`,
-    the class :class:`DiffManifoldHomset` implements the set
+    the class :class:`DifferentiableManifoldHomset` implements the set
     `\mathrm{Hom}(M,N)` of morphisms (i.e. differentiable maps)
     `M\rightarrow N`.
 
@@ -51,30 +51,30 @@ class DiffManifoldHomset(TopManifoldHomset):
 
     - ``domain`` -- differentiable manifold `M` (domain of the morphisms),
       as an instance of
-      :class:`~sage.manifolds.differentiable.manifold.DiffManifold`
+      :class:`~sage.manifolds.differentiable.manifold.DifferentiableManifold`
     - ``codomain`` -- differentiable manifold `N` (codomain of the morphisms),
       as an instance of
-      :class:`~sage.manifolds.differentiable.manifold.DiffManifold`
+      :class:`~sage.manifolds.differentiable.manifold.DifferentiableManifold`
     - ``name`` -- (default: ``None``) string; name given to the homset; if
-      none is provided, Hom(M,N) will be used
+      ``None``, Hom(M,N) will be used
     - ``latex_name`` -- (default: ``None``) string; LaTeX symbol to denote the
-      homset; if none is provided, `\mathrm{Hom}(M,N)` will be used
+      homset; if ``None``, `\mathrm{Hom}(M,N)` will be used
 
     EXAMPLES:
 
     Set of differentiable maps between a 2-dimensional differentiable manifold
     and a 3-dimensional one::
 
-        sage: M = DiffManifold(2, 'M')
+        sage: M = Manifold(2, 'M')
         sage: X.<x,y> = M.chart()
-        sage: N = DiffManifold(3, 'N')
+        sage: N = Manifold(3, 'N')
         sage: Y.<u,v,w> = N.chart()
         sage: H = Hom(M, N) ; H
         Set of Morphisms from 2-dimensional differentiable manifold M to
          3-dimensional differentiable manifold N in Category of smooth
          manifolds over Real Field with 53 bits of precision
         sage: type(H)
-        <class 'sage.manifolds.differentiable.manifold_homset.DiffManifoldHomset_with_category'>
+        <class 'sage.manifolds.differentiable.manifold_homset.DifferentiableManifoldHomset_with_category'>
         sage: H.category()
         Category of homsets of topological spaces
         sage: latex(H)
@@ -148,9 +148,9 @@ class DiffManifoldHomset(TopManifoldHomset):
         r"""
         TESTS::
 
-            sage: M = DiffManifold(2, 'M')
+            sage: M = Manifold(2, 'M')
             sage: X.<x,y> = M.chart()
-            sage: N = DiffManifold(3, 'N')
+            sage: N = Manifold(3, 'N')
             sage: Y.<u,v,w> = N.chart()
             sage: H = Hom(M, N) ; H
             Set of Morphisms from 2-dimensional differentiable manifold M to
@@ -167,15 +167,15 @@ class DiffManifoldHomset(TopManifoldHomset):
             sage: TestSuite(E).run()
 
         """
-        from sage.manifolds.differentiable.manifold import DiffManifold
-        if not isinstance(domain, DiffManifold):
+        from sage.manifolds.differentiable.manifold import DifferentiableManifold
+        if not isinstance(domain, DifferentiableManifold):
             raise TypeError("domain = {} is not an ".format(domain) +
-                            "instance of DiffManifold")
-        if not isinstance(codomain, DiffManifold):
+                            "instance of DifferentiableManifold")
+        if not isinstance(codomain, DifferentiableManifold):
             raise TypeError("codomain = {} is not an ".format(codomain) +
-                            "instance of DiffManifold")
-        TopManifoldHomset.__init__(self, domain, codomain, name=name,
-                                   latex_name=latex_name)
+                            "instance of DifferentiableManifold")
+        TopologicalManifoldHomset.__init__(self, domain, codomain, name=name,
+                                           latex_name=latex_name)
 
     #### Parent methods ####
 
@@ -185,9 +185,9 @@ class DiffManifoldHomset(TopManifoldHomset):
 
         EXAMPLE::
 
-            sage: M = DiffManifold(2, 'M')
+            sage: M = Manifold(2, 'M')
             sage: X.<x,y> = M.chart()
-            sage: N = DiffManifold(3, 'N')
+            sage: N = Manifold(3, 'N')
             sage: Y.<u,v,w> = N.chart()
             sage: H = Hom(M,N)
             sage: H._coerce_map_from_(ZZ)
@@ -206,17 +206,17 @@ class DiffManifoldHomset(TopManifoldHomset):
 
 #******************************************************************************
 
-class DiffManifoldCurveSet(DiffManifoldHomset):
+class DifferentiableCurveSet(DifferentiableManifoldHomset):
     r"""
     Set of differentiable curves in a differentiable manifold.
 
     Given an open interval `I` of `\RR` (possibly `I=\RR`) and
     a differentiable manifold `M` over `\RR`, the class
-    :class:`DiffManifoldCurveSet` implements the set `\mathrm{Hom}(I,M)` of
+    :class:`DifferentiableCurveSet` implements the set `\mathrm{Hom}(I,M)` of
     morphisms (i.e. differentiable curves) `I\rightarrow M`.
 
     This is a Sage *parent* class, whose *element* class is
-    :class:`~sage.manifolds.differentiable.curve.DiffManifoldCurve`.
+    :class:`~sage.manifolds.differentiable.curve.DifferentiableCurve`.
 
     INPUT:
 
@@ -226,7 +226,7 @@ class DiffManifoldCurveSet(DiffManifoldHomset):
       of :class:`~sage.manifolds.differentiable.real_line.RealLine` if `I=\RR`
     - ``codomain`` -- differentiable manifold `M` (codomain of the morphisms),
       as an instance of
-      :class:`~sage.manifolds.differentiable.manifold.DiffManifold`
+      :class:`~sage.manifolds.differentiable.manifold.DifferentiableManifold`
     - ``name`` -- (default: ``None``) string; name given to the set of
       curves; if none is provided, Hom(I,M) will be used
     - ``latex_name`` -- (default: ``None``) string; LaTeX symbol to denote the
@@ -237,7 +237,7 @@ class DiffManifoldCurveSet(DiffManifoldHomset):
     Set of curves `\RR \longrightarrow M`, where `M` is a 2-dimensional
     manifold::
 
-        sage: M = DiffManifold(2, 'M')
+        sage: M = Manifold(2, 'M')
         sage: X.<x,y> = M.chart()
         sage: R.<t> = RealLine() ; R
         Real number line R
@@ -246,7 +246,7 @@ class DiffManifoldCurveSet(DiffManifoldHomset):
          differentiable manifold M in Category of smooth manifolds over Real
          Field with 53 bits of precision
         sage: type(H)
-        <class 'sage.manifolds.differentiable.manifold_homset.DiffManifoldCurveSet_with_category'>
+        <class 'sage.manifolds.differentiable.manifold_homset.DifferentiableCurveSet_with_category'>
         sage: H.category()
         Category of homsets of topological spaces
         sage: latex(H)
@@ -259,7 +259,7 @@ class DiffManifoldCurveSet(DiffManifoldHomset):
     An element of ``H`` is a curve in ``M``::
 
         sage: H.Element
-        <class 'sage.manifolds.differentiable.curve.DiffManifoldCurve'>
+        <class 'sage.manifolds.differentiable.curve.DifferentiableCurve'>
         sage: c = H.an_element() ; c
         Curve in the 2-dimensional differentiable manifold M
         sage: c.display()
@@ -360,35 +360,34 @@ class DiffManifoldCurveSet(DiffManifoldHomset):
 
     """
 
-    Element = DiffManifoldCurve
+    Element = DifferentiableCurve
 
     def __init__(self, domain, codomain, name=None, latex_name=None):
         r"""
         TESTS::
 
-            sage: M = DiffManifold(3, 'M')
+            sage: M = Manifold(3, 'M')
             sage: X.<x,y,z> = M.chart()
             sage: R.<t> = RealLine()
-            sage: from sage.manifolds.differentiable.manifold_homset import DiffManifoldCurveSet
-            sage: H = DiffManifoldCurveSet(R, M) ; H
+            sage: H = Hom(R, M) ; H
             Set of Morphisms from Real number line R to 3-dimensional
              differentiable manifold M in Category of smooth manifolds over
              Real Field with 53 bits of precision
             sage: TestSuite(H).run()
-            sage: DiffManifoldCurveSet(R, M) is Hom(R, M)
+            sage: Hom(R, M) is Hom(R, M)
             True
-            sage: H = DiffManifoldCurveSet(R, R) ; H
+            sage: H = Hom(R, R) ; H
             Set of Morphisms from Real number line R to Real number line R in
              Category of smooth manifolds over Real Field with 53 bits of
              precision
             sage: TestSuite(H).run()
             sage: I = R.open_interval(-1, 2)
-            sage: H =  DiffManifoldCurveSet(I, M) ; H
+            sage: H = Hom(I, M) ; H
             Set of Morphisms from Real interval (-1, 2) to 3-dimensional
              differentiable manifold M in Category of smooth facade manifolds
              over Real Field with 53 bits of precision
             sage: TestSuite(H).run()
-            sage: H =  DiffManifoldCurveSet(I, I) ; H
+            sage: H = Hom(I, I) ; H
             Set of Morphisms from Real interval (-1, 2) to Real interval
              (-1, 2) in Category of smooth facade manifolds over Real Field
              with 53 bits of precision
@@ -398,8 +397,8 @@ class DiffManifoldCurveSet(DiffManifoldHomset):
         from sage.manifolds.differentiable.real_line import OpenInterval
         if not isinstance(domain, OpenInterval):
             raise TypeError("{} is not an open real interval".format(domain))
-        TopManifoldHomset.__init__(self, domain, codomain, name=name,
-                                latex_name=latex_name)
+        DifferentiableManifoldHomset.__init__(self, domain, codomain, name=name,
+                                              latex_name=latex_name)
 
 
     #### Parent methods ####
@@ -414,19 +413,18 @@ class DiffManifoldCurveSet(DiffManifoldHomset):
         OUTPUT:
 
         - instance of
-          :class:`~sage.manifolds.differentiable.curve.DiffManifoldCurve`
+          :class:`~sage.manifolds.differentiable.curve.DifferentiableCurve`
 
         EXAMPLES::
 
-            sage: M = DiffManifold(2, 'M')
+            sage: M = Manifold(2, 'M')
             sage: X.<x,y> = M.chart()
             sage: R.<t> = RealLine() ; R
             Real number line R
             sage: H = Hom(R, M)
-            sage: c = H._element_constructor_({X: [sin(t), sin(2*t)/2]},
-            ....:                             name='c') ; c
+            sage: c = H({X: [sin(t), sin(2*t)/2]}, name='c') ; c
             Curve c in the 2-dimensional differentiable manifold M
-            sage: c = Hom(R, R)._element_constructor_({}, is_identity=True) ; c
+            sage: c = Hom(R, R)({}, is_identity=True) ; c
             Identity map Id_R of the Real number line R
 
         """
@@ -443,11 +441,11 @@ class DiffManifoldCurveSet(DiffManifoldHomset):
         OUTPUT:
 
         - instance of
-          :class:`~sage.manifolds.differentiable.curve.DiffManifoldCurve`
+          :class:`~sage.manifolds.differentiable.curve.DifferentiableCurve`
 
         EXAMPLES::
 
-            sage: M = DiffManifold(3, 'M')
+            sage: M = Manifold(3, 'M')
             sage: X.<x,y,z> = M.chart()
             sage: R.<t> = RealLine()
             sage: c = Hom(R,M)._an_element_() ; c

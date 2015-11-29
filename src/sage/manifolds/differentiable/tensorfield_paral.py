@@ -35,7 +35,7 @@ EXAMPLES:
 
 A tensor field of type (1,1) on a 2-dimensional differentiable manifold::
 
-    sage: M = DiffManifold(2, 'M', start_index=1)
+    sage: M = Manifold(2, 'M', start_index=1)
     sage: c_xy.<x,y> = M.chart()
     sage: t = M.tensor_field(1, 1, 'T') ; t
     Tensor field T of type (1,1) on the 2-dimensional differentiable manifold M
@@ -400,7 +400,7 @@ class TensorFieldParal(FreeModuleTensor, TensorField):
 
     A tensor field of type (2,0) on a 3-dimensional parallelizable manifold::
 
-        sage: M = DiffManifold(3, 'M')
+        sage: M = Manifold(3, 'M')
         sage: c_xyz.<x,y,z> = M.chart()  # makes M parallelizable
         sage: t = M.tensor_field(2, 0, 'T') ; t
         Tensor field T of type (2,0) on the 3-dimensional differentiable
@@ -421,9 +421,9 @@ class TensorFieldParal(FreeModuleTensor, TensorField):
 
         sage: e = M.vector_frame('e') ; M.set_default_frame(e)
         sage: for i in M.irange():
-        ...       for j in M.irange():
-        ...           t[i,j] = (i+1)**(j+1)
-        ...
+        ....:     for j in M.irange():
+        ....:         t[i,j] = (i+1)**(j+1)
+        ....:
         sage: [[ t[i,j] for j in M.irange()] for i in M.irange()]
         [[1, 1, 1], [2, 4, 8], [3, 9, 27]]
 
@@ -598,7 +598,7 @@ class TensorFieldParal(FreeModuleTensor, TensorField):
     Example of tensor field associated with a non-trivial differentiable
     map `\Phi`: tensor field along a curve in `M`::
 
-        sage: R = DiffManifold(1, 'R')  # R as a 1-dimensional manifold
+        sage: R = Manifold(1, 'R')  # R as a 1-dimensional manifold
         sage: T.<t> = R.chart()  # canonical chart on R
         sage: Phi = R.diff_map(M, [cos(t), sin(t), t], name='Phi') ; Phi
         Differentiable map Phi from the 1-dimensional differentiable manifold R
@@ -625,8 +625,7 @@ class TensorFieldParal(FreeModuleTensor, TensorField):
         Construction via ``parent.element_class``, and not via a direct call
         to ``TensorFieldParal``, to fit with the category framework::
 
-            sage: DiffManifold._clear_cache_() # for doctests only
-            sage: M = DiffManifold(2, 'M')
+            sage: M = Manifold(2, 'M')
             sage: X.<x,y> = M.chart()
             sage: XM = M.vector_field_module()
             sage: T02 = M.tensor_field_module((0,2))
@@ -663,7 +662,7 @@ class TensorFieldParal(FreeModuleTensor, TensorField):
 
         TESTS::
 
-            sage: M = DiffManifold(2, 'M')
+            sage: M = Manifold(2, 'M')
             sage: X.<x,y> = M.chart()  # makes M parallelizable
             sage: t = M.tensor_field(1,1, name='t')
             sage: t._repr_()
@@ -684,7 +683,7 @@ class TensorFieldParal(FreeModuleTensor, TensorField):
 
         TESTS::
 
-            sage: M = DiffManifold(2, 'M')
+            sage: M = Manifold(2, 'M')
             sage: X.<x,y> = M.chart()  # makes M parallelizable
             sage: t = M.tensor_field(1,1, name='t')
             sage: t._new_instance()
@@ -694,8 +693,8 @@ class TensorFieldParal(FreeModuleTensor, TensorField):
             True
 
         """
-        return self.__class__(self._fmodule, self._tensor_type, sym=self._sym,
-                                antisym=self._antisym)
+        return type(self)(self._fmodule, self._tensor_type, sym=self._sym,
+                          antisym=self._antisym)
 
     def _init_derived(self):
         r"""
@@ -703,7 +702,7 @@ class TensorFieldParal(FreeModuleTensor, TensorField):
 
         TEST::
 
-            sage: M = DiffManifold(2, 'M')
+            sage: M = Manifold(2, 'M')
             sage: X.<x,y> = M.chart()  # makes M parallelizable
             sage: t = M.tensor_field(1,1, name='t')
             sage: t._init_derived()
@@ -725,7 +724,7 @@ class TensorFieldParal(FreeModuleTensor, TensorField):
 
         TEST::
 
-            sage: M = DiffManifold(2, 'M')
+            sage: M = Manifold(2, 'M')
             sage: X.<x,y> = M.chart()  # makes M parallelizable
             sage: t = M.tensor_field(1,1, name='t')
             sage: t._del_derived()
@@ -735,6 +734,36 @@ class TensorFieldParal(FreeModuleTensor, TensorField):
         TensorField._del_derived(self)
         if del_restrictions:
             self._restrictions.clear()
+
+    def _test_pickling(self, **options):
+        r"""
+        Test pickling.
+
+        This test is weaker than
+        :meth:`sage.structure.sage_object.SageObject._test_pickling` in that
+        it does not require ``loads(dumps(self)) == self``.
+        It however checks that ``loads(dumps(self))`` proceeds without any
+        error and results in an object that is a tensor type of the same type
+        as ``self``.
+
+        TEST::
+
+            sage: M = Manifold(2, 'M')
+            sage: X.<x,y> = M.chart()  # makes M parallelizable
+            sage: G = M.automorphism_field_group()
+            sage: G._test_pickling()
+
+        """
+        tester = self._tester(**options)
+        from sage.misc.all import loads, dumps
+        bckp = loads(dumps(self))
+        tester.assertEqual(type(bckp), type(self))
+        tester.assertEqual(bckp._domain.dimension(), self._domain.dimension())
+        tester.assertEqual(bckp._ambient_domain.dimension(),
+                           self._ambient_domain.dimension())
+        tester.assertEqual(bckp._tensor_type, self._tensor_type)
+        tester.assertEqual(bckp._sym, self._sym)
+        tester.assertEqual(bckp._antisym, self._antisym)
 
     def set_comp(self, basis=None):
         r"""
@@ -759,7 +788,7 @@ class TensorFieldParal(FreeModuleTensor, TensorField):
 
         EXAMPLES::
 
-            sage: M = DiffManifold(2, 'M')
+            sage: M = Manifold(2, 'M')
             sage: X.<x,y> = M.chart()
             sage: e_xy = X.frame()
             sage: t = M.tensor_field(1,1, name='t')
@@ -845,7 +874,7 @@ class TensorFieldParal(FreeModuleTensor, TensorField):
 
         EXAMPLES::
 
-            sage: M = DiffManifold(2, 'M')
+            sage: M = Manifold(2, 'M')
             sage: X.<x,y> = M.chart()
             sage: e_xy = X.frame()
             sage: t = M.tensor_field(1,1, name='t')
@@ -926,7 +955,7 @@ class TensorFieldParal(FreeModuleTensor, TensorField):
 
         EXAMPLES::
 
-            sage: M = DiffManifold(2, 'M', start_index=1)
+            sage: M = Manifold(2, 'M', start_index=1)
             sage: X.<x,y> = M.chart()
             sage: t = M.tensor_field(1,2, name='t')
             sage: t[1,2,1] = x*y
@@ -980,8 +1009,7 @@ class TensorFieldParal(FreeModuleTensor, TensorField):
 
         EXAMPLES::
 
-            sage: DiffManifold._clear_cache_() # for doctests only
-            sage: M = DiffManifold(2, 'M')
+            sage: M = Manifold(2, 'M')
             sage: X.<x,y> = M.chart()
             sage: a = M.tensor_field(1,2, name='a')
             sage: a[0,1,0] = 2
@@ -1129,7 +1157,7 @@ class TensorFieldParal(FreeModuleTensor, TensorField):
 
         Lie derivative of a vector::
 
-            sage: M = DiffManifold(2, 'M', start_index=1)
+            sage: M = Manifold(2, 'M', start_index=1)
             sage: c_xy.<x,y> = M.chart()
             sage: v = M.vector_field('v')
             sage: v[:] = (-y, x)
@@ -1225,7 +1253,7 @@ class TensorFieldParal(FreeModuleTensor, TensorField):
 
         - ``subdomain`` -- open subset `U` of the tensor field domain `S`
           (must be an instance of
-          :class:`~sage.manifolds.differentiable.manifold.DiffManifold`)
+          :class:`~sage.manifolds.differentiable.manifold.DifferentiableManifold`)
         - ``dest_map`` -- (default: ``None``) destination map
           `\Psi:\ U \rightarrow V`, where `V` is an open subset of the manifold
           `M` where the tensor field takes it values
@@ -1243,7 +1271,7 @@ class TensorFieldParal(FreeModuleTensor, TensorField):
 
         Restriction of a vector field defined on `\RR^2` to a disk::
 
-            sage: M = DiffManifold(2, 'R^2')
+            sage: M = Manifold(2, 'R^2')
             sage: c_cart.<x,y> = M.chart() # Cartesian coordinates on R^2
             sage: v = M.vector_field('v')
             sage: v[:] = [x+y, -1+x^2]
@@ -1304,7 +1332,7 @@ class TensorFieldParal(FreeModuleTensor, TensorField):
             resu = smodule.tensor(self._tensor_type, name=self._name,
                                   latex_name=self._latex_name, sym=self._sym,
                                   antisym=self._antisym,
-                                  specific_type=self.__class__)
+                                  specific_type=type(self))
             for frame in self._components:
                 for sframe in subdomain._covering_frames:
                     if sframe in frame._subframes:
@@ -1345,8 +1373,7 @@ class TensorFieldParal(FreeModuleTensor, TensorField):
 
         Action of a tensor field of type (1,1)::
 
-            sage: DiffManifold._clear_cache_() # for doctests only
-            sage: M = DiffManifold(2, 'M')
+            sage: M = Manifold(2, 'M')
             sage: X.<x,y> = M.chart()
             sage: t = M.tensor_field(1,1, name='t')
             sage: t[:] = [[1+x, 2], [y, -x^2]]
@@ -1433,7 +1460,7 @@ class TensorFieldParal(FreeModuleTensor, TensorField):
         Contraction of a tensor field of type (2,0) with a tensor field of
         type (1,1)::
 
-            sage: M = DiffManifold(2, 'M')
+            sage: M = Manifold(2, 'M')
             sage: X.<x,y> = M.chart()
             sage: a = M.tensor_field(2,0, name='a')
             sage: a[:] = [[1+x, 2], [y, -x^2]]
@@ -1502,7 +1529,7 @@ class TensorFieldParal(FreeModuleTensor, TensorField):
 
         TESTS::
 
-            sage: M = DiffManifold(2, 'M')
+            sage: M = Manifold(2, 'M')
             sage: X.<x,y> = M.chart()
             sage: a = M.tensor_field(0,2, name='a')
             sage: a[:] = [[1+x, 2], [y, -x^2]]
@@ -1575,7 +1602,7 @@ class TensorFieldParal(FreeModuleTensor, TensorField):
         Display of the components of a type-(2,1) tensor field on a
         2-dimensional manifold::
 
-            sage: M = DiffManifold(2, 'M')
+            sage: M = Manifold(2, 'M')
             sage: X.<x,y> = M.chart()
             sage: t = M.tensor_field(2, 1, name='t', sym=(0,1))
             sage: t[0,0,0], t[0,1,0], t[1,1,1] = x+y, x*y, -3
@@ -1703,7 +1730,7 @@ class TensorFieldParal(FreeModuleTensor, TensorField):
         INPUT:
 
         - ``point`` -- (instance of
-          :class:`~sage.manifolds.point.TopManifoldPoint`) point `p` in the
+          :class:`~sage.manifolds.point.TopologicalManifoldPoint`) point `p` in the
           domain of the tensor field (`U`)
 
         OUTPUT:
@@ -1718,8 +1745,8 @@ class TensorFieldParal(FreeModuleTensor, TensorField):
         Vector in a tangent space of a 2-dimensional manifold::
 
             sage: from sage.manifolds.differentiable.tangent_space import TangentSpace  # for doctests only
-            sage: TangentSpace._clear_cache_(); DiffManifold._clear_cache_() # for doctests only
-            sage: M = DiffManifold(2, 'M')
+            sage: TangentSpace._clear_cache_()  # for doctests only
+            sage: M = Manifold(2, 'M')
             sage: c_xy.<x,y> = M.chart()
             sage: p = M.point((-2,3), name='p')
             sage: v = M.vector_field('v')
@@ -1781,7 +1808,7 @@ class TensorFieldParal(FreeModuleTensor, TensorField):
 
         Example with a non trivial map `\Phi`::
 
-            sage: U = DiffManifold(1, 'U')  # (0,2*pi) as a 1-dimensional manifold
+            sage: U = Manifold(1, 'U')  # (0,2*pi) as a 1-dimensional manifold
             sage: T.<t> = U.chart(r't:(0,2*pi)')  # canonical chart on U
             sage: Phi = U.diff_map(M, [cos(t), sin(t)], name='Phi',
             ....:                  latex_name=r'\Phi')

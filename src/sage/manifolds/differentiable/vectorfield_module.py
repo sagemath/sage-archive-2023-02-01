@@ -99,7 +99,7 @@ class VectorFieldModule(UniqueRepresentation, Parent):
 
     Module of vector fields on the 2-sphere::
 
-        sage: M = DiffManifold(2, 'M') # the 2-dimensional sphere S^2
+        sage: M = Manifold(2, 'M') # the 2-dimensional sphere S^2
         sage: U = M.open_subset('U') # complement of the North pole
         sage: c_xy.<x,y> = U.chart() # stereographic coordinates from the North pole
         sage: V = M.open_subset('V') # complement of the South pole
@@ -173,7 +173,7 @@ class VectorFieldModule(UniqueRepresentation, Parent):
 
         TESTS::
 
-            sage: M = DiffManifold(2, 'M') # the 2-dimensional sphere S^2
+            sage: M = Manifold(2, 'M') # the 2-dimensional sphere S^2
             sage: U = M.open_subset('U') # complement of the North pole
             sage: c_xy.<x,y> = U.chart() # stereographic coordinates from the North pole
             sage: V = M.open_subset('V') # complement of the South pole
@@ -244,18 +244,16 @@ class VectorFieldModule(UniqueRepresentation, Parent):
 
         TESTS::
 
-            sage: M = DiffManifold(2, 'M')
+            sage: M = Manifold(2, 'M')
             sage: U = M.open_subset('U'); V = M.open_subset('V')
             sage: c_xy.<x,y> = U.chart(); c_uv.<u,v> = V.chart()
             sage: M.declare_union(U,V)
             sage: XM = M.vector_field_module()
-            sage: v = XM._element_constructor_(comp=[-x,y], frame=c_xy.frame(),
-            ....:                              name='v')
-            sage: v
+            sage: v = XM([-x,y], frame=c_xy.frame(), name='v'); v
             Vector field v on the 2-dimensional differentiable manifold M
             sage: v.display()
             v = -x d/dx + y d/dy
-            sage: XM._element_constructor_(0) is XM.zero()
+            sage: XM(0) is XM.zero()
             True
 
         """
@@ -279,7 +277,7 @@ class VectorFieldModule(UniqueRepresentation, Parent):
 
         TEST::
 
-            sage: M = DiffManifold(2, 'M')
+            sage: M = Manifold(2, 'M')
             sage: U = M.open_subset('U'); V = M.open_subset('V')
             sage: c_xy.<x,y> = U.chart(); c_uv.<u,v> = V.chart()
             sage: M.declare_union(U,V)
@@ -306,7 +304,7 @@ class VectorFieldModule(UniqueRepresentation, Parent):
 
         TEST::
 
-            sage: M = DiffManifold(2, 'M')
+            sage: M = Manifold(2, 'M')
             sage: U = M.open_subset('U')
             sage: XM = M.vector_field_module()
             sage: XU = U.vector_field_module()
@@ -330,7 +328,7 @@ class VectorFieldModule(UniqueRepresentation, Parent):
 
         TEST::
 
-            sage: M = DiffManifold(2, 'M')
+            sage: M = Manifold(2, 'M')
             sage: XM = M.vector_field_module()
             sage: XM._repr_()
             'Module X(M) of vector fields on the 2-dimensional differentiable manifold M'
@@ -358,7 +356,7 @@ class VectorFieldModule(UniqueRepresentation, Parent):
 
         TEST::
 
-            sage: M = DiffManifold(2, 'M')
+            sage: M = Manifold(2, 'M')
             sage: XM = M.vector_field_module()
             sage: XM._latex_()
             '\\mathcal{X}\\left(M\\right)'
@@ -371,6 +369,55 @@ class VectorFieldModule(UniqueRepresentation, Parent):
         else:
            return self._latex_name
 
+    def __reduce__(self):
+        r"""
+        Reduction function for the pickle protocole.
+
+        TEST::
+
+            sage: M = Manifold(2, 'M')
+            sage: XM = M.vector_field_module()
+            sage: XM.__reduce__()
+            (<class 'sage.manifolds.differentiable.vectorfield_module.VectorFieldModule'>,
+             (2-dimensional differentiable manifold M,
+              Identity map Id_M of the 2-dimensional differentiable manifold M))
+
+        Test of pickling::
+
+            sage: loads(dumps(XM))
+            Module X(M,Id_M) of vector fields along the 2-dimensional
+             differentiable manifold M mapped into the 2-dimensional
+             differentiable manifold M
+
+        """
+        return (VectorFieldModule, (self._domain, self._dest_map))
+
+    def _test_pickling(self, **options):
+        r"""
+        Test pickling.
+
+        This test is weaker than
+        :meth:`sage.structure.sage_object.SageObject._test_pickling` in that
+        it does not require ``loads(dumps(self)) == self``.
+        It however checks that ``loads(dumps(self))`` proceeds without any
+        error and results in an object that is a module of vector fields of
+        the same type as ``self``.
+
+        TEST::
+
+            sage: M = Manifold(2, 'M')
+            sage: XM = M.vector_field_module()
+            sage: XM._test_pickling()
+
+        """
+        tester = self._tester(**options)
+        from sage.misc.all import loads, dumps
+        bckp = loads(dumps(self))
+        tester.assertEqual(type(bckp), type(self))
+        tester.assertEqual(bckp._domain.dimension(), self._domain.dimension())
+        tester.assertEqual(bckp._ambient_domain.dimension(),
+                           self._ambient_domain.dimension())
+
     def domain(self):
         r"""
         Return the domain of the vector fields in this module.
@@ -381,17 +428,17 @@ class VectorFieldModule(UniqueRepresentation, Parent):
         OUTPUT:
 
         - instance of
-          :class:`~sage.manifolds.differentiable.manifold.DiffManifold`
+          :class:`~sage.manifolds.differentiable.manifold.DifferentiableManifold`
           representing the domain of the vector fields that belong to this
           module
 
         EXAMPLES::
 
-            sage: M = DiffManifold(5, 'M')
+            sage: M = Manifold(5, 'M')
             sage: XM = M.vector_field_module()
             sage: XM.domain()
             5-dimensional differentiable manifold M
-            sage: U = DiffManifold(2, 'U')
+            sage: U = Manifold(2, 'U')
             sage: Phi = U.diff_map(M, name='Phi')
             sage: XU = U.vector_field_module(dest_map=Phi)
             sage: XU.domain()
@@ -411,17 +458,17 @@ class VectorFieldModule(UniqueRepresentation, Parent):
         OUTPUT:
 
         - instance of
-          :class:`~sage.manifolds.differentiable.manifold.DiffManifold`
+          :class:`~sage.manifolds.differentiable.manifold.DifferentiableManifold`
           representing the manifold in which the vector fields of this
           module take their values
 
         EXAMPLES::
 
-            sage: M = DiffManifold(5, 'M')
+            sage: M = Manifold(5, 'M')
             sage: XM = M.vector_field_module()
             sage: XM.ambient_domain()
             5-dimensional differentiable manifold M
-            sage: U = DiffManifold(2, 'U')
+            sage: U = Manifold(2, 'U')
             sage: Phi = U.diff_map(M, name='Phi')
             sage: XU = U.vector_field_module(dest_map=Phi)
             sage: XU.ambient_domain()
@@ -463,11 +510,11 @@ class VectorFieldModule(UniqueRepresentation, Parent):
 
         EXAMPLES::
 
-            sage: M = DiffManifold(5, 'M')
+            sage: M = Manifold(5, 'M')
             sage: XM = M.vector_field_module()
             sage: XM.destination_map()
             Identity map Id_M of the 5-dimensional differentiable manifold M
-            sage: U = DiffManifold(2, 'U')
+            sage: U = Manifold(2, 'U')
             sage: Phi = U.diff_map(M, name='Phi')
             sage: XU = U.vector_field_module(dest_map=Phi)
             sage: XU.destination_map()
@@ -500,7 +547,7 @@ class VectorFieldModule(UniqueRepresentation, Parent):
 
         A tensor field module on a 2-dimensional differentiable manifold::
 
-            sage: M = DiffManifold(2, 'M')
+            sage: M = Manifold(2, 'M')
             sage: XM = M.vector_field_module()
             sage: XM.tensor_module(1,2)
             Module T^(1,2)(M) of type-(1,2) tensors fields on the 2-dimensional
@@ -554,7 +601,7 @@ class VectorFieldModule(UniqueRepresentation, Parent):
 
         EXAMPLES::
 
-            sage: M = DiffManifold(2, 'M')
+            sage: M = Manifold(2, 'M')
             sage: XM = M.vector_field_module()
             sage: XM.dual_exterior_power(2)
             Module /\^2(M) of 2-forms on the 2-dimensional differentiable
@@ -589,7 +636,7 @@ class VectorFieldModule(UniqueRepresentation, Parent):
 
         EXAMPLE::
 
-            sage: M = DiffManifold(2, 'M')
+            sage: M = Manifold(2, 'M')
             sage: XM = M.vector_field_module()
             sage: XM.dual()
             Module /\^1(M) of 1-forms on the 2-dimensional differentiable
@@ -616,7 +663,7 @@ class VectorFieldModule(UniqueRepresentation, Parent):
 
         EXAMPLE::
 
-            sage: M = DiffManifold(2, 'M')
+            sage: M = Manifold(2, 'M')
             sage: XM = M.vector_field_module()
             sage: XM.general_linear_group()
             General linear group of the Module X(M) of vector fields on the
@@ -673,7 +720,7 @@ class VectorFieldModule(UniqueRepresentation, Parent):
 
         EXAMPLES::
 
-            sage: M = DiffManifold(2, 'M')
+            sage: M = Manifold(2, 'M')
             sage: XM = M.vector_field_module()
             sage: XM.tensor((1,2), name='t')
             Tensor field t of type (1,2) on the 2-dimensional differentiable
@@ -739,7 +786,7 @@ class VectorFieldModule(UniqueRepresentation, Parent):
 
         EXAMPLES::
 
-            sage: M = DiffManifold(2, 'M')
+            sage: M = Manifold(2, 'M')
             sage: XM = M.vector_field_module()
             sage: XM.alternating_form(2, name='a')
             2-form a on the 2-dimensional differentiable manifold M
@@ -777,7 +824,7 @@ class VectorFieldModule(UniqueRepresentation, Parent):
 
         EXAMPLES::
 
-            sage: M = DiffManifold(2, 'M')
+            sage: M = Manifold(2, 'M')
             sage: XM = M.vector_field_module()
             sage: XM.linear_form()
             1-form on the 2-dimensional differentiable manifold M
@@ -815,7 +862,7 @@ class VectorFieldModule(UniqueRepresentation, Parent):
 
         EXAMPLES::
 
-            sage: M = DiffManifold(2, 'M')
+            sage: M = Manifold(2, 'M')
             sage: XM = M.vector_field_module()
             sage: XM.automorphism()
             Field of tangent-space automorphisms on the 2-dimensional
@@ -854,7 +901,7 @@ class VectorFieldModule(UniqueRepresentation, Parent):
 
         EXAMPLE::
 
-            sage: M = DiffManifold(2, 'M')
+            sage: M = Manifold(2, 'M')
             sage: XM = M.vector_field_module()
             sage: XM.identity_map()
             Field of tangent-space identity maps on the 2-dimensional
@@ -929,7 +976,7 @@ class VectorFieldFreeModule(FiniteRankFreeModule):
 
     Module of vector fields on `\RR^2`::
 
-        sage: M = DiffManifold(2, 'R^2')
+        sage: M = Manifold(2, 'R^2')
         sage: cart.<x,y> = M.chart()  # Cartesian coordinates on R^2
         sage: XM = M.vector_field_module() ; XM
         Free module X(R^2) of vector fields on the 2-dimensional differentiable
@@ -960,7 +1007,7 @@ class VectorFieldFreeModule(FiniteRankFreeModule):
     different from the identity map, namely a mapping
     `\Phi: I \rightarrow \RR^2`, where `I` is an open interval of `\RR`::
 
-        sage: I = DiffManifold(1, 'I')
+        sage: I = Manifold(1, 'I')
         sage: canon.<t> = I.chart('t:(0,2*pi)')
         sage: Phi = I.diff_map(M, coord_functions=[cos(t), sin(t)], name='Phi',
         ....:                      latex_name=r'\Phi') ; Phi
@@ -1006,7 +1053,7 @@ class VectorFieldFreeModule(FiniteRankFreeModule):
     Let us now consider the module of vector fields on the circle `S^1`; we
     start by constructing the `S^1` manifold::
 
-        sage: M = DiffManifold(1, 'S^1')
+        sage: M = Manifold(1, 'S^1')
         sage: U = M.open_subset('U')  # the complement of one point
         sage: c_t.<t> =  U.chart('t:(0,2*pi)') # the standard angle coordinate
         sage: V = M.open_subset('V') # the complement of the point t=pi
@@ -1099,8 +1146,7 @@ class VectorFieldFreeModule(FiniteRankFreeModule):
 
         TESTS::
 
-            sage: DiffManifold._clear_cache_() # for doctests only
-            sage: M = DiffManifold(2, 'M')
+            sage: M = Manifold(2, 'M')
             sage: X.<x,y> = M.chart()  # makes M parallelizable
             sage: from sage.manifolds.differentiable.vectorfield_module \
             ....:                                  import VectorFieldFreeModule
@@ -1156,14 +1202,14 @@ class VectorFieldFreeModule(FiniteRankFreeModule):
 
         TESTS::
 
-            sage: M = DiffManifold(2, 'M')
+            sage: M = Manifold(2, 'M')
             sage: X.<x,y> = M.chart()  # makes M parallelizable
             sage: XM = M.vector_field_module()
-            sage: v = XM._element_constructor_(comp=[-y,x], name='v'); v
+            sage: v = XM([-y,x], name='v'); v
             Vector field v on the 2-dimensional differentiable manifold M
             sage: v.display()
             v = -y d/dx + x d/dy
-            sage: XM._element_constructor_(0) is XM.zero()
+            sage: XM(0) is XM.zero()
             True
 
         """
@@ -1189,7 +1235,7 @@ class VectorFieldFreeModule(FiniteRankFreeModule):
 
         TEST::
 
-            sage: M = DiffManifold(2, 'M')
+            sage: M = Manifold(2, 'M')
             sage: X.<x,y> = M.chart()  # makes M parallelizable
             sage: U = M.open_subset('U')
             sage: XM = M.vector_field_module()
@@ -1216,7 +1262,7 @@ class VectorFieldFreeModule(FiniteRankFreeModule):
 
         TESTS::
 
-            sage: M = DiffManifold(2, 'M')
+            sage: M = Manifold(2, 'M')
             sage: X.<x,y> = M.chart()  # makes M parallelizable
             sage: XM = M.vector_field_module()
             sage: XM._repr_()
@@ -1239,6 +1285,33 @@ class VectorFieldFreeModule(FiniteRankFreeModule):
                            " mapped into the {}".format(self._ambient_domain)
         return description
 
+    def _test_pickling(self, **options):
+        r"""
+        Test pickling.
+
+        This test is weaker than
+        :meth:`sage.structure.sage_object.SageObject._test_pickling` in that
+        it does not require ``loads(dumps(self)) == self``.
+        It however checks that ``loads(dumps(self))`` proceeds without any
+        error and results in an object that is a module of vector fields of
+        the same type as ``self``.
+
+        TEST::
+
+            sage: M = Manifold(2, 'M')
+            sage: X.<x,y> = M.chart()  # makes M parallelizable
+            sage: XM = M.vector_field_module()
+            sage: XM._test_pickling()
+
+        """
+        tester = self._tester(**options)
+        from sage.misc.all import loads, dumps
+        bckp = loads(dumps(self))
+        tester.assertEqual(type(bckp), type(self))
+        tester.assertEqual(bckp._domain.dimension(), self._domain.dimension())
+        tester.assertEqual(bckp._ambient_domain.dimension(),
+                           self._ambient_domain.dimension())
+
     def domain(self):
         r"""
         Return the domain of the vector fields in this module.
@@ -1249,18 +1322,18 @@ class VectorFieldFreeModule(FiniteRankFreeModule):
         OUTPUT:
 
         - instance of
-          :class:`~sage.manifolds.differentiable.manifold.DiffManifold`
+          :class:`~sage.manifolds.differentiable.manifold.DifferentiableManifold`
           representing the domain of the vector fields that belong to this
           module
 
         EXAMPLES::
 
-            sage: M = DiffManifold(3, 'M')
+            sage: M = Manifold(3, 'M')
             sage: X.<x,y,z> = M.chart()  # makes M parallelizable
             sage: XM = M.vector_field_module()
             sage: XM.domain()
             3-dimensional differentiable manifold M
-            sage: U = DiffManifold(2, 'U')
+            sage: U = Manifold(2, 'U')
             sage: Y.<u,v> = U.chart()
             sage: Phi = U.diff_map(M, {(Y,X): [u+v, u-v, u*v]}, name='Phi')
             sage: XU = U.vector_field_module(dest_map=Phi)
@@ -1281,18 +1354,18 @@ class VectorFieldFreeModule(FiniteRankFreeModule):
         OUTPUT:
 
         - instance of
-          :class:`~sage.manifolds.differentiable.manifold.DiffManifold`
+          :class:`~sage.manifolds.differentiable.manifold.DifferentiableManifold`
           representing the manifold in which the vector fields of this
           module take their values
 
         EXAMPLES::
 
-            sage: M = DiffManifold(3, 'M')
+            sage: M = Manifold(3, 'M')
             sage: X.<x,y,z> = M.chart()  # makes M parallelizable
             sage: XM = M.vector_field_module()
             sage: XM.ambient_domain()
             3-dimensional differentiable manifold M
-            sage: U = DiffManifold(2, 'U')
+            sage: U = Manifold(2, 'U')
             sage: Y.<u,v> = U.chart()
             sage: Phi = U.diff_map(M, {(Y,X): [u+v, u-v, u*v]}, name='Phi')
             sage: XU = U.vector_field_module(dest_map=Phi)
@@ -1335,12 +1408,12 @@ class VectorFieldFreeModule(FiniteRankFreeModule):
 
         EXAMPLES::
 
-            sage: M = DiffManifold(3, 'M')
+            sage: M = Manifold(3, 'M')
             sage: X.<x,y,z> = M.chart()  # makes M parallelizable
             sage: XM = M.vector_field_module()
             sage: XM.destination_map()
             Identity map Id_M of the 3-dimensional differentiable manifold M
-            sage: U = DiffManifold(2, 'U')
+            sage: U = Manifold(2, 'U')
             sage: Y.<u,v> = U.chart()
             sage: Phi = U.diff_map(M, {(Y,X): [u+v, u-v, u*v]}, name='Phi')
             sage: XU = U.vector_field_module(dest_map=Phi)
@@ -1374,7 +1447,7 @@ class VectorFieldFreeModule(FiniteRankFreeModule):
 
         A tensor field module on a 2-dimensional differentiable manifold::
 
-            sage: M = DiffManifold(2, 'M')
+            sage: M = Manifold(2, 'M')
             sage: X.<x,y> = M.chart()  # makes M parallelizable
             sage: XM = M.vector_field_module()
             sage: XM.tensor_module(1,2)
@@ -1429,7 +1502,7 @@ class VectorFieldFreeModule(FiniteRankFreeModule):
 
         EXAMPLES::
 
-            sage: M = DiffManifold(2, 'M')
+            sage: M = Manifold(2, 'M')
             sage: X.<x,y> = M.chart()  # makes M parallelizable
             sage: XM = M.vector_field_module()
             sage: XM.dual_exterior_power(2)
@@ -1477,7 +1550,7 @@ class VectorFieldFreeModule(FiniteRankFreeModule):
 
         EXAMPLE::
 
-            sage: M = DiffManifold(2, 'M')
+            sage: M = Manifold(2, 'M')
             sage: X.<x,y> = M.chart()  # makes M parallelizable
             sage: XM = M.vector_field_module()
             sage: XM.general_linear_group()
@@ -1528,7 +1601,7 @@ class VectorFieldFreeModule(FiniteRankFreeModule):
 
         EXAMPLE::
 
-            sage: M = DiffManifold(2, 'M')
+            sage: M = Manifold(2, 'M')
             sage: X.<x,y> = M.chart()  # makes M parallelizable
             sage: XM = M.vector_field_module()
             sage: e = XM.basis('e'); e
@@ -1592,7 +1665,7 @@ class VectorFieldFreeModule(FiniteRankFreeModule):
 
         EXAMPLES::
 
-            sage: M = DiffManifold(2, 'M')
+            sage: M = Manifold(2, 'M')
             sage: X.<x,y> = M.chart()  # makes M parallelizable
             sage: XM = M.vector_field_module()
             sage: XM.tensor((1,2), name='t')
@@ -1666,7 +1739,7 @@ class VectorFieldFreeModule(FiniteRankFreeModule):
         A 2-dimensional set of components transformed into a type-(1,1) tensor
         field::
 
-            sage: M = DiffManifold(2, 'M')
+            sage: M = Manifold(2, 'M')
             sage: X.<x,y> = M.chart()
             sage: XM = M.vector_field_module()
             sage: from sage.tensor.modules.comp import Components
@@ -1749,7 +1822,7 @@ class VectorFieldFreeModule(FiniteRankFreeModule):
 
         EXAMPLE::
 
-            sage: M = DiffManifold(2, 'M')
+            sage: M = Manifold(2, 'M')
             sage: X.<x,y> = M.chart()  # makes M parallelizable
             sage: XM = M.vector_field_module()
             sage: XM.sym_bilinear_form(name='a')

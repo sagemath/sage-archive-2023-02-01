@@ -47,14 +47,14 @@ class TangentSpace(FiniteRankFreeModule):
     INPUT:
 
     - ``point`` -- (instance of
-      :class:`~sage.manifolds.point.TopManifoldPoint`) point `p` at which the
+      :class:`~sage.manifolds.point.TopologicalManifoldPoint`) point `p` at which the
       tangent space is defined.
 
     EXAMPLES:
 
     Tangent space on a 2-dimensional manifold::
 
-        sage: M = DiffManifold(2, 'M')
+        sage: M = Manifold(2, 'M')
         sage: c_xy.<x,y> = M.chart()
         sage: p = M.point((-1,2), name='p')
         sage: Tp = M.tangent_space(p) ; Tp
@@ -197,7 +197,7 @@ class TangentSpace(FiniteRankFreeModule):
         TESTS::
 
             sage: from sage.manifolds.differentiable.tangent_space import TangentSpace
-            sage: M = DiffManifold(2, 'M')
+            sage: M = Manifold(2, 'M')
             sage: X.<x,y> = M.chart()
             sage: p = M.point((1,-2), name='p')
             sage: Tp = TangentSpace(p) ; Tp
@@ -292,7 +292,7 @@ class TangentSpace(FiniteRankFreeModule):
 
         EXAMPLE::
 
-            sage: M = DiffManifold(2, 'M')
+            sage: M = Manifold(2, 'M')
             sage: X.<x,y> = M.chart()
             sage: p = M.point((3,-2), name='p')
             sage: Tp = M.tangent_space(p)
@@ -311,7 +311,7 @@ class TangentSpace(FiniteRankFreeModule):
 
         EXAMPLE::
 
-            sage: M = DiffManifold(2, 'M')
+            sage: M = Manifold(2, 'M')
             sage: X.<x,y> = M.chart()
             sage: p = M.point((3,-2), name='p')
             sage: Tp = M.tangent_space(p)
@@ -327,13 +327,40 @@ class TangentSpace(FiniteRankFreeModule):
             resu.set_comp()[:] = range(1, self._rank+1)
         return resu
 
+    def _test_pickling(self, **options):
+        r"""
+        Test pickling.
+
+        This test is weaker than
+        :meth:`sage.structure.sage_object.SageObject._test_pickling` in that
+        it does not require ``loads(dumps(self)) == self``.
+        It however checks that ``loads(dumps(self))`` proceeds without any
+        error and results in an object that is a tangent space of the same type
+        as ``self``.
+
+        TEST::
+
+            sage: M = Manifold(2, 'M')
+            sage: X.<x,y> = M.chart()
+            sage: p = M.point((3,-2), name='p')
+            sage: Tp = M.tangent_space(p)
+            sage: Tp._test_pickling()
+
+        """
+        tester = self._tester(**options)
+        from sage.misc.all import loads, dumps
+        bckp = loads(dumps(self))
+        tester.assertEqual(type(bckp), type(self))
+        tester.assertEqual(bckp._ring, self._ring)
+        tester.assertEqual(bckp._rank, self._rank)
+
     def dimension(self):
         r"""
         Return the vector space dimension of the tangent space.
 
         EXAMPLE::
 
-            sage: M = DiffManifold(2, 'M')
+            sage: M = Manifold(2, 'M')
             sage: X.<x,y> = M.chart()
             sage: p = M.point((1,-2), name='p')
             sage: Tp = M.tangent_space(p)
@@ -363,8 +390,8 @@ class TangentSpace(FiniteRankFreeModule):
         EXAMPLE::
 
             sage: from sage.manifolds.differentiable.tangent_space import TangentSpace # for doctests only
-            sage: TangentSpace._clear_cache_() ; DiffManifold._clear_cache_() # for doctests only
-            sage: M = DiffManifold(2, 'M')
+            sage: TangentSpace._clear_cache_()  # for doctests only
+            sage: M = Manifold(2, 'M')
             sage: X.<x,y> = M.chart()
             sage: p = M.point((1,-2), name='p')
             sage: Tp = M.tangent_space(p)

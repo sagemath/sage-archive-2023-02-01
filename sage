@@ -124,9 +124,9 @@ fi
 export SAGE_ROOT
 
 # If this is a freshly-unpacked binary tarball then run the installer
-# Note: install.py deletes itself upon successful completion
-if [ -x "$SAGE_ROOT/install.py" ]; then
-    "$SAGE_ROOT/install.py"
+# Note: relocate-once.py deletes itself upon successful completion
+if [ -x "$SAGE_ROOT/relocate-once.py" ]; then
+    "$SAGE_ROOT/relocate-once.py"
 fi
 
 # Run the actual Sage script

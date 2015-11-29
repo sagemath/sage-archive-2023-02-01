@@ -84,7 +84,7 @@ class Function_exp(GinacFunction):
             sage: latex(exp)
             \exp
             sage: latex(exp(sqrt(x))^x)
-            e^{\sqrt{x}}^{x}
+            \left(e^{\sqrt{x}}\right)^{x}
             sage: latex(exp(sqrt(x)^x))
             e^{\left(\sqrt{x}^{x}\right)}
 

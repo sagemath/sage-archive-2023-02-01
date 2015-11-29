@@ -2860,8 +2860,7 @@ class DifferentiableManifold(TopologicalManifold):
 
         Affine connection on an open subset of a 3-dimensional smooth manifold::
 
-            sage: DiffManifold._clear_cache_() # for doctests only
-            sage: M = DiffManifold(3, 'M', start_index=1)
+            sage: M = Manifold(3, 'M', start_index=1)
             sage: A = M.open_subset('A', latex_name=r'\mathcal{A}')
             sage: nab = A.affine_connection('nabla', r'\nabla') ; nab
             Affine connection nabla on the Open subset A of the 3-dimensional

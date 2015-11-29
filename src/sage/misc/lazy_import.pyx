@@ -943,6 +943,30 @@ cdef class LazyImport(object):
         """
         return self._get_object()
 
+    def __instancecheck__(self, x):
+        """
+        Support ``isinstance()``.
+
+        EXAMPLES::
+
+            sage: lazy_import('sage.rings.rational_field', 'RationalField')
+            sage: isinstance(QQ, RationalField)
+            True
+        """
+        return isinstance(x, self._get_object())
+
+    def __subclasscheck__(self, x):
+        """
+        Support ``issubclass()``.
+
+        EXAMPLES::
+
+            sage: lazy_import('sage.structure.parent', 'Parent')
+            sage: issubclass(RationalField, Parent)
+            True
+        """
+        return issubclass(x, self._get_object())
+
 
 def lazy_import(module, names, _as=None, namespace=None, bint overwrite=True, at_startup=False, deprecation=None):
     """

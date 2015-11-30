@@ -183,7 +183,11 @@ class AffineConnection(SageObject):
         1-form df on the 3-dimensional differentiable manifold M
         sage: Df[:]
         [2*x, -2*y, 0]
-        sage: Df == f.differential()  # a necessary condition for any affine connection
+
+    The action of an affine connection connection on a scalar field must
+    coincide with the differential::
+
+        sage: Df == f.differential()
         True
 
     A generic affine connection has some torsion::
@@ -382,9 +386,12 @@ class AffineConnection(SageObject):
         self._torsion = None
         self._riemann = None
         self._ricci = None
-        self._connection_forms = {}
-        self._torsion_forms = {}
-        self._curvature_forms = {}
+        self._connection_forms = {}  # dict. of dict. of connection 1-forms
+                                     # (key: vector frame)
+        self._torsion_forms = {}  # dict. of dict. of torsion 1-forms
+                                  # (key: vector frame)
+        self._curvature_forms = {}  # dict. of dict. of curvature 2-forms
+                                    # (key: vector frame)
 
     def _del_derived(self):
         r"""
@@ -473,19 +480,13 @@ class AffineConnection(SageObject):
             Gam^x_yx = x + 1
             Gam^x_yy = x*y
             sage: nab1 = M.affine_connection('nabla', latex_name=r'\nabla')
-            sage: nab1.__eq__(nab)
-            False
-            sage: nab.__eq__(nab1)
+            sage: (nab1 == nab) or (nab == nab1)
             False
             sage: nab1[0,1,0], nab1[0,1,1] = 2, 3-y
-            sage: nab1.__eq__(nab)
-            False
-            sage: nab.__eq__(nab1)
+            sage: (nab1 == nab) or (nab == nab1)
             False
             sage: nab1[0,1,0], nab1[0,1,1] = 1+x, x*y
-            sage: nab1.__eq__(nab)
-            True
-            sage: nab.__eq__(nab1)
+            sage: (nab1 == nab) and (nab == nab1)
             True
             sage: nab2 = M.affine_connection('nabla', latex_name=r'\nabla')
             sage: a = M.automorphism_field()
@@ -493,18 +494,16 @@ class AffineConnection(SageObject):
             sage: e = X.frame().new_frame(a, 'e')
             sage: nab2.set_coef(e)[1,0,1] = 1+x
             sage: nab2.set_coef(e)[1,0,0] = x*y
-            sage: nab2.__eq__(nab)
-            True
-            sage: nab.__eq__(nab2)
+            sage: (nab2 == nab) and (nab == nab2)
             True
             sage: f = M.vector_frame('f')
             sage: nab2.set_coef(f)[1,0,1] = x-y
-            sage: nab2.__eq__(nab)
-            False
-            sage: nab.__eq__(nab2)
+            sage: (nab2 == nab) or (nab == nab2)
             False
 
         """
+        if other is self:
+            return True
         if not isinstance(other, AffineConnection):
             return False
         if other._domain != self._domain:
@@ -518,6 +517,38 @@ class AffineConnection(SageObject):
             except ValueError:
                 return False
         return True
+
+    def __ne__(self, other):
+        r"""
+        Inequality operator.
+
+        INPUT:
+
+        - ``other`` -- an affine connection
+
+        OUTPUT:
+
+        - ``True`` if ``self`` is different from ``other`` and ``False``
+          otherwise
+
+        TESTS::
+
+            sage: M = Manifold(2, 'M')
+            sage: X.<x,y> = M.chart()
+            sage: nab = M.affine_connection('nabla', latex_name=r'\nabla')
+            sage: nab[0,1,0], nab[0,1,1] = 1+x, x*y
+            sage: nab1 = M.affine_connection('nabla', latex_name=r'\nabla')
+            sage: (nab1 != nab) and (nab != nab1)
+            True
+            sage: nab1[0,1,0], nab1[0,1,1] = 2, 3-y
+            sage: (nab1 != nab) and (nab != nab1)
+            True
+            sage: nab1[0,1,0], nab1[0,1,1] = 1+x, x*y
+            sage: (nab1 != nab) or (nab != nab1)
+            False
+
+        """
+        return not self.__eq__(other)
 
     def domain(self):
         r"""
